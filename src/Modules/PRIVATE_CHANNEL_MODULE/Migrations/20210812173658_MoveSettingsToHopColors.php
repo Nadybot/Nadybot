@@ -25,15 +25,15 @@ class MoveSettingsToHopColors implements SchemaMigration {
 		$hop = [
 			"tag_color" => $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3",
 			"text_color" => $this->getSettingColor($db, "guest_color_guild") ?? "C3C3C3",
-			"hop" => Source::PRIV . "(" . $this->config->name . ")",
+			"hop" => Source::PRIV . "(" . $this->config->main->character . ")",
 		];
 		$db->table(MessageHub::DB_TABLE_COLORS)->insert($hop);
 
-		if (strlen($this->config->orgName)) {
+		if (strlen($this->config->general->orgName)) {
 			$hop = [
 				"tag_color" => $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3",
 				"text_color" => $this->getSettingColor($db, "guest_color_guest") ?? "C3C3C3",
-				"hop" => Source::ORG . "({$this->config->orgName})",
+				"hop" => Source::ORG . "({$this->config->general->orgName})",
 			];
 			$db->table(MessageHub::DB_TABLE_COLORS)->insert($hop);
 		}

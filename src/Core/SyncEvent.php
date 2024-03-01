@@ -27,8 +27,8 @@ class SyncEvent extends Event {
 
 		/** @var BotConfig */
 		$config = Registry::getInstance(BotConfig::class);
-		$myName = $config->name;
-		$myDim = $config->dimension;
+		$myName = $config->main->character;
+		$myDim = $config->main->dimension;
 		return $this->sourceBot === $myName
 			&& $this->sourceDimension === $myDim;
 	}

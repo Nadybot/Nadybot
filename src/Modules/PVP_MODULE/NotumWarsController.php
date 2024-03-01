@@ -17,7 +17,6 @@ use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, EventMana
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
-use Nadybot\Modules\PVP_MODULE\{FeedMessage};
 use Nadybot\Modules\TIMERS_MODULE\{Alert, Timer, TimerController};
 use Safe\Exceptions\JsonException;
 
@@ -782,7 +781,7 @@ class NotumWarsController extends ModuleInstance {
 		$this->registerAttack($attack);
 		$breedRequired = !isset($attacker->breed) && $this->towerAttackExtraInfo;
 		$infoMissing = !isset($attacker->level) || !isset($attacker->faction);
-		$player = $this->playerManager->findInDb($attacker->name, $this->config->dimension);
+		$player = $this->playerManager->findInDb($attacker->name, $this->config->main->dimension);
 		if (isset($player)) {
 			$attack->addLookups($player);
 		} elseif (isset($attacker->character_id) && ($breedRequired || $infoMissing)) {
@@ -1036,7 +1035,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw timer")]
 	public function plantTimerCommand(
 		CmdContext $context,
-		#[NCA\Str("timer")] string $action,
+		#[NCA\Str("timer")]
+		string $action,
 		PTowerSite $site,
 		int $timestamp,
 	): void {
@@ -1074,7 +1074,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw free")]
 	public function unplantedSitesCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("unplanted", "free")] string $action,
+		#[NCA\StrChoice("unplanted", "free")]
+		string $action,
 	): void {
 		$unplantedSites = $this->getUnplantedSites();
 		if (empty($unplantedSites)) {
@@ -1092,7 +1093,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw")]
 	public function highContractsCommand(
 		CmdContext $context,
-		#[NCA\Str("top", "highcontracts", "highcontract")] string $action,
+		#[NCA\Str("top", "highcontracts", "highcontract")]
+		string $action,
 	): void {
 		$orgQls = [];
 		$orgFaction = [];
@@ -1143,7 +1145,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>nw hot penalty")]
 	public function hotSitesCommand(
 		CmdContext $context,
-		#[NCA\Str("hot")] string $action,
+		#[NCA\Str("hot")]
+		string $action,
 		?string $search
 	): void {
 		$search ??= "";
@@ -1282,7 +1285,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw sites")]
 	public function listMyOrgsSitesCommand(
 		CmdContext $context,
-		#[NCA\Str("sites")] string $action,
+		#[NCA\Str("sites")]
+		string $action,
 	): Generator {
 		/** @var ?Player */
 		$player = yield $this->playerManager->byName($context->char->name);
@@ -1309,7 +1313,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw sites")]
 	public function listOrgSitesByIDCommand(
 		CmdContext $context,
-		#[NCA\Str("sites")] string $action,
+		#[NCA\Str("sites")]
+		string $action,
 		int $orgID
 	): void {
 		$matches = $this->getEnabledSites()->whereStrict("org_id", $orgID);
@@ -1338,8 +1343,10 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>nw sites nady")]
 	public function listOrgSitesCommand(
 		CmdContext $context,
-		#[NCA\Str("sites")] string $action,
-		#[NCA\Str("org")] ?string $forceOrg,
+		#[NCA\Str("sites")]
+		string $action,
+		#[NCA\Str("org")]
+		?string $forceOrg,
 		string $search
 	): Generator {
 		$searchTerm = $search;
@@ -1380,8 +1387,10 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw towerqty")]
 	public function towerQtyCommand(
 		CmdContext $context,
-		#[NCA\Str("towerqty")] string $action,
-		#[NCA\Str("all")] ?string $all,
+		#[NCA\Str("towerqty")]
+		string $action,
+		#[NCA\Str("all")]
+		?string $all,
 	): Generator {
 		if (isset($all)) {
 			$msg = $this->text->makeBlob("Allowed number of towers", $this->getAllTowerQuantitiesBlob());
@@ -1419,7 +1428,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw types")]
 	public function towerTypeCommand(
 		CmdContext $context,
-		#[NCA\Str("types", "towertype", "towertypes", "towers")] string $action,
+		#[NCA\Str("types", "towertype", "towertypes", "towers")]
+		string $action,
 	): void {
 		$blob = "<header2>Tower types by QL<end>";
 		$minQL = 1;
@@ -1716,7 +1726,7 @@ class NotumWarsController extends ModuleInstance {
 
 			$this->timerController->add(
 				$timer->name,
-				$this->config->name,
+				$this->config->main->character,
 				$timer->mode,
 				$timer->alerts,
 				'timercontroller.timerCallback'

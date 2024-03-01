@@ -51,7 +51,8 @@ class QuoteController extends ModuleInstance {
 	#[NCA\HandlesCommand("quote")]
 	public function quoteAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		string $quote
 	): void {
 		$quoteMsg = trim($quote);
@@ -115,7 +116,8 @@ class QuoteController extends ModuleInstance {
 	#[NCA\HandlesCommand("quote")]
 	public function quoteSearchCommand(
 		CmdContext $context,
-		#[NCA\Str("search")] string $action,
+		#[NCA\Str("search")]
+		string $action,
 		string $search
 	): void {
 		$searchParam = "%{$search}%";
@@ -163,7 +165,8 @@ class QuoteController extends ModuleInstance {
 	#[NCA\HandlesCommand("quote")]
 	public function quoteShowCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("org", "priv")] ?string $channel,
+		#[NCA\StrChoice("org", "priv")]
+		?string $channel,
 		int $id
 	): void {
 		$result = $this->getQuoteInfo($id);
@@ -235,7 +238,7 @@ class QuoteController extends ModuleInstance {
 		$msg .= "Date: <highlight>" . $this->util->date($row->dt) . "<end>\n";
 		$msg .= "Quote: <highlight>{$quoteMsg}<end>\n";
 		$msg .= "Action:";
-		if (!empty($this->config->orgName)) {
+		if (!empty($this->config->general->orgName)) {
 			$msg .= " [".
 				$this->text->makeChatcmd("To orgchat", "/tell <myname> quote org {$row->id}").
 			"]";

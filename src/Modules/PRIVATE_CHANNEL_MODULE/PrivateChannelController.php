@@ -398,7 +398,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Help\Group("private-channel")]
 	public function inactiveMembersCommand(
 		CmdContext $context,
-		#[NCA\Str("inactive")] string $action,
+		#[NCA\Str("inactive")]
+		string $action,
 		?PDuration $duration
 	): void {
 		$duration ??= new PDuration("1y");
@@ -489,7 +490,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Help\Group("private-channel")]
 	public function addUserCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		PCharacter $char
 	): Generator {
 		try {
@@ -519,7 +521,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Help\Group("private-channel")]
 	public function remallUserCommand(
 		CmdContext $context,
-		#[NCA\Str("remall", "delall")] string $action,
+		#[NCA\Str("remall", "delall")]
+		string $action,
 		PCharacter $member
 	): void {
 		$main = $this->altsController->getMainOf($member());
@@ -661,8 +664,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand("count")]
 	public function countLevelCommand(
 		CmdContext $context,
-		#[NCA\Str("raid")] ?string $raidOnly,
-		#[NCA\Regexp("levels?|lvls?", example: "lvl")] string $action
+		#[NCA\Str("raid")]
+		?string $raidOnly,
+		#[NCA\Regexp("levels?|lvls?", example: "lvl")]
+		string $action
 	): void {
 		$tl1 = 0;
 		$tl2 = 0;
@@ -672,7 +677,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$tl6 = 0;
 		$tl7 = 0;
 
-		$chars = $this->onlineController->getPlayers("priv", $this->config->name);
+		$chars = $this->onlineController->getPlayers("priv", $this->config->main->character);
 		if (isset($raidOnly)) {
 			[$errMsg, $chars] = $this->filterRaid($chars);
 			if (isset($errMsg)) {
@@ -716,10 +721,12 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand("count")]
 	public function countProfessionCommand(
 		CmdContext $context,
-		#[NCA\Str("raid")] ?string $raidOnly,
-		#[NCA\Regexp("all|profs?", example: "profs")] string $action
+		#[NCA\Str("raid")]
+		?string $raidOnly,
+		#[NCA\Regexp("all|profs?", example: "profs")]
+		string $action
 	): void {
-		$chars = $this->onlineController->getPlayers("priv", $this->config->name);
+		$chars = $this->onlineController->getPlayers("priv", $this->config->main->character);
 		if (isset($raidOnly)) {
 			[$errMsg, $chars] = $this->filterRaid($chars);
 			if (isset($errMsg)) {
@@ -758,10 +765,12 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand("count")]
 	public function countOrganizationCommand(
 		CmdContext $context,
-		#[NCA\Str("raid")] ?string $raidOnly,
-		#[NCA\Regexp("orgs?", example: "orgs")] string $action
+		#[NCA\Str("raid")]
+		?string $raidOnly,
+		#[NCA\Regexp("orgs?", example: "orgs")]
+		string $action
 	): void {
-		$online = $this->onlineController->getPlayers("priv", $this->config->name);
+		$online = $this->onlineController->getPlayers("priv", $this->config->main->character);
 		if (isset($raidOnly)) {
 			[$errMsg, $online] = $this->filterRaid($online);
 			if (isset($errMsg)) {
@@ -809,7 +818,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand("count")]
 	public function countCommand(
 		CmdContext $context,
-		#[NCA\Str("raid")] ?string $raidOnly,
+		#[NCA\Str("raid")]
+		?string $raidOnly,
 		string $profession
 	): void {
 		$prof = $this->util->getProfessionName($profession);
@@ -820,7 +830,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 
 		/** @var Collection<OnlinePlayer> */
-		$data = (new Collection($this->onlineController->getPlayers("priv", $this->config->name)))
+		$data = (new Collection($this->onlineController->getPlayers("priv", $this->config->main->character)))
 			->where("profession", $prof);
 		if (isset($raidOnly)) {
 			[$errMsg, $data] = $this->filterRaid($data->toArray());
@@ -1047,7 +1057,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public function dispatchRoutableEvent(object $event): void {
 		$re = new RoutableEvent();
 		$label = null;
-		if (strlen($this->config->orgName)) {
+		if (strlen($this->config->general->orgName)) {
 			$label = "Guest";
 		}
 		$re->type = RoutableEvent::TYPE_EVENT;
@@ -1224,7 +1234,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 		$this->onlineController->addPlayerToOnlineList(
 			$sender,
-			$this->config->orgName . ' Guests',
+			$this->config->general->orgName . ' Guests',
 			'priv'
 		);
 	}
@@ -1259,7 +1269,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		description: "Send welcome message data/welcome.txt to new members"
 	)]
 	public function sendWelcomeMessage(MemberEvent $event): Generator {
-		$welcomeFile = "{$this->config->dataFolder}/welcome.txt";
+		$welcomeFile = "{$this->config->paths->data}/welcome.txt";
 		try {
 			if (false === yield filesystem()->exists($welcomeFile)) {
 				return;

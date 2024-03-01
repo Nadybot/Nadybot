@@ -34,7 +34,7 @@ class MigrateToRouting implements SchemaMigration {
 		if ((int)$channels->value & 1) {
 			$route = [
 				"source" => Source::TRADEBOT,
-				"destination" => Source::PRIV . "({$this->config->name})",
+				"destination" => Source::PRIV . "({$this->config->main->character})",
 				"two_way" => false,
 			];
 			$db->table($table)->insert($route);

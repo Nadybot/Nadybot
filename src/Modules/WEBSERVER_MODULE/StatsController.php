@@ -110,7 +110,7 @@ class StatsController extends ModuleInstance {
 		) {
 			$server->httpError(new Response(
 				Response::UNAUTHORIZED,
-				["WWW-Authenticate" => "Bearer realm=\"{$this->config->name}\""],
+				["WWW-Authenticate" => "Bearer realm=\"{$this->config->main->character}\""],
 			), $request);
 			return;
 		}

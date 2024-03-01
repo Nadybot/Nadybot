@@ -215,7 +215,7 @@ class NadyNative implements RelayProtocolInterface {
 	public function handleSyncEvent(SyncEvent $event): void {
 		if (isset($event->sourceBot, $event->sourceDimension)
 
-			&& ($event->sourceDimension !== $this->config->dimension
+			&& ($event->sourceDimension !== $this->config->main->dimension
 				|| $event->sourceBot !== $this->chatBot->char->name)
 		) {
 			// We don't want to relay other bots' events
@@ -226,7 +226,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		$sEvent = clone $event;
 		$sEvent->sourceBot = $this->chatBot->char->name;
-		$sEvent->sourceDimension = $this->config->dimension;
+		$sEvent->sourceDimension = $this->config->main->dimension;
 		$rEvent = new RoutableEvent();
 		$rEvent->setType($rEvent::TYPE_EVENT);
 		$rEvent->setData($sEvent);
@@ -327,7 +327,7 @@ class NadyNative implements RelayProtocolInterface {
 	protected function getOnlineList(): OnlineList {
 		$onlineList = new OnlineList();
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
-		$isOrg = strlen($this->config->orgName);
+		$isOrg = strlen($this->config->general->orgName);
 		if ($isOrg) {
 			$block = new OnlineBlock();
 			$orgLabel = $this->settingManager->getString("relay_guild_abbreviation");
@@ -336,14 +336,14 @@ class NadyNative implements RelayProtocolInterface {
 			}
 			$block->path []= new Source(
 				Source::ORG,
-				$this->config->orgName,
+				$this->config->general->orgName,
 				$orgLabel
 			);
 			foreach ($onlineOrg as $player) {
 				$char = new RelayCharacter(
 					$player->name,
 					$player->charid ?? null,
-					$player->dimension ?? $this->config->dimension
+					$player->dimension ?? $this->config->main->dimension
 				);
 				$char->main = $this->altsController->getMainOf($player->name);
 				$block->users []= $char;
@@ -367,7 +367,7 @@ class NadyNative implements RelayProtocolInterface {
 			$char = new RelayCharacter(
 				$player->name,
 				$player->charid ?? null,
-				$player->dimension ?? $this->config->dimension
+				$player->dimension ?? $this->config->main->dimension
 			);
 			$char->main = $this->altsController->getMainOf($player->name);
 			$privBlock->users []= $char;

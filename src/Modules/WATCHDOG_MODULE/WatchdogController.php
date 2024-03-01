@@ -22,6 +22,6 @@ class WatchdogController extends ModuleInstance {
 		description: "Periodically touch an alive-file"
 	)]
 	public function touchAliveFile(): void {
-		\Safe\touch(sys_get_temp_dir().'/alive.'.$this->config->name.'.'.$this->config->dimension);
+		\Safe\touch(sys_get_temp_dir().'/alive.'.$this->config->main->character.'.'.$this->config->main->dimension);
 	}
 }

@@ -160,10 +160,10 @@ class MigrateToRelayTable implements SchemaMigration {
 		if (isset($guestRelay) && (int)$guestRelay->value) {
 			$route = new Route();
 			$route->source = Source::RELAY . "({$relay->name})";
-			$route->destination = Source::PRIV . "({$this->config->name})";
+			$route->destination = Source::PRIV . "({$this->config->main->character})";
 			$routeInPriv = $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 			$route = new Route();
-			$route->source = Source::PRIV . "({$this->config->name})";
+			$route->source = Source::PRIV . "({$this->config->main->character})";
 			$route->destination = Source::RELAY . "({$relay->name})";
 			$routesOut []= $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 		}

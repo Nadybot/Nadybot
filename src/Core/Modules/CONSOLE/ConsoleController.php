@@ -12,9 +12,9 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	Channels\ConsoleChannel,
-	Config\BotConfig,
 	CmdContext,
 	CommandManager,
+	Config\BotConfig,
 	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
@@ -49,6 +49,7 @@ class ConsoleController extends ModuleInstance {
 
 	/**
 	 * @var resource
+	 *
 	 * @psalm-var resource|closed-resource
 	 */
 	public $socket;
@@ -59,7 +60,7 @@ class ConsoleController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		if (!$this->config->enableConsoleClient || BotRunner::isWindows()) {
+		if (!$this->config->general->enableConsoleClient || BotRunner::isWindows()) {
 			return;
 		}
 		$this->commandManager->registerSource("console");
@@ -128,7 +129,7 @@ class ConsoleController extends ModuleInstance {
 		defaultStatus: 1
 	)]
 	public function setupConsole(): void {
-		if (!$this->config->enableConsoleClient) {
+		if (!$this->config->general->enableConsoleClient) {
 			return;
 		}
 		if (BotRunner::isWindows()) {
@@ -197,7 +198,7 @@ class ConsoleController extends ModuleInstance {
 			readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
 		}
 
-		$context = new CmdContext($this->config->superAdmins[0]??"<no superadmin set>");
+		$context = new CmdContext($this->config->general->superAdmins[0]??"<no superadmin set>");
 		$context->message = $line;
 		$context->source = Source::CONSOLE;
 		$context->sendto = new ConsoleCommandReply($this->chatBot);

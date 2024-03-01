@@ -183,7 +183,7 @@ class MgmtInterfaceController extends ModuleInstance {
 			if (trim($line) === "") {
 				return;
 			}
-			$context = new CmdContext($this->config->superAdmins[0]??"<no superadmin set>");
+			$context = new CmdContext($this->config->general->superAdmins[0]??"<no superadmin set>");
 			$context->message = $line;
 			$context->source = Source::CONSOLE;
 			$context->sendto = new SocketCommandReply($socket);

@@ -145,8 +145,8 @@ class WebChatConverter extends ModuleInstance {
 		];
 
 		$symbols = [
-			"<myname>" => $this->config->name,
-			"<myguild>" => $this->config->orgName,
+			"<myname>" => $this->config->main->character,
+			"<myguild>" => $this->config->general->orgName,
 			"<tab>" => "<indent />",
 			"<symbol>" => "",
 			"<br>" => "<br />",

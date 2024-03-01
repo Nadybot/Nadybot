@@ -312,8 +312,8 @@ class Text {
 		$array = array_merge(
 			$this->getColors(),
 			[
-				"<myname>" => $this->config->name,
-				"<myguild>" => $this->config->orgName,
+				"<myname>" => $this->config->main->character,
+				"<myguild>" => $this->config->general->orgName,
 				"<tab>" => "    ",
 				"<end>" => "</font>",
 				"<symbol>" => $this->settingManager->getString("symbol")??"!",
@@ -342,8 +342,8 @@ class Text {
 		$array = array_merge(
 			$colors,
 			[
-				"<myname>" => $this->config->name,
-				"<myguild>" => $this->config->orgName,
+				"<myname>" => $this->config->main->character,
+				"<myguild>" => $this->config->general->orgName,
 				"<tab>" => "    ",
 				"<end>" => "",
 				"<symbol>" => $this->settingManager->getString("symbol")??"!",

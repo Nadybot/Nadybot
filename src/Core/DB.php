@@ -79,7 +79,7 @@ class DB {
 
 	/** Get the lowercased name of the bot */
 	public function getBotname(): string {
-		return strtolower($this->config->name);
+		return strtolower($this->config->main->character);
 	}
 
 	/** Get the correct name of the bot */
@@ -89,16 +89,16 @@ class DB {
 
 	/** Get the correct guild name of the bot */
 	public function getMyguild(): string {
-		return ucfirst($this->config->orgName);
+		return ucfirst($this->config->general->orgName);
 	}
 
 	/** Get the dimension id of the bot */
 	public function getDim(): int {
-		return $this->config->dimension;
+		return $this->config->main->dimension;
 	}
 
 	public function getVersion(): string {
-		return $this->config->database->type->value . " " . $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
+		return $this->config->database->type->name . " " . $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
 	}
 
 	/**

@@ -125,7 +125,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testOrgJoinCommand(
 		CmdContext $context,
-		#[NCA\Str("orgjoin")] string $action,
+		#[NCA\Str("orgjoin")]
+		string $action,
 		PCharacter $char
 	): void {
 		$this->sendOrgMsg(
@@ -137,7 +138,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testOrgKickCommand(
 		CmdContext $context,
-		#[NCA\Str("orgkick")] string $action,
+		#[NCA\Str("orgkick")]
+		string $action,
 		PCharacter $char
 	): void {
 		$this->sendOrgMsg(
@@ -149,7 +151,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testOrgLeaveCommand(
 		CmdContext $context,
-		#[NCA\Str("orgleave")] string $action,
+		#[NCA\Str("orgleave")]
+		string $action,
 		PCharacter $char
 	): void {
 		$this->sendOrgMsg("{$char} just left your organization.");
@@ -159,7 +162,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testTowerAttackCommand(
 		CmdContext $context,
-		#[NCA\Str("towerattack")] string $action,
+		#[NCA\Str("towerattack")]
+		string $action,
 		PFaction $attFaction,
 		string $attOrg,
 		PCharacter $attacker,
@@ -183,7 +187,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testTowerAttackOrglessCommand(
 		CmdContext $context,
-		#[NCA\Str("towerattackorgless")] string $action,
+		#[NCA\Str("towerattackorgless")]
+		string $action,
 		PCharacter $attacker,
 		PFaction $defFaction,
 		string $defOrg,
@@ -204,7 +209,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testTowerAbandonCommand(
 		CmdContext $context,
-		#[NCA\Str("towerabandon")] string $action,
+		#[NCA\Str("towerabandon")]
+		string $action,
 		PFaction $faction,
 		string $orgName,
 		PPlayfield $playfield
@@ -224,7 +230,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testOrgAttackCommand(
 		CmdContext $context,
-		#[NCA\Str("orgattack")] string $action,
+		#[NCA\Str("orgattack")]
+		string $action,
 		PCharacter $attacker,
 		string $orgName
 	): void {
@@ -239,7 +246,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testOrgAttackPrepCommand(
 		CmdContext $context,
-		#[NCA\Str("orgattackprep")] string $action,
+		#[NCA\Str("orgattackprep")]
+		string $action,
 		PCharacter $attName,
 		string $orgName
 	): void {
@@ -255,7 +263,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testTowerVictoryCommand(
 		CmdContext $context,
-		#[NCA\Str("towervictory")] string $action,
+		#[NCA\Str("towervictory")]
+		string $action,
 		PFaction $attFaction,
 		string $attOrg,
 		PFaction $defFaction,
@@ -278,7 +287,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testOSCommand(
 		CmdContext $context,
-		#[NCA\Str("os")] string $action,
+		#[NCA\Str("os")]
+		string $action,
 		PCharacter $launcher
 	): void {
 		$this->sendOrgMsg(
@@ -294,7 +304,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testEventCommand(
 		CmdContext $context,
-		#[NCA\Str("event")] string $action,
+		#[NCA\Str("event")]
+		string $action,
 		string $event
 	): void {
 		[$instanceName, $methodName] = explode(".", $event);
@@ -315,7 +326,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testCloakLowerCommand(
 		CmdContext $context,
-		#[NCA\Str("cloaklower")] string $action
+		#[NCA\Str("cloaklower")]
+		string $action
 	): void {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			if (ord(substr((string)$gid, 0, 1)) === 3) {
@@ -342,7 +354,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testCloakRaiseCommand(
 		CmdContext $context,
-		#[NCA\Str("cloakraise")] string $action
+		#[NCA\Str("cloakraise")]
+		string $action
 	): void {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			if (ord(substr((string)$gid, 0, 1)) === 3) {
@@ -380,7 +393,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testTradebotMessageCommand(
 		CmdContext $context,
-		#[NCA\Str("tradebotmsg")] string $action
+		#[NCA\Str("tradebotmsg")]
+		string $action
 	): void {
 		$eventObj = new AOChatEvent();
 		$tradebot = $this->settingManager->getString('tradebot') ?? "Darknet";
@@ -432,7 +446,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testDiscordMessageCommand(
 		CmdContext $context,
-		#[NCA\Str("discordpriv")] string $action,
+		#[NCA\Str("discordpriv")]
+		string $action,
 		PCharacter $nick,
 		string $content
 	): void {
@@ -489,7 +504,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testLogonCommand(
 		CmdContext $context,
-		#[NCA\Str("logon")] string $action,
+		#[NCA\Str("logon")]
+		string $action,
 		PCharacter $char
 	): Generator {
 		$uid = yield $this->chatBot->getUid2($char());
@@ -506,7 +522,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testLogoffCommand(
 		CmdContext $context,
-		#[NCA\Str("logoff")] string $action,
+		#[NCA\Str("logoff")]
+		string $action,
 		PCharacter $char
 	): Generator {
 		$uid = yield $this->chatBot->getUid2($char());
@@ -523,7 +540,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testJoinCommand(
 		CmdContext $context,
-		#[NCA\Str("join")] string $action,
+		#[NCA\Str("join")]
+		string $action,
 		PCharacter $char
 	): Generator {
 		$uid = yield $this->chatBot->getUid2($char());
@@ -541,7 +559,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testLeaveCommand(
 		CmdContext $context,
-		#[NCA\Str("leave")] string $action,
+		#[NCA\Str("leave")]
+		string $action,
 		PCharacter $char
 	): Generator {
 		$uid = yield $this->chatBot->getUid2($char());
@@ -559,7 +578,8 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testSleepCommand(
 		CmdContext $context,
-		#[NCA\Str("sleep")] string $action,
+		#[NCA\Str("sleep")]
+		string $action,
 		int $duration
 	): void {
 		/** @psalm-var int<0,max> $duration */
@@ -585,13 +605,14 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testAllCommand(
 		CmdContext $context,
-		#[NCA\Str("all")] string $action
+		#[NCA\Str("all")]
+		string $action
 	): Generator {
 		$testContext = clone $context;
 
 		$files = yield filesystem()->listFiles($this->path);
 		$context->reply("Starting tests...");
-		$logFile = $this->config->dataFolder.
+		$logFile = $this->config->paths->data.
 			"/tests-" . \Safe\date("YmdHis", time()) . ".json";
 		$testLines = [];
 		foreach ($files as $file) {
@@ -618,7 +639,7 @@ class TestController extends ModuleInstance {
 			return;
 		}
 		$starttime = time();
-		$logFile = $this->config->dataFolder.
+		$logFile = $this->config->paths->data.
 			"/tests-" . \Safe\date("YmdHis", $starttime) . ".json";
 		$context->reply("Starting test {$file}...");
 		$this->runTests($lines, $testContext, $logFile);

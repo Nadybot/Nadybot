@@ -4,8 +4,8 @@ namespace Nadybot\Core\Modules\CONSOLE;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	Config\BotConfig,
 	CommandReply,
+	Config\BotConfig,
 	MessageEmitter,
 	MessageHub,
 	Modules\COLORS\ColorsController,
@@ -226,8 +226,8 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 
 	public function formatMsg(string $message): string {
 		$array = [
-			"<myname>" => $this->config->name,
-			"<myguild>" => $this->config->orgName,
+			"<myname>" => $this->config->main->character,
+			"<myguild>" => $this->config->general->orgName,
 			"<tab>" => "    ",
 			"<symbol>" => "",
 			"<center>" => "",

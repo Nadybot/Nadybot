@@ -226,7 +226,7 @@ class FindOrgController extends ModuleInstance {
 			'others',
 		];
 
-		$cacheFolder = $this->config->cacheFolder . "/orglist";
+		$cacheFolder = $this->config->paths->cache . "/orglist";
 		if (false === yield filesystem()->exists($cacheFolder)) {
 			yield filesystem()->createDirectory($cacheFolder, 0700);
 		}
@@ -286,7 +286,7 @@ class FindOrgController extends ModuleInstance {
 		return call(function () use ($letter): Generator {
 			$this->logger->info("Downloading orglist for letter {letter}", ["letter" => $letter]);
 			$cache = new FileCache(
-				$this->config->cacheFolder . '/orglist',
+				$this->config->paths->cache . '/orglist',
 				new LocalKeyedMutex()
 			);
 			$body = yield $cache->get($letter);
@@ -297,7 +297,7 @@ class FindOrgController extends ModuleInstance {
 				return;
 			}
 			$url = $this->orglistPorkUrl . "/people/lookup/orgs.html".
-				"?l={$letter}&dim={$this->config->dimension}";
+				"?l={$letter}&dim={$this->config->main->dimension}";
 			$client = $this->builder->build();
 			$retry = 5;
 			do {
@@ -317,7 +317,7 @@ class FindOrgController extends ModuleInstance {
 							"Error downloading orglist for letter {letter}, retrying in {retry}s",
 							[
 								"letter" => $letter,
-								"dim" => $this->config->dimension,
+								"dim" => $this->config->main->dimension,
 								"retry" => 5,
 							]
 						);
@@ -330,7 +330,7 @@ class FindOrgController extends ModuleInstance {
 						"Timeout downloading orglist for letter {letter}, retrying in {retry}s",
 						[
 							"letter" => $letter,
-							"dim" => $this->config->dimension,
+							"dim" => $this->config->main->dimension,
 							"retry" => 5,
 						]
 					);
@@ -341,7 +341,7 @@ class FindOrgController extends ModuleInstance {
 						[
 							"letter" => $letter,
 							"error" => $e->getMessage(),
-							"dim" => $this->config->dimension,
+							"dim" => $this->config->main->dimension,
 							"retry" => 5,
 							"exception" => $e,
 						]

@@ -5,10 +5,10 @@ namespace Nadybot\Core\Modules\BUDDYLIST;
 use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
-	Config\BotConfig,
 	BuddylistEntry,
 	BuddylistManager,
 	CmdContext,
+	Config\BotConfig,
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PCharacter,
@@ -94,7 +94,8 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistClearCommand(
 		CmdContext $context,
-		#[NCA\Str("clear", "clean")] string $action
+		#[NCA\Str("clear", "clean")]
+		string $action
 	): void {
 		$orphanCount = 0;
 		if (count($this->buddylistManager->buddyList) === 0) {
@@ -138,7 +139,8 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		PCharacter $who,
 		PWord $type
 	): Generator {
@@ -158,7 +160,8 @@ class BuddylistController extends ModuleInstance {
 	public function buddylistRemAllCommand(
 		CmdContext $context,
 		PRemove $rem,
-		#[NCA\Str("all")] string $all
+		#[NCA\Str("all")]
+		string $all
 	): void {
 		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
 			$this->chatBot->buddy_remove($uid);
@@ -199,7 +202,7 @@ class BuddylistController extends ModuleInstance {
 		} else {
 			$blob .= " [-]";
 		}
-		if ($this->config->useProxy && count($entry->worker) > 1) {
+		if ($this->config->proxy?->enabled && count($entry->worker) > 1) {
 			$blob .= " Worker " . join("+", array_keys($entry->worker));
 		}
 		if ($entry->known && $entry->online) {
@@ -212,7 +215,8 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistSearchCommand(
 		CmdContext $context,
-		#[NCA\Str("search")] string $action,
+		#[NCA\Str("search")]
+		string $action,
 		string $search
 	): void {
 		if (count($this->buddylistManager->buddyList) === 0) {
@@ -241,7 +245,8 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistRebalanceCommand(
 		CmdContext $context,
-		#[NCA\Str("rebalance")] string $action,
+		#[NCA\Str("rebalance")]
+		string $action,
 	): void {
 		if (count($this->buddylistManager->buddyList) === 0) {
 			$context->reply("There are no characters on the buddy list.");

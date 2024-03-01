@@ -143,6 +143,7 @@ class Tyrbot implements RelayProtocolInterface {
 
 	/**
 	 * @return string[]
+	 *
 	 * @psalm-return list<string>
 	 */
 	protected function encodeUserStateChange(RoutableEvent $r, Online $event): array {
@@ -184,6 +185,7 @@ class Tyrbot implements RelayProtocolInterface {
 
 	/**
 	 * @return string[]
+	 *
 	 * @psalm-return list<string>
 	 */
 	protected function encodeMessage(RoutableEvent $event): array {
@@ -320,10 +322,10 @@ class Tyrbot implements RelayProtocolInterface {
 			"online" => [],
 		];
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
-		if (strlen($this->config->orgName)) {
+		if (strlen($this->config->general->orgName)) {
 			$orgSource = [
-				"name" => $this->config->orgName,
-				"server" => $this->config->dimension,
+				"name" => $this->config->general->orgName,
+				"server" => $this->config->main->dimension,
 			];
 			$orgLabel = $this->settingManager->getString("relay_guild_abbreviation");
 			if (strlen($orgLabel??"") && $orgLabel !== "none") {
@@ -346,9 +348,9 @@ class Tyrbot implements RelayProtocolInterface {
 		$onlinePriv = $this->onlineController->getPlayers('priv', $this->chatBot->char->name);
 		$privSource = [
 			"name" => $this->chatBot->char->name,
-			"server" => $this->config->dimension,
+			"server" => $this->config->main->dimension,
 		];
-		if (strlen($this->config->orgName)) {
+		if (strlen($this->config->general->orgName)) {
 			if (isset($orgLabel) && $orgLabel !== "none") {
 				$privSource['label'] = $orgLabel;
 			}

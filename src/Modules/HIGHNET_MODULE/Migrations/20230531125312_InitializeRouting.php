@@ -11,7 +11,7 @@ class InitializeRouting implements SchemaMigration {
 	public BotConfig $config;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
-		$hops = ["web", strlen($this->config->orgName) ? "aoorg" : "aopriv({$this->config->name})"];
+		$hops = ["web", strlen($this->config->general->orgName) ? "aoorg" : "aopriv({$this->config->main->character})"];
 		foreach ($hops as $hop) {
 			$route = [
 				"source" => 'highnet(*)',

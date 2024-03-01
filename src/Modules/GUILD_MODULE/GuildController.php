@@ -384,7 +384,8 @@ class GuildController extends ModuleInstance {
 	#[NCA\HandlesCommand("notify")]
 	public function notifyAddCommand(
 		CmdContext $context,
-		#[NCA\Str("on", "add")] string $action,
+		#[NCA\Str("on", "add")]
+		string $action,
 		PCharacter $char
 	): Generator {
 		$name = $char();
@@ -495,7 +496,7 @@ class GuildController extends ModuleInstance {
 				return;
 			}
 			$this->logger->notice("Starting Roster update");
-			$org = yield $this->guildManager->byId($this->config->orgId, $this->config->dimension, $forceUpdate);
+			$org = yield $this->guildManager->byId($this->config->orgId, $this->config->main->dimension, $forceUpdate);
 			yield $this->updateRosterForGuild($org);
 		});
 	}
@@ -506,7 +507,7 @@ class GuildController extends ModuleInstance {
 		$abbr = $this->settingManager->getString('relay_guild_abbreviation');
 		$re->prependPath(new Source(
 			Source::ORG,
-			$this->config->orgName,
+			$this->config->general->orgName,
 			($abbr === "none") ? null : $abbr
 		));
 		$re->setData($event);
@@ -517,7 +518,8 @@ class GuildController extends ModuleInstance {
 	#[NCA\HandlesCommand("orgstats")]
 	public function orgstatsCommand(
 		CmdContext $context,
-		#[NCA\Str("online")] ?string $onlineOnly,
+		#[NCA\Str("online")]
+		?string $onlineOnly,
 	): Generator {
 		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
 			$context->reply("The bot must be in an org.");
@@ -525,7 +527,7 @@ class GuildController extends ModuleInstance {
 		}
 
 		/** @var ?Guild */
-		$org = yield $this->guildManager->byId($this->config->orgId, $this->config->dimension, false);
+		$org = yield $this->guildManager->byId($this->config->orgId, $this->config->main->dimension, false);
 		$members = $this->db->table(self::DB_TABLE, "om")
 			->join("players AS p", "om.name", "=", "p.name")
 			->select("p.*")
@@ -560,7 +562,7 @@ class GuildController extends ModuleInstance {
 			return "TL " . $this->util->levelToTL($p->level ?? 1);
 		};
 
-		$blob = "<header2>" . ($org->orgname ?? $this->config->orgName) . "<end>\n";
+		$blob = "<header2>" . ($org->orgname ?? $this->config->general->orgName) . "<end>\n";
 		if (isset($org)) {
 			$blob .= "<tab><highlight>Faction<end>: <" . strtolower($org->orgside) . ">{$org->orgside}<end>\n".
 			"<tab><highlight>Government<end>: {$org->governing_form}\n";
@@ -824,7 +826,7 @@ class GuildController extends ModuleInstance {
 	}
 
 	public function isGuildBot(): bool {
-		return !empty($this->config->orgName)
+		return !empty($this->config->general->orgName)
 			&& !empty($this->config->orgId);
 	}
 
@@ -833,20 +835,20 @@ class GuildController extends ModuleInstance {
 		description: "Verifies that org name is correct"
 	)]
 	public function verifyOrgNameEvent(Event $eventObj): void {
-		if (empty($this->config->orgName)) {
+		if (empty($this->config->general->orgName)) {
 			return;
 		}
 		if (empty($this->config->orgId)) {
 			$this->logger->warning("Org name '{org_name}' specified, but bot does not appear to belong to an org", [
-				"org_name" => $this->config->orgName,
+				"org_name" => $this->config->general->orgName,
 			]);
 			return;
 		}
 		$gid = $this->getOrgChannelIdByOrgId($this->config->orgId);
 		$orgChannel = $this->chatBot->gid[$gid]??null;
-		if (isset($orgChannel) && $orgChannel !== Nadybot::UNKNOWN_ORG && $orgChannel !== $this->config->orgName) {
+		if (isset($orgChannel) && $orgChannel !== Nadybot::UNKNOWN_ORG && $orgChannel !== $this->config->general->orgName) {
 			$this->logger->warning("Org name '{org_name}' specified, but bot belongs to org '{org_channel}'", [
-				"org_name" => $this->config->orgName,
+				"org_name" => $this->config->general->orgName,
 				"org_channel" => $orgChannel,
 			]);
 		}
@@ -1106,7 +1108,7 @@ class GuildController extends ModuleInstance {
 								->update(["mode" => "org"]);
 						}
 					}
-				// else insert his/her data
+					// else insert his/her data
 				} else {
 					// add new org members to buddy list
 					rethrow($this->buddylistManager->addAsync($member->name, 'org'));

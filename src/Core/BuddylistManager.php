@@ -77,7 +77,7 @@ class BuddylistManager {
 	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline
 	 */
 	public function isOnline(string $name): ?bool {
-		if (strtolower($this->config->name) === strtolower($name)) {
+		if (strtolower($this->config->main->character) === strtolower($name)) {
 			return true;
 		}
 		$workerNames = $this->chatBot->proxyCapabilities->workers ?? [];
@@ -264,7 +264,7 @@ class BuddylistManager {
 			$entry->name = $name;
 			$entry->known = false;
 			$this->logger->info("{buddy} added", ["buddy" => $entry]);
-			if (!$this->config->useProxy && count($this->buddyList) > 999) {
+			if (!$this->config->proxy?->enabled && count($this->buddyList) > 999) {
 				$this->logger->error("Error adding '{name}' to buddy list: {error}", [
 					"name" => $name,
 					"error" => "buddy list is full",

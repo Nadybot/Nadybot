@@ -43,7 +43,7 @@ class FeedHandler extends ModuleInstance implements EventFeedHandler {
 					$event->{$key} = $value;
 				}
 			}
-			if ($event->sourceDimension !== $this->config->dimension) {
+			if ($event->sourceDimension !== $this->config->main->dimension) {
 				$this->logger->info("Event is for a different dimension");
 				return;
 			}

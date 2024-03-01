@@ -190,7 +190,7 @@ class DrillController extends ModuleInstance {
 			yield $event->client->close();
 			return;
 		}
-		$answer = new Drill\Packet\AoAuth(characterName: $this->config->name);
+		$answer = new Drill\Packet\AoAuth(characterName: $this->config->main->character);
 		Registry::injectDependencies($answer);
 		yield $answer->send($event->client);
 	}
@@ -241,7 +241,7 @@ class DrillController extends ModuleInstance {
 		}
 		$answer = new Drill\Packet\PresentToken(
 			token: $code,
-			desiredSudomain: strtolower($this->config->name)
+			desiredSudomain: strtolower($this->config->main->character)
 		);
 		Registry::injectDependencies($answer);
 		yield $answer->send($event->client);

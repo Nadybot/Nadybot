@@ -267,7 +267,8 @@ class OnlineController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
 	public function onlineShowHiddenCommand(
 		CmdContext $context,
-		#[NCA\Str("hidden", "hide")] string $action
+		#[NCA\Str("hidden", "hide")]
+		string $action
 	): void {
 		/** @var Collection<OnlineHide> */
 		$masks = new Collection($this->getHiddenPlayerMasks());
@@ -307,7 +308,8 @@ class OnlineController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>online hide nbt guest.*", "Hide the whole NBT Guest channel")]
 	public function onlineAddHiddenCommand(
 		CmdContext $context,
-		#[NCA\Str("hide")] string $action,
+		#[NCA\Str("hide")]
+		string $action,
 		string $mask
 	): void {
 		$mask = strtolower($mask);
@@ -333,7 +335,8 @@ class OnlineController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
 	public function onlineDelHiddenByIDCommand(
 		CmdContext $context,
-		#[NCA\Str("show", "unhide")] string $action,
+		#[NCA\Str("show", "unhide")]
+		string $action,
 		int $id
 	): void {
 		if ($this->db->table(self::DB_TABLE_HIDE)->delete($id) === 0) {
@@ -347,7 +350,8 @@ class OnlineController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
 	public function onlineDelHiddenCommand(
 		CmdContext $context,
-		#[NCA\Str("show", "unhide")] string $action,
+		#[NCA\Str("show", "unhide")]
+		string $action,
 		string $mask
 	): void {
 		$mask = strtolower($mask);
@@ -462,7 +466,7 @@ class OnlineController extends ModuleInstance {
 		if (!isset($this->chatBot->guildmembers[$sender]) || !is_string($sender)) {
 			return;
 		}
-		$player = $this->addPlayerToOnlineList($sender, $this->config->orgName, 'guild');
+		$player = $this->addPlayerToOnlineList($sender, $this->config->general->orgName, 'guild');
 		if ($player === null) {
 			return;
 		}
@@ -714,7 +718,7 @@ class OnlineController extends ModuleInstance {
 				]);
 		}
 		$op = new OnlinePlayer();
-		$player = $this->playerManager->findInDb($sender, $this->config->dimension);
+		$player = $this->playerManager->findInDb($sender, $this->config->main->dimension);
 		if (isset($player)) {
 			foreach (get_object_vars($player) as $key => $value) {
 				$op->{$key} = $value;
@@ -762,10 +766,10 @@ class OnlineController extends ModuleInstance {
 	 */
 	public function getOnlineList(?int $includeRelay=null): array {
 		$includeRelay ??= $this->onlineShowRelay;
-		$orgData = $this->filterHiddenCharacters($this->getPlayers('guild'), $this->config->orgName);
+		$orgData = $this->filterHiddenCharacters($this->getPlayers('guild'), $this->config->general->orgName);
 		$orgList = $this->formatData($orgData, $this->onlineShowOrgGuild);
 
-		$privData = $this->filterHiddenCharacters($this->getPlayers('priv'), $this->config->name);
+		$privData = $this->filterHiddenCharacters($this->getPlayers('priv'), $this->config->main->character);
 		$privList = $this->formatData($privData, $this->onlineShowOrgPriv);
 
 		$relayGrouped = $this->groupRelayList($this->relayController->relays);
@@ -918,7 +922,9 @@ class OnlineController extends ModuleInstance {
 
 	/**
 	 * @return string[]
+	 *
 	 * @psalm-return array{0: string, 1: string}
+	 *
 	 * @phpstan-return array{0: string, 1: string}
 	 */
 	public function getRaidInfo(string $name, string $fancyColon): array {
@@ -1051,7 +1057,7 @@ class OnlineController extends ModuleInstance {
 		}
 		$online = $query->asObj(Online::class);
 		$playersByName = $this->playerManager->searchByNames(
-			$this->config->dimension,
+			$this->config->main->dimension,
 			...$online->pluck("name")->toArray()
 		)->keyBy("name");
 		$op = $online->map(function (Online $o) use ($playersByName): OnlinePlayer {

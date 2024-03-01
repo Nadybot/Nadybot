@@ -94,7 +94,7 @@ class ProfileController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$dataPath = $this->config->dataFolder;
+		$dataPath = $this->config->paths->data;
 		$this->path = "{$dataPath}/profiles/";
 
 		// make sure that the profile folder exists
@@ -169,7 +169,8 @@ class ProfileController extends ModuleInstance {
 	#[NCA\HandlesCommand("profile")]
 	public function profileViewCommand(
 		CmdContext $context,
-		#[NCA\Str("view")] string $action,
+		#[NCA\Str("view")]
+		string $action,
 		PFilename $profileName
 	): Generator {
 		$profileName = $profileName();
@@ -327,7 +328,8 @@ class ProfileController extends ModuleInstance {
 	#[NCA\HandlesCommand("profile")]
 	public function profileLoadCommand(
 		CmdContext $context,
-		#[NCA\Str("load")] string $action,
+		#[NCA\Str("load")]
+		string $action,
 		PFilename $profileName
 	): Generator {
 		$profileName = $profileName();

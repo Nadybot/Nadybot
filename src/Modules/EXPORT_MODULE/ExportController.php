@@ -111,7 +111,7 @@ class ExportController extends ModuleInstance {
 		"bot."
 	)]
 	public function exportCommand(CmdContext $context, string $file): Generator {
-		$dataPath = $this->config->dataFolder;
+		$dataPath = $this->config->paths->data;
 		$fileName = "{$dataPath}/export/" . basename($file);
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
 			$fileName .= ".json";
@@ -119,7 +119,7 @@ class ExportController extends ModuleInstance {
 		if (!@file_exists("{$dataPath}/export")) {
 			\Safe\mkdir("{$dataPath}/export", 0700);
 		}
-		if ($this->config->useProxy) {
+		if ($this->config->proxy?->enabled) {
 			if (!$this->chatBot->proxyCapabilities->supportsBuddyMode(ProxyCapabilities::SEND_BY_WORKER)) {
 				$context->reply(
 					"You are using an unsupported proxy version. ".
@@ -276,7 +276,7 @@ class ExportController extends ModuleInstance {
 				];
 				$exported[$member->name] = true;
 			}
-			foreach ($this->config->superAdmins as $superAdmin) {
+			foreach ($this->config->general->superAdmins as $superAdmin) {
 				if (!isset($exported[$superAdmin])) {
 					$result []= (object)[
 						"character" => yield $this->toChar($superAdmin),

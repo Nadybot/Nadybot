@@ -173,6 +173,7 @@ class LimitsController extends ModuleInstance {
 	 * Check if $sender is allowed to send $message
 	 *
 	 * @phpstan-param callable $callback
+	 *
 	 * @psalm-param callable(mixed...) $callback
 	 */
 	public function checkAndExecute(string $sender, string $message, callable $callback, mixed ...$args): void {
@@ -225,8 +226,11 @@ class LimitsController extends ModuleInstance {
 	 * Check if $sender is allowed to run commands on the bot
 	 *
 	 * @phpstan-param callable(string):void $errorHandler
+	 *
 	 * @psalm-param callable(string):void $errorHandler
+	 *
 	 * @phpstan-param callable(mixed...):mixed $successHandler
+	 *
 	 * @psalm-param callable(mixed...) $successHandler
 	 */
 	public function checkAccessError(string $sender, callable $errorHandler, callable $successHandler, mixed ...$args): void {
@@ -247,7 +251,7 @@ class LimitsController extends ModuleInstance {
 				$successHandler(...$args);
 				return;
 			}
-			$history = yield $this->playerHistoryManager->asyncLookup2($sender, $this->config->dimension);
+			$history = yield $this->playerHistoryManager->asyncLookup2($sender, $this->config->main->dimension);
 			try {
 				yield $this->checkMeetsMinAgeRequirements($history);
 			} catch (UserException $e) {

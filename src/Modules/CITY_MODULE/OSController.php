@@ -37,7 +37,7 @@ class OSController extends ModuleInstance {
 			$launcher = $arr[1];
 
 			for ($i = 1; $i <= 10; $i++) {
-				$name = "{$this->config->orgName} OS/AS {$i}";
+				$name = "{$this->config->general->orgName} OS/AS {$i}";
 				if ($this->timerController->get($name) === null) {
 					$runTime = 15 * 60; // set timer for 15 minutes
 					$msg = $this->timerController->addTimer($launcher, $name, $runTime, 'guild');

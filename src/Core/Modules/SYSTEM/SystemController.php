@@ -327,8 +327,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$basicInfo->bot_name = $this->chatBot->char->name;
 		$basicInfo->bot_version = $this->chatBot->runner::getVersion();
 		$basicInfo->db_type = $this->db->getType()->value;
-		$basicInfo->org = strlen($this->config->orgName)
-			? $this->config->orgName
+		$basicInfo->org = strlen($this->config->general->orgName)
+			? $this->config->general->orgName
 			: null;
 		$basicInfo->org_id = $this->config->orgId;
 		$basicInfo->php_version = phpversion();
@@ -336,7 +336,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$basicInfo->event_loop = class_basename(Loop::get());
 		$basicInfo->fs = class_basename(Loop::getState(BotRunner::AMP_FS_HANDLER));
 
-		$basicInfo->superadmins = $this->config->superAdmins;
+		$basicInfo->superadmins = $this->config->general->superAdmins;
 
 		$info->memory = $memory = new MemoryInformation();
 		$memory->current_usage = memory_get_usage();
@@ -360,7 +360,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 		$info->misc = $misc = new MiscSystemInformation();
 		$misc->uptime = time() - $this->chatBot->startup;
-		$misc->using_chat_proxy = ($this->config->useProxy === 1);
+		$misc->using_chat_proxy = $this->config->proxy?->enabled === true;
 		if ($misc->using_chat_proxy) {
 			$misc->proxy_capabilities = $this->chatBot->proxyCapabilities;
 		}

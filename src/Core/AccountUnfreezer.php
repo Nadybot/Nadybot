@@ -56,7 +56,7 @@ class AccountUnfreezer {
 
 			do {
 				$lastResult = self::UNFREEZE_TEMP_ERROR;
-				$proxyText = $this->config->autoUnfreezeUseNadyproxy ? "Proxy" : "Unfreezing";
+				$proxyText = $this->config->autoUnfreeze?->useNadyproxy ? "Proxy" : "Unfreezing";
 				try {
 					$lastResult = yield $this->unfreezeWithClient($client, $subscriptionId);
 				} catch (CancelledException) {
@@ -113,9 +113,9 @@ class AccountUnfreezer {
 	/** @return Promise<void> */
 	protected function loginToAccount(HttpClient $client, string $cookie): Promise {
 		return call(function () use ($client, $cookie): Generator {
-			$login = strtolower($this->config->login);
-			$user = strtolower($this->config->autoUnfreezeLogin ?? $login);
-			$password = $this->config->autoUnfreezePassword ?? $this->config->password;
+			$login = strtolower($this->config->main->login);
+			$user = strtolower($this->config->autoUnfreeze?->login ?? $login);
+			$password = $this->config->autoUnfreeze?->password ?? $this->config->main->password;
 			$request = new Request(self::LOGIN_URL, "POST");
 			$request->setBody(http_build_query([
 				"nickname" => $user,
@@ -219,7 +219,7 @@ class AccountUnfreezer {
 		return call(function () use ($client, $cookie): Generator {
 			/** @var string */
 			$body = yield $this->loadAccountPage($client, $cookie);
-			$login = strtolower($this->config->login);
+			$login = strtolower($this->config->main->login);
 			if (!preg_match(
 				'/<li><a href="\/subscription\/(\d+)">' . preg_quote($login, '/') . '<\/a><\/li>/s',
 				$body,
@@ -324,7 +324,7 @@ class AccountUnfreezer {
 			$this->logger->info("Using user agent {agent}", ["agent" => $this->userAgent]);
 			$builder = $this->http->followRedirects(0)
 					->intercept(new SetRequestHeader("User-Agent", $this->userAgent));
-			if ($this->config->autoUnfreezeUseNadyproxy !== false) {
+			if ($this->config->autoUnfreeze?->useNadyproxy !== false) {
 				$builder = $builder->usingPool(
 					new UnlimitedConnectionPool(
 						new DefaultConnectionFactory(

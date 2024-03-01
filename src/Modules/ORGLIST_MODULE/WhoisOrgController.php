@@ -59,7 +59,7 @@ class WhoisOrgController extends ModuleInstance {
 	/** Show information about an organization */
 	#[NCA\HandlesCommand("whoisorg")]
 	public function whoisorgIdCommand(CmdContext $context, int $orgId, ?int $dimension): Generator {
-		$dimension ??= $this->config->dimension;
+		$dimension ??= $this->config->main->dimension;
 
 		/** @var ?Guild */
 		$guild = yield $this->guildManager->byId($orgId, $dimension);
@@ -71,7 +71,7 @@ class WhoisOrgController extends ModuleInstance {
 	/** Show information about a character's org */
 	#[NCA\HandlesCommand("whoisorg")]
 	public function whoisorgCommand(CmdContext $context, PCharacter $char, ?int $dimension): Generator {
-		$dimension ??= $this->config->dimension;
+		$dimension ??= $this->config->main->dimension;
 		$name = $char();
 
 		/** @var ?Player */

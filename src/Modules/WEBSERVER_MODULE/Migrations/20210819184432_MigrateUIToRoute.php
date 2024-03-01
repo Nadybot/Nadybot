@@ -24,10 +24,10 @@ class MigrateUIToRoute implements SchemaMigration {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
 		$route = new Route();
 		$route->source = Source::SYSTEM . "(webui)";
-		if (strlen($this->config->orgName)) {
+		if (strlen($this->config->general->orgName)) {
 			$route->destination = Source::ORG;
 		} else {
-			$route->destination = Source::PRIV . "({$this->config->name})";
+			$route->destination = Source::PRIV . "({$this->config->main->character})";
 		}
 		$db->insert($table, $route);
 	}

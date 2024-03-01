@@ -38,7 +38,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "show_tracker_events");
 		if (!isset($showWhere)) {
-			if (strlen($this->config->orgName)) {
+			if (strlen($this->config->general->orgName)) {
 				$showWhere = 2;
 			} else {
 				$showWhere = 1;
@@ -47,7 +47,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$showWhere = (int)$showWhere->value;
 		}
 		$map = [
-			1 => Source::PRIV . "({$this->config->name})",
+			1 => Source::PRIV . "({$this->config->main->character})",
 			2 => Source::ORG,
 		];
 		foreach ($map as $flag => $dest) {

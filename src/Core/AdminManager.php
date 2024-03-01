@@ -4,12 +4,12 @@ namespace Nadybot\Core;
 
 use function Amp\Promise\rethrow;
 
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\Admin,
 	DBSchema\Audit,
 };
-use Nadybot\Core\Config\BotConfig;
 
 /**
  * Manage the bot admins
@@ -57,7 +57,7 @@ class AdminManager implements AccessLevelProvider {
 
 	/** Load the bot admins from database into $admins */
 	public function uploadAdmins(): void {
-		foreach ($this->config->superAdmins as $superAdmin) {
+		foreach ($this->config->general->superAdmins as $superAdmin) {
 			$this->db->table(self::DB_TABLE)->upsert(
 				[
 					"adminlevel" => 4,

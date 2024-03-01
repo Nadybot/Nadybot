@@ -17,7 +17,7 @@ class Character {
 
 		/** @var BotConfig */
 		$config = Registry::getInstance(BotConfig::class);
-		$dimension ??= $config->dimension;
+		$dimension ??= $config->main->dimension;
 		$this->dimension = $dimension;
 	}
 }

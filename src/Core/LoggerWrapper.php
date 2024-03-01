@@ -6,12 +6,12 @@ use Closure;
 use Exception;
 use Monolog\Processor\PsrLogMessageProcessor;
 use Monolog\{DateTimeImmutable, Logger};
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Routing\RoutableMessage,
 	Routing\Source,
 };
-use Nadybot\Core\Config\BotConfig;
 use Safe\Exceptions\FilesystemException;
 use Throwable;
 
@@ -31,6 +31,7 @@ class LoggerWrapper {
 
 	/**
 	 * @var array<array>
+	 *
 	 * @phpstan-var array<array{100|200|250|300|400|500|550|600,string,array<string,mixed>}>
 	 */
 	protected static array $routingQueue = [];
@@ -155,7 +156,7 @@ class LoggerWrapper {
 	 * @param string     $message The message to log
 	 */
 	public function logChat(string $channel, string|int $sender, string $message): void {
-		if (!$this->config->showAomlMarkup) {
+		if (!$this->config->general->showAomlMarkup) {
 			$message = preg_replace("|<font.*?>|", "", $message);
 			$message = preg_replace("|</font>|", "", $message);
 			$message = preg_replace("|<a\\s+href=\".+?\">|s", "[link]", $message);
@@ -208,6 +209,7 @@ class LoggerWrapper {
 	 * Check if logging is enabled for a given level
 	 *
 	 * @param int $level The log level (Logger::DEBUG, etc.)
+	 *
 	 * @phpstan-param 100|200|250|300|400|500|550|600 $level
 	 */
 	public function isHandling(int $level): bool {

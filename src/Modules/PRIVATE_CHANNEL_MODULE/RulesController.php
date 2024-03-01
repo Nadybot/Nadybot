@@ -49,7 +49,7 @@ class RulesController extends ModuleInstance {
 		"<tab><highlight>data/rules.txt<end>"
 	)]
 	public function rulesCommand(CmdContext $context): Generator {
-		$rulesPath = "{$this->config->dataFolder}/rules.txt";
+		$rulesPath = "{$this->config->paths->data}/rules.txt";
 		try {
 			if (false === yield filesystem()->exists($rulesPath)) {
 				$context->reply("This bot does not have any rules defined yet.");
@@ -71,7 +71,7 @@ class RulesController extends ModuleInstance {
 		"<tab><highlight>data/raidrules.txt<end>"
 	)]
 	public function raidrulesCommand(CmdContext $context): Generator {
-		$rulesPath = "{$this->config->dataFolder}/raidrules.txt";
+		$rulesPath = "{$this->config->paths->data}/raidrules.txt";
 		try {
 			if (false === yield filesystem()->exists($rulesPath)) {
 				$context->reply("This bot does not have any raid rules defined yet.");
@@ -94,7 +94,7 @@ class RulesController extends ModuleInstance {
 		if (!is_string($eventObj->sender)) {
 			return;
 		}
-		$rulesPath = "{$this->config->dataFolder}/rules.txt";
+		$rulesPath = "{$this->config->paths->data}/rules.txt";
 		try {
 			if (false === yield filesystem()->exists($rulesPath)) {
 				return;

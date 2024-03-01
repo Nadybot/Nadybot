@@ -41,7 +41,7 @@ class CacheManager {
 	/** Initialize the cache on disk */
 	#[NCA\Setup]
 	public function init(): void {
-		$this->cacheDir = $this->config->cacheFolder;
+		$this->cacheDir = $this->config->paths->cache;
 
 		// Making sure that the cache folder exists
 		if (@is_dir($this->cacheDir)) {

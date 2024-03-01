@@ -23,7 +23,7 @@ class CreateDefaultRouting implements SchemaMigration {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
 		$route = [
 			"source" => "web",
-			"destination" => Source::PRIV . "(" . $this->config->name . ")",
+			"destination" => Source::PRIV . "(" . $this->config->main->character . ")",
 			"two_way" => true,
 		];
 		$db->table($table)->insert($route);

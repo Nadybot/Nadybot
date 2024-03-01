@@ -64,8 +64,8 @@ class Setup {
 		);
 		$msg = "Enter the account username (case-senstitive): ";
 		do {
-			$this->configFile->login = $this->readInput($msg);
-		} while ($this->configFile->login === "");
+			$this->configFile->main->login = $this->readInput($msg);
+		} while ($this->configFile->main->login === "");
 		$this->queryAccountPassword();
 	}
 
@@ -76,8 +76,8 @@ class Setup {
 		);
 		$msg = "Enter the account password (case-senstitive): ";
 		do {
-			$this->configFile->password = $this->readInput($msg);
-		} while ($this->configFile->password === "");
+			$this->configFile->main->password = $this->readInput($msg);
+		} while ($this->configFile->main->password === "");
 		$this->queryAccountDimension();
 	}
 
@@ -92,8 +92,8 @@ class Setup {
 
 		$msg = "Choose a Dimension: ";
 		do {
-			$this->configFile->dimension = (int)$this->readInput($msg);
-		} while (!in_array($this->configFile->dimension, [4, 5, 6], true));
+			$this->configFile->main->dimension = (int)$this->readInput($msg);
+		} while (!in_array($this->configFile->main->dimension, [4, 5, 6], true));
 		$this->queryCharacter();
 	}
 
@@ -108,8 +108,8 @@ class Setup {
 
 		$msg = "Enter the Character the bot will run as: ";
 		do {
-			$this->configFile->name = $this->readInput($msg);
-		} while ($this->configFile->name === "");
+			$this->configFile->main->character = $this->readInput($msg);
+		} while ($this->configFile->main->character === "");
 		$this->queryOrgname();
 	}
 
@@ -123,7 +123,7 @@ class Setup {
 		);
 
 		$msg = "Enter your Organization: ";
-		$this->configFile->orgName = $this->readInput($msg);
+		$this->configFile->general->orgName = $this->readInput($msg);
 		$this->querySuperuser();
 	}
 
@@ -138,7 +138,7 @@ class Setup {
 		do {
 			$superAdmin = $this->readInput($msg);
 		} while ($superAdmin === "");
-		$this->configFile->superAdmins = [$superAdmin];
+		$this->configFile->general->superAdmins = [$superAdmin];
 		$this->queryDatabaseInstallation();
 	}
 
@@ -180,7 +180,7 @@ class Setup {
 			$defaultModuleStatus = strtolower($this->readInput($msg));
 		} while (!in_array($defaultModuleStatus, ['yes', 'no'], true));
 
-		$this->configFile->defaultModuleStatus = ($defaultModuleStatus === 'yes') ? 1 : 0;
+		$this->configFile->general->defaultModuleStatus = ($defaultModuleStatus === 'yes') ? 1 : 0;
 		$this->saveSettings();
 	}
 
@@ -209,22 +209,22 @@ class Setup {
 
 		$msg = "Choose a Database system (1/2/3): ";
 		$dbs = [
-			1 => DB::SQLITE,
-			2 => DB::MSSQL,
-			3 => DB::POSTGRESQL,
+			1 => DB\Type::SQLite,
+			2 => DB\Type::MySQL,
+			3 => DB\Type::PostgreSQL,
 		];
 		do {
 			$dbType = $this->readInput($msg);
 		} while (!isset($dbs[(int)$dbType]));
 
-		$this->configFile->dbType = $dbs[(int)$dbType];
+		$this->configFile->database->type = $dbs[(int)$dbType];
 		$this->queryDatabaseName();
 	}
 
 	public function queryDatabaseName(): void {
 		$txt = "What is the name of the database that you\n".
 			"wannna use?\n";
-		if ($this->configFile->dbType === DB::SQLITE) {
+		if ($this->configFile->database->type === DB\Type::SQLite) {
 			$txt .= "(This is the filename of the database)\n".
 				"(Default: nadybot.db)\n";
 		} else {
@@ -232,14 +232,14 @@ class Setup {
 		}
 		$this->showStep($txt);
 		$msg = "Enter the Databasename (leave blank for default setting): ";
-		$this->configFile->dbName = $this->readInput($msg);
+		$this->configFile->database->name = $this->readInput($msg);
 
-		if ($this->configFile->dbName === "" && $this->configFile->dbType === DB::SQLITE) {
-			$this->configFile->dbName = "nadybot.db";
-		} elseif ($this->configFile->dbName === "" && $this->configFile->dbType !== DB::SQLITE) {
-			$this->configFile->dbName = "nadybot";
+		if ($this->configFile->database->name === "" && $this->configFile->database->type === DB\Type::SQLite) {
+			$this->configFile->database->name = "nadybot.db";
+		} elseif ($this->configFile->database->name === "" && $this->configFile->database->type !== DB\Type::SQLite) {
+			$this->configFile->database->name = "nadybot";
 		}
-		if ($this->configFile->dbType === DB::SQLITE) {
+		if ($this->configFile->database->type === DB\Type::SQLite) {
 			$this->querySqlitePath();
 		} else {
 			$this->queryMysqlHostname();
@@ -256,10 +256,10 @@ class Setup {
 		);
 
 		$msg = "Enter the Hostname for the Database (leave blank for default setting): ";
-		$this->configFile->dbHost = $this->readInput($msg);
+		$this->configFile->database->host = $this->readInput($msg);
 
-		if ($this->configFile->dbHost === "") {
-			$this->configFile->dbHost = "localhost";
+		if ($this->configFile->database->host === "") {
+			$this->configFile->database->host = "localhost";
 		}
 		$this->queryMysqlUsername();
 	}
@@ -272,10 +272,10 @@ class Setup {
 			"(Default: root)\n"
 		);
 		$msg = "Enter username for the Database (leave blank for default setting): ";
-		$this->configFile->dbUsername = $this->readInput($msg);
+		$this->configFile->database->username = $this->readInput($msg);
 
-		if ($this->configFile->dbUsername === "") {
-			$this->configFile->dbUsername = "root";
+		if ($this->configFile->database->username === "") {
+			$this->configFile->database->username = "root";
 		}
 		$this->queryMysqlPassword();
 	}
@@ -288,7 +288,7 @@ class Setup {
 			"(Default: <blank>)\n"
 		);
 		$msg = "Enter password for the Database: ";
-		$this->configFile->dbPassword = $this->readInput($msg);
+		$this->configFile->database->password = $this->readInput($msg);
 		$this->queryEnabledModules();
 	}
 
@@ -302,10 +302,10 @@ class Setup {
 			"(Default: ./data/)\n"
 		);
 		$msg = "Enter the path for the Database (leave blank for default setting): ";
-		$this->configFile->dbHost = $this->readInput($msg);
+		$this->configFile->database->host = $this->readInput($msg);
 
-		if ($this->configFile->dbHost === "") {
-			$this->configFile->dbHost = "./data/";
+		if ($this->configFile->database->host === "") {
+			$this->configFile->database->host = "./data/";
 		}
 		$this->queryEnabledModules();
 	}

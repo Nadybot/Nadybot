@@ -308,7 +308,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand("gaubuff")]
 	public function gaubuffCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("clan", "omni")] ?string $buffSide
+		#[NCA\StrChoice("clan", "omni")]
+		?string $buffSide
 	): void {
 		$sides = $this->getSidesToShowBuff($buffSide);
 		$msgs = [];
@@ -337,7 +338,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Example("<symbol>gaubuff clan 10h15m")]
 	public function gaubuffSetCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("clan", "omni")] ?string $faction,
+		#[NCA\StrChoice("clan", "omni")]
+		?string $faction,
 		PDuration $duration
 	): void {
 		$defaultSide = $this->gaubuffDefaultSide;
@@ -435,7 +437,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	/** Check if the given Gauntlet buff is valid and set or update a timer for it */
 	protected function handleApiGauntletBuff(ApiGauntletBuff $buff): void {
 		$this->logger->info("Received gauntlet information {gauntlet}", ["gauntlet" => $buff]);
-		if ($buff->dimension !== $this->config->dimension) {
+		if ($buff->dimension !== $this->config->main->dimension) {
 			return;
 		}
 		if (!in_array(strtolower($buff->faction), ["omni", "clan"])) {

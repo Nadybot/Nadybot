@@ -56,7 +56,7 @@ class AOUController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): Generator {
-		$cacheFolder = $this->config->cacheFolder . "/guide";
+		$cacheFolder = $this->config->paths->cache . "/guide";
 		if (false === yield filesystem()->exists($cacheFolder)) {
 			yield filesystem()->createDirectory($cacheFolder, 0700);
 		}
@@ -84,7 +84,7 @@ class AOUController extends ModuleInstance {
 			'id' => $guideId,
 		];
 		$cache = new FileCache(
-			$this->config->cacheFolder . '/guide',
+			$this->config->paths->cache . '/guide',
 			new LocalKeyedMutex()
 		);
 		$cacheKey = (string)$guideId;

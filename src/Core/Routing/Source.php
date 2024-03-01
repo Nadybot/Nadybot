@@ -39,7 +39,7 @@ class Source {
 		if (!isset($dimension)) {
 			/** @var BotConfig */
 			$config = Registry::getInstance(BotConfig::class);
-			$this->server = $config->dimension;
+			$this->server = $config->main->dimension;
 		} else {
 			$this->server = $dimension;
 		}

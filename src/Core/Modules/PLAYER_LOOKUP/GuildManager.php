@@ -62,7 +62,7 @@ class GuildManager extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		mkdir($this->config->cacheFolder . '/guild_roster');
+		mkdir($this->config->paths->cache . '/guild_roster');
 	}
 
 	/** @psalm-param callable(?Guild, mixed...) $callback */
@@ -77,7 +77,7 @@ class GuildManager extends ModuleInstance {
 	public function byId(int $guildID, ?int $dimension=null, bool $forceUpdate=false): Promise {
 		return call(function () use ($guildID, $dimension, $forceUpdate): Generator {
 			// if no server number is specified use the one on which the bot is logged in
-			$dimension ??= $this->config->dimension;
+			$dimension ??= $this->config->main->dimension;
 			$body = null;
 
 			$baseUrl = $this->playerManager->porkUrl;
@@ -86,7 +86,7 @@ class GuildManager extends ModuleInstance {
 				$maxCacheAge = 21600;
 			}
 			$cache = new FileCache(
-				$this->config->cacheFolder . '/guild_roster',
+				$this->config->paths->cache . '/guild_roster',
 				new LocalKeyedMutex()
 			);
 			$cacheKey = "{$guildID}.{$dimension}";
@@ -236,7 +236,7 @@ class GuildManager extends ModuleInstance {
 	/** @deprecated */
 	public function getById(int $guildID, ?int $dimension=null, bool $forceUpdate=false): ?Guild {
 		// if no server number is specified use the one on which the bot is logged in
-		$dimension ??= $this->config->dimension;
+		$dimension ??= $this->config->main->dimension;
 
 		$url = "http://people.anarchy-online.com/org/stats/d/{$dimension}/name/{$guildID}/basicstats.xml?data_type=json";
 		$groupName = "guild_roster";
@@ -282,7 +282,6 @@ class GuildManager extends ModuleInstance {
 
 	/** @psalm-param callable(?Guild, mixed...) $callback */
 	private function handleGuildLookup(CacheResult $cacheResult, int $guildID, int $dimension, callable $callback, mixed ...$args): void {
-
 		// if there is still no valid data available give an error back
 		if ($cacheResult->success !== true) {
 			$callback(null, ...$args);

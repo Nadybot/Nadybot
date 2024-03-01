@@ -15,6 +15,7 @@ use Amp\{
 use Exception;
 use Generator;
 use Nadybot\Core\Attributes\Setting\ArraySetting;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\DBSchema\{
 	Audit,
 	CmdCfg,
@@ -35,7 +36,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	SettingHandler as CoreSettingHandler,
 };
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use ReflectionAttribute;
 use ReflectionClass;
@@ -289,13 +289,13 @@ class Nadybot extends AOChat {
 	public function connectAO(string $login, string $password, string $server, int $port): void {
 		// Begin the login process
 		$this->logger->notice("Connecting to {type} {server}:{port}", [
-			"type" => $this->config->useProxy ? "AO Chat Proxy" : "AO Server",
+			"type" => $this->config->proxy?->enabled ? "AO Chat Proxy" : "AO Server",
 			"server" => $server,
 			"port" => $port,
 		]);
 		$try = 1;
 		while (!$this->connect($server, $port, $try === 1)) {
-			if ($this->config->useProxy) {
+			if ($this->config->proxy?->enabled) {
 				$this->logger->notice("Waiting for proxy to be available...");
 				usleep(250000);
 				$try++;
@@ -318,7 +318,7 @@ class Nadybot extends AOChat {
 			if (is_string($subscriptionId)) {
 				$subscriptionId = (int)$subscriptionId;
 			}
-			if ($this->config->autoUnfreeze && $this->accountUnfreezer->unfreeze($subscriptionId)) {
+			if ($this->config->autoUnfreeze?->enabled && $this->accountUnfreezer->unfreeze($subscriptionId)) {
 				$this->disconnect();
 				$this->logger->notice("Waiting 5s before retrying login");
 				sleep(5);
@@ -338,8 +338,8 @@ class Nadybot extends AOChat {
 			exit(1);
 		}
 
-		$this->logger->notice("Logging in {character}...", ["character" => $this->config->name]);
-		if (false === $this->login($this->config->name)) {
+		$this->logger->notice("Logging in {character}...", ["character" => $this->config->main->character]);
+		if (false === $this->login($this->config->main->character)) {
 			$this->logger->critical("Character selection failed.");
 			sleep(10);
 			exit(1);
@@ -353,18 +353,18 @@ class Nadybot extends AOChat {
 		} else {
 			$this->logger->warning("Unable to switch the AO-connection to non-blocking");
 		}
-		if ($this->config->useProxy) {
+		if ($this->config->proxy?->enabled) {
 			$this->queryProxyFeatures();
 		}
 
 		$this->buddyListSize += 1000;
 		$this->logger->notice("Successfully logged in", [
-			"name" => $this->config->name,
+			"name" => $this->config->main->character,
 			"login" => $login,
 			"server" => $server,
 			"port" => $port,
 		]);
-		$pc = new PrivateChannel($this->config->name);
+		$pc = new PrivateChannel($this->config->main->character);
 		Registry::injectDependencies($pc);
 		$this->messageHub
 			->registerMessageReceiver($pc)
@@ -384,7 +384,7 @@ class Nadybot extends AOChat {
 		Loop::repeat(
 			100,
 			function (string $handle): void {
-				$readyAfter = $this->config->useProxy ? 2 : 0.5;
+				$readyAfter = $this->config->proxy?->enabled ? 2 : 0.5;
 				$this->logger->info("Time since last packet: {tslp}ms/{readyAfter}ms", [
 					"tslp" => round(microtime(true) - $this->last_packet, 3)*1000,
 					"readyAfter" => round($readyAfter, 3)*1000,
@@ -487,7 +487,7 @@ class Nadybot extends AOChat {
 		// when bot isn't ready we wait for packets
 		// to make sure the server has finished sending them
 		// before marking the bot as ready
-		$unreadyWait = $this->config->useProxy ? 2 : 1;
+		$unreadyWait = $this->config->proxy?->enabled ? 2 : 1;
 		$packet = $this->waitForPacket($this->isReady() ? 0 : $unreadyWait);
 		if ($packet) {
 			$this->process_packet($packet);
@@ -538,13 +538,13 @@ class Nadybot extends AOChat {
 		$event->type = "sendpriv";
 		$event->channel = $group;
 		$event->message = $origMsg;
-		$event->sender = $this->config->name;
+		$event->sender = $this->config->main->character;
 		$this->eventManager->fireEvent($event, $disableRelay);
 		if (!$disableRelay) {
 			$rMessage = new RoutableMessage($origMsg);
 			$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
 			$label = null;
-			if (strlen($this->config->orgName)) {
+			if (strlen($this->config->general->orgName)) {
 				$label = "Guest";
 			}
 			$rMessage->prependPath(new Source(Source::PRIV, $this->char->name, $label));
@@ -587,9 +587,9 @@ class Nadybot extends AOChat {
 		$this->send_guild($guildColor.$message, "\0", $priority);
 		$event = new AOChatEvent();
 		$event->type = "sendguild";
-		$event->channel = $this->config->orgName;
+		$event->channel = $this->config->general->orgName;
 		$event->message = $origMsg;
-		$event->sender = $this->config->name;
+		$event->sender = $this->config->main->character;
 		$this->eventManager->fireEvent($event, $disableRelay);
 
 		if ($disableRelay) {
@@ -600,7 +600,7 @@ class Nadybot extends AOChat {
 		$abbr = $this->settingManager->getString('relay_guild_abbreviation');
 		$rMessage->prependPath(new Source(
 			Source::ORG,
-			$this->config->orgName,
+			$this->config->general->orgName,
 			($abbr === 'none') ? null : $abbr
 		));
 		$this->messageHub->handle($rMessage);
@@ -615,7 +615,7 @@ class Nadybot extends AOChat {
 	 * @param bool            $formatMessage If set, replace tags with their corresponding colors
 	 */
 	public function sendTell($message, string $character, ?int $priority=null, bool $formatMessage=true): void {
-		if ($this->config->useProxy
+		if ($this->config->proxy?->enabled
 			&& $this->settingManager->getBool('force_mass_tells')
 			&& $this->settingManager->getBool('allow_mass_tells')
 		) {
@@ -664,7 +664,7 @@ class Nadybot extends AOChat {
 		$priority ??= QueueInterface::PRIORITY_HIGH;
 
 		// If we're not using a chat proxy or mass tells are disabled, this doesn't do anything
-		if (!$this->config->useProxy
+		if (!$this->config->proxy?->enabled
 			|| !$this->settingManager->getBool('allow_mass_tells')) {
 			$this->sendTell($message, $character, $priority, $formatMessage);
 			return;
@@ -809,15 +809,15 @@ class Nadybot extends AOChat {
 		$this->logger->info("Handling {packet}", ["packet" => $logObj]);
 		if ($orgId) {
 			$this->config->orgId = $orgId;
-			if ($this->config->autoOrgName) {
+			if ($this->config->general->autoOrgName) {
 				$lastOrgName = $this->settingManager->getString('last_org_name') ?? self::UNKNOWN_ORG;
 				if ($lastOrgName === self::UNKNOWN_ORG) {
-					$lastOrgName = $this->config->orgName ?: self::UNKNOWN_ORG;
+					$lastOrgName = $this->config->general->orgName ?: self::UNKNOWN_ORG;
 				}
 				if ($groupName === self::UNKNOWN_ORG) {
-					$this->config->orgName = $lastOrgName;
+					$this->config->general->orgName = $lastOrgName;
 				} else {
-					$this->config->orgName = $groupName;
+					$this->config->general->orgName = $groupName;
 					$this->settingManager->save('last_org_name', $groupName);
 				}
 			}
@@ -1016,7 +1016,7 @@ class Nadybot extends AOChat {
 		// If this UID was added via the queue, then every UID before its
 		// queue entry is an inactive or non-existing player
 		$queuePos = array_search($userId, $this->buddyQueue);
-		if (!$this->config->useProxy && $queuePos !== false) {
+		if (!$this->config->proxy?->enabled && $queuePos !== false) {
 			$remUid = array_shift($this->buddyQueue);
 			while (isset($remUid) && $remUid !== $userId) {
 				$this->logger->info("Removing non-existing UID {user_id} from buddylist", [
@@ -1134,7 +1134,7 @@ class Nadybot extends AOChat {
 
 		$rMsg = new RoutableMessage($message);
 		$rMsg->appendPath(new Source(Source::TELL, $sender));
-		$rMsg->setCharacter(new Character($sender, $senderId, $this->config->dimension));
+		$rMsg->setCharacter(new Character($sender, $senderId, $this->config->main->dimension));
 		if ($this->messageHub->handle($rMsg) !== $this->messageHub::EVENT_NOT_ROUTED) {
 			return;
 		}
@@ -1195,7 +1195,7 @@ class Nadybot extends AOChat {
 		$this->logger->info("Handling {packet}", ["packet" => $logObj]);
 		$this->logger->logChat($channel, $sender, $message);
 
-		if ($sender == $this->config->name) {
+		if ($sender == $this->config->main->character) {
 			return;
 		}
 		if ($this->isDefaultPrivateChannel($channel)) {
@@ -1210,7 +1210,7 @@ class Nadybot extends AOChat {
 		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(new Character($sender, $senderId));
 		$label = null;
-		if (strlen($this->config->orgName)) {
+		if (strlen($this->config->general->orgName)) {
 			$label = "Guest";
 		}
 		$rMessage->prependPath(new Source(Source::PRIV, $channel, $label));
@@ -1256,7 +1256,7 @@ class Nadybot extends AOChat {
 		$orgId = $this->getOrgId($channelId);
 
 		// Route public messages not from the bot itself
-		if ($sender !== $this->config->name) {
+		if ($sender !== $this->config->main->character) {
 			if (!$orgId || $this->settingManager->getBool('guild_channel_status')) {
 				$rMessage = new RoutableMessage($message);
 				if ($this->util->isValidSender($sender)) {
@@ -1291,7 +1291,7 @@ class Nadybot extends AOChat {
 
 		if ($this->util->isValidSender($sender)) {
 			// ignore messages that are sent from the bot self
-			if ($sender == $this->config->name) {
+			if ($sender == $this->config->main->character) {
 				return;
 			}
 		}
@@ -1780,6 +1780,7 @@ class Nadybot extends AOChat {
 	 * Parse all defined commands of the class and return them
 	 *
 	 * @return array<array<string,CmdDef>>
+	 *
 	 * @phpstan-return array{array<string,CmdDef>,array<string,CmdDef>}
 	 */
 	private function parseInstanceCommands(string $moduleName, ModuleInstanceInterface $obj): array {

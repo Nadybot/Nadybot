@@ -667,7 +667,8 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
 	public function nwAttacksAnywhereCommand(
 		CmdContext $context,
-		#[NCA\Str("attacks")] string $action,
+		#[NCA\Str("attacks")]
+		string $action,
 		?int $page,
 	): void {
 		$query = $this->db->table($this->nwCtrl::DB_ATTACKS);
@@ -684,7 +685,8 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
 	public function nwAttacksForSiteCommand(
 		CmdContext $context,
-		#[NCA\Str("attacks")] string $action,
+		#[NCA\Str("attacks")]
+		string $action,
 		PTowerSite $towerSite,
 		?int $page,
 	): void {
@@ -716,8 +718,10 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>nw attacks org Komodo")]
 	public function nwAttacksForOrgCommand(
 		CmdContext $context,
-		#[NCA\Str("attacks")] string $action,
-		#[NCA\Str("org")] string $org,
+		#[NCA\Str("attacks")]
+		string $action,
+		#[NCA\Str("org")]
+		string $org,
 		PNonGreedy $orgName,
 		?int $page,
 	): void {
@@ -746,8 +750,10 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>nw attacks char nadyita")]
 	public function nwAttacksForCharCommand(
 		CmdContext $context,
-		#[NCA\Str("attacks")] string $action,
-		#[NCA\Str("char")] string $char,
+		#[NCA\Str("attacks")]
+		string $action,
+		#[NCA\Str("char")]
+		string $char,
 		PNonGreedy $search,
 		?int $page,
 	): void {
@@ -768,7 +774,8 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_STATS)]
 	public function nwSTatsCommand(
 		CmdContext $context,
-		#[NCA\Str("stats")] string $action,
+		#[NCA\Str("stats")]
+		string $action,
 		?PDuration $duration,
 	): void {
 		$from = time() - (isset($duration) ? $duration->toSecs() : 3600 * 24);
@@ -826,7 +833,8 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_OUTCOMES)]
 	public function nwOutcomesAnywhereCommand(
 		CmdContext $context,
-		#[NCA\Str("victory")] string $action,
+		#[NCA\Str("victory")]
+		string $action,
 		?int $page,
 	): void {
 		$query = $this->db->table($this->nwCtrl::DB_OUTCOMES);
@@ -842,7 +850,8 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_OUTCOMES)]
 	public function nwOutcomesForSiteCommand(
 		CmdContext $context,
-		#[NCA\Str("victory")] string $action,
+		#[NCA\Str("victory")]
+		string $action,
 		PTowerSite $towerSite,
 		?int $page,
 	): void {
@@ -873,8 +882,10 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>nw victory org Komodo")]
 	public function nwOutcomesForOrgCommand(
 		CmdContext $context,
-		#[NCA\Str("victory")] string $action,
-		#[NCA\Str("org")] string $org,
+		#[NCA\Str("victory")]
+		string $action,
+		#[NCA\Str("org")]
+		string $org,
 		PNonGreedy $orgName,
 		?int $page,
 	): void {
@@ -918,7 +929,7 @@ class AttacksController extends ModuleInstance {
 		$attacks = (new Collection($this->nwCtrl->attacks))
 			->where("playfield_id", $pf->id)
 			->whereNull("penalizing_ended")
-			->where("defender.name", $this->config->orgName);
+			->where("defender.name", $this->config->general->orgName);
 		if (isset($attOrgName)) {
 			$attacks = $attacks->where("attacker.org.name", $attOrgName);
 		} else {

@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Exception;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\Audit,
@@ -10,7 +11,6 @@ use Nadybot\Core\{
 	Modules\SECURITY\AuditController,
 	Modules\SYSTEM\SystemController,
 };
-use Nadybot\Core\Config\BotConfig;
 use SplObjectStorage;
 
 /**
@@ -204,9 +204,9 @@ class AccessManager {
 
 	/** Returns the access level of $sender, ignoring guild admin and inheriting access level from main */
 	public function getSingleAccessLevel(string $sender): string {
-		if (in_array($sender, $this->config->superAdmins, true)) {
+		if (in_array($sender, $this->config->general->superAdmins, true)) {
 			return "superadmin";
-		} elseif (empty($this->config->superAdmins) && $sender === "<no superadmin set>") {
+		} elseif (empty($this->config->general->superAdmins) && $sender === "<no superadmin set>") {
 			return "superadmin";
 		}
 

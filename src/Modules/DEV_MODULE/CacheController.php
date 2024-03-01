@@ -57,10 +57,12 @@ class CacheController extends ModuleInstance {
 	#[NCA\HandlesCommand("cache")]
 	public function cacheBrowseCommand(
 		CmdContext $context,
-		#[NCA\Str("browse")] string $action,
-		#[NCA\Regexp("[a-z0-9_-]+")] string $group
+		#[NCA\Str("browse")]
+		string $action,
+		#[NCA\Regexp("[a-z0-9_-]+")]
+		string $group
 	): void {
-		$path = $this->config->cacheFolder . $group;
+		$path = $this->config->paths->cache . $group;
 
 		$blob = '';
 		foreach ($this->cacheManager->getFilesInGroup($group) as $file) {
@@ -81,7 +83,8 @@ class CacheController extends ModuleInstance {
 	public function cacheRemCommand(
 		CmdContext $context,
 		PRemove $action,
-		#[NCA\Regexp("[a-z0-9_-]+")] string $group,
+		#[NCA\Regexp("[a-z0-9_-]+")]
+		string $group,
 		PFilename $file
 	): void {
 		$file = $file();
@@ -99,8 +102,10 @@ class CacheController extends ModuleInstance {
 	#[NCA\HandlesCommand("cache")]
 	public function cacheViewCommand(
 		CmdContext $context,
-		#[NCA\Str("view")] string $action,
-		#[NCA\Regexp("[a-z0-9_-]+")] string $group,
+		#[NCA\Str("view")]
+		string $action,
+		#[NCA\Regexp("[a-z0-9_-]+")]
+		string $group,
 		PFilename $file
 	): void {
 		$file = $file();

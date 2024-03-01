@@ -102,7 +102,8 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand("package")]
 	public function listPackagesCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action
+		#[NCA\Str("list")]
+		string $action
 	): Generator {
 		$packages = yield $this->getPackages();
 		$msg = $this->renderPackageList($packages);
@@ -206,7 +207,8 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand("package")]
 	public function packageInfoCommand(
 		CmdContext $context,
-		#[NCA\Str("info")] string $action,
+		#[NCA\Str("info")]
+		string $action,
 		string $package
 	): Generator {
 		$packages = yield $this->getPackage($package);
@@ -360,11 +362,12 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand("package")]
 	public function packageInstallCommand(
 		CmdContext $context,
-		#[NCA\Str("install")] string $action,
+		#[NCA\Str("install")]
+		string $action,
 		PWord $package,
 		?string $version
 	): Generator {
-		if (!$this->config->enablePackageModule) {
+		if (!$this->config->general->enablePackageModule) {
 			$context->reply(
 				"In order to be allowed to install modules from within Nadybot, ".
 				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
@@ -391,11 +394,12 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand("package")]
 	public function packageUpdateCommand(
 		CmdContext $context,
-		#[NCA\Str("update")] string $action,
+		#[NCA\Str("update")]
+		string $action,
 		PWord $package,
 		?string $version
 	): Generator {
-		if (!$this->config->enablePackageModule) {
+		if (!$this->config->general->enablePackageModule) {
 			$context->reply(
 				"In order to be allowed to update modules from within Nadybot, ".
 				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
@@ -422,10 +426,11 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand("package")]
 	public function packageUninstallCommand(
 		CmdContext $context,
-		#[NCA\Str("uninstall", "delete", "remove", "erase", "del", "rm")] string $action,
+		#[NCA\Str("uninstall", "delete", "remove", "erase", "del", "rm")]
+		string $action,
 		string $package
 	): void {
-		if (!$this->config->enablePackageModule) {
+		if (!$this->config->general->enablePackageModule) {
 			$context->reply(
 				"In order to be allowed to uninstall modules from within Nadybot, ".
 				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
@@ -589,7 +594,7 @@ class PackageController extends ModuleInstance {
 
 	/** Try to determine the directory where custom modules shall be installed */
 	public function getExtraModulesDir(): ?string {
-		$moduleDirs = array_map("realpath", $this->config->moduleLoadPaths);
+		$moduleDirs = array_map("realpath", $this->config->paths->modules);
 		$moduleDirs = array_diff($moduleDirs, [\Safe\realpath("./src/Modules")]);
 		$extraDir = end($moduleDirs);
 		if ($extraDir === false) {
@@ -680,7 +685,7 @@ class PackageController extends ModuleInstance {
 	private function getPackages(): Promise {
 		return call(function (): Generator {
 			$cache = new FileCache(
-				$this->config->cacheFolder . "/PACKAGE_MODULE",
+				$this->config->paths->cache . "/PACKAGE_MODULE",
 				new LocalKeyedMutex()
 			);
 			if (null !== $body = yield $cache->get("packages")) {
@@ -711,7 +716,7 @@ class PackageController extends ModuleInstance {
 	private function getPackage(string $package): Promise {
 		return call(function () use ($package): Generator {
 			$cache = new FileCache(
-				$this->config->cacheFolder . "/PACKAGE_MODULE",
+				$this->config->paths->cache . "/PACKAGE_MODULE",
 				new LocalKeyedMutex()
 			);
 			if (null !== $body = yield $cache->get($package)) {

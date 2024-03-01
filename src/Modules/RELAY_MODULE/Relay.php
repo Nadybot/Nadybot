@@ -62,6 +62,7 @@ class Relay implements MessageReceiver {
 
 	/**
 	 * @var RelayLayerInterface[]
+	 *
 	 * @psalm-var list<RelayLayerInterface>
 	 */
 	protected array $stack = [];
@@ -431,12 +432,12 @@ class Relay implements MessageReceiver {
 	 * when we send data, so it can always be traced to us
 	 */
 	protected function prependMainHop(RoutableEvent $event): void {
-		$isOrgBot = strlen($this->config->orgName) > 0;
+		$isOrgBot = strlen($this->config->general->orgName) > 0;
 		if (!empty($event->path) && $event->path[0]->type !== Source::ORG && $isOrgBot) {
 			$abbr = $this->settingManager->getString("relay_guild_abbreviation");
 			$event->prependPath(new Source(
 				Source::ORG,
-				$this->config->orgName,
+				$this->config->general->orgName,
 				($abbr === "none") ? null : $abbr
 			));
 		} elseif (!empty($event->path) && $event->path[0]->type !== Source::PRIV && !$isOrgBot) {

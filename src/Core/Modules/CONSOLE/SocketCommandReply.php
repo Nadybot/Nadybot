@@ -29,8 +29,8 @@ class SocketCommandReply implements CommandReply {
 
 	public function formatMsg(string $message): string {
 		$array = [
-			"<myname>" => $this->config->name,
-			"<myguild>" => $this->config->orgName,
+			"<myname>" => $this->config->main->character,
+			"<myguild>" => $this->config->general->orgName,
 			"<tab>" => "    ",
 			"<symbol>" => "",
 			"<center>" => "",

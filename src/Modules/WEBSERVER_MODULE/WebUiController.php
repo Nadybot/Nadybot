@@ -132,7 +132,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		if ($updateDB && $this->settingManager->exists("nadyui_version")) {
 			$this->settingManager->save("nadyui_version", "0");
 		}
-		$path = $this->config->htmlFolder;
+		$path = $this->config->paths->html;
 		return (realpath("{$path}/css") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/css")) : true)
 			&& (realpath("{$path}/img") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/img")) : true)
 			&& (realpath("{$path}/js") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/js")) : true)
@@ -170,7 +170,8 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Example("<symbol>webui install unstable")]
 	public function webUiInstallCommand(
 		CmdContext $context,
-		#[NCA\Str("install")] string $action,
+		#[NCA\Str("install")]
+		string $action,
 		string $channel
 	): Generator {
 		try {
@@ -201,10 +202,10 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		}
 		$schema = "http"; /* $this->settingManager->getBool('webserver_tls') ? "https" : "http"; */
 		$port = $this->settingManager->getInt('webserver_port');
-		if (empty($this->config->superAdmins)) {
+		if (empty($this->config->general->superAdmins)) {
 			return;
 		}
-		$superUser = $this->config->superAdmins[0];
+		$superUser = $this->config->general->superAdmins[0];
 		$uuid = $this->webserverController->authenticate($superUser, 6 * 3600);
 		$this->logger->notice(
 			">>> You can now configure this bot at {$schema}://127.0.0.1:{$port}/"
@@ -313,7 +314,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			if ($openResult !== true) {
 				throw new Exception("Error opening {$archiveName}. Code {$openResult}.");
 			}
-			$path = \Safe\realpath($this->config->htmlFolder);
+			$path = \Safe\realpath($this->config->paths->html);
 			error_clear_last();
 			if ($extractor->extractTo($path) === false) {
 				$lastError = error_get_last();

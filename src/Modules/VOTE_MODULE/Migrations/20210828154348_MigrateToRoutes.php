@@ -30,7 +30,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "vote_channel_spam");
 		if (!isset($showWhere)) {
-			if (strlen($this->config->orgName)) {
+			if (strlen($this->config->general->orgName)) {
 				$showWhere = 2;
 			} else {
 				$showWhere = 0;

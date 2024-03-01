@@ -129,9 +129,10 @@ class ImportController extends ModuleInstance {
 	public function importCommand(
 		CmdContext $context,
 		PFilename $file,
-		#[NCA\Regexp("\w+=\w+", example: "&lt;exported al&gt;=&lt;new al&gt;")] ?string ...$mappings
+		#[NCA\Regexp("\w+=\w+", example: "&lt;exported al&gt;=&lt;new al&gt;")]
+		?string ...$mappings
 	): Generator {
-		$dataPath = $this->config->dataFolder;
+		$dataPath = $this->config->paths->data;
 		$fileName = "{$dataPath}/export/" . basename($file());
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
 			$fileName .= ".json";
@@ -188,7 +189,7 @@ class ImportController extends ModuleInstance {
 						->insert([
 							"raid_id" => $auction->raidId ?? null,
 							"item" => $auction->item,
-							"auctioneer" => (yield $this->characterToName($auction->startedBy??null)) ?? $this->config->name,
+							"auctioneer" => (yield $this->characterToName($auction->startedBy??null)) ?? $this->config->main->character,
 							"cost" => ($auction->cost ?? null) ? (int)round($auction->cost??0, 0) : null,
 							"winner" => yield $this->characterToName($auction->winner??null),
 							"end" => $auction->timeEnd ?? time(),
@@ -227,7 +228,7 @@ class ImportController extends ModuleInstance {
 					$this->db->table(BanController::DB_TABLE)
 					->insert([
 						"charid" => $id,
-						"admin" => (yield $this->characterToName($ban->bannedBy ?? null)) ?? $this->config->name,
+						"admin" => (yield $this->characterToName($ban->bannedBy ?? null)) ?? $this->config->main->character,
 						"time" => $ban->banStart ?? time(),
 						"reason" => $ban->banReason ?? "None given",
 						"banend" => $ban->banEnd ?? 0,
@@ -268,7 +269,7 @@ class ImportController extends ModuleInstance {
 						->insert([
 							"time" => $action->time ?? null,
 							"action" => $action->cloakOn ? "on" : "off",
-							"player" => (yield $this->characterToName($action->character??null)) ?? $this->config->name,
+							"player" => (yield $this->characterToName($action->character??null)) ?? $this->config->main->character,
 						]);
 				}
 			} catch (Throwable $e) {
@@ -297,7 +298,7 @@ class ImportController extends ModuleInstance {
 				foreach ($links as $link) {
 					$this->db->table("links")
 						->insert([
-							"name" => (yield $this->characterToName($link->createdBy??null)) ?? $this->config->name,
+							"name" => (yield $this->characterToName($link->createdBy??null)) ?? $this->config->main->character,
 							"website" => $link->url,
 							"comments" => $link->description ?? "",
 							"dt" => $link->creationTime ?? null,
@@ -432,7 +433,7 @@ class ImportController extends ModuleInstance {
 					$this->db->table("events")
 					->insert([
 						"time_submitted" => $event->creationTime ?? time(),
-						"submitter_name" => (yield $this->characterToName($event->createdBy ?? null)) ?? $this->config->name,
+						"submitter_name" => (yield $this->characterToName($event->createdBy ?? null)) ?? $this->config->main->character,
 						"event_name" => $event->name,
 						"event_date" => $event->startTime ?? null,
 						"event_desc" => $event->description ?? null,
@@ -468,7 +469,7 @@ class ImportController extends ModuleInstance {
 					->insertGetId([
 						"time" => $item->addedTime ?? time(),
 						"uuid" => $item->uuid ?? $this->util->createUUID(),
-						"name" => (yield $this->characterToName($item->author ?? null)) ?? $this->config->name,
+						"name" => (yield $this->characterToName($item->author ?? null)) ?? $this->config->main->character,
 						"news" => $item->news,
 						"sticky" => $item->pinned ?? false,
 						"deleted" => $item->deleted ?? false,
@@ -592,7 +593,7 @@ class ImportController extends ModuleInstance {
 				foreach ($polls as $poll) {
 					$pollId = $this->db->table(VoteController::DB_POLLS)
 						->insertGetId([
-							"author" => (yield $this->characterToName($poll->author??null)) ?? $this->config->name,
+							"author" => (yield $this->characterToName($poll->author??null)) ?? $this->config->main->character,
 							"question" => $poll->question,
 							"possible_answers" => json_encode(
 								array_map(
@@ -644,7 +645,7 @@ class ImportController extends ModuleInstance {
 				foreach ($quotes as $quote) {
 					$this->db->table("quote")
 						->insert([
-							"poster" => (yield $this->characterToName($quote->contributor??null)) ?? $this->config->name,
+							"poster" => (yield $this->characterToName($quote->contributor??null)) ?? $this->config->main->character,
 							"dt" => $quote->time??time(),
 							"msg" => $quote->quote,
 						]);
@@ -715,7 +716,7 @@ class ImportController extends ModuleInstance {
 						->insert([
 							"player" => $name,
 							"blocked_from" => $block->blockedFrom,
-							"blocked_by" => (yield $this->characterToName($block->blockedBy??null)) ?? $this->config->name,
+							"blocked_by" => (yield $this->characterToName($block->blockedBy??null)) ?? $this->config->main->character,
 							"reason" => $block->blockedReason ?? "No reason given",
 							"time" => $block->blockStart ?? time(),
 							"expiration" => $block->blockEnd ?? null,
@@ -762,9 +763,9 @@ class ImportController extends ModuleInstance {
 					$historyEntry->announce_interval = $entry->announce_interval = $raid->raidAnnounceInterval ?? $this->settingManager->getInt('raid_announcement_interval');
 					$historyEntry->locked = $entry->locked = $raid->raidLocked ?? false;
 					$entry->started = $raid->time ?? time();
-					$entry->started_by = $this->config->name;
+					$entry->started_by = $this->config->main->character;
 					$entry->stopped = $lastEntry ? $lastEntry->time : $entry->started;
-					$entry->stopped_by = $this->config->name;
+					$entry->stopped_by = $this->config->main->character;
 					$raidId = $this->db->insert(RaidController::DB_TABLE, $entry, "raid_id");
 					$historyEntry->raid_id = $raidId;
 					foreach ($raid->raiders??[] as $raider) {
@@ -866,7 +867,7 @@ class ImportController extends ModuleInstance {
 							"username" => $name,
 							"delta" => $point->raidPoints,
 							"time" => $point->time ?? time(),
-							"changed_by" => (yield $this->characterToName($point->givenBy ??null)) ?? $this->config->name,
+							"changed_by" => (yield $this->characterToName($point->givenBy ??null)) ?? $this->config->main->character,
 							"individual" => $point->givenIndividually ?? true,
 							"raid_id" => $point->raidId ?? null,
 							"reason" => $point->reason ?? "Raid participation",
@@ -901,10 +902,10 @@ class ImportController extends ModuleInstance {
 				foreach ($timers as $timer) {
 					$entry = new Timer();
 					$owner = yield $this->characterToName($timer->createdBy??null);
-					$entry->owner = $owner ?? $this->config->name;
+					$entry->owner = $owner ?? $this->config->main->character;
 					$entry->data = $timer->repeatInterval ? (string)$timer->repeatInterval : null;
 					$entry->mode = $this->channelsToMode($timer->channels??[]);
-					$entry->name = $timer->timerName ?? (yield $this->characterToName($timer->createdBy??null)) ?? $this->config->name . "-{$timerNum}";
+					$entry->name = $timer->timerName ?? (yield $this->characterToName($timer->createdBy??null)) ?? $this->config->main->character . "-{$timerNum}";
 					$entry->endtime = $timer->endTime;
 					$entry->callback = $entry->data ? "timercontroller.repeatingTimerCallback" : "timercontroller.timerCallback";
 					$entry->alerts = [];
@@ -969,7 +970,7 @@ class ImportController extends ModuleInstance {
 						->insert([
 							"uid" => $id,
 							"name" => $name,
-							"added_by" => (yield $this->characterToName($trackedUser->addedBy??null)) ?? $this->config->name,
+							"added_by" => (yield $this->characterToName($trackedUser->addedBy??null)) ?? $this->config->main->character,
 							"added_dt" => $trackedUser->addedTime ?? time(),
 						]);
 					foreach ($trackedUser->events??[] as $event) {
@@ -1012,7 +1013,7 @@ class ImportController extends ModuleInstance {
 					$entry = new CommentCategory();
 					$entry->name = $category->name;
 					$createdBy = yield $this->characterToName($category->createdBy ??null);
-					$entry->created_by = $createdBy ?? $this->config->name;
+					$entry->created_by = $createdBy ?? $this->config->main->character;
 					$entry->created_at = $category->createdAt ?? time();
 					$entry->min_al_read = $this->getMappedRank($rankMap, $category->minRankToRead) ?? "mod";
 					$entry->min_al_write = $this->getMappedRank($rankMap, $category->minRankToWrite) ?? "admin";
@@ -1055,13 +1056,13 @@ class ImportController extends ModuleInstance {
 					$entry->comment = $comment->comment;
 					$entry->character = $name;
 					$createdBy = yield $this->characterToName($comment->createdBy ??null);
-					$entry->created_by = $createdBy ?? $this->config->name;
+					$entry->created_by = $createdBy ?? $this->config->main->character;
 					$entry->created_at = $comment->createdAt ?? time();
 					$entry->category = $comment->category ?? "admin";
 					if ($this->commentController->getCategory($entry->category) === null) {
 						$cat = new CommentCategory();
 						$cat->name = $entry->category;
-						$cat->created_by = $this->config->name;
+						$cat->created_by = $this->config->main->character;
 						$cat->created_at = time();
 						$cat->min_al_read = "mod";
 						$cat->min_al_write = "admin";

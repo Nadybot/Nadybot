@@ -246,8 +246,10 @@ class ChatAssistController extends ModuleInstance {
 	)]
 	public function assistClearListCommand(
 		CmdContext $context,
-		#[NCA\Str("clear")] string $action,
-		#[NCA\Regexp(".*")] string $assistList
+		#[NCA\Str("clear")]
+		string $action,
+		#[NCA\Regexp(".*")]
+		string $assistList
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -331,7 +333,8 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistSetCommand(
 		CmdContext $context,
-		#[NCA\Str("set")] string $action,
+		#[NCA\Str("set")]
+		string $action,
 		PCharacter ...$callers
 	): Generator {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -399,7 +402,8 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		?PWord $assistList,
 		PCharacter $caller
 	): Generator {
@@ -540,7 +544,8 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistRandomCommand(
 		CmdContext $context,
-		#[NCA\Str("random")] string $action,
+		#[NCA\Str("random")]
+		string $action,
 		int $numCallers
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -624,7 +629,7 @@ class ChatAssistController extends ModuleInstance {
 			explode(":", $this->neverAutoCallers)
 		);
 		$players = $this->playerManager->searchByNames(
-			$this->config->dimension,
+			$this->config->main->dimension,
 			...$members
 		);
 		return $players->filter(function (Player $member) use ($forbiddenProfs): bool {

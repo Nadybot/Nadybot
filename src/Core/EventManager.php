@@ -7,12 +7,12 @@ use Amp\{Loop, Promise};
 use Closure;
 use Exception;
 use Generator;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\EventCfg,
 	Modules\MESSAGES\MessageHubController,
 };
-use Nadybot\Core\Config\BotConfig;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
@@ -125,7 +125,7 @@ class EventManager {
 				return;
 			}
 			if ($defaultStatus === null) {
-				if ($this->config->defaultModuleStatus) {
+				if ($this->config->general->defaultModuleStatus) {
 					$status = 1;
 				} else {
 					$status = 0;

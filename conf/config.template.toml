@@ -1,0 +1,35 @@
+[database]
+type = "sqlite"
+name = "nadybot.db"
+host = "./data/"
+
+[paths]
+cache = "./cache/"
+html = "./html/"
+data = "./data/"
+logs = "./logs/"
+modules = ["./src/Modules", "./extras"]
+
+[main]
+login = ""
+password = ""
+character = ""
+dimension = 5
+
+[general]
+org_name = ""
+super_admins = []
+show_aoml_markup = false
+default_module_status = 0
+enable_console_client = true
+enable_package_module = true
+auto_org_name = false
+
+[proxy]
+enabled = false
+server = "127.0.0.1"
+port = 9993
+
+[auto-unfreeze]
+enabled = true
+use_nadyproxy = true

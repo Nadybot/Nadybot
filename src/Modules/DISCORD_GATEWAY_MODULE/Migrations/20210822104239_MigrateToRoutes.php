@@ -72,7 +72,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$this->addRoute(
 				$db,
 				Source::DISCORD_PRIV . "({$channel->name})",
-				Source::PRIV . "({$this->config->name})",
+				Source::PRIV . "({$this->config->main->character})",
 				$relayCommands
 			);
 		}

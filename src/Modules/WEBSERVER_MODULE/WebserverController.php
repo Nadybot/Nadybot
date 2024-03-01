@@ -106,6 +106,7 @@ class WebserverController extends ModuleInstance {
 
 	/**
 	 * @var ?resource
+	 *
 	 * @psalm-var null|resource|closed-resource
 	 */
 	protected $serverSocket = null;
@@ -120,6 +121,7 @@ class WebserverController extends ModuleInstance {
 
 	/**
 	 * @var array<string,array<int|string>>
+	 *
 	 * @phpstan-var array<string,array{string,int}>
 	 */
 	protected array $authentications = [];
@@ -360,7 +362,9 @@ class WebserverController extends ModuleInstance {
 
 	/**
 	 * @return array<array<Closure|string[]>>
+	 *
 	 * @phpstan-return array<array{Closure,string[]}>
+	 *
 	 * @psalm-return array<array{Closure,string[]}>
 	 */
 	public function getHandlersForRequest(Request $request): array {
@@ -406,7 +410,7 @@ class WebserverController extends ModuleInstance {
 			if ($authType === static::AUTH_BASIC) {
 				$server->httpError(new Response(
 					Response::UNAUTHORIZED,
-					["WWW-Authenticate" => "Basic realm=\"{$this->config->name}\""],
+					["WWW-Authenticate" => "Basic realm=\"{$this->config->main->character}\""],
 				), $event->request);
 			} elseif ($authType === static::AUTH_AOAUTH) {
 				$baseUrl = $this->webserverBaseUrl;
@@ -620,7 +624,7 @@ class WebserverController extends ModuleInstance {
 	/** @return Promise<Response> */
 	private function serveStaticFile(Request $request): Promise {
 		return call(function () use ($request): Generator {
-			$path = $this->config->htmlFolder;
+			$path = $this->config->paths->html;
 			try {
 				$realFile = \Safe\realpath("{$path}/{$request->path}");
 				$realBaseDir = \Safe\realpath("{$path}/");

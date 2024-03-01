@@ -34,7 +34,7 @@ class MoveSettingsToRoutes implements SchemaMigration {
 			&& (!isset($relayFilter) || !strlen($relayFilter->value??""));
 
 		$route = new Route();
-		$route->source = Source::PRIV . "({$this->config->name})";
+		$route->source = Source::PRIV . "({$this->config->main->character})";
 		$route->destination = Source::ORG;
 		$route->two_way = $unfiltered;
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
@@ -44,7 +44,7 @@ class MoveSettingsToRoutes implements SchemaMigration {
 		}
 		$route = new Route();
 		$route->source = Source::ORG;
-		$route->destination = Source::PRIV . "({$this->config->name})";
+		$route->destination = Source::PRIV . "({$this->config->main->character})";
 		$route->two_way = false;
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
 		$this->addCommandFilter($db, $relayCommands, $route->id);

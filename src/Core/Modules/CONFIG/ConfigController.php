@@ -146,9 +146,12 @@ class ConfigController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>config cmd disable guild")]
 	public function toggleChannelOfAllModulesCommand(
 		CmdContext $context,
-		#[NCA\Str("cmd")] string $cmd,
+		#[NCA\Str("cmd")]
+		string $cmd,
 		bool $status,
-		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
+		#[NCA\PWord]
+		#[NCA\Str("all")]
+		string $permissionSet,
 	): void {
 		$permissionSet = strtolower($permissionSet);
 		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
@@ -202,10 +205,13 @@ class ConfigController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>config mod GUILD_MODULE enable guild")]
 	public function toggleModuleChannelCommand(
 		CmdContext $context,
-		#[NCA\Str("mod")] string $action,
+		#[NCA\Str("mod")]
+		string $action,
 		string $module,
 		bool $enable,
-		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
+		#[NCA\PWord]
+		#[NCA\Str("all")]
+		string $permissionSet,
 	): void {
 		$permissionSet = strtolower($permissionSet);
 		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
@@ -237,10 +243,13 @@ class ConfigController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>config subcmd points see other enable msg")]
 	public function toggleCommandChannelCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("cmd", "subcmd")] string $type,
+		#[NCA\StrChoice("cmd", "subcmd")]
+		string $type,
 		string $cmd,
 		bool $enable,
-		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
+		#[NCA\PWord]
+		#[NCA\Str("all")]
+		string $permissionSet,
 	): void {
 		$type = strtolower($type);
 		$permissionSet = strtolower($permissionSet);
@@ -287,11 +296,14 @@ class ConfigController extends ModuleInstance {
 	#[NCA\HandlesCommand("config")]
 	public function toggleEventCommand(
 		CmdContext $context,
-		#[NCA\Str("event")] string $type,
+		#[NCA\Str("event")]
+		string $type,
 		PWord $event,
 		string $eventHandler,
 		bool $enable,
-		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
+		#[NCA\PWord]
+		#[NCA\Str("all")]
+		string $permissionSet,
 	): void {
 		$permissionSet = strtolower($permissionSet);
 		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
@@ -439,10 +451,14 @@ class ConfigController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>config subcmd points modify admin msg mod")]
 	public function setAccessLevelOfChannelCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("subcmd", "cmd")] string $category,
+		#[NCA\StrChoice("subcmd", "cmd")]
+		string $category,
 		string $cmd,
-		#[NCA\Str("admin")] string $admin,
-		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
+		#[NCA\Str("admin")]
+		string $admin,
+		#[NCA\PWord]
+		#[NCA\Str("all")]
+		string $permissionSet,
 		string $accessLevel
 	): void {
 		$category = strtolower($category);
@@ -539,7 +555,8 @@ class ConfigController extends ModuleInstance {
 	#[NCA\HandlesCommand("config")]
 	public function configCommandCommand(
 		CmdContext $context,
-		#[NCA\Str("cmd")] string $action,
+		#[NCA\Str("cmd")]
+		string $action,
 		PWord $cmd
 	): void {
 		$cmd = strtolower($cmd());
@@ -745,7 +762,8 @@ class ConfigController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>config setting symbol")]
 	public function getAccessLevelOfSetting(
 		CmdContext $context,
-		#[NCA\StrChoice("setting")] string $category,
+		#[NCA\StrChoice("setting")]
+		string $category,
 		PWord $setting,
 	): void {
 		$setting = strtolower($setting());
@@ -770,9 +788,11 @@ class ConfigController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>config setting symbol admin superadmin")]
 	public function setAccessLevelOfSetting(
 		CmdContext $context,
-		#[NCA\StrChoice("setting")] string $category,
+		#[NCA\StrChoice("setting")]
+		string $category,
 		PWord $setting,
-		#[NCA\Str("admin")] string $admin,
+		#[NCA\Str("admin")]
+		string $admin,
 		string $accessLevel
 	): void {
 		$setting = strtolower($setting());

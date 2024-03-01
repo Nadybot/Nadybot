@@ -302,7 +302,7 @@ class Util {
 		$filename = str_replace("\\", "/", $filename);
 
 		// check if the file exists
-		foreach (array_reverse($this->config->moduleLoadPaths) as $modulePath) {
+		foreach (array_reverse($this->config->paths->modules) as $modulePath) {
 			if (file_exists("{$modulePath}/{$filename}")) {
 				return "{$modulePath}/{$filename}";
 			}
@@ -459,6 +459,7 @@ class Util {
 	 * @param string   $column The table column to test against
 	 *
 	 * @return array<string,string[]> ["$column LIKE ? AND $column NOT LIKE ? AND $column LIKE ?", ['%a%', '%b%', '%c%']]
+	 *
 	 * @psalm-return array{0: string, 1: list<string>}
 	 */
 	public function generateQueryFromParams(array $params, string $column): array {
@@ -600,6 +601,7 @@ class Util {
 	 * Calculate the level range from the player's title level
 	 *
 	 * @return int[]
+	 *
 	 * @phpstan-return array{int,int}
 	 */
 	public function tlToLevelRange(int $tl): array {

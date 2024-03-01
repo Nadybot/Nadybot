@@ -11,6 +11,7 @@ use Generator;
 use Illuminate\Support\Collection;
 use JsonException;
 use Monolog\Logger;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\Route,
@@ -22,7 +23,6 @@ use Nadybot\Core\{
 	Routing\RoutableEvent,
 	Routing\Source,
 };
-use Nadybot\Core\Config\BotConfig;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
@@ -420,6 +420,7 @@ class MessageHub {
 		if ($path[0]->type === Source::LOG) {
 			/**
 			 * @phpstan-ignore-next-line
+			 *
 			 * @psalm-suppress ArgumentTypeCoercion
 			 */
 			$eventLogLevel = Logger::toMonologLevel($path[0]->name);
@@ -450,6 +451,7 @@ class MessageHub {
 				try {
 					/**
 					 * @psalm-suppress ArgumentTypeCoercion
+					 *
 					 * @phpstan-ignore-next-line
 					 */
 					$srcLevel = Logger::toMonologLevel($matches[1]);
@@ -532,12 +534,12 @@ class MessageHub {
 				]
 			);
 			$routedName = preg_replace('/^(.+) \(\1\)$/', '$1', $routedName);
-			if ($char->dimension !== $this->config->dimension) {
+			if ($char->dimension !== $this->config->main->dimension) {
 				$routedName .= "@" . $this->dimensionToSuffix($char->dimension);
 			}
 			$charLink = $routedName . ": ";
 			if (
-				$this->config->dimension === $char->dimension
+				$this->config->main->dimension === $char->dimension
 				&& in_array($lastHop->type??null, $aoSources)
 				&& $withUserLink
 			) {

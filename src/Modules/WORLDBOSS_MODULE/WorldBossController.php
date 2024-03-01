@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use function Amp\delay;
-use function Safe\{json_decode, json_encode};
+use function Safe\{json_decode};
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use DateTime;
 use DateTimeZone;
@@ -28,7 +28,7 @@ use Nadybot\Core\{
 	UserException,
 	Util,
 };
-use Nadybot\Modules\HELPBOT_MODULE\{PlayfieldController, Timezone};
+use Nadybot\Modules\HELPBOT_MODULE\{PlayfieldController};
 use Safe\Exceptions\JsonException;
 use Throwable;
 
@@ -713,7 +713,8 @@ class WorldBossController extends ModuleInstance {
 	]
 	public function bossUpdateCommand(
 		CmdContext $context,
-		#[NCA\Str("update")] string $action,
+		#[NCA\Str("update")]
+		string $action,
 		PDuration $durationUntilVulnerable
 	): void {
 		$boss = $this->getMobFromContext($context);
@@ -925,7 +926,7 @@ class WorldBossController extends ModuleInstance {
 			"name" => $timer->name,
 			"dimension" => $timer->dimension,
 		]);
-		if ($timer->dimension !== $this->config->dimension) {
+		if ($timer->dimension !== $this->config->main->dimension) {
 			return false;
 		}
 		$map = array_flip(static::BOSS_MAP);

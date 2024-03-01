@@ -165,7 +165,7 @@ class TradebotController extends ModuleInstance {
 			$msg = "Please make sure to use <highlight><symbol>route add tradebot(*) -&gt; aopriv<end> ".
 				"or <highlight><symbol>route add tradebot(*) -&gt; aoorg<end> to ".
 				"set up message routing between the tradebot and your org- and/or private channel.";
-			if (strlen($this->config->orgName)) {
+			if (strlen($this->config->general->orgName)) {
 				$this->chatBot->sendGuild($msg, true);
 			} else {
 				$this->chatBot->sendPrivate($msg, true);
@@ -341,7 +341,8 @@ class TradebotController extends ModuleInstance {
 	)]
 	public function addTradecolorCommand(
 		CmdContext $context,
-		#[NCA\Str("set", "add")] string $action,
+		#[NCA\Str("set", "add")]
+		string $action,
 		PCharacter $tradeBot,
 		string $tag,
 		PColor $color
@@ -377,7 +378,8 @@ class TradebotController extends ModuleInstance {
 	#[NCA\HandlesCommand("tradecolor")]
 	public function pickTradecolorCommand(
 		CmdContext $context,
-		#[NCA\Str("pick")] string $action,
+		#[NCA\Str("pick")]
+		string $action,
 		PCharacter $tradeBot,
 		string $tag
 	): void {

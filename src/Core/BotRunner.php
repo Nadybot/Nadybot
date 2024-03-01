@@ -281,10 +281,10 @@ class BotRunner {
 
 		// these must happen first since the classes that are loaded may be used by processes below
 		$this->loadPhpLibraries();
-		if (isset($config->timezone) && @date_default_timezone_set($config->timezone) === false) {
-			die("Invalid timezone: \"{$config->timezone}\"\n");
+		if (isset($config->general->timezone) && @date_default_timezone_set($config->general->timezone) === false) {
+			die("Invalid timezone: \"{$config->general->timezone}\"\n");
 		}
-		$logFolderName = "{$config->logsFolder}/{$config->name}.{$config->dimension}";
+		$logFolderName = "{$config->paths->logs}/{$config->main->character}.{$config->main->dimension}";
 
 		$this->setErrorHandling($logFolderName);
 		$this->logger = new LoggerWrapper("Core/BotRunner");
@@ -315,9 +315,9 @@ class BotRunner {
 			"PHP {phpVersion}, {loopType} event loop, ".
 			"{fsType} filesystem, and {dbType}...",
 			[
-				"name" => $config->name,
+				"name" => $config->main->character,
 				"version" => $version,
-				"dimension" => $config->dimension,
+				"dimension" => $config->main->dimension,
 				"phpVersion" => phpversion(),
 				"loopType" => class_basename(Loop::get()),
 				"fsType" => class_basename($fsDriver),
@@ -325,7 +325,7 @@ class BotRunner {
 			]
 		);
 
-		$this->classLoader = new ClassLoader($config->moduleLoadPaths);
+		$this->classLoader = new ClassLoader($config->paths->modules);
 		Registry::injectDependencies($this->classLoader);
 		$this->classLoader->loadInstances();
 		$msgHub = Registry::getInstance(MessageHub::class);
@@ -365,7 +365,7 @@ class BotRunner {
 		}
 
 		// connect to ao chat server
-		$chatBot->connectAO($config->login, $config->password, (string)$server, (int)$port);
+		$chatBot->connectAO($config->main->login, $config->main->password, (string)$server, (int)$port);
 
 		// pass control to Nadybot class
 		$chatBot->run();
@@ -419,14 +419,12 @@ class BotRunner {
 	}
 
 	protected function createMissingDirs(): void {
-		$dirVars = ["cacheFolder", "htmlFolder", "dataFolder"];
-		foreach ($dirVars as $var) {
-			$dir = $this->getConfigFile()->{$var};
+		foreach (get_object_vars($this->getConfigFile()->paths) as $name => $dir) {
 			if (is_string($dir) && !@file_exists($dir)) {
 				@mkdir($dir, 0700);
 			}
 		}
-		foreach ($this->getConfigFile()->moduleLoadPaths as $dir) {
+		foreach ($this->getConfigFile()->paths->modules as $dir) {
 			if (is_string($dir) && !@file_exists($dir)) {
 				@mkdir($dir, 0700);
 			}
@@ -442,17 +440,17 @@ class BotRunner {
 	 */
 	protected function getServerAndPort(BotConfig $config): array {
 		// Choose server
-		if ($config->useProxy) {
+		if ($config->proxy?->enabled === true) {
 			// For use with the AO chat proxy ONLY!
-			$server = $config->proxyServer;
-			$port = $config->proxyPort;
-		} elseif ($config->dimension === 4) {
+			$server = $config->proxy->server;
+			$port = $config->proxy->port;
+		} elseif ($config->main->dimension === 4) {
 			$server = "chat.dt.funcom.com";
 			$port = 7109;
-		} elseif ($config->dimension === 5) {
+		} elseif ($config->main->dimension === 5) {
 			$server = "chat.d1.funcom.com";
 			$port = 7105;
-		} elseif ($config->dimension === 6) {
+		} elseif ($config->main->dimension === 6) {
 			$server = "chat.d1.funcom.com";
 			$port = 7106;
 		} else {
@@ -600,7 +598,7 @@ class BotRunner {
 
 	/** Is information missing to run the bot? */
 	private function shouldShowSetup(): bool {
-		return empty($this->configFile->login) || empty($this->configFile->password) || empty($this->configFile->name);
+		return empty($this->configFile->main->login) || empty($this->configFile->main->password) || empty($this->configFile->main->character);
 	}
 
 	/** Set the title of the command prompt window in Windows */
@@ -608,7 +606,7 @@ class BotRunner {
 		if ($this->isWindows() === false) {
 			return;
 		}
-		\Safe\system("title {$config->name} - Nadybot");
+		\Safe\system("title {$config->main->character} - Nadybot");
 	}
 
 	/** Connect to the database */

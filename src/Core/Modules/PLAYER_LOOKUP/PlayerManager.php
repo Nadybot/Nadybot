@@ -83,7 +83,7 @@ class PlayerManager extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		mkdir($this->config->cacheFolder . '/players');
+		mkdir($this->config->paths->cache . '/players');
 	}
 
 	#[NCA\Event(
@@ -142,7 +142,7 @@ class PlayerManager extends ModuleInstance {
 	/** @return Promise<?Player> */
 	public function byName(string $name, ?int $dimension=null, bool $forceUpdate=false): Promise {
 		return call(function () use ($name, $dimension, $forceUpdate): Generator {
-			$dimension ??= $this->config->dimension;
+			$dimension ??= $this->config->main->dimension;
 
 			$name = ucfirst(strtolower($name));
 
@@ -150,7 +150,7 @@ class PlayerManager extends ModuleInstance {
 				return null;
 			}
 			$charid = null;
-			if ($dimension === $this->config->dimension) {
+			if ($dimension === $this->config->main->dimension) {
 				$charid = yield $this->chatBot->getUid2($name);
 			}
 
@@ -256,7 +256,7 @@ class PlayerManager extends ModuleInstance {
 					try {
 						$url = $baseUrl . "/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json";
 						$cache = new FileCache(
-							$this->config->cacheFolder . '/players',
+							$this->config->paths->cache . '/players',
 							new LocalKeyedMutex()
 						);
 						$cacheKey = "{$name}.{$dimension}";

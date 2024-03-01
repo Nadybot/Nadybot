@@ -51,8 +51,14 @@
 		"eventsauce/object-hydrator": "^1.1.0",
 		"spatie/data-transfer-object": "^3.9",
 		"amphp/http-tunnel": "^1.0",
-		"yosymfony/toml": "^1.0"
+		"nadylib/imex": "dev-main"
 	},
+	"repositories": [
+		{
+			"type": "git",
+			"url": "https://github.com/Nadybot/IMEX.git"
+		}
+	],
 	"autoload": {
 		"psr-4": {
 			"Nadybot\\User\\Modules\\": "extras/",

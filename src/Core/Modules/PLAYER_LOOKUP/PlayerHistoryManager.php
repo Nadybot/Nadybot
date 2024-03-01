@@ -44,7 +44,7 @@ class PlayerHistoryManager extends ModuleInstance {
 			$groupName = "player_history";
 			$cacheKey = "{$name}.{$dimension}.history";
 			$cache = new FileCache(
-				$this->config->cacheFolder . "/{$groupName}",
+				$this->config->paths->cache . "/{$groupName}",
 				new LocalKeyedMutex(),
 			);
 			if (null !== $body = yield $cache->get($cacheKey)) {

@@ -37,7 +37,7 @@ class FindPlayerController extends ModuleInstance {
 	public function findplayerCommand(CmdContext $context, string $search): void {
 		$players = $this->playerManager->searchForPlayers(
 			$search,
-			$this->config->dimension
+			$this->config->main->dimension
 		);
 		$count = count($players);
 

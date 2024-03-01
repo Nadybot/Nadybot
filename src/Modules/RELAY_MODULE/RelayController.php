@@ -191,6 +191,7 @@ class RelayController extends ModuleInstance {
 	public function loadStackComponents(): void {
 		/**
 		 * @var array<string,string|callable>
+		 *
 		 * @phpstan-var array<string,array{class-string, callable}>
 		 */
 		$types = [
@@ -243,7 +244,7 @@ class RelayController extends ModuleInstance {
 		if ($abbr !== 'none') {
 			return $abbr;
 		}
-		return $this->config->orgName;
+		return $this->config->general->orgName;
 	}
 
 	public function getTransportSpec(string $name): ?ClassSpec {
@@ -266,8 +267,10 @@ class RelayController extends ModuleInstance {
 	#[NCA\HandlesCommand("relay")]
 	public function relayListProtocolsCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action,
-		#[NCA\Regexp("protocols?", example: "protocols")] string $subAction
+		#[NCA\Str("list")]
+		string $action,
+		#[NCA\Regexp("protocols?", example: "protocols")]
+		string $subAction
 	): void {
 		$context->reply(
 			$this->renderClassSpecOverview(
@@ -282,8 +285,10 @@ class RelayController extends ModuleInstance {
 	#[NCA\HandlesCommand("relay")]
 	public function relayListProtocolDetailCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action,
-		#[NCA\Str("protocol")] string $subAction,
+		#[NCA\Str("list")]
+		string $action,
+		#[NCA\Str("protocol")]
+		string $subAction,
 		string $protocol
 	): void {
 		$context->reply(
@@ -299,8 +304,10 @@ class RelayController extends ModuleInstance {
 	#[NCA\HandlesCommand("relay")]
 	public function relayListTransportsCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action,
-		#[NCA\Regexp("transports?", example: "transports")] string $subAction
+		#[NCA\Str("list")]
+		string $action,
+		#[NCA\Regexp("transports?", example: "transports")]
+		string $subAction
 	): void {
 		$context->reply(
 			$this->renderClassSpecOverview(
@@ -315,8 +322,10 @@ class RelayController extends ModuleInstance {
 	#[NCA\HandlesCommand("relay")]
 	public function relayListTransportDetailCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action,
-		#[NCA\Str("transport")] string $subAction,
+		#[NCA\Str("list")]
+		string $action,
+		#[NCA\Str("transport")]
+		string $subAction,
 		string $transport
 	): void {
 		$context->reply(
@@ -332,8 +341,10 @@ class RelayController extends ModuleInstance {
 	#[NCA\HandlesCommand("relay")]
 	public function relayListStacksCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action,
-		#[NCA\Regexp("layers?", example: "layers")] string $subAction
+		#[NCA\Str("list")]
+		string $action,
+		#[NCA\Regexp("layers?", example: "layers")]
+		string $subAction
 	): void {
 		$context->reply(
 			$this->renderClassSpecOverview(
@@ -348,8 +359,10 @@ class RelayController extends ModuleInstance {
 	#[NCA\HandlesCommand("relay")]
 	public function relayListStackDetailCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action,
-		#[NCA\Str("layer")] string $subAction,
+		#[NCA\Str("list")]
+		string $action,
+		#[NCA\Str("layer")]
+		string $subAction,
 		string $layer
 	): void {
 		$context->reply(
@@ -374,7 +387,8 @@ class RelayController extends ModuleInstance {
 	)]
 	public function relayAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		PWord $name,
 		string $spec
 	): void {
@@ -562,7 +576,8 @@ class RelayController extends ModuleInstance {
 	#[NCA\HandlesCommand("relay")]
 	public function relayDescribeIdCommand(
 		CmdContext $context,
-		#[NCA\Str("describe")] string $action,
+		#[NCA\Str("describe")]
+		string $action,
 		int $id
 	): void {
 		$this->relayDescribeCommand($context, $id, null);
@@ -576,7 +591,8 @@ class RelayController extends ModuleInstance {
 	#[NCA\HandlesCommand("relay")]
 	public function relayDescribeNameCommand(
 		CmdContext $context,
-		#[NCA\Str("describe")] string $action,
+		#[NCA\Str("describe")]
+		string $action,
 		PNonNumber $name
 	): void {
 		$this->relayDescribeCommand($context, null, $name());
@@ -614,7 +630,8 @@ class RelayController extends ModuleInstance {
 	#[NCA\HandlesCommand("relay")]
 	public function relayListCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] ?string $action
+		#[NCA\Str("list")]
+		?string $action
 	): void {
 		$relays = $this->getRelays();
 		if (empty($relays)) {
@@ -751,12 +768,15 @@ class RelayController extends ModuleInstance {
 	#[NCA\HandlesCommand("relay")]
 	public function relayConfigEventmodCommand(
 		CmdContext $context,
-		#[NCA\Str("config")] string $action,
+		#[NCA\Str("config")]
+		string $action,
 		PWord $name,
-		#[NCA\Str("eventmod")] string $subAction,
+		#[NCA\Str("eventmod")]
+		string $subAction,
 		PWord $event,
 		bool $enable,
-		#[NCA\Str("incoming", "outgoing")] string $direction
+		#[NCA\Str("incoming", "outgoing")]
+		string $direction
 	): void {
 		$name = $name();
 		$relay = $this->getRelayByName($name);
@@ -790,10 +810,13 @@ class RelayController extends ModuleInstance {
 	#[NCA\HandlesCommand("relay")]
 	public function relayConfigEventsetCommand(
 		CmdContext $context,
-		#[NCA\Str("config")] string $action,
+		#[NCA\Str("config")]
+		string $action,
 		PWord $name,
-		#[NCA\Str("eventset")] string $subAction,
-		#[NCA\Regexp("[a-z()_-]+\s+(?:IO|O|I)", example: "&lt;event I|O|IO&gt;")] ?string ...$events
+		#[NCA\Str("eventset")]
+		string $subAction,
+		#[NCA\Regexp("[a-z()_-]+\s+(?:IO|O|I)", example: "&lt;event I|O|IO&gt;")]
+		?string ...$events
 	): void {
 		$name = $name();
 		$relay = $this->getRelayByName($name);
@@ -1532,6 +1555,7 @@ class RelayController extends ModuleInstance {
 
 	/**
 	 * @param Source[] $source
+	 *
 	 * @phpstan-param non-empty-array<Source> $source
 	 */
 	private function getExampleMessage(RelayConfig $relay, array $source): string {

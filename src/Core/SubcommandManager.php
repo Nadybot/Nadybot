@@ -3,12 +3,12 @@
 namespace Nadybot\Core;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\CmdCfg,
 	DBSchema\CmdPermission,
 };
-use Nadybot\Core\Config\BotConfig;
 
 #[NCA\Instance]
 class SubcommandManager {
@@ -57,7 +57,7 @@ class SubcommandManager {
 		}
 
 		if ($defaultStatus === null) {
-			if ($this->config->defaultModuleStatus === 1) {
+			if ($this->config->general->defaultModuleStatus === 1) {
 				$status = 1;
 			} else {
 				$status = 0;

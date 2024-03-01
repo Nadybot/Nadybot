@@ -43,7 +43,7 @@ class PlayerHistoryController extends ModuleInstance {
 	#[NCA\HandlesCommand("history")]
 	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): Generator {
 		$name = $char();
-		$dimension ??= $this->config->dimension;
+		$dimension ??= $this->config->main->dimension;
 
 		$history = yield $this->playerHistoryManager->asyncLookup2($name, $dimension);
 		$msg = $this->renderPlayerHistory($history, $name, $dimension);

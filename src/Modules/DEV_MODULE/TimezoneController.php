@@ -89,7 +89,7 @@ class TimezoneController extends ModuleInstance {
 			return;
 		}
 		$msg = "Timezone has been set to <highlight>{$timezone}<end>.";
-		$this->config->timezone = $timezone();
+		$this->config->general->timezone = $timezone();
 		$this->config->save();
 		$context->reply($msg);
 	}

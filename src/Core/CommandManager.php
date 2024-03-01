@@ -8,6 +8,7 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Modules\SYSTEM\SystemController;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -27,7 +28,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
-use Nadybot\Core\Config\BotConfig;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
@@ -193,7 +193,7 @@ class CommandManager implements MessageEmitter {
 		}
 
 		if ($defaultStatus === null) {
-			if ($this->config->defaultModuleStatus) {
+			if ($this->config->general->defaultModuleStatus) {
 				$status = 1;
 			} else {
 				$status = 0;
@@ -1518,6 +1518,7 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * @return string[]
+	 *
 	 * @phpstan-return array{string, ?string}
 	 */
 	protected function cleanComment(string $comment): array {

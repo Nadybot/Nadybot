@@ -250,9 +250,9 @@ class WhoisController extends ModuleInstance {
 	#[NCA\HandlesCommand("whois")]
 	public function whoisNameCommand(CmdContext $context, PCharacter $char, ?int $dimension): Generator {
 		$name = $char();
-		$dimension ??= $this->config->dimension;
+		$dimension ??= $this->config->main->dimension;
 		$uid = null;
-		if ($dimension === $this->config->dimension) {
+		if ($dimension === $this->config->main->dimension) {
 			$uid = yield $this->chatBot->getUid2($name);
 		}
 		if (isset($uid)) {
@@ -378,7 +378,7 @@ class WhoisController extends ModuleInstance {
 					$blob .= "Character ID: <highlight>{$charID}<end> [{$lookupCharIdLink}]\n\n";
 				}
 				if (is_int($charID)) {
-					$blob .= $this->getNameHistory($charID, $this->config->dimension);
+					$blob .= $this->getNameHistory($charID, $this->config->main->dimension);
 				}
 
 				$msg = $this->text->makeBlob("Basic Info for {$name}", $blob);
@@ -406,7 +406,7 @@ class WhoisController extends ModuleInstance {
 			$blob .= "Head Id: <highlight>{$whois->head_id}<end>\n";
 			// $blob .= "PVP Rating: <highlight>{$whois->pvp_rating}<end>\n";
 			// $blob .= "PVP Title: <highlight>{$whois->pvp_title}<end>\n";
-			if ($whois->dimension === $this->config->dimension) {
+			if ($whois->dimension === $this->config->main->dimension) {
 				$blob .= "Status: ";
 				if ($online) {
 					$blob .= "<on>Online<end>\n";
@@ -425,7 +425,7 @@ class WhoisController extends ModuleInstance {
 			$blob .= "Source: <highlight>{$whois->source}<end>\n\n";
 
 			if ($charID !== null) {
-				$blob .= $this->getNameHistory($charID, $this->config->dimension);
+				$blob .= $this->getNameHistory($charID, $this->config->main->dimension);
 			}
 			$main = $this->altsController->getMainOf($name);
 			if ($main === $name) {
@@ -467,7 +467,7 @@ class WhoisController extends ModuleInstance {
 			}
 
 			$msg = $this->playerManager->getInfo($whois);
-			if ($whois->dimension === $this->config->dimension) {
+			if ($whois->dimension === $this->config->main->dimension) {
 				if ($online) {
 					$msg .= " :: <on>Online<end>";
 				} elseif ($charID === null) {

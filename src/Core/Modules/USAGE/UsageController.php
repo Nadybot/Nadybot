@@ -288,10 +288,10 @@ class UsageController extends ModuleInstance {
 			}, new stdClass());
 
 		$settings = new SettingsUsageStats();
-		$settings->dimension               = $this->config->dimension;
-		$settings->is_guild_bot            = strlen($this->config->orgName) > 0;
+		$settings->dimension               = $this->config->main->dimension;
+		$settings->is_guild_bot            = strlen($this->config->general->orgName) > 0;
 		$settings->guildsize               = $this->getGuildSizeClass(count($this->chatBot->guildmembers));
-		$settings->using_chat_proxy        = (bool)$this->config->useProxy;
+		$settings->using_chat_proxy        = $this->config->proxy?->enabled === true;
 		$settings->db_type                 = $this->db->getType()->value;
 		$settings->bot_version             = BotRunner::getVersion();
 		$settings->using_git               = @file_exists(BotRunner::getBasedir() . "/.git");
@@ -314,7 +314,7 @@ class UsageController extends ModuleInstance {
 		$settings->http_server_enable      = $this->eventManager->getKeyForCronEvent(60, "httpservercontroller.startHTTPServer") !== null;
 
 		$obj = new UsageStats();
-		$obj->id       = sha1($botid . $this->chatBot->char->name . $this->config->dimension);
+		$obj->id       = sha1($botid . $this->chatBot->char->name . $this->config->main->dimension);
 		$obj->version  = 2;
 		$obj->debug    = $debug;
 		$obj->commands = $commands;
