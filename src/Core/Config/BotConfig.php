@@ -28,7 +28,7 @@ class BotConfig {
 	 * @param array<string,null|scalar> $settings     Define settings values which will be immutable
 	 */
 	public function __construct(
-		public readonly string $filePath,
+		private string $filePath,
 		public ?int $orgId,
 		public Database $database,
 		public Paths $paths,
