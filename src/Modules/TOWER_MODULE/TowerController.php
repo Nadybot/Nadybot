@@ -360,7 +360,8 @@ class TowerController extends ModuleInstance {
 	#[NCA\Help\Epilogue("Note: you can use '%' as a wildcard in org and character names")]
 	public function attacksOrgCommand(
 		CmdContext $context,
-		#[NCA\Str("org")] string $action,
+		#[NCA\Str("org")]
+		string $action,
 		PNonGreedy $orgName,
 		?int $page
 	): void {
@@ -378,7 +379,8 @@ class TowerController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>attacks char nadyita")]
 	public function attacksPlayerCommand(
 		CmdContext $context,
-		#[NCA\Str("char", "character", "player")] string $action,
+		#[NCA\Str("char", "character", "player")]
+		string $action,
 		PWord $char,
 		?int $page
 	): void {
@@ -430,8 +432,10 @@ class TowerController extends ModuleInstance {
 	#[NCA\HandlesCommand("sites")]
 	public function unplantedSitesForQLCommand(
 		CmdContext $context,
-		#[NCA\Str("ql")] string $action,
-		#[NCA\SpaceOptional] int $ql,
+		#[NCA\Str("ql")]
+		string $action,
+		#[NCA\SpaceOptional]
+		int $ql,
 	): Generator {
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "planted" => "false"];
@@ -1087,7 +1091,8 @@ class TowerController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>victory char nadyita")]
 	public function victoryPlayerCommand(
 		CmdContext $context,
-		#[NCA\Str("char", "character", "player")] string $action,
+		#[NCA\Str("char", "character", "player")]
+		string $action,
 		PWord $char,
 		?int $page
 	): void {

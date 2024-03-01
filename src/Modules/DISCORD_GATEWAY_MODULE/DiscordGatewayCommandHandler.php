@@ -182,7 +182,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	)]
 	public function extAuthCommand(
 		CmdContext $context,
-		#[NCA\Str("request")] string $action,
+		#[NCA\Str("request")]
+		string $action,
 		PCharacter $char
 	): Generator {
 		$discordUserId = $context->char->name;

@@ -44,6 +44,7 @@ RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     apk --no-cache add \
         sudo \
         jq \
+        git \
     && \
     cd /nadybot && \
     sudo -u nadybot mkdir -p data/db cache && \
@@ -54,7 +55,7 @@ RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     jq 'del(.monolog.handlers.logs)|.monolog.formatters.console.options.format="[%level_name%] %message% %context% %extra%\n"|.monolog.formatters.console += {"calls": {"includeStacktraces": {"include" :true}}}' conf/logging.json > conf/logging.json.2 && \
     mv conf/logging.json.2 conf/logging.json && \
     chown nadybot:nadybot conf/logging.json && \
-    apk del --no-cache sudo && \
+    apk del --no-cache sudo git && \
     if [ "x${VERSION}" != "x" ]; then \
         sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
     fi && \

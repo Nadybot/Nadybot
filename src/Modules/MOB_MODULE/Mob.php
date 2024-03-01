@@ -47,15 +47,22 @@ class Mob {
 		public string $name,
 		public string $key,
 		public string $type,
-		#[MapFrom("coordinates.x", ".")] public int $x,
-		#[MapFrom("coordinates.y", ".")] public int $y,
-		#[MapFrom("playfield")] public int $playfield_id,
+		#[MapFrom("coordinates.x", ".")]
+		public int $x,
+		#[MapFrom("coordinates.y", ".")]
+		public int $y,
+		#[MapFrom("playfield")]
+		public int $playfield_id,
 		public ?int $instance,
-		#[MapFrom("status.status", ".")] public string $status,
-		#[MapFrom("status.last_killed", ".")] public ?int $last_killed,
-		#[MapFrom("status.hp_percent", ".")] public ?float $hp_percent,
+		#[MapFrom("status.status", ".")]
+		public string $status,
+		#[MapFrom("status.last_killed", ".")]
+		public ?int $last_killed,
+		#[MapFrom("status.hp_percent", ".")]
+		public ?float $hp_percent,
 		public ?int $respawn_timer,
-		#[MapFrom("status.last_seen", ".")] public ?int $last_seen=null,
+		#[MapFrom("status.last_seen", ".")]
+		public ?int $last_seen=null,
 	) {
 		$this->fixName();
 	}

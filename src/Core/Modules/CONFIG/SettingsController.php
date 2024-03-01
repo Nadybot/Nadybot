@@ -143,7 +143,8 @@ class SettingsController extends ModuleInstance {
 	#[NCA\HandlesCommand("settings")]
 	public function saveCommand(
 		CmdContext $context,
-		#[NCA\Str("save")] string $action,
+		#[NCA\Str("save")]
+		string $action,
 		PWord $setting,
 		string $newValue
 	): Generator {

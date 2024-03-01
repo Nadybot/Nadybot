@@ -40,7 +40,8 @@ class ChatGroupingController extends ModuleInstance {
 	#[NCA\HandlesCommand("group manage")]
 	public function groupClearCommand(
 		CmdContext $context,
-		#[NCA\Str("clear")] string $action,
+		#[NCA\Str("clear")]
+		string $action,
 	): void {
 		$this->joined = [];
 		$this->grouped = [];
@@ -78,7 +79,8 @@ class ChatGroupingController extends ModuleInstance {
 	#[NCA\HandlesCommand("group manage")]
 	public function groupDivideCommand(
 		CmdContext $context,
-		#[NCA\Str("divide")] string $action,
+		#[NCA\Str("divide")]
+		string $action,
 		int $numGroups,
 	): void {
 		if (empty($this->joined)) {
@@ -106,7 +108,8 @@ class ChatGroupingController extends ModuleInstance {
 	#[NCA\HandlesCommand("group")]
 	public function groupJoinCommand(
 		CmdContext $context,
-		#[NCA\Str("join")] string $action,
+		#[NCA\Str("join")]
+		string $action,
 	): void {
 		if (in_array($context->char->name, $this->joined, true)) {
 			$context->reply("You've already joined.");
@@ -120,7 +123,8 @@ class ChatGroupingController extends ModuleInstance {
 	#[NCA\HandlesCommand("group")]
 	public function groupLeaveCommand(
 		CmdContext $context,
-		#[NCA\Str("leave")] string $action,
+		#[NCA\Str("leave")]
+		string $action,
 	): void {
 		if (!in_array($context->char->name, $this->joined, true)) {
 			$context->reply("You're not in the grouping.");

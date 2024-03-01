@@ -20,7 +20,9 @@ class HttpRequest {
 
 	/**
 	 * @var array<string,string|int>
+	 *
 	 * @psalm-var array{"scheme"?: string, "host"?: string, "port"?: int, "user"?: string, "pass"?: string, "path"?: string, "query"?: string, "fragment"?: string}
+	 *
 	 * @phpstan-var array{"scheme"?: string, "host"?: string, "port"?: int, "user"?: string, "pass"?: string, "path"?: string, "query"?: string, "fragment"?: string}
 	 */
 	private array $uriComponents = [];

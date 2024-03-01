@@ -102,7 +102,8 @@ class HelpController extends ModuleInstance {
 	#[NCA\HandlesCommand("help")]
 	public function helpListCommand(
 		CmdContext $context,
-		#[NCA\Str("topics", "list")] string $action
+		#[NCA\Str("topics", "list")]
+		string $action
 	): void {
 		$data = $this->helpManager->getAllHelpTopics($context);
 
@@ -146,7 +147,8 @@ class HelpController extends ModuleInstance {
 	#[NCA\HandlesCommand("help")]
 	public function helpSyntaxCommand(
 		CmdContext $context,
-		#[NCA\Str("syntax")] string $action
+		#[NCA\Str("syntax")]
+		string $action
 	): Generator {
 		$data = yield filesystem()->read(__DIR__ . "/syntax.txt");
 		$msg = $this->text->makeBlob("Help", trim($data));
@@ -157,7 +159,8 @@ class HelpController extends ModuleInstance {
 	#[NCA\HandlesCommand("help")]
 	public function helpModulesCommand(
 		CmdContext $context,
-		#[NCA\Str("modules")] string $action
+		#[NCA\Str("modules")]
+		string $action
 	): void {
 		$modules = $this->chatBot->runner->classLoader->registeredModules;
 
@@ -201,7 +204,8 @@ class HelpController extends ModuleInstance {
 	public function helpLegendSettingCommand(
 		CmdContext $context,
 		bool $enable,
-		#[NCA\Str("explanation", "legend")] string $topic
+		#[NCA\Str("explanation", "legend")]
+		string $topic
 	): void {
 		$this->preferences->save(
 			$context->char->name,

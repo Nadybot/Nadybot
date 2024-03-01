@@ -63,7 +63,7 @@ class Connection implements LogWrapInterface {
 
 	/**
 	 * @return Promise<array{int,string}> Resolves with an array containing the close code at key 0 and the close reason at key 1.
-	 *                        These may differ from those provided if the connection was closed prior.
+	 *                                    These may differ from those provided if the connection was closed prior.
 	 */
 	public function close(int $code=Code::NORMAL_CLOSE, string $reason=''): promise {
 		$this->logger->info("Closing connection");

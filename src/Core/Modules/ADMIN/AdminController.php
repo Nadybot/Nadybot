@@ -103,7 +103,8 @@ class AdminController extends ModuleInstance {
 	#[NCA\Help\Group("ranks")]
 	public function adminAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		PCharacter $who
 	): void {
 		$intlevel = 4;
@@ -118,7 +119,8 @@ class AdminController extends ModuleInstance {
 	#[NCA\Help\Group("ranks")]
 	public function modAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		PCharacter $who
 	): void {
 		$intlevel = 3;

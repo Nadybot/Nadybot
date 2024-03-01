@@ -30,49 +30,53 @@ cd /nadybot || exit
 EXTRA_SETTINGS=$(set | grep '^CONFIG_SETTING_' | sed -e 's/^CONFIG_SETTING_//g'| while read -r SETTING; do
   KEY=$(echo "$SETTING" | cut -d '=' -f 1 | tr '[:upper:]' '[:lower:]')
   VALUE=$(echo "$SETTING" | cut -d '=' -f 2-)
-  echo "'$KEY' => $VALUE,"
+  echo "$KEY = $VALUE"
 done)
-cat > /tmp/config.php << DONE
-<?php declare(strict_types=1);
+cat > /tmp/config.toml << DONE
+$(if [ -n "$CONFIG_ORG_ID" ]; then echo "org_id = ${CONFIG_ORG_ID}"; fi)
+[database]
+type = "${CONFIG_DB_TYPE}"
+name = "${CONFIG_DB_NAME}"
+host = "${CONFIG_DB_HOST}"
+username = "${CONFIG_DB_USER}"
+password = "${CONFIG_DB_PASS}"
 
-\$vars = [];
-\$vars['login']      = "$CONFIG_LOGIN";
-\$vars['password']   = "$CONFIG_PASSWORD";
-\$vars['name']       = "$CONFIG_BOTNAME";
-\$vars['my_guild']   = "${CONFIG_ORG:-}";
-\$vars['org_id']   = ${CONFIG_ORG_ID:-null};
-\$vars['dimension']  = ${CONFIG_DIMENSION:-5};
-\$vars['SuperAdmin'] = ["$(echo "${CONFIG_SUPERADMIN}" | sed -e 's/[, ]\+/", "/g')"];
-\$vars['DB Type'] = "$CONFIG_DB_TYPE";
-\$vars['DB Name'] = "$CONFIG_DB_NAME";
-\$vars['DB Host'] = "$CONFIG_DB_HOST";
-\$vars['DB username'] = "$CONFIG_DB_USER";
-\$vars['DB password'] = "$CONFIG_DB_PASS";
-\$vars['show_aoml_markup'] = $(checkBool "${CONFIG_SHOW_AOML_MARKUP:-0}" 1 0);
-\$vars['cachefolder'] = "${CONFIG_CACHEFOLDER:-./cache/}";
-\$vars['default_module_status'] = ${CONFIG_DEFAULT_MODULE_STATUS:-0};
-\$vars['use_proxy'] = $(checkBool "${CONFIG_USE_PROXY:-0}" 1 0);
-\$vars['enable_console_client'] = $(checkBool "${CONFIG_ENABLE_CONSOLE:-0}" 1 0);
-\$vars['enable_package_module'] = $(checkBool "${CONFIG_ENABLE_PACKAGE_MODULE:-0}" 1 0);
-\$vars['proxy_server'] = "${CONFIG_PROXY_SERVER:-127.0.0.1}";
-\$vars['proxy_port'] = ${CONFIG_PROXY_PORT:-9993};
-\$vars['API Port'] = ${CONFIG_API_PORT:-5250};
-\$vars['auto_unfreeze'] = $(checkBool "${CONFIG_AUTO_UNFREEZE:-false}" true false);
-\$vars['auto_unfreeze_login'] = ${CONFIG_AUTO_UNFREEZE_LOGIN:-null};
-\$vars['auto_unfreeze_password'] = ${CONFIG_AUTO_UNFREEZE_PASSWORD:-null};
+[paths]
+cache = "${CONFIG_CACHEFOLDER:-./cache/}"
+html = "./html/"
+data = "./data/"
+logs = "./logs/"
+modules = ["./src/Modules", "./extras"]
 
-\$vars['module_load_paths'] = [
-	'./src/Modules',
-	'./extras',
-];
-\$vars['settings'] = [
+[main]
+login = "${CONFIG_LOGIN}"
+password = "${CONFIG_PASSWORD}"
+character = "${CONFIG_BOTNAME}"
+dimension = ${CONFIG_DIMENSION:-5}
+
+[general]
+org_name = ""
+super_admins = ["$(echo "${CONFIG_SUPERADMIN}" | sed -e 's/[, ]\+/", "/g')"]
+
+show_aoml_markup = $(checkBool "${CONFIG_SHOW_AOML_MARKUP:-0}" true false)
+default_module_status = ${CONFIG_DEFAULT_MODULE_STATUS:-0}
+enable_console_client = $(checkBool "${CONFIG_ENABLE_CONSOLE:-0}" true false)
+enable_package_module = $(checkBool "${CONFIG_ENABLE_PACKAGE_MODULE:-0}" true false)
+auto_org_name = false
+
+[proxy]
+enabled = $(checkBool "${CONFIG_USE_PROXY:-0}" true false)
+server = "${CONFIG_PROXY_SERVER:-127.0.0.1}"
+port = ${CONFIG_PROXY_PORT:-9993}
+
+[auto-unfreeze]
+enabled = $(checkBool "${CONFIG_AUTO_UNFREEZE:-false}" true false)
+$(if [ -n "${CONFIG_AUTO_UNFREEZE_LOGIN}" ]; then echo "login = ${CONFIG_AUTO_UNFREEZE_LOGIN}"; fi)
+$(if [ -n "${CONFIG_AUTO_UNFREEZE_PASSWORD}" ]; then echo "login = ${CONFIG_AUTO_UNFREEZE_PASSWORD}"; fi)
+use_nadyproxy = true
+
+[settings]
 ${EXTRA_SETTINGS}
-];
-\$vars['amqp_server'] = "${CONFIG_AMQP_SERVER}";
-\$vars['amqp_port'] = ${CONFIG_AMQP_PORT:-5672};
-\$vars['amqp_user'] = "${CONFIG_AMQP_USER}";
-\$vars['amqp_password'] = "${CONFIG_AMQP_PASSWORD}";
-\$vars['amqp_vhost'] = "${CONFIG_AMQP_VHOST:-/}";
 DONE
 
 LOG_CONFIG=$(cat conf/logging.json | sed -e "s/\"\*\": \"notice\"/\"*\": \"${CONFIG_LOG_LEVEL:-notice}\"/")
@@ -160,7 +164,7 @@ EXITCODE=255
 while [ "$EXITCODE" -eq 255 ]; do
 	trap "" TERM
 	# shellcheck disable=SC2086
-	"$PHP" ${PHP_PARAMS:-} -f main.php -- --log-config /tmp/logging.json /tmp/config.php "$@"
+	"$PHP" ${PHP_PARAMS:-} -f main.php -- --log-config /tmp/logging.json /tmp/config.toml "$@"
 	EXITCODE=$?
 	trap - TERM
 done

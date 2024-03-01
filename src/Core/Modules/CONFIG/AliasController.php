@@ -37,8 +37,10 @@ class AliasController extends ModuleInstance {
 	#[NCA\HandlesCommand("alias")]
 	public function aliasAddCommand1(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
-		#[NCA\Regexp("\"[a-z 0-9]+\"", example: '&lt;"alias with spaces"&gt;')] string $alias,
+		#[NCA\Str("add")]
+		string $action,
+		#[NCA\Regexp("\"[a-z 0-9]+\"", example: '&lt;"alias with spaces"&gt;')]
+		string $alias,
 		string $command
 	): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
@@ -51,8 +53,10 @@ class AliasController extends ModuleInstance {
 	)]
 	public function aliasAddCommand2(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
-		#[NCA\Regexp("'[a-z 0-9]+'", example: "&lt;'alias with spaces'&gt;")] string $alias,
+		#[NCA\Str("add")]
+		string $action,
+		#[NCA\Regexp("'[a-z 0-9]+'", example: "&lt;'alias with spaces'&gt;")]
+		string $alias,
 		string $command
 	): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
@@ -89,7 +93,8 @@ class AliasController extends ModuleInstance {
 	)]
 	public function aliasAddCommand3(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		PWord $alias,
 		string $command
 	): void {

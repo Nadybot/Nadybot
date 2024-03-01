@@ -49,7 +49,8 @@ class PermissionSetController extends ModuleInstance {
 	)]
 	public function permsetNewCommand(
 		CmdContext $context,
-		#[NCA\Str("new", "create")] string $action,
+		#[NCA\Str("new", "create")]
+		string $action,
 		PWord $name,
 		?string $letter
 	): void {
@@ -66,9 +67,11 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand("permset")]
 	public function permsetCloneCommand(
 		CmdContext $context,
-		#[NCA\Str("clone")] string $action,
+		#[NCA\Str("clone")]
+		string $action,
 		PWord $toClone,
-		#[NCA\Str("into")] ?string $into,
+		#[NCA\Str("into")]
+		?string $into,
 		PWord $name,
 		string $letter
 	): void {
@@ -101,9 +104,11 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand("permset")]
 	public function permsetRenameCommand(
 		CmdContext $context,
-		#[NCA\Str("rename")] string $action,
+		#[NCA\Str("rename")]
+		string $action,
 		PWord $oldName,
-		#[NCA\Str("to")] ?string $to,
+		#[NCA\Str("to")]
+		?string $to,
 		PWord $newName
 	): Generator {
 		$old = $this->cmdManager->getPermissionSet($oldName());
@@ -127,7 +132,8 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand("permset")]
 	public function permsetChangeLetterCommand(
 		CmdContext $context,
-		#[NCA\Str("letter")] string $action,
+		#[NCA\Str("letter")]
+		string $action,
 		PWord $name,
 		PWord $newLetter
 	): Generator {

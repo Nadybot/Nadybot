@@ -221,6 +221,7 @@ class MassMsgController extends ModuleInstance {
 	 * our private channel.
 	 *
 	 * @param array<string,callable> $callback
+	 *
 	 * @phpstan-param array<string,callable(string):void> $callback
 	 *
 	 * @return Promise<array<string,string>> array(name => status)

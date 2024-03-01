@@ -388,6 +388,7 @@ class ImplantController extends ModuleInstance {
 	 * @param int    $position The position in the list (usually 0, 1 or 2)
 	 *
 	 * @return array<int,int> An associative array in the form [QL => bonus/requirement]
+	 *
 	 * @phpstan-return non-empty-array<int,int> An associative array in the form [QL => bonus/requirement]
 	 */
 	protected function getBreakpoints(string $type, int $position): array {

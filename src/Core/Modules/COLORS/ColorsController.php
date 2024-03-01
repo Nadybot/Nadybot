@@ -125,7 +125,8 @@ class ColorsController extends ModuleInstance {
 	#[NCA\HandlesCommand("theme")]
 	public function cmdThemePreview(
 		CmdContext $context,
-		#[NCA\Str("preview")] string $action,
+		#[NCA\Str("preview")]
+		string $action,
 	): Generator {
 		/** @var Theme[] */
 		$themes = yield $this->getThemeList();
@@ -148,7 +149,8 @@ class ColorsController extends ModuleInstance {
 	#[NCA\HandlesCommand("theme change")]
 	public function cmdApplyTheme(
 		CmdContext $context,
-		#[NCA\Str("apply")] string $action,
+		#[NCA\Str("apply")]
+		string $action,
 		PFilename $themeName
 	): Generator {
 		$paths = explode(":", $this->themePath);

@@ -39,6 +39,7 @@ class GauntletInventoryController extends ModuleInstance {
 	 * (ref , image, need) 17 items without basic armor
 	 *
 	 * @var int[][]
+	 *
 	 * @psalm-var list<array{0: int, 1: int, 2: int}>
 	 */
 	private array $gaulisttab = [
@@ -81,7 +82,8 @@ class GauntletInventoryController extends ModuleInstance {
 	#[NCA\Help\Hide()]
 	public function gaulistAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		PCharacter $name,
 		int $pos
 	): void {

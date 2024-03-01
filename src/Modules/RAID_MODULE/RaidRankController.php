@@ -313,7 +313,8 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Help\Group("raid-ranks")]
 	public function raidAdminAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add", "promote")] string $action,
+		#[NCA\Str("add", "promote")]
+		string $action,
 		PCharacter $char,
 		?int $rank
 	): Generator {
@@ -332,7 +333,8 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Help\Group("raid-ranks")]
 	public function raidAdminRemoveCommand(
 		CmdContext $context,
-		#[NCA\Str("remove", "rem", "del", "rm", "demote")] string $action,
+		#[NCA\Str("remove", "rem", "del", "rm", "demote")]
+		string $action,
 		PCharacter $char
 	): void {
 		$rank = 'a raid admin';
@@ -345,7 +347,8 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Help\Group("raid-ranks")]
 	public function raidLeaderAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add", "promote")] string $action,
+		#[NCA\Str("add", "promote")]
+		string $action,
 		PCharacter $char,
 		?int $rank
 	): Generator {
@@ -364,7 +367,8 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Help\Group("raid-ranks")]
 	public function raidLeaderRemoveCommand(
 		CmdContext $context,
-		#[NCA\Str("rem", "del", "rm", "demote")] string $action,
+		#[NCA\Str("rem", "del", "rm", "demote")]
+		string $action,
 		PCharacter $char
 	): void {
 		$rank = 'a raid leader';

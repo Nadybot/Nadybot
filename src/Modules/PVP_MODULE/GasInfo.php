@@ -245,6 +245,7 @@ class GasInfo {
 	 * Get an array timestamp offset => gas
 	 *
 	 * @return ?array<int,int>
+	 *
 	 * @psalm-return ?non-empty-array<int,int>
 	 */
 	private function gasTiming(): ?array {

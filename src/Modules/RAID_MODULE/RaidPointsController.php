@@ -313,7 +313,8 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group("raid-points")]
 	public function raidRewardCommand(
 		CmdContext $context,
-		#[NCA\Str("reward")] string $action,
+		#[NCA\Str("reward")]
+		string $action,
 		int $points,
 		?string $reason
 	): void {
@@ -333,7 +334,8 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group("raid-points")]
 	public function raidRewardPredefCommand(
 		CmdContext $context,
-		#[NCA\Str("reward")] string $action,
+		#[NCA\Str("reward")]
+		string $action,
 		PNonNumber $mob
 	): void {
 		$reward = $this->getRaidReward($mob());
@@ -349,7 +351,8 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group("raid-points")]
 	public function raidPunishCommand(
 		CmdContext $context,
-		#[NCA\Str("punish")] string $action,
+		#[NCA\Str("punish")]
+		string $action,
 		int $points,
 		?string $reason
 	): void {
@@ -369,7 +372,8 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group("raid-points")]
 	public function raidPunishPredefCommand(
 		CmdContext $context,
-		#[NCA\Str("punish")] string $action,
+		#[NCA\Str("punish")]
+		string $action,
 		PNonNumber $mob
 	): void {
 		$reward = $this->getRaidReward($mob());
@@ -401,7 +405,8 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group("raid-points")]
 	public function pointsTopCommand(
 		CmdContext $context,
-		#[NCA\Str("top")] string $action
+		#[NCA\Str("top")]
+		string $action
 	): void {
 		/** @var RaidPoints[] */
 		$topRaiders = $this->db->table(self::DB_TABLE)
@@ -428,8 +433,10 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group("raid-points")]
 	public function pointsLogCommand(
 		CmdContext $context,
-		#[NCA\Str("log")] string $action,
-		#[NCA\Str("all")] ?string $all
+		#[NCA\Str("log")]
+		string $action,
+		#[NCA\Str("all")]
+		?string $all
 	): void {
 		$this->showraidPoints($context, isset($all), ...$this->getRaidpointLogsForChar($context->char->name));
 	}
@@ -460,8 +467,10 @@ class RaidPointsController extends ModuleInstance {
 	public function pointsOtherLogCommand(
 		CmdContext $context,
 		PCharacter $char,
-		#[NCA\Str("log")] string $action,
-		#[NCA\Str("all")] ?string $all
+		#[NCA\Str("log")]
+		string $action,
+		#[NCA\Str("all")]
+		?string $all
 	): void {
 		$this->pointsLogOtherCommand($context, $action, $char, $all);
 	}
@@ -471,9 +480,11 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group("raid-points")]
 	public function pointsLogOtherCommand(
 		CmdContext $context,
-		#[NCA\Str("log")] string $action,
+		#[NCA\Str("log")]
+		string $action,
 		PCharacter $char,
-		#[NCA\Str("all")] ?string $all
+		#[NCA\Str("all")]
+		?string $all
 	): void {
 		if (!$context->isDM()) {
 			$context->reply("<red>The <symbol>points log command only works in tells<end>.");
@@ -551,7 +562,8 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group("raid-points")]
 	public function pointsAdd2Command(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		int $points,
 		PCharacter $char,
 		string $reason
@@ -564,7 +576,8 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group("raid-points")]
 	public function pointsAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		PCharacter $char,
 		int $points,
 		string $reason
@@ -726,7 +739,8 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>reward add capri 25 Capricorn")]
 	public function rewardAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		PWord $name,
 		int $points,
 		string $reason
@@ -782,7 +796,8 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>reward change beast 120 Beast kill")]
 	public function rewardChangeCommand(
 		CmdContext $context,
-		#[NCA\Str("change", "edit", "alter", "mod", "modify")] string $action,
+		#[NCA\Str("change", "edit", "alter", "mod", "modify")]
+		string $action,
 		PWord $name,
 		int $points,
 		?string $reason

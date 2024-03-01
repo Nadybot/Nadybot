@@ -345,7 +345,8 @@ class NanoController extends ModuleInstance {
 	#[NCA\Help\Group("nano")]
 	public function bestNanosCommand(
 		CmdContext $context,
-		#[NCA\Str("long")] ?string $long
+		#[NCA\Str("long")]
+		?string $long
 	): Generator {
 		/** @var ?Player */
 		$whois = yield $this->playerManager->byName($context->char->name);
@@ -369,7 +370,8 @@ class NanoController extends ModuleInstance {
 	#[NCA\Help\Group("nano")]
 	public function bestNanos2Command(
 		CmdContext $context,
-		#[NCA\Str("long")] ?string $long,
+		#[NCA\Str("long")]
+		?string $long,
 		PProfession $profession,
 		int $level,
 	): void {
@@ -388,7 +390,8 @@ class NanoController extends ModuleInstance {
 	#[NCA\Help\Group("nano")]
 	public function bestNanos3Command(
 		CmdContext $context,
-		#[NCA\Str("long")] ?string $long,
+		#[NCA\Str("long")]
+		?string $long,
 		int $level,
 		PProfession $profession,
 	): void {

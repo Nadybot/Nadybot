@@ -167,7 +167,8 @@ class NickController extends ModuleInstance {
 	#[HandlesCommand("nick")]
 	public function setNickCommand(
 		CmdContext $context,
-		#[NCA\Str("set")] string $action,
+		#[NCA\Str("set")]
+		string $action,
 		string $nick
 	): void {
 		if (!strlen($nick)) {

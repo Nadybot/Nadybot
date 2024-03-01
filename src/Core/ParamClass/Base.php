@@ -10,8 +10,7 @@ abstract class Base {
 
 	abstract public function __toString(): string;
 
-	/** @return mixed */
-	abstract public function __invoke();
+	abstract public function __invoke(): mixed;
 
 	public static function getRegexp(): string {
 		return static::$regExp;

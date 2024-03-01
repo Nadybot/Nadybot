@@ -186,7 +186,8 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand("wish")]
 	public function showWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str("all")] ?string $all,
+		#[NCA\Str("all")]
+		?string $all,
 	): void {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
@@ -306,7 +307,8 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand("wish")]
 	public function showOtherWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str("show", "view")] string $action,
+		#[NCA\Str("show", "view")]
+		string $action,
 		PCharacter $char,
 	): Generator {
 		$uid = yield $this->chatBot->getUid2($char());
@@ -358,7 +360,8 @@ class WishlistController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>wish search infuser", "to check who still needs infusers")]
 	public function searchWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str("search")] string $action,
+		#[NCA\Str("search")]
+		string $action,
 		string $what,
 	): void {
 		$what = strip_tags($what);
@@ -392,7 +395,8 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand("wish")]
 	public function checkOthersWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str("check")] string $action,
+		#[NCA\Str("check")]
+		string $action,
 	): void {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
@@ -438,7 +442,8 @@ class WishlistController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>wish from Nadya APF belt")]
 	public function addFromSomeoneToWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str("from")] string $action,
+		#[NCA\Str("from")]
+		string $action,
 		PCharacter $character,
 		?PQuantity $amount,
 		string $item,
@@ -469,7 +474,8 @@ class WishlistController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>wish add 3x <a href='itemref://292567/292567/250'>Advanced Dust Brigade Notum Infuser</a>")]
 	public function addToWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		?PDuration $expires,
 		?PQuantity $amount,
 		string $item,
@@ -495,8 +501,10 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand("wish")]
 	public function wipeAllWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str("wipe")] string $action,
-		#[NCA\Str("all")] ?string $all,
+		#[NCA\Str("wipe")]
+		string $action,
+		#[NCA\Str("all")]
+		?string $all,
 	): Generator {
 		$numDeleted = yield $this->clearWishlist(
 			$context->char->name,
@@ -514,8 +522,10 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand("wish")]
 	public function clearAllWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str("clear")] string $action,
-		#[NCA\Str("all")] ?string $all,
+		#[NCA\Str("clear")]
+		string $action,
+		#[NCA\Str("all")]
+		?string $all,
 	): Generator {
 		$numDeleted = yield $this->clearWishlist(
 			$context->char->name,
@@ -578,7 +588,8 @@ class WishlistController extends ModuleInstance {
 	public function removeFulfilmentCommand(
 		CmdContext $context,
 		PRemove $action,
-		#[NCA\Str("fulfilment", "fulfillment", "fullfilment", "fullfillment")] string $subAction,
+		#[NCA\Str("fulfilment", "fulfillment", "fullfilment", "fullfillment")]
+		string $subAction,
 		int $fulfilmentId,
 	): Generator {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
@@ -642,7 +653,8 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand("wish")]
 	public function fulfillWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str("fulfil", "fulfill", "fullfil", "fullfill")] string $action,
+		#[NCA\Str("fulfil", "fulfill", "fullfil", "fullfill")]
+		string $action,
 		?PQuantity $amount,
 		int $id,
 	): Generator {
@@ -707,7 +719,8 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand("wish deny")]
 	public function denyWishCommand(
 		CmdContext $context,
-		#[NCA\Str("deny")] string $action,
+		#[NCA\Str("deny")]
+		string $action,
 		int $id,
 	): Generator {
 		$mainChar = $this->altsController->getMainOf($context->char->name);

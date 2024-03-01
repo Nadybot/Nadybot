@@ -198,7 +198,8 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	public function bidStartCommand(
 		CmdContext $context,
-		#[NCA\Str("start")] string $action,
+		#[NCA\Str("start")]
+		string $action,
 		string $item
 	): void {
 		if ($this->auctionsOnlyForRaid && !isset($this->raidController->raid)) {
@@ -222,7 +223,8 @@ class AuctionController extends ModuleInstance {
 	#[NCA\Help\Group("auction")]
 	public function bidCancelCommand(
 		CmdContext $context,
-		#[NCA\Str("cancel")] string $action
+		#[NCA\Str("cancel")]
+		string $action
 	): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
@@ -243,7 +245,8 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	public function bidEndCommand(
 		CmdContext $context,
-		#[NCA\Str("end")] string $action
+		#[NCA\Str("end")]
+		string $action
 	): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
@@ -267,7 +270,8 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_BID_REIMBURSE)]
 	public function bidReimburseCommand(
 		CmdContext $context,
-		#[NCA\Str("reimburse", "payback", "refund")] string $action,
+		#[NCA\Str("reimburse", "payback", "refund")]
+		string $action,
 		PCharacter $winner
 	): void {
 		$winner = $winner();
@@ -426,7 +430,8 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand("bid")]
 	public function bidHistoryCommand(
 		CmdContext $context,
-		#[NCA\Str("history")] string $action
+		#[NCA\Str("history")]
+		string $action
 	): void {
 		/** @var DBAuction[] */
 		$items = $this->db->table(self::DB_TABLE)
@@ -450,7 +455,8 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand("bid")]
 	public function bidHistorySearchCommand(
 		CmdContext $context,
-		#[NCA\Str("history")] string $action,
+		#[NCA\Str("history")]
+		string $action,
 		string $search
 	): void {
 		$shortcuts = [
@@ -680,7 +686,9 @@ class AuctionController extends ModuleInstance {
 
 	/**
 	 * @return string[]
+	 *
 	 * @psalm-return array{0:string, 1:string}
+	 *
 	 * @phpstan-return array{0:string, 1:string}
 	 */
 	public function getAnnouncementBorders(): array {

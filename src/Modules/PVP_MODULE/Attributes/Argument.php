@@ -9,6 +9,7 @@ class Argument {
 	/**
 	 * @param string[] $names
 	 * @param string[] $examples
+	 *
 	 * @psalm-param non-empty-array<string> $names
 	 */
 	public function __construct(

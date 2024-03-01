@@ -97,7 +97,8 @@ class BankController extends ModuleInstance {
 	#[NCA\HandlesCommand("bank")]
 	public function bankBrowsePlayerCommand(
 		CmdContext $context,
-		#[NCA\Str("browse")] string $action,
+		#[NCA\Str("browse")]
+		string $action,
 		PCharacter $char
 	): void {
 		$name = $char();
@@ -165,8 +166,10 @@ class BankController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>bank search 10-200 symbiant")]
 	public function bankSearchCommand(
 		CmdContext $context,
-		#[NCA\Str("search")] string $action,
-		#[NCA\Regexp("\d+(?:(?:\s*-\s*|\s+)\d+)?", "&lt;ql range&gt;")] ?string $ql,
+		#[NCA\Str("search")]
+		string $action,
+		#[NCA\Regexp("\d+(?:(?:\s*-\s*|\s+)\d+)?", "&lt;ql range&gt;")]
+		?string $ql,
 		string $search
 	): void {
 		$search = htmlspecialchars_decode($search);

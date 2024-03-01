@@ -42,8 +42,10 @@ class TowerOutcome {
 		public int $playfield_id,
 		public int $site_id,
 		public int $timestamp,
-		#[MapFrom("attacking_faction")] public ?string $attacker_faction,
-		#[MapFrom("attacking_org")] public ?string $attacker_org,
+		#[MapFrom("attacking_faction")]
+		public ?string $attacker_faction,
+		#[MapFrom("attacking_org")]
+		public ?string $attacker_org,
 		public string $losing_faction,
 		public string $losing_org,
 	) {

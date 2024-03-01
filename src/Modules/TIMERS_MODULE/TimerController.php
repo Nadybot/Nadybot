@@ -263,7 +263,8 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	)]
 	public function rtimerCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] ?string $action,
+		#[NCA\Str("add")]
+		?string $action,
 		PDuration $initial,
 		PDuration $interval,
 		string $name
@@ -369,7 +370,8 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Group("timers")]
 	public function timersAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] ?string $action,
+		#[NCA\Str("add")]
+		?string $action,
 		PDuration $duration,
 		?string $name
 	): void {

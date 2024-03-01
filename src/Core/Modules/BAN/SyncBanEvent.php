@@ -24,6 +24,7 @@ class SyncBanEvent extends SyncEvent {
 
 	/**
 	 * @return array<string,int|string|null>
+	 *
 	 * @phpstan-return array{"uid":int, "name":string, "banned_by":?string, "banned_until":?int, "reason":?string}
 	 */
 	public function toData(): array {

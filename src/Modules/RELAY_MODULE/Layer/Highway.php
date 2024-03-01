@@ -2,15 +2,10 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
-use EventSauce\ObjectHydrator\UnableToSerializeObject;
+use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToSerializeObject};
 use Exception;
+use Nadybot\Core\Highway\{In, Out, Parser, ParserHighwayException, ParserJsonException};
 use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
-use Nadybot\Core\Highway\In;
-use Nadybot\Core\Highway\Out;
-use Nadybot\Core\Highway\Parser;
-use Nadybot\Core\Highway\ParserHighwayException;
-use Nadybot\Core\Highway\ParserJsonException;
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -82,20 +77,13 @@ class Highway implements RelayLayerInterface, StatusProvider {
 		return $this->status ?? new RelayStatus();
 	}
 
-	private function encodePackage(Out\OutPackage $package): string {
-		$mapper = new ObjectMapperUsingReflection();
-		$json = $mapper->serializeObject($package);
-		unset($json['id']);
-		return \Safe\json_encode($json, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
-	}
-
 	public function init(callable $callback): array {
 		$cmd = [];
 		foreach ($this->rooms as $room) {
 			$joinMsg = new Out\Join(room: $room);
 			try {
 				$encoded = $this->encodePackage($joinMsg);
-			} catch (JsonException|UnableToSerializeObject $e) {
+			} catch (JsonException | UnableToSerializeObject $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
 					"Unable to encode subscribe-command into highway protocol: ".
@@ -124,7 +112,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 			$leaveMsg = new Out\Leave(room: $room);
 			try {
 				$encoded = $this->encodePackage($leaveMsg);
-			} catch (JsonException|UnableToSerializeObject $e) {
+			} catch (JsonException | UnableToSerializeObject $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
 					"Unable to encode unsubscribe-command into highway protocol: ".
@@ -150,7 +138,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				$msg = new Out\Message(room: $room, body: $packet);
 				try {
 					$encoded []= $this->encodePackage($msg);
-				} catch (JsonException|UnableToSerializeObject $e) {
+				} catch (JsonException | UnableToSerializeObject $e) {
 					$this->logger->error(
 						"Unable to encode the relay data into highway protocol: ".
 							$e->getMessage(),
@@ -267,5 +255,12 @@ class Highway implements RelayLayerInterface, StatusProvider {
 			"message" => $msg,
 		]);
 		return $msg;
+	}
+
+	private function encodePackage(Out\OutPackage $package): string {
+		$mapper = new ObjectMapperUsingReflection();
+		$json = $mapper->serializeObject($package);
+		unset($json['id']);
+		return \Safe\json_encode($json, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
 	}
 }

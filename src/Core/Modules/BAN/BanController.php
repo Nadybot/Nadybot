@@ -155,7 +155,8 @@ class BanController extends ModuleInstance {
 		CmdContext $context,
 		PCharacter $who,
 		PDuration $duration,
-		#[NCA\Str("for", "reason")] string $for,
+		#[NCA\Str("for", "reason")]
+		string $for,
 		string $reason
 	): Generator {
 		$who = $who();
@@ -219,7 +220,8 @@ class BanController extends ModuleInstance {
 	public function banPlayerWithReasonCommand(
 		CmdContext $context,
 		PCharacter $who,
-		#[NCA\Str("for", "reason")] string $for,
+		#[NCA\Str("for", "reason")]
+		string $for,
 		string $reason
 	): Generator {
 		$who = $who();
@@ -327,7 +329,8 @@ class BanController extends ModuleInstance {
 	#[NCA\Help\Group("ban")]
 	public function unbanAllCommand(
 		CmdContext $context,
-		#[NCA\Str("all")] string $all,
+		#[NCA\Str("all")]
+		string $all,
 		PCharacter $who
 	): Generator {
 		$who = $who();
@@ -476,7 +479,7 @@ class BanController extends ModuleInstance {
 			->delete();
 
 		if ($deleted === 0) {
-			return  false;
+			return false;
 		}
 		unset($this->banlist[$charId]);
 
@@ -492,6 +495,7 @@ class BanController extends ModuleInstance {
 			->asObj(BanEntry::class);
 
 		$bannedUids = $bans->pluck("charid")->toArray();
+
 		/** @var Collection<int,NameHistory> */
 		$names = $this->db->table("banlist_<myname>", "bl")
 			->join("name_history AS nh", "bl.charid", "nh.charid")
@@ -644,10 +648,12 @@ class BanController extends ModuleInstance {
 	)]
 	public function orgbanAddByIdCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $add,
+		#[NCA\Str("add")]
+		string $add,
 		int $orgId,
 		?PDuration $duration,
-		#[NCA\Str("for", "reason", "because")] string $for,
+		#[NCA\Str("for", "reason", "because")]
+		string $for,
 		string $reason
 	): Generator {
 		try {
@@ -668,7 +674,8 @@ class BanController extends ModuleInstance {
 	)]
 	public function orgbanAddByIdWithoutReasonCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $add,
+		#[NCA\Str("add")]
+		string $add,
 		int $orgId,
 		?PDuration $duration,
 	): Generator {

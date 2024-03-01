@@ -233,7 +233,8 @@ class LogsController extends ModuleInstance {
 	#[NCA\HandlesCommand("loglevel")]
 	public function loglevelResetCommand(
 		CmdContext $context,
-		#[NCA\Str("reset")] string $action
+		#[NCA\Str("reset")]
+		string $action
 	): void {
 		$loggers = LegacyLogger::getLoggers();
 		LegacyLogger::getConfig(true);
@@ -273,7 +274,8 @@ class LogsController extends ModuleInstance {
 	public function loglevelFileCommand(
 		CmdContext $context,
 		PWord $mask,
-		#[NCA\StrChoice("debug", "info", "notice", "warning", "error", "emergency", "alert")] string $logLevel
+		#[NCA\StrChoice("debug", "info", "notice", "warning", "error", "emergency", "alert")]
+		string $logLevel
 	): void {
 		$logLevel = strtoupper($logLevel);
 		$loggers = LegacyLogger::getLoggers();

@@ -137,7 +137,8 @@ class RandomController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>roll 2x Andy Tim Agnes Burkhard Zara Sam")]
 	public function rollMultipleNamesCommand(
 		CmdContext $context,
-		#[NCA\Regexp("(?:\d+)[x*]", example: "&lt;amount&gt;x")] string $amount,
+		#[NCA\Regexp("(?:\d+)[x*]", example: "&lt;amount&gt;x")]
+		string $amount,
 		string $listOfNames
 	): void {
 		$amount = (int)$amount;
@@ -250,7 +251,9 @@ class RandomController extends ModuleInstance {
 	 * @param string[] $options The options to roll between
 	 *
 	 * @return array An array with the roll number and the chosen option
+	 *
 	 * @psalm-return array{0:int, 1:string}
+	 *
 	 * @phpstan-return array{0:int, 1:string}
 	 *
 	 * @throws SQLException on SQL errors

@@ -124,7 +124,8 @@ class ReputationController extends ModuleInstance {
 	public function reputationAddCommand(
 		CmdContext $context,
 		PCharacter $char,
-		#[NCA\StrChoice("+1", "-1")] string $action,
+		#[NCA\StrChoice("+1", "-1")]
+		string $action,
 		string $comment
 	): Generator {
 		yield from $this->commentController->addCommentCommand(

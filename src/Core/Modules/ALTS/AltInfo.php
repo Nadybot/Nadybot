@@ -98,6 +98,7 @@ class AltInfo {
 	 * Get a list of all validated alts
 	 *
 	 * @return string[]
+	 *
 	 * @psalm-return list<string>
 	 */
 	public function getAllValidatedAlts(): array {

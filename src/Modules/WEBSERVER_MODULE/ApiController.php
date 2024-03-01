@@ -99,7 +99,8 @@ class ApiController extends ModuleInstance {
 	#[NCA\HandlesCommand("apiauth")]
 	public function apiauthListCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] ?string $action
+		#[NCA\Str("list")]
+		?string $action
 	): void {
 		$keys = $this->db->table(static::DB_TABLE)
 			->orderBy("created")
@@ -140,7 +141,8 @@ class ApiController extends ModuleInstance {
 	)]
 	public function apiauthCreateCommand(
 		CmdContext $context,
-		#[NCA\Str("create", "new")] string $action
+		#[NCA\Str("create", "new")]
+		string $action
 	): void {
 		$key = openssl_pkey_new(["private_key_type" => OPENSSL_KEYTYPE_EC, "curve_name" => "prime256v1"]);
 		if ($key === false) {
@@ -219,7 +221,8 @@ class ApiController extends ModuleInstance {
 	#[NCA\HandlesCommand("apiauth")]
 	public function apiauthResetCommand(
 		CmdContext $context,
-		#[NCA\Str("reset")] string $action,
+		#[NCA\Str("reset")]
+		string $action,
 		string $token
 	): void {
 		/** @var ?ApiKey */
@@ -296,6 +299,7 @@ class ApiController extends ModuleInstance {
 	 *
 	 * @param string[] $paths
 	 * @param string[] $methods
+	 *
 	 * @psalm-param callable(Request,HttpProtocolWrapper,mixed...) $callback
 	 */
 	public function addApiRoute(array $paths, array $methods, callable $callback, ?string $alf, ?string $al, ReflectionMethod $refMet): void {

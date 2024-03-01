@@ -163,7 +163,8 @@ class AltsController extends ModuleInstance {
 	public function addAltadminCommand(
 		CmdContext $context,
 		PCharacter $main,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		PCharacter ...$names
 	): Generator {
 		/** @var string[] */
@@ -186,7 +187,8 @@ class AltsController extends ModuleInstance {
 	)]
 	public function addAltCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		PCharacter ...$names
 	): Generator {
 		/** @var string[] */
@@ -208,7 +210,8 @@ class AltsController extends ModuleInstance {
 	)]
 	public function addMainCommand(
 		CmdContext $context,
-		#[NCA\Str("main")] string $action,
+		#[NCA\Str("main")]
+		string $action,
 		PCharacter $main
 	): Generator {
 		$newMain = $main();
@@ -359,7 +362,8 @@ class AltsController extends ModuleInstance {
 	public function setSomeonesMainCommand(
 		CmdContext $context,
 		PCharacter $newMain,
-		#[NCA\Str("setmain")] string $action
+		#[NCA\Str("setmain")]
+		string $action
 	): Generator {
 		/** @var string */
 		$msg = yield $this->makeAltNewMain($context->char->name, $newMain());
@@ -371,7 +375,8 @@ class AltsController extends ModuleInstance {
 	#[NCA\Help\Group("alts")]
 	public function setMainCommand(
 		CmdContext $context,
-		#[NCA\Str("setmain")] string $action
+		#[NCA\Str("setmain")]
+		string $action
 	): Generator {
 		/** @var string */
 		$msg = yield $this->makeAltNewMain($context->char->name, $context->char->name);

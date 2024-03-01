@@ -86,6 +86,7 @@ class AsyncHttp {
 	 * The socket to communicate with
 	 *
 	 * @var null|resource
+	 *
 	 * @psalm-var null|resource|closed-resource
 	 */
 	private $stream = null;
@@ -162,7 +163,7 @@ class AsyncHttp {
 
 		$this->logger->info("Sending request: {data}", [
 			"data" => $this->request->getData(),
-			"uri" => $this->uri
+			"uri" => $this->uri,
 		]);
 	}
 
@@ -423,7 +424,7 @@ class AsyncHttp {
 		}
 		$this->logger->info("Stream for {stream_uri} created", [
 			"stream_uri" => $streamUri,
-			"uri" => $this->uri
+			"uri" => $this->uri,
 		]);
 		return true;
 	}

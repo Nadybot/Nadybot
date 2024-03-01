@@ -66,7 +66,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	/** Message format for leader echo */
 	#[NCA\Setting\Template(
 		exampleValues: [
-			"message" => "Example message"
+			"message" => "Example message",
 		],
 		options: [
 			"<yellow>{message}<end>",

@@ -83,6 +83,7 @@ class SystemdController extends ModuleInstance {
 	 * @param int[] $fds
 	 *
 	 * @return array<null|bool|int|Socket>
+	 *
 	 * @phpstan-return array{null|bool|Socket,int}
 	 */
 	public function sdPidNotifyWithFDs(int $pid, string $state, array $fds): array {

@@ -180,6 +180,7 @@ class Chunker implements RelayLayerInterface {
 
 	/**
 	 * @return string[]
+	 *
 	 * @psalm-return list<string>
 	 */
 	protected function chunkPacket(string $packet): array {

@@ -161,7 +161,8 @@ class OrgNotesController extends ModuleInstance {
 	#[NCA\HandlesCommand("orgnotes")]
 	public function cmdAddOrgNote(
 		CmdContext $context,
-		#[NCA\Str("add", "new", "create")] string $action,
+		#[NCA\Str("add", "new", "create")]
+		string $action,
 		string $text
 	): void {
 		$note = $this->createOrgNote($context->char->name, $text, $context->forceSync);

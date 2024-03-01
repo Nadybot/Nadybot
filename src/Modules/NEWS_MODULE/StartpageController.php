@@ -343,7 +343,8 @@ class StartpageController extends ModuleInstance {
 	#[NCA\Help\Group("start")]
 	public function startpagePickTileCommand(
 		CmdContext $context,
-		#[NCA\Str("pick")] string $action,
+		#[NCA\Str("pick")]
+		string $action,
 		int $pos,
 		string $tileName
 	): void {
@@ -368,9 +369,11 @@ class StartpageController extends ModuleInstance {
 	#[NCA\Help\Group("start")]
 	public function startpageMoveTileCommand(
 		CmdContext $context,
-		#[NCA\Str("move")] string $action,
+		#[NCA\Str("move")]
+		string $action,
 		string $tileName,
-		#[NCA\StrChoice("up", "down")] string $direction
+		#[NCA\StrChoice("up", "down")]
+		string $direction
 	): void {
 		$currentTiles = $this->getActiveLayout();
 		if (!isset($currentTiles[$tileName])) {

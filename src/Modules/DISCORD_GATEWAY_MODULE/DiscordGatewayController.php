@@ -918,6 +918,7 @@ class DiscordGatewayController extends ModuleInstance {
 
 	/**
 	 * @return array<string,array<string,array<?string>>>
+	 *
 	 * @psalm-return array<string,array<string,list<?string>>>
 	 */
 	public function getPlayersInVoiceChannels(): array {
@@ -1100,7 +1101,8 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesCommand("discord connect/disconnect")]
 	public function connectCommand(
 		CmdContext $context,
-		#[NCA\Str("connect")] string $action,
+		#[NCA\Str("connect")]
+		string $action,
 	): Generator {
 		$botToken = $this->discordController->discordBotToken;
 		if (empty($botToken) || $botToken === 'off') {
@@ -1120,7 +1122,8 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesCommand("discord connect/disconnect")]
 	public function disconnectCommand(
 		CmdContext $context,
-		#[NCA\Str("disconnect")] string $action,
+		#[NCA\Str("disconnect")]
+		string $action,
 	): Generator {
 		if (!$this->isConnected() || !isset($this->client)) {
 			$context->reply("The bot is already disconnected from Discord.");
@@ -1136,7 +1139,8 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesCommand("discord create invite for yourself")]
 	public function requestDiscordInvite(
 		CmdContext $context,
-		#[NCA\Str("join")] string $action,
+		#[NCA\Str("join")]
+		string $action,
 		?string $discordServer,
 	): Generator {
 		$aoChar = $this->altsController->getMainOf($context->char->name);
@@ -1263,7 +1267,8 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesCommand("discord see invites")]
 	public function listDiscordInvites(
 		CmdContext $context,
-		#[NCA\Str("invites", "invitations")] string $action
+		#[NCA\Str("invites", "invitations")]
+		string $action
 	): Generator {
 		if ($this->discordController->discordBotToken === 'off') {
 			$context->reply("This bot isn't configured to connect to Discord yet.");
@@ -1288,7 +1293,8 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesCommand("discord leave server")]
 	public function leaveDiscordServer(
 		CmdContext $context,
-		#[NCA\Str("leave")] string $action,
+		#[NCA\Str("leave")]
+		string $action,
 		string $guildId,
 	): Generator {
 		if ($this->discordController->discordBotToken === 'off') {
@@ -1344,7 +1350,8 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesCommand("discord show events")]
 	public function listDiscordEvents(
 		CmdContext $context,
-		#[NCA\Str("events")] string $action,
+		#[NCA\Str("events")]
+		string $action,
 		?string $guildId,
 	): Generator {
 		if ($this->discordController->discordBotToken === 'off') {
@@ -1943,7 +1950,6 @@ class DiscordGatewayController extends ModuleInstance {
 						unset($oldEmoji);
 					}
 					if (!isset($oldEmoji)) {
-
 						/** @var Emoji */
 						$registeredEmoji = yield $this->discordAPIClient->createEmoji($guild->id, $info['filename'], $data);
 						$this->logger->notice('Registered server emoji :{emoji}: on {guild}', [

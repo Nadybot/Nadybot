@@ -138,6 +138,7 @@ class TowerApiController extends ModuleInstance {
 
 	/**
 	 * @param array<string,mixed> $params
+	 *
 	 * @psalm-param callable(?ApiResult, mixed...) $callback
 	 *
 	 * @deprecated 6.1.0

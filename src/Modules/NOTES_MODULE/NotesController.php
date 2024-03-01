@@ -181,7 +181,8 @@ class NotesController extends ModuleInstance {
 	#[NCA\Help\Group("notes")]
 	public function reminderAddCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("add", "addall", "addself")] string $action,
+		#[NCA\StrChoice("add", "addall", "addself")]
+		string $action,
 		string $note
 	): void {
 		$reminder = Note::REMIND_ALL;
@@ -225,8 +226,10 @@ class NotesController extends ModuleInstance {
 	)]
 	public function reminderSetCommand(
 		CmdContext $context,
-		#[NCA\Str("set")] string $action,
-		#[NCA\StrChoice("all", "self", "off")] string $type,
+		#[NCA\Str("set")]
+		string $action,
+		#[NCA\StrChoice("all", "self", "off")]
+		string $type,
 		int $id
 	): void {
 		$reminder = Note::REMIND_ALL;

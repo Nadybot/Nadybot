@@ -327,7 +327,8 @@ class LootListsController extends ModuleInstance {
 	#[NCA\Help\Group("loot-apf")]
 	public function apf42Command(
 		CmdContext $context,
-		#[NCA\StrChoice("west", "north", "east", "boss")] string $side,
+		#[NCA\StrChoice("west", "north", "east", "boss")]
+		string $side,
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -530,8 +531,10 @@ class LootListsController extends ModuleInstance {
 	#[NCA\Help\Group("loot-apf")]
 	public function apfFortyTwoCommand(
 		CmdContext $context,
-		#[NCA\Str("42")] string $sector,
-		#[NCA\StrChoice("west", "north", "east", "boss")] string $side,
+		#[NCA\Str("42")]
+		string $sector,
+		#[NCA\StrChoice("west", "north", "east", "boss")]
+		string $side,
 	): void {
 		$key = 'Sector 42 ' . ucfirst(strtolower($side));
 		$blob = $this->findRaidLoot('APF', $key, $context);

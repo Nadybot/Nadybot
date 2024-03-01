@@ -135,7 +135,8 @@ class BuffPerksController extends ModuleInstance {
 	#[NCA\HandlesCommand("perks")]
 	public function showPerkCommand(
 		CmdContext $context,
-		#[NCA\Str("show")] string $action,
+		#[NCA\Str("show")]
+		string $action,
 		string $perkName
 	): void {
 		$perk = $this->perks->first(function (Perk $perk) use ($perkName): bool {
@@ -672,7 +673,7 @@ class BuffPerksController extends ModuleInstance {
 					$profession = $this->util->getProfessionName(trim($prof));
 					if (empty($profession)) {
 						$this->logger->info("Error parsing profession: '{prof}'", [
-							"prof" => $prof
+							"prof" => $prof,
 						]);
 					} else {
 						$level->professions []= $profession;
@@ -696,7 +697,7 @@ class BuffPerksController extends ModuleInstance {
 						$skillCache[$skill] = $skillSearch;
 						if (count($skillSearch) !== 1) {
 							$this->logger->info("Error parsing skill: '{skill}'", [
-								"skill" => $skill
+								"skill" => $skill,
 							]);
 						} else {
 							$level->buffs[$skillSearch[0]->id] = (int)$amount;

@@ -33,6 +33,7 @@ class SyncNewsEvent extends SyncEvent {
 
 	/**
 	 * @return array<string,int|string|bool>
+	 *
 	 * @phpstan-return array{"time":int, "name":string, "news":string, "uuid":string, "deleted":0, "sticky":bool}
 	 */
 	public function toData(): array {

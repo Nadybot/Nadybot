@@ -20,6 +20,7 @@ class CmdCfg extends DBRow {
 
 	/**
 	 * @var array<string,CmdPermission>
+	 *
 	 * @json-var CmdPermission[]
 	 */
 	#[NCA\DB\Ignore]

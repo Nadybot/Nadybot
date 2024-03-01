@@ -3,14 +3,13 @@
 namespace Nadybot\Modules\MOB_MODULE;
 
 use function Amp\call;
-use Amp\{Promise, Success};
+use Amp\{Promise};
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Generator;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{Config\BotConfig, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance, SyncEvent};
+use Nadybot\Core\{Config\BotConfig, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance};
 use Nadybot\Modules\MOB_MODULE\FeedMessage\Spawn;
-use Nadybot\Modules\MOB_MODULE\{FeedMessage};
 use Throwable;
 
 #[

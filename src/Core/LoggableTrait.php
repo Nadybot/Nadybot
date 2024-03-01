@@ -2,18 +2,25 @@
 
 namespace Nadybot\Core;
 
+use function Safe\json_encode;
 use EventSauce\ObjectHydrator\DoNotSerialize;
 use ReflectionClass;
+
 use Safe\Exceptions\JsonException;
 
-use function Safe\json_encode;
-
 trait LoggableTrait {
+	/** Get a human-readable dump of the object and its values */
+	#[DoNotSerialize]
+	public function toLog(): string {
+		return $this->traitedToLog();
+	}
+
 	/**
 	 * Get a human-readable dump of the object and its values
-	 * @param array<string,mixed> $overrides
+	 *
+	 * @param array<string,mixed>  $overrides
 	 * @param ?array<string,mixed> $replaces
-	 * @param string[] $hide
+	 * @param string[]             $hide
 	 */
 	#[DoNotSerialize]
 	private function traitedToLog(
@@ -24,7 +31,7 @@ trait LoggableTrait {
 	): string {
 		$values = [];
 		$refClass = new ReflectionClass($this);
-		$props = isset($replaces) ? $replaces : get_object_vars($this);
+		$props = $replaces ?? get_object_vars($this);
 		foreach ($props as $key => $value) {
 			if (in_array($key, $hide, true)) {
 				continue;
@@ -58,11 +65,5 @@ trait LoggableTrait {
 			$class = array_pop($parts);
 		}
 		return "<{$class}>{" . join(",", $values) . "}";
-	}
-
-	/** Get a human-readable dump of the object and its values */
-	#[DoNotSerialize]
-	public function toLog(): string {
-		return $this->traitedToLog();
 	}
 }

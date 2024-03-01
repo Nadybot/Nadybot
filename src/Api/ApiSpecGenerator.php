@@ -36,6 +36,7 @@ class ApiSpecGenerator {
 	 * Return an array of [instancename => full class name] for all #[Instance]s
 	 *
 	 * @return array<string,string>
+	 *
 	 * @phpstan-return array<string,class-string>
 	 */
 	public function getInstances(): array {
@@ -277,7 +278,9 @@ class ApiSpecGenerator {
 
 	/**
 	 * @return array<int,array<string,mixed>>
+	 *
 	 * @psalm-return list<array{"name": string, "required": bool, "in": string, "schema": array{"type": string}, "description"?: string}>
+	 *
 	 * @phpstan-return list<array{"name": string, "required": bool, "in": string, "schema": array{"type": string}, "description"?: string}>
 	 */
 	public function getParamDocs(string $path, ReflectionMethod $method): array {
@@ -377,7 +380,9 @@ class ApiSpecGenerator {
 
 	/**
 	 * @return array<string,mixed>
+	 *
 	 * @phpstan-return array{"description"?: string, "required"?: bool, "content": array{"application/json": array{"schema": string|array<mixed>}}}
+	 *
 	 * @psalm-return array{"description"?: string, "required"?: bool, "content": array{"application/json": array{"schema": string|array<mixed>}}}
 	 */
 	public function getRequestBodyDefinition(NCA\RequestBody $requestBody): array {
@@ -407,6 +412,7 @@ class ApiSpecGenerator {
 
 	/**
 	 * @return mixed[]
+	 *
 	 * @psalm-return array{0: string, 1: string|list<string>}
 	 */
 	protected function getRegularNameAndType(ReflectionProperty $refProp): array {
@@ -465,7 +471,9 @@ class ApiSpecGenerator {
 
 	/**
 	 * @return null|array<mixed>
+	 *
 	 * @psalm-return null|array{0: string, 1: string|string[], 2?: string}
+	 *
 	 * @phpstan-return null|array{0: string, 1: string|string[], 2?: string}
 	 */
 	protected function getNameAndType(ReflectionProperty $refProperty): ?array {
@@ -485,7 +493,9 @@ class ApiSpecGenerator {
 
 	/**
 	 * @return array<string,string|array<string,string>>
+	 *
 	 * @phpstan-return array{"type"?: string, "$ref"?: string}|array{"type": "array", "items":array{"type"?: string, "$ref"?: string}}
+	 *
 	 * @psalm-return array{"type"?: string, "$ref"?: string}|array{"type": "array", "items":array{"type"?: string, "$ref"?: string}}
 	 */
 	protected function getClassRef(string $class): array {
@@ -497,7 +507,9 @@ class ApiSpecGenerator {
 
 	/**
 	 * @return array<string,string>
+	 *
 	 * @phpstan-return array{"type"?: string, "$ref"?: string}
+	 *
 	 * @psalm-return array{"type"?: string, "$ref"?: string}
 	 */
 	protected function getSimpleClassRef(string $class): array {

@@ -69,6 +69,7 @@ class SiteTrackerController extends ModuleInstance {
 
 	/**
 	 * @var array<string,string>
+	 *
 	 * @psalm-var array<string,class-string>
 	 */
 	private array $handlers = [];
@@ -166,8 +167,10 @@ class SiteTrackerController extends ModuleInstance {
 	)]
 	public function addTowerTracker(
 		CmdContext $context,
-		#[NCA\Str("track", "tracker")] string $action,
-		#[NCA\Str("add")] string $subAction,
+		#[NCA\Str("track", "tracker")]
+		string $action,
+		#[NCA\Str("add")]
+		string $subAction,
 		string $expression
 	): void {
 		$entry = $this->parseExpression($expression);
@@ -212,7 +215,8 @@ class SiteTrackerController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw track")]
 	public function delTowerTracker(
 		CmdContext $context,
-		#[NCA\Str("track", "tracker")] string $action,
+		#[NCA\Str("track", "tracker")]
+		string $action,
 		PRemove $subAction,
 		int $id,
 	): Generator {
@@ -237,8 +241,10 @@ class SiteTrackerController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw track")]
 	public function listTowerTracker(
 		CmdContext $context,
-		#[NCA\Str("track", "tracker")] string $action,
-		#[NCA\Str("list")] ?string $subAction,
+		#[NCA\Str("track", "tracker")]
+		string $action,
+		#[NCA\Str("list")]
+		?string $subAction,
 	): void {
 		if (empty($this->trackers)) {
 			$context->reply("No registered trackers.");
@@ -259,8 +265,10 @@ class SiteTrackerController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw track")]
 	public function showTowerTrackerMatches(
 		CmdContext $context,
-		#[NCA\Str("track", "tracker")] string $action,
-		#[NCA\Str("show", "view")] string $subAction,
+		#[NCA\Str("track", "tracker")]
+		string $action,
+		#[NCA\Str("show", "view")]
+		string $subAction,
 		int $id,
 	): void {
 		$tracker = $this->trackers[$id] ?? null;
@@ -287,8 +295,10 @@ class SiteTrackerController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw track")]
 	public function showTowerTrackerPatterns(
 		CmdContext $context,
-		#[NCA\Str("track", "tracker")] string $action,
-		#[NCA\Str("pattern", "patterns")] string $subAction,
+		#[NCA\Str("track", "tracker")]
+		string $action,
+		#[NCA\Str("pattern", "patterns")]
+		string $subAction,
 	): void {
 		/** @psalm-var class-string[] */
 		$classes = array_unique(array_values($this->handlers));
@@ -335,8 +345,10 @@ class SiteTrackerController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw track")]
 	public function showTowerTrackerEvents(
 		CmdContext $context,
-		#[NCA\Str("track", "tracker")] string $action,
-		#[NCA\Str("event", "events")] string $subAction,
+		#[NCA\Str("track", "tracker")]
+		string $action,
+		#[NCA\Str("event", "events")]
+		string $subAction,
 	): void {
 		$blocks = [];
 		foreach (self::EVENTS as $event) {

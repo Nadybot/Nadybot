@@ -68,6 +68,7 @@ class WebsocketBase implements LogWrapInterface {
 
 	/**
 	 * @var null|resource
+	 *
 	 * @psalm-var null|resource|closed-resource
 	 */
 	protected $socket;
@@ -367,7 +368,9 @@ class WebsocketBase implements LogWrapInterface {
 
 	/**
 	 * @return array<null|int|string>
+	 *
 	 * @psalm-return array{0:null|string, 1:bool}
+	 *
 	 * @phpstan-return array{0:null|string, 1:bool}
 	 */
 	protected function receiveFragment(): array {

@@ -39,7 +39,8 @@ class FightController extends ModuleInstance {
 	public function fightCommand(
 		CmdContext $context,
 		PCharacter $player1,
-		#[NCA\Str("vs")] ?string $vs,
+		#[NCA\Str("vs")]
+		?string $vs,
 		PCharacter $player2
 	): void {
 		$player1 = $player1();

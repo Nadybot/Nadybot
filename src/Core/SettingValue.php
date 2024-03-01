@@ -39,7 +39,6 @@ class SettingValue {
 		return $this->typeValue($this->type, $this->value);
 	}
 
-	/** @return null|bool|int|string */
 	private function typeValue(string $type, ?string $value): null|bool|int|string {
 		if (is_null($value)) {
 			return null;

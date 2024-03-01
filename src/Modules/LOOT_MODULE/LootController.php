@@ -176,7 +176,8 @@ class LootController extends ModuleInstance {
 	#[NCA\Help\Group("loot")]
 	public function lootHistoryCommand(
 		CmdContext $context,
-		#[NCA\Str("history")] string $action,
+		#[NCA\Str("history")]
+		string $action,
 	): void {
 		/** @var Collection<LootHistory> */
 		$items = $this->db->table(self::DB_TABLE)
@@ -214,8 +215,11 @@ class LootController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>loot history 17")]
 	public function lootShowNumberCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("show", "history")] string $action,
-		#[NCA\PNumber] #[NCA\Str("last")] string $number,
+		#[NCA\StrChoice("show", "history")]
+		string $action,
+		#[NCA\PNumber]
+		#[NCA\Str("last")]
+		string $number,
 	): void {
 		if (strtolower($number) === "last") {
 			$number = $this->db->table(self::DB_TABLE)->max("roll");
@@ -267,10 +271,14 @@ class LootController extends ModuleInstance {
 	#[NCA\Help\Group("loot")]
 	public function lootSearchWinnerCommand(
 		CmdContext $context,
-		#[NCA\Str("search")] string $action,
-		#[NCA\Str("last")] ?string $lastOnly,
-		#[NCA\Str("winner=")] string $subAction,
-		#[NCA\NoSpace] PCharacter $winner,
+		#[NCA\Str("search")]
+		string $action,
+		#[NCA\Str("last")]
+		?string $lastOnly,
+		#[NCA\Str("winner=")]
+		string $subAction,
+		#[NCA\NoSpace]
+		PCharacter $winner,
 	): void {
 		$items = $this->db->table(self::DB_TABLE)
 			->where("winner", $winner())
@@ -313,10 +321,14 @@ class LootController extends ModuleInstance {
 	#[NCA\Help\Group("loot")]
 	public function lootSearchNameCommand(
 		CmdContext $context,
-		#[NCA\Str("search")] string $action,
-		#[NCA\Str("last")] ?string $lastOnly,
-		#[NCA\Str("item=")] string $subAction,
-		#[NCA\NoSpace] string $search,
+		#[NCA\Str("search")]
+		string $action,
+		#[NCA\Str("last")]
+		?string $lastOnly,
+		#[NCA\Str("item=")]
+		string $subAction,
+		#[NCA\NoSpace]
+		string $search,
 	): void {
 		$search = trim($search);
 		if (strlen($search) < 1) {
@@ -462,7 +474,8 @@ class LootController extends ModuleInstance {
 	#[NCA\Help\Group("loot")]
 	public function lootRaffleByIdCommand(
 		CmdContext $context,
-		#[NCA\Str("raffle")] string $action,
+		#[NCA\Str("raffle")]
+		string $action,
 		int $id
 	): void {
 		$loot = $this->getLootEntryID($id);
@@ -500,7 +513,8 @@ class LootController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>loot addmulti 3 Lockpick")]
 	public function multilootCommand(
 		CmdContext $context,
-		#[NCA\Str("addmulti", "multiadd")] string $action,
+		#[NCA\Str("addmulti", "multiadd")]
+		string $action,
 		PQuantity $amount,
 		string $items
 	): void {

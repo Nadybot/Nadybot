@@ -39,7 +39,6 @@ class ArraySetting extends DefineSetting {
 		);
 	}
 
-	/** @return bool|int|string */
 	private function typeValue(string $type, string $value): bool|int|string {
 		if (in_array($type, ['number', 'time', 'int', 'integer'])) {
 			return (int)$value;

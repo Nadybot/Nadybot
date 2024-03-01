@@ -238,7 +238,8 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand("news")]
 	public function newsconfirmCommand(
 		CmdContext $context,
-		#[NCA\Str("confirm")] string $action,
+		#[NCA\Str("confirm")]
+		string $action,
 		int $id
 	): void {
 		$row = $this->getNewsItem($id);
@@ -275,7 +276,8 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		string $news
 	): void {
 		$entry = [
@@ -329,7 +331,8 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsPinCommand(
 		CmdContext $context,
-		#[NCA\Str("pin")] string $action,
+		#[NCA\Str("pin")]
+		string $action,
 		int $id
 	): void {
 		$row = $this->getNewsItem($id);
@@ -359,7 +362,8 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsUnpinCommand(
 		CmdContext $context,
-		#[NCA\Str("unpin")] string $action,
+		#[NCA\Str("unpin")]
+		string $action,
 		int $id
 	): void {
 		$row = $this->getNewsItem($id);

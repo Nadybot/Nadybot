@@ -582,6 +582,7 @@ class WhatBuffsController extends ModuleInstance {
 	 * @param ItemBuffSearchResult[] $items The items that matched the search
 	 *
 	 * @return (int|string)[]
+	 *
 	 * @psalm-return array{0: int, 1:string}
 	 */
 	public function formatItems(array $items, Skill $skill, string $category): array {
@@ -709,6 +710,7 @@ class WhatBuffsController extends ModuleInstance {
 	 * @param PerkBuffSearchResult[] $perks
 	 *
 	 * @return (int|string)[]
+	 *
 	 * @psalm-return array{0: int, 1:string}
 	 */
 	public function formatPerkBuffs(array $perks, Skill $skill): array {
@@ -744,6 +746,7 @@ class WhatBuffsController extends ModuleInstance {
 	 * @param NanoBuffSearchResult[] $items
 	 *
 	 * @return (int|string)[]
+	 *
 	 * @psalm-return array{0: int, 1: string}
 	 */
 	public function formatBuffs(array $items, Skill $skill): array {

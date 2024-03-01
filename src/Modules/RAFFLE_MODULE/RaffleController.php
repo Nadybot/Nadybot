@@ -161,7 +161,8 @@ class RaffleController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>raffle start 30s ACDC")]
 	public function raffleStartCommand(
 		CmdContext $context,
-		#[NCA\Str("start")] string $action,
+		#[NCA\Str("start")]
+		string $action,
 		string $raffleString
 	): void {
 		if (isset($this->raffle)) {
@@ -224,7 +225,8 @@ class RaffleController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>raffle add 30s ACDC")]
 	public function raffleAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		string $raffleString
 	): void {
 		$newRaffle = !isset($this->raffle);
@@ -334,7 +336,8 @@ class RaffleController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
 	public function raffleCancelCommand(
 		CmdContext $context,
-		#[NCA\Str("cancel", "stop")] string $action
+		#[NCA\Str("cancel", "stop")]
+		string $action
 	): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
@@ -361,7 +364,8 @@ class RaffleController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
 	public function raffleEndCommand(
 		CmdContext $context,
-		#[NCA\Str("end")] string $action
+		#[NCA\Str("end")]
+		string $action
 	): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
@@ -385,7 +389,8 @@ class RaffleController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
 	public function raffleTimerCommand(
 		CmdContext $context,
-		#[NCA\Str("timer")] string $action,
+		#[NCA\Str("timer")]
+		string $action,
 		PDuration $duration
 	): void {
 		if (!isset($this->raffle)) {
@@ -416,7 +421,8 @@ class RaffleController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
 	public function raffleAnnounceCommand(
 		CmdContext $context,
-		#[NCA\Str("announce")] string $action,
+		#[NCA\Str("announce")]
+		string $action,
 		?string $message
 	): void {
 		if (!isset($this->raffle)) {
@@ -439,7 +445,8 @@ class RaffleController extends ModuleInstance {
 	#[NCA\HandlesCommand("raffle")]
 	public function raffleJoinCommand(
 		CmdContext $context,
-		#[NCA\Str("join", "enter")] string $action,
+		#[NCA\Str("join", "enter")]
+		string $action,
 		?int $slot
 	): void {
 		if (!isset($this->raffle)) {
@@ -529,7 +536,8 @@ class RaffleController extends ModuleInstance {
 	#[NCA\HandlesCommand("raffle")]
 	public function raffleLeaveCommand(
 		CmdContext $context,
-		#[NCA\Str("leave")] string $action,
+		#[NCA\Str("leave")]
+		string $action,
 		?int $slot
 	): void {
 		if (!isset($this->raffle)) {

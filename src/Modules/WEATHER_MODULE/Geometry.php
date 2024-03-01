@@ -9,6 +9,7 @@ class Geometry extends JSONDataModel {
 
 	/**
 	 * @var array<float|int>
+	 *
 	 * @psalm-var array{0: float, 1: float, 2: int}
 	 */
 	public array $coordinates;

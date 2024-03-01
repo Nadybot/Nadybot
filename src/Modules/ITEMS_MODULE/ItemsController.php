@@ -721,6 +721,7 @@ class ItemsController extends ModuleInstance {
 
 		/**
 		 * @psalm-suppress ImplicitToStringCast
+		 *
 		 * @phpstan-ignore-next-line
 		 *
 		 * @var Collection<Skill>

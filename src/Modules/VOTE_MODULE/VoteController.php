@@ -177,7 +177,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 					$mstatus = self::STATUS_60_SECONDS_LEFT;
 				}
 				$this->polls[$id]->status = $mstatus;
-			// @phpstan-ignore-next-line
+				// @phpstan-ignore-next-line
 			} elseif ($timeleft <= 60 && $timeleft > 0 && $poll->status !== self::STATUS_60_SECONDS_LEFT) {
 				$title = "60 seconds left: {$poll->question}";
 				$this->polls[$id]->status = self::STATUS_60_SECONDS_LEFT;
@@ -438,7 +438,8 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Example("<symbol>poll create 4d3h2m1s WHAT... Is your favorite color?!?|Blue|Yellow")]
 	public function pollCreateCommand(
 		CmdContext $context,
-		#[NCA\Str("add", "create", "new")] string $action,
+		#[NCA\Str("add", "create", "new")]
+		string $action,
 		PDuration $duration,
 		string $definition
 	): void {

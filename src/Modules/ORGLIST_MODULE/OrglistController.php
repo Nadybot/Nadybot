@@ -104,7 +104,8 @@ class OrglistController extends ModuleInstance {
 	public function orglistCommand(
 		CmdContext $context,
 		PNonGreedy $search,
-		#[NCA\Str("all")] ?string $all,
+		#[NCA\Str("all")]
+		?string $all,
 	): Generator {
 		if ($this->orglistShowOffline) {
 			$all = "all";

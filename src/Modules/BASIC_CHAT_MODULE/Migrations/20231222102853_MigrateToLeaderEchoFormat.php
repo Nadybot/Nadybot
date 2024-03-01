@@ -2,11 +2,8 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE\Migrations;
 
-use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration, SettingManager};
 
 class MigrateToLeaderEchoFormat implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {

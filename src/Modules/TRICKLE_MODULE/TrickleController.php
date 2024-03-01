@@ -39,14 +39,13 @@ class TrickleController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/trickle.csv");
 	}
 
-	/**
-	 * Show which and how much your skills will increase by increasing all abilities by &lt;amount&gt;
-	 */
+	/** Show which and how much your skills will increase by increasing all abilities by &lt;amount&gt; */
 	#[NCA\HandlesCommand("trickle")]
 	#[NCA\Help\Example("<symbol>trickle all 12")]
 	public function trickleAllSkillsCommand(
 		CmdContext $context,
-		#[NCA\Str("all")] string $attributes,
+		#[NCA\Str("all")]
+		string $attributes,
 		int $amount,
 	): void {
 		$this->trickle1Command(
@@ -69,7 +68,8 @@ class TrickleController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>trickle agi 4 str 4")]
 	public function trickle1Command(
 		CmdContext $context,
-		#[NCA\Regexp("\w+\s+\d+", example: "&lt;ability&gt; &lt;amount&gt;")] string ...$pairs
+		#[NCA\Regexp("\w+\s+\d+", example: "&lt;ability&gt; &lt;amount&gt;")]
+		string ...$pairs
 	): bool {
 		if (str_starts_with($pairs[0], "all")) {
 			return false;
@@ -102,7 +102,8 @@ class TrickleController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>trickle 5 str 10 sen")]
 	public function trickle2Command(
 		CmdContext $context,
-		#[NCA\Regexp("\d+\s+\w+", "&lt;amount&gt; &lt;ability&gt;")] string ...$pairs
+		#[NCA\Regexp("\d+\s+\w+", "&lt;amount&gt; &lt;ability&gt;")]
+		string ...$pairs
 	): void {
 		$abilities = new AbilityConfig();
 

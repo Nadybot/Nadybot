@@ -227,7 +227,9 @@ class AuditController extends ModuleInstance {
 	 * @param array<string,mixed> $params
 	 *
 	 * @return string[]
+	 *
 	 * @psalm-return array{0: ?string, 1: ?string}
+	 *
 	 * @phpstan-return array{0: ?string, 1: ?string}
 	 */
 	protected function getPrevNextLinks(Collection $data, array $params): array {

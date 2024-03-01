@@ -133,9 +133,12 @@ class ArbiterController extends ModuleInstance {
 	#[NCA\HandlesCommand("arbiter change")]
 	public function arbiterSetCommand(
 		CmdContext $context,
-		#[NCA\Str("set")] string $action,
-		#[NCA\StrChoice("ai", "bs", "dio")] string $setWeek,
-		#[NCA\StrChoice("ends", "next")] ?string $ends
+		#[NCA\Str("set")]
+		string $action,
+		#[NCA\StrChoice("ai", "bs", "dio")]
+		string $setWeek,
+		#[NCA\StrChoice("ends", "next")]
+		?string $ends
 	): Generator {
 		$setWeek = strtolower($setWeek);
 		$validTypes = [static::AI, static::BS, static::DIO];

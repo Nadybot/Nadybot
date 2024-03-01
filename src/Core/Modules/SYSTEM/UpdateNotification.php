@@ -8,8 +8,10 @@ use Nadybot\Core\SemanticVersion;
 class UpdateNotification {
 	public function __construct(
 		public string $message,
-		#[CastToArrayWithKey("version")] public ?SemanticVersion $minVersion=null,
-		#[CastToArrayWithKey("version")] public ?SemanticVersion $maxVersion=null,
+		#[CastToArrayWithKey("version")]
+		public ?SemanticVersion $minVersion=null,
+		#[CastToArrayWithKey("version")]
+		public ?SemanticVersion $maxVersion=null,
 	) {
 	}
 }

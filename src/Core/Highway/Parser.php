@@ -2,13 +2,11 @@
 
 namespace Nadybot\Core\Highway;
 
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
-use EventSauce\ObjectHydrator\UnableToHydrateObject;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\LoggerWrapper;
-use Safe\Exceptions\JsonException;
-
 use function Safe\json_decode;
+use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
+use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
+
+use Safe\Exceptions\JsonException;
 
 class Parser {
 	public const SUPPORTED_VERSIONS = ["~0.1.1", "~0.2.0-alpha.1"];
@@ -43,13 +41,13 @@ class Parser {
 		$targetClass = self::PKG_CLASSES[$baseInfo->type]??null;
 		if (!isset($targetClass)) {
 			self::$logger->warning("Unknown Highway package type '{type}'", [
-				'type' => $baseInfo->type
+				'type' => $baseInfo->type,
 			]);
 			return $baseInfo;
 		}
 		if (!class_exists($targetClass)) {
 			self::$logger->warning("Implementation for Highway class {class} missing", [
-				'class' => $targetClass
+				'class' => $targetClass,
 			]);
 			return $baseInfo;
 		}

@@ -15,9 +15,12 @@ class RoomInfo extends InPackage {
 	public function __construct(
 		string $type,
 		public string $room,
-		#[MapFrom('read-only')] ?bool $readOnlyOld,
-		#[MapFrom('read_only')] ?bool $readOnlyNew,
-		#[CastListToType('string')] public array $users,
+		#[MapFrom('read-only')]
+		?bool $readOnlyOld,
+		#[MapFrom('read_only')]
+		?bool $readOnlyNew,
+		#[CastListToType('string')]
+		public array $users,
 		public null|string|int|bool|float|array $extraInfo=null,
 		public ?RateLimit $msgFreqRatelimit=null,
 		public ?RateLimit $msgSizeRatelimit=null,

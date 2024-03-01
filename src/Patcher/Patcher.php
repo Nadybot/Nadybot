@@ -39,6 +39,7 @@ class Patcher {
 		if ($package->getName() === 'squizlabs/php_codesniffer') {
 			static::patchCodesniffer($vendorDir, $package);
 		}
+
 		/** @var \Composer\Package\Package $package */
 		if ($package->getName() === 'farafiri/php-parsing-tool') {
 			static::patchParsingTool($vendorDir, $package);

@@ -216,7 +216,8 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand("comment categories")]
 	public function listCategoriesCommand(
 		CmdContext $context,
-		#[NCA\Str("category", "categories")] string $action,
+		#[NCA\Str("category", "categories")]
+		string $action,
 	): void {
 		/** @var CommentCategory[] */
 		$categories = $this->db->table("<table:comment_categories>")
@@ -259,7 +260,8 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand("comment categories")]
 	public function deleteCategoryCommand(
 		CmdContext $context,
-		#[NCA\Str("category", "categories")] string $action,
+		#[NCA\Str("category", "categories")]
+		string $action,
 		PRemove $subAction,
 		string $category
 	): void {
@@ -304,8 +306,10 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand("comment categories")]
 	public function addCategoryCommand(
 		CmdContext $context,
-		#[NCA\Str("category", "categories")] string $action,
-		#[NCA\Str("add", "create", "new", "edit", "change")] string $subAction,
+		#[NCA\Str("category", "categories")]
+		string $action,
+		#[NCA\Str("add", "create", "new", "edit", "change")]
+		string $subAction,
 		PWord $category,
 		PWord $alForReading,
 		?PWord $alForWriting
@@ -355,7 +359,8 @@ class CommentController extends ModuleInstance {
 	)]
 	public function addCommentCommand(
 		CmdContext $context,
-		#[NCA\Str("add", "create", "new")] string $action,
+		#[NCA\Str("add", "create", "new")]
+		string $action,
 		PCharacter $char,
 		PWord $category,
 		string $commentText
@@ -422,7 +427,8 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand("comment")]
 	public function searchCommentCommand(
 		CmdContext $context,
-		#[NCA\Str("get", "search", "find")] string $action,
+		#[NCA\Str("get", "search", "find")]
+		string $action,
 		PCharacter $char,
 		?PWord $category
 	): Generator {
@@ -448,6 +454,7 @@ class CommentController extends ModuleInstance {
 				return;
 			}
 		}
+
 		/** @var ?CommentCategory $category */
 		/** @var Comment[] $comments */
 		$comments = $this->getComments($category, $character);
@@ -470,7 +477,8 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand("comment")]
 	public function listCommentsCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action,
+		#[NCA\Str("list")]
+		string $action,
 		PWord $categoryName
 	): void {
 		$category = $this->getCategory($categoryName());

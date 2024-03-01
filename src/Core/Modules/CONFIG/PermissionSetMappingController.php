@@ -92,7 +92,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapNewCommand(
 		CmdContext $context,
-		#[NCA\Str("new", "create")] string $action,
+		#[NCA\Str("new", "create")]
+		string $action,
 		string $source,
 		PWord $permissionSet
 	): void {
@@ -144,8 +145,10 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapListSourcesCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action,
-		#[NCA\Str("src", "source", "sources")] string $subaction,
+		#[NCA\Str("list")]
+		string $action,
+		#[NCA\Str("src", "source", "sources")]
+		string $subaction,
 	): void {
 		$sources = (new Collection($this->cmdManager->getSources()))->sort();
 		$blob = "<header2>Registered sources<end>\n".
@@ -194,8 +197,10 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapPickPermsetCommand(
 		CmdContext $context,
-		#[NCA\Str("permset")] string $action,
-		#[NCA\Str("pick")] string $subAction,
+		#[NCA\Str("permset")]
+		string $action,
+		#[NCA\Str("pick")]
+		string $subAction,
 		string $source
 	): void {
 		$source = strtolower($source);
@@ -222,8 +227,10 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapPickSymbolCommand(
 		CmdContext $context,
-		#[NCA\Str("prefix", "symbol")] string $action,
-		#[NCA\Str("pick")] string $subAction,
+		#[NCA\Str("prefix", "symbol")]
+		string $action,
+		#[NCA\Str("pick")]
+		string $subAction,
 		string $source
 	): void {
 		$source = strtolower($source);
@@ -260,8 +267,10 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapSetPermsetCommand(
 		CmdContext $context,
-		#[NCA\Str("permset")] string $action,
-		#[NCA\Str("set")] string $subAction,
+		#[NCA\Str("permset")]
+		string $action,
+		#[NCA\Str("set")]
+		string $subAction,
 		string $source,
 		PWord $permissionSet
 	): void {
@@ -279,8 +288,10 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapSetSymbolCommand(
 		CmdContext $context,
-		#[NCA\Str("prefix", "symbol")] string $action,
-		#[NCA\Str("set")] string $subAction,
+		#[NCA\Str("prefix", "symbol")]
+		string $action,
+		#[NCA\Str("set")]
+		string $subAction,
 		string $source,
 		string $symbol
 	): void {
@@ -293,8 +304,10 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapChangeSymbolOptionalCommand(
 		CmdContext $context,
-		#[NCA\Str("prefixopt", "symbolopt")] string $action,
-		#[NCA\Str("set")] string $subAction,
+		#[NCA\Str("prefixopt", "symbolopt")]
+		string $action,
+		#[NCA\Str("set")]
+		string $subAction,
 		string $source,
 		bool $optional
 	): void {
@@ -307,8 +320,10 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapChangeFeedbackCommand(
 		CmdContext $context,
-		#[NCA\Str("feedback")] string $action,
-		#[NCA\Str("set")] string $subAction,
+		#[NCA\Str("feedback")]
+		string $action,
+		#[NCA\Str("set")]
+		string $subAction,
 		string $source,
 		bool $feedback
 	): void {

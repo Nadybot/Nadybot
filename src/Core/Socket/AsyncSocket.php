@@ -39,6 +39,7 @@ class AsyncSocket {
 
 	/**
 	 * @var ?resource
+	 *
 	 * @psalm-var null|resource|closed-resource
 	 */
 	protected $socket = null;
@@ -82,6 +83,7 @@ class AsyncSocket {
 	 * Get the low level socket
 	 *
 	 * @return null|resource
+	 *
 	 * @psalm-return null|resource|closed-resource
 	 */
 	public function getSocket() {

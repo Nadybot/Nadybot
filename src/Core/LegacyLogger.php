@@ -36,6 +36,7 @@ class LegacyLogger {
 	 * Configuration which log channels log what
 	 *
 	 * @var array<array<string>>
+	 *
 	 * @psalm-var list<array{0:string, 1:string}>
 	 */
 	public static array $logLevels = [];
@@ -132,6 +133,7 @@ class LegacyLogger {
 	 * and new log level for that logger, or null if unchanged.
 	 *
 	 * @return array<int,string>|null
+	 *
 	 * @psalm-return null|array{0:string,1:string}
 	 */
 	public static function assignLogLevel(Logger $logger): ?array {
@@ -145,6 +147,7 @@ class LegacyLogger {
 
 			/**
 			 * @phpstan-ignore-next-line
+			 *
 			 * @psalm-suppress ArgumentTypeCoercion
 			 */
 			$newLevel = $logger->toMonologLevel($logLevelConf[1]);

@@ -23,7 +23,6 @@ class AddMemberDetails implements SchemaMigration {
 		$db->table($table)->update(['joined' => $time]);
 		// Try to backfill the "joined" value from the audit table
 		foreach ($members as $member) {
-
 			/** @var ?Audit */
 			$audit = $db->table(AccessManager::DB_TABLE)
 				->where("actee", $member)

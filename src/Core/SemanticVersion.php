@@ -67,13 +67,7 @@ class SemanticVersion {
 		return 0;
 	}
 
-	/**
-	 * Check if $version is in range of $range
-	 *
-	 * @param string $range
-	 * @param string $version
-	 * @return boolean
-	 */
+	/** Check if $version is in range of $range */
 	public static function inMask(string $range, string $version): bool {
 		$version = strtolower($version);
 		$range = strtolower($range);

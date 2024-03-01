@@ -123,9 +123,12 @@ class MessageHubController extends ModuleInstance {
 	)]
 	public function routeMuteIdCommand(
 		CmdContext $context,
-		#[NCA\Str("mute", "disable")] string $action,
+		#[NCA\Str("mute", "disable")]
+		string $action,
 		int $id,
-		#[NCA\PDuration] #[NCA\Str("off")] string $duration
+		#[NCA\PDuration]
+		#[NCA\Str("off")]
+		string $duration
 	): void {
 		$route = $this->getMsgRoute($id);
 		if (!isset($route)) {
@@ -164,7 +167,8 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\HandlesCommand("route")]
 	public function routeMuteCommand(
 		CmdContext $context,
-		#[NCA\Str("mute", "disable")] string $action,
+		#[NCA\Str("mute", "disable")]
+		string $action,
 		int $id,
 	): void {
 		$route = $this->getMsgRoute($id);
@@ -218,8 +222,10 @@ class MessageHubController extends ModuleInstance {
 	)]
 	public function routeAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add", "addforce")] string $action,
-		#[NCA\Str("from")] ?string $fromConst,
+		#[NCA\Str("add", "addforce")]
+		string $action,
+		#[NCA\Str("from")]
+		?string $fromConst,
 		PSource $from,
 		PDirection $direction,
 		PSource $to,
@@ -320,8 +326,10 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\HandlesCommand("route")]
 	public function routeListFromCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action,
-		#[NCA\Regexp("from|sources?|src", example: "src")] string $subAction
+		#[NCA\Str("list")]
+		string $action,
+		#[NCA\Regexp("from|sources?|src", example: "src")]
+		string $subAction
 	): void {
 		$emitters = $this->messageHub->getEmitters();
 		$count = count($emitters);
@@ -338,8 +346,10 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\HandlesCommand("route")]
 	public function routeListToCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action,
-		#[NCA\Regexp("to|dsts?|dests?|destinations?", example: "dst")] string $subAction
+		#[NCA\Str("list")]
+		string $action,
+		#[NCA\Regexp("to|dsts?|dests?|destinations?", example: "dst")]
+		string $subAction
 	): void {
 		$receivers = $this->messageHub->getReceivers();
 		$count = count($receivers);
@@ -356,8 +366,10 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\HandlesCommand("route")]
 	public function routeListModifiersCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action,
-		#[NCA\Regexp("mods?|modifiers?", example: "mods")] string $subAction
+		#[NCA\Str("list")]
+		string $action,
+		#[NCA\Regexp("mods?|modifiers?", example: "mods")]
+		string $subAction
 	): void {
 		$mods = $this->messageHub->modifiers;
 		$count = count($mods);
@@ -384,8 +396,10 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\HandlesCommand("route")]
 	public function routeListModifierCommand(
 		CmdContext $context,
-		#[NCA\Str("list")] string $action,
-		#[NCA\Regexp("mods?|modifiers?", example: "mod")] string $subAction,
+		#[NCA\Str("list")]
+		string $action,
+		#[NCA\Regexp("mods?|modifiers?", example: "mod")]
+		string $subAction,
 		string $modifier
 	): void {
 		$mod = $this->messageHub->modifiers[$modifier]??null;
@@ -670,8 +684,10 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\HandlesCommand("route")]
 	public function routeTagColorRemCommand(
 		CmdContext $context,
-		#[NCA\Str("color")] string $action,
-		#[NCA\StrChoice("tag", "text")] string $type,
+		#[NCA\Str("color")]
+		string $action,
+		#[NCA\StrChoice("tag", "text")]
+		string $type,
 		PRemove $subAction,
 		PSource $tag,
 		?PWhere $where,
@@ -733,9 +749,12 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\HandlesCommand("route")]
 	public function routeSetColorCommand(
 		CmdContext $context,
-		#[NCA\Str("color")] string $action,
-		#[NCA\StrChoice("tag", "text")] string $type,
-		#[NCA\Str("set")] string $subAction,
+		#[NCA\Str("color")]
+		string $action,
+		#[NCA\StrChoice("tag", "text")]
+		string $type,
+		#[NCA\Str("set")]
+		string $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via,
@@ -799,9 +818,12 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\HandlesCommand("route")]
 	public function routePickColorCommand(
 		CmdContext $context,
-		#[NCA\Str("color")] string $action,
-		#[NCA\StrChoice("tag", "text")] string $type,
-		#[NCA\Str("pick")] string $subAction,
+		#[NCA\Str("color")]
+		string $action,
+		#[NCA\StrChoice("tag", "text")]
+		string $type,
+		#[NCA\Str("pick")]
+		string $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via
@@ -904,7 +926,8 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\HandlesCommand("route")]
 	public function routeFormatClearCommand(
 		CmdContext $context,
-		#[NCA\Str("format")] string $action,
+		#[NCA\Str("format")]
+		string $action,
 		PRemove $subAction,
 		PSource $hop
 	): void {
@@ -928,8 +951,10 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\HandlesCommand("route")]
 	public function routeFormatChangeRenderCommand(
 		CmdContext $context,
-		#[NCA\Str("format")] string $action,
-		#[NCA\Str("render")] string $subAction,
+		#[NCA\Str("format")]
+		string $action,
+		#[NCA\Str("render")]
+		string $subAction,
 		PSource $hop,
 		bool $render
 	): void {
@@ -946,8 +971,10 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\HandlesCommand("route")]
 	public function routeFormatChangeDisplayCommand(
 		CmdContext $context,
-		#[NCA\Str("format")] string $action,
-		#[NCA\Str("display")] string $subAction,
+		#[NCA\Str("format")]
+		string $action,
+		#[NCA\Str("display")]
+		string $subAction,
 		PSource $hop,
 		string $format
 	): void {
@@ -973,7 +1000,8 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\HandlesCommand("route")]
 	public function routeRemAllCommand(
 		CmdContext $context,
-		#[NCA\Str("remall")] string $action
+		#[NCA\Str("remall")]
+		string $action
 	): Generator {
 		try {
 			$numDeleted = yield $this->messageHub->deleteAllRoutes();
@@ -1137,6 +1165,7 @@ class MessageHubController extends ModuleInstance {
 					try {
 						/**
 						 * @psalm-suppress ArgumentTypeCoercion
+						 *
 						 * @phpstan-ignore-next-line
 						 */
 						$l1 = Logger::toMonologLevel($matches[1]);
@@ -1148,6 +1177,7 @@ class MessageHubController extends ModuleInstance {
 					try {
 						/**
 						 * @psalm-suppress ArgumentTypeCoercion
+						 *
 						 * @phpstan-ignore-next-line
 						 */
 						$l2 = Logger::toMonologLevel($matches[1]);

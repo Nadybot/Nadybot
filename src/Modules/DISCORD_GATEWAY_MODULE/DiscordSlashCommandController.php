@@ -159,8 +159,10 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\HandlesCommand("discord slash-commands")]
 	public function listDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str("slash")] string $action,
-		#[NCA\Str("list")] ?string $subAction
+		#[NCA\Str("slash")]
+		string $action,
+		#[NCA\Str("list")]
+		?string $subAction
 	): void {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
@@ -188,9 +190,12 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\HandlesCommand("discord slash-commands")]
 	public function addDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str("slash")] string $action,
-		#[NCA\Str("add")] string $subAction,
-		#[NCA\PWord] string ...$commands,
+		#[NCA\Str("slash")]
+		string $action,
+		#[NCA\Str("add")]
+		string $subAction,
+		#[NCA\PWord]
+		string ...$commands,
 	): Generator {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
@@ -264,9 +269,11 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\HandlesCommand("discord slash-commands")]
 	public function remDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str("slash")] string $action,
+		#[NCA\Str("slash")]
+		string $action,
 		PRemove $subAction,
-		#[NCA\PWord] string ...$commands,
+		#[NCA\PWord]
+		string ...$commands,
 	): Generator {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
@@ -314,8 +321,10 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\HandlesCommand("discord slash-commands")]
 	public function pickDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str("slash")] string $action,
-		#[NCA\Str("pick")] string $subAction,
+		#[NCA\Str("slash")]
+		string $action,
+		#[NCA\Str("pick")]
+		string $subAction,
 	): void {
 		/** @var string[] */
 		$exposedCmds = $this->db->table(self::DB_SLASH_TABLE)

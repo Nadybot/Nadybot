@@ -144,6 +144,7 @@ class AOChat {
 	 * The socket with which we are connected to the chat server
 	 *
 	 * @var resource|null
+	 *
 	 * @psalm-var resource|closed-resource|null
 	 */
 	public $socket = null;

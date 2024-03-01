@@ -344,7 +344,8 @@ class ImplantDesignerController extends ModuleInstance {
 	public function implantdesignerSlotClearCommand(
 		CmdContext $context,
 		PImplantSlot $slot,
-		#[NCA\Str("clear")] string $action
+		#[NCA\Str("clear")]
+		string $action
 	): void {
 		$slot = $slot();
 
@@ -368,7 +369,8 @@ class ImplantDesignerController extends ModuleInstance {
 	public function implantdesignerSlotRequireCommand(
 		CmdContext $context,
 		PImplantSlot $slot,
-		#[NCA\Str("require")] string $action
+		#[NCA\Str("require")]
+		string $action
 	): void {
 		$slot = $slot();
 
@@ -409,7 +411,8 @@ class ImplantDesignerController extends ModuleInstance {
 	public function implantdesignerSlotRequireAbilityCommand(
 		CmdContext $context,
 		PImplantSlot $slot,
-		#[NCA\Str("require")] string $action,
+		#[NCA\Str("require")]
+		string $action,
 		PAttribute $ability
 	): void {
 		$slot = $slot();

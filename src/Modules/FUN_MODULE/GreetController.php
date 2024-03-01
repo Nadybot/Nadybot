@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\FUN_MODULE;
 
 use function Amp\{call, delay};
-use Amp\{Promise, Success};
+use Amp\{Promise};
 use Generator;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\ALTS\{AltEvent, AltsController};
@@ -241,7 +241,8 @@ class GreetController extends ModuleInstance {
 	#[NCA\Help\Example(command: "greeting add main=Nady You again, *name*?")]
 	public function addGreeting(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		string $greeting,
 	): void {
 		$fun = new Fun();
@@ -273,7 +274,8 @@ class GreetController extends ModuleInstance {
 	/** Enable greeting messages for you and your alts */
 	public function enableGreetings(
 		CmdContext $context,
-		#[NCA\Str("on")] string $action,
+		#[NCA\Str("on")]
+		string $action,
 	): void {
 		$main = $this->altsController->getMainOf($context->char->name);
 		$this->prefs->save($main, self::PREF, self::PREF_ON);
@@ -284,7 +286,8 @@ class GreetController extends ModuleInstance {
 	/** Disable greeting messages for you and your alts */
 	public function disableGreetings(
 		CmdContext $context,
-		#[NCA\Str("off")] string $action,
+		#[NCA\Str("off")]
+		string $action,
 	): void {
 		$main = $this->altsController->getMainOf($context->char->name);
 		$this->prefs->save($main, self::PREF, self::PREF_OFF);

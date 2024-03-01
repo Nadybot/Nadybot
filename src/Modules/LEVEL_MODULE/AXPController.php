@@ -26,7 +26,9 @@ class AXPController extends ModuleInstance {
 
 	/**
 	 * @var array<array<int|string>>
+	 *
 	 * @psalm-var array{0:int, 1:int, 2:string}[]
+	 *
 	 * @phpstan-var array{0:int, 1:int, 2:string}[]
 	 */
 	private array $aiRanks = [

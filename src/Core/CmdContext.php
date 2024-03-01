@@ -9,6 +9,7 @@ use Nadybot\Core\Routing\Character;
 class CmdContext implements CommandReply {
 	/**
 	 * @var array<array<int|float>>
+	 *
 	 * @phpstan-var array{int,float}[]
 	 */
 	public static array $cmdStats = [];

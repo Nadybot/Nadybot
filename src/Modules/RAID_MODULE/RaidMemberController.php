@@ -283,7 +283,8 @@ class RaidMemberController extends ModuleInstance {
 	#[NCA\Help\Group("raid-members")]
 	public function raidJoinCommand(
 		CmdContext $context,
-		#[NCA\Str("join")] string $action
+		#[NCA\Str("join")]
+		string $action
 	): void {
 		$reply = $this->joinRaid($context->char->name, $context->char->name, $context->source, false);
 		if ($reply !== null) {
@@ -300,7 +301,8 @@ class RaidMemberController extends ModuleInstance {
 	#[NCA\Help\Group("raid-members")]
 	public function raidLeaveCommand(
 		CmdContext $context,
-		#[NCA\Str("leave")] string $action
+		#[NCA\Str("leave")]
+		string $action
 	): void {
 		$reply = $this->leaveRaid($context->char->name, $context->char->name);
 		if ($reply !== null) {
@@ -317,7 +319,8 @@ class RaidMemberController extends ModuleInstance {
 	#[NCA\Help\Group("raid-members")]
 	public function raidAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")] string $action,
+		#[NCA\Str("add")]
+		string $action,
 		PCharacter ...$char
 	): void {
 		$messages = [];
@@ -344,7 +347,8 @@ class RaidMemberController extends ModuleInstance {
 	#[NCA\Help\Group("raid-members")]
 	public function raidKickCommand(
 		CmdContext $context,
-		#[NCA\Str("kick", "rem", "del")] string $action,
+		#[NCA\Str("kick", "rem", "del")]
+		string $action,
 		PCharacter $char
 	): void {
 		$reply = $this->leaveRaid($context->char->name, $char());

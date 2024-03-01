@@ -125,7 +125,8 @@ class EventsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
 	public function eventsSetDateCommand(
 		CmdContext $context,
-		#[NCA\Str("setdate")] string $action,
+		#[NCA\Str("setdate")]
+		string $action,
 		int $id,
 		string $date,
 	): void {
