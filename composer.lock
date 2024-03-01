@@ -2871,7 +2871,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Nadybot/IMEX.git",
-                "reference": "505401a6ec25944ba09e9c8a6cc2cfb0cfe19f24"
+                "reference": "da9a58cf57d035cf1b47beca992bd3d16c322bbe"
             },
             "require": {
                 "brick/varexporter": "^0.4.0",
@@ -2913,7 +2913,7 @@
                 }
             ],
             "description": "A library that abstracts away common file formats for easier importing and exporting",
-            "time": "2024-03-01T12:48:58+00:00"
+            "time": "2024-03-01T14:36:11+00:00"
         },
         {
             "name": "nesbot/carbon",

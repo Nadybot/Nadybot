@@ -91,9 +91,7 @@ class BotConfig {
 			\Safe\file_put_contents($this->filePath, $json);
 			return;
 		} elseif (str_ends_with($this->filePath, '.php')) {
-			$php = '<?' . 'php declare(strict_types=1);' . PHP_EOL . PHP_EOL.
-				'/* Configuration file for Nadybot. */' . PHP_EOL . PHP_EOL.
-				IMEX\PHP::export($vars);
+			$php = IMEX\PHP::export($vars);
 			\Safe\file_put_contents($this->filePath, $php);
 			return;
 		}
