@@ -12,7 +12,7 @@ class MigrateFromV1 implements SchemaMigration {
 		if (!$db->schema()->hasTable(self::DB_OLD_VOTE)) {
 			return;
 		}
-		$logger->log("INFO", "Converting old vote format into poll format");
+		$logger->info("Converting old vote format into poll format");
 		$oldPolls = $db->table(self::DB_OLD_VOTE)
 			->whereNotNull("duration")
 			->get()
@@ -36,16 +36,16 @@ class MigrateFromV1 implements SchemaMigration {
 					"author" => (string)$oldVote->author,
 					"answer" => (string)$oldVote->answer,
 				])) {
-					$logger->log("ERROR", "Cannot convert old votes into new format.");
+					$logger->error("Cannot convert old votes into new format.");
 					return;
 				}
 			}
 			$db->table(self::DB_OLD_VOTE)
 				->where("question", (string)$oldPoll->question)
 				->delete();
-			$logger->log("INFO", "Poll \"{$oldPoll->question}\" converted to new poll system");
+			$logger->info("Poll \"{$oldPoll->question}\" converted to new poll system");
 		}
 		$db->schema()->dropIfExists(self::DB_OLD_VOTE);
-		$logger->log("INFO", "Conversion completed");
+		$logger->info("Conversion completed");
 	}
 }

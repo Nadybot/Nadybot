@@ -20,13 +20,13 @@ class ConvertAriaTables implements SchemaMigration {
 		if (empty($tables)) {
 			return;
 		}
-		$logger->log("INFO", "Converting " . count($tables) . " DB tables from Aria to InnoDB...");
+		$logger->info("Converting " . count($tables) . " DB tables from Aria to InnoDB...");
 		$grammar = $db->schema()->getConnection()->getSchemaGrammar();
 		foreach ($tables as $table) {
 			$sql = "ALTER TABLE " . $grammar->wrapTable($table).
 				" ENGINE=" . $grammar->wrap("innodb");
 			$db->schema()->getConnection()->statement($sql);
 		}
-		$logger->log("INFO", "Converting done");
+		$logger->info("Converting done");
 	}
 }

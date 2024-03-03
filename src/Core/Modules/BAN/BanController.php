@@ -2,11 +2,9 @@
 
 namespace Nadybot\Core\Modules\BAN;
 
-use function Amp\Promise\rethrow;
-use function Amp\{asyncCall, call};
+use function Amp\async;
 
-use Amp\{Promise, Success};
-use Generator;
+use AO\Package\Out\PrivateChannelKick;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -158,12 +156,12 @@ class BanController extends ModuleInstance {
 		#[NCA\Str("for", "reason")]
 		string $for,
 		string $reason
-	): Generator {
+	): void {
 		$who = $who();
 		$length = $duration->toSecs();
 
-		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, $length, $reason, $context);
-		if (isset($msgs) && count($msgs)) {
+		[$success, $msgs] = $this->banPlayer($who, $context->char->name, $length, $reason, $context);
+		if (count($msgs)) {
 			$context->reply(join("\n", $msgs));
 		}
 		if (!$success) {
@@ -190,12 +188,12 @@ class BanController extends ModuleInstance {
 		CmdContext $context,
 		PCharacter $who,
 		PDuration $duration
-	): Generator {
+	): void {
 		$who = $who();
 		$length = $duration->toSecs();
 
-		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, $length, '', $context);
-		if (isset($msgs) && count($msgs)) {
+		[$success, $msgs] = $this->banPlayer($who, $context->char->name, $length, '', $context);
+		if (count($msgs)) {
 			$context->reply(join("\n", $msgs));
 		}
 		if (!$success) {
@@ -223,11 +221,11 @@ class BanController extends ModuleInstance {
 		#[NCA\Str("for", "reason")]
 		string $for,
 		string $reason
-	): Generator {
+	): void {
 		$who = $who();
 
-		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, null, $reason, $context);
-		if (isset($msgs) && count($msgs)) {
+		[$success, $msgs] = $this->banPlayer($who, $context->char->name, null, $reason, $context);
+		if (count($msgs)) {
 			$context->reply(join("\n", $msgs));
 		}
 		if (!$success) {
@@ -249,11 +247,11 @@ class BanController extends ModuleInstance {
 	#[NCA\HandlesCommand("ban")]
 	#[NCA\Help\Group("ban")]
 	#[NCA\Help\Example("<symbol>ban badplayer")]
-	public function banPlayerCommand(CmdContext $context, PCharacter $who): Generator {
+	public function banPlayerCommand(CmdContext $context, PCharacter $who): void {
 		$who = $who();
 
-		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, null, '', $context);
-		if (isset($msgs) && count($msgs)) {
+		[$success, $msgs] = $this->banPlayer($who, $context->char->name, null, '', $context);
+		if (count($msgs)) {
 			$context->reply(join("\n", $msgs));
 		}
 		if (!$success) {
@@ -332,10 +330,10 @@ class BanController extends ModuleInstance {
 		#[NCA\Str("all")]
 		string $all,
 		PCharacter $who
-	): Generator {
+	): void {
 		$who = $who();
 
-		$charId = yield $this->chatBot->getUid2($who);
+		$charId = $this->chatBot->getUid($who);
 		if ($charId === null) {
 			$context->reply("Player <highlight>{$who}<end> doesn't exist.");
 			return;
@@ -348,7 +346,7 @@ class BanController extends ModuleInstance {
 		$altInfo = $this->altsController->getAltInfo($who);
 		$toUnban = [$altInfo->main, ...$altInfo->getAllValidatedAlts()];
 		foreach ($toUnban as $charName) {
-			$charId = yield $this->chatBot->getUid2($charName);
+			$charId = $this->chatBot->getUid($charName);
 			if (!isset($charId) || !$this->isBanned($charId)) {
 				continue;
 			}
@@ -370,10 +368,10 @@ class BanController extends ModuleInstance {
 	/** Unbans a character from this bot */
 	#[NCA\HandlesCommand("unban")]
 	#[NCA\Help\Group("ban")]
-	public function unbanCommand(CmdContext $context, PCharacter $who): Generator {
+	public function unbanCommand(CmdContext $context, PCharacter $who): void {
 		$who = $who();
 
-		$charId = yield $this->chatBot->getUid2($who);
+		$charId = $this->chatBot->getUid($who);
 		if (!$charId) {
 			$context->reply("Player <highlight>{$who}<end> doesn't exist.");
 			return;
@@ -460,7 +458,7 @@ class BanController extends ModuleInstance {
 
 		$audit = new Audit();
 		$audit->actor = $sender;
-		$charName = $this->chatBot->lookup_user($charId);
+		$charName = $this->chatBot->getName($charId);
 		if (!is_string($charName)) {
 			$charName = (string)$charId;
 		}
@@ -511,7 +509,7 @@ class BanController extends ModuleInstance {
 			->keyBy("charid");
 		$bans->each(function (BanEntry $ban) use ($players, $names): void {
 			$ban->name = $players->get($ban->charid)?->name
-				?? $this->chatBot->id[$ban->charid]
+				?? $this->chatBot->getName($ban->charid)
 				?? $names->get($ban->charid)?->name
 				?? (string)$ban->charid;
 			$this->banlist[$ban->charid] = $ban;
@@ -532,66 +530,23 @@ class BanController extends ModuleInstance {
 		return isset($this->banlist[$charId]);
 	}
 
-	/** @return Promise<bool> */
-	public function isOnBanlist(int $charId): Promise {
+	public function isOnBanlist(int $charId): bool {
 		if ($this->isBanned($charId)) {
-			return new Success(true);
+			return true;
 		}
 		if (empty($this->orgbanlist)) {
-			return new Success(false);
+			return false;
 		}
-		if (!isset($this->chatBot->id[$charId])) {
-			return new Success(true);
+		$name = $this->chatBot->getName($charId, true);
+		if ($name === null) {
+			return true;
 		}
-		$name = (string)$this->chatBot->id[$charId];
-		return call(function () use ($name): Generator {
-			/** @var ?Player */
-			$player = yield $this->playerManager->byName($name);
-			if (!isset($player) || !isset($player->guild_id)) {
-				return false;
-			}
+		$player = $this->playerManager->byName($name);
+		if (!isset($player) || !isset($player->guild_id)) {
+			return false;
+		}
 
-			return isset($this->orgbanlist[$player->guild_id]);
-		});
-	}
-
-	/**
-	 * Call either the notbanned or the banned callback for $charId
-	 *
-	 * @psalm-param null|callable(int, mixed...) $notBanned
-	 * @psalm-param null|callable(int, mixed...) $banned
-	 *
-	 * @deprecated 6.1.0
-	 */
-	public function handleBan(int $charId, ?callable $notBanned, ?callable $banned, mixed ...$args): void {
-		$notBanned ??= fn (int $charId, mixed ...$args): mixed => null;
-		$banned ??= fn (int $charId, mixed ...$args): mixed => null;
-		if (isset($this->banlist[$charId])) {
-			$banned($charId, ...$args);
-			return;
-		}
-		if (empty($this->orgbanlist)) {
-			$notBanned($charId, ...$args);
-			return;
-		}
-		if (!isset($this->chatBot->id[$charId])) {
-			$banned($charId, ...$args);
-			return;
-		}
-		$player = (string)$this->chatBot->id[$charId];
-		asyncCall(function () use ($player, $banned, $charId, $notBanned, $args): Generator {
-			$whois = yield $this->playerManager->byName($player);
-			if (!isset($whois) || !isset($whois->guild_id)) {
-				$notBanned($charId, ...$args);
-				return;
-			}
-
-			if (isset($this->orgbanlist[$whois->guild_id])) {
-				$banned($charId, ...$args);
-				return;
-			}
-			$notBanned($charId, ...$args);
-		});
+		return isset($this->orgbanlist[$player->guild_id]);
 	}
 
 	public function orgIsBanned(int $orgId): bool {
@@ -655,9 +610,9 @@ class BanController extends ModuleInstance {
 		#[NCA\Str("for", "reason", "because")]
 		string $for,
 		string $reason
-	): Generator {
+	): void {
 		try {
-			$msg = yield $this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, $reason);
+			$msg = $this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, $reason);
 			$msg ??= "The system is currently not ready to process bans.";
 			$context->reply($msg);
 		} catch (Throwable $e) {
@@ -678,9 +633,9 @@ class BanController extends ModuleInstance {
 		string $add,
 		int $orgId,
 		?PDuration $duration,
-	): Generator {
+	): void {
 		try {
-			$msg = yield $this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, "No reason given");
+			$msg = $this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, "No reason given");
 			$msg ??= "The system is currently not ready to process bans.";
 			$context->reply($msg);
 		} catch (Throwable $e) {
@@ -702,40 +657,36 @@ class BanController extends ModuleInstance {
 		return $blob;
 	}
 
-	/** @return Promise<?string> */
-	public function banOrg(int $orgId, ?string $duration, string $bannedBy, string $reason): Promise {
-		return call(function () use ($orgId, $duration, $bannedBy, $reason): Generator {
-			if ($this->orgIsBanned($orgId)) {
-				return "<highlight>" . $this->orgbanlist[$orgId]->org_name.
-					"<end> is already banned.";
+	public function banOrg(int $orgId, ?string $duration, string $bannedBy, string $reason): ?string {
+		if ($this->orgIsBanned($orgId)) {
+			return "<highlight>" . $this->orgbanlist[$orgId]->org_name.
+				"<end> is already banned.";
+		}
+		$endDate = null;
+		if (isset($duration)) {
+			$durationInSecs = $this->util->parseTime($duration);
+			if ($durationInSecs === 0) {
+				return "<highlight>{$duration}<end> is not a valid duration.";
 			}
-			$endDate = null;
-			if (isset($duration)) {
-				$durationInSecs = $this->util->parseTime($duration);
-				if ($durationInSecs === 0) {
-					return "<highlight>{$duration}<end> is not a valid duration.";
-				}
-				$endDate = time() + $durationInSecs;
-			}
-			$ban = new BannedOrg();
-			$ban->org_id = $orgId;
-			$ban->banned_by = $bannedBy;
-			$ban->start = time();
-			$ban->end = $endDate;
-			$ban->reason = $reason;
-			$ban->org_name = "org #{$ban->org_id}";
-			$this->db->insert(self::DB_TABLE_BANNED_ORGS, $ban, null);
-			return yield $this->addOrgToBanlist($ban);
-		});
+			$endDate = time() + $durationInSecs;
+		}
+		$ban = new BannedOrg();
+		$ban->org_id = $orgId;
+		$ban->banned_by = $bannedBy;
+		$ban->start = time();
+		$ban->end = $endDate;
+		$ban->reason = $reason;
+		$ban->org_name = "org #{$ban->org_id}";
+		$this->db->insert(self::DB_TABLE_BANNED_ORGS, $ban, null);
+		return $this->addOrgToBanlist($ban);
 	}
 
 	/** Remove an organization from the ban list, given their org id */
 	#[NCA\HandlesCommand("orgban")]
 	#[NCA\Help\Group("ban")]
-	public function orgbanRemCommand(CmdContext $context, PRemove $rem, int $orgId): Generator {
+	public function orgbanRemCommand(CmdContext $context, PRemove $rem, int $orgId): void {
 		if (!$this->orgIsBanned($orgId)) {
-			/** @var ?Guild */
-			$guild = yield $this->guildManager->byId($orgId);
+			$guild = $this->guildManager->byId($orgId);
 			if (!isset($guild)) {
 				$context->reply("<highlight>{$orgId}<end> is not a valid org id.");
 				return null;
@@ -774,105 +725,101 @@ class BanController extends ModuleInstance {
 		$this->remove($event->uid);
 	}
 
-	/** @return Promise<?string> */
-	protected function addOrgToBanlist(BannedOrg $ban): Promise {
-		return call(function () use ($ban): Generator {
-			$this->orgbanlist[$ban->org_id] = $ban;
-			if (!$this->chatBot->ready) {
-				return null;
-			}
+	protected function addOrgToBanlist(BannedOrg $ban): ?string {
+		$this->orgbanlist[$ban->org_id] = $ban;
+		if (!$this->chatBot->ready) {
+			return null;
+		}
 
-			/** @var ?Guild */
-			$guild = yield $this->guildManager->byId($ban->org_id);
+		$guild = $this->guildManager->byId($ban->org_id);
 
-			$ban->org_name = (string)$ban->org_id;
-			if (isset($guild)) {
-				$ban->org_name = $guild->orgname;
-			}
-			if (!isset($this->orgbanlist[$ban->org_id])) {
-				return "Not adding <highlight>{$ban->org_name}<end> to the banlist, ".
-					"because they were unbanned before we finished looking up data.";
-			}
-			$this->orgbanlist[$ban->org_id] = $ban;
-			// Kick all org members from our private chat
-			if (isset($guild)) {
-				foreach ($guild->members as $name => $char) {
-					if ($this->chatBot->chatlist[$char->name]) {
-						$this->logger->notice("Kicking banned char {name} from private channel", [
-							"name" => $char->name,
-						]);
-						$this->chatBot->privategroup_kick($char->charid);
-					}
+		$ban->org_name = (string)$ban->org_id;
+		if (isset($guild)) {
+			$ban->org_name = $guild->orgname;
+		}
+		if (!isset($this->orgbanlist[$ban->org_id])) {
+			return "Not adding <highlight>{$ban->org_name}<end> to the banlist, ".
+				"because they were unbanned before we finished looking up data.";
+		}
+		$this->orgbanlist[$ban->org_id] = $ban;
+		// Kick all org members from our private chat
+		if (isset($guild)) {
+			foreach ($guild->members as $name => $char) {
+				if ($this->chatBot->chatlist[$char->name]) {
+					$this->logger->notice("Kicking banned char {name} from private channel", [
+						"name" => $char->name,
+					]);
+					$package = new PrivateChannelKick(charId: $char->id);
+					$this->chatBot->aoClient->write($package);
 				}
 			}
-			return "Added <highlight>{$ban->org_name}<end> to the banlist.";
-		});
+		}
+		return "Added <highlight>{$ban->org_name}<end> to the banlist.";
 	}
 
 	/**
 	 * This helper method bans player with given arguments.
 	 *
-	 * @return Promise<array{bool,string[]}>
+	 * @return array{bool,string[]}
 	 */
-	private function banPlayer(string $who, string $sender, ?int $length, ?string $reason, CmdContext $context): Promise {
-		return call(function () use ($who, $sender, $length, $reason, $context): Generator {
-			$toBan = [$who];
-			if ($this->banAllAlts) {
-				$altInfo = $this->altsController->getAltInfo($who);
-				$toBan = [$altInfo->main, ...$altInfo->getAllValidatedAlts()];
+	private function banPlayer(string $who, string $sender, ?int $length, ?string $reason, CmdContext $context): array {
+		$toBan = [$who];
+		if ($this->banAllAlts) {
+			$altInfo = $this->altsController->getAltInfo($who);
+			$toBan = [$altInfo->main, ...$altInfo->getAllValidatedAlts()];
+		}
+		$numSuccess = 0;
+		$numErrors = 0;
+		$msgs = [];
+		foreach ($toBan as $who) {
+			$charId = $this->chatBot->getUid($who);
+			if (!$charId) {
+				$msgs []= "Character <highlight>{$who}<end> does not exist.";
+				$numErrors++;
+				continue;
 			}
-			$numSuccess = 0;
-			$numErrors = 0;
-			$msgs = [];
-			foreach ($toBan as $who) {
-				$charId = yield $this->chatBot->getUid2($who);
-				if (!$charId) {
-					$msgs []= "Character <highlight>{$who}<end> does not exist.";
-					$numErrors++;
-					continue;
-				}
 
-				if ($this->isBanned($charId)) {
-					$msgs []= "Character <highlight>{$who}<end> is already banned.";
-					$numErrors++;
-					continue;
-				}
-
-				if ($this->accessManager->compareCharacterAccessLevels($sender, $who) <= 0) {
-					$msgs []= "You must have an access level higher than <highlight>{$who}<end> ".
-						"to perform this action.";
-					$numErrors++;
-					continue;
-				}
-
-				if ($length === 0) {
-					return [false, $msgs];
-				}
-
-				if ($this->add($charId, $sender, $length, $reason)) {
-					$this->chatBot->privategroup_kick($who);
-					$audit = new Audit();
-					$audit->actor = $sender;
-					$audit->actee = $who;
-					$audit->action = AccessManager::KICK;
-					$audit->value = "banned";
-					$this->accessManager->addAudit($audit);
-					$numSuccess++;
-
-					$event = new SyncBanEvent();
-					$event->uid = $charId;
-					$event->name = $who;
-					$event->banned_by = $sender;
-					$event->banned_until = $length;
-					$event->reason = $reason;
-					$event->forceSync = $context->forceSync;
-					$this->eventManager->fireEvent($event);
-					rethrow($this->playerManager->byName($who));
-				} else {
-					$numErrors++;
-				}
+			if ($this->isBanned($charId)) {
+				$msgs []= "Character <highlight>{$who}<end> is already banned.";
+				$numErrors++;
+				continue;
 			}
-			return [$numSuccess > 0, $msgs];
-		});
+
+			if ($this->accessManager->compareCharacterAccessLevels($sender, $who) <= 0) {
+				$msgs []= "You must have an access level higher than <highlight>{$who}<end> ".
+					"to perform this action.";
+				$numErrors++;
+				continue;
+			}
+
+			if ($length === 0) {
+				return [false, $msgs];
+			}
+
+			if ($this->add($charId, $sender, $length, $reason)) {
+				$package = new PrivateChannelKick(charId: $charId);
+				$this->chatBot->aoClient->write($package);
+				$audit = new Audit();
+				$audit->actor = $sender;
+				$audit->actee = $who;
+				$audit->action = AccessManager::KICK;
+				$audit->value = "banned";
+				$this->accessManager->addAudit($audit);
+				$numSuccess++;
+
+				$event = new SyncBanEvent();
+				$event->uid = $charId;
+				$event->name = $who;
+				$event->banned_by = $sender;
+				$event->banned_until = $length;
+				$event->reason = $reason;
+				$event->forceSync = $context->forceSync;
+				$this->eventManager->fireEvent($event);
+				async($this->playerManager->byName(...), $who)->ignore();
+			} else {
+				$numErrors++;
+			}
+		}
+		return [$numSuccess > 0, $msgs];
 	}
 }

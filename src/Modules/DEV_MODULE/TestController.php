@@ -347,7 +347,7 @@ class TestController extends ModuleInstance {
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
-		$this->chatBot->process_packet($packet);
+		$this->chatBot->processPackage($packet);
 	}
 
 	/** Pretend you just raised your city cloak */
@@ -375,7 +375,7 @@ class TestController extends ModuleInstance {
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
-		$this->chatBot->process_packet($packet);
+		$this->chatBot->processPackage($packet);
 	}
 
 	/**
@@ -515,7 +515,7 @@ class TestController extends ModuleInstance {
 		}
 		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, \Safe\pack("NNn", $uid, 1, 0));
 
-		$this->chatBot->process_packet($packet);
+		$this->chatBot->processPackage($packet);
 	}
 
 	/** Simulate &lt;char&gt; logging off */
@@ -533,7 +533,7 @@ class TestController extends ModuleInstance {
 		}
 		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, \Safe\pack("NNn", $uid, 0, 0));
 
-		$this->chatBot->process_packet($packet);
+		$this->chatBot->processPackage($packet);
 	}
 
 	/** Simulate &lt;char&gt; joining the private channel */
@@ -552,7 +552,7 @@ class TestController extends ModuleInstance {
 		$channelUid = $this->chatBot->char->id;
 		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIJOIN, \Safe\pack("NN", $channelUid, $uid));
 
-		$this->chatBot->process_packet($packet);
+		$this->chatBot->processPackage($packet);
 	}
 
 	/** Simulate &lt;char&gt; leaving the private channel */
@@ -571,7 +571,7 @@ class TestController extends ModuleInstance {
 		$channelUid = $this->chatBot->char->id;
 		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIPART, \Safe\pack("NN", $channelUid, $uid));
 
-		$this->chatBot->process_packet($packet);
+		$this->chatBot->processPackage($packet);
 	}
 
 	/** Sleep for &lt;duration&gt; seconds. This can lead to lots of timeouts */
@@ -659,7 +659,7 @@ class TestController extends ModuleInstance {
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
-		$this->chatBot->process_packet($packet);
+		$this->chatBot->processPackage($packet);
 	}
 
 	protected function getTowerLocationString(PTowerSite $site, string $format): ?string {
@@ -686,6 +686,6 @@ class TestController extends ModuleInstance {
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
 
-		$this->chatBot->process_packet($packet);
+		$this->chatBot->processPackage($packet);
 	}
 }

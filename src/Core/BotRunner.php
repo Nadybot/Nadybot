@@ -2,24 +2,28 @@
 
 namespace Nadybot\Core;
 
-use const Amp\File\LOOP_STATE_IDENTIFIER;
 use function Amp\File\createDefaultDriver;
+use function Amp\File\filesystem;
+use function Safe\fclose;
+use function Safe\fwrite;
+use function Safe\ini_set;
 use function Safe\json_encode;
-use Amp\File\Driver\{EioDriver, ParallelDriver};
-use Amp\File\{Driver, Filesystem};
+use function Safe\realpath;
+use function Safe\stream_get_contents;
+
+use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
+use Amp\File\{FilesystemDriver};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\Http\Tunnel\Http1TunnelConnector;
-use Amp\Socket\SocketAddress;
-use Amp\{Loop, Promise};
-use Closure;
+use Revolt\EventLoop;
 use ErrorException;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Modules\SETUP\Setup;
-
+use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
 
 use ReflectionObject;
@@ -27,7 +31,7 @@ use Throwable;
 
 class BotRunner {
 	/** Nadybot's current version */
-	public const VERSION = "6.2.8";
+	public const VERSION = "7.0.0.alpha";
 
 	public const AMP_FS_HANDLER = 'amp_fs_handler';
 
@@ -44,7 +48,7 @@ class BotRunner {
 
 	protected static ?string $calculatedVersion = null;
 
-	protected LoggerWrapper $logger;
+	protected LoggerInterface $logger;
 
 	/**
 	 * The command line arguments
@@ -81,7 +85,7 @@ class BotRunner {
 
 	/** Get the base directory of the bot */
 	public static function getBasedir(): string {
-		return \Safe\realpath(dirname(__DIR__, 2));
+		return realpath(dirname(__DIR__, 2));
 	}
 
 	/**
@@ -98,7 +102,7 @@ class BotRunner {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
-			$ref = explode(": ", trim(\Safe\file_get_contents("{$baseDir}/.git/HEAD")), 2)[1];
+			$ref = explode(": ", trim(filesystem()->read("{$baseDir}/.git/HEAD")), 2)[1];
 			$branch = explode("/", $ref, 3)[2];
 			$latestTag = static::getLatestTag();
 			if (!isset($latestTag)) {
@@ -125,6 +129,7 @@ class BotRunner {
 		}
 	}
 
+	/** @todo Rewrite with AMPHP3 */
 	public static function getGitDescribe(): ?string {
 		$baseDir = static::getBasedir();
 		$descriptors = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
@@ -133,10 +138,10 @@ class BotRunner {
 		if ($pid === false) {
 			return null;
 		}
-		\Safe\fclose($pipes[0]);
-		$gitDescribe = trim(\Safe\stream_get_contents($pipes[1]) ?: "");
-		\Safe\fclose($pipes[1]);
-		\Safe\fclose($pipes[2]);
+		fclose($pipes[0]);
+		$gitDescribe = trim(stream_get_contents($pipes[1]) ?: "");
+		fclose($pipes[1]);
+		fclose($pipes[2]);
 		proc_close($pid);
 		return $gitDescribe;
 	}
@@ -157,11 +162,11 @@ class BotRunner {
 		if ($pid === false) {
 			return static::$latestTag = null;
 		}
-		\Safe\fclose($pipes[0]);
-		$tags = explode("\n", trim(\Safe\stream_get_contents($pipes[1]) ?: ""));
+		fclose($pipes[0]);
+		$tags = explode("\n", trim(stream_get_contents($pipes[1]) ?: ""));
 		$tags = array_diff($tags, ["nightly"]);
-		\Safe\fclose($pipes[1]);
-		\Safe\fclose($pipes[2]);
+		fclose($pipes[1]);
+		fclose($pipes[2]);
 		proc_close($pid);
 
 		$tags = array_map(
@@ -183,8 +188,8 @@ class BotRunner {
 	}
 
 	public function checkRequiredPackages(): void {
-		if (!class_exists("Amp\\Loop")) {
-			\Safe\fwrite(
+		if (!class_exists("Revolt\\EventLoop")) {
+			fwrite(
 				STDERR,
 				"Nadybot cannot find all the required composer modules in 'vendor'.\n".
 				"Please run 'composer install' to install all missing modules\n".
@@ -200,8 +205,8 @@ class BotRunner {
 	}
 
 	public function checkRequiredModules(): void {
-		if (version_compare(PHP_VERSION, "8.0.0", "<")) {
-			\Safe\fwrite(STDERR, "Nadybot 6 needs at least PHP version 8 to run, you have " . PHP_VERSION . "\n");
+		if (version_compare(PHP_VERSION, "8.1.17", "<")) {
+			fwrite(STDERR, "Nadybot 7 needs at least PHP version 8 to run, you have " . PHP_VERSION . "\n");
 			sleep(5);
 			exit(1);
 		}
@@ -234,17 +239,15 @@ class BotRunner {
 		if (!count($missing)) {
 			return;
 		}
-		\Safe\fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
+		fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
 		sleep(5);
 		exit(1);
 	}
 
 	/** Run the bot in an endless loop */
 	public function run(): void {
-		/** @todo Convert to AMPs sockets to be able to use Ev */
-		putenv('AMP_LOOP_DRIVER=Amp\Loop\NativeDriver');
 		if (!static::isLinux()) {
-			putenv('AMP_FS_DRIVER=Amp\File\Driver\BlockingDriver');
+			putenv('AMP_FS_DRIVER=' . BlockingFilesystemDriver::class);
 		}
 		$this->parseOptions();
 		// set default timezone
@@ -267,9 +270,11 @@ class BotRunner {
 			$proxyScheme = parse_url($httpProxy, PHP_URL_SCHEME);
 			$proxyPort = parse_url($httpProxy, PHP_URL_PORT) ?? ($proxyScheme === 'https' ? 443 : 80);
 			if (is_string($proxyScheme) && is_string($proxyHost) && is_int($proxyPort)) {
-				$connector = new Http1TunnelConnector(new SocketAddress($proxyHost, $proxyPort));
+				$connector = new Http1TunnelConnector("{$proxyHost}:{$proxyPort}");
 				$httpClientBuilder = $httpClientBuilder->usingPool(
-					new UnlimitedConnectionPool(new DefaultConnectionFactory($connector))
+					new UnlimitedConnectionPool(
+						new DefaultConnectionFactory($connector)
+					)
 				);
 			}
 		}
@@ -279,7 +284,6 @@ class BotRunner {
 		$this->createMissingDirs();
 
 		// these must happen first since the classes that are loaded may be used by processes below
-		$this->loadPhpLibraries();
 		if (isset($config->general->timezone) && @date_default_timezone_set($config->general->timezone) === false) {
 			die("Invalid timezone: \"{$config->general->timezone}\"\n");
 		}
@@ -299,16 +303,16 @@ class BotRunner {
 
 		$version = self::getVersion();
 		$fsDriverClass = getenv('AMP_FS_DRIVER');
-		if ($fsDriverClass !== false && class_exists($fsDriverClass) && is_subclass_of($fsDriverClass, Driver::class)) {
+		if ($fsDriverClass !== false && class_exists($fsDriverClass) && is_subclass_of($fsDriverClass, FilesystemDriver::class)) {
 			$fsDriver = new $fsDriverClass();
 		} else {
 			$fsDriver = createDefaultDriver();
 		}
-		if ($fsDriver instanceof EioDriver) {
-			$fsDriver = new ParallelDriver();
+		if ($fsDriver instanceof EioFilesystemDriver) {
+			$fsDriver = new ParallelFilesystemDriver();
 		}
-		Loop::setState(LOOP_STATE_IDENTIFIER, new Filesystem($fsDriver));
-		Loop::setState(self::AMP_FS_HANDLER, $fsDriver);
+		Registry::setInstance("filesystem", filesystem($fsDriver));
+
 		$this->logger->notice(
 			"Starting {name} {version} on RK{dimension} using ".
 			"PHP {phpVersion}, {loopType} event loop, ".
@@ -318,7 +322,7 @@ class BotRunner {
 				"version" => $version,
 				"dimension" => $config->main->dimension,
 				"phpVersion" => phpversion(),
-				"loopType" => class_basename(Loop::get()),
+				"loopType" => class_basename(EventLoop::getDriver()),
 				"fsType" => class_basename($fsDriver),
 				"dbType" => $config->database->type->name,
 			]
@@ -332,14 +336,28 @@ class BotRunner {
 			LegacyLogger::registerMessageEmitters($msgHub);
 		}
 
-		$signalHandler = $this->installCtrlCHandler();
+		$signalHandler = function (string $token, int $sigNo): void {
+			$this->logger->notice('Shutdown requested.');
+			exit;
+		};
+		$handlers = [];
+		if (function_exists('sapi_windows_set_ctrl_handler')) {
+			sapi_windows_set_ctrl_handler($signalHandler, true);
+		} else {
+			$handlers []= EventLoop::onSignal(SIGINT, $signalHandler);
+			$handlers []= EventLoop::onSignal(SIGTERM, $signalHandler);
+		}
 		$this->connectToDatabase();
-		$this->uninstallCtrlCHandler($signalHandler);
+		if (function_exists('sapi_windows_set_ctrl_handler')) {
+			sapi_windows_set_ctrl_handler($signalHandler, false);
+		}
+		foreach ($handlers as $handler) {
+			EventLoop::cancel($handler);
+		}
 		$this->prefillSettingProperties();
 
-		Loop::run(function () {
-			yield $this->runUpgradeScripts();
-		});
+		$this->runUpgradeScripts();
+		EventLoop::run();
 		if ((static::$arguments["migrate-only"]??true) === false) {
 			exit(0);
 		}
@@ -386,35 +404,6 @@ class BotRunner {
 		}
 		$configFilePath = static::$arguments["c"] ?? "conf/config.php";
 		return $this->configFile = BotConfig::loadFromFile($configFilePath);
-	}
-
-	/** Install a signal handler that will immediately terminate the bot when ctrl+c is pressed */
-	protected function installCtrlCHandler(): Closure {
-		$signalHandler = function (int $sigNo): void {
-			$this->logger->notice('Shutdown requested.');
-			exit;
-		};
-		if (function_exists('sapi_windows_set_ctrl_handler')) {
-			\Safe\sapi_windows_set_ctrl_handler($signalHandler, true);
-		} elseif (function_exists('pcntl_signal')) {
-			\Safe\pcntl_signal(SIGINT, $signalHandler);
-			\Safe\pcntl_signal(SIGTERM, $signalHandler);
-			pcntl_async_signals(true);
-		} else {
-			$this->logger->error('You need to have the pcntl extension on Linux');
-			exit(1);
-		}
-		return $signalHandler;
-	}
-
-	/** Uninstall a previously installed signal handler */
-	protected function uninstallCtrlCHandler(Closure $signalHandler): void {
-		if (function_exists('sapi_windows_set_ctrl_handler')) {
-			\Safe\sapi_windows_set_ctrl_handler($signalHandler, false);
-		} elseif (function_exists('pcntl_signal')) {
-			\Safe\pcntl_signal(SIGINT, SIG_DFL);
-			\Safe\pcntl_signal(SIGTERM, SIG_DFL);
-		}
 	}
 
 	protected function createMissingDirs(): void {
@@ -474,7 +463,7 @@ class BotRunner {
 			$restPos
 		);
 		if ($options === false) {
-			\Safe\fwrite(STDERR, "Unable to parse arguments passed to the bot.\n");
+			fwrite(STDERR, "Unable to parse arguments passed to the bot.\n");
 			sleep(5);
 			exit(1);
 		}
@@ -576,13 +565,9 @@ class BotRunner {
 	/** Setup proper error-reporting, -handling and -logging */
 	private function setErrorHandling(string $logFolderName): void {
 		error_reporting(E_ALL & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
-		\Safe\ini_set("log_errors", "1");
-		\Safe\ini_set('display_errors', "1");
-		\Safe\ini_set("error_log", "{$logFolderName}/php_errors.log");
-	}
-
-	/** Load external classes that we need */
-	private function loadPhpLibraries(): void {
+		ini_set("log_errors", "1");
+		ini_set('display_errors', "1");
+		ini_set("error_log", "{$logFolderName}/php_errors.log");
 	}
 
 	/** Guide customer through setup if needed */
@@ -622,12 +607,10 @@ class BotRunner {
 
 	/**
 	 * Run migration scripts to keep the SQL schema up-to-date
-	 *
-	 * @return Promise<void>
 	 */
-	private function runUpgradeScripts(): Promise {
+	private function runUpgradeScripts(): void {
 		/** @var DB */
 		$db = Registry::getInstance(DB::class);
-		return $db->createDatabaseSchema();
+		$db->createDatabaseSchema();
 	}
 }

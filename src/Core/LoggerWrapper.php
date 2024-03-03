@@ -12,14 +12,16 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use Psr\Log\LoggerInterface;
 use Safe\Exceptions\FilesystemException;
+use Stringable;
 use Throwable;
 
 /**
  * A wrapper class to monolog
  */
 #[NCA\Instance("logger")]
-class LoggerWrapper {
+class LoggerWrapper implements LoggerInterface {
 	#[NCA\Inject]
 	public BotConfig $config;
 
@@ -56,8 +58,8 @@ class LoggerWrapper {
 	 *
 	 * @param array<string,mixed> $context
 	 */
-	public function debug(string $message, array $context=[]): void {
-		$this->passthru(Logger::DEBUG, $message, $context);
+	public function debug(string|Stringable $message, array $context=[]): void {
+		$this->passthru(Logger::DEBUG, (string)$message, $context);
 	}
 
 	/**
@@ -65,8 +67,8 @@ class LoggerWrapper {
 	 *
 	 * @param array<string,mixed> $context
 	 */
-	public function info(string $message, array $context=[]): void {
-		$this->passthru(Logger::INFO, $message, $context);
+	public function info(string|Stringable $message, array $context=[]): void {
+		$this->passthru(Logger::INFO, (string)$message, $context);
 	}
 
 	/**
@@ -75,8 +77,8 @@ class LoggerWrapper {
 	 *
 	 * @param array<string,mixed> $context
 	 */
-	public function notice(string $message, array $context=[]): void {
-		$this->passthru(Logger::NOTICE, $message, $context);
+	public function notice(string|Stringable $message, array $context=[]): void {
+		$this->passthru(Logger::NOTICE, (string)$message, $context);
 	}
 
 	/**
@@ -88,8 +90,8 @@ class LoggerWrapper {
 	 *
 	 * @param array<string,mixed> $context
 	 */
-	public function warning(string $message, array $context=[]): void {
-		$this->passthru(Logger::WARNING, $message, $context);
+	public function warning(string|Stringable $message, array $context=[]): void {
+		$this->passthru(Logger::WARNING, (string)$message, $context);
 	}
 
 	/**
@@ -97,8 +99,8 @@ class LoggerWrapper {
 	 *
 	 * @param array<string,mixed> $context
 	 */
-	public function error(string $message, array $context=[]): void {
-		$this->passthru(Logger::ERROR, $message, $context);
+	public function error(string|Stringable $message, array $context=[]): void {
+		$this->passthru(Logger::ERROR, (string)$message, $context);
 	}
 
 	/**
@@ -106,8 +108,8 @@ class LoggerWrapper {
 	 *
 	 * @param array<string,mixed> $context
 	 */
-	public function critical(string $message, array $context=[]): void {
-		$this->passthru(Logger::CRITICAL, $message, $context);
+	public function critical(string|Stringable $message, array $context=[]): void {
+		$this->passthru(Logger::CRITICAL, (string)$message, $context);
 	}
 
 	/**
@@ -119,8 +121,8 @@ class LoggerWrapper {
 	 *
 	 * @param array<string,mixed> $context
 	 */
-	public function alert(string $message, array $context=[]): void {
-		$this->passthru(Logger::ALERT, $message, $context);
+	public function alert(string|Stringable $message, array $context=[]): void {
+		$this->passthru(Logger::ALERT, (string)$message, $context);
 	}
 
 	/**
@@ -128,24 +130,25 @@ class LoggerWrapper {
 	 *
 	 * @param array<string,mixed> $context
 	 */
-	public function emergency(string $message, array $context=[]): void {
-		$this->passthru(Logger::EMERGENCY, $message, $context);
+	public function emergency(string|Stringable $message, array $context=[]): void {
+		$this->passthru(Logger::EMERGENCY, (string)$message, $context);
 	}
 
 	/**
 	 * Log a message according to log settings
 	 *
-	 * @param string     $category  The log category (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
-	 * @param string     $message   The message to log
-	 * @param ?Throwable $throwable Optional throwable information to include in the logging event
+	 * @param mixed               $level    The log level
+	 * @param string              $message  The message to log
+	 * @param array<string,mixed> $context
 	 */
-	public function log(string $category, string $message, ?Throwable $throwable=null): void {
-		$level = LegacyLogger::getLoggerLevel($category);
-		$context = [];
-		if (isset($throwable)) {
-			$context["exception"] = $throwable;
+	public function log(mixed $level, string|Stringable $message, array $context=[]): void {
+		if (!is_int($level) && !is_string($level)) {
+			throw new \InvalidArgumentException('$level is expected to be a string or int');
 		}
-		$this->logger->log($level, $message, $context);
+
+		$level = is_string($level) ? LegacyLogger::getLoggerLevel($level) : $level;
+		// @phpstan-ignore-next-line
+		$this->logger->log($level, (string)$message, $context);
 	}
 
 	/**

@@ -2,11 +2,16 @@
 
 namespace Nadybot\Core;
 
-use function Amp\{call, delay};
-use Amp\Promise;
+use function Amp\delay;
+use function Safe\fclose;
+use function Safe\filemtime;
+use function Safe\fopen;
+use function Safe\preg_match;
+use function Safe\preg_split;
+use function Safe\touch;
+
 use DateTime;
 use Exception;
-use Generator;
 use GlobIterator;
 use Illuminate\Database\{
 	Capsule\Manager as Capsule,
@@ -14,9 +19,9 @@ use Illuminate\Database\{
 	Schema\Blueprint,
 };
 use Illuminate\Support\Collection;
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Config\BotConfig,
 	CSV\Reader,
 	DBSchema\Migration,
 	Migration as CoreMigration,
@@ -155,12 +160,13 @@ class DB {
 			}
 			if (!@file_exists($dbName)) {
 				try {
-					\Safe\touch($dbName);
+					touch($dbName);
 				} catch (FilesystemException $e) {
 					$this->logger->alert(
-						"Unable to create the dababase \"{$dbName}\": {error}. Check that the directory ".
+						"Unable to create the dababase '{database}': {error}. Check that the directory ".
 						"exists and is writable by the current user.",
 						[
+							"database" => $dbName,
 							"error" => $e->getMessage(),
 							"exception" => $e,
 						]
@@ -345,16 +351,13 @@ class DB {
 
 	/**
 	 * Start a transaction
-	 *
-	 * @return Promise<void>
+	 * @todo Work with a queue that waits for the lock
 	 */
-	public function awaitBeginTransaction(): Promise {
-		return call(function (): Generator {
-			while ($this->inTransaction()) {
-				yield delay(100);
-			}
-			$this->beginTransaction();
-		});
+	public function awaitBeginTransaction(): void {
+		while ($this->inTransaction()) {
+			delay(0.1);
+		}
+		$this->beginTransaction();
 	}
 
 	/** Commit a transaction */
@@ -508,14 +511,13 @@ class DB {
 		return $builder;
 	}
 
-	/** @return Promise<void> */
-	public function createDatabaseSchema(): Promise {
+	public function createDatabaseSchema(): void {
 		$instances = Registry::getAllInstances();
 		$migrations = new Collection();
 		foreach ($instances as $instance) {
 			$migrations = $migrations->merge($this->getMigrationFiles($instance));
 		}
-		return $this->runMigrations(...$migrations->toArray());
+		$this->runMigrations(...$migrations->toArray());
 	}
 
 	public function createMigrationTables(): void {
@@ -545,48 +547,45 @@ class DB {
 				->exists();
 	}
 
-	/** @return Promise<void> */
-	public function runMigrations(CoreMigration ...$migrations): Promise {
-		return call(function () use ($migrations): Generator {
-			$migrations = new Collection($migrations);
-			$this->createMigrationTables();
-			$groupedMigs = $migrations->groupBy("module");
-			$missingMigs = $groupedMigs->map(function (Collection $migs, string $module): Collection {
-				return $this->filterAppliedMigrations($module, $migs);
-			})->flatten()
+	public function runMigrations(CoreMigration ...$migrations): void {
+		$migrations = new Collection($migrations);
+		$this->createMigrationTables();
+		$groupedMigs = $migrations->groupBy("module");
+		$missingMigs = $groupedMigs->map(function (Collection $migs, string $module): Collection {
+			return $this->filterAppliedMigrations($module, $migs);
+		})->flatten()
 			->sort(function (CoreMigration $f1, CoreMigration $f2): int {
 				return strcmp($f1->timeStr, $f2->timeStr);
 			});
-			if ($missingMigs->isEmpty()) {
-				return;
-			}
-			$start = microtime(true);
-			$this->logger->notice("Applying {numMigs} database migrations", [
-				"numMigs" => $missingMigs->count(),
-			]);
-			foreach ($missingMigs as $mig) {
-				try {
-					$this->beginTransaction();
-					yield $this->applyMigration($mig->module, $mig->filePath);
-					if ($this->inTransaction()) {
-						$this->commit();
-					}
-				} catch (Throwable $e) {
-					$this->logger->critical(
-						"Error applying migration {module}/{baseName}: {error}",
-						array_merge((array)$mig, ["error" => $e->getMessage(), "exception" => $e])
-					);
-					if ($this->inTransaction()) {
-						$this->rollback();
-					}
-					exit(1);
+		if ($missingMigs->isEmpty()) {
+			return;
+		}
+		$start = microtime(true);
+		$this->logger->notice("Applying {numMigs} database migrations", [
+			"numMigs" => $missingMigs->count(),
+		]);
+		foreach ($missingMigs as $mig) {
+			try {
+				$this->beginTransaction();
+				$this->applyMigration($mig->module, $mig->filePath);
+				if ($this->inTransaction()) {
+					$this->commit();
 				}
+			} catch (Throwable $e) {
+				$this->logger->critical(
+					"Error applying migration {module}/{baseName}: {error}",
+					array_merge((array)$mig, ["error" => $e->getMessage(), "exception" => $e])
+				);
+				if ($this->inTransaction()) {
+					$this->rollback();
+				}
+				exit(1);
 			}
-			$end = microtime(true);
-			$this->logger->notice("All migrations applied successfully in {timeMS}ms", [
-				"timeMS" => number_format(($end - $start) * 1000, 2),
-			]);
-		});
+		}
+		$end = microtime(true);
+		$this->logger->notice("All migrations applied successfully in {timeMS}ms", [
+			"timeMS" => number_format(($end - $start) * 1000, 2),
+		]);
 	}
 
 	/**
@@ -605,8 +604,8 @@ class DB {
 		if (!@file_exists($file)) {
 			throw new Exception("The CSV-file {$file} was not found.");
 		}
-		$version = \Safe\filemtime($file) ?: 0;
-		$handle = \Safe\fopen($file, 'r');
+		$version = filemtime($file) ?: 0;
+		$handle = fopen($file, 'r');
 		while ($handle !== false && !feof($handle)) {
 			$line = fgets($handle);
 			if ($line === false || substr($line, 0, 1) !== "#") {
@@ -619,7 +618,7 @@ class DB {
 			$value = $matches[2];
 			switch (strtolower($matches[1])) {
 				case "replaces":
-					$where = \Safe\preg_split("/\s*=\s*/", $value);
+					$where = preg_split("/\s*=\s*/", $value);
 					break;
 				case "version":
 					$version = $value;
@@ -635,7 +634,7 @@ class DB {
 			}
 		}
 		if ($handle !== false) {
-			\Safe\fclose($handle);
+			fclose($handle);
 		}
 		$settingName = strtolower("{$fileBase}_db_version");
 		$currentVersion = false;
@@ -788,82 +787,74 @@ class DB {
 		});
 	}
 
-	/** @return Promise<void> */
-	private function applyMigration(string $module, string $file): Promise {
-		return call(function () use ($module, $file): Generator {
-			$fileAbs = realpath($file);
-			if ($fileAbs === false) {
-				$this->logger->error("Cannot get absolute path of {file}", [
-					"file" => $file,
-				]);
-				return;
+	private function applyMigration(string $module, string $file): void {
+		$fileAbs = realpath($file);
+		if ($fileAbs === false) {
+			$this->logger->error("Cannot get absolute path of {file}", [
+				"file" => $file,
+			]);
+			return;
+		}
+		$file = $fileAbs;
+		$baseName = basename($file, '.php');
+		$old = get_declared_classes();
+		try {
+			require_once $file;
+		} catch (Throwable $e) {
+			$this->logger->error("Cannot parse {file}: {error}", [
+				"file" => $file,
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+			return;
+		}
+		$classes = get_declared_classes();
+		$new = array_diff($classes, $old);
+		if (empty($new)) {
+			foreach ($classes as $class) {
+				$refClass = new ReflectionClass($class);
+				$fileName = $refClass->getFileName();
+				if ($fileName === $file) {
+					$new[] = $class;
+				}
 			}
-			$file = $fileAbs;
-			$baseName = basename($file, '.php');
-			$old = get_declared_classes();
+		}
+		if (empty($new)) {
+			$this->logger->error("Migration {file} does not contain any classes", [
+				"file" => $file,
+			]);
+			return;
+		}
+		$table = $this->formatSql(
+			preg_match("/\.shared/", $baseName) ? "migrations" : "migrations_<myname>"
+		);
+		foreach ($new as $class) {
+			if (!is_subclass_of($class, SchemaMigration::class)) {
+				continue;
+			}
+			$obj = new $class();
+			Registry::injectDependencies($obj);
 			try {
-				require_once $file;
+				$this->logger->info("Running migration {migration}", [
+					"migration" => $class,
+				]);
+				$obj->migrate($this->logger, $this);
 			} catch (Throwable $e) {
-				$this->logger->error("Cannot parse {file}: {error}", [
-					"file" => $file,
-					"error" => $e->getMessage(),
-					"exception" => $e,
-				]);
-				return;
-			}
-			$classes = get_declared_classes();
-			$new = array_diff($classes, $old);
-			if (empty($new)) {
-				foreach ($classes as $class) {
-					$refClass = new ReflectionClass($class);
-					$fileName = $refClass->getFileName();
-					if ($fileName === $file) {
-						$new []= $class;
-					}
+				if (isset(BotRunner::$arguments["migration-errors-fatal"])) {
+					throw $e;
 				}
+				$this->logger->error(
+					"Error executing {$class}::migrate(): " .
+					$e->getMessage(),
+					["exception" => $e]
+				);
+				continue;
 			}
-			if (empty($new)) {
-				$this->logger->error("Migration {file} does not contain any classes", [
-					"file" => $file,
-				]);
-				return;
-			}
-			$table = $this->formatSql(
-				preg_match("/\.shared/", $baseName) ? "migrations" : "migrations_<myname>"
-			);
-			foreach ($new as $class) {
-				if (!is_subclass_of($class, SchemaMigration::class)) {
-					continue;
-				}
-				$obj = new $class();
-				Registry::injectDependencies($obj);
-				try {
-					$this->logger->info("Running migration {migration}", [
-						"migration" => $class,
-					]);
-					$result = $obj->migrate($this->logger, $this);
-					if ($result instanceof Promise) {
-						yield $result;
-					} elseif ($result instanceof Generator) {
-						yield from $result;
-					}
-				} catch (Throwable $e) {
-					if (isset(BotRunner::$arguments["migration-errors-fatal"])) {
-						throw $e;
-					}
-					$this->logger->error(
-						"Error executing {$class}::migrate(): ".
-							$e->getMessage(),
-						["exception" => $e]
-					);
-					continue;
-				}
-				$this->table($table)->insert([
-					'module' => $module,
-					'migration' => $baseName,
-					'applied_at' => time(),
-				]);
-			}
-		});
+			$this->table($table)->insert([
+				'module' => $module,
+				'migration' => $baseName,
+				'applied_at' => time(),
+			]);
+		}
 	}
 }

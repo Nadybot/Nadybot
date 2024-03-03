@@ -21,12 +21,11 @@ class MigrateReputationTable implements SchemaMigration {
 		}
 		$oldData = $db->table("reputation")->get();
 		if ($oldData->count() === 0) {
-			$logger->log("INFO", "Reputation table empty, no need to convert anything");
+			$logger->info("Reputation table empty, no need to convert anything");
 			$db->schema()->dropIfExists("reputation");
 			return;
 		}
-		$logger->log(
-			"INFO",
+		$logger->info(
 			"Converting " . $oldData->count() . " DB entries from reputation to comments"
 		);
 		$cat = $this->reputationController->getReputationCategory();
@@ -42,16 +41,13 @@ class MigrateReputationTable implements SchemaMigration {
 					]);
 			}
 		} catch (Throwable $e) {
-			$logger->log(
-				"WARNING",
-				"Error during the conversion of the reputation table: ".
-				$e->getMessage(),
-				$e
-			);
+			$logger->warning("Error during the conversion of the reputation table: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e
+			]);
 			return;
 		}
-		$logger->log(
-			"INFO",
+		$logger->info(
 			"Conversion of reputation table finished successfully, removing old table"
 		);
 		$db->schema()->dropIfExists("reputation");

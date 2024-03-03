@@ -11,7 +11,7 @@ class DBRow implements Loggable {
 		$trace2 = $backtrace[0];
 		$logger = new LoggerWrapper('Core/DB');
 		Registry::injectDependencies($logger);
-		$logger->log('WARN', "Tried to get value '{$value}' from row that doesn't exist: " . var_export($this, true));
+		$logger->warning("Tried to get value '{$value}' from row that doesn't exist: " . var_export($this, true));
 		$class = "";
 		if (isset($trace['class'])) {
 			$class = $trace['class'] . "::";

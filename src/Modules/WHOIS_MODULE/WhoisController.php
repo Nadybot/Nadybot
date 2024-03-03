@@ -268,7 +268,7 @@ class WhoisController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$player = yield $this->playerManager->lookupAsync2($name, $dimension);
+		$player = yield $this->playerManager->lookup($name, $dimension);
 		if (!isset($player)) {
 			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;

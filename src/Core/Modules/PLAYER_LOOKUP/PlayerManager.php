@@ -2,23 +2,17 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\Promise\timeout;
-use function Amp\{asyncCall, call, delay};
+use function Amp\{async, delay};
+use function Amp\Future\await;
 use function Safe\{json_decode, parse_url};
 use Amp\Http\Client\{
-	Connection\UnprocessedRequestException,
 	HttpClientBuilder,
 	Request,
-	Response,
 	TimeoutException,
 };
-use Amp\{
-	Cache\FileCache,
-	Promise,
-	Sync\LocalKeyedMutex,
-};
+use Amp\TimeoutCancellation;
+use AO\Utils;
 use DateTimeZone;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -116,83 +110,53 @@ class PlayerManager extends ModuleInstance {
 	 * @deprecated use all(byName()) instead
 	 */
 	public function massGetByName(callable $callback, array $names, ?int $dimension=null, bool $forceUpdate=false): void {
-		asyncCall(function () use ($callback, $names, $dimension, $forceUpdate): Generator {
-			$promises = [];
-			foreach ($names as $name) {
-				$promises[$name] = $this->byName($name, $dimension, $forceUpdate);
-			}
+		$promises = [];
+		foreach ($names as $name) {
+			$promises[$name] = async($this->byName(...), $name, $dimension, $forceUpdate);
+		}
 
-			/** @var array<?Player> */
-			$result = yield $promises;
-			$callback($result);
-		});
+		$result = await($promises);
+		$callback($result);
 	}
 
-	/**
-	 * @psalm-param callable(array<string,?Player>) $callback
-	 *
-	 * @param string[] $names
-	 *
-	 * @deprecated use all(byName()) instead
-	 */
-	public function massGetByNameAsync(callable $callback, array $names, ?int $dimension=null, bool $forceUpdate=false): void {
-		$this->massGetByName(...func_get_args());
-	}
+	public function byName(string $name, ?int $dimension=null, bool $forceUpdate=false): ?Player {
+		$dimension ??= $this->config->main->dimension;
 
-	/** @return Promise<?Player> */
-	public function byName(string $name, ?int $dimension=null, bool $forceUpdate=false): Promise {
-		return call(function () use ($name, $dimension, $forceUpdate): Generator {
-			$dimension ??= $this->config->main->dimension;
+		$name = Utils::normalizeCharacter($name);
 
-			$name = ucfirst(strtolower($name));
+		if (!preg_match("/^[A-Z][a-z0-9-]{3,11}$/", $name)) {
+			return null;
+		}
+		$charid = null;
+		if ($dimension === $this->config->main->dimension) {
+			$charid = $this->chatBot->getUid($name);
+		}
 
-			if (!preg_match("/^[A-Z][a-z0-9-]{3,11}$/", $name)) {
-				return null;
+		$player = $this->findInDb($name, $dimension);
+
+		if ($player === null || $forceUpdate) {
+			$player = $this->lookup($name, $dimension);
+			if ($player !== null && is_int($charid)) {
+				$player->charid = $charid;
+				$this->update($player);
 			}
-			$charid = null;
-			if ($dimension === $this->config->main->dimension) {
-				$charid = yield $this->chatBot->getUid2($name);
-			}
-
-			$player = $this->findInDb($name, $dimension);
-
-			if ($player === null || $forceUpdate) {
-				$player = yield $this->lookupAsync2($name, $dimension);
-				if ($player !== null && is_int($charid)) {
+			return $player;
+		} elseif ($player->last_update < (time() - static::CACHE_GRACE_TIME)) {
+			// We cache for 24h plus 10 minutes grace for Funcom
+			$player2 = $this->lookup($name, $dimension);
+			if ($player2 !== null) {
+				$player = $player2;
+				if (is_int($charid)) {
 					$player->charid = $charid;
 					$this->update($player);
 				}
-				return $player;
-			} elseif ($player->last_update < (time() - static::CACHE_GRACE_TIME)) {
-				// We cache for 24h plus 10 minutes grace for Funcom
-				$player2 = yield $this->lookupAsync2($name, $dimension);
-				if ($player2 !== null) {
-					$player = $player2;
-					if (is_int($charid)) {
-						$player->charid = $charid;
-						$this->update($player);
-					}
-				} else {
-					$player->source .= ' (old-cache)';
-				}
-				return $player;
+			} else {
+				$player->source .= ' (old-cache)';
 			}
-			$player->source .= ' (current-cache)';
 			return $player;
-		});
-	}
-
-	/**
-	 * @psalm-param callable(?Player) $callback
-	 *
-	 * @deprecated 6.1.0
-	 */
-	public function getByNameAsync(callable $callback, string $name, ?int $dimension=null, bool $forceUpdate=false): void {
-		asyncCall(function () use ($callback, $name, $dimension, $forceUpdate): Generator {
-			$player = yield $this->byName($name, $dimension, $forceUpdate);
-			$callback($player);
-			return null;
-		});
+		}
+		$player->source .= ' (current-cache)';
+		return $player;
 	}
 
 	/** @return Collection<Player> */
@@ -242,104 +206,90 @@ class PlayerManager extends ModuleInstance {
 		return $player;
 	}
 
-	/** @return Promise<?Player> */
-	public function lookupAsync2(string $name, int $dimension): Promise {
-		return call(function () use ($name, $dimension): Generator {
-			$client = $this->builder->build();
-			$baseUrl = $this->porkUrl;
-			$url = $baseUrl;
-			$player = null;
-			try {
-				$try = 0;
-				$retries = 5;
-				while ($try++ < $retries) {
-					try {
-						$url = $baseUrl . "/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json";
-						$cache = new FileCache(
-							$this->config->paths->cache . '/players',
-							new LocalKeyedMutex()
-						);
-						$cacheKey = "{$name}.{$dimension}";
-						$body = yield $cache->get($cacheKey);
-						if (isset($body)) {
-							$player = $this->parsePlayerFromBody($body);
-							break;
-						}
-
-						$start = \Amp\Loop::now();
-
-						$resPromise = $client->request(new Request($url));
-						if (str_contains($url, "bork")) {
-							$resPromise = timeout($resPromise, 1000);
-						}
-
-						/** @var Response */
-						$response = yield $resPromise;
-						if ($response->getStatus() === 200) {
-							$body = yield $response->getBody()->buffer();
-							$cache->set($cacheKey, $body, 60);
-							$player = $this->parsePlayerFromBody($body);
-						} else {
-							$this->logger->debug("Looking up {name}.{dimension}: {code}", [
-								"name" => $name,
-								"dimension" => $dimension,
-								"code" => $response->getStatus(),
-							]);
-						}
-						$end = \Amp\Loop::now();
-						$this->logger->info("Lookup for {name} took {duration}ms", [
-							"name" => $name,
-							"duration" => $end - $start,
-						]);
+	public function lookup(string $name, int $dimension): ?Player {
+		$client = $this->builder->build();
+		$baseUrl = $this->porkUrl;
+		$url = $baseUrl;
+		$player = null;
+		try {
+			$try = 0;
+			$retries = 5;
+			while ($try++ < $retries) {
+				try {
+					$url = $baseUrl . "/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json";
+/** @todo Filecache
+					$cache = new FileCache(
+						$this->config->paths->cache . '/players',
+						new LocalKeyedMutex()
+					);
+					$cacheKey = "{$name}.{$dimension}";
+					$body = $cache->get($cacheKey);
+					*/
+					if (isset($body)) {
+						$player = $this->parsePlayerFromBody($body);
 						break;
-					} catch (\Amp\TimeoutException) {
-						$baseUrl = self::PORK_URL;
-					} catch (TimeoutException | UnprocessedRequestException $e) {
-						$delay = (int)pow($try, 2);
-						$this->logger->info("Lookup for {name}.{dimension} timed out, retrying in {delay}s ({try}/{retries})", [
+					}
+
+					$start = microtime(true);
+
+					$timeout = null;
+					if (str_contains($url, "bork")) {
+						$timeout = new TimeoutCancellation(1);
+					}
+					$response = $client->request(new Request($url), $timeout);
+
+					if ($response->getStatus() === 200) {
+						$body = $response->getBody()->buffer();
+						// $cache->set($cacheKey, $body, 60);
+						$player = $this->parsePlayerFromBody($body);
+					} else {
+						$this->logger->debug("Looking up {name}.{dimension}: {code}", [
 							"name" => $name,
 							"dimension" => $dimension,
-							"try" => $try,
-							"delay" => $delay,
-							"retries" => $retries,
+							"code" => $response->getStatus(),
 						]);
-						if ($try < $retries) {
-							yield delay($delay * 1000);
-						}
+					}
+					$end = microtime(true);
+					$this->logger->info("Lookup for {name} took {duration}ms", [
+						"name" => $name,
+						"duration" => $end - $start,
+					]);
+					break;
+				} catch (\Amp\TimeoutException) {
+					$baseUrl = self::PORK_URL;
+				} catch (TimeoutException $e) {
+					$delay = (int)pow($try, 2);
+					$this->logger->info("Lookup for {name}.{dimension} timed out, retrying in {delay}s ({try}/{retries})", [
+						"name" => $name,
+						"dimension" => $dimension,
+						"try" => $try,
+						"delay" => $delay,
+						"retries" => $retries,
+					]);
+					if ($try < $retries) {
+						delay($delay);
 					}
 				}
-			} catch (\Throwable $e) {
-				$this->logger->warning("Error looking up {name}.{dimension}: {error}", [
-					"name" => $name,
-					"dimension" => $dimension,
-					"error" => $e->getMessage(),
-				]);
 			}
-			if (isset($player) && $player->name === $name) {
-				/** @var ?string */
-				$host = parse_url($url, PHP_URL_HOST);
-				$player->source = $host ?? "people.anarchy-online.com";
-				$player->dimension = $dimension;
-			} else {
-				$this->logger->info("No char information found about {character} on RK{dimension}", [
-					"character" => $name,
-					"dimension" => $dimension,
-				]);
-			}
-			return $player;
-		});
-	}
-
-	/**
-	 * @psalm-param callable(?Player, mixed...) $callback
-	 *
-	 * @deprecated 6.1.0
-	 */
-	public function lookupAsync(string $name, int $dimension, callable $callback, mixed ...$args): void {
-		asyncCall(function () use ($name, $dimension, $callback, $args): Generator {
-			$player = yield $this->lookupAsync2($name, $dimension);
-			$callback($player, ...$args);
-		});
+		} catch (\Throwable $e) {
+			$this->logger->warning("Error looking up {name}.{dimension}: {error}", [
+				"name" => $name,
+				"dimension" => $dimension,
+				"error" => $e->getMessage(),
+			]);
+		}
+		if (isset($player) && $player->name === $name) {
+			/** @var ?string */
+			$host = parse_url($url, PHP_URL_HOST);
+			$player->source = $host ?? "people.anarchy-online.com";
+			$player->dimension = $dimension;
+		} else {
+			$this->logger->info("No char information found about {character} on RK{dimension}", [
+				"character" => $name,
+				"dimension" => $dimension,
+			]);
+		}
+		return $player;
 	}
 
 	public function update(Player $char): void {

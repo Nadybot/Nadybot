@@ -41,8 +41,7 @@ class MigrateRelayColors implements SchemaMigration {
 		if ($db->table(CommandManager::DB_TABLE)
 			->where("module", "ALLIANCE_RELAY_MODULE")
 			->update(["status" => 0])) {
-			$logger->log(
-				'WARN',
+			$logger->warning(
 				"Found the ALLIANCE_RELAY_MODULE, converted all settings and ".
 				"deactivated it. Please remove the module, so it cannot ".
 				"interfere. It is not compatible with Nadybot 5.2.0 or newer."
