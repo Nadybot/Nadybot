@@ -16,6 +16,7 @@ return $config
 			],
 		],
 		'array_syntax' => ['syntax' => 'short'],
+		'array_push' => true,
 		'braces_position' => [
 			'allow_single_line_anonymous_functions' => false,
 			'allow_single_line_empty_anonymous_classes' => false,
@@ -48,6 +49,7 @@ return $config
 //		'concat_space' => ['spacing' => 'one'],
 		'constant_case' => ['case' => 'lower'],
 		'control_structure_continuation_position' => ['position' => 'same_line'],
+		'control_structure_braces' => true,
 		'declare_equal_normalize' => ['space' => 'none'],
 		'declare_parentheses' => true,
 		'declare_strict_types' => true,
@@ -119,6 +121,7 @@ return $config
 		'no_unset_cast' => true,
 		'no_unused_imports' => true,
 		'no_useless_else' => true,
+		'no_useless_nullsafe_operator' => true,
 		'no_whitespace_before_comma_in_array' => true,
 		'no_whitespace_in_blank_line' => true,
 		'normalize_index_brace' => true,
@@ -244,6 +247,7 @@ return $config
 		'switch_continue_to_break' => true,
 		'ternary_operator_spaces' => true,
 		'ternary_to_null_coalescing' => true,
+		'ternary_to_elvis_operator' => true,
 		'trailing_comma_in_multiline' => true,
 		'trim_array_spaces' => true,
 		'types_spaces' => [

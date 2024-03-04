@@ -222,7 +222,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		yield $this->db->table(self::DB_TABLE)
 			->asObj(TrackedUser::class)
 			->map(function (TrackedUser $row): Promise {
-				return $this->buddylistManager->addAsync($row->name, static::REASON_TRACKER);
+				return $this->buddylistManager->addName($row->name, static::REASON_TRACKER);
 			})->toArray();
 		$this->db->table(static::DB_ORG_MEMBER)
 			->asObj(TrackingOrgMember::class)
@@ -558,7 +558,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		PRemove $action,
 		int $uid
 	): Generator {
-		$char = yield $this->chatBot->uidToName($uid);
+		$char = yield $this->chatBot->getName($uid);
 		$this->trackRemoveCommand($context, $char ?? "UID {$uid}", $uid);
 	}
 
@@ -1083,7 +1083,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		string $action,
 		int $uid
 	): Generator {
-		$name = yield $this->chatBot->uidToName($uid);
+		$name = yield $this->chatBot->getName($uid);
 		$this->trackHideCommand($context, $name ?? "UID {$uid}", $uid);
 	}
 
@@ -1128,7 +1128,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		string $action,
 		int $uid
 	): Generator {
-		$name = yield $this->chatBot->uidToName($uid);
+		$name = yield $this->chatBot->getName($uid);
 		$this->trackUnhideCommand($context, $name ?? "UID {$uid}", $uid);
 	}
 

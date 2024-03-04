@@ -2,15 +2,13 @@
 
 namespace Nadybot\Core;
 
-use function Amp\asyncCall;
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use function Safe\{fclose, file_get_contents, filemtime, fopen, fwrite, mkdir, unlink};
+use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;
-use Generator;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
-use Safe\Exceptions\FilesystemException;
 
-use Throwable;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * Read-through cache to URLs
@@ -22,9 +20,6 @@ class CacheManager {
 
 	#[NCA\Inject]
 	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public Http $http;
 
 	#[NCA\Inject]
 	public Util $util;
@@ -48,7 +43,7 @@ class CacheManager {
 			return;
 		}
 		try {
-			\Safe\mkdir($this->cacheDir, 0777);
+			mkdir($this->cacheDir, 0777);
 		} catch (FilesystemException $e) {
 			$this->logger->warning("Unable to create the cache directory {dir}: {error}", [
 				"dir" => $this->cacheDir,
@@ -80,78 +75,6 @@ class CacheManager {
 		$cacheResult->oldCache = false;
 		$cacheResult->success = true;
 		return $cacheResult;
-	}
-
-	/**
-	 * Lookup information in the cache or retrieve it when outdated and call the callback
-	 *
-	 * @psalm-param callable(CacheResult, mixed...) $callback
-	 *
-	 * @deprecated
-	 */
-	public function asyncLookup(string $url, string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge, bool $forceUpdate, callable $callback, mixed ...$args): void {
-		asyncCall(function () use ($url, $groupName, $filename, $isValidCallback, $maxCacheAge, $forceUpdate, $callback, $args): Generator {
-			if (empty($groupName)) {
-				$this->logger->error("Cache group name cannot be empty");
-				return;
-			}
-
-			// Check if an xml file of the person exists and if it is up to date
-			if (!$forceUpdate) {
-				$cachedResult = $this->forceLookupFromCache($groupName, $filename, $isValidCallback, $maxCacheAge);
-				if (isset($cachedResult)) {
-					$callback($cachedResult, ...$args);
-					return;
-				}
-			}
-			// If no old history file was found or it was invalid try to update it from url
-			$client = $this->builder->build();
-			try {
-				/** @var Response */
-				$response = yield $client->request(new Request($url));
-				$body = yield $response->getBody()->buffer();
-			} catch (Throwable $e) {
-				$this->logger->warning($e->getMessage());
-				$body = '';
-			}
-			if ($body === '') {
-				$this->logger->warning("Empty reply received from {url}", ["url" => $url]);
-			}
-			if ($body !== '' && $isValidCallback($body)) {
-				// Lookup for the URL was successful, now update the cache and return data
-				$cacheResult = new CacheResult();
-				$cacheResult->data = $body;
-				$cacheResult->cacheAge = 0;
-				$cacheResult->usedCache = false;
-				$cacheResult->oldCache = false;
-				$cacheResult->success = true;
-				$this->store($groupName, $filename, $cacheResult->data);
-				$callback($cacheResult, ...$args);
-				return;
-			}
-			// If the site was not responding or the data was invalid and we
-			// also have no old cache, report that
-			if (!$this->cacheExists($groupName, $filename)) {
-				$callback(new CacheResult(), ...$args);
-				return;
-			}
-			// If we have an old cache entry, use that one, it's better than nothing
-			$data = $this->retrieve($groupName, $filename);
-			if (!call_user_func($isValidCallback, $data)) {
-				// Old cache data is invalid? Delete and report no data found
-				$this->remove($groupName, $filename);
-				$callback(new CacheResult(), ...$args);
-				return;
-			}
-
-			$cacheResult = new CacheResult();
-			$cacheResult->data = $data;
-			$cacheResult->cacheAge = $this->getCacheAge($groupName, $filename) ?? 0;
-			$cacheResult->usedCache = true;
-			$cacheResult->oldCache = true;
-			$cacheResult->success = true;
-			$callback($cacheResult, ...$args);
-		});
 	}
 
 	/**
@@ -248,8 +171,9 @@ class CacheManager {
 
 		// If no old history file was found or it was invalid try to update it from url
 		if ($cacheResult->success !== true) {
-			$response = $this->http->get($url)->waitAndReturnResponse();
-			$data = $response->body;
+			$http = $this->builder->build();
+			$response = $http->request(new Request($url));
+			$data = $response->getBody()->buffer();
 			if (call_user_func($isValidCallback, $data)) {
 				$cacheResult->data = $data;
 				$cacheResult->cacheAge = 0;
@@ -289,17 +213,17 @@ class CacheManager {
 		$cacheFile = "{$this->cacheDir}/{$groupName}/{$filename}";
 		try {
 			if (!dir($this->cacheDir . '/' . $groupName)) {
-				\Safe\mkdir($this->cacheDir . '/' . $groupName, 0777);
+				mkdir($this->cacheDir . '/' . $groupName, 0777);
 			}
 
 			// at least in windows, modification timestamp will not change unless this is done
 			// not sure why that is the case -tyrence
 			@unlink($cacheFile);
 
-			$fp = \Safe\fopen($cacheFile, "w");
+			$fp = fopen($cacheFile, "w");
 			if (is_resource($fp)) {
-				\Safe\fwrite($fp, $contents);
-				\Safe\fclose($fp);
+				fwrite($fp, $contents);
+				fclose($fp);
 			}
 		} catch (FilesystemException $e) {
 			$this->logger->warning("Unable to store cache {file}: {error}", [
@@ -318,7 +242,7 @@ class CacheManager {
 			return null;
 		}
 		try {
-			return \Safe\file_get_contents($cacheFile);
+			return file_get_contents($cacheFile);
 		} catch (FilesystemException $e) {
 			$this->logger->warning("Unable to read {file}: {error}", [
 				"file" => $cacheFile,
@@ -334,7 +258,7 @@ class CacheManager {
 		$cacheFile = "{$this->cacheDir}/{$groupName}/{$filename}";
 
 		if (@file_exists($cacheFile)) {
-			return time() - \Safe\filemtime($cacheFile);
+			return time() - filemtime($cacheFile);
 		}
 		return null;
 	}
@@ -349,7 +273,7 @@ class CacheManager {
 	/** Delete a cache */
 	public function remove(string $groupName, string $filename): void {
 		$cacheFile = "{$this->cacheDir}/{$groupName}/{$filename}";
-		\Safe\unlink($cacheFile);
+		unlink($cacheFile);
 	}
 
 	/**

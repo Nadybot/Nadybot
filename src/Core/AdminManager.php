@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Amp\Promise\rethrow;
+use function Amp\async;
 
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
@@ -118,7 +118,7 @@ class AdminManager implements AccessLevelProvider {
 		}
 
 		$this->admins[$who]["level"] = $intlevel;
-		rethrow($this->buddylistManager->addAsync($who, 'admin'));
+		async($this->buddylistManager->addName(...), $who, 'admin')->ignore();
 
 		$audit = new Audit();
 		$audit->actor = $sender;

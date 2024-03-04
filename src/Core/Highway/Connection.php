@@ -2,14 +2,11 @@
 
 namespace Nadybot\Core\Highway;
 
-use function Amp\call;
 use function Safe\json_encode;
-use Amp\Promise;
-use Amp\Websocket\Client\Connection as WsConnection;
-use Amp\Websocket\{ClosedException, Code, Message as WsMessage};
+use Amp\Websocket\Client\{WebsocketConnection};
+use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;
-use Generator;
 use Nadybot\Core\Highway\In\InPackage;
 use Nadybot\Core\Highway\Out\OutPackage;
 use Nadybot\Core\{Attributes as NCA, LogWrapInterface, LoggerWrapper, SemanticVersion};
@@ -21,7 +18,7 @@ class Connection implements LogWrapInterface {
 	private LoggerWrapper $logger;
 
 	public function __construct(
-		private WsConnection $wsConnection
+		private WebsocketConnection $wsConnection
 	) {
 	}
 
@@ -35,7 +32,7 @@ class Connection implements LogWrapInterface {
 	 */
 	public function wrapLogs(int $logLevel, string $message, array $context): array {
 		$context['protocol'] = $this->wsConnection->getTlsInfo() ? "wss" : "ws";
-		$connUri = $this->wsConnection->getResponse()->getRequest()->getUri();
+		$connUri = $this->wsConnection->getHandshakeResponse()->getRequest()->getUri();
 		$context['host'] = $connUri->getHost();
 		$port = $connUri->getPort();
 		$prefix = "{protocol}://{host}";
@@ -48,7 +45,7 @@ class Connection implements LogWrapInterface {
 	}
 
 	public function getVersion(): string {
-		return $this->wsConnection->getResponse()->getHeader("x-highway-version") ?? "0.1.1";
+		return $this->wsConnection->getHandshakeResponse()->getHeader("x-highway-version") ?? "0.1.1";
 	}
 
 	public function isSupportedVersion(): bool {
@@ -61,61 +58,47 @@ class Connection implements LogWrapInterface {
 		return false;
 	}
 
-	/**
-	 * @return Promise<array{int,string}> Resolves with an array containing the close code at key 0 and the close reason at key 1.
-	 *                                    These may differ from those provided if the connection was closed prior.
-	 */
-	public function close(int $code=Code::NORMAL_CLOSE, string $reason=''): promise {
+	public function close(int $code=WebsocketCloseCode::NORMAL_CLOSE, string $reason=''): void {
 		$this->logger->info("Closing connection");
 
-		/** @var Promise<array{int,string}> */
-		$closeHandler = $this->wsConnection->close($code, $reason);
-		return $closeHandler;
+		$this->wsConnection->close($code, $reason);
 	}
 
-	/** @return Promise<InPackage> */
-	public function receive(): Promise {
-		return call(function (): Generator {
-			/** @var ?WsMessage */
-			$message = yield $this->wsConnection->receive();
-			if (!isset($message)) {
-				if (!$this->wsConnection->isConnected()) {
-					throw new ClosedException(
-						'Highway-connection closed unexpectedly',
-						Code::ABNORMAL_CLOSE,
-						'Reading from the server failed'
-					);
-				}
-				throw new Exception('Empty Highway-package received');
+	public function receive(): InPackage {
+		$message = $this->wsConnection->receive();
+		if (!isset($message)) {
+			if ($this->wsConnection->isClosed()) {
+				throw new WebsocketClosedException(
+					'Highway-connection closed unexpectedly',
+					WebsocketCloseCode::ABNORMAL_CLOSE,
+					'Reading from the server failed'
+				);
 			}
+			throw new Exception('Empty Highway-package received');
+		}
 
-			/** @var string */
-			$data = yield $message->buffer();
-			$this->logger->debug("Received data: {data}", ["data" => $data]);
-			try {
-				$package = Parser::parseHighwayPackage($data);
-			} catch (UnableToHydrateObject $e) {
-				$this->logger->error("Invalid highway-package received");
-				throw $e;
-			}
-			$this->logger->info("Received package {package}", ["package" => $package]);
-			return $package;
-		});
+		$data = $message->buffer();
+		$this->logger->debug("Received data: {data}", ["data" => $data]);
+		try {
+			$package = Parser::parseHighwayPackage($data);
+		} catch (UnableToHydrateObject $e) {
+			$this->logger->error("Invalid highway-package received");
+			throw $e;
+		}
+		$this->logger->info("Received package {package}", ["package" => $package]);
+		return $package;
 	}
 
-	/** @return Promise<void> */
-	public function send(OutPackage $package): Promise {
-		return call(function () use ($package): Generator {
-			$this->logger->info("Sending package {package}", ["package" => $package]);
-			$mapper = new ObjectMapperUsingReflection();
-			$json = $mapper->serializeObject($package);
-			$serverSupportsIds = SemanticVersion::compareUsing($this->getVersion(), "0.2.0-alpha.1", ">=");
-			if (!isset($json['id']) || !$serverSupportsIds) {
-				unset($json['id']);
-			}
-			$data = json_encode($json, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
-			$this->logger->debug("Sending data: {data}", ["data" => $data]);
-			yield $this->wsConnection->send($data);
-		});
+	public function send(OutPackage $package): void {
+		$this->logger->info("Sending package {package}", ["package" => $package]);
+		$mapper = new ObjectMapperUsingReflection();
+		$json = $mapper->serializeObject($package);
+		$serverSupportsIds = SemanticVersion::compareUsing($this->getVersion(), "0.2.0-alpha.1", ">=");
+		if (!isset($json['id']) || !$serverSupportsIds) {
+			unset($json['id']);
+		}
+		$data = json_encode($json, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
+		$this->logger->debug("Sending data: {data}", ["data" => $data]);
+		$this->wsConnection->sendText($data);
 	}
 }

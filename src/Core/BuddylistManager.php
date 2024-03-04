@@ -2,14 +2,9 @@
 
 namespace Nadybot\Core;
 
-use function Amp\call;
-use function Amp\Promise\timeout;
-
-use Amp\{Deferred, Promise, Success, TimeoutException};
-use Generator;
+use AO\Package;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
-use Throwable;
 
 #[NCA\Instance]
 class BuddylistManager {
@@ -80,7 +75,7 @@ class BuddylistManager {
 		if (strtolower($this->config->main->character) === strtolower($name)) {
 			return true;
 		}
-		$workerNames = $this->chatBot->proxyCapabilities->workers ?? [];
+		$workerNames = array_column($this->config->worker, "character");
 		if (in_array(ucfirst(strtolower($name)), $workerNames, true)) {
 			return true;
 		}
@@ -88,12 +83,8 @@ class BuddylistManager {
 		return $buddy?->online;
 	}
 
-	/**
-	 * Check if $uid is online (true) or offline/inactive (false)
-	 *
-	 * @return Promise<bool>
-	 */
-	public function checkIsOnline(int $uid): Promise {
+	/** Check if $uid is online (true) or offline/inactive (false) */
+	public function checkIsOnline(int $uid): bool {
 		$buddy = $this->buddyList[$uid] ?? null;
 		$state = [];
 		if (isset($buddy)) {
@@ -116,56 +107,10 @@ class BuddylistManager {
 		]);
 		$buddyOnline = $this->isUidOnline($uid);
 		if (isset($buddyOnline)) {
-			return new Success($buddyOnline);
+			return $buddyOnline;
 		}
-		return call(function () use ($uid): Generator {
-			$onlineKey = "is_online:" . microtime(true);
-			$deferred = new Deferred();
-			$resolver = function (UserStateEvent $event) use ($deferred, $uid, &$resolver): void {
-				$this->logger->debug("Got {type}-event for UID {uid} ({name})", [
-					"type" => $event->type,
-					"uid" => $event->uid,
-					"name" => $event->sender,
-				]);
-				if ($event->uid !== $uid) {
-					$this->logger->debug("{uid} is not the UID we're waiting for {search}", [
-						"uid" => $event->uid,
-						"search" => $uid,
-					]);
-					return;
-				}
-				if (!$deferred->isResolved()) {
-					$deferred->resolve($event->type === "logon");
-				}
-				$this->eventManager->unsubscribe("logon", $resolver);
-				$this->eventManager->unsubscribe("logoff", $resolver);
-			};
-			$this->eventManager->subscribe("logon", $resolver);
-			$this->eventManager->subscribe("logoff", $resolver);
-			$this->addId($uid, $onlineKey);
-			try {
-				$this->logger->debug("UID {uid} added to the buddylist, waiting for online/offline event", [
-					"uid" => $uid,
-				]);
 
-				/** @var bool */
-				$isOnline = yield timeout($deferred->promise(), 30000);
-				$this->logger->debug("UID {uid} is {state}", [
-					"uid" => $uid,
-					"state" => $isOnline ? "online" : "offline",
-				]);
-			} catch (TimeoutException $e) {
-				$this->logger->warning("No reply for the online-state of UID {uid} for 30s", [
-					"uid" => $uid,
-				]);
-				$isOnline = false;
-			} catch (Throwable $e) {
-				$isOnline = false;
-			} finally {
-				$this->removeId($uid, $onlineKey);
-			}
-			return $isOnline;
-		});
+		return $this->chatBot->aoClient->isOnline($uid);
 	}
 
 	/**
@@ -174,11 +119,7 @@ class BuddylistManager {
 	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline
 	 */
 	public function isUidOnline(int $uid): ?bool {
-		if ($this->chatBot->char->id === $uid) {
-			return true;
-		}
-		$workerUids = $this->chatBot->proxyCapabilities->worker_uids ?? [];
-		if (in_array($uid, $workerUids, true)) {
+		if ($this->chatBot->aoClient->isOnline(uid: $uid, cacheOnly: true)) {
 			return true;
 		}
 		$buddy = $this->buddyList[$uid] ?? null;
@@ -203,7 +144,7 @@ class BuddylistManager {
 	/** Get information stored about a friend */
 	public function getBuddy(string $name): ?BuddylistEntry {
 		/** Never trigger an actual ID lookup. If we don't have a buddy's ID, it's inactive */
-		$uid = $this->chatBot->id[ucfirst(strtolower($name))] ?? false;
+		$uid = $this->chatBot->getUid(name: $name, cacheOnly: true) ?? false;
 		if ($uid === false || !isset($this->buddyList[$uid])) {
 			return null;
 		}
@@ -225,38 +166,20 @@ class BuddylistManager {
 		return $result;
 	}
 
-	/**
-	 * Add a user to the bot's friendlist for a given purpose
-	 *
-	 * @deprecated 6.1.0
-	 *
-	 * @param string $name The name of the player
-	 * @param string $type The reason why to add ("member", "admin", "org", "onlineorg", "is_online", "tracking")
-	 *
-	 * @return bool true on success, otherwise false
-	 */
-	public function add(string $name, string $type): bool {
-		$uid = $this->chatBot->get_uid($name);
-		if ($uid === false || $type == '') {
+	public function addName(string $name, string $type): bool {
+		if ($type === '') {
+			return false;
+		}
+		$uid = $this->chatBot->getUid($name);
+		if ($uid === null) {
 			return false;
 		}
 		return $this->addId($uid, $type);
 	}
 
-	/** @return Promise<bool> */
-	public function addAsync(string $name, string $type): Promise {
-		return call(function () use ($name, $type): Generator {
-			$uid = yield $this->chatBot->getUid2($name);
-			if ($uid === null || $type === '') {
-				return false;
-			}
-			return $this->addId($uid, $type);
-		});
-	}
-
 	/** Add a user id to the bot's friendlist for a given purpose */
 	public function addId(int $uid, string $type): bool {
-		$name = (string)($this->chatBot->id[$uid] ?? $uid);
+		$name = $this->chatBot->getName(uid: $uid, cacheOnly: true) ?? (string)$uid;
 		if (!isset($this->buddyList[$uid])) {
 			// Initialize with an unconfirmed entry
 			$entry = new BuddylistEntry();
@@ -270,7 +193,7 @@ class BuddylistManager {
 					"error" => "buddy list is full",
 				]);
 			}
-			$this->chatBot->buddy_add($uid);
+			$this->chatBot->aoClient->buddyAdd($uid);
 			// Initialize with an unconfirmed entry
 			$this->buddyList[$uid] = $entry;
 		} else {
@@ -283,7 +206,7 @@ class BuddylistManager {
 					"name" => $name,
 				]);
 				$this->buddyList[$uid]->added = time();
-				$this->chatBot->buddy_add($uid);
+				$this->chatBot->aoClient->buddyAdd($uid);
 			}
 		}
 		if (!$this->buddyList[$uid]->hasType($type)) {
@@ -311,11 +234,11 @@ class BuddylistManager {
 	 */
 	public function remove(string $name, string $type=''): bool {
 		/** Never trigger an actual ID lookup. If we don't have a buddy's ID, it's inactive */
-		$uid = $this->chatBot->id[ucfirst(strtolower($name))] ?? false;
-		if ($uid === false) {
+		$uid = $this->chatBot->getUid(name: $name, cacheOnly: true);
+		if ($uid === null) {
 			return false;
 		}
-		return $this->removeId((int)$uid, $type);
+		return $this->removeId($uid, $type);
 	}
 
 	/**
@@ -326,10 +249,10 @@ class BuddylistManager {
 	 * when the last reason to be on the list was removed.
 	 */
 	public function removeId(int $uid, string $type=''): bool {
-		$name = $this->chatBot->id[$uid] ?? (string)$uid;
 		if (!isset($this->buddyList[$uid])) {
 			return false;
 		}
+		$name = $this->chatBot->getName(uid: $uid, cacheOnly: true) ?? (string)$uid;
 		if ($this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->unsetType($type);
 			$this->logger->info("{buddy} removed type '{type}'", [
@@ -340,7 +263,7 @@ class BuddylistManager {
 
 		if (count($this->buddyList[$uid]->types) === 0) {
 			$this->logger->info("{name} buddy removed", ["name" => $name]);
-			$this->chatBot->buddy_remove($uid);
+			$this->chatBot->aoClient->buddyRemove($uid);
 		}
 
 		return true;
@@ -359,7 +282,7 @@ class BuddylistManager {
 				$this->pendingRebalance[$uid] = $this->buddyList[$uid]->worker;
 				unset($this->inRebalance[$uid]);
 				$this->logger->info("Rebalancing {uid}", ["uid" => $uid]);
-				$this->chatBot->buddy_remove($uid);
+				$this->chatBot->aoClient->buddyRemove($uid);
 			} elseif (empty($this->pendingRebalance)) {
 				$this->logger->notice("Rebalancing buddylist done.");
 				if (isset($this->rebalancingCallback)) {
@@ -368,7 +291,7 @@ class BuddylistManager {
 				}
 			}
 		}
-		$sender = $this->chatBot->lookup_user($userId);
+		$sender = $this->chatBot->getName($userId);
 
 		// store buddy info
 		$this->buddyList[$userId] ??= new BuddylistEntry();
@@ -384,20 +307,20 @@ class BuddylistManager {
 	/** Forcefully delete cached information in the friendlist */
 	public function updateRemoved(int $uid): void {
 		$this->logger->info("UID {uid} removed from buddylist", ["uid" => $uid]);
-		if ($this->isRebalancing($uid)) {
-			$worker = array_rand($this->pendingRebalance[$uid]);
-			unset($this->pendingRebalance[$uid][$worker]);
-			unset($this->buddyList[$uid]->worker[$worker]);
-			if (!empty($this->pendingRebalance[$uid])) {
-				return;
-			}
-			$this->logger->info("Re-adding {uid} to buddylist for rebalance", [
-				"uid" => $uid,
-			]);
-			$this->chatBot->buddy_add($uid);
+		if (!$this->isRebalancing($uid)) {
+			unset($this->buddyList[$uid]);
 			return;
 		}
-		unset($this->buddyList[$uid]);
+		$worker = array_rand($this->pendingRebalance[$uid]);
+		unset($this->pendingRebalance[$uid][$worker]);
+		unset($this->buddyList[$uid]->worker[$worker]);
+		if (!empty($this->pendingRebalance[$uid])) {
+			return;
+		}
+		$this->logger->info("Re-adding {uid} to buddylist for rebalance", [
+			"uid" => $uid,
+		]);
+		$this->chatBot->aoClient->buddyAdd($uid);
 	}
 
 	public function rebalance(CommandReply $callback): void {
@@ -422,7 +345,7 @@ class BuddylistManager {
 			}
 			unset($this->inRebalance[$uid]);
 			$this->logger->info("Rebalancing {uid}", ["uid" => $uid]);
-			$this->chatBot->buddy_remove($uid);
+			$this->chatBot->aoClient->buddyRemove($uid);
 		}
 	}
 

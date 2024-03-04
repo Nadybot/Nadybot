@@ -2,15 +2,15 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use Amp\Deferred;
+use Revolt\EventLoop\Suspension;
 
 class WebhookQueueItem {
-	/** @param null|Deferred<void> $deferred */
+	/** @param null|Suspension<void> $suspension */
 	public function __construct(
 		public string $applicationId,
 		public string $interactionToken,
 		public string $message,
-		public ?Deferred $deferred=null,
+		public ?Suspension $suspension=null,
 	) {
 	}
 }

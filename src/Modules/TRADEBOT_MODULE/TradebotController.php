@@ -116,7 +116,7 @@ class TradebotController extends ModuleInstance {
 	public function addTradebotsAsBuddies(): Generator {
 		$activeBots = $this->normalizeBotNames($this->tradebot);
 		foreach ($activeBots as $botName) {
-			yield $this->buddylistManager->addAsync($botName, "tradebot");
+			yield $this->buddylistManager->addName($botName, "tradebot");
 		}
 	}
 
@@ -155,7 +155,7 @@ class TradebotController extends ModuleInstance {
 				if ($this->buddylistManager->isOnline($botName)) {
 					$this->joinPrivateChannel($botName);
 				}
-				rethrow($this->buddylistManager->addAsync($botName, "tradebot"));
+				rethrow($this->buddylistManager->addName($botName, "tradebot"));
 			}
 		}
 		if ($this->messageHub->hasRouteFor(Source::TRADEBOT)) {

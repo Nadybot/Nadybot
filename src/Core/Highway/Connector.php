@@ -2,12 +2,9 @@
 
 namespace Nadybot\Core\Highway;
 
-use function Amp\call;
+use Amp\Cancellation;
+use Amp\Websocket\Client\{Rfc6455Connector, WebsocketHandshake};
 
-use Amp\Websocket\Client\{Connection as WsConnection, Handshake, Rfc6455Connector};
-use Amp\{CancellationToken, Promise};
-
-use Generator;
 use Nadybot\Core\Registry;
 
 class Connector {
@@ -16,14 +13,13 @@ class Connector {
 	) {
 	}
 
-	/** @return Promise<?Connection> */
-	public function connect(Handshake $handshake, ?CancellationToken $cancellationToken=null): Promise {
-		return call(function () use ($handshake, $cancellationToken): Generator {
-			/** @var WsConnection */
-			$wsConnection = yield $this->wsConnector->connect($handshake, $cancellationToken);
-			$connection = new Connection($wsConnection);
-			Registry::injectDependencies($connection);
-			return $connection;
-		});
+	public function connect(
+		WebsocketHandshake $handshake,
+		?Cancellation $cancellation=null
+	): ?Connection {
+		$wsConnection = $this->wsConnector->connect($handshake, $cancellation);
+		$connection = new Connection($wsConnection);
+		Registry::injectDependencies($connection);
+		return $connection;
 	}
 }

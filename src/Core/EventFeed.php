@@ -2,18 +2,16 @@
 
 namespace Nadybot\Core;
 
-use function Amp\{asyncCall, call, delay};
+use function Amp\{async, delay};
 use function Safe\{json_decode};
-use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool, UnprocessedRequestException};
+use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
-use Amp\Promise;
 use Amp\Socket\ConnectContext;
-use Amp\Websocket\Client\{ConnectionException, Handshake, Rfc6455Connector};
-use Amp\Websocket\{ClosedException, Code};
+use Amp\Websocket\Client\{Rfc6455ConnectionFactory, Rfc6455Connector, WebsocketConnectException, WebsocketHandshake};
+use Amp\Websocket\{PeriodicHeartbeatQueue, WebsocketCloseCode, WebsocketClosedException};
 use AssertionError;
 use Closure;
-use Generator;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
 use Safe\Exceptions\JsonException;
@@ -105,7 +103,7 @@ class EventFeed {
 			]);
 			return;
 		}
-		asyncCall(function () use ($room): Generator {
+		async(function () use ($room): void {
 			$joinPackage = new Highway\Out\Join(room: $room);
 			$announcer = function (LowLevelEventFeedEvent $event) use ($room, &$announcer): void {
 				assert($event->highwayPackage instanceof Highway\In\RoomInfo);
@@ -118,7 +116,7 @@ class EventFeed {
 			};
 			$this->eventManager->subscribe("event-feed(room-info)", $announcer);
 			if (isset($this->connection)) {
-				yield $this->connection->send($joinPackage);
+				$this->connection->send($joinPackage);
 			}
 		});
 	}
@@ -152,7 +150,7 @@ class EventFeed {
 			]);
 			return;
 		}
-		asyncCall(function () use ($room): Generator {
+		async(function () use ($room): void {
 			$leavePackage = new Highway\Out\Leave(room: $room);
 			$announcer = function (LowLevelEventFeedEvent $event) use ($room, &$announcer): void {
 				assert($event->highwayPackage instanceof Highway\In\Success);
@@ -164,123 +162,122 @@ class EventFeed {
 			};
 			$this->eventManager->subscribe("event-feed(success)", $announcer);
 			if (isset($this->connection)) {
-				yield $this->connection->send($leavePackage);
+				$this->connection->send($leavePackage);
 			}
 		});
 	}
 
 	public function mainLoop(): void {
-		asyncCall(function (): Generator {
-			while (yield $this->singleLoop()) {
-				yield delay(self::RECONNECT_DELAY * 1000);
+		async(function (): void {
+			while ($this->singleLoop()) {
+				delay(self::RECONNECT_DELAY);
 			}
 		});
 	}
 
-	/** @return Promise<?Highway\Connection> */
-	protected function connect(): Promise {
-		return call(function (): Generator {
-			$handshake = (new Handshake(self::URI))
-				->withTcpConnectTimeout(3000)
-				->withTlsHandshakeTimeout(3000);
-			$connectContext = (new ConnectContext())->withTcpNoDelay();
-			$httpClientBuilder = $this->clientBuilder
-				->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
-				->intercept(new RemoveRequestHeader('origin'));
-			$httpClient = $httpClientBuilder->build();
-			$wsClient = new Rfc6455Connector($httpClient);
-			$client = new Highway\Connector($wsClient);
-			while (true) {
-				$this->logger->info("[{uri}] Connecting", [
+	protected function connect(): ?Highway\Connection {
+		$connectionFactory = new Rfc6455ConnectionFactory(
+			heartbeatQueue: new PeriodicHeartbeatQueue(
+				heartbeatPeriod: 5, // 5 seconds
+			),
+		);
+
+		$connector = new Rfc6455Connector($connectionFactory);
+
+		$handshake = (new WebsocketHandshake(self::URI))
+			->withTcpConnectTimeout(3000)
+			->withTlsHandshakeTimeout(3000);
+		$connectContext = (new ConnectContext())->withTcpNoDelay();
+		$httpClientBuilder = $this->clientBuilder
+			->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
+			->intercept(new RemoveRequestHeader('origin'));
+		$httpClient = $httpClientBuilder->build();
+		$wsClient = new Rfc6455Connector(
+			connectionFactory: $connectionFactory,
+			httpClient: $httpClient
+		);
+		$client = new Highway\Connector($wsClient);
+		while (true) {
+			$this->logger->info("[{uri}] Connecting", [
+				"uri" => self::URI,
+			]);
+			try {
+				$connection = $client->connect($handshake);
+				if (!isset($connection)) {
+					return null;
+				}
+				$this->logger->info("[{uri}] Connected to websocket", [
 					"uri" => self::URI,
 				]);
-				try {
-					/** @var null|Highway\Connection */
-					$connection = yield $client->connect($handshake);
-					if (!isset($connection)) {
-						return null;
-					}
-					$this->logger->info("[{uri}] Connected to websocket", [
-						"uri" => self::URI,
-					]);
-					if ($connection->isSupportedVersion()) {
-						return $connection;
-					}
-					$this->logger->error("[{uri}] runs unsupported highway-version {version}", [
-						"uri" => self::URI,
-						"version" => $connection->getVersion(),
-					]);
-					$connection->close(Code::NORMAL_CLOSE, "Unsupported version");
-					return null;
-				} catch (Throwable $e) {
-					if ($this->chatBot->isShuttingDown()) {
-						return null;
-					}
-					if ($e instanceof ConnectionException && $e->getResponse()->getStatus() === 404) {
-						$this->logger->info("[{uri}] Service not up yet, reconnecting in {delay}s", [
-							"uri" => self::URI,
-							"delay" => self::RECONNECT_DELAY,
-						]);
-						yield delay(self::RECONNECT_DELAY * 1000);
-						continue;
-					}
-					if ($e instanceof UnprocessedRequestException) {
-						$prev = $e->getPrevious();
-						if (isset($prev)) {
-							$e = $prev;
-						}
-					}
-					$this->logger->warning("[{uri}] {error} - reconnecting in {delay}s", [
-						"uri" => self::URI,
-						"error" => $e->getMessage(),
-						"delay" => self::RECONNECT_DELAY,
-						"exception" => $e,
-					]);
-
-					yield delay(self::RECONNECT_DELAY * 1000);
+				if ($connection->isSupportedVersion()) {
+					return $connection;
 				}
-			}
-		});
-	}
-
-	/** @return Promise<bool> */
-	private function singleLoop(): Promise {
-		return call(function (): Generator {
-			try {
-				$this->connection = yield $this->connect();
-				if (!isset($this->connection)) {
-					return false;
-				}
-				$this->announceConnect();
-				$this->isReconnect = true;
-				while ($package = yield $this->connection->receive()) {
-					$this->handlePackage($this->connection, $package);
-				}
+				$this->logger->error("[{uri}] runs unsupported highway-version {version}", [
+					"uri" => self::URI,
+					"version" => $connection->getVersion(),
+				]);
+				$connection->close(WebsocketCloseCode::NORMAL_CLOSE, "Unsupported version");
+				return null;
 			} catch (Throwable $e) {
 				if ($this->chatBot->isShuttingDown()) {
-					return false;
+					return null;
 				}
-				$error = $e->getMessage();
-				if ($e instanceof ClosedException) {
-					$error = "Server closed the connection";
-				} elseif ($e instanceof JsonException && isset($this->connection)) {
-					$error = "JSON {$error}";
-					yield $this->connection->close(Code::INCONSISTENT_FRAME_DATA_TYPE);
-				} elseif (isset($this->connection)) {
-					yield $this->connection->close();
+				if ($e instanceof WebsocketConnectException && $e->getResponse()->getStatus() === 404) {
+					$this->logger->info("[{uri}] Service not up yet, reconnecting in {delay}s", [
+						"uri" => self::URI,
+						"delay" => self::RECONNECT_DELAY,
+					]);
+					delay(self::RECONNECT_DELAY);
+					continue;
 				}
-				$this->connection = null;
-				$this->availableRooms = [];
 				$this->logger->warning("[{uri}] {error} - reconnecting in {delay}s", [
 					"uri" => self::URI,
+					"error" => $e->getMessage(),
 					"delay" => self::RECONNECT_DELAY,
-					"error" => $error,
 					"exception" => $e,
 				]);
-				yield delay(self::RECONNECT_DELAY * 1000);
+
+				delay(self::RECONNECT_DELAY);
 			}
-			return true;
-		});
+		}
+	}
+
+	private function singleLoop(): bool {
+		try {
+			$this->connection = $this->connect();
+			if (!isset($this->connection)) {
+				return false;
+			}
+			$this->announceConnect();
+			$this->isReconnect = true;
+			// @phpstan-ignore-next-line
+			while ($package = $this->connection->receive()) {
+				$this->handlePackage($this->connection, $package);
+			}
+		} catch (Throwable $e) {
+			if ($this->chatBot->isShuttingDown()) {
+				return false;
+			}
+			$error = $e->getMessage();
+			if ($e instanceof WebsocketClosedException) {
+				$error = "Server closed the connection";
+			} elseif ($e instanceof JsonException && isset($this->connection)) {
+				$error = "JSON {$error}";
+				$this->connection->close(WebsocketCloseCode::INCONSISTENT_FRAME_DATA_TYPE);
+			} elseif (isset($this->connection)) {
+				$this->connection->close();
+			}
+			$this->connection = null;
+			$this->availableRooms = [];
+			$this->logger->warning("[{uri}] {error} - reconnecting in {delay}s", [
+				"uri" => self::URI,
+				"delay" => self::RECONNECT_DELAY,
+				"error" => $error,
+				"exception" => $e,
+			]);
+			delay(self::RECONNECT_DELAY);
+		}
+		return true;
 	}
 
 	private function announceConnect(): void {
@@ -320,7 +317,7 @@ class EventFeed {
 		}
 	}
 
-	private function handleMessage(LowLevelEventFeedEvent $event): Generator {
+	private function handleMessage(LowLevelEventFeedEvent $event): void {
 		assert($event->highwayPackage instanceof Highway\In\Message);
 		$this->logger->info("Message from global event feed for room {room}: {message}", [
 			"room" => $event->highwayPackage->room,
@@ -335,7 +332,7 @@ class EventFeed {
 		$handlers = $this->roomHandlers[$event->highwayPackage->room] ?? [];
 		foreach ($handlers as $handler) {
 			try {
-				yield $handler->handleEventFeedMessage(
+				$handler->handleEventFeedMessage(
 					$event->highwayPackage->room,
 					$body,
 				);
@@ -380,7 +377,7 @@ class EventFeed {
 		$this->attachedRooms[$event->highwayPackage->room] = true;
 	}
 
-	private function handleHello(LowLevelEventFeedEvent $event): Generator {
+	private function handleHello(LowLevelEventFeedEvent $event): void {
 		assert($event->highwayPackage instanceof Highway\In\Hello);
 		$attachedRooms = [];
 		$this->availableRooms = [];
@@ -395,7 +392,7 @@ class EventFeed {
 				continue;
 			}
 			$joinPackage = new Highway\Out\Join(room: $room);
-			yield $event->connection->send($joinPackage);
+			$event->connection->send($joinPackage);
 			$attachedRooms []= $room;
 		}
 		$this->logger->notice("Global event feed attached to {rooms}", [

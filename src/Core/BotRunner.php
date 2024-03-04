@@ -2,22 +2,14 @@
 
 namespace Nadybot\Core;
 
-use function Amp\File\createDefaultDriver;
-use function Amp\File\filesystem;
-use function Safe\fclose;
-use function Safe\fwrite;
-use function Safe\ini_set;
-use function Safe\json_encode;
-use function Safe\realpath;
-use function Safe\stream_get_contents;
-
+use function Amp\File\{createDefaultDriver, filesystem};
+use function Safe\{fclose, fwrite, ini_set, json_encode, realpath, stream_get_contents};
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
 use Amp\File\{FilesystemDriver};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\Http\Tunnel\Http1TunnelConnector;
-use Revolt\EventLoop;
 use ErrorException;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
@@ -25,8 +17,9 @@ use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Modules\SETUP\Setup;
 use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
-
 use ReflectionObject;
+
+use Revolt\EventLoop;
 use Throwable;
 
 class BotRunner {
@@ -336,7 +329,7 @@ class BotRunner {
 			LegacyLogger::registerMessageEmitters($msgHub);
 		}
 
-		$signalHandler = function (string $token, int $sigNo): void {
+		$signalHandler = function (): void {
 			$this->logger->notice('Shutdown requested.');
 			exit;
 		};
@@ -362,8 +355,6 @@ class BotRunner {
 			exit(0);
 		}
 
-		[$server, $port] = $this->getServerAndPort($config);
-
 		/** @var Nadybot */
 		$chatBot = Registry::getInstance(Nadybot::class);
 
@@ -382,7 +373,7 @@ class BotRunner {
 		}
 
 		// connect to ao chat server
-		$chatBot->connectAO($config->main->login, $config->main->password, (string)$server, (int)$port);
+		$chatBot->connectAO();
 
 		// pass control to Nadybot class
 		$chatBot->run();
@@ -605,9 +596,7 @@ class BotRunner {
 		$db->connect($config->database);
 	}
 
-	/**
-	 * Run migration scripts to keep the SQL schema up-to-date
-	 */
+	/** Run migration scripts to keep the SQL schema up-to-date */
 	private function runUpgradeScripts(): void {
 		/** @var DB */
 		$db = Registry::getInstance(DB::class);

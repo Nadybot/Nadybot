@@ -592,7 +592,7 @@ class MessageHub {
 		$this->routes[$source][$dest] []= $route;
 		$char = $this->getCharacter($dest);
 		if (isset($char)) {
-			rethrow($this->buddyListManager->addAsync($char, "msg_hub"));
+			rethrow($this->buddyListManager->addName($char, "msg_hub"));
 		}
 		if (!$route->getTwoWay()) {
 			return;
@@ -602,7 +602,7 @@ class MessageHub {
 		$this->routes[$dest][$source] []= $route;
 		$char = $this->getCharacter($source);
 		if (isset($char)) {
-			rethrow($this->buddyListManager->addAsync($char, "msg_hub"));
+			rethrow($this->buddyListManager->addName($char, "msg_hub"));
 		}
 	}
 

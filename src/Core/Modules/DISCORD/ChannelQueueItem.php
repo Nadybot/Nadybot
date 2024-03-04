@@ -2,14 +2,14 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use Amp\Deferred;
+use Revolt\EventLoop\Suspension;
 
 class ChannelQueueItem {
-	/** @param null|Deferred<void> $callback */
+	/** @param null|Suspension<void> $callback */
 	public function __construct(
 		public string $channelId,
 		public string $message,
-		public ?Deferred $callback=null,
+		public ?Suspension $callback=null,
 	) {
 	}
 }

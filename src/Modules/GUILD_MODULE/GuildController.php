@@ -420,7 +420,7 @@ class GuildController extends ModuleInstance {
 					"dt" => time(),
 				]);
 		}
-		yield $this->buddylistManager->addAsync($name, 'org');
+		yield $this->buddylistManager->addName($name, 'org');
 		$this->chatBot->guildmembers[$name] = 6;
 		$msg = "<highlight>{$name}<end> has been added to the Notify list.";
 
@@ -623,7 +623,7 @@ class GuildController extends ModuleInstance {
 			}
 			$this->db->table(self::DB_TABLE)
 				->upsert(["mode" => "add", "name" => $name], "name");
-			yield $this->buddylistManager->addAsync($name, 'org');
+			yield $this->buddylistManager->addName($name, 'org');
 			$this->chatBot->guildmembers[$name] = 6;
 
 			// update character info
@@ -1098,7 +1098,7 @@ class GuildController extends ModuleInstance {
 						unset($this->chatBot->guildmembers[$member->name]);
 					} else {
 						// add org members who are on notify to buddy list
-						rethrow($this->buddylistManager->addAsync($member->name, 'org'));
+						rethrow($this->buddylistManager->addName($member->name, 'org'));
 						$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
 
 						// if member was added to notify list manually, switch mode to org and let guild roster update from now on
@@ -1111,7 +1111,7 @@ class GuildController extends ModuleInstance {
 					// else insert his/her data
 				} else {
 					// add new org members to buddy list
-					rethrow($this->buddylistManager->addAsync($member->name, 'org'));
+					rethrow($this->buddylistManager->addName($member->name, 'org'));
 					$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
 
 					$this->db->table(self::DB_TABLE)

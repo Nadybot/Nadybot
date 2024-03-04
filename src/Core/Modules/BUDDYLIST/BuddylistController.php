@@ -146,7 +146,7 @@ class BuddylistController extends ModuleInstance {
 	): Generator {
 		$name = $who();
 
-		if (true === yield $this->buddylistManager->addAsync($name, $type())) {
+		if (true === yield $this->buddylistManager->addName($name, $type())) {
 			$msg = "<highlight>{$name}<end> added to the buddy list successfully.";
 		} else {
 			$msg = "Could not add <highlight>{$name}<end> to the buddy list.";

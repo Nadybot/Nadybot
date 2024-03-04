@@ -336,7 +336,7 @@ class ExportController extends ModuleInstance {
 				->asObj(BanEntry::class)->toArray();
 			$result = [];
 			foreach ($banList as $banEntry) {
-				$name = yield $this->chatBot->uidToName($banEntry->charid);
+				$name = $this->chatBot->getName($banEntry->charid);
 				$ban = (object)[
 					"character" => yield $this->toChar($name, $banEntry->charid),
 					"bannedBy" => yield $this->toChar($banEntry->admin),

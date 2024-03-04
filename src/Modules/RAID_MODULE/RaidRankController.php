@@ -168,7 +168,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		yield $this->db->table(self::DB_TABLE)
 			->asObj(RaidRank::class)
 			->map(function (RaidRank $row): Promise {
-				return $this->buddylistManager->addAsync($row->name, 'raidrank');
+				return $this->buddylistManager->addName($row->name, 'raidrank');
 			})->toArray();
 	}
 
@@ -229,7 +229,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$this->ranks[$who] ??= new RaidRank();
 		$this->ranks[$who]->rank = $rank;
 		$this->ranks[$who]->name = $who;
-		rethrow($this->buddylistManager->addAsync($who, 'raidrank'));
+		rethrow($this->buddylistManager->addName($who, 'raidrank'));
 
 		$audit = new Audit();
 		$audit->actor = $sender;

@@ -1152,7 +1152,7 @@ class ImportController extends ModuleInstance {
 			if (!isset($char)) {
 				return null;
 			}
-			$name = $char->name ?? yield $this->chatBot->uidToName($char->id);
+			$name = $char->name ?? $this->chatBot->getName($char->id);
 			if (!isset($name)) {
 				$this->logger->notice("Unable to find a name for UID {user_id}", [
 					"user_id" => $char->id,

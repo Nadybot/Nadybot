@@ -115,7 +115,7 @@ class Tell implements TransportInterface {
 			$callback();
 		} else {
 			$this->initCallback = $callback;
-			rethrow($this->buddylistManager->addAsync(
+			rethrow($this->buddylistManager->addName(
 				$this->bot,
 				$this->relay->getName() . "_relay"
 			));

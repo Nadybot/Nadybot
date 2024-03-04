@@ -84,7 +84,7 @@ class WishlistController extends ModuleInstance {
 	public function addPeopleOnWishlistToBuddylist(): Generator {
 		$fromChars = $this->getActiveFroms();
 		foreach ($fromChars as $name) {
-			yield $this->buddylistManager->addAsync($name, "wishlist");
+			yield $this->buddylistManager->addName($name, "wishlist");
 		}
 	}
 
@@ -464,7 +464,7 @@ class WishlistController extends ModuleInstance {
 		$entry->id = $this->db->insert(self::DB_TABLE, $entry);
 		$context->reply("Item added to your wishlist as #{$entry->id}.");
 		if (!in_array($entry->from, $fromChars)) {
-			yield $this->buddylistManager->addAsync($entry->from, "wishlist");
+			yield $this->buddylistManager->addName($entry->from, "wishlist");
 		}
 	}
 
@@ -645,7 +645,7 @@ class WishlistController extends ModuleInstance {
 			"from {$entry->created_by}'s wishlist."
 		);
 		if (isset($entry->from)) {
-			yield $this->buddylistManager->addAsync($entry->from, "wishlist");
+			yield $this->buddylistManager->addName($entry->from, "wishlist");
 		}
 	}
 

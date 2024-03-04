@@ -224,7 +224,7 @@ class AdminController extends ModuleInstance {
 	public function checkAdminsEvent(Event $eventObj): Generator {
 		yield $this->db->table(AdminManager::DB_TABLE)->asObj(Admin::class)
 			->map(function (Admin $row): Promise {
-				return $this->buddylistManager->addAsync($row->name, 'admin');
+				return $this->buddylistManager->addName($row->name, 'admin');
 			})->toArray();
 	}
 

@@ -2,13 +2,7 @@
 
 namespace Nadybot\Core;
 
-use Amp\Promise;
-
 interface EventFeedHandler {
-	/**
-	 * @param array<string,mixed> $data
-	 *
-	 * @return Promise<void>
-	 */
-	public function handleEventFeedMessage(string $room, array $data): Promise;
+	/** @param array<string,mixed> $data */
+	public function handleEventFeedMessage(string $room, array $data): void;
 }

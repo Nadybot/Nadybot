@@ -2,25 +2,22 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use Amp\ByteStream\{InMemoryStream, InputStream};
-use Amp\Http\Client\RequestBody;
-use Amp\{Promise, Success};
+use Amp\ByteStream\{ReadableBuffer, ReadableStream};
+use Amp\Http\Client\HttpContent;
 
-final class DiscordBody implements RequestBody {
+final class DiscordBody implements HttpContent {
 	public function __construct(private string $json) {
 	}
 
-	/** @return Promise<array<string,string>> */
-	public function getHeaders(): Promise {
-		return new Success(['content-type' => 'application/json; charset=utf-8']);
+	public function getContentType(): ?string {
+		return 'application/json; charset=utf-8';
 	}
 
-	public function createBodyStream(): InputStream {
-		return new InMemoryStream($this->json);
+	public function getContent(): ReadableStream {
+		return new ReadableBuffer($this->json);
 	}
 
-	/** @return Promise<int> */
-	public function getBodyLength(): Promise {
-		return new Success(\strlen($this->json));
+	public function getContentLength(): int {
+		return \strlen($this->json);
 	}
 }

@@ -166,7 +166,7 @@ class WhoisController extends ModuleInstance {
 	/** Show the name(s) for a character id */
 	#[NCA\HandlesCommand("lookup")]
 	public function lookupIdCommand(CmdContext $context, int $charID): Generator {
-		$name = yield $this->chatBot->uidToName($charID);
+		$name = yield $this->chatBot->getName($charID);
 		if (isset($name)) {
 			$this->saveCharIds(new Event());
 		}
@@ -281,7 +281,7 @@ class WhoisController extends ModuleInstance {
 	#[NCA\HandlesCommand("whois")]
 	public function whoisIdCommand(CmdContext $context, int $uid): Generator {
 		/** @var ?string */
-		$name = yield $this->chatBot->uidToName($uid);
+		$name = $this->chatBot->getName($uid);
 		if (!isset($name)) {
 			$context->reply("The user ID {$uid} does not exist.");
 			return;

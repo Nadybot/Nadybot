@@ -2,11 +2,9 @@
 
 namespace Nadybot\Core;
 
-use function Amp\{call, delay};
-use Amp\{Loop, Promise};
+use function Amp\delay;
 use Closure;
 use Exception;
-use Generator;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -17,6 +15,7 @@ use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
 use ReflectionNamedType;
+use Revolt\EventLoop;
 use Throwable;
 
 #[NCA\Instance]
@@ -275,19 +274,19 @@ class EventManager {
 		if (!isset($entry) || !isset($entry->handle)) {
 			return false;
 		}
-		Loop::disable($entry->handle);
+		EventLoop::disable($entry->handle);
 		if (isset($entry->moveHandle)) {
-			Loop::cancel($entry->moveHandle);
+			EventLoop::cancel($entry->moveHandle);
 		}
 		$delay = max(0, $nextEvent - time());
 		$this->logger->notice("Moved the next {event} event to {time}", [
 			"event" => $entry->filename,
 			"time" => $this->util->date($nextEvent),
 		]);
-		$entry->moveHandle = Loop::delay(
-			$delay * 1000,
+		$entry->moveHandle = EventLoop::delay(
+			$delay,
 			function () use ($entry): void {
-				Loop::enable($entry->handle);
+				EventLoop::enable($entry->handle);
 				unset($entry->moveHandle);
 			}
 		);
@@ -313,8 +312,8 @@ class EventManager {
 				$key = $this->getKeyForCronEvent($time, $filename);
 				if ($key !== null) {
 					$found = true;
-					Loop::cancel($this->cronevents[$key]->moveHandle ?? '');
-					Loop::cancel($this->cronevents[$key]->handle ?? '');
+					EventLoop::cancel($this->cronevents[$key]->moveHandle ?? '');
+					EventLoop::cancel($this->cronevents[$key]->handle ?? '');
 					unset($this->cronevents[$key]);
 				}
 			} else {
@@ -415,8 +414,8 @@ class EventManager {
 					} else {
 						$key = $this->getKeyForCronEvent($time, $call);
 						if ($key !== null) {
-							Loop::cancel($this->cronevents[$key]->moveHandle ?? '');
-							Loop::cancel($this->cronevents[$key]->handle ?? '');
+							EventLoop::cancel($this->cronevents[$key]->moveHandle ?? '');
+							EventLoop::cancel($this->cronevents[$key]->handle ?? '');
 							unset($this->cronevents[$key]);
 						}
 					}
@@ -540,10 +539,7 @@ class EventManager {
 					$refMeth = new ReflectionFunction($callback);
 					$newEventObj = $this->convertSyncEvent($refMeth, $eventObj);
 					if (isset($newEventObj)) {
-						$result = $callback($newEventObj, ...$args);
-						if ($result instanceof Generator) {
-							$this->wrapGenerator($result, $eventObj, $refMeth);
-						}
+						$callback($newEventObj, ...$args);
 					}
 				}
 			}
@@ -580,10 +576,7 @@ class EventManager {
 				$refMeth = new ReflectionMethod($instance, $method);
 				$eventObj = $this->convertSyncEvent($refMeth, $eventObj);
 				if (isset($eventObj)) {
-					$result = $instance->{$method}($eventObj, ...$args);
-					if ($result instanceof Generator) {
-						$this->wrapGenerator($result, $eventObj, $refMeth);
-					}
+					$instance->{$method}($eventObj, ...$args);
 				}
 			}
 		} catch (StopExecutionException $e) {
@@ -646,64 +639,33 @@ class EventManager {
 	}
 
 	private function startCron(CronEntry $entry): void {
-		$entry->handle = Loop::defer(
-			function () use ($entry): Generator {
-				while (!$this->chatBot->isReady()) {
-					yield delay(100);
-				}
-				$eventObj = new Event();
-				$eventObj->type = (string)$entry->time;
-
-				$entry->nextevent = time() + $entry->time;
-				$this->logger->info("Initial call to {handler}", ["handler" => $entry->filename]);
-				$this->callEventHandler($eventObj, $entry->filename, [$entry->time]);
-				$period = $entry->time * 1000;
-				$this->logger->info("Periodic call set up for {handler} every {period}ms", [
-					"handler" => $entry->filename,
-					"period" => $period,
-				]);
-				$entry->handle = Loop::repeat(
-					$period,
-					function () use ($eventObj, $entry): void {
-						$this->logger->info("Periodic call to {handler}", [
-							"handler" => $entry->filename,
-						]);
-						$entry->nextevent = time() + $entry->time;
-						$this->callEventHandler($eventObj, $entry->filename, [$entry->time]);
-					}
-				);
-			}
-		);
+		$entry->handle = EventLoop::defer(fn () => $this->startCronRun($entry));
 	}
 
-	/** @return Promise<void> */
-	private function wrapGenerator(Generator $methodResult, Event $event, ReflectionFunctionAbstract $ref): Promise {
-		return call(function () use ($methodResult, $event, $ref): Generator {
-			try {
-				yield from $methodResult;
-			} catch (StopExecutionException) {
-				return;
-			} catch (Throwable $e) {
-				$loc = "{closure}";
-				if ($ref instanceof ReflectionMethod) {
-					$loc = $ref->getDeclaringClass()->getName() . '::' . $ref->getName() . '()';
-				} elseif ($ref instanceof ReflectionFunction) {
-					$file = $ref->getFileName();
-					if ($file === false) {
-						$file = '{closure}';
-					}
-					$loc = $file . '#' . $ref->getStartLine();
-				}
-				$this->logger->error(
-					"Error calling event handler {function} for '{event}': {error}",
-					[
-						"exception" => $e,
-						"error" => $e->getMessage(),
-						"function" => $loc,
-						"event" => $event->type,
-					]
-				);
+	private function startCronRun(CronEntry $entry): void {
+		while (!$this->chatBot->isReady()) {
+			delay(100);
+		}
+		$eventObj = new Event();
+		$eventObj->type = (string)$entry->time;
+
+		$entry->nextevent = time() + $entry->time;
+		$this->logger->info("Initial call to {handler}", ["handler" => $entry->filename]);
+		$this->callEventHandler($eventObj, $entry->filename, [$entry->time]);
+		$period = $entry->time;
+		$this->logger->info("Periodic call set up for {handler} every {period}ms", [
+			"handler" => $entry->filename,
+			"period" => $period,
+		]);
+		$entry->handle = EventLoop::repeat(
+			$period,
+			function () use ($eventObj, $entry): void {
+				$this->logger->info("Periodic call to {handler}", [
+					"handler" => $entry->filename,
+				]);
+				$entry->nextevent = time() + $entry->time;
+				$this->callEventHandler($eventObj, $entry->filename, [$entry->time]);
 			}
-		});
+		);
 	}
 }

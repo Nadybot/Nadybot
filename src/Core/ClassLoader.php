@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\preg_split;
+use function Safe\{fclose, preg_split};
 use Directory;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;

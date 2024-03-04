@@ -2,13 +2,9 @@
 
 namespace Nadybot\Core;
 
-use function Amp\call;
-
 use Amp\Http\Client\Interceptor\AddRequestHeader;
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
-use Amp\Promise;
+use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;
-use Generator;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
@@ -41,27 +37,20 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 		return $msg;
 	}
 
-	/**
-	 * @throws \Exception when the Discord token is invalid
-	 *
-	 * @return Promise<string>
-	 */
-	public function save(string $newValue): Promise {
-		return call(function () use ($newValue): Generator {
-			if ($newValue === "off") {
-				return $newValue;
-			}
-			$client = $this->builder
-				->intercept(new AddRequestHeader('Authorization', 'Bot ' . $newValue))
-				->build();
-
-			/** @var Response */
-			$response = yield $client->request(new Request(DiscordAPIClient::DISCORD_API . "/users/@me"));
-			if ($response->getStatus() !== 200) {
-				throw new Exception("<highlight>{$newValue}<end> is not a valid Discord Bot Token");
-			}
+	/** @throws \Exception when the Discord token is invalid */
+	public function save(string $newValue): string {
+		if ($newValue === "off") {
 			return $newValue;
-		});
+		}
+		$client = $this->builder
+			->intercept(new AddRequestHeader('Authorization', 'Bot ' . $newValue))
+			->build();
+
+		$response = $client->request(new Request(DiscordAPIClient::DISCORD_API . "/users/@me"));
+		if ($response->getStatus() !== 200) {
+			throw new Exception("<highlight>{$newValue}<end> is not a valid Discord Bot Token");
+		}
+		return $newValue;
 	}
 
 	public function displayValue(string $sender): string {

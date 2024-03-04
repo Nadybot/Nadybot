@@ -630,7 +630,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public function autoInviteCommand(CmdContext $context, bool $status): Generator {
 		if ($status) {
 			$onOrOff = 1;
-			yield $this->buddylistManager->addAsync($context->char->name, 'member');
+			yield $this->buddylistManager->addName($context->char->name, 'member');
 		} else {
 			$onOrOff = 0;
 		}
@@ -992,7 +992,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		yield $this->db->table(self::DB_TABLE)
 			->asObj(Member::class)
 			->map(function (Member $member): Promise {
-				return $this->buddylistManager->addAsync($member->name, 'member');
+				return $this->buddylistManager->addName($member->name, 'member');
 			})->toArray();
 	}
 
@@ -1546,7 +1546,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				);
 			}
 			// always add in case they were removed from the buddy list for some reason
-			yield $this->buddylistManager->addAsync($name, 'member');
+			yield $this->buddylistManager->addName($name, 'member');
 			if ($this->db->table(self::DB_TABLE)->where("name", $name)->exists()) {
 				return "<highlight>{$name}<end> is already a member of this bot.";
 			}

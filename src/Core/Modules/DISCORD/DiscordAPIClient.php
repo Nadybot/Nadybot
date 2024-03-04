@@ -2,18 +2,16 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use function Amp\{call, delay};
+use function Amp\delay;
 use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\Body\JsonBody;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
-use Amp\Http\Client\{HttpClient, HttpClientBuilder, Request, Response};
-use Amp\{Deferred, Promise, Success};
+use Amp\Http\Client\{BufferedContent, HttpClient, HttpClientBuilder, Request};
+use Amp\{Promise};
 use Exception;
 use Generator;
 use Nadybot\Core\{
-	AsyncHttp,
 	Attributes as NCA,
-	Http,
 	HttpRetryRateLimits,
 	JSONDataModel,
 	LoggerWrapper,
@@ -21,6 +19,7 @@ use Nadybot\Core\{
 	SettingManager,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{ApplicationCommand, Emoji, GuildMember};
+use Revolt\EventLoop;
 use RuntimeException;
 use Safe\Exceptions\JsonException;
 use stdClass;
@@ -32,9 +31,6 @@ use Throwable;
 #[NCA\Instance]
 class DiscordAPIClient extends ModuleInstance {
 	public const DISCORD_API = "https://discord.com/api/v10";
-	#[NCA\Inject]
-	public Http $http;
-
 	#[NCA\Inject]
 	public DiscordController $discordCtrl;
 
@@ -76,175 +72,120 @@ class DiscordAPIClient extends ModuleInstance {
 		return $data;
 	}
 
-	/** @deprecated */
-	public function get(string $uri): AsyncHttp {
-		$botToken = $this->discordCtrl->discordBotToken;
-		return $this->http
-			->get($uri)
-			->withHeader('Authorization', "Bot {$botToken}");
-	}
-
-	/** @deprecated */
-	public function post(string $uri, string $data): AsyncHttp {
-		$botToken = $this->discordCtrl->discordBotToken;
-		return $this->http
-			->post($uri)
-			->withPostData($data)
-			->withHeader('Authorization', "Bot {$botToken}")
-			->withHeader('Content-Type', 'application/json');
-	}
-
-	/** @deprecated */
-	public function patch(string $uri, string $data): AsyncHttp {
-		$botToken = $this->discordCtrl->discordBotToken;
-		return $this->http
-			->patch($uri)
-			->withPostData($data)
-			->withHeader('Authorization', "Bot {$botToken}")
-			->withHeader('Content-Type', 'application/json');
-	}
-
-	/** @deprecated */
-	public function put(string $uri, string $data): AsyncHttp {
-		$botToken = $this->discordCtrl->discordBotToken;
-		return $this->http
-			->put($uri)
-			->withPostData($data)
-			->withHeader('Authorization', "Bot {$botToken}")
-			->withHeader('Content-Type', 'application/json');
-	}
-
-	/** @deprecated */
-	public function delete(string $uri): AsyncHttp {
-		$botToken = $this->discordCtrl->discordBotToken;
-		return $this->http
-			->delete($uri)
-			->withHeader('Authorization', "Bot {$botToken}");
-	}
-
-	/** @return Promise<DiscordGateway> */
-	public function getGateway(): Promise {
+	public function getGateway(): DiscordGateway {
 		return $this->sendRequest(
 			new Request(self::DISCORD_API . "/gateway/bot"),
 			new DiscordGateway(),
 		);
 	}
 
-	/** @return Promise<stdClass> */
-	public function modifyGuildMember(string $guildId, string $userId, string $data): Promise {
+	public function modifyGuildMember(string $guildId, string $userId, string $data): stdClass {
 		$uri = self::DISCORD_API . "/guilds/{$guildId}/members/{$userId}";
 		$request = new Request($uri, "PATCH");
 		$request->setBody(new DiscordBody($data));
 		return $this->sendRequest($request, new stdClass());
 	}
 
-	/** @return Promise<ApplicationCommand[]> */
+	/** @return ApplicationCommand[] */
 	public function registerGlobalApplicationCommands(
 		string $applicationId,
 		string $message,
-	): Promise {
+	): array {
 		$url = self::DISCORD_API . "/applications/{$applicationId}/commands";
 		$request = new Request($url, "PUT");
 		$request->setBody(new DiscordBody($message));
 		return $this->sendRequest($request, [new ApplicationCommand()]);
 	}
 
-	/** @return Promise<stdClass> */
 	public function deleteGlobalApplicationCommand(
 		string $applicationId,
 		string $commandId,
-	): Promise {
+	): stdClass {
 		$url = self::DISCORD_API . "/applications/{$applicationId}/commands/{$commandId}";
 		return $this->sendRequest(new Request($url, "DELETE"), new stdClass());
 	}
 
-	/** @return Promise<array<ApplicationCommand>> */
-	public function getGlobalApplicationCommands(string $applicationId): Promise {
+	/** @return ApplicationCommand[] */
+	public function getGlobalApplicationCommands(string $applicationId): array {
 		return $this->sendRequest(
 			new Request(self::DISCORD_API . "/applications/{$applicationId}/commands"),
 			[new ApplicationCommand()]
 		);
 	}
 
-	/** @return Promise<stdClass> */
 	public function sendInteractionResponse(
 		string $interactionId,
 		string $interactionToken,
 		string $message,
-	): Promise {
+	): stdClass {
 		$url = DiscordAPIClient::DISCORD_API . "/interactions/{$interactionId}/{$interactionToken}/callback";
 		$request = new Request($url, "POST");
 		$request->setBody(new DiscordBody($message));
 		return $this->sendRequest($request, new stdClass());
 	}
 
-	/** @return Promise<stdClass> */
-	public function leaveGuild(string $guildId): Promise {
+	public function leaveGuild(string $guildId): stdClass {
 		return $this->sendRequest(new Request(
 			self::DISCORD_API . "/users/@me/guilds/{$guildId}",
 			"DELETE"
 		), new stdClass());
 	}
 
-	/** @return Promise<void> */
-	public function queueToChannel(string $channel, string $message): Promise {
+	public function queueToChannel(string $channel, string $message): void {
 		$this->logger->info("Adding discord message to end of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		$deferred = new Deferred();
-		$this->outQueue []= new ChannelQueueItem($channel, $message, $deferred);
+		$suspension = EventLoop::getSuspension();
+		$this->outQueue []= new ChannelQueueItem($channel, $message, $suspension);
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
-		return $deferred->promise();
+		$suspension->suspend();
 	}
 
-	/** @return Promise<void> */
-	public function sendToChannel(string $channel, string $message): Promise {
+	public function sendToChannel(string $channel, string $message): void {
 		$this->logger->info("Adding discord message to front of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		$deferred = new Deferred();
-		array_unshift($this->outQueue, new ChannelQueueItem($channel, $message, $deferred));
+		$suspension = EventLoop::getSuspension();
+		array_unshift($this->outQueue, new ChannelQueueItem($channel, $message, $suspension));
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
-		return $deferred->promise();
+		$suspension->suspend();
 	}
 
-	/** @return Promise<void> */
-	public function queueToWebhook(string $applicationId, string $interactionToken, string $message): Promise {
+	public function queueToWebhook(string $applicationId, string $interactionToken, string $message): void {
 		$this->logger->info("Adding discord message to end of webhook queue {interaction}", [
 			"interaction" => $interactionToken,
 		]);
-		$deferred = new Deferred();
-		$this->webhookQueue []= new WebhookQueueItem($applicationId, $interactionToken, $message, $deferred);
+		$suspension = EventLoop::getSuspension();
+		$this->webhookQueue []= new WebhookQueueItem($applicationId, $interactionToken, $message, $suspension);
 		if ($this->webhookQueueProcessing === false) {
 			$this->processWebhookQueue();
 		}
-		return $deferred->promise();
+		$suspension->suspend();
 	}
 
-	/** @return Promise<void> */
-	public function sendToUser(string $user, string $message): Promise {
-		return call(function () use ($user, $message): Generator {
-			$this->logger->info("Sending message to discord user {user}", [
-				"user" => $user,
-				"message" => $message,
-			]);
-			$request = new Request(self::DISCORD_API . "/users/@me/channels", "POST");
-			$request->setBody(new JsonBody((object)["recipient_id" => $user]));
-			$channel = yield $this->sendRequest($request, new DiscordChannel());
-			yield $this->queueToChannel($channel->id, $message);
-		});
+	public function sendToUser(string $user, string $message): void {
+		$this->logger->info("Sending message to discord user {user}", [
+			"user" => $user,
+			"message" => $message,
+		]);
+		$request = new Request(self::DISCORD_API . "/users/@me/channels", "POST");
+		$request->setBody(BufferedContent::fromString(
+			json_encode(["recipient_id" => $user]),
+			'application/json; charset=utf-8'
+		));
+		$channel = $this->sendRequest($request, new DiscordChannel());
+		$this->queueToChannel($channel->id, $message);
 	}
 
 	public function cacheUser(DiscordUser $user): void {
 		$this->userCache[$user->id] = $user;
 	}
 
-	/** @return Promise<DiscordChannel> */
-	public function getChannel(string $channelId): Promise {
+	public function getChannel(string $channelId): DiscordChannel {
 		$this->logger->info("Looking up discord channel {channelId}", [
 			"channelId" => $channelId,
 		]);
@@ -252,8 +193,7 @@ class DiscordAPIClient extends ModuleInstance {
 		return $this->sendRequest($request, new DiscordChannel());
 	}
 
-	/** @return Promise<DiscordUser> */
-	public function getUser(string $userId): Promise {
+	public function getUser(string $userId): DiscordUser {
 		$this->logger->info("Looking up discord user {userId}", [
 			"userId" => $userId,
 		]);
@@ -261,14 +201,12 @@ class DiscordAPIClient extends ModuleInstance {
 			$this->logger->debug("Information found in cache", [
 				"cache" => $this->userCache[$userId],
 			]);
-			return new Success($this->userCache[$userId]);
+			return $this->userCache[$userId];
 		}
-		return call(function () use ($userId): Generator {
-			$request = new Request(self::DISCORD_API . "/users/{$userId}");
-			$user = yield $this->sendRequest($request, new DiscordUser());
-			$this->cacheUser($user);
-			return $user;
-		});
+		$request = new Request(self::DISCORD_API . "/users/{$userId}");
+		$user = $this->sendRequest($request, new DiscordUser());
+		$this->cacheUser($user);
+		return $user;
 	}
 
 	public function cacheGuildMember(string $guildId, GuildMember $member): void {
@@ -278,8 +216,7 @@ class DiscordAPIClient extends ModuleInstance {
 		}
 	}
 
-	/** @return Promise<GuildMember> */
-	public function getGuildMember(string $guildId, string $userId): Promise {
+	public function getGuildMember(string $guildId, string $userId): GuildMember {
 		$this->logger->info("Looking up discord guild {guildId} member {userId}", [
 			"guildId" => $guildId,
 			"userId" => $userId,
@@ -288,37 +225,34 @@ class DiscordAPIClient extends ModuleInstance {
 			$this->logger->debug("Information found in cache", [
 				"cache" => $this->guildMemberCache[$guildId][$userId],
 			]);
-			return new Success($this->guildMemberCache[$guildId][$userId]);
+			return $this->guildMemberCache[$guildId][$userId];
 		}
-		return call(function () use ($guildId, $userId): Generator {
-			$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/members/{$userId}");
-			$member = yield $this->sendRequest($request, new GuildMember());
-			$this->cacheGuildMember($guildId, $member);
-			return $member;
-		});
+		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/members/{$userId}");
+		$member = $this->sendRequest($request, new GuildMember());
+		$this->cacheGuildMember($guildId, $member);
+		return $member;
 	}
 
-	/**
-	 * Create a new channel invite
-	 *
-	 * @return Promise<DiscordChannelInvite>
-	 */
-	public function createChannelInvite(string $channelId, int $maxAge, int $maxUses): Promise {
+	/** Create a new channel invite */
+	public function createChannelInvite(string $channelId, int $maxAge, int $maxUses): DiscordChannelInvite {
 		$request = new Request(self::DISCORD_API . "/channels/{$channelId}/invites", "POST");
-		$request->setBody(new JsonBody((object)[
+		$request->setBody(BufferedContent::fromString(
+			json_encode([
 				"max_age" => $maxAge,
 				"max_uses" => $maxUses,
 				"unique" => true,
-			]));
+			]),
+			'application/json; charset=utf-8'
+		));
 		return $this->sendRequest($request, new DiscordChannelInvite());
 	}
 
 	/**
 	 * Get all currently valid guild invites for $guildId
 	 *
-	 * @return Promise<DiscordChannelInvite[]>
+	 * @return DiscordChannelInvite[]
 	 */
-	public function getGuildInvites(string $guildId): Promise {
+	public function getGuildInvites(string $guildId): array {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/invites");
 		return $this->sendRequest($request, [new DiscordChannelInvite()]);
 	}
@@ -472,111 +406,107 @@ class DiscordAPIClient extends ModuleInstance {
 	 *
 	 * @param T $o
 	 *
-	 * @return Promise<T>
+	 * @return T
 	 */
-	private function sendRequest(Request $request, JSONDataModel|stdClass|array $o): Promise {
-		return call(function () use ($request, $o) {
-			$client = $this->getClient();
-			$maxTries = 3;
-			$retries = $maxTries;
-			$response = null;
-			do {
-				$retry = false;
-				$retries--;
-				try {
-					if ($retries < $maxTries -1) {
-						$this->logger->notice("Retrying discord-message");
-					}
+	private function sendRequest(Request $request, JSONDataModel|stdClass|array $o): JSONDataModel|stdClass|array {
+		$client = $this->getClient();
+		$maxTries = 3;
+		$retries = $maxTries;
+		$response = null;
+		do {
+			$retry = false;
+			$retries--;
+			try {
+				if ($retries < $maxTries -1) {
+					$this->logger->notice("Retrying discord-message");
+				}
 
-					/** @var Response */
-					$response = yield $client->request($request);
+				$response = $client->request($request);
 
-					/** @var string */
-					$body = yield $response->getBody()->buffer();
-					if ($response->getStatus() >= 500 && $response->getStatus() < 600) {
-						$delayMs = 500;
-						$this->logger->warning(
-							"Got a {code} when sending message to Discord{retry}",
-							[
-								"retry" => ($retries > 0) ? ", retrying in {$delayMs}ms" : "",
-								"code" => $response->getStatus(),
-							]
-						);
-						$retry = true;
-						if ($retries > 0) {
-							yield delay($delayMs);
-						}
-						continue;
-					}
-				} catch (\Exception $e) {
-					$delayMs = 500;
-					$this->logger->error(
-						"Error sending message to discord: {error}{retry}",
+				$body = $response->getBody()->buffer();
+				if ($response->getStatus() >= 500 && $response->getStatus() < 600) {
+					$delay = 0.5;
+					$this->logger->warning(
+						"Got a {code} when sending message to Discord{retry}",
 						[
-							"retry" => ($retries > 0) ? ", retrying in {$delayMs}ms" : "",
-							"error" => $e->getMessage(),
-							"delay" => $delayMs,
+							"retry" => ($retries > 0) ? ", retrying in {$delay}s" : "",
+							"code" => $response->getStatus(),
 						]
 					);
 					$retry = true;
 					if ($retries > 0) {
-						yield delay($delayMs);
+						delay($delay);
 					}
 					continue;
 				}
-				if ($response->getStatus() < 200 || $response->getStatus() >= 300) {
-					throw new DiscordException(
-						'Error received while sending message to Discord. '.
-						'Status-Code: ' . $response->getStatus().
-						", Content: {$body}, URL: ".$request->getUri(),
-						$response->getStatus()
-					);
+			} catch (\Exception $e) {
+				$delay = 0.5;
+				$this->logger->error(
+					"Error sending message to discord: {error}{retry}",
+					[
+						"retry" => ($retries > 0) ? ", retrying in {$delay}s" : "",
+						"error" => $e->getMessage(),
+						"delay" => $delay,
+					]
+				);
+				$retry = true;
+				if ($retries > 0) {
+					delay($delay);
 				}
-			} while ($retry && $retries > 0);
-
-			/**
-			 * @psalm-suppress TypeDoesNotContainNull
-			 * @psalm-suppress DocblockTypeContradiction
-			 */
-			if (!isset($response) || !isset($body)) {
-				throw new DiscordException("Unable to send message with {$maxTries} tries");
+				continue;
 			}
-			if ($retries !== $maxTries -1) {
-				$this->logger->notice("Message sent successfully.");
-			}
-			if ($response->getStatus() === 204) {
-				return new stdClass();
-			}
-			if ($response->getHeader('content-type') !== 'application/json') {
-				throw new Exception(
-					'Non-JSON reply received from Discord Server. '.
-					'Content-Type: ' . ($response->getHeader('content-type') ?? '<empty>')
+			if ($response->getStatus() < 200 || $response->getStatus() >= 300) {
+				throw new DiscordException(
+					'Error received while sending message to Discord. '.
+					'Status-Code: ' . $response->getStatus().
+					", Content: {$body}, URL: ".$request->getUri(),
+					$response->getStatus()
 				);
 			}
-			$reply = json_decode($body);
-			if (is_array($o)) {
-				$result = [];
-				foreach ($reply as $element) {
-					$obj = clone $o[0];
-					$obj->fromJSON($element);
-					$result []= $obj;
-				}
-				$reply = $result;
-			} elseif (is_object($o) && $o instanceof JSONDataModel) {
-				$o->fromJSON($reply);
-				$reply = $o;
+		} while ($retry && $retries > 0);
+
+		/**
+		 * @psalm-suppress TypeDoesNotContainNull
+		 * @psalm-suppress DocblockTypeContradiction
+		 */
+		if (!isset($response) || !isset($body)) {
+			throw new DiscordException("Unable to send message with {$maxTries} tries");
+		}
+		if ($retries !== $maxTries -1) {
+			$this->logger->notice("Message sent successfully.");
+		}
+		if ($response->getStatus() === 204) {
+			return new stdClass();
+		}
+		if ($response->getHeader('content-type') !== 'application/json') {
+			throw new Exception(
+				'Non-JSON reply received from Discord Server. '.
+				'Content-Type: ' . ($response->getHeader('content-type') ?? '<empty>')
+			);
+		}
+		$reply = json_decode($body);
+		if (is_array($o)) {
+			$result = [];
+			foreach ($reply as $element) {
+				$obj = clone $o[0];
+				$obj->fromJSON($element);
+				$result []= $obj;
 			}
-			if (is_object($reply)) {
-				$this->logger->info("Decoded discord reply into {class}", [
-					"class" => basename(str_replace('\\', '/', get_class($reply))),
-					"object" => $reply,
-				]);
-			} elseif (is_array($reply)) {
-				$this->logger->info("Decoded discord reply into an array", [
-					"object" => $reply,
-				]);
-			}
-			return $reply;
-		});
+			$reply = $result;
+		} elseif (is_object($o) && $o instanceof JSONDataModel) {
+			$o->fromJSON($reply);
+			$reply = $o;
+		}
+		if (is_object($reply)) {
+			$this->logger->info("Decoded discord reply into {class}", [
+				"class" => basename(str_replace('\\', '/', get_class($reply))),
+				"object" => $reply,
+			]);
+		} elseif (is_array($reply)) {
+			$this->logger->info("Decoded discord reply into an array", [
+				"object" => $reply,
+			]);
+		}
+		return $reply;
 	}
 }

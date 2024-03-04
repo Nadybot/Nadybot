@@ -2,12 +2,12 @@
 
 namespace Nadybot\Core;
 
-use function Amp\call;
+use function Safe\json_decode;
 use Amp\Http\Client\Interceptor\AddRequestHeader;
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
-use Amp\Promise;
+use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;
 use Nadybot\Core\Attributes as NCA;
+
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 use Safe\Exceptions\JsonException;
@@ -40,46 +40,42 @@ class DiscordChannelSettingHandler extends SettingHandler {
 		return $msg;
 	}
 
-	/** @return Promise<string> */
-	public function save(string $newValue): Promise {
-		return call(function () use ($newValue) {
-			if ($newValue === "off") {
-				return $newValue;
+	public function save(string $newValue): string {
+		if ($newValue === "off") {
+			return $newValue;
+		}
+		if (!preg_match("/^\d{1,20}$/", $newValue)) {
+			throw new Exception("<highlight>{$newValue}<end> is not a valid Channel ID.");
+		}
+		$discordBotToken = $this->settingManager->get('discord_bot_token');
+		if (empty($discordBotToken) || $discordBotToken === 'off') {
+			throw new Exception("You cannot set any Discord channels before configuring your Discord Bot Token.");
+		}
+		$channel = $this->discordGatewayController->getChannel($newValue);
+		if ($channel !== null) {
+			if ($channel->type !== $channel::GUILD_TEXT) {
+				throw new Exception("Can only send message to text channels");
 			}
-			if (!preg_match("/^\d{1,20}$/", $newValue)) {
-				throw new Exception("<highlight>{$newValue}<end> is not a valid Channel ID.");
-			}
-			$discordBotToken = $this->settingManager->get('discord_bot_token');
-			if (empty($discordBotToken) || $discordBotToken === 'off') {
-				throw new Exception("You cannot set any Discord channels before configuring your Discord Bot Token.");
-			}
-			$channel = $this->discordGatewayController->getChannel($newValue);
-			if ($channel !== null) {
-				if ($channel->type !== $channel::GUILD_TEXT) {
-					throw new Exception("Can only send message to text channels");
-				}
-				return $newValue;
-			}
-			$client = $this->builder
-				->intercept(new AddRequestHeader('Authorization', 'Bot ' . $discordBotToken))
-				->build();
+			return $newValue;
+		}
+		$client = $this->builder
+			->intercept(new AddRequestHeader('Authorization', 'Bot ' . $discordBotToken))
+			->build();
 
-			/** @var Response */
-			$response = yield $client->request(new Request("https://discord.com/api/channels/{$newValue}"));
-			if ($response->getStatus() === 200) {
-				return $newValue;
-			}
-			$body = yield $response->getBody()->buffer();
-			try {
-				$reply = \Safe\json_decode($body);
-			} catch (JsonException $e) {
-				throw new Exception("Cannot use <highlight>{$newValue}<end> as value.");
-			}
-			if (isset($reply->message)) {
-				throw new Exception("<highlight>{$newValue}<end>: {$reply->message}.");
-			}
-			throw new Exception("<highlight>{$newValue}<end>: Unknown error getting channel info.");
-		});
+		$response = $client->request(new Request("https://discord.com/api/channels/{$newValue}"));
+		if ($response->getStatus() === 200) {
+			return $newValue;
+		}
+		$body = $response->getBody()->buffer();
+		try {
+			$reply = json_decode($body);
+		} catch (JsonException $e) {
+			throw new Exception("Cannot use <highlight>{$newValue}<end> as value.");
+		}
+		if (isset($reply->message)) {
+			throw new Exception("<highlight>{$newValue}<end>: {$reply->message}.");
+		}
+		throw new Exception("<highlight>{$newValue}<end>: Unknown error getting channel info.");
 	}
 
 	public function displayValue(string $sender): string {

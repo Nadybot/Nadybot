@@ -2,10 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Amp\{asyncCall, call};
-use Amp\Promise;
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Nadybot\Core\Config\BotConfig;
@@ -791,22 +788,6 @@ class CommandManager implements MessageEmitter {
 				$successfulHandler = $handler;
 				break;
 			}
-			// @TODO merge with upwards error detection once this became a Promise
-			if ($methodResult instanceof Generator) {
-				asyncCall(function () use ($methodResult, $context): Generator {
-					try {
-						yield from $methodResult;
-					} catch (UserException $e) {
-						$context->reply($e->getMessage());
-					} catch (Throwable $e) {
-						$this->logger->error(
-							"Error executing '{$context->message}': " . $e->getMessage(),
-							["exception" => $e]
-						);
-						$context->reply("There was an error executing your command: " . $e->getMessage());
-					}
-				});
-			}
 			if ($methodResult !== false) {
 				// we can stop looking, command was handled successfully
 				$successfulHandler = $handler;
@@ -1290,58 +1271,54 @@ class CommandManager implements MessageEmitter {
 	 *
 	 * @throws InvalidArgumentException when one of the parameters is invalid
 	 * @throws Exception                on unknown errors, like SQL
-	 *
-	 * @return Promise<void>
 	 */
-	public function changePermissionSet(string $name, CmdPermissionSet $data): Promise {
-		return call(function () use ($name, $data): Generator {
-			$old = $this->getPermissionSet($name);
-			if (!isset($old)) {
-				throw new InvalidArgumentException("The permission set <highlight>{$name}<end> does not exist.");
+	public function changePermissionSet(string $name, CmdPermissionSet $data): void {
+		$old = $this->getPermissionSet($name);
+		if (!isset($old)) {
+			throw new InvalidArgumentException("The permission set <highlight>{$name}<end> does not exist.");
+		}
+		if ($data->name !== $old->name) {
+			$newNameExists = $this->db->table(self::DB_TABLE_PERM_SET)
+				->where("name", $data->name)->exists();
+			if ($newNameExists) {
+				throw new InvalidArgumentException(
+					"A permission set <highlight>{$data->name}<end> already exists."
+				);
 			}
+		}
+		if ($data->letter !== $old->letter) {
+			$newLetterExists = $this->db->table(self::DB_TABLE_PERM_SET)
+				->where("letter", $data->letter)->exists();
+			if ($newLetterExists) {
+				throw new InvalidArgumentException(
+					"A permission set with the letter <highlight>{$data->letter}<end> already exists."
+				);
+			}
+		}
+		$this->db->awaitBeginTransaction();
+		try {
+			$this->db->table(self::DB_TABLE_PERM_SET)
+				->where("name", $name)
+				->update([
+					"name" => $data->name,
+					"letter" => $data->letter,
+				]);
 			if ($data->name !== $old->name) {
-				$newNameExists = $this->db->table(self::DB_TABLE_PERM_SET)
-					->where("name", $data->name)->exists();
-				if ($newNameExists) {
-					throw new InvalidArgumentException(
-						"A permission set <highlight>{$data->name}<end> already exists."
-					);
-				}
+				$this->db->table(self::DB_TABLE_MAPPING)
+					->where("permission_set", $name)
+					->update(["permission_set" => $data->name]);
+				$this->db->table(self::DB_TABLE_PERMS)
+					->where("permission_set", $name)
+					->update(["permission_set" => $data->name]);
 			}
-			if ($data->letter !== $old->letter) {
-				$newLetterExists = $this->db->table(self::DB_TABLE_PERM_SET)
-					->where("letter", $data->letter)->exists();
-				if ($newLetterExists) {
-					throw new InvalidArgumentException(
-						"A permission set with the letter <highlight>{$data->letter}<end> already exists."
-					);
-				}
-			}
-			yield $this->db->awaitBeginTransaction();
-			try {
-				$this->db->table(self::DB_TABLE_PERM_SET)
-					->where("name", $name)
-					->update([
-						"name" => $data->name,
-						"letter" => $data->letter,
-					]);
-				if ($data->name !== $old->name) {
-					$this->db->table(self::DB_TABLE_MAPPING)
-						->where("permission_set", $name)
-						->update(["permission_set" => $data->name]);
-					$this->db->table(self::DB_TABLE_PERMS)
-						->where("permission_set", $name)
-						->update(["permission_set" => $data->name]);
-				}
-			} catch (Exception $e) {
-				$this->db->rollback();
-				throw $e;
-			}
-			$this->db->commit();
-			$this->loadPermsetMappings();
-			$this->loadCommands();
-			$this->subcommandManager->loadSubcommands();
-		});
+		} catch (Exception $e) {
+			$this->db->rollback();
+			throw $e;
+		}
+		$this->db->commit();
+		$this->loadPermsetMappings();
+		$this->loadCommands();
+		$this->subcommandManager->loadSubcommands();
 	}
 
 	/**
@@ -1363,38 +1340,34 @@ class CommandManager implements MessageEmitter {
 	 *
 	 * @throws InvalidArgumentException when one of the parameters is invalid
 	 * @throws Exception                on unknown errors, like SQL
-	 *
-	 * @return Promise<void>
 	 */
-	public function deletePermissionSet(string $name): Promise {
-		return call(function () use ($name): Generator {
-			$name = strtolower($name);
-			if (!$this->db->table(self::DB_TABLE_PERM_SET)->where("name", $name)->exists()) {
-				throw new InvalidArgumentException("The permission set <highlight>{$name}<end> does not exist.");
-			}
-			if (count($usedBy = $this->getSourcesForPermsetName($name)) > 0) {
-				throw new InvalidArgumentException(
-					"The permission set <highlight>{$name}<end> is still assigned to <highlight>".
-					(new Collection($usedBy))->join("<end>, <highlight>", "<end> and <highlight>").
-					"<end>."
-				);
-			}
-			yield $this->db->awaitBeginTransaction();
-			try {
-				$this->db->table(self::DB_TABLE_PERMS)
-					->where("permission_set", $name)
-					->delete();
-				$this->db->table(self::DB_TABLE_PERM_SET)
-					->where("name", $name)
-					->delete();
-			} catch (Exception $e) {
-				$this->db->rollback();
-				throw new Exception("There was an unknown error deleting that permission set.", 0, $e);
-			}
-			$this->db->commit();
-			unset($this->commands[$name]);
-			$this->subcommandManager->loadSubcommands();
-		});
+	public function deletePermissionSet(string $name): void {
+		$name = strtolower($name);
+		if (!$this->db->table(self::DB_TABLE_PERM_SET)->where("name", $name)->exists()) {
+			throw new InvalidArgumentException("The permission set <highlight>{$name}<end> does not exist.");
+		}
+		if (count($usedBy = $this->getSourcesForPermsetName($name)) > 0) {
+			throw new InvalidArgumentException(
+				"The permission set <highlight>{$name}<end> is still assigned to <highlight>".
+				(new Collection($usedBy))->join("<end>, <highlight>", "<end> and <highlight>").
+				"<end>."
+			);
+		}
+		$this->db->awaitBeginTransaction();
+		try {
+			$this->db->table(self::DB_TABLE_PERMS)
+				->where("permission_set", $name)
+				->delete();
+			$this->db->table(self::DB_TABLE_PERM_SET)
+				->where("name", $name)
+				->delete();
+		} catch (Exception $e) {
+			$this->db->rollback();
+			throw new Exception("There was an unknown error deleting that permission set.", 0, $e);
+		}
+		$this->db->commit();
+		unset($this->commands[$name]);
+		$this->subcommandManager->loadSubcommands();
 	}
 
 	/**
@@ -1484,12 +1457,10 @@ class CommandManager implements MessageEmitter {
 			$this->processCmd($context);
 			return true;
 		}
-		asyncCall(function () use ($context): Generator {
-			if (yield $this->banController->isOnBanlist($context->char->id)) {
-				return;
-			}
-			$this->processCmd($context);
-		});
+		if ($this->banController->isOnBanlist($context->char->id)) {
+			return false;
+		}
+		$this->processCmd($context);
 		return true;
 	}
 
