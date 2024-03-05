@@ -4,6 +4,6 @@ namespace Nadybot\Core;
 
 use AO\Client\WorkerPackage;
 
-class PacketEvent extends Event {
+class PackageEvent extends Event {
 	public WorkerPackage $packet;
 }

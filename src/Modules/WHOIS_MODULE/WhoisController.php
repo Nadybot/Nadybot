@@ -23,7 +23,7 @@ use Nadybot\Core\{
 	Modules\BAN\BanController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
-	PacketEvent,
+	PackageEvent,
 	ParamClass\PCharacter,
 	Text,
 	Util,
@@ -149,7 +149,7 @@ class WhoisController extends ModuleInstance {
 			description: "Records names and charIds"
 		)
 	]
-	public function recordCharIds(PacketEvent $eventObj): void {
+	public function recordCharIds(PackageEvent $eventObj): void {
 		$packet = $eventObj->packet;
 		if (!$this->util->isValidSender($packet->args[0])) {
 			return;

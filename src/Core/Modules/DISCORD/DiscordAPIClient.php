@@ -2,14 +2,11 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use function Amp\delay;
+use function Amp\{async, delay};
 use function Safe\{json_decode, json_encode};
-use Amp\Http\Client\Body\JsonBody;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\Http\Client\{BufferedContent, HttpClient, HttpClientBuilder, Request};
-use Amp\{Promise};
 use Exception;
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	HttpRetryRateLimits,
@@ -260,9 +257,9 @@ class DiscordAPIClient extends ModuleInstance {
 	/**
 	 * Get all currently set guild events from Discord for $guildId
 	 *
-	 * @return Promise<DiscordScheduledEvent[]>
+	 * @return DiscordScheduledEvent[]
 	 */
-	public function getGuildEvents(string $guildId): Promise {
+	public function getGuildEvents(string $guildId): array {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/scheduled-events?with_user_count=true");
 		return $this->sendRequest($request, [new DiscordScheduledEvent()]);
 	}
@@ -270,52 +267,46 @@ class DiscordAPIClient extends ModuleInstance {
 	/**
 	 * Get all currently registered Emojis for $guildId
 	 *
-	 * @return Promise<Emoji[]>
+	 * @return Emoji[]
 	 */
-	public function getEmojis(string $guildId): Promise {
+	public function getEmojis(string $guildId): array {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis");
 		return $this->sendRequest($request, [new Emoji()]);
 	}
 
-	/**
-	 * Register a new Emoji in the $guildId
-	 *
-	 * @return Promise<Emoji>
-	 */
-	public function createEmoji(string $guildId, string $name, string $image): Promise {
+	/** Register a new Emoji in the $guildId */
+	public function createEmoji(string $guildId, string $name, string $image): Emoji {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis", "POST");
-		$request->setBody(new JsonBody((object)[
+		$request->setBody(BufferedContent::fromString(
+			json_encode([
 				"name" => $name,
 				"image" => $image,
 				"roles" => [],
-			]));
+			]),
+			'application/json; charset=utf-8'
+		));
 		return $this->sendRequest($request, new Emoji());
 	}
 
-	/**
-	 * Change the data for an already existing Emoji
-	 *
-	 * @return Promise<Emoji>
-	 */
-	public function changeEmoji(string $guildId, Emoji $emoji, string $image): Promise {
+	/** Change the data for an already existing Emoji */
+	public function changeEmoji(string $guildId, Emoji $emoji, string $image): Emoji {
 		if (!isset($emoji->id) || !isset($emoji->name)) {
 			throw new RuntimeException("Wrong emoji given");
 		}
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis/{$emoji->id}", "PATCH");
-		$request->setBody(new JsonBody((object)[
+		$request->setBody(BufferedContent::fromString(
+			json_encode([
 				"name" => $emoji->name,
 				"image" => $image,
 				"roles" => [],
-			]));
+			]),
+			'application/json; charset=utf-8'
+		));
 		return $this->sendRequest($request, new Emoji());
 	}
 
-	/**
-	 * Delete an already existing emoji
-	 *
-	 * @return Promise<stdClass>
-	 */
-	public function deleteEmoji(string $guildId, string $emojiId): Promise {
+	/** Delete an already existing emoji */
+	public function deleteEmoji(string $guildId, string $emojiId): stdClass {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis/{$emojiId}", "DELETE");
 		return $this->sendRequest($request, new stdClass());
 	}
@@ -338,32 +329,29 @@ class DiscordAPIClient extends ModuleInstance {
 		}
 		$this->queueProcessing = true;
 		$item = array_shift($this->outQueue);
-		Promise\rethrow($this->immediatelySendToChannel($item));
+		async($this->immediatelySendToChannel(...), $item)->ignore();
 	}
 
-	/** @return Promise<void> */
-	private function immediatelySendToChannel(ChannelQueueItem $item): Promise {
-		return call(function () use ($item): Generator {
-			try {
-				$this->logger->info("Sending message to discord channel {channel}", [
-					"channel" => $item->channelId,
-					"message" => $item->message,
-				]);
-				$url = self::DISCORD_API . "/channels/{$item->channelId}/messages";
-				$request = new Request($url, "POST");
-				$request->setBody(new DiscordBody($item->message));
-				yield $this->sendRequest($request, new stdClass());
-				if (isset($item->callback)) {
-					$item->callback->resolve();
-				}
-			} catch (Throwable $e) {
-				$this->logger->error("Sending message failed: {error}", [
-					"error" => $e->getMessage(),
-					"exception" => $e,
-				]);
+	private function immediatelySendToChannel(ChannelQueueItem $item): void {
+		try {
+			$this->logger->info("Sending message to discord channel {channel}", [
+				"channel" => $item->channelId,
+				"message" => $item->message,
+			]);
+			$url = self::DISCORD_API . "/channels/{$item->channelId}/messages";
+			$request = new Request($url, "POST");
+			$request->setBody(new DiscordBody($item->message));
+			$this->sendRequest($request, new stdClass());
+			if (isset($item->suspension)) {
+				$item->suspension->resume();
 			}
-			$this->processQueue();
-		});
+		} catch (Throwable $e) {
+			$this->logger->error("Sending message failed: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+		}
+		$this->processQueue();
 	}
 
 	private function processWebhookQueue(): void {
@@ -373,32 +361,29 @@ class DiscordAPIClient extends ModuleInstance {
 		}
 		$this->webhookQueueProcessing = true;
 		$item = array_shift($this->webhookQueue);
-		Promise\rethrow($this->immediatelySendToWebhook($item));
+		async($this->immediatelySendToWebhook(...), $item)->ignore();
 	}
 
-	/** @return Promise<void> */
-	private function immediatelySendToWebhook(WebhookQueueItem $item): Promise {
-		return call(function () use ($item): Generator {
-			try {
-				$this->logger->info("Sending message to discord webhook {webhook}", [
-					"webhook" => $item->interactionToken,
-					"message" => $item->message,
-				]);
-				$url = self::DISCORD_API . "/webhooks/{$item->applicationId}/{$item->interactionToken}";
-				$request = new Request($url, "POST");
-				$request->setBody(new DiscordBody($item->message));
-				yield $this->sendRequest($request, new stdClass());
-				if (isset($item->deferred)) {
-					$item->deferred->resolve();
-				}
-			} catch (Throwable $e) {
-				$this->logger->error("Error sending request: {error}. Dropping message", [
-					"error" => $e->getMessage(),
-					"exception" => $e,
-				]);
+	private function immediatelySendToWebhook(WebhookQueueItem $item): void {
+		try {
+			$this->logger->info("Sending message to discord webhook {webhook}", [
+				"webhook" => $item->interactionToken,
+				"message" => $item->message,
+			]);
+			$url = self::DISCORD_API . "/webhooks/{$item->applicationId}/{$item->interactionToken}";
+			$request = new Request($url, "POST");
+			$request->setBody(new DiscordBody($item->message));
+			$result = $this->sendRequest($request, new stdClass());
+			if (isset($item->suspension)) {
+				$item->suspension->resume($result);
 			}
-			$this->processWebhookQueue();
-		});
+		} catch (Throwable $e) {
+			$this->logger->error("Error sending request: {error}. Dropping message", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+		}
+		$this->processWebhookQueue();
 	}
 
 	/**

@@ -78,58 +78,6 @@ class CacheManager {
 	}
 
 	/**
-	 * Handle HTTP replies to lookups for the cache
-	 *
-	 * @psalm-param callable(?string): bool $isValidCallback
-	 * @psalm-param callable(CacheResult, mixed...) $callback
-	 */
-	public function handleCacheLookup(HttpResponse $response, string $groupName, string $filename, callable $isValidCallback, callable $callback, mixed ...$args): void {
-		if ($response->error) {
-			$this->logger->warning($response->error);
-		}
-		if (!isset($response->body) && isset($response->request)) {
-			$this->logger->warning("Empty reply received from " . $response->request->getURI());
-		}
-		if (empty($response->error)
-			&& isset($response->body)
-			&& $isValidCallback($response->body)
-		) {
-			// Lookup for the URL was successful, now update the cache and return data
-			$cacheResult = new CacheResult();
-			$cacheResult->data = $response->body;
-			$cacheResult->cacheAge = 0;
-			$cacheResult->usedCache = false;
-			$cacheResult->oldCache = false;
-			$cacheResult->success = true;
-			$this->store($groupName, $filename, $cacheResult->data);
-			$callback($cacheResult, ...$args);
-			return;
-		}
-		// If the site was not responding or the data was invalid and we
-		// also have no old cache, report that
-		if (!$this->cacheExists($groupName, $filename)) {
-			$callback(new CacheResult(), ...$args);
-			return;
-		}
-		// If we have an old cache entry, use that one, it's better than nothing
-		$data = $this->retrieve($groupName, $filename);
-		if (!call_user_func($isValidCallback, $data)) {
-			// Old cache data is invalid? Delete and report no data found
-			$this->remove($groupName, $filename);
-			$callback(new CacheResult(), ...$args);
-			return;
-		}
-
-		$cacheResult = new CacheResult();
-		$cacheResult->data = $data;
-		$cacheResult->cacheAge = $this->getCacheAge($groupName, $filename) ?? 0;
-		$cacheResult->usedCache = true;
-		$cacheResult->oldCache = true;
-		$cacheResult->success = true;
-		$callback($cacheResult, ...$args);
-	}
-
-	/**
 	 * Lookup information in the cache or retrieve it when outdated
 	 *
 	 * @param string   $url             The URL to load the data from if the cache is outdate

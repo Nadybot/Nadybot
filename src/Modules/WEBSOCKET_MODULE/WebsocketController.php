@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
-	PacketEvent,
+	PackageEvent,
 	Registry,
 	WebsocketBase,
 	WebsocketCallback,
@@ -195,7 +195,7 @@ class WebsocketController extends ModuleInstance {
 	)]
 	public function displayEvent(Event $event): void {
 		$isPrivatPacket = $event->type === 'msg'
-			|| $event instanceof PacketEvent
+			|| $event instanceof PackageEvent
 			|| $event instanceof WebsocketEvent;
 		// Packages that might contain secret or private information must never be relayed
 		if ($isPrivatPacket) {

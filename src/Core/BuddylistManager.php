@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use AO\Package;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
 

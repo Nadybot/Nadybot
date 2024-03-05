@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 use function Amp\async;
-use function Safe\{json_encode, sapi_windows_set_ctrl_handler, unpack};
+use function Safe\{sapi_windows_set_ctrl_handler, unpack};
 use Amp\Http\Client\HttpClientBuilder;
 use AO\Client\{Multi, WorkerConfig, WorkerPackage};
 use AO\{Group, Package, Utils};
@@ -751,7 +751,7 @@ class Nadybot {
 	/** Fire associated events for a received packet */
 	public function processAllPackages(WorkerPackage $package): void {
 		// fire individual packets event
-		$eventObj = new PacketEvent();
+		$eventObj = new PackageEvent();
 		$eventObj->type = "packet({$package->package->type->name})";
 		$eventObj->packet = $package;
 		$this->eventManager->fireEvent($eventObj);
@@ -1289,16 +1289,6 @@ class Nadybot {
 
 	public function getName(int $uid, bool $cacheOnly=false): ?string {
 		return $this->aoClient->lookupCharacter($uid, $cacheOnly);
-	}
-
-	/** A worker did a ping for us */
-	public function processWorkerPong(PingReply $reply): void {
-		$this->eventManager->fireEvent(new PongEvent($reply->worker));
-	}
-
-	/** Send a query to the proxy and ask for its supported capabilities */
-	public function queryProxyFeatures(): void {
-		$this->sendPong(json_encode((object)["cmd" => ProxyCapabilities::CMD_CAPABILITIES]));
 	}
 
 	/** Send a ping packet to keep the connection open */

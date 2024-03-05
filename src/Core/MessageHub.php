@@ -2,12 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Amp\call;
-use function Amp\Promise\rethrow;
-
-use Amp\Promise;
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 use JsonException;
 use Monolog\Logger;
@@ -26,6 +21,7 @@ use Nadybot\Core\{
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+
 use Throwable;
 
 #[NCA\Instance]
@@ -592,7 +588,8 @@ class MessageHub {
 		$this->routes[$source][$dest] []= $route;
 		$char = $this->getCharacter($dest);
 		if (isset($char)) {
-			rethrow($this->buddyListManager->addName($char, "msg_hub"));
+			// @todo check if needd async()->ignore()
+			$this->buddyListManager->addName($char, "msg_hub");
 		}
 		if (!$route->getTwoWay()) {
 			return;
@@ -602,7 +599,8 @@ class MessageHub {
 		$this->routes[$dest][$source] []= $route;
 		$char = $this->getCharacter($source);
 		if (isset($char)) {
-			rethrow($this->buddyListManager->addName($char, "msg_hub"));
+			// @todo check if needd async()->ignore()
+			$this->buddyListManager->addName($char, "msg_hub");
 		}
 	}
 
@@ -676,27 +674,21 @@ class MessageHub {
 		return $result;
 	}
 
-	/**
-	 * Remove all routes from the routing table and return how many were removed
-	 *
-	 * @return Promise<int>
-	 */
-	public function deleteAllRoutes(): Promise {
-		return call(function (): Generator {
-			$routes = $this->getRoutes();
-			yield $this->db->awaitBeginTransaction();
-			try {
-				$this->db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)->truncate();
-				$this->db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER)->truncate();
-				$this->db->table(MessageHub::DB_TABLE_ROUTES)->truncate();
-			} catch (Exception $e) {
-				$this->db->rollback();
-				throw $e;
-			}
-			$this->db->commit();
-			$this->routes = [];
-			return count($routes);
-		});
+	/** Remove all routes from the routing table and return how many were removed */
+	public function deleteAllRoutes(): int {
+		$routes = $this->getRoutes();
+		$this->db->awaitBeginTransaction();
+		try {
+			$this->db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)->truncate();
+			$this->db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER)->truncate();
+			$this->db->table(MessageHub::DB_TABLE_ROUTES)->truncate();
+		} catch (Exception $e) {
+			$this->db->rollback();
+			throw $e;
+		}
+		$this->db->commit();
+		$this->routes = [];
+		return count($routes);
 	}
 
 	/**

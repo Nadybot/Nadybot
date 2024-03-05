@@ -33,19 +33,6 @@ class QueryBuilder extends Builder {
 	}
 
 	/**
-	 * Pluck values as type $type
-	 *
-	 * @deprecated 6.1.0
-	 */
-	public function pluckAs(string $column, string $type): Collection {
-		return $this->pluck($column)
-			->map(function (mixed $value, int $key) use ($type): mixed {
-				\Safe\settype($value, $type);
-				return $value;
-			});
-	}
-
-	/**
 	 * Pluck values as strings
 	 *
 	 * @return Collection<string>

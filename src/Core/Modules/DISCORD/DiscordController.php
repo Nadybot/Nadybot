@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
+use function Amp\async;
 use function Safe\preg_split;
 
-use Amp\Promise;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -206,10 +206,12 @@ class DiscordController extends ModuleInstance {
 				$message->allowed_mentions->parse []= ["everyone"];
 			}
 			foreach ($message->split() as $msgPart) {
-				Promise\rethrow($this->discordAPIClient->sendToChannel(
+				// @todo Bad design, possibly distorting order, because unshifting
+				async(
+					$this->discordAPIClient->sendToChannel(...),
 					$this->discordNotifyChannel,
 					$msgPart->toJSON()
-				));
+				)->ignore();
 			}
 		}
 	}

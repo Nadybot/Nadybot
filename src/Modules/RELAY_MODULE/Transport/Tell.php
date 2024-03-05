@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	BuddylistManager,
 	EventManager,
 	Nadybot,
-	PacketEvent,
+	PackageEvent,
 	StopExecutionException,
 	UserStateEvent,
 };
@@ -134,7 +134,7 @@ class Tell implements TransportInterface {
 		$buddy = $this->buddylistManager->getBuddy($this->bot);
 		if (isset($buddy) && !count($buddy->types)) {
 			// We need to wait for the buddy-remove packet
-			$waitForRemoval = function (PacketEvent $event) use ($callback, &$waitForRemoval): void {
+			$waitForRemoval = function (PackageEvent $event) use ($callback, &$waitForRemoval): void {
 				$uid = $event->packet->args[0];
 				$name = $this->chatBot->lookup_user($uid);
 				if ($name === $this->bot && is_int($uid)) {
