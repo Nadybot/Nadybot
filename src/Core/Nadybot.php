@@ -84,9 +84,6 @@ class Nadybot {
 	public Util $util;
 
 	#[NCA\Inject]
-	public Timer $timer;
-
-	#[NCA\Inject]
 	public EventFeed $eventFeed;
 
 	#[NCA\Inject]
@@ -187,6 +184,12 @@ class Nadybot {
 	protected int $started = 0;
 
 	protected int $numSpamMsgsSent = 0;
+
+	/** @var array<int,string> */
+	private array $uidToName = [];
+
+	/** @var array<string,int> */
+	private array $nameToUid = [];
 
 	private ?Group $orgGroup = null;
 
@@ -294,6 +297,21 @@ class Nadybot {
 		$this->subcommandManager->loadSubcommands();
 		$this->commandAlias->load();
 		$this->eventManager->loadEvents();
+	}
+
+	public function cacheUidNameMapping(string $name, int $uid): void {
+		$name = Utils::normalizeCharacter($name);
+		$this->uidToName[$uid] = $name;
+		$this->nameToUid[$name] = $uid;
+	}
+
+	public function getOrgGroup(): ?Group {
+		return $this->orgGroup;
+	}
+
+	/** @return array<string,Group> */
+	public function getGroups(): array {
+		return $this->aoClient->getGroups();
 	}
 
 	public function getGroupByName(string $group): ?Group {
@@ -412,12 +430,6 @@ class Nadybot {
 				}
 			}
 		);
-
-		EventLoop::repeat(1000, function () {
-			if ($this->ready) {
-				$this->timer->executeTimerEvents();
-			}
-		});
 		EventLoop::run();
 		$this->logger->notice('Graceful shutdown.');
 	}
@@ -553,6 +565,18 @@ class Nadybot {
 			($abbr === 'none') ? null : $abbr
 		));
 		$this->messageHub->handle($rMessage);
+	}
+
+	public function sendRawTell(int|string $character, string $message, ?int $priority=null): void {
+		if (is_string($character)) {
+			$character = $this->getUid(Utils::normalizeCharacter($character));
+		}
+		$this->aoClient->write(
+			package: new Package\Out\Tell(
+				charId: $character,
+				message: $message,
+			)
+		);
 	}
 
 	/**
@@ -1185,19 +1209,16 @@ class Nadybot {
 
 		$this->logger->info("Handling {package}", ["package" => $package->package]);
 
-		// @CONTINUE
-		$orgId = ($channel->id->type === $channel->id->type::Org)
-			? $channel->id->number
-			: null;
+		$isOrgMessage = $channel->id->type === Group\Type::Org;
 
 		// Route public messages not from the bot itself
 		if ($sender !== $this->config->main->character) {
-			if (!$orgId || $this->settingManager->getBool('guild_channel_status')) {
+			if (!$isOrgMessage || $this->settingManager->getBool('guild_channel_status')) {
 				$rMessage = new RoutableMessage($package->package->message);
 				if ($this->util->isValidSender($sender)) {
 					$rMessage->setCharacter(new Character($sender, $senderId));
 				}
-				if ($orgId) {
+				if ($isOrgMessage) {
 					$abbr = $this->settingManager->getString('relay_guild_abbreviation');
 					$rMessage->prependPath(new Source(
 						Source::ORG,
@@ -1215,7 +1236,7 @@ class Nadybot {
 		}
 
 		// don't log tower messages with rest of chat messages
-		if ($channel != "All Towers" && $channel != "Tower Battle Outcome" && (!$orgId || $this->settingManager->getBool('guild_channel_status'))) {
+		if ($channel != "All Towers" && $channel != "Tower Battle Outcome" && (!$isOrgMessage || $this->settingManager->getBool('guild_channel_status'))) {
 			$this->logger->logChat($channel->name, $sender, $package->package->message);
 		} else {
 			$this->logger->info("[{channel}]: {message}", [
@@ -1237,7 +1258,7 @@ class Nadybot {
 			$eventObj->type = "orgmsg";
 
 			$this->eventManager->fireEvent($eventObj);
-		} elseif ($orgId && $this->settingManager->getBool('guild_channel_status')) {
+		} elseif ($isOrgMessage && $this->settingManager->getBool('guild_channel_status')) {
 			$type = "guild";
 
 			$eventObj->type = $type;
@@ -1284,10 +1305,17 @@ class Nadybot {
 	}
 
 	public function getUid(string $name, bool $cacheOnly=false): ?int {
-		return $this->aoClient->lookupUid(Utils::normalizeCharacter($name), $cacheOnly);
+		$name = Utils::normalizeCharacter($name);
+		if (isset($this->nameToUid[$name])) {
+			return $this->nameToUid[$name];
+		}
+		return $this->aoClient->lookupUid($name, $cacheOnly);
 	}
 
 	public function getName(int $uid, bool $cacheOnly=false): ?string {
+		if (isset($this->uidToName[$uid])) {
+			return $this->uidToName[$uid];
+		}
 		return $this->aoClient->lookupCharacter($uid, $cacheOnly);
 	}
 

@@ -440,7 +440,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		CmdContext $context,
 		#[NCA\Str("reset", "init")]
 		string $action
-	): Generator {
+	): void {
 		$colors = $this->msgHub::$colors;
 
 		/** @var int[] */
@@ -849,7 +849,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$character = $event->getCharacter();
 			if (isset($character) && !isset($character->id)) {
 				$character = clone $character;
-				$character->id = yield $this->chatBot->getUid2($character->name);
+				$character->id = $this->chatBot->getUid($character->name);
 			}
 			$message = new Message(
 				dimension: $character?->dimension ?? $this->config->main->dimension,
@@ -1079,7 +1079,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		}
 		$uid = null;
 		if ($dimension === $this->config->main->dimension) {
-			$uid = yield $this->chatBot->getUid2($name());
+			$uid = $this->chatBot->getUid($name());
 			if ($uid === null) {
 				$context->reply("The character {$name} does not exist");
 				return;

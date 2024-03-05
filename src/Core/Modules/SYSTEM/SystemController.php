@@ -2,17 +2,16 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use function Safe\{ini_get, unpack};
-use Amp\Loop;
+use function Safe\{ini_get, json_encode};
+
+use Amp\File\FilesystemDriver;
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	Attributes as NCA,
-	BotRunner,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -44,6 +43,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Request,
 	Response,
 };
+use Revolt\EventLoop;
 
 /**
  * @author Sebuda (RK2)
@@ -146,6 +146,9 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	#[NCA\Logger]
+	public FilesystemDriver $fs;
 
 	/** Default command prefix symbol */
 	#[NCA\Setting\Text(options: ["!", "#", "*", "@", "$", "+", "-"])]
@@ -333,8 +336,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$basicInfo->org_id = $this->config->orgId;
 		$basicInfo->php_version = phpversion();
 		$basicInfo->os = php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m');
-		$basicInfo->event_loop = class_basename(Loop::get());
-		$basicInfo->fs = class_basename(Loop::getState(BotRunner::AMP_FS_HANDLER));
+		$basicInfo->event_loop = class_basename(EventLoop::getDriver());
+		$basicInfo->fs = class_basename($this->fs);
 
 		$basicInfo->superadmins = $this->config->general->superAdmins;
 
@@ -361,9 +364,6 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$info->misc = $misc = new MiscSystemInformation();
 		$misc->uptime = time() - $this->chatBot->startup;
 		$misc->using_chat_proxy = $this->config->proxy?->enabled === true;
-		if ($misc->using_chat_proxy) {
-			$misc->proxy_capabilities = $this->chatBot->proxyCapabilities;
-		}
 
 		$info->config = $config = new ConfigStatistics();
 		$config->active_aliases = $numAliases = count($this->commandAlias->getEnabledAliases());
@@ -388,18 +388,13 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$stats->priv_channel_size = count($this->chatBot->chatlist);
 		$stats->org_size = count($this->chatBot->guildmembers);
 		$stats->chatqueue_length = 0;
-		if (isset($this->chatBot->chatqueue)) {
-			$stats->chatqueue_length = $this->chatBot->chatqueue->getSize();
-		}
 
-		foreach ($this->chatBot->grp as $gid => $status) {
+		foreach ($this->chatBot->getGroups() as $name => $group) {
 			$channel = new ChannelInfo();
-			$channel->class = ord(substr((string)$gid, 0, 1));
-			$channel->id = unpack("N", substr((string)$gid, 1))[1];
-			if (is_string($this->chatBot->gid[$gid])) {
-				$channel->name = $this->chatBot->gid[$gid];
-				$info->channels []= $channel;
-			}
+			$channel->class = $group->id->type->value;
+			$channel->id = $group->id->number;
+			$channel->name = $group->name;
+			$info->channels []= $channel;
 		}
 
 		return $info;
@@ -442,27 +437,6 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$blob .= "<header2>Misc<end>\n";
 		$date_string = $this->util->unixtimeToReadable($info->misc->uptime);
 		$blob .= "<tab>Using Chat Proxy: <highlight>" . ($info->misc->using_chat_proxy ? "enabled" : "disabled") . "<end>\n";
-		if ($info->misc->using_chat_proxy && $info->misc->proxy_capabilities->name !== "unknown") {
-			$cap = $info->misc->proxy_capabilities;
-			$blob .= "<tab>Proxy Software: <highlight>{$cap->name} {$cap->version}<end>\n";
-			if (count($cap->supported_cmds)) {
-				$blob .= "<tab>Supported commands <highlight>" . join("<end>, <highlight>", $cap->supported_cmds) . "<end>\n";
-			}
-			if (count($cap->send_modes)) {
-				$blob .= "<tab>Supported send modes: <highlight>" . join("<end>, <highlight>", $cap->send_modes) . "<end>\n";
-			}
-			if (isset($cap->default_mode)) {
-				$blob .= "<tab>Default send mode: <highlight>{$cap->default_mode}<end>\n";
-			}
-			if (isset($cap->workers) && count($cap->workers)) {
-				$blob .= "<tab>Workers: <highlight>" . join("<end>, <highlight>", $cap->workers) . "<end>\n";
-			}
-			if (isset($cap->started_at)) {
-				$blob .= "<tab>Proxy uptime: <highlight>".
-					$this->util->unixtimeToReadable(time() - $cap->started_at).
-					"<end>\n";
-			}
-		}
 		$blob .= "<tab>Bot Uptime: <highlight>{$date_string}<end>\n\n";
 
 		$blob .= "<header2>Configuration<end>\n";
@@ -496,15 +470,14 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	/** Show which access level you currently have */
 	#[NCA\HandlesCommand("checkaccess")]
-	public function checkaccessSelfCommand(CmdContext $context): Generator {
+	public function checkaccessSelfCommand(CmdContext $context): void {
 		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($context->char->name));
 
 		$msg = "Access level for <highlight>{$context->char->name}<end> (".
 			(isset($context->char->id) ? "ID {$context->char->id}" : "No ID").
 			") is <highlight>{$accessLevel}<end>.";
 		if (isset($context->char->id)) {
-			$isBanned = yield $this->banController->isOnBanlist($context->char->id);
-			if ($isBanned) {
+			if ($this->banController->isOnBanlist($context->char->id)) {
 				if ($this->banController->isBanned($context->char->id)) {
 					$msg .= " You are <red>banned<end> on this bot.";
 				} else {
@@ -517,16 +490,15 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	/** Show which access level &lt;character&gt; currently has */
 	#[NCA\HandlesCommand("checkaccess")]
-	public function checkaccessOtherCommand(CmdContext $context, PCharacter $character): Generator {
-		$uid = yield $this->chatBot->getUid2($character());
+	public function checkaccessOtherCommand(CmdContext $context, PCharacter $character): void {
+		$uid = $this->chatBot->getUid($character());
 		if (!isset($uid)) {
 			$context->reply("Character <highlight>{$character}<end> does not exist.");
 			return;
 		}
 		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($character()));
 		$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>{$accessLevel}<end>.";
-		$isBanned = yield $this->banController->isOnBanlist($uid);
-		if ($isBanned) {
+		if ($this->banController->isOnBanlist($uid)) {
 			if ($this->banController->isBanned($uid)) {
 				$msg .= " {$character} is <red>banned<end> on this bot.";
 			} else {
@@ -539,6 +511,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	/** Clears the outgoing chatqueue from all pending messages */
 	#[NCA\HandlesCommand("clearqueue")]
 	public function clearqueueCommand(CmdContext $context): void {
+		/*
 		if (!isset($this->chatBot->chatqueue)) {
 			$context->reply("There is currently no Chat queue set up.");
 			return;
@@ -546,6 +519,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$num = $this->chatBot->chatqueue->clear();
 
 		$context->reply("Chat queue has been cleared of <highlight>{$num}<end> messages.");
+		*/
+		$context->reply("This command is currently unsupported");
 	}
 
 	/** Execute multiple commands at once, separated by pipes. */
@@ -604,9 +579,9 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		command: "<symbol>showcommand Tyrence online",
 		description: "Show the online list to Tyrence"
 	)]
-	public function showCommandCommand(CmdContext $context, PCharacter $name, string $cmd): Generator {
+	public function showCommandCommand(CmdContext $context, PCharacter $name, string $cmd): void {
 		$name = $name();
-		$uid = yield $this->chatBot->getUid2($name);
+		$uid = $this->chatBot->getUid($name);
 		if (!isset($uid)) {
 			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;
@@ -632,7 +607,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			["password" => null, "DB username" => null, "DB password" => null]
 		);
 
-		$json = \Safe\json_encode(
+		$json = json_encode(
 			$config,
 			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE
 		);

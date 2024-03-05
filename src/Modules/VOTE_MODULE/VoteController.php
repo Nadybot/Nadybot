@@ -21,7 +21,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	SettingManager,
 	Text,
-	Timer,
 	Util,
 };
 
@@ -88,9 +87,6 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;

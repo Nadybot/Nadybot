@@ -2,9 +2,6 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Amp\asyncCall;
-use Generator;
-
 use Nadybot\Core\{
 	AccessLevelProvider,
 	AccessManager,
@@ -16,7 +13,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\BAN\BanController,
 	Modules\DISCORD\DiscordAPIClient,
-	Modules\DISCORD\DiscordUser,
 	Nadybot,
 	ParamClass\PCharacter,
 	Registry,
@@ -185,7 +181,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		#[NCA\Str("request")]
 		string $action,
 		PCharacter $char
-	): Generator {
+	): void {
 		$discordUserId = $context->char->name;
 		if (($authedAs = $this->getNameForDiscordId($discordUserId)) !== null) {
 			$msg = "You are already linked to <highlight>{$authedAs}<end>.";
@@ -194,7 +190,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		}
 		$name = $char();
 
-		$uid = yield $this->chatBot->getUid2($name);
+		$uid = $this->chatBot->getUid($name);
 		if (!isset($uid)) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
@@ -233,8 +229,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			$uid = $data->token;
 		}
 
-		/** @var DiscordUser */
-		$user = yield $this->discordAPIClient->getUser($discordUserId);
+		$user = $this->discordAPIClient->getUser($discordUserId);
 		$context->char->name = $user->username . "#" . $user->discriminator;
 		$blob = "The Discord user <highlight>{$context->char->name}<end> has requested to be linked with your ".
 			"game account. If you confirm the link, that discord user will be linked ".
@@ -308,14 +303,11 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			return;
 		}
 		$context->char->name = $userId;
-		asyncCall(function () use ($userId, $context, $execCmd): Generator {
-			/** @var ?int */
-			$uid = yield $this->chatBot->getUid2($userId);
-			if (isset($uid) && yield $this->banController->isOnBanlist($uid)) {
-				return;
-			}
-			$context->char->id = $uid;
-			$execCmd();
-		});
+		$uid = $this->chatBot->getUid($userId);
+		if (isset($uid) && $this->banController->isOnBanlist($uid)) {
+			return;
+		}
+		$context->char->id = $uid;
+		$execCmd();
 	}
 }

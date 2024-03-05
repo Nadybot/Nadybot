@@ -441,7 +441,7 @@ class WorldBossController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("updatewb")]
-	public function updateWbCommand(CmdContext $context): Generator {
+	public function updateWbCommand(CmdContext $context): void {
 		try {
 			$numUpdates = yield from $this->loadTimersFromAPI();
 			$context->reply(

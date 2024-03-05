@@ -48,7 +48,7 @@ class RulesController extends ModuleInstance {
 		"To set up rules for this bot, put a file into\n".
 		"<tab><highlight>data/rules.txt<end>"
 	)]
-	public function rulesCommand(CmdContext $context): Generator {
+	public function rulesCommand(CmdContext $context): void {
 		$rulesPath = "{$this->config->paths->data}/rules.txt";
 		try {
 			if (false === yield filesystem()->exists($rulesPath)) {
@@ -70,7 +70,7 @@ class RulesController extends ModuleInstance {
 		"To set up raid rules for this bot, put a file into\n".
 		"<tab><highlight>data/raidrules.txt<end>"
 	)]
-	public function raidrulesCommand(CmdContext $context): Generator {
+	public function raidrulesCommand(CmdContext $context): void {
 		$rulesPath = "{$this->config->paths->data}/raidrules.txt";
 		try {
 			if (false === yield filesystem()->exists($rulesPath)) {

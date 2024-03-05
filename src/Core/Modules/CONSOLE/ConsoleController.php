@@ -2,12 +2,10 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
-use function Amp\asyncCall;
+use function Amp\async;
 use function Safe\{readline_add_history, readline_callback_handler_install, readline_read_history, readline_write_history};
-use Amp\Loop;
 use Exception;
 
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -23,6 +21,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use Revolt\EventLoop;
 
 #[NCA\Instance]
 class ConsoleController extends ModuleInstance {
@@ -143,20 +142,22 @@ class ConsoleController extends ModuleInstance {
 		$this->useReadline = function_exists('readline_callback_handler_install');
 		if (!$this->useReadline) {
 			$this->logger->warning('readline not supported on this platform, using basic console');
-			$callback = [$this, "processStdin"];
+			$callback = function (string $handle, mixed $resource): void {
+				$this->processStdin();
+			};
 		} else {
-			$callback = function (string $handle): void {
+			$callback = function (string $handle, mixed $resource): void {
 				readline_callback_read_char();
 			};
 		}
 		$this->loadHistory();
 		$this->socket = STDIN;
-		Loop::delay(1000, function () use ($callback): void {
+		EventLoop::delay(1000, function (string $token) use ($callback): void {
 			if (!is_resource($this->socket)) {
 				return;
 			}
 			$this->logger->notice("StdIn console activated, accepting commands");
-			$this->socketHandle = Loop::onReadable($this->socket, $callback);
+			$this->socketHandle = EventLoop::onReadable($this->socket, $callback);
 			if ($this->useReadline) {
 				readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
 			} else {
@@ -173,7 +174,7 @@ class ConsoleController extends ModuleInstance {
 		if (feof($this->socket)) {
 			echo("EOF received, closing console.\n");
 			@fclose($this->socket);
-			Loop::cancel($this->socketHandle);
+			EventLoop::cancel($this->socketHandle);
 			return;
 		}
 		$line = fgets($this->socket);
@@ -192,7 +193,7 @@ class ConsoleController extends ModuleInstance {
 		}
 		if ($this->useReadline) {
 			readline_add_history($line);
-			Loop::defer(function (): void {
+			EventLoop::defer(function (string $token): void {
 				$this->saveHistory();
 			});
 			readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
@@ -203,8 +204,8 @@ class ConsoleController extends ModuleInstance {
 		$context->source = Source::CONSOLE;
 		$context->sendto = new ConsoleCommandReply($this->chatBot);
 		Registry::injectDependencies($context->sendto);
-		asyncCall(function () use ($context): Generator {
-			$uid = yield $this->chatBot->getUid2($context->char->name);
+		async(function () use ($context): void {
+			$uid = $this->chatBot->getUid($context->char->name);
 			$context->char->id = $uid;
 			$rMessage = new RoutableMessage($context->message);
 			$rMessage->setCharacter($context->char);

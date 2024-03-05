@@ -94,7 +94,7 @@ class BuffPerksController extends ModuleInstance {
 
 	/** See which perks are available for your level and profession */
 	#[NCA\HandlesCommand("perks")]
-	public function buffPerksNoArgsCommand(CmdContext $context): Generator {
+	public function buffPerksNoArgsCommand(CmdContext $context): void {
 		/** @var ?Player */
 		$whois = yield $this->playerManager->byName($context->char->name);
 		if (empty($whois) || !isset($whois->profession) || !isset($whois->level)) {

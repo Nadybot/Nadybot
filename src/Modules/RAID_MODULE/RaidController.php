@@ -30,7 +30,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
-	Timer,
 	Util,
 };
 
@@ -105,9 +104,6 @@ class RaidController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public RaidMemberController $raidMemberController;
@@ -650,7 +646,7 @@ class RaidController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("check")]
 		string $action
-	): Generator {
+	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -910,7 +906,7 @@ class RaidController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("dual")]
 		string $action
-	): Generator {
+	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;

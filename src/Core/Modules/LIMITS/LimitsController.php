@@ -2,20 +2,15 @@
 
 namespace Nadybot\Core\Modules\LIMITS;
 
-use function Amp\asyncCall;
-
-use Amp\{
-	Failure,
-	Promise,
-	Success,
-};
-use Generator;
+use function Amp\async;
+use AO\Package;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistory,
 	PlayerHistoryData,
 	PlayerHistoryManager,
 	PlayerManager,
 };
+
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -32,7 +27,6 @@ use Nadybot\Core\{
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
-	Timer,
 	UserException,
 	Util,
 };
@@ -63,9 +57,6 @@ class LimitsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Util $util;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public BotConfig $config;
@@ -186,6 +177,7 @@ class LimitsController extends ModuleInstance {
 			$callback(...$args);
 			return;
 		}
+		// @todo reword without callback
 		$this->checkAccessError(
 			$sender,
 			function (string $msg) use ($sender, $message): void {
@@ -234,14 +226,14 @@ class LimitsController extends ModuleInstance {
 	 * @psalm-param callable(mixed...) $successHandler
 	 */
 	public function checkAccessError(string $sender, callable $errorHandler, callable $successHandler, mixed ...$args): void {
-		asyncCall(function () use ($sender, $errorHandler, $successHandler, $args): Generator {
+		async(function () use ($sender, $errorHandler, $successHandler, $args): void {
 			$tellReqFaction = $this->tellReqFaction;
 			$tellReqLevel = $this->tellReqLvl;
 			if ($tellReqLevel > 0 || $tellReqFaction !== "all") {
 				// get player info which is needed for following checks
-				$player = yield $this->playerManager->byName($sender);
+				$player = $this->playerManager->byName($sender);
 				try {
-					yield $this->checkMeetsLevelAndFactionRequirements($player);
+					$this->checkMeetsLevelAndFactionRequirements($player);
 				} catch (UserException $e) {
 					$errorHandler($e->getMessage());
 					return;
@@ -251,9 +243,9 @@ class LimitsController extends ModuleInstance {
 				$successHandler(...$args);
 				return;
 			}
-			$history = yield $this->playerHistoryManager->asyncLookup2($sender, $this->config->main->dimension);
+			$history = $this->playerHistoryManager->lookup($sender, $this->config->main->dimension);
 			try {
-				yield $this->checkMeetsMinAgeRequirements($history);
+				$this->checkMeetsMinAgeRequirements($history);
 			} catch (UserException $e) {
 				$errorHandler($e->getMessage());
 				return;
@@ -334,7 +326,12 @@ class LimitsController extends ModuleInstance {
 				$this->logger->notice("Kicking {character} from private channel.", [
 					"character" => $event->sender,
 				]);
-				$this->chatBot->privategroup_kick($event->sender);
+				$sender = $this->chatBot->getUid((string)$event->sender);
+				if (isset($sender)) {
+					$this->chatBot->aoClient->write(
+						package: new Package\Out\PrivateChannelKick(charId: $sender)
+					);
+				}
 				$audit = new Audit();
 				$audit->actor = (string)$event->sender;
 				$audit->action = AccessManager::KICK;
@@ -343,16 +340,14 @@ class LimitsController extends ModuleInstance {
 			}
 		}
 		if ($action & 2) {
-			asyncCall(function () use ($event, $blockadeLength): Generator {
-				$uid = yield $this->chatBot->getUid2((string)$event->sender);
-				if (isset($uid)) {
-					$this->logger->notice("Blocking {character} for {duration}s.", [
-						"character" => $event->sender,
-						"duration" => $blockadeLength,
-					]);
-					$this->banController->add($uid, (string)$event->sender, $blockadeLength, "Too many commands executed");
-				}
-			});
+			$uid = $this->chatBot->getUid((string)$event->sender);
+			if (isset($uid)) {
+				$this->logger->notice("Blocking {character} for {duration}s.", [
+					"character" => $event->sender,
+					"duration" => $blockadeLength,
+				]);
+				$this->banController->add($uid, (string)$event->sender, $blockadeLength, "Too many commands executed");
+			}
 		}
 		if ($action & 4) {
 			$this->logger->notice("Ignoring {character} for {duration}s.", [
@@ -420,21 +415,21 @@ class LimitsController extends ModuleInstance {
 		}
 	}
 
-	/** @return Promise<null> */
-	private function checkMeetsLevelAndFactionRequirements(?Player $whois): Promise {
+	/** @throws UserException if requirements not met */
+	private function checkMeetsLevelAndFactionRequirements(?Player $whois): void {
 		if ($whois === null) {
-			return new Failure(new UserException(
+			throw new UserException(
 				"Error! Unable to get your character info for limit checks. Please try again later."
-			));
+			);
 		}
 		$tellReqFaction = $this->tellReqFaction;
 		$tellReqLevel = $this->tellReqLvl;
 
 		// check minlvl
 		if ($tellReqLevel > 0 && $tellReqLevel > $whois->level) {
-			return new Failure(new UserException(
+			throw new UserException(
 				"Error! You must be at least level <highlight>{$tellReqLevel}<end>."
-			));
+			);
 		}
 
 		// check faction limit
@@ -442,27 +437,26 @@ class LimitsController extends ModuleInstance {
 			in_array($tellReqFaction, ["Omni", "Clan", "Neutral"])
 			&& $tellReqFaction !== $whois->faction
 		) {
-			return new Failure(new UserException(
+			throw new UserException(
 				"Error! You must be <".strtolower($tellReqFaction).">{$tellReqFaction}<end>."
-			));
+			);
 		}
 		if (in_array($tellReqFaction, ["not Omni", "not Clan", "not Neutral"])) {
 			$tmp = explode(" ", $tellReqFaction);
 			if ($tmp[1] === $whois->faction) {
-				return new Failure(throw new UserException(
+				throw new UserException(
 					"Error! You must not be <".strtolower($tmp[1]).">{$tmp[1]}<end>."
-				));
+				);
 			}
 		}
-		return new Success();
 	}
 
-	/** @return Promise<null> */
-	private function checkMeetsMinAgeRequirements(?PlayerHistory $history): Promise {
+	/** @throws UserException if requirements not met */
+	private function checkMeetsMinAgeRequirements(?PlayerHistory $history): void {
 		if ($history === null) {
-			return new Failure(new UserException(
+			throw new UserException(
 				"Error! Unable to get your character history for limit checks. Please try again later."
-			));
+			);
 		}
 		$minAge = time() - $this->tellMinPlayerAge;
 
@@ -472,10 +466,9 @@ class LimitsController extends ModuleInstance {
 
 		if ($entry->last_changed->getTimestamp() > $minAge) {
 			$timeString = $this->util->unixtimeToReadable($this->tellMinPlayerAge);
-			return new Failure(new UserException(
+			throw new UserException(
 				"Error! You must be at least <highlight>{$timeString}<end> old."
-			));
+			);
 		}
-		return new Success();
 	}
 }

@@ -2,9 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Amp\Promise;
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -118,7 +116,7 @@ class ConfigApiController extends ModuleInstance {
 		NCA\ApiResult(code: 404, desc: "Wrong module or setting"),
 		NCA\ApiResult(code: 422, desc: "Invalid value given")
 	]
-	public function changeModuleSettingEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $setting): Generator {
+	public function changeModuleSettingEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $setting): Response {
 		/** @var Setting|null */
 		$oldSetting = $this->db->table(SettingManager::DB_TABLE)
 			->where("name", $setting)->where("module", $module)
@@ -175,9 +173,6 @@ class ConfigApiController extends ModuleInstance {
 		}
 		try {
 			$newValueToSave = $settingHandler->save((string)$value);
-			if ($newValueToSave instanceof Promise) {
-				$newValueToSave = yield $newValueToSave;
-			}
 			if (!$this->settingManager->save($setting, $newValueToSave)) {
 				return new Response(Response::NOT_FOUND);
 			}
@@ -475,7 +470,7 @@ class ConfigApiController extends ModuleInstance {
 		NCA\AccessLevel("superadmin"),
 		NCA\ApiResult(code: 204, class: "ExtCmdPermissionSet", desc: "Permission Set changed successfully")
 	]
-	public function apiConfigPermissionSetPatchEndpoint(Request $request, HttpProtocolWrapper $server, string $name): Generator {
+	public function apiConfigPermissionSetPatchEndpoint(Request $request, HttpProtocolWrapper $server, string $name): Response {
 		$set = $request->decodedBody;
 		try {
 			if (!is_object($set)) {
@@ -495,7 +490,7 @@ class ConfigApiController extends ModuleInstance {
 			$old->{$key} = $value;
 		}
 		try {
-			yield $this->commandManager->changePermissionSet($name, $old);
+			$this->commandManager->changePermissionSet($name, $old);
 		} catch (Exception $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
 		}

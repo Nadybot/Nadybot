@@ -6,7 +6,6 @@ use function Amp\File\filesystem;
 
 use Amp\ByteStream\LineReader;
 use Amp\File\{File, FilesystemException};
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -63,7 +62,7 @@ class GuideController extends ModuleInstance {
 
 	/** See a list of all the guides in alphabetical order */
 	#[NCA\HandlesCommand("guides")]
-	public function guidesListCommand(CmdContext $context): Generator {
+	public function guidesListCommand(CmdContext $context): void {
 		/** @var string[] */
 		$topicList = [];
 		try {
@@ -130,7 +129,7 @@ class GuideController extends ModuleInstance {
 		"<highlight><tab><symbol>guides title<end>\n".
 		"<highlight><tab><symbol>title<end>\n"
 	)]
-	public function guidesShowCommand(CmdContext $context, PFilename $guideName): Generator {
+	public function guidesShowCommand(CmdContext $context, PFilename $guideName): void {
 		// get the filename and read in the file
 		$fileName = strtolower($guideName());
 		$file = $this->path . $fileName . self::FILE_EXT;

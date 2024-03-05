@@ -2,9 +2,6 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
-use function Amp\{asyncCall, call};
-use Amp\Promise;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -129,27 +126,14 @@ class AltInfo {
 		return $alts;
 	}
 
-	/**
-	 * @psalm-param callable(string|list<string>) $callback
-	 *
-	 * @deprecated 6.1.0
-	 */
-	public function getAltsBlobAsync(callable $callback, bool $firstPageOnly=false): void {
-		asyncCall(function () use ($callback, $firstPageOnly): Generator {
-			$callback(yield $this->getAltsBlob($firstPageOnly));
-		});
-	}
+	/** @return string|string[] */
+	public function getAltsBlob(bool $firstPageOnly=false): string|array {
+		if (count($this->alts) === 0) {
+			return "No registered alts.";
+		}
 
-	/** @return Promise<string|string[]> */
-	public function getAltsBlob(bool $firstPageOnly=false): Promise {
-		return call(function () use ($firstPageOnly): Generator {
-			if (count($this->alts) === 0) {
-				return "No registered alts.";
-			}
-
-			$player = yield $this->playerManager->byName($this->main);
-			return $this->getAltsBlobForPlayer($player, $firstPageOnly);
-		});
+		$player = $this->playerManager->byName($this->main);
+		return $this->getAltsBlobForPlayer($player, $firstPageOnly);
 	}
 
 	/**

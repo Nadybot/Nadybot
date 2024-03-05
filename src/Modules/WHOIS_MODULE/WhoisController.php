@@ -165,7 +165,7 @@ class WhoisController extends ModuleInstance {
 
 	/** Show the name(s) for a character id */
 	#[NCA\HandlesCommand("lookup")]
-	public function lookupIdCommand(CmdContext $context, int $charID): Generator {
+	public function lookupIdCommand(CmdContext $context, int $charID): void {
 		$name = yield $this->chatBot->getName($charID);
 		if (isset($name)) {
 			$this->saveCharIds(new Event());
@@ -248,12 +248,12 @@ class WhoisController extends ModuleInstance {
 
 	/** Show character info, online status, and name history for a character */
 	#[NCA\HandlesCommand("whois")]
-	public function whoisNameCommand(CmdContext $context, PCharacter $char, ?int $dimension): Generator {
+	public function whoisNameCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$name = $char();
 		$dimension ??= $this->config->main->dimension;
 		$uid = null;
 		if ($dimension === $this->config->main->dimension) {
-			$uid = yield $this->chatBot->getUid2($name);
+			$uid = $this->chatBot->getUid($name);
 		}
 		if (isset($uid)) {
 			/**
@@ -279,7 +279,7 @@ class WhoisController extends ModuleInstance {
 
 	/** Show character info, online status, and name history for a character */
 	#[NCA\HandlesCommand("whois")]
-	public function whoisIdCommand(CmdContext $context, int $uid): Generator {
+	public function whoisIdCommand(CmdContext $context, int $uid): void {
 		/** @var ?string */
 		$name = $this->chatBot->getName($uid);
 		if (!isset($name)) {
@@ -361,7 +361,7 @@ class WhoisController extends ModuleInstance {
 	private function playerToWhois(?Player $whois, string $name, bool $online): Promise {
 		return call(function () use ($whois, $name, $online): Generator {
 			/** @var ?int */
-			$charID = yield $this->chatBot->getUid2($name);
+			$charID = $this->chatBot->getUid($name);
 			$lookupNameLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$name}");
 			$historyNameLink = $this->text->makeChatcmd("history", "/tell <myname> history {$name}");
 			$history1NameLink = $this->text->makeChatcmd("RK1", "/tell <myname> history {$name} 1");

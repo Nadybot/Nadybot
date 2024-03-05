@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Amp\Promise;
+use function Amp\async;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\DiscordChannel as ChannelsDiscordChannel,
@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
 class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
@@ -68,15 +69,12 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 		$fakeGM = new GuildMember();
 		$fakeGM->nick = $this->chatBot->char->name;
 		if (!$this->isDirectMsg) {
-			$this->discordGatewayController->lookupChannel(
-				$this->channelId,
-				function (DiscordChannel $channel, array $msg): void {
-					foreach ($msg as $msgPack) {
-						$this->routeToHub($channel, $msgPack);
-					}
-				},
-				$msg
-			);
+			$channel = $this->discordGatewayController->lookupChannel($this->channelId);
+			if (isset($channel)) {
+				foreach ($msg as $msgPack) {
+					$this->routeToHub($channel, $msgPack);
+				}
+			}
 		}
 		foreach ($msg as $msgPack) {
 			$messageObj = $this->discordController->formatMessage(
@@ -92,7 +90,7 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 				];
 			}
 			foreach ($messageObj->split() as $msgPart) {
-				Promise\rethrow($this->discordAPIClient->queueToChannel($this->channelId, $msgPart->toJSON()));
+				async($this->discordAPIClient->queueToChannel(...), $this->channelId, $msgPart->toJSON());
 			}
 		}
 	}

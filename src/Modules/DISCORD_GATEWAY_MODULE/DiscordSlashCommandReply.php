@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Amp\Promise;
+use function Amp\async;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	InteractionCallbackData,
 	InteractionResponse,
@@ -62,11 +63,12 @@ class DiscordSlashCommandReply implements CommandReply {
 		$response->data->flags = $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_EPHEMERAL
 			? InteractionCallbackData::EPHEMERAL
 			: null;
-		Promise\rethrow($this->discordAPIClient->sendInteractionResponse(
+		async(
+			$this->discordAPIClient->sendInteractionResponse(...),
 			$this->interactionId,
 			$this->interactionToken,
 			$this->discordAPIClient->encode($response),
-		));
+		);
 	}
 
 	public function reply($msg): void {
@@ -81,15 +83,12 @@ class DiscordSlashCommandReply implements CommandReply {
 			&& isset($this->channelId)
 			&& $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_REGULAR
 		) {
-			$this->gw->lookupChannel(
-				$this->channelId,
-				function (DiscordChannel $channel, array $msg): void {
-					foreach ($msg as $msgPack) {
-						$this->routeToHub($channel, $msgPack);
-					}
-				},
-				$msg
-			);
+			$channel = $this->gw->lookupChannel($this->channelId);
+			if (isset($channel)) {
+				foreach ($msg as $msgPack) {
+					$this->routeToHub($channel, $msgPack);
+				}
+			}
 		}
 		$this->sendReplyToDiscord(...$msg);
 	}
@@ -123,11 +122,11 @@ class DiscordSlashCommandReply implements CommandReply {
 				? InteractionCallbackData::EPHEMERAL
 				: null;
 			foreach ($messageObj->split() as $msgPart) {
-				Promise\rethrow($this->discordAPIClient->queueToWebhook(
+				$this->discordAPIClient->queueToWebhook(
 					$this->applicationId,
 					$this->interactionToken,
 					$this->discordAPIClient->encode($msgPart),
-				));
+				);
 			}
 		}
 	}

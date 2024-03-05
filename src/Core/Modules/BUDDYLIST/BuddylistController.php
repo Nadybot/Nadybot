@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\BUDDYLIST;
 
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistEntry,
@@ -143,10 +142,10 @@ class BuddylistController extends ModuleInstance {
 		string $action,
 		PCharacter $who,
 		PWord $type
-	): Generator {
+	): void {
 		$name = $who();
 
-		if (true === yield $this->buddylistManager->addName($name, $type())) {
+		if (true === $this->buddylistManager->addName($name, $type())) {
 			$msg = "<highlight>{$name}<end> added to the buddy list successfully.";
 		} else {
 			$msg = "Could not add <highlight>{$name}<end> to the buddy list.";
@@ -164,7 +163,7 @@ class BuddylistController extends ModuleInstance {
 		string $all
 	): void {
 		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
-			$this->chatBot->buddy_remove($uid);
+			$this->chatBot->aoClient->buddyRemove($uid);
 		}
 
 		$msg = "All characters have been removed from the buddy list.";

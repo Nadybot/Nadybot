@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	SettingManager,
-	Timer,
 };
 
 /**
@@ -42,9 +41,6 @@ class CountdownController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	/** Where to display countdowns received via tells */
 	#[NCA\Setting\Options(options: [

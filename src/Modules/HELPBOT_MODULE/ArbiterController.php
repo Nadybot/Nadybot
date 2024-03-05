@@ -6,7 +6,6 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Exception;
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -139,7 +138,7 @@ class ArbiterController extends ModuleInstance {
 		string $setWeek,
 		#[NCA\StrChoice("ends", "next")]
 		?string $ends
-	): Generator {
+	): void {
 		$setWeek = strtolower($setWeek);
 		$validTypes = [static::AI, static::BS, static::DIO];
 		$pos = array_search($setWeek, $validTypes);
@@ -237,7 +236,7 @@ class ArbiterController extends ModuleInstance {
 			}
 			$currentEvent->start += static::CYCLE_LENGTH;
 			$currentEvent->end += static::CYCLE_LENGTH;
-			array_push($upcomingEvents, $currentEvent);
+			$upcomingEvents[] = $currentEvent;
 		} else {
 			if (isset($timeGiven)) {
 				$msg = "On " . ((new DateTime("@{$time}"))->format("d-M-Y")) . ", the arbiter is not here.";

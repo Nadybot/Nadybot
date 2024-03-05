@@ -337,7 +337,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$this->trackUid($attacker->charid, $attacker->name);
 			return;
 		}
-		$uid = yield $this->chatBot->getUid2($attacker->name);
+		$uid = $this->chatBot->getUid($attacker->name);
 		if (isset($uid)) {
 			$this->trackUid($uid, $attacker->name);
 		}
@@ -351,7 +351,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
 		}
-		$uid = yield $this->chatBot->getUid2($eventObj->sender);
+		$uid = $this->chatBot->getUid($eventObj->sender);
 		if ($uid === null) {
 			return;
 		}
@@ -447,7 +447,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
 		}
-		$uid = yield $this->chatBot->getUid2($eventObj->sender);
+		$uid = $this->chatBot->getUid($eventObj->sender);
 		if ($uid === null) {
 			return;
 		}
@@ -541,8 +541,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		PRemove $action,
 		PCharacter $char
-	): Generator {
-		$uid = yield $this->chatBot->getUid2($char());
+	): void {
+		$uid = $this->chatBot->getUid($char());
 		if (!isset($uid)) {
 			$msg = "Character <highlight>{$char}<end> does not exist.";
 			$context->reply($msg);
@@ -557,7 +557,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		PRemove $action,
 		int $uid
-	): Generator {
+	): void {
 		$char = yield $this->chatBot->getName($uid);
 		$this->trackRemoveCommand($context, $char ?? "UID {$uid}", $uid);
 	}
@@ -624,8 +624,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		#[NCA\Str("add")]
 		string $action,
 		PCharacter $char
-	): Generator {
-		$uid = yield $this->chatBot->getUid2($char());
+	): void {
+		$uid = $this->chatBot->getUid($char());
 		if (!isset($uid)) {
 			$msg = "Character <highlight>{$char}<end> does not exist.";
 			$context->reply($msg);
@@ -648,21 +648,21 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		#[NCA\Str("addorg")]
 		string $action,
 		int $orgId
-	): Generator {
+	): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
-			return null;
+			return;
 		}
 		$org = $this->findOrgController->getByID($orgId);
 		if (!isset($org)) {
 			$context->reply("There is no org #{$orgId}.");
-			return null;
+			return;
 		}
 
 		if ($this->db->table(static::DB_ORG)->where("org_id", $orgId)->exists()) {
 			$msg = "The org <" . strtolower($org->faction) . ">{$org->name}<end> is already being tracked.";
 			$context->reply($msg);
-			return null;
+			return;
 		}
 		$tOrg = new TrackingOrg();
 		$tOrg->org_id = $orgId;
@@ -674,18 +674,18 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$guild = yield $this->guildManager->byId($orgId, $this->config->main->dimension, true);
 			if (!isset($guild)) {
 				$context->reply("No data found for <" . strtolower($org->faction) . ">{$org->name}<end>.");
-				return null;
+				return;
 			}
 			yield from $this->updateRosterForOrg($guild);
 		} catch (Throwable $e) {
 			$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
 			$context->reply($e->getMessage());
-			return null;
+			return;
 		}
 		$context->reply(
 			"Added all members of <" . strtolower($org->faction) .">{$org->name}<end> to the roster."
 		);
-		return null;
+		return;
 	}
 
 	/** Add a whole organization to the track list */
@@ -1082,7 +1082,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		#[NCA\Str("hide")]
 		string $action,
 		int $uid
-	): Generator {
+	): void {
 		$name = yield $this->chatBot->getName($uid);
 		$this->trackHideCommand($context, $name ?? "UID {$uid}", $uid);
 	}
@@ -1094,8 +1094,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		#[NCA\Str("hide")]
 		string $action,
 		PCharacter $char
-	): Generator {
-		$uid = yield $this->chatBot->getUid2($char());
+	): void {
+		$uid = $this->chatBot->getUid($char());
 		if (!isset($uid)) {
 			$msg = "Character <highlight>{$char}<end> does not exist.";
 			$context->reply($msg);
@@ -1127,7 +1127,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		#[NCA\Str("unhide")]
 		string $action,
 		int $uid
-	): Generator {
+	): void {
 		$name = yield $this->chatBot->getName($uid);
 		$this->trackUnhideCommand($context, $name ?? "UID {$uid}", $uid);
 	}
@@ -1139,8 +1139,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		#[NCA\Str("unhide")]
 		string $action,
 		PCharacter $char
-	): Generator {
-		$uid = yield $this->chatBot->getUid2($char());
+	): void {
+		$uid = $this->chatBot->getUid($char());
 		if (!isset($uid)) {
 			$msg = "Character <highlight>{$char}<end> does not exist.";
 			$context->reply($msg);
@@ -1173,8 +1173,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		#[NCA\Str("show", "view")]
 		string $action,
 		PCharacter $char
-	): Generator {
-		$uid = yield $this->chatBot->getUid2($char());
+	): void {
+		$uid = $this->chatBot->getUid($char());
 		if (!isset($uid)) {
 			$msg = "<highlight>{$char}<end> does not exist.";
 			$context->reply($msg);

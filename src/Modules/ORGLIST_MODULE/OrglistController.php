@@ -106,7 +106,7 @@ class OrglistController extends ModuleInstance {
 		PNonGreedy $search,
 		#[NCA\Str("all")]
 		?string $all,
-	): Generator {
+	): void {
 		if ($this->orglistShowOffline) {
 			$all = "all";
 		}
@@ -210,7 +210,7 @@ class OrglistController extends ModuleInstance {
 			$lookupFunc = function () use (&$todo, &$onlineStates): Promise {
 				return call(function () use (&$todo, &$onlineStates): Generator {
 					while ($name = array_shift($todo)) {
-						$uid = yield $this->chatBot->getUid2($name);
+						$uid = $this->chatBot->getUid($name);
 						if (!isset($uid)) {
 							$onlineStates[$name] = false;
 							continue;

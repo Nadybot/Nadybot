@@ -475,7 +475,7 @@ class ApiController extends ModuleInstance {
 			$context->sendto = $handler;
 			$context->message = $msg;
 			asyncCall(function () use ($context): Generator {
-				$uid = yield $this->chatBot->getUid2($context->char->name);
+				$uid = $this->chatBot->getUid($context->char->name);
 				$context->char->id = $uid;
 				$this->commandManager->checkAndHandleCmd($context);
 			});

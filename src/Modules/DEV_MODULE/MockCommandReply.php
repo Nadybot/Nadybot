@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use function Safe\{file_put_contents, json_encode};
+
 use Nadybot\Core\{CommandReply, LoggerWrapper};
 
 class MockCommandReply implements CommandReply {
@@ -22,9 +24,9 @@ class MockCommandReply implements CommandReply {
 		if (!isset($this->logFile)) {
 			return;
 		}
-		\Safe\file_put_contents(
+		file_put_contents(
 			$this->logFile,
-			\Safe\json_encode([
+			json_encode([
 				"command" => $this->command,
 				"output" => $this->output,
 			], JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_UNICODE) . PHP_EOL,

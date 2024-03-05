@@ -125,7 +125,7 @@ class StartpageController extends ModuleInstance {
 			$this->showStartpage($sender, $this->getMassTell($sender));
 			return;
 		}
-		$uid = yield $this->chatBot->getUid2($sender);
+		$uid = $this->chatBot->getUid($sender);
 		if ($uid === null) {
 			return;
 		}

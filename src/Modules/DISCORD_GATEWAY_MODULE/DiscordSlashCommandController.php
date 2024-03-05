@@ -2,12 +2,8 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Amp\call;
 use function Safe\preg_split;
 
-use Amp\Promise;
-use Closure;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\DISCORD\DiscordException;
 use Nadybot\Core\{
@@ -110,25 +106,18 @@ class DiscordSlashCommandController extends ModuleInstance {
 		if ((int)$oldValue !== self::SLASH_OFF && (int)$newValue !== self::SLASH_OFF) {
 			return;
 		}
-		Promise\rethrow($this->syncSlashCommands());
+		$this->syncSlashCommands();
 	}
 
-	/**
-	 * Make sure, all slash-commands that the bot has configured, are registered
-	 *
-	 * @return Promise<void>
-	 */
-	public function syncSlashCommands(): Promise {
-		return call(function (): Generator {
-			$appId = $this->gw->getID();
-			if (!isset($appId)) {
-				return;
-			}
+	/** Make sure, all slash-commands that the bot has configured, are registered */
+	public function syncSlashCommands(): void {
+		$appId = $this->gw->getID();
+		if (!isset($appId)) {
+			return;
+		}
 
-			/** @var ApplicationCommand[] */
-			$registeredCommands = yield $this->api->getGlobalApplicationCommands($appId);
-			yield $this->updateSlashCommands($registeredCommands);
-		});
+		$registeredCommands = $this->api->getGlobalApplicationCommands($appId);
+		$this->updateSlashCommands($registeredCommands);
 	}
 
 	/**
@@ -196,7 +185,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		string $subAction,
 		#[NCA\PWord]
 		string ...$commands,
-	): Generator {
+	): void {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
 			->pluckStrings("cmd")
@@ -248,7 +237,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		}
 		$context->reply("Trying to add " . $newCommands->count() . " {$cmdText}...");
 		try {
-			yield $this->syncSlashCommands();
+			$this->syncSlashCommands();
 		} catch (Throwable $e) {
 			$this->db->table(self::DB_SLASH_TABLE)
 				->whereIn("cmd", $newCommands->toArray())
@@ -274,7 +263,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		PRemove $subAction,
 		#[NCA\PWord]
 		string ...$commands,
-	): Generator {
+	): void {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
 			->pluckStrings("cmd")
@@ -297,7 +286,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			->delete();
 		$context->reply("Trying to remove " . $delCommands->count() . " {$cmdText}...");
 		try {
-			yield $this->syncSlashCommands();
+			$this->syncSlashCommands();
 		} catch (Throwable $e) {
 			$this->db->table(self::DB_SLASH_TABLE)
 				->insert(
@@ -364,7 +353,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		name: "discord(interaction_create)",
 		description: "Handle Discord slash commands"
 	)]
-	public function handleSlashCommands(DiscordGatewayEvent $event): Generator {
+	public function handleSlashCommands(DiscordGatewayEvent $event): void {
 		$this->logger->info("Received interaction on Discord");
 		$interaction = new Interaction();
 		$interaction->fromJSON($event->payload->d);
@@ -424,66 +413,58 @@ class DiscordSlashCommandController extends ModuleInstance {
 			return;
 		}
 		$context->message = $cmdMap->symbol . $context->message;
-		yield $this->executeSlashCommand($interaction, $context);
+		$this->executeSlashCommand($interaction, $context);
 	}
 
 	/**
 	 * Ensure the global application commands are identical to $registeredCmds
 	 *
 	 * @param ApplicationCommand[] $registeredCmds
-	 *
-	 * @return Promise<void>
 	 */
-	private function updateSlashCommands(array $registeredCmds): Promise {
-		return call(function () use ($registeredCmds): Generator {
-			$this->logger->info("{count} Slash-commands already registered", [
-				"count" => count($registeredCmds),
-			]);
-			$registeredCmds = new Collection($registeredCmds);
-			$commands = new Collection($this->calcSlashCommands());
+	private function updateSlashCommands(array $registeredCmds): void {
+		$this->logger->info("{count} Slash-commands already registered", [
+			"count" => count($registeredCmds),
+		]);
+		$registeredCmds = new Collection($registeredCmds);
+		$commands = new Collection($this->calcSlashCommands());
 
-			$numModifiedCommands = $this->getNumChangedSlashCommands($registeredCmds, $commands);
-			$this->logger->info("{count} Slash-commands need (re-)registering", [
-				"count" => $numModifiedCommands,
-			]);
+		$numModifiedCommands = $this->getNumChangedSlashCommands($registeredCmds, $commands);
+		$this->logger->info("{count} Slash-commands need (re-)registering", [
+			"count" => $numModifiedCommands,
+		]);
 
-			if ($registeredCmds->count() === $commands->count() && $numModifiedCommands === 0) {
-				$this->logger->info("No Slash-commands need (re-)registering or deletion");
-				return;
-			}
-			yield $this->setSlashCommands($commands);
-		});
+		if ($registeredCmds->count() === $commands->count() && $numModifiedCommands === 0) {
+			$this->logger->info("No Slash-commands need (re-)registering or deletion");
+			return;
+		}
+		$this->setSlashCommands($commands);
 	}
 
 	/**
 	 * Set the given slash commands without checking if they've changed
 	 *
 	 * @param Collection<ApplicationCommand> $modifiedCommands
-	 *
-	 * @return Promise<void>
 	 */
-	private function setSlashCommands(Collection $modifiedCommands): Promise {
-		return call(function () use ($modifiedCommands): Generator {
-			$appId = $this->gw->getID();
-			if (!isset($appId)) {
-				throw new UserException("Currently not connected to Discord, try again later.");
-			}
-			$cmds = $modifiedCommands->toArray();
-			try {
-				$newCmds = yield $this->api->registerGlobalApplicationCommands(
-					$appId,
-					$this->api->encode($cmds)
-				);
-			} catch (DiscordException $e) {
-				if ($e->getCode() === 403) {
-					throw new UserException("The Discord bot lacks the right to manage slash commands.");
-				}
-				throw $e;
-			}
-			$this->logger->notice(
-				count($newCmds) . " Slash-commands registered successfully."
+	private function setSlashCommands(Collection $modifiedCommands): void {
+		$appId = $this->gw->getID();
+		if (!isset($appId)) {
+			throw new UserException("Currently not connected to Discord, try again later.");
+		}
+		$cmds = $modifiedCommands->toArray();
+		try {
+			$newCmds = $this->api->registerGlobalApplicationCommands(
+				$appId,
+				$this->api->encode($cmds)
 			);
-		});
+		} catch (DiscordException $e) {
+			if ($e->getCode() === 403) {
+				throw new UserException("The Discord bot lacks the right to manage slash commands.");
+			}
+			throw $e;
+		}
+		$this->logger->notice(
+			count($newCmds) . " Slash-commands registered successfully."
+		);
 	}
 
 	/** @return array<string,CmdCfg> */
@@ -614,59 +595,51 @@ class DiscordSlashCommandController extends ModuleInstance {
 		return $changedOrNewCommands->count();
 	}
 
-	/**
-	 * Execute the given interaction/slash-command
-	 *
-	 * @return Promise<void>
-	 */
-	private function executeSlashCommand(Interaction $interaction, CmdContext $context): Promise {
-		return call(function () use ($interaction, $context): Generator {
-			$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
-			if ($discordUserId === null) {
-				$this->logger->info("Interaction has no user id set");
-				return;
+	/** Execute the given interaction/slash-command */
+	private function executeSlashCommand(Interaction $interaction, CmdContext $context): void {
+		$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
+		if ($discordUserId === null) {
+			$this->logger->info("Interaction has no user id set");
+			return;
+		}
+		$sendto = new DiscordSlashCommandReply(
+			$interaction->application_id,
+			$interaction->id,
+			$interaction->token,
+			$interaction->channel_id,
+			$context->isDM(),
+		);
+		Registry::injectDependencies($sendto);
+		$context->sendto = $sendto;
+		$sendto->sendStateUpdate();
+		$userId = $this->gwCmd->getNameForDiscordId($discordUserId);
+		// Create and route an artificial message if slash-commands are
+		// treated like regular commands
+		if (isset($interaction->channel_id)
+			&& $this->discordSlashCommands === self::SLASH_REGULAR
+		) {
+			$channel = $this->gw->lookupChannel($interaction->channel_id);
+			if (isset($channel)) {
+				$this->createAndRouteSlashCmdChannelMsg($channel, $context, $userId ?? $discordUserId);
 			}
-			$sendto = new DiscordSlashCommandReply(
-				$interaction->application_id,
-				$interaction->id,
-				$interaction->token,
-				$interaction->channel_id,
-				$context->isDM(),
-			);
-			Registry::injectDependencies($sendto);
-			$context->sendto = $sendto;
-			$sendto->sendStateUpdate();
-			$userId = $this->gwCmd->getNameForDiscordId($discordUserId);
-			// Create and route an artificial message if slash-commands are
-			// treated like regular commands
-			if (isset($interaction->channel_id)
-				&& $this->discordSlashCommands === self::SLASH_REGULAR
-			) {
-				$this->gw->lookupChannel(
-					$interaction->channel_id,
-					Closure::fromCallable([$this, "createAndRouteSlashCmdChannelMsg"]),
-					$context,
-					$userId ?? $discordUserId
-				);
-			}
+		}
 
-			$this->logger->info("Executing slash-command \"{command}\" from {source}", [
-				"command" => $context->message,
-				"source" => $context->source,
-			]);
-			// Do the actual command execution
-			$execCmd = function () use ($context): void {
-				$this->cmdManager->checkAndHandleCmd($context);
-			};
-			if (!isset($userId)) {
-				$execCmd();
-				return;
-			}
-			$context->char->name = $userId;
-			$uid = yield $this->chatBot->getUid2($userId);
-			$context->char->id = $uid;
+		$this->logger->info("Executing slash-command \"{command}\" from {source}", [
+			"command" => $context->message,
+			"source" => $context->source,
+		]);
+		// Do the actual command execution
+		$execCmd = function () use ($context): void {
+			$this->cmdManager->checkAndHandleCmd($context);
+		};
+		if (!isset($userId)) {
 			$execCmd();
-		});
+			return;
+		}
+		$context->char->name = $userId;
+		$uid = $this->chatBot->getUid($userId);
+		$context->char->id = $uid;
+		$execCmd();
 	}
 
 	/**

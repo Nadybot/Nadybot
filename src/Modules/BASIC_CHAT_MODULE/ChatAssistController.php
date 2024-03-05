@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Exception;
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -336,7 +335,7 @@ class ChatAssistController extends ModuleInstance {
 		#[NCA\Str("set")]
 		string $action,
 		PCharacter ...$callers
-	): Generator {
+	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -346,7 +345,7 @@ class ChatAssistController extends ModuleInstance {
 		$groupName = "";
 		for ($i = 0; $i < count($callers); $i++) {
 			$name = $callers[$i]();
-			$uid = yield $this->chatBot->getUid2($name);
+			$uid = $this->chatBot->getUid($name);
 			if (!$uid) {
 				$errors []= "Character <highlight>{$name}<end> does not exist.";
 			} elseif (
@@ -406,7 +405,7 @@ class ChatAssistController extends ModuleInstance {
 		string $action,
 		?PWord $assistList,
 		PCharacter $caller
-	): Generator {
+	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -419,7 +418,7 @@ class ChatAssistController extends ModuleInstance {
 		$event->type = "assist(add)";
 
 		$name = ucfirst(strtolower($name));
-		$uid = yield $this->chatBot->getUid2($name);
+		$uid = $this->chatBot->getUid($name);
 		if (!$uid) {
 			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;
@@ -523,9 +522,9 @@ class ChatAssistController extends ModuleInstance {
 
 	/** Create an assist macro for a single character */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
-	public function assistOnceCommand(CmdContext $context, PCharacter $char): Generator {
+	public function assistOnceCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
-		$uid = yield $this->chatBot->getUid2($name);
+		$uid = $this->chatBot->getUid($name);
 		if (!isset($uid)) {
 			$context->reply("No player named <highlight>{$name}<end> found.");
 			return;

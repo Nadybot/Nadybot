@@ -19,7 +19,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
-	Timer,
 	Util,
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
@@ -94,9 +93,6 @@ class AuctionController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Util $util;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;

@@ -3,10 +3,10 @@
 namespace Nadybot\Core\Modules\PROFILE;
 
 use function Amp\File\filesystem;
+use function Safe\unlink;
 
 use Amp\File\FilesystemException as AmpFilesystemException;
 use Exception;
-use Generator;
 use Nadybot\Core\{Attributes as NCA, ModuleInstance};
 use Nadybot\Modules\{
 	WEBSERVER_MODULE\ApiResponse,
@@ -46,14 +46,14 @@ class ProfileApiController extends ModuleInstance {
 		NCA\ApiResult(code: 200, class: "string", desc: "Profile found and shown"),
 		NCA\ApiResult(code: 404, desc: "Profile not found")
 	]
-	public function viewProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Generator {
+	public function viewProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
 		$filename = $this->profileController->getFilename($profile);
 
 		if (!@file_exists($filename)) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
 		try {
-			$content = yield filesystem()->read($filename);
+			$content = filesystem()->read($filename);
 		} catch (AmpFilesystemException) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not accessible.");
 		}
@@ -72,7 +72,7 @@ class ProfileApiController extends ModuleInstance {
 		$filename = $this->profileController->getFilename($profile);
 
 		try {
-			\Safe\unlink($filename);
+			unlink($filename);
 		} catch (FilesystemException) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
@@ -90,7 +90,7 @@ class ProfileApiController extends ModuleInstance {
 		NCA\ApiResult(code: 402, desc: "Wrong or no operation given"),
 		NCA\ApiResult(code: 404, desc: "Profile not found")
 	]
-	public function loadProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Generator {
+	public function loadProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
 		if (!is_object($request->decodedBody) || !isset($request->decodedBody->op)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
@@ -103,7 +103,7 @@ class ProfileApiController extends ModuleInstance {
 		if (!@file_exists($filename)) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
-		$output = yield $this->profileController->loadProfile($filename, $request->authenticatedAs??"_");
+		$output = $this->profileController->loadProfile($filename, $request->authenticatedAs??"_");
 		if ($output === null) {
 			return new Response(Response::INTERNAL_SERVER_ERROR);
 		}

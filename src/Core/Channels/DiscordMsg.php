@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Channels;
 
-use Amp\Promise;
+use function Amp\async;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 class DiscordMsg implements MessageReceiver {
@@ -92,9 +93,9 @@ class DiscordMsg implements MessageReceiver {
 		foreach ($discordMsg->split() as $msgPart) {
 			// Relay the message to the discord channel
 			if (preg_match("/^\d+$/", $destination)) {
-				Promise\rethrow($this->discordAPIClient->queueToChannel($destination, $msgPart->toJSON()));
+				async($this->discordAPIClient->queueToChannel(...), $destination, $msgPart->toJSON())->ignore();
 			} else {
-				Promise\rethrow($this->discordAPIClient->sendToUser($destination, $msgPart->toJSON()));
+				async($this->discordAPIClient->sendToUser(...), $destination, $msgPart->toJSON())->ignore();
 			}
 		}
 		return true;

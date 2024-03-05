@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Nadybot\Core\Modules\MESSAGES;
 
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 use Monolog\Logger;
 use Nadybot\Core\{
@@ -230,7 +229,7 @@ class MessageHubController extends ModuleInstance {
 		PDirection $direction,
 		PSource $to,
 		?string $modifiers
-	): Generator {
+	): void {
 		$force = (strtolower($action) === "addforce");
 		$to = $this->fixDiscordChannelName($to());
 		$from = $this->fixDiscordChannelName($from());
@@ -278,7 +277,6 @@ class MessageHubController extends ModuleInstance {
 		}
 
 		/** @var null|RouteModifier[] $modifiers */
-		yield $this->db->awaitBeginTransaction();
 		try {
 			$route->id = $this->db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 			foreach ($modifiers??[] as $modifier) {
@@ -451,7 +449,7 @@ class MessageHubController extends ModuleInstance {
 
 	/** Delete a route by its ID */
 	#[NCA\HandlesCommand("route")]
-	public function routeDel(CmdContext $context, PRemove $action, int $id): Generator {
+	public function routeDel(CmdContext $context, PRemove $action, int $id): void {
 		$route = $this->getRoute($id);
 		if (!isset($route)) {
 			$context->reply("No route <highlight>#{$id}<end> found.");
@@ -460,7 +458,7 @@ class MessageHubController extends ModuleInstance {
 
 		/** @var int[] List of modifier-ids for the route */
 		$modifiers = array_column($route->modifiers, "id");
-		yield $this->db->awaitBeginTransaction();
+		$this->db->awaitBeginTransaction();
 		try {
 			if (count($modifiers)) {
 				$this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)
@@ -1002,9 +1000,9 @@ class MessageHubController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("remall")]
 		string $action
-	): Generator {
+	): void {
 		try {
-			$numDeleted = yield $this->messageHub->deleteAllRoutes();
+			$numDeleted = $this->messageHub->deleteAllRoutes();
 		} catch (Exception $e) {
 			$context->reply("Unknown error clearing the routing table: " . $e->getMessage());
 			return;

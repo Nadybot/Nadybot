@@ -2,16 +2,15 @@
 
 namespace Nadybot\Core;
 
-use function Amp\{call, delay};
-use Amp\Http\Client\Connection\{Http2ConnectionException, UnprocessedRequestException};
-use Amp\Http\Client\Internal\{ForbidCloning, ForbidSerialization};
-use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, Request, SocketException};
-use Amp\{CancellationToken, Promise};
+use function Amp\{delay};
+use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, Request, Response, SocketException};
+use Amp\Http\Http2\Http2ConnectionException as Http2Http2ConnectionException;
+use Amp\{Cancellation, ForbidCloning as AmpForbidCloning, ForbidSerialization as AmpForbidSerialization};
 use Nadybot\Core\Attributes as NCA;
 
 final class HttpRetry implements ApplicationInterceptor {
-	use ForbidCloning;
-	use ForbidSerialization;
+	use AmpForbidCloning;
+	use AmpForbidSerialization;
 
 	#[NCA\Logger]
 	private LoggerWrapper $logger;
@@ -23,40 +22,36 @@ final class HttpRetry implements ApplicationInterceptor {
 
 	public function request(
 		Request $request,
-		CancellationToken $cancellation,
+		Cancellation $cancellation,
 		DelegateHttpClient $httpClient
-	): Promise {
-		return call(function () use ($request, $cancellation, $httpClient) {
-			$attempt = 1;
+	): Response {
+		$attempt = 1;
 
-			do {
-				if ($attempt > 1) {
-					$this->logger->info("Retrying {url}, try {try}/{maxtries}", [
-						"url" => $request->getUri()->__toString(),
-						"try" => $attempt,
-						"maxtries" => $this->retryLimit,
-					]);
-				}
-				try {
-					return yield $httpClient->request(clone $request, $cancellation);
-				} catch (UnprocessedRequestException $exception) {
-					// Request was deemed retryable by connection, so carry on.
-				} catch (SocketException | Http2ConnectionException $exception) {
-					if (!$request->isIdempotent()) {
-						throw $exception;
-					}
-
-					// Request can safely be retried.
-				}
-				$delay = (int)ceil(250 * pow(2, $attempt));
-				$this->logger->info("Retrying {url} in {delay}ms", [
+		do {
+			if ($attempt > 1) {
+				$this->logger->info("Retrying {url}, try {try}/{maxtries}", [
 					"url" => $request->getUri()->__toString(),
-					"delay" => $delay,
+					"try" => $attempt,
+					"maxtries" => $this->retryLimit,
 				]);
-				yield delay($delay);
-			} while ($attempt++ <= $this->retryLimit);
+			}
+			try {
+				return $httpClient->request(clone $request, $cancellation);
+			} catch (SocketException | Http2Http2ConnectionException $exception) {
+				if (!$request->isIdempotent()) {
+					throw $exception;
+				}
 
-			throw $exception;
-		});
+				// Request can safely be retried.
+			}
+			$delay = (int)ceil(250 * pow(2, $attempt));
+			$this->logger->info("Retrying {url} in {delay}ms", [
+				"url" => $request->getUri()->__toString(),
+				"delay" => $delay,
+			]);
+			delay($delay);
+		} while ($attempt++ <= $this->retryLimit);
+
+		throw $exception;
 	}
 }

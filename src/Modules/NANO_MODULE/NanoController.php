@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nadybot\Modules\NANO_MODULE;
 
-use Generator;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\Player;
@@ -347,7 +346,7 @@ class NanoController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("long")]
 		?string $long
-	): Generator {
+	): void {
 		/** @var ?Player */
 		$whois = yield $this->playerManager->byName($context->char->name);
 		if (!isset($whois) || !isset($whois->profession) || !isset($whois->level)) {

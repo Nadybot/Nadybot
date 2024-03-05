@@ -2,13 +2,10 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
-use function Amp\call;
 use function Amp\File\filesystem;
 use function Safe\{json_decode, json_encode, preg_replace};
 use Amp\File\FilesystemException;
-use Amp\Promise;
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{
 	CmdAlias,
@@ -114,23 +111,21 @@ class ProfileController extends ModuleInstance {
 	/**
 	 * Get a list of all stored profiles
 	 *
-	 * @return Promise<string[]>
+	 * @return string[]
 	 */
-	public function getProfileList(): Promise {
-		return call(function (): Generator {
-			$fileList = yield filesystem()->listFiles($this->path);
-			$profileList = [];
+	public function getProfileList(): array {
+		$fileList = filesystem()->listFiles($this->path);
+		$profileList = [];
 
-			foreach ($fileList as $fileName) {
-				// if file has the correct extension, it's a profile file
-				if (str_ends_with($fileName, static::FILE_EXT)) {
-					$profileList[] = str_replace(static::FILE_EXT, '', $fileName);
-				}
+		foreach ($fileList as $fileName) {
+			// if file has the correct extension, it's a profile file
+			if (str_ends_with($fileName, static::FILE_EXT)) {
+				$profileList[] = str_replace(static::FILE_EXT, '', $fileName);
 			}
+		}
 
-			sort($profileList);
-			return $profileList;
-		});
+		sort($profileList);
+		return $profileList;
 	}
 
 	/** See the list of available profiles */
@@ -140,7 +135,7 @@ class ProfileController extends ModuleInstance {
 		"Only lines that start with '!' will be executed and all other lines will ".
 		"be ignored. Feel free to add or edit profiles as you wish."
 	)]
-	public function profileListCommand(CmdContext $context): Generator {
+	public function profileListCommand(CmdContext $context): void {
 		try {
 			$profileList = yield $this->getProfileList();
 		} catch (Exception $e) {
@@ -172,7 +167,7 @@ class ProfileController extends ModuleInstance {
 		#[NCA\Str("view")]
 		string $action,
 		PFilename $profileName
-	): Generator {
+	): void {
 		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!@file_exists($filename)) {
@@ -306,16 +301,16 @@ class ProfileController extends ModuleInstance {
 		CmdContext $context,
 		PRemove $action,
 		PFilename $profileName
-	): Generator {
+	): void {
 		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
-		if (false === yield filesystem()->exists($filename)) {
+		if (!filesystem()->exists($filename)) {
 			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
 			$context->reply($msg);
 			return;
 		}
 		try {
-			yield filesystem()->deleteFile($filename);
+			filesystem()->deleteFile($filename);
 			$msg = "Profile <highlight>{$profileName}<end> has been deleted.";
 		} catch (FilesystemException $e) {
 			$msg = "Unable to delete the profile <highlight>{$profileName}<end>: ".
@@ -331,7 +326,7 @@ class ProfileController extends ModuleInstance {
 		#[NCA\Str("load")]
 		string $action,
 		PFilename $profileName
-	): Generator {
+	): void {
 		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 
@@ -354,104 +349,101 @@ class ProfileController extends ModuleInstance {
 		return $this->path . DIRECTORY_SEPARATOR . $profileName . static::FILE_EXT;
 	}
 
-	/** @return Promise<?string> */
-	public function loadProfile(string $filename, string $sender): Promise {
-		return call(function () use ($filename, $sender): Generator {
-			$profileData = yield filesystem()->read($filename);
-			$lines = explode("\n", $profileData);
-			yield $this->db->awaitBeginTransaction();
-			try {
-				$profileSendTo = new ProfileCommandReply();
-				$context = new CmdContext($sender);
-				$context->char->id = yield $this->chatBot->getUid2($sender);
-				$context->sendto = $profileSendTo;
-				$context->permissionSet = $this->commandManager->getPermissionSets()->firstOrFail()->name;
-				$numSkipped = 0;
-				for ($profileRow=0; $profileRow < count($lines); $profileRow++) {
-					$line = $lines[$profileRow];
-					if (substr($line, 0, 15) === "!settings save ") {
-						$parts = explode(" ", $line, 4);
-						if ($this->settingManager->get($parts[2]) === $parts[3]) {
-							$numSkipped++;
-							continue;
-						}
-					} elseif (preg_match("/^!config (cmd|subcmd) (.+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
-						$exists = $this->db->table(CommandManager::DB_TABLE_PERMS)
-							->where("cmd", $parts[2])
-							->where("permission_set", $parts[4])
-							->where("enabled", $parts[3] === 'enable')
-							->exists();
-						if ($exists) {
-							$numSkipped++;
-							continue;
-						}
-					} elseif (preg_match("/^!config (cmd|subcmd) (.+) admin ([^ ]+) ([^ ]+)$/", $line, $parts)) {
-						$exists = $this->db->table(CommandManager::DB_TABLE_PERMS)
-							->where("cmd", $parts[2])
-							->where("permission_set", $parts[3])
-							->where("access_level", $parts[4])
-							->exists();
-						if ($exists) {
-							$numSkipped++;
-							continue;
-						}
-					} elseif (preg_match("/^!config event (.+) ([^ ]+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
-						$exists = $this->db->table(EventManager::DB_TABLE)
-							->where("type", $parts[1])
-							->where("file", $parts[2])
-							->where("status", ($parts[3] === 'enable') ? 1 : 0)
-							->exists();
-						if ($exists) {
-							$numSkipped++;
-							continue;
-						}
-					} elseif (substr($line, 0, 11) === "!alias rem ") {
-						$alias = explode(" ", $line, 3)[2];
-						if (preg_match("/^!alias add \Q{$alias}\E (.+)$/", $lines[$profileRow+1], $parts)) {
-							/** @var ?CmdAlias $data */
-							$data = $this->db->table(CommandAlias::DB_TABLE)
-								->where("status", 1)
-								->where("alias", $alias)
-								->asObj(CmdAlias::class)
-								->first();
-							if ($data !== null) {
-								if ($data->cmd === $parts[1]) {
-									$profileRow++;
-									$numSkipped+=2;
-									continue;
-								}
-							} else {
-								$numSkipped++;
+	public function loadProfile(string $filename, string $sender): ?string {
+		$profileData = filesystem()->read($filename);
+		$lines = explode("\n", $profileData);
+		$this->db->awaitBeginTransaction();
+		try {
+			$profileSendTo = new ProfileCommandReply();
+			$context = new CmdContext($sender);
+			$context->char->id = $this->chatBot->getUid($sender);
+			$context->sendto = $profileSendTo;
+			$context->permissionSet = $this->commandManager->getPermissionSets()->firstOrFail()->name;
+			$numSkipped = 0;
+			for ($profileRow=0; $profileRow < count($lines); $profileRow++) {
+				$line = $lines[$profileRow];
+				if (substr($line, 0, 15) === "!settings save ") {
+					$parts = explode(" ", $line, 4);
+					if ($this->settingManager->get($parts[2]) === $parts[3]) {
+						$numSkipped++;
+						continue;
+					}
+				} elseif (preg_match("/^!config (cmd|subcmd) (.+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
+					$exists = $this->db->table(CommandManager::DB_TABLE_PERMS)
+						->where("cmd", $parts[2])
+						->where("permission_set", $parts[4])
+						->where("enabled", $parts[3] === 'enable')
+						->exists();
+					if ($exists) {
+						$numSkipped++;
+						continue;
+					}
+				} elseif (preg_match("/^!config (cmd|subcmd) (.+) admin ([^ ]+) ([^ ]+)$/", $line, $parts)) {
+					$exists = $this->db->table(CommandManager::DB_TABLE_PERMS)
+						->where("cmd", $parts[2])
+						->where("permission_set", $parts[3])
+						->where("access_level", $parts[4])
+						->exists();
+					if ($exists) {
+						$numSkipped++;
+						continue;
+					}
+				} elseif (preg_match("/^!config event (.+) ([^ ]+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
+					$exists = $this->db->table(EventManager::DB_TABLE)
+						->where("type", $parts[1])
+						->where("file", $parts[2])
+						->where("status", ($parts[3] === 'enable') ? 1 : 0)
+						->exists();
+					if ($exists) {
+						$numSkipped++;
+						continue;
+					}
+				} elseif (substr($line, 0, 11) === "!alias rem ") {
+					$alias = explode(" ", $line, 3)[2];
+					if (preg_match("/^!alias add \Q{$alias}\E (.+)$/", $lines[$profileRow+1], $parts)) {
+						/** @var ?CmdAlias $data */
+						$data = $this->db->table(CommandAlias::DB_TABLE)
+							->where("status", 1)
+							->where("alias", $alias)
+							->asObj(CmdAlias::class)
+							->first();
+						if ($data !== null) {
+							if ($data->cmd === $parts[1]) {
+								$profileRow++;
+								$numSkipped+=2;
 								continue;
 							}
+						} else {
+							$numSkipped++;
+							continue;
 						}
 					}
-					if (preg_match("/^!permissions (.+)$/", $line, $matches)) {
-						$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
-						$this->loadPermissions($matches[1], $profileSendTo);
-						$profileSendTo->reply("");
-					} elseif ($line[0] === "!") {
-						$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
-						$line = substr($line, 1);
-						$context->message = $line;
-						$this->commandManager->processCmd($context);
-						$profileSendTo->reply("");
-					} else {
-						$numSkipped++;
-					}
 				}
-				$this->db->commit();
-				if ($numSkipped > 0) {
-					$totalNum = count($lines);
-					$profileSendTo->reply("Ignored {$numSkipped}/{$totalNum} unchanged settings.");
+				if (preg_match("/^!permissions (.+)$/", $line, $matches)) {
+					$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
+					$this->loadPermissions($matches[1], $profileSendTo);
+					$profileSendTo->reply("");
+				} elseif ($line[0] === "!") {
+					$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
+					$line = substr($line, 1);
+					$context->message = $line;
+					$this->commandManager->processCmd($context);
+					$profileSendTo->reply("");
+				} else {
+					$numSkipped++;
 				}
-				return $profileSendTo->result;
-			} catch (Exception $e) {
-				$this->logger->error("Could not load profile: " . $e->getMessage(), ["exception" => $e]);
-				$this->db->rollback();
-				return null;
 			}
-		});
+			$this->db->commit();
+			if ($numSkipped > 0) {
+				$totalNum = count($lines);
+				$profileSendTo->reply("Ignored {$numSkipped}/{$totalNum} unchanged settings.");
+			}
+			return $profileSendTo->result;
+		} catch (Exception $e) {
+			$this->logger->error("Could not load profile: " . $e->getMessage(), ["exception" => $e]);
+			$this->db->rollback();
+			return null;
+		}
 	}
 
 	private function loadPermissions(string $export, CommandReply $reply): void {

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use Amp\Loop;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
@@ -10,6 +9,7 @@ use Nadybot\Core\{
 	Socket\ShutdownRequest,
 	Socket\WriteClosureInterface,
 };
+use Revolt\EventLoop;
 
 class WebsocketBase implements LogWrapInterface {
 	public const GUID            = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -53,9 +53,6 @@ class WebsocketBase implements LogWrapInterface {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public SocketManager $socketManager;
@@ -158,7 +155,9 @@ class WebsocketBase implements LogWrapInterface {
 				"Connection to {$uri} timed out, no response to ping."
 			);
 		} else {
-			$this->timeoutHandle = Loop::delay(5000, [$this, "checkTimeout"]);
+			$this->timeoutHandle = EventLoop::delay(5, function (string $ignore): void {
+				$this->checkTimeout();
+			});
 		}
 	}
 

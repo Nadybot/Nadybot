@@ -2,15 +2,13 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
-use function Amp\call;
+use function Amp\async;
 use function Amp\File\filesystem;
+use function Amp\Future\await;
 use function Safe\preg_split;
 
 use Amp\File\FilesystemException;
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
-use Amp\Promise;
-use Error;
-use Generator;
+use Amp\Http\Client\{HttpClientBuilder, Request};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -215,21 +213,20 @@ class BankController extends ModuleInstance {
 
 	/** Reload the bank database from the file specified with the <a href='chatcmd:///tell <myname> settings change bank_file_location'>bank_file_location</a> setting */
 	#[NCA\HandlesCommand("bank update")]
-	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): Generator {
+	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): void {
 		$procs = [];
 		foreach ($this->bankFileLocation as $location) {
-			$procs []= $this->loadLocation($location);
+			$procs []= async($this->loadLocation(...), $location);
 		}
 
-		/** @var string[] */
-		$bodies = yield $procs;
+		$bodies = await($procs);
 		$lines = array_merge(
 			...array_map(
 				fn (string $body) => preg_split("/(?:\r\n|\r|\n)/", $body),
 				$bodies
 			)
 		);
-		yield $this->bankUpdate($lines);
+		$this->bankUpdate($lines);
 		$context->reply("The bank database has been updated.");
 	}
 
@@ -238,72 +235,63 @@ class BankController extends ModuleInstance {
 	 *
 	 * @param string $location A file path or URL to load
 	 *
-	 * @return Promise<string> The complete file content
+	 * @return string The complete file content
 	 *
 	 * @throws UserException On error
 	 */
-	private function loadLocation(string $location): Promise {
-		return call(function () use ($location): Generator {
-			if (preg_match("|^https?://|", $location)) {
-				$client = $this->builder->build();
+	private function loadLocation(string $location): string {
+		if (preg_match("|^https?://|", $location)) {
+			$client = $this->builder->build();
 
-				/** @var Response */
-				$response = yield $client->request(new Request($location));
-				if ($response->getStatus() !== 200) {
-					throw new UserException(
-						"Received code <highlight>" . $response->getStatus() . "<end> " .
-						"when trying to download the bank ".
-						"CSV file <highlight>{$location}<end>."
-					);
-				}
-				return yield $response->getBody()->buffer();
+			$response = $client->request(new Request($location));
+			if ($response->getStatus() !== 200) {
+				throw new UserException(
+					"Received code <highlight>" . $response->getStatus() . "<end> " .
+					"when trying to download the bank ".
+					"CSV file <highlight>{$location}<end>."
+				);
 			}
-			try {
-				return yield filesystem()->read($location);
-			} catch (FilesystemException $e) {
-				$msg = "Could not open file '{$location}': " . $e->getMessage();
-				throw new UserException($msg);
-			}
-		});
+			return $response->getBody()->buffer();
+		}
+		try {
+			return filesystem()->read($location);
+		} catch (FilesystemException $e) {
+			$msg = "Could not open file '{$location}': " . $e->getMessage();
+			throw new UserException($msg);
+		}
 	}
 
-	/**
-	 * @param string[] $lines
-	 *
-	 * @return Promise<void>
-	 */
-	private function bankUpdate(array $lines): Promise {
-		return call(function () use ($lines): Generator {
-			// remove the header line
-			array_shift($lines);
+	/** @param string[] $lines */
+	private function bankUpdate(array $lines): void {
+		// remove the header line
+		array_shift($lines);
 
-			yield $this->db->awaitBeginTransaction();
-			$this->db->table("bank")->truncate();
+		$this->db->awaitBeginTransaction();
+		$this->db->table("bank")->truncate();
 
-			foreach ($lines as $line) {
-				// this is the order of columns in the CSV file (AOIA v1.1.3.0):
-				// Item Name,QL,Character,Backpack,Location,LowID,HighID,ContainerID,Link
-				[$name, $ql, $player, $container, $location, $lowId, $highId, $containerId] = str_getcsv($line);
-				if ($location !== 'Bank' && $location !== 'Inventory') {
-					continue;
-				}
-				if ($container == '') {
-					$container = $location;
-				}
-
-				$this->db->table("bank")
-					->insert([
-						"name" => $name,
-						"lowid" => $lowId,
-						"highid" => $highId,
-						"ql" => $ql,
-						"player" => $player,
-						"container" => $container,
-						"container_id" => $containerId,
-						"location" => $location,
-					]);
+		foreach ($lines as $line) {
+			// this is the order of columns in the CSV file (AOIA v1.1.3.0):
+			// Item Name,QL,Character,Backpack,Location,LowID,HighID,ContainerID,Link
+			[$name, $ql, $player, $container, $location, $lowId, $highId, $containerId] = str_getcsv($line);
+			if ($location !== 'Bank' && $location !== 'Inventory') {
+				continue;
 			}
-			$this->db->commit();
-		});
+			if ($container == '') {
+				$container = $location;
+			}
+
+			$this->db->table("bank")
+				->insert([
+					"name" => $name,
+					"lowid" => $lowId,
+					"highid" => $highId,
+					"ql" => $ql,
+					"player" => $player,
+					"container" => $container,
+					"container_id" => $containerId,
+					"location" => $location,
+				]);
+		}
+		$this->db->commit();
 	}
 }

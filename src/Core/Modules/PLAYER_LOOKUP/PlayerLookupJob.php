@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\{asyncCall, call, delay};
-use Amp\Promise;
-use Generator;
+use function Amp\Future\await;
+use function Amp\{async, delay};
+
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -86,63 +86,59 @@ class PlayerLookupJob {
 			return;
 		}
 		$this->logger->info($this->toUpdate->count() . " missing / outdated characters found.");
-		asyncCall(function () use ($numJobs, $callback, $args): Generator {
+		async(function () use ($numJobs, $callback, $args): void {
 			$threads = [];
 			for ($i = 0; $i < $numJobs; $i++) {
 				$this->numActiveThreads++;
 				$this->logger->info('Spawning lookup thread #' . $this->numActiveThreads);
-				$threads []= $this->startThread($i+1);
+				$threads []= async($this->startThread(...), $i+1);
 			}
-			yield Promise\all($threads);
+			await($threads);
 			$this->logger->info("All threads done, stopping lookup.");
 			$callback(...$args);
 		});
 	}
 
-	/** @return Promise<true> */
-	private function startThread(int $threadNum): Promise {
-		return call(function () use ($threadNum): Generator {
-			while ($todo = $this->toUpdate->shift()) {
-				/** @var Player $todo */
-				$this->logger->debug("[Thread #{thread_num}] Looking up {character}", [
-					"thread_num" => $threadNum,
-					"character" => $todo->name,
-				]);
-				try {
-					$uid = yield $this->chatBot->getUid2($todo->name);
-					if (!isset($uid)) {
-						$this->logger->debug("[Thread #{thread_num}] Character {character} is inactive, not updating.", [
-							"thread_num" => $threadNum,
-							"character" => $todo->name,
-						]);
-						continue;
-					}
-					$start = microtime(true);
-					$player = yield $this->playerManager->byName($todo->name, $todo->dimension, true);
-					$duration = round((microtime(true) - $start) * 1000, 1);
-					$this->logger->debug(
-						"[Thread #{thread_num}] PORK lookup for {character} done after {duration}s: {result}",
-						[
-							"thread_num" => $threadNum,
-							"character" => $todo->name,
-							"result" => isset($player) ? 'data updated' : 'no data found',
-							"duration" => $duration,
-						]
-					);
-					yield delay(500);
-				} catch (Throwable $e) {
-					$this->logger->error("[Thread #{thread_num}] Exception looking up {character}: {error}", [
+	private function startThread(int $threadNum): void {
+		while ($todo = $this->toUpdate->shift()) {
+			/** @var Player $todo */
+			$this->logger->debug("[Thread #{thread_num}] Looking up {character}", [
+				"thread_num" => $threadNum,
+				"character" => $todo->name,
+			]);
+			try {
+				$uid = $this->chatBot->getUid($todo->name);
+				if (!isset($uid)) {
+					$this->logger->debug("[Thread #{thread_num}] Character {character} is inactive, not updating.", [
 						"thread_num" => $threadNum,
 						"character" => $todo->name,
-						"error" => $e->getMessage(),
-						"Exception" => $e,
 					]);
+					continue;
 				}
+				$start = microtime(true);
+				$player = $this->playerManager->byName($todo->name, $todo->dimension, true);
+				$duration = round((microtime(true) - $start) * 1000, 1);
+				$this->logger->debug(
+					"[Thread #{thread_num}] PORK lookup for {character} done after {duration}s: {result}",
+					[
+						"thread_num" => $threadNum,
+						"character" => $todo->name,
+						"result" => isset($player) ? 'data updated' : 'no data found',
+						"duration" => $duration,
+					]
+				);
+				delay(0.5);
+			} catch (Throwable $e) {
+				$this->logger->error("[Thread #{thread_num}] Exception looking up {character}: {error}", [
+					"thread_num" => $threadNum,
+					"character" => $todo->name,
+					"error" => $e->getMessage(),
+					"Exception" => $e,
+				]);
 			}
-			$this->logger->debug("[Thread #{thread_num}] Queue empty, stopping thread.", [
-				"thread_num" => $threadNum,
-			]);
-			return true;
-		});
+		}
+		$this->logger->debug("[Thread #{thread_num}] Queue empty, stopping thread.", [
+			"thread_num" => $threadNum,
+		]);
 	}
 }

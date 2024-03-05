@@ -24,7 +24,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
-	Timer,
 };
 use Safe\DateTime;
 use Throwable;
@@ -108,9 +107,6 @@ class RaidPointsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -567,7 +563,7 @@ class RaidPointsController extends ModuleInstance {
 		int $points,
 		PCharacter $char,
 		string $reason
-	): Generator {
+	): void {
 		yield from $this->pointsAddCommand($context, $action, $char, $points, $reason);
 	}
 
@@ -581,9 +577,9 @@ class RaidPointsController extends ModuleInstance {
 		PCharacter $char,
 		int $points,
 		string $reason
-	): Generator {
+	): void {
 		$receiver = $char();
-		$uid = yield $this->chatBot->getUid2($receiver);
+		$uid = $this->chatBot->getUid($receiver);
 		if ($uid === null) {
 			$context->reply("The player <highlight>{$receiver}<end> does not exist.");
 			return;
@@ -631,9 +627,9 @@ class RaidPointsController extends ModuleInstance {
 		PCharacter $char,
 		int $points,
 		string $reason
-	): Generator {
+	): void {
 		$receiver = $char();
-		$uid = yield $this->chatBot->getUid2($receiver);
+		$uid = $this->chatBot->getUid($receiver);
 		if ($uid === null) {
 			$context->reply("The player <highlight>{$receiver}<end> does not exist.");
 			return;

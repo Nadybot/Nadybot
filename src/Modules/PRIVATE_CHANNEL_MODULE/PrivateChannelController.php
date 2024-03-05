@@ -46,7 +46,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	SettingManager,
 	Text,
-	Timer,
 	UserStateEvent,
 	Util,
 };
@@ -200,9 +199,6 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\Inject]
 	public RaidController $raidController;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
@@ -493,7 +489,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		#[NCA\Str("add")]
 		string $action,
 		PCharacter $char
-	): Generator {
+	): void {
 		try {
 			$msg = yield $this->addUser($char(), $context->char->name);
 		} catch (Exception $e) {
@@ -547,9 +543,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	 */
 	#[NCA\HandlesCommand("invite")]
 	#[NCA\Help\Group("private-channel")]
-	public function inviteCommand(CmdContext $context, PCharacter $char): Generator {
+	public function inviteCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
-		$uid = yield $this->chatBot->getUid2($name);
+		$uid = $this->chatBot->getUid($name);
 		if (!$uid) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
@@ -593,9 +589,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	 */
 	#[NCA\HandlesCommand("kick")]
 	#[NCA\Help\Group("private-channel")]
-	public function kickCommand(CmdContext $context, PCharacter $char, ?string $reason): Generator {
+	public function kickCommand(CmdContext $context, PCharacter $char, ?string $reason): void {
 		$name = $char();
-		$uid = yield $this->chatBot->getUid2($name);
+		$uid = $this->chatBot->getUid($name);
 		if (!$uid) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 		} elseif (!isset($this->chatBot->chatlist[$name])) {
@@ -627,7 +623,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	/** Change your auto invite preference */
 	#[NCA\HandlesCommand("autoinvite")]
-	public function autoInviteCommand(CmdContext $context, bool $status): Generator {
+	public function autoInviteCommand(CmdContext $context, bool $status): void {
 		if ($status) {
 			$onOrOff = 1;
 			yield $this->buddylistManager->addName($context->char->name, 'member');
@@ -1015,7 +1011,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (!count($data)) {
 			return;
 		}
-		$uid = yield $this->chatBot->getUid2((string)$eventObj->sender);
+		$uid = $this->chatBot->getUid((string)$eventObj->sender);
 		if ($uid === null) {
 			return;
 		}
@@ -1081,7 +1077,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (!isset($msg)) {
 			return;
 		}
-		$uid = yield $this->chatBot->getUid2($sender);
+		$uid = $this->chatBot->getUid($sender);
 		$e = new Online();
 		$e->char = new Character($sender, $uid);
 		$e->main = $this->altsController->getMainOf($sender);
@@ -1211,7 +1207,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$event->channel = "priv";
 		$this->eventManager->fireEvent($event);
 
-		$uid = yield $this->chatBot->getUid2($sender);
+		$uid = $this->chatBot->getUid($sender);
 		$e = new Online();
 		$e->char = new Character($sender, $uid);
 		$e->main = $this->altsController->getMainOf($sender);
@@ -1334,8 +1330,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand("lastonline")]
 	#[NCA\Help\Group("private-channel")]
 	/** Check when a character and their alts were seen online for the last time */
-	public function lastOnlineCommand(CmdContext $context, PCharacter $char): Generator {
-		$uid = yield $this->chatBot->getUid2($char());
+	public function lastOnlineCommand(CmdContext $context, PCharacter $char): void {
+		$uid = $this->chatBot->getUid($char());
 		if ($uid === null) {
 			$context->reply("Character {$char} doesn't exist.");
 			return;
@@ -1529,7 +1525,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		return call(function () use ($name, $sender) {
 			$autoInvite = $this->autoinviteDefault;
 			$name = ucfirst(strtolower($name));
-			$uid = yield $this->chatBot->getUid2($name);
+			$uid = $this->chatBot->getUid($name);
 			if ($this->chatBot->char->name === $name) {
 				throw new Exception("You cannot add the bot as a member of itself.");
 			} elseif ($uid === null) {

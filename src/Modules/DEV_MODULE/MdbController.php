@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use AO\MMDB\AsyncClient;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -36,7 +37,8 @@ class MdbController extends ModuleInstance {
 	/** Get a list of categories from the MDB */
 	#[NCA\HandlesCommand("mdb")]
 	public function mdbCommand(CmdContext $context): void {
-		$categories = $this->chatBot->mmdbParser->getCategories();
+		$client = AsyncClient::createDefault();
+		$categories = $client->getCategories();
 		if (!isset($categories)) {
 			$context->reply("Cannot find any categories.");
 			return;
@@ -44,7 +46,7 @@ class MdbController extends ModuleInstance {
 
 		$blob = '';
 		foreach ($categories as $category) {
-			$blob .= $this->text->makeChatcmd((string)$category['id'], "/tell <myname> mdb " . $category['id']) . "\n";
+			$blob .= $this->text->makeChatcmd((string)$category->id, "/tell <myname> mdb " . $category->id) . "\n";
 		}
 
 		$msg = $this->text->makeBlob("MDB Categories", $blob);
@@ -55,7 +57,8 @@ class MdbController extends ModuleInstance {
 	/** Get a list of instances for an MDB category */
 	#[NCA\HandlesCommand("mdb")]
 	public function mdbCategoryCommand(CmdContext $context, int $categoryId): void {
-		$instances = $this->chatBot->mmdbParser->findAllInstancesInCategory($categoryId);
+		$client = AsyncClient::createDefault();
+		$instances = $client->findAllInstancesInCategory($categoryId);
 		if (!isset($instances)) {
 			$context->reply("Cannot find category <highlight>{$categoryId}<end>.");
 			return;
@@ -63,7 +66,7 @@ class MdbController extends ModuleInstance {
 
 		$blob = '';
 		foreach ($instances as $instance) {
-			$blob .= $this->text->makeChatcmd((string)$instance['id'], "/tell <myname> mdb {$categoryId} " . $instance['id']) . "\n";
+			$blob .= $this->text->makeChatcmd((string)$instance->id, "/tell <myname> mdb {$categoryId} " . $instance->id) . "\n";
 		}
 
 		$msg = $this->text->makeBlob("MDB Instances for Category {$categoryId}", $blob);
@@ -74,7 +77,8 @@ class MdbController extends ModuleInstance {
 	/** See an MDB by category and instance */
 	#[NCA\HandlesCommand("mdb")]
 	public function mdbInstanceCommand(CmdContext $context, int $categoryId, int $instanceId): void {
-		$messageString = $this->chatBot->mmdbParser->getMessageString($categoryId, $instanceId);
+		$client = AsyncClient::createDefault();
+		$messageString = $client->getMessageString($categoryId, $instanceId) ?? "- not found -";
 		$msg = "Unable to find MDB string category <highlight>{$categoryId}<end>, ".
 			"instance <highlight>{$instanceId}<end>.";
 		if ($messageString !== null) {

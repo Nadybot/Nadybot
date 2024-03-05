@@ -58,7 +58,7 @@ class WeatherController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>weather hannover,us")]
 	#[NCA\Help\Example("<symbol>weather cologne cathedral")]
 	#[NCA\Help\Example("<symbol>weather athens,ga")]
-	public function weatherCommand(CmdContext $context, string $location): Generator {
+	public function weatherCommand(CmdContext $context, string $location): void {
 		try {
 			$nominatim = yield $this->lookupLocation($location);
 			$weather = yield $this->lookupWeather($nominatim);

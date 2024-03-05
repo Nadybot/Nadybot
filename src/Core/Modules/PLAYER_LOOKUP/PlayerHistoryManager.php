@@ -2,14 +2,8 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\{asyncCall, call};
-
 use function Safe\json_decode;
-use Amp\Cache\FileCache;
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
-use Amp\Promise;
-use Amp\Sync\LocalKeyedMutex;
-use Generator;
+use Amp\Http\Client\{HttpClientBuilder, Request};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CacheManager,
@@ -29,56 +23,30 @@ class PlayerHistoryManager extends ModuleInstance {
 	#[NCA\Inject]
 	public BotConfig $config;
 
-	public function asyncLookup(string $name, int $dimension, callable $callback, mixed ...$args): void {
-		asyncCall(function () use ($name, $dimension, $callback, $args): Generator {
-			$result = yield $this->asyncLookup2($name, $dimension);
-			$callback($result, ...$args);
-		});
-	}
-
-	/** @return Promise<?PlayerHistory> */
-	public function asyncLookup2(string $name, int $dimension): Promise {
-		return call(function () use ($name, $dimension): Generator {
-			$name = ucfirst(strtolower($name));
-			$url = "https://pork.jkbff.com/pork/history.php?server={$dimension}&name={$name}";
-			$groupName = "player_history";
-			$cacheKey = "{$name}.{$dimension}.history";
-			$cache = new FileCache(
-				$this->config->paths->cache . "/{$groupName}",
-				new LocalKeyedMutex(),
-			);
-			if (null !== $body = yield $cache->get($cacheKey)) {
-				return $this->parsePlayerHistory($body, $name);
-			}
-			$client = $this->builder->build();
-
-			/** @var Response */
-			$response = yield $client->request(new Request($url));
-			if ($response->getStatus() !== 200) {
-				return null;
-			}
-			$body = yield $response->getBody()->buffer();
-			if ($body === '' || $body === '[]') {
-				return null;
-			}
-			$cache->set($cacheKey, $body, 24 * 3600);
-			return $this->parsePlayerHistory($body, $name);
-		});
-	}
-
-	/** @deprecated */
 	public function lookup(string $name, int $dimension): ?PlayerHistory {
 		$name = ucfirst(strtolower($name));
 		$url = "https://pork.jkbff.com/pork/history.php?server={$dimension}&name={$name}";
-		$groupName = "player_history";
-		$filename = "{$name}.{$dimension}.history.json";
-		$maxCacheAge = 86400;
-		$cb = function (?string $data): bool {
-			return isset($data) && $data !== "[]";
-		};
+		// $groupName = "player_history";
+		// $cacheKey = "{$name}.{$dimension}.history";
+		// $cache = new FileCache(
+		// 	$this->config->paths->cache . "/{$groupName}",
+		// 	new LocalKeyedMutex(),
+		// );
+		// if (null !== $body = yield $cache->get($cacheKey)) {
+		// 	return $this->parsePlayerHistory($body, $name);
+		// }
+		$client = $this->builder->build();
 
-		$cacheResult = $this->cacheManager->lookup($url, $groupName, $filename, $cb, $maxCacheAge);
-		return $this->parsePlayerHistory($cacheResult->data??"", $name);
+		$response = $client->request(new Request($url));
+		if ($response->getStatus() !== 200) {
+			return null;
+		}
+		$body = $response->getBody()->buffer();
+		if ($body === '' || $body === '[]') {
+			return null;
+		}
+		// $cache->set($cacheKey, $body, 24 * 3600);
+		return $this->parsePlayerHistory($body, $name);
 	}
 
 	/** @psalm-param callable(?PlayerHistory, mixed...) $callback */

@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
 use Exception;
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -31,7 +30,7 @@ class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	public function migrate(LoggerWrapper $logger, DB $db): Generator {
+	public function migrate(LoggerWrapper $logger, DB $db): void {
 		// throw new Exception("Hollera!");
 		$tagColor = $this->getColor($db, "discord_color_channel");
 		$textColor = $this->getColor($db, "discord_color_guild", "discord_color_priv");
@@ -52,8 +51,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$relayCommands = false;
 		}
 		try {
-			/** @var DiscordChannel */
-			$channel = yield $this->discordController->discordAPIClient->getChannel($relayChannel->value);
+			$channel = $this->discordController->discordAPIClient->getChannel($relayChannel->value);
 			$this->migrateChannelToRoute($channel, $db, $relayWhat, $relayCommands);
 		} catch (Throwable) {
 		}

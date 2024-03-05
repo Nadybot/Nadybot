@@ -18,7 +18,6 @@ use Nadybot\Core\{
 	Nadybot,
 	SettingManager,
 	Text,
-	Timer,
 	Util,
 };
 use Nadybot\Modules\{
@@ -70,9 +69,6 @@ class DiscordRelayController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public Util $util;

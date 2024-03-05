@@ -2,9 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Amp\Promise;
 use Exception;
-use Generator;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -147,7 +145,7 @@ class SettingsController extends ModuleInstance {
 		string $action,
 		PWord $setting,
 		string $newValue
-	): Generator {
+	): void {
 		$name = strtolower($setting());
 
 		/** @var ?Setting */
@@ -173,10 +171,6 @@ class SettingsController extends ModuleInstance {
 		}
 		try {
 			$newValueToSave = $settingHandler->save($newValue);
-			if ($newValueToSave instanceof Promise) {
-				$temp = yield $newValueToSave;
-				$newValueToSave = $temp;
-			}
 			$niceSavedValue = htmlentities($newValueToSave);
 			if ($this->settingManager->save($name, $newValueToSave)) {
 				$settingHandler->getData()->value = $newValueToSave;

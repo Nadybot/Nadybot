@@ -3,9 +3,7 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use Amp\Dns\DnsException;
-use Amp\Http\Client\Connection\UnprocessedRequestException;
-use Amp\Http\Client\{HttpClientBuilder, InvalidRequestException, Request, Response};
-use Generator;
+use Amp\Http\Client\{HttpClientBuilder, InvalidRequestException, Request};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -35,23 +33,16 @@ class HttpRequestController extends ModuleInstance {
 
 	/** Load the given URL and show the result */
 	#[NCA\HandlesCommand("httprequest")]
-	public function httprequestCommand(CmdContext $context, string $url): Generator {
+	public function httprequestCommand(CmdContext $context, string $url): void {
 		$client = $this->builder->build();
 		try {
-			/** @var Response */
-			$response = yield $client->request(new Request($url));
-			$body = yield $response->getBody()->buffer();
+			$response = $client->request(new Request($url));
+			$body = $response->getBody()->buffer();
 		} catch (InvalidRequestException) {
 			$context->reply("<highlight>{$url}<end> is not a valid http/https URL.");
 			return;
 		} catch (DnsException $e) {
 			$context->reply("<highlight>{$url}<end> is not a valid domain.");
-			return;
-		} catch (UnprocessedRequestException $e) {
-			if ($e->getPrevious() !== null) {
-				$e = $e->getPrevious();
-			}
-			$context->reply("Error retrieving data: ". $e->getMessage());
 			return;
 		} catch (Throwable $e) {
 			$context->reply("Error retrieving data: ". $e->getMessage());
@@ -60,7 +51,7 @@ class HttpRequestController extends ModuleInstance {
 		$blob = "<header2>Headers<end>\n";
 		$blob .= "<tab>HTTP/" . $response->getProtocolVersion() . " ".
 			$response->getStatus() . " " . $response->getReason() . "\n";
-		foreach ($response->getRawHeaders() as $header) {
+		foreach ($response->getHeaderPairs() as $header) {
 			[$field, $value] = $header;
 			$blob .= "<tab>{$field}: <highlight>{$value}<end>\n";
 		}

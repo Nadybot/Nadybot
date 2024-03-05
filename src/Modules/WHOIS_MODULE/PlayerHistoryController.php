@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -41,11 +40,11 @@ class PlayerHistoryController extends ModuleInstance {
 	 * Valid dimensions are 1 (Atlantean), 2 (Rimor), and 5 (New server)
 	 */
 	#[NCA\HandlesCommand("history")]
-	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): Generator {
+	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$name = $char();
 		$dimension ??= $this->config->main->dimension;
 
-		$history = yield $this->playerHistoryManager->asyncLookup2($name, $dimension);
+		$history = yield $this->playerHistoryManager->lookup($name, $dimension);
 		$msg = $this->renderPlayerHistory($history, $name, $dimension);
 		$context->reply($msg);
 	}

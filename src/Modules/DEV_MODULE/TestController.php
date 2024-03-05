@@ -3,13 +3,13 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use function Amp\File\filesystem;
+use function Safe\file;
 
-use Amp\Loop;
+use AO\Client\{Basic, WorkerPackage};
+use AO\Package;
 use Exception;
-use Generator;
 use Nadybot\Core\{
 	AOChatEvent,
-	AOChatPacket,
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
@@ -28,12 +28,13 @@ use Nadybot\Core\{
 	Registry,
 	SettingManager,
 	Text,
-	Timer,
+	UserException,
 	Util,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Nadybot\Modules\TOWER_MODULE\TowerController;
+use Revolt\EventLoop;
 use Safe\Exceptions\FilesystemException;
 
 /**
@@ -67,9 +68,6 @@ class TestController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;
@@ -116,7 +114,7 @@ class TestController extends ModuleInstance {
 		}
 		$testContext->message = substr($line, 1);
 		$this->commandManager->processCmd($testContext);
-		Loop::defer(function () use ($commands, $context, $logFile): void {
+		EventLoop::defer(function (string $token) use ($commands, $context, $logFile): void {
 			$this->runTests($commands, $context, $logFile);
 		});
 	}
@@ -329,25 +327,24 @@ class TestController extends ModuleInstance {
 		#[NCA\Str("cloaklower")]
 		string $action
 	): void {
-		foreach ($this->chatBot->grp as $gid => $status) {
-			if (ord(substr((string)$gid, 0, 1)) === 3) {
-				break;
-			}
-		}
-		if (!isset($gid)) {
+		$orgGroup = $this->chatBot->getOrgGroup();
+		if (!isset($orgGroup)) {
 			$context->reply("Your bot must be in an org to test this.");
 			return;
 		}
-		$testArgs = [
-			$gid,
-			0xFFFFFFFF,
-			"{$context->char->name} turned the cloaking device in your city off.",
-		];
-		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
-		$packet->type = AOChatPacket::GROUP_MESSAGE;
-		$packet->args = $testArgs;
 
-		$this->chatBot->processPackage($packet);
+		$this->chatBot->processPackage(
+			new WorkerPackage(
+				worker: $this->config->main->character,
+				package: new Package\In\GroupMessage(
+					groupId: $orgGroup->id,
+					charId: 0xFFFFFFFF,
+					message: "{$context->char->name} turned the cloaking device in your city off.",
+					extra: "\0",
+				),
+				client: $this->getWorker(),
+			)
+		);
 	}
 
 	/** Pretend you just raised your city cloak */
@@ -357,25 +354,24 @@ class TestController extends ModuleInstance {
 		#[NCA\Str("cloakraise")]
 		string $action
 	): void {
-		foreach ($this->chatBot->grp as $gid => $status) {
-			if (ord(substr((string)$gid, 0, 1)) === 3) {
-				break;
-			}
-		}
-		if (!isset($gid)) {
+		$orgGroup = $this->chatBot->getOrgGroup();
+		if (!isset($orgGroup)) {
 			$context->reply("Your bot must be in an org to test this.");
 			return;
 		}
-		$testArgs = [
-			$gid,
-			0xFFFFFFFF,
-			"{$context->char->name} turned the cloaking device in your city on.",
-		];
-		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
-		$packet->type = AOChatPacket::GROUP_MESSAGE;
-		$packet->args = $testArgs;
 
-		$this->chatBot->processPackage($packet);
+		$this->chatBot->processPackage(
+			new WorkerPackage(
+				worker: $this->config->main->character,
+				package: new Package\In\GroupMessage(
+					groupId: $orgGroup->id,
+					charId: 0xFFFFFFFF,
+					message: "{$context->char->name} turned the cloaking device in your city on.",
+					extra: "\0",
+				),
+				client: $this->getWorker(),
+			)
+		);
 	}
 
 	/**
@@ -507,15 +503,23 @@ class TestController extends ModuleInstance {
 		#[NCA\Str("logon")]
 		string $action,
 		PCharacter $char
-	): Generator {
-		$uid = yield $this->chatBot->getUid2($char());
+	): void {
+		$uid = $this->chatBot->getUid($char());
 		if ($uid === null) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
-		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, \Safe\pack("NNn", $uid, 1, 0));
-
-		$this->chatBot->processPackage($packet);
+		$this->chatBot->processPackage(
+			new WorkerPackage(
+				worker: $this->config->main->character,
+				package: new Package\In\BuddyState(
+					charId: $uid,
+					online: true,
+					extra: "\0"
+				),
+				client: $this->getWorker(),
+			)
+		);
 	}
 
 	/** Simulate &lt;char&gt; logging off */
@@ -525,15 +529,24 @@ class TestController extends ModuleInstance {
 		#[NCA\Str("logoff")]
 		string $action,
 		PCharacter $char
-	): Generator {
-		$uid = yield $this->chatBot->getUid2($char());
+	): void {
+		$uid = $this->chatBot->getUid($char());
 		if ($uid === null) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
-		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, \Safe\pack("NNn", $uid, 0, 0));
 
-		$this->chatBot->processPackage($packet);
+		$this->chatBot->processPackage(
+			new WorkerPackage(
+				worker: $this->config->main->character,
+				package: new Package\In\BuddyState(
+					charId: $uid,
+					online: false,
+					extra: "\0"
+				),
+				client: $this->getWorker(),
+			)
+		);
 	}
 
 	/** Simulate &lt;char&gt; joining the private channel */
@@ -543,16 +556,23 @@ class TestController extends ModuleInstance {
 		#[NCA\Str("join")]
 		string $action,
 		PCharacter $char
-	): Generator {
-		$uid = yield $this->chatBot->getUid2($char());
+	): void {
+		$uid = $this->chatBot->getUid($char());
 		if ($uid === null) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
-		$channelUid = $this->chatBot->char->id;
-		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIJOIN, \Safe\pack("NN", $channelUid, $uid));
 
-		$this->chatBot->processPackage($packet);
+		$this->chatBot->processPackage(
+			new WorkerPackage(
+				worker: $this->config->main->character,
+				package: new Package\In\PrivateChannelClientJoined(
+					channelId: $this->chatBot->char->id,
+					charId: $uid
+				),
+				client: $this->getWorker(),
+			)
+		);
 	}
 
 	/** Simulate &lt;char&gt; leaving the private channel */
@@ -562,16 +582,22 @@ class TestController extends ModuleInstance {
 		#[NCA\Str("leave")]
 		string $action,
 		PCharacter $char
-	): Generator {
-		$uid = yield $this->chatBot->getUid2($char());
+	): void {
+		$uid = $this->chatBot->getUid($char());
 		if ($uid === null) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
-		$channelUid = $this->chatBot->char->id;
-		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIPART, \Safe\pack("NN", $channelUid, $uid));
-
-		$this->chatBot->processPackage($packet);
+		$this->chatBot->processPackage(
+			new WorkerPackage(
+				worker: $this->config->main->character,
+				package: new Package\In\PrivateChannelClientLeft(
+					channelId: $this->chatBot->char->id,
+					charId: $uid
+				),
+				client: $this->getWorker(),
+			)
+		);
 	}
 
 	/** Sleep for &lt;duration&gt; seconds. This can lead to lots of timeouts */
@@ -607,16 +633,16 @@ class TestController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("all")]
 		string $action
-	): Generator {
+	): void {
 		$testContext = clone $context;
 
-		$files = yield filesystem()->listFiles($this->path);
+		$files = filesystem()->listFiles($this->path);
 		$context->reply("Starting tests...");
 		$logFile = $this->config->paths->data.
 			"/tests-" . \Safe\date("YmdHis", time()) . ".json";
 		$testLines = [];
 		foreach ($files as $file) {
-			$data = yield filesystem()->read($this->path . $file);
+			$data = filesystem()->read($this->path . $file);
 			$lines = explode("\n", $data);
 			$testLines = array_merge($testLines, $lines);
 		}
@@ -633,7 +659,7 @@ class TestController extends ModuleInstance {
 		$testContext->permissionSet = "msg";
 
 		try {
-			$lines = \Safe\file($this->path . $file, FILE_IGNORE_NEW_LINES);
+			$lines = file($this->path . $file, FILE_IGNORE_NEW_LINES);
 		} catch (FilesystemException) {
 			$context->reply("Could not find test <highlight>{$file}<end> to run.");
 			return;
@@ -647,19 +673,27 @@ class TestController extends ModuleInstance {
 		$context->reply("Finished test {$file}. Time: {$time}");
 	}
 
-	protected function sendOrgMsg(string $message): void {
-		$gid = $this->chatBot->get_gid('Org Msg');
-		if (!isset($gid)) {
-			$this->chatBot->gid["sicrit"] = 'Org Msg';
-			$this->chatBot->gid["Org Msg"] = 'sicrit';
-			$gid = 'sicrit';
+	protected function sendGroupMsg(string $groupName, int $uid, string $message): void {
+		$group = $this->chatBot->getGroupByName($groupName);
+		if (!isset($group)) {
+			throw new UserException("Your bot cannot read the \"{$groupName}\" channel.");
 		}
-		$testArgs = [$gid, 0xFFFFFFFF, $message];
-		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
-		$packet->type = AOChatPacket::GROUP_MESSAGE;
-		$packet->args = $testArgs;
+		$this->chatBot->processPackage(
+			new WorkerPackage(
+				worker: $this->config->main->character,
+				package: new Package\In\GroupMessage(
+					groupId: $group->id,
+					charId: $uid,
+					message: $message,
+					extra: "\0",
+				),
+				client: $this->getWorker(),
+			)
+		);
+	}
 
-		$this->chatBot->processPackage($packet);
+	protected function sendOrgMsg(string $message): void {
+		$this->sendGroupMsg('Org Msg', 0xFFFFFFFF, $message);
 	}
 
 	protected function getTowerLocationString(PTowerSite $site, string $format): ?string {
@@ -674,18 +708,15 @@ class TestController extends ModuleInstance {
 		return sprintf($format, $pf->long_name, $tSite->x_coord, $tSite->y_coord);
 	}
 
-	protected function sendTowerMsg(string $msg): void {
-		$gid = $this->chatBot->get_gid('All Towers');
-		if (!isset($gid)) {
-			$this->chatBot->gid["sicrit"] = 'All Towers';
-			$this->chatBot->gid["All Towers"] = 'sicrit';
-			$gid = 'sicrit';
-		}
-		$testArgs = [$gid, 0, $msg];
-		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
-		$packet->type = AOChatPacket::GROUP_MESSAGE;
-		$packet->args = $testArgs;
+	protected function sendTowerMsg(string $message): void {
+		$this->sendGroupMsg('All Towers', 0, $message);
+	}
 
-		$this->chatBot->processPackage($packet);
+	private function getWorker(): Basic {
+		$worker = $this->chatBot->aoClient->getBestWorker($this->config->main->character);
+		if (!isset($worker)) {
+			throw new UserException("Cannot find a usable AO client.");
+		}
+		return $worker;
 	}
 }

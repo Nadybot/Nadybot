@@ -2,20 +2,16 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use function Amp\asyncCall;
+use function Amp\ByteStream\splitLines;
 use function Amp\File\{deleteFile, filesystem, read};
-use Amp\ByteStream\LineReader;
 use Amp\File\{File, FilesystemException};
 use Amp\Http\Client\{
 	HttpClientBuilder,
 	Interceptor\SetRequestHeader,
 	Request,
-	Response,
 };
-use Amp\Loop;
 use Amp\Parallel\Worker\TaskFailureException;
 use Exception;
-use Generator;
 use Monolog\{
 	Formatter\JsonFormatter,
 	Handler\AbstractHandler,
@@ -39,6 +35,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Revolt\EventLoop;
 use Throwable;
 
 /**
@@ -86,7 +83,7 @@ class LogsController extends ModuleInstance {
 
 	/** View a list of log files */
 	#[NCA\HandlesCommand("logs")]
-	public function logsCommand(CmdContext $context): Generator {
+	public function logsCommand(CmdContext $context): void {
 		try {
 			if (false === yield filesystem()->exists($this->logger->getLoggingDirectory())) {
 				$context->reply(
@@ -131,21 +128,20 @@ class LogsController extends ModuleInstance {
 	 * &lt;search&gt; is a regular expression (without delimiters) and case-insensitive
 	 */
 	#[NCA\HandlesCommand("logs")]
-	public function logsFileCommand(CmdContext $context, PFilename $file, ?string $search): Generator {
+	public function logsFileCommand(CmdContext $context, PFilename $file, ?string $search): void {
 		$filename = $this->logger->getLoggingDirectory() . DIRECTORY_SEPARATOR . $file();
 		$readsize = ($this->settingManager->getInt('max_blob_size')??10000) - 500;
 
 		try {
-			if (false === yield filesystem()->exists($filename)) {
+			if (false === filesystem()->exists($filename)) {
 				$context->reply("The file <highlight>{$filename}<end> doesn't exist.");
 				return;
 			}
 
-			/** @var File */
-			$handle = yield filesystem()->openFile($filename, "r");
-			$reader = new LineReader($handle);
+			$handle = filesystem()->openFile($filename, "r");
+			$reader = splitLines($handle);
 			$lines = [];
-			while (null !== $line = yield $reader->readLine()) {
+			foreach ($reader as $line) {
 				if (strlen($line) > 1000) {
 					$line = substr($line, 0, 997) . "[…]";
 				}
@@ -337,7 +333,7 @@ class LogsController extends ModuleInstance {
 				$logger->popHandler();
 				$logger->popHandler();
 			}
-			Loop::defer(function () use ($context, $debugFile): void {
+			EventLoop::defer(function (string $token) use ($context, $debugFile): void {
 				$this->uploadDebugLog($context, $debugFile);
 			});
 		});
@@ -346,55 +342,52 @@ class LogsController extends ModuleInstance {
 	}
 
 	public function uploadDebugLog(CmdContext $context, string $filename): void {
-		asyncCall(function () use ($context, $filename): Generator {
-			try {
-				$content = yield read($filename);
-				deleteFile($filename);
-			} catch (FilesystemException $e) {
-				$context->reply("Unable to open <highlight>{$filename}<end>: " . $e->getMessage() . ".");
-				return;
-			}
-			$content = str_replace('"' . BotRunner::getBasedir() . "/", "", $content);
-			$boundary = '--------------------------'.microtime(true);
-			$client = $this->builder
-				->intercept(new SetRequestHeader("Authorization", "dRtXBMRnAH6AX2lx5ESiAQ=="))
-				->intercept(new SetRequestHeader("Content-Type", "multipart/form-data; boundary={$boundary}"))
-				->build();
-			$postData = "--{$boundary}\r\n".
-				"Content-Disposition: form-data; name=\"file\"; filename=\"" . basename($filename) . "\"\r\n".
-				"Content-Type: application/json\r\n\r\n".
-				$content . "\r\n".
-				"--{$boundary}--\r\n";
-			$request = new Request("https://debug.nadybot.org", "POST", $postData);
-			try {
-				/** @var Response */
-				$response = yield $client->request($request);
-			} catch (Throwable $e) {
-				$context->reply("Error uploading debug file: " . $e->getMessage());
-				return;
-			}
-			if ($response->getStatus() !== 200) {
-				$context->reply(
-					"Error uploading debug file. ".
-					"Code " . $response->getStatus(). " (".
-					$response->getReason() . ")"
-				);
-				return;
-			}
-			try {
-				$body = yield $response->getBody()->buffer();
-			} catch (Throwable $e) {
-				$context->reply("Error uploading debug file: " . $e->getMessage());
-				return;
-			}
-			if ($body === '') {
-				$context->reply("The file was uploaded successfully, but we did not receive a storage link.");
-				return;
-			}
-			$url = trim($body);
+		try {
+			$content = read($filename);
+			deleteFile($filename);
+		} catch (FilesystemException $e) {
+			$context->reply("Unable to open <highlight>{$filename}<end>: " . $e->getMessage() . ".");
+			return;
+		}
+		$content = str_replace('"' . BotRunner::getBasedir() . "/", "", $content);
+		$boundary = '--------------------------'.microtime(true);
+		$client = $this->builder
+			->intercept(new SetRequestHeader("Authorization", "dRtXBMRnAH6AX2lx5ESiAQ=="))
+			->intercept(new SetRequestHeader("Content-Type", "multipart/form-data; boundary={$boundary}"))
+			->build();
+		$postData = "--{$boundary}\r\n".
+			"Content-Disposition: form-data; name=\"file\"; filename=\"" . basename($filename) . "\"\r\n".
+			"Content-Type: application/json\r\n\r\n".
+			$content . "\r\n".
+			"--{$boundary}--\r\n";
+		$request = new Request("https://debug.nadybot.org", "POST", $postData);
+		try {
+			$response = $client->request($request);
+		} catch (Throwable $e) {
+			$context->reply("Error uploading debug file: " . $e->getMessage());
+			return;
+		}
+		if ($response->getStatus() !== 200) {
 			$context->reply(
-				"The debug log has been uploaded successfully to <highlight>{$url}<end>."
+				"Error uploading debug file. ".
+				"Code " . $response->getStatus(). " (".
+				$response->getReason() . ")"
 			);
-		});
+			return;
+		}
+		try {
+			$body = $response->getBody()->buffer();
+		} catch (Throwable $e) {
+			$context->reply("Error uploading debug file: " . $e->getMessage());
+			return;
+		}
+		if ($body === '') {
+			$context->reply("The file was uploaded successfully, but we did not receive a storage link.");
+			return;
+		}
+		$url = trim($body);
+		$context->reply(
+			"The debug log has been uploaded successfully to <highlight>{$url}<end>."
+		);
 	}
 }

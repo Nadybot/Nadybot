@@ -110,7 +110,7 @@ class ExportController extends ModuleInstance {
 		"data, not settings, of your bot so it can later be imported into another\n".
 		"bot."
 	)]
-	public function exportCommand(CmdContext $context, string $file): Generator {
+	public function exportCommand(CmdContext $context, string $file): void {
 		$dataPath = $this->config->paths->data;
 		$fileName = "{$dataPath}/export/" . basename($file);
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
@@ -175,7 +175,7 @@ class ExportController extends ModuleInstance {
 			}
 			$id = $uid;
 			if (!isset($id) && isset($name)) {
-				$id = yield $this->chatBot->getUid2($name);
+				$id = $this->chatBot->getUid($name);
 			}
 			if (is_int($id)) {
 				$char->id = $id;

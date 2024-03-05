@@ -153,7 +153,7 @@ class MassMsgController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("massmsg")]
 	#[NCA\Help\Group("massmessaging")]
-	public function massMsgCommand(CmdContext $context, string $message): Generator {
+	public function massMsgCommand(CmdContext $context, string $message): void {
 		if (($cooldownMsg = $this->massMsgRateLimitCheck()) !== null) {
 			$context->reply($cooldownMsg);
 			return;
@@ -187,7 +187,7 @@ class MassMsgController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("massinv")]
 	#[NCA\Help\Group("massmessaging")]
-	public function massInvCommand(CmdContext $context, string $message): Generator {
+	public function massInvCommand(CmdContext $context, string $message): void {
 		if (($cooldownMsg = $this->massMsgRateLimitCheck()) !== null) {
 			$context->reply($cooldownMsg);
 			return;
@@ -232,7 +232,7 @@ class MassMsgController extends ModuleInstance {
 			$result = [];
 			foreach ($online as $name) {
 				/** @var ?int */
-				$uid = yield $this->chatBot->getUid2($name);
+				$uid = $this->chatBot->getUid($name);
 				if (!isset($uid) || yield $this->banController->isOnBanlist($uid)) {
 					continue;
 				}

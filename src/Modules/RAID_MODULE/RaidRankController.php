@@ -317,7 +317,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		string $action,
 		PCharacter $char,
 		?int $rank
-	): Generator {
+	): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The admin rank must be a number between 1 and 3");
@@ -351,7 +351,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		string $action,
 		PCharacter $char,
 		?int $rank
-	): Generator {
+	): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The leader rank must be a number between 1 and 3");
@@ -503,7 +503,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	/** @return Promise<bool> */
 	private function add(string $who, string $sender, CommandReply $sendto, int $rank, string $rankName, string $alName): Promise {
 		return call(function () use ($who, $sender, $sendto, $rank, $rankName, $alName): Generator {
-			if (null === yield $this->chatBot->getUid2($who)) {
+			if (null === $this->chatBot->getUid($who)) {
 				$sendto->reply("Character <highlight>{$who}<end> does not exist.");
 				return false;
 			}

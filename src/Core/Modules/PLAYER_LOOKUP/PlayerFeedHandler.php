@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use Amp\{Promise, Success};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{Config\BotConfig, EventFeed, EventFeedHandler, LoggerWrapper, ModuleInstance, Nadybot, SettingEvent};
@@ -51,19 +50,14 @@ class PlayerFeedHandler extends ModuleInstance implements EventFeedHandler {
 		}
 	}
 
-	/**
-	 * @param array<string,mixed> $data
-	 *
-	 * @return Promise<void>
-	 */
-	public function handleEventFeedMessage(string $room, array $data): Promise {
+	/** @param array<string,mixed> $data */
+	public function handleEventFeedMessage(string $room, array $data): void {
 		$mapper = new ObjectMapperUsingReflection();
 		try {
 			$playerInfo = $mapper->hydrateObject(PlayerInfo::class, $data);
 			$player = $playerInfo->toPlayer();
 			$this->playerManager->update($player);
-			$this->chatBot->id[$playerInfo->name] = $playerInfo->uid;
-			$this->chatBot->id[$playerInfo->uid] = $playerInfo->name;
+			$this->chatBot->cacheUidNameMapping($playerInfo->name, $playerInfo->uid);
 		} catch (UnableToHydrateObject $e) {
 			$this->logger->error("Format of Char-Info-API has changed: {error}", [
 				"error" => $e->getMessage(),
@@ -75,9 +69,5 @@ class PlayerFeedHandler extends ModuleInstance implements EventFeedHandler {
 				"exception" => $e,
 			]);
 		}
-
-		/** @var Promise<void> */
-		$result = new Success();
-		return $result;
 	}
 }

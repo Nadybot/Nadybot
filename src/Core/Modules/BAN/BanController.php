@@ -19,7 +19,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
-	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
@@ -689,10 +688,10 @@ class BanController extends ModuleInstance {
 			$guild = $this->guildManager->byId($orgId);
 			if (!isset($guild)) {
 				$context->reply("<highlight>{$orgId}<end> is not a valid org id.");
-				return null;
+				return;
 			}
 			$context->reply($guild->getColorName() . " is currently not banned.");
-			return null;
+			return;
 		}
 		$ban = $this->orgbanlist[$orgId];
 		$this->db->table(self::DB_TABLE_BANNED_ORGS)
@@ -700,7 +699,6 @@ class BanController extends ModuleInstance {
 			->delete();
 		$context->reply("Removed <highlight>{$ban->org_name}<end> from the banlist.");
 		unset($this->orgbanlist[$orgId]);
-		return null;
 	}
 
 	#[NCA\Event(
@@ -749,7 +747,7 @@ class BanController extends ModuleInstance {
 					$this->logger->notice("Kicking banned char {name} from private channel", [
 						"name" => $char->name,
 					]);
-					$package = new PrivateChannelKick(charId: $char->id);
+					$package = new PrivateChannelKick(charId: $char->charid);
 					$this->chatBot->aoClient->write($package);
 				}
 			}

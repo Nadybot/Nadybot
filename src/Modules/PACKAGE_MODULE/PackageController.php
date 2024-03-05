@@ -104,7 +104,7 @@ class PackageController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("list")]
 		string $action
-	): Generator {
+	): void {
 		$packages = yield $this->getPackages();
 		$msg = $this->renderPackageList($packages);
 		$context->reply($msg);
@@ -210,7 +210,7 @@ class PackageController extends ModuleInstance {
 		#[NCA\Str("info")]
 		string $action,
 		string $package
-	): Generator {
+	): void {
 		$packages = yield $this->getPackage($package);
 		$msg = $this->getPackageDetail($packages);
 		$context->reply($msg);
@@ -366,7 +366,7 @@ class PackageController extends ModuleInstance {
 		string $action,
 		PWord $package,
 		?string $version
-	): Generator {
+	): void {
 		if (!$this->config->general->enablePackageModule) {
 			$context->reply(
 				"In order to be allowed to install modules from within Nadybot, ".
@@ -398,7 +398,7 @@ class PackageController extends ModuleInstance {
 		string $action,
 		PWord $package,
 		?string $version
-	): Generator {
+	): void {
 		if (!$this->config->general->enablePackageModule) {
 			$context->reply(
 				"In order to be allowed to update modules from within Nadybot, ".

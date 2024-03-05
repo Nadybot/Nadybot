@@ -256,8 +256,8 @@ class GuildController extends ModuleInstance {
 
 	/** Check when a member of your org was last seen online by the bot */
 	#[NCA\HandlesCommand("lastseen")]
-	public function lastSeenCommand(CmdContext $context, PCharacter $name): Generator {
-		$uid = yield $this->chatBot->getUid2($name());
+	public function lastSeenCommand(CmdContext $context, PCharacter $name): void {
+		$uid = $this->chatBot->getUid($name());
 		if ($uid === null) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
@@ -387,9 +387,9 @@ class GuildController extends ModuleInstance {
 		#[NCA\Str("on", "add")]
 		string $action,
 		PCharacter $char
-	): Generator {
+	): void {
 		$name = $char();
-		$uid = yield $this->chatBot->getUid2($name);
+		$uid = $this->chatBot->getUid($name);
 
 		if ($uid === null) {
 			$msg = "<highlight>{$name}<end> does not exist.";
@@ -433,9 +433,9 @@ class GuildController extends ModuleInstance {
 		CmdContext $context,
 		PRemove $action,
 		PCharacter $char
-	): Generator {
+	): void {
 		$name = $char();
-		$uid = yield $this->chatBot->getUid2($name);
+		$uid = $this->chatBot->getUid($name);
 
 		if ($uid === null) {
 			$msg = "<highlight>{$name}<end> does not exist.";
@@ -467,7 +467,7 @@ class GuildController extends ModuleInstance {
 
 	/** Force an update of the org roster */
 	#[NCA\HandlesCommand("updateorg")]
-	public function updateorgCommand(CmdContext $context): Generator {
+	public function updateorgCommand(CmdContext $context): void {
 		$context->reply("Starting Roster update");
 		try {
 			yield $this->updateMyOrgRoster(true);
@@ -520,7 +520,7 @@ class GuildController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("online")]
 		?string $onlineOnly,
-	): Generator {
+	): void {
 		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
 			$context->reply("The bot must be in an org.");
 			return;
@@ -727,7 +727,7 @@ class GuildController extends ModuleInstance {
 			return;
 		}
 		$msg = yield $this->getLogonMessage($sender);
-		$uid = yield $this->chatBot->getUid2($sender);
+		$uid = $this->chatBot->getUid($sender);
 		$e = new Online();
 		$e->char = new Character($sender, $uid);
 		$e->main = $this->altsController->getMainOf($sender);
@@ -790,7 +790,7 @@ class GuildController extends ModuleInstance {
 			return;
 		}
 
-		$uid = yield $this->chatBot->getUid2($sender);
+		$uid = $this->chatBot->getUid($sender);
 
 		/** @var ?string */
 		$msg = yield $this->getLogoffMessage($sender);

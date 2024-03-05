@@ -393,7 +393,7 @@ class TowerController extends ModuleInstance {
 
 	/** Show all unplanted towerfields */
 	#[NCA\HandlesCommand("sites")]
-	public function unplantedSitesCommand(CmdContext $context): Generator {
+	public function unplantedSitesCommand(CmdContext $context): void {
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "planted" => "false"];
 			try {
@@ -436,7 +436,7 @@ class TowerController extends ModuleInstance {
 		string $action,
 		#[NCA\SpaceOptional]
 		int $ql,
-	): Generator {
+	): void {
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "planted" => "false"];
 
@@ -492,7 +492,7 @@ class TowerController extends ModuleInstance {
 	#[NCA\HandlesCommand("sites")]
 	#[NCA\Help\Example("<symbol>sites athen paladins")]
 	#[NCA\Help\Example("<symbol>sites 4736")]
-	public function sitesByNameCommand(CmdContext $context, string $search): Generator {
+	public function sitesByNameCommand(CmdContext $context, string $search): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
@@ -563,7 +563,7 @@ class TowerController extends ModuleInstance {
 	/** Show the status of all tower sites in a playfield */
 	#[NCA\HandlesCommand("lc")]
 	#[NCA\Help\Example("<symbol>lc pw")]
-	public function lc2Command(CmdContext $context, PPlayfield $pf): Generator {
+	public function lc2Command(CmdContext $context, PPlayfield $pf): void {
 		$playfieldName = $pf();
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
@@ -636,7 +636,7 @@ class TowerController extends ModuleInstance {
 	#[NCA\HandlesCommand("lc")]
 	#[NCA\Help\Example("<symbol>lc pw8")]
 	#[NCA\Help\Example("<symbol>lc mort 6")]
-	public function lc3Command(CmdContext $context, PTowerSite $site): Generator {
+	public function lc3Command(CmdContext $context, PTowerSite $site): void {
 		$playfieldName = $site->pf;
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
@@ -681,7 +681,7 @@ class TowerController extends ModuleInstance {
 	#[NCA\HandlesCommand("penalty")]
 	#[NCA\Help\Example("<symbol>penalty neutral")]
 	#[NCA\Help\Example("<symbol>penalty Obeya")]
-	public function penaltySitesApiCommand(CmdContext $context, ?string $orgName): Generator {
+	public function penaltySitesApiCommand(CmdContext $context, ?string $orgName): void {
 		$sites = $this->getScoutPlusQuery()
 			->where("s.penalty_until", ">=", time())
 			->asObj(ScoutInfoPlus::class);
@@ -801,7 +801,7 @@ class TowerController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>hot 99-110", "Only where the CT is between QL 99 and 110")]
 	#[NCA\Help\Example("<symbol>hot 6h")]
 	#[NCA\Help\Example("<symbol>hot omni 3h pw 180-300")]
-	public function hotSitesCommand(CmdContext $context, ?string $search): Generator {
+	public function hotSitesCommand(CmdContext $context, ?string $search): void {
 		$search ??= "";
 		if (substr($search, 0, 1) !== " ") {
 			$search = " {$search}";
@@ -1620,7 +1620,7 @@ class TowerController extends ModuleInstance {
 	/** Show how many towers you are allowed to plant. Add 'all' to show it generally */
 	#[NCA\HandlesCommand("towerqty")]
 	#[NCA\Help\Group("tower")]
-	public function towerQtyCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): Generator {
+	public function towerQtyCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
 		if (isset($all)) {
 			$msg = $this->text->makeBlob("Allowed number of towers", $this->getAllTowerQuantitiesBlob());
 			$context->reply($msg);

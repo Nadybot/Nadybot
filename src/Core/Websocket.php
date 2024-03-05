@@ -2,15 +2,17 @@
 
 namespace Nadybot\Core;
 
-use Amp\Loop;
 use Nadybot\Core\Attributes as NCA;
+use Revolt\EventLoop;
 
 #[NCA\Instance]
 class Websocket {
 	public function createClient(): WebsocketClient {
 		$client = new WebsocketClient();
 		Registry::injectDependencies($client);
-		Loop::defer(fn () => $client->connect());
+		EventLoop::defer(function (string $ignore) use ($client): void {
+			$client->connect();
+		});
 		return $client;
 	}
 }

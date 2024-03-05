@@ -8,7 +8,6 @@ use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	LoggerWrapper,
-	Timer,
 	Util,
 };
 use Nadybot\Modules\RELAY_MODULE\{
@@ -41,9 +40,6 @@ use Throwable;
 	)
 ]
 class Chunker implements RelayLayerInterface {
-	#[NCA\Inject]
-	public Timer $timer;
-
 	#[NCA\Inject]
 	public Util $util;
 

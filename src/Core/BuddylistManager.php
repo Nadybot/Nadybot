@@ -19,9 +19,6 @@ class BuddylistManager {
 	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	#[NCA\Inject]
-	public Timer $timer;
-
 	/**
 	 * List of all players on the friendlist, real or just queued up
 	 *

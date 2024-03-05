@@ -4,7 +4,6 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Closure;
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -90,9 +89,9 @@ class PermissionSetController extends ModuleInstance {
 		CmdContext $context,
 		PRemove $action,
 		PWord $name
-	): Generator {
+	): void {
 		try {
-			yield $this->cmdManager->deletePermissionSet($name());
+			$this->cmdManager->deletePermissionSet($name());
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -110,7 +109,7 @@ class PermissionSetController extends ModuleInstance {
 		#[NCA\Str("to")]
 		?string $to,
 		PWord $newName
-	): Generator {
+	): void {
 		$old = $this->cmdManager->getPermissionSet($oldName());
 		if (!isset($old)) {
 			$context->reply("The permission set <highlight>{$oldName}<end> doesn't exist.");
@@ -118,7 +117,7 @@ class PermissionSetController extends ModuleInstance {
 		}
 		$old->name = $newName();
 		try {
-			yield $this->cmdManager->changePermissionSet($oldName(), $old);
+			$this->cmdManager->changePermissionSet($oldName(), $old);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -136,7 +135,7 @@ class PermissionSetController extends ModuleInstance {
 		string $action,
 		PWord $name,
 		PWord $newLetter
-	): Generator {
+	): void {
 		$old = $this->cmdManager->getPermissionSet($name());
 		if (!isset($old)) {
 			$context->reply("The permission set <highlight>{$name}<end> doesn't exist.");
@@ -145,7 +144,7 @@ class PermissionSetController extends ModuleInstance {
 		$oldLetter = $old->letter;
 		$old->letter = strtoupper($newLetter());
 		try {
-			yield $this->cmdManager->changePermissionSet($name(), $old);
+			$this->cmdManager->changePermissionSet($name(), $old);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;

@@ -2,18 +2,15 @@
 
 namespace Nadybot\Core;
 
-use Amp\Loop;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Socket\AsyncSocket;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
+use Revolt\EventLoop;
 
 class WebsocketServer extends WebsocketBase {
 	#[NCA\Inject]
 	public SocketManager $socketManager;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public WebsocketController $websocketController;
@@ -70,7 +67,7 @@ class WebsocketServer extends WebsocketBase {
 
 	protected function resetClient(): void {
 		if (isset($this->timeoutHandle)) {
-			Loop::cancel($this->timeoutHandle);
+			EventLoop::cancel($this->timeoutHandle);
 			$this->timeoutHandle = null;
 		}
 		if ($this->notifier) {

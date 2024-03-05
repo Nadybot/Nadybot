@@ -2,11 +2,8 @@
 
 namespace Nadybot\Core\Modules\HELP;
 
-use function Amp\call;
 use function Amp\File\filesystem;
 
-use Amp\Promise;
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -88,14 +85,12 @@ class HelpController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, "help modules", "modules");
 	}
 
-	/** @return Promise<string|string[]> */
-	public function getAbout(): Promise {
-		return call(function (): Generator {
-			$data = yield filesystem()->read(__DIR__ . "/about.txt");
-			$version = BotRunner::getVersion();
-			$data = str_replace('<version>', $version, $data);
-			return $this->text->makeBlob("About Nadybot {$version}", $data);
-		});
+	/** @return string|string[] */
+	public function getAbout(): string|array {
+		$data = filesystem()->read(__DIR__ . "/about.txt");
+		$version = BotRunner::getVersion();
+		$data = str_replace('<version>', $version, $data);
+		return $this->text->makeBlob("About Nadybot {$version}", $data);
 	}
 
 	/** Get a list of all help topics */
@@ -130,7 +125,7 @@ class HelpController extends ModuleInstance {
 
 	/** Get the initial help overview */
 	#[NCA\HandlesCommand("help")]
-	public function helpCommand(CmdContext $context): Generator {
+	public function helpCommand(CmdContext $context): void {
 		$data = yield filesystem()->read(__DIR__ . "/overview.txt");
 		$version = BotRunner::getVersion();
 		$database = $this->db->getVersion();
@@ -149,7 +144,7 @@ class HelpController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("syntax")]
 		string $action
-	): Generator {
+	): void {
 		$data = yield filesystem()->read(__DIR__ . "/syntax.txt");
 		$msg = $this->text->makeBlob("Help", trim($data));
 		$context->reply($msg);
@@ -193,7 +188,7 @@ class HelpController extends ModuleInstance {
 
 	/** Get the initial adminhelp overview */
 	#[NCA\HandlesCommand("adminhelp")]
-	public function adminhelpCommand(CmdContext $context): Generator {
+	public function adminhelpCommand(CmdContext $context): void {
 		$data = yield filesystem()->read(__DIR__ . "/adminhelp.txt");
 		$msg = $this->text->makeBlob("Help", $data);
 		$context->reply($msg);
@@ -225,7 +220,7 @@ class HelpController extends ModuleInstance {
 	 * The topic can be a module name, a command or a topic like 'budatime'
 	 */
 	#[NCA\HandlesCommand("help")]
-	public function helpShowCommand(CmdContext $context, string $topic): Generator {
+	public function helpShowCommand(CmdContext $context, string $topic): void {
 		$topic = strtolower($topic);
 
 		if ($topic === 'about') {

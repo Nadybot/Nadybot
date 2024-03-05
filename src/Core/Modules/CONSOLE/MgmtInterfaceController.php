@@ -3,21 +3,18 @@
 namespace Nadybot\Core\Modules\CONSOLE;
 
 use function Amp\{
+	ByteStream\splitLines,
 	File\filesystem,
-	Promise\rethrow,
-	asyncCall,
-	call,
+	async,
 	delay,
 };
 use function Safe\preg_match;
 
 use Amp\{
-	ByteStream\LineReader,
 	File\FilesystemException,
-	Loop,
-	Promise,
+	Socket,
 	Socket\ResourceSocket,
-	Socket\Server,
+	Socket\ServerSocket,
 };
 use Closure;
 use Generator;
@@ -33,6 +30,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	UserException,
 };
+use Revolt\EventLoop;
 
 #[NCA\Instance]
 class MgmtInterfaceController extends ModuleInstance {
@@ -57,7 +55,7 @@ class MgmtInterfaceController extends ModuleInstance {
 	#[NCA\Inject]
 	private CommandManager $commandManager;
 
-	private ?Server $server = null;
+	private ?ServerSocket $server = null;
 	private ?string $socketPath = null;
 
 	public function __destruct() {
@@ -95,43 +93,13 @@ class MgmtInterfaceController extends ModuleInstance {
 			);
 		}
 		$this->stop();
-		Loop::defer(fn () => $this->start());
+		EventLoop::defer(function (string $token): void {
+			$this->start();
+		});
 	}
 
 	public function start(): void {
-		asyncCall(function (): Generator {
-			if (isset($this->server) && $this->mgmtInterface === self::TYPE_NONE) {
-				return;
-			}
-			[$scheme, $path] = explode("://", $this->mgmtInterface, 2);
-			if ($scheme === "unix") {
-				yield from $this->handleExistingUnixSocket($path);
-			}
-			$this->server = $server = Server::listen($this->mgmtInterface);
-			if ($scheme === "unix") {
-				$this->socketPath = $path;
-				Loop::onSignal(SIGTERM, Closure::fromCallable([$this, "onShutdown"]));
-			}
-			$this->logger->notice("Management Interface listening on {addr}", [
-				"addr" => $this->mgmtInterface,
-			]);
-			register_shutdown_function(Closure::fromCallable([$this, "onShutdown"]));
-			while ($socket = yield $server->accept()) {
-				rethrow($this->acceptConnection($socket));
-			}
-			if ($scheme === "unix") {
-				try {
-					yield filesystem()->deleteFile($path);
-				} catch (FilesystemException) {
-				}
-				if ($this->socketPath === $path) {
-					$this->socketPath = null;
-				}
-			}
-			$this->logger->notice("Management Interface on {addr} shutdown", [
-				"addr" => "{$scheme}://{$path}",
-			]);
-		});
+		async($this->internalStart(...));
 	}
 
 	public function stop(): void {
@@ -140,6 +108,42 @@ class MgmtInterfaceController extends ModuleInstance {
 		}
 		$this->server->close();
 		$this->server = null;
+	}
+
+	private function internalStart(): void {
+		if (isset($this->server) && $this->mgmtInterface === self::TYPE_NONE) {
+			return;
+		}
+		[$scheme, $path] = explode("://", $this->mgmtInterface, 2);
+		if ($scheme === "unix") {
+			$this->handleExistingUnixSocket($path);
+		}
+		$this->server = $server = Socket\listen($this->mgmtInterface);
+		if ($scheme === "unix") {
+			$this->socketPath = $path;
+			EventLoop::onSignal(SIGTERM, function (string $token, int $signal): void {
+				$this->onShutdown();
+			});
+		}
+		$this->logger->notice("Management Interface listening on {addr}", [
+			"addr" => $this->mgmtInterface,
+		]);
+		register_shutdown_function(Closure::fromCallable([$this, "onShutdown"]));
+		while ($socket = $server->accept()) {
+			async($this->handleConnection(...), $socket);
+		}
+		if ($scheme === "unix") {
+			try {
+				filesystem()->deleteFile($path);
+			} catch (FilesystemException) {
+			}
+			if ($this->socketPath === $path) {
+				$this->socketPath = null;
+			}
+		}
+		$this->logger->notice("Management Interface on {addr} shutdown", [
+			"addr" => "{$scheme}://{$path}",
+		]);
 	}
 
 	private function handleExistingUnixSocket(string $path): Generator {
@@ -153,7 +157,7 @@ class MgmtInterfaceController extends ModuleInstance {
 			);
 		}
 		while (@file_exists($path)) {
-			yield delay(1000);
+			delay(1);
 			clearstatcache();
 		}
 	}
@@ -164,34 +168,28 @@ class MgmtInterfaceController extends ModuleInstance {
 		}
 	}
 
-	/** @return Promise<void> */
-	private function acceptConnection(ResourceSocket $socket): Promise {
-		return call(function () use ($socket): Generator {
-			$reader = new LineReader($socket);
-			$this->logger->notice("New connection on management interface from " . $socket->getRemoteAddress());
-			while (null !== $line = yield $reader->readLine()) {
-				yield $this->processLine($socket, $line);
-			}
-			yield $socket->end();
-			$this->logger->notice("Connection closed");
-		});
+	private function handleConnection(ResourceSocket $socket): void {
+		$reader = splitLines($socket);
+		$this->logger->notice("New connection on management interface from " . $socket->getRemoteAddress());
+		foreach ($reader as $line) {
+			$this->processLine($socket, $line);
+		}
+		$socket->end();
+		$this->logger->notice("Connection closed");
 	}
 
-	/** @return Promise<void> */
-	private function processLine(ResourceSocket $socket, string $line): Promise {
-		return call(function () use ($line, $socket): Generator {
-			if (trim($line) === "") {
-				return;
-			}
-			$context = new CmdContext($this->config->general->superAdmins[0]??"<no superadmin set>");
-			$context->message = $line;
-			$context->source = Source::CONSOLE;
-			$context->sendto = new SocketCommandReply($socket);
-			Registry::injectDependencies($context->sendto);
-			$uid = yield $this->chatBot->getUid2($context->char->name);
-			$context->char->id = $uid;
-			$context->setIsDM(true);
-			$this->commandManager->checkAndHandleCmd($context);
-		});
+	private function processLine(ResourceSocket $socket, string $line): void {
+		if (trim($line) === "") {
+			return;
+		}
+		$context = new CmdContext($this->config->general->superAdmins[0]??"<no superadmin set>");
+		$context->message = $line;
+		$context->source = Source::CONSOLE;
+		$context->sendto = new SocketCommandReply($socket);
+		Registry::injectDependencies($context->sendto);
+		$uid = $this->chatBot->getUid($context->char->name);
+		$context->char->id = $uid;
+		$context->setIsDM(true);
+		$this->commandManager->checkAndHandleCmd($context);
 	}
 }

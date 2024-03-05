@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core\Modules\ADMIN;
 
-use Amp\Promise;
-use Generator;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -221,15 +219,15 @@ class AdminController extends ModuleInstance {
 		description: "Add administrators and moderators to the buddy list",
 		defaultStatus: 1
 	)]
-	public function checkAdminsEvent(Event $eventObj): Generator {
-		yield $this->db->table(AdminManager::DB_TABLE)->asObj(Admin::class)
-			->map(function (Admin $row): Promise {
-				return $this->buddylistManager->addName($row->name, 'admin');
-			})->toArray();
+	public function checkAdminsEvent(Event $eventObj): void {
+		$this->db->table(AdminManager::DB_TABLE)->asObj(Admin::class)
+			->each(function (Admin $row): void {
+				$this->buddylistManager->addName($row->name, 'admin');
+			});
 	}
 
 	public function add(string $who, string $sender, CommandReply $sendto, int $intlevel, string $rank): bool {
-		if ($this->chatBot->get_uid($who) == null) {
+		if ($this->chatBot->getUid($who) === null) {
 			$sendto->reply("Character <highlight>{$who}<end> does not exist.");
 			return false;
 		}

@@ -3,17 +3,15 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use function Amp\File\filesystem;
-use function Amp\Promise\{all, rethrow};
-use function Amp\{asyncCall, call, delay};
-use function Safe\{json_encode, preg_match, preg_replace};
+use function Amp\Future\await;
+use function Amp\{async, delay};
+use function Safe\{json_decode, json_encode, preg_match, preg_replace};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, HttpException};
 use Amp\Socket\ConnectContext;
-use Amp\Websocket\Client\{Connection, ConnectionException, Handshake, Rfc6455Connector};
-use Amp\Websocket\{ClientMetadata, ClosedException, Message};
-use Amp\{Loop, MultiReasonException, Promise};
-use Generator;
+use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, WebsocketConnection, WebsocketHandshake};
+use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException, WebsocketCount};
 use Illuminate\Support\{Collection, ItemNotFoundException};
 use Nadybot\Core\Modules\DISCORD\{
 	DiscordAPIClient,
@@ -22,7 +20,6 @@ use Nadybot\Core\Modules\DISCORD\{
 	DiscordController,
 	DiscordEmbed,
 	DiscordException,
-	DiscordGateway,
 	DiscordMessageIn,
 	DiscordScheduledEvent,
 	DiscordUser,
@@ -54,7 +51,6 @@ use Nadybot\Core\{
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	Activity,
 	CloseEvents,
-	Emoji,
 	Guild,
 	GuildMemberChunk,
 	IdentifyPacket,
@@ -70,6 +66,7 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 use ReflectionClass;
 use ReflectionClassConstant;
+use Revolt\EventLoop;
 use Safe\Exceptions\JsonException;
 use stdClass;
 use Throwable;
@@ -225,7 +222,7 @@ class DiscordGatewayController extends ModuleInstance {
 	public array $invites = [];
 
 	protected ?int $lastSequenceNumber = null;
-	protected ?Connection $client = null;
+	protected ?WebsocketConnection $client = null;
 	protected bool $mustReconnect = false;
 	protected ?string $reconnectUrl = null;
 	protected int $lastHeartbeat = 0;
@@ -242,7 +239,7 @@ class DiscordGatewayController extends ModuleInstance {
 	/** @var array<string,bool> */
 	private array $noManageInviteRights = [];
 
-	private ?ClientMetadata $lastMetadata = null;
+	private int $lastPackets = 0;
 
 	public function isMe(string $id): bool {
 		return isset($this->me) && $this->me->id === $id;
@@ -294,22 +291,37 @@ class DiscordGatewayController extends ModuleInstance {
 		return null;
 	}
 
-	/** Lookup a channel by its ID and call a callback with the resolved channel */
-	public function lookupChannel(string $channelId, callable $callback, mixed ...$args): void {
+	/**
+	 * @deprecated
+	 * Lookup a channel by its ID and call a callback with the resolved channel
+	 */
+	public function lookupChannel2(string $channelId, callable $callback, mixed ...$args): void {
 		$channel = $this->getChannel($channelId);
 		if (isset($channel)) {
 			$callback($channel, ...$args);
 			return;
 		}
-		asyncCall(function () use ($channelId, $callback, $args): Generator {
-			$channel = yield $this->discordAPIClient->getChannel($channelId);
-			$guildId = $channel->guild_id;
-			if (!isset($guildId) || !isset($this->guilds[$guildId])) {
-				return;
+		async(function () use ($channelId, $callback, $args): void {
+			$channel = $this->lookupChannel($channelId);
+			if (!isset($channel)) {
+				$callback($channel, ...$args);
 			}
-			$this->guilds[$guildId]->channels []= $channel;
-			$callback($channel, ...$args);
 		});
+	}
+
+	/** Lookup a channel by its ID and call a callback with the resolved channel */
+	public function lookupChannel(string $channelId): ?DiscordChannel {
+		$channel = $this->getChannel($channelId);
+		if (isset($channel)) {
+			return $channel;
+		}
+		$channel = $this->discordAPIClient->getChannel($channelId);
+		$guildId = $channel->guild_id;
+		if (!isset($guildId) || !isset($this->guilds[$guildId])) {
+			return null;
+		}
+		$this->guilds[$guildId]->channels []= $channel;
+		return $channel;
 	}
 
 	#[NCA\Setup]
@@ -323,7 +335,7 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\SettingChangeHandler('discord_activity_name')]
 	public function updatePresence(string $settingName, string $oldValue, string $newValue): void {
 		if (!isset($this->client)) {
-			Loop::delay(1000, function () use ($settingName, $oldValue, $newValue): void {
+			EventLoop::delay(1, function (string $token) use ($settingName, $oldValue, $newValue): void {
 				$this->updatePresence($settingName, $oldValue, $newValue);
 			});
 			return;
@@ -338,7 +350,7 @@ class DiscordGatewayController extends ModuleInstance {
 		} else {
 			$packet->d->activities = [];
 		}
-		rethrow($this->client->send(json_encode($packet)));
+		async($this->client->sendText(...), json_encode($packet));
 	}
 
 	/** Start, stop or restart the websocket connection if the token changes */
@@ -346,10 +358,10 @@ class DiscordGatewayController extends ModuleInstance {
 	public function tokenChanged(string $settingName, string $oldValue, string $newValue): void {
 		if ($oldValue !== "" && $oldValue !== 'off' && isset($this->client)) {
 			$this->logger->notice("Closing Discord gateway connection.");
-			rethrow($this->client->close());
+			$this->client->close();
 		}
 		if ($newValue !== "" && $newValue !== 'off') {
-			Loop::defer([$this, "connect"]);
+			async($this->connect(...));
 		}
 	}
 
@@ -366,62 +378,59 @@ class DiscordGatewayController extends ModuleInstance {
 		if (empty($botToken) || $botToken === 'off') {
 			return;
 		}
-		rethrow($this->connectToGateway());
+		async($this->connectToGateway(...));
 	}
 
 	public function processWebsocketWrite(WebsocketCallback $event): void {
 		$this->outStats->inc();
 	}
 
-	/** @return Promise<void> */
-	public function processWebsocketMessage(string $message): Promise {
-		return call(function () use ($message): Generator {
-			$this->logger->debug("Received discord message", ["message" => $message]);
-			$payload = new Payload();
-			try {
-				if ($message === '') {
-					throw new JsonException("null message received.");
-				}
-				$payload->fromJSON(\Safe\json_decode($message));
-			} catch (JsonException $e) {
-				$this->logger->error("Invalid JSON data received from Discord: {error}", [
-					"error" => $e->getMessage(),
-					"data" => $message,
-					"exception" => $e,
-				]);
-				if (isset($this->client)) {
-					yield $this->client->close(4002);
-				}
-				return;
+	public function processWebsocketMessage(string $message): void {
+		$this->logger->debug("Received discord message", ["message" => $message]);
+		$payload = new Payload();
+		try {
+			if ($message === '') {
+				throw new JsonException("null message received.");
 			}
-			$this->logger->debug("Packet received", ["packet" => $payload]);
-			$opcodeToName = [
-				 0 => "Dispatch",
-				 1 => "Heartbeat",
-				 2 => "Identify",
-				 3 => "Presence Update",
-				 4 => "Voice State Update",
-				 6 => "Resume",
-				 7 => "Reconnect",
-				 8 => "Request Guild Members",
-				 9 => "Invalid Session",
-				10 => "Hello",
-				11 => "Heartbeat ACK",
-			];
-			$this->logger->info("Received packet opcode {opcode} ({opcodeName})", [
-				"opcode" => $payload->op,
-				"opcodeName" => $opcodeToName[$payload->op] ?? "unknown",
-				"data" => $payload->d,
+			$payload->fromJSON(json_decode($message));
+		} catch (JsonException $e) {
+			$this->logger->error("Invalid JSON data received from Discord: {error}", [
+				"error" => $e->getMessage(),
+				"data" => $message,
+				"exception" => $e,
 			]);
-			if (isset($payload->s)) {
-				$this->lastSequenceNumber = $payload->s;
+			if (isset($this->client)) {
+				$this->client->close(4002);
 			}
-			$eventObj = new DiscordGatewayEvent();
-			$eventObj->type = "discord({$payload->op})";
-			$eventObj->message = $message;
-			$eventObj->payload = $payload;
-			$this->eventManager->fireEvent($eventObj);
-		});
+			return;
+		}
+		$this->logger->debug("Packet received", ["packet" => $payload]);
+		$opcodeToName = [
+			 0 => "Dispatch",
+			 1 => "Heartbeat",
+			 2 => "Identify",
+			 3 => "Presence Update",
+			 4 => "Voice State Update",
+			 6 => "Resume",
+			 7 => "Reconnect",
+			 8 => "Request Guild Members",
+			 9 => "Invalid Session",
+			10 => "Hello",
+			11 => "Heartbeat ACK",
+		];
+		$this->logger->info("Received packet opcode {opcode} ({opcodeName})", [
+			"opcode" => $payload->op,
+			"opcodeName" => $opcodeToName[$payload->op] ?? "unknown",
+			"data" => $payload->d,
+		]);
+		if (isset($payload->s)) {
+			$this->lastSequenceNumber = $payload->s;
+		}
+		$eventObj = new DiscordGatewayEvent();
+		$eventObj->type = "discord({$payload->op})";
+		$eventObj->message = $message;
+		$eventObj->payload = $payload;
+		$this->eventManager->fireEvent($eventObj);
 	}
 
 	#[NCA\Event(
@@ -429,22 +438,22 @@ class DiscordGatewayController extends ModuleInstance {
 		description: "Authorize to discord gateway",
 		defaultStatus: 1
 	)]
-	public function processGatewayHello(DiscordGatewayEvent $event): Generator {
+	public function processGatewayHello(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
 
 		/** @var stdClass $payload->d */
 		$this->heartbeatInterval = intdiv($payload->d->heartbeat_interval, 1000);
-		Loop::repeat(
-			$this->heartbeatInterval * 1000,
+		EventLoop::repeat(
+			$this->heartbeatInterval,
 			fn (string $watcherId) => $this->sendWebsocketHeartbeat($watcherId)
 		);
 		$this->logger->info("Setting Discord heartbeat interval to ".$this->heartbeatInterval."sec");
 		$this->lastHeartbeat = time();
 
 		if ($this->sessionId !== null && $this->lastSequenceNumber !== null) {
-			yield $this->sendResume();
+			$this->sendResume();
 		} else {
-			yield $this->sendIdentify();
+			$this->sendIdentify();
 		}
 	}
 
@@ -470,11 +479,11 @@ class DiscordGatewayController extends ModuleInstance {
 		description: "Reconnect to discord gateway if requested",
 		defaultStatus: 1
 	)]
-	public function processGatewayReconnectRequest(DiscordGatewayEvent $event): Generator {
+	public function processGatewayReconnectRequest(DiscordGatewayEvent $event): void {
 		$this->logger->info("Discord Gateway requests reconnect");
 		$this->reconnectDelay = 1;
 		if (isset($this->client)) {
-			yield $this->client->close(1000);
+			$this->client->close(WebsocketCloseCode::NORMAL_CLOSE);
 		}
 	}
 
@@ -534,7 +543,7 @@ class DiscordGatewayController extends ModuleInstance {
 		description: "Handle discord gateway messages",
 		defaultStatus: 1
 	)]
-	public function processDiscordMessage(DiscordGatewayEvent $event): Generator {
+	public function processDiscordMessage(DiscordGatewayEvent $event): void {
 		$message = new DiscordMessageIn();
 
 		/** @var stdClass $event->payload->d */
@@ -589,7 +598,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$event->channel = $message->channel_id;
 		$this->eventManager->fireEvent($event);
 
-		$aoMessage = yield $this->resolveDiscordMentions($message->guild_id??null, $text);
+		$aoMessage = $this->resolveDiscordMentions($message->guild_id??null, $text);
 		$rMessage = new RoutableMessage($aoMessage);
 		if ($message->guild_id) {
 			// $source = new Source(Source::DISCORD_GUILD, $this->guilds[(string)$message->guild_id]->name??null);
@@ -642,47 +651,41 @@ class DiscordGatewayController extends ModuleInstance {
 		return $msg;
 	}
 
-	/**
-	 * Recursively resolve all mentions in $message and then return it in a Promise
-	 *
-	 * @return Promise<string>
-	 */
-	public function resolveDiscordMentions(?string $guildId, string $message): Promise {
-		return call(function () use ($guildId, $message): Generator {
-			while (preg_match("/(?:<|&lt;)@!?(\d+)(?:>|&gt;)/", $message, $matches)) {
-				if (!isset($matches[1])) {
-					return $message;
-				}
-				$niceName = $this->discordGatewayCommandHandler->getNameForDiscordId($matches[1]);
-				if (isset($niceName)) {
-					/** @var string */
-					$message = preg_replace("/(?:<|&lt;)@!?" . preg_quote($matches[1], "/") . "(?:>|&gt;)/", "@{$niceName}", $message);
-					continue;
-				}
-				if (isset($guildId)) {
-					$member = yield $this->discordAPIClient->getGuildMember($guildId, $matches[1]);
-
-					/** @var string */
-					$message = preg_replace("/(?:<|&lt;)@!?" . ($member->user->id??"") . "(?:>|&gt;)/", "@" . $member->getName(), $message);
-					continue;
-				}
-				$user = yield $this->discordAPIClient->getUser($matches[1]);
+	/** Recursively resolve all mentions in $message and then return it */
+	public function resolveDiscordMentions(?string $guildId, string $message): string {
+		while (preg_match("/(?:<|&lt;)@!?(\d+)(?:>|&gt;)/", $message, $matches)) {
+			if (!isset($matches[1])) {
+				return $message;
+			}
+			$niceName = $this->discordGatewayCommandHandler->getNameForDiscordId($matches[1]);
+			if (isset($niceName)) {
+				/** @var string */
+				$message = preg_replace("/(?:<|&lt;)@!?" . preg_quote($matches[1], "/") . "(?:>|&gt;)/", "@{$niceName}", $message);
+				continue;
+			}
+			if (isset($guildId)) {
+				$member = $this->discordAPIClient->getGuildMember($guildId, $matches[1]);
 
 				/** @var string */
-				$message = preg_replace("/(?:<|&lt;)@!?" . $user->id . "(?:>|&gt;)/", "@{$user->username}", $message);
+				$message = preg_replace("/(?:<|&lt;)@!?" . ($member->user->id??"") . "(?:>|&gt;)/", "@" . $member->getName(), $message);
+				continue;
 			}
-			return $message;
-		});
+			$user = $this->discordAPIClient->getUser($matches[1]);
+
+			/** @var string */
+			$message = preg_replace("/(?:<|&lt;)@!?" . $user->id . "(?:>|&gt;)/", "@{$user->username}", $message);
+		}
+		return $message;
 	}
 
 	#[NCA\Event(
 		name: "setting(discord_custom_emojis)",
 		description: "(Un)register emojis from discord",
 	)]
-	public function emojiSettingsChanged(): Generator {
+	public function emojiSettingsChanged(): void {
 		foreach ($this->guilds as $guildName => $guild) {
-			yield delay(100);
-			rethrow($this->registerEmojis($guild));
+			delay(0.1);
+			$this->registerEmojis($guild);
 		}
 	}
 
@@ -696,17 +699,17 @@ class DiscordGatewayController extends ModuleInstance {
 			defaultStatus: 1
 		),
 	]
-	public function processDiscordGuildMessages(DiscordGatewayEvent $event): Generator {
+	public function processDiscordGuildMessages(DiscordGatewayEvent $event): void {
 		$guild = new Guild();
 
 		/** @var stdClass $event->payload->d */
 		$guild->fromJSON($event->payload->d);
 		$this->guilds[$guild->id] = $guild;
-		yield $this->sendRequestGuildMembers($guild->id);
-		rethrow($this->registerEmojis($guild));
-		asyncCall(function () use ($guild): Generator {
+		$this->sendRequestGuildMembers($guild->id);
+		async($this->registerEmojis(...), $guild);
+		async(function () use ($guild): void {
 			try {
-				$invites = yield $this->discordAPIClient->getGuildInvites($guild->id);
+				$invites = $this->discordAPIClient->getGuildInvites($guild->id);
 				$this->cacheInvites($guild->id, $invites);
 			} catch (DiscordException $e) {
 				if ($e->getCode() !== 403) {
@@ -726,10 +729,8 @@ class DiscordGatewayController extends ModuleInstance {
 			if (!isset($voiceState->user_id)) {
 				continue;
 			}
-			$member = yield $this->discordAPIClient->getGuildMember($guild->id, $voiceState->user_id);
-			if (isset($member)) {
-				$voiceState->member = $member;
-			}
+			$member = $this->discordAPIClient->getGuildMember($guild->id, $voiceState->user_id);
+			$voiceState->member = $member;
 		}
 		foreach ($guild->channels as $channel) {
 			if (!isset($channel->name)) {
@@ -879,7 +880,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->mustReconnect = true;
 		$this->reconnectDelay = 5;
 		$this->reconnectUrl = $payload->d->resume_gateway_url;
-		Promise\rethrow($this->discordSlashCommandController->syncSlashCommands());
+		async($this->discordSlashCommandController->syncSlashCommands(...));
 	}
 
 	#[NCA\Event(
@@ -948,17 +949,15 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($voiceState->guild_id) || !isset($voiceState->user_id)) {
 			return;
 		}
-		asyncCall(function () use ($channel, $voiceState): Generator {
-			$member = yield $this->discordAPIClient->getGuildMember(
-				$voiceState->guild_id,
-				$voiceState->user_id,
-			);
-			$event = new DiscordVoiceEvent();
-			$event->type = "discord_voice_join";
-			$event->discord_channel = $channel;
-			$event->member = $member;
-			$this->eventManager->fireEvent($event);
-		});
+		$member = $this->discordAPIClient->getGuildMember(
+			$voiceState->guild_id,
+			$voiceState->user_id,
+		);
+		$event = new DiscordVoiceEvent();
+		$event->type = "discord_voice_join";
+		$event->discord_channel = $channel;
+		$event->member = $member;
+		$this->eventManager->fireEvent($event);
 	}
 
 	#[
@@ -1006,14 +1005,14 @@ class DiscordGatewayController extends ModuleInstance {
 		description: "Connect invited members to their AO account",
 		defaultStatus: 1
 	)]
-	public function connectNewUsersWithAO(DiscordGatewayEvent $event): Generator {
+	public function connectNewUsersWithAO(DiscordGatewayEvent $event): void {
 		$userId = $event->payload->d?->user?->id ?? null;
 		$guildId = $event->payload->d?->guild_id ?? null;
 		if (!isset($userId) || !isset($guildId) || isset($this->noManageInviteRights[$guildId])) {
 			return;
 		}
 		try {
-			$invites = yield $this->discordAPIClient->getGuildInvites($guildId);
+			$invites = $this->discordAPIClient->getGuildInvites($guildId);
 		} catch (Throwable) {
 			return;
 		}
@@ -1052,7 +1051,7 @@ class DiscordGatewayController extends ModuleInstance {
 				]);
 			}
 			$json = json_encode($data);
-			Promise\rethrow($this->discordAPIClient->modifyGuildMember($guildId, $userId, $json));
+			async($this->discordAPIClient->modifyGuildMember(...), $guildId, $userId, $json);
 		}
 	}
 
@@ -1103,7 +1102,7 @@ class DiscordGatewayController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("connect")]
 		string $action,
-	): Generator {
+	): void {
 		$botToken = $this->discordController->discordBotToken;
 		if (empty($botToken) || $botToken === 'off') {
 			$context->reply("You need to configure a Discord token in order to connect.");
@@ -1113,8 +1112,7 @@ class DiscordGatewayController extends ModuleInstance {
 			$context->reply("The bot is already connected to Discord.");
 			return;
 		}
-		$gateway = yield $this->discordAPIClient->getGateway();
-		rethrow($this->connectToGateway());
+		async($this->connectToGateway(...));
 		$context->reply("Connecting to Discord.");
 	}
 
@@ -1124,14 +1122,14 @@ class DiscordGatewayController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("disconnect")]
 		string $action,
-	): Generator {
+	): void {
 		if (!$this->isConnected() || !isset($this->client)) {
 			$context->reply("The bot is already disconnected from Discord.");
 			return;
 		}
 		$this->mustReconnect = false;
 		$this->logger->notice("Closing Discord gateway connection.");
-		yield $this->client->close();
+		$this->client->close();
 		$context->reply("Successfully disconnected from Discord.");
 	}
 
@@ -1142,7 +1140,7 @@ class DiscordGatewayController extends ModuleInstance {
 		#[NCA\Str("join")]
 		string $action,
 		?string $discordServer,
-	): Generator {
+	): void {
 		$aoChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($aoChar);
 		$isLinked = $this->db->table(DiscordGatewayCommandHandler::DB_TABLE)
@@ -1252,7 +1250,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($guild) || !isset($guild->system_channel_id)) {
 			return;
 		}
-		$invitation = yield $this->discordAPIClient->createChannelInvite(
+		$invitation = $this->discordAPIClient->createChannelInvite(
 			$guild->system_channel_id,
 			3600,
 			1
@@ -1269,7 +1267,7 @@ class DiscordGatewayController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("invites", "invitations")]
 		string $action
-	): Generator {
+	): void {
 		if ($this->discordController->discordBotToken === 'off') {
 			$context->reply("This bot isn't configured to connect to Discord yet.");
 			return;
@@ -1280,9 +1278,9 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 		$queue = [];
 		foreach ($this->guilds as $guildId => $guild) {
-			$queue[$guildId] = $this->discordAPIClient->getGuildInvites($guild->id);
+			$queue[$guildId] = async($this->discordAPIClient->getGuildInvites(...), $guild->id);
 		}
-		$invitations = yield all($queue);
+		$invitations = await($queue);
 		foreach ($invitations as $guildId => $invites) {
 			$this->cacheInvites((string)$guildId, $invites);
 		}
@@ -1296,7 +1294,7 @@ class DiscordGatewayController extends ModuleInstance {
 		#[NCA\Str("leave")]
 		string $action,
 		string $guildId,
-	): Generator {
+	): void {
 		if ($this->discordController->discordBotToken === 'off') {
 			$context->reply("This bot isn't configured to connect to Discord yet.");
 			return;
@@ -1332,7 +1330,7 @@ class DiscordGatewayController extends ModuleInstance {
 			$informDelete
 		);
 		try {
-			yield $this->discordAPIClient->leaveGuild($guildId);
+			$this->discordAPIClient->leaveGuild($guildId);
 		} catch (Throwable) {
 			$context->reply(
 				"There was an error leaving the Discord server ".
@@ -1353,7 +1351,7 @@ class DiscordGatewayController extends ModuleInstance {
 		#[NCA\Str("events")]
 		string $action,
 		?string $guildId,
-	): Generator {
+	): void {
 		if ($this->discordController->discordBotToken === 'off') {
 			$context->reply("This bot isn't configured to connect to Discord yet.");
 			return;
@@ -1394,7 +1392,7 @@ class DiscordGatewayController extends ModuleInstance {
 		foreach ($guildIds as $guildId) {
 			$guildName = $guilds[$guildId]->name;
 			try {
-				$events = yield $this->discordAPIClient->getGuildEvents($guildId);
+				$events = $this->discordAPIClient->getGuildEvents($guildId);
 				$allEvents = array_merge($allEvents, $events);
 			} catch (Throwable $e) {
 				$this->logger->error(
@@ -1421,10 +1419,10 @@ class DiscordGatewayController extends ModuleInstance {
 		);
 		$renderers = [];
 		foreach ($allEvents as $event) {
-			$renderers [] = $this->renderEvent($guilds[$event->guild_id], $event);
+			$renderers [] = async($this->renderEvent(...), $guilds[$event->guild_id], $event);
 		}
 		try {
-			$blobs = yield $renderers;
+			$blobs = await($renderers);
 		} catch (Throwable $e) {
 			$this->logger->error(
 				"Error reading event-details from the Discord server: {error}",
@@ -1450,7 +1448,7 @@ class DiscordGatewayController extends ModuleInstance {
 		name: "discord(guild_scheduled_event_create)",
 		description: "Announce new Discord events"
 	)]
-	public function announceNewDiscordEvent(DiscordGatewayEvent $e): Generator {
+	public function announceNewDiscordEvent(DiscordGatewayEvent $e): void {
 		$event = new DiscordScheduledEvent();
 		$event->fromJSON($e->payload->d);
 		$guild = $this->guilds[$event->guild_id]??null;
@@ -1458,8 +1456,7 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		/** @var string */
-		$blob = yield $this->renderEvent($guild, $event);
+		$blob = $this->renderEvent($guild, $event);
 		$msgs = $this->text->blobWrap(
 			"New Discord event: ",
 			$this->text->makeBlob($event->name, $blob),
@@ -1475,7 +1472,7 @@ class DiscordGatewayController extends ModuleInstance {
 		name: "discord(guild_scheduled_event_update)",
 		description: "Announce Discord event started"
 	)]
-	public function announceStartedDiscordEvent(DiscordGatewayEvent $e): Generator {
+	public function announceStartedDiscordEvent(DiscordGatewayEvent $e): void {
 		$event = new DiscordScheduledEvent();
 		$event->fromJSON($e->payload->d);
 		$guild = $this->guilds[$event->guild_id]??null;
@@ -1486,8 +1483,7 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		/** @var string */
-		$blob = yield $this->renderEvent($guild, $event);
+		$blob = $this->renderEvent($guild, $event);
 		$msgs = $this->text->blobWrap(
 			"Discord event started: ",
 			$this->text->makeBlob($event->name, $blob),
@@ -1534,63 +1530,60 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->messageHub->handle($rMsg);
 	}
 
-	/** @return Promise<string> */
-	protected function renderEvent(Guild $guild, DiscordScheduledEvent $event): Promise {
-		return call(function () use ($guild, $event): Generator {
-			$name = $event->name;
-			if ($event->entity_type === $event::TYPE_EXTERNAL) {
-				$name .= " (external)";
+	protected function renderEvent(Guild $guild, DiscordScheduledEvent $event): string {
+		$name = $event->name;
+		if ($event->entity_type === $event::TYPE_EXTERNAL) {
+			$name .= " (external)";
+		}
+		$blob = "<header2>{$name}<end>";
+		if (isset($event->description)) {
+			$descr = DiscordRelayController::formatMessage($event->description);
+			if ($descr === '') {
+				$descr = "&lt;no description&gt;";
 			}
-			$blob = "<header2>{$name}<end>";
-			if (isset($event->description)) {
-				$descr = DiscordRelayController::formatMessage($event->description);
-				if ($descr === '') {
-					$descr = "&lt;no description&gt;";
-				}
-				$blob .= "\n<tab><i>".
-				join("</i>\n<tab><i>", explode("\n", $descr)) . "</i>".
-				"\n";
-			}
-			$blob .= "\n<tab>When: <highlight>".
-			$this->util->date($event->scheduled_start_time->getTimestamp()).
+			$blob .= "\n<tab><i>".
+			join("</i>\n<tab><i>", explode("\n", $descr)) . "</i>".
+			"\n";
+		}
+		$blob .= "\n<tab>When: <highlight>".
+		$this->util->date($event->scheduled_start_time->getTimestamp()).
+		"<end>";
+		if (isset($event->scheduled_end_time)) {
+			$blob .= " - <highlight>".
+			$this->util->date($event->scheduled_end_time->getTimestamp()).
 			"<end>";
-			if (isset($event->scheduled_end_time)) {
-				$blob .= " - <highlight>".
-				$this->util->date($event->scheduled_end_time->getTimestamp()).
-				"<end>";
-			}
-			if (isset($event->entity_metadata->location)) {
+		}
+		if (isset($event->entity_metadata->location)) {
+			$blob .= "\n<tab>Where: <highlight>".
+			$event->entity_metadata->location.
+			"<end>";
+		} elseif (isset($event->channel_id)) {
+			$channel = $this->getChannel($event->channel_id);
+			if (isset($channel, $channel->name)) {
 				$blob .= "\n<tab>Where: <highlight>".
-				$event->entity_metadata->location.
-				"<end>";
-			} elseif (isset($event->channel_id)) {
-				$channel = $this->getChannel($event->channel_id);
-				if (isset($channel, $channel->name)) {
-					$blob .= "\n<tab>Where: <highlight>".
-					$guild->name . " " . $this->renderSingleChannel($channel).
-					"<end>";
-				}
-			}
-			try {
-				if (isset($event->creator_id)) {
-					$creator =(
-						$this->discordGatewayCommandHandler->getNameForDiscordId($event->creator_id)
-						?? $event->creator?->username
-						?? (yield $this->discordAPIClient->getUser($event->creator_id))->username
-						?? "UNKNOWN"
-					);
-					$blob .= "\n<tab>Created by: <highlight>{$creator}<end>";
-				}
-			} catch (Throwable) {
-				// IGNORE
-			}
-			if (isset($event->user_count)) {
-				$blob .= "\n<tab>Attending: <highlight>{$event->user_count} ".
-				$this->text->pluralize("person", $event->user_count).
+				$guild->name . " " . $this->renderSingleChannel($channel).
 				"<end>";
 			}
-			return $blob;
-		});
+		}
+		try {
+			if (isset($event->creator_id)) {
+				$creator =(
+					$this->discordGatewayCommandHandler->getNameForDiscordId($event->creator_id)
+					?? $event->creator?->username
+					?? ($this->discordAPIClient->getUser($event->creator_id))->username
+					?? "UNKNOWN"
+				);
+				$blob .= "\n<tab>Created by: <highlight>{$creator}<end>";
+			}
+		} catch (Throwable) {
+			// IGNORE
+		}
+		if (isset($event->user_count)) {
+			$blob .= "\n<tab>Attending: <highlight>{$event->user_count} ".
+			$this->text->pluralize("person", $event->user_count).
+			"<end>";
+		}
+		return $blob;
 	}
 
 	/**
@@ -1671,21 +1664,19 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($guildId) || !isset($voiceState->user_id)) {
 			return;
 		}
-		asyncCall(function () use ($guildId, $voiceState, $oldState): Generator {
-			$member = yield $this->discordAPIClient->getGuildMember($guildId, $voiceState->user_id);
-			if (!isset($oldState->channel_id)) {
-				return;
-			}
-			$event = new DiscordVoiceEvent();
-			$event->type = "discord_voice_leave";
-			$discordChannel = $this->getChannel($oldState->channel_id);
-			if (!isset($discordChannel)) {
-				return;
-			}
-			$event->discord_channel = $discordChannel;
-			$event->member = $member;
-			$this->eventManager->fireEvent($event);
-		});
+		$member = $this->discordAPIClient->getGuildMember($guildId, $voiceState->user_id);
+		if (!isset($oldState->channel_id)) {
+			return;
+		}
+		$event = new DiscordVoiceEvent();
+		$event->type = "discord_voice_leave";
+		$discordChannel = $this->getChannel($oldState->channel_id);
+		if (!isset($discordChannel)) {
+			return;
+		}
+		$event->discord_channel = $discordChannel;
+		$event->member = $member;
+		$this->eventManager->fireEvent($event);
 	}
 
 	protected function handleVoiceChannelJoin(VoiceState $voiceState): void {
@@ -1701,11 +1692,10 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 		$this->guilds[$voiceState->guild_id]->voice_states []= $voiceState;
 		if (isset($voiceState->channel_id)) {
-			$this->lookupChannel(
-				$voiceState->channel_id,
-				[$this, "handleAsyncVoiceChannelJoin"],
-				$voiceState
-			);
+			$channel = $this->lookupChannel($voiceState->channel_id);
+			if (isset($channel)) {
+				$this->handleAsyncVoiceChannelJoin($channel, $voiceState);
+			}
 		}
 	}
 
@@ -1878,364 +1868,327 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 	}
 
-	/** @return Promise<void> */
-	private function registerEmojis(Guild $guild): Promise {
-		return call(function () use ($guild): Generator {
-			try {
-				/** @var Collection<DBEmoji> */
-				$registered = $this->db->table(self::EMOJI_TABLE)
-					->where("guild_id", $guild->id)
-					->asObj(DBEmoji::class);
-				if (!$this->discordController->discordCustomEmojis) {
-					foreach ($registered as $emoji) {
-						/** @var DBEmoji $emoji */
-						try {
-							yield $this->discordAPIClient->deleteEmoji($guild->id, $emoji->emoji_id);
-						} catch (DiscordException $e) {
-							continue;
-						}
-						$this->logger->notice('Deleted server emoji :{emoji}: on {guild}', [
-							'emoji' => $emoji->name,
-							'guild' => $guild->name,
-						]);
-						$this->db->table(self::EMOJI_TABLE)->delete($emoji->id);
-						$guild->emojis = (new Collection($guild->emojis))
-							->where("id", "!=", $emoji->emoji_id)
-							->toArray();
+	private function registerEmojis(Guild $guild): void {
+		try {
+			/** @var Collection<DBEmoji> */
+			$registered = $this->db->table(self::EMOJI_TABLE)
+				->where("guild_id", $guild->id)
+				->asObj(DBEmoji::class);
+			if (!$this->discordController->discordCustomEmojis) {
+				foreach ($registered as $emoji) {
+					/** @var DBEmoji $emoji */
+					try {
+						$this->discordAPIClient->deleteEmoji($guild->id, $emoji->emoji_id);
+					} catch (DiscordException $e) {
+						continue;
 					}
-					return;
+					$this->logger->notice('Deleted server emoji :{emoji}: on {guild}', [
+						'emoji' => $emoji->name,
+						'guild' => $guild->name,
+					]);
+					$this->db->table(self::EMOJI_TABLE)->delete($emoji->id);
+					$guild->emojis = (new Collection($guild->emojis))
+						->where("id", "!=", $emoji->emoji_id)
+						->toArray();
 				}
-				$files = yield filesystem()->listFiles("res/icons/");
-				foreach ($files as $file) {
-					$fileName = "res/icons/{$file}";
-					$this->logger->info("Found icon {fileName}", [
+				return;
+			}
+			$files = filesystem()->listFiles("res/icons/");
+			foreach ($files as $file) {
+				$fileName = "res/icons/{$file}";
+				$this->logger->info("Found icon {fileName}", [
+					"fileName" => $fileName,
+				]);
+				if (!is_file($fileName)) {
+					$this->logger->info("{fileName} is not a file, skipping", [
 						"fileName" => $fileName,
 					]);
-					if (!is_file($fileName)) {
-						$this->logger->info("{fileName} is not a file, skipping", [
-							"fileName" => $fileName,
-						]);
-						continue;
-					}
-					$info = pathinfo($fileName);
-					if (!isset($info['extension'])) {
-						$this->logger->info("{fileName} doesn't have a pathinfo, skipping", [
-							"fileName" => $fileName,
-						]);
-						continue;
-					}
-
-					/** @var array<int,int>|null */
-					$stats = yield filesystem()->getStatus($fileName);
-					$content = yield filesystem()->read($fileName);
-					$data = "data:image/{$info['extension']};base64,".
-						base64_encode($content);
-
-					/** @var null|Model\Emoji */
-					$oldEmoji = (new Collection($guild->emojis))
-						->where("name", $info['filename'])
-						->first();
-
-					/** @var null|DBEmoji */
-					$oldDBEmoji = $registered->where("name", $info['filename'])->first();
-					if (isset($oldEmoji, $oldEmoji->id)   && (!isset($oldDBEmoji) || !isset($stats) || $oldDBEmoji->version < $stats[9])) {
-						yield $this->discordAPIClient->deleteEmoji($guild->id, $oldEmoji->id);
-						$this->logger->notice('Deleted server emoji :{emoji}: on {guild}', [
-							'emoji' => $oldEmoji->name,
-							'guild' => $guild->name,
-						]);
-						$guild->emojis = (new Collection($guild->emojis))
-							->where("id", "!=", $oldEmoji->id)
-							->toArray();
-						unset($oldEmoji);
-					}
-					if (!isset($oldEmoji)) {
-						/** @var Emoji */
-						$registeredEmoji = yield $this->discordAPIClient->createEmoji($guild->id, $info['filename'], $data);
-						$this->logger->notice('Registered server emoji :{emoji}: on {guild}', [
-							'emoji' => $info['filename'],
-							'guild' => $guild->name,
-						]);
-						$guild->emojis []= $registeredEmoji;
-					} else {
-						if (isset($oldDBEmoji)) {
-							$this->logger->info('Skipping server emoji :{emoji}: on {guild}', [
-								'emoji' => $oldDBEmoji->name,
-								'guild' => $guild->name,
-							]);
-						}
-						continue;
-					}
-					if (!isset($oldDBEmoji)) {
-						$dbEmoji = new DBEmoji();
-						$dbEmoji->emoji_id = $registeredEmoji->id;
-						$dbEmoji->name = $info['filename'];
-						$dbEmoji->registered = time();
-						$dbEmoji->version = $stats[9]??time();
-						$dbEmoji->guild_id = $guild->id;
-						$this->db->insert(self::EMOJI_TABLE, $dbEmoji);
-					} else {
-						$oldDBEmoji->registered = time();
-						$oldDBEmoji->emoji_id = $registeredEmoji->id;
-						$oldDBEmoji->version = $stats[9]??time();
-						$this->db->update(self::EMOJI_TABLE, "id", $oldDBEmoji);
-					}
+					continue;
 				}
-			} catch (DiscordException $e) {
-				if ($e->getCode() === 403) {
-					$this->logger->warning(
-						"Your bot doesn't have enough rights to manage ".
-						'emojis for the Discord server "{discordServer}"',
-						[
-							"discordServer" => $guild->name,
-						]
-					);
-				} else {
-					$this->logger->error("Discord error syncing bot-emojis with Discord server: {error}", [
-						"error" => $e->getMessage(),
-						"exception" => $e,
+				$info = pathinfo($fileName);
+				if (!isset($info['extension'])) {
+					$this->logger->info("{fileName} doesn't have a pathinfo, skipping", [
+						"fileName" => $fileName,
 					]);
+					continue;
 				}
-			} catch (Throwable $e) {
-				$this->logger->error("Error syncing bot-emojis with Discord server: {error}", [
+
+				$stats = filesystem()->getStatus($fileName);
+				$content = filesystem()->read($fileName);
+				$data = "data:image/{$info['extension']};base64,".
+					base64_encode($content);
+
+				/** @var null|Model\Emoji */
+				$oldEmoji = (new Collection($guild->emojis))
+					->where("name", $info['filename'])
+					->first();
+
+				/** @var null|DBEmoji */
+				$oldDBEmoji = $registered->where("name", $info['filename'])->first();
+				if (isset($oldEmoji, $oldEmoji->id)   && (!isset($oldDBEmoji) || !isset($stats) || $oldDBEmoji->version < $stats[9])) {
+					$this->discordAPIClient->deleteEmoji($guild->id, $oldEmoji->id);
+					$this->logger->notice('Deleted server emoji :{emoji}: on {guild}', [
+						'emoji' => $oldEmoji->name,
+						'guild' => $guild->name,
+					]);
+					$guild->emojis = (new Collection($guild->emojis))
+						->where("id", "!=", $oldEmoji->id)
+						->toArray();
+					unset($oldEmoji);
+				}
+				if (!isset($oldEmoji)) {
+					$registeredEmoji = $this->discordAPIClient->createEmoji($guild->id, $info['filename'], $data);
+					$this->logger->notice('Registered server emoji :{emoji}: on {guild}', [
+						'emoji' => $info['filename'],
+						'guild' => $guild->name,
+					]);
+					$guild->emojis []= $registeredEmoji;
+				} else {
+					if (isset($oldDBEmoji)) {
+						$this->logger->info('Skipping server emoji :{emoji}: on {guild}', [
+							'emoji' => $oldDBEmoji->name,
+							'guild' => $guild->name,
+						]);
+					}
+					continue;
+				}
+				if (!isset($oldDBEmoji)) {
+					$dbEmoji = new DBEmoji();
+					$dbEmoji->emoji_id = $registeredEmoji->id;
+					$dbEmoji->name = $info['filename'];
+					$dbEmoji->registered = time();
+					$dbEmoji->version = $stats[9]??time();
+					$dbEmoji->guild_id = $guild->id;
+					$this->db->insert(self::EMOJI_TABLE, $dbEmoji);
+				} else {
+					$oldDBEmoji->registered = time();
+					$oldDBEmoji->emoji_id = $registeredEmoji->id;
+					$oldDBEmoji->version = $stats[9]??time();
+					$this->db->update(self::EMOJI_TABLE, "id", $oldDBEmoji);
+				}
+			}
+		} catch (DiscordException $e) {
+			if ($e->getCode() === 403) {
+				$this->logger->warning(
+					"Your bot doesn't have enough rights to manage ".
+					'emojis for the Discord server "{discordServer}"',
+					[
+						"discordServer" => $guild->name,
+					]
+				);
+			} else {
+				$this->logger->error("Discord error syncing bot-emojis with Discord server: {error}", [
 					"error" => $e->getMessage(),
 					"exception" => $e,
 				]);
 			}
-		});
+		} catch (Throwable $e) {
+			$this->logger->error("Error syncing bot-emojis with Discord server: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+		}
 	}
 
 	private function countOutgoingPackets(string $handleId): void {
-		if (!isset($this->client) || !$this->client->isConnected()) {
-			Loop::cancel($handleId);
+		if (!isset($this->client) || $this->client->isClosed()) {
+			EventLoop::cancel($handleId);
 			return;
 		}
-		$metadata = $this->client->getInfo();
-		$this->processOutgoingMetadata($metadata);
-	}
-
-	private function processOutgoingMetadata(ClientMetadata $metadata): void {
-		if (!isset($this->lastMetadata) || $this->lastMetadata->messagesSent < $metadata->messagesSent) {
-			$this->outStats->inc($metadata->messagesSent);
+		$msgsSent = $this->client->getCount(WebsocketCount::MessagesSent);
+		if ($this->lastPackets > $msgsSent) {
+			$this->outStats->inc($msgsSent);
 		} else {
-			$this->outStats->inc($metadata->messagesSent - $this->lastMetadata->messagesSent);
+			$this->outStats->inc($msgsSent - $this->lastPackets);
 		}
-		$this->lastMetadata = $metadata;
 	}
 
-	/** @return Promise<void> */
-	private function connectToGateway(): Promise {
-		return call(function (): Generator {
-			$this->reconnectUrl = null;
-			do {
-				if (!isset($this->reconnectUrl)) {
-					$gwTry = 0;
-					do {
-						$gwTry++;
-						try {
-							/** @var DiscordGateway */
-							$gateway = yield $this->discordAPIClient->getGateway();
-						} catch (Throwable $e) {
-							$retryDelay = $gwTry**2 * 1000;
-							$this->logger->notice("Error reading Discord gateway: {error}, retrying in {retry}s", [
-								"error" => $e->getMessage(),
-								"retry" => intdiv($retryDelay, 1000),
-							]);
-							yield delay($retryDelay);
-							continue;
-						}
-					} while (!isset($gateway));
-					$this->logger->info("{remaining} Discord connections out of {total} remaining", [
-						"remaining" => $gateway->session_start_limit->remaining,
-						"total" => $gateway->session_start_limit->total,
-					]);
-					if ($gateway->session_start_limit->remaining < 2) {
-						$resetDelay = (int)ceil($gateway->session_start_limit->reset_after / 1000);
-						$this->logger->warning(
-							"The bot used up all its allowed connections to the Discord API. ".
-							"Will try in {delay}",
-							[
-								"delay" => $this->util->unixtimeToReadable($resetDelay),
-							]
-						);
-						yield delay($resetDelay * 1000);
-						if ($this->isConnected()
-							&& isset($this->client)
-							&& $this->client->isConnected()) {
-							return;
-						}
-					}
-					$handshake = new Handshake($gateway->url . '/?v=10&encoding=json');
-				} else {
-					$handshake = new Handshake($this->reconnectUrl . '?v=10&encoding=json');
-				}
-				$connectContext = (new ConnectContext())->withTcpNoDelay();
-				$httpClient = (new HttpClientBuilder())
-					->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
-					->intercept(new RemoveRequestHeader('origin'))
-					->build();
-				$client = new Rfc6455Connector($httpClient);
-				try {
-					/** @var Connection */
-					$connection = yield $client->connect($handshake, null);
-					$this->client = $connection;
-					$handleId = Loop::repeat(10000, fn (string $handleId) => $this->countOutgoingPackets($handleId));
-					while ($message = yield $connection->receive()) {
-						/** @var Message $message */
-						$payload = yield $message->buffer();
-						$this->inStats->inc();
-
-						/** @var string $payload */
-						rethrow($this->processWebsocketMessage($payload));
-					}
-					if ($this->client->isClosedByPeer()) {
-						throw new ClosedException(
-							"Discord unexpectedly closed the connection",
-							$this->client->getCloseCode(),
-							$this->client->getCloseReason(),
-						);
-					}
-				} catch (ConnectionException $e) {
-					$this->logger->error("Discord endpoint errored: {error}", [
-						"error" => $e->getMessage(),
-					]);
-					$this->sessionId = null;
-					return;
-				} catch (HttpException $e) {
-					$this->logger->error("Request to connect to Discord failed: {error}", [
-						"error" => $e->getMessage(),
-						"exception" => $e,
-					]);
-					$this->sessionId = null;
-					return;
-				} catch (ClosedException $e) {
-					if ($this->canReconnect($e->getCode())) {
-						if (!$this->canResumeSessionAfterClose($e->getCode())) {
-							$this->lastSequenceNumber = null;
-							$this->sessionId = null;
-						}
-						unset($this->client);
-						$this->logger->notice("Reconnecting to Discord gateway in {delay}s.", [
-							"delay" => $this->reconnectDelay,
+	private function connectToGateway(): void {
+		$this->reconnectUrl = null;
+		do {
+			if (!isset($this->reconnectUrl)) {
+				$gwTry = 0;
+				do {
+					$gwTry++;
+					try {
+						$gateway = $this->discordAPIClient->getGateway();
+					} catch (Throwable $e) {
+						$retryDelay = $gwTry**2;
+						$this->logger->notice("Error reading Discord gateway: {error}, retrying in {retry}s", [
+							"error" => $e->getMessage(),
+							"retry" => $retryDelay,
 						]);
-						yield delay($this->reconnectDelay * 1000);
-						$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
+						delay($retryDelay);
 						continue;
 					}
-					return;
-				} catch (MultiReasonException $e) {
-					$errors = [];
-					foreach ($e->getReasons() as $reason) {
-						$errors[] = $reason->getMessage();
+				} while (!isset($gateway));
+				$this->logger->info("{remaining} Discord connections out of {total} remaining", [
+					"remaining" => $gateway->session_start_limit->remaining,
+					"total" => $gateway->session_start_limit->total,
+				]);
+				if ($gateway->session_start_limit->remaining < 2) {
+					$resetDelay = (int)ceil($gateway->session_start_limit->reset_after / 1000);
+					$this->logger->warning(
+						"The bot used up all its allowed connections to the Discord API. ".
+						"Will try in {delay}",
+						[
+							"delay" => $this->util->unixtimeToReadable($resetDelay),
+						]
+					);
+					delay($resetDelay);
+					if ($this->isConnected()
+						&& isset($this->client)
+						&& !$this->client->isClosed()) {
+						return;
 					}
-					$this->logger->error("Multiple errors from Discord endpoint: {error}", [
-						"error" => join("\n", $errors),
-					]);
-					$this->sessionId = null;
-					return;
-				} catch (Throwable $e) {
-					$this->logger->error("Error from Discord endpoint: {error}", [
-						"error" => $e->getMessage(),
-					]);
-					$this->sessionId = null;
-					return;
-				} finally {
-					if (isset($this->client)) {
-						$this->processOutgoingMetadata($this->client->getInfo());
-						$this->lastMetadata = null;
-					}
-					if (isset($handleId)) {
-						Loop::cancel($handleId);
+				}
+				$handshake = new WebsocketHandshake($gateway->url . '/?v=10&encoding=json');
+			} else {
+				$handshake = new WebsocketHandshake($this->reconnectUrl . '?v=10&encoding=json');
+			}
+			$connectContext = (new ConnectContext())->withTcpNoDelay();
+			$httpClient = (new HttpClientBuilder())
+				->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
+				->intercept(new RemoveRequestHeader('origin'))
+				->build();
+			$client = new Rfc6455Connector(httpClient: $httpClient);
+			try {
+				$connection = $client->connect($handshake, null);
+				$this->client = $connection;
+				$handleId = EventLoop::repeat(10, fn (string $handleId) => $this->countOutgoingPackets($handleId));
+				while (null !== ($message = $connection->receive())) {
+					$payload = $message->buffer();
+					$this->inStats->inc();
+
+					async($this->processWebsocketMessage(...), $payload);
+				}
+				if ($this->client->getCloseInfo()->isByPeer()) {
+					throw new WebsocketClosedException(
+						"Discord unexpectedly closed the connection",
+						$this->client->getCloseInfo()->getCode(),
+						$this->client->getCloseInfo()->getReason(),
+					);
+				}
+			} catch (WebsocketConnectException $e) {
+				$this->logger->error("Discord endpoint errored: {error}", [
+					"error" => $e->getMessage(),
+				]);
+				$this->sessionId = null;
+				return;
+			} catch (HttpException $e) {
+				$this->logger->error("Request to connect to Discord failed: {error}", [
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]);
+				$this->sessionId = null;
+				return;
+			} catch (WebsocketClosedException $e) {
+				if ($this->canReconnect($e->getCode())) {
+					if (!$this->canResumeSessionAfterClose($e->getCode())) {
+						$this->lastSequenceNumber = null;
+						$this->sessionId = null;
 					}
 					unset($this->client);
+					$this->logger->notice("Reconnecting to Discord gateway in {delay}s.", [
+						"delay" => $this->reconnectDelay,
+					]);
+					delay($this->reconnectDelay);
+					$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
+					continue;
 				}
-				$this->logger->notice("Connection to Discord gracefully closed");
-				if (!$this->mustReconnect) {
-					$this->lastSequenceNumber = null;
-					$this->sessionId = null;
+				return;
+			} catch (Throwable $e) {
+				$this->logger->error("Error from Discord endpoint: {error}", [
+					"error" => $e->getMessage(),
+				]);
+				$this->sessionId = null;
+				return;
+			} finally {
+				if (isset($this->client)) {
+					$msgsSent = $this->client->getCount(WebsocketCount::MessagesSent);
+					if ($this->lastPackets > $msgsSent) {
+						$this->outStats->inc($msgsSent);
+					} else {
+						$this->outStats->inc($msgsSent - $this->lastPackets);
+					}
+					$this->lastPackets = $msgsSent;
 				}
-				yield delay(500);
-			} while ($this->mustReconnect);
-		});
+				if (isset($handleId)) {
+					EventLoop::cancel($handleId);
+				}
+				unset($this->client);
+			}
+			$this->logger->notice("Connection to Discord gracefully closed");
+			if (!$this->mustReconnect) {
+				$this->lastSequenceNumber = null;
+				$this->sessionId = null;
+			}
+			delay(0.5);
+		} while ($this->mustReconnect);
 	}
 
-	/**
-	 * Send periodic heartbeats to the Discord gateway
-	 *
-	 * @return Promise<void>
-	 */
-	private function sendWebsocketHeartbeat(string $watcherId): Promise {
-		return call(function () use ($watcherId): Generator {
-			if (!$this->isConnected()
-				|| !isset($this->client)
-				|| !$this->client->isConnected()
-			) {
-				Loop::cancel($watcherId);
-				return;
-			}
-			$this->lastHeartbeat = time();
-			$this->logger->info("Sending heartbeat");
-			yield $this->client->send(json_encode(["op" => 1, "d" => $this->lastSequenceNumber]));
-		});
+	/** Send periodic heartbeats to the Discord gateway */
+	private function sendWebsocketHeartbeat(string $watcherId): void {
+		if (!$this->isConnected()
+			|| !isset($this->client)
+			|| $this->client->isClosed()
+		) {
+			EventLoop::cancel($watcherId);
+			return;
+		}
+		$this->lastHeartbeat = time();
+		$this->logger->info("Sending heartbeat");
+		$this->client->sendText(json_encode(["op" => 1, "d" => $this->lastSequenceNumber]));
 	}
 
-	/** @return Promise<void> */
-	private function sendIdentify(): Promise {
-		return call(function (): Generator {
-			$this->guilds = [];
-			$this->invites = [];
-			$this->logger->notice("Logging into Discord gateway");
-			$identify = new IdentifyPacket();
-			$identify->token = $this->discordController->discordBotToken;
-			$identify->large_threshold = 250;
-			$identify->intents = Intent::GUILD_MESSAGES
-				| Intent::DIRECT_MESSAGES
-				| Intent::GUILD_MEMBERS
-				| Intent::GUILDS
-				| Intent::GUILD_VOICE_STATES
-				| Intent::MESSAGE_CONTENT
-				| Intent::GUILD_SCHEDULED_EVENTS;
-			$login = new Payload();
-			$login->op = Opcode::IDENTIFY;
-			$login->d = $identify;
-			if (isset($this->client)) {
-				yield $this->client->send(json_encode($login));
-			}
-		});
+	private function sendIdentify(): void {
+		$this->guilds = [];
+		$this->invites = [];
+		$this->logger->notice("Logging into Discord gateway");
+		$identify = new IdentifyPacket();
+		$identify->token = $this->discordController->discordBotToken;
+		$identify->large_threshold = 250;
+		$identify->intents = Intent::GUILD_MESSAGES
+			| Intent::DIRECT_MESSAGES
+			| Intent::GUILD_MEMBERS
+			| Intent::GUILDS
+			| Intent::GUILD_VOICE_STATES
+			| Intent::MESSAGE_CONTENT
+			| Intent::GUILD_SCHEDULED_EVENTS;
+		$login = new Payload();
+		$login->op = Opcode::IDENTIFY;
+		$login->d = $identify;
+		if (isset($this->client)) {
+			$this->client->sendText(json_encode($login));
+		}
 	}
 
-	/** @return Promise<void> */
-	private function sendResume(): Promise {
-		return call(function (): Generator {
-			$this->logger->notice("Trying to resume old Discord gateway session");
-			$resume = new ResumePacket();
-			$resume->token = $this->discordController->discordBotToken;
-			if (!isset($this->sessionId) || !isset($this->lastSequenceNumber)) {
-				$this->logger->error("Cannot resume session, because no previous session found.");
-				return;
-			}
-			$resume->session_id = $this->sessionId;
-			$resume->seq = $this->lastSequenceNumber;
-			$payload = new Payload();
-			$payload->op = Opcode::RESUME;
-			$payload->d = $resume;
-			if (isset($this->client)) {
-				yield $this->client->send(json_encode($payload));
-			}
-		});
+	private function sendResume(): void {
+		$this->logger->notice("Trying to resume old Discord gateway session");
+		$resume = new ResumePacket();
+		$resume->token = $this->discordController->discordBotToken;
+		if (!isset($this->sessionId) || !isset($this->lastSequenceNumber)) {
+			$this->logger->error("Cannot resume session, because no previous session found.");
+			return;
+		}
+		$resume->session_id = $this->sessionId;
+		$resume->seq = $this->lastSequenceNumber;
+		$payload = new Payload();
+		$payload->op = Opcode::RESUME;
+		$payload->d = $resume;
+		if (isset($this->client)) {
+			$this->client->sendText(json_encode($payload));
+		}
 	}
 
-	/** @return Promise<void> */
-	private function sendRequestGuildMembers(string $guildId): Promise {
-		return call(function () use ($guildId): Generator {
-			$request = new RequestGuildMembers($guildId);
-			$payload = new Payload();
-			$payload->op = Opcode::REQUEST_GUILD_MEMBERS;
-			$payload->d = $request;
-			if (isset($this->client)) {
-				yield $this->client->send(json_encode($payload));
-			}
-		});
+	private function sendRequestGuildMembers(string $guildId): void {
+		$request = new RequestGuildMembers($guildId);
+		$payload = new Payload();
+		$payload->op = Opcode::REQUEST_GUILD_MEMBERS;
+		$payload->d = $request;
+		if (isset($this->client)) {
+			$this->client->sendText(json_encode($payload));
+		}
 	}
 
 	private function canReconnect(int $code): bool {

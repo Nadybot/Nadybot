@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\{async, delay};
 use function Amp\Future\await;
+use function Amp\{async, delay};
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
 use Amp\TimeoutCancellation;
@@ -78,17 +78,18 @@ class GuildManager extends ModuleInstance {
 		if ($this->isMyGuild($guildID)) {
 			$maxCacheAge = 21600;
 		}
+
 		/** @todo FileCache
-		$cache = new FileCache(
-			$this->config->paths->cache . '/guild_roster',
-			new LocalKeyedMutex()
-		);
-		$cacheKey = "{$guildID}.{$dimension}";
-		$fromCache = true;
-		if (!$forceUpdate) {
-			$body = yield $cache->get($cacheKey);
-		}
-		*/
+		 * $cache = new FileCache(
+		 * $this->config->paths->cache . '/guild_roster',
+		 * new LocalKeyedMutex()
+		 * );
+		 * $cacheKey = "{$guildID}.{$dimension}";
+		 * $fromCache = true;
+		 * if (!$forceUpdate) {
+		 * $body = yield $cache->get($cacheKey);
+		 * }
+		 */
 		$try = 0;
 		while ((!isset($body) || $body === '') && $try < 3) {
 			try {
@@ -174,7 +175,7 @@ class GuildManager extends ModuleInstance {
 		foreach ($members as $member) {
 			/** @var string */
 			$name = $member->NAME;
-			$charid = $member->CHAR_INSTANCE ?? $this->chatBot->id[$name] ?? null;
+			$charid = $member->CHAR_INSTANCE ?? $this->chatBot->getUid($name, true);
 			if ($charid === null || $charid === false) {
 				$charid = 0;
 			}
@@ -205,9 +206,9 @@ class GuildManager extends ModuleInstance {
 		}
 
 		// If this result is from our cache, then this information is already present
-		if ($fromCache) {
-			return $guild;
-		}
+		// if ($fromCache) {
+		// 	return $guild;
+		// }
 		$this->db->awaitBeginTransaction();
 
 		$this->db->table("players")

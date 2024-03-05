@@ -104,21 +104,21 @@ class GmiController extends ModuleInstance {
 
 	/** Check prices on GMI for an item */
 	#[HandlesCommand("gmi")]
-	public function gmiIdCommand(CmdContext $context, int $itemId): Generator {
+	public function gmiIdCommand(CmdContext $context, int $itemId): void {
 		$entry = $this->itemsController->findById($itemId);
 		yield from $this->gmiCommand($context, $entry);
 	}
 
 	/** Check prices on GMI for an item */
 	#[HandlesCommand("gmi")]
-	public function gmiItemCommand(CmdContext $context, PItem $item): Generator {
+	public function gmiItemCommand(CmdContext $context, PItem $item): void {
 		$entry = $this->itemsController->findById($item->lowID);
 		yield from $this->gmiCommand($context, $entry, $item->ql);
 	}
 
 	/** Check prices on GMI for an item */
 	#[HandlesCommand("gmi")]
-	public function gmiSearchCommand(CmdContext $context, string $search): Generator {
+	public function gmiSearchCommand(CmdContext $context, string $search): void {
 		$matches = $this->itemsController->findItemsFromLocal($search, null);
 		$perfectMatches = array_filter(
 			$matches,

@@ -1287,7 +1287,7 @@ class NotumWarsController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("sites")]
 		string $action,
-	): Generator {
+	): void {
 		/** @var ?Player */
 		$player = yield $this->playerManager->byName($context->char->name);
 		if (!isset($player) || !isset($player->guild_id)) {
@@ -1348,11 +1348,11 @@ class NotumWarsController extends ModuleInstance {
 		#[NCA\Str("org")]
 		?string $forceOrg,
 		string $search
-	): Generator {
+	): void {
 		$searchTerm = $search;
 		$player = null;
 		if (!isset($forceOrg)) {
-			$uid = yield $this->chatBot->getUid2($search);
+			$uid = $this->chatBot->getUid($search);
 			if (isset($uid)) {
 				/** @var ?Player */
 				$player = yield $this->playerManager->byName($search);
@@ -1391,7 +1391,7 @@ class NotumWarsController extends ModuleInstance {
 		string $action,
 		#[NCA\Str("all")]
 		?string $all,
-	): Generator {
+	): void {
 		if (isset($all)) {
 			$msg = $this->text->makeBlob("Allowed number of towers", $this->getAllTowerQuantitiesBlob());
 			$context->reply($msg);

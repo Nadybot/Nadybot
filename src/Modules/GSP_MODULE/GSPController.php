@@ -189,7 +189,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	/** Show what GridStream Productions is currently playing */
 	#[NCA\HandlesCommand("radio")]
-	public function radioCommand(CmdContext $context): Generator {
+	public function radioCommand(CmdContext $context): void {
 		$client = $this->builder->build();
 
 		/** @var Response */

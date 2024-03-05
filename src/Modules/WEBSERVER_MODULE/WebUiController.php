@@ -173,7 +173,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		#[NCA\Str("install")]
 		string $action,
 		string $channel
-	): Generator {
+	): void {
 		try {
 			[$response, $artifact] = yield $this->downloadBuildArtifact($channel);
 			$msg = yield $this->installArtifact($response, $artifact);

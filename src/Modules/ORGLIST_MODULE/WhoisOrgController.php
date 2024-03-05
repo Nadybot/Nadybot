@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -58,7 +57,7 @@ class WhoisOrgController extends ModuleInstance {
 
 	/** Show information about an organization */
 	#[NCA\HandlesCommand("whoisorg")]
-	public function whoisorgIdCommand(CmdContext $context, int $orgId, ?int $dimension): Generator {
+	public function whoisorgIdCommand(CmdContext $context, int $orgId, ?int $dimension): void {
 		$dimension ??= $this->config->main->dimension;
 
 		/** @var ?Guild */
@@ -70,7 +69,7 @@ class WhoisOrgController extends ModuleInstance {
 
 	/** Show information about a character's org */
 	#[NCA\HandlesCommand("whoisorg")]
-	public function whoisorgCommand(CmdContext $context, PCharacter $char, ?int $dimension): Generator {
+	public function whoisorgCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$dimension ??= $this->config->main->dimension;
 		$name = $char();
 

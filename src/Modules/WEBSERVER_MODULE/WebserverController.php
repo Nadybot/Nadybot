@@ -23,7 +23,6 @@ use Nadybot\Core\{
 	Registry,
 	Socket,
 	Socket\AsyncSocket,
-	Timer,
 };
 use ReflectionAttribute;
 use ReflectionClass;
@@ -53,9 +52,6 @@ class WebserverController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public DB $db;

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use Generator;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -37,9 +36,9 @@ class RunAsController extends ModuleInstance {
 
 	/** Run a command as another character */
 	#[NCA\HandlesCommand("runas")]
-	public function runasCommand(CmdContext $context, PCharacter $character, string $command): Generator {
+	public function runasCommand(CmdContext $context, PCharacter $character, string $command): void {
 		$context->message = $command;
-		$uid = yield $this->chatBot->getUid2($character());
+		$uid = $this->chatBot->getUid($character());
 		if (!isset($uid)) {
 			$context->reply("Character <highlight>{$character}<end> does not exist.");
 			return;

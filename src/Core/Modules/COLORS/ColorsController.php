@@ -2,11 +2,9 @@
 
 namespace Nadybot\Core\Modules\COLORS;
 
-use function Amp\call;
 use function Amp\File\filesystem;
 use function Safe\json_decode;
 
-use Amp\Promise;
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Generator;
@@ -181,44 +179,36 @@ class ColorsController extends ModuleInstance {
 		$context->reply("Theme changed to <highlight>{$themeName}<end>.");
 	}
 
-	/** @return Promise<Theme[]> */
-	public function getThemeList(): Promise {
-		return call(function (): Generator {
-			$paths = explode(":", $this->themePath);
-			$themes = new Collection();
-			foreach ($paths as $path) {
-				$fileList = yield filesystem()->listFiles(__DIR__ . "/" . $path);
-				foreach ($fileList as $fileName) {
-					if (!str_ends_with($fileName, ".json")) {
-						continue;
-					}
-					$themes->push(
-						yield $this->loadTheme(__DIR__ . "/{$path}/{$fileName}")
-					);
+	/** @return Theme[] */
+	public function getThemeList(): array {
+		$paths = explode(":", $this->themePath);
+		$themes = new Collection();
+		foreach ($paths as $path) {
+			$fileList = filesystem()->listFiles(__DIR__ . "/" . $path);
+			foreach ($fileList as $fileName) {
+				if (!str_ends_with($fileName, ".json")) {
+					continue;
 				}
+				$themes->push(
+					$this->loadTheme(__DIR__ . "/{$path}/{$fileName}")
+				);
 			}
-			$themes = $themes->filter()->sortBy("name")->values();
-			return $themes->toArray();
-		});
+		}
+		$themes = $themes->filter()->sortBy("name")->values();
+		return $themes->toArray();
 	}
 
-	/**
-	 * Load a theme from a file and return the parsed theme or null
-	 *
-	 * @return Promise<?Theme>
-	 */
-	public function loadTheme(string $filename): Promise {
-		return call(function () use ($filename): Generator {
-			try {
-				$json = yield filesystem()->read($filename);
-				$data = json_decode($json, true);
-			} catch (Exception) {
-				return null;
-			}
-			$data["name"] = basename($filename, ".json");
-			$mapper = new ObjectMapperUsingReflection();
-			return $mapper->hydrateObject(Theme::class, $data);
-		});
+	/** Load a theme from a file and return the parsed theme or null */
+	public function loadTheme(string $filename): ?Theme {
+		try {
+			$json = filesystem()->read($filename);
+			$data = json_decode($json, true);
+		} catch (Exception) {
+			return null;
+		}
+		$data["name"] = basename($filename, ".json");
+		$mapper = new ObjectMapperUsingReflection();
+		return $mapper->hydrateObject(Theme::class, $data);
 	}
 
 	/** Activate all colors of the given theme */

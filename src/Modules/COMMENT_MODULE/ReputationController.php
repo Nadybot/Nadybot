@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\COMMENT_MODULE;
 
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -14,7 +13,6 @@ use Nadybot\Core\{
 	ParamClass\PWord,
 	SettingManager,
 	Text,
-	Timer,
 	Util,
 };
 
@@ -50,9 +48,6 @@ class ReputationController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommentController $commentController;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -127,8 +122,8 @@ class ReputationController extends ModuleInstance {
 		#[NCA\StrChoice("+1", "-1")]
 		string $action,
 		string $comment
-	): Generator {
-		yield from $this->commentController->addCommentCommand(
+	): void {
+		$this->commentController->addCommentCommand(
 			$context,
 			"add",
 			$char,

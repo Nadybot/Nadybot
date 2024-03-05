@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use function Safe\json_encode;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Nadybot\Core\{
 	AccessManager,
@@ -13,6 +14,7 @@ use Nadybot\Core\{
 	SQLException,
 	Text,
 };
+
 use ReflectionClass;
 
 /**
@@ -91,7 +93,7 @@ class SQLController extends ModuleInstance {
 			foreach ($data as $row) {
 				$blob .= "<pagebreak><header2>Entry<end>\n";
 				foreach ($row as $key => $value) {
-					$blob .= "<tab><highlight>{$key}:<end> ".\Safe\json_encode($value, JSON_UNESCAPED_SLASHES)."\n";
+					$blob .= "<tab><highlight>{$key}:<end> " . json_encode($value, JSON_UNESCAPED_SLASHES)."\n";
 				}
 				$blob .= "\n";
 			}

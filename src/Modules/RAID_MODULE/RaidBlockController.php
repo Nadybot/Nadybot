@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -131,13 +130,13 @@ class RaidBlockController extends ModuleInstance {
 		PCharacter $character,
 		?PDuration $duration,
 		string $reason
-	): Generator {
+	): void {
 		$character = $character();
 		if ($this->isBlocked($character, $blockFrom)) {
 			$context->reply("<highlight>{$character}<end> is already blocked on <highlight>{$blockFrom}<end>.");
 			return;
 		}
-		if (null === yield $this->chatBot->getUid2($character)) {
+		if (null === $this->chatBot->getUid($character)) {
 			$context->reply("<highlight>{$character}<end> doesn't exist.");
 		}
 		$character = $this->altsController->getMainOf($character);

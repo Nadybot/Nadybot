@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Channels;
 
+use AO\Package;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -51,7 +52,7 @@ class PrivateMessage extends Base {
 			if (!$this->accessManager->checkAccess($buddy, $group)) {
 				continue;
 			}
-			$this->chatBot->send_tell($buddy, $message);
+			$this->chatBot->sendRawTell(character: $buddy, message: $message);
 		}
 		return true;
 	}
@@ -66,7 +67,12 @@ class PrivateMessage extends Base {
 			return false;
 		}
 		$message = $this->text->formatMessage($message);
-		$this->chatBot->send_tell($destination, $message);
+			$this->chatBot->aoClient->write(
+				package: new Package\Out\Tell(
+					charId: $this->chatBot->getUid($destination),
+					message: $message
+				)
+			);
 		return true;
 	}
 }

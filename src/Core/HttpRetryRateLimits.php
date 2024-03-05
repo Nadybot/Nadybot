@@ -2,31 +2,27 @@
 
 namespace Nadybot\Core;
 
-use function Amp\{call, delay};
-use Amp\Http\Client\Internal\{ForbidCloning, ForbidSerialization};
+use function Amp\{delay};
 use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, Request, Response};
-use Amp\{CancellationToken, Promise};
+use Amp\{Cancellation, ForbidCloning as AmpForbidCloning, ForbidSerialization as AmpForbidSerialization};
 
 class HttpRetryRateLimits implements ApplicationInterceptor {
-	use ForbidCloning;
-	use ForbidSerialization;
+	use AmpForbidCloning;
+	use AmpForbidSerialization;
 
 	public function request(
 		Request $request,
-		CancellationToken $cancellation,
+		Cancellation $cancellation,
 		DelegateHttpClient $httpClient,
-	): Promise {
-		return call(function () use ($request, $cancellation, $httpClient) {
-			while (true) {
-				/** @var Response */
-				$response = yield $httpClient->request(clone $request, $cancellation);
-				if ($response->getStatus() === 429) {
-					$waitFor = (float)($response->getHeader("x-ratelimit-reset-after")??(random_int(10, 50)/10));
-					yield delay((int)ceil($waitFor * 1000));
-				} else {
-					return $response;
-				}
+	): Response {
+		while (true) {
+			$response = $httpClient->request(clone $request, $cancellation);
+			if ($response->getStatus() === 429) {
+				$waitFor = (float)($response->getHeader("x-ratelimit-reset-after")??(random_int(10, 50)/10));
+				delay($waitFor);
+			} else {
+				return $response;
 			}
-		});
+		}
 	}
 }

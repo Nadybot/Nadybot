@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\CSV;
 
+use function Safe\{fgetcsv, fopen};
+
 class Reader {
 	private string $file;
 
@@ -15,12 +17,12 @@ class Reader {
 	 * @return array<mixed>|\Generator<array<string,mixed>>
 	 */
 	public function items(): iterable {
-		$file = \Safe\fopen($this->file, 'r');
+		$file = fopen($this->file, 'r');
 		$numCols = 0;
 		if (!feof($file)) {
-			$headers = \Safe\fgetcsv($file, 8192);
+			$headers = fgetcsv($file, 8192);
 			while (is_array($headers) && count($headers) === 1 && isset($headers[0]) && is_string($headers[0]) && $headers[0][0] === "#") {
-				$headers = \Safe\fgetcsv($file, 8192);
+				$headers = fgetcsv($file, 8192);
 			}
 			if (!is_array($headers)) {
 				return [];

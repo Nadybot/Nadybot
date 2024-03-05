@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -881,7 +880,7 @@ class LootController extends ModuleInstance {
 	/** Remove yourself from all loot rolls */
 	#[NCA\HandlesCommand("rem")]
 	#[NCA\Help\Group("loot")]
-	public function remCommand(CmdContext $context): Generator {
+	public function remCommand(CmdContext $context): void {
 		if (count($this->loot) === 0) {
 			$this->chatBot->sendTell("There is nothing to remove you from.", $context->char->name);
 			return;
