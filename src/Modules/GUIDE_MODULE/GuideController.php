@@ -2,10 +2,9 @@
 
 namespace Nadybot\Modules\GUIDE_MODULE;
 
-use function Amp\File\filesystem;
-
-use Amp\ByteStream\LineReader;
-use Amp\File\{File, FilesystemException};
+use function Amp\ByteStream\splitLines;
+use Amp\File\{File, Filesystem, FilesystemException};
+use IteratorIterator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -38,6 +37,9 @@ class GuideController extends ModuleInstance {
 	public Util $util;
 
 	#[NCA\Inject]
+	public Filesystem $fs;
+
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	private string $path;
@@ -66,18 +68,21 @@ class GuideController extends ModuleInstance {
 		/** @var string[] */
 		$topicList = [];
 		try {
-			$fileList = yield filesystem()->listFiles($this->path);
+			$fileList = $this->fs->listFiles($this->path);
 			foreach ($fileList as $fileName) {
 				if (!str_ends_with($fileName, self::FILE_EXT)) {
 					continue;
 				}
 
-				/** @var File */
-				$handle = yield filesystem()->openFile($this->path . '/' . $fileName, "r");
-				$firstLine = yield (new LineReader($handle))->readLine();
-				if ($firstLine === null) {
+				$handle = $this->fs->openFile($this->path . '/' . $fileName, "r");
+
+				$iter = new IteratorIterator(splitLines($handle));
+				$iter->rewind();
+				if (!$iter->valid()) {
+					$handle->close();
 					continue;
 				}
+				$firstLine = $iter->current();
 				$firstLine = strip_tags(trim($firstLine));
 				$topicList[$firstLine] = basename($fileName, self::FILE_EXT);
 			}
@@ -134,7 +139,7 @@ class GuideController extends ModuleInstance {
 		$fileName = strtolower($guideName());
 		$file = $this->path . $fileName . self::FILE_EXT;
 		try {
-			$info = yield filesystem()->read($file);
+			$info = $this->fs->read($file);
 			$lines = explode("\n", $info);
 			$firstLine = preg_replace("/<header>(.+)<end>/", "$1", array_shift($lines));
 			$info = trim(implode("\n", $lines));

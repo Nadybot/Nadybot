@@ -1302,7 +1302,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->where("org_id", $org->guild_id)
 			->asObj(TrackingOrgMember::class)
 			->keyBy("uid");
-		yield $this->db->awaitBeginTransaction();
+		$this->db->awaitBeginTransaction();
 		$toInsert = [];
 		$toInit = [];
 		try {

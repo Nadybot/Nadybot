@@ -2,10 +2,7 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use function Amp\{call, delay};
-use Amp\{Promise};
-use Generator;
-use Nadybot\Core\DBSchema\Player;
+use function Amp\{delay};
 use Nadybot\Core\Modules\ALTS\{AltEvent, AltsController};
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 
@@ -156,17 +153,16 @@ class GreetController extends ModuleInstance {
 		name: "joinpriv",
 		description: "Greet players joining the private channel",
 	)]
-	public function sendRandomJoinGreeting(AOChatEvent $event): Generator {
+	public function sendRandomJoinGreeting(AOChatEvent $event): void {
 		if (!is_string($event->sender)) {
 			return;
 		}
 		if (!$this->needsGreeting($event->sender)) {
 			return;
 		}
-		yield delay($this->greetDelay * 1000);
+		delay($this->greetDelay);
 
-		/** @var ?string */
-		$greeting = yield $this->getMatchingGreeting($event->sender);
+		$greeting = $this->getMatchingGreeting($event->sender);
 		if (empty($greeting)) {
 			return;
 		}
@@ -182,7 +178,7 @@ class GreetController extends ModuleInstance {
 		name: "logOn",
 		description: "Greet org members logging on"
 	)]
-	public function sendRandomLogonGreeting(UserStateEvent $event): Generator {
+	public function sendRandomLogonGreeting(UserStateEvent $event): void {
 		$sender = $event->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
@@ -193,7 +189,7 @@ class GreetController extends ModuleInstance {
 		if (!$this->needsGreeting($sender)) {
 			return;
 		}
-		yield delay($this->greetDelay * 1000);
+		delay($this->greetDelay);
 		$greeting = $this->fun->getFunItem($this->greetSource, $sender);
 		if ($this->greetLocation === self::SOURCE_CHANNEL) {
 			$this->chatBot->sendGuild($greeting);
@@ -318,43 +314,38 @@ class GreetController extends ModuleInstance {
 	 * @param string $token  The token to check (main, name, prof)
 	 * @param string $value  The value to check against
 	 * @param string $target The name of the character to check against
-	 *
-	 * @return Promise<bool> A promise that resolves into true (matches) or false (doesn't match)
 	 */
-	protected function matchesGreetingCheck(string $token, string $value, string $target): Promise {
-		return call(function () use ($token, $value, $target): Generator {
-			switch ($token) {
-				case "main":
-					return $this->altsController->getMainOf($target) === ucfirst(strtolower($value));
-				case "name":
-				case "char":
-				case "charname":
-				case "character":
-					return $target === ucfirst(strtolower($value));
-			}
+	protected function matchesGreetingCheck(string $token, string $value, string $target): bool {
+		switch ($token) {
+			case "main":
+				return $this->altsController->getMainOf($target) === ucfirst(strtolower($value));
+			case "name":
+			case "char":
+			case "charname":
+			case "character":
+				return $target === ucfirst(strtolower($value));
+		}
 
-			/** @var ?Player */
-			$player = yield $this->playerManager->byName($target);
-			if (!isset($player)) {
-				return false;
-			}
-			switch ($token) {
-				case "prof":
-				case "profession":
-					return $player->profession === $this->util->getProfessionName($value);
-				case "faction":
-				case "side":
-					return strtolower($player->faction) === strtolower($value);
-				case "gender":
-				case "sex":
-					return strtolower($player->gender) === strtolower($value);
-				case "race":
-				case "breed":
-					return strtolower($player->breed) === strtolower($value);
-				default:
-					return true;
-			}
-		});
+		$player = $this->playerManager->byName($target);
+		if (!isset($player)) {
+			return false;
+		}
+		switch ($token) {
+			case "prof":
+			case "profession":
+				return $player->profession === $this->util->getProfessionName($value);
+			case "faction":
+			case "side":
+				return strtolower($player->faction) === strtolower($value);
+			case "gender":
+			case "sex":
+				return strtolower($player->gender) === strtolower($value);
+			case "race":
+			case "breed":
+				return strtolower($player->breed) === strtolower($value);
+			default:
+				return true;
+		}
 	}
 
 	/**
@@ -363,26 +354,23 @@ class GreetController extends ModuleInstance {
 	 * @param string $target   The name of the person being greeted
 	 * @param Fun    $greeting The Fun object with the greeting
 	 *
-	 * @return Promise<?string> Either the greeting, or null if it doesn't apply
+	 * @return ?string Either the greeting, or null if it doesn't apply
 	 */
-	private function greetingFits(string $target, Fun $greeting): Promise {
-		return call(function () use ($target, $greeting): Generator {
-			$parts = explode(" ", $greeting->content, 2);
-			if (count($parts) < 2) {
-				return $greeting->content;
-			}
-			$tokens = explode("=", $parts[0], 2);
-			if (count($tokens) < 2) {
-				return $greeting->content;
-			}
+	private function greetingFits(string $target, Fun $greeting): ?string {
+		$parts = explode(" ", $greeting->content, 2);
+		if (count($parts) < 2) {
+			return $greeting->content;
+		}
+		$tokens = explode("=", $parts[0], 2);
+		if (count($tokens) < 2) {
+			return $greeting->content;
+		}
 
-			/** @var bool */
-			$matches = yield $this->matchesGreetingCheck($tokens[0], $tokens[1], $target);
-			if ($matches) {
-				return $parts[1];
-			}
-			return null;
-		});
+		$matches = $this->matchesGreetingCheck($tokens[0], $tokens[1], $target);
+		if ($matches) {
+			return $parts[1];
+		}
+		return null;
 	}
 
 	/**
@@ -390,27 +378,24 @@ class GreetController extends ModuleInstance {
 	 *
 	 * @param string $target The name of the person being greeted
 	 *
-	 * @return Promise<?string> A matching greeting, or null;
+	 * @return ?string A matching greeting, or null;
 	 */
-	private function getMatchingGreeting(string $target): Promise {
-		return call(function () use ($target): Generator {
-			/** @var array<Fun> */
-			$data = $this->db->table("fun")
-				->whereIn("type", explode(",", $this->greetSource))
-				->asObj(Fun::class)
-				->toArray();
-			while (count($data) > 0) {
-				$key = array_rand($data, 1);
+	private function getMatchingGreeting(string $target): ?string {
+		/** @var array<Fun> */
+		$data = $this->db->table("fun")
+			->whereIn("type", explode(",", $this->greetSource))
+			->asObj(Fun::class)
+			->toArray();
+		while (count($data) > 0) {
+			$key = array_rand($data, 1);
 
-				/** @var ?string */
-				$greeting = yield $this->greetingFits($target, $data[$key]);
-				if (isset($greeting)) {
-					return $greeting;
-				}
-				unset($data[$key]);
+			$greeting = $this->greetingFits($target, $data[$key]);
+			if (isset($greeting)) {
+				return $greeting;
 			}
-			return null;
-		});
+			unset($data[$key]);
+		}
+		return null;
 	}
 
 	/** Determines if $character needs to be greeted */

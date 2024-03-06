@@ -200,7 +200,7 @@ class FindOrgController extends ModuleInstance {
 				yield delay(100);
 			}
 			try {
-				yield $this->db->awaitBeginTransaction();
+				$this->db->awaitBeginTransaction();
 				$this->db->table("organizations")
 					->where("index", $letter)
 					->delete();

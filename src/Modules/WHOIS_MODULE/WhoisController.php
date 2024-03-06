@@ -101,7 +101,7 @@ class WhoisController extends ModuleInstance {
 		if (empty($this->nameHistoryCache) || $this->db->inTransaction()) {
 			return;
 		}
-		yield $this->db->awaitBeginTransaction();
+		$this->db->awaitBeginTransaction();
 		try {
 			foreach ($this->nameHistoryCache as $entry) {
 				if ($this->db->getType() === DB\Type::MSSQL) {

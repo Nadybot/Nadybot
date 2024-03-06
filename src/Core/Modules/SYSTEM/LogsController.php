@@ -3,8 +3,8 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use function Amp\ByteStream\splitLines;
-use function Amp\File\{deleteFile, filesystem, read};
-use Amp\File\{File, FilesystemException};
+
+use Amp\File\{Filesystem, FilesystemException};
 use Amp\Http\Client\{
 	HttpClientBuilder,
 	Interceptor\SetRequestHeader,
@@ -78,6 +78,9 @@ class LogsController extends ModuleInstance {
 	#[NCA\Inject]
 	public Util $util;
 
+	#[NCA\Inject]
+	public Filesystem $fs;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -85,14 +88,14 @@ class LogsController extends ModuleInstance {
 	#[NCA\HandlesCommand("logs")]
 	public function logsCommand(CmdContext $context): void {
 		try {
-			if (false === yield filesystem()->exists($this->logger->getLoggingDirectory())) {
+			if (!$this->fs->exists($this->logger->getLoggingDirectory())) {
 				$context->reply(
 					"Your bot is either not configured to create log files, ".
 					"lacks the logging directory, or has no permission to access it."
 				);
 				return;
 			}
-			$files = yield filesystem()->listFiles($this->logger->getLoggingDirectory());
+			$files = $this->fs->listFiles($this->logger->getLoggingDirectory());
 		} catch (FilesystemException $e) {
 			$prev = $e->getPrevious();
 			if (isset($prev)) {
@@ -133,12 +136,12 @@ class LogsController extends ModuleInstance {
 		$readsize = ($this->settingManager->getInt('max_blob_size')??10000) - 500;
 
 		try {
-			if (false === filesystem()->exists($filename)) {
+			if (!$this->fs->exists($filename)) {
 				$context->reply("The file <highlight>{$filename}<end> doesn't exist.");
 				return;
 			}
 
-			$handle = filesystem()->openFile($filename, "r");
+			$handle = $this->fs->openFile($filename, "r");
 			$reader = splitLines($handle);
 			$lines = [];
 			foreach ($reader as $line) {
@@ -343,8 +346,8 @@ class LogsController extends ModuleInstance {
 
 	public function uploadDebugLog(CmdContext $context, string $filename): void {
 		try {
-			$content = read($filename);
-			deleteFile($filename);
+			$content = $this->fs->read($filename);
+			$this->fs->deleteFile($filename);
 		} catch (FilesystemException $e) {
 			$context->reply("Unable to open <highlight>{$filename}<end>: " . $e->getMessage() . ".");
 			return;

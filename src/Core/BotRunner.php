@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use function Amp\File\{createDefaultDriver, filesystem};
 use function Safe\{fclose, fwrite, ini_set, json_encode, realpath, stream_get_contents};
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
-use Amp\File\{FilesystemDriver};
+use Amp\File\{Filesystem, FilesystemDriver};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
@@ -304,7 +304,7 @@ class BotRunner {
 		if ($fsDriver instanceof EioFilesystemDriver) {
 			$fsDriver = new ParallelFilesystemDriver();
 		}
-		Registry::setInstance("filesystem", filesystem($fsDriver));
+		Registry::setInstance(Registry::formatName(Filesystem::class), filesystem($fsDriver));
 
 		$this->logger->notice(
 			"Starting {name} {version} on RK{dimension} using ".

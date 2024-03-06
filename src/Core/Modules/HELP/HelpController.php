@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\HELP;
 
 use function Amp\File\filesystem;
 
+use Amp\File\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -68,6 +69,9 @@ class HelpController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	#[NCA\Inject]
+	public Filesystem $fs;
+
 	/** Show mods the required access level for each command */
 	#[NCA\Setting\Boolean] public bool $helpShowAL = true;
 
@@ -126,7 +130,7 @@ class HelpController extends ModuleInstance {
 	/** Get the initial help overview */
 	#[NCA\HandlesCommand("help")]
 	public function helpCommand(CmdContext $context): void {
-		$data = yield filesystem()->read(__DIR__ . "/overview.txt");
+		$data = $this->fs->read(__DIR__ . "/overview.txt");
 		$version = BotRunner::getVersion();
 		$database = $this->db->getVersion();
 		$data = str_replace(
@@ -145,7 +149,7 @@ class HelpController extends ModuleInstance {
 		#[NCA\Str("syntax")]
 		string $action
 	): void {
-		$data = yield filesystem()->read(__DIR__ . "/syntax.txt");
+		$data = $this->fs->read(__DIR__ . "/syntax.txt");
 		$msg = $this->text->makeBlob("Help", trim($data));
 		$context->reply($msg);
 	}
@@ -189,7 +193,7 @@ class HelpController extends ModuleInstance {
 	/** Get the initial adminhelp overview */
 	#[NCA\HandlesCommand("adminhelp")]
 	public function adminhelpCommand(CmdContext $context): void {
-		$data = yield filesystem()->read(__DIR__ . "/adminhelp.txt");
+		$data = $this->fs->read(__DIR__ . "/adminhelp.txt");
 		$msg = $this->text->makeBlob("Help", $data);
 		$context->reply($msg);
 	}
@@ -224,7 +228,7 @@ class HelpController extends ModuleInstance {
 		$topic = strtolower($topic);
 
 		if ($topic === 'about') {
-			$msg = yield $this->getAbout();
+			$msg = $this->getAbout();
 			$context->reply($msg);
 			return;
 		}

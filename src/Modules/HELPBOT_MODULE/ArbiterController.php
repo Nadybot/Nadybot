@@ -155,7 +155,7 @@ class ArbiterController extends ModuleInstance {
 			$start =  \Safe\strtotime($startsToday ? "today" : "last sunday");
 			$end = \Safe\strtotime($startsToday ? "monday + 7 days" : "next monday");
 		}
-		yield $this->db->awaitBeginTransaction();
+		$this->db->awaitBeginTransaction();
 		try {
 			$this->db->table(static::DB_TABLE)->truncate();
 			for ($i = 0; $i < 3; $i++) {

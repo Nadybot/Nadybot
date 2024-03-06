@@ -4,7 +4,8 @@ namespace Nadybot\Core\Modules\PROFILE;
 
 use function Amp\File\filesystem;
 use function Safe\{json_decode, json_encode, preg_replace};
-use Amp\File\FilesystemException;
+
+use Amp\File\{Filesystem, FilesystemException};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{
@@ -87,6 +88,9 @@ class ProfileController extends ModuleInstance {
 	#[NCA\Inject]
 	public BotConfig $config;
 
+	#[NCA\Inject]
+	public Filesystem $fs;
+
 	private string $path;
 
 	#[NCA\Setup]
@@ -137,7 +141,7 @@ class ProfileController extends ModuleInstance {
 	)]
 	public function profileListCommand(CmdContext $context): void {
 		try {
-			$profileList = yield $this->getProfileList();
+			$profileList = $this->getProfileList();
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -170,12 +174,12 @@ class ProfileController extends ModuleInstance {
 	): void {
 		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
-		if (!@file_exists($filename)) {
+		if (!$this->fs->exists($filename)) {
 			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
 			$context->reply($msg);
 			return;
 		}
-		$blob = htmlspecialchars(yield filesystem()->read($filename));
+		$blob = htmlspecialchars($this->fs->read($filename));
 		$blob = preg_replace("/^([^#])/m", "<tab>$1", $blob);
 		$blob = preg_replace("/^# (.+)$/m", "<header2>$1<end>", $blob);
 
@@ -330,13 +334,13 @@ class ProfileController extends ModuleInstance {
 		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 
-		if (false === yield filesystem()->exists($filename)) {
+		if (false === $this->fs->exists($filename)) {
 			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
 			$context->reply($msg);
 			return;
 		}
 		$context->reply("Loading profile <highlight>{$profileName}<end>...");
-		$output = yield $this->loadProfile($filename, $context->char->name);
+		$output = $this->loadProfile($filename, $context->char->name);
 		if ($output === null) {
 			$msg = "There was an error loading the profile <highlight>{$profileName}<end>.";
 		} else {

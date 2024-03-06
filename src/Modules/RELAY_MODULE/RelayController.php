@@ -1128,7 +1128,7 @@ class RelayController extends ModuleInstance {
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
-		yield $this->db->awaitBeginTransaction();
+		$this->db->awaitBeginTransaction();
 		$oldEvents = $relay->events;
 		try {
 			$this->db->table(static::DB_TABLE_EVENT)

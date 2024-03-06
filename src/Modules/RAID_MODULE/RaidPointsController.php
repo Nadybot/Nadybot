@@ -671,7 +671,7 @@ class RaidPointsController extends ModuleInstance {
 			"Combining {$event->alt}'s points ({$altsPoints}) with {$event->main}'s (".
 			($mainPoints??0) . ")"
 		);
-		yield $this->db->awaitBeginTransaction();
+		$this->db->awaitBeginTransaction();
 		try {
 			$newPoints = $altsPoints + ($mainPoints??0);
 			$this->db->table(self::DB_TABLE)

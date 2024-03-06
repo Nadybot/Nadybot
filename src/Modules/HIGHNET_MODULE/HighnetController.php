@@ -494,7 +494,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$rhc->text_color = '00BFFF';
 
 		$msgRoutes = [];
-		yield $this->db->awaitBeginTransaction();
+		$this->db->awaitBeginTransaction();
 		try {
 			$this->db->table($this->msgHub::DB_TABLE_ROUTES)
 				->whereIn("id", $deleteIds)

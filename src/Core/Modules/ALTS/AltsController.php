@@ -165,8 +165,7 @@ class AltsController extends ModuleInstance {
 		string $action,
 		PCharacter ...$names
 	): void {
-		/** @var string[] */
-		$result = yield $this->addAltsToMain($context->char->name, $main(), ...$names);
+		$result = $this->addAltsToMain($context->char->name, $main(), ...$names);
 		$context->reply(join("\n", $result));
 	}
 
@@ -189,8 +188,7 @@ class AltsController extends ModuleInstance {
 		string $action,
 		PCharacter ...$names
 	): void {
-		/** @var string[] */
-		$result = yield $this->addAltsToMain($context->char->name, $context->char->name, ...$names);
+		$result = $this->addAltsToMain($context->char->name, $context->char->name, ...$names);
 		$context->reply(join("\n", $result));
 	}
 
@@ -363,8 +361,7 @@ class AltsController extends ModuleInstance {
 		#[NCA\Str("setmain")]
 		string $action
 	): void {
-		/** @var string */
-		$msg = yield $this->makeAltNewMain($context->char->name, $newMain());
+		$msg = $this->makeAltNewMain($context->char->name, $newMain());
 		$context->reply($msg);
 	}
 
@@ -376,8 +373,7 @@ class AltsController extends ModuleInstance {
 		#[NCA\Str("setmain")]
 		string $action
 	): void {
-		/** @var string */
-		$msg = yield $this->makeAltNewMain($context->char->name, $context->char->name);
+		$msg = $this->makeAltNewMain($context->char->name, $context->char->name);
 		$context->reply($msg);
 	}
 
@@ -393,7 +389,7 @@ class AltsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$context->reply(yield $altInfo->getAltsBlob());
+		$context->reply($altInfo->getAltsBlob());
 	}
 
 	/** Validate an alt or main */

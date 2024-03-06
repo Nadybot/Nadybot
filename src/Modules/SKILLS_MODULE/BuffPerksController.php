@@ -552,7 +552,7 @@ class BuffPerksController extends ModuleInstance {
 		$dbTs = microtime(true);
 		$this->logger->notice("(Re)building perk database...");
 
-		yield $this->db->awaitBeginTransaction();
+		$this->db->awaitBeginTransaction();
 		try {
 			$this->db->table("perk")->truncate();
 			$this->db->table("perk_level")->truncate();

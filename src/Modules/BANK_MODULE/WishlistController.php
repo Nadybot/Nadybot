@@ -504,7 +504,7 @@ class WishlistController extends ModuleInstance {
 		#[NCA\Str("all")]
 		?string $all,
 	): void {
-		$numDeleted = yield $this->clearWishlist(
+		$numDeleted = $this->clearWishlist(
 			$context->char->name,
 			isset($all),
 			true
@@ -525,7 +525,7 @@ class WishlistController extends ModuleInstance {
 		#[NCA\Str("all")]
 		?string $all,
 	): void {
-		$numDeleted = yield $this->clearWishlist(
+		$numDeleted = $this->clearWishlist(
 			$context->char->name,
 			isset($all),
 			false
