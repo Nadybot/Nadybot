@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
-use function Amp\call;
-use function Amp\Promise\rethrow;
-use Amp\{Promise, Success};
+use function Amp\async;
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;
 use Generator;
-use Illuminate\Support\Collection;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
 use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
 use Nadybot\Core\ParamClass\{PCharacter, PDuration, PRemove, PWord};
 use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -239,15 +238,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$this->reloadFilters();
 	}
 
-	/**
-	 * @param array<string,mixed> $data
-	 *
-	 * @return Promise<void>
-	 */
-	public function handleEventFeedMessage(string $room, array $data): Promise {
-		/** @var Promise<void> */
-		$result = new Success();
-		return $result;
+	/** @param array<string,mixed> $data */
+	public function handleEventFeedMessage(string $room, array $data): void {
+		// Nothing to do right now
 	}
 
 	#[NCA\Event(
@@ -562,8 +555,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		string $where,
 		PCharacter $name,
 		int $dimension,
-	): Generator {
-		yield from $this->highnetAddUserFilter(
+	): void {
+		$this->highnetAddUserFilter(
 			context: $context,
 			where: $where,
 			name: $name,
@@ -583,8 +576,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		string $where,
 		PCharacter $name,
 		int $dimension,
-	): Generator {
-		yield from $this->highnetAddUserFilter(
+	): void {
+		$this->highnetAddUserFilter(
 			context: $context,
 			where: $where,
 			name: $name,
@@ -845,7 +838,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			]);
 			return false;
 		}
-		rethrow(call(function () use ($event, $channel, $message): Generator {
+		async(function () use ($event, $channel, $message): void {
 			$character = $event->getCharacter();
 			if (isset($character) && !isset($character->id)) {
 				$character = clone $character;
@@ -875,7 +868,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$this->logger->debug("Sending message to Highnet: {data}", [
 				"data" => $hwBody,
 			]);
-			yield $this->eventFeed->connection->send($packet);
+			$this->eventFeed->connection->send($packet);
 
 			if (!$this->highnetRouteInternally) {
 				$this->logger->info("Internal Highnet routing disabled.");
@@ -895,7 +888,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 					$handler->receive($rMsg, $missingReceiver);
 				}
 			}
-		}));
+		});
 		return true;
 	}
 
@@ -1065,7 +1058,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		string $where,
 		PCharacter $name,
 		int $dimension,
-	): Generator {
+	): void {
 		$entry = new FilterEntry();
 		$entry->creator = $context->char->name;
 		$entry->dimension = $dimension;
