@@ -2,10 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use function Amp\File\filesystem;
-
-use Amp\File\FilesystemException;
-use Generator;
+use Amp\File\{Filesystem, FilesystemException};
 
 use Nadybot\Core\DBSchema\{CmdCfg, CmdPermissionSet};
 use Nadybot\Core\{
@@ -47,6 +44,9 @@ class CustomCmdController extends ModuleInstance {
 	#[NCA\Inject]
 	public BotConfig $config;
 
+	#[NCA\Inject]
+	public Filesystem $fs;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -80,7 +80,7 @@ class CustomCmdController extends ModuleInstance {
 		name: "setting(custom_cmd_dir)",
 		description: "Turn on/off commands",
 	)]
-	public function changeCustomCmdDir(SettingEvent $event): Generator {
+	public function changeCustomCmdDir(SettingEvent $event): void {
 		if ($event->oldValue->value !== self::OFF) {
 			$this->db->table($this->cmdManager::DB_TABLE)
 				->where("file", 'CustomCmdController.executeCustomCmd:123')
@@ -100,26 +100,25 @@ class CustomCmdController extends ModuleInstance {
 				->delete();
 		}
 		if ($event->newValue->value !== self::OFF && $event->newValue->value !== null) {
-			yield from $this->registerCustomCommands($event->newValue->value, true);
+			$this->registerCustomCommands($event->newValue->value, true);
 		}
 	}
 
 	#[NCA\Setup]
-	public function setup(): Generator {
+	public function setup(): void {
 		if ($this->customCmdDir === self::OFF) {
 			return;
 		}
-		yield from $this->registerCustomCommands($this->customCmdDir);
+		$this->registerCustomCommands($this->customCmdDir);
 	}
 
 	#[NCA\HandlesAllCommands]
-	public function executeCustomCmd(CmdContext $context): Generator {
-		$fs = filesystem();
+	public function executeCustomCmd(CmdContext $context): void {
 		$baseDir = BotRunner::getBasedir() . "/" . $this->customCmdDir;
-		if (yield $fs->isDirectory($baseDir . "/" . $context->getCommand())) {
-			$content = yield from $this->mergeDirTextFiles($baseDir . "/" . $context->getCommand());
+		if ($this->fs->isDirectory($baseDir . "/" . $context->getCommand())) {
+			$content = $this->mergeDirTextFiles($baseDir . "/" . $context->getCommand());
 		} else {
-			$content = yield $fs->read($baseDir . "/" . $context->getCommand() . ".txt");
+			$content = $this->fs->read($baseDir . "/" . $context->getCommand() . ".txt");
 		}
 		$lines = explode("\n", $content);
 		$headerHadTags = false;
@@ -142,13 +141,11 @@ class CustomCmdController extends ModuleInstance {
 		);
 	}
 
-	private function registerCustomCommands(string $path, bool $activate=false): Generator {
-		$fs = filesystem();
+	private function registerCustomCommands(string $path, bool $activate=false): void {
 		$baseDir = BotRunner::getBasedir() . "/" . $path;
 
 		try {
-			/** @var string[] */
-			$fileList = yield $fs->listFiles($baseDir);
+			$fileList = $this->fs->listFiles($baseDir);
 		} catch (FilesystemException $e) {
 			$this->logger->warning("Unable to open {dir} to search for custom commands: {error}", [
 				"dir" => $baseDir,
@@ -160,9 +157,8 @@ class CustomCmdController extends ModuleInstance {
 			if (substr_count($fileName, ".") > 1) {
 				continue;
 			}
-			if (yield $fs->isDirectory($baseDir . "/" . $fileName)) {
-				/** @var string[] */
-				$files = yield $fs->listFiles($baseDir . "/" . $fileName);
+			if ($this->fs->isDirectory($baseDir . "/" . $fileName)) {
+				$files = $this->fs->listFiles($baseDir . "/" . $fileName);
 				if (empty(preg_grep('/\.txt$/', $files))) {
 					continue;
 				}
@@ -210,16 +206,15 @@ class CustomCmdController extends ModuleInstance {
 	}
 
 	/** Concatenate all .txt-files of a directory */
-	private function mergeDirTextFiles(string $dirName): Generator {
-		$fs = filesystem();
-		$fileList = yield $fs->listFiles($dirName);
+	private function mergeDirTextFiles(string $dirName): string {
+		$fileList = $this->fs->listFiles($dirName);
 		natcasesort($fileList);
 		$content = [];
 		foreach ($fileList as $fileName) {
 			if (!str_ends_with($fileName, ".txt")) {
 				continue;
 			}
-			$content []= yield $fs->read($dirName . "/" . $fileName);
+			$content []= $this->fs->read($dirName . "/" . $fileName);
 		}
 		return join("\n\n", $content);
 	}

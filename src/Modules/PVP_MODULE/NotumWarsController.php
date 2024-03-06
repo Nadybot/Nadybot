@@ -2,14 +2,11 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use function Amp\{asyncCall, delay};
 use function Safe\{json_decode, preg_match};
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use Amp\Http\Client\{HttpClientBuilder, Request};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
-use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
@@ -18,6 +15,7 @@ use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
 use Nadybot\Modules\TIMERS_MODULE\{Alert, Timer, TimerController};
+use Revolt\EventLoop;
 use Safe\Exceptions\JsonException;
 
 #[
@@ -537,18 +535,17 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	#[NCA\Event("connect", "Load all towers from the API")]
-	public function initTowersFromApi(): Generator {
+	public function initTowersFromApi(): void {
 		$client = $this->builder->build();
 
-		/** @var Response */
-		$response = yield $client->request(new Request(self::TOWER_API));
+		$response = $client->request(new Request(self::TOWER_API));
 		if ($response->getStatus() !== 200) {
 			$this->logger->error("Error calling the tower-api: HTTP-code {code}", [
 				"code" => $response->getStatus(),
 			]);
 			return;
 		}
-		$body = yield $response->getBody()->buffer();
+		$body = $response->getBody()->buffer();
 		try {
 			$json = json_decode($body, true);
 			$mapper = new ObjectMapperUsingReflection();
@@ -594,7 +591,7 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	#[NCA\Event("connect", "Load all attacks from the API")]
-	public function initAttacksFromApi(): Generator {
+	public function initAttacksFromApi(): void {
 		$maxTS = $this->db->table(self::DB_ATTACKS)->max("timestamp");
 		$client = $this->builder->build();
 		$uri = self::ATTACKS_API;
@@ -602,15 +599,14 @@ class NotumWarsController extends ModuleInstance {
 			$uri .= "?" . http_build_query(["since" => $maxTS+1]);
 		}
 
-		/** @var Response */
-		$response = yield $client->request(new Request($uri));
+		$response = $client->request(new Request($uri));
 		if ($response->getStatus() !== 200) {
 			$this->logger->error("Error calling the attacks-api: HTTP-code {code}", [
 				"code" => $response->getStatus(),
 			]);
 			return;
 		}
-		$body = yield $response->getBody()->buffer();
+		$body = $response->getBody()->buffer();
 		try {
 			$json = json_decode($body, true);
 			$mapper = new ObjectMapperUsingReflection();
@@ -627,7 +623,7 @@ class NotumWarsController extends ModuleInstance {
 					isset($attack->attacker->character_id)
 					&& ($breedRequired || $infoMissing)
 				) {
-					$player = yield $this->playerManager->byName($attack->attacker->name);
+					$player = $this->playerManager->byName($attack->attacker->name);
 					$attack->addLookups($player);
 				}
 				$attInfo = DBTowerAttack::fromTowerAttack($attack);
@@ -657,7 +653,7 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	#[NCA\Event("connect", "Load all tower outcomes from the API")]
-	public function initOutcomesFromApi(): Generator {
+	public function initOutcomesFromApi(): void {
 		$maxTS = $this->db->table(self::DB_OUTCOMES)->max("timestamp");
 		$client = $this->builder->build();
 		$uri = self::OUTCOMES_API;
@@ -665,15 +661,14 @@ class NotumWarsController extends ModuleInstance {
 			$uri .= "?" . http_build_query(["since" => $maxTS+1]);
 		}
 
-		/** @var Response */
-		$response = yield $client->request(new Request($uri));
+		$response = $client->request(new Request($uri));
 		if ($response->getStatus() !== 200) {
 			$this->logger->error("Error calling the outcome-api: HTTP-code {code}", [
 				"code" => $response->getStatus(),
 			]);
 			return;
 		}
-		$body = yield $response->getBody()->buffer();
+		$body = $response->getBody()->buffer();
 		try {
 			$json = json_decode($body, true);
 			$mapper = new ObjectMapperUsingReflection();
@@ -775,7 +770,7 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	#[NCA\Event("tower-attack", "Update tower attacks from the API")]
-	public function updateTowerAttackInfoFromFeed(Event\TowerAttack $event): Generator {
+	public function updateTowerAttackInfoFromFeed(Event\TowerAttack $event): void {
 		$attack = $event->attack;
 		$attacker = $attack->attacker;
 		$this->registerAttack($attack);
@@ -785,7 +780,7 @@ class NotumWarsController extends ModuleInstance {
 		if (isset($player)) {
 			$attack->addLookups($player);
 		} elseif (isset($attacker->character_id) && ($breedRequired || $infoMissing)) {
-			$player = yield $this->playerManager->byName($attacker->name);
+			$player = $this->playerManager->byName($attacker->name);
 			$attack->addLookups($player);
 		}
 		$site = $this->state[$attack->playfield_id][$attack->site_id]??null;
@@ -801,9 +796,8 @@ class NotumWarsController extends ModuleInstance {
 		}
 		// If we're still missing whois-data, fill it in 1s-30s later
 		// so we don't flood PORK
-		asyncCall(function () use ($attack): Generator {
-			yield delay(random_int(1000, 30000));
-			$player = yield $this->playerManager->byName($attack->attacker->name);
+		EventLoop::delay(random_int(1, 30), function () use ($attack): void {
+			$player = $this->playerManager->byName($attack->attacker->name);
 			$attack->addLookups($player);
 			$attInfo = DBTowerAttack::fromTowerAttack($attack);
 			$this->db->update(
@@ -1288,8 +1282,7 @@ class NotumWarsController extends ModuleInstance {
 		#[NCA\Str("sites")]
 		string $action,
 	): void {
-		/** @var ?Player */
-		$player = yield $this->playerManager->byName($context->char->name);
+		$player = $this->playerManager->byName($context->char->name);
 		if (!isset($player) || !isset($player->guild_id)) {
 			$context->reply("You are currently not in an org.");
 			return;
@@ -1354,8 +1347,7 @@ class NotumWarsController extends ModuleInstance {
 		if (!isset($forceOrg)) {
 			$uid = $this->chatBot->getUid($search);
 			if (isset($uid)) {
-				/** @var ?Player */
-				$player = yield $this->playerManager->byName($search);
+				$player = $this->playerManager->byName($search);
 				if (isset($player, $player->guild_id)) {
 					$searchTerm = "{$search}/{$player->guild}";
 				}
@@ -1398,8 +1390,7 @@ class NotumWarsController extends ModuleInstance {
 			return;
 		}
 
-		/** @var ?Player */
-		$player = yield $this->playerManager->byName($context->char->name);
+		$player = $this->playerManager->byName($context->char->name);
 		$blob = $this->getAllTowerQuantitiesBlob();
 		if (!isset($player)) {
 			$msg = $this->text->makeBlob("Allowed number of towers", $blob);

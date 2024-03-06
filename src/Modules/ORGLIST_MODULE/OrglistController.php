@@ -2,11 +2,9 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use function Amp\Promise\all;
-use function Amp\{call, delay};
+use function Amp\Future\await;
+use function Amp\{async, delay};
 
-use Amp\Promise;
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -118,7 +116,7 @@ class OrglistController extends ModuleInstance {
 				$this->findOrgController->sendNotReadyError($context);
 				return;
 			}
-			$orgs = yield $this->getOrgsMatchingSearch($search);
+			$orgs = $this->getOrgsMatchingSearch($search);
 			$count = count($orgs);
 
 			if ($count === 0) {
@@ -134,8 +132,7 @@ class OrglistController extends ModuleInstance {
 			$orgId = $orgs[0]->id;
 		}
 
-		/** @var ?Guild */
-		$org = yield $this->guildManager->byId($orgId);
+		$org = $this->guildManager->byId($orgId);
 		if (!isset($org)) {
 			$msg = "Error in getting the Org info. Either org does not exist or AO's server was too slow to respond.";
 			$context->reply($msg);
@@ -146,7 +143,7 @@ class OrglistController extends ModuleInstance {
 			"members of <" . strtolower($org->orgside) . ">{$org->orgname}<end>."
 		);
 		$startTime = microtime(true);
-		$onlineStates = yield $this->getOnlineStates($org);
+		$onlineStates = $this->getOnlineStates($org);
 		$msg = $this->renderOrglist($org, $onlineStates, $startTime, isset($all));
 		$context->reply($msg);
 	}
@@ -156,79 +153,74 @@ class OrglistController extends ModuleInstance {
 	 * If $search is a character name, this character's org will be
 	 * included as well.
 	 *
-	 * @return Promise<Organization[]>
+	 * @return Organization[]
 	 */
-	public function getOrgsMatchingSearch(string $search): Promise {
-		return call(function () use ($search): Generator {
-			$orgs = $this->findOrgController->lookupOrg($search);
-			if (count($orgs) === 1 && strcasecmp($orgs[0]->name, $search) === 0) {
-				return $orgs;
-			}
-			// check if search is a character and add character's org to org list if it's not already in the list
-			$name = ucfirst(strtolower($search));
-			$whois = yield $this->playerManager->byName($name);
-			if ($whois === null || $whois->guild_id === 0 || $whois->guild_id === null) {
-				return $orgs;
-			}
-			foreach ($orgs as $org) {
-				if ($org->id === $whois->guild_id) {
-					return $orgs;
-				}
-			}
-
-			$obj = $this->findOrgController->getByID($whois->guild_id);
-			if (isset($obj)) {
-				$orgs []= $obj;
-			}
+	public function getOrgsMatchingSearch(string $search): array {
+		$orgs = $this->findOrgController->lookupOrg($search);
+		if (count($orgs) === 1 && strcasecmp($orgs[0]->name, $search) === 0) {
 			return $orgs;
-		});
+		}
+		// check if search is a character and add character's org to org list if it's not already in the list
+		$name = ucfirst(strtolower($search));
+		$whois = $this->playerManager->byName($name);
+		if ($whois === null || $whois->guild_id === 0 || $whois->guild_id === null) {
+			return $orgs;
+		}
+		foreach ($orgs as $org) {
+			if ($org->id === $whois->guild_id) {
+				return $orgs;
+			}
+		}
+
+		$obj = $this->findOrgController->getByID($whois->guild_id);
+		if (isset($obj)) {
+			$orgs []= $obj;
+		}
+		return $orgs;
 	}
 
 	/**
 	 * Check the online status of all org members and return them in an array,
 	 * keyed by the character name
 	 *
-	 * @return Promise<array<string,bool>>
+	 * @return array<string,bool>
 	 */
-	public function getOnlineStates(Guild $org): Promise {
-		return call(function () use ($org): Generator {
-			$todo = [];
-			foreach ($org->members as $member) {
-				$todo []= $member->name;
-			}
+	public function getOnlineStates(Guild $org): array {
+		$todo = [];
+		foreach ($org->members as $member) {
+			$todo []= $member->name;
+		}
 
-			$onlineStates = [];
-			$numThreads = min($this->getFreeBuddylistSlots() - 5, count($org->members));
-			if (count($org->members) > 100 && $numThreads < 10) {
-				throw new UserException(
-					"You need more buddylist slots to be able to use this command."
-				);
+		$onlineStates = [];
+		$numThreads = min($this->getFreeBuddylistSlots() - 5, count($org->members));
+		if (count($org->members) > 100 && $numThreads < 10) {
+			throw new UserException(
+				"You need more buddylist slots to be able to use this command."
+			);
+		}
+		$this->logger->info("Using {numThreads} threads to get online status", [
+			"numThreads" => $numThreads,
+		]);
+		$lookupFunc = function () use (&$todo, &$onlineStates): void {
+			while ($name = array_shift($todo)) {
+				$uid = $this->chatBot->getUid($name);
+				if (!isset($uid)) {
+					$onlineStates[$name] = false;
+					continue;
+				}
+				while ($this->getFreeBuddylistSlots() < 5) {
+					delay(1);
+				}
+				$onlineStates[$name] = $this->buddylistManager->checkIsOnline($uid);
 			}
-			$this->logger->info("Using {numThreads} threads to get online status", [
-				"numThreads" => $numThreads,
-			]);
-			$lookupFunc = function () use (&$todo, &$onlineStates): Promise {
-				return call(function () use (&$todo, &$onlineStates): Generator {
-					while ($name = array_shift($todo)) {
-						$uid = $this->chatBot->getUid($name);
-						if (!isset($uid)) {
-							$onlineStates[$name] = false;
-							continue;
-						}
-						while ($this->getFreeBuddylistSlots() < 5) {
-							yield delay(10);
-						}
-						$onlineStates[$name] = yield $this->buddylistManager->checkIsOnline($uid);
-					}
-				});
-			};
-			$lookups = [];
-			for ($i = 0; $i < $numThreads; $i++) {
-				$lookups []= $lookupFunc();
-			}
-			yield all($lookups);
-			return $onlineStates;
-		});
+		};
+		$lookups = [];
+		for ($i = 0; $i < $numThreads; $i++) {
+			$lookups []= async($lookupFunc);
+		}
+		// @todo convert to Pipeline
+		await($lookups);
+		return $onlineStates;
 	}
 
 	/**

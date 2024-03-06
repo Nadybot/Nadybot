@@ -4,7 +4,6 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 // pf, site
 
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use Nadybot\Core\ParamClass\PRemove;
@@ -219,7 +218,7 @@ class SiteTrackerController extends ModuleInstance {
 		string $action,
 		PRemove $subAction,
 		int $id,
-	): Generator {
+	): void {
 		$tracker = $this->trackers[$id] ?? null;
 		if (!isset($tracker)) {
 			$context->reply("No tracker <highlight>#{$id}<end> found.");
@@ -230,7 +229,7 @@ class SiteTrackerController extends ModuleInstance {
 		$routes = $this->msgHub->getRoutes();
 		foreach ($routes as $route) {
 			if ($route->getSource() === $tracker->getChannelName()) {
-				yield from $this->msgHubCtrl->routeDel($context, $subAction, $route->getID());
+				$this->msgHubCtrl->routeDel($context, $subAction, $route->getID());
 			}
 		}
 		unset($this->trackers[$id]);

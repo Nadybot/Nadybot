@@ -7,7 +7,6 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	DB,
-	DBSchema\Player,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
@@ -60,11 +59,9 @@ class WhoisOrgController extends ModuleInstance {
 	public function whoisorgIdCommand(CmdContext $context, int $orgId, ?int $dimension): void {
 		$dimension ??= $this->config->main->dimension;
 
-		/** @var ?Guild */
-		$guild = yield $this->guildManager->byId($orgId, $dimension);
+		$guild = $this->guildManager->byId($orgId, $dimension);
 		$msg = $this->getOrgInfo($guild);
 		$context->reply($msg);
-		return null;
 	}
 
 	/** Show information about a character's org */
@@ -73,23 +70,20 @@ class WhoisOrgController extends ModuleInstance {
 		$dimension ??= $this->config->main->dimension;
 		$name = $char();
 
-		/** @var ?Player */
-		$whois = yield $this->playerManager->byName($name, $dimension);
+		$whois = $this->playerManager->byName($name, $dimension);
 		if ($whois === null) {
 			$msg = "Could not find character info for {$name}.";
 			$context->reply($msg);
-			return null;
+			return;
 		} elseif (!isset($whois->guild_id) || $whois->guild_id === 0) {
 			$msg = "Character <highlight>{$name}<end> does not seem to be in an org.";
 			$context->reply($msg);
-			return null;
+			return;
 		}
 
-		/** @var ?Guild */
-		$guild = yield $this->guildManager->byId($whois->guild_id, $dimension);
+		$guild = $this->guildManager->byId($whois->guild_id, $dimension);
 		$msg = $this->getOrgInfo($guild);
 		$context->reply($msg);
-		return null;
 	}
 
 	/** @return string|string[] */

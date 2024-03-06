@@ -2,10 +2,6 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use function Amp\call;
-
-use Amp\Promise;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -68,26 +64,26 @@ class SymbiantController extends ModuleInstance {
 	/** Show the 3 best symbiants for a profession at a given level */
 	#[NCA\HandlesCommand("bestsymbiants")]
 	#[NCA\Help\Example("<symbol>bestsymbiants 120 enf")]
-	public function findBestSymbiantsLvlProf(CmdContext $context, int $level, PWord $prof): Generator {
+	public function findBestSymbiantsLvlProf(CmdContext $context, int $level, PWord $prof): void {
 		$context->reply(
-			yield $this->findBestSymbiants($context, $prof, $level)
+			$this->findBestSymbiants($context, $prof, $level)
 		);
 	}
 
 	/** Show the 3 best symbiants for a profession at a given level */
 	#[NCA\HandlesCommand("bestsymbiants")]
 	#[NCA\Help\Example("<symbol>bestsymbiants 15 trader")]
-	public function findBestSymbiantsProfLvl(CmdContext $context, PWord $prof, int $level): Generator {
+	public function findBestSymbiantsProfLvl(CmdContext $context, PWord $prof, int $level): void {
 		$context->reply(
-			yield $this->findBestSymbiants($context, $prof, $level)
+			$this->findBestSymbiants($context, $prof, $level)
 		);
 	}
 
 	/** Show the best symbiants your character can currently equip */
 	#[NCA\HandlesCommand("bestsymbiants")]
-	public function findBestSymbiantsAuto(CmdContext $context): Generator {
+	public function findBestSymbiantsAuto(CmdContext $context): void {
 		$context->reply(
-			yield $this->findBestSymbiants($context, null, null)
+			$this->findBestSymbiants($context, null, null)
 		);
 	}
 
@@ -289,22 +285,20 @@ class SymbiantController extends ModuleInstance {
 		return $symbiants->toArray();
 	}
 
-	/** @return Promise<string[]> */
-	private function findBestSymbiants(CmdContext $context, ?PWord $prof, ?int $level): Promise {
-		return call(function () use ($prof, $level, $context): Generator {
-			if (!isset($level) || !isset($prof)) {
-				$whois = yield $this->playerManager->byName($context->char->name);
-				if (!isset($whois) || !isset($whois->profession) || !isset($whois->level)) {
-					return ["Could not retrieve whois info for you."];
-				}
-				return $this->getAndRenderBestSymbiants($whois->profession, $whois->level);
+	/** @return string[] */
+	private function findBestSymbiants(CmdContext $context, ?PWord $prof, ?int $level): array {
+		if (!isset($level) || !isset($prof)) {
+			$whois = $this->playerManager->byName($context->char->name);
+			if (!isset($whois) || !isset($whois->profession) || !isset($whois->level)) {
+				return ["Could not retrieve whois info for you."];
 			}
-			$profession = $this->util->getProfessionName($prof());
-			if ($profession === '') {
-				return ["Could not find profession <highlight>{$prof}<end>."];
-			}
-			return $this->getAndRenderBestSymbiants($profession, $level);
-		});
+			return $this->getAndRenderBestSymbiants($whois->profession, $whois->level);
+		}
+		$profession = $this->util->getProfessionName($prof());
+		if ($profession === '') {
+			return ["Could not find profession <highlight>{$prof}<end>."];
+		}
+		return $this->getAndRenderBestSymbiants($profession, $level);
 	}
 
 	/** @return string[] */

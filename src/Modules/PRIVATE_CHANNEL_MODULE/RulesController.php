@@ -2,10 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use function Amp\File\filesystem;
-
-use Amp\File\FilesystemException;
-use Generator;
+use Amp\File\{Filesystem, FilesystemException};
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -40,6 +37,9 @@ class RulesController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
+	public Filesystem $fs;
+
+	#[NCA\Inject]
 	public BotConfig $config;
 
 	/** See the rules for this bot */
@@ -51,11 +51,11 @@ class RulesController extends ModuleInstance {
 	public function rulesCommand(CmdContext $context): void {
 		$rulesPath = "{$this->config->paths->data}/rules.txt";
 		try {
-			if (false === yield filesystem()->exists($rulesPath)) {
+			if (!$this->fs->exists($rulesPath)) {
 				$context->reply("This bot does not have any rules defined yet.");
 				return;
 			}
-			$content = yield filesystem()->read($rulesPath);
+			$content = $this->fs->read($rulesPath);
 		} catch (FilesystemException) {
 			$context->reply("This bot has rules defined, but I was unable to read them.");
 			return;
@@ -73,11 +73,11 @@ class RulesController extends ModuleInstance {
 	public function raidrulesCommand(CmdContext $context): void {
 		$rulesPath = "{$this->config->paths->data}/raidrules.txt";
 		try {
-			if (false === yield filesystem()->exists($rulesPath)) {
+			if (!$this->fs->exists($rulesPath)) {
 				$context->reply("This bot does not have any raid rules defined yet.");
 				return;
 			}
-			$content = yield filesystem()->read($rulesPath);
+			$content = $this->fs->read($rulesPath);
 		} catch (FilesystemException) {
 			$context->reply("This bot has raid rules defined, but I was unable to read them.");
 			return;
@@ -90,16 +90,16 @@ class RulesController extends ModuleInstance {
 		name: "joinPriv",
 		description: "If you defined rules, send them to people joining the private channel"
 	)]
-	public function joinPrivateChannelShowRulesEvent(AOChatEvent $eventObj): Generator {
+	public function joinPrivateChannelShowRulesEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
 		}
 		$rulesPath = "{$this->config->paths->data}/rules.txt";
 		try {
-			if (false === yield filesystem()->exists($rulesPath)) {
+			if (!$this->fs->exists($rulesPath)) {
 				return;
 			}
-			$content = yield filesystem()->read($rulesPath);
+			$content = $this->fs->read($rulesPath);
 		} catch (FilesystemException) {
 			return;
 		}

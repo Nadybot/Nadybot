@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use function Amp\asyncCall;
+use function Amp\{async};
 use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\Player;
@@ -398,7 +398,7 @@ class AttacksController extends ModuleInstance {
 		name: "orgmsg",
 		description: "Notify if org's tower site defense shield is disabled via pvp(tower-shield-own)"
 	)]
-	public function shieldLoweredMessageEvent(AOChatEvent $eventObj): Generator {
+	public function shieldLoweredMessageEvent(AOChatEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)) {
 			return;
 		}
@@ -424,8 +424,7 @@ class AttacksController extends ModuleInstance {
 			->where("name", $matches['site_name'])
 			->first();
 
-		/** @var ?Player */
-		$whois = yield $this->playerManager->byName($matches['att_name']);
+		$whois = $this->playerManager->byName($matches['att_name']);
 		if ($whois === null) {
 			$whois = new Player();
 			$whois->name = $matches['att_name'];
@@ -913,10 +912,9 @@ class AttacksController extends ModuleInstance {
 		)
 	]
 	public function towerOwnTile(string $sender, callable $callback): void {
-		asyncCall(function () use ($sender, $callback): Generator {
+		async(function () use ($sender, $callback): void {
 			try {
-				/** @var ?Player */
-				$whois = yield $this->playerManager->byName($sender);
+				$whois = $this->playerManager->byName($sender);
 				$text = $this->getTowerSelfTile($whois);
 			} catch (Throwable) {
 				$text = null;

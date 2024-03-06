@@ -2,15 +2,14 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use function Amp\File\filesystem;
-use function Amp\Promise\all;
-use function Amp\{call, delay};
+use function Amp\Future\await;
+use function Amp\{async, delay};
+
 use Amp\Cache\FileCache;
-use Amp\Http\Client\{HttpClientBuilder, Request, Response, TimeoutException};
-use Amp\Promise;
+use Amp\File\Filesystem;
+use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
 use Amp\Sync\LocalKeyedMutex;
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
@@ -61,6 +60,9 @@ class FindOrgController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Util $util;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -167,59 +169,56 @@ class FindOrgController extends ModuleInstance {
 		return $blob;
 	}
 
-	/** @return Promise<void> */
-	public function handleOrglistResponse(string $body, string $letter): Promise {
-		return call(function () use ($body, $letter): Generator {
-			$pattern = '@<tr>\s*'.
-				'<td align="left">\s*'.
-					'<a href="(?:https?:)?//people.anarchy-online.com/org/stats/d/(\d+)/name/(\d+)">\s*'.
-						'([^<]+)'.
-					'</a>'.
-				'</td>\s*'.
-				'<td align="right">(\d+)</td>\s*'.
-				'<td align="right">(\d+)</td>\s*'.
-				'<td align="left">([^<]+)</td>\s*'.
-				'<td align="left">([^<]+)</td>\s*'.
-				'<td align="left" class="dim">RK\d+</td>\s*'.
-				'</tr>@s';
+	public function handleOrglistResponse(string $body, string $letter): void {
+		$pattern = '@<tr>\s*'.
+			'<td align="left">\s*'.
+				'<a href="(?:https?:)?//people.anarchy-online.com/org/stats/d/(\d+)/name/(\d+)">\s*'.
+					'([^<]+)'.
+				'</a>'.
+			'</td>\s*'.
+			'<td align="right">(\d+)</td>\s*'.
+			'<td align="right">(\d+)</td>\s*'.
+			'<td align="left">([^<]+)</td>\s*'.
+			'<td align="left">([^<]+)</td>\s*'.
+			'<td align="left" class="dim">RK\d+</td>\s*'.
+			'</tr>@s';
 
-			preg_match_all($pattern, $body, $arr, PREG_SET_ORDER);
-			$this->logger->info("Updating orgs starting with {letter}", ["letter" => $letter]);
-			$inserts = [];
-			foreach ($arr as $match) {
-				$obj = new Organization();
-				$obj->id = (int)$match[2];
-				$obj->name = trim($match[3]);
-				$obj->num_members = (int)$match[4];
-				$obj->faction = $match[6];
-				$obj->index = $letter;
-				$obj->governing_form = $match[7];
-				$inserts []= get_object_vars($obj);
-			}
-			while ($this->db->inTransaction()) {
-				yield delay(100);
-			}
-			try {
-				$this->db->awaitBeginTransaction();
-				$this->db->table("organizations")
-					->where("index", $letter)
-					->delete();
-				$this->db->table("organizations")
-					->chunkInsert($inserts);
-				$this->db->commit();
-			} catch (Exception $e) {
-				$this->logger->error("Error downloading orgs: " . $e->getMessage(), ["exception" => $e]);
-				$this->db->rollback();
-				$this->ready = true;
-			}
-		});
+		preg_match_all($pattern, $body, $arr, PREG_SET_ORDER);
+		$this->logger->info("Updating orgs starting with {letter}", ["letter" => $letter]);
+		$inserts = [];
+		foreach ($arr as $match) {
+			$obj = new Organization();
+			$obj->id = (int)$match[2];
+			$obj->name = trim($match[3]);
+			$obj->num_members = (int)$match[4];
+			$obj->faction = $match[6];
+			$obj->index = $letter;
+			$obj->governing_form = $match[7];
+			$inserts []= get_object_vars($obj);
+		}
+		while ($this->db->inTransaction()) {
+			delay(0.1);
+		}
+		try {
+			$this->db->awaitBeginTransaction();
+			$this->db->table("organizations")
+				->where("index", $letter)
+				->delete();
+			$this->db->table("organizations")
+				->chunkInsert($inserts);
+			$this->db->commit();
+		} catch (Exception $e) {
+			$this->logger->error("Error downloading orgs: " . $e->getMessage(), ["exception" => $e]);
+			$this->db->rollback();
+			$this->ready = true;
+		}
 	}
 
 	#[NCA\Event(
 		name: "timer(24hrs)",
 		description: "Parses all orgs from People of Rubi Ka"
 	)]
-	public function downloadAllOrgsEvent(Event $eventObj): Generator {
+	public function downloadAllOrgsEvent(Event $eventObj): void {
 		$searches = [
 			'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
 			'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -227,8 +226,8 @@ class FindOrgController extends ModuleInstance {
 		];
 
 		$cacheFolder = $this->config->paths->cache . "/orglist";
-		if (false === yield filesystem()->exists($cacheFolder)) {
-			yield filesystem()->createDirectory($cacheFolder, 0700);
+		if (!$this->fs->exists($cacheFolder)) {
+			$this->fs->createDirectory($cacheFolder, 0700);
 		}
 
 		$this->ready = $this->db->table("organizations")
@@ -238,10 +237,10 @@ class FindOrgController extends ModuleInstance {
 		$this->todo = $searches;
 		$jobs = [];
 		for ($i = 0; $i < $this->numOrglistDlJobs; $i++) {
-			$jobs []= $this->startDownloadOrglistJob();
+			$jobs []= async($this->startDownloadOrglistJob(...));
 		}
 		try {
-			yield all($jobs);
+			await($jobs);
 		} catch (Throwable $e) {
 			$this->logger->error("Error downloading orglists: {error}", [
 				"error" => $e->getMessage(),
@@ -272,88 +271,83 @@ class FindOrgController extends ModuleInstance {
 			->asObj(Organization::class);
 	}
 
-	/** @return Promise<void> */
-	private function startDownloadOrglistJob(): Promise {
-		return call(function (): Generator {
-			while ($letter = array_shift($this->todo)) {
-				yield $this->downloadOrglistLetter($letter);
-			}
-		});
+	private function startDownloadOrglistJob(): void {
+		while ($letter = array_shift($this->todo)) {
+			$this->downloadOrglistLetter($letter);
+		}
 	}
 
-	/** @return Promise<void> */
-	private function downloadOrglistLetter(string $letter): Promise {
-		return call(function () use ($letter): Generator {
-			$this->logger->info("Downloading orglist for letter {letter}", ["letter" => $letter]);
-			$cache = new FileCache(
-				$this->config->paths->cache . '/orglist',
-				new LocalKeyedMutex()
-			);
-			$body = yield $cache->get($letter);
-			if ($body !== null) {
-				if (!$this->isReady()) {
-					yield $this->handleOrglistResponse($body, $letter);
-				}
-				return;
-			}
-			$url = $this->orglistPorkUrl . "/people/lookup/orgs.html".
-				"?l={$letter}&dim={$this->config->main->dimension}";
-			$client = $this->builder->build();
-			$retry = 5;
-			do {
-				try {
-					$request = new Request($url);
-					// The gateway timeout of PORK is 60s
-					$request->setTransferTimeout(61000);
+	private function downloadOrglistLetter(string $letter): void {
+		$this->logger->info("Downloading orglist for letter {letter}", ["letter" => $letter]);
+		// $cache = new FileCache(
+		// 	$this->config->paths->cache . '/orglist',
+		// 	new LocalKeyedMutex()
+		// );
+		// $body = $cache->get($letter);
+		// $body = null;
+		// if ($body !== null) {
+		// 	if (!$this->isReady()) {
+		// 		$this->handleOrglistResponse($body, $letter);
+		// 	}
+		// 	return;
+		// }
+		$body = null;
+		$url = $this->orglistPorkUrl . "/people/lookup/orgs.html".
+			"?l={$letter}&dim={$this->config->main->dimension}";
+		$client = $this->builder->build();
+		$retry = 5;
+		do {
+			try {
+				$request = new Request($url);
+				// The gateway timeout of PORK is 60s
+				$request->setTransferTimeout(61);
 
-					/** @var Response */
-					$response = yield $client->request($request);
+				$response = $client->request($request);
 
-					if ($response->getStatus() !== 200) {
-						if (--$retry <= 0) {
-							throw new UserException("Unable to download orglist for {$letter}");
-						}
-						$this->logger->warning(
-							"Error downloading orglist for letter {letter}, retrying in {retry}s",
-							[
-								"letter" => $letter,
-								"dim" => $this->config->main->dimension,
-								"retry" => 5,
-							]
-						);
-						yield delay(5000);
-					} else {
-						$body = yield $response->getBody()->buffer();
+				if ($response->getStatus() !== 200) {
+					if (--$retry <= 0) {
+						throw new UserException("Unable to download orglist for {$letter}");
 					}
-				} catch (TimeoutException $e) {
 					$this->logger->warning(
-						"Timeout downloading orglist for letter {letter}, retrying in {retry}s",
+						"Error downloading orglist for letter {letter}, retrying in {retry}s",
 						[
 							"letter" => $letter,
 							"dim" => $this->config->main->dimension,
 							"retry" => 5,
 						]
 					);
-					yield delay(5000);
-				} catch (Throwable $e) {
-					$this->logger->warning(
-						"Error downloading orglist for letter {letter}: {error}, retrying in {retry}s",
-						[
-							"letter" => $letter,
-							"error" => $e->getMessage(),
-							"dim" => $this->config->main->dimension,
-							"retry" => 5,
-							"exception" => $e,
-						]
-					);
-					yield delay(5000);
+					delay(5);
+				} else {
+					$body = $response->getBody()->buffer();
 				}
-			} while ((!isset($response) || $response->getStatus() !== 200) && $retry > 0);
-			if ($body === null || $body === '' || !str_contains($body, "ORGS BEGIN")) {
-				throw new Exception("Invalid data received from orglist for {$letter}");
+			} catch (TimeoutException $e) {
+				$this->logger->warning(
+					"Timeout downloading orglist for letter {letter}, retrying in {retry}s",
+					[
+						"letter" => $letter,
+						"dim" => $this->config->main->dimension,
+						"retry" => 5,
+					]
+				);
+				delay(5);
+			} catch (Throwable $e) {
+				$this->logger->warning(
+					"Error downloading orglist for letter {letter}: {error}, retrying in {retry}s",
+					[
+						"letter" => $letter,
+						"error" => $e->getMessage(),
+						"dim" => $this->config->main->dimension,
+						"retry" => 5,
+						"exception" => $e,
+					]
+				);
+				delay(5);
 			}
-			yield $cache->set($letter, $body, 24 * 3600);
-			yield $this->handleOrglistResponse($body, $letter);
-		});
+		} while ((!isset($response) || $response->getStatus() !== 200) && $retry > 0);
+		if ($body === null || $body === '' || !str_contains($body, "ORGS BEGIN")) {
+			throw new Exception("Invalid data received from orglist for {$letter}");
+		}
+		// $cache->set($letter, $body, 24 * 3600);
+		$this->handleOrglistResponse($body, $letter);
 	}
 }

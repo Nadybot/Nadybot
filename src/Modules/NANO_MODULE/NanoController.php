@@ -6,7 +6,6 @@ namespace Nadybot\Modules\NANO_MODULE;
 
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
-use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\PProfession;
 use Nadybot\Core\{
@@ -347,8 +346,7 @@ class NanoController extends ModuleInstance {
 		#[NCA\Str("long")]
 		?string $long
 	): void {
-		/** @var ?Player */
-		$whois = yield $this->playerManager->byName($context->char->name);
+		$whois = $this->playerManager->byName($context->char->name);
 		if (!isset($whois) || !isset($whois->profession) || !isset($whois->level)) {
 			$context->reply("Could not retrieve whois info for you.");
 			return;

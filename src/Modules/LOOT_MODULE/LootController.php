@@ -891,7 +891,7 @@ class LootController extends ModuleInstance {
 			}
 		}
 
-		$player = yield $this->playerManager->byName($context->char->name);
+		$player = $this->playerManager->byName($context->char->name);
 		if (!isset($player) || !isset($player->gender) || $player->gender === "Neuter") {
 			$privMsg = "{$context->char->name} removed themselves from all rolls.";
 		} elseif ($player->gender === "Female") {

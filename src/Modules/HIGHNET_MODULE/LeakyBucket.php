@@ -2,10 +2,7 @@
 
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
-use function Amp\{call, delay};
-
-use Amp\Promise;
-use Generator;
+use function Amp\{delay};
 
 class LeakyBucket {
 	/**
@@ -97,30 +94,24 @@ class LeakyBucket {
 		return 0;
 	}
 
-	/**
-	 * Get the next packet to process or null if none
-	 *
-	 * @return Promise<?Message>
-	 */
-	public function getNext(): Promise {
-		return call(function (): Generator {
-			if (count($this->queue) === 0) {
-				return null;
-			}
-			$ttnp = -1;
-			while (($ttnp = $this->getTTNP()) > 0) {
-				yield delay((int)ceil($ttnp * 1000));
-			}
-			if ($ttnp < 0) {
-				return null;
-			}
+	/** Get the next packet to process or null if none */
+	public function getNext(): ?Message {
+		if (count($this->queue) === 0) {
+			return null;
+		}
+		$ttnp = -1;
+		while (($ttnp = $this->getTTNP()) > 0) {
+			delay($ttnp);
+		}
+		if ($ttnp < 0) {
+			return null;
+		}
 
-			$item = array_shift($this->queue);
-			$this->bucketFill--;
-			if (count($this->queue) === 0) {
-				$this->emptySince = microtime(true);
-			}
-			return $item;
-		});
+		$item = array_shift($this->queue);
+		$this->bucketFill--;
+		if (count($this->queue) === 0) {
+			$this->emptySince = microtime(true);
+		}
+		return $item;
 	}
 }

@@ -2,10 +2,8 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-use function Amp\call;
 use function Safe\json_decode;
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
-use Amp\Promise;
+use Amp\Http\Client\{HttpClientBuilder, Request};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Generator;
 use Illuminate\Support\Collection;
@@ -62,58 +60,53 @@ class GmiController extends ModuleInstance {
 	 * Contact the GMI API and return the parsed results
 	 *
 	 * @throws UserException on any  error
-	 *
-	 * @return Promise<GmiResult>
 	 */
-	public function getPricesFromGmi(AODBEntry $item): Promise {
-		return call(function () use ($item): Generator {
-			try {
-				$httpClient = $this->builder->build();
+	public function getPricesFromGmi(AODBEntry $item): GmiResult {
+		try {
+			$httpClient = $this->builder->build();
 
-				/** @var Response */
-				$response = yield $httpClient->request(
-					new Request(rtrim($this->gmiApi, '/') . "/aoid/{$item->lowid}")
-				);
-				if ($response->getStatus() === 404) {
-					throw new UserException("{$item->name} is not tradeable on GMI.");
-				}
-				if ($response->getStatus() !== 200) {
-					throw new UserException(
-						"The GMI API is encountered a temporary error. ".
-						"Please try again later."
-					);
-				}
-				$body = yield $response->getBody()->buffer();
-				$mapper = new ObjectMapperUsingReflection();
-				$json = json_decode($body, true);
-
-				/** @var GmiResult */
-				$gmiResult = $mapper->hydrateObject(GmiResult::class, $json);
-			} catch (UserException $e) {
-				throw $e;
-			} catch (JsonException $e) {
-				throw new UserException("The GMI API returned invalid data.");
-			} catch (UnableToHydrateObject $e) {
-				throw new UserException("The GMI API returned invalid data.");
-			} catch (Throwable) {
-				throw new UserException("Unknown error occurred contacting the GMI API.");
+			$response = $httpClient->request(
+				new Request(rtrim($this->gmiApi, '/') . "/aoid/{$item->lowid}")
+			);
+			if ($response->getStatus() === 404) {
+				throw new UserException("{$item->name} is not tradeable on GMI.");
 			}
-			return $gmiResult;
-		});
+			if ($response->getStatus() !== 200) {
+				throw new UserException(
+					"The GMI API is encountered a temporary error. ".
+					"Please try again later."
+				);
+			}
+			$body = $response->getBody()->buffer();
+			$mapper = new ObjectMapperUsingReflection();
+			$json = json_decode($body, true);
+
+			/** @var GmiResult */
+			$gmiResult = $mapper->hydrateObject(GmiResult::class, $json);
+		} catch (UserException $e) {
+			throw $e;
+		} catch (JsonException $e) {
+			throw new UserException("The GMI API returned invalid data.");
+		} catch (UnableToHydrateObject $e) {
+			throw new UserException("The GMI API returned invalid data.");
+		} catch (Throwable) {
+			throw new UserException("Unknown error occurred contacting the GMI API.");
+		}
+		return $gmiResult;
 	}
 
 	/** Check prices on GMI for an item */
 	#[HandlesCommand("gmi")]
 	public function gmiIdCommand(CmdContext $context, int $itemId): void {
 		$entry = $this->itemsController->findById($itemId);
-		yield from $this->gmiCommand($context, $entry);
+		$this->gmiCommand($context, $entry);
 	}
 
 	/** Check prices on GMI for an item */
 	#[HandlesCommand("gmi")]
 	public function gmiItemCommand(CmdContext $context, PItem $item): void {
 		$entry = $this->itemsController->findById($item->lowID);
-		yield from $this->gmiCommand($context, $entry, $item->ql);
+		$this->gmiCommand($context, $entry, $item->ql);
 	}
 
 	/** Check prices on GMI for an item */
@@ -148,7 +141,7 @@ class GmiController extends ModuleInstance {
 		}
 		if (count($matches) === 1) {
 			$entry = $this->itemsController->findById($matches[0]->lowid);
-			yield from $this->gmiCommand($context, $entry);
+			$this->gmiCommand($context, $entry);
 			return;
 		}
 		$blob = "<header2>Items matching {$search}<end>\n";

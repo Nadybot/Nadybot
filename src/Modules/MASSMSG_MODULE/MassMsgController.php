@@ -2,11 +2,8 @@
 
 namespace Nadybot\Modules\MASSMSG_MODULE;
 
-use function Amp\call;
-
-use Amp\Promise;
+use AO\Package;
 use DateTime;
-use Generator;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -171,7 +168,7 @@ class MassMsgController extends ModuleInstance {
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
 
 		/** @var array<string,string> */
-		$result = yield $this->massCallback([
+		$result = $this->massCallback([
 			self::PREF_MSGS => function (string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
 			},
@@ -204,12 +201,16 @@ class MassMsgController extends ModuleInstance {
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
 
 		/** @var array<string,string> */
-		$result = yield $this->massCallback([
+		$result = $this->massCallback([
 			self::PREF_MSGS => function (string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
 			},
 			self::PREF_INVITES => function (string $name): void {
-				$this->chatBot->privategroup_invite($name);
+				$this->chatBot->aoClient->write(
+					package: new Package\Out\PrivateChannelInvite(
+						charId: $this->chatBot->getUid($name)
+					)
+				);
 			},
 		]);
 		$msg = $this->getMassResultPopup($result);
@@ -224,41 +225,38 @@ class MassMsgController extends ModuleInstance {
 	 *
 	 * @phpstan-param array<string,callable(string):void> $callback
 	 *
-	 * @return Promise<array<string,string>> array(name => status)
+	 * @return array<string,string> array(name => status)
 	 */
-	public function massCallback(array $callback): Promise {
-		return call(function () use ($callback): Generator {
-			$online = $this->buddylistManager->getOnline();
-			$result = [];
-			foreach ($online as $name) {
-				/** @var ?int */
-				$uid = $this->chatBot->getUid($name);
-				if (!isset($uid) || yield $this->banController->isOnBanlist($uid)) {
-					continue;
-				}
-				if ($name === $this->chatBot->char->name
-					|| !$this->accessManager->checkAccess($name, "member")) {
-					continue;
-				}
-				if (isset($this->chatBot->chatlist[$name])) {
-					$result[$name] = static::IN_CHAT;
-					continue;
-				}
-				if (isset($this->chatBot->guildmembers[$name])) {
-					$result[$name] = static::IN_ORG;
-					continue;
-				}
-				foreach ($callback as $pref => $closure) {
-					if ($this->preferences->get($name, $pref) === 'no') {
-						$result[$name] = static::BLOCKED;
-						continue;
-					}
-					$closure($name);
-					$result[$name] ??= static::SENT;
-				}
+	public function massCallback(array $callback): array {
+		$online = $this->buddylistManager->getOnline();
+		$result = [];
+		foreach ($online as $name) {
+			$uid = $this->chatBot->getUid($name);
+			if (!isset($uid) || $this->banController->isOnBanlist($uid)) {
+				continue;
 			}
-			return $result;
-		});
+			if ($name === $this->chatBot->char->name
+				|| !$this->accessManager->checkAccess($name, "member")) {
+				continue;
+			}
+			if (isset($this->chatBot->chatlist[$name])) {
+				$result[$name] = static::IN_CHAT;
+				continue;
+			}
+			if (isset($this->chatBot->guildmembers[$name])) {
+				$result[$name] = static::IN_ORG;
+				continue;
+			}
+			foreach ($callback as $pref => $closure) {
+				if ($this->preferences->get($name, $pref) === 'no') {
+					$result[$name] = static::BLOCKED;
+					continue;
+				}
+				$closure($name);
+				$result[$name] ??= static::SENT;
+			}
+		}
+		return $result;
 	}
 
 	/** Show your mass-message and mass-invite preferences */

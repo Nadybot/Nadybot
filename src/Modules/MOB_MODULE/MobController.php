@@ -3,10 +3,9 @@
 namespace Nadybot\Modules\MOB_MODULE;
 
 use function Safe\{json_decode, preg_replace};
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use Amp\Http\Client\{HttpClientBuilder, Request};
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\{Event, HandlesCommand};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
@@ -81,18 +80,17 @@ class MobController extends ModuleInstance {
 	public array $mobs = [];
 
 	#[NCA\Event("connect", "Load all mobs from the API")]
-	public function initMobsFromApi(): Generator {
+	public function initMobsFromApi(): void {
 		$client = $this->builder->build();
 
-		/** @var Response */
-		$response = yield $client->request(new Request(self::MOB_API));
+		$response = $client->request(new Request(self::MOB_API));
 		if ($response->getStatus() !== 200) {
 			$this->logger->error("Error calling the mob-api: HTTP-code {code}", [
 				"code" => $response->getStatus(),
 			]);
 			return;
 		}
-		$body = yield $response->getBody()->buffer();
+		$body = $response->getBody()->buffer();
 
 		try {
 			/** @var array<string,array<mixed>> */
@@ -124,18 +122,17 @@ class MobController extends ModuleInstance {
 	}
 
 	/** Load the data for a single mob from the API */
-	public function loadMobFromApi(string $type, string $key): Generator {
+	public function loadMobFromApi(string $type, string $key): void {
 		$client = $this->builder->build();
 
-		/** @var Response */
-		$response = yield $client->request(new Request(self::MOB_API . $type));
+		$response = $client->request(new Request(self::MOB_API . $type));
 		if ($response->getStatus() !== 200) {
 			$this->logger->error("Error calling the mob-api: HTTP-code {code}", [
 				"code" => $response->getStatus(),
 			]);
 			return;
 		}
-		$body = yield $response->getBody()->buffer();
+		$body = $response->getBody()->buffer();
 
 		try {
 			/** @var array<string,array<mixed>> */
