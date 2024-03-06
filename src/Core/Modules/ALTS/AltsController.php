@@ -4,7 +4,6 @@ namespace Nadybot\Core\Modules\ALTS;
 
 use function Amp\async;
 
-use Generator;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -135,18 +134,18 @@ class AltsController extends ModuleInstance {
 		name: "connect",
 		description: "Add unvalidated alts/mains to friendlist"
 	)]
-	public function addNonValidatedAsBuddies(): Generator {
+	public function addNonValidatedAsBuddies(): void {
 		$myName = ucfirst(strtolower($this->chatBot->char->name));
-		yield $this->db->table("alts")->where("validated_by_alt", false)->where("added_via", $myName)
-			->asObj(Alt::class)->map(function (Alt $alt) {
-				return $this->buddylistManager->addName($alt->alt, static::ALT_VALIDATE);
-			})->toArray();
-		yield $this->db->table("alts")->where("validated_by_main", false)->where("added_via", $myName)
+		$this->db->table("alts")->where("validated_by_alt", false)->where("added_via", $myName)
+			->asObj(Alt::class)->each(function (Alt $alt) {
+				$this->buddylistManager->addName($alt->alt, static::ALT_VALIDATE);
+			});
+		$this->db->table("alts")->where("validated_by_main", false)->where("added_via", $myName)
 			->select("main")->distinct()
 			->pluckStrings("main")
-			->map(function (string $main) {
-				return $this->buddylistManager->addName($main, static::MAIN_VALIDATE);
-			})->toArray();
+			->each(function (string $main) {
+				$this->buddylistManager->addName($main, static::MAIN_VALIDATE);
+			});
 	}
 
 	/** Add one or more alts to someone else's main */

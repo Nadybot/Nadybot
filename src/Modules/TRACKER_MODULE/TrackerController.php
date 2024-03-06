@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -343,7 +342,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "logOn",
 		description: "Records a tracked user logging on"
 	)]
-	public function trackLogonEvent(UserStateEvent $eventObj): Generator {
+	public function trackLogonEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
 		}
@@ -368,7 +367,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$event->type = "tracker(logon)";
 		$this->eventManager->fireEvent($event);
 
-		$player = yield $this->playerManager->byName($eventObj->sender);
+		$player = $this->playerManager->byName($eventObj->sender);
 
 		$msg = $this->getLogonMessage($player, $eventObj->sender);
 		$r = new RoutableMessage($msg);
@@ -439,7 +438,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "logOff",
 		description: "Records a tracked user logging off"
 	)]
-	public function trackLogoffEvent(UserStateEvent $eventObj): Generator {
+	public function trackLogoffEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
 		}
@@ -476,8 +475,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$event->type = "tracker(logoff)";
 		$this->eventManager->fireEvent($event);
 
-		/** @var ?Player */
-		$player = yield $this->playerManager->byName($eventObj->sender);
+		$player = $this->playerManager->byName($eventObj->sender);
 		$msg = $this->getLogoffMessage($player, $eventObj->sender);
 		$r = new RoutableMessage($msg);
 		$r->appendPath(new Source(Source::SYSTEM, "tracker"));

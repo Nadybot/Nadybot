@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE\Migrations;
 
-use Generator;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -28,7 +27,7 @@ class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	public function migrate(LoggerWrapper $logger, DB $db): Generator {
+	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = TimerController::DB_TABLE;
 		$db->schema()->table($table, function (Blueprint $table): void {
 			$table->string("mode", 50)->nullable()->change();
@@ -56,8 +55,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$discordChannel = $this->getSetting($db, "discord_notify_channel") ?? null;
 		if (isset($discordChannel, $discordChannel->value)   && $discordChannel->value !== 'off') {
 			try {
-				/** @var DiscordChannel */
-				$channel = yield $this->discordAPIClient->getChannel($discordChannel->value);
+				$channel = $this->discordAPIClient->getChannel($discordChannel->value);
 				$this->migrateChannelToRoute($channel, $db, $table, $defaultMode);
 			} catch (Throwable) {
 			}

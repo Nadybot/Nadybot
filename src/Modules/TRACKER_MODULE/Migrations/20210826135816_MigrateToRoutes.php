@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
 use Exception;
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -34,7 +33,7 @@ class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	public function migrate(LoggerWrapper $logger, DB $db): Generator {
+	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "show_tracker_events");
 		if (!isset($showWhere)) {
@@ -66,8 +65,7 @@ class MigrateToRoutes implements SchemaMigration {
 		}
 		if ($showWhere & 4) {
 			try {
-				/** @var DiscordChannel */
-				$channel = yield $this->discordAPIClient->getChannel($notifyChannel->value);
+				$channel = $this->discordAPIClient->getChannel($notifyChannel->value);
 				$this->migrateChannelToRoute($channel, $db);
 			} catch (Throwable) {
 			}

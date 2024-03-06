@@ -5,9 +5,9 @@ namespace Nadybot\Core\Modules\COLORS;
 use function Amp\File\filesystem;
 use function Safe\json_decode;
 
+use Amp\File\Filesystem;
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -45,6 +45,9 @@ class ColorsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Inject]
 	public MessageHubController $msgHubCtrl;
@@ -99,9 +102,8 @@ class ColorsController extends ModuleInstance {
 
 	/** Get a list of color themes for the bot */
 	#[NCA\HandlesCommand("theme")]
-	public function cmdThemeList(CmdContext $context): Generator {
-		/** @var Theme[] */
-		$themes = yield $this->getThemeList();
+	public function cmdThemeList(CmdContext $context): void {
+		$themes = $this->getThemeList();
 		$blobs = [];
 		foreach ($themes as $theme) {
 			$link = "[" . $this->text->makeChatcmd(
@@ -125,9 +127,8 @@ class ColorsController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("preview")]
 		string $action,
-	): Generator {
-		/** @var Theme[] */
-		$themes = yield $this->getThemeList();
+	): void {
+		$themes = $this->getThemeList();
 		$blobs = [];
 		foreach ($themes as $theme) {
 			$link = $this->text->makeChatcmd(
@@ -150,11 +151,11 @@ class ColorsController extends ModuleInstance {
 		#[NCA\Str("apply")]
 		string $action,
 		PFilename $themeName
-	): Generator {
+	): void {
 		$paths = explode(":", $this->themePath);
 		$files = new Collection();
 		foreach ($paths as $path) {
-			$fileList = yield filesystem()->listFiles(__DIR__ . "/" . $path);
+			$fileList = $this->fs->listFiles(__DIR__ . "/" . $path);
 			foreach ($fileList as $fileName) {
 				if (!str_ends_with($fileName, ".json")) {
 					continue;
@@ -162,12 +163,9 @@ class ColorsController extends ModuleInstance {
 				$files->push(__DIR__ . "/{$path}/{$fileName}");
 			}
 		}
-		$files = $files->filter(function (string $path) use ($themeName): bool {
-			return basename($path, ".json") === $themeName();
-		});
+		$files = $files->filter(fn (string $path): bool => basename($path, ".json") === $themeName());
 		try {
-			/** @var ?Theme */
-			$theme = yield $this->loadTheme($files->firstOrFail());
+			$theme = $this->loadTheme($files->firstOrFail());
 			if (!isset($theme)) {
 				throw new Exception("Theme not found.");
 			}

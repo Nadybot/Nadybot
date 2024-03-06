@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\PVP_MODULE;
 
 use function Amp\{async};
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
@@ -469,7 +468,7 @@ class AttacksController extends ModuleInstance {
 		name: "orgmsg",
 		description: "Notify if org's towers are attacked via pvp(tower-hit-own)"
 	)]
-	public function attackOwnOrgMessageEvent(AOChatEvent $eventObj): Generator {
+	public function attackOwnOrgMessageEvent(AOChatEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)) {
 			return;
 		}
@@ -498,8 +497,7 @@ class AttacksController extends ModuleInstance {
 		$attack = $this->getMatchingAttack($pf, $attPlayer, $attOrg);
 		$site = $this->getMatchingSite($pf, $attack);
 
-		/** @var ?Player */
-		$whois = yield $this->playerManager->byName($attPlayer);
+		$whois = $this->playerManager->byName($attPlayer);
 		if ($whois === null) {
 			$whois = new Player();
 			$whois->name = $attPlayer;

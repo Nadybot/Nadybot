@@ -8,7 +8,6 @@ use function Amp\async;
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;
-use Generator;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
@@ -261,7 +260,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		name: "event-feed(message)",
 		description: "Handle raw Highnet-messages",
 	)]
-	public function handleLLEventFeedMessage(LowLevelEventFeedEvent $event): Generator {
+	public function handleLLEventFeedMessage(LowLevelEventFeedEvent $event): void {
 		if (!$this->highnetEnabled) {
 			return;
 		}
@@ -297,7 +296,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 				return;
 			}
 			$bucket->push($message);
-			$nextMessage = yield $bucket->getNext();
+			$nextMessage = $bucket->getNext();
 			if (!isset($nextMessage)) {
 				return;
 			}

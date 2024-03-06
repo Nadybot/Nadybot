@@ -6,7 +6,6 @@ use Closure;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
-use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Nadybot\Core\{
@@ -113,7 +112,7 @@ class StartpageController extends ModuleInstance {
 		name: "logOn",
 		description: "Show startpage to (org) members logging in"
 	)]
-	public function logonEvent(UserStateEvent $eventObj): Generator {
+	public function logonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
 			|| !is_string($sender)
@@ -135,7 +134,7 @@ class StartpageController extends ModuleInstance {
 		if ($this->accessManager->getAccessLevelForCharacter($sender) === "all") {
 			return;
 		}
-		if (yield $this->banController->isOnBanlist($uid)) {
+		if ($this->banController->isOnBanlist($uid)) {
 			return;
 		}
 		$this->showStartpage($sender, $this->getMassTell($sender));

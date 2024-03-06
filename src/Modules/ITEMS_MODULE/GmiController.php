@@ -5,7 +5,6 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\HandlesCommand;
 use Nadybot\Core\ParamClass\PItem;
@@ -164,7 +163,7 @@ class GmiController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	protected function gmiCommand(CmdContext $context, ?AODBEntry $item, ?int $ql=null): Generator {
+	protected function gmiCommand(CmdContext $context, ?AODBEntry $item, ?int $ql=null): void {
 		if (!isset($item)) {
 			$context->reply("This item does not exist.");
 			return;
@@ -174,8 +173,7 @@ class GmiController extends ModuleInstance {
 			return;
 		}
 
-		/** @var GmiResult */
-		$gmiResult = yield $this->getPricesFromGmi($item);
+		$gmiResult = $this->getPricesFromGmi($item);
 		$message = $this->renderGmiResult($gmiResult, $item, $ql);
 		$context->reply($message);
 	}

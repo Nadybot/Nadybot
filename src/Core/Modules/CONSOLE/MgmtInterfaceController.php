@@ -10,6 +10,7 @@ use function Amp\{
 };
 use function Safe\preg_match;
 
+use Amp\File\Filesystem;
 use Amp\{
 	File\FilesystemException,
 	Socket,
@@ -17,7 +18,6 @@ use Amp\{
 	Socket\ServerSocket,
 };
 use Closure;
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -51,6 +51,9 @@ class MgmtInterfaceController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	#[NCA\Inject]
 	private CommandManager $commandManager;
@@ -146,8 +149,8 @@ class MgmtInterfaceController extends ModuleInstance {
 		]);
 	}
 
-	private function handleExistingUnixSocket(string $path): Generator {
-		if (yield filesystem()->exists($path)) {
+	private function handleExistingUnixSocket(string $path): void {
+		if ($this->fs->exists($path)) {
 			$this->logger->error(
 				"Cannot start management interface on {addr}, because ".
 				"another process is using it. Will retry until available",
@@ -156,7 +159,7 @@ class MgmtInterfaceController extends ModuleInstance {
 				]
 			);
 		}
-		while (@file_exists($path)) {
+		while ($this->fs->exists($path)) {
 			delay(1);
 			clearstatcache();
 		}
@@ -164,7 +167,7 @@ class MgmtInterfaceController extends ModuleInstance {
 
 	private function onShutdown(): void {
 		if (isset($this->socketPath)) {
-			@unlink($this->socketPath);
+			$this->fs->deleteFile($this->socketPath);
 		}
 	}
 

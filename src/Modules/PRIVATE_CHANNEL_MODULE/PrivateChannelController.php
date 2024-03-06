@@ -5,7 +5,6 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 use Amp\File\{Filesystem, FilesystemException};
 use AO\Package;
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\{
@@ -1021,7 +1020,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		name: "logOn",
 		description: "Auto-invite members on logon"
 	)]
-	public function logonAutoinviteEvent(UserStateEvent $eventObj): Generator {
+	public function logonAutoinviteEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
 			return;
@@ -1043,7 +1042,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if ($this->isLockedFor($sender)) {
 			return;
 		}
-		if (yield $this->banController->isOnBanlist($uid)) {
+		if ($this->banController->isOnBanlist($uid)) {
 			return;
 		}
 		$channelName = "the <highlight><myname><end> channel";

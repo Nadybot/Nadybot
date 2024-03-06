@@ -4,7 +4,6 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use function Amp\async;
 use function Safe\{preg_replace};
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltInfo;
 use Nadybot\Core\{
@@ -671,7 +670,7 @@ class GuildController extends ModuleInstance {
 		name: "logOn",
 		description: "Shows an org member logon in chat"
 	)]
-	public function orgMemberLogonMessageEvent(UserStateEvent $eventObj): Generator {
+	public function orgMemberLogonMessageEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
@@ -679,7 +678,7 @@ class GuildController extends ModuleInstance {
 			|| $eventObj->wasOnline !== false) {
 			return;
 		}
-		$msg = yield $this->getLogonMessage($sender);
+		$msg = $this->getLogonMessage($sender);
 		$uid = $this->chatBot->getUid($sender);
 		$e = new Online();
 		$e->char = new Character($sender, $uid);
@@ -730,7 +729,7 @@ class GuildController extends ModuleInstance {
 		name: "logOff",
 		description: "Shows an org member logoff in chat"
 	)]
-	public function orgMemberLogoffMessageEvent(UserStateEvent $eventObj): Generator {
+	public function orgMemberLogoffMessageEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
@@ -741,8 +740,7 @@ class GuildController extends ModuleInstance {
 
 		$uid = $this->chatBot->getUid($sender);
 
-		/** @var ?string */
-		$msg = yield $this->getLogoffMessage($sender);
+		$msg = $this->getLogoffMessage($sender);
 		$e = new Online();
 		$e->char = new Character($sender, $uid);
 		$e->main = $this->altsController->getMainOf($sender);

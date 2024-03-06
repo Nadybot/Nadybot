@@ -4,7 +4,6 @@ namespace Nadybot\Modules\BANK_MODULE;
 
 use function Safe\preg_replace;
 
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\ParamClass\{PCharacter, PDuration, PQuantity, PRemove};
@@ -79,10 +78,10 @@ class WishlistController extends ModuleInstance {
 		name: "connect",
 		description: "Put characters someone wished from to the buddylist"
 	)]
-	public function addPeopleOnWishlistToBuddylist(): Generator {
+	public function addPeopleOnWishlistToBuddylist(): void {
 		$fromChars = $this->getActiveFroms();
 		foreach ($fromChars as $name) {
-			yield $this->buddylistManager->addName($name, "wishlist");
+			$this->buddylistManager->addName($name, "wishlist");
 		}
 	}
 
