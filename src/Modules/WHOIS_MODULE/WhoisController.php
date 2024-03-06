@@ -2,10 +2,9 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
-use function Amp\call;
-
-use Amp\Promise;
-use Generator;
+use function Amp\async;
+use function Amp\Future\await;
+use AO\Package;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -29,6 +28,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
+
 use Throwable;
 
 /**
@@ -97,7 +97,7 @@ class WhoisController extends ModuleInstance {
 		name: "timer(1min)",
 		description: "Save cache of names and charIds to database"
 	)]
-	public function saveCharIds(Event $eventObj): Generator {
+	public function saveCharIds(Event $eventObj): void {
 		if (empty($this->nameHistoryCache) || $this->db->inTransaction()) {
 			return;
 		}
@@ -150,13 +150,17 @@ class WhoisController extends ModuleInstance {
 		)
 	]
 	public function recordCharIds(PackageEvent $eventObj): void {
-		$packet = $eventObj->packet;
-		if (!$this->util->isValidSender($packet->args[0])) {
+		$packet = $eventObj->packet->package;
+		assert(
+			($packet instanceof Package\In\CharacterName)
+			|| ($packet instanceof Package\In\CharacterLookupResult)
+		);
+		if (!$this->util->isValidSender($packet->charId)) {
 			return;
 		}
 		$charData = new CharData();
-		$charData->charid = $packet->args[0];
-		$charData->name = $packet->args[1];
+		$charData->charid = $packet->charId;
+		$charData->name = $packet->name;
 		if ($charData->charid === -1 || $charData->charid === 4294967295) {
 			return;
 		}
@@ -166,7 +170,7 @@ class WhoisController extends ModuleInstance {
 	/** Show the name(s) for a character id */
 	#[NCA\HandlesCommand("lookup")]
 	public function lookupIdCommand(CmdContext $context, int $charID): void {
-		$name = yield $this->chatBot->getName($charID);
+		$name = $this->chatBot->getName($charID);
 		if (isset($name)) {
 			$this->saveCharIds(new Event());
 		}
@@ -260,27 +264,26 @@ class WhoisController extends ModuleInstance {
 			 * @var bool    $online
 			 * @var ?Player $player
 			 */
-			[$online, $player] = yield [
-				$this->buddylistManager->checkIsOnline($uid),
-				$this->playerManager->byName($name, $dimension),
-			];
-			$msg = yield $this->playerToWhois($player, $name, $online);
+			[$online, $player] = await([
+				async($this->buddylistManager->checkIsOnline(...), $uid),
+				async($this->playerManager->byName(...), $name, $dimension),
+			]);
+			$msg = $this->playerToWhois($player, $name, $online);
 			$context->reply($msg);
 			return;
 		}
-		$player = yield $this->playerManager->lookup($name, $dimension);
+		$player = $this->playerManager->lookup($name, $dimension);
 		if (!isset($player)) {
 			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;
 		}
-		$msg = yield $this->playerToWhois($player, $name, false);
+		$msg = $this->playerToWhois($player, $name, false);
 		$context->reply($msg);
 	}
 
 	/** Show character info, online status, and name history for a character */
 	#[NCA\HandlesCommand("whois")]
 	public function whoisIdCommand(CmdContext $context, int $uid): void {
-		/** @var ?string */
 		$name = $this->chatBot->getName($uid);
 		if (!isset($name)) {
 			$context->reply("The user ID {$uid} does not exist.");
@@ -291,11 +294,11 @@ class WhoisController extends ModuleInstance {
 		 * @var bool    $online
 		 * @var ?Player $player
 		 */
-		[$online, $player] = yield [
-			$this->buddylistManager->checkIsOnline($uid),
-			$this->playerManager->byName($name),
-		];
-		$msg = yield $this->playerToWhois($player, $name, $online);
+		[$online, $player] = await([
+			async($this->buddylistManager->checkIsOnline(...), $uid),
+			async($this->playerManager->byName(...), $name),
+		]);
+		$msg = $this->playerToWhois($player, $name, $online);
 		$context->reply($msg);
 	}
 
@@ -357,141 +360,138 @@ class WhoisController extends ModuleInstance {
 		return $result;
 	}
 
-	/** @return Promise<string|string[]> */
-	private function playerToWhois(?Player $whois, string $name, bool $online): Promise {
-		return call(function () use ($whois, $name, $online): Generator {
-			/** @var ?int */
-			$charID = $this->chatBot->getUid($name);
-			$lookupNameLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$name}");
-			$historyNameLink = $this->text->makeChatcmd("history", "/tell <myname> history {$name}");
-			$history1NameLink = $this->text->makeChatcmd("RK1", "/tell <myname> history {$name} 1");
-			$history2NameLink = $this->text->makeChatcmd("RK2", "/tell <myname> history {$name} 2");
-			$lookupCharIdLink = null;
-			if ($charID !== null) {
-				$lookupCharIdLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$charID}");
-			}
+	/** @return string|string[] */
+	private function playerToWhois(?Player $whois, string $name, bool $online): string|array {
+		$charID = $this->chatBot->getUid($name);
+		$lookupNameLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$name}");
+		$historyNameLink = $this->text->makeChatcmd("history", "/tell <myname> history {$name}");
+		$history1NameLink = $this->text->makeChatcmd("RK1", "/tell <myname> history {$name} 1");
+		$history2NameLink = $this->text->makeChatcmd("RK2", "/tell <myname> history {$name} 2");
+		$lookupCharIdLink = null;
+		if ($charID !== null) {
+			$lookupCharIdLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$charID}");
+		}
 
-			if ($whois === null) {
-				$blob = "<orange>Note: Could not retrieve detailed info for character.<end>\n\n";
-				$blob .= "Name: <highlight>{$name}<end> [{$lookupNameLink}] [{$historyNameLink}] [{$history1NameLink}] [{$history2NameLink}]\n";
-				if (isset($lookupCharIdLink)) {
-					$blob .= "Character ID: <highlight>{$charID}<end> [{$lookupCharIdLink}]\n\n";
-				}
-				if (is_int($charID)) {
-					$blob .= $this->getNameHistory($charID, $this->config->main->dimension);
-				}
-
-				$msg = $this->text->makeBlob("Basic Info for {$name}", $blob);
-				return $msg;
-			}
-			$altInfo = $this->altsController->getAltInfo($name);
-
-			$blob = "Name: <highlight>" . $this->getFullName($whois) . "<end> [{$lookupNameLink}] [{$historyNameLink}] [{$history1NameLink}] [{$history2NameLink}]\n";
-			$nick = $altInfo->getNick();
-			if (isset($nick)) {
-				$blob .= "Nickname: <highlight>{$nick}<end>\n";
-			}
-			if (isset($whois->guild) && $whois->guild !== "") {
-				$orglistLink = $this->text->makeChatcmd("see members", "/tell <myname> orglist {$whois->guild_id}");
-				$orginfoLink = $this->text->makeChatcmd("info", "/tell <myname> whoisorg {$whois->guild_id}");
-				$blob .= "Org: <highlight>{$whois->guild}<end> (<highlight>{$whois->guild_id}<end>) [{$orginfoLink}] [{$orglistLink}]\n";
-				$blob .= "Org Rank: <highlight>{$whois->guild_rank}<end> (<highlight>{$whois->guild_rank_id}<end>)\n";
-			}
-			$blob .= "Breed: <highlight>{$whois->breed}<end>\n";
-			$blob .= "Gender: <highlight>{$whois->gender}<end>\n";
-			$blob .= "Profession: <highlight>{$whois->profession}<end> (<highlight>" . trim($whois->prof_title) . "<end>)\n";
-			$blob .= "Level: <highlight>{$whois->level}<end>\n";
-			$blob .= "AI Level: <green>{$whois->ai_level}<end> (<highlight>{$whois->ai_rank}<end>)\n";
-			$blob .= "Faction: <".strtolower($whois->faction).">{$whois->faction}<end>\n";
-			$blob .= "Head Id: <highlight>{$whois->head_id}<end>\n";
-			// $blob .= "PVP Rating: <highlight>{$whois->pvp_rating}<end>\n";
-			// $blob .= "PVP Title: <highlight>{$whois->pvp_title}<end>\n";
-			if ($whois->dimension === $this->config->main->dimension) {
-				$blob .= "Status: ";
-				if ($online) {
-					$blob .= "<on>Online<end>\n";
-				} elseif ($charID === null) {
-					$blob .= "<off>Inactive<end>\n";
-				} else {
-					$blob .= "<off>Offline<end>\n";
-				}
-			} else {
-				$blob .= "Dimension: <highlight>{$whois->dimension}<end>\n";
-			}
-			if ($charID !== null) {
+		if ($whois === null) {
+			$blob = "<orange>Note: Could not retrieve detailed info for character.<end>\n\n";
+			$blob .= "Name: <highlight>{$name}<end> [{$lookupNameLink}] [{$historyNameLink}] [{$history1NameLink}] [{$history2NameLink}]\n";
+			if (isset($lookupCharIdLink)) {
 				$blob .= "Character ID: <highlight>{$charID}<end> [{$lookupCharIdLink}]\n\n";
 			}
-
-			$blob .= "Source: <highlight>{$whois->source}<end>\n\n";
-
-			if ($charID !== null) {
+			if (is_int($charID)) {
 				$blob .= $this->getNameHistory($charID, $this->config->main->dimension);
 			}
-			$main = $this->altsController->getMainOf($name);
-			if ($main === $name) {
-				/** @var Collection<Audit> */
-				$audits = $this->db->table(AccessManager::DB_TABLE)
-					->where("actee", $name)
-					->whereIn("action", [
-						AccessManager::ADD_RANK,
-						AccessManager::DEL_RANK,
-					])
-					->orderBy("time")
-					->orderBy("id")
-					->asObj(Audit::class);
-				$breakPoints = $this->getAuditBreakpoints($audits);
-				if ($breakPoints->isNotEmpty()) {
-					/** @var Audit */
-					$lastAction = $breakPoints->last();
+
+			$msg = $this->text->makeBlob("Basic Info for {$name}", $blob);
+			return $msg;
+		}
+		$altInfo = $this->altsController->getAltInfo($name);
+
+		$blob = "Name: <highlight>" . $this->getFullName($whois) . "<end> [{$lookupNameLink}] [{$historyNameLink}] [{$history1NameLink}] [{$history2NameLink}]\n";
+		$nick = $altInfo->getNick();
+		if (isset($nick)) {
+			$blob .= "Nickname: <highlight>{$nick}<end>\n";
+		}
+		if (isset($whois->guild) && $whois->guild !== "") {
+			$orglistLink = $this->text->makeChatcmd("see members", "/tell <myname> orglist {$whois->guild_id}");
+			$orginfoLink = $this->text->makeChatcmd("info", "/tell <myname> whoisorg {$whois->guild_id}");
+			$blob .= "Org: <highlight>{$whois->guild}<end> (<highlight>{$whois->guild_id}<end>) [{$orginfoLink}] [{$orglistLink}]\n";
+			$blob .= "Org Rank: <highlight>{$whois->guild_rank}<end> (<highlight>{$whois->guild_rank_id}<end>)\n";
+		}
+		$blob .= "Breed: <highlight>{$whois->breed}<end>\n";
+		$blob .= "Gender: <highlight>{$whois->gender}<end>\n";
+		$blob .= "Profession: <highlight>{$whois->profession}<end> (<highlight>" . trim($whois->prof_title) . "<end>)\n";
+		$blob .= "Level: <highlight>{$whois->level}<end>\n";
+		$blob .= "AI Level: <green>{$whois->ai_level}<end> (<highlight>{$whois->ai_rank}<end>)\n";
+		$blob .= "Faction: <".strtolower($whois->faction).">{$whois->faction}<end>\n";
+		$blob .= "Head Id: <highlight>{$whois->head_id}<end>\n";
+		// $blob .= "PVP Rating: <highlight>{$whois->pvp_rating}<end>\n";
+		// $blob .= "PVP Title: <highlight>{$whois->pvp_title}<end>\n";
+		if ($whois->dimension === $this->config->main->dimension) {
+			$blob .= "Status: ";
+			if ($online) {
+				$blob .= "<on>Online<end>\n";
+			} elseif ($charID === null) {
+				$blob .= "<off>Inactive<end>\n";
+			} else {
+				$blob .= "<off>Offline<end>\n";
+			}
+		} else {
+			$blob .= "Dimension: <highlight>{$whois->dimension}<end>\n";
+		}
+		if ($charID !== null) {
+			$blob .= "Character ID: <highlight>{$charID}<end> [{$lookupCharIdLink}]\n\n";
+		}
+
+		$blob .= "Source: <highlight>{$whois->source}<end>\n\n";
+
+		if ($charID !== null) {
+			$blob .= $this->getNameHistory($charID, $this->config->main->dimension);
+		}
+		$main = $this->altsController->getMainOf($name);
+		if ($main === $name) {
+			/** @var Collection<Audit> */
+			$audits = $this->db->table(AccessManager::DB_TABLE)
+				->where("actee", $name)
+				->whereIn("action", [
+					AccessManager::ADD_RANK,
+					AccessManager::DEL_RANK,
+				])
+				->orderBy("time")
+				->orderBy("id")
+				->asObj(Audit::class);
+			$breakPoints = $this->getAuditBreakpoints($audits);
+			if ($breakPoints->isNotEmpty()) {
+				/** @var Audit */
+				$lastAction = $breakPoints->last();
+				$blob .= "\n".
+					(
+						($lastAction->action === AccessManager::ADD_RANK)
+						? "Added to bot"
+						: "Removed from bot"
+					) . ": <highlight>" . $this->util->date($lastAction->time->getTimestamp()).
+					"<end> by <highlight>{$lastAction->actor}<end>";
+			}
+		}
+
+		if (isset($charID)) {
+			$isBanned = $this->banController->isOnBanlist($charID);
+			if ($isBanned) {
+				if (isset($whois->guild_id) && $this->banController->orgIsBanned($whois->guild_id)) {
 					$blob .= "\n".
-						(
-							($lastAction->action === AccessManager::ADD_RANK)
-							? "Added to bot"
-							: "Removed from bot"
-						) . ": <highlight>" . $this->util->date($lastAction->time->getTimestamp()).
-						"<end> by <highlight>{$lastAction->actor}<end>";
-				}
-			}
-
-			if (isset($charID)) {
-				$isBanned = yield $this->banController->isOnBanlist($charID);
-				if ($isBanned) {
-					if (isset($whois->guild_id) && $this->banController->orgIsBanned($whois->guild_id)) {
-						$blob .= "\n".
-							"<red>{$whois->guild} is banned on this bot<end>";
-					} else {
-						$blob .= "\n".
-							"<red>{$whois->name} is banned on this bot<end>";
-					}
-				}
-			}
-
-			$msg = $this->playerManager->getInfo($whois);
-			if ($whois->dimension === $this->config->main->dimension) {
-				if ($online) {
-					$msg .= " :: <on>Online<end>";
-				} elseif ($charID === null) {
-					$msg .= " :: <off>Inactive<end>";
+						"<red>{$whois->guild} is banned on this bot<end>";
 				} else {
-					$msg .= " :: <off>Offline<end>";
+					$blob .= "\n".
+						"<red>{$whois->name} is banned on this bot<end>";
 				}
 			}
-			$msg .= " :: " . ((array)$this->text->makeBlob("More Info", $blob, "Detailed Info for {$name}"))[0];
-			if ($this->whoisAddComments) {
-				$numComments = $this->commentController->countComments(null, $whois->name);
-				if ($numComments) {
-					$comText = ($numComments > 1) ? "{$numComments} Comments" : "1 Comment";
-					$blob = $this->text->makeChatcmd("Read {$comText}", "/tell <myname> comments get {$whois->name}").
-						" if you have the necessary access level.";
-					$msg .= " :: " . ((array)$this->text->makeBlob($comText, $blob))[0];
-				}
-			}
+		}
 
-			if (count($altInfo->getAllValidatedAlts()) === 0) {
-				return $msg;
+		$msg = $this->playerManager->getInfo($whois);
+		if ($whois->dimension === $this->config->main->dimension) {
+			if ($online) {
+				$msg .= " :: <on>Online<end>";
+			} elseif ($charID === null) {
+				$msg .= " :: <off>Inactive<end>";
+			} else {
+				$msg .= " :: <off>Offline<end>";
 			}
-			$altsBlob = yield $altInfo->getAltsBlob(true);
-			return "{$msg} :: " . ((array)$altsBlob)[0];
-		});
+		}
+		$msg .= " :: " . ((array)$this->text->makeBlob("More Info", $blob, "Detailed Info for {$name}"))[0];
+		if ($this->whoisAddComments) {
+			$numComments = $this->commentController->countComments(null, $whois->name);
+			if ($numComments) {
+				$comText = ($numComments > 1) ? "{$numComments} Comments" : "1 Comment";
+				$blob = $this->text->makeChatcmd("Read {$comText}", "/tell <myname> comments get {$whois->name}").
+					" if you have the necessary access level.";
+				$msg .= " :: " . ((array)$this->text->makeBlob($comText, $blob))[0];
+			}
+		}
+
+		if (count($altInfo->getAllValidatedAlts()) === 0) {
+			return $msg;
+		}
+		$altsBlob = $altInfo->getAltsBlob(true);
+		return "{$msg} :: " . ((array)$altsBlob)[0];
 	}
 }

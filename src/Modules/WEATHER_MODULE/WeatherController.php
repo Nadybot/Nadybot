@@ -2,14 +2,11 @@
 
 namespace Nadybot\Modules\WEATHER_MODULE;
 
-use function Amp\call;
 use function Safe\json_decode;
 
-use Amp\Cache\ArrayCache;
+use Amp\Cache\LocalCache;
 use Amp\Http\Client\Interceptor\AddRequestHeader;
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
-use Amp\{Failure, Promise, Success};
-use Generator;
+use Amp\Http\Client\{HttpClientBuilder, Request};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -37,10 +34,11 @@ class WeatherController extends ModuleInstance {
 	#[NCA\Inject]
 	public HttpClientBuilder $builder;
 
-	private ArrayCache $cache;
+	/** @var LocalCache<string> */
+	private LocalCache $cache;
 
 	public function __construct() {
-		$this->cache = new ArrayCache(60000, 100);
+		$this->cache = new LocalCache(60000, 100);
 	}
 
 	/**
@@ -60,8 +58,8 @@ class WeatherController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>weather athens,ga")]
 	public function weatherCommand(CmdContext $context, string $location): void {
 		try {
-			$nominatim = yield $this->lookupLocation($location);
-			$weather = yield $this->lookupWeather($nominatim);
+			$nominatim = $this->lookupLocation($location);
+			$weather = $this->lookupWeather($nominatim);
 			$msg = $this->getWeatherBlob($nominatim, $weather);
 		} catch (UserException $e) {
 			$msg = $e->getMessage();
@@ -73,68 +71,56 @@ class WeatherController extends ModuleInstance {
 	 * Lookup the coordinates of a location
 	 *
 	 * @psalm-param callable(HttpResponse, CmdContext, mixed...) $callback
-	 *
-	 * @return Promise<Nominatim>
 	 */
-	public function lookupLocation(string $location): Promise {
-		return call(function () use ($location): Generator {
-			$apiEndpoint = "https://nominatim.openstreetmap.org/search?";
-			$apiEndpoint .= http_build_query([
-				"format" => "jsonv2",
-				"q" => $location,
-				"namedetails" => 1,
-				"addressdetails" => 1,
-				"extratags" => 1,
-				"limit" => 1,
-			]);
-			$body = yield $this->cache->get($apiEndpoint);
-			if (!isset($body)) {
-				$client = $this->builder
-					->intercept(new AddRequestHeader('accept-language', 'en'))
-					->build();
-
-				/** @var Response */
-				$response = yield $client->request(new Request($apiEndpoint));
-				if ($response->getStatus() !== 200) {
-					throw new UserException("Error received from Location provider.");
-				}
-				$body = yield $response->getBody()->buffer();
-				if ($body === '') {
-					throw new UserException("No answer from Location provider. Please try again later.");
-				}
-				yield $this->cache->set($apiEndpoint, $body, 24*3600);
-			}
-			return yield $this->decodeNominatim($body);
-		});
-	}
-
-	/**
-	 * Lookup the weather for a location
-	 *
-	 * @return Promise<Weather>
-	 */
-	public function lookupWeather(Nominatim $nom): Promise {
-		return call(function () use ($nom): Generator {
-			$apiEndpoint = "https://api.met.no/weatherapi/locationforecast/2.0/compact?";
-			$apiEndpoint .= http_build_query([
-				"lat" => sprintf("%.4f", $nom->lat),
-				"lon" => sprintf("%.4f", $nom->lon),
-			]);
+	public function lookupLocation(string $location): Nominatim {
+		$apiEndpoint = "https://nominatim.openstreetmap.org/search?";
+		$apiEndpoint .= http_build_query([
+			"format" => "jsonv2",
+			"q" => $location,
+			"namedetails" => 1,
+			"addressdetails" => 1,
+			"extratags" => 1,
+			"limit" => 1,
+		]);
+		$body = $this->cache->get($apiEndpoint);
+		if (!isset($body)) {
 			$client = $this->builder
 				->intercept(new AddRequestHeader('accept-language', 'en'))
 				->build();
 
-			/** @var Response */
-			$response = yield $client->request(new Request($apiEndpoint));
+			$response = $client->request(new Request($apiEndpoint));
 			if ($response->getStatus() !== 200) {
-				throw new UserException("Error received from Weather provider.");
+				throw new UserException("Error received from Location provider.");
 			}
-			$body = yield $response->getBody()->buffer();
+			$body = $response->getBody()->buffer();
 			if ($body === '') {
-				throw new UserException("No answer from Weather provider. Please try again later.");
+				throw new UserException("No answer from Location provider. Please try again later.");
 			}
-			return yield $this->decodeWeather($body);
-		});
+			$this->cache->set($apiEndpoint, $body, 24*3600);
+		}
+		return $this->decodeNominatim($body);
+	}
+
+	/** Lookup the weather for a location */
+	public function lookupWeather(Nominatim $nom): Weather {
+		$apiEndpoint = "https://api.met.no/weatherapi/locationforecast/2.0/compact?";
+		$apiEndpoint .= http_build_query([
+			"lat" => sprintf("%.4f", $nom->lat),
+			"lon" => sprintf("%.4f", $nom->lon),
+		]);
+		$client = $this->builder
+			->intercept(new AddRequestHeader('accept-language', 'en'))
+			->build();
+
+		$response = $client->request(new Request($apiEndpoint));
+		if ($response->getStatus() !== 200) {
+			throw new UserException("Error received from Weather provider.");
+		}
+		$body = $response->getBody()->buffer();
+		if ($body === '') {
+			throw new UserException("No answer from Weather provider. Please try again later.");
+		}
+		return $this->decodeWeather($body);
 	}
 
 	/** Try to convert a wind degree into a wind direction */
@@ -322,48 +308,46 @@ class WeatherController extends ModuleInstance {
 		return "°C";
 	}
 
-	/** @return Promise<Nominatim> */
-	private function decodeNominatim(string $body): Promise {
+	private function decodeNominatim(string $body): Nominatim {
 		try {
 			$data = json_decode($body);
 		} catch (JsonException $e) {
-			return new Failure(new UserException(
+			throw new UserException(
 				"Invalid JSON received from Location provider: ".
 				"<highlight>{$body}<end>."
-			));
+			);
 		}
 		if (!is_array($data)) {
-			return new Failure(new UserException(
+			throw new UserException(
 				"Invalid answer received from Location provider: ".
 				"<highlight>" . print_r($data, true) . "<end>."
-			));
+			);
 		}
 		if (!count($data)) {
-			return new Failure(new UserException("Location not found"));
+			throw new UserException("Location not found");
 		}
 		$nominatim = new Nominatim();
 		$nominatim->fromJSON($data[0]);
-		return new Success($nominatim);
+		return $nominatim;
 	}
 
-	/** @return Promise<Weather> */
-	private function decodeWeather(string $body): Promise {
+	private function decodeWeather(string $body): Weather {
 		try {
 			$data = json_decode($body);
 		} catch (JsonException $e) {
-			return new Failure(new UserException(
+			throw new UserException(
 				"Invalid JSON received from Weather provider: ".
 				"<highlight>{$body}<end>."
-			));
+			);
 		}
 		if (!is_object($data)) {
-			return new Failure(new UserException(
+			throw new UserException(
 				"Invalid answer received from Weather provider: ".
 				"<highlight>" . print_r($data, true) . "<end>."
-			));
+			);
 		}
 		$weather = new Weather();
 		$weather->fromJSON($data);
-		return new Success($weather);
+		return $weather;
 	}
 }

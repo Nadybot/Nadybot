@@ -567,9 +567,12 @@ class Nadybot {
 		$this->messageHub->handle($rMessage);
 	}
 
-	public function sendRawTell(int|string $character, string $message, ?int $priority=null): void {
+	public function sendRawTell(int|string $character, string $message, ?int $priority=null): bool {
 		if (is_string($character)) {
 			$character = $this->getUid(Utils::normalizeCharacter($character));
+			if (!isset($character)) {
+				return false;
+			}
 		}
 		$this->aoClient->write(
 			package: new Package\Out\Tell(
@@ -577,6 +580,7 @@ class Nadybot {
 				message: $message,
 			)
 		);
+		return true;
 	}
 
 	/**

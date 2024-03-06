@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
+use AO\Package;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -63,10 +64,13 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 
 	public function send(array $data): array {
 		$leftOver = [];
+		if (null === ($uid = $this->chatBot->getUid($this->channel))) {
+			return $data;
+		}
 		foreach ($data as $chunk) {
-			if (!$this->chatBot->send_privgroup($this->channel, $chunk)) {
-				$leftOver []= $chunk;
-			}
+			$this->chatBot->aoClient->write(
+				package: new Package\Out\PrivateChannelMessage(channelId: $uid, message: $chunk)
+			);
 		}
 		return $leftOver;
 	}
@@ -96,7 +100,12 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		if (strtolower((string)$event->sender) !== strtolower($this->channel)) {
 			return;
 		}
-		$this->chatBot->privategroup_join($event->sender);
+		if (null === ($uid = $this->chatBot->getUid($this->channel))) {
+			return;
+		}
+		$this->chatBot->aoClient->write(
+			package: new Package\Out\PrivateChannelJoin(channelId: $uid),
+		);
 	}
 
 	public function receiveLeave(AOChatEvent $event): void {
@@ -143,7 +152,11 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 			// In case we have a race condition and received the invite before
 			$this->initCallback = $callback;
 			$this->eventManager->subscribe("extJoinPriv", [$this, "joinedPrivateChannel"]);
-			$this->chatBot->privategroup_join($this->channel);
+			if (null !== ($uid = $this->chatBot->getUid($this->channel))) {
+				$this->chatBot->aoClient->write(
+					package: new Package\Out\PrivateChannelJoin(channelId: $uid),
+				);
+			}
 		} else {
 			$callback();
 		}

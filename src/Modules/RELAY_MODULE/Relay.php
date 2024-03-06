@@ -2,14 +2,10 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use function Amp\asyncCall;
-
-use Amp\Loop;
-use Generator;
+use function Amp\async;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
-	DBSchema\Player,
 	LoggerWrapper,
 	MessageHub,
 	MessageReceiver,
@@ -26,6 +22,7 @@ use Nadybot\Modules\{
 	RELAY_MODULE\Transport\TransportInterface,
 	WEBSERVER_MODULE\StatsController,
 };
+use Revolt\EventLoop;
 
 class Relay implements MessageReceiver {
 	public const ALLOW_NONE = 0;
@@ -133,9 +130,8 @@ class Relay implements MessageReceiver {
 			$player->charid = $uid;
 		}
 		$this->onlineChars[$where][$character] = $player;
-		asyncCall(function () use ($character, $dimension, $where, $clientId): Generator {
-			/** @var ?Player */
-			$player = yield $this->playerManager->byName($character, $dimension);
+		async(function () use ($character, $dimension, $where, $clientId): void {
+			$player = $this->playerManager->byName($character, $dimension);
 			if (!isset($player) || !isset($this->onlineChars[$where][$character])) {
 				return;
 			}
@@ -305,7 +301,7 @@ class Relay implements MessageReceiver {
 			if (isset($callback)) {
 				$callback();
 			}
-			Loop::delay(10000, function () {
+			EventLoop::delay(10, function (string $token): void {
 				if ($this->initialized) {
 					foreach ($this->msgQueue as $message) {
 						$this->receive($message, $this->getName());

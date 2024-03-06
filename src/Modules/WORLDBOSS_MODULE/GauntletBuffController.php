@@ -4,10 +4,9 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use function Amp\delay;
 use function Safe\json_decode;
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use Amp\Http\Client\{HttpClientBuilder, Request};
 use DateTime;
 use Exception;
-use Generator;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -172,18 +171,17 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		name: "connect",
 		description: "Get active Gauntlet buffs from API"
 	)]
-	public function loadGauntletBuffsFromAPI(): Generator {
+	public function loadGauntletBuffsFromAPI(): void {
 		$client = $this->builder->build();
 
 		try {
-			/** @var Response */
-			$response = yield $client->request(new Request(static::GAUNTLET_API));
+			$response = $client->request(new Request(static::GAUNTLET_API));
 			$code = $response->getStatus();
 			if ($code >= 500 && $code < 600 && --$this->apiRetriesLeft) {
 				$this->logger->warning('Gauntlett buff API sent a {code}, retrying in 5s', [
 					"code" => $code,
 				]);
-				yield delay(5000);
+				delay(5);
 				$this->loadGauntletBuffsFromAPI();
 				return;
 			}
@@ -191,13 +189,12 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 				$this->logger->error('Gauntlet buff API replied with error {code} ({reason})', [
 					"code" => $code,
 					"reason" => $response->getReason(),
-					"headers" => $response->getRawHeaders(),
+					"headers" => $response->getHeaderPairs(),
 				]);
 				return;
 			}
 
-			/** @var string */
-			$body = yield $response->getBody()->buffer();
+			$body = $response->getBody()->buffer();
 		} catch (Throwable $error) {
 			$this->logger->warning('Unknown error from Gauntlet buff API: {error}', [
 				"error" => $error->getMessage(),

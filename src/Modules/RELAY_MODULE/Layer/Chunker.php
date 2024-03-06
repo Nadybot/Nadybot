@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
-use Amp\Loop;
+use function Safe\json_decode;
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use InvalidArgumentException;
 use Nadybot\Core\{
@@ -16,6 +16,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayLayerInterface,
 	RelayMessage,
 };
+use Revolt\EventLoop;
 use Throwable;
 
 #[
@@ -90,7 +91,7 @@ class Chunker implements RelayLayerInterface {
 	public function receive(RelayMessage $msg): ?RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
-				$json = \Safe\json_decode($data, true);
+				$json = json_decode($data, true);
 				$mapper = new ObjectMapperUsingReflection();
 
 				/** @var Chunk */
@@ -105,7 +106,9 @@ class Chunker implements RelayLayerInterface {
 			}
 			if (!isset($this->timerHandler)) {
 				$this->logger->debug("Setup new cleanup call");
-				$this->timerHandler = Loop::delay(10000, [$this, "cleanStaleChunks"]);
+				$this->timerHandler = EventLoop::delay(10, function (string $token): void {
+					$this->cleanStaleChunks();
+				});
 			}
 			if (!isset($this->queue[$chunk->id])) {
 				$this->logger->debug("New chunk {id} {part}/{count} received.", [
@@ -168,7 +171,9 @@ class Chunker implements RelayLayerInterface {
 		}
 		if (count($this->queue)) {
 			$this->logger->debug("Calling cleanup in 10");
-			$this->timerHandler = Loop::delay(10000, [$this, "cleanStaleChunks"]);
+			$this->timerHandler = EventLoop::delay(10, function (string $token): void {
+				$this->cleanStaleChunks();
+			});
 		} else {
 			$this->logger->debug("No more unfinished chunks.");
 		}

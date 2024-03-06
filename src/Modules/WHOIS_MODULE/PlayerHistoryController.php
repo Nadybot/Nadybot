@@ -44,7 +44,7 @@ class PlayerHistoryController extends ModuleInstance {
 		$name = $char();
 		$dimension ??= $this->config->main->dimension;
 
-		$history = yield $this->playerHistoryManager->lookup($name, $dimension);
+		$history = $this->playerHistoryManager->lookup($name, $dimension);
 		$msg = $this->renderPlayerHistory($history, $name, $dimension);
 		$context->reply($msg);
 	}

@@ -4,10 +4,9 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use function Amp\delay;
 use function Safe\{json_decode};
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use Amp\Http\Client\{HttpClientBuilder, Request};
 use DateTime;
 use DateTimeZone;
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -443,7 +442,7 @@ class WorldBossController extends ModuleInstance {
 	#[NCA\HandlesCommand("updatewb")]
 	public function updateWbCommand(CmdContext $context): void {
 		try {
-			$numUpdates = yield from $this->loadTimersFromAPI();
+			$numUpdates = $this->loadTimersFromAPI();
 			$context->reply(
 				"Timer data successfully loaded from the API. {$numUpdates} ".
 				$this->text->pluralize("timer", $numUpdates) . " updated."
@@ -463,31 +462,29 @@ class WorldBossController extends ModuleInstance {
 		name: "connect",
 		description: "Get boss timers from timer API"
 	)]
-	public function loadTimersFromAPI(): Generator {
+	public function loadTimersFromAPI(): int {
 		$client = $this->builder->build();
 
 		try {
-			/** @var Response */
-			$response = yield $client->request(new Request(static::WORLDBOSS_API));
+			$response = $client->request(new Request(static::WORLDBOSS_API));
 			$code = $response->getStatus();
 			if ($code >= 500 && $code < 600 && --$this->timerRetriesLeft) {
 				$this->logger->warning('Worldboss API sent a {code}, retrying in 5s', [
 					"code" => $code,
 				]);
-				yield delay(5000);
+				delay(5);
 				return $this->loadTimersFromAPI();
 			}
 			if ($code !== 200) {
 				$this->logger->error('Worldboss API replied with error {code} ({reason})', [
 					"code" => $code,
 					"reason" => $response->getReason(),
-					"headers" => $response->getRawHeaders(),
+					"headers" => $response->getHeaderPairs(),
 				]);
 				return 0;
 			}
 
-			/** @var string */
-			$body = yield $response->getBody()->buffer();
+			$body = $response->getBody()->buffer();
 		} catch (Throwable $error) {
 			$this->logger->warning('Unknown error from Worldboss API: {error}', [
 				"error" => $error->getMessage(),

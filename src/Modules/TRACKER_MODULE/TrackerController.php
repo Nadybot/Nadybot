@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
-use Amp\Promise;
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
@@ -38,7 +37,7 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ORGLIST_MODULE\FindOrgController,
 	ORGLIST_MODULE\Organization,
-	TOWER_MODULE\TowerAttackEvent,
+	PVP_MODULE\Event\TowerAttack,
 };
 use Throwable;
 
@@ -218,12 +217,12 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "connect",
 		description: "Adds all players on the track list to the buddy list"
 	)]
-	public function trackedUsersConnectEvent(Event $eventObj): Generator {
-		yield $this->db->table(self::DB_TABLE)
+	public function trackedUsersConnectEvent(Event $eventObj): void {
+		$this->db->table(self::DB_TABLE)
 			->asObj(TrackedUser::class)
-			->map(function (TrackedUser $row): Promise {
-				return $this->buddylistManager->addName($row->name, static::REASON_TRACKER);
-			})->toArray();
+			->each(function (TrackedUser $row): void {
+				$this->buddylistManager->addName($row->name, static::REASON_TRACKER);
+			});
 		$this->db->table(static::DB_ORG_MEMBER)
 			->asObj(TrackingOrgMember::class)
 			->each(function (TrackingOrgMember $row) {
@@ -270,13 +269,13 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "timer(24hrs)",
 		description: "Download all tracked orgs' information"
 	)]
-	public function downloadOrgRostersEvent(Event $eventObj): Generator {
+	public function downloadOrgRostersEvent(Event $eventObj): void {
 		/** @var Collection<TrackingOrg> */
 		$orgs = $this->db->table(static::DB_ORG)->asObj(TrackingOrg::class);
 		try {
 			foreach ($orgs as $org) {
-				$orgData = yield $this->guildManager->byId($org->org_id, $this->config->main->dimension, true);
-				yield from $this->updateRosterForOrg($orgData);
+				$orgData = $this->guildManager->byId($org->org_id, $this->config->main->dimension, true);
+				$this->updateRosterForOrg($orgData);
 			}
 		} catch (Throwable $e) {
 			$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
@@ -285,31 +284,28 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "tower(attack)",
+		name: "tower-attack",
 		description: "Automatically track tower field attackers"
 	)]
-	public function trackTowerAttacks(TowerAttackEvent $eventObj): Generator {
-		$attacker = $eventObj->attacker;
+	public function trackTowerAttacks(TowerAttack $eventObj): void {
+		$attacker = $eventObj->attack->attacker;
 		if ($this->accessManager->checkAccess($attacker->name, "member")) {
 			// Don't add members of the bot to the tracker
 			return;
 		}
-		$defGuild = $eventObj->defender->org ?? null;
-		$defFaction = $eventObj->defender->faction ?? null;
+		$defGuild = $eventObj->attack->defender->name;
+		$defFaction = $eventObj->attack->defender->faction;
 		$trackWho = $this->trackerAddAttackers;
 		if ($trackWho === self::ATT_NONE) {
 			return;
 		}
 		if ($trackWho === self::ATT_OWN_ORG) {
-			$attackingMyOrg = isset($defGuild) && $defGuild === $this->config->general->orgName;
+			$attackingMyOrg = $defGuild === $this->config->general->orgName;
 			if (!$attackingMyOrg) {
 				return;
 			}
 		}
 		if ($trackWho === self::ATT_MEMBER_ORG) {
-			if (!isset($defGuild)) {
-				return;
-			}
 			$isOurGuild = $this->playerManager->searchByColumn(
 				$this->config->main->dimension,
 				"guild",
@@ -333,8 +329,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				return;
 			}
 		}
-		if (isset($attacker->charid)) {
-			$this->trackUid($attacker->charid, $attacker->name);
+		if (isset($attacker->character_id)) {
+			$this->trackUid($attacker->character_id, $attacker->name);
 			return;
 		}
 		$uid = $this->chatBot->getUid($attacker->name);
@@ -558,7 +554,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		PRemove $action,
 		int $uid
 	): void {
-		$char = yield $this->chatBot->getName($uid);
+		$char = $this->chatBot->getName($uid);
 		$this->trackRemoveCommand($context, $char ?? "UID {$uid}", $uid);
 	}
 
@@ -670,13 +666,12 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$this->db->insert(static::DB_ORG, $tOrg, null);
 		$context->reply("Adding <" . strtolower($org->faction) . ">{$org->name}<end> to the tracker.");
 		try {
-			/** @var ?Guild */
-			$guild = yield $this->guildManager->byId($orgId, $this->config->main->dimension, true);
+			$guild = $this->guildManager->byId($orgId, $this->config->main->dimension, true);
 			if (!isset($guild)) {
 				$context->reply("No data found for <" . strtolower($org->faction) . ">{$org->name}<end>.");
 				return;
 			}
-			yield from $this->updateRosterForOrg($guild);
+			$this->updateRosterForOrg($guild);
 		} catch (Throwable $e) {
 			$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
 			$context->reply($e->getMessage());
@@ -1083,7 +1078,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		string $action,
 		int $uid
 	): void {
-		$name = yield $this->chatBot->getName($uid);
+		$name = $this->chatBot->getName($uid);
 		$this->trackHideCommand($context, $name ?? "UID {$uid}", $uid);
 	}
 
@@ -1128,7 +1123,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		string $action,
 		int $uid
 	): void {
-		$name = yield $this->chatBot->getName($uid);
+		$name = $this->chatBot->getName($uid);
 		$this->trackUnhideCommand($context, $name ?? "UID {$uid}", $uid);
 	}
 
@@ -1283,7 +1278,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	private function updateRosterForOrg(?Guild $org): Generator {
+	private function updateRosterForOrg(?Guild $org): void {
 		// Check if JSON file was downloaded properly
 		if ($org === null) {
 			throw new Exception("Error downloading the guild roster JSON file");

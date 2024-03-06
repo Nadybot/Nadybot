@@ -2,9 +2,8 @@
 
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
-use function Amp\Promise\rethrow;
-
-use Generator;
+use function Amp\async;
+use AO\Package;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -27,6 +26,7 @@ use Nadybot\Core\{
 	Text,
 	UserStateEvent,
 };
+
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
 /**
@@ -113,10 +113,10 @@ class TradebotController extends ModuleInstance {
 		name: "Connect",
 		description: "Add active tradebots to buddylist"
 	)]
-	public function addTradebotsAsBuddies(): Generator {
+	public function addTradebotsAsBuddies(): void {
 		$activeBots = $this->normalizeBotNames($this->tradebot);
 		foreach ($activeBots as $botName) {
-			yield $this->buddylistManager->addName($botName, "tradebot");
+			$this->buddylistManager->addName($botName, "tradebot");
 		}
 	}
 
@@ -140,8 +140,16 @@ class TradebotController extends ModuleInstance {
 			if (array_key_exists($botName, self::BOT_DATA)) {
 				foreach (self::BOT_DATA[$botName]['leave'] as $cmd) {
 					$this->logger->logChat("Out. Msg.", $botName, $cmd);
-					$this->chatBot->send_tell($botName, $cmd, "\0");
-					$this->chatBot->privategroup_leave($botName);
+					$this->chatBot->sendRawTell($botName, $cmd);
+					$uid = $this->chatBot->getUid($botName);
+					if (!isset($uid)) {
+						continue;
+					}
+					$this->chatBot->aoClient->write(
+						package: new Package\Out\PrivateChannelLeave(
+							channelId: $uid,
+						)
+					);
 				}
 				$this->buddylistManager->remove($botName, "tradebot");
 			}
@@ -150,12 +158,12 @@ class TradebotController extends ModuleInstance {
 			if (array_key_exists($botName, self::BOT_DATA)) {
 				foreach (self::BOT_DATA[$botName]['join'] as $cmd) {
 					$this->logger->logChat("Out. Msg.", $botName, $cmd);
-					$this->chatBot->send_tell($botName, $cmd, "\0");
+					$this->chatBot->sendRawTell($botName, $cmd);
 				}
 				if ($this->buddylistManager->isOnline($botName)) {
 					$this->joinPrivateChannel($botName);
 				}
-				rethrow($this->buddylistManager->addName($botName, "tradebot"));
+				async($this->buddylistManager->addName(...), $botName, "tradebot");
 			}
 		}
 		if ($this->messageHub->hasRouteFor(Source::TRADEBOT)) {
@@ -267,11 +275,13 @@ class TradebotController extends ModuleInstance {
 			return;
 		}
 		$this->logger->notice("Joining {character}'s private channel.", ["character" => $sender]);
-		if ($this->chatBot->privategroup_join($sender)) {
-			$this->messageHub->registerMessageEmitter(
-				new TradebotChannel($sender . "-*")
-			);
+		if (null === ($uid = $this->chatBot->getUid($sender))) {
+			return;
 		}
+		$this->chatBot->aoClient->write(
+			package: new Package\Out\PrivateChannelJoin(channelId: $uid),
+		);
+		$this->messageHub->registerMessageEmitter(new TradebotChannel($sender . "-*"));
 	}
 
 	/** List the currently custom defined colors */
@@ -428,7 +438,7 @@ class TradebotController extends ModuleInstance {
 	protected function joinPrivateChannel(string $botName): void {
 		$cmd = "!join";
 		$this->logger->logChat("Out. Msg.", $botName, $cmd);
-		$this->chatBot->send_tell($botName, $cmd);
+		$this->chatBot->sendRawTell($botName, $cmd);
 	}
 
 	protected function colorizeMessage(string $tradeBot, string $message): string {

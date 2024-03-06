@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use function Amp\Promise\rethrow;
-
+use function Amp\async;
+use AO\Package;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	StopExecutionException,
 	UserStateEvent,
 };
+
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayMessage,
@@ -65,7 +66,7 @@ class Tell implements TransportInterface {
 	public function send(array $data): array {
 		$leftOver = [];
 		foreach ($data as $chunk) {
-			if (!$this->chatBot->send_tell($this->bot, $chunk)) {
+			if (!$this->chatBot->sendRawTell($this->bot, $chunk)) {
 				$leftOver []= $chunk;
 			}
 		}
@@ -115,10 +116,11 @@ class Tell implements TransportInterface {
 			$callback();
 		} else {
 			$this->initCallback = $callback;
-			rethrow($this->buddylistManager->addName(
+			async(
+				$this->buddylistManager->addName(...),
 				$this->bot,
 				$this->relay->getName() . "_relay"
-			));
+			);
 		}
 		return [];
 	}
@@ -135,9 +137,10 @@ class Tell implements TransportInterface {
 		if (isset($buddy) && !count($buddy->types)) {
 			// We need to wait for the buddy-remove packet
 			$waitForRemoval = function (PackageEvent $event) use ($callback, &$waitForRemoval): void {
-				$uid = $event->packet->args[0];
-				$name = $this->chatBot->lookup_user($uid);
-				if ($name === $this->bot && is_int($uid)) {
+				assert($event->packet->package instanceof Package\In\BuddyRemoved);
+				$uid = $event->packet->package->charId;
+				$name = $this->chatBot->getName($uid);
+				if ($name === $this->bot) {
 					$this->buddylistManager->updateRemoved($uid);
 					$this->eventManager->unsubscribe("packet(41)", $waitForRemoval);
 					$callback();

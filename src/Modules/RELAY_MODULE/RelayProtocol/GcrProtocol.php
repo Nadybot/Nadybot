@@ -2,10 +2,8 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use function Amp\asyncCall;
-
+use function Amp\async;
 use Closure;
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\Player,
@@ -20,6 +18,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	RELAY_MODULE\Relay,
@@ -136,9 +135,8 @@ class GcrProtocol implements RelayProtocolInterface {
 		if (!isset($character) || !$this->util->isValidSender($character->name??-1)) {
 			return [];
 		}
-		asyncCall(function () use ($character, $event): Generator {
-			/** @var ?Player */
-			$player = yield $this->playerManager->byName($character->name);
+		async(function () use ($character, $event): void {
+			$player = $this->playerManager->byName($character->name);
 			if (!isset($player)) {
 				return;
 			}
@@ -238,10 +236,11 @@ class GcrProtocol implements RelayProtocolInterface {
 		$r = new RoutableEvent();
 		$r->type = RoutableEvent::TYPE_EVENT;
 		$r->path = [];
-		$r->data = new Online();
-		$r->data->online = $matches[1] === "on";
-		$r->data->message = $this->replaceBeBotColors($matches[2]);
-		$r->data->renderPath = false;
+		$online = new Online();
+		$online->online = $matches[1] === "on";
+		$online->message = $this->replaceBeBotColors($matches[2]);
+		$online->renderPath = false;
+		$r->data = $online;
 		return $r;
 	}
 
@@ -253,9 +252,8 @@ class GcrProtocol implements RelayProtocolInterface {
 			$callback = ($matches['status'] === '1')
 				? Closure::fromCallable([$this->relay, "setOnline"])
 				: Closure::fromCallable([$this->relay, "setOffline"]);
-			asyncCall(function () use ($matches, $callback, $sender): Generator {
-				/** @var ?Player */
-				$player = yield $this->playerManager->byName($sender);
+			async(function () use ($matches, $callback, $sender): void {
+				$player = $this->playerManager->byName($sender);
 				if (!isset($player)) {
 					return;
 				}
@@ -267,9 +265,8 @@ class GcrProtocol implements RelayProtocolInterface {
 				$callback($player->name, $channel, $matches['char']);
 			});
 		} elseif (preg_match("/^online (.+)$/", $text, $matches)) {
-			asyncCall(function () use ($matches, $sender): Generator {
-				/** @var ?Player */
-				$player = yield $this->playerManager->byName($sender);
+			async(function () use ($matches, $sender): void {
+				$player = $this->playerManager->byName($sender);
 				if (!isset($player)) {
 					return;
 				}

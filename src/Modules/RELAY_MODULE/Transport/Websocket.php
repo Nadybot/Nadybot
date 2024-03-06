@@ -2,35 +2,25 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use function Amp\{
-	Promise\rethrow,
-	asyncCall,
-	call,
-	delay,
-};
+use function Amp\{async, delay};
 
 use Amp\Http\Client\{
 	Connection\DefaultConnectionFactory,
 	Connection\UnlimitedConnectionPool,
-	Connection\UnprocessedRequestException,
 	HttpClientBuilder,
 	Interceptor\AddRequestHeader,
 	Interceptor\RemoveRequestHeader,
 	TimeoutException,
 };
 use Amp\Websocket\{
-	Client\Connection,
-	Client\Handshake,
 	Client\Rfc6455Connector,
-	Message,
+	Client\WebsocketConnection,
+	Client\WebsocketHandshake,
 };
 use Amp\{
-	Loop,
-	Promise,
 	Socket\ConnectContext,
 };
 use Exception;
-use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	LogWrapInterface,
@@ -43,6 +33,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayStatus,
 	StatusProvider,
 };
+use Revolt\EventLoop;
 use Throwable;
 
 #[
@@ -89,7 +80,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 	/** @var ?callable */
 	protected $initCallback;
 
-	protected Connection $client;
+	protected WebsocketConnection $client;
 
 	private bool $deinitializing = false;
 
@@ -137,9 +128,9 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 		if (!isset($this->client)) {
 			return [];
 		}
-		asyncCall(function () use ($data): Generator {
+		async(function () use ($data): void {
 			foreach ($data as $chunk) {
-				yield $this->client->send($chunk);
+				$this->client->sendText($chunk);
 			}
 		});
 		return [];
@@ -147,7 +138,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 
 	public function init(callable $callback): array {
 		$this->initCallback = $callback;
-		$handshake = new Handshake($this->uri);
+		$handshake = new WebsocketHandshake($this->uri);
 		$connectContext = (new ConnectContext())->withTcpNoDelay();
 		$httpClientBuilder = $this->clientBuilder
 			->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
@@ -156,8 +147,8 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 			$httpClientBuilder->intercept(new AddRequestHeader("Authorization", $this->authorization));
 		}
 		$httpClient = $httpClientBuilder->build();
-		$client = new Rfc6455Connector($httpClient);
-		asyncCall(function () use ($callback, $client, $handshake): Generator {
+		$client = new Rfc6455Connector(httpClient: $httpClient);
+		async(function () use ($callback, $client, $handshake): void {
 			$reconnect = false;
 			do {
 				if ($this->deinitializing) {
@@ -165,17 +156,10 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 				}
 				$this->status = new RelayStatus(RelayStatus::INIT, "Connecting to {$this->uri}");
 				try {
-					/** @var Connection */
-					$connection = yield $client->connect($handshake, null);
+					$connection = $client->connect($handshake, null);
 				} catch (Throwable $e) {
 					if ($this->chatBot->isShuttingDown()) {
 						return;
-					}
-					if ($e instanceof UnprocessedRequestException) {
-						$prev = $e->getPrevious();
-						if (isset($prev)) {
-							$e = $prev;
-						}
 					}
 					$error = $e->getMessage();
 					$this->logger->error("{error} - retrying in {delay}s", [
@@ -187,16 +171,20 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 
 					if ($e instanceof TimeoutException) {
 						if (isset($this->initCallback)) {
-							yield delay(10000);
+							delay(10);
 							$reconnect = true;
 						} else {
 							unset($this->client);
-							$this->retryHandler = Loop::delay(10000, fn () => $this->relay->init());
+							$this->retryHandler = EventLoop::delay(10, function (string $token): void {
+								$this->relay->init();
+							});
 							return;
 						}
 					} else {
 						unset($this->client);
-						$this->retryHandler = Loop::delay(10000, fn () => $this->relay->init());
+						$this->retryHandler = EventLoop::delay(10, function (string $token): void {
+							$this->relay->init();
+						});
 						return;
 					}
 				}
@@ -213,7 +201,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 			unset($this->initCallback);
 			$this->status = new RelayStatus(RelayStatus::READY, "ready");
 			$callback();
-			rethrow($this->mainLoop());
+			async($this->mainLoop(...));
 		});
 		return [];
 	}
@@ -221,16 +209,16 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 	public function deinit(callable $callback): array {
 		$this->deinitializing = true;
 		if (isset($this->retryHandler)) {
-			Loop::cancel($this->retryHandler);
+			EventLoop::cancel($this->retryHandler);
 			$this->retryHandler = null;
 		}
-		if (!isset($this->client) || !$this->client->isConnected()) {
+		if (!isset($this->client) || $this->client->isClosed()) {
 			$callback();
 			return [];
 		}
-		asyncCall(function () use ($callback): Generator {
+		async(function () use ($callback): void {
 			try {
-				yield $this->client->close();
+				$this->client->close();
 			} catch (Throwable) {
 			}
 			$callback();
@@ -238,40 +226,40 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 		return [];
 	}
 
-	/** @return Promise<void> */
-	private function mainLoop(): Promise {
-		return call(function (): Generator {
-			try {
-				while ($message = yield $this->client->receive()) {
-					/** @var Message $message */
-					$data = yield $message->buffer();
+	private function mainLoop(): void {
+		try {
+			while (null !== ($message = $this->client->receive())) {
+				$data = $message->buffer();
 
-					/** @var string $data */
-					$msg = new RelayMessage();
-					$msg->packages = [$data];
-					$this->relay->receiveFromTransport($msg);
-				}
-			} catch (Throwable $e) {
-				if ($this->chatBot->isShuttingDown()) {
-					return;
-				}
-				$this->logger->error("{error}, retrying in {delay}s", [
-					"error" => $e->getMessage(),
-					"delay" => 10,
-					"exception" => $e,
-				]);
-				$this->status = new RelayStatus(RelayStatus::INIT, $e->getMessage());
-				unset($this->client);
-				$this->retryHandler = Loop::delay(10000, fn () => $this->relay->init());
+				/** @var string $data */
+				$msg = new RelayMessage();
+				$msg->packages = [$data];
+				$this->relay->receiveFromTransport($msg);
+			}
+		} catch (Throwable $e) {
+			if ($this->chatBot->isShuttingDown()) {
 				return;
 			}
-			try {
-				yield $this->client->close();
-			} catch (Throwable) {
-			}
+			$this->logger->error("{error}, retrying in {delay}s", [
+				"error" => $e->getMessage(),
+				"delay" => 10,
+				"exception" => $e,
+			]);
+			$this->status = new RelayStatus(RelayStatus::INIT, $e->getMessage());
 			unset($this->client);
-			$this->logger->notice("Reconnecting.");
-			$this->retryHandler = Loop::defer(fn () => $this->relay->init());
+			$this->retryHandler = EventLoop::delay(10, function (string $token): void {
+				$this->relay->init();
+			});
+			return;
+		}
+		try {
+			$this->client->close();
+		} catch (Throwable) {
+		}
+		unset($this->client);
+		$this->logger->notice("Reconnecting.");
+		$this->retryHandler = EventLoop::defer(function (string $token): void {
+			$this->relay->init();
 		});
 	}
 }

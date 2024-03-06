@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\RELAY_MODULE;
 
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
 use Nadybot\Core\{
@@ -1105,7 +1104,7 @@ class RelayController extends ModuleInstance {
 		NCA\ApiResult(code: 204, desc: "The event configuration was set"),
 		NCA\ApiResult(code: 404, desc: "Relay not found")
 	]
-	public function apiPutRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Generator {
+	public function apiPutRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
 			return new Response(Response::NOT_FOUND);

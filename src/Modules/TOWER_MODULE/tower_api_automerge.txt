@@ -1,7 +1,0 @@
-This setting comes into effect when you are receiving data
-from the tower API and are using <highlight><symbol>scout<end> to add
-scouting data manually in parallel.
-
-The setting determines, under which conditions, your locally
-scouted data is removed or replaced with API data - if the
-API data is newer.
