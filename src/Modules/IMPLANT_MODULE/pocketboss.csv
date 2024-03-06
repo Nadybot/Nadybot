@@ -383,6 +383,7 @@ id,pb,pb_location,bp_mob,bp_lvl,bp_location,type,slot,line,ql,itemid
 382,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,Feet,Persisting,220,236502
 383,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Infantry,"Left Arm",Persisting,220,235710
 384,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,Thigh,Persisting,220,236470
+384,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,"Left Hand",Effective,240,236486
 385,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Support,Ear,Effective,240,236107
 386,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Support,Chest,Effective,240,236137
 387,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Artillery,"Left Arm",Effective,240,235490
