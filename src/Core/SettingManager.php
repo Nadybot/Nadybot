@@ -139,7 +139,7 @@ class SettingManager {
 			$intoptions = join(";", array_values($kv));
 		}
 
-		if (!empty($help)) {
+		if (isset($help) && $help !== "") {
 			$help = $this->helpManager->checkForHelpFile($module, $help);
 		}
 

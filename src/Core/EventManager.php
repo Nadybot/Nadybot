@@ -245,7 +245,6 @@ class EventManager {
 				return;
 			}
 
-			/** @psalm-suppress RedundantFunctionCall */
 			$this->dynamicEvents[$type] = array_values(
 				array_filter(
 					$this->dynamicEvents[$type],
@@ -300,6 +299,7 @@ class EventManager {
 
 		$this->logger->info("Deactivating {event}", ["event" => $logObj]);
 
+		$found = false;
 		if ($this->isValidEventType($type)) {
 			if (in_array($filename, $this->events[$type]??[])) {
 				$found = true;
@@ -325,7 +325,7 @@ class EventManager {
 			}
 		}
 
-		if (!($found??false)) {
+		if (!$found) {
 			$this->logger->error("Error deactivating {event}: {error}", [
 				"event" => $logObj,
 				"error" => "The event is not active or doesn't exist!",

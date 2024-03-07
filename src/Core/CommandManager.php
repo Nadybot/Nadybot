@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use function Safe\{preg_match, preg_match_all};
 use Exception;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -31,6 +32,7 @@ use ReflectionException;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
+
 use Throwable;
 
 #[
@@ -830,6 +832,9 @@ class CommandManager implements MessageEmitter {
 
 	/** @param string[] $calls */
 	public function sortCalls(array &$calls): void {
+		if (count($calls) < 2) {
+			return;
+		}
 		usort($calls, function (string $call1, string $call2): int {
 			/** @phpstan-var array{array{string,int}, array{string,int}} */
 			$refs = [];
@@ -838,6 +843,7 @@ class CommandManager implements MessageEmitter {
 				[$method, $line] = explode(":", $method);
 				$refs []= [$class, (int)$line];
 			}
+			assert(count($refs) === 2);
 			return strcmp($refs[0][0], $refs[1][0]) ?: $refs[0][1] <=> $refs[1][1];
 		});
 	}
@@ -1136,9 +1142,10 @@ class CommandManager implements MessageEmitter {
 			return true;
 		}
 		foreach ($regexes as $regex) {
-			if (preg_match($regex->match, $message, $arr)) {
-				if (isset($regex->variadicMatch)) {
-					if (preg_match_all($regex->variadicMatch, $message, $arr2)) {
+			if (preg_match($regex->match, $message, $arr) && is_array($arr)) {
+				if (isset($regex->variadicMatch) && strlen($regex->variadicMatch)) {
+					/** @psalm-suppress RiskyTruthyFalsyComparison */
+					if (preg_match_all($regex->variadicMatch, $message, $arr2) && is_array($arr2)) {
 						$arr = $arr2;
 					}
 				}

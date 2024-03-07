@@ -97,7 +97,7 @@ class Text {
 					$page,
 					$headers,
 					PREG_OFFSET_CAPTURE
-				)
+				) > 0
 			) {
 				if (isset($headers) && $headers[1][0][1] === 9) {
 					$from = $headers[1][0][0];
@@ -177,7 +177,8 @@ class Text {
 			return (array)$input;
 		}
 
-		// @phpstan-ignore-next-line
+		/** @var non-empty-string $symbol */
+
 		$lines = explode($symbol, $input);
 		foreach ($lines as $line) {
 			// retain new lines and spaces in output

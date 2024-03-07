@@ -3,6 +3,8 @@
     phpVersion="8.2"
     errorLevel="8"
     findUnusedPsalmSuppress="true"
+    findUnusedCode="false"
+    findUnusedBaselineEntry="false"
     resolveFromConfigFile="true"
     allowStringToStandInForClass="true"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

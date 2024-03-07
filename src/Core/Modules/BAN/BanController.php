@@ -371,7 +371,7 @@ class BanController extends ModuleInstance {
 		$who = $who();
 
 		$charId = $this->chatBot->getUid($who);
-		if (!$charId) {
+		if (!isset($charId)) {
 			$context->reply("Player <highlight>{$who}<end> doesn't exist.");
 			return;
 		}
@@ -771,7 +771,7 @@ class BanController extends ModuleInstance {
 		$msgs = [];
 		foreach ($toBan as $who) {
 			$charId = $this->chatBot->getUid($who);
-			if (!$charId) {
+			if (!isset($charId)) {
 				$msgs []= "Character <highlight>{$who}<end> does not exist.";
 				$numErrors++;
 				continue;

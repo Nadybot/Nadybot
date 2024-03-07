@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\ALTS;
 
 use function Amp\async;
 
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -79,6 +80,9 @@ class AltsController extends ModuleInstance {
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
+	public BotConfig $config;
+
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]
@@ -135,7 +139,7 @@ class AltsController extends ModuleInstance {
 		description: "Add unvalidated alts/mains to friendlist"
 	)]
 	public function addNonValidatedAsBuddies(): void {
-		$myName = ucfirst(strtolower($this->chatBot->char->name));
+		$myName = $this->config->main->character;
 		$this->db->table("alts")->where("validated_by_alt", false)->where("added_via", $myName)
 			->asObj(Alt::class)->each(function (Alt $alt) {
 				$this->buddylistManager->addName($alt->alt, static::ALT_VALIDATE);
@@ -446,7 +450,7 @@ class AltsController extends ModuleInstance {
 			return;
 		}
 		if (!$altInfo->isValidated($sender)) {
-			if ($altInfo->alts[$sender]->added_via !== $this->chatBot->char->name) {
+			if ($altInfo->alts[$sender]->added_via !== $this->chatBot->char?->name) {
 				return;
 			}
 			if (!$altInfo->alts[$sender]->validated_by_alt) {

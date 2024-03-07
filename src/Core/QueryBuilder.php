@@ -294,6 +294,7 @@ class QueryBuilder extends Builder {
 			$ps->execute();
 			return $ps;
 		} catch (PDOException $e) {
+			$e->errorInfo ??= [0, ""];
 			if ($this->nadyDB->getType() === DB\Type::SQLite && $e->errorInfo[1] === 17) {
 				// fix for Sqlite schema changed error (retry the query)
 				return $this->executeQuery($sql, $params);

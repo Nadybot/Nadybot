@@ -56,29 +56,29 @@ class LoggerWrapper implements LoggerInterface {
 	/**
 	 * Detailed debug information, including data like traces
 	 *
-	 * @param array<string,mixed> $context
+	 * @param array<array-key,mixed> $context
 	 */
 	public function debug(string|Stringable $message, array $context=[]): void {
-		$this->passthru(Logger::DEBUG, (string)$message, $context);
+		$this->passthru(Logger::DEBUG, $message, $context);
 	}
 
 	/**
 	 * Information that describes what's generally been done right now
 	 *
-	 * @param array<string,mixed> $context
+	 * @param array<array-key,mixed> $context
 	 */
 	public function info(string|Stringable $message, array $context=[]): void {
-		$this->passthru(Logger::INFO, (string)$message, $context);
+		$this->passthru(Logger::INFO, $message, $context);
 	}
 
 	/**
 	 * Something important, like a milestone, has been reached,
 	 * or generally something the bot admin should always see
 	 *
-	 * @param array<string,mixed> $context
+	 * @param array<array-key,mixed> $context
 	 */
 	public function notice(string|Stringable $message, array $context=[]): void {
-		$this->passthru(Logger::NOTICE, (string)$message, $context);
+		$this->passthru(Logger::NOTICE, $message, $context);
 	}
 
 	/**
@@ -88,28 +88,28 @@ class LoggerWrapper implements LoggerInterface {
 	 * poor use of an API,
 	 * undesirable things that are not necessarily wrong.
 	 *
-	 * @param array<string,mixed> $context
+	 * @param array<array-key,mixed> $context
 	 */
 	public function warning(string|Stringable $message, array $context=[]): void {
-		$this->passthru(Logger::WARNING, (string)$message, $context);
+		$this->passthru(Logger::WARNING, $message, $context);
 	}
 
 	/**
 	 * Runtime errors that the bot can ignore and continue
 	 *
-	 * @param array<string,mixed> $context
+	 * @param array<array-key,mixed> $context
 	 */
 	public function error(string|Stringable $message, array $context=[]): void {
-		$this->passthru(Logger::ERROR, (string)$message, $context);
+		$this->passthru(Logger::ERROR, $message, $context);
 	}
 
 	/**
 	 * Urgent alerts that should not be ignored
 	 *
-	 * @param array<string,mixed> $context
+	 * @param array<array-key,mixed> $context
 	 */
 	public function critical(string|Stringable $message, array $context=[]): void {
-		$this->passthru(Logger::CRITICAL, (string)$message, $context);
+		$this->passthru(Logger::CRITICAL, $message, $context);
 	}
 
 	/**
@@ -119,27 +119,27 @@ class LoggerWrapper implements LoggerInterface {
 	 * database unavailable,
 	 * things that should trigger an sms alert and wake you up.
 	 *
-	 * @param array<string,mixed> $context
+	 * @param array<array-key,mixed> $context
 	 */
 	public function alert(string|Stringable $message, array $context=[]): void {
-		$this->passthru(Logger::ALERT, (string)$message, $context);
+		$this->passthru(Logger::ALERT, $message, $context);
 	}
 
 	/**
 	 * Urgent alert
 	 *
-	 * @param array<string,mixed> $context
+	 * @param array<array-key,mixed> $context
 	 */
 	public function emergency(string|Stringable $message, array $context=[]): void {
-		$this->passthru(Logger::EMERGENCY, (string)$message, $context);
+		$this->passthru(Logger::EMERGENCY, $message, $context);
 	}
 
 	/**
 	 * Log a message according to log settings
 	 *
-	 * @param mixed               $level    The log level
-	 * @param string              $message  The message to log
-	 * @param array<string,mixed> $context
+	 * @param mixed                  $level   The log level
+	 * @param string                 $message The message to log
+	 * @param array<array-key,mixed> $context
 	 */
 	public function log(mixed $level, string|Stringable $message, array $context=[]): void {
 		if (!is_int($level) && !is_string($level)) {
@@ -147,8 +147,13 @@ class LoggerWrapper implements LoggerInterface {
 		}
 
 		$level = is_string($level) ? LegacyLogger::getLoggerLevel($level) : $level;
-		// @phpstan-ignore-next-line
-		$this->logger->log($level, (string)$message, $context);
+
+		/**
+		 * @psalm-suppress ArgumentTypeCoercion
+		 *
+		 * @phpstan-ignore-next-line
+		 */
+		$this->logger->log($level, $message, $context);
 	}
 
 	/**
@@ -228,7 +233,8 @@ class LoggerWrapper implements LoggerInterface {
 	 *
 	 * @param array<string,mixed> $context
 	 */
-	private function passthru(int $logLevel, string $message, array $context): void {
+	private function passthru(int $logLevel, string|Stringable $message, array $context): void {
+		$message = (string)$message;
 		try {
 			if (isset($this->wrapper)) {
 				[$logLevel, $message, $context] = call_user_func($this->wrapper, $logLevel, $message, $context);

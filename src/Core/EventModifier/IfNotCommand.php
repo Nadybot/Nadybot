@@ -29,7 +29,7 @@ class IfNotCommand implements EventModifier {
 		if (!isset($event) || $event->getType() !== $event::TYPE_MESSAGE) {
 			return $event;
 		}
-		if (isset($event->char) && ($event->char->id === $this->chatBot->char->id)) {
+		if (isset($event->char) && ($event->char->id === $this->chatBot->char?->id)) {
 			return null;
 		}
 		$message = $event->getData();

@@ -92,7 +92,6 @@ class IfHasPrefix implements EventModifier {
 			}
 			$event = clone $event;
 			if (isset($event->data) && ($event->data instanceof Base)) {
-				/** @psalm-suppress PossiblyNullArgument */
 				$event->data->message = ltrim(substr($message, strlen($this->prefix)));
 			}
 			return $event;

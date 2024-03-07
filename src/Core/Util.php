@@ -6,6 +6,7 @@ use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
+use RangeException;
 use ReflectionClass;
 
 #[NCA\Instance]
@@ -27,6 +28,9 @@ class Util {
 		$unitCount = 0;
 		for ($max = count($ext) - 1; $bytes >= 1024 && $unitCount < $max; $unitCount++) {
 			$bytes /= 1024;
+		}
+		if (!isset($ext[$unitCount])) {
+			throw new RangeException("{$bytes} too large to handle");
 		}
 		return round($bytes, 2) ." ". $ext[$unitCount];
 	}

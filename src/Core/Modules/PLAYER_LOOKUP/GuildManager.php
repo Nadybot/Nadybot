@@ -114,6 +114,7 @@ class GuildManager extends ModuleInstance {
 			} catch (\Amp\TimeoutException) {
 				$baseUrl = $this->playerManager::PORK_URL;
 			} catch (TimeoutException $e) {
+				/** @psalm-suppress RedundantCast */
 				$delay = (int)pow($try, 2);
 				$this->logger->info("Lookup for ORG {guild} D{dimension} timed out, retrying in {delay}s ({try}/{retries})", [
 					"guild" => $guildID,

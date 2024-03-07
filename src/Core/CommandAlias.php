@@ -48,7 +48,7 @@ class CommandAlias {
 		if ($row !== null) {
 			$this->logger->info("Updating {alias}", ["alias" => $entry]);
 			// do not update an alias that a user created
-			if (!empty($row->module)) {
+			if (isset($row->module) && strlen($row->module) > 0) {
 				$this->db->update(self::DB_TABLE, "alias", $entry);
 			}
 		} else {

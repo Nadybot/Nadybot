@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	Channels\DiscordChannel,
 	CmdContext,
 	ColorSettingHandler,
+	Config\BotConfig,
 	DB,
 	DBSchema\Route,
 	DBSchema\RouteHopColor,
@@ -67,6 +68,9 @@ class MessageHubController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	#[NCA\Inject]
+	public BotConfig $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -234,10 +238,10 @@ class MessageHubController extends ModuleInstance {
 		$to = $this->fixDiscordChannelName($to());
 		$from = $this->fixDiscordChannelName($from());
 		if ($to === Source::PRIV) {
-			$to = Source::PRIV . "({$this->chatBot->char->name})";
+			$to = Source::PRIV . "({$this->config->main->character})";
 		}
 		if ($from === Source::PRIV) {
-			$from = Source::PRIV . "({$this->chatBot->char->name})";
+			$from = Source::PRIV . "({$this->config->main->character})";
 		}
 		$receiver = $this->messageHub->getReceiver($to);
 		if (!$force && !isset($receiver)) {

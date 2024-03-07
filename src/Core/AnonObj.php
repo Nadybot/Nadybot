@@ -22,6 +22,8 @@ class AnonObj implements Loggable {
 	public function setProperty(string $property, mixed $value): void {
 		$keys = explode(".", $property);
 		$property = array_pop($keys);
+
+		/** @psalm-suppress UnsupportedPropertyReferenceUsage */
 		$props = &$this->properties;
 		foreach ($keys as $key) {
 			if (!isset($props[$key])) {

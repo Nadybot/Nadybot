@@ -20,6 +20,7 @@ use Monolog\{
 	Processor\IntrospectionProcessor,
 	Processor\PsrLogMessageProcessor,
 };
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -71,6 +72,9 @@ class LogsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -319,7 +323,7 @@ class LogsController extends ModuleInstance {
 		$loggers = LegacyLogger::getLoggers();
 		$formatter = new JsonFormatter(JsonFormatter::BATCH_MODE_JSON, true, true);
 		$formatter->includeStacktraces(true);
-		$debugFile = sys_get_temp_dir() . "/{$this->chatBot->char->name}.debug.json";
+		$debugFile = sys_get_temp_dir() . "/{$this->config->main->character}.debug.json";
 		@unlink($debugFile);
 		$handler = new StreamHandler($debugFile, Logger::DEBUG, true, 0600);
 		$handler->setFormatter($formatter);

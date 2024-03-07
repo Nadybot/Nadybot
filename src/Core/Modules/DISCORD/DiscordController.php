@@ -86,7 +86,7 @@ class DiscordController extends ModuleInstance {
 		$text = preg_replace('/<(highlight|black|white|yellow|blue|green|red|on|off|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]*)><end>/s', '', $text);
 		$text = preg_replace('/<highlight>(.*?)<end>/s', '**$1**', $text);
 		$text = preg_replace('/(\s|\*)-(>|&gt;)(\s|\*)/s', '$1↦$3', $text);
-		$text = str_replace("<myname>", $this->chatBot->char->name, $text);
+		$text = str_replace("<myname>", $this->config->main->character, $text);
 		$text = str_replace("<myguild>", $this->config->general->orgName, $text);
 		$text = str_replace("<symbol>", $this->settingManager->getString("symbol")??"!", $text);
 		$text = str_replace("<br>", "\n", $text);

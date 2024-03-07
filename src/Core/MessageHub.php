@@ -335,7 +335,7 @@ class MessageHub {
 	public function hasRouteFor(string $sender): bool {
 		$sender = strtolower($sender);
 		foreach ($this->routes as $source => $dest) {
-			if (!strpos($source, '(')) {
+			if (strpos($source, '(') === false) {
 				$source .= '(*)';
 			}
 			if (fnmatch($source, $sender, FNM_CASEFOLD)) {
@@ -354,7 +354,7 @@ class MessageHub {
 		$receivers = [];
 		$sender = strtolower($sender);
 		foreach ($this->routes as $source => $dest) {
-			if (!strpos($source, '(')) {
+			if (strpos($source, '(') === false) {
 				$source .= '(*)';
 			}
 			if (fnmatch($source, $sender, FNM_CASEFOLD)) {
@@ -372,7 +372,7 @@ class MessageHub {
 	public function hasRouteFromTo(string $sender, string $destination): bool {
 		$sender = strtolower($sender);
 		foreach ($this->routes as $source => $dest) {
-			if (!strpos($source, '(')) {
+			if (strpos($source, '(') === false) {
 				$source .= '(*)';
 			}
 			if (!fnmatch($source, $sender, FNM_CASEFOLD)) {
@@ -438,7 +438,7 @@ class MessageHub {
 		}
 		$returnStatus = static::EVENT_NOT_ROUTED;
 		foreach ($this->routes as $source => $dest) {
-			if (!strpos($source, '(')) {
+			if (strpos($source, '(') === false) {
 				$source .= '(*)';
 			}
 			if (isset($eventLogLevel)
@@ -764,7 +764,7 @@ class MessageHub {
 
 		/** @var ?Source */
 		$hop = $path[count($path)-1] ?? null;
-		if (empty($event->char) || $event->char->id === $this->chatBot->char->id) {
+		if (empty($event->char) || $event->char->id === $this->chatBot->char?->id) {
 			if (!isset($hop) || $hop->type !== Source::SYSTEM) {
 				$sysColor = $this->settingManager->getString("default_routed_sys_color")??"";
 				return $sysColor;

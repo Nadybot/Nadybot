@@ -116,7 +116,7 @@ class AltInfo {
 	public function getAllMainUnvalidatedAlts(bool $onlyMine=true): array {
 		$alts = [];
 		foreach ($this->alts as $alt => $status) {
-			if ($onlyMine && $status->added_via !== $this->chatBot->char->name) {
+			if ($onlyMine && $status->added_via !== $this->chatBot->char?->name) {
 				continue;
 			}
 			if (!$status->validated_by_main) {
@@ -280,13 +280,14 @@ class AltInfo {
 		}
 		$count = $alts->count() + 1;
 		foreach ($alts as $row) {
+			/** @var AltPlayer $row */
 			$online = $this->buddylistManager->isOnline($row->alt);
-			$blob .= $this->text->alignNumber($row->player->level??0, 3, "highlight");
+			$blob .= $this->text->alignNumber($row->player?->level??0, 3, "highlight");
 			$blob .= " ";
-			$blob .= $this->text->alignNumber($row->player->ai_level??0, 2, "green");
+			$blob .= $this->text->alignNumber($row->player?->ai_level??0, 2, "green");
 			$blob .= " ";
-			if ($profDisplay & 1 && $row->player->profession !== null) {
-				$profId = $this->onlineController->getProfessionId($row->player->profession??"");
+			if ($profDisplay & 1 && isset($row->player) && $row->player->profession !== null) {
+				$profId = $this->onlineController->getProfessionId($row->player->profession);
 				if (isset($profId)) {
 					$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_{$profId}> ";
 				}
@@ -295,16 +296,17 @@ class AltInfo {
 			}
 			$blob .= $this->formatCharName($row->alt, $online);
 			$extraInfo = [];
-			if ($profDisplay & 2 && $row->player?->profession !== null) {
+			if ($profDisplay & 2 && isset($row->player) && $row->player->profession !== null) {
 				$extraInfo []= $this->util->getProfessionAbbreviation($row->player->profession);
 			}
-			if ($profDisplay & 4 && $row->player?->profession !== null) {
+			if ($profDisplay & 4 && isset($row->player) && $row->player->profession !== null) {
 				$extraInfo []= $row->player->profession;
 			}
-			if ($this->settingManager->getBool('alts_show_org') && $row->player?->faction !== null && !$firstPageOnly) {
+			if (isset($row->player) && $this->settingManager->getBool('alts_show_org') && $row->player->faction !== null && !$firstPageOnly) {
 				$factionColor = strtolower($row->player->faction);
-				// @phpstan-ignore-next-line
-				$orgName = !empty($row->player?->guild) ? $row->player->guild : ($row->player?->faction??"Neutral");
+				$orgName = ($row->player->guild !== "")
+					? $row->player->guild
+					: $row->player->faction;
 				$extraInfo []= "<{$factionColor}>{$orgName}<end>";
 			}
 			if (count($extraInfo)) {

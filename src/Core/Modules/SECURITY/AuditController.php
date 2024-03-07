@@ -77,7 +77,7 @@ class AuditController extends ModuleInstance {
 			$data->pop();
 		}
 		$lines = $data->map(function (Audit $audit): string {
-			$audit->actee = $audit->actee ? " -&gt; {$audit->actee}" : "";
+			$audit->actee = isset($audit->actee) ? " -&gt; {$audit->actee}" : "";
 			return "<tab>" . $audit->time->format("Y-m-d H:i:s e").
 				" <highlight>{$audit->actor}<end>{$audit->actee} ".
 				"<highlight>{$audit->action}<end> {$audit->value}";
@@ -223,7 +223,7 @@ class AuditController extends ModuleInstance {
 	}
 
 	/**
-	 * @param Collection<mixed>   $data
+	 * @param Collection<Audit>   $data
 	 * @param array<string,mixed> $params
 	 *
 	 * @return string[]

@@ -47,8 +47,8 @@ class DiscordChannelSettingHandler extends SettingHandler {
 		if (!preg_match("/^\d{1,20}$/", $newValue)) {
 			throw new Exception("<highlight>{$newValue}<end> is not a valid Channel ID.");
 		}
-		$discordBotToken = $this->settingManager->get('discord_bot_token');
-		if (empty($discordBotToken) || $discordBotToken === 'off') {
+		$discordBotToken = $this->settingManager->getString('discord_bot_token');
+		if (!isset($discordBotToken) || $discordBotToken === "" || $discordBotToken === 'off') {
 			throw new Exception("You cannot set any Discord channels before configuring your Discord Bot Token.");
 		}
 		$channel = $this->discordGatewayController->getChannel($newValue);

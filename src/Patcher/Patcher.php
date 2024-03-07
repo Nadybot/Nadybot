@@ -2,6 +2,7 @@
 
 namespace Nadybot\Patcher;
 
+use Composer\DependencyResolver\Operation\{InstallOperation, UpdateOperation};
 use Composer\Installer\PackageEvent;
 use Composer\Package\Package;
 use Exception;
@@ -18,29 +19,19 @@ class Patcher {
 	public static function patch(PackageEvent $event): void {
 		$vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
 		$operation = $event->getOperation();
-		if (method_exists($operation, 'getOperationType')) {
-			$operationType = $operation->getOperationType();
-		} elseif (method_exists($operation, 'getJobType')) {
-			$operationType = $operation->getJobType();
-		} elseif (defined(get_class($operation) . '::TYPE')) {
-			$operationType = constant(get_class($operation) . '::TYPE');
-		} else {
-			throw new Exception('You are using an unsupported version of Composer');
-		}
-		if ($operationType === 'install') {
-			/** @var \Composer\DependencyResolver\Operation\InstallOperation $operation */
+		if ($operation instanceof InstallOperation) {
 			$package = $operation->getPackage();
-		} else {
-			/** @var \Composer\DependencyResolver\Operation\UpdateOperation $operation */
+		} elseif ($operation instanceof UpdateOperation) {
 			$package = $operation->getTargetPackage();
+		} else {
+			throw new Exception("You are using an unsupported composer version");
 		}
 
-		/** @var \Composer\Package\Package $package */
+		assert($package instanceof \Composer\Package\Package);
 		if ($package->getName() === 'squizlabs/php_codesniffer') {
 			static::patchCodesniffer($vendorDir, $package);
 		}
 
-		/** @var \Composer\Package\Package $package */
 		if ($package->getName() === 'farafiri/php-parsing-tool') {
 			static::patchParsingTool($vendorDir, $package);
 		}

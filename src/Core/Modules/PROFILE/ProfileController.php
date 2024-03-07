@@ -403,6 +403,7 @@ class ProfileController extends ModuleInstance {
 						continue;
 					}
 				} elseif (substr($line, 0, 11) === "!alias rem ") {
+					/** @psalm-suppress PossiblyUndefinedArrayOffset */
 					$alias = explode(" ", $line, 3)[2];
 					if (preg_match("/^!alias add \Q{$alias}\E (.+)$/", $lines[$profileRow+1], $parts)) {
 						/** @var ?CmdAlias $data */

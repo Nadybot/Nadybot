@@ -452,7 +452,6 @@ class DiscordAPIClient extends ModuleInstance {
 
 		/**
 		 * @psalm-suppress TypeDoesNotContainNull
-		 * @psalm-suppress DocblockTypeContradiction
 		 */
 		if (!isset($response) || !isset($body)) {
 			throw new DiscordException("Unable to send message with {$maxTries} tries");
@@ -461,6 +460,7 @@ class DiscordAPIClient extends ModuleInstance {
 			$this->logger->notice("Message sent successfully.");
 		}
 		if ($response->getStatus() === 204) {
+			/** @psalm-suppress InvalidReturnStatement */
 			return new stdClass();
 		}
 		if ($response->getHeader('content-type') !== 'application/json') {
@@ -480,6 +480,8 @@ class DiscordAPIClient extends ModuleInstance {
 			$reply = $result;
 		} elseif (is_object($o) && $o instanceof JSONDataModel) {
 			$o->fromJSON($reply);
+
+			/** @psalm-suppress NoValue */
 			$reply = $o;
 		}
 		if (is_object($reply)) {

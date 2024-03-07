@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\{async, delay};
 use function Amp\Future\await;
+use function Amp\{async, delay};
 use function Safe\{json_decode, parse_url};
 use Amp\Http\Client\{
 	HttpClientBuilder,
@@ -217,14 +217,15 @@ class PlayerManager extends ModuleInstance {
 			while ($try++ < $retries) {
 				try {
 					$url = $baseUrl . "/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json";
-/** @todo Filecache
-					$cache = new FileCache(
-						$this->config->paths->cache . '/players',
-						new LocalKeyedMutex()
-					);
-					$cacheKey = "{$name}.{$dimension}";
-					$body = $cache->get($cacheKey);
-					*/
+
+					/** @todo Filecache
+					 * $cache = new FileCache(
+					 * $this->config->paths->cache . '/players',
+					 * new LocalKeyedMutex()
+					 * );
+					 * $cacheKey = "{$name}.{$dimension}";
+					 * $body = $cache->get($cacheKey);
+					 */
 					if (isset($body)) {
 						$player = $this->parsePlayerFromBody($body);
 						break;
@@ -258,6 +259,7 @@ class PlayerManager extends ModuleInstance {
 				} catch (\Amp\TimeoutException) {
 					$baseUrl = self::PORK_URL;
 				} catch (TimeoutException $e) {
+					/** @psalm-suppress RedundantCast */
 					$delay = (int)pow($try, 2);
 					$this->logger->info("Lookup for {name}.{dimension} timed out, retrying in {delay}s ({try}/{retries})", [
 						"name" => $name,

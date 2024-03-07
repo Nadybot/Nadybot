@@ -314,7 +314,7 @@ class UsageController extends ModuleInstance {
 		$settings->http_server_enable      = $this->eventManager->getKeyForCronEvent(60, "httpservercontroller.startHTTPServer") !== null;
 
 		$obj = new UsageStats();
-		$obj->id       = sha1($botid . $this->chatBot->char->name . $this->config->main->dimension);
+		$obj->id       = sha1($botid . $this->config->main->character . $this->config->main->dimension);
 		$obj->version  = 2;
 		$obj->debug    = $debug;
 		$obj->commands = $commands;

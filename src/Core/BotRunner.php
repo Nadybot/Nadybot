@@ -52,6 +52,8 @@ class BotRunner {
 
 	private ?BotConfig $configFile;
 
+	private static Filesystem $fs;
+
 	/**
 	 * Create a new instance
 	 *
@@ -59,6 +61,7 @@ class BotRunner {
 	 */
 	public function __construct(array $argv) {
 		$this->argv = $argv;
+		self::$fs = filesystem();
 	}
 
 	/**
@@ -95,8 +98,15 @@ class BotRunner {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
-			$ref = explode(": ", trim(filesystem()->read("{$baseDir}/.git/HEAD")), 2)[1];
-			$branch = explode("/", $ref, 3)[2];
+			$refs = explode(": ", trim(self::$fs->read("{$baseDir}/.git/HEAD")), 2);
+			if (count($refs) !== 2) {
+				throw new Exception("Unknown Git format detected");
+			}
+			$parts = explode("/", $refs[1], 3);
+			if (count($parts) !== 3) {
+				throw new Exception("Unknown Git format detected");
+			}
+			$branch = $parts[2];
 			$latestTag = static::getLatestTag();
 			if (!isset($latestTag)) {
 				return $branch;
@@ -242,6 +252,16 @@ class BotRunner {
 		if (!static::isLinux()) {
 			putenv('AMP_FS_DRIVER=' . BlockingFilesystemDriver::class);
 		}
+		$fsDriverClass = getenv('AMP_FS_DRIVER');
+		if ($fsDriverClass !== false && class_exists($fsDriverClass) && is_subclass_of($fsDriverClass, FilesystemDriver::class)) {
+			$fsDriver = new $fsDriverClass();
+		} else {
+			$fsDriver = createDefaultDriver();
+		}
+		if ($fsDriver instanceof EioFilesystemDriver) {
+			$fsDriver = new ParallelFilesystemDriver();
+		}
+		self::$fs = filesystem($fsDriver);
 		$this->parseOptions();
 		// set default timezone
 		date_default_timezone_set("UTC");
@@ -277,8 +297,12 @@ class BotRunner {
 		$this->createMissingDirs();
 
 		// these must happen first since the classes that are loaded may be used by processes below
-		if (isset($config->general->timezone) && @date_default_timezone_set($config->general->timezone) === false) {
-			die("Invalid timezone: \"{$config->general->timezone}\"\n");
+		$timezone = $config->general->timezone;
+		if (isset($timezone) && strlen($timezone) > 1) {
+			/** @psalm-suppress ArgumentTypeCoercion */
+			if (@date_default_timezone_set($timezone) === false) {
+				die("Invalid timezone: \"{$timezone}\"\n");
+			}
 		}
 		$logFolderName = "{$config->paths->logs}/{$config->main->character}.{$config->main->dimension}";
 
@@ -288,23 +312,13 @@ class BotRunner {
 
 		$this->sendBotBanner();
 
-		if ($this->showSetupDialog()) {
+		if ($this->showSetupDialog($config)) {
 			$config = $this->getConfigFile();
 		}
 		$this->setWindowTitle($config);
 
-
 		$version = self::getVersion();
-		$fsDriverClass = getenv('AMP_FS_DRIVER');
-		if ($fsDriverClass !== false && class_exists($fsDriverClass) && is_subclass_of($fsDriverClass, FilesystemDriver::class)) {
-			$fsDriver = new $fsDriverClass();
-		} else {
-			$fsDriver = createDefaultDriver();
-		}
-		if ($fsDriver instanceof EioFilesystemDriver) {
-			$fsDriver = new ParallelFilesystemDriver();
-		}
-		Registry::setInstance(Registry::formatName(Filesystem::class), filesystem($fsDriver));
+		Registry::setInstance(Registry::formatName(Filesystem::class), self::$fs);
 
 		$this->logger->notice(
 			"Starting {name} {version} on RK{dimension} using ".
@@ -562,8 +576,8 @@ class BotRunner {
 	}
 
 	/** Guide customer through setup if needed */
-	private function showSetupDialog(): bool {
-		if (!$this->shouldShowSetup()) {
+	private function showSetupDialog(BotConfig $config): bool {
+		if (!$this->shouldShowSetup($config)) {
 			return false;
 		}
 		$setup = new Setup($this->getConfigFile());
@@ -573,8 +587,10 @@ class BotRunner {
 	}
 
 	/** Is information missing to run the bot? */
-	private function shouldShowSetup(): bool {
-		return empty($this->configFile->main->login) || empty($this->configFile->main->password) || empty($this->configFile->main->character);
+	private function shouldShowSetup(BotConfig $config): bool {
+		return !strlen($config->main->login)
+			|| !strlen($config->main->password)
+			|| !strlen($config->main->character);
 	}
 
 	/** Set the title of the command prompt window in Windows */

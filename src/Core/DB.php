@@ -2,14 +2,11 @@
 
 namespace Nadybot\Core;
 
+use function Amp\ByteStream\splitLines;
 use function Amp\delay;
-use function Safe\fclose;
-use function Safe\filemtime;
-use function Safe\fopen;
-use function Safe\preg_match;
-use function Safe\preg_split;
-use function Safe\touch;
+use function Safe\{preg_match, preg_replace, preg_split, touch};
 
+use Amp\File\Filesystem;
 use DateTime;
 use Exception;
 use GlobIterator;
@@ -21,8 +18,8 @@ use Illuminate\Database\{
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
-	Config\BotConfig,
 	CSV\Reader,
+	Config\BotConfig,
 	DBSchema\Migration,
 	Migration as CoreMigration,
 };
@@ -53,6 +50,9 @@ class DB {
 	#[NCA\Inject]
 	public BotConfig $config;
 
+	#[NCA\Inject]
+	public Filesystem $fs;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -77,7 +77,7 @@ class DB {
 	private DB\Type $type;
 
 	/** The PDO object to talk to the database */
-	private PDO $sql;
+	private ?PDO $sql = null;
 
 	/** The low-level Capsule manager object */
 	private Capsule $capsule;
@@ -103,7 +103,14 @@ class DB {
 	}
 
 	public function getVersion(): string {
-		return $this->config->database->type->name . " " . $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
+		if (!isset($this->sql)) {
+			throw new Exception("You are not connected to any database.");
+		}
+		$version = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
+		if (!isset($version) || !is_string($version)) {
+			throw new Exception("Your database is not supported");
+		}
+		return $this->config->database->type->name . " {$version}";
 	}
 
 	/**
@@ -113,13 +120,14 @@ class DB {
 	 */
 	public function connect(Config\Database $config): void {
 		$errorShown = isset($this->sql);
-		unset($this->sql);
+		$this->sql = null;
 		$this->dbName = $config->name;
 		$this->type = $config->type;
 		$this->capsule = new Capsule();
 
 		if ($this->type === DB\Type::MySQL) {
 			do {
+				$this->sql = null;
 				try {
 					$this->capsule->addConnection([
 						'driver' => 'mysql',
@@ -134,6 +142,7 @@ class DB {
 					$this->sql = $this->capsule->getConnection()->getPdo();
 				} catch (PDOException $e) {
 					if (!$errorShown) {
+						$e->errorInfo ??= [$e->getCode(), $e->getCode(), $e->getMessage()];
 						$this->logger->error(
 							"Cannot connect to the MySQL db at {$config->host}: ".
 							trim($e->errorInfo[2])
@@ -182,8 +191,9 @@ class DB {
 			$this->sql = $this->capsule->getConnection()->getPdo();
 			$this->maxPlaceholders = 999;
 
+			/** @var ?string */
 			$sqliteVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
-			if (version_compare($sqliteVersion, static::SQLITE_MIN_VERSION, "<")) {
+			if (!isset($sqliteVersion) || version_compare($sqliteVersion, static::SQLITE_MIN_VERSION, "<")) {
 				$this->logger->critical(
 					"You need at least SQLite {minVersion} for Nadybot. ".
 					"Your system is using {version}.",
@@ -242,6 +252,7 @@ class DB {
 			}
 		} elseif ($this->type === DB\Type::PostgreSQL) {
 			do {
+				$this->sql = null;
 				try {
 					$this->capsule->addConnection([
 						'driver' => 'pgsql',
@@ -273,6 +284,7 @@ class DB {
 			}
 		} elseif ($this->type === DB\Type::MSSQL) {
 			do {
+				$this->sql = null;
 				try {
 					$this->capsule->addConnection([
 						'driver' => 'sqlsrv',
@@ -287,6 +299,7 @@ class DB {
 					$this->sql = $this->capsule->getConnection()->getPdo();
 				} catch (PDOException $e) {
 					if (!$errorShown) {
+						$e->errorInfo ??= [$e->getCode(), $e->getCode(), $e->getMessage()];
 						$this->logger->error(
 							"Cannot connect to the MSSQL db at {$config->host}: ".
 							trim($e->errorInfo[2])
@@ -313,6 +326,9 @@ class DB {
 		$this->capsule->setFetchMode(PDO::FETCH_CLASS);
 		$this->capsule->getConnection()->beforeExecuting(
 			function (string $query, array $bindings, Connection $connection): void {
+				if (!isset($this->sql)) {
+					return;
+				}
 				$this->logger->debug(
 					$query,
 					[
@@ -339,6 +355,7 @@ class DB {
 		}
 		foreach ($this->sqlRegexpReplacements as $search => $replace) {
 			$sql = preg_replace($search, $replace, $sql);
+			assert(is_string($sql));
 		}
 		return $sql;
 	}
@@ -346,11 +363,12 @@ class DB {
 	/** Start a transaction */
 	public function beginTransaction(): void {
 		$this->logger->info("Starting transaction");
-		$this->sql->beginTransaction();
+		$this->sql?->beginTransaction();
 	}
 
 	/**
 	 * Start a transaction
+	 *
 	 * @todo Work with a queue that waits for the lock
 	 */
 	public function awaitBeginTransaction(): void {
@@ -364,7 +382,7 @@ class DB {
 	public function commit(): void {
 		$this->logger->info("Committing transaction");
 		try {
-			$this->sql->commit();
+			$this->sql?->commit();
 		} catch (PDOException $e) {
 			$this->logger->info("No active transaction to commit");
 		}
@@ -373,12 +391,12 @@ class DB {
 	/** Roll back a transaction */
 	public function rollback(): void {
 		$this->logger->info("Rolling back transaction");
-		$this->sql->rollback();
+		$this->sql?->rollback();
 	}
 
 	/** Check if we're currently in a transaction */
 	public function inTransaction(): bool {
-		return $this->sql->inTransaction();
+		return $this->sql?->inTransaction() ?? false;
 	}
 
 	/** Format SQL code by replacing placeholders like <myname> */
@@ -601,18 +619,17 @@ class DB {
 	public function loadCSVFile(string $module, string $file): bool {
 		$fileBase = pathinfo($file, PATHINFO_FILENAME);
 		$table = $fileBase;
-		if (!@file_exists($file)) {
+		if (!$this->fs->exists($file)) {
 			throw new Exception("The CSV-file {$file} was not found.");
 		}
-		$version = filemtime($file) ?: 0;
-		$handle = fopen($file, 'r');
-		while ($handle !== false && !feof($handle)) {
-			$line = fgets($handle);
-			if ($line === false || substr($line, 0, 1) !== "#") {
+		$version = $this->fs->getModificationTime($file) ?: 0;
+		$handle = $this->fs->openFile($file, 'r');
+		foreach (splitLines($handle) as $line) {
+			if (substr($line, 0, 1) !== "#") {
 				break;
 			}
 			$line = trim($line);
-			if (!preg_match("/^#\s*(.+?):\s*(.+)$/i", $line, $matches)) {
+			if (!preg_match("/^#\s*(.+?):\s*(.+)$/i", $line, $matches) || !isset($matches)) {
 				continue;
 			}
 			$value = $matches[2];
@@ -633,9 +650,7 @@ class DB {
 					break;
 			}
 		}
-		if ($handle !== false) {
-			fclose($handle);
-		}
+		$handle->close();
 		$settingName = strtolower("{$fileBase}_db_version");
 		$currentVersion = false;
 		if ($this->settingManager->exists($settingName)) {
@@ -762,9 +777,10 @@ class DB {
 			if (is_string($file)) {
 				continue;
 			}
-			if (!preg_match("/^(\d+)/", $file->getFilename(), $m1)) {
+			if (!preg_match("/^(\d+)/", $file->getFilename(), $m1) || !is_array($m1)) {
 				continue;
 			}
+			assert(is_string($m1[1]));
 			$migrations->push(new CoreMigration(
 				filePath: $file->getPathname(),
 				baseName: $file->getBasename(".php"),

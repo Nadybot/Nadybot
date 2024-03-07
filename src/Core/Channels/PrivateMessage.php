@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Channels;
 
-use AO\Package;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -67,12 +66,7 @@ class PrivateMessage extends Base {
 			return false;
 		}
 		$message = $this->text->formatMessage($message);
-			$this->chatBot->aoClient->write(
-				package: new Package\Out\Tell(
-					charId: $this->chatBot->getUid($destination),
-					message: $message
-				)
-			);
+		$this->chatBot->sendRawTell($destination, $message);
 		return true;
 	}
 }

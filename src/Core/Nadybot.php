@@ -330,14 +330,12 @@ class Nadybot {
 
 	/** Connect to AO chat servers */
 	public function connectAO(): void {
-		/** @var WorkerConfig[] */
-		$workers = [];
-		$workers []= new WorkerConfig(
+		$workers = [new WorkerConfig(
 			dimension: $this->config->main->dimension,
 			username: $this->config->main->login,
 			password: $this->config->main->password,
 			character: $this->config->main->character,
-		);
+		)];
 		foreach ($this->config->worker as $worker) {
 			$workers []= new WorkerConfig(
 				dimension: $worker->dimension,
@@ -470,7 +468,11 @@ class Nadybot {
 		}
 
 		if ($group === null) {
-			$group = $this->char->name;
+			$group = $this->config->main->character;
+		}
+		$uid = $this->getUid($group);
+		if (!isset($uid)) {
+			return;
 		}
 
 		if ($this->settingManager->getBool("priv_channel_colors")) {
@@ -485,7 +487,7 @@ class Nadybot {
 
 		$this->aoClient->write(
 			new Package\Out\PrivateChannelMessage(
-				channelId: $this->getUid($group),
+				channelId: $uid,
 				message: $privColor.$message
 			)
 		);
@@ -497,12 +499,12 @@ class Nadybot {
 		$this->eventManager->fireEvent($event, $disableRelay);
 		if (!$disableRelay) {
 			$rMessage = new RoutableMessage($origMsg);
-			$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
+			$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
 			$label = null;
 			if (strlen($this->config->general->orgName)) {
 				$label = "Guest";
 			}
-			$rMessage->prependPath(new Source(Source::PRIV, $this->char->name, $label));
+			$rMessage->prependPath(new Source(Source::PRIV, $this->config->main->character, $label));
 			$this->messageHub->handle($rMessage);
 		}
 	}
@@ -556,7 +558,7 @@ class Nadybot {
 			return;
 		}
 		$rMessage = new RoutableMessage($origMsg);
-		$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
+		$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
 		$abbr = $this->settingManager->getString('relay_guild_abbreviation');
 		$rMessage->prependPath(new Source(
 			Source::ORG,
@@ -566,7 +568,7 @@ class Nadybot {
 		$this->messageHub->handle($rMessage);
 	}
 
-	public function sendRawTell(int|string $character, string $message, ?int $priority=null): bool {
+	public function sendRawTell(int|string $character, string $message, ?int $priority=null, ?string $worker=null): bool {
 		if (is_string($character)) {
 			$character = $this->getUid(Utils::normalizeCharacter($character));
 			if (!isset($character)) {
@@ -577,7 +579,8 @@ class Nadybot {
 			package: new Package\Out\Tell(
 				charId: $character,
 				message: $message,
-			)
+			),
+			worker: $worker,
 		);
 		return true;
 	}
@@ -620,19 +623,14 @@ class Nadybot {
 		}
 
 		$this->logger->logChat("Out. Msg.", $character, $message);
-		$this->aoClient->write(
-			new Package\Out\Tell(
-				charId: $this->getUid($character),
-				message: $tellColor.$message
-			)
-		);
+		$this->sendRawTell($character, $tellColor.$message);
 		$event = new AOChatEvent();
 		$event->type = "sendmsg";
 		$event->channel = $character;
 		$event->message = $message;
 		$this->eventManager->fireEvent($event);
-		$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
-		$rMessage->prependPath(new Source(Source::TELL, $this->char->name));
+		$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
+		$rMessage->prependPath(new Source(Source::TELL, $this->config->main->character));
 		$this->messageHub->handle($rMessage);
 	}
 
@@ -675,13 +673,7 @@ class Nadybot {
 				$worker = $this->config->worker[$worker]->character;
 			}
 			$this->logger->logChat("Out. Msg.", $character, $page);
-			$this->aoClient->write(
-				package: new Package\Out\Tell(
-					charId: $this->getUid($character),
-					message: $tellColor.$page,
-				),
-				worker: $worker
-			);
+			$this->sendRawTell($character, $tellColor.$page, null, $worker);
 		}
 	}
 
@@ -714,7 +706,10 @@ class Nadybot {
 		$guildColor = $this->settingManager->getString("default_guild_color")??"";
 
 		$rMessage = new RoutableMessage($origMessage);
-		$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
+		$rMessage->setCharacter(new Character(
+			$this->config->main->character,
+			$this->char?->id
+		));
 		$rMessage->prependPath(new Source(Source::PUB, $channel));
 		$this->messageHub->handle($rMessage);
 		$this->aoClient->write(
@@ -859,7 +854,7 @@ class Nadybot {
 			}
 			$this->chatlist[$sender] = true;
 			$this->eventManager->fireEvent($eventObj);
-		} elseif ($this->char->id === $package->package->charId) {
+		} elseif ($this->char?->id === $package->package->charId) {
 			$eventObj->type = "extjoinpriv";
 
 			$this->logger->notice("Joined the private channel {channel}.", [
@@ -908,7 +903,7 @@ class Nadybot {
 			$audit->actor = $sender;
 			$audit->action = AccessManager::LEAVE;
 			$this->accessManager->addAudit($audit);
-		} elseif ($this->char->id === $package->package->charId) {
+		} elseif ($this->char?->id === $package->package->charId) {
 			unset($this->privateChats[$channel]);
 		} else {
 			$eventObj->type = "otherleavepriv";
@@ -932,7 +927,8 @@ class Nadybot {
 		$this->logger->notice("Left the private channel {channel}.", ["channel" => $channel]);
 
 		$eventObj = new AOChatEvent();
-		$sender = $this->char->name;
+		$sender = $this->char?->name;
+		assert(is_string($sender));
 		$eventObj->channel = $channel;
 		$eventObj->sender = $sender;
 		$eventObj->type = "extleavepriv";
@@ -946,7 +942,7 @@ class Nadybot {
 	}
 
 	public function updateLastOnline(int $userId, string $charName, bool $online=true): void {
-		if ($online === false || $userId === $this->char->id) {
+		if ($online === false || $userId === $this->char?->id) {
 			return;
 		}
 		$this->logger->info("Register user {name} (ID {id}) as online", [
@@ -1416,6 +1412,8 @@ class Nadybot {
 				/** @var NCA\SettingChangeHandler */
 				$change = $changeAnnotation->newInstance();
 				$closure = $method->getClosure($obj);
+
+				/** @psalm-suppress TypeDoesNotContainNull */
 				if (!isset($closure)) {
 					continue;
 				}
@@ -1510,7 +1508,7 @@ class Nadybot {
 
 	/** Check if a private channel is this bot's private channel */
 	public function isDefaultPrivateChannel(string $channel): bool {
-		return $channel === $this->char->name;
+		return $channel === $this->char?->name;
 	}
 
 	public function getUptime(): int {
@@ -1564,7 +1562,11 @@ class Nadybot {
 				description: $attribute->description,
 				help: $attribute->help,
 			);
-			[$parentCommand, $subCommand] = explode(" ", $command . " ", 2);
+			$cmdParts  = explode(" ", $command . " ", 2);
+			if (count($cmdParts) !== 2) {
+				continue;
+			}
+			[$parentCommand, $subCommand] = $cmdParts;
 			if ($subCommand !== "") {
 				$definition->parentCommand = $parentCommand;
 				$subcommands[$command] = $definition;

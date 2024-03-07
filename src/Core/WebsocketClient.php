@@ -2,10 +2,14 @@
 
 namespace Nadybot\Core;
 
+use function Safe\parse_url;
+
+use League\Uri\Uri;
 use Nadybot\Core\Attributes as NCA;
 use Revolt\EventLoop;
 use RuntimeException;
-use Safe\Exceptions\StreamException;
+
+use Safe\Exceptions\{StreamException};
 
 class WebsocketClient extends WebsocketBase {
 	#[NCA\Inject]
@@ -65,37 +69,39 @@ class WebsocketClient extends WebsocketBase {
 			);
 			return false;
 		}
-		$urlParts = parse_url($this->uri);
-		if ($urlParts === false
-			|| empty($urlParts)
-			|| empty($urlParts['scheme'])
-			|| empty($urlParts['host'])
-		) {
+		try {
+			$uri = Uri::new($this->uri);
+			$scheme = $uri->getScheme();
+			$host = $uri->getHost();
+			if (!isset($scheme) || !isset($host)) {
+				throw new \Exception();
+			}
+		} catch (\Throwable $e) {
 			$this->throwError(
 				WebsocketError::INVALID_URL,
 				$this->uri . " is not a fully qualified url"
 			);
 			return false;
 		}
-		if (!in_array($urlParts['scheme'], ['ws', 'wss'])) {
+		if (!in_array($scheme, ['ws', 'wss'])) {
 			$this->throwError(
 				WebsocketError::INVALID_SCHEME,
 				$this->uri . " is not a ws:// or wss:// uri"
 			);
 			return false;
 		}
-		$port = $urlParts['port'] ?? ($urlParts["scheme"] === 'wss' ? 443 : 80);
+		$port = $uri->getPort() ?? ($scheme === 'wss' ? 443 : 80);
 
-		$this->isSSL = $urlParts["scheme"] === 'wss';
+		$this->isSSL = $scheme === 'wss';
 		// SSL sockets can't connect async with PHP
-		$streamUri = 'tcp://' . $urlParts["host"];
-		$this->peerName = $urlParts["host"] . ":" . $port;
+		$streamUri = 'tcp://' . $host;
+		$this->peerName = $host . ":" . $port;
 
 		$context = stream_context_create();
 
 		$errno = null;
 		$errstr = null;
-		$this->timeoutHandle = EventLoop::delay($this->timeout, function (string $ignore): void {
+		$this->timeoutHandle = EventLoop::delay($this->timeout, function (string $_ignore): void {
 			$this->checkTimeout();
 		});
 		try {

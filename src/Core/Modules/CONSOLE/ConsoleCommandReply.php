@@ -41,11 +41,11 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	public function reply($msg): void {
 		foreach ((array)$msg as $text) {
 			$rMessage = new RoutableMessage($text);
-			$rMessage->setCharacter(new Character($this->chatBot->char->name, $this->chatBot->char->id));
+			$rMessage->setCharacter(new Character($this->config->main->character, $this->chatBot->char?->id));
 			$rMessage->prependPath(new Source(Source::CONSOLE, "Console"));
 			$this->messageHub->handle($rMessage);
 			$text = $this->formatMsg($text);
-			echo("{$this->chatBot->char->name}: {$text}\n");
+			echo("{$this->config->main->character}: {$text}\n");
 		}
 	}
 
@@ -53,7 +53,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	public function replyOnly(string|array $msg): void {
 		foreach ((array)$msg as $text) {
 			$text = $this->formatMsg($text);
-			echo("{$this->chatBot->char->name}: {$text}\n");
+			echo("{$this->config->main->character}: {$text}\n");
 		}
 	}
 
@@ -296,6 +296,8 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 				$matches[1] = strtolower($matches[1]);
 				if (substr($matches[1], 0, 1) === "/") {
 					array_pop($stack);
+
+					/** @psalm-suppress InvalidArrayOffset */
 					$currentTag = $stack[count($stack)-1] ?? null;
 					if ($currentTag === null) {
 						return "";

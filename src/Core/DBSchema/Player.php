@@ -231,7 +231,7 @@ class Player extends DBRow {
 		$msg .= ", {$this->gender} {$this->breed} <highlight>{$this->profession}<end>";
 		$msg .= ", <" . strtolower($this->faction) . ">{$this->faction}<end>";
 
-		if ($this->guild) {
+		if (isset($this->guild) && strlen($this->guild)) {
 			$msg .= ", {$this->guild_rank} of <" . strtolower($this->faction) . ">{$this->guild}<end>)";
 		} else {
 			$msg .= ", Not in a guild)";

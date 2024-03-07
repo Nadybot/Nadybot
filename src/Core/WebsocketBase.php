@@ -134,7 +134,7 @@ class WebsocketBase implements LogWrapInterface {
 			);
 			return;
 		}
-		if ($this->pendingPingTime) {
+		if ($this->pendingPingTime > 0) {
 			$this->logger->debug(
 				"No data received for {noPingTime}s, ping pending since {pendingPingTime}s",
 				[

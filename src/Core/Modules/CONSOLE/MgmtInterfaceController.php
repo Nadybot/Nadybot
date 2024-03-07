@@ -18,6 +18,7 @@ use Amp\{
 	Socket\ServerSocket,
 };
 use Closure;
+use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -117,7 +118,11 @@ class MgmtInterfaceController extends ModuleInstance {
 		if (isset($this->server) && $this->mgmtInterface === self::TYPE_NONE) {
 			return;
 		}
-		[$scheme, $path] = explode("://", $this->mgmtInterface, 2);
+		$parts = explode("://", $this->mgmtInterface, 2);
+		if (count($parts) !== 2) {
+			throw new Exception("Invalid URL {$this->mgmtInterface} found");
+		}
+		[$scheme, $path] = $parts;
 		if ($scheme === "unix") {
 			$this->handleExistingUnixSocket($path);
 		}
