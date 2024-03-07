@@ -2,10 +2,8 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Amp\asyncCall;
-
+use function Amp\async;
 use Closure;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -408,37 +406,31 @@ class ApiController extends ModuleInstance {
 			return;
 		}
 		try {
-			/** @var null|Response|Generator */
 			$response = $handler->exec($request, $server);
-		} catch (Throwable $e) {
+		} catch (Throwable) {
 			$response = null;
 		}
 		if (!isset($request->replied)) {
 			$request->replied = -1;
 		}
-		asyncCall(function () use ($response, $server, $request): Generator {
-			if ($response instanceof Generator) {
-				$response = yield from $response;
-			}
 
-			if (!isset($response) || !($response instanceof Response)) {
-				$server->httpError(new Response(Response::INTERNAL_SERVER_ERROR), $request);
-				return;
-			}
-			if ($response->code >= 400) {
-				$server->httpError($response, $request);
-				return;
-			}
-			if ($response->code >= 200 && $response->code < 300 && isset($response->body)) {
-				$response->headers['Content-Type'] = 'application/json';
-			} elseif ($response->code === Response::OK && $request->method === Request::POST) {
-				$response->headers['Content-Length'] = "0";
-				$response->setCode(Response::CREATED);
-			} elseif ($response->code === Response::OK && in_array($request->method, [Request::PUT, Request::PATCH, Request::DELETE])) {
-				$response->setCode(Response::NO_CONTENT);
-			}
-			$server->sendResponse($response, $request);
-		});
+		if (!isset($response) || !($response instanceof Response)) {
+			$server->httpError(new Response(Response::INTERNAL_SERVER_ERROR), $request);
+			return;
+		}
+		if ($response->code >= 400) {
+			$server->httpError($response, $request);
+			return;
+		}
+		if ($response->code >= 200 && $response->code < 300 && isset($response->body)) {
+			$response->headers['Content-Type'] = 'application/json';
+		} elseif ($response->code === Response::OK && $request->method === Request::POST) {
+			$response->headers['Content-Length'] = "0";
+			$response->setCode(Response::CREATED);
+		} elseif ($response->code === Response::OK && in_array($request->method, [Request::PUT, Request::PATCH, Request::DELETE])) {
+			$response->setCode(Response::NO_CONTENT);
+		}
+		$server->sendResponse($response, $request);
 	}
 
 	/** Execute a command, result is sent via websocket */
@@ -474,7 +466,7 @@ class ApiController extends ModuleInstance {
 				: $this->commandManager->getPermissionSets()->firstOrFail()->name;
 			$context->sendto = $handler;
 			$context->message = $msg;
-			asyncCall(function () use ($context): Generator {
+			async(function () use ($context): void {
 				$uid = $this->chatBot->getUid($context->char->name);
 				$context->char->id = $uid;
 				$this->commandManager->checkAndHandleCmd($context);

@@ -2,10 +2,9 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use function Amp\Promise\all;
-use Amp\Loop;
+use function Amp\async;
+use function Amp\Future\await;
 use DateTime;
-use Generator;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -198,7 +197,7 @@ class RaidController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		Loop::defer([$this, 'resumeRaid']);
+		async($this->resumeRaid(...));
 		$stateStats = new RaidStateStats();
 		Registry::injectDependencies($stateStats);
 		$this->statsController->registerProvider($stateStats, "states");
@@ -651,7 +650,7 @@ class RaidController extends ModuleInstance {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$msg = yield $this->raidMemberController->getRaidCheckBlob($this->raid);
+		$msg = $this->raidMemberController->getRaidCheckBlob($this->raid);
 		$context->reply($msg);
 	}
 
@@ -699,7 +698,7 @@ class RaidController extends ModuleInstance {
 
 	/** Send everyone in the private channel who's not in the raid a reminder to join */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
-	public function raidNotinCommand(CmdContext $context, #[NCA\Str("notin")] string $action): \Generator {
+	public function raidNotinCommand(CmdContext $context, #[NCA\Str("notin")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -710,10 +709,11 @@ class RaidController extends ModuleInstance {
 			return;
 		}
 		$promises = [];
+		// @todo Replace with Pipeline
 		foreach ($notInRaid as $notInName) {
-			$promises []= $this->playerManager->byName($notInName);
+			$promises []= async($this->playerManager->byName(...), $notInName);
 		}
-		$notInPlayers = yield \Amp\Promise\all($promises);
+		$notInPlayers = await($promises);
 		$msg = $this->reportNotInResult($notInPlayers);
 		$context->reply($msg);
 	}
@@ -948,9 +948,9 @@ class RaidController extends ModuleInstance {
 		}
 		$tasks = [];
 		foreach ($toLookup as $toLookupName) {
-			$tasks[$toLookupName] = $this->playerManager->byName($toLookupName);
+			$tasks[$toLookupName] = async($this->playerManager->byName(...), $toLookupName);
 		}
-		$lookup = yield all($tasks);
+		$lookup = await($tasks);
 		$blob = "";
 		foreach ($duals as $name => $alts) {
 			$player = $lookup[$name];
@@ -1159,8 +1159,8 @@ class RaidController extends ModuleInstance {
 		string $subAction,
 		PCharacter $char,
 		string $note
-	): Generator {
-		yield from $this->commentController->addCommentCommand(
+	): void {
+		$this->commentController->addCommentCommand(
 			$context,
 			"new",
 			$char,

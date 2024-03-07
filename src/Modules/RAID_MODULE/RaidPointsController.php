@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use Exception;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -564,7 +563,7 @@ class RaidPointsController extends ModuleInstance {
 		PCharacter $char,
 		string $reason
 	): void {
-		yield from $this->pointsAddCommand($context, $action, $char, $points, $reason);
+		$this->pointsAddCommand($context, $action, $char, $points, $reason);
 	}
 
 	/** Add &lt;points&gt; raid points to &lt;char&gt;'s account with a reason */
@@ -654,7 +653,7 @@ class RaidPointsController extends ModuleInstance {
 			description: "Merge raid points when alts merge"
 		)
 	]
-	public function mergeRaidPoints(AltEvent $event): Generator {
+	public function mergeRaidPoints(AltEvent $event): void {
 		if ($event->validated === false) {
 			return;
 		}

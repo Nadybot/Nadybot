@@ -2,16 +2,16 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Amp\call;
-use function Amp\File\filesystem;
+use function Amp\async;
+use function Safe\realpath;
 
+use Amp\File\Filesystem;
 use Amp\Http\Client;
 use Amp\Http\Client\HttpClientBuilder;
-use Amp\{File, Loop, Promise};
+use Amp\{File};
 use Closure;
 use DateTime;
 use Exception;
-use Generator;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -55,6 +55,9 @@ class WebserverController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -130,7 +133,7 @@ class WebserverController extends ModuleInstance {
 		name: "connect",
 		description: "Download aoauth public key"
 	)]
-	public function downloadPublicKey(): Generator {
+	public function downloadPublicKey(): void {
 		if ($this->webserver) {
 			$this->listen();
 		}
@@ -140,8 +143,7 @@ class WebserverController extends ModuleInstance {
 		$aoAuthKeyUrl = rtrim($this->webserverAoauthUrl, '/') . '/key';
 		$client = $this->builder->build();
 
-		/** @var Client\Response */
-		$response = yield $client->request(new Client\Request($aoAuthKeyUrl));
+		$response = $client->request(new Client\Request($aoAuthKeyUrl));
 		if ($response->getStatus() !== 200) {
 			$this->logger->error(
 				'Error downloading aoauth pubkey from {uri}: {error} ({reason})',
@@ -153,7 +155,7 @@ class WebserverController extends ModuleInstance {
 			);
 			return;
 		}
-		$body = yield $response->getBody()->buffer();
+		$body = $response->getBody()->buffer();
 		if ($body === '') {
 			$this->logger->error('Empty aoauth pubkey received from {uri}', [
 				"uri" => $aoAuthKeyUrl,
@@ -173,7 +175,7 @@ class WebserverController extends ModuleInstance {
 	#[NCA\SettingChangeHandler("webserver_auth")]
 	#[NCA\SettingChangeHandler("webserver_aoauth_url")]
 	public function downloadNewPublicKey(string $settingName, string $oldValue, string $newValue): void {
-		Loop::defer([$this, "downloadPublicKey"]);
+		$this->downloadPublicKey();
 	}
 
 	/** Start or stop the webserver if the setting changed */
@@ -194,7 +196,7 @@ class WebserverController extends ModuleInstance {
 			return;
 		}
 		$this->shutdown();
-		Loop::defer([$this, "listen"]);
+		async($this->listen(...));
 	}
 
 	/** Authenticate player $player to login to the Webserver for $duration seconds */
@@ -390,7 +392,7 @@ class WebserverController extends ModuleInstance {
 			defaultStatus: 1
 		)
 	]
-	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): Generator {
+	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): void {
 		$handlers = $this->getHandlersForRequest($event->request);
 		$needAuth = true;
 		if (count($handlers) === 1) {
@@ -473,8 +475,7 @@ class WebserverController extends ModuleInstance {
 			return;
 		}
 
-		/** @var Response */
-		$response = yield $this->serveStaticFile($event->request);
+		$response = $this->serveStaticFile($event->request);
 		if ($response->code !== Response::OK) {
 			$server->httpError($response, $event->request);
 		} else {
@@ -617,46 +618,43 @@ class WebserverController extends ModuleInstance {
 		}
 	}
 
-	/** @return Promise<Response> */
-	private function serveStaticFile(Request $request): Promise {
-		return call(function () use ($request): Generator {
-			$path = $this->config->paths->html;
-			try {
-				$realFile = \Safe\realpath("{$path}/{$request->path}");
-				$realBaseDir = \Safe\realpath("{$path}/");
-			} catch (FilesystemException) {
-				return new Response(Response::NOT_FOUND);
-			}
-			if ($realFile !== $realBaseDir
-				&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0
-			) {
-				return new Response(Response::NOT_FOUND);
-			}
-			if (yield filesystem()->isDirectory($realFile)) {
-				$realFile .= DIRECTORY_SEPARATOR . "index.html";
-			}
-			if (false === yield filesystem()->exists($realFile)) {
-				return new Response(Response::NOT_FOUND);
-			}
-			try {
-				$body = yield filesystem()->read($realFile);
-			} catch (File\FilesystemException) {
-				$body = "";
-			}
-			$response = new Response(
-				Response::OK,
-				['Content-Type' => $this->guessContentType($realFile)],
-				$body
-			);
-			try {
-				$lastmodified = yield filesystem()->getModificationTime($realFile);
-				$modifiedDate = (new DateTime())->setTimestamp($lastmodified)->format(DateTime::RFC7231);
-				$response->headers['Last-Modified'] = $modifiedDate;
-			} catch (File\FilesystemException) {
-			}
-			$response->headers['Cache-Control'] = 'private, max-age=3600';
-			$response->headers['ETag'] = '"' . dechex(crc32($body)) . '"';
-			return $response;
-		});
+	private function serveStaticFile(Request $request): Response {
+		$path = $this->config->paths->html;
+		try {
+			$realFile = realpath("{$path}/{$request->path}");
+			$realBaseDir = realpath("{$path}/");
+		} catch (FilesystemException) {
+			return new Response(Response::NOT_FOUND);
+		}
+		if ($realFile !== $realBaseDir
+			&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0
+		) {
+			return new Response(Response::NOT_FOUND);
+		}
+		if ($this->fs->isDirectory($realFile)) {
+			$realFile .= DIRECTORY_SEPARATOR . "index.html";
+		}
+		if (!$this->fs->exists($realFile)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		try {
+			$body = $this->fs->read($realFile);
+		} catch (File\FilesystemException) {
+			$body = "";
+		}
+		$response = new Response(
+			Response::OK,
+			['Content-Type' => $this->guessContentType($realFile)],
+			$body
+		);
+		try {
+			$lastmodified = $this->fs->getModificationTime($realFile);
+			$modifiedDate = (new DateTime())->setTimestamp($lastmodified)->format(DateTime::RFC7231);
+			$response->headers['Last-Modified'] = $modifiedDate;
+		} catch (File\FilesystemException) {
+		}
+		$response->headers['Cache-Control'] = 'private, max-age=3600';
+		$response->headers['ETag'] = '"' . dechex(crc32($body)) . '"';
+		return $response;
 	}
 }

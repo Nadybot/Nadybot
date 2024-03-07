@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Amp\Loop;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -22,6 +21,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
+use Revolt\EventLoop;
 use Safe\DateTime;
 
 /**
@@ -227,7 +227,7 @@ class AuctionController extends ModuleInstance {
 			return;
 		}
 		if (isset($this->auctionTimer)) {
-			Loop::cancel($this->auctionTimer);
+			EventLoop::cancel($this->auctionTimer);
 			$this->auctionTimer = null;
 		}
 		$event = new AuctionEvent();
@@ -589,8 +589,10 @@ class AuctionController extends ModuleInstance {
 		$this->auctionEnds ??= $this->auction->end;
 		if (isset($this->auctionTimer)) {
 			if ($this->auctionEnds - time() < $minTime) {
-				Loop::cancel($this->auctionTimer);
-				$this->auctionTimer = Loop::delay($minTime * 1000, [$this, "endAuction"]);
+				EventLoop::cancel($this->auctionTimer);
+				$this->auctionTimer = EventLoop::delay($minTime, function (string $token): void {
+					$this->endAuction();
+				});
 				$this->auctionEnds = time() + $minTime;
 			}
 			$this->auction->end = $this->auctionEnds;
@@ -608,9 +610,11 @@ class AuctionController extends ModuleInstance {
 			return false;
 		}
 		$this->auction = $auction;
-		$this->auctionTimer = Loop::delay(
-			($auction->end - time()) * 1000,
-			[$this, "endAuction"],
+		$this->auctionTimer = EventLoop::delay(
+			$auction->end - time(),
+			function (string $token): void {
+				$this->endAuction();
+			}
 		);
 		$this->auctionEnds = $auction->end;
 		$event = new AuctionEvent();
@@ -626,7 +630,7 @@ class AuctionController extends ModuleInstance {
 			return;
 		}
 		if (isset($this->auctionTimer)) {
-			Loop::cancel($this->auctionTimer);
+			EventLoop::cancel($this->auctionTimer);
 			$this->auctionTimer = null;
 		}
 		$auction = $this->auction;

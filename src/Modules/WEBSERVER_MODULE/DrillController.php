@@ -2,18 +2,16 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Amp\Promise\{timeout};
-use function Amp\{asyncCall, call, delay};
+use function Amp\{async, delay};
 use function Safe\preg_replace;
 
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, HttpException};
 use Amp\Socket\ConnectContext;
-use Amp\Websocket\Client\{Connection, ConnectionException, Handshake, Rfc6455Connector};
-use Amp\Websocket\{ClosedException, Message};
-use Amp\{Deferred, Promise, TimeoutException};
-use Generator;
+use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, WebsocketConnection, WebsocketHandshake};
+use Amp\Websocket\{WebsocketClosedException};
+use Amp\{DeferredFuture, TimeoutCancellation, TimeoutException};
 
 use Nadybot\Core\{AOChatEvent, Attributes as NCA, Config\BotConfig, EventManager, LoggerWrapper, ModuleInstance, Registry, StopExecutionException, UserException};
 use Throwable;
@@ -42,7 +40,7 @@ class DrillController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	private ?Connection $client=null;
+	private ?WebsocketConnection $client=null;
 	private int $reconnectDelay = 5;
 
 	/** @var array<string,Drill\Connection> */
@@ -52,11 +50,11 @@ class DrillController extends ModuleInstance {
 		name: "connect",
 		description: "Connect to Drill server",
 	)]
-	public function connectToDrill(): Generator {
+	public function connectToDrill(): void {
 		if ($this->drillServer === self::OFF) {
 			return;
 		}
-		yield $this->connect();
+		async($this->connect(...));
 	}
 
 	#[NCA\SettingChangeHandler("drill_server")]
@@ -64,82 +62,74 @@ class DrillController extends ModuleInstance {
 		if ($new !== self::OFF && !preg_match("/^wss?:\/\//", $new)) {
 			throw new UserException("<highlight>{$new}<end> is not a valid Drill-server");
 		}
-		asyncCall(function () use ($new): Generator {
-			if (isset($this->client)) {
-				yield $this->client->close();
-			}
-			if ($new === self::OFF) {
-				return;
-			}
-			yield $this->connect($new);
-		});
+		if (isset($this->client)) {
+			$this->client->close();
+		}
+		if ($new === self::OFF) {
+			return;
+		}
+		async($this->connect(...), $new);
 	}
 
-	/** @return Promise<void> */
-	public function connect(?string $url=null): Promise {
-		return call(function () use ($url): Generator {
-			$url ??= $this->drillServer;
-			$handshake = new Handshake($url);
-			$connectContext = (new ConnectContext())->withTcpNoDelay();
-			$httpClient = (new HttpClientBuilder())
-				->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
-				->intercept(new RemoveRequestHeader('origin'))
-				->build();
-			$client = new Rfc6455Connector($httpClient);
-			try {
-				$this->logger->info("Connecting to Drill server {url}", ["url" => $url]);
+	public function connect(?string $url=null): void {
+		$url ??= $this->drillServer;
+		$handshake = new WebsocketHandshake($url);
+		$connectContext = (new ConnectContext())->withTcpNoDelay();
+		$httpClient = (new HttpClientBuilder())
+			->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
+			->intercept(new RemoveRequestHeader('origin'))
+			->build();
+		$client = new Rfc6455Connector(httpClient: $httpClient);
+		try {
+			$this->logger->info("Connecting to Drill server {url}", ["url" => $url]);
 
-				/** @var Connection */
-				$connection = yield $client->connect($handshake, null);
-				$this->client = $connection;
-				$event = new DrillEvent();
-				$event->type = "drill(connect)";
-				$event->client = $connection;
-				$this->eventManager->fireEvent($event);
-				$this->logger->info("Connected to Drill server {url}", ["url" => $url]);
-				while ($message = yield $connection->receive()) {
-					/** @var Message $message */
-					$payload = yield $message->buffer();
+			$connection = $client->connect($handshake, null);
+			$this->client = $connection;
+			$event = new DrillEvent();
+			$event->type = "drill(connect)";
+			$event->client = $connection;
+			$this->eventManager->fireEvent($event);
+			$this->logger->info("Connected to Drill server {url}", ["url" => $url]);
+			while (null !== ($message = $connection->receive())) {
+				$payload = $message->buffer();
 
-					/** @var string $payload */
-					$this->processWebsocketMessage($connection, $payload);
-				}
-				if ($this->client->isClosedByPeer()) {
-					throw new ClosedException(
-						"Drill unexpectedly closed the connection",
-						$this->client->getCloseCode(),
-						$this->client->getCloseReason(),
-					);
-				}
-			} catch (ConnectionException $e) {
-				$this->logger->error("Still endpoint errored: {error}", [
-					"error" => $e->getMessage(),
-				]);
-				return;
-			} catch (HttpException $e) {
-				$this->logger->error("Request to connect to Drill failed: {error}", [
-					"error" => $e->getMessage(),
-				]);
-				yield delay($this->reconnectDelay * 1000);
-				$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
-				yield $this->connect();
-			} catch (ClosedException $e) {
-				$this->logger->notice("Reconnecting to Drill in {delay}s.", [
-					"delay" => $this->reconnectDelay,
-				]);
-				yield delay($this->reconnectDelay * 1000);
-				$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
-				yield $this->connect();
-			} finally {
-				$this->client = null;
+				$this->processWebsocketMessage($connection, $payload);
 			}
-			$this->logger->notice("Connection to {url} successfully closed.", [
-				"url" => $url,
+			if ($this->client->getCloseInfo()->isByPeer()) {
+				throw new WebsocketClosedException(
+					"Drill unexpectedly closed the connection",
+					$this->client->getCloseInfo()->getCode(),
+					$this->client->getCloseInfo()->getReason(),
+				);
+			}
+		} catch (WebsocketConnectException $e) {
+			$this->logger->error("Still endpoint errored: {error}", [
+				"error" => $e->getMessage(),
 			]);
-		});
+			return;
+		} catch (HttpException $e) {
+			$this->logger->error("Request to connect to Drill failed: {error}", [
+				"error" => $e->getMessage(),
+			]);
+			delay($this->reconnectDelay);
+			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
+			$this->connect();
+		} catch (WebsocketClosedException $e) {
+			$this->logger->notice("Reconnecting to Drill in {delay}s.", [
+				"delay" => $this->reconnectDelay,
+			]);
+			delay($this->reconnectDelay);
+			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
+			$this->connect();
+		} finally {
+			$this->client = null;
+		}
+		$this->logger->notice("Connection to {url} successfully closed.", [
+			"url" => $url,
+		]);
 	}
 
-	public function processWebsocketMessage(Connection $client, string $msg): void {
+	public function processWebsocketMessage(WebsocketConnection $client, string $msg): void {
 		try {
 			$packet = Drill\PacketFactory::parse($msg);
 		} catch (Drill\UnsupportedPacketException $e) {
@@ -169,7 +159,7 @@ class DrillController extends ModuleInstance {
 		name: "drill(hello)",
 		description: "Choose Drill authentication",
 	)]
-	public function chooseDrillAuth(DrillPacketEvent $event): Generator {
+	public function chooseDrillAuth(DrillPacketEvent $event): void {
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\Hello);
 		$this->logger->notice(
@@ -182,33 +172,34 @@ class DrillController extends ModuleInstance {
 		);
 		if ($packet->authMode !== Drill\Auth::AO_TELL) {
 			$this->logger->error("Drill server doesn't support AO authentication");
-			yield $event->client->close();
+			$event->client->close();
 			return;
 		}
 		if ($packet->protoVersion !== 1) {
 			$this->logger->error("Drill server runs unsupported protocol version");
-			yield $event->client->close();
+			$event->client->close();
 			return;
 		}
 		$answer = new Drill\Packet\AoAuth(characterName: $this->config->main->character);
 		Registry::injectDependencies($answer);
-		yield $answer->send($event->client);
+		$answer->send($event->client);
 	}
 
 	#[NCA\Event(
 		name: "drill(token-in-ao-tell)",
 		description: "Handle Drill authentication",
 	)]
-	public function authenticateDrill(DrillPacketEvent $event): Generator {
-		$deferred = new Deferred();
+	public function authenticateDrill(DrillPacketEvent $event): void {
+		/** @var DeferredFuture<string> */
+		$deferred = new DeferredFuture();
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\TokenInAoTell);
 		$resolver = function (AOChatEvent $eventObj) use ($packet, $deferred): void {
 			if ($eventObj->sender !== $packet->sender) {
 				return;
 			}
-			if (!$deferred->isResolved()) {
-				$deferred->resolve($eventObj->message);
+			if (!$deferred->isComplete()) {
+				$deferred->complete($eventObj->message);
 				throw new StopExecutionException();
 			}
 		};
@@ -217,9 +208,9 @@ class DrillController extends ModuleInstance {
 			"sender" => $packet->sender,
 		]);
 
+		$future = $deferred->getFuture();
 		try {
-			/** @var string */
-			$code = yield timeout($deferred->promise(), 30000);
+			$code = $future->await(new TimeoutCancellation(30));
 
 			/** @var string */
 			$code = preg_replace("/^!drill\s+/", "", $code);
@@ -244,7 +235,7 @@ class DrillController extends ModuleInstance {
 			desiredSudomain: strtolower($this->config->main->character)
 		);
 		Registry::injectDependencies($answer);
-		yield $answer->send($event->client);
+		$answer->send($event->client);
 	}
 
 	#[NCA\Event(
@@ -263,7 +254,7 @@ class DrillController extends ModuleInstance {
 		name: "drill(data)",
 		description: "Handle Drill data",
 	)]
-	public function receiveData(DrillPacketEvent $event): Generator {
+	public function receiveData(DrillPacketEvent $event): void {
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\Data);
 		$this->logger->info("Number of active clients: {num_conn}", [
@@ -281,7 +272,7 @@ class DrillController extends ModuleInstance {
 				$event->client
 			);
 			Registry::injectDependencies($handler);
-			$success = yield $handler->loop();
+			$success = $handler->loop();
 			if (!$success) {
 				$this->logger->notice("Drill error connecting to local webserver, sending 502");
 				$http = "HTTP/1.1 502\r\n".
@@ -289,15 +280,15 @@ class DrillController extends ModuleInstance {
 					"\r\n";
 				$errReply = new Drill\Packet\Data(uuid: $packet->uuid, data: $http);
 				Registry::injectDependencies($errReply);
-				yield $errReply->send($event->client);
+				$errReply->send($event->client);
 				$closeReply = new Drill\Packet\Closed(uuid: $packet->uuid);
 				Registry::injectDependencies($closeReply);
-				yield $closeReply->send($event->client);
+				$closeReply->send($event->client);
 				return;
 			}
 			$this->handlers[$packet->uuid] = $handler;
 		}
-		yield $this->handlers[$packet->uuid]->handle($packet);
+		$this->handlers[$packet->uuid]->handle($packet);
 	}
 
 	#[NCA\Event(

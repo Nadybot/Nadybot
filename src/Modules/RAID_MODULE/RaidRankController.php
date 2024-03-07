@@ -2,11 +2,8 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use function Amp\call;
-use function Amp\Promise\rethrow;
+use function Amp\{async};
 
-use Amp\Promise;
-use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessLevelProvider,
@@ -164,12 +161,12 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		description: "Add raid leader and admins to the buddy list",
 		defaultStatus: 1
 	)]
-	public function checkRaidRanksEvent(): Generator {
-		yield $this->db->table(self::DB_TABLE)
+	public function checkRaidRanksEvent(): void {
+		$this->db->table(self::DB_TABLE)
 			->asObj(RaidRank::class)
-			->map(function (RaidRank $row): Promise {
-				return $this->buddylistManager->addName($row->name, 'raidrank');
-			})->toArray();
+			->each(function (RaidRank $row): void {
+				$this->buddylistManager->addName($row->name, 'raidrank');
+			});
 	}
 
 	/** Load the raid leaders, admins and veterans from the database into $ranks */
@@ -229,7 +226,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$this->ranks[$who] ??= new RaidRank();
 		$this->ranks[$who]->rank = $rank;
 		$this->ranks[$who]->name = $who;
-		rethrow($this->buddylistManager->addName($who, 'raidrank'));
+		async($this->buddylistManager->addName(...), $who, 'raidrank');
 
 		$audit = new Audit();
 		$audit->actor = $sender;
@@ -325,7 +322,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		}
 		$rankName = $this->settingManager->getString("name_raid_admin_{$rank}")??"";
 
-		yield $this->add($char(), $context->char->name, $context, $rank+6, $rankName, "raid_admin_{$rank}");
+		$this->add($char(), $context->char->name, $context, $rank+6, $rankName, "raid_admin_{$rank}");
 	}
 
 	/** Demote someone from raid admin */
@@ -359,7 +356,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		}
 		$rankName = $this->settingManager->getString("name_raid_leader_{$rank}")??"";
 
-		yield $this->add($char(), $context->char->name, $context, $rank+3, $rankName, "raid_leader_{$rank}");
+		$this->add($char(), $context->char->name, $context, $rank+3, $rankName, "raid_leader_{$rank}");
 	}
 
 	/** Demote someone from raid leader */
@@ -500,47 +497,44 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		return join("", $output) . "\n";
 	}
 
-	/** @return Promise<bool> */
-	private function add(string $who, string $sender, CommandReply $sendto, int $rank, string $rankName, string $alName): Promise {
-		return call(function () use ($who, $sender, $sendto, $rank, $rankName, $alName): Generator {
-			if (null === $this->chatBot->getUid($who)) {
-				$sendto->reply("Character <highlight>{$who}<end> does not exist.");
-				return false;
-			}
+	private function add(string $who, string $sender, CommandReply $sendto, int $rank, string $rankName, string $alName): bool {
+		if (null === $this->chatBot->getUid($who)) {
+			$sendto->reply("Character <highlight>{$who}<end> does not exist.");
+			return false;
+		}
 
-			if ($this->checkExisting($who, $rank)) {
-				$sendto->reply(
-					"<highlight>{$who}<end> is already {$rankName}. ".
-					"To promote/demote to a different rank, add the ".
-					"rank number (1, 2 or 3) to the command."
-				);
-				return false;
-			}
-
-			if (!$this->canChangeRaidRank($sender, $who, $alName, $sendto)) {
-				return false;
-			}
-
-			$altInfo = $this->altsController->getAltInfo($who);
-			if ($altInfo->main !== $who) {
-				$msg = "<red>WARNING<end>: {$who} is not a main. This command did NOT affect {$who}'s access level and no action was performed.";
-				$sendto->reply($msg);
-				return false;
-			}
-
-			$action = $this->addToLists($who, $sender, $rank);
-
+		if ($this->checkExisting($who, $rank)) {
 			$sendto->reply(
-				"<highlight>{$who}<end> has been <highlight>{$action}<end> ".
-				"to {$rankName}."
+				"<highlight>{$who}<end> is already {$rankName}. ".
+				"To promote/demote to a different rank, add the ".
+				"rank number (1, 2 or 3) to the command."
 			);
-			$this->chatBot->sendTell(
-				"You have been <highlight>{$action}<end> to {$rankName} ".
-				"by <highlight>{$sender}<end>.",
-				$who
-			);
-			return true;
-		});
+			return false;
+		}
+
+		if (!$this->canChangeRaidRank($sender, $who, $alName, $sendto)) {
+			return false;
+		}
+
+		$altInfo = $this->altsController->getAltInfo($who);
+		if ($altInfo->main !== $who) {
+			$msg = "<red>WARNING<end>: {$who} is not a main. This command did NOT affect {$who}'s access level and no action was performed.";
+			$sendto->reply($msg);
+			return false;
+		}
+
+		$action = $this->addToLists($who, $sender, $rank);
+
+		$sendto->reply(
+			"<highlight>{$who}<end> has been <highlight>{$action}<end> ".
+			"to {$rankName}."
+		);
+		$this->chatBot->sendTell(
+			"You have been <highlight>{$action}<end> to {$rankName} ".
+			"by <highlight>{$sender}<end>.",
+			$who
+		);
+		return true;
 	}
 
 	/**
