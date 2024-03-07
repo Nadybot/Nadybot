@@ -10,7 +10,7 @@ class AoDataOutbound implements CounterProvider {
 	public Nadybot $chatBot;
 
 	public function getValue(): int {
-		return $this->chatBot->numBytesOut;
+		return $this->chatBot->aoClient->getStatistics()->bytesWritten;
 	}
 
 	public function getTags(): array {
