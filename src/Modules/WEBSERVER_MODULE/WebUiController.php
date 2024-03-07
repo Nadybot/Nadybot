@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
+use function Safe\realpath;
+
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use DateTime;
 use ErrorException;
@@ -109,7 +111,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	)]
 	public function updateWebUI(): void {
 		$channel = $this->settingManager->getString('nadyui_channel');
-		if (empty($channel) || $channel === 'off') {
+		if (!isset($channel) || $channel === "" || $channel === 'off') {
 			return;
 		}
 		$sendto = new WebUIChannel($this->messageHub);
@@ -131,11 +133,11 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			$this->settingManager->save("nadyui_version", "0");
 		}
 		$path = $this->config->paths->html;
-		return (realpath("{$path}/css") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/css")) : true)
-			&& (realpath("{$path}/img") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/img")) : true)
-			&& (realpath("{$path}/js") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/js")) : true)
-			&& (realpath("{$path}/index.html") ? unlink(\Safe\realpath("{$path}/index.html")) : true)
-			&& (realpath("{$path}/favicon.ico") ? unlink(\Safe\realpath("{$path}/favicon.ico")) : true);
+		return (strlen(realpath("{$path}/css")) ? $this->recursiveRemoveDirectory(realpath("{$path}/css")) : true)
+			&& (strlen(realpath("{$path}/img")) ? $this->recursiveRemoveDirectory(realpath("{$path}/img")) : true)
+			&& (strlen(realpath("{$path}/js")) ? $this->recursiveRemoveDirectory(realpath("{$path}/js")) : true)
+			&& (strlen(realpath("{$path}/index.html")) ? unlink(realpath("{$path}/index.html")) : true)
+			&& (strlen(realpath("{$path}/favicon.ico")) ? unlink(realpath("{$path}/favicon.ico")) : true);
 	}
 
 	/** Delete a directory and all its subdirectories */

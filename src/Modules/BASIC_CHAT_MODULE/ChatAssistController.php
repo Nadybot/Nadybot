@@ -165,7 +165,7 @@ class ChatAssistController extends ModuleInstance {
 			if (strlen($name)) {
 				$blob .= $callerList->name;
 			} else {
-				$blob .= $this->chatBot->char->name;
+				$blob .= $this->config->main->character;
 			}
 			$blob .= " /assist " . join(" \\n /assist ", $callerList->getNames());
 			$blob .= "<end>\n<tab>Once: ".

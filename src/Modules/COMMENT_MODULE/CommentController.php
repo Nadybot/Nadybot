@@ -676,7 +676,7 @@ class CommentController extends ModuleInstance {
 	 * about the same character again.
 	 */
 	protected function getCommentCooldown(Comment $comment): int {
-		if ($comment->created_by === $this->chatBot->char->name) {
+		if ($comment->created_by === $this->config->main->character) {
 			return 0;
 		}
 		$cooldown = $this->commentCooldown;

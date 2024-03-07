@@ -235,7 +235,7 @@ class MassMsgController extends ModuleInstance {
 			if (!isset($uid) || $this->banController->isOnBanlist($uid)) {
 				continue;
 			}
-			if ($name === $this->chatBot->char->name
+			if ($name === $this->config->main->character
 				|| !$this->accessManager->checkAccess($name, "member")) {
 				continue;
 			}

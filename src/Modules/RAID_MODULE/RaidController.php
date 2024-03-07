@@ -216,7 +216,7 @@ class RaidController extends ModuleInstance {
 		}
 		$raidCat = new CommentCategory();
 		$raidCat->name = static::CAT_RAID;
-		$raidCat->created_by = $this->chatBot->char->name;
+		$raidCat->created_by = $this->config->main->character;
 		$raidCat->min_al_read = "raid_leader_1";
 		$raidCat->min_al_write = "raid_leader_2";
 		$raidCat->user_managed = false;
@@ -1011,7 +1011,7 @@ class RaidController extends ModuleInstance {
 		description: "Track when someone sends messages on priv"
 	)]
 	public function trackPrivChannelMessages(AOChatEvent $event): void {
-		if (!isset($this->raid) || $event->channel !== $this->chatBot->char->name) {
+		if (!isset($this->raid) || $event->channel !== $this->config->main->character) {
 			return;
 		}
 		$this->raid->we_are_most_recent_message = false;
@@ -1224,7 +1224,7 @@ class RaidController extends ModuleInstance {
 				$this->logger->info("{name} is yet too young", ["name" => $mainData->name]);
 				continue;
 			}
-			$result = strip_tags($this->privateChannelController->removeUser($member, $this->chatBot->char->name));
+			$result = strip_tags($this->privateChannelController->removeUser($member, $this->config->main->character));
 			$this->logger->notice("Removing {member}: {result}", [
 				"member" => $member,
 				"result" => $result,

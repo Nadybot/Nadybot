@@ -191,7 +191,7 @@ class SystemdController extends ModuleInstance {
 			return 0;
 		}
 
-		if (!filter_var($watchdogUsec, FILTER_VALIDATE_INT)) {
+		if (false === filter_var($watchdogUsec, FILTER_VALIDATE_INT)) {
 			return -1 * self::EINVAL;
 		}
 		$watchdogUsec = (int)$watchdogUsec;

@@ -247,7 +247,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$query->join(self::DB_TRACKING . " as ev", "ev.uid", "=", "t.uid")
 			->where("ev.event", "logon")
 			->groupBy("ev.uid")
-			->select("ev.uid", $query->colFunc("max", "ev.dt", "dt"))
+			->select(["ev.uid", $query->colFunc("max", "ev.dt", "dt")])
 			->asObj(LastLogin::class)
 			->each(function (LastLogin $row) use (&$users): void {
 				$age = time() - $row->dt;
@@ -487,7 +487,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	public function trackListCommand(CmdContext $context): void {
 		/** @var Collection<TrackedUser> */
 		$users = $this->db->table(self::DB_TABLE)
-			->select("added_dt", "added_by", "name", "uid")
+			->select(["added_dt", "added_by", "name", "uid"])
 			->asObj(TrackedUser::class)
 			->sortBy("name");
 		$numrows = $users->count();
@@ -1202,7 +1202,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$events = $this->db->table(self::DB_TRACKING)
 			->where("uid", $uid)
 			->orderByDesc("dt")
-			->select("event", "dt")
+			->select(["event", "dt"])
 			->asObj(Tracking::class);
 		$hideLink = $this->text->makeChatcmd(
 			"hide",
@@ -1251,7 +1251,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->insert([
 				"name" => $name,
 				"uid" => $uid,
-				"added_by" => $sender ?? $this->chatBot->char->name,
+				"added_by" => $sender ?? $this->config->main->character,
 				"added_dt" => time(),
 			]);
 		$this->buddylistManager->addId($uid, static::REASON_TRACKER);

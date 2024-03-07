@@ -256,7 +256,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->timerController->remove("Gaubuff_{$side}");
 		$this->timerController->add(
 			"Gaubuff_{$side}",
-			$this->chatBot->char->name,
+			$this->config->main->character,
 			"",
 			$alerts,
 			"GauntletBuffController.gaubuffcallback",
@@ -464,7 +464,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->setGaubuff(
 			strtolower($buff->faction),
 			$buff->expires,
-			$this->chatBot->char->name,
+			$this->config->main->character,
 			time()
 		);
 	}

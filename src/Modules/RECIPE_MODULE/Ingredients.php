@@ -10,6 +10,7 @@ use IteratorIterator;
  */
 class Ingredients extends IteratorIterator {
 	public function __construct(Ingredient ...$ingredients) {
+		/** @psalm-suppress InvalidArgument */
 		parent::__construct(new ArrayIterator($ingredients));
 	}
 

@@ -1120,13 +1120,15 @@ class RelayController extends ModuleInstance {
 
 		/** @var \stdClass[] $events */
 		try {
-			foreach ($events as &$event) {
+			foreach ($events as &$event2) {
 				/** @var RelayEvent */
-				$event = JsonImporter::convert(RelayEvent::class, $event);
+				$event2 = JsonImporter::convert(RelayEvent::class, $event2);
 			}
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+
+		/** @var RelayEvent[] $events */
 		$this->db->awaitBeginTransaction();
 		$oldEvents = $relay->events;
 		try {
@@ -1135,7 +1137,6 @@ class RelayController extends ModuleInstance {
 				->delete();
 			$relay->events = [];
 
-			/** @var RelayEvent[] $events */
 			foreach ($events as $event) {
 				$event->relay_id = $relay->id;
 				$event->id = $this->db->insert(static::DB_TABLE_EVENT, $event, "id");

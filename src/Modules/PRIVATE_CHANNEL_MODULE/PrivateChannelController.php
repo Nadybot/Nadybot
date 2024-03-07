@@ -551,7 +551,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$context->reply($msg);
 			return;
 		}
-		if ($this->chatBot->char->name == $name) {
+		if ($this->config->main->character == $name) {
 			$msg = "You cannot invite the bot to its own private channel.";
 			$context->reply($msg);
 			return;
@@ -1074,7 +1074,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$label = "Guest";
 		}
 		$re->type = RoutableEvent::TYPE_EVENT;
-		$re->prependPath(new Source(Source::PRIV, $this->chatBot->char->name, $label));
+		$re->prependPath(new Source(Source::PRIV, $this->config->main->character, $label));
 		$re->setData($event);
 		$this->messageHub->handle($re);
 	}
@@ -1159,7 +1159,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$faction = strtolower($whois->faction);
 		$this->banController->add(
 			$whois->charid,
-			$this->chatBot->char->name,
+			$this->config->main->character,
 			null,
 			sprintf(
 				"Autoban, because %s %s %s",
@@ -1178,7 +1178,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			)
 		);
 		$audit = new Audit();
-		$audit->actor = $this->chatBot->char->name;
+		$audit->actor = $this->config->main->character;
 		$audit->actor = $whois->name;
 		$audit->action = AccessManager::KICK;
 		$audit->value = "auto-ban";
@@ -1533,7 +1533,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$autoInvite = $this->autoinviteDefault;
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->getUid($name);
-		if ($this->chatBot->char->name === $name) {
+		if ($this->config->main->character === $name) {
 			throw new Exception("You cannot add the bot as a member of itself.");
 		} elseif ($uid === null) {
 			throw new Exception("Character <highlight>{$name}<end> does not exist.");

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
@@ -36,6 +37,9 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
+	#[NCA\Inject]
+	public BotConfig $config;
+
 	protected string $type;
 
 	public function __construct(string $type) {
@@ -54,8 +58,8 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 		foreach ($msg as $text) {
 			$rMessage = new RoutableMessage($text);
 			$rMessage->setCharacter(new Character(
-				$this->chatBot->char->name,
-				$this->chatBot->char->id
+				$this->config->main->character,
+				$this->chatBot->char?->id
 			));
 			$rMessage->path = [
 				new Source(Source::WEB, "Web"),
@@ -66,7 +70,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 		foreach ($msgs as $msg) {
 			$xmlMessage = new AOWebChatEvent();
 			$xmlMessage->message = $msg;
-			$xmlMessage->sender = $this->chatBot->char->name;
+			$xmlMessage->sender = $this->config->main->character;
 			$xmlMessage->type = "chat({$this->type})";
 			$xmlMessage->channel = $this->type;
 			$xmlMessage->path = [

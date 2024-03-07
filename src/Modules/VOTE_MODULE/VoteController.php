@@ -346,7 +346,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			->asObj(Vote::class)
 			->first();
 		$timeleft = $topic->getTimeLeft();
-		if (isset($vote) && $vote->answer && $timeleft > 0) {
+		if (isset($vote) && isset($vote->answer) && $timeleft > 0) {
 			$privmsg = "You voted: <highlight>{$vote->answer}<end>.";
 		} elseif ($timeleft > 0) {
 			$privmsg = "You have not voted on this yet.";

@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use function Amp\async;
 use Closure;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\Player,
@@ -18,7 +19,6 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	RELAY_MODULE\Relay,
@@ -76,6 +76,10 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public BotConfig $config;
+
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 
 	protected Relay $relay;
@@ -257,7 +261,7 @@ class GcrProtocol implements RelayProtocolInterface {
 				if (!isset($player)) {
 					return;
 				}
-				$channel = (!empty($player->guild))
+				$channel = (isset($player->guild) && strlen($player->guild))
 						? ($matches['where'] === 'pg'
 							? "{$player->guild} Guest"
 							: "{$player->guild}")
@@ -273,12 +277,14 @@ class GcrProtocol implements RelayProtocolInterface {
 				$chars = explode(";", $matches[1]);
 				foreach ($chars as $char) {
 					[$name, $where, $rank] = [...explode(",", $char), null, null];
+
+					/** @psalm-suppress DocblockTypeContradiction */
 					if (!isset($name)) {
 						continue;
 					}
 					$this->relay->setOnline(
 						$player->name,
-						(!empty($player->guild))
+						(!isset($player->guild) || !strlen($player->guild))
 							? ($where === 'pg'
 								? "{$player->guild} Guest"
 								: "{$player->guild}")
@@ -304,11 +310,11 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	public function getOnlineList(): ?string {
 		$chunks = [];
-		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
+		$onlineOrg = $this->onlineController->getPlayers('guild', $this->config->main->character);
 		foreach ($onlineOrg as $char) {
 			$chunks []= "{$char->name},gc,{$char->guild_rank_id}";
 		}
-		$onlineOrg = $this->onlineController->getPlayers('priv', $this->chatBot->char->name);
+		$onlineOrg = $this->onlineController->getPlayers('priv', $this->config->main->character);
 		foreach ($onlineOrg as $char) {
 			$chunks []= "{$char->name},pg";
 		}

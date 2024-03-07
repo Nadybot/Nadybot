@@ -599,7 +599,7 @@ class WebserverController extends ModuleInstance {
 			$this->logger->error('JWT: ' . $e->getMessage(), ["exception" => $e]);
 			return null;
 		}
-		if ($payload->exp??time() <= time()) {
+		if (!isset($payload->exp) || $payload->exp <= time()) {
 			// return null;
 		}
 		return $payload->sub->name??null;

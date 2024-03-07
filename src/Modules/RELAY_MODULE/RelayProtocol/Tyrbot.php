@@ -195,9 +195,9 @@ class Tyrbot implements RelayProtocolInterface {
 		]);
 		$event = clone $event;
 		if (is_string($event->data)) {
-			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data);
+			$event->data = str_replace("<myname>", $this->config->main->character, $event->data);
 		} elseif (is_object($event->data) && is_string($event->data->message??null)) {
-			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data->message??"");
+			$event->data = str_replace("<myname>", $this->config->main->character, $event->data->message??"");
 		} else {
 			return [];
 		}
@@ -206,7 +206,7 @@ class Tyrbot implements RelayProtocolInterface {
 			"message" => $event->data,
 		];
 		if (isset($event->char)
-			&& ($event->char->id ?? null) !== $this->chatBot->char->id) {
+			&& ($event->char->id ?? null) !== $this->chatBot->char?->id) {
 			$packet['user'] = ["name" => $event->char->name];
 			if (isset($event->char->id)) {
 				$packet['user']['id'] = $event->char->id;
@@ -321,7 +321,7 @@ class Tyrbot implements RelayProtocolInterface {
 			"type" => "online_list",
 			"online" => [],
 		];
-		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
+		$onlineOrg = $this->onlineController->getPlayers('guild', $this->config->main->character);
 		if (strlen($this->config->general->orgName)) {
 			$orgSource = [
 				"name" => $this->config->general->orgName,
@@ -345,9 +345,9 @@ class Tyrbot implements RelayProtocolInterface {
 			];
 		}
 
-		$onlinePriv = $this->onlineController->getPlayers('priv', $this->chatBot->char->name);
+		$onlinePriv = $this->onlineController->getPlayers('priv', $this->config->main->character);
 		$privSource = [
-			"name" => $this->chatBot->char->name,
+			"name" => $this->config->main->character,
 			"server" => $this->config->main->dimension,
 		];
 		if (strlen($this->config->general->orgName)) {

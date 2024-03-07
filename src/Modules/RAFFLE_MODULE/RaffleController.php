@@ -190,7 +190,7 @@ class RaffleController extends ModuleInstance {
 		if ($context->isDM()) {
 			$this->raffle->sendto = new PrivateChannelCommandReply(
 				$this->chatBot,
-				$this->chatBot->char->name
+				$this->config->main->character
 			);
 		}
 		$event = new RaffleEvent();
@@ -249,7 +249,7 @@ class RaffleController extends ModuleInstance {
 		if ($context->isDM()) {
 			$raffle->sendto = new PrivateChannelCommandReply(
 				$this->chatBot,
-				$this->chatBot->char->name
+				$this->config->main->character
 			);
 		}
 		$event = new RaffleEvent();

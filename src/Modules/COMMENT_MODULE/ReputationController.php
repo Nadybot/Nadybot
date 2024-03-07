@@ -59,7 +59,7 @@ class ReputationController extends ModuleInstance {
 		}
 		$repCat = new CommentCategory();
 		$repCat->name = static::CAT_REPUTATION;
-		$repCat->created_by = $this->chatBot->char->name;
+		$repCat->created_by = $this->config->main->character;
 		$repCat->min_al_read = "guild";
 		$repCat->min_al_write = "guild";
 		$repCat->user_managed = false;

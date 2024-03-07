@@ -49,7 +49,7 @@ class WhatLocksController extends ModuleInstance {
 	#[NCA\HandlesCommand("whatlocks")]
 	public function whatLocksCommand(CmdContext $context): void {
 		$query = $this->db->table("what_locks")->groupBy("skill_id");
-		$skills = $query->select("skill_id", $query->rawFunc("COUNT", "*", "amount"))
+		$skills = $query->select(["skill_id", $query->rawFunc("COUNT", "*", "amount")])
 			->asObj(SkillIdCount::class);
 		$skillsById = $this->itemsController->getSkillByIDs(
 			...$skills->pluck("skill_id")->toArray()

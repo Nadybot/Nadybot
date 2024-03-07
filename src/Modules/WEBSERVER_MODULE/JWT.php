@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use function Safe\{date, json_decode};
 use DateTime;
 use DomainException;
 use Exception;
@@ -9,6 +10,7 @@ use InvalidArgumentException;
 use Nadybot\Modules\WEBSERVER_MODULE\JWT\{BeforeValidException, ExpiredException, SignatureInvalidException};
 use Safe\Exceptions\{DatetimeException, UrlException};
 use stdClass;
+
 use UnexpectedValueException;
 
 /**
@@ -87,18 +89,6 @@ class JWT {
 			$sig = self::signatureToDER($sig);
 		}
 
-		/*
-				if (is_array($key) || $key instanceof ArrayAccess) {
-					if (isset($header->kid)) {
-						if (!isset($key[$header->kid])) {
-							throw new UnexpectedValueException('"kid" invalid, unable to lookup correct key');
-						}
-						$key = $key[$header->kid];
-					} else {
-						throw new UnexpectedValueException('"kid" empty, unable to lookup correct key');
-					}
-				}
-		*/
 		// Check the signature
 		if (!self::verify("{$headb64}.{$bodyb64}", $sig, $key, $header->alg)) {
 			throw new SignatureInvalidException('Signature verification failed');
@@ -108,7 +98,7 @@ class JWT {
 		// token can actually be used. If it's not yet that time, abort.
 		if (isset($payload->nbf) && $payload->nbf > ($timestamp + static::$leeway)) {
 			try {
-				$date = \Safe\date(DateTime::ISO8601, $payload->nbf);
+				$date = date(DateTime::ATOM, $payload->nbf);
 			} catch (DatetimeException) {
 				$date = "<unknown>";
 			}
@@ -120,7 +110,7 @@ class JWT {
 		// correctly used the nbf claim).
 		if (isset($payload->iat) && $payload->iat > ($timestamp + static::$leeway)) {
 			try {
-				$date = \Safe\date(DateTime::ISO8601, $payload->iat);
+				$date = date(DateTime::ATOM, $payload->iat);
 			} catch (DatetimeException) {
 				$date = "<unknown>";
 			}
@@ -149,11 +139,11 @@ class JWT {
 			throw new DomainException("Invalid JSON data received");
 		}
 		if (version_compare(PHP_VERSION, '5.4.0', '>=') && !(defined('JSON_C_VERSION') && PHP_INT_SIZE > 4)) {
-			$obj = \Safe\json_decode($input, false, 512, JSON_BIGINT_AS_STRING);
+			$obj = json_decode($input, false, 512, JSON_BIGINT_AS_STRING);
 		} else {
 			$max_int_length = strlen((string)PHP_INT_MAX) - 1;
 			$json_without_bigints = preg_replace('/:\s*(-?\d{' . $max_int_length . ',})/', ': "$1"', $input);
-			$obj = \Safe\json_decode($json_without_bigints);
+			$obj = json_decode($json_without_bigints);
 		}
 
 		if ($errno = json_last_error()) {
@@ -247,6 +237,7 @@ class JWT {
 		}
 		// Separate the signature into r-value and s-value
 		$rs = str_split($sig, $chunkSize);
+		assert(count($rs) >= 2);
 		[$r, $s] = $rs;
 
 		// Trim leading zeros

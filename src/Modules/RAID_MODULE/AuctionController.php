@@ -648,7 +648,7 @@ class AuctionController extends ModuleInstance {
 				$auction->bid * -1,
 				true,
 				$auction->item->toString(),
-				$sender ?? $this->chatBot->char->name,
+				$sender ?? $this->config->main->character,
 				$this->raidController->raid ?? null
 			);
 		}
@@ -658,7 +658,7 @@ class AuctionController extends ModuleInstance {
 	public function getBiddingInfo(): string {
 		$info = "<header2>Placing a bid<end>\n".
 			"To place a bid, use\n".
-			"<tab><highlight>/tell " . $this->chatBot->char->name . " bid &lt;points&gt;<end>\n".
+			"<tab><highlight>/tell " . $this->config->main->character . " bid &lt;points&gt;<end>\n".
 			"<i>(Replace &lt;points&gt; with the number of points you would like to bid)</i>\n\n".
 			"The auction ends after {$this->auctionDuration}s, or ".
 			"{$this->auctionMinTimeAfterBid}s after the last bid was placed.\n\n".

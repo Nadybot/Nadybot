@@ -459,7 +459,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$this->msgHub->deleteRouteID($route->getID());
 		}
 		$routes = [];
-		$hops = ["web", isset($this->config->orgId) ? "aoorg" : "aopriv({$this->chatBot->char->name})"];
+		$hops = ["web", isset($this->config->orgId) ? "aoorg" : "aopriv({$this->config->main->character})"];
 
 		foreach ($hops as $hop) {
 			$route = new Route();
@@ -846,9 +846,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$message = new Message(
 				dimension: $character?->dimension ?? $this->config->main->dimension,
 				bot_uid: $this->chatBot->char->id,
-				bot_name: $this->chatBot->char->name,
+				bot_name: $this->config->main->character,
 				sender_uid: $character?->id,
-				sender_name: $character?->name ?? $this->chatBot->char->name,
+				sender_name: $character?->name ?? $this->config->main->character,
 				main: $character ? $this->altsCtrl->getMainOf($character->name) : null,
 				nick: $character ? $this->nickCtrl->getNickname($character->name) : null,
 				sent: time(),

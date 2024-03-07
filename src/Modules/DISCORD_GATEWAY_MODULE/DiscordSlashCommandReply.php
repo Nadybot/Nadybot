@@ -97,7 +97,7 @@ class DiscordSlashCommandReply implements CommandReply {
 	protected function routeToHub(DiscordChannel $channel, string $message): void {
 		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(
-			new Character($this->chatBot->char->name, $this->chatBot->char->id)
+			new Character($this->config->main->character, $this->chatBot->char->id)
 		);
 		$guilds = $this->gw->getGuilds();
 		$guild = $guilds[$channel->guild_id] ?? null;

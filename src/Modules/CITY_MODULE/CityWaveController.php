@@ -205,7 +205,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		$this->timerController->remove(self::TIMER_NAME);
 		$this->timerController->add(
 			self::TIMER_NAME,
-			$this->chatBot->char->name,
+			$this->config->main->character,
 			"none",
 			$alerts,
 			'citywavecontroller.timerCallback'

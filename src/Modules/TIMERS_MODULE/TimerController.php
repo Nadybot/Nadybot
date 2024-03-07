@@ -118,8 +118,8 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	public function readAllTimers(): Collection {
 		/** @var Collection<Timer> */
 		$data = $this->db->table(static::DB_TABLE)
-			->select("id", "name", "owner", "mode", "endtime", "settime", "origin")
-			->addSelect("callback", "data", "alerts")
+			->select(["id", "name", "owner", "mode", "endtime", "settime", "origin"])
+			->addSelect(["callback", "data", "alerts"])
 			->asObj(Timer::class);
 		return $data;
 	}

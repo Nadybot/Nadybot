@@ -67,7 +67,7 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 			$msg = [$msg];
 		}
 		$fakeGM = new GuildMember();
-		$fakeGM->nick = $this->chatBot->char->name;
+		$fakeGM->nick = $this->config->main->character;
 		if (!$this->isDirectMsg) {
 			$channel = $this->discordGatewayController->lookupChannel($this->channelId);
 			if (isset($channel)) {
@@ -98,7 +98,7 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 	protected function routeToHub(DiscordChannel $channel, string $message): void {
 		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(
-			new Character($this->chatBot->char->name, $this->chatBot->char->id)
+			new Character($this->config->main->character, $this->chatBot->char->id)
 		);
 		$guilds = $this->discordGatewayController->getGuilds();
 		$guild = $guilds[$channel->guild_id] ?? null;

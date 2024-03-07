@@ -21,6 +21,7 @@ use Amp\{
 	Socket\ConnectContext,
 };
 use Exception;
+use League\Uri\Uri;
 use Nadybot\Core\{
 	Attributes as NCA,
 	LogWrapInterface,
@@ -88,16 +89,13 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 
 	public function __construct(string $uri, ?string $authorization=null) {
 		$this->uri = $uri;
-		$urlParts = parse_url($this->uri);
-		if ($urlParts === false
-			|| empty($urlParts)
-			|| empty($urlParts['scheme'])
-			|| empty($urlParts['host'])
-		) {
+		$urlParts = Uri::new($uri);
+		$scheme = $urlParts->getScheme();
+		if ($scheme === null || $urlParts->getHost() === null) {
 			throw new Exception("Invalid URI <highlight>{$uri}<end>.");
 		}
-		if (!in_array($urlParts['scheme'], ['ws', 'wss'])) {
-			throw new Exception("<highlight>{$urlParts['scheme']}<end> is not a valid schema. Valid are ws and wss.");
+		if (!in_array($scheme, ['ws', 'wss'])) {
+			throw new Exception("<highlight>{$scheme}<end> is not a valid schema. Valid are ws and wss.");
 		}
 		$this->authorization = $authorization;
 	}

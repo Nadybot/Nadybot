@@ -218,7 +218,7 @@ class Relay implements MessageReceiver {
 		RelayProtocolInterface $relayProtocol,
 		RelayLayerInterface ...$stack
 	): void {
-		/** @var RelayLayerInterface[] $stack */
+		/** @var list<RelayLayerInterface> $stack */
 		$this->transport = $transport;
 		$this->relayProtocol = $relayProtocol;
 		$this->stack = $stack;
@@ -371,6 +371,7 @@ class Relay implements MessageReceiver {
 		$this->prependMainHop($event);
 		$data = $this->relayProtocol->send($event);
 		for ($i = count($this->stack); $i--;) {
+			/** @psalm-suppress InvalidArrayOffset */
 			$data = $this->stack[$i]->send($data);
 		}
 		$this->outboundPackets->inc(count($data));
@@ -382,12 +383,14 @@ class Relay implements MessageReceiver {
 		$i = count($this->stack);
 		if ($member !== $this->relayProtocol) {
 			for ($i = count($this->stack); $i--;) {
+				/** @psalm-suppress InvalidArrayOffset */
 				if ($this->stack[$i] === $member) {
 					break;
 				}
 			}
 		}
 		for ($j = $i; $j--;) {
+			/** @psalm-suppress InvalidArrayOffset */
 			$data = $this->stack[$j]->send($data);
 		}
 		$this->outboundPackets->inc(count($data));
@@ -439,7 +442,7 @@ class Relay implements MessageReceiver {
 		} elseif (!empty($event->path) && $event->path[0]->type !== Source::PRIV && !$isOrgBot) {
 			$event->prependPath(new Source(
 				Source::PRIV,
-				$this->chatBot->char->name
+				$this->config->main->character
 			));
 		}
 	}

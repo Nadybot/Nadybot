@@ -1018,7 +1018,7 @@ class GuildController extends ModuleInstance {
 		// Going through each member of the org and add or update his/her
 		foreach ($org->members as $member) {
 			// don't do anything if $member is the bot itself
-			if (strtolower($member->name) === strtolower($this->chatBot->char->name)) {
+			if (strtolower($member->name) === strtolower($this->config->main->character)) {
 				continue;
 			}
 

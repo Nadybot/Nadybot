@@ -652,7 +652,7 @@ class BuffPerksController extends ModuleInstance {
 				$perk = new Perk();
 				$perks[$name] = $perk;
 				$perk->name = $name;
-				$perk->description = $description ? join("\n", explode("\\n", $description)) : null;
+				$perk->description = isset($description) ? join("\n", explode("\\n", $description)) : null;
 				$perk->expansion = $expansion;
 			}
 

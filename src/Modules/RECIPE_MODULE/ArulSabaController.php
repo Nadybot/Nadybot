@@ -424,7 +424,7 @@ class ArulSabaController extends ModuleInstance {
 		$blob = "<header2>Ingredients<end>\n";
 		$maxAmount = $ingredients->getMaxAmount();
 		foreach ($ingredients as $ing) {
-			$ql = (string)($ing->ql ?: "");
+			$ql = (string)($ing->ql ?? "");
 			if (isset($ing->item)) {
 				$item = $ing->item;
 				$link = $this->text->makeItem($item->lowid, $item->highid, $ing->ql ?? $item->lowql, $item->name);

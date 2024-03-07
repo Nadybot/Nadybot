@@ -34,7 +34,7 @@ class SameChannelResponseController extends ModuleInstance {
 		if (!isset($context->source)) {
 			return;
 		}
-		$context->sendto = new DemoResponseCommandReply($context->source, $context->sendto, $this->chatBot->char->name);
+		$context->sendto = new DemoResponseCommandReply($context->source, $context->sendto, $this->config->main->character);
 		$context->message = $commandString;
 		$this->commandManager->processCmd($context);
 	}

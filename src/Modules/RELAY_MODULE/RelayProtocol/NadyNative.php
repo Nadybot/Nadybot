@@ -86,9 +86,9 @@ class NadyNative implements RelayProtocolInterface {
 			$event->data->renderPath = true;
 		}
 		if (is_string($event->data)) {
-			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data);
+			$event->data = str_replace("<myname>", $this->config->main->character, $event->data);
 		} elseif (is_object($event->data) && !($event->data instanceof SyncEvent) && is_string($event->data->message??null)) {
-			$event->data->message = str_replace("<myname>", $this->chatBot->char->name, $event->data->message??"");
+			$event->data->message = str_replace("<myname>", $this->config->main->character, $event->data->message??"");
 		}
 		try {
 			$data = \Safe\json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
@@ -216,7 +216,7 @@ class NadyNative implements RelayProtocolInterface {
 		if (isset($event->sourceBot, $event->sourceDimension)
 
 			&& ($event->sourceDimension !== $this->config->main->dimension
-				|| $event->sourceBot !== $this->chatBot->char->name)
+				|| $event->sourceBot !== $this->config->main->character)
 		) {
 			// We don't want to relay other bots' events
 			return;
@@ -225,7 +225,7 @@ class NadyNative implements RelayProtocolInterface {
 			return;
 		}
 		$sEvent = clone $event;
-		$sEvent->sourceBot = $this->chatBot->char->name;
+		$sEvent->sourceBot = $this->config->main->character;
 		$sEvent->sourceDimension = $this->config->main->dimension;
 		$rEvent = new RoutableEvent();
 		$rEvent->setType($rEvent::TYPE_EVENT);
@@ -326,7 +326,7 @@ class NadyNative implements RelayProtocolInterface {
 
 	protected function getOnlineList(): OnlineList {
 		$onlineList = new OnlineList();
-		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
+		$onlineOrg = $this->onlineController->getPlayers('guild', $this->config->main->character);
 		$isOrg = strlen($this->config->general->orgName);
 		if ($isOrg) {
 			$block = new OnlineBlock();
@@ -352,7 +352,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 
 		$privBlock = new OnlineBlock();
-		$onlinePriv = $this->onlineController->getPlayers('priv', $this->chatBot->char->name);
+		$onlinePriv = $this->onlineController->getPlayers('priv', $this->config->main->character);
 		$privLabel = null;
 		if (isset($block)) {
 			$privLabel = "Guest";
@@ -360,7 +360,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		$privBlock->path []= new Source(
 			Source::PRIV,
-			$this->chatBot->char->name,
+			$this->config->main->character,
 			$privLabel,
 		);
 		foreach ($onlinePriv as $player) {
