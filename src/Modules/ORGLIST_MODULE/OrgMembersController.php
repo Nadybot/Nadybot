@@ -6,11 +6,9 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	CommandReply,
 	DB,
 	DBSchema\Player,
 	ModuleInstance,
-	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Text,
 };
@@ -41,19 +39,16 @@ class OrgMembersController extends ModuleInstance {
 	public function orgmembers2Command(CmdContext $context, int $orgId): void {
 		$context->reply("Getting org info...");
 
-		$this->guildManager->getByIdAsync($orgId, null, false, [$this, "showOrglist"], $orgId, $context);
-	}
-
-	public function showOrglist(?Guild $org, int $guildId, CommandReply $sendto): void {
+		$org = $this->guildManager->byId($orgId);
 		if ($org === null) {
 			$msg = "Error in getting the org info. Either org does not exist or AO's server was too slow to respond.";
-			$sendto->reply($msg);
+			$context->reply($msg);
 			return;
 		}
 
 		/** @var Collection<Player> */
 		$players = $this->db->table("players")
-			->where("guild_id", $guildId)
+			->where("guild_id", $orgId)
 			->where("dimension", $this->db->getDim())
 			->orderBy("name")
 			->asObj(Player::class);
@@ -76,6 +71,6 @@ class OrgMembersController extends ModuleInstance {
 		}
 
 		$msg = $this->text->makeBlob("Org members for '{$org->orgname}' ({$numrows})", $blob);
-		$sendto->reply($msg);
+		$context->reply($msg);
 	}
 }

@@ -279,7 +279,7 @@ class SymbiantController extends ModuleInstance {
 			->join("SymbiantClusterMatrix AS scm", "scm.SymbiantID", "=", "sym.ID")
 			->join("Cluster AS c", "c.ClusterID", "=", "scm.ClusterID")
 			->join("ImplantType AS it", "it.ImplantTypeID", "sym.SlotID")
-			->select("sym.*", "it.ShortName AS SlotName", "it.Name AS SlotLongName")
+			->select(["sym.*", "it.ShortName AS SlotName", "it.Name AS SlotLongName"])
 			->where("c.SkillID", $skill->id)
 			->asObj(Symbiant::class);
 		return $symbiants->toArray();
@@ -310,7 +310,7 @@ class SymbiantController extends ModuleInstance {
 			->where("p.Name", $prof)
 			->where("s.LevelReq", "<=", $level)
 			->where("s.Name", "NOT LIKE", "Prototype%")
-			->select("s.*", "it.ShortName AS SlotName", "it.Name AS SlotLongName");
+			->select(["s.*", "it.ShortName AS SlotName", "it.Name AS SlotLongName"]);
 		$query->orderByRaw($query->grammar->wrap("s.Name") . " like ? desc", ['%Alpha']);
 		$query->orderByRaw($query->grammar->wrap("s.Name") . " like ? desc", ['%Beta']);
 		$query->orderByDesc("s.QL");

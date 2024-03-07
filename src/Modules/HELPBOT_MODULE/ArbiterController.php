@@ -161,7 +161,6 @@ class ArbiterController extends ModuleInstance {
 			for ($i = 0; $i < 3; $i++) {
 				$arb = new ICCArbiter();
 
-				/** @psalm-suppress InvalidArrayOffset */
 				$arb->type = $validTypes[($pos + $i) % 3];
 				$arb->start = (new DateTime())->setTimestamp($start);
 				$arb->end = (new DateTime())->setTimestamp($end);

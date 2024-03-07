@@ -458,12 +458,12 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			->join(RaidMemberController::DB_TABLE . " AS rm", "r.raid_id", "rm.raid_id")
 			->groupBy("r.raid_id", "r.started_by", "r.started");
 		return $query->havingRaw("COUNT(*) >= 5")
-			->select(
+			->select([
 				"r.raid_id",
 				"r.started",
 				"r.started_by",
-				$query->colFunc("COUNT", "*", "num_raiders")
-			)
+				$query->colFunc("COUNT", "*", "num_raiders"),
+			])
 			->asObj(RaidStat::class)
 			->each(function (RaidStat $stat): void {
 				$stat->starter_main = $this->altsController->getMainOf($stat->started_by);

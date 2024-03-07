@@ -5,6 +5,7 @@ namespace Nadybot\Modules\COMMENT_MODULE;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Config\BotConfig,
 	DB,
 	LoggerWrapper,
 	ModuleInstance,
@@ -42,6 +43,9 @@ class ReputationController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Util $util;
+
+	#[NCA\Inject]
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;

@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
+	Config\BotConfig,
 	DB,
 	Event,
 	EventManager,
@@ -73,6 +74,9 @@ class RaffleController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	#[NCA\Inject]
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Util $util;
@@ -291,7 +295,7 @@ class RaffleController extends ModuleInstance {
 		$msg = "\n<yellow>:::<end> <red>{$this->raffle->raffler} has started a raffle<end> <yellow>:::<end>\n".
 			$this->fancyFrame($this->raffle->toString("<tab>"));
 		$blob = $this->getJoinLeaveBlob();
-		if ($this->raffle->end) {
+		if (isset($this->raffle->end) && $this->raffle->end > 0) {
 			$endTime = $this->util->unixtimeToReadable($this->raffle->end - $this->raffle->start);
 			$msg = $this->text->blobWrap(
 				"{$msg}The raffle will end in <highlight>{$endTime}<end> :: [",
@@ -316,7 +320,7 @@ class RaffleController extends ModuleInstance {
 		$msg = "\n<yellow>:::<end> <red>{$raffle->raffler} has added {$count} {$items} to the raffle<end> <yellow>:::<end>\n".
 			$this->fancyFrame($raffle->toString("<tab>"));
 		$blob = $this->getJoinLeaveBlob();
-		if ($this->raffle->end) {
+		if (isset($this->raffle->end) && $this->raffle->end > 0) {
 			$endTime = $this->util->unixtimeToReadable($this->raffle->end - time());
 			$msg = $this->text->blobWrap(
 				"{$msg}The raffle will end in <highlight>{$endTime}<end> :: [",
@@ -472,7 +476,7 @@ class RaffleController extends ModuleInstance {
 			$slot = 1;
 		}
 		$slot--;
-		if (empty($this->raffle->slots[$slot])) {
+		if (!isset($this->raffle->slots[$slot])) {
 			$msg = "There is no item being raffled in slot <highlight>" . ($slot + 1) . "<end>.";
 			$context->reply($msg);
 			return;

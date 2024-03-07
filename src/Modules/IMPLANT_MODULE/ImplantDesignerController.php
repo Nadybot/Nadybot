@@ -242,6 +242,8 @@ class ImplantDesignerController extends ModuleInstance {
 		$grade = $grade();
 		$design = $this->getDesign($context->char->name, '@');
 		$design->{$slot} ??= new stdClass();
+
+		/** @psalm-suppress UnsupportedReferenceUsage */
 		$slotObj = &$design->{$slot};
 
 		if ($grade === 'symb') {
@@ -271,14 +273,14 @@ class ImplantDesignerController extends ModuleInstance {
 				$symb->reqs = $this->db->table("SymbiantAbilityMatrix AS s")
 					->join("Ability AS a", "s.AbilityID", "a.AbilityID")
 					->where("SymbiantID", $symbRow->ID)
-					->select("a.Name", "s.Amount")
+					->select(["a.Name", "s.Amount"])
 					->asObj(AbilityAmount::class)->toArray();
 
 				// add mods
 				$symb->mods = $this->db->table("SymbiantClusterMatrix AS s")
 					->join("Cluster AS c", "s.ClusterID", "c.ClusterID")
 					->where("SymbiantID", $symbRow->ID)
-					->select("c.LongName AS Name", "s.Amount")
+					->select(["c.LongName AS Name", "s.Amount"])
 					->asObj(AbilityAmount::class)->toArray();
 
 				$slotObj->symb = $symb;
@@ -445,9 +447,9 @@ class ImplantDesignerController extends ModuleInstance {
 				->join("Cluster AS c3", "i.FadedID", "c3.ClusterID")
 				->join("Ability AS a", "i.AbilityID", "a.AbilityID")
 				->where("a.Name", ucfirst($ability))
-				->select("i.AbilityQL1", "i.AbilityQL200", "i.AbilityQL201")
-				->addSelect("i.AbilityQL300", "i.TreatQL1", "i.TreatQL200")
-				->addSelect("i.TreatQL201", "i.TreatQL300")
+				->select(["i.AbilityQL1", "i.AbilityQL200", "i.AbilityQL201"])
+				->addSelect(["i.AbilityQL300", "i.TreatQL1", "i.TreatQL200"])
+				->addSelect(["i.TreatQL201", "i.TreatQL300"])
 				->addSelect("c1.LongName as ShinyEffect")
 				->addSelect("c2.LongName as BrightEffect")
 				->addSelect("c3.LongName as FadedEffect")
@@ -640,9 +642,9 @@ class ImplantDesignerController extends ModuleInstance {
 			->where("c1.LongName", $shiny ?? "")
 			->where("c2.LongName", $bright ?? "")
 			->where("c3.LongName", $faded ?? "")
-			->select("i.AbilityQL1", "i.AbilityQL200")
-			->addSelect("i.AbilityQL201", "i.AbilityQL300", "i.TreatQL1")
-			->addSelect("i.TreatQL200", "i.TreatQL201", "i.TreatQL300")
+			->select(["i.AbilityQL1", "i.AbilityQL200"])
+			->addSelect(["i.AbilityQL201", "i.AbilityQL300", "i.TreatQL1"])
+			->addSelect(["i.TreatQL200", "i.TreatQL201", "i.TreatQL300"])
 			->addSelect("c1.EffectTypeID as ShinyEffectTypeID")
 			->addSelect("c2.EffectTypeID as BrightEffectTypeID")
 			->addSelect("c3.EffectTypeID as FadedEffectTypeID")

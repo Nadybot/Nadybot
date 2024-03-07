@@ -838,6 +838,10 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			return false;
 		}
 		async(function () use ($event, $channel, $message): void {
+			$botUid = $this->chatBot->char?->id;
+			if (!isset($botUid)) {
+				return;
+			}
 			$character = $event->getCharacter();
 			if (isset($character) && !isset($character->id)) {
 				$character = clone $character;
@@ -845,7 +849,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			}
 			$message = new Message(
 				dimension: $character?->dimension ?? $this->config->main->dimension,
-				bot_uid: $this->chatBot->char->id,
+				bot_uid: $botUid,
 				bot_name: $this->config->main->character,
 				sender_uid: $character?->id,
 				sender_name: $character?->name ?? $this->config->main->character,
@@ -1118,10 +1122,10 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 
 	/** Check if 2 routing destinations are identical */
 	private function routeDestsMatch(string $route1, string $route2): bool {
-		if (!strpos($route1, '(')) {
+		if (strpos($route1, '(') === false) {
 			$route1 .= '(*)';
 		}
-		if (!strpos($route2, '(')) {
+		if (strpos($route2, '(') === false) {
 			$route2 .= '(*)';
 		}
 		return fnmatch($route1, $route2, FNM_CASEFOLD)

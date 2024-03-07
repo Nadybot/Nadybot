@@ -163,7 +163,7 @@ class GreetController extends ModuleInstance {
 		delay($this->greetDelay);
 
 		$greeting = $this->getMatchingGreeting($event->sender);
-		if (empty($greeting)) {
+		if (!isset($greeting)) {
 			return;
 		}
 		$msg = $this->fun->renderPlaceholders($greeting, $event->sender);

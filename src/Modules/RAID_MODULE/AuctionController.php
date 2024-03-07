@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	CommandReply,
+	Config\BotConfig,
 	DB,
 	EventManager,
 	LoggerWrapper,
@@ -93,6 +94,9 @@ class AuctionController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Util $util;
+
+	#[NCA\Inject]
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
@@ -525,7 +529,7 @@ class AuctionController extends ModuleInstance {
 		return sprintf(
 			"%s     %s     %s",
 			DateTime::createFromFormat("U", (string)$item->end)->format("Y-m-d H:i:s"),
-			$item->cost ? $this->text->alignNumber($item->cost, 5, null, true) : "      -",
+			($item->cost > 0) ? $this->text->alignNumber($item->cost, 5, null, true) : "      -",
 			"<highlight>" . ($item->winner ?? "nobody") . "<end> won ".
 			preg_replace('|"(itemref://\d+/\d+/\d+)"|', "$1", $item->item)
 		);

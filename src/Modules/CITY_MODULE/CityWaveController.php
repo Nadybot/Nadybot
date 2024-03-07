@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
+	Config\BotConfig,
 	EventManager,
 	MessageEmitter,
 	MessageHub,
@@ -58,6 +59,9 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	public Util $util;
+
+	#[NCA\Inject]
+	public BotConfig $config;
 
 	/** Times to display timer alerts */
 	#[NCA\Setting\Text(

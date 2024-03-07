@@ -182,7 +182,7 @@ class ImportController extends ModuleInstance {
 						"raid_id" => $auction->raidId ?? null,
 						"item" => $auction->item,
 						"auctioneer" => ($this->characterToName($auction->startedBy??null)) ?? $this->config->main->character,
-						"cost" => ($auction->cost ?? null) ? (int)round($auction->cost??0, 0) : null,
+						"cost" => (0 !== ($auction->cost ?? 0)) ? (int)round($auction->cost??0, 0) : null,
 						"winner" => $this->characterToName($auction->winner??null),
 						"end" => $auction->timeEnd ?? time(),
 						"reimbursed" => $auction->reimbursed ?? false,
@@ -679,7 +679,7 @@ class ImportController extends ModuleInstance {
 				$historyEntry->locked = $entry->locked = $raid->raidLocked ?? false;
 				$entry->started = $raid->time ?? time();
 				$entry->started_by = $this->config->main->character;
-				$entry->stopped = $lastEntry ? $lastEntry->time : $entry->started;
+				$entry->stopped = isset($lastEntry) ? $lastEntry->time : $entry->started;
 				$entry->stopped_by = $this->config->main->character;
 				$raidId = $this->db->insert(RaidController::DB_TABLE, $entry, "raid_id");
 				$historyEntry->raid_id = $raidId;
@@ -800,11 +800,13 @@ class ImportController extends ModuleInstance {
 				$entry = new Timer();
 				$owner = $this->characterToName($timer->createdBy??null);
 				$entry->owner = $owner ?? $this->config->main->character;
-				$entry->data = $timer->repeatInterval ? (string)$timer->repeatInterval : null;
+				$entry->data = (isset($timer->repeatInterval) && is_int($timer->repeatgInterval) && $timer->repeatInterval > 0)
+					? (string)$timer->repeatInterval
+					: null;
 				$entry->mode = $this->channelsToMode($timer->channels??[]);
 				$entry->name = $timer->timerName ?? ($this->characterToName($timer->createdBy??null)) ?? $this->config->main->character . "-{$timerNum}";
 				$entry->endtime = $timer->endTime;
-				$entry->callback = $entry->data ? "timercontroller.repeatingTimerCallback" : "timercontroller.timerCallback";
+				$entry->callback = isset($entry->data) ? "timercontroller.repeatingTimerCallback" : "timercontroller.timerCallback";
 				$entry->alerts = [];
 				foreach ($timer->alerts??[] as $alert) {
 					$alertEntry = new Alert();
@@ -904,6 +906,8 @@ class ImportController extends ModuleInstance {
 				$entry->created_at = $category->createdAt ?? time();
 				$entry->min_al_read = $this->getMappedRank($rankMap, $category->minRankToRead) ?? "mod";
 				$entry->min_al_write = $this->getMappedRank($rankMap, $category->minRankToWrite) ?? "admin";
+
+				/** @psalm-suppress RiskyTruthyFalsyComparison */
 				$entry->user_managed = isset($oldEntry) ? $oldEntry->user_managed : !($category->systemEntry ?? false);
 				if (isset($oldEntry)) {
 					$this->db->update("<table:comment_categories>", "name", $entry);

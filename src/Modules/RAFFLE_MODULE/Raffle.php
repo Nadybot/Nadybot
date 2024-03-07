@@ -101,6 +101,8 @@ class Raffle {
 			},
 			$this->slots
 		);
+
+		/** @psalm-suppress NamedArgumentNotAllowed */
 		return array_merge(...$winners);
 	}
 }

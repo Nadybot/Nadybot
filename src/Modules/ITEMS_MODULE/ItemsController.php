@@ -303,7 +303,7 @@ class ItemsController extends ModuleInstance {
 			->orderBy("a.name")
 			->orderByDesc("a.highql")
 			->limit($this->maxitems)
-			->select("a.*", "g.group_id");
+			->select(["a.*", "g.group_id"]);
 		if ($this->onlyItemsInGame && !$dontExclude) {
 			$innerQuery->where("a.in_game", true);
 		}
@@ -451,7 +451,7 @@ class ItemsController extends ModuleInstance {
 			$row = $data[$itemNum];
 			$origName = $row->name;
 			$newGroup = false;
-			if (!isset($row->group_id) && $ql && $ql !== $row->ql) {
+			if (!isset($row->group_id) && isset($ql) && $ql !== $row->ql) {
 				continue;
 			}
 			if (!isset($row->group_id) || $row->group_id !== $oldGroup) {

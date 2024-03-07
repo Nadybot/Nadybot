@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
+	Config\BotConfig,
 	DB,
 	LoggerWrapper,
 	ModuleInstance,
@@ -66,6 +67,9 @@ class CommentController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
+
+	#[NCA\Inject]
+	public BotConfig $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;

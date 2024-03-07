@@ -347,7 +347,9 @@ class FindOrgController extends ModuleInstance {
 		if ($body === null || $body === '' || !str_contains($body, "ORGS BEGIN")) {
 			throw new Exception("Invalid data received from orglist for {$letter}");
 		}
+
 		// $cache->set($letter, $body, 24 * 3600);
+		/** @psalm-suppress PossiblyNullArgument */
 		$this->handleOrglistResponse($body, $letter);
 	}
 }

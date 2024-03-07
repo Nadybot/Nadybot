@@ -569,7 +569,7 @@ class LootListsController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>tnh")]
 	public function pandeSubCommand(CmdContext $context, string $mob): void {
 		$msg = $this->getPandemoniumLoot('Pande', $mob, $context);
-		if (empty($msg)) {
+		if (!isset($msg) || !count($msg)) {
 			$context->reply("No loot found for <highlight>{$mob}<end>.");
 			return;
 		}

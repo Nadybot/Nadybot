@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
+	Config\BotConfig,
 	DB,
 	DBSchema\Player,
 	EventManager,
@@ -139,6 +140,9 @@ class RaidController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public PrivateChannelController $privateChannelController;
+
+	#[NCA\Inject]
+	public BotConfig $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -381,7 +385,7 @@ class RaidController extends ModuleInstance {
 			->limit(1)
 			->asObj(Raid::class)
 			->first();
-		if ($lastRaid === null || $lastRaid->stopped) {
+		if ($lastRaid === null || $lastRaid->stopped > 0) {
 			return;
 		}
 
@@ -732,17 +736,17 @@ class RaidController extends ModuleInstance {
 			->groupBy("r.raid_id", "r.started", "r.stopped")
 			->orderByDesc("r.raid_id")
 			->limit(50)
-			->select("r.raid_id", "r.started", "r.stopped");
+			->select(["r.raid_id", "r.started", "r.stopped"]);
 
 		/** @var Collection<RaidHistoryEntry> */
-		$raids = $query->addSelect(
+		$raids = $query->addSelect([
 			$query->rawFunc(
 				"COUNT",
 				$query->colFunc("DISTINCT", "username"),
 				"raiders"
 			),
-			$query->colFunc("SUM", "delta", "points")
-		)->asObj(RaidHistoryEntry::class);
+			$query->colFunc("SUM", "delta", "points"),
+		])->asObj(RaidHistoryEntry::class);
 		if ($raids->isEmpty()) {
 			$msg = "No raids have ever been run on <myname>.";
 			$context->reply($msg);

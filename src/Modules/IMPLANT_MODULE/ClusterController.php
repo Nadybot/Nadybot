@@ -94,7 +94,7 @@ class ClusterController extends ModuleInstance {
 				->join("ImplantType AS i", "c1.ImplantTypeID", "i.ImplantTypeID")
 				->where("c1.ClusterID", $cluster->ClusterID)
 				->orderByDesc("c2.ClusterTypeID")
-				->select("i.ShortName as Slot", "c2.Name AS ClusterType")
+				->select(["i.ShortName as Slot", "c2.Name AS ClusterType"])
 				->asObj(SlotClusterType::class)->toArray();
 			$blob .= "<pagebreak><header2>{$cluster->LongName}<end>:\n";
 

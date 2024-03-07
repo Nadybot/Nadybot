@@ -539,22 +539,22 @@ class ExportController extends ModuleInstance {
 		$timers = $this->timerController->getAllTimers();
 		$result = [];
 		foreach ($timers as $timer) {
-			$data = (object)[
+			$data = $this->toClass([
 				"startTime" => $timer->settime,
 				"timerName" => $timer->name,
 				"endTime" => $timer->endtime,
 				"createdBy" => $this->toChar($timer->owner),
 				"channels" => array_diff(explode(",", str_replace(["guild", "both", "msg"], ["org", "priv,org", "tell"], $timer->mode??"")), [""]),
 				"alerts" => [],
-			];
+			]);
 			if (!empty($timer->data) && (int)$timer->data > 0) {
 				$data->repeatInterval = (int)$timer->data;
 			}
 			foreach ($timer->alerts as $alert) {
-				$data->alerts []= (object)[
+				$data->alerts []= $this->toClass([
 					"time" => $alert->time,
 					"message" => $alert->message,
-				];
+				]);
 			}
 			$result []= $data;
 		}
@@ -570,12 +570,12 @@ class ExportController extends ModuleInstance {
 			->toArray();
 		$result = [];
 		foreach ($users as $user) {
-			$result[$user->uid] = (object)[
+			$result[$user->uid] = $this->toClass([
 				"character" => $this->toChar($user->name, $user->uid),
 				"addedTime" => $user->added_dt,
 				"addedBy" => $this->toChar($user->added_by),
 				"events" => [],
-			];
+			]);
 		}
 
 		/** @var Tracking[] */
@@ -587,10 +587,10 @@ class ExportController extends ModuleInstance {
 			if (!isset($result[$event->uid])) {
 				continue;
 			}
-			$result[$event->uid]->events []= (object)[
+			$result[$event->uid]->events []= $this->toClass([
 				"time" => $event->dt,
 				"event" => $event->event,
-			];
+			]);
 		}
 		return array_values($result);
 	}
@@ -625,169 +625,144 @@ class ExportController extends ModuleInstance {
 
 	/** @return stdClass[] */
 	protected function exportNews(): array {
-		/** @var News[] */
-		$news = $this->db->table("news")
+		return $this->db->table("news")
 			->asObj(News::class)
-			->toArray();
-		$result = [];
-		foreach ($news as $topic) {
-			$data = (object)[
-				"author" => $this->toChar($topic->name),
-				"uuid" => $topic->uuid,
-				"addedTime" => $topic->time,
-				"news" => $topic->news,
-				"pinned" => $topic->sticky,
-				"deleted" => $topic->deleted,
-				"confirmedBy" => [],
-			];
+			->map(function (News $topic): stdClass {
+				$data = $this->toClass([
+					"author" => $this->toChar($topic->name),
+					"uuid" => $topic->uuid,
+					"addedTime" => $topic->time,
+					"news" => $topic->news,
+					"pinned" => $topic->sticky,
+					"deleted" => $topic->deleted,
+					"confirmedBy" => [],
+				]);
 
-			/** @var NewsConfirmed[] */
-			$confirmations = $this->db->table("news_confirmed")
-				->where("id", $topic->id)
-				->asObj(NewsConfirmed::class)
-				->toArray();
-			foreach ($confirmations as $confirmation) {
-				$data->confirmedBy []= (object)[
-					"character" => $this->toChar($confirmation->player),
-					"confirmationTime" => $confirmation->time,
-				];
-			}
-			$result []= $data;
-		}
-		return $result;
+				/** @var NewsConfirmed[] */
+				$confirmations = $this->db->table("news_confirmed")
+					->where("id", $topic->id)
+					->asObj(NewsConfirmed::class)
+					->toArray();
+				foreach ($confirmations as $confirmation) {
+					$data->confirmedBy []= (object)[
+						"character" => $this->toChar($confirmation->player),
+						"confirmationTime" => $confirmation->time,
+					];
+				}
+				return $data;
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
 	protected function exportNotes(): array {
-		/** @var Note[] */
-		$notes = $this->db->table("notes")
+		return $this->db->table("notes")
 			->asObj(Note::class)
-			->toArray();
-		$result = [];
-		foreach ($notes as $note) {
-			$data = (object)[
-				"owner" => $this->toChar($note->owner),
-				"author" => $this->toChar($note->added_by),
-				"creationTime" => $note->dt,
-				"text" => $note->note,
-			];
-			if ($note->reminder === Note::REMIND_ALL) {
-				$data->remind = "all";
-			} elseif ($note->reminder === Note::REMIND_SELF) {
-				$data->remind = "author";
-			}
-			$result []= $data;
-		}
-		return $result;
+			->map(function (Note $note): stdClass {
+				$data = $this->toClass([
+					"owner" => $this->toChar($note->owner),
+					"author" => $this->toChar($note->added_by),
+					"creationTime" => $note->dt,
+					"text" => $note->note,
+				]);
+				if ($note->reminder === Note::REMIND_ALL) {
+					$data->remind = "all";
+				} elseif ($note->reminder === Note::REMIND_SELF) {
+					$data->remind = "author";
+				}
+				return $data;
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
 	protected function exportOrgNotes(): array {
-		/** @var OrgNote[] */
-		$notes = $this->db->table(OrgNotesController::DB_TABLE)
+		return $this->db->table(OrgNotesController::DB_TABLE)
 			->asObj(OrgNote::class)
-			->toArray();
-		$result = [];
-		foreach ($notes as $note) {
-			$data = (object)[
-				"author" => $this->toChar($note->added_by),
-				"creationTime" => $note->added_on,
-				"text" => $note->note,
-				"uuid" => $note->uuid,
-			];
-			$result []= $data;
-		}
-		return $result;
+			->map(function (OrgNote $note): stdClass {
+				return $this->toClass([
+					"author" => $this->toChar($note->added_by),
+					"creationTime" => $note->added_on,
+					"text" => $note->note,
+					"uuid" => $note->uuid,
+				]);
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
 	protected function exportEvents(): array {
-		/** @var EventModel[] */
-		$events = $this->db->table("events")
+		return $this->db->table("events")
 			->asObj(EventModel::class)
-			->toArray();
-		$result = [];
-		foreach ($events as $event) {
-			$attendees = array_values(array_diff(explode(",", $event->event_attendees ?? ""), [""]));
+			->map(function (EventModel $event): stdClass {
+				$attendees = array_values(array_diff(explode(",", $event->event_attendees ?? ""), [""]));
 
-			/** @var stdClass */
-			$data = (object)[
-				"createdBy" => $this->toChar($event->submitter_name),
-				"creationTime" => $event->time_submitted,
-				"name" => $event->event_name,
-				"attendees" => [],
-			];
-			if (isset($event->event_date)) {
-				$data->startTime = $event->event_date;
-			}
-			if (isset($event->event_desc)) {
-				$data->description = $event->event_desc;
-			}
-			foreach ($attendees as $attendee) {
-				$data->attendees []= $this->toChar($attendee);
-			}
-			$result []= $data;
-		}
-		return $result;
+				$data = $this->toClass([
+					"createdBy" => $this->toChar($event->submitter_name),
+					"creationTime" => $event->time_submitted,
+					"name" => $event->event_name,
+					"attendees" => [],
+				]);
+				if (isset($event->event_date)) {
+					$data->startTime = $event->event_date;
+				}
+				if (isset($event->event_desc)) {
+					$data->description = $event->event_desc;
+				}
+				foreach ($attendees as $attendee) {
+					$data->attendees []= $this->toChar($attendee);
+				}
+
+				return $data;
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
 	protected function exportLinks(): array {
-		/** @var Link[] */
-		$links = $this->db->table("links")
+		return $this->db->table("links")
 			->asObj(Link::class)
-			->toArray();
-		$result = [];
-		foreach ($links as $link) {
-			$data = (object)[
-				"createdBy" => $this->toChar($link->name),
-				"creationTime" => $link->dt,
-				"url" => $link->website,
-				"description" => $link->comments,
-			];
-			$result []= $data;
-		}
-		return $result;
+			->map(function (Link $link): stdClass {
+				return $this->toClass([
+					"createdBy" => $this->toChar($link->name),
+					"creationTime" => $link->dt,
+					"url" => $link->website,
+					"description" => $link->comments,
+				]);
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
 	protected function exportCommentCategories(): array {
-		/** @var CommentCategory[] */
-		$categories = $this->db->table("<table:comment_categories>")
+		return $this->db->table("<table:comment_categories>")
 			->asObj(CommentCategory::class)
-			->toArray();
-		$result = [];
-		foreach ($categories as $category) {
-			$data = (object)[
-				"name" => $category->name,
-				"createdBy" => $this->toChar($category->created_by),
-				"createdAt" => $category->created_at,
-				"minRankToRead" => $category->min_al_read,
-				"minRankToWrite" => $category->min_al_write,
-				"systemEntry" => !$category->user_managed,
-			];
-			$result []= $data;
-		}
-		return $result;
+			->map(function (CommentCategory $category): stdClass {
+				return $this->toClass([
+					"name" => $category->name,
+					"createdBy" => $this->toChar($category->created_by),
+					"createdAt" => $category->created_at,
+					"minRankToRead" => $category->min_al_read,
+					"minRankToWrite" => $category->min_al_write,
+					"systemEntry" => !$category->user_managed,
+				]);
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
 	protected function exportComments(): array {
-		/** @var Comment[] */
-		$comments = $this->db->table("<table:comments>")
+		return $this->db->table("<table:comments>")
 			->asObj(Comment::class)
-			->toArray();
-		$result = [];
-		foreach ($comments as $comment) {
-			$data = (object)[
-				"comment" => $comment->comment,
-				"targetCharacter" => $this->toChar($comment->character),
-				"createdBy" => $this->toChar($comment->created_by),
-				"createdAt" => $comment->created_at,
-				"category" => $comment->category,
-			];
-			$result []= $data;
-		}
+			->map(function (Comment $comment): stdClass {
+				return $this->toClass([
+					"comment" => $comment->comment,
+					"targetCharacter" => $this->toChar($comment->character),
+					"createdBy" => $this->toChar($comment->created_by),
+					"createdAt" => $comment->created_at,
+					"category" => $comment->category,
+				]);
+			})->toArray();
+	}
+
+	/** @param array<array-key,mixed> $data */
+	private function toClass(array $data): stdClass {
+		/** @var stdClass */
+		$result = (object)$data;
 		return $result;
 	}
 }

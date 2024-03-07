@@ -257,6 +257,8 @@ class PackageController extends ModuleInstance {
 						"/tell <myname> package update {$package->name} {$package->version}"
 					);
 					$installedVersion ??= "";
+
+					/** @psalm-suppress NoValue */
 					if ($installedVersion !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "<")) {
 						$blob .= " [{$updateLink}]";
 					} elseif ($installedVersion !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "==")) {
@@ -373,7 +375,7 @@ class PackageController extends ModuleInstance {
 			return;
 		}
 		$cmd = new PackageAction($package(), PackageAction::INSTALL);
-		$cmd->version = $version ? new SemanticVersion($version) : null;
+		$cmd->version = isset($version) ? new SemanticVersion($version) : null;
 		$cmd->sender = $context->char->name;
 		$cmd->sendto = $context;
 		$packages = $this->getPackage($package());
@@ -405,7 +407,7 @@ class PackageController extends ModuleInstance {
 			return;
 		}
 		$cmd = new PackageAction($package(), PackageAction::UPGRADE);
-		$cmd->version = $version ? new SemanticVersion($version) : null;
+		$cmd->version = isset($version) ? new SemanticVersion($version) : null;
 		$cmd->sender = $context->char->name;
 		$cmd->sendto = $context;
 		$packages = $this->getPackage($package());
@@ -799,6 +801,8 @@ class PackageController extends ModuleInstance {
 						"/tell <myname> package update {$package->name} {$package->version}"
 					);
 					$installedVersion ??= "";
+
+					/** @psalm-suppress NoValue */
 					if ($installedVersion !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "<")) {
 						$blob .= " [{$updateLink}]";
 					} elseif ($installedVersion !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "==")) {

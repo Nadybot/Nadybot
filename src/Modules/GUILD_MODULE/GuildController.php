@@ -773,8 +773,8 @@ class GuildController extends ModuleInstance {
 	}
 
 	public function isGuildBot(): bool {
-		return !empty($this->config->general->orgName)
-			&& !empty($this->config->orgId);
+		return !strlen($this->config->general->orgName)
+			&& !isset($this->config->orgId);
 	}
 
 	#[NCA\Event(
@@ -785,7 +785,7 @@ class GuildController extends ModuleInstance {
 		if (empty($this->config->general->orgName)) {
 			return;
 		}
-		if (empty($this->config->orgId)) {
+		if (isset($this->config->orgId)) {
 			$this->logger->warning("Org name '{org_name}' specified, but bot does not appear to belong to an org", [
 				"org_name" => $this->config->general->orgName,
 			]);

@@ -177,7 +177,7 @@ class RaidBlockController extends ModuleInstance {
 		$msg = "You are blocked from the following raid part" . ((count($blocks) > 1) ? "s" : "") . ":";
 		foreach ($blocks as $name => $block) {
 			$msg .= "\n<tab><highlight>" . $this->blockToString($name) . "<end>: ";
-			if ($block->expiration) {
+			if (isset($block->expiration) && $block->expiration > 0) {
 				$msg .= "until " . $this->util->date($block->expiration);
 			} else {
 				$msg .= "until block is lifted";
@@ -201,7 +201,7 @@ class RaidBlockController extends ModuleInstance {
 		$msg = "Active raid blocks (" . count($blocks) . ")";
 		foreach ($blocks as $name => $block) {
 			$blob .= "\n<tab><highlight>" . $this->blockToString($name) . "<end>: ";
-			if ($block->expiration) {
+			if (isset($block->expiration) && $block->expiration > 0) {
 				$blob .= "until " . $this->util->date($block->expiration);
 			} else {
 				$blob .= "until block is lifted";

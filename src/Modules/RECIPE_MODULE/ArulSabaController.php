@@ -165,6 +165,8 @@ class ArulSabaController extends ModuleInstance {
 		string $side
 	): void {
 		$type = ucfirst(strtolower($type()));
+
+		/** @var int */
 		$reqGems = max(1, $numGems);
 		$side = strtolower($side);
 
@@ -248,6 +250,8 @@ class ArulSabaController extends ModuleInstance {
 			->where("name", $type)
 			->asObj(ArulSaba::class)
 			->first();
+
+		/** @psalm-suppress InvalidArrayOffset */
 		if (!isset($arul) || ($numGems > 0 && !isset($blueprints[$numGems]))) {
 			$context->reply("No Bracelet of Arul Saba ({$type} - {$numGems}/{$numGems}) found.");
 			return;
@@ -255,7 +259,9 @@ class ArulSabaController extends ModuleInstance {
 		$gems = [];
 		$prefix = $numGems === 0 ? $arul->lesser_prefix : $arul->regular_prefix;
 		$ingredients = new Ingredients();
+
 		for ($i = 0; $i < $reqGems; $i++) {
+			/** @psalm-suppress InvalidArrayOffset */
 			$name = $gemGrades[$i][0] . " {$prefix} {$arul->name}";
 			$ingredient = $this->readIngredientByName($name);
 			if (!isset($ingredient->item)) {
@@ -368,7 +374,11 @@ class ArulSabaController extends ModuleInstance {
 		$target = $bbPrint;
 		for ($i = 0; $i < $reqGems; $i++) {
 			$result = clone $target;
+
+			/** @psalm-suppress InvalidArrayOffset */
 			$result->highid = $result->lowid = $unfinished[$numGems][$side][$i];
+
+			/** @psalm-suppress InvalidArrayOffset */
 			$result->icon = $icons[$i];
 			$result->name = "Unfinished Bracelet of Arul Saba";
 
@@ -391,6 +401,7 @@ class ArulSabaController extends ModuleInstance {
 
 		$blob .= "\n<pagebreak><header2>Add the gems<end>\n";
 		$target = $coated;
+
 		for ($i = 0; $i < $reqGems; $i++) {
 			$gem = $gems[$i];
 			$resultName = "Bracelet of Arul Saba ({$prefix} {$arul->name} - ".
@@ -402,6 +413,8 @@ class ArulSabaController extends ModuleInstance {
 				return;
 			}
 			$result->ql = $result->lowql;
+
+			/** @psalm-suppress InvalidArrayOffset */
 			$blob .= $this->renderStep($gem, $target, $result, [self::ME => $gemGrades[$i][2], self::EE => $gemGrades[$i][3]]);
 			$target = $result;
 		}

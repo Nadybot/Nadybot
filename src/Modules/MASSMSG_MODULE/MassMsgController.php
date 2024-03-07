@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
+	Config\BotConfig,
 	DB,
 	MessageHub,
 	ModuleInstance,
@@ -91,6 +92,9 @@ class MassMsgController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public BotConfig $config;
 
 	/** Color for mass messages/invites */
 	#[NCA\Setting\Color]
@@ -206,10 +210,11 @@ class MassMsgController extends ModuleInstance {
 				$this->chatBot->sendMassTell($message, $name);
 			},
 			self::PREF_INVITES => function (string $name): void {
+				if (null === ($uid = $this->chatBot->getUid($name))) {
+					return;
+				}
 				$this->chatBot->aoClient->write(
-					package: new Package\Out\PrivateChannelInvite(
-						charId: $this->chatBot->getUid($name)
-					)
+					package: new Package\Out\PrivateChannelInvite(charId: $uid)
 				);
 			},
 		]);

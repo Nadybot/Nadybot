@@ -127,7 +127,7 @@ class BosslootController extends ModuleInstance {
 
 		$query = $this->db->table("boss_lootdb AS b1")
 			->join("boss_namedb AS b2", "b2.bossid", "b1.bossid")
-			->select("b2.bossid", "b2.bossname")->distinct();
+			->select(["b2.bossid", "b2.bossname"])->distinct();
 		$this->db->addWhereFromParams($query, explode(' ', $item), 'b1.itemname');
 
 		/** @var Collection<BossNamedb> */

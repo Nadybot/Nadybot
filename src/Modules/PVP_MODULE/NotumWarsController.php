@@ -1152,7 +1152,7 @@ class NotumWarsController extends ModuleInstance {
 			->whereNotNull("ql");
 		$search = preg_replace("/\s+soon\b/i", "", $search, -1, $soon);
 		$time = null;
-		if ($soon) {
+		if ($soon > 0) {
 			$this->logger->info("Found <soon> keyword");
 			$hotSites = $hotSites->filter(
 				function (FeedMessage\SiteUpdate $site): bool {
@@ -1188,7 +1188,7 @@ class NotumWarsController extends ModuleInstance {
 			}
 		}
 		$search = preg_replace("/\s+penalty\b/i", "", $search, -1, $penalty);
-		if ($penalty) {
+		if ($penalty > 0) {
 			$this->logger->info("Found <penalty> keyword");
 			$hotSites = $hotSites->filter(function (FeedMessage\SiteUpdate $site): bool {
 				$gas = $this->getSiteGasInfo($site);
@@ -1253,9 +1253,9 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$search = trim($search);
 		if ($hotSites->isEmpty()) {
-			if ($soon) {
+			if ($soon > 0) {
 				$context->reply("No sites are going hot soon.");
-			} elseif ($penalty) {
+			} elseif ($penalty > 0) {
 				$context->reply("No sites are currently in penalty.");
 			} else {
 				$context->reply("No sites are currently hot.");
@@ -1263,12 +1263,12 @@ class NotumWarsController extends ModuleInstance {
 			return;
 		}
 		$blob = $this->renderHotSites($time, ...$hotSites->toArray());
-		if ($soon) {
+		if ($soon > 0) {
 			$sitesLabel = isset($faction) ? ucfirst(strtolower($faction)) . " sites" : "Sites";
 			$msg = $this->text->makeBlob("{$sitesLabel} going hot soon ({$hotSites->count()})", $blob);
 		} else {
 			$faction = isset($faction) ? " " . strtolower($faction) : "";
-			$inPenalty = $penalty ? " in penalty" : "";
+			$inPenalty = ($penalty > 0) ? " in penalty" : "";
 			$msg = $this->text->makeBlob("Hot{$faction} sites{$inPenalty} ({$hotSites->count()})", $blob);
 		}
 

@@ -6,6 +6,7 @@ use function Amp\async;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
+	Config\BotConfig,
 	MessageHub,
 	Modules\DISCORD\DiscordAPIClient,
 	Modules\DISCORD\DiscordChannel,
@@ -39,6 +40,9 @@ class DiscordSlashCommandReply implements CommandReply {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public BotConfig $config;
 
 	public function __construct(
 		public string $applicationId,

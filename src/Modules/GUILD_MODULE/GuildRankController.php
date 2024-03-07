@@ -115,13 +115,8 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			$context->reply("The bot must be in an org.");
 			return;
 		}
-		$this->guildManager->getByIdAsync(
-			$this->config->orgId??0,
-			null,
-			false,
-			[$this, "displayRankMappings"],
-			$context
-		);
+		$org = $this->guildManager->ById($this->config->orgId??0, null, false);
+		$this->displayRankMappings($org, $context);
 	}
 
 	public function displayRankMappings(?Guild $guild, CmdContext $context): void {
@@ -179,16 +174,8 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			$context->reply("The bot must be in an org.");
 			return;
 		}
-		$this->guildManager->getByIdAsync(
-			$this->config->orgId??0,
-			null,
-			false,
-			[$this, "setRankMapping"],
-			$rankId,
-			$accessLevel(),
-			$context->char->name,
-			$context
-		);
+		$org = $this->guildManager->byId($this->config->orgId??0, null, false);
+		$this->setRankMapping($org, $rankId, $accessLevel(), $context->char->name, $context);
 	}
 
 	public function setRankMapping(?Guild $guild, int $rank, string $accessLevel, string $sender, CommandReply $sendto): void {
@@ -265,15 +252,8 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			$context->reply("The bot must be in an org.");
 			return;
 		}
-		$this->guildManager->getByIdAsync(
-			$this->config->orgId??0,
-			null,
-			false,
-			[$this, "delRankMapping"],
-			$rankId,
-			$context->char->name,
-			$context
-		);
+		$org = $this->guildManager->byId($this->config->orgId??0, null, false);
+		$this->delRankMapping($org, $rankId, $context->char->name, $context);
 	}
 
 	public function delRankMapping(?Guild $guild, int $rank, string $sender, CmdContext $context): void {
@@ -320,13 +300,8 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			$context->reply("The bot must be in an org.");
 			return;
 		}
-		$this->guildManager->getByIdAsync(
-			$this->config->orgId??0,
-			null,
-			false,
-			[$this, "displayGuildRanks"],
-			$context
-		);
+		$org = $this->guildManager->byId($this->config->orgId??0, null, false);
+		$this->displayGuildRanks($org, $context);
 	}
 
 	public function displayGuildRanks(?Guild $guild, CommandReply $sendto): void {

@@ -118,6 +118,7 @@ class WhoisOrgController extends ModuleInstance {
 			$maxLevel = max($member->level, $maxLevel);
 
 			if (isset($member->profession)) {
+				$countProfs[$member->profession] ??= 0;
 				$countProfs[$member->profession]++;
 			}
 		}
@@ -142,6 +143,7 @@ class WhoisOrgController extends ModuleInstance {
 		$link .= "<header2>Members ({$numMembers})<end>\n";
 		foreach ($countProfs as $prof => $profMembers) {
 			$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".($this->onlineController->getProfessionId($prof)??0).">";
+
 			$link .= "<tab>".
 				$this->text->alignNumber($profMembers, 3, "highlight").
 				"  (".

@@ -2,8 +2,10 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
+use function Safe\{preg_match_all, preg_replace};
 use Nadybot\Core\Registry;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
+
 use Nadybot\Modules\SPIRITS_MODULE\SpiritsController;
 
 class RaffleItem {
@@ -15,13 +17,15 @@ class RaffleItem {
 			$this->amount = (int)$matches['count'];
 			$text = preg_replace("/^(\d+)x?\s*/", "", $text);
 		}
+
+		/** @var string */
 		$text = preg_replace("/['\"](itemref:\/\/\d+\/\d+\/\d+)['\"]/", "$1", $text);
 		$this->item = $text;
 	}
 
 	public function toString(): string {
 		$item = $this->item;
-		if (preg_match_all("/itemref:\/\/(\d+)\/(\d+)\/(\d+)/", $item, $matches)) {
+		if (preg_match_all("/itemref:\/\/(\d+)\/(\d+)\/(\d+)/", $item, $matches) > 0 && is_array($matches)) {
 			for ($i = 0; $i < count($matches[0]); $i++) {
 				$ql = null;
 				if ($matches[1][$i] !== $matches[2][$i]) {
@@ -49,6 +53,7 @@ class RaffleItem {
 					}
 				}
 				if (isset($ql)) {
+					/** @var string */
 					$item = preg_replace("/(<a [^>]*?".preg_quote($matches[0][$i], "/")."\E.*?>)/", "QL{$ql} $1", $item);
 				}
 			}

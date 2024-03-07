@@ -484,6 +484,8 @@ class StartpageController extends ModuleInstance {
 		$attrObj = $newsTileAttrs[0]->newInstance();
 		$name = $attrObj->name;
 		$closure = $method->getClosure($instance);
+
+		/** @psalm-suppress TypeDoesNotContainNull */
 		if (!isset($closure)) {
 			throw new InvalidArgumentException(
 				"{$funcName} cannot be made into a closure."

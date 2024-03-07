@@ -60,14 +60,6 @@ class GuildManager extends ModuleInstance {
 		mkdir($this->config->paths->cache . '/guild_roster');
 	}
 
-	/** @psalm-param callable(?Guild, mixed...) $callback */
-	public function getByIdAsync(int $guildId, ?int $dimension, bool $forceUpdate, callable $callback, mixed ...$args): void {
-		async(function () use ($guildId, $dimension, $forceUpdate, $callback, $args): void {
-			$guild =  $this->byId($guildId, $dimension, $forceUpdate);
-			$callback($guild, ...$args);
-		});
-	}
-
 	public function byId(int $guildID, ?int $dimension=null, bool $forceUpdate=false): ?Guild {
 		// if no server number is specified use the one on which the bot is logged in
 		$dimension ??= $this->config->main->dimension;

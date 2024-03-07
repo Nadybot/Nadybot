@@ -546,7 +546,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public function inviteCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
 		$uid = $this->chatBot->getUid($name);
-		if (!$uid) {
+		if (!isset($uid)) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
 			return;
@@ -571,9 +571,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		$msg = "Invited <highlight>{$name}<end> to this channel.";
-		$this->chatBot->aoClient->write(
-			package: new Package\Out\PrivateChannelInvite(charId: $this->chatBot->getUid($name))
-		);
+		$this->inviteChar($name);
 		$audit = new Audit();
 		$audit->actor = $context->char->name;
 		$audit->actee = $name;
@@ -594,7 +592,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public function kickCommand(CmdContext $context, PCharacter $char, ?string $reason): void {
 		$name = $char();
 		$uid = $this->chatBot->getUid($name);
-		if (!$uid) {
+		if (!isset($uid)) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 		} elseif (!isset($this->chatBot->chatlist[$name])) {
 			$msg = "Character <highlight>{$name}<end> is not in the private channel.";
@@ -607,11 +605,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 					$msg .= ".";
 				}
 				$this->chatBot->sendPrivate($msg);
-				$this->chatBot->aoClient->write(
-					package: new Package\Out\PrivateChannelKick(
-						charId: $this->chatBot->getUid($name)
-					)
-				);
+				$this->kickChar($name);
 				$audit = new Audit();
 				$audit->actor = $context->char->name;
 				$audit->actor = $name;
@@ -894,11 +888,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$context->reply($msg);
 			return;
 		}
-		$this->chatBot->aoClient->write(
-			package: new Package\Out\PrivateChannelInvite(
-				charId: $context->char->id ?? $this->chatBot->getUid($context->char->name)
-			)
-		);
+		$this->inviteChar($context->char->name);
 		if (!$this->addMemberOnJoin) {
 			return;
 		}
@@ -927,11 +917,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand("leave")]
 	#[NCA\Help\Group("private-channel")]
 	public function leaveCommand(CmdContext $context): void {
-		$this->chatBot->aoClient->write(
-			package: new Package\Out\PrivateChannelKick(
-				charId: $context->char->id ?? $this->chatBot->getUid($context->char->name)
-			)
-		);
+		$this->kickChar($context->char->name);
 	}
 
 	/**
@@ -957,11 +943,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		foreach ($this->chatBot->chatlist as $char => $online) {
 			$alChar = $this->accessManager->getAccessLevelForCharacter($char);
 			if ($this->accessManager->compareAccessLevels($alChar, $alRequired) < 0) {
-				$this->chatBot->aoClient->write(
-					package: new Package\Out\PrivateChannelKick(
-						charId: $this->chatBot->getUid($char)
-					)
-				);
+				$this->kickChar($char);
 			}
 		}
 		$context->reply("You <off>locked<end> the private channel: {$this->lockReason}");
@@ -1052,9 +1034,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$msg = "You have been auto invited to {$channelName}. ".
 			"Use <highlight><symbol>autoinvite<end> to control ".
 			"your auto invite preference.";
-		$this->chatBot->aoClient->write(
-			package: new Package\Out\PrivateChannelInvite(charId: $uid)
-		);
+		$this->inviteChar($uid);
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
@@ -1172,11 +1152,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			"<highlight>{$whois->name}<end> has been auto-banned. ".
 			"Reason: <{$faction}>{$faction}<end>."
 		);
-		$this->chatBot->aoClient->write(
-			package: new Package\Out\PrivateChannelKick(
-				charId: $this->chatBot->getUid($whois->name)
-			)
-		);
+		$this->kickChar($whois->name);
 		$audit = new Audit();
 		$audit->actor = $this->config->main->character;
 		$audit->actor = $whois->name;
@@ -1571,5 +1547,25 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
 		$this->accessManager->addAudit($audit);
 		return "<highlight>{$name}<end> has been added as a member of this bot.";
+	}
+
+	private function kickChar(string $name): void {
+		if (null === ($uid = $this->chatBot->getUid($name))) {
+			return;
+		}
+		$this->chatBot->aoClient->write(
+			package: new Package\Out\PrivateChannelKick(charId: $uid)
+		);
+	}
+
+	private function inviteChar(int|string $name): void {
+		if (is_int($name)) {
+			$uid = $name;
+		} elseif (null === ($uid = $this->chatBot->getUid($name))) {
+			return;
+		}
+		$this->chatBot->aoClient->write(
+			package: new Package\Out\PrivateChannelInvite(charId: $uid)
+		);
 	}
 }

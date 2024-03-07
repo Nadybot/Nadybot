@@ -142,7 +142,7 @@ class PremadeImplantController extends ModuleInstance {
 			->join("Cluster AS c2", "p.BrightClusterID", "c2.ClusterID")
 			->join("Cluster AS c3", "p.FadedClusterID", "c3.ClusterID")
 			->orderBy("slot")
-			->select("i.Name AS slot", "p2.Name AS profession", "a.Name as ability");
+			->select(["i.Name AS slot", "p2.Name AS profession", "a.Name as ability"]);
 		$query->selectRaw(
 			"CASE WHEN " . $query->grammar->wrap("c1.ClusterID") . " = 0 ".
 			"THEN ? ".

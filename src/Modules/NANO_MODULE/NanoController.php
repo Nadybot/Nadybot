@@ -171,6 +171,8 @@ class NanoController extends ModuleInstance {
 		$msg = $this->text->makeBlob("Nano Search Results ({$count})", $blob);
 		if (count($data) === 1) {
 			assert(isset($info, $gmiLink));
+
+			/** @psalm-suppress PossiblyInvalidOperand */
 			$msg = $this->text->blobWrap(
 				str_replace($gmiLink, "", $info) . " [",
 				$this->text->makeBlob("details", $blob),
@@ -648,7 +650,7 @@ class NanoController extends ModuleInstance {
 			->whereIlike("professions", "%{$profession}%")
 			->orderBy("school")
 			->orderBy("strain")
-			->select("school", "strain")->distinct();
+			->select(["school", "strain"])->distinct();
 		if ($froobOnly) {
 			if ($profession !== null && in_array($profession, ["Keeper", "Shade"])) {
 				$msg = "<highlight>{$profession}<end> is not playable as froob.";

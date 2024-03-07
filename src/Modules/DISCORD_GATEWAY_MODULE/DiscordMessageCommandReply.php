@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\DiscordChannel as ChannelsDiscordChannel,
 	CommandReply,
+	Config\BotConfig,
 	MessageEmitter,
 	MessageHub,
 	Modules\DISCORD\DiscordAPIClient,
@@ -36,6 +37,9 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public BotConfig $config;
 
 	protected string $channelId;
 	protected bool $isDirectMsg;

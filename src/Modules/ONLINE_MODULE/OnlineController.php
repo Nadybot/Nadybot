@@ -957,10 +957,11 @@ class OnlineController extends ModuleInstance {
 			return '';
 		}
 		$props = explode("|", $afk, 2);
-		if (count($props) === 1 || !strlen($props[1])) {
+		if (!isset($props[1]) || !strlen($props[1])) {
 			$timeString = $this->util->unixtimeToReadable(time() - (int)$props[0], false);
 			return " {$fancyColon} <highlight>AFK for {$timeString}<end>";
 		}
+
 		$timeString = $this->util->unixtimeToReadable(time() - (int)$props[0], false);
 		return " {$fancyColon} <highlight>AFK for {$timeString}: {$props[1]}<end>";
 	}
