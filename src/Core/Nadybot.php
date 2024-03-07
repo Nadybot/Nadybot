@@ -104,7 +104,6 @@ class Nadybot {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	#[NCA\Inject]
 	public Multi $aoClient;
 
 	public BotRunner $runner;
@@ -398,7 +397,7 @@ class Nadybot {
 			$this->shuttingDown = true;
 			foreach (EventLoop::getIdentifiers() as $identifier) {
 				try {
-					EventLoop::cancel($identifier);
+					EventLoop::disable($identifier);
 				} catch (Throwable $e) {
 				}
 			}

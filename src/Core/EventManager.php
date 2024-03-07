@@ -644,7 +644,7 @@ class EventManager {
 
 	private function startCronRun(CronEntry $entry): void {
 		while (!$this->chatBot->isReady()) {
-			delay(100);
+			delay(0.1);
 		}
 		$eventObj = new Event();
 		$eventObj->type = (string)$entry->time;

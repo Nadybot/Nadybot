@@ -4,7 +4,7 @@ namespace Nadybot\Core\Modules\SYSTEM;
 
 use function Safe\{ini_get, json_encode};
 
-use Amp\File\FilesystemDriver;
+use Amp\File\{Filesystem};
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Illuminate\Support\Collection;
@@ -144,11 +144,11 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	public BotConfig $config;
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Logger]
-	public FilesystemDriver $fs;
+	public LoggerWrapper $logger;
 
 	/** Default command prefix symbol */
 	#[NCA\Setting\Text(options: ["!", "#", "*", "@", "$", "+", "-"])]

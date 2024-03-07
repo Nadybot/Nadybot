@@ -106,7 +106,7 @@ class BuddylistManager {
 			return $buddyOnline;
 		}
 
-		return $this->chatBot->aoClient->isOnline($uid);
+		return $this->chatBot->aoClient->isOnline($uid) ?? false;
 	}
 
 	/**

@@ -23,7 +23,6 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	ParamClass\PFaction,
 	ParamClass\PPlayfield,
-	ParamClass\PTowerSite,
 	ParamClass\PWord,
 	Registry,
 	SettingManager,
@@ -33,7 +32,6 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
-use Nadybot\Modules\TOWER_MODULE\TowerController;
 use Revolt\EventLoop;
 use Safe\Exceptions\FilesystemException;
 
@@ -74,9 +72,6 @@ class TestController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public PlayfieldController $playfieldController;
-
-	#[NCA\Inject]
-	public TowerController $towerController;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
@@ -154,74 +149,6 @@ class TestController extends ModuleInstance {
 		PCharacter $char
 	): void {
 		$this->sendOrgMsg("{$char} just left your organization.");
-	}
-
-	/** Run a fictional tower attack by another org */
-	#[NCA\HandlesCommand("test")]
-	public function testTowerAttackCommand(
-		CmdContext $context,
-		#[NCA\Str("towerattack")]
-		string $action,
-		PFaction $attFaction,
-		string $attOrg,
-		PCharacter $attacker,
-		PFaction $defFaction,
-		string $defOrg,
-		PTowerSite $site
-	): void {
-		$towerLocation = $this->getTowerLocationString($site, "%s at location (%d,%d)");
-		if ($towerLocation === null) {
-			$context->reply("The tower field <highlight>{$site->pf} {$site->site}<end> does not exist.");
-			return;
-		}
-		$this->sendTowerMsg(
-			"The {$attFaction} organization {$attOrg} just ".
-			"entered a state of war! {$attacker} attacked the ".
-			"{$defFaction} organization {$defOrg}'s tower in {$towerLocation}."
-		);
-	}
-
-	/** Run a fictional tower attack by an orgless attacker */
-	#[NCA\HandlesCommand("test")]
-	public function testTowerAttackOrglessCommand(
-		CmdContext $context,
-		#[NCA\Str("towerattackorgless")]
-		string $action,
-		PCharacter $attacker,
-		PFaction $defFaction,
-		string $defOrg,
-		PTowerSite $site
-	): void {
-		$towerLocation = $this->getTowerLocationString($site, "%s at location (%d, %d)");
-		if ($towerLocation === null) {
-			$context->reply("The tower field <highlight>{$site->pf} {$site->site}<end> does not exist.");
-			return;
-		}
-		$this->sendTowerMsg(
-			"{$attacker} just attacked the {$defFaction} ".
-			"organization {$defOrg}'s tower in {$towerLocation}."
-		);
-	}
-
-	/** Pretend an org /terminates a Control Tower */
-	#[NCA\HandlesCommand("test")]
-	public function testTowerAbandonCommand(
-		CmdContext $context,
-		#[NCA\Str("towerabandon")]
-		string $action,
-		PFaction $faction,
-		string $orgName,
-		PPlayfield $playfield
-	): void {
-		$pf = $this->playfieldController->getPlayfieldByName($playfield());
-		if (!isset($pf)) {
-			$context->reply("There is no playfield <highlight>{$playfield}<end>.");
-			return;
-		}
-		$this->sendTowerMsg(
-			"Notum Wars Update: The {$faction->lower} ".
-			"organization {$orgName} lost their base in {$pf->long_name}."
-		);
 	}
 
 	/** Simulate your own Control Tower being attacked */
@@ -694,18 +621,6 @@ class TestController extends ModuleInstance {
 
 	protected function sendOrgMsg(string $message): void {
 		$this->sendGroupMsg('Org Msg', 0xFFFFFFFF, $message);
-	}
-
-	protected function getTowerLocationString(PTowerSite $site, string $format): ?string {
-		$pf = $this->playfieldController->getPlayfieldByName($site->pf);
-		if (!isset($pf)) {
-			return null;
-		}
-		$tSite = $this->towerController->readTowerSiteById($pf->id, $site->site);
-		if (!isset($tSite)) {
-			return null;
-		}
-		return sprintf($format, $pf->long_name, $tSite->x_coord, $tSite->y_coord);
 	}
 
 	protected function sendTowerMsg(string $message): void {

@@ -2930,7 +2930,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Nadybot/aolib.git",
-                "reference": "77d3c696781345b7ba2f5cfb2e0a7c7a6bbc21f8"
+                "reference": "ed2bddd889d71ea51430505e6b95bfe7463335e2"
             },
             "require": {
                 "amphp/byte-stream": "^2.1.0",
@@ -2976,7 +2976,7 @@
                 }
             ],
             "description": "An amphp3-based client library for the Anarchy Online chat server",
-            "time": "2024-03-05T15:24:39+00:00"
+            "time": "2024-03-07T08:44:18+00:00"
         },
         {
             "name": "nadylib/imex",

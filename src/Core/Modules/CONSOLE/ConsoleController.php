@@ -152,7 +152,7 @@ class ConsoleController extends ModuleInstance {
 		}
 		$this->loadHistory();
 		$this->socket = STDIN;
-		EventLoop::delay(1000, function (string $token) use ($callback): void {
+		EventLoop::delay(1, function (string $token) use ($callback): void {
 			if (!is_resource($this->socket)) {
 				return;
 			}
