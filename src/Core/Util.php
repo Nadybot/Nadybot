@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Amp\File\{Filesystem, FilesystemException};
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;
@@ -18,6 +19,9 @@ class Util {
 	public const DATE = "d-M-Y";
 	#[NCA\Inject]
 	public BotConfig $config;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -307,17 +311,17 @@ class Util {
 
 		// check if the file exists
 		foreach (array_reverse($this->config->paths->modules) as $modulePath) {
-			if (file_exists("{$modulePath}/{$filename}")) {
+			if ($this->fs->exists("{$modulePath}/{$filename}")) {
 				return "{$modulePath}/{$filename}";
 			}
 		}
-		if (file_exists(__DIR__ . "/{$filename}")) {
+		if ($this->fs->exists(__DIR__ . "/{$filename}")) {
 			return __DIR__ . "/{$filename}";
 		}
-		if (file_exists(__DIR__ . "/Modules/{$filename}")) {
+		if ($this->fs->exists(__DIR__ . "/Modules/{$filename}")) {
 			return __DIR__ . "/Modules/{$filename}";
 		}
-		if (file_exists($filename)) {
+		if ($this->fs->exists($filename)) {
 			return $filename;
 		}
 		return "";
@@ -549,13 +553,15 @@ class Util {
 	 * @return string[] An array of file names in that directory
 	 */
 	public function getFilesInDirectory(string $path): array {
-		$files = @scandir($path);
-		if (!is_array($files)) {
+		try {
+			$files = $this->fs->listFiles($path);
+		} catch (FilesystemException) {
 			return [];
 		}
-		return array_values(array_filter($files, function (string $f) use ($path): bool {
-			return !@is_dir($path . DIRECTORY_SEPARATOR . $f);
-		}));
+		return array_values(array_filter(
+			$files,
+			fn (string $f): bool => !$this->fs->isDirectory($path . DIRECTORY_SEPARATOR . $f)
+		));
 	}
 
 	/**
@@ -564,13 +570,15 @@ class Util {
 	 * @return string[] An array of dir names in that directory
 	 */
 	public function getDirectoriesInDirectory(string $path): array {
-		$files = @scandir($path);
-		if (!is_array($files)) {
+		try {
+			$files = $this->fs->listFiles($path);
+		} catch (FilesystemException) {
 			return [];
 		}
-		return array_values(array_filter($files, function (string $f) use ($path): bool {
-			return $f !== '.' && $f !== '..' && @is_dir($path . DIRECTORY_SEPARATOR . $f);
-		}));
+		return array_values(array_filter(
+			$files,
+			fn (string $f): bool => $f !== '.' && $f !== '..' && $this->fs->isDirectory($path . DIRECTORY_SEPARATOR . $f)
+		));
 	}
 
 	/** Test if $input only consists of digits */

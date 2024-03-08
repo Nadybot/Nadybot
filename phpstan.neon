@@ -10,3 +10,4 @@ parameters:
     - '#Static property [a-zA-Z0-9\\_]+::\$.* is never written, only read.#'
 includes:
     - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+    - phpstan/phpstan-amp-file-rule.neon

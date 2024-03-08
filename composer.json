@@ -71,6 +71,7 @@
 	],
 	"autoload": {
 		"psr-4": {
+			"Nadybot\\phpstan\\": "phpstan/src/",
 			"Nadybot\\User\\Modules\\": "extras/",
 			"Nadybot\\": "src/"
 		}
