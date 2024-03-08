@@ -172,7 +172,8 @@ class AlienBioController extends ModuleInstance {
 			// if there is only one bio, show detailed info by calling !bioinfo command handler directly
 			if (is_numeric($bioinfo)) {
 				$this->bioinfoIDCommand($context, (int)$bioinfo, $clumps[0]->ql);
-			} else {
+			} elseif (strlen($bioinfo) > 0) {
+				/** @psalm-var non-empty-string $bioinfo */
 				$this->bioinfoCommand($context, new PWord($bioinfo), $clumps[0]->ql);
 			}
 		} else {

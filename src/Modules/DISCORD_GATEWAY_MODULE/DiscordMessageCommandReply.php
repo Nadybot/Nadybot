@@ -102,7 +102,7 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 	protected function routeToHub(DiscordChannel $channel, string $message): void {
 		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(
-			new Character($this->config->main->character, $this->chatBot->char->id)
+			new Character($this->config->main->character, $this->chatBot->char?->id)
 		);
 		$guilds = $this->discordGatewayController->getGuilds();
 		$guild = $guilds[$channel->guild_id] ?? null;

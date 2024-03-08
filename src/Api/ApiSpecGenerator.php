@@ -2,6 +2,7 @@
 
 namespace Nadybot\Api;
 
+use function Safe\preg_match_all;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -14,6 +15,7 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionProperty;
+
 use ReflectionUnionType;
 
 class ApiSpecGenerator {
@@ -122,7 +124,8 @@ class ApiSpecGenerator {
 		}
 		$refClass = new ReflectionClass($class);
 		$refProps = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
-		$description = $this->getDescriptionFromComment($refClass->getDocComment() ?: "");
+		$refDoc = $refClass->getDocComment();
+		$description = $this->getDescriptionFromComment(is_string($refDoc) ? $refDoc : "");
 		$newResult = [
 			"type" => "object",
 			"properties" => [],
@@ -285,7 +288,7 @@ class ApiSpecGenerator {
 	 */
 	public function getParamDocs(string $path, ReflectionMethod $method): array {
 		$result = [];
-		if (preg_match_all('/\{(.+?)\}/', $path, $matches)) {
+		if (preg_match_all('/\{(.+?)\}/', $path, $matches) > 0 && isset($matches) && count($matches)) {
 			foreach ($matches[1] as $param) {
 				foreach ($method->getParameters() as $refParam) {
 					if ($refParam->getName() !== $param) {
@@ -310,7 +313,8 @@ class ApiSpecGenerator {
 				if ($refType->getName() === "bool") {
 					$paramResult["schema"]["type"] = "boolean";
 				}
-				if (preg_match("/@param.*?\\$\Q{$param}\E\s+(.+)$/m", $method->getDocComment() ?: "", $matches)) {
+				$docComment = $method->getDocComment();
+				if (preg_match("/@param.*?\\$\Q{$param}\E\s+(.+)$/m", is_string($docComment) ? $docComment : "", $matches)) {
 					$matches[1] = preg_replace("/\*\//", "", $matches[1]);
 					if (is_string($matches[1])) {
 						$paramResult["description"] = trim($matches[1]);
@@ -346,7 +350,7 @@ class ApiSpecGenerator {
 	public function getMethodDoc(ReflectionMethod $method): PathDoc {
 		$doc = new PathDoc();
 		$comment = $method->getDocComment();
-		$doc->description = $comment ? $this->getDescriptionFromComment($comment) : "No documentation provided";
+		$doc->description = is_string($comment) ? $this->getDescriptionFromComment($comment) : "No documentation provided";
 
 		$apiResultAttrs = $method->getAttributes(NCA\ApiResult::class);
 		if (empty($apiResultAttrs)) {
@@ -481,7 +485,7 @@ class ApiSpecGenerator {
 		if (count($refProperty->getAttributes(NCA\JSON\Ignore::class))) {
 			return null;
 		}
-		$description = $this->getDescriptionFromComment($docComment ?: "");
+		$description = $this->getDescriptionFromComment(is_string($docComment) ? $docComment : "");
 		$nameAttr = $refProperty->getAttributes(NCA\JSON\Name::class);
 		if (count($nameAttr) > 0) {
 			/** @var NCA\JSON\Name */

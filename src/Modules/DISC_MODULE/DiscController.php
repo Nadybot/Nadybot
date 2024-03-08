@@ -125,7 +125,7 @@ class DiscController extends ModuleInstance {
 	public function getNanoDetails(Disc $disc): ?NanoDetails {
 		return $this->db->table("nanos")
 			->where("crystal_id", $disc->crystal_id)
-			->select("location", "professions", "strain AS nanoline_name")
+			->select(["location", "professions", "strain AS nanoline_name"])
 			->asObj(NanoDetails::class)
 			->first();
 	}

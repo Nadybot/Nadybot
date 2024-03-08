@@ -221,7 +221,7 @@ class EventsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		if (empty($row->event_attendees)) {
+		if (!isset($row->event_attendees) || !strlen($row->event_attendees)) {
 			$msg = "No one has signed up to attend this event.";
 			$context->reply($msg);
 			return;
@@ -387,7 +387,7 @@ class EventsController extends ModuleInstance {
 		$eventsLink = $this->text->makeChatcmd("see more", "/tell <myname> events");
 		$blob = "<header2>Events [{$eventsLink}]<end>\n";
 		$blob .= $data->map(function (EventModel $event): string {
-			return "<tab>" . ($event->event_date
+			return "<tab>" . ((isset($event->event_date) && $event->event_date > 0)
 				? $this->util->date($event->event_date)
 				: "soon").
 				": <highlight>{$event->event_name}<end>";

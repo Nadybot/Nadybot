@@ -191,7 +191,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	}
 
 	public function checkLeaderAccess(string $sender): bool {
-		if (empty($this->leader)) {
+		if (!isset($this->leader) || !strlen($this->leader)) {
 			return true;
 		} elseif ($this->leader === $sender) {
 			return true;

@@ -260,7 +260,7 @@ class DiscordGatewayController extends ModuleInstance {
 
 	/** Check if the bot is connected and authenticated to the Discord gateway */
 	public function isConnected(): bool {
-		return !empty($this->sessionId);
+		return isset($this->sessionId) && strlen($this->sessionId) > 0;
 	}
 
 	/** Search for a Discord channel we are subscribed to by channel ID */
@@ -567,13 +567,13 @@ class DiscordGatewayController extends ModuleInstance {
 			if (isset($message->guild_id)) {
 				$this->discordAPIClient->cacheGuildMember($message->guild_id, $member);
 			}
-			if (!empty($message->member->nick)) {
+			if (isset($message->member->nick) && strlen($message->member->nick)) {
 				$name = $message->member->nick;
 			}
 		}
 		$channel = $this->getChannel($message->channel_id);
 		$channelName = $channel ? ($channel->name??"DM") : "thread";
-		if ($message->guild_id) {
+		if (isset($message->guild_id)) {
 			$this->logger->logChat("Discord:{$channelName}", $name, $message->content);
 		} else {
 			$this->logger->logChat("Inc. Discord Msg.", $name, $message->content);
@@ -593,14 +593,14 @@ class DiscordGatewayController extends ModuleInstance {
 		$event = new DiscordMessageEvent();
 		$event->message = $message->content;
 		$event->sender = $name;
-		$event->type = $message->guild_id ? "discordpriv" : "discordmsg";
+		$event->type = isset($message->guild_id) ? "discordpriv" : "discordmsg";
 		$event->discord_message = $message;
 		$event->channel = $message->channel_id;
 		$this->eventManager->fireEvent($event);
 
 		$aoMessage = $this->resolveDiscordMentions($message->guild_id??null, $text);
 		$rMessage = new RoutableMessage($aoMessage);
-		if ($message->guild_id) {
+		if (isset($message->guild_id) && strlen($message->guild_id)) {
 			// $source = new Source(Source::DISCORD_GUILD, $this->guilds[(string)$message->guild_id]->name??null);
 			// $rMessage->appendPath($source);
 			$source = new Source(Source::DISCORD_PRIV, $channelName, null, (int)$message->guild_id);
@@ -622,7 +622,7 @@ class DiscordGatewayController extends ModuleInstance {
 
 	public function embedToAOML(DiscordEmbed $embed): string {
 		$blob = "";
-		if (!empty($embed->description)) {
+		if (isset($embed->description) && strlen($embed->description)) {
 			$blob .= DiscordRelayController::formatMessage($embed->description) . "\n\n";
 		}
 		foreach ($embed->fields??[] as $field) {
@@ -636,8 +636,8 @@ class DiscordGatewayController extends ModuleInstance {
 				DiscordRelayController::formatMessage($embed->footer->text).
 				"</i>";
 		}
-		if (!empty($embed->title)) {
-			if (!empty($embed->url)) {
+		if (isset($embed->title) && strlen($embed->title)) {
+			if (isset($embed->url) && strlen($embed->url)) {
 				$blob = "Details <a href='chatcmd:///start {$embed->url}'>here</a>\n\n".
 					$blob;
 			}
@@ -807,6 +807,8 @@ class DiscordGatewayController extends ModuleInstance {
 			$this->logger->error("Received channel info for unknown guild");
 			return;
 		}
+
+		/** @psalm-suppress UnsupportedPropertyReferenceUsage */
 		$channels = &$this->guilds[$channel->guild_id]->channels;
 		if ($event->payload->t === "CHANNEL_CREATE") {
 			$channels []= $channel;

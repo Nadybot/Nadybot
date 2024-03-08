@@ -489,14 +489,16 @@ class TestController extends ModuleInstance {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
+		$channelId = $this->chatBot->char?->id;
+		if ($channelId === null) {
+			$context->reply("The bot is not connected to AO");
+			return;
+		}
 
 		$this->chatBot->processPackage(
 			new WorkerPackage(
 				worker: $this->config->main->character,
-				package: new Package\In\PrivateChannelClientJoined(
-					channelId: $this->chatBot->char->id,
-					charId: $uid
-				),
+				package: new Package\In\PrivateChannelClientJoined(channelId: $channelId, charId: $uid),
 				client: $this->getWorker(),
 			)
 		);
@@ -515,13 +517,14 @@ class TestController extends ModuleInstance {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
+		if (null === ($channelId = $this->chatBot->char?->id)) {
+			$context->reply("The bot is currently not connected.");
+			return;
+		}
 		$this->chatBot->processPackage(
 			new WorkerPackage(
 				worker: $this->config->main->character,
-				package: new Package\In\PrivateChannelClientLeft(
-					channelId: $this->chatBot->char->id,
-					charId: $uid
-				),
+				package: new Package\In\PrivateChannelClientLeft(channelId: $channelId, charId: $uid),
 				client: $this->getWorker(),
 			)
 		);

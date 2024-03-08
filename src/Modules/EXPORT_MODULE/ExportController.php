@@ -170,27 +170,29 @@ class ExportController extends ModuleInstance {
 
 	/** @return stdClass[] */
 	protected function exportAlts(): array {
-		/** @var Alt[] */
-		$alts = $this->db->table("alts")->asObj(Alt::class)->toArray();
+		$alts = $this->db->table("alts")->asObj(Alt::class);
+
+		/** @var array<string,stdClass[]> */
 		$data = [];
 		foreach ($alts as $alt) {
 			if ($alt->main === $alt->alt) {
 				continue;
 			}
 			$data[$alt->main] ??= [];
-			$data[$alt->main] []= (object)[
+			$data[$alt->main] []= $this->toClass([
 				"alt" => $this->toChar($alt->alt),
 				"validatedByMain" => $alt->validated_by_main ?? true,
 				"validatedByAlt" => $alt->validated_by_alt ?? true,
-			];
+			]);
 		}
 
+		/** @var stdClass[] */
 		$result = [];
 		foreach ($data as $main => $altInfo) {
-			$result []= (object)[
+			$result []= $this->toClass([
 				"main" => $this->toChar($main),
 				"alts" => $altInfo,
-			];
+			]);
 		}
 
 		return $result;
@@ -199,70 +201,68 @@ class ExportController extends ModuleInstance {
 	/** @return stdClass[] */
 	protected function exportMembers(): array {
 		$exported = [];
+
+		/** @var stdClass[] */
 		$result = [];
 
 		/** @var Member[] */
 		$members = $this->db->table(PrivateChannelController::DB_TABLE)
-			->asObj(Member::class)
-			->toArray();
+			->asObj(Member::class);
 		foreach ($members as $member) {
-			$result []= (object)[
+			$result []= $this->toClass([
 				"character" => $this->toChar($member->name),
 				"autoInvite" => (bool)$member->autoinv,
 				"joinedTime" => $member->joined,
-			];
+			]);
 			$exported[$member->name] = true;
 		}
 
 		/** @var RaidRank[] */
 		$members = $this->db->table(RaidRankController::DB_TABLE)
-			->asObj(RaidRank::class)
-			->toArray();
+			->asObj(RaidRank::class);
 		foreach ($members as $member) {
 			if (isset($exported[$member->name])) {
 				continue;
 			}
-			$result []= (object)[
+			$result []= $this->toClass([
 				"character" => $this->toChar($member->name),
-			];
+			]);
 			$exported[$member->name] = true;
 		}
 		$members = $this->db->table(GuildController::DB_TABLE)
 			->where("mode", "!=", "del")
-			->asObj(OrgMember::class)
-			->toArray();
+			->asObj(OrgMember::class);
 		foreach ($members as $member) {
 			if (isset($exported[$member->name])) {
 				continue;
 			}
-			$result []= (object)[
+			$result []= $this->toClass([
 				"character" => $this->toChar($member->name),
 				"autoInvite" => false,
-			];
+			]);
 			$exported[$member->name] = true;
 		}
 
 		/** @var Admin[] */
 		$members = $this->db->table(AdminManager::DB_TABLE)
-			->asObj(Admin::class)
-			->toArray();
+			->asObj(Admin::class);
 		foreach ($members as $member) {
 			if (isset($exported[$member->name])) {
 				continue;
 			}
-			$result []= (object)[
+			$result []= $this->toClass([
 				"character" => $this->toChar($member->name),
 				"autoInvite" => false,
-			];
+			]);
 			$exported[$member->name] = true;
 		}
 		foreach ($this->config->general->superAdmins as $superAdmin) {
 			if (!isset($exported[$superAdmin])) {
-				$result []= (object)[
+				$result []= $this->toClass([
 					"character" => $this->toChar($superAdmin),
 					"autoInvite" => false,
 					"rank" => "superadmin",
-				];
+				]);
 			}
 		}
 		foreach ($result as &$datum) {
@@ -271,16 +271,16 @@ class ExportController extends ModuleInstance {
 			$logoffMessage = $this->preferences->get($datum->character->name, "logoff_msg");
 			$massMessages = $this->preferences->get($datum->character->name, MassMsgController::PREF_MSGS);
 			$massInvites = $this->preferences->get($datum->character->name, MassMsgController::PREF_INVITES);
-			if (!empty($logonMessage)) {
+			if (isset($logonMessage) && strlen($logonMessage)) {
 				$datum->logonMessage ??= $logonMessage;
 			}
-			if (!empty($logoffMessage)) {
+			if (isset($logoffMessage) && strlen($logoffMessage)) {
 				$datum->logoffMessage ??= $logoffMessage;
 			}
-			if (!empty($massMessages)) {
+			if (isset($massMessages) && strlen($massMessages)) {
 				$datum->receiveMassMessages ??= $massMessages === "on";
 			}
-			if (!empty($massInvites)) {
+			if (isset($massInvites) && strlen($massInvites)) {
 				$datum->receiveMassInvites ??= $massInvites === "on";
 			}
 		}
@@ -289,154 +289,127 @@ class ExportController extends ModuleInstance {
 
 	/** @return stdClass[] */
 	protected function exportQuotes(): array {
-		/** @var Quote[] */
-		$quotes = $this->db->table("quote")
+		return $this->db->table("quote")
 			->orderBy("id")
 			->asObj(Quote::class)
-			->toArray();
-		$result = [];
-		foreach ($quotes as $quote) {
-			$result []= (object)[
-				"quote" => $quote->msg,
-				"time" => $quote->dt,
-				"contributor" => $this->toChar($quote->poster),
-			];
-		}
-		return $result;
+			->map(function (Quote $quote): stdClass {
+				return $this->toClass([
+					"quote" => $quote->msg,
+					"time" => $quote->dt,
+					"contributor" => $this->toChar($quote->poster),
+				]);
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
 	protected function exportBanlist(): array {
-		/** @var BanEntry[] */
-		$banList = $this->db->table(BanController::DB_TABLE)
-			->asObj(BanEntry::class)->toArray();
-		$result = [];
-		foreach ($banList as $banEntry) {
-			$name = $this->chatBot->getName($banEntry->charid);
-			$ban = (object)[
-				"character" => $this->toChar($name, $banEntry->charid),
-				"bannedBy" => $this->toChar($banEntry->admin),
-				"banReason" => $banEntry->reason,
-				"banStart" => $banEntry->time,
-			];
-			if (isset($banEntry->banend) && $banEntry->banend > 0) {
-				$ban->banEnd = $banEntry->banend;
-			}
-			$result []= $ban;
-		}
-
-		return $result;
+		return $this->db->table(BanController::DB_TABLE)
+			->asObj(BanEntry::class)
+			->map(function (BanEntry $banEntry): stdClass {
+				$name = $this->chatBot->getName($banEntry->charid);
+				$ban = $this->toClass([
+					"character" => $this->toChar($name, $banEntry->charid),
+					"bannedBy" => $this->toChar($banEntry->admin),
+					"banReason" => $banEntry->reason,
+					"banStart" => $banEntry->time,
+				]);
+				if (isset($banEntry->banend) && $banEntry->banend > 0) {
+					$ban->banEnd = $banEntry->banend;
+				}
+				return $ban;
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
 	protected function exportCloak(): array {
-		/** @var OrgCity[] */
-		$cloakList = $this->db->table(CloakController::DB_TABLE)
+		return $this->db->table(CloakController::DB_TABLE)
 			->asObj(OrgCity::class)
-			->toArray();
-		$result = [];
-		foreach ($cloakList as $cloakEntry) {
-			$result []= (object)[
-				"character" => $this->toChar(preg_replace("/\*$/", "", $cloakEntry->player)),
-				"manualEntry" => (bool)preg_match("/\*$/", $cloakEntry->player),
-				"cloakOn" => ($cloakEntry->action === "on"),
-				"time" => $cloakEntry->time,
-			];
-		}
-
-		return $result;
+			->map(function (OrgCity $cloakEntry): stdClass {
+				return $this->toClass([
+					"character" => $this->toChar(preg_replace("/\*$/", "", $cloakEntry->player)),
+					"manualEntry" => (bool)preg_match("/\*$/", $cloakEntry->player),
+					"cloakOn" => ($cloakEntry->action === "on"),
+					"time" => $cloakEntry->time,
+				]);
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
 	protected function exportPolls(): array {
-		/** @var Poll[] */
-		$polls = $this->db->table(VoteController::DB_POLLS)
+		return $this->db->table(VoteController::DB_POLLS)
 			->asObj(Poll::class)
-			->toArray();
-		$result = [];
-		foreach ($polls as $poll) {
-			$export = (object)[
-				"author" => $this->toChar($poll->author),
-				"question" => $poll->question,
-				"answers" => [],
-				"startTime" => $poll->started,
-				"endTime" => $poll->started + $poll->duration,
-			];
-			$answers = [];
-			foreach (json_decode($poll->possible_answers, false) as $answer) {
-				$answers[$answer] ??= (object)[
-					"answer" => $answer,
-					"votes" => [],
-				];
-			}
-
-			/** @var Vote[] */
-			$votes = $this->db->table(VoteController::DB_VOTES)
-				->where("poll_id", $poll->id)
-				->asObj(Vote::class)
-				->toArray();
-			foreach ($votes as $vote) {
-				if (!isset($vote->answer)) {
-					continue;
+			->map(function (Poll $poll): stdClass {
+				$export = $this->toClass([
+					"author" => $this->toChar($poll->author),
+					"question" => $poll->question,
+					"answers" => [],
+					"startTime" => $poll->started,
+					"endTime" => $poll->started + $poll->duration,
+				]);
+				$answers = [];
+				foreach (json_decode($poll->possible_answers, false) as $answer) {
+					$answers[$answer] ??= $this->toClass([
+						"answer" => $answer,
+						"votes" => [],
+					]);
 				}
-				$answers[$vote->answer] ??= (object)[
-					"answer" => $vote->answer,
-					"votes" => [],
-				];
-				$answer = (object)[
-					"character" => $this->toChar($vote->author),
-				];
-				if (isset($vote->time)) {
-					$answer->voteTime = $vote->time;
-				}
-				$answers[$vote->answer]->votes []= $answer;
-			}
-			$export->answers = array_values($answers);
-			$result []= $export;
-		}
 
-		return $result;
+				/** @var Vote[] */
+				$votes = $this->db->table(VoteController::DB_VOTES)
+					->where("poll_id", $poll->id)
+					->asObj(Vote::class);
+				foreach ($votes as $vote) {
+					if (!isset($vote->answer)) {
+						continue;
+					}
+					$answers[$vote->answer] ??= $this->toClass([
+						"answer" => $vote->answer,
+						"votes" => [],
+					]);
+					$answer = $this->toClass([
+						"character" => $this->toChar($vote->author),
+					]);
+					if (isset($vote->time)) {
+						$answer->voteTime = $vote->time;
+					}
+					$answers[$vote->answer]->votes []= $answer;
+				}
+				$export->answers = array_values($answers);
+				return $export;
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
 	protected function exportRaffleBonus(): array {
-		/** @var RaffleBonus[] */
-		$data = $this->db->table(RaffleController::DB_TABLE)
+		return $this->db->table(RaffleController::DB_TABLE)
 			->orderBy("name")
 			->asObj(RaffleBonus::class)
-			->toArray();
-		$result = [];
-		foreach ($data as $bonus) {
-			$result []= (object)[
-				"character" => $this->toChar($bonus->name),
-				"raffleBonus" => $bonus->bonus,
-			];
-		}
-		return $result;
+			->map(function (RaffleBonus $bonus): stdClass {
+				return $this->toClass([
+					"character" => $this->toChar($bonus->name),
+					"raffleBonus" => $bonus->bonus,
+				]);
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
 	protected function exportRaidBlocks(): array {
-		/** @var RaidBlock[] */
-		$data = $this->db->table(RaidBlockController::DB_TABLE)
+		return $this->db->table(RaidBlockController::DB_TABLE)
 			->orderBy("player")
 			->asObj(RaidBlock::class)
-			->toArray();
-		$result = [];
-		foreach ($data as $block) {
-			$entry = (object)[
-				"character" => $this->toChar($block->player),
-				"blockedFrom" => $block->blocked_from,
-				"blockedBy" => $this->toChar($block->blocked_by),
-				"blockedReason" => $block->reason,
-				"blockStart" => $block->time,
-			];
-			if (isset($block->expiration)) {
-				$entry->blockEnd = $block->expiration;
-			}
-			$result []= $entry;
-		}
-		return $result;
+			->map(function (RaidBlock $block): stdClass {
+				$entry = $this->toClass([
+					"character" => $this->toChar($block->player),
+					"blockedFrom" => $block->blocked_from,
+					"blockedBy" => $this->toChar($block->blocked_by),
+					"blockedReason" => $block->reason,
+					"blockStart" => $block->time,
+				]);
+				if (isset($block->expiration)) {
+					$entry->blockEnd = $block->expiration;
+				}
+				return $entry;
+			})->toArray();
 	}
 
 	protected function nullIf(int $value, int $nullvalue=0): ?int {
@@ -450,9 +423,11 @@ class ExportController extends ModuleInstance {
 			->orderBy("raid_id")
 			->asObj(RaidLog::class)
 			->toArray();
+
+		/** @var stdClass[] */
 		$raids = [];
 		foreach ($data as $raid) {
-			$raids[$raid->raid_id] ??= (object)[
+			$raids[$raid->raid_id] ??= $this->toClass([
 				"raidId" => $raid->raid_id,
 				"time" => $raid->time,
 				"raidDescription" => $raid->description,
@@ -460,17 +435,17 @@ class ExportController extends ModuleInstance {
 				"raidAnnounceInterval" => $raid->announce_interval,
 				"raiders" => [],
 				"history" => [],
-			];
+			]);
 			if ($raid->seconds_per_point > 0) {
 				$raids[$raid->raid_id]->raidSecondsPerPoint = $raid->seconds_per_point;
 			}
-			$raids[$raid->raid_id]->history[] = (object)[
+			$raids[$raid->raid_id]->history[] = $this->toClass([
 				"time" => $raid->time,
 				"raidDescription" => $raid->description,
 				"raidLocked" => $raid->locked,
 				"raidAnnounceInterval" => $raid->announce_interval,
 				"raidSecondsPerPoint" => $this->nullIf($raid->seconds_per_point),
-			];
+			]);
 		}
 
 		/** @var RaidMember[] */
@@ -478,10 +453,10 @@ class ExportController extends ModuleInstance {
 			->asObj(RaidMember::class)
 			->toArray();
 		foreach ($data as $raidMember) {
-			$raider = (object)[
+			$raider = $this->toClass([
 				"character" => $this->toChar($raidMember->player),
 				"joinTime" => $raidMember->joined,
-			];
+			]);
 			if (isset($raidMember->left)) {
 				$raider->leaveTime = $raidMember->left;
 			}
@@ -492,46 +467,38 @@ class ExportController extends ModuleInstance {
 
 	/** @return stdClass[] */
 	protected function exportRaidPoints(): array {
-		/** @var RaidPoints[] */
-		$data = $this->db->table(RaidPointsController::DB_TABLE)
+		return $this->db->table(RaidPointsController::DB_TABLE)
 			->orderBy("username")
 			->asObj(RaidPoints::class)
-			->toArray();
-		$result = [];
-		foreach ($data as $datum) {
-			$result []= (object)[
-				"character" => $this->toChar($datum->username),
-				"raidPoints" => $datum->points,
-			];
-		}
-		return $result;
+			->map(function (RaidPoints $datum): stdClass {
+				return $this->toClass([
+					"character" => $this->toChar($datum->username),
+					"raidPoints" => $datum->points,
+				]);
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
 	protected function exportRaidPointsLog(): array {
-		/** @var RaidPointsLog[] */
-		$data = $this->db->table(RaidPointsController::DB_TABLE_LOG)
+		return $this->db->table(RaidPointsController::DB_TABLE_LOG)
 			->orderBy("time")
 			->orderBy("username")
 			->asObj(RaidPointsLog::class)
-			->toArray();
-		$result = [];
-		foreach ($data as $datum) {
-			$raidLog = (object)[
-				"character" => $this->toChar($datum->username),
-				"raidPoints" => (float)$datum->delta,
-				"time" => $datum->time,
-				"givenBy" => $this->toChar($datum->changed_by),
-				"reason" => $datum->reason,
-				"givenByTick" => $datum->ticker,
-				"givenIndividually" => $datum->individual,
-			];
-			if (isset($datum->raid_id)) {
-				$raidLog->raidId = $datum->raid_id;
-			}
-			$result []= $raidLog;
-		}
-		return $result;
+			->map(function (RaidPointsLog $datum): stdClass {
+				$raidLog = $this->toClass([
+					"character" => $this->toChar($datum->username),
+					"raidPoints" => (float)$datum->delta,
+					"time" => $datum->time,
+					"givenBy" => $this->toChar($datum->changed_by),
+					"reason" => $datum->reason,
+					"givenByTick" => $datum->ticker,
+					"givenIndividually" => $datum->individual,
+				]);
+				if (isset($datum->raid_id)) {
+					$raidLog->raidId = $datum->raid_id;
+				}
+				return $raidLog;
+			})->toArray();
 	}
 
 	/** @return stdClass[] */
@@ -547,7 +514,7 @@ class ExportController extends ModuleInstance {
 				"channels" => array_diff(explode(",", str_replace(["guild", "both", "msg"], ["org", "priv,org", "tell"], $timer->mode??"")), [""]),
 				"alerts" => [],
 			]);
-			if (!empty($timer->data) && (int)$timer->data > 0) {
+			if (isset($timer->data) && (int)$timer->data > 0) {
 				$data->repeatInterval = (int)$timer->data;
 			}
 			foreach ($timer->alerts as $alert) {

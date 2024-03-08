@@ -206,6 +206,10 @@ class DiscordRelayController extends ModuleInstance {
 				"/([\x{0450}-\x{2018}\x{2020}-\x{fffff}])/u",
 				function (array $matches): string {
 					$char = \IntlChar::charName($matches[1]);
+					// @phpstan-ignore-next-line
+					if (!isset($char)) {
+						return $matches[1];
+					}
 					if ($char === "ZERO WIDTH JOINER"
 						|| substr($char, 0, 19) === "VARIATION SELECTOR-"
 						|| substr($char, 0, 14) === "EMOJI MODIFIER"

@@ -1164,11 +1164,13 @@ class RaidController extends ModuleInstance {
 		PCharacter $char,
 		string $note
 	): void {
+		/** @psalm-var non-empty-string */
+		$catName = $this->getRaidCategory()->name;
 		$this->commentController->addCommentCommand(
 			$context,
 			"new",
 			$char,
-			new PWord($this->getRaidCategory()->name),
+			new PWord($catName),
 			$note
 		);
 	}
@@ -1183,11 +1185,13 @@ class RaidController extends ModuleInstance {
 		string $subAction,
 		PCharacter $char
 	): void {
+		/** @psalm-var non-empty-string */
+		$catName = $this->getRaidCategory()->name;
 		$this->commentController->searchCommentCommand(
 			$context,
 			"get",
 			$char,
-			new PWord($this->getRaidCategory()->name),
+			new PWord($catName),
 		);
 	}
 

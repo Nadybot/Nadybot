@@ -346,7 +346,7 @@ class ChatAssistController extends ModuleInstance {
 		for ($i = 0; $i < count($callers); $i++) {
 			$name = $callers[$i]();
 			$uid = $this->chatBot->getUid($name);
-			if (!$uid) {
+			if (!isset($uid)) {
 				$errors []= "Character <highlight>{$name}<end> does not exist.";
 			} elseif (
 				!isset($this->chatBot->guildmembers[$name])
@@ -419,7 +419,7 @@ class ChatAssistController extends ModuleInstance {
 
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->getUid($name);
-		if (!$uid) {
+		if (!isset($uid)) {
 			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;
 		} elseif (

@@ -127,11 +127,13 @@ class ReputationController extends ModuleInstance {
 		string $action,
 		string $comment
 	): void {
+		/** @psalm-var non-empty-string */
+		$catName = $this->getReputationCategory()->name;
 		$this->commentController->addCommentCommand(
 			$context,
 			"add",
 			$char,
-			new PWord($this->getReputationCategory()->name),
+			new PWord($catName),
 			"{$action} {$comment}"
 		);
 	}
