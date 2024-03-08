@@ -11,6 +11,9 @@ class ImportExistingAttacksAndVictories implements SchemaMigration {
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$offset = 0;
+		if (!$db->schema()->hasTable("tower_attack_<myname>")) {
+			return;
+		}
 		do {
 			$processed = 0;
 			$db->table("tower_attack_<myname>")
