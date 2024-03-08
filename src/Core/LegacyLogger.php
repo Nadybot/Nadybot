@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use function Safe\json_decode;
+use Amp\File\Filesystem;
 use Monolog\{
 	Formatter\FormatterInterface,
 	Handler\AbstractHandler,
@@ -12,6 +14,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Routing\Source;
 use RuntimeException;
 use Safe\Exceptions\JsonException;
+
 use SplObjectStorage;
 
 /**
@@ -31,6 +34,8 @@ class LegacyLogger {
 
 	/** @var array<string,mixed> */
 	public static array $config = [];
+
+	public static Filesystem $fs;
 
 	/**
 	 * Configuration which log channels log what
@@ -92,9 +97,9 @@ class LegacyLogger {
 			return static::$config;
 		}
 		$configFile = BotRunner::$arguments["log-config"] ?? "./conf/logging.json";
-		$json = @\Safe\file_get_contents($configFile);
+		$json = self::$fs->read($configFile);
 		try {
-			$logStruct = \Safe\json_decode($json, true, 512);
+			$logStruct = json_decode($json, true, 512);
 		} catch (JsonException $e) {
 			throw new RuntimeException("Unable to parse logging config", 0, $e);
 		}

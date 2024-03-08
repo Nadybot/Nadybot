@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use function Amp\ByteStream\splitLines;
 use function Amp\delay;
-use function Safe\{preg_match, preg_replace, preg_split, touch};
+use function Safe\{preg_match, preg_replace, preg_split};
 
 use Amp\File\Filesystem;
 use DateTime;
@@ -167,9 +167,9 @@ class DB {
 			} else {
 				$dbName = "{$config->host}/{$config->name}";
 			}
-			if (!@file_exists($dbName)) {
+			if (!$this->fs->exists($dbName)) {
 				try {
-					touch($dbName);
+					$this->fs->touch($dbName);
 				} catch (FilesystemException $e) {
 					$this->logger->alert(
 						"Unable to create the dababase '{database}': {error}. Check that the directory ".
@@ -675,7 +675,7 @@ class DB {
 			return false;
 		}
 		$this->logger->info("Inserting {file}", ["file" => $file]);
-		$csv = new Reader($file);
+		$csv = new Reader($file, $this->fs);
 		$items = [];
 		$itemCount = 0;
 		try {

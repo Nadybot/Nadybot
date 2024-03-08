@@ -5,6 +5,8 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 use function Amp\Future\await;
 use function Amp\{async, delay};
 use function Safe\json_decode;
+
+use Amp\File\Filesystem;
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
 use Amp\TimeoutCancellation;
 
@@ -52,12 +54,18 @@ class GuildManager extends ModuleInstance {
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
+	#[NCA\Inject]
+	public Filesystem $fs;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	#[NCA\Setup]
 	public function setup(): void {
-		mkdir($this->config->paths->cache . '/guild_roster');
+		$filePath = $this->config->paths->cache . '/guild_roster';
+		if (!$this->fs->exists($filePath)) {
+			$this->fs->createDirectory($filePath);
+		}
 	}
 
 	public function byId(int $guildID, ?int $dimension=null, bool $forceUpdate=false): ?Guild {

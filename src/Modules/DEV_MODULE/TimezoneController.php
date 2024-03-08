@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Amp\File\Filesystem;
 use DateTimeZone;
 use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Core\{
@@ -34,6 +35,9 @@ class TimezoneController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public BotConfig $config;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	/** Get a list of all time zone areas */
 	#[NCA\HandlesCommand("timezone")]
@@ -90,7 +94,7 @@ class TimezoneController extends ModuleInstance {
 		}
 		$msg = "Timezone has been set to <highlight>{$timezone}<end>.";
 		$this->config->general->timezone = $timezone();
-		$this->config->save();
+		$this->config->save($this->fs);
 		$context->reply($msg);
 	}
 

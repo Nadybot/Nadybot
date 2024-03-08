@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\EXPORT_MODULE;
 
-use function Amp\File\filesystem;
 use function Safe\{json_decode, json_encode};
-use Amp\File\FilesystemException;
+
+use Amp\File\{Filesystem, FilesystemException};
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
@@ -71,6 +71,9 @@ class ImportController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
+	#[NCA\Inject]
+	public Filesystem $fs;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -134,7 +137,7 @@ class ImportController extends ModuleInstance {
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
 			$fileName .= ".json";
 		}
-		if (!@file_exists($fileName)) {
+		if (!$this->fs->exists($fileName)) {
 			$context->reply("No export file <highlight>{$fileName}<end> found.");
 			return;
 		}
@@ -1112,13 +1115,13 @@ class ImportController extends ModuleInstance {
 	}
 
 	private function loadAndParseExportFile(string $fileName, CmdContext $sendto): ?stdClass {
-		if (false === filesystem()->exists($fileName)) {
+		if (!$this->fs->exists($fileName)) {
 			$sendto->reply("No export file <highlight>{$fileName}<end> found.");
 			return null;
 		}
 		$this->logger->notice("Decoding the JSON data");
 		try {
-			$import = json_decode(filesystem()->read($fileName));
+			$import = json_decode($this->fs->read($fileName));
 		} catch (FilesystemException $e) {
 			$sendto->reply("Error reading <highlight>{$fileName}<end>: ".
 				$e->getMessage() . ".");

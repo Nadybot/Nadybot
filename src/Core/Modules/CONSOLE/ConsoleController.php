@@ -4,6 +4,8 @@ namespace Nadybot\Core\Modules\CONSOLE;
 
 use function Amp\async;
 use function Safe\{readline_add_history, readline_callback_handler_install, readline_read_history, readline_write_history};
+
+use Amp\File\Filesystem;
 use Exception;
 
 use Nadybot\Core\{
@@ -36,6 +38,9 @@ class ConsoleController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -83,7 +88,7 @@ class ConsoleController extends ModuleInstance {
 
 	public function loadHistory(): void {
 		$file = $this->getCacheFile();
-		if (@file_exists($file)) {
+		if ($this->fs->exists($file)) {
 			try {
 				readline_read_history($file);
 			} catch (Exception $e) {
@@ -101,8 +106,8 @@ class ConsoleController extends ModuleInstance {
 
 	public function saveHistory(): void {
 		$file = $this->getCacheFile();
-		if (!@file_exists($file)) {
-			@mkdir(dirname($file), 0700, true);
+		if (!$this->fs->exists($file)) {
+			$this->fs->createDirectoryRecursively(dirname($file), 0700);
 		}
 		try {
 			readline_write_history($file);
@@ -171,12 +176,15 @@ class ConsoleController extends ModuleInstance {
 		if (!is_resource($this->socket)) {
 			return;
 		}
+		// @phpstan-ignore-next-line
 		if (feof($this->socket)) {
 			echo("EOF received, closing console.\n");
+		// @phpstan-ignore-next-line
 			@fclose($this->socket);
 			EventLoop::cancel($this->socketHandle);
 			return;
 		}
+		// @phpstan-ignore-next-line
 		$line = fgets($this->socket);
 		if ($line !== false) {
 			$this->processLine(trim($line));

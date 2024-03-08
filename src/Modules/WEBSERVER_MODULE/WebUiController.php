@@ -5,6 +5,8 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use function Amp\async;
 use function Safe\realpath;
 
+use Amp\ByteStream\WritableResourceStream;
+use Amp\File\{Filesystem, FilesystemException as FileFilesystemException};
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use DateTime;
 use ErrorException;
@@ -25,7 +27,6 @@ use Nadybot\Core\{
 	SettingManager,
 	UserException,
 };
-use Safe\Exceptions\FilesystemException;
 
 use Throwable;
 
@@ -64,6 +65,9 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -136,24 +140,26 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		return (strlen(realpath("{$path}/css")) ? $this->recursiveRemoveDirectory(realpath("{$path}/css")) : true)
 			&& (strlen(realpath("{$path}/img")) ? $this->recursiveRemoveDirectory(realpath("{$path}/img")) : true)
 			&& (strlen(realpath("{$path}/js")) ? $this->recursiveRemoveDirectory(realpath("{$path}/js")) : true)
-			&& (strlen(realpath("{$path}/index.html")) ? unlink(realpath("{$path}/index.html")) : true)
-			&& (strlen(realpath("{$path}/favicon.ico")) ? unlink(realpath("{$path}/favicon.ico")) : true);
+			&& (strlen(realpath("{$path}/index.html")) ? $this->unlink(realpath("{$path}/index.html")) : true)
+			&& (strlen(realpath("{$path}/favicon.ico")) ? $this->unlink(realpath("{$path}/favicon.ico")) : true);
 	}
 
 	/** Delete a directory and all its subdirectories */
 	public function recursiveRemoveDirectory(string $directory): bool {
 		foreach (\Safe\glob("{$directory}/*") as $file) {
-			if (is_dir($file)) {
+			if ($this->fs->isDirectory($file)) {
 				$this->recursiveRemoveDirectory($file);
 			} else {
 				try {
-					\Safe\unlink($file);
-				} catch (FilesystemException) {
+					$this->fs->deleteFile($file);
+				} catch (FileFilesystemException) {
 					return false;
 				}
 			}
 		}
-		if (rmdir($directory) === false) {
+		try {
+			$this->fs->deleteDirectory($directory);
+		} catch (FileFilesystemException) {
 			return false;
 		}
 		return true;
@@ -217,6 +223,15 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			">>> Use the " . ($this->settingManager->getString('symbol')??"!").
 				"webauth command to create a new password after this expired"
 		);
+	}
+
+	private function unlink(string $path): bool {
+		try {
+			$this->fs->deleteFile($path);
+		} catch (FileFilesystemException) {
+			return false;
+		}
+		return true;
 	}
 
 	/** @return array{Response,string} */
@@ -296,18 +311,22 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	private function installNewRelease(string $body): void {
 		try {
 			$oldMask = umask(0027);
-			$file = \Safe\tmpfile();
+			$file = tmpfile();
+			if ($file === false) {
+				throw new Exception("Unable to create temp file for extraction");
+			}
+			$handle = new WritableResourceStream($file);
 			$archiveName = stream_get_meta_data($file)['uri'];
 			if ($body === '') {
 				throw new Exception("Cannot write to temp file {$archiveName}.");
 			}
-			\Safe\fwrite($file, $body);
+			$handle->write($body);
 			$extractor = new ZipArchive();
 			$openResult = $extractor->open($archiveName);
 			if ($openResult !== true) {
 				throw new Exception("Error opening {$archiveName}. Code {$openResult}.");
 			}
-			$path = \Safe\realpath($this->config->paths->html);
+			$path = realpath($this->config->paths->html);
 			error_clear_last();
 			if ($extractor->extractTo($path) === false) {
 				$lastError = error_get_last();
@@ -326,8 +345,8 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			if (isset($extractor)) {
 				@$extractor->close();
 			}
-			if (isset($file)) {
-				@fclose($file);
+			if (isset($handle)) {
+				$handle->close();
 			}
 		}
 	}

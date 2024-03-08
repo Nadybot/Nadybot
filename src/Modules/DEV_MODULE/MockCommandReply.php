@@ -2,9 +2,10 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use function Safe\{file_put_contents, json_encode};
+use function Safe\{json_encode};
 
-use Nadybot\Core\{CommandReply, LoggerWrapper};
+use Amp\File\Filesystem;
+use Nadybot\Core\{Attributes as NCA, CommandReply, LoggerWrapper};
 
 class MockCommandReply implements CommandReply {
 	public LoggerWrapper $logger;
@@ -15,6 +16,9 @@ class MockCommandReply implements CommandReply {
 	/** @var string[] */
 	public array $output = [];
 
+	#[NCA\Inject]
+	private Filesystem $fs;
+
 	public function __construct(string $command, ?string $logFile=null) {
 		$this->logFile = $logFile;
 		$this->command = $command;
@@ -24,14 +28,19 @@ class MockCommandReply implements CommandReply {
 		if (!isset($this->logFile)) {
 			return;
 		}
-		file_put_contents(
-			$this->logFile,
-			json_encode([
-				"command" => $this->command,
-				"output" => $this->output,
-			], JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_UNICODE) . PHP_EOL,
-			FILE_APPEND
-		);
+		try {
+			$file = $this->fs->openFile($this->logFile, "a");
+			$file->write(
+				json_encode([
+					"command" => $this->command,
+					"output" => $this->output,
+				], JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_UNICODE) . PHP_EOL,
+			);
+		} finally {
+			if (isset($file)) {
+				$file->close();
+			}
+		}
 	}
 
 	/** @param string|string[] $msg */

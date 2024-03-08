@@ -503,11 +503,11 @@ class PackageController extends ModuleInstance {
 		foreach ($toDelete as $file) {
 			$this->logger->info("Removing {file}", ["file" => $file]);
 			$relFile = substr($file, strlen($baseDir));
-			if (!@file_exists($file)) {
+			if (!$this->fs->exists($file)) {
 				$this->logger->info("{file} does not exist", ["file" => $file]);
 				continue;
 			}
-			if (is_dir($file)) {
+			if ($this->fs->isDirectory($file)) {
 				$this->logger->notice("rmdir {dir}", ["dir" => $relFile]);
 				try {
 					$this->fs->deleteFile($file);
@@ -629,7 +629,7 @@ class PackageController extends ModuleInstance {
 		try {
 			$files = $this->fs->listFiles($targetDir);
 			foreach ($files as $file) {
-				if (!is_dir($file)) {
+				if (!$this->fs->isDirectory($file)) {
 					continue;
 				}
 				$this->scanExtraModule($targetDir, $file);

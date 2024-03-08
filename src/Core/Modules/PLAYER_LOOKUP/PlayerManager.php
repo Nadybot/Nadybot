@@ -5,6 +5,8 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 use function Amp\Future\await;
 use function Amp\{async, delay};
 use function Safe\{json_decode, parse_url};
+
+use Amp\File\Filesystem;
 use Amp\Http\Client\{
 	HttpClientBuilder,
 	Request,
@@ -57,6 +59,9 @@ class PlayerManager extends ModuleInstance {
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
+	#[NCA\Inject]
+	public Filesystem $fs;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -77,7 +82,10 @@ class PlayerManager extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		mkdir($this->config->paths->cache . '/players');
+		$path = $this->config->paths->cache . '/players';
+		if (!$this->fs->exists($path)) {
+			$this->fs->createDirectory($path);
+		}
 	}
 
 	#[NCA\Event(

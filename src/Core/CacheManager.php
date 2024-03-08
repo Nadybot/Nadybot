@@ -2,13 +2,12 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{fclose, file_get_contents, filemtime, fopen, fwrite, mkdir, unlink};
+use Amp\File\{Filesystem, FilesystemException};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\BotConfig;
 
-use Safe\Exceptions\FilesystemException;
+use Nadybot\Core\Config\BotConfig;
 
 /**
  * Read-through cache to URLs
@@ -27,6 +26,9 @@ class CacheManager {
 	#[NCA\Inject]
 	public BotConfig $config;
 
+	#[NCA\Inject]
+	public Filesystem $fs;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -39,11 +41,11 @@ class CacheManager {
 		$this->cacheDir = $this->config->paths->cache;
 
 		// Making sure that the cache folder exists
-		if (@is_dir($this->cacheDir)) {
+		if ($this->fs->isDirectory($this->cacheDir)) {
 			return;
 		}
 		try {
-			mkdir($this->cacheDir, 0777);
+			$this->fs->createDirectory($this->cacheDir, 0777);
 		} catch (FilesystemException $e) {
 			$this->logger->warning("Unable to create the cache directory {dir}: {error}", [
 				"dir" => $this->cacheDir,
@@ -160,19 +162,15 @@ class CacheManager {
 	public function store(string $groupName, string $filename, string $contents): void {
 		$cacheFile = "{$this->cacheDir}/{$groupName}/{$filename}";
 		try {
-			if (!dir($this->cacheDir . '/' . $groupName)) {
-				mkdir($this->cacheDir . '/' . $groupName, 0777);
+			if (!$this->fs->isDirectory($this->cacheDir . '/' . $groupName)) {
+				$this->fs->createDirectory($this->cacheDir . '/' . $groupName, 0777);
 			}
 
 			// at least in windows, modification timestamp will not change unless this is done
 			// not sure why that is the case -tyrence
-			@unlink($cacheFile);
+			$this->fs->deleteFile($cacheFile);
 
-			$fp = fopen($cacheFile, "w");
-			if (is_resource($fp)) {
-				fwrite($fp, $contents);
-				fclose($fp);
-			}
+			$this->fs->write($cacheFile, $contents);
 		} catch (FilesystemException $e) {
 			$this->logger->warning("Unable to store cache {file}: {error}", [
 				"file" => $cacheFile,
@@ -186,11 +184,11 @@ class CacheManager {
 	public function retrieve(string $groupName, string $filename): ?string {
 		$cacheFile = "{$this->cacheDir}/{$groupName}/{$filename}";
 
-		if (!@file_exists($cacheFile)) {
+		if (!$this->fs->exists($cacheFile)) {
 			return null;
 		}
 		try {
-			return file_get_contents($cacheFile);
+			return $this->fs->read($cacheFile);
 		} catch (FilesystemException $e) {
 			$this->logger->warning("Unable to read {file}: {error}", [
 				"file" => $cacheFile,
@@ -205,8 +203,8 @@ class CacheManager {
 	public function getCacheAge(string $groupName, string $filename): ?int {
 		$cacheFile = "{$this->cacheDir}/{$groupName}/{$filename}";
 
-		if (@file_exists($cacheFile)) {
-			return time() - filemtime($cacheFile);
+		if ($this->fs->exists($cacheFile)) {
+			return time() - $this->fs->getModificationTime($cacheFile);
 		}
 		return null;
 	}
@@ -215,13 +213,13 @@ class CacheManager {
 	public function cacheExists(string $groupName, string $filename): bool {
 		$cacheFile = "{$this->cacheDir}/{$groupName}/{$filename}";
 
-		return @file_exists($cacheFile);
+		return $this->fs->exists($cacheFile);
 	}
 
 	/** Delete a cache */
 	public function remove(string $groupName, string $filename): void {
 		$cacheFile = "{$this->cacheDir}/{$groupName}/{$filename}";
-		unlink($cacheFile);
+		$this->fs->deleteFile($cacheFile);
 	}
 
 	/**

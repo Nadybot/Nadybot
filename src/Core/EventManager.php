@@ -658,7 +658,7 @@ class EventManager {
 			"period" => $period,
 		]);
 		$entry->handle = EventLoop::repeat(
-			$period,
+			$period/1000,
 			function () use ($eventObj, $entry): void {
 				$this->logger->info("Periodic call to {handler}", [
 					"handler" => $entry->filename,

@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\EXPORT_MODULE;
 
-use function Safe\{file_put_contents, json_decode, json_encode, mkdir};
+use function Safe\{json_decode, json_encode};
+
+use Amp\File\{Filesystem, FilesystemException};
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -59,7 +61,7 @@ use Nadybot\Modules\{
 	VOTE_MODULE\Vote,
 	VOTE_MODULE\VoteController,
 };
-use Safe\Exceptions\{FilesystemException, JsonException};
+use Safe\Exceptions\{JsonException};
 use stdClass;
 
 /**
@@ -79,6 +81,9 @@ class ExportController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Inject]
 	public TimerController $timerController;
@@ -112,8 +117,8 @@ class ExportController extends ModuleInstance {
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
 			$fileName .= ".json";
 		}
-		if (!@file_exists("{$dataPath}/export")) {
-			mkdir("{$dataPath}/export", 0700);
+		if (!$this->fs->exists("{$dataPath}/export")) {
+			$this->fs->createDirectory("{$dataPath}/export", 0700);
 		}
 		$context->reply("Starting export...");
 		$exports = new stdClass();
@@ -145,7 +150,7 @@ class ExportController extends ModuleInstance {
 			return;
 		}
 		try {
-			file_put_contents($fileName, $output);
+			$this->fs->write($fileName, $output);
 		} catch (FilesystemException $e) {
 			$context->reply($e->getMessage());
 			return;

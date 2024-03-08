@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\USAGE;
 
+use Amp\File\Filesystem;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -48,6 +49,9 @@ class UsageController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Inject]
 	public Util $util;
@@ -294,7 +298,7 @@ class UsageController extends ModuleInstance {
 		$settings->using_chat_proxy        = $this->config->proxy?->enabled === true;
 		$settings->db_type                 = $this->db->getType()->value;
 		$settings->bot_version             = BotRunner::getVersion();
-		$settings->using_git               = @file_exists(BotRunner::getBasedir() . "/.git");
+		$settings->using_git               = $this->fs->exists(BotRunner::getBasedir() . "/.git");
 		$settings->os                      = BotRunner::isWindows() ? 'Windows' : php_uname("s");
 		$settings->symbol                  = $this->settingManager->getString('symbol')??"!";
 		$settings->num_relays              = $this->db->table(RelayController::DB_TABLE)->count();

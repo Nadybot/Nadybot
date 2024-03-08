@@ -2,6 +2,10 @@
 
 namespace Nadybot\Core\Modules\SETUP;
 
+use function Amp\ByteStream\getStdin;
+use Amp\ByteStream\BufferedReader;
+use Amp\File\Filesystem;
+
 use Nadybot\Core\{Config\BotConfig, DB};
 
 /**
@@ -20,20 +24,19 @@ use Nadybot\Core\{Config\BotConfig, DB};
 class Setup {
 	private const INDENT = 13;
 
-	public BotConfig $configFile;
-	// public array $vars = [];
-
-	public function __construct(BotConfig $configFile) {
-		$this->configFile = $configFile;
+	public function __construct(
+		private BotConfig $configFile,
+		private Filesystem $fs,
+	) {
 	}
 
 	public function readInput(string $output=""): string {
 		echo $output;
-		$input = fgets(STDIN);
+		$input = (new BufferedReader(getStdin()))->readUntil(PHP_EOL);
 		if (!is_string($input)) {
 			die();
 		}
-		return trim($input);
+		return $input;
 	}
 
 	public function showStep(string $text): void {
@@ -325,7 +328,7 @@ class Setup {
 		);
 
 		// Save the entered info to $configFile
-		$this->configFile->save();
+		$this->configFile->save($this->fs);
 
 		$msg = "Press [Enter] to close setup.\n";
 		$this->readInput($msg);

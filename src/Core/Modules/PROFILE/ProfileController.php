@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
-use function Amp\File\filesystem;
 use function Safe\{json_decode, json_encode, preg_replace};
 
 use Amp\File\{Filesystem, FilesystemException};
@@ -99,9 +98,9 @@ class ProfileController extends ModuleInstance {
 		$this->path = "{$dataPath}/profiles/";
 
 		// make sure that the profile folder exists
-		if (!@is_dir($this->path)) {
+		if (!$this->fs->isDirectory($this->path)) {
 			try {
-				\Safe\mkdir($this->path, 0777);
+				$this->fs->createDirectory($this->path, 0777);
 			} catch (Exception $e) {
 				$this->logger->warning("Unable to create profile directory {dir}: {error}", [
 					"dir" => $this->path,
@@ -118,7 +117,7 @@ class ProfileController extends ModuleInstance {
 	 * @return string[]
 	 */
 	public function getProfileList(): array {
-		$fileList = filesystem()->listFiles($this->path);
+		$fileList = $this->fs->listFiles($this->path);
 		$profileList = [];
 
 		foreach ($fileList as $fileName) {
@@ -206,7 +205,7 @@ class ProfileController extends ModuleInstance {
 
 	public function saveProfile(string $profileName): bool {
 		$filename = $this->getFilename($profileName);
-		if (@file_exists($filename)) {
+		if ($this->fs->exists($filename)) {
 			throw new Exception("Profile <highlight>{$profileName}<end> already exists.");
 		}
 		$contents = "# Permission maps\n";
@@ -296,7 +295,12 @@ class ProfileController extends ModuleInstance {
 			$contents .= "!route format display {$row->hop} {$row->format}\n";
 		}
 
-		return \Safe\file_put_contents($filename, $contents) !== false;
+		try {
+			$this->fs->write($filename, $contents);
+			return true;
+		} catch (FilesystemException) {
+			return false;
+		}
 	}
 
 	/** Remove a profile */
@@ -308,13 +312,13 @@ class ProfileController extends ModuleInstance {
 	): void {
 		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
-		if (!filesystem()->exists($filename)) {
+		if (!$this->fs->exists($filename)) {
 			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
 			$context->reply($msg);
 			return;
 		}
 		try {
-			filesystem()->deleteFile($filename);
+			$this->fs->deleteFile($filename);
 			$msg = "Profile <highlight>{$profileName}<end> has been deleted.";
 		} catch (FilesystemException $e) {
 			$msg = "Unable to delete the profile <highlight>{$profileName}<end>: ".
@@ -354,7 +358,7 @@ class ProfileController extends ModuleInstance {
 	}
 
 	public function loadProfile(string $filename, string $sender): ?string {
-		$profileData = filesystem()->read($filename);
+		$profileData = $this->fs->read($filename);
 		$lines = explode("\n", $profileData);
 		$this->db->awaitBeginTransaction();
 		try {

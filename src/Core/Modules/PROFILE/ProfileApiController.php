@@ -2,10 +2,7 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
-use function Amp\File\filesystem;
-use function Safe\unlink;
-
-use Amp\File\FilesystemException as AmpFilesystemException;
+use Amp\File\{Filesystem, FilesystemException};
 use Exception;
 use Nadybot\Core\{Attributes as NCA, ModuleInstance};
 use Nadybot\Modules\{
@@ -14,13 +11,15 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
 };
-use Safe\Exceptions\FilesystemException;
 use Throwable;
 
 #[NCA\Instance]
 class ProfileApiController extends ModuleInstance {
 	#[NCA\Inject]
 	public ProfileController $profileController;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	/** Get a list of saved profiles */
 	#[
@@ -49,12 +48,12 @@ class ProfileApiController extends ModuleInstance {
 	public function viewProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
 		$filename = $this->profileController->getFilename($profile);
 
-		if (!@file_exists($filename)) {
+		if (!$this->fs->exists($filename)) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
 		try {
-			$content = filesystem()->read($filename);
-		} catch (AmpFilesystemException) {
+			$content = $this->fs->read($filename);
+		} catch (FilesystemException) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not accessible.");
 		}
 		return new ApiResponse($content);
@@ -72,7 +71,7 @@ class ProfileApiController extends ModuleInstance {
 		$filename = $this->profileController->getFilename($profile);
 
 		try {
-			unlink($filename);
+			$this->fs->deleteFile($filename);
 		} catch (FilesystemException) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
@@ -100,7 +99,7 @@ class ProfileApiController extends ModuleInstance {
 		}
 		$filename = $this->profileController->getFilename($profile);
 
-		if (!@file_exists($filename)) {
+		if (!$this->fs->exists($filename)) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
 		$output = $this->profileController->loadProfile($filename, $request->authenticatedAs??"_");

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WATCHDOG_MODULE;
 
+use Amp\File\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -17,11 +18,14 @@ class WatchdogController extends ModuleInstance {
 	#[NCA\Inject]
 	public BotConfig $config;
 
+	#[NCA\Inject]
+	public Filesystem $fs;
+
 	#[NCA\Event(
 		name: "timer(10sec)",
 		description: "Periodically touch an alive-file"
 	)]
 	public function touchAliveFile(): void {
-		\Safe\touch(sys_get_temp_dir().'/alive.'.$this->config->main->character.'.'.$this->config->main->dimension);
+		$this->fs->touch(sys_get_temp_dir().'/alive.'.$this->config->main->character.'.'.$this->config->main->dimension);
 	}
 }

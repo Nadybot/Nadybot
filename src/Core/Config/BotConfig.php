@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core\Config;
 
-use function Safe\{file_get_contents, json_decode};
+use function Safe\{json_decode};
+
+use Amp\File\Filesystem;
 use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, ObjectMapperUsingReflection};
 use Nadybot\Core\Attributes\{Instance};
 use Nadylib\IMEX;
@@ -43,17 +45,17 @@ class BotConfig {
 	}
 
 	/** Constructor method. */
-	public static function loadFromFile(string $filePath): self {
-		self::copyFromTemplateIfNeeded($filePath);
+	public static function loadFromFile(string $filePath, Filesystem $fs): self {
+		self::copyFromTemplateIfNeeded($filePath, $fs);
 		$vars = [];
 		if (str_ends_with($filePath, '.toml')) {
-			$toml = file_get_contents($filePath);
+			$toml = $fs->read($filePath);
 			$vars = IMEX\TOML::import($toml);
 		} elseif (str_ends_with($filePath, '.json')) {
-			$json = file_get_contents($filePath);
+			$json = $fs->read($filePath);
 			$vars = json_decode($json, true);
 		} else {
-			$php = file_get_contents($filePath);
+			$php = $fs->read($filePath);
 			$vars = IMEX\PHP::import($php);
 		}
 		$vars = self::convertOldSettings($vars);
@@ -74,7 +76,7 @@ class BotConfig {
 	}
 
 	/** Saves the config file, creating the file if it doesn't exist yet. */
-	public function save(): void {
+	public function save(Filesystem $fs): void {
 		$mapper = new ObjectMapperUsingReflection();
 		$vars = $mapper->serializeObject($this);
 		unset($vars["file_path"]);
@@ -84,15 +86,15 @@ class BotConfig {
 		});
 		if (str_ends_with($this->filePath, '.toml')) {
 			$toml = IMEX\TOML::export($vars);
-			\Safe\file_put_contents($this->filePath, $toml);
+			$fs->write($this->filePath, $toml);
 			return;
 		} elseif (str_ends_with($this->filePath, '.json')) {
 			$json = IMEX\JSON::export($vars, JSON_PRETTY_PRINT);
-			\Safe\file_put_contents($this->filePath, $json);
+			$fs->write($this->filePath, $json);
 			return;
 		} elseif (str_ends_with($this->filePath, '.php')) {
 			$php = IMEX\PHP::export($vars);
-			\Safe\file_put_contents($this->filePath, $php);
+			$fs->write($this->filePath, $php);
 			return;
 		}
 		throw new \Exception("Unknown config file format");
@@ -171,13 +173,13 @@ class BotConfig {
 	}
 
 	/** Copies config.template.php to this config file if it doesn't exist yet. */
-	private static function copyFromTemplateIfNeeded(string $filePath): void {
-		if (@file_exists($filePath)) {
+	private static function copyFromTemplateIfNeeded(string $filePath, Filesystem $fs): void {
+		if ($fs->exists($filePath)) {
 			return;
 		}
 		$parts = explode(".", $filePath);
 		$extension = $parts[count($parts)-1];
 		$templatePath = __DIR__ . "/../../../conf/config.template.{$extension}";
-		\Safe\copy($templatePath, $filePath);
+		$fs->write($filePath, $fs->read($templatePath));
 	}
 }

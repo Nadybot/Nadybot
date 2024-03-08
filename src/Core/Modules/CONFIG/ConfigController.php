@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use function Safe\{file_get_contents, glob};
+use function Safe\glob;
+
+use Amp\File\Filesystem;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{
@@ -50,6 +52,9 @@ class ConfigController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;
@@ -626,7 +631,7 @@ class ConfigController extends ModuleInstance {
 		if (!count($files)) {
 			return null;
 		}
-		return trim(file_get_contents($files[0]));
+		return trim($this->fs->read($files[0]));
 	}
 
 	/** Show configuration and controls for a single module */

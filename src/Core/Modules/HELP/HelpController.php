@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core\Modules\HELP;
 
-use function Amp\File\filesystem;
-
 use Amp\File\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -91,7 +89,7 @@ class HelpController extends ModuleInstance {
 
 	/** @return string|string[] */
 	public function getAbout(): string|array {
-		$data = filesystem()->read(__DIR__ . "/about.txt");
+		$data = $this->fs->read(__DIR__ . "/about.txt");
 		$version = BotRunner::getVersion();
 		$data = str_replace('<version>', $version, $data);
 		return $this->text->makeBlob("About Nadybot {$version}", $data);

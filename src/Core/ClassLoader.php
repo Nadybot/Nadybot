@@ -3,6 +3,8 @@
 namespace Nadybot\Core;
 
 use function Safe\{fclose, preg_split};
+
+use Amp\File\{Filesystem, FilesystemException};
 use Directory;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
@@ -31,6 +33,9 @@ class ClassLoader {
 	 * @var array<string,string>
 	 */
 	public array $registeredModules = [];
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	/**
 	 * Relative directories where to look for modules
@@ -84,7 +89,7 @@ class ClassLoader {
 	/** Register a module in a basedir and check compatibility */
 	public function registerModule(string $baseDir, string $moduleName): void {
 		// read module.ini file (if it exists) from module's directory
-		if (file_exists("{$baseDir}/{$moduleName}/module.ini")) {
+		if ($this->fs->exists("{$baseDir}/{$moduleName}/module.ini")) {
 			$entries = \Safe\parse_ini_file("{$baseDir}/{$moduleName}/module.ini");
 			// check that current PHP version is greater or equal than module's
 			// minimum required PHP version
@@ -246,7 +251,7 @@ class ClassLoader {
 		$this->logger->notice("Loading USER modules...");
 		foreach ($this->moduleLoadPaths as $path) {
 			$this->logger->info("Loading modules in path '{path}'", ["path" => $path]);
-			if (!@file_exists($path) || !(($d = dir($path)) instanceof Directory)) {
+			if (!$this->fs->exists($path) || !(($d = dir($path)) instanceof Directory)) {
 				continue;
 			}
 			while (false !== ($moduleName = $d->read())) {
@@ -264,7 +269,7 @@ class ClassLoader {
 	/** Test if $moduleName is a module in $path */
 	private function isModuleDir(string $path, string $moduleName): bool {
 		return $this->isValidModuleName($moduleName)
-			&& is_dir("{$path}/{$moduleName}");
+			&& $this->fs->isDirectory("{$path}/{$moduleName}");
 	}
 
 	/** Check if $name is a valid module name */
@@ -287,11 +292,12 @@ class ClassLoader {
 
 	/** Check if the module in $path is compatible with this Nadybot version */
 	private function isModuleCompatible(string $path): bool {
-		if (!@file_exists("{$path}/aopkg.toml")) {
+		if (!$this->fs->exists("{$path}/aopkg.toml")) {
 			return true;
 		}
-		$toml = @file_get_contents("{$path}/aopkg.toml");
-		if ($toml === false) {
+		try {
+			$toml = $this->fs->read("{$path}/aopkg.toml");
+		} catch (FilesystemException) {
 			return true;
 		}
 		if (!preg_match("/^\s*bot_version\s*=\s*(['\"])(.+)\\1\s*$/m", $toml, $matches)) {
@@ -308,7 +314,10 @@ class ClassLoader {
 		$pid = pcntl_fork();
 		if ($pid === 0) {
 			// The child merely closes all pipes
+			// @todo Rewrite with AMP3
+			// @phpstan-ignore-next-line
 			fclose($fd = STDOUT);
+			// @phpstan-ignore-next-line
 			fclose($fd = STDERR);
 			// If this gives an error, the child will exit with != 0
 			require_once "{$fileName}";

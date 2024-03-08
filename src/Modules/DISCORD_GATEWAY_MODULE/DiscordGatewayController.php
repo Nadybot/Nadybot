@@ -2,10 +2,11 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Amp\File\filesystem;
 use function Amp\Future\await;
 use function Amp\{async, delay};
 use function Safe\{json_decode, json_encode, preg_match, preg_replace};
+
+use Amp\File\Filesystem;
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, HttpException};
@@ -167,6 +168,9 @@ class DiscordGatewayController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -1895,13 +1899,13 @@ class DiscordGatewayController extends ModuleInstance {
 				}
 				return;
 			}
-			$files = filesystem()->listFiles("res/icons/");
+			$files = $this->fs->listFiles("res/icons/");
 			foreach ($files as $file) {
 				$fileName = "res/icons/{$file}";
 				$this->logger->info("Found icon {fileName}", [
 					"fileName" => $fileName,
 				]);
-				if (!is_file($fileName)) {
+				if (!$this->fs->isFile($fileName)) {
 					$this->logger->info("{fileName} is not a file, skipping", [
 						"fileName" => $fileName,
 					]);
@@ -1915,8 +1919,8 @@ class DiscordGatewayController extends ModuleInstance {
 					continue;
 				}
 
-				$stats = filesystem()->getStatus($fileName);
-				$content = filesystem()->read($fileName);
+				$stats = $this->fs->getStatus($fileName);
+				$content = $this->fs->read($fileName);
 				$data = "data:image/{$info['extension']};base64,".
 					base64_encode($content);
 

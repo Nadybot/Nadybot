@@ -2,9 +2,8 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use function Amp\File\filesystem;
-use function Safe\file;
-
+use function Safe\date;
+use Amp\File\{Filesystem, FilesystemException};
 use AO\Client\{Basic, WorkerPackage};
 use AO\Package;
 use Exception;
@@ -32,8 +31,8 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
+
 use Revolt\EventLoop;
-use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
@@ -60,6 +59,9 @@ class TestController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -104,6 +106,7 @@ class TestController extends ModuleInstance {
 			$this->logger->notice($line);
 			if (!$this->showTestResults) {
 				$testContext->sendto = new MockCommandReply($line, $logFile);
+				Registry::injectDependencies($testContext->sendto);
 				$testContext->sendto->logger = $this->logger;
 			}
 		}
@@ -566,13 +569,13 @@ class TestController extends ModuleInstance {
 	): void {
 		$testContext = clone $context;
 
-		$files = filesystem()->listFiles($this->path);
+		$files = $this->fs->listFiles($this->path);
 		$context->reply("Starting tests...");
 		$logFile = $this->config->paths->data.
-			"/tests-" . \Safe\date("YmdHis", time()) . ".json";
+			"/tests-" . date("YmdHis", time()) . ".json";
 		$testLines = [];
 		foreach ($files as $file) {
-			$data = filesystem()->read($this->path . $file);
+			$data = $this->fs->read($this->path . $file);
 			$lines = explode("\n", $data);
 			$testLines = array_merge($testLines, $lines);
 		}
@@ -589,7 +592,7 @@ class TestController extends ModuleInstance {
 		$testContext->permissionSet = "msg";
 
 		try {
-			$lines = file($this->path . $file, FILE_IGNORE_NEW_LINES);
+			$lines = explode("\n", $this->fs->read($this->path . $file));
 		} catch (FilesystemException) {
 			$context->reply("Could not find test <highlight>{$file}<end> to run.");
 			return;

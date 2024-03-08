@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use function Amp\ByteStream\getStderr;
 use function Amp\File\{createDefaultDriver, filesystem};
 use function Safe\{fclose, fwrite, ini_set, json_encode, realpath, stream_get_contents};
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
@@ -91,7 +92,7 @@ class BotRunner {
 	 */
 	public static function calculateVersion(): string {
 		$baseDir = static::getBasedir();
-		if (!@file_exists("{$baseDir}/.git")) {
+		if (!self::$fs->exists("{$baseDir}/.git")) {
 			return static::VERSION;
 		}
 		set_error_handler(function (int $num, string $str, string $file, int $line): void {
@@ -141,10 +142,10 @@ class BotRunner {
 		if ($pid === false) {
 			return null;
 		}
-		fclose($pipes[0]);
+		fclose($pipes[0]); // @phpstan-ignore-line
 		$gitDescribe = trim(stream_get_contents($pipes[1]) ?: "");
-		fclose($pipes[1]);
-		fclose($pipes[2]);
+		fclose($pipes[1]); // @phpstan-ignore-line
+		fclose($pipes[2]); // @phpstan-ignore-line
 		proc_close($pid);
 		return $gitDescribe;
 	}
@@ -165,11 +166,11 @@ class BotRunner {
 		if ($pid === false) {
 			return static::$latestTag = null;
 		}
-		fclose($pipes[0]);
+		fclose($pipes[0]); // @phpstan-ignore-line
 		$tags = explode("\n", trim(stream_get_contents($pipes[1]) ?: ""));
 		$tags = array_diff($tags, ["nightly"]);
-		fclose($pipes[1]);
-		fclose($pipes[2]);
+		fclose($pipes[1]); // @phpstan-ignore-line
+		fclose($pipes[2]); // @phpstan-ignore-line
 		proc_close($pid);
 
 		$tags = array_map(
@@ -192,6 +193,7 @@ class BotRunner {
 
 	public function checkRequiredPackages(): void {
 		if (!class_exists("Revolt\\EventLoop")) {
+			// @phpstan-ignore-next-line
 			fwrite(
 				STDERR,
 				"Nadybot cannot find all the required composer modules in 'vendor'.\n".
@@ -209,6 +211,7 @@ class BotRunner {
 
 	public function checkRequiredModules(): void {
 		if (version_compare(PHP_VERSION, "8.1.17", "<")) {
+			// @phpstan-ignore-next-line
 			fwrite(STDERR, "Nadybot 7 needs at least PHP version 8 to run, you have " . PHP_VERSION . "\n");
 			sleep(5);
 			exit(1);
@@ -242,6 +245,7 @@ class BotRunner {
 		if (!count($missing)) {
 			return;
 		}
+			// @phpstan-ignore-next-line
 		fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
 		sleep(5);
 		exit(1);
@@ -262,6 +266,7 @@ class BotRunner {
 			$fsDriver = new ParallelFilesystemDriver();
 		}
 		self::$fs = filesystem($fsDriver);
+		LegacyLogger::$fs = self::$fs;
 		$this->parseOptions();
 		// set default timezone
 		date_default_timezone_set("UTC");
@@ -408,18 +413,18 @@ class BotRunner {
 			return $this->configFile;
 		}
 		$configFilePath = static::$arguments["c"] ?? "conf/config.php";
-		return $this->configFile = BotConfig::loadFromFile($configFilePath);
+		return $this->configFile = BotConfig::loadFromFile($configFilePath, self::$fs);
 	}
 
 	protected function createMissingDirs(): void {
 		foreach (get_object_vars($this->getConfigFile()->paths) as $name => $dir) {
-			if (is_string($dir) && !@file_exists($dir)) {
-				@mkdir($dir, 0700);
+			if (is_string($dir) && !self::$fs->exists($dir)) {
+				self::$fs->createDirectory($dir, 0700);
 			}
 		}
 		foreach ($this->getConfigFile()->paths->modules as $dir) {
-			if (is_string($dir) && !@file_exists($dir)) {
-				@mkdir($dir, 0700);
+			if (is_string($dir) && !self::$fs->exists($dir)) {
+				self::$fs->createDirectory($dir, 0700);
 			}
 		}
 	}
@@ -468,7 +473,7 @@ class BotRunner {
 			$restPos
 		);
 		if ($options === false) {
-			fwrite(STDERR, "Unable to parse arguments passed to the bot.\n");
+			getStderr()->write("Unable to parse arguments passed to the bot.\n");
 			sleep(5);
 			exit(1);
 		}
@@ -580,7 +585,7 @@ class BotRunner {
 		if (!$this->shouldShowSetup($config)) {
 			return false;
 		}
-		$setup = new Setup($this->getConfigFile());
+		$setup = new Setup($this->getConfigFile(), self::$fs);
 		$setup->showIntro();
 		$this->logger->notice("Reloading configuration and testing your settings.");
 		return true;

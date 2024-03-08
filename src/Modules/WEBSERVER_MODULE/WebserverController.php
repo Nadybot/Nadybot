@@ -350,8 +350,10 @@ class WebserverController extends ModuleInstance {
 		}
 		if (isset($this->asyncSocket)) {
 			$this->asyncSocket->destroy();
+			// @phpstan-ignore-next-line
 			@fclose($this->serverSocket);
 		} else {
+			// @phpstan-ignore-next-line
 			@fclose($this->serverSocket);
 		}
 		$this->logger->notice("Webserver shutdown");

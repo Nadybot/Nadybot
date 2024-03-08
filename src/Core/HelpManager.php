@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Amp\File\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\HelpTopic,
@@ -14,6 +15,9 @@ class HelpManager {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
@@ -109,7 +113,7 @@ class HelpManager {
 			}
 			if ($this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
 				$output .= $this->configController->getAliasInfo($row->name);
-				$content = \Safe\file_get_contents($row->file);
+				$content = $this->fs->read($row->file);
 				if (is_string($content)) {
 					$output .= trim($content) . "\n\n";
 				}

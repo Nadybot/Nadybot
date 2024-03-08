@@ -45,7 +45,7 @@ class Patcher {
 	 */
 	public static function patchCodesniffer($vendorDir, Package $package): void {
 		$file = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf.dist';
-		$oldContent = file_get_contents($file);
+		$oldContent = file_get_contents($file); // @phpstan-ignore-line
 		if ($oldContent === false) {
 			return;
 		}
@@ -53,7 +53,7 @@ class Patcher {
 		$data = preg_replace("/'PSR2'/", $newContent, $oldContent);
 		$data = preg_replace("/(?<='show_warnings' => ')0/", "1", $data);
 		$newFile = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf';
-		file_put_contents($newFile, $data);
+		file_put_contents($newFile, $data); // @phpstan-ignore-line
 	}
 
 	/**
@@ -64,7 +64,7 @@ class Patcher {
 	 */
 	public static function patchParsingTool($vendorDir, Package $package): void {
 		$file = $vendorDir . '/' . $package->getName() . '/src/SyntaxTreeNode/Base.php';
-		$oldContent = file_get_contents($file);
+		$oldContent = file_get_contents($file); // @phpstan-ignore-line
 		if ($oldContent === false) {
 			return;
 		}
@@ -73,10 +73,10 @@ class Patcher {
 			"#[\\AllowDynamicProperties]\nabstract class Base",
 			$oldContent
 		);
-		file_put_contents($file, $newContent);
+		file_put_contents($file, $newContent); // @phpstan-ignore-line
 
 		$file = $vendorDir . '/' . $package->getName() . '/src/GrammarNode/BaseNode.php';
-		$oldContent = file_get_contents($file);
+		$oldContent = file_get_contents($file); // @phpstan-ignore-line
 		if ($oldContent === false) {
 			return;
 		}
@@ -85,6 +85,6 @@ class Patcher {
 			"#[\\AllowDynamicProperties]\nabstract class BaseNode",
 			$oldContent
 		);
-		file_put_contents($file, $newContent);
+		file_put_contents($file, $newContent); // @phpstan-ignore-line
 	}
 }

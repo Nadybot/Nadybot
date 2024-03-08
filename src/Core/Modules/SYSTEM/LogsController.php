@@ -324,7 +324,7 @@ class LogsController extends ModuleInstance {
 		$formatter = new JsonFormatter(JsonFormatter::BATCH_MODE_JSON, true, true);
 		$formatter->includeStacktraces(true);
 		$debugFile = sys_get_temp_dir() . "/{$this->config->main->character}.debug.json";
-		@unlink($debugFile);
+		$this->fs->deleteFile($debugFile);
 		$handler = new StreamHandler($debugFile, Logger::DEBUG, true, 0600);
 		$handler->setFormatter($formatter);
 		$processor = new IntrospectionProcessor(Logger::DEBUG, [], 1);

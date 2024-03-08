@@ -4,7 +4,6 @@ namespace Nadybot\Core\Modules\CONSOLE;
 
 use function Amp\{
 	ByteStream\splitLines,
-	File\filesystem,
 	async,
 	delay,
 };
@@ -64,7 +63,7 @@ class MgmtInterfaceController extends ModuleInstance {
 
 	public function __destruct() {
 		if (isset($this->socketPath)) {
-			@unlink($this->socketPath);
+			$this->fs->deleteFile($this->socketPath);
 		}
 	}
 
@@ -142,7 +141,7 @@ class MgmtInterfaceController extends ModuleInstance {
 		}
 		if ($scheme === "unix") {
 			try {
-				filesystem()->deleteFile($path);
+				$this->fs->deleteFile($path);
 			} catch (FilesystemException) {
 			}
 			if ($this->socketPath === $path) {

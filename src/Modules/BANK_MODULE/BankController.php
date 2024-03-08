@@ -3,11 +3,10 @@
 namespace Nadybot\Modules\BANK_MODULE;
 
 use function Amp\async;
-use function Amp\File\filesystem;
 use function Amp\Future\await;
 use function Safe\preg_split;
 
-use Amp\File\FilesystemException;
+use Amp\File\{Filesystem, FilesystemException};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -54,6 +53,9 @@ class BankController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Util $util;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -254,7 +256,7 @@ class BankController extends ModuleInstance {
 			return $response->getBody()->buffer();
 		}
 		try {
-			return filesystem()->read($location);
+			return $this->fs->read($location);
 		} catch (FilesystemException $e) {
 			$msg = "Could not open file '{$location}': " . $e->getMessage();
 			throw new UserException($msg);

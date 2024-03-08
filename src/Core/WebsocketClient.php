@@ -28,6 +28,7 @@ class WebsocketClient extends WebsocketBase {
 
 	public function __destruct() {
 		if ($this->isConnected() && is_resource($this->socket)) {
+			// @phpstan-ignore-next-line
 			@fclose($this->socket);
 		}
 		$this->socket = null;
@@ -54,6 +55,7 @@ class WebsocketClient extends WebsocketBase {
 		$event->code = $code;
 		$event->data = $message;
 		if ($this->isConnected() && is_resource($this->socket)) {
+			// @phpstan-ignore-next-line
 			@fclose($this->socket);
 			$this->resetClient();
 		}

@@ -341,13 +341,16 @@ class WebsocketBase implements LogWrapInterface {
 				"numBytes" => strlen($data),
 			]
 		);
+		// @phpstan-ignore-next-line
 		$written = fwrite($this->socket, $data);
 		if ($written === false) {
+		// @phpstan-ignore-next-line
 			if ((!is_resource($this->socket) || feof($this->socket)) && $this->isClosing) {
 				return true;
 			}
 			$this->logger->error("Error sending data");
 			$length = strlen($data);
+		// @phpstan-ignore-next-line
 			@fclose($this->socket);
 			$this->throwError(
 				WebsocketError::WRITE_ERROR,
@@ -503,7 +506,9 @@ class WebsocketBase implements LogWrapInterface {
 				throw new Exception("Broken frame, read {$read} bytes out of {$length}.");
 			}
 			if ($meta["timed_out"] === true || $buffer === '') {
+				// @phpstan-ignore-next-line
 				if (feof($this->socket)) {
+					// @phpstan-ignore-next-line
 					@fclose($this->socket);
 					$this->logger->info("Socket closed with status {status}", [
 						"status" => $this->closeStatus ?? "<unknown>",

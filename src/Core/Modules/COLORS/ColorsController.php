@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\COLORS;
 
-use function Amp\File\filesystem;
 use function Safe\json_decode;
 
 use Amp\File\Filesystem;
@@ -182,7 +181,7 @@ class ColorsController extends ModuleInstance {
 		$paths = explode(":", $this->themePath);
 		$themes = new Collection();
 		foreach ($paths as $path) {
-			$fileList = filesystem()->listFiles(__DIR__ . "/" . $path);
+			$fileList = $this->fs->listFiles(__DIR__ . "/" . $path);
 			foreach ($fileList as $fileName) {
 				if (!str_ends_with($fileName, ".json")) {
 					continue;
@@ -199,7 +198,7 @@ class ColorsController extends ModuleInstance {
 	/** Load a theme from a file and return the parsed theme or null */
 	public function loadTheme(string $filename): ?Theme {
 		try {
-			$json = filesystem()->read($filename);
+			$json = $this->fs->read($filename);
 			$data = json_decode($json, true);
 		} catch (Exception) {
 			return null;

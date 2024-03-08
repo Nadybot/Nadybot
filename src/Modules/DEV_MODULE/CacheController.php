@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Amp\File\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CacheManager,
@@ -37,6 +38,9 @@ class CacheController extends ModuleInstance {
 	public Util $util;
 
 	#[NCA\Inject]
+	public Filesystem $fs;
+
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
@@ -66,8 +70,8 @@ class CacheController extends ModuleInstance {
 
 		$blob = '';
 		foreach ($this->cacheManager->getFilesInGroup($group) as $file) {
-			$fileInfo = stat($path . "/" . $file);
-			if ($fileInfo === false) {
+			$fileInfo = $this->fs->getStatus($path . "/" . $file);
+			if (!isset($fileInfo)) {
 				continue;
 			}
 			$blob .= "<highlight>{$file}<end>  " . $this->util->bytesConvert($fileInfo['size']) . " - Last modified " . $this->util->date($fileInfo['mtime']);

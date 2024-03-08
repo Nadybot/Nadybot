@@ -194,6 +194,7 @@ class AsyncSocket {
 		if ($this->state === static::STATE_CLOSING) {
 			$this->logger->info('Forcefully closing socket');
 			if (is_resource($this->socket)) {
+				// @phpstan-ignore-next-line
 				@fclose($this->socket);
 			}
 			$this->destroy();
@@ -214,6 +215,7 @@ class AsyncSocket {
 			$this->logger->debug('Socket ready for READ');
 			$this->lastRead = microtime(true);
 			$this->refreshTimeout();
+				// @phpstan-ignore-next-line
 			if (is_resource($this->socket) && feof($this->socket)) {
 				if ($this->state === static::STATE_CLOSING) {
 					$this->logger->info('Endpoint confirmed close.');
@@ -267,6 +269,7 @@ class AsyncSocket {
 		if (!isset($this->socket) || !is_resource($this->socket)) {
 			return;
 		}
+				// @phpstan-ignore-next-line
 		@fclose($this->socket);
 		$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
 		$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_WRITE);
@@ -403,6 +406,7 @@ class AsyncSocket {
 				'"'
 			);
 		}
+		// @phpstan-ignore-next-line
 		$written = is_resource($this->socket) ? \Safe\fwrite($this->socket, $data, 4096) : false;
 		if ($written === false) {
 			$this->forceClose();

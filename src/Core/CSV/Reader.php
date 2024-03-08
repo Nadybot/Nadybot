@@ -2,13 +2,16 @@
 
 namespace Nadybot\Core\CSV;
 
-use function Safe\{fgetcsv, fopen};
+use function Amp\ByteStream\splitLines;
+
+use Amp\File\Filesystem;
+use IteratorIterator;
 
 class Reader {
-	private string $file;
-
-	public function __construct(string $file) {
-		$this->file = $file;
+	public function __construct(
+		private string $file,
+		private Filesystem $filesystem,
+	) {
 	}
 
 	/**
@@ -17,32 +20,39 @@ class Reader {
 	 * @return array<mixed>|\Generator<array<string,mixed>>
 	 */
 	public function items(): iterable {
-		$file = fopen($this->file, 'r');
-		$numCols = 0;
-		if (!feof($file)) {
-			$headers = fgetcsv($file, 8192);
-			while (is_array($headers) && count($headers) === 1 && isset($headers[0]) && is_string($headers[0]) && $headers[0][0] === "#") {
-				$headers = fgetcsv($file, 8192);
-			}
-			if (!is_array($headers)) {
+		$file = $this->filesystem->openFile($this->file, "r");
+		if ($file->eof()) {
+			return [];
+		}
+		$iter = new IteratorIterator(splitLines($file));
+		$iter->rewind();
+		if ($iter->valid() === false) {
+			return [];
+		}
+		$line = $iter->current();
+
+		/** @var string[] */
+		$headers = str_getcsv($line);
+		while ((count($headers) === 1) && is_string($headers[0]) && $headers[0][0] === "#") {
+			$iter->next();
+			if (!$iter->valid()) {
 				return [];
 			}
-			$numCols = count($headers);
+			$line = $iter->current();
+
+			/** @var string[] */
+			$headers = str_getcsv($line);
 		}
-		while (!feof($file)) {
-			$line = fgets($file);
-			// $row = fgetcsv($file, 8192);
-			if ($line === false) {
-				if (feof($file)) {
-					return [];
-				}
-				continue;
-			}
+		$numCols = count($headers);
+		$iter->next();
+		while ($iter->valid()) {
+			$line = $iter->current();
 			$line = preg_replace("/^,/", "\x00,", $line);
 			$line = preg_replace("/,$/", ",\x00", rtrim($line));
 			$line = preg_replace("/,(?=,)/", ",\x00", $line);
 			$row = str_getcsv($line);
 			if ($row === [null]) { // Skip blank lines
+				$iter->next();
 				continue;
 			}
 			for ($i = 0; $i < $numCols; $i++) {
@@ -51,7 +61,8 @@ class Reader {
 				}
 			}
 
-			yield array_combine($headers??[], $row);
+			yield array_combine($headers, $row);
+			$iter->next();
 		}
 
 		return [];

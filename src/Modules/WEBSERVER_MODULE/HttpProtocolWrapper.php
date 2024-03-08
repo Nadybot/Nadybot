@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Amp\File\Filesystem;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -40,6 +41,9 @@ class HttpProtocolWrapper {
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -90,6 +94,7 @@ class HttpProtocolWrapper {
 			throw new Exception("Webserver out-of-sync");
 		}
 		if ($this->asyncSocket->getState() !== $this->asyncSocket::STATE_READY) {
+			// @phpstan-ignore-next-line
 			\Safe\fread($sock, 4096);
 			return;
 		}
@@ -107,6 +112,7 @@ class HttpProtocolWrapper {
 				$this->readBody($socket);
 				break;
 			case self::EXPECT_IGNORE:
+				// @phpstan-ignore-next-line
 				@fread($sock, 4096);
 				break;
 			case self::EXPECT_DONE:
@@ -194,6 +200,7 @@ class HttpProtocolWrapper {
 		if (strlen($line) > 5 && ord($line[0]) === 0x16 && ord($line[5]) === 0x01) {
 			$this->logger->info("SSL connection for non-SSL socket detected");
 			// Empty the socket data, send a close and ignore all further replies
+			// @phpstan-ignore-next-line
 			@fread($sock, 4096);
 			$socket->close();
 			$this->nextPart = static::EXPECT_IGNORE;
@@ -283,6 +290,7 @@ class HttpProtocolWrapper {
 			return;
 		}
 		try {
+			// @phpstan-ignore-next-line
 			$buffer = \Safe\fread($sock, $readChunk);
 		} catch (FilesystemException $e) {
 			$this->logger->info("Error reading body from socket: " . $e->getMessage());
@@ -368,6 +376,7 @@ class HttpProtocolWrapper {
 			$socket->close();
 			return null;
 		}
+		// @phpstan-ignore-next-line
 		$buffer = fgets($lowSocket, 4098);
 		if ($buffer === false) {
 			$this->logger->info('Error reading a line from socket: ' . (error_get_last()["message"]??""));

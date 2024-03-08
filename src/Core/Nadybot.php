@@ -260,7 +260,6 @@ class Nadybot {
 				$this->db->beginTransaction();
 			}
 		}
-		EventLoop::run();
 		$this->db->commit();
 		$this->settingManager::$isInitialized = true;
 
@@ -412,7 +411,7 @@ class Nadybot {
 			}
 		});
 		EventLoop::repeat(
-			1000,
+			1,
 			function (): void {
 				$packageTimes = $this->aoClient->getLastPackageReceived();
 				$pongTimes = $this->aoClient->getLastPongSent();
