@@ -8,7 +8,7 @@ interface QueueInterface {
 	public const PRIORITY_LOW =   100;
 
 	/** Add a packet to the queue */
-	public function push(int $priority, AOChatPacket $item): void;
+	// public function push(int $priority, AOChatPacket $item): void;
 
 	/**
 	 * Get the number seconds until another packet can be sent
@@ -22,7 +22,7 @@ interface QueueInterface {
 	 *
 	 * Takes queue priorities into account
 	 */
-	public function getNext(): ?AOChatPacket;
+	// public function getNext(): ?AOChatPacket;
 
 	public function disable(): void;
 
