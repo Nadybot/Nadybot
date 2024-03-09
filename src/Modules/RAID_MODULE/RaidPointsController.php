@@ -851,12 +851,11 @@ class RaidPointsController extends ModuleInstance {
 				"<tab>Raid is running: <highlight>Test raid, everyone join<end> :: [<u>join bot</u>] [<u>join raid</u>]"
 		)
 	]
-	public function raidpointsTile(string $sender, callable $callback): void {
+	public function raidpointsTile(string $sender): ?string {
 		$points = $this->getRaidPoints($sender);
 		$raid = $this->raidController->raid ?? null;
 		if ($points === null && $raid === null) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$blob = "<header2>Raid<end>";
 		if ($points !== null) {
@@ -867,7 +866,7 @@ class RaidPointsController extends ModuleInstance {
 				"[" . $this->text->makeChatcmd("join bot", "/tell <myname> join") . "] ".
 				"[" . $this->text->makeChatcmd("join raid", "/tell <myname> raid join") . "]";
 		}
-		$callback($blob);
+		return $blob;
 	}
 
 	protected function routeMessage(string $type, string $message): void {

@@ -403,7 +403,7 @@ class NotesController extends ModuleInstance {
 				"<tab>You have <highlight>2 notes<end> [<u>show</u>]"
 		)
 	]
-	public function notesNewsTile(string $sender, callable $callback): void {
+	public function notesNewsTile(string $sender): ?string {
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->getValidatedMain($sender);
 
@@ -413,8 +413,7 @@ class NotesController extends ModuleInstance {
 		$count = count($notes);
 
 		if ($count === 0) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$blob = "<header2>Notes<end>\n".
 			"<tab>You have <highlight>{$count} ".
@@ -422,7 +421,7 @@ class NotesController extends ModuleInstance {
 			"<end> [".
 			$this->text->makeChatcmd("show", "/tell <myname> notes").
 			"]";
-		$callback($blob);
+		return $blob;
 	}
 
 	/** Make sure all notes with owner $sender are assigned to the main */

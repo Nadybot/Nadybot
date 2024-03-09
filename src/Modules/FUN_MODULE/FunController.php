@@ -143,8 +143,8 @@ class FunController extends ModuleInstance {
 			example: "» You inspire be to do good things."
 		)
 	]
-	public function complimentTile(string $sender, callable $callback): void {
+	public function complimentTile(string $sender): ?string {
 		$msg = "» " . $this->getFunItem('compliment', $sender, null);
-		$callback($msg);
+		return $msg;
 	}
 }

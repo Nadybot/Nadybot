@@ -274,15 +274,14 @@ class QuoteController extends ModuleInstance {
 				"» [Team] And a witty response from Player 2"
 		)
 	]
-	public function quoteTile(string $sender, callable $callback): void {
+	public function quoteTile(string $sender): ?string {
 		/** @var ?Quote */
 		$row = $this->db->table("quote")
 			->inRandomOrder()
 			->limit(1)
 			->asObj(Quote::class)->first();
 		if (!isset($row)) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$result = [];
 		$lines = \Safe\preg_split("/ (?=(?:\(\d{2}:\d{2}\) )?\[[a-zA-Z 0-9-]+\])/", $row->msg);
@@ -291,6 +290,6 @@ class QuoteController extends ModuleInstance {
 		}
 		$quote = join("\n» ", $result);
 		$msg = "» {$quote}";
-		$callback($msg);
+		return $msg;
 	}
 }

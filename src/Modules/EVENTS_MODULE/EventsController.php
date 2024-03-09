@@ -372,7 +372,7 @@ class EventsController extends ModuleInstance {
 				"<tab>2021-10-31 <highlight>GSP Halloween Party<end>"
 		)
 	]
-	public function eventsTile(string $sender, callable $callback): void {
+	public function eventsTile(string $sender): ?string {
 		/** @var Collection<EventModel> */
 		$data = $this->db->table("events")
 			->whereNull("event_date")
@@ -381,8 +381,7 @@ class EventsController extends ModuleInstance {
 			->limit($this->numEventsShown)
 			->asObj(EventModel::class);
 		if ($data->count() === 0) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$eventsLink = $this->text->makeChatcmd("see more", "/tell <myname> events");
 		$blob = "<header2>Events [{$eventsLink}]<end>\n";
@@ -392,6 +391,6 @@ class EventsController extends ModuleInstance {
 				: "soon").
 				": <highlight>{$event->event_name}<end>";
 		})->join("\n");
-		$callback($blob);
+		return $blob;
 	}
 }

@@ -612,7 +612,7 @@ class AltsController extends ModuleInstance {
 				"<tab>You have <u>15 alts</u>."
 		)
 	]
-	public function altsTile(string $sender, callable $callback): void {
+	public function altsTile(string $sender): ?string {
 		$altInfo = $this->getAltInfo($sender, true);
 		$altsCmdText = "no alts";
 		if (count($altInfo->getAllAlts()) === 2) {
@@ -640,7 +640,7 @@ class AltsController extends ModuleInstance {
 		$blob = "<header2>Account<end>\n".
 			"<tab>Your main is <highlight>{$altInfo->main}<end>\n".
 			"<tab>You have {$altsCommand}.";
-		$callback($blob);
+		return $blob;
 	}
 
 	#[
@@ -652,11 +652,10 @@ class AltsController extends ModuleInstance {
 			"<tab>- Char2"
 		)
 	]
-	public function unvalidatedAltsTile(string $sender, callable $callback): void {
+	public function unvalidatedAltsTile(string $sender): ?string {
 		$altInfo = $this->getAltInfo($sender, true);
 		if (!$altInfo->hasUnvalidatedAlts()) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$altsLink = $this->text->makeChatcmd("see more", "/tell <myname> alts");
 		$blob = "<header2>Unvalidated Alts [{$altsLink}]<end>";
@@ -665,7 +664,7 @@ class AltsController extends ModuleInstance {
 				$blob .= "\n<tab>- {$alt}";
 			}
 		}
-		$callback($blob);
+		return $blob;
 	}
 
 	protected function validateAsMain(string $toValidate, AltInfo $altInfo, CommandReply $sendto): void {

@@ -298,7 +298,7 @@ class MassMsgController extends ModuleInstance {
 				"<tab>[<u>On</u>] [<off>Off<end>] Receive Mass invites"
 		)
 	]
-	public function massMsgNewsTile(string $sender, callable $callback): void {
+	public function massMsgNewsTile(string $sender): ?string {
 		$msgs = $this->preferences->get($sender, static::PREF_MSGS);
 		$invs = $this->preferences->get($sender, static::PREF_INVITES);
 		$msgOnLink      = $this->text->makeChatcmd("On", "/tell <myname> massmsgs on");
@@ -318,7 +318,7 @@ class MassMsgController extends ModuleInstance {
 		$blob = "<header2>Mass messages<end>\n".
 			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Receive Mass messages\n".
 			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Receive Mass invites";
-		$callback($blob);
+		return $blob;
 	}
 
 	/**

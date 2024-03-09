@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use function Amp\{async};
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
@@ -910,16 +909,14 @@ class AttacksController extends ModuleInstance {
 				"<tab>22-Oct-2021 18:20 UTC - Nady (<clan>Team Rainbow<end>) attacked <u>CLON 6</u> (QL 35-50):"
 		)
 	]
-	public function towerOwnTile(string $sender, callable $callback): void {
-		async(function () use ($sender, $callback): void {
-			try {
-				$whois = $this->playerManager->byName($sender);
-				$text = $this->getTowerSelfTile($whois);
-			} catch (Throwable) {
-				$text = null;
-			}
-			$callback($text);
-		});
+	public function towerOwnTile(string $sender): ?string {
+		try {
+			$whois = $this->playerManager->byName($sender);
+			$text = $this->getTowerSelfTile($whois);
+		} catch (Throwable) {
+			return null;
+		}
+		return $text;
 	}
 
 	private function getMatchingAttack(Playfield $pf, string $attName, ?string $attOrgName): ?FeedMessage\TowerAttack {

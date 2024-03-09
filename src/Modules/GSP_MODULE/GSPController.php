@@ -262,14 +262,13 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 				"<tab>GSP is now running <highlight>Shigy's odd end<end>. Location: <highlight>Borealis at the whompahs<end>."
 		)
 	]
-	public function gspShowTile(string $sender, callable $callback): void {
+	public function gspShowTile(string $sender): ?string {
 		if (!$this->showRunning) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$msg = "<header2>GSP<end>\n".
 			"<tab>" . $this->getNotificationMessage();
-		$callback($msg);
+		return $msg;
 	}
 
 	#[
@@ -283,7 +282,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 				"<tab>Location: <highlight>Borealis west of the wompahs (AO)<end>"
 		)
 	]
-	public function gspTile(string $sender, callable $callback): void {
+	public function gspTile(string $sender): ?string {
 		try {
 			$client = $this->builder->build();
 
@@ -293,7 +292,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		} catch (Throwable $e) {
 			$msg = null;
 		}
-		$callback($msg);
+		return $msg;
 	}
 
 	public function renderForGspTile(Response $response, string $body): string {

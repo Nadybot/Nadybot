@@ -812,11 +812,10 @@ class WorldBossController extends ModuleInstance {
 				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>."
 		)
 	]
-	public function bossTimersNewsTile(string $sender, callable $callback): void {
+	public function bossTimersNewsTile(string $sender): ?string {
 		$timers = $this->getWorldBossTimers();
 		if (!count($timers)) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$blob = "<header2>Boss timers<end>";
 		foreach ($timers as $timer) {
@@ -824,7 +823,7 @@ class WorldBossController extends ModuleInstance {
 				$blob .= "\n<tab>" . $this->formatWorldBossMessage($timer, true, true);
 			}
 		}
-		$callback($blob);
+		return $blob;
 	}
 
 	#[
@@ -837,17 +836,16 @@ class WorldBossController extends ModuleInstance {
 				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>."
 		)
 	]
-	public function allBossTimersNewsTile(string $sender, callable $callback): void {
+	public function allBossTimersNewsTile(string $sender): ?string {
 		$timers = $this->getWorldBossTimers();
 		if (!count($timers)) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$blob = "<header2>Boss timers<end>";
 		foreach ($timers as $timer) {
 			$blob .= "\n<tab>" . $this->formatWorldBossMessage($timer, true, true);
 		}
-		$callback($blob);
+		return $blob;
 	}
 
 	#[
@@ -858,15 +856,14 @@ class WorldBossController extends ModuleInstance {
 				"<tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>."
 		)
 	]
-	public function taraTimerNewsTile(string $sender, callable $callback): void {
+	public function taraTimerNewsTile(string $sender): ?string {
 		$timer = $this->getWorldBossTimer(static::TARA);
 		if (!isset($timer)) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$blob = "<header2>Tara timer<end>\n".
 			"<tab>" . $this->formatWorldBossMessage($timer, true);
-		$callback($blob);
+		return $blob;
 	}
 
 	#[
@@ -877,15 +874,14 @@ class WorldBossController extends ModuleInstance {
 				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>."
 		)
 	]
-	public function gauntletTimerNewsTile(string $sender, callable $callback): void {
+	public function gauntletTimerNewsTile(string $sender): ?string {
 		$timer = $this->getWorldBossTimer(static::VIZARESH);
 		if (!isset($timer)) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$blob = "<header2>Gauntlet<end>\n".
 			"<tab>" . $this->formatWorldBossMessage($timer, true);
-		$callback($blob);
+		return $blob;
 	}
 
 	#[
@@ -897,12 +893,11 @@ class WorldBossController extends ModuleInstance {
 				"<tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>."
 		)
 	]
-	public function gauntletNewsTile(string $sender, callable $callback): void {
+	public function gauntletNewsTile(string $sender): ?string {
 		$timer = $this->getWorldBossTimer(static::VIZARESH);
 		$buffLine = $this->gauntletBuffController->getGauntletBuffLine();
 		if (!isset($timer) && !isset($buffLine)) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$blob = "<header2>Gauntlet<end>";
 		if (isset($timer)) {
@@ -911,7 +906,7 @@ class WorldBossController extends ModuleInstance {
 		if (isset($buffLine)) {
 			$blob .= "\n{$buffLine}";
 		}
-		$callback($blob);
+		return $blob;
 	}
 
 	/**

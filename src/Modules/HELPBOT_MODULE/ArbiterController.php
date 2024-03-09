@@ -268,7 +268,7 @@ class ArbiterController extends ModuleInstance {
 				"<tab>It's currently <highlight>DIO week<end>."
 		)
 	]
-	public function arbiterNewsTile(string $sender, callable $callback): void {
+	public function arbiterNewsTile(string $sender): ?string {
 		/** @var ArbiterEvent[] */
 		$upcomingEvents = [
 			$this->getNextBS(),
@@ -284,13 +284,12 @@ class ArbiterController extends ModuleInstance {
 			}
 		);
 		if (!$upcomingEvents[0]->isActiveOn(time())) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$currentEvent = array_shift($upcomingEvents);
 		$msg = "<header2>Arbiter<end>\n".
 			"<tab>It's currently <highlight>{$currentEvent->longName}<end>.";
-		$callback($msg);
+		return $msg;
 	}
 
 	#[
@@ -302,7 +301,7 @@ class ArbiterController extends ModuleInstance {
 				"<tab>DIO week starts in <highlight>3 days 17 hrs 4 mins<end>."
 		)
 	]
-	public function arbiterNewsForceTile(string $sender, callable $callback): void {
+	public function arbiterNewsForceTile(string $sender): ?string {
 		/** @var ArbiterEvent[] */
 		$upcomingEvents = [
 			$this->getNextBS(),
@@ -327,6 +326,6 @@ class ArbiterController extends ModuleInstance {
 			$currentEvent = array_shift($upcomingEvents);
 			$msg .= "<tab>It's currently <highlight>{$currentEvent->longName}<end>.";
 		}
-		$callback($msg);
+		return $msg;
 	}
 }

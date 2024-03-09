@@ -253,15 +253,13 @@ class ChatRallyController extends ModuleInstance {
 				"<tab>We are rallying <u>here</u>"
 		)
 	]
-	public function rallyTile(string $sender, callable $callback): void {
+	public function rallyTile(string $sender): ?string {
 		$data = $this->rally;
 		if (strpos($data, ":") === false) {
-			$callback(null);
-			return;
+			return null;
 		}
 		[$name, $playfieldId, $xCoords, $yCoords] = explode(":", $data);
 		$link = $this->text->makeChatcmd("here", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
-		$msg = "<header2>Rally<end>\n<tab>We are rallying {$link}";
-		$callback($msg);
+		return "<header2>Rally<end>\n<tab>We are rallying {$link}";
 	}
 }

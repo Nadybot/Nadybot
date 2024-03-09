@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
+use function Amp\async;
+use function Amp\Future\await;
 use Closure;
 use DateInterval;
 use DateTime;
@@ -30,8 +32,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Response,
 	WebChatConverter,
 };
-use Psr\Log\LoggerInterface;
 use ReflectionClass;
+
 use ReflectionMethod;
 use Throwable;
 
@@ -67,9 +69,6 @@ class StartpageController extends ModuleInstance {
 
 	/** @var array<string,NewsTile> */
 	protected array $tiles = [];
-
-	#[NCA\Logger]
-	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Text $text;
@@ -155,14 +154,14 @@ class StartpageController extends ModuleInstance {
 				"<tab>Current time: <highlight>Mon, 18-Oct-2021 14:15:16<end> (RK year 29495)"
 		)
 	]
-	public function timeTile(string $sender, callable $callback): void {
+	public function timeTile(string $sender): ?string {
 		$seeMoreLink = $this->text->makeChatcmd("see more", "/tell <myname> time");
 		$time = new DateTime('now', new DateTimeZone("UTC"));
 		$aoTime = (clone $time)->add(new DateInterval("P27474Y"));
 		$blob = "<header2>Time [{$seeMoreLink}]<end>\n".
 			"<tab>Current time: <highlight>" . $time->format("l, d-M-Y H:i:s T") . "<end> ".
 			"(RK year " . $aoTime->format("Y") .")";
-		$callback($blob);
+		return $blob;
 	}
 
 	public function registerNewsTile(NewsTile $tile): bool {
@@ -236,36 +235,21 @@ class StartpageController extends ModuleInstance {
 			}
 			return;
 		}
-		$callResults = [];
-		$callNum = 0;
-		$callback = function (int $numCall, ?string $text, string $name) use (&$callResults, $tiles, $sendto, $sender, $showEmpty): void {
-			$callResults[$numCall] = isset($text) ? trim($text) : null;
-			$this->logger->debug("Callback for {name} received", [
-				"name" => $name,
-				"data" => $text,
-			]);
-			if (count($callResults) < count($tiles)) {
-				return;
-			}
-			$this->logger->info("All start callbacks finished");
-			ksort($callResults, SORT_NUMERIC);
-			$dataParts = array_filter(array_values($callResults));
-			if (empty($dataParts)) {
-				if ($showEmpty) {
-					$sendto->reply("Your startpage is currently <highlight>empty<end>.");
-				}
-				return;
-			}
-			$blob = join("\n\n", $dataParts);
-			$msg = $this->text->makeBlob($this->getStartpageString($sender), $blob);
-			$sendto->reply($msg);
-		};
+		$calls = [];
 		foreach ($tiles as $name => $tile) {
-			$this->logger->info("Calling callback of {tile}", [
-				"tile" => $name,
-			]);
-			$tile->call($sender, $this->createTileCallback($callback, $name, $callNum++));
+			$calls []= async($tile->call(...), $sender);
 		}
+		$callResults = await($calls);
+		$dataParts = array_filter(array_values($callResults));
+		if (empty($dataParts)) {
+			if ($showEmpty) {
+				$sendto->reply("Your startpage is currently <highlight>empty<end>.");
+			}
+			return;
+		}
+		$blob = join("\n\n", $dataParts);
+		$msg = $this->text->makeBlob($this->getStartpageString($sender), $blob);
+		$sendto->reply($msg);
 	}
 
 	/** Show your personal startpage */

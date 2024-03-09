@@ -544,14 +544,13 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 				"<tab>New logo for Discord [<u>show</u>]"
 		)
 	]
-	public function pollsNewsTile(string $sender, callable $callback): void {
+	public function pollsNewsTile(string $sender): ?string {
 		/** @var Poll[] */
 		$topics = $this->db->table(self::DB_POLLS)
 			->orderBy("started")
 			->asObj(Poll::class)->toArray();
 		if (count($topics) === 0) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$lines = [];
 		foreach ($topics as $topic) {
@@ -562,6 +561,6 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		}
 		$blob = "<header2>Polls<end>\n".
 			join("\n", $lines);
-		$callback($blob);
+		return $blob;
 	}
 }

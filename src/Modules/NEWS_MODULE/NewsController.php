@@ -525,14 +525,13 @@ class NewsController extends ModuleInstance {
 				"<tab><highlight>2021-Oct-18<end>: We have a new tower site..."
 		)
 	]
-	public function newsTile(string $sender, callable $callback): void {
+	public function newsTile(string $sender): ?string {
 		$thirtyDays = time() - (86400 * 30);
 		$news = $this->getNewsItems($sender);
 		$unreadNews = $news->where("confirmed", false)
 			->where("time", ">", $thirtyDays);
 		if ($unreadNews->isEmpty()) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$blob = "<header2>News [".
 			$this->text->makeChatcmd("see all", "/tell <myname> news") . "]<end>\n";
@@ -544,7 +543,7 @@ class NewsController extends ModuleInstance {
 				"<end>: " . join(" ", $firstWords) . "...";
 		}
 		$blob .= join("\n", $blobLines);
-		$callback($blob);
+		return $blob;
 	}
 
 	#[NCA\Event(

@@ -8,6 +8,7 @@ use Nadybot\Core\Attributes\JSON;
 use ReflectionFunction;
 use ReflectionNamedType;
 use ReflectionUnionType;
+use RuntimeException;
 
 class NewsTile {
 	/** The name of this news tile */
@@ -36,10 +37,10 @@ class NewsTile {
 			$funcHint .= " {$scopeClass->name}::{$ref->name}()";
 		}
 		$params = $ref->getParameters();
-		if (count($params) < 2) {
+		if (count($params) !== 1) {
 			throw new InvalidArgumentException(
 				"The news tile {$name}'s callback {$funcHint} does not accept ".
-				"at least 2 arguments"
+				"exactly 1 argument"
 			);
 		}
 		if ($params[0]->hasType()) {
@@ -71,29 +72,14 @@ class NewsTile {
 				);
 			}
 		}
-		if ($params[1]->hasType()) {
-			$type = $params[1]->getType();
-			if ($type instanceof ReflectionNamedType) {
-				$typeNames =[$type->getName()];
-			} elseif ($type instanceof ReflectionUnionType) {
-				$typeNames = [];
-				foreach ($type->getTypes() as $type) {
-					if ($type instanceof ReflectionNamedType) {
-						$typeNames []= $type->getName();
-					}
-				}
-			}
-			if (!in_array("callable", $typeNames??[])) {
-				throw new InvalidArgumentException(
-					"The news tile {$name}'s callback {$funcHint} does not accept ".
-					"a callable as second argument"
-				);
-			}
-		}
 	}
 
-	public function call(string $sender, callable $callback): void {
+	public function call(string $sender): ?string {
 		$func = $this->callback;
-		$func($sender, $callback);
+		$result = $func($sender);
+		if (isset($result) && !is_string($result)) {
+			throw new RuntimeException("The news tile {$this->name} didn't return proper data");
+		}
+		return $result;
 	}
 }

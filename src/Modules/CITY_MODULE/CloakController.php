@@ -311,15 +311,13 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 				"<tab>The cloaking device is <on>enabled<end>. It is possible to disable it."
 		)
 	]
-	public function cloakStatusTile(string $sender, callable $callback): void {
+	public function cloakStatusTile(string $sender): ?string {
 		$data = $this->getCloakStatus();
 		if (!isset($data)) {
-			$callback(null);
-			return;
+			return null;
 		}
 		[$case, $msg] = $data;
-		$msg = "<header2>City<end>\n<tab>{$msg}";
-		$callback($msg);
+		return "<header2>City<end>\n<tab>{$msg}";
 	}
 
 	/**

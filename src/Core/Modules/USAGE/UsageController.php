@@ -360,7 +360,7 @@ class UsageController extends ModuleInstance {
 				"<tab>time"
 		)
 	]
-	public function usageNewsTile(string $sender, callable $callback): void {
+	public function usageNewsTile(string $sender): ?string {
 		/** @var Collection<string> */
 		$commands = $this->db->table(self::DB_TABLE)
 			->where("sender", $sender)
@@ -371,13 +371,12 @@ class UsageController extends ModuleInstance {
 			->limit(4)
 			->pluckStrings("command");
 		if ($commands->isEmpty()) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$blob = "<header2>Popular commands<end>\n";
 		foreach ($commands as $command) {
 			$blob .= "<tab>{$command}\n";
 		}
-		$callback($blob);
+		return $blob;
 	}
 }

@@ -396,12 +396,12 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 				"<tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>."
 		)
 	]
-	public function gauntletBuffNewsTile(string $sender, callable $callback): void {
+	public function gauntletBuffNewsTile(string $sender): ?string {
 		$buffLine = $this->getGauntletBuffLine();
 		if (isset($buffLine)) {
 			$buffLine = "<header2>Gauntlet buff<end>\n{$buffLine}";
 		}
-		$callback($buffLine);
+		return $buffLine;
 	}
 
 	public function getGauntletBuffLine(): ?string {
