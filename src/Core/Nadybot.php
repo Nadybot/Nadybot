@@ -28,6 +28,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	SettingHandler as CoreSettingHandler,
 };
+use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -46,9 +47,6 @@ use Throwable;
 class Nadybot {
 	public const PING_IDENTIFIER = "Nadybot";
 	public const UNKNOWN_ORG = 'Clan (name unknown)';
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	public Multi $aoClient;
 
@@ -129,6 +127,9 @@ class Nadybot {
 	protected int $started = 0;
 
 	protected int $numSpamMsgsSent = 0;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;
@@ -621,7 +622,7 @@ class Nadybot {
 			$tellColor = $this->settingManager->getString("default_tell_color")??"";
 		}
 
-		$this->logger->logChat("Out. Msg.", $character, $message);
+		$this->logChat("Out. Msg.", $character, $message);
 		$this->sendRawTell($character, $tellColor.$message);
 		$event = new AOChatEvent();
 		$event->type = "sendmsg";
@@ -640,9 +641,10 @@ class Nadybot {
 	 */
 	public function sendMassTell($message, string $character, ?int $priority=null, bool $formatMessage=true, null|int|string $worker=null): void {
 		$priority ??= QueueInterface::PRIORITY_HIGH;
+		$numWorkers =count($this->config->worker);
 
 		// If we're not using workers, or mass tells are disabled, this doesn't do anything
-		if (!count($this->config->worker)
+		if (($numWorkers === 0)
 			|| !$this->settingManager->getBool('allow_mass_tells')) {
 			$this->sendTell($message, $character, $priority, $formatMessage);
 			return;
@@ -658,7 +660,7 @@ class Nadybot {
 				$worker = $this->config->worker[$worker]->character;
 			}
 		} elseif ($sendByMsg) {
-			$worker = random_int(0, count($this->config->worker) -1);
+			$worker = random_int(0, $numWorkers -1);
 			$worker = $this->config->worker[$worker]->character;
 		}
 		foreach ($message as $page) {
@@ -668,10 +670,10 @@ class Nadybot {
 				$tellColor = $this->settingManager->getString("default_tell_color")??"";
 			}
 			if (!is_string($worker) || (!$sendByMsg && !$sendToWorker)) {
-				$worker = random_int(0, count($this->config->worker) -1);
+				$worker = random_int(0, $numWorkers -1);
 				$worker = $this->config->worker[$worker]->character;
 			}
-			$this->logger->logChat("Out. Msg.", $character, $page);
+			$this->logChat("Out. Msg.", $character, $page);
 			$this->sendRawTell($character, $tellColor.$page, null, $worker);
 		}
 	}
@@ -835,7 +837,7 @@ class Nadybot {
 		if ($this->isDefaultPrivateChannel($channel)) {
 			$eventObj->type = "joinpriv";
 
-			$this->logger->logChat("Priv Group", -1, "{$sender} joined the channel.");
+			$this->logChat("Priv Group", -1, "{$sender} joined the channel.");
 			$audit = new Audit();
 			$audit->actor = $sender;
 			$audit->action = AccessManager::JOIN;
@@ -892,7 +894,7 @@ class Nadybot {
 		if ($this->isDefaultPrivateChannel($channel)) {
 			$eventObj->type = "leavepriv";
 
-			$this->logger->logChat("Priv Group", -1, "{$sender} left the channel.");
+			$this->logChat("Priv Group", -1, "{$sender} left the channel.");
 
 			// Remove from Chatlist array
 			unset($this->chatlist[$sender]);
@@ -1068,7 +1070,7 @@ class Nadybot {
 			$eventObj->worker = $workerId;
 		}
 
-		$this->logger->logChat("Inc. Msg.", $sender, $message);
+		$this->logChat("Inc. Msg.", $sender, $message);
 
 		// AFK/bot check
 		if (preg_match("|{$sender} is AFK|si", $message)) {
@@ -1151,7 +1153,7 @@ class Nadybot {
 		$eventObj->message = $package->package->message;
 
 		$this->logger->info("Handling {package}", ["package" => $package->package]);
-		$this->logger->logChat($channel, $sender, $package->package->message);
+		$this->logChat($channel, $sender, $package->package->message);
 
 		if ($sender == $this->config->main->character) {
 			return;
@@ -1235,7 +1237,7 @@ class Nadybot {
 
 		// don't log tower messages with rest of chat messages
 		if ($channel != "All Towers" && $channel != "Tower Battle Outcome" && (!$isOrgMessage || $this->settingManager->getBool('guild_channel_status'))) {
-			$this->logger->logChat($channel->name, $sender, $package->package->message);
+			$this->logChat($channel->name, $sender, $package->package->message);
 		} else {
 			$this->logger->info("[{channel}]: {message}", [
 				"channel" => $channel->name,
@@ -1289,7 +1291,7 @@ class Nadybot {
 
 		$this->logger->info("Handling {package}", ["package" => $package->package]);
 
-		$this->logger->logChat("Priv Channel Invitation", -1, "{$sender} channel invited.");
+		$this->logChat("Priv Channel Invitation", -1, "{$sender} channel invited.");
 
 		$this->eventManager->fireEvent($eventObj);
 	}
@@ -1512,6 +1514,34 @@ class Nadybot {
 
 	public function getUptime(): int {
 		return time() - $this->started;
+	}
+
+	/**
+	 * Log a chat message, stripping potential HTML code from it
+	 *
+	 * @param string     $channel Either "Buddy" or an org or private-channel name
+	 * @param string|int $sender  The name of the sender, or a number representing the channel
+	 * @param string     $message The message to log
+	 */
+	public function logChat(string $channel, string|int $sender, string $message): void {
+		if (!$this->config->general->showAomlMarkup) {
+			$message = preg_replace("|<font.*?>|", "", $message);
+			$message = preg_replace("|</font>|", "", $message);
+			$message = preg_replace("|<a\\s+href=\".+?\">|s", "[link]", $message);
+			$message = preg_replace("|<a\\s+href='.+?'>|s", "[link]", $message);
+			$message = preg_replace("|<a\\s+href=.+?>|s", "[link]", $message);
+			$message = preg_replace("|</a>|", "[/link]", $message);
+		}
+
+		if ($channel == "Buddy") {
+			$line = "[{$channel}] {$sender} {$message}";
+		} elseif ($sender == '-1' || $sender == '4294967295') {
+			$line = "[{$channel}] {$message}";
+		} else {
+			$line = "[{$channel}] {$sender}: {$message}";
+		}
+
+		$this->logger->notice($line);
 	}
 
 	private function processSystemMessage(WorkerPackage $package): void {

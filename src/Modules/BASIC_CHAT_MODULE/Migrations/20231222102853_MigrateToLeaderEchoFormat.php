@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE\Migrations;
 
 use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration, SettingManager};
+use Nadybot\Core\{DB, SchemaMigration, SettingManager};
+use Psr\Log\LoggerInterface;
 
 class MigrateToLeaderEchoFormat implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$setting = $this->getSetting($db, 'leaderecho_color');
 		if (!isset($setting) || !isset($setting->value)) {
 			return;

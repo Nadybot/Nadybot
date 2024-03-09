@@ -8,7 +8,6 @@ use function Safe\preg_split;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
-	LoggerWrapper,
 	ModuleInstance,
 	SettingManager,
 	Text,
@@ -21,9 +20,6 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Guild;
  */
 #[NCA\Instance]
 class DiscordController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** The Discord bot token to send messages with */
 	#[NCA\DefineSetting(
 		type: 'discord_bot_token',

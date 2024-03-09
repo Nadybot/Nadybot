@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Fernet\Fernet as FernetProto;
-use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
+use Nadybot\Core\{Attributes as NCA};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -47,8 +47,6 @@ use Nadybot\Modules\RELAY_MODULE\{
 	)
 ]
 class Fernet implements RelayLayerInterface {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 	protected FernetProto $fernet;
 
 	protected Relay $relay;

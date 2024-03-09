@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\TIMERS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
+use Psr\Log\LoggerInterface;
 
 class CreateTimersTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = TimerController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;

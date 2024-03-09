@@ -10,11 +10,11 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\CmdCfg,
 	Event,
-	LoggerWrapper,
 	ModuleInstance,
 	ParamClass\PWord,
 	Text,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Tyrence (RK2)
@@ -39,7 +39,7 @@ class SilenceController extends ModuleInstance {
 	public const NULL_COMMAND_HANDLER = "SilenceController.nullCommand";
 
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

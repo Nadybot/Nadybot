@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\HIGHNET_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\HIGHNET_MODULE\HighnetController;
+use Psr\Log\LoggerInterface;
 
 class CreateFilterTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = HighnetController::DB_TABLE;
 		$db->schema()->create($table, function (Blueprint $table) {
 			$table->id();

@@ -13,13 +13,13 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	Nadybot,
 	Text,
 	UserStateEvent,
 	Util,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Nadyita (RK5)
@@ -50,9 +50,6 @@ class GreetController extends ModuleInstance {
 	public const PREF = "greeting";
 	public const PREF_ON = "on";
 	public const PREF_OFF = "off";
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** How often to consider the greet probability when someone joins */
 	#[NCA\Setting\Number(
@@ -116,6 +113,9 @@ class GreetController extends ModuleInstance {
 	/** Delay in seconds between joining and receiving the greeting */
 	#[NCA\Setting\Number]
 	public int $greetDelay = 1;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Util $util;

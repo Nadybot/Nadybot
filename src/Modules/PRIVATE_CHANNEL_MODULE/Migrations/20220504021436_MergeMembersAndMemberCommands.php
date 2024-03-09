@@ -2,10 +2,11 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
-use Nadybot\Core\{CommandManager, DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{CommandManager, DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class MergeMembersAndMemberCommands implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$db->table(CommandManager::DB_TABLE)
 			->where('cmd', 'member')
 			->update([

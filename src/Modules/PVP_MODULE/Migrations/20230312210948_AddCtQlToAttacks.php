@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\PVP_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\PVP_MODULE\NotumWarsController;
+use Psr\Log\LoggerInterface;
 
 class AddCtQlToAttacks implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = NotumWarsController::DB_ATTACKS;
 		$db->schema()->table($table, function (Blueprint $table) {
 			$table->unsignedSmallInteger("ql")->nullable(true);

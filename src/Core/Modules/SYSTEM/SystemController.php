@@ -22,7 +22,6 @@ use Nadybot\Core\{
 	Event,
 	EventManager,
 	HelpManager,
-	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
@@ -43,6 +42,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Request,
 	Response,
 };
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 
 /**
@@ -96,9 +96,6 @@ use Revolt\EventLoop;
 	),
 ]
 class SystemController extends ModuleInstance implements MessageEmitter {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Default command prefix symbol */
 	#[NCA\Setting\Text(options: ["!", "#", "*", "@", "$", "+", "-"])]
 	public string $symbol = "!";
@@ -189,6 +186,10 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	/** Reply to send when the access-level is too low for a command */
 	#[NCA\Setting\Text]
 	public string $accessDeniedErrorMsg = "Error! Access denied.";
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private AccessManager $accessManager;
 

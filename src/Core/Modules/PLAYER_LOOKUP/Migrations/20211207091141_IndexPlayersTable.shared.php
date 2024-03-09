@@ -3,10 +3,11 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class IndexPlayersTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "players";
 		$db->schema()->table($table, function (Blueprint $table): void {
 			$table->index(["dimension", "name"]);

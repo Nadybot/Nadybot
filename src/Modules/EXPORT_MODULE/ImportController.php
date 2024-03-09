@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,
@@ -49,6 +48,7 @@ use Nadybot\Modules\{
 	TRACKER_MODULE\TrackerController,
 	VOTE_MODULE\VoteController,
 };
+use Psr\Log\LoggerInterface;
 use stdClass;
 use Swaggest\JsonSchema\Schema;
 use Throwable;
@@ -66,7 +66,8 @@ use Throwable;
 ]
 class ImportController extends ModuleInstance {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private Nadybot $chatBot;
 

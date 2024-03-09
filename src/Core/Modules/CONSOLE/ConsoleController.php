@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	Config\BotConfig,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
@@ -23,13 +22,11 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 
 #[NCA\Instance]
 class ConsoleController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Use ANSI colors */
 	#[NCA\Setting\Boolean] public bool $consoleColor = false;
 
@@ -44,6 +41,10 @@ class ConsoleController extends ModuleInstance {
 	public $socket;
 
 	public bool $useReadline = false;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private CommandManager $commandManager;
 

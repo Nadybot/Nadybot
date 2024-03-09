@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
@@ -49,11 +50,11 @@ class CommandManager implements MessageEmitter {
 	public const DB_TABLE_PERM_SET = "cmd_permission_set_<myname>";
 	public const DB_TABLE_MAPPING = "cmd_permission_set_mapping_<myname>";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** @var array<string,array<string,CommandHandler>> */
 	public array $commands;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

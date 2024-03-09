@@ -10,18 +10,18 @@ use Nadybot\Core\{
 	DBSchema\RouteModifier,
 	DBSchema\RouteModifierArgument,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
+use Psr\Log\LoggerInterface;
 
 class MoveSettingsToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$guestRelay = $this->getSetting($db, "guest_relay");
 		if (isset($guestRelay) && $guestRelay->value !== "1") {
 			return;

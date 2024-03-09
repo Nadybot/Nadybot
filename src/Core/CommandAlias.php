@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\CmdAlias;
+use Psr\Log\LoggerInterface;
 
 #[NCA\Instance]
 class CommandAlias {
@@ -13,7 +14,7 @@ class CommandAlias {
 	public const ALIAS_HANDLER = "CommandAlias.process";
 
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\WHEREIS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateSpawntimeTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "spawntime";
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function (Blueprint $table) {

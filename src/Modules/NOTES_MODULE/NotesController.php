@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	Text,
 	UserStateEvent,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Tyrence (RK2)
@@ -59,9 +59,6 @@ class NotesController extends ModuleInstance {
 		self::FORMAT_INDIVIDUAL2,
 	];
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** How to display reminder-links in notes */
 	#[NCA\Setting\Options(options: [
 		'off' => 0,
@@ -69,6 +66,9 @@ class NotesController extends ModuleInstance {
 		'verbose' => 2,
 	])]
 	public int $reminderFormat = 2;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

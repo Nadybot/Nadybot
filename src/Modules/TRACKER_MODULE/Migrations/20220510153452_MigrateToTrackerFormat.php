@@ -3,14 +3,15 @@
 namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
 use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\{Attributes as NCA, DB, LoggerWrapper, SchemaMigration, SettingManager};
+use Nadybot\Core\{Attributes as NCA, DB, SchemaMigration, SettingManager};
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
+use Psr\Log\LoggerInterface;
 
 class MigrateToTrackerFormat implements SchemaMigration {
 	#[NCA\Inject]
 	private TrackerController $trackerController;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$trackerLayout = (int)($this->getSetting($db, "tracker_layout") ?? 0);
 		if ($trackerLayout === 0) {
 			$trackerLayoutOn = 'TRACK: %s logged <on>on<end>.';

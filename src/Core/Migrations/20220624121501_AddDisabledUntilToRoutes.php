@@ -3,10 +3,11 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, MessageHub, SchemaMigration};
+use Nadybot\Core\{DB, MessageHub, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class AddDisabledUntilToRoutes implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		if ($db->schema()->hasColumn($table, "disabled_until")) {
 			return;

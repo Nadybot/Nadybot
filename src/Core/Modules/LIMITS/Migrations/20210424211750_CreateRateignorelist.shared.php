@@ -3,10 +3,11 @@
 namespace Nadybot\Core\Modules\LIMITS\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateRateignorelist implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "rateignorelist";
 		if ($db->schema()->hasTable($table)) {
 			return;

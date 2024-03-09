@@ -33,10 +33,10 @@ use Nadybot\Core\{
 	CommandManager,
 	DB,
 	EventManager,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
+	Nadybot,
 	Registry,
 	Routing\Character,
 	Routing\Events\Online,
@@ -63,6 +63,7 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 };
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionClassConstant;
 use Revolt\EventLoop;
@@ -152,9 +153,6 @@ class DiscordGatewayController extends ModuleInstance {
 	public const EMOJI_TABLE = "discord_emoji_<myname>";
 	public const RENAME_OFF = "Off";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Game the bot is shown to play on Discord */
 	#[NCA\Setting\Text]
 	public string $discordActivityName = "Anarchy Online";
@@ -188,6 +186,9 @@ class DiscordGatewayController extends ModuleInstance {
 	/** @var array<string,Guild> */
 	protected array $guilds = [];
 
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private RelayController $relayController;
 
@@ -208,6 +209,9 @@ class DiscordGatewayController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private Util $util;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
 
 	#[NCA\Inject]
 	private DiscordAPIClient $discordAPIClient;
@@ -570,9 +574,9 @@ class DiscordGatewayController extends ModuleInstance {
 		$channel = $this->getChannel($message->channel_id);
 		$channelName = $channel ? ($channel->name??"DM") : "thread";
 		if (isset($message->guild_id)) {
-			$this->logger->logChat("Discord:{$channelName}", $name, $message->content);
+			$this->chatBot->logChat("Discord:{$channelName}", $name, $message->content);
 		} else {
-			$this->logger->logChat("Inc. Discord Msg.", $name, $message->content);
+			$this->chatBot->logChat("Inc. Discord Msg.", $name, $message->content);
 		}
 
 		$text = DiscordRelayController::formatMessage($message->content);

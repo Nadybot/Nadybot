@@ -7,7 +7,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	Text,
 };
@@ -15,6 +14,7 @@ use Nadybot\Modules\WHEREIS_MODULE\{
 	WhereisController,
 	WhereisResult,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * Bossloot Module Ver 1.1
@@ -36,7 +36,8 @@ use Nadybot\Modules\WHEREIS_MODULE\{
 ]
 class BosslootController extends ModuleInstance {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private DB $db;
 

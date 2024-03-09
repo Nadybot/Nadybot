@@ -4,14 +4,14 @@ namespace Nadybot\Modules\RAID_MODULE\Migrations\Auctions;
 
 use Nadybot\Core\{
 	DB,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 };
+use Psr\Log\LoggerInterface;
 
 class MigrateToRoutes implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$route = [
 			"source" => "auction(*)",
 			"destination" => Source::PRIV . "(" . $db->getMyname() . ")",

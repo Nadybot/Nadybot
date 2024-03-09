@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\ALIEN_MODULE\Migrations\Weapons;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateAlienweaponsTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "alienweapons";
 		if ($db->schema()->hasTable($table)) {
 			return;

@@ -5,13 +5,13 @@ namespace Nadybot\Modules\HELPBOT_MODULE\Migrations\Arbiter;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
 	DB,
-	LoggerWrapper,
 	SchemaMigration,
 };
 use Nadybot\Modules\HELPBOT_MODULE\ArbiterController;
+use Psr\Log\LoggerInterface;
 
 class MigrateArbiterToDB implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = ArbiterController::DB_TABLE;
 		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->id();

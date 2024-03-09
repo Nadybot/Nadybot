@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
+use Psr\Log\LoggerInterface;
 
 class CreateMembersTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = PrivateChannelController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;

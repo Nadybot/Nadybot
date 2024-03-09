@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltEvent,
@@ -23,6 +22,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Text,
 };
+use Psr\Log\LoggerInterface;
 use Safe\DateTime;
 use Throwable;
 
@@ -82,9 +82,6 @@ class RaidPointsController extends ModuleInstance {
 	public const CMD_POINTS_MODIFY = "points modify";
 	public const CMD_REWARD_EDIT = "reward add/change/delete";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Share raid points across all alts */
 	#[NCA\Setting\Boolean]
 	public bool $raidSharePoints = true;
@@ -112,6 +109,9 @@ class RaidPointsController extends ModuleInstance {
 	/** Minimum length required for points add/rem */
 	#[NCA\Setting\Number]
 	public int $raidPointsReasonMinLength = 10;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

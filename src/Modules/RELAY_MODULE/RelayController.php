@@ -9,20 +9,14 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	ClassSpec,
 	CmdContext,
-	CommandAlias,
 	CommandManager,
 	Config\BotConfig,
 	DB,
 	EventManager,
 	EventType,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
-	Modules\ALTS\AltsController,
-	Modules\PLAYER_LOOKUP\PlayerManager,
-	Modules\PREFERENCES\Preferences,
 	Modules\PROFILE\ProfileCommandReply,
-	Nadybot,
 	ParamClass\PNonNumber,
 	ParamClass\PNonNumberWord,
 	ParamClass\PRemove,
@@ -30,10 +24,8 @@ use Nadybot\Core\{
 	Registry,
 	Text,
 	Util,
-	Websocket,
 };
 use Nadybot\Modules\{
-	GUILD_MODULE\GuildController,
 	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
 	RELAY_MODULE\Transport\TransportInterface,
 	WEBSERVER_MODULE\ApiResponse,
@@ -43,6 +35,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Response,
 	WEBSERVER_MODULE\StatsController,
 };
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
 
@@ -78,9 +71,6 @@ class RelayController extends ModuleInstance {
 	/** @var array<string,Relay> */
 	public array $relays = [];
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Abbreviation to use for org name */
 	#[NCA\Setting\Text(options: ["none"])]
 	public string $relayGuildAbbreviation = "none";
@@ -102,11 +92,11 @@ class RelayController extends ModuleInstance {
 	/** @var array<string,ClassSpec> */
 	protected array $stackElements = [];
 
-	#[NCA\Inject]
-	private DB $db;
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
+	private DB $db;
 
 	#[NCA\Inject]
 	private BotConfig $config;
@@ -124,28 +114,10 @@ class RelayController extends ModuleInstance {
 	private Util $util;
 
 	#[NCA\Inject]
-	private AltsController $altsController;
-
-	#[NCA\Inject]
-	private Preferences $preferences;
-
-	#[NCA\Inject]
-	private PlayerManager $playerManager;
-
-	#[NCA\Inject]
 	private StatsController $statsController;
 
 	#[NCA\Inject]
-	private CommandAlias $commandAlias;
-
-	#[NCA\Inject]
 	private CommandManager $commandManager;
-
-	#[NCA\Inject]
-	private GuildController $guildController;
-
-	#[NCA\Inject]
-	private Websocket $websocket;
 
 	#[NCA\Inject]
 	private EventManager $eventManager;

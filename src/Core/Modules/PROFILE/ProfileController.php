@@ -25,7 +25,6 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	EventManager,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
@@ -38,6 +37,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\RELAY_MODULE\RelayController;
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Tyrence (RK2)
@@ -55,7 +55,7 @@ class ProfileController extends ModuleInstance {
 	public const FILE_EXT = ".txt";
 
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

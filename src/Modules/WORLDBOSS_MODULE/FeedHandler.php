@@ -4,8 +4,9 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use Exception;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{Config\BotConfig, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance, SyncEvent};
+use Nadybot\Core\{Config\BotConfig, EventFeedHandler, EventManager, ModuleInstance, SyncEvent};
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
+use Psr\Log\LoggerInterface;
 
 #[
 	NCA\Instance,
@@ -13,7 +14,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 ]
 class FeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private BotConfig $config;
 

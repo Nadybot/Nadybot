@@ -10,11 +10,12 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, EventManager, LoggerWrapper, MessageHub, ModuleInstance, Nadybot, Text, Util};
+use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, EventManager, MessageHub, ModuleInstance, Nadybot, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
 use Nadybot\Modules\TIMERS_MODULE\{Alert, Timer, TimerController};
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Safe\Exceptions\JsonException;
 
@@ -106,9 +107,6 @@ class NotumWarsController extends ModuleInstance {
 		201 => 6,
 		226 => 7,
 	];
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** @var array<int,PlayfieldState> */
 	public array $state = [];
@@ -466,6 +464,9 @@ class NotumWarsController extends ModuleInstance {
 		help: 'site_tower_change_format.txt',
 	)]
 	public string $siteTowerChangeFormat = "{c-site-short} {tower-type}s {c-tower-delta} [{details}]";
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;

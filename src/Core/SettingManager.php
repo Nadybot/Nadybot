@@ -6,6 +6,7 @@ use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\DBSchema\Setting;
+use Psr\Log\LoggerInterface;
 
 #[
 	NCA\Instance,
@@ -14,13 +15,13 @@ use Nadybot\Core\DBSchema\Setting;
 class SettingManager {
 	public const DB_TABLE = "settings_<myname>";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** @var array<string,SettingValue> */
 	public array $settings = [];
 
 	public static bool $isInitialized = false;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	EventManager,
-	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
@@ -25,6 +24,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Tyrence (RK2)
@@ -54,15 +54,15 @@ use Nadybot\Core\{
 class TimerController extends ModuleInstance implements MessageEmitter {
 	public const DB_TABLE = "timers_<myname>";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Times to display timer alerts */
 	#[NCA\Setting\Text(
 		options: ["1h 15m 1m"],
 		help: 'timer_alert_times.txt',
 	)]
 	public string $timerAlertTimes = '1h 15m 1m';
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

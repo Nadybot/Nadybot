@@ -7,11 +7,11 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	DBSchema\Route,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 };
+use Psr\Log\LoggerInterface;
 
 class MigrateUIToRoute implements SchemaMigration {
 	#[NCA\Inject]
@@ -20,7 +20,7 @@ class MigrateUIToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
 		$route = new Route();
 		$route->source = Source::SYSTEM . "(webui)";

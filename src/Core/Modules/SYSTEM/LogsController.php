@@ -34,6 +34,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Throwable;
 
@@ -60,7 +61,8 @@ use Throwable;
 ]
 class LogsController extends ModuleInstance {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 
@@ -82,15 +84,20 @@ class LogsController extends ModuleInstance {
 	/** View a list of log files */
 	#[NCA\HandlesCommand("logs")]
 	public function logsCommand(CmdContext $context): void {
+		$logger = $this->logger;
+		if (!($logger instanceof LoggerWrapper)) {
+			$context->reply("Your current logging driver does not support this command");
+			return;
+		}
 		try {
-			if (!$this->fs->exists($this->logger->getLoggingDirectory())) {
+			if (!$this->fs->exists($logger->getLoggingDirectory())) {
 				$context->reply(
 					"Your bot is either not configured to create log files, ".
 					"lacks the logging directory, or has no permission to access it."
 				);
 				return;
 			}
-			$files = $this->fs->listFiles($this->logger->getLoggingDirectory());
+			$files = $this->fs->listFiles($logger->getLoggingDirectory());
 		} catch (FilesystemException $e) {
 			$prev = $e->getPrevious();
 			if (isset($prev)) {
@@ -127,7 +134,12 @@ class LogsController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("logs")]
 	public function logsFileCommand(CmdContext $context, PFilename $file, ?string $search): void {
-		$filename = $this->logger->getLoggingDirectory() . DIRECTORY_SEPARATOR . $file();
+		$logger = $this->logger;
+		if (!($logger instanceof LoggerWrapper)) {
+			$context->reply("Your current logging driver does not support this command");
+			return;
+		}
+		$filename = $logger->getLoggingDirectory() . DIRECTORY_SEPARATOR . $file();
 		$readsize = ($this->settingManager->getInt('max_blob_size')??10000) - 500;
 
 		try {

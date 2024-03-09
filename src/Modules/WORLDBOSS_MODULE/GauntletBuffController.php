@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	EventManager,
-	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
@@ -31,6 +30,7 @@ use Nadybot\Modules\TIMERS_MODULE\{
 	TimerController,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
+use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use Throwable;
 
@@ -58,9 +58,6 @@ use Throwable;
 class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public const SIDE_NONE = 'none';
 	public const GAUNTLET_API = "https://timers.aobots.org/api/v1.1/gaubuffs";
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** Times to display gaubuff timer alerts */
 	#[NCA\Setting\Text(
@@ -122,6 +119,9 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		],
 	)]
 	public string $gauntletSetNotification = "Gauntletbuff timer for {c-side} has been set and expires at {c-expiry}.";
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;

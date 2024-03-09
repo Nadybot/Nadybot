@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	Nadybot,
 	QueueInterface,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Tyrence (RK2)
@@ -25,7 +26,7 @@ use Nadybot\Core\{
 ]
 class SendTellController extends ModuleInstance {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;
@@ -38,7 +39,9 @@ class SendTellController extends ModuleInstance {
 			$context->reply("The character <highlight>{$character}<end> does not exist.");
 			return;
 		}
-		$this->logger->logChat("Out. Msg.", $character(), $message);
+		if ($this->logger instanceof LoggerWrapper) {
+			$this->logger->logChat("Out. Msg.", $character(), $message);
+		}
 		$this->chatBot->sendRawTell($uid, $message, QueueInterface::PRIORITY_MED);
 		$context->reply("Message has been sent to <highlight>{$character}<end>.");
 	}

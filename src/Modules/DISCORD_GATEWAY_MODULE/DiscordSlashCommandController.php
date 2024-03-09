@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	CommandManager,
 	DB,
 	DBSchema\CmdCfg,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	Modules\DISCORD\DiscordAPIClient,
@@ -32,6 +31,7 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	ApplicationCommandOption,
 	Interaction,
 };
+use Psr\Log\LoggerInterface;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -61,9 +61,6 @@ class DiscordSlashCommandController extends ModuleInstance {
 	public const APP_TYPE_OPT_PARAMS = 1;
 	public const APP_TYPE_REQ_PARAMS = 2;
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** How to handle Discord Slash-commands */
 	#[NCA\Setting\Options(options: [
 		"Disable" => 0,
@@ -71,6 +68,9 @@ class DiscordSlashCommandController extends ModuleInstance {
 		"Make request and reply private" => 2,
 	])]
 	public int $discordSlashCommands = self::SLASH_EPHEMERAL;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private CommandManager $cmdManager;

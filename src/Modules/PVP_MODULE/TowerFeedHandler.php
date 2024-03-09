@@ -5,7 +5,8 @@ namespace Nadybot\Modules\PVP_MODULE;
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{Event as CoreEvent, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance};
+use Nadybot\Core\{Event as CoreEvent, EventFeedHandler, EventManager, ModuleInstance};
+use Psr\Log\LoggerInterface;
 
 #[
 	NCA\Instance,
@@ -17,7 +18,7 @@ use Nadybot\Core\{Event as CoreEvent, EventFeedHandler, EventManager, LoggerWrap
 ]
 class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private EventManager $eventManager;

@@ -4,13 +4,14 @@ namespace Nadybot\Modules\HIGHNET_MODULE\Migrations;
 
 use Nadybot\Core\DBSchema\{RouteHopColor, RouteHopFormat};
 use Nadybot\Core\Routing\Source;
-use Nadybot\Core\{Attributes as NCA, Config\BotConfig, DB, LoggerWrapper, MessageHub, SchemaMigration};
+use Nadybot\Core\{Attributes as NCA, Config\BotConfig, DB, MessageHub, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class InitializeRouting implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$hops = ["web", strlen($this->config->general->orgName) ? "aoorg" : "aopriv({$this->config->main->character})"];
 		foreach ($hops as $hop) {
 			$route = [

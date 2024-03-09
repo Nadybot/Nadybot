@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	CommandManager,
 	CommandReply,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	ParamClass\PWord,
 	QueryBuilder,
@@ -41,9 +40,6 @@ use Nadybot\Modules\SKILLS_MODULE\{
 	),
 ]
 class WhatBuffsController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** How to mark if an item can only be equipped left or right */
 	#[NCA\Setting\Options(options: [
 		'Do not mark' => 0,
@@ -67,6 +63,7 @@ class WhatBuffsController extends ModuleInstance {
 		'Nodrop' => 2,
 	])]
 	public int $whatbuffsShowNodrop = 0;
+
 	#[NCA\Inject]
 	private Text $text;
 

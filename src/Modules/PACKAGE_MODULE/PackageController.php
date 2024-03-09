@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PWord,
@@ -22,6 +21,7 @@ use Nadybot\Core\{
 	UserException,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
+use Psr\Log\LoggerInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Safe\Exceptions\{DirException, FilesystemException, JsonException};
@@ -51,7 +51,7 @@ class PackageController extends ModuleInstance {
 	public const API = "https://pkg.aobots.org/api";
 
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;

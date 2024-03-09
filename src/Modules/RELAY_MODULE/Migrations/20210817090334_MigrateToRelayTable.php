@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	DBSchema\RouteModifierArgument,
 	DBSchema\Setting,
 	EventManager,
-	LoggerWrapper,
 	MessageHub,
 	Modules\CONFIG\ConfigController,
 	Routing\Source,
@@ -24,6 +23,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayLayer,
 	RelayLayerArgument,
 };
+use Psr\Log\LoggerInterface;
 
 class MigrateToRelayTable implements SchemaMigration {
 	protected string $prefix = "";
@@ -42,7 +42,7 @@ class MigrateToRelayTable implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$relay = $this->migrateRelay($db);
 		if (isset($relay)) {
 			$this->configController->toggleEvent("connect", "relaycontroller.loadRelays", true);

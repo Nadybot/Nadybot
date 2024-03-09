@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\BANK_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateBankTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "bank";
 		if ($db->schema()->hasTable($table)) {
 			return;

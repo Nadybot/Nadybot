@@ -18,12 +18,12 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	Registry,
 	Socket,
 	Socket\AsyncSocket,
 };
+use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionFunction;
@@ -40,9 +40,6 @@ use Safe\Exceptions\{FilesystemException, OpensslException, StreamException, Url
 class WebserverController extends ModuleInstance {
 	public const AUTH_AOAUTH = "aoauth";
 	public const AUTH_BASIC = "webauth";
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** Enable webserver */
 	#[NCA\Setting\Boolean(accessLevel: 'superadmin')]
@@ -110,6 +107,9 @@ class WebserverController extends ModuleInstance {
 	protected AsyncSocket $asyncSocket;
 
 	protected ?string $aoAuthPubKey = null;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;

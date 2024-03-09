@@ -6,11 +6,13 @@ use function Safe\preg_match_all;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
+use Psr\Log\LoggerInterface;
 
 #[NCA\Instance]
 class Text {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private BotConfig $config;
 

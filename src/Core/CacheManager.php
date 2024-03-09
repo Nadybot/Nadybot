@@ -8,6 +8,7 @@ use Exception;
 use Nadybot\Core\Attributes as NCA;
 
 use Nadybot\Core\Config\BotConfig;
+use Psr\Log\LoggerInterface;
 
 /**
  * Read-through cache to URLs
@@ -15,7 +16,7 @@ use Nadybot\Core\Config\BotConfig;
 #[NCA\Instance]
 class CacheManager {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;

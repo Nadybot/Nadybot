@@ -3,11 +3,12 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 class CreatePlayersTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "players";
 		if ($db->schema()->hasTable($table)) {
 			// Delete entries with duplicate entries

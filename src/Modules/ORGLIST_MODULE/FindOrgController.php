@@ -18,12 +18,12 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	Event,
-	LoggerWrapper,
 	ModuleInstance,
 	SQLException,
 	Text,
 	UserException,
 };
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -39,9 +39,6 @@ use Throwable;
 	)
 ]
 class FindOrgController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** How many parallel downloads to use for downloading the orglist */
 	#[NCA\Setting\Number]
 	public int $numOrglistDlJobs = 5;
@@ -56,6 +53,10 @@ class FindOrgController extends ModuleInstance {
 	public string $orglistPorkUrl = PlayerManager::BORK_URL;
 
 	protected bool $ready = false;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 

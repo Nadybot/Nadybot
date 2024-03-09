@@ -3,12 +3,13 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Exception;
-use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
+use Nadybot\Core\{Attributes as NCA};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
 	RelayMessage,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  *	on every message, so even if one was cracked, the rest is still secure.
@@ -33,13 +34,13 @@ use Nadybot\Modules\RELAY_MODULE\{
 ]
 class AesGcmEncryption implements RelayLayerInterface {
 	public const CIPHER = "aes-256-gcm";
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 	protected string $password;
 	protected int $ivLength;
 
 	protected Relay $relay;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	public function __construct(string $password) {
 		$this->password = \Safe\openssl_digest($password, 'SHA256', true);

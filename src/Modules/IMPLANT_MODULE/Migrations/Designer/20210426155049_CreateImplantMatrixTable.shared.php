@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\IMPLANT_MODULE\Migrations\Designer;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateImplantMatrixTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "ImplantMatrix";
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function (Blueprint $table): void {

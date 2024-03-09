@@ -2,14 +2,15 @@
 
 namespace Nadybot\Core\Socket;
 
+use AO\Internal\BinaryString;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
-	LoggerWrapper,
 	SocketManager,
 	SocketNotifier,
 };
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Throwable;
 
@@ -26,9 +27,6 @@ class AsyncSocket {
 	public const STATE_READY = 1;
 	public const STATE_CLOSING = 2;
 	public const STATE_CLOSED = 3;
-
-	#[NCA\Logger("Core/AsyncSocket")]
-	public LoggerWrapper $logger;
 
 	/**
 	 * @var ?resource
@@ -55,6 +53,9 @@ class AsyncSocket {
 	protected int $writeTries = 0;
 	protected int $timeout = 5;
 	protected int $state = self::STATE_READY;
+
+	#[NCA\Logger("Core/AsyncSocket")]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private SocketManager $socketManager;
@@ -386,26 +387,9 @@ class AsyncSocket {
 		if (strlen($data) === 0) {
 			return true;
 		}
-		// This can be cost intensive to calculate, so only do it if really needed
-		if ($this->logger->isEnabledFor('TRACE')) {
-			$this->logger->debug(
-				'Writing "'.
-				preg_replace_callback(
-					"/[^\32-\126]/",
-					function (array $match): string {
-						if ($match[0] === "\r") {
-							return "\\r";
-						}
-						if ($match[0] === "\n") {
-							return "\\n";
-						}
-						return "\\" . sprintf("%02X", ord($match[0]));
-					},
-					$data
-				).
-				'"'
-			);
-		}
+		$this->logger->debug('Writing "{data}"', [
+			"data" => new BinaryString($data),
+		]);
 		// @phpstan-ignore-next-line
 		$written = is_resource($this->socket) ? \Safe\fwrite($this->socket, $data, 4096) : false;
 		if ($written === false) {

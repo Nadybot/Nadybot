@@ -8,18 +8,18 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\RouteHopColor,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
+use Psr\Log\LoggerInterface;
 
 class MigrateRelayColors implements SchemaMigration {
 	#[NCA\Inject]
 	private SettingManager $settingManager;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$relayType = $this->getSetting($db, "relaytype");
 		$relayBot = $this->getSetting($db, "relaybot");
 		if (isset($relayType, $relayBot)   && $relayBot->value !== 'Off') {

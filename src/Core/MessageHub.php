@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Routing\RoutableEvent,
 	Routing\Source,
 };
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
@@ -38,9 +39,6 @@ class MessageHub {
 	/** @var array<string,ClassSpec> */
 	public array $modifiers = [];
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** @var Collection<RouteHopColor> */
 	public static Collection $colors;
 
@@ -57,6 +55,9 @@ class MessageHub {
 
 	/** @var array<string,array<string,MessageRoute[]>> */
 	protected array $routes = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Text $text;

@@ -23,13 +23,13 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	Config\BotConfig,
-	LoggerWrapper,
 	ModuleInstance,
 	Nadybot,
 	Registry,
 	Routing\Source,
 	UserException,
 };
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 
 #[NCA\Instance]
@@ -44,7 +44,7 @@ class MgmtInterfaceController extends ModuleInstance {
 	public string $mgmtInterface = self::TYPE_NONE;
 
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private BotConfig $config;

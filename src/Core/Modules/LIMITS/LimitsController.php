@@ -19,7 +19,6 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DBSchema\Audit,
 	DBSchema\Player,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	Modules\BAN\BanController,
@@ -29,6 +28,7 @@ use Nadybot\Core\{
 	UserException,
 	Util,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Tyrence (RK2)
@@ -38,9 +38,6 @@ class LimitsController extends ModuleInstance {
 	public const ALL = 3;
 	public const FAILURE = 2;
 	public const SUCCESS = 1;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** Minimum level required to send tell to bot */
 	#[NCA\Setting\Number(options: [0, 10, 50, 100, 150, 190, 205, 215])]
@@ -109,6 +106,9 @@ class LimitsController extends ModuleInstance {
 
 	/** @var array<string,int> */
 	public array $ignoreList = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;

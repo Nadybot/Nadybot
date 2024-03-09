@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
-	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
@@ -37,6 +36,7 @@ use Nadybot\Modules\{
 	ORGLIST_MODULE\Organization,
 	PVP_MODULE\Event\TowerAttack,
 };
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -89,9 +89,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	public const ATT_CLAN = 4;
 	public const ATT_OMNI = 8;
 	public const ATT_NEUTRAL = 16;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** Tracker logon-message */
 	#[NCA\DefineSetting(
@@ -163,6 +160,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		]
 	)]
 	public int $trackerAutoUntrack = 0;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Text $text;

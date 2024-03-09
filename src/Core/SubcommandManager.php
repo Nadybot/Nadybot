@@ -9,14 +9,16 @@ use Nadybot\Core\{
 	DBSchema\CmdCfg,
 	DBSchema\CmdPermission,
 };
+use Psr\Log\LoggerInterface;
 
 #[NCA\Instance]
 class SubcommandManager {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** @var array<string,CmdCfg[]> */
 	public array $subcommands = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private DB $db;
 

@@ -5,15 +5,15 @@ namespace Nadybot\Core\Migrations;
 use Nadybot\Core\{
 	DB,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
+use Psr\Log\LoggerInterface;
 
 class ConvertBroadcastsToRoutes implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "broadcast_<myname>";
 		if (!$db->schema()->hasTable($table)) {
 			return;

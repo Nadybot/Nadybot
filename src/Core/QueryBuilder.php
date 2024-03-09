@@ -11,15 +11,18 @@ use Nadybot\Core\Attributes as NCA;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
 use Throwable;
 
 class QueryBuilder extends Builder {
+	#[NCA\Inject]
 	public DB $nadyDB;
 
-	public LoggerWrapper $logger;
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	/**
 	 * @template T

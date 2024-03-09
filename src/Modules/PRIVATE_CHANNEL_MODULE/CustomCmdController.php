@@ -11,12 +11,12 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	SettingEvent,
 	Text,
 	UserException,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Nadyita (RK5)
@@ -27,9 +27,6 @@ use Nadybot\Core\{
 class CustomCmdController extends ModuleInstance {
 	public const OFF = "off";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	#[NCA\Setting\Text(
 		options: [
 			self::OFF,
@@ -38,6 +35,9 @@ class CustomCmdController extends ModuleInstance {
 	)]
 	/** Directory in which to search for custom textfile commands */
 	public string $customCmdDir = self::OFF;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Text $text;

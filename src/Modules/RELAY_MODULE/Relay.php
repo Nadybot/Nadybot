@@ -6,11 +6,9 @@ use function Amp\async;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
-	LoggerWrapper,
 	MessageHub,
 	MessageReceiver,
 	Modules\PLAYER_LOOKUP\PlayerManager,
-	Nadybot,
 	Routing\RoutableEvent,
 	Routing\Source,
 	SettingManager,
@@ -22,15 +20,13 @@ use Nadybot\Modules\{
 	RELAY_MODULE\Transport\TransportInterface,
 	WEBSERVER_MODULE\StatsController,
 };
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 
 class Relay implements MessageReceiver {
 	public const ALLOW_NONE = 0;
 	public const ALLOW_IN = 1;
 	public const ALLOW_OUT = 2;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 	public bool $registerAsReceiver = true;
 	public bool $registerAsEmitter = true;
 
@@ -63,11 +59,11 @@ class Relay implements MessageReceiver {
 	protected bool $initialized = false;
 	protected int $initStep = 0;
 
-	#[NCA\Inject]
-	private MessageHub $messageHub;
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
+	private MessageHub $messageHub;
 
 	#[NCA\Inject]
 	private BotConfig $config;

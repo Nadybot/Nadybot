@@ -18,8 +18,6 @@ class Util {
 	/** @var string */
 	public const DATE = "d-M-Y";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 	#[NCA\Inject]
 	private BotConfig $config;
 

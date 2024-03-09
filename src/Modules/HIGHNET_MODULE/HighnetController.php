@@ -25,7 +25,6 @@ use Nadybot\Core\{
 	EventFeedHandler,
 	EventManager,
 	Highway,
-	LoggerWrapper,
 	LowLevelEventFeedEvent,
 	MessageHub,
 	ModuleInstance,
@@ -34,6 +33,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Nadyita (RK5)
@@ -83,9 +83,6 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	];
 	public const DB_TABLE = "highnet_filter_<myname>";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Enable incoming and outgoing Highnet messages */
 	#[NCA\Setting\Boolean]
 	public bool $highnetEnabled = true;
@@ -107,7 +104,11 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	/** @var string[] */
 	public array $channels = [];
 
+	/** @var Collection<FilterEntry> */
 	public Collection $filters;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;

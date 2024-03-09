@@ -5,15 +5,15 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 use Nadybot\Core\{
 	DB,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
+use Psr\Log\LoggerInterface;
 
 class MigrateVoiceStateToRoutes implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$setting = $this->getSetting($db, 'discord_notify_voice_changes');
 		if (!isset($setting) || !isset($setting->value)) {
 			return;

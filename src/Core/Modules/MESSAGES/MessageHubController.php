@@ -19,7 +19,6 @@ use Nadybot\Core\{
 	DBSchema\RouteHopFormat,
 	DBSchema\RouteModifier,
 	DBSchema\RouteModifierArgument,
-	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	MessageRoute,
@@ -28,10 +27,10 @@ use Nadybot\Core\{
 	ParamClass\PColor,
 	ParamClass\PRemove,
 	Routing\Source,
-	SettingManager,
 	Text,
 	Util,
 };
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
 use Safe\Exceptions\JsonException;
@@ -51,9 +50,6 @@ use Throwable;
 	)
 ]
 class MessageHubController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** How to render the sender's name of routed messages */
 	#[NCA\Setting\Template(
 		options: [
@@ -68,8 +64,9 @@ class MessageHubController extends ModuleInstance {
 		help: 'routed_sender_format.txt',
 	)]
 	public string $routedSenderFormat = "{char}";
-	#[NCA\Inject]
-	private SettingManager $settingManager;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private MessageHub $messageHub;

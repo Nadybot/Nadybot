@@ -6,19 +6,19 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
 use Nadybot\Modules\CITY_MODULE\CityWaveController;
+use Psr\Log\LoggerInterface;
 
 class MigrateWaveToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private CityWaveController $cityWaveController;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$channel = $this->getSetting($db, "city_wave_announce");
 		if (!isset($channel)) {
 			$channel = new Setting();

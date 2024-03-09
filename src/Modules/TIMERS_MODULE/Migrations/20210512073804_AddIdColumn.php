@@ -4,12 +4,13 @@ namespace Nadybot\Modules\TIMERS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
+use Psr\Log\LoggerInterface;
 use stdClass;
 
 class AddIdColumn implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = TimerController::DB_TABLE;
 		$data = $db->schema()->hasTable($table) ? $db->table($table)->get() : new Collection();
 		$db->schema()->dropIfExists($table);

@@ -6,7 +6,6 @@ use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
-	LoggerWrapper,
 	Nadybot,
 	Routing\Character,
 	Routing\Events\Online,
@@ -27,6 +26,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayMessage,
 };
+use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use Throwable;
 
@@ -46,14 +46,15 @@ use Throwable;
 	)
 ]
 class Tyrbot implements RelayProtocolInterface {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 
 	protected Relay $relay;
 
 	/** Do we want to sync online users? */
 	protected bool $syncOnline = true;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;

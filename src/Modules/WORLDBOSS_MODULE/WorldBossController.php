@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	ParamClass\PDuration,
@@ -28,6 +27,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\HELPBOT_MODULE\{PlayfieldController};
+use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use Throwable;
 
@@ -231,9 +231,6 @@ class WorldBossController extends ModuleInstance {
 
 	public HttpClientBuilder $http;
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 
 	/** How to show spawn and vulnerability events */
 	#[NCA\Setting\Options(options: [
@@ -324,6 +321,9 @@ class WorldBossController extends ModuleInstance {
 
 	/** @var WorldBossTimer[] */
 	public array $timers = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;

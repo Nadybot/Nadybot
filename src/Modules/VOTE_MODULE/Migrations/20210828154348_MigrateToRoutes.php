@@ -7,13 +7,13 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
 use Nadybot\Modules\VOTE_MODULE\VoteController;
+use Psr\Log\LoggerInterface;
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
@@ -22,7 +22,7 @@ class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "vote_channel_spam");
 		if (!isset($showWhere)) {

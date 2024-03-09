@@ -4,11 +4,12 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\DBSchema\Audit;
-use Nadybot\Core\{AccessManager, DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{AccessManager, DB, SchemaMigration};
 use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
+use Psr\Log\LoggerInterface;
 
 class AddMemberDetails implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = PrivateChannelController::DB_TABLE;
 		$db->table($table)->whereNull("autoinv")->update(["autoinv" => 0]);
 		$db->schema()->table($table, function (Blueprint $table) {

@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Route,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Modules\DISCORD\DiscordAPIClient,
 	Modules\DISCORD\DiscordChannel,
@@ -18,6 +17,7 @@ use Nadybot\Core\{
 	SettingManager,
 };
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
@@ -33,7 +33,7 @@ class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "show_tracker_events");
 		if (!isset($showWhere)) {

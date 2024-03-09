@@ -4,10 +4,11 @@ namespace Nadybot\Core\Modules\BAN\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Modules\BAN\BanController;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateBanlistTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = BanController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;

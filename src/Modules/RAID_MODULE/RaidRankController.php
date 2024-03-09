@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	DBSchema\Audit,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\ADMIN\AdminController,
 	Modules\ALTS\AltEvent,
@@ -25,6 +24,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+use Psr\Log\LoggerInterface;
 
 #[
 	NCA\Instance,
@@ -49,9 +49,6 @@ use Nadybot\Core\{
 ]
 class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "raid_rank_<myname>";
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** Number of raid ranks below your own you can manage */
 	#[NCA\Setting\Number]
@@ -101,6 +98,9 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 
 	/** @var array<string,RaidRank> */
 	public array $ranks = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private SettingManager $settingManager;

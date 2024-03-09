@@ -4,13 +4,14 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\Routing\Source;
-use Nadybot\Core\{Attributes as NCA, Config\BotConfig, DB, LoggerWrapper, MessageHub, SchemaMigration};
+use Nadybot\Core\{Attributes as NCA, Config\BotConfig, DB, MessageHub, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class LockReminderToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$route = new Route();
 		$route->source = Source::SYSTEM . "(lock-reminder)";
 		$route->destination = Source::PRIV . "({$this->config->main->character})";

@@ -4,10 +4,11 @@ namespace Nadybot\Modules\PVP_MODULE\Migrations;
 
 use Nadybot\Core\DBSchema\{RouteHopColor, RouteHopFormat};
 use Nadybot\Core\Routing\Source;
-use Nadybot\Core\{DB, LoggerWrapper, MessageHub, SchemaMigration};
+use Nadybot\Core\{DB, MessageHub, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class AddRoutingLayoutAndColors implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		if ($db->table(Source::DB_TABLE)->whereIlike("hop", "pvp%")->exists()) {
 			return;
 		}

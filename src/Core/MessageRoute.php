@@ -5,16 +5,16 @@ namespace Nadybot\Core;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\Routing\RoutableEvent;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 class MessageRoute {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	protected Route $route;
 
 	/** @var EventModifier[] */
 	protected array $modifiers = [];
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	public function __construct(Route $route) {
 		$this->route = $route;

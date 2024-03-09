@@ -2,10 +2,11 @@
 
 namespace Nadybot\Core\Migrations;
 
-use Nadybot\Core\{CommandManager, DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{CommandManager, DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class DropCmdCfgHelpFile implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = CommandManager::DB_TABLE;
 		$db->schema()->dropColumns($table, "help");
 	}

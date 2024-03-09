@@ -2,10 +2,11 @@
 
 namespace Nadybot\Core\Migrations;
 
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class ConvertAriaTables implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		if ($db->getType() !== DB\Type::MySQL) {
 			return;
 		}

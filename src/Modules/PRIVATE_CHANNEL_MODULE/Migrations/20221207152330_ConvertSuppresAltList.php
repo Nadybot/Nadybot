@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
 use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration, SettingManager};
+use Nadybot\Core\{DB, SchemaMigration, SettingManager};
+use Psr\Log\LoggerInterface;
 
 class ConvertSuppresAltList implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = SettingManager::DB_TABLE;
 		if (!$db->schema()->hasTable($table)) {
 			return;

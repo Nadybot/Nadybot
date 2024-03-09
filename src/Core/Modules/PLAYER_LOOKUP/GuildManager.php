@@ -21,10 +21,10 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
-	LoggerWrapper,
 	ModuleInstance,
 	Nadybot,
 };
+use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 
 /**
@@ -33,7 +33,8 @@ use Safe\Exceptions\JsonException;
 #[NCA\Instance]
 class GuildManager extends ModuleInstance {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 

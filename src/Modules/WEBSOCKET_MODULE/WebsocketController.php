@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	Channels\WebChannel,
 	Event,
 	EventManager,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	PackageEvent,
@@ -24,7 +23,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Request,
 	Response,
 };
-
+use Psr\Log\LoggerInterface;
 use Throwable;
 use TypeError;
 
@@ -39,15 +38,16 @@ use TypeError;
 	NCA\ProvidesEvent("websocket(event)")
 ]
 class WebsocketController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Enable the websocket handler */
 	#[NCA\Setting\Boolean]
 	public bool $websocket = true;
 
 	/** @var array<string,WebsocketServer> */
 	protected array $clients = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private EventManager $eventManager;
 

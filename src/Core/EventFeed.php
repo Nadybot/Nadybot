@@ -13,6 +13,7 @@ use Amp\Websocket\{PeriodicHeartbeatQueue, WebsocketCloseCode, WebsocketClosedEx
 use AssertionError;
 use Closure;
 use Nadybot\Core\Attributes as NCA;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Safe\Exceptions\JsonException;
 use Throwable;
@@ -32,13 +33,13 @@ class EventFeed {
 	public const URI = "wss://ws.nadybot.org";
 	public const RECONNECT_DELAY = 5;
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** @var array<string,EventFeedHandler[]> */
 	public array $roomHandlers = [];
 
 	public ?Highway\Connection $connection=null;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private HttpClientBuilder $clientBuilder;

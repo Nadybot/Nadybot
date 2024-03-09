@@ -6,18 +6,18 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
+use Psr\Log\LoggerInterface;
 
 class ConvertCmdMgrErrorToMsg implements SchemaMigration {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
 		$errToOrg = $this->getSetting($db, "access_denied_notify_guild");
 		$errToPriv = $this->getSetting($db, "access_denied_notify_priv");

@@ -4,7 +4,6 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Character,
 	Routing\Events\Base,
@@ -17,6 +16,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayMessage,
 };
+use Psr\Log\LoggerInterface;
 
 #[
 	NCA\RelayProtocol(
@@ -54,8 +54,6 @@ use Nadybot\Modules\RELAY_MODULE\{
 	)
 ]
 class AgcrProtocol implements RelayProtocolInterface {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 	protected static int $supportedFeatures = self::F_NONE;
 
 	protected Relay $relay;
@@ -64,6 +62,9 @@ class AgcrProtocol implements RelayProtocolInterface {
 	protected string $prefix = "!";
 	protected bool $forceSingleHop = false;
 	protected bool $sendUserLinks = true;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private MessageHub $messageHub;

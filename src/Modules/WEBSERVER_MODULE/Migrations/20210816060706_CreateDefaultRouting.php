@@ -6,11 +6,11 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DB,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 };
+use Psr\Log\LoggerInterface;
 
 class CreateDefaultRouting implements SchemaMigration {
 	#[NCA\Inject]
@@ -19,7 +19,7 @@ class CreateDefaultRouting implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
 		$route = [
 			"source" => "web",

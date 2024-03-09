@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	Event,
 	EventManager,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\DISCORD\DiscordMessageIn,
 	Nadybot,
@@ -31,7 +30,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
-
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 
 /**
@@ -51,9 +50,6 @@ use Revolt\EventLoop;
 	),
 ]
 class TestController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Show test commands as they are executed */
 	#[NCA\Setting\Boolean]
 	public bool $showTestCommands = false;
@@ -63,6 +59,10 @@ class TestController extends ModuleInstance {
 	public bool $showTestResults = false;
 
 	public string $path = __DIR__ . "/tests/";
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private SettingManager $settingManager;
 
@@ -106,7 +106,6 @@ class TestController extends ModuleInstance {
 			if (!$this->showTestResults) {
 				$testContext->sendto = new MockCommandReply($line, $logFile);
 				Registry::injectDependencies($testContext->sendto);
-				$testContext->sendto->logger = $this->logger;
 			}
 		}
 		$testContext->message = substr($line, 1);

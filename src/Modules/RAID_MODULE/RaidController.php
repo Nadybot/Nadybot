@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -41,6 +40,7 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	WEBSERVER_MODULE\StatsController,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * This class contains all functions necessary to start, stop and resume a raid
@@ -86,9 +86,6 @@ class RaidController extends ModuleInstance {
 
 	public const ERR_NO_RAID = "There's currently no raid running.";
 	public const CAT_RAID = "raid";
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** Announce the raid periodically */
 	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
@@ -141,6 +138,9 @@ class RaidController extends ModuleInstance {
 
 	/** The currently running raid or null if none running */
 	public ?Raid $raid = null;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;

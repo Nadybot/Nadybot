@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	DBSchema\Admin,
 	DBSchema\LastOnline,
 	Event,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
@@ -25,6 +24,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Psr\Log\LoggerInterface;
 
 #[
 	NCA\Instance,
@@ -50,7 +50,8 @@ use Nadybot\Core\{
 ]
 class AdminController extends ModuleInstance {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private AdminManager $adminManager;
 

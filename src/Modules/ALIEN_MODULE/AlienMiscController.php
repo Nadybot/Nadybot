@@ -7,7 +7,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	ParamClass\PWord,
 	Text,
@@ -48,8 +47,6 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 	)
 ]
 class AlienMiscController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 	#[NCA\Inject]
 	private DB $db;
 

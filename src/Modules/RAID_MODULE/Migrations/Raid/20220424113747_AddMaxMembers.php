@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\RAID_MODULE\Migrations\Raid;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidController;
+use Psr\Log\LoggerInterface;
 
 class AddMaxMembers implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaidController::DB_TABLE;
 		$db->schema()->table($table, function (Blueprint $table) {
 			$table->unsignedInteger("max_members")->nullable(true);

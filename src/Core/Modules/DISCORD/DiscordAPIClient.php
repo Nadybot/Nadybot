@@ -11,10 +11,10 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	HttpRetryRateLimits,
 	JSONDataModel,
-	LoggerWrapper,
 	ModuleInstance,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{ApplicationCommand, Emoji, GuildMember};
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use RuntimeException;
 use Safe\Exceptions\JsonException;
@@ -27,9 +27,6 @@ use Throwable;
 #[NCA\Instance]
 class DiscordAPIClient extends ModuleInstance {
 	public const DISCORD_API = "https://discord.com/api/v10";
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** @var ChannelQueueItem[] */
 	protected array $outQueue = [];
@@ -44,6 +41,9 @@ class DiscordAPIClient extends ModuleInstance {
 
 	/** @var array<string,DiscordUser> */
 	protected $userCache = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DiscordController $discordCtrl;

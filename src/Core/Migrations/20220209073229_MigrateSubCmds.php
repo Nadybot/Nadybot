@@ -6,7 +6,6 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
-	LoggerWrapper,
 	SchemaMigration,
 };
 use Nadybot\Modules\{
@@ -25,9 +24,10 @@ use Nadybot\Modules\{
 	RAID_MODULE\RaidPointsController,
 	WORLDBOSS_MODULE\WorldBossController,
 };
+use Psr\Log\LoggerInterface;
 
 class MigrateSubCmds implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$deletedAliases = [
 			"bid start",
 			"bid end",
@@ -88,13 +88,13 @@ class MigrateSubCmds implements SchemaMigration {
 		}
 	}
 
-	protected function deleteAlias(DB $db, LoggerWrapper $logger, string $alias): void {
+	protected function deleteAlias(DB $db, LoggerInterface $logger, string $alias): void {
 		$db->table(CommandAlias::DB_TABLE)
 			->where("alias", $alias)
 			->delete();
 	}
 
-	protected function migrateSubCmdRights(DB $db, LoggerWrapper $logger, string $old, string $new): void {
+	protected function migrateSubCmdRights(DB $db, LoggerInterface $logger, string $old, string $new): void {
 		$db->table(CommandManager::DB_TABLE)
 			->where('cmd', $old)
 			->update([

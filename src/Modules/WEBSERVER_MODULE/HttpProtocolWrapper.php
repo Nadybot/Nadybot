@@ -3,14 +3,15 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Amp\File\Filesystem;
+use AO\Internal\BinaryString;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventManager,
-	LoggerWrapper,
 	SettingManager,
 	Socket\AsyncSocket,
 };
+use Psr\Log\LoggerInterface;
 use Safe\DateTime;
 use Safe\Exceptions\FilesystemException;
 use stdClass;
@@ -36,13 +37,13 @@ class HttpProtocolWrapper {
 	public const EXPECT_IGNORE = 5;
 	public Request $request;
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	protected AsyncSocket $asyncSocket;
 
 	protected string $readQueue = "";
 	protected int $nextPart = self::EXPECT_REQUEST;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private WebserverController $webserverController;
@@ -303,11 +304,9 @@ class HttpProtocolWrapper {
 			$this->nextPart = static::EXPECT_DONE;
 			$this->request->received = microtime(true);
 			$this->logger->debug('Body fully read');
-			if ($this->logger->isEnabledFor('TRACE')) {
-				$this->logger->debug(
-					'Read data: ' . $this->dataToLogString($this->request->body)
-				);
-			}
+			$this->logger->debug('Read data: {data}', [
+				"data" => new BinaryString($this->request->body),
+			]);
 		}
 	}
 
@@ -384,34 +383,16 @@ class HttpProtocolWrapper {
 			return null;
 		}
 		$trimmedData = rtrim($buffer);
-		// This can be cost intensive to calculate, so only do it if really needed
-		if ($this->logger->isEnabledFor('TRACE')) {
-			$this->logger->debug(
-				'Read data: ' . $this->dataToLogString($buffer)
-			);
-		}
+
+		$this->logger->debug('Read data: {data}', [
+			"data" => new BinaryString($buffer),
+		]);
 		if (strlen($buffer) > 4096) {
 			$this->logger->info('Line was longer than the allowed length of 4096 bytes');
 			$this->httpError(new Response(Response::REQUEST_HEADER_FIELDS_TOO_LARGE));
 			return null;
 		}
 		return $trimmedData;
-	}
-
-	protected function dataToLogString(string $data): string {
-		return '"' . preg_replace_callback(
-			"/[^\x20-\x7E]/",
-			function (array $match): string {
-				if ($match[0] === "\r") {
-					return "\\r";
-				}
-				if ($match[0] === "\n") {
-					return "\\n";
-				}
-				return "\\" . sprintf("%02X", ord($match[0]));
-			},
-			$data
-		) . '"';
 	}
 
 	/** Check if the client already has the latest version of the data */

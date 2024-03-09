@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	CommandHandler,
 	CommandManager,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\SYSTEM\SystemController,
 	Nadybot,
@@ -22,6 +21,7 @@ use Nadybot\Core\{
 	Text,
 };
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
+use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionFunction;
@@ -42,15 +42,16 @@ use Throwable;
 class ApiController extends ModuleInstance {
 	public const DB_TABLE = "api_key_<myname>";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Enable REST API */
 	#[NCA\Setting\Boolean]
 	public bool $api = true;
 
 	/** @var array<array<string,ApiHandler>> */
 	protected array $routes = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private WebserverController $webserverController;
 

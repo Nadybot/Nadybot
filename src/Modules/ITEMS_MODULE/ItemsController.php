@@ -9,13 +9,12 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
-	Nadybot,
 	SettingManager,
 	Text,
 	Util,
 };
+use Psr\Log\LoggerInterface;
 
 #[
 	NCA\Instance,
@@ -38,9 +37,6 @@ use Nadybot\Core\{
 	),
 ]
 class ItemsController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Number of items shown on the list */
 	#[NCA\Setting\Number(options: [30, 40, 50, 60])]
 	public int $maxitems = 40;
@@ -48,11 +44,12 @@ class ItemsController extends ModuleInstance {
 	/** Exclude GM-only items and items which are not in the game */
 	#[NCA\Setting\Boolean]
 	public bool $onlyItemsInGame = true;
-	#[NCA\Inject]
-	private DB $db;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
+	private DB $db;
 
 	#[NCA\Inject]
 	private SettingManager $settingManager;

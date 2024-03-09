@@ -4,18 +4,20 @@ namespace Nadybot\Core;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
+use Psr\Log\LoggerInterface;
 
 #[NCA\Instance]
 class BuddylistManager {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/**
 	 * List of all players on the friendlist, real or just queued up
 	 *
 	 * @var array<int,BuddylistEntry>
 	 */
 	public array $buddyList = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private Nadybot $chatBot;
 

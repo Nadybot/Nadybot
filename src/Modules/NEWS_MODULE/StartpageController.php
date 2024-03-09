@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandReply,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\BAN\BanController,
 	Nadybot,
@@ -31,6 +30,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Response,
 	WebChatConverter,
 };
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionMethod;
 use Throwable;
@@ -49,9 +49,6 @@ use Throwable;
 	),
 ]
 class StartpageController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** The tiles to show on the startpage */
 	#[NCA\Setting\Text(mode: "noedit")]
 	public string $startpageLayout = "";
@@ -70,6 +67,9 @@ class StartpageController extends ModuleInstance {
 
 	/** @var array<string,NewsTile> */
 	protected array $tiles = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Text $text;

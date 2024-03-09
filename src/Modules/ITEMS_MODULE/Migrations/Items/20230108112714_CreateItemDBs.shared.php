@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\ITEMS_MODULE\Migrations\Items;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateItemDBs implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$db->schema()->dropIfExists("aodb");
 		$db->schema()->create("aodb", function (Blueprint $table): void {
 			$table->integer("lowid")->nullable(false)->index();

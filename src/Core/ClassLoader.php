@@ -8,6 +8,7 @@ use Amp\File\{Filesystem, FilesystemException};
 use Directory;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
+use Psr\Log\LoggerInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
@@ -24,15 +25,15 @@ class ClassLoader {
 		"EXPORT_MODULE",
 	];
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/**
 	 * Array of module name => path
 	 *
 	 * @var array<string,string>
 	 */
 	public array $registeredModules = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Filesystem $fs;

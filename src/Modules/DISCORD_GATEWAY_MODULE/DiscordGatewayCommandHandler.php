@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\BAN\BanController,
 	Modules\DISCORD\DiscordAPIClient,
@@ -35,8 +34,6 @@ use Nadybot\Core\{
 class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "discord_mapping_<myname>";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 	#[NCA\Inject]
 	private DB $db;
 

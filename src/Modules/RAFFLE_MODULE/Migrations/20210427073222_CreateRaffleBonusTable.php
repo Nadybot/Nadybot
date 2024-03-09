@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\RAFFLE_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAFFLE_MODULE\RaffleController;
+use Psr\Log\LoggerInterface;
 
 class CreateRaffleBonusTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaffleController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;

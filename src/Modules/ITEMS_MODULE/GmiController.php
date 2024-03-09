@@ -11,7 +11,6 @@ use Nadybot\Core\ParamClass\PItem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	LoggerWrapper,
 	ModuleInstance,
 	Text,
 	UserException,
@@ -31,9 +30,6 @@ use Throwable;
 class GmiController extends ModuleInstance {
 	public const EU_GMI_API = "https://gmi.eu.nadybot.org/v1.0";
 	public const US_GMI_API = "https://gmi.us.nadybot.org/v1.0";
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** GMI API to use */
 	#[NCA\Setting\Text(options: [self::EU_GMI_API, self::US_GMI_API])]

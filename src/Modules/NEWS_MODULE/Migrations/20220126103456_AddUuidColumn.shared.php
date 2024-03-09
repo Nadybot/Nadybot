@@ -6,17 +6,17 @@ use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	LoggerWrapper,
 	SchemaMigration,
 	Util,
 };
+use Psr\Log\LoggerInterface;
 use stdClass;
 
 class AddUuidColumn implements SchemaMigration {
 	#[NCA\Inject]
 	private Util $util;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "news";
 		$db->schema()->table($table, function (Blueprint $table) {
 			$table->string("uuid", 36)->nullable(true);

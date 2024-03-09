@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	DBSchema\EventCfg,
 	Modules\MESSAGES\MessageHubController,
 };
+use Psr\Log\LoggerInterface;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
@@ -23,9 +24,6 @@ class EventManager {
 	public const DB_TABLE = "eventcfg_<myname>";
 	public const PACKET_TYPE_REGEX = '/packet\(\d+\)/';
 	public const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** @var array<string,string[]> */
 	public array $events = [];
@@ -40,6 +38,9 @@ class EventManager {
 	 * @var array<string,array<string,bool>>
 	 */
 	protected array $dontActivateEvents = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

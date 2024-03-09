@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\ITEMS_MODULE\Migrations\Boss;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateBossDBs implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$db->schema()->dropIfExists("boss_lootdb");
 		$db->schema()->create("boss_lootdb", function (Blueprint $table): void {
 			$table->integer("bossid")->index();

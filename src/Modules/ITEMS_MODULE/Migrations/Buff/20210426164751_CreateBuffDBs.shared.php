@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\ITEMS_MODULE\Migrations\Buff;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateBuffDBs implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$db->schema()->dropIfExists("item_buffs");
 		$db->schema()->create("item_buffs", function (Blueprint $table): void {
 			$table->integer("item_id")->index();

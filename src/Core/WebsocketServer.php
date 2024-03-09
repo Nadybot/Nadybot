@@ -9,14 +9,12 @@ use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use Revolt\EventLoop;
 
 class WebsocketServer extends WebsocketBase {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	public string $uuid;
 
 
 	/** @var string[] */
 	protected array $subscriptions = [];
+
 	#[NCA\Inject]
 	private SocketManager $socketManager;
 

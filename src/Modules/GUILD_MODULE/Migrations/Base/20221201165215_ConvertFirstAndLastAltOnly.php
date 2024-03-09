@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\GUILD_MODULE\Migrations\Base;
 
 use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration, SettingManager};
+use Nadybot\Core\{DB, SchemaMigration, SettingManager};
+use Psr\Log\LoggerInterface;
 
 class ConvertFirstAndLastAltOnly implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = SettingManager::DB_TABLE;
 		if (!$db->schema()->hasTable($table)) {
 			return;

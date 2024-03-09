@@ -3,10 +3,11 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, HelpManager, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, HelpManager, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateHlpcfgTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = HelpManager::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;

@@ -7,18 +7,18 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
+use Psr\Log\LoggerInterface;
 
 class MoveSettingsToHopColors implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$hop = [
 			"tag_color" => $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3",
 			"text_color" => $this->getSettingColor($db, "guest_color_guild") ?? "C3C3C3",

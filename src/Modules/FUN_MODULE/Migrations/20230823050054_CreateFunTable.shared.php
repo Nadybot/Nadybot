@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\FUN_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class AddIdColumn implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "fun";
 		if ($db->schema()->hasTable($table)) {
 			$db->schema()->drop($table);

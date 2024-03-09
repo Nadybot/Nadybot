@@ -7,12 +7,13 @@ use function Amp\{async, delay};
 
 use Amp\Socket\{ConnectContext, ConnectException, Socket};
 use Amp\Websocket\Client\WebsocketConnection;
-use Nadybot\Core\{Attributes as NCA, LoggerWrapper, Registry};
+use Nadybot\Core\{Attributes as NCA, Registry};
 use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
+use Psr\Log\LoggerInterface;
 
 class Connection {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private WebserverController $wsCtrl;

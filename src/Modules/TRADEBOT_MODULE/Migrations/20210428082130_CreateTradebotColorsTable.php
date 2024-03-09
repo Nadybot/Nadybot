@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\TRADEBOT_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\TRADEBOT_MODULE\TradebotController;
+use Psr\Log\LoggerInterface;
 
 class CreateTradebotColorsTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = TradebotController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			$db->schema()->table($table, function (Blueprint $table): void {

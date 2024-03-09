@@ -2,14 +2,15 @@
 
 namespace Nadybot\Modules\PVP_MODULE\Migrations;
 
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\PVP_MODULE\{DBOutcome, DBTowerAttack, NotumWarsController};
+use Psr\Log\LoggerInterface;
 use stdClass;
 
 class ImportExistingAttacksAndVictories implements SchemaMigration {
 	private const CHUNK_SIZE = 100;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$offset = 0;
 		if (!$db->schema()->hasTable("tower_attack_<myname>")) {
 			return;

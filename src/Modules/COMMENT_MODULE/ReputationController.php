@@ -6,7 +6,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	Config\BotConfig,
-	LoggerWrapper,
 	ModuleInstance,
 	ParamClass\PCharacter,
 	ParamClass\PWord,
@@ -28,9 +27,6 @@ use Nadybot\Core\{
 ]
 class ReputationController extends ModuleInstance {
 	public const CAT_REPUTATION = "reputation";
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	#[NCA\Inject]
 	private Text $text;

@@ -2,13 +2,14 @@
 
 namespace Nadybot\Modules\VOTE_MODULE\Migrations;
 
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\VOTE_MODULE\VoteController;
+use Psr\Log\LoggerInterface;
 
 class MigrateFromV1 implements SchemaMigration {
 	public const DB_OLD_VOTE = "vote_<myname>";
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		if (!$db->schema()->hasTable(self::DB_OLD_VOTE)) {
 			return;
 		}

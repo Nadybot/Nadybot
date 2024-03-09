@@ -3,10 +3,11 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{CommandManager, DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{CommandManager, DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateCmdcfgTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = CommandManager::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			$db->schema()->table($table, function (Blueprint $table): void {

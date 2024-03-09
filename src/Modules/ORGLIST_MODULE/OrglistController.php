@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CmdContext,
 	DBSchema\Player,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	Text,
 	UserException,
 };
+use Psr\Log\LoggerInterface;
 use stdClass;
 
 /**
@@ -36,9 +36,6 @@ use stdClass;
 	)
 ]
 class OrglistController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Show offline org members by default */
 	#[NCA\Setting\Boolean]
 	public bool $orglistShowOffline = true;
@@ -54,6 +51,9 @@ class OrglistController extends ModuleInstance {
 		"Faction"    => ["Director",  "Board Member", "Executive",       "Member",         "Applicant"],
 		"Department" => ["President", "General",      "Squad Commander", "Unit Commander", "Unit Leader", "Unit Member", "Applicant"],
 	];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;

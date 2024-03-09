@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\COMMENT_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateCommentsTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "comments_<myname>";
 		if ($db->schema()->hasTable($table)) {
 			$db->schema()->table($table, function (Blueprint $table): void {

@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\WHATLOCKS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateWhatLocksTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "what_locks";
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function (Blueprint $table): void {

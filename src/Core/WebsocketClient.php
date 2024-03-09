@@ -6,19 +6,22 @@ use function Safe\parse_url;
 
 use League\Uri\Uri;
 use Nadybot\Core\Attributes as NCA;
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use RuntimeException;
 
 use Safe\Exceptions\{StreamException};
 
 class WebsocketClient extends WebsocketBase {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 	protected ?string $uri=null;
 
 	/** @var array<string,string> */
 	protected array $headers = [];
 	protected bool $isSSL = false;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private SocketManager $socketManager;
 

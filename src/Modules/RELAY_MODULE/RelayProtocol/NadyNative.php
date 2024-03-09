@@ -9,8 +9,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	EventManager,
-	LoggerWrapper,
-	Nadybot,
 	Routing\Character,
 	Routing\Events\Base,
 	Routing\Events\Online,
@@ -27,6 +25,7 @@ use Nadybot\Modules\{
 	RELAY_MODULE\RelayProtocol\Nadybot\OnlineBlock,
 	RELAY_MODULE\RelayProtocol\Nadybot\OnlineList,
 };
+use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use stdClass;
 use Throwable;
@@ -46,19 +45,17 @@ use Throwable;
 	)
 ]
 class NadyNative implements RelayProtocolInterface {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 	protected static int $supportedFeatures = 3;
 
 	protected Relay $relay;
 
 	protected bool $syncOnline = true;
 
-	#[NCA\Inject]
-	private OnlineController $onlineController;
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
+	private OnlineController $onlineController;
 
 	#[NCA\Inject]
 	private BotConfig $config;

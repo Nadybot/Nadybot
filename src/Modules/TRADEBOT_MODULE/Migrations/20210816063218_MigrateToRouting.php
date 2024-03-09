@@ -7,12 +7,12 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
+use Psr\Log\LoggerInterface;
 
 class MigrateToRouting implements SchemaMigration {
 	#[NCA\Inject]
@@ -21,7 +21,7 @@ class MigrateToRouting implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
 		$tradebot = $this->getSetting($db, 'tradebot');
 		if (!isset($tradebot) || ($tradebot->value === "None")) {

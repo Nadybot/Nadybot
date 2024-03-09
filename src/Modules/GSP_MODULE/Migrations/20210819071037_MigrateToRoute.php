@@ -6,19 +6,19 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
 use Nadybot\Modules\GSP_MODULE\GSPController;
+use Psr\Log\LoggerInterface;
 
 class MigrateToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private GSPController $gspController;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$channel = $this->getSetting($db, "gsp_channels");
 		if (!isset($channel)) {
 			$channel = new Setting();

@@ -8,11 +8,12 @@ use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{AOChatEvent, Attributes as NCA, CmdContext, Config\BotConfig, DB, LoggerWrapper, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
+use Nadybot\Core\{AOChatEvent, Attributes as NCA, CmdContext, Config\BotConfig, DB, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 
 use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfo;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 #[
@@ -48,9 +49,6 @@ class AttacksController extends ModuleInstance {
 		"{?att-org:- {c-att-name} }{?att-level:({c-att-level}/{c-att-ai-level},{?att-gender: {att-gender} {att-breed}} {c-att-profession}{?att-org-rank:, {att-org-rank}})}";
 	private const VICTORY_FMT_NORMAL = "{c-winning-org} won against {c-losing-org} in <highlight>{pf-short} {site-id}<end>";
 	private const ABANDONED_FMT_NORMAL = "{c-losing-org} abandoned <highlight>{pf-short} {site-id}<end>";
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** Display format for tower attacks */
 	#[NCA\Setting\Template(
@@ -362,6 +360,9 @@ class AttacksController extends ModuleInstance {
 	/** Group tower attacks by site, owner and hot-phase */
 	#[NCA\Setting\Boolean]
 	public bool $groupTowerAttacks = true;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private SiteTrackerController $siteTracker;

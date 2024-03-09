@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	Modules\SECURITY\AuditController,
 	Modules\SYSTEM\SystemController,
 };
+use Psr\Log\LoggerInterface;
 use SplObjectStorage;
 
 /**
@@ -34,7 +35,7 @@ class AccessManager {
 	public const SET_MAIN = "set-main";
 
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

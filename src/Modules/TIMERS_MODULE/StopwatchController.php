@@ -6,7 +6,6 @@ use DateTime;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	LoggerWrapper,
 	ModuleInstance,
 };
 
@@ -25,9 +24,6 @@ use Nadybot\Core\{
 	)
 ]
 class StopwatchController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** @var array<string,Stopwatch> */
 	public array $stopwatches = [];
 

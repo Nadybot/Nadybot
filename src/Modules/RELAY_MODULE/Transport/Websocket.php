@@ -25,7 +25,6 @@ use League\Uri\Uri;
 use Nadybot\Core\{
 	Attributes as NCA,
 	LogWrapInterface,
-	LoggerWrapper,
 	Nadybot,
 };
 use Nadybot\Modules\RELAY_MODULE\{
@@ -34,6 +33,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayStatus,
 	StatusProvider,
 };
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Throwable;
 
@@ -62,9 +62,6 @@ use Throwable;
 	)
 ]
 class Websocket implements TransportInterface, StatusProvider, LogWrapInterface {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	protected Relay $relay;
 
 	protected ?RelayStatus $status = null;
@@ -76,6 +73,10 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 	protected $initCallback;
 
 	protected WebsocketConnection $client;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private Nadybot $chatBot;
 

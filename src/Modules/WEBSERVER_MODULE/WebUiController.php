@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	EventManager,
-	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
@@ -26,7 +25,7 @@ use Nadybot\Core\{
 	SettingManager,
 	UserException,
 };
-
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 use ZipArchive;
@@ -41,12 +40,13 @@ use ZipArchive;
 	NCA\HasMigrations
 ]
 class WebUiController extends ModuleInstance implements MessageEmitter {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** The currently installed NadyUI version */
 	#[NCA\Setting\Timestamp(mode: 'noedit')]
 	public int $nadyuiVersion = 0;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 

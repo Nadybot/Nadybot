@@ -8,13 +8,14 @@ use Nadybot\Core\{
 	DBSchema\HelpTopic,
 	Modules\CONFIG\ConfigController,
 };
+use Psr\Log\LoggerInterface;
 
 #[NCA\Instance]
 class HelpManager {
 	public const DB_TABLE = "hlpcfg_<myname>";
 
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

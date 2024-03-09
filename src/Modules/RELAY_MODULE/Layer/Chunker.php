@@ -7,7 +7,6 @@ use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
-	LoggerWrapper,
 	Util,
 };
 use Nadybot\Modules\RELAY_MODULE\{
@@ -16,6 +15,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayLayerInterface,
 	RelayMessage,
 };
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Throwable;
 
@@ -41,9 +41,6 @@ use Throwable;
 	)
 ]
 class Chunker implements RelayLayerInterface {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** @psalm-var positive-int */
 	protected int $chunkSize = 50000;
 	protected int $timeout = 60;
@@ -54,6 +51,10 @@ class Chunker implements RelayLayerInterface {
 	protected $queue = [];
 
 	protected ?string $timerHandler = null;
+	#[NCA\Logger]
+
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private Util $util;
 

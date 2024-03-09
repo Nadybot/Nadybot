@@ -5,16 +5,18 @@ namespace Nadybot\Modules\DEV_MODULE;
 use function Safe\{json_encode};
 
 use Amp\File\Filesystem;
-use Nadybot\Core\{Attributes as NCA, CommandReply, LoggerWrapper};
+use Nadybot\Core\{Attributes as NCA, CommandReply};
+use Psr\Log\LoggerInterface;
 
 class MockCommandReply implements CommandReply {
-	public LoggerWrapper $logger;
-
 	public ?string $logFile;
 	public string $command;
 
 	/** @var string[] */
 	public array $output = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Filesystem $fs;

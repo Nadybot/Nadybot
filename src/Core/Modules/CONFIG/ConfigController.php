@@ -24,7 +24,6 @@ use Nadybot\Core\{
 	EventManager,
 	HelpManager,
 	InsufficientAccessException,
-	LoggerWrapper,
 	ModuleInstance,
 	ModuleInstanceInterface,
 	Nadybot,
@@ -47,8 +46,6 @@ use ReflectionClass;
 	NCA\Instance
 ]
 class ConfigController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 	#[NCA\Inject]
 	private Text $text;
 

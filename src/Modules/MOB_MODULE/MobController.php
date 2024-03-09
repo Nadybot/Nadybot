@@ -9,9 +9,10 @@ use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObjec
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\{Event, HandlesCommand};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, LoggerWrapper, MessageHub, ModuleInstance, Text, Util};
+use Nadybot\Core\{Attributes as NCA, CmdContext, MessageHub, ModuleInstance, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Nadybot\Modules\WHEREIS_MODULE\{WhereisController, WhereisResult};
+use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 
 #[
@@ -55,11 +56,11 @@ use Safe\Exceptions\JsonException;
 class MobController extends ModuleInstance {
 	public const MOB_API = "https://mobs.aobots.org/api/";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** @var array<string,array<string,Mob>> */
 	public array $mobs = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;

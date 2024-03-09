@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\NOTES_MODULE\Migrations\Notes;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateNotesTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "notes";
 		if ($db->schema()->hasTable($table)) {
 			if (!$db->schema()->hasColumn($table, "reminder")) {

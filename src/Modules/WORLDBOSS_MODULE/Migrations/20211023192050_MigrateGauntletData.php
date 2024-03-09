@@ -5,7 +5,6 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations\Gauntlet;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Character,
 	SchemaMigration,
@@ -15,6 +14,7 @@ use Nadybot\Modules\{
 	WORLDBOSS_MODULE\GauntletInventoryController,
 	WORLDBOSS_MODULE\WorldBossController,
 };
+use Psr\Log\LoggerInterface;
 use stdClass;
 
 class MigrateGauntletData implements SchemaMigration {
@@ -27,7 +27,7 @@ class MigrateGauntletData implements SchemaMigration {
 	#[NCA\Inject]
 	private TimerController $timerController;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "timers_<myname>";
 		if (!$db->schema()->hasTable($table)) {
 			return;

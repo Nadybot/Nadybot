@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\RAID_MODULE\Migrations\Block;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidBlockController;
+use Psr\Log\LoggerInterface;
 
 class CreateRaidBlockTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaidBlockController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;

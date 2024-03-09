@@ -10,20 +10,21 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
 	DBSchema\Player,
-	LoggerWrapper,
 	Nadybot,
 	QueryBuilder,
 };
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 class PlayerLookupJob {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** @var Collection<Player> */
 	public Collection $toUpdate;
 
 	protected int $numActiveThreads = 0;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private DB $db;
 

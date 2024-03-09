@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	ColorSettingHandler,
 	Config\BotConfig,
 	DB,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
@@ -28,6 +27,7 @@ use Nadybot\Core\{
 };
 
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -62,9 +62,6 @@ class TradebotController extends ModuleInstance {
 		],
 	];
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Name of the bot whose channel to join */
 	#[NCA\Setting\Text(
 		options: [self::NONE, 'Darknet', 'Lightnet'],
@@ -87,6 +84,9 @@ class TradebotController extends ModuleInstance {
 	/** Custom color for tradebot message body */
 	#[NCA\Setting\Color]
 	public string $tradebotTextColor = "#89D2E8";
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private BotConfig $config;
@@ -139,7 +139,7 @@ class TradebotController extends ModuleInstance {
 		foreach ($botsToSignOut as $botName) {
 			if (array_key_exists($botName, self::BOT_DATA)) {
 				foreach (self::BOT_DATA[$botName]['leave'] as $cmd) {
-					$this->logger->logChat("Out. Msg.", $botName, $cmd);
+					$this->chatBot->logChat("Out. Msg.", $botName, $cmd);
 					$this->chatBot->sendRawTell($botName, $cmd);
 					$uid = $this->chatBot->getUid($botName);
 					if (!isset($uid)) {
@@ -157,7 +157,7 @@ class TradebotController extends ModuleInstance {
 		foreach ($botsToSignUp as $botName) {
 			if (array_key_exists($botName, self::BOT_DATA)) {
 				foreach (self::BOT_DATA[$botName]['join'] as $cmd) {
-					$this->logger->logChat("Out. Msg.", $botName, $cmd);
+					$this->chatBot->logChat("Out. Msg.", $botName, $cmd);
 					$this->chatBot->sendRawTell($botName, $cmd);
 				}
 				if ($this->buddylistManager->isOnline($botName)) {
@@ -437,7 +437,7 @@ class TradebotController extends ModuleInstance {
 	/** Join the private channel of the tradebot $botName */
 	protected function joinPrivateChannel(string $botName): void {
 		$cmd = "!join";
-		$this->logger->logChat("Out. Msg.", $botName, $cmd);
+		$this->chatBot->logChat("Out. Msg.", $botName, $cmd);
 		$this->chatBot->sendRawTell($botName, $cmd);
 	}
 

@@ -4,10 +4,11 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Modules\BAN\BanController;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateBannedOrgsTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = BanController::DB_TABLE_BANNED_ORGS;
 		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->bigInteger("org_id")->primary();

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
-use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
+use Nadybot\Core\{Attributes as NCA};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -10,6 +10,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayStatus,
 	StatusProvider,
 };
+use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 
 #[
@@ -19,14 +20,15 @@ use Safe\Exceptions\JsonException;
 	)
 ]
 class TyrRelay implements RelayLayerInterface, StatusProvider {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 	protected Relay $relay;
 
 	protected ?RelayStatus $status = null;
 
 	/** @var ?callable */
 	protected $initCallback = null;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	public function setRelay(Relay $relay): void {
 		$this->relay = $relay;

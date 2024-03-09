@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\RAID_MODULE\Migrations\Points;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidPointsController;
+use Psr\Log\LoggerInterface;
 
 class CreateRaidPointsTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaidPointsController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;

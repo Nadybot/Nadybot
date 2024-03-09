@@ -3,19 +3,18 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE\Drill\Packet;
 
 use Amp\Websocket\Client\WebsocketConnection;
-use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
+use Nadybot\Core\{Attributes as NCA};
+use Psr\Log\LoggerInterface;
 
 abstract class Base {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	public function send(WebsocketConnection $connection): void {
 		$message = $this->toString();
-		if ($this->logger->isEnabledFor('TRACE')) {
-			$this->logger->debug("Sending data to Drill-server: {data}", [
-				"data" => $this->dumpPackage(),
-			]);
-		}
+		$this->logger->debug("Sending data to Drill-server: {data}", [
+			"data" => $this->dumpPackage(),
+		]);
 		$connection->sendBinary($message);
 	}
 
@@ -27,8 +26,7 @@ abstract class Base {
 
 	private function dumpPackage(): string {
 		$data = ['type' => $this->getType() . " (" . class_basename($this) . ")"];
-		$data = array_merge($data, (array)$this);
-		unset($data['logger']);
+		$data = array_merge($data, get_object_vars($this));
 		array_walk(
 			$data,
 			function (string|int &$value, string $key): void {

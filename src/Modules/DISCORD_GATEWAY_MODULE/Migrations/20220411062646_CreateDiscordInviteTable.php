@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
+use Psr\Log\LoggerInterface;
 
 class CreateDiscordInviteTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = DiscordGatewayController::DB_TABLE;
 		$db->schema()->create($table, function (Blueprint $table) {
 			$table->id();

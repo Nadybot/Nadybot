@@ -3,10 +3,11 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration, SettingManager};
+use Nadybot\Core\{DB, SchemaMigration, SettingManager};
+use Psr\Log\LoggerInterface;
 
 class OptimizeSettingsTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = SettingManager::DB_TABLE;
 		$db->schema()->table($table, function (Blueprint $table): void {
 			$table->text("value")->nullable(true)->change();

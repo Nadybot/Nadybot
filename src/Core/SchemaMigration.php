@@ -2,11 +2,13 @@
 
 namespace Nadybot\Core;
 
+use Psr\Log\LoggerInterface;
+
 interface SchemaMigration {
 	/**
 	 * @psalm-suppress MissingReturnType
 	 *
 	 * @phpstan-ignore-next-line
 	 */
-	public function migrate(LoggerWrapper $logger, DB $db);
+	public function migrate(LoggerInterface $logger, DB $db);
 }

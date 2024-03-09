@@ -3,10 +3,11 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{AccessManager, DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{AccessManager, DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateAuditTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = AccessManager::DB_TABLE;
 		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->id();

@@ -23,7 +23,6 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltInfo,
@@ -55,6 +54,7 @@ use Nadybot\Modules\{
 	RAID_MODULE\RaidRankController,
 	WEBSERVER_MODULE\StatsController,
 };
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 
 /**
@@ -143,9 +143,6 @@ use Revolt\EventLoop;
 class PrivateChannelController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "members_<myname>";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Automatically add player as member when they join */
 	#[NCA\Setting\Boolean]
 	public bool $addMemberOnJoin = false;
@@ -215,6 +212,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	/** @var array<string,Member> */
 	protected array $members = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

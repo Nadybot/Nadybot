@@ -5,8 +5,9 @@ namespace Nadybot\Modules\MOB_MODULE;
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance};
+use Nadybot\Core\{EventFeedHandler, EventManager, ModuleInstance};
 use Nadybot\Modules\MOB_MODULE\FeedMessage\Spawn;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 #[
@@ -18,7 +19,7 @@ use Throwable;
 ]
 class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private EventManager $eventManager;

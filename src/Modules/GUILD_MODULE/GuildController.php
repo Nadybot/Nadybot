@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	Event,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -39,7 +38,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
-
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -89,9 +88,6 @@ use Throwable;
 class GuildController extends ModuleInstance {
 	public const DB_TABLE = "org_members_<myname>";
 	private const CONSECUTIVE_BAD_UPDATES = 2;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** Maximum characters a logon message can have */
 	#[NCA\Setting\Number(options: [100, 200, 300, 400])]
@@ -144,6 +140,9 @@ class GuildController extends ModuleInstance {
 	/** Number of skipped roster updates, because they were likely bad */
 	#[NCA\Setting\Number(mode: 'noedit')]
 	public int $numOrgUpdatesSkipped = 0;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

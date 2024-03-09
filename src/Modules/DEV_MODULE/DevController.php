@@ -10,13 +10,13 @@ use Nadybot\Core\{
 	CommandHandler,
 	CommandManager,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	Registry,
 	SubcommandManager,
 	Text,
 	Util,
 };
+use Psr\Log\LoggerInterface;
 use ReflectionException;
 use ReflectionMethod;
 
@@ -63,7 +63,7 @@ use ReflectionMethod;
 ]
 class DevController extends ModuleInstance {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
 	#[NCA\Inject]
 	private AccessManager $accessManager;
 

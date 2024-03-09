@@ -5,17 +5,17 @@ namespace Nadybot\Modules\COMMENT_MODULE\Migrations;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	LoggerWrapper,
 	SchemaMigration,
 };
 use Nadybot\Modules\COMMENT_MODULE\ReputationController;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 class MigrateReputationTable implements SchemaMigration {
 	#[NCA\Inject]
 	private ReputationController $reputationController;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		if (!$db->schema()->hasTable("reputation")) {
 			return;
 		}

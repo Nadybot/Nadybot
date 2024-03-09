@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\HELPBOT_MODULE\Migrations\Roll;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateRollTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "roll";
 		if ($db->schema()->hasTable("roll")) {
 			$db->schema()->table($table, function (Blueprint $table): void {

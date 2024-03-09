@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\RAID_MODULE\Migrations\Ranks;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidRankController;
+use Psr\Log\LoggerInterface;
 
 class CreateRaidRankTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaidRankController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;

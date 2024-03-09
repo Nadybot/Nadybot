@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\GuildManager,
@@ -30,6 +29,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\WHOIS_MODULE\NameHistory;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 #[
@@ -73,9 +73,6 @@ class BanController extends ModuleInstance {
 	public const DB_TABLE = "banlist_<myname>";
 	public const DB_TABLE_BANNED_ORGS = "banned_orgs_<myname>";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Always ban all alts, not just 1 char */
 	#[NCA\Setting\Boolean]
 	public bool $banAllAlts = false;
@@ -83,6 +80,9 @@ class BanController extends ModuleInstance {
 	/** Notify character when banned from bot */
 	#[NCA\Setting\Boolean]
 	public bool $notifyBannedPlayer = true;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private AccessManager $accessManager;

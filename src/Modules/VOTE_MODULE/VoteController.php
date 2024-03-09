@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
-	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
@@ -60,9 +59,6 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	public const STATUS_15_MINUTES_LEFT = 3;
 	public const STATUS_60_SECONDS_LEFT = 4;
 	public const STATUS_ENDED = 9;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	#[NCA\Inject]
 	private Text $text;

@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Nadybot,
@@ -22,6 +21,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -44,9 +44,6 @@ use Nadybot\Core\{
 class CommentController extends ModuleInstance {
 	public const ADMIN = "admin";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** How long is the cooldown between leaving 2 comments for the same character */
 	#[NCA\Setting\Time(options: ["1s", "1h", "6h", "24h"])]
 	public int $commentCooldown = 6 * 3600;
@@ -62,6 +59,9 @@ class CommentController extends ModuleInstance {
 	/** Database table for comment categories */
 	#[NCA\Setting\Text(mode: "noedit")]
 	public string $tableNameCommentCategories = "comment_categories_<myname>";
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private AltsController $altsController;

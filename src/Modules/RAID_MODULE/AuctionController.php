@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	EventManager,
-	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
@@ -67,9 +66,6 @@ class AuctionController extends ModuleInstance {
 	public const CMD_BID_REIMBURSE = "bid reimburse";
 	public const DB_TABLE = "auction_<myname>";
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** Allow auctions only for people in the raid */
 	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]

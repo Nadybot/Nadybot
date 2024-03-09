@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	DBSchema\Audit,
 	DBSchema\Player,
 	Event,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\BAN\BanController,
@@ -28,7 +27,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
-
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -50,12 +49,13 @@ use Throwable;
 	)
 ]
 class WhoisController extends ModuleInstance {
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** Add link to comments if found */
 	#[NCA\Setting\Boolean]
 	public bool $whoisAddComments = true;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private DB $db;
 

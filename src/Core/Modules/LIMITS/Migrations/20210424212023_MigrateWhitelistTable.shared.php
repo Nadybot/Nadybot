@@ -2,11 +2,12 @@
 
 namespace Nadybot\Core\Modules\LIMITS\Migrations;
 
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 use stdClass;
 
 class MigrateWhitelistTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		if (!$db->schema()->hasTable("whitelist")) {
 			return;
 		}

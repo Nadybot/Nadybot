@@ -4,10 +4,11 @@ namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\{CommandManager, DB, LoggerWrapper, SchemaMigration, SettingManager};
+use Nadybot\Core\{CommandManager, DB, SchemaMigration, SettingManager};
+use Psr\Log\LoggerInterface;
 
 class CreatePermissionSetMapping implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = CommandManager::DB_TABLE_MAPPING;
 		$db->schema()->create($table, function (Blueprint $table) {
 			$table->id();

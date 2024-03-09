@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\GUILD_MODULE\Migrations\RankMapping;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\GUILD_MODULE\GuildRankController;
+use Psr\Log\LoggerInterface;
 
 class CreateOrgRankMappingTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = GuildRankController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;

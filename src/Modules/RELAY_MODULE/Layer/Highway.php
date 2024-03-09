@@ -5,7 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE\Layer;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToSerializeObject};
 use Exception;
 use Nadybot\Core\Highway\{In, Out, Parser, ParserHighwayException, ParserJsonException};
-use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
+use Nadybot\Core\{Attributes as NCA};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -13,6 +13,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayStatus,
 	StatusProvider,
 };
+use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 
 #[
@@ -43,9 +44,6 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	public const TYPE_ERROR = "error";
 	public const TYPE_HELLO = "hello";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** @var string[] */
 	protected array $rooms = [];
 
@@ -58,6 +56,9 @@ class Highway implements RelayLayerInterface, StatusProvider {
 
 	/** @var ?callable */
 	protected $deInitCallback = null;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	/** @param string[] $rooms */
 	public function __construct(array $rooms) {

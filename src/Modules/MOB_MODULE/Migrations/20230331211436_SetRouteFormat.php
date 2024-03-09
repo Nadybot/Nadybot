@@ -4,10 +4,11 @@ namespace Nadybot\Modules\MOB_MODULE\Migrations;
 
 use Nadybot\Core\DBSchema\{RouteHopColor, RouteHopFormat};
 use Nadybot\Core\Routing\Source;
-use Nadybot\Core\{DB, LoggerWrapper, MessageHub, SchemaMigration};
+use Nadybot\Core\{DB, MessageHub, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class SetRouteFormat implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$rhf = new RouteHopFormat();
 		$rhf->hop = "mobs";
 		$rhf->render = false;

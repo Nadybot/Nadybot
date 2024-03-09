@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	Socket\ShutdownRequest,
 	Socket\WriteClosureInterface,
 };
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 
 class WebsocketBase implements LogWrapInterface {
@@ -51,9 +52,6 @@ class WebsocketBase implements LogWrapInterface {
 	public ?SocketNotifier $notifier = null;
 	public bool $maskData = true;
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** @var array<string,callable> */
 	protected array $eventCallbacks = [];
 
@@ -81,6 +79,9 @@ class WebsocketBase implements LogWrapInterface {
 	protected ?string $timeoutHandle = null;
 	protected ?string $uri=null;
 	protected ?int $lastWriteTime = null;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private SocketManager $socketManager;

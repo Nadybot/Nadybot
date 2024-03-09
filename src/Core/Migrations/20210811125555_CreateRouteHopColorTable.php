@@ -6,15 +6,15 @@ use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
 	DB,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
+use Psr\Log\LoggerInterface;
 
 class CreateRouteHopColorTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_COLORS;
 		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->id();

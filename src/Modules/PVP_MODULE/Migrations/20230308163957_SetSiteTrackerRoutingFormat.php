@@ -3,13 +3,14 @@
 namespace Nadybot\Modules\PVP_MODULE\Migrations;
 
 use Nadybot\Core\Routing\Source;
-use Nadybot\Core\{Attributes as NCA, DB, LoggerWrapper, MessageHub, SchemaMigration};
+use Nadybot\Core\{Attributes as NCA, DB, MessageHub, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class SetSiteTrackerRoutingFormat implements SchemaMigration {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$towerColor = "F06AED";
 		$hopColor = [
 			"hop" => 'site-tracker',

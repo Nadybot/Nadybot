@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandReply,
 	DB,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	ParamClass\PNonNumberWord,
@@ -27,6 +26,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	WhatBuffsController,
 };
 use Nadybot\Modules\NANO_MODULE\NanoController;
+use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 
 use Throwable;
@@ -48,15 +48,15 @@ class BuffPerksController extends ModuleInstance {
 	public const ALIEN_INVASION = "ai";
 	public const SHADOWLANDS = "sl";
 
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
 	/** DB version of perks */
 	#[NCA\Setting\Timestamp(mode: 'noedit')]
 	public int $perksDBVersion = 0;
 
 	/** @var Collection<Perk> */
 	public Collection $perks;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private Text $text;

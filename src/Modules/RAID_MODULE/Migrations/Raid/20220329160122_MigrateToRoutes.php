@@ -5,15 +5,15 @@ namespace Nadybot\Modules\RAID_MODULE\Migrations\Raid;
 use Nadybot\Core\{
 	DB,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
+use Psr\Log\LoggerInterface;
 
 class MigrateToRoutes implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$route = [
 			"source" => "raid(*)",
 			"destination" => Source::PRIV . "(" . $db->getMyname() . ")",

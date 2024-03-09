@@ -25,6 +25,7 @@ use Nadybot\Core\{
 };
 use PDO;
 use PDOException;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionProperty;
 use Safe\Exceptions\FilesystemException;
@@ -40,9 +41,6 @@ class DB {
 	public const SQLITE = 'sqlite';
 	public const POSTGRESQL = 'postgresql';
 	public const MSSQL = 'mssql';
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	public int $maxPlaceholders = 9000;
 
@@ -60,6 +58,9 @@ class DB {
 
 	/** @var array<string,string> */
 	protected array $tableNames = [];
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private SettingManager $settingManager;
@@ -485,10 +486,9 @@ class DB {
 	/** Get a schema builder instance. */
 	public function schema(?string $connection=null): SchemaBuilder {
 		$schema = $this->capsule->schema($connection);
-		$builder = new SchemaBuilder($schema);
-		$builder->nadyDB = $this;
-		$builder->logger = new LoggerWrapper("Core/QueryBuilder");
-		Registry::injectDependencies($builder->logger);
+		$logger = new LoggerWrapper("Core/QueryBuilder");
+		Registry::injectDependencies($logger);
+		$builder = new SchemaBuilder($schema, $this);
 		return $builder;
 	}
 
@@ -503,12 +503,10 @@ class DB {
 		}
 		$builder = $this->capsule->table($table, $as, $connection);
 		$myBuilder = new QueryBuilder($builder->getConnection(), $builder->getGrammar(), $builder->getProcessor());
+		Registry::injectDependencies($myBuilder);
 		foreach (get_object_vars($builder) as $attr => $value) {
 			$myBuilder->{$attr} = $value;
 		}
-		$myBuilder->nadyDB = $this;
-		$myBuilder->logger = new LoggerWrapper("Core/QueryBuilder");
-		Registry::injectDependencies($myBuilder->logger);
 		return $myBuilder;
 	}
 
@@ -520,12 +518,10 @@ class DB {
 	public function fromSub($query, string $as): QueryBuilder {
 		$query = $this->capsule->getConnection()->query()->fromSub($query, $as);
 		$builder = new QueryBuilder($query->connection, $query->grammar, $query->processor);
+		Registry::injectDependencies($builder);
 		foreach (get_object_vars($query) as $attr => $value) {
 			$builder->{$attr} = $value;
 		}
-		$builder->nadyDB = $this;
-		$builder->logger = new LoggerWrapper("Core/QueryBuilder");
-		Registry::injectDependencies($builder->logger);
 		return $builder;
 	}
 

@@ -25,12 +25,10 @@ use Illuminate\Database\Schema\Builder;
  * @method void                            blueprintResolver(\Closure $resolver)                      Set the Schema Blueprint resolver callback.
  */
 class SchemaBuilder {
-	public DB $nadyDB;
-	public Builder $builder;
-	public LoggerWrapper $logger;
-
-	public function __construct(Builder $builder) {
-		$this->builder = $builder;
+	public function __construct(
+		public Builder $builder,
+		public DB $nadyDB,
+	) {
 	}
 
 	/** @param mixed[] $arguments */

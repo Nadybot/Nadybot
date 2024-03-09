@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
-	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\ALTS\NickController,
@@ -39,6 +38,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Response,
 	WEBSERVER_MODULE\StatsController,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Tyrence (RK2)
@@ -83,9 +83,6 @@ class OnlineController extends ModuleInstance {
 	protected const RAID_IN = 1;
 	protected const RAID_NOT_IN = 2;
 	protected const RAID_COMPACT = 4;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** How long to wait before clearing online list */
 	#[NCA\Setting\Time(options: ["2m", "5m", "10m", "15m", "20m"])]
@@ -190,6 +187,9 @@ class OnlineController extends ModuleInstance {
 	/** Rank color for raid leaders/admins */
 	#[NCA\Setting\Color]
 	public string $rankColorRaid = "#FCA712";
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;

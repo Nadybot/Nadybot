@@ -11,13 +11,13 @@ use Nadybot\Core\{
 	DBSchema\Route,
 	DBSchema\RouteModifier,
 	DBSchema\Setting,
-	LoggerWrapper,
 	MessageHub,
 	Modules\DISCORD\DiscordChannel,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
@@ -30,7 +30,7 @@ class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		// throw new Exception("Hollera!");
 		$tagColor = $this->getColor($db, "discord_color_channel");
 		$textColor = $this->getColor($db, "discord_color_guild", "discord_color_priv");

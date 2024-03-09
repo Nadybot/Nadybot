@@ -21,12 +21,12 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	DBSchema\Player,
-	LoggerWrapper,
 	ModuleInstance,
 	Nadybot,
 	Registry,
 	SQLException,
 };
+use Psr\Log\LoggerInterface;
 use Safe\DateTime;
 use Safe\Exceptions\JsonException;
 
@@ -38,9 +38,6 @@ class PlayerManager extends ModuleInstance {
 	public const CACHE_GRACE_TIME = 87000;
 	public const PORK_URL = "http://people.anarchy-online.com";
 	public const BORK_URL = "https://bork.aobots.org";
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** How many jobs in parallel to run to lookup missing character data */
 	#[NCA\Setting\Options(options: ["Off" => 0, 1, 2, 3, 4, 5, 10])]
@@ -56,6 +53,9 @@ class PlayerManager extends ModuleInstance {
 	public string $porkUrl = self::BORK_URL;
 
 	public ?PlayerLookupJob $playerLookupJob = null;
+
+	#[NCA\Logger]
+	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;

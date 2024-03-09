@@ -3,11 +3,13 @@
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
 use Nadybot\Core\Routing\{RoutableEvent};
-use Nadybot\Core\{Attributes as NCA, LoggerWrapper, MessageReceiver};
+use Nadybot\Core\{Attributes as NCA, MessageReceiver};
+use Psr\Log\LoggerInterface;
 
 class HighnetReceiver implements MessageReceiver {
 	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	private LoggerInterface $logger;
+
 	#[NCA\Inject]
 	private HighnetController $highnetController;
 

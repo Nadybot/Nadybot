@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\ALIEN_MODULE\Migrations\Misc;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\{DB, SchemaMigration};
+use Psr\Log\LoggerInterface;
 
 class CreateLEProcsTable implements SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "leprocs";
 		if ($db->schema()->hasTable($table)) {
 			return;
