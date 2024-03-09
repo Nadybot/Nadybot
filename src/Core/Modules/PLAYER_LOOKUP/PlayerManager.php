@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\Future\await;
-use function Amp\{async, delay};
+use function Amp\{delay};
 use function Safe\{json_decode, parse_url};
 
 use Amp\File\Filesystem;
@@ -100,23 +99,6 @@ class PlayerManager extends ModuleInstance {
 				->where("last_update", "<", time() - 5*static::CACHE_GRACE_TIME)
 				->delete();
 		});
-	}
-
-	/**
-	 * @psalm-param callable(array<string,?Player>) $callback
-	 *
-	 * @param string[] $names
-	 *
-	 * @deprecated use all(byName()) instead
-	 */
-	public function massGetByName(callable $callback, array $names, ?int $dimension=null, bool $forceUpdate=false): void {
-		$promises = [];
-		foreach ($names as $name) {
-			$promises[$name] = async($this->byName(...), $name, $dimension, $forceUpdate);
-		}
-
-		$result = await($promises);
-		$callback($result);
 	}
 
 	public function byName(string $name, ?int $dimension=null, bool $forceUpdate=false): ?Player {

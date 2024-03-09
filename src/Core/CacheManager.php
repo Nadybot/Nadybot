@@ -3,8 +3,6 @@
 namespace Nadybot\Core;
 
 use Amp\File\{Filesystem, FilesystemException};
-use Amp\Http\Client\{HttpClientBuilder, Request};
-use Exception;
 use Nadybot\Core\Attributes as NCA;
 
 use Nadybot\Core\Config\BotConfig;
@@ -17,9 +15,6 @@ use Psr\Log\LoggerInterface;
 class CacheManager {
 	#[NCA\Logger]
 	private LoggerInterface $logger;
-
-	#[NCA\Inject]
-	private HttpClientBuilder $builder;
 
 	#[NCA\Inject]
 	private Util $util;
@@ -74,85 +69,6 @@ class CacheManager {
 		$cacheResult->usedCache = true;
 		$cacheResult->oldCache = false;
 		$cacheResult->success = true;
-		return $cacheResult;
-	}
-
-	/**
-	 * Lookup information in the cache or retrieve it when outdated
-	 *
-	 * @param string   $url             The URL to load the data from if the cache is outdate
-	 * @param string   $groupName       The "name" of the cache, e.g. "guild_roster"
-	 * @param string   $filename        Filename to cache the information in when retrieved
-	 * @param callable $isValidCallback Function to run on the body of the URL to check if the data is valid:
-	 *                                  function($data) { return !json_decode($data) !== null }
-	 * @param int      $maxCacheAge     Age of the cache entry in seconds after which the data will be considered outdated
-	 * @param bool     $forceUpdate     Set to true to ignore the existing cache and always update
-	 *
-	 * @throws Exception
-	 *
-	 * @deprecated
-	 */
-	public function lookup(string $url, string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge=86400, bool $forceUpdate=false): CacheResult {
-		if (empty($groupName)) {
-			throw new Exception("Cache group name cannot be empty");
-		}
-
-		$cacheResult = new CacheResult();
-
-		// Check if a xml file of the person exists and if it is up-to-date
-		if (!$forceUpdate && $this->cacheExists($groupName, $filename)) {
-			$cacheAge = $this->getCacheAge($groupName, $filename);
-			if ($cacheAge < $maxCacheAge) {
-				$data = $this->retrieve($groupName, $filename);
-				if (call_user_func($isValidCallback, $data)) {
-					$cacheResult->data = $data;
-					$cacheResult->cacheAge = $cacheAge??0;
-					$cacheResult->usedCache = true;
-					$cacheResult->oldCache = false;
-					$cacheResult->success = true;
-				} else {
-					unset($data);
-					$this->remove($groupName, $filename);
-				}
-			}
-		}
-
-		// If no old history file was found or it was invalid try to update it from url
-		if ($cacheResult->success !== true) {
-			$http = $this->builder->build();
-			$response = $http->request(new Request($url));
-			$data = $response->getBody()->buffer();
-			if (call_user_func($isValidCallback, $data)) {
-				$cacheResult->data = $data;
-				$cacheResult->cacheAge = 0;
-				$cacheResult->usedCache = false;
-				$cacheResult->oldCache = false;
-				$cacheResult->success = true;
-			} else {
-				unset($data);
-			}
-		}
-
-		// If the site was not responding or the data was invalid and a xml file exists get that one
-		if ($cacheResult->success !== true && $this->cacheExists($groupName, $filename)) {
-			$data = $this->retrieve($groupName, $filename);
-			if (call_user_func($isValidCallback, $data)) {
-				$cacheResult->data = $data;
-				$cacheResult->cacheAge = $this->getCacheAge($groupName, $filename) ?? 0;
-				$cacheResult->usedCache = true;
-				$cacheResult->oldCache = true;
-				$cacheResult->success = true;
-			} else {
-				unset($data);
-				$this->remove($groupName, $filename);
-			}
-		}
-
-		// if a new file was downloaded, save it in the cache
-		if ($cacheResult->usedCache === false && $cacheResult->success === true && isset($cacheResult->data)) {
-			$this->store($groupName, $filename, $cacheResult->data);
-		}
-
 		return $cacheResult;
 	}
 

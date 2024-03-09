@@ -291,24 +291,6 @@ class DiscordGatewayController extends ModuleInstance {
 		return null;
 	}
 
-	/**
-	 * @deprecated
-	 * Lookup a channel by its ID and call a callback with the resolved channel
-	 */
-	public function lookupChannel2(string $channelId, callable $callback, mixed ...$args): void {
-		$channel = $this->getChannel($channelId);
-		if (isset($channel)) {
-			$callback($channel, ...$args);
-			return;
-		}
-		async(function () use ($channelId, $callback, $args): void {
-			$channel = $this->lookupChannel($channelId);
-			if (!isset($channel)) {
-				$callback($channel, ...$args);
-			}
-		});
-	}
-
 	/** Lookup a channel by its ID and call a callback with the resolved channel */
 	public function lookupChannel(string $channelId): ?DiscordChannel {
 		$channel = $this->getChannel($channelId);
