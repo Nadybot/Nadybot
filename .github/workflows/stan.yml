@@ -19,4 +19,4 @@ jobs:
         run: |
           composer install -q
           composer dumpautoload
-          "$(composer config vendor-dir)/bin/phpstan" --no-progress -n --no-ansi
+          "$(composer config vendor-dir)/bin/phpstan.phar" --no-progress -n --no-ansi
