@@ -262,6 +262,7 @@ class Nadybot {
 			}
 		}
 		$this->db->commit();
+		EventLoop::run();
 		$this->settingManager::$isInitialized = true;
 
 		// Delete old entries in the DB
