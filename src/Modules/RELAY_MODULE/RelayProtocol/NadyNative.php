@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use function Safe\{json_decode, json_encode};
 use Closure;
 use JsonMapper;
 use Nadybot\Core\Modules\ALTS\AltsController;
@@ -28,6 +29,7 @@ use Nadybot\Modules\{
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use stdClass;
+
 use Throwable;
 
 #[
@@ -88,7 +90,7 @@ class NadyNative implements RelayProtocolInterface {
 			$event->data->message = str_replace("<myname>", $this->config->main->character, $event->data->message??"");
 		}
 		try {
-			$data = \Safe\json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			$data = json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
 			$this->logger->error(
 				'Cannot send event via Nadynative protocol: '.
@@ -110,7 +112,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		$serialized = array_shift($message->packages);
 		try {
-			$data = \Safe\json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			$data = json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
 			$this->logger->error(
 				'Invalid data received via Nadynative protocol',
@@ -374,6 +376,6 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	protected function jsonEncode(mixed $data): string {
-		return \Safe\json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+		return json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 	}
 }

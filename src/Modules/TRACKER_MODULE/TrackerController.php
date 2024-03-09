@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
+use function Safe\preg_split;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -37,6 +38,7 @@ use Nadybot\Modules\{
 	PVP_MODULE\Event\TowerAttack,
 };
 use Psr\Log\LoggerInterface;
+
 use Throwable;
 
 /**
@@ -1420,7 +1422,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (isset($filters['levelRange'])) {
 			$ranges = [];
 			foreach ($filters['levelRange'] as $range) {
-				[$min, $max] = \Safe\preg_split("/\s*-\s*/", $range);
+				[$min, $max] = preg_split("/\s*-\s*/", $range);
 				$ranges []= [strlen($min) ? (int)$min : 1, strlen($max) ? (int)$max : 220];
 			}
 			$data = $data->filter(function (OnlineTrackedUser $user) use ($ranges): bool {

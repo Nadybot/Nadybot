@@ -171,7 +171,7 @@ class BankController extends ModuleInstance {
 			->orderBy("ql")
 			->limit($limit);
 		if (isset($ql)) {
-			[$low, $high] = \Safe\preg_split("/(\s*-\s*|\s+)/", $ql);
+			[$low, $high] = preg_split("/(\s*-\s*|\s+)/", $ql);
 			if (isset($high)) {
 				$query->where("ql", ">=", min((int)$low, (int)$high));
 				$query->where("ql", "<=", max((int)$low, (int)$high));

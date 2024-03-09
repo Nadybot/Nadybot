@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use function Safe\{glob, json_encode};
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
@@ -21,6 +22,7 @@ use Nadybot\Core\{
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
+
 use ReflectionMethod;
 
 use Throwable;
@@ -92,7 +94,7 @@ class MessageHub {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->parseMessageEmitters();
-		$modifierFiles = \Safe\glob(__DIR__ . "/EventModifier/*.php");
+		$modifierFiles = glob(__DIR__ . "/EventModifier/*.php");
 		foreach ($modifierFiles as $file) {
 			require_once $file;
 			$className = basename($file, '.php');
@@ -425,7 +427,7 @@ class MessageHub {
 		try {
 			$this->logger->info(
 				"Trying to route {$type} - ".
-				\Safe\json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR)
+				json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR)
 			);
 		} catch (JsonException $e) {
 			// Ignore

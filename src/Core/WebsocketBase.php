@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use function Safe\{pack, stream_socket_shutdown, unpack};
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
@@ -10,6 +11,7 @@ use Nadybot\Core\{
 	Socket\WriteClosureInterface,
 };
 use Psr\Log\LoggerInterface;
+
 use Revolt\EventLoop;
 
 class WebsocketBase implements LogWrapInterface {
@@ -207,7 +209,7 @@ class WebsocketBase implements LogWrapInterface {
 		if (!$this->isConnected()) {
 			return;
 		}
-		$statusString = \Safe\pack("n", $status);
+		$statusString = pack("n", $status);
 		$this->isClosing = true;
 		$this->send($statusString . $message, 'close');
 		$this->logger->info("Closing with status: {status}", [
@@ -297,16 +299,16 @@ class WebsocketBase implements LogWrapInterface {
 	}
 
 	protected function toFrame(bool $final, string $data, string $opcode, bool $masked): string {
-		$frame= \Safe\pack("C", ((int)$final << 7)
+		$frame= pack("C", ((int)$final << 7)
 			+ (static::ALLOWED_OPCODES[$opcode]))[0];
 		$maskedBit = 128 * (int)$masked;
 		$dataLength = strlen($data);
 		if ($dataLength > 65535) {
-			$frame.= \Safe\pack("CJ", 127 + $maskedBit, $dataLength);
+			$frame.= pack("CJ", 127 + $maskedBit, $dataLength);
 		} elseif ($dataLength > 125) {
-			$frame.= \Safe\pack("Cn", 126 + $maskedBit, $dataLength);
+			$frame.= pack("Cn", 126 + $maskedBit, $dataLength);
 		} else {
-			$frame.= \Safe\pack("C", $dataLength + $maskedBit);
+			$frame.= pack("C", $dataLength + $maskedBit);
 		}
 
 		if ($masked) {
@@ -415,13 +417,13 @@ class WebsocketBase implements LogWrapInterface {
 		if ($payloadLength > 125) {
 			if ($payloadLength === 126) {
 				$data = $this->read(2); // 126: Payload is a 16-bit unsigned int
-				$payloadLength = \Safe\unpack("n", $data)[1];
+				$payloadLength = unpack("n", $data)[1];
 			} else {
 				$data = $this->read(8); // 127: Payload is a 64-bit unsigned int
 				if (PHP_INT_SIZE < 8) {
-					$payloadLength = \Safe\unpack("N", substr($data, 4))[1];
+					$payloadLength = unpack("N", substr($data, 4))[1];
 				} else {
-					$payloadLength = \Safe\unpack("J", $data)[1];
+					$payloadLength = unpack("J", $data)[1];
 				}
 			}
 		}
@@ -482,7 +484,7 @@ class WebsocketBase implements LogWrapInterface {
 		// Close the socket.
 		if (is_resource($this->socket)) {
 			$this->logger->debug("Closing socket");
-			\Safe\stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
+			stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
 		}
 
 		// Closing should not return message.

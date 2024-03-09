@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\ParamClass;
 
+use function Safe\preg_split;
+
 class PCharacterList extends Base {
 	/** @var string[] */
 	public array $chars = [];
@@ -9,7 +11,7 @@ class PCharacterList extends Base {
 	protected string $value;
 
 	public function __construct(string $value) {
-		$this->chars = \Safe\preg_split("/\s+/", $value);
+		$this->chars = preg_split("/\s+/", $value);
 		$this->chars = array_map("strtolower", $this->chars);
 		$this->chars = array_map("ucfirst", $this->chars);
 		$this->value = join(", ", $this->chars);

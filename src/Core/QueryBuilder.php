@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use function Safe\json_encode;
 use DateTime;
 use Exception;
 use Illuminate\Database\Connection;
@@ -15,6 +16,7 @@ use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
+
 use Throwable;
 
 class QueryBuilder extends Builder {
@@ -309,7 +311,7 @@ class QueryBuilder extends Builder {
 				$conn->reconnect();
 				return $this->executeQuery(...func_get_args());
 			}
-			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: {$sql}\nParams: " . \Safe\json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), 0, $e);
+			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: {$sql}\nParams: " . json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), 0, $e);
 		}
 	}
 

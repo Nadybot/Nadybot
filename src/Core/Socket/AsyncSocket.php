@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Socket;
 
+use function Safe\{fwrite, stream_set_blocking, stream_set_timeout};
 use AO\Internal\BinaryString;
 use Exception;
 use InvalidArgumentException;
@@ -12,6 +13,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
+
 use Throwable;
 
 class AsyncSocket {
@@ -64,7 +66,7 @@ class AsyncSocket {
 	public function __construct($socket) {
 		try {
 			$this->socket = $socket;
-			\Safe\stream_set_blocking($this->socket, false);
+			stream_set_blocking($this->socket, false);
 		} catch (Throwable $e) {
 			throw new InvalidArgumentException("Argument 1 to " . get_class($this) . "::__construct() must be a socket.");
 		}
@@ -95,7 +97,7 @@ class AsyncSocket {
 	public function setTimeout(int $timeout): self {
 		$this->timeout = $timeout;
 		if ($timeout > 0 && is_resource($this->socket)) {
-			\Safe\stream_set_timeout($this->socket, $timeout);
+			stream_set_timeout($this->socket, $timeout);
 		}
 		return $this;
 	}
@@ -391,7 +393,7 @@ class AsyncSocket {
 			"data" => new BinaryString($data),
 		]);
 		// @phpstan-ignore-next-line
-		$written = is_resource($this->socket) ? \Safe\fwrite($this->socket, $data, 4096) : false;
+		$written = is_resource($this->socket) ? fwrite($this->socket, $data, 4096) : false;
 		if ($written === false) {
 			$this->forceClose();
 			return false;

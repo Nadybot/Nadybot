@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SECURITY;
 
+use function Safe\preg_split;
 use DateTime;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -14,6 +15,7 @@ use Nadybot\Core\{
 	QueryBuilder,
 	Text,
 };
+
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
 	HttpProtocolWrapper,
@@ -215,7 +217,7 @@ class AuditController extends ModuleInstance {
 
 		$action = $params["action"]??null;
 		if (isset($action) && is_string($action)) {
-			$query->whereIn("action", \Safe\preg_split("/\s*,\s*/", strtolower($action)));
+			$query->whereIn("action", preg_split("/\s*,\s*/", strtolower($action)));
 		}
 
 		return null;

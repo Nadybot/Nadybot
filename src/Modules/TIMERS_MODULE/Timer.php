@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
+use function Safe\json_decode;
+
 use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class Timer extends DBRow {
@@ -46,7 +48,7 @@ class Timer extends DBRow {
 		if (!isset($alerts)) {
 			return [];
 		}
-		$alertsData = \Safe\json_decode($alerts);
+		$alertsData = json_decode($alerts);
 		$result = [];
 		foreach ($alertsData as $alertData) {
 			$alert = new Alert();

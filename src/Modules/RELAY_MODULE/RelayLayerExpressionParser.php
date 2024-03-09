@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use function Safe\json_decode;
 use ParserGenerator\Parser;
+
 use ParserGenerator\SyntaxTreeNode\Branch;
 
 class RelayLayerExpressionParser {
@@ -88,7 +90,7 @@ class RelayLayerExpressionParser {
 		$result->name = $argument->findFirst("key")->toString();
 		$value = $argument->findFirst("value");
 		if ($value->getDetailType() === 'string') {
-			$result->value = \Safe\json_decode($value->toString());
+			$result->value = json_decode($value->toString());
 		} else {
 			$result->value = $value->toString();
 		}

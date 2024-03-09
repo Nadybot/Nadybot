@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use function Safe\date;
+use function Safe\{date, json_decode, json_encode};
 use Amp\File\{Filesystem, FilesystemException};
 use AO\Client\{Basic, WorkerPackage};
 use AO\Package;
@@ -377,7 +377,7 @@ class TestController extends ModuleInstance {
 	): void {
 		$event = new DiscordMessageEvent();
 		$message = new DiscordMessageIn();
-		$payload = \Safe\json_decode(
+		$payload = json_decode(
 			'{'.
 				'"type":0,'.
 				'"tts":false,'.
@@ -390,7 +390,7 @@ class TestController extends ModuleInstance {
 				'"mention_everyone":false,'.
 				'"member":{'.
 					'"roles":["731589704247410729"],'.
-					'"nick":' . \Safe\json_encode($nick()) . ','.
+					'"nick":' . json_encode($nick()) . ','.
 					'"mute":false,'.
 					'"joined_at":"2020-07-11T16:46:42.205000+00:00",'.
 					'"hoisted_role":null,'.
@@ -400,11 +400,11 @@ class TestController extends ModuleInstance {
 				'"flags":0,'.
 				'"embeds":[],'.
 				'"edited_timestamp":null,'.
-				'"content":' . \Safe\json_encode($content) . ','.
+				'"content":' . json_encode($content) . ','.
 				'"components":[],'.
 				'"channel_id":"731553649184211064",'.
 				'"author":{'.
-					'"username":' . \Safe\json_encode($nick()) . ','.
+					'"username":' . json_encode($nick()) . ','.
 					'"public_flags":0,'.
 					'"id":"356025105371103232",'.
 					'"discriminator":"9062",'.
@@ -597,7 +597,7 @@ class TestController extends ModuleInstance {
 		}
 		$starttime = time();
 		$logFile = $this->config->paths->data.
-			"/tests-" . \Safe\date("YmdHis", $starttime) . ".json";
+			"/tests-" . date("YmdHis", $starttime) . ".json";
 		$context->reply("Starting test {$file}...");
 		$this->runTests($lines, $testContext, $logFile);
 		$time = $this->util->unixtimeToReadable(time() - $starttime);

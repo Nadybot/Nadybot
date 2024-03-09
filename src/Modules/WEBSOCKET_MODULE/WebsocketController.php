@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
+use function Safe\{json_decode, pack, preg_split};
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -25,6 +26,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 };
 use Psr\Log\LoggerInterface;
 use Throwable;
+
 use TypeError;
 
 /**
@@ -122,7 +124,7 @@ class WebsocketController extends ModuleInstance {
 			if (!is_string($event->data)) {
 				throw new Exception();
 			}
-			$data = \Safe\json_decode($event->data);
+			$data = json_decode($event->data);
 			$command = new WebsocketCommand();
 			$command->fromJSON($data);
 			if (!in_array($command->command, $command::ALLOWED_COMMANDS)) {
@@ -270,12 +272,12 @@ class WebsocketController extends ModuleInstance {
 		}
 		$key = $request->headers["sec-websocket-key"];
 		if (isset($request->headers["sec-websocket-protocol"])
-			&& !in_array("nadybot", \Safe\preg_split("/\s*,\s*/", $request->headers["sec-websocket-protocol"]))) {
+			&& !in_array("nadybot", preg_split("/\s*,\s*/", $request->headers["sec-websocket-protocol"]))) {
 			return $errorResponse;
 		}
 
 		/** @todo Validate key length and base 64 */
-		$responseKey = base64_encode(\Safe\pack('H*', sha1($key . WebsocketBase::GUID)));
+		$responseKey = base64_encode(pack('H*', sha1($key . WebsocketBase::GUID)));
 		return new Response(
 			Response::SWITCHING_PROTOCOLS,
 			[

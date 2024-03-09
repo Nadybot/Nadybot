@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use function Safe\preg_split;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -22,6 +23,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 use Revolt\EventLoop;
+
 use Safe\DateTime;
 
 /**
@@ -471,7 +473,7 @@ class AuctionController extends ModuleInstance {
 		} else {
 			$this->db->addWhereFromParams(
 				$query,
-				\Safe\preg_split('/\s+/', $search),
+				preg_split('/\s+/', $search),
 				'item'
 			);
 		}

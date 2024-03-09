@@ -2,12 +2,14 @@
 
 namespace Nadybot\Core;
 
+use function Safe\{date, getcwd};
 use Amp\File\{Filesystem, FilesystemException};
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
 use RangeException;
+
 use ReflectionClass;
 
 #[NCA\Instance]
@@ -399,7 +401,7 @@ class Util {
 		$arr1 = [];
 		$arr2 = [];
 		foreach ($trace as $obj) {
-			$file = str_replace(\Safe\getcwd() . "/", "", ($obj['file'] ?? "{Closure}"));
+			$file = str_replace(getcwd() . "/", "", ($obj['file'] ?? "{Closure}"));
 			if (isset($obj['line'])) {
 				$arr1 []= "{$file}({$obj['line']})";
 			} else {
@@ -425,7 +427,7 @@ class Util {
 
 	/** Convert UNIX timestamp to date and time */
 	public function date(int $unixtime, bool $withTime=true): string {
-		return \Safe\date($withTime ? self::DATETIME : self::DATE, $unixtime);
+		return date($withTime ? self::DATETIME : self::DATE, $unixtime);
 	}
 
 	/**

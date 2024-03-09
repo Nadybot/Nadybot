@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use function Safe\{glob, json_encode, preg_split};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
@@ -37,10 +38,11 @@ use Nadybot\Modules\{
 };
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
-use ReflectionException;
 
+use ReflectionException;
 use ReflectionMethod;
 use Safe\Exceptions\JsonException;
+
 use Throwable;
 
 /**
@@ -180,7 +182,7 @@ class RelayController extends ModuleInstance {
 			],
 		];
 		foreach ($types as $dir => $data) {
-			$files = \Safe\glob(__DIR__ . "/{$dir}/*.php");
+			$files = glob(__DIR__ . "/{$dir}/*.php");
 			foreach ($files as $file) {
 				require_once $file;
 				$className = basename($file, ".php");
@@ -805,7 +807,7 @@ class RelayController extends ModuleInstance {
 		}
 		$eventConfigs = [];
 		foreach ($events as $eventConfig) {
-			[$eventName, $dir] = \Safe\preg_split("/\s+/", $eventConfig??"");
+			[$eventName, $dir] = preg_split("/\s+/", $eventConfig??"");
 			$eventConfigs[$eventName] = $dir;
 		}
 		$this->db->table(static::DB_TABLE_EVENT)
@@ -1309,7 +1311,7 @@ class RelayController extends ModuleInstance {
 					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
 						try {
 							$blob .= " (optional, default=".
-								\Safe\json_encode(
+								json_encode(
 									$refParams[$parNum]->getDefaultValue(),
 									JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
 								) . ")";

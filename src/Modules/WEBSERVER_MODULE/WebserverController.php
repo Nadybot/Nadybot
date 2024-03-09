@@ -3,8 +3,7 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
-use function Safe\realpath;
-
+use function Safe\{base64_decode, mime_content_type, openssl_verify, preg_split, realpath, stream_socket_accept, stream_socket_server};
 use Amp\File\Filesystem;
 use Amp\Http\Client;
 use Amp\Http\Client\HttpClientBuilder;
@@ -265,7 +264,7 @@ class WebserverController extends ModuleInstance {
 
 	/** Convert the route notation /foo/%s/bar into a regexp */
 	public function routeToRegExp(string $route): string {
-		$match = \Safe\preg_split("/(%[sd])/", $route, 0, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
+		$match = preg_split("/(%[sd])/", $route, 0, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
 		$newMask = array_reduce(
 			$match,
 			function (string $carry, string $part): string {
@@ -289,7 +288,7 @@ class WebserverController extends ModuleInstance {
 			return;
 		}
 		try {
-			$newSocket = \Safe\stream_socket_accept($lowSock, 0, $peerName);
+			$newSocket = stream_socket_accept($lowSock, 0, $peerName);
 		} catch (StreamException $e) {
 			$this->logger->info('Error accepting client connection: {error}', [
 				"error" => $e->getMessage(),
@@ -316,7 +315,7 @@ class WebserverController extends ModuleInstance {
 		$addr = $this->webserverAddr;
 		$context = stream_context_create();
 		try {
-			$serverSocket = \Safe\stream_socket_server(
+			$serverSocket = stream_socket_server(
 				"tcp://{$addr}:{$port}",
 				$errno,
 				$errstr,
@@ -504,7 +503,7 @@ class WebserverController extends ModuleInstance {
 				return "image/svg+xml";
 			default:
 				if (extension_loaded("fileinfo")) {
-					return \Safe\mime_content_type($file);
+					return mime_content_type($file);
 				}
 				return "application/octet-stream";
 		}
@@ -551,12 +550,12 @@ class WebserverController extends ModuleInstance {
 			return null;
 		}
 		try {
-			$decodedSig = \Safe\base64_decode($signature);
+			$decodedSig = base64_decode($signature);
 		} catch (UrlException) {
 			return null;
 		}
 		try {
-			if (\Safe\openssl_verify($sequence, $decodedSig, $key->pubkey, $algorithm) !== 1) {
+			if (openssl_verify($sequence, $decodedSig, $key->pubkey, $algorithm) !== 1) {
 				return null;
 			}
 		} catch (OpensslException) {

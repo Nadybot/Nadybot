@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use function Safe\date;
 use DateTime;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -271,7 +273,7 @@ class TimeController extends ModuleInstance {
 		$obj = new Timezone();
 		$obj->name = $name;
 		$obj->offset = $offset;
-		$obj->time = \Safe\date($time_format, (int)($time + $offset));
+		$obj->time = date($time_format, (int)($time + $offset));
 		return $obj;
 	}
 }

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{preg_match, preg_match_all};
+use function Safe\{preg_match, preg_match_all, preg_split};
 use Exception;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -1497,7 +1497,7 @@ class CommandManager implements MessageEmitter {
 		$comment = trim(preg_replace("/^@.*/m", '', $comment));
 
 		/** @phpstan-var array{string, ?string} */
-		$result = \Safe\preg_split("/\r?\n\r?\n/", $comment, 2);
+		$result = preg_split("/\r?\n\r?\n/", $comment, 2);
 		return [trim($result[0]), isset($result[1]) ? trim($result[1]) : null];
 	}
 

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUIDE_MODULE;
 
+use function Safe\preg_split;
 use Amp\File\{Filesystem};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DOMDocument;
@@ -18,6 +19,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	AODBEntry,
 	ItemsController,
 };
+
 use Throwable;
 
 /**
@@ -327,7 +329,7 @@ class AOUController extends ModuleInstance {
 		$input = str_replace(["[b]", "[/b]"], ["<highlight>", "<end>"], $input);
 
 		$pattern = "/(\[.+?\])/";
-		$matches = \Safe\preg_split($pattern, $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+		$matches =preg_split($pattern, $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
 		$output = '';
 		foreach ($matches as $match) {

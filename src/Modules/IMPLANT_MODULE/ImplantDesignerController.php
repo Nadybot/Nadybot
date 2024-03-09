@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use function Safe\{json_decode, json_encode};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -11,6 +12,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+
 use stdClass;
 
 /**
@@ -682,11 +684,11 @@ class ImplantDesignerController extends ModuleInstance {
 		if ($design === null) {
 			return new stdClass();
 		}
-		return \Safe\json_decode($design);
+		return json_decode($design);
 	}
 
 	public function saveDesign(string $sender, string $name, object $design): void {
-		$json = \Safe\json_encode($design);
+		$json = json_encode($design);
 		$this->db->table("implant_design")
 			->updateOrInsert(
 				[

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
+use function Safe\json_encode;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -24,6 +25,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+
 use Psr\Log\LoggerInterface;
 
 /**
@@ -552,7 +554,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 					"settime" => $timer->settime,
 					"callback" => $callback,
 					"data" => $data,
-					"alerts" => \Safe\json_encode($alerts),
+					"alerts" => json_encode($alerts),
 				]);
 			$timer->id = $id;
 		} else {
@@ -566,7 +568,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 					"settime" => $timer->settime,
 					"callback" => $callback,
 					"data" => $data,
-					"alerts" => \Safe\json_encode($alerts),
+					"alerts" => json_encode($alerts),
 				]);
 		}
 

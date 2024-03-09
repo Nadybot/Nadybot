@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use function Amp\ByteStream\getStderr;
 use function Amp\File\{createDefaultDriver, filesystem};
-use function Safe\{fclose, fwrite, ini_set, json_encode, realpath, stream_get_contents};
+use function Safe\{fclose, fwrite, ini_set, json_encode, realpath, stream_get_contents, system};
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
 use Amp\File\{Filesystem, FilesystemDriver};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
@@ -603,7 +603,7 @@ class BotRunner {
 		if ($this->isWindows() === false) {
 			return;
 		}
-		\Safe\system("title {$config->main->character} - Nadybot");
+		system("title {$config->main->character} - Nadybot");
 	}
 
 	/** Connect to the database */

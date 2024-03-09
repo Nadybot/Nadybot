@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{fclose, preg_split};
+use function Safe\{fclose, parse_ini_string, preg_split};
 
 use Amp\File\{Filesystem, FilesystemException};
 use Directory;
@@ -91,7 +91,7 @@ class ClassLoader {
 	public function registerModule(string $baseDir, string $moduleName): void {
 		// read module.ini file (if it exists) from module's directory
 		if ($this->fs->exists("{$baseDir}/{$moduleName}/module.ini")) {
-			$entries = \Safe\parse_ini_file("{$baseDir}/{$moduleName}/module.ini");
+			$entries = parse_ini_string($this->fs->read("{$baseDir}/{$moduleName}/module.ini"));
 			// check that current PHP version is greater or equal than module's
 			// minimum required PHP version
 			if (is_array($entries) && isset($entries["minimum_php_version"])) {

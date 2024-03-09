@@ -2,7 +2,7 @@
 
 namespace Nadybot\Api;
 
-use function Safe\preg_match_all;
+use function Safe\{glob, preg_match_all};
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -20,16 +20,16 @@ use ReflectionUnionType;
 
 class ApiSpecGenerator {
 	public function loadClasses(): void {
-		foreach (\Safe\glob(__DIR__ . "/../Core/DBSchema/*.php") ?: [] as $file) {
+		foreach (glob(__DIR__ . "/../Core/DBSchema/*.php") ?: [] as $file) {
 			require_once $file;
 		}
-		foreach (\Safe\glob(__DIR__ . "/../Core/Modules/*/*.php") ?: [] as $file) {
+		foreach (glob(__DIR__ . "/../Core/Modules/*/*.php") ?: [] as $file) {
 			require_once $file;
 		}
-		foreach (\Safe\glob(__DIR__ . "/../Core/*.php") ?: [] as $file) {
+		foreach (glob(__DIR__ . "/../Core/*.php") ?: [] as $file) {
 			require_once $file;
 		}
-		foreach (\Safe\glob(__DIR__ . "/../Modules/*/*.php") ?: [] as $file) {
+		foreach (glob(__DIR__ . "/../Modules/*/*.php") ?: [] as $file) {
 			require_once $file;
 		}
 	}

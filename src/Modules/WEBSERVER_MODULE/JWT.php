@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Safe\{date, json_decode};
+use function Safe\{base64_decode, date, json_decode, openssl_verify};
 use DateTime;
 use DomainException;
 use Exception;
@@ -168,7 +168,7 @@ class JWT {
 			$input .= str_repeat('=', $padlen);
 		}
 		try {
-			$decoded = \Safe\base64_decode(strtr($input, '-_', '+/'));
+			$decoded = base64_decode(strtr($input, '-_', '+/'));
 		} catch (UrlException) {
 			return null;
 		}
@@ -192,7 +192,7 @@ class JWT {
 		}
 
 		$algorithm = static::$supported_algs[$alg];
-		$success = \Safe\openssl_verify($msg, $signature, $key, $algorithm);
+		$success = openssl_verify($msg, $signature, $key, $algorithm);
 		if ($success === 1) {
 			return true;
 		} elseif ($success === 0) {

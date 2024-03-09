@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-use function Safe\preg_replace;
+use function Safe\{preg_replace, preg_split};
 use Illuminate\Support\Collection;
 
 use Nadybot\Core\{
@@ -413,7 +413,7 @@ class ItemsController extends ModuleInstance {
 				$numExactMatches = 100;
 				continue;
 			}
-			$itemKeywords = \Safe\preg_split("/\s/", $row->name);
+			$itemKeywords = preg_split("/\s/", $row->name);
 			$numExactMatches = 0;
 			foreach ($itemKeywords as $keyword) {
 				foreach ($searchTerms as $searchWord) {
@@ -570,7 +570,7 @@ class ItemsController extends ModuleInstance {
 		if (!isset($search)) {
 			return false;
 		}
-		$tokens = \Safe\preg_split("/\s+/", $search);
+		$tokens = preg_split("/\s+/", $search);
 		foreach ($tokens as $token) {
 			if (substr($token, 0, 1) === "-"
 				&& stripos($itemName, substr($token, 1)) !== false) {

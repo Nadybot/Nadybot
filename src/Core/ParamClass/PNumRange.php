@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\ParamClass;
 
+use function Safe\preg_split;
+
 class PNumRange extends Base {
 	/** The smaller value */
 	public int $low;
@@ -12,7 +14,7 @@ class PNumRange extends Base {
 	protected string $value;
 
 	public function __construct(string $value) {
-		[$low, $high] = \Safe\preg_split("/\s*-\s*/", $value);
+		[$low, $high] = preg_split("/\s*-\s*/", $value);
 		$this->low = min((int)$low, (int)$high);
 		$this->high = max((int)$low, (int)$high);
 		$this->value = $value;

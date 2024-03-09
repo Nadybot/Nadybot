@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
+use function Safe\date;
 use Nadybot\Core\Util;
+
 use Nadybot\Modules\PVP_MODULE\Attributes\CastToTiming;
 
 class SiteUpdate {
@@ -75,7 +77,7 @@ class SiteUpdate {
 			'site-org-id' => $this->org_id,
 			'site-org-name' => $this->org_name,
 			'site-plant-time' => isset($this->plant_time)
-				? \Safe\date(Util::DATETIME, $this->plant_time)
+				? date(Util::DATETIME, $this->plant_time)
 				: null,
 			'site-ct-ql' => $this->ql,
 		];

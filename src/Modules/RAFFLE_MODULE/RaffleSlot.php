@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
+use function Safe\preg_split;
+
 class RaffleSlot {
 	public int $amount = 1;
 
@@ -21,7 +23,7 @@ class RaffleSlot {
 		} elseif (preg_match("/loot\s*order/i", $text)) {
 			$this->amount = 0;
 		}
-		$items = \Safe\preg_split("/\s*\+\s*/", $text);
+		$items = preg_split("/\s*\+\s*/", $text);
 		foreach ($items as $item) {
 			$itemObj = new RaffleItem();
 			$itemObj->fromString($item);

@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use function Amp\delay;
-use function Safe\json_decode;
+use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DateTime;
 use Exception;
@@ -256,7 +256,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			"",
 			$alerts,
 			"GauntletBuffController.gaubuffcallback",
-			\Safe\json_encode($data)
+			json_encode($data)
 		);
 	}
 

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
+use function Safe\{base64_decode, openssl_cipher_iv_length, openssl_decrypt, openssl_digest, openssl_encrypt, pack, sodium_crypto_aead_aes256gcm_decrypt};
 use Exception;
 use Nadybot\Core\{Attributes as NCA};
 use Nadybot\Modules\RELAY_MODULE\{
@@ -9,6 +10,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayLayerInterface,
 	RelayMessage,
 };
+
 use Psr\Log\LoggerInterface;
 
 /**
@@ -43,8 +45,8 @@ class AesGcmEncryption implements RelayLayerInterface {
 	private LoggerInterface $logger;
 
 	public function __construct(string $password) {
-		$this->password = \Safe\openssl_digest($password, 'SHA256', true);
-		$ivLength = \Safe\openssl_cipher_iv_length(static::CIPHER);
+		$this->password = openssl_digest($password, 'SHA256', true);
+		$ivLength = openssl_cipher_iv_length(static::CIPHER);
 		$this->ivLength = $ivLength;
 	}
 
@@ -86,7 +88,7 @@ class AesGcmEncryption implements RelayLayerInterface {
 		]);
 		$ivLength = $this->ivLength;
 		[$micro, $secs] = explode(" ", microtime());
-		$iv = \Safe\pack("NN", $secs, (float)$micro*100000000);
+		$iv = pack("NN", $secs, (float)$micro*100000000);
 		$fillLength = $ivLength - strlen($iv);
 		if ($fillLength >= 1) {
 			$iv .= random_bytes($fillLength);
@@ -102,7 +104,7 @@ class AesGcmEncryption implements RelayLayerInterface {
 			$encrypted = sodium_bin2base64($iv . $tag . $ciphertextRaw, SODIUM_BASE64_VARIANT_ORIGINAL);
 		} else {
 			$tag="";
-			$ciphertextRaw = \Safe\openssl_encrypt($text, static::CIPHER, $this->password, OPENSSL_RAW_DATA, $iv, $tag);
+			$ciphertextRaw = openssl_encrypt($text, static::CIPHER, $this->password, OPENSSL_RAW_DATA, $iv, $tag);
 			$encrypted = base64_encode($iv . $tag . $ciphertextRaw);
 		}
 		$this->logger->debug("Successfully encoded message for relay {relay} with AES-GCM", [
@@ -125,7 +127,7 @@ class AesGcmEncryption implements RelayLayerInterface {
 		) {
 			$rawString = sodium_base642bin($text, SODIUM_BASE64_VARIANT_ORIGINAL);
 		} else {
-			$rawString = \Safe\base64_decode($text);
+			$rawString = base64_decode($text);
 		}
 		$iv = substr($rawString, 0, $ivLength);
 		$tag = substr($rawString, $ivLength, $tagLength = 16);
@@ -139,8 +141,8 @@ class AesGcmEncryption implements RelayLayerInterface {
 		try {
 			$useSodium = function_exists('sodium_crypto_aead_aes256gcm_is_available') && sodium_crypto_aead_aes256gcm_is_available();
 			$originalText = $useSodium
-				? \Safe\sodium_crypto_aead_aes256gcm_decrypt($ciphertextRaw.$tag, "", $iv, $this->password)
-				: \Safe\openssl_decrypt($ciphertextRaw, self::CIPHER, $this->password, OPENSSL_RAW_DATA, $iv, $tag);
+				? sodium_crypto_aead_aes256gcm_decrypt($ciphertextRaw.$tag, "", $iv, $this->password)
+				: openssl_decrypt($ciphertextRaw, self::CIPHER, $this->password, OPENSSL_RAW_DATA, $iv, $tag);
 		} catch (Exception $e) {
 			$this->logger->info("Unable to decode the AES-GCM encrypted message for relay {relay}", [
 				"relay" => $this->relay->getName(),

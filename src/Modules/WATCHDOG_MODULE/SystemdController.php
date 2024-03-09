@@ -2,12 +2,14 @@
 
 namespace Nadybot\Modules\WATCHDOG_MODULE;
 
+use function Safe\{getmygid, getmypid, getmyuid, putenv};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Event,
 	EventManager,
 	ModuleInstance,
 };
+
 use Socket;
 
 /**
@@ -73,7 +75,7 @@ class SystemdController extends ModuleInstance {
 		}
 
 		if ($unsetEnvironment) {
-			\Safe\putenv('NOTIFY_SOCKET');
+			putenv('NOTIFY_SOCKET');
 		}
 
 		return $result;
@@ -124,7 +126,7 @@ class SystemdController extends ModuleInstance {
 			$messageHeader['name'][0] = "\x00";
 		}
 
-		$havePID = $pid && \Safe\getmypid() !== $pid;
+		$havePID = $pid && getmypid() !== $pid;
 
 		if (count($fds) > 0 || $havePID) {
 			if (count($fds)) {
@@ -141,8 +143,8 @@ class SystemdController extends ModuleInstance {
 					'type' => SCM_CREDENTIALS,
 					'data' => [
 						'pid' => $pid,
-						'uid' => \Safe\getmyuid(),
-						'gid' => \Safe\getmygid(),
+						'uid' => getmyuid(),
+						'gid' => getmygid(),
 					],
 				];
 			}
@@ -176,10 +178,10 @@ class SystemdController extends ModuleInstance {
 	public function isSystemdWatchdogEnabled(bool $unsetEnvironment, int &$usec): int {
 		$result = $this->systemdWatchdogEnabled($usec);
 		if ($unsetEnvironment && getenv('WATCHDOG_USEC') !== false) {
-			\Safe\putenv('WATCHDOG_USEC');
+			putenv('WATCHDOG_USEC');
 		}
 		if ($unsetEnvironment && getenv('WATCHDOG_PID') !== false) {
-			\Safe\putenv('WATCHDOG_PID');
+			putenv('WATCHDOG_PID');
 		}
 
 		return $result;
@@ -211,7 +213,7 @@ class SystemdController extends ModuleInstance {
 		}
 
 		// Is this for us?
-		if (\Safe\getmypid() !== $pid) {
+		if (getmypid() !== $pid) {
 			return 0;
 		}
 

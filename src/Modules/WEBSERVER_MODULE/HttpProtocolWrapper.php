@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use function Safe\{base64_decode, fread, json_decode, parse_url, preg_split};
 use Amp\File\Filesystem;
 use AO\Internal\BinaryString;
 use Exception;
@@ -15,6 +16,7 @@ use Psr\Log\LoggerInterface;
 use Safe\DateTime;
 use Safe\Exceptions\FilesystemException;
 use stdClass;
+
 use Throwable;
 
 /**
@@ -96,7 +98,7 @@ class HttpProtocolWrapper {
 		}
 		if ($this->asyncSocket->getState() !== $this->asyncSocket::STATE_READY) {
 			// @phpstan-ignore-next-line
-			\Safe\fread($sock, 4096);
+			fread($sock, 4096);
 			return;
 		}
 		switch ($this->nextPart) {
@@ -217,7 +219,7 @@ class HttpProtocolWrapper {
 			$this->httpError(new Response(Response::NOT_IMPLEMENTED));
 			return;
 		}
-		$parts = \Safe\parse_url($matches[2]);
+		$parts = parse_url($matches[2]);
 		if (!is_array($parts)) {
 			$this->httpError(new Response(Response::BAD_REQUEST));
 			$this->nextPart = static::EXPECT_IGNORE;
@@ -248,7 +250,7 @@ class HttpProtocolWrapper {
 			return;
 		}
 		if ($line !== '') {
-			$parts = \Safe\preg_split("/\s*:\s*/", $line, 2);
+			$parts = preg_split("/\s*:\s*/", $line, 2);
 			if (count($parts) !== 2) {
 				$this->httpError(new Response(Response::BAD_REQUEST));
 				return;
@@ -292,7 +294,7 @@ class HttpProtocolWrapper {
 		}
 		try {
 			// @phpstan-ignore-next-line
-			$buffer = \Safe\fread($sock, $readChunk);
+			$buffer = fread($sock, $readChunk);
 		} catch (FilesystemException $e) {
 			$this->logger->info("Error reading body from socket: " . $e->getMessage());
 			$socket->close();
@@ -340,15 +342,15 @@ class HttpProtocolWrapper {
 		if (!isset($this->request->headers['content-type'])) {
 			return new Response(Response::UNSUPPORTED_MEDIA_TYPE);
 		}
-		if (\Safe\preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/json') {
+		if (preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/json') {
 			try {
-				$this->request->decodedBody = \Safe\json_decode($this->request->body);
+				$this->request->decodedBody = json_decode($this->request->body);
 				return null;
 			} catch (Throwable $error) {
 				return new Response(Response::BAD_REQUEST, [], "Invalid JSON given: ".$error->getMessage());
 			}
 		}
-		if (\Safe\preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/x-www-form-urlencoded') {
+		if (preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/x-www-form-urlencoded') {
 			$parts = explode("&", $this->request->body);
 			$result = new stdClass();
 			foreach ($parts as $part) {
@@ -411,7 +413,7 @@ class HttpProtocolWrapper {
 			}
 		}
 		if (isset($this->request->headers['if-none-match'], $response->headers['ETag'])) {
-			$tags = \Safe\preg_split("/\s*,\s*/", $this->request->headers['if-none-match']);
+			$tags = preg_split("/\s*,\s*/", $this->request->headers['if-none-match']);
 			foreach ($tags as $tag) {
 				if ($tag === '*' || $tag === $response->headers['ETag']) {
 					return false;
@@ -446,11 +448,11 @@ class HttpProtocolWrapper {
 			return null;
 		}
 		try {
-			$parts = \Safe\preg_split("/\s+/", $this->request->headers["authorization"]);
+			$parts = preg_split("/\s+/", $this->request->headers["authorization"]);
 			if (count($parts) !== 2 || strtolower($parts[0]) !== 'basic') {
 				return null;
 			}
-			$userPassString = \Safe\base64_decode($parts[1]);
+			$userPassString = base64_decode($parts[1]);
 		} catch (Exception) {
 			return null;
 		}

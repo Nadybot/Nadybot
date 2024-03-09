@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use function Safe\{json_decode, json_encode};
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -54,14 +56,14 @@ class GauntletInventoryController extends ModuleInstance {
 	public function getData(string $name): array {
 		$data = $this->preferences->get($name, 'gauntlet');
 		if (isset($data)) {
-			return \Safe\json_decode($data);
+			return json_decode($data);
 		}
 		return array_fill(0, 17, 0);
 	}
 
 	/** @param int[] $inv */
 	public function saveData(string $sender, array $inv): void {
-		$this->preferences->save($sender, 'gauntlet', \Safe\json_encode($inv));
+		$this->preferences->save($sender, 'gauntlet', json_encode($inv));
 	}
 
 	/** Show the Gauntlet inventory for you or someone else, wanting to make &lt;num armors&gt; */

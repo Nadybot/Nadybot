@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
-use function Safe\json_decode;
+use function Safe\{json_decode, json_encode};
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use InvalidArgumentException;
 use Nadybot\Core\{
@@ -203,7 +203,7 @@ class Chunker implements RelayLayerInterface {
 				sent: $created,
 				data: $chunk,
 			);
-			$result []= \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			$result []= json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		}
 		return $result;
 	}

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use function Safe\preg_match_all;
+use function Safe\{preg_match_all, preg_split};
 use InvalidArgumentException;
 use Nadybot\Core\ParamClass\PItem;
 
@@ -73,7 +73,7 @@ class RandomController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>random one,two,three")]
 	#[NCA\Help\Example("<symbol>random one, two, three")]
 	public function randomCommand(CmdContext $context, string $elements): void {
-		$items = \Safe\preg_split("/(,\s+|\s+|,)/", trim($elements));
+		$items = preg_split("/(,\s+|\s+|,)/", trim($elements));
 		$list = [];
 		while (count($items)) {
 			// Pick a random item from $items and remove it
@@ -157,7 +157,7 @@ class RandomController extends ModuleInstance {
 
 		$options = array_merge(
 			$options,
-			\Safe\preg_split("/(,\s+|\s+|,)/", $listOfNames)
+			preg_split("/(,\s+|\s+|,)/", $listOfNames)
 		);
 		if ($amount > count($options)) {
 			$msg = "Cannot pick more items than are on the list.";
@@ -202,7 +202,7 @@ class RandomController extends ModuleInstance {
 
 		$options = array_merge(
 			$options,
-			\Safe\preg_split("/(,\s+|\s+|,)/", $listOfNames)
+			preg_split("/(,\s+|\s+|,)/", $listOfNames)
 		);
 		[$rollNumber, $result] = $this->roll($context->char->name, $options);
 		$msg = "The roll is <highlight>{$result}<end> out of the possible options ".

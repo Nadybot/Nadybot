@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
+use function Safe\preg_split;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -25,6 +26,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Request,
 	Response,
 };
+
 use Throwable;
 
 /**
@@ -538,7 +540,7 @@ class NewsController extends ModuleInstance {
 		$blobLines = [];
 		foreach ($unreadNews as $news) {
 			$firstLine = explode("\n", $news->news)[0];
-			$firstWords = array_slice(\Safe\preg_split("/\s+/", $firstLine), 0, 5);
+			$firstWords = array_slice(preg_split("/\s+/", $firstLine), 0, 5);
 			$blobLines []= "<tab><highlight>" . $this->util->date($news->time).
 				"<end>: " . join(" ", $firstWords) . "...";
 		}

@@ -2,9 +2,11 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use function Safe\json_encode;
 use DateTime;
 use Nadybot\Core\Attributes\JSON;
 use ReflectionClass;
+
 use Safe\Exceptions\JsonException;
 
 class JsonExporter {
@@ -75,7 +77,7 @@ class JsonExporter {
 
 	protected static function jsonEncode(mixed $data): string {
 		try {
-			return \Safe\json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+			return json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			return "";
 		}

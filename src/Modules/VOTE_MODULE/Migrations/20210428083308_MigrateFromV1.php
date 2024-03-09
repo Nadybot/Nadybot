@@ -2,8 +2,10 @@
 
 namespace Nadybot\Modules\VOTE_MODULE\Migrations;
 
+use function Safe\json_encode;
 use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\VOTE_MODULE\VoteController;
+
 use Psr\Log\LoggerInterface;
 
 class MigrateFromV1 implements SchemaMigration {
@@ -22,7 +24,7 @@ class MigrateFromV1 implements SchemaMigration {
 			$id = $db->table(VoteController::DB_POLLS)->insertGetId([
 				"author" => (string)$oldPoll->author,
 				"question" => (string)$oldPoll->question,
-				"possible_answers" => \Safe\json_encode(explode(VoteController::DELIMITER, (string)$oldPoll->answer)),
+				"possible_answers" => json_encode(explode(VoteController::DELIMITER, (string)$oldPoll->answer)),
 				"started" => (int)$oldPoll->started,
 				"duration" => (int)$oldPoll->duration,
 				"status" => (int)$oldPoll->status,

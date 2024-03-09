@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use function Safe\{json_decode, json_encode};
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -28,6 +29,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 };
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
+
 use Throwable;
 
 #[
@@ -96,7 +98,7 @@ class Tyrbot implements RelayProtocolInterface {
 		]);
 		$serialized = array_shift($message->packages);
 		try {
-			$data = \Safe\json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			$data = json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			$mapper = new ObjectMapperUsingReflection();
 
 			/** @var BasePacket */
@@ -459,6 +461,6 @@ class Tyrbot implements RelayProtocolInterface {
 	}
 
 	protected function jsonEncode(mixed $data): string {
-		return \Safe\json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+		return json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 	}
 }

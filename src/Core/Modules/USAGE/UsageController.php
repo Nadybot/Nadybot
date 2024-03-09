@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\USAGE;
 
+use function Safe\json_encode;
 use Amp\File\Filesystem;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -22,6 +23,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\RELAY_MODULE\{RelayController, RelayLayer};
+
 use stdClass;
 
 /**
@@ -168,7 +170,7 @@ class UsageController extends ModuleInstance {
 	#[NCA\HandlesCommand("usage")]
 	public function usageInfoCommand(CmdContext $context, #[NCA\Str("info")] string $action): void {
 		$info = $this->getUsageInfo(time() - 7*24*3600, time());
-		$blob = \Safe\json_encode(
+		$blob = json_encode(
 			$info,
 			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR
 		);

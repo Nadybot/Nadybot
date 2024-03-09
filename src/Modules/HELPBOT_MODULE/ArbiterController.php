@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use function Safe\strtotime;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
@@ -14,6 +15,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+
 use Safe\Exceptions\DatetimeException;
 
 /**
@@ -144,12 +146,12 @@ class ArbiterController extends ModuleInstance {
 		$day = (new DateTime("now", new DateTimeZone("UTC")))->format("N");
 		$startsSunday = isset($ends) && strtolower($ends) === "next";
 		if ($startsSunday) {
-			$start =  \Safe\strtotime("sunday");
-			$end = \Safe\strtotime("sunday + 8 days");
+			$start = strtotime("sunday");
+			$end = strtotime("sunday + 8 days");
 		} else {
 			$startsToday = ($day === "7") && !isset($ends);
-			$start =  \Safe\strtotime($startsToday ? "today" : "last sunday");
-			$end = \Safe\strtotime($startsToday ? "monday + 7 days" : "next monday");
+			$start = strtotime($startsToday ? "today" : "last sunday");
+			$end = strtotime($startsToday ? "monday + 7 days" : "next monday");
 		}
 		$this->db->awaitBeginTransaction();
 		try {
@@ -196,7 +198,7 @@ class ArbiterController extends ModuleInstance {
 		$time = time();
 		if (isset($timeGiven)) {
 			try {
-				$time = \Safe\strtotime($timeGiven);
+				$time = strtotime($timeGiven);
 			} catch (DatetimeException) {
 				$context->reply("Unable to parse <highlight>{$timeGiven}<end> into a date.");
 				return;

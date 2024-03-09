@@ -64,6 +64,7 @@ class UseAsyncFunctionsRule implements Rule {
 			"is_file" => "\\Amp\\File\\isFile()",
 			"is_dir" => "\\Amp\\File\\isDirectory()",
 			"filesize" => "\\Amp\\File\\getSize()",
+			"parse_ini_file" => "parse_ini_string(\\Amp\\File\\read())",
 		];
 
 		$replacement = $syncFunctions[$functionName] ?? $syncFunctions[str_replace("Safe\\", "", $functionName)];

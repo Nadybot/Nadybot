@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use function Safe\{json_decode, json_encode};
 use Amp\File\Filesystem;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	CacheManager,
@@ -113,7 +115,7 @@ class CacheController extends ModuleInstance {
 		if ($this->cacheManager->cacheExists($group, $file)) {
 			$contents = $this->cacheManager->retrieve($group, $file)??'null';
 			if (preg_match("/\.json$/", $file)) {
-				$contents = \Safe\json_encode(\Safe\json_decode($contents), JSON_PRETTY_PRINT);
+				$contents = json_encode(json_decode($contents), JSON_PRETTY_PRINT);
 			}
 			$msg = $this->text->makeBlob("Cache File: {$group} {$file}", htmlspecialchars($contents));
 		} else {

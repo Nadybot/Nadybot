@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Nadybot\Modules\NANO_MODULE;
 
+use function Safe\preg_split;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\PProfession;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -271,7 +273,7 @@ class NanoController extends ModuleInstance {
 		$data = $query->asObj(LocationCount::class);
 		$nanoCount = [];
 		foreach ($data as $row) {
-			$locations = \Safe\preg_split("/\s*\/\s*/", $row->location);
+			$locations = preg_split("/\s*\/\s*/", $row->location);
 			foreach ($locations as $loc) {
 				$nanoCount[$loc] = ($nanoCount[$loc]??0) + $row->count;
 			}

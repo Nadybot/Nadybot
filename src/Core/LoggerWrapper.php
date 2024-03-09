@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use function Safe\{ini_get, realpath};
 use Closure;
 use Exception;
 use Monolog\Processor\PsrLogMessageProcessor;
@@ -15,6 +16,7 @@ use Nadybot\Core\{
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\FilesystemException;
 use Stringable;
+
 use Throwable;
 
 /**
@@ -186,14 +188,14 @@ class LoggerWrapper implements LoggerInterface {
 
 	/** Get the relative path of the directory where logs of this bot are stored */
 	public static function getLoggingDirectory(): string {
-		$errorLog = \Safe\ini_get('error_log');
+		$errorLog = ini_get('error_log');
 		if (!is_string($errorLog)) {
 			throw new Exception("Your php.ini error_log is misconfigured.");
 		}
 		$logDir = dirname($errorLog);
 		if (substr($logDir, 0, 1) !== '/') {
 			try {
-				$logDirNew = \Safe\realpath(dirname(__DIR__, 2) . '/' . $logDir);
+				$logDirNew = realpath(dirname(__DIR__, 2) . '/' . $logDir);
 			} catch (FilesystemException) {
 				$logDirNew = dirname(__DIR__, 2) . '/' . $logDir;
 			}

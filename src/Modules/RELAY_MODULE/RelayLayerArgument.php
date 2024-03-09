@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use function Safe\json_encode;
 use Nadybot\Core\Attributes\JSON;
+
 use Nadybot\Core\DBRow;
 
 class RelayLayerArgument extends DBRow {
@@ -27,6 +29,6 @@ class RelayLayerArgument extends DBRow {
 		if (preg_match("/^(true|false|\d+)$/", $this->value)) {
 			return "{$this->name}={$this->value}";
 		}
-		return "{$this->name}=" . \Safe\json_encode($this->value, JSON_UNESCAPED_SLASHES);
+		return "{$this->name}=" . json_encode($this->value, JSON_UNESCAPED_SLASHES);
 	}
 }

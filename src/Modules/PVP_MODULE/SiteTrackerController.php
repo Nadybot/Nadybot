@@ -4,6 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 // pf, site
 
+use function Safe\glob;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use Nadybot\Core\ParamClass\PRemove;
@@ -13,6 +14,7 @@ use Nadybot\Modules\PVP_MODULE\Attributes\Argument;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 use Nadybot\Modules\PVP_MODULE\Handlers\Base;
 use ReflectionClass;
+
 use Throwable;
 
 #[
@@ -109,7 +111,7 @@ class SiteTrackerController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$handlerFile = \Safe\glob(__DIR__ . "/Handlers/*.php");
+		$handlerFile = glob(__DIR__ . "/Handlers/*.php");
 		foreach ($handlerFile as $file) {
 			require_once $file;
 			$className = basename($file, '.php');
