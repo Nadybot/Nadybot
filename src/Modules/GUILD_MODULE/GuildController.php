@@ -90,48 +90,6 @@ class GuildController extends ModuleInstance {
 	public const DB_TABLE = "org_members_<myname>";
 	private const CONSECUTIVE_BAD_UPDATES = 2;
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public OnlineController $onlineController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public GuildManager $guildManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public Preferences $preferences;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -186,6 +144,48 @@ class GuildController extends ModuleInstance {
 	/** Number of skipped roster updates, because they were likely bad */
 	#[NCA\Setting\Number(mode: 'noedit')]
 	public int $numOrgUpdatesSkipped = 0;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private OnlineController $onlineController;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private GuildManager $guildManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private Preferences $preferences;
 
 	#[NCA\Setup]
 	public function setup(): void {

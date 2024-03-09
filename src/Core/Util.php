@@ -17,14 +17,14 @@ class Util {
 
 	/** @var string */
 	public const DATE = "d-M-Y";
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	/** Convert bytes to kB, MB, etc. so it's never more than 1024 */
 	public function bytesConvert(int $bytes): string {

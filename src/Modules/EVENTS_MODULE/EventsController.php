@@ -42,27 +42,27 @@ use Safe\Exceptions\DatetimeException;
 class EventsController extends ModuleInstance {
 	public const CMD_EVENT_MANAGE = "events add/change/delete";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
 	/** Maximum number of events shown */
 	#[NCA\Setting\Number(options: [5, 10, 15, 20])]
 	public int $numEventsShown = 5;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
 
 	/** Show the five closest past and upcoming events */
 	#[NCA\HandlesCommand("events")]

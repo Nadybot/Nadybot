@@ -8,8 +8,6 @@ use Nadybot\Core\{
 	CmdContext,
 	LoggerWrapper,
 	ModuleInstance,
-	Text,
-	Util,
 };
 
 /**
@@ -27,12 +25,6 @@ use Nadybot\Core\{
 	)
 ]
 class StopwatchController extends ModuleInstance {
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 

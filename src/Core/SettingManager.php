@@ -14,27 +14,6 @@ use Nadybot\Core\DBSchema\Setting;
 class SettingManager {
 	public const DB_TABLE = "settings_<myname>";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public HelpManager $helpManager;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -42,6 +21,27 @@ class SettingManager {
 	public array $settings = [];
 
 	public static bool $isInitialized = false;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private HelpManager $helpManager;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	/** @var array<string,ChangeListener[]> */
 	private array $changeListeners = [];

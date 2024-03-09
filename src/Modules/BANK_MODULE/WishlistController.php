@@ -49,30 +49,30 @@ class WishlistController extends ModuleInstance {
 	public const DB_TABLE = "wishlist";
 	public const DB_TABLE_FULFILMENT = "wishlist_fulfilment";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
 	#[NCA\Setting\TimeOrOff]
 	/** Enforced default and maximum duration for every wish */
 	public int $maxWishLifetime = 0;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
 
 	#[NCA\Event(
 		name: "connect",

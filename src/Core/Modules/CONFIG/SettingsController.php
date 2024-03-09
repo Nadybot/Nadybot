@@ -7,7 +7,6 @@ use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
-	CommandManager,
 	DB,
 	DBSchema\Setting,
 	HelpManager,
@@ -17,7 +16,6 @@ use Nadybot\Core\{
 	SettingManager,
 	TemplateSettingHandler,
 	Text,
-	Util,
 };
 
 #[
@@ -31,25 +29,19 @@ use Nadybot\Core\{
 ]
 class SettingsController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	private SettingManager $settingManager;
 
 	#[NCA\Inject]
-	public HelpManager $helpManager;
+	private HelpManager $helpManager;
 
 	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
+	private AccessManager $accessManager;
 
 	#[NCA\Setup]
 	public function setup(): void {

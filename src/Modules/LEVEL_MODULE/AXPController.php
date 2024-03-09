@@ -22,7 +22,7 @@ use Nadybot\Core\{
 ]
 class AXPController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	/**
 	 * @var array<array<int|string>>

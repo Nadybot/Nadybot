@@ -8,7 +8,7 @@ use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 
 class MigrateToTrackerFormat implements SchemaMigration {
 	#[NCA\Inject]
-	public TrackerController $trackerController;
+	private TrackerController $trackerController;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$trackerLayout = (int)($this->getSetting($db, "tracker_layout") ?? 0);

@@ -7,7 +7,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\GaugeProvider;
 
 class RaidStateStats implements GaugeProvider {
 	#[NCA\Inject]
-	public RaidController $raidController;
+	private RaidController $raidController;
 
 	public function getValue(): float {
 		return isset($this->raidController->raid) ? 1 : 0;

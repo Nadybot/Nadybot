@@ -27,13 +27,13 @@ use Nadybot\Core\{
 ]
 class GauntletInventoryController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public AltsController $altsController;
+	private AltsController $altsController;
 
 	#[NCA\Inject]
-	public Preferences $preferences;
+	private Preferences $preferences;
 
 	/**
 	 * (ref , image, need) 17 items without basic armor

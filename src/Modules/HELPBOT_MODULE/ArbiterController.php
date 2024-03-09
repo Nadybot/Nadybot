@@ -9,7 +9,6 @@ use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	CommandAlias,
 	DB,
 	ModuleInstance,
 	Text,
@@ -44,16 +43,13 @@ class ArbiterController extends ModuleInstance {
 	public const DB_TABLE = "icc_arbiter";
 
 	#[NCA\Inject]
-	public CommandAlias $commandAlias;
+	private Util $util;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	/** Calculate the next (or current) times for an event */
 	public function getNextForType(string $type, ?int $time=null): ArbiterEvent {

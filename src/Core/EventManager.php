@@ -24,24 +24,6 @@ class EventManager {
 	public const PACKET_TYPE_REGEX = '/packet\(\d+\)/';
 	public const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public MessageHubController $messageHubController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -58,6 +40,21 @@ class EventManager {
 	 * @var array<string,array<string,bool>>
 	 */
 	protected array $dontActivateEvents = [];
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private MessageHubController $messageHubController;
 
 	/** @var CronEntry[] */
 	private array $cronevents = [];

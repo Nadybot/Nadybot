@@ -10,11 +10,9 @@ use Nadybot\Core\{
 	BotRunner,
 	CmdContext,
 	CommandManager,
-	Config\BotConfig,
 	DB,
 	LoggerWrapper,
 	ModuleInstance,
-	Nadybot,
 	SettingEvent,
 	Text,
 	UserException,
@@ -29,24 +27,6 @@ use Nadybot\Core\{
 class CustomCmdController extends ModuleInstance {
 	public const OFF = "off";
 
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public CommandManager $cmdManager;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -58,6 +38,18 @@ class CustomCmdController extends ModuleInstance {
 	)]
 	/** Directory in which to search for custom textfile commands */
 	public string $customCmdDir = self::OFF;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private CommandManager $cmdManager;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	#[NCA\SettingChangeHandler("custom_cmd_dir")]
 	public function checkCustomCmdDir(string $setting, string $old, string $new): void {

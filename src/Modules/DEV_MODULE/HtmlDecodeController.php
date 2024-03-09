@@ -22,7 +22,7 @@ use Nadybot\Core\{
 ]
 class HtmlDecodeController extends ModuleInstance {
 	#[NCA\Inject]
-	public CommandManager $commandManager;
+	private CommandManager $commandManager;
 
 	/**
 	 * Run a command by first decoding html entities

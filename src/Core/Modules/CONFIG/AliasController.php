@@ -25,13 +25,13 @@ use Nadybot\Core\{
 ]
 class AliasController extends ModuleInstance {
 	#[NCA\Inject]
-	public CommandAlias $commandAlias;
+	private CommandAlias $commandAlias;
 
 	#[NCA\Inject]
-	public CommandManager $commandManager;
+	private CommandManager $commandManager;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	/** Add a new alias with spaces for a command */
 	#[NCA\HandlesCommand("alias")]

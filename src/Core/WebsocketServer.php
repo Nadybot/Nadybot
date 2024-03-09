@@ -9,12 +9,6 @@ use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use Revolt\EventLoop;
 
 class WebsocketServer extends WebsocketBase {
-	#[NCA\Inject]
-	public SocketManager $socketManager;
-
-	#[NCA\Inject]
-	public WebsocketController $websocketController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -23,6 +17,11 @@ class WebsocketServer extends WebsocketBase {
 
 	/** @var string[] */
 	protected array $subscriptions = [];
+	#[NCA\Inject]
+	private SocketManager $socketManager;
+
+	#[NCA\Inject]
+	private WebsocketController $websocketController;
 
 	public function __construct(AsyncSocket $socket) {
 		$this->maskData = false;

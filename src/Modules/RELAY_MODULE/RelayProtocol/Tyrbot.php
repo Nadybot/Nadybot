@@ -48,24 +48,24 @@ use Throwable;
 class Tyrbot implements RelayProtocolInterface {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public OnlineController $onlineController;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 
 	protected Relay $relay;
 
 	/** Do we want to sync online users? */
 	protected bool $syncOnline = true;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private OnlineController $onlineController;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
 
 	public function __construct(bool $syncOnline=true) {
 		$this->syncOnline = $syncOnline;

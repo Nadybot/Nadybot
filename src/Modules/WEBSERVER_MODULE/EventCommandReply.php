@@ -9,13 +9,12 @@ use Nadybot\Core\{
 };
 
 class EventCommandReply implements CommandReply {
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public WebChatConverter $webChatConverter;
-
 	protected string $uuid;
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private WebChatConverter $webChatConverter;
 
 	public function __construct(string $uuid) {
 		$this->uuid = $uuid;

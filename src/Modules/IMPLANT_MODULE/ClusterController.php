@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Text,
-	Util,
 };
 use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
 
@@ -26,16 +25,13 @@ use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
 ]
 class ClusterController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public WhatBuffsController $wbCtrl;
+	private WhatBuffsController $wbCtrl;
 
 	/** Get a list of skills/attributes you can get clusters for */
 	#[NCA\HandlesCommand("cluster")]

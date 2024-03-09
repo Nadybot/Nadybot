@@ -5,7 +5,6 @@ namespace Nadybot\Modules\LOOT_MODULE;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	AccessManager,
 	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
@@ -14,7 +13,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	Text,
-	Util,
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleController;
 use Nadybot\Modules\RAID_MODULE\AuctionController;
@@ -140,36 +138,6 @@ use Nadybot\Modules\{
 	),
 ]
 class LootListsController extends ModuleInstance {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public LootController $lootController;
-
-	#[NCA\Inject]
-	public ItemsController $itemsController;
-
-	#[NCA\Inject]
-	public ChatLeaderController $chatLeaderController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
 	/** Show pictures in loot lists */
 	#[NCA\Setting\Boolean]
 	public bool $showRaidLootPics = false;
@@ -185,6 +153,29 @@ class LootListsController extends ModuleInstance {
 	/** Show raffle links */
 	#[NCA\Setting\Boolean]
 	public bool $showLootRaffleLinks = true;
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private LootController $lootController;
+
+	#[NCA\Inject]
+	private ItemsController $itemsController;
+
+	#[NCA\Inject]
+	private ChatLeaderController $chatLeaderController;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
 
 	#[NCA\Setup]
 	public function setup(): void {

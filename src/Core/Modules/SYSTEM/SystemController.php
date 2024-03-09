@@ -96,57 +96,6 @@ use Revolt\EventLoop;
 	),
 ]
 class SystemController extends ModuleInstance implements MessageEmitter {
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public AdminManager $adminManager;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BanController $banController;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public SubcommandManager $subcommandManager;
-
-	#[NCA\Inject]
-	public HelpManager $helpManager;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -240,6 +189,56 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	/** Reply to send when the access-level is too low for a command */
 	#[NCA\Setting\Text]
 	public string $accessDeniedErrorMsg = "Error! Access denied.";
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private AdminManager $adminManager;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BanController $banController;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private SubcommandManager $subcommandManager;
+
+	#[NCA\Inject]
+	private HelpManager $helpManager;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	#[
 		NCA\SettingChangeHandler("rank_name_superadmin"),

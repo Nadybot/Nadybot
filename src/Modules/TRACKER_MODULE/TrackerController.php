@@ -18,7 +18,6 @@ use Nadybot\Core\{
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
-	Modules\DISCORD\DiscordController,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -90,48 +89,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	public const ATT_CLAN = 4;
 	public const ATT_OMNI = 8;
 	public const ATT_NEUTRAL = 16;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public GuildManager $guildManager;
-
-	#[NCA\Inject]
-	public DiscordController $discordController;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public OnlineController $onlineController;
-
-	#[NCA\Inject]
-	public FindOrgController $findOrgController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -206,6 +163,45 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		]
 	)]
 	public int $trackerAutoUntrack = 0;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private GuildManager $guildManager;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private OnlineController $onlineController;
+
+	#[NCA\Inject]
+	private FindOrgController $findOrgController;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
 
 	#[NCA\Setup]
 	public function setup(): void {

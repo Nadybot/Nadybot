@@ -73,33 +73,6 @@ class BanController extends ModuleInstance {
 	public const DB_TABLE = "banlist_<myname>";
 	public const DB_TABLE_BANNED_ORGS = "banned_orgs_<myname>";
 
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public GuildManager $guildManager;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -110,6 +83,33 @@ class BanController extends ModuleInstance {
 	/** Notify character when banned from bot */
 	#[NCA\Setting\Boolean]
 	public bool $notifyBannedPlayer = true;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private GuildManager $guildManager;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private DB $db;
 
 	/**
 	 * List of all banned players, indexed by UID

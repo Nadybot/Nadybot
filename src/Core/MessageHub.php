@@ -38,36 +38,6 @@ class MessageHub {
 	/** @var array<string,ClassSpec> */
 	public array $modifiers = [];
 
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddyListManager;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public NickController $nickController;
-
-	#[NCA\Inject]
-	public MessageHubController $msgHubCtrl;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public DB $db;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -87,6 +57,36 @@ class MessageHub {
 
 	/** @var array<string,array<string,MessageRoute[]>> */
 	protected array $routes = [];
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddyListManager;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private NickController $nickController;
+
+	#[NCA\Inject]
+	private MessageHubController $msgHubCtrl;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private DB $db;
 
 	#[NCA\Setup]
 	public function setup(): void {

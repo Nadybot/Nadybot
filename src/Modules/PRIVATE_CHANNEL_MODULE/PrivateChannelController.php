@@ -143,69 +143,6 @@ use Revolt\EventLoop;
 class PrivateChannelController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "members_<myname>";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public Preferences $preferences;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public GuildController $guildController;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public BanController $banController;
-
-	#[NCA\Inject]
-	public OnlineController $onlineController;
-
-	#[NCA\Inject]
-	public StatsController $statsController;
-
-	#[NCA\Inject]
-	public RaidRankController $raidRankController;
-
-	#[NCA\Inject]
-	public RaidController $raidController;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -278,6 +215,69 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	/** @var array<string,Member> */
 	protected array $members = [];
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private Preferences $preferences;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private GuildController $guildController;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private BanController $banController;
+
+	#[NCA\Inject]
+	private OnlineController $onlineController;
+
+	#[NCA\Inject]
+	private StatsController $statsController;
+
+	#[NCA\Inject]
+	private RaidRankController $raidRankController;
+
+	#[NCA\Inject]
+	private RaidController $raidController;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
 
 	#[NCA\Setup]
 	public function setup(): void {

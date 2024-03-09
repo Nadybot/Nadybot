@@ -15,7 +15,7 @@ class Connection {
 	public LoggerWrapper $logger;
 
 	#[NCA\Inject]
-	public WebserverController $wsCtrl;
+	private WebserverController $wsCtrl;
 
 	private ?Socket $webClient;
 

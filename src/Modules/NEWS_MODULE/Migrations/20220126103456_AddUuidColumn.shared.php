@@ -14,7 +14,7 @@ use stdClass;
 
 class AddUuidColumn implements SchemaMigration {
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "news";

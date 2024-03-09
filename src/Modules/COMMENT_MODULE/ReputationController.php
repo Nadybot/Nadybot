@@ -6,13 +6,10 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	Config\BotConfig,
-	DB,
 	LoggerWrapper,
 	ModuleInstance,
-	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PWord,
-	SettingManager,
 	Text,
 	Util,
 };
@@ -32,29 +29,20 @@ use Nadybot\Core\{
 class ReputationController extends ModuleInstance {
 	public const CAT_REPUTATION = "reputation";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public CommentController $commentController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private CommentController $commentController;
 
 	public function getReputationCategory(): CommentCategory {
 		$repCat = $this->commentController->getCategory(static::CAT_REPUTATION);

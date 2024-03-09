@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	MessageHub,
 	Modules\CONFIG\ConfigController,
-	Nadybot,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
@@ -27,25 +26,21 @@ use Nadybot\Modules\RELAY_MODULE\{
 };
 
 class MigrateToRelayTable implements SchemaMigration {
-	#[NCA\Inject]
-	public RelayController $relayController;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public ConfigController $configController;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	protected string $prefix = "";
+	#[NCA\Inject]
+	private RelayController $relayController;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private ConfigController $configController;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$relay = $this->migrateRelay($db);

@@ -7,7 +7,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\GaugeProvider;
 
 class CloakStatsCollector implements GaugeProvider {
 	#[NCA\Inject]
-	public CloakController $cloakController;
+	private CloakController $cloakController;
 
 	public function getValue(): float {
 		$entry = $this->cloakController->getLastOrgEntry();

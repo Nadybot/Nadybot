@@ -7,7 +7,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\GaugeProvider;
 
 class BuddylistOffline implements GaugeProvider {
 	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
+	private BuddylistManager $buddylistManager;
 
 	public function getValue(): float {
 		return $this->buddylistManager->getUsedBuddySlots()

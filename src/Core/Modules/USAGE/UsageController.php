@@ -41,30 +41,6 @@ use stdClass;
 class UsageController extends ModuleInstance {
 	public const DB_TABLE = "usage_<myname>";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
 	/** Record usage stats */
 	#[NCA\Setting\Boolean]
 	public bool $recordUsageStats = true;
@@ -72,6 +48,30 @@ class UsageController extends ModuleInstance {
 	/** Botid */
 	#[NCA\Setting\Text(mode: 'noedit')]
 	public string $botid = "";
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
 
 	/** Show usage stats for the past 7 days or &lt;duration&gt; for a given character */
 	#[NCA\HandlesCommand("usage")]

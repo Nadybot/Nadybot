@@ -30,15 +30,14 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	),
 ]
 class AuditController extends ModuleInstance {
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
 	/** Log all security-relevant data */
 	#[NCA\Setting\Boolean(accessLevel: "superadmin")]
 	public bool $auditEnabled = false;
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
 
 	/**
 	 * See the most recent audit entries in the database, optionally filtered

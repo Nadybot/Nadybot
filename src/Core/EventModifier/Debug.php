@@ -29,10 +29,10 @@ use Nadybot\Core\{
 ]
 class Debug implements EventModifier {
 	#[NCA\Inject]
-	public MessageHub $msgHub;
+	private MessageHub $msgHub;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	public function __construct(
 		protected string $sendTo,

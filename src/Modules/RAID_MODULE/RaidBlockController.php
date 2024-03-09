@@ -49,19 +49,19 @@ class RaidBlockController extends ModuleInstance {
 	public array $blocks = [];
 
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public AltsController $altsController;
+	private AltsController $altsController;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Setup]
 	public function setup(): void {

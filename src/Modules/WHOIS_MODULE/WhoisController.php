@@ -50,45 +50,41 @@ use Throwable;
 	)
 ]
 class WhoisController extends ModuleInstance {
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public BanController $banController;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public CommentController $commentController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** Add link to comments if found */
 	#[NCA\Setting\Boolean]
 	public bool $whoisAddComments = true;
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private BanController $banController;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private CommentController $commentController;
 
 	/** @var CharData[] */
 	private array $nameHistoryCache = [];

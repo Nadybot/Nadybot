@@ -5,10 +5,8 @@ namespace Nadybot\Core\Modules\SYSTEM;
 use function Safe\json_encode;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Nadybot\Core\{
-	AccessManager,
 	Attributes as NCA,
 	CmdContext,
-	CommandManager,
 	DB,
 	ModuleInstance,
 	SQLException,
@@ -35,16 +33,10 @@ use ReflectionClass;
 ]
 class SQLController extends ModuleInstance {
 	#[NCA\Inject]
-	public AccessManager $accessManager;
+	private DB $db;
 
 	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	/** Execute a non-select SQL command */
 	#[NCA\HandlesCommand("executesql")]

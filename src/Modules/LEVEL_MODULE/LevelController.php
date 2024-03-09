@@ -39,7 +39,7 @@ use Nadybot\Core\{
 ]
 class LevelController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Setup]
 	public function setup(): void {

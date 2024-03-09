@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	ModuleInstance,
-	Nadybot,
 	ParamClass\PFilename,
 	ParamClass\PRemove,
 	Text,
@@ -29,22 +28,19 @@ use Nadybot\Core\{
 ]
 class CacheController extends ModuleInstance {
 	#[NCA\Inject]
-	public CacheManager $cacheManager;
+	private CacheManager $cacheManager;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	#[NCA\Inject]
-	public Filesystem $fs;
+	private Filesystem $fs;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	/** View a list of cache categories */
 	#[NCA\HandlesCommand("cache")]

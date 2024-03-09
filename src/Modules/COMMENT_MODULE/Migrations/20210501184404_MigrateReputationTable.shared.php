@@ -13,7 +13,7 @@ use Throwable;
 
 class MigrateReputationTable implements SchemaMigration {
 	#[NCA\Inject]
-	public ReputationController $reputationController;
+	private ReputationController $reputationController;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		if (!$db->schema()->hasTable("reputation")) {
@@ -43,7 +43,7 @@ class MigrateReputationTable implements SchemaMigration {
 		} catch (Throwable $e) {
 			$logger->warning("Error during the conversion of the reputation table: {error}", [
 				"error" => $e->getMessage(),
-				"exception" => $e
+				"exception" => $e,
 			]);
 			return;
 		}

@@ -38,21 +38,20 @@ use Nadybot\Modules\RELAY_MODULE\{
 	)
 ]
 class Tell implements TransportInterface {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
 	protected Relay $relay;
 
 	protected string $bot;
 
 	/** @var ?callable */
 	protected $initCallback;
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
 
 	public function __construct(string $bot) {
 		$bot = ucfirst(strtolower($bot));

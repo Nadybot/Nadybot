@@ -29,10 +29,10 @@ use Safe\Exceptions\JsonException;
 ]
 class WeatherController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public HttpClientBuilder $builder;
+	private HttpClientBuilder $builder;
 
 	/** @var LocalCache<string> */
 	private LocalCache $cache;

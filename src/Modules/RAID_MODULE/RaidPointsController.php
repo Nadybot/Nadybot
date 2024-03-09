@@ -7,7 +7,6 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	CommandAlias,
 	DB,
 	LoggerWrapper,
 	MessageHub,
@@ -83,33 +82,6 @@ class RaidPointsController extends ModuleInstance {
 	public const CMD_POINTS_MODIFY = "points modify";
 	public const CMD_REWARD_EDIT = "reward add/change/delete";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public RaidController $raidController;
-
-	#[NCA\Inject]
-	public RaidMemberController $raidMemberController;
-
-	#[NCA\Inject]
-	public RaidBlockController $raidBlockController;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -140,6 +112,30 @@ class RaidPointsController extends ModuleInstance {
 	/** Minimum length required for points add/rem */
 	#[NCA\Setting\Number]
 	public int $raidPointsReasonMinLength = 10;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private RaidController $raidController;
+
+	#[NCA\Inject]
+	private RaidMemberController $raidMemberController;
+
+	#[NCA\Inject]
+	private RaidBlockController $raidBlockController;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
 
 	/** Give points when the ticker is enabled */
 	#[NCA\Event(

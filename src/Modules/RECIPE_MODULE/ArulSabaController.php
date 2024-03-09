@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PWord,
 	Text,
-	Util,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
 	AODBItem,
@@ -39,18 +38,6 @@ class ArulSabaController extends ModuleInstance {
 	public const EE = 126;
 	public const AGI = 17;
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public ItemsController $itemsController;
-
 	/** Show images for the Arul Saba steps */
 	#[NCA\Setting\Options(options: [
 		'yes, with links' => 2,
@@ -58,6 +45,15 @@ class ArulSabaController extends ModuleInstance {
 		'no' => 0,
 	])]
 	public int $arulsabaShowImages = 2;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private ItemsController $itemsController;
 
 	#[NCA\Setup]
 	public function setup(): void {

@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	EventModifier,
 	Routing\Events\Base,
 	Routing\RoutableEvent,
-	Text,
 };
 
 #[
@@ -44,9 +43,6 @@ use Nadybot\Core\{
 	)
 ]
 class ChangeMessage implements EventModifier {
-	#[NCA\Inject]
-	public Text $text;
-
 	protected ?string $addPrefix = null;
 	protected ?string $search = null;
 	protected ?string $replace = null;

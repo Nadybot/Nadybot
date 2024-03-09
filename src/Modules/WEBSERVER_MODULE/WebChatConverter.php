@@ -18,13 +18,13 @@ use Nadybot\Core\{
 #[NCA\Instance]
 class WebChatConverter extends ModuleInstance {
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	private SettingManager $settingManager;
 
 	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private MessageHub $messageHub;
 
 	public function convertMessage(string $msg): string {
 		return $this->toXML($this->parseAOFormat($msg));

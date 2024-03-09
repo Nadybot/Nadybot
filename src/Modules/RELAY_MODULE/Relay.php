@@ -29,24 +29,6 @@ class Relay implements MessageReceiver {
 	public const ALLOW_IN = 1;
 	public const ALLOW_OUT = 2;
 
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public StatsController $statsController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 	public bool $registerAsReceiver = true;
@@ -80,6 +62,24 @@ class Relay implements MessageReceiver {
 
 	protected bool $initialized = false;
 	protected int $initStep = 0;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private StatsController $statsController;
 
 	private RelayPacketsStats $inboundPackets;
 	private RelayPacketsStats $outboundPackets;

@@ -12,23 +12,19 @@ use Nadybot\Core\{
 
 #[NCA\Instance]
 class SubcommandManager {
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,CmdCfg[]> */
 	public array $subcommands = [];
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	/** @var array<string,CmdPermission> */
 	private array $cmdDefaultPermissions = [];

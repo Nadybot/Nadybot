@@ -18,13 +18,13 @@ class LandController extends ModuleInstance {
 	public const LC_CMD = "nw lc";
 
 	#[NCA\Inject]
-	public PlayfieldController $pfCtrl;
+	private PlayfieldController $pfCtrl;
 
 	#[NCA\Inject]
-	public NotumWarsController $nwCtrl;
+	private NotumWarsController $nwCtrl;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	/** List all playfields with tower sites */
 	#[NCA\HandlesCommand(self::LC_CMD)]

@@ -7,7 +7,6 @@ use Nadybot\Core\{
 	CmdContext,
 	ModuleInstance,
 	ParamClass\PItem,
-	SettingManager,
 	Text,
 };
 
@@ -25,10 +24,7 @@ use Nadybot\Core\{
 ]
 class BestQLController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
+	private Text $text;
 
 	/**
 	 * Try to determine the bonus for an interpolated QL

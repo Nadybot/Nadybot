@@ -19,13 +19,13 @@ use stdClass;
 
 class MigrateGauntletData implements SchemaMigration {
 	#[NCA\Inject]
-	public WorldBossController $worldBossController;
+	private WorldBossController $worldBossController;
 
 	#[NCA\Inject]
-	public GauntletInventoryController $gauntletInventoryController;
+	private GauntletInventoryController $gauntletInventoryController;
 
 	#[NCA\Inject]
-	public TimerController $timerController;
+	private TimerController $timerController;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "timers_<myname>";

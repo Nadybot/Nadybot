@@ -37,7 +37,6 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
-	Nadybot,
 	Registry,
 	Routing\Character,
 	Routing\Events\Online,
@@ -46,7 +45,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	Text,
 	Util,
-	Websocket,
 	WebsocketCallback,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
@@ -154,54 +152,6 @@ class DiscordGatewayController extends ModuleInstance {
 	public const EMOJI_TABLE = "discord_emoji_<myname>";
 	public const RENAME_OFF = "Off";
 
-	#[NCA\Inject]
-	public RelayController $relayController;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public Websocket $websocket;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public DiscordAPIClient $discordAPIClient;
-
-	#[NCA\Inject]
-	public DiscordGatewayCommandHandler $discordGatewayCommandHandler;
-
-	#[NCA\Inject]
-	public DiscordSlashCommandController $discordSlashCommandController;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public DiscordController $discordController;
-
-	#[NCA\Inject]
-	public StatsController $statsController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -237,6 +187,48 @@ class DiscordGatewayController extends ModuleInstance {
 
 	/** @var array<string,Guild> */
 	protected array $guilds = [];
+
+	#[NCA\Inject]
+	private RelayController $relayController;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private DiscordAPIClient $discordAPIClient;
+
+	#[NCA\Inject]
+	private DiscordGatewayCommandHandler $discordGatewayCommandHandler;
+
+	#[NCA\Inject]
+	private DiscordSlashCommandController $discordSlashCommandController;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private DiscordController $discordController;
+
+	#[NCA\Inject]
+	private StatsController $statsController;
 	private DiscordPacketsStats $inStats;
 	private DiscordPacketsStats $outStats;
 

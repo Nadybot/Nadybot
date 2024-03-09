@@ -62,29 +62,8 @@ class TradebotController extends ModuleInstance {
 		],
 	];
 
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
-
-	#[NCA\Inject]
-	public CommentController $commentController;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
 
 	/** Name of the bot whose channel to join */
 	#[NCA\Setting\Text(
@@ -108,6 +87,27 @@ class TradebotController extends ModuleInstance {
 	/** Custom color for tradebot message body */
 	#[NCA\Setting\Color]
 	public string $tradebotTextColor = "#89D2E8";
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private CommentController $commentController;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private DB $db;
 
 	#[NCA\Event(
 		name: "Connect",

@@ -19,10 +19,10 @@ use Nadybot\Core\{
 ]
 class IfNotCommand implements EventModifier {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	private SettingManager $settingManager;
 
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		// We only require prefixes for messages, the rest is passed through

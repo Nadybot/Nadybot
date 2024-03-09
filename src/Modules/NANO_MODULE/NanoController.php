@@ -65,24 +65,6 @@ use Nadybot\Core\{
 	),
 ]
 class NanoController extends ModuleInstance {
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
 	/** Number of Nanos shown on the list */
 	#[NCA\Setting\Number(options: [30, 40, 50, 60])]
 	public int $maxnano = 40;
@@ -97,6 +79,23 @@ class NanoController extends ModuleInstance {
 
 	/** @var array<int,Nanoline> */
 	public array $nanolines = [];
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
 
 	#[NCA\Setup]
 	public function setup(): void {

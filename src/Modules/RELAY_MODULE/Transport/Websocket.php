@@ -62,12 +62,6 @@ use Throwable;
 	)
 ]
 class Websocket implements TransportInterface, StatusProvider, LogWrapInterface {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public HttpClientBuilder $clientBuilder;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -82,6 +76,11 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 	protected $initCallback;
 
 	protected WebsocketConnection $client;
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private HttpClientBuilder $clientBuilder;
 
 	private bool $deinitializing = false;
 

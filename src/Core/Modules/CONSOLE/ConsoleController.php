@@ -27,21 +27,6 @@ use Revolt\EventLoop;
 
 #[NCA\Instance]
 class ConsoleController extends ModuleInstance {
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -59,6 +44,20 @@ class ConsoleController extends ModuleInstance {
 	public $socket;
 
 	public bool $useReadline = false;
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	private string $socketHandle;
 

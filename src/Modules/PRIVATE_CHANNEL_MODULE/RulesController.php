@@ -31,16 +31,16 @@ use Nadybot\Core\{
 ]
 class RulesController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public Filesystem $fs;
+	private Filesystem $fs;
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	/** See the rules for this bot */
 	#[NCA\HandlesCommand("rules")]

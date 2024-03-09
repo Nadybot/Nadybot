@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	DBSchema\CmdPermission,
 	DBSchema\CommandSearchResult,
 	ModuleInstance,
-	Nadybot,
 	SQLException,
 	Text,
 };
@@ -30,19 +29,13 @@ use Nadybot\Core\{
 ]
 class CommandSearchController extends ModuleInstance {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private DB $db;
 
 	#[NCA\Inject]
-	public DB $db;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
+	private AccessManager $accessManager;
 
 	/** Search for a command */
 	#[NCA\HandlesCommand("cmdsearch")]

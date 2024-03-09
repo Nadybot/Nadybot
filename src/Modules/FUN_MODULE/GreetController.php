@@ -51,30 +51,6 @@ class GreetController extends ModuleInstance {
 	public const PREF_ON = "on";
 	public const PREF_OFF = "off";
 
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public FunController $fun;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public Preferences $prefs;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -140,6 +116,30 @@ class GreetController extends ModuleInstance {
 	/** Delay in seconds between joining and receiving the greeting */
 	#[NCA\Setting\Number]
 	public int $greetDelay = 1;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private FunController $fun;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private Preferences $prefs;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private DB $db;
 
 	/** @var array<string,int> */
 	private static array $greetCount = [];

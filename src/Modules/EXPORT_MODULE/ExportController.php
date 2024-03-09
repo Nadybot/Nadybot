@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	Attributes as NCA,
-	BuddylistManager,
 	CmdContext,
 	Config\BotConfig,
 	DB,
@@ -77,28 +76,25 @@ use stdClass;
 ]
 class ExportController extends ModuleInstance {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Filesystem $fs;
+	private Filesystem $fs;
 
 	#[NCA\Inject]
-	public TimerController $timerController;
+	private TimerController $timerController;
 
 	#[NCA\Inject]
-	public AccessManager $accessManager;
+	private AccessManager $accessManager;
 
 	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
+	private Preferences $preferences;
 
 	#[NCA\Inject]
-	public Preferences $preferences;
-
-	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	/** Export all of this bot's data into a portable JSON-file */
 	#[NCA\HandlesCommand("export")]

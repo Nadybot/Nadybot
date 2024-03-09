@@ -41,33 +41,33 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 class GuildRankController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "org_rank_mapping_<myname>";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public GuildController $guildController;
-
-	#[NCA\Inject]
-	public GuildManager $guildManager;
-
-	#[NCA\Inject]
-	public OrglistController $orglistController;
-
-	#[NCA\Inject]
-	public Text $text;
-
 	/** Map org ranks to bot ranks */
 	#[NCA\Setting\Boolean]
 	public bool $mapOrgRanksToBotRanks = false;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private GuildController $guildController;
+
+	#[NCA\Inject]
+	private GuildManager $guildManager;
+
+	#[NCA\Inject]
+	private OrglistController $orglistController;
+
+	#[NCA\Inject]
+	private Text $text;
 
 	#[NCA\Setup]
 	public function setup(): void {

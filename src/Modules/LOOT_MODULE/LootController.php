@@ -80,33 +80,6 @@ class LootController extends ModuleInstance {
 	public const CMD_LOOT_MANAGE = "loot add/change/delete";
 	public const DB_TABLE = "loot_history_<myname>";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public ItemsController $itemsController;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public ChatLeaderController $chatLeaderController;
-
 	/** Confirmation messages for adding to loot */
 	#[NCA\Setting\Options(options: [
 		'tells' => 1,
@@ -122,6 +95,33 @@ class LootController extends ModuleInstance {
 	/** Maximum number of entries for loot history and search */
 	#[NCA\Setting\Number]
 	public int $lootHistoryMaxEntries = 40;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private ItemsController $itemsController;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private ChatLeaderController $chatLeaderController;
 
 	/**
 	 * The currently rolled items

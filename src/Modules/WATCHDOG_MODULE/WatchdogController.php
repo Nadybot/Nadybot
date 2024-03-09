@@ -16,10 +16,10 @@ use Nadybot\Core\{
 #[NCA\Instance]
 class WatchdogController extends ModuleInstance {
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	#[NCA\Inject]
-	public Filesystem $fs;
+	private Filesystem $fs;
 
 	#[NCA\Event(
 		name: "timer(10sec)",

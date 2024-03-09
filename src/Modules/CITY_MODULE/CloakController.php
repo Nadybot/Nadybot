@@ -43,33 +43,6 @@ use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 class CloakController extends ModuleInstance implements MessageEmitter {
 	public const DB_TABLE = "org_city_<myname>";
 
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public CityWaveController $cityWaveController;
-
-	#[NCA\Inject]
-	public StatsController $statsController;
-
 	/** Show cloak status to players at logon */
 	#[NCA\Setting\Options(options: [
 		'Never' => 0,
@@ -81,6 +54,33 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	/** How often to spam guild channel when cloak is down */
 	#[NCA\Setting\Time(options: ["2m", "5m", "10m", "15m", "20m"])]
 	public int $cloakReminderInterval = 300; // 5m
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private CityWaveController $cityWaveController;
+
+	#[NCA\Inject]
+	private StatsController $statsController;
 
 	private ?int $lastReminderSent = null;
 

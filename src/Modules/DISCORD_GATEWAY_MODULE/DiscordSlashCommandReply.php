@@ -24,25 +24,25 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 
 class DiscordSlashCommandReply implements CommandReply {
 	#[NCA\Inject]
-	public DiscordAPIClient $discordAPIClient;
+	private DiscordAPIClient $discordAPIClient;
 
 	#[NCA\Inject]
-	public DiscordController $discordController;
+	private DiscordController $discordController;
 
 	#[NCA\Inject]
-	public DiscordGatewayController $gw;
+	private DiscordGatewayController $gw;
 
 	#[NCA\Inject]
-	public DiscordSlashCommandController $slashCtrl;
+	private DiscordSlashCommandController $slashCtrl;
 
 	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private MessageHub $messageHub;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	public function __construct(
 		public string $applicationId,

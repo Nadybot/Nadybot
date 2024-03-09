@@ -26,10 +26,10 @@ use Throwable;
 ]
 class HttpRequestController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public HttpClientBuilder $builder;
+	private HttpClientBuilder $builder;
 
 	/** Load the given URL and show the result */
 	#[NCA\HandlesCommand("httprequest")]

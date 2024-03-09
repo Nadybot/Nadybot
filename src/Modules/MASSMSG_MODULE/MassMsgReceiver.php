@@ -6,7 +6,6 @@ use function Amp\async;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	MessageHub,
 	MessageReceiver,
 	Nadybot,
 	Routing\Events\Base,
@@ -21,13 +20,10 @@ use Nadybot\Core\{
  */
 class MassMsgReceiver implements MessageReceiver {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public MassMsgController $massMsgCtrl;
+	private MassMsgController $massMsgCtrl;
 
 	public function getChannelName(): string {
 		return Source::SYSTEM . "(mass-message)";

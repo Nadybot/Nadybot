@@ -27,10 +27,10 @@ use Nadybot\Core\{
 ]
 class WhompahController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Setup]
 	public function setup(): void {

@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	LoggerWrapper,
 	ModuleInstance,
-	Nadybot,
 	SettingManager,
 	Text,
 };
@@ -22,24 +21,6 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Guild;
  */
 #[NCA\Instance]
 class DiscordController extends ModuleInstance {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DiscordAPIClient $discordAPIClient;
-
-	#[NCA\Inject]
-	public DiscordGatewayController $discordGatewayController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -71,6 +52,21 @@ class DiscordController extends ModuleInstance {
 		]
 	)]
 	public string $itemWebsite = "https://auno.org/ao/db.php?id={id}{?ql:&ql={ql}}";
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private DiscordAPIClient $discordAPIClient;
+
+	#[NCA\Inject]
+	private DiscordGatewayController $discordGatewayController;
 
 	/** Reformat a Nadybot message for sending to Discord */
 	public function formatMessage(string $text, ?Guild $guild=null): DiscordMessageOut {

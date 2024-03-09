@@ -25,7 +25,7 @@ class Preferences extends ModuleInstance {
 	public const DB_TABLE = "preferences_<myname>";
 
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	public function save(string $sender, string $name, string $value): void {
 		$sender = ucfirst(strtolower($sender));

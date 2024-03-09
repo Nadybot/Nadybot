@@ -49,36 +49,6 @@ class AttacksController extends ModuleInstance {
 	private const VICTORY_FMT_NORMAL = "{c-winning-org} won against {c-losing-org} in <highlight>{pf-short} {site-id}<end>";
 	private const ABANDONED_FMT_NORMAL = "{c-losing-org} abandoned <highlight>{pf-short} {site-id}<end>";
 
-	#[NCA\Inject]
-	public SiteTrackerController $siteTracker;
-
-	#[NCA\Inject]
-	public PlayfieldController $pfCtrl;
-
-	#[NCA\Inject]
-	public NotumWarsController $nwCtrl;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public MessageHub $msgHub;
-
-	#[NCA\Inject]
-	public LevelController $lvlCtrl;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -392,6 +362,36 @@ class AttacksController extends ModuleInstance {
 	/** Group tower attacks by site, owner and hot-phase */
 	#[NCA\Setting\Boolean]
 	public bool $groupTowerAttacks = true;
+
+	#[NCA\Inject]
+	private SiteTrackerController $siteTracker;
+
+	#[NCA\Inject]
+	private PlayfieldController $pfCtrl;
+
+	#[NCA\Inject]
+	private NotumWarsController $nwCtrl;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private MessageHub $msgHub;
+
+	#[NCA\Inject]
+	private LevelController $lvlCtrl;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
 
 	#[NCA\Event(
 		name: "orgmsg",

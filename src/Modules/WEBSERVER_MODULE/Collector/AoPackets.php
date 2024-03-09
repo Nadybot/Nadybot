@@ -11,7 +11,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Dataset;
 
 class AoPackets extends Dataset {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	public function getValues(): array {
 		$lines = ["# TYPE ao_packets counter"];

@@ -24,7 +24,6 @@ use Nadybot\Core\{
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SubcommandManager,
 	Text,
 	UserException,
 };
@@ -62,33 +61,6 @@ class DiscordSlashCommandController extends ModuleInstance {
 	public const APP_TYPE_OPT_PARAMS = 1;
 	public const APP_TYPE_REQ_PARAMS = 2;
 
-	#[NCA\Inject]
-	public CommandManager $cmdManager;
-
-	#[NCA\Inject]
-	public SubcommandManager $subcmdManager;
-
-	#[NCA\Inject]
-	public DiscordAPIClient $api;
-
-	#[NCA\Inject]
-	public DiscordGatewayController $gw;
-
-	#[NCA\Inject]
-	public DiscordGatewayCommandHandler $gwCmd;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -99,6 +71,30 @@ class DiscordSlashCommandController extends ModuleInstance {
 		"Make request and reply private" => 2,
 	])]
 	public int $discordSlashCommands = self::SLASH_EPHEMERAL;
+
+	#[NCA\Inject]
+	private CommandManager $cmdManager;
+
+	#[NCA\Inject]
+	private DiscordAPIClient $api;
+
+	#[NCA\Inject]
+	private DiscordGatewayController $gw;
+
+	#[NCA\Inject]
+	private DiscordGatewayCommandHandler $gwCmd;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
 
 	/** If the state changes to/from disabled, then we need to re-register the slash-cmds */
 	#[NCA\SettingChangeHandler('discord_slash_commands')]

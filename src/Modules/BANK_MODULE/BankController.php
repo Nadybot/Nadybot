@@ -15,10 +15,8 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	ParamClass\PCharacter,
-	SettingManager,
 	Text,
 	UserException,
-	Util,
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 
@@ -42,24 +40,6 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 	),
 ]
 class BankController extends ModuleInstance {
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
 	/**
 	 * Location/URL of the AO Items Assistant CSV dump file
 	 *
@@ -71,6 +51,17 @@ class BankController extends ModuleInstance {
 	/** Number of items shown in search results */
 	#[NCA\Setting\Number(options: [20, 50, 100])]
 	public int $maxBankItems = 50;
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	/** List the bank characters in the database: */
 	#[NCA\HandlesCommand("bank")]

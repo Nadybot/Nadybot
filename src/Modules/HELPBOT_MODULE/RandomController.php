@@ -40,21 +40,20 @@ use Nadybot\Core\{
 	),
 ]
 class RandomController extends ModuleInstance {
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
 	/** How much time is required between rolls from the same person */
 	#[NCA\Setting\Time(options: ["10s", "30s", "60s", "90s"])]
 	public int $timeBetweenRolls = 30;
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
 
 	#[NCA\Setup]
 	public function setup(): void {

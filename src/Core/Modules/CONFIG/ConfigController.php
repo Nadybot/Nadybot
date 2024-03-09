@@ -47,41 +47,40 @@ use ReflectionClass;
 	NCA\Instance
 ]
 class ConfigController extends ModuleInstance {
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public SubcommandManager $subcommandManager;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public HelpManager $helpManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private SubcommandManager $subcommandManager;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private HelpManager $helpManager;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
 
 	#[NCA\Setup]
 	public function setup(): void {

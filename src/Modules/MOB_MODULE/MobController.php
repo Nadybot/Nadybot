@@ -55,29 +55,29 @@ use Safe\Exceptions\JsonException;
 class MobController extends ModuleInstance {
 	public const MOB_API = "https://mobs.aobots.org/api/";
 
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public PlayfieldController $pfCtrl;
-
-	#[NCA\Inject]
-	public WhereisController $whereisCtrl;
-
-	#[NCA\Inject]
-	public MessageHub $msgHub;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,array<string,Mob>> */
 	public array $mobs = [];
+
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private PlayfieldController $pfCtrl;
+
+	#[NCA\Inject]
+	private WhereisController $whereisCtrl;
+
+	#[NCA\Inject]
+	private MessageHub $msgHub;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
 
 	#[NCA\Event("connect", "Load all mobs from the API")]
 	public function initMobsFromApi(): void {

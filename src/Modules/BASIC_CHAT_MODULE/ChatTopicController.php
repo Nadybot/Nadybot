@@ -34,27 +34,6 @@ use Nadybot\Core\{
 class ChatTopicController extends ModuleInstance {
 	public const CMD_TOPIC_SET = "topic set/clear";
 
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public ChatRallyController $chatRallyController;
-
-	#[NCA\Inject]
-	public ChatLeaderController $chatLeaderController;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
 	/** Topic for Private Channel */
 	#[NCA\Setting\Text(mode: "noedit")]
 	public string $topic = "";
@@ -70,6 +49,27 @@ class ChatTopicController extends ModuleInstance {
 	/** Color of the topic */
 	#[NCA\Setting\Color]
 	public string $topicColor = "#FF0000";
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private ChatRallyController $chatRallyController;
+
+	#[NCA\Inject]
+	private ChatLeaderController $chatLeaderController;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	/** Show the current topic */
 	#[NCA\HandlesCommand("topic")]

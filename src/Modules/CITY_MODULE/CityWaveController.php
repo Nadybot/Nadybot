@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
-	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Util,
@@ -42,26 +41,6 @@ use Nadybot\Modules\TIMERS_MODULE\{
 ]
 class CityWaveController extends ModuleInstance implements MessageEmitter {
 	public const TIMER_NAME = "City Raid";
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public TimerController $timerController;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public BotConfig $config;
 
 	/** Times to display timer alerts */
 	#[NCA\Setting\Text(
@@ -69,6 +48,24 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		help: 'city_wave_times.txt'
 	)]
 	public string $cityWaveTimes = '105s 150s 90s 120s 120s 120s 120s 120s 120s';
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private TimerController $timerController;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	#[NCA\Setup]
 	public function setup(): void {

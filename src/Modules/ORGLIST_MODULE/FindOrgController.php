@@ -5,10 +5,8 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 use function Amp\Future\await;
 use function Amp\{async, delay};
 
-use Amp\Cache\FileCache;
 use Amp\File\Filesystem;
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
-use Amp\Sync\LocalKeyedMutex;
 use Exception;
 use Illuminate\Support\Collection;
 
@@ -22,11 +20,9 @@ use Nadybot\Core\{
 	Event,
 	LoggerWrapper,
 	ModuleInstance,
-	Nadybot,
 	SQLException,
 	Text,
 	UserException,
-	Util,
 };
 use Throwable;
 
@@ -43,27 +39,6 @@ use Throwable;
 	)
 ]
 class FindOrgController extends ModuleInstance {
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -81,6 +56,20 @@ class FindOrgController extends ModuleInstance {
 	public string $orglistPorkUrl = PlayerManager::BORK_URL;
 
 	protected bool $ready = false;
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	/** @var string[] */
 	private array $todo = [];

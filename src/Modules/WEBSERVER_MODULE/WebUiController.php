@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	BotRunner,
 	CmdContext,
 	Config\BotConfig,
-	DB,
 	EventManager,
 	LoggerWrapper,
 	MessageEmitter,
@@ -42,39 +41,35 @@ use ZipArchive;
 	NCA\HasMigrations
 ]
 class WebUiController extends ModuleInstance implements MessageEmitter {
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public WebserverController $webserverController;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** The currently installed NadyUI version */
 	#[NCA\Setting\Timestamp(mode: 'noedit')]
 	public int $nadyuiVersion = 0;
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private WebserverController $webserverController;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	#[NCA\Setup]
 	public function setup(): void {

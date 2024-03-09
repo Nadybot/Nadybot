@@ -54,9 +54,6 @@ class WebsocketBase implements LogWrapInterface {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	#[NCA\Inject]
-	public SocketManager $socketManager;
-
 	/** @var array<string,callable> */
 	protected array $eventCallbacks = [];
 
@@ -84,6 +81,9 @@ class WebsocketBase implements LogWrapInterface {
 	protected ?string $timeoutHandle = null;
 	protected ?string $uri=null;
 	protected ?int $lastWriteTime = null;
+
+	#[NCA\Inject]
+	private SocketManager $socketManager;
 
 	public function connect(): bool {
 		$this->pendingPingTime = null;

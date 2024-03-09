@@ -14,7 +14,7 @@ use Nadybot\Modules\CITY_MODULE\CloakController;
 
 class MigrateCloakToRoute implements SchemaMigration {
 	#[NCA\Inject]
-	public CloakController $cloakController;
+	private CloakController $cloakController;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$route = [

@@ -40,17 +40,17 @@ use Nadybot\Modules\RELAY_MODULE\{
 	)
 ]
 class GrcV2Protocol implements RelayProtocolInterface {
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Text $text;
 	protected static int $supportedFeatures = self::F_NONE;
 
 	protected Relay $relay;
 
 	protected string $command = "grc";
 	protected string $prefix = "";
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private Text $text;
 
 	public function __construct(string $command="grc", string $prefix="") {
 		$this->command = $command;

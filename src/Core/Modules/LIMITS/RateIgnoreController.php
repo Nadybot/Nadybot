@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\RateIgnoreList,
 	ModuleInstance,
-	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
 	SQLException,
@@ -31,16 +30,13 @@ use Nadybot\Core\{
 ]
 class RateIgnoreController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Util $util;
 
 	/** See a list of characters on the rate ignore list */
 	#[NCA\HandlesCommand("rateignore")]

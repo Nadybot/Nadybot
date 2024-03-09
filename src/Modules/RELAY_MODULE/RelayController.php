@@ -78,54 +78,6 @@ class RelayController extends ModuleInstance {
 	/** @var array<string,Relay> */
 	public array $relays = [];
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public QuickRelayController $quickRelayController;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public Preferences $preferences;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public StatsController $statsController;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public GuildController $guildController;
-
-	#[NCA\Inject]
-	public Websocket $websocket;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -149,6 +101,54 @@ class RelayController extends ModuleInstance {
 
 	/** @var array<string,ClassSpec> */
 	protected array $stackElements = [];
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private QuickRelayController $quickRelayController;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private Preferences $preferences;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private StatsController $statsController;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private GuildController $guildController;
+
+	#[NCA\Inject]
+	private Websocket $websocket;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	#[NCA\Event(
 		name: "connect",

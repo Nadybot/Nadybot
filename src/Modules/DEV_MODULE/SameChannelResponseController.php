@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	CommandManager,
 	Config\BotConfig,
 	ModuleInstance,
-	Nadybot,
 };
 
 #[
@@ -21,13 +20,10 @@ use Nadybot\Core\{
 ]
 class SameChannelResponseController extends ModuleInstance {
 	#[NCA\Inject]
-	public CommandManager $commandManager;
+	private CommandManager $commandManager;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	/**
 	 * Run a command and have the bot create all links so they open in the same source

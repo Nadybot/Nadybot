@@ -26,13 +26,13 @@ use Nadybot\Core\{
 ]
 class RunAsController extends ModuleInstance {
 	#[NCA\Inject]
-	public AccessManager $accessManager;
+	private AccessManager $accessManager;
 
 	#[NCA\Inject]
-	public CommandManager $commandManager;
+	private CommandManager $commandManager;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	/** Run a command as another character */
 	#[NCA\HandlesCommand("runas")]

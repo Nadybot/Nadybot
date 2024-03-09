@@ -31,16 +31,16 @@ use Nadybot\Modules\ITEMS_MODULE\{
 ]
 class PremadeImplantController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public WhatBuffsController $whatBuffsController;
+	private WhatBuffsController $whatBuffsController;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	#[NCA\Setup]
 	public function setup(): void {

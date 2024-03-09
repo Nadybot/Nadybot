@@ -4,7 +4,6 @@ namespace Nadybot\Modules\HELPBOT_MODULE\Migrations\Arbiter;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
-	Attributes as NCA,
 	DB,
 	LoggerWrapper,
 	SchemaMigration,
@@ -12,9 +11,6 @@ use Nadybot\Core\{
 use Nadybot\Modules\HELPBOT_MODULE\ArbiterController;
 
 class MigrateArbiterToDB implements SchemaMigration {
-	#[NCA\Inject]
-	public ArbiterController $arbiterController;
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = ArbiterController::DB_TABLE;
 		$db->schema()->create($table, function (Blueprint $table): void {

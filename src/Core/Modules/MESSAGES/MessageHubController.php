@@ -51,27 +51,6 @@ use Throwable;
 	)
 ]
 class MessageHubController extends ModuleInstance {
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -89,6 +68,26 @@ class MessageHubController extends ModuleInstance {
 		help: 'routed_sender_format.txt',
 	)]
 	public string $routedSenderFormat = "{char}";
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	/** Load defined routes from the database and activate them */
 	public function loadRouting(): void {

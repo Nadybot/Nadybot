@@ -38,17 +38,17 @@ class SilenceController extends ModuleInstance {
 
 	public const NULL_COMMAND_HANDLER = "SilenceController.nullCommand";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
 
 	/** Get a list of all commands that have been silenced */
 	#[NCA\HandlesCommand("silence")]

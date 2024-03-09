@@ -229,36 +229,6 @@ class WorldBossController extends ModuleInstance {
 	public const SPAWN_SHOULD = 2;
 	public const SPAWN_EVENT = 3;
 
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public PlayfieldController $pfController;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public GauntletBuffController $gauntletBuffController;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
 	public HttpClientBuilder $http;
 
 	#[NCA\Logger]
@@ -354,6 +324,36 @@ class WorldBossController extends ModuleInstance {
 
 	/** @var WorldBossTimer[] */
 	public array $timers = [];
+
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private PlayfieldController $pfController;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private GauntletBuffController $gauntletBuffController;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
 
 	/**
 	 * Keep track whether the last spawn was manually

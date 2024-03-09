@@ -15,19 +15,19 @@ use Nadybot\Core\{
 
 class PrivateMessage extends Base {
 	#[NCA\Inject]
-	public AccessManager $accessManager;
+	private AccessManager $accessManager;
 
 	#[NCA\Inject]
-	public BuddylistManager $buddyListManager;
+	private BuddylistManager $buddyListManager;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private MessageHub $messageHub;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	public function getChannelName(): string {
 		return Source::TELL . "(*)";

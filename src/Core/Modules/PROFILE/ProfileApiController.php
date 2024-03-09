@@ -16,10 +16,10 @@ use Throwable;
 #[NCA\Instance]
 class ProfileApiController extends ModuleInstance {
 	#[NCA\Inject]
-	public ProfileController $profileController;
+	private ProfileController $profileController;
 
 	#[NCA\Inject]
-	public Filesystem $fs;
+	private Filesystem $fs;
 
 	/** Get a list of saved profiles */
 	#[

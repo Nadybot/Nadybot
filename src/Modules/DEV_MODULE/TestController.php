@@ -51,33 +51,6 @@ use Revolt\EventLoop;
 	),
 ]
 class TestController extends ModuleInstance {
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public PlayfieldController $playfieldController;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -90,6 +63,32 @@ class TestController extends ModuleInstance {
 	public bool $showTestResults = false;
 
 	public string $path = __DIR__ . "/tests/";
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private PlayfieldController $playfieldController;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	/** @param string[] $commands */
 	public function runTests(array $commands, CmdContext $context, string $logFile): void {

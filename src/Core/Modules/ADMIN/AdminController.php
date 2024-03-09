@@ -22,7 +22,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
-	SettingManager,
 	Text,
 	Util,
 };
@@ -50,41 +49,37 @@ use Nadybot\Core\{
 	)
 ]
 class AdminController extends ModuleInstance {
-	#[NCA\Inject]
-	public AdminManager $adminManager;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public NickController $nickController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private AdminManager $adminManager;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private NickController $nickController;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
 
 	#[NCA\Setup]
 	public function setup(): void {

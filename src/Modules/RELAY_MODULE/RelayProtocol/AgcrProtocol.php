@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
-	Util,
 };
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
@@ -55,15 +54,6 @@ use Nadybot\Modules\RELAY_MODULE\{
 	)
 ]
 class AgcrProtocol implements RelayProtocolInterface {
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Text $text;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 	protected static int $supportedFeatures = self::F_NONE;
@@ -74,6 +64,12 @@ class AgcrProtocol implements RelayProtocolInterface {
 	protected string $prefix = "!";
 	protected bool $forceSingleHop = false;
 	protected bool $sendUserLinks = true;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Text $text;
 
 	public function __construct(string $command="agcr", string $prefix="!", bool $forceSingleHop=false, bool $sendUserLinks=true) {
 		$this->command = $command;

@@ -18,13 +18,13 @@ use Safe\Exceptions\JsonException;
 #[NCA\SettingHandler("discord_channel")]
 class DiscordChannelSettingHandler extends SettingHandler {
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	private SettingManager $settingManager;
 
 	#[NCA\Inject]
-	public HttpClientBuilder $builder;
+	private HttpClientBuilder $builder;
 
 	#[NCA\Inject]
-	public DiscordGatewayController $discordGatewayController;
+	private DiscordGatewayController $discordGatewayController;
 
 	/** @inheritDoc */
 	public function getDescription(): string {

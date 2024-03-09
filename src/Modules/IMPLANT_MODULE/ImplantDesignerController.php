@@ -35,16 +35,16 @@ use stdClass;
 ]
 class ImplantDesignerController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	#[NCA\Inject]
-	public ImplantController $implantController;
+	private ImplantController $implantController;
 
 	/** @var string[] */
 	private array $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];

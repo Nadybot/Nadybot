@@ -16,10 +16,10 @@ use Nadybot\Core\{
 
 class MigrateToRouting implements SchemaMigration {
 	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private MessageHub $messageHub;
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;

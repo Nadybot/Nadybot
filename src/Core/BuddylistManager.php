@@ -7,17 +7,8 @@ use Nadybot\Core\Config\BotConfig;
 
 #[NCA\Instance]
 class BuddylistManager {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
 
 	/**
 	 * List of all players on the friendlist, real or just queued up
@@ -25,6 +16,11 @@ class BuddylistManager {
 	 * @var array<int,BuddylistEntry>
 	 */
 	public array $buddyList = [];
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	/**
 	 * List of all characters currently queued for rebalancing

@@ -27,10 +27,10 @@ use Nadybot\Core\{
 ]
 class PermissionSetController extends ModuleInstance {
 	#[NCA\Inject]
-	public CommandManager $cmdManager;
+	private CommandManager $cmdManager;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	/** Create a new permission &lt;name&gt; set with default permissions */
 	#[NCA\HandlesCommand("permset")]

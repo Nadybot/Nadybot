@@ -24,10 +24,9 @@ use Nadybot\Core\{
 	)
 ]
 class RemovePopups implements EventModifier {
-	#[NCA\Inject]
-	public Text $text;
-
 	protected bool $removeLinks = false;
+	#[NCA\Inject]
+	private Text $text;
 
 	public function __construct(bool $removeLinks=false) {
 		$this->removeLinks = $removeLinks;

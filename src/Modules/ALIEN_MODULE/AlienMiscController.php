@@ -48,20 +48,19 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 	)
 ]
 class AlienMiscController extends ModuleInstance {
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public ItemsController $itemsController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private ItemsController $itemsController;
 
 	#[NCA\Setup]
 	public function setup(): void {

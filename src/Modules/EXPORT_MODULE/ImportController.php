@@ -65,44 +65,43 @@ use Throwable;
 	)
 ]
 class ImportController extends ModuleInstance {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public Preferences $preferences;
+	private DB $db;
 
 	#[NCA\Inject]
-	public AdminManager $adminManager;
+	private Filesystem $fs;
 
 	#[NCA\Inject]
-	public AccessManager $accessManager;
+	private Preferences $preferences;
 
 	#[NCA\Inject]
-	public BanController $banController;
+	private AdminManager $adminManager;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	private AccessManager $accessManager;
 
 	#[NCA\Inject]
-	public CommentController $commentController;
+	private BanController $banController;
 
 	#[NCA\Inject]
-	public RaidRankController $raidRankController;
+	private SettingManager $settingManager;
 
 	#[NCA\Inject]
-	public Util $util;
+	private CommentController $commentController;
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private RaidRankController $raidRankController;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	/** Import data from a file, mapping the exported access levels to your own ones */
 	#[NCA\HandlesCommand("import")]

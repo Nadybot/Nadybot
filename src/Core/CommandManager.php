@@ -49,62 +49,53 @@ class CommandManager implements MessageEmitter {
 	public const DB_TABLE_PERM_SET = "cmd_permission_set_<myname>";
 	public const DB_TABLE_MAPPING = "cmd_permission_set_mapping_<myname>";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public HelpController $helpController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public HelpManager $helpManager;
-
-	#[NCA\Inject]
-	public Preferences $preferences;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public SubcommandManager $subcommandManager;
-
-	#[NCA\Inject]
-	public CommandSearchController $commandSearchController;
-
-	#[NCA\Inject]
-	public UsageController $usageController;
-
-	#[NCA\Inject]
-	public LimitsController $limitsController;
-
-	#[NCA\Inject]
-	public BanController $banController;
-
-	#[NCA\Inject]
-	public SystemController $systemController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,array<string,CommandHandler>> */
 	public array $commands;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private HelpController $helpController;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private Preferences $preferences;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private SubcommandManager $subcommandManager;
+
+	#[NCA\Inject]
+	private CommandSearchController $commandSearchController;
+
+	#[NCA\Inject]
+	private UsageController $usageController;
+
+	#[NCA\Inject]
+	private LimitsController $limitsController;
+
+	#[NCA\Inject]
+	private BanController $banController;
+
+	#[NCA\Inject]
+	private SystemController $systemController;
 
 	/** @var array<string,CmdPermission> */
 	private array $cmdDefaultPermissions = [];

@@ -4,7 +4,6 @@ namespace Nadybot\Modules\NOTES_MODULE;
 
 use Nadybot\Core\{
 	AOChatEvent,
-	AccessManager,
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
@@ -60,33 +59,6 @@ class NotesController extends ModuleInstance {
 		self::FORMAT_INDIVIDUAL2,
 	];
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public Preferences $preferences;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -97,6 +69,30 @@ class NotesController extends ModuleInstance {
 		'verbose' => 2,
 	])]
 	public int $reminderFormat = 2;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private Preferences $preferences;
 
 	#[NCA\Setup]
 	public function setup(): void {

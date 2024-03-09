@@ -17,15 +17,6 @@ use Nadybot\Core\{
 use Throwable;
 
 class PlayerLookupJob {
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -33,6 +24,14 @@ class PlayerLookupJob {
 	public Collection $toUpdate;
 
 	protected int $numActiveThreads = 0;
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
 
 	/**
 	 * Get a list of character names in need of updates

@@ -24,7 +24,7 @@ use Nadybot\Core\{
 ]
 class DingController extends ModuleInstance {
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	/** Show a random ding gratz message */
 	#[NCA\HandlesCommand("ding")]

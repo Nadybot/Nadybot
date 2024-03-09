@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
 use Exception;
+use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -13,7 +14,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	MessageHub,
 	Modules\DISCORD\DiscordChannel,
-	Modules\DISCORD\DiscordController,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
@@ -22,13 +22,13 @@ use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
-	public DiscordController $discordController;
+	private DiscordAPIClient $discordApiClient;
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private MessageHub $messageHub;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		// throw new Exception("Hollera!");
@@ -51,7 +51,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$relayCommands = false;
 		}
 		try {
-			$channel = $this->discordController->discordAPIClient->getChannel($relayChannel->value);
+			$channel = $this->discordApiClient->getChannel($relayChannel->value);
 			$this->migrateChannelToRoute($channel, $db, $relayWhat, $relayCommands);
 		} catch (Throwable) {
 		}

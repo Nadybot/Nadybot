@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandReply,
-	DB,
 	LoggerWrapper,
 	ModuleInstance,
 	Modules\BAN\BanController,
@@ -24,7 +23,6 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 	UserStateEvent,
-	Util,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
@@ -51,32 +49,8 @@ use Throwable;
 	),
 ]
 class StartpageController extends ModuleInstance {
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public BanController $banController;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public WebChatConverter $webChatConverter;
 
 	/** The tiles to show on the startpage */
 	#[NCA\Setting\Text(mode: "noedit")]
@@ -96,6 +70,24 @@ class StartpageController extends ModuleInstance {
 
 	/** @var array<string,NewsTile> */
 	protected array $tiles = [];
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private BanController $banController;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private WebChatConverter $webChatConverter;
 
 	#[NCA\Setup]
 	public function setup(): void {

@@ -41,18 +41,6 @@ class DB {
 	public const POSTGRESQL = 'postgresql';
 	public const MSSQL = 'mssql';
 
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -72,6 +60,18 @@ class DB {
 
 	/** @var array<string,string> */
 	protected array $tableNames = [];
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	/** The database type: mysql/sqlite */
 	private DB\Type $type;

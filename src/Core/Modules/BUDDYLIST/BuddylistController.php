@@ -30,16 +30,16 @@ use Nadybot\Core\{
 ]
 class BuddylistController extends ModuleInstance {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
+	private BuddylistManager $buddylistManager;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	/** Show all characters currently on the buddylist */
 	#[NCA\HandlesCommand("buddylist")]

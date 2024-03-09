@@ -35,12 +35,6 @@ use Nadybot\Modules\RELAY_MODULE\{
 	)
 ]
 class PrivateChannel implements TransportInterface, StatusProvider {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
 	protected Relay $relay;
 
 	protected ?RelayStatus $status = null;
@@ -49,6 +43,11 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 
 	/** @var ?callable */
 	protected $initCallback;
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	public function __construct(string $channel) {
 		$this->channel = ucfirst(strtolower($channel));

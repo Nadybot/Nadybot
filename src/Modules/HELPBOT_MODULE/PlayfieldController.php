@@ -6,11 +6,9 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	CommandAlias,
 	DB,
 	ModuleInstance,
 	Text,
-	Util,
 };
 
 /**
@@ -33,16 +31,10 @@ use Nadybot\Core\{
 ]
 class PlayfieldController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
+	private Text $text;
 
 	/** @var array<int,Playfield> */
 	private array $playfields = [];

@@ -7,7 +7,7 @@ use Nadybot\Core\{Attributes as NCA, MessageEmitter, MessageReceiver};
 
 class HighnetChannel implements MessageEmitter, MessageReceiver {
 	#[NCA\Inject]
-	public HighnetController $highnetController;
+	private HighnetController $highnetController;
 
 	public function __construct(
 		private string $channel

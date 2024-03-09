@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	ParamClass\PItem,
 	Text,
 	UserException,
-	Util,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
 	AODBItem,
@@ -37,19 +36,16 @@ use Safe\Exceptions\{JsonException};
 ]
 class RecipeController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Filesystem $fs;
 
 	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public ItemsController $itemsController;
+	private ItemsController $itemsController;
 
 	private string $path;
 

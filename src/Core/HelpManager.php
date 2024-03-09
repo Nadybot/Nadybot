@@ -13,29 +13,26 @@ use Nadybot\Core\{
 class HelpManager {
 	public const DB_TABLE = "hlpcfg_<myname>";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public ConfigController $configController;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Util $util;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private ConfigController $configController;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private Util $util;
 
 	/** Register a help command */
 	public function register(string $module, string $command, string $filename, string $admin, string $description): void {

@@ -2,15 +2,12 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\{Attributes as NCA, Config\BotConfig};
+use Nadybot\Core\{Attributes as NCA};
 use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\GaugeProvider;
 
 class OnlineRelayStats implements GaugeProvider {
 	#[NCA\Inject]
-	public RelayController $relayController;
-
-	#[NCA\Inject]
-	public BotConfig $config;
+	private RelayController $relayController;
 
 	public function getValue(): float {
 		$sum = 0;

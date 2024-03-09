@@ -18,27 +18,24 @@ use Nadybot\Core\{
 class AdminManager implements AccessLevelProvider {
 	public const DB_TABLE = "admin_<myname>";
 
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	/**
 	 * Admin access levels of our admin users
 	 *
 	 * @var array<string,array<string,int>>
 	 */
 	public array $admins = [];
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	public function getSingleAccessLevel(string $sender): ?string {
 		$level = $this->admins[$sender]["level"] ?? 0;

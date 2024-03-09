@@ -11,7 +11,6 @@ use Nadybot\Core\ParamClass\PItem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	DB,
 	LoggerWrapper,
 	ModuleInstance,
 	Text,
@@ -33,27 +32,24 @@ class GmiController extends ModuleInstance {
 	public const EU_GMI_API = "https://gmi.eu.nadybot.org/v1.0";
 	public const US_GMI_API = "https://gmi.us.nadybot.org/v1.0";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public ItemsController $itemsController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** GMI API to use */
 	#[NCA\Setting\Text(options: [self::EU_GMI_API, self::US_GMI_API])]
 	public string $gmiApi = self::EU_GMI_API;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private ItemsController $itemsController;
 
 	/**
 	 * Contact the GMI API and return the parsed results

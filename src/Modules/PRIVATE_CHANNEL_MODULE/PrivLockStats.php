@@ -7,7 +7,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\GaugeProvider;
 
 class PrivLockStats implements GaugeProvider {
 	#[NCA\Inject]
-	public PrivateChannelController $privChan;
+	private PrivateChannelController $privChan;
 
 	public function getValue(): float {
 		return $this->privChan->isLocked() ? 1 : 0;

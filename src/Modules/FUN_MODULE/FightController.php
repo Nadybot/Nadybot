@@ -25,10 +25,10 @@ use Nadybot\Core\{
 ]
 class FightController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	/**
 	 * Let 2 people fight against each other

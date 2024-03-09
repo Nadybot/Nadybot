@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	DB,
 	DBSchema\Player,
 	LoggerWrapper,
 	ModuleInstance,
@@ -20,7 +19,6 @@ use Nadybot\Core\{
 	ParamClass\PNonGreedy,
 	Text,
 	UserException,
-	Util,
 };
 use stdClass;
 
@@ -38,30 +36,6 @@ use stdClass;
 	)
 ]
 class OrglistController extends ModuleInstance {
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public GuildManager $guildManager;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public FindOrgController $findOrgController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -80,6 +54,24 @@ class OrglistController extends ModuleInstance {
 		"Faction"    => ["Director",  "Board Member", "Executive",       "Member",         "Applicant"],
 		"Department" => ["President", "General",      "Squad Commander", "Unit Commander", "Unit Leader", "Unit Member", "Applicant"],
 	];
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private GuildManager $guildManager;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private FindOrgController $findOrgController;
 
 	/**
 	 * Get a hierarchical array of all the ranks in the goven governing form

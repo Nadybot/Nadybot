@@ -11,13 +11,12 @@ use Nadybot\Core\{
 };
 
 class PublicChannel extends Base {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
 	protected string $channel;
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
 
 	public function __construct(string $channel) {
 		$this->channel = $channel;

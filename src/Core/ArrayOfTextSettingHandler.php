@@ -10,7 +10,7 @@ use Nadybot\Core\Attributes as NCA;
 #[NCA\SettingHandler("text[]")]
 class ArrayOfTextSettingHandler extends SettingHandler {
 	#[NCA\Inject]
-	public Text $text;
+	protected Text $text;
 
 	/** @inheritDoc */
 	public function getDescription(): string {

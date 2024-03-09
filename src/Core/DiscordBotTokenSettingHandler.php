@@ -7,7 +7,6 @@ use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 /**
  * Class to represent a discord bot token setting
@@ -15,16 +14,10 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 #[NCA\SettingHandler("discord_bot_token")]
 class DiscordBotTokenSettingHandler extends SettingHandler {
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	private HttpClientBuilder $builder;
 
 	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public DiscordGatewayController $discordGatewayController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
+	private AccessManager $accessManager;
 
 	/** @inheritDoc */
 	public function getDescription(): string {

@@ -38,21 +38,6 @@ use Nadybot\Core\{
 	),
 ]
 class ItemsController extends ModuleInstance {
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -63,6 +48,20 @@ class ItemsController extends ModuleInstance {
 	/** Exclude GM-only items and items which are not in the game */
 	#[NCA\Setting\Boolean]
 	public bool $onlyItemsInGame = true;
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
 
 	/** @var array<int,Skill> */
 	private array $skills = [];

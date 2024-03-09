@@ -26,13 +26,13 @@ use Nadybot\Core\{
 ]
 class OrgMembersController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public GuildManager $guildManager;
+	private GuildManager $guildManager;
 
 	/** Show the members of an organization, sorted by name */
 	#[NCA\HandlesCommand("orgmembers")]

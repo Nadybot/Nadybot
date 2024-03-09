@@ -54,41 +54,41 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 class ProfileController extends ModuleInstance {
 	public const FILE_EXT = ".txt";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public SubcommandManager $subcommandManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	#[NCA\Inject]
-	public RelayController $relayController;
+	private DB $db;
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private SettingManager $settingManager;
 
 	#[NCA\Inject]
-	public Filesystem $fs;
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private SubcommandManager $subcommandManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private RelayController $relayController;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	private string $path;
 

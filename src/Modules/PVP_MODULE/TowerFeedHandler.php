@@ -5,7 +5,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{Config\BotConfig, Event as CoreEvent, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance};
+use Nadybot\Core\{Event as CoreEvent, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance};
 
 #[
 	NCA\Instance,
@@ -16,17 +16,14 @@ use Nadybot\Core\{Config\BotConfig, Event as CoreEvent, EventFeedHandler, EventM
 	NCA\ProvidesEvent("tower-outcome", "A tower field gets destroyed"),
 ]
 class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public NotumWarsController $nwCtrl;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private NotumWarsController $nwCtrl;
 
 	#[NCA\Setup]
 	public function setup(): void {

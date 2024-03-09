@@ -23,27 +23,26 @@ use Nadybot\Core\{
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
 class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
-	#[NCA\Inject]
-	public DiscordAPIClient $discordAPIClient;
-
-	#[NCA\Inject]
-	public DiscordController $discordController;
-
-	#[NCA\Inject]
-	public DiscordGatewayController $discordGatewayController;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	protected string $channelId;
 	protected bool $isDirectMsg;
 	protected ?DiscordMessageIn $message;
+	#[NCA\Inject]
+	private DiscordAPIClient $discordAPIClient;
+
+	#[NCA\Inject]
+	private DiscordController $discordController;
+
+	#[NCA\Inject]
+	private DiscordGatewayController $discordGatewayController;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	public function __construct(string $channelId, bool $isDirectMsg=false, ?DiscordMessageIn $message=null) {
 		$this->channelId = $channelId;

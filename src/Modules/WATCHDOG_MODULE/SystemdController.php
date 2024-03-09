@@ -18,12 +18,12 @@ use Socket;
 #[NCA\Instance]
 class SystemdController extends ModuleInstance {
 	public const EINVAL = 22;
-	#[NCA\Inject]
-	public EventManager $eventManager;
 
 	protected bool $enabled = false;
 	protected int $watchdogInterval = 0;
 	protected int $lastPing = 0;
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	#[NCA\Setup]
 	public function setup(): void {

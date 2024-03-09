@@ -6,11 +6,10 @@ use Nadybot\Core\Routing\{RoutableEvent};
 use Nadybot\Core\{Attributes as NCA, LoggerWrapper, MessageReceiver};
 
 class HighnetReceiver implements MessageReceiver {
-	#[NCA\Inject]
-	public HighnetController $highnetController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private HighnetController $highnetController;
 
 	public function getChannelName(): string {
 		return "highnet";

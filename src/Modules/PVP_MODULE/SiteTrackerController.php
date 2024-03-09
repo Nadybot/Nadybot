@@ -9,7 +9,6 @@ use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, MessageHub, ModuleInstance, Text, UserException, Util};
-use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Nadybot\Modules\PVP_MODULE\Attributes\Argument;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 use Nadybot\Modules\PVP_MODULE\Handlers\Base;
@@ -40,28 +39,25 @@ class SiteTrackerController extends ModuleInstance {
 	];
 
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public PlayfieldController $pfCtrl;
+	private NotumWarsController $nwCtrl;
 
 	#[NCA\Inject]
-	public NotumWarsController $nwCtrl;
+	private MessageHub $msgHub;
 
 	#[NCA\Inject]
-	public MessageHub $msgHub;
+	private BotConfig $config;
 
 	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public MessageHubController $msgHubCtrl;
+	private MessageHubController $msgHubCtrl;
 
 	/** @var array<int,TrackerEntry> */
 	private array $trackers = [];

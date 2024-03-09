@@ -27,10 +27,10 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 ]
 class AlienArmorController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public ItemsController $itemsController;
+	private ItemsController $itemsController;
 
 	/** Get an overview of the supported alien armor types */
 	#[NCA\HandlesCommand("aiarmor")]

@@ -16,10 +16,7 @@ use Nadybot\Core\{
 
 class MoveSettingsToHopColors implements SchemaMigration {
 	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private BotConfig $config;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$hop = [

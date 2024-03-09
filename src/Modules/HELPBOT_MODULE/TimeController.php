@@ -24,10 +24,10 @@ use Nadybot\Core\{
 ]
 class TimeController extends ModuleInstance {
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	/** Show the current time in a list of time zones */
 	#[NCA\HandlesCommand("time")]

@@ -17,7 +17,6 @@ use DateTimeZone;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
-	CacheManager,
 	Config\BotConfig,
 	DB,
 	DBSchema\Player,
@@ -33,32 +32,28 @@ use Safe\Exceptions\JsonException;
  */
 #[NCA\Instance]
 class GuildManager extends ModuleInstance {
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public CacheManager $cacheManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	#[NCA\Setup]
 	public function setup(): void {

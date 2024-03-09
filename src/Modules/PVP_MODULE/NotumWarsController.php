@@ -107,45 +107,6 @@ class NotumWarsController extends ModuleInstance {
 		226 => 7,
 	];
 
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public PlayfieldController $pfCtrl;
-
-	#[NCA\Inject]
-	public SiteTrackerController $siteTracker;
-
-	#[NCA\Inject]
-	public MessageHub $msgHub;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public LevelController $lvlCtrl;
-
-	#[NCA\Inject]
-	public TimerController $timerController;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -505,6 +466,45 @@ class NotumWarsController extends ModuleInstance {
 		help: 'site_tower_change_format.txt',
 	)]
 	public string $siteTowerChangeFormat = "{c-site-short} {tower-type}s {c-tower-delta} [{details}]";
+
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private PlayfieldController $pfCtrl;
+
+	#[NCA\Inject]
+	private SiteTrackerController $siteTracker;
+
+	#[NCA\Inject]
+	private MessageHub $msgHub;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private LevelController $lvlCtrl;
+
+	#[NCA\Inject]
+	private TimerController $timerController;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
 
 	#[NCA\Event("timer(1h)", "Announce unplanted sites via pvp(unplanted-sites)")]
 	public function announceUnplantedSites(): void {

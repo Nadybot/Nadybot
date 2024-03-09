@@ -2,16 +2,13 @@
 
 namespace Nadybot\Modules\GUIDE_MODULE;
 
-use Amp\Cache\FileCache;
 use Amp\File\{Filesystem};
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use Amp\Sync\LocalKeyedMutex;
 use DOMDocument;
 use DOMElement;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
-	CacheManager,
 	CmdContext,
 	Config\BotConfig,
 	ModuleInstance,
@@ -37,22 +34,19 @@ use Throwable;
 class AOUController extends ModuleInstance {
 	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
 	#[NCA\Inject]
-	public HttpClientBuilder $builder;
+	private HttpClientBuilder $builder;
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public ItemsController $itemsController;
+	private ItemsController $itemsController;
 
 	#[NCA\Inject]
-	public CacheManager $cacheManager;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
+	private Filesystem $fs;
 
 	#[NCA\Setup]
 	public function setup(): void {

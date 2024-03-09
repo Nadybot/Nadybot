@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	CommandHandler,
 	CommandManager,
 	DB,
-	EventManager,
 	LoggerWrapper,
 	ModuleInstance,
 	Modules\SYSTEM\SystemController,
@@ -21,7 +20,6 @@ use Nadybot\Core\{
 	Registry,
 	SubcommandManager,
 	Text,
-	Util,
 };
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use ReflectionAttribute;
@@ -43,38 +41,6 @@ use Throwable;
 ]
 class ApiController extends ModuleInstance {
 	public const DB_TABLE = "api_key_<myname>";
-	#[NCA\Inject]
-	public WebserverController $webserverController;
-
-	#[NCA\Inject]
-	public SystemController $systemController;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public SubcommandManager $subcommandManager;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public WebsocketController $websocketController;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -85,6 +51,32 @@ class ApiController extends ModuleInstance {
 
 	/** @var array<array<string,ApiHandler>> */
 	protected array $routes = [];
+	#[NCA\Inject]
+	private WebserverController $webserverController;
+
+	#[NCA\Inject]
+	private SystemController $systemController;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private SubcommandManager $subcommandManager;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private WebsocketController $websocketController;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
 
 	#[NCA\Setup]
 	public function setup(): void {

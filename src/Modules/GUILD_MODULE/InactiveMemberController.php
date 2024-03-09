@@ -28,16 +28,16 @@ use Nadybot\Core\{
 ]
 class InactiveMemberController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	#[NCA\Inject]
-	public AltsController $altsController;
+	private AltsController $altsController;
 
 	/** Show org members who have not logged on for a specified amount of time */
 	#[NCA\HandlesCommand("inactivemem")]

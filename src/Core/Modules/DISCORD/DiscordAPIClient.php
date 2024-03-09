@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	JSONDataModel,
 	LoggerWrapper,
 	ModuleInstance,
-	SettingManager,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{ApplicationCommand, Emoji, GuildMember};
 use Revolt\EventLoop;
@@ -28,14 +27,6 @@ use Throwable;
 #[NCA\Instance]
 class DiscordAPIClient extends ModuleInstance {
 	public const DISCORD_API = "https://discord.com/api/v10";
-	#[NCA\Inject]
-	public DiscordController $discordCtrl;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -53,6 +44,12 @@ class DiscordAPIClient extends ModuleInstance {
 
 	/** @var array<string,DiscordUser> */
 	protected $userCache = [];
+
+	#[NCA\Inject]
+	private DiscordController $discordCtrl;
+
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
 
 	/**
 	 * Encode the given data for sending it with the API

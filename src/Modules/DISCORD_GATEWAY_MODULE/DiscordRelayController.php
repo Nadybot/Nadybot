@@ -3,27 +3,11 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Nadybot\Core\Modules\{
-	ALTS\AltsController,
-	CONFIG\ConfigController,
 	CONFIG\SettingOption,
-	DISCORD\DiscordAPIClient,
-	DISCORD\DiscordController,
-	PLAYER_LOOKUP\PlayerManager,
-	PREFERENCES\Preferences,
 };
 use Nadybot\Core\{
-	AccessManager,
 	Attributes as NCA,
 	ModuleInstance,
-	Nadybot,
-	SettingManager,
-	Text,
-	Util,
-};
-use Nadybot\Modules\{
-	GUILD_MODULE\GuildController,
-	PRIVATE_CHANNEL_MODULE\PrivateChannelController,
-	RELAY_MODULE\RelayController,
 };
 
 /**
@@ -31,57 +15,11 @@ use Nadybot\Modules\{
  */
 #[NCA\Instance]
 class DiscordRelayController extends ModuleInstance {
-	#[NCA\Inject]
-	public DiscordGatewayController $discordGatewayController;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public RelayController $relayController;
-
-	#[NCA\Inject]
-	public DiscordAPIClient $discordAPIClient;
-
-	#[NCA\Inject]
-	public DiscordController $discordController;
-
-	#[NCA\Inject]
-	public GuildController $guildController;
-
-	#[NCA\Inject]
-	public PrivateChannelController $privateChannelController;
-
-	#[NCA\Inject]
-	public ConfigController $configController;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public Preferences $preferences;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public DiscordGatewayCommandHandler $discordGatewayCommandHandler;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
 	/** Minimum ranks allowed to use @here and @everyone */
 	#[NCA\Setting\Rank]
 	public string $discordRelayMentionRank = "mod";
+	#[NCA\Inject]
+	private DiscordGatewayController $discordGatewayController;
 
 	/**
 	 * Gives a list of all channels we have access to

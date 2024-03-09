@@ -7,7 +7,7 @@ use Nadybot\Core\{Attributes as NCA, DB, LoggerWrapper, MessageHub, SchemaMigrat
 
 class SetSiteTrackerRoutingFormat implements SchemaMigration {
 	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private MessageHub $messageHub;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$towerColor = "F06AED";

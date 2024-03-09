@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PWord,
 	Text,
-	Util,
 };
 
 /**
@@ -34,13 +33,10 @@ use Nadybot\Core\{
 ]
 class PocketbossController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Setup]
 	public function setup(): void {

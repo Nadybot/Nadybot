@@ -8,7 +8,7 @@ use Nadybot\Core\{Attributes as NCA, Config\BotConfig, DB, LoggerWrapper, Messag
 
 class LockReminderToRoute implements SchemaMigration {
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$route = new Route();

@@ -29,12 +29,10 @@ use Nadybot\Core\{
 	LegacyLogger,
 	LoggerWrapper,
 	ModuleInstance,
-	Nadybot,
 	ParamClass\PFilename,
 	ParamClass\PWord,
 	SettingManager,
 	Text,
-	Util,
 };
 use Revolt\EventLoop;
 use Throwable;
@@ -61,32 +59,25 @@ use Throwable;
 	)
 ]
 class LogsController extends ModuleInstance {
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	/** View a list of log files */
 	#[NCA\HandlesCommand("logs")]

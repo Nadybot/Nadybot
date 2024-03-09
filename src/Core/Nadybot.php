@@ -47,60 +47,6 @@ class Nadybot {
 	public const PING_IDENTIFIER = "Nadybot";
 	public const UNKNOWN_ORG = 'Clan (name unknown)';
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public SubcommandManager $subcommandManager;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public HelpManager $helpManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public BanController $banController;
-
-	#[NCA\Inject]
-	public AccountUnfreezer $accountUnfreezer;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public EventFeed $eventFeed;
-
-	#[NCA\Inject]
-	public HttpClientBuilder $http;
-
-	#[NCA\Inject]
-	public LimitsController $limitsController;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -183,6 +129,60 @@ class Nadybot {
 	protected int $started = 0;
 
 	protected int $numSpamMsgsSent = 0;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private SubcommandManager $subcommandManager;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private HelpManager $helpManager;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private BanController $banController;
+
+	#[NCA\Inject]
+	private AccountUnfreezer $accountUnfreezer;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private EventFeed $eventFeed;
+
+	#[NCA\Inject]
+	private HttpClientBuilder $http;
+
+	#[NCA\Inject]
+	private LimitsController $limitsController;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	/** @var array<int,string> */
 	private array $uidToName = [];

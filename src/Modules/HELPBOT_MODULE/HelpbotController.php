@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Text,
-	Util,
 };
 use ParseError;
 
@@ -39,16 +38,13 @@ use ParseError;
 ]
 class HelpbotController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public PlayfieldController $pfController;
+	private PlayfieldController $pfController;
 
 	#[NCA\Setup]
 	public function setup(): void {

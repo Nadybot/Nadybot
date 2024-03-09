@@ -22,25 +22,24 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 };
 
 class WebsocketCommandReply implements CommandReply, MessageEmitter {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public WebChatConverter $webChatConverter;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	protected string $type;
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private WebChatConverter $webChatConverter;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	public function __construct(string $type) {
 		$this->type = $type;

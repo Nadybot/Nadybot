@@ -12,12 +12,6 @@ use RuntimeException;
 use Safe\Exceptions\{StreamException};
 
 class WebsocketClient extends WebsocketBase {
-	#[NCA\Inject]
-	public SocketManager $socketManager;
-
-	#[NCA\Inject]
-	public Util $util;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 	protected ?string $uri=null;
@@ -25,6 +19,11 @@ class WebsocketClient extends WebsocketBase {
 	/** @var array<string,string> */
 	protected array $headers = [];
 	protected bool $isSSL = false;
+	#[NCA\Inject]
+	private SocketManager $socketManager;
+
+	#[NCA\Inject]
+	private Util $util;
 
 	public function __destruct() {
 		if ($this->isConnected() && is_resource($this->socket)) {

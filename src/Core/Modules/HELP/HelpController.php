@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	Modules\CONFIG\ConfigController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
-	SettingManager,
 	Text,
 };
 
@@ -40,38 +39,35 @@ use Nadybot\Core\{
 class HelpController extends ModuleInstance {
 	public const LEGEND_PREF = "help_legend";
 
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public HelpManager $helpManager;
-
-	#[NCA\Inject]
-	public Preferences $preferences;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public ConfigController $configController;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
 	/** Show mods the required access level for each command */
 	#[NCA\Setting\Boolean] public bool $helpShowAL = true;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private HelpManager $helpManager;
+
+	#[NCA\Inject]
+	private Preferences $preferences;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private ConfigController $configController;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	#[NCA\Setup]
 	public function setup(): void {

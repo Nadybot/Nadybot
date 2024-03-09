@@ -9,7 +9,6 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
-	CacheManager,
 	ClassLoader,
 	CmdContext,
 	Config\BotConfig,
@@ -51,29 +50,26 @@ class PackageController extends ModuleInstance {
 	public const UNINST = 0;
 	public const API = "https://pkg.aobots.org/api";
 
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public CacheManager $cacheManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	#[NCA\Setup]
 	public function setup(): void {

@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	EventManager,
 	ModuleInstance,
 	Nadybot,
-	SettingManager,
 };
 use Revolt\EventLoop;
 
@@ -33,15 +32,6 @@ class CountdownController extends ModuleInstance {
 	public const LOC_PRIV = 1;
 	public const LOC_ORG = 2;
 
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
 	/** Where to display countdowns received via tells */
 	#[NCA\Setting\Options(options: [
 		'Private channel' => self::LOC_PRIV,
@@ -57,6 +47,12 @@ class CountdownController extends ModuleInstance {
 	/** How long is the cooldown between starting 2 countdowns */
 	#[NCA\Setting\Time(options: ["6s", "15s", "30s", "1m", "5m"])]
 	public int $cdCooldown = 30;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	private int $lastCountdown = 0;
 

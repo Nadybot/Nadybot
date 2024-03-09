@@ -22,10 +22,10 @@ use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
-	public DiscordAPIClient $discordAPIClient;
+	private DiscordAPIClient $discordAPIClient;
 
 	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private MessageHub $messageHub;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = TimerController::DB_TABLE;

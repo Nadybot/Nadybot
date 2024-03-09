@@ -24,10 +24,10 @@ use Nadybot\Core\{
 ]
 class GauntletTradeController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Filesystem $fs;
+	private Filesystem $fs;
 
 	/** Show the Bastion tradeskill process for a single piece */
 	#[NCA\HandlesCommand("gautrade")]

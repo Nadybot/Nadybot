@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
-	CommandAlias,
 	Config\BotConfig,
 	DB,
 	LoggerWrapper,
@@ -44,32 +43,6 @@ use Nadybot\Core\{
 ]
 class CommentController extends ModuleInstance {
 	public const ADMIN = "admin";
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public BotConfig $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -89,6 +62,30 @@ class CommentController extends ModuleInstance {
 	/** Database table for comment categories */
 	#[NCA\Setting\Text(mode: "noedit")]
 	public string $tableNameCommentCategories = "comment_categories_<myname>";
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	#[NCA\Setup]
 	public function setup(): void {

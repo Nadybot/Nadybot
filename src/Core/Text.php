@@ -9,14 +9,13 @@ use Nadybot\Core\Config\BotConfig;
 
 #[NCA\Instance]
 class Text {
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
 
 	/**
 	 * Create an interactive string from a list of commands and titles

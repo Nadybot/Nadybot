@@ -41,33 +41,6 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 class ChatAssistController extends ModuleInstance {
 	public const CMD_SET_ADD_CLEAR = "assist set/add/clear";
 
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public ChatLeaderController $chatLeaderController;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public RaidController $raidController;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	/** Max stored undo steps */
 	#[NCA\Setting\Number]
 	public int $callersUndoSteps = 5;
@@ -95,6 +68,33 @@ class ChatAssistController extends ModuleInstance {
 	 * @var CallerBackup[]
 	 */
 	protected array $lastCallers = [];
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private ChatLeaderController $chatLeaderController;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private RaidController $raidController;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	#[NCA\SettingChangeHandler("never_auto_callers")]
 	public function validateNeverAutoCallers(string $setting, string $old, string $new): void {

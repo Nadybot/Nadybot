@@ -7,7 +7,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Dataset;
 
 class RaidMemberStats extends Dataset {
 	#[NCA\Inject]
-	public RaidController $raidController;
+	private RaidController $raidController;
 
 	public function getValues(): array {
 		$numActive = 0;

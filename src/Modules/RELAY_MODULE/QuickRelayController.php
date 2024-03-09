@@ -25,10 +25,10 @@ use Nadybot\Core\{
 ]
 class QuickRelayController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	/** List all supported quick relay types */
 	#[NCA\HandlesCommand("quickrelay")]

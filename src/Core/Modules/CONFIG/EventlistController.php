@@ -23,10 +23,10 @@ use Nadybot\Core\{
 ]
 class EventlistController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	/** Show a list of all events on the bot. Give &lt;event type&gt; to show only events matching a string */
 	#[NCA\HandlesCommand("eventlist")]

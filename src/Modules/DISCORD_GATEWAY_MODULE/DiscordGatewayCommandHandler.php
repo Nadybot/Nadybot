@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	Registry,
 	Routing\Source,
-	SettingManager,
 	Text,
 };
 
@@ -35,38 +34,32 @@ use Nadybot\Core\{
 ]
 class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "discord_mapping_<myname>";
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public BanController $banController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public DiscordAPIClient $discordAPIClient;
-
-	#[NCA\Inject]
-	public DiscordGatewayController $discordGatewayController;
-
-	#[NCA\Inject]
-	public DiscordRelayController $discordRelayController;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private BanController $banController;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private DiscordAPIClient $discordAPIClient;
+
+	#[NCA\Inject]
+	private DiscordGatewayController $discordGatewayController;
 
 	#[NCA\Setup]
 	public function setup(): void {

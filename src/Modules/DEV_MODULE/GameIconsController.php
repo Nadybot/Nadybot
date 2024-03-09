@@ -22,7 +22,7 @@ use Nadybot\Core\{
 ]
 class GameIconsController extends ModuleInstance {
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	/** List all game icons with their name */
 	#[NCA\HandlesCommand("gameicons")]

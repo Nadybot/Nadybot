@@ -84,57 +84,6 @@ class OnlineController extends ModuleInstance {
 	protected const RAID_NOT_IN = 2;
 	protected const RAID_COMPACT = 4;
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public DiscordGatewayController $discordGatewayController;
-
-	#[NCA\Inject]
-	public RaidController $raidController;
-
-	#[NCA\Inject]
-	public RaidRankController $raidRankController;
-
-	#[NCA\Inject]
-	public RelayController $relayController;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public NickController $nickController;
-
-	#[NCA\Inject]
-	public StatsController $statsController;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -241,6 +190,57 @@ class OnlineController extends ModuleInstance {
 	/** Rank color for raid leaders/admins */
 	#[NCA\Setting\Color]
 	public string $rankColorRaid = "#FCA712";
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private DiscordGatewayController $discordGatewayController;
+
+	#[NCA\Inject]
+	private RaidController $raidController;
+
+	#[NCA\Inject]
+	private RaidRankController $raidRankController;
+
+	#[NCA\Inject]
+	private RelayController $relayController;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private NickController $nickController;
+
+	#[NCA\Inject]
+	private StatsController $statsController;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
 
 	#[NCA\Setup]
 	public function setup(): void {

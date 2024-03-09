@@ -27,18 +27,17 @@ use Nadybot\Core\{
 	),
 ]
 class LinksController extends ModuleInstance {
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
 	/** Enable full urls in the link list output */
 	#[NCA\Setting\Boolean]
 	public bool $showfullurls = false;
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
 
 	/** Show all links */
 	#[NCA\HandlesCommand("links")]

@@ -10,16 +10,13 @@ use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	DB,
 	EventManager,
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
-	Modules\DISCORD\DiscordController,
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	Text,
 	UserStateEvent,
 };
@@ -44,29 +41,6 @@ use Throwable;
 ]
 class GSPController extends ModuleInstance implements MessageEmitter {
 	public const GSP_URL = 'https://gsp.torontocast.stream/streaminfo/';
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public DiscordController $discordController;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	/** Show on logon if there is a running GSP show */
 	#[NCA\Setting\Boolean]
@@ -80,6 +54,20 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	/** Location of the currently running show or empty if none */
 	protected string $showLocation = "";
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	public function getChannelName(): string {
 		return Source::SYSTEM . "(gsp)";

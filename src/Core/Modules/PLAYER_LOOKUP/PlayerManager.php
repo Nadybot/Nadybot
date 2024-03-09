@@ -26,8 +26,6 @@ use Nadybot\Core\{
 	Nadybot,
 	Registry,
 	SQLException,
-	SettingManager,
-	Util,
 };
 use Safe\DateTime;
 use Safe\Exceptions\JsonException;
@@ -40,27 +38,6 @@ class PlayerManager extends ModuleInstance {
 	public const CACHE_GRACE_TIME = 87000;
 	public const PORK_URL = "http://people.anarchy-online.com";
 	public const BORK_URL = "https://bork.aobots.org";
-
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -79,6 +56,21 @@ class PlayerManager extends ModuleInstance {
 	public string $porkUrl = self::BORK_URL;
 
 	public ?PlayerLookupJob $playerLookupJob = null;
+
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	#[NCA\Setup]
 	public function setup(): void {

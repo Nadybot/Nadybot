@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\Player,
 	Modules\PLAYER_LOOKUP\PlayerManager,
-	Nadybot,
 	Routing\Character,
 	Routing\Events\Online,
 	Routing\RoutableEvent,
@@ -59,27 +58,6 @@ use Nadybot\Modules\{
 	)
 ]
 class GcrProtocol implements RelayProtocolInterface {
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public OnlineController $onlineController;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 
 	protected Relay $relay;
@@ -88,6 +66,23 @@ class GcrProtocol implements RelayProtocolInterface {
 	protected string $prefix = "";
 	protected bool $syncOnline = true;
 	protected bool $spamOnline = true;
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private OnlineController $onlineController;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	public function __construct(string $command="gcr", string $prefix="", bool $syncOnline=true, bool $spamOnline=false) {
 		$this->command = $command;

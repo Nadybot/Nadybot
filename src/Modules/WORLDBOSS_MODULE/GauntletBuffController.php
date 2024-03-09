@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
-	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PDuration,
 	Routing\RoutableMessage,
@@ -60,38 +59,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public const SIDE_NONE = 'none';
 	public const GAUNTLET_API = "https://timers.aobots.org/api/v1.1/gaubuffs";
 
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
-
-	#[NCA\Inject]
-	public TimerController $timerController;
-
-	#[NCA\Inject]
-	public StatsController $statsController;
 
 	/** Times to display gaubuff timer alerts */
 	#[NCA\Setting\Text(
@@ -153,6 +122,33 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		],
 	)]
 	public string $gauntletSetNotification = "Gauntletbuff timer for {c-side} has been set and expires at {c-expiry}.";
+
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private TimerController $timerController;
+
+	#[NCA\Inject]
+	private StatsController $statsController;
 
 	private int $apiRetriesLeft = 3;
 

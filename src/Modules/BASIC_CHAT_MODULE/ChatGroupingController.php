@@ -27,14 +27,13 @@ use Nadybot\Core\{
 	),
 ]
 class ChatGroupingController extends ModuleInstance {
-	#[NCA\Inject]
-	public Text $text;
-
 	/** @var string[] */
 	public array $joined = [];
 
 	/** @var array<int,string[]> */
 	public array $grouped = [];
+	#[NCA\Inject]
+	private Text $text;
 
 	/** Clear current grouping */
 	#[NCA\HandlesCommand("group manage")]

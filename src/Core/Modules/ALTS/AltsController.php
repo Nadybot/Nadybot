@@ -64,30 +64,6 @@ class AltsController extends ModuleInstance {
 	public const ALT_VALIDATE = "altvalidate";
 	public const MAIN_VALIDATE = "mainvalidate";
 
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
 	/** Adding alt requires confirmation from alt */
 	#[NCA\Setting\Boolean]
 	public bool $altsRequireConfirmation = true;
@@ -110,6 +86,30 @@ class AltsController extends ModuleInstance {
 	/** By what to sort the alts list */
 	#[NCA\Setting\Options(options: ["level", "name"])]
 	public string $altsSort = 'level';
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
 
 	/** @var array<string,string> */
 	private array $alts = [];

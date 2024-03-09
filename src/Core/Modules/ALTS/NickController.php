@@ -28,12 +28,6 @@ use Nadybot\Core\{
 class NickController extends ModuleInstance {
 	public const DB_TABLE = "nickname";
 
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public DB $db;
-
 	/** How to display nicknames */
 	#[NCA\Setting\Template(
 		options: [
@@ -53,6 +47,12 @@ class NickController extends ModuleInstance {
 		help: 'nick_format.txt',
 	)]
 	public string $nickFormat = "<i>{nick}</i>";
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private DB $db;
 
 	/** @var array<string,string> */
 	private array $nickNames = [];

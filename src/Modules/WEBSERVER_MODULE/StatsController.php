@@ -26,15 +26,6 @@ use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\ValueProvider;
 
 #[NCA\Instance]
 class StatsController extends ModuleInstance {
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Util $util;
-
 	/** Enable Prometheus endpoint at /metrics */
 	#[NCA\Setting\Boolean(accessLevel: "admin")]
 	public bool $prometheusEnabled = true;
@@ -42,6 +33,14 @@ class StatsController extends ModuleInstance {
 	/** Auth token for Prometheus endpoint */
 	#[NCA\Setting\Text(accessLevel: "admin", mode: 'noedit')]
 	public string $prometheusAuthToken = "";
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Util $util;
 
 	/** @var array<string,Dataset> */
 	private array $dataSets = [];

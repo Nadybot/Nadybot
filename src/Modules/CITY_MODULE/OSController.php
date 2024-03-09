@@ -17,13 +17,13 @@ use Nadybot\Modules\TIMERS_MODULE\TimerController;
 #[NCA\Instance]
 class OSController extends ModuleInstance {
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public TimerController $timerController;
+	private TimerController $timerController;
 
 	#[NCA\Event(
 		name: "orgmsg",

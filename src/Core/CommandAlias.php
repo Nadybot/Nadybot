@@ -12,17 +12,14 @@ class CommandAlias {
 
 	public const ALIAS_HANDLER = "CommandAlias.process";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
 
 	/** Loads active aliases into memory to activate them */
 	public function load(): void {

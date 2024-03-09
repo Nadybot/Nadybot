@@ -22,16 +22,16 @@ use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	#[NCA\Inject]
-	public DiscordAPIClient $discordAPIClient;
+	private DiscordAPIClient $discordAPIClient;
 
 	#[NCA\Inject]
-	public TrackerController $trackerController;
+	private TrackerController $trackerController;
 
 	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private MessageHub $messageHub;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;

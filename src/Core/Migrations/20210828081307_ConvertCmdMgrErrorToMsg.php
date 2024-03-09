@@ -15,7 +15,7 @@ use Nadybot\Core\{
 
 class ConvertCmdMgrErrorToMsg implements SchemaMigration {
 	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private MessageHub $messageHub;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;

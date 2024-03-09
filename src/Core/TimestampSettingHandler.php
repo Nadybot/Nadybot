@@ -8,7 +8,7 @@ use Nadybot\Core\Attributes as NCA;
 #[NCA\SettingHandler("timestamp")]
 class TimestampSettingHandler extends SettingHandler {
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	/** @inheritDoc */
 	public function getDescription(): string {

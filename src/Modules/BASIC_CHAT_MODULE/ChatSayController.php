@@ -39,15 +39,6 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("leadercmd")
 ]
 class ChatSayController extends ModuleInstance {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public ChatLeaderController $chatLeaderController;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
 	/** The color that !cmd wraps the message in */
 	#[NCA\Setting\Color]
 	public string $bcmCmdColor = "#FF0000";
@@ -55,6 +46,14 @@ class ChatSayController extends ModuleInstance {
 	/** The color that !tell wraps the message in */
 	#[NCA\Setting\Color]
 	public string $bcmTellColor = "#FFFF00";
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private ChatLeaderController $chatLeaderController;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	/** Have the bot say something in the org channel */
 	#[NCA\HandlesCommand("say")]

@@ -32,19 +32,16 @@ use Nadybot\Core\{
 ]
 class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\Inject]
-	public CommandManager $cmdManager;
+	private CommandManager $cmdManager;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public PermissionSetController $permSetCtrl;
+	private SettingManager $settingManager;
 
 	/** Show a list of the current permission set mapping */
 	#[NCA\HandlesCommand("cmdmap")]

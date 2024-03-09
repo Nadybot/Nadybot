@@ -6,16 +6,12 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistEntry,
 	BuddylistManager,
-	Config\BotConfig,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\GaugeProvider;
 
 class OnlineOrgStats implements GaugeProvider {
 	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public BotConfig $config;
+	private BuddylistManager $buddylistManager;
 
 	public function getValue(): float {
 		return count(array_filter(

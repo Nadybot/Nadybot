@@ -7,7 +7,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\GaugeProvider;
 
 class BuddylistSize implements GaugeProvider {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	public function getValue(): float {
 		return $this->chatBot->getBuddyListSize();

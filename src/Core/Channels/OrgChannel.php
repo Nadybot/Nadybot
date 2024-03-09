@@ -12,10 +12,10 @@ use Nadybot\Core\{
 
 class OrgChannel extends Base {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private MessageHub $messageHub;
 
 	public function getChannelName(): string {
 		return Source::ORG;

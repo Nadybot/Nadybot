@@ -43,27 +43,27 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 class ChatRallyController extends ModuleInstance {
 	public const CMD_RALLY_SET = "rally set/clear";
 
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public PlayfieldController $playfieldController;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public ChatLeaderController $chatLeaderController;
-
 	/** Rally waypoint for topic */
 	#[NCA\Setting\Text(mode: "noedit")]
 	public string $rally = "";
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private PlayfieldController $playfieldController;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private ChatLeaderController $chatLeaderController;
 
 	/** Display the current rally location */
 	#[NCA\HandlesCommand("rally")]

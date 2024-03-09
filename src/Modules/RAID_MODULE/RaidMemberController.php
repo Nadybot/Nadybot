@@ -10,9 +10,7 @@ use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
-	CommandAlias,
 	DB,
-	EventManager,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -55,39 +53,6 @@ class RaidMemberController extends ModuleInstance {
 	public const ANNOUNCE_RAID_FULL = 1;
 	public const ANNOUNCE_RAID_OPEN = 2;
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public RaidController $raidController;
-
-	#[NCA\Inject]
-	public RaidBlockController $raidBlockController;
-
-	#[NCA\Inject]
-	public OnlineController $onlineController;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
 	/** Send a tell to people being added/removed to/from the raid */
 	#[NCA\Setting\Boolean]
 	public bool $raidInformMemberBeingAdded = true;
@@ -106,6 +71,33 @@ class RaidMemberController extends ModuleInstance {
 		accessLevel: 'raid_admin_2',
 	)]
 	public int $raidAnnounceFull = 0;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private RaidController $raidController;
+
+	#[NCA\Inject]
+	private RaidBlockController $raidBlockController;
+
+	#[NCA\Inject]
+	private OnlineController $onlineController;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
 
 	/** Resume an old raid after a bot restart */
 	public function resumeRaid(Raid $raid): void {

@@ -23,7 +23,6 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Modules\BAN\BanController,
-	Modules\CONFIG\ConfigController,
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -39,36 +38,6 @@ class LimitsController extends ModuleInstance {
 	public const ALL = 3;
 	public const FAILURE = 2;
 	public const SUCCESS = 1;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public PlayerHistoryManager $playerHistoryManager;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public RateIgnoreController $rateIgnoreController;
-
-	#[NCA\Inject]
-	public ConfigController $configController;
-
-	#[NCA\Inject]
-	public BanController $banController;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -140,6 +109,33 @@ class LimitsController extends ModuleInstance {
 
 	/** @var array<string,int> */
 	public array $ignoreList = [];
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private PlayerHistoryManager $playerHistoryManager;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private RateIgnoreController $rateIgnoreController;
+
+	#[NCA\Inject]
+	private BanController $banController;
 
 	/**
 	 * Check if this is a command that doesn't fall under any limits

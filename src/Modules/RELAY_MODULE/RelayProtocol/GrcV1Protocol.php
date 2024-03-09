@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
-	Util,
 };
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
@@ -39,20 +38,18 @@ use Nadybot\Modules\RELAY_MODULE\{
 	)
 ]
 class GrcV1Protocol implements RelayProtocolInterface {
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
 	protected static int $supportedFeatures = self::F_NONE;
 
 	protected Relay $relay;
 
 	protected string $command = "grc";
 	protected string $prefix = "";
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
 
 	public function __construct(string $command="grc", string $prefix="") {
 		$this->command = $command;

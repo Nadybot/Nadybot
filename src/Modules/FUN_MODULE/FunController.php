@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
-	Util,
 };
 
 /**
@@ -71,10 +70,7 @@ use Nadybot\Core\{
 ]
 class FunController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Util $util;
+	private DB $db;
 
 	#[NCA\Setup]
 	public function setup(): void {

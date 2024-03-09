@@ -17,16 +17,16 @@ use Nadybot\Core\{
 
 class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	#[NCA\Inject]
-	public ConsoleController $consoleController;
+	private ConsoleController $consoleController;
 
 	#[NCA\Inject]
-	public ColorsController $colors;
+	private ColorsController $colors;
 
 	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private MessageHub $messageHub;
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	public function __construct(
 		private Nadybot $chatBot

@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
-	DB,
 	DBSchema\CmdCfg,
 	ModuleInstance,
 	Text,
@@ -25,16 +24,13 @@ use Nadybot\Core\{
 ]
 class CommandlistController extends ModuleInstance {
 	#[NCA\Inject]
-	public AccessManager $accessManager;
+	private AccessManager $accessManager;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public DB $db;
+	private CommandManager $commandManager;
 
 	/** Show a list of all commands, optionally only for the given access level */
 	#[NCA\HandlesCommand("cmdlist")]

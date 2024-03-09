@@ -22,7 +22,7 @@ use Nadybot\Core\{
 ]
 class UnixtimeController extends ModuleInstance {
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	/** Show the date and time for a unix time stamp */
 	#[NCA\HandlesCommand("unixtime")]

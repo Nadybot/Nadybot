@@ -4,7 +4,7 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{Config\BotConfig, EventFeed, EventFeedHandler, LoggerWrapper, ModuleInstance, Nadybot, SettingEvent};
+use Nadybot\Core\{EventFeed, EventFeedHandler, LoggerWrapper, ModuleInstance, Nadybot, SettingEvent};
 use Throwable;
 
 #[
@@ -12,17 +12,6 @@ use Throwable;
 ]
 class PlayerFeedHandler extends ModuleInstance implements EventFeedHandler {
 	public const FEED_ROOM = 'bork_updates';
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public EventFeed $eventFeed;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -30,6 +19,15 @@ class PlayerFeedHandler extends ModuleInstance implements EventFeedHandler {
 	/** Receive dynamic character updates via Highway bots */
 	#[NCA\Setting\Boolean]
 	public bool $lookupFeedEnabled = true;
+
+	#[NCA\Inject]
+	private EventFeed $eventFeed;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
 
 	#[NCA\Setup]
 	public function setup(): void {

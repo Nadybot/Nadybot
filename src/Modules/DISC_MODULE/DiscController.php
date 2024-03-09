@@ -7,10 +7,8 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
-	Nadybot,
 	ParamClass\PItem,
 	Text,
-	Util,
 };
 
 /**
@@ -27,16 +25,10 @@ use Nadybot\Core\{
 ]
 class DiscController extends ModuleInstance {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Setup]
 	public function setup(): void {

@@ -41,17 +41,17 @@ class AlienBioController extends ModuleInstance {
 	private const LE_WEAPON_TYPES = [18, 34, 687, 812];
 	private const AI_ARMOR_TYPES  = ['mutated', 'pristine'];
 	private const AI_WEAPON_TYPES = [1, 2, 3, 4, 5, 12, 13, 48, 76, 112, 240, 880, 992];
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public ItemsController $itemsController;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private ItemsController $itemsController;
 
 	#[NCA\Setup]
 	public function setup(): void {

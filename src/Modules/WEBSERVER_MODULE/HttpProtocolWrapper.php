@@ -36,18 +36,6 @@ class HttpProtocolWrapper {
 	public const EXPECT_IGNORE = 5;
 	public Request $request;
 
-	#[NCA\Inject]
-	public WebserverController $webserverController;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -55,6 +43,18 @@ class HttpProtocolWrapper {
 
 	protected string $readQueue = "";
 	protected int $nextPart = self::EXPECT_REQUEST;
+
+	#[NCA\Inject]
+	private WebserverController $webserverController;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
 
 	public function __destruct() {
 		if (isset($this->logger)) {

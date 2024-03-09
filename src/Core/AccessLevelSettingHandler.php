@@ -12,13 +12,10 @@ use Nadybot\Core\Modules\CONFIG\ConfigController;
 #[NCA\SettingHandler("rank")]
 class AccessLevelSettingHandler extends SettingHandler {
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	private ConfigController $configController;
 
 	#[NCA\Inject]
-	public ConfigController $configController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
+	private AccessManager $accessManager;
 
 	/** @inheritDoc */
 	public function getDescription(): string {

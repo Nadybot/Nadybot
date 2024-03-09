@@ -27,9 +27,6 @@ class AsyncSocket {
 	public const STATE_CLOSING = 2;
 	public const STATE_CLOSED = 3;
 
-	#[NCA\Inject]
-	public SocketManager $socketManager;
-
 	#[NCA\Logger("Core/AsyncSocket")]
 	public LoggerWrapper $logger;
 
@@ -58,6 +55,9 @@ class AsyncSocket {
 	protected int $writeTries = 0;
 	protected int $timeout = 5;
 	protected int $state = self::STATE_READY;
+
+	#[NCA\Inject]
+	private SocketManager $socketManager;
 
 	/** @param resource $socket */
 	public function __construct($socket) {

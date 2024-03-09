@@ -87,63 +87,6 @@ class RaidController extends ModuleInstance {
 	public const ERR_NO_RAID = "There's currently no raid running.";
 	public const CAT_RAID = "raid";
 
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public RaidMemberController $raidMemberController;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public CommentController $commentController;
-
-	#[NCA\Inject]
-	public RaidPointsController $raidPointsController;
-
-	#[NCA\Inject]
-	public RaidRankController $raidRankController;
-
-	#[NCA\Inject]
-	public OnlineController $onlineController;
-
-	#[NCA\Inject]
-	public ChatAssistController $chatAssistController;
-
-	#[NCA\Inject]
-	public StatsController $statsController;
-
-	#[NCA\Inject]
-	public PrivateChannelController $privateChannelController;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -198,6 +141,63 @@ class RaidController extends ModuleInstance {
 
 	/** The currently running raid or null if none running */
 	public ?Raid $raid = null;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private RaidMemberController $raidMemberController;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private CommentController $commentController;
+
+	#[NCA\Inject]
+	private RaidPointsController $raidPointsController;
+
+	#[NCA\Inject]
+	private RaidRankController $raidRankController;
+
+	#[NCA\Inject]
+	private OnlineController $onlineController;
+
+	#[NCA\Inject]
+	private ChatAssistController $chatAssistController;
+
+	#[NCA\Inject]
+	private StatsController $statsController;
+
+	#[NCA\Inject]
+	private PrivateChannelController $privateChannelController;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	#[NCA\Setup]
 	public function setup(): void {

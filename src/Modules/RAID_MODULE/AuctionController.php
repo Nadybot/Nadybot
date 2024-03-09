@@ -68,42 +68,6 @@ class AuctionController extends ModuleInstance {
 	public const DB_TABLE = "auction_<myname>";
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public RaidController $raidController;
-
-	#[NCA\Inject]
-	public RaidMemberController $raidMemberController;
-
-	#[NCA\Inject]
-	public RaidPointsController $raidPointsController;
-
-	#[NCA\Inject]
-	public RaidBlockController $raidBlockController;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -188,6 +152,39 @@ class AuctionController extends ModuleInstance {
 	public ?Auction $auction = null;
 	protected ?string $auctionTimer = null;
 	protected ?int $auctionEnds = null;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private RaidController $raidController;
+
+	#[NCA\Inject]
+	private RaidPointsController $raidPointsController;
+
+	#[NCA\Inject]
+	private RaidBlockController $raidBlockController;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
 
 	#[NCA\Setup]
 	public function setup(): void {

@@ -86,16 +86,16 @@ use Nadybot\Modules\ITEMS_MODULE\{
 ]
 class SkillsController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	#[NCA\Inject]
-	public ItemsController $itemsController;
+	private ItemsController $itemsController;
 
 	#[NCA\Setup]
 	public function setup(): void {

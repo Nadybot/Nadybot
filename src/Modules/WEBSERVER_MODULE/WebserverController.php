@@ -41,24 +41,6 @@ class WebserverController extends ModuleInstance {
 	public const AUTH_AOAUTH = "aoauth";
 	public const AUTH_BASIC = "webauth";
 
-	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public Socket $socket;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -128,6 +110,24 @@ class WebserverController extends ModuleInstance {
 	protected AsyncSocket $asyncSocket;
 
 	protected ?string $aoAuthPubKey = null;
+
+	#[NCA\Inject]
+	private HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	private Socket $socket;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
 
 	#[NCA\Event(
 		name: "connect",

@@ -16,7 +16,7 @@ use Nadybot\Modules\CITY_MODULE\CityWaveController;
 
 class MigrateWaveToRoute implements SchemaMigration {
 	#[NCA\Inject]
-	public CityWaveController $cityWaveController;
+	private CityWaveController $cityWaveController;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$channel = $this->getSetting($db, "city_wave_announce");

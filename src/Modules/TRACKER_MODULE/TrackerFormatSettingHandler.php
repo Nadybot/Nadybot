@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\{Attributes as NCA, SettingHandler, Text};
+use Nadybot\Core\{Attributes as NCA, SettingHandler};
 
 /**
  * Class to represent a setting with a tracker format value for NadyBot
@@ -11,10 +11,7 @@ use Nadybot\Core\{Attributes as NCA, SettingHandler, Text};
 #[NCA\SettingHandler("tracker_format")]
 class TrackerFormatSettingHandler extends SettingHandler {
 	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public TrackerController $trackerController;
+	private TrackerController $trackerController;
 
 	/** Get a displayable representation of the setting */
 	public function displayValue(string $sender): string {

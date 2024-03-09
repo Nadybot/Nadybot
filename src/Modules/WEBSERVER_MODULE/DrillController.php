@@ -31,14 +31,14 @@ class DrillController extends ModuleInstance {
 	)]
 	public string $drillServer=self::OFF;
 
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	private ?WebsocketConnection $client=null;
 	private int $reconnectDelay = 5;

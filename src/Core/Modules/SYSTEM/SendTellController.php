@@ -28,7 +28,7 @@ class SendTellController extends ModuleInstance {
 	public LoggerWrapper $logger;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	/** Have the bot send a tell to a character */
 	#[NCA\HandlesCommand("sendtell")]

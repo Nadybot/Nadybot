@@ -54,30 +54,6 @@ use Nadybot\Core\{
 class TimerController extends ModuleInstance implements MessageEmitter {
 	public const DB_TABLE = "timers_<myname>";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public DiscordController $discordController;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -87,6 +63,30 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		help: 'timer_alert_times.txt',
 	)]
 	public string $timerAlertTimes = '1h 15m 1m';
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private DiscordController $discordController;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	/** @var array<string,Timer> */
 	private $timers = [];

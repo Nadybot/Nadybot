@@ -24,13 +24,13 @@ use Nadybot\Core\{
 ]
 class FindPlayerController extends ModuleInstance {
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public PlayerManager $playerManager;
+	private PlayerManager $playerManager;
 
 	/** Find a player by name in the local database */
 	#[NCA\HandlesCommand("findplayer")]

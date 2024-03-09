@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	ModuleInstance,
 	Text,
-	Util,
 };
 use Nadybot\Modules\WHEREIS_MODULE\{
 	WhereisController,
@@ -36,23 +35,19 @@ use Nadybot\Modules\WHEREIS_MODULE\{
 	)
 ]
 class BosslootController extends ModuleInstance {
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private DB $db;
 
 	#[NCA\Inject]
-	public WhereisController $whereisController;
+	private Text $text;
 
 	#[NCA\Inject]
-	public ItemsController $itemsController;
+	private WhereisController $whereisController;
+
+	#[NCA\Inject]
+	private ItemsController $itemsController;
 
 	#[NCA\Setup]
 	public function setup(): void {

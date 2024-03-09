@@ -23,7 +23,6 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	JsonExporter,
 	Request,
 	Response,
-	WebChatConverter,
 };
 
 use Throwable;
@@ -40,15 +39,6 @@ use TypeError;
 	NCA\ProvidesEvent("websocket(event)")
 ]
 class WebsocketController extends ModuleInstance {
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public WebChatConverter $webChatConverter;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -58,6 +48,11 @@ class WebsocketController extends ModuleInstance {
 
 	/** @var array<string,WebsocketServer> */
 	protected array $clients = [];
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
 
 	#[NCA\Setup]
 	public function setup(): void {

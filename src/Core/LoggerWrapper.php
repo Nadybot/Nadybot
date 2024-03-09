@@ -22,9 +22,6 @@ use Throwable;
  */
 #[NCA\Instance("logger")]
 class LoggerWrapper implements LoggerInterface {
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	protected static bool $routeErrors = true;
 
 	protected static PsrLogMessageProcessor $logProcessor;
@@ -39,6 +36,8 @@ class LoggerWrapper implements LoggerInterface {
 	protected static array $routingQueue = [];
 
 	protected static bool $errorGiven = false;
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	/** The actual Monolog logger */
 	private Logger $logger;

@@ -16,7 +16,7 @@ use Nadybot\Modules\GSP_MODULE\GSPController;
 
 class MigrateToRoute implements SchemaMigration {
 	#[NCA\Inject]
-	public GSPController $gspController;
+	private GSPController $gspController;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$channel = $this->getSetting($db, "gsp_channels");

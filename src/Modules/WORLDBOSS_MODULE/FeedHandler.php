@@ -12,14 +12,13 @@ use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 	NCA\HandlesEventFeed('boss_timers')
 ]
 class FeedHandler extends ModuleInstance implements EventFeedHandler {
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	/** @param array<string,mixed> $data */
 	public function handleEventFeedMessage(string $room, array $data): void {

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\MOB_MODULE;
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{Config\BotConfig, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance};
+use Nadybot\Core\{EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance};
 use Nadybot\Modules\MOB_MODULE\FeedMessage\Spawn;
 use Throwable;
 
@@ -17,17 +17,14 @@ use Throwable;
 	NCA\ProvidesEvent("mob-attacked"),
 ]
 class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public MobController $mobCtrl;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private MobController $mobCtrl;
 
 	#[NCA\Setup]
 	public function setup(): void {

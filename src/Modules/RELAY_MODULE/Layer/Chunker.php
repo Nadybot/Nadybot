@@ -41,9 +41,6 @@ use Throwable;
 	)
 ]
 class Chunker implements RelayLayerInterface {
-	#[NCA\Inject]
-	public Util $util;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -57,6 +54,8 @@ class Chunker implements RelayLayerInterface {
 	protected $queue = [];
 
 	protected ?string $timerHandler = null;
+	#[NCA\Inject]
+	private Util $util;
 
 	public function __construct(int $chunkSize, int $timeout=60) {
 		if ($chunkSize < 1) {

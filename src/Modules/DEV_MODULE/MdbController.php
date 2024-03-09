@@ -7,9 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
-	Nadybot,
 	Text,
-	Util,
 };
 
 /**
@@ -26,13 +24,7 @@ use Nadybot\Core\{
 ]
 class MdbController extends ModuleInstance {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	/** Get a list of categories from the MDB */
 	#[NCA\HandlesCommand("mdb")]

@@ -16,40 +16,28 @@ use Nadybot\Core\{
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
-	Text,
 };
 
 use Nadybot\Modules\{
-	GUILD_MODULE\GuildController,
 	WEBSOCKET_MODULE\WebsocketCommandReply,
 };
 
 #[NCA\Instance]
 class WebchatApiController extends ModuleInstance {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public GuildController $guildController;
+	private CommandManager $commandManager;
 
 	#[NCA\Inject]
-	public CommandManager $commandManager;
+	private EventManager $eventManager;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	private MessageHub $messageHub;
 
 	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public WebChatConverter $webChatConverter;
-
-	#[NCA\Inject]
-	public Text $text;
+	private WebChatConverter $webChatConverter;
 
 	#[NCA\Setup]
 	public function setup(): void {

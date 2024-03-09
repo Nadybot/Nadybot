@@ -4,30 +4,18 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	Config\BotConfig,
 	ModuleInstance,
 	Nadybot,
-	SettingManager,
-	Util,
 };
 
 #[NCA\Instance]
 class KubernetesController extends ModuleInstance {
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Util $util;
-
 	/** Enable Kubernetes endpoints at /livez and /readyz */
 	#[NCA\Setting\Boolean(accessLevel: "admin")]
 	public bool $kubernetesEndpoints = true;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
 
 	/** Query if the bot is running as it is supposed to */
 	#[

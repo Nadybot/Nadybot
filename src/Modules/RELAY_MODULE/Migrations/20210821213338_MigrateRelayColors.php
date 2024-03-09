@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
-	Modules\CONFIG\ConfigController,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
@@ -18,13 +17,7 @@ use Nadybot\Core\{
 
 class MigrateRelayColors implements SchemaMigration {
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public ConfigController $configController;
+	private SettingManager $settingManager;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$relayType = $this->getSetting($db, "relaytype");

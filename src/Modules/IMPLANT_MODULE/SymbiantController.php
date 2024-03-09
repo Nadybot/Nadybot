@@ -44,22 +44,22 @@ use Nadybot\Modules\ITEMS_MODULE\{
 ]
 class SymbiantController extends ModuleInstance {
 	#[NCA\Inject]
-	public PlayerManager $playerManager;
+	private PlayerManager $playerManager;
 
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public ItemsController $itemsController;
+	private ItemsController $itemsController;
 
 	#[NCA\Inject]
-	public WhatBuffsController $wbCtrl;
+	private WhatBuffsController $wbCtrl;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	/** Show the 3 best symbiants for a profession at a given level */
 	#[NCA\HandlesCommand("bestsymbiants")]

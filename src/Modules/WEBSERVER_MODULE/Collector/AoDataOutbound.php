@@ -7,7 +7,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\CounterProvider;
 
 class AoDataOutbound implements CounterProvider {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Nadybot $chatBot;
 
 	public function getValue(): int {
 		return $this->chatBot->aoClient->getStatistics()->bytesWritten;

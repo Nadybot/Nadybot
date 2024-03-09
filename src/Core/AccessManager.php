@@ -33,32 +33,26 @@ class AccessManager {
 	public const DEL_ALT = "del-alt";
 	public const SET_MAIN = "set-main";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public AdminManager $adminManager;
-
-	#[NCA\Inject]
-	public AuditController $auditController;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	#[NCA\Inject]
-	public AltsController $altsController;
+	private DB $db;
 
 	#[NCA\Inject]
-	public SystemController $systemController;
+	private AuditController $auditController;
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private SystemController $systemController;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	/** @var array<string,int> */
 	private static array $ACCESS_LEVELS = [

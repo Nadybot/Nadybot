@@ -11,7 +11,7 @@ use Nadybot\Core\Attributes as NCA;
 #[NCA\SettingHandler("time")]
 class TimeSettingHandler extends SettingHandler {
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	/** @inheritDoc */
 	public function displayValue(string $sender): string {

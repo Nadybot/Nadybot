@@ -6,15 +6,12 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	Config\BotConfig,
-	DB,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
-	Nadybot,
 	ParamClass\PCharacter,
 	Text,
-	Util,
 };
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
@@ -31,28 +28,19 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 ]
 class WhoisOrgController extends ModuleInstance {
 	#[NCA\Inject]
-	public DB $db;
+	private BotConfig $config;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private Text $text;
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private PlayerManager $playerManager;
 
 	#[NCA\Inject]
-	public Text $text;
+	private GuildManager $guildManager;
 
 	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public GuildManager $guildManager;
-
-	#[NCA\Inject]
-	public OnlineController $onlineController;
+	private OnlineController $onlineController;
 
 	/** Show information about an organization */
 	#[NCA\HandlesCommand("whoisorg")]

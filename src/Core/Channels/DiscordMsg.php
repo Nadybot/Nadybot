@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	MessageReceiver,
 	Modules\DISCORD\DiscordAPIClient,
 	Modules\DISCORD\DiscordController,
-	Nadybot,
 	Routing\Events\Base,
 	Routing\Events\Online,
 	Routing\RoutableEvent,
@@ -22,32 +21,29 @@ use Nadybot\Core\{
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 class DiscordMsg implements MessageReceiver {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public DiscordAPIClient $discordAPIClient;
-
-	#[NCA\Inject]
-	public DiscordGatewayController $discordGatewayController;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public DiscordController $discordController;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Text $text;
-
 	protected string $channel;
 	protected string $id;
+
+	#[NCA\Inject]
+	private DiscordAPIClient $discordAPIClient;
+
+	#[NCA\Inject]
+	private DiscordGatewayController $discordGatewayController;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private DiscordController $discordController;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private Text $text;
 
 	public function getChannelName(): string {
 		return Source::DISCORD_MSG . "(*)";

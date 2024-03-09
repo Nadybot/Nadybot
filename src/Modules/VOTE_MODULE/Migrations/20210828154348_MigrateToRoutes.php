@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
-	Nadybot,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
@@ -18,13 +17,10 @@ use Nadybot\Modules\VOTE_MODULE\VoteController;
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
-	public VoteController $voteController;
+	private VoteController $voteController;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;

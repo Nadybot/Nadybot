@@ -32,18 +32,6 @@ class EventFeed {
 	public const URI = "wss://ws.nadybot.org";
 	public const RECONNECT_DELAY = 5;
 
-	#[NCA\Inject]
-	public HttpClientBuilder $clientBuilder;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -51,6 +39,18 @@ class EventFeed {
 	public array $roomHandlers = [];
 
 	public ?Highway\Connection $connection=null;
+
+	#[NCA\Inject]
+	private HttpClientBuilder $clientBuilder;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	private bool $isReconnect = false;
 

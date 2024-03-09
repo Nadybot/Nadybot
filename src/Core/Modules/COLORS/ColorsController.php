@@ -36,24 +36,6 @@ use Nadybot\Core\{
 	)
 ]
 class ColorsController extends ModuleInstance {
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public MessageHubController $msgHubCtrl;
-
-	#[NCA\Inject]
-	public MessageHub $msgHub;
-
 	/** default guild color */
 	#[Color] public string $defaultGuildColor = "#89D2E8";
 
@@ -98,6 +80,23 @@ class ColorsController extends ModuleInstance {
 
 	/** Where to search for themes - separate with colons for multiple paths */
 	#[NCA\Setting\Text(options: ["./Themes"])] public string $themePath = "./Themes";
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
+
+	#[NCA\Inject]
+	private MessageHubController $msgHubCtrl;
+
+	#[NCA\Inject]
+	private MessageHub $msgHub;
 
 	/** Get a list of color themes for the bot */
 	#[NCA\HandlesCommand("theme")]

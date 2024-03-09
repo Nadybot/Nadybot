@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
-	Nadybot,
 	Text,
 };
 
@@ -34,11 +33,6 @@ class ImplantController extends ModuleInstance {
 
 	public const REGULAR = 'reqRegular';
 	public const JOBE = 'reqJobe';
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Text $text;
 
 	/** @var array<string,array<int,int[]>> */
 	protected array $implantBreakpoints = [
@@ -67,6 +61,9 @@ class ImplantController extends ModuleInstance {
 			300 => [1231, 2051, 6],
 		],
 	];
+
+	#[NCA\Inject]
+	private Text $text;
 
 	/**
 	 * Try to determine the bonus for an interpolated QL

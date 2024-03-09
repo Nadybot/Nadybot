@@ -83,39 +83,6 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	];
 	public const DB_TABLE = "highnet_filter_<myname>";
 
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public EventFeed $eventFeed;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public CommandManager $cmdManager;
-
-	#[NCA\Inject]
-	public AltsController $altsCtrl;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public MessageHub $msgHub;
-
-	#[NCA\Inject]
-	public NickController $nickCtrl;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -141,6 +108,39 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	public array $channels = [];
 
 	public Collection $filters;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private EventFeed $eventFeed;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private CommandManager $cmdManager;
+
+	#[NCA\Inject]
+	private AltsController $altsCtrl;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private MessageHub $msgHub;
+
+	#[NCA\Inject]
+	private NickController $nickCtrl;
 
 	/** @var array<string,HighnetChannel> */
 	private array $handlers = [];

@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\GUIDE_MODULE;
 
 use function Amp\ByteStream\splitLines;
-use Amp\File\{File, Filesystem, FilesystemException};
+use Amp\File\{Filesystem, FilesystemException};
 use IteratorIterator;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PFilename,
 	Text,
-	Util,
 };
 
 /**
@@ -31,16 +30,13 @@ use Nadybot\Core\{
 class GuideController extends ModuleInstance {
 	private const FILE_EXT = ".txt";
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Filesystem $fs;
 
 	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
+	private CommandAlias $commandAlias;
 
 	private string $path;
 

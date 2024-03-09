@@ -41,27 +41,6 @@ use Nadybot\Modules\SKILLS_MODULE\{
 	),
 ]
 class WhatBuffsController extends ModuleInstance {
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public ItemsController $itemsController;
-
-	#[NCA\Inject]
-	public BuffPerksController $buffPerksController;
-
-	#[NCA\Inject]
-	public SkillsController $skillsController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -88,6 +67,26 @@ class WhatBuffsController extends ModuleInstance {
 		'Nodrop' => 2,
 	])]
 	public int $whatbuffsShowNodrop = 0;
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private ItemsController $itemsController;
+
+	#[NCA\Inject]
+	private BuffPerksController $buffPerksController;
+
+	#[NCA\Inject]
+	private SkillsController $skillsController;
 
 	#[NCA\Setup]
 	public function setup(): void {

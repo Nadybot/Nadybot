@@ -56,24 +56,6 @@ use Throwable;
 class NewsController extends ModuleInstance {
 	public const CMD_NEWS_MANAGE = "news add/change/delete";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
 	/** Maximum number of news items shown */
 	#[NCA\Setting\Number(options: [5, 10, 15, 20])]
 	public int $numNewsShown = 10;
@@ -88,6 +70,24 @@ class NewsController extends ModuleInstance {
 	/** Confirmed news count for all alts */
 	#[NCA\Setting\Boolean]
 	public bool $newsConfirmedForAllAlts = true;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
 
 	/** @return Collection<INews> */
 	public function getNewsItems(string $player): Collection {

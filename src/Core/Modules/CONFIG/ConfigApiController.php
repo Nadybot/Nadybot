@@ -36,25 +36,25 @@ use Throwable;
 #[NCA\Instance]
 class ConfigApiController extends ModuleInstance {
 	#[NCA\Inject]
-	public DiscordRelayController $discordRelayController;
+	private DiscordRelayController $discordRelayController;
 
 	#[NCA\Inject]
-	public ConfigController $configController;
+	private ConfigController $configController;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	private SettingManager $settingManager;
 
 	#[NCA\Inject]
-	public HelpManager $helpManager;
+	private HelpManager $helpManager;
 
 	#[NCA\Inject]
-	public CommandManager $commandManager;
+	private CommandManager $commandManager;
 
 	#[NCA\Inject]
-	public WebChatConverter $webChatConverter;
+	private WebChatConverter $webChatConverter;
 
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	/** Get a list of available modules to configure */
 	#[

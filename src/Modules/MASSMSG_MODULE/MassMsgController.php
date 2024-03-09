@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CmdContext,
 	Config\BotConfig,
-	DB,
 	MessageHub,
 	ModuleInstance,
 	Modules\BAN\BanController,
@@ -66,36 +65,6 @@ class MassMsgController extends ModuleInstance {
 	public const PREF_MSGS = 'massmsgs';
 	public const PREF_INVITES = 'massinvites';
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public BanController $banController;
-
-	#[NCA\Inject]
-	public Preferences $preferences;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
 	/** Color for mass messages/invites */
 	#[NCA\Setting\Color]
 	public string $massmsgColor = "#FF9999";
@@ -106,6 +75,33 @@ class MassMsgController extends ModuleInstance {
 
 	/** date and time when the last mass message was sent */
 	public ?DateTime $lastMessage;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private BanController $banController;
+
+	#[NCA\Inject]
+	private Preferences $preferences;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	#[NCA\Setup]
 	public function setup(): void {

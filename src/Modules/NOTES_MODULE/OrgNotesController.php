@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	InsufficientAccessException,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
-	Nadybot,
 	ParamClass\PRemove,
 	Text,
 	Util,
@@ -42,30 +41,27 @@ use Nadybot\Core\{
 class OrgNotesController extends ModuleInstance {
 	public const DB_TABLE = "org_notes";
 
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
 	/** Rank required to delete other people's org notes */
 	#[NCA\Setting\Rank]
 	public string $orgnoteDeleteOtherRank = "mod";
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
 
 	/**
 	 * Get all org notes

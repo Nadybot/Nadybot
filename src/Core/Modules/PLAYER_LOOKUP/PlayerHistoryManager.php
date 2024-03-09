@@ -6,8 +6,6 @@ use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Nadybot\Core\{
 	Attributes as NCA,
-	CacheManager,
-	Config\BotConfig,
 	ModuleInstance,
 };
 use Safe\Exceptions\JsonException;
@@ -15,13 +13,7 @@ use Safe\Exceptions\JsonException;
 #[NCA\Instance]
 class PlayerHistoryManager extends ModuleInstance {
 	#[NCA\Inject]
-	public HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	public CacheManager $cacheManager;
-
-	#[NCA\Inject]
-	public BotConfig $config;
+	private HttpClientBuilder $builder;
 
 	public function lookup(string $name, int $dimension): ?PlayerHistory {
 		$name = ucfirst(strtolower($name));

@@ -6,7 +6,6 @@ use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
-	CommandAlias,
 	DB,
 	Event,
 	EventManager,
@@ -14,12 +13,10 @@ use Nadybot\Core\{
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
-	Nadybot,
 	ParamClass\PDuration,
 	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	Text,
 	Util,
 };
@@ -64,35 +61,26 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	public const STATUS_60_SECONDS_LEFT = 4;
 	public const STATUS_ENDED = 9;
 
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private MessageHub $messageHub;
 
 	/** @var array<int,Poll> */
 	private $polls = [];

@@ -3,25 +3,18 @@
 namespace Nadybot\Core\Channels;
 
 use Nadybot\Core\Routing\{RoutableEvent, Source};
-use Nadybot\Core\{Attributes as NCA, EventManager, MessageHub, MessageReceiver, Nadybot};
+use Nadybot\Core\{Attributes as NCA, EventManager, MessageHub, MessageReceiver};
 use Nadybot\Modules\WEBSERVER_MODULE\{AOWebChatEvent, WebChatConverter};
-use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 
 class WebChannel implements MessageReceiver {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	private WebChatConverter $webChatConverter;
 
 	#[NCA\Inject]
-	public WebChatConverter $webChatConverter;
+	private EventManager $eventManager;
 
 	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public WebsocketController $websocketController;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
+	private MessageHub $messageHub;
 
 	public function getChannelName(): string {
 		return Source::WEB;

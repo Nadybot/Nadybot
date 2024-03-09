@@ -26,13 +26,13 @@ use Nadybot\Core\{
 ]
 class PlayerHistoryController extends ModuleInstance {
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public PlayerHistoryManager $playerHistoryManager;
+	private PlayerHistoryManager $playerHistoryManager;
 
 	/**
 	 * Show the history of a player on this dimension or &lt;dimension&gt;

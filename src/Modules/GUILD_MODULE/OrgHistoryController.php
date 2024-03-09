@@ -36,13 +36,13 @@ class OrgHistoryController extends ModuleInstance {
 	public const DB_TABLE = "org_history";
 
 	#[NCA\Inject]
-	public DB $db;
+	private DB $db;
 
 	#[NCA\Inject]
-	public Text $text;
+	private Text $text;
 
 	#[NCA\Inject]
-	public Util $util;
+	private Util $util;
 
 	/** Show the last org actions (invite, kick, leave) */
 	#[NCA\HandlesCommand("orghistory")]

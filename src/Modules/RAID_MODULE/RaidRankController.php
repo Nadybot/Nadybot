@@ -8,7 +8,6 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessLevelProvider,
 	AccessManager,
-	AdminManager,
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
@@ -50,36 +49,6 @@ use Nadybot\Core\{
 ]
 class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "raid_rank_<myname>";
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public AdminManager $adminManager;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public AdminController $adminController;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Text $text;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -132,6 +101,33 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 
 	/** @var array<string,RaidRank> */
 	public array $ranks = [];
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private AdminController $adminController;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	private BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Text $text;
 
 	/** @todo: Add support for the raid levels */
 	#[NCA\Setup]

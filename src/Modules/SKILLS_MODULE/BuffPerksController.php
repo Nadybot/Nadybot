@@ -48,33 +48,6 @@ class BuffPerksController extends ModuleInstance {
 	public const ALIEN_INVASION = "ai";
 	public const SHADOWLANDS = "sl";
 
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public Filesystem $fs;
-
-	#[NCA\Inject]
-	public WhatBuffsController $whatBuffsController;
-
-	#[NCA\Inject]
-	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public ItemsController $itemsController;
-
-	#[NCA\Inject]
-	public NanoController $nanoController;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -84,6 +57,33 @@ class BuffPerksController extends ModuleInstance {
 
 	/** @var Collection<Perk> */
 	public Collection $perks;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private Util $util;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
+
+	#[NCA\Inject]
+	private WhatBuffsController $whatBuffsController;
+
+	#[NCA\Inject]
+	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private ItemsController $itemsController;
+
+	#[NCA\Inject]
+	private NanoController $nanoController;
 
 	#[NCA\Setup]
 	public function setup(): void {

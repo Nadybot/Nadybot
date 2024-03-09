@@ -40,21 +40,6 @@ use Nadybot\Core\{
 class ChatLeaderController extends ModuleInstance implements AccessLevelProvider {
 	public const CMD_LEADER_SET = "leader set leader";
 
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public Text $text;
-
 	/** Repeat the text of the leader */
 	#[NCA\Setting\Boolean(mode: "noedit")]
 	public bool $leaderecho = true;
@@ -72,6 +57,21 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		]
 	)]
 	public string $leaderEchoFormat = "<yellow>{message}<end>";
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private SettingManager $settingManager;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private Text $text;
 
 	/** Name of the leader character. */
 	private ?string $leader = null;

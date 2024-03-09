@@ -6,7 +6,6 @@ use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
-	CommandAlias,
 	Config\BotConfig,
 	DB,
 	Event,
@@ -50,36 +49,6 @@ class RaffleController extends ModuleInstance {
 	public const NO_RAFFLE_ERROR = "There is no active raffle.";
 
 	public const CMD_RAFFLE_MANAGE = "raffle manage";
-
-	#[NCA\Inject]
-	public AccessManager $accessManager;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public AltsController $altsController;
-
-	#[NCA\Inject]
-	public RaidController $raidController;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Text $text;
-
-	#[NCA\Inject]
-	public DB $db;
-
-	#[NCA\Inject]
-	public BotConfig $config;
-
-	#[NCA\Inject]
-	public Util $util;
 
 	/** Raffles automatically end after some time */
 	#[NCA\Setting\Boolean]
@@ -126,6 +95,33 @@ class RaffleController extends ModuleInstance {
 	public bool $raffleAllowMultiJoin = true;
 
 	public ?Raffle $raffle = null;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private RaidController $raidController;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private Text $text;
+
+	#[NCA\Inject]
+	private DB $db;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Util $util;
 
 	public function getRaffleAdminPage(string $sender): string {
 		$blob = "<header2>Join / Leave<end>\n".

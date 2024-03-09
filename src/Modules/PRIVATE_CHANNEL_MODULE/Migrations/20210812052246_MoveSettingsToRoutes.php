@@ -19,7 +19,7 @@ use Nadybot\Core\{
 
 class MoveSettingsToRoutes implements SchemaMigration {
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$guestRelay = $this->getSetting($db, "guest_relay");
