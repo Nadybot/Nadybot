@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
+use function Safe\preg_match;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -38,6 +39,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Response,
 	WEBSERVER_MODULE\StatsController,
 };
+
 use Psr\Log\LoggerInterface;
 
 /**

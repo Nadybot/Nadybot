@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core\EventModifier;
 
+use function Safe\{preg_match, preg_replace};
 use Exception;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventModifier,
@@ -56,7 +58,8 @@ class IfMatches implements EventModifier {
 		$this->inverse = $inverse;
 		$this->isRegexp = $isRegexp;
 		foreach ($text as $match) {
-			if ($isRegexp && @preg_match(chr(1) . $match . chr(1) . "si", "") === false) {
+		// @phpstan-ignore-next-line
+			if ($isRegexp && @\preg_match(chr(1) . $match . chr(1) . "si", "") === false) {
 				$error = error_get_last()["message"] ?? "Unknown error";
 				$error = preg_replace("/^preg_match\(\): (Compilation failed: )?/", "", $error);
 				throw new Exception("Invalid regular expression '{$match}': {$error}.");

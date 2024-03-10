@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
-use DateTime;
 use Nadybot\Core\{Attributes as NCA, DBRow};
 use Nadybot\Modules\ORGLIST_MODULE\Organization;
+use Safe\DateTime;
 
 class TrackingOrg extends DBRow {
 	public int $org_id;

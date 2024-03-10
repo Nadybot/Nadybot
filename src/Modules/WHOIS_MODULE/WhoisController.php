@@ -4,6 +4,8 @@ namespace Nadybot\Modules\WHOIS_MODULE;
 
 use function Amp\async;
 use function Amp\Future\await;
+use function Safe\preg_match;
+
 use AO\Package;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{

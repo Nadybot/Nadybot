@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use function Safe\json_encode;
+use function Safe\{json_encode, preg_match, preg_replace};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{

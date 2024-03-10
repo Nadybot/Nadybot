@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use function Amp\ByteStream\getStderr;
 use function Amp\File\{createDefaultDriver, filesystem};
-use function Safe\{fclose, fwrite, ini_set, json_encode, realpath, stream_get_contents, system};
+use function Safe\{fclose, fwrite, getopt, ini_set, json_encode, parse_url, preg_replace, putenv, realpath, sapi_windows_set_ctrl_handler, stream_get_contents, system};
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
 use Amp\File\{Filesystem, FilesystemDriver};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
@@ -21,6 +21,7 @@ use ReflectionAttribute;
 use ReflectionObject;
 
 use Revolt\EventLoop;
+use Safe\Exceptions\InfoException;
 use Throwable;
 
 class BotRunner {
@@ -460,20 +461,23 @@ class BotRunner {
 	}
 
 	private function parseOptions(): void {
-		$options = getopt(
-			"c:v",
-			[
-				"help",
-				"migrate-only",
-				"setup-only",
-				"strict",
-				"log-config:",
-				"migration-errors-fatal",
-			],
-			$restPos
-		);
-		if ($options === false) {
-			getStderr()->write("Unable to parse arguments passed to the bot.\n");
+		try {
+			$options = getopt(
+				"c:v",
+				[
+					"help",
+					"migrate-only",
+					"setup-only",
+					"strict",
+					"log-config:",
+					"migration-errors-fatal",
+				],
+				$restPos
+			);
+		} catch (InfoException $e) {
+			getStderr()->write(
+				"Unable to parse arguments passed to the bot: " . $e->getMessage()
+			);
 			sleep(5);
 			exit(1);
 		}

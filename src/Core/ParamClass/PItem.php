@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\ParamClass;
 
+use function Safe\preg_match;
+
 use InvalidArgumentException;
 
 class PItem extends Base {

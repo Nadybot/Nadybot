@@ -31,7 +31,7 @@ class QL extends Base {
 			throw new UserException("Expected either a QL-range (min-max) or a single QL.");
 		}
 		foreach ($parts as $part) {
-			if (!preg_match("/^\d+$/", $part)) {
+			if (!ctype_digit($part)) {
 				throw new UserException("'<highlight>{$part}<end>' is not a valid QL.");
 			}
 		}

@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\MASSMSG_MODULE;
 
 use AO\Package;
-use DateTime;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -21,6 +20,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Safe\DateTime;
 
 /**
  * This class contains all functions necessary for mass messaging

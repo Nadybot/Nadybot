@@ -4,7 +4,6 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use function Safe\strtotime;
 use DateInterval;
-use DateTime;
 use DateTimeZone;
 use Exception;
 use Nadybot\Core\{
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Safe\DateTime;
 
 use Safe\Exceptions\DatetimeException;
 

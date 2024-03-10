@@ -2,9 +2,11 @@
 
 namespace Nadybot\Core\Routing;
 
+use function Safe\preg_match;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Nadybot\Core\DBSchema\RouteHopFormat;
+
 use Nadybot\Core\{Config\BotConfig, Registry};
 
 class Source {

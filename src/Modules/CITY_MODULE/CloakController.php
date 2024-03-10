@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
+use function Safe\preg_match;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -22,6 +23,7 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 
 /**

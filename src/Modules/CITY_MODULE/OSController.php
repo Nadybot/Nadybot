@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
+use function Safe\preg_match;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -9,6 +10,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 };
+
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
 
 /**

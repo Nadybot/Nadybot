@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
-use function Safe\preg_split;
+use function Safe\{preg_replace, preg_split};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{

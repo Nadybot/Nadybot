@@ -86,7 +86,7 @@ class ConfigController extends ModuleInstance {
 		$reflectedClass = new ReflectionClass($this);
 		$className = Registry::formatName(get_class($this));
 		foreach ($reflectedClass->getMethods() as $reflectedMethod) {
-			if (preg_match('/command$/i', $reflectedMethod->name)) {
+			if (str_ends_with(strtolower($reflectedMethod->name), "command")) {
 				$filename []= "{$className}.{$reflectedMethod->name}";
 			}
 		}

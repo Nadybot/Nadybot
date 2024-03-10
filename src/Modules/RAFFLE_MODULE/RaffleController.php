@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
+use function Safe\preg_replace;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -19,6 +20,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+
 use Nadybot\Modules\RAID_MODULE\RaidController;
 
 /**

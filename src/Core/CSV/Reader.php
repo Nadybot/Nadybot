@@ -3,6 +3,7 @@
 namespace Nadybot\Core\CSV;
 
 use function Amp\ByteStream\splitLines;
+use function Safe\preg_replace;
 
 use Amp\File\Filesystem;
 use IteratorIterator;

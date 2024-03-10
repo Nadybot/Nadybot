@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use function Safe\{preg_match, preg_replace};
+
 class SemanticVersion {
 	protected string $origVersion;
 	protected string $version;

@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\ParamClass;
 
+use function Safe\preg_match;
+
 abstract class Base {
 	protected static string $preRegExp = "";
 	protected static string $regExp = "";

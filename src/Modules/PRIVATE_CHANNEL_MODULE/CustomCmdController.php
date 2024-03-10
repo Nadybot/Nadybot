@@ -2,8 +2,9 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use Amp\File\{Filesystem, FilesystemException};
+use function Safe\preg_grep;
 
+use Amp\File\{Filesystem, FilesystemException};
 use Nadybot\Core\DBSchema\{CmdCfg, CmdPermissionSet};
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -16,6 +17,7 @@ use Nadybot\Core\{
 	Text,
 	UserException,
 };
+
 use Psr\Log\LoggerInterface;
 
 /**
@@ -151,7 +153,7 @@ class CustomCmdController extends ModuleInstance {
 			}
 			if ($this->fs->isDirectory($baseDir . "/" . $fileName)) {
 				$files = $this->fs->listFiles($baseDir . "/" . $fileName);
-				if (empty(preg_grep('/\.txt$/', $files))) {
+				if (!count(preg_grep('/\.txt$/', $files))) {
 					continue;
 				}
 				$this->addDynamicCmd($fileName, $activate);

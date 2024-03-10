@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use function Safe\{preg_match, preg_replace};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Routing\Character,
@@ -12,6 +13,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayMessage,

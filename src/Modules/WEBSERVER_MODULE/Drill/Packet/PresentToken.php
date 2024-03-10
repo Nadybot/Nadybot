@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE\Drill\Packet;
 
+use function Safe\pack;
+
 use Nadybot\Modules\WEBSERVER_MODULE\Drill\PacketType;
 
 class PresentToken extends Base {

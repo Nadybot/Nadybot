@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE\Drill\Packet;
 
-use function Safe\unpack;
-
+use function Safe\{pack, unpack};
 use Nadybot\Modules\WEBSERVER_MODULE\Drill\PacketType;
 
 class Hello extends Base {

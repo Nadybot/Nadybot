@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
+use function Safe\preg_match;
+
 use Closure;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -135,6 +137,7 @@ class ApiController extends ModuleInstance {
 		#[NCA\Str("create", "new")]
 		string $action
 	): void {
+		// @phpstan-ignore-next-line
 		$key = openssl_pkey_new(["private_key_type" => OPENSSL_KEYTYPE_EC, "curve_name" => "prime256v1"]);
 		if ($key === false) {
 			$context->reply("Your PHP installation doesn't support the required cryptographic algorithms.");
@@ -146,6 +149,7 @@ class ApiController extends ModuleInstance {
 			return;
 		}
 		$pubKeyPem = $keyDetails['key'];
+		// @phpstan-ignore-next-line
 		if (openssl_pkey_export($key, $privKeyPem) === false) {
 			$context->reply(
 				"There was an error extracting the private key from the generated ".

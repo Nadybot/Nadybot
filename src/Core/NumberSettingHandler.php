@@ -21,7 +21,7 @@ class NumberSettingHandler extends SettingHandler {
 	 * @throws Exception when not a number
 	 */
 	public function save(string $newValue): string {
-		if (preg_match("/^[0-9]+$/i", $newValue)) {
+		if (ctype_digit($newValue)) {
 			return $newValue;
 		}
 		throw new Exception("You must enter a positive integer for this setting.");

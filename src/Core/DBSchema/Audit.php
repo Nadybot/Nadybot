@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use DateTime;
 use Nadybot\Core\DBRow;
+use Safe\DateTime;
 
 class Audit extends DBRow {
 	/** ID of this audit entry */

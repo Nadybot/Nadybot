@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use function Safe\{json_encode};
+use function Safe\{json_encode, preg_replace};
 
 use Amp\File\Filesystem;
 use Nadybot\Core\{Attributes as NCA, CommandReply};

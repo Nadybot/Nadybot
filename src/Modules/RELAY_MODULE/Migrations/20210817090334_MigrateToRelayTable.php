@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
+use function Safe\preg_match;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -23,6 +24,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayLayer,
 	RelayLayerArgument,
 };
+
 use Psr\Log\LoggerInterface;
 
 class MigrateToRelayTable implements SchemaMigration {

@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\json_decode;
-
+use function Safe\{json_decode, preg_match, preg_split};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\Interceptor\SetRequestHeader;
 use Amp\Http\Client\{HttpClient, HttpClientBuilder, Request, SocketException, TimeoutException};

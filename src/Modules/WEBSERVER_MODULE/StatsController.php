@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use function Safe\preg_match;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -22,6 +23,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Collector\{
 	MemoryRealUsage,
 	MemoryUsage,
 };
+
 use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\ValueProvider;
 
 #[NCA\Instance]

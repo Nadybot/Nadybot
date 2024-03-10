@@ -23,7 +23,7 @@ class MaxTowers extends Base {
 	}
 
 	protected function validateValue(): void {
-		if (!preg_match("/^\d+$/", $this->value)) {
+		if (!ctype_digit($this->value)) {
 			throw new UserException("'<highlight>{$this->value}<end>' is not a valid number.");
 		}
 		if ($this->value === "0") {

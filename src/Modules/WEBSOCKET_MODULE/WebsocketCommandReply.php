@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
+use function Safe\preg_match;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -15,6 +16,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	SettingManager,
 };
+
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	AOWebChatEvent,
 	WebChatConverter,

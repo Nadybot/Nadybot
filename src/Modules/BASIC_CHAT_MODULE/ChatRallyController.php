@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use function Safe\preg_match;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -14,6 +15,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 
 /**

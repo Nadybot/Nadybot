@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use function Safe\preg_split;
-
+use function Safe\{preg_replace, preg_split};
 use Nadybot\Core\CommandReply;
 
 class Raffle {

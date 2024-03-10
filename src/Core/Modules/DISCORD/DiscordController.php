@@ -3,8 +3,7 @@
 namespace Nadybot\Core\Modules\DISCORD;
 
 use function Amp\async;
-use function Safe\preg_split;
-
+use function Safe\{preg_match, preg_replace, preg_split};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,

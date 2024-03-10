@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use function Safe\json_encode;
+use function Safe\{json_encode, preg_match};
 use Nadybot\Core\Attributes\JSON;
 
 use Nadybot\Core\DBRow;

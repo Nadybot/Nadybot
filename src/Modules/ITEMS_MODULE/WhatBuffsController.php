@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
+use function Safe\preg_match;
 use Closure;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
@@ -17,6 +18,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+
 use Nadybot\Modules\SKILLS_MODULE\{
 	BuffPerksController,
 	Perk,

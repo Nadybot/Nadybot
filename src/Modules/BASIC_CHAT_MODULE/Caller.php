@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use DateTime;
+use Safe\DateTime;
 
 class Caller {
 	/** Name of the caller */

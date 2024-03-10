@@ -2,8 +2,10 @@
 
 namespace Nadybot\Core\Channels;
 
+use function Safe\preg_match;
 use Nadybot\Core\Routing\{RoutableEvent, Source};
 use Nadybot\Core\{Attributes as NCA, EventManager, MessageHub, MessageReceiver};
+
 use Nadybot\Modules\WEBSERVER_MODULE\{AOWebChatEvent, WebChatConverter};
 
 class WebChannel implements MessageReceiver {

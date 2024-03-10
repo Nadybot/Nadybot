@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
 use function Amp\async;
+use function Safe\json_decode;
+
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;

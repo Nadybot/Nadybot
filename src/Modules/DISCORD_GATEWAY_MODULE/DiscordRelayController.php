@@ -2,9 +2,11 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use function Safe\preg_replace;
 use Nadybot\Core\Modules\{
 	CONFIG\SettingOption,
 };
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	ModuleInstance,

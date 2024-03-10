@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
-use function Safe\{json_decode, json_encode, preg_replace};
+use function Safe\{json_decode, json_encode, preg_match, preg_replace};
 
 use Amp\File\{Filesystem, FilesystemException};
 use Exception;

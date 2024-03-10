@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
-use function Safe\preg_replace;
-
+use function Safe\{preg_replace, preg_split};
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\ParamClass\{PCharacter, PDuration, PQuantity, PRemove};

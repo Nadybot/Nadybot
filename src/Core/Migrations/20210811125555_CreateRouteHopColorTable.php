@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Migrations;
 
+use function Safe\preg_match;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
 	DB,
@@ -11,6 +12,7 @@ use Nadybot\Core\{
 	SchemaMigration,
 	SettingManager,
 };
+
 use Psr\Log\LoggerInterface;
 
 class CreateRouteHopColorTable implements SchemaMigration {

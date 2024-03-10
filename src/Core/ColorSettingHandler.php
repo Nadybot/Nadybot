@@ -2,8 +2,10 @@
 
 namespace Nadybot\Core;
 
+use function Safe\preg_match;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
+
 use Nadybot\Core\Modules\COLORS\ColorsController;
 
 /**

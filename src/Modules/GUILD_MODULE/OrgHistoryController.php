@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use function Safe\preg_match;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -13,6 +14,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
 	HttpProtocolWrapper,

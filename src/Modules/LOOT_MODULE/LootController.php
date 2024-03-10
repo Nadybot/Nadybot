@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
+use function Safe\preg_match;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -19,6 +20,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
 	ITEMS_MODULE\AODBEntry,

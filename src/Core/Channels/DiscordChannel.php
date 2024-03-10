@@ -3,6 +3,8 @@
 namespace Nadybot\Core\Channels;
 
 use function Amp\async;
+use function Safe\preg_replace;
+
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,

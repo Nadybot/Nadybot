@@ -3,8 +3,7 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\{async, delay};
-use function Safe\preg_replace;
-
+use function Safe\{preg_match, preg_replace};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, HttpException};

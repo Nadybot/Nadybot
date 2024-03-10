@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use function Safe\preg_match;
+
 use Nadybot\Core\{
 	AccessLevelProvider,
 	AccessManager,

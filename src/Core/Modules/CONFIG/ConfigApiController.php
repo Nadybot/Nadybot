@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use function Safe\{preg_match, preg_replace};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -28,6 +29,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Response,
 	WEBSERVER_MODULE\WebChatConverter,
 };
+
 use Throwable;
 
 /**

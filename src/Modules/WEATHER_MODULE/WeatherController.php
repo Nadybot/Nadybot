@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\WEATHER_MODULE;
 
-use function Safe\json_decode;
-
+use function Safe\{json_decode, preg_match, preg_match_all, preg_replace};
 use Amp\Cache\LocalCache;
 use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, Request};

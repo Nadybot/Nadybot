@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\ParamClass;
 
+use function Safe\preg_match;
+
 class PColor extends Base {
 	protected static string $regExp = "(?:<font\s+color\s*=\s*['\"]?)?#?[a-fA-F0-9]{6}(?:['\"]?[^>]*>)?";
 	protected string $value;

@@ -3,11 +3,10 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
-use function Safe\{glob, realpath};
+use function Safe\{glob, preg_match, realpath, tmpfile};
 use Amp\ByteStream\WritableResourceStream;
 use Amp\File\{Filesystem, FilesystemException as FileFilesystemException};
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
-use DateTime;
 use ErrorException;
 use Exception;
 use Nadybot\Core\{
@@ -25,6 +24,8 @@ use Nadybot\Core\{
 	UserException,
 };
 use Psr\Log\LoggerInterface;
+use Safe\DateTime;
+use Safe\Exceptions\FilesystemException;
 use Throwable;
 
 use ZipArchive;
@@ -305,9 +306,10 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	private function installNewRelease(string $body): void {
 		try {
 			$oldMask = umask(0027);
-			$file = tmpfile();
-			if ($file === false) {
-				throw new Exception("Unable to create temp file for extraction");
+			try {
+				$file = tmpfile();
+			} catch (FilesystemException $e) {
+				throw new Exception("Unable to create temp file for extraction: " . $e->getMessage());
 			}
 			$handle = new WritableResourceStream($file);
 			$archiveName = stream_get_meta_data($file)['uri'];

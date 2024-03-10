@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
+use function Safe\preg_match;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandManager,
@@ -13,6 +14,7 @@ use Nadybot\Core\{
 	SchemaMigration,
 	SettingManager,
 };
+
 use Psr\Log\LoggerInterface;
 
 class MigrateRelayColors implements SchemaMigration {

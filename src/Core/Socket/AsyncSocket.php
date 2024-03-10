@@ -340,6 +340,7 @@ class AsyncSocket {
 				return;
 			}
 			$this->logger->info('Closing socket');
+			// @phpstan-ignore-next-line
 			if (!is_resource($this->socket) || @\stream_socket_shutdown($this->socket, STREAM_SHUT_WR) === false) {
 				$this->forceClose();
 				return;

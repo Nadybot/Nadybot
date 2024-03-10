@@ -77,7 +77,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$db->table($table)
 			->get()
 			->each(function (stdClass $timer) use ($defaultMode, $table, $db, $discord): void {
-				if (!isset($timer->mode) || !preg_match("/^timercontroller/", $timer->callback)) {
+				if (!isset($timer->mode) || !str_starts_with($timer->callback, "timercontroller")) {
 					return;
 				}
 				if ($timer->mode === 'msg') {

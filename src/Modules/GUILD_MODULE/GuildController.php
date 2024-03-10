@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\GUILD_MODULE;
 
 use function Amp\async;
-use function Safe\{preg_replace};
+use function Safe\{preg_match, preg_replace};
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltInfo;
 use Nadybot\Core\{

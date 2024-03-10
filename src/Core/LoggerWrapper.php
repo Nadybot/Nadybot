@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{ini_get, realpath};
+use function Safe\{ini_get, preg_replace, realpath};
 use Closure;
 use Exception;
 use Monolog\Processor\PsrLogMessageProcessor;

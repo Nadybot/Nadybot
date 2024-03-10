@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\GUIDE_MODULE;
 
-use function Safe\preg_split;
+use function Safe\{preg_match, preg_replace, preg_split};
 use Amp\File\{Filesystem};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DOMDocument;

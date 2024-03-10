@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use DateTime;
+use Safe\DateTime;
 
 /**
  * An object representing a running stopwatch

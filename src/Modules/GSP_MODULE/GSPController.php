@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\GSP_MODULE;
 
-use function Safe\json_decode;
-
+use function Safe\{json_decode, preg_replace};
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use DateTimeZone;
 use Exception;

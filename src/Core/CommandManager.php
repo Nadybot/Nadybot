@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{preg_match, preg_match_all, preg_split};
+use function Safe\{preg_match, preg_match_all, preg_replace, preg_split};
 use Exception;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;

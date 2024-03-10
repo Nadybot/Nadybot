@@ -107,6 +107,7 @@ class SystemdController extends ModuleInstance {
 			return [null, $result];
 		}
 
+		// @phpstan-ignore-next-line
 		$fd = socket_create(AF_UNIX, SOCK_DGRAM, 0);
 		if ($fd === false) {
 			$result = -1 * socket_last_error();
@@ -151,6 +152,7 @@ class SystemdController extends ModuleInstance {
 		}
 
 		// First try with fake ucred data, as requested
+		// @phpstan-ignore-next-line
 		if (@socket_sendmsg($fd, $messageHeader, MSG_NOSIGNAL) !== false) {
 			$result = 1;
 			return [$fd, $result];
@@ -160,6 +162,7 @@ class SystemdController extends ModuleInstance {
 		if ($havePID) {
 			$messageHeader['control'] = [];
 
+			// @phpstan-ignore-next-line
 			if (@socket_sendmsg($fd, $messageHeader, MSG_NOSIGNAL) !== false) {
 				return [$fd, 1];
 			}

@@ -3,6 +3,8 @@
 namespace Nadybot\Core\Modules\LIMITS;
 
 use function Amp\async;
+use function Safe\preg_match;
+
 use AO\Package;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistory,

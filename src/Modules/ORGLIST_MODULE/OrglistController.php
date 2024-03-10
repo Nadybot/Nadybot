@@ -101,7 +101,7 @@ class OrglistController extends ModuleInstance {
 			$all = "all";
 		}
 		$search = $search();
-		if (preg_match("/^\d+$/", $search)) {
+		if (ctype_digit($search)) {
 			$orgId = (int)$search;
 		} else {
 			if (!$this->findOrgController->isReady()) {

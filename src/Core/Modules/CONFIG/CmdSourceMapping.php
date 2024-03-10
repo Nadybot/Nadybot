@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use function Safe\preg_match;
 use Nadybot\Core\Attributes\JSON;
+
 use Nadybot\Core\DBSchema\CmdPermSetMapping;
 
 class CmdSourceMapping {

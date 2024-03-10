@@ -3,6 +3,8 @@
 namespace Nadybot\Core\Channels;
 
 use function Amp\async;
+use function Safe\preg_replace;
+
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -88,7 +90,7 @@ class DiscordMsg implements MessageReceiver {
 
 		foreach ($discordMsg->split() as $msgPart) {
 			// Relay the message to the discord channel
-			if (preg_match("/^\d+$/", $destination)) {
+			if (ctype_digit($destination)) {
 				async($this->discordAPIClient->queueToChannel(...), $destination, $msgPart->toJSON())->ignore();
 			} else {
 				async($this->discordAPIClient->sendToUser(...), $destination, $msgPart->toJSON())->ignore();

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
+use function Safe\{preg_match, preg_replace};
 use Amp\File\{Filesystem, FilesystemException};
 use AO\Package;
 use Exception;
@@ -55,6 +56,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\StatsController,
 };
 use Psr\Log\LoggerInterface;
+
 use Revolt\EventLoop;
 
 /**

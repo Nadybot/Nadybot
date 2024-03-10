@@ -2,13 +2,14 @@
 
 namespace Nadybot\Api;
 
-use function Safe\{glob, preg_match_all};
+use function Safe\{glob, preg_match, preg_match_all};
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	DBRow,
 	Registry,
+	Safe,
 };
 use ReflectionClass;
 use ReflectionMethod;
@@ -114,7 +115,7 @@ class ApiSpecGenerator {
 
 	/** @param array<string,array<mixed>> $result */
 	public function addSchema(array &$result, string $className): void {
-		$className = preg_replace("/\[\]$/", "", $className);
+		$className = Safe::pregReplace("/\[\]$/", "", $className);
 		if (!is_string($className) || isset($result[$className])) {
 			return;
 		}
@@ -315,7 +316,7 @@ class ApiSpecGenerator {
 				}
 				$docComment = $method->getDocComment();
 				if (preg_match("/@param.*?\\$\Q{$param}\E\s+(.+)$/m", is_string($docComment) ? $docComment : "", $matches)) {
-					$matches[1] = preg_replace("/\*\//", "", $matches[1]);
+					$matches[1] = Safe::pregReplace("/\*\//", "", $matches[1]);
 					if (is_string($matches[1])) {
 						$paramResult["description"] = trim($matches[1]);
 					}
@@ -339,11 +340,11 @@ class ApiSpecGenerator {
 	}
 
 	public function getDescriptionFromComment(string $comment): string {
-		$comment = trim(preg_replace("|^/\*\*(.*)\*/$|s", '$1', $comment));
-		$comment = preg_replace("|^\s*\*\s*|m", '', $comment);
-		$comment = trim(preg_replace("|@.*$|s", '', $comment));
+		$comment = trim(Safe::pregReplace("|^/\*\*(.*)\*/$|s", '$1', $comment));
+		$comment = Safe::pregReplace("|^\s*\*\s*|m", '', $comment);
+		$comment = trim(Safe::pregReplace("|@.*$|s", '', $comment));
 		$comment = str_replace("\n", " ", $comment);
-		$comment = preg_replace("/\s*\*$/", '', $comment);
+		$comment = Safe::pregReplace("/\s*\*$/", '', $comment);
 		return $comment;
 	}
 
@@ -361,7 +362,7 @@ class ApiSpecGenerator {
 		}
 		$dir = dirname($fileName);
 		if (preg_match("{(?:/|^)([A-Z_]+)(?:/|$)}", $dir, $matches)) {
-			$doc->tags = [strtolower(preg_replace("/_MODULE/", "", $matches[1]))];
+			$doc->tags = [strtolower(Safe::pregReplace("/_MODULE/", "", $matches[1]))];
 		}
 		foreach ($method->getAttributes() as $attr) {
 			$attr = $attr->newInstance();

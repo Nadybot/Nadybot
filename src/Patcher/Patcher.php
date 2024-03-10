@@ -2,9 +2,11 @@
 
 namespace Nadybot\Patcher;
 
+use function Safe\preg_replace;
 use Composer\DependencyResolver\Operation\{InstallOperation, UpdateOperation};
 use Composer\Installer\PackageEvent;
 use Composer\Package\Package;
+
 use Exception;
 
 /**

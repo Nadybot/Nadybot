@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use function Amp\ByteStream\splitLines;
+use function Safe\preg_match;
 
 use Amp\File\{Filesystem, FilesystemException};
 use Amp\Http\Client\{

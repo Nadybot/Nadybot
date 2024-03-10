@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
-use function Safe\{json_decode, preg_split, realpath, tempnam};
+use function Safe\{json_decode, preg_match, preg_replace, preg_split, realpath, tempnam};
 use Amp\File\{Filesystem, FilesystemException as AmpFilesystemException};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Illuminate\Support\Collection;

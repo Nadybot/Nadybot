@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\EXPORT_MODULE;
 
-use function Safe\{json_decode, json_encode};
+use function Safe\{json_decode, json_encode, preg_match};
 
 use Amp\File\{Filesystem, FilesystemException};
 use Exception;

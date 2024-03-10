@@ -2,12 +2,12 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use DateTime;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 };
+use Safe\DateTime;
 
 /**
  * A stopwatch controller with start, stop and lap

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use function Amp\async;
+use function Safe\{preg_match, preg_replace};
 use Closure;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{date, getcwd};
+use function Safe\{date, getcwd, preg_match_all, preg_replace};
 use Amp\File\{Filesystem, FilesystemException};
 use Exception;
 use InvalidArgumentException;

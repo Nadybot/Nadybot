@@ -2,9 +2,11 @@
 
 namespace Nadybot\Core;
 
+use function Safe\preg_match;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
 use ReflectionNamedType;
+
 use RuntimeException;
 
 class Registry {

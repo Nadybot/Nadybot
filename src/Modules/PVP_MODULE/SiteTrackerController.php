@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 // pf, site
 
-use function Safe\glob;
+use function Safe\{glob, preg_replace};
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use Nadybot\Core\ParamClass\PRemove;

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
+use function Safe\preg_match;
 use Exception;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -17,6 +18,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Util,
 };
+
 use Nadybot\Modules\TIMERS_MODULE\{
 	Alert,
 	Timer,

@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use function Safe\preg_match;
 use Illuminate\Support\Collection;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,

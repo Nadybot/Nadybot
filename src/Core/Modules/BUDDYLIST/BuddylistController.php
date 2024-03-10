@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\Modules\BUDDYLIST;
 
+use function Safe\preg_match;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistEntry,

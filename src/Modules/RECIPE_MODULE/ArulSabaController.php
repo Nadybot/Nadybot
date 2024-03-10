@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
+use function Safe\preg_replace;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -12,6 +13,7 @@ use Nadybot\Core\{
 	ParamClass\PWord,
 	Text,
 };
+
 use Nadybot\Modules\ITEMS_MODULE\{
 	AODBItem,
 	ItemFlag,

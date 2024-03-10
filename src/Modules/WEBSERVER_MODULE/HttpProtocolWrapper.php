@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Safe\{base64_decode, fread, json_decode, parse_url, preg_split};
+use function Safe\{base64_decode, fread, json_decode, parse_url, preg_match, preg_split};
 use Amp\File\Filesystem;
 use AO\Internal\BinaryString;
 use Exception;

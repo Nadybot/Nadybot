@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use function Safe\{glob, json_encode, preg_split};
+use function Safe\{glob, json_encode, preg_match, preg_split};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Routing\{Character, RoutableMessage, Source};

@@ -3,7 +3,6 @@
 namespace Nadybot\Core;
 
 use function Safe\json_encode;
-use DateTime;
 use Exception;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\{Builder, Expression};
@@ -16,7 +15,7 @@ use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
-
+use Safe\DateTime;
 use Throwable;
 
 class QueryBuilder extends Builder {
@@ -238,7 +237,7 @@ class QueryBuilder extends Builder {
 						$row->{$colName} = (int)$values[$col];
 					} elseif ($type === "float") {
 						$row->{$colName} = (float)$values[$col];
-					} elseif ($type === DateTime::class) {
+					} elseif ($type === \DateTime::class || $type === DateTime::class) {
 						$row->{$colName} = (new DateTime())->setTimestamp((int)$values[$col]);
 					} else {
 						$row->{$colName} = $values[$col];

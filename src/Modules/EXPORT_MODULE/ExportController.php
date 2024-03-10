@@ -327,8 +327,8 @@ class ExportController extends ModuleInstance {
 			->asObj(OrgCity::class)
 			->map(function (OrgCity $cloakEntry): stdClass {
 				return $this->toClass([
-					"character" => $this->toChar(preg_replace("/\*$/", "", $cloakEntry->player)),
-					"manualEntry" => (bool)preg_match("/\*$/", $cloakEntry->player),
+					"character" => $this->toChar(rtrim($cloakEntry->player, "*")),
+					"manualEntry" => str_ends_with($cloakEntry->player, "*"),
 					"cloakOn" => ($cloakEntry->action === "on"),
 					"time" => $cloakEntry->time,
 				]);

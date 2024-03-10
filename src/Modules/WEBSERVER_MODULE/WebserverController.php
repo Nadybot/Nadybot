@@ -3,13 +3,12 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
-use function Safe\{base64_decode, mime_content_type, openssl_verify, preg_split, realpath, stream_socket_accept, stream_socket_server};
+use function Safe\{base64_decode, mime_content_type, openssl_verify, preg_match, preg_split, realpath, stream_socket_accept, stream_socket_server};
 use Amp\File\Filesystem;
 use Amp\Http\Client;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\{File};
 use Closure;
-use DateTime;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
@@ -26,6 +25,7 @@ use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionFunction;
+use Safe\DateTime;
 use Safe\Exceptions\{FilesystemException, OpensslException, StreamException, UrlException};
 
 #[

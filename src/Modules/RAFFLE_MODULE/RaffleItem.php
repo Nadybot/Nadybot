@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use function Safe\{preg_match_all, preg_replace};
+use function Safe\{preg_match, preg_match_all, preg_replace};
 use Nadybot\Core\Registry;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 

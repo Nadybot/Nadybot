@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core\Modules\SECURITY;
 
-use function Safe\preg_split;
-use DateTime;
+use function Safe\{preg_replace, preg_split, strtotime};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -22,6 +21,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Request,
 	Response,
 };
+use Safe\DateTime as SafeDateTime;
+use Safe\Exceptions\DatetimeException;
 
 #[
 	NCA\Instance,
@@ -115,14 +116,14 @@ class AuditController extends ModuleInstance {
 			->orderByDesc("id");
 
 		$limit = $request->query["limit"]??"50";
-		if (!preg_match("/^\d+$/", $limit)) {
+		if (!is_int($limit) && !ctype_digit($limit)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY, [], "limit is not an integer value");
 		}
 		$query->limit((int)$limit);
 
 		$offset = $request->query["offset"]??null;
 		if (isset($offset)) {
-			if (!preg_match("/^\d+$/", $offset)) {
+			if (!is_int($offset) && !ctype_digit($offset)) {
 				return new Response(Response::UNPROCESSABLE_ENTITY, [], "offset is not an integer value");
 			}
 			$query->offset((int)$offset);
@@ -130,7 +131,7 @@ class AuditController extends ModuleInstance {
 
 		$before = $request->query["before"]??null;
 		if (isset($before)) {
-			if (!preg_match("/^\d+$/", $before)) {
+			if (!is_int($before) && !ctype_digit($before)) {
 				return new Response(Response::UNPROCESSABLE_ENTITY, [], "before is not an integer value");
 			}
 			$query->where("time", "<=", $before);
@@ -138,7 +139,7 @@ class AuditController extends ModuleInstance {
 
 		$after = $request->query["after"]??null;
 		if (isset($after)) {
-			if (!preg_match("/^\d+$/", $after)) {
+			if (!is_int($after) && !ctype_digit($after)) {
 				return new Response(Response::UNPROCESSABLE_ENTITY, [], "after is not an integer value");
 			}
 			$query->where("time", ">=", $after);
@@ -173,35 +174,37 @@ class AuditController extends ModuleInstance {
 		parse_str($args, $params);
 		$params["limit"] ??= "50";
 		$limit = $params["limit"];
-		if (!is_string($limit) || !preg_match("/^\d+$/", $limit)) {
+		if (!is_string($limit) || !ctype_digit($limit)) {
 			return "<highlight>limit<end> must be a number.";
 		}
 		$query->limit((int)$limit + 1);
 
 		$params["offset"] ??= "0";
 		$offset = $params["offset"];
-		if (!is_string($offset) || !preg_match("/^\d+$/", $offset)) {
+		if (!is_string($offset) || !ctype_digit($offset)) {
 			return "<highlight>offset<end> must be a number.";
 		}
 		$query->offset((int)$offset);
 
 		$before = $params["before"]??null;
 		if (isset($before) && is_string($before)) {
-			$before = strtotime($before);
-			if ($before === false || abs($before) > 0x7FFFFFFF) {
+			try {
+				$before = strtotime($before);
+			} catch (DatetimeException) {
 				return "<highlight>before<end> must be a date and/or time.";
 			}
-			$params["before"] = (new DateTime())->setTimestamp($before)->format("Y-m-d\TH:i:s e");
+			$params["before"] = (new SafeDateTime())->setTimestamp($before)->format("Y-m-d\TH:i:s e");
 			$query->where("time", "<=", $before);
 		}
 
 		$after = $params["after"]??null;
 		if (isset($after) && is_string($after)) {
-			$after = strtotime($after);
-			if ($after === false || abs($after) > 0x7FFFFFFF) {
+			try {
+				$after = strtotime($after);
+			} catch (DatetimeException) {
 				return "<highlight>after<end> must be a date and/or time.";
 			}
-			$params["after"] = (new DateTime())->setTimestamp($after)->format("Y-m-d\TH:i:s e");
+			$params["after"] = (new SafeDateTime())->setTimestamp($after)->format("Y-m-d\TH:i:s e");
 			$query->where("time", ">=", $after);
 		}
 
@@ -263,7 +266,7 @@ class AuditController extends ModuleInstance {
 		if (!isset($max)) {
 			return null;
 		}
-		if (!preg_match("/^\d+$/", $max)) {
+		if (!ctype_digit($max)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY, [], "max is not an integer value");
 		}
 		$query->where("id", "<=", $max);

@@ -6,7 +6,6 @@ use function Amp\async;
 use function Amp\Future\await;
 use Closure;
 use DateInterval;
-use DateTime;
 use DateTimeZone;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -33,8 +32,9 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	WebChatConverter,
 };
 use ReflectionClass;
-
 use ReflectionMethod;
+
+use Safe\DateTime;
 use Throwable;
 
 #[

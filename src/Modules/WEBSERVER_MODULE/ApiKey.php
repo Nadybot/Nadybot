@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use DateTime;
 use Nadybot\Core\DBRow;
+use Safe\DateTime;
 
 class ApiKey extends DBRow {
 	public int $id;

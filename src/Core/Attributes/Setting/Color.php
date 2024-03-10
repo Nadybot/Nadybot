@@ -2,8 +2,10 @@
 
 namespace Nadybot\Core\Attributes\Setting;
 
+use function Safe\preg_match;
 use Attribute;
 use Exception;
+
 use Nadybot\Core\Attributes\DefineSetting;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]

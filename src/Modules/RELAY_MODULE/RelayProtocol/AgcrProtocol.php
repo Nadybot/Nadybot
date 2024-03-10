@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use function Safe\preg_match;
 use Nadybot\Core\{
 	Attributes as NCA,
 	MessageHub,
@@ -16,6 +17,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayMessage,
 };
+
 use Psr\Log\LoggerInterface;
 
 #[

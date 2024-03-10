@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Safe\{base64_decode, date, json_decode, openssl_verify};
+use function Safe\{base64_decode, date, json_decode, openssl_verify, preg_replace};
 use DateTime;
 use DomainException;
 use Exception;

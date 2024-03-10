@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\ParamClass;
 
+use function Safe\preg_match;
+
 class PTowerSite extends Base {
 	public string $pf;
 	public int $site;

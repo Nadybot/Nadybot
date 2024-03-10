@@ -2,8 +2,10 @@
 
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
+use function Safe\preg_match;
 use Nadybot\Core\Routing\{RoutableEvent};
 use Nadybot\Core\{Attributes as NCA, MessageReceiver};
+
 use Psr\Log\LoggerInterface;
 
 class HighnetReceiver implements MessageReceiver {

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use function Safe\{preg_match, preg_replace};
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -18,6 +19,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 use ReflectionException;
+
 use ReflectionMethod;
 
 /**

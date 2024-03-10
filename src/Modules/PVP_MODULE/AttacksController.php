@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
+use function Safe\{preg_match, preg_replace};
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
@@ -9,10 +10,11 @@ use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{AOChatEvent, Attributes as NCA, CmdContext, Config\BotConfig, DB, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
-use Nadybot\Modules\LEVEL_MODULE\LevelController;
 
+use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfo;
 use Psr\Log\LoggerInterface;
+
 use Throwable;
 
 #[

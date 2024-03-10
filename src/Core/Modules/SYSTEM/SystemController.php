@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use function Safe\{ini_get, json_encode};
+use function Safe\{ini_get, json_encode, preg_match};
 
 use Amp\File\{Filesystem};
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;

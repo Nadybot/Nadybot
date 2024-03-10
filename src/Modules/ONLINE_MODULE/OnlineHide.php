@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
-use DateTime;
 use Nadybot\Core\DBRow;
+use Safe\DateTime;
 
 /**
  * This represents a single player in the online list

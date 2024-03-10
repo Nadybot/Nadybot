@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WHATLOCKS_MODULE;
 
-use DateTime;
+use function Safe\preg_replace;
 use DateTimeZone;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -13,6 +13,8 @@ use Nadybot\Core\{
 	Text,
 };
 use Nadybot\Modules\ITEMS_MODULE\{ItemsController, Skill};
+
+use Safe\DateTime;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>

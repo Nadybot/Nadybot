@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use DateTime;
+use Safe\DateTime;
 
 class Response {
 	public const CONTINUE = 100;

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{fclose, parse_ini_string, preg_split};
+use function Safe\{fclose, parse_ini_string, preg_match, preg_split};
 
 use Amp\File\{Filesystem, FilesystemException};
 use Directory;

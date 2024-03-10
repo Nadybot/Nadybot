@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
+use function Safe\preg_match;
 use Exception;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\{
@@ -18,6 +19,7 @@ use Nadybot\Core\{
 	SettingManager,
 };
 use Psr\Log\LoggerInterface;
+
 use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {

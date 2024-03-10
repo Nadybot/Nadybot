@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use function Safe\{preg_match_all, preg_replace};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -10,6 +11,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Text,
 };
+
 use ParseError;
 
 /**

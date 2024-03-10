@@ -2,11 +2,13 @@
 
 namespace Nadybot\Core;
 
+use function Safe\preg_match;
 use DateTime;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionProperty;
 use ReflectionUnionType;
+use Safe\DateTime as SafeDateTime;
 use UnexpectedValueException;
 
 class JSONDataModel {
@@ -85,9 +87,9 @@ class JSONDataModel {
 			} elseif ($typeName === "DateTime") {
 				if (isset($data->{$propName})) {
 					if (is_numeric($data->{$propName})) {
-						$refProp->setValue($this, DateTime::createFromFormat("U", (string)floor((float)$data->{$propName})));
+						$refProp->setValue($this, SafeDateTime::createFromFormat("U", (string)floor((float)$data->{$propName})));
 					} else {
-						$refProp->setValue($this, new DateTime($data->{$propName}));
+						$refProp->setValue($this, new SafeDateTime($data->{$propName}));
 					}
 				} else {
 					$refProp->setValue($this, null);

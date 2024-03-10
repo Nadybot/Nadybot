@@ -4,8 +4,7 @@ namespace Nadybot\Modules\BANK_MODULE;
 
 use function Amp\async;
 use function Amp\Future\await;
-use function Safe\preg_split;
-
+use function Safe\{preg_match, preg_split};
 use Amp\File\{Filesystem, FilesystemException};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Illuminate\Support\Collection;

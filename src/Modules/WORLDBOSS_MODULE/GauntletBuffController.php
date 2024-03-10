@@ -5,7 +5,6 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 use function Amp\delay;
 use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use DateTime;
 use Exception;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -31,6 +30,7 @@ use Nadybot\Modules\TIMERS_MODULE\{
 };
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 use Psr\Log\LoggerInterface;
+use Safe\DateTime;
 use Safe\Exceptions\JsonException;
 use Throwable;
 

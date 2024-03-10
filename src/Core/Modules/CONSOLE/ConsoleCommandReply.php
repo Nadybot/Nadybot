@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
+use function Safe\{preg_match, preg_replace};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,

@@ -3,6 +3,8 @@
 namespace Nadybot\Core;
 
 use function Amp\delay;
+use function Safe\preg_match;
+
 use Closure;
 use Exception;
 use Nadybot\Core\Config\BotConfig;

@@ -2,9 +2,11 @@
 
 namespace Nadybot\Core;
 
+use function Safe\{preg_match, preg_match_all};
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\CmdAlias;
+
 use Psr\Log\LoggerInterface;
 
 #[NCA\Instance]

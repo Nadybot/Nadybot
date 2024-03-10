@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
 use function Amp\async;
+use function Safe\{preg_match, preg_replace};
 use AO\Package;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{

@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
-use function Safe\json_decode;
-
+use function Safe\{json_decode, preg_match, preg_replace};
 use Amp\File\{Filesystem, FilesystemException};
 use Exception;
 use Nadybot\Core\{

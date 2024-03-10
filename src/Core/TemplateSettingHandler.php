@@ -2,9 +2,11 @@
 
 namespace Nadybot\Core;
 
+use function Safe\preg_replace;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionAttribute;
+
 use ReflectionObject;
 
 /**

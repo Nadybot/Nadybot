@@ -3,8 +3,6 @@
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use function Safe\date;
-use DateTime;
-
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -12,6 +10,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Safe\DateTime;
 
 /**
  * @author Tyrence (RK2)

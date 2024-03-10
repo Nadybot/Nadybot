@@ -3,8 +3,7 @@
 namespace Nadybot\Modules\SKILLS_MODULE;
 
 use function Amp\ByteStream\splitLines;
-use function Safe\preg_split;
-
+use function Safe\{preg_match, preg_replace, preg_split};
 use Amp\File\Filesystem;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{

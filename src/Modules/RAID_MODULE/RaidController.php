@@ -4,7 +4,6 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use function Amp\async;
 use function Amp\Future\await;
-use DateTime;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -31,8 +30,8 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-
 use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
+
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatAssistController,
 	COMMENT_MODULE\CommentCategory,
@@ -41,6 +40,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\StatsController,
 };
 use Psr\Log\LoggerInterface;
+use Safe\DateTime;
 
 /**
  * This class contains all functions necessary to start, stop and resume a raid

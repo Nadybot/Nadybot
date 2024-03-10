@@ -3,9 +3,8 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use function Amp\delay;
-use function Safe\{json_decode};
+use function Safe\{json_decode, preg_replace};
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use DateTime;
 use DateTimeZone;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -28,6 +27,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\HELPBOT_MODULE\{PlayfieldController};
 use Psr\Log\LoggerInterface;
+use Safe\DateTime;
 use Safe\Exceptions\JsonException;
 use Throwable;
 

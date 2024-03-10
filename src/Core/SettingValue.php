@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use function Safe\preg_match;
+
 use Nadybot\Core\DBSchema\Setting;
 
 class SettingValue {

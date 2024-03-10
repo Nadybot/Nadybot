@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use function Safe\preg_split;
+use function Safe\{preg_replace, preg_split};
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,

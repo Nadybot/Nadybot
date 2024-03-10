@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core\EventModifier;
 
+use function Safe\preg_replace;
 use Exception;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventModifier,
@@ -56,7 +58,8 @@ class ChangeMessage implements EventModifier {
 		if (isset($search) && !isset($replace)) {
 			throw new Exception("Missing parameter 'replace'");
 		}
-		if (isset($search) && $regexp && @preg_match(chr(1) . $search . chr(1) . "si", "") === false) {
+		// @phpstan-ignore-next-line
+		if (isset($search) && $regexp && @\preg_match(chr(1) . $search . chr(1) . "si", "") === false) {
 			$error = error_get_last()["message"]??"Unknown error";
 			$error = preg_replace("/^preg_match\(\): (Compilation failed: )?/", "", $error);
 			throw new Exception("Invalid regular expression '{$search}': {$error}.");

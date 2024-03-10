@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\{delay};
-use function Safe\{json_decode, parse_url};
+use function Amp\delay;
+use function Safe\{json_decode, parse_url, preg_match};
 
 use Amp\File\Filesystem;
 use Amp\Http\Client\{

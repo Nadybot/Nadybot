@@ -2,9 +2,12 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
+use function Safe\json_encode;
 use Nadybot\Core\{Registry, Util};
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{SiteUpdate, TowerAttack};
+
+use Safe\DateTime;
 
 class GasInfo {
 	private int $time;
@@ -139,14 +142,14 @@ class GasInfo {
 			if (!isset($time)) {
 				return "-";
 			}
-			return (new \DateTime('now', new \DateTimeZone("UTC")))->setTimestamp($time)->format("d-M-Y H:i:s").
+			return (new DateTime('now', new \DateTimeZone("UTC")))->setTimestamp($time)->format("d-M-Y H:i:s").
 				" ({$time})";
 		};
 		$niceOffset = function (?int $time): string {
 			if (!isset($time)) {
 				return "-";
 			}
-			return (new \DateTime('now', new \DateTimeZone("UTC")))->setTimestamp($time)->format("H:i:s");
+			return (new DateTime('now', new \DateTimeZone("UTC")))->setTimestamp($time)->format("H:i:s");
 		};
 		$blob = "";
 

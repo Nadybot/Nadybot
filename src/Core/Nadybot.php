@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 use function Amp\async;
-use function Safe\{sapi_windows_set_ctrl_handler, unpack};
+use function Safe\{preg_match, preg_replace, sapi_windows_set_ctrl_handler, unpack};
 use Amp\Http\Client\HttpClientBuilder;
 use AO\Client\{Multi, WorkerConfig, WorkerPackage};
 use AO\{Group, Package, Utils};

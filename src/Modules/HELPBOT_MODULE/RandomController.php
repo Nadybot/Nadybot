@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use function Safe\{preg_match_all, preg_split};
+use function Safe\{preg_match_all, preg_replace, preg_split};
 use InvalidArgumentException;
 use Nadybot\Core\ParamClass\PItem;
 

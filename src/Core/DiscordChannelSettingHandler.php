@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\json_decode;
+use function Safe\{json_decode, preg_match};
 use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;

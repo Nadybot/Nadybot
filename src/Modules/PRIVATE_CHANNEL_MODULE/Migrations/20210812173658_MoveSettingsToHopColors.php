@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
+use function Safe\preg_match;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -12,6 +13,7 @@ use Nadybot\Core\{
 	SchemaMigration,
 	SettingManager,
 };
+
 use Psr\Log\LoggerInterface;
 
 class MoveSettingsToHopColors implements SchemaMigration {

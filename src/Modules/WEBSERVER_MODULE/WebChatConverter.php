@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use function Safe\{preg_match, preg_replace};
 use Exception;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -159,7 +161,7 @@ class WebChatConverter extends ModuleInstance {
 			"/<(end|" . join("|", array_keys($colors)) . "|font\s+color\s*=\s*[\"']?(#.{6})[\"']?)>/i",
 			function (array $matches) use (&$stack, $colors): string {
 				if ($matches[1] === "end") {
-					if (empty($stack)) {
+					if (!count($stack)) {
 						return "";
 					}
 					return "</" . array_pop($stack) . ">";
@@ -175,7 +177,10 @@ class WebChatConverter extends ModuleInstance {
 					$stack []= "color";
 					return "<color fg=\"{$tag}\">";
 				}
-				$stack []= preg_replace("/[<>]/", "", $tag);
+
+				/** @var string */
+				$unTagged = preg_replace("/[<>]/", "", $tag);
+				$stack []= $unTagged;
 				return $tag;
 			},
 			$message

@@ -4,6 +4,7 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use function Amp\Future\await;
 use function Amp\{async, delay};
+use function Safe\preg_match_all;
 
 use Amp\File\Filesystem;
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};

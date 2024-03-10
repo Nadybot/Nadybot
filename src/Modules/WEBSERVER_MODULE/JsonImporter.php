@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use function Safe\{preg_match, preg_match_all};
 use Exception;
 use Nadybot\Core\Attributes\JSON;
 use ReflectionClass;
 use ReflectionNamedType;
+
 use ReflectionProperty;
+use Safe\Exceptions\PcreException;
 
 class JsonImporter {
 	public static function expandClassname(string $class): ?string {
@@ -33,7 +36,9 @@ class JsonImporter {
 		if (preg_match("/^([a-zA-Z_]+)\[\]$/", $type, $matches)) {
 			$type = "array<{$matches[1]}>";
 		}
-		if (preg_match_all("/\??(array<(?R),(?:(?R)(?:\|(?R))*)>|array<(?:(?R)(?:\|(?R))*)>|[a-zA-Z_]+)/", $type, $types, PREG_OFFSET_CAPTURE) === false) {
+		try {
+			preg_match_all("/\??(array<(?R),(?:(?R)(?:\|(?R))*)>|array<(?:(?R)(?:\|(?R))*)>|[a-zA-Z_]+)/", $type, $types, PREG_OFFSET_CAPTURE);
+		} catch (PcreException) {
 			throw new Exception("Illegal type definition: {$type}");
 		}
 

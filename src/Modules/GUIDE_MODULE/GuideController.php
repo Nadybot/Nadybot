@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\GUIDE_MODULE;
 
 use function Amp\ByteStream\splitLines;
+use function Safe\preg_replace;
+
 use Amp\File\{Filesystem, FilesystemException};
 use IteratorIterator;
 use Nadybot\Core\{

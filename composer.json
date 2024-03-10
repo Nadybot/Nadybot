@@ -34,7 +34,7 @@
 		"ext-date": "*",
 		"ext-reflection": "*",
 		"ext-dom": "*",
-                "revolt/event-loop": "^1.0.6",
+		"revolt/event-loop": "^1.0.6",
 		"swaggest/json-schema": "^0.12.31",
 		"illuminate/database": "^8.64",
 		"doctrine/dbal": "^3.0",
@@ -43,12 +43,12 @@
 		"monolog/monolog": "^2.3",
 		"thecodingmachine/safe": "^2.0",
 		"psr/log": "^1|^2|^3",
-		"netresearch/jsonmapper": "^v4.0.0",
 		"amphp/amp": "^3.0.0",
 		"amphp/http-client": "^5.0.1",
 		"amphp/cache": "^2.0.0",
 		"amphp/file": "^3.0.2",
 		"amphp/websocket-client": "^2.0.0",
+		"netresearch/jsonmapper": "^4.0.0",
 		"eventsauce/object-hydrator": "^1.1.0",
 		"amphp/http-tunnel": "^2.0.0-beta.2",
 		"nadylib/imex": "dev-main",
@@ -88,7 +88,8 @@
 		"composer-phar/phpstan": "^1.10.59",
 		"phpstan/phpstan-deprecation-rules": "^1.0",
 		"composer-phar/php-cs-fixer": "^3.51.0",
-                "psalm/phar": "^5.22.2"
+		"psalm/phar": "^5.22.2",
+		"thecodingmachine/phpstan-safe-rule": "^1.2"
 	},
 	"scripts": {
 		"post-package-install": [

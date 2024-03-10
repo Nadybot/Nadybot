@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use function Safe\preg_match;
+
 use Nadybot\Core\CommandReply;
 
 class DemoResponseCommandReply implements CommandReply {

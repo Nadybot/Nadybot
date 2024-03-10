@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\DISCORD;
 
 use function Amp\{async, delay};
-use function Safe\{json_decode, json_encode};
+use function Safe\{json_decode, json_encode, preg_replace};
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\Http\Client\{BufferedContent, HttpClient, HttpClientBuilder, Request};
 use Exception;

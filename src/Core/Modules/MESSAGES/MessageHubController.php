@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\MESSAGES;
 
-use function Safe\json_encode;
+use function Safe\{json_encode, preg_match};
 use Exception;
 use Illuminate\Support\Collection;
 use Monolog\Logger;
@@ -1163,11 +1163,7 @@ class MessageHubController extends ModuleInstance {
 				$l1 = 0;
 				if (preg_match("/\((.+)\)$/", $e1->getChannelName(), $matches)) {
 					try {
-						/**
-						 * @psalm-suppress ArgumentTypeCoercion
-						 *
-						 * @phpstan-ignore-next-line
-						 */
+						/** @psalm-suppress ArgumentTypeCoercion */
 						$l1 = Logger::toMonologLevel($matches[1]);
 					} catch (Exception) {
 					}
@@ -1175,11 +1171,7 @@ class MessageHubController extends ModuleInstance {
 				$l2 = 0;
 				if (preg_match("/\((.+)\)$/", $e2->getChannelName(), $matches)) {
 					try {
-						/**
-						 * @psalm-suppress ArgumentTypeCoercion
-						 *
-						 * @phpstan-ignore-next-line
-						 */
+						/** @psalm-suppress ArgumentTypeCoercion */
 						$l2 = Logger::toMonologLevel($matches[1]);
 					} catch (Exception) {
 					}

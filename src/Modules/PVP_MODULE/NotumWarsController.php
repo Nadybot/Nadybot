@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use function Safe\{json_decode, preg_match};
+use function Safe\{json_decode, preg_match, preg_replace};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;

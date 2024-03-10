@@ -2,12 +2,14 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
+use function Safe\preg_replace;
 use Amp\Socket\ResourceSocket;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
 	Config\BotConfig,
 };
+
 use Throwable;
 
 class SocketCommandReply implements CommandReply {

@@ -78,7 +78,7 @@ class ReputationController extends ModuleInstance {
 				$charReputation[$comment->character] = (object)['total' => 0, 'comments' => []];
 			}
 			$charReputation[$comment->character]->comments []= $comment;
-			$charReputation[$comment->character]->total += preg_match("/^\+1/", $comment->comment) ? 1 : -1;
+			$charReputation[$comment->character]->total += str_starts_with($comment->comment, "+1") ? 1 : -1;
 		}
 		$count = 0;
 		$blobs = [];
@@ -87,7 +87,7 @@ class ReputationController extends ModuleInstance {
 			$blob = "<pagebreak><header2>{$char}<end>" . " (" . sprintf('%+d', $charData->total) . ")";
 			$comments = array_slice($charData->comments, 0, 3);
 			foreach ($comments as $comment) {
-				$color = preg_match("/^\+1/", $comment->comment) ? 'green' : 'red';
+				$color = str_starts_with($comment->comment, "+1") ? 'green' : 'red';
 				$blob .= "\n<tab><{$color}>{$comment->comment}<end> ".
 					"(<highlight>{$comment->created_by}<end>, ".
 					$this->util->date($comment->created_at) . ")";
@@ -139,7 +139,7 @@ class ReputationController extends ModuleInstance {
 		$numPositive = 0;
 		$numNegative = 0;
 		foreach ($comments as $comment) {
-			if (preg_match("/^\+1/", $comment->comment)) {
+			if (str_starts_with($comment->comment, "+1")) {
 				$numPositive++;
 			} else {
 				$numNegative++;
@@ -168,7 +168,7 @@ class ReputationController extends ModuleInstance {
 		}
 
 		foreach ($comments as $comment) {
-			if (preg_match("/^\+1/", $comment->comment)) {
+			if (str_starts_with($comment->comment, "+1")) {
 				$blob .= "<green>";
 			} else {
 				$blob .= "<red>";

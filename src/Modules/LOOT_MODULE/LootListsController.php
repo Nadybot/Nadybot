@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
+use function Safe\preg_replace;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -16,6 +17,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleController;
 use Nadybot\Modules\RAID_MODULE\AuctionController;
+
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
 	ITEMS_MODULE\ItemsController,

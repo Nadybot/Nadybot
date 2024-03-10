@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\CONSOLE;
 
 use function Amp\async;
-use function Safe\{readline_add_history, readline_callback_handler_install, readline_read_history, readline_write_history};
+use function Safe\{readline_add_history, readline_callback_handler_install, readline_read_history, readline_write_history, stream_isatty};
 
 use Amp\File\Filesystem;
 use Exception;
@@ -24,6 +24,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
+use Safe\Exceptions\StreamException;
 
 #[NCA\Instance]
 class ConsoleController extends ModuleInstance {
@@ -140,7 +141,9 @@ class ConsoleController extends ModuleInstance {
 			$this->logger->warning('Console not available on Windows');
 			return;
 		}
-		if (!stream_isatty(STDIN)) {
+		try {
+			stream_isatty(STDIN);
+		} catch (StreamException) {
 			$this->logger->warning('Stdin is not a TTY, console not available.');
 			return;
 		}
