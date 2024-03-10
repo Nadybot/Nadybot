@@ -3,11 +3,12 @@
 namespace Nadybot\Core\Modules\DISCORD;
 
 use function Amp\async;
-use function Safe\{preg_match, preg_replace, preg_split};
+use function Safe\{preg_match, preg_split};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	ModuleInstance,
+	Safe,
 	SettingManager,
 	Text,
 };
@@ -67,23 +68,23 @@ class DiscordController extends ModuleInstance {
 	public function formatMessage(string $text, ?Guild $guild=null): DiscordMessageOut {
 		$text = $this->aoIconsToEmojis($guild, $text);
 		$text = $this->factionColorsToEmojis($guild, $text);
-		$text = preg_replace('/([~`_*])/s', "\\\\$1", $text);
-		$text = preg_replace('/((?:\d{4}-\d{2}-\d{2} )?\d+(?::\d+)+)/s', "`$1`", $text);
-		$text = preg_replace('/(\d{4}-\d{2}-\d{2})(\s*(?:\||<highlight>\|<end>))/s', "`$1`$2", $text);
-		$text = preg_replace('/((?:\||<highlight>\|<end>)\s*)(<black>0+<end>)?(\d+)(\s*(?:\||<highlight>\|<end>))/s', "$1$2`$3`$4", $text);
-		$text = preg_replace('/QL(\s*)(<black>0+<end>)?(\d+)/s', "QL$1$2`$3`", $text);
-		$text = preg_replace('/(\s*)(<black>0+<end>)?(\d+)(\s*(?:\||<highlight>\|<end>))/s', "$1$2`$3`$4", $text);
-		$text = preg_replace('/(\d+\.\d+)(°|mm|%|\s*\|)/s', "`$1`$2", $text);
-		$text = preg_replace('/<(highlight|black|white|yellow|blue|green|red|on|off|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]*)><end>/s', '', $text);
-		$text = preg_replace('/<highlight>(.*?)<end>/s', '**$1**', $text);
-		$text = preg_replace('/(\s|\*)-(>|&gt;)(\s|\*)/s', '$1↦$3', $text);
+		$text = Safe::pregReplace('/([~`_*])/s', "\\\\$1", $text);
+		$text = Safe::pregReplace('/((?:\d{4}-\d{2}-\d{2} )?\d+(?::\d+)+)/s', "`$1`", $text);
+		$text = Safe::pregReplace('/(\d{4}-\d{2}-\d{2})(\s*(?:\||<highlight>\|<end>))/s', "`$1`$2", $text);
+		$text = Safe::pregReplace('/((?:\||<highlight>\|<end>)\s*)(<black>0+<end>)?(\d+)(\s*(?:\||<highlight>\|<end>))/s', "$1$2`$3`$4", $text);
+		$text = Safe::pregReplace('/QL(\s*)(<black>0+<end>)?(\d+)/s', "QL$1$2`$3`", $text);
+		$text = Safe::pregReplace('/(\s*)(<black>0+<end>)?(\d+)(\s*(?:\||<highlight>\|<end>))/s', "$1$2`$3`$4", $text);
+		$text = Safe::pregReplace('/(\d+\.\d+)(°|mm|%|\s*\|)/s', "`$1`$2", $text);
+		$text = Safe::pregReplace('/<(highlight|black|white|yellow|blue|green|red|on|off|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]*)><end>/s', '', $text);
+		$text = Safe::pregReplace('/<highlight>(.*?)<end>/s', '**$1**', $text);
+		$text = Safe::pregReplace('/(\s|\*)-(>|&gt;)(\s|\*)/s', '$1↦$3', $text);
 		$text = str_replace("<myname>", $this->config->main->character, $text);
 		$text = str_replace("<myguild>", $this->config->general->orgName, $text);
 		$text = str_replace("<symbol>", $this->settingManager->getString("symbol")??"!", $text);
 		$text = str_replace("<br>", "\n", $text);
 		$text = str_replace("<tab>", "_ _  ", $text);
-		$text = preg_replace("/^    /m", "_ _  ", $text);
-		$text = preg_replace("/\n<img src=['\"]?rdb:\/\/[^>]+?['\"]?>\n/s", "\n", $text);
+		$text = Safe::pregReplace("/^    /m", "_ _  ", $text);
+		$text = Safe::pregReplace("/\n<img src=['\"]?rdb:\/\/[^>]+?['\"]?>\n/s", "\n", $text);
 		$text = preg_replace_callback(
 			"/(?:<font[^>]*#000000[^>]*>|<black>)(.+?)(?:<end>|<\/font>)/s",
 			function (array $matches): string {
@@ -95,8 +96,8 @@ class DiscordController extends ModuleInstance {
 			},
 			$text
 		);
-		$text = preg_replace('/(<end>|<\/font>)<(white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]+)>/s', '', $text);
-		$text = preg_replace('/<(white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown)>(.*?)<end>/s', '*$2*', $text);
+		$text = Safe::pregReplace('/(<end>|<\/font>)<(white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]+)>/s', '', $text);
+		$text = Safe::pregReplace('/<(white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown)>(.*?)<end>/s', '*$2*', $text);
 		$text = preg_replace_callback(
 			'/\*?(-{5,}+)\*?/s',
 			function (array $match): string {
@@ -104,9 +105,9 @@ class DiscordController extends ModuleInstance {
 			},
 			$text
 		);
-		$text = preg_replace("|<a [^>]*?href='user://(.+?)'>(.+?)</a>|s", '$1', $text);
-		$text = preg_replace("|<a [^>]*?href='chatcmd:///start (.+?)'>(.+?)</a>|s", '[$2]($1)', $text);
-		$text = preg_replace("|<a [^>]*?href='chatcmd://(.+?)'>(.+?)</a>|s", '$2', $text);
+		$text = Safe::pregReplace("|<a [^>]*?href='user://(.+?)'>(.+?)</a>|s", '$1', $text);
+		$text = Safe::pregReplace("|<a [^>]*?href='chatcmd:///start (.+?)'>(.+?)</a>|s", '[$2]($1)', $text);
+		$text = Safe::pregReplace("|<a [^>]*?href='chatcmd://(.+?)'>(.+?)</a>|s", '$2', $text);
 		$linksReplaced = 0;
 		$text = preg_replace_callback(
 			"|<a [^>]*?href=['\"]?itemref://(\d+)/(\d+)/(\d+)['\"]?>(.+?)</a>|s",
@@ -260,11 +261,11 @@ class DiscordController extends ModuleInstance {
 		};
 		$embed = new DiscordEmbed();
 		$embed->title = $matches[2];
-		if (preg_match("/^<font.*?><header>(.+?)<end>\n/s", $matches[1], $headerMatch)) {
+		if (count($headerMatch = Safe::pregMatch("/^<font.*?><header>(.+?)<end>\n/s", $matches[1]))) {
 			$embed->title = $fix($headerMatch[1]);
-			$matches[1] = preg_replace("/^(<font.*?>)<header>(.+?)<end>\n/s", "$1", $matches[1]);
+			$matches[1] = Safe::pregReplace("/^(<font.*?>)<header>(.+?)<end>\n/s", "$1", $matches[1]);
 		}
-		$matches[1] = preg_replace('/<font+?>(.*?)<\/font>/s', "*$1*", $matches[1]);
+		$matches[1] = Safe::pregReplace('/<font+?>(.*?)<\/font>/s', "*$1*", $matches[1]);
 		$fields = preg_split("/\n(<font color=#FCA712>.+?\n|<header2>[^>]+?<end>|<header2>.+?\n)/", $matches[1], -1, PREG_SPLIT_DELIM_CAPTURE);
 		for ($i = 1; $i < count($fields); $i+=2) {
 			$embed->fields ??= [];
@@ -272,7 +273,7 @@ class DiscordController extends ModuleInstance {
 			$field->name = $fix($fields[$i]);
 			$field->value = $fix($fields[$i+1]);
 
-			$field->name = preg_replace("/\[(.+?)\]\(.*?\)/", "$1", $field->name);
+			$field->name = Safe::pregReplace("/\[(.+?)\]\(.*?\)/", "$1", $field->name);
 			if (strlen($field->value) > 1024) {
 				$parts = preg_split("/(.{1,1024})\n/s", $field->value, -1, PREG_SPLIT_DELIM_CAPTURE);
 				$field->value = $parts[1];

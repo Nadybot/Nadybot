@@ -3,16 +3,16 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\{async, delay};
-use function Safe\{preg_match, preg_replace};
+use function Safe\preg_match;
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, HttpException};
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, WebsocketConnection, WebsocketHandshake};
-use Amp\Websocket\{WebsocketClosedException};
+use Amp\Websocket\WebsocketClosedException;
 use Amp\{DeferredFuture, TimeoutCancellation, TimeoutException};
 
-use Nadybot\Core\{AOChatEvent, Attributes as NCA, Config\BotConfig, EventManager, ModuleInstance, Registry, StopExecutionException, UserException};
+use Nadybot\Core\{AOChatEvent, Attributes as NCA, Config\BotConfig, EventManager, ModuleInstance, Registry, Safe, StopExecutionException, UserException};
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -143,8 +143,7 @@ class DrillController extends ModuleInstance {
 		]);
 		$event = new DrillPacketEvent();
 
-		/** @var string */
-		$kebabCase = preg_replace(
+		$kebabCase = Safe::pregReplace(
 			"/([a-z])([A-Z])/",
 			'$1-$2',
 			class_basename($packet)
@@ -213,7 +212,7 @@ class DrillController extends ModuleInstance {
 			$code = $future->await(new TimeoutCancellation(30));
 
 			/** @var string */
-			$code = preg_replace("/^!drill\s+/", "", $code);
+			$code = Safe::pregReplace("/^!drill\s+/", "", $code);
 			$this->logger->info("Drill-code received: {code}", [
 				"code" => $code,
 			]);

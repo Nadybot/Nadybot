@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
-use function Safe\{json_decode, preg_match, preg_replace, preg_split, realpath, tempnam};
+use function Safe\{json_decode, preg_match, preg_split, realpath, tempnam};
 use Amp\File\{Filesystem, FilesystemException as AmpFilesystemException};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Illuminate\Support\Collection;
@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PWord,
+	Safe,
 	SemanticVersion,
 	Text,
 	UserException,
@@ -281,24 +282,24 @@ class PackageController extends ModuleInstance {
 			},
 			$html
 		);
-		$html = preg_replace("/\n/", "", $html);
-		$html = preg_replace("/<br \/>/", "\n", $html);
-		$html = preg_replace("/<h1.*?>/", "<header2>", $html);
-		$html = preg_replace("/<\/h1>/", "<end>\n", $html);
-		$html = preg_replace("/<blockquote>/", "&gt;&gt; ", $html);
-		$html = preg_replace("/<\/blockquote>/", "", $html);
-		$html = preg_replace("/<h2.*?>/", "<u>", $html);
-		$html = preg_replace("/<\/h2>/", "</u>\n", $html);
-		$html = preg_replace("/<em.*?>/", "<i>", $html);
-		$html = preg_replace("/<\/em>/", "</i>", $html);
-		$html = preg_replace("/<p>/", "", $html);
-		$html = preg_replace("/<\/p>/", "\n\n", $html);
-		$html = preg_replace("/<a.*?>/", "<u><blue>", $html);
-		$html = preg_replace("/<\/a>/", "<end></u>", $html);
-		$html = preg_replace("/<pre.*?>/", "", $html);
-		$html = preg_replace("/<\/pre>/", "", $html);
-		$html = preg_replace("/<(code|strong)>/", "<highlight>", $html);
-		$html = preg_replace("/<\/(code|strong)>/", "<end>", $html);
+		$html = Safe::pregReplace("/\n/", "", $html);
+		$html = Safe::pregReplace("/<br \/>/", "\n", $html);
+		$html = Safe::pregReplace("/<h1.*?>/", "<header2>", $html);
+		$html = Safe::pregReplace("/<\/h1>/", "<end>\n", $html);
+		$html = Safe::pregReplace("/<blockquote>/", "&gt;&gt; ", $html);
+		$html = Safe::pregReplace("/<\/blockquote>/", "", $html);
+		$html = Safe::pregReplace("/<h2.*?>/", "<u>", $html);
+		$html = Safe::pregReplace("/<\/h2>/", "</u>\n", $html);
+		$html = Safe::pregReplace("/<em.*?>/", "<i>", $html);
+		$html = Safe::pregReplace("/<\/em>/", "</i>", $html);
+		$html = Safe::pregReplace("/<p>/", "", $html);
+		$html = Safe::pregReplace("/<\/p>/", "\n\n", $html);
+		$html = Safe::pregReplace("/<a.*?>/", "<u><blue>", $html);
+		$html = Safe::pregReplace("/<\/a>/", "<end></u>", $html);
+		$html = Safe::pregReplace("/<pre.*?>/", "", $html);
+		$html = Safe::pregReplace("/<\/pre>/", "", $html);
+		$html = Safe::pregReplace("/<(code|strong)>/", "<highlight>", $html);
+		$html = Safe::pregReplace("/<\/(code|strong)>/", "<end>", $html);
 		$html = str_replace("&nbsp;", " ", $html);
 		$html = preg_replace_callback(
 			"/<ol.*?>(.*?)<\/ol>/is",
@@ -318,7 +319,7 @@ class PackageController extends ModuleInstance {
 		$html = preg_replace_callback(
 			"/<ul.*?>(.*?)<\/ul>/is",
 			function (array $matches): string {
-				return preg_replace(
+				return Safe::pregReplace(
 					"/<li>(.*?)<\/li>/is",
 					"<tab>* $1\n",
 					$matches[1]
@@ -343,7 +344,7 @@ class PackageController extends ModuleInstance {
 			if (preg_match("/^<\d+\.0\.0$/", $part)) {
 				$part .= "-0";
 			}
-			if (!preg_match("/^([!=<>^]+)(.+)$/", $part, $matches)) {
+			if (!count($matches = Safe::pregMatch("/^([!=<>^]+)(.+)$/", $part))) {
 				return false;
 			}
 			if (!SemanticVersion::compareUsing($ourVersion, $matches[2], $matches[1])) {
@@ -552,7 +553,7 @@ class PackageController extends ModuleInstance {
 		} catch (AmpFilesystemException) {
 			return "";
 		}
-		if (!preg_match("/^\s*version\s*=\s*\"(.*?)\"/m", $content, $matches)) {
+		if (!count($matches = Safe::pregMatch("/^\s*version\s*=\s*\"(.*?)\"/m", $content))) {
 			return "";
 		}
 		return $matches[1];
@@ -830,7 +831,7 @@ class PackageController extends ModuleInstance {
 		}
 		$missingExtensions = [];
 		foreach ($packages[0]->requires as $requirement) {
-			if (preg_match("/^ext-(.+)$/", $requirement->name, $matches)) {
+			if (count($matches = Safe::pregMatch("/^ext-(.+)$/", $requirement->name)) === 2) {
 				if (!extension_loaded($matches[1])) {
 					$missingExtensions[$matches[1]] = true;
 				}

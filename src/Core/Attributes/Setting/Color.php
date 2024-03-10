@@ -2,11 +2,11 @@
 
 namespace Nadybot\Core\Attributes\Setting;
 
-use function Safe\preg_match;
 use Attribute;
 use Exception;
 
 use Nadybot\Core\Attributes\DefineSetting;
+use Nadybot\Core\Safe;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Color extends DefineSetting {
@@ -33,7 +33,7 @@ class Color extends DefineSetting {
 		if (!is_string($value)) {
 			throw new Exception("Type for {$this->name} must be string.");
 		}
-		if (preg_match("/^#?([0-9a-f]{6})$/i", $value, $matches)) {
+		if (count($matches = Safe::pregMatch("/^#?([0-9a-f]{6})$/i", $value))) {
 			return $this->defaultValue = "<font color='#{$matches[1]}'>";
 		}
 		return $value;

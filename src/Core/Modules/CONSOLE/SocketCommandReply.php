@@ -2,12 +2,12 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
-use function Safe\preg_replace;
 use Amp\Socket\ResourceSocket;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
 	Config\BotConfig,
+	Safe,
 };
 
 use Throwable;
@@ -57,18 +57,18 @@ class SocketCommandReply implements CommandReply {
 			$message
 		);
 		$message = str_ireplace(array_keys($array), array_values($array), $message);
-		$message = preg_replace("/<a\s+href=['\"]?user:\/\/[^'\">]+['\"]?\s*>(.*?)<\/a>/s", "<link>$1</link>", $message);
-		$message = preg_replace("/<a\s+href=['\"]?skillid:\/\/\d+['\"]?\s*>(.*?)<\/a>/s", "[skill:<link>$1</link>]", $message);
-		$message = preg_replace("/<a\s+href=['\"]chatcmd:\/\/\/(.*?)['\"]\s*>(.*?)<\/a>/s", "<link>$2</link>", $message);
-		$message = preg_replace("/<a\s+href=['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?\s*>(.*?)<\/a>/s", "[item:<link>$1</link>]", $message);
-		$message = preg_replace("/<a\s+href=['\"]?itemid:\/\/53019\/\d+['\"]?\s*>(.*?)<\/a>/s", "[nano:<link>$1</link>]", $message);
-		$message = preg_replace("/<p\s*>/is", "\n", $message);
-		$message = preg_replace("/<\/p\s*>/is", "", $message);
-		$message = preg_replace("/\n<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?\s*>\n/s", "\n", $message);
-		$message = preg_replace("/\n<img\s+src=['\"]?rdb:\/\/\d+['\"]?\s*>\n/s", "\n", $message);
-		$message = preg_replace("/<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?\s*>/s", "", $message);
-		$message = preg_replace("/<img\s+src=['\"]?rdb:\/\/\d+['\"]?\s*>/s", "", $message);
-		$message = preg_replace("/\n\[item:<link><\/link>]\n/s", "\n", $message);
+		$message = Safe::pregReplace("/<a\s+href=['\"]?user:\/\/[^'\">]+['\"]?\s*>(.*?)<\/a>/s", "<link>$1</link>", $message);
+		$message = Safe::pregReplace("/<a\s+href=['\"]?skillid:\/\/\d+['\"]?\s*>(.*?)<\/a>/s", "[skill:<link>$1</link>]", $message);
+		$message = Safe::pregReplace("/<a\s+href=['\"]chatcmd:\/\/\/(.*?)['\"]\s*>(.*?)<\/a>/s", "<link>$2</link>", $message);
+		$message = Safe::pregReplace("/<a\s+href=['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?\s*>(.*?)<\/a>/s", "[item:<link>$1</link>]", $message);
+		$message = Safe::pregReplace("/<a\s+href=['\"]?itemid:\/\/53019\/\d+['\"]?\s*>(.*?)<\/a>/s", "[nano:<link>$1</link>]", $message);
+		$message = Safe::pregReplace("/<p\s*>/is", "\n", $message);
+		$message = Safe::pregReplace("/<\/p\s*>/is", "", $message);
+		$message = Safe::pregReplace("/\n<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?\s*>\n/s", "\n", $message);
+		$message = Safe::pregReplace("/\n<img\s+src=['\"]?rdb:\/\/\d+['\"]?\s*>\n/s", "\n", $message);
+		$message = Safe::pregReplace("/<img\s+src=['\"]?tdb:\/\/id:[A-Z0-9_]+['\"]?\s*>/s", "", $message);
+		$message = Safe::pregReplace("/<img\s+src=['\"]?rdb:\/\/\d+['\"]?\s*>/s", "", $message);
+		$message = Safe::pregReplace("/\n\[item:<link><\/link>]\n/s", "\n", $message);
 		$message = str_replace("\n", "\n ", $this->handleColors($message, true));
 		$parts = [];
 		$message = html_entity_decode(
@@ -117,7 +117,7 @@ class SocketCommandReply implements CommandReply {
 			"<end>" => "",
 		];
 		$text = str_ireplace(array_keys($array), array_values($array), $text);
-		$text = preg_replace("/<font\s+color\s*=\s*[\"']?#.{6}[\"']?>/is", "", $text);
+		$text = Safe::pregReplace("/<font\s+color\s*=\s*[\"']?#.{6}[\"']?>/is", "", $text);
 		return $text;
 	}
 }

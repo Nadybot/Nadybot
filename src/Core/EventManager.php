@@ -503,7 +503,7 @@ class EventManager {
 	}
 
 	public function getTimerEventTime(string $type): int {
-		if (preg_match(self::TIMER_EVENT_REGEX, $type, $arr) !== 1) {
+		if (!count($arr = Safe::pregMatch(self::TIMER_EVENT_REGEX, $type))) {
 			return 0;
 		}
 		$time = $this->util->parseTime($arr[1]);

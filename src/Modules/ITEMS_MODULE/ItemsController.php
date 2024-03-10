@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-use function Safe\{preg_replace, preg_split};
+use function Safe\preg_split;
 use Illuminate\Support\Collection;
 
 use Nadybot\Core\{
@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
+	Safe,
 	SettingManager,
 	Text,
 	Util,
@@ -256,8 +257,7 @@ class ItemsController extends ModuleInstance {
 		$search = htmlspecialchars_decode($search);
 		$dontExclude = false;
 
-		/** @var string */
-		$search = preg_replace("/\s*\*\s*/", "", $search, 1, $numReplaces);
+		$search = Safe::pregReplace("/\s*\*\s*/", "", $search, 1, $numReplaces);
 		$dontExclude = $numReplaces > 0;
 
 		// local database

@@ -2,10 +2,10 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use function Safe\preg_match;
 use Nadybot\Core\Attributes\JSON;
 
 use Nadybot\Core\DBSchema\CmdPermSetMapping;
+use Nadybot\Core\Safe;
 
 class CmdSourceMapping {
 	/** The name of this command source */
@@ -29,7 +29,7 @@ class CmdSourceMapping {
 
 	public static function fromPermSetMapping(CmdPermSetMapping $map): self {
 		$res = new self();
-		if (preg_match("/^(.*?)\((.*)\)$/", $map->source, $matches)) {
+		if (count($matches = Safe::pregMatch("/^(.*?)\((.*)\)$/", $map->source)) === 3) {
 			$res->source = $matches[1];
 			$res->sub_source = $matches[2];
 		} else {

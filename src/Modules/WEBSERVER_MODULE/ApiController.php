@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
-use function Safe\preg_match;
 
 use Closure;
 use Illuminate\Support\Collection;
@@ -19,6 +18,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PRemove,
 	Registry,
+	Safe,
 	SubcommandManager,
 	Text,
 };
@@ -327,7 +327,7 @@ class ApiController extends ModuleInstance {
 	public function getHandlerForRequest(Request $request, string $prefix="/api"): ?ApiHandler {
 		$path = substr($request->path, strlen($prefix));
 		foreach ($this->routes as $mask => $data) {
-			if (!preg_match("|{$mask}|", $path, $parts)) {
+			if (!count($parts = Safe::pregMatch("|{$mask}|", $path))) {
 				continue;
 			}
 			if (!isset($data[$request->method])) {

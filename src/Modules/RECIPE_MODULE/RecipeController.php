@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
-use function Safe\{json_decode, preg_match, preg_replace};
+use function Safe\json_decode;
 use Amp\File\{Filesystem, FilesystemException};
 use Exception;
 use Nadybot\Core\{
@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	ParamClass\PItem,
+	Safe,
 	Text,
 	UserException,
 };
@@ -18,7 +19,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	AODBItem,
 	ItemsController,
 };
-use Safe\Exceptions\{JsonException};
+use Safe\Exceptions\JsonException;
 
 /**
  * @author Tyrence
@@ -65,7 +66,7 @@ class RecipeController extends ModuleInstance {
 		/** @var array<string,Recipe> */
 		$recipes = $this->db->table("recipes")->asObj(Recipe::class)->keyBy("id")->toArray();
 		foreach ($fileNames as $fileName) {
-			if (!preg_match("/(\d+)\.(txt|json)$/", $fileName, $args)) {
+			if (!count($args = Safe::pregMatch("/(\d+)\.(txt|json)$/", $fileName))) {
 				continue;
 			}
 			if (isset($recipes[$args[1]])) {
@@ -146,7 +147,7 @@ class RecipeController extends ModuleInstance {
 	public function formatRecipeText(string $input): string {
 		$input = str_replace("\\n", "\n", $input);
 		$input = preg_replace_callback('/#L "([^"]+)" "([0-9]+)"/', [$this, 'replaceItem'], $input);
-		$input = preg_replace('/#L "([^"]+)" "([^"]+)"/', "<a href='chatcmd://\\2'>\\1</a>", $input);
+		$input = Safe::pregReplace('/#L "([^"]+)" "([^"]+)"/', "<a href='chatcmd://\\2'>\\1</a>", $input);
 
 		// we can't use <myname> in the sql since that will get converted on load,
 		// and we need to wait to convert until display time due to the possibility

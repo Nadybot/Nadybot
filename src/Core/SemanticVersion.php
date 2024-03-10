@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{preg_match, preg_replace};
+use function Safe\preg_match;
 
 class SemanticVersion {
 	protected string $origVersion;
@@ -29,13 +29,13 @@ class SemanticVersion {
 	}
 
 	public static function normalizeVersion(string $version): string {
-		$version = preg_replace("/@.+$/", "", strtolower($version));
+		$version = Safe::pregReplace("/@.+$/", "", strtolower($version));
 		if (preg_match("/[^\d]$/", $version)) {
 			$version .= "1";
 		}
-		$version = preg_replace("/[^a-z0-9.]+/i", ".", $version);
-		$version = preg_replace("/^(\d+)\.(?!\d)/", "$1.0.0.", $version);
-		$version = preg_replace("/^(\d+\.\d+)\.(?!\d)/", "$1.0.", $version);
+		$version = Safe::pregReplace("/[^a-z0-9.]+/i", ".", $version);
+		$version = Safe::pregReplace("/^(\d+)\.(?!\d)/", "$1.0.0.", $version);
+		$version = Safe::pregReplace("/^(\d+\.\d+)\.(?!\d)/", "$1.0.", $version);
 		return $version;
 	}
 
@@ -73,7 +73,7 @@ class SemanticVersion {
 	public static function inMask(string $range, string $version): bool {
 		$version = strtolower($version);
 		$range = strtolower($range);
-		if (preg_match("/^(?<operator>[<>!=~^]+)(?<version>[0-9a-z.-]+)/", $range, $matches)) {
+		if (count($matches = Safe::pregMatch("/^(?<operator>[<>!=~^]+)(?<version>[0-9a-z.-]+)/", $range))) {
 			return static::compareUsing($version, $matches['version'], $matches['operator']);
 		}
 		return static::compareUsing($version, $range, '=');

@@ -2,9 +2,8 @@
 
 namespace Nadybot\Core\ParamClass;
 
-use function Safe\preg_match;
-
 use InvalidArgumentException;
+use Nadybot\Core\Safe;
 
 class PItem extends Base {
 	public int $lowID;
@@ -16,7 +15,7 @@ class PItem extends Base {
 
 	public function __construct(string $value) {
 		$this->value = htmlspecialchars_decode($value);
-		if (!preg_match("{itemref://(\d+)/(\d+)/(\d+)(?:&#39;|'|\x22)(?:>|&gt;)(.+?)(<|&lt;)/a(>|&gt;)}", $value, $matches)) {
+		if (!count($matches = Safe::pregMatch("{itemref://(\d+)/(\d+)/(\d+)(?:&#39;|'|\x22)(?:>|&gt;)(.+?)(<|&lt;)/a(>|&gt;)}", $value))) {
 			throw new InvalidArgumentException("Item is not matching the item spec");
 		}
 		$this->lowID = (int)$matches[1];

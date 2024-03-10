@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use function Safe\{json_encode, preg_match, preg_replace};
+use function Safe\{json_encode, preg_match};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -22,6 +22,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	SQLException,
+	Safe,
 	Text,
 	Util,
 };
@@ -221,7 +222,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			if (isset($timer->origin) && !$this->messageHub->hasRouteFromTo($this->getChannelName(), $timer->origin)) {
 				$receiver = $this->messageHub->getReceiver($timer->origin);
 				if (isset($receiver)) {
-					$receiver->receive($rMsg, preg_replace("/^.*\((.+)\)$/", "$1", $timer->origin));
+					$receiver->receive($rMsg, Safe::pregReplace("/^.*\((.+)\)$/", "$1", $timer->origin));
 					$delivered = true;
 				}
 			}
@@ -248,7 +249,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		}
 		if (isset($timer->origin) && preg_match("/^(discordmsg|console)/", $timer->origin)) {
 			$receiver = $this->messageHub->getReceiver($timer->origin);
-			if (isset($receiver) && $receiver->receive($rMsg, preg_replace("/^.*\((.+)\)$/", "$1", $timer->origin))) {
+			if (isset($receiver) && $receiver->receive($rMsg, Safe::pregReplace("/^.*\((.+)\)$/", "$1", $timer->origin))) {
 				return;
 			}
 		}

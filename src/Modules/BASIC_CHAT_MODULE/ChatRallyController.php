@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use function Safe\preg_match;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PWord,
+	Safe,
 	SettingManager,
 	Text,
 };
@@ -153,7 +153,7 @@ class ChatRallyController extends ModuleInstance {
 			return;
 		}
 
-		if (preg_match("/(\d+\.\d) (\d+\.\d) y \d+\.\d (\d+)/", $pasteFromF9, $matches)) {
+		if (count($matches = Safe::pregMatch("/(\d+\.\d) (\d+\.\d) y \d+\.\d (\d+)/", $pasteFromF9)) === 4) {
 			$xCoords = $matches[1];
 			$yCoords = $matches[2];
 			$playfieldId = (int)$matches[3];

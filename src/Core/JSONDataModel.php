@@ -37,9 +37,9 @@ class JSONDataModel {
 					$docComment = "";
 				}
 				$class = null;
-				if (preg_match("/@var\s+(?:null\||\?)?array<(?:int,)?([a-zA-Z_\\\\]+)>/", $docComment, $matches)) {
+				if (count($matches = Safe::pregMatch("/@var\s+(?:null\||\?)?array<(?:int,)?([a-zA-Z_\\\\]+)>/", $docComment))) {
 					$class = $matches[1];
-				} elseif (preg_match("/@var\s+(?:null\||\?)?([a-zA-Z_\\\\]+)\[\]/", $docComment, $matches)) {
+				} elseif (count($matches = Safe::pregMatch("/@var\s+(?:null\||\?)?([a-zA-Z_\\\\]+)\[\]/", $docComment))) {
 					$class = $matches[1];
 				}
 				if ($class === null || preg_match("/^(int|bool|string|float|object)$/", $class)) {

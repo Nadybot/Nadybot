@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use function Safe\preg_match;
 use Illuminate\Support\Collection;
 
 use Nadybot\Core\{
@@ -10,6 +9,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
+	Safe,
 	Text,
 };
 
@@ -98,7 +98,7 @@ class PlayfieldController extends ModuleInstance {
 	#[NCA\HandlesCommand("waypoint")]
 	#[NCA\Help\Example("<symbol>waypoint Pos: 17.5, 28.1, 100.2, Area: Perpetual Wastelands")]
 	public function waypoint1Command(CmdContext $context, #[NCA\Str("Pos:")] string $action, string $posString): void {
-		if (!preg_match("/^([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: ([a-zA-Z ]+)$/i", $posString, $args)) {
+		if (!count($args = Safe::pregMatch("/^([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: ([a-zA-Z ]+)$/i", $posString))) {
 			$context->reply("Wrong waypoint format.");
 			return;
 		}
@@ -121,15 +121,15 @@ class PlayfieldController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>waypoint 17 28 100 PW")]
 	#[NCA\Help\Example("<symbol>waypoint (10.9 30.0 y 20.1 550)")]
 	public function waypoint2Command(CmdContext $context, string $pasteFromF9): void {
-		if (preg_match("/^\(?([0-9.]+) ([0-9.]+) y ([0-9.]+) ([0-9]+)\)?$/i", $pasteFromF9, $args)) {
+		if (count($args = Safe::pregMatch("/^\(?([0-9.]+) ([0-9.]+) y ([0-9.]+) ([0-9]+)\)?$/i", $pasteFromF9))) {
 			$xCoords = $args[1];
 			$yCoords = $args[2];
 			$playfieldId = (int)$args[4];
-		} elseif (preg_match("/^([0-9.]+)([x,. ]+)([0-9.]+)([x,. ]+)([0-9]+)$/i", $pasteFromF9, $args)) {
+		} elseif (count($args = Safe::pregMatch("/^([0-9.]+)([x,. ]+)([0-9.]+)([x,. ]+)([0-9]+)$/i", $pasteFromF9))) {
 			$xCoords = $args[1];
 			$yCoords = $args[3];
 			$playfieldId = (int)$args[5];
-		} elseif (preg_match("/^([0-9\\.]+)([x,. ]+)([0-9\\.]+)([x,. ]+)(.+)$/i", $pasteFromF9, $args)) {
+		} elseif (count($args = Safe::pregMatch("/^([0-9\\.]+)([x,. ]+)([0-9\\.]+)([x,. ]+)(.+)$/i", $pasteFromF9))) {
 			$xCoords = $args[1];
 			$yCoords = $args[3];
 			$playfieldName = $args[5];

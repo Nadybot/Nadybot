@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
-use function Amp\{delay};
+use function Amp\delay;
 
 class LeakyBucket {
 	/**

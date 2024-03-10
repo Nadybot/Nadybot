@@ -28,6 +28,7 @@ use Nadybot\Core\{
 	ParamClass\PColor,
 	ParamClass\PRemove,
 	Routing\Source,
+	Safe,
 	Text,
 	Util,
 };
@@ -1161,17 +1162,25 @@ class MessageHubController extends ModuleInstance {
 			// Log group is sorted by severity, descending
 			$values = $values->sort(function (MessageEmitter $e1, MessageEmitter $e2): int {
 				$l1 = 0;
-				if (preg_match("/\((.+)\)$/", $e1->getChannelName(), $matches)) {
+				if (count($matches = Safe::pregMatch("/\((.+)\)$/", $e1->getChannelName()))) {
 					try {
-						/** @psalm-suppress ArgumentTypeCoercion */
+						/**
+						 * @psalm-suppress ArgumentTypeCoercion
+						 *
+						 * @phpstan-ignore-next-line
+						 */
 						$l1 = Logger::toMonologLevel($matches[1]);
 					} catch (Exception) {
 					}
 				}
 				$l2 = 0;
-				if (preg_match("/\((.+)\)$/", $e2->getChannelName(), $matches)) {
+				if (count($matches = Safe::pregMatch("/\((.+)\)$/", $e2->getChannelName()))) {
 					try {
-						/** @psalm-suppress ArgumentTypeCoercion */
+						/**
+						 * @psalm-suppress ArgumentTypeCoercion
+						 *
+						 * @phpstan-ignore-next-line
+						 */
 						$l2 = Logger::toMonologLevel($matches[1]);
 					} catch (Exception) {
 					}
@@ -1193,7 +1202,7 @@ class MessageHubController extends ModuleInstance {
 	}
 
 	protected function fixDiscordChannelName(string $name): string {
-		if (!preg_match("/^discordpriv\((\d+?)\)$/", $name, $matches)) {
+		if (!count($matches = Safe::pregMatch("/^discordpriv\((\d+?)\)$/", $name))) {
 			return str_replace(["&lt;", "&gt;"], ["<", ">"], $name);
 		}
 		$emitters = $this->messageHub->getEmitters();

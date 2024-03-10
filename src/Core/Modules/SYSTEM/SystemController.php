@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use function Safe\{ini_get, json_encode, preg_match};
+use function Safe\{ini_get, json_encode};
 
-use Amp\File\{Filesystem};
+use Amp\File\Filesystem;
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Illuminate\Support\Collection;
@@ -31,6 +31,7 @@ use Nadybot\Core\{
 	PrivateMessageCommandReply,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	SettingManager,
 	SubcommandManager,
 	Text,
@@ -348,7 +349,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$memory->peak_usage_real = memory_get_peak_usage(true);
 
 		$memoryLimit = ini_get('memory_limit');
-		if (preg_match('/^(\d+)([kmg])$/i', $memoryLimit, $matches)) {
+		if (count($matches = Safe::pregMatch('/^(\d+)([kmg])$/i', $memoryLimit)) === 3) {
 			if (strtolower($matches[2]) === 'm') {
 				$memoryLimit = (int)$matches[1] * 1024 * 1024;
 			} elseif (strtolower($matches[2]) === 'k') {

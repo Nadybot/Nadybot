@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PVP_MODULE\Handlers;
 
-use Nadybot\Core\ParamClass\{PTowerSite};
+use Nadybot\Core\ParamClass\PTowerSite;
 use Nadybot\Core\{Registry, UserException};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\PVP_MODULE\Attributes\Argument;

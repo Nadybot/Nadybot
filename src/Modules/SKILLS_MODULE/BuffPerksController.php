@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\SKILLS_MODULE;
 
 use function Amp\ByteStream\splitLines;
-use function Safe\{preg_match, preg_replace, preg_split};
+use function Safe\{preg_match, preg_split};
 use Amp\File\Filesystem;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	ParamClass\PNonNumberWord,
+	Safe,
 	SettingManager,
 	Text,
 	Util,
@@ -708,7 +709,7 @@ class BuffPerksController extends ModuleInstance {
 			}
 			if (strlen($action??'')) {
 				$level->action = new PerkLevelAction();
-				$level->action->action_id = (int)preg_replace("/\*$/", "", $action??"", -1, $count);
+				$level->action->action_id = (int)Safe::pregReplace("/\*$/", "", $action??"", -1, $count);
 				$level->action->scaling = $count > 0;
 				$level->action->perk_level = $level->perk_level;
 				$item = $this->itemsController->getByIDs($level->action->action_id)->first();

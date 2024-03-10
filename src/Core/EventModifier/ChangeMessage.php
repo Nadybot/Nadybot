@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\EventModifier;
 
-use function Safe\preg_replace;
 use Exception;
 
 use Nadybot\Core\{
@@ -10,6 +9,7 @@ use Nadybot\Core\{
 	EventModifier,
 	Routing\Events\Base,
 	Routing\RoutableEvent,
+	Safe,
 };
 
 #[
@@ -61,7 +61,7 @@ class ChangeMessage implements EventModifier {
 		// @phpstan-ignore-next-line
 		if (isset($search) && $regexp && @\preg_match(chr(1) . $search . chr(1) . "si", "") === false) {
 			$error = error_get_last()["message"]??"Unknown error";
-			$error = preg_replace("/^preg_match\(\): (Compilation failed: )?/", "", $error);
+			$error = Safe::pregReplace("/^preg_match\(\): (Compilation failed: )?/", "", $error);
 			throw new Exception("Invalid regular expression '{$search}': {$error}.");
 		}
 	}
@@ -99,7 +99,7 @@ class ChangeMessage implements EventModifier {
 	protected function alterMessage(string $message): string {
 		if (isset($this->search, $this->replace)) {
 			if ($this->isRegExp) {
-				$message = preg_replace(
+				$message = Safe::pregReplace(
 					chr(1) . $this->search . chr(1) . "s",
 					$this->replace,
 					$message

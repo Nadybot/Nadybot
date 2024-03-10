@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use function Safe\{preg_match, preg_replace};
+use function Safe\preg_match;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Routing\Character,
@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Routing\RoutableEvent,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Text,
 	Util,
 };
@@ -113,22 +114,22 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		}
 		$data = array_shift($message->packages);
 		$command = preg_quote($this->command, "/");
-		if (!preg_match("/^.?{$command} <v2>(.+)/s", $data, $matches)) {
+		if (!count($matches = Safe::pregMatch("/^.?{$command} <v2>(.+)/s", $data))) {
 			return null;
 		}
 		$data = $matches[1];
 		$message = new RoutableMessage($data);
-		while (preg_match("/^<relay_(.+?)_tag_color>\[(.*?)\]<\/end>\s*(.*)/s", $data, $matches)) {
+		while (count($matches = Safe::pregMatch("/^<relay_(.+?)_tag_color>\[(.*?)\]<\/end>\s*(.*)/s", $data))) {
 			if (strlen($matches[2])) {
 				$type = ($matches[1] === "guild") ? Source::ORG : Source::PRIV;
 				$message->appendPath(new Source($type, $matches[2], $matches[2]));
 			}
 			$data = $matches[3];
 		}
-		if (preg_match("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/s", $data, $matches)) {
+		if (count($matches = Safe::pregMatch("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/s", $data))) {
 			$message->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
-		} elseif (preg_match("/^([^ :]+):\s*(.*)/s", $data, $matches)) {
+		} elseif (count($matches = Safe::pregMatch("/^([^ :]+):\s*(.*)/s", $data))) {
 			$message->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}
@@ -136,9 +137,8 @@ class GrcV2Protocol implements RelayProtocolInterface {
 			$message->char = null;
 		}
 
-		/** @var string */
-		$data = preg_replace("/^<relay_[a-z]+_color>(.*)$/s", "$1", $data);
-		$data = preg_replace("/<\/end>$/s", "", $data);
+		$data = Safe::pregReplace("/^<relay_[a-z]+_color>(.*)$/s", "$1", $data);
+		$data = Safe::pregReplace("/<\/end>$/s", "", $data);
 		$message->setData(ltrim($data));
 		return $message;
 	}

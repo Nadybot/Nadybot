@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
-use function Safe\preg_match;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -10,6 +9,7 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	MessageHub,
 	Routing\Source,
+	Safe,
 	SchemaMigration,
 	SettingManager,
 };
@@ -47,7 +47,7 @@ class MoveSettingsToHopColors implements SchemaMigration {
 		if (!isset($setting) || ($setting->value??"") === "") {
 			return null;
 		}
-		if (preg_match("/#([a-f0-9]{6})/i", $setting->value??"", $matches)) {
+		if (count($matches = Safe::pregMatch("/#([a-f0-9]{6})/i", $setting->value??"")) === 2) {
 			return $matches[1];
 		}
 		return null;

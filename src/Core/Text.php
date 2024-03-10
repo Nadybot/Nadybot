@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{preg_match, preg_match_all, preg_replace};
+use function Safe\{preg_match, preg_match_all};
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
 use Psr\Log\LoggerInterface;
@@ -380,12 +380,12 @@ class Text {
 		}
 		if (is_string($colortag)) {
 			if ($number == 0) {
-				$prefixedNumber = preg_replace('/(0)$/', "<{$colortag}>$1<end>", $prefixedNumber);
+				$prefixedNumber = Safe::pregReplace('/(0)$/', "<{$colortag}>$1<end>", $prefixedNumber);
 			} else {
-				$prefixedNumber = preg_replace('/([1-9][\d,]*)$/', "<{$colortag}>$1<end>", $prefixedNumber);
+				$prefixedNumber = Safe::pregReplace('/([1-9][\d,]*)$/', "<{$colortag}>$1<end>", $prefixedNumber);
 			}
 		}
-		$alignedNumber = preg_replace("/^([0,]+)(?!$)/", "<black>$1<end>", $prefixedNumber);
+		$alignedNumber = Safe::pregReplace("/^([0,]+)(?!$)/", "<black>$1<end>", $prefixedNumber);
 		return $alignedNumber;
 	}
 
@@ -434,9 +434,9 @@ class Text {
 			$message
 		);
 		if ($removeLinks) {
-			$message = preg_replace("/(?<=\.)\s+" . chr(1) . "/s", "", $message);
-			$message = preg_replace("/\s*\[" . chr(1) . "\]/s", "", $message);
-			$message = preg_replace("/\s*" . chr(1) . "/s", "", $message);
+			$message = Safe::pregReplace("/(?<=\.)\s+" . chr(1) . "/s", "", $message);
+			$message = Safe::pregReplace("/\s*\[" . chr(1) . "\]/s", "", $message);
+			$message = Safe::pregReplace("/\s*" . chr(1) . "/s", "", $message);
 		}
 		return $message;
 	}

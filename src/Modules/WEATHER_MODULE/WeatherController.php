@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEATHER_MODULE;
 
-use function Safe\{json_decode, preg_match, preg_match_all, preg_replace};
+use function Safe\{json_decode, preg_match};
 use Amp\Cache\LocalCache;
 use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, Request};
@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
+	Safe,
 	Text,
 	UserException,
 };
@@ -202,11 +203,10 @@ class WeatherController extends ModuleInstance {
 	 * @return string A forecast summary
 	 */
 	public function iconToForecastSummary(string $icon): string {
-		$icon = preg_replace("/_.+/", "", $icon);
-		preg_match_all(
+		$icon = Safe::pregReplace("/_.+/", "", $icon);
+		$matches = Safe::pregMatchAll(
 			"/(and|clear|cloudy|fair|fog|heavy|light|partly|rain|showers|sky|sleet|snow|thunder)/",
 			$icon,
-			$matches
 		);
 		return implode(" ", $matches[1]);
 	}

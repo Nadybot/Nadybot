@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-use function Safe\preg_match;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -19,6 +18,7 @@ use Nadybot\Core\{
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Text,
 	UserStateEvent,
 	Util,
@@ -181,7 +181,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	)]
 	public function recordCloakChangesEvent(AOChatEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)
-			|| !preg_match("/^(.+) turned the cloaking device in your city (on|off).$/i", $eventObj->message, $arr)
+			|| !count($arr = Safe::pregMatch("/^(.+) turned the cloaking device in your city (on|off).$/i", $eventObj->message))
 		) {
 			return;
 		}

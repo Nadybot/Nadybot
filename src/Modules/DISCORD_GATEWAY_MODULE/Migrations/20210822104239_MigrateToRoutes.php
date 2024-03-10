@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
-use function Safe\preg_match;
 use Exception;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\{
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	MessageHub,
 	Modules\DISCORD\DiscordChannel,
 	Routing\Source,
+	Safe,
 	SchemaMigration,
 	SettingManager,
 };
@@ -91,7 +91,7 @@ class MigrateToRoutes implements SchemaMigration {
 			if (!isset($setting) || $setting->value !== "<font color='#C3C3C3'>") {
 				continue;
 			}
-			if (!preg_match("/#([A-F0-9]{6})/i", $setting->value, $matches)) {
+			if (!count($matches = Safe::pregMatch("/#([A-F0-9]{6})/i", $setting->value))) {
 				continue;
 			}
 			return $matches[1];

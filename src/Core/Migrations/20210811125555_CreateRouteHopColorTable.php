@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	MessageHub,
 	Routing\Source,
+	Safe,
 	SchemaMigration,
 	SettingManager,
 };
@@ -32,7 +33,7 @@ class CreateRouteHopColorTable implements SchemaMigration {
 			$sysColor = $this->getSetting($db, "default_priv_color");
 		}
 		$matches = [1 => "89D2E8"];
-		if (!isset($sysColor) || !preg_match("/#([0-9a-f]{6})/i", $sysColor->value??"", $matches)) {
+		if (!isset($sysColor) || !count($matches = Safe::pregMatch("/#([0-9a-f]{6})/i", $sysColor->value??""))) {
 			$sysColor = "89D2E8";
 		} else {
 			$sysColor = $matches[1];

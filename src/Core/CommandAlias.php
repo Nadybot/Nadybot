@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{preg_match, preg_match_all};
+use function Safe\preg_match;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\CmdAlias;
@@ -106,7 +106,7 @@ class CommandAlias {
 
 		// Determine highest placeholder and don't split more than that so that the
 		// last parameter will have whatever is left
-		preg_match_all("/\{(\\d+)(:.*?)?\}/", $cmd, $matches);
+		$matches = Safe::pregMatchAll("/\{(\\d+)(:.*?)?\}/", $cmd);
 		$placeholders = array_map("intval", $matches[1]);
 		$highestPlaceholder = max([0, ...$placeholders]);
 		// If there aren't any defined parameters, but player gave arguments, process them:

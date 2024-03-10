@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use function Amp\{async};
+use function Amp\async;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{

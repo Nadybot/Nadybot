@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
-use function Safe\{preg_replace, preg_split};
+use function Safe\preg_split;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -27,6 +27,7 @@ use Nadybot\Core\{
 	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Text,
 	UserStateEvent,
 	Util,
@@ -416,9 +417,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$replacements["Faction"] = ucfirst($replacements["faction"]);
 		$replacements["FACTION"] = strtoupper($replacements["faction"]);
 		if (!isset($player) || !isset($player->guild) || !strlen($player->guild)) {
-			$format = preg_replace("/(?: of|,)?\s+<[^>]+>\{org\}<end>/", "", $format);
-			$format = preg_replace("/(?: of|,)?\s+\{org\}/", "", $format);
-			$format = preg_replace("/\s+\{org_rank\}/", "", $format);
+			$format = Safe::pregReplace("/(?: of|,)?\s+<[^>]+>\{org\}<end>/", "", $format);
+			$format = Safe::pregReplace("/(?: of|,)?\s+\{org\}/", "", $format);
+			$format = Safe::pregReplace("/\s+\{org_rank\}/", "", $format);
 		}
 		$subst = [];
 		foreach ($replacements as $key => $value) {

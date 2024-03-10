@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Highway;
 
 use function Safe\json_encode;
-use Amp\Websocket\Client\{WebsocketConnection};
+use Amp\Websocket\Client\WebsocketConnection;
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;

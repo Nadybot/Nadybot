@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\GUIDE_MODULE;
 
-use function Safe\{preg_match, preg_replace, preg_split};
-use Amp\File\{Filesystem};
+use function Safe\preg_split;
+use Amp\File\Filesystem;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DOMDocument;
 use DOMElement;
@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	ModuleInstance,
+	Safe,
 	Text,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
@@ -308,22 +309,22 @@ class AOUController extends ModuleInstance {
 		$url = $arr[2];
 		$label = $arr[3];
 
-		if (preg_match("/pid=(\\d+)/", $url, $idArray)) {
+		if (count($idArray = Safe::pregMatch("/pid=(\\d+)/", $url))) {
 			return $this->text->makeChatcmd($label, "/tell <myname> aou " . $idArray[1]);
 		}
 		return $this->text->makeChatcmd($label, "/start {$url}");
 	}
 
 	private function processInput(string $input): string {
-		$input = preg_replace("/(\[size.+?\])\[b\]/i", "[b]$1", $input);
-		$input = preg_replace("/(\[color.+?\])\[b\]/i", "[b]$1", $input);
+		$input = Safe::pregReplace("/(\[size.+?\])\[b\]/i", "[b]$1", $input);
+		$input = Safe::pregReplace("/(\[color.+?\])\[b\]/i", "[b]$1", $input);
 		$input = preg_replace_callback("/\[(item|itemname|itemicon)( nolink)?\](\d+)\[\/(item|itemname|itemicon)\]/i", [$this, 'replaceItem'], $input);
 		$input = preg_replace_callback("/\[waypoint ([^\]]+)\]([^\]]*)\[\/waypoint\]/", [$this, 'replaceWaypoint'], $input);
 		$input = preg_replace_callback("/\[(localurl|url)=([^ \]]+)\]([^\[]+)\[\/(localurl|url)\]/", [$this, 'replaceGuideLinks'], $input);
-		$input = preg_replace("/\[img\](.*?)\[\/img\]/", "-image-", $input);
-		$input = preg_replace("/\[color=#([0-9A-F]+)\]/", "<font color=#$1>", $input);
-		$input = preg_replace("/\[color=(.+?)\]/", "<$1>", $input);
-		$input = preg_replace("/\[\/color\]/", "<end>", $input);
+		$input = Safe::pregReplace("/\[img\](.*?)\[\/img\]/", "-image-", $input);
+		$input = Safe::pregReplace("/\[color=#([0-9A-F]+)\]/", "<font color=#$1>", $input);
+		$input = Safe::pregReplace("/\[color=(.+?)\]/", "<$1>", $input);
+		$input = Safe::pregReplace("/\[\/color\]/", "<end>", $input);
 		$input = str_replace(["[center]", "[/center]"], ["<center>", "</center>"], $input);
 		$input = str_replace(["[i]", "[/i]"], ["<i>", "</i>"], $input);
 		$input = str_replace(["[b]", "[/b]"], ["<highlight>", "<end>"], $input);

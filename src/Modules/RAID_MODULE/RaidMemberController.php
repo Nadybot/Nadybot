@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use function Amp\async;
 use function Amp\Future\await;
-use function Amp\{async};
 
 use AO\Package;
 use Nadybot\Core\{

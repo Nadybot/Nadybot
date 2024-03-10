@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use function Safe\{preg_replace, preg_split};
-use Nadybot\Core\CommandReply;
+use function Safe\preg_split;
+use Nadybot\Core\{CommandReply, Safe};
 
 class Raffle {
 	/** @var RaffleSlot[] */
@@ -44,7 +44,7 @@ class Raffle {
 	}
 
 	public function fromString(string $text): void {
-		$text = preg_replace("/>\s*</", ">,<", $text);
+		$text = Safe::pregReplace("/>\s*</", ">,<", $text);
 		// Items with "," in their name get this escaped
 		$text = preg_replace_callback(
 			"/(['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?>)(.+?)(<\/a>)/",

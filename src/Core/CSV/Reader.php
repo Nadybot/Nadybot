@@ -3,10 +3,10 @@
 namespace Nadybot\Core\CSV;
 
 use function Amp\ByteStream\splitLines;
-use function Safe\preg_replace;
 
 use Amp\File\Filesystem;
 use IteratorIterator;
+use Nadybot\Core\Safe;
 
 class Reader {
 	public function __construct(
@@ -48,9 +48,9 @@ class Reader {
 		$iter->next();
 		while ($iter->valid()) {
 			$line = $iter->current();
-			$line = preg_replace("/^,/", "\x00,", $line);
-			$line = preg_replace("/,$/", ",\x00", rtrim($line));
-			$line = preg_replace("/,(?=,)/", ",\x00", $line);
+			$line = Safe::pregReplace("/^,/", "\x00,", $line);
+			$line = Safe::pregReplace("/,$/", ",\x00", rtrim($line));
+			$line = Safe::pregReplace("/,(?=,)/", ",\x00", $line);
 			$row = str_getcsv($line);
 			if ($row === [null]) { // Skip blank lines
 				$iter->next();

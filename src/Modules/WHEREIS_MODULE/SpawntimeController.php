@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\WHEREIS_MODULE;
 
-use function Safe\preg_replace;
 use DateTimeZone;
 use Exception;
 use Illuminate\Support\Collection;
@@ -11,9 +10,9 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
+	Safe,
 	Text,
 };
-
 use Safe\DateTime;
 
 /**
@@ -115,7 +114,9 @@ class SpawntimeController extends ModuleInstance {
 		} else {
 			$line .= "<orange>&lt;unknown&gt;<end>";
 		}
-		$line = preg_replace('/00[hms]/', '', $line);
+		$line = Safe::pregReplace('/00[hms]/', '', $line);
+
+		/** @var string */
 		$line = str_replace('>0', '>', $line);
 		$flags = [];
 		if ($row->can_skip_spawn) {

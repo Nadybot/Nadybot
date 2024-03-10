@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use function Safe\{preg_match_all, preg_replace, preg_split};
+use function Safe\{preg_match_all, preg_split};
 use InvalidArgumentException;
 use Nadybot\Core\ParamClass\PItem;
 
@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	SQLException,
+	Safe,
 	Text,
 	Util,
 };
@@ -152,7 +153,7 @@ class RandomController extends ModuleInstance {
 		preg_match_all(chr(1) . $itemRegexp . chr(1), $listOfNames, $matches);
 		if (is_array($matches) && count($matches) > 0) {
 			$options = $matches[0];
-			$listOfNames = preg_replace(chr(1) . $itemRegexp . chr(1), "", $listOfNames);
+			$listOfNames = Safe::pregReplace(chr(1) . $itemRegexp . chr(1), "", $listOfNames);
 		}
 
 		$options = array_merge(
@@ -197,7 +198,7 @@ class RandomController extends ModuleInstance {
 		preg_match_all(chr(1) . $itemRegexp . chr(1), $listOfNames, $matches);
 		if (is_array($matches) && count($matches) > 0) {
 			$options = $matches[0];
-			$listOfNames = preg_replace(chr(1) . $itemRegexp . chr(1), "", $listOfNames);
+			$listOfNames = Safe::pregReplace(chr(1) . $itemRegexp . chr(1), "", $listOfNames);
 		}
 
 		$options = array_merge(

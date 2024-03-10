@@ -174,8 +174,8 @@ class ApiSpecGenerator {
 				if ($docBlock === false) {
 					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
-				if (!preg_match("/@json-var\s+(.+?)\[\]/", $docBlock, $matches)
-					&& !preg_match("/@var\s+(.+?)\[\]/", $docBlock, $matches)) {
+				if (!count($matches = Safe::pregMatch("/@json-var\s+(.+?)\[\]/", $docBlock))
+					&& !count($matches = Safe::pregMatch("/@var\s+(.+?)\[\]/", $docBlock))) {
 					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
 				$parts = explode("\\", $matches[1]??"");
@@ -315,11 +315,9 @@ class ApiSpecGenerator {
 					$paramResult["schema"]["type"] = "boolean";
 				}
 				$docComment = $method->getDocComment();
-				if (preg_match("/@param.*?\\$\Q{$param}\E\s+(.+)$/m", is_string($docComment) ? $docComment : "", $matches)) {
+				if (count($matches = Safe::pregMatch("/@param.*?\\$\Q{$param}\E\s+(.+)$/m", is_string($docComment) ? $docComment : ""))) {
 					$matches[1] = Safe::pregReplace("/\*\//", "", $matches[1]);
-					if (is_string($matches[1])) {
-						$paramResult["description"] = trim($matches[1]);
-					}
+					$paramResult["description"] = trim($matches[1]);
 				}
 				$result []= $paramResult;
 			}
@@ -361,7 +359,7 @@ class ApiSpecGenerator {
 			throw new Exception("Cannot determine file for" . $method->getDeclaringClass()->getName());
 		}
 		$dir = dirname($fileName);
-		if (preg_match("{(?:/|^)([A-Z_]+)(?:/|$)}", $dir, $matches)) {
+		if (count($matches = Safe::pregMatch("{(?:/|^)([A-Z_]+)(?:/|$)}", $dir))) {
 			$doc->tags = [strtolower(Safe::pregReplace("/_MODULE/", "", $matches[1]))];
 		}
 		foreach ($method->getAttributes() as $attr) {
@@ -424,7 +422,7 @@ class ApiSpecGenerator {
 		$propName = $refProp->getName();
 		if (!$refProp->hasType()) {
 			$comment = $refProp->getDocComment();
-			if ($comment === false || !preg_match("/@var ([^\s]+)/s", $comment, $matches)) {
+			if ($comment === false || !count($matches = Safe::pregMatch("/@var ([^\s]+)/s", $comment))) {
 				return [$propName, "mixed"];
 			}
 			$types = explode("|", $matches[1]??"");

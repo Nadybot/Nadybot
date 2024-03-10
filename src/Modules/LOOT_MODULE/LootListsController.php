@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
-use function Safe\preg_replace;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Nadybot,
+	Safe,
 	Text,
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleController;
@@ -726,12 +726,12 @@ class LootListsController extends ModuleInstance {
 			"<tab>- Level 200-250: ".
 			$this->text->makeChatcmd("Broken Shores along the river", "/waypoint 1266 1889 665") . "\n".
 			"<tab>- Level <black>00<end>1-300: Notum Mining Area\n";
-		$blob = preg_replace("/(<header2>.*?<end>\n)/", "$1\n{$guph}", $this->findRaidLoot('Halloween', 'Griefing Uncle Pumpkin-Head', $context));
+		$blob = Safe::pregReplace("/(<header2>.*?<end>\n)/", "$1\n{$guph}", $this->findRaidLoot('Halloween', 'Griefing Uncle Pumpkin-Head', $context));
 		$blob .= "\n<pagebreak><header2>Ganking Uncle Pumpkin-Head<end>\n\n".
 			"They drop the same loot as the GUPHs, but have a higher chance to drop the rare items.\n";
 		$huph = "They are only spawned by ARKs on Halloween events ".
 			"and cannot be found anywhere else.\n";
-		$blob .= preg_replace("/(<header2>.*?<end>\n)/", "<pagebreak>$1\n{$huph}", $this->findRaidLoot('Halloween', 'Harvesting Uncle Pumpkin-Head', $context));
+		$blob .= Safe::pregReplace("/(<header2>.*?<end>\n)/", "<pagebreak>$1\n{$huph}", $this->findRaidLoot('Halloween', 'Harvesting Uncle Pumpkin-Head', $context));
 		$blob .= $this->findRaidLoot('Halloween', 'Solo Instance', $context);
 		$msg = $this->text->makeBlob("Halloween loot", $blob);
 		$context->reply($msg);

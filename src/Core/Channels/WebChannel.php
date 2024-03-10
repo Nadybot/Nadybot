@@ -2,9 +2,8 @@
 
 namespace Nadybot\Core\Channels;
 
-use function Safe\preg_match;
 use Nadybot\Core\Routing\{RoutableEvent, Source};
-use Nadybot\Core\{Attributes as NCA, EventManager, MessageHub, MessageReceiver};
+use Nadybot\Core\{Attributes as NCA, EventManager, MessageHub, MessageReceiver, Safe};
 
 use Nadybot\Modules\WEBSERVER_MODULE\{AOWebChatEvent, WebChatConverter};
 
@@ -29,7 +28,7 @@ class WebChannel implements MessageReceiver {
 		$webEvent = new AOWebChatEvent();
 		$webEvent->path = $this->webChatConverter->convertPath($event->getPath());
 		$webEvent->color = $this->messageHub->getTextColor($event, $this->getChannelName());
-		if (preg_match("/#([A-Fa-f0-9]{6})/", $webEvent->color, $matches)) {
+		if (count($matches = Safe::pregMatch("/#([A-Fa-f0-9]{6})/", $webEvent->color)) === 2) {
 			$webEvent->color = $matches[1];
 		}
 		$webEvent->channel = "web";

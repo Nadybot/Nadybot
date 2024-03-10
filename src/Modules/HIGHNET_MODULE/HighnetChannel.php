@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
-use Nadybot\Core\Routing\{RoutableEvent};
+use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\{Attributes as NCA, MessageEmitter, MessageReceiver};
 
 class HighnetChannel implements MessageEmitter, MessageReceiver {

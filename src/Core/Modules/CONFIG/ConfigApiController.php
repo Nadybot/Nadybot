@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use function Safe\{preg_match, preg_replace};
+use function Safe\preg_match;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	InsufficientAccessException,
 	ModuleInstance,
 	SQLException,
+	Safe,
 	SettingManager,
 };
 use Nadybot\Modules\{
@@ -169,7 +170,7 @@ class ConfigApiController extends ModuleInstance {
 			);
 		}
 		if ($modSet->type === $modSet::TYPE_COLOR) {
-			if (is_string($value) && preg_match("/(#[0-9a-fA-F]{6})/", $value, $matches)) {
+			if (is_string($value) && count($matches = Safe::pregMatch("/(#[0-9a-fA-F]{6})/", $value))) {
 				$value = "<font color='{$matches[1]}'>";
 			}
 		}
@@ -713,7 +714,7 @@ class ConfigApiController extends ModuleInstance {
 		$sourceName = strtolower($sourceName);
 		$sources = new Collection($this->commandManager->getSources());
 		$source = $sources->first(function (string $source) use ($sourceName): bool {
-			return preg_replace("/\(.+$/", "", $source) === $sourceName;
+			return Safe::pregReplace("/\(.+$/", "", $source) === $sourceName;
 		});
 		return isset($source) ? CmdSource::fromMask($source) : null;
 	}

@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use function Safe\{json_encode, preg_replace};
+use function Safe\json_encode;
 
 use Amp\File\Filesystem;
-use Nadybot\Core\{Attributes as NCA, CommandReply};
+use Nadybot\Core\{Attributes as NCA, CommandReply, Safe};
 use Psr\Log\LoggerInterface;
 
 class MockCommandReply implements CommandReply {
@@ -51,15 +51,15 @@ class MockCommandReply implements CommandReply {
 			if (isset($this->logger)) {
 				$this->logger->notice($result);
 			}
-			$result = preg_replace("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}( [A-Z]{3,4})?/", "1970-01-01 00:00:00\\1", $result);
-			$result = preg_replace("/\d\d-[A-Z][a-z]{2}-\d{4} \d{2}:\d{2}:\d{2}( [A-Z]{3,4})?/", "01-Jan-1970 00:00:00\\1", $result);
-			$result = preg_replace("/\d\d-[A-Z][a-z]{2}-\d{4} \d{2}:\d{2}( [A-Z]{3,4})?/", "01-Jan-1970 00:00\\1", $result);
-			$result = preg_replace("/\d\d-[A-Z][a-z]{2}-\d{4}/", "01-Jan-1970", $result);
-			$result = preg_replace("/\d\d?(st|nd|rd) [A-Z][a-z]{2}, \d{2}:\d{2}/", "1st Jan, 00:00", $result);
-			$result = preg_replace("/\b[12]\d{9}\b/", "1234567890", $result);
-			$result = preg_replace("/\b[0-9a-fA-F]{40}\b/", "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef", $result);
-			$result = preg_replace("/\b[0-9a-fA-F]{32}\b/", "deadbeefdeadbeefdeadbeefdeadbeef", $result);
-			$result = preg_replace("/(\s*\d+ (days|hrs|mins|secs))+/", "<duration>", $result);
+			$result = Safe::pregReplace("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}( [A-Z]{3,4})?/", "1970-01-01 00:00:00\\1", $result);
+			$result = Safe::pregReplace("/\d\d-[A-Z][a-z]{2}-\d{4} \d{2}:\d{2}:\d{2}( [A-Z]{3,4})?/", "01-Jan-1970 00:00:00\\1", $result);
+			$result = Safe::pregReplace("/\d\d-[A-Z][a-z]{2}-\d{4} \d{2}:\d{2}( [A-Z]{3,4})?/", "01-Jan-1970 00:00\\1", $result);
+			$result = Safe::pregReplace("/\d\d-[A-Z][a-z]{2}-\d{4}/", "01-Jan-1970", $result);
+			$result = Safe::pregReplace("/\d\d?(st|nd|rd) [A-Z][a-z]{2}, \d{2}:\d{2}/", "1st Jan, 00:00", $result);
+			$result = Safe::pregReplace("/\b[12]\d{9}\b/", "1234567890", $result);
+			$result = Safe::pregReplace("/\b[0-9a-fA-F]{40}\b/", "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef", $result);
+			$result = Safe::pregReplace("/\b[0-9a-fA-F]{32}\b/", "deadbeefdeadbeefdeadbeefdeadbeef", $result);
+			$result = Safe::pregReplace("/(\s*\d+ (days|hrs|mins|secs))+/", "<duration>", $result);
 			$this->output []= $result;
 		}
 	}

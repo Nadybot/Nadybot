@@ -21,6 +21,7 @@ use Nadybot\Core\{
 	Nadybot,
 	QueryBuilder,
 	Registry,
+	Safe,
 	SettingManager,
 	StopExecutionException,
 	Text,
@@ -683,10 +684,10 @@ class OnlineController extends ModuleInstance {
 			$reason = (string)time();
 			$this->buildOnlineQuery($sender, $type)->update(["afk" => $reason]);
 			$msg = "<highlight>{$sender}<end> is now AFK.";
-		} elseif (preg_match("/^\Q{$symbol}\E{$symbolModifier}brb(.*)$/i", $message, $arr)) {
+		} elseif (count($arr = Safe::pregMatch("/^\Q{$symbol}\E{$symbolModifier}brb(.*)$/i", $message))) {
 			$reason = time() . '|brb ' . trim($arr[1]);
 			$this->buildOnlineQuery($sender, $type)->update(["afk" => $reason]);
-		} elseif (preg_match("/^\Q{$symbol}\E{$symbolModifier}afk[, ]+(.*)$/i", $message, $arr)) {
+		} elseif (count($arr = Safe::pregMatch("/^\Q{$symbol}\E{$symbolModifier}afk[, ]+(.*)$/i", $message))) {
 			$reason = time() . '|' . $arr[1];
 			$this->buildOnlineQuery($sender, $type)->update(["afk" => $reason]);
 			$msg = "<highlight>{$sender}<end> is now AFK.";

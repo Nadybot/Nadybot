@@ -3,11 +3,11 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
-use function Safe\{base64_decode, mime_content_type, openssl_verify, preg_match, preg_split, realpath, stream_socket_accept, stream_socket_server};
+use function Safe\{base64_decode, mime_content_type, openssl_verify, preg_split, realpath, stream_socket_accept, stream_socket_server};
+use Amp\File;
 use Amp\File\Filesystem;
 use Amp\Http\Client;
 use Amp\Http\Client\HttpClientBuilder;
-use Amp\{File};
 use Closure;
 use Exception;
 use Nadybot\Core\{
@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Registry,
+	Safe,
 	Socket,
 	Socket\AsyncSocket,
 };
@@ -369,7 +370,7 @@ class WebserverController extends ModuleInstance {
 	public function getHandlersForRequest(Request $request): array {
 		$result = [];
 		foreach ($this->routes[$request->method] as $mask => $handlers) {
-			if (preg_match("|{$mask}|", $request->path, $parts)) {
+			if (count($parts = Safe::pregMatch("|{$mask}|", $request->path))) {
 				array_shift($parts);
 				foreach ($handlers as $handler) {
 					$result []= [Closure::fromCallable($handler), $parts];
@@ -518,22 +519,22 @@ class WebserverController extends ModuleInstance {
 			"sha384" => OPENSSL_ALGO_SHA384,
 			"sha512" => OPENSSL_ALGO_SHA512,
 		];
-		if (!preg_match("/(?:^|,\s*)keyid\s*=\s*\"(.+?)\"/is", $signature, $matches)) {
+		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)keyid\s*=\s*\"(.+?)\"/is", $signature))) {
 			return null;
 		}
 		$keyId = $matches[1];
-		if (!preg_match("/(?:^|,\s*)algorithm\s*=\s*\"(.+?)\"/is", $signature, $matches)) {
+		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)algorithm\s*=\s*\"(.+?)\"/is", $signature))) {
 			return null;
 		}
 		$algorithm = $algorithms[strtolower($matches[1])]??null;
 		if (!isset($algorithm)) {
 			return null;
 		}
-		if (!preg_match("/(?:^|,\s*)sequence\s*=\s*\"?(\d+)\"?/is", $signature, $matches)) {
+		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)sequence\s*=\s*\"?(\d+)\"?/is", $signature))) {
 			return null;
 		}
 		$sequence = $matches[1];
-		if (!preg_match("/(?:^|,\s*)signature\s*=\s*\"(.+?)\"/is", $signature, $matches)) {
+		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)signature\s*=\s*\"(.+?)\"/is", $signature))) {
 			return null;
 		}
 		$signature = $matches[1];

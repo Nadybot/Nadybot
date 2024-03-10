@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{glob, json_encode, preg_match, preg_replace};
+use function Safe\{glob, json_encode, preg_match};
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
@@ -445,10 +445,14 @@ class MessageHub {
 				$source .= '(*)';
 			}
 			if (isset($eventLogLevel)
-				&& preg_match("/^" . preg_quote(Source::LOG, "/") . "\(([a-z]+)\)$/i", $source, $matches)
+				&& count($matches = Safe::pregMatch("/^" . preg_quote(Source::LOG, "/") . "\(([a-z]+)\)$/i", $source))
 			) {
 				try {
-					/** @psalm-suppress ArgumentTypeCoercion */
+					/**
+					 * @psalm-suppress ArgumentTypeCoercion
+					 *
+					 * @phpstan-ignore-next-line
+					 */
 					$srcLevel = Logger::toMonologLevel($matches[1]);
 					if ($eventLogLevel < $srcLevel) {
 						continue;
@@ -487,7 +491,7 @@ class MessageHub {
 						"destination" => $destName,
 					]);
 					$destination = $route->getDest();
-					if (preg_match("/\((.+)\)$/", $destination, $matches)) {
+					if (count($matches = Safe::pregMatch("/\((.+)\)$/", $destination))) {
 						$destination = $matches[1];
 					}
 					$receiver->receive($modifiedEvent, $destination);
@@ -528,7 +532,7 @@ class MessageHub {
 					"main" => ($char->name === $mainChar) ? null : $mainChar,
 				]
 			);
-			$routedName = preg_replace('/^(.+) \(\1\)$/', '$1', $routedName);
+			$routedName = Safe::pregReplace('/^(.+) \(\1\)$/', '$1', $routedName);
 			if ($char->dimension !== $this->config->main->dimension) {
 				$routedName .= "@" . $this->dimensionToSuffix($char->dimension);
 			}
@@ -571,7 +575,7 @@ class MessageHub {
 
 	public function getCharacter(string $dest): ?string {
 		$regExp = "/" . preg_quote(Source::TELL, "/") . "\((.+)\)$/";
-		if (!preg_match($regExp, $dest, $matches)) {
+		if (!count($matches = Safe::pregMatch($regExp, $dest))) {
 			return null;
 		}
 		return $matches[1];

@@ -2,9 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use function Safe\preg_match;
-
-use Nadybot\Core\CommandReply;
+use Nadybot\Core\{CommandReply, Safe};
 
 class DemoResponseCommandReply implements CommandReply {
 	private CommandReply $sendto;
@@ -21,7 +19,7 @@ class DemoResponseCommandReply implements CommandReply {
 		if ($this->source === 'aopriv') {
 			$msg = str_replace("chatcmd:///tell {$this->botname} ", "chatcmd:///g <myname> <symbol>demo ", $msg);
 			$msg = str_replace("chatcmd:///tell <myname> ", "chatcmd:///g <myname> <symbol>demo ", $msg);
-		} elseif (preg_match("/^aopriv\((.+)\)$/", $this->source, $matches)) {
+		} elseif (count($matches = Safe::pregMatch("/^aopriv\((.+)\)$/", $this->source))) {
 			$msg = str_replace("chatcmd:///tell {$this->botname} ", "chatcmd:///g {$matches[1]} <symbol>demo ", $msg);
 			$msg = str_replace("chatcmd:///tell <myname> ", "chatcmd:///g {$matches[1]} <symbol>demo ", $msg);
 		} elseif ($this->source === 'aoorg') {

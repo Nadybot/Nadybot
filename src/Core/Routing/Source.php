@@ -2,12 +2,11 @@
 
 namespace Nadybot\Core\Routing;
 
-use function Safe\preg_match;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Nadybot\Core\DBSchema\RouteHopFormat;
 
-use Nadybot\Core\{Config\BotConfig, Registry};
+use Nadybot\Core\{Config\BotConfig, Registry, Safe};
 
 class Source {
 	public const DB_TABLE = "route_hop_format_<myname>";
@@ -48,7 +47,7 @@ class Source {
 	}
 
 	public static function fromChannel(string $channel): self {
-		if (preg_match("/^(.+?)\((.+?)\)$/", $channel, $matches)) {
+		if (count($matches = Safe::pregMatch("/^(.+?)\((.+?)\)$/", $channel))) {
 			return new self($matches[1], $matches[2]);
 		}
 		throw new InvalidArgumentException("\$channel ({$channel}) is not a valid channel name.");

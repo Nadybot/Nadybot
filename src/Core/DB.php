@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use function Amp\ByteStream\splitLines;
 use function Amp\delay;
-use function Safe\{preg_match, preg_replace, preg_split, realpath};
+use function Safe\{preg_match, preg_split, realpath};
 
 use Amp\File\Filesystem;
 use DateTime;
@@ -355,7 +355,7 @@ class DB {
 			$sql = str_ireplace($search, $replace, $sql);
 		}
 		foreach ($this->sqlRegexpReplacements as $search => $replace) {
-			$sql = preg_replace($search, $replace, $sql);
+			$sql = Safe::pregReplace($search, $replace, $sql);
 			assert(is_string($sql));
 		}
 		return $sql;
@@ -625,7 +625,7 @@ class DB {
 				break;
 			}
 			$line = trim($line);
-			if (!preg_match("/^#\s*(.+?):\s*(.+)$/i", $line, $matches) || !isset($matches)) {
+			if (!count($matches = Safe::pregMatch("/^#\s*(.+?):\s*(.+)$/i", $line))) {
 				continue;
 			}
 			$value = $matches[2];

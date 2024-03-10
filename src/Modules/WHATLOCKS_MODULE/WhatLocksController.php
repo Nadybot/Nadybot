@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\WHATLOCKS_MODULE;
 
-use function Safe\preg_replace;
 use DateTimeZone;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -10,6 +9,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
+	Safe,
 	Text,
 };
 use Nadybot\Modules\ITEMS_MODULE\{ItemsController, Skill};
@@ -182,7 +182,7 @@ class WhatLocksController extends ModuleInstance {
 			},
 			$short
 		);
-		$superfluous = strlen(preg_replace("/^([0, dhm]*).*/", "$1", $short));
+		$superfluous = strlen(Safe::pregReplace("/^([0, dhm]*).*/", "$1", $short));
 		$valuable = strlen($short) - $superfluous;
 		$result = "<black>" . substr($short, $cutAway, $superfluous-$cutAway) . "<end>".
 			substr($short, -1 * $valuable);

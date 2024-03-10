@@ -2,13 +2,14 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Safe\{base64_decode, fread, json_decode, parse_url, preg_match, preg_split};
+use function Safe\{base64_decode, fread, json_decode, parse_url, preg_split};
 use Amp\File\Filesystem;
 use AO\Internal\BinaryString;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventManager,
+	Safe,
 	SettingManager,
 	Socket\AsyncSocket,
 };
@@ -209,7 +210,7 @@ class HttpProtocolWrapper {
 			$this->nextPart = static::EXPECT_IGNORE;
 			return;
 		}
-		if (!preg_match("/^([a-za-z]+)\s+(.+)\s+http\/([0-9.]+)$/i", $line, $matches)) {
+		if (!count($matches = Safe::pregMatch("/^([a-za-z]+)\s+(.+)\s+http\/([0-9.]+)$/i", $line))) {
 			$this->httpError(new Response(Response::BAD_REQUEST));
 			$this->nextPart = static::EXPECT_IGNORE;
 			return;

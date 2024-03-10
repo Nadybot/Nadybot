@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	ParamClass\PCharacter,
+	Safe,
 	Text,
 	Util,
 };
@@ -128,10 +129,10 @@ class OrgHistoryController extends ModuleInstance {
 	public function captureOrgMessagesEvent(AOChatEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (
-			preg_match("/^(?<actor>.+) just (?<action>left) your organization.$/", $message, $arr)
-			|| preg_match("/^(?<actor>.+) (?<action>kicked) (?<actee>.+) from your organization.$/", $message, $arr)
-			|| preg_match("/^(?<actor>.+) (?<action>invited) (?<actee>.+) to your organization.$/", $message, $arr)
-			|| preg_match("/^(?<actor>.+) (?<action>removed) inactive character (?<actee>.+) from your organization.$/", $message, $arr)
+			count($arr = Safe::pregMatch("/^(?<actor>.+) just (?<action>left) your organization.$/", $message))
+			|| count($arr = Safe::pregMatch("/^(?<actor>.+) (?<action>kicked) (?<actee>.+) from your organization.$/", $message))
+			|| count($arr = Safe::pregMatch("/^(?<actor>.+) (?<action>invited) (?<actee>.+) to your organization.$/", $message))
+			|| count($arr = Safe::pregMatch("/^(?<actor>.+) (?<action>removed) inactive character (?<actee>.+) from your organization.$/", $message))
 		) {
 			$this->db->table(self::DB_TABLE)
 				->insert([

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use function Safe\preg_match;
 use Nadybot\Core\{
 	Attributes as NCA,
 	MessageHub,
@@ -11,6 +10,7 @@ use Nadybot\Core\{
 	Routing\RoutableEvent,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Text,
 };
 
@@ -79,27 +79,27 @@ class GrcV1Protocol implements RelayProtocolInterface {
 		}
 		$data = array_shift($message->packages);
 		$command = preg_quote($this->command, "/");
-		if (!preg_match("/^.?{$command} (.+)/s", $data, $matches)) {
+		if (!count($matches = Safe::pregMatch("/^.?{$command} (.+)/s", $data))) {
 			return null;
 		}
 		$data = $matches[1];
 		$message = new RoutableMessage($data);
-		if (preg_match("/^\[(.*?)\]\s*(.*)/s", $data, $matches)) {
+		if (count($matches = Safe::pregMatch("/^\[(.*?)\]\s*(.*)/s", $data))) {
 			if (strlen($matches[1])) {
 				$message->appendPath(new Source(Source::ORG, $matches[1]));
 			}
 			$data = $matches[2];
 		}
-		if (preg_match("/^\[(.*?)\]\s*(.*)/s", $data, $matches)) {
+		if (count($matches = Safe::pregMatch("/^\[(.*?)\]\s*(.*)/s", $data))) {
 			if (strlen($matches[1])) {
 				$message->appendPath(new Source(Source::PRIV, $matches[1]));
 			}
 			$data = $matches[2];
 		}
-		if (preg_match("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/s", $data, $matches)) {
+		if (count($matches = Safe::pregMatch("/^<a href=user:\/\/(.+?)>.*?<\/a>\s*:?\s*(.*)/s", $data))) {
 			$message->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
-		} elseif (preg_match("/^([^ :]+):\s*(.*)/s", $data, $matches)) {
+		} elseif (count($matches = Safe::pregMatch("/^([^ :]+):\s*(.*)/s", $data))) {
 			$message->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}

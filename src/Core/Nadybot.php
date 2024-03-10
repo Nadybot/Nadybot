@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 use function Amp\async;
-use function Safe\{preg_match, preg_replace, sapi_windows_set_ctrl_handler, unpack};
+use function Safe\{preg_match, sapi_windows_set_ctrl_handler, unpack};
 use Amp\Http\Client\HttpClientBuilder;
 use AO\Client\{Multi, WorkerConfig, WorkerPackage};
 use AO\{Group, Package, Utils};
@@ -1052,7 +1052,7 @@ class Nadybot {
 		$this->logger->info("Handling {package}", ["package" => $package->package]);
 
 		// Removing tell color
-		if (preg_match("/^<font color='#([0-9a-f]+)'>(.+)$/si", $message, $arr)) {
+		if (count($arr = Safe::pregMatch("/^<font color='#([0-9a-f]+)'>(.+)$/si", $message))) {
 			$message = $arr[2];
 		}
 		// When we send commands via text->makeChatcmd(), the ' gets escaped
@@ -1466,13 +1466,13 @@ class Nadybot {
 
 	public static function toSnakeCase(string $name): string {
 		return strtolower(
-			preg_replace(
+			Safe::pregReplace(
 				"/([A-Z][a-z])/",
 				'_$1',
-				preg_replace(
+				Safe::pregReplace(
 					"/([A-Z]{2,})(?=[A-Z][a-z]|$)/",
 					'_$1',
-					preg_replace(
+					Safe::pregReplace(
 						"/(\d+)$/",
 						'_$1',
 						$name
@@ -1526,12 +1526,12 @@ class Nadybot {
 	 */
 	public function logChat(string $channel, string|int $sender, string $message): void {
 		if (!$this->config->general->showAomlMarkup) {
-			$message = preg_replace("|<font.*?>|", "", $message);
-			$message = preg_replace("|</font>|", "", $message);
-			$message = preg_replace("|<a\\s+href=\".+?\">|s", "[link]", $message);
-			$message = preg_replace("|<a\\s+href='.+?'>|s", "[link]", $message);
-			$message = preg_replace("|<a\\s+href=.+?>|s", "[link]", $message);
-			$message = preg_replace("|</a>|", "[/link]", $message);
+			$message = Safe::pregReplace("|<font.*?>|", "", $message);
+			$message = Safe::pregReplace("|</font>|", "", $message);
+			$message = Safe::pregReplace("|<a\\s+href=\".+?\">|s", "[link]", $message);
+			$message = Safe::pregReplace("|<a\\s+href='.+?'>|s", "[link]", $message);
+			$message = Safe::pregReplace("|<a\\s+href=.+?>|s", "[link]", $message);
+			$message = Safe::pregReplace("|</a>|", "[/link]", $message);
 		}
 
 		if ($channel == "Buddy") {
@@ -1652,9 +1652,9 @@ class Nadybot {
 			if ($comment === false) {
 				throw new Exception("Missing description for setting {$attribute->name}");
 			}
-			$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
-			$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
-			$description = trim(preg_replace("/^@.*/m", '', $comment));
+			$comment = trim(Safe::pregReplace("|^/\*\*(.*)\*/|s", '$1', $comment));
+			$comment = Safe::pregReplace("/^[ \t]*\*[ \t]*/m", '', $comment);
+			$description = trim(Safe::pregReplace("/^@.*/m", '', $comment));
 			$settingValue = $value = $attribute->getValue();
 			if (is_array($settingValue)) {
 				$settingValue = join("|", $settingValue);

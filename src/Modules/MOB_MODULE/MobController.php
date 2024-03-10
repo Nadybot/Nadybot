@@ -2,14 +2,14 @@
 
 namespace Nadybot\Modules\MOB_MODULE;
 
-use function Safe\{json_decode, preg_replace};
+use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\{Event, HandlesCommand};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, MessageHub, ModuleInstance, Text, Util};
+use Nadybot\Core\{Attributes as NCA, CmdContext, MessageHub, ModuleInstance, Safe, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Nadybot\Modules\WHEREIS_MODULE\{WhereisController, WhereisResult};
 use Psr\Log\LoggerInterface;
@@ -457,7 +457,7 @@ class MobController extends ModuleInstance {
 		$status = $this->renderMobStatus($mob);
 
 		/** @var string */
-		$basename = preg_replace("/\s+\(placeholder\)/i", "", $mob->name);
+		$basename = Safe::pregReplace("/\s+\(placeholder\)/i", "", $mob->name);
 		$whereis = $this->whereisCtrl->getByName($basename);
 		if ($whereis->count() === 1) {
 			/** @var WhereisResult */

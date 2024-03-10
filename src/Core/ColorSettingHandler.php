@@ -70,7 +70,7 @@ class ColorSettingHandler extends SettingHandler {
 			$colors->defaultHighlightColor => "Theme Highlight Color",
 		];
 		foreach ($themeColors as $color => $name) {
-			if (!preg_match("/(#[a-f0-9]{6})/i", $color, $matches)) {
+			if (!count($matches = Safe::pregMatch("/(#[a-f0-9]{6})/i", $color))) {
 				continue;
 			}
 			$color = strtoupper($matches[1]);

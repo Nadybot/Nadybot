@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{json_decode, preg_match, preg_split};
+use function Safe\{json_decode, preg_split};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\Interceptor\SetRequestHeader;
 use Amp\Http\Client\{HttpClient, HttpClientBuilder, Request, SocketException, TimeoutException};
@@ -121,7 +121,7 @@ class AccountUnfreezer {
 			$errorMsg = "HTTP-Code " . $response->getStatus();
 			if ($response->getStatus() === 200) {
 				$body = $response->getBody()->buffer();
-				if (preg_match('/<div class="alert alert-danger">(.+?)<\/div>/s', $body, $matches)) {
+				if (count($matches = Safe::pregMatch('/<div class="alert alert-danger">(.+?)<\/div>/s', $body))) {
 					$errorMsg = trim(strip_tags($matches[1]));
 				}
 			}
@@ -190,11 +190,10 @@ class AccountUnfreezer {
 	protected function getSubscriptionId(HttpClient $client, string $cookie): int {
 		$body = $this->loadAccountPage($client, $cookie);
 		$login = strtolower($this->config->main->login);
-		if (!preg_match(
+		if (!count($matches = Safe::pregMatch(
 			'/<li><a href="\/subscription\/(\d+)">' . preg_quote($login, '/') . '<\/a><\/li>/s',
 			$body,
-			$matches
-		)) {
+		))) {
 			throw new UnfreezeFatalException("Account {$login} not on this login.");
 		}
 		return (int)$matches[1];

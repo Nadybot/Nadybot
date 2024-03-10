@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\GUILD_MODULE;
 
 use function Amp\async;
-use function Safe\{preg_match, preg_replace};
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltInfo;
 use Nadybot\Core\{
@@ -32,6 +31,7 @@ use Nadybot\Core\{
 	Routing\Events\Online,
 	Routing\RoutableEvent,
 	Routing\Source,
+	Safe,
 	SettingManager,
 	Text,
 	UserStateEvent,
@@ -584,7 +584,7 @@ class GuildController extends ModuleInstance {
 	)]
 	public function autoNotifyOrgMembersEvent(AOChatEvent $eventObj): void {
 		$message = $eventObj->message;
-		if (preg_match("/^(.+) invited (.+) to your organization.$/", $message, $arr)) {
+		if (count($arr = Safe::pregMatch("/^(.+) invited (.+) to your organization.$/", $message))) {
 			$name = ucfirst(strtolower($arr[2]));
 
 			if (
@@ -612,10 +612,10 @@ class GuildController extends ModuleInstance {
 			// update character info
 			$this->playerManager->byName($name);
 		} elseif (
-			preg_match("/^(.+) kicked (?<char>.+) from your organization.$/", $message, $arr)
-			|| preg_match("/^(.+) removed inactive character (?<char>.+) from your organization.$/", $message, $arr)
-			|| preg_match("/^(?<char>.+) just left your organization.$/", $message, $arr)
-			|| preg_match("/^(?<char>.+) kicked from organization \\(alignment changed\\).$/", $message, $arr)
+			count($arr = Safe::pregMatch("/^(.+) kicked (?<char>.+) from your organization.$/", $message))
+			|| count($arr = Safe::pregMatch("/^(.+) removed inactive character (?<char>.+) from your organization.$/", $message))
+			|| count($arr = Safe::pregMatch("/^(?<char>.+) just left your organization.$/", $message))
+			|| count($arr = Safe::pregMatch("/^(?<char>.+) kicked from organization \\(alignment changed\\).$/", $message))
 		) {
 			$name = ucfirst(strtolower($arr["char"]));
 
@@ -655,7 +655,7 @@ class GuildController extends ModuleInstance {
 	public function getLogonMessageForPlayer(?Player $whois, string $player): string {
 		$tokens = $this->getTokensForLogonLogoff($player, $whois, null);
 		$logonMessage = $this->text->renderPlaceholders($this->orgLogonMessage, $tokens);
-		$logonMessage = preg_replace(
+		$logonMessage = Safe::pregReplace(
 			"/&lt;([a-z]+)&gt;/",
 			'<$1>',
 			$logonMessage
@@ -714,7 +714,7 @@ class GuildController extends ModuleInstance {
 
 		$tokens = $this->getTokensForLogonLogoff($player, $whois, $altInfo);
 		$logoffMessage = $this->text->renderPlaceholders($this->orgLogoffMessage, $tokens);
-		$logoffMessage = preg_replace(
+		$logoffMessage = Safe::pregReplace(
 			"/&lt;([a-z]+)&gt;/",
 			'<$1>',
 			$logoffMessage

@@ -4,7 +4,7 @@ namespace Nadybot;
 
 class CreateMigration {
 	public function showSyntax(string $me): string {
-		echo "Syntax: $me <path to migrations> <name of migration class>\n";
+		echo "Syntax: {$me} <path to migrations> <name of migration class>\n";
 		exit(0);
 	}
 
@@ -14,13 +14,13 @@ class CreateMigration {
 		}
 		$className = basename($migration, ".shared");
 		$namespace = "Unknown";
-		if (preg_match("/Core\/Modules\/(.+)$/", $path, $matches)) {
+		if (count($matches = Safe::pregMatch("/Core\/Modules\/(.+)$/", $path))) {
 			$namespace = "Nadybot\\Core\\Modules\\" . rtrim(str_replace("/", "\\", $matches[1]), "\\");
 		} elseif (preg_match("/Core\/Migrations/", $path)) {
 			$namespace = "Nadybot\\Core\\Migrations";
-		} elseif (preg_match("/src\/Modules\/(.+)$/", $path, $matches)) {
+		} elseif (count($matches = Safe::pregMatch("/src\/Modules\/(.+)$/", $path))) {
 			$namespace = "Nadybot\\Modules\\" . rtrim(str_replace("/", "\\", $matches[1]), "\\");
-		} elseif (preg_match("/extras\/(.+)$/", $path, $matches)) {
+		} elseif (count($matches = Safe::pregMatch("/extras\/(.+)$/", $path))) {
 			$namespace = "Nadybot\\User\\Modules\\" . rtrim(str_replace("/", "\\", $matches[1]), "\\");
 		}
 		$fileName = sprintf(
@@ -29,7 +29,7 @@ class CreateMigration {
 			date("YmdHis"),
 			$migration
 		);
-		$data = 
+		$data =
 			"<?php declare(strict_types=1);\n".
 			"\n".
 			"namespace {$namespace};\n".

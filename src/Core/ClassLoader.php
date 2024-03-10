@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{fclose, parse_ini_string, preg_match, preg_split};
+use function Safe\{fclose, parse_ini_string, preg_split};
 
 use Amp\File\{Filesystem, FilesystemException};
 use Directory;
@@ -281,7 +281,7 @@ class ClassLoader {
 	private function versionRangeCompatible(string $spec): bool {
 		$parts = preg_split("/\s*,\s*/", $spec);
 		foreach ($parts as $part) {
-			if (!preg_match("/^([!=<>^]+)(.+)$/", $part, $matches)) {
+			if (!count($matches = Safe::pregMatch("/^([!=<>^]+)(.+)$/", $part))) {
 				return false;
 			}
 			if (!SemanticVersion::compareUsing(BotRunner::getVersion(false), $matches[2], $matches[1])) {
@@ -301,7 +301,7 @@ class ClassLoader {
 		} catch (FilesystemException) {
 			return true;
 		}
-		if (!preg_match("/^\s*bot_version\s*=\s*(['\"])(.+)\\1\s*$/m", $toml, $matches)) {
+		if (!count($matches = Safe::pregMatch("/^\s*bot_version\s*=\s*(['\"])(.+)\\1\s*$/m", $toml))) {
 			return true;
 		}
 		return $this->versionRangeCompatible($matches[2]);

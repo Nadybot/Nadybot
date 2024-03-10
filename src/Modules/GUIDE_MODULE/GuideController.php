@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\GUIDE_MODULE;
 
 use function Amp\ByteStream\splitLines;
-use function Safe\preg_replace;
 
 use Amp\File\{Filesystem, FilesystemException};
 use IteratorIterator;
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	CommandAlias,
 	ModuleInstance,
 	ParamClass\PFilename,
+	Safe,
 	Text,
 };
 
@@ -139,7 +139,7 @@ class GuideController extends ModuleInstance {
 		try {
 			$info = $this->fs->read($file);
 			$lines = explode("\n", $info);
-			$firstLine = preg_replace("/<header>(.+)<end>/", "$1", array_shift($lines));
+			$firstLine = Safe::pregReplace("/<header>(.+)<end>/", "$1", array_shift($lines));
 			$info = trim(implode("\n", $lines));
 			$msg = $this->text->makeBlob('Guide for "' . $firstLine . '"', $info, $firstLine);
 		} catch (FilesystemException) {

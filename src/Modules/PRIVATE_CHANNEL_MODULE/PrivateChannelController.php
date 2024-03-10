@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use function Safe\{preg_match, preg_replace};
+use function Safe\preg_match;
 use Amp\File\{Filesystem, FilesystemException};
 use AO\Package;
 use Exception;
@@ -40,6 +40,7 @@ use Nadybot\Core\{
 	Routing\Events\Online,
 	Routing\RoutableEvent,
 	Routing\Source,
+	Safe,
 	SettingManager,
 	Text,
 	UserStateEvent,
@@ -1172,7 +1173,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 		$tokens = $this->getTokensForJoinLeave($player, $whois, $altInfo);
 		$leaveMessage = $this->text->renderPlaceholders($this->privLeaveMessage, $tokens);
-		$leaveMessage = preg_replace(
+		$leaveMessage = Safe::pregReplace(
 			"/&lt;([a-z]+)&gt;/",
 			'<$1>',
 			$leaveMessage
@@ -1273,7 +1274,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		$msg = $this->welcomeMsgString;
-		if (preg_match("/^(.*)<link>(.*?)<\/link>(.*)$/", $msg, $matches)) {
+		if (count($matches = Safe::pregMatch("/^(.*)<link>(.*?)<\/link>(.*)$/", $msg))) {
 			$msg = (array)$this->text->makeBlob($matches[2], $content);
 			foreach ($msg as &$part) {
 				$part = "{$matches[1]}{$part}{$matches[3]}";
@@ -1473,7 +1474,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	protected function getLogonMessageForPlayer(?Player $whois, string $player, AltInfo $altInfo): string {
 		$tokens = $this->getTokensForJoinLeave($player, $whois, $altInfo);
 		$joinMessage = $this->text->renderPlaceholders($this->privJoinMessage, $tokens);
-		$joinMessage = preg_replace(
+		$joinMessage = Safe::pregReplace(
 			"/&lt;([a-z]+)&gt;/",
 			'<$1>',
 			$joinMessage

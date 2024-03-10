@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use function Safe\preg_replace;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionAttribute;
@@ -93,7 +92,7 @@ class TemplateSettingHandler extends SettingHandler {
 				[...array_keys($colors), "<myname>", "<end>", "<i>", "<u>", "</i>", "</u>"]
 			)
 		);
-		$newValue = preg_replace("/&lt;({$colorNames})&gt;/", '<$1>', $newValue);
+		$newValue = Safe::pregReplace("/&lt;({$colorNames})&gt;/", '<$1>', $newValue);
 		return $newValue;
 	}
 

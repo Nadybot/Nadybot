@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use Nadybot\Core\ParamClass\{PPlayfield, PTowerSite};
 use Nadybot\Core\{Attributes as NCA, CmdContext, ModuleInstance, Text};
-use Nadybot\Modules\HELPBOT_MODULE\{PlayfieldController};
+use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 
 #[
 	NCA\Instance,

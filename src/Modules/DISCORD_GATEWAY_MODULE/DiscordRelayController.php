@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Safe\preg_replace;
 use Nadybot\Core\Modules\{
 	CONFIG\SettingOption,
 };
@@ -10,6 +9,7 @@ use Nadybot\Core\Modules\{
 use Nadybot\Core\{
 	Attributes as NCA,
 	ModuleInstance,
+	Safe,
 };
 
 /**
@@ -128,14 +128,14 @@ class DiscordRelayController extends ModuleInstance {
 			"🤦" => ":facepalm:",
 			"🤷" => ":shrug:",
 		];
-		$text = preg_replace("/<:([a-z0-9]+):(\d+)>/i", ":$1:", $text);
-		$text = preg_replace("/```(.+?)```/s", "$1", $text);
-		$text = preg_replace("/`(.+?)`/s", "$1", $text);
+		$text = Safe::pregReplace("/<:([a-z0-9]+):(\d+)>/i", ":$1:", $text);
+		$text = Safe::pregReplace("/```(.+?)```/s", "$1", $text);
+		$text = Safe::pregReplace("/`(.+?)`/s", "$1", $text);
 		$text = htmlspecialchars($text);
-		$text = preg_replace("/\*\*(.+?)\*\*/s", "<highlight>$1<end>", $text);
-		$text = preg_replace("/\*(.+?)\*/s", "<i>$1</i>", $text);
-		$text = preg_replace("/\\\\-/s", "-", $text);
-		$text = preg_replace("/\[(.+?)\]\((.+?)\)/s", "<a href='chatcmd:///start $2'>$1</a>", $text);
+		$text = Safe::pregReplace("/\*\*(.+?)\*\*/s", "<highlight>$1<end>", $text);
+		$text = Safe::pregReplace("/\*(.+?)\*/s", "<i>$1</i>", $text);
+		$text = Safe::pregReplace("/\\\\-/s", "-", $text);
+		$text = Safe::pregReplace("/\[(.+?)\]\((.+?)\)/s", "<a href='chatcmd:///start $2'>$1</a>", $text);
 		$text = str_replace(
 			array_keys($smileyMapping),
 			array_values($smileyMapping),

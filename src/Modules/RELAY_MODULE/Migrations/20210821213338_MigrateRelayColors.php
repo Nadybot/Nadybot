@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
-use function Safe\preg_match;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandManager,
@@ -11,6 +10,7 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	MessageHub,
 	Routing\Source,
+	Safe,
 	SchemaMigration,
 	SettingManager,
 };
@@ -57,7 +57,7 @@ class MigrateRelayColors implements SchemaMigration {
 			if (!isset($setting) || $setting->value === "<font color='#C3C3C3'>") {
 				continue;
 			}
-			if (!preg_match("/#([A-F0-9]{6})/i", $setting->value??"", $matches)) {
+			if (!count($matches = Safe::pregMatch("/#([A-F0-9]{6})/i", $setting->value??""))) {
 				continue;
 			}
 			return $matches[1];

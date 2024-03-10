@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{date, getcwd, preg_match_all, preg_replace};
+use function Safe\{date, getcwd};
 use Amp\File\{Filesystem, FilesystemException};
 use Exception;
 use InvalidArgumentException;
@@ -91,7 +91,7 @@ class Util {
 
 		$matches = [];
 		$pattern = '/([0-9]+)([a-z]+)/';
-		preg_match_all($pattern, $budatime, $matches, PREG_SET_ORDER);
+		$matches = Safe::pregMatchOrderedAll($pattern, $budatime);
 
 		foreach ($matches as $match) {
 			switch ($match[2]) {
@@ -455,8 +455,8 @@ class Util {
 
 	/** Remove all colors from $msg */
 	public function stripColors(string $msg): string {
-		$msg = preg_replace("~<font color=#.{6}>~", "", $msg);
-		$msg = preg_replace("~</font>~", "", $msg);
+		$msg = Safe::pregReplace("~<font color=#.{6}>~", "", $msg);
+		$msg = Safe::pregReplace("~</font>~", "", $msg);
 		return $msg;
 	}
 

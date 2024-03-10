@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use function Amp\delay;
-use function Safe\{json_decode, preg_replace};
+use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DateTimeZone;
 use Nadybot\Core\{
@@ -21,11 +21,12 @@ use Nadybot\Core\{
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Text,
 	UserException,
 	Util,
 };
-use Nadybot\Modules\HELPBOT_MODULE\{PlayfieldController};
+use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Psr\Log\LoggerInterface;
 use Safe\DateTime;
 use Safe\Exceptions\JsonException;
@@ -569,7 +570,7 @@ class WorldBossController extends ModuleInstance {
 			}
 			$intTime = new DateTime('now', new DateTimeZone('UTC'));
 			$intTime->setTimestamp((time() - $timer->spawn) % (24 * 3600));
-			$spawnTimeMessage .= preg_replace("/^0h /", "", str_replace(" 0", " ", $intTime->format("G\\h i\\m"))) . " ago<end>";
+			$spawnTimeMessage .= Safe::pregReplace("/^0h /", "", str_replace(" 0", " ", $intTime->format("G\\h i\\m"))) . " ago<end>";
 			$usualSpawnInterval = self::BOSS_DATA[$timer->mob_name][self::INTERVAL2] ?? null;
 			if (isset($usualSpawnInterval)) {
 				$spawnChance = self::BOSS_DATA[$timer->mob_name][self::CHANCE] ?? null;

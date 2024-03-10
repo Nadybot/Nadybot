@@ -2,9 +2,10 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Safe\{preg_match, preg_match_all};
+use function Safe\preg_match;
 use Exception;
 use Nadybot\Core\Attributes\JSON;
+use Nadybot\Core\Safe;
 use ReflectionClass;
 use ReflectionNamedType;
 
@@ -33,11 +34,11 @@ class JsonImporter {
 			}
 			$type = substr($type, 1);
 		}
-		if (preg_match("/^([a-zA-Z_]+)\[\]$/", $type, $matches)) {
+		if (count($matches = Safe::pregMatch("/^([a-zA-Z_]+)\[\]$/", $type))) {
 			$type = "array<{$matches[1]}>";
 		}
 		try {
-			preg_match_all("/\??(array<(?R),(?:(?R)(?:\|(?R))*)>|array<(?:(?R)(?:\|(?R))*)>|[a-zA-Z_]+)/", $type, $types, PREG_OFFSET_CAPTURE);
+			$types = Safe::pregMatchOffsetAll("/\??(array<(?R),(?:(?R)(?:\|(?R))*)>|array<(?:(?R)(?:\|(?R))*)>|[a-zA-Z_]+)/", $type);
 		} catch (PcreException) {
 			throw new Exception("Illegal type definition: {$type}");
 		}
@@ -54,7 +55,7 @@ class JsonImporter {
 			if (preg_match("/^[a-zA-Z_0-9]+$/", $checkType) && is_object($value)) {
 				return true;
 			}
-			if (preg_match("/^array<([a-z]+),(.+)>$/", $checkType, $matches)) {
+			if (count($matches = Safe::pregMatch("/^array<([a-z]+),(.+)>$/", $checkType))) {
 				if (is_object($value)) {
 					$value = (array)$value;
 				}
@@ -73,8 +74,8 @@ class JsonImporter {
 					}
 				}
 			} elseif (
-				preg_match("/^([a-z]+)\[\]$/", $checkType, $matches)
-				|| preg_match("/^array<(.+)>$/", $checkType, $matches)
+				count($matches = Safe::pregMatch("/^([a-z]+)\[\]$/", $checkType))
+				|| count($matches = Safe::pregMatch("/^array<(.+)>$/", $checkType))
 			) {
 				if (is_array($value)) {
 					$match = true;
@@ -105,7 +106,7 @@ class JsonImporter {
 			$name = $nameObj->name;
 		}
 		$docComment = $refProp->getDocComment();
-		if ($docComment !== false && preg_match('/@var\s+([^\s]+)/', $docComment, $matches)) {
+		if ($docComment !== false && count($matches = Safe::pregMatch('/@var\s+([^\s]+)/', $docComment))) {
 			$type = $matches[1];
 		} else {
 			$type = $refProp->getType();
@@ -133,7 +134,7 @@ class JsonImporter {
 			return;
 		}
 		// Support string[], int[] and the likes for simple types
-		if (preg_match("/^(.+?)\[\]$/", $type, $matches) && is_array($obj->{$name})) {
+		if (count($matches = Safe::pregMatch("/^(.+?)\[\]$/", $type)) === 2 && is_array($obj->{$name})) {
 			foreach ($obj->{$name} as $value) {
 				if (!static::matchesType($matches[1], $value)) {
 					throw new Exception("Invalid type found: {$type}");

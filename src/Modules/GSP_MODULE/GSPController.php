@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\GSP_MODULE;
 
-use function Safe\{json_decode, preg_replace};
+use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use DateTimeZone;
 use Exception;
@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Text,
 	UserStateEvent,
 };
@@ -185,7 +186,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	 */
 	public function msToTime(int $milliSecs): string {
 		if ($milliSecs < 3600000) {
-			return preg_replace('/^0/', '', gmdate("i:s", (int)round($milliSecs/1000)));
+			return Safe::pregReplace('/^0/', '', gmdate("i:s", (int)round($milliSecs/1000)));
 		}
 		return gmdate("G:i:s", (int)round($milliSecs/1000));
 	}

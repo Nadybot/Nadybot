@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{ini_get, preg_replace, realpath};
+use function Safe\{ini_get, realpath};
 use Closure;
 use Exception;
 use Monolog\Processor\PsrLogMessageProcessor;
@@ -166,12 +166,12 @@ class LoggerWrapper implements LoggerInterface {
 	 */
 	public function logChat(string $channel, string|int $sender, string $message): void {
 		if (!$this->config->general->showAomlMarkup) {
-			$message = preg_replace("|<font.*?>|", "", $message);
-			$message = preg_replace("|</font>|", "", $message);
-			$message = preg_replace("|<a\\s+href=\".+?\">|s", "[link]", $message);
-			$message = preg_replace("|<a\\s+href='.+?'>|s", "[link]", $message);
-			$message = preg_replace("|<a\\s+href=.+?>|s", "[link]", $message);
-			$message = preg_replace("|</a>|", "[/link]", $message);
+			$message = Safe::pregReplace("|<font.*?>|", "", $message);
+			$message = Safe::pregReplace("|</font>|", "", $message);
+			$message = Safe::pregReplace("|<a\\s+href=\".+?\">|s", "[link]", $message);
+			$message = Safe::pregReplace("|<a\\s+href='.+?'>|s", "[link]", $message);
+			$message = Safe::pregReplace("|<a\\s+href=.+?>|s", "[link]", $message);
+			$message = Safe::pregReplace("|</a>|", "[/link]", $message);
 		}
 
 		if ($channel == "Buddy") {

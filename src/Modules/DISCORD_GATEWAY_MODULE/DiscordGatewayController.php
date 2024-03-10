@@ -4,7 +4,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use function Amp\Future\await;
 use function Amp\{async, delay};
-use function Safe\{json_decode, json_encode, preg_match, preg_replace};
+use function Safe\{json_decode, json_encode, preg_match};
 
 use Amp\File\Filesystem;
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
@@ -43,6 +43,7 @@ use Nadybot\Core\{
 	Routing\RoutableEvent,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Text,
 	Util,
 	WebsocketCallback,
@@ -595,8 +596,7 @@ class DiscordGatewayController extends ModuleInstance {
 			$name = $this->discordGatewayCommandHandler->getNameForDiscordId($member->user->id??"") ?? $name;
 		}
 
-		/** @var string */
-		$senderDisplayName = preg_replace("/([\x{0450}-\x{fffff}])/u", "", $name);
+		$senderDisplayName = Safe::pregReplace("/([\x{0450}-\x{fffff}])/u", "", $name);
 		$senderDisplayName = trim($senderDisplayName);
 		$rMessage->setCharacter(new Character($senderDisplayName));
 		$this->messageHub->handle($rMessage);
@@ -635,27 +635,27 @@ class DiscordGatewayController extends ModuleInstance {
 
 	/** Recursively resolve all mentions in $message and then return it */
 	public function resolveDiscordMentions(?string $guildId, string $message): string {
-		while (preg_match("/(?:<|&lt;)@!?(\d+)(?:>|&gt;)/", $message, $matches)) {
+		while (count($matches = Safe::pregMatch("/(?:<|&lt;)@!?(\d+)(?:>|&gt;)/", $message))) {
 			if (!isset($matches[1])) {
 				return $message;
 			}
 			$niceName = $this->discordGatewayCommandHandler->getNameForDiscordId($matches[1]);
 			if (isset($niceName)) {
 				/** @var string */
-				$message = preg_replace("/(?:<|&lt;)@!?" . preg_quote($matches[1], "/") . "(?:>|&gt;)/", "@{$niceName}", $message);
+				$message = Safe::pregReplace("/(?:<|&lt;)@!?" . preg_quote($matches[1], "/") . "(?:>|&gt;)/", "@{$niceName}", $message);
 				continue;
 			}
 			if (isset($guildId)) {
 				$member = $this->discordAPIClient->getGuildMember($guildId, $matches[1]);
 
 				/** @var string */
-				$message = preg_replace("/(?:<|&lt;)@!?" . ($member->user->id??"") . "(?:>|&gt;)/", "@" . $member->getName(), $message);
+				$message = Safe::pregReplace("/(?:<|&lt;)@!?" . ($member->user->id??"") . "(?:>|&gt;)/", "@" . $member->getName(), $message);
 				continue;
 			}
 			$user = $this->discordAPIClient->getUser($matches[1]);
 
 			/** @var string */
-			$message = preg_replace("/(?:<|&lt;)@!?" . $user->id . "(?:>|&gt;)/", "@{$user->username}", $message);
+			$message = Safe::pregReplace("/(?:<|&lt;)@!?" . $user->id . "(?:>|&gt;)/", "@{$user->username}", $message);
 		}
 		return $message;
 	}

@@ -2,7 +2,8 @@
 
 namespace Nadybot\Core\ParamClass;
 
-use function Safe\preg_match;
+use InvalidArgumentException;
+use Nadybot\Core\Safe;
 
 class PColor extends Base {
 	protected static string $regExp = "(?:<font\s+color\s*=\s*['\"]?)?#?[a-fA-F0-9]{6}(?:['\"]?[^>]*>)?";
@@ -18,7 +19,9 @@ class PColor extends Base {
 	protected string $html;
 
 	public function __construct(string $value) {
-		preg_match("/([a-fA-F0-9]{6})/", $value, $matches);
+		if (!count($matches = Safe::pregMatch("/([a-fA-F0-9]{6})/", $value))) {
+			throw new InvalidArgumentException(__CLASS__ . "() accepts only colors");
+		}
 		$this->value = $this->code = strtoupper($matches[1]);
 		$this->hex = "#{$this->code}";
 		$this->html = "<font color={$this->hex}>";

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
-use function Safe\{json_decode, json_encode, preg_match, preg_replace};
+use function Safe\{json_decode, json_encode};
 
 use Amp\File\{Filesystem, FilesystemException};
 use Exception;
@@ -31,6 +31,7 @@ use Nadybot\Core\{
 	ParamClass\PFilename,
 	ParamClass\PRemove,
 	Routing\Source,
+	Safe,
 	SettingManager,
 	SubcommandManager,
 	Text,
@@ -179,8 +180,8 @@ class ProfileController extends ModuleInstance {
 			return;
 		}
 		$blob = htmlspecialchars($this->fs->read($filename));
-		$blob = preg_replace("/^([^#])/m", "<tab>$1", $blob);
-		$blob = preg_replace("/^# (.+)$/m", "<header2>$1<end>", $blob);
+		$blob = Safe::pregReplace("/^([^#])/m", "<tab>$1", $blob);
+		$blob = Safe::pregReplace("/^# (.+)$/m", "<header2>$1<end>", $blob);
 
 		/** @var string $blob */
 		$msg = $this->text->makeBlob("Profile {$profileName}", $blob);
@@ -211,7 +212,7 @@ class ProfileController extends ModuleInstance {
 		$contents = "# Permission maps\n";
 		$sets = $this->commandManager->getExtPermissionSets();
 		$setData = json_encode($sets, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-		$setData = preg_replace("/\"id\":\d+,/", "", $setData);
+		$setData = Safe::pregReplace("/\"id\":\d+,/", "", $setData);
 
 		/** @var string $setData */
 		$contents .= "!permissions {$setData}\n";
@@ -376,7 +377,7 @@ class ProfileController extends ModuleInstance {
 						$numSkipped++;
 						continue;
 					}
-				} elseif (preg_match("/^!config (cmd|subcmd) (.+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
+				} elseif (count($parts = Safe::pregMatch("/^!config (cmd|subcmd) (.+) (enable|disable) ([^ ]+)$/", $line))) {
 					$exists = $this->db->table(CommandManager::DB_TABLE_PERMS)
 						->where("cmd", $parts[2])
 						->where("permission_set", $parts[4])
@@ -386,7 +387,7 @@ class ProfileController extends ModuleInstance {
 						$numSkipped++;
 						continue;
 					}
-				} elseif (preg_match("/^!config (cmd|subcmd) (.+) admin ([^ ]+) ([^ ]+)$/", $line, $parts)) {
+				} elseif (count($parts = Safe::pregMatch("/^!config (cmd|subcmd) (.+) admin ([^ ]+) ([^ ]+)$/", $line))) {
 					$exists = $this->db->table(CommandManager::DB_TABLE_PERMS)
 						->where("cmd", $parts[2])
 						->where("permission_set", $parts[3])
@@ -396,7 +397,7 @@ class ProfileController extends ModuleInstance {
 						$numSkipped++;
 						continue;
 					}
-				} elseif (preg_match("/^!config event (.+) ([^ ]+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
+				} elseif (count($parts = Safe::pregMatch("/^!config event (.+) ([^ ]+) (enable|disable) ([^ ]+)$/", $line))) {
 					$exists = $this->db->table(EventManager::DB_TABLE)
 						->where("type", $parts[1])
 						->where("file", $parts[2])
@@ -409,7 +410,7 @@ class ProfileController extends ModuleInstance {
 				} elseif (substr($line, 0, 11) === "!alias rem ") {
 					/** @psalm-suppress PossiblyUndefinedArrayOffset */
 					$alias = explode(" ", $line, 3)[2];
-					if (preg_match("/^!alias add \Q{$alias}\E (.+)$/", $lines[$profileRow+1], $parts)) {
+					if (count($parts = Safe::pregMatch("/^!alias add \Q{$alias}\E (.+)$/", $lines[$profileRow+1]))) {
 						/** @var ?CmdAlias $data */
 						$data = $this->db->table(CommandAlias::DB_TABLE)
 							->where("status", 1)
@@ -428,7 +429,7 @@ class ProfileController extends ModuleInstance {
 						}
 					}
 				}
-				if (preg_match("/^!permissions (.+)$/", $line, $matches)) {
+				if (count($matches = Safe::pregMatch("/^!permissions (.+)$/", $line))) {
 					$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
 					$this->loadPermissions($matches[1], $profileSendTo);
 					$profileSendTo->reply("");

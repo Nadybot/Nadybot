@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use function Safe\{preg_match, preg_replace};
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Registry,
+	Safe,
 	SubcommandManager,
 	Text,
 	Util,
@@ -175,9 +175,9 @@ class DevController extends ModuleInstance {
 		foreach ($regexes as $command => $list) {
 			$blob .= "<header2>{$command}<end>";
 			foreach ($list as $regex) {
-				if (preg_match("/^(.)(.+?)\\1([a-z]*)$/", $regex->match, $matches)) {
+				if (count($matches = Safe::pregMatch("/^(.)(.+?)\\1([a-z]*)$/", $regex->match))) {
 					$regex->match = "(?{$matches[3]})  {$matches[2]}";
-					$regex->match = preg_replace("/\(\?<.+?>/", "(", $regex->match);
+					$regex->match = Safe::pregReplace("/\(\?<.+?>/", "(", $regex->match);
 				}
 				$blob .= "\n<tab>" . htmlspecialchars($regex->match);
 			}

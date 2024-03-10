@@ -3,7 +3,6 @@
 namespace Nadybot\Core\Channels;
 
 use function Amp\async;
-use function Safe\preg_replace;
 
 use Nadybot\Core\{
 	AccessManager,
@@ -16,6 +15,7 @@ use Nadybot\Core\{
 	Routing\Events\Online,
 	Routing\RoutableEvent,
 	Routing\Source,
+	Safe,
 	SettingManager,
 	Text,
 };
@@ -71,8 +71,8 @@ class DiscordMsg implements MessageReceiver {
 			$pathText = $this->messageHub->renderPath($event, $this->getChannelName());
 		}
 		if (isset($event->char)) {
-			$pathText = preg_replace("/<a\s[^>]*href=['\"]?user.*?>(.+)<\/a>/s", '<highlight>$1<end>', $pathText);
-			$pathText = preg_replace("/(\s)([^:\s]+): $/s", '$1<highlight>$2<end>: ', $pathText);
+			$pathText = Safe::pregReplace("/<a\s[^>]*href=['\"]?user.*?>(.+)<\/a>/s", '<highlight>$1<end>', $pathText);
+			$pathText = Safe::pregReplace("/(\s)([^:\s]+): $/s", '$1<highlight>$2<end>: ', $pathText);
 		}
 		$message = $pathText.$msg;
 		$guild = array_values($this->discordGatewayController->getGuilds())[0] ?? null;

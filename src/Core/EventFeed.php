@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 use function Amp\{async, delay};
-use function Safe\{json_decode};
+use function Safe\json_decode;
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;

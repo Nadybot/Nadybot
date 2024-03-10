@@ -2,11 +2,12 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Safe\{base64_decode, date, json_decode, openssl_verify, preg_replace};
+use function Safe\{base64_decode, date, json_decode, openssl_verify};
 use DateTime;
 use DomainException;
 use Exception;
 use InvalidArgumentException;
+use Nadybot\Core\Safe;
 use Nadybot\Modules\WEBSERVER_MODULE\JWT\{BeforeValidException, ExpiredException, SignatureInvalidException};
 use Safe\Exceptions\{DatetimeException, UrlException};
 use stdClass;
@@ -142,7 +143,7 @@ class JWT {
 			$obj = json_decode($input, false, 512, JSON_BIGINT_AS_STRING);
 		} else {
 			$max_int_length = strlen((string)PHP_INT_MAX) - 1;
-			$json_without_bigints = preg_replace('/:\s*(-?\d{' . $max_int_length . ',})/', ': "$1"', $input);
+			$json_without_bigints = Safe::pregReplace('/:\s*(-?\d{' . $max_int_length . ',})/', ': "$1"', $input);
 			$obj = json_decode($json_without_bigints);
 		}
 

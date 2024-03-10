@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
 	ParamClass\PFilename,
+	Safe,
 	SettingManager,
 	Util,
 };
@@ -337,13 +338,13 @@ class ImportController extends ModuleInstance {
 							"adminlevel" => $adminLevel,
 						]);
 					$this->adminManager->admins[$name] = ["level" => $adminLevel];
-				} elseif (preg_match("/^raid_leader_([123])/", $newRank, $matches)) {
+				} elseif (count($matches = Safe::pregMatch("/^raid_leader_([123])/", $newRank))) {
 					$this->db->table(RaidRankController::DB_TABLE)
 						->insert([
 							"name" => $name,
 							"rank" => (int)$matches[1] + 3,
 						]);
-				} elseif (preg_match("/^raid_admin_([123])/", $newRank, $matches)) {
+				} elseif (count($matches = Safe::pregMatch("/^raid_admin_([123])/", $newRank))) {
 					$this->db->table(RaidRankController::DB_TABLE)
 						->insert([
 							"name" => $name,

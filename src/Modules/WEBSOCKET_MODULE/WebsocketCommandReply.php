@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
-use function Safe\preg_match;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -14,6 +13,7 @@ use Nadybot\Core\{
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	SettingManager,
 };
 
@@ -84,7 +84,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 			} else {
 				$xmlMessage->path[0]->color = "";
 			}
-			if (preg_match("/#([A-Fa-f0-9]{6})/", $this->settingManager->getString("default_routed_sys_color")??"<font>", $matches)) {
+			if (count($matches = Safe::pregMatch("/#([A-Fa-f0-9]{6})/", $this->settingManager->getString("default_routed_sys_color")??"<font>"))) {
 				$xmlMessage->color = $matches[1];
 			}
 			$this->eventManager->fireEvent($xmlMessage);

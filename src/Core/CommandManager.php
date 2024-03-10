@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{preg_match, preg_match_all, preg_replace, preg_split};
+use function Safe\{preg_match_all, preg_split};
 use Exception;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -1036,7 +1036,7 @@ class CommandManager implements MessageEmitter {
 						$niceParam = "[{$niceParam}]";
 					}
 					if ($params[$i]->isVariadic()) {
-						$parMask = str_replace("&gt;", "%d&gt;", preg_replace("/s\b/", "", preg_replace("/ies\b/", "y", $niceParam)));
+						$parMask = str_replace("&gt;", "%d&gt;", Safe::pregReplace("/s\b/", "", Safe::pregReplace("/ies\b/", "y", $niceParam)));
 						$ones = array_fill(0, substr_count($parMask, "%d"), 1);
 						$twos = array_fill(0, substr_count($parMask, "%d"), 2);
 						$niceParam = sprintf($parMask, ...$ones) . " " . sprintf($parMask, ...$twos) . " ...";
@@ -1134,7 +1134,7 @@ class CommandManager implements MessageEmitter {
 			return true;
 		}
 		foreach ($regexes as $regex) {
-			if (preg_match($regex->match, $message, $arr) && is_array($arr)) {
+			if (count($arr = Safe::pregMatch($regex->match, $message))) {
 				if (isset($regex->variadicMatch) && strlen($regex->variadicMatch)) {
 					/** @psalm-suppress RiskyTruthyFalsyComparison */
 					if (preg_match_all($regex->variadicMatch, $message, $arr2) && is_array($arr2)) {
@@ -1492,9 +1492,9 @@ class CommandManager implements MessageEmitter {
 	 * @phpstan-return array{string, ?string}
 	 */
 	protected function cleanComment(string $comment): array {
-		$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
-		$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
-		$comment = trim(preg_replace("/^@.*/m", '', $comment));
+		$comment = trim(Safe::pregReplace("|^/\*\*(.*)\*/|s", '$1', $comment));
+		$comment = Safe::pregReplace("/^[ \t]*\*[ \t]*/m", '', $comment);
+		$comment = trim(Safe::pregReplace("/^@.*/m", '', $comment));
 
 		/** @phpstan-var array{string, ?string} */
 		$result = preg_split("/\r?\n\r?\n/", $comment, 2);

@@ -2,13 +2,13 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use function Safe\{preg_match_all, preg_replace};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
+	Safe,
 	Text,
 };
 
@@ -174,16 +174,16 @@ class HelpbotController extends ModuleInstance {
 			$calc = "\$result = {$calc};";
 			eval($calc);
 
-			$result = preg_replace("/\.?0+$/", "", number_format(round($result, 4), 4));
+			$result = Safe::pregReplace("/\.?0+$/", "", number_format(round($result, 4), 4));
 			$result = str_replace(",", "<end>,<highlight>", $result);
 		} catch (ParseError $e) {
 			$context->reply("Cannot compute.");
 			return;
 		}
-		preg_match_all("{(\d*\.?\d+|[+%()/^-]|\*+)}", $formula, $matches);
+		$matches = Safe::pregMatchAll("{(\d*\.?\d+|[+%()/^-]|\*+)}", $formula);
 		$expression = join(" ", $matches[1]);
 		$expression = str_replace(["* *", "( ", " )", "*"], ["^", "(", ")", "×"], $expression);
-		$expression = preg_replace("/(\d+)/", "<cyan>$1<end>", $expression);
+		$expression = Safe::pregReplace("/(\d+)/", "<cyan>$1<end>", $expression);
 
 		$msg ="{$expression} = <highlight>{$result}<end>";
 		$context->reply($msg);

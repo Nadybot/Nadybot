@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use function Amp\async;
-use function Safe\{preg_match, preg_replace};
+use function Safe\preg_match;
 use Closure;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	Routing\RoutableEvent,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	SettingManager,
 	Text,
 	Util,
@@ -160,8 +161,8 @@ class GcrProtocol implements RelayProtocolInterface {
 		}
 		$data = array_shift($message->packages);
 		$command = preg_quote($this->command, "/");
-		if (!preg_match("/^.?{$command} (.+)/s", $data, $matches)) {
-			if (preg_match("/^.?{$command}c (.+)/s", $data, $matches)) {
+		if (!count($matches = Safe::pregMatch("/^.?{$command} (.+)/s", $data))) {
+			if (count($matches = Safe::pregMatch("/^.?{$command}c (.+)/s", $data))) {
 				return $this->handleOnlineCommands($message->sender, $matches[1]);
 			}
 			return null;
@@ -171,7 +172,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		}
 		$data = $matches[1];
 		$r = new RoutableMessage($data);
-		while (preg_match("/^\s*\[##relay_channel##(.*?)##end##\]\s*/s", $data, $matches)) {
+		while (count($matches = Safe::pregMatch("/^\s*\[##relay_channel##(.*?)##end##\]\s*/s", $data))) {
 			if (preg_match("/ Guest$/", $matches[1])) {
 				$source = new Source(
 					Source::ORG,
@@ -193,9 +194,9 @@ class GcrProtocol implements RelayProtocolInterface {
 				);
 				$r->appendPath($source);
 			}
-			$data = preg_replace("/^\s*\[##relay_channel##(.*?)##end##\]\s*/s", "", $data);
+			$data = Safe::pregReplace("/^\s*\[##relay_channel##(.*?)##end##\]\s*/s", "", $data);
 		}
-		while (preg_match("/^\s*##relay_channel##\[(.*?)\]##end##\s*/s", $data, $matches)) {
+		while (count($matches = Safe::pregMatch("/^\s*##relay_channel##\[(.*?)\]##end##\s*/s", $data))) {
 			if (preg_match("/ Guest$/", $matches[1])) {
 				$source = new Source(
 					Source::ORG,
@@ -217,20 +218,20 @@ class GcrProtocol implements RelayProtocolInterface {
 				);
 				$r->appendPath($source);
 			}
-			$data = preg_replace("/^\s*##relay_channel##\[(.*?)\]##end##\s*/s", "", $data);
+			$data = Safe::pregReplace("/^\s*##relay_channel##\[(.*?)\]##end##\s*/s", "", $data);
 		}
-		if (preg_match("/\s*##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##\s*/s", $data, $matches)) {
+		if (count($matches = Safe::pregMatch("/\s*##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##\s*/s", $data))) {
 			$r->setCharacter(new Character($matches[1]));
-			$data = preg_replace("/\s*##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##\s*/", "", $data);
+			$data = Safe::pregReplace("/\s*##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##\s*/", "", $data);
 		}
-		if (preg_match("/\s*##relay_message##(.*)##end##$/s", $data, $matches)) {
+		if (count($matches = Safe::pregMatch("/\s*##relay_message##(.*)##end##$/s", $data))) {
 			$r->setData($this->replaceBeBotColors($matches[1]));
 		}
 		return $r;
 	}
 
 	public function handleLogonSpam(?string $sender, string $text): ?RoutableEvent {
-		if (!preg_match("/##logon_log(off|on)_spam##(.+)##end##$/s", $text, $matches)) {
+		if (!count($matches = Safe::pregMatch("/##logon_log(off|on)_spam##(.+)##end##$/s", $text))) {
 			return null;
 		}
 		$r = new RoutableEvent();
@@ -248,7 +249,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		if (!isset($sender) || !$this->syncOnline) {
 			return null;
 		}
-		if (preg_match("/^buddy (?<status>\d) (?<char>.+?) (?<where>[^ ]+)( \d+)?$/", $text, $matches)) {
+		if (count($matches = Safe::pregMatch("/^buddy (?<status>\d) (?<char>.+?) (?<where>[^ ]+)( \d+)?$/", $text))) {
 			$callback = ($matches['status'] === '1')
 				? Closure::fromCallable([$this->relay, "setOnline"])
 				: Closure::fromCallable([$this->relay, "setOffline"]);
@@ -264,7 +265,7 @@ class GcrProtocol implements RelayProtocolInterface {
 						: "{$player->name}";
 				$callback($player->name, $channel, $matches['char']);
 			});
-		} elseif (preg_match("/^online (.+)$/", $text, $matches)) {
+		} elseif (count($matches = Safe::pregMatch("/^online (.+)$/", $text))) {
 			async(function () use ($matches, $sender): void {
 				$player = $this->playerManager->byName($sender);
 				if (!isset($player)) {
@@ -289,7 +290,7 @@ class GcrProtocol implements RelayProtocolInterface {
 					);
 				}
 			});
-		} elseif (preg_match("/^onlinereq$/", $text, $matches)) {
+		} elseif (count($matches = Safe::pregMatch("/^onlinereq$/", $text))) {
 			$onlineList = $this->getOnlineList();
 			if (isset($onlineList)) {
 				$data = $this->getOnlineList();
@@ -369,7 +370,7 @@ class GcrProtocol implements RelayProtocolInterface {
 			"neutral"      => "#FFFFFF",
 		];
 		$hlColor = $this->settingManager->getString('default_highlight_color') ?? "";
-		if (preg_match("/(#[A-F0-9]{6})/i", $hlColor, $matches)) {
+		if (count($matches = Safe::pregMatch("/(#[A-F0-9]{6})/i", $hlColor))) {
 			$colors["highlight"] = $matches[1];
 		}
 

@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
-use function Safe\{glob, preg_match, realpath, tmpfile};
+use function Safe\{glob, realpath, tmpfile};
 use Amp\ByteStream\WritableResourceStream;
 use Amp\File\{Filesystem, FilesystemException as FileFilesystemException};
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
@@ -20,6 +20,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	Routing\Source,
+	Safe,
 	SettingManager,
 	UserException,
 };
@@ -74,7 +75,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Setup]
 	public function setup(): void {
 		$uiBranches = ["off", "stable", "unstable"];
-		if (preg_match("/@(?<branch>.+)$/", BotRunner::getVersion(), $matches)) {
+		if (count($matches = Safe::pregMatch("/@(?<branch>.+)$/", BotRunner::getVersion()))) {
 			if (!in_array($matches['branch'], $uiBranches)) {
 				$uiBranches []= $matches['branch'];
 			}

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use function Safe\preg_replace;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -17,6 +16,7 @@ use Nadybot\Core\{
 	ParamClass\PDuration,
 	PrivateChannelCommandReply,
 	QueueInterface,
+	Safe,
 	Text,
 	Util,
 };
@@ -180,7 +180,7 @@ class RaffleController extends ModuleInstance {
 		$maybeDuration = explode(" ", $raffleString)[0];
 		if (($raffleTime = $this->util->parseTime($maybeDuration)) > 0) {
 			$duration = $raffleTime;
-			$raffleString = preg_replace("/^.+? /", "", $raffleString);
+			$raffleString = Safe::pregReplace("/^.+? /", "", $raffleString);
 		}
 		$this->raffle = new Raffle();
 		$this->raffle->fromString($raffleString);
@@ -239,7 +239,7 @@ class RaffleController extends ModuleInstance {
 		$maybeDuration = explode(" ", $raffleString)[0];
 		if (($raffleTime = $this->util->parseTime($maybeDuration)) > 0) {
 			$duration = $raffleTime;
-			$raffleString = preg_replace("/^.+? /", "", $raffleString);
+			$raffleString = Safe::pregReplace("/^.+? /", "", $raffleString);
 		}
 		$raffle = new Raffle();
 		$raffle->fromString($raffleString);

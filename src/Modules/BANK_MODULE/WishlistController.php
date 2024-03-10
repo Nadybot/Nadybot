@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
-use function Safe\{preg_replace, preg_split};
+use function Safe\preg_split;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\ParamClass\{PCharacter, PDuration, PQuantity, PRemove};
@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	QueryBuilder,
+	Safe,
 	Text,
 	UserException,
 	UserStateEvent,
@@ -817,8 +818,7 @@ class WishlistController extends ModuleInstance {
 	}
 
 	private function fixItemLinks(string $item): string {
-		/** @var string */
-		$item = preg_replace('|"(itemref://\d+/\d+/\d+)"|', '$1', $item);
+		$item = Safe::pregReplace('|"(itemref://\d+/\d+/\d+)"|', '$1', $item);
 		return $item;
 	}
 

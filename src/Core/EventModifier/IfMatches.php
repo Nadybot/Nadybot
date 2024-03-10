@@ -2,13 +2,14 @@
 
 namespace Nadybot\Core\EventModifier;
 
-use function Safe\{preg_match, preg_replace};
+use function Safe\preg_match;
 use Exception;
 
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventModifier,
 	Routing\RoutableEvent,
+	Safe,
 };
 
 #[
@@ -61,7 +62,7 @@ class IfMatches implements EventModifier {
 		// @phpstan-ignore-next-line
 			if ($isRegexp && @\preg_match(chr(1) . $match . chr(1) . "si", "") === false) {
 				$error = error_get_last()["message"] ?? "Unknown error";
-				$error = preg_replace("/^preg_match\(\): (Compilation failed: )?/", "", $error);
+				$error = Safe::pregReplace("/^preg_match\(\): (Compilation failed: )?/", "", $error);
 				throw new Exception("Invalid regular expression '{$match}': {$error}.");
 			}
 		}

@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use function Amp\ByteStream\getStderr;
 use function Amp\File\{createDefaultDriver, filesystem};
-use function Safe\{fclose, fwrite, getopt, ini_set, json_encode, parse_url, preg_replace, putenv, realpath, sapi_windows_set_ctrl_handler, stream_get_contents, system};
+use function Safe\{fclose, fwrite, getopt, ini_set, json_encode, parse_url, putenv, realpath, sapi_windows_set_ctrl_handler, stream_get_contents, system};
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
 use Amp\File\{Filesystem, FilesystemDriver};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
@@ -76,7 +76,7 @@ class BotRunner {
 			static::$calculatedVersion = static::calculateVersion();
 		}
 		if (!$withBranch) {
-			return preg_replace("/@.+/", "", static::$calculatedVersion);
+			return Safe::pregReplace("/@.+/", "", static::$calculatedVersion);
 		}
 		return static::$calculatedVersion;
 	}
@@ -462,6 +462,7 @@ class BotRunner {
 
 	private function parseOptions(): void {
 		try {
+			/** @var array<string,mixed> $options */
 			$options = getopt(
 				"c:v",
 				[
@@ -474,6 +475,8 @@ class BotRunner {
 				],
 				$restPos
 			);
+
+			/** @var int $restPos */
 		} catch (InfoException $e) {
 			getStderr()->write(
 				"Unable to parse arguments passed to the bot: " . $e->getMessage()

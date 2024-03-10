@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
 use function Amp\async;
-use function Safe\{preg_match, preg_replace};
+use function Safe\preg_match;
 use AO\Package;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -22,6 +22,7 @@ use Nadybot\Core\{
 	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	StopExecutionException,
 	Text,
 	UserStateEvent,
@@ -232,7 +233,7 @@ class TradebotController extends ModuleInstance {
 
 	/** Relay incoming tell-messages of tradebots to org/priv chat, so we can see errors */
 	public function processIncomingTradebotMessage(string $sender, string $message): void {
-		$baseSender = preg_replace("/\d+$/", "", $sender);
+		$baseSender = Safe::pregReplace("/\d+$/", "", $sender);
 		$ignorePattern = self::BOT_DATA[$baseSender]['ignore'] ?? [];
 		$strippedMessage = strip_tags($message);
 		foreach ($ignorePattern as $ignore) {
@@ -250,7 +251,7 @@ class TradebotController extends ModuleInstance {
 	public function processIncomingTradeMessage(string $sender, string $message): void {
 		// Only relay messages starting with something in square brackets
 		$match = self::BOT_DATA[$sender]["match"];
-		if (!preg_match($match, strip_tags($message), $matches)
+		if (!count($matches = Safe::pregMatch($match, strip_tags($message)))
 			|| !$this->isSubscribedTo($matches[1])) {
 			return;
 		}
@@ -443,13 +444,13 @@ class TradebotController extends ModuleInstance {
 	}
 
 	protected function colorizeMessage(string $tradeBot, string $message): string {
-		if (!preg_match("/^.*?\[(.+?)\](.+)$/s", $message, $matches)) {
+		if (!count($matches = Safe::pregMatch("/^.*?\[(.+?)\](.+)$/s", $message))) {
 			return $message;
 		}
 		$tag = strip_tags($matches[1]);
 
 		/** @var string */
-		$text = preg_replace("/^(\s|<\/?font.*?>)*/s", "", $matches[2]);
+		$text = Safe::pregReplace("/^(\s|<\/?font.*?>)*/s", "", $matches[2]);
 		$textColor = $this->tradebotTextColor;
 		$tagColor = $this->getTagColor($tradeBot, $tag);
 		$tagColor = isset($tagColor) ? "<font color='#{$tagColor->color}'>" : "";
@@ -472,7 +473,7 @@ class TradebotController extends ModuleInstance {
 	}
 
 	protected function addCommentsToMessage(string $message): string {
-		if (!preg_match("/<a\s+href\s*=\s*['\"]?user:\/\/([A-Z][a-z0-9-]+)/i", $message, $match)) {
+		if (!count($match = Safe::pregMatch("/<a\s+href\s*=\s*['\"]?user:\/\/([A-Z][a-z0-9-]+)/i", $message))) {
 			return $message;
 		}
 		$numComments = $this->commentController->countComments(null, $match[1]);

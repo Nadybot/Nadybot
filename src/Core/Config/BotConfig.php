@@ -2,11 +2,11 @@
 
 namespace Nadybot\Core\Config;
 
-use function Safe\{json_decode};
+use function Safe\json_decode;
 
 use Amp\File\Filesystem;
 use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, ObjectMapperUsingReflection};
-use Nadybot\Core\Attributes\{Instance};
+use Nadybot\Core\Attributes\Instance;
 use Nadylib\IMEX;
 
 /**

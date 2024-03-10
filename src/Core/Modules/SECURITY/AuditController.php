@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\SECURITY;
 
-use function Safe\{preg_replace, preg_split, strtotime};
+use function Safe\{preg_split, strtotime};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	DBSchema\Audit,
 	ModuleInstance,
 	QueryBuilder,
+	Safe,
 	Text,
 };
 
@@ -170,7 +171,7 @@ class AuditController extends ModuleInstance {
 		$keys = [
 			"limit", "offset", "before", "after", "actor", "actee", "action",
 		];
-		$args = preg_replace("/,?\s+(" . join("|", $keys) . ")\s*=?\s*/s", "&$1=", $args);
+		$args = Safe::pregReplace("/,?\s+(" . join("|", $keys) . ")\s*=?\s*/s", "&$1=", $args);
 		parse_str($args, $params);
 		$params["limit"] ??= "50";
 		$limit = $params["limit"];

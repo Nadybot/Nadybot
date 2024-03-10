@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\DISCORD;
 
 use function Amp\{async, delay};
-use function Safe\{json_decode, json_encode, preg_replace};
+use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\Http\Client\{BufferedContent, HttpClient, HttpClientBuilder, Request};
 use Exception;
@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	HttpRetryRateLimits,
 	JSONDataModel,
 	ModuleInstance,
+	Safe,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{ApplicationCommand, Emoji, GuildMember};
 use Psr\Log\LoggerInterface;
@@ -60,9 +61,9 @@ class DiscordAPIClient extends ModuleInstance {
 	 */
 	public static function encode(mixed $data): string {
 		$data = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
-		$data = preg_replace('/,"[^"]+":null/', '', $data);
-		$data = preg_replace('/"[^"]+":null,/', '', $data);
-		$data = preg_replace('/"[^"]+":null/', '', $data);
+		$data = Safe::pregReplace('/,"[^"]+":null/', '', $data);
+		$data = Safe::pregReplace('/"[^"]+":null,/', '', $data);
+		$data = Safe::pregReplace('/"[^"]+":null/', '', $data);
 		return $data;
 	}
 

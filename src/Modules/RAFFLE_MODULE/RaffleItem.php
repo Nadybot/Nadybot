@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use function Safe\{preg_match, preg_match_all, preg_replace};
-use Nadybot\Core\Registry;
+use function Safe\preg_match_all;
+use Nadybot\Core\{Registry, Safe};
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 use Nadybot\Modules\SPIRITS_MODULE\SpiritsController;
@@ -13,13 +13,13 @@ class RaffleItem {
 	public string $item;
 
 	public function fromString(string $text): void {
-		if (preg_match("/^(?<count>\d+)x?\s*[^\/\d]/", $text, $matches)) {
+		if (count($matches = Safe::pregMatch("/^(?<count>\d+)x?\s*[^\/\d]/", $text))) {
 			$this->amount = (int)$matches['count'];
-			$text = preg_replace("/^(\d+)x?\s*/", "", $text);
+			$text = Safe::pregReplace("/^(\d+)x?\s*/", "", $text);
 		}
 
 		/** @var string */
-		$text = preg_replace("/['\"](itemref:\/\/\d+\/\d+\/\d+)['\"]/", "$1", $text);
+		$text = Safe::pregReplace("/['\"](itemref:\/\/\d+\/\d+\/\d+)['\"]/", "$1", $text);
 		$this->item = $text;
 	}
 
@@ -54,7 +54,7 @@ class RaffleItem {
 				}
 				if (isset($ql)) {
 					/** @var string */
-					$item = preg_replace("/(<a [^>]*?".preg_quote($matches[0][$i], "/")."\E.*?>)/", "QL{$ql} $1", $item);
+					$item = Safe::pregReplace("/(<a [^>]*?".preg_quote($matches[0][$i], "/")."\E.*?>)/", "QL{$ql} $1", $item);
 				}
 			}
 		}

@@ -4,7 +4,6 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use function Amp\Future\await;
 use function Amp\{async, delay};
-use function Safe\preg_match_all;
 
 use Amp\File\Filesystem;
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
@@ -21,6 +20,7 @@ use Nadybot\Core\{
 	Event,
 	ModuleInstance,
 	SQLException,
+	Safe,
 	Text,
 	UserException,
 };
@@ -174,7 +174,7 @@ class FindOrgController extends ModuleInstance {
 			'<td align="left" class="dim">RK\d+</td>\s*'.
 			'</tr>@s';
 
-		preg_match_all($pattern, $body, $arr, PREG_SET_ORDER);
+		$arr = Safe::pregMatchOrderedAll($pattern, $body);
 		$this->logger->info("Updating orgs starting with {letter}", ["letter" => $letter]);
 		$inserts = [];
 		foreach ($arr as $match) {

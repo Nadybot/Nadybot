@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use function Safe\preg_match;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -11,6 +10,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	ParamClass\PWord,
+	Safe,
 	Text,
 	Util,
 };
@@ -201,7 +201,7 @@ class SymbiantController extends ModuleInstance {
 						$name =  "QL{$symb->QL}";
 						if ($symb->Unit === 'Special') {
 							$name = $symb->Name;
-						} elseif (preg_match("/\b(Alpha|Beta)$/", $symb->Name, $matches)) {
+						} elseif (count($matches = Safe::pregMatch("/\b(Alpha|Beta)$/", $symb->Name)) === 2) {
 							$name = $matches[1];
 						}
 						return $this->text->makeItem($symb->ID, $symb->ID, $symb->QL, $name);

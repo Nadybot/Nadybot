@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Amp\{delay};
+use function Amp\delay;
 use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, Request, Response, SocketException};
 use Amp\Http\Http2\Http2ConnectionException as Http2Http2ConnectionException;
 use Amp\{Cancellation, ForbidCloning as AmpForbidCloning, ForbidSerialization as AmpForbidSerialization};

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use function Amp\{delay};
+use function Amp\delay;
 use Nadybot\Core\Modules\ALTS\{AltEvent, AltsController};
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 

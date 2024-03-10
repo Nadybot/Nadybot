@@ -4,12 +4,12 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 // pf, site
 
-use function Safe\{glob, preg_replace};
+use function Safe\glob;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, MessageHub, ModuleInstance, Text, UserException, Util};
+use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, MessageHub, ModuleInstance, Safe, Text, UserException, Util};
 use Nadybot\Modules\PVP_MODULE\Attributes\Argument;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 use Nadybot\Modules\PVP_MODULE\Handlers\Base;
@@ -280,7 +280,7 @@ class SiteTrackerController extends ModuleInstance {
 			->sortBy("site_id")
 			->sortBy("playfield_id");
 		$blob = $this->nwCtrl->renderHotSites(...$sites->toArray());
-		$expression = preg_replace('/\s+'.join('\s+', array_map('preg_quote', $tracker->events)).'$/', '', $tracker->expression);
+		$expression = Safe::pregReplace('/\s+'.join('\s+', array_map('preg_quote', $tracker->events)).'$/', '', $tracker->expression);
 		$msg = $this->text->makeBlob(
 			"Sites matching tracker '{$expression}' (" . $sites->count() . ")",
 			$blob
@@ -369,7 +369,7 @@ class SiteTrackerController extends ModuleInstance {
 	}
 
 	private function renderTracker(TrackerEntry $tracker): string {
-		$expression = preg_replace('/\s+'.join('\s+', array_map('preg_quote', $tracker->events)).'$/', '', $tracker->expression);
+		$expression = Safe::pregReplace('/\s+'.join('\s+', array_map('preg_quote', $tracker->events)).'$/', '', $tracker->expression);
 		$showSitesLink = $this->text->makeChatcmd(
 			"show",
 			"/tell <myname> <symbol>nw track show {$tracker->id}"

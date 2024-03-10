@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
-use function Safe\preg_match;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -17,6 +16,7 @@ use Nadybot\Core\{
 	ParamClass\PItem,
 	ParamClass\PQuantity,
 	ParamClass\PRemove,
+	Safe,
 	Text,
 	Util,
 };
@@ -530,12 +530,12 @@ class LootController extends ModuleInstance {
 	/** Add one item to the loot roll */
 	public function addLootItem(string $input, int $multiloot, string $sender, bool $suppressMessage=false): void {
 		// Check if the item is a link
-		if (preg_match("|^<a href=['\"]itemref://(\\d+)/(\\d+)/(\\d+)[\"']>(.+)</a>(.*)$|i", $input, $arr)) {
+		if (count($arr = Safe::pregMatch("|^<a href=['\"]itemref://(\\d+)/(\\d+)/(\\d+)[\"']>(.+)</a>(.*)$|i", $input))) {
 			$itemQL = (int)$arr[3];
 			$itemHighID = (int)$arr[1];
 			$itemLowID = (int)$arr[2];
 			$itemName = $arr[4];
-		} elseif (preg_match("|^(.+)<a href=[\"']itemref://(\\d+)/(\\d+)/(\\d+)[\"']>(.+)</a>(.*)$|i", $input, $arr)) {
+		} elseif (count($arr = Safe::pregMatch("|^(.+)<a href=[\"']itemref://(\\d+)/(\\d+)/(\\d+)[\"']>(.+)</a>(.*)$|i", $input))) {
 			$itemQL = (int)$arr[4];
 			$itemHighID = (int)$arr[2];
 			$itemLowID = (int)$arr[3];

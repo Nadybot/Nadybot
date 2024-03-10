@@ -2,13 +2,13 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-use function Safe\preg_match;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
 	Config\BotConfig,
 	ModuleInstance,
 	Nadybot,
+	Safe,
 };
 
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
@@ -35,7 +35,7 @@ class OSController extends ModuleInstance {
 		// create a timer for 15m when an OS/AS is launched (so org knows when they can launch again)
 		// [Org Msg] Blammo! Player has launched an orbital attack!
 
-		if (preg_match("/^Blammo! (.+) has launched an orbital attack!$/i", $eventObj->message, $arr)) {
+		if (count($arr = Safe::pregMatch("/^Blammo! (.+) has launched an orbital attack!$/i", $eventObj->message)) === 2) {
 			$launcher = $arr[1];
 
 			for ($i = 1; $i <= 10; $i++) {

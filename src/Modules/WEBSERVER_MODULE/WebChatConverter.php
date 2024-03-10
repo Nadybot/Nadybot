@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Safe\{preg_match, preg_replace};
 use Exception;
 
 use Nadybot\Core\{
@@ -11,6 +10,7 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Routing\Source,
+	Safe,
 	SettingManager,
 };
 
@@ -85,19 +85,19 @@ class WebChatConverter extends ModuleInstance {
 	 * @return AOMsg[]
 	 */
 	public function tryToUnbreakPopups(array $msgs): array {
-		if (!preg_match("/<popup ref=\"(ao-\d)\">(.+?)<\/popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/", $msgs[0]->message, $matches)) {
+		if (count($matches = Safe::pregMatch("/<popup ref=\"(ao-\d)\">(.+?)<\/popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/", $msgs[0]->message)) < 4) {
 			return $msgs;
 		}
-		$msgs[0]->message = preg_replace(
+		$msgs[0]->message = Safe::pregReplace(
 			"/<popup ref=\"".
 			preg_quote($matches[1], "/").
 			"\">(.+?)<\/popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/",
 			"<popup ref=\"{$matches[1]}\">{$matches[2]}</popup>",
 			$msgs[0]->message
 		);
-		$msgs[0]->popups->{$matches[1]} = preg_replace("/ \(Page 1 \/ \d+\)<\/h1>/", "</h1>", $msgs[0]->popups->{$matches[1]});
+		$msgs[0]->popups->{$matches[1]} = Safe::pregReplace("/ \(Page 1 \/ \d+\)<\/h1>/", "</h1>", $msgs[0]->popups->{$matches[1]});
 		for ($i = 1; $i < count($msgs); $i++) {
-			if (preg_match(
+			if (count($matches2 = Safe::pregMatch(
 				"/<popup ref=\"(ao-\d+)\">" .
 					preg_quote($matches[2], "/") .
 					"<\/popup> " .
@@ -105,9 +105,8 @@ class WebChatConverter extends ModuleInstance {
 					preg_quote($matches[3], "/") .
 					"<\/strong>\)/",
 				$msgs[$i]->message,
-				$matches2
-			)) {
-				$expand = preg_replace("/^<h1>.+?<\/h1>(<br \/>){0,2}/", "", $msgs[$i]->popups->{$matches2[1]});
+			))) {
+				$expand = Safe::pregReplace("/^<h1>.+?<\/h1>(<br \/>){0,2}/", "", $msgs[$i]->popups->{$matches2[1]});
 				$msgs[0]->popups->{$matches[1]} .= $expand;
 			}
 		}
@@ -115,14 +114,14 @@ class WebChatConverter extends ModuleInstance {
 	}
 
 	public function getColorFromSetting(string $setting): string {
-		if (preg_match('/#[0-9A-F]{6}/', $this->settingManager->getString($setting)??"", $matches)) {
+		if (count($matches = Safe::pregMatch('/#[0-9A-F]{6}/', $this->settingManager->getString($setting)??""))) {
 			return $matches[0];
 		}
 		return "#000000";
 	}
 
 	public function formatMsg(string $message): string {
-		$message = preg_replace("/^<header>\s*<header>/s", "<header>", $message);
+		$message = Safe::pregReplace("/^<header>\s*<header>/s", "<header>", $message);
 		$colors = [
 			"header"    => "<h1>",
 			"header2"   => "<h2>",
@@ -156,7 +155,7 @@ class WebChatConverter extends ModuleInstance {
 
 		/** @var string[] */
 		$stack = [];
-		$message = preg_replace("/<\/font>/", "<end>", $message);
+		$message = Safe::pregReplace("/<\/font>/", "<end>", $message);
 		$message = preg_replace_callback(
 			"/<(end|" . join("|", array_keys($colors)) . "|font\s+color\s*=\s*[\"']?(#.{6})[\"']?)>/i",
 			function (array $matches) use (&$stack, $colors): string {
@@ -165,7 +164,7 @@ class WebChatConverter extends ModuleInstance {
 						return "";
 					}
 					return "</" . array_pop($stack) . ">";
-				} elseif (preg_match("/font\s+color\s*=\s*[\"']?(#.{6})[\"']?/i", $matches[1], $colorMatch)) {
+				} elseif (count($colorMatch = Safe::pregMatch("/font\s+color\s*=\s*[\"']?(#.{6})[\"']?/i", $matches[1]))) {
 					$tag = $colorMatch[1];
 				} else {
 					$tag = $colors[strtolower($matches[1])]??null;
@@ -179,7 +178,7 @@ class WebChatConverter extends ModuleInstance {
 				}
 
 				/** @var string */
-				$unTagged = preg_replace("/[<>]/", "", $tag);
+				$unTagged = Safe::pregReplace("/[<>]/", "", $tag);
 				$stack []= $unTagged;
 				return $tag;
 			},
@@ -191,7 +190,7 @@ class WebChatConverter extends ModuleInstance {
 		$message = preg_replace_callback(
 			"/(\r?\n[-*][^\r\n]+){2,}/s",
 			function (array $matches): string {
-				$text = preg_replace("/(\r?\n)[-*]\s+([^\r\n]+)/s", "<li>$2</li>", $matches[0]);
+				$text = Safe::pregReplace("/(\r?\n)[-*]\s+([^\r\n]+)/s", "<li>$2</li>", $matches[0]);
 				return "\n<ul>{$text}</ul>";
 			},
 			$message
@@ -203,11 +202,11 @@ class WebChatConverter extends ModuleInstance {
 			},
 			$message
 		);
-		$message = preg_replace("/\r?\n/", "<br />", $message);
-		$message = preg_replace("/<a\s+href\s*=\s*['\"]?itemref:\/\/(\d+)\/(\d+)\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:item lowid=\"$1\" highid=\"$2\" ql=\"$3\">$4</ao:item>", $message);
-		$message = preg_replace("/<a\s+href\s*=\s*['\"]?itemid:\/\/53019\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:nano id=\"$1\">$2</ao:nano>", $message);
-		$message = preg_replace("/<a\s+href\s*=\s*['\"]?skillid:\/\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:skill id=\"$1\">$2</ao:skill>", $message);
-		$message = preg_replace("/<a\s+href\s*=\s*['\"]?user:\/\/(.+?)['\"]?>(.*?)<\/a>/s", "<ao:user name=\"$1\">$2</ao:user>", $message);
+		$message = Safe::pregReplace("/\r?\n/", "<br />", $message);
+		$message = Safe::pregReplace("/<a\s+href\s*=\s*['\"]?itemref:\/\/(\d+)\/(\d+)\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:item lowid=\"$1\" highid=\"$2\" ql=\"$3\">$4</ao:item>", $message);
+		$message = Safe::pregReplace("/<a\s+href\s*=\s*['\"]?itemid:\/\/53019\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:nano id=\"$1\">$2</ao:nano>", $message);
+		$message = Safe::pregReplace("/<a\s+href\s*=\s*['\"]?skillid:\/\/(\d+)['\"]?>(.*?)<\/a>/s", "<ao:skill id=\"$1\">$2</ao:skill>", $message);
+		$message = Safe::pregReplace("/<a\s+href\s*=\s*['\"]?user:\/\/(.+?)['\"]?>(.*?)<\/a>/s", "<ao:user name=\"$1\">$2</ao:user>", $message);
 		$message = preg_replace_callback(
 			"/<a\s+href\s*=\s*(['\"])chatcmd:\/\/\/tell\s+<myname>\s+(.*?)\\1>(.*?)<\/a>/s",
 			function (array $matches): string {
@@ -215,8 +214,8 @@ class WebChatConverter extends ModuleInstance {
 			},
 			$message
 		);
-		$message = preg_replace("/<a\s+href=(['\"])chatcmd:\/\/\/start\s+(.*?)\\1>(.*?)<\/a>/s", "<a href=\"$2\">$3</a>", $message);
-		$message = preg_replace("/<a\s+href=(['\"])chatcmd:\/\/\/(.*?)\\1>(.*?)<\/a>/s", "<ao:command cmd=\"$2\">$3</ao:command>", $message);
+		$message = Safe::pregReplace("/<a\s+href=(['\"])chatcmd:\/\/\/start\s+(.*?)\\1>(.*?)<\/a>/s", "<a href=\"$2\">$3</a>", $message);
+		$message = Safe::pregReplace("/<a\s+href=(['\"])chatcmd:\/\/\/(.*?)\\1>(.*?)<\/a>/s", "<ao:command cmd=\"$2\">$3</ao:command>", $message);
 		$message = str_ireplace(array_keys($symbols), array_values($symbols), $message);
 		$message = preg_replace_callback(
 			"/<img src=['\"]?tdb:\/\/id:GFX_GUI_ICON_PROFESSION_(\d+)['\"]?>/s",
@@ -225,24 +224,24 @@ class WebChatConverter extends ModuleInstance {
 			},
 			$message
 		);
-		$message = preg_replace("/<img\s+src\s*=\s*['\"]?rdb:\/\/(\d+)['\"]?>/s", "<ao:img rdb=\"$1\" />", $message);
-		$message = preg_replace("/<font\s+color=[\"']?(#.{6})[\"']>/", "<color fg=\"$1\">", $message);
-		$message = preg_replace("/&(?!(?:[a-zA-Z]+|#\d+);)/", "&amp;", $message);
-		$message = preg_replace("/<\/h(\d)>(<br\s*\/>){1,2}/", "</h$1>", $message);
+		$message = Safe::pregReplace("/<img\s+src\s*=\s*['\"]?rdb:\/\/(\d+)['\"]?>/s", "<ao:img rdb=\"$1\" />", $message);
+		$message = Safe::pregReplace("/<font\s+color=[\"']?(#.{6})[\"']>/", "<color fg=\"$1\">", $message);
+		$message = Safe::pregReplace("/&(?!(?:[a-zA-Z]+|#\d+);)/", "&amp;", $message);
+		$message = Safe::pregReplace("/<\/h(\d)>(<br\s*\/>){1,2}/", "</h$1>", $message);
 
 		return $message;
 	}
 
 	/** Fix illegal HTML by closing/removing unclosed tags */
 	public function fixUnclosedTags(string $message): string {
-		$message = preg_replace("/<(\/?[a-z]+):/", "<$1___", $message);
+		$message = Safe::pregReplace("/<(\/?[a-z]+):/", "<$1___", $message);
 		$xml = new \DOMDocument();
 		@$xml->loadHTML('<?xml encoding="UTF-8">' . $message);
 		if (($message = $xml->saveXML()) === false) {
 			throw new Exception("Invalid XML data created");
 		}
-		$message = preg_replace("/^.+?<body>(.+)<\/body><\/html>$/si", "$1", $message);
-		$message = preg_replace("/<([\/a-z]+)___/", "<$1:", $message);
+		$message = Safe::pregReplace("/^.+?<body>(.+)<\/body><\/html>$/si", "$1", $message);
+		$message = Safe::pregReplace("/<([\/a-z]+)___/", "<$1:", $message);
 		return $message;
 	}
 
@@ -253,10 +252,10 @@ class WebChatConverter extends ModuleInstance {
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1>(.*?)<\/a>/s",
 			function (array $matches) use (&$parts, &$id): string {
 				$parts["ao-" . ++$id] = $this->formatMsg(
-					preg_replace(
+					Safe::pregReplace(
 						"/^<font.*?>(<\/font>|<end>)?/",
 						"",
-						preg_replace(
+						Safe::pregReplace(
 							"/^\s*(<font[^>]*>)?\s*<font[^>]*>(.+)<\/font>/m",
 							"$1<header>$2<end>",
 							str_replace(["&quot;", "&#39;"], ['"', "'"], $matches[2]),

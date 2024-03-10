@@ -2,13 +2,12 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use function Safe\{preg_match, preg_replace};
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{AOChatEvent, Attributes as NCA, CmdContext, Config\BotConfig, DB, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
+use Nadybot\Core\{AOChatEvent, Attributes as NCA, CmdContext, Config\BotConfig, DB, MessageHub, ModuleInstance, QueryBuilder, Safe, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
@@ -404,13 +403,12 @@ class AttacksController extends ModuleInstance {
 			return;
 		}
 		if (
-			!preg_match(
+			!count($matches = Safe::pregMatch(
 				"/^Your (?<tower>.+?) tower in (?<site_name>.+?) in (?<playfield>.+?) has had its ".
 				"defense shield disabled by (?<att_name>[^ ]+) \((?<att_faction>.+?)\)\.\s*".
 				"The attacker is a member of the organization (?<att_org>.+?)\.$/",
 				$eventObj->message,
-				$matches
-			)
+			))
 		) {
 			return;
 		}
@@ -475,17 +473,15 @@ class AttacksController extends ModuleInstance {
 			return;
 		}
 		if (
-			!preg_match(
+			!count($matches = Safe::pregMatch(
 				"/^The tower (?<tower>.+?) in (?<playfield>.+?) was just reduced to (?<health>\d+) % health ".
 				"by (?<att_name>[^ ]+) from the (?<att_org>.+?) organization!$/",
 				$eventObj->message,
-				$matches
-			)
-			&& !preg_match(
+			))
+			&& !count($matches = Safe::pregMatch(
 				"/^The tower (?<toker>.+?) in (?<playfield>.+?) was just reduced to (?<health>\d+) % health by (?<att_name>[^ ]+)!$/",
 				$eventObj->message,
-				$matches
-			)
+			))
 		) {
 			return;
 		}
@@ -1358,7 +1354,7 @@ class AttacksController extends ModuleInstance {
 			1,
 			true,
 		)[0])[0];
-		$blob = preg_replace("/^.+?<header2>/s", "<header2>", $blob);
+		$blob = Safe::pregReplace("/^.+?<header2>/s", "<header2>", $blob);
 		$blob = "<tab>" . join("\n<tab>", explode("\n", $blob));
 		$moreLink = $this->text->makeChatcmd("see more", "/tell <myname> nw attacks org {$whois->guild}");
 		return "<header2>Notum Wars [{$moreLink}]<end>\n{$blob}";

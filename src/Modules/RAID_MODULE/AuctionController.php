@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use function Safe\{preg_replace, preg_split};
+use function Safe\preg_split;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Text,
 	Util,
 };
@@ -501,7 +502,7 @@ class AuctionController extends ModuleInstance {
 			"<tab>On " . DateTime::createFromFormat("U", (string)$mostExpensiveItem->end)->format("Y-m-d").
 			", <highlight>{$mostExpensiveItem->winner}<end> paid ".
 			"<highlight>" . number_format($mostExpensiveItem->cost??0) . "<end> raid points ".
-			"for " . preg_replace('|"(itemref://\d+/\d+/\d+)"|', "$1", $mostExpensiveItem->item) . "\n\n".
+			"for " . Safe::pregReplace('|"(itemref://\d+/\d+/\d+)"|', "$1", $mostExpensiveItem->item) . "\n\n".
 		$text = "<header2>Average cost<end>\n".
 			"<tab>Total: <highlight>" . number_format($avgCost, 1) . "<end>\n".
 			"<tab>Last 10: <highlight>" . number_format($avgCostLastTen, 1) . "<end>\n\n".
@@ -526,7 +527,7 @@ class AuctionController extends ModuleInstance {
 			DateTime::createFromFormat("U", (string)$item->end)->format("Y-m-d H:i:s"),
 			($item->cost > 0) ? $this->text->alignNumber($item->cost, 5, null, true) : "      -",
 			"<highlight>" . ($item->winner ?? "nobody") . "<end> won ".
-			preg_replace('|"(itemref://\d+/\d+/\d+)"|', "$1", $item->item)
+			Safe::pregReplace('|"(itemref://\d+/\d+/\d+)"|', "$1", $item->item)
 		);
 	}
 

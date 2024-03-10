@@ -60,7 +60,7 @@ use Nadybot\Modules\{
 	VOTE_MODULE\Vote,
 	VOTE_MODULE\VoteController,
 };
-use Safe\Exceptions\{JsonException};
+use Safe\Exceptions\JsonException;
 use stdClass;
 
 /**

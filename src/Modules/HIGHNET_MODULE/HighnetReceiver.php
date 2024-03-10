@@ -2,9 +2,8 @@
 
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
-use function Safe\preg_match;
-use Nadybot\Core\Routing\{RoutableEvent};
-use Nadybot\Core\{Attributes as NCA, MessageReceiver};
+use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Core\{Attributes as NCA, MessageReceiver, Safe};
 
 use Psr\Log\LoggerInterface;
 
@@ -32,7 +31,7 @@ class HighnetReceiver implements MessageReceiver {
 			return false;
 		}
 		$prefix = $this->highnetController->highnetPrefix;
-		if (!preg_match("/^" . preg_quote($prefix, "/") . "([a-zA-Z]+)/", $data, $matches)) {
+		if (!count($matches = Safe::pregMatch("/^" . preg_quote($prefix, "/") . "([a-zA-Z]+)/", $data))) {
 			$this->logger->info("Data to Highnet does not have the {prefix} prefix.", [
 				"prefix" => $prefix,
 			]);

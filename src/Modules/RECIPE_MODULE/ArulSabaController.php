@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
-use function Safe\preg_replace;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -11,6 +10,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	ParamClass\PWord,
+	Safe,
 	Text,
 };
 
@@ -107,7 +107,7 @@ class ArulSabaController extends ModuleInstance {
 
 			/** @var ItemWithBuffs */
 			$item = $this->itemsController->addBuffs($item)->firstOrFail();
-			$shortName = preg_replace("/^.*\((.+?) - Left\)$/", "$1", $item->name);
+			$shortName = Safe::pregReplace("/^.*\((.+?) - Left\)$/", "$1", $item->name);
 			$blob .= "<header2>{$shortName}<end>\n".
 				"<tab>Min level: <highlight>{$arul->min_level}<end>\n";
 			foreach ($item->buffs as $buff) {
