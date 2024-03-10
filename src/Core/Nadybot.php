@@ -382,7 +382,10 @@ class Nadybot {
 
 	/** The main endless-loop of the bot */
 	public function run(): void {
-		$this->aoClient->onReady($this->eventManager->executeConnectEvents(...));
+		$this->aoClient->onReady(function (): void {
+			$this->ready = true;
+			$this->eventManager->executeConnectEvents();
+		});
 		$this->eventFeed->mainLoop();
 		EventLoop::setErrorHandler(function (Throwable $e): void {
 			if ($e instanceof StopExecutionException) {
