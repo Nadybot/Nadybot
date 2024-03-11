@@ -6,7 +6,7 @@ use Amp\Cancellation;
 use Amp\Parallel\Worker\Task;
 use Amp\Sync\Channel;
 
-// @phpstan-ignore-next-line
+/** @template-implements Task<bool, never, never> */
 class LintTask implements Task {
 	public function __construct(
 		private readonly string $filename,
@@ -14,7 +14,7 @@ class LintTask implements Task {
 	}
 
 	public function run(Channel $channel, Cancellation $cancellation): bool {
-		require_once $this->filename;
+		include $this->filename;
 		return true;
 	}
 }

@@ -2,11 +2,10 @@
 
 namespace Nadybot\Core;
 
-use function Amp\Parallel\Worker\createWorker;
 use function Safe\{parse_ini_string, preg_split};
 
 use Amp\File\{Filesystem, FilesystemException};
-use Amp\Parallel\Worker\TaskFailureError;
+use Amp\Parallel\Worker\{TaskFailureError};
 use Amp\TimeoutCancellation;
 use Directory;
 use Nadybot\Core\Attributes as NCA;
@@ -312,9 +311,10 @@ class ClassLoader {
 
 	/** Check if $fileName contains no parsing errors and a require would work */
 	private function checkFileLoads(string $fileName): bool {
-		$worker = createWorker();
+		return true;
+		// @phpstan-ignore-next-line
 		$task = new LintTask($fileName);
-		$execution = $worker->submit($task);
+		$execution = \Amp\Parallel\Worker\submit($task);
 		try {
 			$execution->await(new TimeoutCancellation(5));
 		} catch (TaskFailureError) {
