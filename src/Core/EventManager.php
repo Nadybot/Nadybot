@@ -653,12 +653,12 @@ class EventManager {
 		$this->logger->info("Initial call to {handler}", ["handler" => $entry->filename]);
 		$this->callEventHandler($eventObj, $entry->filename, [$entry->time]);
 		$period = $entry->time;
-		$this->logger->info("Periodic call set up for {handler} every {period}ms", [
+		$this->logger->info("Periodic call set up for {handler} every {period}s", [
 			"handler" => $entry->filename,
 			"period" => $period,
 		]);
 		$entry->handle = EventLoop::repeat(
-			$period/1000,
+			$period,
 			function () use ($eventObj, $entry): void {
 				$this->logger->info("Periodic call to {handler}", [
 					"handler" => $entry->filename,
