@@ -6,7 +6,6 @@ use Composer\DependencyResolver\Operation\{InstallOperation, UpdateOperation};
 use Composer\Installer\PackageEvent;
 use Composer\Package\Package;
 use Exception;
-use Nadybot\Core\Safe;
 
 /**
  * This class is used as a callback-provider when installing or updating
@@ -51,8 +50,10 @@ class Patcher {
 			return;
 		}
 		$newContent = "__DIR__.'/../../../style/Nadybot/ruleset.xml'";
-		$data = Safe::pregReplace("/'PSR2'/", $newContent, $oldContent);
-		$data = Safe::pregReplace("/(?<='show_warnings' => ')0/", "1", $data);
+		// @phpstan-ignore-next-line
+		$data = \preg_replace("/'PSR2'/", $newContent, $oldContent);
+		// @phpstan-ignore-next-line
+		$data = \preg_replace("/(?<='show_warnings' => ')0/", "1", $data);
 		$newFile = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf';
 		file_put_contents($newFile, $data); // @phpstan-ignore-line
 	}
@@ -69,7 +70,8 @@ class Patcher {
 		if ($oldContent === false) {
 			return;
 		}
-		$newContent = Safe::pregReplace(
+		// @phpstan-ignore-next-line
+		$newContent = \preg_replace(
 			"/abstract class Base/s",
 			"#[\\AllowDynamicProperties]\nabstract class Base",
 			$oldContent
@@ -81,7 +83,8 @@ class Patcher {
 		if ($oldContent === false) {
 			return;
 		}
-		$newContent = Safe::pregReplace(
+		// @phpstan-ignore-next-line
+		$newContent = \preg_replace(
 			"/abstract class BaseNode/s",
 			"#[\\AllowDynamicProperties]\nabstract class BaseNode",
 			$oldContent
