@@ -4,6 +4,8 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use function Amp\async;
 use function Amp\Future\await;
+
+use Amp\Pipeline\Pipeline;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -712,12 +714,10 @@ class RaidController extends ModuleInstance {
 			$context->reply("Everyone is in the raid.");
 			return;
 		}
-		$promises = [];
-		// @todo Replace with Pipeline
-		foreach ($notInRaid as $notInName) {
-			$promises []= async($this->playerManager->byName(...), $notInName);
-		}
-		$notInPlayers = await($promises);
+		$notInPlayers = Pipeline::fromIterable($notInRaid)
+			->concurrent(4)
+			->map($this->playerManager->byName(...))
+			->toArray();
 		$msg = $this->reportNotInResult($notInPlayers);
 		$context->reply($msg);
 	}

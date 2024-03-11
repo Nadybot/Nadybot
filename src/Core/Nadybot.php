@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use function Amp\async;
+use function Amp\Future\await;
 use function Safe\{preg_match, sapi_windows_set_ctrl_handler, unpack};
 use Amp\Http\Client\HttpClientBuilder;
 use AO\Client\{Multi, WorkerConfig, WorkerPackage};
@@ -250,18 +251,34 @@ class Nadybot {
 		EventLoop::setErrorHandler(function (Throwable $e): void {
 			$this->logger->error($e->getMessage(), ["exception" => $e]);
 		});
-		$this->db->beginTransaction();
+		// $this->db->beginTransaction();
+		$jobs = [];
+		$start = \Amp\now();
 		foreach (Registry::getAllInstances() as $name => $instance) {
 			if ($instance instanceof ModuleInstanceInterface && $instance->getModuleName() !== "") {
-				$this->registerInstance($name, $instance);
+				// $this->registerInstance($name, $instance);
+				$jobs []= async($this->registerInstance(...), $name, $instance);
 			} else {
-				$this->callSetupMethod($name, $instance);
+				// $this->callSetupMethod($name, $instance);
+				$jobs []= async($this->callSetupMethod(...), $name, $instance);
 			}
-			if (!$this->db->inTransaction()) {
-				$this->db->beginTransaction();
+			// if (!$this->db->inTransaction()) {
+			// 	$this->db->beginTransaction();
+			// }
+		}
+		$this->logger->notice("Running {num_setups} setups in parallel", [
+			"num_setups" => count($jobs),
+		]);
+		await($jobs);
+		$duration = \Amp\now() - $start;
+		$this->logger->notice("Setups done in {duration}s", [
+			"duration" => number_format($duration, 3),
+		]);
+		foreach (EventLoop::getIdentifiers() as $identifier) {
+			if (EventLoop::isEnabled($identifier) & EventLoop::isReferenced($identifier)) {
+				EventLoop::cancel($identifier);
 			}
 		}
-		$this->db->commit();
 		EventLoop::run();
 		$this->settingManager::$isInitialized = true;
 

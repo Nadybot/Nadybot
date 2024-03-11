@@ -373,7 +373,16 @@ class DB {
 	 * @todo Work with a queue that waits for the lock
 	 */
 	public function awaitBeginTransaction(): void {
+		$start = microtime(true);
+		$notified = false;
 		while ($this->inTransaction()) {
+			$duration = microtime(true) - $start;
+			if ($duration > 2 && !$notified) {
+				$this->logger->notice("Waiting for beginning a transaction for over {duration}s.", [
+					"duration" => 2,
+				]);
+				$notified = true;
+			}
 			delay(0.1);
 		}
 		$this->beginTransaction();

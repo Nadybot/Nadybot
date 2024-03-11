@@ -2,11 +2,11 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use function Amp\Future\await;
-use function Amp\{async, delay};
+use function Amp\{delay};
 
 use Amp\File\Filesystem;
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
+use Amp\Pipeline\Pipeline;
 use Exception;
 use Illuminate\Support\Collection;
 
@@ -72,9 +72,6 @@ class FindOrgController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private Filesystem $fs;
-
-	/** @var string[] */
-	private array $todo = [];
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -225,13 +222,10 @@ class FindOrgController extends ModuleInstance {
 			->where("index", "others")
 			->exists();
 		$this->logger->info("Downloading list of all orgs");
-		$this->todo = $searches;
-		$jobs = [];
-		for ($i = 0; $i < $this->numOrglistDlJobs; $i++) {
-			$jobs []= async($this->startDownloadOrglistJob(...));
-		}
 		try {
-			await($jobs);
+			Pipeline::fromIterable($searches)
+				->concurrent($this->numOrglistDlJobs)
+				->forEach($this->downloadOrglistLetter(...));
 		} catch (Throwable $e) {
 			$this->logger->error("Error downloading orglists: {error}", [
 				"error" => $e->getMessage(),
@@ -260,12 +254,6 @@ class FindOrgController extends ModuleInstance {
 		return $this->db->table("organizations")
 			->whereIn("id", $ids)
 			->asObj(Organization::class);
-	}
-
-	private function startDownloadOrglistJob(): void {
-		while ($letter = array_shift($this->todo)) {
-			$this->downloadOrglistLetter($letter);
-		}
 	}
 
 	private function downloadOrglistLetter(string $letter): void {

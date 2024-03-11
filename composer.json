@@ -53,7 +53,8 @@
 		"amphp/http-tunnel": "^2.0.0-beta.2",
 		"nadylib/imex": "dev-main",
 		"nadybot/aolib": "dev-main",
-		"nadylib/leaky-bucket": "dev-main"
+		"nadylib/leaky-bucket": "dev-main",
+		"amphp/pipeline": "^1.2"
 	},
 	"repositories": [
 		{
