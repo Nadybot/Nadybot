@@ -57,7 +57,8 @@
 		"amphp/pipeline": "^1.2",
 		"amphp/process": "^2.0",
 		"amphp/byte-stream": "^2.1",
-		"amphp/parallel": "^2.2"
+		"amphp/parallel": "^2.2",
+		"amphp/http-server": "^3.3.0"
 	},
 	"repositories": [
 		{
