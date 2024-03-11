@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use function Amp\Future\await;
-use function Amp\{async, delay};
+use function Amp\{delay};
 
+use Amp\Pipeline\Pipeline;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -190,29 +190,22 @@ class OrglistController extends ModuleInstance {
 				"You need more buddylist slots to be able to use this command."
 			);
 		}
-		$this->logger->info("Using {numThreads} threads to get online status", [
+		$this->logger->notice("Using {numThreads} threads to get online status", [
 			"numThreads" => $numThreads,
 		]);
-		$lookupFunc = function () use (&$todo, &$onlineStates): void {
-			while ($name = array_shift($todo)) {
+		$onlineList = Pipeline::fromIterable($todo)
+			->concurrent($numThreads)
+			->map(function (string $name): bool {
 				$uid = $this->chatBot->getUid($name);
 				if (!isset($uid)) {
-					$onlineStates[$name] = false;
-					continue;
+					return false;
 				}
 				while ($this->getFreeBuddylistSlots() < 5) {
-					delay(1);
+					delay(0.01);
 				}
-				$onlineStates[$name] = $this->buddylistManager->checkIsOnline($uid);
-			}
-		};
-		$lookups = [];
-		for ($i = 0; $i < $numThreads; $i++) {
-			$lookups []= async($lookupFunc);
-		}
-		// @todo convert to Pipeline
-		await($lookups);
-		return $onlineStates;
+				return $this->buddylistManager->checkIsOnline($uid);
+			})->toArray();
+		return array_combine($todo, $onlineList);
 	}
 
 	/**

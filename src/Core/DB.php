@@ -367,11 +367,7 @@ class DB {
 		$this->sql?->beginTransaction();
 	}
 
-	/**
-	 * Start a transaction
-	 *
-	 * @todo Work with a queue that waits for the lock
-	 */
+	/** Start a transaction */
 	public function awaitBeginTransaction(): void {
 		$start = microtime(true);
 		$notified = false;
@@ -383,7 +379,7 @@ class DB {
 				]);
 				$notified = true;
 			}
-			delay(0.1);
+			delay(0.01);
 		}
 		$this->beginTransaction();
 	}

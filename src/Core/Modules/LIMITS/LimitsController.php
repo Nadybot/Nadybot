@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\LIMITS;
 
-use function Amp\async;
 use function Safe\preg_match;
 
 use AO\Package;
@@ -158,32 +157,17 @@ class LimitsController extends ModuleInstance {
 		return false;
 	}
 
-	/**
-	 * Check if $sender is allowed to send $message
-	 *
-	 * @phpstan-param callable $callback
-	 *
-	 * @psalm-param callable(mixed...) $callback
-	 */
-	public function checkAndExecute(string $sender, string $message, callable $callback, mixed ...$args): void {
+	/** Check if $sender is allowed to send $message */
+	public function checkTellExecuteAccess(string $sender, string $message): void {
 		if (
 			$this->commandIgnoresLimits($message)
 			|| $this->rateIgnoreController->check($sender)
 			// if access level is at least member, skip checks
 			|| $this->accessManager->checkAccess($sender, 'member')
 		) {
-			$callback(...$args);
 			return;
 		}
-		// @todo reword without callback
-		$this->checkAccessError(
-			$sender,
-			function (string $msg) use ($sender, $message): void {
-				$this->handleAccessError($sender, $message, $msg);
-			},
-			$callback,
-			...$args
-		);
+		$this->checkHasTellAccess($sender);
 	}
 
 	public function handleAccessError(string $sender, string $message, string $msg): void {
@@ -210,46 +194,6 @@ class LimitsController extends ModuleInstance {
 			$msg = "Error! You do not have access to this bot.";
 			$this->chatBot->sendMassTell($msg, $sender);
 		}
-	}
-
-	/**
-	 * Check if $sender is allowed to run commands on the bot
-	 *
-	 * @phpstan-param callable(string):void $errorHandler
-	 *
-	 * @psalm-param callable(string):void $errorHandler
-	 *
-	 * @phpstan-param callable(mixed...):mixed $successHandler
-	 *
-	 * @psalm-param callable(mixed...) $successHandler
-	 */
-	public function checkAccessError(string $sender, callable $errorHandler, callable $successHandler, mixed ...$args): void {
-		async(function () use ($sender, $errorHandler, $successHandler, $args): void {
-			$tellReqFaction = $this->tellReqFaction;
-			$tellReqLevel = $this->tellReqLvl;
-			if ($tellReqLevel > 0 || $tellReqFaction !== "all") {
-				// get player info which is needed for following checks
-				$player = $this->playerManager->byName($sender);
-				try {
-					$this->checkMeetsLevelAndFactionRequirements($player);
-				} catch (UserException $e) {
-					$errorHandler($e->getMessage());
-					return;
-				}
-			}
-			if ($this->tellMinPlayerAge <= 1) {
-				$successHandler(...$args);
-				return;
-			}
-			$history = $this->playerHistoryManager->lookup($sender, $this->config->main->dimension);
-			try {
-				$this->checkMeetsMinAgeRequirements($history);
-			} catch (UserException $e) {
-				$errorHandler($e->getMessage());
-				return;
-			}
-			$successHandler(...$args);
-		});
 	}
 
 	#[NCA\Event(
@@ -411,6 +355,21 @@ class LimitsController extends ModuleInstance {
 				unset($this->limitBucket[$user]);
 			}
 		}
+	}
+
+	private function checkHasTellAccess(string $sender): void {
+		$tellReqFaction = $this->tellReqFaction;
+		$tellReqLevel = $this->tellReqLvl;
+		if ($tellReqLevel > 0 || $tellReqFaction !== "all") {
+			// get player info which is needed for following checks
+			$player = $this->playerManager->byName($sender);
+			$this->checkMeetsLevelAndFactionRequirements($player);
+		}
+		if ($this->tellMinPlayerAge <= 1) {
+			return;
+		}
+		$history = $this->playerHistoryManager->lookup($sender, $this->config->main->dimension);
+		$this->checkMeetsMinAgeRequirements($history);
 	}
 
 	/** @throws UserException if requirements not met */

@@ -40,6 +40,8 @@ class BuddylistManager {
 
 	private ?CommandReply $rebalancingCallback = null;
 
+	private static ?string $lastWorker = null;
+
 	/** Get the number of definitively used up buddy slots */
 	public function getUsedBuddySlots(): int {
 		return count(
@@ -104,7 +106,7 @@ class BuddylistManager {
 			return $buddyOnline;
 		}
 
-		return $this->chatBot->aoClient->isOnline($uid) ?? false;
+		return $this->chatBot->aoClient->isOnline(uid: $uid, cacheOnly: false, worker: $this->getNextWorker()) ?? false;
 	}
 
 	/**
@@ -347,5 +349,20 @@ class BuddylistManager {
 	public function buddyHasType(int $uid, string $type): bool {
 		$buddy = $this->buddyList[$uid] ?? null;
 		return isset($buddy) && $buddy->hasType($type);
+	}
+
+	private function getNextWorker(): string {
+		$names = [
+			$this->config->main->character,
+			...array_column($this->config->worker, "character"),
+		];
+		if (self::$lastWorker === null) {
+			return self::$lastWorker = $names[0];
+		}
+		$lastPos = array_search(self::$lastWorker, $names);
+		if ($lastPos === false) {
+			return self::$lastWorker = $names[0];
+		}
+		return self::$lastWorker = $names[($lastPos+1) % count($names)];
 	}
 }

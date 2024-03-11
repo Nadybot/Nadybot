@@ -1137,14 +1137,16 @@ class Nadybot {
 		$context->source = Source::TELL . "({$sender})";
 		$context->sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
 		$context->setIsDM();
-		$this->limitsController->checkAndExecute(
-			$sender,
-			$message,
-			function (CmdContext $context): void {
-				$this->commandManager->checkAndHandleCmd($context);
-			},
-			$context
-		);
+		try {
+			$this->limitsController->checkTellExecuteAccess($sender, $message);
+		} catch (UserException $e) {
+			$context->reply($e->getMessage());
+			return;
+		} catch (Throwable) {
+			$context->reply("There was an error checking whether you are allowed to run commands.");
+			return;
+		}
+		$this->commandManager->checkAndHandleCmd($context);
 	}
 
 	/** Handle a message on a private channel */
