@@ -164,6 +164,7 @@ class NadyNative implements RelayProtocolInterface {
 			&& isset($message->sender)
 			&& $this->syncOnline
 		) {
+			// @todo Get rid of JsonMapper here
 			$event->data = (new JsonMapper())->map($event->data, new Online());
 			$this->logger->debug("Received online event for {relay}", [
 				"relay" => $this->relay->getName(),
