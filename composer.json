@@ -54,7 +54,10 @@
 		"nadylib/imex": "dev-main",
 		"nadybot/aolib": "dev-main",
 		"nadylib/leaky-bucket": "dev-main",
-		"amphp/pipeline": "^1.2"
+		"amphp/pipeline": "^1.2",
+		"amphp/process": "^2.0",
+		"amphp/byte-stream": "^2.1",
+		"amphp/parallel": "^2.2"
 	},
 	"repositories": [
 		{

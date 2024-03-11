@@ -2,15 +2,19 @@
 
 namespace Nadybot\Core;
 
-use function Amp\ByteStream\getStderr;
+use function Amp\async;
+use function Amp\ByteStream\{getStderr};
 use function Amp\File\{createDefaultDriver, filesystem};
 use function Safe\{fclose, fwrite, getopt, ini_set, json_encode, parse_url, putenv, realpath, sapi_windows_set_ctrl_handler, stream_get_contents, system};
+
+use Amp\ByteStream\BufferedReader;
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
 use Amp\File\{Filesystem, FilesystemDriver};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\Http\Tunnel\Http1TunnelConnector;
+use Amp\Process\Process;
 use ErrorException;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
@@ -120,13 +124,13 @@ class BotRunner {
 				$latestTag = static::VERSION;
 			}
 			if ($branch !== 'stable') {
-				return "{$latestTag}@{$branch}";
+				// return "{$latestTag}@{$branch}";
 			}
 			$gitDescribe = static::getGitDescribe();
 			if ($gitDescribe === null || $gitDescribe === $latestTag) {
 				return "{$latestTag}";
 			}
-			return "{$latestTag}@stable";
+			return "{$gitDescribe}@{$branch}";
 		} catch (\Throwable $e) {
 			return static::VERSION;
 		} finally {
@@ -134,21 +138,17 @@ class BotRunner {
 		}
 	}
 
-	/** @todo Rewrite with AMPHP3 */
 	public static function getGitDescribe(): ?string {
 		$baseDir = static::getBasedir();
-		$descriptors = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
-
-		$pid = proc_open("git describe --tags", $descriptors, $pipes, $baseDir);
-		if ($pid === false) {
+		$process = Process::start("git describe --tags", $baseDir);
+		$bufReader = new BufferedReader($process->getStdout());
+		$reader = async($bufReader->buffer(...));
+		$exitCode = $process->join();
+		$stdout = $reader->await();
+		if ($exitCode !== 0 || !isset($stdout)) {
 			return null;
 		}
-		fclose($pipes[0]); // @phpstan-ignore-line
-		$gitDescribe = trim(stream_get_contents($pipes[1]) ?: "");
-		fclose($pipes[1]); // @phpstan-ignore-line
-		fclose($pipes[2]); // @phpstan-ignore-line
-		proc_close($pid);
-		return $gitDescribe;
+		return trim($stdout);
 	}
 
 	/**

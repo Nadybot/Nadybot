@@ -2,9 +2,12 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{fclose, parse_ini_string, preg_split};
+use function Amp\Parallel\Worker\createWorker;
+use function Safe\{parse_ini_string, preg_split};
 
 use Amp\File\{Filesystem, FilesystemException};
+use Amp\Parallel\Worker\TaskFailureError;
+use Amp\TimeoutCancellation;
 use Directory;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
@@ -309,25 +312,14 @@ class ClassLoader {
 
 	/** Check if $fileName contains no parsing errors and a require would work */
 	private function checkFileLoads(string $fileName): bool {
-		if (!extension_loaded("pcntl")) {
-			return true;
+		$worker = createWorker();
+		$task = new LintTask($fileName);
+		$execution = $worker->submit($task);
+		try {
+			$execution->await(new TimeoutCancellation(5));
+		} catch (TaskFailureError) {
+			return false;
 		}
-		$pid = pcntl_fork();
-		if ($pid === 0) {
-			// The child merely closes all pipes
-			// @todo Rewrite with AMP3
-			// @phpstan-ignore-next-line
-			fclose($fd = STDOUT);
-			// @phpstan-ignore-next-line
-			fclose($fd = STDERR);
-			// If this gives an error, the child will exit with != 0
-			require_once "{$fileName}";
-			exit(0);
-		} elseif ($pid > 0) {
-			pcntl_waitpid($pid, $status);
-			return $status === 0;
-		}
-		// Error forking
 		return true;
 	}
 }
