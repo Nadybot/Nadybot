@@ -6,8 +6,9 @@ use function Amp\Future\await;
 use function Amp\{async, delay};
 use function Safe\json_decode;
 
-use Amp\File\Filesystem;
+use Amp\File\{FileCache, Filesystem};
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
+use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;
 
 use Closure;
@@ -60,7 +61,7 @@ class GuildManager extends ModuleInstance {
 	public function setup(): void {
 		$filePath = $this->config->paths->cache . '/guild_roster';
 		if (!$this->fs->exists($filePath)) {
-			$this->fs->createDirectory($filePath);
+			$this->fs->createDirectory($filePath, 0700);
 		}
 	}
 
@@ -75,17 +76,17 @@ class GuildManager extends ModuleInstance {
 			$maxCacheAge = 21600;
 		}
 
-		/** @todo FileCache
-		 * $cache = new FileCache(
-		 * $this->config->paths->cache . '/guild_roster',
-		 * new LocalKeyedMutex()
-		 * );
-		 * $cacheKey = "{$guildID}.{$dimension}";
-		 * $fromCache = true;
-		 * if (!$forceUpdate) {
-		 * $body = yield $cache->get($cacheKey);
-		 * }
-		 */
+		$cache = new FileCache(
+			$this->config->paths->cache . '/guild_roster',
+			new LocalKeyedMutex(),
+			$this->fs
+		);
+		$cacheKey = "{$guildID}.{$dimension}";
+		$fromCache = true;
+		if (!$forceUpdate) {
+			$body = $cache->get($cacheKey);
+		}
+
 		$try = 0;
 		while ((!isset($body) || $body === '') && $try < 3) {
 			try {
@@ -105,7 +106,7 @@ class GuildManager extends ModuleInstance {
 					"url" => $url,
 					"duration" => $end - $start,
 				]);
-				// $cache->set($cacheKey, $body, $maxCacheAge);
+				$cache->set($cacheKey, $body, $maxCacheAge);
 				$fromCache = false;
 			} catch (\Amp\TimeoutException) {
 				$baseUrl = $this->playerManager::PORK_URL;
@@ -145,7 +146,7 @@ class GuildManager extends ModuleInstance {
 		// Try to reduce the cache time to the last updated time + 24h
 		if ($luDateTime) {
 			$newCacheDuration = max(60, 86400 - (time() - $luDateTime->getTimestamp()));
-			// $cache->set($cacheKey, $body, $newCacheDuration);
+			$cache->set($cacheKey, $body, $newCacheDuration);
 		}
 		if ($luDateTime && $this->isMyGuild($guild->guild_id)) {
 			$guild->last_update = $luDateTime->getTimestamp();
@@ -203,9 +204,9 @@ class GuildManager extends ModuleInstance {
 		}
 
 		// If this result is from our cache, then this information is already present
-		// if ($fromCache) {
-		// 	return $guild;
-		// }
+		if ($fromCache) {
+			return $guild;
+		}
 		$this->db->awaitBeginTransaction();
 
 		$this->db->table("players")

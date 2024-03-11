@@ -208,7 +208,7 @@ class WeatherController extends ModuleInstance {
 			"/(and|clear|cloudy|fair|fog|heavy|light|partly|rain|showers|sky|sleet|snow|thunder)/",
 			$icon,
 		);
-		return implode(" ", $matches[1]);
+		return implode(" ", $matches[1]??[]);
 	}
 
 	public function renderWeather(Nominatim $nominatim, Weather $weather): string {

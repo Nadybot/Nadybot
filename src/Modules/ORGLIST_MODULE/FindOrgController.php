@@ -4,9 +4,10 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use function Amp\{delay};
 
-use Amp\File\Filesystem;
+use Amp\File\{FileCache, Filesystem};
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
 use Amp\Pipeline\Pipeline;
+use Amp\Sync\LocalKeyedMutex;
 use Exception;
 use Illuminate\Support\Collection;
 
@@ -75,6 +76,9 @@ class FindOrgController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
+		if (!$this->fs->exists($this->config->paths->cache . '/orglist')) {
+			$this->fs->createDirectory($this->config->paths->cache . '/orglist', 0700);
+		}
 		$this->ready = $this->db->table("organizations")
 			->where("index", "others")
 			->exists();
@@ -258,18 +262,19 @@ class FindOrgController extends ModuleInstance {
 
 	private function downloadOrglistLetter(string $letter): void {
 		$this->logger->info("Downloading orglist for letter {letter}", ["letter" => $letter]);
-		// $cache = new FileCache(
-		// 	$this->config->paths->cache . '/orglist',
-		// 	new LocalKeyedMutex()
-		// );
-		// $body = $cache->get($letter);
-		// $body = null;
-		// if ($body !== null) {
-		// 	if (!$this->isReady()) {
-		// 		$this->handleOrglistResponse($body, $letter);
-		// 	}
-		// 	return;
-		// }
+		$cache = new FileCache(
+			$this->config->paths->cache . '/orglist',
+			new LocalKeyedMutex(),
+			$this->fs
+		);
+		$body = $cache->get($letter);
+
+		if ($body !== null) {
+			if (!$this->isReady()) {
+				$this->handleOrglistResponse($body, $letter);
+			}
+			return;
+		}
 		$body = null;
 		$url = $this->orglistPorkUrl . "/people/lookup/orgs.html".
 			"?l={$letter}&dim={$this->config->main->dimension}";
@@ -327,7 +332,8 @@ class FindOrgController extends ModuleInstance {
 			throw new Exception("Invalid data received from orglist for {$letter}");
 		}
 
-		// $cache->set($letter, $body, 24 * 3600);
+		$cache->set($letter, $body, 23 * 3600);
+
 		/** @psalm-suppress PossiblyNullArgument */
 		$this->handleOrglistResponse($body, $letter);
 	}

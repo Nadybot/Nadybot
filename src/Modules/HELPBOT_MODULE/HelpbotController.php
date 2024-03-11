@@ -181,7 +181,7 @@ class HelpbotController extends ModuleInstance {
 			return;
 		}
 		$matches = Safe::pregMatchAll("{(\d*\.?\d+|[+%()/^-]|\*+)}", $formula);
-		$expression = join(" ", $matches[1]);
+		$expression = join(" ", $matches[1]??[]);
 		$expression = str_replace(["* *", "( ", " )", "*"], ["^", "(", ")", "×"], $expression);
 		$expression = Safe::pregReplace("/(\d+)/", "<cyan>$1<end>", $expression);
 

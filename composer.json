@@ -46,7 +46,7 @@
 		"amphp/amp": "^3.0.0",
 		"amphp/http-client": "^5.0.1",
 		"amphp/cache": "^2.0.0",
-		"amphp/file": "^3.0.2",
+		"amphp/file": "3.x-dev",
 		"amphp/websocket-client": "^2.0.0",
 		"netresearch/jsonmapper": "^4.0.0",
 		"eventsauce/object-hydrator": "^1.1.0",
@@ -71,6 +71,10 @@
 		{
 			"type": "git",
 			"url": "https://github.com/Nadybot/leaky-bucket.git"
+		},
+		{
+			"type": "git",
+			"url": "https://github.com/amphp/file.git"
 		}
 	],
 	"autoload": {

@@ -3,8 +3,10 @@
 namespace Nadybot\Modules\GUIDE_MODULE;
 
 use function Safe\preg_split;
-use Amp\File\Filesystem;
+
+use Amp\File\{FileCache, Filesystem};
 use Amp\Http\Client\{HttpClientBuilder, Request};
+use Amp\Sync\LocalKeyedMutex;
 use DOMDocument;
 use DOMElement;
 use Exception;
@@ -80,15 +82,15 @@ class AOUController extends ModuleInstance {
 			'mode' => 'view',
 			'id' => $guideId,
 		];
-		/*
+
 		$cache = new FileCache(
 			$this->config->paths->cache . '/guide',
-			new LocalKeyedMutex()
+			new LocalKeyedMutex(),
+			$this->fs
 		);
 		$cacheKey = (string)$guideId;
 		$body = $cache->get($cacheKey);
-		*/
-		$body = null;
+
 		if ($body === null) {
 			$client = $this->builder->build();
 
@@ -100,7 +102,7 @@ class AOUController extends ModuleInstance {
 				$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>{$guideId}<end>.";
 				$context->reply($msg);
 			}
-			// $cache->set($cacheKey, $body, 3600*24);
+			$cache->set($cacheKey, $body, 3600*24);
 		}
 		try {
 			/** @phpstan-var non-empty-string $body */

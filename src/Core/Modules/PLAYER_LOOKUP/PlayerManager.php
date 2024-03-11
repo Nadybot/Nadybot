@@ -5,12 +5,13 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 use function Amp\delay;
 use function Safe\{json_decode, parse_url, preg_match};
 
-use Amp\File\Filesystem;
+use Amp\File\{FileCache, Filesystem};
 use Amp\Http\Client\{
 	HttpClientBuilder,
 	Request,
 	TimeoutException,
 };
+use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;
 use AO\Utils;
 use DateTimeZone;
@@ -200,14 +201,14 @@ class PlayerManager extends ModuleInstance {
 				try {
 					$url = $baseUrl . "/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json";
 
-					/** @todo Filecache
-					 * $cache = new FileCache(
-					 * $this->config->paths->cache . '/players',
-					 * new LocalKeyedMutex()
-					 * );
-					 * $cacheKey = "{$name}.{$dimension}";
-					 * $body = $cache->get($cacheKey);
-					 */
+					$cache = new FileCache(
+						$this->config->paths->cache . '/players',
+						new LocalKeyedMutex(),
+						$this->fs
+					);
+					$cacheKey = "{$name}.{$dimension}";
+					$body = $cache->get($cacheKey);
+
 					if (isset($body)) {
 						$player = $this->parsePlayerFromBody($body);
 						break;
@@ -223,7 +224,7 @@ class PlayerManager extends ModuleInstance {
 
 					if ($response->getStatus() === 200) {
 						$body = $response->getBody()->buffer();
-						// $cache->set($cacheKey, $body, 60);
+						$cache->set($cacheKey, $body, 60);
 						$player = $this->parsePlayerFromBody($body);
 					} else {
 						$this->logger->debug("Looking up {name}.{dimension}: {code}", [

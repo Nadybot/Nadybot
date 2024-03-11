@@ -107,7 +107,7 @@ class CommandAlias {
 		// Determine highest placeholder and don't split more than that so that the
 		// last parameter will have whatever is left
 		$matches = Safe::pregMatchAll("/\{(\\d+)(:.*?)?\}/", $cmd);
-		$placeholders = array_map("intval", $matches[1]);
+		$placeholders = array_map("intval", $matches[1] ?? []);
 		$highestPlaceholder = max([0, ...$placeholders]);
 		// If there aren't any defined parameters, but player gave arguments, process them:
 		if ($highestPlaceholder === 0 && !count($placeholders) && $params !== "") {

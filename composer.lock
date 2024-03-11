@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "44c06cf64f5ac302ca10f11764838e5c",
+    "content-hash": "f7c3cf836e1bbc81f490fa42c76c984a",
     "packages": [
         {
             "name": "amphp/amp",
@@ -317,17 +317,11 @@
         },
         {
             "name": "amphp/file",
-            "version": "v3.0.2",
+            "version": "3.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/amphp/file.git",
-                "reference": "45d8d84c4496c695cf2ca2bf05f236a3e36c3558"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/amphp/file/zipball/45d8d84c4496c695cf2ca2bf05f236a3e36c3558",
-                "reference": "45d8d84c4496c695cf2ca2bf05f236a3e36c3558",
-                "shasum": ""
+                "reference": "503c1b5c0a2a2657bf52383c665b1c6b40a17181"
             },
             "require": {
                 "amphp/amp": "^3",
@@ -342,22 +336,41 @@
                 "amphp/php-cs-fixer-config": "^2",
                 "amphp/phpunit-util": "^3",
                 "phpunit/phpunit": "^9",
-                "psalm/phar": "^5.4"
+                "psalm/phar": "5.22.2"
             },
             "suggest": {
                 "ext-eio": "^2 || ^3",
                 "ext-uv": "^0.3 || ^0.2"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
-                "files": [
-                    "src/functions.php"
-                ],
                 "psr-4": {
                     "Amp\\File\\": "src"
+                },
+                "files": [
+                    "src/functions.php"
+                ]
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Amp\\File\\Test\\": "test",
+                    "Amp\\Cache\\Test\\": "vendor/amphp/cache/test",
+                    "Amp\\Sync\\": "vendor/amphp/sync/test"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "check": [
+                    "@code-style",
+                    "@test"
+                ],
+                "code-style": [
+                    "php-cs-fixer fix -v --diff"
+                ],
+                "test": [
+                    "@php -dzend.assertions=1 -dassert.exception=1 ./vendor/bin/phpunit --coverage-text"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -389,16 +402,9 @@
                 "static"
             ],
             "support": {
-                "issues": "https://github.com/amphp/file/issues",
-                "source": "https://github.com/amphp/file/tree/v3.0.2"
+                "issues": "https://github.com/amphp/file/issues"
             },
-            "funding": [
-                {
-                    "url": "https://github.com/amphp",
-                    "type": "github"
-                }
-            ],
-            "time": "2023-12-27T22:52:04+00:00"
+            "time": "2024-03-11T04:06:03+00:00"
         },
         {
             "name": "amphp/hpack",
@@ -6719,6 +6725,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "amphp/file": 20,
         "amphp/http-tunnel": 10,
         "nadylib/imex": 20,
         "nadybot/aolib": 20,
