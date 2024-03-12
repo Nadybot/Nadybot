@@ -2,11 +2,15 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-class ApiResponse extends Response {
-	public function __construct(mixed $args=null) {
+use Amp\Http\HttpStatus;
+use Amp\Http\Server\Response;
+
+class ApiResponse {
+	public static function create(mixed $args=null): Response {
+		$response = new Response(status: HttpStatus::OK);
 		if (isset($args)) {
-			$this->body = JsonExporter::encode($args);
+			$response->setBody(JsonExporter::encode($args));
 		}
-		$this->setCode(static::OK);
+		return $response;
 	}
 }

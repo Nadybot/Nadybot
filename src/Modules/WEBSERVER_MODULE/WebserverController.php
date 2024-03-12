@@ -3,11 +3,13 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
-use function Safe\{base64_decode, mime_content_type, openssl_verify, preg_split, realpath, stream_socket_accept, stream_socket_server};
-use Amp\File;
-use Amp\File\Filesystem;
-use Amp\Http\Client;
+use function Safe\{base64_decode, json_decode, mime_content_type, openssl_verify, preg_split, realpath};
+
+use Amp\File\{Filesystem, FilesystemException as FileFilesystemException};
 use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Server\{DefaultErrorHandler, HttpServer, Request, RequestHandler, Response, SocketHttpServer};
+use Amp\Http\{Client, HttpStatus};
+use Amp\TimeoutCancellation;
 use Closure;
 use Exception;
 use Nadybot\Core\{
@@ -19,15 +21,15 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Registry,
 	Safe,
-	Socket,
-	Socket\AsyncSocket,
 };
 use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionFunction;
 use Safe\DateTime;
-use Safe\Exceptions\{FilesystemException, OpensslException, StreamException, UrlException};
+use Safe\Exceptions\{FilesystemException, OpensslException, PcreException, UrlException};
+use stdClass;
+use Throwable;
 
 #[
 	NCA\Instance,
@@ -37,9 +39,12 @@ use Safe\Exceptions\{FilesystemException, OpensslException, StreamException, Url
 		description: "Pre-authorize Websocket connections",
 	),
 ]
-class WebserverController extends ModuleInstance {
+class WebserverController extends ModuleInstance implements RequestHandler {
 	public const AUTH_AOAUTH = "aoauth";
 	public const AUTH_BASIC = "webauth";
+
+	public const USER = __NAMESPACE__ . "::user";
+	public const BODY = __NAMESPACE__ . "::body";
 
 	/** Enable webserver */
 	#[NCA\Setting\Boolean(accessLevel: 'superadmin')]
@@ -47,7 +52,7 @@ class WebserverController extends ModuleInstance {
 
 	/** On which port does the HTTP server listen */
 	#[NCA\Setting\Number(accessLevel: 'superadmin')]
-	public int $webserverPort = 8080;
+	public int $webserverPort = 8081;
 
 	/** Where to listen for HTTP requests */
 	#[NCA\Setting\Text(
@@ -82,13 +87,6 @@ class WebserverController extends ModuleInstance {
 	#[NCA\Setting\Rank]
 	public string $webserverMinAL = "mod";
 
-	/**
-	 * @var ?resource
-	 *
-	 * @psalm-var null|resource|closed-resource
-	 */
-	protected $serverSocket = null;
-
 	/** @var array<string,array<string,callable[]>> */
 	protected array $routes = [
 		'get' => [],
@@ -102,11 +100,11 @@ class WebserverController extends ModuleInstance {
 	 *
 	 * @phpstan-var array<string,array{string,int}>
 	 */
-	protected array $authentications = [];
+	private array $authentications = [];
 
-	protected AsyncSocket $asyncSocket;
+	private ?HttpServer $server = null;
 
-	protected ?string $aoAuthPubKey = null;
+	private ?string $aoAuthPubKey = null;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -115,16 +113,13 @@ class WebserverController extends ModuleInstance {
 	private HttpClientBuilder $builder;
 
 	#[NCA\Inject]
-	private Socket $socket;
-
-	#[NCA\Inject]
-	private BotConfig $config;
+	private DB $db;
 
 	#[NCA\Inject]
 	private AccessManager $accessManager;
 
 	#[NCA\Inject]
-	private DB $db;
+	private BotConfig $config;
 
 	#[NCA\Inject]
 	private Filesystem $fs;
@@ -137,14 +132,14 @@ class WebserverController extends ModuleInstance {
 		if ($this->webserver) {
 			$this->listen();
 		}
-		if ($this->webserverAuth !== static::AUTH_AOAUTH) {
+		if ($this->webserverAuth !== self::AUTH_AOAUTH) {
 			return;
 		}
 		$aoAuthKeyUrl = rtrim($this->webserverAoauthUrl, '/') . '/key';
 		$client = $this->builder->build();
 
 		$response = $client->request(new Client\Request($aoAuthKeyUrl));
-		if ($response->getStatus() !== 200) {
+		if ($response->getStatus() !== HttpStatus::OK) {
 			$this->logger->error(
 				'Error downloading aoauth pubkey from {uri}: {error} ({reason})',
 				[
@@ -171,6 +166,19 @@ class WebserverController extends ModuleInstance {
 		$this->scanRouteAttributes();
 	}
 
+	#[NCA\Event(
+		name: "timer(10min)",
+		description: "Remove expired authentications",
+		defaultStatus: 1
+	)]
+	public function clearExpiredAuthentications(): void {
+		foreach ($this->authentications as $user => $data) {
+			if ($data[1] < time()) {
+				unset($this->authentications[$user]);
+			}
+		}
+	}
+
 	/** Start or stop the webserver if the setting changed */
 	#[NCA\SettingChangeHandler("webserver_auth")]
 	#[NCA\SettingChangeHandler("webserver_aoauth_url")]
@@ -192,7 +200,7 @@ class WebserverController extends ModuleInstance {
 	#[NCA\SettingChangeHandler("webserver_port")]
 	#[NCA\SettingChangeHandler("webserver_addr")]
 	public function webserverSettingChanged(string $settingName, string $oldValue, string $newValue): void {
-		if (!$this->webserver) {
+		if (!$this->server) {
 			return;
 		}
 		$this->shutdown();
@@ -220,6 +228,152 @@ class WebserverController extends ModuleInstance {
 		$msg = "You can now authenticate to the Webserver for 1h with the ".
 			"credentials <highlight>{$uuid}<end>.";
 		$context->reply($msg);
+	}
+
+	/** Check the signed request */
+	public function checkSignature(string $signature): ?string {
+		$algorithms = [
+			"sha1" => OPENSSL_ALGO_SHA1,
+			"sha224" => OPENSSL_ALGO_SHA224,
+			"sha256" => OPENSSL_ALGO_SHA256,
+			"sha384" => OPENSSL_ALGO_SHA384,
+			"sha512" => OPENSSL_ALGO_SHA512,
+		];
+		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)keyid\s*=\s*\"(.+?)\"/is", $signature))) {
+			return null;
+		}
+		$keyId = $matches[1];
+		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)algorithm\s*=\s*\"(.+?)\"/is", $signature))) {
+			return null;
+		}
+		$algorithm = $algorithms[strtolower($matches[1])]??null;
+		if (!isset($algorithm)) {
+			return null;
+		}
+		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)sequence\s*=\s*\"?(\d+)\"?/is", $signature))) {
+			return null;
+		}
+		$sequence = $matches[1];
+		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)signature\s*=\s*\"(.+?)\"/is", $signature))) {
+			return null;
+		}
+		$signature = $matches[1];
+
+		/** @var ?ApiKey */
+		$key = $this->db->table(ApiController::DB_TABLE)
+			->where("token", $keyId)
+			->asObj(ApiKey::class)
+			->first();
+		if (!isset($key)) {
+			return null;
+		}
+		if ($key->last_sequence_nr >= $sequence) {
+			return null;
+		}
+		try {
+			$decodedSig = base64_decode($signature);
+		} catch (UrlException) {
+			return null;
+		}
+		try {
+			if (openssl_verify($sequence, $decodedSig, $key->pubkey, $algorithm) !== 1) {
+				return null;
+			}
+		} catch (OpensslException) {
+			return null;
+		}
+		$key->last_sequence_nr = (int)$sequence;
+		$this->db->update(ApiController::DB_TABLE, "id", $key);
+		return $key->character;
+	}
+
+	public function handleRequest(Request $request): Response {
+		$user = $this->getAuthenticatedUser($request);
+		$request->setAttribute(self::USER, $user);
+		$handlers = $this->getHandlersForRequest($request);
+		$needAuth = true;
+		if (count($handlers) === 1) {
+			$ref = new ReflectionFunction($handlers[0][0]);
+
+			/** @psalm-suppress InvalidAttribute */
+			if (count($ref->getAttributes(NCA\HttpOwnAuth::class))) {
+				$needAuth = false;
+			}
+		}
+		if ($needAuth && !isset($user)) {
+			return $this->getAuthRequiredResponse($request);
+		}
+		$aoAuthToken = $request->getQueryParameter('_aoauth_token');
+		if (isset($aoAuthToken)) {
+			$jwtUser = $this->checkJWTAuthentication($aoAuthToken);
+			if (isset($jwtUser)) {
+				$newRequest = clone $request;
+				$newRequest->removeQueryParameter("_aoauth_token");
+				$redirectTo = $newRequest->getUri()->getPath();
+				if (strlen($queryString = $newRequest->getUri()->getQuery())) {
+					$redirectTo .= "?{$queryString}";
+				}
+				$cookie = "authorization={$aoAuthToken}; HttpOnly";
+				return new Response(
+					status: HttpStatus::TEMPORARY_REDIRECT,
+					headers: [
+						'Location' => $redirectTo,
+						'Set-Cookie' => $cookie,
+					],
+				);
+			}
+		}
+		$error = $this->decodeRequestBody($request);
+		if (isset($error)) {
+			return $error;
+		}
+
+		/** @var ?string $user */
+		$hasMinAL = !$needAuth || $this->accessManager->checkAccess(
+			$user ?? "Xxx",
+			$this->webserverMinAL
+		);
+		if (!$hasMinAL) {
+			return new Response(
+				status: HttpStatus::FORBIDDEN,
+			);
+		}
+
+		foreach ($handlers as $handler) {
+			$reply = $handler[0]($request, ...$handler[1]);
+			if (isset($reply)) {
+				return $reply;
+			}
+		}
+		if (!in_array($request->getMethod(), ["HEAD", "GET"])) {
+			return new Response(status: HttpStatus::METHOD_NOT_ALLOWED);
+		}
+
+		return $this->serveStaticFile($request);
+	}
+
+	/** Start listening for incoming TCP connections on the configured port */
+	public function listen(): bool {
+		$port = $this->webserverPort;
+		$addr = $this->webserverAddr;
+		$server = SocketHttpServer::createForDirectAccess($this->logger);
+		$server->expose("{$addr}:{$port}");
+		$server->start($this, new DefaultErrorHandler());
+		$this->logger->notice("HTTP server listening on {addr}:{port}", [
+			"addr" => $addr,
+			"port" => $port,
+		]);
+		return true;
+	}
+
+	/** Shutdown the webserver */
+	public function shutdown(): bool {
+		if (!isset($this->server)) {
+			return true;
+		}
+		$this->server->stop();
+		$this->logger->notice("Webserver shutdown");
+		return true;
 	}
 
 	/** Scan all Instances for HttpGet or HttpPost attributes and register them */
@@ -282,84 +436,6 @@ class WebserverController extends ModuleInstance {
 		return $newMask . '$';
 	}
 
-	/** Handle new client connections */
-	public function clientConnected(AsyncSocket $socket): void {
-		$lowSock = $socket->getSocket();
-		if (!is_resource($lowSock)) {
-			return;
-		}
-		try {
-			$newSocket = stream_socket_accept($lowSock, 0, $peerName);
-		} catch (StreamException $e) {
-			$this->logger->info('Error accepting client connection: {error}', [
-				"error" => $e->getMessage(),
-				"exception" => $e,
-			]);
-			return;
-		}
-		$this->logger->info('New client connected from ' . ($peerName??"Unknown location"));
-		$wrapper = $this->socket->wrap($newSocket);
-		$wrapper->on(AsyncSocket::CLOSE, [$this, "handleClientDisconnect"]);
-		$httpWrapper = new HttpProtocolWrapper();
-		Registry::injectDependencies($httpWrapper);
-		$httpWrapper->wrapAsyncSocket($wrapper);
-	}
-
-	/** Handle client disconnects / being disconnected */
-	public function handleClientDisconnect(AsyncSocket $scket): void {
-		$this->logger->info("Webserver: Client disconnected.");
-	}
-
-	/** Start listening for incoming TCP connections on the configured port */
-	public function listen(): bool {
-		$port = $this->webserverPort;
-		$addr = $this->webserverAddr;
-		$context = stream_context_create();
-		try {
-			$serverSocket = stream_socket_server(
-				"tcp://{$addr}:{$port}",
-				$errno,
-				$errstr,
-				STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
-				$context
-			);
-		} catch (StreamException $e) {
-			$error = "Could not listen on {addr} port {port}: {error}";
-			$this->logger->error($error, [
-				"addr" => $addr,
-				"port" => $port,
-				"error" => $e->getMessage(),
-			]);
-			return false;
-		}
-		$this->serverSocket = $serverSocket;
-
-		$wrapper = $this->socket->wrap($this->serverSocket);
-		$wrapper->setTimeout(0);
-		$wrapper->on(AsyncSocket::DATA, [$this, "clientConnected"]);
-		$this->asyncSocket = $wrapper;
-
-		$this->logger->notice("HTTP server listening on port {port}", ["port" => $port]);
-		return true;
-	}
-
-	/** Shutdown the webserver */
-	public function shutdown(): bool {
-		if (!isset($this->serverSocket) || !is_resource($this->serverSocket)) {
-			return true;
-		}
-		if (isset($this->asyncSocket)) {
-			$this->asyncSocket->destroy();
-			// @phpstan-ignore-next-line
-			@fclose($this->serverSocket);
-		} else {
-			// @phpstan-ignore-next-line
-			@fclose($this->serverSocket);
-		}
-		$this->logger->notice("Webserver shutdown");
-		return true;
-	}
-
 	/**
 	 * @return array<array<Closure|string[]>>
 	 *
@@ -369,8 +445,9 @@ class WebserverController extends ModuleInstance {
 	 */
 	public function getHandlersForRequest(Request $request): array {
 		$result = [];
-		foreach ($this->routes[$request->method] as $mask => $handlers) {
-			if (count($parts = Safe::pregMatch("|{$mask}|", $request->path))) {
+		$path = $request->getUri()->getPath();
+		foreach ($this->routes[strtolower($request->getMethod())] as $mask => $handlers) {
+			if (count($parts = Safe::pregMatch("|{$mask}|", $path))) {
 				array_shift($parts);
 				foreach ($handlers as $handler) {
 					$result []= [Closure::fromCallable($handler), $parts];
@@ -380,113 +457,155 @@ class WebserverController extends ModuleInstance {
 		return $result;
 	}
 
-	#[
-		NCA\Event(
-			name: [
-				"http(get)",
-				"http(head)",
-				"http(post)",
-				"http(put)",
-				"http(delete)",
-				"http(patch)",
-			],
-			description: "Call handlers for HTTP GET requests",
-			defaultStatus: 1
-		)
-	]
-	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): void {
-		$handlers = $this->getHandlersForRequest($event->request);
-		$needAuth = true;
-		if (count($handlers) === 1) {
-			$ref = new ReflectionFunction($handlers[0][0]);
-
-			/** @psalm-suppress InvalidAttribute */
-			if (count($ref->getAttributes(NCA\HttpOwnAuth::class))) {
-				$needAuth = false;
+	private function decodeRequestBody(Request $request): ?Response {
+		$body = $request->getBody()->buffer(new TimeoutCancellation(5));
+		if ($body === "") {
+			return null;
+		}
+		$contentType = $request->getHeader('content-type');
+		if (!isset($contentType)) {
+			return new Response(status: HttpStatus::UNSUPPORTED_MEDIA_TYPE);
+		}
+		if (preg_split("/;\s*/", $contentType)[0] === 'application/json') {
+			try {
+				$request->setAttribute(self::BODY, json_decode($body));
+				return null;
+			} catch (Throwable $error) {
+				return new Response(
+					status: HttpStatus::BAD_REQUEST,
+					body: "Invalid JSON given: ".$error->getMessage()
+				);
 			}
 		}
-		if ($needAuth && !isset($event->request->authenticatedAs)) {
-			$authType = $this->webserverAuth;
-			if ($authType === static::AUTH_BASIC) {
-				$server->httpError(new Response(
-					Response::UNAUTHORIZED,
-					["WWW-Authenticate" => "Basic realm=\"{$this->config->main->character}\""],
-				), $event->request);
-			} elseif ($authType === static::AUTH_AOAUTH) {
-				$baseUrl = $this->webserverBaseUrl;
-				if ($baseUrl === 'default') {
-					$baseUrl = 'http://' . $event->request->headers['host'];
-				}
-				unset($event->request->query['_aoauth_token']);
-				$redirectUrl = $baseUrl . $event->request->path;
-				if (strlen($queryString = http_build_query($event->request->query))) {
-					$redirectUrl .= "?{$queryString}";
-				}
-				$aoAuthUrl = rtrim($this->webserverAoauthUrl, '/') . '/auth';
-				$server->sendResponse(new Response(
-					Response::TEMPORARY_REDIRECT,
-					[
-						'Location' => $aoAuthUrl . '?redirect_uri='.
-							urlencode($redirectUrl) . '&application_name='.
-							urlencode($this->db->getMyname()),
-					]
-				), $event->request, true);
+		if (preg_split("/;\s*/", $contentType)[0] === 'application/x-www-form-urlencoded') {
+			$parts = explode("&", $body);
+			$result = new stdClass();
+			foreach ($parts as $part) {
+				$kv = array_map("urldecode", explode("=", $part, 2));
+				$result->{$kv[0]} = $kv[1] ?? null;
 			}
-			return;
+			$request->setAttribute(self::BODY, $result);
+			return null;
 		}
-		if (isset($event->request->query['_aoauth_token'])) {
-			$jwtUser = $this->checkJWTAuthentication($event->request->query['_aoauth_token']);
-			if (isset($jwtUser)) {
-				$newQuery = $event->request->query;
-				unset($newQuery['_aoauth_token']);
-				$redirectTo = $event->request->path;
-				if (strlen($queryString = http_build_query($newQuery))) {
-					$redirectTo .= "?{$queryString}";
-				}
-				$cookie = 'authorization=' . $event->request->query['_aoauth_token'].
-					"; HttpOnly";
-				$server->sendResponse(new Response(
-					Response::TEMPORARY_REDIRECT,
-					[
-						'Location' => $redirectTo,
-						'Set-Cookie' => $cookie,
-					]
-				), $event->request, true);
-				return;
-			}
-		}
-		$hasMinAL = !$needAuth || $this->accessManager->checkAccess(
-			$event->request->authenticatedAs ?? "Xxx",
-			$this->webserverMinAL
-		);
-		if (!$hasMinAL) {
-			$server->httpError(new Response(Response::FORBIDDEN), $event->request);
-			return;
-		}
-
-		$handlers = $this->getHandlersForRequest($event->request);
-		foreach ($handlers as $handler) {
-			$handler[0]($event->request, $server, ...$handler[1]);
-		}
-		if (isset($event->request->replied)) {
-			return;
-		}
-		$event->request->replied = -1;
-		if (!in_array($event->request->method, [Request::HEAD, Request::GET])) {
-			$server->httpError(new Response(Response::METHOD_NOT_ALLOWED), $event->request);
-			return;
-		}
-
-		$response = $this->serveStaticFile($event->request);
-		if ($response->code !== Response::OK) {
-			$server->httpError($response, $event->request);
-		} else {
-			$server->sendResponse($response, $event->request);
-		}
+		return new Response(status: HttpStatus::UNSUPPORTED_MEDIA_TYPE);
 	}
 
-	public function guessContentType(string $file): string {
-		$info = pathinfo($file);
+	private function getAuthRequiredResponse(Request $request): Response {
+		$authType = $this->webserverAuth;
+		if ($authType === static::AUTH_BASIC) {
+			return new Response(
+				status: HttpStatus::UNAUTHORIZED,
+				headers: ["WWW-Authenticate" => "Basic realm=\"{$this->config->main->character}\""],
+			);
+		} elseif ($authType === static::AUTH_AOAUTH) {
+			$baseUrl = $this->webserverBaseUrl;
+			if ($baseUrl === 'default') {
+				$host = $request->getUri()->getHost();
+				$baseUrl = "http://{$host}:{$request->getUri()->getPort()}";
+			}
+			$newRequest = clone $request;
+			$newRequest->removeQueryParameter("_aoauth_token");
+			$redirectUrl = $baseUrl . $newRequest->getUri()->getPath();
+			$newRequest->getUri()->getQuery();
+			if (strlen($queryString = $newRequest->getUri()->getQuery())) {
+				$redirectUrl .= "?{$queryString}";
+			}
+			$aoAuthUrl = rtrim($this->webserverAoauthUrl, '/') . '/auth';
+
+			return new Response(
+				status: HttpStatus::TEMPORARY_REDIRECT,
+				headers: [
+					'Location' => $aoAuthUrl . '?redirect_uri='.
+						urlencode($redirectUrl) . '&application_name='.
+						urlencode($this->config->main->character),
+				]
+			);
+		}
+		throw new Exception("Invalid authentication procedure configured");
+	}
+
+	/**
+	 * Check if a valid user is given by a JWT
+	 *
+	 * @return null|string null if token is wrong, the username that was sent if correct
+	 */
+	private function checkJWTAuthentication(string $token): ?string {
+		$aoAuthPubKey = $this->aoAuthPubKey ?? null;
+		if (!isset($aoAuthPubKey)) {
+			$this->logger->error('No public key found to validate JWT');
+			return null;
+		}
+		try {
+			$payload = JWT::decode($token, trim($aoAuthPubKey));
+		} catch (Exception $e) {
+			$this->logger->error('JWT: ' . $e->getMessage(), ["exception" => $e]);
+			return null;
+		}
+		if (!isset($payload->exp) || $payload->exp <= time()) {
+			return null;
+		}
+		return $payload->sub->name??null;
+	}
+
+	private function getAuthenticatedUser(Request $request): ?string {
+		$signature = $request->getHeader("signature");
+		if (isset($signature) && strlen($signature) > 16) {
+			return $this->checkSignature($signature);
+		}
+		$authType = $this->webserverAuth;
+		if ($authType === self::AUTH_AOAUTH) {
+			$token = $request->getQueryParameter('_aoauth_token');
+			if (isset($token)) {
+				$jwtUser = $this->checkJWTAuthentication($token);
+				if (isset($jwtUser)) {
+					return $jwtUser;
+				}
+			}
+			if (!count($cookies = $request->getCookies())
+				|| !isset($cookies['authorization'])) {
+				return null;
+			}
+			return $this->checkJWTAuthentication($cookies['authorization']->getValue());
+		}
+		$authorization = $request->getHeader("authorization");
+		if (!isset($authorization)) {
+			return null;
+		}
+		try {
+			$parts = preg_split("/\s+/", $authorization);
+			if (count($parts) !== 2 || strtolower($parts[0]) !== 'basic') {
+				return null;
+			}
+			$userPassString = base64_decode($parts[1]);
+		} catch (PcreException | UrlException) {
+			return null;
+		}
+		$userPass = explode(":", $userPassString, 2);
+		if (count($userPass) !== 2) {
+			return null;
+		}
+		return $this->checkAuthentication($userPass[0], $userPass[1]);
+	}
+
+	/**
+	 * Check if $user is allowed to login with password $pass
+	 *
+	 * @return null|string null if password is wrong, the username that was sent if correct
+	 */
+	private function checkAuthentication(string $user, string $password): ?string {
+		$user = ucfirst(strtolower($user));
+		if (!isset($this->authentications[$user])) {
+			return null;
+		}
+		[$correctPass, $validUntil] = $this->authentications[$user];
+		if ($correctPass !== $password || $validUntil < time()) {
+			return null;
+		}
+		return $user;
+	}
+
+	private function guessContentType(string $fileName): string {
+		$info = pathinfo($fileName);
 		$extension = "";
 		if (is_array($info) && isset($info["extension"])) {
 			$extension = $info["extension"];
@@ -504,159 +623,49 @@ class WebserverController extends ModuleInstance {
 				return "image/svg+xml";
 			default:
 				if (extension_loaded("fileinfo")) {
-					return mime_content_type($file);
+					return mime_content_type($fileName);
 				}
 				return "application/octet-stream";
-		}
-	}
-
-	/** Check the signed request */
-	public function checkSignature(string $signature): ?string {
-		$algorithms = [
-			"sha1" => OPENSSL_ALGO_SHA1,
-			"sha224" => OPENSSL_ALGO_SHA224,
-			"sha256" => OPENSSL_ALGO_SHA256,
-			"sha384" => OPENSSL_ALGO_SHA384,
-			"sha512" => OPENSSL_ALGO_SHA512,
-		];
-		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)keyid\s*=\s*\"(.+?)\"/is", $signature))) {
-			return null;
-		}
-		$keyId = $matches[1];
-		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)algorithm\s*=\s*\"(.+?)\"/is", $signature))) {
-			return null;
-		}
-		$algorithm = $algorithms[strtolower($matches[1])]??null;
-		if (!isset($algorithm)) {
-			return null;
-		}
-		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)sequence\s*=\s*\"?(\d+)\"?/is", $signature))) {
-			return null;
-		}
-		$sequence = $matches[1];
-		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)signature\s*=\s*\"(.+?)\"/is", $signature))) {
-			return null;
-		}
-		$signature = $matches[1];
-
-		/** @var ?ApiKey */
-		$key = $this->db->table(ApiController::DB_TABLE)
-			->where("token", $keyId)
-			->asObj(ApiKey::class)
-			->first();
-		if (!isset($key)) {
-			return null;
-		}
-		if ($key->last_sequence_nr >= $sequence) {
-			return null;
-		}
-		try {
-			$decodedSig = base64_decode($signature);
-		} catch (UrlException) {
-			return null;
-		}
-		try {
-			if (openssl_verify($sequence, $decodedSig, $key->pubkey, $algorithm) !== 1) {
-				return null;
-			}
-		} catch (OpensslException) {
-			return null;
-		}
-		$key->last_sequence_nr = (int)$sequence;
-		$this->db->update(ApiController::DB_TABLE, "id", $key);
-		return $key->character;
-	}
-
-	/**
-	 * Check if $user is allowed to login with password $pass
-	 *
-	 * @return null|string null if password is wrong, the username that was sent if correct
-	 */
-	public function checkAuthentication(string $user, string $password): ?string {
-		$user = ucfirst(strtolower($user));
-		if (!isset($this->authentications[$user])) {
-			return null;
-		}
-		[$correctPass, $validUntil] = $this->authentications[$user];
-		if ($correctPass !== $password || $validUntil < time()) {
-			return null;
-		}
-		return $user;
-	}
-
-	/**
-	 * Check if a valid user is given by a JWT
-	 *
-	 * @return null|string null if token is wrong, the username that was sent if correct
-	 */
-	public function checkJWTAuthentication(string $token): ?string {
-		$aoAuthPubKey = $this->aoAuthPubKey ?? null;
-		if (!isset($aoAuthPubKey)) {
-			$this->logger->error('No public key found to validate JWT');
-			return null;
-		}
-		try {
-			$payload = JWT::decode($token, trim($aoAuthPubKey));
-		} catch (Exception $e) {
-			$this->logger->error('JWT: ' . $e->getMessage(), ["exception" => $e]);
-			return null;
-		}
-		if (!isset($payload->exp) || $payload->exp <= time()) {
-			// return null;
-		}
-		return $payload->sub->name??null;
-	}
-
-	#[NCA\Event(
-		name: "timer(10min)",
-		description: "Remove expired authentications",
-		defaultStatus: 1
-	)]
-	public function clearExpiredAuthentications(): void {
-		foreach ($this->authentications as $user => $data) {
-			if ($data[1] < time()) {
-				unset($this->authentications[$user]);
-			}
 		}
 	}
 
 	private function serveStaticFile(Request $request): Response {
 		$path = $this->config->paths->html;
 		try {
-			$realFile = realpath("{$path}/{$request->path}");
+			$realFile = realpath("{$path}/{$request->getUri()->getPath()}");
 			$realBaseDir = realpath("{$path}/");
 		} catch (FilesystemException) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		if ($realFile !== $realBaseDir
 			&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0
 		) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		if ($this->fs->isDirectory($realFile)) {
 			$realFile .= DIRECTORY_SEPARATOR . "index.html";
 		}
 		if (!$this->fs->exists($realFile)) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		try {
 			$body = $this->fs->read($realFile);
-		} catch (File\FilesystemException) {
+		} catch (FileFilesystemException) {
 			$body = "";
 		}
 		$response = new Response(
-			Response::OK,
-			['Content-Type' => $this->guessContentType($realFile)],
-			$body
+			status: HttpStatus::OK,
+			headers: ['Content-Type' => $this->guessContentType($realFile)],
+			body: $body,
 		);
 		try {
 			$lastmodified = $this->fs->getModificationTime($realFile);
 			$modifiedDate = (new DateTime())->setTimestamp($lastmodified)->format(DateTime::RFC7231);
-			$response->headers['Last-Modified'] = $modifiedDate;
-		} catch (File\FilesystemException) {
+			$response->setHeader('Last-Modified', $modifiedDate);
+		} catch (Exception) {
 		}
-		$response->headers['Cache-Control'] = 'private, max-age=3600';
-		$response->headers['ETag'] = '"' . dechex(crc32($body)) . '"';
+		$response->setHeader('Cache-Control', 'private, max-age=3600');
+		$response->setHeader('ETag', '"' . dechex(crc32($body)) . '"');
 		return $response;
 	}
 }

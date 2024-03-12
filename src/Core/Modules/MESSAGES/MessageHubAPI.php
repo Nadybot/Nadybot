@@ -2,18 +2,14 @@
 
 namespace Nadybot\Core\Modules\MESSAGES;
 
+use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\{
 	Attributes as NCA,
 	MessageHub,
 	ModuleInstance,
 	Routing\Source,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\{
-	ApiResponse,
-	HttpProtocolWrapper,
-	Request,
-	Response,
-};
+use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 
 /**
  * @author Nadyita (RK5)
@@ -27,8 +23,8 @@ class MessageHubAPI extends ModuleInstance {
 		NCA\AccessLevel("all"),
 		NCA\ApiResult(code: 200, class: "RouteHopColor[]", desc: "The hop color definitions")
 	]
-	public function apiGetHopColors(Request $request, HttpProtocolWrapper $server): Response {
-		return new ApiResponse(MessageHub::$colors->toArray());
+	public function apiGetHopColors(Request $request): Response {
+		return ApiResponse::create(MessageHub::$colors->toArray());
 	}
 
 	/** List all hop formats */
@@ -38,7 +34,7 @@ class MessageHubAPI extends ModuleInstance {
 		NCA\AccessLevel("all"),
 		NCA\ApiResult(code: 200, class: "RouteHopFormat[]", desc: "The hop format definitions")
 	]
-	public function apiGetHopFormats(Request $request, HttpProtocolWrapper $server): Response {
-		return new ApiResponse(Source::$format->toArray());
+	public function apiGetHopFormats(Request $request): Response {
+		return ApiResponse::create(Source::$format->toArray());
 	}
 }

@@ -3,6 +3,9 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Safe\preg_match;
+
+use Amp\Http\HttpStatus;
+use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -97,29 +100,25 @@ class StatsController extends ModuleInstance {
 		NCA\HttpGet("/metrics"),
 		NCA\HttpOwnAuth,
 	]
-	public function getMetricsEndpoint(Request $request, HttpProtocolWrapper $server): void {
+	public function getMetricsEndpoint(Request $request): Response {
 		if (!$this->settingManager->getBool('prometheus_enabled')) {
-			$server->httpError(new Response(
-				Response::NOT_FOUND,
-			), $request);
-			return;
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
-		$authHeader = $request->headers["authorization"] ?? null;
+		$authHeader = $request->getHeader("authorization");
 		if (
 			!isset($authHeader)
 			|| !preg_match("/^([bB]earer +)?" . preg_quote($this->prometheusAuthToken, "/") . '$/', $authHeader)
 		) {
-			$server->httpError(new Response(
-				Response::UNAUTHORIZED,
-				["WWW-Authenticate" => "Bearer realm=\"{$this->config->main->character}\""],
-			), $request);
-			return;
+			return new Response(
+				status: HttpStatus::UNAUTHORIZED,
+				headers: ["WWW-Authenticate" => "Bearer realm=\"{$this->config->main->character}\""],
+			);
 		}
-		$server->sendResponse(new Response(
-			Response::OK,
-			['Content-Type' => "text/plain; version=0.0.4"],
-			$this->getMetricsData()
-		), $request, true);
+		return new Response(
+			status: HttpStatus::OK,
+			headers: ['Content-Type' => "text/plain; version=0.0.4"],
+			body: $this->getMetricsData(),
+		);
 	}
 
 	public function getMetricsData(): string {

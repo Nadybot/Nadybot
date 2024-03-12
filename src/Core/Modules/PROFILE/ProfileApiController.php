@@ -3,13 +3,13 @@
 namespace Nadybot\Core\Modules\PROFILE;
 
 use Amp\File\{Filesystem, FilesystemException};
+use Amp\Http\HttpStatus;
+use Amp\Http\Server\{Request, Response};
 use Exception;
 use Nadybot\Core\{Attributes as NCA, ModuleInstance};
+use Nadybot\Modules\WEBSERVER_MODULE\{WebserverController};
 use Nadybot\Modules\{
 	WEBSERVER_MODULE\ApiResponse,
-	WEBSERVER_MODULE\HttpProtocolWrapper,
-	WEBSERVER_MODULE\Request,
-	WEBSERVER_MODULE\Response,
 };
 use Throwable;
 
@@ -28,13 +28,13 @@ class ProfileApiController extends ModuleInstance {
 		NCA\AccessLevelFrom("profile"),
 		NCA\ApiResult(code: 200, class: "string[]", desc: "A list of saved profiled")
 	]
-	public function moduleGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+	public function moduleGetEndpoint(Request $request): Response {
 		try {
 			$profiles = $this->profileController->getProfileList();
 		} catch (Throwable $e) {
-			return new Response(Response::INTERNAL_SERVER_ERROR);
+			return new Response(status: HttpStatus::INTERNAL_SERVER_ERROR);
 		}
-		return new ApiResponse($profiles);
+		return ApiResponse::create($profiles);
 	}
 
 	/** View a profile */
@@ -45,18 +45,24 @@ class ProfileApiController extends ModuleInstance {
 		NCA\ApiResult(code: 200, class: "string", desc: "Profile found and shown"),
 		NCA\ApiResult(code: 404, desc: "Profile not found")
 	]
-	public function viewProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
+	public function viewProfileEndpoint(Request $request, string $profile): Response {
 		$filename = $this->profileController->getFilename($profile);
 
 		if (!$this->fs->exists($filename)) {
-			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
+			return new Response(
+				status: HttpStatus::NOT_FOUND,
+				body: "Profile {$filename} not found."
+			);
 		}
 		try {
 			$content = $this->fs->read($filename);
 		} catch (FilesystemException) {
-			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not accessible.");
+			return new Response(
+				status: HttpStatus::NOT_FOUND,
+				body: "Profile {$filename} not accessible."
+			);
 		}
-		return new ApiResponse($content);
+		return ApiResponse::create($content);
 	}
 
 	/** Delete a profile */
@@ -67,15 +73,18 @@ class ProfileApiController extends ModuleInstance {
 		NCA\ApiResult(code: 204, desc: "Profile successfully deleted"),
 		NCA\ApiResult(code: 404, desc: "Profile not found")
 	]
-	public function deleteProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
+	public function deleteProfileEndpoint(Request $request, string $profile): Response {
 		$filename = $this->profileController->getFilename($profile);
 
 		try {
 			$this->fs->deleteFile($filename);
 		} catch (FilesystemException) {
-			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
+			return new Response(
+				status: HttpStatus::NOT_FOUND,
+				body: "Profile {$filename} not found."
+			);
 		}
-		return new Response(Response::NO_CONTENT);
+		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
 	/** Load a profile */
@@ -89,24 +98,30 @@ class ProfileApiController extends ModuleInstance {
 		NCA\ApiResult(code: 402, desc: "Wrong or no operation given"),
 		NCA\ApiResult(code: 404, desc: "Profile not found")
 	]
-	public function loadProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
-		if (!is_object($request->decodedBody) || !isset($request->decodedBody->op)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
+	public function loadProfileEndpoint(Request $request, string $profile): Response {
+		$user = $request->getAttribute(WebserverController::USER) ?? "_";
+		$body = $request->getAttribute(WebserverController::BODY);
+		if (!is_object($body) || !isset($body->op)) {
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
-		$op = $request->decodedBody->op;
+
+		$op = $body->op;
 		if ($op !== "load") {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		$filename = $this->profileController->getFilename($profile);
 
 		if (!$this->fs->exists($filename)) {
-			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
+			return new Response(
+				status: HttpStatus::NOT_FOUND,
+				body: "Profile {$filename} not found."
+			);
 		}
-		$output = $this->profileController->loadProfile($filename, $request->authenticatedAs??"_");
+		$output = $this->profileController->loadProfile($filename, $user);
 		if ($output === null) {
-			return new Response(Response::INTERNAL_SERVER_ERROR);
+			return new Response(status: HttpStatus::INTERNAL_SERVER_ERROR);
 		}
-		return new Response(Response::NO_CONTENT);
+		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
 	/** Load a profile */
@@ -117,12 +132,15 @@ class ProfileApiController extends ModuleInstance {
 		NCA\ApiResult(code: 204, desc: "Profile saved successfully"),
 		NCA\ApiResult(code: 409, desc: "Profile already exists")
 	]
-	public function saveProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
+	public function saveProfileEndpoint(Request $request, string $profile): Response {
 		try {
 			$this->profileController->saveProfile($profile);
-		} catch (Exception $e) {
-			return new Response(Response::CONFLICT, [], "This profile already exists.");
+		} catch (Exception) {
+			return new Response(
+				status: HttpStatus::CONFLICT,
+				body: "This profile already exists."
+			);
 		}
-		return new Response(Response::NO_CONTENT);
+		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 }

@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\ONLINE_MODULE;
 
 use function Safe\preg_match;
+
+use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -35,9 +37,6 @@ use Nadybot\Modules\{
 	RELAY_MODULE\Relay,
 	RELAY_MODULE\RelayController,
 	WEBSERVER_MODULE\ApiResponse,
-	WEBSERVER_MODULE\HttpProtocolWrapper,
-	WEBSERVER_MODULE\Request,
-	WEBSERVER_MODULE\Response,
 	WEBSERVER_MODULE\StatsController,
 };
 
@@ -1114,11 +1113,11 @@ class OnlineController extends ModuleInstance {
 		NCA\AccessLevelFrom("online"),
 		NCA\ApiResult(code: 200, class: "OnlinePlayers", desc: "A list of online players")
 	]
-	public function apiOnlineEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+	public function apiOnlineEndpoint(Request $request): Response {
 		$result = new OnlinePlayers();
 		$result->org = $this->getPlayers('guild');
 		$result->private_channel = $this->getPlayers('priv');
-		return new ApiResponse($result);
+		return ApiResponse::create($result);
 	}
 
 	/**

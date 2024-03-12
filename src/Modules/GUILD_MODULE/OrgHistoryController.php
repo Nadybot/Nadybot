@@ -2,7 +2,8 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
-use function Safe\preg_match;
+use Amp\Http\HttpStatus;
+use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -16,12 +17,7 @@ use Nadybot\Core\{
 	Util,
 };
 
-use Nadybot\Modules\WEBSERVER_MODULE\{
-	ApiResponse,
-	HttpProtocolWrapper,
-	Request,
-	Response,
-};
+use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 
 /**
  * @author Tyrence (RK2)
@@ -160,58 +156,68 @@ class OrgHistoryController extends ModuleInstance {
 		NCA\ApiTag("audit"),
 		NCA\ApiResult(code: 200, class: "OrgHistory[]", desc: "The org history log entries")
 	]
-	public function historyGetListEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+	public function historyGetListEndpoint(Request $request): Response {
 		$query = $this->db->table(static::DB_TABLE)
 			->orderByDesc("time")
 			->orderByDesc("id");
 
-		$limit = $request->query["limit"]??"50";
-		if (!preg_match("/^\d+$/", $limit)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY, [], "limit is not an integer value");
+		$limit = $request->getQueryParameter("limit")??"50";
+		if (!ctype_digit($limit)) {
+			return new Response(
+				status: HttpStatus::UNPROCESSABLE_ENTITY,
+				body: "limit is not an integer value"
+			);
 		}
 		$query->limit((int)$limit);
 
-		$offset = $request->query["offset"]??null;
+		$offset = $request->getQueryParameter("offset");
 		if (isset($offset)) {
-			if (!preg_match("/^\d+$/", $offset)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, [], "offset is not an integer value");
+			if (!ctype_digit($offset)) {
+				return new Response(
+					status: HttpStatus::UNPROCESSABLE_ENTITY,
+					body: "offset is not an integer value"
+				);
 			}
 			$query->offset((int)$offset);
 		}
 
-		$before = $request->query["before"]??null;
+		$before = $request->getQueryParameter("before");
 		if (isset($before)) {
-			if (!preg_match("/^\d+$/", $before)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, [], "before is not an integer value");
+			if (!ctype_digit($before)) {
+				return new Response(
+					status: HttpStatus::UNPROCESSABLE_ENTITY,
+					body: "before is not an integer value"
+				);
 			}
 			$query->where("time", "<=", $before);
 		}
 
-		$after = $request->query["after"]??null;
+		$after = $request->getQueryParameter("after");
 		if (isset($after)) {
-			if (!preg_match("/^\d+$/", $after)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, [], "after is not an integer value");
+			if (!ctype_digit($after)) {
+				return new Response(
+					status: HttpStatus::UNPROCESSABLE_ENTITY,
+					body: "after is not an integer value"
+				);
 			}
 			$query->where("time", ">=", $after);
 		}
 
-		$actor = $request->query["actor"]??null;
+		$actor = $request->getQueryParameter("actor");
 		if (isset($actor)) {
 			$query->where("actor", ucfirst(strtolower($actor)));
 		}
 
-		$actee = $request->query["actee"]??null;
+		$actee = $request->getQueryParameter("actee");
 		if (isset($actee)) {
 			$query->where("actee", ucfirst(strtolower($actee)));
 		}
 
-		$action = $request->query["action"]??null;
+		$action = $request->getQueryParameter("action");
 		if (isset($action)) {
 			$query->where("action", strtolower($action));
 		}
 
-		return new ApiResponse(
-			$query->asObj(OrgHistory::class)->toArray()
-		);
+		return ApiResponse::create($query->asObj(OrgHistory::class)->toArray());
 	}
 }

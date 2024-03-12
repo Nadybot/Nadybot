@@ -4,6 +4,8 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
 
+use Amp\Http\HttpStatus;
+use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -52,10 +54,11 @@ class WebchatApiController extends ModuleInstance {
 		NCA\RequestBody(class: "string", desc: "The text to send", required: true),
 		NCA\ApiResult(code: 204, desc: "Message sent")
 	]
-	public function sendWebMessageEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		$message = $request->decodedBody;
-		if (!is_string($message) || !isset($request->authenticatedAs)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
+	public function sendWebMessageEndpoint(Request $request): Response {
+		$user = $request->getAttribute(WebserverController::USER);
+		$message = $request->getAttribute(WebserverController::BODY);
+		if (!is_string($message) || !isset($user)) {
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		$event = new AOWebChatEvent();
 		$event->type = "chat(web)";
@@ -76,19 +79,19 @@ class WebchatApiController extends ModuleInstance {
 			$event->color = $color->text_color;
 		}
 		$event->message = $this->webChatConverter->convertMessage($message);
-		$event->sender = $request->authenticatedAs;
+		$event->sender = $user;
 		$this->eventManager->fireEvent($event);
 
 		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(
-			new Character($request->authenticatedAs)
+			new Character($user)
 		);
 		$rMessage->prependPath(new Source(Source::WEB, "Web"));
 		$this->messageHub->handle($rMessage);
 
 		$sendto = new WebsocketCommandReply("web");
 		Registry::injectDependencies($sendto);
-		$context = new CmdContext($request->authenticatedAs);
+		$context = new CmdContext($user);
 		$context->source = Source::WEB;
 		$context->sendto = $sendto;
 		$context->message = $message;
@@ -97,6 +100,6 @@ class WebchatApiController extends ModuleInstance {
 			$context->char->id = $uid;
 			$this->commandManager->checkAndHandleCmd($context);
 		});
-		return new Response(Response::NO_CONTENT);
+		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 }

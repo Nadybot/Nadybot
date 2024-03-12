@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\SYSTEM;
 use function Safe\{ini_get, json_encode};
 
 use Amp\File\Filesystem;
+use Amp\Http\Server\{Request, Response};
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Illuminate\Support\Collection;
@@ -37,12 +38,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\{
-	ApiResponse,
-	HttpProtocolWrapper,
-	Request,
-	Response,
-};
+use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 
@@ -624,7 +620,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		NCA\AccessLevel("all"),
 		NCA\ApiResult(code: 200, class: "SystemInformation", desc: "Some basic system information")
 	]
-	public function apiSysinfoGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		return new ApiResponse($this->getSystemInfo());
+	public function apiSysinfoGetEndpoint(Request $request): Response {
+		return ApiResponse::create($this->getSystemInfo());
 	}
 }

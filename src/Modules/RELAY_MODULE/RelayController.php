@@ -3,6 +3,9 @@
 namespace Nadybot\Modules\RELAY_MODULE;
 
 use function Safe\{glob, json_encode, preg_match, preg_split};
+
+use Amp\Http\HttpStatus;
+use Amp\Http\Server\{Request, Response};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
@@ -26,14 +29,12 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
 use Nadybot\Modules\{
 	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
 	RELAY_MODULE\Transport\TransportInterface,
 	WEBSERVER_MODULE\ApiResponse,
-	WEBSERVER_MODULE\HttpProtocolWrapper,
 	WEBSERVER_MODULE\JsonImporter,
-	WEBSERVER_MODULE\Request,
-	WEBSERVER_MODULE\Response,
 	WEBSERVER_MODULE\StatsController,
 };
 use Psr\Log\LoggerInterface;
@@ -1000,8 +1001,8 @@ class RelayController extends ModuleInstance {
 		NCA\AccessLevel("all"),
 		NCA\ApiResult(code: 200, class: "ClassSpec[]", desc: "The available relay transport layers")
 	]
-	public function apiGetTransportsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		return new ApiResponse(array_values($this->transports));
+	public function apiGetTransportsEndpoint(Request $request): Response {
+		return ApiResponse::create(array_values($this->transports));
 	}
 
 	/** List all relay layers */
@@ -1011,8 +1012,8 @@ class RelayController extends ModuleInstance {
 		NCA\AccessLevel("all"),
 		NCA\ApiResult(code: 200, class: "ClassSpec[]", desc: "The available generic relay layers")
 	]
-	public function apiGetLayersEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		return new ApiResponse(array_values($this->stackElements));
+	public function apiGetLayersEndpoint(Request $request): Response {
+		return ApiResponse::create(array_values($this->stackElements));
 	}
 
 	/** List all relay protocols */
@@ -1022,8 +1023,8 @@ class RelayController extends ModuleInstance {
 		NCA\AccessLevel("all"),
 		NCA\ApiResult(code: 200, class: "ClassSpec[]", desc: "The available relay protocols")
 	]
-	public function apiGetProtocolsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		return new ApiResponse(array_values($this->relayProtocols));
+	public function apiGetProtocolsEndpoint(Request $request): Response {
+		return ApiResponse::create(array_values($this->relayProtocols));
 	}
 
 	/** List all relays */
@@ -1033,8 +1034,8 @@ class RelayController extends ModuleInstance {
 		NCA\AccessLevelFrom("relay"),
 		NCA\ApiResult(code: 200, class: "RelayConfig[]", desc: "The configured relays")
 	]
-	public function apiGetRelaysEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		return new ApiResponse(array_values($this->getRelays()));
+	public function apiGetRelaysEndpoint(Request $request): Response {
+		return ApiResponse::create(array_values($this->getRelays()));
 	}
 
 	/** Get a single relay */
@@ -1045,12 +1046,12 @@ class RelayController extends ModuleInstance {
 		NCA\ApiResult(code: 200, class: "RelayConfig", desc: "The configured relay"),
 		NCA\ApiResult(code: 404, desc: "Relay not found")
 	]
-	public function apiGetRelayByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+	public function apiGetRelayByNameEndpoint(Request $request, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
-		return new ApiResponse($relay);
+		return ApiResponse::create($relay);
 	}
 
 	/** Get a single relay's event config */
@@ -1061,12 +1062,12 @@ class RelayController extends ModuleInstance {
 		NCA\ApiResult(code: 200, class: "RelayEvent[]", desc: "The configured relay events"),
 		NCA\ApiResult(code: 404, desc: "Relay not found")
 	]
-	public function apiGetRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+	public function apiGetRelayEventsByNameEndpoint(Request $request, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
-		return new ApiResponse($relay->events);
+		return ApiResponse::create($relay->events);
 	}
 
 	/** Get a single relay's event config */
@@ -1078,18 +1079,18 @@ class RelayController extends ModuleInstance {
 		NCA\ApiResult(code: 204, desc: "The event configuration was set"),
 		NCA\ApiResult(code: 404, desc: "Relay not found")
 	]
-	public function apiPutRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+	public function apiPutRelayEventsByNameEndpoint(Request $request, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		$oRelay = $this->relays[$relay->name]??null;
 		if (!isset($oRelay) || !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
-		$events = $request->decodedBody;
+		$events = $request->getAttribute(WebserverController::BODY);
 		if (!is_array($events)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 
 		/** @var \stdClass[] $events */
@@ -1099,7 +1100,7 @@ class RelayController extends ModuleInstance {
 				$event2 = JsonImporter::convert(RelayEvent::class, $event2);
 			}
 		} catch (Throwable $e) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 
 		/** @var RelayEvent[] $events */
@@ -1120,10 +1121,10 @@ class RelayController extends ModuleInstance {
 		} catch (Throwable $e) {
 			$this->db->rollback();
 			$relay->events = $oldEvents;
-			return new Response(Response::INTERNAL_SERVER_ERROR);
+			return new Response(status: HttpStatus::INTERNAL_SERVER_ERROR);
 		}
 		$this->db->commit();
-		return new Response(Response::NO_CONTENT);
+		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
 	/** Get a single relay's event config */
@@ -1135,18 +1136,18 @@ class RelayController extends ModuleInstance {
 		NCA\ApiResult(code: 204, desc: "The event configuration was set"),
 		NCA\ApiResult(code: 404, desc: "Relay not found")
 	]
-	public function apiPatchRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+	public function apiPatchRelayEventsByNameEndpoint(Request $request, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		$oRelay = $this->relays[$relay->name]??null;
 		if (!isset($oRelay) || !$oRelay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
-		$event = $request->decodedBody;
+		$event = $request->getAttribute(WebserverController::BODY);
 		if (!is_object($event)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY, []);
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		try {
 			/** @var RelayEvent $event */
@@ -1155,7 +1156,10 @@ class RelayController extends ModuleInstance {
 				throw new Exception("event name not given");
 			}
 		} catch (Throwable $e) {
-			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
+			return new Response(
+				status: HttpStatus::UNPROCESSABLE_ENTITY,
+				body: $e->getMessage()
+			);
 		}
 		if (isset($event->incoming)) {
 			$this->changeRelayEventStatus($relay, $event->event, "incoming", $event->incoming);
@@ -1163,7 +1167,7 @@ class RelayController extends ModuleInstance {
 		if (isset($event->outgoing)) {
 			$this->changeRelayEventStatus($relay, $event->event, "outgoing", $event->outgoing);
 		}
-		return new Response(Response::NO_CONTENT);
+		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
 	/** Delete a relay */
@@ -1174,17 +1178,20 @@ class RelayController extends ModuleInstance {
 		NCA\ApiResult(code: 204, desc: "The relay was deleted"),
 		NCA\ApiResult(code: 404, desc: "Relay not found")
 	]
-	public function apiDelRelayByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+	public function apiDelRelayByNameEndpoint(Request $request, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		try {
 			$this->deleteRelay($relay);
 		} catch (Exception $e) {
-			return new Response(Response::INTERNAL_SERVER_ERROR, [], $e->getMessage());
+			return new Response(
+				status: HttpStatus::INTERNAL_SERVER_ERROR,
+				body: $e->getMessage()
+			);
 		}
-		return new Response(Response::NO_CONTENT);
+		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
 	/** Get a relay's status */
@@ -1195,11 +1202,11 @@ class RelayController extends ModuleInstance {
 		NCA\ApiResult(code: 200, class: "RelayStatus", desc: "The status message of the relay"),
 		NCA\ApiResult(code: 404, desc: "Relay not found")
 	]
-	public function apiGetRelayStatusByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+	public function apiGetRelayStatusByNameEndpoint(Request $request, string $relay): Response {
 		if (!isset($this->relays[$relay])) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
-		return new ApiResponse($this->relays[$relay]->getStatus());
+		return ApiResponse::create($this->relays[$relay]->getStatus());
 	}
 
 	/** Create a new relay */
@@ -1209,10 +1216,10 @@ class RelayController extends ModuleInstance {
 		NCA\AccessLevelFrom("relay"),
 		NCA\ApiResult(code: 204, desc: "Relay created successfully")
 	]
-	public function apiCreateRelay(Request $request, HttpProtocolWrapper $server): Response {
-		$relay = $request->decodedBody;
+	public function apiCreateRelay(Request $request): Response {
+		$relay = $request->getAttribute(WebserverController::BODY);
 		if (!is_object($relay)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		try {
 			/** @var RelayConfig */
@@ -1230,18 +1237,17 @@ class RelayController extends ModuleInstance {
 				$event = JsonImporter::convert(RelayEvent::class, $event);
 			}
 		} catch (Throwable $e) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		try {
 			$this->createRelay($relay);
 		} catch (Exception $e) {
 			return new Response(
-				Response::INTERNAL_SERVER_ERROR,
-				[],
-				$this->text->formatMessage($e->getMessage())
+				status: HttpStatus::INTERNAL_SERVER_ERROR,
+				body: $this->text->formatMessage($e->getMessage())
 			);
 		}
-		return new Response(Response::NO_CONTENT);
+		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
 	/** List all relay layers */
@@ -1251,8 +1257,8 @@ class RelayController extends ModuleInstance {
 		NCA\AccessLevel("all"),
 		NCA\ApiResult(code: 200, class: "EventType[]", desc: "The available non-routable relay events")
 	]
-	public function apiGetEventsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		return new ApiResponse($this->getRegisteredSyncEvents());
+	public function apiGetEventsEndpoint(Request $request): Response {
+		return ApiResponse::create($this->getRegisteredSyncEvents());
 	}
 
 	/**

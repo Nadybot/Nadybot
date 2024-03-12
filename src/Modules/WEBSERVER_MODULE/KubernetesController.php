@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Amp\Http\HttpStatus;
+use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\{
 	Attributes as NCA,
 	ModuleInstance,
@@ -22,18 +24,15 @@ class KubernetesController extends ModuleInstance {
 		NCA\HttpGet("/livez"),
 		NCA\HttpOwnAuth,
 	]
-	public function getLivezEndpoint(Request $request, HttpProtocolWrapper $server): void {
+	public function getLivezEndpoint(Request $request): Response {
 		if (!$this->kubernetesEndpoints) {
-			$server->httpError(new Response(
-				Response::NOT_FOUND,
-			), $request);
-			return;
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
-		$server->sendResponse(new Response(
-			Response::OK,
-			['Content-Type' => "text/plain"],
-			"Bot is up"
-		), $request, true);
+		return new Response(
+			status: HttpStatus::OK,
+			headers: ['Content-Type' => "text/plain"],
+			body: "Bot is up"
+		);
 	}
 
 	/** Query if the bot is ready to accept traffic */
@@ -41,23 +40,17 @@ class KubernetesController extends ModuleInstance {
 		NCA\HttpGet("/readyz"),
 		NCA\HttpOwnAuth,
 	]
-	public function getReadyzEndpoint(Request $request, HttpProtocolWrapper $server): void {
+	public function getReadyzEndpoint(Request $request): Response {
 		if (!$this->kubernetesEndpoints) {
-			$server->httpError(new Response(
-				Response::NOT_FOUND,
-			), $request);
-			return;
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		if ($this->chatBot->isReady()) {
-			$server->sendResponse(new Response(
-				Response::OK,
-				['Content-Type' => "text/plain"],
-				"Bot is ready"
-			), $request, true);
-		} else {
-			$server->httpError(new Response(
-				Response::NOT_FOUND,
-			), $request);
+			return new Response(
+				status: HttpStatus::OK,
+				headers: ['Content-Type' => "text/plain"],
+				body: "Bot is ready"
+			);
 		}
+		return new Response(status: HttpStatus::NOT_FOUND);
 	}
 }

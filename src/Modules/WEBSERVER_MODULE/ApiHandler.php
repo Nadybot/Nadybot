@@ -2,9 +2,11 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Amp\Http\Server\{Request, Response};
 use Closure;
 use Exception;
 use ReflectionMethod;
+use Throwable;
 
 class ApiHandler {
 	/** @var string[] */
@@ -21,11 +23,16 @@ class ApiHandler {
 	/** @var mixed[] */
 	public array $args = [];
 
-	public function exec(Request $request, HttpProtocolWrapper $server): ?Response {
+	public function exec(Request $request): ?Response {
 		$handler = $this->handler;
 		if (!isset($handler)) {
 			throw new Exception("Invalid request");
 		}
-		return $handler($request, $server, ...$this->args);
+		try {
+			return $handler($request, ...$this->args);
+		} catch (Throwable $e) {
+			var_dump($e->getMessage());
+			throw $e;
+		}
 	}
 }

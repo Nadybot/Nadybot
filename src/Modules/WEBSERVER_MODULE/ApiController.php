@@ -4,6 +4,8 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
 
+use Amp\Http\HttpStatus;
+use Amp\Http\Server\{Request, Response};
 use Closure;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -29,7 +31,6 @@ use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
-use ReflectionProperty;
 use Throwable;
 
 #[
@@ -325,17 +326,18 @@ class ApiController extends ModuleInstance {
 	}
 
 	public function getHandlerForRequest(Request $request, string $prefix="/api"): ?ApiHandler {
-		$path = substr($request->path, strlen($prefix));
+		$method = strtolower($request->getMethod());
+		$path = substr($request->getUri()->getPath(), strlen($prefix));
 		foreach ($this->routes as $mask => $data) {
 			if (!count($parts = Safe::pregMatch("|{$mask}|", $path))) {
 				continue;
 			}
-			if (!isset($data[$request->method])) {
+			if (!isset($data[$method])) {
 				$handler = new ApiHandler();
 				$handler->allowedMethods = array_keys($data);
 				return $handler;
 			}
-			$handler = clone $data[$request->method];
+			$handler = clone $data[$method];
 			if (!isset($handler->handler)) {
 				$handler->allowedMethods = array_keys($data);
 				return $handler;
@@ -344,14 +346,14 @@ class ApiController extends ModuleInstance {
 			$ref = new ReflectionFunction($handler->handler);
 			$params = $ref->getParameters();
 			// Convert any parameter to int if requested by the endpoint
-			for ($i = 2; $i < count($params); $i++) {
+			for ($i = 1; $i < count($params); $i++) {
 				if (!$params[$i]->hasType()) {
 					continue;
 				}
 				$type = $params[$i]->getType();
 				if ($type instanceof ReflectionNamedType) {
 					if ($type->getName() === 'int') {
-						$parts[$i-2] = (int)$parts[$i-2];
+						$parts[$i-1] = (int)$parts[$i-1];
 					}
 				}
 			}
@@ -368,66 +370,61 @@ class ApiController extends ModuleInstance {
 		NCA\HttpDelete("/api/%s"),
 		NCA\HttpPatch("/api/%s"),
 	]
-	public function apiRequest(Request $request, HttpProtocolWrapper $server, string $path): void {
+	public function apiRequest(Request $request, string $path): ?Response {
 		if (!$this->api) {
-			return;
+			return null;
 		}
 		$handler = $this->getHandlerForRequest($request);
 		if ($handler === null) {
-			$server->httpError(new Response(Response::NOT_FOUND), $request);
-			return;
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		if (!isset($handler->handler)) {
-			$server->httpError(new Response(
-				Response::METHOD_NOT_ALLOWED,
-				['Allow' => strtoupper(join(", ", $handler->allowedMethods))]
-			), $request);
-			return;
+			return new Response(
+				status: HttpStatus::METHOD_NOT_ALLOWED,
+				headers: ['Allow' => strtoupper(join(", ", $handler->allowedMethods))]
+			);
 		}
 		$authorized = true;
+
+		/** @var ?string */
+		$user = $request->getAttribute(WebserverController::USER);
 		if (isset($handler->accessLevel)) {
-			$authorized = $this->accessManager->checkAccess($request->authenticatedAs??"_", $handler->accessLevel);
+			$authorized = $this->accessManager->checkAccess($user??"_", $handler->accessLevel);
 		} elseif (isset($handler->accessLevelFrom)) {
-			$authorized = $this->checkHasAccess($request, $handler);
+			$authorized = $this->checkHasAccess($user, $request, $handler);
 		}
 		if (!$authorized) {
-			$server->httpError(new Response(Response::FORBIDDEN), $request);
-			return;
+			return new Response(status: HttpStatus::FORBIDDEN);
 		}
 		if ($this->checkBodyFormat($request, $handler) === false) {
-			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY), $request);
-			return;
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		if ($this->checkBodyIsComplete($request, $handler) === false) {
-			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY), $request);
-			return;
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		try {
-			$response = $handler->exec($request, $server);
+			$response = $handler->exec($request);
 		} catch (Throwable) {
 			$response = null;
 		}
-		if (!isset($request->replied)) {
-			$request->replied = -1;
-		}
 
-		if (!isset($response) || !($response instanceof Response)) {
-			$server->httpError(new Response(Response::INTERNAL_SERVER_ERROR), $request);
-			return;
+		if (!isset($response)) {
+			return new Response(status: HttpStatus::INTERNAL_SERVER_ERROR);
 		}
-		if ($response->code >= 400) {
-			$server->httpError($response, $request);
-			return;
+		if ($response->getStatus() >= 400) {
+			return $response;
 		}
-		if ($response->code >= 200 && $response->code < 300 && isset($response->body)) {
-			$response->headers['Content-Type'] = 'application/json';
-		} elseif ($response->code === Response::OK && $request->method === Request::POST) {
-			$response->headers['Content-Length'] = "0";
-			$response->setCode(Response::CREATED);
-		} elseif ($response->code === Response::OK && in_array($request->method, [Request::PUT, Request::PATCH, Request::DELETE])) {
-			$response->setCode(Response::NO_CONTENT);
+		$bodyLength = $response->getHeader('content-length');
+		$status = $response->getStatus();
+		if ($status >= 200 && $status < 300 && isset($bodyLength) && $bodyLength > 0) {
+			$response->setHeader('Content-Type', 'application/json');
+		} elseif ($status === HttpStatus::OK && $request->getMethod() === 'POST') {
+			$response->setBody("");
+			$response->setStatus(HttpStatus::CREATED);
+		} elseif ($status === HttpStatus::OK && in_array($request->getMethod(), ['PUT', 'PATCH', 'DELETE'])) {
+			$response->setStatus(HttpStatus::NO_CONTENT);
 		}
-		$server->sendResponse($response, $request);
+		return $response;
 	}
 
 	/** Execute a command, result is sent via websocket */
@@ -440,22 +437,22 @@ class ApiController extends ModuleInstance {
 		NCA\ApiResult(code: 404, desc: "Invalid UUID provided"),
 		NCA\ApiResult(code: 422, desc: "Unparsable data received")
 	]
-	public function apiExecuteCommand(Request $request, HttpProtocolWrapper $server, string $uuid): Response {
-		if (!is_string($request->decodedBody)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
-		}
-		$msg = $request->decodedBody;
+	public function apiExecuteCommand(Request $request, string $uuid): Response {
+		$msg = $request->getAttribute(WebserverController::BODY);
+
+		/** @var ?string */
+		$user = $request->getAttribute(WebserverController::USER);
 		if (substr($msg, 0, 1) === $this->systemController->symbol) {
 			$msg = substr($msg, 1);
 		}
 		if ($this->websocketController->clientExists($uuid) === false) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
-		if (strlen($msg) && isset($request->authenticatedAs)) {
+		if (isset($msg) && isset($user)) {
 			$set = $this->commandManager->getPermsetMapForSource("api");
 			$handler = new EventCommandReply($uuid);
 			Registry::injectDependencies($handler);
-			$context = new CmdContext($request->authenticatedAs);
+			$context = new CmdContext($user);
 			$context->source = "api";
 			$context->setIsDM();
 			$context->permissionSet = isset($set)
@@ -469,7 +466,7 @@ class ApiController extends ModuleInstance {
 				$this->commandManager->checkAndHandleCmd($context);
 			});
 		}
-		return new Response(Response::NO_CONTENT);
+		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
 	protected function getCommandHandler(ApiHandler $handler): ?CommandHandler {
@@ -495,33 +492,27 @@ class ApiController extends ModuleInstance {
 		return $this->commandManager->commands[$set->permission_set][$handler->accessLevelFrom] ?? null;
 	}
 
-	protected function checkHasAccess(Request $request, ApiHandler $apiHandler): bool {
+	protected function checkHasAccess(?string $user, Request $request, ApiHandler $apiHandler): bool {
 		$cmdHandler = $this->getCommandHandler($apiHandler);
-		if ($cmdHandler === null || !isset($request->authenticatedAs)) {
+		if ($cmdHandler === null || !isset($user)) {
 			return false;
 		}
-		return $this->accessManager->checkAccess($request->authenticatedAs, $cmdHandler->access_level);
+		return $this->accessManager->checkAccess($user, $cmdHandler->access_level);
 	}
 
 	protected function checkBodyIsComplete(Request $request, ApiHandler $apiHandler): bool {
-		if (!in_array($request->method, [$request::PUT, $request::POST])) {
+		if (!in_array($request->getMethod(), ['PUT', 'POST'])) {
 			return true;
 		}
-		if ($request->decodedBody === null || !is_object($request->decodedBody)) {
+		$body = $request->getAttribute(WebserverController::BODY);
+		if ($body === null || !is_object($body)) {
 			return true;
-		}
-		$refClass = new ReflectionClass($request->decodedBody);
-		$refProps = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
-		foreach ($refProps as $refProp) {
-			if (!$refProp->isInitialized($request->decodedBody)) {
-				return false;
-			}
 		}
 		return true;
 	}
 
 	protected function checkBodyFormat(Request $request, ApiHandler $apiHandler): bool {
-		if (in_array($request->method, [$request::GET, $request::HEAD, $request::DELETE])) {
+		if (in_array($request->getMethod(), ['GET', 'HEAD', 'DELETE'])) {
 			return true;
 		}
 		$rqBodyAttrs = $apiHandler->reflectionMethod->getAttributes(NCA\RequestBody::class);
@@ -529,24 +520,27 @@ class ApiController extends ModuleInstance {
 			return true;
 		}
 
-		/** @var NCA\RequestBody */
+		$body = $request->getAttribute(WebserverController::BODY);
+
 		$reqBody = $rqBodyAttrs[0]->newInstance();
-		if ($request->decodedBody === null) {
+		if ($body === null) {
 			if (!$reqBody->required) {
 				return true;
 			}
 			return false;
 		}
-		if (JsonImporter::matchesType($reqBody->class, $request->decodedBody)) {
+		if (JsonImporter::matchesType($reqBody->class, $body)) {
 			return true;
 		}
 		try {
-			if (is_object($request->decodedBody)) {
-				$request->decodedBody = JsonImporter::convert($reqBody->class, $request->decodedBody);
-			} elseif (is_array($request->decodedBody)) {
-				foreach ($request->decodedBody as &$part) {
-					$request->decodedBody = JsonImporter::convert($reqBody->class, $part);
+			if (is_object($body)) {
+				$request->setAttribute(WebserverController::BODY, JsonImporter::convert($reqBody->class, $body));
+			} elseif (is_array($body)) {
+				$newBody = [];
+				foreach ($body as $key => $part) {
+					$newBody[$key] = JsonImporter::convert($reqBody->class, $part);
 				}
+				$request->setAttribute(WebserverController::BODY, $newBody);
 			}
 		} catch (Throwable $e) {
 			return false;

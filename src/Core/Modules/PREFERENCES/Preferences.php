@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\Modules\PREFERENCES;
 
+use Amp\Http\HttpStatus;
+use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -9,9 +11,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
-	HttpProtocolWrapper,
-	Request,
-	Response,
+	WebserverController,
 };
 
 /**
@@ -66,12 +66,13 @@ class Preferences extends ModuleInstance {
 		NCA\ApiResult(code: 200, class: "string", desc: "The stored value"),
 		NCA\ApiResult(code: 204, desc: "No value stored")
 	]
-	public function apiSettingGetEndpoint(Request $request, HttpProtocolWrapper $server, string $key): Response {
-		$result = $this->get($request->authenticatedAs??"_", $key);
+	public function apiSettingGetEndpoint(Request $request, string $key): Response {
+		$user = $request->getAttribute(WebserverController::USER) ?? "_";
+		$result = $this->get($user, $key);
 		if ($result === null) {
-			return new Response(Response::NO_CONTENT);
+			return new Response(status: HttpStatus::NO_CONTENT);
 		}
-		return new ApiResponse($result);
+		return ApiResponse::create($result);
 	}
 
 	/** Create a new setting */
@@ -84,16 +85,26 @@ class Preferences extends ModuleInstance {
 		NCA\ApiResult(code: 415, desc: "You tried to pass more than just a simple string"),
 		NCA\RequestBody(class: "string", desc: "The data you want to store", required: true)
 	]
-	public function apiSettingPostEndpoint(Request $request, HttpProtocolWrapper $server, string $key): Response {
-		$result = $this->get($request->authenticatedAs??"_", $key);
+	public function apiSettingPostEndpoint(Request $request, string $key): Response {
+		$user = $request->getAttribute(WebserverController::USER) ?? "_";
+		$result = $this->get($user, $key);
 		if ($result !== null) {
-			return new Response(Response::CONFLICT, ['Content-type' => 'text/plain'], "The given setting already exists");
+			return new Response(
+				status: HttpStatus::CONFLICT,
+				headers: ['Content-type' => 'text/plain'],
+				body: "The given setting already exists"
+			);
 		}
-		if (!is_string($request->decodedBody)) {
-			return new Response(Response::UNSUPPORTED_MEDIA_TYPE, ['Content-type' => 'text/plain'], "Only plain strings supported");
+		$body = $request->getAttribute(WebserverController::BODY);
+		if (!is_string($body)) {
+			return new Response(
+				status: HttpStatus::UNSUPPORTED_MEDIA_TYPE,
+				headers: ['Content-type' => 'text/plain'],
+				body: "Only plain strings supported"
+			);
 		}
-		$this->save($request->authenticatedAs??"_", $key, $request->decodedBody);
-		return new Response(Response::CREATED);
+		$this->save($user, $key, $body);
+		return new Response(status: HttpStatus::CREATED);
 	}
 
 	/** Store a setting */
@@ -105,12 +116,18 @@ class Preferences extends ModuleInstance {
 		NCA\ApiResult(code: 415, desc: "You tried to pass more than just a simple string"),
 		NCA\RequestBody(class: "string", desc: "The data you want to store", required: true)
 	]
-	public function apiSettingPutEndpoint(Request $request, HttpProtocolWrapper $server, string $key): Response {
-		if (!is_string($request->decodedBody)) {
-			return new Response(Response::UNSUPPORTED_MEDIA_TYPE, [], "Only plain strings supported");
+	public function apiSettingPutEndpoint(Request $request, string $key): Response {
+		$body = $request->getAttribute(WebserverController::BODY);
+		if (!is_string($body)) {
+			return new Response(
+				status: HttpStatus::UNSUPPORTED_MEDIA_TYPE,
+				headers: ['Content-type' => 'text/plain'],
+				body: "Only plain strings supported"
+			);
 		}
-		$this->save($request->authenticatedAs??"_", $key, $request->decodedBody);
-		return new Response(Response::NO_CONTENT);
+		$user = $request->getAttribute(WebserverController::USER) ?? "_";
+		$this->save($user, $key, $body);
+		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
 	/** Delete a setting */
@@ -121,11 +138,16 @@ class Preferences extends ModuleInstance {
 		NCA\ApiResult(code: 204, desc: "The new setting was deleted successfully"),
 		NCA\ApiResult(code: 409, desc: "No setting found for that key")
 	]
-	public function apiSettingDeleteEndpoint(Request $request, HttpProtocolWrapper $server, string $key): Response {
-		$result = $this->delete($request->authenticatedAs??"_", $key);
+	public function apiSettingDeleteEndpoint(Request $request, string $key): Response {
+		$user = $request->getAttribute(WebserverController::USER) ?? "_";
+		$result = $this->delete($user, $key);
 		if (!$result) {
-			return new Response(Response::CONFLICT, ['Content-type' => 'text/plain'], "The given setting doesn't exist");
+			return new Response(
+				status: HttpStatus::CONFLICT,
+				headers: ['Content-type' => 'text/plain'],
+				body: "The given setting doesn't exist"
+			);
 		}
-		return new Response(Response::NO_CONTENT);
+		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 }

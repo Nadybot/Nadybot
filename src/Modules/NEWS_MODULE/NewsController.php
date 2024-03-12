@@ -3,6 +3,9 @@
 namespace Nadybot\Modules\NEWS_MODULE;
 
 use function Safe\preg_split;
+
+use Amp\Http\HttpStatus;
+use Amp\Http\Server\{Request, Response};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -19,14 +22,7 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\{
-	ApiResponse,
-	HttpProtocolWrapper,
-	JsonImporter,
-	Request,
-	Response,
-};
-
+use Nadybot\Modules\WEBSERVER_MODULE\{ApiResponse, JsonImporter, WebserverController};
 use Throwable;
 
 /**
@@ -406,13 +402,13 @@ class NewsController extends ModuleInstance {
 		NCA\AccessLevelFrom("news"),
 		NCA\ApiResult(code: 200, class: "News[]", desc: "A list of news items")
 	]
-	public function apiNewsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+	public function apiNewsEndpoint(Request $request): Response {
 		/** @var News[] */
 		$result = $this->db->table("news")
 			->where("deleted", 0)
 			->asObj(News::class)
 			->toArray();
-		return new ApiResponse($result);
+		return ApiResponse::create($result);
 	}
 
 	/** Get a single news item by id */
@@ -423,12 +419,12 @@ class NewsController extends ModuleInstance {
 		NCA\ApiResult(code: 200, class: "News", desc: "The requested news item"),
 		NCA\ApiResult(code: 404, desc: "Given news id not found")
 	]
-	public function apiNewsIdEndpoint(Request $request, HttpProtocolWrapper $server, int $id): Response {
+	public function apiNewsIdEndpoint(Request $request, int $id): Response {
 		$result = $this->getNewsItem($id);
 		if (!isset($result)) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
-		return new ApiResponse($result);
+		return ApiResponse::create($result);
 	}
 
 	/** Create a new news item */
@@ -439,27 +435,29 @@ class NewsController extends ModuleInstance {
 		NCA\RequestBody(class: "NewNews", desc: "The item to create", required: true),
 		NCA\ApiResult(code: 204, desc: "The news item was created successfully")
 	]
-	public function apiNewsCreateEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		$news = $request->decodedBody;
+	public function apiNewsCreateEndpoint(Request $request): Response {
+		$user = $request->getAttribute(WebserverController::USER) ?? "_";
+		$body = $request->getAttribute(WebserverController::BODY);
 		try {
-			if (!is_object($news)) {
+			if (!is_object($body)) {
 				throw new Exception("Wrong content body");
 			}
 
 			/** @var NewNews */
-			$decoded = JsonImporter::convert(NewNews::class, $news);
-		} catch (Throwable $e) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
+			$newNews = JsonImporter::convert(NewNews::class, $body);
+		} catch (Throwable) {
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
-		$decoded = News::fromNewNews($decoded);
+
+		$decoded = News::fromNewNews($newNews);
 		unset($decoded->id);
 		$decoded->time ??= time();
-		$decoded->name = $request->authenticatedAs??"_";
+		$decoded->name = $user;
 		$decoded->sticky ??= false;
 		$decoded->deleted ??= false;
 		$decoded->uuid = $this->util->createUUID();
 		if (!isset($decoded->news)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		if ($this->db->insert("news", $decoded)) {
 			$event = new SyncNewsEvent();
@@ -469,9 +467,9 @@ class NewsController extends ModuleInstance {
 			$event->uuid = $decoded->uuid;
 			$event->sticky = $decoded->sticky;
 			$this->eventManager->fireEvent($event);
-			return new Response(Response::NO_CONTENT);
+			return new Response(status: HttpStatus::NO_CONTENT);
 		}
-		return new Response(Response::INTERNAL_SERVER_ERROR);
+		return new Response(status: HttpStatus::INTERNAL_SERVER_ERROR);
 	}
 
 	/** Modify an existing news item */
@@ -482,25 +480,26 @@ class NewsController extends ModuleInstance {
 		NCA\RequestBody(class: "NewNews", desc: "The new data for the item", required: true),
 		NCA\ApiResult(code: 200, class: "News", desc: "The news item it is now")
 	]
-	public function apiNewsModifyEndpoint(Request $request, HttpProtocolWrapper $server, int $id): Response {
+	public function apiNewsModifyEndpoint(Request $request, int $id): Response {
 		$result = $this->getNewsItem($id);
 		if (!isset($result)) {
-			return new Response(Response::NOT_FOUND);
+			return new Response(status: HttpStatus::NOT_FOUND);
 		}
-		$news = $request->decodedBody;
+		$user = $request->getAttribute(WebserverController::USER) ?? "_";
+		$body = $request->getAttribute(WebserverController::BODY);
 		try {
-			if (!is_object($news)) {
-				throw new Exception("Wrong content");
+			if (!is_object($body)) {
+				throw new Exception("Wrong content body");
 			}
 
 			/** @var NewNews */
-			$decoded = JsonImporter::convert(NewNews::class, $news);
-		} catch (Throwable $e) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
+			$newNews = JsonImporter::convert(NewNews::class, $body);
+		} catch (Throwable) {
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
-		$decoded = News::fromNewNews($decoded);
+		$decoded = News::fromNewNews($newNews);
 		$decoded->id = $id;
-		$decoded->name = $request->authenticatedAs??"_";
+		$decoded->name = $user;
 		foreach (get_object_vars($decoded) as $attr => $value) {
 			if (isset($value)) {
 				$result->{$attr} = $value;
@@ -514,9 +513,9 @@ class NewsController extends ModuleInstance {
 			$event->uuid = $result->uuid;
 			$event->sticky = $decoded->sticky;
 			$this->eventManager->fireEvent($event);
-			return new Response(Response::INTERNAL_SERVER_ERROR);
+			return new Response(status: HttpStatus::INTERNAL_SERVER_ERROR);
 		}
-		return new ApiResponse($this->getNewsItem($id));
+		return ApiResponse::create($this->getNewsItem($id));
 	}
 
 	#[

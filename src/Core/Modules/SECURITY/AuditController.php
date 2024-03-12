@@ -3,6 +3,9 @@
 namespace Nadybot\Core\Modules\SECURITY;
 
 use function Safe\{preg_split, strtotime};
+
+use Amp\Http\HttpStatus;
+use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -18,9 +21,6 @@ use Nadybot\Core\{
 
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
-	HttpProtocolWrapper,
-	Request,
-	Response,
 };
 use Safe\DateTime as SafeDateTime;
 use Safe\Exceptions\DatetimeException;
@@ -111,59 +111,69 @@ class AuditController extends ModuleInstance {
 		NCA\ApiTag("audit"),
 		NCA\ApiResult(code: 200, class: "Audit[]", desc: "The audit log entries")
 	]
-	public function auditGetListEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+	public function auditGetListEndpoint(Request $request): Response {
 		$query = $this->db->table(AccessManager::DB_TABLE)
 			->orderByDesc("time")
 			->orderByDesc("id");
 
-		$limit = $request->query["limit"]??"50";
-		if (!is_int($limit) && !ctype_digit($limit)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY, [], "limit is not an integer value");
+		$limit = $request->getQueryParameter("limit")??"50";
+		if (!ctype_digit($limit)) {
+			return new Response(
+				status: HttpStatus::UNPROCESSABLE_ENTITY,
+				body: "limit is not an integer value"
+			);
 		}
 		$query->limit((int)$limit);
 
-		$offset = $request->query["offset"]??null;
+		$offset = $request->getQueryParameter("offset");
 		if (isset($offset)) {
-			if (!is_int($offset) && !ctype_digit($offset)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, [], "offset is not an integer value");
+			if (!ctype_digit($offset)) {
+				return new Response(
+					status: HttpStatus::UNPROCESSABLE_ENTITY,
+					body: "offset is not an integer value"
+				);
 			}
 			$query->offset((int)$offset);
 		}
 
-		$before = $request->query["before"]??null;
+		$before = $request->getQueryParameter("before");
 		if (isset($before)) {
-			if (!is_int($before) && !ctype_digit($before)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, [], "before is not an integer value");
+			if (!ctype_digit($before)) {
+				return new Response(
+					status: HttpStatus::UNPROCESSABLE_ENTITY,
+					body: "before is not an integer value"
+				);
 			}
 			$query->where("time", "<=", $before);
 		}
 
-		$after = $request->query["after"]??null;
+		$after = $request->getQueryParameter("after");
 		if (isset($after)) {
-			if (!is_int($after) && !ctype_digit($after)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, [], "after is not an integer value");
+			if (!ctype_digit($after)) {
+				return new Response(
+					status: HttpStatus::UNPROCESSABLE_ENTITY,
+					body: "after is not an integer value"
+				);
 			}
 			$query->where("time", ">=", $after);
 		}
 
-		$actor = $request->query["actor"]??null;
+		$actor = $request->getQueryParameter("actor");
 		if (isset($actor)) {
 			$query->where("actor", ucfirst(strtolower($actor)));
 		}
 
-		$actee = $request->query["actee"]??null;
+		$actee = $request->getQueryParameter("actee");
 		if (isset($actee)) {
 			$query->where("actee", ucfirst(strtolower($actee)));
 		}
 
-		$action = $request->query["action"]??null;
+		$action = $request->getQueryParameter("action");
 		if (isset($action)) {
 			$query->where("action", strtolower($action));
 		}
 
-		return new ApiResponse(
-			$query->asObj(Audit::class)->toArray()
-		);
+		return ApiResponse::create($query->asObj(Audit::class)->toArray());
 	}
 
 	/** @param array<mixed> $params */
@@ -263,12 +273,15 @@ class AuditController extends ModuleInstance {
 	}
 
 	protected function addRangeLimits(Request $request, QueryBuilder $query): ?Response {
-		$max = $request->query["max"]??null;
+		$max = $request->getQueryParameter("max");
 		if (!isset($max)) {
 			return null;
 		}
 		if (!ctype_digit($max)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY, [], "max is not an integer value");
+			return new Response(
+				status: HttpStatus::UNPROCESSABLE_ENTITY,
+				body: "max is not an integer value"
+			);
 		}
 		$query->where("id", "<=", $max);
 		return null;

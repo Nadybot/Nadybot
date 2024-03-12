@@ -4,6 +4,9 @@ namespace Nadybot\Modules\NEWS_MODULE;
 
 use function Amp\async;
 use function Amp\Future\await;
+
+use Amp\Http\HttpStatus;
+use Amp\Http\Server\{Request, Response};
 use Closure;
 use DateInterval;
 use DateTimeZone;
@@ -24,13 +27,7 @@ use Nadybot\Core\{
 	Text,
 	UserStateEvent,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\{
-	ApiResponse,
-	HttpProtocolWrapper,
-	Request,
-	Response,
-	WebChatConverter,
-};
+use Nadybot\Modules\WEBSERVER_MODULE\{ApiResponse, WebChatConverter, WebserverController};
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -397,7 +394,7 @@ class StartpageController extends ModuleInstance {
 		NCA\AccessLevelFrom("startpage"),
 		NCA\ApiResult(code: 200, class: "NewsTile[]", desc: "List of all news items")
 	]
-	public function apiListTilesEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+	public function apiListTilesEndpoint(Request $request): Response {
 		$tiles = array_values($this->getTiles());
 		$result = [];
 		foreach ($tiles as $tile) {
@@ -407,7 +404,7 @@ class StartpageController extends ModuleInstance {
 			}
 			$result []= $newTile;
 		}
-		return new ApiResponse($result);
+		return ApiResponse::create($result);
 	}
 
 	/** Get the currently configured startpage layout */
@@ -417,8 +414,8 @@ class StartpageController extends ModuleInstance {
 		NCA\AccessLevelFrom("startpage"),
 		NCA\ApiResult(code: 200, class: "string[]", desc: "The order of the tiles")
 	]
-	public function apiGetStartpageLayoutEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		return new ApiResponse(array_keys($this->getActiveLayout()));
+	public function apiGetStartpageLayoutEndpoint(Request $request): Response {
+		return ApiResponse::create(array_keys($this->getActiveLayout()));
 	}
 
 	/** List all news tiles */
@@ -429,17 +426,20 @@ class StartpageController extends ModuleInstance {
 		NCA\RequestBody(class: "string[]", desc: "The new order for the tiles", required: true),
 		NCA\ApiResult(code: 204, desc: "New layout saved")
 	]
-	public function apiSetStartpageLayoutEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		$tiles = $request->decodedBody;
+	public function apiSetStartpageLayoutEndpoint(Request $request): Response {
+		$tiles = $request->getAttribute(WebserverController::BODY);
 		if (!is_array($tiles)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		try {
 			$this->setTiles(...$tiles);
 		} catch (Throwable $e) {
-			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
+			return new Response(
+				status: HttpStatus::UNPROCESSABLE_ENTITY,
+				body: $e->getMessage()
+			);
 		}
-		return new Response(Response::NO_CONTENT);
+		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
 	/**

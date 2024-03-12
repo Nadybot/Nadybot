@@ -976,7 +976,8 @@ class WorldBossController extends ModuleInstance {
 			$invulnerableTime = $timer->killable - $timer->spawn;
 			$timer->next_killable = $timer->killable;
 			$timer->next_spawn    = $timer->spawn;
-			if ($showSpawn === static::SPAWN_EVENT && !$this->lastSpawnPrecise[$timer->mob_name]) {
+			$wasPrecise = isset($this->lastSpawnPrecise[$timer->mob_name]) && $this->lastSpawnPrecise[$timer->mob_name];
+			if ($showSpawn === static::SPAWN_EVENT && !$wasPrecise) {
 				$newTimers []= $timer;
 				continue;
 			}
