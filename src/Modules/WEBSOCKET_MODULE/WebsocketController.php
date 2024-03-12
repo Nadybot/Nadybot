@@ -207,7 +207,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 
 	private function handleIncomingMessage(WebsocketClient $client, WebsocketMessage $message): void {
 		$body = $message->buffer();
-		$this->logger->notice("[Data inc.] {data}", ["data" => $body]);
+		$this->logger->info("[Data inc.] {data}", ["data" => $body]);
 		try {
 			if (!is_string($body)) {
 				throw new Exception();

@@ -8,7 +8,7 @@ use Psr\Log\LoggerInterface;
 
 abstract class Base {
 	#[NCA\Logger]
-	private LoggerInterface $logger;
+	protected LoggerInterface $logger;
 
 	public function send(WebsocketConnection $connection): void {
 		$message = $this->toString();
@@ -27,6 +27,7 @@ abstract class Base {
 	private function dumpPackage(): string {
 		$data = ['type' => $this->getType() . " (" . class_basename($this) . ")"];
 		$data = array_merge($data, get_object_vars($this));
+		unset($data["logger"]);
 		array_walk(
 			$data,
 			function (string|int &$value, string $key): void {
