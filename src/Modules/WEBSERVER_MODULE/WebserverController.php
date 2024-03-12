@@ -508,8 +508,10 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		} elseif ($authType === static::AUTH_AOAUTH) {
 			$baseUrl = $this->webserverBaseUrl;
 			if ($baseUrl === 'default') {
-				$host = $request->getUri()->getHost();
-				$baseUrl = "http://{$host}:{$request->getUri()->getPort()}";
+				$protocol = $request->getHeader('x-forwarded-proto') ?? 'http';
+				$host = $request->getHeader('x-forwarded-host') ?? $request->getUri()->getHost();
+				$port = $request->getHeader('x-forwarded-port') ?? $request->getUri()->getPort();
+				$baseUrl = "{$protocol}://{$host}:{$port}";
 			}
 			$newRequest = clone $request;
 			$newRequest->removeQueryParameter("_aoauth_token");
