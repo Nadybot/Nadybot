@@ -31,7 +31,6 @@ class ApiHandler {
 		try {
 			return $handler($request, ...$this->args);
 		} catch (Throwable $e) {
-			var_dump($e->getMessage());
 			throw $e;
 		}
 	}
