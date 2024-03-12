@@ -46,7 +46,6 @@ use Nadybot\Core\{
 	Safe,
 	Text,
 	Util,
-	WebsocketCallback,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	Activity,
@@ -364,7 +363,7 @@ class DiscordGatewayController extends ModuleInstance {
 		async($this->connectToGateway(...));
 	}
 
-	public function processWebsocketWrite(WebsocketCallback $event): void {
+	public function processWebsocketWrite(): void {
 		$this->outStats->inc();
 	}
 

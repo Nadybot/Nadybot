@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fa2dd7f1aee8f27002ccd2c599c19346",
+    "content-hash": "2903d8fa84c3479464e53fc9c845a48e",
     "packages": [
         {
             "name": "amphp/amp",
@@ -321,7 +321,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/amphp/file.git",
-                "reference": "503c1b5c0a2a2657bf52383c665b1c6b40a17181"
+                "reference": "d5f6c81e51336040af3dcb71ce519cd8788fcffc"
             },
             "require": {
                 "amphp/amp": "^3",
@@ -404,7 +404,7 @@
             "support": {
                 "issues": "https://github.com/amphp/file/issues"
             },
-            "time": "2024-03-11T04:06:03+00:00"
+            "time": "2024-03-12T00:20:54+00:00"
         },
         {
             "name": "amphp/hpack",
@@ -1465,6 +1465,93 @@
                 }
             ],
             "time": "2023-12-28T01:48:55+00:00"
+        },
+        {
+            "name": "amphp/websocket-server",
+            "version": "v4.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/amphp/websocket-server.git",
+                "reference": "d713c75b2625142dfa23c21b31d970c00a2ad789"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/amphp/websocket-server/zipball/d713c75b2625142dfa23c21b31d970c00a2ad789",
+                "reference": "d713c75b2625142dfa23c21b31d970c00a2ad789",
+                "shasum": ""
+            },
+            "require": {
+                "amphp/amp": "^3",
+                "amphp/byte-stream": "^2.1",
+                "amphp/http": "^2.1",
+                "amphp/http-server": "^3.2",
+                "amphp/socket": "^2.2",
+                "amphp/websocket": "^2",
+                "php": ">=8.1",
+                "psr/log": "^1|^2|^3",
+                "revolt/event-loop": "^1"
+            },
+            "require-dev": {
+                "amphp/http-client": "^5",
+                "amphp/http-server-router": "^2",
+                "amphp/http-server-static-content": "^2",
+                "amphp/log": "^2",
+                "amphp/php-cs-fixer-config": "^2",
+                "amphp/phpunit-util": "^3",
+                "amphp/websocket-client": "^2",
+                "colinodell/psr-testlogger": "^1.2",
+                "league/climate": "^3",
+                "phpunit/phpunit": "^9",
+                "psalm/phar": "^5.18"
+            },
+            "suggest": {
+                "ext-zlib": "Required for compression"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Amp\\Websocket\\Server\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Daniel Lowrey",
+                    "email": "rdlowrey@php.net"
+                },
+                {
+                    "name": "Bob Weinand"
+                },
+                {
+                    "name": "Niklas Keller",
+                    "email": "me@kelunik.com"
+                },
+                {
+                    "name": "Aaron Piotrowski",
+                    "email": "aaron@trowski.com"
+                }
+            ],
+            "description": "Websocket server for Amp's HTTP server.",
+            "homepage": "https://github.com/amphp/websocket-server",
+            "keywords": [
+                "http",
+                "server",
+                "websocket"
+            ],
+            "support": {
+                "issues": "https://github.com/amphp/websocket-server/issues",
+                "source": "https://github.com/amphp/websocket-server/tree/v4.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/amphp",
+                    "type": "github"
+                }
+            ],
+            "time": "2023-12-29T00:58:49+00:00"
         },
         {
             "name": "amphp/windows-registry",
@@ -5477,16 +5564,16 @@
         },
         {
             "name": "composer/composer",
-            "version": "2.7.1",
+            "version": "2.7.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "aaf6ed5ccd27c23f79a545e351b4d7842a99d0bc"
+                "reference": "b826edb791571ab1eaf281eb1bd6e181a1192adc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/aaf6ed5ccd27c23f79a545e351b4d7842a99d0bc",
-                "reference": "aaf6ed5ccd27c23f79a545e351b4d7842a99d0bc",
+                "url": "https://api.github.com/repos/composer/composer/zipball/b826edb791571ab1eaf281eb1bd6e181a1192adc",
+                "reference": "b826edb791571ab1eaf281eb1bd6e181a1192adc",
                 "shasum": ""
             },
             "require": {
@@ -5571,7 +5658,7 @@
                 "irc": "ircs://irc.libera.chat:6697/composer",
                 "issues": "https://github.com/composer/composer/issues",
                 "security": "https://github.com/composer/composer/security/policy",
-                "source": "https://github.com/composer/composer/tree/2.7.1"
+                "source": "https://github.com/composer/composer/tree/2.7.2"
             },
             "funding": [
                 {
@@ -5587,7 +5674,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-02-09T14:26:28+00:00"
+            "time": "2024-03-11T16:12:18+00:00"
         },
         {
             "name": "composer/metadata-minifier",
@@ -6138,16 +6225,16 @@
         },
         {
             "name": "psalm/phar",
-            "version": "5.23.0",
+            "version": "5.23.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/psalm/phar.git",
-                "reference": "a4673bcae70e0ccd30e7aa30c1d3ca605d264d59"
+                "reference": "07bb50acefdaf7b663087186f86d47542a9b1622"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/psalm/phar/zipball/a4673bcae70e0ccd30e7aa30c1d3ca605d264d59",
-                "reference": "a4673bcae70e0ccd30e7aa30c1d3ca605d264d59",
+                "url": "https://api.github.com/repos/psalm/phar/zipball/07bb50acefdaf7b663087186f86d47542a9b1622",
+                "reference": "07bb50acefdaf7b663087186f86d47542a9b1622",
                 "shasum": ""
             },
             "require": {
@@ -6167,9 +6254,9 @@
             "description": "Composer-based Psalm Phar",
             "support": {
                 "issues": "https://github.com/psalm/phar/issues",
-                "source": "https://github.com/psalm/phar/tree/5.23.0"
+                "source": "https://github.com/psalm/phar/tree/5.23.1"
             },
-            "time": "2024-03-09T19:43:54+00:00"
+            "time": "2024-03-11T20:43:33+00:00"
         },
         {
             "name": "react/promise",

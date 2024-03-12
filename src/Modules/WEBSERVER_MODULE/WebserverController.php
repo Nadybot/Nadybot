@@ -207,6 +207,10 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		async($this->listen(...));
 	}
 
+	public function getServer(): ?HttpServer {
+		return $this->server;
+	}
+
 	/** Authenticate player $player to login to the Webserver for $duration seconds */
 	public function authenticate(string $player, int $duration=3600): string {
 		do {
@@ -363,6 +367,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			"addr" => $addr,
 			"port" => $port,
 		]);
+		$this->server = $server;
 		return true;
 	}
 
@@ -458,6 +463,9 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	}
 
 	private function decodeRequestBody(Request $request): ?Response {
+		if (in_array($request->getMethod(), ["GET", "HEAD", "DELETE"], true)) {
+			return null;
+		}
 		$body = $request->getBody()->buffer(new TimeoutCancellation(5));
 		if ($body === "") {
 			return null;
