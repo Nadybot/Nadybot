@@ -52,7 +52,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 
 	/** On which port does the HTTP server listen */
 	#[NCA\Setting\Number(accessLevel: 'superadmin')]
-	public int $webserverPort = 8081;
+	public int $webserverPort = 8080;
 
 	/** Where to listen for HTTP requests */
 	#[NCA\Setting\Text(
