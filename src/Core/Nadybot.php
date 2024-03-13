@@ -251,7 +251,7 @@ class Nadybot {
 		EventLoop::setErrorHandler(function (Throwable $e): void {
 			$this->logger->error($e->getMessage(), ["exception" => $e]);
 		});
-		// $this->db->beginTransaction();
+		$this->db->beginTransaction();
 		$jobs = [];
 		$start = \Amp\now();
 		foreach (Registry::getAllInstances() as $name => $instance) {
@@ -274,12 +274,17 @@ class Nadybot {
 		$this->logger->notice("Setups done in {duration}s", [
 			"duration" => number_format($duration, 3),
 		]);
-		foreach (EventLoop::getIdentifiers() as $identifier) {
-			if (EventLoop::isEnabled($identifier) & EventLoop::isReferenced($identifier)) {
-				EventLoop::cancel($identifier);
+		$reaper = EventLoop::delay(5, function (string $identifier): void {
+			foreach (EventLoop::getIdentifiers() as $identifier) {
+				if (EventLoop::isEnabled($identifier) && EventLoop::isReferenced($identifier)) {
+					EventLoop::cancel($identifier);
+				}
 			}
-		}
+		});
+		EventLoop::unreference($reaper);
 		EventLoop::run();
+		EventLoop::cancel($reaper);
+		$this->db->commit();
 		$this->settingManager::$isInitialized = true;
 
 		// Delete old entries in the DB

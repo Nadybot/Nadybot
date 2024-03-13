@@ -186,7 +186,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 
 	/** Check if a Websocket client connection exists */
 	public function clientExists(string $uuid): bool {
-		return isset($this->subscriptions[$uuid]);
+		return isset($this->subscriptions[(int)$uuid]);
 	}
 
 	protected function registerWebChat(): void {

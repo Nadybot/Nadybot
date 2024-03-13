@@ -145,7 +145,7 @@ class BotRunner {
 		$reader = async($bufReader->buffer(...));
 		$exitCode = $process->join();
 		$stdout = $reader->await();
-		if ($exitCode !== 0 || !isset($stdout)) {
+		if ($exitCode !== 0 || $stdout === "") {
 			return null;
 		}
 		return trim($stdout);

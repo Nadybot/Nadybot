@@ -332,9 +332,9 @@ class FindOrgController extends ModuleInstance {
 			throw new Exception("Invalid data received from orglist for {$letter}");
 		}
 
+		/** @var string $body */
 		$cache->set($letter, $body, 23 * 3600);
 
-		/** @psalm-suppress PossiblyNullArgument */
 		$this->handleOrglistResponse($body, $letter);
 	}
 }

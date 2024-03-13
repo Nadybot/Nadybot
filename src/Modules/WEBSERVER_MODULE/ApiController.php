@@ -255,7 +255,6 @@ class ApiController extends ModuleInstance {
 				}
 				$routes = [];
 				foreach ($apiAttrs as $apiAttr) {
-					/** @var NCA\Api */
 					$apiObj = $apiAttr->newInstance();
 					if (isset($apiObj->path)) {
 						$routes []= $apiObj->path;
@@ -266,11 +265,9 @@ class ApiController extends ModuleInstance {
 				$alFromAttribs = $method->getAttributes(NCA\AccessLevelFrom::class);
 				$alAttribs = $method->getAttributes(NCA\AccessLevel::class);
 				if (count($alFromAttribs)) {
-					/** @var NCA\AccessLevelFrom */
 					$alFromObj = $alFromAttribs[0]->newInstance();
 					$accessLevelFrom = $alFromObj->value;
 				} elseif (count($alAttribs)) {
-					/** @var NCA\AccessLevel */
 					$alObj = $alAttribs[0]->newInstance();
 					$accessLevel = $alObj->value;
 				}
@@ -293,12 +290,11 @@ class ApiController extends ModuleInstance {
 	/**
 	 * Add a HTTP route handler for a path
 	 *
-	 * @param string[] $paths
-	 * @param string[] $methods
-	 *
-	 * @psalm-param callable(Request,HttpProtocolWrapper,mixed...) $callback
+	 * @param string[]                           $paths
+	 * @param string[]                           $methods
+	 * @param Closure(Request,mixed...):Response $callback
 	 */
-	public function addApiRoute(array $paths, array $methods, callable $callback, ?string $alf, ?string $al, ReflectionMethod $refMet): void {
+	public function addApiRoute(array $paths, array $methods, Closure $callback, ?string $alf, ?string $al, ReflectionMethod $refMet): void {
 		foreach ($paths as $path) {
 			$handler = new ApiHandler();
 			$route = $this->webserverController->routeToRegExp($path);
@@ -307,7 +303,7 @@ class ApiController extends ModuleInstance {
 			$handler->route = $route;
 			$handler->allowedMethods = $methods;
 			$handler->reflectionMethod = $refMet;
-			$handler->handler = Closure::fromCallable($callback);
+			$handler->handler = $callback;
 			$handler->accessLevel = $al;
 			$handler->accessLevelFrom = $alf;
 			foreach ($methods as $method) {

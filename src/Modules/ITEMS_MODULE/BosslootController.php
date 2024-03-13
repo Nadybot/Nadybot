@@ -158,7 +158,7 @@ class BosslootController extends ModuleInstance {
 		}
 		$blob .= "<tab>Loot: ";
 		$lootItems = $data->map(function (BossLootdb $loot): ?string {
-			return $loot->item?->getLink($loot->item->highql) ?? null;
+			return isset($loot->item) ? $loot->item->getLink($loot->item->highql) : null;
 		})->filter();
 		if (isset($search)) {
 			$blob .= $lootItems->join("\n<tab><black>Loot: <end>") . "\n\n";

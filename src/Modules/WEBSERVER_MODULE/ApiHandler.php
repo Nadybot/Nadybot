@@ -16,7 +16,7 @@ class ApiHandler {
 	public string $path;
 	public string $route;
 
-	/** @psalm-var null|Closure(Request,HttpProtocolWrapper,mixed...) */
+	/** @var null|Closure(Request,mixed...):Response */
 	public ?Closure $handler = null;
 	public ReflectionMethod $reflectionMethod;
 
