@@ -280,12 +280,16 @@ class Nadybot {
 			if ($this->db->inTransaction()) {
 				$this->logger->warning("Open transaction detected!");
 			}
+			$this->logger->critical("Hanging jobs detected, exiting.");
+			exit(1);
+			/*
 			$this->logger->warning("Killing hanging jobs");
 			foreach (EventLoop::getIdentifiers() as $identifier) {
 				if (EventLoop::isEnabled($identifier) && EventLoop::isReferenced($identifier)) {
 					EventLoop::cancel($identifier);
 				}
 			}
+			*/
 		});
 		EventLoop::unreference($reaper);
 		EventLoop::run();
