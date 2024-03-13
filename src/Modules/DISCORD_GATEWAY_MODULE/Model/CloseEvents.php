@@ -2,9 +2,60 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model;
 
-use Nadybot\Modules\WEBSOCKET_MODULE\CloseEvents as WsCloseEvents;
+use Amp\Websocket\WebsocketCloseCode as WS;
 
-class CloseEvents extends WsCloseEvents {
+class CloseEvents {
+	/** Successful operation / regular socket shutdown */
+	public const NORMAL = WS::NORMAL_CLOSE;
+
+	/** Client is leaving (e.g. browser tab closing) */
+	public const GOING_AWAY = WS::GOING_AWAY;
+
+	/** Endpoint received a malformed frame */
+	public const PROTOCOL_ERROR = WS::PROTOCOL_ERROR;
+
+	/**
+	 * Endpoint received an unsupported frame
+	 * (e.g. binary-only endpoint received text frame)
+	 */
+	public const UNSUPPORTED  = WS::UNACCEPTABLE_TYPE;
+
+	/** Reserved */
+	public const RESERVED = 1004;
+
+	/** Expected close status, received none */
+	public const NO_STATUS = WS::NONE;
+
+	/** No close code frame has been received */
+	public const ABNORMAL = WS::ABNORMAL_CLOSE;
+
+	/** Endpoint received inconsistent message (e.g. malformed UTF-8) */
+	public const UNSUPPORTED_PAYLOAD = WS::INCONSISTENT_FRAME_DATA_TYPE;
+
+	/** Generic code used for situations other than 1003 and 1009 */
+	public const POLICY_VIOLATION = WS::POLICY_VIOLATION;
+
+	/** Endpoint won't process large frame */
+	public const TOO_LARGE = WS::MESSAGE_TOO_LARGE;
+
+	/** Client wanted an extension which server did not negotiate */
+	public const MANDATORY_EXTENSION = WS::EXPECTED_EXTENSION_MISSING;
+
+	/** Internal server error while operating */
+	public const SERVER_ERROR = WS::UNEXPECTED_SERVER_ERROR;
+
+	/** Server/service is restarting */
+	public const SERVICE_RESTART = WS::SERVICE_RESTARTING;
+
+	/** Temporary server condition forced blocking client's request */
+	public const TRY_AGAIN_LATER = WS::TRY_AGAIN_LATER;
+
+	/** Server acting as gateway received an invalid response */
+	public const BAD_GATEWAY = WS::BAD_GATEWAY;
+
+	/** Transport Layer Security handshake failure */
+	public const TLS_HANDSHAKE_FAIL = WS::TLS_HANDSHAKE_FAILURE;
+
 	/** We're not sure what went wrong. Try reconnecting? */
 	public const UNKNOWN_ERROR = 4000;
 
