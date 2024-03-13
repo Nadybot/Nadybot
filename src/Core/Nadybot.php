@@ -276,7 +276,7 @@ class Nadybot {
 		$this->logger->notice("Setups done in {duration}s", [
 			"duration" => number_format($duration, 3),
 		]);
-		$reaper = EventLoop::delay(5, function (string $identifier): void {
+		$reaper = EventLoop::delay(60, function (string $identifier): void {
 			$this->logger->warning("Killing hanging jobs");
 			foreach (EventLoop::getIdentifiers() as $identifier) {
 				if (EventLoop::isEnabled($identifier) && EventLoop::isReferenced($identifier)) {
