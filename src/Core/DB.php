@@ -28,6 +28,7 @@ use PDOException;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionProperty;
+use Revolt\EventLoop;
 use Safe\Exceptions\FilesystemException;
 
 use Throwable;
@@ -605,6 +606,7 @@ class DB {
 		$this->logger->notice("All migrations applied successfully in {timeMS}ms", [
 			"timeMS" => number_format(($end - $start) * 1000, 2),
 		]);
+		EventLoop::run();
 	}
 
 	/**

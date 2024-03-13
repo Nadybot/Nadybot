@@ -277,6 +277,9 @@ class Nadybot {
 			"duration" => number_format($duration, 3),
 		]);
 		$reaper = EventLoop::delay(60, function (string $identifier): void {
+			if ($this->db->inTransaction()) {
+				$this->logger->warning("Open transaction detected!");
+			}
 			$this->logger->warning("Killing hanging jobs");
 			foreach (EventLoop::getIdentifiers() as $identifier) {
 				if (EventLoop::isEnabled($identifier) && EventLoop::isReferenced($identifier)) {
