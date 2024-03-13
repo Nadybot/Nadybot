@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use function Safe\preg_grep;
 
-use Amp\File\{Filesystem, FilesystemException};
+use Amp\File\{FilesystemException};
 use Nadybot\Core\DBSchema\{CmdCfg, CmdPermissionSet};
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
+	Filesystem,
 	ModuleInstance,
 	SettingEvent,
 	Text,

@@ -4,8 +4,8 @@ namespace Nadybot\Modules\SKILLS_MODULE;
 
 use function Amp\ByteStream\splitLines;
 use function Safe\{preg_match, preg_split};
-use Amp\File\Filesystem;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -534,6 +534,7 @@ class BuffPerksController extends ModuleInstance {
 	}
 
 	private function initPerksDatabase(): void {
+		$this->logger->notice("In initPerksDatabase()");
 		$startTs = microtime(true);
 		$path = __DIR__ . "/perks.csv";
 

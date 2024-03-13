@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use function Safe\{date, json_decode, json_encode};
-use Amp\File\{Filesystem, FilesystemException};
+use Amp\File\{FilesystemException};
 use AO\Client\{Basic, WorkerPackage};
 use AO\Package;
 use Exception;
@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	Event,
 	EventManager,
+	Filesystem,
 	ModuleInstance,
 	Modules\DISCORD\DiscordMessageIn,
 	Nadybot,

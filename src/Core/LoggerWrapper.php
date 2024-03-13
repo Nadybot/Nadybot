@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{ini_get, realpath};
+use function Safe\{ini_get};
+
+use Amp\File\FilesystemException;
 use Closure;
 use Exception;
 use Monolog\Processor\PsrLogMessageProcessor;
@@ -14,7 +16,6 @@ use Nadybot\Core\{
 	Routing\Source,
 };
 use Psr\Log\LoggerInterface;
-use Safe\Exceptions\FilesystemException;
 use Stringable;
 
 use Throwable;
@@ -24,6 +25,7 @@ use Throwable;
  */
 #[NCA\Instance("logger")]
 class LoggerWrapper implements LoggerInterface {
+	public static Filesystem $fs;
 	protected static bool $routeErrors = true;
 
 	protected static PsrLogMessageProcessor $logProcessor;
@@ -195,7 +197,7 @@ class LoggerWrapper implements LoggerInterface {
 		$logDir = dirname($errorLog);
 		if (substr($logDir, 0, 1) !== '/') {
 			try {
-				$logDirNew = realpath(dirname(__DIR__, 2) . '/' . $logDir);
+				$logDirNew = self::$fs->realPath(dirname(__DIR__, 2) . '/' . $logDir);
 			} catch (FilesystemException) {
 				$logDirNew = dirname(__DIR__, 2) . '/' . $logDir;
 			}

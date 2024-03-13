@@ -4,11 +4,11 @@ namespace Nadybot\Core\Modules\SYSTEM;
 
 use function Safe\{ini_get, json_encode};
 
-use Amp\File\Filesystem;
 use Amp\Http\Server\{Request, Response};
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,

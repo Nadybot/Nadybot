@@ -2,11 +2,11 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
-use Amp\File\{Filesystem, FilesystemException};
+use Amp\File\{FilesystemException};
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
-use Nadybot\Core\{Attributes as NCA, ModuleInstance};
+use Nadybot\Core\{Attributes as NCA, Filesystem, ModuleInstance};
 use Nadybot\Modules\WEBSERVER_MODULE\{WebserverController};
 use Nadybot\Modules\{
 	WEBSERVER_MODULE\ApiResponse,

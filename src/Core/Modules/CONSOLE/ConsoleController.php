@@ -5,8 +5,8 @@ namespace Nadybot\Core\Modules\CONSOLE;
 use function Amp\async;
 use function Safe\{readline_add_history, readline_callback_handler_install, readline_read_history, readline_write_history, stream_isatty};
 
-use Amp\File\Filesystem;
 use Exception;
+use Nadybot\Core\Filesystem;
 
 use Nadybot\Core\{
 	Attributes as NCA,

@@ -3,15 +3,14 @@
 namespace Nadybot\Core;
 
 use function Safe\json_decode;
-use Amp\File\Filesystem;
 use Monolog\{
 	Formatter\FormatterInterface,
 	Handler\AbstractHandler,
 	Handler\AbstractProcessingHandler,
 	Logger,
 };
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Routing\Source;
+use Nadybot\Core\{Attributes as NCA};
 use RuntimeException;
 use Safe\Exceptions\JsonException;
 

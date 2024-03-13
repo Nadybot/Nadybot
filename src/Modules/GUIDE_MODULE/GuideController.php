@@ -4,12 +4,13 @@ namespace Nadybot\Modules\GUIDE_MODULE;
 
 use function Amp\ByteStream\splitLines;
 
-use Amp\File\{Filesystem, FilesystemException};
+use Amp\File\{FilesystemException};
 use IteratorIterator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
+	Filesystem,
 	ModuleInstance,
 	ParamClass\PFilename,
 	Safe,

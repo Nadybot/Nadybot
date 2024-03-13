@@ -4,12 +4,13 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use function Safe\json_decode;
 
-use Amp\File\{FileCache, Filesystem};
+use Amp\File\{FileCache};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\Sync\LocalKeyedMutex;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Filesystem,
 	ModuleInstance,
 };
 use Safe\Exceptions\JsonException;
@@ -40,7 +41,7 @@ class PlayerHistoryManager extends ModuleInstance {
 		$cache = new FileCache(
 			$this->getCacheDir(),
 			new LocalKeyedMutex(),
-			$this->fs
+			$this->fs->getFilesystem()
 		);
 		if (null !== ($body = $cache->get($cacheKey))) {
 			return $this->parsePlayerHistory($body, $name);

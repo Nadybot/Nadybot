@@ -4,9 +4,8 @@ namespace Nadybot\Core\CSV;
 
 use function Amp\ByteStream\splitLines;
 
-use Amp\File\Filesystem;
 use IteratorIterator;
-use Nadybot\Core\Safe;
+use Nadybot\Core\{Filesystem, Safe};
 
 class Reader {
 	public function __construct(

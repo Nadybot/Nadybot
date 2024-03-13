@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
-use function Safe\{json_decode, preg_match, preg_split, realpath, tempnam};
-use Amp\File\{FileCache, Filesystem, FilesystemException as AmpFilesystemException};
+use function Safe\{json_decode, preg_match, preg_split};
+use Amp\File\{FileCache, FilesystemException};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\Sync\LocalKeyedMutex;
 use Illuminate\Support\Collection;
@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	DB,
+	Filesystem,
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PWord,
@@ -26,7 +27,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use Psr\Log\LoggerInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Safe\Exceptions\{DirException, FilesystemException, JsonException};
+use Safe\Exceptions\{DirException, JsonException};
 
 use SplFileInfo;
 use Throwable;
@@ -87,10 +88,10 @@ class PackageController extends ModuleInstance {
 		if (!isset($path)) {
 			return static::UNINST;
 		}
-		if (realpath(dirname($path)) === realpath(dirname(__DIR__))) {
+		if ($this->fs->realPath(dirname($path)) === $this->fs->realPath(dirname(__DIR__))) {
 			return static::BUILT_INT;
 		}
-		if (realpath(dirname($path)) === realpath(dirname(__DIR__, 2)."/Core/Modules")) {
+		if ($this->fs->realPath(dirname($path)) === $this->fs->realPath(dirname(__DIR__, 2)."/Core/Modules")) {
 			return static::BUILT_INT;
 		}
 		return static::EXTRA;
@@ -453,7 +454,7 @@ class PackageController extends ModuleInstance {
 		}
 		$modulePath = $this->chatBot->runner->classLoader->registeredModules[$module];
 		try {
-			$path = realpath($modulePath);
+			$path = $this->fs->realPath($modulePath);
 		} catch (FilesystemException $e) {
 			$this->logger->error("Cannot determine absolute path of {module_path}", [
 				"module_path" => $modulePath,
@@ -554,7 +555,7 @@ class PackageController extends ModuleInstance {
 		}
 		try {
 			$content = $this->fs->read("{$moduleDir}/{$package}/aopkg.toml");
-		} catch (AmpFilesystemException) {
+		} catch (FilesystemException) {
 			return "";
 		}
 		if (!count($matches = Safe::pregMatch("/^\s*version\s*=\s*\"(.*?)\"/m", $content))) {
@@ -592,8 +593,8 @@ class PackageController extends ModuleInstance {
 
 	/** Try to determine the directory where custom modules shall be installed */
 	public function getExtraModulesDir(): ?string {
-		$moduleDirs = array_map("realpath", $this->config->paths->modules);
-		$moduleDirs = array_diff($moduleDirs, [realpath("./src/Modules")]);
+		$moduleDirs = array_map($this->fs->realPath(...), $this->config->paths->modules);
+		$moduleDirs = array_diff($moduleDirs, [$this->fs->realPath("./src/Modules")]);
 		$extraDir = end($moduleDirs);
 		if ($extraDir === false) {
 			return null;
@@ -684,7 +685,7 @@ class PackageController extends ModuleInstance {
 		$cache = new FileCache(
 			$this->config->paths->cache . "/PACKAGE_MODULE",
 			new LocalKeyedMutex(),
-			$this->fs
+			$this->fs->getFilesystem(),
 		);
 		if (null !== ($body = $cache->get("packages"))) {
 			return $this->parsePackages($body);
@@ -713,7 +714,7 @@ class PackageController extends ModuleInstance {
 		$cache = new FileCache(
 			$this->config->paths->cache . "/PACKAGE_MODULE",
 			new LocalKeyedMutex(),
-			$this->fs
+			$this->fs->getFilesystem(),
 		);
 		if (null !== ($body = $cache->get($package))) {
 			return $this->parsePackages($body);
@@ -918,9 +919,9 @@ class PackageController extends ModuleInstance {
 	/** Try to get a ZipArchive from a HttpResponse */
 	private function getZip(string $data): ZipArchive {
 		try {
-			$temp = tempnam(sys_get_temp_dir(), "nadybot-module");
+			$temp = $this->fs->tempnam(sys_get_temp_dir(), "nadybot-module");
 			$this->fs->write($temp, $data);
-		} catch (\Exception $e) {
+		} catch (FilesystemException $e) {
 			throw new UserException(
 				"Error writing to temporary file: " . $e->getMessage()
 			);

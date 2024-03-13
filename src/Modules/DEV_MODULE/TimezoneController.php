@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Amp\File\Filesystem;
 use DateTimeZone;
+use Nadybot\Core\Filesystem;
 use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Core\{
 	Attributes as NCA,

@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use function Safe\{json_decode, json_encode};
-use Amp\File\Filesystem;
+use Nadybot\Core\Filesystem;
 
 use Nadybot\Core\{
 	Attributes as NCA,

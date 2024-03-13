@@ -4,9 +4,9 @@ namespace Nadybot\Core;
 
 use function Amp\ByteStream\splitLines;
 use function Amp\delay;
-use function Safe\{preg_match, preg_split, realpath};
+use function Safe\{preg_match, preg_split};
 
-use Amp\File\Filesystem;
+use Amp\File\FilesystemException;
 use DateTime;
 use Exception;
 use GlobIterator;
@@ -29,7 +29,6 @@ use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionProperty;
 use Revolt\EventLoop;
-use Safe\Exceptions\FilesystemException;
 
 use Throwable;
 
@@ -808,7 +807,7 @@ class DB {
 
 	private function applyMigration(string $module, string $file): void {
 		try {
-			$fileAbs = realpath($file);
+			$fileAbs = $this->fs->realPath($file);
 		} catch (FilesystemException $e) {
 			$this->logger->error("Cannot get absolute path of {file}: {error}", [
 				"file" => $file,

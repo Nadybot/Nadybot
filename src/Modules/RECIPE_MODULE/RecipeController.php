@@ -3,12 +3,13 @@
 namespace Nadybot\Modules\RECIPE_MODULE;
 
 use function Safe\json_decode;
-use Amp\File\{Filesystem, FilesystemException};
+use Amp\File\{FilesystemException};
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	Filesystem,
 	ModuleInstance,
 	ParamClass\PItem,
 	Safe,

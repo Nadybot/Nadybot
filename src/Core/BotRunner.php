@@ -5,11 +5,11 @@ namespace Nadybot\Core;
 use function Amp\async;
 use function Amp\ByteStream\{getStderr};
 use function Amp\File\{createDefaultDriver, filesystem};
-use function Safe\{fclose, fwrite, getopt, ini_set, json_encode, parse_url, putenv, realpath, sapi_windows_set_ctrl_handler, stream_get_contents, system};
+use function Safe\{fwrite, getopt, ini_set, json_encode, parse_url, putenv, sapi_windows_set_ctrl_handler};
 
 use Amp\ByteStream\BufferedReader;
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
-use Amp\File\{Filesystem, FilesystemDriver};
+use Amp\File\{FilesystemDriver};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
@@ -23,7 +23,6 @@ use Nadybot\Core\Modules\SETUP\Setup;
 use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
 use ReflectionObject;
-
 use Revolt\EventLoop;
 use Safe\Exceptions\InfoException;
 use Throwable;
@@ -31,8 +30,6 @@ use Throwable;
 class BotRunner {
 	/** Nadybot's current version */
 	public const VERSION = "7.0.0.alpha";
-
-	public const AMP_FS_HANDLER = 'amp_fs_handler';
 
 	/**
 	 * The parsed command line arguments
@@ -43,11 +40,11 @@ class BotRunner {
 
 	public ClassLoader $classLoader;
 
-	protected static ?string $latestTag = null;
+	private static ?string $latestTag = null;
 
-	protected static ?string $calculatedVersion = null;
+	private static ?string $calculatedVersion = null;
 
-	protected LoggerInterface $logger;
+	private LoggerInterface $logger;
 
 	/**
 	 * The command line arguments
@@ -67,7 +64,7 @@ class BotRunner {
 	 */
 	public function __construct(array $argv) {
 		$this->argv = $argv;
-		self::$fs = filesystem();
+		self::$fs = new Filesystem(filesystem());
 	}
 
 	/**
@@ -76,18 +73,18 @@ class BotRunner {
 	 * it's either the latest tag, the branch or a fixed version
 	 */
 	public static function getVersion(bool $withBranch=true): string {
-		if (!isset(static::$calculatedVersion)) {
-			static::$calculatedVersion = static::calculateVersion();
+		if (!isset(self::$calculatedVersion)) {
+			self::$calculatedVersion = self::calculateVersion();
 		}
 		if (!$withBranch) {
-			return Safe::pregReplace("/@.+/", "", static::$calculatedVersion);
+			return Safe::pregReplace("/@.+/", "", self::$calculatedVersion);
 		}
-		return static::$calculatedVersion;
+		return self::$calculatedVersion;
 	}
 
 	/** Get the base directory of the bot */
 	public static function getBasedir(): string {
-		return realpath(dirname(__DIR__, 2));
+		return self::$fs->realPath(dirname(__DIR__, 2));
 	}
 
 	/**
@@ -96,9 +93,9 @@ class BotRunner {
 	 * it's either the latest tag, the branch or a fixed version
 	 */
 	public static function calculateVersion(): string {
-		$baseDir = static::getBasedir();
+		$baseDir = self::getBasedir();
 		if (!self::$fs->exists("{$baseDir}/.git")) {
-			return static::VERSION;
+			return self::VERSION;
 		}
 		set_error_handler(function (int $num, string $str, string $file, int $line): void {
 			throw new ErrorException($str, 0, $num, $file, $line);
@@ -113,33 +110,33 @@ class BotRunner {
 				throw new Exception("Unknown Git format detected");
 			}
 			$branch = $parts[2];
-			$latestTag = static::getLatestTag();
+			$latestTag = self::getLatestTag();
 			if (!isset($latestTag)) {
 				return $branch;
 			}
 
 			if ($latestTag === '') {
-				$latestTag = static::VERSION;
-			} elseif (strncmp(static::VERSION, $latestTag, min(strlen(static::VERSION), strlen($latestTag))) > 0) {
-				$latestTag = static::VERSION;
+				$latestTag = self::VERSION;
+			} elseif (strncmp(self::VERSION, $latestTag, min(strlen(self::VERSION), strlen($latestTag))) > 0) {
+				$latestTag = self::VERSION;
 			}
 			if ($branch !== 'stable') {
 				// return "{$latestTag}@{$branch}";
 			}
-			$gitDescribe = static::getGitDescribe();
+			$gitDescribe = self::getGitDescribe();
 			if ($gitDescribe === null || $gitDescribe === $latestTag) {
 				return "{$latestTag}";
 			}
 			return "{$gitDescribe}@{$branch}";
-		} catch (\Throwable $e) {
-			return static::VERSION;
+		} catch (\Throwable) {
+			return self::VERSION;
 		} finally {
 			restore_error_handler();
 		}
 	}
 
 	public static function getGitDescribe(): ?string {
-		$baseDir = static::getBasedir();
+		$baseDir = self::getBasedir();
 		$process = Process::start("git describe --tags", $baseDir);
 		$bufReader = new BufferedReader($process->getStdout());
 		$reader = async($bufReader->buffer(...));
@@ -157,22 +154,20 @@ class BotRunner {
 	 * Like [number of commits, tag]
 	 */
 	public static function getLatestTag(): ?string {
-		if (isset(static::$latestTag)) {
-			return static::$latestTag;
+		if (isset(self::$latestTag)) {
+			return self::$latestTag;
 		}
-		$baseDir = static::getBasedir();
-		$descriptors = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
-
-		$pid = proc_open("git tag -l", $descriptors, $pipes, $baseDir);
-		if ($pid === false) {
-			return static::$latestTag = null;
+		$baseDir = self::getBasedir();
+		$process = Process::start("git tag -l", $baseDir);
+		$bufReader = new BufferedReader($process->getStdout());
+		$reader = async($bufReader->buffer(...));
+		$exitCode = $process->join();
+		$stdout = $reader->await();
+		if ($exitCode !== 0 || $stdout === "") {
+			return null;
 		}
-		fclose($pipes[0]); // @phpstan-ignore-line
-		$tags = explode("\n", trim(stream_get_contents($pipes[1]) ?: ""));
+		$tags = explode("\n", trim($stdout));
 		$tags = array_diff($tags, ["nightly"]);
-		fclose($pipes[1]); // @phpstan-ignore-line
-		fclose($pipes[2]); // @phpstan-ignore-line
-		proc_close($pid);
 
 		$tags = array_map(
 			function (string $tag): SemanticVersion {
@@ -189,72 +184,12 @@ class BotRunner {
 			}
 		);
 		$tagString = array_pop($tags)->getOrigVersion();
-		return static::$latestTag = $tagString;
-	}
-
-	public function checkRequiredPackages(): void {
-		if (!class_exists("Revolt\\EventLoop")) {
-			// @phpstan-ignore-next-line
-			fwrite(
-				STDERR,
-				"Nadybot cannot find all the required composer modules in 'vendor'.\n".
-				"Please run 'composer install' to install all missing modules\n".
-				"or download one of the Nadybot bundles and copy the 'vendor'\n".
-				"directory from the zip-file into the Nadybot main directory.\n".
-				"\n".
-				"See https://github.com/Nadybot/Nadybot/wiki/Running#cloning-the-repository\n".
-				"for more information.\n"
-			);
-			sleep(5);
-			exit(1);
-		}
-	}
-
-	public function checkRequiredModules(): void {
-		if (version_compare(PHP_VERSION, "8.1.17", "<")) {
-			// @phpstan-ignore-next-line
-			fwrite(STDERR, "Nadybot 7 needs at least PHP version 8 to run, you have " . PHP_VERSION . "\n");
-			sleep(5);
-			exit(1);
-		}
-		$missing = [];
-		$requiredModules = [
-			["bcmath", "gmp"],
-			"ctype",
-			"date",
-			"dom",
-			"filter",
-			"json",
-			"pcre",
-			"PDO",
-			"simplexml",
-			["pdo_mysql", "pdo_sqlite"],
-			"Reflection",
-			"sockets",
-			"fileinfo",
-			"tokenizer",
-		];
-		foreach ($requiredModules as $requiredModule) {
-			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {
-				$missing []= $requiredModule;
-			} elseif (is_array($requiredModule)) {
-				if (!count(array_filter($requiredModule, "extension_loaded"))) {
-					$missing []= join(" or ", $requiredModule);
-				}
-			}
-		}
-		if (!count($missing)) {
-			return;
-		}
-			// @phpstan-ignore-next-line
-		fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
-		sleep(5);
-		exit(1);
+		return self::$latestTag = $tagString;
 	}
 
 	/** Run the bot in an endless loop */
 	public function run(): void {
-		if (!static::isLinux()) {
+		if (!self::isLinux()) {
 			putenv('AMP_FS_DRIVER=' . BlockingFilesystemDriver::class);
 		}
 		$fsDriverClass = getenv('AMP_FS_DRIVER');
@@ -267,8 +202,9 @@ class BotRunner {
 			$fsDriver = new ParallelFilesystemDriver();
 		}
 
-		self::$fs = filesystem($fsDriver);
+		self::$fs = new Filesystem(filesystem($fsDriver));
 		LegacyLogger::$fs = self::$fs;
+		LoggerWrapper::$fs = self::$fs;
 		$this->parseOptions();
 		// set default timezone
 		date_default_timezone_set("UTC");
@@ -280,10 +216,10 @@ class BotRunner {
 		$rateLimitRetryHandler = new HttpRetryRateLimits();
 		Registry::injectDependencies($rateLimitRetryHandler);
 		$httpClientBuilder = (new HttpClientBuilder())
-		->retry(0)
-		->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".self::getVersion()))
-		->intercept($retryHandler)
-		->intercept($rateLimitRetryHandler);
+			->retry(0)
+			->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".self::getVersion()))
+			->intercept($retryHandler)
+			->intercept($rateLimitRetryHandler);
 		$httpProxy = getenv('http_proxy');
 		if ($httpProxy !== false) {
 			$proxyHost = parse_url($httpProxy, PHP_URL_HOST);
@@ -315,6 +251,7 @@ class BotRunner {
 
 		$this->setErrorHandling($logFolderName);
 		$this->logger = new LoggerWrapper("Core/BotRunner");
+		// self::$fs->setLogger(new LoggerWrapper("Core/Filesystem"));
 		Registry::injectDependencies($this->logger);
 
 		$this->sendBotBanner();
@@ -372,7 +309,7 @@ class BotRunner {
 
 		$this->runUpgradeScripts();
 		EventLoop::run();
-		if ((static::$arguments["migrate-only"]??true) === false) {
+		if ((self::$arguments["migrate-only"]??true) === false) {
 			exit(0);
 		}
 
@@ -389,7 +326,7 @@ class BotRunner {
 		}
 		$chatBot->init($this);
 
-		if ((static::$arguments["setup-only"]??true) === false) {
+		if ((self::$arguments["setup-only"]??true) === false) {
 			exit(0);
 		}
 
@@ -410,55 +347,86 @@ class BotRunner {
 		return PHP_OS_FAMILY === 'Linux';
 	}
 
-	public function getConfigFile(): BotConfig {
+	private function getConfigFile(): BotConfig {
 		if (isset($this->configFile)) {
 			return $this->configFile;
 		}
-		$configFilePath = static::$arguments["c"] ?? "conf/config.php";
+		$configFilePath = self::$arguments["c"] ?? "conf/config.php";
 		return $this->configFile = BotConfig::loadFromFile($configFilePath, self::$fs);
 	}
 
-	protected function createMissingDirs(): void {
-		foreach (get_object_vars($this->getConfigFile()->paths) as $name => $dir) {
+	private function createMissingDirs(): void {
+		$path = $this->getConfigFile()->paths;
+		foreach (get_object_vars($path) as $name => $dir) {
 			if (is_string($dir) && !self::$fs->exists($dir)) {
 				self::$fs->createDirectory($dir, 0700);
 			}
 		}
-		foreach ($this->getConfigFile()->paths->modules as $dir) {
+		foreach ($path->modules as $dir) {
 			if (is_string($dir) && !self::$fs->exists($dir)) {
 				self::$fs->createDirectory($dir, 0700);
 			}
 		}
 	}
 
-	/**
-	 * Get AO's chat server hostname and port
-	 *
-	 * @return (string|int)[] [(string)Server, (int)Port]
-	 *
-	 * @phpstan-return array{string,int}
-	 */
-	protected function getServerAndPort(BotConfig $config): array {
-		// Choose server
-		if ($config->proxy?->enabled === true) {
-			assert(isset($config->proxy));
-			// For use with the AO chat proxy ONLY!
-			$server = $config->proxy->server;
-			$port = $config->proxy->port;
-		} elseif ($config->main->dimension === 4) {
-			$server = "chat.dt.funcom.com";
-			$port = 7109;
-		} elseif ($config->main->dimension === 5) {
-			$server = "chat.d1.funcom.com";
-			$port = 7105;
-		} elseif ($config->main->dimension === 6) {
-			$server = "chat.d1.funcom.com";
-			$port = 7106;
-		} else {
-			$this->logger->error("No valid server to connect with! Available dimensions are 4, 5, and 6.");
-			die();
+	private function checkRequiredPackages(): void {
+		if (!class_exists("Revolt\\EventLoop")) {
+			// @phpstan-ignore-next-line
+			fwrite(
+				STDERR,
+				"Nadybot cannot find all the required composer modules in 'vendor'.\n".
+				"Please run 'composer install' to install all missing modules\n".
+				"or download one of the Nadybot bundles and copy the 'vendor'\n".
+				"directory from the zip-file into the Nadybot main directory.\n".
+				"\n".
+				"See https://github.com/Nadybot/Nadybot/wiki/Running#cloning-the-repository\n".
+				"for more information.\n"
+			);
+			sleep(5);
+			exit(1);
 		}
-		return [$server, $port];
+	}
+
+	private function checkRequiredModules(): void {
+		if (version_compare(PHP_VERSION, "8.1.17", "<")) {
+			// @phpstan-ignore-next-line
+			fwrite(STDERR, "Nadybot 7 needs at least PHP version 8 to run, you have " . PHP_VERSION . "\n");
+			sleep(5);
+			exit(1);
+		}
+		$missing = [];
+		$requiredModules = [
+			["bcmath", "gmp"],
+			"ctype",
+			"date",
+			"dom",
+			"filter",
+			"json",
+			"pcre",
+			"PDO",
+			"simplexml",
+			["pdo_mysql", "pdo_sqlite"],
+			"Reflection",
+			"sockets",
+			"fileinfo",
+			"tokenizer",
+		];
+		foreach ($requiredModules as $requiredModule) {
+			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {
+				$missing []= $requiredModule;
+			} elseif (is_array($requiredModule)) {
+				if (!count(array_filter($requiredModule, "extension_loaded"))) {
+					$missing []= join(" or ", $requiredModule);
+				}
+			}
+		}
+		if (!count($missing)) {
+			return;
+		}
+			// @phpstan-ignore-next-line
+		fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
+		sleep(5);
+		exit(1);
 	}
 
 	private function parseOptions(): void {
@@ -486,11 +454,11 @@ class BotRunner {
 			exit(1);
 		}
 		$argv = array_slice($this->argv, $restPos);
-		static::$arguments = $options;
+		self::$arguments = $options;
 		if (count($argv) > 0) {
-			static::$arguments["c"] = array_shift($argv);
+			self::$arguments["c"] = array_shift($argv);
 		}
-		if (isset(static::$arguments["help"])) {
+		if (isset(self::$arguments["help"])) {
 			$this->showSyntaxHelp();
 			exit(0);
 		}
@@ -611,7 +579,7 @@ class BotRunner {
 		if ($this->isWindows() === false) {
 			return;
 		}
-		system("title {$config->main->character} - Nadybot");
+		async(Process::start(...), "title {$config->main->character} - Nadybot")->ignore();
 	}
 
 	/** Connect to the database */

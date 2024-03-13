@@ -9,7 +9,6 @@ use function Amp\{
 };
 use function Safe\preg_match;
 
-use Amp\File\Filesystem;
 use Amp\{
 	File\FilesystemException,
 	Socket,
@@ -18,6 +17,7 @@ use Amp\{
 };
 use Closure;
 use Exception;
+use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,

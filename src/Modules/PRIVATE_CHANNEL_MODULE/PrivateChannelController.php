@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use function Safe\preg_match;
-use Amp\File\{Filesystem, FilesystemException};
+use Amp\File\{FilesystemException};
 use AO\Package;
 use Exception;
 use Illuminate\Support\Collection;
@@ -24,6 +24,7 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
+	Filesystem,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltInfo,

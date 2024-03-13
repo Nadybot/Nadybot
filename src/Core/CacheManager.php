@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use Amp\File\{Filesystem, FilesystemException};
+use Amp\File\{FilesystemException};
 use Nadybot\Core\Attributes as NCA;
 
 use Nadybot\Core\Config\BotConfig;

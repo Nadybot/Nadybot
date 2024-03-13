@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 use function Safe\{date, getcwd};
-use Amp\File\{Filesystem, FilesystemException};
+use Amp\File\{FilesystemException};
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;

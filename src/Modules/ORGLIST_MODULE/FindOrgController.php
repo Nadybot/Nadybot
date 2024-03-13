@@ -4,7 +4,7 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use function Amp\{delay};
 
-use Amp\File\{FileCache, Filesystem};
+use Amp\File\{FileCache};
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
 use Amp\Pipeline\Pipeline;
 use Amp\Sync\LocalKeyedMutex;
@@ -19,6 +19,7 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	Event,
+	Filesystem,
 	ModuleInstance,
 	SQLException,
 	Safe,
@@ -265,7 +266,7 @@ class FindOrgController extends ModuleInstance {
 		$cache = new FileCache(
 			$this->config->paths->cache . '/orglist',
 			new LocalKeyedMutex(),
-			$this->fs
+			$this->fs->getFilesystem(),
 		);
 		$body = $cache->get($letter);
 

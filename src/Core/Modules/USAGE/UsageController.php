@@ -3,8 +3,8 @@
 namespace Nadybot\Core\Modules\USAGE;
 
 use function Safe\json_encode;
-use Amp\File\Filesystem;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,

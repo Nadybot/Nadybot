@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
-use Amp\File\Filesystem;
+use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,

@@ -4,7 +4,7 @@ namespace Nadybot\Modules\EXPORT_MODULE;
 
 use function Safe\{json_decode, json_encode};
 
-use Amp\File\{Filesystem, FilesystemException};
+use Amp\File\{FilesystemException};
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	DBSchema\Alt,
 	DBSchema\BanEntry,
 	DBSchema\Member,
+	Filesystem,
 	ModuleInstance,
 	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,

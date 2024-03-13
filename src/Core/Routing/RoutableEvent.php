@@ -48,7 +48,7 @@ class RoutableEvent extends Event {
 	}
 
 	public function appendPath(Source $source): self {
-		array_push($this->path, $source);
+		$this->path[] = $source;
 		return $this;
 	}
 

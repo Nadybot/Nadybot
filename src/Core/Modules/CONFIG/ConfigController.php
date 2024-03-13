@@ -4,7 +4,6 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use function Safe\glob;
 
-use Amp\File\Filesystem;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{
@@ -14,6 +13,7 @@ use Nadybot\Core\DBSchema\{
 	EventCfg,
 	Setting,
 };
+use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,

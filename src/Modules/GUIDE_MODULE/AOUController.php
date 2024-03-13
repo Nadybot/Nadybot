@@ -4,7 +4,7 @@ namespace Nadybot\Modules\GUIDE_MODULE;
 
 use function Safe\preg_split;
 
-use Amp\File\{FileCache, Filesystem};
+use Amp\File\{FileCache};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\Sync\LocalKeyedMutex;
 use DOMDocument;
@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	Config\BotConfig,
+	Filesystem,
 	ModuleInstance,
 	Safe,
 	Text,
@@ -86,7 +87,7 @@ class AOUController extends ModuleInstance {
 		$cache = new FileCache(
 			$this->config->paths->cache . '/guide',
 			new LocalKeyedMutex(),
-			$this->fs
+			$this->fs->getFilesystem(),
 		);
 		$cacheKey = (string)$guideId;
 		$body = $cache->get($cacheKey);

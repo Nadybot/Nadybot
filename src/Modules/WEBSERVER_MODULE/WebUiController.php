@@ -3,9 +3,9 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
-use function Safe\{glob, realpath, tmpfile};
+use function Safe\{glob};
 use Amp\ByteStream\WritableResourceStream;
-use Amp\File\{Filesystem, FilesystemException as FileFilesystemException};
+use Amp\File\{FilesystemException};
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use ErrorException;
 use Exception;
@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	EventManager,
+	Filesystem,
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
@@ -26,7 +27,6 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 use Safe\DateTime;
-use Safe\Exceptions\FilesystemException;
 use Throwable;
 
 use ZipArchive;
@@ -133,11 +133,21 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			$this->settingManager->save("nadyui_version", "0");
 		}
 		$path = $this->config->paths->html;
-		return (strlen(realpath("{$path}/css")) ? $this->recursiveRemoveDirectory(realpath("{$path}/css")) : true)
-			&& (strlen(realpath("{$path}/img")) ? $this->recursiveRemoveDirectory(realpath("{$path}/img")) : true)
-			&& (strlen(realpath("{$path}/js")) ? $this->recursiveRemoveDirectory(realpath("{$path}/js")) : true)
-			&& (strlen(realpath("{$path}/index.html")) ? $this->unlink(realpath("{$path}/index.html")) : true)
-			&& (strlen(realpath("{$path}/favicon.ico")) ? $this->unlink(realpath("{$path}/favicon.ico")) : true);
+		return (strlen($this->fs->realPath("{$path}/css"))
+				? $this->recursiveRemoveDirectory($this->fs->realPath("{$path}/css"))
+				: true)
+			&& (strlen($this->fs->realPath("{$path}/img"))
+				? $this->recursiveRemoveDirectory($this->fs->realPath("{$path}/img"))
+				: true)
+			&& (strlen($this->fs->realPath("{$path}/js"))
+				? $this->recursiveRemoveDirectory($this->fs->realPath("{$path}/js"))
+				: true)
+			&& (strlen($this->fs->realPath("{$path}/index.html"))
+				? $this->unlink($this->fs->realPath("{$path}/index.html"))
+				: true)
+			&& (strlen($this->fs->realPath("{$path}/favicon.ico"))
+				? $this->unlink($this->fs->realPath("{$path}/favicon.ico"))
+				: true);
 	}
 
 	/** Delete a directory and all its subdirectories */
@@ -148,14 +158,14 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			} else {
 				try {
 					$this->fs->deleteFile($file);
-				} catch (FileFilesystemException) {
+				} catch (FilesystemException) {
 					return false;
 				}
 			}
 		}
 		try {
 			$this->fs->deleteDirectory($directory);
-		} catch (FileFilesystemException) {
+		} catch (FilesystemException) {
 			return false;
 		}
 		return true;
@@ -224,7 +234,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	private function unlink(string $path): bool {
 		try {
 			$this->fs->deleteFile($path);
-		} catch (FileFilesystemException) {
+		} catch (FilesystemException) {
 			return false;
 		}
 		return true;
@@ -308,7 +318,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		try {
 			$oldMask = umask(0027);
 			try {
-				$file = tmpfile();
+				$file = $this->fs->tmpfile();
 			} catch (FilesystemException $e) {
 				throw new Exception("Unable to create temp file for extraction: " . $e->getMessage());
 			}
@@ -323,7 +333,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			if ($openResult !== true) {
 				throw new Exception("Error opening {$archiveName}. Code {$openResult}.");
 			}
-			$path = realpath($this->config->paths->html);
+			$path = $this->fs->realPath($this->config->paths->html);
 			error_clear_last();
 			if ($extractor->extractTo($path) === false) {
 				$lastError = error_get_last();

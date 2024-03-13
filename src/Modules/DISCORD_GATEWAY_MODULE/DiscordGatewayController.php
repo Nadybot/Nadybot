@@ -6,7 +6,6 @@ use function Amp\Future\await;
 use function Amp\{async, delay};
 use function Safe\{json_decode, json_encode, preg_match};
 
-use Amp\File\Filesystem;
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, HttpException};
@@ -14,6 +13,7 @@ use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, WebsocketConnection, WebsocketHandshake};
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException, WebsocketCount};
 use Illuminate\Support\{Collection, ItemNotFoundException};
+use Nadybot\Core\Filesystem;
 use Nadybot\Core\Modules\DISCORD\{
 	DiscordAPIClient,
 	DiscordChannel,

@@ -3,9 +3,9 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\async;
-use function Safe\{base64_decode, json_decode, mime_content_type, openssl_verify, preg_split, realpath};
+use function Safe\{base64_decode, json_decode, mime_content_type, openssl_verify, preg_split};
 
-use Amp\File\{Filesystem, FilesystemException as FileFilesystemException};
+use Amp\File\{FilesystemException};
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Server\{DefaultErrorHandler, HttpServer, Request, RequestHandler, Response, SocketHttpServer};
 use Amp\Http\{Client, HttpStatus};
@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	DB,
+	Filesystem,
 	ModuleInstance,
 	Registry,
 	Safe,
@@ -27,7 +28,7 @@ use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionFunction;
 use Safe\DateTime;
-use Safe\Exceptions\{FilesystemException, OpensslException, PcreException, UrlException};
+use Safe\Exceptions\{OpensslException, PcreException, UrlException};
 use stdClass;
 use Throwable;
 
@@ -642,8 +643,8 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	private function serveStaticFile(Request $request): Response {
 		$path = $this->config->paths->html;
 		try {
-			$realFile = realpath("{$path}/{$request->getUri()->getPath()}");
-			$realBaseDir = realpath("{$path}/");
+			$realFile = $this->fs->realPath("{$path}/{$request->getUri()->getPath()}");
+			$realBaseDir = $this->fs->realPath("{$path}/");
 		} catch (FilesystemException) {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}
@@ -660,7 +661,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		}
 		try {
 			$body = $this->fs->read($realFile);
-		} catch (FileFilesystemException) {
+		} catch (FilesystemException) {
 			$body = "";
 		}
 		$response = new Response(

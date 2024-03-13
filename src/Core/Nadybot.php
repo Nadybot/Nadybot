@@ -276,20 +276,23 @@ class Nadybot {
 		$this->logger->notice("Setups done in {duration}s", [
 			"duration" => number_format($duration, 3),
 		]);
-		$reaper = EventLoop::delay(60, function (string $identifier): void {
+		$reaper = EventLoop::delay(6, function (string $identifier): void {
 			if ($this->db->inTransaction()) {
 				$this->logger->warning("Open transaction detected!");
 			}
 			$this->logger->critical("Hanging jobs detected, exiting.");
-			exit(1);
-			/*
+
 			$this->logger->warning("Killing hanging jobs");
 			foreach (EventLoop::getIdentifiers() as $identifier) {
 				if (EventLoop::isEnabled($identifier) && EventLoop::isReferenced($identifier)) {
-					EventLoop::cancel($identifier);
+					$this->logger->error("Hanging: {id}={data}", [
+						"id" => $identifier,
+						"data" => EventLoop::getDriver()->__debugInfo()[$identifier]["type"],
+					]);
+					// EventLoop::cancel($identifier);
 				}
 			}
-			*/
+			exit(1);
 		});
 		EventLoop::unreference($reaper);
 		EventLoop::run();
@@ -1717,9 +1720,15 @@ class Nadybot {
 	}
 
 	/** Update the property bound to a setting to $value */
-	private function updateTypedProperty(ModuleInstanceInterface $obj, ReflectionProperty $property, mixed $value): void {
+	private function updateTypedProperty(ModuleInstanceInterface $obj, ReflectionProperty $property, ?string $value): void {
 		$type = $property->getType();
 		if ($type === null || !($type instanceof ReflectionNamedType)) {
+			return;
+		}
+		if ($value === null) {
+			if ($type->allowsNull()) {
+				$property->setValue($obj, null);
+			}
 			return;
 		}
 
@@ -1734,7 +1743,7 @@ class Nadybot {
 				$property->setValue($obj, (bool)$value);
 				return;
 			case 'string':
-				$property->setValue($obj, (string)$value);
+				$property->setValue($obj, $value);
 				return;
 			case 'array':
 				$attrs = $property->getAttributes(ArraySetting::class, ReflectionAttribute::IS_INSTANCEOF);

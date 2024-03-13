@@ -5,13 +5,14 @@ namespace Nadybot\Modules\BANK_MODULE;
 use function Amp\async;
 use function Amp\Future\await;
 use function Safe\{preg_match, preg_split};
-use Amp\File\{Filesystem, FilesystemException};
+use Amp\File\{FilesystemException};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	Filesystem,
 	ModuleInstance,
 	ParamClass\PCharacter,
 	Text,

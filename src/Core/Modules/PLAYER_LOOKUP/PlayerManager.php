@@ -5,7 +5,7 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 use function Amp\delay;
 use function Safe\{json_decode, parse_url, preg_match};
 
-use Amp\File\{FileCache, Filesystem};
+use Amp\File\{FileCache};
 use Amp\Http\Client\{
 	HttpClientBuilder,
 	Request,
@@ -21,6 +21,7 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	DBSchema\Player,
+	Filesystem,
 	ModuleInstance,
 	Nadybot,
 	Registry,
@@ -204,7 +205,7 @@ class PlayerManager extends ModuleInstance {
 					$cache = new FileCache(
 						$this->config->paths->cache . '/players',
 						new LocalKeyedMutex(),
-						$this->fs
+						$this->fs->getFilesystem()
 					);
 					$cacheKey = "{$name}.{$dimension}";
 					$body = $cache->get($cacheKey);
@@ -257,10 +258,12 @@ class PlayerManager extends ModuleInstance {
 				}
 			}
 		} catch (\Throwable $e) {
-			$this->logger->warning("Error looking up {name}.{dimension}: {error}", [
+			$this->logger->warning("Error looking up {name}.{dimension}: {error} ({class})", [
 				"name" => $name,
 				"dimension" => $dimension,
 				"error" => $e->getMessage(),
+				"class" => get_class($e),
+				"exception" => $e,
 			]);
 		}
 		if (isset($player) && $player->name === $name) {

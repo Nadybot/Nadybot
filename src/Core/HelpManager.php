@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use Amp\File\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\HelpTopic,

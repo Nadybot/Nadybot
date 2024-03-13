@@ -4,7 +4,7 @@ namespace Nadybot\Core\Modules\PROFILE;
 
 use function Safe\{json_decode, json_encode};
 
-use Amp\File\{Filesystem, FilesystemException};
+use Amp\File\{FilesystemException};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{
@@ -25,6 +25,7 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	EventManager,
+	Filesystem,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,

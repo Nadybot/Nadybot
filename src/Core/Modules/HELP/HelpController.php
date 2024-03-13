@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\HELP;
 
-use Amp\File\Filesystem;
+use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,

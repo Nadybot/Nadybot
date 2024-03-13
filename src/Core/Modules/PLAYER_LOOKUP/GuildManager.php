@@ -6,7 +6,7 @@ use function Amp\Future\await;
 use function Amp\{async, delay};
 use function Safe\json_decode;
 
-use Amp\File\{FileCache, Filesystem};
+use Amp\File\FileCache;
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
 use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;
@@ -22,6 +22,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
+	Filesystem,
 	ModuleInstance,
 	Nadybot,
 };
@@ -79,7 +80,7 @@ class GuildManager extends ModuleInstance {
 		$cache = new FileCache(
 			$this->config->paths->cache . '/guild_roster',
 			new LocalKeyedMutex(),
-			$this->fs
+			$this->fs->getFilesystem()
 		);
 		$cacheKey = "{$guildID}.{$dimension}";
 		$fromCache = true;

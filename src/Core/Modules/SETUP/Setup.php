@@ -4,7 +4,7 @@ namespace Nadybot\Core\Modules\SETUP;
 
 use function Amp\ByteStream\getStdin;
 use Amp\ByteStream\BufferedReader;
-use Amp\File\Filesystem;
+use Nadybot\Core\Filesystem;
 
 use Nadybot\Core\{Config\BotConfig, DB};
 
