@@ -73,12 +73,12 @@ class Tell implements TransportInterface {
 	}
 
 	public function receiveMessage(AOChatEvent $event): void {
-		if (strtolower((string)$event->sender) !== strtolower($this->bot)) {
+		if (strtolower($event->sender) !== strtolower($this->bot)) {
 			return;
 		}
 		$msg = new RelayMessage();
 		$msg->packages = [$event->message];
-		$msg->sender = (string)$event->sender;
+		$msg->sender = $event->sender;
 		$this->relay->receiveFromTransport($msg);
 		throw new StopExecutionException();
 	}

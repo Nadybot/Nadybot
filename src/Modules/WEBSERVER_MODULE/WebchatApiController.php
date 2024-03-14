@@ -55,7 +55,10 @@ class WebchatApiController extends ModuleInstance {
 		NCA\ApiResult(code: 204, desc: "Message sent")
 	]
 	public function sendWebMessageEndpoint(Request $request): Response {
+		/** @var ?string */
 		$user = $request->getAttribute(WebserverController::USER);
+
+		/** @var ?string */
 		$message = $request->getAttribute(WebserverController::BODY);
 		if (!is_string($message) || !isset($user)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);

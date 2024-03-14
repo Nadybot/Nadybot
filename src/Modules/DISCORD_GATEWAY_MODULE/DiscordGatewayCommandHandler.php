@@ -251,7 +251,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		description: "Handle commands from Discord private messages"
 	)]
 	public function processDiscordDirectMessage(DiscordMessageEvent $event): void {
-		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
+		$discordUserId = $event->discord_message->author->id ?? $event->sender;
 		$context = new CmdContext($discordUserId);
 		$context->source = Source::DISCORD_MSG . "({$discordUserId})";
 		$context->message = $event->message;
@@ -264,7 +264,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		description: "Handle commands from Discord channel messages"
 	)]
 	public function processDiscordChannelMessage(DiscordMessageEvent $event): void {
-		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
+		$discordUserId = $event->discord_message->author->id ?? $event->sender;
 		$context = new CmdContext($discordUserId);
 		$context->source = Source::DISCORD_PRIV . "({$event->discord_message->channel_id})";
 		$context->message = $event->message;
@@ -272,7 +272,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	}
 
 	protected function processDiscordMessage(DiscordMessageEvent $event, CmdContext $context): void {
-		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
+		$discordUserId = $event->discord_message->author->id ?? $event->sender;
 		$sendto = new DiscordMessageCommandReply(
 			$event->channel,
 			false,

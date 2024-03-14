@@ -90,13 +90,13 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		}
 		$msg = new RelayMessage();
 		$msg->packages []= $event->message;
-		$msg->sender = is_string($event->sender) ? $event->sender : null;
+		$msg->sender = $event->sender;
 		$this->relay->receiveFromTransport($msg);
 		throw new StopExecutionException();
 	}
 
 	public function receiveInvite(AOChatEvent $event): void {
-		if (strtolower((string)$event->sender) !== strtolower($this->channel)) {
+		if (strtolower($event->sender) !== strtolower($this->channel)) {
 			return;
 		}
 		if (null === ($uid = $this->chatBot->getUid($this->channel))) {
