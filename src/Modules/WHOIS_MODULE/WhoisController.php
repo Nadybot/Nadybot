@@ -143,7 +143,10 @@ class WhoisController extends ModuleInstance {
 
 	#[
 		NCA\Event(
-			name: ["packet(20)", "packet(21)"],
+			name: [
+				"packet(" . Package\Type::CharacterName->value .")",
+				"packet(" . Package\Type::CharacterLookup->value .")",
+			],
 			description: "Records names and charIds"
 		)
 	]

@@ -141,11 +141,17 @@ class Tell implements TransportInterface {
 				$name = $this->chatBot->getName($uid);
 				if ($name === $this->bot) {
 					$this->buddylistManager->updateRemoved($uid);
-					$this->eventManager->unsubscribe("packet(41)", $waitForRemoval);
+					$this->eventManager->unsubscribe(
+						"packet(" . Package\Type::BuddyRemove->value . ")",
+						$waitForRemoval
+					);
 					$callback();
 				}
 			};
-			$this->eventManager->subscribe("packet(41)", $waitForRemoval);
+			$this->eventManager->subscribe(
+				"packet(" . Package\Type::BuddyRemove->value . ")",
+				$waitForRemoval
+			);
 		} else {
 			$callback();
 		}

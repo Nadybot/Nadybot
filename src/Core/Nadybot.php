@@ -461,6 +461,7 @@ class Nadybot {
 					if (microtime(true) - ($pongTimes[$worker]??0) < 60) {
 						continue;
 					}
+					$this->logger->info("Sending pong on {worker}", ["worker" => $worker]);
 					$this->sendPong($worker);
 				}
 			}
@@ -813,7 +814,7 @@ class Nadybot {
 	public function processAllPackages(WorkerPackage $package): void {
 		// fire individual packets event
 		$eventObj = new PackageEvent();
-		$eventObj->type = "packet({$package->package->type->name})";
+		$eventObj->type = "packet({$package->package->type->value})";
 		$eventObj->packet = $package;
 		$this->eventManager->fireEvent($eventObj);
 	}
