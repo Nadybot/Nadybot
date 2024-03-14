@@ -201,6 +201,9 @@ class BotRunner {
 		if ($fsDriver instanceof EioFilesystemDriver) {
 			$fsDriver = new ParallelFilesystemDriver();
 		}
+		if ($fsDriver instanceof ParallelFilesystemDriver) {
+			$fsDriver = new BlockingFilesystemDriver();
+		}
 
 		self::$fs = new Filesystem(filesystem($fsDriver));
 		LegacyLogger::$fs = self::$fs;

@@ -7,6 +7,7 @@ use function Safe\{json_decode};
 use Amp\Http\Server\{Request, Response};
 use Amp\Websocket\Server\{AllowOriginAcceptor, Websocket, WebsocketClientGateway, WebsocketClientHandler, WebsocketGateway};
 use Amp\Websocket\{WebsocketClient, WebsocketMessage};
+use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -20,9 +21,9 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	CommandReplyEvent,
-	JsonExporter,
 	WebserverController,
 };
+use Nadylib\IMEX;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -112,10 +113,8 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		]);
 		$this->gateway->addClient($client);
 		$this->subscriptions[$client->getId()] = [];
-		$packet = new WebsocketCommand();
-		$packet->command = "uuid";
-		$packet->data = (string)$client->getId();
-		$client->sendText(JsonExporter::encode($packet));
+		$packet = ["command" => "uuid", "data" => (string)$client->getId()];
+		$client->sendText(IMEX\JSON::export($packet));
 		while (null !== ($msg = $client->receive())) {
 			try {
 				$this->handleIncomingMessage($client, $msg);
@@ -164,9 +163,11 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		if ($isPrivatPacket) {
 			return;
 		}
-		$packet = new WebsocketCommand();
-		$packet->command = $packet::EVENT;
-		$packet->data = $event;
+		$packet = new WebsocketCommand(
+			command: WebsocketCommand::EVENT,
+			data: $event,
+		);
+		$encodedPacket = ["command" => WebsocketCommand::EVENT, "data" => $event];
 		foreach ($this->subscriptions as $id => $subscriptions) {
 			if ($event instanceof CommandReplyEvent && $event->uuid !== (string)$id) {
 				continue;
@@ -174,7 +175,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 			foreach ($subscriptions as $subscription) {
 				if ($subscription === $event->type
 					|| fnmatch($subscription, $event->type)) {
-					$this->gateway->sendText(JsonExporter::encode($packet), $id);
+					$this->gateway->sendText(IMEX\JSON::export($encodedPacket), $id);
 					$this->logger->info("Sending {class} to Websocket client", [
 						"class" => get_class($event),
 						"packet" => $packet,
@@ -212,9 +213,9 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 			if (!is_string($body)) {
 				throw new Exception();
 			}
-			$data = json_decode($body);
-			$command = new WebsocketCommand();
-			$command->fromJSON($data);
+			$data = json_decode($body, true);
+			$mapper = new ObjectMapperUsingReflection();
+			$command = $mapper->hydrateObject(WebsocketCommand::class, $data);
 			if (!in_array($command->command, $command::ALLOWED_COMMANDS)) {
 				throw new Exception();
 			}

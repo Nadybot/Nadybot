@@ -2,9 +2,7 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
-use Nadybot\Core\JSONDataModel;
-
-class WebsocketCommand extends JSONDataModel {
+class WebsocketCommand {
 	public const EVENT = "event";
 	public const SUBSCRIBE = "subscribe";
 	public const REQUEST = "request";
@@ -16,6 +14,9 @@ class WebsocketCommand extends JSONDataModel {
 		self::RESPONSE,
 	];
 
-	public string $command;
-	public mixed $data;
+	public function __construct(
+		public string $command,
+		public mixed $data,
+	) {
+	}
 }
