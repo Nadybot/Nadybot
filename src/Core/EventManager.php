@@ -2,7 +2,8 @@
 
 namespace Nadybot\Core;
 
-use function Amp\delay;
+use function Amp\Future\await;
+use function Amp\{async, delay};
 use function Safe\preg_match;
 
 use Closure;
@@ -519,13 +520,14 @@ class EventManager {
 	 * @return bool true if at least one event requests to stop execution
 	 */
 	public function fireEvent(Event $eventObj, mixed ...$args): bool {
+		$futures = [];
 		try {
 			foreach ($this->events as $type => $handlers) {
 				if ($eventObj->type !== $type && !fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
 					continue;
 				}
 				foreach ($handlers as $filename) {
-					$this->callEventHandler($eventObj, $filename, $args);
+					$futures []= async($this->callEventHandler(...), $eventObj, $filename, $args);
 				}
 			}
 			foreach ($this->dynamicEvents as $type => $handlers) {
@@ -539,10 +541,18 @@ class EventManager {
 					$refMeth = new ReflectionFunction($callback);
 					$newEventObj = $this->convertSyncEvent($refMeth, $eventObj);
 					if (isset($newEventObj)) {
-						$callback($newEventObj, ...$args);
+						$futures []= async($callback, $newEventObj, ...$args);
 					}
 				}
 			}
+			if (!count($futures)) {
+				return false;
+			}
+			$this->logger->info("Processing {num_events} {event_type} in parallel.", [
+				"num_events" => count($futures),
+				"event_type" => $eventObj->type,
+			]);
+			await($futures);
 		} catch (StopExecutionException) {
 			return true;
 		}
