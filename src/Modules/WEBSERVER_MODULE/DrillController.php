@@ -12,7 +12,8 @@ use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, Websocket
 use Amp\Websocket\WebsocketClosedException;
 use Amp\{DeferredFuture, TimeoutCancellation, TimeoutException};
 
-use Nadybot\Core\{AOChatEvent, Attributes as NCA, Config\BotConfig, EventManager, ModuleInstance, Registry, Safe, StopExecutionException, UserException};
+use Nadybot\Core\Event\RecvMsgEvent;
+use Nadybot\Core\{Attributes as NCA, Config\BotConfig, EventManager, ModuleInstance, Registry, Safe, StopExecutionException, UserException};
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -193,7 +194,7 @@ class DrillController extends ModuleInstance {
 		$deferred = new DeferredFuture();
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\TokenInAoTell);
-		$resolver = function (AOChatEvent $eventObj) use ($packet, $deferred): void {
+		$resolver = function (RecvMsgEvent $eventObj) use ($packet, $deferred): void {
 			if ($eventObj->sender !== $packet->sender) {
 				return;
 			}

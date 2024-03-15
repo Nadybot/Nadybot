@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Nadybot\Core\Event\{LeaveMyPrivEvent, MyPrivateChannelMsgEvent};
 use Nadybot\Core\{
-	AOChatEvent,
 	AccessLevelProvider,
 	AccessManager,
 	Attributes as NCA,
@@ -163,7 +163,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		name: "priv",
 		description: "Repeats what the leader says in the color of leaderecho_color setting"
 	)]
-	public function privEvent(AOChatEvent $eventObj): void {
+	public function privEvent(MyPrivateChannelMsgEvent $eventObj): void {
 		if (!$this->leaderecho
 			|| $this->leader !== $eventObj->sender
 			|| $eventObj->message[0] === $this->settingManager->get("symbol")) {
@@ -177,7 +177,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		name: "leavePriv",
 		description: "Removes leader when the leader leaves the channel"
 	)]
-	public function leavePrivEvent(AOChatEvent $eventObj): void {
+	public function leavePrivEvent(LeaveMyPrivEvent $eventObj): void {
 		if ($this->leader !== $eventObj->sender) {
 			return;
 		}

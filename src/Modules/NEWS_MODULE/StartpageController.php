@@ -12,8 +12,8 @@ use DateInterval;
 use DateTimeZone;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Nadybot\Core\Event\JoinMyPrivEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
@@ -132,7 +132,7 @@ class StartpageController extends ModuleInstance {
 		name: "joinPriv",
 		description: "Show startpage to players joining private channel"
 	)]
-	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
+	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady() || !is_string($sender) || isset($this->chatBot->guildmembers[$sender])) {
 			return;

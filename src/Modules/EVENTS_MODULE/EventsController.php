@@ -4,8 +4,8 @@ namespace Nadybot\Modules\EVENTS_MODULE;
 
 use function Safe\strtotime;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\JoinMyPrivEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	DB,
@@ -344,7 +344,7 @@ class EventsController extends ModuleInstance {
 		name: "joinPriv",
 		description: "Show events to characters joining the private channel"
 	)]
-	public function joinPrivEvent(AOChatEvent $eventObj): void {
+	public function joinPrivEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender) || !$this->hasRecentEvents()) {
 			return;

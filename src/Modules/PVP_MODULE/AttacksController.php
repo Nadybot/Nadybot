@@ -4,10 +4,11 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Event\OrgMsgChannelMsgEvent;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{AOChatEvent, Attributes as NCA, CmdContext, Config\BotConfig, DB, MessageHub, ModuleInstance, QueryBuilder, Safe, Text, Util};
+use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, MessageHub, ModuleInstance, QueryBuilder, Safe, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
@@ -398,7 +399,7 @@ class AttacksController extends ModuleInstance {
 		name: "orgmsg",
 		description: "Notify if org's tower site defense shield is disabled via pvp(tower-shield-own)"
 	)]
-	public function shieldLoweredMessageEvent(AOChatEvent $eventObj): void {
+	public function shieldLoweredMessageEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)) {
 			return;
 		}
@@ -468,7 +469,7 @@ class AttacksController extends ModuleInstance {
 		name: "orgmsg",
 		description: "Notify if org's towers are attacked via pvp(tower-hit-own)"
 	)]
-	public function attackOwnOrgMessageEvent(AOChatEvent $eventObj): void {
+	public function attackOwnOrgMessageEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)) {
 			return;
 		}

@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\NOTES_MODULE;
 
+use Nadybot\Core\Event\JoinMyPrivEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
@@ -267,7 +267,7 @@ class NotesController extends ModuleInstance {
 		name: "joinPriv",
 		description: "Show reminders when joining the private channel"
 	)]
-	public function showRemindersOnPrivJoinEvent(AOChatEvent $eventObj): void {
+	public function showRemindersOnPrivJoinEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender) || $this->buddylistManager->isOnline($sender)) {
 			return;

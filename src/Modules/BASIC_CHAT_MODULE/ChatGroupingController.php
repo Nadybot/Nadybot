@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Nadybot\Core\Event\{LeaveMyPrivEvent};
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
@@ -137,7 +137,7 @@ class ChatGroupingController extends ModuleInstance {
 		name: "leavePriv",
 		description: "Removes people from the grouping when they leave the channel"
 	)]
-	public function leavePrivEvent(AOChatEvent $eventObj): void {
+	public function leavePrivEvent(LeaveMyPrivEvent $eventObj): void {
 		if (!in_array($eventObj->sender, $this->joined, true)) {
 			return;
 		}

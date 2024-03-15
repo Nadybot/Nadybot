@@ -6,8 +6,8 @@ use function Amp\delay;
 use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;
+use Nadybot\Core\Event\JoinMyPrivEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	Config\BotConfig,
@@ -290,7 +290,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		name: "joinPriv",
 		description: "Sends gaubuff message on join"
 	)]
-	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
+	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if ($this->gaubuffLogon && is_string($sender)) {
 			$this->showGauntletBuff($sender);

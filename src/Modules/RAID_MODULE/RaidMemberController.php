@@ -6,8 +6,8 @@ use function Amp\async;
 use function Amp\Future\await;
 
 use AO\Package;
+use Nadybot\Core\Event\LeaveMyPrivEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	DB,
@@ -525,7 +525,7 @@ class RaidMemberController extends ModuleInstance {
 		name: "leavePriv",
 		description: "Remove players from the raid when they leave the channel"
 	)]
-	public function leavePrivateChannelMessageEvent(AOChatEvent $eventObj): void {
+	public function leavePrivateChannelMessageEvent(LeaveMyPrivEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
 		}

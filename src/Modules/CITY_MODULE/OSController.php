@@ -2,15 +2,14 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
+use Nadybot\Core\Event\OrgMsgChannelMsgEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	Config\BotConfig,
 	ModuleInstance,
 	Nadybot,
 	Safe,
 };
-
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
 
 /**
@@ -31,7 +30,7 @@ class OSController extends ModuleInstance {
 		name: "orgmsg",
 		description: "Sets a timer when an OS/AS is launched"
 	)]
-	public function osTimerEvent(AOChatEvent $eventObj): void {
+	public function osTimerEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		// create a timer for 15m when an OS/AS is launched (so org knows when they can launch again)
 		// [Org Msg] Blammo! Player has launched an orbital attack!
 

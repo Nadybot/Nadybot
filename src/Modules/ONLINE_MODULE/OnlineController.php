@@ -6,8 +6,8 @@ use function Safe\preg_match;
 
 use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\{GuildChannelMsgEvent, MyPrivateChannelMsgEvent};
 use Nadybot\Core\{
-	AOChatEvent,
 	AccessManager,
 	Attributes as NCA,
 	BuddylistManager,
@@ -595,7 +595,7 @@ class OnlineController extends ModuleInstance {
 			help: "afk"
 		),
 	]
-	public function afkCheckPrivateChannelEvent(AOChatEvent $eventObj): void {
+	public function afkCheckPrivateChannelEvent(MyPrivateChannelMsgEvent $eventObj): void {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
@@ -606,7 +606,7 @@ class OnlineController extends ModuleInstance {
 			help: "afk"
 		),
 	]
-	public function afkCheckGuildChannelEvent(AOChatEvent $eventObj): void {
+	public function afkCheckGuildChannelEvent(GuildChannelMsgEvent $eventObj): void {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
@@ -617,7 +617,7 @@ class OnlineController extends ModuleInstance {
 			help: "afk"
 		),
 	]
-	public function afkPrivateChannelEvent(AOChatEvent $eventObj): void {
+	public function afkPrivateChannelEvent(MyPrivateChannelMsgEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
 		}
@@ -631,7 +631,7 @@ class OnlineController extends ModuleInstance {
 			help: "afk"
 		),
 	]
-	public function afkGuildChannelEvent(AOChatEvent $eventObj): void {
+	public function afkGuildChannelEvent(GuildChannelMsgEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
 		}

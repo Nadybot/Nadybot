@@ -1,11 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
+namespace Nadybot\Core\Event;
 
-use Nadybot\Core\Event\AOChatEvent;
-use Nadybot\Core\Modules\DISCORD\DiscordMessageIn;
+use Nadybot\Core\Event;
 
-class DiscordMessageEvent extends AOChatEvent {
+class AOChatEvent extends Event {
 	/**
 	 * @param string  $sender  The name of the sender of the message
 	 * @param string  $channel The name of the channel via which the message was sent
@@ -17,9 +16,7 @@ class DiscordMessageEvent extends AOChatEvent {
 		public string $sender,
 		public string $channel,
 		public string $message,
-		public DiscordMessageIn $discord_message,
 		public ?string $worker=null,
 	) {
-		$this->type = "discordpriv";
 	}
 }

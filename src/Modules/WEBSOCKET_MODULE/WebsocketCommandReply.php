@@ -69,14 +69,16 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 		}
 		$msgs = $this->webChatConverter->convertMessages($msg);
 		foreach ($msgs as $msg) {
-			$xmlMessage = new AOWebChatEvent();
-			$xmlMessage->message = $msg;
-			$xmlMessage->sender = $this->config->main->character;
-			$xmlMessage->type = "chat({$this->type})";
-			$xmlMessage->channel = $this->type;
-			$xmlMessage->path = [
-				new WebSource(Source::WEB, "Web"),
-			];
+			$xmlMessage = new AOWebChatEvent(
+				message: $msg,
+				sender: $this->config->main->character,
+				type: "chat({$this->type})",
+				channel: $this->type,
+				path: [
+					new WebSource(Source::WEB, "Web"),
+				],
+				color: "#FFFFFF",
+			);
 			$xmlMessage->path[0]->renderAs = $xmlMessage->path[0]->render(null);
 			$color = $this->messageHub->getHopColor($rMessage->path, Source::WEB, new Source(Source::WEB, "Web"), "tag_color");
 			if (isset($color, $color->tag_color)) {

@@ -8,8 +8,8 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\JoinMyPrivEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	DB,
@@ -204,7 +204,7 @@ class NewsController extends ModuleInstance {
 		name: "joinPriv",
 		description: "Sends news to players joining private channel"
 	)]
-	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
+	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
 		if (!is_string($eventObj->sender)
 			|| !$this->hasRecentNews($eventObj->sender)
 		) {

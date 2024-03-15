@@ -7,9 +7,9 @@ use Amp\File\{FilesystemException};
 use AO\Package;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\{JoinMyPrivEvent, LeaveMyPrivEvent};
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\{
-	AOChatEvent,
 	AccessLevelProvider,
 	AccessManager,
 	Attributes as NCA,
@@ -1067,7 +1067,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		name: "joinPriv",
 		description: "Displays a message when a character joins the private channel"
 	)]
-	public function joinPrivateChannelMessageEvent(AOChatEvent $eventObj): void {
+	public function joinPrivateChannelMessageEvent(JoinMyPrivEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
 		}
@@ -1108,7 +1108,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		name: "joinPriv",
 		description: "Autoban players of unwanted factions when they join the bot"
 	)]
-	public function autobanOnJoin(AOChatEvent $eventObj): void {
+	public function autobanOnJoin(JoinMyPrivEvent $eventObj): void {
 		$reqFaction = $this->onlyAllowFaction;
 		if ($reqFaction === 'all' || !is_string($eventObj->sender)) {
 			return;
@@ -1188,7 +1188,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		name: "leavePriv",
 		description: "Displays a message when a character leaves the private channel"
 	)]
-	public function leavePrivateChannelMessageEvent(AOChatEvent $eventObj): void {
+	public function leavePrivateChannelMessageEvent(LeaveMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
 			return;
@@ -1218,7 +1218,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		name: "joinPriv",
 		description: "Updates the database when a character joins the private channel"
 	)]
-	public function joinPrivateChannelRecordEvent(AOChatEvent $eventObj): void {
+	public function joinPrivateChannelRecordEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
 			return;
@@ -1234,7 +1234,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		name: "leavePriv",
 		description: "Updates the database when a character leaves the private channel"
 	)]
-	public function leavePrivateChannelRecordEvent(AOChatEvent $eventObj): void {
+	public function leavePrivateChannelRecordEvent(LeaveMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
 			return;
@@ -1246,7 +1246,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		name: "joinPriv",
 		description: "Sends the online list to people as they join the private channel"
 	)]
-	public function joinPrivateChannelShowOnlineEvent(AOChatEvent $eventObj): void {
+	public function joinPrivateChannelShowOnlineEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
 			return;

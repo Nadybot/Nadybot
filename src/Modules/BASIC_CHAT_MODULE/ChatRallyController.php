@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Nadybot\Core\Event\JoinMyPrivEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	CommandReply,
@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
-
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 
 /**
@@ -206,7 +205,7 @@ class ChatRallyController extends ModuleInstance {
 		name: "joinpriv",
 		description: "Sends rally to players joining the private channel"
 	)]
-	public function sendRally(AOChatEvent $eventObj): void {
+	public function sendRally(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 
 		$rally = $this->get();

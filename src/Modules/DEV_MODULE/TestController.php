@@ -7,8 +7,8 @@ use Amp\File\{FilesystemException};
 use AO\Client\{Basic, WorkerPackage};
 use AO\Package;
 use Exception;
+use Nadybot\Core\Event\PrivateChannelMsgEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
@@ -324,44 +324,44 @@ class TestController extends ModuleInstance {
 		#[NCA\Str("tradebotmsg")]
 		string $action
 	): void {
-		$eventObj = new AOChatEvent();
 		$tradebot = $this->settingManager->getString('tradebot') ?? "Darknet";
-		$eventObj->sender = $tradebot;
-		$eventObj->channel = $tradebot;
-		$eventObj->message = "<font color='#89D2E8'>".
-			"<font color='#FFCC00'>[General]</font> ".
-			"<font color='#FF9900'>".
-				"Does anyone have Alien Augmentation Device - Medical ".
-				"to borrow for a minute please? will tip".
-			"</font> ".
-			"<font color='#66CC00'>[<a  href='user://Bosnian'>Bosnian</a>]</font> ".
-			"[<a href=\"text://<font color='#FFFF00'>Report/Ignore</font>".
-			"<br><br><font color='#FFFFFF'>".
-			"<font color='#00BFFF'>Bosnian</font> ".
-			"(146/<font color='#00DE42'>9</font>) ".
-			"<font color='#F79410'>Clan</font> Soldier<br><br>".
-			"<a  href='chatcmd:///tell Darknet ignore add Bosnian'>Ignore player</a>".
-			"<br><br>If you feel this message is inappropriate or does not belong on ".
-			"this platform, please report it:<br>".
-			"<a  href='chatcmd:///tell Darknet report 264750 wrong channel'>".
-				"Report wrong channel".
-			"</a><br>".
-			"<a  href='chatcmd:///tell Darknet report 264750 lockout timers'>".
-				"Report using alts/friends to get around lockout timers".
-			"</a><br>".
-			"<a  href='chatcmd:///tell Darknet report 264750 offensive'>".
-				"Report offensive content".
-			"</a><br>".
-			"<a  href='chatcmd:///tell Darknet report 264750 trolling'>".
-				"Report trolling".
-			"</a><br>".
-			"<a  href='chatcmd:///tell Darknet report 264750 chat'>".
-				"Report conversation/chat".
-			"</a><br>".
-			"<a  href='chatcmd:///tell Darknet report 264750 other'>".
-				"Report for another reason".
-			"</a>\">Report/Ignore</a>]";
-		$eventObj->type = "extpriv";
+		$eventObj = new PrivateChannelMsgEvent(
+			sender: $tradebot,
+			channel: $tradebot,
+			message: "<font color='#89D2E8'>".
+				"<font color='#FFCC00'>[General]</font> ".
+				"<font color='#FF9900'>".
+					"Does anyone have Alien Augmentation Device - Medical ".
+					"to borrow for a minute please? will tip".
+				"</font> ".
+				"<font color='#66CC00'>[<a  href='user://Bosnian'>Bosnian</a>]</font> ".
+				"[<a href=\"text://<font color='#FFFF00'>Report/Ignore</font>".
+				"<br><br><font color='#FFFFFF'>".
+				"<font color='#00BFFF'>Bosnian</font> ".
+				"(146/<font color='#00DE42'>9</font>) ".
+				"<font color='#F79410'>Clan</font> Soldier<br><br>".
+				"<a  href='chatcmd:///tell Darknet ignore add Bosnian'>Ignore player</a>".
+				"<br><br>If you feel this message is inappropriate or does not belong on ".
+				"this platform, please report it:<br>".
+				"<a  href='chatcmd:///tell Darknet report 264750 wrong channel'>".
+					"Report wrong channel".
+				"</a><br>".
+				"<a  href='chatcmd:///tell Darknet report 264750 lockout timers'>".
+					"Report using alts/friends to get around lockout timers".
+				"</a><br>".
+				"<a  href='chatcmd:///tell Darknet report 264750 offensive'>".
+					"Report offensive content".
+				"</a><br>".
+				"<a  href='chatcmd:///tell Darknet report 264750 trolling'>".
+					"Report trolling".
+				"</a><br>".
+				"<a  href='chatcmd:///tell Darknet report 264750 chat'>".
+					"Report conversation/chat".
+				"</a><br>".
+				"<a  href='chatcmd:///tell Darknet report 264750 other'>".
+					"Report for another reason".
+				"</a>\">Report/Ignore</a>]",
+		);
 
 		try {
 			$this->eventManager->fireEvent($eventObj);
@@ -379,7 +379,6 @@ class TestController extends ModuleInstance {
 		PCharacter $nick,
 		string $content
 	): void {
-		$event = new DiscordMessageEvent();
 		$message = new DiscordMessageIn();
 		$payload = json_decode(
 			'{'.
@@ -419,12 +418,13 @@ class TestController extends ModuleInstance {
 			'}'
 		);
 		$message->fromJSON($payload);
-		$event->discord_message = $message;
-		$event->message = $message->content;
-		$event->sender = $nick();
-		$event->type = "discordpriv";
-		$event->discord_message = $message;
-		$event->channel = "5361523761523761";
+		$event = new DiscordMessageEvent(
+			message: $message->content,
+			sender: $nick(),
+			type: "discordpriv",
+			discord_message: $message,
+			channel: "5361523761523761",
+		);
 		$this->eventManager->fireEvent($event);
 	}
 

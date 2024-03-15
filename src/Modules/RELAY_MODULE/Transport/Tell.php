@@ -4,8 +4,8 @@ namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
 use function Amp\async;
 use AO\Package;
+use Nadybot\Core\Event\RecvMsgEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	BuddylistManager,
 	EventManager,
@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	StopExecutionException,
 	UserStateEvent,
 };
-
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayMessage,
@@ -72,7 +71,7 @@ class Tell implements TransportInterface {
 		return $leftOver;
 	}
 
-	public function receiveMessage(AOChatEvent $event): void {
+	public function receiveMessage(RecvMsgEvent $event): void {
 		if (strtolower($event->sender) !== strtolower($this->bot)) {
 			return;
 		}

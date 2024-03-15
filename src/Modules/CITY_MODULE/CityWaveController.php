@@ -4,8 +4,8 @@ namespace Nadybot\Modules\CITY_MODULE;
 
 use function Safe\preg_match;
 use Exception;
+use Nadybot\Core\Event\GuildChannelMsgEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
@@ -18,7 +18,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	Util,
 };
-
 use Nadybot\Modules\TIMERS_MODULE\{
 	Alert,
 	Timer,
@@ -151,7 +150,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		name: "guild",
 		description: "Starts a wave counter when cloak is lowered"
 	)]
-	public function autoStartWaveCounterEvent(AOChatEvent $eventObj): void {
+	public function autoStartWaveCounterEvent(GuildChannelMsgEvent $eventObj): void {
 		if (preg_match("/^Your city in (.+) has been targeted by hostile forces.$/i", $eventObj->message)) {
 			$this->startWaveCounter();
 		}

@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use Amp\File\{FilesystemException};
+use Nadybot\Core\Event\JoinMyPrivEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	Config\BotConfig,
@@ -91,7 +91,7 @@ class RulesController extends ModuleInstance {
 		name: "joinPriv",
 		description: "If you defined rules, send them to people joining the private channel"
 	)]
-	public function joinPrivateChannelShowRulesEvent(AOChatEvent $eventObj): void {
+	public function joinPrivateChannelShowRulesEvent(JoinMyPrivEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
 		}

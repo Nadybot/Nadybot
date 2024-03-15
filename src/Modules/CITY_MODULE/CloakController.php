@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\CITY_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\GuildChannelMsgEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	DB,
@@ -23,7 +23,6 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
-
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 
 /**
@@ -179,7 +178,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		name: "guild",
 		description: "Records when the cloak is raised or lowered"
 	)]
-	public function recordCloakChangesEvent(AOChatEvent $eventObj): void {
+	public function recordCloakChangesEvent(GuildChannelMsgEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)
 			|| !count($arr = Safe::pregMatch("/^(.+) turned the cloaking device in your city (on|off).$/i", $eventObj->message))
 		) {

@@ -572,12 +572,13 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		$event = new DiscordMessageEvent();
-		$event->message = $message->content;
-		$event->sender = $name;
-		$event->type = isset($message->guild_id) ? "discordpriv" : "discordmsg";
-		$event->discord_message = $message;
-		$event->channel = $message->channel_id;
+		$event = new DiscordMessageEvent(
+			message: $message->content,
+			sender: $name,
+			type: isset($message->guild_id) ? "discordpriv" : "discordmsg",
+			discord_message: $message,
+			channel: $message->channel_id,
+		);
 		$this->eventManager->fireEvent($event);
 
 		$aoMessage = $this->resolveDiscordMentions($message->guild_id??null, $text);

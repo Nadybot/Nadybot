@@ -5,8 +5,8 @@ namespace Nadybot\Modules\GUILD_MODULE;
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\OrgMsgChannelMsgEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	DB,
@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 
 /**
@@ -122,7 +121,7 @@ class OrgHistoryController extends ModuleInstance {
 		name: "orgmsg",
 		description: "Capture Org Invite/Kick/Leave messages for orghistory"
 	)]
-	public function captureOrgMessagesEvent(AOChatEvent $eventObj): void {
+	public function captureOrgMessagesEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (
 			count($arr = Safe::pregMatch("/^(?<actor>.+) just (?<action>left) your organization.$/", $message))

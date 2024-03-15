@@ -63,26 +63,30 @@ class WebchatApiController extends ModuleInstance {
 		if (!is_string($message) || !isset($user)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
-		$event = new AOWebChatEvent();
-		$event->type = "chat(web)";
-		$event->channel = "web";
-		$event->color = "";
-		$event->path = [
-			new WebSource(Source::WEB, "Web"),
-		];
-		$event->path[0]->renderAs = $event->path[0]->render(null);
-		$color = $this->messageHub->getHopColor($event->path, Source::WEB, new Source(Source::WEB, "Web"), "tag_color");
+		$src = new WebSource(Source::WEB, "Web");
+		$src->renderAs = $src->render(null);
+		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, "Web"), "tag_color");
 		if (isset($color, $color->tag_color)) {
-			$event->path[0]->color = $color->tag_color;
+			$src->color = $color->tag_color;
 		} else {
-			$event->path[0]->color = "";
+			$src->color = "";
 		}
-		$color = $this->messageHub->getHopColor($event->path, Source::WEB, new Source(Source::WEB, "Web"), "text_color");
+		$eventColor = "";
+		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, "Web"), "text_color");
 		if (isset($color, $color->text_color)) {
-			$event->color = $color->text_color;
+			$eventColor = $color->text_color;
 		}
-		$event->message = $this->webChatConverter->convertMessage($message);
-		$event->sender = $user;
+		$eventMessage = $this->webChatConverter->convertMessage($message);
+		$event = new AOWebChatEvent(
+			type: "chat(web)",
+			channel: "web",
+			color: $eventColor,
+			sender: $user,
+			message: $eventMessage,
+			path: [
+				$src,
+			]
+		);
 		$this->eventManager->fireEvent($event);
 
 		$rMessage = new RoutableMessage($message);

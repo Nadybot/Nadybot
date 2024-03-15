@@ -16,6 +16,23 @@ use Nadybot\Core\DBSchema\{
 	HlpCfg,
 	Setting,
 };
+use Nadybot\Core\Event\{
+	ExtJoinPrivRequest,
+	GuildChannelMsgEvent,
+	JoinMyPrivEvent,
+	JoinPrivEvent,
+	LeaveMyPrivEvent,
+	LeavePrivEvent,
+	MyPrivateChannelMsgEvent,
+	OrgMsgChannelMsgEvent,
+	OtherLeavePrivEvent,
+	PrivateChannelMsgEvent,
+	RecvMsgEvent,
+	SendGuildEvent,
+	SendMsgEvent,
+	SendPrivEvent,
+	TowersChannelMsgEvent
+};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\PrivateChannel,
@@ -530,11 +547,11 @@ class Nadybot {
 				message: $privColor.$message
 			)
 		);
-		$event = new AOChatEvent();
-		$event->type = "sendpriv";
-		$event->channel = $group;
-		$event->message = $origMsg;
-		$event->sender = $this->config->main->character;
+		$event = new SendPrivEvent(
+			channel: $group,
+			message: $origMsg,
+			sender: $this->config->main->character,
+		);
 		$this->eventManager->fireEvent($event, $disableRelay);
 		if (!$disableRelay) {
 			$rMessage = new RoutableMessage($origMsg);
@@ -586,11 +603,11 @@ class Nadybot {
 				message: $guildColor.$message,
 			)
 		);
-		$event = new AOChatEvent();
-		$event->type = "sendguild";
-		$event->channel = $this->config->general->orgName;
-		$event->message = $origMsg;
-		$event->sender = $this->config->main->character;
+		$event = new SendGuildEvent(
+			channel: $this->config->general->orgName,
+			message: $origMsg,
+			sender: $this->config->main->character
+		);
 		$this->eventManager->fireEvent($event, $disableRelay);
 
 		if ($disableRelay) {
@@ -663,10 +680,11 @@ class Nadybot {
 
 		$this->logChat("Out. Msg.", $character, $message);
 		$this->sendRawTell($character, $tellColor.$message);
-		$event = new AOChatEvent();
-		$event->type = "sendmsg";
-		$event->channel = $character;
-		$event->message = $message;
+		$event = new SendMsgEvent(
+			channel: $character,
+			message: $message,
+			sender: $this->config->main->character,
+		);
 		$this->eventManager->fireEvent($event);
 		$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
 		$rMessage->prependPath(new Source(Source::TELL, $this->config->main->character));
@@ -853,7 +871,6 @@ class Nadybot {
 	public function processPrivateChannelJoin(WorkerPackage $package): void {
 		assert($package->package instanceof Package\In\PrivateChannelClientJoined);
 		$this->logger->info("Received {packet}", ["packet" => $package->package]);
-		$eventObj = new AOChatEvent();
 		$channel = $this->getName($package->package->channelId);
 		if (!is_string($channel)) {
 			$this->logger->info("Invalid channel ID for {packet}", [
@@ -869,12 +886,13 @@ class Nadybot {
 			return;
 		}
 		$this->updateLastOnline($package->package->charId, $sender, true);
-		$eventObj->channel = $channel;
-		$eventObj->sender = $sender;
 		$this->logger->info("Handling {packet}", ["packet" => $package->package]);
 
 		if ($this->isDefaultPrivateChannel($channel)) {
-			$eventObj->type = "joinpriv";
+			$eventObj = new JoinMyPrivEvent(
+				channel: $channel,
+				sender: $sender,
+			);
 
 			$this->logChat("Priv Group", -1, "{$sender} joined the channel.");
 			$audit = new Audit();
@@ -895,7 +913,10 @@ class Nadybot {
 			$this->chatlist[$sender] = true;
 			$this->eventManager->fireEvent($eventObj);
 		} elseif ($this->char?->id === $package->package->charId) {
-			$eventObj->type = "extjoinpriv";
+			$eventObj = new JoinPrivEvent(
+				channel: $channel,
+				sender: $sender,
+			);
 
 			$this->logger->notice("Joined the private channel {channel}.", [
 				"channel" => $channel,
@@ -913,7 +934,6 @@ class Nadybot {
 	public function processPrivateChannelLeave(WorkerPackage $package): void {
 		assert($package->package instanceof Package\In\PrivateChannelClientLeft);
 		$this->logger->info("Received {package}", ["package" => $package]);
-		$eventObj = new AOChatEvent();
 		$channel = $this->getName($package->package->channelId);
 		if (!is_string($channel)) {
 			$this->logger->info("Invalid channel ID for {package}", ["package" => $package->package]);
@@ -925,13 +945,14 @@ class Nadybot {
 			return;
 		}
 		$this->updateLastOnline($package->package->charId, $sender, true);
-		$eventObj->channel = $channel;
-		$eventObj->sender = $sender;
 
 		$this->logger->info("Handling {package}", ["package" => $package->package]);
 
 		if ($this->isDefaultPrivateChannel($channel)) {
-			$eventObj->type = "leavepriv";
+			$eventObj = new LeaveMyPrivEvent(
+				channel: $channel,
+				sender: $sender,
+			);
 
 			$this->logChat("Priv Group", -1, "{$sender} left the channel.");
 
@@ -946,7 +967,10 @@ class Nadybot {
 		} elseif ($this->char?->id === $package->package->charId) {
 			unset($this->privateChats[$channel]);
 		} else {
-			$eventObj->type = "otherleavepriv";
+			$eventObj = new OtherLeavePrivEvent(
+				channel: $channel,
+				sender: $sender,
+			);
 			$this->eventManager->fireEvent($eventObj);
 		}
 	}
@@ -966,12 +990,11 @@ class Nadybot {
 		$this->logger->info("Handling {package}", ["package" => $package->package]);
 		$this->logger->notice("Left the private channel {channel}.", ["channel" => $channel]);
 
-		$eventObj = new AOChatEvent();
-		$sender = $this->char?->name;
-		assert(is_string($sender));
-		$eventObj->channel = $channel;
-		$eventObj->sender = $sender;
-		$eventObj->type = "extleavepriv";
+		$sender = $this->config->main->character;
+		$eventObj = new LeavePrivEvent(
+			channel: $channel,
+			sender: $sender,
+		);
 
 		unset($this->privateChats[$channel]);
 		$this->messageHub
@@ -1075,7 +1098,6 @@ class Nadybot {
 	/** Handle an incoming tell */
 	public function processPrivateMessage(WorkerPackage $package): void {
 		assert($package->package instanceof Package\In\Tell);
-		$type = "msg";
 		$senderId = $package->package->charId;
 		$message = $package->package->message;
 		$sender = $this->getName($senderId);
@@ -1100,14 +1122,13 @@ class Nadybot {
 			$message = str_replace('&#39;', "'", $message);
 		}
 
-		$eventObj = new AOChatEvent();
-		$eventObj->sender = $sender;
-		$eventObj->type = $type;
-		$eventObj->message = $message;
 		$workerId = $this->getWorkerId($package->worker);
-		if ($workerId > 0) {
-			$eventObj->worker = $workerId;
-		}
+		$eventObj = new RecvMsgEvent(
+			sender: $sender,
+			channel: "tell",
+			message: $message,
+			worker: $package->worker,
+		);
 
 		$this->logChat("Inc. Msg.", $sender, $message);
 
@@ -1153,7 +1174,7 @@ class Nadybot {
 		$context = new CmdContext($sender, $senderId);
 		$context->message = $message;
 		$context->source = Source::TELL . "({$sender})";
-		$context->sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
+		$context->sendto = new PrivateMessageCommandReply($this, $sender, $workerId);
 		$context->setIsDM();
 		try {
 			$this->limitsController->checkTellExecuteAccess($sender, $message);
@@ -1188,11 +1209,6 @@ class Nadybot {
 		}
 		$this->updateLastOnline($senderId, $sender, true);
 
-		$eventObj = new AOChatEvent();
-		$eventObj->sender = $sender;
-		$eventObj->channel = $channel;
-		$eventObj->message = $package->package->message;
-
 		$this->logger->info("Handling {package}", ["package" => $package->package]);
 		$this->logChat($channel, $sender, $package->package->message);
 
@@ -1200,11 +1216,20 @@ class Nadybot {
 			return;
 		}
 		if ($this->isDefaultPrivateChannel($channel)) {
-			$type = "priv";
-		} else {  // ext priv group message
-			$type = "extpriv";
+			$eventObj = new MyPrivateChannelMsgEvent(
+				sender: $sender,
+				channel: $channel,
+				message: $package->package->message,
+				worker: $package->worker,
+			);
+		} else { // ext priv group message
+			$eventObj = new PrivateChannelMsgEvent(
+				sender: $sender,
+				channel: $channel,
+				message: $package->package->message,
+				worker: $package->worker,
+			);
 		}
-		$eventObj->type = $type;
 		if ($this->eventManager->fireEvent($eventObj)) {
 			return;
 		}
@@ -1242,11 +1267,6 @@ class Nadybot {
 			return;
 		}
 		$this->updateLastOnline($senderId, $sender, true);
-
-		$eventObj = new AOChatEvent();
-		$eventObj->sender = $sender;
-		$eventObj->channel = $channel->name;
-		$eventObj->message = $package->package->message;
 
 		$this->logger->info("Handling {package}", ["package" => $package->package]);
 
@@ -1287,22 +1307,35 @@ class Nadybot {
 		}
 
 		// ignore messages that are sent from the bot self
-		if ($sender == $this->config->main->character) {
+		if ($sender === $this->config->main->character) {
 			return;
 		}
 
 		if ($channel->name == "All Towers" || $channel->name == "Tower Battle Outcome") {
-			$eventObj->type = "towers";
+			$eventObj = new TowersChannelMsgEvent(
+				sender: $sender,
+				channel: $channel->name,
+				message: $package->package->message,
+				worker: $package->worker,
+			);
 
 			$this->eventManager->fireEvent($eventObj);
 		} elseif ($channel->name == "Org Msg") {
-			$eventObj->type = "orgmsg";
+			$eventObj = new OrgMsgChannelMsgEvent(
+				sender: $sender,
+				channel: $channel->name,
+				message: $package->package->message,
+				worker: $package->worker,
+			);
 
 			$this->eventManager->fireEvent($eventObj);
 		} elseif ($isOrgMessage && $this->settingManager->getBool('guild_channel_status')) {
-			$type = "guild";
-
-			$eventObj->type = $type;
+			$eventObj = new GuildChannelMsgEvent(
+				sender: $sender,
+				channel: $channel->name,
+				message: $package->package->message,
+				worker: $package->worker,
+			);
 
 			if ($this->eventManager->fireEvent($eventObj)) {
 				return;
@@ -1326,9 +1359,11 @@ class Nadybot {
 			return;
 		}
 
-		$eventObj = new AOChatEvent();
-		$eventObj->sender = $sender;
-		$eventObj->type = "extjoinprivrequest";
+		$eventObj = new ExtJoinPrivRequest(
+			sender: $sender,
+			channel: $sender,
+			worker: $package->worker,
+		);
 
 		$this->logger->info("Handling {package}", ["package" => $package->package]);
 

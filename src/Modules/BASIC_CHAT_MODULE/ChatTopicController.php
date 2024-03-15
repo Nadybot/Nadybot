@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Nadybot\Core\Event\JoinMyPrivEvent;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	EventManager,
@@ -139,7 +139,7 @@ class ChatTopicController extends ModuleInstance {
 		name: "joinPriv",
 		description: "Shows topic when someone joins the private channel"
 	)]
-	public function joinPrivEvent(AOChatEvent $eventObj): void {
+	public function joinPrivEvent(JoinMyPrivEvent $eventObj): void {
 		if ($this->topic === '' || !is_string($eventObj->sender)) {
 			return;
 		}

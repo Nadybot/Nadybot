@@ -3,13 +3,13 @@
 namespace Nadybot\Modules\FUN_MODULE;
 
 use function Amp\delay;
+use Nadybot\Core\Event\JoinMyPrivEvent;
 use Nadybot\Core\Modules\ALTS\{AltEvent, AltsController};
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	DB,
@@ -153,7 +153,7 @@ class GreetController extends ModuleInstance {
 		name: "joinpriv",
 		description: "Greet players joining the private channel",
 	)]
-	public function sendRandomJoinGreeting(AOChatEvent $event): void {
+	public function sendRandomJoinGreeting(JoinMyPrivEvent $event): void {
 		if (!is_string($event->sender)) {
 			return;
 		}

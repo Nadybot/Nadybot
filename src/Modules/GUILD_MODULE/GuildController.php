@@ -4,9 +4,9 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use function Amp\async;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\OrgMsgChannelMsgEvent;
 use Nadybot\Core\Modules\ALTS\AltInfo;
 use Nadybot\Core\{
-	AOChatEvent,
 	AccessManager,
 	Attributes as NCA,
 	BuddylistManager,
@@ -582,7 +582,7 @@ class GuildController extends ModuleInstance {
 		name: "orgmsg",
 		description: "Automatically update guild roster as characters join and leave the guild"
 	)]
-	public function autoNotifyOrgMembersEvent(AOChatEvent $eventObj): void {
+	public function autoNotifyOrgMembersEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (count($arr = Safe::pregMatch("/^(.+) invited (.+) to your organization.$/", $message))) {
 			$name = ucfirst(strtolower($arr[2]));

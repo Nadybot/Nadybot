@@ -6,8 +6,8 @@ use function Amp\async;
 use function Safe\preg_match;
 use AO\Package;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\{ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
@@ -27,7 +27,6 @@ use Nadybot\Core\{
 	Text,
 	UserStateEvent,
 };
-
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 use Psr\Log\LoggerInterface;
 
@@ -209,7 +208,7 @@ class TradebotController extends ModuleInstance {
 		name: "extPriv",
 		description: "Relay messages from the tradebot to org/private channel"
 	)]
-	public function receiveRelayMessageExtPrivEvent(AOChatEvent $eventObj): void {
+	public function receiveRelayMessageExtPrivEvent(PrivateChannelMsgEvent $eventObj): void {
 		if (!$this->isTradebot($eventObj->channel)
 			|| !is_string($eventObj->sender)
 			|| !$this->isTradebot($eventObj->sender)) {
@@ -223,7 +222,7 @@ class TradebotController extends ModuleInstance {
 		name: "msg",
 		description: "Relay incoming tells from the tradebots to org/private channel"
 	)]
-	public function receiveMessageEvent(AOChatEvent $eventObj): void {
+	public function receiveMessageEvent(RecvMsgEvent $eventObj): void {
 		if (!is_string($eventObj->sender) || !$this->isTradebot($eventObj->sender)) {
 			return;
 		}
@@ -271,7 +270,7 @@ class TradebotController extends ModuleInstance {
 		name: "extJoinPrivRequest",
 		description: "Accept private channel join invitation from the trade bots"
 	)]
-	public function acceptPrivJoinEvent(AOChatEvent $eventObj): void {
+	public function acceptPrivJoinEvent(ExtJoinPrivRequest $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender) || !$this->isTradebot($sender)) {
 			return;

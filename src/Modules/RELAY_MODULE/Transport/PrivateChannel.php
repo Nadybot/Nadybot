@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
 use AO\Package;
+use Nadybot\Core\Event\{ExtJoinPrivRequest, JoinPrivEvent, LeavePrivEvent, OtherLeavePrivEvent, PrivateChannelMsgEvent};
 use Nadybot\Core\{
-	AOChatEvent,
 	Attributes as NCA,
 	EventManager,
 	Nadybot,
@@ -84,7 +84,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		return [];
 	}
 
-	public function receiveMessage(AOChatEvent $event): void {
+	public function receiveMessage(PrivateChannelMsgEvent $event): void {
 		if (strtolower($event->channel) !== strtolower($this->channel)) {
 			return;
 		}
@@ -95,7 +95,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		throw new StopExecutionException();
 	}
 
-	public function receiveInvite(AOChatEvent $event): void {
+	public function receiveInvite(ExtJoinPrivRequest $event): void {
 		if (strtolower($event->sender) !== strtolower($this->channel)) {
 			return;
 		}
@@ -107,7 +107,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		);
 	}
 
-	public function receiveLeave(AOChatEvent $event): void {
+	public function receiveLeave(OtherLeavePrivEvent $event): void {
 		if (!is_string($event->sender)) {
 			return;
 		}
@@ -117,7 +117,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		$this->relay->setClientOffline($event->sender);
 	}
 
-	public function joinedPrivateChannel(AOChatEvent $event): void {
+	public function joinedPrivateChannel(JoinPrivEvent $event): void {
 		if (strtolower($event->channel) !== strtolower($this->channel)) {
 			return;
 		}
@@ -129,7 +129,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		}
 	}
 
-	public function leftPrivateChannel(AOChatEvent $event): void {
+	public function leftPrivateChannel(LeavePrivEvent $event): void {
 		if (strtolower($event->channel) !== strtolower($this->channel)) {
 			return;
 		}

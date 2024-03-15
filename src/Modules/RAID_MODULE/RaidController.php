@@ -8,8 +8,8 @@ use function Amp\Future\await;
 use Amp\Pipeline\Pipeline;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\{PrivateChannelMsgEvent, SendPrivEvent};
 use Nadybot\Core\{
-	AOChatEvent,
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
@@ -1003,7 +1003,7 @@ class RaidController extends ModuleInstance {
 		name: "sendpriv",
 		description: "Track when the bot sends messages on priv"
 	)]
-	public function trackOurPrivChannelMessages(AOChatEvent $event): void {
+	public function trackOurPrivChannelMessages(SendPrivEvent $event): void {
 		if (!isset($this->raid)) {
 			return;
 		}
@@ -1014,7 +1014,7 @@ class RaidController extends ModuleInstance {
 		name: "priv",
 		description: "Track when someone sends messages on priv"
 	)]
-	public function trackPrivChannelMessages(AOChatEvent $event): void {
+	public function trackPrivChannelMessages(PrivateChannelMsgEvent $event): void {
 		if (!isset($this->raid) || $event->channel !== $this->config->main->character) {
 			return;
 		}
