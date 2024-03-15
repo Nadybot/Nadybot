@@ -69,26 +69,26 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 		}
 		$msgs = $this->webChatConverter->convertMessages($msg);
 		foreach ($msgs as $msg) {
+			$path = new WebSource(Source::WEB, "Web");
+			$path->renderAs = $path->render(null);
+			$hopColor = $this->messageHub->getHopColor($rMessage->path, Source::WEB, new Source(Source::WEB, "Web"), "tag_color");
+			if (isset($color, $hopColor->tag_color)) {
+				$path->color = $hopColor->tag_color;
+			} else {
+				$path->color = "";
+			}
+			$color = "#FFFFFF";
+			if (count($matches = Safe::pregMatch("/#([A-Fa-f0-9]{6})/", $this->settingManager->getString("default_routed_sys_color")??"<font>"))) {
+				$color = $matches[1];
+			}
 			$xmlMessage = new AOWebChatEvent(
 				message: $msg,
 				sender: $this->config->main->character,
 				type: "chat({$this->type})",
 				channel: $this->type,
-				path: [
-					new WebSource(Source::WEB, "Web"),
-				],
-				color: "#FFFFFF",
+				path: [$path],
+				color: $color,
 			);
-			$xmlMessage->path[0]->renderAs = $xmlMessage->path[0]->render(null);
-			$color = $this->messageHub->getHopColor($rMessage->path, Source::WEB, new Source(Source::WEB, "Web"), "tag_color");
-			if (isset($color, $color->tag_color)) {
-				$xmlMessage->path[0]->color = $color->tag_color;
-			} else {
-				$xmlMessage->path[0]->color = "";
-			}
-			if (count($matches = Safe::pregMatch("/#([A-Fa-f0-9]{6})/", $this->settingManager->getString("default_routed_sys_color")??"<font>"))) {
-				$xmlMessage->color = $matches[1];
-			}
 			$this->eventManager->fireEvent($xmlMessage);
 		}
 	}

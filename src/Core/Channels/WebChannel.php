@@ -25,22 +25,26 @@ class WebChannel implements MessageReceiver {
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			return false;
 		}
-		$webEvent = new AOWebChatEvent();
-		$webEvent->path = $this->webChatConverter->convertPath($event->getPath());
-		$webEvent->color = $this->messageHub->getTextColor($event, $this->getChannelName());
-		if (count($matches = Safe::pregMatch("/#([A-Fa-f0-9]{6})/", $webEvent->color)) === 2) {
-			$webEvent->color = $matches[1];
+		$path = $this->webChatConverter->convertPath($event->getPath());
+		$color = $this->messageHub->getTextColor($event, $this->getChannelName());
+		if (count($matches = Safe::pregMatch("/#([A-Fa-f0-9]{6})/", $color)) === 2) {
+			$color = $matches[1];
 		}
-		$webEvent->channel = "web";
 		$eventChar = $event->getCharacter();
-		if (isset($eventChar)) {
-			$webEvent->sender = $eventChar->name;
+		if (!isset($eventChar)) {
+			return false;
 		}
 		$eventData = $event->getData();
-		if (is_string($eventData)) {
-			$webEvent->message = $this->webChatConverter->convertMessage($eventData);
+		if (!is_string($eventData)) {
+			return false;
 		}
-		$webEvent->type = "chat(web)";
+		$webEvent = new AOWebChatEvent(
+			channel: "web",
+			path: $path,
+			color: $color,
+			sender: $eventChar->name,
+			message: $this->webChatConverter->convertMessage($eventData),
+		);
 
 		$this->eventManager->fireEvent($webEvent);
 

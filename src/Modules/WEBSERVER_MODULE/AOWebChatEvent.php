@@ -13,13 +13,14 @@ class AOWebChatEvent extends AOChatEvent {
 	 * @param null|WebSource[] $path
 	 */
 	public function __construct(
-		public string $type,
 		public string $sender,
 		public string $channel,
 		public string $message,
 		public string $color,
+		?string $type=null,
 		public ?array $path=null,
 		public ?string $worker=null,
 	) {
+		$this->type = $type ?? "chat(web)";
 	}
 }
