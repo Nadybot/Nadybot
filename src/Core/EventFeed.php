@@ -282,8 +282,7 @@ class EventFeed {
 	}
 
 	private function announceConnect(): void {
-		$event = new Event();
-		$event->type = "event-feed-" . ($this->isReconnect ? "reconnect" : "connect");
+		$event = $this->isReconnect ? new EventFeedReconnect() : new EventFeedConnect();
 		try {
 			$this->eventManager->fireEvent($event);
 		} catch (Throwable) {

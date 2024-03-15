@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	Safe,
 	Text,
+	TimerEvent,
 	Util,
 };
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
@@ -144,8 +145,8 @@ class WhoisController extends ModuleInstance {
 	#[
 		NCA\Event(
 			name: [
-				"packet(" . Package\Type::CharacterName->value .")",
-				"packet(" . Package\Type::CharacterLookup->value .")",
+				"packet(20)",
+				"packet(21)",
 			],
 			description: "Records names and charIds"
 		)
@@ -173,7 +174,7 @@ class WhoisController extends ModuleInstance {
 	public function lookupIdCommand(CmdContext $context, int $charID): void {
 		$name = $this->chatBot->getName($charID);
 		if (isset($name)) {
-			$this->saveCharIds(new Event());
+			$this->saveCharIds(new TimerEvent(60));
 		}
 
 		/** @var NameHistory[] */

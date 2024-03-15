@@ -242,8 +242,11 @@ class TestController extends ModuleInstance {
 		} elseif (!method_exists($instance, $methodName)) {
 			$context->reply("Method <highlight>{$methodName}<end> does not exist on instance <highlight>{$instanceName}<end>.");
 		} else {
-			$testEvent = new Event();
-			$testEvent->type = 'dummy';
+			$testEvent = new class () extends Event {
+				public function __construct() {
+					$this->type = 'dummy';
+				}
+			};
 			$this->eventManager->callEventHandler($testEvent, $event, []);
 			$context->reply("Event has been fired.");
 		}

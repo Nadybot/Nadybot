@@ -169,11 +169,10 @@ class EventManager {
 			return;
 		}
 
-		if ($type == "setup" || ($type === "connect" && $this->areConnectEventsFired)) {
-			$eventObj = new Event();
-			$eventObj->type = $type;
-
-			$this->callEventHandler($eventObj, $filename, []);
+		if ($type == "setup") {
+			$this->callEventHandler(new SetupEvent(), $filename, []);
+		} elseif ($type === "connect" && $this->areConnectEventsFired) {
+			$this->callEventHandler(new ConnectEvent(), $filename, []);
 		} elseif ($this->isValidEventType($type)) {
 			if (!isset($this->events[$type]) || !in_array($filename, $this->events[$type])) {
 				$this->events[$type] []= $filename;
@@ -479,10 +478,7 @@ class EventManager {
 		$this->logger->info("Executing connected events");
 		$this->messageHubController->loadRouting();
 
-		$eventObj = new Event();
-		$eventObj->type = 'connect';
-
-		$this->fireEvent($eventObj);
+		$this->fireEvent(new ConnectEvent());
 	}
 
 	public function isValidEventType(string $type): bool {
@@ -656,8 +652,7 @@ class EventManager {
 		while (!$this->chatBot->isReady()) {
 			delay(0.1);
 		}
-		$eventObj = new Event();
-		$eventObj->type = (string)$entry->time;
+		$eventObj = new TimerEvent($entry->time);
 
 		$entry->nextevent = time() + $entry->time;
 		$this->logger->info("Initial call to {handler}", ["handler" => $entry->filename]);

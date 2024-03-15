@@ -23,6 +23,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
+	TimerEvent,
 	UserException,
 	Util,
 };
@@ -779,7 +780,7 @@ class WorldBossController extends ModuleInstance {
 			$this->announceBigBossEvent($mobName, $msg, 3);
 		}
 		$this->worldBossUpdate(new Character($event->sender), $mobName, $event->vulnerable);
-		$this->checkTimerEvent(new Event(), 1, true);
+		$this->checkTimerEvent(new TimerEvent(1), 1, true);
 	}
 
 	#[NCA\Event(
