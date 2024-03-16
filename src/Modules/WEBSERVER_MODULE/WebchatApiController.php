@@ -78,7 +78,6 @@ class WebchatApiController extends ModuleInstance {
 		}
 		$eventMessage = $this->webChatConverter->convertMessage($message);
 		$event = new AOWebChatEvent(
-			type: "chat(web)",
 			channel: "web",
 			color: $eventColor,
 			sender: $user,
@@ -96,7 +95,7 @@ class WebchatApiController extends ModuleInstance {
 		$rMessage->prependPath(new Source(Source::WEB, "Web"));
 		$this->messageHub->handle($rMessage);
 
-		$sendto = new WebsocketCommandReply("web");
+		$sendto = new WebsocketCommandReply();
 		Registry::injectDependencies($sendto);
 		$context = new CmdContext($user);
 		$context->source = Source::WEB;

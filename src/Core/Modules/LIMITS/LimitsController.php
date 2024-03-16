@@ -212,10 +212,10 @@ class LimitsController extends ModuleInstance {
 			return;
 		}
 		$now = time();
-		$this->limitBucket[(string)$event->sender] ??= [];
-		$this->limitBucket[(string)$event->sender] []= $now;
+		$this->limitBucket[$event->sender] ??= [];
+		$this->limitBucket[$event->sender] []= $now;
 
-		if ($this->isOverLimit((string)$event->sender)) {
+		if ($this->isOverLimit($event->sender)) {
 			$this->executeOverrateAction($event);
 		}
 	}
@@ -268,27 +268,27 @@ class LimitsController extends ModuleInstance {
 				$this->logger->notice("Kicking {character} from private channel.", [
 					"character" => $event->sender,
 				]);
-				$sender = $this->chatBot->getUid((string)$event->sender);
+				$sender = $this->chatBot->getUid($event->sender);
 				if (isset($sender)) {
 					$this->chatBot->aoClient->write(
 						package: new Package\Out\PrivateChannelKick(charId: $sender)
 					);
 				}
 				$audit = new Audit();
-				$audit->actor = (string)$event->sender;
+				$audit->actor = $event->sender;
 				$audit->action = AccessManager::KICK;
 				$audit->value = "limits exceeded";
 				$this->accessManager->addAudit($audit);
 			}
 		}
 		if ($action & 2) {
-			$uid = $this->chatBot->getUid((string)$event->sender);
+			$uid = $this->chatBot->getUid($event->sender);
 			if (isset($uid)) {
 				$this->logger->notice("Blocking {character} for {duration}s.", [
 					"character" => $event->sender,
 					"duration" => $blockadeLength,
 				]);
-				$this->banController->add($uid, (string)$event->sender, $blockadeLength, "Too many commands executed");
+				$this->banController->add($uid, $event->sender, $blockadeLength, "Too many commands executed");
 			}
 		}
 		if ($action & 4) {
@@ -296,7 +296,7 @@ class LimitsController extends ModuleInstance {
 				"character" => $event->sender,
 				"duration" => $blockadeLength,
 			]);
-			$this->ignore((string)$event->sender, $blockadeLength);
+			$this->ignore($event->sender, $blockadeLength);
 		}
 	}
 

@@ -4,16 +4,19 @@ namespace Nadybot\Core;
 
 class CmdEvent extends Event {
 	/**
-	 * Either the name of the sender or the numeric UID (eg. city raid accouncements)
+	 * @param string          $sender     Either the name of the sender or the numeric UID (eg. city raid accouncements)
+	 * @param string          $channel    Where was the command received
+	 * @param string          $cmd        The actual command
+	 * @param string          $type       The full type
+	 * @param ?CommandHandler $cmdHandler The command handler that will be/was used to execute the command
 	 */
-	public int|string $sender;
-
-	/** Where was the command received? */
-	public string $channel;
-
-	/** Which command was received? */
-	public string $cmd;
-
-	/** The command handler that will be/was used to execute the command */
-	public ?CommandHandler $cmdHandler;
+	public function __construct(
+		public string $sender,
+		public string $channel,
+		public string $cmd,
+		public ?CommandHandler $cmdHandler,
+		string $type="command(unknown)",
+	) {
+		$this->type = $type;
+	}
 }

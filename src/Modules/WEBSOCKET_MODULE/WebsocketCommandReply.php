@@ -43,8 +43,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	public function __construct(string $type) {
-		$this->type = $type;
+	public function __construct() {
 	}
 
 	public function getChannelName(): string {
@@ -84,8 +83,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 			$xmlMessage = new AOWebChatEvent(
 				message: $msg,
 				sender: $this->config->main->character,
-				type: "chat({$this->type})",
-				channel: $this->type,
+				channel: "web",
 				path: [$path],
 				color: $color,
 			);

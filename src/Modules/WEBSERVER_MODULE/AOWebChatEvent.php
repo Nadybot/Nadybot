@@ -17,10 +17,9 @@ class AOWebChatEvent extends AOChatEvent {
 		public string $channel,
 		public string $message,
 		public string $color,
-		?string $type=null,
 		public ?array $path=null,
 		public ?string $worker=null,
 	) {
-		$this->type = $type ?? "chat(web)";
+		$this->type = "chat(web)";
 	}
 }

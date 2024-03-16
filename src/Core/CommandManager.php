@@ -576,11 +576,12 @@ class CommandManager implements MessageEmitter {
 			return;
 		}
 		$commandHandler = $this->getActiveCommandHandler($cmd, $context->permissionSet, $context->message);
-		$event = new CmdEvent();
-		$event->channel = $context->permissionSet;
-		$event->cmd = $cmd;
-		$event->sender = $context->char->name;
-		$event->cmdHandler = $commandHandler;
+		$event = new CmdEvent(
+			channel: $context->permissionSet,
+			cmd: $cmd,
+			sender: $context->char->name,
+			cmdHandler: $commandHandler,
+		);
 
 		// if command doesn't exist
 		if ($commandHandler === null) {
