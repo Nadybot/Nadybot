@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 use function Amp\async;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	AccessLevelProvider,
 	AccessManager,
@@ -17,7 +18,6 @@ use Nadybot\Core\{
 	DBSchema\Audit,
 	ModuleInstance,
 	Modules\ADMIN\AdminController,
-	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
@@ -434,7 +434,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		name: "alt(newmain)",
 		description: "Move raid rank to new main"
 	)]
-	public function moveRaidRanks(AltEvent $event): void {
+	public function moveRaidRanks(AltNewMainEvent $event): void {
 		$oldRank = $this->ranks[$event->alt] ?? null;
 		if ($oldRank === null) {
 			return;

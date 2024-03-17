@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\ADMIN;
 
+use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -15,7 +16,6 @@ use Nadybot\Core\{
 	DBSchema\LastOnline,
 	Event,
 	ModuleInstance,
-	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
 	Modules\ALTS\NickController,
 	Nadybot,
@@ -289,7 +289,7 @@ class AdminController extends ModuleInstance {
 		name: "alt(newmain)",
 		description: "Move admin rank to new main"
 	)]
-	public function moveAdminrank(AltEvent $event): void {
+	public function moveAdminrank(AltNewMainEvent $event): void {
 		$oldRank = $this->adminManager->admins[$event->alt]??null;
 		if (!isset($oldRank)) {
 			return;

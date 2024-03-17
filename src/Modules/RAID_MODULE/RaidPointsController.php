@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -817,7 +818,7 @@ class RaidPointsController extends ModuleInstance {
 		name: "alt(newmain)",
 		description: "Move raid points to new main"
 	)]
-	public function moveRaidPoints(AltEvent $event): void {
+	public function moveRaidPoints(AltNewMainEvent $event): void {
 		$sharePoints = $this->raidSharePoints;
 		if (!$sharePoints) {
 			return;

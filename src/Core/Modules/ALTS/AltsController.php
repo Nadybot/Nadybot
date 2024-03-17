@@ -554,11 +554,11 @@ class AltsController extends ModuleInstance {
 				"added_via" => $this->db->getMyname(),
 			]);
 		if ($added && $sendEvent) {
-			$event = new AltEvent();
-			$event->main = $main;
-			$event->alt = $alt;
-			$event->validated = $validatedByAlt && $validatedByMain;
-			$event->type = 'alt(add)';
+			$event = new AltAddEvent(
+				main: $main,
+				alt: $alt,
+				validated: $validatedByAlt && $validatedByMain,
+			);
 			$this->eventManager->fireEvent($event);
 		}
 		if ($validatedByAlt && $validatedByMain) {
@@ -585,10 +585,11 @@ class AltsController extends ModuleInstance {
 			->where("main", $main)
 			->delete();
 		if ($deleted > 0) {
-			$event = new AltEvent();
-			$event->main = $main;
-			$event->alt = $alt;
-			$event->type = 'alt(del)';
+			$event = new AltDelEvent(
+				main: $main,
+				alt: $alt,
+				validated: isset($old) ? ($old->validated_by_alt && $old->validated_by_main) : false,
+			);
 			$this->eventManager->fireEvent($event);
 
 			if (isset($old) && $old->validated_by_alt && $old->validated_by_main) {
@@ -719,11 +720,11 @@ class AltsController extends ModuleInstance {
 	}
 
 	protected function fireAltValidatedEvent(string $main, string $alt): void {
-		$event = new AltEvent();
-		$event->main = $main;
-		$event->alt = $alt;
-		$event->validated = true;
-		$event->type = 'alt(validate)';
+		$event = new AltValidateEvent(
+			main: $main,
+			alt: $alt,
+			validated: true,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -770,11 +771,11 @@ class AltsController extends ModuleInstance {
 	}
 
 	protected function fireAltDeclinedEvent(string $main, string $alt): void {
-		$event = new AltEvent();
-		$event->main = $main;
-		$event->alt = $alt;
-		$event->validated = true;
-		$event->type = 'alt(decline)';
+		$event = new AltDeclineEvent(
+			main: $main,
+			alt: $alt,
+			validated: true,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -974,10 +975,11 @@ class AltsController extends ModuleInstance {
 		$this->accessManager->addAudit($audit);
 
 		// @todo Send a warning if the new main's accesslevel is not the highest
-		$event = new AltEvent();
-		$event->main = $newMain;
-		$event->alt = $altInfo->main;
-		$event->type = 'alt(newmain)';
+		$event = new AltNewMainEvent(
+			main: $newMain,
+			alt: $altInfo->main,
+			validated: true,
+		);
 		$this->eventManager->fireEvent($event);
 
 		if ($selfModify) {

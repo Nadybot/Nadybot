@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\NOTES_MODULE;
 
 use Nadybot\Core\Event\JoinMyPrivEvent;
+use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -11,7 +12,6 @@ use Nadybot\Core\{
 	CommandManager,
 	DB,
 	ModuleInstance,
-	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
@@ -289,7 +289,7 @@ class NotesController extends ModuleInstance {
 		name: "alt(newmain)",
 		description: "Move reminder format to new main"
 	)]
-	public function moveReminderFormat(AltEvent $event): void {
+	public function moveReminderFormat(AltNewMainEvent $event): void {
 		$reminderFormat = $this->preferences->get($event->alt, 'reminder_format');
 		if ($reminderFormat === null || $reminderFormat === '') {
 			return;

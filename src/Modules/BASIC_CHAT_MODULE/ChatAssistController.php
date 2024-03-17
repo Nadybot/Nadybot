@@ -296,8 +296,7 @@ class ChatAssistController extends ModuleInstance {
 		$this->cleanupEmptyLists();
 		$this->storeBackup($backup);
 
-		$event = new AssistEvent();
-		$event->type = "assist(clear)";
+		$event = new AssistClearEvent(lists: []);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -323,8 +322,7 @@ class ChatAssistController extends ModuleInstance {
 			$this->storeBackup($this->backupCallers($sender, $command));
 		}
 		$this->callers = [];
-		$event = new AssistEvent();
-		$event->type = "assist(clear)";
+		$event = new AssistClearEvent(lists: []);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -391,9 +389,9 @@ class ChatAssistController extends ModuleInstance {
 			}
 		}
 		$context->reply($blob);
-		$event = new AssistEvent();
-		$event->type = "assist(set)";
-		$event->lists = array_values($this->callers);
+		$event = new AssistSetEvent(
+			lists: array_values($this->callers),
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -414,8 +412,6 @@ class ChatAssistController extends ModuleInstance {
 		$assistList = isset($assistList) ? $assistList() : "";
 		$name = $caller();
 		$groupKey = strtolower($assistList);
-		$event = new AssistEvent();
-		$event->type = "assist(add)";
 
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->getUid($name);
@@ -459,7 +455,9 @@ class ChatAssistController extends ModuleInstance {
 			$this->text->makeBlob("List of callers", $blob)
 		);
 		$context->reply($msg);
-		$event->lists = array_values($this->callers);
+		$event = new AssistAddEvent(
+			lists: array_values($this->callers),
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -486,9 +484,9 @@ class ChatAssistController extends ModuleInstance {
 			$msg .= "No callers set.";
 		}
 		$context->reply($msg);
-		$event = new AssistEvent();
-		$event->type = "assist(set)";
-		$event->lists = array_values($this->callers);
+		$event = new AssistSetEvent(
+			lists: array_values($this->callers),
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -601,9 +599,9 @@ class ChatAssistController extends ModuleInstance {
 			$this->text->makeBlob("List of callers", $blob)
 		);
 		$context->reply($msg);
-		$event = new AssistEvent();
-		$event->type = "assist(set)";
-		$event->lists = array_values($this->callers);
+		$event = new AssistSetEvent(
+			lists: array_values($this->callers),
+		);
 		$this->eventManager->fireEvent($event);
 	}
 

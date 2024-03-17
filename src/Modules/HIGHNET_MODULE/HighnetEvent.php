@@ -6,8 +6,9 @@ use Nadybot\Core\Event;
 
 class HighnetEvent extends Event {
 	public function __construct(
-		public string $type,
+		string $type,
 		public Message $message,
 	) {
+		$this->type = $type;
 	}
 }

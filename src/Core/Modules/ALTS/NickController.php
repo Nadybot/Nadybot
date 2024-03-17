@@ -132,7 +132,7 @@ class NickController extends ModuleInstance {
 		name: "alt(newmain)",
 		description: "Move nickname to new main"
 	)]
-	public function moveNickname(AltEvent $event): void {
+	public function moveNickname(AltNewMainEvent $event): void {
 		$this->db->table(self::DB_TABLE)
 			->where("main", $event->alt)
 			->update(["main" => $event->main]);

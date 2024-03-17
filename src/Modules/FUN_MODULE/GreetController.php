@@ -4,7 +4,7 @@ namespace Nadybot\Modules\FUN_MODULE;
 
 use function Amp\delay;
 use Nadybot\Core\Event\JoinMyPrivEvent;
-use Nadybot\Core\Modules\ALTS\{AltEvent, AltsController};
+use Nadybot\Core\Modules\ALTS\{AltNewMainEvent, AltsController};
 
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
@@ -294,7 +294,7 @@ class GreetController extends ModuleInstance {
 		name: "alt(newmain)",
 		description: "Move greeting preferences to new main"
 	)]
-	public function moveGreetingPrefs(AltEvent $event): void {
+	public function moveGreetingPrefs(AltNewMainEvent $event): void {
 		$oldSetting = $this->prefs->get($event->alt, self::PREF);
 		if ($oldSetting === null) {
 			return;
