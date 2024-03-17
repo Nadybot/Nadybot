@@ -1,0 +1,20 @@
+<?php declare(strict_types=1);
+
+namespace Nadybot\Core\Migrations;
+
+use Illuminate\Database\Schema\Blueprint;
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\{DB, SchemaMigration, SettingManager};
+use Psr\Log\LoggerInterface;
+
+#[NCA\MigrationOrder(20211018065415)]
+class OptimizeSettingsTable implements SchemaMigration {
+	public function migrate(LoggerInterface $logger, DB $db): void {
+		$table = SettingManager::DB_TABLE;
+		$db->schema()->table($table, function (Blueprint $table): void {
+			$table->text("value")->nullable(true)->change();
+			$table->text("options")->nullable(true)->change();
+			$table->text("description")->nullable(true)->change();
+		});
+	}
+}
