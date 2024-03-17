@@ -91,12 +91,13 @@ class ChatTopicController extends ModuleInstance {
 			return;
 		}
 
+		$event = new TopicClearEvent(
+			player: $context->char->name,
+			topic: $this->topic,
+		);
 		$this->setTopic($context->char->name, "");
 		$msg = "Topic has been cleared.";
 		$context->reply($msg);
-		$event = new TopicEvent();
-		$event->type = "topic(clear)";
-		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -111,10 +112,10 @@ class ChatTopicController extends ModuleInstance {
 		$this->setTopic($context->char->name, $topic);
 		$msg = "Topic has been updated.";
 		$context->reply($msg);
-		$event = new TopicEvent();
-		$event->type = "topic(clear)";
-		$event->topic = $topic;
-		$event->player = $context->char->name;
+		$event = new TopicSetEvent(
+			topic: $topic,
+			player: $context->char->name,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 

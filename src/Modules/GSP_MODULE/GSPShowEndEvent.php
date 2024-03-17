@@ -2,11 +2,10 @@
 
 namespace Nadybot\Modules\GSP_MODULE;
 
-use Nadybot\Core\Event;
-
-abstract class GSPEvent extends Event {
+class GSPShowEndEvent extends GSPEvent {
 	public function __construct(
 		public Show $show,
 	) {
+		$this->type = "gsp(show_end)";
 	}
 }

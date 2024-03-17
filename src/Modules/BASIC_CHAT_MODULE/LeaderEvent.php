@@ -4,7 +4,7 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Nadybot\Core\Event;
 
-class LeaderEvent extends Event {
-	/** The names of the leader */
+abstract class LeaderEvent extends Event {
+	/** The names of the new/old leader */
 	public string $player;
 }

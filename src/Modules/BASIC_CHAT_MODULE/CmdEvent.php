@@ -2,9 +2,7 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Event;
-
-class SayEvent extends Event {
+class CmdEvent extends SayEvent {
 	/**
 	 * @param string $player  The names of the sender
 	 * @param string $message The message that was sent
@@ -13,6 +11,6 @@ class SayEvent extends Event {
 		public string $player,
 		public string $message,
 	) {
-		$this->type = "leadersay";
+		$this->type = "leadercmd";
 	}
 }

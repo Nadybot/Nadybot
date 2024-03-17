@@ -64,9 +64,10 @@ class ChatSayController extends ModuleInstance {
 		}
 
 		$this->chatBot->sendGuild("{$context->char->name}: {$message}");
-		$event = new SayEvent();
-		$event->type = "leadersay";
-		$event->message = $message;
+		$event = new SayEvent(
+			player: $context->char->name,
+			message: $message
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -79,9 +80,10 @@ class ChatSayController extends ModuleInstance {
 		}
 
 		$this->chatBot->sendPrivate("{$context->char->name}: {$message}");
-		$event = new SayEvent();
-		$event->type = "leadersay";
-		$event->message = $message;
+		$event = new SayEvent(
+			player: $context->char->name,
+			message: $message,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -105,9 +107,10 @@ class ChatSayController extends ModuleInstance {
 		} else {
 			$context->reply($msg);
 		}
-		$event = new SayEvent();
-		$event->type = "leadercmd";
-		$event->message = $message;
+		$event = new CmdEvent(
+			player: $context->char->name,
+			message: $message,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 

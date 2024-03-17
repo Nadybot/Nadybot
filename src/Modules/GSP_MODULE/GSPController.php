@@ -124,17 +124,15 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 
-		$event = new GSPEvent();
-		$event->show = $show;
 		$this->showRunning = $show->live;
 		$this->showName = $show->name;
 		$this->showLocation = $show->info;
 		if (!$show->live) {
-			$event->type = "gsp(show_end)";
+			$event = new GSPShowEndEvent(show: $show);
 			$this->eventManager->fireEvent($event);
 			return;
 		}
-		$event->type = "gsp(show_start)";
+		$event = new GSPShowStartEvent(show: $show);
 		$this->eventManager->fireEvent($event);
 		$specialDelimiter = "<yellow>-----------------------------<end>";
 		$msg = "\n".
