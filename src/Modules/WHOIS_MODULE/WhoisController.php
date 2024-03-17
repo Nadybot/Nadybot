@@ -7,6 +7,7 @@ use function Amp\Future\await;
 
 use AO\Package;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\TimerEvent as EventTimerEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -26,7 +27,6 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	Safe,
 	Text,
-	TimerEvent,
 	Util,
 };
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
@@ -174,7 +174,7 @@ class WhoisController extends ModuleInstance {
 	public function lookupIdCommand(CmdContext $context, int $charID): void {
 		$name = $this->chatBot->getName($charID);
 		if (isset($name)) {
-			$this->saveCharIds(new TimerEvent(60));
+			$this->saveCharIds(new EventTimerEvent(60));
 		}
 
 		/** @var NameHistory[] */

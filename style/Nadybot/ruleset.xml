@@ -370,4 +370,18 @@
     <rule ref="PSR12.Classes.AnonClassDeclaration"/>
 
     <rule ref="Nadybot.Arrays.DisallowLongArraySyntax"/>
+    <rule ref="Nadybot.Files.TypeNameMatchesFileName">
+      <properties>
+		<property name="rootNamespaces" type="array">
+			<element key="src" value="Nadybot"/>
+			<element key="phpstan/src" value="Nadybot\phpstan"/>
+			<element key="extras" value="Nadybot\User\Modules"/>
+			<element key="style" value="PHP_CodeSniffer\Standards"/>
+		</property>
+		<property name="skipDirs" type="array">
+			<element value="vendor"/>
+		</property>
+	</properties>
+
+    </rule>
 </ruleset>

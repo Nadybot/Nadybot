@@ -6,6 +6,7 @@ use function Amp\delay;
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DateTimeZone;
+use Nadybot\Core\Event\TimerEvent as EventTimerEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -23,7 +24,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
-	TimerEvent,
 	UserException,
 	Util,
 };
@@ -780,7 +780,7 @@ class WorldBossController extends ModuleInstance {
 			$this->announceBigBossEvent($mobName, $msg, 3);
 		}
 		$this->worldBossUpdate(new Character($event->sender), $mobName, $event->vulnerable);
-		$this->checkTimerEvent(new TimerEvent(1), 1, true);
+		$this->checkTimerEvent(new EventTimerEvent(1), 1, true);
 	}
 
 	#[NCA\Event(
