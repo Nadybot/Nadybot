@@ -3,9 +3,14 @@
 namespace Nadybot\Core\Attributes\Setting;
 
 use Attribute;
-use Nadybot\Core\Attributes\DefineSetting;
-use Nadybot\Core\Modules\ALTS\NickController;
-use Nadybot\Core\{AccessManager, Registry, SettingManager, Text};
+use Nadybot\Core\{
+	AccessManager,
+	Attributes\DefineSetting,
+	Modules\ALTS\NickController,
+	Registry,
+	SettingManager,
+	Text
+};
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]

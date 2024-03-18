@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidMemberController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210427102206)]
+#[NCA\Migration(order: 20210427102206)]
 class CreateRaidMemberTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaidMemberController::DB_TABLE;

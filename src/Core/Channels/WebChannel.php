@@ -2,8 +2,15 @@
 
 namespace Nadybot\Core\Channels;
 
-use Nadybot\Core\Routing\{RoutableEvent, Source};
-use Nadybot\Core\{Attributes as NCA, EventManager, MessageHub, MessageReceiver, Safe};
+use Nadybot\Core\{
+	Attributes as NCA,
+	EventManager,
+	MessageHub,
+	MessageReceiver,
+	Routing\RoutableEvent,
+	Routing\Source,
+	Safe,
+};
 
 use Nadybot\Modules\WEBSERVER_MODULE\{AOWebChatEvent, WebChatConverter};
 

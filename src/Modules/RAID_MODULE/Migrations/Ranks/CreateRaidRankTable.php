@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidRankController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210506074534)]
+#[NCA\Migration(order: 20210506074534)]
 class CreateRaidRankTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaidRankController::DB_TABLE;

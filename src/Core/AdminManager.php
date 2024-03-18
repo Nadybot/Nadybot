@@ -4,9 +4,9 @@ namespace Nadybot\Core;
 
 use function Amp\async;
 
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Config\BotConfig,
 	DBSchema\Admin,
 	DBSchema\Audit,
 };

@@ -8,7 +8,7 @@ use Nadybot\Modules\PVP_MODULE\{DBOutcome, DBTowerAttack, NotumWarsController};
 use Psr\Log\LoggerInterface;
 use stdClass;
 
-#[NCA\MigrationOrder(20230309083420)]
+#[NCA\Migration(order: 20230309083420)]
 class ImportExistingAttacksAndVictories implements SchemaMigration {
 	private const CHUNK_SIZE = 100;
 

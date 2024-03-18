@@ -9,7 +9,7 @@ use Nadybot\Core\{AccessManager, DB, SchemaMigration};
 use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20220802082620)]
+#[NCA\Migration(order: 20220802082620)]
 class AddMemberDetails implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = PrivateChannelController::DB_TABLE;

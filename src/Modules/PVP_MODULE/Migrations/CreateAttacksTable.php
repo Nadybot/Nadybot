@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\PVP_MODULE\NotumWarsController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20230301161234)]
+#[NCA\Migration(order: 20230301161234)]
 class CreateAttacksTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = NotumWarsController::DB_ATTACKS;

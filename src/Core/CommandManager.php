@@ -6,10 +6,10 @@ use function Safe\{preg_match_all, preg_split};
 use Exception;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Modules\SYSTEM\SystemController;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Config\BotConfig,
 	DBSchema\CmdCfg,
 	DBSchema\CmdPermSetMapping,
 	DBSchema\CmdPermission,

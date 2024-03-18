@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\User\Modules\BIGBOSS_MODULE\Migrations\Worldboss;
+namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
@@ -9,7 +9,7 @@ use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
 use Psr\Log\LoggerInterface;
 use stdClass;
 
-#[NCA\MigrationOrder(20211023123955)]
+#[NCA\Migration(order: 20211023123955)]
 class CreateWorldbossTimersTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = WorldBossController::DB_TABLE;

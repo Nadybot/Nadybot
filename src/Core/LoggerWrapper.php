@@ -9,15 +9,14 @@ use Closure;
 use Exception;
 use Monolog\Processor\PsrLogMessageProcessor;
 use Monolog\{DateTimeImmutable, Logger};
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Config\BotConfig,
 	Routing\RoutableMessage,
 	Routing\Source,
 };
 use Psr\Log\LoggerInterface;
 use Stringable;
-
 use Throwable;
 
 /**

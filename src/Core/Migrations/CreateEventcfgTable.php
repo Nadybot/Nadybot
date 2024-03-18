@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, EventManager, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210423083243)]
+#[NCA\Migration(order: 20210423083243)]
 class CreateEventcfgTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = EventManager::DB_TABLE;

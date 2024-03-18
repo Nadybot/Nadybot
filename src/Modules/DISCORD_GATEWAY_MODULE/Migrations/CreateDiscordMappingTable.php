@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayCommandHandler;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210425191122)]
+#[NCA\Migration(order: 20210425191122)]
 class CreateDiscordMappingTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = DiscordGatewayCommandHandler::DB_TABLE;

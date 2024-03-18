@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\TRADEBOT_MODULE\TradebotController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210428082130)]
+#[NCA\Migration(order: 20210428082130)]
 class CreateTradebotColorsTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = TradebotController::DB_TABLE;

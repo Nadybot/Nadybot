@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210425135931)]
+#[NCA\Migration(order: 20210425135931)]
 class CreateCommentCategoriesTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "comment_categories_<myname>";

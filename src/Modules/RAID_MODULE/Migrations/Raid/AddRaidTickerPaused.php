@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20231002193036)]
+#[NCA\Migration(order: 20231002193036)]
 class AddRaidTickerPaused implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaidController::DB_TABLE;

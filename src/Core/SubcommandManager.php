@@ -3,9 +3,9 @@
 namespace Nadybot\Core;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Config\BotConfig,
 	DBSchema\CmdCfg,
 	DBSchema\CmdPermission,
 };

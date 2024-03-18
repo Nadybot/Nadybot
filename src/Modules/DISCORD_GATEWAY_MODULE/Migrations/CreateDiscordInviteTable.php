@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20220411062646)]
+#[NCA\Migration(order: 20220411062646)]
 class CreateDiscordInviteTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = DiscordGatewayController::DB_TABLE;

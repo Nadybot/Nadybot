@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration, SettingManager};
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20221225080646)]
+#[NCA\Migration(order: 20221225080646)]
 class IncreaseIntOptionsSize implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = SettingManager::DB_TABLE;

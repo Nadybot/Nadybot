@@ -3,9 +3,11 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\DBSchema\Setting;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	DBSchema\Setting,
+};
 use Psr\Log\LoggerInterface;
 
 #[

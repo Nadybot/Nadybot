@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\TRADEBOT_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -15,7 +14,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210816063218)]
+#[NCA\Migration(order: 20210816063218)]
 class MigrateToRouting implements SchemaMigration {
 	#[NCA\Inject]
 	private MessageHub $messageHub;

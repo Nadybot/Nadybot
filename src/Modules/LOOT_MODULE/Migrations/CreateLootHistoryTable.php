@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\LOOT_MODULE\LootController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20220505150153)]
+#[NCA\Migration(order: 20220505150153)]
 class CreateLootHistoryTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = LootController::DB_TABLE;

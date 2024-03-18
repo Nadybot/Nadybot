@@ -3,9 +3,9 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Config\BotConfig,
 	DBSchema\Audit,
 	Modules\ALTS\AltsController,
 	Modules\SECURITY\AuditController,

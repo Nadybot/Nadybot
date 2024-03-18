@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
 use Exception;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -23,7 +22,7 @@ use Nadybot\Core\{
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-#[NCA\MigrationOrder(20210822104239)]
+#[NCA\Migration(order: 20210822104239)]
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private DiscordAPIClient $discordApiClient;

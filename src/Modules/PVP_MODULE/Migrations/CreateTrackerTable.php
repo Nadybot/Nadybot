@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\PVP_MODULE\SiteTrackerController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20230306142312)]
+#[NCA\Migration(order: 20230306142312)]
 class CreateTrackerTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = SiteTrackerController::DB_TRACKER;

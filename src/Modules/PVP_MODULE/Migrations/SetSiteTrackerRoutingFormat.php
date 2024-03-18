@@ -2,12 +2,11 @@
 
 namespace Nadybot\Modules\PVP_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{Attributes as NCA, DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20230308163957)]
+#[NCA\Migration(order: 20230308163957)]
 class SetSiteTrackerRoutingFormat implements SchemaMigration {
 	#[NCA\Inject]
 	private MessageHub $messageHub;

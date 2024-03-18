@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\VOTE_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -16,7 +15,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\VOTE_MODULE\VoteController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210828154348)]
+#[NCA\Migration(order: 20210828154348)]
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private VoteController $voteController;

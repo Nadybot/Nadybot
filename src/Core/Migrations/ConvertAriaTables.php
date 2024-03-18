@@ -6,7 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20211027084501)]
+#[NCA\Migration(order: 20211027084501)]
 class ConvertAriaTables implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		if ($db->getType() !== DB\Type::MySQL) {

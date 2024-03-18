@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20230406135855)]
+#[NCA\Migration(order: 20230406135855)]
 class CreateEmojisTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = DiscordGatewayController::EMOJI_TABLE;

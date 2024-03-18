@@ -9,7 +9,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\VOTE_MODULE\VoteController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210428083308)]
+#[NCA\Migration(order: 20210428083308)]
 class MigrateFromV1 implements SchemaMigration {
 	public const DB_OLD_VOTE = "vote_<myname>";
 

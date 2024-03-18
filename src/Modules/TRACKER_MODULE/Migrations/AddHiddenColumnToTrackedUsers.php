@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20211005102749)]
+#[NCA\Migration(order: 20211005102749)]
 class AddHiddenColumnToTrackedUsers implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = TrackerController::DB_TABLE;

@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
 use Exception;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -21,7 +20,7 @@ use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-#[NCA\MigrationOrder(20210826135816)]
+#[NCA\Migration(order: 20210826135816)]
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;

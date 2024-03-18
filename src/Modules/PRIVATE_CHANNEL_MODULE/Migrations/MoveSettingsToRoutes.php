@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -18,7 +17,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210812052246)]
+#[NCA\Migration(order: 20210812052246)]
 class MoveSettingsToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;

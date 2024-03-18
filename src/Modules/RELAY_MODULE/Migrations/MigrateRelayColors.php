@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
-
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandManager,
@@ -18,7 +16,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210821213338)]
+#[NCA\Migration(order: 20210821213338)]
 class MigrateRelayColors implements SchemaMigration {
 	#[NCA\Inject]
 	private SettingManager $settingManager;

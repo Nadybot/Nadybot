@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\TIMERS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -21,7 +20,7 @@ use Psr\Log\LoggerInterface;
 use stdClass;
 use Throwable;
 
-#[NCA\MigrationOrder(20210908074258)]
+#[NCA\Migration(order: 20210908074258)]
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private DiscordAPIClient $discordAPIClient;

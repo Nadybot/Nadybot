@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\WEBSERVER_MODULE\ApiController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210904164924)]
+#[NCA\Migration(order: 20210904164924)]
 class CreateApiKeyTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = ApiController::DB_TABLE;

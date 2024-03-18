@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20220628053401)]
+#[NCA\Migration(order: 20220628053401)]
 class MakeTimerOptional implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = WorldBossController::DB_TABLE;

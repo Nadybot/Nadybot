@@ -7,7 +7,7 @@ use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\{DB, SchemaMigration, SettingManager};
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20221201165215)]
+#[NCA\Migration(order: 20221201165215)]
 class ConvertFirstAndLastAltOnly implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = SettingManager::DB_TABLE;

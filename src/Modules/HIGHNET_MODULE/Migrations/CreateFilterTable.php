@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\HIGHNET_MODULE\HighnetController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20230531131425)]
+#[NCA\Migration(order: 20230531131425)]
 class CreateFilterTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = HighnetController::DB_TABLE;

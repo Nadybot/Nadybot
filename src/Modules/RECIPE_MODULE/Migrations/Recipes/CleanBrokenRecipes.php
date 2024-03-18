@@ -6,7 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20220709060548)]
+#[NCA\Migration(order: 20220709060548)]
 class CleanBrokenRecipes implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "recipes";

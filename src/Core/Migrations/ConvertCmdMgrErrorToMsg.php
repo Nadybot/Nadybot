@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -14,7 +13,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210828081307)]
+#[NCA\Migration(order: 20210828081307)]
 class ConvertCmdMgrErrorToMsg implements SchemaMigration {
 	#[NCA\Inject]
 	private MessageHub $messageHub;

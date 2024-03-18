@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\DEV_MODULE\SilenceController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210425163859)]
+#[NCA\Migration(order: 20210425163859)]
 class CreateSilenceCmdTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = SilenceController::DB_TABLE;

@@ -2,13 +2,12 @@
 
 namespace Nadybot\Modules\HIGHNET_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\{RouteHopColor, RouteHopFormat};
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{Attributes as NCA, Config\BotConfig, DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20230531125312)]
+#[NCA\Migration(order: 20230531125312)]
 class InitializeRouting implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;

@@ -13,7 +13,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210828051150)]
+#[NCA\Migration(order: 20210828051150)]
 class ConvertBroadcastsToRoutes implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "broadcast_<myname>";

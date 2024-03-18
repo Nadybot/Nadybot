@@ -7,7 +7,7 @@ use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\{DB, SchemaMigration, SettingManager};
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20231222102853)]
+#[NCA\Migration(order: 20231222102853)]
 class MigrateToLeaderEchoFormat implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$setting = $this->getSetting($db, 'leaderecho_color');

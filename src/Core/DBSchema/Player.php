@@ -2,8 +2,12 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\Attributes\JSON;
-use Nadybot\Core\{DBRow, Registry, Util};
+use Nadybot\Core\{
+	Attributes\JSON,
+	DBRow,
+	Registry,
+	Util,
+};
 
 /**
  * This represents the data the bot stores about a player in the cache and database

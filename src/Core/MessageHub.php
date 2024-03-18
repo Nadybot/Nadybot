@@ -7,9 +7,9 @@ use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
 use Monolog\Logger;
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Config\BotConfig,
 	DBSchema\Route,
 	DBSchema\RouteHopColor,
 	DBSchema\RouteHopFormat,

@@ -4,12 +4,12 @@ namespace Nadybot\Core\EventModifier;
 
 use function Safe\json_encode;
 
-use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventModifier,
 	MessageHub,
 	Routing\RoutableEvent,
+	Routing\RoutableMessage,
 	Text,
 };
 

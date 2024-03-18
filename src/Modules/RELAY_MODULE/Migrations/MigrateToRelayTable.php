@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
 use function Safe\preg_match;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -28,7 +27,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210817090334)]
+#[NCA\Migration(order: 20210817090334)]
 class MigrateToRelayTable implements SchemaMigration {
 	protected string $prefix = "";
 	#[NCA\Inject]

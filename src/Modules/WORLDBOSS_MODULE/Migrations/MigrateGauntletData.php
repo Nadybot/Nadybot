@@ -1,8 +1,7 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations\Gauntlet;
+namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -18,7 +17,7 @@ use Nadybot\Modules\{
 use Psr\Log\LoggerInterface;
 use stdClass;
 
-#[NCA\MigrationOrder(20211023192050)]
+#[NCA\Migration(order: 20211023192050)]
 class MigrateGauntletData implements SchemaMigration {
 	#[NCA\Inject]
 	private WorldBossController $worldBossController;

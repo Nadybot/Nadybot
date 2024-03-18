@@ -13,7 +13,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20220403072712)]
+#[NCA\Migration(order: 20220403072712)]
 class MigrateVoiceStateToRoutes implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$setting = $this->getSetting($db, 'discord_notify_voice_changes');

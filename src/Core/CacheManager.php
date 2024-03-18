@@ -2,9 +2,8 @@
 
 namespace Nadybot\Core;
 
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use Nadybot\Core\Attributes as NCA;
-
 use Nadybot\Core\Config\BotConfig;
 use Psr\Log\LoggerInterface;
 

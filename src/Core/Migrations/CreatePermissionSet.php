@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{CommandManager, DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20220115125309)]
+#[NCA\Migration(order: 20220115125309)]
 class CreatePermissionSet implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "cmd_permission_set_<myname>";

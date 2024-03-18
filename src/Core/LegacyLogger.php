@@ -13,7 +13,6 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{Attributes as NCA};
 use RuntimeException;
 use Safe\Exceptions\JsonException;
-
 use SplObjectStorage;
 
 /**

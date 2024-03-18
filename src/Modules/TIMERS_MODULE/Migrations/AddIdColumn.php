@@ -10,7 +10,7 @@ use Nadybot\Modules\TIMERS_MODULE\TimerController;
 use Psr\Log\LoggerInterface;
 use stdClass;
 
-#[NCA\MigrationOrder(20210512073804)]
+#[NCA\Migration(order: 20210512073804)]
 class AddIdColumn implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = TimerController::DB_TABLE;

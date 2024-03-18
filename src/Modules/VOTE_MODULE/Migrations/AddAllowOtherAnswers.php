@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\VOTE_MODULE\VoteController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20230503203710)]
+#[NCA\Migration(order: 20230503203710)]
 class AddAllowOtherAnswers implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "";

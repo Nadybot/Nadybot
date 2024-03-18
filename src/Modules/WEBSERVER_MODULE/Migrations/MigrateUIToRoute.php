@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -14,7 +13,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210819184432)]
+#[NCA\Migration(order: 20210819184432)]
 class MigrateUIToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;

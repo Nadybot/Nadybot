@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\CITY_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -15,7 +14,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\CITY_MODULE\CityWaveController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\MigrationOrder(20210819072325)]
+#[NCA\Migration(order: 20210819072325)]
 class MigrateWaveToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private CityWaveController $cityWaveController;
