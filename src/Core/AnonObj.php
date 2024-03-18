@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core;
 
-class AnonObj implements Loggable {
+use Stringable;
+
+class AnonObj implements Stringable {
 	use LoggableTrait;
 
 	/**
@@ -19,6 +21,10 @@ class AnonObj implements Loggable {
 		}
 	}
 
+	public function __toString(): string {
+		return $this->traitedToLog(class: $this->class, replaces: $this->properties);
+	}
+
 	public function setProperty(string $property, mixed $value): void {
 		$keys = explode(".", $property);
 		$property = array_pop($keys);
@@ -32,9 +38,5 @@ class AnonObj implements Loggable {
 			$props = &$props[$key];
 		}
 		$props[$property] = $value;
-	}
-
-	public function toLog(): string {
-		return $this->traitedToLog(class: $this->class, replaces: $this->properties);
 	}
 }

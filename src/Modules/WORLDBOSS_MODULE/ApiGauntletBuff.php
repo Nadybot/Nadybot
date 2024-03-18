@@ -2,10 +2,11 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
-use Nadybot\Core\{Loggable,LoggableTrait};
+use Nadybot\Core\StringableTrait;
+use Stringable;
 
-class ApiGauntletBuff implements Loggable {
-	use LoggableTrait;
+class ApiGauntletBuff implements Stringable {
+	use StringableTrait;
 
 	public function __construct(
 		public string $faction,

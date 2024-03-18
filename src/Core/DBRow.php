@@ -2,8 +2,10 @@
 
 namespace Nadybot\Core;
 
-class DBRow implements Loggable {
-	use LoggableTrait;
+use Stringable;
+
+class DBRow implements Stringable {
+	use StringableTrait;
 
 	public function __get(string $value): mixed {
 		$backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);

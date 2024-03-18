@@ -4,7 +4,11 @@ namespace Nadybot\Core;
 
 use stdClass;
 
-abstract class Event extends stdClass {
+use Stringable;
+
+abstract class Event extends stdClass implements Stringable {
+	use StringableTrait;
+
 	/** @var string */
 	public const EVENT_MASK = "*";
 

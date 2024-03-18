@@ -2,8 +2,10 @@
 
 namespace Nadybot\Core;
 
-class BuddylistEntry implements Loggable {
-	use LoggableTrait;
+use Stringable;
+
+class BuddylistEntry implements Stringable {
+	use StringableTrait;
 
 	/** User ID of the buddy */
 	public int $uid;
@@ -51,15 +53,5 @@ class BuddylistEntry implements Loggable {
 	/** Remove $type from the reasons, why this person is on the buddy-list */
 	public function unsetType(string $type): void {
 		unset($this->types[$type]);
-	}
-
-	public function toLog(): string {
-		return $this->traitedToLog(
-			overrides: [
-				"worker" => array_keys($this->worker),
-				"types" => array_keys($this->types),
-			],
-			hide: ["added"],
-		);
 	}
 }
