@@ -136,7 +136,7 @@ class NadyNative implements RelayProtocolInterface {
 				}
 				return null;
 		}
-		$event = new RoutableEvent();
+		$event = new RoutableEvent(type: $data->type);
 		foreach (($data->path??[]) as $hop) {
 			$source = new Source(
 				$hop->type,
@@ -147,7 +147,6 @@ class NadyNative implements RelayProtocolInterface {
 			$event->appendPath($source);
 		}
 		$event->data = $data->data??null;
-		$event->type = $data->type;
 		if (isset($data->char) && is_object($data->char) && ($data->char instanceof stdClass) && isset($data->char->name)) {
 			$event->setCharacter(
 				new Character(
@@ -227,9 +226,10 @@ class NadyNative implements RelayProtocolInterface {
 		$sEvent = clone $event;
 		$sEvent->sourceBot = $this->config->main->character;
 		$sEvent->sourceDimension = $this->config->main->dimension;
-		$rEvent = new RoutableEvent();
-		$rEvent->setType($rEvent::TYPE_EVENT);
-		$rEvent->setData($sEvent);
+		$rEvent = new RoutableEvent(
+			type: RoutableEvent::TYPE_EVENT,
+			data: $sEvent,
+		);
 		$this->relay->receive($rEvent, "*");
 	}
 

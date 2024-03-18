@@ -10,14 +10,16 @@ class RoutableEvent extends Event {
 	public const TYPE_MESSAGE = "message";
 	public const TYPE_EVENT = "event";
 
-	public ?Character $char = null;
-
-	/** @var Source[] */
-	public array $path = [];
-
-	public string|Base|SyncEvent|stdClass|null $data = null;
-
-	public bool $routeSilently = false;
+	/** @param Source[] $path */
+	public function __construct(
+		string $type,
+		public array $path=[],
+		public bool $routeSilently=false,
+		public string|Base|SyncEvent|stdClass|null $data=null,
+		public ?Character $char=null,
+	) {
+		$this->type = $type;
+	}
 
 	public function getType(): string {
 		return $this->type;
@@ -48,7 +50,7 @@ class RoutableEvent extends Event {
 	}
 
 	public function appendPath(Source $source): self {
-		$this->path[] = $source;
+		$this->path []= $source;
 		return $this;
 	}
 

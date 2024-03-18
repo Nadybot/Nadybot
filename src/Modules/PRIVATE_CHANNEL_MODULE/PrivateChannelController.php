@@ -7,6 +7,7 @@ use Amp\File\{FilesystemException};
 use AO\Package;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Routing\Events\Base;
 use Nadybot\Core\{
 	AccessLevelProvider,
 	AccessManager,
@@ -45,6 +46,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	SettingManager,
+	SyncEvent,
 	Text,
 	Util,
 };
@@ -61,6 +63,7 @@ use Nadybot\Modules\{
 use Psr\Log\LoggerInterface;
 
 use Revolt\EventLoop;
+use stdClass;
 
 /**
  * @author Tyrence (RK2)
@@ -1048,15 +1051,16 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		return $this->getLogonMessageForPlayer($whois, $player, $altInfo);
 	}
 
-	public function dispatchRoutableEvent(object $event): void {
-		$re = new RoutableEvent();
+	public function dispatchRoutableEvent(Base|SyncEvent|stdClass $event): void {
 		$label = null;
 		if (strlen($this->config->general->orgName)) {
 			$label = "Guest";
 		}
-		$re->type = RoutableEvent::TYPE_EVENT;
-		$re->prependPath(new Source(Source::PRIV, $this->config->main->character, $label));
-		$re->setData($event);
+		$re = new RoutableEvent(
+			type: RoutableEvent::TYPE_EVENT,
+			data: $event,
+			path: [new Source(Source::PRIV, $this->config->main->character, $label)],
+		);
 		$this->messageHub->handle($re);
 	}
 

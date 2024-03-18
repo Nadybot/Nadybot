@@ -34,8 +34,8 @@ use TypeError;
  */
 #[
 	NCA\Instance,
-	NCA\ProvidesEvent("websocket(subscribe)"),
-	NCA\ProvidesEvent("websocket(request)"),
+	NCA\ProvidesEvent(WebsocketSubscribeEvent::class),
+	NCA\ProvidesEvent(WebsocketRequestEvent::class),
 	NCA\ProvidesEvent("websocket(response)"),
 	NCA\ProvidesEvent("websocket(event)")
 ]
@@ -126,12 +126,13 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 	}
 
 	#[NCA\Event(
-		name: "websocket(subscribe)",
+		name: WebsocketSubscribeEvent::EVENT_MASK,
 		description: "Handle Websocket event subscriptions",
 		defaultStatus: 1
 	)]
 	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketClient $client): void {
 		try {
+			// @phpstan-ignore-next-line
 			if (!isset($event->data->events) || !is_array($event->data->events)) {
 				return;
 			}
@@ -224,13 +225,9 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 			return;
 		}
 		if ($command->command === $command::SUBSCRIBE) {
-			$newEvent = new WebsocketSubscribeEvent();
-			$newEvent->type = "websocket(subscribe)";
-			$newEvent->data = new NadySubscribe();
+			$newEvent = new WebsocketSubscribeEvent(data: new NadySubscribe());
 		} elseif ($command->command === $command::REQUEST) {
-			$newEvent = new WebsocketRequestEvent();
-			$newEvent->type = "websocket(request)";
-			$newEvent->data = new NadyRequest();
+			$newEvent = new WebsocketRequestEvent(data: new NadyRequest());
 		} else {
 			// Unknown command received is just silently ignored in case another handler deals with it
 			return;

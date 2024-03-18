@@ -974,15 +974,16 @@ class DiscordGatewayController extends ModuleInstance {
 			$e->online = true;
 		}
 		$e->message = $msg;
-		$rEvent = new RoutableEvent();
-		$rEvent->setType(RoutableEvent::TYPE_EVENT);
-		$rEvent->prependPath(new Source(
-			Source::DISCORD_PRIV,
-			isset($event->discord_channel->name)
-				? "< {$event->discord_channel->name}"
-				: $event->discord_channel->id
-		));
-		$rEvent->setData($e);
+		$rEvent = new RoutableEvent(
+			type: RoutableEvent::TYPE_EVENT,
+			path: [new Source(
+				Source::DISCORD_PRIV,
+				isset($event->discord_channel->name)
+					? "< {$event->discord_channel->name}"
+					: $event->discord_channel->id
+			)],
+			data: $e
+		);
 
 		$this->messageHub->handle($rEvent);
 	}

@@ -487,15 +487,16 @@ class GuildController extends ModuleInstance {
 	}
 
 	public function dispatchRoutableEvent(Base $event): void {
-		$re = new RoutableEvent();
-		$re->type = RoutableEvent::TYPE_EVENT;
 		$abbr = $this->settingManager->getString('relay_guild_abbreviation');
-		$re->prependPath(new Source(
-			Source::ORG,
-			$this->config->general->orgName,
-			($abbr === "none") ? null : $abbr
-		));
-		$re->setData($event);
+		$re = new RoutableEvent(
+			type: RoutableEvent::TYPE_EVENT,
+			path: [new Source(
+				Source::ORG,
+				$this->config->general->orgName,
+				($abbr === "none") ? null : $abbr
+			)],
+			data: $event,
+		);
 		$this->messageHub->handle($re);
 	}
 

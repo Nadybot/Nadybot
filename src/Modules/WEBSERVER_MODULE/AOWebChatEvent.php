@@ -5,6 +5,8 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use Nadybot\Core\Event\AOChatEvent;
 
 class AOWebChatEvent extends AOChatEvent {
+	public const EVENT_MASK = "chat(web)";
+
 	/**
 	 * @param string           $sender  The name of the sender of the message
 	 * @param string           $channel The name of the channel via which the message was sent
@@ -20,6 +22,6 @@ class AOWebChatEvent extends AOChatEvent {
 		public ?array $path=null,
 		public ?string $worker=null,
 	) {
-		$this->type = "chat(web)";
+		$this->type = self::EVENT_MASK;
 	}
 }

@@ -391,8 +391,9 @@ class Tyrbot implements RelayProtocolInterface {
 	}
 
 	protected function receiveMessage(Message $packet): RoutableEvent {
-		$event = new RoutableEvent();
-		$event->type = $event::TYPE_MESSAGE;
+		$event = new RoutableEvent(
+			type: RoutableEvent::TYPE_MESSAGE
+		);
 		if (isset($packet->user)) {
 			$event->setCharacter(new Character(
 				$packet->user->name,

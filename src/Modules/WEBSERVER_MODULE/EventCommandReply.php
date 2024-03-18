@@ -21,11 +21,11 @@ class EventCommandReply implements CommandReply {
 	}
 
 	/** @param string|string[] $msg */
-	public function reply($msg): void {
-		$event = new CommandReplyEvent();
-		$event->msgs = $this->webChatConverter->convertMessages((array)$msg);
-		$event->uuid = $this->uuid;
-		$event->type = "cmdreply";
+	public function reply(string|array $msg): void {
+		$event = new CommandReplyEvent(
+			msgs: $this->webChatConverter->convertMessages((array)$msg),
+			uuid: $this->uuid,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 }

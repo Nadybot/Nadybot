@@ -5,13 +5,16 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use Nadybot\Core\Event;
 
 class CommandReplyEvent extends Event {
-	/**
-	 * An array with reply messages
-	 *
-	 * @var string[]
-	 */
-	public array $msgs = [];
+	public const EVENT_MASK = "cmdreply";
 
-	/** For which WebsocketConnection is this destined */
-	public string $uuid;
+	/**
+	 * @param string   $uuid For which WebsocketConnection is this destined
+	 * @param string[] $msgs An array with reply messages
+	 */
+	public function __construct(
+		public string $uuid,
+		public array $msgs=[],
+	) {
+		$this->type = self::EVENT_MASK;
+	}
 }

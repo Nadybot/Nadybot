@@ -17,7 +17,7 @@ use Nadybot\Core\{Attributes as NCA, Config\BotConfig, EventManager, ModuleInsta
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-#[NCA\ProvidesEvent("drill(*)")]
+#[NCA\ProvidesEvent(DrillPacketEvent::class)]
 #[NCA\Instance]
 class DrillController extends ModuleInstance {
 	public const OFF = "off";
@@ -86,9 +86,7 @@ class DrillController extends ModuleInstance {
 
 			$connection = $client->connect($handshake, null);
 			$this->client = $connection;
-			$event = new DrillEvent();
-			$event->type = "drill(connect)";
-			$event->client = $connection;
+			$event = new DrillConnectEvent(client: $connection);
 			$this->eventManager->fireEvent($event);
 			$this->logger->info("Connected to Drill server {url}", ["url" => $url]);
 			while (null !== ($message = $connection->receive())) {
@@ -142,16 +140,10 @@ class DrillController extends ModuleInstance {
 		$this->logger->debug("Received Drill-package {type}", [
 			"type" => get_class($packet),
 		]);
-		$event = new DrillPacketEvent();
-
-		$kebabCase = Safe::pregReplace(
-			"/([a-z])([A-Z])/",
-			'$1-$2',
-			class_basename($packet)
+		$event = new DrillPacketEvent(
+			client: $client,
+			packet: $packet,
 		);
-		$event->type = "drill(" . strtolower($kebabCase) . ")";
-		$event->client = $client;
-		$event->packet = $packet;
 		$this->eventManager->fireEvent($event);
 	}
 
