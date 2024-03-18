@@ -109,8 +109,8 @@ use Throwable;
 	NCA\ProvidesEvent("discord(channel_delete)"),
 	NCA\ProvidesEvent("discord(channel_pins_update)"),
 	NCA\ProvidesEvent("discord(voice_state_update)"),
-	NCA\ProvidesEvent("discord_voice_join"),
-	NCA\ProvidesEvent("discord_voice_leave"),
+	NCA\ProvidesEvent(DiscordVoiceJoinEvent::EVENT_MASK),
+	NCA\ProvidesEvent(DiscordVoiceLeaveEvent::EVENT_MASK),
 
 	NCA\EmitsMessages("discord", "event-create"),
 	NCA\EmitsMessages("discord", "event-delete"),
@@ -408,10 +408,11 @@ class DiscordGatewayController extends ModuleInstance {
 		if (isset($payload->s)) {
 			$this->lastSequenceNumber = $payload->s;
 		}
-		$eventObj = new DiscordGatewayEvent();
-		$eventObj->type = "discord({$payload->op})";
-		$eventObj->message = $message;
-		$eventObj->payload = $payload;
+		$eventObj = new DiscordGatewayEvent(
+			type: "discord({$payload->op})",
+			message: $message,
+			payload: $payload,
+		);
 		$this->eventManager->fireEvent($eventObj);
 	}
 
@@ -449,9 +450,11 @@ class DiscordGatewayController extends ModuleInstance {
 		if ($payload->t === null) {
 			return;
 		}
-		$newEvent = new DiscordGatewayEvent();
-		$newEvent->payload = $payload;
-		$newEvent->type = strtolower("discord({$payload->t})");
+		$newEvent = new DiscordGatewayEvent(
+			payload: $payload,
+			type: strtolower("discord({$payload->t})"),
+			message: null,
+		);
 		$this->logger->info("New event: discord({event})", ["event" => $payload->t]);
 		$this->eventManager->fireEvent($newEvent);
 	}
@@ -937,18 +940,18 @@ class DiscordGatewayController extends ModuleInstance {
 			$voiceState->guild_id,
 			$voiceState->user_id,
 		);
-		$event = new DiscordVoiceEvent();
-		$event->type = "discord_voice_join";
-		$event->discord_channel = $channel;
-		$event->member = $member;
+		$event = new DiscordVoiceJoinEvent(
+			discord_channel: $channel,
+			member: $member
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
 	#[
 		NCA\Event(
 			name: [
-				"discord_voice_join",
-				"discord_voice_leave",
+				DiscordVoiceJoinEvent::EVENT_MASK,
+				DiscordVoiceLeaveEvent::EVENT_MASK,
 			],
 			description: "Announce if people join or leave voice chat"
 		)
@@ -961,7 +964,7 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 		$e->char = new Character($userId ?? $event->member->getName());
 		$chanName = $event->discord_channel->name ?? $event->discord_channel->id;
-		if ($event->type === 'discord_voice_leave') {
+		if ($event instanceof DiscordVoiceLeaveEvent) {
 			$msg = $e->char->name.
 				" has left the voice channel <highlight>{$chanName}<end>.";
 			$e->online = false;
@@ -1652,14 +1655,14 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($oldState->channel_id)) {
 			return;
 		}
-		$event = new DiscordVoiceEvent();
-		$event->type = "discord_voice_leave";
 		$discordChannel = $this->getChannel($oldState->channel_id);
 		if (!isset($discordChannel)) {
 			return;
 		}
-		$event->discord_channel = $discordChannel;
-		$event->member = $member;
+		$event = new DiscordVoiceLeaveEvent(
+			discord_channel: $discordChannel,
+			member: $member,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 

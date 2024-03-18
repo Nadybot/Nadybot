@@ -335,12 +335,13 @@ class SettingManager {
 				call_user_func($listener->callback, $name, $this->settings[$name]->value, $value, $listener->data);
 			}
 		}
-		$event = new SettingEvent();
-		$event->setting = $name;
-		$event->type = "setting({$name})";
-		$event->oldValue = $this->settings[$name];
-		$event->newValue = clone $event->oldValue;
-		$event->newValue->value = (string)$value;
+		$newValue = clone $this->settings[$name];
+		$newValue->value = (string)$value;
+		$event = new SettingEvent(
+			setting: $name,
+			oldValue: $this->settings[$name],
+			newValue: $newValue,
+		);
 		$this->eventManager->fireEvent($event);
 
 		$this->settings[$name]->value = (string)$value;

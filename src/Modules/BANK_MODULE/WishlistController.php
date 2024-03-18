@@ -12,13 +12,13 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
+	LogonEvent,
 	ModuleInstance,
 	Nadybot,
 	QueryBuilder,
 	Safe,
 	Text,
 	UserException,
-	UserStateEvent,
 	Util,
 };
 
@@ -86,10 +86,10 @@ class WishlistController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logon",
+		name: LogonEvent::EVENT_MASK,
 		description: "Inform people that someone wishes an item from them"
 	)]
-	public function sendWishlistOnLogon(UserStateEvent $event): void {
+	public function sendWishlistOnLogon(LogonEvent $event): void {
 		if (!$this->chatBot->isReady()
 			|| !is_string($event->sender)
 			|| $event->wasOnline !== false

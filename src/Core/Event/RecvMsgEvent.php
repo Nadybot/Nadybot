@@ -4,6 +4,8 @@ namespace Nadybot\Core\Event;
 
 /** We receive a tell */
 class RecvMsgEvent extends AOChatEvent {
+	public const EVENT_MASK = "msg";
+
 	/**
 	 * @param string  $sender  Either the name of the sender or the numeric UID (eg. city raid accouncements)
 	 * @param string  $channel The channel (msg, priv, guild) via which the message was sent
@@ -16,6 +18,6 @@ class RecvMsgEvent extends AOChatEvent {
 		public string $message,
 		public ?string $worker=null,
 	) {
-		$this->type = "msg";
+		$this->type = self::EVENT_MASK;
 	}
 }

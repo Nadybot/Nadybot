@@ -6,9 +6,11 @@ use Nadybot\Core\Event;
 use Nadybot\Modules\PVP_MODULE\FeedMessage;
 
 class TowerOutcome extends Event {
+	public const EVENT_MASK = "tower-outcome";
+
 	public function __construct(
 		public FeedMessage\TowerOutcome $outcome,
 	) {
-		$this->type = "tower-outcome";
+		$this->type = self::EVENT_MASK;
 	}
 }

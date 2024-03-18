@@ -230,9 +230,7 @@ class AuctionController extends ModuleInstance {
 			EventLoop::cancel($this->auctionTimer);
 			$this->auctionTimer = null;
 		}
-		$event = new AuctionEvent();
-		$event->type = "auction(cancel)";
-		$event->auction = $this->auction;
+		$event = new AuctionCancelEvent(auction: $this->auction);
 		$this->auction = null;
 		$this->eventManager->fireEvent($event);
 	}
@@ -598,9 +596,7 @@ class AuctionController extends ModuleInstance {
 			$this->auction->end = $this->auctionEnds;
 		}
 
-		$event = new AuctionEvent();
-		$event->auction = $this->auction;
-		$event->type = "auction(bid)";
+		$event = new AuctionBidEvent(auction: $this->auction);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -617,9 +613,7 @@ class AuctionController extends ModuleInstance {
 			}
 		);
 		$this->auctionEnds = $auction->end;
-		$event = new AuctionEvent();
-		$event->type = "auction(start)";
-		$event->auction = $auction;
+		$event = new AuctionStartEvent(auction: $auction);
 		$this->eventManager->fireEvent($event);
 		return true;
 	}
@@ -635,12 +629,7 @@ class AuctionController extends ModuleInstance {
 		}
 		$auction = $this->auction;
 		$this->auction = null;
-		$event = new AuctionEvent();
-		$event->type = "auction(end)";
-		$event->auction = $auction;
-		if (isset($sender)) {
-			$event->sender = $sender;
-		}
+		$event = new AuctionEndEvent(auction: $auction, sender: $sender);
 		$this->recordAuctionInDB($auction);
 		if (isset($auction->bid) && $auction->bid > 0 && isset($auction->top_bidder)) {
 			$this->raidPointsController->modifyRaidPoints(
@@ -735,18 +724,18 @@ class AuctionController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "auction(start)",
+		name: AuctionStartEvent::EVENT_MASK,
 		description: "Announce a new auction"
 	)]
-	public function announceAuction(AuctionEvent $event): void {
+	public function announceAuction(AuctionStartEvent $event): void {
 		$this->routeMessage("start", $this->getAuctionAnnouncement($event->auction));
 	}
 
 	#[NCA\Event(
-		name: "auction(end)",
+		name: AuctionEndEvent::EVENT_MASK,
 		description: "Announce the winner of an auction"
 	)]
-	public function announceAuctionWinner(AuctionEvent $event): void {
+	public function announceAuctionWinner(AuctionEndEvent $event): void {
 		if ($event->auction->top_bidder === null) {
 			$msg = $this->text->renderPlaceholders(
 				$this->unauctionedItemMessage,
@@ -797,10 +786,10 @@ class AuctionController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "auction(cancel)",
+		name: AuctionCancelEvent::EVENT_MASK,
 		description: "Announce the cancellation of an auction"
 	)]
-	public function announceAuctionCancellation(AuctionEvent $event): void {
+	public function announceAuctionCancellation(AuctionCancelEvent $event): void {
 		$this->routeMessage("cancel", "The auction was cancelled.");
 	}
 
@@ -816,10 +805,10 @@ class AuctionController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "auction(bid)",
+		name: AuctionBidEvent::EVENT_MASK,
 		description: "Announce a new bid"
 	)]
-	public function announceAuctionBid(AuctionEvent $event): void {
+	public function announceAuctionBid(AuctionBidEvent $event): void {
 		$this->routeMessage("bid", $this->getRunningAuctionInfo($event->auction));
 	}
 

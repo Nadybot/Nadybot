@@ -19,6 +19,7 @@
         </ignoreFiles>
     </projectFiles>
     <issueHandlers>
+        <InvalidClassConstantType errorLevel="suppress" />
         <PropertyNotSetInConstructor errorLevel="suppress" />
         <TooManyTemplateParams errorLevel="suppress" />
         <NoInterfaceProperties errorLevel="suppress" />

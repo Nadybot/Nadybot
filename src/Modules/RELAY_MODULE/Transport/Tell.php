@@ -9,10 +9,11 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	EventManager,
+	LogoffEvent,
+	LogonEvent,
 	Nadybot,
 	PackageEvent,
 	StopExecutionException,
-	UserStateEvent,
 };
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
@@ -82,7 +83,7 @@ class Tell implements TransportInterface {
 		throw new StopExecutionException();
 	}
 
-	public function botOnline(UserStateEvent $event): void {
+	public function botOnline(LogonEvent $event): void {
 		if ($event->sender !== $this->bot) {
 			return;
 		}
@@ -94,7 +95,7 @@ class Tell implements TransportInterface {
 		$callback();
 	}
 
-	public function botOffline(UserStateEvent $event): void {
+	public function botOffline(LogoffEvent $event): void {
 		if ($event->sender !== $this->bot) {
 			return;
 		}
@@ -107,9 +108,9 @@ class Tell implements TransportInterface {
 	}
 
 	public function init(callable $callback): array {
-		$this->eventManager->subscribe("msg", [$this, "receiveMessage"]);
-		$this->eventManager->subscribe("logon", [$this, "botOnline"]);
-		$this->eventManager->subscribe("logoff", [$this, "botOffline"]);
+		$this->eventManager->subscribe(RecvMsgEvent::EVENT_MASK, $this->receiveMessage(...));
+		$this->eventManager->subscribe(LogonEvent::EVENT_MASK, $this->botOnline(...));
+		$this->eventManager->subscribe(LogoffEvent::EVENT_MASK, $this->botOffline(...));
 		if ($this->buddylistManager->isOnline($this->bot)) {
 			$callback();
 		} else {
@@ -124,9 +125,9 @@ class Tell implements TransportInterface {
 	}
 
 	public function deinit(callable $callback): array {
-		$this->eventManager->unsubscribe("msg", [$this, "receiveMessage"]);
-		$this->eventManager->unsubscribe("logon", [$this, "botOnline"]);
-		$this->eventManager->unsubscribe("logoff", [$this, "botOffline"]);
+		$this->eventManager->unsubscribe(RecvMsgEvent::EVENT_MASK, $this->receiveMessage(...));
+		$this->eventManager->unsubscribe(LogonEvent::EVENT_MASK, $this->botOnline(...));
+		$this->eventManager->unsubscribe(LogoffEvent::EVENT_MASK, $this->botOffline(...));
 		$this->buddylistManager->remove(
 			$this->bot,
 			$this->relay->getName() . "_relay"

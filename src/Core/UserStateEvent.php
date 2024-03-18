@@ -2,11 +2,8 @@
 
 namespace Nadybot\Core;
 
-class UserStateEvent extends Event {
-	/**
-	 * Either the name of the sender or the numeric UID (eg. city raid accouncements)
-	 */
-	public int|string $sender;
+abstract class UserStateEvent extends Event {
+	public string $sender;
 	public int $uid;
-	public ?bool $wasOnline=null;
+	public ?bool $wasOnline;
 }

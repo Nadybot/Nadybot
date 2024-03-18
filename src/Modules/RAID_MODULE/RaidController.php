@@ -470,9 +470,10 @@ class RaidController extends ModuleInstance {
 		$this->raid->description = $description;
 		$this->logRaidChanges($this->raid);
 		$context->reply("Raid description changed.");
-		$event = new RaidEvent($this->raid);
-		$event->type = "raid(change)";
-		$event->player = $context->char->name;
+		$event = new RaidChangeEvent(
+			raid: $this->raid,
+			player: $context->char->name,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -498,9 +499,10 @@ class RaidController extends ModuleInstance {
 		} else {
 			$context->reply("Maximum raid members set to <highlight>{$maxMembers}<end>.");
 		}
-		$event = new RaidEvent($this->raid);
-		$event->type = "raid(change)";
-		$event->player = $context->char->name;
+		$event = new RaidChangeEvent(
+			raid: $this->raid,
+			player: $context->char->name,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -541,9 +543,10 @@ class RaidController extends ModuleInstance {
 			$context->reply("Raid seconds per point changed.");
 		}
 		$this->logRaidChanges($this->raid);
-		$event = new RaidEvent($this->raid);
-		$event->type = "raid(change)";
-		$event->player = $context->char->name;
+		$event = new RaidChangeEvent(
+			raid: $this->raid,
+			player: $context->char->name,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -575,9 +578,10 @@ class RaidController extends ModuleInstance {
 		}
 
 		$this->logRaidChanges($this->raid);
-		$event = new RaidEvent($this->raid);
-		$event->type = "raid(change)";
-		$event->player = $context->char->name;
+		$event = new RaidChangeEvent(
+			raid: $this->raid,
+			player: $context->char->name,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -607,9 +611,10 @@ class RaidController extends ModuleInstance {
 			}
 		}
 		$this->routeMessage("lock", $lockMessage);
-		$event = new RaidEvent($this->raid);
-		$event->type = "raid(lock)";
-		$event->player = $context->char->name;
+		$event = new RaidLockEvent(
+			raid: $this->raid,
+			player: $context->char->name,
+		);
 		$this->eventManager->fireEvent($event);
 		$notInKick = $this->raidKickNotinOnLock;
 		if ($notInKick !== 0) {
@@ -639,9 +644,10 @@ class RaidController extends ModuleInstance {
 			$unlockMessage .= " Raid point ticker is <highlight>not running while unlocked<end>.";
 		}
 		$this->routeMessage("unlock", $unlockMessage);
-		$event = new RaidEvent($this->raid);
-		$event->type = "raid(unlock)";
-		$event->player = $context->char->name;
+		$event = new RaidUnlockEvent(
+			raid: $this->raid,
+			player: $context->char->name,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -1051,10 +1057,10 @@ class RaidController extends ModuleInstance {
 
 	/** Announce when a raid was started */
 	#[NCA\Event(
-		name: "raid(start)",
+		name: RaidStartEvent::EVENT_MASK,
 		description: "Announce when a raid was started"
 	)]
-	public function announceRaidStart(RaidEvent $event): void {
+	public function announceRaidStart(RaidStartEvent $event): void {
 		$this->routeMessage(
 			"start",
 			"<highlight>{$event->raid->started_by}<end> started a raid: ".
@@ -1069,10 +1075,10 @@ class RaidController extends ModuleInstance {
 
 	/** Announce when a raid was stopped. */
 	#[NCA\Event(
-		name: "raid(stop)",
+		name: RaidStopEvent::EVENT_MASK,
 		description: "Announce when a raid is stopped"
 	)]
-	public function announceRaidStop(RaidEvent $event): void {
+	public function announceRaidStop(RaidStopEvent $event): void {
 		$this->routeMessage("stop", "<highlight>{$event->player}<end> has stopped the raid.");
 	}
 
@@ -1093,9 +1099,10 @@ class RaidController extends ModuleInstance {
 				"ticker_paused" => $raid->ticker_paused,
 			], "raid_id");
 		$this->raid = $raid;
-		$event = new RaidEvent($raid);
-		$event->type = "raid(start)";
-		$event->player = $raid->started_by;
+		$event = new RaidStartEvent(
+			raid: $raid,
+			player: $raid->started_by,
+		);
 		$this->eventManager->fireEvent($event);
 		$this->logRaidChanges($this->raid);
 	}
@@ -1118,9 +1125,10 @@ class RaidController extends ModuleInstance {
 		if ($this->raidStopClearsCallers) {
 			$this->chatAssistController->clearCallers($sender, "raid stop");
 		}
-		$event = new RaidEvent($raid);
-		$event->type = "raid(stop)";
-		$event->player = ucfirst(strtolower($sender));
+		$event = new RaidStopEvent(
+			raid: $raid,
+			player: ucfirst(strtolower($sender)),
+		);
 		$this->eventManager->fireEvent($event);
 	}
 

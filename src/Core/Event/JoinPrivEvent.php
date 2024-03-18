@@ -3,6 +3,8 @@
 namespace Nadybot\Core\Event;
 
 class JoinPrivEvent extends JoinLeaveEvent {
+	public const EVENT_MASK = "extjoinpriv";
+
 	/**
 	 * @param string $sender  Either the name of the sender or the numeric UID (eg. city raid accouncements)
 	 * @param string $channel The channel (msg, priv, guild) via which the message was sent
@@ -12,6 +14,6 @@ class JoinPrivEvent extends JoinLeaveEvent {
 		public string $channel,
 		public ?string $worker=null,
 	) {
-		$this->type = "extjoinpriv";
+		$this->type = self::EVENT_MASK;
 	}
 }

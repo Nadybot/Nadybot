@@ -3,6 +3,8 @@
 namespace Nadybot\Core\Event;
 
 class GuildChannelMsgEvent extends PublicChannelMsgEvent {
+	public const EVENT_MASK = "guild";
+
 	/**
 	 * @param string  $sender  The name of the sender of the message
 	 * @param string  $channel The name of the public channel via which the message was sent
@@ -15,6 +17,6 @@ class GuildChannelMsgEvent extends PublicChannelMsgEvent {
 		public string $message,
 		public ?string $worker=null,
 	) {
-		$this->type = "guild";
+		$this->type = self::EVENT_MASK;
 	}
 }

@@ -7,11 +7,11 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	EventManager,
+	LogonEvent,
 	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
-	UserStateEvent,
 	Util,
 };
 
@@ -120,10 +120,10 @@ class ChatTopicController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Shows topic on logon of members"
 	)]
-	public function logonEvent(UserStateEvent $eventObj): void {
+	public function logonEvent(LogonEvent $eventObj): void {
 		if ($this->topic === ''
 			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
 			|| !$this->chatBot->isReady()

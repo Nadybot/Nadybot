@@ -831,9 +831,7 @@ class Nadybot {
 	/** Fire associated events for a received packet */
 	public function processAllPackages(WorkerPackage $package): void {
 		// fire individual packets event
-		$eventObj = new PackageEvent();
-		$eventObj->type = "packet({$package->package->type->value})";
-		$eventObj->packet = $package;
+		$eventObj = new PackageEvent(packet: $package);
 		$this->eventManager->fireEvent($eventObj);
 	}
 
@@ -1044,10 +1042,6 @@ class Nadybot {
 		}
 		$this->updateLastOnline($userId, $sender, $package->package->online);
 
-		$eventObj = new UserStateEvent();
-		$eventObj->uid = $userId;
-		$eventObj->sender = $sender;
-
 		$this->logger->info("Handling {package}", ["package" => $package->package]);
 
 		$worker = $package->worker;
@@ -1066,7 +1060,7 @@ class Nadybot {
 			}
 		}
 		$inRebalance = $this->buddylistManager->isRebalancing($userId);
-		$eventObj->wasOnline = $this->buddylistManager->isOnline($sender);
+		$wasOnline = $this->buddylistManager->isOnline($sender);
 		$workerId = $this->getWorkerId($worker);
 		$this->buddylistManager->update($userId, $package->package->online, $workerId);
 
@@ -1075,12 +1069,19 @@ class Nadybot {
 			return;
 		}
 
-		// Status => 0: logoff  1: logon
-		$eventObj->type = "logon";
 		if ($package->package->online) {
 			$this->logger->info("{buddy} logged on", ["buddy" => $sender]);
+			$eventObj = new LogonEvent(
+				uid: $userId,
+				sender: $sender,
+				wasOnline: $wasOnline,
+			);
 		} else {
-			$eventObj->type = "logoff";
+			$eventObj = new LogoffEvent(
+				uid: $userId,
+				sender: $sender,
+				wasOnline: $wasOnline,
+			);
 			$this->logger->info("{buddy} logged off", ["buddy" => $sender]);
 		}
 		$this->eventManager->fireEvent($eventObj);
@@ -1377,7 +1378,7 @@ class Nadybot {
 		if ($package->package->extra === static::PING_IDENTIFIER) {
 			return;
 		}
-		$this->eventManager->fireEvent(new PongEvent(0));
+		$this->eventManager->fireEvent(new PongEvent(worker: $package->worker));
 	}
 
 	public function getUid(string $name, bool $cacheOnly=false): ?int {

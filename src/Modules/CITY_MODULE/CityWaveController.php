@@ -166,18 +166,17 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 
 	public function sendAlertMessage(Timer $timer, WaveAlert $alert): void {
 		$this->sendWaveMessage($alert->message);
-		$event = new CityWaveEvent();
-		$event->type = "cityraid(wave)";
-		$event->wave = $alert->wave;
 		if ($alert->wave === 9) {
+			$event = new CityRaidWaveEvent(wave: $alert->wave);
 			$event->type = "cityraid(end)";
+		} else {
+			$event = new CityRaidEndEvent();
 		}
 		$this->eventManager->fireEvent($event);
 	}
 
 	public function startWaveCounter(?string $name=null): void {
-		$event = new CityWaveEvent();
-		$event->type = "cityraid(start)";
+		$event = new CityRaidStartEvent();
 		$this->eventManager->fireEvent($event);
 
 		if ($name === null) {

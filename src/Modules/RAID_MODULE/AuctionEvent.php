@@ -4,10 +4,9 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use Nadybot\Core\Event;
 
-class AuctionEvent extends Event {
+abstract class AuctionEvent extends Event {
+	public const EVENT_MASK = "auction(*)";
+
 	/** The auction */
 	public Auction $auction;
-
-	/** If set, this is the person ending or cancelling an auction */
-	public string $sender;
 }

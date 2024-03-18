@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	DBSchema\Alt,
 	DBSchema\Audit,
 	EventManager,
+	LogonEvent,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
@@ -24,7 +25,6 @@ use Nadybot\Core\{
 	Registry,
 	SQLException,
 	Text,
-	UserStateEvent,
 };
 
 /**
@@ -434,10 +434,10 @@ class AltsController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Reminds unvalidates alts/mains to accept or deny"
 	)]
-	public function checkUnvalidatedAltsEvent(UserStateEvent $eventObj): void {
+	public function checkUnvalidatedAltsEvent(LogonEvent $eventObj): void {
 		if (!$this->chatBot->isReady()
 			|| !is_string($eventObj->sender)
 			|| $eventObj->wasOnline !== false

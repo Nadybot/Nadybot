@@ -4,6 +4,9 @@ namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Nadybot\Core\Event;
 
-class TrackerEvent extends Event {
+abstract class TrackerEvent extends Event {
+	public const EVENT_MASK = "tracker(*)";
+
 	public string $player;
+	public int $uid;
 }

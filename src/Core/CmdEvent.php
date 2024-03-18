@@ -3,6 +3,8 @@
 namespace Nadybot\Core;
 
 class CmdEvent extends Event {
+	public const EVENT_MASK = "command(*)";
+
 	/**
 	 * @param string          $sender     Either the name of the sender or the numeric UID (eg. city raid accouncements)
 	 * @param string          $channel    Where was the command received

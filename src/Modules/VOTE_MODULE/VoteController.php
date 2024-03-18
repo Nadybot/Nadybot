@@ -40,12 +40,12 @@ use Nadybot\Core\{
 		description: "Create, view or delete polls",
 		alias: 'polls'
 	),
-	NCA\ProvidesEvent("poll(start)"),
-	NCA\ProvidesEvent("poll(end)"),
-	NCA\ProvidesEvent("poll(del)"),
-	NCA\ProvidesEvent("vote(cast)"),
-	NCA\ProvidesEvent("vote(del)"),
-	NCA\ProvidesEvent("vote(change)")
+	NCA\ProvidesEvent(PollStartEvent::class),
+	NCA\ProvidesEvent(PollEndEvent::class),
+	NCA\ProvidesEvent(PollDelEvent::class),
+	NCA\ProvidesEvent(VoteCastEvent::class),
+	NCA\ProvidesEvent(VoteDelEvent::class),
+	NCA\ProvidesEvent(VoteChangeEvent::class)
 ]
 class VoteController extends ModuleInstance implements MessageEmitter {
 	public const DB_POLLS = "polls_<myname>";
@@ -136,13 +136,14 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 				$this->db->table(self::DB_POLLS)
 					->where("id", $poll->id)
 					->update(["status" => self::STATUS_ENDED]);
-				$event = new PollEvent();
-				$event->poll = clone $poll;
-				unset($event->poll->possible_answers);
-				$event->votes = $this->db->table(self::DB_VOTES)
-					->where("poll_id", $poll->id)
-					->asObj(Vote::class)->toArray();
-				$event->type = "poll(end)";
+				$ePoll = clone $poll;
+				unset($ePoll->possible_answers);
+				$event = new PollEndEvent(
+					poll: $ePoll,
+					votes: $this->db->table(self::DB_VOTES)
+						->where("poll_id", $poll->id)
+						->asObj(Vote::class)->toArray(),
+				);
 				$this->eventManager->fireEvent($event);
 				unset($this->polls[$id]);
 			} elseif ($poll->status === self::STATUS_CREATED) {
@@ -246,13 +247,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		}
 		$this->db->table(self::DB_VOTES)->where("poll_id", $topic->id)->delete();
 		$this->db->table(self::DB_POLLS)->delete($topic->id);
-		$event = new PollEvent();
-		$event->poll = clone $topic;
-		unset($event->poll->possible_answers);
-		$event->type = "poll(del)";
+		$ePoll = clone $topic;
+		unset($ePoll->possible_answers);
 		unset($this->polls[$topic->id]);
 		$msg = "The poll <highlight>{$topic->question}<end> has been removed.";
 		$context->reply($msg);
+		$event = new PollDelEvent(poll: $ePoll, votes: []);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -272,11 +272,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			->delete();
 		if ($deleted > 0) {
 			$msg = "Your vote for <highlight>{$topic->question}<end> has been removed.";
-			$event = new VoteEvent();
-			$event->poll = clone $topic;
-			unset($event->poll->possible_answers);
-			$event->type = "vote(del)";
-			$event->player = $context->char->name;
+			$ePoll = clone $topic;
+			unset($ePoll->possible_answers);
+			$event = new VoteDelEvent(
+				poll: $ePoll,
+				player: $context->char->name,
+			);
 			$this->eventManager->fireEvent($event);
 		} else {
 			$msg = "You have not voted on <highlight>{$topic->question}<end>.";
@@ -377,11 +378,8 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			->where("author", $context->char->name)
 			->asObj(Vote::class)
 			->first();
-		$event = new VoteEvent();
-		$event->poll = clone $topic;
-		unset($event->poll->possible_answers);
-		$event->player = $context->char->name;
-		$event->vote = $answer;
+		$ePoll = clone $topic;
+		unset($ePoll->possible_answers);
 		if (isset($oldVote)) {
 			$this->db->table(self::DB_VOTES)
 				->where("author", $context->char->name)
@@ -392,8 +390,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 				]);
 			$msg = "You have changed your vote to ".
 				"<highlight>{$answer}<end> for \"{$topic->question}\".";
-			$event->type = "vote(change)";
-			$event->oldVote = $oldVote->answer??"unknown";
+			$event = new VoteChangeEvent(
+				poll: $ePoll,
+				player: $context->char->name,
+				vote: $answer,
+				oldVote: $oldVote->answer ?? "unknown",
+			);
 		} else {
 			$this->db->table(self::DB_VOTES)->insert([
 				"author" => $context->char->name,
@@ -402,7 +404,11 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 				"poll_id" => $topic->id,
 			]);
 			$msg = "You have voted <highlight>{$answer}<end> for \"{$topic->question}\".";
-			$event->type = "vote(cast)";
+			$event = new VoteCastEvent(
+				poll: $ePoll,
+				player: $context->char->name,
+				vote: $answer,
+			);
 		}
 		$context->reply($msg);
 		$this->eventManager->fireEvent($event);
@@ -457,10 +463,9 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$msg = "Poll <highlight>{$topic->id}<end> has been created.";
 
 		$context->reply($msg);
-		$event = new PollEvent();
-		$event->poll = clone $topic;
-		unset($event->poll->possible_answers);
-		$event->type = "poll(start)";
+		$ePoll = clone $topic;
+		unset($ePoll->possible_answers);
+		$event = new PollStartEvent(poll: $ePoll);
 		$this->eventManager->fireEvent($event);
 	}
 

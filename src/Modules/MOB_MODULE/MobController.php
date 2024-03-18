@@ -165,10 +165,10 @@ class MobController extends ModuleInstance {
 	}
 
 	#[Event(
-		name: "mob-attacked",
+		name: MobAttackedEvent::EVENT_MASK,
 		description: "Announce when a mob gets attacked as mob(&lt;type&gt;-&lt;key&gt;-attacked)",
 	)]
-	public function announceMobAttacked(MobEvent $event): void {
+	public function announceMobAttacked(MobAttackedEvent $event): void {
 		$mob = $event->mob;
 		$pf = $this->pfCtrl->getPlayfieldById($mob->playfield_id);
 		assert(isset($pf));
@@ -188,10 +188,10 @@ class MobController extends ModuleInstance {
 	}
 
 	#[Event(
-		name: "mob-spawn",
+		name: MobSpawnEvent::EVENT_MASK,
 		description: "Announce when a new mob spawns as mob(&lt;type&gt;-&lt;key&gt;-spawn)",
 	)]
-	public function announceMobSpawn(MobEvent $event): void {
+	public function announceMobSpawn(MobSpawnEvent $event): void {
 		$mob = $event->mob;
 		$pf = $this->pfCtrl->getPlayfieldById($mob->playfield_id);
 		assert(isset($pf));
@@ -211,10 +211,10 @@ class MobController extends ModuleInstance {
 	}
 
 	#[Event(
-		name: "mob-death",
+		name: MobDeathEvent::EVENT_MASK,
 		description: "Announce when a mob gets killed as mob(&lt;type&gt;-&lt;key&gt;-death)",
 	)]
-	public function announceMobDeath(MobEvent $event): void {
+	public function announceMobDeath(MobDeathEvent $event): void {
 		$mob = $event->mob;
 		$pf = $this->pfCtrl->getPlayfieldById($mob->playfield_id);
 		assert(isset($pf));

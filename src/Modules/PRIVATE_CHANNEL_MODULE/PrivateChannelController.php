@@ -7,8 +7,6 @@ use Amp\File\{FilesystemException};
 use AO\Package;
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Event\{JoinMyPrivEvent, LeaveMyPrivEvent};
-use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\{
 	AccessLevelProvider,
 	AccessManager,
@@ -24,7 +22,10 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
+	Event\JoinMyPrivEvent,
+	Event\LeaveMyPrivEvent,
 	Filesystem,
+	LogonEvent,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltInfo,
@@ -40,11 +41,11 @@ use Nadybot\Core\{
 	Routing\Character,
 	Routing\Events\Online,
 	Routing\RoutableEvent,
+	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
 	SettingManager,
 	Text,
-	UserStateEvent,
 	Util,
 };
 use Nadybot\Modules\RAID_MODULE\RaidController;
@@ -646,9 +647,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$msg = "You have been added as a member of this bot. ".
 				"Use <highlight><symbol>autoinvite<end> to control ".
 				"your auto invite preference.";
-			$event = new MemberEvent();
-			$event->type = "member(add)";
-			$event->sender = $context->char->name;
+			$event = new MemberAddEvent(sender: $context->char->name);
 			$this->eventManager->fireEvent($event);
 		} else {
 			$this->db->table(self::DB_TABLE)
@@ -910,9 +909,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$msg = "You have been added as a member of this bot. ".
 			"Use <highlight><symbol>autoinvite<end> to control your ".
 			"auto invite preference.";
-		$event = new MemberEvent();
-		$event->type = "member(add)";
-		$event->sender = $context->char->name;
+		$event = new MemberAddEvent(sender: $context->char->name);
 		$this->eventManager->fireEvent($event);
 		$context->reply($msg);
 	}
@@ -1003,10 +1000,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Auto-invite members on logon"
 	)]
-	public function logonAutoinviteEvent(UserStateEvent $eventObj): void {
+	public function logonAutoinviteEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
 			return;
@@ -1021,7 +1018,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (!count($data)) {
 			return;
 		}
-		$uid = $this->chatBot->getUid((string)$eventObj->sender);
+		$uid = $this->chatBot->getUid($eventObj->sender);
 		if ($uid === null) {
 			return;
 		}
@@ -1091,16 +1088,15 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (!isset($whois)) {
 			return;
 		}
-		$event = new OnlineEvent();
-		$event->type = "online(priv)";
-		$event->player = new OnlinePlayer();
-		$event->channel = "priv";
-		foreach (get_object_vars($whois) as $key => $value) {
-			$event->player->{$key} = $value;
-		}
-		$event->player->online = true;
+		$player = OnlinePlayer::fromPlayer($whois);
+		$player::fromPlayer($whois);
+		$player->online = true;
 		$altInfo = $this->altsController->getAltInfo($sender);
-		$event->player->pmain = $altInfo->main;
+		$player->pmain = $altInfo->main;
+		$event = new OnlineEvent(
+			player: $player,
+			channel: "priv",
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -1196,10 +1192,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 		$msg = $this->getLogoffMessage($sender);
 
-		$event = new OfflineEvent();
-		$event->type = "offline(priv)";
-		$event->player = $sender;
-		$event->channel = "priv";
+		$event = new OfflineEvent(
+			player: $sender,
+			channel: "priv",
+		);
 		$this->eventManager->fireEvent($event);
 
 		$uid = $this->chatBot->getUid($sender);
@@ -1256,10 +1252,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\Event(
-		name: "member(add)",
+		name: MemberAddEvent::EVENT_MASK,
 		description: "Send welcome message data/welcome.txt to new members"
 	)]
-	public function sendWelcomeMessage(MemberEvent $event): void {
+	public function sendWelcomeMessage(MemberAddEvent $event): void {
 		$welcomeFile = "{$this->config->paths->data}/welcome.txt";
 		try {
 			if (!$this->fs->exists($welcomeFile)) {
@@ -1294,9 +1290,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 		unset($this->members[$name]);
 		$this->buddylistManager->remove($name, 'member');
-		$event = new MemberEvent();
-		$event->type = "member(rem)";
-		$event->sender = $name;
+		$event = new MemberRemoveEvent(sender: $name);
 		$this->eventManager->fireEvent($event);
 		$audit = new Audit();
 		$audit->actor = $sender;
@@ -1540,9 +1534,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$memberObj->autoinv = $autoInvite ? 1 : 0;
 		$this->db->insert(self::DB_TABLE, $memberObj, null);
 		$this->members[$name] = $memberObj;
-		$event = new MemberEvent();
-		$event->type = "member(add)";
-		$event->sender = $name;
+		$event = new MemberAddEvent(sender: $name);
 		$this->eventManager->fireEvent($event);
 		$audit = new Audit();
 		$audit->actor = $sender;

@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 class TopicSetEvent extends TopicEvent {
+	public const EVENT_MASK = "topic(set)";
+
 	/**
 	 * @param string $player The names of the sender
 	 * @param string $topic  The topic that was set
@@ -11,6 +13,6 @@ class TopicSetEvent extends TopicEvent {
 		public string $player,
 		public string $topic,
 	) {
-		$this->type = "topic(set)";
+		$this->type = self::EVENT_MASK;
 	}
 }

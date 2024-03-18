@@ -6,7 +6,7 @@ use function Amp\async;
 use function Safe\preg_match;
 use AO\Package;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Event\{ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
+use Nadybot\Core\Event\{ConnectEvent, ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	ColorSettingHandler,
 	Config\BotConfig,
 	DB,
+	LogonEvent,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
@@ -25,7 +26,6 @@ use Nadybot\Core\{
 	Safe,
 	StopExecutionException,
 	Text,
-	UserStateEvent,
 };
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 use Psr\Log\LoggerInterface;
@@ -111,10 +111,29 @@ class TradebotController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Event(
-		name: "Connect",
+		name: ExtJoinPrivRequest::EVENT_MASK,
+		description: "Accept private channel join invitation from the trade bots"
+	)]
+	public function acceptPrivJoinEvent(ExtJoinPrivRequest $eventObj): void {
+		$sender = $eventObj->sender;
+		if (!is_string($sender) || !$this->isTradebot($sender)) {
+			return;
+		}
+		$this->logger->notice("Joining {character}'s private channel.", ["character" => $sender]);
+		if (null === ($uid = $this->chatBot->getUid($sender))) {
+			return;
+		}
+		$this->chatBot->aoClient->write(
+			package: new Package\Out\PrivateChannelJoin(channelId: $uid),
+		);
+		$this->messageHub->registerMessageEmitter(new TradebotChannel($sender . "-*"));
+	}
+
+	#[NCA\Event(
+		name: ConnectEvent::EVENT_MASK,
 		description: "Add active tradebots to buddylist"
 	)]
-	public function addTradebotsAsBuddies(): void {
+	public function addTradebotsAsBuddies(ConnectEvent $event): void {
 		$activeBots = $this->normalizeBotNames($this->tradebot);
 		foreach ($activeBots as $botName) {
 			$this->buddylistManager->addName($botName, "tradebot");
@@ -183,10 +202,10 @@ class TradebotController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Join tradebot private channels"
 	)]
-	public function tradebotOnlineEvent(UserStateEvent $eventObj): void {
+	public function tradebotOnlineEvent(LogonEvent $eventObj): void {
 		if (is_string($eventObj->sender) && $this->isTradebot($eventObj->sender)) {
 			$this->joinPrivateChannel($eventObj->sender);
 		}
@@ -264,25 +283,6 @@ class TradebotController extends ModuleInstance {
 		$source = new Source(Source::TRADEBOT, $sender . "-{$matches[1]}");
 		$rMessage->prependPath($source);
 		$this->messageHub->handle($rMessage);
-	}
-
-	#[NCA\Event(
-		name: "extJoinPrivRequest",
-		description: "Accept private channel join invitation from the trade bots"
-	)]
-	public function acceptPrivJoinEvent(ExtJoinPrivRequest $eventObj): void {
-		$sender = $eventObj->sender;
-		if (!is_string($sender) || !$this->isTradebot($sender)) {
-			return;
-		}
-		$this->logger->notice("Joining {character}'s private channel.", ["character" => $sender]);
-		if (null === ($uid = $this->chatBot->getUid($sender))) {
-			return;
-		}
-		$this->chatBot->aoClient->write(
-			package: new Package\Out\PrivateChannelJoin(channelId: $uid),
-		);
-		$this->messageHub->registerMessageEmitter(new TradebotChannel($sender . "-*"));
 	}
 
 	/** List the currently custom defined colors */

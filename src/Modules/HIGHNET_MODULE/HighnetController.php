@@ -303,10 +303,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			if (!isset($nextMessage)) {
 				return;
 			}
-			$event = new HighnetEvent(
-				type: 'highnet(' . strtolower($nextMessage->channel) . ')',
-				message: $nextMessage
-			);
+			$event = new HighnetEvent(message: $nextMessage);
 			$this->eventManager->fireEvent($event);
 		} catch (UnableToHydrateObject $e) {
 			$this->logger->info("Invalid highnet-package received: {data}.", [
@@ -315,7 +312,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		}
 	}
 
-	#[NCA\Event(name: "highnet(*)", description: "Handle Highnet messages")]
+	#[NCA\Event(name: HighnetEvent::EVENT_MASK, description: "Handle Highnet messages")]
 	public function handleMessage(HighnetEvent $event): void {
 		$message = $event->message;
 		$handler = $this->handlers[strtolower($message->channel)]??null;

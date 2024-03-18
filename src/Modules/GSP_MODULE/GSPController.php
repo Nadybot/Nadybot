@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	EventManager,
+	LogonEvent,
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
@@ -18,7 +19,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
-	UserStateEvent,
 };
 use Safe\DateTime;
 use Safe\Exceptions\JsonException;
@@ -36,8 +36,8 @@ use Throwable;
 		description: "List what is currently playing on GridStream",
 		alias: "gsp"
 	),
-	NCA\ProvidesEvent("gsp(show_start)"),
-	NCA\ProvidesEvent("gsp(show_end)")
+	NCA\ProvidesEvent(GSPShowStartEvent::EVENT_MASK),
+	NCA\ProvidesEvent(GSPShowEndEvent::EVENT_MASK)
 ]
 class GSPController extends ModuleInstance implements MessageEmitter {
 	public const GSP_URL = 'https://gsp.torontocast.stream/streaminfo/';
@@ -145,10 +145,10 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Announce running shows on logon"
 	)]
-	public function gspShowLogonEvent(UserStateEvent $eventObj): void {
+	public function gspShowLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (
 			!$this->chatBot->isReady()

@@ -3,11 +3,12 @@
 namespace Nadybot\Core;
 
 class PongEvent extends Event {
-	/** Which worker received the pong */
-	public int $worker = 0;
+	public const EVENT_MASK = "pong";
 
-	public function __construct(int $worker=0) {
-		$this->type = "pong";
-		$this->worker = $worker;
+	/** @param string $worker Which worker received the pong */
+	public function __construct(
+		public string $worker,
+	) {
+		$this->type = self::EVENT_MASK;
 	}
 }

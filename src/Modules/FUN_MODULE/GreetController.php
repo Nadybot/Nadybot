@@ -13,10 +13,10 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	LogonEvent,
 	ModuleInstance,
 	Nadybot,
 	Text,
-	UserStateEvent,
 	Util,
 };
 use Psr\Log\LoggerInterface;
@@ -175,10 +175,10 @@ class GreetController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Greet org members logging on"
 	)]
-	public function sendRandomLogonGreeting(UserStateEvent $event): void {
+	public function sendRandomLogonGreeting(LogonEvent $event): void {
 		$sender = $event->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()

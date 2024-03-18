@@ -5,10 +5,11 @@ namespace Nadybot\Modules\HIGHNET_MODULE;
 use Nadybot\Core\Event;
 
 class HighnetEvent extends Event {
+	public const EVENT_MASK = "highnet(*)";
+
 	public function __construct(
-		string $type,
 		public Message $message,
 	) {
-		$this->type = $type;
+		$this->type = 'highnet(' . strtolower($message->channel) . ')';
 	}
 }

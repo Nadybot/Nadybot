@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
+	LogonEvent,
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
@@ -20,7 +21,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
-	UserStateEvent,
 	Util,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
@@ -168,9 +168,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		}
 
 		$context->reply($msg);
-		$event = new CloakEvent();
-		$event->type = "cloak(raise)";
-		$event->player = $context->char->name;
+		$event = new CloakRaiseEvent(player: $context->char->name);
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -190,9 +188,11 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 				"action" => $arr[2],
 				"player" => $arr[1],
 			]);
-		$event = new CloakEvent();
-		$event->type = $arr[2] === 'on' ? "cloak(raise)" : "cloak(lower)";
-		$event->player = $arr[1];
+		if ($arr[2] === "on") {
+			$event = new CloakRaiseEvent(player: $arr[1]);
+		} else {
+			$event = new CloakLowerEvent(player: $arr[1]);
+		}
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -280,10 +280,10 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Show cloak status to guild members logging in"
 	)]
-	public function cityGuildLogonEvent(UserStateEvent $eventObj): void {
+	public function cityGuildLogonEvent(LogonEvent $eventObj): void {
 		if (!$this->chatBot->isReady()
 			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
 			|| !is_string($eventObj->sender)

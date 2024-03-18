@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\VOTE_MODULE;
 
-class VoteEvent extends PollEvent {
+abstract class VoteEvent extends PollEvent {
+	public const EVENT_MASK = "vote(*)";
+
 	public string $player;
-	public string $vote;
-	public string $oldVote;
 }

@@ -9,13 +9,13 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	LogonEvent,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PRemove,
 	Text,
-	UserStateEvent,
 	Util,
 };
 use Safe\Exceptions\DatetimeException;
@@ -321,10 +321,10 @@ class EventsController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Show events to org members logging on"
 	)]
-	public function logonEvent(UserStateEvent $eventObj): void {
+	public function logonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)
 			|| !$this->chatBot->isReady()

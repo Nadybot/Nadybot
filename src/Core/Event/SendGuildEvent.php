@@ -4,6 +4,8 @@ namespace Nadybot\Core\Event;
 
 /** We send a message to our guild channel */
 class SendGuildEvent extends AOChatEvent {
+	public const EVENT_MASK = "sendguild";
+
 	/**
 	 * @param string  $sender  Either the name of the sender or the numeric UID (eg. city raid accouncements)
 	 * @param string  $channel The channel (msg, priv, guild) via which the message was sent
@@ -16,6 +18,6 @@ class SendGuildEvent extends AOChatEvent {
 		public string $message,
 		public ?string $worker=null,
 	) {
-		$this->type = "sendguild";
+		$this->type = self::EVENT_MASK;
 	}
 }

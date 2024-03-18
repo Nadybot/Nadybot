@@ -15,6 +15,8 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
+	LogoffEvent,
+	LogonEvent,
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
@@ -29,7 +31,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
-	UserStateEvent,
 	Util,
 };
 use Nadybot\Modules\{
@@ -338,10 +339,10 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Records a tracked user logging on"
 	)]
-	public function trackLogonEvent(UserStateEvent $eventObj): void {
+	public function trackLogonEvent(LogonEvent $eventObj): void {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
 		}
@@ -361,9 +362,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				"event" => "logon",
 			]);
 
-		$event = new TrackerEvent();
-		$event->player = $eventObj->sender;
-		$event->type = "tracker(logon)";
+		$event = new TrackerLogonEvent(player: $eventObj->sender, uid: $uid);
 		$this->eventManager->fireEvent($event);
 
 		$player = $this->playerManager->byName($eventObj->sender);
@@ -434,10 +433,10 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "logOff",
+		name: LogoffEvent::EVENT_MASK,
 		description: "Records a tracked user logging off"
 	)]
-	public function trackLogoffEvent(UserStateEvent $eventObj): void {
+	public function trackLogoffEvent(LogoffEvent $eventObj): void {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
 		}
@@ -469,9 +468,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				"event" => "logoff",
 			]);
 
-		$event = new TrackerEvent();
-		$event->player = $eventObj->sender;
-		$event->type = "tracker(logoff)";
+		$event = new TrackerLogoffEvent(player: $eventObj->sender, uid: $uid);
 		$this->eventManager->fireEvent($event);
 
 		$player = $this->playerManager->byName($eventObj->sender);

@@ -195,9 +195,7 @@ class RaffleController extends ModuleInstance {
 				$this->config->main->character
 			);
 		}
-		$event = new RaffleEvent();
-		$event->raffle = $this->raffle;
-		$event->type = "raffle(start)";
+		$event = new RaffleStartEvent(raffle: $this->raffle);
 		$this->eventManager->fireEvent($event);
 
 		$this->announceRaffleStart();
@@ -254,10 +252,9 @@ class RaffleController extends ModuleInstance {
 				$this->config->main->character
 			);
 		}
-		$event = new RaffleEvent();
 		if ($newRaffle) {
 			$this->raffle = $raffle;
-			$event->type = "raffle(start)";
+			$event = new RaffleStartEvent(raffle: $raffle);
 		} else {
 			assert(isset($this->raffle));
 			foreach ($raffle->slots as $slot) {
@@ -268,9 +265,8 @@ class RaffleController extends ModuleInstance {
 					$this->raffle->slots[] = $slot;
 				}
 			}
-			$event->type = "raffle(add)";
+			$event = new RaffleAddEvent(raffle: $raffle);
 		}
-		$event->raffle = $this->raffle;
 		$this->eventManager->fireEvent($event);
 
 		if ($newRaffle) {
@@ -355,9 +351,7 @@ class RaffleController extends ModuleInstance {
 		}
 		$msg = "The raffle was <off>cancelled<end> by <highlight>{$context->char->name}<end>.";
 		$this->raffle->sendto->reply($msg);
-		$event = new RaffleEvent();
-		$event->raffle = $this->raffle;
-		$event->type = "raffle(cancel)";
+		$event = new RaffleCancelEvent(raffle: $this->raffle);
 		$this->eventManager->fireEvent($event);
 		$this->raffle = null;
 	}
@@ -512,10 +506,7 @@ class RaffleController extends ModuleInstance {
 			}
 		}
 		$this->raffle->slots[$slot]->participants []= $context->char->name;
-		$event = new RaffleParticipationEvent();
-		$event->raffle = $this->raffle;
-		$event->type = "raffle(enter)";
-		$event->player = $context->char->name;
+		$event = new RaffleEnterEvent(raffle: $this->raffle, player: $context->char->name);
 		$this->eventManager->fireEvent($event);
 
 		if ($this->raffleAnnounceParticipants) {
@@ -556,10 +547,7 @@ class RaffleController extends ModuleInstance {
 			foreach ($this->raffle->slots as &$raffleSlot) {
 				$raffleSlot->removeParticipant($context->char->name);
 			}
-			$event = new RaffleParticipationEvent();
-			$event->raffle = $this->raffle;
-			$event->type = "raffle(leave)";
-			$event->player = $context->char->name;
+			$event = new RaffleLeaveEvent(raffle: $this->raffle, player: $context->char->name);
 			$this->eventManager->fireEvent($event);
 			if ($this->raffleAnnounceParticipants) {
 				$this->raffle->sendto->reply(
@@ -585,10 +573,7 @@ class RaffleController extends ModuleInstance {
 			return;
 		}
 
-		$event = new RaffleParticipationEvent();
-		$event->raffle = $this->raffle;
-		$event->type = "raffle(leave)";
-		$event->player = $context->char->name;
+		$event = new RaffleLeaveEvent(raffle: $this->raffle, player: $context->char->name);
 		$this->eventManager->fireEvent($event);
 		if ($this->raffleAnnounceParticipants) {
 			$msg = "<highlight>{$context->char->name}<end> <off>left<end> the raffle";
@@ -632,9 +617,7 @@ class RaffleController extends ModuleInstance {
 		foreach ($raffle->slots as $slot) {
 			$slot->result = $this->getSlotResult($slot);
 		}
-		$event = new RaffleEvent();
-		$event->raffle = $raffle;
-		$event->type = "raffle(end)";
+		$event = new RaffleEndEvent(raffle: $raffle);
 		$this->eventManager->fireEvent($event);
 		$this->announceRaffleResults($raffle);
 		$this->adjustBonusPoints($raffle);

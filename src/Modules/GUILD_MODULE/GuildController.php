@@ -15,6 +15,8 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	Event,
+	LogoffEvent,
+	LogonEvent,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -34,7 +36,6 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 	Text,
-	UserStateEvent,
 	Util,
 };
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
@@ -666,10 +667,10 @@ class GuildController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Shows an org member logon in chat"
 	)]
-	public function orgMemberLogonMessageEvent(UserStateEvent $eventObj): void {
+	public function orgMemberLogonMessageEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
@@ -725,10 +726,10 @@ class GuildController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logOff",
+		name: LogoffEvent::EVENT_MASK,
 		description: "Shows an org member logoff in chat"
 	)]
-	public function orgMemberLogoffMessageEvent(UserStateEvent $eventObj): void {
+	public function orgMemberLogoffMessageEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
@@ -755,10 +756,10 @@ class GuildController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logOff",
+		name: LogoffEvent::EVENT_MASK,
 		description: "Record org member logoff for lastseen command"
 	)]
-	public function orgMemberLogoffRecordEvent(UserStateEvent $eventObj): void {
+	public function orgMemberLogoffRecordEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()

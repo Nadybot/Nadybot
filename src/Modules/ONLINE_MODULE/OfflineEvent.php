@@ -5,6 +5,12 @@ namespace Nadybot\Modules\ONLINE_MODULE;
 use Nadybot\Core\Event;
 
 class OfflineEvent extends Event {
-	public string $player;
-	public string $channel;
+	public const EVENT_MASK = "offline(*)";
+
+	public function __construct(
+		public string $player,
+		public string $channel,
+	) {
+		$this->type = "offline({$channel})";
+	}
 }

@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandReply,
+	LogonEvent,
 	ModuleInstance,
 	Modules\BAN\BanController,
 	Nadybot,
@@ -25,7 +26,6 @@ use Nadybot\Core\{
 	Registry,
 	SettingManager,
 	Text,
-	UserStateEvent,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{ApiResponse, WebChatConverter, WebserverController};
 use ReflectionClass;
@@ -97,10 +97,10 @@ class StartpageController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Show startpage to (org) members logging in"
 	)]
-	public function logonEvent(UserStateEvent $eventObj): void {
+	public function logonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
 			|| !is_string($sender)

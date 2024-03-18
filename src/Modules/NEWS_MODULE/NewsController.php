@@ -14,12 +14,12 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	EventManager,
+	LogonEvent,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PRemove,
 	Text,
-	UserStateEvent,
 	Util,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{ApiResponse, JsonImporter, WebserverController};
@@ -180,10 +180,10 @@ class NewsController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Sends news to org members logging in"
 	)]
-	public function logonEvent(UserStateEvent $eventObj): void {
+	public function logonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 
 		if (!$this->chatBot->isReady()

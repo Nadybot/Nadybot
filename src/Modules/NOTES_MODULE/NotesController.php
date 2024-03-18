@@ -11,13 +11,13 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
+	LogonEvent,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
 	ParamClass\PRemove,
 	Text,
-	UserStateEvent,
 };
 use Psr\Log\LoggerInterface;
 
@@ -249,10 +249,10 @@ class NotesController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Sends a tell to players on logon showing their reminders"
 	)]
-	public function showRemindersOnLogonEvent(UserStateEvent $eventObj): void {
+	public function showRemindersOnLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
 			|| !is_string($sender)

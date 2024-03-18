@@ -91,17 +91,14 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 				$this->logger->info("Not throwing event, mob already known");
 				return;
 			}
-			if (in_array($update->event, [$update::DEATH, $update::SPAWN])) {
-				$event = new MobEvent(
-					mob: $newMob,
-					type: "mob-{$update->event}",
-				);
+			if ($update->event === $update::SPAWN) {
+				$event = new MobSpawnEvent(mob: $newMob);
+				$this->eventManager->fireEvent($event);
+			} elseif ($update->event === $update::DEATH) {
+				$event = new MobDeathEvent(mob: $newMob);
 				$this->eventManager->fireEvent($event);
 			} elseif (!($update instanceof FeedMessage\HP) || ($update->hp_percent < 100.00 && $mob->hp_percent >= 100.00)) {
-				$event = new MobEvent(
-					mob: $newMob,
-					type: "mob-attacked",
-				);
+				$event = new MobAttackedEvent(mob: $newMob);
 				$this->eventManager->fireEvent($event);
 			}
 		} catch (UnableToHydrateObject $e) {

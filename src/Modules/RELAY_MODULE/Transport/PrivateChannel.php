@@ -76,7 +76,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 
 	public function deinit(callable $callback): array {
 		$this->eventManager->unsubscribe("extpriv", [$this, "receiveMessage"]);
-		$this->eventManager->unsubscribe("extJoinPrivRequest", [$this, "receiveInvite"]);
+		$this->eventManager->unsubscribe(ExtJoinPrivRequest::EVENT_MASK, [$this, "receiveInvite"]);
 		$this->eventManager->unsubscribe("extJoinPriv", [$this, "joinedPrivateChannel"]);
 		$this->eventManager->unsubscribe("otherLeavePriv", [$this, "receiveLeave"]);
 		$this->eventManager->unsubscribe("extLeavePriv", [$this, "leftPrivateChannel"]);

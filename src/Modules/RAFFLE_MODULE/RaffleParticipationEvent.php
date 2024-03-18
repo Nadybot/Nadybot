@@ -2,6 +2,13 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-class RaffleParticipationEvent extends RaffleEvent {
-	public string $player;
+abstract class RaffleParticipationEvent extends RaffleEvent {
+	public const EVENT_MASK = "raffle(*)";
+
+	public function __construct(
+		public Raffle $raffle,
+		public string $player,
+	) {
+		$this->type = self::EVENT_MASK;
+	}
 }

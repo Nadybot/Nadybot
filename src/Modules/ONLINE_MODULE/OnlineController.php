@@ -16,6 +16,8 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
+	LogoffEvent,
+	LogonEvent,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\ALTS\NickController,
@@ -27,7 +29,6 @@ use Nadybot\Core\{
 	SettingManager,
 	StopExecutionException,
 	Text,
-	UserStateEvent,
 	Util,
 };
 use Nadybot\Modules\{
@@ -460,10 +461,10 @@ class OnlineController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Records an org member login in db"
 	)]
-	public function recordLogonEvent(UserStateEvent $eventObj): void {
+	public function recordLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender]) || !is_string($sender)) {
 			return;
@@ -472,35 +473,35 @@ class OnlineController extends ModuleInstance {
 		if ($player === null) {
 			return;
 		}
-		$event = new OnlineEvent();
-		$event->type = "online(org)";
-		$event->channel = "org";
-		$event->player = $player;
+		$event = new OnlineEvent(
+			channel: "org",
+			player: $player,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
 	#[NCA\Event(
-		name: "logOff",
+		name: LogoffEvent::EVENT_MASK,
 		description: "Records an org member logoff in db"
 	)]
-	public function recordLogoffEvent(UserStateEvent $eventObj): void {
+	public function recordLogoffEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender]) || !is_string($sender)) {
 			return;
 		}
 		$this->removePlayerFromOnlineList($sender, 'guild');
-		$event = new OfflineEvent();
-		$event->type = "offline(org)";
-		$event->player = $sender;
-		$event->channel = "org";
+		$event = new OfflineEvent(
+			player: $sender,
+			channel: "org"
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Sends a tell to players on logon showing who is online in org"
 	)]
-	public function showOnlineOnLogonEvent(UserStateEvent $eventObj): void {
+	public function showOnlineOnLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
