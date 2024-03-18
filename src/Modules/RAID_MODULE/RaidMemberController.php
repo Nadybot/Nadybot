@@ -409,7 +409,7 @@ class RaidMemberController extends ModuleInstance {
 			if (!isset($uid)) {
 				continue;
 			}
-			$this->chatBot->aoClient->write(
+			$this->chatBot->sendPackage(
 				package: new Package\Out\PrivateChannelKick(charId: $uid)
 			);
 			$notInRaid []= $player;

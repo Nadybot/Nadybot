@@ -4,6 +4,8 @@ namespace Nadybot\Core;
 
 use function Amp\async;
 use function Safe\{preg_match, sapi_windows_set_ctrl_handler, unpack};
+
+use Amp\ByteStream\StreamException;
 use Amp\Http\Client\HttpClientBuilder;
 use AO\Client\{Multi, WorkerConfig, WorkerPackage};
 use AO\{Group, Package, Utils};
@@ -380,6 +382,21 @@ class Nadybot {
 		return $this->aoClient->getGroup($groupId);
 	}
 
+	public function sendPackage(Package\Out $package, ?string $worker=null): void {
+		try {
+			$this->aoClient->write(package: $package, worker: $worker);
+		} catch (StreamException $e) {
+			$this->logger->critical("{error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+			try {
+				$this->aoClient->disconnect();
+			} catch (Throwable) {
+			}
+		}
+	}
+
 	/** Connect to AO chat servers */
 	public function connectAO(): void {
 		$workers = [new WorkerConfig(
@@ -436,6 +453,7 @@ class Nadybot {
 		$this->aoClient->onReady(function (): void {
 			$this->ready = true;
 			$this->eventManager->executeConnectEvents();
+			var_dump(SyncEventFactory::create(new \stdClass()));
 		});
 		$this->eventFeed->mainLoop();
 		EventLoop::setErrorHandler(function (Throwable $e): void {
@@ -541,7 +559,7 @@ class Nadybot {
 			$privColor = $this->settingManager->getString('default_priv_color') ?? "";
 		}
 
-		$this->aoClient->write(
+		$this->sendPackage(
 			new Package\Out\PrivateChannelMessage(
 				channelId: $uid,
 				message: $privColor.$message
@@ -597,7 +615,7 @@ class Nadybot {
 			$guildColor = $this->settingManager->getString("default_guild_color")??"";
 		}
 
-		$this->aoClient->write(
+		$this->sendPackage(
 			package: new Package\Out\GroupMessage(
 				groupId: $this->orgGroup->id,
 				message: $guildColor.$message,
@@ -631,7 +649,7 @@ class Nadybot {
 				return false;
 			}
 		}
-		$this->aoClient->write(
+		$this->sendPackage(
 			package: new Package\Out\Tell(
 				charId: $character,
 				message: $message,
@@ -770,7 +788,7 @@ class Nadybot {
 		));
 		$rMessage->prependPath(new Source(Source::PUB, $channel));
 		$this->messageHub->handle($rMessage);
-		$this->aoClient->write(
+		$this->sendPackage(
 			package: new Package\Out\GroupMessage(
 				groupId: $group->id,
 				message: $guildColor.$message,
@@ -900,7 +918,7 @@ class Nadybot {
 
 			if ($this->banController->isOnBanlist($package->package->charId)) {
 				$kick = new Package\Out\PrivateChannelKick(charId: $package->package->charId);
-				$this->aoClient->write($kick);
+				$this->sendPackage($kick);
 				$audit = new Audit();
 				$audit->actor = $sender;
 				$audit->action = AccessManager::KICK;
@@ -1398,7 +1416,7 @@ class Nadybot {
 
 	/** Send a ping packet to keep the connection open */
 	public function sendPong(?string $worker=null): void {
-		$this->aoClient->write(
+		$this->sendPackage(
 			package: new Package\Out\Pong(extra: self::PING_IDENTIFIER),
 			worker: $worker,
 		);

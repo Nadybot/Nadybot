@@ -57,7 +57,7 @@ class MassInviteReceiver implements MessageReceiver {
 					if (null === ($uid = $this->chatBot->getUid($name))) {
 						return;
 					}
-					$this->chatBot->aoClient->write(
+					$this->chatBot->sendPackage(
 						package: new Package\Out\PrivateChannelInvite(charId: $uid)
 					);
 				},

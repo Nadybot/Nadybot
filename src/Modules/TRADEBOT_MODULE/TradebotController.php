@@ -123,7 +123,7 @@ class TradebotController extends ModuleInstance {
 		if (null === ($uid = $this->chatBot->getUid($sender))) {
 			return;
 		}
-		$this->chatBot->aoClient->write(
+		$this->chatBot->sendPackage(
 			package: new Package\Out\PrivateChannelJoin(channelId: $uid),
 		);
 		$this->messageHub->registerMessageEmitter(new TradebotChannel($sender . "-*"));
@@ -165,7 +165,7 @@ class TradebotController extends ModuleInstance {
 					if (!isset($uid)) {
 						continue;
 					}
-					$this->chatBot->aoClient->write(
+					$this->chatBot->sendPackage(
 						package: new Package\Out\PrivateChannelLeave(
 							channelId: $uid,
 						)

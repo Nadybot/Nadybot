@@ -864,7 +864,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	/** Immediately kick everyone off the bot's private channel */
 	#[NCA\HandlesCommand("kickall")]
 	public function kickallNowCommand(CmdContext $context, #[NCA\Str("now")] string $action): void {
-		$this->chatBot->aoClient->write(
+		$this->chatBot->sendPackage(
 			package: new Package\Out\PrivateChannelKickAll()
 		);
 	}
@@ -875,7 +875,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$msg = "Everyone will be kicked from this channel in 10 seconds. [by <highlight>{$context->char->name}<end>]";
 		$this->chatBot->sendPrivate($msg);
 		EventLoop::delay(10, function (string $token): void {
-			$this->chatBot->aoClient->write(
+			$this->chatBot->sendPackage(
 				package: new Package\Out\PrivateChannelKickAll()
 			);
 		});
@@ -1553,7 +1553,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (null === ($uid = $this->chatBot->getUid($name))) {
 			return;
 		}
-		$this->chatBot->aoClient->write(
+		$this->chatBot->sendPackage(
 			package: new Package\Out\PrivateChannelKick(charId: $uid)
 		);
 	}
@@ -1564,7 +1564,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		} elseif (null === ($uid = $this->chatBot->getUid($name))) {
 			return;
 		}
-		$this->chatBot->aoClient->write(
+		$this->chatBot->sendPackage(
 			package: new Package\Out\PrivateChannelInvite(charId: $uid)
 		);
 	}

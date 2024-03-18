@@ -32,6 +32,7 @@ class FeedHandler extends ModuleInstance implements EventFeedHandler {
 
 		/** @var SyncEvent */
 		$event = JsonImporter::convert(SyncEvent::class, (object)$data);
+		$this->logger->notice("Converted {event}", ["event" => $event]);
 		foreach ($data as $key => $value) {
 			if (!isset($event->{$key})) {
 				$event->{$key} = $value;

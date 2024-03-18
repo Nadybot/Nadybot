@@ -748,7 +748,7 @@ class BanController extends ModuleInstance {
 						"name" => $char->name,
 					]);
 					$package = new PrivateChannelKick(charId: $char->charid);
-					$this->chatBot->aoClient->write($package);
+					$this->chatBot->sendPackage($package);
 				}
 			}
 		}
@@ -796,7 +796,7 @@ class BanController extends ModuleInstance {
 
 			if ($this->add($charId, $sender, $length, $reason)) {
 				$package = new PrivateChannelKick(charId: $charId);
-				$this->chatBot->aoClient->write($package);
+				$this->chatBot->sendPackage($package);
 				$audit = new Audit();
 				$audit->actor = $sender;
 				$audit->actee = $who;

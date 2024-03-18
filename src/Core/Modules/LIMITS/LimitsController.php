@@ -270,7 +270,7 @@ class LimitsController extends ModuleInstance {
 				]);
 				$sender = $this->chatBot->getUid($event->sender);
 				if (isset($sender)) {
-					$this->chatBot->aoClient->write(
+					$this->chatBot->sendPackage(
 						package: new Package\Out\PrivateChannelKick(charId: $sender)
 					);
 				}

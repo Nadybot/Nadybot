@@ -67,7 +67,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 			return $data;
 		}
 		foreach ($data as $chunk) {
-			$this->chatBot->aoClient->write(
+			$this->chatBot->sendPackage(
 				package: new Package\Out\PrivateChannelMessage(channelId: $uid, message: $chunk)
 			);
 		}
@@ -102,7 +102,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		if (null === ($uid = $this->chatBot->getUid($this->channel))) {
 			return;
 		}
-		$this->chatBot->aoClient->write(
+		$this->chatBot->sendPackage(
 			package: new Package\Out\PrivateChannelJoin(channelId: $uid),
 		);
 	}
@@ -152,7 +152,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 			$this->initCallback = $callback;
 			$this->eventManager->subscribe("extJoinPriv", [$this, "joinedPrivateChannel"]);
 			if (null !== ($uid = $this->chatBot->getUid($this->channel))) {
-				$this->chatBot->aoClient->write(
+				$this->chatBot->sendPackage(
 					package: new Package\Out\PrivateChannelJoin(channelId: $uid),
 				);
 			}

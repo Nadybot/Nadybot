@@ -517,7 +517,7 @@ class EventManager {
 	 * @return bool true if at least one event requests to stop execution
 	 */
 	public function fireEvent(Event $eventObj, mixed ...$args): bool {
-		$this->logger->notice("Event {event} fired", ["event" => $eventObj]);
+		// $this->logger->notice("Event {event} fired", ["event" => $eventObj]);
 		$futures = [];
 		try {
 			foreach ($this->events as $type => $handlers) {
