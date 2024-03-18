@@ -11,7 +11,7 @@ use Nadybot\Modules\COMMENT_MODULE\ReputationController;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-#[NCA\Migration(order: 20210501184404)]
+#[NCA\Migration(order: 20210501184404, shared: true)]
 class MigrateReputationTable implements SchemaMigration {
 	#[NCA\Inject]
 	private ReputationController $reputationController;

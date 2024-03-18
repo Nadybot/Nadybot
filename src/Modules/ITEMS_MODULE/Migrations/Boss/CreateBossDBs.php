@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210426164545)]
+#[NCA\Migration(order: 20210426164545, shared: true)]
 class CreateBossDBs implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$db->schema()->dropIfExists("boss_lootdb");

@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\NOTES_MODULE\OrgNotesController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20220426093429)]
+#[NCA\Migration(order: 20220426093429, shared: true)]
 class CreateOrgNotesTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = OrgNotesController::DB_TABLE;

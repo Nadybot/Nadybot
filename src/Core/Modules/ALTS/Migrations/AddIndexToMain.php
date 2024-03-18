@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20211207060615)]
+#[NCA\Migration(order: 20211207060615, shared: true)]
 class AddIndexToMain implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "alts";

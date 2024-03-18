@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210426160735)]
+#[NCA\Migration(order: 20210426160735, shared: true)]
 class CreateSymbiantProfessionMatrixTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "SymbiantProfessionMatrix";

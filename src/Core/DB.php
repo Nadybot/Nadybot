@@ -4,18 +4,18 @@ namespace Nadybot\Core;
 
 use function Amp\ByteStream\splitLines;
 use function Amp\delay;
-use function Safe\{preg_match, preg_split};
+use function Safe\{class_implements, preg_match, preg_split};
 
 use Amp\File\FilesystemException;
 use DateTime;
 use Exception;
-use GlobIterator;
 use Illuminate\Database\{
 	Capsule\Manager as Capsule,
 	Connection,
 	Schema\Blueprint,
 };
 use Illuminate\Support\Collection;
+use Nadybot\Core\Attributes\Migration as AttributesMigration;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CSV\Reader,
@@ -574,7 +574,7 @@ class DB {
 			return $this->filterAppliedMigrations($module, $migs);
 		})->flatten()
 			->sort(function (CoreMigration $f1, CoreMigration $f2): int {
-				return strcmp($f1->timeStr, $f2->timeStr);
+				return $f1->order <=> $f2->order;
 			});
 		if ($missingMigs->isEmpty()) {
 			return;
@@ -586,7 +586,7 @@ class DB {
 		foreach ($missingMigs as $mig) {
 			try {
 				$this->beginTransaction();
-				$this->applyMigration($mig->module, $mig->filePath);
+				$this->applyMigration($mig);
 				if ($this->inTransaction()) {
 					$this->commit();
 				}
@@ -760,11 +760,7 @@ class DB {
 			return $migrations;
 		}
 
-		/** @var ?NCA\HasMigrations */
 		$migDir = $attrs[0]->newInstance();
-		if (!isset($migDir)) {
-			return new Collection();
-		}
 		$migDir->module ??= is_subclass_of($instance, ModuleInstanceInterface::class) ? $instance->getModuleName() : null;
 		if (!isset($migDir->module)) {
 			return new Collection();
@@ -773,21 +769,35 @@ class DB {
 		if (!is_string($fullFile)) {
 			return new Collection();
 		}
-		$fullDir = dirname($fullFile) . DIRECTORY_SEPARATOR . $migDir->dir;
-		$iter = new GlobIterator("{$fullDir}" . DIRECTORY_SEPARATOR . "*.php");
-		foreach ($iter as $file) {
-			if (is_string($file)) {
+		$fullDir = rtrim(dirname($fullFile) . DIRECTORY_SEPARATOR . $migDir->dir, DIRECTORY_SEPARATOR);
+		foreach (get_declared_classes() as $class) {
+			if (!in_array(SchemaMigration::class, class_implements($class))) {
 				continue;
 			}
-			if (!preg_match("/^(\d+)/", $file->getFilename(), $m1) || !is_array($m1)) {
+			$refClass = new ReflectionClass($class);
+			$fileName = $refClass->getFileName();
+			if ($fileName === false) {
 				continue;
 			}
-			assert(is_string($m1[1]));
+			if (!str_starts_with($fileName, $fullDir . DIRECTORY_SEPARATOR)) {
+				continue;
+			}
+			$migAttr = $refClass->getAttributes(AttributesMigration::class);
+			if (count($migAttr) !== 1) {
+				continue;
+			}
+			$classTokens = explode("\\", $class);
+			$attrMigration = $migAttr[0]->newInstance();
+			$baseName = $attrMigration->order . "_".
+				$classTokens[count($classTokens)-1].
+				($attrMigration->shared ? ".shared" : "");
 			$migrations->push(new CoreMigration(
-				filePath: $file->getPathname(),
-				baseName: $file->getBasename(".php"),
-				timeStr: $m1[1],
+				filePath: $fileName,
+				baseName: $baseName,
+				className: $class,
+				order: $attrMigration->order,
 				module: $migDir->module,
+				shared: $attrMigration->shared,
 			));
 		}
 		return $migrations;
@@ -805,77 +815,34 @@ class DB {
 		});
 	}
 
-	private function applyMigration(string $module, string $file): void {
-		try {
-			$fileAbs = $this->fs->realPath($file);
-		} catch (FilesystemException $e) {
-			$this->logger->error("Cannot get absolute path of {file}: {error}", [
-				"file" => $file,
-				"error" => $e->getMessage(),
-				"exception" => $e,
-			]);
+	private function applyMigration(CoreMigration $mig): void {
+		$table = $this->formatSql($mig->shared ? "migrations" : "migrations_<myname>");
+		$class = $mig->className;
+		$obj = new $class();
+		if (!($obj instanceof SchemaMigration)) {
 			return;
 		}
-		$file = $fileAbs;
-		$baseName = basename($file, '.php');
-		$old = get_declared_classes();
+		Registry::injectDependencies($obj);
 		try {
-			require_once $file;
+			$this->logger->info("Running migration {migration}", [
+				"migration" => $class,
+			]);
+			$obj->migrate($this->logger, $this);
 		} catch (Throwable $e) {
-			$this->logger->error("Cannot parse {file}: {error}", [
-				"file" => $file,
-				"error" => $e->getMessage(),
-				"exception" => $e,
-			]);
+			if (isset(BotRunner::$arguments["migration-errors-fatal"])) {
+				throw $e;
+			}
+			$this->logger->error(
+				"Error executing {$class}::migrate(): " .
+				$e->getMessage(),
+				["exception" => $e]
+			);
 			return;
 		}
-		$classes = get_declared_classes();
-		$new = array_diff($classes, $old);
-		if (empty($new)) {
-			foreach ($classes as $class) {
-				$refClass = new ReflectionClass($class);
-				$fileName = $refClass->getFileName();
-				if ($fileName === $file) {
-					$new[] = $class;
-				}
-			}
-		}
-		if (empty($new)) {
-			$this->logger->error("Migration {file} does not contain any classes", [
-				"file" => $file,
-			]);
-			return;
-		}
-		$table = $this->formatSql(
-			preg_match("/\.shared/", $baseName) ? "migrations" : "migrations_<myname>"
-		);
-		foreach ($new as $class) {
-			if (!is_subclass_of($class, SchemaMigration::class)) {
-				continue;
-			}
-			$obj = new $class();
-			Registry::injectDependencies($obj);
-			try {
-				$this->logger->info("Running migration {migration}", [
-					"migration" => $class,
-				]);
-				$obj->migrate($this->logger, $this);
-			} catch (Throwable $e) {
-				if (isset(BotRunner::$arguments["migration-errors-fatal"])) {
-					throw $e;
-				}
-				$this->logger->error(
-					"Error executing {$class}::migrate(): " .
-					$e->getMessage(),
-					["exception" => $e]
-				);
-				continue;
-			}
-			$this->table($table)->insert([
-				'module' => $module,
-				'migration' => $baseName,
-				'applied_at' => time(),
-			]);
-		}
+		$this->table($table)->insert([
+			'module' => $mig->module,
+			'migration' => $mig->baseName,
+			'applied_at' => time(),
+		]);
 	}
 }

@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-#[NCA\Migration(order: 20210425075243)]
+#[NCA\Migration(order: 20210425075243, shared: true)]
 class CreatePlayersTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = "players";
