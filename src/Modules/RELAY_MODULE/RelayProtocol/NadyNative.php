@@ -238,7 +238,6 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	protected function handleExtSyncEvent(object $event): void {
-		var_dump($event);
 		try {
 			$sEvent = new SyncEvent();
 			foreach (get_object_vars($event) as $key => $value) {
