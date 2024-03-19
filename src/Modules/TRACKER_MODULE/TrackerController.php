@@ -37,7 +37,7 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ORGLIST_MODULE\FindOrgController,
 	ORGLIST_MODULE\Organization,
-	PVP_MODULE\Event\TowerAttack,
+	PVP_MODULE\Event\TowerAttackEvent,
 };
 use Psr\Log\LoggerInterface;
 
@@ -286,7 +286,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "tower-attack",
 		description: "Automatically track tower field attackers"
 	)]
-	public function trackTowerAttacks(TowerAttack $eventObj): void {
+	public function trackTowerAttacks(TowerAttackEvent $eventObj): void {
 		$attacker = $eventObj->attack->attacker;
 		if ($this->accessManager->checkAccess($attacker->name, "member")) {
 			// Don't add members of the bot to the tracker

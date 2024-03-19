@@ -3,8 +3,11 @@
 namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\StringableTrait;
 
 class TowerAttack {
+	use StringableTrait;
+
 	/** @var array<string,string|int|null> */
 	public const EXAMPLE_TOKENS = [
 		// ...Attacker::EXAMPLE_TOKENS,

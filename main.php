@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
 xdebug_start_code_coverage(XDEBUG_CC_UNUSED);
@@ -8,8 +8,8 @@ xdebug_set_filter(
 	[ __DIR__ . DIRECTORY_SEPARATOR . "src" . DIRECTORY_SEPARATOR ]
 );
 */
-if (!@file_exists(__DIR__ . '/vendor/autoload.php')) {
-	fwrite(
+if (!@file_exists(__DIR__ . '/vendor/autoload.php')) { // @phpstan-ignore-line
+	fwrite( // @phpstan-ignore-line
 		STDERR,
 		"Nadybot cannot find the composer modules in 'vendor'.\n".
 		"Please run 'composer install' to install all missing modules\n".

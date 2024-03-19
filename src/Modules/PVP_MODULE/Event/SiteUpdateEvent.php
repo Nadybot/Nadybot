@@ -5,7 +5,7 @@ namespace Nadybot\Modules\PVP_MODULE\Event;
 use Nadybot\Core\Event;
 use Nadybot\Modules\PVP_MODULE\FeedMessage;
 
-class SiteUpdate extends Event {
+class SiteUpdateEvent extends Event {
 	public const EVENT_MASK = "site-update";
 
 	public function __construct(

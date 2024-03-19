@@ -22,11 +22,13 @@ class Reader {
 	public function items(): iterable {
 		$file = $this->filesystem->openFile($this->file, "r");
 		if ($file->eof()) {
+			$file->close();
 			return [];
 		}
 		$iter = new IteratorIterator(splitLines($file));
 		$iter->rewind();
 		if ($iter->valid() === false) {
+			$file->close();
 			return [];
 		}
 		$line = $iter->current();
@@ -36,6 +38,7 @@ class Reader {
 		while ((count($headers) === 1) && is_string($headers[0]) && $headers[0][0] === "#") {
 			$iter->next();
 			if (!$iter->valid()) {
+				$file->close();
 				return [];
 			}
 			$line = $iter->current();
@@ -65,6 +68,7 @@ class Reader {
 			$iter->next();
 		}
 
+		$file->close();
 		return [];
 	}
 }

@@ -5,11 +5,11 @@ namespace Nadybot\Modules\PVP_MODULE\Event;
 use Nadybot\Core\Event;
 use Nadybot\Modules\PVP_MODULE\FeedMessage;
 
-class GasUpdate extends Event {
-	public const EVENT_MASK = "gas-update";
+class TowerAttackEvent extends Event {
+	public const EVENT_MASK = "tower-attack";
 
 	public function __construct(
-		public FeedMessage\GasUpdate $gas
+		public FeedMessage\TowerAttack $attack,
 	) {
 		$this->type = self::EVENT_MASK;
 	}

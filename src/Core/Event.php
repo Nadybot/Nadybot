@@ -2,11 +2,9 @@
 
 namespace Nadybot\Core;
 
-use stdClass;
-
 use Stringable;
 
-abstract class Event extends stdClass implements Stringable {
+abstract class Event implements Stringable {
 	use StringableTrait;
 
 	/** @var string */

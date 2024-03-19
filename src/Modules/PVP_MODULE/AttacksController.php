@@ -12,7 +12,7 @@ use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, MessageHu
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
-use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfo;
+use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfoEvent;
 use Psr\Log\LoggerInterface;
 
 use Throwable;
@@ -556,7 +556,7 @@ class AttacksController extends ModuleInstance {
 	}
 
 	#[NCA\Event("tower-attack-info", "Announce tower attacks")]
-	public function announceTowerAttack(TowerAttackInfo $event): void {
+	public function announceTowerAttack(TowerAttackInfoEvent $event): void {
 		if ($event->site === null) {
 			$this->logger->error("ERROR! Could not find closest site for attack");
 			return;
@@ -607,7 +607,7 @@ class AttacksController extends ModuleInstance {
 	}
 
 	#[NCA\Event("tower-outcome", "Announce tower victories and abandoned sites")]
-	public function announceTowerVictories(Event\TowerOutcome $event): void {
+	public function announceTowerVictories(Event\TowerOutcomeEvent $event): void {
 		$outcome = $event->outcome;
 		$pf = $this->pfCtrl->getPlayfieldById($outcome->playfield_id);
 		$site = $this->nwCtrl->state[$outcome->playfield_id][$outcome->site_id];
@@ -962,7 +962,7 @@ class AttacksController extends ModuleInstance {
 		return "<highlight>{$count} tower " . $this->text->pluralize("site", $count) . "<end>";
 	}
 
-	private function renderAttackInfo(TowerAttackInfo $info, Playfield $pf): string {
+	private function renderAttackInfo(TowerAttackInfoEvent $info, Playfield $pf): string {
 		$attack = $info->attack;
 		$attacker = $attack->attacker;
 		$site = $info->site;

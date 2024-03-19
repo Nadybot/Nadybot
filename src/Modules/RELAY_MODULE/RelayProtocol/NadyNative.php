@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use function Safe\{json_decode, json_encode};
-use Closure;
 use JsonMapper;
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\{
@@ -93,11 +92,10 @@ class NadyNative implements RelayProtocolInterface {
 		try {
 			$data = json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
-			$this->logger->error(
-				'Cannot send event via Nadynative protocol: '.
-				$e->getMessage(),
-				["exception" => $e]
-			);
+			$this->logger->error('Cannot send event via Nadynative protocol: {error}', [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 			return [];
 		}
 		return [$data];
@@ -248,6 +246,7 @@ class NadyNative implements RelayProtocolInterface {
 			]);
 			return;
 		}
+		$this->logger->debug("Received {event}", ["event" => $fullEvent]);
 		if (!$this->relay->allowIncSyncEvent($fullEvent)) {
 			return;
 		}
@@ -317,8 +316,8 @@ class NadyNative implements RelayProtocolInterface {
 			return;
 		}
 		$call = $llEvent->online
-			? Closure::fromCallable([$this->relay, "setOnline"])
-			: Closure::fromCallable([$this->relay, "setOffline"]);
+			? $this->relay->setOnline(...)
+			: $this->relay->setOffline(...);
 		$call($sender, $where, $llEvent->char->name, $llEvent->char->id, $llEvent->char->dimension, $llEvent->main??null);
 	}
 

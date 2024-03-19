@@ -4,10 +4,11 @@ namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
 use function Safe\date;
 use EventSauce\ObjectHydrator\MapFrom;
-
-use Nadybot\Core\Util;
+use Nadybot\Core\{StringableTrait, Util};
 
 class TowerOutcome {
+	use StringableTrait;
+
 	/** @var array<string,int|string|null> */
 	public const EXAMPLE_TOKENS = [
 			"pf-id" => 551,

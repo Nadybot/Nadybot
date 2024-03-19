@@ -2,7 +2,11 @@
 
 namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
+use Nadybot\Core\StringableTrait;
+
 class AttackerOrg {
+	use StringableTrait;
+
 	/** @var array<string,string|int|null> */
 	public const EXAMPLE_TOKENS = [
 		"att-org-name" => "Team Rainbow",

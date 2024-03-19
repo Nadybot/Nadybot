@@ -316,6 +316,7 @@ class Nadybot {
 		EventLoop::unreference($reaper);
 		EventLoop::run();
 		EventLoop::cancel($reaper);
+
 		$this->settingManager::$isInitialized = true;
 
 		// Delete old entries in the DB
@@ -384,9 +385,10 @@ class Nadybot {
 
 	public function sendPackage(Package\Out $package, ?string $worker=null): void {
 		try {
+			$this->logger->notice("Write {package} via {worker}", ["package" => $package, "worker" => $worker]);
 			$this->aoClient->write(package: $package, worker: $worker);
 		} catch (StreamException $e) {
-			$this->logger->critical("{error}", [
+			$this->logger->critical("Whoa: {error}", [
 				"error" => $e->getMessage(),
 				"exception" => $e,
 			]);
@@ -394,6 +396,7 @@ class Nadybot {
 				$this->aoClient->disconnect();
 			} catch (Throwable) {
 			}
+			exit(1);
 		}
 	}
 
@@ -462,6 +465,7 @@ class Nadybot {
 		}
 		async(function (): void {
 			foreach ($this->aoClient->getPackages() as $package) {
+				$this->logger->notice("Read {package}", ["package" => $package]);
 				$this->processPackage($package);
 			}
 		});

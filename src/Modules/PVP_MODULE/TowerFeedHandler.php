@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{Event as CoreEvent, EventFeedHandler, EventManager, ModuleInstance};
@@ -28,10 +27,7 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->eventManager->subscribe(
-			"event-feed-reconnect",
-			Closure::fromCallable([$this, "handleReconnect"])
-		);
+		$this->eventManager->subscribe("event-feed-reconnect", $this->handleReconnect(...));
 	}
 
 	public function handleReconnect(): void {
@@ -49,19 +45,19 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 		$mapping = [
 			FeedMessage\Base::GAS_UPDATE => [
 				FeedMessage\GasUpdate::class,
-				Event\GasUpdate::class,
+				Event\GasUpdateEvent::class,
 			],
 			FeedMessage\Base::SITE_UPDATE => [
 				FeedMessage\SiteUpdate::class,
-				Event\SiteUpdate::class,
+				Event\SiteUpdateEvent::class,
 			],
 			FeedMessage\Base::TOWER_ATTACK => [
 				FeedMessage\TowerAttack::class,
-				Event\TowerAttack::class,
+				Event\TowerAttackEvent::class,
 			],
 			FeedMessage\Base::TOWER_OUTCOME => [
 				FeedMessage\TowerOutcome::class,
-				Event\TowerOutcome::class,
+				Event\TowerOutcomeEvent::class,
 			],
 		];
 		$mapper = new ObjectMapperUsingReflection();
@@ -76,6 +72,7 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 			}
 			$info = $mapper->hydrateObject($specs[0], $data);
 			$event = new ($specs[1])($info);
+			$this->logger->notice("Received tower-feed event {event}", ["event" => $event]);
 			if ($event instanceof CoreEvent) {
 				$this->eventManager->fireEvent($event);
 			}

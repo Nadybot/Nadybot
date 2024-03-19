@@ -3,11 +3,13 @@
 namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
 use function Safe\date;
-use Nadybot\Core\Util;
 
+use Nadybot\Core\{StringableTrait, Util};
 use Nadybot\Modules\PVP_MODULE\Attributes\CastToTiming;
 
 class SiteUpdate {
+	use StringableTrait;
+
 	public const TIMING_DYNAMIC = 0;
 	public const TIMING_US = 1;
 	public const TIMING_EU = 2;

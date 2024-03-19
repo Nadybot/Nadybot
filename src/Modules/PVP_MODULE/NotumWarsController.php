@@ -744,7 +744,7 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	#[NCA\Event("site-update", "Update tower information from the API")]
-	public function updateSiteInfoFromFeed(Event\SiteUpdate $event): void {
+	public function updateSiteInfoFromFeed(Event\SiteUpdateEvent $event): void {
 		$oldSite = $this->state[$event->site->playfield_id][$event->site->site_id] ?? null;
 		$this->updateSiteInfo($event->site);
 		$site = $event->site;
@@ -762,7 +762,7 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	#[NCA\Event("tower-outcome", "Update tower outcomes from the API")]
-	public function updateTowerOutcomeInfoFromFeed(Event\TowerOutcome $event): void {
+	public function updateTowerOutcomeInfoFromFeed(Event\TowerOutcomeEvent $event): void {
 		$dbOutcome = DBOutcome::fromTowerOutcome($event->outcome);
 		$this->db->insert(self::DB_OUTCOMES, $dbOutcome);
 		$this->outcomes = (new Collection([$event->outcome, ...$this->outcomes]))
@@ -771,7 +771,7 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	#[NCA\Event("tower-attack", "Update tower attacks from the API")]
-	public function updateTowerAttackInfoFromFeed(Event\TowerAttack $event): void {
+	public function updateTowerAttackInfoFromFeed(Event\TowerAttackEvent $event): void {
 		$attack = $event->attack;
 		$attacker = $attack->attacker;
 		$this->registerAttack($attack);
@@ -790,7 +790,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$attInfo = DBTowerAttack::fromTowerAttack($attack);
 		$this->db->insert(self::DB_ATTACKS, $attInfo);
-		$infoEvent = new Event\TowerAttackInfo($attack, $site);
+		$infoEvent = new Event\TowerAttackInfoEvent($attack, $site);
 		$this->eventManager->fireEvent($infoEvent);
 		if (isset($player)) {
 			return;
@@ -810,7 +810,7 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	#[NCA\Event("gas-update", "Update gas information from the API")]
-	public function updateGasInfoFromFeed(Event\GasUpdate $event): void {
+	public function updateGasInfoFromFeed(Event\GasUpdateEvent $event): void {
 		$site = $this->state[$event->gas->playfield_id][$event->gas->site_id] ?? null;
 		if (!isset($site)) {
 			return;

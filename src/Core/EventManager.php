@@ -16,12 +16,8 @@ use Nadybot\Core\{
 	Modules\MESSAGES\MessageHubController,
 };
 use Psr\Log\LoggerInterface;
-use ReflectionFunction;
-use ReflectionFunctionAbstract;
 use ReflectionMethod;
-use ReflectionNamedType;
 use Revolt\EventLoop;
-use Throwable;
 
 #[NCA\Instance]
 class EventManager {
@@ -536,11 +532,7 @@ class EventManager {
 					if (!is_object($callback) || !($callback instanceof Closure)) {
 						$callback = Closure::fromCallable($callback);
 					}
-					$refMeth = new ReflectionFunction($callback);
-					$newEventObj = $this->convertSyncEvent($refMeth, $eventObj);
-					if (isset($newEventObj)) {
-						$futures []= async($callback, $newEventObj, ...$args);
-					}
+					$futures []= async($callback, $eventObj, ...$args);
 				}
 			}
 			if (!count($futures)) {
@@ -580,12 +572,14 @@ class EventManager {
 					"event" => $logObj,
 					"class" => $name,
 				]);
+			} elseif (!method_exists($instance, $method)) {
+				$this->logger->error("Could not find method {method} in class {class} for {event}", [
+					"method" => $method,
+					"event" => $logObj,
+					"class" => $name,
+				]);
 			} else {
-				$refMeth = new ReflectionMethod($instance, $method);
-				$eventObj = $this->convertSyncEvent($refMeth, $eventObj);
-				if (isset($eventObj)) {
-					$instance->{$method}($eventObj, ...$args);
-				}
+				$instance->{$method}($eventObj, ...$args);
 			}
 		} catch (StopExecutionException $e) {
 			throw $e;
@@ -621,32 +615,6 @@ class EventManager {
 	 */
 	public function getEventTypes(): array {
 		return $this->eventTypes;
-	}
-
-	protected function convertSyncEvent(ReflectionFunctionAbstract $refMeth, Event $eventObj): ?Event {
-		return $eventObj;
-/*
-		if (get_class($eventObj) !== SyncEvent::class) {
-			return $eventObj;
-		}
-		$params = $refMeth->getParameters();
-		if (!count($params) || ($type = $params[0]->getType()) === null) {
-			return $eventObj;
-		}
-		if (!($type instanceof ReflectionNamedType)) {
-			return $eventObj;
-		}
-		$class = $type->getName();
-		if (!is_subclass_of($class, SyncEvent::class)) {
-			return $eventObj;
-		}
-		try {
-			$typedEvent = $class::fromSyncEvent($eventObj);
-		} catch (Throwable $e) {
-			return null;
-		}
-		return $typedEvent;
-	*/
 	}
 
 	private function startCron(CronEntry $entry): void {

@@ -2,7 +2,11 @@
 
 namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
+use Nadybot\Core\StringableTrait;
+
 class DefenderOrg {
+	use StringableTrait;
+
 	/** @var array<string,int|string|null> */
 	public const EXAMPLE_TOKENS = [
 		"def-org" => "Troet",

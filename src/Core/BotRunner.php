@@ -202,6 +202,7 @@ class BotRunner {
 			$fsDriver = new ParallelFilesystemDriver();
 		}
 		if ($fsDriver instanceof ParallelFilesystemDriver) {
+			// Let's keep this here until the Bugfix release is done
 			$fsDriver = new BlockingFilesystemDriver();
 		}
 
@@ -254,7 +255,7 @@ class BotRunner {
 
 		$this->setErrorHandling($logFolderName);
 		$this->logger = new LoggerWrapper("Core/BotRunner");
-		// self::$fs->setLogger(new LoggerWrapper("Core/Filesystem"));
+		self::$fs->setLogger(new LoggerWrapper("Core/Filesystem"));
 		Registry::injectDependencies($this->logger);
 
 		$this->sendBotBanner();
