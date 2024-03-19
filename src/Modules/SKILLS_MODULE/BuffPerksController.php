@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
+use function Amp\async;
 use function Amp\ByteStream\splitLines;
 use function Safe\{preg_match, preg_split};
 use Illuminate\Support\Collection;
@@ -27,7 +28,6 @@ use Nadybot\Modules\ITEMS_MODULE\{
 };
 use Nadybot\Modules\NANO_MODULE\NanoController;
 use Psr\Log\LoggerInterface;
-use Revolt\EventLoop;
 
 use Throwable;
 
@@ -87,9 +87,7 @@ class BuffPerksController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		EventLoop::defer(function (string $token): void {
-			$this->initPerksDatabase();
-		});
+		async($this->initPerksDatabase(...));
 	}
 
 	/** See which perks are available for your level and profession */

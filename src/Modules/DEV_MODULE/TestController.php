@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use function Amp\async;
 use function Safe\{date, json_decode, json_encode};
 use Amp\File\{FilesystemException};
 use AO\Client\{Basic, WorkerPackage};
@@ -32,7 +33,6 @@ use Nadybot\Core\{
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Psr\Log\LoggerInterface;
-use Revolt\EventLoop;
 
 /**
  * @author Tyrence (RK2)
@@ -111,9 +111,7 @@ class TestController extends ModuleInstance {
 		}
 		$testContext->message = substr($line, 1);
 		$this->commandManager->processCmd($testContext);
-		EventLoop::defer(function (string $token) use ($commands, $context, $logFile): void {
-			$this->runTests($commands, $context, $logFile);
-		});
+		async($this->runTests(...), $commands, $context, $logFile);
 	}
 
 	/** Pretend that &lt;char&gt; joins your org */

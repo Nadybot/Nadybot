@@ -96,9 +96,7 @@ class MgmtInterfaceController extends ModuleInstance {
 			);
 		}
 		$this->stop();
-		EventLoop::defer(function (string $token): void {
-			$this->start();
-		});
+		async($this->start(...));
 	}
 
 	public function start(): void {

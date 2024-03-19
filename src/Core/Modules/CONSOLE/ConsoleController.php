@@ -204,9 +204,7 @@ class ConsoleController extends ModuleInstance {
 		}
 		if ($this->useReadline) {
 			readline_add_history($line);
-			EventLoop::defer(function (string $token): void {
-				$this->saveHistory();
-			});
+			async($this->saveHistory(...));
 			readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
 		}
 

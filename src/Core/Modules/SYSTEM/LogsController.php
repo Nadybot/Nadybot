@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use function Amp\async;
 use function Amp\ByteStream\splitLines;
 use function Safe\preg_match;
 
@@ -37,7 +38,6 @@ use Nadybot\Core\{
 	Text,
 };
 use Psr\Log\LoggerInterface;
-use Revolt\EventLoop;
 use Throwable;
 
 /**
@@ -345,9 +345,7 @@ class LogsController extends ModuleInstance {
 				$logger->popHandler();
 				$logger->popHandler();
 			}
-			EventLoop::defer(function (string $token) use ($context, $debugFile): void {
-				$this->uploadDebugLog($context, $debugFile);
-			});
+			async($this->uploadDebugLog(...), $context, $debugFile);
 		});
 
 		$this->commandManager->processCmd($newContext);
