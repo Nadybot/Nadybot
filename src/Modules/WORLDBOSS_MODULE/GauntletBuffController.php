@@ -360,11 +360,12 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$tokens["c-duration"] = "<highlight>" . $tokens["duration"] . "<end>";
 		$msg = $this->text->renderPlaceholders($this->gauntletSetNotification, $tokens);
 		$context->reply($msg);
-		$event = new SyncGaubuffEvent();
-		$event->expires = $buffEnds;
-		$event->faction = strtolower($faction);
-		$event->sender = $context->char->name;
-		$event->forceSync = $context->forceSync;
+		$event = new SyncGaubuffEvent(
+			expires: $buffEnds,
+			faction: strtolower($faction),
+			sender: $context->char->name,
+			forceSync: $context->forceSync,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 

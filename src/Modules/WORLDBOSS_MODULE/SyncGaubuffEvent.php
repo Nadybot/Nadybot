@@ -7,14 +7,20 @@ use Nadybot\Core\SyncEvent;
 class SyncGaubuffEvent extends SyncEvent {
 	public const EVENT_MASK = "sync(gaubuff)";
 
-	public string $type = "sync(gaubuff)";
-
-	/** UNIX timestamp when the buff expires */
-	public int $expires;
-
-	/** For which faction: neutral, clan or omni */
-	public string $faction;
-
-	/** Name of the person reporting the gauntlet buff */
-	public string $sender;
+	/**
+	 * @param int    $expires UNIX timestamp when the buff expires
+	 * @param string $faction For which faction: neutral, clan or omni
+	 * @param string $sender  Name of the person reporting the gauntlet buff
+	 */
+	public function __construct(
+		public int $expires,
+		public string $faction,
+		public string $sender,
+		?string $sourceBot=null,
+		?int $sourceDimension=null,
+		?bool $forceSync=null,
+	) {
+		$this->type = self::EVENT_MASK;
+		parent::__construct($sourceBot, $sourceDimension, $forceSync);
+	}
 }

@@ -76,10 +76,11 @@ class CountdownController extends ModuleInstance {
 			$callback = $this->getDmCallback();
 		}
 		$this->startCountdown($callback, $message);
-		$sEvent = new SyncCdEvent();
-		$sEvent->owner = $context->char->name;
-		$sEvent->message = $message;
-		$sEvent->forceSync = $context->forceSync;
+		$sEvent = new SyncCdEvent(
+			owner: $context->char->name,
+			message: $message,
+			forceSync: $context->forceSync,
+		);
 		$this->eventManager->fireEvent($sEvent);
 	}
 

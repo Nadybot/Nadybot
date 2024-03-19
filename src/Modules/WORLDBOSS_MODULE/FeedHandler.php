@@ -4,9 +4,9 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use Exception;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{Config\BotConfig, EventFeedHandler, EventManager, ModuleInstance, SyncEvent};
-use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
+use Nadybot\Core\{Config\BotConfig, EventFeedHandler, EventManager, ModuleInstance, SyncEventFactory};
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 #[
 	NCA\Instance,
@@ -30,14 +30,17 @@ class FeedHandler extends ModuleInstance implements EventFeedHandler {
 		$data['sourceBot'] ??= "_Nadybot";
 		$data['forceSync'] ??= false;
 
-		/** @var SyncEvent */
-		$event = JsonImporter::convert(SyncEvent::class, (object)$data);
-		$this->logger->notice("Converted {event}", ["event" => $event]);
-		foreach ($data as $key => $value) {
-			if (!isset($event->{$key})) {
-				$event->{$key} = $value;
-			}
+		try {
+			$event = SyncEventFactory::create($data);
+		} catch (Throwable $e) {
+			$this->logger->error("Error decoding {data}: {error}", [
+				"data" => $data,
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+			return;
 		}
+		$this->logger->notice("Converted {event}", ["event" => $event]);
 		if ($event->sourceDimension !== $this->config->main->dimension) {
 			$this->logger->info("Event is for a different dimension");
 			return;

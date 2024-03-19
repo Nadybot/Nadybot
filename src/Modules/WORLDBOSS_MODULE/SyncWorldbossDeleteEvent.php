@@ -7,11 +7,18 @@ use Nadybot\Core\SyncEvent;
 class SyncWorldbossDeleteEvent extends SyncEvent {
 	public const EVENT_MASK = "sync(worldboss-delete)";
 
-	public string $type = "sync(worldboss-delete)";
-
-	/** For which worldboss: tara, reaper, loren, gauntlet */
-	public string $boss;
-
-	/** Name of the person reporting the gauntlet buff */
-	public string $sender;
+	/**
+	 * @param string $boss   For which worldboss: tara, reaper, loren, gauntlet
+	 * @param string $sender Name of the person reporting the deletion
+	 */
+	public function __construct(
+		public string $boss,
+		public string $sender,
+		?string $sourceBot=null,
+		?int $sourceDimension=null,
+		?bool $forceSync=null,
+	) {
+		$this->type = self::EVENT_MASK;
+		parent::__construct($sourceBot, $sourceDimension, $forceSync);
+	}
 }

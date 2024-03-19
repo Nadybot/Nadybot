@@ -7,22 +7,26 @@ use Nadybot\Core\SyncEvent;
 class SyncBanEvent extends SyncEvent {
 	public const EVENT_MASK = "sync(ban)";
 
-	public string $type = "sync(ban)";
-
-	/** uid of the banned person */
-	public int $uid;
-
-	/** name of the banned person */
-	public string $name;
-
-	/** Name of the person who banned $uid */
-	public string $banned_by;
-
-	/** Reason why $uid was banned */
-	public ?string $reason = null;
-
-	/** Unix timestamp when the ban ends, or null/0 if never */
-	public ?int $banned_until = null;
+	/**
+	 * @param int     $uid          uid of the banned person
+	 * @param string  $name         name of the banned person
+	 * @param string  $banned_by    Name of the person who banned $uid
+	 * @param ?string $reason       Reason why $uid was banned
+	 * @param ?int    $banned_until Unix timestamp when the ban ends, or null/0 if never
+	 */
+	public function __construct(
+		public int $uid,
+		public string $name,
+		public string $banned_by,
+		public ?string $reason=null,
+		public ?int $banned_until=null,
+		?string $sourceBot=null,
+		?int $sourceDimension=null,
+		?bool $forceSync=null,
+	) {
+		$this->type = self::EVENT_MASK;
+		parent::__construct($sourceBot, $sourceDimension, $forceSync);
+	}
 
 	/**
 	 * @return array<string,int|string|null>

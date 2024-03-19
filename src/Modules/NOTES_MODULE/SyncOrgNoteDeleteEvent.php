@@ -7,8 +7,14 @@ use Nadybot\Core\SyncEvent;
 class SyncOrgNoteDeleteEvent extends SyncEvent {
 	public const EVENT_MASK = "sync(orgnote-delete)";
 
-	public string $type = "sync(orgnote-delete)";
-
-	/** UUID of this note */
-	public string $uuid;
+	/** @param string $uuid UUID of this note */
+	public function __construct(
+		public string $uuid,
+		?string $sourceBot=null,
+		?int $sourceDimension=null,
+		?bool $forceSync=null,
+	) {
+		$this->type = self::EVENT_MASK;
+		parent::__construct($sourceBot, $sourceDimension, $forceSync);
+	}
 }

@@ -7,30 +7,35 @@ use Nadybot\Core\SyncEvent;
 class SyncNewsEvent extends SyncEvent {
 	public const EVENT_MASK = "sync(news)";
 
-	public string $type = "sync(news)";
-
-	/** Unix timestamp when this was created */
-	public int $time;
-
-	/** Name of the character who created the entry */
-	public string $name;
-
-	/** Text of these news */
-	public string $news;
-
-	/** UUID of these news */
-	public string $uuid;
-
-	/** Set to true if this is pinned above all unpinned news */
-	public bool $sticky;
+	/**
+	 * @param int    $time   Unix timestamp when this was created
+	 * @param string $name   Name of the character who created the entry
+	 * @param string $news   Text of these news
+	 * @param string $uuid   UUID of these news
+	 * @param bool   $sticky Set to true if this is pinned above all unpinned news
+	 */
+	public function __construct(
+		public int $time,
+		public string $name,
+		public string $news,
+		public string $uuid,
+		public bool $sticky,
+		?string $sourceBot=null,
+		?int $sourceDimension=null,
+		?bool $forceSync=null,
+	) {
+		$this->type = self::EVENT_MASK;
+		parent::__construct($sourceBot, $sourceDimension, $forceSync);
+	}
 
 	public static function fromNews(News $news): self {
-		$event = new self();
-		$syncAttribs = ["time", "name", "news", "uuid", "sticky"];
-		foreach ($syncAttribs as $attrib) {
-			$event->{$attrib} = $news->{$attrib} ?? null;
-		}
-		return $event;
+		return new self(
+			time: $news->time,
+			name: $news->name,
+			news: $news->news,
+			uuid: $news->uuid,
+			sticky: $news->sticky,
+		);
 	}
 
 	/**

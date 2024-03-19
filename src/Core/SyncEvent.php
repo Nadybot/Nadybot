@@ -4,22 +4,23 @@ namespace Nadybot\Core;
 
 use Nadybot\Core\Config\BotConfig;
 
-class SyncEvent extends Event {
+abstract class SyncEvent extends Event {
 	public const EVENT_MASK = "sync(*)";
 
 	public string $sourceBot;
 	public int $sourceDimension;
 	public bool $forceSync = false;
 
-	final public function __construct() {
-	}
-
-	public static function fromSyncEvent(SyncEvent $event): self {
-		$obj = new static();
-		foreach (get_object_vars($event) as $key => $value) {
-			$obj->{$key} = $value;
-		}
-		return $obj;
+	public function __construct(
+		?string $sourceBot=null,
+		?int $sourceDimension=null,
+		?bool $forceSync=null,
+	) {
+		/** @var BotConfig */
+		$config = Registry::getInstance(BotConfig::class);
+		$this->sourceBot = $sourceBot ?? $config->main->character;
+		$this->sourceDimension = $sourceDimension ?? $config->main->dimension;
+		$this->forceSync = $forceSync ?? false;
 	}
 
 	public function isLocal(): bool {

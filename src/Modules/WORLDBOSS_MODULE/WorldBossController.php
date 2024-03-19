@@ -1052,19 +1052,21 @@ class WorldBossController extends ModuleInstance {
 	}
 
 	protected function sendSyncEvent(string $sender, string $mobName, int $immortal, bool $forceSync): void {
-		$event = new SyncWorldbossEvent();
-		$event->boss = static::BOSS_MAP[$mobName];
-		$event->vulnerable = $immortal;
-		$event->sender = $sender;
-		$event->forceSync = $forceSync;
+		$event = new SyncWorldbossEvent(
+			boss: static::BOSS_MAP[$mobName],
+			vulnerable: $immortal,
+			sender: $sender,
+			forceSync: $forceSync,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 
 	protected function sendSyncDeleteEvent(string $sender, string $mobName, bool $forceSync): void {
-		$event = new SyncWorldbossDeleteEvent();
-		$event->boss = static::BOSS_MAP[$mobName];
-		$event->sender = $sender;
-		$event->forceSync = $forceSync;
+		$event = new SyncWorldbossDeleteEvent(
+			boss: static::BOSS_MAP[$mobName],
+			sender: $sender,
+			forceSync: $forceSync,
+		);
 		$this->eventManager->fireEvent($event);
 	}
 

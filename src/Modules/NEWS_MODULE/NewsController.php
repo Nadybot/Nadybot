@@ -289,13 +289,14 @@ class NewsController extends ModuleInstance {
 		$this->db->table("news")
 			->insert($entry);
 		$msg = "News has been added successfully.";
-		$event = new SyncNewsEvent();
-		$event->time = $entry["time"];
-		$event->name = $entry["name"];
-		$event->news = $entry["news"];
-		$event->uuid = $entry["uuid"];
-		$event->sticky = (bool)$entry["sticky"];
-		$event->forceSync = $context->forceSync;
+		$event = new SyncNewsEvent(
+			time: $entry["time"],
+			name: $entry["name"],
+			news: $entry["news"],
+			uuid: $entry["uuid"],
+			sticky: (bool)$entry["sticky"],
+			forceSync: $context->forceSync,
+		);
 		$this->eventManager->fireEvent($event);
 
 		$context->reply($msg);
@@ -316,9 +317,10 @@ class NewsController extends ModuleInstance {
 				->where("id", $id)
 				->update(["deleted" => 1]);
 			$msg = "News entry <highlight>{$id}<end> was deleted successfully.";
-			$event = new SyncNewsDeleteEvent();
-			$event->uuid = $row->uuid;
-			$event->forceSync = $context->forceSync;
+			$event = new SyncNewsDeleteEvent(
+				uuid: $row->uuid,
+				forceSync: $context->forceSync,
+			);
 			$this->eventManager->fireEvent($event);
 		}
 
@@ -344,13 +346,14 @@ class NewsController extends ModuleInstance {
 				->where("id", $id)
 				->update(["sticky" => 1]);
 			$msg = "News ID {$id} successfully pinned.";
-			$event = new SyncNewsEvent();
-			$event->time = $row->time;
-			$event->name = $row->name;
-			$event->news = $row->news;
-			$event->uuid = $row->uuid;
-			$event->sticky = true;
-			$event->forceSync = $context->forceSync;
+			$event = new SyncNewsEvent(
+				time: $row->time,
+				name: $row->name,
+				news: $row->news,
+				uuid: $row->uuid,
+				sticky: true,
+				forceSync: $context->forceSync,
+			);
 			$this->eventManager->fireEvent($event);
 		}
 		$context->reply($msg);
@@ -375,13 +378,14 @@ class NewsController extends ModuleInstance {
 				->where("id", $id)
 				->update(["sticky" => 0]);
 			$msg = "News ID {$id} successfully unpinned.";
-			$event = new SyncNewsEvent();
-			$event->time = $row->time;
-			$event->name = $row->name;
-			$event->news = $row->news;
-			$event->uuid = $row->uuid;
-			$event->sticky = false;
-			$event->forceSync = $context->forceSync;
+			$event = new SyncNewsEvent(
+				time: $row->time,
+				name: $row->name,
+				news: $row->news,
+				uuid: $row->uuid,
+				sticky: false,
+				forceSync: $context->forceSync,
+			);
 			$this->eventManager->fireEvent($event);
 		}
 		$context->reply($msg);
@@ -460,12 +464,13 @@ class NewsController extends ModuleInstance {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		if ($this->db->insert("news", $decoded)) {
-			$event = new SyncNewsEvent();
-			$event->time = $decoded->time;
-			$event->name = $decoded->name;
-			$event->news = $decoded->news;
-			$event->uuid = $decoded->uuid;
-			$event->sticky = $decoded->sticky;
+			$event = new SyncNewsEvent(
+				time: $decoded->time,
+				name: $decoded->name,
+				news: $decoded->news,
+				uuid: $decoded->uuid,
+				sticky: $decoded->sticky,
+			);
 			$this->eventManager->fireEvent($event);
 			return new Response(status: HttpStatus::NO_CONTENT);
 		}
@@ -506,12 +511,13 @@ class NewsController extends ModuleInstance {
 			}
 		}
 		if (!$this->db->update("news", "id", $decoded)) {
-			$event = new SyncNewsEvent();
-			$event->time = $decoded->time;
-			$event->name = $decoded->name;
-			$event->news = $decoded->news;
-			$event->uuid = $result->uuid;
-			$event->sticky = $decoded->sticky;
+			$event = new SyncNewsEvent(
+				time: $decoded->time,
+				name: $decoded->name,
+				news: $decoded->news,
+				uuid: $result->uuid,
+				sticky: $decoded->sticky,
+			);
 			$this->eventManager->fireEvent($event);
 			return new Response(status: HttpStatus::INTERNAL_SERVER_ERROR);
 		}

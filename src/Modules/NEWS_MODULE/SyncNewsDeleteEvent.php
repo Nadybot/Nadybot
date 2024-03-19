@@ -7,8 +7,14 @@ use Nadybot\Core\SyncEvent;
 class SyncNewsDeleteEvent extends SyncEvent {
 	public const EVENT_MASK = "sync(news-delete)";
 
-	public string $type = "sync(news-delete)";
-
-	/** UUID of these news */
-	public string $uuid;
+	/** @param string $uuid UUID of these news */
+	public function __construct(
+		public string $uuid,
+		?string $sourceBot=null,
+		?int $sourceDimension=null,
+		?bool $forceSync=null,
+	) {
+		$this->type = self::EVENT_MASK;
+		parent::__construct($sourceBot, $sourceDimension, $forceSync);
+	}
 }

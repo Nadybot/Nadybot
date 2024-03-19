@@ -87,9 +87,10 @@ class ChatRallyController extends ModuleInstance {
 		$this->clear();
 		$msg = "Rally has been cleared.";
 		$context->reply($msg);
-		$rEvent = new SyncRallyClearEvent();
-		$rEvent->owner = $context->char->name;
-		$rEvent->forceSync = $context->forceSync;
+		$rEvent = new SyncRallyClearEvent(
+			owner: $context->char->name,
+			forceSync: $context->forceSync,
+		);
 		$this->eventManager->fireEvent($rEvent);
 	}
 
@@ -133,13 +134,14 @@ class ChatRallyController extends ModuleInstance {
 		}
 		$this->set($playfieldName, $playfieldId, (string)$xCoords, (string)$yCoords);
 		$this->replyCurrentRally($context);
-		$rEvent = new SyncRallySetEvent();
-		$rEvent->x = (int)round($xCoords);
-		$rEvent->y = (int)round($yCoords);
-		$rEvent->pf = $playfieldId;
-		$rEvent->owner = $context->char->name;
-		$rEvent->name = $playfieldName;
-		$rEvent->forceSync = $context->forceSync;
+		$rEvent = new SyncRallySetEvent(
+			x: (int)round($xCoords),
+			y: (int)round($yCoords),
+			pf: $playfieldId,
+			owner: $context->char->name,
+			name: $playfieldName,
+			forceSync: $context->forceSync,
+		);
 		$this->eventManager->fireEvent($rEvent);
 	}
 
@@ -169,13 +171,14 @@ class ChatRallyController extends ModuleInstance {
 		$this->set($name, $playfieldId, $xCoords, $yCoords);
 		$this->replyCurrentRally($context);
 
-		$rEvent = new SyncRallySetEvent();
-		$rEvent->x = (int)round((float)$xCoords);
-		$rEvent->y = (int)round((float)$yCoords);
-		$rEvent->pf = $playfieldId;
-		$rEvent->name = $name;
-		$rEvent->owner = $context->char->name;
-		$rEvent->forceSync = $context->forceSync;
+		$rEvent = new SyncRallySetEvent(
+			x: (int)round((float)$xCoords),
+			y: (int)round((float)$yCoords),
+			pf: $playfieldId,
+			name: $name,
+			owner: $context->char->name,
+			forceSync: $context->forceSync,
+		);
 		$this->eventManager->fireEvent($rEvent);
 	}
 
@@ -191,7 +194,7 @@ class ChatRallyController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "sync(rally-clear)",
+		name: SyncRallyClearEvent::EVENT_MASK,
 		description: "Handle synced rally clears"
 	)]
 	public function handleExtRallyClear(SyncRallyClearEvent $event): void {

@@ -350,11 +350,12 @@ class BanController extends ModuleInstance {
 				continue;
 			}
 			$this->remove($charId);
-			$event = new SyncBanDeleteEvent();
-			$event->uid = $charId;
-			$event->name = $charName;
-			$event->unbanned_by = $context->char->name;
-			$event->forceSync = $context->forceSync;
+			$event = new SyncBanDeleteEvent(
+				uid: $charId,
+				name: $charName,
+				unbanned_by: $context->char->name,
+				forceSync: $context->forceSync,
+			);
 			$this->eventManager->fireEvent($event);
 		}
 
@@ -382,11 +383,12 @@ class BanController extends ModuleInstance {
 
 		$this->remove($charId);
 
-		$event = new SyncBanDeleteEvent();
-		$event->uid = $charId;
-		$event->name = $who;
-		$event->unbanned_by = $context->char->name;
-		$event->forceSync = $context->forceSync;
+		$event = new SyncBanDeleteEvent(
+			uid: $charId,
+			name: $who,
+			unbanned_by: $context->char->name,
+			forceSync: $context->forceSync,
+		);
 		$this->eventManager->fireEvent($event);
 
 		$context->reply("You have unbanned <highlight>{$who}<end> from this bot.");
@@ -702,7 +704,7 @@ class BanController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "sync(ban)",
+		name: SyncBanEvent::EVENT_MASK,
 		description: "Sync external bans"
 	)]
 	public function processBanSyncEvent(SyncBanEvent $event): void {
@@ -713,7 +715,7 @@ class BanController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "sync(ban-delete)",
+		name: SyncBanDeleteEvent::EVENT_MASK,
 		description: "Sync external ban lifts"
 	)]
 	public function processBanDeleteSyncEvent(SyncBanDeleteEvent $event): void {
@@ -805,13 +807,14 @@ class BanController extends ModuleInstance {
 				$this->accessManager->addAudit($audit);
 				$numSuccess++;
 
-				$event = new SyncBanEvent();
-				$event->uid = $charId;
-				$event->name = $who;
-				$event->banned_by = $sender;
-				$event->banned_until = $length;
-				$event->reason = $reason;
-				$event->forceSync = $context->forceSync;
+				$event = new SyncBanEvent(
+					uid: $charId,
+					name: $who,
+					banned_by: $sender,
+					banned_until: $length,
+					reason: $reason,
+					forceSync: $context->forceSync,
+				);
 				$this->eventManager->fireEvent($event);
 				async($this->playerManager->byName(...), $who)->ignore();
 			} else {

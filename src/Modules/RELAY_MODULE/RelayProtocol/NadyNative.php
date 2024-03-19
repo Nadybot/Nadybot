@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	SettingManager,
 	SyncEvent,
+	SyncEventFactory,
 };
 use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Nadybot\RelayCharacter;
 use Nadybot\Modules\{
@@ -191,7 +192,7 @@ class NadyNative implements RelayProtocolInterface {
 
 	public function init(callable $callback): array {
 		$callback();
-		$this->eventManager->subscribe("sync(*)", [$this, "handleSyncEvent"]);
+		$this->eventManager->subscribe("sync(*)", $this->handleSyncEvent(...));
 		if ($this->syncOnline) {
 			return [
 				$this->jsonEncode($this->getOnlineList()),
@@ -202,7 +203,7 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	public function deinit(callable $callback): array {
-		$this->eventManager->unsubscribe("sync(*)", [$this, "handleSyncEvent"]);
+		$this->eventManager->unsubscribe("sync(*)", $this->handleSyncEvent(...));
 		$callback();
 		return [];
 	}
@@ -239,21 +240,18 @@ class NadyNative implements RelayProtocolInterface {
 
 	protected function handleExtSyncEvent(object $event): void {
 		try {
-			$sEvent = new SyncEvent();
-			foreach (get_object_vars($event) as $key => $value) {
-				$sEvent->{$key} = $value;
-			}
-			if ($sEvent->isLocal()) {
-				return;
-			}
+			$fullEvent = SyncEventFactory::create($event);
 		} catch (Throwable $e) {
-			$this->logger->error("Invalid sync-event received: " . $e->getMessage(), ["exception" => $e]);
+			$this->logger->error("Invalid sync-event received: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 			return;
 		}
-		if (!$this->relay->allowIncSyncEvent($sEvent)) {
+		if (!$this->relay->allowIncSyncEvent($fullEvent)) {
 			return;
 		}
-		$this->eventManager->fireEvent($sEvent);
+		$this->eventManager->fireEvent($fullEvent);
 	}
 
 	protected function sendOnlineList(): void {

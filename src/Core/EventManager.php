@@ -624,6 +624,8 @@ class EventManager {
 	}
 
 	protected function convertSyncEvent(ReflectionFunctionAbstract $refMeth, Event $eventObj): ?Event {
+		return $eventObj;
+/*
 		if (get_class($eventObj) !== SyncEvent::class) {
 			return $eventObj;
 		}
@@ -644,6 +646,7 @@ class EventManager {
 			return null;
 		}
 		return $typedEvent;
+	*/
 	}
 
 	private function startCron(CronEntry $entry): void {

@@ -7,27 +7,32 @@ use Nadybot\Core\SyncEvent;
 class SyncOrgNoteEvent extends SyncEvent {
 	public const EVENT_MASK = "sync(orgnote)";
 
-	public string $type = "sync(orgnote)";
-
-	/** Unix timestamp when this was created */
-	public int $time;
-
-	/** Name of the character who created the entry */
-	public string $name;
-
-	/** Text of these note */
-	public string $note;
-
-	/** UUID of this note */
-	public string $uuid;
+	/**
+	 * @param int    $time Unix timestamp when this was created
+	 * @param string $name Name of the character who created the entry
+	 * @param string $note Text of this note
+	 * @param string $uuid UUID of this note
+	 */
+	public function __construct(
+		public int $time,
+		public string $name,
+		public string $note,
+		public string $uuid,
+		?string $sourceBot=null,
+		?int $sourceDimension=null,
+		?bool $forceSync=null,
+	) {
+		$this->type = self::EVENT_MASK;
+		parent::__construct($sourceBot, $sourceDimension, $forceSync);
+	}
 
 	public static function fromOrgNote(OrgNote $note): self {
-		$event = new self();
-		$event->time = $note->added_on;
-		$event->name = $note->added_by;
-		$event->note = $note->note;
-		$event->uuid = $note->uuid;
-		return $event;
+		return new self(
+			time: $note->added_on,
+			name: $note->added_by,
+			note: $note->note,
+			uuid: $note->uuid,
+		);
 	}
 
 	public function toOrgNote(): OrgNote {

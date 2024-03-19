@@ -308,13 +308,14 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 
 		$context->reply($msg);
 
-		$sTimer = new SyncTimerEvent();
-		$sTimer->name = $name;
-		$sTimer->endtime = $endTime;
-		$sTimer->settime = time();
-		$sTimer->interval = $runTime;
-		$sTimer->owner = $context->char->name;
-		$sTimer->forceSync = $context->forceSync;
+		$sTimer = new SyncTimerEvent(
+			name: $name,
+			endtime: $endTime,
+			settime: time(),
+			interval: $runTime,
+			owner: $context->char->name,
+			forceSync: $context->forceSync,
+		);
 		$this->eventManager->fireEvent($sTimer);
 	}
 
@@ -384,13 +385,14 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$msg = $this->addTimer($context->char->name, $name, $runTime, $alertChannel, null, $origin);
 		$sendto->reply($msg);
 		if (preg_match("/has been set for/", $msg)) {
-			$sTimer = new SyncTimerEvent();
-			$sTimer->name = $name;
-			$sTimer->endtime = time() + $runTime;
-			$sTimer->settime = time();
-			$sTimer->interval = null;
-			$sTimer->owner = $context->char->name;
-			$sTimer->forceSync = $context->forceSync;
+			$sTimer = new SyncTimerEvent(
+				name: $name,
+				endtime: time() + $runTime,
+				settime: time(),
+				interval: null,
+				owner: $context->char->name,
+				forceSync: $context->forceSync,
+			);
 			$this->eventManager->fireEvent($sTimer);
 		}
 	}

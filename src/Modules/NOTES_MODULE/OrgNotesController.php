@@ -100,9 +100,10 @@ class OrgNotesController extends ModuleInstance {
 		if (!$success) {
 			return false;
 		}
-		$event = new SyncOrgNoteDeleteEvent();
-		$event->forceSync = $forceSync;
-		$event->uuid = $note->uuid;
+		$event = new SyncOrgNoteDeleteEvent(
+			uuid: $note->uuid,
+			forceSync: $forceSync,
+		);
 		$this->eventManager->fireEvent($event);
 		return true;
 	}
