@@ -5,6 +5,8 @@ namespace Nadybot\Modules\NOTES_MODULE;
 use Nadybot\Core\SyncEvent;
 
 class SyncOrgNoteEvent extends SyncEvent {
+	public const EVENT_MASK = "sync(orgnote)";
+
 	public string $type = "sync(orgnote)";
 
 	/** Unix timestamp when this was created */

@@ -450,57 +450,22 @@ class Nadybot {
 
 	/** The main endless-loop of the bot */
 	public function run(): void {
-		$this->aoClient->onReady(function (): void {
-			$this->ready = true;
-			$this->eventManager->executeConnectEvents();
-			var_dump(SyncEventFactory::create(new \stdClass()));
-		});
+		$this->aoClient->onReady($this->onReady(...));
 		$this->eventFeed->mainLoop();
-		EventLoop::setErrorHandler(function (Throwable $e): void {
-			if ($e instanceof StopExecutionException) {
-				return;
-			}
-			$this->logger->error($e->getMessage(), ["exception" => $e]);
-		});
+		EventLoop::setErrorHandler($this->errorHandler(...));
 
-		$signalHandler = function (): void {
-			$this->logger->notice('Shutdown requested.');
-			$this->shuttingDown = true;
-			foreach (EventLoop::getIdentifiers() as $identifier) {
-				try {
-					EventLoop::disable($identifier);
-				} catch (Throwable $e) {
-				}
-			}
-		};
 		if (function_exists('sapi_windows_set_ctrl_handler')) {
-			sapi_windows_set_ctrl_handler($signalHandler, true);
+			sapi_windows_set_ctrl_handler($this->signalHandler(...), true);
 		} else {
-			EventLoop::onSignal(SIGTERM, $signalHandler);
-			EventLoop::onSignal(SIGINT, $signalHandler);
+			EventLoop::onSignal(SIGTERM, $this->signalHandler(...));
+			EventLoop::onSignal(SIGINT, $this->signalHandler(...));
 		}
 		async(function (): void {
 			foreach ($this->aoClient->getPackages() as $package) {
 				$this->processPackage($package);
 			}
 		});
-		EventLoop::repeat(
-			1,
-			function (): void {
-				$packageTimes = $this->aoClient->getLastPackageReceived();
-				$pongTimes = $this->aoClient->getLastPongSent();
-				foreach ($packageTimes as $worker => $time) {
-					if (microtime(true) - $time < 60) {
-						continue;
-					}
-					if (microtime(true) - ($pongTimes[$worker]??0) < 60) {
-						continue;
-					}
-					$this->logger->info("Sending pong on {worker}", ["worker" => $worker]);
-					$this->sendPong($worker);
-				}
-			}
-		);
+		EventLoop::repeat(1, $this->sendPings(...));
 		EventLoop::run();
 		$this->logger->notice('Graceful shutdown.');
 	}
@@ -1637,6 +1602,47 @@ class Nadybot {
 		}
 
 		$this->logger->notice($line);
+	}
+
+	private function errorHandler(Throwable $e): void {
+		if ($e instanceof StopExecutionException) {
+			return;
+		}
+		$this->logger->error("{error}", [
+			"error" => $e->getMessage(),
+			"exception" => $e,
+		]);
+	}
+
+	private function signalHandler(): void {
+		$this->logger->notice('Shutdown requested.');
+		$this->shuttingDown = true;
+		foreach (EventLoop::getIdentifiers() as $identifier) {
+			try {
+				EventLoop::disable($identifier);
+			} catch (Throwable $e) {
+			}
+		}
+	}
+
+	private function sendPings(): void {
+		$packageTimes = $this->aoClient->getLastPackageReceived();
+		$pongTimes = $this->aoClient->getLastPongSent();
+		foreach ($packageTimes as $worker => $time) {
+			if (microtime(true) - $time < 60) {
+				continue;
+			}
+			if (microtime(true) - ($pongTimes[$worker]??0) < 60) {
+				continue;
+			}
+			$this->logger->info("Sending pong on {worker}", ["worker" => $worker]);
+			$this->sendPong($worker);
+		}
+	}
+
+	private function onReady(): void {
+		$this->ready = true;
+		$this->eventManager->executeConnectEvents();
 	}
 
 	private function processSystemMessage(WorkerPackage $package): void {

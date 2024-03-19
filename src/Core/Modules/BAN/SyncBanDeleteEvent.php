@@ -5,6 +5,8 @@ namespace Nadybot\Core\Modules\BAN;
 use Nadybot\Core\SyncEvent;
 
 class SyncBanDeleteEvent extends SyncEvent {
+	public const EVENT_MASK = "sync(ban-delete)";
+
 	public string $type = "sync(ban-delete)";
 
 	/** uid of the banned person */

@@ -5,6 +5,8 @@ namespace Nadybot\Modules\TIMERS_MODULE;
 use Nadybot\Core\SyncEvent;
 
 class SyncCdEvent extends SyncEvent {
+	public const EVENT_MASK = "sync(cd)";
+
 	public string $type = "sync(cd)";
 
 	/** Character who started the countdown */

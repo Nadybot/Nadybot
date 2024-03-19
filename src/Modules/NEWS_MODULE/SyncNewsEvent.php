@@ -5,6 +5,8 @@ namespace Nadybot\Modules\NEWS_MODULE;
 use Nadybot\Core\SyncEvent;
 
 class SyncNewsEvent extends SyncEvent {
+	public const EVENT_MASK = "sync(news)";
+
 	public string $type = "sync(news)";
 
 	/** Unix timestamp when this was created */

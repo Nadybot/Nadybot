@@ -5,6 +5,8 @@ namespace Nadybot\Modules\TIMERS_MODULE;
 use Nadybot\Core\SyncEvent;
 
 class SyncTimerEvent extends SyncEvent {
+	public const EVENT_MASK = "sync(timer)";
+
 	public string $type = "sync(timer)";
 
 	/** Name of the timer */
