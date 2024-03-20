@@ -26,7 +26,7 @@ class QueryBuilder extends Builder {
 	private LoggerInterface $logger;
 
 	/**
-	 * @template T
+	 * @template T of object
 	 *
 	 * @param class-string<T> $class
 	 *
@@ -170,10 +170,18 @@ class QueryBuilder extends Builder {
 		return null;
 	}
 
-	/** @param array<int,null|string> $values */
+	/**
+	 * @param array<int,null|string> $values
+	 *
+	 * @template T of object
+	 *
+	 * @param class-string<T> $className
+	 *
+	 * @return T
+	 */
 	protected function convertToClass(PDOStatement $ps, string $className, array $values): object {
-		$row = new $className();
-		$refClass = new ReflectionClass($row);
+		$row = [];
+		$refClass = new ReflectionClass($className);
 		$numColumns = count($values);
 		for ($col=0; $col < $numColumns; $col++) {
 			$colMeta = $ps->getColumnMeta($col);
@@ -194,10 +202,10 @@ class QueryBuilder extends Builder {
 					$refProp = $refClass->getProperty($colName);
 					$refType = $refProp->getType();
 					if (isset($refType) && $refType->allowsNull()) {
-						$row->{$colName} = null;
+						$row[$colName] = null;
 					}
 				} catch (ReflectionException $e) {
-					$row->{$colName} = null;
+					$row[$colName] = null;
 				} catch (Throwable $e) {
 					$this->logger->error(
 						"Error trying to get the meta information for {className}, column {colNum}: {error}",
@@ -228,19 +236,19 @@ class QueryBuilder extends Builder {
 					foreach ($readMap as $mapper) {
 						/** @var NCA\DB\MapRead */
 						$mapper = $mapper->newInstance();
-						$row->{$colName} = $mapper->map($values[$col]);
+						$row[$colName] = $mapper->map($values[$col]);
 					}
 				} else {
 					if ($type === "bool") {
-						$row->{$colName} = (bool)$values[$col];
+						$row[$colName] = (bool)$values[$col];
 					} elseif ($type === "int") {
-						$row->{$colName} = (int)$values[$col];
+						$row[$colName] = (int)$values[$col];
 					} elseif ($type === "float") {
-						$row->{$colName} = (float)$values[$col];
+						$row[$colName] = (float)$values[$col];
 					} elseif ($type === \DateTime::class || $type === DateTime::class) {
-						$row->{$colName} = (new DateTime())->setTimestamp((int)$values[$col]);
+						$row[$colName] = (new DateTime())->setTimestamp((int)$values[$col]);
 					} else {
-						$row->{$colName} = $values[$col];
+						$row[$colName] = $values[$col];
 					}
 				}
 			} catch (Throwable $e) {
@@ -248,7 +256,19 @@ class QueryBuilder extends Builder {
 				throw $e;
 			}
 		}
-		return $row;
+		try {
+			$constructor = $refClass->getMethod("__construct");
+			if (count($constructor->getParameters())) {
+				$obj = $refClass->newInstance(...$row);
+				return $obj;
+			}
+		} catch (ReflectionException) {
+		}
+		$obj = new $className();
+		foreach ($row as $key => $value) {
+			$obj->{$key} = $value;
+		}
+		return $obj;
 	}
 
 	protected function dbFunc(string $function): string {
@@ -317,13 +337,19 @@ class QueryBuilder extends Builder {
 	/**
 	 * Execute an SQL statement and return all rows as an array of objects of the given class
 	 *
-	 * @return object[]
+	 * @template T of object
+	 *
+	 * @param class-string<T> $className
+	 *
+	 * @return list<T>
 	 */
 	private function fetchAll(string $className, string $sql, mixed ...$args): array {
 		$sql = $this->nadyDB->formatSql($sql);
 
 		$sql = $this->nadyDB->applySQLCompatFixes($sql);
 		$ps = $this->executeQuery($sql, $args);
+
+		/** @var list<T> */
 		$data = $ps->fetchAll(
 			PDO::FETCH_FUNC,
 			function (mixed ...$values) use ($ps, $className): object {
