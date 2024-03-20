@@ -201,10 +201,6 @@ class BotRunner {
 		if ($fsDriver instanceof EioFilesystemDriver) {
 			$fsDriver = new ParallelFilesystemDriver();
 		}
-		if ($fsDriver instanceof ParallelFilesystemDriver) {
-			// Let's keep this here until the Bugfix release is done
-			$fsDriver = new BlockingFilesystemDriver();
-		}
 
 		self::$fs = new Filesystem(filesystem($fsDriver));
 		LegacyLogger::$fs = self::$fs;
