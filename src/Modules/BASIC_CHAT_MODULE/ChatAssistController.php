@@ -34,9 +34,9 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 		accessLevel: "rl",
 		description: "Set, add or clear assists",
 	),
-	NCA\ProvidesEvent("assist(clear)"),
-	NCA\ProvidesEvent("assist(set)"),
-	NCA\ProvidesEvent("assist(add)")
+	NCA\ProvidesEvent(AssistClearEvent::class),
+	NCA\ProvidesEvent(AssistSetEvent::class),
+	NCA\ProvidesEvent(AssistAddEvent::class)
 ]
 class ChatAssistController extends ModuleInstance {
 	public const CMD_SET_ADD_CLEAR = "assist set/add/clear";

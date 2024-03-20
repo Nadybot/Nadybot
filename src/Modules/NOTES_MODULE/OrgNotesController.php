@@ -30,11 +30,11 @@ use Nadybot\Core\{
 		alias: "orgnote"
 	),
 	NCA\ProvidesEvent(
-		event: "sync(orgnote)",
+		event: SyncOrgNoteEvent::class,
 		desc: "Triggered whenever someone creates an org note"
 	),
 	NCA\ProvidesEvent(
-		event: "sync(orgnote-delete)",
+		event: SyncOrgNoteDeleteEvent::class,
 		desc: "Triggered when deleting an org note"
 	)
 ]

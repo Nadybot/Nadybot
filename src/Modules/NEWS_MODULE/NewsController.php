@@ -43,11 +43,11 @@ use Throwable;
 	),
 
 	NCA\ProvidesEvent(
-		event: "sync(news)",
+		event: SyncNewsEvent::class,
 		desc: "Triggered whenever someone creates or modifies a news entry"
 	),
 	NCA\ProvidesEvent(
-		event: "sync(news-delete)",
+		event: SyncNewsDeleteEvent::class,
 		desc: "Triggered when deleting a news entry"
 	)
 ]

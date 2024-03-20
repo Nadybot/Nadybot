@@ -46,9 +46,9 @@ use Psr\Log\LoggerInterface;
 		description: "Sets and shows timers",
 		alias: "timer"
 	),
-	NCA\ProvidesEvent("timer(start)"),
-	NCA\ProvidesEvent("timer(end)"),
-	NCA\ProvidesEvent("timer(del)"),
+	NCA\ProvidesEvent(TimerStartEvent::class),
+	NCA\ProvidesEvent(TimerEndEvent::class),
+	NCA\ProvidesEvent(TimerDelEvent::class),
 	NCA\ProvidesEvent(
 		event: "sync(timer)",
 		desc: "Triggered when a new timer is created with the timer command",

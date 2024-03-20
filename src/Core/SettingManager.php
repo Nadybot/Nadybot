@@ -12,7 +12,7 @@ use Psr\Log\LoggerInterface;
 
 #[
 	NCA\Instance,
-	NCA\ProvidesEvent("setting(*)")
+	NCA\ProvidesEvent(SettingEvent::class)
 ]
 class SettingManager {
 	public const DB_TABLE = "settings_<myname>";

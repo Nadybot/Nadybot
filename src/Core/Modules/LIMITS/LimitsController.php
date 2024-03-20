@@ -5,13 +5,14 @@ namespace Nadybot\Core\Modules\LIMITS;
 use function Safe\preg_match;
 
 use AO\Package;
+use Nadybot\Core\Event\SuccessCmdEvent;
+
 use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistory,
 	PlayerHistoryData,
 	PlayerHistoryManager,
 	PlayerManager,
 };
-
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -197,7 +198,7 @@ class LimitsController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "command(*)",
+		name: CmdEvent::EVENT_MASK,
 		description: "Enforce rate limits"
 	)]
 	public function accountCommandExecution(CmdEvent $event): void {
@@ -205,8 +206,8 @@ class LimitsController extends ModuleInstance {
 			return;
 		}
 		$toCount = $this->limitsCmdType;
-		$isSuccess = in_array($event->type, ["command(success)"]);
-		$isFailure = !in_array($event->type, ["command(success)"]);
+		$isSuccess = $event instanceof SuccessCmdEvent;
+		$isFailure = !$isSuccess;
 		if (($isSuccess && ($toCount & static::SUCCESS) === 0)
 			|| ($isFailure && ($toCount & static::FAILURE) === 0)) {
 			return;

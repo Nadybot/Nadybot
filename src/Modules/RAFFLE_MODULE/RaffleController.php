@@ -40,11 +40,11 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 		description: "Raffle off items to players",
 	),
 
-	NCA\ProvidesEvent("raffle(start)"),
-	NCA\ProvidesEvent("raffle(cancel)"),
-	NCA\ProvidesEvent("raffle(end)"),
-	NCA\ProvidesEvent("raffle(join)"),
-	NCA\ProvidesEvent("raffle(leave)")
+	NCA\ProvidesEvent(RaffleStartEvent::class),
+	NCA\ProvidesEvent(RaffleCancelEvent::class),
+	NCA\ProvidesEvent(RaffleEndEvent::class),
+	NCA\ProvidesEvent(RaffleEnterEvent::class),
+	NCA\ProvidesEvent(RaffleLeaveEvent::class)
 ]
 class RaffleController extends ModuleInstance {
 	public const DB_TABLE = "raffle_bonus_<myname>";

@@ -26,9 +26,9 @@ use Throwable;
  */
 #[
 	NCA\Instance,
-	NCA\ProvidesEvent("event-feed(*)"),
-	NCA\ProvidesEvent("event-feed-connect"),
-	NCA\ProvidesEvent("event-feed-reconnect"),
+	NCA\ProvidesEvent(LowLevelEventFeedEvent::class),
+	NCA\ProvidesEvent(EventFeedConnect::class),
+	NCA\ProvidesEvent(EventFeedReconnect::class),
 ]
 class EventFeed {
 	public const URI = "wss://ws.nadybot.org";

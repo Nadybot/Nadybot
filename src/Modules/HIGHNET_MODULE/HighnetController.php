@@ -44,7 +44,7 @@ use Psr\Log\LoggerInterface;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\HandlesEventFeed('highnet'),
-	NCA\ProvidesEvent('highnet(*)'),
+	NCA\ProvidesEvent(HighnetEvent::class),
 	NCA\DefineCommand(
 		command: "highnet",
 		description: "Show Highnet information",

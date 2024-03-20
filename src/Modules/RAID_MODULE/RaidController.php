@@ -68,11 +68,11 @@ use Safe\DateTime;
 		description: "Change the raid points ticker",
 	),
 
-	NCA\ProvidesEvent("raid(start)"),
-	NCA\ProvidesEvent("raid(stop)"),
-	NCA\ProvidesEvent("raid(changed)"),
-	NCA\ProvidesEvent("raid(lock)"),
-	NCA\ProvidesEvent("raid(unlock)"),
+	NCA\ProvidesEvent(RaidStartEvent::class),
+	NCA\ProvidesEvent(RaidStopEvent::class),
+	NCA\ProvidesEvent(RaidChangeEvent::class),
+	NCA\ProvidesEvent(RaidLockEvent::class),
+	NCA\ProvidesEvent(RaidUnlockEvent::class),
 
 	NCA\EmitsMessages("raid", "announce"),
 	NCA\EmitsMessages("raid", "lock"),

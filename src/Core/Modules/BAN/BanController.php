@@ -61,11 +61,11 @@ use Throwable;
 	),
 
 	NCA\ProvidesEvent(
-		event: "sync(ban)",
+		event: SyncBanEvent::class,
 		desc: "Triggered whenever someone is banned"
 	),
 	NCA\ProvidesEvent(
-		event: "sync(ban-delete)",
+		event: SyncBanDeleteEvent::class,
 		desc: "Triggered when someone's ban is lifted"
 	)
 ]

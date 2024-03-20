@@ -34,8 +34,8 @@ use Nadybot\Core\{
 		accessLevel: "rl",
 		description: "Set if the text of the leader will be repeated",
 	),
-	NCA\ProvidesEvent("leader(clear)"),
-	NCA\ProvidesEvent("leader(set)")
+	NCA\ProvidesEvent(LeaderClearEvent::class),
+	NCA\ProvidesEvent(LeaderSetEvent::class)
 ]
 class ChatLeaderController extends ModuleInstance implements AccessLevelProvider {
 	public const CMD_LEADER_SET = "leader set leader";

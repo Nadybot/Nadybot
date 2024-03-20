@@ -36,8 +36,6 @@ use TypeError;
 	NCA\Instance,
 	NCA\ProvidesEvent(WebsocketSubscribeEvent::class),
 	NCA\ProvidesEvent(WebsocketRequestEvent::class),
-	NCA\ProvidesEvent("websocket(response)"),
-	NCA\ProvidesEvent("websocket(event)")
 ]
 class WebsocketController extends ModuleInstance implements WebsocketClientHandler {
 	/** Enable the websocket handler */

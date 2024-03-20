@@ -24,7 +24,7 @@ use Revolt\EventLoop;
 		alias: "cd"
 	),
 	NCA\ProvidesEvent(
-		event: "sync(cd)",
+		event: SyncCdEvent::class,
 		desc: "Triggered when someone starts a countdown",
 	)
 ]

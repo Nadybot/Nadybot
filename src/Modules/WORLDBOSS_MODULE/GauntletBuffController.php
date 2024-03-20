@@ -51,7 +51,7 @@ use Throwable;
 		description: "Set/update timer for gauntlet buff",
 	),
 	NCA\ProvidesEvent(
-		event: "sync(gaubuff)",
+		event: SyncGaubuffEvent::class,
 		desc: "Triggered when someone sets the gauntlet buff for either side",
 	)
 ]

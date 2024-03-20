@@ -5,15 +5,16 @@ namespace Nadybot\Modules\PVP_MODULE;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{Event as CoreEvent, EventFeedHandler, EventManager, ModuleInstance};
+use Nadybot\Modules\PVP_MODULE\Event\{GasUpdateEvent, SiteUpdateEvent, TowerAttackEvent, TowerOutcomeEvent};
 use Psr\Log\LoggerInterface;
 
 #[
 	NCA\Instance,
 	NCA\HandlesEventFeed('tower_events'),
-	NCA\ProvidesEvent("gas-update", "Gas on a tower field changes"),
-	NCA\ProvidesEvent("site-update", "New  information about a tower site"),
-	NCA\ProvidesEvent("tower-attack", "Someone attacks a tower site"),
-	NCA\ProvidesEvent("tower-outcome", "A tower field gets destroyed"),
+	NCA\ProvidesEvent(GasUpdateEvent::class, "Gas on a tower field changes"),
+	NCA\ProvidesEvent(SiteUpdateEvent::class, "New  information about a tower site"),
+	NCA\ProvidesEvent(TowerAttackEvent::class, "Someone attacks a tower site"),
+	NCA\ProvidesEvent(TowerOutcomeEvent::class, "A tower field gets destroyed"),
 ]
 class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Logger]

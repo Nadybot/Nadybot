@@ -63,7 +63,6 @@ use Throwable;
 		accessLevel: "member",
 		description: "Force syncing of next command if relay sync exists",
 	),
-	NCA\ProvidesEvent("routable(message)")
 ]
 class RelayController extends ModuleInstance {
 	public const DB_TABLE = 'relay_<myname>';

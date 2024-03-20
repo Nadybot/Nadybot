@@ -28,8 +28,8 @@ use Nadybot\Core\{
 		description: "Changes Topic",
 	),
 
-	NCA\ProvidesEvent("topic(set)"),
-	NCA\ProvidesEvent("topic(clear)")
+	NCA\ProvidesEvent(TopicSetEvent::class),
+	NCA\ProvidesEvent(TopicClearEvent::class)
 ]
 class ChatTopicController extends ModuleInstance {
 	public const CMD_TOPIC_SET = "topic set/clear";

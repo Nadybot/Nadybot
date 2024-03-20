@@ -52,10 +52,10 @@ use Safe\DateTime;
 		description: "Give back points for an auction",
 	),
 
-	NCA\ProvidesEvent("auction(start)"),
-	NCA\ProvidesEvent("auction(end)"),
-	NCA\ProvidesEvent("auction(cancel)"),
-	NCA\ProvidesEvent("auction(bid)"),
+	NCA\ProvidesEvent(AuctionStartEvent::class),
+	NCA\ProvidesEvent(AuctionEndEvent::class),
+	NCA\ProvidesEvent(AuctionCancelEvent::class),
+	NCA\ProvidesEvent(AuctionBidEvent::class),
 
 	NCA\EmitsMessages("auction", "start"),
 	NCA\EmitsMessages("auction", "end"),

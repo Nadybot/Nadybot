@@ -36,9 +36,9 @@ use Nadybot\Modules\TIMERS_MODULE\{
 		accessLevel: "guild",
 		description: "Shows/Starts/Stops the current city wave",
 	),
-	NCA\ProvidesEvent("cityraid(start)"),
-	NCA\ProvidesEvent("cityraid(wave)"),
-	NCA\ProvidesEvent("cityraid(end)")
+	NCA\ProvidesEvent(CityRaidStartEvent::class),
+	NCA\ProvidesEvent(CityRaidWaveEvent::class),
+	NCA\ProvidesEvent(CityRaidEndEvent::class)
 ]
 class CityWaveController extends ModuleInstance implements MessageEmitter {
 	public const TIMER_NAME = "City Raid";

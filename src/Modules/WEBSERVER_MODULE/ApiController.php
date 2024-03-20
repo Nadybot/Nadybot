@@ -40,7 +40,7 @@ use Throwable;
 		accessLevel: "mod",
 		description: "Create public/private key pairs for auth against the API",
 	),
-	NCA\ProvidesEvent("cmdreply")
+	NCA\ProvidesEvent(CommandReplyEvent::class)
 ]
 class ApiController extends ModuleInstance {
 	public const DB_TABLE = "api_key_<myname>";

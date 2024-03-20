@@ -35,8 +35,8 @@ use Nadybot\Core\{
 		accessLevel: "rl",
 		description: "Creates a highly visible message",
 	),
-	NCA\ProvidesEvent("leadersay"),
-	NCA\ProvidesEvent("leadercmd")
+	NCA\ProvidesEvent(SayEvent::class),
+	NCA\ProvidesEvent(CmdEvent::class)
 ]
 class ChatSayController extends ModuleInstance {
 	/** The color that !cmd wraps the message in */

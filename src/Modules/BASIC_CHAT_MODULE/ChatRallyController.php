@@ -33,11 +33,11 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 		description: "Sets the rally waypoint",
 	),
 	NCA\ProvidesEvent(
-		event: "sync(rally-set)",
+		event: SyncRallySetEvent::class,
 		desc: "Triggered when a rally point is set",
 	),
 	NCA\ProvidesEvent(
-		event: "sync(rally-clear)",
+		event: SyncRallyClearEvent::class,
 		desc: "Triggered when someone clears the rally point",
 	)
 ]

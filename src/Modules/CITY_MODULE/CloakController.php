@@ -38,8 +38,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 		alias: "city"
 	),
 
-	NCA\ProvidesEvent("cloak(raise)"),
-	NCA\ProvidesEvent("cloak(lower)")
+	NCA\ProvidesEvent(CloakRaiseEvent::class),
+	NCA\ProvidesEvent(CloakLowerEvent::class)
 ]
 class CloakController extends ModuleInstance implements MessageEmitter {
 	public const DB_TABLE = "org_city_<myname>";

@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	EventManager,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -37,8 +38,8 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 		description: "Add or remove someone from/to the raid",
 	),
 
-	NCA\ProvidesEvent("raid(join)"),
-	NCA\ProvidesEvent("raid(leave)"),
+	NCA\ProvidesEvent(RaidJoinEvent::class),
+	NCA\ProvidesEvent(RaidLeaveEvent::class),
 
 	NCA\EmitsMessages("raid", "join"),
 	NCA\EmitsMessages("raid", "leave"),
@@ -80,6 +81,9 @@ class RaidMemberController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private MessageHub $messageHub;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	#[NCA\Inject]
 	private AltsController $altsController;
@@ -178,6 +182,7 @@ class RaidMemberController extends ModuleInstance {
 			$raid->raiders[$player]->joined = time();
 			$raid->raiders[$player]->left = null;
 		}
+		$this->eventManager->fireEvent(new RaidJoinEvent(raid: $raid, player: $player));
 		$this->db->table(self::DB_TABLE)
 			->insert([
 				"raid_id" => $raid->raid_id,
@@ -256,6 +261,7 @@ class RaidMemberController extends ModuleInstance {
 		} else {
 			$this->routeMessage("leave", "<highlight>{$player}<end> has <off>left<end> the raid{$countMsg}.");
 		}
+		$this->eventManager->fireEvent(new RaidLeaveEvent(raid: $raid, player: $player));
 		if ($numRaiders === $raid->max_members && ($this->raidAnnounceFull & self::ANNOUNCE_RAID_OPEN)) {
 			$openMsg = "The raid is <on>no longer full<end>!";
 			$routed = $this->routeMessage("leave", $openMsg);

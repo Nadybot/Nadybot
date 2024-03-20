@@ -13,9 +13,9 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HandlesEventFeed('mob_events'),
-	NCA\ProvidesEvent("mob-spawn"),
-	NCA\ProvidesEvent("mob-death"),
-	NCA\ProvidesEvent("mob-attacked"),
+	NCA\ProvidesEvent(MobSpawnEvent::class),
+	NCA\ProvidesEvent(MobDeathEvent::class),
+	NCA\ProvidesEvent(MobAttackedEvent::class),
 ]
 class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Logger]

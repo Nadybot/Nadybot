@@ -6,6 +6,7 @@ use function Safe\{preg_match_all, preg_split};
 use Exception;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Nadybot\Core\Event\{ErrorCmdEvent, ForbiddenCmdEvent, HelpCmdEvent, SuccessCmdEvent, UnknownCmdEvent};
 use Nadybot\Core\Modules\SYSTEM\SystemController;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -38,11 +39,11 @@ use Throwable;
 
 #[
 	NCA\Instance,
-	NCA\ProvidesEvent("command(forbidden)"),
-	NCA\ProvidesEvent("command(success)"),
-	NCA\ProvidesEvent("command(unknown)"),
-	NCA\ProvidesEvent("command(help)"),
-	NCA\ProvidesEvent("command(error)")
+	NCA\ProvidesEvent(ForbiddenCmdEvent::class),
+	NCA\ProvidesEvent(SuccessCmdEvent::class),
+	NCA\ProvidesEvent(UnknownCmdEvent::class),
+	NCA\ProvidesEvent(HelpCmdEvent::class),
+	NCA\ProvidesEvent(ErrorCmdEvent::class)
 ]
 class CommandManager implements MessageEmitter {
 	public const DB_TABLE = "cmdcfg_<myname>";
@@ -576,12 +577,6 @@ class CommandManager implements MessageEmitter {
 			return;
 		}
 		$commandHandler = $this->getActiveCommandHandler($cmd, $context->permissionSet, $context->message);
-		$event = new CmdEvent(
-			channel: $context->permissionSet,
-			cmd: $cmd,
-			sender: $context->char->name,
-			cmdHandler: $commandHandler,
-		);
 
 		// if command doesn't exist
 		if ($commandHandler === null) {
@@ -601,7 +596,11 @@ class CommandManager implements MessageEmitter {
 				$msg .= " Did you mean " . $cmdNames->join(", ", " or ") . '?';
 			}
 			$context->reply($msg);
-			$event->type = "command(unknown)";
+			$event = new UnknownCmdEvent(
+				channel: $context->permissionSet,
+				cmd: $cmd,
+				sender: $context->char->name,
+			);
 			$this->eventManager->fireEvent($event);
 			return;
 		}
@@ -617,36 +616,64 @@ class CommandManager implements MessageEmitter {
 		// If there are no handlers we have access to and the character doesn't
 		// even have access to the main-command: error
 		if (empty($commandHandler->files) && !$this->checkAccessLevel($context, $cmd, $commandHandler)) {
-			$event->type = "command(forbidden)";
+			$event = new ForbiddenCmdEvent(
+				channel: $context->permissionSet,
+				cmd: $cmd,
+				sender: $context->char->name,
+				cmdHandler: $commandHandler,
+			);
 			$this->eventManager->fireEvent($event);
 			return;
 		}
 
 		try {
 			$handler = $this->executeCommandHandler($commandHandler, $context);
-			$event->type = "command(success)";
 
 			// No handler found? Display the help
 			if ($handler === null) {
 				$help = $this->getHelpForCommand($cmd, $context);
 				$context->reply($help);
-				$event->type = "command(help)";
-				$this->eventManager->fireEvent($event);
+				$event = new HelpCmdEvent(
+					channel: $context->permissionSet,
+					cmd: $cmd,
+					sender: $context->char->name,
+					cmdHandler: $commandHandler,
+				);
+			} else {
+				$event = new SuccessCmdEvent(
+					channel: $context->permissionSet,
+					cmd: $cmd,
+					sender: $context->char->name,
+					cmdHandler: $commandHandler,
+				);
 			}
 		} catch (StopExecutionException $e) {
-			$event->type = "command(error)";
 			throw $e;
 		} catch (SQLException $e) {
-			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->error("{error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 			$context->reply("There was an SQL error executing your command.");
-			$event->type = "command(error)";
-		} catch (Throwable $e) {
-			$this->logger->error(
-				"Error executing '{$context->message}': " . $e->getMessage(),
-				["exception" => $e]
+			$event = new ErrorCmdEvent(
+				channel: $context->permissionSet,
+				cmd: $cmd,
+				sender: $context->char->name,
+				cmdHandler: $commandHandler,
 			);
+		} catch (Throwable $e) {
+			$this->logger->error("Error executing '{command}': {error}", [
+				"command" => $context->message,
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 			$context->reply("There was an error executing your command: " . $e->getMessage());
-			$event->type = "command(error)";
+			$event = new ErrorCmdEvent(
+				channel: $context->permissionSet,
+				cmd: $cmd,
+				sender: $context->char->name,
+				cmdHandler: $commandHandler,
+			);
 		}
 		$this->eventManager->fireEvent($event);
 
@@ -656,7 +683,10 @@ class CommandManager implements MessageEmitter {
 				$this->usageController->record($context->permissionSet, $cmd, $context->char->name, $handler);
 			}
 		} catch (Exception $e) {
-			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->error("{error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 		}
 	}
 

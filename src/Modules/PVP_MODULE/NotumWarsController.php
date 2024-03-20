@@ -13,6 +13,7 @@ use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, EventManager, MessageHub, ModuleInstance, Nadybot, Safe, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
+use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfoEvent;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
 use Nadybot\Modules\TIMERS_MODULE\{Alert, Timer, TimerController};
 use Psr\Log\LoggerInterface;
@@ -45,7 +46,7 @@ use Safe\Exceptions\JsonException;
 	NCA\EmitsMessages("pvp", "site-cold-omni"),
 	NCA\EmitsMessages("pvp", "unplanted-sites"),
 	NCA\ProvidesEvent(
-		event: "tower-attack-info",
+		event: TowerAttackInfoEvent::class,
 		desc: "Someone attacks a tower site, includes additional information"
 	),
 	NCA\DefineCommand(

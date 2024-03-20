@@ -144,8 +144,8 @@ use stdClass;
 
 	NCA\ProvidesEvent("online(priv)"),
 	NCA\ProvidesEvent("offline(priv)"),
-	NCA\ProvidesEvent("member(add)"),
-	NCA\ProvidesEvent("member(rem)"),
+	NCA\ProvidesEvent(MemberAddEvent::class),
+	NCA\ProvidesEvent(MemberRemoveEvent::class),
 	NCA\EmitsMessages(Source::SYSTEM, "lock-reminder")
 ]
 class PrivateChannelController extends ModuleInstance implements AccessLevelProvider {

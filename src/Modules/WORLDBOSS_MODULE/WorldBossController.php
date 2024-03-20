@@ -105,11 +105,11 @@ use Throwable;
 		description: "Show low-level information about WorldBoss-timers",
 	),
 	NCA\ProvidesEvent(
-		event: "sync(worldboss)",
+		event: SyncWorldbossEvent::class,
 		desc: "Triggered when the spawntime of a worldboss is set manually",
 	),
 	NCA\ProvidesEvent(
-		event: "sync(worldboss-delete)",
+		event: SyncWorldbossDeleteEvent::class,
 		desc: "Triggered when the timer for a worldboss is deleted",
 	)
 ]
