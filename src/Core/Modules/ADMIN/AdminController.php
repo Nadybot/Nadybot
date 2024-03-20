@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\ADMIN;
 
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	AccessManager,
@@ -14,7 +15,6 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Admin,
 	DBSchema\LastOnline,
-	Event,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\ALTS\NickController,
@@ -211,11 +211,11 @@ class AdminController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Add administrators and moderators to the buddy list",
 		defaultStatus: 1
 	)]
-	public function checkAdminsEvent(Event $eventObj): void {
+	public function checkAdminsEvent(ConnectEvent $eventObj): void {
 		$this->db->table(AdminManager::DB_TABLE)->asObj(Admin::class)
 			->each(function (Admin $row): void {
 				$this->buddylistManager->addName($row->name, 'admin');
@@ -286,7 +286,7 @@ class AdminController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "alt(newmain)",
+		name: AltNewMainEvent::EVENT_MASK,
 		description: "Move admin rank to new main"
 	)]
 	public function moveAdminrank(AltNewMainEvent $event): void {

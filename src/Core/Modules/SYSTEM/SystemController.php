@@ -8,6 +8,7 @@ use Amp\Http\Server\{Request, Response};
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	AccessManager,
@@ -549,11 +550,11 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Notify private channel, guild channel, and admins that bot is online",
 		defaultStatus: 1
 	)]
-	public function onConnectEvent(Event $eventObj): void {
+	public function onConnectEvent(ConnectEvent $eventObj): void {
 		// send Admin(s) a tell that the bot is online
 		foreach ($this->adminManager->admins as $name => $info) {
 			if ($info["level"] === 4 && $this->buddylistManager->isOnline($name)) {

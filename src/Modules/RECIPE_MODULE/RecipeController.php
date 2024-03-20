@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RECIPE_MODULE;
 use function Safe\json_decode;
 use Amp\File\{FilesystemException};
 use Exception;
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -52,7 +53,7 @@ class RecipeController extends ModuleInstance {
 
 	/** This is an Event("connect") instead of Setup since it depends on the items db being loaded */
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Initializes the recipe database",
 		defaultStatus: 1
 	)]

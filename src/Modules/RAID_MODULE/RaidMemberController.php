@@ -528,7 +528,7 @@ class RaidMemberController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "leavePriv",
+		name: LeaveMyPrivEvent::EVENT_MASK,
 		description: "Remove players from the raid when they leave the channel"
 	)]
 	public function leavePrivateChannelMessageEvent(LeaveMyPrivEvent $eventObj): void {

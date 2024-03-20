@@ -187,7 +187,7 @@ class OrgNotesController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "sync(orgnote)",
+		name: SyncOrgNoteEvent::EVENT_MASK,
 		description: "Sync externally created org notes"
 	)]
 	public function processOrgNoteSyncEvent(SyncOrgNoteEvent $event): void {
@@ -207,7 +207,7 @@ class OrgNotesController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "sync(orgnote-delete)",
+		name: SyncOrgNoteDeleteEvent::EVENT_MASK,
 		description: "Sync externally deleted org notes"
 	)]
 	public function processNewsDeleteSyncEvent(SyncOrgNoteDeleteEvent $event): void {

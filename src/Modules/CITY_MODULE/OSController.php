@@ -27,7 +27,7 @@ class OSController extends ModuleInstance {
 	private TimerController $timerController;
 
 	#[NCA\Event(
-		name: "orgmsg",
+		name: OrgMsgChannelMsgEvent::EVENT_MASK,
 		description: "Sets a timer when an OS/AS is launched"
 	)]
 	public function osTimerEvent(OrgMsgChannelMsgEvent $eventObj): void {

@@ -12,6 +12,7 @@ use Amp\Http\{Client, HttpStatus};
 use Amp\TimeoutCancellation;
 use Closure;
 use Exception;
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -126,7 +127,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	private Filesystem $fs;
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Download aoauth public key"
 	)]
 	public function downloadPublicKey(): void {

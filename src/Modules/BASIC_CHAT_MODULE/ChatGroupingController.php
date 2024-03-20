@@ -134,7 +134,7 @@ class ChatGroupingController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "leavePriv",
+		name: LeaveMyPrivEvent::EVENT_MASK,
 		description: "Removes people from the grouping when they leave the channel"
 	)]
 	public function leavePrivEvent(LeaveMyPrivEvent $eventObj): void {

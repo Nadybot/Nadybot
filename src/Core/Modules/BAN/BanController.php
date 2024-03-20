@@ -6,6 +6,7 @@ use function Amp\async;
 
 use AO\Package\Out\PrivateChannelKick;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -135,11 +136,11 @@ class BanController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Upload banlist into memory",
 		defaultStatus: 1
 	)]
-	public function initializeBanList(Event $eventObj): void {
+	public function initializeBanList(ConnectEvent $eventObj): void {
 		$this->uploadBanlist();
 		$this->uploadOrgBanlist();
 	}

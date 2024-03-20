@@ -5,6 +5,7 @@ namespace Nadybot\Modules\TRACKER_MODULE;
 use function Safe\preg_split;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -213,10 +214,10 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Adds all players on the track list to the buddy list"
 	)]
-	public function trackedUsersConnectEvent(Event $eventObj): void {
+	public function trackedUsersConnectEvent(ConnectEvent $eventObj): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(TrackedUser::class)
 			->each(function (TrackedUser $row): void {
@@ -283,7 +284,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "tower-attack",
+		name: TowerAttackEvent::EVENT_MASK,
 		description: "Automatically track tower field attackers"
 	)]
 	public function trackTowerAttacks(TowerAttackEvent $eventObj): void {

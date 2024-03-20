@@ -341,7 +341,7 @@ class EventsController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "joinPriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "Show events to characters joining the private channel"
 	)]
 	public function joinPrivEvent(JoinMyPrivEvent $eventObj): void {

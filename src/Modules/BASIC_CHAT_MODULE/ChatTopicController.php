@@ -137,7 +137,7 @@ class ChatTopicController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "joinPriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "Shows topic when someone joins the private channel"
 	)]
 	public function joinPrivEvent(JoinMyPrivEvent $eventObj): void {

@@ -109,7 +109,7 @@ class CountdownController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "sync(cd)",
+		name: SyncCdEvent::EVENT_MASK,
 		description: "Process externally started countdowns"
 	)]
 	public function syncCountdown(SyncCdEvent $event): void {

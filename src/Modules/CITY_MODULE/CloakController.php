@@ -173,7 +173,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "guild",
+		name: GuildChannelMsgEvent::EVENT_MASK,
 		description: "Records when the cloak is raised or lowered"
 	)]
 	public function recordCloakChangesEvent(GuildChannelMsgEvent $eventObj): void {

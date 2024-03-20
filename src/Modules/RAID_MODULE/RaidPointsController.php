@@ -815,7 +815,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "alt(newmain)",
+		name: AltNewMainEvent::EVENT_MASK,
 		description: "Move raid points to new main"
 	)]
 	public function moveRaidPoints(AltNewMainEvent $event): void {

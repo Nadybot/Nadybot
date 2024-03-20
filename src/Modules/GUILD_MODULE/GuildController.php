@@ -4,7 +4,7 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use function Amp\async;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Event\OrgMsgChannelMsgEvent;
+use Nadybot\Core\Event\{ConnectEvent, OrgMsgChannelMsgEvent};
 use Nadybot\Core\Modules\ALTS\AltInfo;
 use Nadybot\Core\{
 	AccessManager,
@@ -581,7 +581,7 @@ class GuildController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "orgmsg",
+		name: OrgMsgChannelMsgEvent::EVENT_MASK,
 		description: "Automatically update guild roster as characters join and leave the guild"
 	)]
 	public function autoNotifyOrgMembersEvent(OrgMsgChannelMsgEvent $eventObj): void {
@@ -779,10 +779,10 @@ class GuildController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Verifies that org name is correct"
 	)]
-	public function verifyOrgNameEvent(Event $eventObj): void {
+	public function verifyOrgNameEvent(ConnectEvent $eventObj): void {
 		if (empty($this->config->general->orgName)) {
 			return;
 		}

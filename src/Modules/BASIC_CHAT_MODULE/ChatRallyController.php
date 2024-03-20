@@ -183,7 +183,7 @@ class ChatRallyController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "sync(rally-set)",
+		name: SyncRallySetEvent::EVENT_MASK,
 		description: "Handle synced rally sets"
 	)]
 	public function handleExtRallySet(SyncRallySetEvent $event): void {
@@ -205,7 +205,7 @@ class ChatRallyController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "joinpriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "Sends rally to players joining the private channel"
 	)]
 	public function sendRally(JoinMyPrivEvent $eventObj): void {

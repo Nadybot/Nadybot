@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 use function Amp\async;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	AccessLevelProvider,
@@ -153,7 +154,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Add raid leader and admins to the buddy list",
 		defaultStatus: 1
 	)]
@@ -431,7 +432,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	#[NCA\Event(
-		name: "alt(newmain)",
+		name: AltNewMainEvent::EVENT_MASK,
 		description: "Move raid rank to new main"
 	)]
 	public function moveRaidRanks(AltNewMainEvent $event): void {

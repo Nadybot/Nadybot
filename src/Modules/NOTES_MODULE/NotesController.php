@@ -264,7 +264,7 @@ class NotesController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "joinPriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "Show reminders when joining the private channel"
 	)]
 	public function showRemindersOnPrivJoinEvent(JoinMyPrivEvent $eventObj): void {
@@ -286,7 +286,7 @@ class NotesController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "alt(newmain)",
+		name: AltNewMainEvent::EVENT_MASK,
 		description: "Move reminder format to new main"
 	)]
 	public function moveReminderFormat(AltNewMainEvent $event): void {

@@ -201,7 +201,7 @@ class NewsController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "joinPriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "Sends news to players joining private channel"
 	)]
 	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
@@ -554,7 +554,7 @@ class NewsController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "sync(news)",
+		name: SyncNewsEvent::EVENT_MASK,
 		description: "Sync external news created or modified"
 	)]
 	public function processNewsSyncEvent(SyncNewsEvent $event): void {
@@ -566,7 +566,7 @@ class NewsController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "sync(news-delete)",
+		name: SyncNewsDeleteEvent::EVENT_MASK,
 		description: "Sync external news being deleted"
 	)]
 	public function processNewsDeleteSyncEvent(SyncNewsDeleteEvent $event): void {

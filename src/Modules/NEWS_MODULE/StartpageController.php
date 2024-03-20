@@ -129,7 +129,7 @@ class StartpageController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "joinPriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "Show startpage to players joining private channel"
 	)]
 	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {

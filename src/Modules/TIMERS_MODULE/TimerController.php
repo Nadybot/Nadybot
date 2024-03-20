@@ -613,7 +613,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "sync(timer)",
+		name: SyncTimerEvent::EVENT_MASK,
 		description: "Sync external timers to local timers"
 	)]
 	public function syncExtTimers(SyncTimerEvent $event): void {

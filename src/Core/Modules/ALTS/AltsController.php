@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\ALTS;
 use function Amp\async;
 
 use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -135,10 +136,10 @@ class AltsController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Add unvalidated alts/mains to friendlist"
 	)]
-	public function addNonValidatedAsBuddies(): void {
+	public function addNonValidatedAsBuddies(ConnectEvent $event): void {
 		$myName = $this->config->main->character;
 		$this->db->table("alts")->where("validated_by_alt", false)->where("added_via", $myName)
 			->asObj(Alt::class)->each(function (Alt $alt) {

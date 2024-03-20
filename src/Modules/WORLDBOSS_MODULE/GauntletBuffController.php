@@ -6,12 +6,13 @@ use function Amp\delay;
 use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;
-use Nadybot\Core\Event\JoinMyPrivEvent;
+use Nadybot\Core\Event\{ConnectEvent, JoinMyPrivEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	Config\BotConfig,
 	EventManager,
+	LogonEvent,
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
@@ -20,7 +21,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
-	UserStateEvent,
 	Util,
 };
 use Nadybot\Modules\TIMERS_MODULE\{
@@ -164,7 +164,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Get active Gauntlet buffs from API"
 	)]
 	public function loadGauntletBuffsFromAPI(): void {
@@ -270,10 +270,10 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "logOn",
+		name: LogonEvent::EVENT_MASK,
 		description: "Sends gaubuff message on logon"
 	)]
-	public function gaubufflogonEvent(UserStateEvent $eventObj): void {
+	public function gaubufflogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
 			|| !is_string($sender)
@@ -287,7 +287,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "joinPriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "Sends gaubuff message on join"
 	)]
 	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
@@ -370,7 +370,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "sync(gaubuff)",
+		name: SyncGaubuffEvent::EVENT_MASK,
 		description: "Sync external gauntlet buff events"
 	)]
 	public function syncExtGaubuff(SyncGaubuffEvent $event): void {

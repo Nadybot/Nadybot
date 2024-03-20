@@ -8,6 +8,7 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -125,7 +126,7 @@ class RelayController extends ModuleInstance {
 	private EventManager $eventManager;
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Load relays from database"
 	)]
 	public function loadRelays(): void {

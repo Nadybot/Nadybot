@@ -150,7 +150,7 @@ class GreetController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "joinpriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "Greet players joining the private channel",
 	)]
 	public function sendRandomJoinGreeting(JoinMyPrivEvent $event): void {
@@ -291,7 +291,7 @@ class GreetController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "alt(newmain)",
+		name: AltNewMainEvent::EVENT_MASK,
 		description: "Move greeting preferences to new main"
 	)]
 	public function moveGreetingPrefs(AltNewMainEvent $event): void {

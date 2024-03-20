@@ -3,13 +3,13 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	DB,
 	DBSchema\CmdCfg,
-	Event,
 	ModuleInstance,
 	ParamClass\PWord,
 	Text,
@@ -139,10 +139,10 @@ class SilenceController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Overwrite command handlers for silenced commands"
 	)]
-	public function overwriteCommandHandlersEvent(Event $eventObj): void {
+	public function overwriteCommandHandlersEvent(ConnectEvent $eventObj): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(SilenceCmd::class)
 			->each(function (SilenceCmd $row): void {

@@ -129,7 +129,7 @@ class NickController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "alt(newmain)",
+		name: AltNewMainEvent::EVENT_MASK,
 		description: "Move nickname to new main"
 	)]
 	public function moveNickname(AltNewMainEvent $event): void {

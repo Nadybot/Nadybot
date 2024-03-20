@@ -147,7 +147,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "guild",
+		name: GuildChannelMsgEvent::EVENT_MASK,
 		description: "Starts a wave counter when cloak is lowered"
 	)]
 	public function autoStartWaveCounterEvent(GuildChannelMsgEvent $eventObj): void {

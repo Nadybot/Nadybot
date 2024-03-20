@@ -157,7 +157,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	}
 
 	#[NCA\Event(
-		name: "priv",
+		name: MyPrivateChannelMsgEvent::EVENT_MASK,
 		description: "Repeats what the leader says in the color of leaderecho_color setting"
 	)]
 	public function privEvent(MyPrivateChannelMsgEvent $eventObj): void {
@@ -171,7 +171,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	}
 
 	#[NCA\Event(
-		name: "leavePriv",
+		name: LeaveMyPrivEvent::EVENT_MASK,
 		description: "Removes leader when the leader leaves the channel"
 	)]
 	public function leavePrivEvent(LeaveMyPrivEvent $eventObj): void {

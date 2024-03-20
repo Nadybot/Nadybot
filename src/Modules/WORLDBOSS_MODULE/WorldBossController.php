@@ -6,7 +6,7 @@ use function Amp\delay;
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DateTimeZone;
-use Nadybot\Core\Event\TimerEvent as EventTimerEvent;
+use Nadybot\Core\Event\{ConnectEvent, TimerEvent as EventTimerEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -461,7 +461,7 @@ class WorldBossController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Get boss timers from timer API"
 	)]
 	public function loadTimersFromAPI(): int {
@@ -758,7 +758,7 @@ class WorldBossController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "sync(worldboss)",
+		name: SyncWorldbossEvent::EVENT_MASK,
 		description: "Sync external worldboss timers"
 	)]
 	public function syncExtWorldbossTimers(SyncWorldbossEvent $event): void {
@@ -784,7 +784,7 @@ class WorldBossController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "sync(worldboss-delete)",
+		name: SyncWorldbossDeleteEvent::EVENT_MASK,
 		description: "Sync external worldboss timer deletes"
 	)]
 	public function syncExtWorldbossDeletes(SyncWorldbossDeleteEvent $event): void {

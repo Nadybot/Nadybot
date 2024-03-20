@@ -17,6 +17,7 @@ use Amp\{
 };
 use Closure;
 use Exception;
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -67,7 +68,7 @@ class MgmtInterfaceController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(name: "connect", description: "Start the interface")]
+	#[NCA\Event(name: ConnectEvent::EVENT_MASK, description: "Start the interface")]
 	public function onConnect(): void {
 		if ($this->mgmtInterface === self::TYPE_NONE) {
 			return;

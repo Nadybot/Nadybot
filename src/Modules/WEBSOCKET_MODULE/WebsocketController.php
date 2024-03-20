@@ -142,7 +142,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 	}
 
 	#[NCA\Event(
-		name: "websocket(request)",
+		name: WebsocketRequestEvent::EVENT_MASK,
 		description: "Handle API requests"
 	)]
 	public function handleRequests(WebsocketRequestEvent $event, WebsocketClient $client): void {
@@ -150,7 +150,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 	}
 
 	#[NCA\Event(
-		name: "*",
+		name: Event::EVENT_MASK,
 		description: "Distribute events to Websocket clients",
 		defaultStatus: 1
 	)]

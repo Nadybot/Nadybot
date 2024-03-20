@@ -7,6 +7,7 @@ use Amp\File\{FilesystemException};
 use AO\Package;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\Routing\Events\Base;
 use Nadybot\Core\{
 	AccessLevelProvider,
@@ -21,7 +22,6 @@ use Nadybot\Core\{
 	DBSchema\LastOnline,
 	DBSchema\Member,
 	DBSchema\Player,
-	Event,
 	EventManager,
 	Event\JoinMyPrivEvent,
 	Event\LeaveMyPrivEvent,
@@ -991,10 +991,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Adds all members as buddies"
 	)]
-	public function connectEvent(Event $eventObj): void {
+	public function connectEvent(ConnectEvent $eventObj): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(Member::class)
 			->each(function (Member $member): void {
@@ -1065,7 +1065,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\Event(
-		name: "joinPriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "Displays a message when a character joins the private channel"
 	)]
 	public function joinPrivateChannelMessageEvent(JoinMyPrivEvent $eventObj): void {
@@ -1105,7 +1105,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\Event(
-		name: "joinPriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "Autoban players of unwanted factions when they join the bot"
 	)]
 	public function autobanOnJoin(JoinMyPrivEvent $eventObj): void {
@@ -1185,7 +1185,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\Event(
-		name: "leavePriv",
+		name: LeaveMyPrivEvent::EVENT_MASK,
 		description: "Displays a message when a character leaves the private channel"
 	)]
 	public function leavePrivateChannelMessageEvent(LeaveMyPrivEvent $eventObj): void {
@@ -1215,7 +1215,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\Event(
-		name: "joinPriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "Updates the database when a character joins the private channel"
 	)]
 	public function joinPrivateChannelRecordEvent(JoinMyPrivEvent $eventObj): void {
@@ -1231,7 +1231,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\Event(
-		name: "leavePriv",
+		name: LeaveMyPrivEvent::EVENT_MASK,
 		description: "Updates the database when a character leaves the private channel"
 	)]
 	public function leavePrivateChannelRecordEvent(LeaveMyPrivEvent $eventObj): void {
@@ -1243,7 +1243,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\Event(
-		name: "joinPriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "Sends the online list to people as they join the private channel"
 	)]
 	public function joinPrivateChannelShowOnlineEvent(JoinMyPrivEvent $eventObj): void {

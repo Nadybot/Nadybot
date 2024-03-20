@@ -88,7 +88,7 @@ class RulesController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "joinPriv",
+		name: JoinMyPrivEvent::EVENT_MASK,
 		description: "If you defined rules, send them to people joining the private channel"
 	)]
 	public function joinPrivateChannelShowRulesEvent(JoinMyPrivEvent $eventObj): void {

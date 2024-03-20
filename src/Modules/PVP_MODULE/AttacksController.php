@@ -396,7 +396,7 @@ class AttacksController extends ModuleInstance {
 	private Util $util;
 
 	#[NCA\Event(
-		name: "orgmsg",
+		name: OrgMsgChannelMsgEvent::EVENT_MASK,
 		description: "Notify if org's tower site defense shield is disabled via pvp(tower-shield-own)"
 	)]
 	public function shieldLoweredMessageEvent(OrgMsgChannelMsgEvent $eventObj): void {
@@ -466,7 +466,7 @@ class AttacksController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "orgmsg",
+		name: OrgMsgChannelMsgEvent::EVENT_MASK,
 		description: "Notify if org's towers are attacked via pvp(tower-hit-own)"
 	)]
 	public function attackOwnOrgMessageEvent(OrgMsgChannelMsgEvent $eventObj): void {

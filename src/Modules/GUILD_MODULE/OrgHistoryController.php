@@ -118,7 +118,7 @@ class OrgHistoryController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "orgmsg",
+		name: OrgMsgChannelMsgEvent::EVENT_MASK,
 		description: "Capture Org Invite/Kick/Leave messages for orghistory"
 	)]
 	public function captureOrgMessagesEvent(OrgMsgChannelMsgEvent $eventObj): void {

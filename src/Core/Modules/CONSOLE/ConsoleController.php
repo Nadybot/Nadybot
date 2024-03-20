@@ -6,8 +6,9 @@ use function Amp\async;
 use function Safe\{readline_add_history, readline_callback_handler_install, readline_read_history, readline_write_history, stream_isatty};
 
 use Exception;
-use Nadybot\Core\Filesystem;
+use Nadybot\Core\Event\ConnectEvent;
 
+use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -129,7 +130,7 @@ class ConsoleController extends ModuleInstance {
 	 * before the bot is fully ready anyway
 	 */
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Initializes the console",
 		defaultStatus: 1
 	)]

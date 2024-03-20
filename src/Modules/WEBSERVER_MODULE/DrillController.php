@@ -12,7 +12,7 @@ use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, Websocket
 use Amp\Websocket\WebsocketClosedException;
 use Amp\{DeferredFuture, TimeoutCancellation, TimeoutException};
 
-use Nadybot\Core\Event\RecvMsgEvent;
+use Nadybot\Core\Event\{ConnectEvent, RecvMsgEvent};
 use Nadybot\Core\{Attributes as NCA, Config\BotConfig, EventManager, ModuleInstance, Registry, Safe, StopExecutionException, UserException};
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -48,7 +48,7 @@ class DrillController extends ModuleInstance {
 	private array $handlers = [];
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Connect to Drill server",
 	)]
 	public function connectToDrill(): void {

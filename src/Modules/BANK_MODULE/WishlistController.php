@@ -4,6 +4,7 @@ namespace Nadybot\Modules\BANK_MODULE;
 
 use function Safe\preg_split;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Event\ConnectEvent;
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\ParamClass\{PCharacter, PDuration, PQuantity, PRemove};
 use Nadybot\Core\{
@@ -21,7 +22,6 @@ use Nadybot\Core\{
 	UserException,
 	Util,
 };
-
 use Throwable;
 
 /**
@@ -75,7 +75,7 @@ class WishlistController extends ModuleInstance {
 	private AltsController $altsController;
 
 	#[NCA\Event(
-		name: "connect",
+		name: ConnectEvent::EVENT_MASK,
 		description: "Put characters someone wished from to the buddylist"
 	)]
 	public function addPeopleOnWishlistToBuddylist(): void {

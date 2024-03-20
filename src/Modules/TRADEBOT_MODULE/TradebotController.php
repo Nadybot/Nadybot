@@ -224,7 +224,7 @@ class TradebotController extends ModuleInstance {
 
 	/** @throws StopExecutionException */
 	#[NCA\Event(
-		name: "extPriv",
+		name: PrivateChannelMsgEvent::EVENT_MASK,
 		description: "Relay messages from the tradebot to org/private channel"
 	)]
 	public function receiveRelayMessageExtPrivEvent(PrivateChannelMsgEvent $eventObj): void {
@@ -238,7 +238,7 @@ class TradebotController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "msg",
+		name: RecvMsgEvent::EVENT_MASK,
 		description: "Relay incoming tells from the tradebots to org/private channel"
 	)]
 	public function receiveMessageEvent(RecvMsgEvent $eventObj): void {

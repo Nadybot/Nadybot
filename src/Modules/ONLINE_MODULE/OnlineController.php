@@ -591,7 +591,7 @@ class OnlineController extends ModuleInstance {
 
 	#[
 		NCA\Event(
-			name: "priv",
+			name: MyPrivateChannelMsgEvent::EVENT_MASK,
 			description: "Afk check",
 			help: "afk"
 		),
@@ -602,7 +602,7 @@ class OnlineController extends ModuleInstance {
 
 	#[
 		NCA\Event(
-			name: "guild",
+			name: GuildChannelMsgEvent::EVENT_MASK,
 			description: "Afk check",
 			help: "afk"
 		),
@@ -613,7 +613,7 @@ class OnlineController extends ModuleInstance {
 
 	#[
 		NCA\Event(
-			name: "priv",
+			name: MyPrivateChannelMsgEvent::EVENT_MASK,
 			description: "Sets a member afk",
 			help: "afk"
 		),
@@ -627,7 +627,7 @@ class OnlineController extends ModuleInstance {
 
 	#[
 		NCA\Event(
-			name: "guild",
+			name: GuildChannelMsgEvent::EVENT_MASK,
 			description: "Sets a member afk",
 			help: "afk"
 		),
