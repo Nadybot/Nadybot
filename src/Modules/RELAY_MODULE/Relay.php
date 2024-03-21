@@ -327,15 +327,6 @@ class Relay implements MessageReceiver {
 		}
 	}
 
-	public function getEventConfig(string $eventName): RelayEvent {
-		$event = $this->events[$eventName] ?? null;
-		if (!isset($event)) {
-			$event = new RelayEvent();
-			$event->event = $eventName;
-		}
-		return $event;
-	}
-
 	/** Handle data received from the transport layer */
 	public function receiveFromTransport(RelayMessage $data): void {
 		$this->inboundPackets->inc();

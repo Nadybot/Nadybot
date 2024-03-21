@@ -8,19 +8,21 @@ use Nadybot\Core\Attributes\JSON;
 use Nadybot\Core\DBRow;
 
 class RelayLayerArgument extends DBRow {
-	/** The id of the argument */
-	#[JSON\Ignore]
-	public int $id;
-
-	/** The id of the layer where this argument belongs to */
-	#[JSON\Ignore]
-	public int $layer_id;
-
-	/** The name of the argument */
-	public string $name;
-
-	/** The value of the argument */
-	public string $value;
+	/**
+	 * @param string $name     The name of the argument
+	 * @param string $value    The value of the argument
+	 * @param ?int   $id       The id of the argument
+	 * @param ?int   $layer_id The id of the layer where this argument belongs to
+	 */
+	public function __construct(
+		public string $name,
+		public string $value,
+		#[JSON\Ignore]
+		public ?int $id=null,
+		#[JSON\Ignore]
+		public ?int $layer_id=null,
+	) {
+	}
 
 	public function toString(bool $isSecret): string {
 		if ($isSecret) {

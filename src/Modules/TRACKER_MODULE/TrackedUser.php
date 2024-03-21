@@ -5,9 +5,12 @@ namespace Nadybot\Modules\TRACKER_MODULE;
 use Nadybot\Core\DBRow;
 
 class TrackedUser extends DBRow {
-	public int $uid;
-	public string $name;
-	public string $added_by;
-	public int $added_dt;
-	public bool $hidden=false;
+	public function __construct(
+		public int $uid,
+		public string $name,
+		public string $added_by,
+		public int $added_dt,
+		public bool $hidden=false,
+	) {
+	}
 }

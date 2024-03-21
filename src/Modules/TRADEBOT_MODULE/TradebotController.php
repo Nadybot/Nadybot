@@ -304,6 +304,9 @@ class TradebotController extends ModuleInstance {
 		foreach ($colorDefs as $tradebot => $colors) {
 			$blob = "<pagebreak><header2>{$tradebot}<end>\n";
 			foreach ($colors as $color) {
+				if (!isset($color->id)) {
+					continue;
+				}
 				$blob .= "<tab>[{$color->channel}]: <highlight>#{$color->color}<end><tab>".
 					"<font color='#{$color->color}'>[Example Tag]</font> ".
 					"[" . $this->text->makeChatcmd(
@@ -368,10 +371,11 @@ class TradebotController extends ModuleInstance {
 			$context->reply("Your tag is longer than the supported 25 characters.");
 			return;
 		}
-		$colorDef = new TradebotColors();
-		$colorDef->channel = $tag;
-		$colorDef->tradebot = $tradeBot();
-		$colorDef->color = $color;
+		$colorDef = new TradebotColors(
+			channel: $tag,
+			tradebot: $tradeBot(),
+			color: $color,
+		);
 		$oldValue = $this->getTagColor($tradeBot(), $tag);
 		if (isset($oldValue) && $oldValue->channel === $colorDef->channel) {
 			$colorDef->id = $oldValue->id;

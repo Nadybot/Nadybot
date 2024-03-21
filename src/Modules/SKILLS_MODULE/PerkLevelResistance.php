@@ -5,11 +5,16 @@ namespace Nadybot\Modules\SKILLS_MODULE;
 use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class PerkLevelResistance extends DBRow {
-	public int $perk_level_id;
 	#[NCA\DB\Ignore]
 	public int $perk_level;
-	public int $strain_id;
+
 	#[NCA\DB\Ignore]
-	public ?string $nanoline;
-	public int $amount;
+	public ?string $nanoline=null;
+
+	public function __construct(
+		public int $perk_level_id,
+		public int $strain_id,
+		public int $amount,
+	) {
+	}
 }

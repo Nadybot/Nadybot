@@ -109,36 +109,41 @@ class MigrateToRelayTable implements SchemaMigration {
 				$this->settingManager->save("relay_guild_abbreviation", $abbr->value);
 			}
 		}
-		$relay = new RelayConfig();
-		$relay->name = $relayBot->value ?? "Relay";
+		$relay = new RelayConfig(
+			name: $relayBot->value ?? "Relay",
+		);
 		$relay->id = $db->insert($this->relayController::DB_TABLE, $relay);
-		$transport = new RelayLayer();
-		$transport->relay_id = $relay->id;
 		$transportArgs = [];
 		switch ((int)$relayType->value) {
 			case 1:
-				$transport->layer = "tell";
+				$transportLayer = "tell";
 				$transportArgs["bot"] = $relayBot->value;
 				break;
 			case 2:
-				$transport->layer = "private-channel";
+				$transportLayer = "private-channel";
 				$transportArgs["channel"] = $relayBot->value;
 				break;
 			default:
 				$db->table($this->relayController::DB_TABLE)->delete($relay->id);
 				return null;
 		}
+		$transport = new RelayLayer(
+			layer: $transportLayer,
+			relay_id: $relay->id,
+		);
 		$transport->id = $db->insert($this->relayController::DB_TABLE_LAYER, $transport);
 		foreach ($transportArgs as $key => $value) {
-			$transportArg = new RelayLayerArgument();
-			$transportArg->name = $key;
-			$transportArg->value = (string)$value;
-			$transportArg->layer_id = $transport->id;
+			$transportArg = new RelayLayerArgument(
+				name: $key,
+				value: (string)$value,
+				layer_id: $transport->id,
+			);
 			$db->insert($this->relayController::DB_TABLE_ARGUMENT, $transportArg);
 		}
-		$protocol = new RelayLayer();
-		$protocol->relay_id = $relay->id;
-		$protocol->layer = ($this->prefix === "a") ? "agcr" : "grcv2";
+		$protocol = new RelayLayer(
+			relay_id: $relay->id,
+			layer: ($this->prefix === "a") ? "agcr" : "grcv2",
+		);
 		$db->insert($this->relayController::DB_TABLE_LAYER, $protocol);
 		return $relay;
 	}

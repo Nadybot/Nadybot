@@ -1853,11 +1853,13 @@ class NotumWarsController extends ModuleInstance {
 			$modes []= "org";
 		}
 
-		$timer = new Timer();
-		$timer->alerts = $alerts;
-		$timer->endtime = $timestamp;
-		$timer->name = $this->getPlantTimerName($site, $pf);
-		$timer->mode = join(",", $modes);
+		$timer = new Timer(
+			owner: $this->config->main->character,
+			alerts: $alerts,
+			endtime: $timestamp,
+			name: $this->getPlantTimerName($site, $pf),
+			mode: join(",", $modes),
+		);
 
 		return $timer;
 	}

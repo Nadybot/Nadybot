@@ -5,28 +5,23 @@ namespace Nadybot\Modules\RELAY_MODULE;
 use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class RelayConfig extends DBRow {
-	/** The unique ID of this relay config */
-	#[NCA\JSON\Ignore]
-	public int $id;
-
-	/** The name of this relay */
-	public string $name;
-
 	/**
-	 * The individual layers that make up this relay
-	 *
-	 * @var RelayLayer[]
+	 * @param string       $name   The name of this relay
+	 * @param ?int         $id     The unique ID of this relay config
+	 * @param RelayLayer[] $layers The individual layers that make up this relay
+	 * @param RelayEvent[] $events A list of events this relay allows in- and/or outbound
 	 */
-	#[NCA\DB\Ignore]
-	public array $layers = [];
-
-	/**
-	 * A list of events this relay allows in- and/or outbound
-	 *
-	 * @var RelayEvent[]
-	 */
-	#[NCA\DB\Ignore]
-	public array $events = [];
+	public function __construct(
+		public string $name,
+		#[NCA\JSON\Ignore]
+		#[NCA\DB\AutoInc]
+		public ?int $id=null,
+		#[NCA\DB\Ignore]
+		public array $layers=[],
+		#[NCA\DB\Ignore]
+		public array $events=[],
+	) {
+	}
 
 	public function getEvent(string $name): ?RelayEvent {
 		foreach ($this->events as $event) {

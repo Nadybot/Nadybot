@@ -5,40 +5,35 @@ namespace Nadybot\Modules\SKILLS_MODULE;
 use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class PerkLevel extends DBRow {
-	public int $id;
-
-	/** The internal ID of the perk level in AO */
-	public ?int $aoid = null;
-
-	/** The internal ID of the perk like */
-	public int $perk_id;
-
-	/** Which level of $perk_id does this represent? */
-	public int $perk_level;
-
-	/** Required character level to perk this perk level */
-	public int $required_level;
-
-	/** @var string[] */
-	#[NCA\DB\Ignore]
-	public array $professions = [];
-
-	/** @var array<int,int> */
-	#[NCA\DB\Ignore]
-	public array $buffs = [];
-
-	/** @var ExtPerkLevelBuff[] */
-	#[NCA\DB\Ignore]
-	public array $perk_buffs = [];
-
-	/** @var array<int,int> */
-	#[NCA\DB\Ignore]
-	public array $resistances = [];
-
-	/** @var PerkLevelResistance[] */
-	#[NCA\DB\Ignore]
-	public array $perk_resistances = [];
-
-	#[NCA\DB\Ignore]
-	public ?PerkLevelAction $action = null;
+	/**
+	 * @param int                   $perk_id          The internal ID of the perk line
+	 * @param int                   $perk_level       Which level of $perk_id does this represent?
+	 * @param int                   $required_level   Required character level to perk this perk level
+	 * @param ?int                  $aoid             The internal ID of the perk level in AO
+	 * @param string[]              $professions
+	 * @param array<int,int>        $buffs
+	 * @param ExtPerkLevelBuff[]    $perk_buffs
+	 * @param array<int,int>        $resistances
+	 * @param PerkLevelResistance[] $perk_resistances
+	 */
+	public function __construct(
+		public int $perk_id,
+		public int $perk_level,
+		public int $required_level,
+		public ?int $id=null,
+		public ?int $aoid=null,
+		#[NCA\DB\Ignore]
+		public array $professions=[],
+		#[NCA\DB\Ignore]
+		public array $buffs=[],
+		#[NCA\DB\Ignore]
+		public array $perk_buffs=[],
+		#[NCA\DB\Ignore]
+		public array $resistances=[],
+		#[NCA\DB\Ignore]
+		public array $perk_resistances=[],
+		#[NCA\DB\Ignore]
+		public ?PerkLevelAction $action=null,
+	) {
+	}
 }

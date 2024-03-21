@@ -648,19 +648,22 @@ class BuffPerksController extends ModuleInstance {
 			}
 			$perk = $perks[$name]??null;
 			if (empty($perk)) {
-				$perk = new Perk();
+				$perk = new Perk(
+					name: $name,
+					description: isset($description) ? join("\n", explode("\\n", $description)) : null,
+					expansion: $expansion,
+				);
 				$perks[$name] = $perk;
-				$perk->name = $name;
-				$perk->description = isset($description) ? join("\n", explode("\\n", $description)) : null;
-				$perk->expansion = $expansion;
 			}
 
-			$level = new PerkLevel();
-			$perk->levels[(int)$perkLevel] = $level;
+			$level = new PerkLevel(
+				perk_id: -1, // Will be filled out by the perk itself
+				perk_level: (int)$perkLevel,
+				required_level: (int)$requiredLevel,
+				aoid: (int)$aoid,
+			);
 
-			$level->perk_level = (int)$perkLevel;
-			$level->required_level = (int)$requiredLevel;
-			$level->aoid = (int)$aoid;
+			$perk->levels[(int)$perkLevel] = $level;
 
 			$professions = explode(",", $profs);
 			foreach ($professions as $prof) {
@@ -707,15 +710,13 @@ class BuffPerksController extends ModuleInstance {
 				}
 			}
 			if (strlen($action??'')) {
-				$level->action = new PerkLevelAction();
-				$level->action->action_id = (int)Safe::pregReplace("/\*$/", "", $action??"", -1, $count);
-				$level->action->scaling = $count > 0;
-				$level->action->perk_level = $level->perk_level;
-				$item = $this->itemsController->getByIDs($level->action->action_id)->first();
-				if (!isset($item)) {
-					continue;
-				}
-				$level->action->aodb = $item;
+				$actionId = (int)Safe::pregReplace("/\*$/", "", $action??"", -1, $count);
+				$level->action = new PerkLevelAction(
+					action_id: $actionId,
+					scaling: $count > 0,
+					perk_level: $level->perk_level,
+					aodb: $this->itemsController->getByIDs($actionId)->first(),
+				);
 			}
 		}
 		$fileHandle->close();

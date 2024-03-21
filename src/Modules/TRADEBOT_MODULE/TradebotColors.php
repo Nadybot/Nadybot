@@ -2,18 +2,21 @@
 
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class TradebotColors extends DBRow {
-	/** Internal primary key */
-	public int $id;
-
-	/** Name of the tradebnot (Darknet/Lightnet) */
-	public string $tradebot;
-
-	/** The channel mask (wtb, *, wt?, ...) */
-	public string $channel;
-
-	/** The 6 hex digits of the color, like FFFFFF */
-	public string $color;
+	/**
+	 * @param string $tradebot Name of the tradebnot (Darknet/Lightnet)
+	 * @param string $channel  The channel mask (wtb, *, wt?, ...)
+	 * @param string $color    The 6 hex digits of the color, like FFFFFF
+	 * @param ?int   $id       Internal primary key
+	 */
+	public function __construct(
+		public string $tradebot,
+		public string $channel,
+		public string $color,
+		#[NCA\DB\AutoInc]
+		public ?int $id=null,
+	) {
+	}
 }

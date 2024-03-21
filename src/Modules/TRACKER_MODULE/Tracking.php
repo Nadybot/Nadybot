@@ -5,7 +5,10 @@ namespace Nadybot\Modules\TRACKER_MODULE;
 use Nadybot\Core\DBRow;
 
 class Tracking extends DBRow {
-	public int $uid;
-	public int $dt;
-	public string $event;
+	public function __construct(
+		public int $uid,
+		public int $dt,
+		public string $event,
+	) {
+	}
 }

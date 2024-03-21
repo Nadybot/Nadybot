@@ -802,17 +802,19 @@ class ImportController extends ModuleInstance {
 			$this->db->table($table)->truncate();
 			$timerNum = 1;
 			foreach ($timers as $timer) {
-				$entry = new Timer();
 				$owner = $this->characterToName($timer->createdBy??null);
-				$entry->owner = $owner ?? $this->config->main->character;
-				$entry->data = (isset($timer->repeatInterval) && is_int($timer->repeatgInterval) && $timer->repeatInterval > 0)
+				$data = (isset($timer->repeatInterval) && is_int($timer->repeatInterval) && $timer->repeatInterval > 0)
 					? (string)$timer->repeatInterval
 					: null;
-				$entry->mode = $this->channelsToMode($timer->channels??[]);
-				$entry->name = $timer->timerName ?? ($this->characterToName($timer->createdBy??null)) ?? $this->config->main->character . "-{$timerNum}";
-				$entry->endtime = $timer->endTime;
-				$entry->callback = isset($entry->data) ? "timercontroller.repeatingTimerCallback" : "timercontroller.timerCallback";
-				$entry->alerts = [];
+				$entry = new Timer(
+					name: $timer->timerName ?? ($this->characterToName($timer->createdBy??null)) ?? $this->config->main->character . "-{$timerNum}",
+					owner: $owner ?? $this->config->main->character,
+					data: $data,
+					mode: $this->channelsToMode($timer->channels??[]),
+					endtime: $timer->endTime,
+					callback: isset($data) ? "timercontroller.repeatingTimerCallback" : "timercontroller.timerCallback",
+					alerts: [],
+				);
 				foreach ($timer->alerts??[] as $alert) {
 					$alertEntry = new Alert();
 					$alertEntry->message = $alert->message ?? "Timer <highlight>{$entry->name}<end> has gone off.";
@@ -822,7 +824,7 @@ class ImportController extends ModuleInstance {
 				if (!count($entry->alerts)) {
 					$alertEntry = new Alert();
 					$alertEntry->message = "Timer <highlight>{$entry->name}<end> has gone off.";
-					$alertEntry->time = $entry->endtime;
+					$alertEntry->time = $timer->endtime;
 					$entry->alerts []= $alertEntry;
 				}
 				$this->db->table($table)

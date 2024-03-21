@@ -7,13 +7,15 @@ use Nadybot\Modules\ORGLIST_MODULE\Organization;
 use Safe\DateTime;
 
 class TrackingOrg extends DBRow {
-	public int $org_id;
 	public DateTime $added_dt;
-	public string $added_by;
-	#[NCA\DB\Ignore]
-	public ?Organization $org = null;
 
-	public function __construct() {
-		$this->added_dt = new DateTime();
+	public function __construct(
+		public int $org_id,
+		public string $added_by,
+		?DateTime $added_dt=null,
+		#[NCA\DB\Ignore]
+		public ?Organization $org=null,
+	) {
+		$this->added_dt = $added_dt ?? new DateTime();
 	}
 }

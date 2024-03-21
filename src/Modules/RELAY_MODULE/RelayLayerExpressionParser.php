@@ -77,23 +77,26 @@ class RelayLayerExpressionParser {
 	}
 
 	protected function parselayer(Branch $layer): RelayLayer {
-		$result = new RelayLayer();
-		$result->layer = $layer->findFirst("layerName")->toString();
+		$arguments = [];
 		foreach ($layer->findAll("argument") as $argument) {
-			$result->arguments []= $this->parseArgument($argument);
+			$arguments []= $this->parseArgument($argument);
 		}
+		$result = new RelayLayer(
+			layer: $layer->findFirst("layerName")->toString(),
+			arguments: $arguments,
+		);
 		return $result;
 	}
 
 	protected function parseArgument(Branch $argument): RelayLayerArgument {
-		$result = new RelayLayerArgument();
-		$result->name = $argument->findFirst("key")->toString();
+		$name = $argument->findFirst("key")->toString();
 		$value = $argument->findFirst("value");
 		if ($value->getDetailType() === 'string') {
-			$result->value = json_decode($value->toString());
+			$value = json_decode($value->toString());
 		} else {
-			$result->value = $value->toString();
+			$value = $value->toString();
 		}
+		$result = new RelayLayerArgument(name: $name, value: $value);
 		return $result;
 	}
 }

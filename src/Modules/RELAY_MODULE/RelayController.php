@@ -371,8 +371,7 @@ class RelayController extends ModuleInstance {
 			$context->reply("The name of the relay must be 100 characters max.");
 			return;
 		}
-		$relayConf = new RelayConfig();
-		$relayConf->name = $name;
+		$relayConf = new RelayConfig(name: $name);
 		$parser = new RelayLayerExpressionParser();
 		try {
 			$relayConf->layers = $parser->parse($spec);
@@ -711,7 +710,10 @@ class RelayController extends ModuleInstance {
 			"with 'sync' instead of enabling that outgoing sync-event, e.g. '<symbol>sync cd KILL!'.\n\n";
 		$blob .= "<header2>Syncable events<end>";
 		foreach ($events as $event) {
-			$eConf = $relay->getEvent($event->name) ?? new RelayEvent();
+			if (!isset($relay->id)) {
+				continue;
+			}
+			$eConf = $relay->getEvent($event->name) ?? new RelayEvent(relay_id: $relay->id, event: $event->name);
 			$line = "\n<tab><highlight>{$event->name}<end>:";
 			foreach (["incoming", "outgoing"] as $type) {
 				if ($eConf->{$type}) {
@@ -816,11 +818,15 @@ class RelayController extends ModuleInstance {
 			->delete();
 		$relay->events = [];
 		foreach ($eventConfigs as $eventName => $dir) {
-			$event = new RelayEvent();
-			$event->relay_id = $relay->id;
-			$event->event = (string)$eventName;
-			$event->incoming = stripos($dir, "I") !== false;
-			$event->outgoing = stripos($dir, "O") !== false;
+			if (!isset($relay->id)) {
+				continue;
+			}
+			$event = new RelayEvent(
+				relay_id: $relay->id,
+				event: (string)$eventName,
+				incoming: stripos($dir, "I") !== false,
+				outgoing: stripos($dir, "O") !== false,
+			);
 			$event->id = $this->db->insert(static::DB_TABLE_EVENT, $event, "id");
 			$relay->addEvent($event);
 		}
@@ -1081,7 +1087,7 @@ class RelayController extends ModuleInstance {
 	]
 	public function apiPutRelayEventsByNameEndpoint(Request $request, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
-		if (!isset($relay)) {
+		if (!isset($relay) || !isset($relay->id)) {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		$oRelay = $this->relays[$relay->name]??null;
@@ -1341,14 +1347,15 @@ class RelayController extends ModuleInstance {
 	}
 
 	protected function changeRelayEventStatus(RelayConfig $relay, string $eventName, string $direction, bool $enable): bool {
+		if (!isset($relay->id)) {
+			return false;
+		}
 		$event = $relay->getEvent($eventName);
 		if (!isset($event)) {
 			if ($enable === false) {
 				return false;
 			}
-			$event = new RelayEvent();
-			$event->event = $eventName;
-			$event->relay_id = $relay->id;
+			$event = new RelayEvent(event: $eventName, relay_id: $relay->id);
 		}
 		if ($event->{$direction} === $enable) {
 			return false;

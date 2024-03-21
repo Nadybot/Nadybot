@@ -655,9 +655,10 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$context->reply($msg);
 			return;
 		}
-		$tOrg = new TrackingOrg();
-		$tOrg->org_id = $orgId;
-		$tOrg->added_by = $context->char->name;
+		$tOrg = new TrackingOrg(
+			org_id: $orgId,
+			added_by: $context->char->name,
+		);
 		$this->db->insert(static::DB_ORG, $tOrg, null);
 		$context->reply("Adding <" . strtolower($org->faction) . ">{$org->name}<end> to the tracker.");
 		try {
