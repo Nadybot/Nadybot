@@ -458,15 +458,16 @@ class BanController extends ModuleInstance {
 
 		$this->uploadBanlist();
 
-		$audit = new Audit();
-		$audit->actor = $sender;
 		$charName = $this->chatBot->getName($charId);
 		if (!is_string($charName)) {
 			$charName = (string)$charId;
 		}
-		$audit->actee = $charName;
-		$audit->action = $banEnd ? AccessManager::TEMP_BAN : AccessManager::PERM_BAN;
-		$audit->value = $reason;
+		$audit = new Audit(
+			actor: $sender,
+			actee: $charName,
+			action: $banEnd ? AccessManager::TEMP_BAN : AccessManager::PERM_BAN,
+			value: $reason,
+		);
 		$this->accessManager->addAudit($audit);
 
 		return $inserted;
@@ -800,11 +801,12 @@ class BanController extends ModuleInstance {
 			if ($this->add($charId, $sender, $length, $reason)) {
 				$package = new PrivateChannelKick(charId: $charId);
 				$this->chatBot->sendPackage($package);
-				$audit = new Audit();
-				$audit->actor = $sender;
-				$audit->actee = $who;
-				$audit->action = AccessManager::KICK;
-				$audit->value = "banned";
+				$audit = new Audit(
+					actor: $sender,
+					actee: $who,
+					action: AccessManager::KICK,
+					value: "banned",
+				);
 				$this->accessManager->addAudit($audit);
 				$numSuccess++;
 

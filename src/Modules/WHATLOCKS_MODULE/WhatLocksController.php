@@ -48,12 +48,16 @@ class WhatLocksController extends ModuleInstance {
 	public function whatLocksCommand(CmdContext $context): void {
 		$query = $this->db->table("what_locks")->groupBy("skill_id");
 		$skills = $query->select(["skill_id", $query->rawFunc("COUNT", "*", "amount")])
-			->asObj(SkillIdCount::class);
+			->get();
 		$skillsById = $this->itemsController->getSkillByIDs(
 			...$skills->pluck("skill_id")->toArray()
 		)->keyBy("id");
-		$lines = $skills->each(function (SkillIdCount $item) use ($skillsById): void {
-			$item->skill = $skillsById->get($item->skill_id);
+		$lines = $skills->map(function (\stdClass $item) use ($skillsById): SkillIdCount {
+			return new SkillIdCount(
+				skill_id: $item->skill_id,
+				amount: $item->amount,
+				skill: $skillsById->get($item->skill_id),
+			);
 		})->sort(function (SkillIdCount $s1, SkillIdCount $s2): int {
 			return strnatcmp($s1->skill->name, $s2->skill->name);
 		})->map(function (SkillIdCount $row) {

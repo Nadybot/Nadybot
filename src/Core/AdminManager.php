@@ -79,12 +79,13 @@ class AdminManager implements AccessLevelProvider {
 		unset($this->admins[$who]);
 		$this->db->table(self::DB_TABLE)->where("name", $who)->delete();
 		$this->buddylistManager->remove($who, 'admin');
-		$audit = new Audit();
-		$audit->actor = $sender;
-		$audit->actee = $who;
-		$audit->action = AccessManager::DEL_RANK;
 		$alMod = $this->accessManager->getAccessLevels()["mod"];
-		$audit->value = (string)($alMod - ($oldRank["level"] - $alMod));
+		$audit = new Audit(
+			actor: $sender,
+			actee: $who,
+			action: AccessManager::DEL_RANK,
+			value: (string)($alMod - ($oldRank["level"] - $alMod)),
+		);
 		$this->accessManager->addAudit($audit);
 	}
 
@@ -103,11 +104,12 @@ class AdminManager implements AccessLevelProvider {
 			if ($this->admins[$who]["level"] > $intlevel) {
 				$action = "demoted";
 			}
-			$audit = new Audit();
-			$audit->actor = $sender;
-			$audit->actee = $who;
-			$audit->action = AccessManager::DEL_RANK;
-			$audit->value = (string)($alMod - ($this->admins[$who]["level"] - $alMod));
+			$audit = new Audit(
+				actor: $sender,
+				actee: $who,
+				action: AccessManager::DEL_RANK,
+				value: (string)($alMod - ($this->admins[$who]["level"] - $alMod)),
+			);
 			$this->accessManager->addAudit($audit);
 		} else {
 			$this->db->table(self::DB_TABLE)
@@ -117,11 +119,12 @@ class AdminManager implements AccessLevelProvider {
 		$this->admins[$who]["level"] = $intlevel;
 		async($this->buddylistManager->addName(...), $who, 'admin')->ignore();
 
-		$audit = new Audit();
-		$audit->actor = $sender;
-		$audit->actee = $who;
-		$audit->action = AccessManager::ADD_RANK;
-		$audit->value = (string)($alMod - ($intlevel - $alMod));
+		$audit = new Audit(
+			actor: $sender,
+			actee: $who,
+			action: AccessManager::ADD_RANK,
+			value: (string)($alMod - ($intlevel - $alMod)),
+		);
 		$this->accessManager->addAudit($audit);
 
 		return $action;

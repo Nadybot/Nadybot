@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	Faction,
 	ModuleInstance,
 	ParamClass\PWord,
 	Text,
@@ -77,8 +78,7 @@ class WhompahController extends ModuleInstance {
 
 		$whompahs = $this->buildWhompahNetwork();
 
-		$whompah = clone $endCity;
-		$whompah->visited = true;
+		$whompah = new WhompahPath(current: $endCity, visited: true);
 		$obj = $this->findWhompahPath([$whompah], $whompahs, $startCity->id);
 
 		if ($obj === null) {
@@ -88,7 +88,7 @@ class WhompahController extends ModuleInstance {
 		}
 		$cities = [];
 		while ($obj !== null) {
-			$cities []= $obj;
+			$cities []= $obj->current;
 			$obj = $obj->previous;
 		}
 		$cityList = $this->getColoredNamelist($cities);
@@ -123,23 +123,23 @@ class WhompahController extends ModuleInstance {
 	}
 
 	/**
-	 * @param WhompahCity[]          $queue
-	 * @param array<int,WhompahCity> $whompahs
+	 * @param WhompahPath[]          $queue
+	 * @param array<int,WhompahPath> $whompahs
 	 *
-	 * @return ?WhompahCity
+	 * @return ?WhompahPath
 	 */
-	public function findWhompahPath(array $queue, array $whompahs, int $endCity): ?WhompahCity {
+	public function findWhompahPath(array $queue, array $whompahs, int $endCity): ?WhompahPath {
 		$currentWhompah = array_shift($queue);
 
 		if ($currentWhompah === null) {
 			return null;
 		}
 
-		if ($currentWhompah->id === $endCity) {
+		if ($currentWhompah->current->id === $endCity) {
 			return $currentWhompah;
 		}
 
-		foreach ($whompahs[$currentWhompah->id]->connections as $city2Id) {
+		foreach ($whompahs[$currentWhompah->current->id]->connections as $city2Id) {
 			if ($whompahs[$city2Id]->visited !== true) {
 				$whompahs[$city2Id]->visited = true;
 				$nextWhompah = clone $whompahs[$city2Id];
@@ -160,20 +160,27 @@ class WhompahController extends ModuleInstance {
 			?: $q2->asObj(WhompahCity::class)->first();
 	}
 
-	/** @return array<int,WhompahCity> */
+	/** @return array<int,WhompahPath> */
 	public function buildWhompahNetwork(): array {
 		/** @var array<int,WhompahCity> */
-		$whompahs = $this->db->table("whompah_cities")->asObj(WhompahCity::class)
-			->keyBy("id")->toArray();
+		$cities = $this->db->table("whompah_cities")
+			->asObj(WhompahCity::class)
+			->keyBy("id")
+			->toArray();
+
+		/** @var array<int,WhompahPath> */
+		$network = [];
+		foreach ($cities as $id => $city) {
+			$network[$id] = new WhompahPath(current: $city);
+		}
 
 		$this->db->table("whompah_cities_rel")->orderBy("city1_id")
 			->asObj(WhompahCityRel::class)
-			->each(function (WhompahCityRel $city) use ($whompahs) {
-				$whompahs[$city->city1_id]->connections ??= [];
-				$whompahs[$city->city1_id]->connections[] = $city->city2_id;
+			->each(function (WhompahCityRel $city) use ($network) {
+				$network[$city->city1_id]->connections[] = $city->city2_id;
 			});
 
-		return $whompahs;
+		return $network;
 	}
 
 	/**
@@ -183,8 +190,8 @@ class WhompahController extends ModuleInstance {
 	 */
 	protected function getColoredNamelist(array $cities, bool $addShort=false): array {
 		return array_map(function (WhompahCity $city) use ($addShort): string {
-			$faction = strtolower($city->faction);
-			if ($faction === 'neutral') {
+			$faction = strtolower($city->faction->value);
+			if ($city->faction === Faction::Neutral) {
 				$faction = 'green';
 			}
 			$coloredName = "<{$faction}>{$city->city_name}<end>";

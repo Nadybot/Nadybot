@@ -564,10 +564,11 @@ class AltsController extends ModuleInstance {
 		}
 		if ($validatedByAlt && $validatedByMain) {
 			$this->alts[$alt] = $main;
-			$audit = new Audit();
-			$audit->actor = $main;
-			$audit->actee = $alt;
-			$audit->action = AccessManager::ADD_ALT;
+			$audit = new Audit(
+				actor: $main,
+				actee: $alt,
+				action: AccessManager::ADD_ALT,
+			);
 			$this->accessManager->addAudit($audit);
 		}
 		return $added ? 1 : 0;
@@ -595,10 +596,11 @@ class AltsController extends ModuleInstance {
 
 			if (isset($old) && $old->validated_by_alt && $old->validated_by_main) {
 				unset($this->alts[$alt]);
-				$audit = new Audit();
-				$audit->actor = $main;
-				$audit->actee = $alt;
-				$audit->action = AccessManager::DEL_ALT;
+				$audit = new Audit(
+					actor: $main,
+					actee: $alt,
+					action: AccessManager::DEL_ALT,
+				);
 				$this->accessManager->addAudit($audit);
 			}
 		}
@@ -710,10 +712,11 @@ class AltsController extends ModuleInstance {
 		$this->alts[$sender] = $altInfo->main;
 		$this->fireAltValidatedEvent($altInfo->main, $sender);
 
-		$audit = new Audit();
-		$audit->actor = $altInfo->main;
-		$audit->actee = $sender;
-		$audit->action = AccessManager::ADD_ALT;
+		$audit = new Audit(
+			actor: $altInfo->main,
+			actee: $sender,
+			action: AccessManager::ADD_ALT,
+		);
 		$this->accessManager->addAudit($audit);
 
 		$sendto->reply("<highlight>{$toValidate}<end> has been validated as your main.");
@@ -970,9 +973,10 @@ class AltsController extends ModuleInstance {
 			return "There was a database error changing the main character. No changes were made.";
 		}
 
-		$audit = new Audit();
-		$audit->actor = $newMain;
-		$audit->action = AccessManager::SET_MAIN;
+		$audit = new Audit(
+			actor: $newMain,
+			action: AccessManager::SET_MAIN,
+		);
 		$this->accessManager->addAudit($audit);
 
 		// @todo Send a warning if the new main's accesslevel is not the highest

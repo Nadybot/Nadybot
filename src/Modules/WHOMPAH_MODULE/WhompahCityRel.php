@@ -5,6 +5,9 @@ namespace Nadybot\Modules\WHOMPAH_MODULE;
 use Nadybot\Core\DBRow;
 
 class WhompahCityRel extends DBRow {
-	public int $city1_id;
-	public int $city2_id;
+	public function __construct(
+		public int $city1_id,
+		public int $city2_id,
+	) {
+	}
 }

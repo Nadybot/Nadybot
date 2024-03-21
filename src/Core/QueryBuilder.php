@@ -247,6 +247,8 @@ class QueryBuilder extends Builder {
 						$row[$colName] = (float)$values[$col];
 					} elseif ($type === \DateTime::class || $type === DateTime::class) {
 						$row[$colName] = (new DateTime())->setTimestamp((int)$values[$col]);
+					} elseif (is_a($type, \BackedEnum::class, true)) {
+						$row[$colName] = $type::from($values[$col]);
 					} else {
 						$row[$colName] = $values[$col];
 					}

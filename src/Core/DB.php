@@ -428,6 +428,9 @@ class DB {
 			if (count($prop->getAttributes(NCA\DB\Ignore::class))) {
 				continue;
 			}
+			if (count($prop->getAttributes(NCA\DB\AutoInc::class))) {
+				continue;
+			}
 			if (!$prop->isInitialized($row)) {
 				continue;
 			}

@@ -2,29 +2,26 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 use Safe\DateTime;
 
 class Audit extends DBRow {
-	/** ID of this audit entry */
-	public int $id;
-
-	/** The person doing something */
-	public string $actor;
-
-	/** The person the actor is interacting with. Not set if not applicable */
-	public ?string $actee = null;
-
-	/** What did the actor do */
-	public string $action;
-
-	/** Optional value for the action */
-	public ?string $value = null;
-
-	/** time when it happened */
-	public DateTime $time;
-
-	public function __construct() {
-		$this->time = new DateTime();
+	/**
+	 * @param string   $actor  The person doing something
+	 * @param string   $action What did the actor do
+	 * @param ?string  $actee  The person the actor is interacting with. Not set if not applicable
+	 * @param ?string  $value  Optional value for the action
+	 * @param DateTime $time   time when it happened
+	 * @param ?int     $id     ID of this audit entry, or null if not determined yet
+	 */
+	public function __construct(
+		public string $actor,
+		public string $action,
+		public ?string $actee=null,
+		public ?string $value=null,
+		public DateTime $time=new DateTime(),
+		#[NCA\DB\AutoInc]
+		public ?int $id=null,
+	) {
 	}
 }

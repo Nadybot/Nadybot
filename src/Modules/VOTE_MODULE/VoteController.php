@@ -98,7 +98,9 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			->asObj(Poll::class)
 			->each(function (Poll $topic): void {
 				$topic->answers = json_decode($topic->possible_answers, false);
-				$this->polls[$topic->id] = $topic;
+				if (isset($topic->id)) {
+					$this->polls[$topic->id] = $topic;
+				}
 			});
 	}
 
@@ -240,7 +242,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		}
 		$topic = $this->getPoll($pollId, $owner);
 
-		if ($topic === null) {
+		if ($topic === null || !isset($topic->id)) {
 			$msg = "Either this poll does not exist, or you did not create it.";
 			$context->reply($msg);
 			return;
@@ -448,15 +450,16 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		if ($allowCustomAnswers === false) {
 			$answers = array_slice($answers, 0, count($answers)-2);
 		}
-		$topic = new Poll();
-		$topic->question = $question;
-		$topic->author = $context->char->name;
-		$topic->allow_other_answers = $allowCustomAnswers;
-		$topic->started = time();
-		$topic->duration = $duration;
-		$topic->answers = $answers;
-		$topic->possible_answers = json_encode($answers);
-		$topic->status = self::STATUS_CREATED;
+		$topic = new Poll(
+			question: $question,
+			author: $context->char->name,
+			allow_other_answers: $allowCustomAnswers,
+			started: time(),
+			duration: $duration,
+			answers: $answers,
+			possible_answers: json_encode($answers),
+			status: self::STATUS_CREATED,
+		);
 
 		$topic->id = $this->db->insert(self::DB_POLLS, $topic);
 		$this->polls[$topic->id] = $topic;

@@ -2,17 +2,15 @@
 
 namespace Nadybot\Modules\WHOMPAH_MODULE;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{DBRow, Faction};
 
 class WhompahCity extends DBRow {
-	public int $id;
-	public string $city_name;
-	public string $zone;
-	public string $faction;
-	public string $short_name;
-
-	/** @var int[] */
-	public array $connections = [];
-	public bool $visited = false;
-	public ?WhompahCity $previous = null;
+	public function __construct(
+		public int $id,
+		public string $city_name,
+		public string $zone,
+		public Faction $faction,
+		public string $short_name,
+	) {
+	}
 }

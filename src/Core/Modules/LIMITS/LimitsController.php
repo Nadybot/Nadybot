@@ -275,10 +275,11 @@ class LimitsController extends ModuleInstance {
 						package: new Package\Out\PrivateChannelKick(charId: $sender)
 					);
 				}
-				$audit = new Audit();
-				$audit->actor = $event->sender;
-				$audit->action = AccessManager::KICK;
-				$audit->value = "limits exceeded";
+				$audit = new Audit(
+					actor: $event->sender,
+					action: AccessManager::KICK,
+					value: "limits exceeded",
+				);
 				$this->accessManager->addAudit($audit);
 			}
 		}

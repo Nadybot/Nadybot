@@ -158,9 +158,11 @@ class ApiController extends ModuleInstance {
 			);
 			return;
 		}
-		$apiKey = new ApiKey();
-		$apiKey->pubkey = $pubKeyPem;
-		$apiKey->character = $context->char->name;
+		$apiKey = new ApiKey(
+			pubkey: $pubKeyPem,
+			character: $context->char->name,
+			token: "",
+		);
 		do {
 			$apiKey->token = bin2hex(random_bytes(4));
 			try {

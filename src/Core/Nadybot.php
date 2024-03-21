@@ -880,18 +880,20 @@ class Nadybot {
 			);
 
 			$this->logChat("Priv Group", -1, "{$sender} joined the channel.");
-			$audit = new Audit();
-			$audit->actor = $sender;
-			$audit->action = AccessManager::JOIN;
+			$audit = new Audit(
+				actor: $sender,
+				action: AccessManager::JOIN,
+			);
 			$this->accessManager->addAudit($audit);
 
 			if ($this->banController->isOnBanlist($package->package->charId)) {
 				$kick = new Package\Out\PrivateChannelKick(charId: $package->package->charId);
 				$this->sendPackage($kick);
-				$audit = new Audit();
-				$audit->actor = $sender;
-				$audit->action = AccessManager::KICK;
-				$audit->value = "banned";
+				$audit = new Audit(
+					actor: $sender,
+					action: AccessManager::KICK,
+					value: "banned",
+				);
 				$this->accessManager->addAudit($audit);
 				return;
 			}
@@ -945,9 +947,10 @@ class Nadybot {
 			unset($this->chatlist[$sender]);
 
 			$this->eventManager->fireEvent($eventObj);
-			$audit = new Audit();
-			$audit->actor = $sender;
-			$audit->action = AccessManager::LEAVE;
+			$audit = new Audit(
+				actor: $sender,
+				action: AccessManager::LEAVE,
+			);
 			$this->accessManager->addAudit($audit);
 		} elseif ($this->char?->id === $package->package->charId) {
 			unset($this->privateChats[$channel]);

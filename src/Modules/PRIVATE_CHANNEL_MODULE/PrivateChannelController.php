@@ -580,10 +580,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 		$msg = "Invited <highlight>{$name}<end> to this channel.";
 		$this->inviteChar($name);
-		$audit = new Audit();
-		$audit->actor = $context->char->name;
-		$audit->actee = $name;
-		$audit->action = AccessManager::INVITE;
+		$audit = new Audit(
+			actor: $context->char->name,
+			actee: $name,
+			action: AccessManager::INVITE,
+		);
 		$this->accessManager->addAudit($audit);
 		$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>{$context->char->name}<end>.";
 		$this->chatBot->sendMassTell($msg2, $name);
@@ -614,11 +615,12 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				}
 				$this->chatBot->sendPrivate($msg);
 				$this->kickChar($name);
-				$audit = new Audit();
-				$audit->actor = $context->char->name;
-				$audit->actor = $name;
-				$audit->action = AccessManager::KICK;
-				$audit->value = $reason;
+				$audit = new Audit(
+					actor: $context->char->name,
+					actee: $name,
+					action: AccessManager::KICK,
+					value: $reason,
+				);
 				$this->accessManager->addAudit($audit);
 			} else {
 				$msg = "You do not have the required access level to kick <highlight>{$name}<end>.";
@@ -951,10 +953,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			}
 		}
 		$context->reply("You <off>locked<end> the private channel: {$this->lockReason}");
-		$audit = new Audit();
-		$audit->actor = $context->char->name;
-		$audit->action = AccessManager::LOCK;
-		$audit->value = $this->lockReason;
+		$audit = new Audit(
+			actor: $context->char->name,
+			action: AccessManager::LOCK,
+			value: $this->lockReason,
+		);
 		$this->accessManager->addAudit($audit);
 		return true;
 	}
@@ -970,9 +973,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->settingManager->save("lock_reason", "");
 		$this->chatBot->sendPrivate("The private chat is now <on>open<end> again.");
 		$context->reply("You <on>unlocked<end> the private channel.");
-		$audit = new Audit();
-		$audit->actor = $context->char->name;
-		$audit->action = AccessManager::UNLOCK;
+		$audit = new Audit(
+			actor: $context->char->name,
+			action: AccessManager::UNLOCK,
+		);
 		$this->accessManager->addAudit($audit);
 	}
 
@@ -1157,11 +1161,12 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			"Reason: <{$faction}>{$faction}<end>."
 		);
 		$this->kickChar($whois->name);
-		$audit = new Audit();
-		$audit->actor = $this->config->main->character;
-		$audit->actor = $whois->name;
-		$audit->action = AccessManager::KICK;
-		$audit->value = "auto-ban";
+		$audit = new Audit(
+			actor: $this->config->main->character,
+			actee: $whois->name,
+			action: AccessManager::KICK,
+			value: "auto-ban",
+		);
 		$this->accessManager->addAudit($audit);
 	}
 
@@ -1296,11 +1301,12 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->buddylistManager->remove($name, 'member');
 		$event = new MemberRemoveEvent(sender: $name);
 		$this->eventManager->fireEvent($event);
-		$audit = new Audit();
-		$audit->actor = $sender;
-		$audit->actee = $name;
-		$audit->action = AccessManager::DEL_RANK;
-		$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
+		$audit = new Audit(
+			actor: $sender,
+			actee: $name,
+			action: AccessManager::DEL_RANK,
+			value: (string)$this->accessManager->getAccessLevels()["member"],
+		);
 		$this->accessManager->addAudit($audit);
 		return "<highlight>{$name}<end> has been removed as a member of this bot.";
 	}
@@ -1540,11 +1546,12 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->members[$name] = $memberObj;
 		$event = new MemberAddEvent(sender: $name);
 		$this->eventManager->fireEvent($event);
-		$audit = new Audit();
-		$audit->actor = $sender;
-		$audit->actee = $name;
-		$audit->action = AccessManager::ADD_RANK;
-		$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
+		$audit = new Audit(
+			actor: $sender,
+			actee: $name,
+			action: AccessManager::ADD_RANK,
+			value: (string)$this->accessManager->getAccessLevels()["member"],
+		);
 		$this->accessManager->addAudit($audit);
 		return "<highlight>{$name}<end> has been added as a member of this bot.";
 	}

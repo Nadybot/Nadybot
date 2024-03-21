@@ -952,15 +952,17 @@ class WorldBossController extends ModuleInstance {
 
 	/** Convert timer information from the API into an actual timer with correct information */
 	protected function apiTimerToWorldbossTimer(ApiSpawnData $timer, string $mobName): WorldBossTimer {
-		$newTimer = new WorldBossTimer();
-		$newTimer->spawn = $timer->last_spawn;
-		$newTimer->killable = $timer->last_spawn + static::BOSS_DATA[$mobName][static::IMMORTAL];
-		$newTimer->next_killable = $newTimer->killable;
-		$newTimer->mob_name = $mobName;
-
 		/** @var ?int */
 		$interval = static::BOSS_DATA[$mobName][static::INTERVAL] ?? null;
-		$newTimer->timer = $interval;
+		$killable = $timer->last_spawn + static::BOSS_DATA[$mobName][static::IMMORTAL];
+		$newTimer = new WorldBossTimer(
+			spawn: $timer->last_spawn,
+			killable: $killable,
+			next_killable: $killable,
+			mob_name: $mobName,
+			timer: $interval,
+			submitter_name: "timer_api",
+		);
 		$this->addNextDates([$newTimer]);
 		return $newTimer;
 	}

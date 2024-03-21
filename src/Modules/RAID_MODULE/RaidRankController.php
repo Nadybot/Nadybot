@@ -185,11 +185,12 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			->delete();
 		$this->buddylistManager->remove($who, 'raidrank');
 		if (isset($oldRank)) {
-			$audit = new Audit();
-			$audit->actor = $sender;
-			$audit->actee = $who;
-			$audit->action = AccessManager::DEL_RANK;
-			$audit->value = (string)($this->accessManager->getAccessLevels()["raid_leader_1"] - ($oldRank->rank-4));
+			$audit = new Audit(
+				actor: $sender,
+				actee: $who,
+				action: AccessManager::DEL_RANK,
+				value: (string)($this->accessManager->getAccessLevels()["raid_leader_1"] - ($oldRank->rank-4)),
+			);
 			$this->accessManager->addAudit($audit);
 		}
 	}
@@ -212,11 +213,12 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			);
 
 		if (isset($oldRank)) {
-			$audit = new Audit();
-			$audit->actor = $sender;
-			$audit->actee = $who;
-			$audit->action = AccessManager::DEL_RANK;
-			$audit->value = (string)($this->accessManager->getAccessLevels()["raid_leader_1"] - ($oldRank->rank-4));
+			$audit = new Audit(
+				actor: $sender,
+				actee: $who,
+				action: AccessManager::DEL_RANK,
+				value: (string)($this->accessManager->getAccessLevels()["raid_leader_1"] - ($oldRank->rank-4)),
+			);
 			$this->accessManager->addAudit($audit);
 		}
 
@@ -225,11 +227,12 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$this->ranks[$who]->name = $who;
 		async($this->buddylistManager->addName(...), $who, 'raidrank');
 
-		$audit = new Audit();
-		$audit->actor = $sender;
-		$audit->actee = $who;
-		$audit->action = AccessManager::ADD_RANK;
-		$audit->value = (string)($this->accessManager->getAccessLevels()["raid_leader_1"] - ($rank-4));
+		$audit = new Audit(
+			actor: $sender,
+			actee: $who,
+			action: AccessManager::ADD_RANK,
+			value: (string)($this->accessManager->getAccessLevels()["raid_leader_1"] - ($rank-4)),
+		);
 		$this->accessManager->addAudit($audit);
 
 		return $action;
