@@ -7,6 +7,7 @@ use function Amp\delay;
 use function Safe\{class_implements, preg_match, preg_split};
 
 use Amp\File\FilesystemException;
+use BackedEnum;
 use DateTime;
 use Exception;
 use Illuminate\Database\{
@@ -441,6 +442,8 @@ class DB {
 				$data[$prop->name] = $mapper->map($data[$prop->name]);
 			} elseif ($data[$prop->name] instanceof DateTime) {
 				$data[$prop->name] = $data[$prop->name]->getTimestamp();
+			} elseif ($data[$prop->name] instanceof BackedEnum) {
+				$data[$prop->name] = $data[$prop->name]->value;
 			}
 		}
 		$table = $this->formatSql($table);
@@ -477,6 +480,8 @@ class DB {
 				$updates[$prop->name] = $mapper->map($updates[$prop->name]);
 			} elseif ($updates[$prop->name] instanceof DateTime) {
 				$updates[$prop->name] = $updates[$prop->name]->getTimestamp();
+			} elseif ($updates[$prop->name] instanceof BackedEnum) {
+				$updates[$prop->name] = $updates[$prop->name]->value;
 			}
 		}
 		$query = $this->table($table);
