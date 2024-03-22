@@ -5,8 +5,11 @@ namespace Nadybot\Modules\RECIPE_MODULE;
 use Nadybot\Core\DBRow;
 
 class ArulSaba extends DBRow {
-	public string $name;
-	public string $lesser_prefix;
-	public string $regular_prefix;
-	public string $buffs;
+	public function __construct(
+		public string $name,
+		public string $lesser_prefix,
+		public string $regular_prefix,
+		public string $buffs,
+	) {
+	}
 }

@@ -5,6 +5,9 @@ namespace Nadybot\Modules\RAID_MODULE;
 use Nadybot\Core\DBRow;
 
 class RaidPoints extends DBRow {
-	public string $username;
-	public int $points;
+	public function __construct(
+		public string $username,
+		public int $points,
+	) {
+	}
 }

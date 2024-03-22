@@ -667,8 +667,6 @@ class ImportController extends ModuleInstance {
 			$this->db->table(RaidController::DB_TABLE_LOG)->truncate();
 			$this->db->table(RaidMemberController::DB_TABLE)->truncate();
 			foreach ($raids as $raid) {
-				$entry = new Raid();
-				$historyEntry = new RaidLog();
 				$history = $raid->history ?? [];
 				usort(
 					$history,
@@ -677,29 +675,38 @@ class ImportController extends ModuleInstance {
 					}
 				);
 				$lastEntry = end($history);
-				$historyEntry->description = $entry->description = $raid->raidDescription ?? 'No description';
-				$historyEntry->seconds_per_point = $entry->seconds_per_point = $raid->raidSecondsPerPoint ?? 0;
-				$historyEntry->announce_interval = $entry->announce_interval = $raid->raidAnnounceInterval ?? $this->settingManager->getInt('raid_announcement_interval');
-				$historyEntry->locked = $entry->locked = $raid->raidLocked ?? false;
-				$entry->started = $raid->time ?? time();
-				$entry->started_by = $this->config->main->character;
-				$entry->stopped = isset($lastEntry) ? $lastEntry->time : $entry->started;
-				$entry->stopped_by = $this->config->main->character;
+				$entry = new Raid(
+					started: $raid->time ?? time(),
+					started_by: $this->config->main->character,
+					stopped: isset($lastEntry) ? $lastEntry->time : $raid->time ?? time(),
+					stopped_by: $this->config->main->character,
+					description: $raid->raidDescription ?? 'No description',
+					seconds_per_point: $raid->raidSecondsPerPoint ?? 0,
+					announce_interval: $raid->raidAnnounceInterval ?? $this->settingManager->getInt('raid_announcement_interval') ?? 0,
+					locked: $raid->raidLocked ?? false,
+				);
 				$raidId = $this->db->insert(RaidController::DB_TABLE, $entry, 'raid_id');
-				$historyEntry->raid_id = $raidId;
+				$historyEntry = new RaidLog(
+					description: $entry->description,
+					seconds_per_point: $entry->seconds_per_point,
+					announce_interval: $entry->announce_interval,
+					locked: $entry->locked,
+					raid_id: $raidId,
+					time: time(),
+				);
 				foreach ($raid->raiders??[] as $raider) {
 					$name = $this->characterToName($raider->character);
 					if (!isset($name)) {
 						continue;
 					}
-					$raiderEntry = new RaidMember();
-					$raiderEntry->raid_id = $raidId;
-					$raiderEntry->player = $name;
-					$raiderEntry->joined = $raider->joinTime ?? time();
-					$raiderEntry->left = $raider->leaveTime ?? time();
+					$raiderEntry = new RaidMember(
+						raid_id: $raidId,
+						player: $name,
+						joined: $raider->joinTime ?? time(),
+						left: $raider->leaveTime ?? time(),
+					);
 					$this->db->insert(RaidMemberController::DB_TABLE, $raiderEntry, null);
 				}
-				$historyEntry->time = time();
 				foreach ($history as $state) {
 					$historyEntry->time = $state->time;
 					if (isset($state->raidDescription)) {
@@ -742,9 +749,10 @@ class ImportController extends ModuleInstance {
 				if (!isset($name)) {
 					continue;
 				}
-				$entry = new RaidPoints();
-				$entry->username = $name;
-				$entry->points = $point->raidPoints;
+				$entry = new RaidPoints(
+					username: $name,
+					points: $point->raidPoints,
+				);
 				$this->db->insert(RaidPointsController::DB_TABLE, $entry, null);
 			}
 		} catch (Throwable $e) {

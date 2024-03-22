@@ -727,10 +727,11 @@ class RaidPointsController extends ModuleInstance {
 			$context->reply("The raid reward <highlight>{$name}<end> is already defined.");
 			return;
 		}
-		$reward = new RaidReward();
-		$reward->name = $name();
-		$reward->points = $points;
-		$reward->reason = $reason;
+		$reward = new RaidReward(
+			name: $name(),
+			points: $points,
+			reason: $reason,
+		);
 		if (strlen($reward->name) > 20) {
 			$context->reply('The name of the reward is too long. Maximum is 20 characters.');
 			return;
@@ -751,7 +752,7 @@ class RaidPointsController extends ModuleInstance {
 		PNonNumberWord $name
 	): void {
 		$reward = $this->getRaidReward($name());
-		if (!isset($reward)) {
+		if (!isset($reward) || !isset($reward->id)) {
 			$context->reply("The raid reward <highlight>{$name}<end> does not exist.");
 			return;
 		}

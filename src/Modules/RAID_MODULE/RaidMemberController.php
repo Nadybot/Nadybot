@@ -118,7 +118,7 @@ class RaidMemberController extends ModuleInstance {
 	/** Add player $player to the raid by player $sender */
 	public function joinRaid(string $sender, string $player, ?string $source, bool $force=false): ?string {
 		$raid = $this->raidController->raid;
-		if ($raid === null) {
+		if ($raid === null || !isset($raid->raid_id)) {
 			return RaidController::ERR_NO_RAID;
 		}
 		if (isset($raid->raiders[$player])
@@ -174,9 +174,10 @@ class RaidMemberController extends ModuleInstance {
 			return $msg;
 		}
 		if (!isset($raid->raiders[$player])) {
-			$raider = new RaidMember();
-			$raider->player = $player;
-			$raider->raid_id = $raid->raid_id;
+			$raider = new RaidMember(
+				player: $player,
+				raid_id: $raid->raid_id,
+			);
 			$raid->raiders[$player] = $raider;
 		} else {
 			$raid->raiders[$player]->joined = time();

@@ -418,10 +418,14 @@ class RaidController extends ModuleInstance {
 		#[NCA\Str('limit')] string $subAction,
 		int $maxMembers,
 	): void {
-		$raid = new Raid();
-		$raid->started_by = $context->char->name;
-		$raid->max_members = $maxMembers;
-		$raid->description = $description();
+		$raid = new Raid(
+			started_by: $context->char->name,
+			max_members: $maxMembers,
+			description: $description(),
+			announce_interval: $this->raidAnnouncement ? $this->raidAnnouncementInterval : 0,
+			seconds_per_point: ($this->raidPointsForTime) ? $this->raidPointsInterval : 0,
+			ticker_paused: $this->raidTickerStartPaused,
+		);
 		$this->startNewRaid($context, $raid);
 	}
 
@@ -432,9 +436,13 @@ class RaidController extends ModuleInstance {
 		#[NCA\Str('start', 'run', 'create')] string $action,
 		string $description
 	): void {
-		$raid = new Raid();
-		$raid->started_by = $context->char->name;
-		$raid->description = $description;
+		$raid = new Raid(
+			started_by: $context->char->name,
+			description: $description,
+			announce_interval: $this->raidAnnouncement ? $this->raidAnnouncementInterval : 0,
+			seconds_per_point: ($this->raidPointsForTime) ? $this->raidPointsInterval : 0,
+			ticker_paused: $this->raidTickerStartPaused,
+		);
 		$this->startNewRaid($context, $raid);
 	}
 
@@ -1231,13 +1239,6 @@ class RaidController extends ModuleInstance {
 			$context->reply("There's already a raid running.");
 			return;
 		}
-		if ($this->raidAnnouncement) {
-			$raid->announce_interval = $this->raidAnnouncementInterval;
-		}
-		if ($this->raidPointsForTime) {
-			$raid->seconds_per_point = $this->raidPointsInterval;
-		}
-		$raid->ticker_paused = $this->raidTickerStartPaused;
 		$this->startRaid($raid);
 		if ($this->raidAutoAddCreator) {
 			$this->raidMemberController->joinRaid($context->char->name, $context->char->name, $context->source, false);
