@@ -172,22 +172,21 @@ class RecipeController extends ModuleInstance {
 	}
 
 	private function parseTextFile(int $id, string $fileName): Recipe {
-		$recipe = new Recipe();
-		$recipe->id = $id;
 		$lines = explode("\n", $this->fs->read($this->path . $fileName));
 		$nameLine = trim(array_shift($lines));
 		$authorLine = trim(array_shift($lines));
-		$recipe->name = (strlen($nameLine) > 6) ? substr($nameLine, 6) : "Unknown";
-		$recipe->author = (strlen($authorLine) > 8) ? substr($authorLine, 8) : "Unknown";
-		$recipe->recipe = implode("\n", $lines);
-		$recipe->date = $this->fs->getModificationTime($this->path . $fileName);
+		$recipe = new Recipe(
+			id: $id,
+			name: (strlen($nameLine) > 6) ? substr($nameLine, 6) : "Unknown",
+			author: (strlen($authorLine) > 8) ? substr($authorLine, 8) : "Unknown",
+			recipe: implode("\n", $lines),
+			date: $this->fs->getModificationTime($this->path . $fileName),
+		);
 
 		return $recipe;
 	}
 
 	private function parseJSONFile(int $id, string $fileName): Recipe {
-		$recipe = new Recipe();
-		$recipe->id = $id;
 		try {
 			$data = json_decode(
 				$this->fs->read($this->path . $fileName),
@@ -197,9 +196,6 @@ class RecipeController extends ModuleInstance {
 		} catch (JsonException $e) {
 			throw new UserException("Could not read '{$fileName}': invalid JSON");
 		}
-		$recipe->name = $data->name ?? "<unnamed>";
-		$recipe->author = $data->author ?? "<unknown>";
-		$recipe->date = $this->fs->getModificationTime($this->path . $fileName);
 
 		/** @var array<string,AODBItem> */
 		$items = [];
@@ -212,45 +208,51 @@ class RecipeController extends ModuleInstance {
 			$items[$item->alias]->ql = $item->ql;
 		}
 
-		$recipe->recipe = "<font color=#FFFF00>------------------------------</font>\n";
-		$recipe->recipe .= "<font color=#FF0000>Ingredients</font>\n";
-		$recipe->recipe .= "<font color=#FFFF00>------------------------------</font>\n\n";
+		$recipe = "<font color=#FFFF00>------------------------------</font>\n";
+		$recipe .= "<font color=#FF0000>Ingredients</font>\n";
+		$recipe .= "<font color=#FFFF00>------------------------------</font>\n\n";
 		$ingredients = $items;
 		foreach ($data->steps as $step) {
 			unset($ingredients[$step->result]);
 		}
 		foreach ($ingredients as $ingredient) {
-			$recipe->recipe .= $this->text->makeImage($ingredient->icon) . "\n";
-			$recipe->recipe .= $this->text->makeItem($ingredient->lowid, $ingredient->highid, $ingredient->ql, $ingredient->name) . "\n\n\n";
+			$recipe .= $this->text->makeImage($ingredient->icon) . "\n";
+			$recipe .= $this->text->makeItem($ingredient->lowid, $ingredient->highid, $ingredient->ql, $ingredient->name) . "\n\n\n";
 		}
 
-		$recipe->recipe .= "<pagebreak><yellow>------------------------------<end>\n";
-		$recipe->recipe .= "<red>Recipe<end>\n";
-		$recipe->recipe .= "<yellow>------------------------------<end>\n\n";
+		$recipe .= "<pagebreak><yellow>------------------------------<end>\n";
+		$recipe .= "<red>Recipe<end>\n";
+		$recipe .= "<yellow>------------------------------<end>\n\n";
 		$stepNum = 1;
 		foreach ($data->steps as $step) {
-			$recipe->recipe .= "<pagebreak><header2>Step {$stepNum}<end>\n";
+			$recipe .= "<pagebreak><header2>Step {$stepNum}<end>\n";
 			$stepNum++;
 			$source = $items[$step->source];
 			$target = $items[$step->target];
 			$result = $items[$step->result];
-			$recipe->recipe .= "<tab>".
+			$recipe .= "<tab>".
 				$this->text->makeItem($source->lowid, $source->highid, $source->ql, $this->text->makeImage($source->icon)).
 				"<tab><img src=tdb://id:GFX_GUI_CONTROLCENTER_BIGARROW_RIGHT_STATE1><tab>".
 				$this->text->makeItem($target->lowid, $target->highid, $target->ql, $this->text->makeImage($target->icon)).
 				"<tab><img src=tdb://id:GFX_GUI_CONTROLCENTER_BIGARROW_RIGHT_STATE1><tab>".
 				$this->text->makeItem($result->lowid, $result->highid, $result->ql, $this->text->makeImage($result->icon)).
 				"\n";
-			$recipe->recipe .= "<tab>{$source->name} ".
+			$recipe .= "<tab>{$source->name} ".
 				"<highlight>+<end> {$target->name} <highlight>=<end> ".
 				$this->text->makeItem($result->lowid, $result->highid, $result->ql, $result->name).
 				"\n";
 			if ($step->skills) {
-				$recipe->recipe .= "<tab><yellow>Skills: {$step->skills}<end>\n";
+				$recipe .= "<tab><yellow>Skills: {$step->skills}<end>\n";
 			}
-			$recipe->recipe .= "\n\n";
+			$recipe .= "\n\n";
 		}
-		return $recipe;
+		return new Recipe(
+			id: $id,
+			name: $data->name ?? "<unnamed>",
+			author: $data->author ?? "<unknown>",
+			date: $this->fs->getModificationTime($this->path . $fileName),
+			recipe: $recipe,
+		);
 	}
 
 	/** @param string[] $arr */
