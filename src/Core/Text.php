@@ -28,7 +28,7 @@ class Text {
 	public function makeHeaderLinks(array $links): string {
 		$output = '';
 		foreach ($links as $title => $command) {
-			$output .= " ::: " . $this->makeChatcmd($title, $command, 'style="text-decoration:none;"') . " ::: ";
+			$output .= ' ::: ' . $this->makeChatcmd($title, $command, 'style="text-decoration:none;"') . ' ::: ';
 		}
 		return $output;
 	}
@@ -42,7 +42,7 @@ class Text {
 	 *
 	 * @return string[]
 	 */
-	public function blobWrap(string $before, string|array $blob, ?string $after=""): array {
+	public function blobWrap(string $before, string|array $blob, ?string $after=''): array {
 		$blob = (array)$blob;
 		foreach ($blob as &$page) {
 			$page = "{$before}{$page}{$after}";
@@ -59,9 +59,9 @@ class Text {
 	 *
 	 * @return string|string[] The string with link and reference or an array of strings if the message would be too big
 	 */
-	public function makeBlob(string $name, string $content, ?string $header=null, ?string $permanentHeader=""): string|array {
+	public function makeBlob(string $name, string $content, ?string $header=null, ?string $permanentHeader=''): string|array {
 		$header ??= $name;
-		$permanentHeader ??= "";
+		$permanentHeader ??= '';
 
 		// trim extra whitespace from beginning and ending
 		$content = trim($content);
@@ -77,26 +77,26 @@ class Text {
 			$content = ' ';
 		}
 
-		$pageSize = ($this->settingManager->getInt("max_blob_size")??0) - strlen($permanentHeader);
-		$pages = $this->paginate($content, $pageSize, ["<pagebreak>", "\n", " "]);
+		$pageSize = ($this->settingManager->getInt('max_blob_size')??0) - strlen($permanentHeader);
+		$pages = $this->paginate($content, $pageSize, ['<pagebreak>', "\n", ' ']);
 		$num = count($pages);
 
 		if ($num === 1) {
 			$page = $pages[0];
 			$headerMarkup = "<header>{$header}<end>\n\n{$permanentHeader}";
-			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$headerMarkup.$page."\">{$name}</a>";
+			$page = '<a href="text://'.($this->settingManager->getString('default_window_color')??'').$headerMarkup.$page."\">{$name}</a>";
 			return $page;
 		}
-		$addHeaderRanges = $this->settingManager->getBool("add_header_ranges") ?? false;
+		$addHeaderRanges = $this->settingManager->getBool('add_header_ranges') ?? false;
 		$i = 1;
 		foreach ($pages as $key => $page) {
-			$headerInfo = "";
+			$headerInfo = '';
 			if ($addHeaderRanges
 				&& preg_match_all(
-					"/<header2>([^<]+)<end>/",
+					'/<header2>([^<]+)<end>/',
 					$page,
 					$headers,
-					PREG_OFFSET_CAPTURE
+					\PREG_OFFSET_CAPTURE
 				) > 0
 			) {
 				if (isset($headers) && $headers[1][0][1] === 9) {
@@ -110,7 +110,7 @@ class Text {
 			}
 
 			$headerMarkup = "<header>{$header} (Page {$i} / {$num})<end>\n\n{$permanentHeader}";
-			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$headerMarkup.$page."\">{$name}</a> (Page <highlight>{$i} / {$num}<end>{$headerInfo})";
+			$page = '<a href="text://'.($this->settingManager->getString('default_window_color')??'').$headerMarkup.$page."\">{$name}</a> (Page <highlight>{$i} / {$num}<end>{$headerInfo})";
 			$pages[$key] = $page;
 			$i++;
 		}
@@ -131,12 +131,12 @@ class Text {
 
 		// $content = $this->formatMessage($content);
 
-		$pages = $this->paginate($content, $this->settingManager->getInt("max_blob_size")??0, ["<pagebreak>", "\n", " "]);
+		$pages = $this->paginate($content, $this->settingManager->getInt('max_blob_size')??0, ['<pagebreak>', "\n", ' ']);
 		$num = count($pages);
 
 		if ($num == 1) {
 			$page = $pages[0];
-			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$page."\">{$name}</a>";
+			$page = '<a href="text://'.($this->settingManager->getString('default_window_color')??'').$page."\">{$name}</a>";
 			return $page;
 		}
 		$i = 1;
@@ -146,7 +146,7 @@ class Text {
 			} else {
 				$header = '';
 			}
-			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$header.$page."\">{$name}</a> (Page <highlight>{$i} / {$num}<end>)";
+			$page = '<a href="text://'.($this->settingManager->getString('default_window_color')??'').$header.$page."\">{$name}</a> (Page <highlight>{$i} / {$num}<end>)";
 			$pages[$key] = $page;
 			$i++;
 		}
@@ -164,7 +164,7 @@ class Text {
 	 */
 	public function paginate(string $input, int $maxLength, array $symbols): array {
 		if (count($symbols) === 0) {
-			$this->logger->error("Could not successfully page blob due to lack of paging symbols");
+			$this->logger->error('Could not successfully page blob due to lack of paging symbols');
 			return (array)$input;
 		}
 
@@ -173,7 +173,7 @@ class Text {
 		$result = [];
 		$symbol = array_shift($symbols);
 		if (!strlen($symbol)) {
-			$this->logger->error("Could not successfully page blob due to lack of paging symbols");
+			$this->logger->error('Could not successfully page blob due to lack of paging symbols');
 			return (array)$input;
 		}
 
@@ -182,7 +182,7 @@ class Text {
 		$lines = explode($symbol, $input);
 		foreach ($lines as $line) {
 			// retain new lines and spaces in output
-			if ($symbol == "\n" || $symbol == " ") {
+			if ($symbol == "\n" || $symbol == ' ') {
 				$line .= $symbol;
 			}
 
@@ -222,10 +222,10 @@ class Text {
 	 *
 	 * @return string The link
 	 */
-	public function makeChatcmd(string $name, string $content, ?string $style=""): string {
-		$style ??= "";
-		if ($style !== "") {
-			$style .= " ";
+	public function makeChatcmd(string $name, string $content, ?string $style=''): string {
+		$style ??= '';
+		if ($style !== '') {
+			$style .= ' ';
 		}
 		$content = str_replace("'", '&#39;', $content);
 		return "<a {$style}href='chatcmd://{$content}'>{$name}</a>";
@@ -243,9 +243,9 @@ class Text {
 	 *
 	 * @return string The link to the user
 	 */
-	public function makeUserlink(string $user, string $style=""): string {
-		if ($style !== "") {
-			$style .= " ";
+	public function makeUserlink(string $user, string $style=''): string {
+		if ($style !== '') {
+			$style .= ' ';
 		}
 		return "<a {$style}href=user://{$user}>{$user}</a>";
 	}
@@ -272,33 +272,33 @@ class Text {
 	 *
 	 * @return string The image as <img> tag
 	 */
-	public function makeImage(int $imageId, string $db="rdb"): string {
+	public function makeImage(int $imageId, string $db='rdb'): string {
 		return "<img src='{$db}://{$imageId}'>";
 	}
 
 	/** @return array<string,string> */
 	public function getColors(): array {
 		return [
-			"<header>" => str_replace("'", "", $this->settingManager->getString('default_header_color')??""),
-			"<header2>" => str_replace("'", "", $this->settingManager->getString('default_header2_color')??""),
-			"<highlight>" => str_replace("'", "", $this->settingManager->getString('default_highlight_color')??""),
-			"<on>" => str_replace("'", "", $this->settingManager->getString('default_enabled_color')??""),
-			"<off>" => str_replace("'", "", $this->settingManager->getString('default_disabled_color')??""),
-			"<black>" => "<font color=#000000>",
-			"<white>" => "<font color=#FFFFFF>",
-			"<yellow>" => "<font color=#FFFF00>",
-			"<blue>" => "<font color=#8CB5FF>",
-			"<green>" => "<font color=#00DE42>",
-			"<red>" => "<font color=#FF0000>",
-			"<orange>" => "<font color=#FCA712>",
-			"<grey>" => "<font color=#C3C3C3>",
-			"<cyan>" => "<font color=#00FFFF>",
-			"<violet>" => "<font color=#8F00FF>",
+			'<header>' => str_replace("'", '', $this->settingManager->getString('default_header_color')??''),
+			'<header2>' => str_replace("'", '', $this->settingManager->getString('default_header2_color')??''),
+			'<highlight>' => str_replace("'", '', $this->settingManager->getString('default_highlight_color')??''),
+			'<on>' => str_replace("'", '', $this->settingManager->getString('default_enabled_color')??''),
+			'<off>' => str_replace("'", '', $this->settingManager->getString('default_disabled_color')??''),
+			'<black>' => '<font color=#000000>',
+			'<white>' => '<font color=#FFFFFF>',
+			'<yellow>' => '<font color=#FFFF00>',
+			'<blue>' => '<font color=#8CB5FF>',
+			'<green>' => '<font color=#00DE42>',
+			'<red>' => '<font color=#FF0000>',
+			'<orange>' => '<font color=#FCA712>',
+			'<grey>' => '<font color=#C3C3C3>',
+			'<cyan>' => '<font color=#00FFFF>',
+			'<violet>' => '<font color=#8F00FF>',
 
-			"<neutral>" => $this->settingManager->getString('default_neut_color')??"",
-			"<omni>" => $this->settingManager->getString('default_omni_color')??"",
-			"<clan>" => $this->settingManager->getString('default_clan_color')??"",
-			"<unknown>" => $this->settingManager->getString('default_unknown_color')??"",
+			'<neutral>' => $this->settingManager->getString('default_neut_color')??'',
+			'<omni>' => $this->settingManager->getString('default_omni_color')??'',
+			'<clan>' => $this->settingManager->getString('default_clan_color')??'',
+			'<unknown>' => $this->settingManager->getString('default_unknown_color')??'',
 		];
 	}
 
@@ -313,12 +313,12 @@ class Text {
 		$array = array_merge(
 			$this->getColors(),
 			[
-				"<myname>" => $this->config->main->character,
-				"<myguild>" => $this->config->general->orgName,
-				"<tab>" => "    ",
-				"<end>" => "</font>",
-				"<symbol>" => $this->settingManager->getString("symbol")??"!",
-				"<br>" => "\n",
+				'<myname>' => $this->config->main->character,
+				'<myguild>' => $this->config->general->orgName,
+				'<tab>' => '    ',
+				'<end>' => '</font>',
+				'<symbol>' => $this->settingManager->getString('symbol')??'!',
+				'<br>' => "\n",
 			]
 		);
 
@@ -337,18 +337,18 @@ class Text {
 	public function stripColors(string $message): string {
 		$colors = [];
 		foreach ($this->getColors() as $key => $color) {
-			$colors[$key] = "";
+			$colors[$key] = '';
 		}
 
 		$array = array_merge(
 			$colors,
 			[
-				"<myname>" => $this->config->main->character,
-				"<myguild>" => $this->config->general->orgName,
-				"<tab>" => "    ",
-				"<end>" => "",
-				"<symbol>" => $this->settingManager->getString("symbol")??"!",
-				"<br>" => "\n",
+				'<myname>' => $this->config->main->character,
+				'<myguild>' => $this->config->general->orgName,
+				'<tab>' => '    ',
+				'<end>' => '',
+				'<symbol>' => $this->settingManager->getString('symbol')??'!',
+				'<br>' => "\n",
 			]
 		);
 
@@ -376,7 +376,7 @@ class Text {
 		}
 		$prefixedNumber = sprintf("%0{$digits}d", $number);
 		if ($grouping) {
-			$prefixedNumber = substr(strrev(chunk_split(strrev($prefixedNumber), 3, ",")), 1);
+			$prefixedNumber = substr(strrev(chunk_split(strrev($prefixedNumber), 3, ',')), 1);
 		}
 		if (is_string($colortag)) {
 			if ($number == 0) {
@@ -385,7 +385,7 @@ class Text {
 				$prefixedNumber = Safe::pregReplace('/([1-9][\d,]*)$/', "<{$colortag}>$1<end>", $prefixedNumber);
 			}
 		}
-		$alignedNumber = Safe::pregReplace("/^([0,]+)(?!$)/", "<black>$1<end>", $prefixedNumber);
+		$alignedNumber = Safe::pregReplace('/^([0,]+)(?!$)/', '<black>$1<end>', $prefixedNumber);
 		return $alignedNumber;
 	}
 
@@ -401,8 +401,8 @@ class Text {
 		if (count($words) === 0) {
 			return $last;
 		}
-		$commas = join(", ", $words);
-		return join(" and ", [$commas, $last]);
+		$commas = implode(', ', $words);
+		return implode(' and ', [$commas, $last]);
 	}
 
 	/**
@@ -415,7 +415,7 @@ class Text {
 	 */
 	public function arraySprintf(string $format, string ...$strings): array {
 		return array_map(
-			function (string $text) use ($format): string {
+			static function (string $text) use ($format): string {
 				return sprintf($format, $text);
 			},
 			$strings
@@ -425,7 +425,7 @@ class Text {
 	public function removePopups(string $message, bool $removeLinks=false): string {
 		$message = preg_replace_callback(
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
-			function (array $matches) use ($removeLinks): string {
+			static function (array $matches) use ($removeLinks): string {
 				if ($removeLinks) {
 					return chr(1);
 				}
@@ -434,9 +434,9 @@ class Text {
 			$message
 		);
 		if ($removeLinks) {
-			$message = Safe::pregReplace("/(?<=\.)\s+" . chr(1) . "/s", "", $message);
-			$message = Safe::pregReplace("/\s*\[" . chr(1) . "\]/s", "", $message);
-			$message = Safe::pregReplace("/\s*" . chr(1) . "/s", "", $message);
+			$message = Safe::pregReplace("/(?<=\.)\s+" . chr(1) . '/s', '', $message);
+			$message = Safe::pregReplace("/\s*\[" . chr(1) . "\]/s", '', $message);
+			$message = Safe::pregReplace("/\s*" . chr(1) . '/s', '', $message);
 		}
 		return $message;
 	}
@@ -446,9 +446,9 @@ class Text {
 		$popups = [];
 		$message = preg_replace_callback(
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
-			function (array $matches) use (&$popups): string {
+			static function (array $matches) use (&$popups): string {
 				$popups []= $matches[2];
-				return "";
+				return '';
 			},
 			$message
 		);
@@ -461,56 +461,56 @@ class Text {
 			return $word;
 		}
 		$exceptions = [
-			"tomato" => "tomatoes",
-			"potato" => "potatoes",
-			"veto" => "vetoes",
-			"echo" => "echoes",
-			"hero" => "heroes",
-			"cargo" => "cargoes",
-			"man" => "men",
-			"woman" => "women",
-			"person" => "people",
-			"child" => "children",
-			"mouse" => "mice",
-			"tooth" => "teeth",
-			"goose" => "geese",
-			"foot" => "feet",
-			"ox" => "oxen",
-			"die" => "dice",
-			"phenomenon" => "phenomena",
-			"criterion" => "criteria",
-			"thief" => "thieves",
-			"wife" => "wives",
-			"knife" => "knives",
-			"shelf" => "shelves",
-			"leaf" => "leaves",
-			"sheep" => "sheep",
-			"deer" => "deer",
-			"fish" => "fish",
-			"species" => "species",
+			'tomato' => 'tomatoes',
+			'potato' => 'potatoes',
+			'veto' => 'vetoes',
+			'echo' => 'echoes',
+			'hero' => 'heroes',
+			'cargo' => 'cargoes',
+			'man' => 'men',
+			'woman' => 'women',
+			'person' => 'people',
+			'child' => 'children',
+			'mouse' => 'mice',
+			'tooth' => 'teeth',
+			'goose' => 'geese',
+			'foot' => 'feet',
+			'ox' => 'oxen',
+			'die' => 'dice',
+			'phenomenon' => 'phenomena',
+			'criterion' => 'criteria',
+			'thief' => 'thieves',
+			'wife' => 'wives',
+			'knife' => 'knives',
+			'shelf' => 'shelves',
+			'leaf' => 'leaves',
+			'sheep' => 'sheep',
+			'deer' => 'deer',
+			'fish' => 'fish',
+			'species' => 'species',
 		];
 		if (isset($exceptions[strtolower($word)])) {
 			$plural = $exceptions[strtolower($word)];
 			return substr($word, 0, 1) . substr($plural, 1);
 		}
-		$plural = "s";
-		if (preg_match("/[^aeiou]y$/", $word)) {
+		$plural = 's';
+		if (preg_match('/[^aeiou]y$/', $word)) {
 			$word = substr($word, 0, strlen($word) -1);
-			$plural = "ies";
-		} elseif (preg_match("/[ei]x$/", $word)) {
+			$plural = 'ies';
+		} elseif (preg_match('/[ei]x$/', $word)) {
 			$word = substr($word, 0, strlen($word) -2);
-			$plural = "ices";
-		} elseif (str_ends_with($word, "is")) {
+			$plural = 'ices';
+		} elseif (str_ends_with($word, 'is')) {
 			$word = substr($word, 0, strlen($word) -1);
-			$plural = "es";
-		} elseif (str_ends_with($word, "us")) {
+			$plural = 'es';
+		} elseif (str_ends_with($word, 'us')) {
 			$word = substr($word, 0, strlen($word) -2);
-			$plural = "i";
-		} elseif (str_ends_with($word, "fe")) {
+			$plural = 'i';
+		} elseif (str_ends_with($word, 'fe')) {
 			$word = substr($word, 0, strlen($word) -1);
-			$plural = "ves";
-		} elseif (preg_match("/([cs]h|[sxz])$/", $word)) {
-			$plural = "es";
+			$plural = 'ves';
+		} elseif (preg_match('/([cs]h|[sxz])$/', $word)) {
+			$plural = 'es';
 		}
 		return $word . $plural;
 	}
@@ -531,23 +531,23 @@ class Text {
 			$lastText = $text;
 			$text = preg_replace_callback(
 				'/\{(?<tag>[a-zA-Z-]+|[!?][a-zA-Z-]+:((?:[^{}]|(?R)))+)\}/',
-				function (array $matches) use ($tokens): string {
-					$action = substr($matches["tag"], 0, 1);
-					if ($action !== "?" && $action !== "!") {
-						return (string)($tokens[$matches[1]] ?? "");
+				static function (array $matches) use ($tokens): string {
+					$action = substr($matches['tag'], 0, 1);
+					if ($action !== '?' && $action !== '!') {
+						return (string)($tokens[$matches[1]] ?? '');
 					}
-					$parts = explode(":", substr($matches["tag"], 1), 2);
+					$parts = explode(':', substr($matches['tag'], 1), 2);
 					if (count($parts) !== 2) {
 						return $matches[0];
 					}
-					if (isset($tokens[$parts[0]]) === ($action === "?")) {
+					if (isset($tokens[$parts[0]]) === ($action === '?')) {
 						return $parts[1];
 					}
-					return "";
+					return '';
 				},
 				$text
 			);
-		} while (str_contains($text, "{") && $lastText !== $text);
+		} while (str_contains($text, '{') && $lastText !== $text);
 
 		return $text;
 	}

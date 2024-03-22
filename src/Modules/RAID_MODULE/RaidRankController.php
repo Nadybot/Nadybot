@@ -29,27 +29,27 @@ use Psr\Log\LoggerInterface;
 
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Ranks"),
+	NCA\HasMigrations('Migrations/Ranks'),
 	NCA\DefineCommand(
-		command: "raidadmin",
-		accessLevel: "raid_admin_2",
-		description: "Promote/demote someone to/from raid admin",
+		command: 'raidadmin',
+		accessLevel: 'raid_admin_2',
+		description: 'Promote/demote someone to/from raid admin',
 	),
 	NCA\DefineCommand(
-		command: "raidleader",
-		accessLevel: "raid_admin_1",
-		description: "Promote/demote someone to/from raid leader",
+		command: 'raidleader',
+		accessLevel: 'raid_admin_1',
+		description: 'Promote/demote someone to/from raid leader',
 	),
 	NCA\DefineCommand(
-		command: "leaderlist",
-		accessLevel: "all",
-		description: "Shows the list of raid leaders and admins",
+		command: 'leaderlist',
+		accessLevel: 'all',
+		description: 'Shows the list of raid leaders and admins',
 		defaultStatus: 1,
-		alias: "leaders"
+		alias: 'leaders'
 	)
 ]
 class RaidRankController extends ModuleInstance implements AccessLevelProvider {
-	public const DB_TABLE = "raid_rank_<myname>";
+	public const DB_TABLE = 'raid_rank_<myname>';
 
 	/** Number of raid ranks below your own you can manage */
 	#[NCA\Setting\Number]
@@ -57,37 +57,37 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Name of the raid leader rank 1 */
 	#[NCA\Setting\Text]
-	public string $nameRaidLeader1 = "Apprentice Leader";
+	public string $nameRaidLeader1 = 'Apprentice Leader';
 
 	/** Name of the raid leader rank 2 */
 	#[NCA\Setting\Text]
-	public string $nameRaidLeader2 = "Leader";
+	public string $nameRaidLeader2 = 'Leader';
 
 	/** Name of the raid leader rank 3 */
 	#[NCA\Setting\Text]
-	public string $nameRaidLeader3 = "Veteran Leader";
+	public string $nameRaidLeader3 = 'Veteran Leader';
 
 	/** Name of the raid admin rank 1 */
 	#[NCA\Setting\Text]
-	public string $nameRaidAdmin1 = "Apprentice Raid Admin";
+	public string $nameRaidAdmin1 = 'Apprentice Raid Admin';
 
 	/** Name of the raid admin rank 2 */
 	#[NCA\Setting\Text]
-	public string $nameRaidAdmin2 = "Raid Admin";
+	public string $nameRaidAdmin2 = 'Raid Admin';
 
 	/** Name of the raid admin rank 3 */
 	#[NCA\Setting\Text]
-	public string $nameRaidAdmin3 = "Veteran Raid Admin";
+	public string $nameRaidAdmin3 = 'Veteran Raid Admin';
 
 	/** Duration considered "recent" in raid stats for leaders command */
 	#[NCA\Setting\Options(options: [
 		'Off' => 0,
-		'1 Month' => 2592000,
-		'3 Months' => 7776000,
-		'6 Months' => 15552000,
-		'1 Year' => 31536000,
+		'1 Month' => 2_592_000,
+		'3 Months' => 7_776_000,
+		'6 Months' => 15_552_000,
+		'1 Year' => 31_536_000,
 	])]
-	public int $raidDurationRecently = 2592000;
+	public int $raidDurationRecently = 2_592_000;
 
 	/** Include admins in leaderlist */
 	#[NCA\Setting\Boolean]
@@ -135,8 +135,8 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
 
-		$this->commandAlias->register($this->moduleName, "raidadmin", "raid admin");
-		$this->commandAlias->register($this->moduleName, "raidleader", "raid leader");
+		$this->commandAlias->register($this->moduleName, 'raidadmin', 'raid admin');
+		$this->commandAlias->register($this->moduleName, 'raidleader', 'raid leader');
 	}
 
 	public function getSingleAccessLevel(string $sender): ?string {
@@ -145,17 +145,17 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		}
 		$rank = $this->ranks[$sender]->rank;
 		if ($rank >= 7) {
-			return "raid_admin_" . ($rank-6);
+			return 'raid_admin_' . ($rank-6);
 		}
 		if ($rank >= 4) {
-			return "raid_leader_" . ($rank-3);
+			return 'raid_leader_' . ($rank-3);
 		}
 		return "raid_level_{$rank}";
 	}
 
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
-		description: "Add raid leader and admins to the buddy list",
+		description: 'Add raid leader and admins to the buddy list',
 		defaultStatus: 1
 	)]
 	public function checkRaidRanksEvent(): void {
@@ -181,7 +181,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$oldRank = $this->ranks[$who]??null;
 		unset($this->ranks[$who]);
 		$this->db->table(self::DB_TABLE)
-			->where("name", $who)
+			->where('name', $who)
 			->delete();
 		$this->buddylistManager->remove($who, 'raidrank');
 		if (isset($oldRank)) {
@@ -189,7 +189,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 				actor: $sender,
 				actee: $who,
 				action: AccessManager::DEL_RANK,
-				value: (string)($this->accessManager->getAccessLevels()["raid_leader_1"] - ($oldRank->rank-4)),
+				value: (string)($this->accessManager->getAccessLevels()['raid_leader_1'] - ($oldRank->rank-4)),
 			);
 			$this->accessManager->addAudit($audit);
 		}
@@ -204,12 +204,12 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$oldRank = $this->ranks[$who]??null;
 		$action = 'promoted';
 		if (isset($this->ranks[$who]) && $this->ranks[$who]->rank > $rank) {
-			$action = "demoted";
+			$action = 'demoted';
 		}
 		$this->db->table(self::DB_TABLE)
 			->upsert(
-				["rank" => $rank, "name" => $who],
-				["name"]
+				['rank' => $rank, 'name' => $who],
+				['name']
 			);
 
 		if (isset($oldRank)) {
@@ -217,7 +217,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 				actor: $sender,
 				actee: $who,
 				action: AccessManager::DEL_RANK,
-				value: (string)($this->accessManager->getAccessLevels()["raid_leader_1"] - ($oldRank->rank-4)),
+				value: (string)($this->accessManager->getAccessLevels()['raid_leader_1'] - ($oldRank->rank-4)),
 			);
 			$this->accessManager->addAudit($audit);
 		}
@@ -231,7 +231,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			actor: $sender,
 			actee: $who,
 			action: AccessManager::ADD_RANK,
-			value: (string)($this->accessManager->getAccessLevels()["raid_leader_1"] - ($rank-4)),
+			value: (string)($this->accessManager->getAccessLevels()['raid_leader_1'] - ($rank-4)),
 		);
 		$this->accessManager->addAudit($audit);
 
@@ -306,32 +306,30 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	/** Promote someone to raid admin */
-	#[NCA\HandlesCommand("raidadmin")]
-	#[NCA\Help\Group("raid-ranks")]
+	#[NCA\HandlesCommand('raidadmin')]
+	#[NCA\Help\Group('raid-ranks')]
 	public function raidAdminAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add", "promote")]
-		string $action,
+		#[NCA\Str('add', 'promote')] string $action,
 		PCharacter $char,
 		?int $rank
 	): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
-			$context->reply("The admin rank must be a number between 1 and 3");
+			$context->reply('The admin rank must be a number between 1 and 3');
 			return;
 		}
-		$rankName = $this->settingManager->getString("name_raid_admin_{$rank}")??"";
+		$rankName = $this->settingManager->getString("name_raid_admin_{$rank}")??'';
 
 		$this->add($char(), $context->char->name, $context, $rank+6, $rankName, "raid_admin_{$rank}");
 	}
 
 	/** Demote someone from raid admin */
-	#[NCA\HandlesCommand("raidadmin")]
-	#[NCA\Help\Group("raid-ranks")]
+	#[NCA\HandlesCommand('raidadmin')]
+	#[NCA\Help\Group('raid-ranks')]
 	public function raidAdminRemoveCommand(
 		CmdContext $context,
-		#[NCA\Str("remove", "rem", "del", "rm", "demote")]
-		string $action,
+		#[NCA\Str('remove', 'rem', 'del', 'rm', 'demote')] string $action,
 		PCharacter $char
 	): void {
 		$rank = 'a raid admin';
@@ -340,32 +338,30 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	/** Promote someone to raid leader */
-	#[NCA\HandlesCommand("raidleader")]
-	#[NCA\Help\Group("raid-ranks")]
+	#[NCA\HandlesCommand('raidleader')]
+	#[NCA\Help\Group('raid-ranks')]
 	public function raidLeaderAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add", "promote")]
-		string $action,
+		#[NCA\Str('add', 'promote')] string $action,
 		PCharacter $char,
 		?int $rank
 	): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
-			$context->reply("The leader rank must be a number between 1 and 3");
+			$context->reply('The leader rank must be a number between 1 and 3');
 			return;
 		}
-		$rankName = $this->settingManager->getString("name_raid_leader_{$rank}")??"";
+		$rankName = $this->settingManager->getString("name_raid_leader_{$rank}")??'';
 
 		$this->add($char(), $context->char->name, $context, $rank+3, $rankName, "raid_leader_{$rank}");
 	}
 
 	/** Demote someone from raid leader */
-	#[NCA\HandlesCommand("raidleader")]
-	#[NCA\Help\Group("raid-ranks")]
+	#[NCA\HandlesCommand('raidleader')]
+	#[NCA\Help\Group('raid-ranks')]
 	public function raidLeaderRemoveCommand(
 		CmdContext $context,
-		#[NCA\Str("rem", "del", "rm", "demote")]
-		string $action,
+		#[NCA\Str('rem', 'del', 'rm', 'demote')] string $action,
 		PCharacter $char
 	): void {
 		$rank = 'a raid leader';
@@ -374,42 +370,42 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	/** See the list of raid leaders/admins, 'all' to include all offline alts */
-	#[NCA\HandlesCommand("leaderlist")]
-	public function leaderlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
+	#[NCA\HandlesCommand('leaderlist')]
+	public function leaderlistCommand(CmdContext $context, #[NCA\Str('all')] ?string $all): void {
 		$showOfflineAlts = isset($all);
 		$adminLines = [];
 		if ($this->leadersIncludeAdmins) {
 			$adminLines = $this->adminController->getLeaderList($showOfflineAlts, $this->leadersIncludeSuperAdmins);
 		}
 
-		$blob = "";
+		$blob = '';
 		$admins = array_filter(
 			$this->ranks,
-			function (RaidRank $rank): bool {
-				return $rank->rank >= 7 && $rank->name !== "";
+			static function (RaidRank $rank): bool {
+				return $rank->rank >= 7 && $rank->name !== '';
 			}
 		);
 		$leaders = array_filter(
 			$this->ranks,
-			function (RaidRank $rank): bool {
-				return $rank->rank < 7 && $rank->rank >= 4 && $rank->name !== "";
+			static function (RaidRank $rank): bool {
+				return $rank->rank < 7 && $rank->rank >= 4 && $rank->name !== '';
 			}
 		);
 
 		if (empty($leaders) && empty($admins) && empty($adminLines)) {
-			$context->reply("<myname> has no raid leaders or raid admins.");
+			$context->reply('<myname> has no raid leaders or raid admins.');
 			return;
 		}
 
 		if (count($adminLines)) {
-			$blob .= join("\n", $adminLines) . "\n";
+			$blob .= implode("\n", $adminLines) . "\n";
 		}
 
 		$raidStats = $this->getRaidsByStarter();
 		if (count($admins)) {
 			$blob .= "<header2>Raid admins<end>\n".
 				$this->renderLeaders(
-					$this->accessManager->checkSingleAccess($context->char->name, "raid_leader_2"),
+					$this->accessManager->checkSingleAccess($context->char->name, 'raid_leader_2'),
 					$showOfflineAlts,
 					$raidStats,
 					...array_keys($admins)
@@ -419,7 +415,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		if (count($leaders)) {
 			$blob .= "<header2>Raid leaders<end>\n".
 				$this->renderLeaders(
-					$this->accessManager->checkSingleAccess($context->char->name, "raid_admin_2"),
+					$this->accessManager->checkSingleAccess($context->char->name, 'raid_admin_2'),
 					$showOfflineAlts,
 					$raidStats,
 					...array_keys($leaders)
@@ -428,7 +424,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 
 		$title = 'Raid leaders/admins';
 		if (count($adminLines)) {
-			$title = "All leaders and admins";
+			$title = 'All leaders and admins';
 		}
 		$link = $this->text->makeBlob($title, $blob);
 		$context->reply($link);
@@ -436,7 +432,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 
 	#[NCA\Event(
 		name: AltNewMainEvent::EVENT_MASK,
-		description: "Move raid rank to new main"
+		description: 'Move raid rank to new main'
 	)]
 	public function moveRaidRanks(AltNewMainEvent $event): void {
 		$oldRank = $this->ranks[$event->alt] ?? null;
@@ -445,24 +441,24 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		}
 		$this->removeFromLists($event->alt, $event->main);
 		$this->addToLists($event->main, $event->alt, $oldRank->rank);
-		$this->logger->notice("Moved raid rank {rank} from {alt} to {main}.", [
-			"rank" => $oldRank->rank,
-			"alt" => $event->alt,
-			"main" => $event->main,
+		$this->logger->notice('Moved raid rank {rank} from {alt} to {main}.', [
+			'rank' => $oldRank->rank,
+			'alt' => $event->alt,
+			'main' => $event->main,
 		]);
 	}
 
 	/** @return Collection<RaidStat> */
 	protected function getRaidsByStarter(): Collection {
-		$query = $this->db->table(RaidController::DB_TABLE, "r")
-			->join(RaidMemberController::DB_TABLE . " AS rm", "r.raid_id", "rm.raid_id")
-			->groupBy("r.raid_id", "r.started_by", "r.started");
-		return $query->havingRaw("COUNT(*) >= 5")
+		$query = $this->db->table(RaidController::DB_TABLE, 'r')
+			->join(RaidMemberController::DB_TABLE . ' AS rm', 'r.raid_id', 'rm.raid_id')
+			->groupBy('r.raid_id', 'r.started_by', 'r.started');
+		return $query->havingRaw('COUNT(*) >= 5')
 			->select([
-				"r.raid_id",
-				"r.started",
-				"r.started_by",
-				$query->colFunc("COUNT", "*", "num_raiders"),
+				'r.raid_id',
+				'r.started',
+				'r.started_by',
+				$query->colFunc('COUNT', '*', 'num_raiders'),
 			])
 			->asObj(RaidStat::class)
 			->each(function (RaidStat $stat): void {
@@ -474,7 +470,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	protected function renderLeaders(bool $showStats, bool $showOfflineAlts, Collection $stats, string ...$names): string {
 		sort($names);
 		$output = [];
-		$raids = $stats->groupBy("starter_main");
+		$raids = $stats->groupBy('starter_main');
 		foreach ($names as $who) {
 			$line = "<tab>{$who}" . $this->getOnlineStatus($who);
 			if ($showStats) {
@@ -482,19 +478,19 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 				$numRaids = $myRaids->count();
 				$recentlyDuration = $this->raidDurationRecently;
 				if ($recentlyDuration > 0) {
-					$numRaidsRecently = $myRaids->where("started", ">", time() - $recentlyDuration)->count();
+					$numRaidsRecently = $myRaids->where('started', '>', time() - $recentlyDuration)->count();
 				}
 				$line .= " (Raids started: {$numRaids}";
 				if (isset($numRaidsRecently)) {
 					$line .= " / {$numRaidsRecently}";
 				}
-				$line .= ")";
+				$line .= ')';
 			}
 			$line .= "\n".
 				$this->getAltLeaderInfo($who, $showOfflineAlts);
 			$output []= $line;
 		}
-		return join("", $output) . "\n";
+		return implode('', $output) . "\n";
 	}
 
 	private function add(string $who, string $sender, CommandReply $sendto, int $rank, string $rankName, string $alName): bool {
@@ -506,8 +502,8 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		if ($this->checkExisting($who, $rank)) {
 			$sendto->reply(
 				"<highlight>{$who}<end> is already {$rankName}. ".
-				"To promote/demote to a different rank, add the ".
-				"rank number (1, 2 or 3) to the command."
+				'To promote/demote to a different rank, add the '.
+				'rank number (1, 2 or 3) to the command.'
 			);
 			return false;
 		}
@@ -546,11 +542,11 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	 */
 	private function getOnlineStatus(string $who): string {
 		if ($this->buddylistManager->isOnline($who) && isset($this->chatBot->chatlist[$who])) {
-			return " (<on>Online and in chat<end>)";
+			return ' (<on>Online and in chat<end>)';
 		} elseif ($this->buddylistManager->isOnline($who)) {
-			return " (<on>Online<end>)";
+			return ' (<on>Online<end>)';
 		}
-		return " (<off>Offline<end>)";
+		return ' (<off>Offline<end>)';
 	}
 
 	private function getAltLeaderInfo(string $who, bool $showOfflineAlts): string {

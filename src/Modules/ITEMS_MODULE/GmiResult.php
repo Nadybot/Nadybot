@@ -10,10 +10,8 @@ class GmiResult {
 	 * @param GmiSellOrder[] $sellOrders
 	 */
 	public function __construct(
-		#[CastListToType(GmiBuyOrder::class)]
-		public array $buyOrders,
-		#[CastListToType(GmiSellOrder::class)]
-		public array $sellOrders,
+		#[CastListToType(GmiBuyOrder::class)] public array $buyOrders,
+		#[CastListToType(GmiSellOrder::class)] public array $sellOrders,
 	) {
 	}
 }

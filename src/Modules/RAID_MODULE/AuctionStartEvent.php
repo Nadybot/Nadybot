@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 class AuctionStartEvent extends AuctionStatusEvent {
-	public const EVENT_MASK = "auction(start)";
+	public const EVENT_MASK = 'auction(start)';
 
 	public function __construct(
 		public Auction $auction,

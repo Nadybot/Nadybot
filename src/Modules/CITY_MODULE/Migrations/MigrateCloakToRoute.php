@@ -12,16 +12,16 @@ use Nadybot\Core\{
 use Nadybot\Modules\CITY_MODULE\CloakController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210819073121)]
+#[NCA\Migration(order: 20_210_819_073_121)]
 class MigrateCloakToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private CloakController $cloakController;
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$route = [
-			"source" => $this->cloakController->getChannelName(),
-			"destination" => Source::ORG,
-			"two_way" => false,
+			'source' => $this->cloakController->getChannelName(),
+			'destination' => Source::ORG,
+			'two_way' => false,
 		];
 		$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 	}

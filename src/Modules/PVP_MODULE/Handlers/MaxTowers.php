@@ -7,12 +7,12 @@ use Nadybot\Modules\PVP_MODULE\Attributes\Argument;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 
 #[Argument(
-	names: ["max_towers"],
+	names: ['max_towers'],
 	description: "Only match those tower fields with a maximum number of\n".
 		"towers. This also includes the CT, so your parameter cannot be\n".
-		"lower than 1. You cannot ftrack unplanted sites.",
-	type: "number",
-	examples: ["1", "3"],
+		'lower than 1. You cannot ftrack unplanted sites.',
+	type: 'number',
+	examples: ['1', '3'],
 )]
 class MaxTowers extends Base {
 	public function matches(SiteUpdate $site): bool {
@@ -26,8 +26,8 @@ class MaxTowers extends Base {
 		if (!ctype_digit($this->value)) {
 			throw new UserException("'<highlight>{$this->value}<end>' is not a valid number.");
 		}
-		if ($this->value === "0") {
-			throw new UserException("You cannot track sites with 0 towers.");
+		if ($this->value === '0') {
+			throw new UserException('You cannot track sites with 0 towers.');
 		}
 	}
 }

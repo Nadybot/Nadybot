@@ -11,7 +11,7 @@ use ReflectionObject;
 /**
  * Class to represent a setting with a template value for NadyBot
  */
-#[NCA\SettingHandler("template")]
+#[NCA\SettingHandler('template')]
 class TemplateSettingHandler extends SettingHandler {
 	/** Get a displayable representation of the setting */
 	public function displayValue(string $sender): string {
@@ -20,7 +20,7 @@ class TemplateSettingHandler extends SettingHandler {
 		if (isset($attr, $attr->exampleValues)) {
 			$examples = $attr->exampleValues;
 		}
-		return $this->text->renderPlaceholders($this->row->value??"", $examples);
+		return $this->text->renderPlaceholders($this->row->value??'', $examples);
 	}
 
 	/** Get all options for this setting or null if no options are available */
@@ -32,10 +32,10 @@ class TemplateSettingHandler extends SettingHandler {
 		}
 
 		if (strlen($this->row->options??'')) {
-			$options = explode(";", $this->row->options??"");
+			$options = explode(';', $this->row->options??'');
 		}
 		if (strlen($this->row->intoptions??'')) {
-			$intoptions = explode(";", $this->row->intoptions??"");
+			$intoptions = explode(';', $this->row->intoptions??'');
 			$options_map = array_combine($intoptions, $options??[]);
 		}
 		if (empty($options)) {
@@ -46,7 +46,7 @@ class TemplateSettingHandler extends SettingHandler {
 			foreach ($options_map as $key => $label) {
 				$saveLink = $this->text->makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$key}");
 				$label = htmlspecialchars($label);
-				$label = implode("<end>/<highlight>", explode("/", $label));
+				$label = implode('<end>/<highlight>', explode('/', $label));
 				$msg .= "<tab><highlight>{$label}<end> [{$saveLink}]\n";
 				$msg .= "<tab>{$key}\n\n";
 			}
@@ -58,7 +58,7 @@ class TemplateSettingHandler extends SettingHandler {
 					htmlentities($char)
 				);
 				$char = $this->text->renderPlaceholders($char, $examples);
-				$char = join("\n<tab>", explode("\n", $char));
+				$char = implode("\n<tab>", explode("\n", $char));
 				$msg .= "<tab>{$char} [{$saveLink}]\n";
 			}
 		}
@@ -82,14 +82,14 @@ class TemplateSettingHandler extends SettingHandler {
 	 */
 	public function save(string $newValue): string {
 		if (strlen($newValue) > 255) {
-			throw new Exception("Your text can not be longer than 255 characters.");
+			throw new Exception('Your text can not be longer than 255 characters.');
 		}
 		$colors = $this->text->getColors();
-		$colorNames = join(
-			"|",
+		$colorNames = implode(
+			'|',
 			array_map(
-				fn (string $tag): string => preg_quote(substr($tag, 1, -1), "/"),
-				[...array_keys($colors), "<myname>", "<end>", "<i>", "<u>", "</i>", "</u>"]
+				static fn (string $tag): string => preg_quote(substr($tag, 1, -1), '/'),
+				[...array_keys($colors), '<myname>', '<end>', '<i>', '<u>', '</i>', '</u>']
 			)
 		);
 		$newValue = Safe::pregReplace("/&lt;({$colorNames})&gt;/", '<$1>', $newValue);

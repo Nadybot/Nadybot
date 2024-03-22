@@ -35,49 +35,27 @@ class PlayerInfo {
 	 * @param DateTimeImmutable $lastUpdated Point in time from which this information is
 	 */
 	public function __construct(
-		#[MapFrom("0.CHAR_INSTANCE", ".")]
-		public int $uid,
-		#[MapFrom("0.FIRSTNAME", ".")]
-		public string $firstName,
-		#[MapFrom("0.NAME", ".")]
-		public string $name,
-		#[MapFrom("0.LASTNAME", ".")]
-		public string $lastName,
-		#[MapFrom("0.LEVELX", ".")]
-		public int $level,
-		#[MapFrom("0.BREED", ".")]
-		public string $breed,
-		#[MapFrom("0.SEX", ".")]
-		public string $gender,
-		#[MapFrom("0.SIDE", ".")]
-		public string $faction,
-		#[MapFrom("0.PROF", ".")]
-		public string $profession,
-		#[MapFrom("0.PROFNAME", ".")]
-		public string $profTitle,
-		#[MapFrom("0.RANK_name", ".")]
-		public string $aiRank,
-		#[MapFrom("0.ALIENLEVEL", ".")]
-		public int $aiLevel,
-		#[MapFrom("1.ORG_INSTANCE", ".")]
-		public ?int $orgId,
-		#[MapFrom("1.NAME", ".")]
-		public ?string $orgName,
-		#[MapFrom("1.RANK_TITLE", ".")]
-		public ?string $orgRank,
-		#[MapFrom("1.RANK", ".")]
-		public ?int $orgRankId,
-		#[MapFrom("0.CHAR_DIMENSION", ".")]
-		public int $dimension,
-		#[MapFrom("0.HEADID", ".")]
-		public int $headMesh,
-		#[MapFrom("0.PVPRATING", ".")]
-		public ?int $pvpRating,
-		#[MapFrom("0.PVPTITLE", ".")]
-		public ?string $pvpTitle,
-		#[MapFrom("2")]
-		#[CastToDateTimeImmutable("Y/m/d H:i:s", "UTC")]
-		public DateTimeImmutable $lastUpdated,
+		#[MapFrom('0.CHAR_INSTANCE', '.')] public int $uid,
+		#[MapFrom('0.FIRSTNAME', '.')] public string $firstName,
+		#[MapFrom('0.NAME', '.')] public string $name,
+		#[MapFrom('0.LASTNAME', '.')] public string $lastName,
+		#[MapFrom('0.LEVELX', '.')] public int $level,
+		#[MapFrom('0.BREED', '.')] public string $breed,
+		#[MapFrom('0.SEX', '.')] public string $gender,
+		#[MapFrom('0.SIDE', '.')] public string $faction,
+		#[MapFrom('0.PROF', '.')] public string $profession,
+		#[MapFrom('0.PROFNAME', '.')] public string $profTitle,
+		#[MapFrom('0.RANK_name', '.')] public string $aiRank,
+		#[MapFrom('0.ALIENLEVEL', '.')] public int $aiLevel,
+		#[MapFrom('1.ORG_INSTANCE', '.')] public ?int $orgId,
+		#[MapFrom('1.NAME', '.')] public ?string $orgName,
+		#[MapFrom('1.RANK_TITLE', '.')] public ?string $orgRank,
+		#[MapFrom('1.RANK', '.')] public ?int $orgRankId,
+		#[MapFrom('0.CHAR_DIMENSION', '.')] public int $dimension,
+		#[MapFrom('0.HEADID', '.')] public int $headMesh,
+		#[MapFrom('0.PVPRATING', '.')] public ?int $pvpRating,
+		#[MapFrom('0.PVPTITLE', '.')] public ?string $pvpTitle,
+		#[MapFrom('2')] #[CastToDateTimeImmutable('Y/m/d H:i:s', 'UTC')] public DateTimeImmutable $lastUpdated,
 	) {
 	}
 
@@ -85,26 +63,26 @@ class PlayerInfo {
 		$player = new Player();
 		$player->ai_level = $this->aiLevel;
 		$player->ai_rank = $this->aiRank;
-		$player->breed = $this->breed ?? "";
+		$player->breed = $this->breed ?? '';
 		$player->charid = $this->uid;
 		$player->dimension = $this->dimension;
-		$player->faction = $this->faction ?? "";
+		$player->faction = $this->faction ?? '';
 		$player->firstname = $this->firstName;
-		$player->gender = $this->gender ?? "";
-		$player->guild = $this->orgName ?? "";
+		$player->gender = $this->gender ?? '';
+		$player->guild = $this->orgName ?? '';
 		$player->guild_id = $this->orgId ?? 0;
-		$player->guild_rank = $this->orgRank ?? "";
+		$player->guild_rank = $this->orgRank ?? '';
 		$player->guild_rank_id = $this->orgRankId;
 		$player->head_id = $this->headMesh;
 		$player->last_update = $this->lastUpdated->getTimestamp();
 		$player->lastname = $this->lastName;
 		$player->level = $this->level;
 		$player->name = $this->name;
-		$player->prof_title = $this->profTitle ?? "";
+		$player->prof_title = $this->profTitle ?? '';
 		$player->profession = $this->profession;
 		$player->pvp_rating = $this->pvpRating;
 		$player->pvp_title = $this->pvpTitle;
-		$player->source = "AO";
+		$player->source = 'AO';
 
 		return $player;
 	}

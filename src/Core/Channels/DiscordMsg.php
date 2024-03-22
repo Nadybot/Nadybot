@@ -48,7 +48,7 @@ class DiscordMsg implements MessageReceiver {
 	private Text $text;
 
 	public function getChannelName(): string {
-		return Source::DISCORD_MSG . "(*)";
+		return Source::DISCORD_MSG . '(*)';
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
@@ -66,7 +66,7 @@ class DiscordMsg implements MessageReceiver {
 		} else {
 			$msg = $event->getData();
 		}
-		$pathText = "";
+		$pathText = '';
 		if ($renderPath) {
 			$pathText = $this->messageHub->renderPath($event, $this->getChannelName());
 		}
@@ -79,11 +79,11 @@ class DiscordMsg implements MessageReceiver {
 		$discordMsg = $this->discordController->formatMessage($message, $guild);
 
 		if (isset($event->char)) {
-			$minRankForMentions = $this->settingManager->getString('discord_relay_mention_rank') ?? "superadmin";
+			$minRankForMentions = $this->settingManager->getString('discord_relay_mention_rank') ?? 'superadmin';
 			$sendersRank = $this->accessManager->getAccessLevelForCharacter($event->char->name);
 			if ($this->accessManager->compareAccessLevels($sendersRank, $minRankForMentions) < 0) {
 				$discordMsg->allowed_mentions = (object)[
-					"parse" => ["users"],
+					'parse' => ['users'],
 				];
 			}
 		}

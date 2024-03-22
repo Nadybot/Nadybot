@@ -8,27 +8,27 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\BANK_MODULE\WishlistController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20220706091321, shared: true)]
+#[NCA\Migration(order: 20_220_706_091_321, shared: true)]
 class CreateWishlists implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = WishlistController::DB_TABLE;
-		$db->schema()->create($table, function (Blueprint $table) {
+		$db->schema()->create($table, static function (Blueprint $table) {
 			$table->id();
-			$table->unsignedInteger("created_on");
-			$table->string("created_by", 12)->index();
-			$table->string("item", 200);
-			$table->unsignedInteger("amount")->default(1);
-			$table->string("from", 12)->nullable(true)->index();
-			$table->boolean("fulfilled")->default(false)->index();
+			$table->unsignedInteger('created_on');
+			$table->string('created_by', 12)->index();
+			$table->string('item', 200);
+			$table->unsignedInteger('amount')->default(1);
+			$table->string('from', 12)->nullable(true)->index();
+			$table->boolean('fulfilled')->default(false)->index();
 		});
 
 		$table = WishlistController::DB_TABLE_FULFILMENT;
-		$db->schema()->create($table, function (Blueprint $table) {
+		$db->schema()->create($table, static function (Blueprint $table) {
 			$table->id();
-			$table->unsignedInteger("wish_id")->index();
-			$table->unsignedInteger("amount")->default(1);
-			$table->unsignedInteger("fulfilled_on");
-			$table->string("fulfilled_by", 12);
+			$table->unsignedInteger('wish_id')->index();
+			$table->unsignedInteger('amount')->default(1);
+			$table->unsignedInteger('fulfilled_on');
+			$table->string('fulfilled_by', 12);
 		});
 	}
 }

@@ -7,14 +7,14 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20220502092908, shared: true)]
+#[NCA\Migration(order: 20_220_502_092_908, shared: true)]
 class CreateLastOnlineTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "last_online";
-		$db->schema()->create($table, function (Blueprint $table) {
-			$table->unsignedInteger("uid")->unique();
-			$table->string("name", 12)->index();
-			$table->unsignedInteger("dt");
+		$table = 'last_online';
+		$db->schema()->create($table, static function (Blueprint $table) {
+			$table->unsignedInteger('uid')->unique();
+			$table->string('name', 12)->index();
+			$table->unsignedInteger('dt');
 		});
 	}
 }

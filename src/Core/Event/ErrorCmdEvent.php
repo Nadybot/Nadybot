@@ -5,7 +5,7 @@ namespace Nadybot\Core\Event;
 use Nadybot\Core\{CmdEvent, CommandHandler};
 
 class ErrorCmdEvent extends CmdEvent {
-	public const EVENT_MASK = "command(error)";
+	public const EVENT_MASK = 'command(error)';
 
 	/**
 	 * @param string         $sender     Either the name of the sender or the numeric UID (eg. city raid accouncements)

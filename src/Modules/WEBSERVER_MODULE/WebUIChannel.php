@@ -13,7 +13,7 @@ class WebUIChannel implements CommandReply, MessageEmitter {
 	}
 
 	public function getChannelName(): string {
-		return Source::SYSTEM . "(webui)";
+		return Source::SYSTEM . '(webui)';
 	}
 
 	public function reply($msg): void {
@@ -21,7 +21,7 @@ class WebUIChannel implements CommandReply, MessageEmitter {
 			$r = new RoutableMessage($packet);
 			$r->appendPath(new Source(
 				Source::SYSTEM,
-				"webui"
+				'webui'
 			));
 			$this->messageHub->handle($r);
 		}

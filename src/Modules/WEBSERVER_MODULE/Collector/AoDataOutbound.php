@@ -14,6 +14,6 @@ class AoDataOutbound implements CounterProvider {
 	}
 
 	public function getTags(): array {
-		return ["direction" => "out"];
+		return ['direction' => 'out'];
 	}
 }

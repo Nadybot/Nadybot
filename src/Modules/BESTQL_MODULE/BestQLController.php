@@ -18,10 +18,10 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "bestql",
-		accessLevel: "guest",
-		description: "Find breakpoints for bonuses",
-		alias: "breakpoints"
+		command: 'bestql',
+		accessLevel: 'guest',
+		description: 'Find breakpoints for bonuses',
+		alias: 'breakpoints'
 	)
 ]
 class BestQLController extends ModuleInstance {
@@ -53,7 +53,7 @@ class BestQLController extends ModuleInstance {
 	}
 
 	/** Find the breakpoints for all possible bonuses of an item */
-	#[NCA\HandlesCommand("bestql")]
+	#[NCA\HandlesCommand('bestql')]
 	public function bestql1Command(
 		CmdContext $context,
 		int $lowQl,
@@ -66,7 +66,7 @@ class BestQLController extends ModuleInstance {
 	}
 
 	/** Find the highest usable QL of an item */
-	#[NCA\HandlesCommand("bestql")]
+	#[NCA\HandlesCommand('bestql')]
 	public function bestql2Command(
 		CmdContext $context,
 		int $lowQl,
@@ -80,7 +80,7 @@ class BestQLController extends ModuleInstance {
 	}
 
 	/** General syntax, need at least 4 values for the specs. Paste item for links */
-	#[NCA\HandlesCommand("bestql")]
+	#[NCA\HandlesCommand('bestql')]
 	#[NCA\Help\Epilogue(
 		"<header2>Examples:<end>\n\n".
 		"Platinum Filigree Ring set with a Perfectly Cut Amber. QL 1 bonus is 6, QL 400 bonus is 23:\n".
@@ -107,13 +107,12 @@ class BestQLController extends ModuleInstance {
 		"<tab><highlight><symbol>bestql 1 8 200 476 200<end>\n\n".
 		"<tab>The highest QL is <highlight>82<end> with a requirement of <highlight>198<end>.\n\n".
 		"Note: in order to get the best results, it's important to get the correct QLs of an item.\n".
-		"The <highlight><symbol>items<end> command should work in most cases, but ".
+		'The <highlight><symbol>items<end> command should work in most cases, but '.
 		"<a href='chatcmd:///start https://aoitems.com/home/'>AOItems</a> might be better.\n"
 	)]
 	public function bestqlCommand(
 		CmdContext $context,
-		#[NCA\Regexp("[0-9 ]+")]
-		string $specs,
+		#[NCA\Regexp('[0-9 ]+')] string $specs,
 		?PItem $pastedItem
 	): void {
 		/** @var array<int,int> */
@@ -121,7 +120,7 @@ class BestQLController extends ModuleInstance {
 		$specPairs = preg_split('/\s+/', $specs);
 
 		if (count($specPairs) < 4) {
-			$msg = "You have to provide at least 2 bonuses at 2 different QLs.";
+			$msg = 'You have to provide at least 2 bonuses at 2 different QLs.';
 			$context->reply($msg);
 			return;
 		}
@@ -142,7 +141,7 @@ class BestQLController extends ModuleInstance {
 		for ($searchedQL = (int)min(array_keys($itemSpecs)); $searchedQL <= max(array_keys($itemSpecs)); $searchedQL++) {
 			$value = $this->calcStatFromQL($itemSpecs, $searchedQL);
 			if ($value === null) {
-				$msg = "I was unable to find any breakpoints for the given stats.";
+				$msg = 'I was unable to find any breakpoints for the given stats.';
 				$context->reply($msg);
 				return;
 			}
@@ -150,9 +149,9 @@ class BestQLController extends ModuleInstance {
 			if (count($specPairs) % 2) {
 				if ($value > $maxAttribute) {
 					if ($searchedQL === 1) {
-						$msg = "Your stats are too low to equip any QL of this item.";
+						$msg = 'Your stats are too low to equip any QL of this item.';
 					} else {
-						$msg = "The highest QL is <highlight>".($searchedQL-1)."<end> with a requirement of <highlight>{$oldRequirement}<end>. QL {$searchedQL} already requires {$value}.";
+						$msg = 'The highest QL is <highlight>'.($searchedQL-1)."<end> with a requirement of <highlight>{$oldRequirement}<end>. QL {$searchedQL} already requires {$value}.";
 					}
 					$context->reply($msg);
 					return;
@@ -160,12 +159,12 @@ class BestQLController extends ModuleInstance {
 				$oldRequirement = $value;
 			} elseif ($oldValue !== $value) {
 				$msg .= sprintf(
-					"<tab>QL %s has stat <highlight>%d<end>.",
-					$this->text->alignNumber($searchedQL, 3, "highlight"),
+					'<tab>QL %s has stat <highlight>%d<end>.',
+					$this->text->alignNumber($searchedQL, 3, 'highlight'),
 					$value
 				);
 				if ($pastedItem) {
-					$msg .= " " . $this->text->makeItem($pastedItem->lowID, $pastedItem->highID, $searchedQL, $pastedItem->name);
+					$msg .= ' ' . $this->text->makeItem($pastedItem->lowID, $pastedItem->highID, $searchedQL, $pastedItem->name);
 				}
 				$msg .= "\n";
 				$numFoundItems++;
@@ -179,7 +178,7 @@ class BestQLController extends ModuleInstance {
 			return;
 		}
 
-		$blob = $this->text->makeBlob("breakpoints", $msg, "Calculated breakpoints for your item");
+		$blob = $this->text->makeBlob('breakpoints', $msg, 'Calculated breakpoints for your item');
 		if (is_string($blob)) {
 			$msg = "Found <highlight>{$numFoundItems}<end> {$blob} with different stats.";
 			$context->reply($msg);
@@ -187,7 +186,7 @@ class BestQLController extends ModuleInstance {
 		}
 		$pages = [];
 		for ($i = 0; $i < count($blob); $i++) {
-			$pages[] = "Found <highlight>{$numFoundItems}<end> ".$blob[$i]." with different stats.";
+			$pages[] = "Found <highlight>{$numFoundItems}<end> ".$blob[$i].' with different stats.';
 		}
 		$context->reply($pages);
 	}

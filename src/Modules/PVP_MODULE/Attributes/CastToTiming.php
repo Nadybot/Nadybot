@@ -11,9 +11,9 @@ use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 class CastToTiming implements PropertyCaster {
 	public function cast(mixed $value, ObjectMapper $hydrator): mixed {
 		switch ($value) {
-			case "StaticEurope":
+			case 'StaticEurope':
 				return SiteUpdate::TIMING_EU;
-			case "StaticUS":
+			case 'StaticUS':
 				return SiteUpdate::TIMING_US;
 			default:
 				return SiteUpdate::TIMING_DYNAMIC;

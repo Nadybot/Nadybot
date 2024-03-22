@@ -40,7 +40,7 @@ class Ingredients extends IteratorIterator {
 	public function getMaxAmount(): int {
 		return array_reduce(
 			iterator_to_array($this->getInnerIterator()),
-			function (int $max, Ingredient $ing): int {
+			static function (int $max, Ingredient $ing): int {
 				return max($max, $ing->amount);
 			},
 			1

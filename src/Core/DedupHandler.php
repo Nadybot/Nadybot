@@ -14,7 +14,7 @@ class DedupHandler extends AbstractHandler {
 	/** {@inheritDoc} */
 	public function handle(array $record): bool {
 		$rec = $record;
-		unset($rec["datetime"]);
+		unset($rec['datetime']);
 		if (!isset($this->lastRecord)) {
 			$this->lastRecord = $rec;
 			return false;

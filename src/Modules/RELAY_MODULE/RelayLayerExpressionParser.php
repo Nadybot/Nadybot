@@ -58,17 +58,17 @@ class RelayLayerExpressionParser {
 			}
 
 			$char = substr($input, $posData['char']-1, 1);
-			if ($found !== "") {
+			if ($found !== '') {
 				$found = ", found: <highlight>\"{$found}\"<end>";
 			}
 			throw new LayerParserException(
 				substr($input, 0, $posData['char']-1).
-				"<red>" . (strlen($char) ? $char : "_") . "<end>".
+				'<red>' . (strlen($char) ? $char : '_') . '<end>'.
 				substr($input, $posData['char']) . "\n".
 				"expected: <highlight>{$expected}<end>{$found}."
 			);
 		}
-		$layers = $expr->findAll("layer");
+		$layers = $expr->findAll('layer');
 		$result = [];
 		foreach ($layers as $layer) {
 			$result []= $this->parselayer($layer);
@@ -78,19 +78,19 @@ class RelayLayerExpressionParser {
 
 	protected function parselayer(Branch $layer): RelayLayer {
 		$arguments = [];
-		foreach ($layer->findAll("argument") as $argument) {
+		foreach ($layer->findAll('argument') as $argument) {
 			$arguments []= $this->parseArgument($argument);
 		}
 		$result = new RelayLayer(
-			layer: $layer->findFirst("layerName")->toString(),
+			layer: $layer->findFirst('layerName')->toString(),
 			arguments: $arguments,
 		);
 		return $result;
 	}
 
 	protected function parseArgument(Branch $argument): RelayLayerArgument {
-		$name = $argument->findFirst("key")->toString();
-		$value = $argument->findFirst("value");
+		$name = $argument->findFirst('key')->toString();
+		$value = $argument->findFirst('value');
 		if ($value->getDetailType() === 'string') {
 			$value = json_decode($value->toString());
 		} else {

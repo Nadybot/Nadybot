@@ -34,14 +34,14 @@ use stdClass;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "usage",
-		accessLevel: "guild",
-		description: "Shows usage stats",
+		command: 'usage',
+		accessLevel: 'guild',
+		description: 'Shows usage stats',
 		defaultStatus: 1
 	),
 ]
 class UsageController extends ModuleInstance {
-	public const DB_TABLE = "usage_<myname>";
+	public const DB_TABLE = 'usage_<myname>';
 
 	/** Record usage stats */
 	#[NCA\Setting\Boolean]
@@ -49,7 +49,7 @@ class UsageController extends ModuleInstance {
 
 	/** Botid */
 	#[NCA\Setting\Text(mode: 'noedit')]
-	public string $botid = "";
+	public string $botid = '';
 
 	#[NCA\Inject]
 	private DB $db;
@@ -76,19 +76,18 @@ class UsageController extends ModuleInstance {
 	private Nadybot $chatBot;
 
 	/** Show usage stats for the past 7 days or &lt;duration&gt; for a given character */
-	#[NCA\HandlesCommand("usage")]
+	#[NCA\HandlesCommand('usage')]
 	public function usageCharacterCommand(
 		CmdContext $context,
-		#[NCA\Str("char", "character", "player")]
-		string $action,
+		#[NCA\Str('char', 'character', 'player')] string $action,
 		PCharacter $character,
 		?PDuration $duration
 	): void {
-		$time = 604800;
+		$time = 604_800;
 		if (isset($duration)) {
 			$time = $duration->toSecs();
 			if ($time === 0) {
-				$msg = "Please enter a valid time.";
+				$msg = 'Please enter a valid time.';
 				$context->reply($msg);
 				return;
 			}
@@ -98,12 +97,12 @@ class UsageController extends ModuleInstance {
 		$time = time() - $time;
 
 		$query = $this->db->table(self::DB_TABLE)
-			->where("sender", $character())
-			->where("dt", ">", $time)
-			->groupBy("command")
-			->select("command");
-		$query->orderByRaw($query->colFunc("COUNT", "command")->getValue())
-			->selectRaw($query->colFunc("COUNT", "command", "count")->getValue());
+			->where('sender', $character())
+			->where('dt', '>', $time)
+			->groupBy('command')
+			->select('command');
+		$query->orderByRaw($query->colFunc('COUNT', 'command')->getValue())
+			->selectRaw($query->colFunc('COUNT', 'command', 'count')->getValue());
 		$data = $query->asObj(CommandUsageStats::class);
 		$count = $data->count();
 
@@ -121,19 +120,18 @@ class UsageController extends ModuleInstance {
 	}
 
 	/** Show usage stats for the past 7 days or &lt;duration&gt; for a given command */
-	#[NCA\HandlesCommand("usage")]
+	#[NCA\HandlesCommand('usage')]
 	public function usageCmdCommand(
 		CmdContext $context,
-		#[NCA\Str("cmd")]
-		string $action,
+		#[NCA\Str('cmd')] string $action,
 		PWord $cmd,
 		?PDuration $duration
 	): void {
-		$time = 604800;
+		$time = 604_800;
 		if (isset($duration)) {
 			$time = $duration->toSecs();
 			if ($time === 0) {
-				$msg = "Please enter a valid time.";
+				$msg = 'Please enter a valid time.';
 				$context->reply($msg);
 				return;
 			}
@@ -145,11 +143,11 @@ class UsageController extends ModuleInstance {
 		$cmd = strtolower($cmd());
 
 		$query = $this->db->table(self::DB_TABLE)
-			->where("command", $cmd)
-			->where("dt", ">", $time)
-			->groupBy("sender");
-		$query->orderByColFunc("COUNT", "sender", "desc")
-			->select("sender", $query->colFunc("COUNT", "command", "count"));
+			->where('command', $cmd)
+			->where('dt', '>', $time)
+			->groupBy('sender');
+		$query->orderByColFunc('COUNT', 'sender', 'desc')
+			->select('sender', $query->colFunc('COUNT', 'command', 'count'));
 		$data = $query->asObj(PlayerUsageStats::class)->toArray();
 		$count = count($data);
 
@@ -167,25 +165,25 @@ class UsageController extends ModuleInstance {
 	}
 
 	/** Show the internal usage data that used to be sent to the Budabot stats server */
-	#[NCA\HandlesCommand("usage")]
-	public function usageInfoCommand(CmdContext $context, #[NCA\Str("info")] string $action): void {
-		$info = $this->getUsageInfo(time() - 7*24*3600, time());
+	#[NCA\HandlesCommand('usage')]
+	public function usageInfoCommand(CmdContext $context, #[NCA\Str('info')] string $action): void {
+		$info = $this->getUsageInfo(time() - 7*24*3_600, time());
 		$blob = json_encode(
 			$info,
-			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR
+			\JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES|\JSON_THROW_ON_ERROR
 		);
-		$msg = $this->text->makeBlob("Collected usage info", $blob);
+		$msg = $this->text->makeBlob('Collected usage info', $blob);
 		$context->reply($msg);
 	}
 
 	/** Show usage stats for the past 7 days or &lt;duration&gt; */
-	#[NCA\HandlesCommand("usage")]
+	#[NCA\HandlesCommand('usage')]
 	public function usageCommand(CmdContext $context, ?PDuration $duration): void {
-		$time = 604800;
+		$time = 604_800;
 		if (isset($duration)) {
 			$time = $duration->toSecs();
 			if ($time === 0) {
-				$msg = "Please enter a valid time.";
+				$msg = 'Please enter a valid time.';
 				$context->reply($msg);
 				return;
 			}
@@ -197,11 +195,11 @@ class UsageController extends ModuleInstance {
 
 		// channel usage
 		$query = $this->db->table(self::DB_TABLE)
-			->where("dt", ">", $time)
-			->groupBy("type")
-			->orderBy("type")
-			->select("type AS channel");
-		$query->selectRaw($query->colFunc("COUNT", "type", "count")->getValue());
+			->where('dt', '>', $time)
+			->groupBy('type')
+			->orderBy('type')
+			->select('type AS channel');
+		$query->selectRaw($query->colFunc('COUNT', 'type', 'count')->getValue());
 
 		/** @var ChannelUsageStats[] */
 		$data = $query->asObj(ChannelUsageStats::class)->toArray();
@@ -214,12 +212,12 @@ class UsageController extends ModuleInstance {
 
 		// most used commands
 		$query = $this->db->table(self::DB_TABLE)
-			->where("dt", ">", $time)
-			->groupBy("command")
-			->orderByColFunc("COUNT", "command", "desc")
+			->where('dt', '>', $time)
+			->groupBy('command')
+			->orderByColFunc('COUNT', 'command', 'desc')
 			->limit($limit)
-			->select("command");
-		$query->selectRaw($query->colFunc("COUNT", "command", "count")->getValue());
+			->select('command');
+		$query->selectRaw($query->colFunc('COUNT', 'command', 'count')->getValue());
 
 		/** @var CommandUsageStats[] */
 		$data = $query->asObj(CommandUsageStats::class)->toArray();
@@ -227,18 +225,18 @@ class UsageController extends ModuleInstance {
 		$blob .= "<header2>{$limit} Most Used Commands<end>\n";
 		foreach ($data as $row) {
 			$commandLink = $this->text->makeChatcmd($row->command, "/tell <myname> usage cmd {$row->command}");
-			$blob .= "<tab>" . $this->text->alignNumber($row->count, 3).
+			$blob .= '<tab>' . $this->text->alignNumber($row->count, 3).
 				" {$commandLink}\n";
 		}
 
 		// users who have used the most commands
 		$query = $this->db->table(self::DB_TABLE)
-			->where("dt", ">", $time)
-			->groupBy("sender")
-			->orderByColFunc("COUNT", "sender", "desc")
+			->where('dt', '>', $time)
+			->groupBy('sender')
+			->orderByColFunc('COUNT', 'sender', 'desc')
 			->limit($limit)
-			->select("sender");
-		$query->selectRaw($query->colFunc("COUNT", "sender", "count")->getValue());
+			->select('sender');
+		$query->selectRaw($query->colFunc('COUNT', 'sender', 'count')->getValue());
 
 		/** @var PlayerUsageStats[] */
 		$data = $query->asObj(PlayerUsageStats::class)->toArray();
@@ -246,7 +244,7 @@ class UsageController extends ModuleInstance {
 		$blob .= "\n<header2>{$limit} Most Active Users<end>\n";
 		foreach ($data as $row) {
 			$senderLink = $this->text->makeChatcmd($row->sender, "/tell <myname> usage player {$row->sender}");
-			$blob .= "<tab>" . $this->text->alignNumber($row->count, 3).
+			$blob .= '<tab>' . $this->text->alignNumber($row->count, 3).
 				" {$senderLink}\n";
 		}
 
@@ -261,16 +259,16 @@ class UsageController extends ModuleInstance {
 	 */
 	public function record(string $type, string $cmd, string $sender, ?string $handler): void {
 		// don't record stats for !grc command or command aliases
-		if ($cmd === 'grc' || "CommandAlias.process" === $handler) {
+		if ($cmd === 'grc' || 'CommandAlias.process' === $handler) {
 			return;
 		}
 
 		$this->db->table(self::DB_TABLE)
 			->insert([
-				"type" => $type,
-				"command" => $cmd,
-				"sender" => $sender,
-				"dt" => time(),
+				'type' => $type,
+				'command' => $cmd,
+				'sender' => $sender,
+				'dt' => time(),
 			]);
 	}
 
@@ -282,13 +280,13 @@ class UsageController extends ModuleInstance {
 		}
 
 		$query = $this->db->table(self::DB_TABLE)
-			->where("dt", ">=", $lastSubmittedStats)
-			->where("dt", "<", time())
-			->groupBy("command")
-			->select("command");
-		$query->selectRaw($query->rawFunc("COUNT", "*", "count")->getValue());
+			->where('dt', '>=', $lastSubmittedStats)
+			->where('dt', '<', time())
+			->groupBy('command')
+			->select('command');
+		$query->selectRaw($query->rawFunc('COUNT', '*', 'count')->getValue());
 		$commands = $query->asObj(CommandUsageStats::class)
-			->reduce(function (stdClass $carry, CommandUsageStats $entry) {
+			->reduce(static function (stdClass $carry, CommandUsageStats $entry) {
 				$carry->{$entry->command} = $entry->count;
 				return $carry;
 			}, new stdClass());
@@ -300,24 +298,24 @@ class UsageController extends ModuleInstance {
 		$settings->using_chat_proxy        = $this->config->proxy?->enabled === true;
 		$settings->db_type                 = $this->db->getType()->value;
 		$settings->bot_version             = BotRunner::getVersion();
-		$settings->using_git               = $this->fs->exists(BotRunner::getBasedir() . "/.git");
-		$settings->os                      = BotRunner::isWindows() ? 'Windows' : php_uname("s");
-		$settings->symbol                  = $this->settingManager->getString('symbol')??"!";
+		$settings->using_git               = $this->fs->exists(BotRunner::getBasedir() . '/.git');
+		$settings->os                      = BotRunner::isWindows() ? 'Windows' : php_uname('s');
+		$settings->symbol                  = $this->settingManager->getString('symbol')??'!';
 		$settings->num_relays              = $this->db->table(RelayController::DB_TABLE)->count();
 		$settings->relay_protocols         = $this->db->table(RelayController::DB_TABLE_LAYER)
-			->orderBy("relay_id")->orderByDesc("id")->asObj(RelayLayer::class)
-			->groupBy("relay_id")
-			->map(function (Collection $group): string {
+			->orderBy('relay_id')->orderByDesc('id')->asObj(RelayLayer::class)
+			->groupBy('relay_id')
+			->map(static function (Collection $group): string {
 				return $group->first()->layer;
 			})->flatten()->unique()->toArray();
 		$settings->first_and_last_alt_only = $this->settingManager->getBool('first_and_last_alt_only')??false;
-		$settings->aodb_db_version         = $this->settingManager->getString('aodb_db_version')??"unknown";
+		$settings->aodb_db_version         = $this->settingManager->getString('aodb_db_version')??'unknown';
 		$settings->max_blob_size           = $this->settingManager->getInt('max_blob_size')??0;
 		$settings->online_show_org_guild   = $this->settingManager->getInt('online_show_org_guild')??-1;
 		$settings->online_show_org_priv    = $this->settingManager->getInt('online_show_org_priv')??-1;
 		$settings->online_admin            = $this->settingManager->getBool('online_admin')??false;
 		$settings->tower_attack_spam       = $this->settingManager->getInt('tower_attack_spam')??-1;
-		$settings->http_server_enable      = $this->eventManager->getKeyForCronEvent(60, "httpservercontroller.startHTTPServer") !== null;
+		$settings->http_server_enable      = $this->eventManager->getKeyForCronEvent(60, 'httpservercontroller.startHTTPServer') !== null;
 
 		$obj = new UsageStats();
 		$obj->id       = sha1($botid . $this->config->main->character . $this->config->main->dimension);
@@ -330,48 +328,48 @@ class UsageController extends ModuleInstance {
 	}
 
 	public function getGuildSizeClass(int $size): string {
-		$guildClass = "class7";
+		$guildClass = 'class7';
 		if ($size === 0) {
-			$guildClass = "class0";
+			$guildClass = 'class0';
 		} elseif ($size < 10) {
-			$guildClass = "class1";
+			$guildClass = 'class1';
 		} elseif ($size < 30) {
-			$guildClass = "class2";
+			$guildClass = 'class2';
 		} elseif ($size < 150) {
-			$guildClass = "class3";
+			$guildClass = 'class3';
 		} elseif ($size < 300) {
-			$guildClass = "class4";
+			$guildClass = 'class4';
 		} elseif ($size < 650) {
-			$guildClass = "class5";
-		} elseif ($size < 1000) {
-			$guildClass = "class6";
+			$guildClass = 'class5';
+		} elseif ($size < 1_000) {
+			$guildClass = 'class6';
 		} else {
-			$guildClass = "class7";
+			$guildClass = 'class7';
 		}
 		return $guildClass;
 	}
 
 	#[
 		NCA\NewsTile(
-			name: "popular-commands",
+			name: 'popular-commands',
 			description: "A player's 4 most used commands in the last 7 days",
 			example: "<header2>Popular commands<end>\n".
 				"<tab>hot\n".
 				"<tab>startpage\n".
 				"<tab>config\n".
-				"<tab>time"
+				'<tab>time'
 		)
 	]
 	public function usageNewsTile(string $sender): ?string {
 		/** @var Collection<string> */
 		$commands = $this->db->table(self::DB_TABLE)
-			->where("sender", $sender)
-			->where("dt", ">", time() - 7*24*3600)
-			->groupBy("command")
-			->orderByColFunc("COUNT", "command", "desc")
-			->addSelect("command")
+			->where('sender', $sender)
+			->where('dt', '>', time() - 7*24*3_600)
+			->groupBy('command')
+			->orderByColFunc('COUNT', 'command', 'desc')
+			->addSelect('command')
 			->limit(4)
-			->pluckStrings("command");
+			->pluckStrings('command');
 		if ($commands->isEmpty()) {
 			return null;
 		}

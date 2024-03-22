@@ -101,7 +101,7 @@ class JWT {
 			try {
 				$date = date(DateTime::ATOM, $payload->nbf);
 			} catch (DatetimeException) {
-				$date = "<unknown>";
+				$date = '<unknown>';
 			}
 			throw new BeforeValidException("Cannot handle token prior to {$date}");
 		}
@@ -113,7 +113,7 @@ class JWT {
 			try {
 				$date = date(DateTime::ATOM, $payload->iat);
 			} catch (DatetimeException) {
-				$date = "<unknown>";
+				$date = '<unknown>';
 			}
 			throw new BeforeValidException("Cannot handle token prior to {$date}");
 		}
@@ -137,12 +137,12 @@ class JWT {
 	 */
 	public static function jsonDecode(?string $input): stdClass {
 		if (!isset($input)) {
-			throw new DomainException("Invalid JSON data received");
+			throw new DomainException('Invalid JSON data received');
 		}
-		if (version_compare(PHP_VERSION, '5.4.0', '>=') && !(defined('JSON_C_VERSION') && PHP_INT_SIZE > 4)) {
-			$obj = json_decode($input, false, 512, JSON_BIGINT_AS_STRING);
+		if (version_compare(\PHP_VERSION, '5.4.0', '>=') && !(defined('JSON_C_VERSION') && \PHP_INT_SIZE > 4)) {
+			$obj = json_decode($input, false, 512, \JSON_BIGINT_AS_STRING);
 		} else {
-			$max_int_length = strlen((string)PHP_INT_MAX) - 1;
+			$max_int_length = strlen((string)\PHP_INT_MAX) - 1;
 			$json_without_bigints = Safe::pregReplace('/:\s*(-?\d{' . $max_int_length . ',})/', ': "$1"', $input);
 			$obj = json_decode($json_without_bigints);
 		}
@@ -212,11 +212,11 @@ class JWT {
 	 */
 	private static function handleJsonError($errno): void {
 		$messages = [
-			JSON_ERROR_DEPTH => 'Maximum stack depth exceeded',
-			JSON_ERROR_STATE_MISMATCH => 'Invalid or malformed JSON',
-			JSON_ERROR_CTRL_CHAR => 'Unexpected control character found',
-			JSON_ERROR_SYNTAX => 'Syntax error, malformed JSON',
-			JSON_ERROR_UTF8 => 'Malformed UTF-8 characters', // PHP >= 5.3.3
+			\JSON_ERROR_DEPTH => 'Maximum stack depth exceeded',
+			\JSON_ERROR_STATE_MISMATCH => 'Invalid or malformed JSON',
+			\JSON_ERROR_CTRL_CHAR => 'Unexpected control character found',
+			\JSON_ERROR_SYNTAX => 'Syntax error, malformed JSON',
+			\JSON_ERROR_UTF8 => 'Malformed UTF-8 characters', // PHP >= 5.3.3
 		];
 		throw new DomainException(
 			$messages[$errno]
@@ -234,7 +234,7 @@ class JWT {
 	private static function signatureToDER(string $sig): string {
 		$chunkSize = (int)(strlen($sig) / 2);
 		if ($chunkSize < 1) {
-			throw new Exception("Invalid r+s data found");
+			throw new Exception('Invalid r+s data found');
 		}
 		// Separate the signature into r-value and s-value
 		$rs = str_split($sig, $chunkSize);

@@ -36,8 +36,8 @@ class GuildMember extends JSONDataModel {
 			return $this->nick;
 		}
 		if (isset($this->user)) {
-			return $this->user->username . "#" . $this->user->discriminator;
+			return $this->user->username . '#' . $this->user->discriminator;
 		}
-		return "UnknownUser";
+		return 'UnknownUser';
 	}
 }

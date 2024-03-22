@@ -13,13 +13,9 @@ class RelayConfig extends DBRow {
 	 */
 	public function __construct(
 		public string $name,
-		#[NCA\JSON\Ignore]
-		#[NCA\DB\AutoInc]
-		public ?int $id=null,
-		#[NCA\DB\Ignore]
-		public array $layers=[],
-		#[NCA\DB\Ignore]
-		public array $events=[],
+		#[NCA\JSON\Ignore] #[NCA\DB\AutoInc] public ?int $id=null,
+		#[NCA\DB\Ignore] public array $layers=[],
+		#[NCA\DB\Ignore] public array $events=[],
 	) {
 	}
 

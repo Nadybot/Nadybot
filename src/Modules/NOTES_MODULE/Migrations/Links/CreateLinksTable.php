@@ -7,22 +7,22 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210427053608, shared: true)]
+#[NCA\Migration(order: 20_210_427_053_608, shared: true)]
 class CreateLinksTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "links";
+		$table = 'links';
 		if ($db->schema()->hasTable($table)) {
-			$db->schema()->table($table, function (Blueprint $table): void {
-				$table->id("id")->change();
+			$db->schema()->table($table, static function (Blueprint $table): void {
+				$table->id('id')->change();
 			});
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->string("name", 25);
-			$table->string("website", 255);
-			$table->string("comments", 255);
-			$table->integer("dt");
+			$table->string('name', 25);
+			$table->string('website', 255);
+			$table->string('comments', 255);
+			$table->integer('dt');
 		});
 	}
 }

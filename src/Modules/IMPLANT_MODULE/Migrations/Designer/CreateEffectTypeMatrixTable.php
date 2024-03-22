@@ -7,18 +7,18 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210426145354, shared: true)]
+#[NCA\Migration(order: 20_210_426_145_354, shared: true)]
 class CreateEffectTypeMatrixTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "EffectTypeMatrix";
+		$table = 'EffectTypeMatrix';
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->integer("ID")->primary();
-			$table->string("Name", 20);
-			$table->integer("MinValLow");
-			$table->integer("MaxValLow");
-			$table->integer("MinValHigh");
-			$table->integer("MaxValHigh");
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->integer('ID')->primary();
+			$table->string('Name', 20);
+			$table->integer('MinValLow');
+			$table->integer('MaxValLow');
+			$table->integer('MinValHigh');
+			$table->integer('MaxValHigh');
 		});
 	}
 }

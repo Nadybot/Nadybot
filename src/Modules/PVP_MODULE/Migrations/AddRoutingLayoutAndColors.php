@@ -8,19 +8,19 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20230314061225)]
+#[NCA\Migration(order: 20_230_314_061_225)]
 class AddRoutingLayoutAndColors implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		if ($db->table(Source::DB_TABLE)->whereIlike("hop", "pvp%")->exists()) {
+		if ($db->table(Source::DB_TABLE)->whereIlike('hop', 'pvp%')->exists()) {
 			return;
 		}
 		$rhf = new RouteHopFormat();
-		$rhf->hop = "pvp";
+		$rhf->hop = 'pvp';
 		$rhf->render = true;
 		$rhf->format = 'PVP';
 		$db->insert(Source::DB_TABLE, $rhf);
 
-		if ($db->table(MessageHub::DB_TABLE_COLORS)->whereIlike("hop", "pvp%")->exists()) {
+		if ($db->table(MessageHub::DB_TABLE_COLORS)->whereIlike('hop', 'pvp%')->exists()) {
 			return;
 		}
 		$rhc = new RouteHopColor();

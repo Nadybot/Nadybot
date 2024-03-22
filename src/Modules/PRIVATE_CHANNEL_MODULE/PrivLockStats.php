@@ -14,6 +14,6 @@ class PrivLockStats implements GaugeProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => "private_channel_locked"];
+		return ['type' => 'private_channel_locked'];
 	}
 }

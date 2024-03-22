@@ -10,6 +10,6 @@ class MemoryUsage implements GaugeProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => "used"];
+		return ['type' => 'used'];
 	}
 }

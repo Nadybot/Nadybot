@@ -7,18 +7,18 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20211215193945, shared: true)]
+#[NCA\Migration(order: 20_211_215_193_945, shared: true)]
 class CreateOrganizationsTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "organizations";
+		$table = 'organizations';
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function (Blueprint $table) {
-			$table->unsignedInteger("id")->index();
-			$table->string("name", 40)->index();
-			$table->string("faction", 10);
-			$table->unsignedInteger("num_members");
-			$table->string("index", 6)->index();
-			$table->string("governing_form", 10);
+		$db->schema()->create($table, static function (Blueprint $table) {
+			$table->unsignedInteger('id')->index();
+			$table->string('name', 40)->index();
+			$table->string('faction', 10);
+			$table->unsignedInteger('num_members');
+			$table->string('index', 6)->index();
+			$table->string('governing_form', 10);
 		});
 	}
 }

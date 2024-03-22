@@ -19,7 +19,7 @@ class ModuleEventConfig {
 
 	public function __construct(EventCfg $cfg) {
 		$this->event = $cfg->type;
-		$this->description = $cfg->description ?? "no description available";
+		$this->description = $cfg->description ?? 'no description available';
 		$this->handler = $cfg->file;
 		$this->enabled = (bool)$cfg->status;
 	}

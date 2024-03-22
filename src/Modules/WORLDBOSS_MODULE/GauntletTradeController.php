@@ -17,9 +17,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "gautrade",
-		accessLevel: "guest",
-		description: "Gauntlet tradeskills",
+		command: 'gautrade',
+		accessLevel: 'guest',
+		description: 'Gauntlet tradeskills',
 	)
 ]
 class GauntletTradeController extends ModuleInstance {
@@ -30,10 +30,10 @@ class GauntletTradeController extends ModuleInstance {
 	private Filesystem $fs;
 
 	/** Show the Bastion tradeskill process for a single piece */
-	#[NCA\HandlesCommand("gautrade")]
+	#[NCA\HandlesCommand('gautrade')]
 	public function gautradeCommand(CmdContext $context): void {
 		$info = $this->fs->read(__DIR__ . '/gautrade.html');
-		$msg = $this->text->makeBlob("Gauntlet Tradeskills", $info);
+		$msg = $this->text->makeBlob('Gauntlet Tradeskills', $info);
 		$context->reply($msg);
 	}
 }

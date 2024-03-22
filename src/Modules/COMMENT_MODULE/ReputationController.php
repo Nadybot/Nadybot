@@ -20,13 +20,13 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "reputation",
-		accessLevel: "guild",
-		description: "Allows people to see and add reputation of other players",
+		command: 'reputation',
+		accessLevel: 'guild',
+		description: 'Allows people to see and add reputation of other players',
 	)
 ]
 class ReputationController extends ModuleInstance {
-	public const CAT_REPUTATION = "reputation";
+	public const CAT_REPUTATION = 'reputation';
 
 	#[NCA\Inject]
 	private Text $text;
@@ -48,15 +48,15 @@ class ReputationController extends ModuleInstance {
 		$repCat = new CommentCategory();
 		$repCat->name = static::CAT_REPUTATION;
 		$repCat->created_by = $this->config->main->character;
-		$repCat->min_al_read = "guild";
-		$repCat->min_al_write = "guild";
+		$repCat->min_al_read = 'guild';
+		$repCat->min_al_write = 'guild';
 		$repCat->user_managed = false;
 		$this->commentController->saveCategory($repCat);
 		return $repCat;
 	}
 
 	/** See a list of characters that have reputation */
-	#[NCA\HandlesCommand("reputation")]
+	#[NCA\HandlesCommand('reputation')]
 	public function reputationListCommand(CmdContext $context): void {
 		$cat = $this->getReputationCategory();
 		$comments = $this->commentController->readCategoryComments($cat);
@@ -64,7 +64,7 @@ class ReputationController extends ModuleInstance {
 		$count = count($comments);
 
 		if ($count === 0) {
-			$msg = "There are no characters on the reputation list.";
+			$msg = 'There are no characters on the reputation list.';
 			$context->reply($msg);
 			return;
 		}
@@ -78,19 +78,19 @@ class ReputationController extends ModuleInstance {
 				$charReputation[$comment->character] = (object)['total' => 0, 'comments' => []];
 			}
 			$charReputation[$comment->character]->comments []= $comment;
-			$charReputation[$comment->character]->total += str_starts_with($comment->comment, "+1") ? 1 : -1;
+			$charReputation[$comment->character]->total += str_starts_with($comment->comment, '+1') ? 1 : -1;
 		}
 		$count = 0;
 		$blobs = [];
 		foreach ($charReputation as $char => $charData) {
 			$count++;
-			$blob = "<pagebreak><header2>{$char}<end>" . " (" . sprintf('%+d', $charData->total) . ")";
+			$blob = "<pagebreak><header2>{$char}<end>" . ' (' . sprintf('%+d', $charData->total) . ')';
 			$comments = array_slice($charData->comments, 0, 3);
 			foreach ($comments as $comment) {
-				$color = str_starts_with($comment->comment, "+1") ? 'green' : 'red';
+				$color = str_starts_with($comment->comment, '+1') ? 'green' : 'red';
 				$blob .= "\n<tab><{$color}>{$comment->comment}<end> ".
 					"(<highlight>{$comment->created_by}<end>, ".
-					$this->util->date($comment->created_at) . ")";
+					$this->util->date($comment->created_at) . ')';
 			}
 			if (count($charData->comments) > 3 && count($comments) > 0) {
 				$details_link = $this->text->makeChatcmd('see all', "/tell <myname> reputation {$comments[0]->character} all");
@@ -98,24 +98,23 @@ class ReputationController extends ModuleInstance {
 			}
 			$blobs []= $blob;
 		}
-		$msg = $this->text->makeBlob("Reputation List ({$count})", join("\n\n", $blobs));
+		$msg = $this->text->makeBlob("Reputation List ({$count})", implode("\n\n", $blobs));
 		$context->reply($msg);
 	}
 
 	/** Add positive or negative reputation to a character */
-	#[NCA\HandlesCommand("reputation")]
+	#[NCA\HandlesCommand('reputation')]
 	public function reputationAddCommand(
 		CmdContext $context,
 		PCharacter $char,
-		#[NCA\StrChoice("+1", "-1")]
-		string $action,
+		#[NCA\StrChoice('+1', '-1')] string $action,
 		string $comment
 	): void {
 		/** @psalm-var non-empty-string */
 		$catName = $this->getReputationCategory()->name;
 		$this->commentController->addCommentCommand(
 			$context,
-			"add",
+			'add',
 			$char,
 			new PWord($catName),
 			"{$action} {$comment}"
@@ -126,12 +125,11 @@ class ReputationController extends ModuleInstance {
 	 * See the reputation for a character
 	 * If 'all' is given, print more than just the last 10 entries
 	 */
-	#[NCA\HandlesCommand("reputation")]
+	#[NCA\HandlesCommand('reputation')]
 	public function reputationViewCommand(
 		CmdContext $context,
 		PCharacter $char,
-		#[NCA\Str("all")]
-		?string $all
+		#[NCA\Str('all')] ?string $all
 	): void {
 		$name = $char();
 		$comments = $this->commentController->getComments($this->getReputationCategory(), $name);
@@ -139,14 +137,14 @@ class ReputationController extends ModuleInstance {
 		$numPositive = 0;
 		$numNegative = 0;
 		foreach ($comments as $comment) {
-			if (str_starts_with($comment->comment, "+1")) {
+			if (str_starts_with($comment->comment, '+1')) {
 				$numPositive++;
 			} else {
 				$numNegative++;
 			}
 		}
 
-		$comments = array_slice($comments, 0, 1000);
+		$comments = array_slice($comments, 0, 1_000);
 		if (!isset($all)) {
 			$comments = array_slice($comments, 0, 10);
 		}
@@ -162,16 +160,16 @@ class ReputationController extends ModuleInstance {
 		$blob = "Positive reputation:  <green>{$numPositive}<end>\n";
 		$blob .= "Negative reputation: <red>{$numNegative}<end>\n\n";
 		if (!isset($all)) {
-			$blob .= "<header2>Last " . count($comments) . " comments about {$name}<end>\n";
+			$blob .= '<header2>Last ' . count($comments) . " comments about {$name}<end>\n";
 		} else {
 			$blob .= "<header>All comments about {$name}<end>\n";
 		}
 
 		foreach ($comments as $comment) {
-			if (str_starts_with($comment->comment, "+1")) {
-				$blob .= "<green>";
+			if (str_starts_with($comment->comment, '+1')) {
+				$blob .= '<green>';
 			} else {
-				$blob .= "<red>";
+				$blob .= '<red>';
 			}
 
 			$time = $this->util->unixtimeToReadable(time() - $comment->created_at, false);
@@ -179,7 +177,7 @@ class ReputationController extends ModuleInstance {
 		}
 
 		if (!isset($all) && $numComments > count($comments)) {
-			$blob .= "\n" . $this->text->makeChatcmd("Show all comments", "/tell <myname> reputation {$name} all");
+			$blob .= "\n" . $this->text->makeChatcmd('Show all comments', "/tell <myname> reputation {$name} all");
 		}
 
 		$msg = $this->text->makeBlob("Reputation for {$name} (+{$numPositive} -{$numNegative})", $blob);

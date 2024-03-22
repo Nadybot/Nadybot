@@ -12,7 +12,7 @@ class AuthFailed extends Base {
 	}
 
 	public function toString(): string {
-		return pack("C", PacketType::AUTH_FAILED);
+		return pack('C', PacketType::AUTH_FAILED);
 	}
 
 	public function getType(): int {

@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\TIMERS_MODULE;
 
 class TimerEndEvent extends TimerEvent {
-	public const EVENT_MASK = "timer(stop)";
+	public const EVENT_MASK = 'timer(stop)';
 
 	public function __construct(
 		public Timer $timer,

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\MOB_MODULE;
 use Nadybot\Core\Event;
 
 class MobAttackedEvent extends Event {
-	public const EVENT_MASK = "mob-attacked";
+	public const EVENT_MASK = 'mob-attacked';
 
 	public function __construct(
 		public Mob $mob,

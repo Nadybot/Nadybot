@@ -21,6 +21,6 @@ class DiscordPacketsStats implements CounterProvider {
 	}
 
 	public function getTags(): array {
-		return ["direction" => $this->direction];
+		return ['direction' => $this->direction];
 	}
 }

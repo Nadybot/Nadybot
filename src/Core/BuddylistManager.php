@@ -47,7 +47,7 @@ class BuddylistManager {
 		return count(
 			array_filter(
 				$this->buddyList,
-				function (BuddylistEntry $buddy): bool {
+				static function (BuddylistEntry $buddy): bool {
 					return $buddy->known;
 				}
 			)
@@ -71,7 +71,7 @@ class BuddylistManager {
 		if (strtolower($this->config->main->character) === strtolower($name)) {
 			return true;
 		}
-		$workerNames = array_column($this->config->worker, "character");
+		$workerNames = array_column($this->config->worker, 'character');
 		if (in_array(ucfirst(strtolower($name)), $workerNames, true)) {
 			return true;
 		}
@@ -97,9 +97,9 @@ class BuddylistManager {
 		} else {
 			$state []= 'not on the buddylist';
 		}
-		$this->logger->debug("Checking if UID {uid} is online. State: {state}", [
-			"uid" => $uid,
-			"state" => join(", ", $state),
+		$this->logger->debug('Checking if UID {uid} is online. State: {state}', [
+			'uid' => $uid,
+			'state' => implode(', ', $state),
 		]);
 		$buddyOnline = $this->isUidOnline($uid);
 		if (isset($buddyOnline)) {
@@ -130,7 +130,7 @@ class BuddylistManager {
 		return count(
 			array_filter(
 				$this->buddyList,
-				function (BuddylistEntry $entry): bool {
+				static function (BuddylistEntry $entry): bool {
 					return $entry->known;
 				}
 			)
@@ -182,11 +182,11 @@ class BuddylistManager {
 			$entry->uid = $uid;
 			$entry->name = $name;
 			$entry->known = false;
-			$this->logger->info("{buddy} added", ["buddy" => $entry]);
+			$this->logger->info('{buddy} added', ['buddy' => $entry]);
 			if (!$this->config->proxy?->enabled && count($this->buddyList) > 999) {
 				$this->logger->error("Error adding '{name}' to buddy list: {error}", [
-					"name" => $name,
-					"error" => "buddy list is full",
+					'name' => $name,
+					'error' => 'buddy list is full',
 				]);
 			}
 			$this->chatBot->aoClient->buddyAdd($uid);
@@ -198,8 +198,8 @@ class BuddylistManager {
 			// events, check if the UID was added over 3s ago. If so, send the package (again),
 			// because there might have been an error.
 			if ($oldEntry->known === false && (time() - $oldEntry->added) >= 3) {
-				$this->logger->info("Re-adding {name} to buddylist, because there was no reply yet", [
-					"name" => $name,
+				$this->logger->info('Re-adding {name} to buddylist, because there was no reply yet', [
+					'name' => $name,
 				]);
 				$this->buddyList[$uid]->added = time();
 				$this->chatBot->aoClient->buddyAdd($uid);
@@ -207,9 +207,9 @@ class BuddylistManager {
 		}
 		if (!$this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->setType($type);
-			$this->logger->info("{buddy} added as {type})", [
-				"buddy" => $this->buddyList[$uid],
-				"type" => $type,
+			$this->logger->info('{buddy} added as {type})', [
+				'buddy' => $this->buddyList[$uid],
+				'type' => $type,
 			]);
 		}
 
@@ -252,13 +252,13 @@ class BuddylistManager {
 		if ($this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->unsetType($type);
 			$this->logger->info("{buddy} removed type '{type}'", [
-				"buddy" => $this->buddyList[$uid],
-				"type" => $type,
+				'buddy' => $this->buddyList[$uid],
+				'type' => $type,
 			]);
 		}
 
 		if (count($this->buddyList[$uid]->types) === 0) {
-			$this->logger->info("{name} buddy removed", ["name" => $name]);
+			$this->logger->info('{name} buddy removed', ['name' => $name]);
 			$this->chatBot->aoClient->buddyRemove($uid);
 		}
 
@@ -269,20 +269,20 @@ class BuddylistManager {
 	public function update(int $userId, bool $status, int $worker=0): void {
 		if ($this->isRebalancing($userId)) {
 			unset($this->pendingRebalance[$userId]);
-			$this->logger->info("{uid} is now on worker {worker}", [
-				"uid" => $userId,
-				"worker" => $worker,
+			$this->logger->info('{uid} is now on worker {worker}', [
+				'uid' => $userId,
+				'worker' => $worker,
 			]);
 			if (!empty($this->inRebalance)) {
 				$uid = array_rand($this->inRebalance);
 				$this->pendingRebalance[$uid] = $this->buddyList[$uid]->worker;
 				unset($this->inRebalance[$uid]);
-				$this->logger->info("Rebalancing {uid}", ["uid" => $uid]);
+				$this->logger->info('Rebalancing {uid}', ['uid' => $uid]);
 				$this->chatBot->aoClient->buddyRemove($uid);
 			} elseif (empty($this->pendingRebalance)) {
-				$this->logger->notice("Rebalancing buddylist done.");
+				$this->logger->notice('Rebalancing buddylist done.');
 				if (isset($this->rebalancingCallback)) {
-					$this->rebalancingCallback->reply("Rebalancing buddylist done.");
+					$this->rebalancingCallback->reply('Rebalancing buddylist done.');
 					$this->rebalancingCallback = null;
 				}
 			}
@@ -297,12 +297,12 @@ class BuddylistManager {
 		$this->buddyList[$userId]->known = true;
 		$this->buddyList[$userId]->worker ??= [];
 		$this->buddyList[$userId]->worker[$worker] = true;
-		$this->logger->info("{buddy} entry added", ["buddy" => $this->buddyList[$userId]]);
+		$this->logger->info('{buddy} entry added', ['buddy' => $this->buddyList[$userId]]);
 	}
 
 	/** Forcefully delete cached information in the friendlist */
 	public function updateRemoved(int $uid): void {
-		$this->logger->info("UID {uid} removed from buddylist", ["uid" => $uid]);
+		$this->logger->info('UID {uid} removed from buddylist', ['uid' => $uid]);
 		if (!$this->isRebalancing($uid)) {
 			unset($this->buddyList[$uid]);
 			return;
@@ -313,8 +313,8 @@ class BuddylistManager {
 		if (!empty($this->pendingRebalance[$uid])) {
 			return;
 		}
-		$this->logger->info("Re-adding {uid} to buddylist for rebalance", [
-			"uid" => $uid,
+		$this->logger->info('Re-adding {uid} to buddylist for rebalance', [
+			'uid' => $uid,
 		]);
 		$this->chatBot->aoClient->buddyAdd($uid);
 	}
@@ -340,7 +340,7 @@ class BuddylistManager {
 				$this->pendingRebalance[$uid][$wid] = true;
 			}
 			unset($this->inRebalance[$uid]);
-			$this->logger->info("Rebalancing {uid}", ["uid" => $uid]);
+			$this->logger->info('Rebalancing {uid}', ['uid' => $uid]);
 			$this->chatBot->aoClient->buddyRemove($uid);
 		}
 	}
@@ -354,7 +354,7 @@ class BuddylistManager {
 	private function getNextWorker(): string {
 		$names = [
 			$this->config->main->character,
-			...array_column($this->config->worker, "character"),
+			...array_column($this->config->worker, 'character'),
 		];
 		if (self::$lastWorker === null) {
 			return self::$lastWorker = $names[0];

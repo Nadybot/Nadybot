@@ -23,9 +23,9 @@ use Safe\DateTime;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "whatlocks",
-		accessLevel: "guest",
-		description: "List skills locked by using items",
+		command: 'whatlocks',
+		accessLevel: 'guest',
+		description: 'List skills locked by using items',
 	)
 ]
 class WhatLocksController extends ModuleInstance {
@@ -40,43 +40,43 @@ class WhatLocksController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/what_locks.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/what_locks.csv');
 	}
 
 	/** Search for a list of skills that can be locked and how many items lock it */
-	#[NCA\HandlesCommand("whatlocks")]
+	#[NCA\HandlesCommand('whatlocks')]
 	public function whatLocksCommand(CmdContext $context): void {
-		$query = $this->db->table("what_locks")->groupBy("skill_id");
-		$skills = $query->select(["skill_id", $query->rawFunc("COUNT", "*", "amount")])
+		$query = $this->db->table('what_locks')->groupBy('skill_id');
+		$skills = $query->select(['skill_id', $query->rawFunc('COUNT', '*', 'amount')])
 			->get();
 		$skillsById = $this->itemsController->getSkillByIDs(
-			...$skills->pluck("skill_id")->toArray()
-		)->keyBy("id");
-		$lines = $skills->map(function (\stdClass $item) use ($skillsById): SkillIdCount {
+			...$skills->pluck('skill_id')->toArray()
+		)->keyBy('id');
+		$lines = $skills->map(static function (\stdClass $item) use ($skillsById): SkillIdCount {
 			return new SkillIdCount(
 				skill_id: $item->skill_id,
 				amount: $item->amount,
 				skill: $skillsById->get($item->skill_id),
 			);
-		})->sort(function (SkillIdCount $s1, SkillIdCount $s2): int {
+		})->sort(static function (SkillIdCount $s1, SkillIdCount $s2): int {
 			return strnatcmp($s1->skill->name, $s2->skill->name);
 		})->map(function (SkillIdCount $row) {
 			return $this->text->alignNumber($row->amount, 4).
-				" - ".
+				' - '.
 				$this->text->makeChatcmd($row->skill->name, "/tell <myname> whatlocks {$row->skill->name}");
 		});
 		$blob = "<header2>Choose a skill to see which items lock it<end>\n<tab>".
 			$lines->join("\n<pagebreak><tab>");
 		$pages = $this->text->makeBlob(
-			$lines->count() . " skills that can be locked by items",
+			$lines->count() . ' skills that can be locked by items',
 			$blob
 		);
 		if (is_array($pages)) {
-			$msg = array_map(function ($page) {
-				return $page . " found.";
+			$msg = array_map(static function ($page) {
+				return $page . ' found.';
 			}, $pages);
 		} else {
-			$msg =  $pages . " found.";
+			$msg =  $pages . ' found.';
 		}
 		$context->reply($msg);
 	}
@@ -89,7 +89,7 @@ class WhatLocksController extends ModuleInstance {
 	 * @return string[] The complete dialogue
 	 */
 	public function getSkillChoiceDialog(Skill ...$skills): array {
-		usort($skills, function (Skill $a, Skill $b): int {
+		usort($skills, static function (Skill $a, Skill $b): int {
 			return strnatcmp($a->name, $b->name);
 		});
 		$lines = array_map(function (Skill $skill) {
@@ -98,12 +98,12 @@ class WhatLocksController extends ModuleInstance {
 				"/tell <myname> whatlocks {$skill->name}"
 			);
 		}, $skills);
-		$msg = $this->text->makeBlob("WhatLocks - Choose Skill", join("\n", $lines));
+		$msg = $this->text->makeBlob('WhatLocks - Choose Skill', implode("\n", $lines));
 		return (array)$msg;
 	}
 
 	/** Search for a list of items that lock a specific skill */
-	#[NCA\HandlesCommand("whatlocks")]
+	#[NCA\HandlesCommand('whatlocks')]
 	public function whatLocksSkillCommand(CmdContext $context, string $skill): void {
 		$skills = $this->itemsController->searchForSkill($skill);
 		if ($skills->isEmpty()) {
@@ -117,20 +117,20 @@ class WhatLocksController extends ModuleInstance {
 		}
 
 		/** @var Collection<WhatLocks> */
-		$items = $this->db->table("what_locks")
-			->where("skill_id", $skills->firstOrFail()->id)
-			->orderBy("duration")
+		$items = $this->db->table('what_locks')
+			->where('skill_id', $skills->firstOrFail()->id)
+			->orderBy('duration')
 			->asObj(WhatLocks::class);
 		if ($items->isEmpty()) {
-			$msg = "There is currently no item in the game locking ".
+			$msg = 'There is currently no item in the game locking '.
 				"<highlight>{$skills[0]->name}<end>.";
 			$context->reply($msg);
 			return;
 		}
-		$itemIds = $items->pluck("item_id")->filter()->toArray();
+		$itemIds = $items->pluck('item_id')->filter()->toArray();
 		$itemsById = $this->itemsController->getByIDs(...$itemIds)
-			->keyBy("lowid");
-		$items->each(function (WhatLocks $item) use ($itemsById): void {
+			->keyBy('lowid');
+		$items->each(static function (WhatLocks $item) use ($itemsById): void {
 			$item->item = $itemsById->get($item->item_id);
 		});
 		// Last element has the longest lock time, so determine how many time characters are useless
@@ -140,17 +140,17 @@ class WhatLocksController extends ModuleInstance {
 				return null;
 			}
 			return $this->prettyDuration($item->duration, (int)$longestSuperfluous)[1].
-				" - " .
+				' - ' .
 				$item->item->getLink($item->item->lowql);
 		});
 		$blob = $lines->filter()->join("\n<pagebreak>");
 		$pages = $this->text->makeBlob(
-			count($lines) . " items",
+			count($lines) . ' items',
 			$blob,
-			"The following " . count($lines) . " items lock ". $skills[0]->name
+			'The following ' . count($lines) . ' items lock '. $skills[0]->name
 		);
 		if (is_array($pages)) {
-			$msg = array_map(function ($page) use ($skills) {
+			$msg = array_map(static function ($page) use ($skills) {
 				return "{$page} found that lock <highlight>{$skills[0]->name}<end>.";
 			}, $pages);
 		} else {
@@ -175,20 +175,20 @@ class WhatLocksController extends ModuleInstance {
 	public function prettyDuration(int $duration, int $cutAway=0): array {
 		$short = (new DateTime())
 			->setTimestamp($duration)
-			->setTimezone(new DateTimeZone("UTC"))
-			->format("j\\d, H\\h i\\m s\\s");
+			->setTimezone(new DateTimeZone('UTC'))
+			->format('j\\d, H\\h i\\m s\\s');
 		// Decrease days by 1, because the first day of the year is 1, but for
 		// duration reasons, it must be 0
 		$short = preg_replace_callback(
 			"/^(\d+)/",
-			function (array $match): string {
+			static function (array $match): string {
 				return (string)((int)$match[1] - 1);
 			},
 			$short
 		);
-		$superfluous = strlen(Safe::pregReplace("/^([0, dhm]*).*/", "$1", $short));
+		$superfluous = strlen(Safe::pregReplace('/^([0, dhm]*).*/', '$1', $short));
 		$valuable = strlen($short) - $superfluous;
-		$result = "<black>" . substr($short, $cutAway, $superfluous-$cutAway) . "<end>".
+		$result = '<black>' . substr($short, $cutAway, $superfluous-$cutAway) . '<end>'.
 			substr($short, -1 * $valuable);
 		return [$superfluous, $result];
 	}

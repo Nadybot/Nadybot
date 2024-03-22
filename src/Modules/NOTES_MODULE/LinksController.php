@@ -19,11 +19,11 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Links"),
+	NCA\HasMigrations('Migrations/Links'),
 	NCA\DefineCommand(
-		command: "links",
-		accessLevel: "guild",
-		description: "Displays, adds, or removes links from the org link list",
+		command: 'links',
+		accessLevel: 'guild',
+		description: 'Displays, adds, or removes links from the org link list',
 	),
 ]
 class LinksController extends ModuleInstance {
@@ -40,14 +40,14 @@ class LinksController extends ModuleInstance {
 	private AccessManager $accessManager;
 
 	/** Show all links */
-	#[NCA\HandlesCommand("links")]
+	#[NCA\HandlesCommand('links')]
 	public function linksListCommand(CmdContext $context): void {
 		/** @var Collection<Link> */
-		$links = $this->db->table("links")
-			->orderBy("name")
+		$links = $this->db->table('links')
+			->orderBy('name')
 			->asObj(Link::class);
 		if ($links->count() === 0) {
-			$msg = "No links found.";
+			$msg = 'No links found.';
 			$context->reply($msg);
 			return;
 		}
@@ -58,7 +58,7 @@ class LinksController extends ModuleInstance {
 			if ($this->showfullurls) {
 				$website = $this->text->makeChatcmd($link->website, "/start {$link->website}");
 			} else {
-				$website = "[" . $this->text->makeChatcmd('visit', "/start {$link->website}") . "]";
+				$website = '[' . $this->text->makeChatcmd('visit', "/start {$link->website}") . ']';
 			}
 			$blob .= "<tab>{$website} <highlight>{$link->comments}<end> (by {$link->name}) [{$remove}]\n";
 		}
@@ -68,39 +68,39 @@ class LinksController extends ModuleInstance {
 	}
 
 	/** Add a link to the list */
-	#[NCA\HandlesCommand("links")]
-	public function linksAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PWord $url, string $comments): void {
+	#[NCA\HandlesCommand('links')]
+	public function linksAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, PWord $url, string $comments): void {
 		$website = htmlspecialchars($url());
-		if (filter_var($website, FILTER_VALIDATE_URL) === false) {
+		if (filter_var($website, \FILTER_VALIDATE_URL) === false) {
 			$msg = "<highlight>{$website}<end> is not a valid URL.";
 			$context->reply($msg);
 			return;
 		}
 
-		$this->db->table("links")
+		$this->db->table('links')
 			->insert([
-				"name" => $context->char->name,
-				"website" => $website,
-				"comments" => $comments,
-				"dt" => time(),
+				'name' => $context->char->name,
+				'website' => $website,
+				'comments' => $comments,
+				'dt' => time(),
 			]);
-		$msg = "Link added successfully.";
+		$msg = 'Link added successfully.';
 		$context->reply($msg);
 	}
 
 	/** Remoev a link from the list */
-	#[NCA\HandlesCommand("links")]
+	#[NCA\HandlesCommand('links')]
 	public function linksRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		/** @var ?Link */
-		$obj = $this->db->table("links")
-			->where("id", $id)
+		$obj = $this->db->table('links')
+			->where('id', $id)
 			->asObj(Link::class)
 			->first();
 		if ($obj === null) {
 			$msg = "Link with ID <highlight>{$id}<end> could not be found.";
 		} elseif ($obj->name == $context->char->name
 			|| $this->accessManager->compareCharacterAccessLevels($context->char->name, $obj->name) > 0) {
-			$this->db->table("links")->delete($id);
+			$this->db->table('links')->delete($id);
 			$msg = "Link with ID <highlight>{$id}<end> deleted successfully.";
 		} else {
 			$msg = "You do not have permission to delete links added by <highlight>{$obj->name}<end>";

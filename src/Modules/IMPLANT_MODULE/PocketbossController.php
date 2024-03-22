@@ -19,18 +19,18 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Pocketboss"),
+	NCA\HasMigrations('Migrations/Pocketboss'),
 	NCA\DefineCommand(
-		command: "pocketboss",
-		accessLevel: "guest",
-		description: "Shows what symbiants a pocketboss drops",
-		alias: "pb"
+		command: 'pocketboss',
+		accessLevel: 'guest',
+		description: 'Shows what symbiants a pocketboss drops',
+		alias: 'pb'
 	),
 	NCA\DefineCommand(
-		command: "symbiant",
-		accessLevel: "guest",
-		description: "Shows which pocketbosses drop a symbiant",
-		alias: "symb"
+		command: 'symbiant',
+		accessLevel: 'guest',
+		description: 'Shows which pocketbosses drop a symbiant',
+		alias: 'symb'
 	)
 ]
 class PocketbossController extends ModuleInstance {
@@ -42,17 +42,17 @@ class PocketbossController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/pocketboss.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/pocketboss.csv');
 	}
 
 	/** Show a list of Symbiants that a Pocketboss drops */
-	#[NCA\HandlesCommand("pocketboss")]
+	#[NCA\HandlesCommand('pocketboss')]
 	public function pocketbossCommand(CmdContext $context, string $search): void {
 		$data = $this->pbSearchResults($search);
 		$numrows = count($data);
-		$blob = "";
+		$blob = '';
 		if ($numrows === 0) {
-			$msg = "Could not find any pocket bosses that matched your search criteria.";
+			$msg = 'Could not find any pocket bosses that matched your search criteria.';
 		} elseif ($numrows === 1) {
 			$name = $data[0]->pb;
 			$blob .= $this->singlePbBlob($name);
@@ -70,9 +70,9 @@ class PocketbossController extends ModuleInstance {
 
 	public function singlePbBlob(string $name): string {
 		/** @var Pocketboss[] */
-		$data = $this->db->table("pocketboss")
-			->where("pb", $name)
-			->orderBy("ql")
+		$data = $this->db->table('pocketboss')
+			->where('pb', $name)
+			->orderBy('ql')
 			->asObj(Pocketboss::class)
 			->toArray();
 		if (empty($data)) {
@@ -80,7 +80,7 @@ class PocketbossController extends ModuleInstance {
 		}
 		$symbs = '';
 		foreach ($data as $symb) {
-			if (in_array($symb->line, ["Alpha", "Beta"])) {
+			if (in_array($symb->line, ['Alpha', 'Beta'])) {
 				$name = "Xan {$symb->slot} Symbiant, {$symb->type} Unit {$symb->line}";
 			} else {
 				$name = "{$symb->line} {$symb->slot} Symbiant, {$symb->type} Unit Aban";
@@ -97,9 +97,9 @@ class PocketbossController extends ModuleInstance {
 
 	/** @return Pocketboss[] */
 	public function pbSearchResults(string $search): array {
-		$row = $this->db->table("pocketboss")
-			->whereIlike("pb", $search)
-			->orderBy("pb")
+		$row = $this->db->table('pocketboss')
+			->whereIlike('pb', $search)
+			->orderBy('pb')
 			->limit(1)
 			->asObj(Pocketboss::class)
 			->first();
@@ -107,14 +107,14 @@ class PocketbossController extends ModuleInstance {
 			return [$row];
 		}
 
-		$query = $this->db->table("pocketboss")
-			->orderBy("pb");
-		$tmp = explode(" ", $search);
-		$this->db->addWhereFromParams($query, $tmp, "pb");
+		$query = $this->db->table('pocketboss')
+			->orderBy('pb');
+		$tmp = explode(' ', $search);
+		$this->db->addWhereFromParams($query, $tmp, 'pb');
 
 		$pb =$query->asObj(Pocketboss::class);
-		return $pb->groupBy("pb")
-			->map(fn (Collection $col): Pocketboss => $col->first())
+		return $pb->groupBy('pb')
+			->map(static fn (Collection $col): Pocketboss => $col->first())
 			->values()
 			->toArray();
 	}
@@ -125,12 +125,12 @@ class PocketbossController extends ModuleInstance {
 	 * The arguments are either a slot name (rhand), a type (artillery) or a line (living).
 	 * You can use 1, 2 or 3 of these arguments or their abbreviations in any order to search.
 	 */
-	#[NCA\HandlesCommand("symbiant")]
-	#[NCA\Help\Example("<symbol>symbiant brain alpha arti")]
-	#[NCA\Help\Example("<symbol>symbiant alpha rhand")]
-	#[NCA\Help\Example("<symbol>symbiant inf")]
-	#[NCA\Help\Example("<symbol>symbiant inf living")]
-	#[NCA\Help\Example("<symbol>symbiant beta control")]
+	#[NCA\HandlesCommand('symbiant')]
+	#[NCA\Help\Example('<symbol>symbiant brain alpha arti')]
+	#[NCA\Help\Example('<symbol>symbiant alpha rhand')]
+	#[NCA\Help\Example('<symbol>symbiant inf')]
+	#[NCA\Help\Example('<symbol>symbiant inf living')]
+	#[NCA\Help\Example('<symbol>symbiant beta control')]
 	#[NCA\Help\Epilogue(
 		"<header2>Slot names<end>\n\n".
 		"<tab>- eye\n".
@@ -198,66 +198,66 @@ class PocketbossController extends ModuleInstance {
 		$line = '%';
 
 		/** @var string[] */
-		$lines = $this->db->table("pocketboss")->select("line")->distinct()
-			->pluckStrings("line")->toArray();
+		$lines = $this->db->table('pocketboss')->select('line')->distinct()
+			->pluckStrings('line')->toArray();
 
 		for ($i = 0; $i < $paramCount; $i++) {
 			switch (strtolower($args[$i])) {
-				case "eye":
-				case "ocular":
+				case 'eye':
+				case 'ocular':
 					$impDesignSlot = 'eye';
-					$slot = "Ocular";
+					$slot = 'Ocular';
 					break;
-				case "brain":
-				case "head":
+				case 'brain':
+				case 'head':
 					$impDesignSlot = 'head';
-					$slot = "Brain";
+					$slot = 'Brain';
 					break;
-				case "ear":
+				case 'ear':
 					$impDesignSlot = 'ear';
-					$slot = "Ear";
+					$slot = 'Ear';
 					break;
-				case "rarm":
+				case 'rarm':
 					$impDesignSlot = 'rarm';
-					$slot = "Right Arm";
+					$slot = 'Right Arm';
 					break;
-				case "chest":
+				case 'chest':
 					$impDesignSlot = 'chest';
-					$slot = "Chest";
+					$slot = 'Chest';
 					break;
-				case "larm":
+				case 'larm':
 					$impDesignSlot = 'larm';
-					$slot = "Left Arm";
+					$slot = 'Left Arm';
 					break;
-				case "rwrist":
+				case 'rwrist':
 					$impDesignSlot = 'rwrist';
-					$slot = "Right Wrist";
+					$slot = 'Right Wrist';
 					break;
-				case "waist":
+				case 'waist':
 					$impDesignSlot = 'waist';
-					$slot = "Waist";
+					$slot = 'Waist';
 					break;
-				case "lwrist":
+				case 'lwrist':
 					$impDesignSlot = 'lwrist';
-					$slot = "Left Wrist";
+					$slot = 'Left Wrist';
 					break;
-				case "rhand":
+				case 'rhand':
 					$impDesignSlot = 'rhand';
-					$slot = "Right Hand";
+					$slot = 'Right Hand';
 					break;
-				case "leg":
-				case "legs":
-				case "thigh":
+				case 'leg':
+				case 'legs':
+				case 'thigh':
 					$impDesignSlot = 'legs';
-					$slot = "Thigh";
+					$slot = 'Thigh';
 					break;
-				case "lhand":
+				case 'lhand':
 					$impDesignSlot = 'lhand';
-					$slot = "Left Hand";
+					$slot = 'Left Hand';
 					break;
-				case "feet":
+				case 'feet':
 					$impDesignSlot = 'feet';
-					$slot = "Feet";
+					$slot = 'Feet';
 					break;
 				default:
 					// check if it's a line
@@ -269,27 +269,27 @@ class PocketbossController extends ModuleInstance {
 					}
 
 					// check if it's a type
-					if (preg_match("/^art/i", $args[$i])) {
-						$symbtype = "Artillery";
+					if (preg_match('/^art/i', $args[$i])) {
+						$symbtype = 'Artillery';
 						break;
-					} elseif (preg_match("/^sup/i", $args[$i])) {
-						$symbtype = "Support";
+					} elseif (preg_match('/^sup/i', $args[$i])) {
+						$symbtype = 'Support';
 						break;
-					} elseif (preg_match("/^inf/i", $args[$i])) {
-						$symbtype = "Infantry";
+					} elseif (preg_match('/^inf/i', $args[$i])) {
+						$symbtype = 'Infantry';
 						break;
-					} elseif (preg_match("/^ext/i", $args[$i])) {
-						$symbtype = "Extermination";
+					} elseif (preg_match('/^ext/i', $args[$i])) {
+						$symbtype = 'Extermination';
 						break;
-					} elseif (preg_match("/^control/i", $args[$i])) {
-						$symbtype = "Control";
+					} elseif (preg_match('/^control/i', $args[$i])) {
+						$symbtype = 'Control';
 						break;
 					}
 
 					// check if it's a line, but be less strict this time
 					$matchingLines = array_filter(
 						$lines,
-						function (string $line) use ($args, $i): bool {
+						static function (string $line) use ($args, $i): bool {
 							return strncasecmp($line, $args[$i], strlen($args[$i])) === 0;
 						}
 					);
@@ -304,40 +304,40 @@ class PocketbossController extends ModuleInstance {
 			}
 		}
 
-		$query = $this->db->table("pocketboss")
-			->whereIlike("slot", $slot)
-			->whereIlike("type", $symbtype)
-			->whereIlike("line", $line)
-			->orderByDesc("ql");
-		$query->orderByRaw($query->grammar->wrap("line") . " = ? desc")
-			->addBinding("Alpha")
-			->orderByRaw($query->grammar->wrap("line") . " = ? desc")
-			->addBinding("Beta")
-			->orderBy("type");
+		$query = $this->db->table('pocketboss')
+			->whereIlike('slot', $slot)
+			->whereIlike('type', $symbtype)
+			->whereIlike('line', $line)
+			->orderByDesc('ql');
+		$query->orderByRaw($query->grammar->wrap('line') . ' = ? desc')
+			->addBinding('Alpha')
+			->orderByRaw($query->grammar->wrap('line') . ' = ? desc')
+			->addBinding('Beta')
+			->orderBy('type');
 
 		/** @var Pocketboss[] */
 		$data = $query->asObj(Pocketboss::class)->toArray();
 		$numrows = count($data);
 		if ($numrows === 0) {
-			$msg = "Could not find any symbiants that matched your search criteria.";
+			$msg = 'Could not find any symbiants that matched your search criteria.';
 			$context->reply($msg);
 			return;
 		}
-		$implantDesignerLink = $this->text->makeChatcmd("implant designer", "/tell <myname> implantdesigner");
+		$implantDesignerLink = $this->text->makeChatcmd('implant designer', '/tell <myname> implantdesigner');
 		$blob = "Click '[add]' to add symbiant to {$implantDesignerLink}.\n\n";
 		foreach ($data as $row) {
-			if (in_array($row->line, ["Alpha", "Beta"])) {
+			if (in_array($row->line, ['Alpha', 'Beta'])) {
 				$name = "Xan {$row->slot} Symbiant, {$row->type} Unit {$row->line}";
 			} else {
 				$name = "{$row->line} {$row->slot} Symbiant, {$row->type} Unit Aban";
 			}
-			$blob .= "<pagebreak>" . $this->text->makeItem($row->itemid, $row->itemid, $row->ql, $name)." ({$row->ql})";
+			$blob .= '<pagebreak>' . $this->text->makeItem($row->itemid, $row->itemid, $row->ql, $name)." ({$row->ql})";
 			if (isset($impDesignSlot)) {
-				$impDesignerAddLink = $this->text->makeChatcmd("add", "/tell <myname> implantdesigner {$impDesignSlot} symb {$name}");
+				$impDesignerAddLink = $this->text->makeChatcmd('add', "/tell <myname> implantdesigner {$impDesignSlot} symb {$name}");
 				$blob .= " [{$impDesignerAddLink}]";
 			}
 			$blob .= "\n";
-			$blob .= "Found on " . $this->text->makeChatcmd($row->pb, "/tell <myname> pb {$row->pb}");
+			$blob .= 'Found on ' . $this->text->makeChatcmd($row->pb, "/tell <myname> pb {$row->pb}");
 			$blob .= "\n\n";
 		}
 		$msg = $this->text->makeBlob("Symbiant Search Results ({$numrows})", $blob);

@@ -10,10 +10,10 @@ use Nadybot\Core\{
 
 #[
 	NCA\EventModifier(
-		name: "route-silently",
+		name: 'route-silently',
 		description: "This modifier allows you to treat messages routed with it\n".
 			"as if they had't been routed at all, so all standard actions will\n".
-			"still apply to them."
+			'still apply to them.'
 	),
 ]
 class RouteSilently implements EventModifier {

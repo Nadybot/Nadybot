@@ -4,7 +4,7 @@ namespace Nadybot\Core\Event;
 
 /** We are leaving a private channel */
 class LeavePrivEvent extends JoinLeaveEvent {
-	public const EVENT_MASK = "extleavepriv";
+	public const EVENT_MASK = 'extleavepriv';
 
 	/**
 	 * @param string $sender  Either the name of the sender or the numeric UID (eg. city raid accouncements)

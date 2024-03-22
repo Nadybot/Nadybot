@@ -20,6 +20,6 @@ class Str implements ParamAttribute {
 	}
 
 	public function getRegexp(): string {
-		return join("|", array_map("preg_quote", $this->values));
+		return implode('|', array_map('preg_quote', $this->values));
 	}
 }

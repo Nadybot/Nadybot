@@ -11,10 +11,10 @@ use Psr\Log\LoggerInterface;
 #[
 	NCA\Instance,
 	NCA\HandlesEventFeed('tower_events'),
-	NCA\ProvidesEvent(GasUpdateEvent::class, "Gas on a tower field changes"),
-	NCA\ProvidesEvent(SiteUpdateEvent::class, "New  information about a tower site"),
-	NCA\ProvidesEvent(TowerAttackEvent::class, "Someone attacks a tower site"),
-	NCA\ProvidesEvent(TowerOutcomeEvent::class, "A tower field gets destroyed"),
+	NCA\ProvidesEvent(GasUpdateEvent::class, 'Gas on a tower field changes'),
+	NCA\ProvidesEvent(SiteUpdateEvent::class, 'New  information about a tower site'),
+	NCA\ProvidesEvent(TowerAttackEvent::class, 'Someone attacks a tower site'),
+	NCA\ProvidesEvent(TowerOutcomeEvent::class, 'A tower field gets destroyed'),
 ]
 class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Logger]
@@ -28,15 +28,15 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->eventManager->subscribe("event-feed-reconnect", $this->handleReconnect(...));
+		$this->eventManager->subscribe('event-feed-reconnect', $this->handleReconnect(...));
 	}
 
 	public function handleReconnect(): void {
-		$this->logger->notice("Reloading tower data");
+		$this->logger->notice('Reloading tower data');
 		$this->nwCtrl->initTowersFromApi();
-		$this->logger->notice("Reloading attacks");
+		$this->logger->notice('Reloading attacks');
 		$this->nwCtrl->initAttacksFromApi();
-		$this->logger->notice("Reloading outcomes");
+		$this->logger->notice('Reloading outcomes');
 		$this->nwCtrl->initOutcomesFromApi();
 	}
 
@@ -66,14 +66,14 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 			$baseInfo = $mapper->hydrateObject(FeedMessage\Base::class, $data);
 			$specs = $mapping[$baseInfo->type] ?? null;
 			if (!isset($specs)) {
-				$this->logger->notice("Unknown tower-package {type}", [
-					"type" => $baseInfo->type,
+				$this->logger->notice('Unknown tower-package {type}', [
+					'type' => $baseInfo->type,
 				]);
 				return;
 			}
 			$info = $mapper->hydrateObject($specs[0], $data);
 			$event = new ($specs[1])($info);
-			$this->logger->notice("Received tower-feed event {event}", ["event" => $event]);
+			$this->logger->notice('Received tower-feed event {event}', ['event' => $event]);
 			if ($event instanceof CoreEvent) {
 				$this->eventManager->fireEvent($event);
 			}

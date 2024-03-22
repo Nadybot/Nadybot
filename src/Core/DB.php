@@ -34,16 +34,16 @@ use Revolt\EventLoop;
 use Throwable;
 
 #[NCA\Instance]
-#[NCA\HasMigrations(module: "Core")]
+#[NCA\HasMigrations(module: 'Core')]
 class DB {
-	public const SQLITE_MIN_VERSION = "3.24.0";
+	public const SQLITE_MIN_VERSION = '3.24.0';
 
 	public const MYSQL = 'mysql';
 	public const SQLITE = 'sqlite';
 	public const POSTGRESQL = 'postgresql';
 	public const MSSQL = 'mssql';
 
-	public int $maxPlaceholders = 9000;
+	public int $maxPlaceholders = 9_000;
 
 	/** The database name */
 	protected string $dbName;
@@ -106,11 +106,11 @@ class DB {
 
 	public function getVersion(): string {
 		if (!isset($this->sql)) {
-			throw new Exception("You are not connected to any database.");
+			throw new Exception('You are not connected to any database.');
 		}
 		$version = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
 		if (!isset($version) || !is_string($version)) {
-			throw new Exception("Your database is not supported");
+			throw new Exception('Your database is not supported');
 		}
 		return $this->config->database->type->name . " {$version}";
 	}
@@ -150,7 +150,7 @@ class DB {
 							trim($e->errorInfo[2])
 						);
 						$this->logger->notice(
-							"Will keep retrying until the db is back up again"
+							'Will keep retrying until the db is back up again'
 						);
 						$errorShown = true;
 					}
@@ -158,13 +158,13 @@ class DB {
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
-				$this->logger->notice("Database connection re-established");
+				$this->logger->notice('Database connection re-established');
 			}
 			$this->sql->exec("SET sql_mode = 'TRADITIONAL,NO_BACKSLASH_ESCAPES'");
 			$this->sql->exec("SET time_zone = '+00:00'");
-			$this->sqlCreateReplacements[" AUTOINCREMENT"] = " AUTO_INCREMENT";
+			$this->sqlCreateReplacements[' AUTOINCREMENT'] = ' AUTO_INCREMENT';
 		} elseif ($this->type === DB\Type::SQLite) {
-			if ($config->host === "" || $config->host === "localhost") {
+			if ($config->host === '' || $config->host === 'localhost') {
 				$dbName = "./data/{$config->name}";
 			} else {
 				$dbName = "{$config->host}/{$config->name}";
@@ -175,11 +175,11 @@ class DB {
 				} catch (FilesystemException $e) {
 					$this->logger->alert(
 						"Unable to create the dababase '{database}': {error}. Check that the directory ".
-						"exists and is writable by the current user.",
+						'exists and is writable by the current user.',
 						[
-							"database" => $dbName,
-							"error" => $e->getMessage(),
-							"exception" => $e,
+							'database' => $dbName,
+							'error' => $e->getMessage(),
+							'exception' => $e,
 						]
 					);
 					exit(10);
@@ -195,20 +195,20 @@ class DB {
 
 			/** @var ?string */
 			$sqliteVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
-			if (!isset($sqliteVersion) || version_compare($sqliteVersion, static::SQLITE_MIN_VERSION, "<")) {
+			if (!isset($sqliteVersion) || version_compare($sqliteVersion, static::SQLITE_MIN_VERSION, '<')) {
 				$this->logger->critical(
-					"You need at least SQLite {minVersion} for Nadybot. ".
-					"Your system is using {version}.",
+					'You need at least SQLite {minVersion} for Nadybot. '.
+					'Your system is using {version}.',
 					[
-						"minVersion" => static::SQLITE_MIN_VERSION,
-						"version" => $sqliteVersion,
+						'minVersion' => static::SQLITE_MIN_VERSION,
+						'version' => $sqliteVersion,
 					]
 				);
 				exit(1);
 			}
-			$this->sqlCreateReplacements[" AUTO_INCREMENT"] = " AUTOINCREMENT";
-			$this->sqlCreateReplacements[" INT "] = " INTEGER ";
-			$this->sqlCreateReplacements[" INT,"] = " INTEGER,";
+			$this->sqlCreateReplacements[' AUTO_INCREMENT'] = ' AUTOINCREMENT';
+			$this->sqlCreateReplacements[' INT '] = ' INTEGER ';
+			$this->sqlCreateReplacements[' INT,'] = ' INTEGER,';
 			// SQLite 3.37.0 adds strict tables. These do actual type checking
 			$strictGrammar = new class () extends \Illuminate\Database\Schema\Grammars\SQLiteGrammar {
 				public function compileCreate(\Illuminate\Database\Schema\Blueprint $blueprint, \Illuminate\Support\Fluent $command) {
@@ -247,7 +247,7 @@ class DB {
 				}
 			};
 			if (isset(BotRunner::$arguments['strict'])) {
-				if (version_compare($sqliteVersion, "3.37.0", ">=")) {
+				if (version_compare($sqliteVersion, '3.37.0', '>=')) {
 					$this->capsule->getConnection()->setSchemaGrammar($strictGrammar);
 				}
 				$this->capsule->getConnection()->setQueryGrammar($strictQuery);
@@ -274,7 +274,7 @@ class DB {
 							trim($e->errorInfo[2] ?? $e->getMessage())
 						);
 						$this->logger->notice(
-							"Will keep retrying until the db is back up again"
+							'Will keep retrying until the db is back up again'
 						);
 						$errorShown = true;
 					}
@@ -282,7 +282,7 @@ class DB {
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
-				$this->logger->notice("Database connection re-established");
+				$this->logger->notice('Database connection re-established');
 			}
 		} elseif ($this->type === DB\Type::MSSQL) {
 			do {
@@ -307,7 +307,7 @@ class DB {
 							trim($e->errorInfo[2])
 						);
 						$this->logger->notice(
-							"Will keep retrying until the db is back up again"
+							'Will keep retrying until the db is back up again'
 						);
 						$errorShown = true;
 					}
@@ -315,7 +315,7 @@ class DB {
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
-				$this->logger->notice("Database connection re-established");
+				$this->logger->notice('Database connection re-established');
 			}
 		} else {
 			throw new Exception(
@@ -334,9 +334,9 @@ class DB {
 				$this->logger->debug(
 					$query,
 					[
-						"params" => $bindings,
-						"driver" => $this->sql->getAttribute(PDO::ATTR_DRIVER_NAME),
-						"version" => $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION),
+						'params' => $bindings,
+						'driver' => $this->sql->getAttribute(PDO::ATTR_DRIVER_NAME),
+						'version' => $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION),
 					]
 				);
 			}
@@ -364,7 +364,7 @@ class DB {
 
 	/** Start a transaction */
 	public function beginTransaction(): void {
-		$this->logger->info("Starting transaction");
+		$this->logger->info('Starting transaction');
 		$this->sql?->beginTransaction();
 	}
 
@@ -375,8 +375,8 @@ class DB {
 		while ($this->inTransaction()) {
 			$duration = microtime(true) - $start;
 			if ($duration > 2 && !$notified) {
-				$this->logger->notice("Waiting for beginning a transaction for over {duration}s.", [
-					"duration" => 2,
+				$this->logger->notice('Waiting for beginning a transaction for over {duration}s.', [
+					'duration' => 2,
 				]);
 				$notified = true;
 			}
@@ -387,17 +387,17 @@ class DB {
 
 	/** Commit a transaction */
 	public function commit(): void {
-		$this->logger->info("Committing transaction");
+		$this->logger->info('Committing transaction');
 		try {
 			$this->sql?->commit();
 		} catch (PDOException $e) {
-			$this->logger->info("No active transaction to commit");
+			$this->logger->info('No active transaction to commit');
 		}
 	}
 
 	/** Roll back a transaction */
 	public function rollback(): void {
-		$this->logger->info("Rolling back transaction");
+		$this->logger->info('Rolling back transaction');
 		$this->sql?->rollback();
 	}
 
@@ -409,19 +409,19 @@ class DB {
 	/** Format SQL code by replacing placeholders like <myname> */
 	public function formatSql(string $sql): string {
 		$sql = preg_replace_callback(
-			"/<table:(.+?)>/",
+			'/<table:(.+?)>/',
 			function (array $matches): string {
 				return $this->tableNames[$matches[1]] ?? $matches[0];
 			},
 			$sql
 		);
-		$sql = str_replace("<myname>", $this->getBotname(), $sql);
+		$sql = str_replace('<myname>', $this->getBotname(), $sql);
 
 		return $sql;
 	}
 
 	/** Insert a DBRow $row into the database table $table */
-	public function insert(string $table, DBRow $row, ?string $sequence=""): int {
+	public function insert(string $table, DBRow $row, ?string $sequence=''): int {
 		$refClass = new ReflectionClass($row);
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$data = [];
@@ -499,7 +499,7 @@ class DB {
 	/** Get a schema builder instance. */
 	public function schema(?string $connection=null): SchemaBuilder {
 		$schema = $this->capsule->schema($connection);
-		$logger = new LoggerWrapper("Core/QueryBuilder");
+		$logger = new LoggerWrapper('Core/QueryBuilder');
 		Registry::injectDependencies($logger);
 		$builder = new SchemaBuilder($schema, $this);
 		return $builder;
@@ -548,11 +548,11 @@ class DB {
 	}
 
 	public function createMigrationTables(): void {
-		foreach (["migrations", "migrations_<myname>"] as $table) {
+		foreach (['migrations', 'migrations_<myname>'] as $table) {
 			if ($this->schema()->hasTable($table)) {
 				continue;
 			}
-			$this->schema()->create($table, function (Blueprint $table): void {
+			$this->schema()->create($table, static function (Blueprint $table): void {
 				$table->id();
 				$table->string('module');
 				$table->string('migration');
@@ -567,8 +567,7 @@ class DB {
 				->where('module', $module)
 				->where('migration', $migration)
 				->exists()
-			||
-			$this->table('migrations')
+			|| $this->table('migrations')
 				->where('module', $module)
 				->where('migration', $migration)
 				->exists();
@@ -577,19 +576,19 @@ class DB {
 	public function runMigrations(CoreMigration ...$migrations): void {
 		$migrations = new Collection($migrations);
 		$this->createMigrationTables();
-		$groupedMigs = $migrations->groupBy("module");
+		$groupedMigs = $migrations->groupBy('module');
 		$missingMigs = $groupedMigs->map(function (Collection $migs, string $module): Collection {
 			return $this->filterAppliedMigrations($module, $migs);
 		})->flatten()
-			->sort(function (CoreMigration $f1, CoreMigration $f2): int {
+			->sort(static function (CoreMigration $f1, CoreMigration $f2): int {
 				return $f1->order <=> $f2->order;
 			});
 		if ($missingMigs->isEmpty()) {
 			return;
 		}
 		$start = microtime(true);
-		$this->logger->notice("Applying {numMigs} database migrations", [
-			"numMigs" => $missingMigs->count(),
+		$this->logger->notice('Applying {numMigs} database migrations', [
+			'numMigs' => $missingMigs->count(),
 		]);
 		foreach ($missingMigs as $mig) {
 			try {
@@ -600,8 +599,8 @@ class DB {
 				}
 			} catch (Throwable $e) {
 				$this->logger->critical(
-					"Error applying migration {module}/{baseName}: {error}",
-					array_merge((array)$mig, ["error" => $e->getMessage(), "exception" => $e])
+					'Error applying migration {module}/{baseName}: {error}',
+					array_merge((array)$mig, ['error' => $e->getMessage(), 'exception' => $e])
 				);
 				if ($this->inTransaction()) {
 					$this->rollback();
@@ -610,8 +609,8 @@ class DB {
 			}
 		}
 		$end = microtime(true);
-		$this->logger->notice("All migrations applied successfully in {timeMS}ms", [
-			"timeMS" => number_format(($end - $start) * 1000, 2),
+		$this->logger->notice('All migrations applied successfully in {timeMS}ms', [
+			'timeMS' => number_format(($end - $start) * 1_000, 2),
 		]);
 		EventLoop::run();
 	}
@@ -627,7 +626,7 @@ class DB {
 	 * @throws Exception
 	 */
 	public function loadCSVFile(string $module, string $file): bool {
-		$fileBase = pathinfo($file, PATHINFO_FILENAME);
+		$fileBase = pathinfo($file, \PATHINFO_FILENAME);
 		$table = $fileBase;
 		if (!$this->fs->exists($file)) {
 			throw new Exception("The CSV-file {$file} was not found.");
@@ -635,7 +634,7 @@ class DB {
 		$version = $this->fs->getModificationTime($file) ?: 0;
 		$handle = $this->fs->openFile($file, 'r');
 		foreach (splitLines($handle) as $line) {
-			if (substr($line, 0, 1) !== "#") {
+			if (substr($line, 0, 1) !== '#') {
 				break;
 			}
 			$line = trim($line);
@@ -644,16 +643,16 @@ class DB {
 			}
 			$value = $matches[2];
 			switch (strtolower($matches[1])) {
-				case "replaces":
+				case 'replaces':
 					$where = preg_split("/\s*=\s*/", $value);
 					break;
-				case "version":
+				case 'version':
 					$version = $value;
 					break;
-				case "table":
+				case 'table':
 					$table = $value;
 					break;
-				case "requires":
+				case 'requires':
 					if (!$this->hasAppliedMigration($module, $value)) {
 						throw new Exception("The CSV-file {$file} is incompatible with your database schema version");
 					}
@@ -676,7 +675,7 @@ class DB {
 			description: "DB version of {$fileBase}",
 			mode: 'noedit',
 			type: (is_int($version) || preg_match('/^\d+$/', $version)) ? 'timestamp' : 'text',
-			value: "0"
+			value: '0'
 		);
 
 		if ($this->table($table)->exists() && $this->util->compareVersionNumbers((string)$version, (string)$currentVersion) <= 0) {
@@ -684,7 +683,7 @@ class DB {
 			$this->logger->info($msg);
 			return false;
 		}
-		$this->logger->info("Inserting {file}", ["file" => $file]);
+		$this->logger->info('Inserting {file}', ['file' => $file]);
 		$csv = new Reader($file, $this->fs);
 		$items = [];
 		$itemCount = 0;
@@ -706,7 +705,7 @@ class DB {
 				$this->table($table)->chunkInsert($items);
 			}
 		} catch (PDOException $e) {
-			$this->logger->error($e->getMessage(), ["exception" => $e]);
+			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			throw $e;
 		}
 		$this->settingManager->save($settingName, (string)$version);
@@ -728,17 +727,17 @@ class DB {
 	 * @param string   $column The table column to test against
 	 */
 	public function addWhereFromParams(QueryBuilder $query, array $params, string $column, string $boolean='and'): void {
-		$closure = function (QueryBuilder $query) use ($params, $column): void {
+		$closure = static function (QueryBuilder $query) use ($params, $column): void {
 			foreach ($params as $key => $value) {
-				if ($value[0] == "-" && strlen($value) > 1) {
+				if ($value[0] == '-' && strlen($value) > 1) {
 					$value = substr($value, 1);
-					$op = "not like";
+					$op = 'not like';
 				} else {
-					$op = "like";
+					$op = 'like';
 				}
 				$query->whereRaw(
-					$query->colFunc("LOWER", $column) . " {$op} ?",
-					"%" . strtolower($value) . "%"
+					$query->colFunc('LOWER', $column) . " {$op} ?",
+					'%' . strtolower($value) . '%'
 				);
 			}
 		};
@@ -777,7 +776,7 @@ class DB {
 		if (!is_string($fullFile)) {
 			return new Collection();
 		}
-		$fullDir = rtrim(dirname($fullFile) . DIRECTORY_SEPARATOR . $migDir->dir, DIRECTORY_SEPARATOR);
+		$fullDir = rtrim(dirname($fullFile) . \DIRECTORY_SEPARATOR . $migDir->dir, \DIRECTORY_SEPARATOR);
 		foreach (get_declared_classes() as $class) {
 			if (!in_array(SchemaMigration::class, class_implements($class))) {
 				continue;
@@ -787,18 +786,18 @@ class DB {
 			if ($fileName === false) {
 				continue;
 			}
-			if (!str_starts_with($fileName, $fullDir . DIRECTORY_SEPARATOR)) {
+			if (!str_starts_with($fileName, $fullDir . \DIRECTORY_SEPARATOR)) {
 				continue;
 			}
 			$migAttr = $refClass->getAttributes(AttributesMigration::class);
 			if (count($migAttr) !== 1) {
 				continue;
 			}
-			$classTokens = explode("\\", $class);
+			$classTokens = explode('\\', $class);
 			$attrMigration = $migAttr[0]->newInstance();
-			$baseName = $attrMigration->order . "_".
+			$baseName = $attrMigration->order . '_'.
 				$classTokens[count($classTokens)-1].
-				($attrMigration->shared ? ".shared" : "");
+				($attrMigration->shared ? '.shared' : '');
 			$migrations->push(new CoreMigration(
 				filePath: $fileName,
 				baseName: $baseName,
@@ -818,13 +817,13 @@ class DB {
 	 */
 	private function filterAppliedMigrations(string $module, Collection $migrations): Collection {
 		$applied = $this->getAppliedMigrations($module);
-		return $migrations->filter(function (CoreMigration $m) use ($applied): bool {
-			return !$applied->contains("migration", $m->baseName);
+		return $migrations->filter(static function (CoreMigration $m) use ($applied): bool {
+			return !$applied->contains('migration', $m->baseName);
 		});
 	}
 
 	private function applyMigration(CoreMigration $mig): void {
-		$table = $this->formatSql($mig->shared ? "migrations" : "migrations_<myname>");
+		$table = $this->formatSql($mig->shared ? 'migrations' : 'migrations_<myname>');
 		$class = $mig->className;
 		$obj = new $class();
 		if (!($obj instanceof SchemaMigration)) {
@@ -832,18 +831,18 @@ class DB {
 		}
 		Registry::injectDependencies($obj);
 		try {
-			$this->logger->info("Running migration {migration}", [
-				"migration" => $class,
+			$this->logger->info('Running migration {migration}', [
+				'migration' => $class,
 			]);
 			$obj->migrate($this->logger, $this);
 		} catch (Throwable $e) {
-			if (isset(BotRunner::$arguments["migration-errors-fatal"])) {
+			if (isset(BotRunner::$arguments['migration-errors-fatal'])) {
 				throw $e;
 			}
 			$this->logger->error(
 				"Error executing {$class}::migrate(): " .
 				$e->getMessage(),
-				["exception" => $e]
+				['exception' => $e]
 			);
 			return;
 		}

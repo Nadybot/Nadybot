@@ -7,17 +7,17 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210427142238, shared: true)]
+#[NCA\Migration(order: 20_210_427_142_238, shared: true)]
 class CreatePerkLevelTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "perk_level";
+		$table = 'perk_level';
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->integer("aoid")->nullable();
-			$table->integer("perk_id")->index();
-			$table->integer("perk_level")->index();
-			$table->integer("required_level")->index();
+			$table->integer('aoid')->nullable();
+			$table->integer('perk_id')->index();
+			$table->integer('perk_level')->index();
+			$table->integer('required_level')->index();
 		});
 	}
 }

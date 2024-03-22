@@ -9,10 +9,10 @@ use Nadybot\Modules\PVP_MODULE\Attributes\Argument;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 
 #[Argument(
-	names: ["pf", "playfield"],
+	names: ['pf', 'playfield'],
 	description: "Only match sites in a given playfield. Use the short form,\n".
-		"e.g. \"PW\" for Perpetual Wastelands.",
-	type: "string",
+		'e.g. "PW" for Perpetual Wastelands.',
+	type: 'string',
 )]
 class PF extends Base {
 	private ?Playfield $pf=null;

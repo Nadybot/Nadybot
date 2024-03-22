@@ -5,13 +5,13 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 use Nadybot\Core\ParamClass\Base;
 
 class PClusterSlot extends Base {
-	protected static string $regExp = "shiny|bright|faded|symbiant|symb";
+	protected static string $regExp = 'shiny|bright|faded|symbiant|symb';
 	protected string $value;
 
 	public function __construct(string $value) {
 		$this->value = strtolower($value);
-		if ($this->value === "symbiant") {
-			$this->value = "symb";
+		if ($this->value === 'symbiant') {
+			$this->value = 'symb';
 		}
 	}
 
@@ -24,6 +24,6 @@ class PClusterSlot extends Base {
 	}
 
 	public static function getExample(): string {
-		return "shiny|bright|faded|symb";
+		return 'shiny|bright|faded|symb';
 	}
 }

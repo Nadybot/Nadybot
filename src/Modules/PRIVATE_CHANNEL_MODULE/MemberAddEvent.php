@@ -6,7 +6,7 @@ use Nadybot\Core\Event;
 
 /** Someone is added to the member list of the bot */
 class MemberAddEvent extends Event {
-	public const EVENT_MASK = "member(add)";
+	public const EVENT_MASK = 'member(add)';
 
 	/** @param string $sender The player added to members */
 	public function __construct(

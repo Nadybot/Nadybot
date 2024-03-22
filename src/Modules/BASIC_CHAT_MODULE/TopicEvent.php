@@ -5,7 +5,7 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 use Nadybot\Core\Event;
 
 abstract class TopicEvent extends Event {
-	public const EVENT_MASK = "topic(*)";
+	public const EVENT_MASK = 'topic(*)';
 
 	/** The names of the sender */
 	public string $player;

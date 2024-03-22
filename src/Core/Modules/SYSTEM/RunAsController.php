@@ -19,9 +19,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "runas",
-		accessLevel: "superadmin",
-		description: "Execute a command as another character",
+		command: 'runas',
+		accessLevel: 'superadmin',
+		description: 'Execute a command as another character',
 	)
 ]
 class RunAsController extends ModuleInstance {
@@ -35,7 +35,7 @@ class RunAsController extends ModuleInstance {
 	private Nadybot $chatBot;
 
 	/** Run a command as another character */
-	#[NCA\HandlesCommand("runas")]
+	#[NCA\HandlesCommand('runas')]
 	public function runasCommand(CmdContext $context, PCharacter $character, string $command): void {
 		$context->message = $command;
 		$uid = $this->chatBot->getUid($character());
@@ -43,7 +43,7 @@ class RunAsController extends ModuleInstance {
 			$context->reply("Character <highlight>{$character}<end> does not exist.");
 			return;
 		}
-		if (!$this->accessManager->checkAccess($context->char->name, "superadmin")
+		if (!$this->accessManager->checkAccess($context->char->name, 'superadmin')
 			&& $this->accessManager->compareCharacterAccessLevels($context->char->name, $character()) <= 0
 		) {
 			$context->reply("Error! Access level not sufficient to run commands as <highlight>{$character}<end>.");

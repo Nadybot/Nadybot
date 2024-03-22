@@ -19,20 +19,20 @@ use SplObjectStorage;
  */
 #[NCA\Instance]
 class AccessManager {
-	public const DB_TABLE = "audit_<myname>";
-	public const ADD_RANK = "add-rank";
-	public const DEL_RANK = "del-rank";
-	public const PERM_BAN = "permanent-ban";
-	public const TEMP_BAN = "temporary-ban";
-	public const LOCK = "lock";
-	public const UNLOCK = "unlock";
-	public const JOIN = "join";
-	public const KICK = "kick";
-	public const LEAVE = "leave";
-	public const INVITE = "invite";
-	public const ADD_ALT = "add-alt";
-	public const DEL_ALT = "del-alt";
-	public const SET_MAIN = "set-main";
+	public const DB_TABLE = 'audit_<myname>';
+	public const ADD_RANK = 'add-rank';
+	public const DEL_RANK = 'del-rank';
+	public const PERM_BAN = 'permanent-ban';
+	public const TEMP_BAN = 'temporary-ban';
+	public const LOCK = 'lock';
+	public const UNLOCK = 'unlock';
+	public const JOIN = 'join';
+	public const KICK = 'kick';
+	public const LEAVE = 'leave';
+	public const INVITE = 'invite';
+	public const ADD_ALT = 'add-alt';
+	public const DEL_ALT = 'del-alt';
+	public const SET_MAIN = 'set-main';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -126,8 +126,8 @@ class AccessManager {
 		$this->logger->info(
 			"Checking access level '{checkLevel}' against character '{sender}'",
 			[
-				"checkLevel" => $accessLevel,
-				"sender" => $sender,
+				'checkLevel' => $accessLevel,
+				'sender' => $sender,
 			]
 		);
 
@@ -144,9 +144,9 @@ class AccessManager {
 				$this->logger->info(
 					"Checking access level '{accessLevel}' against the main of '{sender}' which is '{main}'",
 					[
-						"accessLevel" => $accessLevel,
-						"sender" => $sender,
-						"main" => $altInfo->main,
+						'accessLevel' => $accessLevel,
+						'sender' => $sender,
+						'main' => $altInfo->main,
 					]
 				);
 				$returnVal = $this->checkSingleAccess($altInfo->main, $accessLevel);
@@ -172,22 +172,22 @@ class AccessManager {
 	public function getDisplayName(string $accessLevel): string {
 		$displayName = $this->getAccessLevel($accessLevel);
 		switch ($displayName) {
-			case "rl":
+			case 'rl':
 				return $this->systemController->rankNameRL;
-			case "guest":
+			case 'guest':
 				return $this->systemController->rankNameGuest;
-			case "member":
+			case 'member':
 				return $this->systemController->rankNameMember;
-			case "guild":
+			case 'guild':
 				return $this->systemController->rankNameGuild;
-			case "mod":
+			case 'mod':
 				return $this->systemController->rankNameMod;
-			case "admin":
+			case 'admin':
 				return $this->systemController->rankNameAdmin;
-			case "superadmin":
+			case 'superadmin':
 				return $this->systemController->rankNameSuperadmin;
 		}
-		if (substr($displayName, 0, 5) === "raid_") {
+		if (substr($displayName, 0, 5) === 'raid_') {
 			$setName = $this->settingManager->getString("name_{$displayName}");
 			if ($setName !== null) {
 				return $setName;
@@ -200,9 +200,9 @@ class AccessManager {
 	/** Returns the access level of $sender, ignoring guild admin and inheriting access level from main */
 	public function getSingleAccessLevel(string $sender): string {
 		if (in_array($sender, $this->config->general->superAdmins, true)) {
-			return "superadmin";
-		} elseif (empty($this->config->general->superAdmins) && $sender === "<no superadmin set>") {
-			return "superadmin";
+			return 'superadmin';
+		} elseif (empty($this->config->general->superAdmins) && $sender === '<no superadmin set>') {
+			return 'superadmin';
 		}
 
 		/** @var array<string,int> */
@@ -210,11 +210,11 @@ class AccessManager {
 		foreach ($this->providers as $provider) {
 			$rank = $provider->getSingleAccessLevel($sender);
 			if (isset($rank)) {
-				$ranks[$rank] = self::$ACCESS_LEVELS[$rank] ?? self::$ACCESS_LEVELS["all"];
+				$ranks[$rank] = self::$ACCESS_LEVELS[$rank] ?? self::$ACCESS_LEVELS['all'];
 			}
 		}
 		if (empty($ranks)) {
-			return "all";
+			return 'all';
 		}
 		asort($ranks);
 		return array_keys($ranks)[0];
@@ -279,28 +279,28 @@ class AccessManager {
 		$accessLevel = strtolower($accessLevel);
 		switch ($accessLevel) {
 			case $this->systemController->rankNameRL:
-			case "raidleader":
-				$accessLevel = "rl";
+			case 'raidleader':
+				$accessLevel = 'rl';
 				break;
 			case $this->systemController->rankNameMod:
-			case "moderator":
-				$accessLevel = "mod";
+			case 'moderator':
+				$accessLevel = 'mod';
 				break;
 			case $this->systemController->rankNameAdmin:
-			case "administrator":
-				$accessLevel = "admin";
+			case 'administrator':
+				$accessLevel = 'admin';
 				break;
 			case $this->systemController->rankNameSuperadmin:
-				$accessLevel = "superadmin";
+				$accessLevel = 'superadmin';
 				break;
 			case $this->systemController->rankNameMember:
-				$accessLevel = "member";
+				$accessLevel = 'member';
 				break;
 			case $this->systemController->rankNameGuest:
-				$accessLevel = "guest";
+				$accessLevel = 'guest';
 				break;
 			case $this->systemController->rankNameGuild:
-				$accessLevel = "guild";
+				$accessLevel = 'guild';
 				break;
 		}
 
@@ -326,7 +326,7 @@ class AccessManager {
 		}
 		if (isset($audit->value) && in_array($audit->action, [static::ADD_RANK, static::DEL_RANK])) {
 			$revLook = array_flip(self::$ACCESS_LEVELS);
-			$audit->value = $audit->value . " (" . $revLook[(int)$audit->value] . ")";
+			$audit->value = $audit->value . ' (' . $revLook[(int)$audit->value] . ')';
 		}
 		$this->db->insert(static::DB_TABLE, $audit);
 	}

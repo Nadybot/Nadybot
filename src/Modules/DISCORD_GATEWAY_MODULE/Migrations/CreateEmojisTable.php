@@ -8,17 +8,17 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20230406135855)]
+#[NCA\Migration(order: 20_230_406_135_855)]
 class CreateEmojisTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = DiscordGatewayController::EMOJI_TABLE;
-		$db->schema()->create($table, function (Blueprint $table) {
+		$db->schema()->create($table, static function (Blueprint $table) {
 			$table->id();
-			$table->string("name", 20)->index();
-			$table->unsignedInteger("registered");
-			$table->unsignedInteger("version");
-			$table->string("emoji_id", 24);
-			$table->string("guild_id", 24);
+			$table->string('name', 20)->index();
+			$table->unsignedInteger('registered');
+			$table->unsignedInteger('version');
+			$table->string('emoji_id', 24);
+			$table->string('guild_id', 24);
 		});
 	}
 }

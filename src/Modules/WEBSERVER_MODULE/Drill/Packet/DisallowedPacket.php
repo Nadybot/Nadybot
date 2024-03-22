@@ -12,7 +12,7 @@ class DisallowedPacket extends Base {
 	}
 
 	public function toString(): string {
-		return pack("C", PacketType::DISALLOWED_PACKET);
+		return pack('C', PacketType::DISALLOWED_PACKET);
 	}
 
 	public function getType(): int {

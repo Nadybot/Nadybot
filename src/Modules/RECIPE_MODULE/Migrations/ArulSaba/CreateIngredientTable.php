@@ -7,16 +7,16 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210427134504, shared: true)]
+#[NCA\Migration(order: 20_210_427_134_504, shared: true)]
 class CreateIngredientTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "ingredient";
+		$table = 'ingredient';
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->integer("id")->primary();
-			$table->string("name", 50);
-			$table->integer("aoid")->nullable()->index();
-			$table->text("where")->nullable();
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->integer('id')->primary();
+			$table->string('name', 50);
+			$table->integer('aoid')->nullable()->index();
+			$table->text('where')->nullable();
 		});
 	}
 }

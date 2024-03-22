@@ -54,6 +54,6 @@ class InteractionDataOption extends JSONDataModel {
 		foreach ($this->options as $option) {
 			$parts []= $option->getOptionString();
 		}
-		return join(" ", $parts);
+		return implode(' ', $parts);
 	}
 }

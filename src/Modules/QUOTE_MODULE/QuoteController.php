@@ -25,9 +25,9 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "quote",
-		accessLevel: "guest",
-		description: "Add/Remove/View Quotes",
+		command: 'quote',
+		accessLevel: 'guest',
+		description: 'Add/Remove/View Quotes',
 	)
 ]
 class QuoteController extends ModuleInstance {
@@ -50,53 +50,52 @@ class QuoteController extends ModuleInstance {
 	private BotConfig $config;
 
 	/** Add a quote */
-	#[NCA\HandlesCommand("quote")]
+	#[NCA\HandlesCommand('quote')]
 	public function quoteAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")]
-		string $action,
+		#[NCA\Str('add')] string $action,
 		string $quote
 	): void {
 		$quoteMsg = trim($quote);
-		$row = $this->db->table("quote")
-			->whereIlike("msg", $quoteMsg)
+		$row = $this->db->table('quote')
+			->whereIlike('msg', $quoteMsg)
 			->asObj(Quote::class)->first();
 		if (isset($row)) {
 			$msg = "This quote has already been added as quote <highlight>{$row->id}<end>.";
 			$context->reply($msg);
 			return;
 		}
-		if (strlen($quoteMsg) > 1000) {
-			$msg = "This quote is too long.";
+		if (strlen($quoteMsg) > 1_000) {
+			$msg = 'This quote is too long.';
 			$context->reply($msg);
 			return;
 		}
 		$poster = $context->char->name;
 
-		$id = $this->db->table("quote")
+		$id = $this->db->table('quote')
 			->insertGetId([
-				"poster" => $poster,
-				"dt" => time(),
-				"msg" => $quoteMsg,
+				'poster' => $poster,
+				'dt' => time(),
+				'msg' => $quoteMsg,
 			]);
 		$msg = "Quote <highlight>{$id}<end> has been added.";
 		$context->reply($msg);
 	}
 
 	/** Remove a quote */
-	#[NCA\HandlesCommand("quote")]
+	#[NCA\HandlesCommand('quote')]
 	public function quoteRemoveCommand(
 		CmdContext $context,
 		PRemove $action,
 		int $id
 	): void {
 		/** @var ?Quote */
-		$row = $this->db->table("quote")
-			->where("id", $id)
+		$row = $this->db->table('quote')
+			->where('id', $id)
 			->asObj(Quote::class)->first();
 
 		if ($row === null) {
-			$msg = "Could not find this quote. Already deleted?";
+			$msg = 'Could not find this quote. Already deleted?';
 			$context->reply($msg);
 			return;
 		}
@@ -106,8 +105,8 @@ class QuoteController extends ModuleInstance {
 		if (($poster === $context->char->name)
 			|| $this->accessManager->checkAccess($context->char->name, 'moderator')
 		) {
-			$this->db->table("quote")->delete($id);
-			$msg = "This quote has been deleted.";
+			$this->db->table('quote')->delete($id);
+			$msg = 'This quote has been deleted.';
 		} else {
 			$msg = "Only a moderator or {$poster} can delete this quote.";
 		}
@@ -115,19 +114,18 @@ class QuoteController extends ModuleInstance {
 	}
 
 	/** Search for a quote of a specific author/victim/text */
-	#[NCA\HandlesCommand("quote")]
+	#[NCA\HandlesCommand('quote')]
 	public function quoteSearchCommand(
 		CmdContext $context,
-		#[NCA\Str("search")]
-		string $action,
+		#[NCA\Str('search')] string $action,
 		string $search
 	): void {
 		$searchParam = "%{$search}%";
-		$msg = "";
+		$msg = '';
 
 		// Search for poster:
-		$idList = $this->db->table("quote")
-			->whereIlike("poster", $searchParam)
+		$idList = $this->db->table('quote')
+			->whereIlike('poster', $searchParam)
 			->asObj(Quote::class)
 			->map(function (Quote $quote): string {
 				return $this->text->makeChatcmd(
@@ -137,12 +135,12 @@ class QuoteController extends ModuleInstance {
 			})->toArray();
 		if (count($idList)) {
 			$msg  = "<header2>Quotes posted by \"{$search}\"<end>\n";
-			$msg .= "<tab>" . join(", ", $idList) . "\n\n";
+			$msg .= '<tab>' . implode(', ', $idList) . "\n\n";
 		}
 
 		// Search inside quotes:
-		$idList = $this->db->table("quote")
-			->whereIlike("msg", $searchParam)
+		$idList = $this->db->table('quote')
+			->whereIlike('msg', $searchParam)
 			->asObj(Quote::class)
 			->map(function (Quote $quote): string {
 				return $this->text->makeChatcmd(
@@ -152,23 +150,22 @@ class QuoteController extends ModuleInstance {
 			})->toArray();
 		if (count($idList)) {
 			$msg .= "<header2>Quotes that contain \"{$search}\"<end>\n";
-			$msg .= "<tab>" . join(", ", $idList);
+			$msg .= '<tab>' . implode(', ', $idList);
 		}
 
 		if ($msg) {
 			$msg = $this->text->makeBlob("Results for: '{$search}'", $msg);
 		} else {
-			$msg = "Could not find any matches for this search.";
+			$msg = 'Could not find any matches for this search.';
 		}
 		$context->reply($msg);
 	}
 
 	/** Show a given quote, optionally to the org or private channel */
-	#[NCA\HandlesCommand("quote")]
+	#[NCA\HandlesCommand('quote')]
 	public function quoteShowCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("org", "priv")]
-		?string $channel,
+		#[NCA\StrChoice('org', 'priv')] ?string $channel,
 		int $id
 	): void {
 		$result = $this->getQuoteInfo($id);
@@ -183,7 +180,7 @@ class QuoteController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		if ($channel === "priv") {
+		if ($channel === 'priv') {
 			$this->chatBot->sendPrivate($msg, true);
 		} else {
 			$this->chatBot->sendGuild($msg, true);
@@ -191,13 +188,13 @@ class QuoteController extends ModuleInstance {
 	}
 
 	/** Show a random quote */
-	#[NCA\HandlesCommand("quote")]
+	#[NCA\HandlesCommand('quote')]
 	public function quoteShowRandomCommand(CmdContext $context): void {
 		// choose a random quote to show
 		$result = $this->getQuoteInfo(null);
 
 		if ($result === null) {
-			$msg = "There are no quotes to show.";
+			$msg = 'There are no quotes to show.';
 		} else {
 			$msg = $result;
 		}
@@ -205,7 +202,7 @@ class QuoteController extends ModuleInstance {
 	}
 
 	public function getMaxId(): int {
-		return (int)($this->db->table("quote")->max("id") ?? 0);
+		return (int)($this->db->table('quote')->max('id') ?? 0);
 	}
 
 	/** @return null|string[] */
@@ -217,13 +214,13 @@ class QuoteController extends ModuleInstance {
 		}
 
 		if ($id === null) {
-			$row = $this->db->table("quote")
+			$row = $this->db->table('quote')
 				->inRandomOrder()
 				->limit(1)
 				->asObj(Quote::class)->first();
 		} else {
-			$row = $this->db->table("quote")
-				->where("id", $id)
+			$row = $this->db->table('quote')
+				->where('id', $id)
 				->asObj(Quote::class)->first();
 		}
 
@@ -237,21 +234,21 @@ class QuoteController extends ModuleInstance {
 
 		$msg = "ID: <highlight>{$row->id}<end> of {$count}\n";
 		$msg .= "Poster: <highlight>{$poster}<end>\n";
-		$msg .= "Date: <highlight>" . $this->util->date($row->dt) . "<end>\n";
+		$msg .= 'Date: <highlight>' . $this->util->date($row->dt) . "<end>\n";
 		$msg .= "Quote: <highlight>{$quoteMsg}<end>\n";
-		$msg .= "Action:";
+		$msg .= 'Action:';
 		if (!empty($this->config->general->orgName)) {
-			$msg .= " [".
-				$this->text->makeChatcmd("To orgchat", "/tell <myname> quote org {$row->id}").
-			"]";
+			$msg .= ' ['.
+				$this->text->makeChatcmd('To orgchat', "/tell <myname> quote org {$row->id}").
+			']';
 		}
-		$msg .= " [".
-			$this->text->makeChatcmd("To Privchat", "/tell <myname> quote priv {$row->id}").
+		$msg .= ' ['.
+			$this->text->makeChatcmd('To Privchat', "/tell <myname> quote priv {$row->id}").
 		"]\n\n";
 
 		$msg .= "<header2>Quotes posted by \"{$poster}\"<end>\n";
-		$idList = $this->db->table("quote")
-			->where("poster", $poster)
+		$idList = $this->db->table('quote')
+			->where('poster', $poster)
 			->asObj(Quote::class)
 			->map(function (Quote $row): string {
 				return $this->text->makeChatcmd(
@@ -259,26 +256,26 @@ class QuoteController extends ModuleInstance {
 					"/tell <myname> quote {$row->id}"
 				);
 			});
-		$msg .= "<tab>" . $idList->join(", ");
+		$msg .= '<tab>' . $idList->join(', ');
 
 		return $this->text->blobWrap(
-			"",
-			$this->text->makeBlob("Quote", $msg),
+			'',
+			$this->text->makeBlob('Quote', $msg),
 			": \"{$quoteMsg}\""
 		);
 	}
 
 	#[
 		NCA\NewsTile(
-			name: "quote",
-			description: "Displays a random quote from your quote database",
+			name: 'quote',
+			description: 'Displays a random quote from your quote database',
 			example: "» [Team] This is a random quote from Player 1\n".
-				"» [Team] And a witty response from Player 2"
+				'» [Team] And a witty response from Player 2'
 		)
 	]
 	public function quoteTile(string $sender): ?string {
 		/** @var ?Quote */
-		$row = $this->db->table("quote")
+		$row = $this->db->table('quote')
 			->inRandomOrder()
 			->limit(1)
 			->asObj(Quote::class)->first();
@@ -290,7 +287,7 @@ class QuoteController extends ModuleInstance {
 		foreach ($lines as $line) {
 			$result = [...$result, ...explode("\n", $line)];
 		}
-		$quote = join("\n» ", $result);
+		$quote = implode("\n» ", $result);
 		$msg = "» {$quote}";
 		return $msg;
 	}

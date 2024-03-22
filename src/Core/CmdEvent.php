@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 abstract class CmdEvent extends Event {
-	public const EVENT_MASK = "command(*)";
+	public const EVENT_MASK = 'command(*)';
 
 	public string $sender;
 	public string $channel;

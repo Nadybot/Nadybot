@@ -14,15 +14,15 @@ class SettingValue {
 	public function __construct(Setting $setting) {
 		$this->value = $setting->value;
 		if (isset($setting->intoptions) && strlen($setting->intoptions)) {
-			$this->type = "string";
+			$this->type = 'string';
 			if (preg_match('/^[\d;]+$/', $setting->intoptions)) {
-				$this->type = "number";
+				$this->type = 'number';
 			}
-			if ($setting->options === "true;false") {
-				$this->type = "bool";
+			if ($setting->options === 'true;false') {
+				$this->type = 'bool';
 			}
 		} else {
-			$this->type = $setting->type ?? "string";
+			$this->type = $setting->type ?? 'string';
 		}
 	}
 
@@ -35,7 +35,7 @@ class SettingValue {
 			$type = substr($this->type, 0, -2);
 			return array_map(
 				fn ($value) => $this->typeValue($type, $value),
-				explode("|", $this->value)
+				explode('|', $this->value)
 			);
 		}
 		return $this->typeValue($this->type, $this->value);
@@ -48,7 +48,7 @@ class SettingValue {
 		if (in_array($type, ['number', 'time'])) {
 			return (int)$value;
 		}
-		if ($type === "bool") {
+		if ($type === 'bool') {
 			return (bool)$value;
 		}
 		return $value;

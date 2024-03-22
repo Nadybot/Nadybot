@@ -13,20 +13,20 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20220329160122)]
+#[NCA\Migration(order: 20_220_329_160_122)]
 class MigrateToRoutes implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$route = [
-			"source" => "raid(*)",
-			"destination" => Source::PRIV . "(" . $db->getMyname() . ")",
-			"two_way" => false,
+			'source' => 'raid(*)',
+			'destination' => Source::PRIV . '(' . $db->getMyname() . ')',
+			'two_way' => false,
 		];
 		$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 
 		$format = [
-			"render" => false,
-			"hop" => 'raid',
-			"format" => '%s',
+			'render' => false,
+			'hop' => 'raid',
+			'format' => '%s',
 		];
 		$db->table(Source::DB_TABLE)->insert($format);
 
@@ -36,17 +36,17 @@ class MigrateToRoutes implements SchemaMigration {
 		}
 		$raidInformMemberBeingAdded = ((int)($raidAnnounceRaidmemberLoc->value??3) & 2) === 2;
 		$db->table(SettingManager::DB_TABLE)
-			->where("name", $raidAnnounceRaidmemberLoc->name)
+			->where('name', $raidAnnounceRaidmemberLoc->name)
 			->update([
-				"name" => "raid_inform_member_being_added",
-				"value" => $raidInformMemberBeingAdded ? "1" : "0",
-				"type" => 'bool',
+				'name' => 'raid_inform_member_being_added',
+				'value' => $raidInformMemberBeingAdded ? '1' : '0',
+				'type' => 'bool',
 			]);
 	}
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
+			->where('name', $name)
 			->asObj(Setting::class)
 			->first();
 	}

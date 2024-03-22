@@ -88,8 +88,8 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 			);
 			if (isset($this->message)) {
 				$messageObj->message_reference = (object)[
-					"message_id" => $this->message->id,
-					"channel_id" => $this->channelId,
+					'message_id' => $this->message->id,
+					'channel_id' => $this->channelId,
 				];
 			}
 			foreach ($messageObj->split() as $msgPart) {

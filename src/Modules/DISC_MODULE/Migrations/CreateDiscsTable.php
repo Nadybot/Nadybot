@@ -7,19 +7,19 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210425185415, shared: true)]
+#[NCA\Migration(order: 20_210_425_185_415, shared: true)]
 class CreateDiscsTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "discs";
+		$table = 'discs';
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->integer("disc_id")->primary();
-			$table->integer("crystal_id");
-			$table->integer("crystal_ql");
-			$table->integer("disc_ql");
-			$table->string("disc_name", 75)->index();
-			$table->string("crystal_name", 70);
-			$table->string("comment", 50)->nullable();
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->integer('disc_id')->primary();
+			$table->integer('crystal_id');
+			$table->integer('crystal_ql');
+			$table->integer('disc_ql');
+			$table->string('disc_name', 75)->index();
+			$table->string('crystal_name', 70);
+			$table->string('comment', 50)->nullable();
 		});
 	}
 }

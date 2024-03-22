@@ -20,6 +20,6 @@ class OnlineRelayStats implements GaugeProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => "relay"];
+		return ['type' => 'relay'];
 	}
 }

@@ -7,14 +7,14 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210426175341, shared: true)]
+#[NCA\Migration(order: 20_210_426_175_341, shared: true)]
 class CreateNanoLinesTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "nano_lines";
+		$table = 'nano_lines';
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->integer("strain_id")->primary();
-			$table->string("name", 50);
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->integer('strain_id')->primary();
+			$table->string('name', 50);
 		});
 	}
 }

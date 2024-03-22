@@ -6,5 +6,5 @@ use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
 class HttpPost extends HttpVerb {
-	public string $type = "post";
+	public string $type = 'post';
 }

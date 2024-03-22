@@ -6,7 +6,7 @@ use Nadybot\Core\Event;
 
 /** Someone is removed from the member list of the bot */
 class MemberRemoveEvent extends Event {
-	public const EVENT_MASK = "member(rem)";
+	public const EVENT_MASK = 'member(rem)';
 
 	/** @param string $sender The player removed from members */
 	public function __construct(

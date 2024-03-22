@@ -19,9 +19,9 @@ use Psr\Log\LoggerInterface;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "sendtell",
-		accessLevel: "superadmin",
-		description: "Send a tell to another character from the bot",
+		command: 'sendtell',
+		accessLevel: 'superadmin',
+		description: 'Send a tell to another character from the bot',
 	)
 ]
 class SendTellController extends ModuleInstance {
@@ -32,7 +32,7 @@ class SendTellController extends ModuleInstance {
 	private Nadybot $chatBot;
 
 	/** Have the bot send a tell to a character */
-	#[NCA\HandlesCommand("sendtell")]
+	#[NCA\HandlesCommand('sendtell')]
 	public function sendtellCommand(CmdContext $context, PCharacter $character, string $message): void {
 		$uid = $this->chatBot->getUid($character());
 		if (!isset($uid)) {
@@ -40,7 +40,7 @@ class SendTellController extends ModuleInstance {
 			return;
 		}
 		if ($this->logger instanceof LoggerWrapper) {
-			$this->logger->logChat("Out. Msg.", $character(), $message);
+			$this->logger->logChat('Out. Msg.', $character(), $message);
 		}
 		$this->chatBot->sendRawTell($uid, $message, QueueInterface::PRIORITY_MED);
 		$context->reply("Message has been sent to <highlight>{$character}<end>.");

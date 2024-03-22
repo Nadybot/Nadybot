@@ -14,19 +14,19 @@ use Nadybot\Core\{
 use Nadybot\Modules\GSP_MODULE\GSPController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210819071037)]
+#[NCA\Migration(order: 20_210_819_071_037)]
 class MigrateToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private GSPController $gspController;
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$channel = $this->getSetting($db, "gsp_channels");
+		$channel = $this->getSetting($db, 'gsp_channels');
 		if (!isset($channel)) {
 			$channel = new Setting();
-			$channel->value = "3";
+			$channel->value = '3';
 		}
 		$map = [
-			1 => Source::PRIV . "(" . $db->getMyname() .")",
+			1 => Source::PRIV . '(' . $db->getMyname() .')',
 			2 => Source::ORG,
 		];
 		foreach ($map as $old => $new) {
@@ -34,9 +34,9 @@ class MigrateToRoute implements SchemaMigration {
 				continue;
 			}
 			$route = [
-				"source" => $this->gspController->getChannelName(),
-				"destination" => $new,
-				"two_way" => false,
+				'source' => $this->gspController->getChannelName(),
+				'destination' => $new,
+				'two_way' => false,
 			];
 			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
@@ -44,7 +44,7 @@ class MigrateToRoute implements SchemaMigration {
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
+			->where('name', $name)
 			->asObj(Setting::class)
 			->first();
 	}

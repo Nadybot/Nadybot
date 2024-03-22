@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Nadybot\Core\Config\BotConfig;
 
 abstract class SyncEvent extends Event {
-	public const EVENT_MASK = "sync(*)";
+	public const EVENT_MASK = 'sync(*)';
 
 	public string $sourceBot;
 	public int $sourceDimension;

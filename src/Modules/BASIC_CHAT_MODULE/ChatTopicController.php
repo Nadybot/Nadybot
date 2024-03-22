@@ -18,37 +18,37 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "topic",
-		accessLevel: "guest",
-		description: "Shows Topic",
+		command: 'topic',
+		accessLevel: 'guest',
+		description: 'Shows Topic',
 	),
 	NCA\DefineCommand(
 		command: ChatTopicController::CMD_TOPIC_SET,
-		accessLevel: "rl",
-		description: "Changes Topic",
+		accessLevel: 'rl',
+		description: 'Changes Topic',
 	),
 
 	NCA\ProvidesEvent(TopicSetEvent::class),
 	NCA\ProvidesEvent(TopicClearEvent::class)
 ]
 class ChatTopicController extends ModuleInstance {
-	public const CMD_TOPIC_SET = "topic set/clear";
+	public const CMD_TOPIC_SET = 'topic set/clear';
 
 	/** Topic for Private Channel */
-	#[NCA\Setting\Text(mode: "noedit")]
-	public string $topic = "";
+	#[NCA\Setting\Text(mode: 'noedit')]
+	public string $topic = '';
 
 	/** Character who set the topic */
-	#[NCA\Setting\Text(mode: "noedit")]
-	public string $topicSetby = "";
+	#[NCA\Setting\Text(mode: 'noedit')]
+	public string $topicSetby = '';
 
 	/** Time the topic was set */
-	#[NCA\Setting\Timestamp(mode: "noedit")]
+	#[NCA\Setting\Timestamp(mode: 'noedit')]
 	public int $topicTime = 0;
 
 	/** Color of the topic */
 	#[NCA\Setting\Color]
-	public string $topicColor = "#FF0000";
+	public string $topicColor = '#FF0000';
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;
@@ -72,7 +72,7 @@ class ChatTopicController extends ModuleInstance {
 	private EventManager $eventManager;
 
 	/** Show the current topic */
-	#[NCA\HandlesCommand("topic")]
+	#[NCA\HandlesCommand('topic')]
 	public function topicCommand(CmdContext $context): void {
 		if ($this->topic === '') {
 			$msg = 'No topic set.';
@@ -85,9 +85,9 @@ class ChatTopicController extends ModuleInstance {
 
 	/** Clear the topic */
 	#[NCA\HandlesCommand(self::CMD_TOPIC_SET)]
-	public function topicClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
+	public function topicClearCommand(CmdContext $context, #[NCA\Str('clear')] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
@@ -95,8 +95,8 @@ class ChatTopicController extends ModuleInstance {
 			player: $context->char->name,
 			topic: $this->topic,
 		);
-		$this->setTopic($context->char->name, "");
-		$msg = "Topic has been cleared.";
+		$this->setTopic($context->char->name, '');
+		$msg = 'Topic has been cleared.';
 		$context->reply($msg);
 		$this->eventManager->fireEvent($event);
 	}
@@ -105,12 +105,12 @@ class ChatTopicController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_TOPIC_SET)]
 	public function topicSetCommand(CmdContext $context, string $topic): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
 		$this->setTopic($context->char->name, $topic);
-		$msg = "Topic has been updated.";
+		$msg = 'Topic has been updated.';
 		$context->reply($msg);
 		$event = new TopicSetEvent(
 			topic: $topic,
@@ -121,7 +121,7 @@ class ChatTopicController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: LogonEvent::EVENT_MASK,
-		description: "Shows topic on logon of members"
+		description: 'Shows topic on logon of members'
 	)]
 	public function logonEvent(LogonEvent $eventObj): void {
 		if ($this->topic === ''
@@ -138,7 +138,7 @@ class ChatTopicController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: JoinMyPrivEvent::EVENT_MASK,
-		description: "Shows topic when someone joins the private channel"
+		description: 'Shows topic when someone joins the private channel'
 	)]
 	public function joinPrivEvent(JoinMyPrivEvent $eventObj): void {
 		if ($this->topic === '' || !is_string($eventObj->sender)) {
@@ -149,9 +149,9 @@ class ChatTopicController extends ModuleInstance {
 	}
 
 	public function setTopic(string $name, string $msg): void {
-		$this->settingManager->save("topic_time", (string)time());
-		$this->settingManager->save("topic_setby", $name);
-		$this->settingManager->save("topic", $msg);
+		$this->settingManager->save('topic_time', (string)time());
+		$this->settingManager->save('topic_setby', $name);
+		$this->settingManager->save('topic', $msg);
 
 		if (empty($msg)) {
 			$this->chatRallyController->clear();

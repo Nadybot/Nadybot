@@ -17,7 +17,7 @@ use Nadybot\Modules\{
 use Psr\Log\LoggerInterface;
 use stdClass;
 
-#[NCA\Migration(order: 20211023192050)]
+#[NCA\Migration(order: 20_211_023_192_050)]
 class MigrateGauntletData implements SchemaMigration {
 	#[NCA\Inject]
 	private WorldBossController $worldBossController;
@@ -29,53 +29,53 @@ class MigrateGauntletData implements SchemaMigration {
 	private TimerController $timerController;
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "timers_<myname>";
+		$table = 'timers_<myname>';
 		if (!$db->schema()->hasTable($table)) {
 			return;
 		}
 		$timer = $db->table($table)
-			->where("name", "Gauntlet")
+			->where('name', 'Gauntlet')
 			->limit(1)->get()->first();
 		if (isset($timer)) {
 			$endtime = (int)$timer->endtime;
 			while ($endtime < time()) {
-				$endtime += 61640;
+				$endtime += 61_640;
 			}
 			$this->worldBossController->worldBossUpdate(
 				new Character((string)$timer->owner),
 				WorldBossController::VIZARESH,
 				$endtime - time(),
 			);
-			$this->timerController->remove("Gauntlet");
+			$this->timerController->remove('Gauntlet');
 		}
 		$timers = $this->timerController->getAllTimers();
 		foreach ($timers as $timer) {
-			if ($timer->callback ===  "GauntletController.gaubuffcallback") {
-				$timer->callback = "GauntletBuffController.gaubuffcallback";
+			if ($timer->callback ===  'GauntletController.gaubuffcallback') {
+				$timer->callback = 'GauntletBuffController.gaubuffcallback';
 			}
 		}
 		$db->table($table)
-			->where("callback", "GauntletController.gaubuffcallback")
-			->update(["callback" => "GauntletBuffController.gaubuffcallback"]);
+			->where('callback', 'GauntletController.gaubuffcallback')
+			->update(['callback' => 'GauntletBuffController.gaubuffcallback']);
 
-		$table = "gauntlet";
+		$table = 'gauntlet';
 		if (!$db->schema()->hasTable($table)) {
-			$channels = ["aoorg", "aopriv(" . $db->getMyname() . ")"];
-			if (!$db->schema()->hasTable("bigboss_timers")) {
+			$channels = ['aoorg', 'aopriv(' . $db->getMyname() . ')'];
+			if (!$db->schema()->hasTable('bigboss_timers')) {
 				foreach ($channels as $channel) {
 					$route = [
-						"source" => "spawn(*)",
-						"destination" => $channel,
-						"two_way" => false,
+						'source' => 'spawn(*)',
+						'destination' => $channel,
+						'two_way' => false,
 					];
 					$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 				}
 			}
 			foreach ($channels as $channel) {
 				$route = [
-					"source" => "system(gauntlet-buff)",
-					"destination" => $channel,
-					"two_way" => false,
+					'source' => 'system(gauntlet-buff)',
+					'destination' => $channel,
+					'two_way' => false,
 				];
 				$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 			}
@@ -90,6 +90,6 @@ class MigrateGauntletData implements SchemaMigration {
 				}
 			});
 		$db->schema()->dropIfExists($table);
-		$db->schema()->dropIfExists("bigboss_timers");
+		$db->schema()->dropIfExists('bigboss_timers');
 	}
 }

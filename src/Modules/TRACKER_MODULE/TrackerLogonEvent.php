@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\TRACKER_MODULE;
 
 class TrackerLogonEvent extends TrackerEvent {
-	public const EVENT_MASK = "tracker(logon)";
+	public const EVENT_MASK = 'tracker(logon)';
 
 	public function __construct(
 		public string $player,

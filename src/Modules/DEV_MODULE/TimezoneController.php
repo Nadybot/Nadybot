@@ -19,10 +19,10 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "timezone",
-		accessLevel: "superadmin",
-		description: "Set the timezone",
-		alias: "timezones"
+		command: 'timezone',
+		accessLevel: 'superadmin',
+		description: 'Set the timezone',
+		alias: 'timezones'
 	)
 ]
 class TimezoneController extends ModuleInstance {
@@ -36,20 +36,20 @@ class TimezoneController extends ModuleInstance {
 	private Filesystem $fs;
 
 	/** Get a list of all time zone areas */
-	#[NCA\HandlesCommand("timezone")]
+	#[NCA\HandlesCommand('timezone')]
 	public function timezoneCommand(CmdContext $context): void {
 		$timezoneAreas = $this->getTimezoneAreas();
 
 		$blob = "<header2>Available timezones areas<end>\n";
 		foreach ($timezoneAreas as $area => $code) {
-			$blob .= "<tab>" . $this->text->makeChatcmd($area, "/tell <myname> timezone {$area}") . "\n";
+			$blob .= '<tab>' . $this->text->makeChatcmd($area, "/tell <myname> timezone {$area}") . "\n";
 		}
-		$msg = $this->text->makeBlob("Timezone Areas", $blob);
+		$msg = $this->text->makeBlob('Timezone Areas', $blob);
 		$context->reply($msg);
 	}
 
 	/** See a list of time zones for an area */
-	#[NCA\HandlesCommand("timezone")]
+	#[NCA\HandlesCommand('timezone')]
 	public function timezoneAreaCommand(CmdContext $context, PWord $area): void {
 		$area = $area();
 
@@ -67,7 +67,7 @@ class TimezoneController extends ModuleInstance {
 
 		$blob = "<header2>Timezones in {$area}<end>\n";
 		foreach ($timezones as $timezone) {
-			$blob .= "<tab>" . $this->text->makeChatcmd($timezone, "/tell <myname> timezone set {$timezone}") . "\n";
+			$blob .= '<tab>' . $this->text->makeChatcmd($timezone, "/tell <myname> timezone set {$timezone}") . "\n";
 		}
 		$msg = $this->text->makeBlob("Timezones for {$area} ({$count})", $blob);
 		$context->reply($msg);
@@ -79,8 +79,8 @@ class TimezoneController extends ModuleInstance {
 	 * This setting <u>permanently affects the entire bot</u>.
 	 * All dates and timestamps will from then on be displayed in the given time zone.
 	 */
-	#[NCA\HandlesCommand("timezone")]
-	public function timezoneSetCommand(CmdContext $context, #[NCA\Str("set")] string $action, PWord $timezone): void {
+	#[NCA\HandlesCommand('timezone')]
+	public function timezoneSetCommand(CmdContext $context, #[NCA\Str('set')] string $action, PWord $timezone): void {
 		$result = date_default_timezone_set($timezone());
 
 		if ($result === false) {

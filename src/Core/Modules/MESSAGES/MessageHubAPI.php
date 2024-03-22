@@ -18,10 +18,10 @@ use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 class MessageHubAPI extends ModuleInstance {
 	/** List all hop colors */
 	#[
-		NCA\Api("/hop/color"),
+		NCA\Api('/hop/color'),
 		NCA\GET,
-		NCA\AccessLevel("all"),
-		NCA\ApiResult(code: 200, class: "RouteHopColor[]", desc: "The hop color definitions")
+		NCA\AccessLevel('all'),
+		NCA\ApiResult(code: 200, class: 'RouteHopColor[]', desc: 'The hop color definitions')
 	]
 	public function apiGetHopColors(Request $request): Response {
 		return ApiResponse::create(MessageHub::$colors->toArray());
@@ -29,10 +29,10 @@ class MessageHubAPI extends ModuleInstance {
 
 	/** List all hop formats */
 	#[
-		NCA\Api("/hop/format"),
+		NCA\Api('/hop/format'),
 		NCA\GET,
-		NCA\AccessLevel("all"),
-		NCA\ApiResult(code: 200, class: "RouteHopFormat[]", desc: "The hop format definitions")
+		NCA\AccessLevel('all'),
+		NCA\ApiResult(code: 200, class: 'RouteHopFormat[]', desc: 'The hop format definitions')
 	]
 	public function apiGetHopFormats(Request $request): Response {
 		return ApiResponse::create(Source::$format->toArray());

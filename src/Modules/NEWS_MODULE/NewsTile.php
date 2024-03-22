@@ -25,13 +25,13 @@ class NewsTile {
 	public Closure $callback;
 
 	public function __construct(string $name, callable $callback) {
-		if (strpos($name, ";") !== false) {
+		if (str_contains($name, ';')) {
 			throw new InvalidArgumentException("The news tile {$name} contains a semicolon.");
 		}
 		$this->name = $name;
 		$this->callback = Closure::fromCallable($callback);
 		$ref = new ReflectionFunction($this->callback);
-		$funcHint = "function";
+		$funcHint = 'function';
 		$scopeClass = $ref->getClosureScopeClass();
 		if ($scopeClass !== null) {
 			$funcHint .= " {$scopeClass->name}::{$ref->name}()";
@@ -40,7 +40,7 @@ class NewsTile {
 		if (count($params) !== 1) {
 			throw new InvalidArgumentException(
 				"The news tile {$name}'s callback {$funcHint} does not accept ".
-				"exactly 1 argument"
+				'exactly 1 argument'
 			);
 		}
 		if ($params[0]->hasType()) {
@@ -50,7 +50,7 @@ class NewsTile {
 			} elseif ($type instanceof \ReflectionIntersectionType) {
 				throw new InvalidArgumentException(
 					"The news tile {$name}'s callback {$funcHint} has an unsupported type ".
-					"as first argument"
+					'as first argument'
 				);
 			} elseif ($type instanceof ReflectionUnionType) {
 				$typeNames = [];
@@ -62,13 +62,13 @@ class NewsTile {
 			} else {
 				throw new InvalidArgumentException(
 					"The news tile {$name}'s callback {$funcHint} has an unsupported type ".
-					"as first argument"
+					'as first argument'
 				);
 			}
-			if (!in_array("string", $typeNames)) {
+			if (!in_array('string', $typeNames)) {
 				throw new InvalidArgumentException(
 					"The news tile {$name}'s callback {$funcHint} does not accept ".
-					"a string as first argument"
+					'a string as first argument'
 				);
 			}
 		}

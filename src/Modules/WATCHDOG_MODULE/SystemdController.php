@@ -33,15 +33,15 @@ class SystemdController extends ModuleInstance {
 		$this->enabled = $this->isSystemdWatchdogEnabled(false, $usec) === 1;
 		if ($this->enabled) {
 			$this->watchdogInterval = max(1, (int)floor($usec / 1_000_000));
-			$this->eventManager->activateIfDeactivated($this, "watchdogPing");
+			$this->eventManager->activateIfDeactivated($this, 'watchdogPing');
 		} else {
-			$this->eventManager->deactivateIfActivated($this, "watchdogPing");
+			$this->eventManager->deactivateIfActivated($this, 'watchdogPing');
 		}
 	}
 
 	#[NCA\Event(
-		name: "timer(1sec)",
-		description: "Handle SystemD watchdog",
+		name: 'timer(1sec)',
+		description: 'Handle SystemD watchdog',
 		defaultStatus: 0
 	)]
 	public function watchdogPing(Event $event): void {
@@ -102,13 +102,13 @@ class SystemdController extends ModuleInstance {
 		}
 
 		// Must be an abstract socket, or an absolute path
-		if (strlen($notifySocket) < 2 || (strpos($notifySocket, '@') !== 0 && strpos($notifySocket, '/') !== 0)) {
+		if (strlen($notifySocket) < 2 || (!str_starts_with($notifySocket, '@')   && !str_starts_with($notifySocket, '/'))) {
 			$result = -1 * self::EINVAL;
 			return [null, $result];
 		}
 
 		// @phpstan-ignore-next-line
-		$fd = socket_create(AF_UNIX, SOCK_DGRAM, 0);
+		$fd = socket_create(\AF_UNIX, \SOCK_DGRAM, 0);
 		if ($fd === false) {
 			$result = -1 * socket_last_error();
 			return [$fd, $result];
@@ -123,7 +123,7 @@ class SystemdController extends ModuleInstance {
 			],
 			'control' => [],
 		];
-		if (strpos($messageHeader['name']['path'], '@') === 0) {
+		if (str_starts_with($messageHeader['name']['path'], '@')) {
 			$messageHeader['name'][0] = "\x00";
 		}
 
@@ -132,16 +132,16 @@ class SystemdController extends ModuleInstance {
 		if (count($fds) > 0 || $havePID) {
 			if (count($fds)) {
 				$messageHeader['control'][] = [
-					'level' => SOL_SOCKET,
-					'type' => SCM_RIGHTS,
+					'level' => \SOL_SOCKET,
+					'type' => \SCM_RIGHTS,
 					'data' => $fds,
 				];
 			}
 
 			if ($havePID) {
 				$messageHeader['control'][] = [
-					'level' => SOL_SOCKET,
-					'type' => SCM_CREDENTIALS,
+					'level' => \SOL_SOCKET,
+					'type' => \SCM_CREDENTIALS,
 					'data' => [
 						'pid' => $pid,
 						'uid' => getmyuid(),
@@ -153,7 +153,7 @@ class SystemdController extends ModuleInstance {
 
 		// First try with fake ucred data, as requested
 		// @phpstan-ignore-next-line
-		if (@socket_sendmsg($fd, $messageHeader, MSG_NOSIGNAL) !== false) {
+		if (@socket_sendmsg($fd, $messageHeader, \MSG_NOSIGNAL) !== false) {
 			$result = 1;
 			return [$fd, $result];
 		}
@@ -163,7 +163,7 @@ class SystemdController extends ModuleInstance {
 			$messageHeader['control'] = [];
 
 			// @phpstan-ignore-next-line
-			if (@socket_sendmsg($fd, $messageHeader, MSG_NOSIGNAL) !== false) {
+			if (@socket_sendmsg($fd, $messageHeader, \MSG_NOSIGNAL) !== false) {
 				return [$fd, 1];
 			}
 		}
@@ -196,7 +196,7 @@ class SystemdController extends ModuleInstance {
 			return 0;
 		}
 
-		if (false === filter_var($watchdogUsec, FILTER_VALIDATE_INT)) {
+		if (false === filter_var($watchdogUsec, \FILTER_VALIDATE_INT)) {
 			return -1 * self::EINVAL;
 		}
 		$watchdogUsec = (int)$watchdogUsec;

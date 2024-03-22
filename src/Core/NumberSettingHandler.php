@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 
-#[NCA\SettingHandler("number")]
+#[NCA\SettingHandler('number')]
 class NumberSettingHandler extends SettingHandler {
 	/** @inheritDoc */
 	public function getDescription(): string {
@@ -24,6 +24,6 @@ class NumberSettingHandler extends SettingHandler {
 		if (ctype_digit($newValue)) {
 			return $newValue;
 		}
-		throw new Exception("You must enter a positive integer for this setting.");
+		throw new Exception('You must enter a positive integer for this setting.');
 	}
 }

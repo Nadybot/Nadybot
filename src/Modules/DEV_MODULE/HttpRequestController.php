@@ -21,9 +21,9 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "httprequest",
-		accessLevel: "mod",
-		description: "Test http/https requests"
+		command: 'httprequest',
+		accessLevel: 'mod',
+		description: 'Test http/https requests'
 	)
 ]
 class HttpRequestController extends ModuleInstance {
@@ -34,7 +34,7 @@ class HttpRequestController extends ModuleInstance {
 	private HttpClientBuilder $builder;
 
 	/** Load the given URL and show the result */
-	#[NCA\HandlesCommand("httprequest")]
+	#[NCA\HandlesCommand('httprequest')]
 	public function httprequestCommand(CmdContext $context, string $url): void {
 		$client = $this->builder->build();
 		try {
@@ -47,12 +47,12 @@ class HttpRequestController extends ModuleInstance {
 			$context->reply("<highlight>{$url}<end> is not a valid domain.");
 			return;
 		} catch (Throwable $e) {
-			$context->reply("Error retrieving data: ". $e->getMessage());
+			$context->reply('Error retrieving data: '. $e->getMessage());
 			return;
 		}
 		$blob = "<header2>Headers<end>\n";
-		$blob .= "<tab>HTTP/" . $response->getProtocolVersion() . " ".
-			$response->getStatus() . " " . $response->getReason() . "\n";
+		$blob .= '<tab>HTTP/' . $response->getProtocolVersion() . ' '.
+			$response->getStatus() . ' ' . $response->getReason() . "\n";
 		foreach ($response->getHeaderPairs() as $header) {
 			[$field, $value] = $header;
 			$blob .= "<tab>{$field}: <highlight>{$value}<end>\n";
@@ -61,7 +61,7 @@ class HttpRequestController extends ModuleInstance {
 			$blob .= "\n<pagebreak><header2>Body<end>";
 			try {
 				$decoded = json_decode($body);
-				$body = json_encode($decoded, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+				$body = json_encode($decoded, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES);
 			} catch (JsonException $e) {
 			}
 			$lines = preg_split("/\r?\n/", htmlspecialchars($body));
@@ -73,7 +73,7 @@ class HttpRequestController extends ModuleInstance {
 				}
 			}
 		}
-		$msg = $this->text->makeBlob("Reply received", $blob, "Server reply");
+		$msg = $this->text->makeBlob('Reply received', $blob, 'Server reply');
 		$context->reply($msg);
 	}
 }

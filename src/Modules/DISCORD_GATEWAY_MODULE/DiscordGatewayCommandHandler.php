@@ -28,13 +28,13 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "extauth",
-		accessLevel: "all",
-		description: "Link an AO account with a Discord user",
+		command: 'extauth',
+		accessLevel: 'all',
+		description: 'Link an AO account with a Discord user',
 	)
 ]
 class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevelProvider {
-	public const DB_TABLE = "discord_mapping_<myname>";
+	public const DB_TABLE = 'discord_mapping_<myname>';
 
 	#[NCA\Inject]
 	private DB $db;
@@ -63,8 +63,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
-		$this->commandManager->registerSource(Source::DISCORD_MSG . "(*)");
-		$this->commandManager->registerSource(Source::DISCORD_PRIV . "(*)");
+		$this->commandManager->registerSource(Source::DISCORD_MSG . '(*)');
+		$this->commandManager->registerSource(Source::DISCORD_PRIV . '(*)');
 	}
 
 	public function getSingleAccessLevel(string $sender): ?string {
@@ -78,7 +78,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 					continue;
 				}
 				if ($member->user->id === $sender) {
-					return "guest";
+					return 'guest';
 				}
 			}
 		}
@@ -88,16 +88,16 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	public function getNameForDiscordId(string $discordId): ?string {
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
-			->where("discord_id", $discordId)
-			->whereNotNull("confirmed")
+			->where('discord_id', $discordId)
+			->whereNotNull('confirmed')
 			->asObj(DiscordMapping::class)
 			->first();
 		return $data ? $data->name : null;
 	}
 
 	/** Accept to be linked with a Discord account */
-	#[NCA\HandlesCommand("extauth")]
-	public function extAuthAccept(CmdContext $context, #[NCA\Str("accept")] string $action, string $uid): void {
+	#[NCA\HandlesCommand('extauth')]
+	public function extAuthAccept(CmdContext $context, #[NCA\Str('accept')] string $action, string $uid): void {
 		if (!$context->isDM()) {
 			return;
 		}
@@ -105,8 +105,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
-			->where("name", $uid)
-			->whereNotNull("confirmed")
+			->where('name', $uid)
+			->whereNotNull('confirmed')
 			->asObj(DiscordMapping::class)
 			->first();
 		if ($data !== null) {
@@ -117,43 +117,43 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
-			->where("name", $context->char->name)
-			->where("token", $uid)
+			->where('name', $context->char->name)
+			->where('token', $uid)
 			->asObj(DiscordMapping::class)
 			->first();
 		if ($data === null) {
-			$msg = "There is currently no request to link with this token.";
+			$msg = 'There is currently no request to link with this token.';
 			$context->reply($msg);
 			return;
 		}
 		$this->db->table(self::DB_TABLE)
-			->where("name", $context->char->name)
-			->where("token", $uid)
+			->where('name', $context->char->name)
+			->where('token', $uid)
 			->update([
-				"confirmed" => time(),
-				"token" => null,
+				'confirmed' => time(),
+				'token' => null,
 			]);
 		$guilds = $this->discordGatewayController->getGuilds();
 		$guild = $guilds[array_keys($guilds)[0]] ?? null;
 		if (isset($guild)) {
 			$this->discordGatewayController->handleAccountLinking($guild->id, $data->discord_id, $context->char->name);
 		}
-		$msg = "You have linked your accounts successfully.";
+		$msg = 'You have linked your accounts successfully.';
 		$context->reply($msg);
 	}
 
 	/** Reject to be linked with a Discord account */
-	#[NCA\HandlesCommand("extauth")]
-	public function extAuthRejectCommand(CmdContext $context, #[NCA\Str("reject")] string $action, string $uid): void {
+	#[NCA\HandlesCommand('extauth')]
+	public function extAuthRejectCommand(CmdContext $context, #[NCA\Str('reject')] string $action, string $uid): void {
 		if (!$context->isDM()) {
 			return;
 		}
 		$uid = strtoupper($uid);
 		$this->db->table(self::DB_TABLE)
-			->where("token", $uid)
-			->where("name", $context->char->name)
+			->where('token', $uid)
+			->where('name', $context->char->name)
 			->delete();
-		$msg = "The request has been rejected.";
+		$msg = 'The request has been rejected.';
 		$context->reply($msg);
 	}
 
@@ -162,16 +162,15 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	 *
 	 * Follow the instructions you received on your AO character
 	 */
-	#[NCA\HandlesCommand("extauth")]
+	#[NCA\HandlesCommand('extauth')]
 	#[NCA\Help\Epilogue(
 		"<header2>Be careful:<end>\n\n".
 		"Linking your Discord user with an AO character effectively\n".
-		"gives the Discord user the same rights!"
+		'gives the Discord user the same rights!'
 	)]
 	public function extAuthCommand(
 		CmdContext $context,
-		#[NCA\Str("request")]
-		string $action,
+		#[NCA\Str('request')] string $action,
 		PCharacter $char
 	): void {
 		$discordUserId = $context->char->name;
@@ -191,8 +190,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
-			->where("name", $name)
-			->whereNotNull("confirmed")
+			->where('name', $name)
+			->whereNotNull('confirmed')
 			->asObj(DiscordMapping::class)
 			->first();
 		if ($data !== null) {
@@ -203,8 +202,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
-			->where("name", $name)
-			->where("discord_id", $discordUserId)
+			->where('name', $name)
+			->where('discord_id', $discordUserId)
 			->asObj(DiscordMapping::class)
 			->first();
 		// Never tried to link before
@@ -212,43 +211,43 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			$uid = strtoupper(bin2hex(random_bytes(16)));
 			$this->db->table(self::DB_TABLE)
 				->insert([
-					"name" => $name,
-					"discord_id" => $discordUserId,
-					"token" => $uid,
-					"created" => time(),
+					'name' => $name,
+					'discord_id' => $discordUserId,
+					'token' => $uid,
+					'created' => time(),
 				]);
 		} else {
 			$uid = $data->token;
 		}
 
 		$user = $this->discordAPIClient->getUser($discordUserId);
-		$context->char->name = $user->username . "#" . $user->discriminator;
+		$context->char->name = $user->username . '#' . $user->discriminator;
 		$blob = "The Discord user <highlight>{$context->char->name}<end> has requested to be linked with your ".
-			"game account. If you confirm the link, that discord user will be linked ".
-			"with this account, be able to run the same commands and have the same rights ".
+			'game account. If you confirm the link, that discord user will be linked '.
+			'with this account, be able to run the same commands and have the same rights '.
 			"as you.\n".
 			"If you haven't requested this link, then <red>reject<end> it!\n".
 			"\n".
-			"[".
-				$this->text->makeChatcmd("Accept", "/tell <myname> extauth accept {$uid}").
-			"]    ".
-			"[".
-				$this->text->makeChatcmd("Reject", "/tell <myname> extauth reject {$uid}").
-			"]";
+			'['.
+				$this->text->makeChatcmd('Accept', "/tell <myname> extauth accept {$uid}").
+			']    '.
+			'['.
+				$this->text->makeChatcmd('Reject', "/tell <myname> extauth reject {$uid}").
+			']';
 		$msg = $this->text->makeBlob("Request to link your account with {$context->char->name}", $blob);
-		$msg = $this->text->blobWrap("You have received a ", $msg, ".");
+		$msg = $this->text->blobWrap('You have received a ', $msg, '.');
 		$this->chatBot->sendMassTell($msg, $name);
 
 		$context->reply(
 			"I sent a tell to {$name} on Anarchy Online. ".
-			"Follow the instructions there to finish linking these 2 accounts."
+			'Follow the instructions there to finish linking these 2 accounts.'
 		);
 	}
 
 	/** Handle an incoming discord private message */
 	#[NCA\Event(
-		name: "discordmsg",
-		description: "Handle commands from Discord private messages"
+		name: 'discordmsg',
+		description: 'Handle commands from Discord private messages'
 	)]
 	public function processDiscordDirectMessage(DiscordMessageEvent $event): void {
 		$discordUserId = $event->discord_message->author->id ?? $event->sender;
@@ -260,8 +259,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 
 	/** Handle an incoming discord channel message */
 	#[NCA\Event(
-		name: "discordpriv",
-		description: "Handle commands from Discord channel messages"
+		name: 'discordpriv',
+		description: 'Handle commands from Discord channel messages'
 	)]
 	public function processDiscordChannelMessage(DiscordMessageEvent $event): void {
 		$discordUserId = $event->discord_message->author->id ?? $event->sender;

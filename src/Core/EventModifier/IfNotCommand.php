@@ -12,9 +12,9 @@ use Nadybot\Core\{
 
 #[
 	NCA\EventModifier(
-		name: "if-not-command",
+		name: 'if-not-command',
 		description: "This modifier will only route messages that are\n".
-			"not a command or a reply to a command."
+			'not a command or a reply to a command.'
 	)
 ]
 class IfNotCommand implements EventModifier {
@@ -36,7 +36,7 @@ class IfNotCommand implements EventModifier {
 		if (!isset($message)) {
 			return null;
 		}
-		if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
+		if ($message[0] == $this->settingManager->get('symbol') && strlen($message) > 1) {
 			return null;
 		}
 		return $event;

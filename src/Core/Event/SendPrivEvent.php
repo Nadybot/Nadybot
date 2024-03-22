@@ -4,7 +4,7 @@ namespace Nadybot\Core\Event;
 
 /** We send a message to a private channel */
 class SendPrivEvent extends AOChatEvent {
-	public const EVENT_MASK = "sendpriv";
+	public const EVENT_MASK = 'sendpriv';
 
 	/**
 	 * @param string      $sender  Either the name of the sender or the numeric UID (eg. city raid accouncements)

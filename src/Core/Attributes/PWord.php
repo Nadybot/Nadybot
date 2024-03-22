@@ -17,16 +17,16 @@ class PWord implements ParamAttribute {
 		if (isset($this->example)) {
 			return $this->example;
 		}
-		return "&lt;" . preg_replace_callback(
-			"/([A-Z]+)/",
-			function (array $matches): string {
-				return " " . strtolower($matches[1]);
+		return '&lt;' . preg_replace_callback(
+			'/([A-Z]+)/',
+			static function (array $matches): string {
+				return ' ' . strtolower($matches[1]);
 			},
 			$param->getName(),
-		) . "&gt;";
+		) . '&gt;';
 	}
 
 	public function getRegexp(): string {
-		return "[^ ]+";
+		return '[^ ]+';
 	}
 }

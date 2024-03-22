@@ -11,11 +11,9 @@ class Proxy {
 	 * @param int    $port    Port of the proxy server
 	 */
 	public function __construct(
-		#[CastToType("bool")]
-		public bool $enabled=false,
+		#[CastToType('bool')] public bool $enabled=false,
 		public string $server='127.0.0.1',
-		#[CastToType("int")]
-		public int $port=9993,
+		#[CastToType('int')] public int $port=9_993,
 	) {
 	}
 }

@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\ALTS;
 
 class AltValidateEvent extends AltEvent {
-	public const EVENT_MASK = "alt(validate)";
+	public const EVENT_MASK = 'alt(validate)';
 
 	public function __construct(
 		public string $main,

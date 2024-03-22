@@ -23,30 +23,30 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "rally",
-		accessLevel: "guest",
-		description: "Shows the rally waypoint",
+		command: 'rally',
+		accessLevel: 'guest',
+		description: 'Shows the rally waypoint',
 	),
 	NCA\DefineCommand(
 		command: ChatRallyController::CMD_RALLY_SET,
-		accessLevel: "rl",
-		description: "Sets the rally waypoint",
+		accessLevel: 'rl',
+		description: 'Sets the rally waypoint',
 	),
 	NCA\ProvidesEvent(
 		event: SyncRallySetEvent::class,
-		desc: "Triggered when a rally point is set",
+		desc: 'Triggered when a rally point is set',
 	),
 	NCA\ProvidesEvent(
 		event: SyncRallyClearEvent::class,
-		desc: "Triggered when someone clears the rally point",
+		desc: 'Triggered when someone clears the rally point',
 	)
 ]
 class ChatRallyController extends ModuleInstance {
-	public const CMD_RALLY_SET = "rally set/clear";
+	public const CMD_RALLY_SET = 'rally set/clear';
 
 	/** Rally waypoint for topic */
-	#[NCA\Setting\Text(mode: "noedit")]
-	public string $rally = "";
+	#[NCA\Setting\Text(mode: 'noedit')]
+	public string $rally = '';
 
 	#[NCA\Inject]
 	private SettingManager $settingManager;
@@ -67,7 +67,7 @@ class ChatRallyController extends ModuleInstance {
 	private ChatLeaderController $chatLeaderController;
 
 	/** Display the current rally location */
-	#[NCA\HandlesCommand("rally")]
+	#[NCA\HandlesCommand('rally')]
 	public function rallyCommand(CmdContext $context): void {
 		$this->replyCurrentRally($context);
 	}
@@ -76,16 +76,15 @@ class ChatRallyController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RALLY_SET)]
 	public function rallyClearCommand(
 		CmdContext $context,
-		#[NCA\Str("clear")]
-		string $action
+		#[NCA\Str('clear')] string $action
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
 		$this->clear();
-		$msg = "Rally has been cleared.";
+		$msg = 'Rally has been cleared.';
 		$context->reply($msg);
 		$rEvent = new SyncRallyClearEvent(
 			owner: $context->char->name,
@@ -96,19 +95,17 @@ class ChatRallyController extends ModuleInstance {
 
 	/** Set the rally waypoint */
 	#[NCA\HandlesCommand(self::CMD_RALLY_SET)]
-	#[NCA\Help\Example("<symbol>rally 10.9 x 30 x 560")]
-	#[NCA\Help\Example("<symbol>rally 10.9 . 30 . 4HO")]
-	#[NCA\Help\Example("<symbol>rally 10.9, 30, 560")]
+	#[NCA\Help\Example('<symbol>rally 10.9 x 30 x 560')]
+	#[NCA\Help\Example('<symbol>rally 10.9 . 30 . 4HO')]
+	#[NCA\Help\Example('<symbol>rally 10.9, 30, 560')]
 	public function rallySet2Command(
 		CmdContext $context,
-		#[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")]
-		string $x,
-		#[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")]
-		string $y,
+		#[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $x,
+		#[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $y,
 		PWord $playfield
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 		$xCoords = (float)$x;
@@ -147,10 +144,10 @@ class ChatRallyController extends ModuleInstance {
 
 	/** Set the rally waypoint */
 	#[NCA\HandlesCommand(self::CMD_RALLY_SET)]
-	#[NCA\Help\Example("<symbol>rally (10.9 30.0 y 20.1 550)")]
+	#[NCA\Help\Example('<symbol>rally (10.9 30.0 y 20.1 550)')]
 	public function rallySet1Command(CmdContext $context, string $pasteFromF9): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
@@ -159,7 +156,7 @@ class ChatRallyController extends ModuleInstance {
 			$yCoords = $matches[2];
 			$playfieldId = (int)$matches[3];
 		} else {
-			$context->reply("This does not look like full coordinates. Please press shift+F9 and paste the first line starting with a dash.");
+			$context->reply('This does not look like full coordinates. Please press shift+F9 and paste the first line starting with a dash.');
 			return;
 		}
 
@@ -184,7 +181,7 @@ class ChatRallyController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: SyncRallySetEvent::EVENT_MASK,
-		description: "Handle synced rally sets"
+		description: 'Handle synced rally sets'
 	)]
 	public function handleExtRallySet(SyncRallySetEvent $event): void {
 		if ($event->isLocal()) {
@@ -195,7 +192,7 @@ class ChatRallyController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: SyncRallyClearEvent::EVENT_MASK,
-		description: "Handle synced rally clears"
+		description: 'Handle synced rally clears'
 	)]
 	public function handleExtRallyClear(SyncRallyClearEvent $event): void {
 		if ($event->isLocal()) {
@@ -206,7 +203,7 @@ class ChatRallyController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: JoinMyPrivEvent::EVENT_MASK,
-		description: "Sends rally to players joining the private channel"
+		description: 'Sends rally to players joining the private channel'
 	)]
 	public function sendRally(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -218,31 +215,31 @@ class ChatRallyController extends ModuleInstance {
 	}
 
 	public function set(string $name, int $playfieldId, string $xCoords, string $yCoords): string {
-		$this->settingManager->save("rally", join(":", array_map("strval", func_get_args())));
+		$this->settingManager->save('rally', implode(':', array_map('strval', func_get_args())));
 
 		return $this->get();
 	}
 
 	public function get(): string {
 		$data = $this->rally;
-		if (strpos($data, ":") === false) {
-			return "";
+		if (!str_contains($data, ':')) {
+			return '';
 		}
-		[$name, $playfieldId, $xCoords, $yCoords] = explode(":", $data);
+		[$name, $playfieldId, $xCoords, $yCoords] = explode(':', $data);
 		$link = $this->text->makeChatcmd("Rally: {$xCoords}x{$yCoords} {$name}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
 		$blob = "Click here to use rally: {$link}";
-		$blob .= "\n\n" . $this->text->makeChatcmd("Clear Rally", "/tell <myname> rally clear");
+		$blob .= "\n\n" . $this->text->makeChatcmd('Clear Rally', '/tell <myname> rally clear');
 		return ((array)$this->text->makeBlob("Rally: {$xCoords}x{$yCoords} {$name}", $blob))[0];
 	}
 
 	public function clear(): void {
-		$this->settingManager->save("rally", '');
+		$this->settingManager->save('rally', '');
 	}
 
 	public function replyCurrentRally(CommandReply $sendto): void {
 		$rally = $this->get();
 		if ($rally === '') {
-			$msg = "No rally set.";
+			$msg = 'No rally set.';
 			$sendto->reply($msg);
 			return;
 		}
@@ -251,19 +248,19 @@ class ChatRallyController extends ModuleInstance {
 
 	#[
 		NCA\NewsTile(
-			name: "rally",
-			description: "Will show a waypoint-link to the current rally-point - if any",
+			name: 'rally',
+			description: 'Will show a waypoint-link to the current rally-point - if any',
 			example: "<header2>Rally<end>\n".
-				"<tab>We are rallying <u>here</u>"
+				'<tab>We are rallying <u>here</u>'
 		)
 	]
 	public function rallyTile(string $sender): ?string {
 		$data = $this->rally;
-		if (strpos($data, ":") === false) {
+		if (!str_contains($data, ':')) {
 			return null;
 		}
-		[$name, $playfieldId, $xCoords, $yCoords] = explode(":", $data);
-		$link = $this->text->makeChatcmd("here", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
+		[$name, $playfieldId, $xCoords, $yCoords] = explode(':', $data);
+		$link = $this->text->makeChatcmd('here', "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
 		return "<header2>Rally<end>\n<tab>We are rallying {$link}";
 	}
 }

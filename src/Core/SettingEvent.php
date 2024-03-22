@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 class SettingEvent extends Event {
-	public const EVENT_MASK = "setting(*)";
+	public const EVENT_MASK = 'setting(*)';
 
 	public function __construct(
 		public string $setting,

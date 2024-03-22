@@ -13,7 +13,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20220403072712)]
+#[NCA\Migration(order: 20_220_403_072_712)]
 class MigrateVoiceStateToRoutes implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$setting = $this->getSetting($db, 'discord_notify_voice_changes');
@@ -22,17 +22,17 @@ class MigrateVoiceStateToRoutes implements SchemaMigration {
 		}
 		if ((int)$setting->value & 1) {
 			$route = [
-				"source" => Source::DISCORD_PRIV . "(< *)",
-				"destination" => Source::PRIV . "(" . $db->getBotname() . ")",
-				"two_way" => false,
+				'source' => Source::DISCORD_PRIV . '(< *)',
+				'destination' => Source::PRIV . '(' . $db->getBotname() . ')',
+				'two_way' => false,
 			];
 			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
 		if ((int)$setting->value & 2) {
 			$route = [
-				"source" => Source::DISCORD_PRIV . "(< *)",
-				"destination" => Source::ORG,
-				"two_way" => false,
+				'source' => Source::DISCORD_PRIV . '(< *)',
+				'destination' => Source::ORG,
+				'two_way' => false,
 			];
 			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
@@ -40,7 +40,7 @@ class MigrateVoiceStateToRoutes implements SchemaMigration {
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
+			->where('name', $name)
 			->asObj(Setting::class)
 			->first();
 	}

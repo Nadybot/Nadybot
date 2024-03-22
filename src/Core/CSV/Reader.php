@@ -20,7 +20,7 @@ class Reader {
 	 * @return array<mixed>|\Generator<array<string,mixed>>
 	 */
 	public function items(): iterable {
-		$file = $this->filesystem->openFile($this->file, "r");
+		$file = $this->filesystem->openFile($this->file, 'r');
 		if ($file->eof()) {
 			$file->close();
 			return [];
@@ -35,7 +35,7 @@ class Reader {
 
 		/** @var string[] */
 		$headers = str_getcsv($line);
-		while ((count($headers) === 1) && is_string($headers[0]) && $headers[0][0] === "#") {
+		while ((count($headers) === 1) && is_string($headers[0]) && $headers[0][0] === '#') {
 			$iter->next();
 			if (!$iter->valid()) {
 				$file->close();
@@ -50,9 +50,9 @@ class Reader {
 		$iter->next();
 		while ($iter->valid()) {
 			$line = $iter->current();
-			$line = Safe::pregReplace("/^,/", "\x00,", $line);
-			$line = Safe::pregReplace("/,$/", ",\x00", rtrim($line));
-			$line = Safe::pregReplace("/,(?=,)/", ",\x00", $line);
+			$line = Safe::pregReplace('/^,/', "\x00,", $line);
+			$line = Safe::pregReplace('/,$/', ",\x00", rtrim($line));
+			$line = Safe::pregReplace('/,(?=,)/', ",\x00", $line);
 			$row = str_getcsv($line);
 			if ($row === [null]) { // Skip blank lines
 				$iter->next();

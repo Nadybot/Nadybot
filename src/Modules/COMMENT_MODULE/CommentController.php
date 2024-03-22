@@ -30,35 +30,35 @@ use Psr\Log\LoggerInterface;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "comment",
-		accessLevel: "member",
-		description: "read/write comments about players",
+		command: 'comment',
+		accessLevel: 'member',
+		description: 'read/write comments about players',
 		alias: 'comments',
 	),
 	NCA\DefineCommand(
-		command: "comment categories",
-		accessLevel: "mod",
-		description: "Manage comment categories",
+		command: 'comment categories',
+		accessLevel: 'mod',
+		description: 'Manage comment categories',
 	),
 ]
 class CommentController extends ModuleInstance {
-	public const ADMIN = "admin";
+	public const ADMIN = 'admin';
 
 	/** How long is the cooldown between leaving 2 comments for the same character */
-	#[NCA\Setting\Time(options: ["1s", "1h", "6h", "24h"])]
-	public int $commentCooldown = 6 * 3600;
+	#[NCA\Setting\Time(options: ['1s', '1h', '6h', '24h'])]
+	public int $commentCooldown = 6 * 3_600;
 
 	/** Share comments between bots on same database */
 	#[NCA\Setting\Boolean]
 	public bool $shareComments = false;
 
 	/** Database table for comments */
-	#[NCA\Setting\Text(mode: "noedit")]
-	public string $tableNameComments = "comments_<myname>";
+	#[NCA\Setting\Text(mode: 'noedit')]
+	public string $tableNameComments = 'comments_<myname>';
 
 	/** Database table for comment categories */
-	#[NCA\Setting\Text(mode: "noedit")]
-	public string $tableNameCommentCategories = "comment_categories_<myname>";
+	#[NCA\Setting\Text(mode: 'noedit')]
+	public string $tableNameCommentCategories = 'comment_categories_<myname>';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -90,111 +90,111 @@ class CommentController extends ModuleInstance {
 	#[NCA\Setup]
 	public function setup(): void {
 		$sm = $this->settingManager;
-		$this->db->registerTableName("comments", $this->tableNameComments);
-		$this->db->registerTableName("comment_categories", $this->tableNameCommentCategories);
+		$this->db->registerTableName('comments', $this->tableNameComments);
+		$this->db->registerTableName('comment_categories', $this->tableNameCommentCategories);
 	}
 
-	#[NCA\SettingChangeHandler("share_comments")]
+	#[NCA\SettingChangeHandler('share_comments')]
 	public function changeTableSharing(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		if ($oldValue === $newValue) {
 			return;
 		}
-		$this->logger->info("Comment sharing changed");
+		$this->logger->info('Comment sharing changed');
 		$oldCommentTable = $this->tableNameComments;
 		$oldCategoryTable = $this->tableNameCommentCategories;
 		$this->db->beginTransaction();
 		try {
 			// read all current entries
 			/** @var Comment[] */
-			$comments = $this->db->table("<table:comments>")->asObj(Comment::class)->toArray();
+			$comments = $this->db->table('<table:comments>')->asObj(Comment::class)->toArray();
 
 			/** @var CommentCategory[] */
-			$cats = $this->db->table("<table:comment_categories>")->asObj(CommentCategory::class)->toArray();
-			if ($newValue === "1") {
+			$cats = $this->db->table('<table:comment_categories>')->asObj(CommentCategory::class)->toArray();
+			if ($newValue === '1') {
 				// save new name
-				$newCommentTable = "comments";
-				$newCategoryTable = "comment_categories";
-				if (!$this->db->schema()->hasTable("comments")) {
+				$newCommentTable = 'comments';
+				$newCategoryTable = 'comment_categories';
+				if (!$this->db->schema()->hasTable('comments')) {
 					$this->logger->notice('Creating table comments');
-					$this->db->schema()->create("comments", function (Blueprint $table): void {
+					$this->db->schema()->create('comments', static function (Blueprint $table): void {
 						$table->id();
-						$table->string("character", 15)->index();
-						$table->string("created_by", 15);
-						$table->integer("created_at");
-						$table->string("category", 20)->index();
-						$table->text("comment");
+						$table->string('character', 15)->index();
+						$table->string('created_by', 15);
+						$table->integer('created_at');
+						$table->string('category', 20)->index();
+						$table->text('comment');
 					});
 				}
-				if (!$this->db->schema()->hasTable("comment_categories")) {
-					$this->db->schema()->create("comment_categories", function (Blueprint $table): void {
-						$table->string("name", 20)->primary();
-						$table->string("created_by", 15);
-						$table->integer("created_at");
-						$table->string("min_al_read", 25)->default('all');
-						$table->string("min_al_write", 25)->default('all');
-						$table->boolean("user_managed")->default(true);
+				if (!$this->db->schema()->hasTable('comment_categories')) {
+					$this->db->schema()->create('comment_categories', static function (Blueprint $table): void {
+						$table->string('name', 20)->primary();
+						$table->string('created_by', 15);
+						$table->integer('created_at');
+						$table->string('min_al_read', 25)->default('all');
+						$table->string('min_al_write', 25)->default('all');
+						$table->boolean('user_managed')->default(true);
 					});
 				}
 			} else {
 				// save new name
-				$newCommentTable = "comments_<myname>";
-				$newCategoryTable = "comment_categories_<myname>";
+				$newCommentTable = 'comments_<myname>';
+				$newCategoryTable = 'comment_categories_<myname>';
 			}
-			$this->db->registerTableName("comments", $newCommentTable);
-			$this->db->registerTableName("comment_categories", $newCategoryTable);
+			$this->db->registerTableName('comments', $newCommentTable);
+			$this->db->registerTableName('comment_categories', $newCategoryTable);
 			// make sure own table schema exists
-			$this->logger->notice("Ensuring new tables and indexes exist");
+			$this->logger->notice('Ensuring new tables and indexes exist');
 			// copy all categories and comments to the shared table if they do not exist already
-			$this->logger->notice("Copying comment categories from {old_table} to {new_table}.", [
-				"old_table" => $oldCategoryTable,
-				"new_table" => $newCategoryTable,
+			$this->logger->notice('Copying comment categories from {old_table} to {new_table}.', [
+				'old_table' => $oldCategoryTable,
+				'new_table' => $newCategoryTable,
 			]);
 			foreach ($cats as $cat) {
-				$exists = $this->db->table("<table:comment_categories>")
-					->where("name", $cat->name)->exists();
+				$exists = $this->db->table('<table:comment_categories>')
+					->where('name', $cat->name)->exists();
 				if (!$exists) {
-					$this->db->insert("<table:comment_categories>", $cat, null);
+					$this->db->insert('<table:comment_categories>', $cat, null);
 				}
 			}
-			$this->logger->notice("Copying comments from {old_table} to {new_table}.", [
-				"old_table" => $oldCommentTable,
-				"new_table" => $newCommentTable,
+			$this->logger->notice('Copying comments from {old_table} to {new_table}.', [
+				'old_table' => $oldCommentTable,
+				'new_table' => $newCommentTable,
 			]);
 			foreach ($comments as $comment) {
-				$exists = $this->db->table("<table:comments>")
-					->where("category", $comment->category)
-					->where("character", $comment->character)
-					->where("created_by", $comment->created_by)
-					->where("comment", $comment->comment)
+				$exists = $this->db->table('<table:comments>')
+					->where('category', $comment->category)
+					->where('character', $comment->character)
+					->where('created_by', $comment->created_by)
+					->where('comment', $comment->comment)
 					->exists();
 				if (!$exists) {
 					unset($comment->id);
-					$this->db->insert("<table:comments>", $comment);
+					$this->db->insert('<table:comments>', $comment);
 				}
 			}
 		} catch (SQLException $e) {
-			$this->logger->error("Error changing comment tables: " . $e->getMessage(), ["exception" => $e]);
+			$this->logger->error('Error changing comment tables: ' . $e->getMessage(), ['exception' => $e]);
 			$this->db->rollback();
-			$this->db->registerTableName("comments", $oldCommentTable);
-			$this->db->registerTableName("comment_categories", $oldCategoryTable);
-			throw new Exception("There was an error copying the comments in the database");
+			$this->db->registerTableName('comments', $oldCommentTable);
+			$this->db->registerTableName('comment_categories', $oldCategoryTable);
+			throw new Exception('There was an error copying the comments in the database');
 		}
 		$this->db->commit();
-		$this->settingManager->save("table_name_comments", $newCommentTable);
-		$this->settingManager->save("table_name_comment_categories", $newCategoryTable);
-		$this->logger->notice("All comments and categories copied successfully");
+		$this->settingManager->save('table_name_comments', $newCommentTable);
+		$this->settingManager->save('table_name_comment_categories', $newCategoryTable);
+		$this->logger->notice('All comments and categories copied successfully');
 	}
 
 	/** Read a single category by its name */
 	public function getCategory(string $category): ?CommentCategory {
-		return $this->db->table("<table:comment_categories>")
-			->whereIlike("name", $category)
+		return $this->db->table('<table:comment_categories>')
+			->whereIlike('name', $category)
 			->asObj(CommentCategory::class)->first();
 	}
 
 	/** Create a new category */
 	public function saveCategory(CommentCategory $category): int {
-		return $this->db->insert("<table:comment_categories>", $category, null);
+		return $this->db->insert('<table:comment_categories>', $category, null);
 	}
 
 	/**
@@ -203,52 +203,51 @@ class CommentController extends ModuleInstance {
 	 * @return int|null Number of deleted comments or null if the category didn't exist
 	 */
 	public function deleteCategory(string $category): ?int {
-		$deletedComments = $this->db->table("<table:comments>")
-			->whereIlike("category", $category)
+		$deletedComments = $this->db->table('<table:comments>')
+			->whereIlike('category', $category)
 			->delete();
-		$deletedCategories = $this->db->table("<table:comment_categories>")
-			->whereIlike("name", $category)
+		$deletedCategories = $this->db->table('<table:comment_categories>')
+			->whereIlike('name', $category)
 			->delete();
 		return $deletedCategories ? $deletedComments : null;
 	}
 
 	/** Get a list of all defined comment categories */
-	#[NCA\HandlesCommand("comment categories")]
+	#[NCA\HandlesCommand('comment categories')]
 	public function listCategoriesCommand(
 		CmdContext $context,
-		#[NCA\Str("category", "categories")]
-		string $action,
+		#[NCA\Str('category', 'categories')] string $action,
 	): void {
 		/** @var CommentCategory[] */
-		$categories = $this->db->table("<table:comment_categories>")
+		$categories = $this->db->table('<table:comment_categories>')
 			->asObj(CommentCategory::class)->toArray();
 		if (count($categories) === 0) {
-			$context->reply("There are currently no comment categories defined.");
+			$context->reply('There are currently no comment categories defined.');
 			return;
 		}
-		$blob = "";
+		$blob = '';
 		foreach ($categories as $category) {
 			$blob .= "<pagebreak><header2>{$category->name}<end>\n".
-				"<tab>Created: <highlight>" . $this->util->date($category->created_at) . "<end>\n".
+				'<tab>Created: <highlight>' . $this->util->date($category->created_at) . "<end>\n".
 				"<tab>Creator: <highlight>{$category->created_by}<end>\n".
-				"<tab>Read Access: <highlight>".
+				'<tab>Read Access: <highlight>'.
 				$this->accessManager->getDisplayName($category->min_al_read).
 				"<end>\n".
-				"<tab>Write Access: <highlight>".
+				'<tab>Write Access: <highlight>'.
 				$this->accessManager->getDisplayName($category->min_al_write).
 				"<end>\n".
-				"<tab>Action: ";
+				'<tab>Action: ';
 			if ($category->user_managed) {
 				$blob .= $this->text->makeChatcmd(
-					"delete",
+					'delete',
 					"/tell <myname> comment category rem {$category->name}"
 				);
 			} else {
-				$blob .= "<i>System categories cannot be deleted.</i>";
+				$blob .= '<i>System categories cannot be deleted.</i>';
 			}
 			$blob .= "\n\n";
 		}
-		$msg = $this->text->makeBlob("Comment categories (" . count($categories) . ")", $blob);
+		$msg = $this->text->makeBlob('Comment categories (' . count($categories) . ')', $blob);
 		$context->reply($msg);
 	}
 
@@ -257,11 +256,10 @@ class CommentController extends ModuleInstance {
 	 *
 	 * You can only delete categories to which you have the access level for reading and writing
 	 */
-	#[NCA\HandlesCommand("comment categories")]
+	#[NCA\HandlesCommand('comment categories')]
 	public function deleteCategoryCommand(
 		CmdContext $context,
-		#[NCA\Str("category", "categories")]
-		string $action,
+		#[NCA\Str('category', 'categories')] string $action,
 		PRemove $subAction,
 		string $category
 	): void {
@@ -275,7 +273,7 @@ class CommentController extends ModuleInstance {
 			if ($this->accessManager->compareAccessLevels($senderAl, $cat->min_al_read) <0
 				|| $this->accessManager->compareAccessLevels($senderAl, $cat->min_al_write) <0) {
 				$context->reply(
-					"You can only delete categories to which you have read and write access."
+					'You can only delete categories to which you have read and write access.'
 				);
 				return;
 			}
@@ -290,9 +288,9 @@ class CommentController extends ModuleInstance {
 		}
 		$msg = "Successfully deleted the comment category <highlight>{$category}<end>";
 		if ($deleted === 0) {
-			$msg .= ".";
+			$msg .= '.';
 		} elseif ($deleted === 1) {
-			$msg .= " and <highlight>1 comment<end> in that category.";
+			$msg .= ' and <highlight>1 comment<end> in that category.';
 		} else {
 			$msg .= " and <highlight>{$deleted} comments<end> in that category.";
 		}
@@ -303,13 +301,11 @@ class CommentController extends ModuleInstance {
 	 * Add a new comment category with a minimum access level of
 	 * &lt;al for reading&gt; and optionally a &lt;al for writing&gt;
 	 */
-	#[NCA\HandlesCommand("comment categories")]
+	#[NCA\HandlesCommand('comment categories')]
 	public function addCategoryCommand(
 		CmdContext $context,
-		#[NCA\Str("category", "categories")]
-		string $action,
-		#[NCA\Str("add", "create", "new", "edit", "change")]
-		string $subAction,
+		#[NCA\Str('category', 'categories')] string $action,
+		#[NCA\Str('add', 'create', 'new', 'edit', 'change')] string $subAction,
 		PWord $category,
 		PWord $alForReading,
 		?PWord $alForWriting
@@ -337,19 +333,19 @@ class CommentController extends ModuleInstance {
 		if ($this->accessManager->compareAccessLevels($alOfSender, $cat->min_al_read) <0
 			|| $this->accessManager->compareAccessLevels($alOfSender, $cat->min_al_write) <0) {
 			$context->reply(
-				"You can only change the required access levels of categories ".
-				"to which you have read and write access."
+				'You can only change the required access levels of categories '.
+				'to which you have read and write access.'
 			);
 			return;
 		}
 		$cat->min_al_read = $alForReading;
 		$cat->min_al_write = $alForWriting;
-		$this->db->update("<table:comment_categories>", "name", $cat);
+		$this->db->update('<table:comment_categories>', 'name', $cat);
 		$context->reply("Access levels for category <highlight>{$category}<end> successfully changes.");
 	}
 
 	/** Add a new comment &lt;comment text&lt; about &lt;char&gt; in the category &lt;category&gt; */
-	#[NCA\HandlesCommand("comment")]
+	#[NCA\HandlesCommand('comment')]
 	#[NCA\Help\Epilogue(
 		"<header2>Customization<end>\n\n".
 		"In order to simulate the old kill-on-sight list (kos), you could do:\n".
@@ -359,8 +355,7 @@ class CommentController extends ModuleInstance {
 	)]
 	public function addCommentCommand(
 		CmdContext $context,
-		#[NCA\Str("add", "create", "new")]
-		string $action,
+		#[NCA\Str('add', 'create', 'new')] string $action,
 		PCharacter $char,
 		PWord $category,
 		string $commentText
@@ -386,7 +381,7 @@ class CommentController extends ModuleInstance {
 			return;
 		}
 		if ($this->altsController->getMainOf($context->char->name) === $this->altsController->getMainOf($character)) {
-			$context->reply("You cannot comment on yourself.");
+			$context->reply('You cannot comment on yourself.');
 			return;
 		}
 		$comment = new Comment();
@@ -397,7 +392,7 @@ class CommentController extends ModuleInstance {
 		$cooldown = $this->saveComment($comment);
 		if ($cooldown > 0) {
 			$context->reply(
-				"You have to wait <highlight>" . $this->util->unixtimeToReadable($cooldown) . "<end> ".
+				'You have to wait <highlight>' . $this->util->unixtimeToReadable($cooldown) . '<end> '.
 				"before posting another comment about <highlight>{$character}<end>."
 			);
 			return;
@@ -416,7 +411,7 @@ class CommentController extends ModuleInstance {
 			return $cooldown;
 		}
 
-		$this->db->insert("<table:comments>", $comment);
+		$this->db->insert('<table:comments>', $comment);
 		return 0;
 	}
 
@@ -424,11 +419,10 @@ class CommentController extends ModuleInstance {
 	 * Get a list of all comments about a character and their alts.
 	 * If &lt;category&gt; is given, limit the list to this category
 	 */
-	#[NCA\HandlesCommand("comment")]
+	#[NCA\HandlesCommand('comment')]
 	public function searchCommentCommand(
 		CmdContext $context,
-		#[NCA\Str("get", "search", "find")]
-		string $action,
+		#[NCA\Str('get', 'search', 'find')] string $action,
 		PCharacter $char,
 		?PWord $category
 	): void {
@@ -461,24 +455,23 @@ class CommentController extends ModuleInstance {
 		$comments = $this->filterInaccessibleComments($comments, $context->char->name);
 		if (!count($comments)) {
 			$msg = "No comments found for <highlight>{$character}<end>".
-			(isset($category) ? " in category <highlight>{$category->name}<end>." : ".");
+			(isset($category) ? " in category <highlight>{$category->name}<end>." : '.');
 			$context->reply($msg);
 			return;
 		}
 		$formatted = $this->formatComments($comments, false, !isset($category));
 		$msg = "Comments about {$character}".
-			(isset($category) ? " in category {$category->name}" : "").
-			" (" . count($comments) . ")";
+			(isset($category) ? " in category {$category->name}" : '').
+			' (' . count($comments) . ')';
 		$msg = $this->text->makeBlob($msg, $formatted->blob);
 		$context->reply($msg);
 	}
 
 	/** Get a list of all comments of category &lt;category&gt; about all characters */
-	#[NCA\HandlesCommand("comment")]
+	#[NCA\HandlesCommand('comment')]
 	public function listCommentsCommand(
 		CmdContext $context,
-		#[NCA\Str("list")]
-		string $action,
+		#[NCA\Str('list')] string $action,
 		PWord $categoryName
 	): void {
 		$category = $this->getCategory($categoryName());
@@ -495,9 +488,9 @@ class CommentController extends ModuleInstance {
 		}
 
 		/** @var Comment[] */
-		$comments = $this->db->table("<table:comments>")
-			->where("category", $categoryName)
-			->orderBy("created_at")
+		$comments = $this->db->table('<table:comments>')
+			->where('category', $categoryName)
+			->orderBy('created_at')
 			->asObj(Comment::class)->toArray();
 		if (!count($comments)) {
 			$msg = "No comments found in category <highlight>{$categoryName}<end>.";
@@ -506,7 +499,7 @@ class CommentController extends ModuleInstance {
 		}
 		$formatted = $this->formatComments($comments, false, false);
 		$msg = "Comments in {$categoryName} ".
-			"(" . count($comments) . ")";
+			'(' . count($comments) . ')';
 		$msg = $this->text->makeBlob($msg, $formatted->blob);
 		$context->reply($msg);
 	}
@@ -565,13 +558,13 @@ class CommentController extends ModuleInstance {
 			$grouped = $chars;
 		}
 		$result->numMains = count($grouped);
-		$blob = "";
+		$blob = '';
 		foreach ($grouped as $main => $comments) {
 			$blob .= "<pagebreak><header2>{$main}<end>\n";
-			$blob .= "<tab>" . join(
+			$blob .= '<tab>' . implode(
 				"\n<tab>",
 				array_map(
-					[$this, "formatComment"],
+					[$this, 'formatComment'],
 					$comments,
 					array_fill(0, count($comments), $addCategory)
 				)
@@ -584,23 +577,23 @@ class CommentController extends ModuleInstance {
 	/** Format a single comment */
 	public function formatComment(Comment $comment, bool $addCategory=false): string {
 		$line = "{$comment->comment} (<highlight>{$comment->created_by}<end>, ".
-			($addCategory ? "<highlight>{$comment->category}<end>, " : "").
-			$this->util->date($comment->created_at) . ") [".
-			$this->text->makeChatcmd("delete", "/tell <myname> comment del {$comment->id}").
-			"]";
+			($addCategory ? "<highlight>{$comment->category}<end>, " : '').
+			$this->util->date($comment->created_at) . ') ['.
+			$this->text->makeChatcmd('delete', "/tell <myname> comment del {$comment->id}").
+			']';
 		return $line;
 	}
 
 	/** Delete a comment about a player by its ID */
-	#[NCA\HandlesCommand("comment")]
+	#[NCA\HandlesCommand('comment')]
 	public function deleteCommentCommand(
 		CmdContext $context,
 		PRemove $action,
 		int $id
 	): void {
 		/** @var ?Comment */
-		$comment = $this->db->table("<table:comments>")
-			->where("id", $id)
+		$comment = $this->db->table('<table:comments>')
+			->where('id', $id)
 			->asObj(Comment::class)
 			->first();
 		if (!isset($comment)) {
@@ -616,10 +609,10 @@ class CommentController extends ModuleInstance {
 			$context->reply("You don't have the necessary access level to delete this comment.");
 			return;
 		}
-		$this->db->table("<table:comments>")
-			->where("id", $id)
+		$this->db->table('<table:comments>')
+			->where('id', $id)
 			->delete();
-		$context->reply("Comment deleted.");
+		$context->reply('Comment deleted.');
 	}
 
 	/**
@@ -628,15 +621,15 @@ class CommentController extends ModuleInstance {
 	 * @return Comment[]
 	 */
 	public function getComments(?CommentCategory $category, string ...$characters): array {
-		$query = $this->db->table("<table:comments>")->orderBy("created_at");
+		$query = $this->db->table('<table:comments>')->orderBy('created_at');
 		$chars = [];
 		foreach ($characters as $character) {
 			$altInfo = $this->altsController->getAltInfo($character);
 			$chars = [...$chars, $altInfo->main, ...$altInfo->getAllValidatedAlts()];
 		}
-		$query->whereIn("character", $chars);
+		$query->whereIn('character', $chars);
 		if (isset($category)) {
-			$query->where("category", $category->name);
+			$query->where('category', $category->name);
 		}
 
 		/** @var Comment[] */
@@ -646,15 +639,15 @@ class CommentController extends ModuleInstance {
 
 	/** Count all comments about a list of players or their alts/main, optionally limited to a category */
 	public function countComments(?CommentCategory $category, string ...$characters): int {
-		$query = $this->db->table("<table:comments>");
+		$query = $this->db->table('<table:comments>');
 		$chars = [];
 		foreach ($characters as $character) {
 			$altInfo = $this->altsController->getAltInfo($character);
 			$chars = [...$chars, $altInfo->main, ...$altInfo->getAllValidatedAlts()];
 		}
-		$query->whereIn("character", $chars);
+		$query->whereIn('character', $chars);
 		if (isset($category)) {
-			$query->where("category", $category->name);
+			$query->where('category', $category->name);
 		}
 		return $query->count();
 	}
@@ -665,9 +658,9 @@ class CommentController extends ModuleInstance {
 	 * @return Comment[]
 	 */
 	public function readCategoryComments(CommentCategory $category): array {
-		return $this->db->table("<table:comments>")
-			->whereIlike("category", $category->name)
-			->orderBy("created_at")
+		return $this->db->table('<table:comments>')
+			->whereIlike('category', $category->name)
+			->orderBy('created_at')
 			->asObj(Comment::class)
 			->toArray();
 	}
@@ -687,7 +680,7 @@ class CommentController extends ModuleInstance {
 		$ownComments = array_values(
 			array_filter(
 				$comments,
-				function (Comment $com) use ($comment): bool {
+				static function (Comment $com) use ($comment): bool {
 					return $com->created_by === $comment->created_by;
 				}
 			)

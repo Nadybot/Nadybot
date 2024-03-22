@@ -7,32 +7,32 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210423102650, shared: true)]
+#[NCA\Migration(order: 20_210_423_102_650, shared: true)]
 class CreateAltsTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "alts";
+		$table = 'alts';
 		if ($db->schema()->hasTable($table)) {
-			if (!$db->schema()->hasColumn("alts", "validated")) {
+			if (!$db->schema()->hasColumn('alts', 'validated')) {
 				return;
 			}
-			$db->schema()->table("alts", function (Blueprint $table): void {
-				$table->renameColumn("validated", "validated_by_alt");
+			$db->schema()->table('alts', static function (Blueprint $table): void {
+				$table->renameColumn('validated', 'validated_by_alt');
 			});
-			$db->schema()->table("alts", function (Blueprint $table): void {
-				$table->boolean("validated_by_alt")->nullable()->default(false)->change();
-				$table->boolean("validated_by_main")->nullable()->default(false);
-				$table->string("added_via", 15)->nullable();
+			$db->schema()->table('alts', static function (Blueprint $table): void {
+				$table->boolean('validated_by_alt')->nullable()->default(false)->change();
+				$table->boolean('validated_by_main')->nullable()->default(false);
+				$table->string('added_via', 15)->nullable();
 			});
 			$myName = $db->getMyname();
-			$db->table("alts")->update(["validated_by_main" => true, "added_via" => $myName]);
+			$db->table('alts')->update(['validated_by_main' => true, 'added_via' => $myName]);
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->string("alt", 25)->primary();
-			$table->string("main", 25)->nullable();
-			$table->boolean("validated_by_main")->nullable()->default(false);
-			$table->boolean("validated_by_alt")->nullable()->default(false);
-			$table->string("added_via", 15)->nullable();
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->string('alt', 25)->primary();
+			$table->string('main', 25)->nullable();
+			$table->boolean('validated_by_main')->nullable()->default(false);
+			$table->boolean('validated_by_alt')->nullable()->default(false);
+			$table->string('added_via', 15)->nullable();
 		});
 	}
 }

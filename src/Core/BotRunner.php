@@ -29,7 +29,7 @@ use Throwable;
 
 class BotRunner {
 	/** Nadybot's current version */
-	public const VERSION = "7.0.0.alpha";
+	public const VERSION = '7.0.0.alpha';
 
 	/**
 	 * The parsed command line arguments
@@ -77,7 +77,7 @@ class BotRunner {
 			self::$calculatedVersion = self::calculateVersion();
 		}
 		if (!$withBranch) {
-			return Safe::pregReplace("/@.+/", "", self::$calculatedVersion);
+			return Safe::pregReplace('/@.+/', '', self::$calculatedVersion);
 		}
 		return self::$calculatedVersion;
 	}
@@ -97,17 +97,17 @@ class BotRunner {
 		if (!self::$fs->exists("{$baseDir}/.git")) {
 			return self::VERSION;
 		}
-		set_error_handler(function (int $num, string $str, string $file, int $line): void {
+		set_error_handler(static function (int $num, string $str, string $file, int $line): void {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
-			$refs = explode(": ", trim(self::$fs->read("{$baseDir}/.git/HEAD")), 2);
+			$refs = explode(': ', trim(self::$fs->read("{$baseDir}/.git/HEAD")), 2);
 			if (count($refs) !== 2) {
-				throw new Exception("Unknown Git format detected");
+				throw new Exception('Unknown Git format detected');
 			}
-			$parts = explode("/", $refs[1], 3);
+			$parts = explode('/', $refs[1], 3);
 			if (count($parts) !== 3) {
-				throw new Exception("Unknown Git format detected");
+				throw new Exception('Unknown Git format detected');
 			}
 			$branch = $parts[2];
 			$latestTag = self::getLatestTag();
@@ -137,12 +137,12 @@ class BotRunner {
 
 	public static function getGitDescribe(): ?string {
 		$baseDir = self::getBasedir();
-		$process = Process::start("git describe --tags", $baseDir);
+		$process = Process::start('git describe --tags', $baseDir);
 		$bufReader = new BufferedReader($process->getStdout());
 		$reader = async($bufReader->buffer(...));
 		$exitCode = $process->join();
 		$stdout = $reader->await();
-		if ($exitCode !== 0 || $stdout === "") {
+		if ($exitCode !== 0 || $stdout === '') {
 			return null;
 		}
 		return trim($stdout);
@@ -158,19 +158,19 @@ class BotRunner {
 			return self::$latestTag;
 		}
 		$baseDir = self::getBasedir();
-		$process = Process::start("git tag -l", $baseDir);
+		$process = Process::start('git tag -l', $baseDir);
 		$bufReader = new BufferedReader($process->getStdout());
 		$reader = async($bufReader->buffer(...));
 		$exitCode = $process->join();
 		$stdout = $reader->await();
-		if ($exitCode !== 0 || $stdout === "") {
+		if ($exitCode !== 0 || $stdout === '') {
 			return null;
 		}
 		$tags = explode("\n", trim($stdout));
-		$tags = array_diff($tags, ["nightly"]);
+		$tags = array_diff($tags, ['nightly']);
 
 		$tags = array_map(
-			function (string $tag): SemanticVersion {
+			static function (string $tag): SemanticVersion {
 				return new SemanticVersion($tag);
 			},
 			$tags
@@ -179,7 +179,7 @@ class BotRunner {
 		/** @var SemanticVersion[] $tags */
 		usort(
 			$tags,
-			function (SemanticVersion $v1, SemanticVersion $v2): int {
+			static function (SemanticVersion $v1, SemanticVersion $v2): int {
 				return $v1->cmp($v2);
 			}
 		);
@@ -207,7 +207,7 @@ class BotRunner {
 		LoggerWrapper::$fs = self::$fs;
 		$this->parseOptions();
 		// set default timezone
-		date_default_timezone_set("UTC");
+		date_default_timezone_set('UTC');
 
 		$config = $this->getConfigFile();
 		Registry::setInstance(Registry::formatName(BotConfig::class), $config);
@@ -217,14 +217,14 @@ class BotRunner {
 		Registry::injectDependencies($rateLimitRetryHandler);
 		$httpClientBuilder = (new HttpClientBuilder())
 			->retry(0)
-			->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".self::getVersion()))
+			->intercept(new SetRequestHeaderIfUnset('User-Agent', 'Nadybot '.self::getVersion()))
 			->intercept($retryHandler)
 			->intercept($rateLimitRetryHandler);
 		$httpProxy = getenv('http_proxy');
 		if ($httpProxy !== false) {
-			$proxyHost = parse_url($httpProxy, PHP_URL_HOST);
-			$proxyScheme = parse_url($httpProxy, PHP_URL_SCHEME);
-			$proxyPort = parse_url($httpProxy, PHP_URL_PORT) ?? ($proxyScheme === 'https' ? 443 : 80);
+			$proxyHost = parse_url($httpProxy, \PHP_URL_HOST);
+			$proxyScheme = parse_url($httpProxy, \PHP_URL_SCHEME);
+			$proxyPort = parse_url($httpProxy, \PHP_URL_PORT) ?? ($proxyScheme === 'https' ? 443 : 80);
 			if (is_string($proxyScheme) && is_string($proxyHost) && is_int($proxyPort)) {
 				$connector = new Http1TunnelConnector("{$proxyHost}:{$proxyPort}");
 				$httpClientBuilder = $httpClientBuilder->usingPool(
@@ -234,7 +234,7 @@ class BotRunner {
 				);
 			}
 		}
-		Registry::setInstance("HttpClientBuilder", $httpClientBuilder);
+		Registry::setInstance('HttpClientBuilder', $httpClientBuilder);
 		$this->checkRequiredModules();
 		$this->checkRequiredPackages();
 		$this->createMissingDirs();
@@ -244,14 +244,14 @@ class BotRunner {
 		if (isset($timezone) && strlen($timezone) > 1) {
 			/** @psalm-suppress ArgumentTypeCoercion */
 			if (@date_default_timezone_set($timezone) === false) {
-				die("Invalid timezone: \"{$timezone}\"\n");
+				exit("Invalid timezone: \"{$timezone}\"\n");
 			}
 		}
 		$logFolderName = "{$config->paths->logs}/{$config->main->character}.{$config->main->dimension}";
 
 		$this->setErrorHandling($logFolderName);
-		$this->logger = new LoggerWrapper("Core/BotRunner");
-		self::$fs->setLogger(new LoggerWrapper("Core/Filesystem"));
+		$this->logger = new LoggerWrapper('Core/BotRunner');
+		self::$fs->setLogger(new LoggerWrapper('Core/Filesystem'));
 		Registry::injectDependencies($this->logger);
 
 		$this->sendBotBanner();
@@ -265,17 +265,17 @@ class BotRunner {
 		Registry::setInstance(Registry::formatName(Filesystem::class), self::$fs);
 
 		$this->logger->notice(
-			"Starting {name} {version} on RK{dimension} using ".
-			"PHP {phpVersion}, {loopType} event loop, ".
-			"{fsType} filesystem, and {dbType}...",
+			'Starting {name} {version} on RK{dimension} using '.
+			'PHP {phpVersion}, {loopType} event loop, '.
+			'{fsType} filesystem, and {dbType}...',
 			[
-				"name" => $config->main->character,
-				"version" => $version,
-				"dimension" => $config->main->dimension,
-				"phpVersion" => phpversion(),
-				"loopType" => class_basename(EventLoop::getDriver()),
-				"fsType" => class_basename($fsDriver),
-				"dbType" => $config->database->type->name,
+				'name' => $config->main->character,
+				'version' => $version,
+				'dimension' => $config->main->dimension,
+				'phpVersion' => \PHP_VERSION,
+				'loopType' => class_basename(EventLoop::getDriver()),
+				'fsType' => class_basename($fsDriver),
+				'dbType' => $config->database->type->name,
 			]
 		);
 
@@ -295,8 +295,8 @@ class BotRunner {
 		if (function_exists('sapi_windows_set_ctrl_handler')) {
 			sapi_windows_set_ctrl_handler($signalHandler, true);
 		} else {
-			$handlers []= EventLoop::onSignal(SIGINT, $signalHandler);
-			$handlers []= EventLoop::onSignal(SIGTERM, $signalHandler);
+			$handlers []= EventLoop::onSignal(\SIGINT, $signalHandler);
+			$handlers []= EventLoop::onSignal(\SIGTERM, $signalHandler);
 		}
 		$this->connectToDatabase();
 		if (function_exists('sapi_windows_set_ctrl_handler')) {
@@ -309,7 +309,7 @@ class BotRunner {
 
 		$this->runUpgradeScripts();
 		EventLoop::run();
-		if ((self::$arguments["migrate-only"]??true) === false) {
+		if ((self::$arguments['migrate-only']??true) === false) {
 			exit(0);
 		}
 
@@ -320,13 +320,13 @@ class BotRunner {
 		/** @var DB */
 		$db = Registry::getInstance(DB::class);
 		if ($db->table(CommandManager::DB_TABLE)->exists()) {
-			$this->logger->notice("Initializing modules...");
+			$this->logger->notice('Initializing modules...');
 		} else {
-			$this->logger->notice("Initializing modules and db tables...");
+			$this->logger->notice('Initializing modules and db tables...');
 		}
 		$chatBot->init($this);
 
-		if ((self::$arguments["setup-only"]??true) === false) {
+		if ((self::$arguments['setup-only']??true) === false) {
 			exit(0);
 		}
 
@@ -339,19 +339,19 @@ class BotRunner {
 
 	/** Utility function to check whether the bot is running Windows */
 	public static function isWindows(): bool {
-		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+		return strtoupper(substr(\PHP_OS, 0, 3)) === 'WIN';
 	}
 
 	/** Utility function to check whether the bot is running Linux */
 	public static function isLinux(): bool {
-		return PHP_OS_FAMILY === 'Linux';
+		return \PHP_OS_FAMILY === 'Linux';
 	}
 
 	private function getConfigFile(): BotConfig {
 		if (isset($this->configFile)) {
 			return $this->configFile;
 		}
-		$configFilePath = self::$arguments["c"] ?? "conf/config.php";
+		$configFilePath = self::$arguments['c'] ?? 'conf/config.php';
 		return $this->configFile = BotConfig::loadFromFile($configFilePath, self::$fs);
 	}
 
@@ -370,10 +370,10 @@ class BotRunner {
 	}
 
 	private function checkRequiredPackages(): void {
-		if (!class_exists("Revolt\\EventLoop")) {
+		if (!class_exists('Revolt\\EventLoop')) {
 			// @phpstan-ignore-next-line
 			fwrite(
-				STDERR,
+				\STDERR,
 				"Nadybot cannot find all the required composer modules in 'vendor'.\n".
 				"Please run 'composer install' to install all missing modules\n".
 				"or download one of the Nadybot bundles and copy the 'vendor'\n".
@@ -388,35 +388,35 @@ class BotRunner {
 	}
 
 	private function checkRequiredModules(): void {
-		if (version_compare(PHP_VERSION, "8.1.17", "<")) {
+		if (version_compare(\PHP_VERSION, '8.1.17', '<')) {
 			// @phpstan-ignore-next-line
-			fwrite(STDERR, "Nadybot 7 needs at least PHP version 8 to run, you have " . PHP_VERSION . "\n");
+			fwrite(\STDERR, 'Nadybot 7 needs at least PHP version 8 to run, you have ' . \PHP_VERSION . "\n");
 			sleep(5);
 			exit(1);
 		}
 		$missing = [];
 		$requiredModules = [
-			["bcmath", "gmp"],
-			"ctype",
-			"date",
-			"dom",
-			"filter",
-			"json",
-			"pcre",
-			"PDO",
-			"simplexml",
-			["pdo_mysql", "pdo_sqlite"],
-			"Reflection",
-			"sockets",
-			"fileinfo",
-			"tokenizer",
+			['bcmath', 'gmp'],
+			'ctype',
+			'date',
+			'dom',
+			'filter',
+			'json',
+			'pcre',
+			'PDO',
+			'simplexml',
+			['pdo_mysql', 'pdo_sqlite'],
+			'Reflection',
+			'sockets',
+			'fileinfo',
+			'tokenizer',
 		];
 		foreach ($requiredModules as $requiredModule) {
 			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {
 				$missing []= $requiredModule;
 			} elseif (is_array($requiredModule)) {
-				if (!count(array_filter($requiredModule, "extension_loaded"))) {
-					$missing []= join(" or ", $requiredModule);
+				if (!count(array_filter($requiredModule, 'extension_loaded'))) {
+					$missing []= implode(' or ', $requiredModule);
 				}
 			}
 		}
@@ -424,7 +424,7 @@ class BotRunner {
 			return;
 		}
 			// @phpstan-ignore-next-line
-		fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
+		fwrite(\STDERR, 'Nadybot needs the following missing PHP-extensions: ' . implode(', ', $missing) . ".\n");
 		sleep(5);
 		exit(1);
 	}
@@ -433,14 +433,14 @@ class BotRunner {
 		try {
 			/** @var array<string,mixed> $options */
 			$options = getopt(
-				"c:v",
+				'c:v',
 				[
-					"help",
-					"migrate-only",
-					"setup-only",
-					"strict",
-					"log-config:",
-					"migration-errors-fatal",
+					'help',
+					'migrate-only',
+					'setup-only',
+					'strict',
+					'log-config:',
+					'migration-errors-fatal',
 				],
 				$restPos
 			);
@@ -448,7 +448,7 @@ class BotRunner {
 			/** @var int $restPos */
 		} catch (InfoException $e) {
 			getStderr()->write(
-				"Unable to parse arguments passed to the bot: " . $e->getMessage()
+				'Unable to parse arguments passed to the bot: ' . $e->getMessage()
 			);
 			sleep(5);
 			exit(1);
@@ -456,9 +456,9 @@ class BotRunner {
 		$argv = array_slice($this->argv, $restPos);
 		self::$arguments = $options;
 		if (count($argv) > 0) {
-			self::$arguments["c"] = array_shift($argv);
+			self::$arguments['c'] = array_shift($argv);
 		}
-		if (isset(self::$arguments["help"])) {
+		if (isset(self::$arguments['help'])) {
 			$this->showSyntaxHelp();
 			exit(0);
 		}
@@ -466,7 +466,7 @@ class BotRunner {
 
 	private function showSyntaxHelp(): void {
 		echo(
-			"Usage: " . PHP_BINARY . " " . ($_SERVER["argv"][0] ?? "main.php").
+			'Usage: ' . \PHP_BINARY . ' ' . ($_SERVER['argv'][0] ?? 'main.php').
 			" [options] [-c] <config file>\n\n".
 			"positional arguments:\n".
 			"  <config file>         A Nadybot configuration file, usually conf/config.php\n".
@@ -499,10 +499,10 @@ class BotRunner {
 						$attr = $refAttr->newInstance();
 					} catch (\Throwable $e) {
 						$this->logger->error('Incompatible attribute #[{attrName}] in {loc}: {error}', [
-							"attrName" => str_replace('Nadybot\Core\Attributes', 'NCA', $refAttr->getName()),
-							"error" => $e->getMessage(),
-							"exception" => $e,
-							"loc" => $refProp->getDeclaringClass()->getName() . '::$' . $refProp->getName(),
+							'attrName' => str_replace('Nadybot\Core\Attributes', 'NCA', $refAttr->getName()),
+							'error' => $e->getMessage(),
+							'exception' => $e,
+							'loc' => $refProp->getDeclaringClass()->getName() . '::$' . $refProp->getName(),
 						]);
 						exit;
 					}
@@ -515,9 +515,9 @@ class BotRunner {
 					}
 					if ($value !== null) {
 						$this->logger->info('Setting {class}::${property} to {value}', [
-							"class" => class_basename($instance),
-							"property" => $refProp->getName(),
-							"value" => json_encode($value, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
+							'class' => class_basename($instance),
+							'property' => $refProp->getName(),
+							'value' => json_encode($value, \JSON_UNESCAPED_UNICODE|\JSON_UNESCAPED_SLASHES),
 						]);
 						try {
 							$refProp->setValue($instance, $value);
@@ -532,28 +532,28 @@ class BotRunner {
 	/** Get a message describing the bot's codebase */
 	private function sendBotBanner(): void {
 		$this->logger->notice(
-			PHP_EOL.
-			" _   _  __     ".PHP_EOL.
-			"| \ | |/ /_    Nadybot version: {version}".PHP_EOL.
-			"|  \| | '_ \   Project Site:    {project_url}".PHP_EOL.
-			"| |\  | (_) |  In-Game Contact: {in_game_contact}".PHP_EOL.
-			"|_| \_|\___/   Discord:         {discord_link}".PHP_EOL.
-			PHP_EOL,
+			\PHP_EOL.
+			' _   _  __     '.\PHP_EOL.
+			"| \ | |/ /_    Nadybot version: {version}".\PHP_EOL.
+			"|  \| | '_ \   Project Site:    {project_url}".\PHP_EOL.
+			"| |\  | (_) |  In-Game Contact: {in_game_contact}".\PHP_EOL.
+			"|_| \_|\___/   Discord:         {discord_link}".\PHP_EOL.
+			\PHP_EOL,
 			[
-				"version" => self::getVersion(),
-				"project_url" => "https://github.com/Nadybot/Nadybot",
-				"in_game_contact" => "Nady",
-				"discord_link" => "https://discord.gg/aDR9UBxRfg",
+				'version' => self::getVersion(),
+				'project_url' => 'https://github.com/Nadybot/Nadybot',
+				'in_game_contact' => 'Nady',
+				'discord_link' => 'https://discord.gg/aDR9UBxRfg',
 			]
 		);
 	}
 
 	/** Setup proper error-reporting, -handling and -logging */
 	private function setErrorHandling(string $logFolderName): void {
-		error_reporting(E_ALL & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
-		ini_set("log_errors", "1");
-		ini_set('display_errors', "1");
-		ini_set("error_log", "{$logFolderName}/php_errors.log");
+		error_reporting(\E_ALL & ~\E_STRICT & ~\E_WARNING & ~\E_NOTICE);
+		ini_set('log_errors', '1');
+		ini_set('display_errors', '1');
+		ini_set('error_log', "{$logFolderName}/php_errors.log");
 	}
 
 	/** Guide customer through setup if needed */
@@ -563,7 +563,7 @@ class BotRunner {
 		}
 		$setup = new Setup($this->getConfigFile(), self::$fs);
 		$setup->showIntro();
-		$this->logger->notice("Reloading configuration and testing your settings.");
+		$this->logger->notice('Reloading configuration and testing your settings.');
 		return true;
 	}
 
@@ -587,7 +587,7 @@ class BotRunner {
 		/** @var ?DB */
 		$db = Registry::getInstance(DB::class);
 		if (!isset($db)) {
-			throw new Exception("Cannot find DB instance.");
+			throw new Exception('Cannot find DB instance.');
 		}
 		$config = $this->getConfigFile();
 		$db->connect($config->database);

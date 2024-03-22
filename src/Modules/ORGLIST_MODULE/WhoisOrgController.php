@@ -21,9 +21,9 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "whoisorg",
-		accessLevel: "guest",
-		description: "Display org info",
+		command: 'whoisorg',
+		accessLevel: 'guest',
+		description: 'Display org info',
 	)
 ]
 class WhoisOrgController extends ModuleInstance {
@@ -43,7 +43,7 @@ class WhoisOrgController extends ModuleInstance {
 	private OnlineController $onlineController;
 
 	/** Show information about an organization */
-	#[NCA\HandlesCommand("whoisorg")]
+	#[NCA\HandlesCommand('whoisorg')]
 	public function whoisorgIdCommand(CmdContext $context, int $orgId, ?int $dimension): void {
 		$dimension ??= $this->config->main->dimension;
 
@@ -53,7 +53,7 @@ class WhoisOrgController extends ModuleInstance {
 	}
 
 	/** Show information about a character's org */
-	#[NCA\HandlesCommand("whoisorg")]
+	#[NCA\HandlesCommand('whoisorg')]
 	public function whoisorgCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$dimension ??= $this->config->main->dimension;
 		$name = $char();
@@ -77,13 +77,13 @@ class WhoisOrgController extends ModuleInstance {
 	/** @return string|string[] */
 	public function getOrgInfo(?Guild $org): string|array {
 		if ($org === null) {
-			$msg = "Error in getting the org info. ".
+			$msg = 'Error in getting the org info. '.
 				"Either the org does not exist or AO's server ".
-				"was too slow to respond.";
+				'was too slow to respond.';
 			return $msg;
 		}
 		if (!isset($org->orgname)) {
-			$msg = "This is an illegal org id.";
+			$msg = 'This is an illegal org id.';
 			return $msg;
 		}
 
@@ -94,7 +94,7 @@ class WhoisOrgController extends ModuleInstance {
 		$numMembers = count($org->members);
 		$sumLevels = 0;
 		$leader = null;
-		$faction = "&lt;unknown&gt;";
+		$faction = '&lt;unknown&gt;';
 		foreach ($org->members as $member) {
 			if ($member->guild_rank_id === 0) {
 				$leader = $member;
@@ -113,7 +113,7 @@ class WhoisOrgController extends ModuleInstance {
 		$averageLevel = round($sumLevels/$numMembers);
 
 		$link = "<header2>General Info<end>\n";
-		$link .= "<tab>Faction: <" . strtolower($faction) . ">{$faction}<end>\n";
+		$link .= '<tab>Faction: <' . strtolower($faction) . ">{$faction}<end>\n";
 		$link .= "<tab>Lowest lvl: <highlight>{$minLevel}<end>\n";
 		$link .= "<tab>Highest lvl: <highlight>{$maxLevel}<end>\n";
 		$link .= "<tab>Average lvl: <highlight>{$averageLevel}<end>\n\n";
@@ -130,11 +130,11 @@ class WhoisOrgController extends ModuleInstance {
 		ksort($countProfs);
 		$link .= "<header2>Members ({$numMembers})<end>\n";
 		foreach ($countProfs as $prof => $profMembers) {
-			$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".($this->onlineController->getProfessionId($prof)??0).">";
+			$profIcon = '<img src=tdb://id:GFX_GUI_ICON_PROFESSION_'.($this->onlineController->getProfessionId($prof)??0).'>';
 
-			$link .= "<tab>".
-				$this->text->alignNumber($profMembers, 3, "highlight").
-				"  (".
+			$link .= '<tab>'.
+				$this->text->alignNumber($profMembers, 3, 'highlight').
+				'  ('.
 				$this->text->alignNumber(
 					(int)round(($profMembers*100)/$numMembers, 1),
 					(count($countProfs) > 1) ? 2 : 3

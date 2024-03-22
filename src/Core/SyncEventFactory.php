@@ -21,15 +21,15 @@ class SyncEventFactory {
 			$data = json_decode(json_encode($data), true);
 		}
 		if (!is_array($data)) {
-			throw new InvalidArgumentException(__CLASS__  . "::create(): Argument #1 (\$data) must be an object or an array");
+			throw new InvalidArgumentException(__CLASS__  . '::create(): Argument #1 ($data) must be an object or an array');
 		}
-		if (!isset($data["type"])) {
-			throw new InvalidArgumentException(__CLASS__  . "::create(): Argument #1 (\$data) must be a SyncEvent");
+		if (!isset($data['type'])) {
+			throw new InvalidArgumentException(__CLASS__  . '::create(): Argument #1 ($data) must be a SyncEvent');
 		}
 		$mapping = self::getClassMapping();
-		$class = $mapping[$data["type"]] ?? null;
+		$class = $mapping[$data['type']] ?? null;
 		if (!isset($class)) {
-			throw new InvalidArgumentException(__CLASS__  . "::create(): Argument #1 (\$data) is an unknown (Sync-)Event");
+			throw new InvalidArgumentException(__CLASS__  . '::create(): Argument #1 ($data) is an unknown (Sync-)Event');
 		}
 		$mapper = new ObjectMapperUsingReflection(
 			new DefinitionProvider(

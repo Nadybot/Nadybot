@@ -15,39 +15,39 @@ class HighnetReceiver implements MessageReceiver {
 	private HighnetController $highnetController;
 
 	public function getChannelName(): string {
-		return "highnet";
+		return 'highnet';
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
-		$this->logger->info("Message for Highnet ({destination}) received.", [
-			"destination" => $destination,
+		$this->logger->info('Message for Highnet ({destination}) received.', [
+			'destination' => $destination,
 		]);
 		if (!$this->highnetController->highnetEnabled) {
 			return false;
 		}
 		$data = $event->getData();
 		if (!is_string($data)) {
-			$this->logger->info("No data in message to Highnet - dropping.");
+			$this->logger->info('No data in message to Highnet - dropping.');
 			return false;
 		}
 		$prefix = $this->highnetController->highnetPrefix;
-		if (!count($matches = Safe::pregMatch("/^" . preg_quote($prefix, "/") . "([a-zA-Z]+)/", $data))) {
-			$this->logger->info("Data to Highnet does not have the {prefix} prefix.", [
-				"prefix" => $prefix,
+		if (!count($matches = Safe::pregMatch('/^' . preg_quote($prefix, '/') . '([a-zA-Z]+)/', $data))) {
+			$this->logger->info('Data to Highnet does not have the {prefix} prefix.', [
+				'prefix' => $prefix,
 			]);
 			return false;
 		}
 		$channel = $this->guessChannel($matches[1]);
 		if (!isset($channel)) {
-			$this->logger->info("No Highnet-channel found for {match} - dropping", [
-				"match" => $matches[1],
+			$this->logger->info('No Highnet-channel found for {match} - dropping', [
+				'match' => $matches[1],
 			]);
 			return false;
 		}
 		$message = ltrim(substr($data, strlen($matches[1])+1));
 		if (!strlen($message)) {
-			$this->logger->info("Not routing an empty message to Highnet({channel})", [
-				"channel" => $channel,
+			$this->logger->info('Not routing an empty message to Highnet({channel})', [
+				'channel' => $channel,
 			]);
 			return false;
 		}

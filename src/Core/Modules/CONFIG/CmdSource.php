@@ -22,7 +22,7 @@ class CmdSource {
 	public static function fromMask(string $mask): self {
 		$res = new self();
 		$res->source = $mask;
-		if (substr($res->source, -3) === "(*)") {
+		if (substr($res->source, -3) === '(*)') {
 			$res->source = substr($res->source, 0, -3);
 			$res->has_sub_sources = true;
 		}

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use Nadybot\Core\Event;
 
 class CommandReplyEvent extends Event {
-	public const EVENT_MASK = "cmdreply";
+	public const EVENT_MASK = 'cmdreply';
 
 	/**
 	 * @param string   $uuid For which WebsocketConnection is this destined

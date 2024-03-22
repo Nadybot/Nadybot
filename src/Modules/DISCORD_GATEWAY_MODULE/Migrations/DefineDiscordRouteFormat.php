@@ -8,11 +8,11 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20230515143704)]
+#[NCA\Migration(order: 20_230_515_143_704)]
 class DefineDiscordRouteFormat implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$rhf = new RouteHopFormat();
-		$rhf->hop = "discord";
+		$rhf->hop = 'discord';
 		$rhf->render = false;
 		$rhf->format = 'DISCORD';
 		$db->insert(Source::DB_TABLE, $rhf);
@@ -23,9 +23,9 @@ class DefineDiscordRouteFormat implements SchemaMigration {
 		$db->insert(MessageHub::DB_TABLE_COLORS, $rhc);
 
 		$route = [
-			"source" => "discord(*)",
-			"destination" => Source::ORG,
-			"two_way" => false,
+			'source' => 'discord(*)',
+			'destination' => Source::ORG,
+			'two_way' => false,
 		];
 		$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 	}

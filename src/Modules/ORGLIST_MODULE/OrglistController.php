@@ -30,9 +30,9 @@ use stdClass;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "orglist",
-		accessLevel: "member",
-		description: "Check an org roster",
+		command: 'orglist',
+		accessLevel: 'member',
+		description: 'Check an org roster',
 	)
 ]
 class OrglistController extends ModuleInstance {
@@ -44,12 +44,12 @@ class OrglistController extends ModuleInstance {
 
 	/** @var array<string,string[]> */
 	protected array $orgrankmap = [
-		"Anarchism"  => ["Anarchist"],
-		"Monarchy"   => ["Monarch",   "Counsil",      "Follower"],
-		"Feudalism"  => ["Lord",      "Knight",       "Vassal",          "Peasant"],
-		"Republic"   => ["President", "Advisor",      "Veteran",         "Member",         "Applicant"],
-		"Faction"    => ["Director",  "Board Member", "Executive",       "Member",         "Applicant"],
-		"Department" => ["President", "General",      "Squad Commander", "Unit Commander", "Unit Leader", "Unit Member", "Applicant"],
+		'Anarchism'  => ['Anarchist'],
+		'Monarchy'   => ['Monarch',   'Counsil',      'Follower'],
+		'Feudalism'  => ['Lord',      'Knight',       'Vassal',          'Peasant'],
+		'Republic'   => ['President', 'Advisor',      'Veteran',         'Member',         'Applicant'],
+		'Faction'    => ['Director',  'Board Member', 'Executive',       'Member',         'Applicant'],
+		'Department' => ['President', 'General',      'Squad Commander', 'Unit Commander', 'Unit Leader', 'Unit Member', 'Applicant'],
 	];
 
 	#[NCA\Logger]
@@ -88,17 +88,16 @@ class OrglistController extends ModuleInstance {
 	 *
 	 * You can use '%' as a wildcard in the org name
 	 */
-	#[NCA\HandlesCommand("orglist")]
-	#[NCA\Help\Example("<symbol>orglist Team Rainbow")]
-	#[NCA\Help\Example("<symbol>orglist Nadyita")]
+	#[NCA\HandlesCommand('orglist')]
+	#[NCA\Help\Example('<symbol>orglist Team Rainbow')]
+	#[NCA\Help\Example('<symbol>orglist Nadyita')]
 	public function orglistCommand(
 		CmdContext $context,
 		PNonGreedy $search,
-		#[NCA\Str("all")]
-		?string $all,
+		#[NCA\Str('all')] ?string $all,
 	): void {
 		if ($this->orglistShowOffline) {
-			$all = "all";
+			$all = 'all';
 		}
 		$search = $search();
 		if (ctype_digit($search)) {
@@ -131,8 +130,8 @@ class OrglistController extends ModuleInstance {
 			return;
 		}
 		$context->reply(
-			"Checking online-status of <highlight>" . count($org->members) . "<end> ".
-			"members of <" . strtolower($org->orgside) . ">{$org->orgname}<end>."
+			'Checking online-status of <highlight>' . count($org->members) . '<end> '.
+			'members of <' . strtolower($org->orgside) . ">{$org->orgname}<end>."
 		);
 		$startTime = microtime(true);
 		$onlineStates = $this->getOnlineStates($org);
@@ -187,11 +186,11 @@ class OrglistController extends ModuleInstance {
 		$numThreads = min($this->getFreeBuddylistSlots() - 5, count($org->members));
 		if (count($org->members) > 100 && $numThreads < 10) {
 			throw new UserException(
-				"You need more buddylist slots to be able to use this command."
+				'You need more buddylist slots to be able to use this command.'
 			);
 		}
-		$this->logger->notice("Using {numThreads} threads to get online status", [
-			"numThreads" => $numThreads,
+		$this->logger->notice('Using {numThreads} threads to get online status', [
+			'numThreads' => $numThreads,
 		]);
 		$onlineList = Pipeline::fromIterable($todo)
 			->concurrent($numThreads)
@@ -252,7 +251,7 @@ class OrglistController extends ModuleInstance {
 			$orgRankNames = $this->getOrgGoverningForm($org->members);
 		}
 
-		$totalOnline = count(array_filter($onlineStates, fn (bool $online) => $online));
+		$totalOnline = count(array_filter($onlineStates, static fn (bool $online) => $online));
 		$totalCount = count($org->members);
 
 		$rankGroups = [];
@@ -280,7 +279,7 @@ class OrglistController extends ModuleInstance {
 			}
 		}
 
-		$blob = join("\n\n", $renderedGroups);
+		$blob = implode("\n\n", $renderedGroups);
 		$totalTime = round((microtime(true) - $startTime), 1);
 		$blob .= "\n\n<i>Lookup took {$totalTime} seconds.</i>";
 
@@ -290,24 +289,24 @@ class OrglistController extends ModuleInstance {
 	/** Render the online/offline list for a single rank */
 	private function renderOrglistRankGroup(string $rankName, stdClass $rankGroup): string {
 		$blob = "<pagebreak><header2>{$rankName}<end> (" . count($rankGroup->online) . "/{$rankGroup->total})";
-		$sortFunc = fn (Player $p1, Player $p2): int => strcmp($p1->name, $p2->name);
+		$sortFunc = static fn (Player $p1, Player $p2): int => strcmp($p1->name, $p2->name);
 		usort($rankGroup->online, $sortFunc);
 		usort($rankGroup->offline, $sortFunc);
 		foreach ($rankGroup->online as $member) {
 			$blob .= "\n<tab>" . $this->renderOnlineMember($member);
 		}
 		if (count($rankGroup->offline) > 0) {
-			$names = array_column($rankGroup->offline, "name");
+			$names = array_column($rankGroup->offline, 'name');
 			$chunks = array_chunk($names, 50, false);
 			$blob .= "\n<tab>";
 			for ($i = 0; $i < count($chunks); $i++) {
 				$chunk = $chunks[$i];
-				$suffix = ",";
+				$suffix = ',';
 				if ($i === count($chunks)-1) {
-					$suffix = "";
+					$suffix = '';
 				}
-				$blob .= "<pagebreak><font color=#555555>".
-					join(",", $chunk) . "{$suffix}</font>";
+				$blob .= '<pagebreak><font color=#555555>'.
+					implode(',', $chunk) . "{$suffix}</font>";
 			}
 		}
 		if (!count($rankGroup->online) && !count($rankGroup->offline)) {
@@ -325,8 +324,8 @@ class OrglistController extends ModuleInstance {
 		if ($member->ai_level > 0) {
 			$line .= "<green>/{$member->ai_level}<end>";
 		}
-		$line .= ", ".$member->gender;
-		$line .= " ".$member->breed;
+		$line .= ', '.$member->gender;
+		$line .= ' '.$member->breed;
 		if (isset($member->profession)) {
 			$line .= " <highlight>{$member->profession}<end>)";
 		}

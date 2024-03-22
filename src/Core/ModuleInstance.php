@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 class ModuleInstance implements ModuleInstanceInterface {
 	/** Set when registering the module */
-	public string $moduleName = "";
+	public string $moduleName = '';
 
 	public function getModuleName(): string {
 		return $this->moduleName;

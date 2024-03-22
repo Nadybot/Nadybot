@@ -12,7 +12,7 @@ class OutOfCapacity extends Base {
 	}
 
 	public function toString(): string {
-		return pack("C", PacketType::OUT_OF_CAPACITY);
+		return pack('C', PacketType::OUT_OF_CAPACITY);
 	}
 
 	public function getType(): int {

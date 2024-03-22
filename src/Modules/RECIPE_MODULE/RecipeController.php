@@ -29,11 +29,11 @@ use Safe\Exceptions\JsonException;
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Recipes"),
+	NCA\HasMigrations('Migrations/Recipes'),
 	NCA\DefineCommand(
-		command: "recipe",
-		accessLevel: "guest",
-		description: "Search for a recipe",
+		command: 'recipe',
+		accessLevel: 'guest',
+		description: 'Search for a recipe',
 	)
 ]
 class RecipeController extends ModuleInstance {
@@ -54,11 +54,11 @@ class RecipeController extends ModuleInstance {
 	/** This is an Event("connect") instead of Setup since it depends on the items db being loaded */
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
-		description: "Initializes the recipe database",
+		description: 'Initializes the recipe database',
 		defaultStatus: 1
 	)]
 	public function connectEvent(): void {
-		$this->path = __DIR__ . "/recipes/";
+		$this->path = __DIR__ . '/recipes/';
 		try {
 			$fileNames = $this->fs->listFiles($this->path);
 		} catch (FilesystemException $e) {
@@ -66,7 +66,7 @@ class RecipeController extends ModuleInstance {
 		}
 
 		/** @var array<string,Recipe> */
-		$recipes = $this->db->table("recipes")->asObj(Recipe::class)->keyBy("id")->toArray();
+		$recipes = $this->db->table('recipes')->asObj(Recipe::class)->keyBy('id')->toArray();
 		foreach ($fileNames as $fileName) {
 			if (!count($args = Safe::pregMatch("/(\d+)\.(txt|json)$/", $fileName))) {
 				continue;
@@ -85,18 +85,18 @@ class RecipeController extends ModuleInstance {
 				continue;
 			}
 			if (isset($recipes[$args[1]])) {
-				$this->db->update("recipes", "id", $recipe);
+				$this->db->update('recipes', 'id', $recipe);
 			} else {
-				$this->db->insert("recipes", $recipe, null);
+				$this->db->insert('recipes', $recipe, null);
 			}
 		}
 	}
 
 	/** Show a specific recipe */
-	#[NCA\HandlesCommand("recipe")]
+	#[NCA\HandlesCommand('recipe')]
 	public function recipeShowCommand(CmdContext $context, int $id): void {
 		/** @var ?Recipe */
-		$row = $this->db->table("recipes")->where("id", $id)->asObj(Recipe::class)->first();
+		$row = $this->db->table('recipes')->where('id', $id)->asObj(Recipe::class)->first();
 
 		if ($row === null) {
 			$msg = "Could not find recipe with id <highlight>{$id}<end>.";
@@ -107,18 +107,18 @@ class RecipeController extends ModuleInstance {
 	}
 
 	/** Search for a recipe */
-	#[NCA\HandlesCommand("recipe")]
+	#[NCA\HandlesCommand('recipe')]
 	public function recipeSearchCommand(CmdContext $context, string $search): void {
-		$query = $this->db->table("recipes")
-			->orderBy("name");
+		$query = $this->db->table('recipes')
+			->orderBy('name');
 		if (PItem::matches($search)) {
 			$item = new PItem($search);
 			$search = $item->name;
 
-			$query->whereIlike("recipe", "%{$item->lowID}%")
-				->orWhereIlike("recipe", "%{$item->name}%");
+			$query->whereIlike('recipe', "%{$item->lowID}%")
+				->orWhereIlike('recipe', "%{$item->name}%");
 		} else {
-			$this->db->addWhereFromParams($query, explode(" ", $search), "recipe");
+			$this->db->addWhereFromParams($query, explode(' ', $search), 'recipe');
 		}
 
 		/** @var Recipe[] */
@@ -127,7 +127,7 @@ class RecipeController extends ModuleInstance {
 		$count = count($data);
 
 		if ($count === 0) {
-			$msg = "Could not find any recipes matching your search criteria.";
+			$msg = 'Could not find any recipes matching your search criteria.';
 			$context->reply($msg);
 			return;
 		}
@@ -138,7 +138,7 @@ class RecipeController extends ModuleInstance {
 		}
 		$blob = "<header2>Recipes containing \"{$search}\"<end>\n";
 		foreach ($data as $row) {
-			$blob .= "<tab>" . $this->text->makeChatcmd($row->name, "/tell <myname> recipe {$row->id}") . "\n";
+			$blob .= '<tab>' . $this->text->makeChatcmd($row->name, "/tell <myname> recipe {$row->id}") . "\n";
 		}
 
 		$msg = $this->text->makeBlob("Recipes matching '{$search}' ({$count})", $blob);
@@ -147,14 +147,14 @@ class RecipeController extends ModuleInstance {
 	}
 
 	public function formatRecipeText(string $input): string {
-		$input = str_replace("\\n", "\n", $input);
+		$input = str_replace('\\n', "\n", $input);
 		$input = preg_replace_callback('/#L "([^"]+)" "([0-9]+)"/', [$this, 'replaceItem'], $input);
 		$input = Safe::pregReplace('/#L "([^"]+)" "([^"]+)"/', "<a href='chatcmd://\\2'>\\1</a>", $input);
 
 		// we can't use <myname> in the sql since that will get converted on load,
 		// and we need to wait to convert until display time due to the possibility
 		// of several bots sharing the same db
-		$input = str_replace("{myname}", "<myname>", $input);
+		$input = str_replace('{myname}', '<myname>', $input);
 
 		return $input;
 	}
@@ -162,7 +162,7 @@ class RecipeController extends ModuleInstance {
 	/** @return string[] */
 	public function createRecipeBlob(Recipe $row): array {
 		$recipe_name = $row->name;
-		$author = empty($row->author) ? "Unknown" : $row->author;
+		$author = empty($row->author) ? 'Unknown' : $row->author;
 
 		$recipeText = "Recipe Id: <highlight>{$row->id}<end>\n";
 		$recipeText .= "Author: <highlight>{$author}<end>\n\n";
@@ -177,8 +177,8 @@ class RecipeController extends ModuleInstance {
 		$authorLine = trim(array_shift($lines));
 		$recipe = new Recipe(
 			id: $id,
-			name: (strlen($nameLine) > 6) ? substr($nameLine, 6) : "Unknown",
-			author: (strlen($authorLine) > 8) ? substr($authorLine, 8) : "Unknown",
+			name: (strlen($nameLine) > 6) ? substr($nameLine, 6) : 'Unknown',
+			author: (strlen($authorLine) > 8) ? substr($authorLine, 8) : 'Unknown',
 			recipe: implode("\n", $lines),
 			date: $this->fs->getModificationTime($this->path . $fileName),
 		);
@@ -191,7 +191,7 @@ class RecipeController extends ModuleInstance {
 			$data = json_decode(
 				$this->fs->read($this->path . $fileName),
 				false,
-				JSON_THROW_ON_ERROR
+				\JSON_THROW_ON_ERROR
 			);
 		} catch (JsonException $e) {
 			throw new UserException("Could not read '{$fileName}': invalid JSON");
@@ -230,11 +230,11 @@ class RecipeController extends ModuleInstance {
 			$source = $items[$step->source];
 			$target = $items[$step->target];
 			$result = $items[$step->result];
-			$recipe .= "<tab>".
+			$recipe .= '<tab>'.
 				$this->text->makeItem($source->lowid, $source->highid, $source->ql, $this->text->makeImage($source->icon)).
-				"<tab><img src=tdb://id:GFX_GUI_CONTROLCENTER_BIGARROW_RIGHT_STATE1><tab>".
+				'<tab><img src=tdb://id:GFX_GUI_CONTROLCENTER_BIGARROW_RIGHT_STATE1><tab>'.
 				$this->text->makeItem($target->lowid, $target->highid, $target->ql, $this->text->makeImage($target->icon)).
-				"<tab><img src=tdb://id:GFX_GUI_CONTROLCENTER_BIGARROW_RIGHT_STATE1><tab>".
+				'<tab><img src=tdb://id:GFX_GUI_CONTROLCENTER_BIGARROW_RIGHT_STATE1><tab>'.
 				$this->text->makeItem($result->lowid, $result->highid, $result->ql, $this->text->makeImage($result->icon)).
 				"\n";
 			$recipe .= "<tab>{$source->name} ".
@@ -248,8 +248,8 @@ class RecipeController extends ModuleInstance {
 		}
 		return new Recipe(
 			id: $id,
-			name: $data->name ?? "<unnamed>",
-			author: $data->author ?? "<unknown>",
+			name: $data->name ?? '<unnamed>',
+			author: $data->author ?? '<unknown>',
 			date: $this->fs->getModificationTime($this->path . $fileName),
 			recipe: $recipe,
 		);

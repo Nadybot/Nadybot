@@ -9,7 +9,7 @@ use Nadybot\Core\Modules\CONFIG\ConfigController;
 /**
  * Class to represent a setting with an access level value for NadyBot
  */
-#[NCA\SettingHandler("rank")]
+#[NCA\SettingHandler('rank')]
 class AccessLevelSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	private ConfigController $configController;
@@ -19,7 +19,7 @@ class AccessLevelSettingHandler extends SettingHandler {
 
 	/** @inheritDoc */
 	public function getDescription(): string {
-		$msg = "For this setting you need to choose one of the available ".
+		$msg = 'For this setting you need to choose one of the available '.
 			"access levels:\n\n";
 		$ranks = $this->configController->getValidAccessLevels();
 		foreach ($ranks as $rank) {
@@ -40,7 +40,7 @@ class AccessLevelSettingHandler extends SettingHandler {
 	}
 
 	public function displayValue(string $sender): string {
-		$value = $this->row->value ?? "all";
+		$value = $this->row->value ?? 'all';
 		$rank = ucfirst(strtolower($this->accessManager->getDisplayName($value)));
 		return "<highlight>{$rank}<end>";
 	}

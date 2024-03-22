@@ -22,18 +22,18 @@ use Nadybot\Modules\RELAY_MODULE\{
 
 #[
 	NCA\RelayTransport(
-		name: "tell",
+		name: 'tell',
 		description: "This is the Anarchy Online private message (tell) protocol.\n".
 			"You can use this to relay messages internally inside Anarchy Online\n".
 			"via sending tells. This is the simplest form of relaying messages.\n".
 			"Be aware though, that tells are rate-limited and will very likely\n".
 			"lag a lot. It is also not possible to setup a relay with more\n".
-			"then 2 bots this way."
+			'then 2 bots this way.'
 	),
 	NCA\Param(
-		name: "bot",
-		type: "string",
-		description: "The name of the other bot",
+		name: 'bot',
+		type: 'string',
+		description: 'The name of the other bot',
 		required: true
 	)
 ]
@@ -102,7 +102,7 @@ class Tell implements TransportInterface {
 		if (isset($this->initCallback)) {
 			return;
 		}
-		$this->relay->deinit(function (Relay $relay): void {
+		$this->relay->deinit(static function (Relay $relay): void {
 			$relay->init();
 		});
 	}
@@ -118,7 +118,7 @@ class Tell implements TransportInterface {
 			async(
 				$this->buddylistManager->addName(...),
 				$this->bot,
-				$this->relay->getName() . "_relay"
+				$this->relay->getName() . '_relay'
 			);
 		}
 		return [];
@@ -130,7 +130,7 @@ class Tell implements TransportInterface {
 		$this->eventManager->unsubscribe(LogoffEvent::EVENT_MASK, $this->botOffline(...));
 		$this->buddylistManager->remove(
 			$this->bot,
-			$this->relay->getName() . "_relay"
+			$this->relay->getName() . '_relay'
 		);
 		$buddy = $this->buddylistManager->getBuddy($this->bot);
 		if (isset($buddy) && !count($buddy->types)) {
@@ -142,14 +142,14 @@ class Tell implements TransportInterface {
 				if ($name === $this->bot) {
 					$this->buddylistManager->updateRemoved($uid);
 					$this->eventManager->unsubscribe(
-						"packet(" . Package\Type::BuddyRemove->value . ")",
+						'packet(' . Package\Type::BuddyRemove->value . ')',
 						$waitForRemoval
 					);
 					$callback();
 				}
 			};
 			$this->eventManager->subscribe(
-				"packet(" . Package\Type::BuddyRemove->value . ")",
+				'packet(' . Package\Type::BuddyRemove->value . ')',
 				$waitForRemoval
 			);
 		} else {

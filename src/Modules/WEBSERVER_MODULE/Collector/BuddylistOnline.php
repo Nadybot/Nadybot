@@ -14,6 +14,6 @@ class BuddylistOnline implements GaugeProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => "online"];
+		return ['type' => 'online'];
 	}
 }

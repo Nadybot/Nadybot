@@ -56,12 +56,12 @@ class PlayerHistoryManager extends ModuleInstance {
 		if ($body === '' || $body === '[]') {
 			return null;
 		}
-		$cache->set($cacheKey, $body, 12 * 3600);
+		$cache->set($cacheKey, $body, 12 * 3_600);
 		return $this->parsePlayerHistory($body, $name);
 	}
 
 	private function getCacheDir(): string {
-		return $this->config->paths->cache . "/player_history";
+		return $this->config->paths->cache . '/player_history';
 	}
 
 	/** @psalm-param callable(?PlayerHistory, mixed...) $callback */

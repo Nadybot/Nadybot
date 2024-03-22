@@ -20,9 +20,9 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "whereis",
-		accessLevel: "guest",
-		description: "Shows where places and NPCs are",
+		command: 'whereis',
+		accessLevel: 'guest',
+		description: 'Shows where places and NPCs are',
 	)
 ]
 class WhereisController extends ModuleInstance {
@@ -37,13 +37,13 @@ class WhereisController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whereis.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/whereis.csv');
 	}
 
 	/** @return Collection<WhereisResult> */
 	public function getByName(string ...$name): Collection {
-		return $this->db->table("whereis AS w")
-			->whereIn("name", $name)
+		return $this->db->table('whereis AS w')
+			->whereIn('name', $name)
 			->asObj(WhereisResult::class)
 			->each(function (WhereisResult $wi): void {
 				$wi->pf = $this->pfController->getPlayfieldById($wi->playfield_id);
@@ -52,7 +52,7 @@ class WhereisController extends ModuleInstance {
 
 	/** @return Collection<WhereisResult> */
 	public function getAll(): Collection {
-		return $this->db->table("whereis AS w")
+		return $this->db->table('whereis AS w')
 			->asObj(WhereisResult::class)
 			->each(function (WhereisResult $wi): void {
 				$wi->pf = $this->pfController->getPlayfieldById($wi->playfield_id);
@@ -60,16 +60,16 @@ class WhereisController extends ModuleInstance {
 	}
 
 	/** Show the location of NPCs or places */
-	#[NCA\HandlesCommand("whereis")]
-	#[NCA\Help\Example("<symbol>whereis elmer ragg")]
-	#[NCA\Help\Example("<symbol>whereis prisoner")]
-	#[NCA\Help\Example("<symbol>whereis 12m")]
+	#[NCA\HandlesCommand('whereis')]
+	#[NCA\Help\Example('<symbol>whereis elmer ragg')]
+	#[NCA\Help\Example('<symbol>whereis prisoner')]
+	#[NCA\Help\Example('<symbol>whereis 12m')]
 	public function whereisCommand(CmdContext $context, string $search): void {
 		$search = strtolower($search);
 		$words = explode(' ', $search);
-		$query = $this->db->table("whereis");
-		$this->db->addWhereFromParams($query, $words, "name");
-		$this->db->addWhereFromParams($query, $words, "keywords", "or");
+		$query = $this->db->table('whereis');
+		$this->db->addWhereFromParams($query, $words, 'name');
+		$this->db->addWhereFromParams($query, $words, 'keywords', 'or');
 
 		/** @var Collection<string> */
 		$lines = $query->asObj(WhereisResult::class)
@@ -78,14 +78,14 @@ class WhereisController extends ModuleInstance {
 				$line = "<pagebreak><header2>{$npc->name}<end>\n".
 					"<tab>{$npc->answer}";
 				if (isset($npc->pf) && $npc->xcoord !== 0 && $npc->ycoord !== 0) {
-					$line .= " " . $this->text->makeChatcmd("{$npc->xcoord}x{$npc->ycoord} {$npc->pf->short_name}", "/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->pf->id}");
+					$line .= ' ' . $this->text->makeChatcmd("{$npc->xcoord}x{$npc->ycoord} {$npc->pf->short_name}", "/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->pf->id}");
 				}
 				return $line;
 			});
 		$count = $lines->count();
 
 		if ($count === 0) {
-			$msg = "There were no matches for your search.";
+			$msg = 'There were no matches for your search.';
 			$context->reply($msg);
 			return;
 		}

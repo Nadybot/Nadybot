@@ -11,9 +11,9 @@ use Psr\Log\LoggerInterface;
 
 #[NCA\Instance]
 class CommandAlias {
-	public const DB_TABLE = "cmd_alias_<myname>";
+	public const DB_TABLE = 'cmd_alias_<myname>';
 
-	public const ALIAS_HANDLER = "CommandAlias.process";
+	public const ALIAS_HANDLER = 'CommandAlias.process';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -26,10 +26,10 @@ class CommandAlias {
 
 	/** Loads active aliases into memory to activate them */
 	public function load(): void {
-		$this->logger->info("Loading enabled command aliases");
+		$this->logger->info('Loading enabled command aliases');
 
 		$this->db->table(self::DB_TABLE)
-			->where("status", 1)
+			->where('status', 1)
 			->asObj(CmdAlias::class)
 			->each(function (CmdAlias $row): void {
 				$this->activate($row->cmd, $row->alias);
@@ -46,13 +46,13 @@ class CommandAlias {
 
 		$row = $this->get($alias);
 		if ($row !== null) {
-			$this->logger->info("Updating {alias}", ["alias" => $entry]);
+			$this->logger->info('Updating {alias}', ['alias' => $entry]);
 			// do not update an alias that a user created
 			if (isset($row->module) && strlen($row->module) > 0) {
-				$this->db->update(self::DB_TABLE, "alias", $entry);
+				$this->db->update(self::DB_TABLE, 'alias', $entry);
 			}
 		} else {
-			$this->logger->info("Registering {alias}", ["alias" => $entry]);
+			$this->logger->info('Registering {alias}', ['alias' => $entry]);
 			$this->db->insert(self::DB_TABLE, $entry, null);
 		}
 	}
@@ -60,9 +60,9 @@ class CommandAlias {
 	/** Activates a command alias */
 	public function activate(string $command, string $alias): void {
 		$alias = strtolower($alias);
-		$entry = new AnonObj(class: "CmdAlias", properties: ["alias" => $alias, "cmd" => $command]);
+		$entry = new AnonObj(class: 'CmdAlias', properties: ['alias' => $alias, 'cmd' => $command]);
 
-		$this->logger->info("Activating {alias}", ["alias" => $entry]);
+		$this->logger->info('Activating {alias}', ['alias' => $entry]);
 
 		foreach ($this->commandManager->getPermissionSets() as $set) {
 			$this->commandManager->activate($set->name, self::ALIAS_HANDLER, $alias, 'all');
@@ -73,7 +73,7 @@ class CommandAlias {
 	public function deactivate(string $alias): void {
 		$alias = strtolower($alias);
 
-		$this->logger->info("Deactivate Command Alias '{alias}'", ["alias" => $alias]);
+		$this->logger->info("Deactivate Command Alias '{alias}'", ['alias' => $alias]);
 
 		foreach ($this->commandManager->getPermissionSets() as $set) {
 			$this->commandManager->deactivate($set->name, self::ALIAS_HANDLER, $alias);
@@ -84,7 +84,7 @@ class CommandAlias {
 	public function process(CmdContext $context): bool {
 		$params = explode(' ', $context->message);
 		while (count($params) && !isset($row)) {
-			$row = $this->get(strtolower(join(' ', $params)));
+			$row = $this->get(strtolower(implode(' ', $params)));
 			if (!isset($row)) {
 				array_pop($params);
 			}
@@ -96,26 +96,26 @@ class CommandAlias {
 		if (count($tokens) > count($params)) {
 			$params = $tokens[count($params)];
 		} else {
-			$params = "";
+			$params = '';
 		}
 		$this->logger->info("Command alias found command: '{command}' alias: '{alias}'", [
-			"command" => $row->cmd,
-			"alias" => $row->alias,
+			'command' => $row->cmd,
+			'alias' => $row->alias,
 		]);
 		$cmd = $row->cmd;
 
 		// Determine highest placeholder and don't split more than that so that the
 		// last parameter will have whatever is left
 		$matches = Safe::pregMatchAll("/\{(\\d+)(:.*?)?\}/", $cmd);
-		$placeholders = array_map("intval", $matches[1] ?? []);
+		$placeholders = array_map('intval', $matches[1] ?? []);
 		$highestPlaceholder = max([0, ...$placeholders]);
 		// If there aren't any defined parameters, but player gave arguments, process them:
-		if ($highestPlaceholder === 0 && !count($placeholders) && $params !== "") {
-			$cmd .= " {0}";
+		if ($highestPlaceholder === 0 && !count($placeholders) && $params !== '') {
+			$cmd .= ' {0}';
 		}
 
 		$aliasParams = [];
-		if ($params !== "") {
+		if ($params !== '') {
 			$aliasParams = explode(' ', $params, $highestPlaceholder);
 			// add the entire param string as the {0} parameter
 			array_unshift($aliasParams, $params);
@@ -124,7 +124,7 @@ class CommandAlias {
 		// replace parameter placeholders with their values or the default
 		$cmd = preg_replace_callback(
 			"/\{(\d+)(:.*?)?\}/",
-			function (array $matches) use ($aliasParams): string {
+			static function (array $matches) use ($aliasParams): string {
 				if (isset($aliasParams[(int)$matches[1]])) {
 					return $aliasParams[(int)$matches[1]];
 				}
@@ -147,26 +147,26 @@ class CommandAlias {
 	/** Adds a command alias to the db */
 	public function add(CmdAlias $row): int {
 		$this->logger->info("Adding alias: '{alias}' for command: '{command}'", [
-			"alias" => $row->alias,
-			"command" => $row->cmd,
+			'alias' => $row->alias,
+			'command' => $row->cmd,
 		]);
 		return $this->db->table(self::DB_TABLE)->insert([
-			"module" => $row->module,
-			"cmd" => $row->cmd,
-			"alias" => $row->alias,
-			"status" => $row->status,
+			'module' => $row->module,
+			'cmd' => $row->cmd,
+			'alias' => $row->alias,
+			'status' => $row->status,
 		]) ? 1 : 0;
 	}
 
 	/** Updates a command alias in the db */
 	public function update(CmdAlias $row): int {
-		$this->logger->info("Updating alias :({alias})", ["alias" => $row->alias]);
+		$this->logger->info('Updating alias :({alias})', ['alias' => $row->alias]);
 		return $this->db->table(self::DB_TABLE)
-			->where("alias", $row->alias)
+			->where('alias', $row->alias)
 			->update([
-				"module" => $row->module,
-				"cmd" => $row->cmd,
-				"status" => $row->status,
+				'module' => $row->module,
+				'cmd' => $row->cmd,
+				'status' => $row->status,
 			]);
 	}
 
@@ -174,7 +174,7 @@ class CommandAlias {
 	public function get(string $alias): ?CmdAlias {
 		$alias = strtolower($alias);
 
-		return $this->db->table(self::DB_TABLE)->where("alias", $alias)->asObj(CmdAlias::class)->first();
+		return $this->db->table(self::DB_TABLE)->where('alias', $alias)->asObj(CmdAlias::class)->first();
 	}
 
 	/** Get the command for which an alias actually is an alias */
@@ -198,7 +198,7 @@ class CommandAlias {
 	 */
 	public function findAliasesByCommand(string $command): Collection {
 		return $this->db->table(self::DB_TABLE)
-			->whereIlike("cmd", $command)
+			->whereIlike('cmd', $command)
 			->asObj(CmdAlias::class);
 	}
 
@@ -209,8 +209,8 @@ class CommandAlias {
 	 */
 	public function getEnabledAliases(): array {
 		return $this->db->table(self::DB_TABLE)
-			->where("status", 1)
-			->orderBy("alias")
+			->where('status', 1)
+			->orderBy('alias')
 			->asObj(CmdAlias::class)
 			->toArray();
 	}

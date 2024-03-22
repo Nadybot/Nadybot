@@ -33,10 +33,10 @@ class LootHistory extends DBRow {
 	public string $rolled_by;
 
 	/** Nice display (including item link) of the item */
-	public string $display = "";
+	public string $display = '';
 
 	/** Optional comment about the item */
-	public string $comment = "";
+	public string $comment = '';
 
 	/** If someone won the item, name of the winner */
 	public ?string $winner = null;

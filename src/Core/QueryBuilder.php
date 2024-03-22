@@ -43,7 +43,7 @@ class QueryBuilder extends Builder {
 	 */
 	public function pluckStrings(string $column): Collection {
 		return $this->pluck($column)
-			->map(function (mixed $value, int $key): string {
+			->map(static function (mixed $value, int $key): string {
 				return (string)$value;
 			});
 	}
@@ -55,29 +55,29 @@ class QueryBuilder extends Builder {
 	 */
 	public function pluckInts(string $column): Collection {
 		return $this->pluck($column)
-			->map(function (mixed $value, int $key): int {
+			->map(static function (mixed $value, int $key): int {
 				return (int)$value;
 			});
 	}
 
 	public function as(string $as): string {
-		return " as " . $this->grammar->wrap($as);
+		return ' as ' . $this->grammar->wrap($as);
 	}
 
-	public function orderByFunc(string $function, mixed $param, string $direction="asc"): self {
+	public function orderByFunc(string $function, mixed $param, string $direction='asc'): self {
 		$function = $this->dbFunc($function);
 		return $this->orderByRaw(
 			"{$function}({$param}) {$direction}"
 		);
 	}
 
-	public function orderByColFunc(string $function, mixed $column, string $direction="asc"): self {
+	public function orderByColFunc(string $function, mixed $column, string $direction='asc'): self {
 		$function = $this->dbFunc($function);
 		if (!is_array($column)) {
 			$column = [$column];
 		}
-		$column = array_map([$this->grammar, "wrap"], $column);
-		$cols = join(", ", $column);
+		$column = array_map([$this->grammar, 'wrap'], $column);
+		$cols = implode(', ', $column);
 		return $this->orderByRaw(
 			"{$function}({$cols}) {$direction}"
 		);
@@ -88,11 +88,11 @@ class QueryBuilder extends Builder {
 		if (!is_array($column)) {
 			$column = [$column];
 		}
-		$column = array_map([$this->grammar, "wrap"], $column);
-		$cols = join(", ", $column);
+		$column = array_map([$this->grammar, 'wrap'], $column);
+		$cols = implode(', ', $column);
 		return $this->raw(
 			"{$function}({$cols})".
-			(isset($as) ? " AS " . $this->grammar->wrap($as) : "")
+			(isset($as) ? ' AS ' . $this->grammar->wrap($as) : '')
 		);
 	}
 
@@ -100,7 +100,7 @@ class QueryBuilder extends Builder {
 		$function = $this->dbFunc($function);
 		return $this->raw(
 			"{$function}({$param})".
-			(isset($as) ? " AS " . $this->grammar->wrap($as) : "")
+			(isset($as) ? ' AS ' . $this->grammar->wrap($as) : '')
 		);
 	}
 
@@ -110,7 +110,7 @@ class QueryBuilder extends Builder {
 		 *
 		 * @phpstan-ignore-next-line
 		 */
-		return $this->orWhere($this->colFunc("LOWER", $column), "like", strtolower($value));
+		return $this->orWhere($this->colFunc('LOWER', $column), 'like', strtolower($value));
 	}
 
 	public function whereIlike(string $column, string $value, string $boolean='and'): self {
@@ -119,7 +119,7 @@ class QueryBuilder extends Builder {
 		 *
 		 * @phpstan-ignore-next-line
 		 */
-		return $this->where($this->colFunc("LOWER", $column), "like", strtolower($value), $boolean);
+		return $this->where($this->colFunc('LOWER', $column), 'like', strtolower($value), $boolean);
 	}
 
 	public function join($table, $first, $operator=null, $second=null, $type='inner', $where=false): self {
@@ -171,11 +171,10 @@ class QueryBuilder extends Builder {
 	}
 
 	/**
+	 * @param class-string<T>        $className
 	 * @param array<int,null|string> $values
 	 *
 	 * @template T of object
-	 *
-	 * @param class-string<T> $className
 	 *
 	 * @return T
 	 */
@@ -187,11 +186,11 @@ class QueryBuilder extends Builder {
 			$colMeta = $ps->getColumnMeta($col);
 			if ($colMeta === false) {
 				$this->logger->error(
-					"Error trying to get the meta information for {className}, column {colNum}: {error}",
+					'Error trying to get the meta information for {className}, column {colNum}: {error}',
 					[
-						"className" => $className,
-						"colNum" => $col,
-						"error" => "query didn't return that many columns",
+						'className' => $className,
+						'colNum' => $col,
+						'error' => "query didn't return that many columns",
 					]
 				);
 				continue;
@@ -208,13 +207,13 @@ class QueryBuilder extends Builder {
 					$row[$colName] = null;
 				} catch (Throwable $e) {
 					$this->logger->error(
-						"Error trying to get the meta information for {className}, column {colNum}: {error}",
+						'Error trying to get the meta information for {className}, column {colNum}: {error}',
 						[
-							"className" => $className,
-							"colNum" => $col,
-							"error" => $e->getMessage(),
-							"exception" => $e,
-							"colMeta" => $colMeta,
+							'className' => $className,
+							'colNum' => $col,
+							'error' => $e->getMessage(),
+							'exception' => $e,
+							'colMeta' => $colMeta,
 						]
 					);
 				}
@@ -223,9 +222,9 @@ class QueryBuilder extends Builder {
 			try {
 				if (!$refClass->hasProperty($colName)) {
 					$this->logger->error("Unable to load data into {class}::\${property}: property doesn't exist", [
-						"class" => $refClass->getName(),
-						"property" => $colName,
-						"exception" => new Exception(),
+						'class' => $refClass->getName(),
+						'property' => $colName,
+						'exception' => new Exception(),
 					]);
 					continue;
 				}
@@ -239,11 +238,11 @@ class QueryBuilder extends Builder {
 						$row[$colName] = $mapper->map($values[$col]);
 					}
 				} else {
-					if ($type === "bool") {
+					if ($type === 'bool') {
 						$row[$colName] = (bool)$values[$col];
-					} elseif ($type === "int") {
+					} elseif ($type === 'int') {
 						$row[$colName] = (int)$values[$col];
-					} elseif ($type === "float") {
+					} elseif ($type === 'float') {
 						$row[$colName] = (float)$values[$col];
 					} elseif ($type === \DateTime::class || $type === DateTime::class) {
 						$row[$colName] = (new DateTime())->setTimestamp((int)$values[$col]);
@@ -254,12 +253,12 @@ class QueryBuilder extends Builder {
 					}
 				}
 			} catch (Throwable $e) {
-				$this->logger->error($e->getMessage(), ["exception" => $e]);
+				$this->logger->error($e->getMessage(), ['exception' => $e]);
 				throw $e;
 			}
 		}
 		try {
-			$constructor = $refClass->getMethod("__construct");
+			$constructor = $refClass->getMethod('__construct');
 			if (count($constructor->getParameters())) {
 				$obj = $refClass->newInstance(...$row);
 				return $obj;
@@ -276,9 +275,9 @@ class QueryBuilder extends Builder {
 	protected function dbFunc(string $function): string {
 		$type = $this->nadyDB->getType();
 		switch (strtolower($function)) {
-			case "length":
+			case 'length':
 				if ($type === DB\Type::MySQL) {
-					return "length";
+					return 'length';
 				}
 				break;
 			default:
@@ -298,16 +297,16 @@ class QueryBuilder extends Builder {
 		/** @var Connection */
 		$conn = $this->getConnection();
 		$this->logger->debug($sql, [
-			"params" => $params,
-			"driver" => $conn->getPdo()->getAttribute(PDO::ATTR_DRIVER_NAME),
-			"version" => $conn->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION),
+			'params' => $params,
+			'driver' => $conn->getPdo()->getAttribute(PDO::ATTR_DRIVER_NAME),
+			'version' => $conn->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION),
 		]);
 
 		try {
 			$ps = $conn->getPdo()->prepare($sql);
 			$count = 1;
 			foreach ($params as $param) {
-				if ($param === "NULL" || $param === null) {
+				if ($param === 'NULL' || $param === null) {
 					$ps->bindValue($count++, $param, PDO::PARAM_NULL);
 				} elseif (is_bool($param)) {
 					$ps->bindValue($count++, $param, PDO::PARAM_BOOL);
@@ -320,19 +319,19 @@ class QueryBuilder extends Builder {
 			$ps->execute();
 			return $ps;
 		} catch (PDOException $e) {
-			$e->errorInfo ??= [0, ""];
+			$e->errorInfo ??= [0, ''];
 			if ($this->nadyDB->getType() === DB\Type::SQLite && $e->errorInfo[1] === 17) {
 				// fix for Sqlite schema changed error (retry the query)
 				return $this->executeQuery($sql, $params);
 			}
-			if ($this->nadyDB->getType() === DB\Type::MySQL && in_array($e->errorInfo[1], [1927, 2006], true)) {
+			if ($this->nadyDB->getType() === DB\Type::MySQL && in_array($e->errorInfo[1], [1_927, 2_006], true)) {
 				$this->logger->warning(
 					'DB had recoverable error: ' . trim($e->errorInfo[2]) . ' - reconnecting'
 				);
 				$conn->reconnect();
 				return $this->executeQuery(...func_get_args());
 			}
-			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: {$sql}\nParams: " . json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), 0, $e);
+			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: {$sql}\nParams: " . json_encode($params, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES), 0, $e);
 		}
 	}
 

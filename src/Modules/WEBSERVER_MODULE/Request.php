@@ -31,9 +31,9 @@ class Request {
 		if (!strlen($this->headers['cookie']??'')) {
 			return [];
 		}
-		$parts = explode("; ", $this->headers['cookie']);
+		$parts = explode('; ', $this->headers['cookie']);
 		for ($i = 0; $i < count($parts); $i++) {
-			$kv = explode("=", $parts[$i], 2);
+			$kv = explode('=', $parts[$i], 2);
 			if (count($kv) < 2) {
 				continue;
 			}

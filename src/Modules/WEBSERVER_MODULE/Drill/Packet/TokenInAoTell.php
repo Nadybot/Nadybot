@@ -19,7 +19,7 @@ class TokenInAoTell extends Base {
 	}
 
 	public function toString(): string {
-		return pack("C", PacketType::TOKEN_IN_AO_TELL) . $this->sender;
+		return pack('C', PacketType::TOKEN_IN_AO_TELL) . $this->sender;
 	}
 
 	public function getType(): int {

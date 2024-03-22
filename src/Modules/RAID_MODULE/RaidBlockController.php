@@ -23,25 +23,25 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Block"),
+	NCA\HasMigrations('Migrations/Block'),
 	NCA\DefineCommand(
-		command: "raidblock",
-		accessLevel: "member",
-		description: "Check your raid blocks",
+		command: 'raidblock',
+		accessLevel: 'member',
+		description: 'Check your raid blocks',
 	),
 	NCA\DefineCommand(
 		command: RaidBlockController::CMD_RAIDBLOCK_EDIT,
-		accessLevel: "raid_leader_1",
-		description: "Temporarily block raiders",
+		accessLevel: 'raid_leader_1',
+		description: 'Temporarily block raiders',
 	)
 ]
 class RaidBlockController extends ModuleInstance {
-	public const DB_TABLE = "raid_block_<myname>";
-	public const POINTS_GAIN = "points";
-	public const JOIN_RAIDS = "join";
-	public const AUCTION_BIDS = "bid";
+	public const DB_TABLE = 'raid_block_<myname>';
+	public const POINTS_GAIN = 'points';
+	public const JOIN_RAIDS = 'join';
+	public const AUCTION_BIDS = 'bid';
 
-	public const CMD_RAIDBLOCK_EDIT = "raidblock add/remove";
+	public const CMD_RAIDBLOCK_EDIT = 'raidblock add/remove';
 
 	public int $lastExpiration = 0;
 
@@ -71,8 +71,8 @@ class RaidBlockController extends ModuleInstance {
 	/** Load all blocks from the database into memory */
 	public function loadBlocks(): void {
 		$this->db->table(self::DB_TABLE)
-			->whereNull("expiration")
-			->orWhere("expiration", ">", time())
+			->whereNull('expiration')
+			->orWhere('expiration', '>', time())
 			->asObj(RaidBlock::class)
 			->each(function (RaidBlock $block) {
 				$this->blocks[$block->player] ??= [];
@@ -109,11 +109,11 @@ class RaidBlockController extends ModuleInstance {
 	/** Get a descriptive noun for a raid block key */
 	public function blockToString(string $block): string {
 		$mapping = [
-			static::AUCTION_BIDS => "bidding in auctions",
-			static::JOIN_RAIDS => "joining raids",
-			static::POINTS_GAIN => "gaining raid points",
+			static::AUCTION_BIDS => 'bidding in auctions',
+			static::JOIN_RAIDS => 'joining raids',
+			static::POINTS_GAIN => 'gaining raid points',
 		];
-		return $mapping[$block] ?? "an unknown activity";
+		return $mapping[$block] ?? 'an unknown activity';
 	}
 
 	/**
@@ -125,8 +125,7 @@ class RaidBlockController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAIDBLOCK_EDIT)]
 	public function raidBlockAddCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("points", "join", "bid")]
-		string $blockFrom,
+		#[NCA\StrChoice('points', 'join', 'bid')] string $blockFrom,
 		PCharacter $character,
 		?PDuration $duration,
 		string $reason
@@ -155,32 +154,32 @@ class RaidBlockController extends ModuleInstance {
 		$this->blocks[$character][$blockFrom] = $block;
 		$this->db->insert(self::DB_TABLE, $block, null);
 		$msg = "<highlight>{$character}<end> is now blocked from <highlight>".
-			$this->blockToString($blockFrom) . "<end> ";
+			$this->blockToString($blockFrom) . '<end> ';
 		if (is_int($duration) && $duration > 0) {
-			$msg .= "for <highlight>" . $this->util->unixtimeToReadable($duration) . "<end>.";
+			$msg .= 'for <highlight>' . $this->util->unixtimeToReadable($duration) . '<end>.';
 		} else {
-			$msg .= "until someone removes the block.";
+			$msg .= 'until someone removes the block.';
 		}
 		$context->reply($msg);
 	}
 
 	/** Check if you are blocked from some raid aspects and for how long */
-	#[NCA\HandlesCommand("raidblock")]
+	#[NCA\HandlesCommand('raidblock')]
 	public function raidBlockCommand(CmdContext $context): void {
 		$this->expireBans();
 		$player = $this->altsController->getMainOf($context->char->name);
 		if (!isset($this->blocks[$player])) {
-			$context->reply("You are currently not blocked from any part of raiding.");
+			$context->reply('You are currently not blocked from any part of raiding.');
 			return;
 		}
 		$blocks = $this->blocks[$player];
-		$msg = "You are blocked from the following raid part" . ((count($blocks) > 1) ? "s" : "") . ":";
+		$msg = 'You are blocked from the following raid part' . ((count($blocks) > 1) ? 's' : '') . ':';
 		foreach ($blocks as $name => $block) {
-			$msg .= "\n<tab><highlight>" . $this->blockToString($name) . "<end>: ";
+			$msg .= "\n<tab><highlight>" . $this->blockToString($name) . '<end>: ';
 			if (isset($block->expiration) && $block->expiration > 0) {
-				$msg .= "until " . $this->util->date($block->expiration);
+				$msg .= 'until ' . $this->util->date($block->expiration);
 			} else {
-				$msg .= "until block is lifted";
+				$msg .= 'until block is lifted';
 			}
 		}
 		$context->reply($msg);
@@ -198,13 +197,13 @@ class RaidBlockController extends ModuleInstance {
 		}
 		$blocks = $this->blocks[$player];
 		$blob = "<header2>Active blocks for {$player}<end>\n";
-		$msg = "Active raid blocks (" . count($blocks) . ")";
+		$msg = 'Active raid blocks (' . count($blocks) . ')';
 		foreach ($blocks as $name => $block) {
-			$blob .= "\n<tab><highlight>" . $this->blockToString($name) . "<end>: ";
+			$blob .= "\n<tab><highlight>" . $this->blockToString($name) . '<end>: ';
 			if (isset($block->expiration) && $block->expiration > 0) {
-				$blob .= "until " . $this->util->date($block->expiration);
+				$blob .= 'until ' . $this->util->date($block->expiration);
 			} else {
-				$blob .= "until block is lifted";
+				$blob .= 'until block is lifted';
 			}
 			$blob .= " (by <highlight>{$block->blocked_by}<end>: {$block->reason})";
 		}
@@ -217,8 +216,7 @@ class RaidBlockController extends ModuleInstance {
 		CmdContext $context,
 		PRemove $action,
 		PCharacter $char,
-		#[NCA\StrChoice("points", "join", "bid")]
-		?string $blockFrom
+		#[NCA\StrChoice('points', 'join', 'bid')] ?string $blockFrom
 	): void {
 		$player = $char();
 		$player = $this->altsController->getMainOf($player);
@@ -229,21 +227,21 @@ class RaidBlockController extends ModuleInstance {
 		}
 		if (isset($blockFrom) && !isset($this->blocks[$player][$blockFrom])) {
 			$context->reply(
-				"<highlight>{$player}<end> is currently not blocked from " . $this->blockToString($blockFrom) . "."
+				"<highlight>{$player}<end> is currently not blocked from " . $this->blockToString($blockFrom) . '.'
 			);
 			return;
 		}
 		$query = $this->db->table(self::DB_TABLE)
-			->where("player", $player);
+			->where('player', $player);
 		if (isset($blockFrom)) {
-			$query->where("blocked_from", $blockFrom);
+			$query->where('blocked_from', $blockFrom);
 			$this->blocks[$player][$blockFrom]->expiration = time();
 		} else {
 			foreach ($this->blocks[$player] as $name => $blockFrom) {
 				$blockFrom->expiration = time();
 			}
 		}
-		$query->update(["expiration" => time()]);
+		$query->update(['expiration' => time()]);
 		$context->reply("Raidblock removed from <highlight>{$player}<end>.");
 	}
 }

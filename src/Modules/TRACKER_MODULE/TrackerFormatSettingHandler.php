@@ -8,7 +8,7 @@ use Nadybot\Core\{Attributes as NCA, SettingHandler};
 /**
  * Class to represent a setting with a tracker format value for NadyBot
  */
-#[NCA\SettingHandler("tracker_format")]
+#[NCA\SettingHandler('tracker_format')]
 class TrackerFormatSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	private TrackerController $trackerController;
@@ -16,7 +16,7 @@ class TrackerFormatSettingHandler extends SettingHandler {
 	/** Get a displayable representation of the setting */
 	public function displayValue(string $sender): string {
 		$player = $this->getDummyPlayer();
-		return $this->trackerController->getLogMessage($player, "Nady", $this->row->value ?? "");
+		return $this->trackerController->getLogMessage($player, 'Nady', $this->row->value ?? '');
 	}
 
 	/** Describe the valid values for this setting */
@@ -45,7 +45,7 @@ class TrackerFormatSettingHandler extends SettingHandler {
 	/** Get all options for this setting or null if no options are available */
 	public function getOptions(): ?string {
 		if (strlen($this->row->options??'')) {
-			$options = explode(";", $this->row->options??"");
+			$options = explode(';', $this->row->options??'');
 		}
 		if (empty($options)) {
 			return null;
@@ -55,13 +55,13 @@ class TrackerFormatSettingHandler extends SettingHandler {
 		$player = $this->getDummyPlayer();
 		foreach ($options as $example) {
 			$selectLink = $this->text->makeChatcmd(
-				"select",
+				'select',
 				"/tell <myname> settings save {$this->row->name} {$example}",
 			);
-			$msg .= "<tab>".
-				$this->trackerController->getLogMessage($player, "Nady", $example).
+			$msg .= '<tab>'.
+				$this->trackerController->getLogMessage($player, 'Nady', $example).
 				" [{$selectLink}]\n".
-				"<tab>Code: <highlight>" . htmlentities($example). "<end>\n\n";
+				'<tab>Code: <highlight>' . htmlentities($example). "<end>\n\n";
 		}
 		return $msg;
 	}
@@ -70,13 +70,13 @@ class TrackerFormatSettingHandler extends SettingHandler {
 		$player = new Player();
 		$player->ai_level = 30;
 		$player->level = 220;
-		$player->name = "Nady";
-		$player->guild = "Team Rainbow";
+		$player->name = 'Nady';
+		$player->guild = 'Team Rainbow';
 		$player->guild_id = 123;
-		$player->gender = "Female";
-		$player->faction = "Clan";
-		$player->profession = "Bureaucrat";
-		$player->breed = "Nanomage";
+		$player->gender = 'Female';
+		$player->faction = 'Clan';
+		$player->profession = 'Bureaucrat';
+		$player->breed = 'Nanomage';
 		return $player;
 	}
 }

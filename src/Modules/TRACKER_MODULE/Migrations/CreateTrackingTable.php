@@ -8,17 +8,17 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210428061308)]
+#[NCA\Migration(order: 20_210_428_061_308)]
 class CreateTrackingTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = TrackerController::DB_TRACKING;
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->bigInteger("uid");
-			$table->integer("dt");
-			$table->string("event", 6);
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->bigInteger('uid');
+			$table->integer('dt');
+			$table->string('event', 6);
 		});
 	}
 }

@@ -37,7 +37,7 @@ class PlayfieldState implements ArrayAccess, Iterator {
 	public function offsetSet(mixed $offset, mixed $value): void {
 		$offset = (int)$offset;
 		if (!($value instanceof SiteUpdate)) {
-			throw new Exception("Invalid data stored in PlayfieldState");
+			throw new Exception('Invalid data stored in PlayfieldState');
 		}
 		$this->sites[$offset] = $value;
 	}

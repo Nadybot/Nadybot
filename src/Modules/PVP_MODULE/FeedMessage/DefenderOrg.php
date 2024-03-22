@@ -9,10 +9,10 @@ class DefenderOrg {
 
 	/** @var array<string,int|string|null> */
 	public const EXAMPLE_TOKENS = [
-		"def-org" => "Troet",
-		"c-def-org" => "<neutral>Troet<end>",
-		"def-faction" => "Neutral",
-		"c-def-faction" => "<neutral>Neutral<end>",
+		'def-org' => 'Troet',
+		'c-def-org' => '<neutral>Troet<end>',
+		'def-faction' => 'Neutral',
+		'c-def-faction' => '<neutral>Neutral<end>',
 	];
 
 	public function __construct(
@@ -25,10 +25,10 @@ class DefenderOrg {
 	public function getTokens(): array {
 		$faction = strtolower($this->faction);
 		return [
-				"def-org" => $this->name,
-				"c-def-org" => "<{$faction}>{$this->name}<end>",
-				"def-faction" => $this->faction,
-				"c-def-faction" => "<{$faction}>{$this->faction}<end>",
+				'def-org' => $this->name,
+				'c-def-org' => "<{$faction}>{$this->name}<end>",
+				'def-faction' => $this->faction,
+				'c-def-faction' => "<{$faction}>{$this->faction}<end>",
 		];
 	}
 }

@@ -3,7 +3,7 @@
 namespace Nadybot\Core\ParamClass;
 
 class PCharacter extends Base {
-	protected static string $regExp = "[a-zA-Z][a-zA-Z0-9-]{3,11}";
+	protected static string $regExp = '[a-zA-Z][a-zA-Z0-9-]{3,11}';
 	protected string $value;
 
 	public function __construct(string $value) {

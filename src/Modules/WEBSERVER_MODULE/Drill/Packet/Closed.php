@@ -19,7 +19,7 @@ class Closed extends Base {
 	}
 
 	public function toString(): string {
-		return pack("C", PacketType::CLOSED) . $this->uuid;
+		return pack('C', PacketType::CLOSED) . $this->uuid;
 	}
 
 	public function getType(): int {

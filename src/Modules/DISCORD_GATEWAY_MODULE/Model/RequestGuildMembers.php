@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model;
 
 class RequestGuildMembers {
-	public ?string $query = "";
+	public ?string $query = '';
 	public int $limit = 0;
 	public ?bool $presences = null;
 

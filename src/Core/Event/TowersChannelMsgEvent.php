@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Event;
 
 class TowersChannelMsgEvent extends PublicChannelMsgEvent {
-	public const EVENT_MASK = "towers";
+	public const EVENT_MASK = 'towers';
 
 	/**
 	 * @param string  $sender  The name of the sender of the message

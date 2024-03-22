@@ -55,22 +55,22 @@ class TrackerArgumentParser {
 			}
 
 			$char = substr($input, $posData['char']-1, 1);
-			if ($found !== "") {
+			if ($found !== '') {
 				$found = ", found: <highlight>\"{$found}\"<end>";
 			}
 			throw new TrackerArgumentParserException(
 				substr($input, 0, $posData['char']-1).
-				"<red>" . (strlen($char) ? $char : "_") . "<end>".
+				'<red>' . (strlen($char) ? $char : '_') . '<end>'.
 				substr($input, $posData['char']) . "\n".
 				"expected: <highlight>{$expected}<end>{$found}."
 			);
 		}
 		$config = new TrackerConfig();
-		$modifiers = $expr->findAll("argument");
+		$modifiers = $expr->findAll('argument');
 		foreach ($modifiers as $modifier) {
 			$config->arguments []= $this->parseArgument($modifier);
 		}
-		$events = $expr->findAll("event");
+		$events = $expr->findAll('event');
 		foreach ($events as $event) {
 			$config->events []= $this->parseEvent($event);
 		}
@@ -79,8 +79,8 @@ class TrackerArgumentParser {
 
 	protected function parseArgument(Branch $argument): TrackerArgument {
 		$result = new TrackerArgument();
-		$result->name = $argument->findFirst("key")->toString();
-		$value = $argument->findFirst("value");
+		$result->name = $argument->findFirst('key')->toString();
+		$value = $argument->findFirst('value');
 		if ($value->getDetailType() === 'string') {
 			$result->value = json_decode($value->toString());
 		} else {

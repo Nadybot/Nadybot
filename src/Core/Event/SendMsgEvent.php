@@ -4,7 +4,7 @@ namespace Nadybot\Core\Event;
 
 /** We send a tell */
 class SendMsgEvent extends AOChatEvent {
-	public const EVENT_MASK = "sendmsg";
+	public const EVENT_MASK = 'sendmsg';
 
 	/**
 	 * @param string  $sender  Either the name of the sender or the numeric UID (eg. city raid accouncements)

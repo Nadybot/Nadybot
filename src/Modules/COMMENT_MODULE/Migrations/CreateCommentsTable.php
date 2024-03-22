@@ -7,23 +7,23 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210425135543)]
+#[NCA\Migration(order: 20_210_425_135_543)]
 class CreateCommentsTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "comments_<myname>";
+		$table = 'comments_<myname>';
 		if ($db->schema()->hasTable($table)) {
-			$db->schema()->table($table, function (Blueprint $table): void {
-				$table->id("id")->change();
+			$db->schema()->table($table, static function (Blueprint $table): void {
+				$table->id('id')->change();
 			});
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->string("character", 15)->index();
-			$table->string("created_by", 15);
-			$table->integer("created_at");
-			$table->string("category", 20)->index();
-			$table->text("comment");
+			$table->string('character', 15)->index();
+			$table->string('created_by', 15);
+			$table->integer('created_at');
+			$table->string('category', 20)->index();
+			$table->text('comment');
 		});
 	}
 }

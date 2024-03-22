@@ -6,7 +6,7 @@ use Nadybot\Core\Event;
 use Nadybot\Modules\PVP_MODULE\FeedMessage;
 
 class SiteUpdateEvent extends Event {
-	public const EVENT_MASK = "site-update";
+	public const EVENT_MASK = 'site-update';
 
 	public function __construct(
 		public FeedMessage\SiteUpdate $site

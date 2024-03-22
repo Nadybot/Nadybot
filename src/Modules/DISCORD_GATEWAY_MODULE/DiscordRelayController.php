@@ -19,7 +19,7 @@ use Nadybot\Core\{
 class DiscordRelayController extends ModuleInstance {
 	/** Minimum ranks allowed to use @here and @everyone */
 	#[NCA\Setting\Rank]
-	public string $discordRelayMentionRank = "mod";
+	public string $discordRelayMentionRank = 'mod';
 	#[NCA\Inject]
 	private DiscordGatewayController $discordGatewayController;
 
@@ -60,101 +60,101 @@ class DiscordRelayController extends ModuleInstance {
 
 	public static function formatMessage(string $text): string {
 		$smileyMapping = [
-			"☺️" => ":-3",
-			"🙂" => ":-)",
-			"😊" => ":o)",
-			"😀" => ":-D",
-			"😁" => "^_^",
-			"😂" => ":'-)",
-			"😃" => ":-)",
-			"😄" => "xD",
-			"😆" => "xDD",
-			"😍" => "(*_*)",
-			"☹️" => ":-<",
-			"🙁" => ":o(",
-			"😠" => ">:-[",
-			"😡" => ">:-@",
-			"😞" => ":-c",
-			"😟" => ":-<",
-			"😣" => "(>_<)",
-			"😖" => "(>_<)>",
-			"😢" => ":'-(",
-			"😭" => "T_T",
-			"😨" => "D-:",
-			"😧" => ">:-|",
-			"😦" => "D:<",
-			"😱" => ":panic:",
-			"😫" => "v.v",
-			"😩" => "v.v",
-			"😮" => ":-O",
-			"😯" => ":-o",
-			"😲" => ">:O",
-			"😗" => ":-*",
-			"😙" => ":-*",
-			"😚" => ":-*",
-			"😘" => ":-*",
-			"😉" => ";-)",
-			"😜" => ";-P",
-			"😛" => ":-P",
-			"😝" => ":‑Þ",
-			"🤑" => ":-$",
-			"🤔" => ":S",
-			"😕" => ":-\\",
-			"😐" => ":-|",
-			"😑" => "-_-",
-			"😳" => ":$",
-			"🤐" => ":-X",
-			"😶" => ":-#",
-			"😇" => "O:-)",
-			"👼" => "O:-]",
-			"😈" => ">:-)",
-			"😎" => "B-)",
-			"😪" => "|-O",
-			"😏" => ":-J",
-			"😒" => "(-.-)",
-			"😵" => "%-O",
-			"🤕" => "%-|",
-			"🤒" => ":-###",
-			"😷" => ":-#",
-			"🤢" => ":-X",
-			"🤨" => "o.O",
-			"😬" => ":E",
-			"🌹" => "@}‑;‑'‑‑‑",
-			"❤️" => "<3",
-			"💔" => "<\\3",
-			"😴" => "zzZ",
-			"🙄" => "(°_°)",
-			"😅" => "^_^'",
-			"🤦" => ":facepalm:",
-			"🤷" => ":shrug:",
+			'☺️' => ':-3',
+			'🙂' => ':-)',
+			'😊' => ':o)',
+			'😀' => ':-D',
+			'😁' => '^_^',
+			'😂' => ":'-)",
+			'😃' => ':-)',
+			'😄' => 'xD',
+			'😆' => 'xDD',
+			'😍' => '(*_*)',
+			'☹️' => ':-<',
+			'🙁' => ':o(',
+			'😠' => '>:-[',
+			'😡' => '>:-@',
+			'😞' => ':-c',
+			'😟' => ':-<',
+			'😣' => '(>_<)',
+			'😖' => '(>_<)>',
+			'😢' => ":'-(",
+			'😭' => 'T_T',
+			'😨' => 'D-:',
+			'😧' => '>:-|',
+			'😦' => 'D:<',
+			'😱' => ':panic:',
+			'😫' => 'v.v',
+			'😩' => 'v.v',
+			'😮' => ':-O',
+			'😯' => ':-o',
+			'😲' => '>:O',
+			'😗' => ':-*',
+			'😙' => ':-*',
+			'😚' => ':-*',
+			'😘' => ':-*',
+			'😉' => ';-)',
+			'😜' => ';-P',
+			'😛' => ':-P',
+			'😝' => ':‑Þ',
+			'🤑' => ':-$',
+			'🤔' => ':S',
+			'😕' => ':-\\',
+			'😐' => ':-|',
+			'😑' => '-_-',
+			'😳' => ':$',
+			'🤐' => ':-X',
+			'😶' => ':-#',
+			'😇' => 'O:-)',
+			'👼' => 'O:-]',
+			'😈' => '>:-)',
+			'😎' => 'B-)',
+			'😪' => '|-O',
+			'😏' => ':-J',
+			'😒' => '(-.-)',
+			'😵' => '%-O',
+			'🤕' => '%-|',
+			'🤒' => ':-###',
+			'😷' => ':-#',
+			'🤢' => ':-X',
+			'🤨' => 'o.O',
+			'😬' => ':E',
+			'🌹' => "@}‑;‑'‑‑‑",
+			'❤️' => '<3',
+			'💔' => '<\\3',
+			'😴' => 'zzZ',
+			'🙄' => '(°_°)',
+			'😅' => "^_^'",
+			'🤦' => ':facepalm:',
+			'🤷' => ':shrug:',
 		];
-		$text = Safe::pregReplace("/<:([a-z0-9]+):(\d+)>/i", ":$1:", $text);
-		$text = Safe::pregReplace("/```(.+?)```/s", "$1", $text);
-		$text = Safe::pregReplace("/`(.+?)`/s", "$1", $text);
+		$text = Safe::pregReplace("/<:([a-z0-9]+):(\d+)>/i", ':$1:', $text);
+		$text = Safe::pregReplace('/```(.+?)```/s', '$1', $text);
+		$text = Safe::pregReplace('/`(.+?)`/s', '$1', $text);
 		$text = htmlspecialchars($text);
-		$text = Safe::pregReplace("/\*\*(.+?)\*\*/s", "<highlight>$1<end>", $text);
-		$text = Safe::pregReplace("/\*(.+?)\*/s", "<i>$1</i>", $text);
-		$text = Safe::pregReplace("/\\\\-/s", "-", $text);
+		$text = Safe::pregReplace("/\*\*(.+?)\*\*/s", '<highlight>$1<end>', $text);
+		$text = Safe::pregReplace("/\*(.+?)\*/s", '<i>$1</i>', $text);
+		$text = Safe::pregReplace('/\\\\-/s', '-', $text);
 		$text = Safe::pregReplace("/\[(.+?)\]\((.+?)\)/s", "<a href='chatcmd:///start $2'>$1</a>", $text);
 		$text = str_replace(
 			array_keys($smileyMapping),
 			array_values($smileyMapping),
 			$text
 		);
-		if (class_exists("IntlChar")) {
+		if (class_exists('IntlChar')) {
 			$text = preg_replace_callback(
 				"/([\x{0450}-\x{2018}\x{2020}-\x{fffff}])/u",
-				function (array $matches): string {
+				static function (array $matches): string {
 					$char = \IntlChar::charName($matches[1]);
 					// @phpstan-ignore-next-line
 					if (!isset($char)) {
 						return $matches[1];
 					}
-					if ($char === "ZERO WIDTH JOINER"
-						|| substr($char, 0, 19) === "VARIATION SELECTOR-"
-						|| substr($char, 0, 14) === "EMOJI MODIFIER"
+					if ($char === 'ZERO WIDTH JOINER'
+						|| substr($char, 0, 19) === 'VARIATION SELECTOR-'
+						|| substr($char, 0, 14) === 'EMOJI MODIFIER'
 					) {
-						return "";
+						return '';
 					}
 					return ":{$char}:";
 				},

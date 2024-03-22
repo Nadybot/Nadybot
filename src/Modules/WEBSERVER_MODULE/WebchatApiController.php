@@ -48,11 +48,11 @@ class WebchatApiController extends ModuleInstance {
 
 	/** Send a message to the org chat */
 	#[
-		NCA\Api("/chat/web"),
+		NCA\Api('/chat/web'),
 		NCA\POST,
-		NCA\AccessLevel("member"),
-		NCA\RequestBody(class: "string", desc: "The text to send", required: true),
-		NCA\ApiResult(code: 204, desc: "Message sent")
+		NCA\AccessLevel('member'),
+		NCA\RequestBody(class: 'string', desc: 'The text to send', required: true),
+		NCA\ApiResult(code: 204, desc: 'Message sent')
 	]
 	public function sendWebMessageEndpoint(Request $request): Response {
 		/** @var ?string */
@@ -63,22 +63,22 @@ class WebchatApiController extends ModuleInstance {
 		if (!is_string($message) || !isset($user)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
-		$src = new WebSource(Source::WEB, "Web");
+		$src = new WebSource(Source::WEB, 'Web');
 		$src->renderAs = $src->render(null);
-		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, "Web"), "tag_color");
+		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, 'Web'), 'tag_color');
 		if (isset($color, $color->tag_color)) {
 			$src->color = $color->tag_color;
 		} else {
-			$src->color = "";
+			$src->color = '';
 		}
-		$eventColor = "";
-		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, "Web"), "text_color");
+		$eventColor = '';
+		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, 'Web'), 'text_color');
 		if (isset($color, $color->text_color)) {
 			$eventColor = $color->text_color;
 		}
 		$eventMessage = $this->webChatConverter->convertMessage($message);
 		$event = new AOWebChatEvent(
-			channel: "web",
+			channel: 'web',
 			color: $eventColor,
 			sender: $user,
 			message: $eventMessage,
@@ -92,7 +92,7 @@ class WebchatApiController extends ModuleInstance {
 		$rMessage->setCharacter(
 			new Character($user)
 		);
-		$rMessage->prependPath(new Source(Source::WEB, "Web"));
+		$rMessage->prependPath(new Source(Source::WEB, 'Web'));
 		$this->messageHub->handle($rMessage);
 
 		$sendto = new WebsocketCommandReply();

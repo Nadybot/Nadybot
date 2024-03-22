@@ -36,17 +36,17 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "webauth",
-		accessLevel: "mod",
-		description: "Pre-authorize Websocket connections",
+		command: 'webauth',
+		accessLevel: 'mod',
+		description: 'Pre-authorize Websocket connections',
 	),
 ]
 class WebserverController extends ModuleInstance implements RequestHandler {
-	public const AUTH_AOAUTH = "aoauth";
-	public const AUTH_BASIC = "webauth";
+	public const AUTH_AOAUTH = 'aoauth';
+	public const AUTH_BASIC = 'webauth';
 
-	public const USER = __NAMESPACE__ . "::user";
-	public const BODY = __NAMESPACE__ . "::body";
+	public const USER = __NAMESPACE__ . '::user';
+	public const BODY = __NAMESPACE__ . '::body';
 
 	/** Enable webserver */
 	#[NCA\Setting\Boolean(accessLevel: 'superadmin')]
@@ -54,11 +54,11 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 
 	/** On which port does the HTTP server listen */
 	#[NCA\Setting\Number(accessLevel: 'superadmin')]
-	public int $webserverPort = 8080;
+	public int $webserverPort = 8_080;
 
 	/** Where to listen for HTTP requests */
 	#[NCA\Setting\Text(
-		options: ["127.0.0.1", "0.0.0.0"],
+		options: ['127.0.0.1', '0.0.0.0'],
 		accessLevel: 'superadmin'
 	)]
 	public string $webserverAddr = '127.0.0.1';
@@ -66,13 +66,13 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	/** How to authenticate against the webserver */
 	#[NCA\Setting\Options(
 		options: [self::AUTH_BASIC, self::AUTH_AOAUTH],
-		accessLevel: "superadmin"
+		accessLevel: 'superadmin'
 	)]
 	public string $webserverAuth = self::AUTH_BASIC;
 
 	/** Which is the base URL for the webserver? This is where aoauth redirects to */
 	#[NCA\Setting\Text(
-		options: ["default"],
+		options: ['default'],
 		accessLevel: 'admin',
 		help: 'webserver_base_url.txt',
 	)]
@@ -80,14 +80,14 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 
 	/** If you are using aoauth to authenticate: URL of the server */
 	#[NCA\Setting\Text(
-		options: ["https://aoauth.org"],
-		accessLevel: "superadmin"
+		options: ['https://aoauth.org'],
+		accessLevel: 'superadmin'
 	)]
 	public string $webserverAoauthUrl = 'https://aoauth.org';
 
 	/** Minimum accesslevel for the bot API and web UI */
 	#[NCA\Setting\Rank]
-	public string $webserverMinAL = "mod";
+	public string $webserverMinAL = 'mod';
 
 	/** @var array<string,array<string,callable[]>> */
 	protected array $routes = [
@@ -128,7 +128,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
-		description: "Download aoauth public key"
+		description: 'Download aoauth public key'
 	)]
 	public function downloadPublicKey(): void {
 		if ($this->webserver) {
@@ -145,9 +145,9 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			$this->logger->error(
 				'Error downloading aoauth pubkey from {uri}: {error} ({reason})',
 				[
-					"uri" => $aoAuthKeyUrl,
-					"error" => $response->getStatus(),
-					"reason" => $response->getReason(),
+					'uri' => $aoAuthKeyUrl,
+					'error' => $response->getStatus(),
+					'reason' => $response->getReason(),
 				]
 			);
 			return;
@@ -155,7 +155,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		$body = $response->getBody()->buffer();
 		if ($body === '') {
 			$this->logger->error('Empty aoauth pubkey received from {uri}', [
-				"uri" => $aoAuthKeyUrl,
+				'uri' => $aoAuthKeyUrl,
 			]);
 			return;
 		}
@@ -169,8 +169,8 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	}
 
 	#[NCA\Event(
-		name: "timer(10min)",
-		description: "Remove expired authentications",
+		name: 'timer(10min)',
+		description: 'Remove expired authentications',
 		defaultStatus: 1
 	)]
 	public function clearExpiredAuthentications(): void {
@@ -182,14 +182,14 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	}
 
 	/** Start or stop the webserver if the setting changed */
-	#[NCA\SettingChangeHandler("webserver_auth")]
-	#[NCA\SettingChangeHandler("webserver_aoauth_url")]
+	#[NCA\SettingChangeHandler('webserver_auth')]
+	#[NCA\SettingChangeHandler('webserver_aoauth_url')]
 	public function downloadNewPublicKey(string $settingName, string $oldValue, string $newValue): void {
 		$this->downloadPublicKey();
 	}
 
 	/** Start or stop the webserver if the setting changed */
-	#[NCA\SettingChangeHandler("webserver")]
+	#[NCA\SettingChangeHandler('webserver')]
 	public function webserverMainSettingChanged(string $settingName, string $oldValue, string $newValue): void {
 		if ($newValue === '1') {
 			$this->listen();
@@ -199,8 +199,8 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	}
 
 	/** Restart the webserver on the new port if the setting changed */
-	#[NCA\SettingChangeHandler("webserver_port")]
-	#[NCA\SettingChangeHandler("webserver_addr")]
+	#[NCA\SettingChangeHandler('webserver_port')]
+	#[NCA\SettingChangeHandler('webserver_addr')]
 	public function webserverSettingChanged(string $settingName, string $oldValue, string $newValue): void {
 		if (!$this->server) {
 			return;
@@ -214,7 +214,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	}
 
 	/** Authenticate player $player to login to the Webserver for $duration seconds */
-	public function authenticate(string $player, int $duration=3600): string {
+	public function authenticate(string $player, int $duration=3_600): string {
 		do {
 			$uuid = bin2hex(random_bytes(12));
 		} while (isset($this->authentications[$uuid]));
@@ -228,10 +228,10 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	 * You will get a token in return which you can use as a password together
 	 * with your character name to login to the built-in webserver.
 	 */
-	#[NCA\HandlesCommand("webauth")]
+	#[NCA\HandlesCommand('webauth')]
 	public function webauthCommand(CmdContext $context): void {
-		$uuid = $this->authenticate($context->char->name, 3600);
-		$msg = "You can now authenticate to the Webserver for 1h with the ".
+		$uuid = $this->authenticate($context->char->name, 3_600);
+		$msg = 'You can now authenticate to the Webserver for 1h with the '.
 			"credentials <highlight>{$uuid}<end>.";
 		$context->reply($msg);
 	}
@@ -239,11 +239,11 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	/** Check the signed request */
 	public function checkSignature(string $signature): ?string {
 		$algorithms = [
-			"sha1" => OPENSSL_ALGO_SHA1,
-			"sha224" => OPENSSL_ALGO_SHA224,
-			"sha256" => OPENSSL_ALGO_SHA256,
-			"sha384" => OPENSSL_ALGO_SHA384,
-			"sha512" => OPENSSL_ALGO_SHA512,
+			'sha1' => \OPENSSL_ALGO_SHA1,
+			'sha224' => \OPENSSL_ALGO_SHA224,
+			'sha256' => \OPENSSL_ALGO_SHA256,
+			'sha384' => \OPENSSL_ALGO_SHA384,
+			'sha512' => \OPENSSL_ALGO_SHA512,
 		];
 		if (!count($matches = Safe::pregMatch("/(?:^|,\s*)keyid\s*=\s*\"(.+?)\"/is", $signature))) {
 			return null;
@@ -267,7 +267,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 
 		/** @var ?ApiKey */
 		$key = $this->db->table(ApiController::DB_TABLE)
-			->where("token", $keyId)
+			->where('token', $keyId)
 			->asObj(ApiKey::class)
 			->first();
 		if (!isset($key)) {
@@ -289,7 +289,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			return null;
 		}
 		$key->last_sequence_nr = (int)$sequence;
-		$this->db->update(ApiController::DB_TABLE, "id", $key);
+		$this->db->update(ApiController::DB_TABLE, 'id', $key);
 		return $key->character;
 	}
 
@@ -314,7 +314,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			$jwtUser = $this->checkJWTAuthentication($aoAuthToken);
 			if (isset($jwtUser)) {
 				$newRequest = clone $request;
-				$newRequest->removeQueryParameter("_aoauth_token");
+				$newRequest->removeQueryParameter('_aoauth_token');
 				$redirectTo = $newRequest->getUri()->getPath();
 				if (strlen($queryString = $newRequest->getUri()->getQuery())) {
 					$redirectTo .= "?{$queryString}";
@@ -336,7 +336,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 
 		/** @var ?string $user */
 		$hasMinAL = !$needAuth || $this->accessManager->checkAccess(
-			$user ?? "Xxx",
+			$user ?? 'Xxx',
 			$this->webserverMinAL
 		);
 		if (!$hasMinAL) {
@@ -351,7 +351,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 				return $reply;
 			}
 		}
-		if (!in_array($request->getMethod(), ["HEAD", "GET"])) {
+		if (!in_array($request->getMethod(), ['HEAD', 'GET'])) {
 			return new Response(status: HttpStatus::METHOD_NOT_ALLOWED);
 		}
 
@@ -365,9 +365,9 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		$server = SocketHttpServer::createForDirectAccess($this->logger);
 		$server->expose("{$addr}:{$port}");
 		$server->start($this, new DefaultErrorHandler());
-		$this->logger->notice("HTTP server listening on {addr}:{port}", [
-			"addr" => $addr,
-			"port" => $port,
+		$this->logger->notice('HTTP server listening on {addr}:{port}', [
+			'addr' => $addr,
+			'port' => $port,
 		]);
 		$this->server = $server;
 		return true;
@@ -379,7 +379,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			return true;
 		}
 		$this->server->stop();
-		$this->logger->notice("Webserver shutdown");
+		$this->logger->notice('Webserver shutdown');
 		return true;
 	}
 
@@ -411,14 +411,14 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		if (!isset($this->routes[$method][$route])) {
 			$this->routes[$method][$route] = [];
 		}
-		$this->logger->info("Adding route to {path}", ["path" => $path]);
+		$this->logger->info('Adding route to {path}', ['path' => $path]);
 		$this->routes[$method][$route] []= $callback;
 		// Longer routes must be handled first, because they are more specific
 		uksort(
 			$this->routes[$method],
-			function (string $a, string $b): int {
-				return (substr_count($b, "/") <=> substr_count($a, "/"))
-					?: substr_count(basename($a), "+?)") <=> substr_count(basename($b), "+?)")
+			static function (string $a, string $b): int {
+				return (substr_count($b, '/') <=> substr_count($a, '/'))
+					?: substr_count(basename($a), '+?)') <=> substr_count(basename($b), '+?)')
 					?: strlen($b) <=> strlen($a);
 			}
 		);
@@ -426,18 +426,18 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 
 	/** Convert the route notation /foo/%s/bar into a regexp */
 	public function routeToRegExp(string $route): string {
-		$match = preg_split("/(%[sd])/", $route, 0, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
+		$match = preg_split('/(%[sd])/', $route, 0, \PREG_SPLIT_DELIM_CAPTURE|\PREG_SPLIT_NO_EMPTY);
 		$newMask = array_reduce(
 			$match,
-			function (string $carry, string $part): string {
+			static function (string $carry, string $part): string {
 				if ($part === '%s') {
-					return $carry . "(.+?)";
+					return $carry . '(.+?)';
 				} elseif ($part === '%d') {
 					return $carry . "(\d+?)";
 				}
-				return $carry . preg_quote($part, "|");
+				return $carry . preg_quote($part, '|');
 			},
-			"^"
+			'^'
 		);
 
 		return $newMask . '$';
@@ -465,11 +465,11 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	}
 
 	private function decodeRequestBody(Request $request): ?Response {
-		if (in_array($request->getMethod(), ["GET", "HEAD", "DELETE"], true)) {
+		if (in_array($request->getMethod(), ['GET', 'HEAD', 'DELETE'], true)) {
 			return null;
 		}
 		$body = $request->getBody()->buffer(new TimeoutCancellation(5));
-		if ($body === "") {
+		if ($body === '') {
 			return null;
 		}
 		$contentType = $request->getHeader('content-type');
@@ -483,15 +483,15 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			} catch (Throwable $error) {
 				return new Response(
 					status: HttpStatus::BAD_REQUEST,
-					body: "Invalid JSON given: ".$error->getMessage()
+					body: 'Invalid JSON given: '.$error->getMessage()
 				);
 			}
 		}
 		if (preg_split("/;\s*/", $contentType)[0] === 'application/x-www-form-urlencoded') {
-			$parts = explode("&", $body);
+			$parts = explode('&', $body);
 			$result = new stdClass();
 			foreach ($parts as $part) {
-				$kv = array_map("urldecode", explode("=", $part, 2));
+				$kv = array_map('urldecode', explode('=', $part, 2));
 				$result->{$kv[0]} = $kv[1] ?? null;
 			}
 			$request->setAttribute(self::BODY, $result);
@@ -505,7 +505,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		if ($authType === static::AUTH_BASIC) {
 			return new Response(
 				status: HttpStatus::UNAUTHORIZED,
-				headers: ["WWW-Authenticate" => "Basic realm=\"{$this->config->main->character}\""],
+				headers: ['WWW-Authenticate' => "Basic realm=\"{$this->config->main->character}\""],
 			);
 		} elseif ($authType === static::AUTH_AOAUTH) {
 			$baseUrl = $this->webserverBaseUrl;
@@ -516,7 +516,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 				$baseUrl = "{$protocol}://{$host}:{$port}";
 			}
 			$newRequest = clone $request;
-			$newRequest->removeQueryParameter("_aoauth_token");
+			$newRequest->removeQueryParameter('_aoauth_token');
 			$redirectUrl = $baseUrl . $newRequest->getUri()->getPath();
 			$newRequest->getUri()->getQuery();
 			if (strlen($queryString = $newRequest->getUri()->getQuery())) {
@@ -533,7 +533,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 				]
 			);
 		}
-		throw new Exception("Invalid authentication procedure configured");
+		throw new Exception('Invalid authentication procedure configured');
 	}
 
 	/**
@@ -550,7 +550,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		try {
 			$payload = JWT::decode($token, trim($aoAuthPubKey));
 		} catch (Exception $e) {
-			$this->logger->error('JWT: ' . $e->getMessage(), ["exception" => $e]);
+			$this->logger->error('JWT: ' . $e->getMessage(), ['exception' => $e]);
 			return null;
 		}
 		if (!isset($payload->exp) || $payload->exp <= time()) {
@@ -560,7 +560,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	}
 
 	private function getAuthenticatedUser(Request $request): ?string {
-		$signature = $request->getHeader("signature");
+		$signature = $request->getHeader('signature');
 		if (isset($signature) && strlen($signature) > 16) {
 			return $this->checkSignature($signature);
 		}
@@ -579,7 +579,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			}
 			return $this->checkJWTAuthentication($cookies['authorization']->getValue());
 		}
-		$authorization = $request->getHeader("authorization");
+		$authorization = $request->getHeader('authorization');
 		if (!isset($authorization)) {
 			return null;
 		}
@@ -592,7 +592,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		} catch (PcreException | UrlException) {
 			return null;
 		}
-		$userPass = explode(":", $userPassString, 2);
+		$userPass = explode(':', $userPassString, 2);
 		if (count($userPass) !== 2) {
 			return null;
 		}
@@ -618,26 +618,26 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 
 	private function guessContentType(string $fileName): string {
 		$info = pathinfo($fileName);
-		$extension = "";
-		if (is_array($info) && isset($info["extension"])) {
-			$extension = $info["extension"];
+		$extension = '';
+		if (is_array($info) && isset($info['extension'])) {
+			$extension = $info['extension'];
 		}
 		switch ($extension) {
-			case "html":
-				return "text/html";
-			case "css":
-				return "text/css";
-			case "js":
-				return "application/javascript";
-			case "json":
-				return "application/json";
-			case "svg":
-				return "image/svg+xml";
+			case 'html':
+				return 'text/html';
+			case 'css':
+				return 'text/css';
+			case 'js':
+				return 'application/javascript';
+			case 'json':
+				return 'application/json';
+			case 'svg':
+				return 'image/svg+xml';
 			default:
-				if (extension_loaded("fileinfo")) {
+				if (extension_loaded('fileinfo')) {
 					return mime_content_type($fileName);
 				}
-				return "application/octet-stream";
+				return 'application/octet-stream';
 		}
 	}
 
@@ -650,12 +650,12 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		if ($realFile !== $realBaseDir
-			&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0
+			&& strncmp($realFile, $realBaseDir.\DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0
 		) {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		if ($this->fs->isDirectory($realFile)) {
-			$realFile .= DIRECTORY_SEPARATOR . "index.html";
+			$realFile .= \DIRECTORY_SEPARATOR . 'index.html';
 		}
 		if (!$this->fs->exists($realFile)) {
 			return new Response(status: HttpStatus::NOT_FOUND);
@@ -663,7 +663,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		try {
 			$body = $this->fs->read($realFile);
 		} catch (FilesystemException) {
-			$body = "";
+			$body = '';
 		}
 		$response = new Response(
 			status: HttpStatus::OK,

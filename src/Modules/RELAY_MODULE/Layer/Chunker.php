@@ -21,28 +21,28 @@ use Throwable;
 
 #[
 	NCA\RelayStackMember(
-		name: "chunker",
+		name: 'chunker',
 		description: "This adds the ability to chunk and re-assemble\n".
 			"long messages on the fly, so we can send large payloads\n".
 			"over a medium that only has a limited package size.\n".
-			"Of course this only works if all Bots use this chunker."
+			'Of course this only works if all Bots use this chunker.'
 	),
 	NCA\Param(
-		name: "length",
-		type: "int",
-		description: "The maximum supported chunk size",
+		name: 'length',
+		type: 'int',
+		description: 'The maximum supported chunk size',
 		required: true
 	),
 	NCA\Param(
-		name: "timeout",
-		type: "int",
-		description: "How many seconds to wait for all packets to arrive",
+		name: 'timeout',
+		type: 'int',
+		description: 'How many seconds to wait for all packets to arrive',
 		required: false
 	)
 ]
 class Chunker implements RelayLayerInterface {
 	/** @psalm-var positive-int */
-	protected int $chunkSize = 50000;
+	protected int $chunkSize = 50_000;
 	protected int $timeout = 60;
 
 	protected Relay $relay;
@@ -60,7 +60,7 @@ class Chunker implements RelayLayerInterface {
 
 	public function __construct(int $chunkSize, int $timeout=60) {
 		if ($chunkSize < 1) {
-			throw new InvalidArgumentException("length cannot be less than 1");
+			throw new InvalidArgumentException('length cannot be less than 1');
 		}
 		$this->chunkSize = $chunkSize;
 		$this->timeout = $timeout;
@@ -101,20 +101,20 @@ class Chunker implements RelayLayerInterface {
 				continue;
 			}
 			if ($chunk->count === 1) {
-				$this->logger->debug("Single-chunk chunk received.");
+				$this->logger->debug('Single-chunk chunk received.');
 				continue;
 			}
 			if (!isset($this->timerHandler)) {
-				$this->logger->debug("Setup new cleanup call");
+				$this->logger->debug('Setup new cleanup call');
 				$this->timerHandler = EventLoop::delay(10, function (string $token): void {
 					$this->cleanStaleChunks();
 				});
 			}
 			if (!isset($this->queue[$chunk->id])) {
-				$this->logger->debug("New chunk {id} {part}/{count} received.", [
-					"id" => $chunk->id,
-					"part" => $chunk->part,
-					"count" => $chunk->count,
+				$this->logger->debug('New chunk {id} {part}/{count} received.', [
+					'id' => $chunk->id,
+					'part' => $chunk->part,
+					'count' => $chunk->count,
 				]);
 				$chunk->sent = time();
 				$this->queue[$chunk->id] = [
@@ -125,32 +125,32 @@ class Chunker implements RelayLayerInterface {
 			}
 			$this->queue[$chunk->id][$chunk->part] = $chunk;
 			if (count($this->queue[$chunk->id]) !== $chunk->count) {
-				$this->logger->debug("New chunk part for {id} {part}/{count} received, still not complete.", [
-					"id" => $chunk->id,
-					"part" => $chunk->part,
-					"count" => $chunk->count,
+				$this->logger->debug('New chunk part for {id} {part}/{count} received, still not complete.', [
+					'id' => $chunk->id,
+					'part' => $chunk->part,
+					'count' => $chunk->count,
 				]);
 				// Not yet complete;
 				$data = null;
 				continue;
 			}
-			$this->logger->debug("New chunk part for {id} {part}/{count} received, now complete.", [
-				"id" => $chunk->id,
-				"part" => $chunk->part,
-				"count" => $chunk->count,
+			$this->logger->debug('New chunk part for {id} {part}/{count} received, now complete.', [
+				'id' => $chunk->id,
+				'part' => $chunk->part,
+				'count' => $chunk->count,
 			]);
-			$data = "";
+			$data = '';
 			for ($i = 1; $i <= $chunk->count; $i++) {
 				$block = $this->queue[$chunk->id][$i]->data ?? null;
 				if (!isset($block)) {
 					unset($this->queue[$chunk->id]);
-					$this->logger->error("Invalid data received.");
+					$this->logger->error('Invalid data received.');
 					$data = null;
 					continue 2;
 				}
 				$data .= $block;
 			}
-			$this->logger->debug("Removed chunks from memory.");
+			$this->logger->debug('Removed chunks from memory.');
 			unset($this->queue[$chunk->id]);
 		}
 		$msg->packages = array_values(array_filter($msg->packages));
@@ -165,17 +165,17 @@ class Chunker implements RelayLayerInterface {
 			if (!count($parts)
 				|| time() - $this->queue[$id][$parts[0]]->sent > $this->timeout
 			) {
-				$this->logger->debug("Removing stale chunk {id}", ["id" => $id]);
+				$this->logger->debug('Removing stale chunk {id}', ['id' => $id]);
 				unset($this->queue[$id]);
 			}
 		}
 		if (count($this->queue)) {
-			$this->logger->debug("Calling cleanup in 10");
+			$this->logger->debug('Calling cleanup in 10');
 			$this->timerHandler = EventLoop::delay(10, function (string $token): void {
 				$this->cleanStaleChunks();
 			});
 		} else {
-			$this->logger->debug("No more unfinished chunks.");
+			$this->logger->debug('No more unfinished chunks.');
 		}
 	}
 
@@ -203,7 +203,7 @@ class Chunker implements RelayLayerInterface {
 				sent: $created,
 				data: $chunk,
 			);
-			$result []= json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			$result []= json_encode($msg, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
 		}
 		return $result;
 	}

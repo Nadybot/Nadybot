@@ -14,6 +14,6 @@ class BuddylistSize implements GaugeProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => "size"];
+		return ['type' => 'size'];
 	}
 }

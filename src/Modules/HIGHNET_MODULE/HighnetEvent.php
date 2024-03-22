@@ -5,7 +5,7 @@ namespace Nadybot\Modules\HIGHNET_MODULE;
 use Nadybot\Core\Event;
 
 class HighnetEvent extends Event {
-	public const EVENT_MASK = "highnet(*)";
+	public const EVENT_MASK = 'highnet(*)';
 
 	public function __construct(
 		public Message $message,

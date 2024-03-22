@@ -32,11 +32,11 @@ class MessageHub {
 	public const EVENT_NOT_ROUTED = 0;
 	public const EVENT_DISCARDED = 1;
 	public const EVENT_DELIVERED = 2;
-	public const DB_TABLE_ROUTES = "route_<myname>";
-	public const DB_TABLE_COLORS = "route_hop_color_<myname>";
-	public const DB_TABLE_TEXT_COLORS = "route_text_color_<myname>";
-	public const DB_TABLE_ROUTE_MODIFIER = "route_modifier_<myname>";
-	public const DB_TABLE_ROUTE_MODIFIER_ARGUMENT = "route_modifier_argument_<myname>";
+	public const DB_TABLE_ROUTES = 'route_<myname>';
+	public const DB_TABLE_COLORS = 'route_hop_color_<myname>';
+	public const DB_TABLE_TEXT_COLORS = 'route_text_color_<myname>';
+	public const DB_TABLE_ROUTE_MODIFIER = 'route_modifier_<myname>';
+	public const DB_TABLE_ROUTE_MODIFIER_ARGUMENT = 'route_modifier_argument_<myname>';
 
 	/** @var array<string,ClassSpec> */
 	public array $modifiers = [];
@@ -94,7 +94,7 @@ class MessageHub {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->parseMessageEmitters();
-		$modifierFiles = glob(__DIR__ . "/EventModifier/*.php");
+		$modifierFiles = glob(__DIR__ . '/EventModifier/*.php');
 		foreach ($modifierFiles as $file) {
 			require_once $file;
 			$className = basename($file, '.php');
@@ -125,16 +125,16 @@ class MessageHub {
 	public function loadTagFormat(): void {
 		$query = $this->db->table(Source::DB_TABLE);
 		Source::$format = $query
-			->orderByDesc($query->colFunc("LENGTH", "hop"))
+			->orderByDesc($query->colFunc('LENGTH', 'hop'))
 			->asObj(RouteHopFormat::class);
 	}
 
 	public function loadTagColor(): void {
 		$query = $this->db->table(static::DB_TABLE_COLORS);
 		static::$colors = $query
-			->orderByDesc($query->colFunc("LENGTH", "hop"))
-			->orderByDesc($query->colFunc("LENGTH", "where"))
-			->orderByDesc($query->colFunc("LENGTH", "via"))
+			->orderByDesc($query->colFunc('LENGTH', 'hop'))
+			->orderByDesc($query->colFunc('LENGTH', 'where'))
+			->orderByDesc($query->colFunc('LENGTH', 'via'))
 			->asObj(RouteHopColor::class);
 	}
 
@@ -145,13 +145,13 @@ class MessageHub {
 			return $this->emitters[$channel];
 		}
 		foreach ($this->emitters as $emitterChannel => $emitter) {
-			if (!str_contains($emitterChannel, "(")) {
-				$emitterChannel .= "(*)";
+			if (!str_contains($emitterChannel, '(')) {
+				$emitterChannel .= '(*)';
 			}
-			if (fnmatch($emitterChannel, $channel, FNM_CASEFOLD)) {
+			if (fnmatch($emitterChannel, $channel, \FNM_CASEFOLD)) {
 				return $emitter;
 			}
-			if (fnmatch($channel, $emitterChannel, FNM_CASEFOLD)) {
+			if (fnmatch($channel, $emitterChannel, \FNM_CASEFOLD)) {
 				return $emitter;
 			}
 		}
@@ -172,8 +172,8 @@ class MessageHub {
 			}
 			throw new Exception(
 				"There is already an EventModifier {$name}(".
-				join(", ", $printArgs).
-				")"
+				implode(', ', $printArgs).
+				')'
 			);
 		}
 		$this->modifiers[$name] = $spec;
@@ -198,14 +198,14 @@ class MessageHub {
 			if (isset($value)) {
 				switch ($parameter->type) {
 					case $parameter::TYPE_BOOL:
-						if (!is_string($value) || !in_array($value, ["true", "false"])) {
+						if (!is_string($value) || !in_array($value, ['true', 'false'])) {
 							throw new Exception(
 								"Argument <highlight>{$parameter->name}<end> to ".
 								"<highlight>{$name}<end> must be 'true' or 'false', ".
-								"<highlight>'" . join(", ", (array)$value) . "'<end> given."
+								"<highlight>'" . implode(', ', (array)$value) . "'<end> given."
 							);
 						}
-						$arguments []= $value === "true";
+						$arguments []= $value === 'true';
 						unset($params[$parameter->name]);
 						break;
 					case $parameter::TYPE_INT:
@@ -213,14 +213,14 @@ class MessageHub {
 							throw new Exception(
 								"Argument <highlight>{$parameter->name}<end> to ".
 								"<highlight>{$name}<end> must be a number, ".
-								"<highlight>'" . join(", ", (array)$value) . "'<end> given."
+								"<highlight>'" . implode(', ', (array)$value) . "'<end> given."
 							);
 						}
 						$arguments []= (int)$value;
 						unset($params[$parameter->name]);
 						break;
 					case $parameter::TYPE_STRING_ARRAY:
-						$value = array_map(fn ($x) => (string)$x, (array)$value);
+						$value = array_map(static fn ($x) => (string)$x, (array)$value);
 						$arguments []= $value;
 						unset($params[$parameter->name]);
 						break;
@@ -237,7 +237,7 @@ class MessageHub {
 				);
 			} else {
 				try {
-					$ref = new ReflectionMethod($spec->class, "__construct");
+					$ref = new ReflectionMethod($spec->class, '__construct');
 				} catch (ReflectionException $e) {
 					continue;
 				}
@@ -253,10 +253,10 @@ class MessageHub {
 		}
 		if (!empty($params)) {
 			throw new Exception(
-				"Unknown parameter" . (count($params) > 1 ? "s" : "").
-				" <highlight>".
+				'Unknown parameter' . (count($params) > 1 ? 's' : '').
+				' <highlight>'.
 				(new Collection(array_keys($params)))
-					->join("<end>, <highlight>", "<end> and <highlight>").
+					->join('<end>, <highlight>', '<end> and <highlight>').
 				"<end> to <highlight>{$name}<end>."
 			);
 		}
@@ -277,8 +277,8 @@ class MessageHub {
 	public function registerMessageReceiver(MessageReceiver $messageReceiver): self {
 		$channel = $messageReceiver->getChannelName();
 		$this->receivers[strtolower($channel)] = $messageReceiver;
-		$this->logger->info("Registered new event receiver for {channel}", [
-			"channel" => $channel,
+		$this->logger->info('Registered new event receiver for {channel}', [
+			'channel' => $channel,
 		]);
 		return $this;
 	}
@@ -287,8 +287,8 @@ class MessageHub {
 	public function registerMessageEmitter(MessageEmitter $messageEmitter): self {
 		$channel = $messageEmitter->getChannelName();
 		$this->emitters[strtolower($channel)] = $messageEmitter;
-		$this->logger->info("Registered new event emitter for {channel}", [
-			"channel" => $channel,
+		$this->logger->info('Registered new event emitter for {channel}', [
+			'channel' => $channel,
 		]);
 		return $this;
 	}
@@ -296,8 +296,8 @@ class MessageHub {
 	/** Unregister an object for handling messages for a channel */
 	public function unregisterMessageReceiver(string $channel): self {
 		unset($this->receivers[strtolower($channel)]);
-		$this->logger->info("Removed event receiver for {channel}", [
-			"channel" => $channel,
+		$this->logger->info('Removed event receiver for {channel}', [
+			'channel' => $channel,
 		]);
 		return $this;
 	}
@@ -305,8 +305,8 @@ class MessageHub {
 	/** Unregister an object as an emitter for a channel */
 	public function unregisterMessageEmitter(string $channel): self {
 		unset($this->emitters[strtolower($channel)]);
-		$this->logger->info("Removed event emitter for {channel}", [
-			"channel" => $channel,
+		$this->logger->info('Removed event emitter for {channel}', [
+			'channel' => $channel,
 		]);
 		return $this;
 	}
@@ -318,7 +318,7 @@ class MessageHub {
 			return $this->receivers[$channel];
 		}
 		foreach ($this->receivers as $receiverChannel => $receiver) {
-			if (fnmatch($receiverChannel, $channel, FNM_CASEFOLD)) {
+			if (fnmatch($receiverChannel, $channel, \FNM_CASEFOLD)) {
 				return $receiver;
 			}
 		}
@@ -338,10 +338,10 @@ class MessageHub {
 	public function hasRouteFor(string $sender): bool {
 		$sender = strtolower($sender);
 		foreach ($this->routes as $source => $dest) {
-			if (strpos($source, '(') === false) {
+			if (!str_contains($source, '(')) {
 				$source .= '(*)';
 			}
-			if (fnmatch($source, $sender, FNM_CASEFOLD)) {
+			if (fnmatch($source, $sender, \FNM_CASEFOLD)) {
 				return true;
 			}
 		}
@@ -357,10 +357,10 @@ class MessageHub {
 		$receivers = [];
 		$sender = strtolower($sender);
 		foreach ($this->routes as $source => $dest) {
-			if (strpos($source, '(') === false) {
+			if (!str_contains($source, '(')) {
 				$source .= '(*)';
 			}
-			if (fnmatch($source, $sender, FNM_CASEFOLD)) {
+			if (fnmatch($source, $sender, \FNM_CASEFOLD)) {
 				foreach ($dest as $destName => $routes) {
 					foreach ($routes as $route) {
 						$receivers []= $route->getDest();
@@ -375,10 +375,10 @@ class MessageHub {
 	public function hasRouteFromTo(string $sender, string $destination): bool {
 		$sender = strtolower($sender);
 		foreach ($this->routes as $source => $dest) {
-			if (strpos($source, '(') === false) {
+			if (!str_contains($source, '(')) {
 				$source .= '(*)';
 			}
-			if (!fnmatch($source, $sender, FNM_CASEFOLD)) {
+			if (!fnmatch($source, $sender, \FNM_CASEFOLD)) {
 				continue;
 			}
 			foreach ($dest as $destName => $routes) {
@@ -389,7 +389,7 @@ class MessageHub {
 				if (!isset($receiver)) {
 					continue;
 				}
-				if (fnmatch($receiver->getChannelName(), $destination, FNM_CASEFOLD)) {
+				if (fnmatch($receiver->getChannelName(), $destination, \FNM_CASEFOLD)) {
 					return true;
 				}
 			}
@@ -408,10 +408,10 @@ class MessageHub {
 
 	/** Submit an event to be routed according to the configured connections */
 	public function handle(RoutableEvent $event): int {
-		$this->logger->info("Received event to route");
+		$this->logger->info('Received event to route');
 		$path = $event->getPath();
 		if (empty($path)) {
-			$this->logger->info("Discarding event without path");
+			$this->logger->info('Discarding event without path');
 			return static::EVENT_NOT_ROUTED;
 		}
 		$type = strtolower("{$path[0]->type}({$path[0]->name})");
@@ -427,7 +427,7 @@ class MessageHub {
 		try {
 			$this->logger->info(
 				"Trying to route {$type} - ".
-				json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR)
+				json_encode($event, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE|\JSON_THROW_ON_ERROR)
 			);
 		} catch (JsonException $e) {
 			// Ignore
@@ -441,11 +441,11 @@ class MessageHub {
 		}
 		$returnStatus = static::EVENT_NOT_ROUTED;
 		foreach ($this->routes as $source => $dest) {
-			if (strpos($source, '(') === false) {
+			if (!str_contains($source, '(')) {
 				$source .= '(*)';
 			}
 			if (isset($eventLogLevel)
-				&& count($matches = Safe::pregMatch("/^" . preg_quote(Source::LOG, "/") . "\(([a-z]+)\)$/i", $source))
+				&& count($matches = Safe::pregMatch('/^' . preg_quote(Source::LOG, '/') . "\(([a-z]+)\)$/i", $source))
 			) {
 				try {
 					/**
@@ -460,35 +460,35 @@ class MessageHub {
 				} catch (Exception $e) {
 					continue;
 				}
-			} elseif (!fnmatch($source, $type, FNM_CASEFOLD)) {
+			} elseif (!fnmatch($source, $type, \FNM_CASEFOLD)) {
 				continue;
 			}
 			foreach ($dest as $destName => $routes) {
 				$receiver = $this->getReceiver($destName);
 				if (!isset($receiver)) {
-					$this->logger->info("No receiver registered for {destination}", [
-						"destination" => $destName,
+					$this->logger->info('No receiver registered for {destination}', [
+						'destination' => $destName,
 					]);
 					continue;
 				}
 				foreach ($routes as $route) {
 					if ($route->isDisabled()) {
-						$this->logger->info("Routing to {destination} temporarily disabled", [
-							"destination" => $destName,
+						$this->logger->info('Routing to {destination} temporarily disabled', [
+							'destination' => $destName,
 						]);
 						$returnStatus = max($returnStatus, static::EVENT_NOT_ROUTED);
 						continue;
 					}
 					$modifiedEvent = $route->modifyEvent($event);
 					if (!isset($modifiedEvent)) {
-						$this->logger->info("Event filtered away for {destination}", [
-							"destination" => $destName,
+						$this->logger->info('Event filtered away for {destination}', [
+							'destination' => $destName,
 						]);
 						$returnStatus = max($returnStatus, static::EVENT_NOT_ROUTED);
 						continue;
 					}
-					$this->logger->info("Event routed to {destination}", [
-						"destination" => $destName,
+					$this->logger->info('Event routed to {destination}', [
+						'destination' => $destName,
 					]);
 					$destination = $route->getDest();
 					if (count($matches = Safe::pregMatch("/\((.+)\)$/", $destination))) {
@@ -515,8 +515,8 @@ class MessageHub {
 			}
 			$lastHop = $hop;
 		}
-		$charLink = "";
-		$hopText = "";
+		$charLink = '';
+		$hopText = '';
 		$char = $event->getCharacter();
 		// Render "[Name]" instead of "[Name] Name: "
 		$isTell = (isset($lastHop) && $lastHop->type === Source::TELL);
@@ -527,16 +527,16 @@ class MessageHub {
 			$routedName = $this->text->renderPlaceholders(
 				$this->msgHubCtrl->routedSenderFormat,
 				[
-					"char" => $char->name,
-					"nick" => $nickName,
-					"main" => ($char->name === $mainChar) ? null : $mainChar,
+					'char' => $char->name,
+					'nick' => $nickName,
+					'main' => ($char->name === $mainChar) ? null : $mainChar,
 				]
 			);
 			$routedName = Safe::pregReplace('/^(.+) \(\1\)$/', '$1', $routedName);
 			if ($char->dimension !== $this->config->main->dimension) {
-				$routedName .= "@" . $this->dimensionToSuffix($char->dimension);
+				$routedName .= '@' . $this->dimensionToSuffix($char->dimension);
 			}
-			$charLink = $routedName . ": ";
+			$charLink = $routedName . ': ';
 			if (
 				$this->config->main->dimension === $char->dimension
 				&& in_array($lastHop->type??null, $aoSources)
@@ -546,7 +546,7 @@ class MessageHub {
 			}
 		}
 		if (!empty($hops)) {
-			$hopText = join(" ", $hops) . " ";
+			$hopText = implode(' ', $hops) . ' ';
 		}
 		return $hopText.$charLink;
 	}
@@ -566,7 +566,7 @@ class MessageHub {
 		if (!$withColor) {
 			return "[{$name}]";
 		}
-		$color = $this->getHopColor($hops, $where, $source, "tag_color");
+		$color = $this->getHopColor($hops, $where, $source, 'tag_color');
 		if (!isset($color)) {
 			return "[{$name}]";
 		}
@@ -574,7 +574,7 @@ class MessageHub {
 	}
 
 	public function getCharacter(string $dest): ?string {
-		$regExp = "/" . preg_quote(Source::TELL, "/") . "\((.+)\)$/";
+		$regExp = '/' . preg_quote(Source::TELL, '/') . "\((.+)\)$/";
 		if (!count($matches = Safe::pregMatch($regExp, $dest))) {
 			return null;
 		}
@@ -591,7 +591,7 @@ class MessageHub {
 		$this->routes[$source][$dest] []= $route;
 		$char = $this->getCharacter($dest);
 		if (isset($char)) {
-			$this->buddyListManager->addName($char, "msg_hub");
+			$this->buddyListManager->addName($char, 'msg_hub');
 		}
 		if (!$route->getTwoWay()) {
 			return;
@@ -601,7 +601,7 @@ class MessageHub {
 		$this->routes[$dest][$source] []= $route;
 		$char = $this->getCharacter($source);
 		if (isset($char)) {
-			$this->buddyListManager->addName($char, "msg_hub");
+			$this->buddyListManager->addName($char, 'msg_hub');
 		}
 	}
 
@@ -625,18 +625,18 @@ class MessageHub {
 	 */
 	public function getRouteDump(bool $useForce=false): array {
 		$routes = $this->getRoutes();
-		$cmd = $useForce ? "addforce" : "add";
-		return array_map(function (MessageRoute $route) use ($cmd): string {
+		$cmd = $useForce ? 'addforce' : 'add';
+		return array_map(static function (MessageRoute $route) use ($cmd): string {
 			$routeCode = $route->getSource();
 			if ($route->getTwoWay()) {
-				$routeCode .= " <-> ";
+				$routeCode .= ' <-> ';
 			} else {
-				$routeCode .= " -> ";
+				$routeCode .= ' -> ';
 			}
 			$routeCode .= $route->getDest();
 			$mods = $route->renderModifiers();
 			if (count($mods)) {
-				$routeCode .= " " . join(" ", $mods);
+				$routeCode .= ' ' . implode(' ', $mods);
 			}
 			return "!route {$cmd} {$routeCode}";
 		}, $routes);
@@ -655,12 +655,12 @@ class MessageHub {
 					unset($this->routes[$source][$dest][$i]);
 					$char = $this->getCharacter($dest);
 					if (isset($char)) {
-						$this->buddyListManager->remove($char, "msg_hub");
+						$this->buddyListManager->remove($char, 'msg_hub');
 					}
 					if ($result->getTwoWay()) {
 						$char = $this->getCharacter($source);
 						if (isset($char)) {
-							$this->buddyListManager->remove($char, "msg_hub");
+							$this->buddyListManager->remove($char, 'msg_hub');
 						}
 					}
 				}
@@ -721,16 +721,16 @@ class MessageHub {
 	public function getHopColor(array $path, string $where, Source $source, string $color): ?RouteHopColor {
 		$colorDefs = static::$colors;
 		if (isset($source->name)) {
-			$fullDefs = $colorDefs->filter(function (RouteHopColor $color): bool {
-				return strpos($color->hop, "(") !== false;
+			$fullDefs = $colorDefs->filter(static function (RouteHopColor $color): bool {
+				return str_contains($color->hop, '(');
 			});
 			foreach ($fullDefs as $colorDef) {
-				if (!fnmatch($colorDef->hop, "{$source->type}({$source->name})", FNM_CASEFOLD)) {
+				if (!fnmatch($colorDef->hop, "{$source->type}({$source->name})", \FNM_CASEFOLD)) {
 					continue;
 				}
 				$colorWhere = $colorDef->where??'*';
-				if (!fnmatch($colorWhere, $where, FNM_CASEFOLD)
-					&& !fnmatch($colorWhere.'(*)', $where, FNM_CASEFOLD)) {
+				if (!fnmatch($colorWhere, $where, \FNM_CASEFOLD)
+					&& !fnmatch($colorWhere.'(*)', $where, \FNM_CASEFOLD)) {
 					continue;
 				}
 				if (isset($colorDef->via) && !$this->isSentVia($colorDef->via, $path)) {
@@ -743,14 +743,14 @@ class MessageHub {
 		}
 		foreach ($colorDefs as $colorDef) {
 			$colorWhere = $colorDef->where??'*';
-			if (!fnmatch($colorWhere, $where, FNM_CASEFOLD)
-				&& !fnmatch($colorWhere.'(*)', $where, FNM_CASEFOLD)) {
+			if (!fnmatch($colorWhere, $where, \FNM_CASEFOLD)
+				&& !fnmatch($colorWhere.'(*)', $where, \FNM_CASEFOLD)) {
 				continue;
 			}
 			if (isset($colorDef->via) && !$this->isSentVia($colorDef->via, $path)) {
 				continue;
 			}
-			if (fnmatch($colorDef->hop, $source->type, FNM_CASEFOLD)
+			if (fnmatch($colorDef->hop, $source->type, \FNM_CASEFOLD)
 				&& isset($colorDef->{$color})
 			) {
 				return $colorDef;
@@ -767,16 +767,16 @@ class MessageHub {
 		$hop = $path[count($path)-1] ?? null;
 		if (empty($event->char) || $event->char->id === $this->chatBot->char?->id) {
 			if (!isset($hop) || $hop->type !== Source::SYSTEM) {
-				$sysColor = $this->settingManager->getString("default_routed_sys_color")??"";
+				$sysColor = $this->settingManager->getString('default_routed_sys_color')??'';
 				return $sysColor;
 			}
 		}
 		if (!count($path) || !isset($hop)) {
-			return "";
+			return '';
 		}
-		$color = $this->getHopColor($path, $where, $hop, "text_color");
+		$color = $this->getHopColor($path, $where, $hop, 'text_color');
 		if (!isset($color) || !isset($color->text_color)) {
-			return "";
+			return '';
 		}
 		return "<font color=#{$color->text_color}>";
 	}
@@ -792,8 +792,8 @@ class MessageHub {
 			if (isset($path[$i]->name)) {
 				$viaName .= "({$path[$i]->name})";
 			}
-			if (fnmatch($via, $viaName, FNM_CASEFOLD)
-				|| fnmatch($via.'(*)', $viaName, FNM_CASEFOLD)) {
+			if (fnmatch($via, $viaName, \FNM_CASEFOLD)
+				|| fnmatch($via.'(*)', $viaName, \FNM_CASEFOLD)) {
 				return true;
 			}
 		}
@@ -803,11 +803,11 @@ class MessageHub {
 	private function dimensionToSuffix(int $dimension): string {
 		switch ($dimension) {
 			case 4:
-				return "Test";
+				return 'Test';
 			case 5:
-				return "RK5";
+				return 'RK5';
 			case 6:
-				return "RK19";
+				return 'RK19';
 			default:
 				return "RK{$dimension}";
 		}

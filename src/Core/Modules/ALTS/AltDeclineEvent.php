@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\ALTS;
 
 class AltDeclineEvent extends AltEvent {
-	public const EVENT_MASK = "alt(decline)";
+	public const EVENT_MASK = 'alt(decline)';
 
 	public function __construct(
 		public string $main,

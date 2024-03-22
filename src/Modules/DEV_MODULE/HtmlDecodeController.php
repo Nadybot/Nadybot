@@ -15,9 +15,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "htmldecode",
-		accessLevel: "guest",
-		description: "Execute a command by first decoding html entities",
+		command: 'htmldecode',
+		accessLevel: 'guest',
+		description: 'Execute a command by first decoding html entities',
 	)
 ]
 class HtmlDecodeController extends ModuleInstance {
@@ -30,9 +30,9 @@ class HtmlDecodeController extends ModuleInstance {
 	 * This is especially useful you need to send special characters to a command but
 	 * otherwise can't because the client is encoding them.
 	 */
-	#[NCA\HandlesCommand("htmldecode")]
+	#[NCA\HandlesCommand('htmldecode')]
 	public function htmldecodeCommand(CmdContext $context, string $command): void {
-		$context->message = html_entity_decode($command, ENT_QUOTES);
+		$context->message = html_entity_decode($command, \ENT_QUOTES);
 		$this->commandManager->processCmd($context);
 	}
 }

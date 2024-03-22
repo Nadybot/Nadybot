@@ -6,5 +6,5 @@ use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
 class HttpDelete extends HttpVerb {
-	public string $type = "delete";
+	public string $type = 'delete';
 }

@@ -54,9 +54,6 @@ class FilterEntry extends DBRow {
 		) {
 			return false;
 		}
-		if (isset($this->expires) && time() > $this->expires) {
-			return false;
-		}
-		return true;
+		return !(isset($this->expires) && time() > $this->expires);
 	}
 }

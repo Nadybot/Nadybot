@@ -47,12 +47,12 @@ trait LoggableTrait {
 			if ($value instanceof Loggable) {
 				$value = $value->toLog();
 			} elseif ($value instanceof \Closure) {
-				$value = "<Closure>";
+				$value = '<Closure>';
 			} else {
 				try {
 					$value = json_encode(
 						$value,
-						JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE
+						\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE|\JSON_INVALID_UTF8_SUBSTITUTE
 					);
 				} catch (JsonException) {
 					continue;
@@ -61,9 +61,9 @@ trait LoggableTrait {
 			$values []= "{$key}={$value}";
 		}
 		if (!isset($class)) {
-			$parts = explode("\\", get_class($this));
+			$parts = explode('\\', static::class);
 			$class = array_pop($parts);
 		}
-		return "<{$class}>{" . join(",", $values) . "}";
+		return "<{$class}>{" . implode(',', $values) . '}';
 	}
 }

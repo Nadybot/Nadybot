@@ -19,7 +19,7 @@ class AoAuth extends Base {
 	}
 
 	public function toString(): string {
-		return pack("C", PacketType::AO_AUTH) . $this->characterName;
+		return pack('C', PacketType::AO_AUTH) . $this->characterName;
 	}
 
 	public function getType(): int {

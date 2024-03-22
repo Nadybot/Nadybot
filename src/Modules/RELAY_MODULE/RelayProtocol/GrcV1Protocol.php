@@ -21,21 +21,21 @@ use Nadybot\Modules\RELAY_MODULE\{
 
 #[
 	NCA\RelayProtocol(
-		name: "grc",
+		name: 'grc',
 		description: "This is the old BudaBot protocol.\n".
 			"It only supports relaying messages - no sharing of online lists\n".
-			"or any form of colorization beyond org or guest chat."
+			'or any form of colorization beyond org or guest chat.'
 	),
 	NCA\Param(
-		name: "command",
-		type: "string",
-		description: "The command we send with each packet",
+		name: 'command',
+		type: 'string',
+		description: 'The command we send with each packet',
 		required: false
 	),
 	NCA\Param(
-		name: "prefix",
-		type: "string",
-		description: "The prefix we send with each packet, e.g. \"!\" or \"\"",
+		name: 'prefix',
+		type: 'string',
+		description: 'The prefix we send with each packet, e.g. "!" or ""',
 		required: false
 	)
 ]
@@ -44,8 +44,8 @@ class GrcV1Protocol implements RelayProtocolInterface {
 
 	protected Relay $relay;
 
-	protected string $command = "grc";
-	protected string $prefix = "";
+	protected string $command = 'grc';
+	protected string $prefix = '';
 
 	#[NCA\Inject]
 	private Text $text;
@@ -53,14 +53,14 @@ class GrcV1Protocol implements RelayProtocolInterface {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
 
-	public function __construct(string $command="grc", string $prefix="") {
+	public function __construct(string $command='grc', string $prefix='') {
 		$this->command = $command;
 		$this->prefix = $prefix;
 	}
 
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
-			if (!isset($event->data) || !($event->data instanceof Base) || !strlen($event->data->message??"")) {
+			if (!isset($event->data) || !($event->data instanceof Base) || !strlen($event->data->message??'')) {
 				return [];
 			}
 			$event2 = clone $event;
@@ -68,7 +68,7 @@ class GrcV1Protocol implements RelayProtocolInterface {
 			$event = $event2;
 		}
 		return [
-			"{$this->prefix}{$this->command} " . $this->messageHub->renderPath($event, "*", false).
+			"{$this->prefix}{$this->command} " . $this->messageHub->renderPath($event, '*', false).
 			$this->text->formatMessage($event->getData()),
 		];
 	}
@@ -78,7 +78,7 @@ class GrcV1Protocol implements RelayProtocolInterface {
 			return null;
 		}
 		$data = array_shift($message->packages);
-		$command = preg_quote($this->command, "/");
+		$command = preg_quote($this->command, '/');
 		if (!count($matches = Safe::pregMatch("/^.?{$command} (.+)/s", $data))) {
 			return null;
 		}

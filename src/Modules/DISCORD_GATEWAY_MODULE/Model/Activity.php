@@ -11,7 +11,7 @@ class Activity extends JSONDataModel {
 	public const ACTIVITY_CUSTOM = 4;
 
 	/** the activity's name */
-	public string $name = "Anarchy Online";
+	public string $name = 'Anarchy Online';
 	public int $type = self::ACTIVITY_GAME;
 
 	/** stream url, is validated when type is ACTIVITY_STREAMING */

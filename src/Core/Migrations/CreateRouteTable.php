@@ -12,30 +12,30 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210722072916)]
+#[NCA\Migration(order: 20_210_722_072_916)]
 class CreateRouteTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->string("source", 100);
-			$table->string("destination", 100);
-			$table->boolean("two_way")->default(false);
-			$table->unsignedInteger("disabled_until")->nullable(true);
+			$table->string('source', 100);
+			$table->string('destination', 100);
+			$table->boolean('two_way')->default(false);
+			$table->unsignedInteger('disabled_until')->nullable(true);
 		});
 		if (strlen($db->getMyguild())) {
 			$route = [
-				"source" => Source::SYSTEM . "(status)",
-				"destination" => Source::ORG,
-				"two_way" => false,
+				'source' => Source::SYSTEM . '(status)',
+				'destination' => Source::ORG,
+				'two_way' => false,
 			];
 			$db->table($table)->insert($route);
 		}
 
 		$route = [
-			"source" => Source::SYSTEM . "(status)",
-			"destination" => Source::PRIV . "(" . $db->getMyname() . ")",
-			"two_way" => false,
+			'source' => Source::SYSTEM . '(status)',
+			'destination' => Source::PRIV . '(' . $db->getMyname() . ')',
+			'two_way' => false,
 		];
 		$db->table($table)->insert($route);
 	}

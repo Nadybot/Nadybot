@@ -40,15 +40,15 @@ use Throwable;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "whois",
-		accessLevel: "guest",
-		description: "Show character info, online status, and name history",
+		command: 'whois',
+		accessLevel: 'guest',
+		description: 'Show character info, online status, and name history',
 		alias: ['w', 'is'],
 	),
 	NCA\DefineCommand(
-		command: "lookup",
-		accessLevel: "guest",
-		description: "Find the charId for a character",
+		command: 'lookup',
+		accessLevel: 'guest',
+		description: 'Find the charId for a character',
 	)
 ]
 class WhoisController extends ModuleInstance {
@@ -93,8 +93,8 @@ class WhoisController extends ModuleInstance {
 	private array $nameHistoryCache = [];
 
 	#[NCA\Event(
-		name: "timer(1min)",
-		description: "Save cache of names and charIds to database"
+		name: 'timer(1min)',
+		description: 'Save cache of names and charIds to database'
 	)]
 	public function saveCharIds(Event $eventObj): void {
 		if (empty($this->nameHistoryCache) || $this->db->inTransaction()) {
@@ -104,35 +104,35 @@ class WhoisController extends ModuleInstance {
 		try {
 			foreach ($this->nameHistoryCache as $entry) {
 				if ($this->db->getType() === DB\Type::MSSQL) {
-					if ($this->db->table("name_history")
-						->where("name", $entry->name)
-						->where("charid", $entry->charid)
-						->where("dimension", $this->db->getDim())
+					if ($this->db->table('name_history')
+						->where('name', $entry->name)
+						->where('charid', $entry->charid)
+						->where('dimension', $this->db->getDim())
 						->exists()
 					) {
 						continue;
 					}
-					$this->db->table("name_history")
+					$this->db->table('name_history')
 						->insert([
-							"name" => $entry->name,
-							"charid" => $entry->charid,
-							"dimension" => $this->db->getDim(),
-							"dt" => time(),
+							'name' => $entry->name,
+							'charid' => $entry->charid,
+							'dimension' => $this->db->getDim(),
+							'dt' => time(),
 						]);
 				} else {
-					$this->db->table("name_history")
+					$this->db->table('name_history')
 						->insertOrIgnore([
-							"name" => $entry->name,
-							"charid" => $entry->charid,
-							"dimension" => $this->db->getDim(),
-							"dt" => time(),
+							'name' => $entry->name,
+							'charid' => $entry->charid,
+							'dimension' => $this->db->getDim(),
+							'dt' => time(),
 						]);
 				}
 			}
 		} catch (Throwable $e) {
-			$this->logger->error("Error saving lookup-cache: {error}", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Error saving lookup-cache: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 			$this->db->rollback();
 			return;
@@ -145,10 +145,10 @@ class WhoisController extends ModuleInstance {
 	#[
 		NCA\Event(
 			name: [
-				"packet(20)",
-				"packet(21)",
+				'packet(20)',
+				'packet(21)',
 			],
-			description: "Records names and charIds"
+			description: 'Records names and charIds'
 		)
 	]
 	public function recordCharIds(PackageEvent $eventObj): void {
@@ -163,14 +163,14 @@ class WhoisController extends ModuleInstance {
 		$charData = new CharData();
 		$charData->charid = $packet->charId;
 		$charData->name = $packet->name;
-		if ($charData->charid === -1 || $charData->charid === 4294967295) {
+		if ($charData->charid === -1 || $charData->charid === 4_294_967_295) {
 			return;
 		}
 		$this->nameHistoryCache []= $charData;
 	}
 
 	/** Show the name(s) for a character id */
-	#[NCA\HandlesCommand("lookup")]
+	#[NCA\HandlesCommand('lookup')]
 	public function lookupIdCommand(CmdContext $context, int $charID): void {
 		$name = $this->chatBot->getName($charID);
 		if (isset($name)) {
@@ -178,10 +178,10 @@ class WhoisController extends ModuleInstance {
 		}
 
 		/** @var NameHistory[] */
-		$players = $this->db->table("name_history")
-		->where("charid", $charID)
-			->where("dimension", $this->db->getDim())
-			->orderByDesc("dt")
+		$players = $this->db->table('name_history')
+		->where('charid', $charID)
+			->where('dimension', $this->db->getDim())
+			->orderByDesc('dt')
 			->asObj(NameHistory::class)
 			->toArray();
 		$count = count($players);
@@ -203,15 +203,15 @@ class WhoisController extends ModuleInstance {
 	}
 
 	/** Show the character id for a character */
-	#[NCA\HandlesCommand("lookup")]
+	#[NCA\HandlesCommand('lookup')]
 	public function lookupNameCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
 
 		/** @var NameHistory[] */
-		$players = $this->db->table("name_history")
-			->where("name", $name)
-			->where("dimension", $this->db->getDim())
-			->orderByDesc("dt")
+		$players = $this->db->table('name_history')
+			->where('name', $name)
+			->where('dimension', $this->db->getDim())
+			->orderByDesc('dt')
 			->asObj(NameHistory::class)
 			->toArray();
 		$count = count($players);
@@ -233,10 +233,10 @@ class WhoisController extends ModuleInstance {
 
 	public function getNameHistory(int $charID, int $dimension): string {
 		/** @var NameHistory[] */
-		$data = $this->db->table("name_history")
-			->where("charid", $charID)
-			->where("dimension", $dimension)
-			->orderByDesc("dt")
+		$data = $this->db->table('name_history')
+			->where('charid', $charID)
+			->where('dimension', $dimension)
+			->orderByDesc('dt')
 			->asObj(NameHistory::class)
 			->toArray();
 
@@ -253,7 +253,7 @@ class WhoisController extends ModuleInstance {
 	}
 
 	/** Show character info, online status, and name history for a character */
-	#[NCA\HandlesCommand("whois")]
+	#[NCA\HandlesCommand('whois')]
 	public function whoisNameCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$name = $char();
 		$dimension ??= $this->config->main->dimension;
@@ -284,7 +284,7 @@ class WhoisController extends ModuleInstance {
 	}
 
 	/** Show character info, online status, and name history for a character */
-	#[NCA\HandlesCommand("whois")]
+	#[NCA\HandlesCommand('whois')]
 	public function whoisIdCommand(CmdContext $context, int $uid): void {
 		$name = $this->chatBot->getName($uid);
 		if (!isset($name)) {
@@ -305,16 +305,16 @@ class WhoisController extends ModuleInstance {
 	}
 
 	public function getFullName(Player $whois): string {
-		$msg = "";
+		$msg = '';
 
 		if (isset($whois->firstname) && strlen($whois->firstname)) {
-			$msg .= $whois->firstname . " ";
+			$msg .= $whois->firstname . ' ';
 		}
 
 		$msg .= "\"{$whois->name}\"";
 
 		if (isset($whois->lastname) && strlen($whois->lastname)) {
-			$msg .= " " . $whois->lastname;
+			$msg .= ' ' . $whois->lastname;
 		}
 
 		return $msg;
@@ -329,7 +329,7 @@ class WhoisController extends ModuleInstance {
 	 */
 	private function getAuditBreakpoints(Collection $audits): Collection {
 		/** @var Collection<string,Collection<Audit>> */
-		$auditGroups = $audits->groupBy(function (Audit $audit): string {
+		$auditGroups = $audits->groupBy(static function (Audit $audit): string {
 			return (string)$audit->time->getTimestamp();
 		});
 		$rank = [];
@@ -365,13 +365,13 @@ class WhoisController extends ModuleInstance {
 	/** @return string|string[] */
 	private function playerToWhois(?Player $whois, string $name, bool $online): string|array {
 		$charID = $this->chatBot->getUid($name);
-		$lookupNameLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$name}");
-		$historyNameLink = $this->text->makeChatcmd("history", "/tell <myname> history {$name}");
-		$history1NameLink = $this->text->makeChatcmd("RK1", "/tell <myname> history {$name} 1");
-		$history2NameLink = $this->text->makeChatcmd("RK2", "/tell <myname> history {$name} 2");
+		$lookupNameLink = $this->text->makeChatcmd('lookup', "/tell <myname> lookup {$name}");
+		$historyNameLink = $this->text->makeChatcmd('history', "/tell <myname> history {$name}");
+		$history1NameLink = $this->text->makeChatcmd('RK1', "/tell <myname> history {$name} 1");
+		$history2NameLink = $this->text->makeChatcmd('RK2', "/tell <myname> history {$name} 2");
 		$lookupCharIdLink = null;
 		if ($charID !== null) {
-			$lookupCharIdLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$charID}");
+			$lookupCharIdLink = $this->text->makeChatcmd('lookup', "/tell <myname> lookup {$charID}");
 		}
 
 		if ($whois === null) {
@@ -389,14 +389,14 @@ class WhoisController extends ModuleInstance {
 		}
 		$altInfo = $this->altsController->getAltInfo($name);
 
-		$blob = "Name: <highlight>" . $this->getFullName($whois) . "<end> [{$lookupNameLink}] [{$historyNameLink}] [{$history1NameLink}] [{$history2NameLink}]\n";
+		$blob = 'Name: <highlight>' . $this->getFullName($whois) . "<end> [{$lookupNameLink}] [{$historyNameLink}] [{$history1NameLink}] [{$history2NameLink}]\n";
 		$nick = $altInfo->getNick();
 		if (isset($nick)) {
 			$blob .= "Nickname: <highlight>{$nick}<end>\n";
 		}
-		if (isset($whois->guild) && $whois->guild !== "") {
-			$orglistLink = $this->text->makeChatcmd("see members", "/tell <myname> orglist {$whois->guild_id}");
-			$orginfoLink = $this->text->makeChatcmd("info", "/tell <myname> whoisorg {$whois->guild_id}");
+		if (isset($whois->guild) && $whois->guild !== '') {
+			$orglistLink = $this->text->makeChatcmd('see members', "/tell <myname> orglist {$whois->guild_id}");
+			$orginfoLink = $this->text->makeChatcmd('info', "/tell <myname> whoisorg {$whois->guild_id}");
 			$blob .= "Org: <highlight>{$whois->guild}<end> (<highlight>{$whois->guild_id}<end>) [{$orginfoLink}] [{$orglistLink}]\n";
 			$blob .= "Org Rank: <highlight>{$whois->guild_rank}<end> (<highlight>{$whois->guild_rank_id}<end>)\n";
 		}
@@ -405,12 +405,12 @@ class WhoisController extends ModuleInstance {
 		$blob .= "Profession: <highlight>{$whois->profession}<end> (<highlight>" . trim($whois->prof_title) . "<end>)\n";
 		$blob .= "Level: <highlight>{$whois->level}<end>\n";
 		$blob .= "AI Level: <green>{$whois->ai_level}<end> (<highlight>{$whois->ai_rank}<end>)\n";
-		$blob .= "Faction: <".strtolower($whois->faction).">{$whois->faction}<end>\n";
+		$blob .= 'Faction: <'.strtolower($whois->faction).">{$whois->faction}<end>\n";
 		$blob .= "Head Id: <highlight>{$whois->head_id}<end>\n";
 		// $blob .= "PVP Rating: <highlight>{$whois->pvp_rating}<end>\n";
 		// $blob .= "PVP Title: <highlight>{$whois->pvp_title}<end>\n";
 		if ($whois->dimension === $this->config->main->dimension) {
-			$blob .= "Status: ";
+			$blob .= 'Status: ';
 			if ($online) {
 				$blob .= "<on>Online<end>\n";
 			} elseif ($charID === null) {
@@ -434,13 +434,13 @@ class WhoisController extends ModuleInstance {
 		if ($main === $name) {
 			/** @var Collection<Audit> */
 			$audits = $this->db->table(AccessManager::DB_TABLE)
-				->where("actee", $name)
-				->whereIn("action", [
+				->where('actee', $name)
+				->whereIn('action', [
 					AccessManager::ADD_RANK,
 					AccessManager::DEL_RANK,
 				])
-				->orderBy("time")
-				->orderBy("id")
+				->orderBy('time')
+				->orderBy('id')
 				->asObj(Audit::class);
 			$breakPoints = $this->getAuditBreakpoints($audits);
 			if ($breakPoints->isNotEmpty()) {
@@ -449,9 +449,9 @@ class WhoisController extends ModuleInstance {
 				$blob .= "\n".
 					(
 						($lastAction->action === AccessManager::ADD_RANK)
-						? "Added to bot"
-						: "Removed from bot"
-					) . ": <highlight>" . $this->util->date($lastAction->time->getTimestamp()).
+						? 'Added to bot'
+						: 'Removed from bot'
+					) . ': <highlight>' . $this->util->date($lastAction->time->getTimestamp()).
 					"<end> by <highlight>{$lastAction->actor}<end>";
 			}
 		}
@@ -472,21 +472,21 @@ class WhoisController extends ModuleInstance {
 		$msg = $this->playerManager->getInfo($whois);
 		if ($whois->dimension === $this->config->main->dimension) {
 			if ($online) {
-				$msg .= " :: <on>Online<end>";
+				$msg .= ' :: <on>Online<end>';
 			} elseif ($charID === null) {
-				$msg .= " :: <off>Inactive<end>";
+				$msg .= ' :: <off>Inactive<end>';
 			} else {
-				$msg .= " :: <off>Offline<end>";
+				$msg .= ' :: <off>Offline<end>';
 			}
 		}
-		$msg .= " :: " . ((array)$this->text->makeBlob("More Info", $blob, "Detailed Info for {$name}"))[0];
+		$msg .= ' :: ' . ((array)$this->text->makeBlob('More Info', $blob, "Detailed Info for {$name}"))[0];
 		if ($this->whoisAddComments) {
 			$numComments = $this->commentController->countComments(null, $whois->name);
 			if ($numComments) {
-				$comText = ($numComments > 1) ? "{$numComments} Comments" : "1 Comment";
+				$comText = ($numComments > 1) ? "{$numComments} Comments" : '1 Comment';
 				$blob = $this->text->makeChatcmd("Read {$comText}", "/tell <myname> comments get {$whois->name}").
-					" if you have the necessary access level.";
-				$msg .= " :: " . ((array)$this->text->makeBlob($comText, $blob))[0];
+					' if you have the necessary access level.';
+				$msg .= ' :: ' . ((array)$this->text->makeBlob($comText, $blob))[0];
 			}
 		}
 

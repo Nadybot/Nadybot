@@ -12,16 +12,16 @@ class Slot {
 	public const RARM = 128;
 	public const HANDS = 256;
 	public const LARM = 512;
-	public const RWRIST = 1024;
-	public const LEGS = 2048;
-	public const LWRIST = 4096;
-	public const RFINGER = 8192;
-	public const FEET = 16384;
-	public const LFINGER = 32768;
+	public const RWRIST = 1_024;
+	public const LEGS = 2_048;
+	public const LWRIST = 4_096;
+	public const RFINGER = 8_192;
+	public const FEET = 16_384;
+	public const LFINGER = 32_768;
 
 	public const HUD1 = 2;
 	public const HUD2 = 4;
-	public const HUD3 = 32768;
+	public const HUD3 = 32_768;
 	public const UTILS1 = 8;
 	public const UTILS2 = 16;
 	public const UTILS3 = 32;

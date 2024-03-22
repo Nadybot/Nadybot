@@ -30,7 +30,7 @@ class PrivateMessage extends Base {
 	private Nadybot $chatBot;
 
 	public function getChannelName(): string {
-		return Source::TELL . "(*)";
+		return Source::TELL . '(*)';
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {

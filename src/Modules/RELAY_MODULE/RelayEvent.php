@@ -13,12 +13,9 @@ class RelayEvent extends DBRow {
 	 * @param bool   $outgoing Allow receiving the event via this relay?
 	 */
 	public function __construct(
-		#[NCA\JSON\Ignore]
-		public int $relay_id,
+		#[NCA\JSON\Ignore] public int $relay_id,
 		public string $event,
-		#[NCA\JSON\Ignore]
-		#[NCA\DB\AutoInc]
-		public ?int $id=null,
+		#[NCA\JSON\Ignore] #[NCA\DB\AutoInc] public ?int $id=null,
 		public bool $incoming=false,
 		public bool $outgoing=false,
 	) {
@@ -26,7 +23,7 @@ class RelayEvent extends DBRow {
 
 	public function toString(): string {
 		return "{$this->event} ".
-			($this->incoming ? "I" : "").
-			($this->outgoing ? "O" : "");
+			($this->incoming ? 'I' : '').
+			($this->outgoing ? 'O' : '');
 	}
 }

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 use Nadybot\Core\SyncEvent;
 
 class SyncRallyClearEvent extends SyncEvent {
-	public const EVENT_MASK = "sync(rally-clear)";
+	public const EVENT_MASK = 'sync(rally-clear)';
 
 	/** @param string $owner Character who cleared the rally */
 	public function __construct(

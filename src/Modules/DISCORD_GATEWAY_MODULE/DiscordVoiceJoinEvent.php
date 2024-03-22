@@ -6,7 +6,7 @@ use Nadybot\Core\Modules\DISCORD\DiscordChannel;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
 class DiscordVoiceJoinEvent extends DiscordVoiceEvent {
-	public const EVENT_MASK = "discord_voice_join";
+	public const EVENT_MASK = 'discord_voice_join';
 
 	public function __construct(
 		public DiscordChannel $discord_channel,

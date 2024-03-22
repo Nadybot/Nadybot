@@ -42,7 +42,7 @@ class GasInfo {
 			return null;
 		}
 		$time ??= $this->time;
-		$offset = $time % 86400;
+		$offset = $time % 86_400;
 		$bestGas = null;
 		$latestGas = null;
 		foreach ($timing as $ts => $gas) {
@@ -101,7 +101,7 @@ class GasInfo {
 		if ($penaltyEnd === null && $goesCold === null) {
 			$next25 = $this->next25($time);
 			if (isset($next25) && ($next25 > $this->time) && ($next25 - $this->time <= 60)) {
-				return 3600*6 + $next25;
+				return 3_600*6 + $next25;
 			}
 		}
 		return $goesCold;
@@ -138,20 +138,20 @@ class GasInfo {
 
 	/** Get some debug information about the current gas info. Internal */
 	public function dump(): string {
-		$niceTime = function (?int $time): string {
+		$niceTime = static function (?int $time): string {
 			if (!isset($time)) {
-				return "-";
+				return '-';
 			}
-			return (new DateTime('now', new \DateTimeZone("UTC")))->setTimestamp($time)->format("d-M-Y H:i:s").
+			return (new DateTime('now', new \DateTimeZone('UTC')))->setTimestamp($time)->format('d-M-Y H:i:s').
 				" ({$time})";
 		};
-		$niceOffset = function (?int $time): string {
+		$niceOffset = static function (?int $time): string {
 			if (!isset($time)) {
-				return "-";
+				return '-';
 			}
-			return (new DateTime('now', new \DateTimeZone("UTC")))->setTimestamp($time)->format("H:i:s");
+			return (new DateTime('now', new \DateTimeZone('UTC')))->setTimestamp($time)->format('H:i:s');
 		};
-		$blob = "";
+		$blob = '';
 
 		/** @var ?PlayfieldController */
 		$pfCtrl = Registry::getInstance(PlayfieldController::class);
@@ -165,29 +165,29 @@ class GasInfo {
 		$closingOffset = $this->closingOffset();
 		assert(isset($closingOffset));
 		$blob .= "<header2>{$pf->short_name} {$this->site->site_id}<end>\n".
-			"Time:        " . $niceTime($this->time) . "\n".
-			"Planted:     " . $niceTime($this->site->plant_time) . "\n".
-			"Timings:     75%: " . $niceOffset($closingOffset) ."\n".
-			"             25%: " . $niceOffset($closingOffset + 18*3600) ."\n".
-			"              5%: " . $niceOffset($closingOffset + 23*3600) ."\n".
-			"Current Gas: " . ($this->currentGas()?->colored() ?? "-") . "\n";
+			'Time:        ' . $niceTime($this->time) . "\n".
+			'Planted:     ' . $niceTime($this->site->plant_time) . "\n".
+			'Timings:     75%: ' . $niceOffset($closingOffset) ."\n".
+			'             25%: ' . $niceOffset($closingOffset + 18*3_600) ."\n".
+			'              5%: ' . $niceOffset($closingOffset + 23*3_600) ."\n".
+			'Current Gas: ' . ($this->currentGas()?->colored() ?? '-') . "\n";
 		if (isset($this->lastAttack)) {
-			$blob .= "Last attack: " . $niceTime($this->lastAttack->timestamp) . "\n";
+			$blob .= 'Last attack: ' . $niceTime($this->lastAttack->timestamp) . "\n";
 			if (isset($this->lastAttack->penalizing_ended)) {
-				$blob .= "Penalizing:  " . $niceTime($this->lastAttack->penalizing_ended) . "\n";
+				$blob .= 'Penalizing:  ' . $niceTime($this->lastAttack->penalizing_ended) . "\n";
 			}
 		} else {
 			$blob .= "Last attack: -\n";
 		}
-		$blob .= "In penalty:  " . json_encode($this->inPenalty()) . "\n";
+		$blob .= 'In penalty:  ' . json_encode($this->inPenalty()) . "\n";
 		if ($this->site->gas === 75) {
-			$blob .=  "Going hot:   " . $niceTime($this->goesHot()) . " - ".
+			$blob .=  'Going hot:   ' . $niceTime($this->goesHot()) . ' - '.
 				$util->unixtimeToReadable(($this->goesHot() ?? 0) - $this->time, true) . "\n";
 		} elseif (isset($this->site->gas)) {
-			$blob .= "Going cold:  " . $niceTime($this->goesCold()) . " - ".
+			$blob .= 'Going cold:  ' . $niceTime($this->goesCold()) . ' - '.
 				$util->unixtimeToReadable(($this->goesCold() ?? 0) - $this->time, true) . "\n";
 		}
-		$blob .= "Penalty end: " . $niceTime($this->getPenaltyEnd()) . "\n";
+		$blob .= 'Penalty end: ' . $niceTime($this->getPenaltyEnd()) . "\n";
 		return "\n" . trim($blob);
 	}
 
@@ -217,15 +217,15 @@ class GasInfo {
 		if ($regGas?->gas === 25) {
 			return $time;
 		}
-		$closingOffset += 18 * 3600;
-		return $this->nextCycle($closingOffset % 86400, $time);
+		$closingOffset += 18 * 3_600;
+		return $this->nextCycle($closingOffset % 86_400, $time);
 	}
 
 	private function nextCycle(int $offset, ?int $time=null): int {
 		$time ??= $this->time;
-		$nextCycle = $time - ($time % 86400) + $offset;
+		$nextCycle = $time - ($time % 86_400) + $offset;
 		while ($time > $nextCycle) {
-			$nextCycle += 86400;
+			$nextCycle += 86_400;
 		}
 		return $nextCycle;
 	}
@@ -235,11 +235,11 @@ class GasInfo {
 		if (!isset($this->site->plant_time)) {
 			return null;
 		}
-		$plantOffset = $this->site->plant_time % 86400;
+		$plantOffset = $this->site->plant_time % 86_400;
 		if ($this->site->timing === $this->site::TIMING_EU) {
-			return (20 * 3600 + $plantOffset % 3600) % 86400;
+			return (20 * 3_600 + $plantOffset % 3_600) % 86_400;
 		} elseif ($this->site->timing === $this->site::TIMING_US) {
-			return (4 * 3600 + $plantOffset % 3600) % 86400;
+			return (4 * 3_600 + $plantOffset % 3_600) % 86_400;
 		}
 		return $plantOffset;
 	}
@@ -256,8 +256,8 @@ class GasInfo {
 		if (!isset($timeClosing)) {
 			return null;
 		}
-		$time25 = ($timeClosing + 18 * 3600) % 86400;
-		$time5 = ($timeClosing + 23 * 3600) % 86400;
+		$time25 = ($timeClosing + 18 * 3_600) % 86_400;
+		$time5 = ($timeClosing + 23 * 3_600) % 86_400;
 		return [$timeClosing => 75, $time25 => 25, $time5 => 5];
 	}
 
@@ -267,16 +267,16 @@ class GasInfo {
 		}
 		// Sites go cold again only at their offset and they stay hot for
 		// at least 1 hour and at most 2 hours
-		$siteOffset = $this->site->plant_time % 3600;
-		$attackBase = $this->lastAttack->timestamp - $this->lastAttack->timestamp % 3600;
-		$predictedEnd = $attackBase + $siteOffset + 2 * 3600;
-		if ($predictedEnd > $this->lastAttack->timestamp + 2 * 3600) {
-			$predictedEnd -= 3600;
+		$siteOffset = $this->site->plant_time % 3_600;
+		$attackBase = $this->lastAttack->timestamp - $this->lastAttack->timestamp % 3_600;
+		$predictedEnd = $attackBase + $siteOffset + 2 * 3_600;
+		if ($predictedEnd > $this->lastAttack->timestamp + 2 * 3_600) {
+			$predictedEnd -= 3_600;
 		}
 		// If the attack is already over, we know how long to extend it
 		$maxEnd = $this->lastAttack->penalizing_ended ?? $this->time;
 		while ($predictedEnd < $maxEnd) {
-			$predictedEnd += 3600;
+			$predictedEnd += 3_600;
 		}
 		return $predictedEnd;
 	}

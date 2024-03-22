@@ -24,9 +24,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "cmdmap",
-		accessLevel: "superadmin",
-		description: "Manages command to permission mappings",
+		command: 'cmdmap',
+		accessLevel: 'superadmin',
+		description: 'Manages command to permission mappings',
 		defaultStatus: 1
 	)
 ]
@@ -44,58 +44,57 @@ class PermissionSetMappingController extends ModuleInstance {
 	private SettingManager $settingManager;
 
 	/** Show a list of the current permission set mapping */
-	#[NCA\HandlesCommand("cmdmap")]
+	#[NCA\HandlesCommand('cmdmap')]
 	#[NCA\Help\Prologue(
 		"<header2>Permission set mappings<end>\n\n".
 		"Permission set mappings tell the bot which permission set to use when\n".
 		"receiving commands from a command source.\n".
 		"They also describe which symbol a message has to start with, in order\n".
-		"to be treated as a command, along with some other flags."
+		'to be treated as a command, along with some other flags.'
 	)]
 	public function cmdmapListCommand(CmdContext $context): void {
 		$srcs = new Collection($this->cmdManager->getSources());
 		$maps = $this->cmdManager->getPermSetMappings();
-		$unusedSrcs = $srcs->filter(function (string $source) use ($maps): bool {
+		$unusedSrcs = $srcs->filter(static function (string $source) use ($maps): bool {
 			foreach ($maps as $map) {
-				if (fnmatch($source, $map->source, FNM_CASEFOLD)) {
+				if (fnmatch($source, $map->source, \FNM_CASEFOLD)) {
 					return false;
 				}
 			}
 			return true;
 		});
-		$blocks = $maps->map(Closure::fromCallable([$this, "renderPermSetMapping"]));
+		$blocks = $maps->map(Closure::fromCallable([$this, 'renderPermSetMapping']));
 		$blob = $blocks->join("\n\n<pagebreak>");
 		if ($unusedSrcs->isNotEmpty()) {
 			if (strlen($blob)) {
 				$blob .= "\n\n";
 			}
 			$blob .= "<header2>Unmapped command sources<end>\n".
-				"<tab>" . $unusedSrcs->join("\n<tab>") . "\n\n".
-				"<i>To start accepting commands from an unmapped ".
+				'<tab>' . $unusedSrcs->join("\n<tab>") . "\n\n".
+				'<i>To start accepting commands from an unmapped '.
 				"source, use</i>\n".
-				"<i><tab><highlight><symbol>cmdmap create ".
+				'<i><tab><highlight><symbol>cmdmap create '.
 				"&lt;source&gt; &lt;permission map&gt;<end></i>\n".
 				"<i>For example:</i>\n".
-				"<i><tab><highlight><symbol>cmdmap create " . $unusedSrcs->firstOrFail().
-				" " . ($this->cmdManager->getPermissionSets()->firstOrFail()->name).
-				"<end></i>";
+				'<i><tab><highlight><symbol>cmdmap create ' . $unusedSrcs->firstOrFail().
+				' ' . ($this->cmdManager->getPermissionSets()->firstOrFail()->name).
+				'<end></i>';
 		}
 		$context->reply(
-			$this->text->makeBlob("Permission set mappings (" . $blocks->count() . ")", $blob)
+			$this->text->makeBlob('Permission set mappings (' . $blocks->count() . ')', $blob)
 		);
 	}
 
 	/** Map commands from &lt;source&gt; to use the &lt;permission set&gt;*/
-	#[NCA\HandlesCommand("cmdmap")]
+	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapNewCommand(
 		CmdContext $context,
-		#[NCA\Str("new", "create")]
-		string $action,
+		#[NCA\Str('new', 'create')] string $action,
 		string $source,
 		PWord $permissionSet
 	): void {
 		$source = strtolower($source);
-		if ($this->cmdManager->getPermSetMappings()->where("source", $source)->isNotEmpty()) {
+		if ($this->cmdManager->getPermSetMappings()->where('source', $source)->isNotEmpty()) {
 			$context->reply("There is already a permission set map for <highlight>{$source}<end>.");
 			return;
 		}
@@ -105,24 +104,24 @@ class PermissionSetMappingController extends ModuleInstance {
 			return;
 		}
 		$srcValid = (new Collection($this->cmdManager->getSources()))
-			->filter(function (string $mask) use ($source): bool {
-				return fnmatch($mask, $source, FNM_CASEFOLD);
+			->filter(static function (string $mask) use ($source): bool {
+				return fnmatch($mask, $source, \FNM_CASEFOLD);
 			})->isNotEmpty();
 		if (!$srcValid) {
 			$context->reply(
 				"There is no source providing <highlight>{$source}<end>. ".
-				"See <highlight><symbol>cmdmap list src<end> for a list of sources."
+				'See <highlight><symbol>cmdmap list src<end> for a list of sources.'
 			);
 			return;
 		}
 		$map = new CmdPermSetMapping();
 		$map->source = $source;
 		$map->permission_set = $permissionSet;
-		$map->symbol = $this->settingManager->getString("symbol") ?? "!";
+		$map->symbol = $this->settingManager->getString('symbol') ?? '!';
 		try {
 			$map->id = $this->db->insert(CommandManager::DB_TABLE_MAPPING, $map);
 		} catch (SQLException) {
-			$context->reply("There was an error saving your mapping into the database.");
+			$context->reply('There was an error saving your mapping into the database.');
 			return;
 		}
 		$this->cmdManager->loadPermsetMappings();
@@ -130,36 +129,34 @@ class PermissionSetMappingController extends ModuleInstance {
 			$this->text->blobWrap(
 				"Mapping from {$source} to {$permissionSet} created. ",
 				$this->text->makeBlob(
-					"Configure it",
+					'Configure it',
 					$this->renderPermSetMapping($map),
-					"Configure your mapping"
+					'Configure your mapping'
 				)
 			)
 		);
 	}
 
 	/** Show a list of all command sources */
-	#[NCA\HandlesCommand("cmdmap")]
+	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapListSourcesCommand(
 		CmdContext $context,
-		#[NCA\Str("list")]
-		string $action,
-		#[NCA\Str("src", "source", "sources")]
-		string $subaction,
+		#[NCA\Str('list')] string $action,
+		#[NCA\Str('src', 'source', 'sources')] string $subaction,
 	): void {
 		$sources = (new Collection($this->cmdManager->getSources()))->sort();
 		$blob = "<header2>Registered sources<end>\n".
-			"<tab>" . $sources->join("\n<tab>");
+			'<tab>' . $sources->join("\n<tab>");
 		$context->reply(
 			$this->text->makeBlob(
-				"Registered cmd sources (" . $sources->count() . ")",
+				'Registered cmd sources (' . $sources->count() . ')',
 				$blob
 			)
 		);
 	}
 
 	/** Delete a permission set mapping. This will stop executing commands from &lt;source&gt; */
-	#[NCA\HandlesCommand("cmdmap")]
+	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapDeleteCommand(
 		CmdContext $context,
 		PRemove $action,
@@ -191,26 +188,24 @@ class PermissionSetMappingController extends ModuleInstance {
 	}
 
 	/** Change the permission set to use for a command source */
-	#[NCA\HandlesCommand("cmdmap")]
+	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapPickPermsetCommand(
 		CmdContext $context,
-		#[NCA\Str("permset")]
-		string $action,
-		#[NCA\Str("pick")]
-		string $subAction,
+		#[NCA\Str('permset')] string $action,
+		#[NCA\Str('pick')] string $subAction,
 		string $source
 	): void {
 		$source = strtolower($source);
 
 		/** @var null|CmdPermSetMapping */
-		$set = $this->cmdManager->getPermSetMappings()->where("source", $source)->first();
+		$set = $this->cmdManager->getPermSetMappings()->where('source', $source)->first();
 		if (!isset($set)) {
 			$context->reply("There is currently no permission set map for <highlight>{$source}<end>.");
 			return;
 		}
 		$sets = $this->cmdManager->getPermissionSets();
 		$choices = $sets->map(function (CmdPermissionSet $set) use ($source): string {
-			return "<tab>" . $this->text->makeChatcmd($set->name, "/tell <myname> cmdmap permset set {$source} {$set->name}");
+			return '<tab>' . $this->text->makeChatcmd($set->name, "/tell <myname> cmdmap permset set {$source} {$set->name}");
 		})->join("\n");
 		$context->reply(
 			$this->text->makeBlob(
@@ -221,19 +216,17 @@ class PermissionSetMappingController extends ModuleInstance {
 	}
 
 	/** Change the prefix symbol for a command source */
-	#[NCA\HandlesCommand("cmdmap")]
+	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapPickSymbolCommand(
 		CmdContext $context,
-		#[NCA\Str("prefix", "symbol")]
-		string $action,
-		#[NCA\Str("pick")]
-		string $subAction,
+		#[NCA\Str('prefix', 'symbol')] string $action,
+		#[NCA\Str('pick')] string $subAction,
 		string $source
 	): void {
 		$source = strtolower($source);
 
 		/** @var null|CmdPermSetMapping */
-		$set = $this->cmdManager->getPermSetMappings()->where("source", $source)->first();
+		$set = $this->cmdManager->getPermSetMappings()->where('source', $source)->first();
 		if (!isset($set)) {
 			$context->reply("There is currently no permission set map for <highlight>{$source}<end>.");
 			return;
@@ -241,16 +234,16 @@ class PermissionSetMappingController extends ModuleInstance {
 
 		/** @var ?Setting $row */
 		$row = $this->db->table(SettingManager::DB_TABLE)
-			->where("name", "symbol")
+			->where('name', 'symbol')
 			->asObj(Setting::class)
 			->first();
 		if ($row === null || !isset($row->options) || !strlen($row->options)) {
-			$msg = "Could not find setting <highlight>symbol<end>.";
+			$msg = 'Could not find setting <highlight>symbol<end>.';
 			$context->reply($msg);
 			return;
 		}
-		$choices = (new Collection(explode(";", $row->options)))->map(function (string $option) use ($source): string {
-			return "<tab><highlight>{$option}<end> [" . $this->text->makeChatcmd("use this", "/tell <myname> cmdmap symbol set {$source} {$option}") . "]";
+		$choices = (new Collection(explode(';', $row->options)))->map(function (string $option) use ($source): string {
+			return "<tab><highlight>{$option}<end> [" . $this->text->makeChatcmd('use this', "/tell <myname> cmdmap symbol set {$source} {$option}") . ']';
 		})->join("\n");
 		$context->reply(
 			$this->text->makeBlob(
@@ -261,91 +254,83 @@ class PermissionSetMappingController extends ModuleInstance {
 	}
 
 	/** Set the permission set for a command source */
-	#[NCA\HandlesCommand("cmdmap")]
+	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapSetPermsetCommand(
 		CmdContext $context,
-		#[NCA\Str("permset")]
-		string $action,
-		#[NCA\Str("set")]
-		string $subAction,
+		#[NCA\Str('permset')] string $action,
+		#[NCA\Str('set')] string $subAction,
 		string $source,
 		PWord $permissionSet
 	): void {
 		$permissionSet = strtolower($permissionSet());
-		if ($this->cmdManager->getPermissionSets()->where("name", $permissionSet)->isEmpty()) {
+		if ($this->cmdManager->getPermissionSets()->where('name', $permissionSet)->isEmpty()) {
 			$context->reply("The permission set <highlight>{$permissionSet}<end> doesn't exist.");
 			return;
 		}
-		$this->changeCmdMap($context, $source, function (CmdPermSetMapping $set) use ($permissionSet): void {
+		$this->changeCmdMap($context, $source, static function (CmdPermSetMapping $set) use ($permissionSet): void {
 			$set->permission_set = $permissionSet;
 		});
 	}
 
 	/** Set the prefix symbol for a command source */
-	#[NCA\HandlesCommand("cmdmap")]
+	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapSetSymbolCommand(
 		CmdContext $context,
-		#[NCA\Str("prefix", "symbol")]
-		string $action,
-		#[NCA\Str("set")]
-		string $subAction,
+		#[NCA\Str('prefix', 'symbol')] string $action,
+		#[NCA\Str('set')] string $subAction,
 		string $source,
 		string $symbol
 	): void {
-		$this->changeCmdMap($context, $source, function (CmdPermSetMapping $set) use ($symbol): void {
+		$this->changeCmdMap($context, $source, static function (CmdPermSetMapping $set) use ($symbol): void {
 			$set->symbol = $symbol;
 		});
 	}
 
 	/** Set if the prefix symbol is optional for a command source */
-	#[NCA\HandlesCommand("cmdmap")]
+	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapChangeSymbolOptionalCommand(
 		CmdContext $context,
-		#[NCA\Str("prefixopt", "symbolopt")]
-		string $action,
-		#[NCA\Str("set")]
-		string $subAction,
+		#[NCA\Str('prefixopt', 'symbolopt')] string $action,
+		#[NCA\Str('set')] string $subAction,
 		string $source,
 		bool $optional
 	): void {
-		$this->changeCmdMap($context, $source, function (CmdPermSetMapping $set) use ($optional): void {
+		$this->changeCmdMap($context, $source, static function (CmdPermSetMapping $set) use ($optional): void {
 			$set->symbol_optional = $optional;
 		});
 	}
 
 	/** Set if unknown commands from &lt;source&gt; trigger error messages */
-	#[NCA\HandlesCommand("cmdmap")]
+	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapChangeFeedbackCommand(
 		CmdContext $context,
-		#[NCA\Str("feedback")]
-		string $action,
-		#[NCA\Str("set")]
-		string $subAction,
+		#[NCA\Str('feedback')] string $action,
+		#[NCA\Str('set')] string $subAction,
 		string $source,
 		bool $feedback
 	): void {
-		$this->changeCmdMap($context, $source, function (CmdPermSetMapping $set) use ($feedback): void {
+		$this->changeCmdMap($context, $source, static function (CmdPermSetMapping $set) use ($feedback): void {
 			$set->feedback = $feedback;
 		});
 	}
 
 	protected function renderPermSetMapping(CmdPermSetMapping $map): string {
-		$deleteLink = $this->text->makeChatcmd("delete", "/tell <myname> cmdmap rem {$map->source}");
-		$permSetLink = $this->text->makeChatcmd("change", "/tell <myname> cmdmap permset pick {$map->source}");
-		$symbolLink = $this->text->makeChatcmd("change", "/tell <myname> cmdmap symbol pick {$map->source}");
-		$symOptText = $map->symbol_optional ? "no" : "yes";
+		$deleteLink = $this->text->makeChatcmd('delete', "/tell <myname> cmdmap rem {$map->source}");
+		$permSetLink = $this->text->makeChatcmd('change', "/tell <myname> cmdmap permset pick {$map->source}");
+		$symbolLink = $this->text->makeChatcmd('change', "/tell <myname> cmdmap symbol pick {$map->source}");
+		$symOptText = $map->symbol_optional ? 'no' : 'yes';
 		$symbolOptionalLink = $this->text->makeChatcmd($symOptText, "/tell <myname> cmdmap symbolopt set {$map->source} {$symOptText}");
-		$feedbackText = $map->feedback ? "no" : "yes";
+		$feedbackText = $map->feedback ? 'no' : 'yes';
 		$feedbackLink = $this->text->makeChatcmd($feedbackText, "/tell <myname> cmdmap feedback set {$map->source} {$feedbackText}");
 		$block = "<header2>{$map->source}<end> [{$deleteLink}]\n".
 			"<tab>Permission set: <highlight>{$map->permission_set}<end> [{$permSetLink}]\n".
-			"<tab>Symbol: <highlight>".
-				(strlen($map->symbol) ? $map->symbol : "&lt;none&gt;").
+			'<tab>Symbol: <highlight>'.
+				(strlen($map->symbol) ? $map->symbol : '&lt;none&gt;').
 			"<end> [{$symbolLink}]\n".
-			"<tab>Symbol optional: <highlight>" . ($map->symbol_optional ? "yes" : "no") . "<end>".
+			'<tab>Symbol optional: <highlight>' . ($map->symbol_optional ? 'yes' : 'no') . '<end>'.
 				" [{$symbolOptionalLink}]\n".
 			"<tab>Feedback if cmd doesn't exist: <highlight>".
-				($map->feedback ? "yes" : "no") . "<end> [{$feedbackLink}]";
+				($map->feedback ? 'yes' : 'no') . "<end> [{$feedbackLink}]";
 		return $block;
 	}
 
@@ -358,13 +343,13 @@ class PermissionSetMappingController extends ModuleInstance {
 		$source = strtolower($source);
 
 		/** @var null|CmdPermSetMapping */
-		$set = $this->cmdManager->getPermSetMappings()->where("source", $source)->first();
+		$set = $this->cmdManager->getPermSetMappings()->where('source', $source)->first();
 		if (!isset($set)) {
 			$context->reply("There is currently no permission set map for <highlight>{$source}<end>.");
 			return;
 		}
 		$callback($set);
-		$this->db->update(CommandManager::DB_TABLE_MAPPING, "id", $set);
+		$this->db->update(CommandManager::DB_TABLE_MAPPING, 'id', $set);
 		$this->cmdManager->loadPermsetMappings();
 		$context->reply("Setting changed for <highlight>{$source}<end>.");
 	}

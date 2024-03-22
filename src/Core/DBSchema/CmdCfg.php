@@ -24,6 +24,6 @@ class CmdCfg extends DBRow {
 	 * @json-var CmdPermission[]
 	 */
 	#[NCA\DB\Ignore]
-	#[NCA\JSON\Map("array_values")]
+	#[NCA\JSON\Map('array_values')]
 	public array $permissions = [];
 }

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 use Nadybot\Core\SyncEvent;
 
 class SyncRallySetEvent extends SyncEvent {
-	public const EVENT_MASK = "sync(rally-set)";
+	public const EVENT_MASK = 'sync(rally-set)';
 
 	/**
 	 * @param string $owner Character who created the rally

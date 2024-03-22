@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\ALTS;
 
 class AltNewMainEvent extends AltEvent {
-	public const EVENT_MASK = "alt(newmain)";
+	public const EVENT_MASK = 'alt(newmain)';
 
 	public function __construct(
 		public string $main,

@@ -40,18 +40,18 @@ use ZipArchive;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "package",
-		accessLevel: "admin",
-		description: "Install or update external packages",
+		command: 'package',
+		accessLevel: 'admin',
+		description: 'Install or update external packages',
 		alias: ['packages', 'module'],
 	)
 ]
 class PackageController extends ModuleInstance {
-	public const DB_TABLE = "package_files_<myname>";
+	public const DB_TABLE = 'package_files_<myname>';
 	public const EXTRA = 2;
 	public const BUILT_INT = 1;
 	public const UNINST = 0;
-	public const API = "https://pkg.aobots.org/api";
+	public const API = 'https://pkg.aobots.org/api';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -76,8 +76,8 @@ class PackageController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		if (!$this->fs->exists($this->config->paths->cache . "/PACKAGE_MODULE")) {
-			$this->fs->createDirectory($this->config->paths->cache . "/PACKAGE_MODULE", 0700);
+		if (!$this->fs->exists($this->config->paths->cache . '/PACKAGE_MODULE')) {
+			$this->fs->createDirectory($this->config->paths->cache . '/PACKAGE_MODULE', 0700);
 		}
 		$this->scanForUnregisteredExtraModules();
 	}
@@ -91,18 +91,17 @@ class PackageController extends ModuleInstance {
 		if ($this->fs->realPath(dirname($path)) === $this->fs->realPath(dirname(__DIR__))) {
 			return static::BUILT_INT;
 		}
-		if ($this->fs->realPath(dirname($path)) === $this->fs->realPath(dirname(__DIR__, 2)."/Core/Modules")) {
+		if ($this->fs->realPath(dirname($path)) === $this->fs->realPath(dirname(__DIR__, 2).'/Core/Modules')) {
 			return static::BUILT_INT;
 		}
 		return static::EXTRA;
 	}
 
 	/** Get a full list of all available packages*/
-	#[NCA\HandlesCommand("package")]
+	#[NCA\HandlesCommand('package')]
 	public function listPackagesCommand(
 		CmdContext $context,
-		#[NCA\Str("list")]
-		string $action
+		#[NCA\Str('list')] string $action
 	): void {
 		$packages = $this->getPackages();
 		$msg = $this->renderPackageList($packages);
@@ -120,7 +119,7 @@ class PackageController extends ModuleInstance {
 
 		/** @var Package[] $packages */
 		if (!count($packages)) {
-			return "There are currently no packages available for Nadybot.";
+			return 'There are currently no packages available for Nadybot.';
 		}
 		foreach ($packages as $package) {
 			$pGroup = $groupedPackages[$package->name] ?? null;
@@ -141,33 +140,33 @@ class PackageController extends ModuleInstance {
 			if (!isset($package)) {
 				continue;
 			}
-			$infoLink = $this->text->makeChatcmd("details", "/tell <myname> package info {$package->name}");
-			$installLink = "";
+			$infoLink = $this->text->makeChatcmd('details', "/tell <myname> package info {$package->name}");
+			$installLink = '';
 			$installedVersion = null;
 			if ($package->state === static::EXTRA) {
 				$installedVersion = (string)$this->db->table(self::DB_TABLE)
-					->where("module", $package->name)
-					->max("version");
+					->where('module', $package->name)
+					->max('version');
 			}
 			if (in_array($package->name, ClassLoader::INTEGRATED_MODULES)) {
-				$installLink = "<i>Included in Nadybot now</i>";
+				$installLink = '<i>Included in Nadybot now</i>';
 			} elseif (isset($pGroup->highest_supported) && $package->state !== static::BUILT_INT) {
 				// @phpstan-ignore-next-line
-				if ($pGroup->highest_supported && isset($installedVersion) && $installedVersion !== "") {
+				if ($pGroup->highest_supported && isset($installedVersion) && $installedVersion !== '') {
 					if (SemanticVersion::compareUsing($installedVersion, $pGroup->highest_supported->version, '<')) {
-						$installLink = "[" . $this->text->makeChatcmd(
-							"update",
+						$installLink = '[' . $this->text->makeChatcmd(
+							'update',
 							"/tell <myname> package update {$pGroup->highest_supported->name} {$pGroup->highest_supported->version}"
-						) . "]";
+						) . ']';
 					}
 				} else {
-					$installLink = "[" . $this->text->makeChatcmd(
-						"install",
+					$installLink = '[' . $this->text->makeChatcmd(
+						'install',
 						"/tell <myname> package install {$pGroup->highest_supported->name} {$pGroup->highest_supported->version}"
-					) . "]";
+					) . ']';
 				}
 			} elseif ($package->state === static::BUILT_INT) {
-				$installLink = "<i>Included in Nadybot now</i>";
+				$installLink = '<i>Included in Nadybot now</i>';
 			}
 			$blob = "<pagebreak><header2>{$package->name}<end>\n".
 				"<tab>Description: <highlight>{$package->short_description}<end>\n".
@@ -179,35 +178,34 @@ class PackageController extends ModuleInstance {
 					(
 						$pGroup->highest_supported
 						? "<highlight>{$pGroup->highest_supported->version}"
-						: "<red>none (needs Nadybot " . htmlspecialchars($pGroup->highest->bot_version) . ")"
+						: '<red>none (needs Nadybot ' . htmlspecialchars($pGroup->highest->bot_version) . ')'
 					).
 					"<end> {$installLink}";
 			}
 			$blob .= "\n";
 			if (isset($installedVersion)) {
-				$blob .= "<tab>Installed: <highlight>".
-					($installedVersion ?: "unknown version").
-					"<end> [".
+				$blob .= '<tab>Installed: <highlight>'.
+					($installedVersion ?: 'unknown version').
+					'<end> ['.
 					$this->text->makeChatcmd(
-						"uninstall",
+						'uninstall',
 						"/tell <myname> package uninstall {$package->name}"
 					) . "]\n";
 			}
 			$blobs []= $blob;
 		}
 		$msg = $this->text->makeBlob(
-			"Available Packages (" . count($groupedPackages) . ")",
-			join("\n", $blobs)
+			'Available Packages (' . count($groupedPackages) . ')',
+			implode("\n", $blobs)
 		);
 		return $msg;
 	}
 
 	/** Get information about a specific package */
-	#[NCA\HandlesCommand("package")]
+	#[NCA\HandlesCommand('package')]
 	public function packageInfoCommand(
 		CmdContext $context,
-		#[NCA\Str("info")]
-		string $action,
+		#[NCA\Str('info')] string $action,
 		string $package
 	): void {
 		$packages = $this->getPackage($package);
@@ -227,8 +225,8 @@ class PackageController extends ModuleInstance {
 		}
 		if ($packages[0]->state === static::EXTRA) {
 			$installedVersion = (string)$this->db->table(self::DB_TABLE)
-				->where("module", $packages[0]->name)
-				->max("version");
+				->where('module', $packages[0]->name)
+				->max('version');
 		}
 		$blob = trim($this->renderHTML($packages[0]->description));
 		$blob .= "\n\n<header2>Details<end>\n".
@@ -237,11 +235,11 @@ class PackageController extends ModuleInstance {
 		if ($packages[0]->state === static::BUILT_INT) {
 			$blob .= "<tab>Status: <highlight>Included in Nadybot now<end>\n";
 		} elseif (isset($installedVersion)) {
-			$blob .= "<tab>Installed: <highlight>".
-				($installedVersion !== "" ? $installedVersion : "yes, unknown version").
-				"<end> [".
+			$blob .= '<tab>Installed: <highlight>'.
+				($installedVersion !== '' ? $installedVersion : 'yes, unknown version').
+				'<end> ['.
 				$this->text->makeChatcmd(
-					"uninstall",
+					'uninstall',
 					"/tell <myname> package uninstall {$packages[0]->name}"
 				) . "]\n";
 		}
@@ -251,21 +249,21 @@ class PackageController extends ModuleInstance {
 			if ($package->compatible) {
 				if ($package->state === static::EXTRA) {
 					$installLink = $this->text->makeChatcmd(
-						"install",
+						'install',
 						"/tell <myname> package install {$package->name} {$package->version}"
 					);
 					$updateLink = $this->text->makeChatcmd(
-						"update",
+						'update',
 						"/tell <myname> package update {$package->name} {$package->version}"
 					);
-					$installedVersion ??= "";
+					$installedVersion ??= '';
 
 					/** @psalm-suppress NoValue */
-					if ($installedVersion !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "<")) {
+					if ($installedVersion !== '' && SemanticVersion::compareUsing($installedVersion, $package->version, '<')) {
 						$blob .= " [{$updateLink}]";
-					} elseif ($installedVersion !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "==")) {
-						$blob .= " <i>Installed</i>";
-					} elseif ($installedVersion === "") {
+					} elseif ($installedVersion !== '' && SemanticVersion::compareUsing($installedVersion, $package->version, '==')) {
+						$blob .= ' <i>Installed</i>';
+					} elseif ($installedVersion === '') {
 						$blob .= " [{$installLink}]";
 					}
 				}
@@ -282,37 +280,37 @@ class PackageController extends ModuleInstance {
 	public function renderHTML(string $html): string {
 		$html = preg_replace_callback(
 			"/<code.*?>(.+?)<\/code>/is",
-			function (array $matches): string {
-				return "<highlight>" . str_replace("\n", "<br />", $matches[1]) . "<end>";
+			static function (array $matches): string {
+				return '<highlight>' . str_replace("\n", '<br />', $matches[1]) . '<end>';
 			},
 			$html
 		);
-		$html = Safe::pregReplace("/\n/", "", $html);
+		$html = Safe::pregReplace("/\n/", '', $html);
 		$html = Safe::pregReplace("/<br \/>/", "\n", $html);
-		$html = Safe::pregReplace("/<h1.*?>/", "<header2>", $html);
+		$html = Safe::pregReplace('/<h1.*?>/', '<header2>', $html);
 		$html = Safe::pregReplace("/<\/h1>/", "<end>\n", $html);
-		$html = Safe::pregReplace("/<blockquote>/", "&gt;&gt; ", $html);
-		$html = Safe::pregReplace("/<\/blockquote>/", "", $html);
-		$html = Safe::pregReplace("/<h2.*?>/", "<u>", $html);
+		$html = Safe::pregReplace('/<blockquote>/', '&gt;&gt; ', $html);
+		$html = Safe::pregReplace("/<\/blockquote>/", '', $html);
+		$html = Safe::pregReplace('/<h2.*?>/', '<u>', $html);
 		$html = Safe::pregReplace("/<\/h2>/", "</u>\n", $html);
-		$html = Safe::pregReplace("/<em.*?>/", "<i>", $html);
-		$html = Safe::pregReplace("/<\/em>/", "</i>", $html);
-		$html = Safe::pregReplace("/<p>/", "", $html);
+		$html = Safe::pregReplace('/<em.*?>/', '<i>', $html);
+		$html = Safe::pregReplace("/<\/em>/", '</i>', $html);
+		$html = Safe::pregReplace('/<p>/', '', $html);
 		$html = Safe::pregReplace("/<\/p>/", "\n\n", $html);
-		$html = Safe::pregReplace("/<a.*?>/", "<u><blue>", $html);
-		$html = Safe::pregReplace("/<\/a>/", "<end></u>", $html);
-		$html = Safe::pregReplace("/<pre.*?>/", "", $html);
-		$html = Safe::pregReplace("/<\/pre>/", "", $html);
-		$html = Safe::pregReplace("/<(code|strong)>/", "<highlight>", $html);
-		$html = Safe::pregReplace("/<\/(code|strong)>/", "<end>", $html);
-		$html = str_replace("&nbsp;", " ", $html);
+		$html = Safe::pregReplace('/<a.*?>/', '<u><blue>', $html);
+		$html = Safe::pregReplace("/<\/a>/", '<end></u>', $html);
+		$html = Safe::pregReplace('/<pre.*?>/', '', $html);
+		$html = Safe::pregReplace("/<\/pre>/", '', $html);
+		$html = Safe::pregReplace('/<(code|strong)>/', '<highlight>', $html);
+		$html = Safe::pregReplace("/<\/(code|strong)>/", '<end>', $html);
+		$html = str_replace('&nbsp;', ' ', $html);
 		$html = preg_replace_callback(
 			"/<ol.*?>(.*?)<\/ol>/is",
-			function (array $matches): string {
+			static function (array $matches): string {
 				$num = 0;
 				return preg_replace_callback(
 					"/<li>(.*?)<\/li>/is",
-					function (array $matches) use (&$num): string {
+					static function (array $matches) use (&$num): string {
 						$num++;
 						return "<tab>{$num}. {$matches[1]}\n";
 					},
@@ -323,7 +321,7 @@ class PackageController extends ModuleInstance {
 		);
 		$html = preg_replace_callback(
 			"/<ul.*?>(.*?)<\/ul>/is",
-			function (array $matches): string {
+			static function (array $matches): string {
 				return Safe::pregReplace(
 					"/<li>(.*?)<\/li>/is",
 					"<tab>* $1\n",
@@ -347,9 +345,9 @@ class PackageController extends ModuleInstance {
 
 		foreach ($parts as $part) {
 			if (preg_match("/^<\d+\.0\.0$/", $part)) {
-				$part .= "-0";
+				$part .= '-0';
 			}
-			if (!count($matches = Safe::pregMatch("/^([!=<>^]+)(.+)$/", $part))) {
+			if (!count($matches = Safe::pregMatch('/^([!=<>^]+)(.+)$/', $part))) {
 				return false;
 			}
 			if (!SemanticVersion::compareUsing($ourVersion, $matches[2], $matches[1])) {
@@ -360,17 +358,16 @@ class PackageController extends ModuleInstance {
 	}
 
 	/** Install a package */
-	#[NCA\HandlesCommand("package")]
+	#[NCA\HandlesCommand('package')]
 	public function packageInstallCommand(
 		CmdContext $context,
-		#[NCA\Str("install")]
-		string $action,
+		#[NCA\Str('install')] string $action,
 		PWord $package,
 		?string $version
 	): void {
 		if (!$this->config->general->enablePackageModule) {
 			$context->reply(
-				"In order to be allowed to install modules from within Nadybot, ".
+				'In order to be allowed to install modules from within Nadybot, '.
 				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
 				"bot's config file."
 			);
@@ -392,17 +389,16 @@ class PackageController extends ModuleInstance {
 	}
 
 	/** Update an already installed package, optionally to a specific version */
-	#[NCA\HandlesCommand("package")]
+	#[NCA\HandlesCommand('package')]
 	public function packageUpdateCommand(
 		CmdContext $context,
-		#[NCA\Str("update")]
-		string $action,
+		#[NCA\Str('update')] string $action,
 		PWord $package,
 		?string $version
 	): void {
 		if (!$this->config->general->enablePackageModule) {
 			$context->reply(
-				"In order to be allowed to update modules from within Nadybot, ".
+				'In order to be allowed to update modules from within Nadybot, '.
 				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
 				"bot's config file."
 			);
@@ -424,16 +420,15 @@ class PackageController extends ModuleInstance {
 	}
 
 	/** Uninstall a package */
-	#[NCA\HandlesCommand("package")]
+	#[NCA\HandlesCommand('package')]
 	public function packageUninstallCommand(
 		CmdContext $context,
-		#[NCA\Str("uninstall", "delete", "remove", "erase", "del", "rm")]
-		string $action,
+		#[NCA\Str('uninstall', 'delete', 'remove', 'erase', 'del', 'rm')] string $action,
 		string $package
 	): void {
 		if (!$this->config->general->enablePackageModule) {
 			$context->reply(
-				"In order to be allowed to uninstall modules from within Nadybot, ".
+				'In order to be allowed to uninstall modules from within Nadybot, '.
 				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
 				"bot's config file."
 			);
@@ -448,7 +443,7 @@ class PackageController extends ModuleInstance {
 		if ($instType === static::BUILT_INT) {
 			$context->reply(
 				"<highlight>{$module}<end> is a built-in Nadybot module and ".
-				"cannot be uninstalled."
+				'cannot be uninstalled.'
 			);
 			return;
 		}
@@ -456,16 +451,16 @@ class PackageController extends ModuleInstance {
 		try {
 			$path = $this->fs->realPath($modulePath);
 		} catch (FilesystemException $e) {
-			$this->logger->error("Cannot determine absolute path of {module_path}", [
-				"module_path" => $modulePath,
-				"exception" => $e,
+			$this->logger->error('Cannot determine absolute path of {module_path}', [
+				'module_path' => $modulePath,
+				'exception' => $e,
 			]);
-			$context->reply("Something is wrong with the path of this module.");
+			$context->reply('Something is wrong with the path of this module.');
 			return;
 		}
-		$this->logger->info("Removing {module_path} ({path}) recursively", [
-			"module_path" => $modulePath,
-			"path" => $path,
+		$this->logger->info('Removing {module_path} ({path}) recursively', [
+			'module_path' => $modulePath,
+			'path' => $path,
 		]);
 		$dirIterator = new RecursiveDirectoryIterator($path);
 		$iterator = new RecursiveIteratorIterator(
@@ -475,42 +470,42 @@ class PackageController extends ModuleInstance {
 
 		$toDelete = [];
 		foreach ($iterator as $file) {
-			$this->logger->info("Encountered " . $file->getFilename() . " (" . $file->getPathname() . ")");
+			$this->logger->info('Encountered ' . $file->getFilename() . ' (' . $file->getPathname() . ')');
 
 			/** @var SplFileInfo $file */
-			if (in_array($file->getFilename(), [".", ".."], true)) {
-				$this->logger->info("Skipping, because . or ..");
+			if (in_array($file->getFilename(), ['.', '..'], true)) {
+				$this->logger->info('Skipping, because . or ..');
 				continue;
 			}
 			$relPath = substr($file->getPathname(), strlen($path) + 1);
-			if (substr($relPath, 0, 2) === "..") {
-				$this->logger->info("Skipping, because . or ..");
+			if (substr($relPath, 0, 2) === '..') {
+				$this->logger->info('Skipping, because . or ..');
 				continue;
 			}
-			$this->logger->info("Adding as " . $file->getRealPath());
+			$this->logger->info('Adding as ' . $file->getRealPath());
 			$realPath = $file->getRealPath();
 			if ($realPath !== false) {
 				$toDelete []= $realPath;
 			}
 		}
 		$toDelete []= $path;
-		$this->logger->info("Sorting by path length descending");
+		$this->logger->info('Sorting by path length descending');
 		usort(
 			$toDelete,
-			function (string $file1, string $file2): int {
+			static function (string $file1, string $file2): int {
 				return strlen($file2) <=> strlen($file1);
 			}
 		);
-		$baseDir = dirname($path) . "/";
+		$baseDir = dirname($path) . '/';
 		foreach ($toDelete as $file) {
-			$this->logger->info("Removing {file}", ["file" => $file]);
+			$this->logger->info('Removing {file}', ['file' => $file]);
 			$relFile = substr($file, strlen($baseDir));
 			if (!$this->fs->exists($file)) {
-				$this->logger->info("{file} does not exist", ["file" => $file]);
+				$this->logger->info('{file} does not exist', ['file' => $file]);
 				continue;
 			}
 			if ($this->fs->isDirectory($file)) {
-				$this->logger->notice("rmdir {dir}", ["dir" => $relFile]);
+				$this->logger->notice('rmdir {dir}', ['dir' => $relFile]);
 				try {
 					$this->fs->deleteFile($file);
 				} catch (\Exception $e) {
@@ -520,7 +515,7 @@ class PackageController extends ModuleInstance {
 					return;
 				}
 			} else {
-				$this->logger->notice("del {file}", ["file" => $relFile]);
+				$this->logger->notice('del {file}', ['file' => $relFile]);
 				try {
 					$this->fs->deleteFile($file);
 				} catch (\Exception $e) {
@@ -529,10 +524,10 @@ class PackageController extends ModuleInstance {
 				}
 			}
 		}
-		$this->logger->info("Deleting done");
+		$this->logger->info('Deleting done');
 		$context->reply(
 			"<highlight>{$package}<end> uninstalled. Restart the bot ".
-			"for the changes to take effect."
+			'for the changes to take effect.'
 		);
 		unset($this->chatBot->runner->classLoader->registeredModules[$module]);
 	}
@@ -551,15 +546,15 @@ class PackageController extends ModuleInstance {
 			return null;
 		}
 		if (!$this->fs->exists("{$moduleDir}/{$package}/aopkg.toml")) {
-			return "";
+			return '';
 		}
 		try {
 			$content = $this->fs->read("{$moduleDir}/{$package}/aopkg.toml");
 		} catch (FilesystemException) {
-			return "";
+			return '';
 		}
 		if (!count($matches = Safe::pregMatch("/^\s*version\s*=\s*\"(.*?)\"/m", $content))) {
-			return "";
+			return '';
 		}
 		return $matches[1];
 	}
@@ -570,8 +565,8 @@ class PackageController extends ModuleInstance {
 	 */
 	public function removePackageInstallation(PackageAction $cmd, string $targetDir): bool {
 		$query = $this->db->table(self::DB_TABLE)
-			->where("module", $cmd->package);
-		$query->orderByColFunc("LENGTH", "file", "desc");
+			->where('module', $cmd->package);
+		$query->orderByColFunc('LENGTH', 'file', 'desc');
 
 		/** @var PackageFile[] */
 		$oldFiles = $query->asObj(PackageFile::class)->toArray();
@@ -581,10 +576,10 @@ class PackageController extends ModuleInstance {
 				continue;
 			}
 			if ($this->fs->isDirectory($fullFilename)) {
-				$this->logger->notice("rmdir {dir}", ["dir" => $fullFilename]);
+				$this->logger->notice('rmdir {dir}', ['dir' => $fullFilename]);
 				$this->fs->deleteDirectory($fullFilename);
 			} else {
-				$this->logger->notice("del {file}", ["file" => $fullFilename]);
+				$this->logger->notice('del {file}', ['file' => $fullFilename]);
 				$this->fs->deleteFile($fullFilename);
 			}
 		}
@@ -594,7 +589,7 @@ class PackageController extends ModuleInstance {
 	/** Try to determine the directory where custom modules shall be installed */
 	public function getExtraModulesDir(): ?string {
 		$moduleDirs = array_map($this->fs->realPath(...), $this->config->paths->modules);
-		$moduleDirs = array_diff($moduleDirs, [$this->fs->realPath("./src/Modules")]);
+		$moduleDirs = array_diff($moduleDirs, [$this->fs->realPath('./src/Modules')]);
 		$extraDir = end($moduleDirs);
 		if ($extraDir === false) {
 			return null;
@@ -607,15 +602,15 @@ class PackageController extends ModuleInstance {
 	 * directory (the module dir) or directly in /
 	 */
 	protected function getSubdir(ZipArchive $zip): string {
-		$subdir = "";
+		$subdir = '';
 		for ($i = 0; $i < $zip->numFiles; $i++) {
 			$name = $zip->getNameIndex($i);
 			if ($name === false) {
-				return "";
+				return '';
 			}
-			$slashPos = strpos($name, "/");
+			$slashPos = strpos($name, '/');
 			if ($slashPos === false) {
-				return "";
+				return '';
 			}
 			$subdir = substr($name, 0, $slashPos+1);
 		}
@@ -643,7 +638,7 @@ class PackageController extends ModuleInstance {
 	/** Scan for and add all files of $module into the database */
 	private function scanExtraModule(string $targetDir, string $module): void {
 		$exists = $this->db->table(self::DB_TABLE)
-			->where("module", $module)
+			->where('module', $module)
 			->exists();
 		if ($exists) {
 			return;
@@ -660,18 +655,18 @@ class PackageController extends ModuleInstance {
 
 		foreach ($iterator as $file) {
 			/** @var SplFileInfo $file */
-			if (in_array($file->getFilename(), [".", ".."], true)) {
+			if (in_array($file->getFilename(), ['.', '..'], true)) {
 				continue;
 			}
 			$relPath = substr($file->getPathname(), strlen($targetDir) + 1);
-			if (substr($relPath, 0, 2) === "..") {
+			if (substr($relPath, 0, 2) === '..') {
 				continue;
 			}
 			$this->db->table(self::DB_TABLE)
 				->insert([
-					"module" => $module,
-					"version" => $version ?? "",
-					"file" => $relPath,
+					'module' => $module,
+					'version' => $version ?? '',
+					'file' => $relPath,
 				]);
 		}
 	}
@@ -683,25 +678,25 @@ class PackageController extends ModuleInstance {
 	 */
 	private function getPackages(): array {
 		$cache = new FileCache(
-			$this->config->paths->cache . "/PACKAGE_MODULE",
+			$this->config->paths->cache . '/PACKAGE_MODULE',
 			new LocalKeyedMutex(),
 			$this->fs->getFilesystem(),
 		);
-		if (null !== ($body = $cache->get("packages"))) {
+		if (null !== ($body = $cache->get('packages'))) {
 			return $this->parsePackages($body);
 		}
 		$client = $this->builder->build();
 
-		$response = $client->request(new Request(static::API . "/packages"));
+		$response = $client->request(new Request(static::API . '/packages'));
 		if ($response->getStatus() !== 200) {
-			throw new UserException("There was an error retrieving the list of available packages.");
+			throw new UserException('There was an error retrieving the list of available packages.');
 		}
 		$body = $response->getBody()->buffer();
 		if ($body === '') {
-			throw new UserException("Empty response while retrieving the list of available packages.");
+			throw new UserException('Empty response while retrieving the list of available packages.');
 		}
 		$packages = $this->parsePackages($body);
-		$cache->set("packages", $body, 3600);
+		$cache->set('packages', $body, 3_600);
 		return $packages;
 	}
 
@@ -712,7 +707,7 @@ class PackageController extends ModuleInstance {
 	 */
 	private function getPackage(string $package): array {
 		$cache = new FileCache(
-			$this->config->paths->cache . "/PACKAGE_MODULE",
+			$this->config->paths->cache . '/PACKAGE_MODULE',
 			new LocalKeyedMutex(),
 			$this->fs->getFilesystem(),
 		);
@@ -729,10 +724,10 @@ class PackageController extends ModuleInstance {
 		}
 		$body = $response->getBody()->buffer();
 		if ($body === '') {
-			throw new UserException("Empty response received from HTTP server.");
+			throw new UserException('Empty response received from HTTP server.');
 		}
 		$packages = $this->parsePackages($body);
-		$cache->set($package, $body, 3600);
+		$cache->set($package, $body, 3_600);
 		return $packages;
 	}
 
@@ -741,10 +736,10 @@ class PackageController extends ModuleInstance {
 		try {
 			$data = json_decode($body, false);
 		} catch (JsonException $e) {
-			throw new UserException("Package data contained invalid JSON");
+			throw new UserException('Package data contained invalid JSON');
 		}
 		if (!is_array($data)) {
-			throw new UserException("Package data was not in the expected format");
+			throw new UserException('Package data was not in the expected format');
 		}
 
 		/** @var Collection<Package> */
@@ -752,8 +747,8 @@ class PackageController extends ModuleInstance {
 		foreach ($data as $pack) {
 			$packages []= JsonImporter::convert(Package::class, $pack);
 		}
-		$packages = $packages->filter(function (Package $package): bool {
-			return $package->bot_type === "Nadybot";
+		$packages = $packages->filter(static function (Package $package): bool {
+			return $package->bot_type === 'Nadybot';
 		})->each(function (Package $package): void {
 			$package->compatible = $this->isVersionCompatible($package->bot_version);
 			$package->state = $this->getInstalledModuleType($package->name);
@@ -769,12 +764,12 @@ class PackageController extends ModuleInstance {
 	 */
 	private function getPackageDetail(array $packages): string|array {
 		if (!count($packages)) {
-			return "This package is not compatible with Nadybot.";
+			return 'This package is not compatible with Nadybot.';
 		}
 		if ($packages[0]->state === static::EXTRA) {
 			$installedVersion = (string)$this->db->table(self::DB_TABLE)
-				->where("module", $packages[0]->name)
-				->max("version");
+				->where('module', $packages[0]->name)
+				->max('version');
 		}
 		$blob = trim($this->renderHTML($packages[0]->description));
 		$blob .= "\n\n<header2>Details<end>\n".
@@ -783,11 +778,11 @@ class PackageController extends ModuleInstance {
 		if ($packages[0]->state === static::BUILT_INT) {
 			$blob .= "<tab>Status: <highlight>Included in Nadybot now<end>\n";
 		} elseif (isset($installedVersion)) {
-			$blob .= "<tab>Installed: <highlight>".
-				($installedVersion !== "" ? $installedVersion : "yes, unknown version").
-				"<end> [".
+			$blob .= '<tab>Installed: <highlight>'.
+				($installedVersion !== '' ? $installedVersion : 'yes, unknown version').
+				'<end> ['.
 				$this->text->makeChatcmd(
-					"uninstall",
+					'uninstall',
 					"/tell <myname> package uninstall {$packages[0]->name}"
 				) . "]\n";
 		}
@@ -797,21 +792,21 @@ class PackageController extends ModuleInstance {
 			if ($package->compatible) {
 				if ($package->state === static::EXTRA) {
 					$installLink = $this->text->makeChatcmd(
-						"install",
+						'install',
 						"/tell <myname> package install {$package->name} {$package->version}"
 					);
 					$updateLink = $this->text->makeChatcmd(
-						"update",
+						'update',
 						"/tell <myname> package update {$package->name} {$package->version}"
 					);
-					$installedVersion ??= "";
+					$installedVersion ??= '';
 
 					/** @psalm-suppress NoValue */
-					if ($installedVersion !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "<")) {
+					if ($installedVersion !== '' && SemanticVersion::compareUsing($installedVersion, $package->version, '<')) {
 						$blob .= " [{$updateLink}]";
-					} elseif ($installedVersion !== "" && SemanticVersion::compareUsing($installedVersion, $package->version, "==")) {
-						$blob .= " <i>Installed</i>";
-					} elseif ($installedVersion === "") {
+					} elseif ($installedVersion !== '' && SemanticVersion::compareUsing($installedVersion, $package->version, '==')) {
+						$blob .= ' <i>Installed</i>';
+					} elseif ($installedVersion === '') {
 						$blob .= " [{$installLink}]";
 					}
 				}
@@ -832,13 +827,13 @@ class PackageController extends ModuleInstance {
 		if ($packages[0]->state === static::BUILT_INT) {
 			throw new UserException(
 				"<highlight>{$cmd->package}<end> is a built-in module in ".
-				"Nadybot " . BotRunner::getVersion() ." and cannot be managed ".
-				"with this command."
+				'Nadybot ' . BotRunner::getVersion() .' and cannot be managed '.
+				'with this command.'
 			);
 		}
 		$missingExtensions = [];
 		foreach ($packages[0]->requires as $requirement) {
-			if (count($matches = Safe::pregMatch("/^ext-(.+)$/", $requirement->name)) === 2) {
+			if (count($matches = Safe::pregMatch('/^ext-(.+)$/', $requirement->name)) === 2) {
 				if (!extension_loaded($matches[1])) {
 					$missingExtensions[$matches[1]] = true;
 				}
@@ -847,15 +842,15 @@ class PackageController extends ModuleInstance {
 		if (count($missingExtensions)) {
 			throw new UserException(
 				"<highlight>{$cmd->package}<end> needs the following missing PHP ".
-				"extension" . ((count($missingExtensions) > 1) ? "s" : "") . " ".
-				"<highlight>" . join(", ", array_keys($missingExtensions)) . "<end>."
+				'extension' . ((count($missingExtensions) > 1) ? 's' : '') . ' '.
+				'<highlight>' . implode(', ', array_keys($missingExtensions)) . '<end>.'
 			);
 		}
 		if (isset($cmd->version)) {
 			$packages = array_values(
 				array_filter(
 					$packages,
-					function (Package $package) use ($cmd): bool {
+					static function (Package $package) use ($cmd): bool {
 						return $cmd->version->cmpStr($package->version) === 0;
 					}
 				)
@@ -879,7 +874,7 @@ class PackageController extends ModuleInstance {
 		$packages = array_values(
 			array_filter(
 				$packages,
-				function (Package $package): bool {
+				static function (Package $package): bool {
 					return $package->compatible;
 				}
 			)
@@ -888,7 +883,7 @@ class PackageController extends ModuleInstance {
 		if ($newestPackage === false) {
 			throw new UserException(
 				"No version of <highlight>{$cmd->package}<end> found that ".
-				"is compatible with Nadybot " . BotRunner::getVersion() . "."
+				'is compatible with Nadybot ' . BotRunner::getVersion() . '.'
 			);
 		}
 		return new SemanticVersion($newestPackage->version);
@@ -904,14 +899,14 @@ class PackageController extends ModuleInstance {
 				"No package <highlight>{$package}<end> found in version <highlight>{$version}<end>."
 			);
 		} elseif ($response->getStatus() !== 200) {
-			throw new UserException("Error downloading the package.");
+			throw new UserException('Error downloading the package.');
 		}
-		if ($response->getHeader('content-type') !== "application/zip") {
-			throw new UserException("The downloaded data was not a package");
+		if ($response->getHeader('content-type') !== 'application/zip') {
+			throw new UserException('The downloaded data was not a package');
 		}
 		$body = $response->getBody()->buffer();
 		if ($body === '') {
-			throw new UserException("The server returned an empty reply when downloading the package.");
+			throw new UserException('The server returned an empty reply when downloading the package.');
 		}
 		return $body;
 	}
@@ -919,18 +914,18 @@ class PackageController extends ModuleInstance {
 	/** Try to get a ZipArchive from a HttpResponse */
 	private function getZip(string $data): ZipArchive {
 		try {
-			$temp = $this->fs->tempnam(sys_get_temp_dir(), "nadybot-module");
+			$temp = $this->fs->tempnam(sys_get_temp_dir(), 'nadybot-module');
 			$this->fs->write($temp, $data);
 		} catch (FilesystemException $e) {
 			throw new UserException(
-				"Error writing to temporary file: " . $e->getMessage()
+				'Error writing to temporary file: ' . $e->getMessage()
 			);
 		}
 		$zip = new ZipArchive();
 		$openResult = $zip->open($temp);
 		$this->fs->deleteFile($temp);
 		if ($openResult !== true) {
-			throw new UserException("The downloaded file was corrupt.");
+			throw new UserException('The downloaded file was corrupt.');
 		}
 		if ($zip->numFiles < 1) {
 			throw new UserException("The package didn't contain any data.");
@@ -940,11 +935,11 @@ class PackageController extends ModuleInstance {
 
 	/** Install a requested package that comes as a callback */
 	private function installPackage(string $data, PackageAction $cmd): string {
-		if (!extension_loaded("zip")) {
+		if (!extension_loaded('zip')) {
 			throw new UserException(
-				"Your PHP version does not have the \"zip\" extension installed. ".
-				"If you want to be able to use this command, make sure to add that ".
-				"extension on your system."
+				'Your PHP version does not have the "zip" extension installed. '.
+				'If you want to be able to use this command, make sure to add that '.
+				'extension on your system.'
 			);
 		}
 		$zip = $this->getZip($data);
@@ -952,30 +947,30 @@ class PackageController extends ModuleInstance {
 
 		if ($targetDir === null) {
 			throw new UserException(
-				"Your Bot configuration does not have an extra modules dir defined. ".
-				"If you want to be able to install additional, user-provided modules, ".
-				"please add one."
+				'Your Bot configuration does not have an extra modules dir defined. '.
+				'If you want to be able to install additional, user-provided modules, '.
+				'please add one.'
 			);
 		}
 		$oldVersion = $this->getInstalledVersion($cmd->package, $targetDir);
 		$cmd->oldVersion = isset($oldVersion) ? new SemanticVersion($oldVersion) : null;
 		$this->checkCanInstallVersion($cmd);
 
-		$this->logger->notice("Installing module {package} into {dir}", [
-			"package" => $cmd->package,
-			"dir" => $targetDir . DIRECTORY_SEPARATOR . $cmd->package,
+		$this->logger->notice('Installing module {package} into {dir}', [
+			'package' => $cmd->package,
+			'dir' => $targetDir . \DIRECTORY_SEPARATOR . $cmd->package,
 		]);
 		if (!$this->fs->exists("{$targetDir}/{$cmd->package}/")) {
 			try {
 				$this->fs->createDirectoryRecursively("{$targetDir}/{$cmd->package}", 0700);
 			} catch (\Exception $e) {
-				$this->logger->error("Error on mkdir of {dir}: {error}", [
-					"dir" => $targetDir . DIRECTORY_SEPARATOR . $cmd->package,
-					"error" => $e->getMessage(),
-					"exception" => $e,
+				$this->logger->error('Error on mkdir of {dir}: {error}', [
+					'dir' => $targetDir . \DIRECTORY_SEPARATOR . $cmd->package,
+					'error' => $e->getMessage(),
+					'exception' => $e,
 				]);
 				throw new UserException(
-					"There was an error creating ".
+					'There was an error creating '.
 					"<highlight>{$targetDir}/{$cmd->package}<end>."
 				);
 			}
@@ -983,19 +978,19 @@ class PackageController extends ModuleInstance {
 		$this->removePackageInstallation($cmd, $targetDir);
 
 		$this->db->table(self::DB_TABLE)
-			->where("module", $cmd->package)
+			->where('module', $cmd->package)
 			->delete();
 		$this->installAndRegisterZip($zip, $cmd, $targetDir);
 
-		$this->chatBot->runner->classLoader->registeredModules[$cmd->package] = $targetDir . "/" . $cmd->package;
+		$this->chatBot->runner->classLoader->registeredModules[$cmd->package] = $targetDir . '/' . $cmd->package;
 		if ($cmd->action === $cmd::INSTALL) {
 			return "<highlight>{$cmd->package} {$cmd->version}<end> installed successfully. ".
-				"Restart the bot for the changes to take effect.";
+				'Restart the bot for the changes to take effect.';
 		}
 		return "<highlight>{$cmd->package}<end> successfully upgraded ".
-				($cmd->oldVersion ? "from {$cmd->oldVersion} " : "").
+				($cmd->oldVersion ? "from {$cmd->oldVersion} " : '').
 				"to {$cmd->version}. ".
-				"Restart the bot for the changes to take effect.";
+				'Restart the bot for the changes to take effect.';
 	}
 
 	/**
@@ -1010,16 +1005,16 @@ class PackageController extends ModuleInstance {
 				continue;
 			}
 			$targetFile = "{$targetDir}/{$cmd->package}/" . substr($fileName, strlen($subDir));
-			if (substr($targetFile, -1, 1) === "/") {
+			if (substr($targetFile, -1, 1) === '/') {
 				try {
 					if (!$this->fs->exists($targetFile)) {
 						$this->fs->createDirectoryRecursively($targetFile, 0700);
 					}
 				} catch (Throwable $e) {
-					$this->logger->error("Error on mkdir of {dir}: {error}", [
-						"dir" => $targetFile,
-						"error" => $e->getMessage(),
-						"exception" => $e,
+					$this->logger->error('Error on mkdir of {dir}: {error}', [
+						'dir' => $targetFile,
+						'error' => $e->getMessage(),
+						'exception' => $e,
 					]);
 					throw new UserException(
 						"There was an error creating <highlight>{$targetFile}<end>."
@@ -1033,10 +1028,10 @@ class PackageController extends ModuleInstance {
 					}
 					$this->fs->write($targetFile, $fileData);
 				} catch (Throwable $e) {
-					$this->logger->error("Error on extraction of {file}: {error}", [
-						"file" => $targetFile,
-						"error" => $e->getMessage(),
-						"exception" => $e,
+					$this->logger->error('Error on extraction of {file}: {error}', [
+						'file' => $targetFile,
+						'error' => $e->getMessage(),
+						'exception' => $e,
 					]);
 					throw new UserException(
 						"There was an error extracting <highlight>{$targetFile}<end>."
@@ -1047,12 +1042,12 @@ class PackageController extends ModuleInstance {
 			if ($index === false) {
 				continue;
 			}
-			$this->logger->notice("unzip -> {file}", ["file" => $targetFile]);
+			$this->logger->notice('unzip -> {file}', ['file' => $targetFile]);
 			$this->db->table(self::DB_TABLE)
 				->insert([
-					"module" => $cmd->package,
-					"version" => $cmd->version,
-					"file" => "{$cmd->package}/" . substr($index, strlen($subDir)),
+					'module' => $cmd->package,
+					'version' => $cmd->version,
+					'file' => "{$cmd->package}/" . substr($index, strlen($subDir)),
 				]);
 		}
 	}
@@ -1073,7 +1068,7 @@ class PackageController extends ModuleInstance {
 			return true;
 		}
 		// Installed in unknown (pre-aopkg format) version
-		if ((string)$cmd->oldVersion === "") {
+		if ((string)$cmd->oldVersion === '') {
 			return true;
 		}
 		$cmp = $cmd->oldVersion->cmp($cmd->version);
@@ -1081,7 +1076,7 @@ class PackageController extends ModuleInstance {
 			throw new UserException(
 				"You have <highlight>{$cmd->package} {$cmd->oldVersion}<end> ".
 				"installed. Use <highlight><symbol>package update {$cmd->package} {$cmd->version}<end> ".
-				"to update this installation."
+				'to update this installation.'
 			);
 		} elseif ($cmp === 0) {
 			throw new UserException(

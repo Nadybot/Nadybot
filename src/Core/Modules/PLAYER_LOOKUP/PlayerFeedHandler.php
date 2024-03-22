@@ -39,7 +39,7 @@ class PlayerFeedHandler extends ModuleInstance implements EventFeedHandler {
 
 	#[NCA\Event(
 		name: 'setting(lookup_feed_enabled)',
-		description: "Subscribe/unsubscribe from event feed",
+		description: 'Subscribe/unsubscribe from event feed',
 	)]
 	public function toggleEventFeed(SettingEvent $event): void {
 		if ($event->newValue->typed() === true) {
@@ -58,14 +58,14 @@ class PlayerFeedHandler extends ModuleInstance implements EventFeedHandler {
 			$this->playerManager->update($player);
 			$this->chatBot->cacheUidNameMapping($playerInfo->name, $playerInfo->uid);
 		} catch (UnableToHydrateObject $e) {
-			$this->logger->error("Format of Char-Info-API has changed: {error}", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Format of Char-Info-API has changed: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 		} catch (Throwable $e) {
-			$this->logger->error("Error handling character update: {error}", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Error handling character update: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 		}
 	}

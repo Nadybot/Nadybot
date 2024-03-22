@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\CITY_MODULE;
 
 class CityRaidWaveEvent extends CityRaidEvent {
-	public const EVENT_MASK = "cityraid(wave)";
+	public const EVENT_MASK = 'cityraid(wave)';
 
 	public function __construct(
 		public int $wave,

@@ -23,20 +23,20 @@ use Psr\Log\LoggerInterface;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "silence",
-		accessLevel: "mod",
-		description: "Silence commands in a particular permission set",
+		command: 'silence',
+		accessLevel: 'mod',
+		description: 'Silence commands in a particular permission set',
 	),
 	NCA\DefineCommand(
-		command: "unsilence",
-		accessLevel: "mod",
-		description: "Unsilence commands in a particular permission set",
+		command: 'unsilence',
+		accessLevel: 'mod',
+		description: 'Unsilence commands in a particular permission set',
 	)
 ]
 class SilenceController extends ModuleInstance {
-	public const DB_TABLE = "silence_cmd_<myname>";
+	public const DB_TABLE = 'silence_cmd_<myname>';
 
-	public const NULL_COMMAND_HANDLER = "SilenceController.nullCommand";
+	public const NULL_COMMAND_HANDLER = 'SilenceController.nullCommand';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -51,28 +51,28 @@ class SilenceController extends ModuleInstance {
 	private CommandManager $commandManager;
 
 	/** Get a list of all commands that have been silenced */
-	#[NCA\HandlesCommand("silence")]
+	#[NCA\HandlesCommand('silence')]
 	public function silenceCommand(CmdContext $context): void {
 		/** @var Collection<SilenceCmd> */
 		$data = $this->db->table(self::DB_TABLE)
-			->orderBy("cmd")
-			->orderBy("channel")
+			->orderBy('cmd')
+			->orderBy('channel')
 			->asObj(SilenceCmd::class);
 		if ($data->count() === 0) {
-			$msg = "No commands have been silenced.";
+			$msg = 'No commands have been silenced.';
 			$context->reply($msg);
 			return;
 		}
 		$blob = $data->reduce(function (string $blob, SilenceCmd $row) {
-			$unsilenceLink = $this->text->makeChatcmd("Unsilence", "/tell <myname> unsilence {$row->cmd} {$row->channel}");
+			$unsilenceLink = $this->text->makeChatcmd('Unsilence', "/tell <myname> unsilence {$row->cmd} {$row->channel}");
 			return "{$blob}<highlight>{$row->cmd}<end> ({$row->channel}) - {$unsilenceLink}\n";
 		}, '');
-		$msg = $this->text->makeBlob("Silenced Commands", $blob);
+		$msg = $this->text->makeBlob('Silenced Commands', $blob);
 		$context->reply($msg);
 	}
 
 	/** Silence a command for a specific permission set */
-	#[NCA\HandlesCommand("silence")]
+	#[NCA\HandlesCommand('silence')]
 	public function silenceAddCommand(CmdContext $context, string $command, PWord $permissionSet): void {
 		$command = strtolower($command);
 		$permissionSet = strtolower($permissionSet());
@@ -90,7 +90,7 @@ class SilenceController extends ModuleInstance {
 	}
 
 	/** Unsilence a command for a specific permission set */
-	#[NCA\HandlesCommand("unsilence")]
+	#[NCA\HandlesCommand('unsilence')]
 	public function unsilenceAddCommand(CmdContext $context, string $command, PWord $permissionSet): void {
 		$command = strtolower($command);
 		$permissionSet = strtolower($permissionSet());
@@ -109,8 +109,8 @@ class SilenceController extends ModuleInstance {
 
 	public function nullCommand(CmdContext $context): void {
 		$this->logger->info("Silencing command '{command}' for permission set '{permission_set}'", [
-			"command" => $context->message,
-			"permission_set" => $context->permissionSet ?? "<all>",
+			'command' => $context->message,
+			'permission_set' => $context->permissionSet ?? '<all>',
 		]);
 	}
 
@@ -118,29 +118,29 @@ class SilenceController extends ModuleInstance {
 		$this->commandManager->activate($channel, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
 		$this->db->table(self::DB_TABLE)
 			->insert([
-				"cmd" => $row->cmd,
-				"channel" => $channel,
+				'cmd' => $row->cmd,
+				'channel' => $channel,
 			]);
 	}
 
 	public function isSilencedCommand(CmdCfg $row, string $channel): bool {
 		return $this->db->table(self::DB_TABLE)
-			->where("cmd", $row->cmd)
-			->where("channel", $channel)
+			->where('cmd', $row->cmd)
+			->where('channel', $channel)
 			->exists();
 	}
 
 	public function removeSilencedCommand(CmdCfg $row, string $channel): void {
 		$this->commandManager->activate($channel, $row->file, $row->cmd, $row->permissions[$channel]->access_level);
 		$this->db->table(self::DB_TABLE)
-			->where("cmd", $row->cmd)
-			->where("channel", $channel)
+			->where('cmd', $row->cmd)
+			->where('channel', $channel)
 			->delete();
 	}
 
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
-		description: "Overwrite command handlers for silenced commands"
+		description: 'Overwrite command handlers for silenced commands'
 	)]
 	public function overwriteCommandHandlersEvent(ConnectEvent $eventObj): void {
 		$this->db->table(self::DB_TABLE)

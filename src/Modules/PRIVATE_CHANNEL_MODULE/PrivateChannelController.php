@@ -74,82 +74,82 @@ use stdClass;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "members",
-		accessLevel: "member",
-		description: "Member list",
+		command: 'members',
+		accessLevel: 'member',
+		description: 'Member list',
 		alias: 'member',
 	),
 	NCA\DefineCommand(
-		command: "members inactive",
-		accessLevel: "guild",
+		command: 'members inactive',
+		accessLevel: 'guild',
 		description: "List members who haven't logged in for some time",
 	),
 	NCA\DefineCommand(
-		command: "members add/remove",
-		accessLevel: "guild",
-		description: "Adds or removes a player to/from the members list",
+		command: 'members add/remove',
+		accessLevel: 'guild',
+		description: 'Adds or removes a player to/from the members list',
 	),
 	NCA\DefineCommand(
-		command: "invite",
-		accessLevel: "guild",
-		description: "Invite players to the private channel",
-		alias: "inviteuser"
+		command: 'invite',
+		accessLevel: 'guild',
+		description: 'Invite players to the private channel',
+		alias: 'inviteuser'
 	),
 	NCA\DefineCommand(
-		command: "kick",
-		accessLevel: "guild",
-		description: "Kick players from the private channel",
-		alias: "kickuser"
+		command: 'kick',
+		accessLevel: 'guild',
+		description: 'Kick players from the private channel',
+		alias: 'kickuser'
 	),
 	NCA\DefineCommand(
-		command: "autoinvite",
-		accessLevel: "member",
-		description: "Enable or disable autoinvite",
+		command: 'autoinvite',
+		accessLevel: 'member',
+		description: 'Enable or disable autoinvite',
 	),
 	NCA\DefineCommand(
-		command: "count",
-		accessLevel: "guest",
-		description: "Shows how many characters are in the private channel",
+		command: 'count',
+		accessLevel: 'guest',
+		description: 'Shows how many characters are in the private channel',
 	),
 	NCA\DefineCommand(
-		command: "kickall",
-		accessLevel: "guild",
-		description: "Kicks all from the private channel",
+		command: 'kickall',
+		accessLevel: 'guild',
+		description: 'Kicks all from the private channel',
 	),
 	NCA\DefineCommand(
-		command: "join",
-		accessLevel: "member",
-		description: "Join command for characters who want to join the private channel",
+		command: 'join',
+		accessLevel: 'member',
+		description: 'Join command for characters who want to join the private channel',
 	),
 	NCA\DefineCommand(
-		command: "leave",
-		accessLevel: "all",
-		description: "Leave command for characters in private channel",
+		command: 'leave',
+		accessLevel: 'all',
+		description: 'Leave command for characters in private channel',
 	),
 	NCA\DefineCommand(
-		command: "lock",
-		accessLevel: "superadmin",
-		description: "Kick everyone and lock the private channel",
+		command: 'lock',
+		accessLevel: 'superadmin',
+		description: 'Kick everyone and lock the private channel',
 	),
 	NCA\DefineCommand(
-		command: "unlock",
-		accessLevel: "superadmin",
-		description: "Allow people to join the private channel again",
+		command: 'unlock',
+		accessLevel: 'superadmin',
+		description: 'Allow people to join the private channel again',
 	),
 	NCA\DefineCommand(
-		command: "lastonline",
-		accessLevel: "member",
-		description: "Shows the last logon-times of a character",
+		command: 'lastonline',
+		accessLevel: 'member',
+		description: 'Shows the last logon-times of a character',
 	),
 
-	NCA\ProvidesEvent("online(priv)"),
-	NCA\ProvidesEvent("offline(priv)"),
+	NCA\ProvidesEvent('online(priv)'),
+	NCA\ProvidesEvent('offline(priv)'),
 	NCA\ProvidesEvent(MemberAddEvent::class),
 	NCA\ProvidesEvent(MemberRemoveEvent::class),
-	NCA\EmitsMessages(Source::SYSTEM, "lock-reminder")
+	NCA\EmitsMessages(Source::SYSTEM, 'lock-reminder')
 ]
 class PrivateChannelController extends ModuleInstance implements AccessLevelProvider {
-	public const DB_TABLE = "members_<myname>";
+	public const DB_TABLE = 'members_<myname>';
 
 	/** Automatically add player as member when they join */
 	#[NCA\Setting\Boolean]
@@ -165,36 +165,36 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	/** Faction allowed on the bot - autoban everything else */
 	#[NCA\Setting\Options(options: [
-		"all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan",
+		'all', 'Omni', 'Neutral', 'Clan', 'not Omni', 'not Neutral', 'not Clan',
 	])]
-	public string $onlyAllowFaction = "all";
+	public string $onlyAllowFaction = 'all';
 
 	/** Message when someone joins the private channel */
 	#[NCA\Setting\Template(
 		options: [
-			"{whois} has joined {channel-name}. {alt-of}",
-			"{whois} has joined {channel-name}. {alt-list}",
-			"{c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}} has joined.",
-			"{c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}} has joined.",
-			"<on>+<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
-			"<on>+<end> {c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
-			"{name}{?level: :: {c-level}/{c-ai-level} {short-prof}}{?org: :: {c-org}} joined us{?admin-level: :: {c-admin-level}}{?main: :: {c-main}}",
-			"{c-name}{?level: ({c-level}/{c-ai-level} {c-faction} {c-profession}{?org:, <highlight>{org}<end>})} has joined <myname>{?main: (alt of {main})}",
+			'{whois} has joined {channel-name}. {alt-of}',
+			'{whois} has joined {channel-name}. {alt-list}',
+			'{c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}} has joined.',
+			'{c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}} has joined.',
+			'<on>+<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}',
+			'<on>+<end> {c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}',
+			'{name}{?level: :: {c-level}/{c-ai-level} {short-prof}}{?org: :: {c-org}} joined us{?admin-level: :: {c-admin-level}}{?main: :: {c-main}}',
+			'{c-name}{?level: ({c-level}/{c-ai-level} {c-faction} {c-profession}{?org:, <highlight>{org}<end>})} has joined <myname>{?main: (alt of {main})}',
 		],
-		help: "priv_join_message.txt"
+		help: 'priv_join_message.txt'
 	)]
-	public string $privJoinMessage = "{whois} has joined {channel-name}. {alt-list}";
+	public string $privJoinMessage = '{whois} has joined {channel-name}. {alt-list}';
 
 	/** Message when someone leaves the private channel */
 	#[NCA\Setting\Template(
 		options: [
-			"{c-name} has left {channel-name}.",
-			"{c-name}{?main: ({main})} has left {channel-name}.",
-			"<off>-<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
+			'{c-name} has left {channel-name}.',
+			'{c-name}{?main: ({main})} has left {channel-name}.',
+			'<off>-<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}',
 		],
-		help: "priv_join_message.txt"
+		help: 'priv_join_message.txt'
 	)]
-	public string $privLeaveMessage = "{c-name} has left {channel-name}.";
+	public string $privLeaveMessage = '{c-name} has left {channel-name}.';
 
 	/** Should the bot allow inviting banned characters? */
 	#[NCA\Setting\Boolean]
@@ -203,20 +203,20 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	/** Message to send when welcoming new members */
 	#[NCA\Setting\Text(
 		options: [
-			"<link>Welcome to <myname></link>!",
-			"Welcome to <myname>! Here is some <link>information to get you started</link>.",
+			'<link>Welcome to <myname></link>!',
+			'Welcome to <myname>! Here is some <link>information to get you started</link>.',
 		],
-		help: "welcome_msg.txt"
+		help: 'welcome_msg.txt'
 	)]
-	public string $welcomeMsgString = "<link>Welcome to <myname></link>!";
+	public string $welcomeMsgString = '<link>Welcome to <myname></link>!';
 
 	/** Minimum rank allowed to join private channel during a lock */
-	#[NCA\Setting\Rank(accessLevel: "superadmin")]
-	public string $lockMinrank = "superadmin";
+	#[NCA\Setting\Rank(accessLevel: 'superadmin')]
+	public string $lockMinrank = 'superadmin';
 
 	/** If set, the private channel is currently locked for a reason */
-	#[NCA\Setting\Text(mode: "noedit")]
-	public string $lockReason = "";
+	#[NCA\Setting\Text(mode: 'noedit')]
+	public string $lockReason = '';
 
 	/** @var array<string,Member> */
 	protected array $members = [];
@@ -292,29 +292,29 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->accessManager->registerProvider($this);
 		$this->commandAlias->register(
 			$this->moduleName,
-			"members add",
-			"adduser"
+			'members add',
+			'adduser'
 		);
 		$this->commandAlias->register(
 			$this->moduleName,
-			"members del",
-			"deluser"
+			'members del',
+			'deluser'
 		);
 		$this->commandAlias->register(
 			$this->moduleName,
-			"members del",
-			"remuser"
+			'members del',
+			'remuser'
 		);
 		$lockStats = new PrivLockStats();
 		Registry::injectDependencies($lockStats);
-		$this->statsController->registerProvider($lockStats, "states");
+		$this->statsController->registerProvider($lockStats, 'states');
 		$this->cacheMembers();
 	}
 
 	public function cacheMembers(): void {
 		$this->members = $this->db->table(self::DB_TABLE)
 			->asObj(Member::class)
-			->keyBy("name")
+			->keyBy('name')
 			->toArray();
 	}
 
@@ -326,68 +326,68 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public function getSingleAccessLevel(string $sender): ?string {
 		$isMember = isset($this->members[$sender]);
 		if ($isMember) {
-			return "member";
+			return 'member';
 		}
 		if (isset($this->chatBot->chatlist[$sender])) {
-			return "guest";
+			return 'guest';
 		}
 		return null;
 	}
 
 	#[NCA\SettingChangeHandler('welcome_msg_string')]
 	public function validateWelcomeMsg(string $setting, string $old, string $new): void {
-		if (preg_match("|&lt;link&gt;.+?&lt;/link&gt;|", $new)) {
+		if (preg_match('|&lt;link&gt;.+?&lt;/link&gt;|', $new)) {
 			throw new Exception(
-				"You have to use <highlight><symbol>htmldecode settings save ...<end> if your settings contain ".
-				"tags like &lt;link&gt;, because the AO client escapes the tags. ".
-				"This command is part of the DEV_MODULE."
+				'You have to use <highlight><symbol>htmldecode settings save ...<end> if your settings contain '.
+				'tags like &lt;link&gt;, because the AO client escapes the tags. '.
+				'This command is part of the DEV_MODULE.'
 			);
 		}
-		if (!preg_match("|<link>.+?</link>|", $new)) {
+		if (!preg_match('|<link>.+?</link>|', $new)) {
 			throw new Exception(
-				"Your message must contain a block of <highlight>&lt;link&gt;&lt;/link&gt;<end> which will ".
-				"then be a popup with the actual welcome message. The link text sits between ".
-				"the tags, e.g. <highlight>&lt;link&gt;click me&lt;/link&gt;<end>."
+				'Your message must contain a block of <highlight>&lt;link&gt;&lt;/link&gt;<end> which will '.
+				'then be a popup with the actual welcome message. The link text sits between '.
+				'the tags, e.g. <highlight>&lt;link&gt;click me&lt;/link&gt;<end>.'
 			);
 		}
-		if (substr_count($new, "<link>") > 1 || substr_count($new, "</link>") > 1) {
+		if (substr_count($new, '<link>') > 1 || substr_count($new, '</link>') > 1) {
 			throw new Exception(
-				"Your message can only contain a single block of <highlight>&lt;link&gt;&lt;/link&gt;<end>."
+				'Your message can only contain a single block of <highlight>&lt;link&gt;&lt;/link&gt;<end>.'
 			);
 		}
-		if (substr_count($new, "<") !== substr_count($new, ">")) {
-			throw new Exception("Your text seems to be invalid HTML.");
+		if (substr_count($new, '<') !== substr_count($new, '>')) {
+			throw new Exception('Your text seems to be invalid HTML.');
 		}
 		$stripped = strip_tags($new);
-		if (preg_match("/[<>]/", $stripped)) {
-			throw new Exception("Your text seems to generate invalid HTML.");
+		if (preg_match('/[<>]/', $stripped)) {
+			throw new Exception('Your text seems to generate invalid HTML.');
 		}
 	}
 
 	/** Show who is a member of the bot */
-	#[NCA\HandlesCommand("members")]
-	#[NCA\Help\Group("private-channel")]
+	#[NCA\HandlesCommand('members')]
+	#[NCA\Help\Group('private-channel')]
 	public function membersCommand(CmdContext $context): void {
 		/** @var Collection<Member> */
 		$members = $this->db->table(self::DB_TABLE)
-			->orderBy("name")
+			->orderBy('name')
 			->asObj(Member::class);
 		$count = $members->count();
 		if ($count === 0) {
-			$context->reply("This bot has no members.");
+			$context->reply('This bot has no members.');
 			return;
 		}
 		$list = "<header2>Members of <myname><end>\n";
 		foreach ($members as $member) {
 			$online = $this->buddylistManager->isOnline($member->name);
 			if (isset($this->chatBot->chatlist[$member->name])) {
-				$status = "(<on>Online and in channel<end>)";
+				$status = '(<on>Online and in channel<end>)';
 			} elseif ($online === true) {
-				$status = "(<on>Online<end>)";
+				$status = '(<on>Online<end>)';
 			} elseif ($online === false) {
-				$status = "(<off>Offline<end>)";
+				$status = '(<off>Offline<end>)';
 			} else {
-				$status = "(<orange>Unknown<end>)";
+				$status = '(<orange>Unknown<end>)';
 			}
 
 			$list .= "<tab>{$member->name} {$status}\n";
@@ -398,18 +398,17 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	/** Show members who have not logged on for a specified amount of time */
-	#[NCA\HandlesCommand("members inactive")]
-	#[NCA\Help\Group("private-channel")]
+	#[NCA\HandlesCommand('members inactive')]
+	#[NCA\Help\Group('private-channel')]
 	public function inactiveMembersCommand(
 		CmdContext $context,
-		#[NCA\Str("inactive")]
-		string $action,
+		#[NCA\Str('inactive')] string $action,
 		?PDuration $duration
 	): void {
-		$duration ??= new PDuration("1y");
+		$duration ??= new PDuration('1y');
 		$time = $duration->toSecs();
 		if ($time < 1) {
-			$msg = "You must enter a valid time parameter.";
+			$msg = 'You must enter a valid time parameter.';
 			$context->reply($msg);
 			return;
 		}
@@ -417,7 +416,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		/** @var Collection<Member> */
 		$members = $this->db->table(self::DB_TABLE)->asObj(Member::class);
 		if ($members->isEmpty()) {
-			$context->reply("This bot has no members.");
+			$context->reply('This bot has no members.');
 			return;
 		}
 
@@ -429,59 +428,59 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		 *
 		 * @var Collection<string,LastOnline>
 		 */
-		$lastOnline = $this->db->table("last_online")
-			->orderBy("dt")
+		$lastOnline = $this->db->table('last_online')
+			->orderBy('dt')
 			->asObj(LastOnline::class)
 			->each(function (LastOnline $member): void {
 				$member->main = $this->altsController->getMainOf($member->name);
 			})
-			->keyBy("main")
+			->keyBy('main')
 			->filter(function (LastOnline $member, string $main): bool {
-				return $this->accessManager->checkSingleAccess($main, "member");
+				return $this->accessManager->checkSingleAccess($main, 'member');
 			});
 
 		/** @var Collection<InactiveMember> */
 		$inactiveMembers = $members->keyBy(function (Member $member): string {
 			return $this->altsController->getMainOf($member->name);
-		})->map(function (Member $member, string $main) use ($lastOnline): InactiveMember {
+		})->map(static function (Member $member, string $main) use ($lastOnline): InactiveMember {
 			$result = new InactiveMember();
 			$result->name = $member->name;
 			$result->last_online = $lastOnline->get($main, null);
 			return $result;
-		})->filter(function (InactiveMember $member) use ($time): bool {
+		})->filter(static function (InactiveMember $member) use ($time): bool {
 			return $member->last_online?->dt < $time;
 		})->sortKeys()
 		->values();
 
 		if ($inactiveMembers->isEmpty()) {
-			$context->reply("There are no inactive members in the database.");
+			$context->reply('There are no inactive members in the database.');
 			return;
 		}
 
-		$blob = "Members who have not logged on for ".
+		$blob = 'Members who have not logged on for '.
 			"<highlight>{$timeString}<end>.\n\n".
 			"<header2>Inactive bot members<end>\n";
 
 		$lines = [];
 		foreach ($inactiveMembers as $inactiveMember) {
 			$remLink = $this->text->makeChatcmd(
-				"kick",
+				'kick',
 				"/tell <myname> member remall {$inactiveMember->name}",
 			);
 			$line = "<pagebreak><tab>{$inactiveMember->name} - ".
-				"last seen: ";
+				'last seen: ';
 			if (isset($inactiveMember->last_online)) {
-				$line .= "<highlight>".
+				$line .= '<highlight>'.
 					$this->util->date($inactiveMember->last_online->dt).
 					"<end> on {$inactiveMember->last_online->name}";
 			} else {
-				$line .= "<highlight>never<end>";
+				$line .= '<highlight>never<end>';
 			}
 			$lines []= $line . " [{$remLink}]";
 		}
 		$msg = $this->text->makeBlob(
-			"Inactive Org Members (" . $inactiveMembers->count() . ")",
-			$blob . join("\n", $lines)
+			'Inactive Org Members (' . $inactiveMembers->count() . ')',
+			$blob . implode("\n", $lines)
 		);
 		$context->reply($msg);
 	}
@@ -490,12 +489,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	 * Make someone a member of this bot
 	 * They will get auto-invited after logging in
 	 */
-	#[NCA\HandlesCommand("members add/remove")]
-	#[NCA\Help\Group("private-channel")]
+	#[NCA\HandlesCommand('members add/remove')]
+	#[NCA\Help\Group('private-channel')]
 	public function addUserCommand(
 		CmdContext $context,
-		#[NCA\Str("add")]
-		string $action,
+		#[NCA\Str('add')] string $action,
 		PCharacter $char
 	): void {
 		try {
@@ -508,8 +506,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	/** Remove someone from the bot's member list */
-	#[NCA\HandlesCommand("members add/remove")]
-	#[NCA\Help\Group("private-channel")]
+	#[NCA\HandlesCommand('members add/remove')]
+	#[NCA\Help\Group('private-channel')]
 	public function remUserCommand(
 		CmdContext $context,
 		PRemove $action,
@@ -521,26 +519,25 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	/** Remove someone and all their alts from the bot's member list */
-	#[NCA\HandlesCommand("members add/remove")]
-	#[NCA\Help\Group("private-channel")]
+	#[NCA\HandlesCommand('members add/remove')]
+	#[NCA\Help\Group('private-channel')]
 	public function remallUserCommand(
 		CmdContext $context,
-		#[NCA\Str("remall", "delall")]
-		string $action,
+		#[NCA\Str('remall', 'delall')] string $action,
 		PCharacter $member
 	): void {
 		$main = $this->altsController->getMainOf($member());
 		$alts = $this->altsController->getAltsOf($main);
 		$lines = [];
 		foreach ($alts as $alt) {
-			$lines []= "<tab>- " . $this->removeUser($alt, $context->char->name);
+			$lines []= '<tab>- ' . $this->removeUser($alt, $context->char->name);
 		}
 
 		$context->reply(
 			$this->text->makeBlob(
-				"Removed alts of {$main} (" . count($alts) . ")",
+				"Removed alts of {$main} (" . count($alts) . ')',
 				"<header2>Alts of {$main}<end>\n".
-				join("\n", $lines)
+				implode("\n", $lines)
 			)
 		);
 	}
@@ -549,8 +546,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	 * Invite someone to the bot's private channel. This won't make
 	 * them a member, but they will have access level 'guest'
 	 */
-	#[NCA\HandlesCommand("invite")]
-	#[NCA\Help\Group("private-channel")]
+	#[NCA\HandlesCommand('invite')]
+	#[NCA\Help\Group('private-channel')]
 	public function inviteCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
 		$uid = $this->chatBot->getUid($name);
@@ -560,7 +557,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		if ($this->config->main->character == $name) {
-			$msg = "You cannot invite the bot to its own private channel.";
+			$msg = 'You cannot invite the bot to its own private channel.';
 			$context->reply($msg);
 			return;
 		}
@@ -596,8 +593,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	 * Kick someone off the bot's private channel. This won't remove
 	 * their membership status (if any)
 	 */
-	#[NCA\HandlesCommand("kick")]
-	#[NCA\Help\Group("private-channel")]
+	#[NCA\HandlesCommand('kick')]
+	#[NCA\Help\Group('private-channel')]
 	public function kickCommand(CmdContext $context, PCharacter $char, ?string $reason): void {
 		$name = $char();
 		$uid = $this->chatBot->getUid($name);
@@ -611,7 +608,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				if (isset($reason)) {
 					$msg .= ": <highlight>{$reason}<end>";
 				} else {
-					$msg .= ".";
+					$msg .= '.';
 				}
 				$this->chatBot->sendPrivate($msg);
 				$this->kickChar($name);
@@ -632,7 +629,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	/** Change your auto invite preference */
-	#[NCA\HandlesCommand("autoinvite")]
+	#[NCA\HandlesCommand('autoinvite')]
 	public function autoInviteCommand(CmdContext $context, bool $status): void {
 		if ($status) {
 			$onOrOff = 1;
@@ -641,7 +638,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$onOrOff = 0;
 		}
 
-		if (!$this->db->table(self::DB_TABLE)->where("name", $context->char->name)->exists()) {
+		if (!$this->db->table(self::DB_TABLE)->where('name', $context->char->name)->exists()) {
 			$memberObj = new Member();
 			$memberObj->name = $context->char->name;
 			$memberObj->added_by = $context->char->name;
@@ -649,29 +646,27 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$memberObj->autoinv = $onOrOff;
 			$this->db->insert(self::DB_TABLE, $memberObj);
 			$this->members[$context->char->name] = $memberObj;
-			$msg = "You have been added as a member of this bot. ".
-				"Use <highlight><symbol>autoinvite<end> to control ".
-				"your auto invite preference.";
+			$msg = 'You have been added as a member of this bot. '.
+				'Use <highlight><symbol>autoinvite<end> to control '.
+				'your auto invite preference.';
 			$event = new MemberAddEvent(sender: $context->char->name);
 			$this->eventManager->fireEvent($event);
 		} else {
 			$this->db->table(self::DB_TABLE)
-				->where("name", $context->char->name)
-				->update(["autoinv" => $onOrOff]);
-			$msg = "Your auto invite preference has been updated.";
+				->where('name', $context->char->name)
+				->update(['autoinv' => $onOrOff]);
+			$msg = 'Your auto invite preference has been updated.';
 		}
 
 		$context->reply($msg);
 	}
 
 	/** Show how many people are in the private channel, grouped by level */
-	#[NCA\HandlesCommand("count")]
+	#[NCA\HandlesCommand('count')]
 	public function countLevelCommand(
 		CmdContext $context,
-		#[NCA\Str("raid")]
-		?string $raidOnly,
-		#[NCA\Regexp("levels?|lvls?", example: "lvl")]
-		string $action
+		#[NCA\Str('raid')] ?string $raidOnly,
+		#[NCA\Regexp('levels?|lvls?', example: 'lvl')] string $action
 	): void {
 		$tl1 = 0;
 		$tl2 = 0;
@@ -681,7 +676,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$tl6 = 0;
 		$tl7 = 0;
 
-		$chars = $this->onlineController->getPlayers("priv", $this->config->main->character);
+		$chars = $this->onlineController->getPlayers('priv', $this->config->main->character);
 		if (isset($raidOnly)) {
 			[$errMsg, $chars] = $this->filterRaid($chars);
 			if (isset($errMsg)) {
@@ -722,15 +717,13 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	/** Show how many people are in the private channel, grouped by profession */
-	#[NCA\HandlesCommand("count")]
+	#[NCA\HandlesCommand('count')]
 	public function countProfessionCommand(
 		CmdContext $context,
-		#[NCA\Str("raid")]
-		?string $raidOnly,
-		#[NCA\Regexp("all|profs?", example: "profs")]
-		string $action
+		#[NCA\Str('raid')] ?string $raidOnly,
+		#[NCA\Regexp('all|profs?', example: 'profs')] string $action
 	): void {
-		$chars = $this->onlineController->getPlayers("priv", $this->config->main->character);
+		$chars = $this->onlineController->getPlayers('priv', $this->config->main->character);
 		if (isset($raidOnly)) {
 			[$errMsg, $chars] = $this->filterRaid($chars);
 			if (isset($errMsg)) {
@@ -739,7 +732,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			}
 		}
 		$chars = new Collection($chars);
-		$online = $chars->countBy("profession")->toArray();
+		$online = $chars->countBy('profession')->toArray();
 		$numOnline = $chars->count();
 		$profs = [
 			'Adventurer', 'Agent', 'Bureaucrat', 'Doctor', 'Enforcer', 'Engineer',
@@ -760,21 +753,19 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$short = $this->util->getProfessionAbbreviation($prof);
 			$parts []= "<highlight>{$count}<end> {$short}";
 		}
-		$msg .= join(", ", $parts);
+		$msg .= implode(', ', $parts);
 
 		$context->reply($msg);
 	}
 
 	/** Show how many people are in the private channel, grouped by organization */
-	#[NCA\HandlesCommand("count")]
+	#[NCA\HandlesCommand('count')]
 	public function countOrganizationCommand(
 		CmdContext $context,
-		#[NCA\Str("raid")]
-		?string $raidOnly,
-		#[NCA\Regexp("orgs?", example: "orgs")]
-		string $action
+		#[NCA\Str('raid')] ?string $raidOnly,
+		#[NCA\Regexp('orgs?', example: 'orgs')] string $action
 	): void {
-		$online = $this->onlineController->getPlayers("priv", $this->config->main->character);
+		$online = $this->onlineController->getPlayers('priv', $this->config->main->character);
 		if (isset($raidOnly)) {
 			[$errMsg, $online] = $this->filterRaid($online);
 			if (isset($errMsg)) {
@@ -785,23 +776,23 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$online = new Collection($online);
 
 		if ($online->isEmpty()) {
-			$msg = "No characters in channel.";
+			$msg = 'No characters in channel.';
 			if (isset($raidOnly)) {
-				$msg = "No characters in the raid.";
+				$msg = 'No characters in the raid.';
 			}
 			$context->reply($msg);
 			return;
 		}
-		$byOrg = $online->groupBy("guild");
+		$byOrg = $online->groupBy('guild');
 
 		/** @var Collection<OrgCount> */
-		$orgStats = $byOrg->map(function (Collection $chars, string $orgName): OrgCount {
+		$orgStats = $byOrg->map(static function (Collection $chars, string $orgName): OrgCount {
 			$result = new OrgCount();
-			$result->avgLevel = $chars->avg("level");
+			$result->avgLevel = $chars->avg('level');
 			$result->numPlayers = $chars->count();
 			$result->orgName = strlen($orgName) ? $orgName : null;
 			return $result;
-		})->flatten()->sortByDesc("avgLevel")->sortByDesc("numPlayers");
+		})->flatten()->sortByDesc('avgLevel')->sortByDesc('numPlayers');
 
 		$lines = $orgStats->map(function (OrgCount $org) use ($online): string {
 			$guild = $org->orgName ?? '(none)';
@@ -814,28 +805,27 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		});
 		$blob = "<header2>Org statistics<end>\n" . $lines->join("\n");
 
-		$msg = $this->text->makeBlob("Organizations (" . $lines->count() . ")", $blob);
+		$msg = $this->text->makeBlob('Organizations (' . $lines->count() . ')', $blob);
 		$context->reply($msg);
 	}
 
 	/** Show how many people are in the private channel of a given profession */
-	#[NCA\HandlesCommand("count")]
+	#[NCA\HandlesCommand('count')]
 	public function countCommand(
 		CmdContext $context,
-		#[NCA\Str("raid")]
-		?string $raidOnly,
+		#[NCA\Str('raid')] ?string $raidOnly,
 		string $profession
 	): void {
 		$prof = $this->util->getProfessionName($profession);
 		if ($prof === '') {
-			$msg = "Please choose one of these professions: adv, agent, crat, doc, enf, eng, fix, keep, ma, mp, nt, sol, shade, trader or all";
+			$msg = 'Please choose one of these professions: adv, agent, crat, doc, enf, eng, fix, keep, ma, mp, nt, sol, shade, trader or all';
 			$context->reply($msg);
 			return;
 		}
 
 		/** @var Collection<OnlinePlayer> */
-		$data = (new Collection($this->onlineController->getPlayers("priv", $this->config->main->character)))
-			->where("profession", $prof);
+		$data = (new Collection($this->onlineController->getPlayers('priv', $this->config->main->character)))
+			->where('profession', $prof);
 		if (isset($raidOnly)) {
 			[$errMsg, $data] = $this->filterRaid($data->toArray());
 			if (isset($errMsg)) {
@@ -853,10 +843,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$msg = "<highlight>{$numOnline}<end> {$prof}:";
 
 		foreach ($data as $row) {
-			if ($row->afk !== "") {
-				$afk = " <red>*AFK*<end>";
+			if ($row->afk !== '') {
+				$afk = ' <red>*AFK*<end>';
 			} else {
-				$afk = "";
+				$afk = '';
 			}
 			$msg .= " [<highlight>{$row->name}<end> - {$row->level}{$afk}]";
 		}
@@ -864,15 +854,15 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	/** Immediately kick everyone off the bot's private channel */
-	#[NCA\HandlesCommand("kickall")]
-	public function kickallNowCommand(CmdContext $context, #[NCA\Str("now")] string $action): void {
+	#[NCA\HandlesCommand('kickall')]
+	public function kickallNowCommand(CmdContext $context, #[NCA\Str('now')] string $action): void {
 		$this->chatBot->sendPackage(
 			package: new Package\Out\PrivateChannelKickAll()
 		);
 	}
 
 	/** Kick everyone off the bot's private channel after 10 seconds */
-	#[NCA\HandlesCommand("kickall")]
+	#[NCA\HandlesCommand('kickall')]
 	public function kickallCommand(CmdContext $context): void {
 		$msg = "Everyone will be kicked from this channel in 10 seconds. [by <highlight>{$context->char->name}<end>]";
 		$this->chatBot->sendPrivate($msg);
@@ -884,15 +874,15 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	/** Join this bot's private channel (if you have the permission) */
-	#[NCA\HandlesCommand("join")]
-	#[NCA\Help\Group("private-channel")]
+	#[NCA\HandlesCommand('join')]
+	#[NCA\Help\Group('private-channel')]
 	public function joinCommand(CmdContext $context): void {
 		if ($this->isLockedFor($context->char->name)) {
 			$context->reply("The private channel is currently <off>locked<end>: {$this->lockReason}");
 			return;
 		}
 		if (isset($this->chatBot->chatlist[$context->char->name])) {
-			$msg = "You are already in the private channel.";
+			$msg = 'You are already in the private channel.';
 			$context->reply($msg);
 			return;
 		}
@@ -900,7 +890,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (!$this->addMemberOnJoin) {
 			return;
 		}
-		if ($this->db->table(self::DB_TABLE)->where("name", $context->char->name)->exists()) {
+		if ($this->db->table(self::DB_TABLE)->where('name', $context->char->name)->exists()) {
 			return;
 		}
 		$autoInvite = $this->autoinviteDefault;
@@ -911,17 +901,17 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$memberObj->autoinv = $autoInvite ? 1 : 0;
 		$this->db->insert(self::DB_TABLE, $memberObj);
 		$this->members[$context->char->name] = $memberObj;
-		$msg = "You have been added as a member of this bot. ".
-			"Use <highlight><symbol>autoinvite<end> to control your ".
-			"auto invite preference.";
+		$msg = 'You have been added as a member of this bot. '.
+			'Use <highlight><symbol>autoinvite<end> to control your '.
+			'auto invite preference.';
 		$event = new MemberAddEvent(sender: $context->char->name);
 		$this->eventManager->fireEvent($event);
 		$context->reply($msg);
 	}
 
 	/** Leave this bot's private channel */
-	#[NCA\HandlesCommand("leave")]
-	#[NCA\Help\Group("private-channel")]
+	#[NCA\HandlesCommand('leave')]
+	#[NCA\Help\Group('private-channel')]
 	public function leaveCommand(CmdContext $context): void {
 		$this->kickChar($context->char->name);
 	}
@@ -931,19 +921,19 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	 *
 	 * Locking the private channel is persistent across bot restarts
 	 */
-	#[NCA\HandlesCommand("lock")]
-	#[NCA\Help\Group("lock")]
+	#[NCA\HandlesCommand('lock')]
+	#[NCA\Help\Group('lock')]
 	public function lockCommand(CmdContext $context, string $reason): bool {
 		$reason = trim($reason);
 		if (!strlen($reason)) {
 			return false;
 		}
 		if (strlen($this->lockReason)) {
-			$this->settingManager->save("lock_reason", trim($reason));
-			$context->reply("Lock reason changed.");
+			$this->settingManager->save('lock_reason', trim($reason));
+			$context->reply('Lock reason changed.');
 			return true;
 		}
-		$this->settingManager->save("lock_reason", trim($reason));
+		$this->settingManager->save('lock_reason', trim($reason));
 		$this->chatBot->sendPrivate("The private chat has been <off>locked<end> by {$context->char->name}: <highlight>{$this->lockReason}<end>");
 		$alRequired = $this->lockMinrank;
 		foreach ($this->chatBot->chatlist as $char => $online) {
@@ -963,16 +953,16 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	/** Open the private channel again */
-	#[NCA\HandlesCommand("unlock")]
-	#[NCA\Help\Group("lock")]
+	#[NCA\HandlesCommand('unlock')]
+	#[NCA\Help\Group('lock')]
 	public function unlockCommand(CmdContext $context): void {
 		if (!$this->isLocked()) {
-			$context->reply("The private channel is currently not locked.");
+			$context->reply('The private channel is currently not locked.');
 			return;
 		}
-		$this->settingManager->save("lock_reason", "");
-		$this->chatBot->sendPrivate("The private chat is now <on>open<end> again.");
-		$context->reply("You <on>unlocked<end> the private channel.");
+		$this->settingManager->save('lock_reason', '');
+		$this->chatBot->sendPrivate('The private chat is now <on>open<end> again.');
+		$context->reply('You <on>unlocked<end> the private channel.');
 		$audit = new Audit(
 			actor: $context->char->name,
 			action: AccessManager::UNLOCK,
@@ -981,14 +971,14 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\Event(
-		name: "timer(5m)",
-		description: "Send reminder if the private channel is locked"
+		name: 'timer(5m)',
+		description: 'Send reminder if the private channel is locked'
 	)]
 	public function remindOfLock(): void {
 		if (!$this->isLocked()) {
 			return;
 		}
-		$msg = "Reminder: the private channel is currently <off>locked<end>!";
+		$msg = 'Reminder: the private channel is currently <off>locked<end>!';
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source(Source::SYSTEM, 'lock-reminder'));
 		$this->messageHub->handle($rMessage);
@@ -996,7 +986,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
-		description: "Adds all members as buddies"
+		description: 'Adds all members as buddies'
 	)]
 	public function connectEvent(ConnectEvent $eventObj): void {
 		$this->db->table(self::DB_TABLE)
@@ -1008,7 +998,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\Event(
 		name: LogonEvent::EVENT_MASK,
-		description: "Auto-invite members on logon"
+		description: 'Auto-invite members on logon'
 	)]
 	public function logonAutoinviteEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -1018,8 +1008,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 		/** @var Member[] */
 		$data = $this->db->table(self::DB_TABLE)
-			->where("name", $sender)
-			->where("autoinv", 1)
+			->where('name', $sender)
+			->where('autoinv', 1)
 			->asObj(Member::class)
 			->toArray();
 		if (!count($data)) {
@@ -1035,13 +1025,13 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if ($this->banController->isOnBanlist($uid)) {
 			return;
 		}
-		$channelName = "the <highlight><myname><end> channel";
+		$channelName = 'the <highlight><myname><end> channel';
 		if ($this->settingManager->getBool('guild_channel_status') === false) {
-			$channelName = "<highlight><myname><end>";
+			$channelName = '<highlight><myname><end>';
 		}
 		$msg = "You have been auto invited to {$channelName}. ".
-			"Use <highlight><symbol>autoinvite<end> to control ".
-			"your auto invite preference.";
+			'Use <highlight><symbol>autoinvite<end> to control '.
+			'your auto invite preference.';
 		$this->inviteChar($uid);
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
@@ -1058,7 +1048,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public function dispatchRoutableEvent(Base|SyncEvent|stdClass $event): void {
 		$label = null;
 		if (strlen($this->config->general->orgName)) {
-			$label = "Guest";
+			$label = 'Guest';
 		}
 		$re = new RoutableEvent(
 			type: RoutableEvent::TYPE_EVENT,
@@ -1070,7 +1060,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\Event(
 		name: JoinMyPrivEvent::EVENT_MASK,
-		description: "Displays a message when a character joins the private channel"
+		description: 'Displays a message when a character joins the private channel'
 	)]
 	public function joinPrivateChannelMessageEvent(JoinMyPrivEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
@@ -1103,14 +1093,14 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$player->pmain = $altInfo->main;
 		$event = new OnlineEvent(
 			player: $player,
-			channel: "priv",
+			channel: 'priv',
 		);
 		$this->eventManager->fireEvent($event);
 	}
 
 	#[NCA\Event(
 		name: JoinMyPrivEvent::EVENT_MASK,
-		description: "Autoban players of unwanted factions when they join the bot"
+		description: 'Autoban players of unwanted factions when they join the bot'
 	)]
 	public function autobanOnJoin(JoinMyPrivEvent $eventObj): void {
 		$reqFaction = $this->onlyAllowFaction;
@@ -1132,13 +1122,13 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 		// check faction limit
 		if (
-			in_array($reqFaction, ["Omni", "Clan", "Neutral"])
+			in_array($reqFaction, ['Omni', 'Clan', 'Neutral'])
 			&& $reqFaction === $whois->faction
 		) {
 			return;
 		}
-		if (in_array($reqFaction, ["not Omni", "not Clan", "not Neutral"], true)) {
-			$tmp = explode(" ", $reqFaction);
+		if (in_array($reqFaction, ['not Omni', 'not Clan', 'not Neutral'], true)) {
+			$tmp = explode(' ', $reqFaction);
 			if ($tmp[1] !== $whois->faction) {
 				return;
 			}
@@ -1150,7 +1140,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$this->config->main->character,
 			null,
 			sprintf(
-				"Autoban, because %s %s %s",
+				'Autoban, because %s %s %s',
 				$whois->getPronoun(),
 				$whois->getIsAre(),
 				$faction
@@ -1165,7 +1155,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			actor: $this->config->main->character,
 			actee: $whois->name,
 			action: AccessManager::KICK,
-			value: "auto-ban",
+			value: 'auto-ban',
 		);
 		$this->accessManager->addAudit($audit);
 	}
@@ -1180,7 +1170,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$tokens = $this->getTokensForJoinLeave($player, $whois, $altInfo);
 		$leaveMessage = $this->text->renderPlaceholders($this->privLeaveMessage, $tokens);
 		$leaveMessage = Safe::pregReplace(
-			"/&lt;([a-z]+)&gt;/",
+			'/&lt;([a-z]+)&gt;/',
 			'<$1>',
 			$leaveMessage
 		);
@@ -1191,7 +1181,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\Event(
 		name: LeaveMyPrivEvent::EVENT_MASK,
-		description: "Displays a message when a character leaves the private channel"
+		description: 'Displays a message when a character leaves the private channel'
 	)]
 	public function leavePrivateChannelMessageEvent(LeaveMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -1203,7 +1193,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 		$event = new OfflineEvent(
 			player: $sender,
-			channel: "priv",
+			channel: 'priv',
 		);
 		$this->eventManager->fireEvent($event);
 
@@ -1221,7 +1211,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\Event(
 		name: JoinMyPrivEvent::EVENT_MASK,
-		description: "Updates the database when a character joins the private channel"
+		description: 'Updates the database when a character joins the private channel'
 	)]
 	public function joinPrivateChannelRecordEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -1237,7 +1227,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\Event(
 		name: LeaveMyPrivEvent::EVENT_MASK,
-		description: "Updates the database when a character leaves the private channel"
+		description: 'Updates the database when a character leaves the private channel'
 	)]
 	public function leavePrivateChannelRecordEvent(LeaveMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -1249,7 +1239,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\Event(
 		name: JoinMyPrivEvent::EVENT_MASK,
-		description: "Sends the online list to people as they join the private channel"
+		description: 'Sends the online list to people as they join the private channel'
 	)]
 	public function joinPrivateChannelShowOnlineEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -1262,7 +1252,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\Event(
 		name: MemberAddEvent::EVENT_MASK,
-		description: "Send welcome message data/welcome.txt to new members"
+		description: 'Send welcome message data/welcome.txt to new members'
 	)]
 	public function sendWelcomeMessage(MemberAddEvent $event): void {
 		$welcomeFile = "{$this->config->paths->data}/welcome.txt";
@@ -1272,10 +1262,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			}
 			$content = $this->fs->read($welcomeFile);
 		} catch (FilesystemException $e) {
-			$this->logger->error("Error reading {file}: {error}", [
-				"file" => $welcomeFile,
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Error reading {file}: {error}', [
+				'file' => $welcomeFile,
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 			return;
 		}
@@ -1286,7 +1276,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				$part = "{$matches[1]}{$part}{$matches[3]}";
 			}
 		} else {
-			$msg = $this->text->makeBlob("Welcome to <myname>!", $content);
+			$msg = $this->text->makeBlob('Welcome to <myname>!', $content);
 		}
 		$this->chatBot->sendMassTell($msg, $event->sender);
 	}
@@ -1294,7 +1284,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public function removeUser(string $name, string $sender): string {
 		$name = ucfirst(strtolower($name));
 
-		if (!$this->db->table(self::DB_TABLE)->where("name", $name)->delete()) {
+		if (!$this->db->table(self::DB_TABLE)->where('name', $name)->delete()) {
 			return "<highlight>{$name}<end> is not a member of this bot.";
 		}
 		unset($this->members[$name]);
@@ -1305,7 +1295,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			actor: $sender,
 			actee: $name,
 			action: AccessManager::DEL_RANK,
-			value: (string)$this->accessManager->getAccessLevels()["member"],
+			value: (string)$this->accessManager->getAccessLevels()['member'],
 		);
 		$this->accessManager->addAudit($audit);
 		return "<highlight>{$name}<end> has been removed as a member of this bot.";
@@ -1326,8 +1316,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		return $this->accessManager->compareAccessLevels($alSender, $alRequired) < 0;
 	}
 
-	#[NCA\HandlesCommand("lastonline")]
-	#[NCA\Help\Group("private-channel")]
+	#[NCA\HandlesCommand('lastonline')]
+	#[NCA\Help\Group('private-channel')]
 	/** Check when a character and their alts were seen online for the last time */
 	public function lastOnlineCommand(CmdContext $context, PCharacter $char): void {
 		$uid = $this->chatBot->getUid($char());
@@ -1338,9 +1328,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$main = $this->altsController->getMainOf($char());
 
 		/** @var Collection<LastOnline> */
-		$lastSeen = $this->db->table("last_online")
-			->whereIn("name", $this->altsController->getAltsOf($main))
-			->orderByDesc("dt")
+		$lastSeen = $this->db->table('last_online')
+			->whereIn('name', $this->altsController->getAltsOf($main))
+			->orderByDesc('dt')
 			->asObj(LastOnline::class);
 		if ($lastSeen->isEmpty()) {
 			$context->reply("<highlight>{$char}<end> has never logged in.");
@@ -1351,9 +1341,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				return "<highlight>{$info->name}<end> is currently <on>online<end>";
 			}
 			return "<highlight>{$info->name}<end> last seen at " . $this->util->date($info->dt);
-		})->sort(function (string $line1, string $line2): int {
-			$oneHas = str_contains($line1, "<on>");
-			$twoHas = str_contains($line2, "<on>");
+		})->sort(static function (string $line1, string $line2): int {
+			$oneHas = str_contains($line1, '<on>');
+			$twoHas = str_contains($line2, '<on>');
 			if ($oneHas === $twoHas) {
 				return 0;
 			}
@@ -1369,35 +1359,35 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	/** @return array{"admin-level": ?string, "c-admin-level": ?string, "access-level": ?string} */
 	protected function getRankTokens(string $player): array {
 		$tokens = [
-			"access-level" => null,
-			"admin-level" => null,
-			"c-admin-level" => null,
+			'access-level' => null,
+			'admin-level' => null,
+			'c-admin-level' => null,
 		];
 		$alRank = $this->accessManager->getAccessLevelForCharacter($player);
 		$alName = ucfirst($this->accessManager->getDisplayName($alRank));
 		$colors = $this->onlineController;
 		switch ($alRank) {
 			case 'superadmin':
-				$tokens["admin-level"] = $alName;
-				$tokens["c-admin-level"] = "{$colors->rankColorSuperadmin}{$alName}<end>";
+				$tokens['admin-level'] = $alName;
+				$tokens['c-admin-level'] = "{$colors->rankColorSuperadmin}{$alName}<end>";
 				break;
 			case 'admin':
-				$tokens["admin-level"] = $alName;
-				$tokens["c-admin-level"] = "{$colors->rankColorAdmin}{$alName}<end>";
+				$tokens['admin-level'] = $alName;
+				$tokens['c-admin-level'] = "{$colors->rankColorAdmin}{$alName}<end>";
 				break;
 			case 'mod':
-				$tokens["admin-level"] = $alName;
-				$tokens["c-admin-level"] = "{$colors->rankColorMod}{$alName}<end>";
+				$tokens['admin-level'] = $alName;
+				$tokens['c-admin-level'] = "{$colors->rankColorMod}{$alName}<end>";
 				break;
 			default:
 				$raidRank = $this->raidRankController->getSingleAccessLevel($player);
 				if (isset($raidRank)) {
 					$alName = ucfirst($this->accessManager->getDisplayName($raidRank));
-					$tokens["admin-level"] = $alName;
-					$tokens["c-admin-level"] = "{$colors->rankColorRaid}{$alName}<end>";
+					$tokens['admin-level'] = $alName;
+					$tokens['c-admin-level'] = "{$colors->rankColorRaid}{$alName}<end>";
 				}
 		}
-		$tokens["access-level"] = $alName;
+		$tokens['access-level'] = $alName;
 		return $tokens;
 	}
 
@@ -1405,73 +1395,73 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	protected function getTokensForJoinLeave(string $player, ?Player $whois, ?AltInfo $altInfo): array {
 		$altInfo ??= $this->altsController->getAltInfo($player);
 		$tokens = [
-			"name" => $player,
-			"c-name" => "<highlight>{$player}<end>",
-			"first-name" => $whois?->firstname,
-			"last-name" => $whois?->lastname,
-			"level" => $whois?->level,
-			"c-level" => $whois ? "<highlight>{$whois->level}<end>" : null,
-			"ai-level" => $whois?->ai_level,
-			"c-ai-level" => $whois ? "<green>{$whois->ai_level}<end>" : null,
-			"prof" => $whois?->profession,
-			"c-prof" => $whois ? "<highlight>{$whois->profession}<end>" : null,
-			"profession" => $whois?->profession,
-			"c-profession" => $whois ? "<highlight>{$whois->profession}<end>" : null,
-			"org" => $whois?->guild,
-			"c-org" => $whois
-				? "<" . strtolower($whois->faction ?? "highlight") . ">{$whois->guild}<end>"
+			'name' => $player,
+			'c-name' => "<highlight>{$player}<end>",
+			'first-name' => $whois?->firstname,
+			'last-name' => $whois?->lastname,
+			'level' => $whois?->level,
+			'c-level' => $whois ? "<highlight>{$whois->level}<end>" : null,
+			'ai-level' => $whois?->ai_level,
+			'c-ai-level' => $whois ? "<green>{$whois->ai_level}<end>" : null,
+			'prof' => $whois?->profession,
+			'c-prof' => $whois ? "<highlight>{$whois->profession}<end>" : null,
+			'profession' => $whois?->profession,
+			'c-profession' => $whois ? "<highlight>{$whois->profession}<end>" : null,
+			'org' => $whois?->guild,
+			'c-org' => $whois
+				? '<' . strtolower($whois->faction ?? 'highlight') . ">{$whois->guild}<end>"
 				: null,
-			"org-rank" => $whois?->guild_rank,
-			"breed" => $whois?->breed,
-			"faction" => $whois?->faction,
-			"c-faction" => $whois
-				? "<" . strtolower($whois->faction ?? "highlight") . ">{$whois->faction}<end>"
+			'org-rank' => $whois?->guild_rank,
+			'breed' => $whois?->breed,
+			'faction' => $whois?->faction,
+			'c-faction' => $whois
+				? '<' . strtolower($whois->faction ?? 'highlight') . ">{$whois->faction}<end>"
 				: null,
-			"gender" => $whois?->gender,
-			"channel-name" => "the private channel",
-			"whois" => $player,
-			"short-prof" => null,
-			"c-short-prof" => null,
-			"main" => null,
-			"c-main" => null,
-			"nick" => $altInfo->getNick(),
-			"c-nick" => $altInfo->getDisplayNick(),
-			"alt-of" => null,
-			"alt-list" => null,
-			"logon-msg" => $this->preferences->get($player, 'logon_msg'),
-			"logoff-msg" => $this->preferences->get($player, 'logoff_msg'),
+			'gender' => $whois?->gender,
+			'channel-name' => 'the private channel',
+			'whois' => $player,
+			'short-prof' => null,
+			'c-short-prof' => null,
+			'main' => null,
+			'c-main' => null,
+			'nick' => $altInfo->getNick(),
+			'c-nick' => $altInfo->getDisplayNick(),
+			'alt-of' => null,
+			'alt-list' => null,
+			'logon-msg' => $this->preferences->get($player, 'logon_msg'),
+			'logoff-msg' => $this->preferences->get($player, 'logoff_msg'),
 		];
-		if (!isset($tokens["logon-msg"]) || !strlen($tokens["logon-msg"])) {
-			$tokens["logon-msg"] = null;
+		if (!isset($tokens['logon-msg']) || !strlen($tokens['logon-msg'])) {
+			$tokens['logon-msg'] = null;
 		}
-		if (!isset($tokens["logoff-msg"]) || !strlen($tokens["logoff-msg"])) {
-			$tokens["logoff-msg"] = null;
+		if (!isset($tokens['logoff-msg']) || !strlen($tokens['logoff-msg'])) {
+			$tokens['logoff-msg'] = null;
 		}
-		if (isset($tokens["c-nick"])) {
-			$tokens["c-nick"] = "<highlight>{$tokens['c-nick']}";
+		if (isset($tokens['c-nick'])) {
+			$tokens['c-nick'] = "<highlight>{$tokens['c-nick']}";
 		}
 		$ranks = $this->getRankTokens($player);
 		$tokens = array_merge($tokens, $ranks);
 
 		if (isset($whois)) {
-			$tokens["whois"] = $this->playerManager->getInfo($whois);
+			$tokens['whois'] = $this->playerManager->getInfo($whois);
 			if (isset($whois->profession)) {
-				$tokens["short-prof"] = $this->util->getProfessionAbbreviation($whois->profession);
-				$tokens["c-short-prof"] = "<highlight>{$tokens['short-prof']}<end>";
+				$tokens['short-prof'] = $this->util->getProfessionAbbreviation($whois->profession);
+				$tokens['c-short-prof'] = "<highlight>{$tokens['short-prof']}<end>";
 			}
 		}
 		if ($this->settingManager->getBool('guild_channel_status') === false) {
-			$tokens["channel-name"] = "<myname>";
+			$tokens['channel-name'] = '<myname>';
 		}
 		if ($altInfo->main !== $player) {
-			$tokens["main"] = $altInfo->main;
-			$tokens["c-main"] = "<highlight>{$altInfo->main}<end>";
-			$tokens["c-nick"] ??= $tokens["c-main"];
-			$tokens["alt-of"] = "Alt of <highlight>{$tokens['c-nick']}<end>";
+			$tokens['main'] = $altInfo->main;
+			$tokens['c-main'] = "<highlight>{$altInfo->main}<end>";
+			$tokens['c-nick'] ??= $tokens['c-main'];
+			$tokens['alt-of'] = "Alt of <highlight>{$tokens['c-nick']}<end>";
 		}
 		if (count($altInfo->getAllValidatedAlts()) > 0) {
 			$blob = $altInfo->getAltsBlob(true);
-			$tokens["alt-list"] = (string)((array)$blob)[0];
+			$tokens['alt-list'] = (string)((array)$blob)[0];
 		}
 		return $tokens;
 	}
@@ -1480,7 +1470,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$tokens = $this->getTokensForJoinLeave($player, $whois, $altInfo);
 		$joinMessage = $this->text->renderPlaceholders($this->privJoinMessage, $tokens);
 		$joinMessage = Safe::pregReplace(
-			"/&lt;([a-z]+)&gt;/",
+			'/&lt;([a-z]+)&gt;/',
 			'<$1>',
 			$joinMessage
 		);
@@ -1504,7 +1494,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$chars = array_values(
 			array_filter(
 				$chars,
-				function (OnlinePlayer $char) use ($raid): bool {
+				static function (OnlinePlayer $char) use ($raid): bool {
 					return isset($raid->raiders[$char->name])
 						&& !isset($raid->raiders[$char->name]->left);
 				}
@@ -1518,7 +1508,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->getUid($name);
 		if ($this->config->main->character === $name) {
-			throw new Exception("You cannot add the bot as a member of itself.");
+			throw new Exception('You cannot add the bot as a member of itself.');
 		} elseif ($uid === null) {
 			throw new Exception("Character <highlight>{$name}<end> does not exist.");
 		}
@@ -1526,15 +1516,15 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$numBuddies = $this->buddylistManager->getUsedBuddySlots();
 		if ($autoInvite && $numBuddies >= $maxBuddies) {
 			throw new Exception(
-				"The buddylist already contains ".
+				'The buddylist already contains '.
 				"{$numBuddies}/{$maxBuddies} characters. ".
-				"In order to be able to add more members, you need ".
-				"to setup AOChatProxy (https://github.com/Nadybot/aochatproxy)."
+				'In order to be able to add more members, you need '.
+				'to setup AOChatProxy (https://github.com/Nadybot/aochatproxy).'
 			);
 		}
 		// always add in case they were removed from the buddy list for some reason
 		$this->buddylistManager->addName($name, 'member');
-		if ($this->db->table(self::DB_TABLE)->where("name", $name)->exists()) {
+		if ($this->db->table(self::DB_TABLE)->where('name', $name)->exists()) {
 			return "<highlight>{$name}<end> is already a member of this bot.";
 		}
 		$memberObj = new Member();
@@ -1550,7 +1540,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			actor: $sender,
 			actee: $name,
 			action: AccessManager::ADD_RANK,
-			value: (string)$this->accessManager->getAccessLevels()["member"],
+			value: (string)$this->accessManager->getAccessLevels()['member'],
 		);
 		$this->accessManager->addAudit($audit);
 		return "<highlight>{$name}<end> has been added as a member of this bot.";

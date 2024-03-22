@@ -27,23 +27,23 @@ use Psr\Log\LoggerInterface;
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Notes"),
+	NCA\HasMigrations('Migrations/Notes'),
 	NCA\DefineCommand(
-		command: "notes",
-		accessLevel: "guild",
-		description: "Displays, adds, or removes a note from your list",
-		alias: "note"
+		command: 'notes',
+		accessLevel: 'guild',
+		description: 'Displays, adds, or removes a note from your list',
+		alias: 'note'
 	),
 	NCA\DefineCommand(
-		command: "reminders",
-		accessLevel: "guild",
-		description: "Displays, adds, or removes a reminder from your list",
-		alias: "reminder"
+		command: 'reminders',
+		accessLevel: 'guild',
+		description: 'Displays, adds, or removes a reminder from your list',
+		alias: 'reminder'
 	),
 	NCA\DefineCommand(
-		command: "reminderformat",
-		accessLevel: "guild",
-		description: "Displays or changes the reminder format for oneself",
+		command: 'reminderformat',
+		accessLevel: 'guild',
+		description: 'Displays or changes the reminder format for oneself',
 	),
 ]
 class NotesController extends ModuleInstance {
@@ -96,12 +96,12 @@ class NotesController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->commandAlias->register($this->moduleName, "notes rem", "reminders rem");
+		$this->commandAlias->register($this->moduleName, 'notes rem', 'reminders rem');
 	}
 
 	/** Show all your notes */
-	#[NCA\HandlesCommand("notes")]
-	#[NCA\Help\Group("notes")]
+	#[NCA\HandlesCommand('notes')]
+	#[NCA\Help\Group('notes')]
 	public function notesListCommand(CmdContext $context): void {
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
@@ -122,8 +122,8 @@ class NotesController extends ModuleInstance {
 	}
 
 	/** Show all your notes with reminders */
-	#[NCA\HandlesCommand("reminders")]
-	#[NCA\Help\Group("notes")]
+	#[NCA\HandlesCommand('reminders')]
+	#[NCA\Help\Group('notes')]
 	public function remindersListCommand(CmdContext $context): void {
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
@@ -141,10 +141,10 @@ class NotesController extends ModuleInstance {
 		$blob = trim($this->renderNotes($notes, $context->char->name));
 		$blob .= "\n\n<i>Reminders are sent every time you logon or enter the bot's ".
 			"private channel.\n".
-			"To change the format in which the bot sends reminders, ".
-			"you can use the ".
-			$this->text->makeChatcmd("!reminderformat", "/tell <myname> reminderformat").
-			" command.</i>";
+			'To change the format in which the bot sends reminders, '.
+			'you can use the '.
+			$this->text->makeChatcmd('!reminderformat', '/tell <myname> reminderformat').
+			' command.</i>';
 		$msg = $this->text->makeBlob("Reminders for {$context->char->name} ({$count})", $blob);
 		$context->reply($msg);
 	}
@@ -159,61 +159,60 @@ class NotesController extends ModuleInstance {
 		$note->note = $noteText;
 		$note->reminder = $reminder;
 
-		return $this->db->insert("notes", $note);
+		return $this->db->insert('notes', $note);
 	}
 
 	/** Add a new note to your list */
-	#[NCA\HandlesCommand("notes")]
-	#[NCA\Help\Group("notes")]
-	public function notesAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $note): void {
+	#[NCA\HandlesCommand('notes')]
+	#[NCA\Help\Group('notes')]
+	public function notesAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, string $note): void {
 		$this->saveNote($note, $context->char->name);
-		$msg = "Note added successfully.";
+		$msg = 'Note added successfully.';
 
 		$context->reply($msg);
 	}
 
 	/** Add a note and be reminded about it on logon */
-	#[NCA\HandlesCommand("reminders")]
-	#[NCA\Help\Group("notes")]
+	#[NCA\HandlesCommand('reminders')]
+	#[NCA\Help\Group('notes')]
 	public function reminderAddCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("add", "addall", "addself")]
-		string $action,
+		#[NCA\StrChoice('add', 'addall', 'addself')] string $action,
 		string $note
 	): void {
 		$reminder = Note::REMIND_ALL;
-		if ($action === "addself") {
+		if ($action === 'addself') {
 			$reminder = Note::REMIND_SELF;
 		}
 		$this->saveNote($note, $context->char->name, $reminder);
-		$msg = "Reminder added successfully.";
+		$msg = 'Reminder added successfully.';
 
 		$context->reply($msg);
 	}
 
 	/** Remove a note from your list */
-	#[NCA\HandlesCommand("notes")]
-	#[NCA\Help\Group("notes")]
+	#[NCA\HandlesCommand('notes')]
+	#[NCA\Help\Group('notes')]
 	public function notesRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
 
-		$numRows = $this->db->table("notes")
-			->where("id", $id)
-			->where("owner", $main)
+		$numRows = $this->db->table('notes')
+			->where('id', $id)
+			->where('owner', $main)
 			->delete();
 		if ($numRows === 0) {
-			$msg = "Note could not be found or note does not belong to you.";
+			$msg = 'Note could not be found or note does not belong to you.';
 		} else {
-			$msg = "Note deleted successfully.";
+			$msg = 'Note deleted successfully.';
 		}
 
 		$context->reply($msg);
 	}
 
 	/** Change the reminder type of a note */
-	#[NCA\HandlesCommand("reminders")]
-	#[NCA\Help\Group("notes")]
+	#[NCA\HandlesCommand('reminders')]
+	#[NCA\Help\Group('notes')]
 	#[NCA\Help\Epilogue(
 		"<header2>Reminder types<end>\n".
 		"<tab>self: Be reminded only on the character who created the note/reminder\n".
@@ -222,35 +221,33 @@ class NotesController extends ModuleInstance {
 	)]
 	public function reminderSetCommand(
 		CmdContext $context,
-		#[NCA\Str("set")]
-		string $action,
-		#[NCA\StrChoice("all", "self", "off")]
-		string $type,
+		#[NCA\Str('set')] string $action,
+		#[NCA\StrChoice('all', 'self', 'off')] string $type,
 		int $id
 	): void {
 		$reminder = Note::REMIND_ALL;
-		if ($type === "self") {
+		if ($type === 'self') {
 			$reminder = Note::REMIND_SELF;
-		} elseif ($type === "off") {
+		} elseif ($type === 'off') {
 			$reminder = Note::REMIND_NONE;
 		}
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
-		$updated = $this->db->table("notes")
-			->where("id", $id)
-			->where("owner", $main)
-			->update(["reminder" => $reminder]);
+		$updated = $this->db->table('notes')
+			->where('id', $id)
+			->where('owner', $main)
+			->update(['reminder' => $reminder]);
 		if (!$updated) {
 			$context->reply("No note or reminder #{$id} found for you.");
 			return;
 		}
-		$msg = "Reminder changed successfully.";
+		$msg = 'Reminder changed successfully.';
 		$context->reply($msg);
 	}
 
 	#[NCA\Event(
 		name: LogonEvent::EVENT_MASK,
-		description: "Sends a tell to players on logon showing their reminders"
+		description: 'Sends a tell to players on logon showing their reminders'
 	)]
 	public function showRemindersOnLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -265,7 +262,7 @@ class NotesController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: JoinMyPrivEvent::EVENT_MASK,
-		description: "Show reminders when joining the private channel"
+		description: 'Show reminders when joining the private channel'
 	)]
 	public function showRemindersOnPrivJoinEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -287,7 +284,7 @@ class NotesController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: AltNewMainEvent::EVENT_MASK,
-		description: "Move reminder format to new main"
+		description: 'Move reminder format to new main'
 	)]
 	public function moveReminderFormat(AltNewMainEvent $event): void {
 		$reminderFormat = $this->preferences->get($event->alt, 'reminder_format');
@@ -296,9 +293,9 @@ class NotesController extends ModuleInstance {
 		}
 		$this->preferences->delete($event->alt, 'reminder_format');
 		$this->preferences->save($event->main, 'reminder_format', $reminderFormat);
-		$this->logger->notice("Moved reminder format from {alt} to {main}.", [
-			"alt" => $event->alt,
-			"main" => $event->main,
+		$this->logger->notice('Moved reminder format from {alt} to {main}.', [
+			'alt' => $event->alt,
+			'main' => $event->main,
 		]);
 	}
 
@@ -313,16 +310,16 @@ class NotesController extends ModuleInstance {
 	public function getReminderMessage(string $format, array $notes): string {
 		if ($format === static::FORMAT_GROUPED) {
 			$msgs = array_map(
-				function (Note $note): string {
+				static function (Note $note): string {
 					return "For {$note->added_by}: <highlight>{$note->note}<end>";
 				},
 				$notes
 			);
-			$msg = ":: <red>Reminder" . (count($msgs) > 1 ? "s" : "") . "<end> ::\n".
-				join("\n", $msgs);
+			$msg = ':: <red>Reminder' . (count($msgs) > 1 ? 's' : '') . "<end> ::\n".
+				implode("\n", $msgs);
 		} else {
 			$msgs = array_map(
-				function (Note $note) use ($format): string {
+				static function (Note $note) use ($format): string {
 					$addedBy = $note->added_by;
 					if ($format === static::FORMAT_INDIVIDUAL2) {
 						$addedBy = "<yellow>{$addedBy}<end>";
@@ -331,21 +328,21 @@ class NotesController extends ModuleInstance {
 				},
 				$notes
 			);
-			$msg = join("\n", $msgs);
+			$msg = implode("\n", $msgs);
 		}
 		return $msg;
 	}
 
 	/** Show the format of your reminder */
-	#[NCA\HandlesCommand("reminderformat")]
-	#[NCA\Help\Group("notes")]
+	#[NCA\HandlesCommand('reminderformat')]
+	#[NCA\Help\Group('notes')]
 	public function reminderformatShowCommand(CmdContext $context): void {
 		$reminderFormat = $this->getReminderFormat($context->char->name);
 		$exampleNote1 = new Note();
 		$exampleNote1->added_by = $context->char->name;
-		$exampleNote1->note = "Example text about something super important";
+		$exampleNote1->note = 'Example text about something super important';
 		$exampleNote2 = new Note();
-		$exampleNote2->added_by = "Nadyita";
+		$exampleNote2->added_by = 'Nadyita';
 		$exampleNote2->note = "Don't forget to buy grenades!";
 		$exampleNotes = [$exampleNote1, $exampleNote2];
 		$formats = static::VALID_FORMATS;
@@ -355,35 +352,35 @@ class NotesController extends ModuleInstance {
 			"should look like:\n\n";
 		foreach ($formats as $format) {
 			$useThisLinks = $this->text->makeChatcmd(
-				"use this",
+				'use this',
 				"/tell <myname> reminderformat {$format}"
 			);
-			$blob .= "<pagebreak><header2>".
+			$blob .= '<pagebreak><header2>'.
 				"{$format} [{$useThisLinks}]".
-				(($reminderFormat === $format) ? " (<highlight>active<end>)" : "").
+				(($reminderFormat === $format) ? ' (<highlight>active<end>)' : '').
 				"<end>\n";
-			$example = join("\n<tab>", explode("\n", $this->getReminderMessage($format, $exampleNotes)));
+			$example = implode("\n<tab>", explode("\n", $this->getReminderMessage($format, $exampleNotes)));
 			$blob .= "<tab>{$example}\n\n";
 		}
 		$blob .= "\n<i>Your reminder format preference is the same for all of your alts</i>.";
 
-		$blobLink = $this->text->makeBlob("Details", $blob, "The available reminder formats");
+		$blobLink = $this->text->makeBlob('Details', $blob, 'The available reminder formats');
 		$msg = $this->text->blobWrap(
 			"Your reminder format is <highlight>{$reminderFormat}<end> :: [",
 			$blobLink,
-			"]"
+			']'
 		);
 		$context->reply($msg);
 	}
 
 	/** Change the format of your reminder */
-	#[NCA\HandlesCommand("reminderformat")]
-	#[NCA\Help\Group("notes")]
+	#[NCA\HandlesCommand('reminderformat')]
+	#[NCA\Help\Group('notes')]
 	public function reminderformatChangeCommand(CmdContext $context, string $format): void {
 		$format = strtolower($format);
 		$formats = static::VALID_FORMATS;
 		if (!in_array($format, $formats, true)) {
-			$formats = $this->text->arraySprintf("<highlight>%s<end>", ...$formats);
+			$formats = $this->text->arraySprintf('<highlight>%s<end>', ...$formats);
 			$formatString = $this->text->enumerate(...$formats);
 			$context->reply("Valid options are {$formatString}.");
 			return;
@@ -396,11 +393,11 @@ class NotesController extends ModuleInstance {
 
 	#[
 		NCA\NewsTile(
-			name: "notes",
+			name: 'notes',
 			description: "Shows you how many notes you have for this character\n".
-				"as well with a link to show them",
+				'as well with a link to show them',
 			example: "<header2>Notes<end>\n".
-				"<tab>You have <highlight>2 notes<end> [<u>show</u>]"
+				'<tab>You have <highlight>2 notes<end> [<u>show</u>]'
 		)
 	]
 	public function notesNewsTile(string $sender): ?string {
@@ -417,10 +414,10 @@ class NotesController extends ModuleInstance {
 		}
 		$blob = "<header2>Notes<end>\n".
 			"<tab>You have <highlight>{$count} ".
-			$this->text->pluralize("note", $count).
-			"<end> [".
-			$this->text->makeChatcmd("show", "/tell <myname> notes").
-			"]";
+			$this->text->pluralize('note', $count).
+			'<end> ['.
+			$this->text->makeChatcmd('show', '/tell <myname> notes').
+			']';
 		return $blob;
 	}
 
@@ -430,9 +427,9 @@ class NotesController extends ModuleInstance {
 			return;
 		}
 		// convert all notes to be assigned to the main
-		$this->db->table("notes")
-			->where("owner", $sender)
-			->update(["owner" => $main]);
+		$this->db->table('notes')
+			->where('owner', $sender)
+			->update(['owner' => $main]);
 	}
 
 	/**
@@ -441,11 +438,11 @@ class NotesController extends ModuleInstance {
 	 * @return Note[]
 	 */
 	protected function readNotes(string $main, bool $remindersOnly=false): array {
-		return $this->db->table("notes")
-			->where("owner", $main)
-			->where("reminder", ">", $remindersOnly ? 0 : -1)
-			->orderBy("added_by")
-			->orderByDesc("dt")
+		return $this->db->table('notes')
+			->where('owner', $main)
+			->where('reminder', '>', $remindersOnly ? 0 : -1)
+			->orderBy('added_by')
+			->orderByDesc('dt')
 			->asObj(Note::class)->toArray();
 	}
 
@@ -482,11 +479,11 @@ class NotesController extends ModuleInstance {
 
 	protected function renderReminderLinks(Note $note, int $format): string {
 		if ($format === 0) {
-			return "";
+			return '';
 		}
 		$texts = [
-			1 => ["O", "S", "A"],
-			2 => ["off", "self", "all"],
+			1 => ['O', 'S', 'A'],
+			2 => ['off', 'self', 'all'],
 		];
 		$labels = $texts[$format];
 		$links = [];
@@ -518,9 +515,9 @@ class NotesController extends ModuleInstance {
 			$links []= "<off>{$labels[0]}<end>";
 		}
 		if ($format === 1) {
-			return "(" . join("|", $links) . ")";
+			return '(' . implode('|', $links) . ')';
 		}
-		return "[" . join("] [", $links) . "]";
+		return '[' . implode('] [', $links) . ']';
 	}
 
 	/** Show all reminder for character $sender */
@@ -530,7 +527,7 @@ class NotesController extends ModuleInstance {
 		$notes = $this->readNotes($main, true);
 		$notes = array_filter(
 			$notes,
-			function (Note $note) use ($sender): bool {
+			static function (Note $note) use ($sender): bool {
 				return $note->reminder === Note::REMIND_ALL || $note->added_by === $sender;
 			}
 		);

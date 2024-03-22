@@ -36,51 +36,51 @@ use Nadybot\Modules\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "loot",
-		accessLevel: "guest",
-		description: "Show the loot list",
+		command: 'loot',
+		accessLevel: 'guest',
+		description: 'Show the loot list',
 		alias: 'list',
 	),
 	NCA\DefineCommand(
 		command: LootController::CMD_LOOT_MANAGE,
-		accessLevel: "rl",
-		description: "Modify the loot list",
+		accessLevel: 'rl',
+		description: 'Modify the loot list',
 	),
 	NCA\DefineCommand(
-		command: "mloot",
-		accessLevel: "rl",
-		description: "Put multiple items on the loot list",
+		command: 'mloot',
+		accessLevel: 'rl',
+		description: 'Put multiple items on the loot list',
 	),
 	NCA\DefineCommand(
-		command: "reroll",
-		accessLevel: "rl",
-		description: "Reroll the residual loot list",
+		command: 'reroll',
+		accessLevel: 'rl',
+		description: 'Reroll the residual loot list',
 	),
 	NCA\DefineCommand(
-		command: "flatroll",
-		accessLevel: "rl",
-		description: "Roll the loot list",
+		command: 'flatroll',
+		accessLevel: 'rl',
+		description: 'Roll the loot list',
 		alias: ['rollloot', 'result', 'win'],
 	),
 	NCA\DefineCommand(
-		command: "add",
-		accessLevel: "guest",
-		description: "Add yourself to a roll slot",
+		command: 'add',
+		accessLevel: 'guest',
+		description: 'Add yourself to a roll slot',
 	),
 	NCA\DefineCommand(
-		command: "rem",
-		accessLevel: "guest",
-		description: "Remove yourself from a roll slot",
+		command: 'rem',
+		accessLevel: 'guest',
+		description: 'Remove yourself from a roll slot',
 	),
 	NCA\DefineCommand(
-		command: "ffa",
-		accessLevel: "rl",
-		description: "Declare the remaining loot FFA",
+		command: 'ffa',
+		accessLevel: 'rl',
+		description: 'Declare the remaining loot FFA',
 	),
 ]
 class LootController extends ModuleInstance {
-	public const CMD_LOOT_MANAGE = "loot add/change/delete";
-	public const DB_TABLE = "loot_history_<myname>";
+	public const CMD_LOOT_MANAGE = 'loot add/change/delete';
+	public const DB_TABLE = 'loot_history_<myname>';
 
 	/** Confirmation messages for adding to loot */
 	#[NCA\Setting\Options(options: [
@@ -143,13 +143,13 @@ class LootController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->commandAlias->register($this->moduleName, "loot addmulti", "multiloot");
-		$this->roll = (int)$this->db->table(self::DB_TABLE)->max("roll") + 1;
+		$this->commandAlias->register($this->moduleName, 'loot addmulti', 'multiloot');
+		$this->roll = (int)$this->db->table(self::DB_TABLE)->max('roll') + 1;
 	}
 
 	#[NCA\Event(
-		name: "timer(30sec)",
-		description: "Periodically announce running loot rolls"
+		name: 'timer(30sec)',
+		description: 'Periodically announce running loot rolls'
 	)]
 	public function announceLootList(): void {
 		if (empty($this->loot)) {
@@ -157,52 +157,51 @@ class LootController extends ModuleInstance {
 		}
 		$lootList = ((array)$this->getCurrentLootList())[0];
 		$msg = "\n".
-			"<yellow>" . str_repeat("-", 76) . "<end>\n".
+			'<yellow>' . str_repeat('-', 76) . "<end>\n".
 			"<tab>There's loot being rolled: {$lootList}\n".
 			"<tab>Make sure you've added yourself to a slot if you want something.\n".
-			"<yellow>" . str_repeat("-", 76) . "<end>";
+			'<yellow>' . str_repeat('-', 76) . '<end>';
 		$this->chatBot->sendPrivate($msg);
 	}
 
 	/** Show a list of currently rolled loot */
-	#[NCA\HandlesCommand("loot")]
-	#[NCA\Help\Group("loot")]
+	#[NCA\HandlesCommand('loot')]
+	#[NCA\Help\Group('loot')]
 	public function lootCommand(CmdContext $context): void {
 		$msg = $this->getCurrentLootList();
 		$context->reply($msg);
 	}
 
 	/** Get a list of the last loot rolls */
-	#[NCA\HandlesCommand("loot")]
-	#[NCA\Help\Group("loot")]
+	#[NCA\HandlesCommand('loot')]
+	#[NCA\Help\Group('loot')]
 	public function lootHistoryCommand(
 		CmdContext $context,
-		#[NCA\Str("history")]
-		string $action,
+		#[NCA\Str('history')] string $action,
 	): void {
 		/** @var Collection<LootHistory> */
 		$items = $this->db->table(self::DB_TABLE)
-			->orderByDesc("dt")
-			->orderBy("pos")
+			->orderByDesc('dt')
+			->orderBy('pos')
 			->limit($this->lootHistoryMaxEntries)
 			->asObj(LootHistory::class);
 		if ($items->isEmpty()) {
-			$context->reply("There are not rolls recorded on this bot.");
+			$context->reply('There are not rolls recorded on this bot.');
 			return;
 		}
 		$compressedList = $this->compressLootHistory($items);
-		$rolls = $compressedList->groupBy("roll");
+		$rolls = $compressedList->groupBy('roll');
 		$lines = $rolls->map(function (Collection $items, int $roll): string {
 			/** @var LootHistory */
 			$firstItem = $items->firstOrFail();
 			$showLink = $this->text->makeChatcmd(
-				$items->count() . " " . $this->text->pluralize("item", $items->count()),
+				$items->count() . ' ' . $this->text->pluralize('item', $items->count()),
 				"/tell <myname> loot history {$firstItem->roll}"
 			);
-			return "<tab>" . $this->util->date($firstItem->dt) . " - ".
+			return '<tab>' . $this->util->date($firstItem->dt) . ' - '.
 				"{$showLink}, rolled by {$firstItem->rolled_by}";
 		});
-		$msg = "Last loot rolls (" . $lines->count() . ")";
+		$msg = 'Last loot rolls (' . $lines->count() . ')';
 		$context->reply($this->text->makeBlob(
 			$msg,
 			"<header2>Last loot rolls<end>\n" . $lines->join("\n")
@@ -210,22 +209,19 @@ class LootController extends ModuleInstance {
 	}
 
 	/** View what was rolled/won in the given roll */
-	#[NCA\HandlesCommand("loot")]
-	#[NCA\Help\Group("loot")]
-	#[NCA\Help\Example("<symbol>loot show last")]
-	#[NCA\Help\Example("<symbol>loot history 17")]
+	#[NCA\HandlesCommand('loot')]
+	#[NCA\Help\Group('loot')]
+	#[NCA\Help\Example('<symbol>loot show last')]
+	#[NCA\Help\Example('<symbol>loot history 17')]
 	public function lootShowNumberCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("show", "history")]
-		string $action,
-		#[NCA\PNumber]
-		#[NCA\Str("last")]
-		string $number,
+		#[NCA\StrChoice('show', 'history')] string $action,
+		#[NCA\PNumber] #[NCA\Str('last')] string $number,
 	): void {
-		if (strtolower($number) === "last") {
-			$number = $this->db->table(self::DB_TABLE)->max("roll");
+		if (strtolower($number) === 'last') {
+			$number = $this->db->table(self::DB_TABLE)->max('roll');
 			if ($number < 1) {
-				$context->reply("There is no last roll to display.");
+				$context->reply('There is no last roll to display.');
 				return;
 			}
 		}
@@ -233,8 +229,8 @@ class LootController extends ModuleInstance {
 
 		/** @var Collection<LootHistory> */
 		$items = $this->db->table(self::DB_TABLE)
-			->where("roll", $roll)
-			->orderBy("pos")
+			->where('roll', $roll)
+			->orderBy('pos')
 			->asObj(LootHistory::class);
 		if ($items->isEmpty()) {
 			$context->reply("There is no loot roll #<highlight>{$number}<end>.");
@@ -247,7 +243,7 @@ class LootController extends ModuleInstance {
 				$line .= " {$item->amount}x";
 			}
 			$line .= " <highlight>{$item->display}<end>";
-			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
+			if (isset($item->comment) && strlen($item->comment) && !str_contains($item->display, $item->comment)) {
 				$line .= " {$item->comment}";
 			}
 			$line .= "\n<tab>" . $this->getWinners(...$item->winners);
@@ -259,7 +255,7 @@ class LootController extends ModuleInstance {
 		$blob = "Loot #{$roll} was rolled <highlight>{$rolledTime}<end> by <highlight>{$rolledBy}<end>.\n\n";
 		$blob .= $lines->join("\n\n");
 		$context->reply($this->text->makeBlob(
-			"Loot roll #{$roll} (" . $lines->count() . " slots)",
+			"Loot roll #{$roll} (" . $lines->count() . ' slots)',
 			$blob
 		));
 	}
@@ -268,22 +264,18 @@ class LootController extends ModuleInstance {
 	 * Search for loot won by &lt;winner&gt;
 	 * If 'last' is set, then only the last loot roll with matching items is shown
 	 */
-	#[NCA\HandlesCommand("loot")]
-	#[NCA\Help\Group("loot")]
+	#[NCA\HandlesCommand('loot')]
+	#[NCA\Help\Group('loot')]
 	public function lootSearchWinnerCommand(
 		CmdContext $context,
-		#[NCA\Str("search")]
-		string $action,
-		#[NCA\Str("last")]
-		?string $lastOnly,
-		#[NCA\Str("winner=")]
-		string $subAction,
-		#[NCA\NoSpace]
-		PCharacter $winner,
+		#[NCA\Str('search')] string $action,
+		#[NCA\Str('last')] ?string $lastOnly,
+		#[NCA\Str('winner=')] string $subAction,
+		#[NCA\NoSpace] PCharacter $winner,
 	): void {
 		$items = $this->db->table(self::DB_TABLE)
-			->where("winner", $winner())
-			->orderByDesc("dt")
+			->where('winner', $winner())
+			->orderByDesc('dt')
 			->limit($this->lootHistoryMaxEntries)
 			->asObj(LootHistory::class);
 		if ($items->isEmpty()) {
@@ -291,7 +283,7 @@ class LootController extends ModuleInstance {
 			return;
 		}
 		if (isset($lastOnly)) {
-			$items = $items->where("roll", $items->firstOrFail()->roll);
+			$items = $items->where('roll', $items->firstOrFail()->roll);
 		}
 		$lines = $items->map(function (LootHistory $item): string {
 			$rollLink = $this->text->makeChatcmd(
@@ -303,7 +295,7 @@ class LootController extends ModuleInstance {
 				$line .= " 1/{$item->amount}";
 			}
 			$line .= " {$item->display}";
-			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
+			if (isset($item->comment) && strlen($item->comment) && !str_contains($item->display, $item->comment)) {
 				$line .= " {$item->comment}";
 			}
 			$line .= " - rolled by {$item->rolled_by}";
@@ -318,30 +310,26 @@ class LootController extends ModuleInstance {
 	 * Search for winners of loot matching &lt;search&gt;
 	 * If 'last' is set, then only the last loot roll with matching items is shown
 	 */
-	#[NCA\HandlesCommand("loot")]
-	#[NCA\Help\Group("loot")]
+	#[NCA\HandlesCommand('loot')]
+	#[NCA\Help\Group('loot')]
 	public function lootSearchNameCommand(
 		CmdContext $context,
-		#[NCA\Str("search")]
-		string $action,
-		#[NCA\Str("last")]
-		?string $lastOnly,
-		#[NCA\Str("item=")]
-		string $subAction,
-		#[NCA\NoSpace]
-		string $search,
+		#[NCA\Str('search')] string $action,
+		#[NCA\Str('last')] ?string $lastOnly,
+		#[NCA\Str('item=')] string $subAction,
+		#[NCA\NoSpace] string $search,
 	): void {
 		$search = trim($search);
 		if (strlen($search) < 1) {
-			$context->reply("You have to give a string to search for.");
+			$context->reply('You have to give a string to search for.');
 			return;
 		}
 
 		/** @var Collection<LootHistory> */
 		$items = $this->db->table(self::DB_TABLE)
-			->whereIlike("display", "%{$search}%")
-			->orderByDesc("dt")
-			->orderBy("pos")
+			->whereIlike('display', "%{$search}%")
+			->orderByDesc('dt')
+			->orderBy('pos')
 			->limit($this->lootHistoryMaxEntries)
 			->asObj(LootHistory::class);
 		if ($items->isEmpty()) {
@@ -351,7 +339,7 @@ class LootController extends ModuleInstance {
 			return;
 		}
 		if (isset($lastOnly)) {
-			$items = $items->where("roll", $items->firstOrFail()->roll);
+			$items = $items->where('roll', $items->firstOrFail()->roll);
 		}
 
 		$compressedList = $this->compressLootHistory($items);
@@ -366,11 +354,11 @@ class LootController extends ModuleInstance {
 				$line .= " {$item->amount}x";
 			}
 			$line .= " <highlight>{$item->display}<end>";
-			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
+			if (isset($item->comment) && strlen($item->comment) && !str_contains($item->display, $item->comment)) {
 				$line .= " {$item->comment}";
 			}
 			$line .= " - rolled by {$item->rolled_by}\n".
-				"<tab><tab>" . $this->getWinners(...$item->winners);
+				'<tab><tab>' . $this->getWinners(...$item->winners);
 
 			return $line;
 		});
@@ -384,10 +372,10 @@ class LootController extends ModuleInstance {
 
 	/** Clear the current loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
-	#[NCA\Help\Group("loot")]
-	public function lootClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
+	#[NCA\Help\Group('loot')]
+	public function lootClearCommand(CmdContext $context, #[NCA\Str('clear')] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
@@ -403,10 +391,10 @@ class LootController extends ModuleInstance {
 
 	/** Add an item from a loot list to the loot roll */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
-	#[NCA\Help\Group("loot")]
-	public function lootAddByIdCommand(CmdContext $context, #[NCA\Str("add")] string $action, int $id): void {
+	#[NCA\Help\Group('loot')]
+	public function lootAddByIdCommand(CmdContext $context, #[NCA\Str('add')] string $action, int $id): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
@@ -451,8 +439,8 @@ class LootController extends ModuleInstance {
 
 	/** Auction off an item from a loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
-	#[NCA\Help\Group("loot")]
-	public function lootAuctionByIdCommand(CmdContext $context, #[NCA\Str("auction")] string $action, int $id): void {
+	#[NCA\Help\Group('loot')]
+	public function lootAuctionByIdCommand(CmdContext $context, #[NCA\Str('auction')] string $action, int $id): void {
 		$loot = $this->getLootEntryID($id);
 
 		if ($loot === null) {
@@ -472,11 +460,10 @@ class LootController extends ModuleInstance {
 
 	/** Raffle an item from a loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
-	#[NCA\Help\Group("loot")]
+	#[NCA\Help\Group('loot')]
 	public function lootRaffleByIdCommand(
 		CmdContext $context,
-		#[NCA\Str("raffle")]
-		string $action,
+		#[NCA\Str('raffle')] string $action,
 		int $id
 	): void {
 		$loot = $this->getLootEntryID($id);
@@ -498,10 +485,10 @@ class LootController extends ModuleInstance {
 
 	/** Add an item to the loot roll by name or by pasting it */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
-	#[NCA\Help\Group("loot")]
-	public function lootAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $item): void {
+	#[NCA\Help\Group('loot')]
+	public function lootAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, string $item): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
@@ -510,17 +497,16 @@ class LootController extends ModuleInstance {
 
 	/** Add multiple items to the loot roll */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
-	#[NCA\Help\Group("loot")]
-	#[NCA\Help\Example("<symbol>loot addmulti 3 Lockpick")]
+	#[NCA\Help\Group('loot')]
+	#[NCA\Help\Example('<symbol>loot addmulti 3 Lockpick')]
 	public function multilootCommand(
 		CmdContext $context,
-		#[NCA\Str("addmulti", "multiadd")]
-		string $action,
+		#[NCA\Str('addmulti', 'multiadd')] string $action,
 		PQuantity $amount,
 		string $items
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
@@ -545,8 +531,8 @@ class LootController extends ModuleInstance {
 		}
 
 		/** @var ?AODBEntry */
-		$row = $this->db->table("aodb")
-			->whereIlike("name", $itemName)
+		$row = $this->db->table('aodb')
+			->whereIlike('name', $itemName)
 			->asObj(AODBEntry::class)
 			->first();
 		if ($row !== null) {
@@ -601,10 +587,10 @@ class LootController extends ModuleInstance {
 
 	/** Remove a single item from the loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
-	#[NCA\Help\Group("loot")]
+	#[NCA\Help\Group('loot')]
 	public function lootRemCommand(CmdContext $context, PRemove $action, int $key): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
@@ -630,17 +616,17 @@ class LootController extends ModuleInstance {
 	}
 
 	/** Create a new loot roll with the leftovers from the last roll */
-	#[NCA\HandlesCommand("reroll")]
-	#[NCA\Help\Group("loot")]
+	#[NCA\HandlesCommand('reroll')]
+	#[NCA\Help\Group('loot')]
 	public function rerollCommand(CmdContext $context): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
 		// Check if a residual list exits
 		if (empty($this->residual)) {
-			$msg = "There are no remaining items to re-add.";
+			$msg = 'There are no remaining items to re-add.';
 			$context->reply($msg);
 			return;
 		}
@@ -665,36 +651,36 @@ class LootController extends ModuleInstance {
 	}
 
 	/** Announce the remaining loot to be free for all */
-	#[NCA\HandlesCommand("ffa")]
-	#[NCA\Help\Group("loot")]
+	#[NCA\HandlesCommand('ffa')]
+	#[NCA\Help\Group('loot')]
 	public function ffaCommand(CmdContext $context): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
 		// Check if a residual list exits
 		if (empty($this->residual)) {
-			$msg = "There are no remaining items to mark ffa.";
+			$msg = 'There are no remaining items to mark ffa.';
 			$context->reply($msg);
 			return;
 		}
 
-		$list = "";
+		$list = '';
 		$numItems = 0;
 		foreach ($this->residual as $key => $item) {
 			if ($item->icon !== null && $this->showLootPics) {
 				$list .= $this->text->makeImage($item->icon) . "\n";
 			}
 
-			$ml = "";
+			$ml = '';
 			if ($item->multiloot > 1) {
-				$ml = $item->multiloot."x ";
+				$ml = $item->multiloot.'x ';
 			}
 			$numItems += $item->multiloot;
 
 			$list .= "<header2>Slot #{$key}:<end> {$ml}<highlight>{$item->display}<end>";
-			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
+			if (isset($item->comment) && strlen($item->comment) && !str_contains($item->display, $item->comment)) {
 				$list .= " ({$item->comment})";
 			}
 		}
@@ -702,18 +688,18 @@ class LootController extends ModuleInstance {
 		// Reset residual list
 		$this->residual = [];
 		// Create FFA message
-		$msg = "";
+		$msg = '';
 		if ($numItems > 1) {
-			$blob = $this->text->makeBlob("All remaining items", $list, "These items are FFA");
+			$blob = $this->text->makeBlob('All remaining items', $list, 'These items are FFA');
 			$msg = $this->text->blobWrap(
-				"",
+				'',
 				$blob,
 				" were declared <green>free for all<end> by <highlight>{$context->char->name}."
 			);
 		} else {
-			$blob = $this->text->makeBlob("The remaining item", $list, "This item is FFA");
+			$blob = $this->text->makeBlob('The remaining item', $list, 'This item is FFA');
 			$msg = $this->text->blobWrap(
-				"",
+				'',
 				$blob,
 				" was declared <green>free for all<end> by <highlight>{$context->char->name}."
 			);
@@ -725,17 +711,17 @@ class LootController extends ModuleInstance {
 	}
 
 	/** Determine the winner(s) of the current loot roll */
-	#[NCA\HandlesCommand("flatroll")]
-	#[NCA\Help\Group("loot")]
+	#[NCA\HandlesCommand('flatroll')]
+	#[NCA\Help\Group('loot')]
 	public function flatrollCommand(CmdContext $context): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
 		// Check if a loot list exits
 		if (empty($this->loot)) {
-			$msg = "There is nothing to roll atm.";
+			$msg = 'There is nothing to roll atm.';
 			$context->reply($msg);
 			return;
 		}
@@ -749,9 +735,9 @@ class LootController extends ModuleInstance {
 			$list .= "Item: <header2>{$item->name}<end>\n";
 			$numUsers = count($item->users);
 			if ($numUsers == 1) {
-				$list .= "Winner: ";
+				$list .= 'Winner: ';
 			} else {
-				$list .= "Winners: ";
+				$list .= 'Winners: ';
 			}
 			$lootHistory = new LootHistory();
 			$lootHistory->roll = $this->roll;
@@ -782,10 +768,10 @@ class LootController extends ModuleInstance {
 						$this->db->insert(self::DB_TABLE, $lootHistory);
 					}
 					$item->users = [];
-					$list .= join(
-						", ",
+					$list .= implode(
+						', ',
 						array_map(
-							function ($name) {
+							static function ($name) {
 								return "<green>{$name}<end>";
 							},
 							$winners
@@ -815,17 +801,17 @@ class LootController extends ModuleInstance {
 		// Show winner list
 		if (!empty($this->residual)) {
 			$list .= "\n\n".
-				$this->text->makeChatcmd("Reroll remaining items", "/tell <myname> reroll").
-				"<tab>".
-				$this->text->makeChatcmd("Announce remaining items FFA", "/tell <myname> ffa");
+				$this->text->makeChatcmd('Reroll remaining items', '/tell <myname> reroll').
+				'<tab>'.
+				$this->text->makeChatcmd('Announce remaining items FFA', '/tell <myname> ffa');
 		}
-		$msg = $this->text->makeBlob("Winner List", $list);
+		$msg = $this->text->makeBlob('Winner List', $list);
 		if (!empty($this->residual)) {
 			$msg = $this->text->blobWrap(
-				"",
+				'',
 				$msg,
-				" (There are item(s) left to be rolled. To re-add, type <symbol>reroll, or ".
-				"use <symbol>ffa to make them free for all)"
+				' (There are item(s) left to be rolled. To re-add, type <symbol>reroll, or '.
+				'use <symbol>ffa to make them free for all)'
 			);
 		}
 
@@ -836,17 +822,17 @@ class LootController extends ModuleInstance {
 	}
 
 	/** Add yourself to a loot roll */
-	#[NCA\HandlesCommand("add")]
-	#[NCA\Help\Group("loot")]
+	#[NCA\HandlesCommand('add')]
+	#[NCA\Help\Group('loot')]
 	public function addCommand(CmdContext $context, int $slot): void {
 		$found = false;
 		if (count($this->loot) === 0) {
-			$this->chatBot->sendMassTell("No loot list available.", $context->char->name);
+			$this->chatBot->sendMassTell('No loot list available.', $context->char->name);
 			return;
 		}
 		// Check if the slot exists
 		if (!isset($this->loot[$slot])) {
-			$msg = "The slot you are trying to add in does not exist.";
+			$msg = 'The slot you are trying to add in does not exist.';
 			$this->chatBot->sendMassTell($msg, $context->char->name);
 			return;
 		}
@@ -880,11 +866,11 @@ class LootController extends ModuleInstance {
 	}
 
 	/** Remove yourself from all loot rolls */
-	#[NCA\HandlesCommand("rem")]
-	#[NCA\Help\Group("loot")]
+	#[NCA\HandlesCommand('rem')]
+	#[NCA\Help\Group('loot')]
 	public function remCommand(CmdContext $context): void {
 		if (count($this->loot) === 0) {
-			$this->chatBot->sendTell("There is nothing to remove you from.", $context->char->name);
+			$this->chatBot->sendTell('There is nothing to remove you from.', $context->char->name);
 			return;
 		}
 		foreach ($this->loot as $key => $item) {
@@ -894,14 +880,14 @@ class LootController extends ModuleInstance {
 		}
 
 		$player = $this->playerManager->byName($context->char->name);
-		if (!isset($player) || !isset($player->gender) || $player->gender === "Neuter") {
+		if (!isset($player) || !isset($player->gender) || $player->gender === 'Neuter') {
 			$privMsg = "{$context->char->name} removed themselves from all rolls.";
-		} elseif ($player->gender === "Female") {
+		} elseif ($player->gender === 'Female') {
 			$privMsg = "{$context->char->name} removed herself from all rolls.";
 		} else {
 			$privMsg = "{$context->char->name} removed himself from all rolls.";
 		}
-		$tellMsg = "You removed yourself from all rolls.";
+		$tellMsg = 'You removed yourself from all rolls.';
 		if ($this->addOnLoot & 1) {
 			$this->chatBot->sendMassTell($tellMsg, $context->char->name);
 		}
@@ -917,17 +903,17 @@ class LootController extends ModuleInstance {
 	 */
 	public function getCurrentLootList(): string|array {
 		if (empty($this->loot)) {
-			$msg = "No loot list exists yet.";
+			$msg = 'No loot list exists yet.';
 			return $msg;
 		}
 
-		$flatroll = $this->text->makeChatcmd("<symbol>flatroll", "/tell <myname> flatroll");
+		$flatroll = $this->text->makeChatcmd('<symbol>flatroll', '/tell <myname> flatroll');
 		$list = "Use {$flatroll} to roll.\n\n";
 		$players = 0;
 		$items = count($this->loot);
 		foreach ($this->loot as $key => $item) {
-			$add = $this->text->makeChatcmd("add", "/tell <myname> add {$key}");
-			$rem = $this->text->makeChatcmd("remove", "/tell <myname> rem");
+			$add = $this->text->makeChatcmd('add', "/tell <myname> add {$key}");
+			$rem = $this->text->makeChatcmd('remove', '/tell <myname> rem');
 			$added_players = count($item->users);
 			$players += $added_players;
 
@@ -935,22 +921,22 @@ class LootController extends ModuleInstance {
 				$list .= $this->text->makeImage($item->icon) . "\n";
 			}
 
-			$ml = "";
+			$ml = '';
 			if ($item->multiloot > 1) {
-				$ml = $item->multiloot."x ";
+				$ml = $item->multiloot.'x ';
 			}
 
 			$list .= "<header2>Slot #{$key}:<end> {$ml}<highlight>{$item->display}<end>";
-			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
+			if (isset($item->comment) && strlen($item->comment) && !str_contains($item->display, $item->comment)) {
 				$list .= " ({$item->comment})";
 			}
 			$list .= " - [{$add}] [{$rem}]";
 			if (count($item->users) > 0) {
 				$list .= "\n<tab>Players added (<highlight>{$added_players}<end>): ";
-				$list .= join(
-					", ",
+				$list .= implode(
+					', ',
 					array_map(
-						function ($name) {
+						static function ($name) {
 							return "<yellow>{$name}<end>";
 						},
 						array_keys($item->users)
@@ -972,20 +958,20 @@ class LootController extends ModuleInstance {
 		$count = 1;
 
 		/** @var Collection<RaidLoot> */
-		$data = $this->db->table("raid_loot")
-			->where(["raid" => $raid, "category" => $category])
+		$data = $this->db->table('raid_loot')
+			->where(['raid' => $raid, 'category' => $category])
 			->asObj(RaidLoot::class);
 
 		if ($data->count() === 0) {
 			return false;
 		}
 
-		$itemsByBame =$this->itemsController->getByNames(...$data->pluck("name")->toArray())
-			->groupBy("name");
-		$data->each(function (RaidLoot $loot) use ($itemsByBame): void {
+		$itemsByBame =$this->itemsController->getByNames(...$data->pluck('name')->toArray())
+			->groupBy('name');
+		$data->each(static function (RaidLoot $loot) use ($itemsByBame): void {
 			$loot->item = $itemsByBame->get($loot->name)
-				->where("lowql", "<=", $loot->ql)
-				->where("highql", ">=", $loot->ql)
+				->where('lowql', '<=', $loot->ql)
+				->where('highql', '>=', $loot->ql)
 				->first();
 		});
 
@@ -1026,11 +1012,11 @@ class LootController extends ModuleInstance {
 	 * Add one or more items to the loot roll by just pasting them, one after the other
 	 * This can be used as loot command for AOIA
 	 */
-	#[NCA\HandlesCommand("mloot")]
-	#[NCA\Help\Group("loot")]
+	#[NCA\HandlesCommand('mloot')]
+	#[NCA\Help\Group('loot')]
 	public function mlootCommand(CmdContext $context, #[NCA\SpaceOptional] PItem ...$items): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 		foreach ($items as $item) {
@@ -1039,17 +1025,17 @@ class LootController extends ModuleInstance {
 		$lootList = $this->getCurrentLootList();
 		$this->chatBot->sendPrivate(
 			$this->text->blobWrap(
-				"{$context->char->name} added " . count($items) . " items to the ",
+				"{$context->char->name} added " . count($items) . ' items to the ',
 				$lootList,
-				"."
+				'.'
 			)
 		);
 	}
 
 	protected function getLootEntryID(int $id): ?RaidLootSearch {
 		/** @var ?RaidLootSearch */
-		$raidLoot = $this->db->table("raid_loot AS r")
-					->where("r.id", $id)
+		$raidLoot = $this->db->table('raid_loot AS r')
+					->where('r.id', $id)
 					->asObj(RaidLootSearch::class)
 					->first();
 		if (!isset($raidLoot)) {
@@ -1059,23 +1045,23 @@ class LootController extends ModuleInstance {
 			$raidLoot->item = $this->itemsController->findById($raidLoot->aoid);
 		} else {
 			$raidLoot->item = $this->itemsController->getByNames($raidLoot->name)
-				->where("lowql", "<=", $raidLoot->ql)
-				->where("highql", ">=", $raidLoot->ql)
+				->where('lowql', '<=', $raidLoot->ql)
+				->where('highql', '>=', $raidLoot->ql)
 				->first();
 		}
 		return $raidLoot;
 	}
 
 	private function getWinners(string ...$winners): string {
-		$line = "Winner";
+		$line = 'Winner';
 		if (count($winners) !== 1) {
-			$line .= "s";
+			$line .= 's';
 		}
 		if (count($winners) === 0) {
-			$line .= ": &lt;No one added&gt;";
+			$line .= ': &lt;No one added&gt;';
 		} else {
-			$winners = $this->text->arraySprintf("<green>%s<end>", ...$winners);
-			$line .= ": " . $this->text->enumerate(...$winners);
+			$winners = $this->text->arraySprintf('<green>%s<end>', ...$winners);
+			$line .= ': ' . $this->text->enumerate(...$winners);
 		}
 		return $line;
 	}

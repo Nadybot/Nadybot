@@ -23,16 +23,16 @@ class Stopwatch {
 
 	/** Get a textual representation of the timer */
 	public function toString(): string {
-		$descr = "Start:    " . $this->start->format('Y-M-d H:i:s T') . "\n";
+		$descr = 'Start:    ' . $this->start->format('Y-M-d H:i:s T') . "\n";
 		$last = $this->start;
 		foreach ($this->laps as $lap) {
 			$descr .= $lap->toString($last);
 			$last = $lap->time;
 		}
 		if (isset($this->end)) {
-			$descr .= "End:    +" . $this->end->diff($last)->format("%I:%S");
+			$descr .= 'End:    +' . $this->end->diff($last)->format('%I:%S');
 		} else {
-			$descr .= "Now:   +" . (new DateTime())->diff($last)->format('%I:%S');
+			$descr .= 'Now:   +' . (new DateTime())->diff($last)->format('%I:%S');
 		}
 		return $descr;
 	}

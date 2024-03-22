@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 class RaidLockEvent extends RaidEvent {
-	public const EVENT_MASK = "raid(lock)";
+	public const EVENT_MASK = 'raid(lock)';
 
 	public function __construct(
 		public Raid $raid,

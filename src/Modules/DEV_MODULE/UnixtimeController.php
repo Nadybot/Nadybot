@@ -15,9 +15,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "unixtime",
-		accessLevel: "guest",
-		description: "Show the date and time for a unix timestamp",
+		command: 'unixtime',
+		accessLevel: 'guest',
+		description: 'Show the date and time for a unix timestamp',
 	)
 ]
 class UnixtimeController extends ModuleInstance {
@@ -25,9 +25,9 @@ class UnixtimeController extends ModuleInstance {
 	private Util $util;
 
 	/** Show the date and time for a unix time stamp */
-	#[NCA\HandlesCommand("unixtime")]
+	#[NCA\HandlesCommand('unixtime')]
 	public function reloadinstanceAllCommand(CmdContext $context, int $time): void {
-		$msg = "{$time} is <highlight>" . $this->util->date($time) . "<end>.";
+		$msg = "{$time} is <highlight>" . $this->util->date($time) . '<end>.';
 		$context->reply($msg);
 	}
 }

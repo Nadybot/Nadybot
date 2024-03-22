@@ -7,21 +7,21 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210427063925, shared: true)]
+#[NCA\Migration(order: 20_210_427_063_925, shared: true)]
 class CreateQuoteTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "quote";
+		$table = 'quote';
 		if ($db->schema()->hasTable($table)) {
-			$db->schema()->table($table, function (Blueprint $table): void {
-				$table->id("id")->change();
+			$db->schema()->table($table, static function (Blueprint $table): void {
+				$table->id('id')->change();
 			});
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->string("poster", 25);
-			$table->integer("dt");
-			$table->string("msg", 1000);
+			$table->string('poster', 25);
+			$table->integer('dt');
+			$table->string('msg', 1_000);
 		});
 	}
 }

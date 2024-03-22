@@ -8,16 +8,16 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\PVP_MODULE\SiteTrackerController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20230306142312)]
+#[NCA\Migration(order: 20_230_306_142_312)]
 class CreateTrackerTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = SiteTrackerController::DB_TRACKER;
-		$db->schema()->create($table, function (Blueprint $table) {
+		$db->schema()->create($table, static function (Blueprint $table) {
 			$table->id();
-			$table->string("created_by", 12);
-			$table->unsignedInteger("created_on");
-			$table->string("expression");
-			$table->string("events");
+			$table->string('created_by', 12);
+			$table->unsignedInteger('created_on');
+			$table->string('expression');
+			$table->string('events');
 		});
 	}
 }

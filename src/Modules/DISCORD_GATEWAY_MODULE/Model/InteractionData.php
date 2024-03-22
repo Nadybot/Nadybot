@@ -66,6 +66,6 @@ class InteractionData extends JSONDataModel {
 				$parts []= $option->getOptionString();
 			}
 		}
-		return join(" ", $parts);
+		return implode(' ', $parts);
 	}
 }

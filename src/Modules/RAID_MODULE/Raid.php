@@ -96,13 +96,13 @@ class Raid extends DBRow {
 
 	public function getAnnounceMessage(?string $joinMessage=null): string {
 		$numRaiders = $this->numActiveRaiders();
-		$countMsg = "";
+		$countMsg = '';
 		if ($this->max_members > 0) {
 			$countMsg = " ({$numRaiders}/{$this->max_members} slots)";
 		}
 		$msg = "Raid is running: <highlight>{$this->description}<end>{$countMsg} :: ";
 		if ($this->locked) {
-			$msg .= "<off>raid is locked<end>";
+			$msg .= '<off>raid is locked<end>';
 		} elseif ($this->max_members > 0 && $this->max_members <= $numRaiders) {
 			$msg .= "<off>raid is full<end>{$countMsg}";
 		} elseif ($joinMessage !== null) {

@@ -26,7 +26,7 @@ class MassMsgReceiver implements MessageReceiver {
 	private MassMsgController $massMsgCtrl;
 
 	public function getChannelName(): string {
-		return Source::SYSTEM . "(mass-message)";
+		return Source::SYSTEM . '(mass-message)';
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
@@ -44,7 +44,7 @@ class MassMsgReceiver implements MessageReceiver {
 			return false;
 		}
 		$message = "{$ctrl->massmsgColor}{$msg}<end>".
-			" :: " . $ctrl->getMassMsgOptInOutBlob();
+			' :: ' . $ctrl->getMassMsgOptInOutBlob();
 
 		async(
 			$ctrl->massCallback(...),

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 use Nadybot\Core\SyncEvent;
 
 class SyncWorldbossEvent extends SyncEvent {
-	public const EVENT_MASK = "sync(worldboss)";
+	public const EVENT_MASK = 'sync(worldboss)';
 
 	/**
 	 * @param int    $vulnerable UNIX timestamp when the world boss will be vulnerable

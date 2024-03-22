@@ -18,14 +18,14 @@ use Revolt\EventLoop;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "countdown",
-		accessLevel: "rl",
-		description: "Start a 5-second countdown",
-		alias: "cd"
+		command: 'countdown',
+		accessLevel: 'rl',
+		description: 'Start a 5-second countdown',
+		alias: 'cd'
 	),
 	NCA\ProvidesEvent(
 		event: SyncCdEvent::class,
-		desc: "Triggered when someone starts a countdown",
+		desc: 'Triggered when someone starts a countdown',
 	)
 ]
 class CountdownController extends ModuleInstance {
@@ -42,10 +42,10 @@ class CountdownController extends ModuleInstance {
 
 	/** Default text to say at the end of a countdown */
 	#[NCA\Setting\Text]
-	public string $cdDefaultText = "GO";
+	public string $cdDefaultText = 'GO';
 
 	/** How long is the cooldown between starting 2 countdowns */
-	#[NCA\Setting\Time(options: ["6s", "15s", "30s", "1m", "5m"])]
+	#[NCA\Setting\Time(options: ['6s', '15s', '30s', '1m', '5m'])]
 	public int $cdCooldown = 30;
 
 	#[NCA\Inject]
@@ -57,9 +57,9 @@ class CountdownController extends ModuleInstance {
 	private int $lastCountdown = 0;
 
 	/** Start a 5s countdown timer with an optional custom message */
-	#[NCA\HandlesCommand("countdown")]
+	#[NCA\HandlesCommand('countdown')]
 	#[NCA\Help\Epilogue(
-		"By default, this command can only be run once every 30s"
+		'By default, this command can only be run once every 30s'
 	)]
 	public function countdownCommand(CmdContext $context, ?string $message): void {
 		$message ??= $this->cdDefaultText;
@@ -71,7 +71,7 @@ class CountdownController extends ModuleInstance {
 			return;
 		}
 
-		$callback = [$context, "reply"];
+		$callback = [$context, 'reply'];
 		if ($context->isDM()) {
 			$callback = $this->getDmCallback();
 		}
@@ -90,27 +90,27 @@ class CountdownController extends ModuleInstance {
 
 		for ($i = 5; $i > 0; $i--) {
 			if ($i > 3) {
-				$color = "<red>";
+				$color = '<red>';
 			} elseif ($i > 1) {
-				$color = "<orange>";
+				$color = '<orange>';
 			} else {
-				$color = "<yellow>";
+				$color = '<yellow>';
 			}
 			$msg = "[{$color}-------&gt; {$i} &lt;-------<end>]";
-			EventLoop::delay((6-$i), function (string $token) use ($callback, $msg): void {
+			EventLoop::delay((6-$i), static function (string $token) use ($callback, $msg): void {
 				$callback($msg);
 			});
 		}
 
 		$msg = "[<green>------&gt; {$message} &lt;-------<end>]";
-		EventLoop::delay(6, function (string $token) use ($callback, $msg): void {
+		EventLoop::delay(6, static function (string $token) use ($callback, $msg): void {
 			$callback($msg);
 		});
 	}
 
 	#[NCA\Event(
 		name: SyncCdEvent::EVENT_MASK,
-		description: "Process externally started countdowns"
+		description: 'Process externally started countdowns'
 	)]
 	public function syncCountdown(SyncCdEvent $event): void {
 		if (time() - $this->lastCountdown < 7) {

@@ -23,10 +23,10 @@ class ProfileApiController extends ModuleInstance {
 
 	/** Get a list of saved profiles */
 	#[
-		NCA\Api("/profile"),
+		NCA\Api('/profile'),
 		NCA\GET,
-		NCA\AccessLevelFrom("profile"),
-		NCA\ApiResult(code: 200, class: "string[]", desc: "A list of saved profiled")
+		NCA\AccessLevelFrom('profile'),
+		NCA\ApiResult(code: 200, class: 'string[]', desc: 'A list of saved profiled')
 	]
 	public function moduleGetEndpoint(Request $request): Response {
 		try {
@@ -39,11 +39,11 @@ class ProfileApiController extends ModuleInstance {
 
 	/** View a profile */
 	#[
-		NCA\Api("/profile/%s"),
+		NCA\Api('/profile/%s'),
 		NCA\GET,
-		NCA\AccessLevelFrom("profile"),
-		NCA\ApiResult(code: 200, class: "string", desc: "Profile found and shown"),
-		NCA\ApiResult(code: 404, desc: "Profile not found")
+		NCA\AccessLevelFrom('profile'),
+		NCA\ApiResult(code: 200, class: 'string', desc: 'Profile found and shown'),
+		NCA\ApiResult(code: 404, desc: 'Profile not found')
 	]
 	public function viewProfileEndpoint(Request $request, string $profile): Response {
 		$filename = $this->profileController->getFilename($profile);
@@ -67,11 +67,11 @@ class ProfileApiController extends ModuleInstance {
 
 	/** Delete a profile */
 	#[
-		NCA\Api("/profile/%s"),
+		NCA\Api('/profile/%s'),
 		NCA\DELETE,
-		NCA\AccessLevelFrom("profile"),
-		NCA\ApiResult(code: 204, desc: "Profile successfully deleted"),
-		NCA\ApiResult(code: 404, desc: "Profile not found")
+		NCA\AccessLevelFrom('profile'),
+		NCA\ApiResult(code: 204, desc: 'Profile successfully deleted'),
+		NCA\ApiResult(code: 404, desc: 'Profile not found')
 	]
 	public function deleteProfileEndpoint(Request $request, string $profile): Response {
 		$filename = $this->profileController->getFilename($profile);
@@ -89,24 +89,24 @@ class ProfileApiController extends ModuleInstance {
 
 	/** Load a profile */
 	#[
-		NCA\Api("/profile/%s"),
+		NCA\Api('/profile/%s'),
 		NCA\PATCH,
 		NCA\PUT,
-		NCA\AccessLevelFrom("profile"),
-		NCA\RequestBody(class: "Operation", desc: "Must be \"load\"", required: true),
-		NCA\ApiResult(code: 204, desc: "Profile load successfully"),
-		NCA\ApiResult(code: 402, desc: "Wrong or no operation given"),
-		NCA\ApiResult(code: 404, desc: "Profile not found")
+		NCA\AccessLevelFrom('profile'),
+		NCA\RequestBody(class: 'Operation', desc: 'Must be "load"', required: true),
+		NCA\ApiResult(code: 204, desc: 'Profile load successfully'),
+		NCA\ApiResult(code: 402, desc: 'Wrong or no operation given'),
+		NCA\ApiResult(code: 404, desc: 'Profile not found')
 	]
 	public function loadProfileEndpoint(Request $request, string $profile): Response {
-		$user = $request->getAttribute(WebserverController::USER) ?? "_";
+		$user = $request->getAttribute(WebserverController::USER) ?? '_';
 		$body = $request->getAttribute(WebserverController::BODY);
 		if (!is_object($body) || !isset($body->op)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 
 		$op = $body->op;
-		if ($op !== "load") {
+		if ($op !== 'load') {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		$filename = $this->profileController->getFilename($profile);
@@ -126,11 +126,11 @@ class ProfileApiController extends ModuleInstance {
 
 	/** Load a profile */
 	#[
-		NCA\Api("/profile/%s"),
+		NCA\Api('/profile/%s'),
 		NCA\POST,
-		NCA\AccessLevelFrom("profile"),
-		NCA\ApiResult(code: 204, desc: "Profile saved successfully"),
-		NCA\ApiResult(code: 409, desc: "Profile already exists")
+		NCA\AccessLevelFrom('profile'),
+		NCA\ApiResult(code: 204, desc: 'Profile saved successfully'),
+		NCA\ApiResult(code: 409, desc: 'Profile already exists')
 	]
 	public function saveProfileEndpoint(Request $request, string $profile): Response {
 		try {
@@ -138,7 +138,7 @@ class ProfileApiController extends ModuleInstance {
 		} catch (Exception) {
 			return new Response(
 				status: HttpStatus::CONFLICT,
-				body: "This profile already exists."
+				body: 'This profile already exists.'
 			);
 		}
 		return new Response(status: HttpStatus::NO_CONTENT);

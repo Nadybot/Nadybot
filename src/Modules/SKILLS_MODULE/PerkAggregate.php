@@ -10,7 +10,7 @@ class PerkAggregate {
 	public ?string $description;
 
 	/** The expansion needed for this perk */
-	public string $expansion = "sl";
+	public string $expansion = 'sl';
 
 	/** @var string[] */
 	public array $professions;

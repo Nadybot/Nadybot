@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 class CmdEvent extends SayEvent {
-	public const EVENT_MASK = "leadercmd";
+	public const EVENT_MASK = 'leadercmd';
 
 	/**
 	 * @param string $player  The names of the sender

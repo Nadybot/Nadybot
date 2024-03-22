@@ -22,7 +22,7 @@ use Throwable;
 /**
  * A wrapper class to monolog
  */
-#[NCA\Instance("logger")]
+#[NCA\Instance('logger')]
 class LoggerWrapper implements LoggerInterface {
 	public static Filesystem $fs;
 	protected static bool $routeErrors = true;
@@ -167,15 +167,15 @@ class LoggerWrapper implements LoggerInterface {
 	 */
 	public function logChat(string $channel, string|int $sender, string $message): void {
 		if (!$this->config->general->showAomlMarkup) {
-			$message = Safe::pregReplace("|<font.*?>|", "", $message);
-			$message = Safe::pregReplace("|</font>|", "", $message);
-			$message = Safe::pregReplace("|<a\\s+href=\".+?\">|s", "[link]", $message);
-			$message = Safe::pregReplace("|<a\\s+href='.+?'>|s", "[link]", $message);
-			$message = Safe::pregReplace("|<a\\s+href=.+?>|s", "[link]", $message);
-			$message = Safe::pregReplace("|</a>|", "[/link]", $message);
+			$message = Safe::pregReplace('|<font.*?>|', '', $message);
+			$message = Safe::pregReplace('|</font>|', '', $message);
+			$message = Safe::pregReplace('|<a\\s+href=".+?">|s', '[link]', $message);
+			$message = Safe::pregReplace("|<a\\s+href='.+?'>|s", '[link]', $message);
+			$message = Safe::pregReplace('|<a\\s+href=.+?>|s', '[link]', $message);
+			$message = Safe::pregReplace('|</a>|', '[/link]', $message);
 		}
 
-		if ($channel == "Buddy") {
+		if ($channel == 'Buddy') {
 			$line = "[{$channel}] {$sender} {$message}";
 		} elseif ($sender == '-1' || $sender == '4294967295') {
 			$line = "[{$channel}] {$message}";
@@ -183,7 +183,7 @@ class LoggerWrapper implements LoggerInterface {
 			$line = "[{$channel}] {$sender}: {$message}";
 		}
 
-		$this->chatLogger ??= $this->logger->withName("CHAT");
+		$this->chatLogger ??= $this->logger->withName('CHAT');
 		$this->chatLogger->notice($line);
 	}
 
@@ -191,7 +191,7 @@ class LoggerWrapper implements LoggerInterface {
 	public static function getLoggingDirectory(): string {
 		$errorLog = ini_get('error_log');
 		if (!is_string($errorLog)) {
-			throw new Exception("Your php.ini error_log is misconfigured.");
+			throw new Exception('Your php.ini error_log is misconfigured.');
 		}
 		$logDir = dirname($errorLog);
 		if (substr($logDir, 0, 1) !== '/') {
@@ -256,9 +256,9 @@ class LoggerWrapper implements LoggerInterface {
 				return;
 			}
 			static::$errorGiven = true;
-			$this->passthru(Logger::ERROR, "Error logging: {error}", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->passthru(Logger::ERROR, 'Error logging: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 		}
 		if ($logLevel < Logger::NOTICE) {
@@ -294,7 +294,7 @@ class LoggerWrapper implements LoggerInterface {
 					'datetime' => new DateTimeImmutable(false),
 					'extra' => [],
 				]);
-				$rMessage = new RoutableMessage($renderedMessage["message"]);
+				$rMessage = new RoutableMessage($renderedMessage['message']);
 				$rMessage->appendPath(
 					new Source(Source::LOG, $loggingCategory)
 				);

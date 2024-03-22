@@ -19,18 +19,18 @@ use Nadybot\Modules\RELAY_MODULE\{
 
 #[
 	NCA\RelayTransport(
-		name: "private-channel",
+		name: 'private-channel',
 		description: "This is the Anarchy Online private channel transport.\n".
 			"You can use this to relay messages internally inside Anarchy Online.\n".
 			"Be aware though, that the delay is based on the size of the message\n".
 			"being sent.\n".
 			"The bot must be invited into the private channel before it can\n".
-			"relay anything."
+			'relay anything.'
 	),
 	NCA\Param(
-		name: "channel",
-		type: "string",
-		description: "The private channel to join",
+		name: 'channel',
+		type: 'string',
+		description: 'The private channel to join',
 		required: true
 	)
 ]
@@ -75,11 +75,11 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 	}
 
 	public function deinit(callable $callback): array {
-		$this->eventManager->unsubscribe("extpriv", [$this, "receiveMessage"]);
-		$this->eventManager->unsubscribe(ExtJoinPrivRequest::EVENT_MASK, [$this, "receiveInvite"]);
-		$this->eventManager->unsubscribe("extJoinPriv", [$this, "joinedPrivateChannel"]);
-		$this->eventManager->unsubscribe("otherLeavePriv", [$this, "receiveLeave"]);
-		$this->eventManager->unsubscribe("extLeavePriv", [$this, "leftPrivateChannel"]);
+		$this->eventManager->unsubscribe('extpriv', [$this, 'receiveMessage']);
+		$this->eventManager->unsubscribe(ExtJoinPrivRequest::EVENT_MASK, [$this, 'receiveInvite']);
+		$this->eventManager->unsubscribe('extJoinPriv', [$this, 'joinedPrivateChannel']);
+		$this->eventManager->unsubscribe('otherLeavePriv', [$this, 'receiveLeave']);
+		$this->eventManager->unsubscribe('extLeavePriv', [$this, 'leftPrivateChannel']);
 		$callback();
 		return [];
 	}
@@ -121,7 +121,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		if (strtolower($event->channel) !== strtolower($this->channel)) {
 			return;
 		}
-		$this->status = new RelayStatus(RelayStatus::READY, "ready");
+		$this->status = new RelayStatus(RelayStatus::READY, 'ready');
 		if (isset($this->initCallback)) {
 			$callback = $this->initCallback;
 			unset($this->initCallback);
@@ -133,16 +133,16 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		if (strtolower($event->channel) !== strtolower($this->channel)) {
 			return;
 		}
-		$this->relay->deinit(function (Relay $relay): void {
+		$this->relay->deinit(static function (Relay $relay): void {
 			$relay->init();
 		});
 	}
 
 	public function init(callable $callback): array {
-		$this->eventManager->subscribe("extpriv", [$this, "receiveMessage"]);
-		$this->eventManager->subscribe("extJoinPrivRequest", [$this, "receiveInvite"]);
-		$this->eventManager->subscribe("otherLeavePriv", [$this, "receiveLeave"]);
-		$this->eventManager->subscribe("extLeavePriv", [$this, "leftPrivateChannel"]);
+		$this->eventManager->subscribe('extpriv', [$this, 'receiveMessage']);
+		$this->eventManager->subscribe('extJoinPrivRequest', [$this, 'receiveInvite']);
+		$this->eventManager->subscribe('otherLeavePriv', [$this, 'receiveLeave']);
+		$this->eventManager->subscribe('extLeavePriv', [$this, 'leftPrivateChannel']);
 		if (!isset($this->chatBot->privateChats[$this->channel])) {
 			$this->status = new RelayStatus(
 				RelayStatus::INIT,
@@ -150,7 +150,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 			);
 			// In case we have a race condition and received the invite before
 			$this->initCallback = $callback;
-			$this->eventManager->subscribe("extJoinPriv", [$this, "joinedPrivateChannel"]);
+			$this->eventManager->subscribe('extJoinPriv', [$this, 'joinedPrivateChannel']);
 			if (null !== ($uid = $this->chatBot->getUid($this->channel))) {
 				$this->chatBot->sendPackage(
 					package: new Package\Out\PrivateChannelJoin(channelId: $uid),

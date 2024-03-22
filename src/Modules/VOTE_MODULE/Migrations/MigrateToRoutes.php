@@ -15,7 +15,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\VOTE_MODULE\VoteController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210828154348)]
+#[NCA\Migration(order: 20_210_828_154_348)]
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private VoteController $voteController;
@@ -25,7 +25,7 @@ class MigrateToRoutes implements SchemaMigration {
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;
-		$showWhere = $this->getSetting($db, "vote_channel_spam");
+		$showWhere = $this->getSetting($db, 'vote_channel_spam');
 		if (!isset($showWhere)) {
 			if (strlen($this->config->general->orgName)) {
 				$showWhere = 2;
@@ -37,17 +37,17 @@ class MigrateToRoutes implements SchemaMigration {
 		}
 		if (in_array($showWhere, [0, 2])) {
 			$route = [
-				"source" => $this->voteController->getChannelName(),
-				"destination" => Source::PRIV . "(" . $db->getMyname() . ")",
-				"two_way" => false,
+				'source' => $this->voteController->getChannelName(),
+				'destination' => Source::PRIV . '(' . $db->getMyname() . ')',
+				'two_way' => false,
 			];
 			$db->table($table)->insert($route);
 		}
 		if (in_array($showWhere, [1, 2])) {
 			$route = [
-				"source" => $this->voteController->getChannelName(),
-				"destination" => Source::ORG,
-				"two_way" => false,
+				'source' => $this->voteController->getChannelName(),
+				'destination' => Source::ORG,
+				'two_way' => false,
 			];
 			$db->table($table)->insert($route);
 		}
@@ -55,7 +55,7 @@ class MigrateToRoutes implements SchemaMigration {
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
+			->where('name', $name)
 			->asObj(Setting::class)
 			->first();
 	}

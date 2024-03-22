@@ -59,17 +59,17 @@ class ModifierExpressionParser {
 			}
 
 			$char = substr($input, $posData['char']-1, 1);
-			if ($found !== "") {
+			if ($found !== '') {
 				$found = ", found: <highlight>\"{$found}\"<end>";
 			}
 			throw new ModifierParserException(
 				substr($input, 0, $posData['char']-1).
-				"<red>" . (strlen($char) ? $char : "_") . "<end>".
+				'<red>' . (strlen($char) ? $char : '_') . '<end>'.
 				substr($input, $posData['char']) . "\n".
 				"expected: <highlight>{$expected}<end>{$found}."
 			);
 		}
-		$modifiers = $expr->findAll("modifier");
+		$modifiers = $expr->findAll('modifier');
 		$result = [];
 		foreach ($modifiers as $modifier) {
 			$result []= $this->parseModifier($modifier);
@@ -79,8 +79,8 @@ class ModifierExpressionParser {
 
 	protected function parseModifier(Branch $modifier): RouteModifier {
 		$result = new RouteModifier();
-		$result->modifier = $modifier->findFirst("modifierName")->toString();
-		foreach ($modifier->findAll("argument") as $argument) {
+		$result->modifier = $modifier->findFirst('modifierName')->toString();
+		foreach ($modifier->findAll('argument') as $argument) {
 			$result->arguments []= $this->parseArgument($argument);
 		}
 		return $result;
@@ -88,8 +88,8 @@ class ModifierExpressionParser {
 
 	protected function parseArgument(Branch $argument): RouteModifierArgument {
 		$result = new RouteModifierArgument();
-		$result->name = $argument->findFirst("key")->toString();
-		$value = $argument->findFirst("value");
+		$result->name = $argument->findFirst('key')->toString();
+		$value = $argument->findFirst('value');
 		if ($value->getDetailType() === 'string') {
 			$result->value = json_decode($value->toString());
 		} else {

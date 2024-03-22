@@ -19,7 +19,7 @@ class LetsGo extends Base {
 	}
 
 	public function toString(): string {
-		return pack("C", PacketType::LETS_GO) . $this->publicUrl;
+		return pack('C', PacketType::LETS_GO) . $this->publicUrl;
 	}
 
 	public function getType(): int {

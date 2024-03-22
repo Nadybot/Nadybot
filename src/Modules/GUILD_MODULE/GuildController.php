@@ -49,45 +49,45 @@ use Throwable;
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Base"),
+	NCA\HasMigrations('Migrations/Base'),
 	NCA\DefineCommand(
-		command: "logon",
-		accessLevel: "guild",
-		description: "Set logon message",
+		command: 'logon',
+		accessLevel: 'guild',
+		description: 'Set logon message',
 	),
 	NCA\DefineCommand(
-		command: "logoff",
-		accessLevel: "guild",
-		description: "Set logoff message",
+		command: 'logoff',
+		accessLevel: 'guild',
+		description: 'Set logoff message',
 	),
 	NCA\DefineCommand(
-		command: "lastseen",
-		accessLevel: "guild",
-		description: "Shows the last logoff time of a character",
+		command: 'lastseen',
+		accessLevel: 'guild',
+		description: 'Shows the last logoff time of a character',
 	),
 	NCA\DefineCommand(
-		command: "recentseen",
-		accessLevel: "guild",
-		description: "Shows org members who have logged off recently",
+		command: 'recentseen',
+		accessLevel: 'guild',
+		description: 'Shows org members who have logged off recently',
 	),
 	NCA\DefineCommand(
-		command: "notify",
-		accessLevel: "mod",
-		description: "Adds a character to the notify list manually",
+		command: 'notify',
+		accessLevel: 'mod',
+		description: 'Adds a character to the notify list manually',
 	),
 	NCA\DefineCommand(
-		command: "updateorg",
-		accessLevel: "mod",
-		description: "Force an update of the org roster",
+		command: 'updateorg',
+		accessLevel: 'mod',
+		description: 'Force an update of the org roster',
 	),
 	NCA\DefineCommand(
-		command: "orgstats",
-		accessLevel: "guild",
-		description: "Get statistics about the organization",
+		command: 'orgstats',
+		accessLevel: 'guild',
+		description: 'Get statistics about the organization',
 	),
 ]
 class GuildController extends ModuleInstance {
-	public const DB_TABLE = "org_members_<myname>";
+	public const DB_TABLE = 'org_members_<myname>';
 	private const CONSECUTIVE_BAD_UPDATES = 2;
 
 	/** Maximum characters a logon message can have */
@@ -100,33 +100,33 @@ class GuildController extends ModuleInstance {
 
 	/** Suppress alt logon/logoff messages during the interval */
 	#[NCA\Setting\TimeOrOff(
-		options: ["off", "5m", "15m", "1h", "1d"],
+		options: ['off', '5m', '15m', '1h', '1d'],
 	)]
 	public int $suppressLogonLogoff = 0;
 
 	/** Message when an org member logs off */
 	#[NCA\Setting\Template(
 		options: [
-			"{c-name} logged off{?logoff-msg: - {logoff-msg}}{!logoff-msg:.}",
+			'{c-name} logged off{?logoff-msg: - {logoff-msg}}{!logoff-msg:.}',
 		],
-		help: "org_logon_message.txt"
+		help: 'org_logon_message.txt'
 	)]
-	public string $orgLogoffMessage = "{c-name} logged off{?logoff-msg: - {logoff-msg}}{!logoff-msg:.}";
+	public string $orgLogoffMessage = '{c-name} logged off{?logoff-msg: - {logoff-msg}}{!logoff-msg:.}';
 
 	/** Message when an org member logs on */
 	#[NCA\Setting\Template(
 		options: [
-			"{whois} logged on{?main:. {alt-of}}{?logon-msg: - {logon-msg}}",
-			"{whois} logged on{?alt-list:. {alt-list}}{?logon-msg: - {logon-msg}}",
-			"{c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}} logged on{?logon-msg: - {logon-msg}}{!logon-msg:.}",
-			"{c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}} logged on{?logon-msg: - {logon-msg}}{!logon-msg:.}",
-			"<on>+<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
-			"<on>+<end> {c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
-			"{name}{?level: :: {c-level}/{c-ai-level} {short-prof}}{?org: :: {c-org}} logged on{?admin-level: :: {c-admin-level}}{?main: :: {c-main}}{?logon-msg: :: {logon-msg}}",
+			'{whois} logged on{?main:. {alt-of}}{?logon-msg: - {logon-msg}}',
+			'{whois} logged on{?alt-list:. {alt-list}}{?logon-msg: - {logon-msg}}',
+			'{c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}} logged on{?logon-msg: - {logon-msg}}{!logon-msg:.}',
+			'{c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}} logged on{?logon-msg: - {logon-msg}}{!logon-msg:.}',
+			'<on>+<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}',
+			'<on>+<end> {c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}',
+			'{name}{?level: :: {c-level}/{c-ai-level} {short-prof}}{?org: :: {c-org}} logged on{?admin-level: :: {c-admin-level}}{?main: :: {c-main}}{?logon-msg: :: {logon-msg}}',
 		],
-		help: "org_logon_message.txt"
+		help: 'org_logon_message.txt'
 	)]
-	public string $orgLogonMessage = "{whois} logged on{?alt-list:. {alt-list}}{?logon-msg: - {logon-msg}}";
+	public string $orgLogonMessage = '{whois} logged on{?alt-list:. {alt-list}}{?logon-msg: - {logon-msg}}';
 
 	/** @var array<string,int> */
 	public array $lastLogonMsgs = [];
@@ -193,12 +193,12 @@ class GuildController extends ModuleInstance {
 	}
 
 	/** See your current logon message */
-	#[NCA\HandlesCommand("logon")]
+	#[NCA\HandlesCommand('logon')]
 	public function logonMessageShowCommand(CmdContext $context): void {
 		$logonMessage = $this->preferences->get($context->char->name, 'logon_msg');
 
 		if ($logonMessage === null || $logonMessage === '') {
-			$msg = "Your logon message has not been set.";
+			$msg = 'Your logon message has not been set.';
 		} else {
 			$msg = "{$context->char->name} logon: {$logonMessage}";
 		}
@@ -206,29 +206,29 @@ class GuildController extends ModuleInstance {
 	}
 
 	/** Set your new logon message. 'clear' to remove it */
-	#[NCA\HandlesCommand("logon")]
+	#[NCA\HandlesCommand('logon')]
 	public function logonMessageSetCommand(CmdContext $context, string $logonMessage): void {
 		if ($logonMessage === 'clear') {
 			$this->preferences->save($context->char->name, 'logon_msg', '');
-			$msg = "Your logon message has been cleared.";
+			$msg = 'Your logon message has been cleared.';
 		} elseif (strlen($logonMessage) <= $this->maxLogonMsgSize) {
 			$this->preferences->save($context->char->name, 'logon_msg', $logonMessage);
-			$msg = "Your logon message has been set.";
+			$msg = 'Your logon message has been set.';
 		} else {
-			$msg = "Your logon message is too large. ".
-				"Your logon message may contain a maximum of ".
+			$msg = 'Your logon message is too large. '.
+				'Your logon message may contain a maximum of '.
 				"{$this->maxLogonMsgSize} characters.";
 		}
 		$context->reply($msg);
 	}
 
 	/** See your current logon message */
-	#[NCA\HandlesCommand("logoff")]
+	#[NCA\HandlesCommand('logoff')]
 	public function logoffMessageShowCommand(CmdContext $context): void {
 		$logoffMessage = $this->preferences->get($context->char->name, 'logoff_msg');
 
 		if ($logoffMessage === null || $logoffMessage === '') {
-			$msg = "Your logoff message has not been set.";
+			$msg = 'Your logoff message has not been set.';
 		} else {
 			$msg = "{$context->char->name} logoff: {$logoffMessage}";
 		}
@@ -236,24 +236,24 @@ class GuildController extends ModuleInstance {
 	}
 
 	/** Set your new logoff message. 'clear' to remove it */
-	#[NCA\HandlesCommand("logoff")]
+	#[NCA\HandlesCommand('logoff')]
 	public function logoffMessageSetCommand(CmdContext $context, string $logoffMessage): void {
 		if ($logoffMessage == 'clear') {
 			$this->preferences->save($context->char->name, 'logoff_msg', '');
-			$msg = "Your logoff message has been cleared.";
+			$msg = 'Your logoff message has been cleared.';
 		} elseif (strlen($logoffMessage) <= $this->maxLogoffMsgSize) {
 			$this->preferences->save($context->char->name, 'logoff_msg', $logoffMessage);
-			$msg = "Your logoff message has been set.";
+			$msg = 'Your logoff message has been set.';
 		} else {
-			$msg = "Your logoff message is too large. ".
-				"Your logoff message may contain a maximum of ".
+			$msg = 'Your logoff message is too large. '.
+				'Your logoff message may contain a maximum of '.
 				"{$this->maxLogoffMsgSize} characters.";
 		}
 		$context->reply($msg);
 	}
 
 	/** Check when a member of your org was last seen online by the bot */
-	#[NCA\HandlesCommand("lastseen")]
+	#[NCA\HandlesCommand('lastseen')]
 	public function lastSeenCommand(CmdContext $context, PCharacter $name): void {
 		$uid = $this->chatBot->getUid($name());
 		if ($uid === null) {
@@ -264,7 +264,7 @@ class GuildController extends ModuleInstance {
 		$altInfo = $this->altsController->getAltInfo($name());
 		$onlineAlts = $altInfo->getOnlineAlts();
 
-		$blob = "";
+		$blob = '';
 		foreach ($onlineAlts as $onlineAlt) {
 			$blob .= "<highlight>{$onlineAlt}<end> is currently online.\n";
 		}
@@ -273,9 +273,9 @@ class GuildController extends ModuleInstance {
 
 		/** @var Collection<OrgMember> */
 		$data = $this->db->table(self::DB_TABLE)
-			->whereIn("name", $alts)
-			->where("mode", "!=", "del")
-			->orderByDesc("logged_off")
+			->whereIn('name', $alts)
+			->where('mode', '!=', 'del')
+			->orderByDesc('logged_off')
 			->asObj(OrgMember::class);
 
 		foreach ($data as $row) {
@@ -302,20 +302,20 @@ class GuildController extends ModuleInstance {
 	 *
 	 * This will take into account each member's alts when reporting their last logon time
 	 */
-	#[NCA\HandlesCommand("recentseen")]
+	#[NCA\HandlesCommand('recentseen')]
 	#[NCA\Help\Example(
-		command: "<symbol>recentseen 1d",
-		description: "List all org members who logged on within 1 day"
+		command: '<symbol>recentseen 1d',
+		description: 'List all org members who logged on within 1 day'
 	)]
 	public function recentSeenCommand(CmdContext $context, PDuration $duration): void {
 		if (!$this->isGuildBot()) {
-			$context->reply("The bot must be in an org.");
+			$context->reply('The bot must be in an org.');
 			return;
 		}
 
 		$time = $duration->toSecs();
 		if ($time < 1) {
-			$msg = "You must enter a valid time parameter.";
+			$msg = 'You must enter a valid time parameter.';
 			$context->reply($msg);
 			return;
 		}
@@ -325,19 +325,19 @@ class GuildController extends ModuleInstance {
 
 		/** @var Collection<RecentOrgMember> */
 		$members = $this->db->table(self::DB_TABLE)
-			->where("mode", "!=", "del")
-			->where("logged_off", ">", $time)
-			->orderByDesc("logged_off")
+			->where('mode', '!=', 'del')
+			->where('logged_off', '>', $time)
+			->orderByDesc('logged_off')
 			->asObj(RecentOrgMember::class);
 		$members->each(function (RecentOrgMember $member): void {
 			$member->main = $this->altsController->getMainOf($member->name);
 		});
 
 		if ($members->count() === 0) {
-			$context->reply("No members recorded.");
+			$context->reply('No members recorded.');
 			return;
 		}
-		$members = $members->groupBy("main");
+		$members = $members->groupBy('main');
 
 		$numRecentCount = 0;
 		$highlight = false;
@@ -355,7 +355,7 @@ class GuildController extends ModuleInstance {
 			}
 			$prevToon = $member->main;
 			$numRecentCount++;
-			$alts = $this->text->makeChatcmd("alts", "/tell <myname> alts {$member->main}");
+			$alts = $this->text->makeChatcmd('alts', "/tell <myname> alts {$member->main}");
 			$logged = $member->logged_off??time();
 			$lastToon = $member->name;
 
@@ -379,11 +379,10 @@ class GuildController extends ModuleInstance {
 	 *
 	 * Do this if someone is an org member, but not in the org roster yet
 	 */
-	#[NCA\HandlesCommand("notify")]
+	#[NCA\HandlesCommand('notify')]
 	public function notifyAddCommand(
 		CmdContext $context,
-		#[NCA\Str("on", "add")]
-		string $action,
+		#[NCA\Str('on', 'add')] string $action,
 		PCharacter $char
 	): void {
 		$name = $char();
@@ -396,26 +395,26 @@ class GuildController extends ModuleInstance {
 		}
 
 		$mode = $this->db->table(self::DB_TABLE)
-			->where("name", $name)
-			->select("mode")
-			->pluckStrings("mode")->first();
+			->where('name', $name)
+			->select('mode')
+			->pluckStrings('mode')->first();
 
-		if ($mode !== null && $mode !== "del") {
+		if ($mode !== null && $mode !== 'del') {
 			$msg = "<highlight>{$name}<end> is already on the Notify list.";
 			$context->reply($msg);
 			return;
 		}
 		$this->db->table(self::DB_TABLE)
-			->upsert(["name" => $name, "mode" => "add"], "name");
+			->upsert(['name' => $name, 'mode' => 'add'], 'name');
 
 		if ($this->buddylistManager->isOnline($name)) {
-			$this->db->table("online")
+			$this->db->table('online')
 				->insert([
-					"name" => $name,
-					"channel" => $this->db->getMyguild(),
-					"channel_type" => "guild",
-					"added_by" => $this->db->getBotname(),
-					"dt" => time(),
+					'name' => $name,
+					'channel' => $this->db->getMyguild(),
+					'channel_type' => 'guild',
+					'added_by' => $this->db->getBotname(),
+					'dt' => time(),
 				]);
 		}
 		$this->buddylistManager->addName($name, 'org');
@@ -426,7 +425,7 @@ class GuildController extends ModuleInstance {
 	}
 
 	/** Manually remove a character from the notify list */
-	#[NCA\HandlesCommand("notify")]
+	#[NCA\HandlesCommand('notify')]
 	public function notifyRemoveCommand(
 		CmdContext $context,
 		PRemove $action,
@@ -442,18 +441,18 @@ class GuildController extends ModuleInstance {
 		}
 
 		$mode = $this->db->table(self::DB_TABLE)
-			->where("name", $name)
-			->select("mode")
-			->pluckStrings("mode")->first();
+			->where('name', $name)
+			->select('mode')
+			->pluckStrings('mode')->first();
 
 		if ($mode === null) {
 			$msg = "<highlight>{$name}<end> is not on the guild roster.";
-		} elseif ($mode == "del") {
+		} elseif ($mode == 'del') {
 			$msg = "<highlight>{$name}<end> has already been removed from the Notify list.";
 		} else {
 			$this->db->table(self::DB_TABLE)
-				->where("name", $name)
-				->update(["mode" => "del"]);
+				->where('name', $name)
+				->update(['mode' => 'del']);
 			$this->delMemberFromOnline($name);
 			$this->buddylistManager->remove($name, 'org');
 			unset($this->chatBot->guildmembers[$name]);
@@ -464,24 +463,24 @@ class GuildController extends ModuleInstance {
 	}
 
 	/** Force an update of the org roster */
-	#[NCA\HandlesCommand("updateorg")]
+	#[NCA\HandlesCommand('updateorg')]
 	public function updateorgCommand(CmdContext $context): void {
-		$context->reply("Starting Roster update");
+		$context->reply('Starting Roster update');
 		try {
 			$this->updateMyOrgRoster(true);
 		} catch (Throwable $e) {
-			$context->reply("There was an error during the roster update: ".
+			$context->reply('There was an error during the roster update: '.
 				$e->getMessage());
 			return;
 		}
-		$context->reply("Finished Roster update");
+		$context->reply('Finished Roster update');
 	}
 
 	public function updateMyOrgRoster(bool $forceUpdate=false): void {
 		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
 			return;
 		}
-		$this->logger->notice("Starting Roster update");
+		$this->logger->notice('Starting Roster update');
 		$org = $this->guildManager->byId($this->config->orgId, $this->config->main->dimension, $forceUpdate);
 		$this->updateRosterForGuild($org);
 	}
@@ -493,7 +492,7 @@ class GuildController extends ModuleInstance {
 			path: [new Source(
 				Source::ORG,
 				$this->config->general->orgName,
-				($abbr === "none") ? null : $abbr
+				($abbr === 'none') ? null : $abbr
 			)],
 			data: $event,
 		);
@@ -501,21 +500,20 @@ class GuildController extends ModuleInstance {
 	}
 
 	/** Get statistics about the organization */
-	#[NCA\HandlesCommand("orgstats")]
+	#[NCA\HandlesCommand('orgstats')]
 	public function orgstatsCommand(
 		CmdContext $context,
-		#[NCA\Str("online")]
-		?string $onlineOnly,
+		#[NCA\Str('online')] ?string $onlineOnly,
 	): void {
 		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
-			$context->reply("The bot must be in an org.");
+			$context->reply('The bot must be in an org.');
 			return;
 		}
 
 		$org = $this->guildManager->byId($this->config->orgId, $this->config->main->dimension, false);
-		$members = $this->db->table(self::DB_TABLE, "om")
-			->join("players AS p", "om.name", "=", "p.name")
-			->select("p.*")
+		$members = $this->db->table(self::DB_TABLE, 'om')
+			->join('players AS p', 'om.name', '=', 'p.name')
+			->select('p.*')
 			->asObj(Player::class);
 		if ($members->isEmpty()) {
 			$context->reply("I don't have data for any of our fellow org members.");
@@ -538,43 +536,43 @@ class GuildController extends ModuleInstance {
 				3
 			);
 			return "\n<tab>{$percentage} % <highlight>{$key}<end>: {$count} ".
-				$this->text->pluralize("member", $count).
-				", level " . $players->min("level") . " / <highlight>".
-				round($players->avg("level"), 0) . "<end> / ".
-				$players->max("level");
+				$this->text->pluralize('member', $count).
+				', level ' . $players->min('level') . ' / <highlight>'.
+				round($players->avg('level'), 0) . '<end> / '.
+				$players->max('level');
 		};
 		$tlFunc = function (Player $p): string {
-			return "TL " . $this->util->levelToTL($p->level ?? 1);
+			return 'TL ' . $this->util->levelToTL($p->level ?? 1);
 		};
 
-		$blob = "<header2>" . ($org->orgname ?? $this->config->general->orgName) . "<end>\n";
+		$blob = '<header2>' . ($org->orgname ?? $this->config->general->orgName) . "<end>\n";
 		if (isset($org)) {
-			$blob .= "<tab><highlight>Faction<end>: <" . strtolower($org->orgside) . ">{$org->orgside}<end>\n".
+			$blob .= '<tab><highlight>Faction<end>: <' . strtolower($org->orgside) . ">{$org->orgside}<end>\n".
 			"<tab><highlight>Government<end>: {$org->governing_form}\n";
 		}
-		$blob .= "<tab><highlight>Members<end>: " . $members->count() . "\n".
-			"<tab><highlight>Min level<end>: " . $members->min("level") . "\n".
-			"<tab><highlight>Avg level<end>: " . round($members->avg("level"), 0) . "\n".
-			"<tab><highlight>Max level<end>: " . $members->max("level") . "\n\n".
-			"<header2>Numbers by breed<end>".
-			$members->sortBy("breed")->groupBy("breed")
-			->map($statsFunc)->join("").
+		$blob .= '<tab><highlight>Members<end>: ' . $members->count() . "\n".
+			'<tab><highlight>Min level<end>: ' . $members->min('level') . "\n".
+			'<tab><highlight>Avg level<end>: ' . round($members->avg('level'), 0) . "\n".
+			'<tab><highlight>Max level<end>: ' . $members->max('level') . "\n\n".
+			'<header2>Numbers by breed<end>'.
+			$members->sortBy('breed')->groupBy('breed')
+			->map($statsFunc)->join('').
 			"\n\n<header2>Numbers by profession<end>".
-			$members->sortBy("profession")->groupBy("profession")
-			->map($statsFunc)->join("").
+			$members->sortBy('profession')->groupBy('profession')
+			->map($statsFunc)->join('').
 			"\n\n<header2>Numbers by gender<end>".
-			$members->sortBy("gender")->groupBy("gender")
-			->map($statsFunc)->join("").
+			$members->sortBy('gender')->groupBy('gender')
+			->map($statsFunc)->join('').
 			"\n\n<header2>Numbers by title level<end>".
-			$members->sortBy("level")->groupBy($tlFunc)
-			->map($statsFunc)->join("");
-		$msg = $this->text->makeBlob("Org statistics", $blob);
+			$members->sortBy('level')->groupBy($tlFunc)
+			->map($statsFunc)->join('');
+		$msg = $this->text->makeBlob('Org statistics', $blob);
 		$context->reply($msg);
 	}
 
 	#[NCA\Event(
-		name: "timer(24hrs)",
-		description: "Download guild roster xml and update guild members"
+		name: 'timer(24hrs)',
+		description: 'Download guild roster xml and update guild members'
 	)]
 	public function downloadOrgRosterEvent(Event $eventObj): void {
 		$this->updateMyOrgRoster(false);
@@ -582,48 +580,48 @@ class GuildController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: OrgMsgChannelMsgEvent::EVENT_MASK,
-		description: "Automatically update guild roster as characters join and leave the guild"
+		description: 'Automatically update guild roster as characters join and leave the guild'
 	)]
 	public function autoNotifyOrgMembersEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		$message = $eventObj->message;
-		if (count($arr = Safe::pregMatch("/^(.+) invited (.+) to your organization.$/", $message))) {
+		if (count($arr = Safe::pregMatch('/^(.+) invited (.+) to your organization.$/', $message))) {
 			$name = ucfirst(strtolower($arr[2]));
 
 			if (
 				$this->buddylistManager->isOnline($name)
-				&& $this->db->table("online")
-					->where("name", $name)
-					->where("channel_type", "guild")
-					->where("added_by", $this->db->getBotname())
+				&& $this->db->table('online')
+					->where('name', $name)
+					->where('channel_type', 'guild')
+					->where('added_by', $this->db->getBotname())
 					->doesntExist()
 			) {
-				$this->db->table("online")
+				$this->db->table('online')
 					->insert([
-						"name" => $name,
-						"channel" => $this->db->getMyguild(),
-						"channel_type" => "guild",
-						"added_by" => $this->db->getBotname(),
-						"dt" => time(),
+						'name' => $name,
+						'channel' => $this->db->getMyguild(),
+						'channel_type' => 'guild',
+						'added_by' => $this->db->getBotname(),
+						'dt' => time(),
 					]);
 			}
 			$this->db->table(self::DB_TABLE)
-				->upsert(["mode" => "add", "name" => $name], "name");
+				->upsert(['mode' => 'add', 'name' => $name], 'name');
 			$this->buddylistManager->addName($name, 'org');
 			$this->chatBot->guildmembers[$name] = 6;
 
 			// update character info
 			$this->playerManager->byName($name);
 		} elseif (
-			count($arr = Safe::pregMatch("/^(.+) kicked (?<char>.+) from your organization.$/", $message))
-			|| count($arr = Safe::pregMatch("/^(.+) removed inactive character (?<char>.+) from your organization.$/", $message))
-			|| count($arr = Safe::pregMatch("/^(?<char>.+) just left your organization.$/", $message))
-			|| count($arr = Safe::pregMatch("/^(?<char>.+) kicked from organization \\(alignment changed\\).$/", $message))
+			count($arr = Safe::pregMatch('/^(.+) kicked (?<char>.+) from your organization.$/', $message))
+			|| count($arr = Safe::pregMatch('/^(.+) removed inactive character (?<char>.+) from your organization.$/', $message))
+			|| count($arr = Safe::pregMatch('/^(?<char>.+) just left your organization.$/', $message))
+			|| count($arr = Safe::pregMatch('/^(?<char>.+) kicked from organization \\(alignment changed\\).$/', $message))
 		) {
-			$name = ucfirst(strtolower($arr["char"]));
+			$name = ucfirst(strtolower($arr['char']));
 
 			$this->db->table(self::DB_TABLE)
-				->where("name", $name)
-				->update(["mode" => "del"]);
+				->where('name', $name)
+				->update(['mode' => 'del']);
 			$this->delMemberFromOnline($name);
 
 			unset($this->chatBot->guildmembers[$name]);
@@ -658,7 +656,7 @@ class GuildController extends ModuleInstance {
 		$tokens = $this->getTokensForLogonLogoff($player, $whois, null);
 		$logonMessage = $this->text->renderPlaceholders($this->orgLogonMessage, $tokens);
 		$logonMessage = Safe::pregReplace(
-			"/&lt;([a-z]+)&gt;/",
+			'/&lt;([a-z]+)&gt;/',
 			'<$1>',
 			$logonMessage
 		);
@@ -669,7 +667,7 @@ class GuildController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: LogonEvent::EVENT_MASK,
-		description: "Shows an org member logon in chat"
+		description: 'Shows an org member logon in chat'
 	)]
 	public function orgMemberLogonMessageEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -717,7 +715,7 @@ class GuildController extends ModuleInstance {
 		$tokens = $this->getTokensForLogonLogoff($player, $whois, $altInfo);
 		$logoffMessage = $this->text->renderPlaceholders($this->orgLogoffMessage, $tokens);
 		$logoffMessage = Safe::pregReplace(
-			"/&lt;([a-z]+)&gt;/",
+			'/&lt;([a-z]+)&gt;/',
 			'<$1>',
 			$logoffMessage
 		);
@@ -728,7 +726,7 @@ class GuildController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: LogoffEvent::EVENT_MASK,
-		description: "Shows an org member logoff in chat"
+		description: 'Shows an org member logoff in chat'
 	)]
 	public function orgMemberLogoffMessageEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -758,7 +756,7 @@ class GuildController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: LogoffEvent::EVENT_MASK,
-		description: "Record org member logoff for lastseen command"
+		description: 'Record org member logoff for lastseen command'
 	)]
 	public function orgMemberLogoffRecordEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -769,8 +767,8 @@ class GuildController extends ModuleInstance {
 			return;
 		}
 		$this->db->table(self::DB_TABLE)
-			->where("name", $sender)
-			->update(["logged_off" => time()]);
+			->where('name', $sender)
+			->update(['logged_off' => time()]);
 	}
 
 	public function isGuildBot(): bool {
@@ -780,7 +778,7 @@ class GuildController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
-		description: "Verifies that org name is correct"
+		description: 'Verifies that org name is correct'
 	)]
 	public function verifyOrgNameEvent(ConnectEvent $eventObj): void {
 		if (empty($this->config->general->orgName)) {
@@ -788,15 +786,15 @@ class GuildController extends ModuleInstance {
 		}
 		if (isset($this->config->orgId)) {
 			$this->logger->warning("Org name '{org_name}' specified, but bot does not appear to belong to an org", [
-				"org_name" => $this->config->general->orgName,
+				'org_name' => $this->config->general->orgName,
 			]);
 			return;
 		}
 		$orgChannel = $this->chatBot->getOrgGroup();
 		if (isset($orgChannel) && $orgChannel->name !== Nadybot::UNKNOWN_ORG && $orgChannel->name !== $this->config->general->orgName) {
 			$this->logger->warning("Org name '{org_name}' specified, but bot belongs to org '{org_channel}'", [
-				"org_name" => $this->config->general->orgName,
-				"org_channel" => $orgChannel,
+				'org_name' => $this->config->general->orgName,
+				'org_channel' => $orgChannel,
 			]);
 		}
 	}
@@ -804,28 +802,28 @@ class GuildController extends ModuleInstance {
 	/** @return array{"admin-level": ?string, "c-admin-level": ?string, "access-level": ?string} */
 	protected function getRankTokens(string $player): array {
 		$tokens = [
-			"access-level" => null,
-			"admin-level" => null,
-			"c-admin-level" => null,
+			'access-level' => null,
+			'admin-level' => null,
+			'c-admin-level' => null,
 		];
 		$alRank = $this->accessManager->getAccessLevelForCharacter($player);
 		$alName = ucfirst($this->accessManager->getDisplayName($alRank));
 		$colors = $this->onlineController;
 		switch ($alRank) {
 			case 'superadmin':
-				$tokens["admin-level"] = $alName;
-				$tokens["c-admin-level"] = "{$colors->rankColorSuperadmin}{$alName}<end>";
+				$tokens['admin-level'] = $alName;
+				$tokens['c-admin-level'] = "{$colors->rankColorSuperadmin}{$alName}<end>";
 				break;
 			case 'admin':
-				$tokens["admin-level"] = $alName;
-				$tokens["c-admin-level"] = "{$colors->rankColorAdmin}{$alName}<end>";
+				$tokens['admin-level'] = $alName;
+				$tokens['c-admin-level'] = "{$colors->rankColorAdmin}{$alName}<end>";
 				break;
 			case 'mod':
-				$tokens["admin-level"] = $alName;
-				$tokens["c-admin-level"] = "{$colors->rankColorMod}{$alName}<end>";
+				$tokens['admin-level'] = $alName;
+				$tokens['c-admin-level'] = "{$colors->rankColorMod}{$alName}<end>";
 				break;
 		}
-		$tokens["access-level"] = $alName;
+		$tokens['access-level'] = $alName;
 		return $tokens;
 	}
 
@@ -833,79 +831,79 @@ class GuildController extends ModuleInstance {
 	protected function getTokensForLogonLogoff(string $player, ?Player $whois, ?AltInfo $altInfo): array {
 		$altInfo ??= $this->altsController->getAltInfo($player);
 		$tokens = [
-			"name" => $player,
-			"c-name" => "<highlight>{$player}<end>",
-			"first-name" => $whois?->firstname,
-			"last-name" => $whois?->lastname,
-			"level" => $whois?->level,
-			"c-level" => $whois ? "<highlight>{$whois->level}<end>" : null,
-			"ai-level" => $whois?->ai_level,
-			"c-ai-level" => $whois ? "<green>{$whois->ai_level}<end>" : null,
-			"prof" => $whois?->profession,
-			"c-prof" => $whois ? "<highlight>{$whois->profession}<end>" : null,
-			"profession" => $whois?->profession,
-			"c-profession" => $whois ? "<highlight>{$whois->profession}<end>" : null,
-			"org" => $whois?->guild,
-			"c-org" => $whois
-				? "<" . strtolower($whois->faction ?? "highlight") . ">{$whois->guild}<end>"
+			'name' => $player,
+			'c-name' => "<highlight>{$player}<end>",
+			'first-name' => $whois?->firstname,
+			'last-name' => $whois?->lastname,
+			'level' => $whois?->level,
+			'c-level' => $whois ? "<highlight>{$whois->level}<end>" : null,
+			'ai-level' => $whois?->ai_level,
+			'c-ai-level' => $whois ? "<green>{$whois->ai_level}<end>" : null,
+			'prof' => $whois?->profession,
+			'c-prof' => $whois ? "<highlight>{$whois->profession}<end>" : null,
+			'profession' => $whois?->profession,
+			'c-profession' => $whois ? "<highlight>{$whois->profession}<end>" : null,
+			'org' => $whois?->guild,
+			'c-org' => $whois
+				? '<' . strtolower($whois->faction ?? 'highlight') . ">{$whois->guild}<end>"
 				: null,
-			"org-rank" => $whois?->guild_rank,
-			"breed" => $whois?->breed,
-			"faction" => $whois?->faction,
-			"c-faction" => $whois
-				? "<" . strtolower($whois->faction ?? "highlight") . ">{$whois->faction}<end>"
+			'org-rank' => $whois?->guild_rank,
+			'breed' => $whois?->breed,
+			'faction' => $whois?->faction,
+			'c-faction' => $whois
+				? '<' . strtolower($whois->faction ?? 'highlight') . ">{$whois->faction}<end>"
 				: null,
-			"gender" => $whois?->gender,
-			"channel-name" => "the private channel",
-			"whois" => $player,
-			"short-prof" => null,
-			"c-short-prof" => null,
-			"main" => null,
-			"c-main" => null,
-			"nick" => $altInfo->getNick(),
-			"c-nick" => $altInfo->getDisplayNick(),
-			"alt-of" => null,
-			"alt-list" => null,
-			"logon-msg" => $this->preferences->get($player, 'logon_msg'),
-			"logoff-msg" => $this->preferences->get($player, 'logoff_msg'),
+			'gender' => $whois?->gender,
+			'channel-name' => 'the private channel',
+			'whois' => $player,
+			'short-prof' => null,
+			'c-short-prof' => null,
+			'main' => null,
+			'c-main' => null,
+			'nick' => $altInfo->getNick(),
+			'c-nick' => $altInfo->getDisplayNick(),
+			'alt-of' => null,
+			'alt-list' => null,
+			'logon-msg' => $this->preferences->get($player, 'logon_msg'),
+			'logoff-msg' => $this->preferences->get($player, 'logoff_msg'),
 		];
-		if (!isset($tokens["logon-msg"]) || !strlen($tokens["logon-msg"])) {
-			$tokens["logon-msg"] = null;
+		if (!isset($tokens['logon-msg']) || !strlen($tokens['logon-msg'])) {
+			$tokens['logon-msg'] = null;
 		}
-		if (!isset($tokens["logoff-msg"]) || !strlen($tokens["logoff-msg"])) {
-			$tokens["logoff-msg"] = null;
+		if (!isset($tokens['logoff-msg']) || !strlen($tokens['logoff-msg'])) {
+			$tokens['logoff-msg'] = null;
 		}
 		$ranks = $this->getRankTokens($player);
 		$tokens = array_merge($tokens, $ranks);
 
 		if (isset($whois)) {
-			$tokens["whois"] = $this->playerManager->getInfo($whois);
+			$tokens['whois'] = $this->playerManager->getInfo($whois);
 			if (isset($whois->profession)) {
-				$tokens["short-prof"] = $this->util->getProfessionAbbreviation($whois->profession);
-				$tokens["c-short-prof"] = "<highlight>{$tokens['short-prof']}<end>";
+				$tokens['short-prof'] = $this->util->getProfessionAbbreviation($whois->profession);
+				$tokens['c-short-prof'] = "<highlight>{$tokens['short-prof']}<end>";
 			}
 		}
 		if ($this->settingManager->getBool('guild_channel_status') === false) {
-			$tokens["channel-name"] = "<myname>";
+			$tokens['channel-name'] = '<myname>';
 		}
 		if ($altInfo->main !== $player) {
-			$tokens["main"] = $altInfo->main;
-			$tokens["c-main"] = "<highlight>{$altInfo->main}<end>";
-			$tokens["alt-of"] = "Alt of <highlight>{$tokens['c-nick']}<end>";
+			$tokens['main'] = $altInfo->main;
+			$tokens['c-main'] = "<highlight>{$altInfo->main}<end>";
+			$tokens['alt-of'] = "Alt of <highlight>{$tokens['c-nick']}<end>";
 		}
 		if (count($altInfo->getAllValidatedAlts()) > 0) {
 			$blob = $altInfo->getAltsBlob(true);
-			$tokens["alt-list"] = (string)((array)$blob)[0];
+			$tokens['alt-list'] = (string)((array)$blob)[0];
 		}
 		return $tokens;
 	}
 
 	/** Remove someone from the online list that we added for "guild" */
 	protected function delMemberFromOnline(string $member): int {
-		return $this->db->table("online")
-			->where("name", $member)
-			->where("channel_type", "guild")
-			->where("added_by", $this->db->getBotname())
+		return $this->db->table('online')
+			->where('name', $member)
+			->where('channel_type', 'guild')
+			->where('added_by', $this->db->getBotname())
 			->delete();
 	}
 
@@ -953,11 +951,11 @@ class GuildController extends ModuleInstance {
 	private function loadGuildMembers(): void {
 		$this->chatBot->guildmembers = [];
 		$members = $this->db->table(self::DB_TABLE)
-			->where("mode", "!=", "del")
-			->orderBy("name")
+			->where('mode', '!=', 'del')
+			->orderBy('name')
 			->asObj(OrgMember::class);
 		$players = $this->playerManager
-			->searchByNames($this->db->getDim(), ...$members->pluck("name")->toArray());
+			->searchByNames($this->db->getDim(), ...$members->pluck('name')->toArray());
 		$players->each(function (Player $player): void {
 			$this->chatBot->guildmembers[$player->name] = $player->guild_rank_id ?? 6;
 		});
@@ -966,12 +964,12 @@ class GuildController extends ModuleInstance {
 	private function updateRosterForGuild(?Guild $org): void {
 		// Check if guild xml file is correct if not abort
 		if ($org === null) {
-			$this->logger->error("Error downloading the guild roster xml file");
+			$this->logger->error('Error downloading the guild roster xml file');
 			return;
 		}
 
 		if (count($org->members) === 0) {
-			$this->logger->error("Guild xml file has no members! Aborting roster update.");
+			$this->logger->error('Guild xml file has no members! Aborting roster update.');
 			return;
 		}
 		$dbEntries = [];
@@ -990,9 +988,9 @@ class GuildController extends ModuleInstance {
 		}
 		if ($removedPercent > 30 && $this->numOrgUpdatesSkipped < self::CONSECUTIVE_BAD_UPDATES) {
 			$this->logger->warning(
-				"Org update would remove {percent}% of the org members - skipping for now",
+				'Org update would remove {percent}% of the org members - skipping for now',
 				[
-					"percent" => $removedPercent,
+					'percent' => $removedPercent,
 				]
 			);
 			$this->settingManager->save(
@@ -1006,8 +1004,8 @@ class GuildController extends ModuleInstance {
 		if ($data->count() > 0 || (count($org->members) === 0)) {
 			foreach ($data as $row) {
 				$dbEntries[$row->name] = [
-					"name" => $row->name,
-					"mode" => $row->mode,
+					'name' => $row->name,
+					'mode' => $row->mode,
 				];
 			}
 		}
@@ -1025,7 +1023,7 @@ class GuildController extends ModuleInstance {
 
 			// If there exists already data about the character just update him/her
 			if (isset($dbEntries[$member->name])) {
-				if ($dbEntries[$member->name]["mode"] === "del") {
+				if ($dbEntries[$member->name]['mode'] === 'del') {
 					// members who are not on notify should not be on the buddy list but should remain in the database
 					$this->buddylistManager->remove($member->name, 'org');
 					unset($this->chatBot->guildmembers[$member->name]);
@@ -1035,10 +1033,10 @@ class GuildController extends ModuleInstance {
 					$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
 
 					// if member was added to notify list manually, switch mode to org and let guild roster update from now on
-					if ($dbEntries[$member->name]["mode"] == "add") {
+					if ($dbEntries[$member->name]['mode'] == 'add') {
 						$this->db->table(self::DB_TABLE)
-							->where("name", $member->name)
-							->update(["mode" => "org"]);
+							->where('name', $member->name)
+							->update(['mode' => 'org']);
 					}
 				}
 				// else insert his/her data
@@ -1049,8 +1047,8 @@ class GuildController extends ModuleInstance {
 
 				$this->db->table(self::DB_TABLE)
 					->insert([
-						"name" => $member->name,
-						"mode" => "org",
+						'name' => $member->name,
+						'mode' => 'org',
 					]);
 			}
 			unset($dbEntries[$member->name]);
@@ -1061,9 +1059,9 @@ class GuildController extends ModuleInstance {
 		// remove buddies who are no longer org members
 		foreach ($dbEntries as $buddy) {
 			if ($buddy['mode'] !== 'add') {
-				$this->delMemberFromOnline($buddy["name"]);
+				$this->delMemberFromOnline($buddy['name']);
 				$this->db->table(self::DB_TABLE)
-					->where("name", $buddy["name"])
+					->where('name', $buddy['name'])
 					->delete();
 				$this->buddylistManager->remove($buddy['name'], 'org');
 				unset($this->chatBot->guildmembers[$buddy['name']]);
@@ -1071,6 +1069,6 @@ class GuildController extends ModuleInstance {
 		}
 
 		$this->chatBot->ready = true;
-		$this->logger->notice("Finished Roster update");
+		$this->logger->notice('Finished Roster update');
 	}
 }

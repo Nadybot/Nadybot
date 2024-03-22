@@ -14,33 +14,33 @@ use Nadybot\Core\{
 
 #[
 	NCA\EventModifier(
-		name: "change-message",
+		name: 'change-message',
 		description: "This modifier allows you to modify the message of an\n".
-			"event by replacing text, or adding a prefix."
+			'event by replacing text, or adding a prefix.'
 	),
 	NCA\Param(
-		name: "add-prefix",
-		type: "string",
+		name: 'add-prefix',
+		type: 'string',
 		description: "If set, prefix the message with the given string. Note that it will\n".
-			"not automatically add a space between prefix and message.",
+			'not automatically add a space between prefix and message.',
 		required: false
 	),
 	NCA\Param(
-		name: "search",
-		type: "string",
-		description: "If set, search for the given string and replace it with the \"replace\" parameter",
+		name: 'search',
+		type: 'string',
+		description: 'If set, search for the given string and replace it with the "replace" parameter',
 		required: false
 	),
 	NCA\Param(
-		name: "replace",
-		type: "string",
-		description: "If search is set, this is the text to replace with",
+		name: 'replace',
+		type: 'string',
+		description: 'If search is set, this is the text to replace with',
 		required: false
 	),
 	NCA\Param(
-		name: "regexp",
-		type: "bool",
-		description: "If set to true, do a regular expression search and replace",
+		name: 'regexp',
+		type: 'bool',
+		description: 'If set to true, do a regular expression search and replace',
 		required: false
 	)
 ]
@@ -59,9 +59,9 @@ class ChangeMessage implements EventModifier {
 			throw new Exception("Missing parameter 'replace'");
 		}
 		// @phpstan-ignore-next-line
-		if (isset($search) && $regexp && @\preg_match(chr(1) . $search . chr(1) . "si", "") === false) {
-			$error = error_get_last()["message"]??"Unknown error";
-			$error = Safe::pregReplace("/^preg_match\(\): (Compilation failed: )?/", "", $error);
+		if (isset($search) && $regexp && @\preg_match(chr(1) . $search . chr(1) . 'si', '') === false) {
+			$error = error_get_last()['message']??'Unknown error';
+			$error = Safe::pregReplace("/^preg_match\(\): (Compilation failed: )?/", '', $error);
 			throw new Exception("Invalid regular expression '{$search}': {$error}.");
 		}
 	}
@@ -100,7 +100,7 @@ class ChangeMessage implements EventModifier {
 		if (isset($this->search, $this->replace)) {
 			if ($this->isRegExp) {
 				$message = Safe::pregReplace(
-					chr(1) . $this->search . chr(1) . "s",
+					chr(1) . $this->search . chr(1) . 's',
 					$this->replace,
 					$message
 				);

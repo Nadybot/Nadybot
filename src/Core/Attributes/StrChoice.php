@@ -8,6 +8,6 @@ use ReflectionParameter;
 #[Attribute(Attribute::TARGET_PARAMETER)]
 class StrChoice extends Str {
 	public function renderParameter(ReflectionParameter $param): string {
-		return join("|", $this->values);
+		return implode('|', $this->values);
 	}
 }

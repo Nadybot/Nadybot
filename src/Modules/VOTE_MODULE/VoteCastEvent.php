@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\VOTE_MODULE;
 
 class VoteCastEvent extends VoteEvent {
-	public const EVENT_MASK = "vote(cast)";
+	public const EVENT_MASK = 'vote(cast)';
 
 	public function __construct(
 		public Poll $poll,

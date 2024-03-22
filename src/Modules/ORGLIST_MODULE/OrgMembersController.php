@@ -19,9 +19,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "orgmembers",
-		accessLevel: "member",
-		description: "Show guild members sorted by name",
+		command: 'orgmembers',
+		accessLevel: 'member',
+		description: 'Show guild members sorted by name',
 	)
 ]
 class OrgMembersController extends ModuleInstance {
@@ -35,9 +35,9 @@ class OrgMembersController extends ModuleInstance {
 	private GuildManager $guildManager;
 
 	/** Show the members of an organization, sorted by name */
-	#[NCA\HandlesCommand("orgmembers")]
+	#[NCA\HandlesCommand('orgmembers')]
 	public function orgmembers2Command(CmdContext $context, int $orgId): void {
-		$context->reply("Getting org info...");
+		$context->reply('Getting org info...');
 
 		$org = $this->guildManager->byId($orgId);
 		if ($org === null) {
@@ -47,10 +47,10 @@ class OrgMembersController extends ModuleInstance {
 		}
 
 		/** @var Collection<Player> */
-		$players = $this->db->table("players")
-			->where("guild_id", $orgId)
-			->where("dimension", $this->db->getDim())
-			->orderBy("name")
+		$players = $this->db->table('players')
+			->where('guild_id', $orgId)
+			->where('dimension', $this->db->getDim())
+			->orderBy('name')
 			->asObj(Player::class);
 		$numrows = $players->count();
 

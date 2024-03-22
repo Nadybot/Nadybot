@@ -15,10 +15,10 @@ use ReflectionClass;
 #[NCA\Instance]
 class Util {
 	/** @var string */
-	public const DATETIME = "d-M-Y H:i T";
+	public const DATETIME = 'd-M-Y H:i T';
 
 	/** @var string */
-	public const DATE = "d-M-Y";
+	public const DATE = 'd-M-Y';
 
 	#[NCA\Inject]
 	private BotConfig $config;
@@ -30,13 +30,13 @@ class Util {
 	public function bytesConvert(int $bytes): string {
 		$ext = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 		$unitCount = 0;
-		for ($max = count($ext) - 1; $bytes >= 1024 && $unitCount < $max; $unitCount++) {
-			$bytes /= 1024;
+		for ($max = count($ext) - 1; $bytes >= 1_024 && $unitCount < $max; $unitCount++) {
+			$bytes /= 1_024;
 		}
 		if (!isset($ext[$unitCount])) {
 			throw new RangeException("{$bytes} too large to handle");
 		}
-		return round($bytes, 2) ." ". $ext[$unitCount];
+		return round($bytes, 2) .' '. $ext[$unitCount];
 	}
 
 	/**
@@ -50,11 +50,11 @@ class Util {
 		}
 
 		$units = [
-			"year" => 31536000,
-			"day" => 86400,
-			"hr" => 3600,
-			"min" => 60,
-			"sec" => 1,
+			'year' => 31_536_000,
+			'day' => 86_400,
+			'hr' => 3_600,
+			'min' => 60,
+			'sec' => 1,
 		];
 
 		$timeshift = '';
@@ -64,11 +64,11 @@ class Util {
 			} else {
 				$length = ceil($time / $seconds);
 			}
-			if ($unit != "sec" || $showSeconds || $timeshift == '') {
+			if ($unit != 'sec' || $showSeconds || $timeshift == '') {
 				if ($length > 1) {
-					$timeshift .= $length . " " . $unit . "s ";
+					$timeshift .= $length . ' ' . $unit . 's ';
 				} elseif ($length == 1) {
-					$timeshift .= $length . " " . $unit . " ";
+					$timeshift .= $length . ' ' . $unit . ' ';
 				}
 			}
 			$time = $time % $seconds;
@@ -99,29 +99,29 @@ class Util {
 				case 'yr':
 				case 'year':
 				case 'years':
-					$unixtime += (int)$match[1] * 31536000;
+					$unixtime += (int)$match[1] * 31_536_000;
 					break;
 				case 'mo':
 				case 'month':
 				case 'months':
-					$unixtime += (int)$match[1] * 2592000;
+					$unixtime += (int)$match[1] * 2_592_000;
 					break;
 				case 'weeks':
 				case 'week':
 				case 'w':
-					$unixtime += (int)$match[1] * 604800;
+					$unixtime += (int)$match[1] * 604_800;
 					break;
 				case 'days':
 				case 'day':
 				case 'd':
-					$unixtime += (int)$match[1] * 86400;
+					$unixtime += (int)$match[1] * 86_400;
 					break;
 				case 'hours':
 				case 'hour':
 				case 'hrs':
 				case 'hr':
 				case 'h':
-					$unixtime += (int)$match[1] * 3600;
+					$unixtime += (int)$match[1] * 3_600;
 					break;
 				case 'mins':
 				case 'min':
@@ -172,73 +172,73 @@ class Util {
 	public function getProfessionName(string $search): string {
 		$search = strtolower($search);
 		switch ($search) {
-			case "adv":
-			case "advy":
-			case "adventurer":
-				$prof = "Adventurer";
+			case 'adv':
+			case 'advy':
+			case 'adventurer':
+				$prof = 'Adventurer';
 				break;
-			case "age":
-			case "agent":
-				$prof = "Agent";
+			case 'age':
+			case 'agent':
+				$prof = 'Agent';
 				break;
-			case "crat":
-			case "bureaucrat":
-				$prof = "Bureaucrat";
+			case 'crat':
+			case 'bureaucrat':
+				$prof = 'Bureaucrat';
 				break;
-			case "doc":
-			case "doctor":
-				$prof = "Doctor";
+			case 'doc':
+			case 'doctor':
+				$prof = 'Doctor';
 				break;
-			case "enf":
-			case "enfo":
-			case "enforcer":
-				$prof = "Enforcer";
+			case 'enf':
+			case 'enfo':
+			case 'enforcer':
+				$prof = 'Enforcer';
 				break;
-			case "eng":
-			case "engi":
-			case "engy":
-			case "engineer":
-				$prof = "Engineer";
+			case 'eng':
+			case 'engi':
+			case 'engy':
+			case 'engineer':
+				$prof = 'Engineer';
 				break;
-			case "fix":
-			case "fixer":
-				$prof = "Fixer";
+			case 'fix':
+			case 'fixer':
+				$prof = 'Fixer';
 				break;
-			case "keep":
-			case "keeper":
-				$prof = "Keeper";
+			case 'keep':
+			case 'keeper':
+				$prof = 'Keeper';
 				break;
-			case "ma":
-			case "martial":
-			case "martialartist":
-			case "martial artist":
-				$prof = "Martial Artist";
+			case 'ma':
+			case 'martial':
+			case 'martialartist':
+			case 'martial artist':
+				$prof = 'Martial Artist';
 				break;
-			case "mp":
-			case "meta":
-			case "metaphysicist":
-			case "meta-physicist":
-				$prof = "Meta-Physicist";
+			case 'mp':
+			case 'meta':
+			case 'metaphysicist':
+			case 'meta-physicist':
+				$prof = 'Meta-Physicist';
 				break;
-			case "nt":
-			case "nano":
-			case "nanotechnician":
-			case "nano-technician":
-				$prof = "Nano-Technician";
+			case 'nt':
+			case 'nano':
+			case 'nanotechnician':
+			case 'nano-technician':
+				$prof = 'Nano-Technician';
 				break;
-			case "sol":
-			case "sold":
-			case "soldier":
-				$prof = "Soldier";
+			case 'sol':
+			case 'sold':
+			case 'soldier':
+				$prof = 'Soldier';
 				break;
-			case "tra":
-			case "trad":
-			case "trader":
-				$prof = "Trader";
+			case 'tra':
+			case 'trad':
+			case 'trader':
+				$prof = 'Trader';
 				break;
-			case "sha":
-			case "shade":
-				$prof = "Shade";
+			case 'sha':
+			case 'shade':
+				$prof = 'Shade';
 				break;
 			default:
 				$prof = '';
@@ -254,50 +254,50 @@ class Util {
 	 */
 	public function getProfessionAbbreviation(string $profession): string {
 		switch ($profession) {
-			case "Adventurer":
-				$prof = "Adv";
+			case 'Adventurer':
+				$prof = 'Adv';
 				break;
-			case "Agent":
-				$prof = "Agent";
+			case 'Agent':
+				$prof = 'Agent';
 				break;
-			case "Bureaucrat":
-				$prof = "Crat";
+			case 'Bureaucrat':
+				$prof = 'Crat';
 				break;
-			case "Doctor":
-				$prof = "Doc";
+			case 'Doctor':
+				$prof = 'Doc';
 				break;
-			case "Enforcer":
-				$prof = "Enf";
+			case 'Enforcer':
+				$prof = 'Enf';
 				break;
-			case "Engineer":
-				$prof = "Eng";
+			case 'Engineer':
+				$prof = 'Eng';
 				break;
-			case "Fixer":
-				$prof = "Fixer";
+			case 'Fixer':
+				$prof = 'Fixer';
 				break;
-			case "Keeper":
-				$prof = "Keeper";
+			case 'Keeper':
+				$prof = 'Keeper';
 				break;
-			case "Martial Artist":
-				$prof = "MA";
+			case 'Martial Artist':
+				$prof = 'MA';
 				break;
-			case "Meta-Physicist":
-				$prof = "MP";
+			case 'Meta-Physicist':
+				$prof = 'MP';
 				break;
-			case "Nano-Technician":
-				$prof = "NT";
+			case 'Nano-Technician':
+				$prof = 'NT';
 				break;
-			case "Soldier":
-				$prof = "Sol";
+			case 'Soldier':
+				$prof = 'Sol';
 				break;
-			case "Trader":
-				$prof = "Trader";
+			case 'Trader':
+				$prof = 'Trader';
 				break;
-			case "Shade":
-				$prof = "Shade";
+			case 'Shade':
+				$prof = 'Shade';
 				break;
 			default:
-				$prof = "Unknown";
+				$prof = 'Unknown';
 				break;
 		}
 
@@ -307,7 +307,7 @@ class Util {
 	/** Completes a filename or directory by searching for it in modules and core paths */
 	public function verifyFilename(string $filename): string {
 		// Replace all \ characters with /
-		$filename = str_replace("\\", "/", $filename);
+		$filename = str_replace('\\', '/', $filename);
 
 		// check if the file exists
 		foreach (array_reverse($this->config->paths->modules) as $modulePath) {
@@ -324,7 +324,7 @@ class Util {
 		if ($this->fs->exists($filename)) {
 			return $filename;
 		}
-		return "";
+		return '';
 	}
 
 	/**
@@ -376,7 +376,7 @@ class Util {
 	public function isValidSender(int|string $sender): bool {
 		$isValid = !in_array(
 			$sender,
-			[(string)0xFFFFFFFF, 0xFFFFFFFF, "-1", -1],
+			[(string)0xFF_FF_FF_FF, 0xFF_FF_FF_FF, '-1', -1],
 			true
 		);
 		return $isValid;
@@ -401,7 +401,7 @@ class Util {
 		$arr1 = [];
 		$arr2 = [];
 		foreach ($trace as $obj) {
-			$file = str_replace(getcwd() . "/", "", ($obj['file'] ?? "{Closure}"));
+			$file = str_replace(getcwd() . '/', '', ($obj['file'] ?? '{Closure}'));
 			if (isset($obj['line'])) {
 				$arr1 []= "{$file}({$obj['line']})";
 			} else {
@@ -412,12 +412,12 @@ class Util {
 
 		array_shift($arr2);
 
-		$str = "";
+		$str = '';
 		for ($i = 0; $i < count($arr1); $i++) {
-			if ($arr1[$i] !== "{Closure}") {
+			if ($arr1[$i] !== '{Closure}') {
 				$str .= $arr1[$i];
 				if (isset($arr2[$i])) {
-					$str .= ": ";
+					$str .= ': ';
 				}
 			}
 			$str .= "{$arr2[$i]}\n";
@@ -455,8 +455,8 @@ class Util {
 
 	/** Remove all colors from $msg */
 	public function stripColors(string $msg): string {
-		$msg = Safe::pregReplace("~<font color=#.{6}>~", "", $msg);
-		$msg = Safe::pregReplace("~</font>~", "", $msg);
+		$msg = Safe::pregReplace('~<font color=#.{6}>~', '', $msg);
+		$msg = Safe::pregReplace('~</font>~', '', $msg);
 		return $msg;
 	}
 
@@ -474,16 +474,16 @@ class Util {
 		$queryParams = [];
 		$statements = [];
 		foreach ($params as $key => $value) {
-			if ($value[0] == "-" && strlen($value) > 1) {
+			if ($value[0] == '-' && strlen($value) > 1) {
 				$value = substr($value, 1);
-				$op = "NOT LIKE";
+				$op = 'NOT LIKE';
 			} else {
-				$op = "LIKE";
+				$op = 'LIKE';
 			}
 			$statements []= "{$column} {$op} ?";
 			$queryParams []= '%' . $value . '%';
 		}
-		return [join(" AND ", $statements), $queryParams];
+		return [implode(' AND ', $statements), $queryParams];
 	}
 
 	/**
@@ -530,7 +530,6 @@ class Util {
 		while ($ptr2 < count($array2)) {
 			$array[] = $array2[$ptr2++];
 		}
-		return;
 	}
 
 	/**
@@ -560,7 +559,7 @@ class Util {
 		}
 		return array_values(array_filter(
 			$files,
-			fn (string $f): bool => !$this->fs->isDirectory($path . DIRECTORY_SEPARATOR . $f)
+			fn (string $f): bool => !$this->fs->isDirectory($path . \DIRECTORY_SEPARATOR . $f)
 		));
 	}
 
@@ -577,13 +576,13 @@ class Util {
 		}
 		return array_values(array_filter(
 			$files,
-			fn (string $f): bool => $f !== '.' && $f !== '..' && $this->fs->isDirectory($path . DIRECTORY_SEPARATOR . $f)
+			fn (string $f): bool => $f !== '.' && $f !== '..' && $this->fs->isDirectory($path . \DIRECTORY_SEPARATOR . $f)
 		));
 	}
 
 	/** Test if $input only consists of digits */
 	public function isInteger(mixed $input): bool {
-		return ctype_digit(strval($input));
+		return ctype_digit((string)$input);
 	}
 
 	/** Calculate the title level from the player's level */
@@ -673,10 +672,10 @@ class Util {
 				case $param::TYPE_STRING_ARRAY:
 					$param->type = $paramObj->type;
 					break;
-				case "integer":
+				case 'integer':
 					$param->type = $param::TYPE_INT;
 					break;
-				case "boolean":
+				case 'boolean':
 					$param->type = $param::TYPE_BOOL;
 					break;
 				default:
@@ -707,9 +706,9 @@ class Util {
 	/** Create a cryptographically secure password */
 	public function getPassword(int $length=16): string {
 		if ($length < 1) {
-			throw new InvalidArgumentException("Parameter \$length to getPassword() must be > 0");
+			throw new InvalidArgumentException('Parameter $length to getPassword() must be > 0');
 		}
 		$password = base64_encode(random_bytes($length+4));
-		return substr(rtrim($password, "="), 0, $length);
+		return substr(rtrim($password, '='), 0, $length);
 	}
 }

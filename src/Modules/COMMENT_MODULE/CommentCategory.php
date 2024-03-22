@@ -6,10 +6,10 @@ use Nadybot\Core\DBRow;
 
 class CommentCategory extends DBRow {
 	/** The name of the category */
-	public string $name = "unknown";
+	public string $name = 'unknown';
 
 	/** Name of the character who created the category */
-	public string $created_by = "Unknown";
+	public string $created_by = 'Unknown';
 
 	/** Unix timestamp when the category was created */
 	public int $created_at;

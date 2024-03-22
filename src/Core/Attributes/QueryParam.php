@@ -10,8 +10,8 @@ class QueryParam {
 		public string $name,
 		public string $desc,
 		public bool $required=false,
-		public string $in="query",
-		public string $type="string"
+		public string $in='query',
+		public string $type='string'
 	) {
 	}
 }

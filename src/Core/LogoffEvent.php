@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 /** A character on our buddylist logs off */
 class LogoffEvent extends UserStateEvent {
-	public const EVENT_MASK = "logoff";
+	public const EVENT_MASK = 'logoff';
 
 	public function __construct(
 		public string $sender,

@@ -3,7 +3,7 @@
 namespace Nadybot\Core\ParamClass;
 
 class PWord extends Base {
-	protected static string $regExp = "[^ ]+";
+	protected static string $regExp = '[^ ]+';
 
 	/** @psalm-var non-empty-string */
 	protected string $value;

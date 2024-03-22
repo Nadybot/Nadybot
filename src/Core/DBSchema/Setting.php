@@ -9,9 +9,9 @@ class Setting extends DBRow {
 	public ?string $module;
 	public ?string $type;
 	public string $mode;
-	public ?string $value="0";
-	public ?string $options="0";
-	public ?string $intoptions="0";
+	public ?string $value='0';
+	public ?string $options='0';
+	public ?string $intoptions='0';
 	public ?string $description;
 	public ?string $source;
 	public ?string $admin;

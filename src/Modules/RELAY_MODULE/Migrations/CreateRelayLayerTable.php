@@ -8,14 +8,14 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210808154625)]
+#[NCA\Migration(order: 20_210_808_154_625)]
 class CreateRelayLayerTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RelayController::DB_TABLE_LAYER;
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->unsignedBigInteger("relay_id")->index();
-			$table->string("layer", 100);
+			$table->unsignedBigInteger('relay_id')->index();
+			$table->string('layer', 100);
 		});
 	}
 }

@@ -18,7 +18,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\HandlesEventFeed('update_notifications'),
-	NCA\EmitsMessages("system", "maintainer-notification")
+	NCA\EmitsMessages('system', 'maintainer-notification')
 ]
 class UpdateNotificationController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Inject]
@@ -35,9 +35,9 @@ class UpdateNotificationController extends ModuleInstance implements EventFeedHa
 		}
 		$rMessage = new RoutableMessage(
 			"\n".
-			"<yellow>" . str_repeat("-", 20) . "[<end> Maintainer Notice <yellow>]" . str_repeat("-", 20) . "\n".
+			'<yellow>' . str_repeat('-', 20) . '[<end> Maintainer Notice <yellow>]' . str_repeat('-', 20) . "\n".
 			"<tab>{$package->message}\n".
-			"<yellow>" . str_repeat("-", 61) . "<end>"
+			'<yellow>' . str_repeat('-', 61) . '<end>'
 		);
 		$rMessage->prependPath(new Source(Source::SYSTEM, 'maintainer-notification'));
 		$this->msgHub->handle($rMessage);

@@ -3,7 +3,7 @@
 namespace Nadybot\Core\ParamClass;
 
 class PPlayfield extends Base {
-	protected static string $regExp = "[0-9A-Za-z]+[A-Za-z]";
+	protected static string $regExp = '[0-9A-Za-z]+[A-Za-z]';
 	protected string $value;
 
 	public function __construct(string $value) {
@@ -19,6 +19,6 @@ class PPlayfield extends Base {
 	}
 
 	public static function getExample(): ?string {
-		return "&lt;playfield&gt;";
+		return '&lt;playfield&gt;';
 	}
 }

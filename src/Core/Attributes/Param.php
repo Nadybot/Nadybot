@@ -10,7 +10,7 @@ class Param {
 		public string $name,
 		public string $type,
 		public bool $required,
-		public string $description="",
+		public string $description='',
 	) {
 	}
 }

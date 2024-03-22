@@ -21,19 +21,19 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "say",
-		accessLevel: "rl",
-		description: "Sends message to org chat or private chat",
+		command: 'say',
+		accessLevel: 'rl',
+		description: 'Sends message to org chat or private chat',
 	),
 	NCA\DefineCommand(
-		command: "tell",
-		accessLevel: "rl",
-		description: "Repeats a message 3 times",
+		command: 'tell',
+		accessLevel: 'rl',
+		description: 'Repeats a message 3 times',
 	),
 	NCA\DefineCommand(
-		command: "cmd",
-		accessLevel: "rl",
-		description: "Creates a highly visible message",
+		command: 'cmd',
+		accessLevel: 'rl',
+		description: 'Creates a highly visible message',
 	),
 	NCA\ProvidesEvent(SayEvent::class),
 	NCA\ProvidesEvent(CmdEvent::class)
@@ -41,11 +41,11 @@ use Nadybot\Core\{
 class ChatSayController extends ModuleInstance {
 	/** The color that !cmd wraps the message in */
 	#[NCA\Setting\Color]
-	public string $bcmCmdColor = "#FF0000";
+	public string $bcmCmdColor = '#FF0000';
 
 	/** The color that !tell wraps the message in */
 	#[NCA\Setting\Color]
-	public string $bcmTellColor = "#FFFF00";
+	public string $bcmTellColor = '#FFFF00';
 	#[NCA\Inject]
 	private Nadybot $chatBot;
 
@@ -56,10 +56,10 @@ class ChatSayController extends ModuleInstance {
 	private EventManager $eventManager;
 
 	/** Have the bot say something in the org channel */
-	#[NCA\HandlesCommand("say")]
-	public function sayOrgCommand(CmdContext $context, #[NCA\Str("org")] string $channel, string $message): void {
+	#[NCA\HandlesCommand('say')]
+	public function sayOrgCommand(CmdContext $context, #[NCA\Str('org')] string $channel, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
@@ -72,10 +72,10 @@ class ChatSayController extends ModuleInstance {
 	}
 
 	/** Have the bot say something in the private channel */
-	#[NCA\HandlesCommand("say")]
-	public function sayPrivCommand(CmdContext $context, #[NCA\Str("priv")] string $channel, string $message): void {
+	#[NCA\HandlesCommand('say')]
+	public function sayPrivCommand(CmdContext $context, #[NCA\Str('priv')] string $channel, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
@@ -88,18 +88,18 @@ class ChatSayController extends ModuleInstance {
 	}
 
 	/** Show a highly visible message */
-	#[NCA\HandlesCommand("cmd")]
-	#[NCA\Help\Group("cmd")]
+	#[NCA\HandlesCommand('cmd')]
+	#[NCA\Help\Group('cmd')]
 	public function cmdCommand(CmdContext $context, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 
 		$msg = "\n".
 			"<yellow>------------------------------------------<end>\n".
 			"<tab>{$this->bcmCmdColor}{$message}<end>\n".
-			"<yellow>------------------------------------------<end>";
+			'<yellow>------------------------------------------<end>';
 
 		if ($context->isDM()) {
 			$this->chatBot->sendGuild($msg, true);
@@ -115,11 +115,11 @@ class ChatSayController extends ModuleInstance {
 	}
 
 	/** Repeat a message 3 times */
-	#[NCA\HandlesCommand("tell")]
-	#[NCA\Help\Group("cmd")]
+	#[NCA\HandlesCommand('tell')]
+	#[NCA\Help\Group('cmd')]
 	public function tellCommand(CmdContext $context, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
 

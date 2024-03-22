@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\TRACKER_MODULE;
 
 class TrackerLogoffEvent extends TrackerEvent {
-	public const EVENT_MASK = "tracker(logoff)";
+	public const EVENT_MASK = 'tracker(logoff)';
 
 	public function __construct(
 		public string $player,

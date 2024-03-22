@@ -7,15 +7,15 @@ use Nadybot\Core\{Event, SyncEvent};
 use stdClass;
 
 class RoutableEvent extends Event {
-	public const TYPE_MESSAGE = "message";
-	public const TYPE_EVENT = "event";
+	public const TYPE_MESSAGE = 'message';
+	public const TYPE_EVENT = 'event';
 
 	/** @param Source[] $path */
 	public function __construct(
 		string $type,
 		public array $path=[],
 		public bool $routeSilently=false,
-		public string|Base|SyncEvent|stdClass|null $data=null,
+		public null|string|Base|SyncEvent|stdClass $data=null,
 		public ?Character $char=null,
 	) {
 		$this->type = $type;

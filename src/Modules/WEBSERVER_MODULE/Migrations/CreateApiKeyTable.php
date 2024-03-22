@@ -8,17 +8,17 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\WEBSERVER_MODULE\ApiController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210904164924)]
+#[NCA\Migration(order: 20_210_904_164_924)]
 class CreateApiKeyTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = ApiController::DB_TABLE;
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->string("character", 12)->index();
-			$table->string("token", 8)->unique();
-			$table->unsignedBigInteger("last_sequence_nr")->default(0);
-			$table->text("pubkey");
-			$table->unsignedInteger("created");
+			$table->string('character', 12)->index();
+			$table->string('token', 8)->unique();
+			$table->unsignedBigInteger('last_sequence_nr')->default(0);
+			$table->text('pubkey');
+			$table->unsignedInteger('created');
 		});
 	}
 }

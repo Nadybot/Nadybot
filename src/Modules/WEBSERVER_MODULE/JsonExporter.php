@@ -25,13 +25,13 @@ class JsonExporter {
 				return '[]';
 			}
 			if (array_keys($data) === range(0, count($data) - 1)) {
-				return '[' . join(",", array_map([static::class, __FUNCTION__], $data)) . ']';
+				return '[' . implode(',', array_map([static::class, __FUNCTION__], $data)) . ']';
 			}
 			$result = [];
 			foreach ($data as $key => $value) {
 				$result []= static::jsonEncode((string)$key) . ': ' . static::encode($value);
 			}
-			return "{" . join(",", $result) . "}";
+			return '{' . implode(',', $result) . '}';
 		}
 		if (!is_object($data)) {
 			return static::jsonEncode($data);
@@ -44,7 +44,7 @@ class JsonExporter {
 			}
 			$result []= static::jsonEncode($name) . ':' . static::encode($value);
 		}
-		return '{' . join(",", $result) . '}';
+		return '{' . implode(',', $result) . '}';
 	}
 
 	/** @param ReflectionClass<object> $refClass */
@@ -77,9 +77,9 @@ class JsonExporter {
 
 	protected static function jsonEncode(mixed $data): string {
 		try {
-			return json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+			return json_encode($data, \JSON_INVALID_UTF8_SUBSTITUTE|\JSON_UNESCAPED_SLASHES|\JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
-			return "";
+			return '';
 		}
 	}
 }

@@ -8,20 +8,20 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\HIGHNET_MODULE\HighnetController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20230531131425)]
+#[NCA\Migration(order: 20_230_531_131_425)]
 class CreateFilterTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = HighnetController::DB_TABLE;
-		$db->schema()->create($table, function (Blueprint $table) {
+		$db->schema()->create($table, static function (Blueprint $table) {
 			$table->id();
-			$table->string("creator", 12)->nullable(false);
-			$table->string("sender_name", 12)->nullable(true);
-			$table->unsignedInteger("sender_uid")->nullable(true);
-			$table->string("bot_name", 12)->nullable(true);
-			$table->unsignedInteger("bot_uid")->nullable(true);
-			$table->string("channel", 25)->nullable(true);
-			$table->unsignedSmallInteger("dimension")->nullable(true);
-			$table->unsignedInteger("expires")->nullable(true);
+			$table->string('creator', 12)->nullable(false);
+			$table->string('sender_name', 12)->nullable(true);
+			$table->unsignedInteger('sender_uid')->nullable(true);
+			$table->string('bot_name', 12)->nullable(true);
+			$table->unsignedInteger('bot_uid')->nullable(true);
+			$table->string('channel', 25)->nullable(true);
+			$table->unsignedSmallInteger('dimension')->nullable(true);
+			$table->unsignedInteger('expires')->nullable(true);
 		});
 	}
 }

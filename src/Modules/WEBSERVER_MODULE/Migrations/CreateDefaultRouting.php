@@ -12,7 +12,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210816060706)]
+#[NCA\Migration(order: 20_210_816_060_706)]
 class CreateDefaultRouting implements SchemaMigration {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
@@ -23,16 +23,16 @@ class CreateDefaultRouting implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
 		$route = [
-			"source" => "web",
-			"destination" => Source::PRIV . "(" . $this->config->main->character . ")",
-			"two_way" => true,
+			'source' => 'web',
+			'destination' => Source::PRIV . '(' . $this->config->main->character . ')',
+			'two_way' => true,
 		];
 		$db->table($table)->insert($route);
 
 		$route = [
-			"source" => "web",
-			"destination" => Source::ORG,
-			"two_way" => true,
+			'source' => 'web',
+			'destination' => Source::ORG,
+			'two_way' => true,
 		];
 		$db->table($table)->insert($route);
 	}

@@ -8,16 +8,16 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\DEV_MODULE\SilenceController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210425163859)]
+#[NCA\Migration(order: 20_210_425_163_859)]
 class CreateSilenceCmdTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = SilenceController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->string("cmd", 25);
-			$table->string("channel", 18);
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->string('cmd', 25);
+			$table->string('channel', 18);
 		});
 	}
 }

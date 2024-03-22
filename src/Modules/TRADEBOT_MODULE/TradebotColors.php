@@ -15,8 +15,7 @@ class TradebotColors extends DBRow {
 		public string $tradebot,
 		public string $channel,
 		public string $color,
-		#[NCA\DB\AutoInc]
-		public ?int $id=null,
+		#[NCA\DB\AutoInc] public ?int $id=null,
 	) {
 	}
 }

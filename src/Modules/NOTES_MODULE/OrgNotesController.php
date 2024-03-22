@@ -22,28 +22,28 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/OrgNotes"),
+	NCA\HasMigrations('Migrations/OrgNotes'),
 	NCA\DefineCommand(
-		command: "orgnotes",
-		accessLevel: "guild",
-		description: "Displays, adds, or removes a note from your list",
-		alias: "orgnote"
+		command: 'orgnotes',
+		accessLevel: 'guild',
+		description: 'Displays, adds, or removes a note from your list',
+		alias: 'orgnote'
 	),
 	NCA\ProvidesEvent(
 		event: SyncOrgNoteEvent::class,
-		desc: "Triggered whenever someone creates an org note"
+		desc: 'Triggered whenever someone creates an org note'
 	),
 	NCA\ProvidesEvent(
 		event: SyncOrgNoteDeleteEvent::class,
-		desc: "Triggered when deleting an org note"
+		desc: 'Triggered when deleting an org note'
 	)
 ]
 class OrgNotesController extends ModuleInstance {
-	public const DB_TABLE = "org_notes";
+	public const DB_TABLE = 'org_notes';
 
 	/** Rank required to delete other people's org notes */
 	#[NCA\Setting\Rank]
-	public string $orgnoteDeleteOtherRank = "mod";
+	public string $orgnoteDeleteOtherRank = 'mod';
 
 	#[NCA\Inject]
 	private DB $db;
@@ -76,7 +76,7 @@ class OrgNotesController extends ModuleInstance {
 	/** Get a single org note */
 	public function getOrgNote(int $id): ?OrgNote {
 		return $this->db->table(self::DB_TABLE)
-			->where("id", $id)
+			->where('id', $id)
 			->asObj(OrgNote::class)
 			->first();
 	}
@@ -128,38 +128,37 @@ class OrgNotesController extends ModuleInstance {
 	}
 
 	/** List all organization-wide notes */
-	#[NCA\HandlesCommand("orgnotes")]
+	#[NCA\HandlesCommand('orgnotes')]
 	public function cmdShowOrgNotes(CmdContext $context): void {
 		$notes = $this->getOrgNotes();
 		if ($notes->isEmpty()) {
-			$context->reply("Org notes (0)");
+			$context->reply('Org notes (0)');
 			return;
 		}
 		$chunks = [];
 		foreach ($notes as $note) {
-			$removeLink = "";
+			$removeLink = '';
 			if ($this->canDeleteOrgNote($note, $context->char->name)) {
-				$removeLink = " [" . $this->text->makeChatcmd(
-					"remove",
+				$removeLink = ' [' . $this->text->makeChatcmd(
+					'remove',
 					"/tell <myname> orgnote rem {$note->id}"
-				) . "]";
+				) . ']';
 			}
 			$chunks []= "<tab>{$note->added_by} on ".
 				$this->util->date($note->added_on).
 				"\n<tab>- <highlight>{$note->note}<end>{$removeLink}";
 		}
 		$blob = "<header2>Notes in your org/alliance<end>\n\n".
-			join("\n\n", $chunks);
-		$msg = $this->text->makeBlob("Org notes (" . $notes->count() . ")", $blob);
+			implode("\n\n", $chunks);
+		$msg = $this->text->makeBlob('Org notes (' . $notes->count() . ')', $blob);
 		$context->reply($msg);
 	}
 
 	/** Create a new, organization-wide notes */
-	#[NCA\HandlesCommand("orgnotes")]
+	#[NCA\HandlesCommand('orgnotes')]
 	public function cmdAddOrgNote(
 		CmdContext $context,
-		#[NCA\Str("add", "new", "create")]
-		string $action,
+		#[NCA\Str('add', 'new', 'create')] string $action,
 		string $text
 	): void {
 		$note = $this->createOrgNote($context->char->name, $text, $context->forceSync);
@@ -167,7 +166,7 @@ class OrgNotesController extends ModuleInstance {
 	}
 
 	/** Remove an organization-wide note */
-	#[NCA\HandlesCommand("orgnotes")]
+	#[NCA\HandlesCommand('orgnotes')]
 	public function cmdRemOrgNote(
 		CmdContext $context,
 		PRemove $action,
@@ -188,7 +187,7 @@ class OrgNotesController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: SyncOrgNoteEvent::EVENT_MASK,
-		description: "Sync externally created org notes"
+		description: 'Sync externally created org notes'
 	)]
 	public function processOrgNoteSyncEvent(SyncOrgNoteEvent $event): void {
 		if ($event->isLocal()) {
@@ -196,11 +195,11 @@ class OrgNotesController extends ModuleInstance {
 		}
 		$note = $event->toOrgNote();
 		$note->id = $this->db->table(self::DB_TABLE)
-			->where("uuid", $event->uuid)
-			->pluckInts("id")
+			->where('uuid', $event->uuid)
+			->pluckInts('id')
 			->first();
 		if (isset($note->id)) {
-			$this->db->update(self::DB_TABLE, "id", $note);
+			$this->db->update(self::DB_TABLE, 'id', $note);
 		} else {
 			$this->db->insert(self::DB_TABLE, $note);
 		}
@@ -208,14 +207,14 @@ class OrgNotesController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: SyncOrgNoteDeleteEvent::EVENT_MASK,
-		description: "Sync externally deleted org notes"
+		description: 'Sync externally deleted org notes'
 	)]
 	public function processNewsDeleteSyncEvent(SyncOrgNoteDeleteEvent $event): void {
 		if ($event->isLocal()) {
 			return;
 		}
 		$this->db->table(self::DB_TABLE)
-			->where("uuid", $event->uuid)
+			->where('uuid', $event->uuid)
 			->delete();
 	}
 

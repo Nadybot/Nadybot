@@ -28,15 +28,15 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "bank",
-		accessLevel: "guild",
-		description: "Browse and search the bank characters",
+		command: 'bank',
+		accessLevel: 'guild',
+		description: 'Browse and search the bank characters',
 	),
 	NCA\DefineCommand(
-		command: "bank update",
-		accessLevel: "admin",
-		description: "Reloads the bank database from the AO Items Assistant file",
-		alias: "updatebank"
+		command: 'bank update',
+		accessLevel: 'admin',
+		description: 'Reloads the bank database from the AO Items Assistant file',
+		alias: 'updatebank'
 	),
 ]
 class BankController extends ModuleInstance {
@@ -64,14 +64,14 @@ class BankController extends ModuleInstance {
 	private Filesystem $fs;
 
 	/** List the bank characters in the database: */
-	#[NCA\HandlesCommand("bank")]
-	public function bankBrowseCommand(CmdContext $context, #[NCA\Str("browse")] string $action): void {
-		$characters = $this->db->table("bank")
-			->orderBy("player")
-			->select("player")->distinct()
-			->pluckStrings("player");
+	#[NCA\HandlesCommand('bank')]
+	public function bankBrowseCommand(CmdContext $context, #[NCA\Str('browse')] string $action): void {
+		$characters = $this->db->table('bank')
+			->orderBy('player')
+			->select('player')->distinct()
+			->pluckStrings('player');
 		if ($characters->isEmpty()) {
-			$context->reply("No bank characters found.");
+			$context->reply('No bank characters found.');
 			return;
 		}
 		$blob = "<header2>Available characters<end>\n";
@@ -85,21 +85,20 @@ class BankController extends ModuleInstance {
 	}
 
 	/** List the containers of a given bank character: */
-	#[NCA\HandlesCommand("bank")]
+	#[NCA\HandlesCommand('bank')]
 	public function bankBrowsePlayerCommand(
 		CmdContext $context,
-		#[NCA\Str("browse")]
-		string $action,
+		#[NCA\Str('browse')] string $action,
 		PCharacter $char
 	): void {
 		$name = $char();
 
 		/** @var Collection<string,Collection<Bank>> */
-		$data = $this->db->table("bank")
-			->where("player", $name)
-			->orderBy("container")
+		$data = $this->db->table('bank')
+			->where('player', $name)
+			->orderBy('container')
 			->asObj(Bank::class)
-			->groupBy("container");
+			->groupBy('container');
 		if ($data->count() === 0) {
 			$msg = "Could not find bank character <highlight>{$name}<end>.";
 			$context->reply($msg);
@@ -117,16 +116,16 @@ class BankController extends ModuleInstance {
 	}
 
 	/** See the contents of a container on a bank character */
-	#[NCA\HandlesCommand("bank")]
-	public function bankBrowseContainerCommand(CmdContext $context, #[NCA\Str("browse")] string $action, PCharacter $char, int $containerId): void {
+	#[NCA\HandlesCommand('bank')]
+	public function bankBrowseContainerCommand(CmdContext $context, #[NCA\Str('browse')] string $action, PCharacter $char, int $containerId): void {
 		$name = $char();
 		$limit = $this->maxBankItems;
 
-		$data = $this->db->table("bank")
-			->where("player", $name)
-			->where("container_id", $containerId)
-			->orderBy("name")
-			->orderBy("ql")
+		$data = $this->db->table('bank')
+			->where('player', $name)
+			->where('container_id', $containerId)
+			->orderBy('name')
+			->orderBy('ql')
 			->limit($limit)
 			->asObj(Bank::class);
 
@@ -142,7 +141,7 @@ class BankController extends ModuleInstance {
 			$item->fromString($itemLink);
 			$itemLink = $item->toString();
 			$compactItemLink = str_replace("'", '', $itemLink);
-			$askLink = $this->text->makeChatcmd("ask", "/tell <myname> wish from {$name} {$compactItemLink} from {$data[0]->container}");
+			$askLink = $this->text->makeChatcmd('ask', "/tell <myname> wish from {$name} {$compactItemLink} from {$data[0]->container}");
 			$blob .= "<tab>{$itemLink} [{$askLink}]\n";
 		}
 
@@ -151,32 +150,30 @@ class BankController extends ModuleInstance {
 	}
 
 	/** Search for an item on all bank characters */
-	#[NCA\HandlesCommand("bank")]
-	#[NCA\Help\Example("<symbol>bank search operative")]
-	#[NCA\Help\Example("<symbol>bank search 225 sharpshooter")]
-	#[NCA\Help\Example("<symbol>bank search 10-200 symbiant")]
+	#[NCA\HandlesCommand('bank')]
+	#[NCA\Help\Example('<symbol>bank search operative')]
+	#[NCA\Help\Example('<symbol>bank search 225 sharpshooter')]
+	#[NCA\Help\Example('<symbol>bank search 10-200 symbiant')]
 	public function bankSearchCommand(
 		CmdContext $context,
-		#[NCA\Str("search")]
-		string $action,
-		#[NCA\Regexp("\d+(?:(?:\s*-\s*|\s+)\d+)?", "&lt;ql range&gt;")]
-		?string $ql,
+		#[NCA\Str('search')] string $action,
+		#[NCA\Regexp("\d+(?:(?:\s*-\s*|\s+)\d+)?", '&lt;ql range&gt;')] ?string $ql,
 		string $search
 	): void {
 		$search = htmlspecialchars_decode($search);
 		$words = explode(' ', $search);
 		$limit = $this->maxBankItems;
-		$query = $this->db->table("bank")
-			->orderBy("name")
-			->orderBy("ql")
+		$query = $this->db->table('bank')
+			->orderBy('name')
+			->orderBy('ql')
 			->limit($limit);
 		if (isset($ql)) {
 			[$low, $high] = preg_split("/(\s*-\s*|\s+)/", $ql);
 			if (isset($high)) {
-				$query->where("ql", ">=", min((int)$low, (int)$high));
-				$query->where("ql", "<=", max((int)$low, (int)$high));
+				$query->where('ql', '>=', min((int)$low, (int)$high));
+				$query->where('ql', '<=', max((int)$low, (int)$high));
 			} else {
-				$query->where("ql", (int)$low);
+				$query->where('ql', (int)$low);
 			}
 		}
 		$this->db->addWhereFromParams($query, $words, 'name');
@@ -196,7 +193,7 @@ class BankController extends ModuleInstance {
 			$item2->fromString($itemLink);
 			$itemLink = $item2->toString();
 			$compactItemLink = str_replace("'", '', $itemLink);
-			$askLink = $this->text->makeChatcmd("ask", "/tell <myname> wish from {$item->player} {$compactItemLink} from {$item->container}");
+			$askLink = $this->text->makeChatcmd('ask', "/tell <myname> wish from {$item->player} {$compactItemLink} from {$item->container}");
 			$blob .= "{$itemLink} in <highlight>{$item->player} &gt; {$item->container}<end> [{$askLink}]\n";
 		}
 
@@ -205,8 +202,8 @@ class BankController extends ModuleInstance {
 	}
 
 	/** Reload the bank database from the file specified with the <a href='chatcmd:///tell <myname> settings change bank_file_location'>bank_file_location</a> setting */
-	#[NCA\HandlesCommand("bank update")]
-	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): void {
+	#[NCA\HandlesCommand('bank update')]
+	public function bankUpdateCommand(CmdContext $context, #[NCA\Str('update')] string $action): void {
 		$procs = [];
 		foreach ($this->bankFileLocation as $location) {
 			$procs []= async($this->loadLocation(...), $location);
@@ -215,12 +212,12 @@ class BankController extends ModuleInstance {
 		$bodies = await($procs);
 		$lines = array_merge(
 			...array_map(
-				fn (string $body) => preg_split("/(?:\r\n|\r|\n)/", $body),
+				static fn (string $body) => preg_split("/(?:\r\n|\r|\n)/", $body),
 				$bodies
 			)
 		);
 		$this->bankUpdate($lines);
-		$context->reply("The bank database has been updated.");
+		$context->reply('The bank database has been updated.');
 	}
 
 	/**
@@ -233,14 +230,14 @@ class BankController extends ModuleInstance {
 	 * @throws UserException On error
 	 */
 	private function loadLocation(string $location): string {
-		if (preg_match("|^https?://|", $location)) {
+		if (preg_match('|^https?://|', $location)) {
 			$client = $this->builder->build();
 
 			$response = $client->request(new Request($location));
 			if ($response->getStatus() !== 200) {
 				throw new UserException(
-					"Received code <highlight>" . $response->getStatus() . "<end> " .
-					"when trying to download the bank ".
+					'Received code <highlight>' . $response->getStatus() . '<end> ' .
+					'when trying to download the bank '.
 					"CSV file <highlight>{$location}<end>."
 				);
 			}
@@ -260,7 +257,7 @@ class BankController extends ModuleInstance {
 		array_shift($lines);
 
 		$this->db->awaitBeginTransaction();
-		$this->db->table("bank")->truncate();
+		$this->db->table('bank')->truncate();
 
 		foreach ($lines as $line) {
 			// this is the order of columns in the CSV file (AOIA v1.1.3.0):
@@ -273,16 +270,16 @@ class BankController extends ModuleInstance {
 				$container = $location;
 			}
 
-			$this->db->table("bank")
+			$this->db->table('bank')
 				->insert([
-					"name" => $name,
-					"lowid" => $lowId,
-					"highid" => $highId,
-					"ql" => $ql,
-					"player" => $player,
-					"container" => $container,
-					"container_id" => $containerId,
-					"location" => $location,
+					'name' => $name,
+					'lowid' => $lowId,
+					'highid' => $highId,
+					'ql' => $ql,
+					'player' => $player,
+					'container' => $container,
+					'container_id' => $containerId,
+					'location' => $location,
 				]);
 		}
 		$this->db->commit();

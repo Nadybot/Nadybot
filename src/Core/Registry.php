@@ -24,7 +24,7 @@ class Registry {
 	/** Return the name of the class without the namespace */
 	public static function formatName(string $class): string {
 		$class = strtolower($class);
-		$array = explode("\\", $class);
+		$array = explode('\\', $class);
 		return array_pop($array);
 	}
 
@@ -83,8 +83,8 @@ class Registry {
 					static::getLogger()->warning(
 						"Could not resolve dependency '{dependencyName}' in '{class}'",
 						[
-							"dependencyName" => $dependencyName,
-							"class" => is_string($instance) ? $instance : get_class($instance),
+							'dependencyName' => $dependencyName,
+							'class' => is_string($instance) ? $instance : $instance::class,
 						]
 					);
 				} else {
@@ -105,19 +105,19 @@ class Registry {
 				if (isset($loggerAttr->tag)) {
 					$tag = $loggerAttr->tag;
 				} else {
-					$array = explode("\\", $reflection->name);
-					if (preg_match("/^Nadybot\\\\Modules\\\\/", $reflection->name)) {
-						$tag = join("/", array_slice($array, 2));
-					} elseif (preg_match("/^Nadybot\\\\User\\\\Modules\\\\/", $reflection->name)) {
-						$tag = join("/", array_slice($array, 3));
+					$array = explode('\\', $reflection->name);
+					if (preg_match('/^Nadybot\\\\Modules\\\\/', $reflection->name)) {
+						$tag = implode('/', array_slice($array, 2));
+					} elseif (preg_match('/^Nadybot\\\\User\\\\Modules\\\\/', $reflection->name)) {
+						$tag = implode('/', array_slice($array, 3));
 					} else {
-						$tag = join("/", array_slice($array, -2));
+						$tag = implode('/', array_slice($array, -2));
 					}
 				}
 				$property->setAccessible(true);
 				$logger = new LoggerWrapper($tag);
 				if ($instance instanceof LogWrapInterface) {
-					$closure = $reflection->getMethod("wrapLogs")->getClosure($instance);
+					$closure = $reflection->getMethod('wrapLogs')->getClosure($instance);
 					if (isset($closure)) {
 						$logger->wrap($closure);
 					}
@@ -145,7 +145,7 @@ class Registry {
 		if (isset(static::$logger)) {
 			return static::$logger;
 		}
-		static::$logger ??= new LoggerWrapper("Core/Registry");
+		static::$logger ??= new LoggerWrapper('Core/Registry');
 		// static::injectDependencies(static::$logger);
 		return static::$logger;
 	}

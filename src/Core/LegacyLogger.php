@@ -19,12 +19,12 @@ use SplObjectStorage;
  * A compatibility layer for logging
  */
 #[
-	NCA\EmitsMessages(Source::LOG, "emergency"),
-	NCA\EmitsMessages(Source::LOG, "alert"),
-	NCA\EmitsMessages(Source::LOG, "critical"),
-	NCA\EmitsMessages(Source::LOG, "error"),
-	NCA\EmitsMessages(Source::LOG, "warning"),
-	NCA\EmitsMessages(Source::LOG, "notice"),
+	NCA\EmitsMessages(Source::LOG, 'emergency'),
+	NCA\EmitsMessages(Source::LOG, 'alert'),
+	NCA\EmitsMessages(Source::LOG, 'critical'),
+	NCA\EmitsMessages(Source::LOG, 'error'),
+	NCA\EmitsMessages(Source::LOG, 'warning'),
+	NCA\EmitsMessages(Source::LOG, 'notice'),
 ]
 class LegacyLogger {
 	/** @var array<string,Logger> */
@@ -54,8 +54,8 @@ class LegacyLogger {
 		}
 		return array_filter(
 			static::$loggers,
-			function (Logger $logger) use ($mask): bool {
-				return fnmatch($mask, $logger->getName(), FNM_CASEFOLD);
+			static function (Logger $logger) use ($mask): bool {
+				return fnmatch($mask, $logger->getName(), \FNM_CASEFOLD);
 			}
 		);
 	}
@@ -94,32 +94,32 @@ class LegacyLogger {
 		if (!empty(static::$config) && !$noCache) {
 			return static::$config;
 		}
-		$configFile = BotRunner::$arguments["log-config"] ?? "./conf/logging.json";
+		$configFile = BotRunner::$arguments['log-config'] ?? './conf/logging.json';
 		$json = self::$fs->read($configFile);
 		try {
 			$logStruct = json_decode($json, true, 512);
 		} catch (JsonException $e) {
-			throw new RuntimeException("Unable to parse logging config", 0, $e);
+			throw new RuntimeException('Unable to parse logging config', 0, $e);
 		}
-		if (!isset($logStruct["monolog"])) {
-			throw new RuntimeException("Invalid logging config, missing \"monolog\" key");
+		if (!isset($logStruct['monolog'])) {
+			throw new RuntimeException('Invalid logging config, missing "monolog" key');
 		}
-		static::$config = $logStruct["monolog"];
+		static::$config = $logStruct['monolog'];
 
 		// Convert the log level configuration into an ordered format
-		$channels = static::$config["channels"] ?? [];
+		$channels = static::$config['channels'] ?? [];
 		uksort(
 			$channels,
-			function (string $s1, string $s2): int {
+			static function (string $s1, string $s2): int {
 				return strlen($s2) <=> strlen($s1);
 			}
 		);
 		static::$logLevels = [];
-		$verbose = BotRunner::$arguments["v"] ?? true;
+		$verbose = BotRunner::$arguments['v'] ?? true;
 		if ($verbose === false) {
-			static::$logLevels []= ["*", "info"];
+			static::$logLevels []= ['*', 'info'];
 		} elseif (is_array($verbose) && count($verbose) > 1) {
-			static::$logLevels []= ["*", "debug"];
+			static::$logLevels []= ['*', 'debug'];
 		}
 		foreach ($channels as $channel => $logLevel) {
 			static::$logLevels []= [(string)$channel, (string)$logLevel];
@@ -144,7 +144,7 @@ class LegacyLogger {
 		$oldLevel = null;
 		$setLevel = null;
 		foreach (static::$logLevels as $logLevelConf) {
-			if (!fnmatch($logLevelConf[0], $logger->getName(), FNM_CASEFOLD)) {
+			if (!fnmatch($logLevelConf[0], $logger->getName(), \FNM_CASEFOLD)) {
 				continue;
 			}
 
@@ -176,8 +176,8 @@ class LegacyLogger {
 			return static::$loggers[$channel];
 		}
 		$logStruct = static::getConfig();
-		$formatters = static::parseFormattersConfig($logStruct["formatters"]??[]);
-		$handlers = static::parseHandlersConfig($logStruct["handlers"]??[], $formatters);
+		$formatters = static::parseFormattersConfig($logStruct['formatters']??[]);
+		$handlers = static::parseHandlersConfig($logStruct['handlers']??[], $formatters);
 		$logger = new Logger($channel, [...array_values($handlers)]);
 		static::assignLogLevel($logger);
 		return static::$loggers[$channel] = $logger;
@@ -194,31 +194,31 @@ class LegacyLogger {
 	public static function parseHandlersConfig(array $handlers, array $formatters): array {
 		$result = [];
 		foreach ($handlers as $name => $config) {
-			$class = "Monolog\\Handler\\".static::toClass($config["type"]) . "Handler";
-			if (isset($config["options"]["fileName"])) {
-				$config["options"]["fileName"] = LoggerWrapper::getLoggingDirectory() . "/" . $config["options"]["fileName"];
+			$class = 'Monolog\\Handler\\'.static::toClass($config['type']) . 'Handler';
+			if (isset($config['options']['fileName'])) {
+				$config['options']['fileName'] = LoggerWrapper::getLoggingDirectory() . '/' . $config['options']['fileName'];
 			}
 			$dynamic = false;
-			if (isset($config["options"]["level"]) && $config["options"]["level"] === "default") {
-				$config["options"]["level"] = "notice";
+			if (isset($config['options']['level']) && $config['options']['level'] === 'default') {
+				$config['options']['level'] = 'notice';
 				$dynamic = true;
 			}
 
 			/** @var AbstractProcessingHandler */
-			$obj = new $class(...array_values($config["options"]));
+			$obj = new $class(...array_values($config['options']));
 			if ($dynamic) {
 				static::$dynamicHandlers->attach($obj);
 			}
-			foreach ($config["calls"]??[] as $func => $params) {
+			foreach ($config['calls']??[] as $func => $params) {
 				$obj->{$func}(...array_values($params));
 			}
-			if (isset($config["formatter"])) {
-				if (!isset($formatters[$config["formatter"]])) {
+			if (isset($config['formatter'])) {
+				if (!isset($formatters[$config['formatter']])) {
 					throw new RuntimeException("The log handler {$name} uses an undeclared formatter '{$config['formatter']}'");
 				}
-				$obj->setFormatter($formatters[$config["formatter"]]);
+				$obj->setFormatter($formatters[$config['formatter']]);
 			}
-			$removeUsedVariables = $config["removeUsedVariables"] ?? true;
+			$removeUsedVariables = $config['removeUsedVariables'] ?? true;
 			$obj->pushProcessor(new PsrLogMessageProcessor(null, $removeUsedVariables));
 			$result[$name] = $obj;
 		}
@@ -235,11 +235,11 @@ class LegacyLogger {
 	public static function parseFormattersConfig(array $formatters): array {
 		$result = [];
 		foreach ($formatters as $name => $config) {
-			$class = "Monolog\\Formatter\\" . static::toClass($config["type"]) . "Formatter";
+			$class = 'Monolog\\Formatter\\' . static::toClass($config['type']) . 'Formatter';
 
 			/** @var FormatterInterface */
-			$obj = new $class(...array_values($config["options"]));
-			foreach ($config["calls"]??[] as $func => $params) {
+			$obj = new $class(...array_values($config['options']));
+			foreach ($config['calls']??[] as $func => $params) {
 				$obj->{$func}(...array_values($params));
 			}
 			$result[$name] = $obj;
@@ -256,6 +256,6 @@ class LegacyLogger {
 	}
 
 	protected static function toClass(string $name): string {
-		return join("", array_map("ucfirst", explode("_", $name)));
+		return implode('', array_map('ucfirst', explode('_', $name)));
 	}
 }

@@ -13,7 +13,7 @@ use Nadybot\Core\{
 #[NCA\Instance]
 class KubernetesController extends ModuleInstance {
 	/** Enable Kubernetes endpoints at /livez and /readyz */
-	#[NCA\Setting\Boolean(accessLevel: "admin")]
+	#[NCA\Setting\Boolean(accessLevel: 'admin')]
 	public bool $kubernetesEndpoints = true;
 
 	#[NCA\Inject]
@@ -21,7 +21,7 @@ class KubernetesController extends ModuleInstance {
 
 	/** Query if the bot is running as it is supposed to */
 	#[
-		NCA\HttpGet("/livez"),
+		NCA\HttpGet('/livez'),
 		NCA\HttpOwnAuth,
 	]
 	public function getLivezEndpoint(Request $request): Response {
@@ -30,14 +30,14 @@ class KubernetesController extends ModuleInstance {
 		}
 		return new Response(
 			status: HttpStatus::OK,
-			headers: ['Content-Type' => "text/plain"],
-			body: "Bot is up"
+			headers: ['Content-Type' => 'text/plain'],
+			body: 'Bot is up'
 		);
 	}
 
 	/** Query if the bot is ready to accept traffic */
 	#[
-		NCA\HttpGet("/readyz"),
+		NCA\HttpGet('/readyz'),
 		NCA\HttpOwnAuth,
 	]
 	public function getReadyzEndpoint(Request $request): Response {
@@ -47,8 +47,8 @@ class KubernetesController extends ModuleInstance {
 		if ($this->chatBot->isReady()) {
 			return new Response(
 				status: HttpStatus::OK,
-				headers: ['Content-Type' => "text/plain"],
-				body: "Bot is ready"
+				headers: ['Content-Type' => 'text/plain'],
+				body: 'Bot is ready'
 			);
 		}
 		return new Response(status: HttpStatus::NOT_FOUND);

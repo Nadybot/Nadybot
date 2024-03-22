@@ -28,19 +28,19 @@ use Safe\Exceptions\DatetimeException;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "events",
-		accessLevel: "guest",
-		description: "View/Join/Leave events",
+		command: 'events',
+		accessLevel: 'guest',
+		description: 'View/Join/Leave events',
 		alias: 'event',
 	),
 	NCA\DefineCommand(
 		command: EventsController::CMD_EVENT_MANAGE,
-		accessLevel: "mod",
-		description: "Add/change or delete an event",
+		accessLevel: 'mod',
+		description: 'Add/change or delete an event',
 	),
 ]
 class EventsController extends ModuleInstance {
-	public const CMD_EVENT_MANAGE = "events add/change/delete";
+	public const CMD_EVENT_MANAGE = 'events add/change/delete';
 
 	/** Maximum number of events shown */
 	#[NCA\Setting\Number(options: [5, 10, 15, 20])]
@@ -65,11 +65,11 @@ class EventsController extends ModuleInstance {
 	private AltsController $altsController;
 
 	/** Show the five closest past and upcoming events */
-	#[NCA\HandlesCommand("events")]
+	#[NCA\HandlesCommand('events')]
 	public function eventsCommand(CmdContext $context): void {
 		$msg = $this->getEvents();
 		if ($msg === null) {
-			$msg = "No events entered yet.";
+			$msg = 'No events entered yet.';
 		}
 		$context->reply($msg);
 	}
@@ -81,13 +81,13 @@ class EventsController extends ModuleInstance {
 	 * This is the ID you will use to change data regarding that event.
 	 */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $eventName): void {
-		$eventId = $this->db->table("events")
+	public function eventsAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, string $eventName): void {
+		$eventId = $this->db->table('events')
 			->insertGetId([
-				"time_submitted" => time(),
-				"submitter_name" => $context->char->name,
-				"event_name" => $eventName,
-				"event_date" => null,
+				'time_submitted' => time(),
+				'submitter_name' => $context->char->name,
+				'event_name' => $eventName,
+				'event_date' => null,
 			]);
 		$msg = "Event: '{$eventName}' was added [Event ID {$eventId}].";
 		$context->reply($msg);
@@ -100,7 +100,7 @@ class EventsController extends ModuleInstance {
 		if ($row === null) {
 			$msg = "Could not find an event with id {$id}.";
 		} else {
-			$this->db->table("events")->where("id", $id)->delete();
+			$this->db->table('events')->where('id', $id)->delete();
 			$msg = "Event with id {$id} has been deleted.";
 		}
 		$context->reply($msg);
@@ -108,14 +108,14 @@ class EventsController extends ModuleInstance {
 
 	/** Change the description of an event */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str("setdesc")] string $action, int $id, string $description): void {
+	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str('setdesc')] string $action, int $id, string $description): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find an event with id {$id}.";
 		} else {
-			$this->db->table("events")
-				->where("id", $id)
-				->update(["event_desc" => $description]);
+			$this->db->table('events')
+				->where('id', $id)
+				->update(['event_desc' => $description]);
 			$msg = "Description for event with id {$id} has been updated.";
 		}
 		$context->reply($msg);
@@ -125,8 +125,7 @@ class EventsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
 	public function eventsSetDateCommand(
 		CmdContext $context,
-		#[NCA\Str("setdate")]
-		string $action,
+		#[NCA\Str('setdate')] string $action,
 		int $id,
 		string $date,
 	): void {
@@ -140,81 +139,81 @@ class EventsController extends ModuleInstance {
 				$context->reply("'<highlight>{$date}<end>' is not a valid date/time.");
 				return;
 			}
-			$this->db->table("events")
-				->where("id", $id)
-				->update(["event_date" => $eventDate]);
+			$this->db->table('events')
+				->where('id', $id)
+				->update(['event_date' => $eventDate]);
 			$msg = "Date/Time for event with id {$id} has been updated.";
 		}
 		$context->reply($msg);
 	}
 
 	public function getEvent(int $id): ?EventModel {
-		return $this->db->table("events")
-			->where("id", $id)
+		return $this->db->table('events')
+			->where('id', $id)
 			->asObj(EventModel::class)
 			->first();
 	}
 
 	/** Join event #id */
-	#[NCA\HandlesCommand("events")]
-	public function eventsJoinCommand(CmdContext $context, #[NCA\Str("join")] string $action, int $id): void {
+	#[NCA\HandlesCommand('events')]
+	public function eventsJoinCommand(CmdContext $context, #[NCA\Str('join')] string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>{$id}<end>.";
 			$context->reply($msg);
 			return;
 		}
-		if (isset($row->event_date) && time() >= ($row->event_date + (3600 * 3))) {
-			$msg = "You cannot join an event once it has already passed!";
+		if (isset($row->event_date) && time() >= ($row->event_date + (3_600 * 3))) {
+			$msg = 'You cannot join an event once it has already passed!';
 			$context->reply($msg);
 			return;
 		}
 		// cannot join an event after 3 hours past its starttime
 		$attendees = $row->getAttendees();
 		if (in_array($context->char->name, $attendees)) {
-			$msg = "You are already on the event list.";
+			$msg = 'You are already on the event list.';
 			$context->reply($msg);
 			return;
 		}
 		$attendees []= $context->char->name;
-		$this->db->table("events")
-			->where("id", $id)
-			->update(["event_attendees" => join(",", $attendees)]);
-		$msg = "You have been added to the event.";
+		$this->db->table('events')
+			->where('id', $id)
+			->update(['event_attendees' => implode(',', $attendees)]);
+		$msg = 'You have been added to the event.';
 		$context->reply($msg);
 	}
 
 	/** Leave event #id */
-	#[NCA\HandlesCommand("events")]
-	public function eventsLeaveCommand(CmdContext $context, #[NCA\Str("leave")] string $action, int $id): void {
+	#[NCA\HandlesCommand('events')]
+	public function eventsLeaveCommand(CmdContext $context, #[NCA\Str('leave')] string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>{$id}<end>.";
 			$context->reply($msg);
 			return;
 		}
-		if (isset($row->event_date) && time() >= ($row->event_date + (3600 * 3))) {
-			$msg = "You cannot leave an event once it has already passed!";
+		if (isset($row->event_date) && time() >= ($row->event_date + (3_600 * 3))) {
+			$msg = 'You cannot leave an event once it has already passed!';
 			$context->reply($msg);
 			return;
 		}
 		$attendees = $row->getAttendees();
 		if (!in_array($context->char->name, $attendees)) {
-			$msg = "You are not on the event list.";
+			$msg = 'You are not on the event list.';
 			$context->reply($msg);
 			return;
 		}
 		$attendees = array_diff($attendees, [$context->char->name]);
-		$this->db->table("events")
-			->where("id", $id)
-			->update(["event_attendees" => join(",", $attendees)]);
-		$msg = "You have been removed from the event.";
+		$this->db->table('events')
+			->where('id', $id)
+			->update(['event_attendees' => implode(',', $attendees)]);
+		$msg = 'You have been removed from the event.';
 		$context->reply($msg);
 	}
 
 	/** List all characters marked as joining event #id */
-	#[NCA\HandlesCommand("events")]
-	public function eventsListCommand(CmdContext $context, #[NCA\Str("list")] string $action, int $id): void {
+	#[NCA\HandlesCommand('events')]
+	public function eventsListCommand(CmdContext $context, #[NCA\Str('list')] string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find event with id <highlight>{$id}<end>.";
@@ -222,15 +221,15 @@ class EventsController extends ModuleInstance {
 			return;
 		}
 		if (!isset($row->event_attendees) || !strlen($row->event_attendees)) {
-			$msg = "No one has signed up to attend this event.";
+			$msg = 'No one has signed up to attend this event.';
 			$context->reply($msg);
 			return;
 		}
-		$link = "[" . $this->text->makeChatcmd("join this event", "/tell <myname> events join {$id}")."] ";
-		$link .= "[" . $this->text->makeChatcmd("leave this event", "/tell <myname> events leave {$id}")."]\n\n";
+		$link = '[' . $this->text->makeChatcmd('join this event', "/tell <myname> events join {$id}").'] ';
+		$link .= '[' . $this->text->makeChatcmd('leave this event', "/tell <myname> events leave {$id}")."]\n\n";
 
 		$link .= "<header2>Currently planning to attend<end>\n";
-		$eventlist = explode(",", $row->event_attendees);
+		$eventlist = explode(',', $row->event_attendees);
 		$numAttendees = count($eventlist);
 		sort($eventlist);
 		foreach ($eventlist as $key => $name) {
@@ -244,9 +243,9 @@ class EventsController extends ModuleInstance {
 			$alt = '';
 			if (count($altInfo->getAllValidatedAlts()) > 0) {
 				if ($altInfo->main == $name) {
-					$alt = " <highlight>::<end> [" . $this->text->makeChatcmd("alts", "/tell <myname> alts {$name}") . "]";
+					$alt = ' <highlight>::<end> [' . $this->text->makeChatcmd('alts', "/tell <myname> alts {$name}") . ']';
 				} else {
-					$alt = " <highlight>::<end> " . $this->text->makeChatcmd("Alts of {$altInfo->main}", "/tell <myname> alts {$name}");
+					$alt = ' <highlight>::<end> ' . $this->text->makeChatcmd("Alts of {$altInfo->main}", "/tell <myname> alts {$name}");
 				}
 			}
 
@@ -260,8 +259,8 @@ class EventsController extends ModuleInstance {
 	/** @return null|string[] */
 	public function getEvents(): ?array {
 		/** @var Collection<EventModel> */
-		$data = $this->db->table("events")
-			->orderByDesc("event_date")
+		$data = $this->db->table('events')
+			->orderByDesc('event_date')
 			->limit($this->numEventsShown)
 			->asObj(EventModel::class);
 		if ($data->count() === 0) {
@@ -271,13 +270,13 @@ class EventsController extends ModuleInstance {
 		$pastTitle = "<header2>Past Events<end>\n";
 		$updated = 0;
 
-		$upcomingEvents = "";
-		$pastEvents = "";
+		$upcomingEvents = '';
+		$pastEvents = '';
 		foreach ($data as $row) {
 			if ($row->event_attendees == '') {
 				$attendance = 0;
 			} else {
-				$attendance = count(explode(",", $row->event_attendees));
+				$attendance = count(explode(',', $row->event_attendees));
 			}
 			if ($updated < $row->time_submitted) {
 				$updated = $row->time_submitted;
@@ -286,27 +285,27 @@ class EventsController extends ModuleInstance {
 				if (!isset($row->event_date)) {
 					$upcoming = "<tab>Event Date: <highlight>&lt;Not yet set&gt;<end>\n";
 				} else {
-					$upcoming = "<tab>Event Date: <highlight>" . $this->util->date($row->event_date) . "<end>\n";
+					$upcoming = '<tab>Event Date: <highlight>' . $this->util->date($row->event_date) . "<end>\n";
 				}
 				$upcoming .= "<tab>Event Name: <highlight>{$row->event_name}<end>     [Event ID {$row->id}]\n";
 				$upcoming .= "<tab>Author: <highlight>{$row->submitter_name}<end>\n";
-				$upcoming .= "<tab>Attendance: <highlight>" . $this->text->makeChatcmd("{$attendance} signed up", "/tell <myname> events list {$row->id}") . "<end>" .
-					" [" . $this->text->makeChatcmd("join", "/tell <myname> events join {$row->id}") . "] [" .
-					$this->text->makeChatcmd("leave", "/tell <myname> events leave {$row->id}") . "]\n";
-				$upcoming .= "<tab>Description: <highlight>" . ($row->event_desc ?? "&lt;empty&gt;") . "<end>\n";
-				$upcoming .= "<tab>Date Submitted: <highlight>" . $this->util->date($row->time_submitted) . "<end>\n\n";
+				$upcoming .= '<tab>Attendance: <highlight>' . $this->text->makeChatcmd("{$attendance} signed up", "/tell <myname> events list {$row->id}") . '<end>' .
+					' [' . $this->text->makeChatcmd('join', "/tell <myname> events join {$row->id}") . '] [' .
+					$this->text->makeChatcmd('leave', "/tell <myname> events leave {$row->id}") . "]\n";
+				$upcoming .= '<tab>Description: <highlight>' . ($row->event_desc ?? '&lt;empty&gt;') . "<end>\n";
+				$upcoming .= '<tab>Date Submitted: <highlight>' . $this->util->date($row->time_submitted) . "<end>\n\n";
 				$upcomingEvents = $upcoming.$upcomingEvents;
 			} else {
-				$past =  "<tab>Event Date: <highlight>" . $this->util->date($row->event_date) . "<end>\n";
+				$past =  '<tab>Event Date: <highlight>' . $this->util->date($row->event_date) . "<end>\n";
 				$past .= "<tab>Event Name: <highlight>{$row->event_name}<end>     [Event ID {$row->id}]\n";
 				$past .= "<tab>Author: <highlight>{$row->submitter_name}<end>\n";
-				$past .= "<tab>Attendance: <highlight>" . $this->text->makeChatcmd("{$attendance} signed up", "/tell <myname> events list {$row->id}") . "<end>\n";
-				$past .= "<tab>Description: <highlight>" . ($row->event_desc??"&lt;empty&gt;") . "<end>\n";
-				$past .= "<tab>Date Submitted: <highlight>" . $this->util->date($row->time_submitted) . "<end>\n\n";
+				$past .= '<tab>Attendance: <highlight>' . $this->text->makeChatcmd("{$attendance} signed up", "/tell <myname> events list {$row->id}") . "<end>\n";
+				$past .= '<tab>Description: <highlight>' . ($row->event_desc??'&lt;empty&gt;') . "<end>\n";
+				$past .= '<tab>Date Submitted: <highlight>' . $this->util->date($row->time_submitted) . "<end>\n\n";
 				$pastEvents .= $past;
 			}
 		}
-		$link = "";
+		$link = '';
 		if (strlen($upcomingEvents)) {
 			$link .= $upcomingTitle.$upcomingEvents;
 		}
@@ -317,12 +316,12 @@ class EventsController extends ModuleInstance {
 			$link = "<i>More to come. Check back soon!</i>\n\n";
 		}
 
-		return (array)$this->text->makeBlob("Events" . " [Last updated " . $this->util->date($updated)."]", $link);
+		return (array)$this->text->makeBlob('Events [Last updated ' . $this->util->date($updated).']', $link);
 	}
 
 	#[NCA\Event(
 		name: LogonEvent::EVENT_MASK,
-		description: "Show events to org members logging on"
+		description: 'Show events to org members logging on'
 	)]
 	public function logonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -342,7 +341,7 @@ class EventsController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: JoinMyPrivEvent::EVENT_MASK,
-		description: "Show events to characters joining the private channel"
+		description: 'Show events to characters joining the private channel'
 	)]
 	public function joinPrivEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -357,38 +356,38 @@ class EventsController extends ModuleInstance {
 	}
 
 	public function hasRecentEvents(): bool {
-		$sevenDays = time() - (86400 * 7);
-		return $this->db->table("events")
-			->where("event_date", ">", $sevenDays)
+		$sevenDays = time() - (86_400 * 7);
+		return $this->db->table('events')
+			->where('event_date', '>', $sevenDays)
 			->exists();
 	}
 
 	/** @psalm-param callable(?string) $callback */
 	#[
 		NCA\NewsTile(
-			name: "events",
-			description: "Shows upcoming events - if any",
+			name: 'events',
+			description: 'Shows upcoming events - if any',
 			example: "<header2>Events [<u>see more</u>]<end>\n".
-				"<tab>2021-10-31 <highlight>GSP Halloween Party<end>"
+				'<tab>2021-10-31 <highlight>GSP Halloween Party<end>'
 		)
 	]
 	public function eventsTile(string $sender): ?string {
 		/** @var Collection<EventModel> */
-		$data = $this->db->table("events")
-			->whereNull("event_date")
-			->orWhere("event_date", ">", time())
-			->orderBy("event_date")
+		$data = $this->db->table('events')
+			->whereNull('event_date')
+			->orWhere('event_date', '>', time())
+			->orderBy('event_date')
 			->limit($this->numEventsShown)
 			->asObj(EventModel::class);
 		if ($data->count() === 0) {
 			return null;
 		}
-		$eventsLink = $this->text->makeChatcmd("see more", "/tell <myname> events");
+		$eventsLink = $this->text->makeChatcmd('see more', '/tell <myname> events');
 		$blob = "<header2>Events [{$eventsLink}]<end>\n";
 		$blob .= $data->map(function (EventModel $event): string {
-			return "<tab>" . ((isset($event->event_date) && $event->event_date > 0)
+			return '<tab>' . ((isset($event->event_date) && $event->event_date > 0)
 				? $this->util->date($event->event_date)
-				: "soon").
+				: 'soon').
 				": <highlight>{$event->event_name}<end>";
 		})->join("\n");
 		return $blob;

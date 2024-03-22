@@ -72,9 +72,9 @@ class GuildManager extends ModuleInstance {
 		$body = null;
 
 		$baseUrl = $this->playerManager->porkUrl;
-		$maxCacheAge = 86400;
+		$maxCacheAge = 86_400;
 		if ($this->isMyGuild($guildID)) {
-			$maxCacheAge = 21600;
+			$maxCacheAge = 21_600;
 		}
 
 		$cache = new FileCache(
@@ -96,16 +96,16 @@ class GuildManager extends ModuleInstance {
 				$try++;
 				$client = $this->builder->build();
 				$timeout = null;
-				if (str_contains($url, "bork")) {
+				if (str_contains($url, 'bork')) {
 					$timeout = new TimeoutCancellation(10);
 				}
 				$response = $client->request(new Request($url), $timeout);
 
 				$body = $response->getBody()->buffer();
 				$end = microtime(true);
-				$this->logger->info("Getting {url} took {duration}ms", [
-					"url" => $url,
-					"duration" => $end - $start,
+				$this->logger->info('Getting {url} took {duration}ms', [
+					'url' => $url,
+					'duration' => $end - $start,
 				]);
 				$cache->set($cacheKey, $body, $maxCacheAge);
 				$fromCache = false;
@@ -114,12 +114,12 @@ class GuildManager extends ModuleInstance {
 			} catch (TimeoutException $e) {
 				/** @psalm-suppress RedundantCast */
 				$delay = (int)pow($try, 2);
-				$this->logger->info("Lookup for ORG {guild} D{dimension} timed out, retrying in {delay}s ({try}/{retries})", [
-					"guild" => $guildID,
-					"dimension" => $dimension,
-					"try" => $try,
-					"delay" => $delay,
-					"retries" => 3,
+				$this->logger->info('Lookup for ORG {guild} D{dimension} timed out, retrying in {delay}s ({try}/{retries})', [
+					'guild' => $guildID,
+					'dimension' => $dimension,
+					'try' => $try,
+					'delay' => $delay,
+					'retries' => 3,
 				]);
 				if ($try < 3) {
 					delay($delay);
@@ -128,7 +128,7 @@ class GuildManager extends ModuleInstance {
 		}
 
 		if (!isset($body) || $body === '') {
-			throw new Exception("Empty data received when reading org data");
+			throw new Exception('Empty data received when reading org data');
 		}
 
 		[$orgInfo, $members, $lastUpdated] = json_decode($body);
@@ -143,18 +143,18 @@ class GuildManager extends ModuleInstance {
 		$guild->governing_form = $orgInfo->GOVERNINGNAME;
 		$guild->orgname = $orgInfo->NAME;
 		$guild->orgside = $orgInfo->SIDE_NAME;
-		$luDateTime = DateTime::createFromFormat("Y/m/d H:i:s", $lastUpdated, new DateTimeZone("UTC"));
+		$luDateTime = DateTime::createFromFormat('Y/m/d H:i:s', $lastUpdated, new DateTimeZone('UTC'));
 		// Try to reduce the cache time to the last updated time + 24h
 		if ($luDateTime) {
-			$newCacheDuration = max(60, 86400 - (time() - $luDateTime->getTimestamp()));
+			$newCacheDuration = max(60, 86_400 - (time() - $luDateTime->getTimestamp()));
 			$cache->set($cacheKey, $body, $newCacheDuration);
 		}
 		if ($luDateTime && $this->isMyGuild($guild->guild_id)) {
 			$guild->last_update = $luDateTime->getTimestamp();
 			// Try to time the next rosterupdate to occur 1 day and 10m after the last export
-			$key = $this->eventManager->getKeyForCronEvent(24*3600, 'guildcontroller.downloadOrgRosterEvent');
+			$key = $this->eventManager->getKeyForCronEvent(24*3_600, 'guildcontroller.downloadOrgRosterEvent');
 			if (isset($key)) {
-				$nextTime = $luDateTime->add(new DateInterval("P1DT10M"));
+				$nextTime = $luDateTime->add(new DateInterval('P1DT10M'));
 				if ($nextTime->getTimestamp() > time()) {
 					$this->eventManager->setCronNextEvent($key, $nextTime->getTimestamp());
 				}
@@ -210,12 +210,12 @@ class GuildManager extends ModuleInstance {
 		}
 		$this->db->awaitBeginTransaction();
 
-		$this->db->table("players")
-			->where("guild_id", $guild->guild_id)
-			->where("dimension", $dimension)
+		$this->db->table('players')
+			->where('guild_id', $guild->guild_id)
+			->where('dimension', $dimension)
 			->update([
-				"guild_id" => 0,
-				"guild" => "",
+				'guild_id' => 0,
+				'guild' => '',
 			]);
 
 		foreach ($guild->members as $member) {
@@ -233,7 +233,7 @@ class GuildManager extends ModuleInstance {
 	}
 
 	protected function getJsonValidator(): Closure {
-		return function (?string $data): bool {
+		return static function (?string $data): bool {
 			try {
 				if ($data === null) {
 					return false;

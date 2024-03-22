@@ -28,12 +28,12 @@ use Psr\Log\LoggerInterface;
 	NCA\Instance,
 ]
 class CustomCmdController extends ModuleInstance {
-	public const OFF = "off";
+	public const OFF = 'off';
 
 	#[NCA\Setting\Text(
 		options: [
 			self::OFF,
-			"data",
+			'data',
 		]
 	)]
 	/** Directory in which to search for custom textfile commands */
@@ -54,31 +54,31 @@ class CustomCmdController extends ModuleInstance {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
-	#[NCA\SettingChangeHandler("custom_cmd_dir")]
+	#[NCA\SettingChangeHandler('custom_cmd_dir')]
 	public function checkCustomCmdDir(string $setting, string $old, string $new): void {
 		if ($new === self::OFF) {
 			return;
 		}
-		if (str_contains($new, "..")) {
-			throw new UserException("<highlight>..<end> is not allowed.");
+		if (str_contains($new, '..')) {
+			throw new UserException('<highlight>..<end> is not allowed.');
 		}
-		$dir = BotRunner::getBasedir() . "/" . $new;
+		$dir = BotRunner::getBasedir() . '/' . $new;
 		if (!$this->fs->exists($dir)) {
-			throw new UserException("The directory <highlight>" . htmlentities($dir) . "<end> doesn't exist.");
+			throw new UserException('The directory <highlight>' . htmlentities($dir) . "<end> doesn't exist.");
 		}
 		if (!$this->fs->isDirectory($dir)) {
-			throw new UserException("<highlight>" . htmlentities($dir) . "<end> is not a directory");
+			throw new UserException('<highlight>' . htmlentities($dir) . '<end> is not a directory');
 		}
 	}
 
 	#[NCA\Event(
-		name: "setting(custom_cmd_dir)",
-		description: "Turn on/off commands",
+		name: 'setting(custom_cmd_dir)',
+		description: 'Turn on/off commands',
 	)]
 	public function changeCustomCmdDir(SettingEvent $event): void {
 		if ($event->oldValue->value !== self::OFF) {
 			$this->db->table($this->cmdManager::DB_TABLE)
-				->where("file", 'CustomCmdController.executeCustomCmd:123')
+				->where('file', 'CustomCmdController.executeCustomCmd:123')
 				->asObj(CmdCfg::class)
 				->each(function (CmdCfg $cfg): void {
 					$this->cmdManager->getPermissionSets()
@@ -91,7 +91,7 @@ class CustomCmdController extends ModuleInstance {
 						});
 				});
 			$this->db->table($this->cmdManager::DB_TABLE)
-				->where("file", 'CustomCmdController.executeCustomCmd:123')
+				->where('file', 'CustomCmdController.executeCustomCmd:123')
 				->delete();
 		}
 		if ($event->newValue->value !== self::OFF && $event->newValue->value !== null) {
@@ -109,17 +109,17 @@ class CustomCmdController extends ModuleInstance {
 
 	#[NCA\HandlesAllCommands]
 	public function executeCustomCmd(CmdContext $context): void {
-		$baseDir = BotRunner::getBasedir() . "/" . $this->customCmdDir;
-		if ($this->fs->isDirectory($baseDir . "/" . $context->getCommand())) {
-			$content = $this->mergeDirTextFiles($baseDir . "/" . $context->getCommand());
+		$baseDir = BotRunner::getBasedir() . '/' . $this->customCmdDir;
+		if ($this->fs->isDirectory($baseDir . '/' . $context->getCommand())) {
+			$content = $this->mergeDirTextFiles($baseDir . '/' . $context->getCommand());
 		} else {
-			$content = $this->fs->read($baseDir . "/" . $context->getCommand() . ".txt");
+			$content = $this->fs->read($baseDir . '/' . $context->getCommand() . '.txt');
 		}
 		$lines = explode("\n", $content);
 		$headerHadTags = false;
 		$firstLine = preg_replace_callback(
-			"/(<.*?>)/",
-			function (array $match) use (&$headerHadTags): string {
+			'/(<.*?>)/',
+			static function (array $match) use (&$headerHadTags): string {
 				if ($match[1] === '<myname>') {
 					return '<myname>';
 				}
@@ -137,29 +137,29 @@ class CustomCmdController extends ModuleInstance {
 	}
 
 	private function registerCustomCommands(string $path, bool $activate=false): void {
-		$baseDir = BotRunner::getBasedir() . "/" . $path;
+		$baseDir = BotRunner::getBasedir() . '/' . $path;
 
 		try {
 			$fileList = $this->fs->listFiles($baseDir);
 		} catch (FilesystemException $e) {
-			$this->logger->warning("Unable to open {dir} to search for custom commands: {error}", [
-				"dir" => $baseDir,
-				"error" => $e->getMessage(),
+			$this->logger->warning('Unable to open {dir} to search for custom commands: {error}', [
+				'dir' => $baseDir,
+				'error' => $e->getMessage(),
 			]);
 			return;
 		}
 		foreach ($fileList as $fileName) {
-			if (substr_count($fileName, ".") > 1) {
+			if (substr_count($fileName, '.') > 1) {
 				continue;
 			}
-			if ($this->fs->isDirectory($baseDir . "/" . $fileName)) {
-				$files = $this->fs->listFiles($baseDir . "/" . $fileName);
+			if ($this->fs->isDirectory($baseDir . '/' . $fileName)) {
+				$files = $this->fs->listFiles($baseDir . '/' . $fileName);
 				if (!count(preg_grep('/\.txt$/', $files))) {
 					continue;
 				}
 				$this->addDynamicCmd($fileName, $activate);
-			} elseif (str_ends_with($fileName, ".txt")) {
-				$this->addDynamicCmd(basename($fileName, ".txt"), $activate);
+			} elseif (str_ends_with($fileName, '.txt')) {
+				$this->addDynamicCmd(basename($fileName, '.txt'), $activate);
 			}
 		}
 	}
@@ -173,7 +173,7 @@ class CustomCmdController extends ModuleInstance {
 			$this->getModuleName(),
 			'CustomCmdController.executeCustomCmd:123',
 			$cmdName,
-			"guest",
+			'guest',
 			"A dynamic command based on {$cmdName}",
 			1
 		);
@@ -186,7 +186,7 @@ class CustomCmdController extends ModuleInstance {
 					$set->name,
 					'CustomCmdController.executeCustomCmd:123',
 					$cmdName,
-					"guest"
+					'guest'
 				);
 			});
 	}
@@ -194,8 +194,8 @@ class CustomCmdController extends ModuleInstance {
 	/** Check if a given command is already defined somewhere else */
 	private function cmdExists(string $cmd): bool {
 		$exists = $this->db->table($this->cmdManager::DB_TABLE)
-			->where("cmd", $cmd)
-			->where("file", "!=", 'CustomCmdController.executeCustomCmd:123')
+			->where('cmd', $cmd)
+			->where('file', '!=', 'CustomCmdController.executeCustomCmd:123')
 			->count() > 0;
 		return $exists;
 	}
@@ -206,11 +206,11 @@ class CustomCmdController extends ModuleInstance {
 		natcasesort($fileList);
 		$content = [];
 		foreach ($fileList as $fileName) {
-			if (!str_ends_with($fileName, ".txt")) {
+			if (!str_ends_with($fileName, '.txt')) {
 				continue;
 			}
-			$content []= $this->fs->read($dirName . "/" . $fileName);
+			$content []= $this->fs->read($dirName . '/' . $fileName);
 		}
-		return join("\n\n", $content);
+		return implode("\n\n", $content);
 	}
 }

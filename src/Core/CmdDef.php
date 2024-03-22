@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 class CmdDef {
 	public function __construct(
 		public string $description,
-		public string $accessLevel="mod",
+		public string $accessLevel='mod',
 		public ?int $defaultStatus=null,
 		public ?string $help=null,
 		/** @var string[] */

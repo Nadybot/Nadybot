@@ -5,7 +5,7 @@ namespace Nadybot\Modules\NEWS_MODULE;
 use Nadybot\Core\SyncEvent;
 
 class SyncNewsEvent extends SyncEvent {
-	public const EVENT_MASK = "sync(news)";
+	public const EVENT_MASK = 'sync(news)';
 
 	/**
 	 * @param int    $time   Unix timestamp when this was created
@@ -45,12 +45,12 @@ class SyncNewsEvent extends SyncEvent {
 	 */
 	public function toData(): array {
 		return [
-			"time" => $this->time,
-			"name" => $this->name,
-			"news" => $this->news,
-			"uuid" => $this->uuid,
-			"deleted" => 0,
-			"sticky" => $this->sticky,
+			'time' => $this->time,
+			'name' => $this->name,
+			'news' => $this->news,
+			'uuid' => $this->uuid,
+			'deleted' => 0,
+			'sticky' => $this->sticky,
 		];
 	}
 }

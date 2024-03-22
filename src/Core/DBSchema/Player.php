@@ -19,14 +19,14 @@ class Player extends DBRow {
 	public int $charid;
 
 	/** The character's first name (the name before $name) */
-	#[JSON\Name("first_name")]
+	#[JSON\Name('first_name')]
 	public string $firstname = '';
 
 	/** The character's name as it appears in the game */
 	public string $name;
 
 	/** The character's last name (the name after $name) */
-	#[JSON\Name("last_name")]
+	#[JSON\Name('last_name')]
 	public string $lastname = '';
 
 	/** What level (1-220) is the character or null if unknown */
@@ -57,22 +57,22 @@ class Player extends DBRow {
 	public ?int $ai_level = null;
 
 	/** The id of the org this player is in or null if none or unknown */
-	#[JSON\Name("org_id")]
+	#[JSON\Name('org_id')]
 	public ?int $guild_id = null;
 
 	/** The name of the org this player is in or null if none/unknown */
-	#[JSON\Name("org")]
+	#[JSON\Name('org')]
 	public ?string $guild = '';
 
 	/**
 	 * The name of the rank the player has in their org (Veteran, Apprentice) or null if not in an org
 	 * or unknown
 	 */
-	#[JSON\Name("org_rank")]
+	#[JSON\Name('org_rank')]
 	public ?string $guild_rank = '';
 
 	/** The numeric rank of the player in their org or null if not in an org/unknown */
-	#[JSON\Name("org_rank_id")]
+	#[JSON\Name('org_rank_id')]
 	public ?int $guild_rank_id = null;
 
 	/** In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19 */
@@ -97,23 +97,23 @@ class Player extends DBRow {
 	public ?int $last_update;
 
 	public function getPronoun(): string {
-		if (strtolower($this->gender) === "female") {
-			return "she";
+		if (strtolower($this->gender) === 'female') {
+			return 'she';
 		}
-		if (strtolower($this->gender) === "male") {
-			return "he";
+		if (strtolower($this->gender) === 'male') {
+			return 'he';
 		}
-		return "they";
+		return 'they';
 	}
 
 	public function getIsAre(): string {
-		if (strtolower($this->gender) === "female") {
-			return "is";
+		if (strtolower($this->gender) === 'female') {
+			return 'is';
 		}
-		if (strtolower($this->gender) === "male") {
-			return "is";
+		if (strtolower($this->gender) === 'male') {
+			return 'is';
 		}
-		return "are";
+		return 'are';
 	}
 
 	/**
@@ -150,17 +150,17 @@ class Player extends DBRow {
 		];
 		$gender = strtolower($this->gender);
 		$text = preg_replace_callback(
-			"/%([a-z:_A-Z]+)%/",
+			'/%([a-z:_A-Z]+)%/',
 			function (array $matches) use ($pronouns, $gender): string {
 				$pronoun = $matches[1];
-				$choices = explode(":", $pronoun);
+				$choices = explode(':', $pronoun);
 				if (count($choices) === 2) {
-					return $choices[($gender === "neuter") ? 0 : 1];
+					return $choices[($gender === 'neuter') ? 0 : 1];
 				}
 				$lc = strtolower($pronoun);
 				if (!isset($pronouns[$gender][$lc])) {
 					if (property_exists($this, $lc)) {
-						$result = lcfirst((string)($this->{$lc} ?? ""));
+						$result = lcfirst((string)($this->{$lc} ?? ''));
 					} else {
 						return $pronoun;
 					}
@@ -178,7 +178,7 @@ class Player extends DBRow {
 	}
 
 	/** @return array<string,int|string|null> */
-	public function getTokens(string $prefix=""): array {
+	public function getTokens(string $prefix=''): array {
 		$tokens = [
 			"{$prefix}name" => $this->name,
 			"c-{$prefix}name" => "<highlight>{$this->name}<end>",
@@ -194,14 +194,14 @@ class Player extends DBRow {
 			"c-{$prefix}profession" => isset($this->profession) ? "<highlight>{$this->profession}<end>" : null,
 			"{$prefix}org" => $this->guild,
 			"c-{$prefix}org" => isset($this->guild)
-				? "<" . strtolower($this->faction ?? "highlight") . ">{$this->guild}<end>"
+				? '<' . strtolower($this->faction ?? 'highlight') . ">{$this->guild}<end>"
 				: null,
 			"{$prefix}org-rank" => $this->guild_rank,
 			"{$prefix}breed" => $this->breed,
 			"c-{$prefix}breed" => isset($this->breed) ? "<highlight>{$this->breed}<end>" : null,
 			"{$prefix}faction" => $this->faction,
 			"c-{$prefix}faction" => isset($this->faction)
-				? "<" . strtolower($this->faction) . ">{$this->faction}<end>"
+				? '<' . strtolower($this->faction) . ">{$this->faction}<end>"
 				: null,
 			"{$prefix}gender" => $this->gender,
 			"{$prefix}whois" => $this->getInfo(),
@@ -221,24 +221,24 @@ class Player extends DBRow {
 	public function getInfo(bool $showFirstAndLastName=true): string {
 		$msg = '';
 
-		if ($showFirstAndLastName && strlen($this->firstname??"")) {
-			$msg = $this->firstname . " ";
+		if ($showFirstAndLastName && strlen($this->firstname??'')) {
+			$msg = $this->firstname . ' ';
 		}
 
 		$msg .= "<highlight>\"{$this->name}\"<end> ";
 
-		if ($showFirstAndLastName && strlen($this->lastname??"")) {
-			$msg .= $this->lastname . " ";
+		if ($showFirstAndLastName && strlen($this->lastname??'')) {
+			$msg .= $this->lastname . ' ';
 		}
 
 		$msg .= "(<highlight>{$this->level}<end>/<green>{$this->ai_level}<end>";
 		$msg .= ", {$this->gender} {$this->breed} <highlight>{$this->profession}<end>";
-		$msg .= ", <" . strtolower($this->faction) . ">{$this->faction}<end>";
+		$msg .= ', <' . strtolower($this->faction) . ">{$this->faction}<end>";
 
 		if (isset($this->guild) && strlen($this->guild)) {
 			$msg .= ", {$this->guild_rank} of <" . strtolower($this->faction) . ">{$this->guild}<end>)";
 		} else {
-			$msg .= ", Not in a guild)";
+			$msg .= ', Not in a guild)';
 		}
 
 		return $msg;

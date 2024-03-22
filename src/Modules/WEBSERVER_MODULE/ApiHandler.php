@@ -26,7 +26,7 @@ class ApiHandler {
 	public function exec(Request $request): ?Response {
 		$handler = $this->handler;
 		if (!isset($handler)) {
-			throw new Exception("Invalid request");
+			throw new Exception('Invalid request');
 		}
 		try {
 			return $handler($request, ...$this->args);

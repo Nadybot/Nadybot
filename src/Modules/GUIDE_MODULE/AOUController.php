@@ -32,13 +32,13 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "aou",
-		accessLevel: "guest",
-		description: "Search for or view a guide from AO-Universe",
+		command: 'aou',
+		accessLevel: 'guest',
+		description: 'Search for or view a guide from AO-Universe',
 	)
 ]
 class AOUController extends ModuleInstance {
-	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
+	public const AOU_URL = 'https://www.ao-universe.com/mobile/parser.php?bot=nadybot';
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 
@@ -56,7 +56,7 @@ class AOUController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$cacheFolder = $this->config->paths->cache . "/guide";
+		$cacheFolder = $this->config->paths->cache . '/guide';
 		if (!$this->fs->exists($cacheFolder)) {
 			$this->fs->createDirectory($cacheFolder, 0700);
 		}
@@ -77,7 +77,7 @@ class AOUController extends ModuleInstance {
 	}
 
 	/** View a specific guide on AO-Universe */
-	#[NCA\HandlesCommand("aou")]
+	#[NCA\HandlesCommand('aou')]
 	public function aouView(CmdContext $context, int $guideId): void {
 		$params = [
 			'mode' => 'view',
@@ -103,7 +103,7 @@ class AOUController extends ModuleInstance {
 				$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>{$guideId}<end>.";
 				$context->reply($msg);
 			}
-			$cache->set($cacheKey, $body, 3600*24);
+			$cache->set($cacheKey, $body, 3_600*24);
 		}
 		try {
 			/** @phpstan-var non-empty-string $body */
@@ -133,21 +133,21 @@ class AOUController extends ModuleInstance {
 
 		$content = $dom->getElementsByTagName('content')->item(0);
 		if ($content == null || !($content instanceof DOMElement)) {
-			throw new Exception("Invalid XML structure");
+			throw new Exception('Invalid XML structure');
 		}
 		$title = $content->getElementsByTagName('name')->item(0)->nodeValue;
 
-		$blob = $this->text->makeChatcmd("Guide on AO-Universe", "/start https://www.ao-universe.com/main.php?site=knowledge&id={$guideId}") . "\n\n";
+		$blob = $this->text->makeChatcmd('Guide on AO-Universe', "/start https://www.ao-universe.com/main.php?site=knowledge&id={$guideId}") . "\n\n";
 
-		$blob .= "Updated: <highlight>" . $content->getElementsByTagName('update')->item(0)->nodeValue . "<end>\n";
-		$blob .= "Profession: <highlight>" . $content->getElementsByTagName('class')->item(0)->nodeValue . "<end>\n";
-		$blob .= "Faction: <highlight>" . $content->getElementsByTagName('faction')->item(0)->nodeValue . "<end>\n";
-		$blob .= "Level: <highlight>" . $content->getElementsByTagName('level')->item(0)->nodeValue . "<end>\n";
-		$blob .= "Author: <highlight>" . $this->processInput($content->getElementsByTagName('author')->item(0)->nodeValue) . "<end>\n\n";
+		$blob .= 'Updated: <highlight>' . $content->getElementsByTagName('update')->item(0)->nodeValue . "<end>\n";
+		$blob .= 'Profession: <highlight>' . $content->getElementsByTagName('class')->item(0)->nodeValue . "<end>\n";
+		$blob .= 'Faction: <highlight>' . $content->getElementsByTagName('faction')->item(0)->nodeValue . "<end>\n";
+		$blob .= 'Level: <highlight>' . $content->getElementsByTagName('level')->item(0)->nodeValue . "<end>\n";
+		$blob .= 'Author: <highlight>' . $this->processInput($content->getElementsByTagName('author')->item(0)->nodeValue) . "<end>\n\n";
 
 		$blob .= $this->processInput($content->getElementsByTagName('text')->item(0)->nodeValue);
 
-		$blob .= "\n\n<i>Powered by " . $this->text->makeChatcmd("AO-Universe", "/start https://www.ao-universe.com") . "</i>";
+		$blob .= "\n\n<i>Powered by " . $this->text->makeChatcmd('AO-Universe', '/start https://www.ao-universe.com') . '</i>';
 
 		$msg = $this->text->makeBlob($title, $blob);
 		return $msg;
@@ -158,8 +158,8 @@ class AOUController extends ModuleInstance {
 	 *
 	 * Note: this will search the name, category, and description as well as the guide body for matches.
 	 */
-	#[NCA\HandlesCommand("aou")]
-	public function aouAllSearch(CmdContext $context, #[NCA\Str("all")] string $action, string $search): void {
+	#[NCA\HandlesCommand('aou')]
+	public function aouAllSearch(CmdContext $context, #[NCA\Str('all')] string $action, string $search): void {
 		$msg = $this->searchAndGetAOUGuide($search, true);
 		$context->reply($msg);
 	}
@@ -169,7 +169,7 @@ class AOUController extends ModuleInstance {
 	 *
 	 * Note: this will search the name, category, and description for matches
 	 */
-	#[NCA\HandlesCommand("aou")]
+	#[NCA\HandlesCommand('aou')]
 	public function aouSearch(CmdContext $context, string $search): void {
 		$msg = $this->searchAndGetAOUGuide($search, false);
 		$context->reply($msg);
@@ -188,7 +188,7 @@ class AOUController extends ModuleInstance {
 		));
 		$body = $response->getBody()->buffer();
 		if ($response->getStatus() !== 200 || $body === '' || !$this->isValidXML($body)) {
-			return "An error occurred while trying to search the AOU guides.";
+			return 'An error occurred while trying to search the AOU guides.';
 		}
 
 		/** @phpstan-var non-empty-string $body */
@@ -201,7 +201,7 @@ class AOUController extends ModuleInstance {
 	 * @return string|string[]
 	 */
 	private function renderAOUGuideList(string $body, bool $searchGuideText, string $search): array|string {
-		$searchTerms = explode(" ", $search);
+		$searchTerms = explode(' ', $search);
 
 		$dom = new DOMDocument();
 		$dom->loadXML($body);
@@ -221,19 +221,19 @@ class AOUController extends ModuleInstance {
 				// to only include guides that contain the keywords in the category, name, or description
 				if ($searchGuideText || $this->striposarray($category . ' ' . $guideObj->name . ' ' . $guideObj->description, $searchTerms)) {
 					$count++;
-					$tempBlob .= '  ' . $this->text->makeChatcmd("{$guideObj->name}", "/tell <myname> aou {$guideObj->id}") . " - " . $guideObj->description . "\n";
+					$tempBlob .= '  ' . $this->text->makeChatcmd("{$guideObj->name}", "/tell <myname> aou {$guideObj->id}") . ' - ' . $guideObj->description . "\n";
 					$found = true;
 				}
 			}
 
 			if ($found) {
-				$blob .= "<pagebreak><header2>" . $category . "<end>\n";
+				$blob .= '<pagebreak><header2>' . $category . "<end>\n";
 				$blob .= $tempBlob;
 				$blob .= "\n";
 			}
 		}
 
-		$blob .= "\n<i>Powered by " . $this->text->makeChatcmd("AO-Universe.com", "/start https://www.ao-universe.com") . "</i>";
+		$blob .= "\n<i>Powered by " . $this->text->makeChatcmd('AO-Universe.com', '/start https://www.ao-universe.com') . '</i>';
 
 		if ($count > 0) {
 			if ($searchGuideText) {
@@ -267,7 +267,7 @@ class AOUController extends ModuleInstance {
 		foreach ($folders as $folder) {
 			$output []= $folder->getElementsByTagName('name')->item(0)->nodeValue;
 		}
-		return implode(" - ", array_reverse($output));
+		return implode(' - ', array_reverse($output));
 	}
 
 	private function getGuideObject(DOMElement $guide): AOUGuide {
@@ -297,10 +297,10 @@ class AOUController extends ModuleInstance {
 	/** @param string[] $arr */
 	private function replaceWaypoint(array $arr): string {
 		$label = $arr[2];
-		$params = explode(" ", $arr[1]);
+		$params = explode(' ', $arr[1]);
 		$wp = [];
 		foreach ($params as $param) {
-			[$name, $value] = explode("=", $param);
+			[$name, $value] = explode('=', $param);
 			$wp[$name] = $value;
 		}
 
@@ -312,28 +312,28 @@ class AOUController extends ModuleInstance {
 		$url = $arr[2];
 		$label = $arr[3];
 
-		if (count($idArray = Safe::pregMatch("/pid=(\\d+)/", $url))) {
-			return $this->text->makeChatcmd($label, "/tell <myname> aou " . $idArray[1]);
+		if (count($idArray = Safe::pregMatch('/pid=(\\d+)/', $url))) {
+			return $this->text->makeChatcmd($label, '/tell <myname> aou ' . $idArray[1]);
 		}
 		return $this->text->makeChatcmd($label, "/start {$url}");
 	}
 
 	private function processInput(string $input): string {
-		$input = Safe::pregReplace("/(\[size.+?\])\[b\]/i", "[b]$1", $input);
-		$input = Safe::pregReplace("/(\[color.+?\])\[b\]/i", "[b]$1", $input);
+		$input = Safe::pregReplace("/(\[size.+?\])\[b\]/i", '[b]$1', $input);
+		$input = Safe::pregReplace("/(\[color.+?\])\[b\]/i", '[b]$1', $input);
 		$input = preg_replace_callback("/\[(item|itemname|itemicon)( nolink)?\](\d+)\[\/(item|itemname|itemicon)\]/i", [$this, 'replaceItem'], $input);
 		$input = preg_replace_callback("/\[waypoint ([^\]]+)\]([^\]]*)\[\/waypoint\]/", [$this, 'replaceWaypoint'], $input);
 		$input = preg_replace_callback("/\[(localurl|url)=([^ \]]+)\]([^\[]+)\[\/(localurl|url)\]/", [$this, 'replaceGuideLinks'], $input);
-		$input = Safe::pregReplace("/\[img\](.*?)\[\/img\]/", "-image-", $input);
-		$input = Safe::pregReplace("/\[color=#([0-9A-F]+)\]/", "<font color=#$1>", $input);
-		$input = Safe::pregReplace("/\[color=(.+?)\]/", "<$1>", $input);
-		$input = Safe::pregReplace("/\[\/color\]/", "<end>", $input);
-		$input = str_replace(["[center]", "[/center]"], ["<center>", "</center>"], $input);
-		$input = str_replace(["[i]", "[/i]"], ["<i>", "</i>"], $input);
-		$input = str_replace(["[b]", "[/b]"], ["<highlight>", "<end>"], $input);
+		$input = Safe::pregReplace("/\[img\](.*?)\[\/img\]/", '-image-', $input);
+		$input = Safe::pregReplace("/\[color=#([0-9A-F]+)\]/", '<font color=#$1>', $input);
+		$input = Safe::pregReplace("/\[color=(.+?)\]/", '<$1>', $input);
+		$input = Safe::pregReplace("/\[\/color\]/", '<end>', $input);
+		$input = str_replace(['[center]', '[/center]'], ['<center>', '</center>'], $input);
+		$input = str_replace(['[i]', '[/i]'], ['<i>', '</i>'], $input);
+		$input = str_replace(['[b]', '[/b]'], ['<highlight>', '<end>'], $input);
 
 		$pattern = "/(\[.+?\])/";
-		$matches =preg_split($pattern, $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+		$matches =preg_split($pattern, $input, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY);
 
 		$output = '';
 		foreach ($matches as $match) {
@@ -345,19 +345,19 @@ class AOUController extends ModuleInstance {
 
 	private function processTag(string $tag): string {
 		switch ($tag) {
-			case "[ts_ts]":
-				return " + ";
-			case "[ts_ts2]":
-				return " = ";
-			case "[cttd]":
-				return " | ";
-			case "[cttr]":
-			case "[br]":
+			case '[ts_ts]':
+				return ' + ';
+			case '[ts_ts2]':
+				return ' = ';
+			case '[cttd]':
+				return ' | ';
+			case '[cttr]':
+			case '[br]':
 				return "\n";
 		}
 
 		if ($tag[0] === '[') {
-			return "";
+			return '';
 		}
 
 		return $tag;
@@ -365,11 +365,11 @@ class AOUController extends ModuleInstance {
 
 	private function generateItemMarkup(string $type, AODBEntry $obj): string {
 		$output = '';
-		if ($type === "item" || $type === "itemicon") {
+		if ($type === 'item' || $type === 'itemicon') {
 			$output .= $this->text->makeImage($obj->icon);
 		}
 
-		if ($type === "item" || $type === "itemname") {
+		if ($type === 'item' || $type === 'itemname') {
 			$output .= $this->text->makeItem($obj->lowid, $obj->highid, $obj->highql, $obj->name);
 		}
 

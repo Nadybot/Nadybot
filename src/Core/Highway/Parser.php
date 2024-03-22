@@ -9,24 +9,24 @@ use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
 use Safe\Exceptions\JsonException;
 
 class Parser {
-	public const SUPPORTED_VERSIONS = ["~0.1.1", "~0.2.0-alpha.1"];
+	public const SUPPORTED_VERSIONS = ['~0.1.1', '~0.2.0-alpha.1'];
 
 	private const PKG_CLASSES = [
-		"hello" => In\Hello::class,
-		"error" => In\Error::class,
-		"success" => In\Success::class,
-		"join" => In\Join::class,
-		"room-info" => In\RoomInfo::class,
-		"room_info" => In\RoomInfo::class,
-		"message" => In\Message::class,
-		"leave" => In\Leave::class,
+		'hello' => In\Hello::class,
+		'error' => In\Error::class,
+		'success' => In\Success::class,
+		'join' => In\Join::class,
+		'room-info' => In\RoomInfo::class,
+		'room_info' => In\RoomInfo::class,
+		'message' => In\Message::class,
+		'leave' => In\Leave::class,
 	];
 
 	#[NCA\Logger]
 	private static LoggerWrapper $logger;
 
 	public static function parseHighwayPackage(string $data): In\InPackage {
-		self::$logger->debug("Parsing {data}", ['data' => $data]);
+		self::$logger->debug('Parsing {data}', ['data' => $data]);
 		try {
 			$json = json_decode($data, true);
 		} catch (JsonException $e) {
@@ -46,7 +46,7 @@ class Parser {
 			return $baseInfo;
 		}
 		if (!class_exists($targetClass)) {
-			self::$logger->warning("Implementation for Highway class {class} missing", [
+			self::$logger->warning('Implementation for Highway class {class} missing', [
 				'class' => $targetClass,
 			]);
 			return $baseInfo;
@@ -58,7 +58,7 @@ class Parser {
 		} catch (UnableToHydrateObject $e) {
 			throw new ParserHighwayException($e->getMessage(), $e->getCode(), $e);
 		}
-		self::$logger->debug("Parsed into {package}", ['package' => $package]);
+		self::$logger->debug('Parsed into {package}', ['package' => $package]);
 		return $package;
 	}
 }

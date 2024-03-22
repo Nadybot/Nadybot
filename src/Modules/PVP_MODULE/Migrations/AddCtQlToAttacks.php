@@ -8,12 +8,12 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\PVP_MODULE\NotumWarsController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20230312210948)]
+#[NCA\Migration(order: 20_230_312_210_948)]
 class AddCtQlToAttacks implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = NotumWarsController::DB_ATTACKS;
-		$db->schema()->table($table, function (Blueprint $table) {
-			$table->unsignedSmallInteger("ql")->nullable(true);
+		$db->schema()->table($table, static function (Blueprint $table) {
+			$table->unsignedSmallInteger('ql')->nullable(true);
 		});
 	}
 }

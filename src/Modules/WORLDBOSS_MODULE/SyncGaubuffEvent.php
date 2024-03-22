@@ -5,7 +5,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 use Nadybot\Core\SyncEvent;
 
 class SyncGaubuffEvent extends SyncEvent {
-	public const EVENT_MASK = "sync(gaubuff)";
+	public const EVENT_MASK = 'sync(gaubuff)';
 
 	/**
 	 * @param int    $expires UNIX timestamp when the buff expires

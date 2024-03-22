@@ -24,14 +24,14 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "guides",
-		accessLevel: "guest",
-		description: "Guides for AO",
-		alias: "guide"
+		command: 'guides',
+		accessLevel: 'guest',
+		description: 'Guides for AO',
+		alias: 'guide'
 	)
 ]
 class GuideController extends ModuleInstance {
-	private const FILE_EXT = ".txt";
+	private const FILE_EXT = '.txt';
 	#[NCA\Inject]
 	private Text $text;
 
@@ -45,24 +45,24 @@ class GuideController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->commandAlias->register($this->moduleName, "guides healdelta", "healdelta");
-		$this->commandAlias->register($this->moduleName, "guides lag", "lag");
-		$this->commandAlias->register($this->moduleName, "guides nanodelta", "nanodelta");
-		$this->commandAlias->register($this->moduleName, "guides stats", "stats");
-		$this->commandAlias->register($this->moduleName, "aou 11", "title");
-		$this->commandAlias->register($this->moduleName, "guides breed", "breed");
-		$this->commandAlias->register($this->moduleName, "guides breed", "breeds");
-		$this->commandAlias->register($this->moduleName, "guides doja", "doja");
-		$this->commandAlias->register($this->moduleName, "guides gos", "gos");
-		$this->commandAlias->register($this->moduleName, "guides gos", "faction");
-		$this->commandAlias->register($this->moduleName, "guides gos", "guardian");
-		$this->commandAlias->register($this->moduleName, "guides light", "light");
+		$this->commandAlias->register($this->moduleName, 'guides healdelta', 'healdelta');
+		$this->commandAlias->register($this->moduleName, 'guides lag', 'lag');
+		$this->commandAlias->register($this->moduleName, 'guides nanodelta', 'nanodelta');
+		$this->commandAlias->register($this->moduleName, 'guides stats', 'stats');
+		$this->commandAlias->register($this->moduleName, 'aou 11', 'title');
+		$this->commandAlias->register($this->moduleName, 'guides breed', 'breed');
+		$this->commandAlias->register($this->moduleName, 'guides breed', 'breeds');
+		$this->commandAlias->register($this->moduleName, 'guides doja', 'doja');
+		$this->commandAlias->register($this->moduleName, 'guides gos', 'gos');
+		$this->commandAlias->register($this->moduleName, 'guides gos', 'faction');
+		$this->commandAlias->register($this->moduleName, 'guides gos', 'guardian');
+		$this->commandAlias->register($this->moduleName, 'guides light', 'light');
 
-		$this->path = __DIR__ . "/guides/";
+		$this->path = __DIR__ . '/guides/';
 	}
 
 	/** See a list of all the guides in alphabetical order */
-	#[NCA\HandlesCommand("guides")]
+	#[NCA\HandlesCommand('guides')]
 	public function guidesListCommand(CmdContext $context): void {
 		/** @var string[] */
 		$topicList = [];
@@ -73,7 +73,7 @@ class GuideController extends ModuleInstance {
 					continue;
 				}
 
-				$handle = $this->fs->openFile($this->path . '/' . $fileName, "r");
+				$handle = $this->fs->openFile($this->path . '/' . $fileName, 'r');
 
 				$iter = new IteratorIterator(splitLines($handle));
 				$iter->rewind();
@@ -86,7 +86,7 @@ class GuideController extends ModuleInstance {
 				$topicList[$firstLine] = basename($fileName, self::FILE_EXT);
 			}
 		} catch (FilesystemException $e) {
-			$msg = "Error reading topics: " . $e->getMessage();
+			$msg = 'Error reading topics: ' . $e->getMessage();
 			$context->reply($msg);
 			return;
 		}
@@ -95,20 +95,20 @@ class GuideController extends ModuleInstance {
 
 		$linkContents = "<header2>Available guides<end>\n";
 		foreach ($topicList as $topic => $file) {
-			$linkContents .= "<tab>".
+			$linkContents .= '<tab>'.
 				$this->text->makeChatcmd($topic, "/tell <myname> guides {$file}") . "\n";
 		}
 
 		if (count($topicList)) {
 			$msg = $this->text->makeBlob('Topics (' . count($topicList) . ')', $linkContents);
 		} else {
-			$msg = "No topics available.";
+			$msg = 'No topics available.';
 		}
 		$context->reply($msg);
 	}
 
 	/** See a specific guide */
-	#[NCA\HandlesCommand("guides")]
+	#[NCA\HandlesCommand('guides')]
 	#[NCA\Help\Epilogue(
 		"<header2>Common guides<end>\n\n".
 		"To see information about the different breeds:\n".
@@ -140,7 +140,7 @@ class GuideController extends ModuleInstance {
 		try {
 			$info = $this->fs->read($file);
 			$lines = explode("\n", $info);
-			$firstLine = Safe::pregReplace("/<header>(.+)<end>/", "$1", array_shift($lines));
+			$firstLine = Safe::pregReplace('/<header>(.+)<end>/', '$1', array_shift($lines));
 			$info = trim(implode("\n", $lines));
 			$msg = $this->text->makeBlob('Guide for "' . $firstLine . '"', $info, $firstLine);
 		} catch (FilesystemException) {

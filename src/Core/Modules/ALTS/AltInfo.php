@@ -128,7 +128,7 @@ class AltInfo {
 	/** @return string|string[] */
 	public function getAltsBlob(bool $firstPageOnly=false): string|array {
 		if (count($this->alts) === 0) {
-			return "No registered alts.";
+			return 'No registered alts.';
 		}
 
 		$player = $this->playerManager->byName($this->main);
@@ -162,7 +162,7 @@ class AltInfo {
 	 * @return string[]
 	 */
 	public function getAllAlts(): array {
-		$online_list = [$this->main, ...array_map("strval", array_keys($this->alts))];
+		$online_list = [$this->main, ...array_map('strval', array_keys($this->alts))];
 
 		return $online_list;
 	}
@@ -192,9 +192,9 @@ class AltInfo {
 
 	public function formatOnlineStatus(?bool $online): string {
 		if ($online) {
-			return " - <on>Online<end>";
+			return ' - <on>Online<end>';
 		}
-		return "";
+		return '';
 	}
 
 	public function getNick(): ?string {
@@ -212,7 +212,7 @@ class AltInfo {
 		}
 		$text = $this->text->renderPlaceholders(
 			$nick,
-			["nick" => $nick, "main" => $this->main]
+			['nick' => $nick, 'main' => $this->main]
 		);
 		return $text;
 	}
@@ -220,23 +220,23 @@ class AltInfo {
 	/** @return string|string[] */
 	protected function getAltsBlobForPlayer(?Player $player, bool $firstPageOnly): string|array {
 		if (!isset($player)) {
-			return "Main character not found.";
+			return 'Main character not found.';
 		}
 
 		$profDisplay = $this->settingManager->getInt('alts_profession_display')??1;
 
 		$online = $this->buddylistManager->isOnline($this->main);
-		$blob  = $this->text->alignNumber($player->level, 3, "highlight");
-		$blob .= " ";
-		$blob .= $this->text->alignNumber($player->ai_level, 2, "green");
-		$blob .= " ";
+		$blob  = $this->text->alignNumber($player->level, 3, 'highlight');
+		$blob .= ' ';
+		$blob .= $this->text->alignNumber($player->ai_level, 2, 'green');
+		$blob .= ' ';
 		if ($profDisplay & 1 && $player->profession !== null) {
 			$profId = $this->onlineController->getProfessionId($player->profession);
 			if (isset($profId)) {
 				$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_{$profId}> ";
 			}
 		} elseif ($profDisplay & 1) {
-			$blob .= "<img src=tdb://id:GFX_GUI_WINDOW_QUESTIONMARK> ";
+			$blob .= '<img src=tdb://id:GFX_GUI_WINDOW_QUESTIONMARK> ';
 		}
 		$blob .= $this->formatCharName($this->main, $online);
 
@@ -249,49 +249,49 @@ class AltInfo {
 		}
 		if ($this->settingManager->getBool('alts_show_org') && $player->faction !== null && !$firstPageOnly) {
 			$factionColor = strtolower($player->faction);
-			$orgName = strlen($player->guild??"") ? $player->guild : $player->faction;
+			$orgName = strlen($player->guild??'') ? $player->guild : $player->faction;
 			$extraInfo []= "<{$factionColor}>{$orgName}<end>";
 		}
 		if (count($extraInfo)) {
-			$blob .= " - " .join(", ", $extraInfo);
+			$blob .= ' - ' .implode(', ', $extraInfo);
 		}
 		$blob .= $this->formatOnlineStatus($online);
 		$blob .= "\n";
 
 		/** @var Collection<AltPlayer> */
-		$alts = $this->db->table("alts AS a")
-			->where("a.main", $this->main)
+		$alts = $this->db->table('alts AS a')
+			->where('a.main', $this->main)
 			->asObj(AltPlayer::class)
-			->filter(fn (AltPlayer $alt): bool => $alt->alt !== $alt->main);
-		$altNames = array_values(array_unique($alts->pluck("alt")->toArray()));
+			->filter(static fn (AltPlayer $alt): bool => $alt->alt !== $alt->main);
+		$altNames = array_values(array_unique($alts->pluck('alt')->toArray()));
 		$playerDataByAlt = $this->playerManager
 			->searchByNames($this->db->getDim(), ...$altNames)
-			->keyBy("name");
-		$alts->each(function (AltPlayer $alt) use ($playerDataByAlt): void {
+			->keyBy('name');
+		$alts->each(static function (AltPlayer $alt) use ($playerDataByAlt): void {
 			$alt->player = $playerDataByAlt->get($alt->alt);
 		});
 		if ($this->settingManager->get('alts_sort') === 'level') {
-			$alts = $alts->sortBy("alt")
-				->sortByDesc("player.ai_level")
-				->sortByDesc("player.level");
+			$alts = $alts->sortBy('alt')
+				->sortByDesc('player.ai_level')
+				->sortByDesc('player.level');
 		} elseif ($this->settingManager->get('alts_sort') === 'name') {
-			$alts = $alts->sortBy("alt");
+			$alts = $alts->sortBy('alt');
 		}
 		$count = $alts->count() + 1;
 		foreach ($alts as $row) {
 			/** @var AltPlayer $row */
 			$online = $this->buddylistManager->isOnline($row->alt);
-			$blob .= $this->text->alignNumber($row->player?->level??0, 3, "highlight");
-			$blob .= " ";
-			$blob .= $this->text->alignNumber($row->player?->ai_level??0, 2, "green");
-			$blob .= " ";
+			$blob .= $this->text->alignNumber($row->player?->level??0, 3, 'highlight');
+			$blob .= ' ';
+			$blob .= $this->text->alignNumber($row->player?->ai_level??0, 2, 'green');
+			$blob .= ' ';
 			if ($profDisplay & 1 && isset($row->player) && $row->player->profession !== null) {
 				$profId = $this->onlineController->getProfessionId($row->player->profession);
 				if (isset($profId)) {
 					$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_{$profId}> ";
 				}
 			} elseif ($profDisplay & 1) {
-				$blob .= "<img src=tdb://id:GFX_GUI_WINDOW_QUESTIONMARK> ";
+				$blob .= '<img src=tdb://id:GFX_GUI_WINDOW_QUESTIONMARK> ';
 			}
 			$blob .= $this->formatCharName($row->alt, $online);
 			$extraInfo = [];
@@ -303,17 +303,17 @@ class AltInfo {
 			}
 			if (isset($row->player) && $this->settingManager->getBool('alts_show_org') && $row->player->faction !== null && !$firstPageOnly) {
 				$factionColor = strtolower($row->player->faction);
-				$orgName = ($row->player->guild !== "")
+				$orgName = ($row->player->guild !== '')
 					? $row->player->guild
 					: $row->player->faction;
 				$extraInfo []= "<{$factionColor}>{$orgName}<end>";
 			}
 			if (count($extraInfo)) {
-				$blob .= " - " .join(", ", $extraInfo);
+				$blob .= ' - ' .implode(', ', $extraInfo);
 			}
 			$blob .= $this->formatOnlineStatus($online);
 			if (!$row->validated_by_alt || !$row->validated_by_main) {
-				$blob .= " - <red>not validated<end>";
+				$blob .= ' - <red>not validated<end>';
 			}
 
 			$blob .= "\n";

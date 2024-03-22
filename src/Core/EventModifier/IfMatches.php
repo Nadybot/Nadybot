@@ -14,34 +14,34 @@ use Nadybot\Core\{
 
 #[
 	NCA\EventModifier(
-		name: "if-matches",
+		name: 'if-matches',
 		description: "This modifier will only route messages if they contain\n".
-			"a certain text."
+			'a certain text.'
 	),
 	NCA\Param(
-		name: "text",
-		type: "string[]",
+		name: 'text',
+		type: 'string[]',
 		description: "The text that needs to be in the message.\n".
-			"If more than one is given, any of the texts must match, not all.",
+			'If more than one is given, any of the texts must match, not all.',
 		required: true
 	),
 	NCA\Param(
-		name: "case-sensitive",
-		type: "bool",
-		description: "Determines if the comparison is done case sensitive or not",
+		name: 'case-sensitive',
+		type: 'bool',
+		description: 'Determines if the comparison is done case sensitive or not',
 		required: false
 	),
 	NCA\Param(
-		name: "regexp",
-		type: "bool",
-		description: "If set to true, text is a regular expression to match egainst.",
+		name: 'regexp',
+		type: 'bool',
+		description: 'If set to true, text is a regular expression to match egainst.',
 		required: false
 	),
 	NCA\Param(
-		name: "inverse",
-		type: "bool",
+		name: 'inverse',
+		type: 'bool',
 		description: "If set to true, this will inverse the logic\n".
-			"and drop all messages matching the given text.",
+			'and drop all messages matching the given text.',
 		required: false
 	)
 ]
@@ -60,9 +60,9 @@ class IfMatches implements EventModifier {
 		$this->isRegexp = $isRegexp;
 		foreach ($text as $match) {
 		// @phpstan-ignore-next-line
-			if ($isRegexp && @\preg_match(chr(1) . $match . chr(1) . "si", "") === false) {
-				$error = error_get_last()["message"] ?? "Unknown error";
-				$error = Safe::pregReplace("/^preg_match\(\): (Compilation failed: )?/", "", $error);
+			if ($isRegexp && @\preg_match(chr(1) . $match . chr(1) . 'si', '') === false) {
+				$error = error_get_last()['message'] ?? 'Unknown error';
+				$error = Safe::pregReplace("/^preg_match\(\): (Compilation failed: )?/", '', $error);
 				throw new Exception("Invalid regular expression '{$match}': {$error}.");
 			}
 		}
@@ -87,15 +87,15 @@ class IfMatches implements EventModifier {
 	protected function matches(string $message): bool {
 		foreach ($this->text as $text) {
 			if ($this->isRegexp) {
-				$modifier = "s";
+				$modifier = 's';
 				if ($this->caseSensitive) {
-					$modifier .= "i";
+					$modifier .= 'i';
 				}
 				if (preg_match(chr(1) . $text . chr(1) . "{$modifier}", $message) === 1) {
 					return true;
 				}
 			} elseif ($this->caseSensitive) {
-				if (strpos($message, $text) !== false) {
+				if (str_contains($message, $text)) {
 					return true;
 				}
 			} else {

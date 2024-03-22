@@ -39,10 +39,10 @@ class CacheManager {
 		try {
 			$this->fs->createDirectory($this->cacheDir, 0777);
 		} catch (FilesystemException $e) {
-			$this->logger->warning("Unable to create the cache directory {dir}: {error}", [
-				"dir" => $this->cacheDir,
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->warning('Unable to create the cache directory {dir}: {error}', [
+				'dir' => $this->cacheDir,
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 		}
 	}
@@ -85,10 +85,10 @@ class CacheManager {
 
 			$this->fs->write($cacheFile, $contents);
 		} catch (FilesystemException $e) {
-			$this->logger->warning("Unable to store cache {file}: {error}", [
-				"file" => $cacheFile,
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->warning('Unable to store cache {file}: {error}', [
+				'file' => $cacheFile,
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 		}
 	}
@@ -103,10 +103,10 @@ class CacheManager {
 		try {
 			return $this->fs->read($cacheFile);
 		} catch (FilesystemException $e) {
-			$this->logger->warning("Unable to read {file}: {error}", [
-				"file" => $cacheFile,
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->warning('Unable to read {file}: {error}', [
+				'file' => $cacheFile,
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 			return null;
 		}
@@ -143,7 +143,7 @@ class CacheManager {
 	 * @return string[]
 	 */
 	public function getFilesInGroup(string $groupName): array {
-		$path = $this->cacheDir . DIRECTORY_SEPARATOR . $groupName . DIRECTORY_SEPARATOR;
+		$path = $this->cacheDir . \DIRECTORY_SEPARATOR . $groupName . \DIRECTORY_SEPARATOR;
 
 		return $this->util->getFilesInDirectory($path);
 	}

@@ -27,9 +27,9 @@ use Nadybot\Modules\RELAY_MODULE\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210817090334)]
+#[NCA\Migration(order: 20_210_817_090_334)]
 class MigrateToRelayTable implements SchemaMigration {
-	protected string $prefix = "";
+	protected string $prefix = '';
 	#[NCA\Inject]
 	private RelayController $relayController;
 
@@ -48,29 +48,29 @@ class MigrateToRelayTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$relay = $this->migrateRelay($db);
 		if (isset($relay)) {
-			$this->configController->toggleEvent("connect", "relaycontroller.loadRelays", true);
+			$this->configController->toggleEvent('connect', 'relaycontroller.loadRelays', true);
 			$this->addRouting($db, $relay);
 		}
 	}
 
 	protected function getSetting(DB $db, string $name): ?Setting {
-		if (preg_match("/^(bot|relay)/", $name)) {
+		if (preg_match('/^(bot|relay)/', $name)) {
 			$name = "{$this->prefix}{$name}";
 		}
 		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
+			->where('name', $name)
 			->asObj(Setting::class)
 			->first();
 	}
 
 	protected function relayLogon(DB $db): bool {
-		if ($this->prefix === "a") {
+		if ($this->prefix === 'a') {
 			return false;
 		}
 		$relayLogon = $db->table(EventManager::DB_TABLE)
-			->where("module", "RELAY_MODULE")
-			->where("status", "1")
-			->whereIn("type", ["logon", "logoff", "joinpriv", "leavepriv"])
+			->where('module', 'RELAY_MODULE')
+			->where('status', '1')
+			->whereIn('type', ['logon', 'logoff', 'joinpriv', 'leavepriv'])
 			->exists();
 		return $relayLogon;
 	}
@@ -94,34 +94,34 @@ class MigrateToRelayTable implements SchemaMigration {
 	}
 
 	protected function migrateRelay(DB $db): ?RelayConfig {
-		$relayType = $this->getSetting($db, "relaytype");
-		$relayBot = $this->getSetting($db, "relaybot");
+		$relayType = $this->getSetting($db, 'relaytype');
+		$relayBot = $this->getSetting($db, 'relaybot');
 		if (!isset($relayType) || !isset($relayBot) || $relayBot->value === 'Off') {
-			if ($this->prefix !== "") {
+			if ($this->prefix !== '') {
 				return null;
 			}
-			$this->prefix = "a";
+			$this->prefix = 'a';
 			return $this->migrateRelay($db);
 		}
-		if ($this->prefix === "a") {
-			$abbr = $this->getSetting($db, "relay_guild_abbreviation");
-			if (isset($abbr, $abbr->value)   && $abbr->value !== "none") {
-				$this->settingManager->save("relay_guild_abbreviation", $abbr->value);
+		if ($this->prefix === 'a') {
+			$abbr = $this->getSetting($db, 'relay_guild_abbreviation');
+			if (isset($abbr, $abbr->value)   && $abbr->value !== 'none') {
+				$this->settingManager->save('relay_guild_abbreviation', $abbr->value);
 			}
 		}
 		$relay = new RelayConfig(
-			name: $relayBot->value ?? "Relay",
+			name: $relayBot->value ?? 'Relay',
 		);
 		$relay->id = $db->insert($this->relayController::DB_TABLE, $relay);
 		$transportArgs = [];
 		switch ((int)$relayType->value) {
 			case 1:
-				$transportLayer = "tell";
-				$transportArgs["bot"] = $relayBot->value;
+				$transportLayer = 'tell';
+				$transportArgs['bot'] = $relayBot->value;
 				break;
 			case 2:
-				$transportLayer = "private-channel";
-				$transportArgs["channel"] = $relayBot->value;
+				$transportLayer = 'private-channel';
+				$transportArgs['channel'] = $relayBot->value;
 				break;
 			default:
 				$db->table($this->relayController::DB_TABLE)->delete($relay->id);
@@ -142,14 +142,14 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 		$protocol = new RelayLayer(
 			relay_id: $relay->id,
-			layer: ($this->prefix === "a") ? "agcr" : "grcv2",
+			layer: ($this->prefix === 'a') ? 'agcr' : 'grcv2',
 		);
 		$db->insert($this->relayController::DB_TABLE_LAYER, $protocol);
 		return $relay;
 	}
 
 	protected function addRouting(DB $db, RelayConfig $relay): void {
-		$guestRelay = $this->getSetting($db, "guest_relay");
+		$guestRelay = $this->getSetting($db, 'guest_relay');
 		$routesOut = [];
 		$route = new Route();
 		$route->source = Source::RELAY . "({$relay->name})";
@@ -170,17 +170,17 @@ class MigrateToRelayTable implements SchemaMigration {
 			$route->destination = Source::RELAY . "({$relay->name})";
 			$routesOut []= $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 		}
-		$relayWhen = $this->getSetting($db, "relay_symbol_method");
-		$relaySymbol = $this->getSetting($db, "relaysymbol");
-		if (isset($relayWhen) && $relayWhen->value !== "0") {
+		$relayWhen = $this->getSetting($db, 'relay_symbol_method');
+		$relaySymbol = $this->getSetting($db, 'relaysymbol');
+		if (isset($relayWhen) && $relayWhen->value !== '0') {
 			foreach ($routesOut as $routeId) {
-				$symId = $this->addMod($db, $routeId, "if-has-prefix");
+				$symId = $this->addMod($db, $routeId, 'if-has-prefix');
 				$args = [
-					"prefix" => $relaySymbol ? $relaySymbol->value : "@",
-					"for-events" => "false",
+					'prefix' => $relaySymbol ? $relaySymbol->value : '@',
+					'for-events' => 'false',
 				];
-				if ($relayWhen->value === "2") {
-					$args["inverse"] = "true";
+				if ($relayWhen->value === '2') {
+					$args['inverse'] = 'true';
 				}
 				$this->addArgs($db, $symId, $args);
 			}
@@ -188,59 +188,59 @@ class MigrateToRelayTable implements SchemaMigration {
 
 		if (!$this->relayLogon($db)) {
 			foreach ($routesOut as $routeId) {
-				$symId = $this->addMod($db, $routeId, "remove-event");
-				$args = ["type" => "online"];
+				$symId = $this->addMod($db, $routeId, 'remove-event');
+				$args = ['type' => 'online'];
 				$this->addArgs($db, $symId, $args);
 			}
 		}
 
-		$relayIgnore = $this->getSetting($db, "relay_ignore");
-		if (isset($relayIgnore) && strlen($relayIgnore->value??"")) {
+		$relayIgnore = $this->getSetting($db, 'relay_ignore');
+		if (isset($relayIgnore) && strlen($relayIgnore->value??'')) {
 			foreach ($routesOut as $routeId) {
-				foreach (explode(";", $relayIgnore->value??"") as $ignore) {
-					$modId = $this->addMod($db, $routeId, "if-not-by");
-					$this->addArgs($db, $modId, ["sender" => $ignore]);
+				foreach (explode(';', $relayIgnore->value??'') as $ignore) {
+					$modId = $this->addMod($db, $routeId, 'if-not-by');
+					$this->addArgs($db, $modId, ['sender' => $ignore]);
 				}
 			}
 		}
 
-		$relayCommands = $this->getSetting($db, "bot_relay_commands");
-		if (isset($relayCommands) && $relayCommands->value === "0") {
+		$relayCommands = $this->getSetting($db, 'bot_relay_commands');
+		if (isset($relayCommands) && $relayCommands->value === '0') {
 			foreach ($routesOut as $routeId) {
-				$this->addMod($db, $routeId, "if-not-command");
+				$this->addMod($db, $routeId, 'if-not-command');
 			}
 		}
 
-		$relayFilterOut = $this->getSetting($db, "relay_filter_out");
-		if (isset($relayFilterOut) && strlen($relayFilterOut->value??"")) {
+		$relayFilterOut = $this->getSetting($db, 'relay_filter_out');
+		if (isset($relayFilterOut) && strlen($relayFilterOut->value??'')) {
 			foreach ($routesOut as $routeId) {
-				$modId = $this->addMod($db, $routeId, "if-matches");
+				$modId = $this->addMod($db, $routeId, 'if-matches');
 
 				$this->addArgs($db, $modId, [
-					"text" => $relayFilterOut->value,
-					"regexp" => "true",
-					"inverse" => "true",
+					'text' => $relayFilterOut->value,
+					'regexp' => 'true',
+					'inverse' => 'true',
 				]);
 			}
 		}
 
-		$relayFilterIn = $this->getSetting($db, "relay_filter_in");
-		if (isset($relayFilterIn) && strlen($relayFilterIn->value??"")) {
-			$modId = $this->addMod($db, $routeInOrg, "if-matches");
+		$relayFilterIn = $this->getSetting($db, 'relay_filter_in');
+		if (isset($relayFilterIn) && strlen($relayFilterIn->value??'')) {
+			$modId = $this->addMod($db, $routeInOrg, 'if-matches');
 			$this->addArgs($db, $modId, [
-				"text" => $relayFilterIn->value,
-				"regexp" => "true",
-				"inverse" => "true",
+				'text' => $relayFilterIn->value,
+				'regexp' => 'true',
+				'inverse' => 'true',
 			]);
 		}
 
-		$relayFilterInPriv = $this->getSetting($db, "relay_filter_in_priv");
-		if (isset($routeInPriv, $relayFilterInPriv)   && strlen($relayFilterInPriv->value??"")) {
-			$modId = $this->addMod($db, $routeInPriv, "if-matches");
+		$relayFilterInPriv = $this->getSetting($db, 'relay_filter_in_priv');
+		if (isset($routeInPriv, $relayFilterInPriv)   && strlen($relayFilterInPriv->value??'')) {
+			$modId = $this->addMod($db, $routeInPriv, 'if-matches');
 			$this->addArgs($db, $modId, [
-				"text" => $relayFilterInPriv->value,
-				"regexp" => "true",
-				"inverse" => "true",
+				'text' => $relayFilterInPriv->value,
+				'regexp' => 'true',
+				'inverse' => 'true',
 			]);
 		}
 	}

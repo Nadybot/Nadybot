@@ -26,7 +26,7 @@ class Dataset {
 		$tagKeys = array_keys($tags);
 		sort($tagKeys);
 		if ($tagKeys !== $this->tags) {
-			throw new Exception("Incompatible tag-sets provided");
+			throw new Exception('Incompatible tag-sets provided');
 		}
 		$this->providers []= $provider;
 	}
@@ -36,24 +36,24 @@ class Dataset {
 		if (empty($this->providers)) {
 			return [];
 		}
-		$type = ($this->providers[0] instanceof GaugeProvider) ? "gauge" : "counter";
+		$type = ($this->providers[0] instanceof GaugeProvider) ? 'gauge' : 'counter';
 		$result = ["# TYPE {$this->name} {$type}"];
 		foreach ($this->providers as $provider) {
 			$line = $this->name;
 			$tags = $provider->getTags();
-			$attrs = join(
-				",",
+			$attrs = implode(
+				',',
 				array_map(
-					function (string $tag) use ($tags): string {
+					static function (string $tag) use ($tags): string {
 						return "{$tag}=" . json_encode((string)$tags[$tag]);
 					},
 					$this->tags
 				)
 			);
 			if (count($tags)) {
-				$line .= "{" . $attrs . "}";
+				$line .= '{' . $attrs . '}';
 			}
-			$line .= " " . (string)$provider->getValue();
+			$line .= ' ' . (string)$provider->getValue();
 			$result []= $line;
 		}
 		return $result;

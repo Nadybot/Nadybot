@@ -8,25 +8,25 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\AuctionController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210427074056)]
+#[NCA\Migration(order: 20_210_427_074_056)]
 class CreateAuctionTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = AuctionController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
-			$db->schema()->table($table, function (Blueprint $table): void {
-				$table->id("id")->change();
+			$db->schema()->table($table, static function (Blueprint $table): void {
+				$table->id('id')->change();
 			});
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->integer("raid_id")->nullable()->index();
-			$table->text("item");
-			$table->string("auctioneer", 20);
-			$table->integer("cost")->nullable();
-			$table->string("winner", 20)->nullable();
-			$table->integer("end");
-			$table->boolean("reimbursed")->default(false);
+			$table->integer('raid_id')->nullable()->index();
+			$table->text('item');
+			$table->string('auctioneer', 20);
+			$table->integer('cost')->nullable();
+			$table->string('winner', 20)->nullable();
+			$table->integer('end');
+			$table->boolean('reimbursed')->default(false);
 		});
 	}
 }

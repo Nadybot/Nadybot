@@ -12,8 +12,8 @@ abstract class Base {
 
 	public function send(WebsocketConnection $connection): void {
 		$message = $this->toString();
-		$this->logger->debug("Sending data to Drill-server: {data}", [
-			"data" => $this->dumpPackage(),
+		$this->logger->debug('Sending data to Drill-server: {data}', [
+			'data' => $this->dumpPackage(),
 		]);
 		$connection->sendBinary($message);
 	}
@@ -25,15 +25,15 @@ abstract class Base {
 	abstract public function getType(): int;
 
 	private function dumpPackage(): string {
-		$data = ['type' => $this->getType() . " (" . class_basename($this) . ")"];
+		$data = ['type' => $this->getType() . ' (' . class_basename($this) . ')'];
 		$data = array_merge($data, get_object_vars($this));
-		unset($data["logger"]);
+		unset($data['logger']);
 		array_walk(
 			$data,
-			function (string|int &$value, string $key): void {
+			static function (string|int &$value, string $key): void {
 				$value = "{$key}={$value}";
 			},
 		);
-		return join(", ", $data);
+		return implode(', ', $data);
 	}
 }

@@ -7,20 +7,20 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{Attributes as NCA, Config\BotConfig, DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20230228152817)]
+#[NCA\Migration(order: 20_230_228_152_817)]
 class LockReminderToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$route = new Route();
-		$route->source = Source::SYSTEM . "(lock-reminder)";
+		$route->source = Source::SYSTEM . '(lock-reminder)';
 		$route->destination = Source::PRIV . "({$this->config->main->character})";
 		$route->two_way = false;
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
 
 		$route = new Route();
-		$route->source = Source::SYSTEM . "(lock-reminder)";
+		$route->source = Source::SYSTEM . '(lock-reminder)';
 		$route->destination = Source::ORG;
 		$route->two_way = false;
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);

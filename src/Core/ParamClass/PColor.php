@@ -19,8 +19,8 @@ class PColor extends Base {
 	protected string $html;
 
 	public function __construct(string $value) {
-		if (!count($matches = Safe::pregMatch("/([a-fA-F0-9]{6})/", $value))) {
-			throw new InvalidArgumentException(__CLASS__ . "() accepts only colors");
+		if (!count($matches = Safe::pregMatch('/([a-fA-F0-9]{6})/', $value))) {
+			throw new InvalidArgumentException(__CLASS__ . '() accepts only colors');
 		}
 		$this->value = $this->code = strtoupper($matches[1]);
 		$this->hex = "#{$this->code}";

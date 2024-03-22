@@ -99,20 +99,20 @@ class Relay implements MessageReceiver {
 	}
 
 	public function clearOnline(string $where): void {
-		$this->logger->info("Cleaning online chars for {relay}.{where}", [
-			"relay" => $this->name,
-			"where" => $where,
+		$this->logger->info('Cleaning online chars for {relay}.{where}', [
+			'relay' => $this->name,
+			'where' => $where,
 		]);
 		unset($this->onlineChars[$where]);
 	}
 
 	public function setOnline(string $clientId, string $where, string $character, ?int $uid=null, ?int $dimension=null, ?string $main=null): void {
-		$this->logger->info("Marking {name} online on {relay}.{where}", [
-			"name" => $character,
-			"where" => $where,
-			"relay" => $this->name,
-			"dimension" => $dimension,
-			"uid" => $uid,
+		$this->logger->info('Marking {name} online on {relay}.{where}', [
+			'name' => $character,
+			'where' => $where,
+			'relay' => $this->name,
+			'dimension' => $dimension,
+			'uid' => $uid,
 		]);
 		$character = ucfirst(strtolower($character));
 		$this->onlineChars[$where] ??= [];
@@ -120,7 +120,7 @@ class Relay implements MessageReceiver {
 		$player->name = $character;
 		$player->pmain = $main ?? $character;
 		$player->online = true;
-		$player->afk = "";
+		$player->afk = '';
 		$player->source = $clientId;
 		if (isset($uid)) {
 			$player->charid = $uid;
@@ -140,21 +140,21 @@ class Relay implements MessageReceiver {
 
 	public function setOffline(string $sender, string $where, string $character, ?int $uid=null, ?int $dimension=null, ?string $main=null): void {
 		$character = ucfirst(strtolower($character));
-		$this->logger->info("Marking {name} offline on {relay}.{where}", [
-			"name" => $character,
-			"where" => $where,
-			"relay" => $this->name,
-			"dimension" => $dimension,
-			"uid" => $uid,
+		$this->logger->info('Marking {name} offline on {relay}.{where}', [
+			'name' => $character,
+			'where' => $where,
+			'relay' => $this->name,
+			'dimension' => $dimension,
+			'uid' => $uid,
 		]);
 		$this->onlineChars[$where] ??= [];
 		unset($this->onlineChars[$where][$character]);
 	}
 
 	public function setClientOffline(string $clientId): void {
-		$this->logger->info("Client {clientId} is offline on {relay}, marking all characters offline", [
-			"relay" => $this->name,
-			"clientId" => $clientId,
+		$this->logger->info('Client {clientId} is offline on {relay}, marking all characters offline', [
+			'relay' => $this->name,
+			'clientId' => $clientId,
 		]);
 		$skipped = [];
 		$offline = [];
@@ -172,24 +172,24 @@ class Relay implements MessageReceiver {
 			}
 		}
 		$this->onlineChars = $newList;
-		$this->logger->info("Marked {numOffline} character(s) offline on {relay}", [
-			"relay" => $this->name,
-			"numOffline" => count($offline),
-			"offline" => $offline,
-			"skipped" => $skipped,
+		$this->logger->info('Marked {numOffline} character(s) offline on {relay}', [
+			'relay' => $this->name,
+			'numOffline' => count($offline),
+			'offline' => $offline,
+			'skipped' => $skipped,
 		]);
 	}
 
 	public function getStatus(): RelayStatus {
 		if ($this->initialized) {
-			return new RelayStatus(RelayStatus::READY, "ready");
+			return new RelayStatus(RelayStatus::READY, 'ready');
 		}
 		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
 		$element = $elements[$this->initStep] ?? null;
 		if (!isset($element)) {
-			return new RelayStatus(RelayStatus::ERROR, "unknown");
+			return new RelayStatus(RelayStatus::ERROR, 'unknown');
 		}
-		$class = get_class($element);
+		$class = $element::class;
 		if (($pos = strrpos($class, '\\')) !== false) {
 			$class = substr($class, $pos + 1);
 		}
@@ -218,17 +218,17 @@ class Relay implements MessageReceiver {
 		$this->transport = $transport;
 		$this->relayProtocol = $relayProtocol;
 		$this->stack = $stack;
-		$basename = basename(str_replace('\\', '/', get_class($relayProtocol)));
-		$this->inboundPackets = new RelayPacketsStats($basename, $this->getName(), "in");
-		$this->outboundPackets = new RelayPacketsStats($basename, $this->getName(), "out");
-		$this->statsController->registerProvider($this->inboundPackets, "relay");
-		$this->statsController->registerProvider($this->outboundPackets, "relay");
+		$basename = basename(str_replace('\\', '/', $relayProtocol::class));
+		$this->inboundPackets = new RelayPacketsStats($basename, $this->getName(), 'in');
+		$this->outboundPackets = new RelayPacketsStats($basename, $this->getName(), 'out');
+		$this->statsController->registerProvider($this->inboundPackets, 'relay');
+		$this->statsController->registerProvider($this->outboundPackets, 'relay');
 	}
 
 	public function deinit(?callable $callback=null, int $index=0): void {
 		if ($index === 0) {
-			$this->logger->info("Deinitializing relay {relay}", [
-				"relay" => $this->name,
+			$this->logger->info('Deinitializing relay {relay}', [
+				'relay' => $this->name,
 			]);
 			if ($this->registerAsEmitter) {
 				$this->messageHub->unregisterMessageEmitter($this->getChannelName());
@@ -246,17 +246,17 @@ class Relay implements MessageReceiver {
 		];
 		$layer = $layers[$index] ?? null;
 		if (!isset($layer)) {
-			$this->logger->info("Relay {relay} fully deinitialized", [
-				"relay" => $this->name,
+			$this->logger->info('Relay {relay} fully deinitialized', [
+				'relay' => $this->name,
 			]);
 			if (isset($callback)) {
 				$callback($this);
 			}
 			return;
 		}
-		$this->logger->info("Deinitializing layer {layer} on relay {relay}", [
-			"layer" => get_class($layer),
-			"relay" => $this->name,
+		$this->logger->info('Deinitializing layer {layer} on relay {relay}', [
+			'layer' => $layer::class,
+			'relay' => $this->name,
 		]);
 		$data = $layer->deinit(
 			function () use ($callback, $index): void {
@@ -272,8 +272,8 @@ class Relay implements MessageReceiver {
 
 	public function init(?callable $callback=null, int $index=0): void {
 		if ($index === 0) {
-			$this->logger->info("Initializing relay {relay}", [
-				"relay" => $this->name,
+			$this->logger->info('Initializing relay {relay}', [
+				'relay' => $this->name,
 			]);
 		}
 		$this->initialized = false;
@@ -291,8 +291,8 @@ class Relay implements MessageReceiver {
 		$element = $elements[$index] ?? null;
 		if (!isset($element)) {
 			$this->initialized = true;
-			$this->logger->info("Relay {relay} fully initialized", [
-				"relay" => $this->name,
+			$this->logger->info('Relay {relay} fully initialized', [
+				'relay' => $this->name,
 			]);
 			if (isset($callback)) {
 				$callback();
@@ -307,9 +307,9 @@ class Relay implements MessageReceiver {
 			return;
 		}
 		$element->setRelay($this);
-		$this->logger->info("Initializing layer {layer} on relay {relay}", [
-			"layer" => get_class($element),
-			"relay" => $this->name,
+		$this->logger->info('Initializing layer {layer} on relay {relay}', [
+			'layer' => $element::class,
+			'relay' => $this->name,
 		]);
 		$data = $element->init(
 			function () use ($callback, $index): void {
@@ -318,9 +318,9 @@ class Relay implements MessageReceiver {
 		);
 		if (count($data)) {
 			for ($pos = $index-1; $pos >= 0; $pos--) {
-				$this->logger->info("Sending init data to layer {layer} on relay {relay}", [
-					"layer" => get_class($elements[$pos]),
-					"relay" => $this->name,
+				$this->logger->info('Sending init data to layer {layer} on relay {relay}', [
+					'layer' => get_class($elements[$pos]),
+					'relay' => $this->name,
 				]);
 				$data = $elements[$pos]->send($data);
 			}
@@ -420,11 +420,11 @@ class Relay implements MessageReceiver {
 	protected function prependMainHop(RoutableEvent $event): void {
 		$isOrgBot = strlen($this->config->general->orgName) > 0;
 		if (!empty($event->path) && $event->path[0]->type !== Source::ORG && $isOrgBot) {
-			$abbr = $this->settingManager->getString("relay_guild_abbreviation");
+			$abbr = $this->settingManager->getString('relay_guild_abbreviation');
 			$event->prependPath(new Source(
 				Source::ORG,
 				$this->config->general->orgName,
-				($abbr === "none") ? null : $abbr
+				($abbr === 'none') ? null : $abbr
 			));
 		} elseif (!empty($event->path) && $event->path[0]->type !== Source::PRIV && !$isOrgBot) {
 			$event->prependPath(new Source(

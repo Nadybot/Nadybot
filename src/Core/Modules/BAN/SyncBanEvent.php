@@ -5,7 +5,7 @@ namespace Nadybot\Core\Modules\BAN;
 use Nadybot\Core\SyncEvent;
 
 class SyncBanEvent extends SyncEvent {
-	public const EVENT_MASK = "sync(ban)";
+	public const EVENT_MASK = 'sync(ban)';
 
 	/**
 	 * @param int     $uid          uid of the banned person
@@ -35,11 +35,11 @@ class SyncBanEvent extends SyncEvent {
 	 */
 	public function toData(): array {
 		return [
-			"uid" => $this->uid,
-			"name" => $this->name,
-			"banned_by" => $this->banned_by,
-			"banned_until" => $this->banned_until,
-			"reason" => $this->reason,
+			'uid' => $this->uid,
+			'name' => $this->name,
+			'banned_by' => $this->banned_by,
+			'banned_until' => $this->banned_until,
+			'reason' => $this->reason,
 		];
 	}
 }

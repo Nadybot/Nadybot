@@ -12,7 +12,7 @@ use Nadybot\Core\Highway\Out\OutPackage;
 use Nadybot\Core\{Attributes as NCA, LogWrapInterface, LoggerWrapper, SemanticVersion};
 
 class Connection implements LogWrapInterface {
-	public const SUPPORTED_VERSIONS = ["~0.1.1", "~0.2.0-alpha.1"];
+	public const SUPPORTED_VERSIONS = ['~0.1.1', '~0.2.0-alpha.1'];
 
 	#[NCA\Logger]
 	private LoggerWrapper $logger;
@@ -31,13 +31,13 @@ class Connection implements LogWrapInterface {
 	 * @return array{100|200|250|300|400|500|550|600, string, array<string, mixed>}
 	 */
 	public function wrapLogs(int $logLevel, string $message, array $context): array {
-		$context['protocol'] = $this->wsConnection->getTlsInfo() ? "wss" : "ws";
+		$context['protocol'] = $this->wsConnection->getTlsInfo() ? 'wss' : 'ws';
 		$connUri = $this->wsConnection->getHandshakeResponse()->getRequest()->getUri();
 		$context['host'] = $connUri->getHost();
 		$port = $connUri->getPort();
-		$prefix = "{protocol}://{host}";
+		$prefix = '{protocol}://{host}';
 		if (isset($port)) {
-			$prefix .= "::{port}";
+			$prefix .= '::{port}';
 			$context['port'] = $port;
 		}
 		$message = "[{$prefix}] " . $message;
@@ -45,7 +45,7 @@ class Connection implements LogWrapInterface {
 	}
 
 	public function getVersion(): string {
-		return $this->wsConnection->getHandshakeResponse()->getHeader("x-highway-version") ?? "0.1.1";
+		return $this->wsConnection->getHandshakeResponse()->getHeader('x-highway-version') ?? '0.1.1';
 	}
 
 	public function isSupportedVersion(): bool {
@@ -59,7 +59,7 @@ class Connection implements LogWrapInterface {
 	}
 
 	public function close(int $code=WebsocketCloseCode::NORMAL_CLOSE, string $reason=''): void {
-		$this->logger->info("Closing connection");
+		$this->logger->info('Closing connection');
 
 		$this->wsConnection->close($code, $reason);
 	}
@@ -78,27 +78,27 @@ class Connection implements LogWrapInterface {
 		}
 
 		$data = $message->buffer();
-		$this->logger->debug("Received data: {data}", ["data" => $data]);
+		$this->logger->debug('Received data: {data}', ['data' => $data]);
 		try {
 			$package = Parser::parseHighwayPackage($data);
 		} catch (UnableToHydrateObject $e) {
-			$this->logger->error("Invalid highway-package received");
+			$this->logger->error('Invalid highway-package received');
 			throw $e;
 		}
-		$this->logger->info("Received package {package}", ["package" => $package]);
+		$this->logger->info('Received package {package}', ['package' => $package]);
 		return $package;
 	}
 
 	public function send(OutPackage $package): void {
-		$this->logger->info("Sending package {package}", ["package" => $package]);
+		$this->logger->info('Sending package {package}', ['package' => $package]);
 		$mapper = new ObjectMapperUsingReflection();
 		$json = $mapper->serializeObject($package);
-		$serverSupportsIds = SemanticVersion::compareUsing($this->getVersion(), "0.2.0-alpha.1", ">=");
+		$serverSupportsIds = SemanticVersion::compareUsing($this->getVersion(), '0.2.0-alpha.1', '>=');
 		if (!isset($json['id']) || !$serverSupportsIds) {
 			unset($json['id']);
 		}
-		$data = json_encode($json, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
-		$this->logger->debug("Sending data: {data}", ["data" => $data]);
+		$data = json_encode($json, \JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE|\JSON_INVALID_UTF8_SUBSTITUTE);
+		$this->logger->debug('Sending data: {data}', ['data' => $data]);
 		$this->wsConnection->sendText($data);
 	}
 }

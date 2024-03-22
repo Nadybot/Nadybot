@@ -5,7 +5,7 @@ namespace Nadybot\Core\Modules\MESSAGES;
 use Nadybot\Core\ParamClass\Base;
 
 class PDirection extends Base {
-	protected static string $regExp = "to|->|-&gt;|<->|&lt;-&gt;";
+	protected static string $regExp = 'to|->|-&gt;|<->|&lt;-&gt;';
 	protected string $value;
 
 	public function __construct(string $value) {
@@ -21,10 +21,10 @@ class PDirection extends Base {
 	}
 
 	public function isTwoWay(): bool {
-		return in_array($this->value, ["<->", "&lt;-&gt;"]);
+		return in_array($this->value, ['<->', '&lt;-&gt;']);
 	}
 
 	public static function getExample(): ?string {
-		return "-&gt;|&lt;-&gt;";
+		return '-&gt;|&lt;-&gt;';
 	}
 }

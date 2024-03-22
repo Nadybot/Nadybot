@@ -40,13 +40,13 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "discord slash-commands",
-		accessLevel: "mod",
-		description: "Manage the exposed Discord slash-commands",
+		command: 'discord slash-commands',
+		accessLevel: 'mod',
+		description: 'Manage the exposed Discord slash-commands',
 	),
 ]
 class DiscordSlashCommandController extends ModuleInstance {
-	public const DB_SLASH_TABLE = "discord_slash_command_<myname>";
+	public const DB_SLASH_TABLE = 'discord_slash_command_<myname>';
 
 	/** Slash-commands are disabled */
 	public const SLASH_OFF = 0;
@@ -63,9 +63,9 @@ class DiscordSlashCommandController extends ModuleInstance {
 
 	/** How to handle Discord Slash-commands */
 	#[NCA\Setting\Options(options: [
-		"Disable" => 0,
-		"Treat them like regular commands" => 1,
-		"Make request and reply private" => 2,
+		'Disable' => 0,
+		'Treat them like regular commands' => 1,
+		'Make request and reply private' => 2,
 	])]
 	public int $discordSlashCommands = self::SLASH_EPHEMERAL;
 
@@ -124,7 +124,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	 */
 	public function calcSlashCommands(): array {
 		$enabledCommands = $this->db->table(self::DB_SLASH_TABLE)
-			->pluckStrings("cmd")->toArray();
+			->pluckStrings('cmd')->toArray();
 		if ($this->discordSlashCommands === self::SLASH_OFF) {
 			return [];
 		}
@@ -141,57 +141,52 @@ class DiscordSlashCommandController extends ModuleInstance {
 	}
 
 	/** Show all currently exposed Discord slash-commands */
-	#[NCA\HandlesCommand("discord slash-commands")]
+	#[NCA\HandlesCommand('discord slash-commands')]
 	public function listDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str("slash")]
-		string $action,
-		#[NCA\Str("list")]
-		?string $subAction
+		#[NCA\Str('slash')] string $action,
+		#[NCA\Str('list')] ?string $subAction
 	): void {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
-			->orderBy("cmd")
-			->pluckStrings("cmd");
+			->orderBy('cmd')
+			->pluckStrings('cmd');
 		$lines = $cmds->map(function (string $cmd): string {
 			$delCommand = $this->text->makeChatcmd(
-				"remove",
+				'remove',
 				"/tell <myname> discord slash rem {$cmd}",
 			);
 			return "<tab>{$cmd} [{$delCommand}]";
 		});
 		if ($lines->isEmpty()) {
-			$context->reply("Registered Slash-commands (0)");
+			$context->reply('Registered Slash-commands (0)');
 			return;
 		}
 		$blob = "<header2>Currently registered Slash-commands<end>\n".
 			$lines->join("\n");
 		$context->reply($this->text->makeBlob(
-			"Registered Slash-commands (" . $lines->count() . ")",
+			'Registered Slash-commands (' . $lines->count() . ')',
 			$blob
 		));
 	}
 
 	/** Add one or more commands to the list of Discord slash-commands */
-	#[NCA\HandlesCommand("discord slash-commands")]
+	#[NCA\HandlesCommand('discord slash-commands')]
 	public function addDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str("slash")]
-		string $action,
-		#[NCA\Str("add")]
-		string $subAction,
-		#[NCA\PWord]
-		string ...$commands,
+		#[NCA\Str('slash')] string $action,
+		#[NCA\Str('add')] string $subAction,
+		#[NCA\PWord] string ...$commands,
 	): void {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
-			->orderBy("cmd")
-			->pluckStrings("cmd")
+			->orderBy('cmd')
+			->pluckStrings('cmd')
 			->toArray();
 		$newCommands = (new Collection($commands))
-			->map(function (string $cmd): string {
+			->map(static function (string $cmd): string {
 				return strtolower($cmd);
 			})
 			->unique()
-			->filter(function (string $cmd) use ($cmds): bool {
+			->filter(static function (string $cmd) use ($cmds): bool {
 				return !in_array($cmd, $cmds);
 			});
 		$illegalCommands = $newCommands
@@ -208,113 +203,109 @@ class DiscordSlashCommandController extends ModuleInstance {
 			if ($illegalCommands->count() !== 1) {
 				$msg = "The following commands don't exist or aren't enabled: %s";
 			}
-			$errors = $this->text->arraySprintf("<highlight>%s<end>", ...$illegalCommands->toArray());
+			$errors = $this->text->arraySprintf('<highlight>%s<end>', ...$illegalCommands->toArray());
 			$context->reply(sprintf($msg, $this->text->enumerate(...$errors)));
 			return;
 		}
 		if ($newCommands->isEmpty()) {
-			$context->reply("All given commands are already exposed as Slash-commands.");
+			$context->reply('All given commands are already exposed as Slash-commands.');
 			return;
 		}
 		if (count($cmds) + $newCommands->count() > 100) {
-			$context->reply("You can only expose a total of 100 commands.");
+			$context->reply('You can only expose a total of 100 commands.');
 			return;
 		}
-		$cmdText = $newCommands->containsOneItem() ? "command" : "commands";
+		$cmdText = $newCommands->containsOneItem() ? 'command' : 'commands';
 		if (!$this->db->table(self::DB_SLASH_TABLE)
 			->insert(
-				$newCommands->map(function (string $cmd): array {
-					return ["cmd" => $cmd];
+				$newCommands->map(static function (string $cmd): array {
+					return ['cmd' => $cmd];
 				})->toArray()
 			)
 		) {
 			$context->reply("There was an error registering the {$cmdText}.");
 			return;
 		}
-		$context->reply("Trying to add " . $newCommands->count() . " {$cmdText}...");
+		$context->reply('Trying to add ' . $newCommands->count() . " {$cmdText}...");
 		try {
 			$this->syncSlashCommands();
 		} catch (Throwable $e) {
 			$this->db->table(self::DB_SLASH_TABLE)
-				->whereIn("cmd", $newCommands->toArray())
+				->whereIn('cmd', $newCommands->toArray())
 				->delete();
 			$context->reply(
-				"Error registering " . $newCommands->count(). " new ".
+				'Error registering ' . $newCommands->count(). ' new '.
 				"Slash-{$cmdText}: " . $e->getMessage()
 			);
 			return;
 		}
 		$context->reply(
-			"Successfully registered " . $newCommands->count(). " new ".
+			'Successfully registered ' . $newCommands->count(). ' new '.
 			"Slash-{$cmdText}."
 		);
 	}
 
 	/** Remove one or more commands from the list of Discord slash-commands */
-	#[NCA\HandlesCommand("discord slash-commands")]
+	#[NCA\HandlesCommand('discord slash-commands')]
 	public function remDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str("slash")]
-		string $action,
+		#[NCA\Str('slash')] string $action,
 		PRemove $subAction,
-		#[NCA\PWord]
-		string ...$commands,
+		#[NCA\PWord] string ...$commands,
 	): void {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
-			->orderBy("cmd")
-			->pluckStrings("cmd")
+			->orderBy('cmd')
+			->pluckStrings('cmd')
 			->toArray();
 		$delCommands = (new Collection($commands))
-			->map(function (string $cmd): string {
+			->map(static function (string $cmd): string {
 				return strtolower($cmd);
 			})
 			->unique()
-			->filter(function (string $cmd) use ($cmds): bool {
+			->filter(static function (string $cmd) use ($cmds): bool {
 				return in_array($cmd, $cmds);
 			});
 		if ($delCommands->isEmpty()) {
-			$context->reply("None of the given commands are currently exposed as Slash-commands.");
+			$context->reply('None of the given commands are currently exposed as Slash-commands.');
 			return;
 		}
-		$cmdText = $delCommands->containsOneItem() ? "command" : "commands";
+		$cmdText = $delCommands->containsOneItem() ? 'command' : 'commands';
 		$this->db->table(self::DB_SLASH_TABLE)
-			->whereIn("cmd", $delCommands->toArray())
+			->whereIn('cmd', $delCommands->toArray())
 			->delete();
-		$context->reply("Trying to remove " . $delCommands->count() . " {$cmdText}...");
+		$context->reply('Trying to remove ' . $delCommands->count() . " {$cmdText}...");
 		try {
 			$this->syncSlashCommands();
 		} catch (Throwable $e) {
 			$this->db->table(self::DB_SLASH_TABLE)
 				->insert(
-					$delCommands->map(function (string $cmd): array {
-						return ["cmd" => $cmd];
+					$delCommands->map(static function (string $cmd): array {
+						return ['cmd' => $cmd];
 					})->toArray()
 				);
 			$context->reply(
-				"Error removing " . $delCommands->count(). " ".
+				'Error removing ' . $delCommands->count(). ' '.
 				"Slash-{$cmdText}: " . $e->getMessage()
 			);
 			return;
 		}
 		$context->reply(
-			"Successfully removed " . $delCommands->count(). " ".
+			'Successfully removed ' . $delCommands->count(). ' '.
 			"Slash-{$cmdText}."
 		);
 	}
 
 	/** Pick commands to add to the list of Discord slash-commands */
-	#[NCA\HandlesCommand("discord slash-commands")]
+	#[NCA\HandlesCommand('discord slash-commands')]
 	public function pickDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str("slash")]
-		string $action,
-		#[NCA\Str("pick")]
-		string $subAction,
+		#[NCA\Str('slash')] string $action,
+		#[NCA\Str('pick')] string $subAction,
 	): void {
 		/** @var string[] */
 		$exposedCmds = $this->db->table(self::DB_SLASH_TABLE)
-			->orderBy("cmd")
-			->pluckStrings("cmd")
+			->orderBy('cmd')
+			->pluckStrings('cmd')
 			->toArray();
 
 		/** @var Collection<CmdCfg> */
@@ -322,14 +313,14 @@ class DiscordSlashCommandController extends ModuleInstance {
 
 		/** @var Collection<string> */
 		$parts = $cmds
-			->sortBy("module")
-			->filter(function (CmdCfg $cmd) use ($exposedCmds): bool {
+			->sortBy('module')
+			->filter(static function (CmdCfg $cmd) use ($exposedCmds): bool {
 				return !in_array($cmd->cmd, $exposedCmds);
-			})->groupBy("module")
+			})->groupBy('module')
 			->map(function (Collection $cmds, string $module): string {
-				$lines = $cmds->sortBy("cmd")->map(function (CmdCfg $cmd): string {
+				$lines = $cmds->sortBy('cmd')->map(function (CmdCfg $cmd): string {
 					$addLink = $this->text->makeChatcmd(
-						"add",
+						'add',
 						"/tell <myname> discord slash add {$cmd->cmd}"
 					);
 					return "<tab>[{$addLink}] <highlight>{$cmd->cmd}<end>: {$cmd->description}";
@@ -339,61 +330,61 @@ class DiscordSlashCommandController extends ModuleInstance {
 			});
 		$blob = $parts->join("\n\n");
 		$context->reply($this->text->makeBlob(
-			"Pick from available commands (" . $cmds->count() . ")",
+			'Pick from available commands (' . $cmds->count() . ')',
 			$blob,
 		));
 	}
 
 	/** Handle an incoming discord channel message */
 	#[NCA\Event(
-		name: "discord(interaction_create)",
-		description: "Handle Discord slash commands"
+		name: 'discord(interaction_create)',
+		description: 'Handle Discord slash commands'
 	)]
 	public function handleSlashCommands(DiscordGatewayEvent $event): void {
-		$this->logger->info("Received interaction on Discord");
+		$this->logger->info('Received interaction on Discord');
 		$interaction = new Interaction();
 		$interaction->fromJSON($event->payload->d);
-		$this->logger->debug("Interaction decoded", [
-			"interaction" => $interaction,
+		$this->logger->debug('Interaction decoded', [
+			'interaction' => $interaction,
 		]);
 		if (!$this->gw->isMe($interaction->application_id)) {
-			$this->logger->info("Interaction is not for this bot");
+			$this->logger->info('Interaction is not for this bot');
 			return;
 		}
 		$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
 		if (!isset($discordUserId)) {
-			$this->logger->info("Interaction has no user id set");
+			$this->logger->info('Interaction has no user id set');
 			return;
 		}
 		if ($interaction->type === $interaction::TYPE_APPLICATION_COMMAND
 			&& $this->discordSlashCommands === self::SLASH_OFF) {
-			$this->logger->info("Ignoring disabled slash-command");
+			$this->logger->info('Ignoring disabled slash-command');
 			return;
 		}
 		if ($interaction->type !== $interaction::TYPE_APPLICATION_COMMAND
 			&& $interaction->type !== $interaction::TYPE_MESSAGE_COMPONENT) {
-			$this->logger->info("Ignoring unuspported interaction type");
+			$this->logger->info('Ignoring unuspported interaction type');
 			return;
 		}
 		$context = new CmdContext($discordUserId);
 		$context->setIsDM(isset($interaction->user));
 		$cmd = $interaction->toCommand();
 		if (!isset($cmd)) {
-			$this->logger->info("No command to execute found in interaction");
+			$this->logger->info('No command to execute found in interaction');
 			return;
 		}
 		$context->message = $cmd;
 		if (isset($interaction->channel_id)) {
 			$channel = $this->gw->getChannel($interaction->channel_id);
 			if (!isset($channel)) {
-				$this->logger->info("Interaction is for an unknown channel");
+				$this->logger->info('Interaction is for an unknown channel');
 				return;
 			}
 			$context->source = Source::DISCORD_PRIV . "({$channel->name})";
 			$cmdMap = $this->cmdManager->getPermsetMapForSource($context->source);
 			if (!isset($cmdMap)) {
-				$this->logger->info("No permission set found for {source}", [
-					"source" => $context->source,
+				$this->logger->info('No permission set found for {source}', [
+					'source' => $context->source,
 				]);
 				$context->source = Source::DISCORD_PRIV . "({$channel->id})";
 				$cmdMap = $this->cmdManager->getPermsetMapForSource($context->source);
@@ -403,8 +394,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 			$cmdMap = $this->cmdManager->getPermsetMapForSource($context->source);
 		}
 		if (!isset($cmdMap)) {
-			$this->logger->info("No permission set found for {source}", [
-				"source" => $context->source,
+			$this->logger->info('No permission set found for {source}', [
+				'source' => $context->source,
 			]);
 			return;
 		}
@@ -418,19 +409,19 @@ class DiscordSlashCommandController extends ModuleInstance {
 	 * @param ApplicationCommand[] $registeredCmds
 	 */
 	private function updateSlashCommands(array $registeredCmds): void {
-		$this->logger->info("{count} Slash-commands already registered", [
-			"count" => count($registeredCmds),
+		$this->logger->info('{count} Slash-commands already registered', [
+			'count' => count($registeredCmds),
 		]);
 		$registeredCmds = new Collection($registeredCmds);
 		$commands = new Collection($this->calcSlashCommands());
 
 		$numModifiedCommands = $this->getNumChangedSlashCommands($registeredCmds, $commands);
-		$this->logger->info("{count} Slash-commands need (re-)registering", [
-			"count" => $numModifiedCommands,
+		$this->logger->info('{count} Slash-commands need (re-)registering', [
+			'count' => $numModifiedCommands,
 		]);
 
 		if ($registeredCmds->count() === $commands->count() && $numModifiedCommands === 0) {
-			$this->logger->info("No Slash-commands need (re-)registering or deletion");
+			$this->logger->info('No Slash-commands need (re-)registering or deletion');
 			return;
 		}
 		$this->setSlashCommands($commands);
@@ -444,7 +435,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	private function setSlashCommands(Collection $modifiedCommands): void {
 		$appId = $this->gw->getID();
 		if (!isset($appId)) {
-			throw new UserException("Currently not connected to Discord, try again later.");
+			throw new UserException('Currently not connected to Discord, try again later.');
 		}
 		$cmds = $modifiedCommands->toArray();
 		try {
@@ -454,27 +445,27 @@ class DiscordSlashCommandController extends ModuleInstance {
 			);
 		} catch (DiscordException $e) {
 			if ($e->getCode() === 403) {
-				throw new UserException("The Discord bot lacks the right to manage slash commands.");
+				throw new UserException('The Discord bot lacks the right to manage slash commands.');
 			}
 			throw $e;
 		}
 		$this->logger->notice(
-			count($newCmds) . " Slash-commands registered successfully."
+			count($newCmds) . ' Slash-commands registered successfully.'
 		);
 	}
 
 	/** @return array<string,CmdCfg> */
 	private function getCmdDefinitions(string ...$commands): array {
 		$cfgs = $this->db->table(CommandManager::DB_TABLE)
-			->whereIn("cmd", $commands)
-			->orWhereIn("dependson", $commands)
+			->whereIn('cmd', $commands)
+			->orWhereIn('dependson', $commands)
 			->asObj(CmdCfg::class);
 
 		/** @var Collection<string,CmdCfg> */
-		$mains = $cfgs->where("cmdevent", "cmd")
-			->keyBy("cmd");
-		$cfgs->where("cmdevent", "subcmd")
-			->each(function (CmdCfg $cfg) use ($mains): void {
+		$mains = $cfgs->where('cmdevent', 'cmd')
+			->keyBy('cmd');
+		$cfgs->where('cmdevent', 'subcmd')
+			->each(static function (CmdCfg $cfg) use ($mains): void {
 				if (!$mains->has($cfg->dependson)) {
 					return;
 				}
@@ -492,9 +483,9 @@ class DiscordSlashCommandController extends ModuleInstance {
 
 		/** @var int[] */
 		$types = [];
-		$methods = explode(",", $cmdCfg->file);
+		$methods = explode(',', $cmdCfg->file);
 		foreach ($methods as $methodDef) {
-			[$class, $method, $line] = preg_split("/[.:]/", $methodDef);
+			[$class, $method, $line] = preg_split('/[.:]/', $methodDef);
 			$obj = Registry::getInstance($class);
 			if (!isset($obj)) {
 				continue;
@@ -513,8 +504,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 		}
 
 		$option = new ApplicationCommandOption();
-		$option->name = "parameters";
-		$option->description = "Parameters for this command";
+		$option->name = 'parameters';
+		$option->description = 'Parameters for this command';
 		$option->type = $option::TYPE_STRING;
 		$option->required = min($types) === self::APP_TYPE_REQ_PARAMS;
 		$cmd->options = [$option];
@@ -583,8 +574,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 	 * @param Collection<ApplicationCommand> $set
 	 */
 	private function getNumChangedSlashCommands(Collection $live, Collection $set): int {
-		$live = $live->keyBy("name");
-		$changedOrNewCommands = $set->filter(function (ApplicationCommand $cmd) use ($live): bool {
+		$live = $live->keyBy('name');
+		$changedOrNewCommands = $set->filter(static function (ApplicationCommand $cmd) use ($live): bool {
 			return !$live->has($cmd->name)
 				|| !$cmd->isSameAs($live->get($cmd->name));
 		})->values();
@@ -595,7 +586,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	private function executeSlashCommand(Interaction $interaction, CmdContext $context): void {
 		$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
 		if ($discordUserId === null) {
-			$this->logger->info("Interaction has no user id set");
+			$this->logger->info('Interaction has no user id set');
 			return;
 		}
 		$sendto = new DiscordSlashCommandReply(
@@ -620,9 +611,9 @@ class DiscordSlashCommandController extends ModuleInstance {
 			}
 		}
 
-		$this->logger->info("Executing slash-command \"{command}\" from {source}", [
-			"command" => $context->message,
-			"source" => $context->source,
+		$this->logger->info('Executing slash-command "{command}" from {source}', [
+			'command' => $context->message,
+			'source' => $context->source,
 		]);
 		// Do the actual command execution
 		$execCmd = function () use ($context): void {
@@ -644,8 +635,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 	 * This is just a message with the command that was given
 	 */
 	private function createAndRouteSlashCmdChannelMsg(DiscordChannel $channel, CmdContext $context, string $userId): int {
-		$this->logger->info("Create and route stub-message for slash-command");
-		$rMessage = new RoutableMessage("/" . substr($context->message, 1));
+		$this->logger->info('Create and route stub-message for slash-command');
+		$rMessage = new RoutableMessage('/' . substr($context->message, 1));
 		$rMessage->setCharacter(
 			new Character($userId, null, null)
 		);

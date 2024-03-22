@@ -8,24 +8,24 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\VOTE_MODULE\VoteController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210428082915)]
+#[NCA\Migration(order: 20_210_428_082_915)]
 class CreatePollsTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = VoteController::DB_POLLS;
 		if ($db->schema()->hasTable($table)) {
-			$db->schema()->table($table, function (Blueprint $table): void {
-				$table->id("id")->change();
+			$db->schema()->table($table, static function (Blueprint $table): void {
+				$table->id('id')->change();
 			});
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->string("author", 20);
-			$table->text("question");
-			$table->text("possible_answers");
-			$table->integer("started");
-			$table->integer("duration");
-			$table->integer("status");
+			$table->string('author', 20);
+			$table->text('question');
+			$table->text('possible_answers');
+			$table->integer('started');
+			$table->integer('duration');
+			$table->integer('status');
 		});
 	}
 }

@@ -10,6 +10,6 @@ class MemoryRealUsage implements GaugeProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => "allocated"];
+		return ['type' => 'allocated'];
 	}
 }

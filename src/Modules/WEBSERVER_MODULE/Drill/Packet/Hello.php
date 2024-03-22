@@ -14,7 +14,7 @@ class Hello extends Base {
 	}
 
 	public static function fromString(string $message): self {
-		$data = unpack("Ctype/nproto_version/Cauth_mode/Z*description", $message);
+		$data = unpack('Ctype/nproto_version/Cauth_mode/Z*description', $message);
 		return new self(
 			protoVersion: $data['proto_version'],
 			authMode: $data['auth_mode'],
@@ -24,7 +24,7 @@ class Hello extends Base {
 
 	public function toString(): string {
 		return pack(
-			"CnCZ*",
+			'CnCZ*',
 			PacketType::HELLO,
 			$this->protoVersion,
 			$this->authMode,

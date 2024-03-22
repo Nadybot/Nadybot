@@ -15,7 +15,7 @@ use Safe\Exceptions\JsonException;
 /**
  * Class to represent a setting with a discord channel value for NadyBot
  */
-#[NCA\SettingHandler("discord_channel")]
+#[NCA\SettingHandler('discord_channel')]
 class DiscordChannelSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	private SettingManager $settingManager;
@@ -29,7 +29,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 	/** @inheritDoc */
 	public function getDescription(): string {
 		$msg = "For this setting you need to enter a Discord channel ID (number up to 20 digits).\n".
-			"You can get the ID of a channel by turning on Developer mode in Discord, ".
+			'You can get the ID of a channel by turning on Developer mode in Discord, '.
 			"right-clicking on a channel and choosing \"Copy ID\".\n".
 			"To turn on Developer Mode in Discord:\n".
 			"<tab>* press ctrl + , (opens User Settings)\n".
@@ -41,20 +41,20 @@ class DiscordChannelSettingHandler extends SettingHandler {
 	}
 
 	public function save(string $newValue): string {
-		if ($newValue === "off") {
+		if ($newValue === 'off') {
 			return $newValue;
 		}
 		if (!preg_match("/^\d{1,20}$/", $newValue)) {
 			throw new Exception("<highlight>{$newValue}<end> is not a valid Channel ID.");
 		}
 		$discordBotToken = $this->settingManager->getString('discord_bot_token');
-		if (!isset($discordBotToken) || $discordBotToken === "" || $discordBotToken === 'off') {
-			throw new Exception("You cannot set any Discord channels before configuring your Discord Bot Token.");
+		if (!isset($discordBotToken) || $discordBotToken === '' || $discordBotToken === 'off') {
+			throw new Exception('You cannot set any Discord channels before configuring your Discord Bot Token.');
 		}
 		$channel = $this->discordGatewayController->getChannel($newValue);
 		if ($channel !== null) {
 			if ($channel->type !== $channel::GUILD_TEXT) {
-				throw new Exception("Can only send message to text channels");
+				throw new Exception('Can only send message to text channels');
 			}
 			return $newValue;
 		}
@@ -80,7 +80,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 
 	public function displayValue(string $sender): string {
 		$newValue = $this->row->value;
-		if ($newValue === "off" || !isset($newValue)) {
+		if ($newValue === 'off' || !isset($newValue)) {
 			return "<highlight>{$newValue}<end>";
 		}
 		$channel = $this->discordGatewayController->getChannel($newValue);

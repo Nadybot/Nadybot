@@ -10,12 +10,12 @@ class Attacker {
 	/** @var array<string,string|int|null> */
 	public const EXAMPLE_TOKENS = [
 		// ...AttackerOrg::EXAMPLE_TOKENS,
-		"att-org-name" => "Team Rainbow",
-		"c-att-org-name" => "<clan>Team Rainbow<end>",
-		"att-org" => "Team Rainbow",
-		"c-att-org" => "<clan>Team Rainbow<end>",
-		"att-org-faction" => 'Clan',
-		"c-att-org-faction" => '<clan>Clan<end>',
+		'att-org-name' => 'Team Rainbow',
+		'c-att-org-name' => '<clan>Team Rainbow<end>',
+		'att-org' => 'Team Rainbow',
+		'c-att-org' => '<clan>Team Rainbow<end>',
+		'att-org-faction' => 'Clan',
+		'c-att-org-faction' => '<clan>Clan<end>',
 
 		'att-name' => 'Nady',
 		'c-att-name' => '<highlight>Nady<end>',
@@ -86,17 +86,17 @@ class Attacker {
 				: null,
 			'att-faction' => $this->faction,
 			'c-att-faction' => isset($this->faction)
-				? "<" . strtolower($this->faction) . ">{$this->faction}<end>"
+				? '<' . strtolower($this->faction) . ">{$this->faction}<end>"
 				: null,
 		];
 		if (isset($this->org)) {
 			$tokens = array_merge($tokens, $this->org->getTokens());
 		} else {
 			if (isset($this->faction)) {
-				$tokens["c-att-name"] = "<" . strtolower($this->faction) . ">".
-					$tokens['att-name'] . "<end>";
+				$tokens['c-att-name'] = '<' . strtolower($this->faction) . '>'.
+					$tokens['att-name'] . '<end>';
 			} else {
-				$tokens["c-att-name"] = "<unknown>{$tokens['att-name']}<end>";
+				$tokens['c-att-name'] = "<unknown>{$tokens['att-name']}<end>";
 			}
 		}
 		return $tokens;

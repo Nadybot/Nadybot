@@ -23,9 +23,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "cache",
-		accessLevel: "superadmin",
-		description: "Manage cached files",
+		command: 'cache',
+		accessLevel: 'superadmin',
+		description: 'Manage cached files',
 	)
 ]
 class CacheController extends ModuleInstance {
@@ -45,48 +45,45 @@ class CacheController extends ModuleInstance {
 	private BotConfig $config;
 
 	/** View a list of cache categories */
-	#[NCA\HandlesCommand("cache")]
+	#[NCA\HandlesCommand('cache')]
 	public function cacheCommand(CmdContext $context): void {
 		$blob = '';
 		foreach ($this->cacheManager->getGroups() as $group) {
 			$blob .= $this->text->makeChatcmd($group, "/tell <myname> cache browse {$group}") . "\n";
 		}
-		$msg = $this->text->makeBlob("Cache Groups", $blob);
+		$msg = $this->text->makeBlob('Cache Groups', $blob);
 		$context->reply($msg);
 	}
 
 	/** View a list of files in a cache category */
-	#[NCA\HandlesCommand("cache")]
+	#[NCA\HandlesCommand('cache')]
 	public function cacheBrowseCommand(
 		CmdContext $context,
-		#[NCA\Str("browse")]
-		string $action,
-		#[NCA\Regexp("[a-z0-9_-]+")]
-		string $group
+		#[NCA\Str('browse')] string $action,
+		#[NCA\Regexp('[a-z0-9_-]+')] string $group
 	): void {
 		$path = $this->config->paths->cache . $group;
 
 		$blob = '';
 		foreach ($this->cacheManager->getFilesInGroup($group) as $file) {
-			$fileInfo = $this->fs->getStatus($path . "/" . $file);
+			$fileInfo = $this->fs->getStatus($path . '/' . $file);
 			if (!isset($fileInfo)) {
 				continue;
 			}
-			$blob .= "<highlight>{$file}<end>  " . $this->util->bytesConvert($fileInfo['size']) . " - Last modified " . $this->util->date($fileInfo['mtime']);
-			$blob .= "  [" . $this->text->makeChatcmd("View", "/tell <myname> cache view {$group} {$file}") . "]";
-			$blob .= "  [" . $this->text->makeChatcmd("Delete", "/tell <myname> cache rem {$group} {$file}") . "]\n";
+			$blob .= "<highlight>{$file}<end>  " . $this->util->bytesConvert($fileInfo['size']) . ' - Last modified ' . $this->util->date($fileInfo['mtime']);
+			$blob .= '  [' . $this->text->makeChatcmd('View', "/tell <myname> cache view {$group} {$file}") . ']';
+			$blob .= '  [' . $this->text->makeChatcmd('Delete', "/tell <myname> cache rem {$group} {$file}") . "]\n";
 		}
 		$msg = $this->text->makeBlob("Cache Group: {$group}", $blob);
 		$context->reply($msg);
 	}
 
 	/** Delete a cache file from a cache category */
-	#[NCA\HandlesCommand("cache")]
+	#[NCA\HandlesCommand('cache')]
 	public function cacheRemCommand(
 		CmdContext $context,
 		PRemove $action,
-		#[NCA\Regexp("[a-z0-9_-]+")]
-		string $group,
+		#[NCA\Regexp('[a-z0-9_-]+')] string $group,
 		PFilename $file
 	): void {
 		$file = $file();
@@ -101,21 +98,19 @@ class CacheController extends ModuleInstance {
 	}
 
 	/** View the contents of a cache file */
-	#[NCA\HandlesCommand("cache")]
+	#[NCA\HandlesCommand('cache')]
 	public function cacheViewCommand(
 		CmdContext $context,
-		#[NCA\Str("view")]
-		string $action,
-		#[NCA\Regexp("[a-z0-9_-]+")]
-		string $group,
+		#[NCA\Str('view')] string $action,
+		#[NCA\Regexp('[a-z0-9_-]+')] string $group,
 		PFilename $file
 	): void {
 		$file = $file();
 
 		if ($this->cacheManager->cacheExists($group, $file)) {
 			$contents = $this->cacheManager->retrieve($group, $file)??'null';
-			if (str_ends_with($file, ".json")) {
-				$contents = json_encode(json_decode($contents), JSON_PRETTY_PRINT);
+			if (str_ends_with($file, '.json')) {
+				$contents = json_encode(json_decode($contents), \JSON_PRETTY_PRINT);
 			}
 			$msg = $this->text->makeBlob("Cache File: {$group} {$file}", htmlspecialchars($contents));
 		} else {

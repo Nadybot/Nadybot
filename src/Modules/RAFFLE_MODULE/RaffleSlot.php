@@ -21,7 +21,7 @@ class RaffleSlot {
 	public function fromString(string $text): void {
 		if (count($matches = Safe::pregMatch("/^(?<count>\d+)x?\s*[^\d]|\btop\s*(?<count>\d+)\b/J", $text))) {
 			$this->amount = (int)$matches['count'];
-			$text = Safe::pregReplace("/^(\d+)x?\s*/", "", $text);
+			$text = Safe::pregReplace("/^(\d+)x?\s*/", '', $text);
 		} elseif (preg_match("/loot\s*order/i", $text)) {
 			$this->amount = 0;
 		}
@@ -35,15 +35,15 @@ class RaffleSlot {
 
 	public function toString(): string {
 		$items = array_map(
-			function (RaffleItem $item): string {
+			static function (RaffleItem $item): string {
 				return $item->toString();
 			},
 			$this->items
 		);
 		if ($this->amount <= 1) {
-			return join(", ", $items);
+			return implode(', ', $items);
 		}
-		return "<orange>{$this->amount}×</font> " . join(", ", $items);
+		return "<orange>{$this->amount}×</font> " . implode(', ', $items);
 	}
 
 	public function isSameAs(RaffleSlot $slot): bool {
@@ -83,12 +83,12 @@ class RaffleSlot {
 	public function getWinnerNames(): array {
 		return array_values(
 			array_map(
-				function (RaffleResultItem $res): string {
+				static function (RaffleResultItem $res): string {
 					return $res->player;
 				},
 				array_filter(
 					$this->result??[],
-					function (RaffleResultItem $res): bool {
+					static function (RaffleResultItem $res): bool {
 						return $res->won;
 					}
 				)

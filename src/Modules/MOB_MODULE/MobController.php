@@ -18,43 +18,43 @@ use Safe\Exceptions\JsonException;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
-	NCA\EmitsMessages("mobs", "*"),
+	NCA\EmitsMessages('mobs', '*'),
 	NCA\DefineCommand(
-		command: "prisoners",
-		alias: ["pris"],
-		description: "Get the status of all prisoners",
-		accessLevel: "guest",
+		command: 'prisoners',
+		alias: ['pris'],
+		description: 'Get the status of all prisoners',
+		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
-		command: "hags",
-		description: "Get the status of all Biodome hags",
-		accessLevel: "guest",
+		command: 'hags',
+		description: 'Get the status of all Biodome hags',
+		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
-		command: "dreads",
-		description: "Get the status of all Dreadlochs bosses",
-		accessLevel: "guest",
+		command: 'dreads',
+		description: 'Get the status of all Dreadlochs bosses',
+		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
-		command: "ljotur",
-		description: "Get the status of Ljotur the Lunatic",
-		accessLevel: "guest",
+		command: 'ljotur',
+		description: 'Get the status of Ljotur the Lunatic',
+		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
-		command: "otacustes",
-		alias: ["ota"],
-		description: "Get the status of Otacustes",
-		accessLevel: "guest",
+		command: 'otacustes',
+		alias: ['ota'],
+		description: 'Get the status of Otacustes',
+		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
-		command: "jack",
-		alias: ["legchopper"],
-		description: "Get the status of Jack \"Leg-chopper\" Menendez and his clones",
-		accessLevel: "guest",
+		command: 'jack',
+		alias: ['legchopper'],
+		description: 'Get the status of Jack "Leg-chopper" Menendez and his clones',
+		accessLevel: 'guest',
 	),
 ]
 class MobController extends ModuleInstance {
-	public const MOB_API = "https://mobs.aobots.org/api/";
+	public const MOB_API = 'https://mobs.aobots.org/api/';
 
 	/** @var array<string,array<string,Mob>> */
 	public array $mobs = [];
@@ -80,14 +80,14 @@ class MobController extends ModuleInstance {
 	#[NCA\Inject]
 	private Util $util;
 
-	#[NCA\Event("connect", "Load all mobs from the API")]
+	#[NCA\Event('connect', 'Load all mobs from the API')]
 	public function initMobsFromApi(): void {
 		$client = $this->builder->build();
 
 		$response = $client->request(new Request(self::MOB_API));
 		if ($response->getStatus() !== 200) {
-			$this->logger->error("Error calling the mob-api: HTTP-code {code}", [
-				"code" => $response->getStatus(),
+			$this->logger->error('Error calling the mob-api: HTTP-code {code}', [
+				'code' => $response->getStatus(),
 			]);
 			return;
 		}
@@ -109,15 +109,15 @@ class MobController extends ModuleInstance {
 				}
 			}
 		} catch (JsonException $e) {
-			$this->logger->error("Invalid mob-data received: {error}", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Invalid mob-data received: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 			return;
 		} catch (UnableToHydrateObject $e) {
-			$this->logger->error("Unable to parse mob-api: {error}", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Unable to parse mob-api: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 		}
 	}
@@ -128,8 +128,8 @@ class MobController extends ModuleInstance {
 
 		$response = $client->request(new Request(self::MOB_API . $type));
 		if ($response->getStatus() !== 200) {
-			$this->logger->error("Error calling the mob-api: HTTP-code {code}", [
-				"code" => $response->getStatus(),
+			$this->logger->error('Error calling the mob-api: HTTP-code {code}', [
+				'code' => $response->getStatus(),
 			]);
 			return;
 		}
@@ -151,22 +151,22 @@ class MobController extends ModuleInstance {
 				}
 			}
 		} catch (JsonException $e) {
-			$this->logger->error("Invalid mob-data received: {error}", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Invalid mob-data received: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 			return;
 		} catch (UnableToHydrateObject $e) {
-			$this->logger->error("Unable to parse mob-api: {error}", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Unable to parse mob-api: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 		}
 	}
 
 	#[Event(
 		name: MobAttackedEvent::EVENT_MASK,
-		description: "Announce when a mob gets attacked as mob(&lt;type&gt;-&lt;key&gt;-attacked)",
+		description: 'Announce when a mob gets attacked as mob(&lt;type&gt;-&lt;key&gt;-attacked)',
 	)]
 	public function announceMobAttacked(MobAttackedEvent $event): void {
 		$mob = $event->mob;
@@ -181,15 +181,15 @@ class MobController extends ModuleInstance {
 				$pf->long_name,
 				$blob,
 				"{$mob->name} waypoint",
-			))[0] . ".";
+			))[0] . '.';
 		$rMsg = new RoutableMessage($msg);
-		$rMsg->prependPath(new Source("mobs", "{$mob->type}-{$mob->key}-attacked"));
+		$rMsg->prependPath(new Source('mobs', "{$mob->type}-{$mob->key}-attacked"));
 		$this->msgHub->handle($rMsg);
 	}
 
 	#[Event(
 		name: MobSpawnEvent::EVENT_MASK,
-		description: "Announce when a new mob spawns as mob(&lt;type&gt;-&lt;key&gt;-spawn)",
+		description: 'Announce when a new mob spawns as mob(&lt;type&gt;-&lt;key&gt;-spawn)',
 	)]
 	public function announceMobSpawn(MobSpawnEvent $event): void {
 		$mob = $event->mob;
@@ -204,15 +204,15 @@ class MobController extends ModuleInstance {
 				$pf->long_name,
 				$blob,
 				"{$mob->name} waypoint",
-			))[0] . ".";
+			))[0] . '.';
 		$rMsg = new RoutableMessage($msg);
-		$rMsg->prependPath(new Source("mobs", "{$mob->type}-{$mob->key}-spawn"));
+		$rMsg->prependPath(new Source('mobs', "{$mob->type}-{$mob->key}-spawn"));
 		$this->msgHub->handle($rMsg);
 	}
 
 	#[Event(
 		name: MobDeathEvent::EVENT_MASK,
-		description: "Announce when a mob gets killed as mob(&lt;type&gt;-&lt;key&gt;-death)",
+		description: 'Announce when a mob gets killed as mob(&lt;type&gt;-&lt;key&gt;-death)',
 	)]
 	public function announceMobDeath(MobDeathEvent $event): void {
 		$mob = $event->mob;
@@ -227,52 +227,51 @@ class MobController extends ModuleInstance {
 				$pf->long_name,
 				$blob,
 				"{$mob->name} waypoint",
-			))[0] . ".";
+			))[0] . '.';
 		if (isset($mob->respawn_timer)) {
-			$msg .= " Respawn will be in ".
-				$this->util->unixtimeToReadable($mob->respawn_timer) . ".";
+			$msg .= ' Respawn will be in '.
+				$this->util->unixtimeToReadable($mob->respawn_timer) . '.';
 		}
 		$rMsg = new RoutableMessage($msg);
-		$rMsg->prependPath(new Source("mobs", "{$mob->type}-{$mob->key}-death"));
+		$rMsg->prependPath(new Source('mobs', "{$mob->type}-{$mob->key}-death"));
 		$this->msgHub->handle($rMsg);
 	}
 
 	#[
-		HandlesCommand("prisoners"),
-		NCA\Help\Group("mobs"),
+		HandlesCommand('prisoners'),
+		NCA\Help\Group('mobs'),
 	]
 	/** Show which of the prisoners in Milky Way is up or down */
 	public function showPrisonersCommand(CmdContext $context): void {
 		/** @var Collection<string> */
 		$blobs = (new Collection(array_values($this->mobs[Mob::T_PRISONER]??[])))
-			->sortBy("name")
-			->map(Closure::fromCallable([$this, "renderMob"]));
+			->sortBy('name')
+			->map(Closure::fromCallable([$this, 'renderMob']));
 		if ($blobs->isEmpty()) {
-			$context->reply("There is currently no data for any prisoner. Maybe the API is down.");
+			$context->reply('There is currently no data for any prisoner. Maybe the API is down.');
 			return;
 		}
 		$msg = $this->text->makeBlob(
-			"Status of all prisoners (" . $blobs->count() . ")",
+			'Status of all prisoners (' . $blobs->count() . ')',
 			$blobs->join("\n\n")
 		);
 		$context->reply($msg);
 	}
 
 	#[
-		HandlesCommand("hags"),
-		NCA\Help\Group("mobs"),
+		HandlesCommand('hags'),
+		NCA\Help\Group('mobs'),
 	]
 	/** Show which Biodome hag is up or down */
 	public function showHagsCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("clan", "omni")]
-		?string $type
+		#[NCA\StrChoice('clan', 'omni')] ?string $type
 	): void {
 		/** @var Collection<string> */
 		$factions = (new Collection(array_values($this->mobs[Mob::T_HAG]??[])))
-			->sortBy("name")
-			->groupBy(function (Mob $mob): string {
-				return explode("-", $mob->key)[0];
+			->sortBy('name')
+			->groupBy(static function (Mob $mob): string {
+				return explode('-', $mob->key)[0];
 			});
 
 		if (isset($type)) {
@@ -282,48 +281,47 @@ class MobController extends ModuleInstance {
 				return;
 			}
 		} elseif ($factions->isEmpty()) {
-			$context->reply("There is currently no data for any hags. Maybe the API is down.");
+			$context->reply('There is currently no data for any hags. Maybe the API is down.');
 			return;
 		}
 
 		$blobs = $factions->map(function (Collection $hags, string $faction): string {
 			return ((array)$this->text->makeBlob(
-				ucfirst($faction) . " hags (" . $hags->count() . ")",
-				$hags->map(Closure::fromCallable([$this, "renderMob"]))->join("\n\n")
+				ucfirst($faction) . ' hags (' . $hags->count() . ')',
+				$hags->map(Closure::fromCallable([$this, 'renderMob']))->join("\n\n")
 			))[0];
 		});
-		$msg = "Status of all " . $blobs->join(" and ") . ".";
+		$msg = 'Status of all ' . $blobs->join(' and ') . '.';
 		$context->reply($msg);
 	}
 
 	#[
-		HandlesCommand("dreads"),
-		NCA\Help\Group("mobs"),
+		HandlesCommand('dreads'),
+		NCA\Help\Group('mobs'),
 	]
 	/** Show which Dreadloch mob is up or down */
 	public function showDreadsCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("clan", "omni")]
-		?string $type
+		#[NCA\StrChoice('clan', 'omni')] ?string $type
 	): void {
 		$sides = [
-			"pthunder" => "omni",
-			"woon" => "omni",
-			"moxy" => "omni",
-			"frc-191" => "omni",
-			"pax" => "omni",
-			"crux" => "clan",
-			"sleek" => "clan",
-			"swan" => "clan",
-			"deko" => "clan",
-			"cthunder" => "clan",
+			'pthunder' => 'omni',
+			'woon' => 'omni',
+			'moxy' => 'omni',
+			'frc-191' => 'omni',
+			'pax' => 'omni',
+			'crux' => 'clan',
+			'sleek' => 'clan',
+			'swan' => 'clan',
+			'deko' => 'clan',
+			'cthunder' => 'clan',
 		];
 
 		/** @var Collection<string> */
 		$factions = (new Collection(array_values($this->mobs[Mob::T_DREAD]??[])))
-			->sortBy("name")
-			->groupBy(function (Mob $mob) use ($sides): string {
-				return $sides[$mob->key] ?? "unknown";
+			->sortBy('name')
+			->groupBy(static function (Mob $mob) use ($sides): string {
+				return $sides[$mob->key] ?? 'unknown';
 			});
 		if (isset($type)) {
 			$factions = new Collection([$type => $factions->get($type)]);
@@ -332,67 +330,67 @@ class MobController extends ModuleInstance {
 				return;
 			}
 		} elseif ($factions->isEmpty()) {
-			$context->reply("There is currently no data for any Dreadloch camp. Maybe the API is down.");
+			$context->reply('There is currently no data for any Dreadloch camp. Maybe the API is down.');
 			return;
 		}
 		$blobs = $factions->map(function (Collection $dreads, string $faction): string {
 			return ((array)$this->text->makeBlob(
-				ucfirst($faction) . " Dreadloch camps (" . $dreads->count() . ")",
-				$dreads->map(Closure::fromCallable([$this, "renderMob"]))->join("\n\n")
+				ucfirst($faction) . ' Dreadloch camps (' . $dreads->count() . ')',
+				$dreads->map(Closure::fromCallable([$this, 'renderMob']))->join("\n\n")
 			))[0];
 		});
-		$msg = "Status of all " . $blobs->join(" and ") . ".";
+		$msg = 'Status of all ' . $blobs->join(' and ') . '.';
 		$context->reply($msg);
 	}
 
 	#[
-		HandlesCommand("jack"),
-		NCA\Help\Group("mobs"),
+		HandlesCommand('jack'),
+		NCA\Help\Group('mobs'),
 	]
 	/** Show which of Jack's clones is currently up */
 	public function showLegchopperCommand(CmdContext $context): void {
 		/** @var Collection<string> */
 		$blobs = (new Collection(array_values($this->mobs[Mob::T_LEGCHOPPER]??[])))
-			->sortBy("name")
-			->sort(function (Mob $a, Mob $b): int {
-				return $a->key === "jack"
+			->sortBy('name')
+			->sort(static function (Mob $a, Mob $b): int {
+				return $a->key === 'jack'
 					? -1
-					: ($b->key === "jack" ? 1 : 0);
+					: ($b->key === 'jack' ? 1 : 0);
 			})
-			->map(Closure::fromCallable([$this, "renderMob"]));
+			->map(Closure::fromCallable([$this, 'renderMob']));
 		if ($blobs->isEmpty()) {
-			$context->reply("There is currently no data for Jack Legchopper or his clones. Maybe the API is down.");
+			$context->reply('There is currently no data for Jack Legchopper or his clones. Maybe the API is down.');
 			return;
 		}
 		$msg = $this->text->makeBlob(
-			"Status of Jack and his clones (" . $blobs->count() . ")",
+			'Status of Jack and his clones (' . $blobs->count() . ')',
 			$blobs->join("\n\n")
 		);
 		$context->reply($msg);
 	}
 
 	#[
-		HandlesCommand("ljotur"),
-		NCA\Help\Group("mobs"),
+		HandlesCommand('ljotur'),
+		NCA\Help\Group('mobs'),
 	]
 	/** Show whether Ljotur the Lunatic, or one of his placeholders are up */
 	public function showLjoturCommand(CmdContext $context): void {
-		$this->showUniqueCommand($context, "ljotur", "Ljtur the Lunatic");
+		$this->showUniqueCommand($context, 'ljotur', 'Ljtur the Lunatic');
 	}
 
 	#[
-		HandlesCommand("otacustes"),
-		NCA\Help\Group("mobs"),
+		HandlesCommand('otacustes'),
+		NCA\Help\Group('mobs'),
 	]
 	/** Show whether Otacustes, or one of his placeholders are up */
 	public function showOtacustesCommand(CmdContext $context): void {
-		$this->showUniqueCommand($context, "otacustes", "Otacustes");
+		$this->showUniqueCommand($context, 'otacustes', 'Otacustes');
 	}
 
 	public function showUniqueCommand(CmdContext $context, string $key, string $name): void {
 		/** @var ?Mob */
 		$mob = (new Collection(array_values($this->mobs[Mob::T_UNIQUES]??[])))
-			->where("key", $key)
+			->where('key', $key)
 			->first();
 		if (!isset($mob)) {
 			$context->reply("There is currently no data for {$name}. Maybe the API is down.");
@@ -400,9 +398,9 @@ class MobController extends ModuleInstance {
 		}
 		$blob = $this->renderMob($mob);
 		$msg = $this->text->blobWrap(
-			"",
+			'',
 			$this->text->makeBlob($mob->name, $blob),
-			": " . $this->renderMobStatus($mob)
+			': ' . $this->renderMobStatus($mob)
 		);
 		$context->reply($msg);
 	}
@@ -411,21 +409,21 @@ class MobController extends ModuleInstance {
 		switch ($mob->status) {
 			case $mob::STATUS_UNKNOWN:
 				if (!isset($mob->last_seen)) {
-					return "<unknown>UNKNOWN<end>";
+					return '<unknown>UNKNOWN<end>';
 				}
 				// Otherwise, the mob is out of range
 			case $mob::STATUS_OUT_OF_RANGE:
-				$status = "<yellow>OUT OF RANGE<end>";
+				$status = '<yellow>OUT OF RANGE<end>';
 				if (!isset($mob->last_seen)) {
 					return $status;
 				}
 				$hp = (int)round($mob->hp_percent??100, 0);
-				$color = ($hp > 75) ? "highlight" : (($hp <= 25) ? "red" : "yellow");
+				$color = ($hp > 75) ? 'highlight' : (($hp <= 25) ? 'red' : 'yellow');
 				return "{$status} (last seen ".
 					$this->util->unixtimeToReadable(time() - $mob->last_seen).
-					" ago with " . $this->text->alignNumber($hp, 3, $color) . "% HP)";
+					' ago with ' . $this->text->alignNumber($hp, 3, $color) . '% HP)';
 			case $mob::STATUS_DOWN:
-				$status = "<off>DEAD<end>";
+				$status = '<off>DEAD<end>';
 				if (!isset($mob->last_killed)) {
 					return $status;
 				}
@@ -433,21 +431,21 @@ class MobController extends ModuleInstance {
 					$spawn = $mob->last_killed + $mob->respawn_timer;
 					$respawn = $spawn - time();
 					$respawnTime = ($respawn > 0)
-						? "in " . $this->util->unixtimeToReadable($respawn)
-						: "any moment now";
+						? 'in ' . $this->util->unixtimeToReadable($respawn)
+						: 'any moment now';
 					return "{$status} (respawns {$respawnTime})";
 				}
 				return "{$status} (killed ".
 					$this->util->unixtimeToReadable(time() - $mob->last_killed).
-					"ago)";
+					'ago)';
 			case $mob::STATUS_UP:
 			case $mob::STATUS_ATTACKED:
 				$hp = (int)round($mob->hp_percent??100, 0);
-				$color = ($hp > 75) ? "highlight" : (($hp <= 25) ? "red" : "yellow");
-				return "<on>UP<end>, ".
-					$this->text->alignNumber($hp, 3, $color) . "% HP";
+				$color = ($hp > 75) ? 'highlight' : (($hp <= 25) ? 'red' : 'yellow');
+				return '<on>UP<end>, '.
+					$this->text->alignNumber($hp, 3, $color) . '% HP';
 			default:
-				return "<unknown>UNKNOWN<end>";
+				return '<unknown>UNKNOWN<end>';
 		}
 	}
 
@@ -457,7 +455,7 @@ class MobController extends ModuleInstance {
 		$status = $this->renderMobStatus($mob);
 
 		/** @var string */
-		$basename = Safe::pregReplace("/\s+\(placeholder\)/i", "", $mob->name);
+		$basename = Safe::pregReplace("/\s+\(placeholder\)/i", '', $mob->name);
 		$whereis = $this->whereisCtrl->getByName($basename);
 		if ($whereis->count() === 1) {
 			/** @var WhereisResult */

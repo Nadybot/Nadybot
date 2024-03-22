@@ -45,8 +45,7 @@ class SiteUpdate {
 		public int $min_ql,
 		public int $max_ql,
 		public string $name,
-		#[CastToTiming]
-		public int $timing,
+		#[CastToTiming] public int $timing,
 		public Coordinates $center,
 		public int $num_conductors=0,
 		public ?Coordinates $ct_pos=null,

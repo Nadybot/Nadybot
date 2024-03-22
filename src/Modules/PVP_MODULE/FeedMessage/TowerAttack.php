@@ -11,12 +11,12 @@ class TowerAttack {
 	/** @var array<string,string|int|null> */
 	public const EXAMPLE_TOKENS = [
 		// ...Attacker::EXAMPLE_TOKENS,
-		"att-org-name" => "Team Rainbow",
-		"c-att-org-name" => "<clan>Team Rainbow<end>",
-		"att-org" => "Team Rainbow",
-		"c-att-org" => "<clan>Team Rainbow<end>",
-		"att-org-faction" => 'Clan',
-		"c-att-org-faction" => '<clan>Clan<end>',
+		'att-org-name' => 'Team Rainbow',
+		'c-att-org-name' => '<clan>Team Rainbow<end>',
+		'att-org' => 'Team Rainbow',
+		'c-att-org' => '<clan>Team Rainbow<end>',
+		'att-org-faction' => 'Clan',
+		'c-att-org-faction' => '<clan>Clan<end>',
 
 		'att-name' => 'Nady',
 		'c-att-name' => '<highlight>Nady<end>',
@@ -37,14 +37,14 @@ class TowerAttack {
 		'att-faction' => 'Clan',
 		'c-att-faction' => '<clan>Clan<end>',
 		// ...DefenderOrg::EXAMPLE_TOKENS,
-		"def-org" => "Troet",
-		"c-def-org" => "<neutral>Troet<end>",
-		"def-faction" => "Neutral",
-		"c-def-faction" => "<neutral>Neutral<end>",
+		'def-org' => 'Troet',
+		'c-def-org' => '<neutral>Troet<end>',
+		'def-faction' => 'Neutral',
+		'c-def-faction' => '<neutral>Neutral<end>',
 
-		"pf-id" => 551,
-		"att-coord-x" => 700,
-		"att-coord-y" => 800,
+		'pf-id' => 551,
+		'att-coord-x' => 700,
+		'att-coord-y' => 800,
 	];
 
 	public bool $isFake = false;
@@ -78,9 +78,9 @@ class TowerAttack {
 	/** @return array<string,string|int|null> */
 	public function getTokens(): array {
 		$tokens = [
-			"pf-id" => $this->playfield_id,
-			"att-coord-x" => $this->location->x,
-			"att-coord-y" => $this->location->y,
+			'pf-id' => $this->playfield_id,
+			'att-coord-x' => $this->location->x,
+			'att-coord-y' => $this->location->y,
 		];
 		return array_merge(
 			$tokens,

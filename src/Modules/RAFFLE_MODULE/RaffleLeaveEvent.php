@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
 class RaffleLeaveEvent extends RaffleParticipationEvent {
-	public const EVENT_MASK = "raffle(leave)";
+	public const EVENT_MASK = 'raffle(leave)';
 
 	public function __construct(
 		public Raffle $raffle,

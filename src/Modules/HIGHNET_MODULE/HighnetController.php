@@ -46,44 +46,44 @@ use Psr\Log\LoggerInterface;
 	NCA\HandlesEventFeed('highnet'),
 	NCA\ProvidesEvent(HighnetEvent::class),
 	NCA\DefineCommand(
-		command: "highnet",
-		description: "Show Highnet information",
-		accessLevel: "guest",
+		command: 'highnet',
+		description: 'Show Highnet information',
+		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
-		command: "highnet reset",
-		description: "Reset the Highnet configuration",
-		accessLevel: "mod",
+		command: 'highnet reset',
+		description: 'Reset the Highnet configuration',
+		accessLevel: 'mod',
 	),
 	NCA\DefineCommand(
 		command: HighnetController::FILTERS,
-		description: "Show current filters",
-		accessLevel: "member",
+		description: 'Show current filters',
+		accessLevel: 'member',
 	),
 	NCA\DefineCommand(
 		command: HighnetController::PERM_FILTERS,
-		description: "Manage Highnet permanent filters",
-		accessLevel: "mod",
+		description: 'Manage Highnet permanent filters',
+		accessLevel: 'mod',
 	),
 	NCA\DefineCommand(
 		command: HighnetController::TEMP_FILTERS,
-		description: "Manage Highnet temporary filters",
-		accessLevel: "guild",
+		description: 'Manage Highnet temporary filters',
+		accessLevel: 'guild',
 	),
 ]
 class HighnetController extends ModuleInstance implements EventFeedHandler {
-	public const FILTERS = "highnet list filters";
-	public const PERM_FILTERS = "highnet manage permanent filters";
-	public const TEMP_FILTERS = "highnet manage temporary filters";
+	public const FILTERS = 'highnet list filters';
+	public const PERM_FILTERS = 'highnet manage permanent filters';
+	public const TEMP_FILTERS = 'highnet manage temporary filters';
 
 	public const CHANNELS = [
-		"PVM",
-		"PVP",
-		"Chat",
-		"RP",
-		"Lootrights",
+		'PVM',
+		'PVP',
+		'Chat',
+		'RP',
+		'Lootrights',
 	];
-	public const DB_TABLE = "highnet_filter_<myname>";
+	public const DB_TABLE = 'highnet_filter_<myname>';
 
 	/** Enable incoming and outgoing Highnet messages */
 	#[NCA\Setting\Boolean]
@@ -99,9 +99,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 
 	/** The prefix to put in front of the channel name to send messages */
 	#[NCA\Setting\Text(
-		options: ["@", "#", "%", "="]
+		options: ['@', '#', '%', '=']
 	)]
-	public string $highnetPrefix = "@";
+	public string $highnetPrefix = '@';
 
 	/** @var string[] */
 	public array $channels = [];
@@ -164,13 +164,13 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	#[NCA\Event(
-		name: "event-feed(room-info)",
-		description: "Register Highnet channels",
+		name: 'event-feed(room-info)',
+		description: 'Register Highnet channels',
 	)]
 	public function roomInfoHandler(LowLevelEventFeedEvent $event): void {
 		$package = $event->highwayPackage;
 		assert($package instanceof Highway\In\RoomInfo);
-		if ($package->room !== "highnet") {
+		if ($package->room !== 'highnet') {
 			return;
 		}
 		if (
@@ -188,23 +188,23 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	#[NCA\Event(
-		name: ["event-feed(join)", "event-feed(leave)"],
-		description: "Count Highnet client",
+		name: ['event-feed(join)', 'event-feed(leave)'],
+		description: 'Count Highnet client',
 	)]
 	public function roomJoinHandler(LowLevelEventFeedEvent $event): void {
 		$package = $event->highwayPackage;
 		if (!($package instanceof Highway\In\Join) && !($package instanceof Highway\In\Leave)) {
 			return;
 		}
-		if ($package->room !== "highnet") {
+		if ($package->room !== 'highnet') {
 			return;
 		}
 		$this->numClients += ($package->type === $package::JOIN) ? 1 : -1;
 	}
 
-	#[NCA\SettingChangeHandler("highnet_enabled")]
+	#[NCA\SettingChangeHandler('highnet_enabled')]
 	public function switchHighnetStatus(string $setting, string $old, string $new): void {
-		if ($new === "1" && $this->feedSupportsHighnet) {
+		if ($new === '1' && $this->feedSupportsHighnet) {
 			$this->registerChannelHandlers();
 		} else {
 			$this->unregisterChannelHandlers();
@@ -226,14 +226,14 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 
 	public function removeExpiredFilters(): void {
 		$this->db->table(self::DB_TABLE)
-			->whereNotNull("expires")
-			->where("expires", "<=", time())
+			->whereNotNull('expires')
+			->where('expires', '<=', time())
 			->delete();
 	}
 
 	#[NCA\Event(
-		name: "timer(1m)",
-		description: "Remove expired filters",
+		name: 'timer(1m)',
+		description: 'Remove expired filters',
 	)]
 	public function cleanExpiredFilters(): void {
 		$this->removeExpiredFilters();
@@ -246,13 +246,13 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	#[NCA\Event(
-		name: "timer(10s)",
-		description: "Clean unused rate limits"
+		name: 'timer(10s)',
+		description: 'Clean unused rate limits'
 	)]
 	public function clearUnusedBuckets(): void {
 		$this->buckets = array_filter(
 			$this->buckets,
-			function (LeakyBucket $bucket): bool {
+			static function (LeakyBucket $bucket): bool {
 				$emptySince = $bucket->getEmptySince();
 				return isset($emptySince) && $emptySince + 10 < microtime(true);
 			}
@@ -260,8 +260,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	#[NCA\Event(
-		name: "event-feed(message)",
-		description: "Handle raw Highnet-messages",
+		name: 'event-feed(message)',
+		description: 'Handle raw Highnet-messages',
 	)]
 	public function handleLLEventFeedMessage(LowLevelEventFeedEvent $event): void {
 		if (!$this->highnetEnabled) {
@@ -284,7 +284,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		try {
 			$message = $mapper->hydrateObject(Message::class, $body);
 			if (!$this->isWantedMessage($message)) {
-				$this->logger->info("Highnet message was filtered away.");
+				$this->logger->info('Highnet message was filtered away.');
 				return;
 			}
 			$bucket = $this->buckets[$senderUUID] ?? null;
@@ -292,9 +292,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 				$bucket = $this->buckets[$senderUUID] = new LeakyBucket(3, 2);
 			}
 			if ($bucket->getSize() > $this->highnetQueueSize) {
-				$this->logger->info("Queue for {uuid} is over {bucket_size} - dropping message.", [
-					"uuid" => $senderUUID,
-					"bucket_size" => $this->highnetQueueSize,
+				$this->logger->info('Queue for {uuid} is over {bucket_size} - dropping message.', [
+					'uuid' => $senderUUID,
+					'bucket_size' => $this->highnetQueueSize,
 				]);
 				return;
 			}
@@ -306,27 +306,27 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$event = new HighnetEvent(message: $nextMessage);
 			$this->eventManager->fireEvent($event);
 		} catch (UnableToHydrateObject $e) {
-			$this->logger->info("Invalid highnet-package received: {data}.", [
-				"data" => $body,
+			$this->logger->info('Invalid highnet-package received: {data}.', [
+				'data' => $body,
 			]);
 		}
 	}
 
-	#[NCA\Event(name: HighnetEvent::EVENT_MASK, description: "Handle Highnet messages")]
+	#[NCA\Event(name: HighnetEvent::EVENT_MASK, description: 'Handle Highnet messages')]
 	public function handleMessage(HighnetEvent $event): void {
 		$message = $event->message;
 		$handler = $this->handlers[strtolower($message->channel)]??null;
 		if (!isset($handler)) {
-			$this->logger->info("No handler for Highnet channel {channel} found.", [
-				"channel" => $message->channel,
+			$this->logger->info('No handler for Highnet channel {channel} found.', [
+				'channel' => $message->channel,
 			]);
 			return;
 		}
 		$popup = $this->getInfoPopup($message);
 		$msgs = $this->text->blobWrap(
-			$message->message . " [",
-			$this->text->makeBlob("details", $popup, "Message details"),
-			"]"
+			$message->message . ' [',
+			$this->text->makeBlob('details', $popup, 'Message details'),
+			']'
 		);
 		foreach ($msgs as $msg) {
 			$rMsg = new RoutableMessage($msg);
@@ -336,7 +336,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 				dimension: $message->dimension,
 			));
 			$rMsg->prependPath(new Source(
-				type: "highnet",
+				type: 'highnet',
 				name: strtolower($message->channel),
 				label: $message->channel,
 				dimension: $message->dimension,
@@ -346,24 +346,24 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	/** Show information about the Highnet connection */
-	#[NCA\HandlesCommand("highnet")]
+	#[NCA\HandlesCommand('highnet')]
 	public function highnetInfoCommand(
 		CmdContext $context,
 	): void {
 		if ($this->highnetEnabled === false) {
-			$context->reply("Highnet is disabled on this bot.");
+			$context->reply('Highnet is disabled on this bot.');
 			return;
 		}
 		if (!isset($this->eventFeed->connection)) {
-			$context->reply("Not connected to a any feed at all.");
+			$context->reply('Not connected to a any feed at all.');
 			return;
 		}
 		if ($this->feedSupportsHighnet === false) {
-			$context->reply("Not connected to a Highnet-capable feed.");
+			$context->reply('Not connected to a Highnet-capable feed.');
 			return;
 		}
 		$numClients = "{$this->numClients} ".
-				$this->text->pluralize("client", $this->numClients);
+				$this->text->pluralize('client', $this->numClients);
 		$popup = "<header2>How to talk on Highnet<end>\n".
 			"In order to talk to other bots on a Highnet channel, use\n".
 			"<tab><highlight>{$this->highnetPrefix}&lt;channel&gt; &lt;message&gt;<end> - ".
@@ -378,18 +378,18 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			"match a channel.\n".
 			"\n".
 			"<header2>Who can read me?<end>\n".
-			"There " . (($this->numClients === 1) ? "is" : "are") . " ".
+			'There ' . (($this->numClients === 1) ? 'is' : 'are') . ' '.
 			"currently <highlight>{$numClients}<end> other than this bot connected to Highnet.\n".
 			"Each of these clients can read your messages - if they have proper routing\n".
 			"in place. How many people there are on each client is not exposed.\n".
 			"\n".
 			"<header2>What can I read?<end>\n".
-			"The following Highnet channels are seen on this bot:";
+			'The following Highnet channels are seen on this bot:';
 		foreach ($this->channels as $channel) {
 			$recs = $this->msgHub->getReceiversFor("highnet({$channel})");
-			$visMsg = "Not seen on this bot";
+			$visMsg = 'Not seen on this bot';
 			if (count($recs)) {
-				$visMsg = "On " . $this->text->enumerate(...$recs);
+				$visMsg = 'On ' . $this->text->enumerate(...$recs);
 			}
 			$popup .= "\n<tab><highlight>{$channel}<end>: {$visMsg}";
 		}
@@ -407,19 +407,19 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			"on messages per client. Therefore, attempting to overwhelm others with excessive\n".
 			"spamming will not be effective.\n".
 			"\n".
-			"Be excellent to each other!";
-		$channelMsg = "Connected to the following Highnet channels: ".
+			'Be excellent to each other!';
+		$channelMsg = 'Connected to the following Highnet channels: '.
 			(count($this->channels)
 			? (
 				$this->text->enumerate(
-					...$this->text->arraySprintf("<highlight>%s<end>", ...$this->channels)
+					...$this->text->arraySprintf('<highlight>%s<end>', ...$this->channels)
 				) . " with <highlight>{$numClients}<end> attached"
 			)
-			: "&lt;none&gt;");
+			: '&lt;none&gt;');
 		$msgs = $this->text->blobWrap(
-			$channelMsg . " [",
-			$this->text->makeBlob("instructions", $popup, "Instructions how to use Highnet"),
-			"]"
+			$channelMsg . ' [',
+			$this->text->makeBlob('instructions', $popup, 'Instructions how to use Highnet'),
+			']'
 		);
 		foreach ($msgs as $msg) {
 			$context->reply($msg);
@@ -427,31 +427,30 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	/** Reset the whole Highnet configuration and setup default routes and colors */
-	#[NCA\HandlesCommand("highnet reset")]
+	#[NCA\HandlesCommand('highnet reset')]
 	public function highnetInitCommand(
 		CmdContext $context,
-		#[NCA\Str("reset", "init")]
-		string $action
+		#[NCA\Str('reset', 'init')] string $action
 	): void {
 		$colors = $this->msgHub::$colors;
 
 		/** @var int[] */
-		$colorIds = $colors->filter(function (RouteHopColor $color): bool {
-			return strncasecmp($color->hop, "highnet", 7) === 0;
-		})->pluck("id")->toArray();
+		$colorIds = $colors->filter(static function (RouteHopColor $color): bool {
+			return strncasecmp($color->hop, 'highnet', 7) === 0;
+		})->pluck('id')->toArray();
 
 		/** @var int[] */
-		$formatIds = Source::$format->filter(function (RouteHopFormat $format): bool {
-			return strncasecmp($format->hop, "highnet", 7) === 0;
-		})->pluck("id")->toArray();
+		$formatIds = Source::$format->filter(static function (RouteHopFormat $format): bool {
+			return strncasecmp($format->hop, 'highnet', 7) === 0;
+		})->pluck('id')->toArray();
 
 		$routes = $this->msgHub->getRoutes();
 		$deleteIds = [];
 		foreach ($routes as $route) {
 			$source = $route->getSource();
 			$dest = $route->getDest();
-			$isHighnetRoute = (strncasecmp($source, "highnet", 7) === 0)
-				|| (strncasecmp($dest, "highnet", 7) === 0);
+			$isHighnetRoute = (strncasecmp($source, 'highnet', 7) === 0)
+				|| (strncasecmp($dest, 'highnet', 7) === 0);
 			if (!$isHighnetRoute) {
 				continue;
 			}
@@ -459,11 +458,11 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$this->msgHub->deleteRouteID($route->getID());
 		}
 		$routes = [];
-		$hops = ["web", isset($this->config->orgId) ? "aoorg" : "aopriv({$this->config->main->character})"];
+		$hops = ['web', isset($this->config->orgId) ? 'aoorg' : "aopriv({$this->config->main->character})"];
 
 		foreach ($hops as $hop) {
 			$route = new Route();
-			$route->source = "highnet(*)";
+			$route->source = 'highnet(*)';
 			$route->two_way = false;
 			$route->destination = $hop;
 			$routes []= $route;
@@ -471,12 +470,12 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$route = new Route();
 			$route->source = $hop;
 			$route->two_way = false;
-			$route->destination = "highnet";
+			$route->destination = 'highnet';
 			$routes []= $route;
 		}
 
 		$rhf = new RouteHopFormat();
-		$rhf->hop = "highnet";
+		$rhf->hop = 'highnet';
 		$rhf->render = true;
 		$rhf->format = '@%s';
 
@@ -489,13 +488,13 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$this->db->awaitBeginTransaction();
 		try {
 			$this->db->table($this->msgHub::DB_TABLE_ROUTES)
-				->whereIn("id", $deleteIds)
+				->whereIn('id', $deleteIds)
 				->delete();
 			$this->db->table($this->msgHub::DB_TABLE_COLORS)
-				->whereIn("id", $colorIds)
+				->whereIn('id', $colorIds)
 				->delete();
 			$this->db->table(Source::DB_TABLE)
-				->whereIn("id", $formatIds)
+				->whereIn('id', $formatIds)
 				->delete();
 			$this->db->insert($this->msgHub::DB_TABLE_COLORS, $rhc);
 			$this->db->insert(Source::DB_TABLE, $rhf);
@@ -515,28 +514,27 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$this->msgHub->loadTagColor();
 		$this->msgHub->loadTagFormat();
 
-		$context->reply("Routing for Highnet initialized.");
+		$context->reply('Routing for Highnet initialized.');
 	}
 
 	/** Show the currently active filters */
 	#[NCA\HandlesCommand(self::FILTERS)]
 	public function highnetListFilters(
 		CmdContext $context,
-		#[NCA\Str("filters", "filter")]
-		string $action
+		#[NCA\Str('filters', 'filter')] string $action
 	): void {
 		$this->cleanExpiredFilters();
 		$this->reloadFilters();
 		if ($this->filters->isEmpty()) {
-			$context->reply("No Highnet filters are currently active.");
+			$context->reply('No Highnet filters are currently active.');
 			return;
 		}
 		$blob = "<header2>Currently active filters<end>\n".
 			$this->filters
-				->map(Closure::fromCallable([$this, "renderFilter"]))
+				->map(Closure::fromCallable([$this, 'renderFilter']))
 				->join("\n");
 		$msg = $this->text->makeBlob(
-			"Highnet filters (" . $this->filters->count() . ")",
+			'Highnet filters (' . $this->filters->count() . ')',
 			$blob
 		);
 		$context->reply($msg);
@@ -546,12 +544,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::PERM_FILTERS)]
 	public function highnetAddPermanentUserFilters(
 		CmdContext $context,
-		#[NCA\Str("filter", "filters")]
-		string $action,
-		#[NCA\Str("permanent")]
-		string $permanent,
-		#[NCA\StrChoice("bot", "sender")]
-		string $where,
+		#[NCA\Str('filter', 'filters')] string $action,
+		#[NCA\Str('permanent')] string $permanent,
+		#[NCA\StrChoice('bot', 'sender')] string $where,
 		PCharacter $name,
 		int $dimension,
 	): void {
@@ -568,11 +563,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::TEMP_FILTERS)]
 	public function highnetAddTemporaryUserFilters(
 		CmdContext $context,
-		#[NCA\Str("filter", "filters")]
-		string $action,
+		#[NCA\Str('filter', 'filters')] string $action,
 		PDuration $duration,
-		#[NCA\StrChoice("bot", "sender")]
-		string $where,
+		#[NCA\StrChoice('bot', 'sender')] string $where,
 		PCharacter $name,
 		int $dimension,
 	): void {
@@ -589,12 +582,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::PERM_FILTERS)]
 	public function highnetAddPermanentChannelFilters(
 		CmdContext $context,
-		#[NCA\Str("filter", "filters")]
-		string $action,
-		#[NCA\Str("permanent")]
-		string $permanent,
-		#[NCA\Str("channel")]
-		string $where,
+		#[NCA\Str('filter', 'filters')] string $action,
+		#[NCA\Str('permanent')] string $permanent,
+		#[NCA\Str('channel')] string $where,
 		PWord $channel,
 		?int $dimension,
 	): void {
@@ -610,11 +600,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::TEMP_FILTERS)]
 	public function highnetAddTemporaryChannelFilters(
 		CmdContext $context,
-		#[NCA\Str("filter", "filters")]
-		string $action,
+		#[NCA\Str('filter', 'filters')] string $action,
 		PDuration $duration,
-		#[NCA\Str("channel")]
-		string $where,
+		#[NCA\Str('channel')] string $where,
 		PWord $channel,
 		?int $dimension,
 	): void {
@@ -630,12 +618,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::PERM_FILTERS)]
 	public function highnetAddPermanentDimensionFilter(
 		CmdContext $context,
-		#[NCA\Str("filter", "filters")]
-		string $action,
-		#[NCA\Str("permanent")]
-		string $permanent,
-		#[NCA\Str("dimension")]
-		string $where,
+		#[NCA\Str('filter', 'filters')] string $action,
+		#[NCA\Str('permanent')] string $permanent,
+		#[NCA\Str('dimension')] string $where,
 		int $dimension,
 	): void {
 		$this->highnetAddDimensionFilter($context, null, $dimension);
@@ -645,11 +630,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::TEMP_FILTERS)]
 	public function highnetAddTemporaryDimensionFilter(
 		CmdContext $context,
-		#[NCA\Str("filter", "filters")]
-		string $action,
+		#[NCA\Str('filter', 'filters')] string $action,
 		PDuration $duration,
-		#[NCA\Str("dimension")]
-		string $where,
+		#[NCA\Str('dimension')] string $where,
 		int $dimension,
 	): void {
 		$this->highnetAddDimensionFilter($context, $duration, $dimension);
@@ -659,8 +642,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::TEMP_FILTERS)]
 	public function highnetDeleteFilter(
 		CmdContext $context,
-		#[NCA\Str("filter")]
-		string $filter,
+		#[NCA\Str('filter')] string $filter,
 		PRemove $action,
 		int $id
 	): void {
@@ -677,7 +659,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		if (!isset($filter->expires)) {
 			$hasPermPrivs = $this->cmdManager->couldRunCommand(
 				$context,
-				"highnet filter permanent dimension 5"
+				'highnet filter permanent dimension 5'
 			);
 			if (!$hasPermPrivs) {
 				$context->reply("You don't have the required rights to delete permanent filters.");
@@ -685,53 +667,53 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			}
 		}
 		if ($this->db->table(self::DB_TABLE)->delete($filter->id) === 0) {
-			$context->reply("There was an unknown error deleting this filter.");
+			$context->reply('There was an unknown error deleting this filter.');
 			return;
 		}
 		$this->reloadFilters();
 		$context->reply(
 			"Filter <highlight>#{$filter->id}<end> ".
-			"(" . $this->getFilterDescr($filter) . ") ".
-			"successfully deleted."
+			'(' . $this->getFilterDescr($filter) . ') '.
+			'successfully deleted.'
 		);
 	}
 
 	public function dimensionToName(int $dimension): string {
 		$map = [
-			4 => "Test-Server",
-			5 => "Rubi-Ka",
-			6 => "RK19",
+			4 => 'Test-Server',
+			5 => 'Rubi-Ka',
+			6 => 'RK19',
 		];
-		return $map[$dimension] ?? "Unknown server";
+		return $map[$dimension] ?? 'Unknown server';
 	}
 
 	public function getInfoPopup(Message $message): string {
-		$blob = "<header2>Information about this message<end>";
-		$blob .= "\n<tab>Sent: <highlight>" . $this->util->date($message->sent) . "<end>";
+		$blob = '<header2>Information about this message<end>';
+		$blob .= "\n<tab>Sent: <highlight>" . $this->util->date($message->sent) . '<end>';
 
 		$blockTempLink = $this->text->makeChatcmd(
-			"block 15min",
+			'block 15min',
 			"/tell <myname> highnet filter 15m dimension {$message->dimension}"
 		);
 		$blockPermLink = $this->text->makeChatcmd(
-			"block",
+			'block',
 			"/tell <myname> highnet filter permanent dimension {$message->dimension}"
 		);
 		$blob .= "\n<tab>Dimension: ".
 			"<highlight>{$message->dimension} ".
-			"(" . $this->dimensionToName($message->dimension) . ")".
+			'(' . $this->dimensionToName($message->dimension) . ')'.
 			"<end> [{$blockTempLink}] [{$blockPermLink}]";
 
 		$blockTempLink = $this->text->makeChatcmd(
-			"block 15min",
+			'block 15min',
 			"/tell <myname> highnet filter 15m channel {$message->channel}"
 		);
 		$blockPermLink = $this->text->makeChatcmd(
-			"block",
+			'block',
 			"/tell <myname> highnet filter permanent channel {$message->channel}"
 		);
 		$blob .= "\n<tab>Channel: ".
-			"<highlight>" . ($this->getPrettyChannelName($message->channel) ?? $message->channel) ."<end> ".
+			'<highlight>' . ($this->getPrettyChannelName($message->channel) ?? $message->channel) .'<end> '.
 			"[{$blockTempLink}] [{$blockPermLink}]";
 
 		$senderName = $message->sender_name;
@@ -739,11 +721,11 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$senderName .= " (UID {$message->sender_uid})";
 		}
 		$blockTempLink = $this->text->makeChatcmd(
-			"block 15min",
+			'block 15min',
 			"/tell <myname> highnet filter 15m sender {$message->sender_name} {$message->dimension}"
 		);
 		$blockPermLink = $this->text->makeChatcmd(
-			"block",
+			'block',
 			"/tell <myname> highnet filter permanent sender {$message->sender_name} {$message->dimension}"
 		);
 		$blob .= "\n<tab>Sender: <highlight>{$senderName}<end> [{$blockTempLink}] [{$blockPermLink}]";
@@ -753,22 +735,22 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$botName .= " (UID {$message->bot_uid})";
 		}
 		$blockTempLink = $this->text->makeChatcmd(
-			"block 15min",
+			'block 15min',
 			"/tell <myname> highnet filter 15m bot {$message->bot_name} {$message->dimension}"
 		);
 		$blockPermLink = $this->text->makeChatcmd(
-			"block",
+			'block',
 			"/tell <myname> highnet filter permanent bot {$message->bot_name} {$message->dimension}"
 		);
 		$blob .= "\n<tab>Via Bot: <highlight>{$botName}<end> [{$blockTempLink}] [{$blockPermLink}]";
 
 		$filtersCmd = $this->text->makeChatcmd(
-			"<symbol>highnet filters",
-			"/tell <myname> highnet filters"
+			'<symbol>highnet filters',
+			'/tell <myname> highnet filters'
 		);
 		$highnetCmd = $this->text->makeChatcmd(
-			"<symbol>highnet",
-			"/tell <myname> highnet"
+			'<symbol>highnet',
+			'/tell <myname> highnet'
 		);
 		$blob .= "\n\n".
 			"<i>Blocks on your bot have no impact on other bots.</i>\n".
@@ -802,14 +784,14 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$parts []= "Character=UID {$entry->sender_uid}";
 		}
 		if (isset($entry->dimension)) {
-			$parts []= "Dimension=" . $this->dimensionToName($entry->dimension).
+			$parts []= 'Dimension=' . $this->dimensionToName($entry->dimension).
 				" ({$entry->dimension})";
 		}
 		if (isset($entry->channel)) {
 			$displayChannel = $this->getPrettyChannelName($entry->channel) ?? $entry->channel;
 			$parts []= "Channel={$displayChannel}";
 		}
-		return join(" AND ", $parts);
+		return implode(' AND ', $parts);
 	}
 
 	/**
@@ -818,22 +800,22 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	 */
 	public function handleIncoming(RoutableEvent $event, string $channel, string $message): bool {
 		if (!$this->highnetEnabled) {
-			$this->logger->info("Highnetr disabled - dropping message");
+			$this->logger->info('Highnetr disabled - dropping message');
 			return false;
 		}
 		if (!isset($this->eventFeed->connection)) {
-			$this->logger->info("No event feed connected - dropping Highnet message");
+			$this->logger->info('No event feed connected - dropping Highnet message');
 			return false;
 		}
 		$sourceHop = $this->getSourceHop($event);
 		if (!isset($sourceHop)) {
-			$this->logger->info("No source-hop found in message to Highnet - dropping");
+			$this->logger->info('No source-hop found in message to Highnet - dropping');
 			return false;
 		}
 		if (!$this->msgHub->hasRouteFromTo("highnet({$channel})", $sourceHop)) {
-			$this->logger->info("No route from {target} {source} - not routing to highnet", [
-				"target" => "highnet({$channel})",
-				"source" => $sourceHop,
+			$this->logger->info('No route from {target} {source} - not routing to highnet', [
+				'target' => "highnet({$channel})",
+				'source' => $sourceHop,
 			]);
 			return false;
 		}
@@ -862,25 +844,25 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$serializer = new ObjectMapperUsingReflection();
 			$hwBody = $serializer->serializeObject($message);
 			if (!is_array($hwBody)) {
-				$this->logger->warning("Cannot serialize data for Highnet - dropping", [
-					"message" => $message,
+				$this->logger->warning('Cannot serialize data for Highnet - dropping', [
+					'message' => $message,
 				]);
 				return;
 			}
-			$packet = new Highway\Out\Message(room: "highnet", body: $hwBody);
-			$this->logger->debug("Sending message to Highnet: {data}", [
-				"data" => $hwBody,
+			$packet = new Highway\Out\Message(room: 'highnet', body: $hwBody);
+			$this->logger->debug('Sending message to Highnet: {data}', [
+				'data' => $hwBody,
 			]);
 			$this->eventFeed->connection->send($packet);
 
 			if (!$this->highnetRouteInternally) {
-				$this->logger->info("Internal Highnet routing disabled.");
+				$this->logger->info('Internal Highnet routing disabled.');
 				return;
 			}
 			$missingReceivers = $this->getInternalRoutingReceivers($event, $channel);
 			if (count($missingReceivers)) {
-				$this->logger->info("Routing Highnet message internally to {targets}", [
-					"targets" => $missingReceivers,
+				$this->logger->info('Routing Highnet message internally to {targets}', [
+					'targets' => $missingReceivers,
 				]);
 			}
 
@@ -904,7 +886,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			dimension: $message->dimension,
 		));
 		$rMsg->prependPath(new Source(
-			type: "highnet",
+			type: 'highnet',
 			name: strtolower($message->channel),
 			label: $message->channel,
 			dimension: $message->dimension,
@@ -917,9 +899,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		if (empty($senderHops)) {
 			return null;
 		}
-		$sourceHop = $senderHops[0]->type . "(" . $senderHops[0]->name . ")";
+		$sourceHop = $senderHops[0]->type . '(' . $senderHops[0]->name . ')';
 		$emitter = $this->msgHub->getEmitter($sourceHop);
-		if (isset($emitter) && !str_contains($emitter->getChannelName(), "(")) {
+		if (isset($emitter) && !str_contains($emitter->getChannelName(), '(')) {
 			return $emitter->getChannelName();
 		}
 		return $sourceHop;
@@ -968,8 +950,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 				->registerMessageReceiver($handler);
 			$this->handlers[strtolower($channel)] = $handler;
 			if ($update) {
-				$this->logger->notice("New Highnet-channel {channel} registered.", [
-					"channel" => $channel,
+				$this->logger->notice('New Highnet-channel {channel} registered.', [
+					'channel' => $channel,
 				]);
 			}
 		}
@@ -996,8 +978,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 				}
 				$this->msgHub->unregisterMessageEmitter("highnet({$channel})");
 				$this->msgHub->unregisterMessageReceiver("highnet({$channel})");
-				$this->logger->notice("Highnet-channel {channel} removed.", [
-					"channel" => $channel,
+				$this->logger->notice('Highnet-channel {channel} removed.', [
+					'channel' => $channel,
 				]);
 			}
 		}
@@ -1010,7 +992,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 				->unregisterMessageReceiver($handler->getChannelName());
 		}
 		if (isset($this->receiverHandler)) {
-			$this->msgHub->unregisterMessageReceiver("highnet");
+			$this->msgHub->unregisterMessageReceiver('highnet');
 			$this->receiverHandler = null;
 		}
 	}
@@ -1025,32 +1007,32 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$entry->dimension = $dimension;
 		if (isset($duration)) {
 			$secDuration = $duration->toSecs();
-			if ($secDuration > 3600 * 24) {
-				$context->reply("You cannot issue a temporary block for over 24h");
+			if ($secDuration > 3_600 * 24) {
+				$context->reply('You cannot issue a temporary block for over 24h');
 				return;
 			}
 			$entry->expires = time() + $secDuration;
 		}
 		$entry->id = $this->db->insert(self::DB_TABLE, $entry);
 		$this->reloadFilters();
-		$context->reply("Filter " . $this->getFilterDescr($entry) . " added.");
+		$context->reply('Filter ' . $this->getFilterDescr($entry) . ' added.');
 	}
 
 	private function renderFilter(FilterEntry $entry): string {
 		$line = $this->getFilterDescr($entry);
 		if (isset($entry->expires) && $entry->expires > time()) {
 			$remaining = $entry->expires - time();
-			$line .= " - expires in " . $this->util->unixtimeToReadable($remaining, false);
+			$line .= ' - expires in ' . $this->util->unixtimeToReadable($remaining, false);
 		}
 		$deleteLink = $this->text->makeChatcmd(
-			"del",
+			'del',
 			"/tell <myname> highnet filter del {$entry->id}"
 		);
 		return "<tab>* [{$deleteLink}] <highlight>#{$entry->id}<end> {$line}";
 	}
 
 	private function isWantedMessage(Message $message): bool {
-		return $this->filters->first(function (FilterEntry $entry) use ($message): bool {
+		return $this->filters->first(static function (FilterEntry $entry) use ($message): bool {
 			return $entry->matches($message);
 		}) === null;
 	}
@@ -1067,8 +1049,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$entry->dimension = $dimension;
 		if (isset($duration)) {
 			$secDuration = $duration->toSecs();
-			if ($secDuration > 3600 * 24) {
-				$context->reply("You cannot issue a temporary block for over 24h");
+			if ($secDuration > 3_600 * 24) {
+				$context->reply('You cannot issue a temporary block for over 24h');
 				return;
 			}
 			$entry->expires = time() + $secDuration;
@@ -1081,7 +1063,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 				return;
 			}
 		}
-		if ($where === "bot") {
+		if ($where === 'bot') {
 			$entry->bot_name = $name();
 			$entry->bot_uid = $uid;
 		} else {
@@ -1090,7 +1072,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		}
 		$this->db->insert(self::DB_TABLE, $entry);
 		$this->reloadFilters();
-		$context->reply("Filter " . $this->getFilterDescr($entry) . " added.");
+		$context->reply('Filter ' . $this->getFilterDescr($entry) . ' added.');
 	}
 
 	private function highnetAddChannelFilter(
@@ -1104,8 +1086,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$entry->dimension = $dimension;
 		if (isset($duration)) {
 			$secDuration = $duration->toSecs();
-			if ($secDuration > 3600 * 24) {
-				$context->reply("You cannot issue a temporary block for over 24h");
+			if ($secDuration > 3_600 * 24) {
+				$context->reply('You cannot issue a temporary block for over 24h');
 				return;
 			}
 			$entry->expires = time() + $secDuration;
@@ -1117,18 +1099,18 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$entry->channel = strtolower($channel());
 		$this->db->insert(self::DB_TABLE, $entry);
 		$this->reloadFilters();
-		$context->reply("Filter " . $this->getFilterDescr($entry) . " added.");
+		$context->reply('Filter ' . $this->getFilterDescr($entry) . ' added.');
 	}
 
 	/** Check if 2 routing destinations are identical */
 	private function routeDestsMatch(string $route1, string $route2): bool {
-		if (strpos($route1, '(') === false) {
+		if (!str_contains($route1, '(')) {
 			$route1 .= '(*)';
 		}
-		if (strpos($route2, '(') === false) {
+		if (!str_contains($route2, '(')) {
 			$route2 .= '(*)';
 		}
-		return fnmatch($route1, $route2, FNM_CASEFOLD)
-			|| fnmatch($route2, $route1, FNM_CASEFOLD);
+		return fnmatch($route1, $route2, \FNM_CASEFOLD)
+			|| fnmatch($route2, $route1, \FNM_CASEFOLD);
 	}
 }

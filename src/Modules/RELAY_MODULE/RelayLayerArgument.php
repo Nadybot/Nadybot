@@ -17,10 +17,8 @@ class RelayLayerArgument extends DBRow {
 	public function __construct(
 		public string $name,
 		public string $value,
-		#[JSON\Ignore]
-		public ?int $id=null,
-		#[JSON\Ignore]
-		public ?int $layer_id=null,
+		#[JSON\Ignore] public ?int $id=null,
+		#[JSON\Ignore] public ?int $layer_id=null,
 	) {
 	}
 
@@ -31,6 +29,6 @@ class RelayLayerArgument extends DBRow {
 		if (preg_match("/^(true|false|\d+)$/", $this->value)) {
 			return "{$this->name}={$this->value}";
 		}
-		return "{$this->name}=" . json_encode($this->value, JSON_UNESCAPED_SLASHES);
+		return "{$this->name}=" . json_encode($this->value, \JSON_UNESCAPED_SLASHES);
 	}
 }

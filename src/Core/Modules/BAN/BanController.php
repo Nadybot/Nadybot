@@ -37,33 +37,33 @@ use Throwable;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "ban",
-		accessLevel: "mod",
-		description: "Ban a character from this bot",
+		command: 'ban',
+		accessLevel: 'mod',
+		description: 'Ban a character from this bot',
 		defaultStatus: 1
 	),
 	NCA\DefineCommand(
-		command: "banlist",
-		accessLevel: "mod",
-		description: "Shows who is on the banlist",
+		command: 'banlist',
+		accessLevel: 'mod',
+		description: 'Shows who is on the banlist',
 		defaultStatus: 1
 	),
 	NCA\DefineCommand(
-		command: "unban",
-		accessLevel: "mod",
-		description: "Unban a character from this bot",
+		command: 'unban',
+		accessLevel: 'mod',
+		description: 'Unban a character from this bot',
 		defaultStatus: 1
 	),
 	NCA\DefineCommand(
-		command: "orgban",
-		accessLevel: "mod",
-		description: "Ban or unban a whole org",
-		alias: "orgbans"
+		command: 'orgban',
+		accessLevel: 'mod',
+		description: 'Ban or unban a whole org',
+		alias: 'orgbans'
 	),
 
 	NCA\ProvidesEvent(
 		event: SyncBanEvent::class,
-		desc: "Triggered whenever someone is banned"
+		desc: 'Triggered whenever someone is banned'
 	),
 	NCA\ProvidesEvent(
 		event: SyncBanDeleteEvent::class,
@@ -71,8 +71,8 @@ use Throwable;
 	)
 ]
 class BanController extends ModuleInstance {
-	public const DB_TABLE = "banlist_<myname>";
-	public const DB_TABLE_BANNED_ORGS = "banned_orgs_<myname>";
+	public const DB_TABLE = 'banlist_<myname>';
+	public const DB_TABLE_BANNED_ORGS = 'banned_orgs_<myname>';
 
 	/** Always ban all alts, not just 1 char */
 	#[NCA\Setting\Boolean]
@@ -128,7 +128,7 @@ class BanController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		if ($this->db->schema()->hasTable("players")) {
+		if ($this->db->schema()->hasTable('players')) {
 			$this->uploadBanlist();
 		}
 
@@ -137,7 +137,7 @@ class BanController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
-		description: "Upload banlist into memory",
+		description: 'Upload banlist into memory',
 		defaultStatus: 1
 	)]
 	public function initializeBanList(ConnectEvent $eventObj): void {
@@ -146,15 +146,14 @@ class BanController extends ModuleInstance {
 	}
 
 	/** Temporarily ban a player from this bot */
-	#[NCA\HandlesCommand("ban")]
-	#[NCA\Help\Group("ban")]
-	#[NCA\Help\Example("<symbol>ban badplayer 2 weeks for ninjalooting")]
+	#[NCA\HandlesCommand('ban')]
+	#[NCA\Help\Group('ban')]
+	#[NCA\Help\Example('<symbol>ban badplayer 2 weeks for ninjalooting')]
 	public function banPlayerWithTimeAndReasonCommand(
 		CmdContext $context,
 		PCharacter $who,
 		PDuration $duration,
-		#[NCA\Str("for", "reason")]
-		string $for,
+		#[NCA\Str('for', 'reason')] string $for,
 		string $reason
 	): void {
 		$who = $who();
@@ -162,7 +161,7 @@ class BanController extends ModuleInstance {
 
 		[$success, $msgs] = $this->banPlayer($who, $context->char->name, $length, $reason, $context);
 		if (count($msgs)) {
-			$context->reply(join("\n", $msgs));
+			$context->reply(implode("\n", $msgs));
 		}
 		if (!$success) {
 			return;
@@ -181,9 +180,9 @@ class BanController extends ModuleInstance {
 	}
 
 	/** Temporarily ban a player from this bot, not giving any reason */
-	#[NCA\HandlesCommand("ban")]
-	#[NCA\Help\Group("ban")]
-	#[NCA\Help\Example("<symbol>ban badplayer 2 weeks")]
+	#[NCA\HandlesCommand('ban')]
+	#[NCA\Help\Group('ban')]
+	#[NCA\Help\Example('<symbol>ban badplayer 2 weeks')]
 	public function banPlayerWithTimeCommand(
 		CmdContext $context,
 		PCharacter $who,
@@ -194,7 +193,7 @@ class BanController extends ModuleInstance {
 
 		[$success, $msgs] = $this->banPlayer($who, $context->char->name, $length, '', $context);
 		if (count($msgs)) {
-			$context->reply(join("\n", $msgs));
+			$context->reply(implode("\n", $msgs));
 		}
 		if (!$success) {
 			return;
@@ -212,21 +211,20 @@ class BanController extends ModuleInstance {
 	}
 
 	/** Permanently ban a player from this bot */
-	#[NCA\HandlesCommand("ban")]
-	#[NCA\Help\Group("ban")]
-	#[NCA\Help\Example("<symbol>ban badplayer for ninjalooting")]
+	#[NCA\HandlesCommand('ban')]
+	#[NCA\Help\Group('ban')]
+	#[NCA\Help\Example('<symbol>ban badplayer for ninjalooting')]
 	public function banPlayerWithReasonCommand(
 		CmdContext $context,
 		PCharacter $who,
-		#[NCA\Str("for", "reason")]
-		string $for,
+		#[NCA\Str('for', 'reason')] string $for,
 		string $reason
 	): void {
 		$who = $who();
 
 		[$success, $msgs] = $this->banPlayer($who, $context->char->name, null, $reason, $context);
 		if (count($msgs)) {
-			$context->reply(join("\n", $msgs));
+			$context->reply(implode("\n", $msgs));
 		}
 		if (!$success) {
 			return;
@@ -244,15 +242,15 @@ class BanController extends ModuleInstance {
 	}
 
 	/** Permanently ban a player from this bot, without giving a reason */
-	#[NCA\HandlesCommand("ban")]
-	#[NCA\Help\Group("ban")]
-	#[NCA\Help\Example("<symbol>ban badplayer")]
+	#[NCA\HandlesCommand('ban')]
+	#[NCA\Help\Group('ban')]
+	#[NCA\Help\Example('<symbol>ban badplayer')]
 	public function banPlayerCommand(CmdContext $context, PCharacter $who): void {
 		$who = $who();
 
 		[$success, $msgs] = $this->banPlayer($who, $context->char->name, null, '', $context);
 		if (count($msgs)) {
-			$context->reply(join("\n", $msgs));
+			$context->reply(implode("\n", $msgs));
 		}
 		if (!$success) {
 			return;
@@ -272,23 +270,23 @@ class BanController extends ModuleInstance {
 	 * List the current ban list, optionally searching for &lt;search&gt;
 	 * The search supports ? and * as wildcards
 	 */
-	#[NCA\HandlesCommand("banlist")]
-	#[NCA\Help\Group("ban")]
-	#[NCA\Help\Example("<symbol>banlist nady*", "to search for characters starting with nady")]
-	#[NCA\Help\Example("<symbol>banlist *iut*", "to search for characters containing iut")]
+	#[NCA\HandlesCommand('banlist')]
+	#[NCA\Help\Group('ban')]
+	#[NCA\Help\Example('<symbol>banlist nady*', 'to search for characters starting with nady')]
+	#[NCA\Help\Example('<symbol>banlist *iut*', 'to search for characters containing iut')]
 	public function banlistCommand(CmdContext $context, ?string $search): void {
 		$banlist = $this->getBanlist();
 		if (isset($search)) {
 			$banlist = array_filter(
 				$banlist,
-				function (BanEntry $entry) use ($search): bool {
-					return fnmatch($search, $entry->name, FNM_CASEFOLD);
+				static function (BanEntry $entry) use ($search): bool {
+					return fnmatch($search, $entry->name, \FNM_CASEFOLD);
 				}
 			);
 		}
 		$count = count($banlist);
 		if ($count === 0) {
-			$msg = "No one is currently banned from this bot.";
+			$msg = 'No one is currently banned from this bot.';
 			if (isset($search)) {
 				$msg = "No one matching <highlight>{$search}<end> is currently banned from this bot.";
 			}
@@ -299,11 +297,11 @@ class BanController extends ModuleInstance {
 		foreach ($banlist as $ban) {
 			$blob = "<header2>{$ban->name}<end>\n";
 			if (isset($ban->time)) {
-				$blob .= "<tab>Date: <highlight>" . $this->util->date($ban->time) . "<end>\n";
+				$blob .= '<tab>Date: <highlight>' . $this->util->date($ban->time) . "<end>\n";
 			}
 			$blob .= "<tab>By: <highlight>{$ban->admin}<end>\n";
 			if (isset($ban->banend) && $ban->banend !== 0) {
-				$blob .= "<tab>Ban ends: <highlight>" . $this->util->unixtimeToReadable($ban->banend - time(), false) . "<end>\n";
+				$blob .= '<tab>Ban ends: <highlight>' . $this->util->unixtimeToReadable($ban->banend - time(), false) . "<end>\n";
 			} else {
 				$blob .= "<tab>Ban ends: <highlight>Never<end>\n";
 			}
@@ -313,7 +311,7 @@ class BanController extends ModuleInstance {
 			}
 			$bans []= $blob;
 		}
-		$blob = join("\n<pagebreak>", $bans);
+		$blob = implode("\n<pagebreak>", $bans);
 		if (isset($search)) {
 			$msg = $this->text->makeBlob("Banlist matches for '{$search}' ({$count})", $blob);
 		} else {
@@ -323,12 +321,11 @@ class BanController extends ModuleInstance {
 	}
 
 	/** Unbans a character and all their alts from this bot */
-	#[NCA\HandlesCommand("unban")]
-	#[NCA\Help\Group("ban")]
+	#[NCA\HandlesCommand('unban')]
+	#[NCA\Help\Group('ban')]
 	public function unbanAllCommand(
 		CmdContext $context,
-		#[NCA\Str("all")]
-		string $all,
+		#[NCA\Str('all')] string $all,
 		PCharacter $who
 	): void {
 		$who = $who();
@@ -367,8 +364,8 @@ class BanController extends ModuleInstance {
 	}
 
 	/** Unbans a character from this bot */
-	#[NCA\HandlesCommand("unban")]
-	#[NCA\Help\Group("ban")]
+	#[NCA\HandlesCommand('unban')]
+	#[NCA\Help\Group('ban')]
 	public function unbanCommand(CmdContext $context, PCharacter $who): void {
 		$who = $who();
 
@@ -399,15 +396,15 @@ class BanController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "timer(1min)",
-		description: "Check temp bans to see if they have expired",
+		name: 'timer(1min)',
+		description: 'Check temp bans to see if they have expired',
 		defaultStatus: 1
 	)]
 	public function checkTempBan(Event $eventObj): void {
 		$numRows = $this->db->table(self::DB_TABLE)
-			->whereNotNull("banend")
-			->where("banend", "!=", 0)
-			->where("banend", "<", time())
+			->whereNotNull('banend')
+			->where('banend', '!=', 0)
+			->where('banend', '<', time())
 			->delete();
 
 		if ($numRows > 0) {
@@ -415,14 +412,14 @@ class BanController extends ModuleInstance {
 		}
 
 		$numRows = $this->db->table(self::DB_TABLE_BANNED_ORGS)
-			->whereNotNull("end")
-			->where("end", "<", time())
+			->whereNotNull('end')
+			->where('end', '<', time())
 			->delete();
 
 		if ($numRows > 0) {
 			$this->orgbanlist = array_filter(
 				$this->orgbanlist,
-				function (BannedOrg $ban): bool {
+				static function (BannedOrg $ban): bool {
 					return !isset($ban->end) || $ban->end >= time();
 				}
 			);
@@ -449,11 +446,11 @@ class BanController extends ModuleInstance {
 
 		$inserted = $this->db->table(self::DB_TABLE)
 			->insert([
-				"charid" => $charId,
-				"admin" => $sender,
-				"time" => time(),
-				"reason" => $reason,
-				"banend" => $banEnd,
+				'charid' => $charId,
+				'admin' => $sender,
+				'time' => time(),
+				'reason' => $reason,
+				'banend' => $banEnd,
 			]);
 
 		$this->uploadBanlist();
@@ -476,7 +473,7 @@ class BanController extends ModuleInstance {
 	/** Remove $charId from the banlist */
 	public function remove(int $charId): bool {
 		$deleted = $this->db->table(self::DB_TABLE)
-			->where("charid", $charId)
+			->where('charid', $charId)
 			->delete();
 
 		if ($deleted === 0) {
@@ -492,24 +489,24 @@ class BanController extends ModuleInstance {
 		$this->banlist = [];
 
 		$bans = $this->db->table(self::DB_TABLE)
-			->orderBy("time")
+			->orderBy('time')
 			->asObj(BanEntry::class);
 
-		$bannedUids = $bans->pluck("charid")->toArray();
+		$bannedUids = $bans->pluck('charid')->toArray();
 
 		/** @var Collection<int,NameHistory> */
-		$names = $this->db->table("banlist_<myname>", "bl")
-			->join("name_history AS nh", "bl.charid", "nh.charid")
-			->where("nh.dimension", $this->db->getDim())
-			->orderBy("nh.dt")
-			->select("nh.*")
+		$names = $this->db->table('banlist_<myname>', 'bl')
+			->join('name_history AS nh', 'bl.charid', 'nh.charid')
+			->where('nh.dimension', $this->db->getDim())
+			->orderBy('nh.dt')
+			->select('nh.*')
 			->asObj(NameHistory::class)
-			->keyBy("charid");
+			->keyBy('charid');
 
 		/** @var Collection<int,Player> */
 		$players = $this->playerManager
 			->searchByUids($this->db->getDim(), ...$bannedUids)
-			->keyBy("charid");
+			->keyBy('charid');
 		$bans->each(function (BanEntry $ban) use ($players, $names): void {
 			$ban->name = $players->get($ban->charid)?->name
 				?? $this->chatBot->getName($ban->charid)
@@ -562,8 +559,8 @@ class BanController extends ModuleInstance {
 	}
 
 	/** List all currently banned org */
-	#[NCA\HandlesCommand("orgban")]
-	#[NCA\Help\Group("ban")]
+	#[NCA\HandlesCommand('orgban')]
+	#[NCA\Help\Group('ban')]
 	public function orgbanListCommand(CmdContext $context): void {
 		$blocks = [];
 		foreach ($this->orgbanlist as $orgIf => $ban) {
@@ -571,34 +568,34 @@ class BanController extends ModuleInstance {
 		}
 		$count = count($blocks);
 		if ($count === 0) {
-			$context->reply("No orgs are banned at the moment");
+			$context->reply('No orgs are banned at the moment');
 			return;
 		}
 		$msg = $this->text->makeBlob(
 			"Banned orgs ({$count})",
-			join("\n", $blocks)
+			implode("\n", $blocks)
 		);
 		$context->reply($msg);
 	}
 
 	public function renderBannedOrg(BannedOrg $ban): string {
-		$unbanLink = $this->text->makeChatcmd("remove", "/tell <myname> orgban rem {$ban->org_id}");
-		$blob = "<header2>" . ($ban->org_name ?? $ban->org_id) . "<end>\n".
+		$unbanLink = $this->text->makeChatcmd('remove', "/tell <myname> orgban rem {$ban->org_id}");
+		$blob = '<header2>' . ($ban->org_name ?? $ban->org_id) . "<end>\n".
 			"<tab>Banned by: <highlight>{$ban->banned_by}<end> [{$unbanLink}]\n".
-			"<tab>Ban starts: <highlight>" . $this->util->date($ban->start) . "<end>\n";
+			'<tab>Ban starts: <highlight>' . $this->util->date($ban->start) . "<end>\n";
 		if (isset($ban->end)) {
-			$blob .= "<tab>Ban ends: <highlight>" . $this->util->date($ban->end) . "<end>\n";
+			$blob .= '<tab>Ban ends: <highlight>' . $this->util->date($ban->end) . "<end>\n";
 		}
 		$blob .= "<tab>Reason: <highlight>{$ban->reason}<end>";
 		return $blob;
 	}
 
 	/** Ban a whole organization from the bot by their org id */
-	#[NCA\HandlesCommand("orgban")]
-	#[NCA\Help\Group("ban")]
+	#[NCA\HandlesCommand('orgban')]
+	#[NCA\Help\Group('ban')]
 	#[NCA\Help\Example(
-		command: "<symbol>orgban add 725003 2w1d reason A bunch of oddballs",
-		description: "bans the org <i>Troet</i> for 2 weeks and 1 day from the bot"
+		command: '<symbol>orgban add 725003 2w1d reason A bunch of oddballs',
+		description: 'bans the org <i>Troet</i> for 2 weeks and 1 day from the bot'
 	)]
 	#[NCA\Help\Epilogue(
 		"Use <a href='chatcmd:///tell <myname> help findorg'><symbol>findorg</a> to find an org's ID.\n".
@@ -606,17 +603,15 @@ class BanController extends ModuleInstance {
 	)]
 	public function orgbanAddByIdCommand(
 		CmdContext $context,
-		#[NCA\Str("add")]
-		string $add,
+		#[NCA\Str('add')] string $add,
 		int $orgId,
 		?PDuration $duration,
-		#[NCA\Str("for", "reason", "because")]
-		string $for,
+		#[NCA\Str('for', 'reason', 'because')] string $for,
 		string $reason
 	): void {
 		try {
 			$msg = $this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, $reason);
-			$msg ??= "The system is currently not ready to process bans.";
+			$msg ??= 'The system is currently not ready to process bans.';
 			$context->reply($msg);
 		} catch (Throwable $e) {
 			$context->reply($e->getMessage());
@@ -624,22 +619,21 @@ class BanController extends ModuleInstance {
 	}
 
 	/** Ban a whole organization from the bot by their org id */
-	#[NCA\HandlesCommand("orgban")]
-	#[NCA\Help\Group("ban")]
+	#[NCA\HandlesCommand('orgban')]
+	#[NCA\Help\Group('ban')]
 	#[NCA\Help\Example(
-		command: "<symbol>orgban add 725003",
-		description: "bans the org <i>Troet</i> permanently from the bot"
+		command: '<symbol>orgban add 725003',
+		description: 'bans the org <i>Troet</i> permanently from the bot'
 	)]
 	public function orgbanAddByIdWithoutReasonCommand(
 		CmdContext $context,
-		#[NCA\Str("add")]
-		string $add,
+		#[NCA\Str('add')] string $add,
 		int $orgId,
 		?PDuration $duration,
 	): void {
 		try {
-			$msg = $this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, "No reason given");
-			$msg ??= "The system is currently not ready to process bans.";
+			$msg = $this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, 'No reason given');
+			$msg ??= 'The system is currently not ready to process bans.';
 			$context->reply($msg);
 		} catch (Throwable $e) {
 			$context->reply($e->getMessage());
@@ -662,8 +656,8 @@ class BanController extends ModuleInstance {
 
 	public function banOrg(int $orgId, ?string $duration, string $bannedBy, string $reason): ?string {
 		if ($this->orgIsBanned($orgId)) {
-			return "<highlight>" . $this->orgbanlist[$orgId]->org_name.
-				"<end> is already banned.";
+			return '<highlight>' . $this->orgbanlist[$orgId]->org_name.
+				'<end> is already banned.';
 		}
 		$endDate = null;
 		if (isset($duration)) {
@@ -685,8 +679,8 @@ class BanController extends ModuleInstance {
 	}
 
 	/** Remove an organization from the ban list, given their org id */
-	#[NCA\HandlesCommand("orgban")]
-	#[NCA\Help\Group("ban")]
+	#[NCA\HandlesCommand('orgban')]
+	#[NCA\Help\Group('ban')]
 	public function orgbanRemCommand(CmdContext $context, PRemove $rem, int $orgId): void {
 		if (!$this->orgIsBanned($orgId)) {
 			$guild = $this->guildManager->byId($orgId);
@@ -694,12 +688,12 @@ class BanController extends ModuleInstance {
 				$context->reply("<highlight>{$orgId}<end> is not a valid org id.");
 				return;
 			}
-			$context->reply($guild->getColorName() . " is currently not banned.");
+			$context->reply($guild->getColorName() . ' is currently not banned.');
 			return;
 		}
 		$ban = $this->orgbanlist[$orgId];
 		$this->db->table(self::DB_TABLE_BANNED_ORGS)
-			->where("org_id", $orgId)
+			->where('org_id', $orgId)
 			->delete();
 		$context->reply("Removed <highlight>{$ban->org_name}<end> from the banlist.");
 		unset($this->orgbanlist[$orgId]);
@@ -707,7 +701,7 @@ class BanController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: SyncBanEvent::EVENT_MASK,
-		description: "Sync external bans"
+		description: 'Sync external bans'
 	)]
 	public function processBanSyncEvent(SyncBanEvent $event): void {
 		if ($event->isLocal()) {
@@ -718,7 +712,7 @@ class BanController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: SyncBanDeleteEvent::EVENT_MASK,
-		description: "Sync external ban lifts"
+		description: 'Sync external ban lifts'
 	)]
 	public function processBanDeleteSyncEvent(SyncBanDeleteEvent $event): void {
 		if ($event->isLocal()) {
@@ -741,15 +735,15 @@ class BanController extends ModuleInstance {
 		}
 		if (!isset($this->orgbanlist[$ban->org_id])) {
 			return "Not adding <highlight>{$ban->org_name}<end> to the banlist, ".
-				"because they were unbanned before we finished looking up data.";
+				'because they were unbanned before we finished looking up data.';
 		}
 		$this->orgbanlist[$ban->org_id] = $ban;
 		// Kick all org members from our private chat
 		if (isset($guild)) {
 			foreach ($guild->members as $name => $char) {
 				if ($this->chatBot->chatlist[$char->name]) {
-					$this->logger->notice("Kicking banned char {name} from private channel", [
-						"name" => $char->name,
+					$this->logger->notice('Kicking banned char {name} from private channel', [
+						'name' => $char->name,
 					]);
 					$package = new PrivateChannelKick(charId: $char->charid);
 					$this->chatBot->sendPackage($package);
@@ -789,7 +783,7 @@ class BanController extends ModuleInstance {
 
 			if ($this->accessManager->compareCharacterAccessLevels($sender, $who) <= 0) {
 				$msgs []= "You must have an access level higher than <highlight>{$who}<end> ".
-					"to perform this action.";
+					'to perform this action.';
 				$numErrors++;
 				continue;
 			}
@@ -805,7 +799,7 @@ class BanController extends ModuleInstance {
 					actor: $sender,
 					actee: $who,
 					action: AccessManager::KICK,
-					value: "banned",
+					value: 'banned',
 				);
 				$this->accessManager->addAudit($audit);
 				$numSuccess++;

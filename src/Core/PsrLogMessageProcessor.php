@@ -33,20 +33,20 @@ class PsrLogMessageProcessor implements ProcessorInterface {
 
 	/** {@inheritDoc} */
 	public function __invoke(array $record): array {
-		if (false === strpos($record['message'], '{')) {
+		if (!str_contains($record['message'], '{')) {
 			return $record;
 		}
 
 		$replacements = [];
 		foreach ($record['context'] as $key => $val) {
 			$placeholder = '{' . $key . '}';
-			if (strpos($record['message'], $placeholder) === false) {
+			if (!str_contains($record['message'], $placeholder)) {
 				continue;
 			}
 
 			if (is_null($val)) {
-				$replacements[$placeholder] = "<null>";
-			} elseif (is_scalar($val) || (is_object($val) && method_exists($val, "__toString"))) {
+				$replacements[$placeholder] = '<null>';
+			} elseif (is_scalar($val) || (is_object($val) && method_exists($val, '__toString'))) {
 				$replacements[$placeholder] = $val;
 			} elseif ($val instanceof \DateTimeInterface) {
 				if (!isset($this->dateFormat) && $val instanceof \Monolog\DateTimeImmutable) {

@@ -4,8 +4,8 @@ namespace Nadybot\Modules\FUN_MODULE;
 
 class Fighter {
 	public string $name;
-	public string $weapon = "bare hands";
-	public string $damageType = "melee damage";
+	public string $weapon = 'bare hands';
+	public string $damageType = 'melee damage';
 	public int $minDamage = 1;
 	public int $maxDamage = 1;
 	public int $hp = 1;

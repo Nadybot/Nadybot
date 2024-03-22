@@ -10,21 +10,21 @@ use Nadybot\Core\{
 
 #[
 	NCA\EventModifier(
-		name: "if-not-by",
+		name: 'if-not-by',
 		description: "This modifier will only route messages that are\n".
-			"not sent by a given person or group of people."
+			'not sent by a given person or group of people.'
 	),
 	NCA\Param(
-		name: "sender",
-		type: "string[]",
-		description: "The name of the character (case-insensitive)",
+		name: 'sender',
+		type: 'string[]',
+		description: 'The name of the character (case-insensitive)',
 		required: true
 	),
 	NCA\Param(
-		name: "inverse",
-		type: "bool",
+		name: 'inverse',
+		type: 'bool',
 		description: "If set to true, this will inverse the logic\n".
-			"and drop all messages not by the given sender.",
+			'and drop all messages not by the given sender.',
 		required: false
 	)
 ]
@@ -35,7 +35,7 @@ class IfNotBy implements EventModifier {
 
 	/** @param string[] $senders */
 	public function __construct(array $senders, bool $inverse=false) {
-		$this->senders = array_map("strtolower", $senders);
+		$this->senders = array_map('strtolower', $senders);
 		$this->inverse = $inverse;
 	}
 

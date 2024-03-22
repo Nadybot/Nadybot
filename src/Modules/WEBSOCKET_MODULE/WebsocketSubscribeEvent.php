@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
 class WebsocketSubscribeEvent extends WebsocketEvent {
-	public const EVENT_MASK = "websocket(subscribe)";
+	public const EVENT_MASK = 'websocket(subscribe)';
 
 	/**
 	 * @var NadySubscribe

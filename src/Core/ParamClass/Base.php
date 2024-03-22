@@ -5,8 +5,8 @@ namespace Nadybot\Core\ParamClass;
 use function Safe\preg_match;
 
 abstract class Base {
-	protected static string $preRegExp = "";
-	protected static string $regExp = "";
+	protected static string $preRegExp = '';
+	protected static string $regExp = '';
 
 	abstract public function __construct(string $value);
 
@@ -23,7 +23,7 @@ abstract class Base {
 	}
 
 	public static function matches(string $string): bool {
-		return preg_match(chr(1) . "^(?" . static::$preRegExp . ")(" . static::$regExp . ")\$" . chr(1) . "is", $string) > 0;
+		return preg_match(chr(1) . '^(?' . static::$preRegExp . ')(' . static::$regExp . ')$' . chr(1) . 'is', $string) > 0;
 	}
 
 	public static function getExample(): ?string {

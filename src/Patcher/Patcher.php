@@ -24,7 +24,7 @@ class Patcher {
 		} elseif ($operation instanceof UpdateOperation) {
 			$package = $operation->getTargetPackage();
 		} else {
-			throw new Exception("You are using an unsupported composer version");
+			throw new Exception('You are using an unsupported composer version');
 		}
 
 		assert($package instanceof \Composer\Package\Package);
@@ -53,7 +53,7 @@ class Patcher {
 		// @phpstan-ignore-next-line
 		$data = \preg_replace("/'PSR2'/", $newContent, $oldContent);
 		// @phpstan-ignore-next-line
-		$data = \preg_replace("/(?<='show_warnings' => ')0/", "1", $data);
+		$data = \preg_replace("/(?<='show_warnings' => ')0/", '1', $data);
 		$newFile = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf';
 		file_put_contents($newFile, $data); // @phpstan-ignore-line
 	}
@@ -72,7 +72,7 @@ class Patcher {
 		}
 		// @phpstan-ignore-next-line
 		$newContent = \preg_replace(
-			"/abstract class Base/s",
+			'/abstract class Base/s',
 			"#[\\AllowDynamicProperties]\nabstract class Base",
 			$oldContent
 		);
@@ -85,7 +85,7 @@ class Patcher {
 		}
 		// @phpstan-ignore-next-line
 		$newContent = \preg_replace(
-			"/abstract class BaseNode/s",
+			'/abstract class BaseNode/s',
 			"#[\\AllowDynamicProperties]\nabstract class BaseNode",
 			$oldContent
 		);

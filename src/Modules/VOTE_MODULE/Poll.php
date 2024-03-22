@@ -13,11 +13,9 @@ class Poll extends DBRow {
 		public int $started,
 		public int $duration,
 		public int $status,
-		#[NCA\DB\AutoInc]
-		public ?int $id=null,
+		#[NCA\DB\AutoInc] public ?int $id=null,
 		public bool $allow_other_answers=true,
-		#[NCA\DB\Ignore]
-		public array $answers=[],
+		#[NCA\DB\Ignore] public array $answers=[],
 	) {
 	}
 

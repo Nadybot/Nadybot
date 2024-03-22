@@ -11,7 +11,7 @@ use Psr\Log\LoggerInterface;
 
 #[NCA\Instance]
 class HelpManager {
-	public const DB_TABLE = "hlpcfg_<myname>";
+	public const DB_TABLE = 'hlpcfg_<myname>';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -37,46 +37,46 @@ class HelpManager {
 	/** Register a help command */
 	public function register(string $module, string $command, string $filename, string $admin, string $description): void {
 		$logObj = new AnonObj(
-			class: "HelpFile",
+			class: 'HelpFile',
 			properties: [
-				"module" => $module,
-				"command" => $command,
-				"helpfile" => $filename,
-				"admin" => $admin,
-				"description" => $description,
+				'module' => $module,
+				'command' => $command,
+				'helpfile' => $filename,
+				'admin' => $admin,
+				'description' => $description,
 			]
 		);
-		$this->logger->info("Registering {help_file}", ["help_file" => $logObj]);
+		$this->logger->info('Registering {help_file}', ['help_file' => $logObj]);
 
 		$command = strtolower($command);
 
 		// Check if the file exists
 		$actual_filename = $this->util->verifyFilename($module . '/' . $filename);
 		if ($actual_filename == '') {
-			$this->logger->error("Error registering {help_file}: {error}", [
-				"help_file" => $logObj,
-				"error" => "The file doesn't exist",
+			$this->logger->error('Error registering {help_file}: {error}', [
+				'help_file' => $logObj,
+				'error' => "The file doesn't exist",
 			]);
 			return;
 		}
 
 		if (isset($this->chatBot->existing_helps[$command])) {
-			$this->db->table(self::DB_TABLE)->where("name", $command)
+			$this->db->table(self::DB_TABLE)->where('name', $command)
 				->update([
-					"verify" => 1,
-					"file" => $actual_filename,
-					"module" => $module,
-					"description" => $description,
+					'verify' => 1,
+					'file' => $actual_filename,
+					'module' => $module,
+					'description' => $description,
 				]);
 		} else {
 			$this->db->table(self::DB_TABLE)
 				->insert([
-					"name" => $command,
-					"admin" => $admin,
-					"verify" => 1,
-					"file" => $actual_filename,
-					"module" => $module,
-					"description" => $description,
+					'name' => $command,
+					'admin' => $admin,
+					'verify' => 1,
+					'file' => $actual_filename,
+					'module' => $module,
+					'description' => $description,
 				]);
 		}
 	}
@@ -85,17 +85,17 @@ class HelpManager {
 	public function find(string $helpcmd, string $char): ?string {
 		$helpcmd = strtolower($helpcmd);
 		$settingsHelp = $this->db->table(SettingManager::DB_TABLE)
-			->where("name", $helpcmd)
-			->where("help", "!=", '')
-			->select("module", "admin", "name", "help AS file");
+			->where('name', $helpcmd)
+			->where('help', '!=', '')
+			->select('module', 'admin', 'name', 'help AS file');
 		$hlpHelp = $this->db->table(self::DB_TABLE)
-			->where("name", $helpcmd)
-			->where("file", "!=", '')
-			->select("module", "admin", "name", "file");
+			->where('name', $helpcmd)
+			->where('file', '!=', '')
+			->select('module', 'admin', 'name', 'file');
 		$outerQuery = $this->db->fromSub(
 			$settingsHelp->union($hlpHelp),
-			"foo"
-		)->select("foo.module", "foo.file", "foo.name", "foo.admin AS admin_list");
+			'foo'
+		)->select('foo.module', 'foo.file', 'foo.name', 'foo.admin AS admin_list');
 
 		/** @var HelpTopic[] $data */
 		$data = $outerQuery->asObj(HelpTopic::class)->toArray();
@@ -108,7 +108,7 @@ class HelpManager {
 			if (!isset($row->file) || isset($shown[$row->file])) {
 				continue;
 			}
-			if ($this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
+			if ($this->checkAccessLevels($accessLevel, explode(',', $row->admin_list))) {
 				$output .= $this->configController->getAliasInfo($row->name);
 				$content = $this->fs->read($row->file);
 				if (is_string($content)) {
@@ -126,17 +126,17 @@ class HelpManager {
 		$admin = strtolower($admin);
 
 		$this->db->table(self::DB_TABLE)
-			->where("name", $helpTopic)
-			->update(["admin" => $admin]);
+			->where('name', $helpTopic)
+			->update(['admin' => $admin]);
 	}
 
 	public function checkForHelpFile(string $module, string $file): string {
-		$actualFilename = $this->util->verifyFilename($module . DIRECTORY_SEPARATOR . $file);
+		$actualFilename = $this->util->verifyFilename($module . \DIRECTORY_SEPARATOR . $file);
 		if ($actualFilename == '') {
-			$this->logger->warning("Error in registering the help file {module}/{file}: {error}", [
-				"error" => "The file doesn't exist",
-				"module" => $module,
-				"file" => $file,
+			$this->logger->warning('Error in registering the help file {module}/{file}: {error}', [
+				'error' => "The file doesn't exist",
+				'module' => $module,
+				'file' => $file,
 			]);
 		}
 		return $actualFilename;
@@ -148,34 +148,34 @@ class HelpManager {
 	 * @return HelpTopic[] Help topics
 	 */
 	public function getAllHelpTopics(?CmdContext $context): array {
-		$cmdHelp = $this->db->table(CommandManager::DB_TABLE, "c")
-			->join(CommandManager::DB_TABLE_PERMS . " as p", "c.cmd", "p.cmd")
-			->where("c.cmdevent", "cmd")
-			->where("p.enabled", true)
-			->select("c.module", "p.access_level as admin", "c.cmd AS name");
-		$cmdHelp->selectRaw("NULL" . $cmdHelp->as("file"));
-		$cmdHelp->addSelect("description");
-		$cmdHelp->selectRaw("2" . $cmdHelp->as("sort"));
+		$cmdHelp = $this->db->table(CommandManager::DB_TABLE, 'c')
+			->join(CommandManager::DB_TABLE_PERMS . ' as p', 'c.cmd', 'p.cmd')
+			->where('c.cmdevent', 'cmd')
+			->where('p.enabled', true)
+			->select('c.module', 'p.access_level as admin', 'c.cmd AS name');
+		$cmdHelp->selectRaw('NULL' . $cmdHelp->as('file'));
+		$cmdHelp->addSelect('description');
+		$cmdHelp->selectRaw('2' . $cmdHelp->as('sort'));
 		$settingsHelp = $this->db->table(SettingManager::DB_TABLE)
-			->where("help", "!=", '')
-			->select("module", "admin", "name", "help AS file", "description");
-		$settingsHelp->selectRaw("3" . $settingsHelp->as("sort"));
+			->where('help', '!=', '')
+			->select('module', 'admin', 'name', 'help AS file', 'description');
+		$settingsHelp->selectRaw('3' . $settingsHelp->as('sort'));
 		$hlpHelp = $this->db->table(self::DB_TABLE)
-			->select("module", "admin", "name", "file", "description");
-		$hlpHelp->selectRaw("1" . $settingsHelp->as("sort"));
+			->select('module', 'admin', 'name', 'file', 'description');
+		$hlpHelp->selectRaw('1' . $settingsHelp->as('sort'));
 		$outerQuery = $this->db->fromSub(
 			$cmdHelp->union($settingsHelp)->union($hlpHelp),
-			"foo"
-		)->select("foo.module", "foo.file", "foo.name", "foo.description", "foo.admin AS admin_list", "foo.sort")
-		->orderBy("module")
-		->orderBy("name")
-		->orderByDesc("sort")
-		->orderBy("description");
+			'foo'
+		)->select('foo.module', 'foo.file', 'foo.name', 'foo.description', 'foo.admin AS admin_list', 'foo.sort')
+		->orderBy('module')
+		->orderBy('name')
+		->orderByDesc('sort')
+		->orderBy('description');
 
 		/** @var HelpTopic[] $data */
 		$data = $outerQuery->asObj(HelpTopic::class)->toArray();
 
-		$accessLevel = "all";
+		$accessLevel = 'all';
 		if (isset($context)) {
 			$accessLevel = $this->accessManager->getAccessLevelForCharacter($context->char->name);
 		}
@@ -187,7 +187,7 @@ class HelpManager {
 			if (isset($added[$key])) {
 				continue;
 			}
-			if (!isset($context) || $this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
+			if (!isset($context) || $this->checkAccessLevels($accessLevel, explode(',', $row->admin_list))) {
 				$obj = new HelpTopic();
 				$obj->module = $row->module;
 				$obj->name = $row->name;

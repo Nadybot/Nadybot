@@ -26,20 +26,20 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/RankMapping"),
+	NCA\HasMigrations('Migrations/RankMapping'),
 	NCA\DefineCommand(
-		command: "ranks",
-		accessLevel: "guest",
-		description: "Show a list of all available org ranks",
+		command: 'ranks',
+		accessLevel: 'guest',
+		description: 'Show a list of all available org ranks',
 	),
 	NCA\DefineCommand(
-		command: "maprank",
-		accessLevel: "admin",
-		description: "Define how org ranks map to bot ranks",
+		command: 'maprank',
+		accessLevel: 'admin',
+		description: 'Define how org ranks map to bot ranks',
 	),
 ]
 class GuildRankController extends ModuleInstance implements AccessLevelProvider {
-	public const DB_TABLE = "org_rank_mapping_<myname>";
+	public const DB_TABLE = 'org_rank_mapping_<myname>';
 
 	/** Map org ranks to bot ranks */
 	#[NCA\Setting\Boolean]
@@ -79,7 +79,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			return null;
 		}
 		if (!$this->mapOrgRanksToBotRanks) {
-			return "guild";
+			return 'guild';
 		}
 		return $this->getEffectiveAccessLevel($this->chatBot->guildmembers[$sender]);
 	}
@@ -91,7 +91,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	 */
 	public function getMappings(): array {
 		return $this->db->table(self::DB_TABLE)
-			->orderBy("min_rank")
+			->orderBy('min_rank')
 			->asObj(OrgRankMapping::class)
 			->toArray();
 	}
@@ -99,20 +99,20 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	public function getEffectiveAccessLevel(int $rank): string {
 		/** @var ?OrgRankMapping */
 		$rank = $this->db->table(self::DB_TABLE)
-			->where("min_rank", ">=", $rank)
-			->orderBy("min_rank")
+			->where('min_rank', '>=', $rank)
+			->orderBy('min_rank')
 			->limit(1)
 			->asObj(OrgRankMapping::class)
 			->first();
-		return $rank ? $rank->access_level : "guild";
+		return $rank ? $rank->access_level : 'guild';
 	}
 
 	/** Get a list of all your defined mappings of org rank to bot access level */
-	#[NCA\HandlesCommand("maprank")]
-	#[NCA\Help\Group("org-ranks")]
+	#[NCA\HandlesCommand('maprank')]
+	#[NCA\Help\Group('org-ranks')]
 	public function maprankListCommand(CmdContext $context): void {
 		if (!$this->guildController->isGuildBot()) {
-			$context->reply("The bot must be in an org.");
+			$context->reply('The bot must be in an org.');
 			return;
 		}
 		$org = $this->guildManager->ById($this->config->orgId??0, null, false);
@@ -121,13 +121,13 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 
 	public function displayRankMappings(?Guild $guild, CmdContext $context): void {
 		if (!isset($guild)) {
-			$context->reply("Unable to find information about organization. Maybe PORK is down.");
+			$context->reply('Unable to find information about organization. Maybe PORK is down.');
 			return;
 		}
 		$maps = $this->getMappings();
 		$mapKeys = array_reduce(
 			$maps,
-			function (array $carry, OrgRankMapping $m): array {
+			static function (array $carry, OrgRankMapping $m): array {
 				$carry[$m->min_rank] = true;
 				return $carry;
 			},
@@ -135,43 +135,43 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		);
 		$ranks = $this->orglistController->getOrgRanks($guild->governing_form);
 		if (!count($maps)) {
-			$context->reply("There are currently no org rank to bot rank mappings defined.");
+			$context->reply('There are currently no org rank to bot rank mappings defined.');
 			return;
 		}
 		$blob = "<header2>Mapped ranks<end>\n";
 		foreach ($ranks as $rank => $rankName) {
 			$accessLevel = $this->getEffectiveAccessLevel($rank);
-			$blob .= "<tab>".
+			$blob .= '<tab>'.
 				"{$rank} - {$rankName}: ".
-				"<highlight>".
+				'<highlight>'.
 				$this->accessManager->getDisplayName($accessLevel).
-				"<end>";
+				'<end>';
 			if (isset($mapKeys[$rank])) {
-				$blob .= " [" . $this->text->makeChatcmd("remove", "/tell <myname> maprank del {$rank}") . "]";
+				$blob .= ' [' . $this->text->makeChatcmd('remove', "/tell <myname> maprank del {$rank}") . ']';
 			}
 			$blob .= "\n";
 		}
-		$msg = $this->text->makeBlob("Defined mappings (" . count($maps) . ")", $blob);
+		$msg = $this->text->makeBlob('Defined mappings (' . count($maps) . ')', $blob);
 		$context->reply($msg);
 	}
 
 	/** Give &lt;access level&gt; rights to every org member rank &lt;rank id&gt; or higher */
-	#[NCA\HandlesCommand("maprank")]
-	#[NCA\Help\Group("org-ranks")]
+	#[NCA\HandlesCommand('maprank')]
+	#[NCA\Help\Group('org-ranks')]
 	#[NCA\Help\Example(
-		command: "<symbol>maprank 0 to admin",
-		description: "Give admin rights to org rank 0 (President, Monarch, Lorg, etc.)"
+		command: '<symbol>maprank 0 to admin',
+		description: 'Give admin rights to org rank 0 (President, Monarch, Lorg, etc.)'
 	)]
 	#[NCA\Help\Example(
-		command: "<symbol>maprank 1 to mod",
-		description: "Give mod rights to org rank 1 (Knight, Advisor, Board Member, etc.) or higher",
+		command: '<symbol>maprank 1 to mod',
+		description: 'Give mod rights to org rank 1 (Knight, Advisor, Board Member, etc.) or higher',
 	)]
 	#[NCA\Help\Epilogue(
 		"Use <a href='chatcmd:///tell <myname> ranks'><symbol>ranks</a> to get the numeric rank IDs of your org"
 	)]
-	public function maprankCommand(CmdContext $context, int $rankId, #[NCA\Str("to")] ?string $to, PWord $accessLevel): void {
+	public function maprankCommand(CmdContext $context, int $rankId, #[NCA\Str('to')] ?string $to, PWord $accessLevel): void {
 		if (!$this->guildController->isGuildBot()) {
-			$context->reply("The bot must be in an org.");
+			$context->reply('The bot must be in an org.');
 			return;
 		}
 		$org = $this->guildManager->byId($this->config->orgId??0, null, false);
@@ -199,8 +199,8 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		}
 		$senderAL = $this->accessManager->getAccessLevelForCharacter($sender);
 		$senderHasHigherAL = $this->accessManager->compareAccessLevels($senderAL, $accessLevel) > 0;
-		if ($senderAL !== "superadmin" && !$senderHasHigherAL) {
-			$sendto->reply("You can only manage access levels below your own.");
+		if ($senderAL !== 'superadmin' && !$senderHasHigherAL) {
+			$sendto->reply('You can only manage access levels below your own.');
 			return;
 		}
 		if (!isset($ranks[$rank])) {
@@ -209,7 +209,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		}
 		$currentEAL = $this->getEffectiveAccessLevel($rank);
 		if ($this->accessManager->compareAccessLevels($accessLevel, $currentEAL) < 0) {
-			$sendto->reply("You cannot assign declining access levels.");
+			$sendto->reply('You cannot assign declining access levels.');
 			return;
 		}
 		$alName = $this->accessManager->getDisplayName($accessLevel);
@@ -221,13 +221,13 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 
 		/** @var ?OrgRankMapping */
 		$alEntry = $this->db->table(self::DB_TABLE)
-			->where("access_level", $rankMapping->access_level)
+			->where('access_level', $rankMapping->access_level)
 			->asObj(OrgRankMapping::class)
 			->first();
 
 		/** @var ?OrgRankMapping */
 		$rankEntry = $this->db->table(self::DB_TABLE)
-			->where("min_rank", $rankMapping->min_rank)
+			->where('min_rank', $rankMapping->min_rank)
 			->asObj(OrgRankMapping::class)
 			->first();
 		if (isset($alEntry, $rankEntry)) {
@@ -235,9 +235,9 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			return;
 		}
 		if (isset($alEntry)) {
-			$this->db->update(self::DB_TABLE, "access_level", $rankMapping);
+			$this->db->update(self::DB_TABLE, 'access_level', $rankMapping);
 		} elseif (isset($rankEntry)) {
-			$this->db->update(self::DB_TABLE, "min_rank", $rankMapping);
+			$this->db->update(self::DB_TABLE, 'min_rank', $rankMapping);
 		} else {
 			$this->db->insert(self::DB_TABLE, $rankMapping, null);
 		}
@@ -245,11 +245,11 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	}
 
 	/** Remove the special rights for an org rank */
-	#[NCA\HandlesCommand("maprank")]
-	#[NCA\Help\Group("org-ranks")]
+	#[NCA\HandlesCommand('maprank')]
+	#[NCA\Help\Group('org-ranks')]
 	public function maprankDelCommand(CmdContext $context, PRemove $action, int $rankId): void {
 		if (!$this->guildController->isGuildBot()) {
-			$context->reply("The bot must be in an org.");
+			$context->reply('The bot must be in an org.');
 			return;
 		}
 		$org = $this->guildManager->byId($this->config->orgId??0, null, false);
@@ -269,7 +269,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 
 		/** @var ?OrgRankMapping */
 		$oldEntry = $this->db->table(self::DB_TABLE)
-			->where("min_rank", $rank)
+			->where('min_rank', $rank)
 			->asObj(OrgRankMapping::class)
 			->first();
 		if (!isset($oldEntry)) {
@@ -278,26 +278,26 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		}
 		$senderAL = $this->accessManager->getAccessLevelForCharacter($sender);
 		$senderHasHigherAL = $this->accessManager->compareAccessLevels($senderAL, $oldEntry->access_level) > 0;
-		if ($senderAL !== "superadmin" && !$senderHasHigherAL) {
-			$context->reply("You can only manage access levels below your own.");
+		if ($senderAL !== 'superadmin' && !$senderHasHigherAL) {
+			$context->reply('You can only manage access levels below your own.');
 			return;
 		}
 		$this->db->table(self::DB_TABLE)
-			->where("min_rank", $rank)
+			->where('min_rank', $rank)
 			->delete();
 		$context->reply(
 			"The access level mapping <highlight>{$ranks[$rank]}<end> to ".
-			"<highlight>" . $this->accessManager->getDisplayName($oldEntry->access_level) . "<end> ".
-			"was deleted successfully."
+			'<highlight>' . $this->accessManager->getDisplayName($oldEntry->access_level) . '<end> '.
+			'was deleted successfully.'
 		);
 	}
 
 	/** Get a list of all your org's ranks */
-	#[NCA\HandlesCommand("ranks")]
-	#[NCA\Help\Group("org-ranks")]
+	#[NCA\HandlesCommand('ranks')]
+	#[NCA\Help\Group('org-ranks')]
 	public function ranksCommand(CmdContext $context): void {
 		if (!$this->guildController->isGuildBot()) {
-			$context->reply("The bot must be in an org.");
+			$context->reply('The bot must be in an org.');
 			return;
 		}
 		$org = $this->guildManager->byId($this->config->orgId??0, null, false);
@@ -315,7 +315,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			$blob .= "<tab>{$id}: <highlight>{$name}<end>\n";
 		}
 		$msg = $this->text->makeBlob(
-			"Ranks of {$guild->governing_form} (" . count($ranks) . ")",
+			"Ranks of {$guild->governing_form} (" . count($ranks) . ')',
 			$blob,
 			$guild->governing_form
 		);

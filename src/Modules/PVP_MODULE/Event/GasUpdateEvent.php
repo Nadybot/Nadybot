@@ -6,7 +6,7 @@ use Nadybot\Core\Event;
 use Nadybot\Modules\PVP_MODULE\FeedMessage;
 
 class GasUpdateEvent extends Event {
-	public const EVENT_MASK = "gas-update";
+	public const EVENT_MASK = 'gas-update';
 
 	public function __construct(
 		public FeedMessage\GasUpdate $gas

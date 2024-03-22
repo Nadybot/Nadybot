@@ -6,7 +6,7 @@ use Nadybot\Core\Event;
 use Nadybot\Modules\PVP_MODULE\FeedMessage;
 
 class TowerAttackEvent extends Event {
-	public const EVENT_MASK = "tower-attack";
+	public const EVENT_MASK = 'tower-attack';
 
 	public function __construct(
 		public FeedMessage\TowerAttack $attack,

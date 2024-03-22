@@ -6,10 +6,10 @@ use Nadybot\Core\JSONDataModel;
 
 class ConnectionProperties extends JSONDataModel {
 	public string $os;
-	public string $browser = "Nadybot";
-	public string $device = "Nadybot";
+	public string $browser = 'Nadybot';
+	public string $device = 'Nadybot';
 
 	public function __construct() {
-		$this->os = php_uname("s");
+		$this->os = php_uname('s');
 	}
 }

@@ -24,7 +24,7 @@ class MessageQueue implements Iterator, Countable {
 
 	public function setMaxLength(int $maxLength): void {
 		if ($maxLength < 0) {
-			throw new InvalidArgumentException("max length must be 0 or positive");
+			throw new InvalidArgumentException('max length must be 0 or positive');
 		}
 		$this->maxLength = $maxLength;
 		while (count($this->msgs) > $this->maxLength) {

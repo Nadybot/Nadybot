@@ -21,7 +21,7 @@ class Data extends Base {
 	}
 
 	public function toString(): string {
-		return pack("C", PacketType::DATA) . $this->uuid . $this->data;
+		return pack('C', PacketType::DATA) . $this->uuid . $this->data;
 	}
 
 	public function getType(): int {

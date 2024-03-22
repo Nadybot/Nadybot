@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\ALTS;
 
 class AltDelEvent extends AltEvent {
-	public const EVENT_MASK = "alt(del)";
+	public const EVENT_MASK = 'alt(del)';
 
 	public function __construct(
 		public string $main,

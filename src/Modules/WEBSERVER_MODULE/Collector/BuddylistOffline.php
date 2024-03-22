@@ -15,6 +15,6 @@ class BuddylistOffline implements GaugeProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => "offline"];
+		return ['type' => 'offline'];
 	}
 }

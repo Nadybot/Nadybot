@@ -33,16 +33,16 @@ class Connection {
 
 		$connectContext = new ConnectContext();
 
-		$this->logger->info("Connecting Drill to {host}:{port}", [
-			"host" => $host,
-			"port" => $port,
+		$this->logger->info('Connecting Drill to {host}:{port}', [
+			'host' => $host,
+			'port' => $port,
 		]);
 		try {
 			$this->webClient = connect($host . ':' . $port, $connectContext);
 		} catch (ConnectException $e) {
 			return false;
 		}
-		$this->logger->info("Connected Drill to local webserver");
+		$this->logger->info('Connected Drill to local webserver');
 		async($this->mainLoop(...));
 		return true;
 	}
@@ -54,26 +54,26 @@ class Connection {
 	}
 
 	public function handle(Packet\Data $packet): void {
-		$this->logger->info("Received package to route to webserver");
+		$this->logger->info('Received package to route to webserver');
 		while (!isset($this->webClient)) {
-			$this->logger->info("Waiting for connection");
+			$this->logger->info('Waiting for connection');
 			delay(0.1);
 		}
-		$this->logger->info("Sending data to Webserver");
+		$this->logger->info('Sending data to Webserver');
 		$this->webClient->write($packet->data);
 	}
 
 	private function mainLoop(): void {
 		while (isset($this->webClient) && ($chunk = $this->webClient->read()) !== null) {
-			$this->logger->info("Received reply from Webserver");
+			$this->logger->info('Received reply from Webserver');
 			$packet = new Packet\Data(data: $chunk, uuid: $this->uuid);
 			Registry::injectDependencies($packet);
-			$this->logger->debug("Sending answer to Drill server: {answer}", [
-				"answer" => $chunk,
+			$this->logger->debug('Sending answer to Drill server: {answer}', [
+				'answer' => $chunk,
 			]);
 			$packet->send($this->wsConnection);
 		}
-		$this->logger->info("Empty read from webserver, closing");
+		$this->logger->info('Empty read from webserver, closing');
 		if (isset($this->webClient)) {
 			$packet = new Packet\Closed(uuid: $this->uuid);
 			Registry::injectDependencies($packet);

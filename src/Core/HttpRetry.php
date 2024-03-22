@@ -29,10 +29,10 @@ final class HttpRetry implements ApplicationInterceptor {
 
 		do {
 			if ($attempt > 1) {
-				$this->logger->info("Retrying {url}, try {try}/{maxtries}", [
-					"url" => $request->getUri()->__toString(),
-					"try" => $attempt,
-					"maxtries" => $this->retryLimit,
+				$this->logger->info('Retrying {url}, try {try}/{maxtries}', [
+					'url' => $request->getUri()->__toString(),
+					'try' => $attempt,
+					'maxtries' => $this->retryLimit,
 				]);
 			}
 			try {
@@ -45,9 +45,9 @@ final class HttpRetry implements ApplicationInterceptor {
 				// Request can safely be retried.
 			}
 			$delay = 0.25 * pow(2, $attempt);
-			$this->logger->info("Retrying {url} in {delay}ms", [
-				"url" => $request->getUri()->__toString(),
-				"delay" => $delay,
+			$this->logger->info('Retrying {url} in {delay}ms', [
+				'url' => $request->getUri()->__toString(),
+				'delay' => $delay,
 			]);
 			delay($delay);
 		} while ($attempt++ <= $this->retryLimit);

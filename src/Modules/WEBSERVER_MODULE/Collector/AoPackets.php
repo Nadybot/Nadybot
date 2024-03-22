@@ -14,7 +14,7 @@ class AoPackets extends Dataset {
 	private Nadybot $chatBot;
 
 	public function getValues(): array {
-		$lines = ["# TYPE ao_packets counter"];
+		$lines = ['# TYPE ao_packets counter'];
 		foreach ($this->chatBot->aoClient->getStatistics()->packagesRead as $type => $count) {
 			$lines []= 'ao_packets{direction="in",type="'.
 				(Package\Type::tryFrom($type)?->name ?? $type) . "\"} {$count}";

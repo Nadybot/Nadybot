@@ -34,15 +34,15 @@ use Throwable;
 
 #[
 	NCA\RelayProtocol(
-		name: "nadynative",
+		name: 'nadynative',
 		description: "This is the native protocol if your relay consists\n".
 			"only of Nadybots 5.2 or newer. It supports message-passing,\n".
-			"proper colorization and event-passing."
+			'proper colorization and event-passing.'
 	),
 	NCA\Param(
-		name: "sync-online",
-		type: "bool",
-		description: "Sync the online list with the other bots of this relay",
+		name: 'sync-online',
+		type: 'bool',
+		description: 'Sync the online list with the other bots of this relay',
 		required: false
 	)
 ]
@@ -76,25 +76,25 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	public function send(RoutableEvent $event): array {
-		$this->logger->debug("Relay {relay} received event to route", [
-			"relay" => $this->relay->getName(),
-			"event" => $event,
+		$this->logger->debug('Relay {relay} received event to route', [
+			'relay' => $this->relay->getName(),
+			'event' => $event,
 		]);
 		$event = clone $event;
 		if (isset($event->data) && ($event->data instanceof Base)) {
 			$event->data->renderPath = true;
 		}
 		if (is_string($event->data)) {
-			$event->data = str_replace("<myname>", $this->config->main->character, $event->data);
+			$event->data = str_replace('<myname>', $this->config->main->character, $event->data);
 		} elseif (is_object($event->data) && !($event->data instanceof SyncEvent) && is_string($event->data->message??null)) {
-			$event->data->message = str_replace("<myname>", $this->config->main->character, $event->data->message??"");
+			$event->data->message = str_replace('<myname>', $this->config->main->character, $event->data->message??'');
 		}
 		try {
-			$data = json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			$data = json_encode($event, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
 			$this->logger->error('Cannot send event via Nadynative protocol: {error}', [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 			return [];
 		}
@@ -102,34 +102,34 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	public function receive(RelayMessage $message): ?RoutableEvent {
-		$this->logger->debug("Relay {relay} received message to route", [
-			"relay" => $this->relay->getName(),
-			"message" => $message,
+		$this->logger->debug('Relay {relay} received message to route', [
+			'relay' => $this->relay->getName(),
+			'message' => $message,
 		]);
 		if (empty($message->packages)) {
 			return null;
 		}
 		$serialized = array_shift($message->packages);
 		try {
-			$data = json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			$data = json_decode($serialized, false, 10, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
 			$this->logger->error(
 				'Invalid data received via Nadynative protocol',
 				[
-					"exception" => $e,
-					"data" => $serialized,
+					'exception' => $e,
+					'data' => $serialized,
 				]
 			);
 			return null;
 		}
 		$data->type ??= RoutableEvent::TYPE_MESSAGE;
 		switch ($data->type) {
-			case "online_list_request":
+			case 'online_list_request':
 				if ($this->syncOnline) {
 					$this->sendOnlineList();
 				}
 				return null;
-			case "online_list":
+			case 'online_list':
 				if ($this->syncOnline) {
 					$this->handleOnlineList($message->sender, $data);
 				}
@@ -164,44 +164,44 @@ class NadyNative implements RelayProtocolInterface {
 		) {
 			// @todo Get rid of JsonMapper here
 			$event->data = (new JsonMapper())->map($event->data, new Online());
-			$this->logger->debug("Received online event for {relay}", [
-				"relay" => $this->relay->getName(),
-				"event" => $event,
+			$this->logger->debug('Received online event for {relay}', [
+				'relay' => $this->relay->getName(),
+				'event' => $event,
 			]);
 			$this->handleOnlineEvent($message->sender, $event);
 		}
 		if ($event->type === RoutableEvent::TYPE_EVENT
 			&& is_object($event->data)
-			&& fnmatch("sync(*)", $event->data->type??"", FNM_CASEFOLD)
+			&& fnmatch('sync(*)', $event->data->type??'', \FNM_CASEFOLD)
 		) {
-			$this->logger->debug("Received sync event for {relay}", [
-				"relay" => $this->relay->getName(),
-				"event" => $event,
+			$this->logger->debug('Received sync event for {relay}', [
+				'relay' => $this->relay->getName(),
+				'event' => $event,
 			]);
 			$this->handleExtSyncEvent($event->data);
 			return null;
 		}
-		$this->logger->debug("Received routable event for {relay}", [
-			"relay" => $this->relay->getName(),
-			"event" => $event,
+		$this->logger->debug('Received routable event for {relay}', [
+			'relay' => $this->relay->getName(),
+			'event' => $event,
 		]);
 		return $event;
 	}
 
 	public function init(callable $callback): array {
 		$callback();
-		$this->eventManager->subscribe("sync(*)", $this->handleSyncEvent(...));
+		$this->eventManager->subscribe('sync(*)', $this->handleSyncEvent(...));
 		if ($this->syncOnline) {
 			return [
 				$this->jsonEncode($this->getOnlineList()),
-				$this->jsonEncode((object)["type" => "online_list_request"]),
+				$this->jsonEncode((object)['type' => 'online_list_request']),
 			];
 		}
 		return [];
 	}
 
 	public function deinit(callable $callback): array {
-		$this->eventManager->unsubscribe("sync(*)", $this->handleSyncEvent(...));
+		$this->eventManager->unsubscribe('sync(*)', $this->handleSyncEvent(...));
 		$callback();
 		return [];
 	}
@@ -229,7 +229,7 @@ class NadyNative implements RelayProtocolInterface {
 			type: RoutableEvent::TYPE_EVENT,
 			data: $sEvent,
 		);
-		$this->relay->receive($rEvent, "*");
+		$this->relay->receive($rEvent, '*');
 	}
 
 	public static function supportsFeature(int $feature): bool {
@@ -240,13 +240,13 @@ class NadyNative implements RelayProtocolInterface {
 		try {
 			$fullEvent = SyncEventFactory::create($event);
 		} catch (Throwable $e) {
-			$this->logger->error("Invalid sync-event received: {error}", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Invalid sync-event received: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 			return;
 		}
-		$this->logger->debug("Received {event}", ["event" => $fullEvent]);
+		$this->logger->debug('Received {event}', ['event' => $fullEvent]);
 		if (!$this->relay->allowIncSyncEvent($fullEvent)) {
 			return;
 		}
@@ -287,7 +287,7 @@ class NadyNative implements RelayProtocolInterface {
 			$lastHop = $source;
 		}
 		$hops = array_filter($hops);
-		$where = join(" ", $hops);
+		$where = implode(' ', $hops);
 		foreach ($block->users as $user) {
 			$this->relay->setOnline(
 				$sender,
@@ -308,7 +308,7 @@ class NadyNative implements RelayProtocolInterface {
 			$lastHop = $hop;
 		}
 		$hops = array_filter($hops);
-		$where = join(" ", $hops);
+		$where = implode(' ', $hops);
 
 		/** @var Online */
 		$llEvent = $event->data;
@@ -327,8 +327,8 @@ class NadyNative implements RelayProtocolInterface {
 		$isOrg = strlen($this->config->general->orgName);
 		if ($isOrg) {
 			$block = new OnlineBlock();
-			$orgLabel = $this->settingManager->getString("relay_guild_abbreviation");
-			if (!isset($orgLabel) || $orgLabel === "none") {
+			$orgLabel = $this->settingManager->getString('relay_guild_abbreviation');
+			if (!isset($orgLabel) || $orgLabel === 'none') {
 				$orgLabel = null;
 			}
 			$block->path []= new Source(
@@ -352,7 +352,7 @@ class NadyNative implements RelayProtocolInterface {
 		$onlinePriv = $this->onlineController->getPlayers('priv', $this->config->main->character);
 		$privLabel = null;
 		if (isset($block)) {
-			$privLabel = "Guest";
+			$privLabel = 'Guest';
 			$privBlock->path = $block->path;
 		}
 		$privBlock->path []= new Source(
@@ -374,6 +374,6 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	protected function jsonEncode(mixed $data): string {
-		return json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+		return json_encode($data, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE|\JSON_THROW_ON_ERROR);
 	}
 }

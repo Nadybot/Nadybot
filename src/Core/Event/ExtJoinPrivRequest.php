@@ -5,7 +5,7 @@ namespace Nadybot\Core\Event;
 use Nadybot\Core\Event;
 
 class ExtJoinPrivRequest extends Event {
-	public const EVENT_MASK = "extjoinprivrequest";
+	public const EVENT_MASK = 'extjoinprivrequest';
 
 	/**
 	 * @param string  $sender  The user inviting us to  their channel

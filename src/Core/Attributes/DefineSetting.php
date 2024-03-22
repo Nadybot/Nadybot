@@ -33,7 +33,7 @@ class DefineSetting {
 	/** @return int|float|string|bool|mixed[] */
 	public function getValue(): int|float|string|bool|array {
 		if (!isset($this->defaultValue)) {
-			throw new Exception("No defaultValue set or given.");
+			throw new Exception('No defaultValue set or given.');
 		}
 		return $this->defaultValue;
 	}

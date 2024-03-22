@@ -22,18 +22,12 @@ class PerkLevel extends DBRow {
 		public int $required_level,
 		public ?int $id=null,
 		public ?int $aoid=null,
-		#[NCA\DB\Ignore]
-		public array $professions=[],
-		#[NCA\DB\Ignore]
-		public array $buffs=[],
-		#[NCA\DB\Ignore]
-		public array $perk_buffs=[],
-		#[NCA\DB\Ignore]
-		public array $resistances=[],
-		#[NCA\DB\Ignore]
-		public array $perk_resistances=[],
-		#[NCA\DB\Ignore]
-		public ?PerkLevelAction $action=null,
+		#[NCA\DB\Ignore] public array $professions=[],
+		#[NCA\DB\Ignore] public array $buffs=[],
+		#[NCA\DB\Ignore] public array $perk_buffs=[],
+		#[NCA\DB\Ignore] public array $resistances=[],
+		#[NCA\DB\Ignore] public array $perk_resistances=[],
+		#[NCA\DB\Ignore] public ?PerkLevelAction $action=null,
 	) {
 	}
 }

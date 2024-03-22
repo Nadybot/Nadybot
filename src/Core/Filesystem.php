@@ -43,18 +43,18 @@ final class Filesystem {
 	 */
 	public function realPath(string $path): string {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> realPath({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> realPath({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		try {
 			return \Safe\realpath($path);
 		} catch (\Exception $e) {
 			throw new FilesystemException($e->getMessage(), $e);
 		} finally {
-			$this->logger?->debug("[{call}] <- realPath({path})", [
-				"call" => sprintf("%6d", $callNum),
-				"path" => $path,
+			$this->logger?->debug('[{call}] <- realPath({path})', [
+				'call' => sprintf('%6d', $callNum),
+				'path' => $path,
 			]);
 		}
 	}
@@ -66,16 +66,16 @@ final class Filesystem {
 	 */
 	public function openFile(string $path, string $mode): File {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> openFile({path}, {mode})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"mode" => $mode,
+		$this->logger?->debug('[{call}] -> openFile({path}, {mode})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'mode' => $mode,
 		]);
 		$result = $this->fs->openFile($path, $mode);
-		$this->logger?->debug("[{call}] <- openFile({path}, {mode})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"mode" => $mode,
+		$this->logger?->debug('[{call}] <- openFile({path}, {mode})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'mode' => $mode,
 		]);
 		return $result;
 	}
@@ -91,14 +91,14 @@ final class Filesystem {
 	 */
 	public function getStatus(string $path): ?array {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> getStatus({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> getStatus({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->getStatus($path);
-		$this->logger?->debug("[{call}] <- getStatus({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- getStatus({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result; // @phpstan-ignore-line
 	}
@@ -114,14 +114,14 @@ final class Filesystem {
 	 */
 	public function getLinkStatus(string $path): ?array {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> getLinkStatus({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> getLinkStatus({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->getLinkStatus($path);
-		$this->logger?->debug("[{call}] <- getLinkStatus({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- getLinkStatus({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result; // @phpstan-ignore-line
 	}
@@ -136,14 +136,14 @@ final class Filesystem {
 	 */
 	public function exists(string $path): bool {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> exists({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> exists({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->exists($path);
-		$this->logger?->debug("[{call}] <- exists({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- exists({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result;
 	}
@@ -161,14 +161,14 @@ final class Filesystem {
 	 */
 	public function getSize(string $path): int {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> getSize({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> getSize({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->getSize($path);
-		$this->logger?->debug("[{call}] <- getSize({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- getSize({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result;
 	}
@@ -180,14 +180,14 @@ final class Filesystem {
 	 */
 	public function isDirectory(string $path): bool {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> isDirectory({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> isDirectory({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->isDirectory($path);
-		$this->logger?->debug("[{call}] <- isDirectory({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- isDirectory({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result;
 	}
@@ -199,14 +199,14 @@ final class Filesystem {
 	 */
 	public function isFile(string $path): bool {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> isFile({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> isFile({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->isFile($path);
-		$this->logger?->debug("[{call}] <- isFile({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- isFile({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result;
 	}
@@ -220,14 +220,14 @@ final class Filesystem {
 	 */
 	public function isSymlink(string $path): bool {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> isSymlink({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> isSymlink({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->isSymlink($path);
-		$this->logger?->debug("[{call}] <- isSymlink({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- isSymlink({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result;
 	}
@@ -241,14 +241,14 @@ final class Filesystem {
 	 */
 	public function getModificationTime(string $path): int {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> getModificationTime({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> getModificationTime({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->getModificationTime($path);
-		$this->logger?->debug("[{call}] <- getModificationTime({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- getModificationTime({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result;
 	}
@@ -262,14 +262,14 @@ final class Filesystem {
 	 */
 	public function getAccessTime(string $path): int {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> getAccessTime({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> getAccessTime({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->getAccessTime($path);
-		$this->logger?->debug("[{call}] <- getAccessTime({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- getAccessTime({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result;
 	}
@@ -283,14 +283,14 @@ final class Filesystem {
 	 */
 	public function getCreationTime(string $path): int {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> getCreationTime({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> getCreationTime({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->getCreationTime($path);
-		$this->logger?->debug("[{call}] <- getCreationTime({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- getCreationTime({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result;
 	}
@@ -302,32 +302,32 @@ final class Filesystem {
 	 */
 	public function createSymlink(string $original, string $link): void {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> createSymlink({original}, {link})", [
-			"call" => sprintf("%6d", $callNum),
-			"original" => $original,
-			"link" => $link,
+		$this->logger?->debug('[{call}] -> createSymlink({original}, {link})', [
+			'call' => sprintf('%6d', $callNum),
+			'original' => $original,
+			'link' => $link,
 		]);
 		$this->fs->createSymlink($original, $link);
-		$this->logger?->debug("[{call}] <- createSymlink({original}, {link})", [
-			"call" => sprintf("%6d", $callNum),
-			"original" => $original,
-			"link" => $link,
+		$this->logger?->debug('[{call}] <- createSymlink({original}, {link})', [
+			'call' => sprintf('%6d', $callNum),
+			'original' => $original,
+			'link' => $link,
 		]);
 	}
 
 	/** Create a hard link $link pointing to the file/directory located at $target. */
 	public function createHardlink(string $target, string $link): void {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> createHardlink({target}, {link})", [
-			"call" => sprintf("%6d", $callNum),
-			"original" => $target,
-			"link" => $link,
+		$this->logger?->debug('[{call}] -> createHardlink({target}, {link})', [
+			'call' => sprintf('%6d', $callNum),
+			'original' => $target,
+			'link' => $link,
 		]);
 		$this->fs->createHardlink($target, $link);
-		$this->logger?->debug("[{call}] <- createHardlink({target}, {link})", [
-			"call" => sprintf("%6d", $callNum),
-			"original" => $target,
-			"link" => $link,
+		$this->logger?->debug('[{call}] <- createHardlink({target}, {link})', [
+			'call' => sprintf('%6d', $callNum),
+			'original' => $target,
+			'link' => $link,
 		]);
 	}
 
@@ -338,14 +338,14 @@ final class Filesystem {
 	 */
 	public function resolveSymlink(string $path): string {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> resolveSymlink({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> resolveSymlink({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->resolveSymlink($path);
-		$this->logger?->debug("[{call}] <- resolveSymlink({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- resolveSymlink({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result;
 	}
@@ -357,16 +357,16 @@ final class Filesystem {
 	 */
 	public function move(string $from, string $to): void {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> move({from}, {to})", [
-			"call" => sprintf("%6d", $callNum),
-			"from" => $from,
-			"to" => $to,
+		$this->logger?->debug('[{call}] -> move({from}, {to})', [
+			'call' => sprintf('%6d', $callNum),
+			'from' => $from,
+			'to' => $to,
 		]);
 		$this->fs->move($from, $to);
-		$this->logger?->debug("[{call}] <- move({from}, {to})", [
-			"call" => sprintf("%6d", $callNum),
-			"from" => $from,
-			"to" => $to,
+		$this->logger?->debug('[{call}] <- move({from}, {to})', [
+			'call' => sprintf('%6d', $callNum),
+			'from' => $from,
+			'to' => $to,
 		]);
 	}
 
@@ -377,14 +377,14 @@ final class Filesystem {
 	 */
 	public function deleteFile(string $path): void {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> deleteFile({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> deleteFile({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$this->fs->deleteFile($path);
-		$this->logger?->debug("[{call}] <- deleteFile({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- deleteFile({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 	}
 
@@ -395,16 +395,16 @@ final class Filesystem {
 	 */
 	public function createDirectory(string $path, int $mode=0777): void {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> createDirectory({path}, {mode})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"mode" => sprintf("0%o", $mode),
+		$this->logger?->debug('[{call}] -> createDirectory({path}, {mode})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'mode' => sprintf('0%o', $mode),
 		]);
 		$this->fs->createDirectory($path, $mode);
-		$this->logger?->debug("[{call}] <- createDirectory({path}, {mode})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"mode" => sprintf("0%o", $mode),
+		$this->logger?->debug('[{call}] <- createDirectory({path}, {mode})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'mode' => sprintf('0%o', $mode),
 		]);
 	}
 
@@ -415,16 +415,16 @@ final class Filesystem {
 	 */
 	public function createDirectoryRecursively(string $path, int $mode=0777): void {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> createDirectoryRecursively({path}, {mode})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"mode" => sprintf("0%o", $mode),
+		$this->logger?->debug('[{call}] -> createDirectoryRecursively({path}, {mode})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'mode' => sprintf('0%o', $mode),
 		]);
 		$this->fs->createDirectoryRecursively($path, $mode);
-		$this->logger?->debug("[{call}] <- createDirectoryRecursively({path}, {mode})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"mode" => sprintf("0%o", $mode),
+		$this->logger?->debug('[{call}] <- createDirectoryRecursively({path}, {mode})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'mode' => sprintf('0%o', $mode),
 		]);
 	}
 
@@ -435,14 +435,14 @@ final class Filesystem {
 	 */
 	public function deleteDirectory(string $path): void {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> deleteDirectory({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> deleteDirectory({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$this->fs->deleteDirectory($path);
-		$this->logger?->debug("[{call}] <- deleteDirectory({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- deleteDirectory({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 	}
 
@@ -457,14 +457,14 @@ final class Filesystem {
 	 */
 	public function listFiles(string $path): array {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> listFiles({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> listFiles({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->listFiles($path);
-		$this->logger?->debug("[{call}] <- listFiles({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- listFiles({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result;
 	}
@@ -472,16 +472,16 @@ final class Filesystem {
 	/** Change permissions of a file or directory. */
 	public function changePermissions(string $path, int $mode): void {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> changePermissions({path}, {mode})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"mode" => sprintf("0%o", $mode),
+		$this->logger?->debug('[{call}] -> changePermissions({path}, {mode})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'mode' => sprintf('0%o', $mode),
 		]);
 		$this->fs->changePermissions($path, $mode);
-		$this->logger?->debug("[{call}] <- changePermissions({path}, {mode})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"mode" => sprintf("0%o", $mode),
+		$this->logger?->debug('[{call}] <- changePermissions({path}, {mode})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'mode' => sprintf('0%o', $mode),
 		]);
 	}
 
@@ -493,18 +493,18 @@ final class Filesystem {
 	 */
 	public function changeOwner(string $path, ?int $uid, ?int $gid=null): void {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> changeOwner({path}, {uid}, {gid})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"uid" => $uid ?? 'null',
-			"gid" => $gid ?? 'null',
+		$this->logger?->debug('[{call}] -> changeOwner({path}, {uid}, {gid})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'uid' => $uid ?? 'null',
+			'gid' => $gid ?? 'null',
 		]);
 		$this->fs->changeOwner($path, $uid, $gid);
-		$this->logger?->debug("[{call}] <- changeOwner({path}, {uid}, {gid})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"uid" => $uid ?? 'null',
-			"gid" => $gid ?? 'null',
+		$this->logger?->debug('[{call}] <- changeOwner({path}, {uid}, {gid})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'uid' => $uid ?? 'null',
+			'gid' => $gid ?? 'null',
 		]);
 	}
 
@@ -518,18 +518,18 @@ final class Filesystem {
 	 */
 	public function touch(string $path, ?int $modificationTime=null, ?int $accessTime=null): void {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> touch({path}, {mtime}, {atime})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"mtime" => $modificationTime ?? 'null',
-			"atime" => $accessTime ?? 'null',
+		$this->logger?->debug('[{call}] -> touch({path}, {mtime}, {atime})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'mtime' => $modificationTime ?? 'null',
+			'atime' => $accessTime ?? 'null',
 		]);
 		$this->fs->touch($path, $modificationTime, $accessTime);
-		$this->logger?->debug("[{call}] <- touch({path}, {mtime}, {atime})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"mtime" => $modificationTime ?? 'null',
-			"atime" => $accessTime ?? 'null',
+		$this->logger?->debug('[{call}] <- touch({path}, {mtime}, {atime})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'mtime' => $modificationTime ?? 'null',
+			'atime' => $accessTime ?? 'null',
 		]);
 	}
 
@@ -540,14 +540,14 @@ final class Filesystem {
 	 */
 	public function read(string $path): string {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> read({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> read({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$result = $this->fs->read($path);
-		$this->logger?->debug("[{call}] <- read({path})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- read({path})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		return $result;
 	}
@@ -560,14 +560,14 @@ final class Filesystem {
 	 */
 	public function write(string $path, string $contents): void {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> write({path} ,…)", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] -> write({path} ,…)', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 		$this->fs->write($path, $contents);
-		$this->logger?->debug("[{call}] <- write({path} ,…)", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
+		$this->logger?->debug('[{call}] <- write({path} ,…)', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
 		]);
 	}
 
@@ -586,20 +586,20 @@ final class Filesystem {
 	 */
 	public function tempnam(string $path, string $prefix): string {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> tempnam({path}, {prefix})", [
-			"call" => sprintf("%6d", $callNum),
-			"path" => $path,
-			"prefix" => $prefix,
+		$this->logger?->debug('[{call}] -> tempnam({path}, {prefix})', [
+			'call' => sprintf('%6d', $callNum),
+			'path' => $path,
+			'prefix' => $prefix,
 		]);
 		try {
 			return \Safe\tempnam($path, $prefix);
 		} catch (\Safe\Exceptions\FilesystemException $e) {
 			throw new FilesystemException($e->getMessage(), $e);
 		} finally {
-			$this->logger?->debug("[{call}] <- tempnam({path}, {prefix})", [
-				"call" => sprintf("%6d", $callNum),
-				"path" => $path,
-				"prefix" => $prefix,
+			$this->logger?->debug('[{call}] <- tempnam({path}, {prefix})', [
+				'call' => sprintf('%6d', $callNum),
+				'path' => $path,
+				'prefix' => $prefix,
 			]);
 		}
 	}
@@ -620,16 +620,16 @@ final class Filesystem {
 	 */
 	public function tmpfile() {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> tmpfile()", [
-			"call" => sprintf("%6d", $callNum),
+		$this->logger?->debug('[{call}] -> tmpfile()', [
+			'call' => sprintf('%6d', $callNum),
 		]);
 		try {
 			return \Safe\tmpfile();
 		} catch (\Safe\Exceptions\FilesystemException $e) {
 			throw new FilesystemException($e->getMessage(), $e);
 		} finally {
-			$this->logger?->debug("[{call}] <- tmpfile()", [
-				"call" => sprintf("%6d", $callNum),
+			$this->logger?->debug('[{call}] <- tmpfile()', [
+				'call' => sprintf('%6d', $callNum),
 			]);
 		}
 	}
@@ -647,18 +647,18 @@ final class Filesystem {
 	 */
 	public function file(string $filename): array {
 		$callNum = self::$callNum++;
-		$this->logger?->debug("[{call}] -> file({filename})", [
-			"call" => sprintf("%6d", $callNum),
-			"filename" => $filename,
+		$this->logger?->debug('[{call}] -> file({filename})', [
+			'call' => sprintf('%6d', $callNum),
+			'filename' => $filename,
 		]);
 		try {
 			return \Safe\preg_split("/\r\n|\n|\r/", $this->read($filename));
 		} catch (\Safe\Exceptions\FilesystemException $e) {
 			throw new FilesystemException($e->getMessage(), $e);
 		} finally {
-			$this->logger?->debug("[{call}] <- file({filename})", [
-				"call" => sprintf("%6d", $callNum),
-				"filename" => $filename,
+			$this->logger?->debug('[{call}] <- file({filename})', [
+				'call' => sprintf('%6d', $callNum),
+				'filename' => $filename,
 			]);
 		}
 	}

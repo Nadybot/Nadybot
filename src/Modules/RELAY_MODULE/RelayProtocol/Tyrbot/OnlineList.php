@@ -8,8 +8,7 @@ class OnlineList extends Packet {
 	/** @param OnlineBlock[] $online */
 	public function __construct(
 		public string $type,
-		#[CastListToType(OnlineBlock::class)]
-		public array $online,
+		#[CastListToType(OnlineBlock::class)] public array $online,
 	) {
 	}
 }

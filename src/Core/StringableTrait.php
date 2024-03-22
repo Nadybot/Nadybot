@@ -21,21 +21,21 @@ trait StringableTrait {
 			} elseif ($value instanceof \UnitEnum) {
 				$value = $value->name;
 			} elseif ($value instanceof \Closure) {
-				$value = "<Closure>";
+				$value = '<Closure>';
 			} else {
-				$prefix = is_object($value) ? "<" . class_basename($value) . ">" : "";
+				$prefix = is_object($value) ? '<' . class_basename($value) . '>' : '';
 				try {
 					$value = json_encode(
 						$value,
-						JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE
+						\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE|\JSON_INVALID_UTF8_SUBSTITUTE
 					);
 				} catch (JsonException) {
 					if (!is_object($value)) {
 						continue;
 					}
-					$value = $prefix . "{}";
+					$value = $prefix . '{}';
 				}
-				if (strlen($prefix) && $value === "{}") {
+				if (strlen($prefix) && $value === '{}') {
 					$value = $prefix;
 				} else {
 					$value = $prefix . $value;
@@ -43,8 +43,8 @@ trait StringableTrait {
 			}
 			$values []= "{$key}={$value}";
 		}
-		$parts = explode("\\", get_class($this));
+		$parts = explode('\\', static::class);
 		$class = array_pop($parts);
-		return "<{$class}>{" . join(",", $values) . "}";
+		return "<{$class}>{" . implode(',', $values) . '}';
 	}
 }

@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Event;
 
 class JoinPrivEvent extends JoinLeaveEvent {
-	public const EVENT_MASK = "extjoinpriv";
+	public const EVENT_MASK = 'extjoinpriv';
 
 	/**
 	 * @param string $sender  Either the name of the sender or the numeric UID (eg. city raid accouncements)

@@ -47,21 +47,21 @@ class TrackerOnlineParser {
 		if ($expr === false) {
 			$error = $parser->getError();
 
-			$wordStart = strrpos($input, " ", -1 * (strlen($input) - $error['index']));
+			$wordStart = strrpos($input, ' ', -1 * (strlen($input) - $error['index']));
 			if ($wordStart === false) {
 				$wordStart = -1;
 			}
-			$wordEnd = strpos($input, " ", $error['index']);
+			$wordEnd = strpos($input, ' ', $error['index']);
 			if ($wordEnd === false) {
 				$wordEnd = strlen($input) + 1;
 			}
 			$found = substr($input, $wordStart+1, $wordEnd - $wordStart - 1);
 			throw new TrackerOnlineParserException(
 				"'<highlight>{$found}<end>' ".
-				"is not a valid filter criteria."
+				'is not a valid filter criteria.'
 			);
 		}
-		$layers = $expr->findAll("option");
+		$layers = $expr->findAll('option');
 		$result = [];
 		foreach ($layers as $layer) {
 			$result []= $this->parseOption($layer);

@@ -20,7 +20,7 @@ use Psr\Log\LoggerInterface;
 use stdClass;
 use Throwable;
 
-#[NCA\Migration(order: 20210908074258)]
+#[NCA\Migration(order: 20_210_908_074_258)]
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private DiscordAPIClient $discordAPIClient;
@@ -30,9 +30,9 @@ class MigrateToRoutes implements SchemaMigration {
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = TimerController::DB_TABLE;
-		$db->schema()->table($table, function (Blueprint $table): void {
-			$table->string("mode", 50)->nullable()->change();
-			$table->string("origin", 100)->nullable();
+		$db->schema()->table($table, static function (Blueprint $table): void {
+			$table->string('mode', 50)->nullable()->change();
+			$table->string('origin', 100)->nullable();
 		});
 		$defaultChannel = $this->getSetting($db, 'timer_alert_location');
 		if (!isset($defaultChannel)) {
@@ -42,18 +42,18 @@ class MigrateToRoutes implements SchemaMigration {
 		}
 		$defaultMode = [];
 		if ($defaultChannel & 1) {
-			$this->addRoute($db, Source::PRIV . "(" . $db->getMyname() . ")");
-			$defaultMode []= "priv";
+			$this->addRoute($db, Source::PRIV . '(' . $db->getMyname() . ')');
+			$defaultMode []= 'priv';
 		}
 		if ($defaultChannel & 2) {
 			$this->addRoute($db, Source::ORG);
-			$defaultMode []= "org";
-			$defaultMode []= "guild";
+			$defaultMode []= 'org';
+			$defaultMode []= 'guild';
 		}
 		if ($defaultChannel & 4) {
-			$defaultMode []= "discord";
+			$defaultMode []= 'discord';
 		}
-		$discordChannel = $this->getSetting($db, "discord_notify_channel") ?? null;
+		$discordChannel = $this->getSetting($db, 'discord_notify_channel') ?? null;
 		if (isset($discordChannel, $discordChannel->value)   && $discordChannel->value !== 'off') {
 			try {
 				$channel = $this->discordAPIClient->getChannel($discordChannel->value);
@@ -67,7 +67,7 @@ class MigrateToRoutes implements SchemaMigration {
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
+			->where('name', $name)
 			->asObj(Setting::class)
 			->first();
 	}
@@ -77,31 +77,31 @@ class MigrateToRoutes implements SchemaMigration {
 		sort($defaultMode);
 		$db->table($table)
 			->get()
-			->each(function (stdClass $timer) use ($defaultMode, $table, $db, $discord): void {
-				if (!isset($timer->mode) || !str_starts_with($timer->callback, "timercontroller")) {
+			->each(static function (stdClass $timer) use ($defaultMode, $table, $db, $discord): void {
+				if (!isset($timer->mode) || !str_starts_with($timer->callback, 'timercontroller')) {
 					return;
 				}
 				if ($timer->mode === 'msg') {
 					return;
 				}
-				$timerMode = explode(",", $timer->mode);
+				$timerMode = explode(',', $timer->mode);
 				sort($timerMode);
 				$modeDiff = array_values(array_diff($timerMode, $defaultMode));
 				if (count($modeDiff) > 1) {
 					return;
 				}
-				$update = ["mode" => null];
+				$update = ['mode' => null];
 				if (count($modeDiff) === 1) {
-					if ($modeDiff[0] === "priv") {
-						$update["origin"] = Source::PRIV . "(" . $db->getMyname() . ")";
-					} elseif ($modeDiff[0] === "org" || $modeDiff[0] === "guild") {
-						$update["origin"] = Source::ORG;
-					} elseif ($modeDiff[0] === "discord") {
-						$update["origin"] = $discord;
+					if ($modeDiff[0] === 'priv') {
+						$update['origin'] = Source::PRIV . '(' . $db->getMyname() . ')';
+					} elseif ($modeDiff[0] === 'org' || $modeDiff[0] === 'guild') {
+						$update['origin'] = Source::ORG;
+					} elseif ($modeDiff[0] === 'discord') {
+						$update['origin'] = $discord;
 					}
 				}
 				$db->table($table)
-					->where("id", $timer->id)
+					->where('id', $timer->id)
 					->update($update);
 			});
 	}
@@ -109,7 +109,7 @@ class MigrateToRoutes implements SchemaMigration {
 	/** @param string[] $defaultMode */
 	private function migrateChannelToRoute(DiscordChannel $channel, DB $db, string $table, array $defaultMode): void {
 		$this->rewriteTimerMode($db, $table, $defaultMode, Source::DISCORD_PRIV . "({$channel->name})");
-		if (!in_array("discord", $defaultMode)) {
+		if (!in_array('discord', $defaultMode)) {
 			return;
 		}
 		$route = $this->addRoute(
@@ -126,7 +126,7 @@ class MigrateToRoutes implements SchemaMigration {
 
 	private function addRoute(DB $db, string $to): Route {
 		$route = new Route();
-		$route->source = Source::SYSTEM . "(timers)";
+		$route->source = Source::SYSTEM . '(timers)';
 		$route->destination = $to;
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
 		return $route;

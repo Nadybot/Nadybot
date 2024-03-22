@@ -5,7 +5,7 @@ namespace Nadybot\Core\Event;
 use Nadybot\Core\{CmdEvent, CommandHandler};
 
 class ForbiddenCmdEvent extends CmdEvent {
-	public const EVENT_MASK = "command(forbidden)";
+	public const EVENT_MASK = 'command(forbidden)';
 
 	/**
 	 * @param string         $sender     Either the name of the sender or the numeric UID (eg. city raid accouncements)

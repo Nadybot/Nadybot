@@ -18,9 +18,9 @@ use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "cluster",
-		accessLevel: "guest",
-		description: "Find which clusters buff a specified skill",
+		command: 'cluster',
+		accessLevel: 'guest',
+		description: 'Find which clusters buff a specified skill',
 	)
 ]
 class ClusterController extends ModuleInstance {
@@ -34,11 +34,11 @@ class ClusterController extends ModuleInstance {
 	private WhatBuffsController $wbCtrl;
 
 	/** Get a list of skills/attributes you can get clusters for */
-	#[NCA\HandlesCommand("cluster")]
+	#[NCA\HandlesCommand('cluster')]
 	public function clusterListCommand(CmdContext $context): void {
 		/** @var Collection<Cluster> */
-		$data = $this->db->table("Cluster")
-			->orderBy("LongName")
+		$data = $this->db->table('Cluster')
+			->orderBy('LongName')
 			->asObj(Cluster::class);
 		$count = $data->count();
 
@@ -47,7 +47,7 @@ class ClusterController extends ModuleInstance {
 			if ($cluster->ClusterID === 0) {
 				continue;
 			}
-			$blob .= "<tab>".
+			$blob .= '<tab>'.
 				$this->text->makeChatcmd(
 					$cluster->LongName,
 					"/tell <myname> cluster {$cluster->LongName}"
@@ -59,9 +59,9 @@ class ClusterController extends ModuleInstance {
 	}
 
 	/** Find a cluster for a skill/attribute */
-	#[NCA\HandlesCommand("cluster")]
-	#[NCA\Help\Example("<symbol>cluster comp lit")]
-	#[NCA\Help\Example("<symbol>cluster agility")]
+	#[NCA\HandlesCommand('cluster')]
+	#[NCA\Help\Example('<symbol>cluster comp lit')]
+	#[NCA\Help\Example('<symbol>cluster agility')]
 	public function clusterCommand(CmdContext $context, string $search): void {
 		$skills = $this->wbCtrl->searchForSkill($search);
 		if (count($skills) === 0) {
@@ -69,8 +69,8 @@ class ClusterController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$query = $this->db->table("Cluster")
-			->whereIn("SkillID", array_column($skills, "id"));
+		$query = $this->db->table('Cluster')
+			->whereIn('SkillID', array_column($skills, 'id'));
 
 		/** @var Collection<Cluster> */
 		$data = $query->asObj(Cluster::class);
@@ -81,22 +81,22 @@ class ClusterController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$implantDesignerLink = $this->text->makeChatcmd("implant designer", "/tell <myname> implantdesigner");
+		$implantDesignerLink = $this->text->makeChatcmd('implant designer', '/tell <myname> implantdesigner');
 		$blob = "Click 'Add' to add cluster to {$implantDesignerLink}.\n\n";
 		foreach ($data as $cluster) {
 			/** @var SlotClusterType[] */
-			$results = $this->db->table("ClusterImplantMap AS c1")
-				->join("ClusterType AS c2", "c1.ClusterTypeID", "c2.ClusterTypeID")
-				->join("ImplantType AS i", "c1.ImplantTypeID", "i.ImplantTypeID")
-				->where("c1.ClusterID", $cluster->ClusterID)
-				->orderByDesc("c2.ClusterTypeID")
-				->select(["i.ShortName as Slot", "c2.Name AS ClusterType"])
+			$results = $this->db->table('ClusterImplantMap AS c1')
+				->join('ClusterType AS c2', 'c1.ClusterTypeID', 'c2.ClusterTypeID')
+				->join('ImplantType AS i', 'c1.ImplantTypeID', 'i.ImplantTypeID')
+				->where('c1.ClusterID', $cluster->ClusterID)
+				->orderByDesc('c2.ClusterTypeID')
+				->select(['i.ShortName as Slot', 'c2.Name AS ClusterType'])
 				->asObj(SlotClusterType::class)->toArray();
 			$blob .= "<pagebreak><header2>{$cluster->LongName}<end>:\n";
 
 			foreach ($results as $row) {
 				$impDesignerLink = $this->text->makeChatcmd(
-					"add",
+					'add',
 					"/tell <myname> implantdesigner {$row->Slot} {$row->ClusterType} {$cluster->LongName}"
 				);
 				$clusterType = ucfirst($row->ClusterType);

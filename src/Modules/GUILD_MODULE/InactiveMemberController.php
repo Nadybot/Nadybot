@@ -21,9 +21,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "inactivemem",
-		accessLevel: "guild",
-		description: "Check for inactive members",
+		command: 'inactivemem',
+		accessLevel: 'guild',
+		description: 'Check for inactive members',
 	)
 ]
 class InactiveMemberController extends ModuleInstance {
@@ -40,11 +40,11 @@ class InactiveMemberController extends ModuleInstance {
 	private AltsController $altsController;
 
 	/** Show org members who have not logged on for a specified amount of time */
-	#[NCA\HandlesCommand("inactivemem")]
+	#[NCA\HandlesCommand('inactivemem')]
 	public function inactivememCommand(CmdContext $context, PDuration $duration): void {
 		$time = $duration->toSecs();
 		if ($time < 1) {
-			$msg = "You must enter a valid time parameter.";
+			$msg = 'You must enter a valid time parameter.';
 			$context->reply($msg);
 			return;
 		}
@@ -53,22 +53,22 @@ class InactiveMemberController extends ModuleInstance {
 		$time = time() - $time;
 
 		$members = $this->db->table(GuildController::DB_TABLE)
-			->where("mode", "!=", "del")
-			->orderByDesc("logged_off")
+			->where('mode', '!=', 'del')
+			->orderByDesc('logged_off')
 			->asObj(RecentOrgMember::class)
 			->each(function (RecentOrgMember $member): void {
 				$member->main = $this->altsController->getMainOf($member->name);
 			})
-			->groupBy("main")
+			->groupBy('main')
 			->sortKeys();
 		if (count($members) === 0) {
-			$context->reply("There are no members in the org roster.");
+			$context->reply('There are no members in the org roster.');
 			return;
 		}
 
 		$numInactive = 0;
 
-		$blob = "Org members who have not logged off since ".
+		$blob = 'Org members who have not logged off since '.
 			"<highlight>{$timeString}<end> ago.\n\n".
 			"<header2>Inactive org members<end>\n";
 
@@ -83,7 +83,7 @@ class InactiveMemberController extends ModuleInstance {
 			$alt->logged_off ??= 0;
 			$numInactive++;
 			$altsLink = $this->text->makeChatcmd(
-				"alts",
+				'alts',
 				"/tell <myname> alts {$alt->main}"
 			);
 

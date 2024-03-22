@@ -5,7 +5,7 @@ namespace Nadybot\Core\Routing\Events;
 use Nadybot\Core\Routing\Character;
 
 class Online extends Base {
-	public const TYPE = "online";
+	public const TYPE = 'online';
 
 	public Character $char;
 	public string $main;

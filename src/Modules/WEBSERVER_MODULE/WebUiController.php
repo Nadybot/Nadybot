@@ -33,9 +33,9 @@ use ZipArchive;
 
 #[
 	NCA\DefineCommand(
-		command: "webui",
-		accessLevel: "mod",
-		description: "Install or upgrade the NadyUI",
+		command: 'webui',
+		accessLevel: 'mod',
+		description: 'Install or upgrade the NadyUI',
 	),
 	NCA\Instance,
 	NCA\HasMigrations
@@ -74,19 +74,19 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$uiBranches = ["off", "stable", "unstable"];
-		if (count($matches = Safe::pregMatch("/@(?<branch>.+)$/", BotRunner::getVersion()))) {
+		$uiBranches = ['off', 'stable', 'unstable'];
+		if (count($matches = Safe::pregMatch('/@(?<branch>.+)$/', BotRunner::getVersion()))) {
 			if (!in_array($matches['branch'], $uiBranches)) {
 				$uiBranches []= $matches['branch'];
 			}
 		}
 		$this->settingManager->add(
 			module: $this->moduleName,
-			name: "nadyui_channel",
-			description: "Which NadyUI webfrontend version to subscribe to",
-			mode: "edit",
-			type: "options",
-			value: "stable",
+			name: 'nadyui_channel',
+			description: 'Which NadyUI webfrontend version to subscribe to',
+			mode: 'edit',
+			type: 'options',
+			value: 'stable',
 			options: $uiBranches,
 		);
 		$this->messageHub->registerMessageEmitter($this);
@@ -98,24 +98,24 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\SettingChangeHandler('nadyui_channel')]
 	public function changeNadyUiChannel(string $setting, string $old, string $new): void {
-		if (empty($new) || $new === "off") {
+		if (empty($new) || $new === 'off') {
 			return;
 		}
 		async($this->updateWebUI(...));
 	}
 
 	#[NCA\Event(
-		name: "timer(24hrs)",
-		description: "Automatically upgrade NadyUI",
+		name: 'timer(24hrs)',
+		description: 'Automatically upgrade NadyUI',
 		defaultStatus: 1
 	)]
 	public function updateWebUI(): void {
 		$channel = $this->settingManager->getString('nadyui_channel');
-		if (!isset($channel) || $channel === "" || $channel === 'off') {
+		if (!isset($channel) || $channel === '' || $channel === 'off') {
 			return;
 		}
 		$sendto = new WebUIChannel($this->messageHub);
-		$sendto->reply("Checking for new NadyUI release...");
+		$sendto->reply('Checking for new NadyUI release...');
 
 		try {
 			[$response, $artifact] = $this->downloadBuildArtifact($channel);
@@ -123,14 +123,14 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			$sendto->reply($msg);
 		} catch (UserException $e) {
 		} catch (Throwable $e) {
-			$this->logger->warning("Error downloading/installing new WebUI: " . $e->getMessage());
+			$this->logger->warning('Error downloading/installing new WebUI: ' . $e->getMessage());
 		}
 	}
 
 	/** Remove all files from the NadyUI installation (if any) and reset the version in the DB */
 	public function uninstallNadyUi(bool $updateDB=false): bool {
-		if ($updateDB && $this->settingManager->exists("nadyui_version")) {
-			$this->settingManager->save("nadyui_version", "0");
+		if ($updateDB && $this->settingManager->exists('nadyui_version')) {
+			$this->settingManager->save('nadyui_version', '0');
 		}
 		$path = $this->config->paths->html;
 		return (strlen($this->fs->realPath("{$path}/css"))
@@ -172,18 +172,17 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** Manually install the WebUI "NadyUI" */
-	#[NCA\HandlesCommand("webui")]
+	#[NCA\HandlesCommand('webui')]
 	#[NCA\Help\Epilogue(
 		"You should only use these commands for debugging. The regular way to install\n".
-		"the WebUI is via the ".
+		'the WebUI is via the '.
 		"<a href='chatcmd:///tell <myname> settings change nadyui_channel'>nadyui_channel</a> setting."
 	)]
-	#[NCA\Help\Example("<symbol>webui install stable")]
-	#[NCA\Help\Example("<symbol>webui install unstable")]
+	#[NCA\Help\Example('<symbol>webui install stable')]
+	#[NCA\Help\Example('<symbol>webui install unstable')]
 	public function webUiInstallCommand(
 		CmdContext $context,
-		#[NCA\Str("install")]
-		string $action,
+		#[NCA\Str('install')] string $action,
 		string $channel
 	): void {
 		try {
@@ -196,11 +195,11 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** Completely remove the WebUI installation */
-	#[NCA\HandlesCommand("webui")]
-	public function webUiUninstallCommand(CmdContext $context, #[NCA\Str("uninstall")] string $action): void {
-		$msg = "There was an error removing the old files from NadyUI, please clean up manually.";
+	#[NCA\HandlesCommand('webui')]
+	public function webUiUninstallCommand(CmdContext $context, #[NCA\Str('uninstall')] string $action): void {
+		$msg = 'There was an error removing the old files from NadyUI, please clean up manually.';
 		if ($this->uninstallNadyUi(true)) {
-			$msg = "NadyUI successfully uninstalled.";
+			$msg = 'NadyUI successfully uninstalled.';
 		}
 		$context->reply($msg);
 	}
@@ -212,13 +211,13 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		if ($this->settingManager->getString('webserver_auth') !== WebserverController::AUTH_BASIC) {
 			return;
 		}
-		$schema = "http"; /* $this->settingManager->getBool('webserver_tls') ? "https" : "http"; */
+		$schema = 'http'; /* $this->settingManager->getBool('webserver_tls') ? "https" : "http"; */
 		$port = $this->settingManager->getInt('webserver_port');
 		if (empty($this->config->general->superAdmins)) {
 			return;
 		}
 		$superUser = $this->config->general->superAdmins[0];
-		$uuid = $this->webserverController->authenticate($superUser, 6 * 3600);
+		$uuid = $this->webserverController->authenticate($superUser, 6 * 3_600);
 		$this->logger->notice(
 			">>> You can now configure this bot at {$schema}://127.0.0.1:{$port}/"
 		);
@@ -226,8 +225,8 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			">>> Login with username \"{$superUser}\" and password \"{$uuid}\""
 		);
 		$this->logger->notice(
-			">>> Use the " . ($this->settingManager->getString('symbol')??"!").
-				"webauth command to create a new password after this expired"
+			'>>> Use the ' . ($this->settingManager->getString('symbol')??'!').
+				'webauth command to create a new password after this expired'
 		);
 	}
 
@@ -242,15 +241,15 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 
 	/** @return array{Response,string} */
 	private function downloadBuildArtifact(string $channel): array {
-		if (!extension_loaded("zip")) {
-			$this->eventManager->deactivateIfActivated($this, "updateWebUI");
+		if (!extension_loaded('zip')) {
+			$this->eventManager->deactivateIfActivated($this, 'updateWebUI');
 			throw new UserException(
-				"In order to install or update NadyUI from within the bot, " .
-					"you must have the PHP Zip extension installed."
+				'In order to install or update NadyUI from within the bot, ' .
+					'you must have the PHP Zip extension installed.'
 			);
 		}
 		$uri = sprintf(
-			"https://github.com/Nadybot/nadyui/releases/download/ci-%s/nadyui.zip",
+			'https://github.com/Nadybot/nadyui/releases/download/ci-%s/nadyui.zip',
 			$channel
 		);
 		$client = $this->builder->build();
@@ -271,22 +270,22 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	/** Install the NadyUI version that was returned into ./html */
 	private function installArtifact(Response $response, string $artifact): string {
 		$currentVersion = $this->nadyuiVersion;
-		$lastModifiedHeader = $response->getHeader("last-modified");
+		$lastModifiedHeader = $response->getHeader('last-modified');
 		$lastModified = false;
 		if (isset($lastModifiedHeader)) {
 			$lastModified = DateTime::createFromFormat(DateTime::RFC7231, $lastModifiedHeader);
 		}
 		if ($lastModified === false) {
-			$this->logger->warning("Cannot parse last modification date, assuming now");
+			$this->logger->warning('Cannot parse last modification date, assuming now');
 			$lastModified = new DateTime();
 		}
 		$dlVersion = $lastModified->getTimestamp();
 		if ($dlVersion === $currentVersion) {
-			$this->logger->notice("Already using the latest version of NadyUI");
+			$this->logger->notice('Already using the latest version of NadyUI');
 			if ($this->chatBot->getUptime() < 120) {
 				$this->createAdminLogin();
 			}
-			return "You are already using the latest version (" . $lastModified->format("Y-m-d H:i:s") . ").";
+			return 'You are already using the latest version (' . $lastModified->format('Y-m-d H:i:s') . ').';
 		}
 		try {
 			$this->uninstallNadyUi();
@@ -297,15 +296,15 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			throw $e;
 		}
 		if ($currentVersion === 0) {
-			$action = "<green>installed<end> with version";
+			$action = '<green>installed<end> with version';
 			$this->createAdminLogin();
 		} elseif ($dlVersion > $currentVersion) {
-			$action = "<green>upgraded<end> to version";
+			$action = '<green>upgraded<end> to version';
 		} else {
-			$action = "<green>downgraded<end> to version";
+			$action = '<green>downgraded<end> to version';
 		}
-		$this->settingManager->save("nadyui_version", (string)$dlVersion);
-		$msg = "Webfrontend NadyUI {$action} <highlight>" . $lastModified->format("Y-m-d H:i:s") . "<end>";
+		$this->settingManager->save('nadyui_version', (string)$dlVersion);
+		$msg = "Webfrontend NadyUI {$action} <highlight>" . $lastModified->format('Y-m-d H:i:s') . '<end>';
 		return $msg;
 	}
 
@@ -320,7 +319,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			try {
 				$file = $this->fs->tmpfile();
 			} catch (FilesystemException $e) {
-				throw new Exception("Unable to create temp file for extraction: " . $e->getMessage());
+				throw new Exception('Unable to create temp file for extraction: ' . $e->getMessage());
 			}
 			$handle = new WritableResourceStream($file);
 			$archiveName = stream_get_meta_data($file)['uri'];
@@ -338,12 +337,12 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			if ($extractor->extractTo($path) === false) {
 				$lastError = error_get_last();
 				if (isset($lastError)) {
-					throw new ErrorException("Error extracting {$archiveName}: " . $lastError['message'] . ".", 0, $lastError['type']);
+					throw new ErrorException("Error extracting {$archiveName}: " . $lastError['message'] . '.', 0, $lastError['type']);
 				}
 				throw new Exception("Error extracting {$archiveName}.");
 			}
 		} catch (Throwable $e) {
-			$msg = "An unexpected error occurred extracting the release: " . $e->getMessage();
+			$msg = 'An unexpected error occurred extracting the release: ' . $e->getMessage();
 			throw new Exception($msg);
 		} finally {
 			if (isset($oldMask)) {

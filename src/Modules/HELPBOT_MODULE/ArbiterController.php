@@ -23,26 +23,26 @@ use Safe\Exceptions\DatetimeException;
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Arbiter"),
+	NCA\HasMigrations('Migrations/Arbiter'),
 	NCA\DefineCommand(
-		command: "arbiter",
-		accessLevel: "guest",
-		description: "Show current arbiter mission",
-		alias: "icc",
+		command: 'arbiter',
+		accessLevel: 'guest',
+		description: 'Show current arbiter mission',
+		alias: 'icc',
 	),
 	NCA\DefineCommand(
-		command: "arbiter change",
-		accessLevel: "member",
-		description: "Change current arbiter mission",
+		command: 'arbiter change',
+		accessLevel: 'member',
+		description: 'Change current arbiter mission',
 	)
 ]
 class ArbiterController extends ModuleInstance {
-	public const DIO = "dio";
-	public const AI = "ai";
-	public const BS = "bs";
-	public const CYCLE_LENGTH = 3628800;
+	public const DIO = 'dio';
+	public const AI = 'ai';
+	public const BS = 'bs';
+	public const CYCLE_LENGTH = 3_628_800;
 
-	public const DB_TABLE = "icc_arbiter";
+	public const DB_TABLE = 'icc_arbiter';
 
 	#[NCA\Inject]
 	private Util $util;
@@ -62,7 +62,7 @@ class ArbiterController extends ModuleInstance {
 
 		/** @var ?ICCArbiter */
 		$entry = $this->db->table(static::DB_TABLE)
-			->where("type", $type)
+			->where('type', $type)
 			->asObj(ICCArbiter::class)
 			->first();
 		if (!isset($entry)) {
@@ -99,13 +99,13 @@ class ArbiterController extends ModuleInstance {
 	public function getLongName(string $short): string {
 		switch ($short) {
 			case static::BS:
-				return "PvP week (Battlestation)";
+				return 'PvP week (Battlestation)';
 			case static::AI:
-				return "Alien week";
+				return 'Alien week';
 			case static::DIO:
-				return "DIO week";
+				return 'DIO week';
 		}
-		return "unknown";
+		return 'unknown';
 	}
 
 	/** Get a nice representation of a duration, rounded to minutes */
@@ -127,15 +127,12 @@ class ArbiterController extends ModuleInstance {
 	 * upcoming week will be DIO, use
 	 * <tab>'<symbol>arbiter set dio next'
 	 */
-	#[NCA\HandlesCommand("arbiter change")]
+	#[NCA\HandlesCommand('arbiter change')]
 	public function arbiterSetCommand(
 		CmdContext $context,
-		#[NCA\Str("set")]
-		string $action,
-		#[NCA\StrChoice("ai", "bs", "dio")]
-		string $setWeek,
-		#[NCA\StrChoice("ends", "next")]
-		?string $ends
+		#[NCA\Str('set')] string $action,
+		#[NCA\StrChoice('ai', 'bs', 'dio')] string $setWeek,
+		#[NCA\StrChoice('ends', 'next')] ?string $ends
 	): void {
 		$setWeek = strtolower($setWeek);
 		$validTypes = [static::AI, static::BS, static::DIO];
@@ -143,15 +140,15 @@ class ArbiterController extends ModuleInstance {
 		if ($pos === false) {
 			return;
 		}
-		$day = (new DateTime("now", new DateTimeZone("UTC")))->format("N");
-		$startsSunday = isset($ends) && strtolower($ends) === "next";
+		$day = (new DateTime('now', new DateTimeZone('UTC')))->format('N');
+		$startsSunday = isset($ends) && strtolower($ends) === 'next';
 		if ($startsSunday) {
-			$start = strtotime("sunday");
-			$end = strtotime("sunday + 8 days");
+			$start = strtotime('sunday');
+			$end = strtotime('sunday + 8 days');
 		} else {
-			$startsToday = ($day === "7") && !isset($ends);
-			$start = strtotime($startsToday ? "today" : "last sunday");
-			$end = strtotime($startsToday ? "monday + 7 days" : "next monday");
+			$startsToday = ($day === '7') && !isset($ends);
+			$start = strtotime($startsToday ? 'today' : 'last sunday');
+			$end = strtotime($startsToday ? 'monday + 7 days' : 'next monday');
 		}
 		$this->db->awaitBeginTransaction();
 		try {
@@ -170,7 +167,7 @@ class ArbiterController extends ModuleInstance {
 		} catch (Exception $e) {
 			$this->db->rollback();
 			$context->reply(
-				"Error saving the new dates into the database: ".
+				'Error saving the new dates into the database: '.
 				$e->getMessage()
 			);
 			return;
@@ -178,22 +175,22 @@ class ArbiterController extends ModuleInstance {
 		$this->db->commit();
 		if ($startsSunday) {
 			$context->reply(
-				"New times saved. It will be <highlight>".
-				strtoupper($setWeek) . "<end> on Sunday."
+				'New times saved. It will be <highlight>'.
+				strtoupper($setWeek) . '<end> on Sunday.'
 			);
 			return;
 		}
 		$context->reply(
 			"New times saved. It's currently <highlight>".
-			strtoupper($setWeek) . "<end> week."
+			strtoupper($setWeek) . '<end> week.'
 		);
 	}
 
 	/** Check what's the current mission from Arbiter Vincenzo Palmiero */
-	#[NCA\HandlesCommand("arbiter")]
-	#[NCA\Help\Example("<symbol>arbiter june 6th 2025")]
-	#[NCA\Help\Example("<symbol>arbiter next week")]
-	#[NCA\Help\Example("<symbol>arbiter saturday")]
+	#[NCA\HandlesCommand('arbiter')]
+	#[NCA\Help\Example('<symbol>arbiter june 6th 2025')]
+	#[NCA\Help\Example('<symbol>arbiter next week')]
+	#[NCA\Help\Example('<symbol>arbiter saturday')]
 	public function arbiterCommand(CmdContext $context, ?string $timeGiven): void {
 		$time = time();
 		if (isset($timeGiven)) {
@@ -215,18 +212,18 @@ class ArbiterController extends ModuleInstance {
 		// Sort them by start date, to the next one coming up or currently on is the first
 		usort(
 			$upcomingEvents,
-			function (ArbiterEvent $e1, ArbiterEvent $e2): int {
+			static function (ArbiterEvent $e1, ArbiterEvent $e2): int {
 				return $e1->start <=> $e2->start;
 			}
 		);
-		$blob = "";
+		$blob = '';
 		if ($upcomingEvents[0]->isActiveOn($time)) {
 			$currentEvent = array_shift($upcomingEvents);
 			$currently = "<highlight>{$currentEvent->longName}<end> for ".
-				"<highlight>" . $this->niceTimeWithoutSecs($currentEvent->end - $time) . "<end>";
+				'<highlight>' . $this->niceTimeWithoutSecs($currentEvent->end - $time) . '<end>';
 			$blob .= "Currently: {$currently}\n\n";
 			if (isset($timeGiven)) {
-				$msg = "On " . ((new DateTime("@{$time}"))->format("d-M-Y")).
+				$msg = 'On ' . ((new DateTime("@{$time}"))->format('d-M-Y')).
 					", it's <highlight>{$currentEvent->longName}<end>.";
 			} else {
 				$msg = "It's currently {$currently}.";
@@ -236,9 +233,9 @@ class ArbiterController extends ModuleInstance {
 			$upcomingEvents[] = $currentEvent;
 		} else {
 			if (isset($timeGiven)) {
-				$msg = "On " . ((new DateTime("@{$time}"))->format("d-M-Y")) . ", the arbiter is not here.";
+				$msg = 'On ' . ((new DateTime("@{$time}"))->format('d-M-Y')) . ', the arbiter is not here.';
 			} else {
-				$msg = "The arbiter is currently not here.";
+				$msg = 'The arbiter is currently not here.';
 			}
 			$blob .= "Currently: <highlight>-<end>\n\n";
 		}
@@ -249,14 +246,14 @@ class ArbiterController extends ModuleInstance {
 		if ($upcomingEvents[0]->isActiveOn($time)) {
 			$msg = $this->text->blobWrap(
 				"{$msg} ",
-				$this->text->makeBlob("Upcoming arbiter events", $blob)
+				$this->text->makeBlob('Upcoming arbiter events', $blob)
 			);
 		} else {
 			$msg = $this->text->blobWrap(
 				"{$msg} ",
-				$this->text->makeBlob("Next arbiter event", $blob, "Upcoming arbiter events"),
-				" is " . $upcomingEvents[0]->longName . " in ".
-					$this->niceTimeWithoutSecs($upcomingEvents[0]->start - $time) . "."
+				$this->text->makeBlob('Next arbiter event', $blob, 'Upcoming arbiter events'),
+				' is ' . $upcomingEvents[0]->longName . ' in '.
+					$this->niceTimeWithoutSecs($upcomingEvents[0]->start - $time) . '.'
 			);
 		}
 		$context->reply($msg);
@@ -264,8 +261,8 @@ class ArbiterController extends ModuleInstance {
 
 	#[
 		NCA\NewsTile(
-			name: "arbiter",
-			description: "Shows the current ICC arbiter week - if any",
+			name: 'arbiter',
+			description: 'Shows the current ICC arbiter week - if any',
 			example: "<header2>Arbiter<end>\n".
 				"<tab>It's currently <highlight>DIO week<end>."
 		)
@@ -281,7 +278,7 @@ class ArbiterController extends ModuleInstance {
 		// Sort them by start date, to the next one coming up or currently on is the first
 		usort(
 			$upcomingEvents,
-			function (ArbiterEvent $e1, ArbiterEvent $e2): int {
+			static function (ArbiterEvent $e1, ArbiterEvent $e2): int {
 				return $e1->start <=> $e2->start;
 			}
 		);
@@ -296,11 +293,11 @@ class ArbiterController extends ModuleInstance {
 
 	#[
 		NCA\NewsTile(
-			name: "arbiter-force",
-			description: "Shows the current ICC arbiter week or what the next one will be",
+			name: 'arbiter-force',
+			description: 'Shows the current ICC arbiter week or what the next one will be',
 			example: "<header2>Arbiter<end>\n".
 				"<tab>The arbiter is currently not here.\n".
-				"<tab>DIO week starts in <highlight>3 days 17 hrs 4 mins<end>."
+				'<tab>DIO week starts in <highlight>3 days 17 hrs 4 mins<end>.'
 		)
 	]
 	public function arbiterNewsForceTile(string $sender): ?string {
@@ -314,7 +311,7 @@ class ArbiterController extends ModuleInstance {
 		// Sort them by start date, to the next one coming up or currently on is the first
 		usort(
 			$upcomingEvents,
-			function (ArbiterEvent $e1, ArbiterEvent $e2): int {
+			static function (ArbiterEvent $e1, ArbiterEvent $e2): int {
 				return $e1->start <=> $e2->start;
 			}
 		);
@@ -323,7 +320,7 @@ class ArbiterController extends ModuleInstance {
 			$msg .= "<tab>The arbiter is currently not here.\n";
 			$nextEvent = array_shift($upcomingEvents);
 			$msg .= "<tab><highlight>{$nextEvent->longName}<end> starts in ".
-				"<highlight>" . $this->niceTimeWithoutSecs($nextEvent->start - time()) . "<end>.";
+				'<highlight>' . $this->niceTimeWithoutSecs($nextEvent->start - time()) . '<end>.';
 		} else {
 			$currentEvent = array_shift($upcomingEvents);
 			$msg .= "<tab>It's currently <highlight>{$currentEvent->longName}<end>.";

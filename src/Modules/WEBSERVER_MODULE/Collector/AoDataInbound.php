@@ -14,6 +14,6 @@ class AoDataInbound implements CounterProvider {
 	}
 
 	public function getTags(): array {
-		return ["direction" => "in"];
+		return ['direction' => 'in'];
 	}
 }

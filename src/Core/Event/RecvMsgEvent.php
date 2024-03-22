@@ -4,7 +4,7 @@ namespace Nadybot\Core\Event;
 
 /** We receive a tell */
 class RecvMsgEvent extends AOChatEvent {
-	public const EVENT_MASK = "msg";
+	public const EVENT_MASK = 'msg';
 
 	/**
 	 * @param string  $sender  Either the name of the sender or the numeric UID (eg. city raid accouncements)

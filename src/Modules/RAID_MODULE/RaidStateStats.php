@@ -14,6 +14,6 @@ class RaidStateStats implements GaugeProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => "raid"];
+		return ['type' => 'raid'];
 	}
 }

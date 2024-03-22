@@ -8,23 +8,23 @@ use Nadybot\Modules\PVP_MODULE\{DBOutcome, DBTowerAttack, NotumWarsController};
 use Psr\Log\LoggerInterface;
 use stdClass;
 
-#[NCA\Migration(order: 20230309083420)]
+#[NCA\Migration(order: 20_230_309_083_420)]
 class ImportExistingAttacksAndVictories implements SchemaMigration {
 	private const CHUNK_SIZE = 100;
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$offset = 0;
-		if (!$db->schema()->hasTable("tower_attack_<myname>")) {
+		if (!$db->schema()->hasTable('tower_attack_<myname>')) {
 			return;
 		}
 		do {
 			$processed = 0;
-			$db->table("tower_attack_<myname>")
-				->orderBy("time")
+			$db->table('tower_attack_<myname>')
+				->orderBy('time')
 				->offset($offset)
 				->limit(self::CHUNK_SIZE)
 				->get()
-				->each(function (stdClass $old) use ($db, &$processed): void {
+				->each(static function (stdClass $old) use ($db, &$processed): void {
 					$processed++;
 					$attack = new DBTowerAttack();
 					try {
@@ -52,14 +52,14 @@ class ImportExistingAttacksAndVictories implements SchemaMigration {
 		$offset = 0;
 		do {
 			$processed = 0;
-			$db->table("tower_victory_<myname>", "tv")
-				->join("tower_attack_<myname> AS ta", "tv.attack_id", "=", "ta.id")
-				->orderBy("time")
+			$db->table('tower_victory_<myname>', 'tv')
+				->join('tower_attack_<myname> AS ta', 'tv.attack_id', '=', 'ta.id')
+				->orderBy('time')
 				->offset($offset)
 				->limit(self::CHUNK_SIZE)
-				->select(["tv.*", "ta.playfield_id", "ta.site_number"])
+				->select(['tv.*', 'ta.playfield_id', 'ta.site_number'])
 				->get()
-				->each(function (stdClass $old) use ($db, &$processed): void {
+				->each(static function (stdClass $old) use ($db, &$processed): void {
 					$processed++;
 					$outcome = new DBOutcome();
 					try {

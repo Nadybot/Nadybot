@@ -3,27 +3,27 @@
 namespace Nadybot\Modules\RELAY_MODULE;
 
 class RelayStatus {
-	public const ERROR = "error";
-	public const INIT = "warning";
-	public const READY = "ready";
+	public const ERROR = 'error';
+	public const INIT = 'warning';
+	public const READY = 'ready';
 
 	public string $type = self::ERROR;
 
-	public string $text = "Unknown";
+	public string $text = 'Unknown';
 
-	public function __construct(string $type=self::ERROR, string $text="Unknown") {
+	public function __construct(string $type=self::ERROR, string $text='Unknown') {
 		$this->type = $type;
 		$this->text = $text;
 	}
 
 	public function toString(): string {
 		$statusMap = [
-			static::ERROR => "off",
-			static::INIT => "yellow",
-			static::READY => "on",
+			static::ERROR => 'off',
+			static::INIT => 'yellow',
+			static::READY => 'on',
 		];
 
-		$color = $statusMap[$this->type] ?? "red";
+		$color = $statusMap[$this->type] ?? 'red';
 		return "<{$color}>{$this->text}<end>";
 	}
 }

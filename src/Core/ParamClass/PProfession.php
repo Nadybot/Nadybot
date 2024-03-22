@@ -5,20 +5,20 @@ namespace Nadybot\Core\ParamClass;
 use Nadybot\Core\{Registry, Util};
 
 class PProfession extends Base {
-	protected static string $regExp = "adv(|y|enturer)".
-		"|age(nt)?".
-		"|(bureau)?crat".
-		"|doc(tor)?".
-		"|enf(o|orcer)?".
-		"|eng([iy]|ineer)?".
-		"|fix(er)?".
-		"|keep(er)?".
-		"|ma(rtial( ?artist)?)?".
-		"|mp|meta(-?physicist)?".
-		"|nt|nano(-?technician)?".
-		"|sol(d|dier)?".
-		"|tra(d|der)?".
-		"|sha(de)?";
+	protected static string $regExp = 'adv(|y|enturer)'.
+		'|age(nt)?'.
+		'|(bureau)?crat'.
+		'|doc(tor)?'.
+		'|enf(o|orcer)?'.
+		'|eng([iy]|ineer)?'.
+		'|fix(er)?'.
+		'|keep(er)?'.
+		'|ma(rtial( ?artist)?)?'.
+		'|mp|meta(-?physicist)?'.
+		'|nt|nano(-?technician)?'.
+		'|sol(d|dier)?'.
+		'|tra(d|der)?'.
+		'|sha(de)?';
 	protected string $value;
 
 	public function __construct(string $value) {

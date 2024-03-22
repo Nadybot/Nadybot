@@ -4,7 +4,7 @@ namespace Nadybot\Core\Event;
 
 /** We send a message to our guild channel */
 class SendGuildEvent extends AOChatEvent {
-	public const EVENT_MASK = "sendguild";
+	public const EVENT_MASK = 'sendguild';
 
 	/**
 	 * @param string  $sender  Either the name of the sender or the numeric UID (eg. city raid accouncements)

@@ -17,9 +17,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "findplayer",
-		accessLevel: "guest",
-		description: "Find a player by name",
+		command: 'findplayer',
+		accessLevel: 'guest',
+		description: 'Find a player by name',
 	)
 ]
 class FindPlayerController extends ModuleInstance {
@@ -33,7 +33,7 @@ class FindPlayerController extends ModuleInstance {
 	private PlayerManager $playerManager;
 
 	/** Find a player by name in the local database */
-	#[NCA\HandlesCommand("findplayer")]
+	#[NCA\HandlesCommand('findplayer')]
 	public function findplayerCommand(CmdContext $context, string $search): void {
 		$players = $this->playerManager->searchForPlayers(
 			$search,
@@ -48,7 +48,7 @@ class FindPlayerController extends ModuleInstance {
 		}
 		$blob = "<header2>Results<end>\n";
 		foreach ($players as $player) {
-			$blob .= "<tab>" . $this->playerManager->getInfo($player, false) . "\n";
+			$blob .= '<tab>' . $this->playerManager->getInfo($player, false) . "\n";
 		}
 		$msg = $this->text->makeBlob("Search results for \"{$search}\" ({$count})", $blob);
 

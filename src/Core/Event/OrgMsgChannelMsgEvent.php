@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Event;
 
 class OrgMsgChannelMsgEvent extends PublicChannelMsgEvent {
-	public const EVENT_MASK = "orgmsg";
+	public const EVENT_MASK = 'orgmsg';
 
 	/**
 	 * @param string  $sender  The name of the sender of the message

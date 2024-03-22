@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 class RaidLeaveEvent extends RaidEvent {
-	public const EVENT_MASK = "raid(leave)";
+	public const EVENT_MASK = 'raid(leave)';
 
 	public function __construct(
 		public Raid $raid,

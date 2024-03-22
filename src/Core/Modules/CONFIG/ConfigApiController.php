@@ -60,10 +60,10 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Get a list of available modules to configure */
 	#[
-		NCA\Api("/module"),
+		NCA\Api('/module'),
 		NCA\GET,
-		NCA\AccessLevel("mod"),
-		NCA\ApiResult(code: 200, class: "ConfigModule[]", desc: "A list of modules to configure")
+		NCA\AccessLevel('mod'),
+		NCA\ApiResult(code: 200, class: 'ConfigModule[]', desc: 'A list of modules to configure')
 	]
 	public function moduleGetEndpoint(Request $request): Response {
 		return ApiResponse::create($this->configController->getModules());
@@ -71,14 +71,14 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Activate or deactivate an event */
 	#[
-		NCA\Api("/module/%s/events/%s/%s"),
+		NCA\Api('/module/%s/events/%s/%s'),
 		NCA\PATCH,
 		NCA\PUT,
-		NCA\AccessLevel("mod"),
-		NCA\RequestBody(class: "Operation", desc: "Either \"enable\" or \"disable\"", required: true),
-		NCA\ApiResult(code: 204, desc: "operation applied successfully"),
-		NCA\ApiResult(code: 402, desc: "Wrong or no operation given"),
-		NCA\ApiResult(code: 404, desc: "Module or Event not found")
+		NCA\AccessLevel('mod'),
+		NCA\RequestBody(class: 'Operation', desc: 'Either "enable" or "disable"', required: true),
+		NCA\ApiResult(code: 204, desc: 'operation applied successfully'),
+		NCA\ApiResult(code: 402, desc: 'Wrong or no operation given'),
+		NCA\ApiResult(code: 404, desc: 'Module or Event not found')
 	]
 	public function toggleEventStatusEndpoint(Request $request, string $module, string $event, string $handler): Response {
 		$body = $request->getAttribute(WebserverController::BODY);
@@ -86,16 +86,16 @@ class ConfigApiController extends ModuleInstance {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		$op = $body->op;
-		if (!in_array($op, ["enable", "disable"], true)) {
+		if (!in_array($op, ['enable', 'disable'], true)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 
 		try {
-			if (!$this->configController->toggleEvent($event, $handler, $op === "enable")) {
+			if (!$this->configController->toggleEvent($event, $handler, $op === 'enable')) {
 				return new Response(
 					status: HttpStatus::NOT_FOUND,
 					headers: ['Content-Type' => 'text/plain'],
-					body: "Event or handler not found",
+					body: 'Event or handler not found',
 				);
 			}
 		} catch (Exception $e) {
@@ -110,19 +110,19 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Change a setting's value */
 	#[
-		NCA\Api("/module/%s/settings/%s"),
+		NCA\Api('/module/%s/settings/%s'),
 		NCA\PATCH,
 		NCA\PUT,
-		NCA\AccessLevel("mod"),
-		NCA\RequestBody(class: "string|bool|int", desc: "New value for the setting", required: true),
-		NCA\ApiResult(code: 204, desc: "operation applied successfully"),
-		NCA\ApiResult(code: 404, desc: "Wrong module or setting"),
-		NCA\ApiResult(code: 422, desc: "Invalid value given")
+		NCA\AccessLevel('mod'),
+		NCA\RequestBody(class: 'string|bool|int', desc: 'New value for the setting', required: true),
+		NCA\ApiResult(code: 204, desc: 'operation applied successfully'),
+		NCA\ApiResult(code: 404, desc: 'Wrong module or setting'),
+		NCA\ApiResult(code: 422, desc: 'Invalid value given')
 	]
 	public function changeModuleSettingEndpoint(Request $request, string $module, string $setting): Response {
 		/** @var Setting|null */
 		$oldSetting = $this->db->table(SettingManager::DB_TABLE)
-			->where("name", $setting)->where("module", $module)
+			->where('name', $setting)->where('module', $module)
 			->asObj(Setting::class)->first();
 		if ($oldSetting === null) {
 			return new Response(status: HttpStatus::NOT_FOUND);
@@ -140,11 +140,11 @@ class ConfigApiController extends ModuleInstance {
 			if (!is_bool($value)) {
 				return new Response(
 					status: HttpStatus::UNPROCESSABLE_ENTITY,
-					headers: ["Content-Type" => "text/plain"],
-					body: "Bool value required",
+					headers: ['Content-Type' => 'text/plain'],
+					body: 'Bool value required',
 				);
 			}
-			$value = $value ? "1" : "0";
+			$value = $value ? '1' : '0';
 		} elseif (
 			in_array(
 				$modSet->type,
@@ -158,19 +158,19 @@ class ConfigApiController extends ModuleInstance {
 			if (!is_int($value)) {
 				return new Response(
 					status: HttpStatus::UNPROCESSABLE_ENTITY,
-					headers: ["Content-Type" => "text/plain"],
-					body: "Integer value required",
+					headers: ['Content-Type' => 'text/plain'],
+					body: 'Integer value required',
 				);
 			}
 		} elseif (!is_string($value)) {
 			return new Response(
 				status: HttpStatus::UNPROCESSABLE_ENTITY,
-				headers: ["Content-Type" => "text/plain"],
-				body: "String value required"
+				headers: ['Content-Type' => 'text/plain'],
+				body: 'String value required'
 			);
 		}
 		if ($modSet->type === $modSet::TYPE_COLOR) {
-			if (is_string($value) && count($matches = Safe::pregMatch("/(#[0-9a-fA-F]{6})/", $value))) {
+			if (is_string($value) && count($matches = Safe::pregMatch('/(#[0-9a-fA-F]{6})/', $value))) {
 				$value = "<font color='{$matches[1]}'>";
 			}
 		}
@@ -182,8 +182,8 @@ class ConfigApiController extends ModuleInstance {
 		} catch (Exception $e) {
 			return new Response(
 				status: HttpStatus::UNPROCESSABLE_ENTITY,
-				headers: ["Content-Type" => "text/plain"],
-				body: "Invalid value: " . $e->getMessage()
+				headers: ['Content-Type' => 'text/plain'],
+				body: 'Invalid value: ' . $e->getMessage()
 			);
 		}
 		return new Response(status: HttpStatus::NO_CONTENT);
@@ -191,13 +191,13 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Activate or deactivate a Command */
 	#[
-		NCA\Api("/module/%s/commands/%s/%s"),
+		NCA\Api('/module/%s/commands/%s/%s'),
 		NCA\PATCH,
 		NCA\PUT,
-		NCA\AccessLevel("mod"),
-		NCA\RequestBody(class: "ModuleSubcommandChannel", desc: "Parameters to change", required: true),
-		NCA\ApiResult(code: 200, class: "ModuleCommand", desc: "operation applied successfully"),
-		NCA\ApiResult(code: 422, desc: "Wrong or no operation given")
+		NCA\AccessLevel('mod'),
+		NCA\RequestBody(class: 'ModuleSubcommandChannel', desc: 'Parameters to change', required: true),
+		NCA\ApiResult(code: 200, class: 'ModuleCommand', desc: 'operation applied successfully'),
+		NCA\ApiResult(code: 422, desc: 'Wrong or no operation given')
 	]
 	public function toggleCommandChannelSettingsEndpoint(Request $request, string $module, string $command, string $channel): Response {
 		$user = $request->getAttribute(WebserverController::USER);
@@ -210,9 +210,9 @@ class ConfigApiController extends ModuleInstance {
 			$parsed++;
 			try {
 				if ($subCmd) {
-					$result += (int)($this->configController->changeSubcommandAL($user??"_", $command, $channel, $body->access_level) === 1);
+					$result += (int)($this->configController->changeSubcommandAL($user??'_', $command, $channel, $body->access_level) === 1);
 				} else {
-					$result += (int)($this->configController->changeCommandAL($user??"_", $command, $channel, $body->access_level) === 1);
+					$result += (int)($this->configController->changeCommandAL($user??'_', $command, $channel, $body->access_level) === 1);
 				}
 			} catch (Exception $e) {
 				$exception = $e;
@@ -220,7 +220,7 @@ class ConfigApiController extends ModuleInstance {
 		}
 		if (isset($body->enabled) && is_bool($body->enabled)) {
 			$parsed++;
-			$result += (int)$this->configController->toggleCmd($user??"_", $subCmd, $command, $channel, $body->enabled);
+			$result += (int)$this->configController->toggleCmd($user??'_', $subCmd, $command, $channel, $body->enabled);
 		}
 		if ($parsed === 0) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
@@ -246,28 +246,28 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Activate or deactivate a command */
 	#[
-		NCA\Api("/module/%s/commands/%s"),
+		NCA\Api('/module/%s/commands/%s'),
 		NCA\PATCH,
 		NCA\PUT,
-		NCA\AccessLevel("mod"),
-		NCA\RequestBody(class: "Operation", desc: "Either \"enable\" or \"disable\"", required: true),
-		NCA\ApiResult(code: 200, desc: "operation applied successfully"),
-		NCA\ApiResult(code: 402, desc: "Wrong or no operation given")
+		NCA\AccessLevel('mod'),
+		NCA\RequestBody(class: 'Operation', desc: 'Either "enable" or "disable"', required: true),
+		NCA\ApiResult(code: 200, desc: 'operation applied successfully'),
+		NCA\ApiResult(code: 402, desc: 'Wrong or no operation given')
 	]
 	public function toggleCommandStatusEndpoint(Request $request, string $module, string $command): Response {
-		$user = $request->getAttribute(WebserverController::USER) ?? "_";
+		$user = $request->getAttribute(WebserverController::USER) ?? '_';
 		$body = $request->getAttribute(WebserverController::BODY);
 		if (!is_object($body) || !isset($body->op)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 
 		$op = $body->op;
-		if (!in_array($op, ["enable", "disable"], true)) {
+		if (!in_array($op, ['enable', 'disable'], true)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		$subCmd = (bool)preg_match("/\s/", $command);
 		try {
-			if ($this->configController->toggleCmd($user, $subCmd, $command, "all", $op === "enable") === true) {
+			if ($this->configController->toggleCmd($user, $subCmd, $command, 'all', $op === 'enable') === true) {
 				$cmd = $this->commandManager->get($command);
 				if (!isset($cmd) || $cmd->module !== $module) {
 					return new Response(status: HttpStatus::NOT_FOUND);
@@ -284,14 +284,14 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Activate or deactivate a module */
 	#[
-		NCA\Api("/module/%s"),
+		NCA\Api('/module/%s'),
 		NCA\PATCH,
 		NCA\PUT,
-		NCA\AccessLevel("mod"),
-		NCA\RequestBody(class: "Operation", desc: "Either \"enable\" or \"disable\"", required: true),
-		NCA\QueryParam(name: "channel", desc: "Either \"msg\", \"priv\", \"guild\" or \"all\""),
-		NCA\ApiResult(code: 204, desc: "operation applied successfully"),
-		NCA\ApiResult(code: 402, desc: "Wrong or no operation given")
+		NCA\AccessLevel('mod'),
+		NCA\RequestBody(class: 'Operation', desc: 'Either "enable" or "disable"', required: true),
+		NCA\QueryParam(name: 'channel', desc: 'Either "msg", "priv", "guild" or "all"'),
+		NCA\ApiResult(code: 204, desc: 'operation applied successfully'),
+		NCA\ApiResult(code: 402, desc: 'Wrong or no operation given')
 	]
 	public function toggleModuleStatusEndpoint(Request $request, string $module): Response {
 		$body = $request->getAttribute(WebserverController::BODY);
@@ -300,15 +300,15 @@ class ConfigApiController extends ModuleInstance {
 		}
 
 		$op = $body->op;
-		if (!in_array($op, ["enable", "disable"], true)) {
+		if (!in_array($op, ['enable', 'disable'], true)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
-		$channel = $request->getQueryParameter("channel") ?? "all";
-		$channels = $this->commandManager->getPermissionSets()->pluck("name")->toArray();
-		if ($channel !== "all" && !in_array($channel, $channels, true)) {
+		$channel = $request->getQueryParameter('channel') ?? 'all';
+		$channels = $this->commandManager->getPermissionSets()->pluck('name')->toArray();
+		if ($channel !== 'all' && !in_array($channel, $channels, true)) {
 			return new Response(HttpStatus::UNPROCESSABLE_ENTITY);
 		}
-		if ($this->configController->toggleModule($module, $channel, $op === "enable")) {
+		if ($this->configController->toggleModule($module, $channel, $op === 'enable')) {
 			return new Response(status: HttpStatus::NO_CONTENT);
 		}
 		return new Response(status: HttpStatus::NOT_FOUND);
@@ -316,11 +316,11 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Get the description of a module */
 	#[
-		NCA\Api("/module/%s/description"),
+		NCA\Api('/module/%s/description'),
 		NCA\GET,
-		NCA\AccessLevel("all"),
-		NCA\ApiResult(code: 200, class: "string", desc: "A description of the module"),
-		NCA\ApiResult(code: 204, desc: "No description set")
+		NCA\AccessLevel('all'),
+		NCA\ApiResult(code: 200, class: 'string', desc: 'A description of the module'),
+		NCA\ApiResult(code: 204, desc: 'No description set')
 	]
 	public function apiModuleDescriptionGetEndpoint(Request $request, string $module): Response {
 		$description = $this->configController->getModuleDescription($module);
@@ -332,23 +332,23 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Get a list of available settings for a module */
 	#[
-		NCA\Api("/module/%s/settings"),
+		NCA\Api('/module/%s/settings'),
 		NCA\GET,
-		NCA\AccessLevel("mod"),
-		NCA\ApiResult(code: 200, class: "ModuleSetting[]", desc: "A list of all settings for this module")
+		NCA\AccessLevel('mod'),
+		NCA\ApiResult(code: 200, class: 'ModuleSetting[]', desc: 'A list of all settings for this module')
 	]
 	public function apiConfigSettingsGetEndpoint(Request $request, string $module): Response {
-		$user = $request->getAttribute(WebserverController::USER) ?? "_";
+		$user = $request->getAttribute(WebserverController::USER) ?? '_';
 		$settings = $this->configController->getModuleSettings($module);
 		$result = [];
 		foreach ($settings as $setting) {
 			$modSet = new ModuleSetting($setting->getData());
-			if (strlen($modSet->description??"") > 0) {
+			if (strlen($modSet->description??'') > 0) {
 				$modSet->description = $this->webChatConverter->parseAOFormat(trim($modSet->description))->message;
-				$modSet->description = str_replace("<br />", " ", $modSet->description);
+				$modSet->description = str_replace('<br />', ' ', $modSet->description);
 				$modSet->description = htmlspecialchars_decode($modSet->description);
 			}
-			if (strlen($setting->getData()->help??"") > 0) {
+			if (strlen($setting->getData()->help??'') > 0) {
 				$help = $this->helpManager->find($modSet->name, $user);
 				if ($help !== null) {
 					$modSet->help = $this->webChatConverter->toXML(
@@ -368,17 +368,17 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Get a list of available events for a module */
 	#[
-		NCA\Api("/module/%s/events"),
+		NCA\Api('/module/%s/events'),
 		NCA\GET,
-		NCA\AccessLevel("mod"),
-		NCA\ApiResult(code: 200, class: "ModuleEventConfig[]", desc: "A list of all events and their status for this module")
+		NCA\AccessLevel('mod'),
+		NCA\ApiResult(code: 200, class: 'ModuleEventConfig[]', desc: 'A list of all events and their status for this module')
 	]
 	public function apiConfigEventsGetEndpoint(Request $request, string $module): Response {
 		$events = $this->db->table(EventManager::DB_TABLE)
-			->where("type", "!=", "setup")
-			->where("module", $module)
+			->where('type', '!=', 'setup')
+			->where('module', $module)
 			->asObj(EventCfg::class)
-			->map(function (EventCfg $event): ModuleEventConfig {
+			->map(static function (EventCfg $event): ModuleEventConfig {
 				return new ModuleEventConfig($event);
 			});
 		return ApiResponse::create($events->toArray());
@@ -386,18 +386,18 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Get a list of available commands for a module */
 	#[
-		NCA\Api("/module/%s/commands"),
+		NCA\Api('/module/%s/commands'),
 		NCA\GET,
-		NCA\AccessLevel("mod"),
-		NCA\ApiResult(code: 200, class: "ModuleCommand[]", desc: "A list of all command and possible subcommands this module provides")
+		NCA\AccessLevel('mod'),
+		NCA\ApiResult(code: 200, class: 'ModuleCommand[]', desc: 'A list of all command and possible subcommands this module provides')
 	]
 	public function apiConfigCommandsGetEndpoint(Request $request, string $module): Response {
-		$cmds = $this->commandManager->getAllForModule($module, true)->sortBy("cmdevent");
+		$cmds = $this->commandManager->getAllForModule($module, true)->sortBy('cmdevent');
 
 		/** @var array<string,ModuleCommand> */
 		$result = [];
 		foreach ($cmds as $cmd) {
-			if ($cmd->cmdevent === "cmd") {
+			if ($cmd->cmdevent === 'cmd') {
 				$result[$cmd->cmd] = new ModuleCommand($cmd);
 			} else {
 				$result[$cmd->dependson]->subcommands []= new ModuleSubcommand($cmd);
@@ -408,10 +408,10 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Get a list of configured access levels */
 	#[
-		NCA\Api("/access_levels"),
+		NCA\Api('/access_levels'),
 		NCA\GET,
-		NCA\AccessLevel("all"),
-		NCA\ApiResult(code: 200, class: "ModuleAccessLevel[]", desc: "A list of all access levels")
+		NCA\AccessLevel('all'),
+		NCA\ApiResult(code: 200, class: 'ModuleAccessLevel[]', desc: 'A list of all access levels')
 	]
 	public function apiConfigAccessLevelsGetEndpoint(Request $request): Response {
 		return ApiResponse::create($this->configController->getValidAccessLevels());
@@ -419,10 +419,10 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Get a list of permission sets */
 	#[
-		NCA\Api("/permission_set"),
+		NCA\Api('/permission_set'),
 		NCA\GET,
-		NCA\AccessLevel("all"),
-		NCA\ApiResult(code: 200, class: "ExtCmdPermissionSet[]", desc: "A list of permission sets")
+		NCA\AccessLevel('all'),
+		NCA\ApiResult(code: 200, class: 'ExtCmdPermissionSet[]', desc: 'A list of permission sets')
 	]
 	public function apiConfigPermissionSetGetEndpoint(Request $request): Response {
 		return ApiResponse::create($this->commandManager->getExtPermissionSets()->toArray());
@@ -430,10 +430,10 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Get a permission set by its name */
 	#[
-		NCA\Api("/permission_set/%s"),
+		NCA\Api('/permission_set/%s'),
 		NCA\GET,
-		NCA\AccessLevel("all"),
-		NCA\ApiResult(code: 200, class: "ExtCmdPermissionSet", desc: "A permission set")
+		NCA\AccessLevel('all'),
+		NCA\ApiResult(code: 200, class: 'ExtCmdPermissionSet', desc: 'A permission set')
 	]
 	public function apiConfigPermissionSetGetByNameEndpoint(Request $request, string $name): Response {
 		$set = $this->commandManager->getExtPermissionSet($name);
@@ -445,17 +445,17 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Create a new permission set */
 	#[
-		NCA\Api("/permission_set"),
+		NCA\Api('/permission_set'),
 		NCA\POST,
-		NCA\RequestBody(class: "CmdPermissionSet", desc: "The new permission set", required: true),
-		NCA\AccessLevel("superadmin"),
-		NCA\ApiResult(code: 204, desc: "Permission Set created successfully")
+		NCA\RequestBody(class: 'CmdPermissionSet', desc: 'The new permission set', required: true),
+		NCA\AccessLevel('superadmin'),
+		NCA\ApiResult(code: 204, desc: 'Permission Set created successfully')
 	]
 	public function apiConfigPermissionSetCreateEndpoint(Request $request): Response {
 		$set = $request->getAttribute(WebserverController::BODY);
 		try {
 			if (!is_object($set)) {
-				throw new Exception("Wrong content body");
+				throw new Exception('Wrong content body');
 			}
 
 			/** @var CmdPermissionSet */
@@ -478,17 +478,17 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Change a permission set */
 	#[
-		NCA\Api("/permission_set/%s"),
+		NCA\Api('/permission_set/%s'),
 		NCA\PATCH,
-		NCA\RequestBody(class: "CmdPermissionSet", desc: "The new permission set data", required: true),
-		NCA\AccessLevel("superadmin"),
-		NCA\ApiResult(code: 204, class: "ExtCmdPermissionSet", desc: "Permission Set changed successfully")
+		NCA\RequestBody(class: 'CmdPermissionSet', desc: 'The new permission set data', required: true),
+		NCA\AccessLevel('superadmin'),
+		NCA\ApiResult(code: 204, class: 'ExtCmdPermissionSet', desc: 'Permission Set changed successfully')
 	]
 	public function apiConfigPermissionSetPatchEndpoint(Request $request, string $name): Response {
 		$set = $request->getAttribute(WebserverController::BODY);
 		try {
 			if (!is_object($set)) {
-				throw new Exception("Wrong content body");
+				throw new Exception('Wrong content body');
 			}
 
 			/** @var CmdPermissionSet */
@@ -517,14 +517,14 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Get a list of command sources */
 	#[
-		NCA\Api("/cmd_source"),
+		NCA\Api('/cmd_source'),
 		NCA\GET,
-		NCA\AccessLevel("all"),
-		NCA\ApiResult(code: 200, class: "CmdSource[]", desc: "A list of command sources and their mappings")
+		NCA\AccessLevel('all'),
+		NCA\ApiResult(code: 200, class: 'CmdSource[]', desc: 'A list of command sources and their mappings')
 	]
 	public function apiConfigCmdSrcGetEndpoint(Request $request): Response {
 		$sources = $this->commandManager->getSources();
-		$maps = $this->getCmdSourceMappings()->groupBy("source");
+		$maps = $this->getCmdSourceMappings()->groupBy('source');
 		$result = [];
 		foreach ($sources as $source) {
 			$cmdSrc = CmdSource::fromMask($source);
@@ -536,10 +536,10 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Get details for a specific command source */
 	#[
-		NCA\Api("/cmd_source/%s"),
+		NCA\Api('/cmd_source/%s'),
 		NCA\GET,
-		NCA\AccessLevel("all"),
-		NCA\ApiResult(code: 200, class: "CmdSource", desc: "The command source and its mappings")
+		NCA\AccessLevel('all'),
+		NCA\ApiResult(code: 200, class: 'CmdSource', desc: 'The command source and its mappings')
 	]
 	public function apiConfigCmdSrcDetailGetEndpoint(Request $request, string $source): Response {
 		$cmdSrc = $this->getCmdSource(strtolower($source));
@@ -552,10 +552,10 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Get mappings for a specific command source */
 	#[
-		NCA\Api("/cmd_source/%s/mappings"),
+		NCA\Api('/cmd_source/%s/mappings'),
 		NCA\GET,
-		NCA\AccessLevel("all"),
-		NCA\ApiResult(code: 200, class: "CmdSourceMapping[]", desc: "The command source's mappings")
+		NCA\AccessLevel('all'),
+		NCA\ApiResult(code: 200, class: 'CmdSourceMapping[]', desc: "The command source's mappings")
 	]
 	public function apiConfigCmdSrcMappingsGetEndpoint(Request $request, string $source): Response {
 		$cmdSrc = $this->getCmdSource(strtolower($source));
@@ -567,10 +567,10 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Get mappings for a specific command source */
 	#[
-		NCA\Api("/cmd_source/%s/mappings/%s"),
+		NCA\Api('/cmd_source/%s/mappings/%s'),
 		NCA\GET,
-		NCA\AccessLevel("all"),
-		NCA\ApiResult(code: 200, class: "CmdSourceMapping", desc: "The command's sub-source mapping")
+		NCA\AccessLevel('all'),
+		NCA\ApiResult(code: 200, class: 'CmdSourceMapping', desc: "The command's sub-source mapping")
 	]
 	public function apiConfigCmdSrcSubMappingGetEndpoint(Request $request, string $source, string $subSource): Response {
 		$cmdSrc = $this->getCmdSource(strtolower($source));
@@ -578,7 +578,7 @@ class ConfigApiController extends ModuleInstance {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		$mappings = $this->getCmdSourceMappings($source);
-		$mapping = $mappings->where("sub_source", strtolower($subSource))->first();
+		$mapping = $mappings->where('sub_source', strtolower($subSource))->first();
 		if (!isset($mapping)) {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}
@@ -587,10 +587,10 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Delete mapping for a specific command sub-source */
 	#[
-		NCA\Api("/cmd_source/%s/mappings/%s"),
+		NCA\Api('/cmd_source/%s/mappings/%s'),
 		NCA\DELETE,
-		NCA\AccessLevel("superadmin"),
-		NCA\ApiResult(code: 204, desc: "The sub-source mapping was deleted successfully")
+		NCA\AccessLevel('superadmin'),
+		NCA\ApiResult(code: 204, desc: 'The sub-source mapping was deleted successfully')
 	]
 	public function apiConfigCmdSrcSubMappingDeleteEndpoint(Request $request, string $source, string $subSource): Response {
 		$cmdSrc = $this->getCmdSource(strtolower($source));
@@ -610,10 +610,10 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Delete mapping for a specific command source */
 	#[
-		NCA\Api("/cmd_source/%s/mappings"),
+		NCA\Api('/cmd_source/%s/mappings'),
 		NCA\DELETE,
-		NCA\AccessLevel("superadmin"),
-		NCA\ApiResult(code: 204, desc: "The source mapping was deleted successfully")
+		NCA\AccessLevel('superadmin'),
+		NCA\ApiResult(code: 204, desc: 'The source mapping was deleted successfully')
 	]
 	public function apiConfigCmdSrcMappingDeleteEndpoint(Request $request, string $source): Response {
 		$cmdSrc = $this->getCmdSource(strtolower($source));
@@ -632,11 +632,11 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Create a new mapping */
 	#[
-		NCA\Api("/cmd_source/%s/mappings"),
+		NCA\Api('/cmd_source/%s/mappings'),
 		NCA\POST,
-		NCA\AccessLevel("superadmin"),
-		NCA\RequestBody(class: "CmdSourceMapping", desc: "The new mapping", required: true),
-		NCA\ApiResult(code: 204, desc: "A new command mapping was created")
+		NCA\AccessLevel('superadmin'),
+		NCA\RequestBody(class: 'CmdSourceMapping', desc: 'The new mapping', required: true),
+		NCA\ApiResult(code: 204, desc: 'A new command mapping was created')
 	]
 	public function apiConfigCmdSrcNewMappingEndpoint(Request $request, string $source): Response {
 		$cmdSrc = $this->getCmdSource(strtolower($source));
@@ -646,7 +646,7 @@ class ConfigApiController extends ModuleInstance {
 		$body = $request->getAttribute(WebserverController::BODY);
 		try {
 			if (!is_object($body)) {
-				throw new Exception("Wrong content body");
+				throw new Exception('Wrong content body');
 			}
 
 			/** @var CmdSourceMapping */
@@ -661,10 +661,10 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Modify mapping for a specific command source */
 	#[
-		NCA\Api("/cmd_source/%s/mappings"),
+		NCA\Api('/cmd_source/%s/mappings'),
 		NCA\PUT,
-		NCA\AccessLevel("superadmin"),
-		NCA\ApiResult(code: 200, class: "CmdSourceMapping", desc: "The new, modified source mapping")
+		NCA\AccessLevel('superadmin'),
+		NCA\ApiResult(code: 200, class: 'CmdSourceMapping', desc: 'The new, modified source mapping')
 	]
 	public function apiConfigCmdSrcMappingPutEndpoint(Request $request, string $source): Response {
 		$cmdSrc = $this->getCmdSource(strtolower($source));
@@ -674,7 +674,7 @@ class ConfigApiController extends ModuleInstance {
 		$body = $request->getAttribute(WebserverController::BODY);
 		try {
 			if (!is_object($body)) {
-				throw new Exception("Wrong content body");
+				throw new Exception('Wrong content body');
 			}
 
 			/** @var CmdSourceMapping */
@@ -690,10 +690,10 @@ class ConfigApiController extends ModuleInstance {
 
 	/** Modify mapping for a specific command source */
 	#[
-		NCA\Api("/cmd_source/%s/mappings/%s"),
+		NCA\Api('/cmd_source/%s/mappings/%s'),
 		NCA\PUT,
-		NCA\AccessLevel("superadmin"),
-		NCA\ApiResult(code: 200, class: "CmdSourceMapping", desc: "The new, modified source mapping")
+		NCA\AccessLevel('superadmin'),
+		NCA\ApiResult(code: 200, class: 'CmdSourceMapping', desc: 'The new, modified source mapping')
 	]
 	public function apiConfigCmdSubSrcMappingPutEndpoint(Request $request, string $source, string $subSource): Response {
 		$cmdSrc = $this->getCmdSource(strtolower($source));
@@ -703,7 +703,7 @@ class ConfigApiController extends ModuleInstance {
 		$body = $request->getAttribute(WebserverController::BODY);
 		try {
 			if (!is_object($body)) {
-				throw new Exception("Wrong content body");
+				throw new Exception('Wrong content body');
 			}
 
 			/** @var CmdSourceMapping */
@@ -721,9 +721,9 @@ class ConfigApiController extends ModuleInstance {
 	protected function getCmdSourceMappings(?string $source=null): Collection {
 		/** @var Collection<CmdSourceMapping> */
 		$maps = $this->commandManager->getPermSetMappings()
-			->map([CmdSourceMapping::class, "fromPermSetMapping"]);
+			->map([CmdSourceMapping::class, 'fromPermSetMapping']);
 		if (isset($source)) {
-			return $maps->where("source", $source)->values();
+			return $maps->where('source', $source)->values();
 		}
 		return $maps;
 	}
@@ -731,8 +731,8 @@ class ConfigApiController extends ModuleInstance {
 	protected function getCmdSource(string $sourceName): ?CmdSource {
 		$sourceName = strtolower($sourceName);
 		$sources = new Collection($this->commandManager->getSources());
-		$source = $sources->first(function (string $source) use ($sourceName): bool {
-			return Safe::pregReplace("/\(.+$/", "", $source) === $sourceName;
+		$source = $sources->first(static function (string $source) use ($sourceName): bool {
+			return Safe::pregReplace("/\(.+$/", '', $source) === $sourceName;
 		});
 		return isset($source) ? CmdSource::fromMask($source) : null;
 	}
@@ -746,20 +746,20 @@ class ConfigApiController extends ModuleInstance {
 			$source = $decoded->source;
 			if ($cmdSrc->has_sub_sources) {
 				if (!isset($decoded->sub_source) || !strlen($decoded->sub_source)) {
-					$source .= "(*)";
+					$source .= '(*)';
 				} else {
 					$source .= "({$decoded->sub_source})";
 				}
 			}
 			$source = strtolower($source);
-			if ($this->commandManager->getPermSetMappings()->where("source", $source)->isNotEmpty()) {
+			if ($this->commandManager->getPermSetMappings()->where('source', $source)->isNotEmpty()) {
 				return new Response(HttpStatus::CONFLICT);
 			}
 			$decoded->permission_set = strtolower($decoded->permission_set);
 			if (!$this->commandManager->hasPermissionSet($decoded->permission_set)) {
 				return new Response(
 					HttpStatus::UNPROCESSABLE_ENTITY,
-					["Content-type" => "text/plain"],
+					['Content-type' => 'text/plain'],
 					"There is no permission set {$decoded->permission_set}."
 				);
 			}
@@ -769,7 +769,7 @@ class ConfigApiController extends ModuleInstance {
 			} catch (SQLException $e) {
 				return new Response(
 					HttpStatus::INTERNAL_SERVER_ERROR,
-					["Content-type" => "text/plain"],
+					['Content-type' => 'text/plain'],
 					$e->getMessage()
 				);
 			}
@@ -777,7 +777,7 @@ class ConfigApiController extends ModuleInstance {
 		} catch (Exception $e) {
 			return new Response(
 				HttpStatus::UNPROCESSABLE_ENTITY,
-				["Content-type" => "text/plain"],
+				['Content-type' => 'text/plain'],
 				$e->getMessage()
 			);
 		}
@@ -800,7 +800,7 @@ class ConfigApiController extends ModuleInstance {
 			$source = strtolower($source);
 
 			/** @var ?CmdPermSetMapping */
-			$old = $this->commandManager->getPermSetMappings()->where("source", $source)->first();
+			$old = $this->commandManager->getPermSetMappings()->where('source', $source)->first();
 			if (!isset($old)) {
 				return new Response(status: HttpStatus::NOT_FOUND);
 			}
@@ -808,18 +808,18 @@ class ConfigApiController extends ModuleInstance {
 			if (!$this->commandManager->hasPermissionSet($decoded->permission_set)) {
 				return new Response(
 					status: HttpStatus::UNPROCESSABLE_ENTITY,
-					headers: ["Content-type" => "text/plain"],
+					headers: ['Content-type' => 'text/plain'],
 					body: "There is no permission set {$decoded->permission_set}."
 				);
 			}
 			$map = $decoded->toPermSetMapping();
 			$map->id = $old->id;
 			try {
-				$map->id = $this->db->update(CommandManager::DB_TABLE_MAPPING, "id", $map);
+				$map->id = $this->db->update(CommandManager::DB_TABLE_MAPPING, 'id', $map);
 			} catch (SQLException $e) {
 				return new Response(
 					HttpStatus::INTERNAL_SERVER_ERROR,
-					["Content-type" => "text/plain"],
+					['Content-type' => 'text/plain'],
 					$e->getMessage()
 				);
 			}
@@ -827,7 +827,7 @@ class ConfigApiController extends ModuleInstance {
 		} catch (Exception $e) {
 			return new Response(
 				HttpStatus::UNPROCESSABLE_ENTITY,
-				["Content-type" => "text/plain"],
+				['Content-type' => 'text/plain'],
 				$e->getMessage()
 			);
 		}

@@ -21,7 +21,7 @@ class ArrayOfText extends ArraySetting {
 		public array $options=[],
 		public string $accessLevel='mod',
 		public ?string $help=null,
-		public ?string $delimiter="|",
+		public ?string $delimiter='|',
 	) {
 		$this->type = 'text[]';
 	}

@@ -15,9 +15,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "eventlist",
-		accessLevel: "guild",
-		description: "Shows a list of all events on the bot",
+		command: 'eventlist',
+		accessLevel: 'guild',
+		description: 'Shows a list of all events on the bot',
 		defaultStatus: 1
 	)
 ]
@@ -29,14 +29,14 @@ class EventlistController extends ModuleInstance {
 	private DB $db;
 
 	/** Show a list of all events on the bot. Give &lt;event type&gt; to show only events matching a string */
-	#[NCA\HandlesCommand("eventlist")]
+	#[NCA\HandlesCommand('eventlist')]
 	public function eventlistCommand(CmdContext $context, ?string $eventType): void {
 		$query = $this->db->table(EventManager::DB_TABLE)
-			->select("type", "description", "module", "file", "status")
-			->orderBy("type")
-			->orderBy("module");
+			->select('type', 'description', 'module', 'file', 'status')
+			->orderBy('type')
+			->orderBy('module');
 		if (isset($eventType)) {
-			$query->whereIlike("type", "%{$eventType}%");
+			$query->whereIlike('type', "%{$eventType}%");
 		}
 
 		/** @var EventCfg[] $data */
@@ -55,9 +55,9 @@ class EventlistController extends ModuleInstance {
 			$off = $this->text->makeChatcmd('OFF', "/tell <myname> config event {$row->type} {$row->file} disable all");
 
 			if ($row->status === 1) {
-				$status = "<on>Enabled<end>";
+				$status = '<on>Enabled<end>';
 			} else {
-				$status = "<off>Disabled<end>";
+				$status = '<off>Disabled<end>';
 			}
 
 			if ($lastType !== $row->type) {

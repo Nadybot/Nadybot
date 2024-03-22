@@ -20,8 +20,7 @@ class Audit extends DBRow {
 		public ?string $actee=null,
 		public ?string $value=null,
 		public DateTime $time=new DateTime(),
-		#[NCA\DB\AutoInc]
-		public ?int $id=null,
+		#[NCA\DB\AutoInc] public ?int $id=null,
 	) {
 	}
 }

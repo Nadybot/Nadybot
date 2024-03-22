@@ -17,7 +17,7 @@ abstract class SettingHandler {
 	}
 
 	public function isEditable(): bool {
-		return $this->row->mode === "edit";
+		return $this->row->mode === 'edit';
 	}
 
 	public function getData(): Setting {
@@ -25,31 +25,31 @@ abstract class SettingHandler {
 	}
 
 	public function getModifyLink(): string {
-		return $this->text->makeChatcmd("modify", "/tell <myname> settings change " . $this->row->name);
+		return $this->text->makeChatcmd('modify', '/tell <myname> settings change ' . $this->row->name);
 	}
 
 	/** Get a displayable representation of the setting */
 	public function displayValue(string $sender): string {
-		if (!isset($this->row->intoptions) || $this->row->intoptions === "") {
-			return "<highlight>" . htmlspecialchars($this->row->value??"<empty>") . "<end>";
+		if (!isset($this->row->intoptions) || $this->row->intoptions === '') {
+			return '<highlight>' . htmlspecialchars($this->row->value??'<empty>') . '<end>';
 		}
-		$options = explode(";", $this->row->options ?? "");
-		$intoptions = explode(";", $this->row->intoptions);
+		$options = explode(';', $this->row->options ?? '');
+		$intoptions = explode(';', $this->row->intoptions);
 		$intoptions2 = array_flip($intoptions);
 		if (!isset($this->row->value)) {
-			return "<highlight>&lt;empty&gt;<end>";
+			return '<highlight>&lt;empty&gt;<end>';
 		}
 		$key = $intoptions2[$this->row->value];
-		return "<highlight>" . ($options[$key] ?? "&lt;empty&gt;") . "<end>";
+		return '<highlight>' . ($options[$key] ?? '&lt;empty&gt;') . '<end>';
 	}
 
 	/** Get all options for this setting or null if no options are available */
 	public function getOptions(): ?string {
 		if (strlen($this->row->options??'')) {
-			$options = explode(";", $this->row->options??"");
+			$options = explode(';', $this->row->options??'');
 		}
 		if (strlen($this->row->intoptions??'')) {
-			$intoptions = explode(";", $this->row->intoptions??"");
+			$intoptions = explode(';', $this->row->intoptions??'');
 			$options_map = array_combine($intoptions, $options??[]);
 		}
 		if (empty($options)) {
@@ -59,12 +59,12 @@ abstract class SettingHandler {
 		if (isset($options_map)) {
 			foreach ($options_map as $key => $label) {
 				$saveLink = $this->text->makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$key}");
-				$msg .= "<tab><highlight>" . htmlspecialchars($label) . "<end> [{$saveLink}]\n";
+				$msg .= '<tab><highlight>' . htmlspecialchars($label) . "<end> [{$saveLink}]\n";
 			}
 		} else {
 			foreach ($options as $char) {
 				$saveLink = $this->text->makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$char}");
-				$msg .= "<tab><highlight>" . htmlspecialchars($char) . "<end> [{$saveLink}]\n";
+				$msg .= '<tab><highlight>' . htmlspecialchars($char) . "<end> [{$saveLink}]\n";
 			}
 		}
 

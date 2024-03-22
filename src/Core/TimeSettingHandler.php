@@ -8,14 +8,14 @@ use Nadybot\Core\Attributes as NCA;
 /**
  * Class to represent a time setting for NadyBot
  */
-#[NCA\SettingHandler("time")]
+#[NCA\SettingHandler('time')]
 class TimeSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	private Util $util;
 
 	/** @inheritDoc */
 	public function displayValue(string $sender): string {
-		return "<highlight>" . $this->util->unixtimeToReadable((int)$this->row->value) . "<end>";
+		return '<highlight>' . $this->util->unixtimeToReadable((int)$this->row->value) . '<end>';
 	}
 
 	/** @inheritDoc */
@@ -39,6 +39,6 @@ class TimeSettingHandler extends SettingHandler {
 		if ($time > 0) {
 			return (string)$time;
 		}
-		throw new Exception("This is not a valid time for this setting.");
+		throw new Exception('This is not a valid time for this setting.');
 	}
 }

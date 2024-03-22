@@ -10,33 +10,33 @@ use Nadybot\Modules\TIMERS_MODULE\TimerController;
 use Psr\Log\LoggerInterface;
 use stdClass;
 
-#[NCA\Migration(order: 20210512073804)]
+#[NCA\Migration(order: 20_210_512_073_804)]
 class AddIdColumn implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = TimerController::DB_TABLE;
 		$data = $db->schema()->hasTable($table) ? $db->table($table)->get() : new Collection();
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->string("name", 255)->unique();
-			$table->string("owner", 25);
-			$table->string("mode", 50);
-			$table->integer("endtime")->nullable();
-			$table->integer("settime");
-			$table->string("callback", 255);
-			$table->string("data", 255)->nullable();
-			$table->text("alerts");
+			$table->string('name', 255)->unique();
+			$table->string('owner', 25);
+			$table->string('mode', 50);
+			$table->integer('endtime')->nullable();
+			$table->integer('settime');
+			$table->string('callback', 255);
+			$table->string('data', 255)->nullable();
+			$table->text('alerts');
 		});
-		$data->each(function (stdClass $timer) use ($db, $table): void {
+		$data->each(static function (stdClass $timer) use ($db, $table): void {
 			$db->table($table)->insert([
-				"name" => (string)$timer->name,
-				"owner" => (string)$timer->owner,
-				"mode" => (string)$timer->mode,
-				"endtime" => isset($timer->endtime) ? (int)$timer->endtime : null,
-				"settime" => (int)$timer->settime,
-				"callback" => (string)$timer->callback,
-				"data" => isset($timer->data) ? (string)$timer->data : null,
-				"alerts" => (string)$timer->alerts,
+				'name' => (string)$timer->name,
+				'owner' => (string)$timer->owner,
+				'mode' => (string)$timer->mode,
+				'endtime' => isset($timer->endtime) ? (int)$timer->endtime : null,
+				'settime' => (int)$timer->settime,
+				'callback' => (string)$timer->callback,
+				'data' => isset($timer->data) ? (string)$timer->data : null,
+				'alerts' => (string)$timer->alerts,
 			]);
 		});
 	}

@@ -16,6 +16,6 @@ class RaidLockStats implements GaugeProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => "raid_lock"];
+		return ['type' => 'raid_lock'];
 	}
 }

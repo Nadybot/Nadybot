@@ -4,7 +4,7 @@ namespace Nadybot\Core\Event;
 
 /** Someone leaves our private channel */
 class LeaveMyPrivEvent extends LeavePrivEvent {
-	public const EVENT_MASK = "leavepriv";
+	public const EVENT_MASK = 'leavepriv';
 
 	/**
 	 * @param string $sender  The name of the person leaving

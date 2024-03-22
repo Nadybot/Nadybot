@@ -12,12 +12,12 @@ class Gas {
 
 	public function color(): string {
 		if ($this->gas === 75) {
-			return "<red>";
+			return '<red>';
 		}
-		return "<green>";
+		return '<green>';
 	}
 
 	public function colored(): string {
-		return $this->color() . $this->gas . "%<end>";
+		return $this->color() . $this->gas . '%<end>';
 	}
 }

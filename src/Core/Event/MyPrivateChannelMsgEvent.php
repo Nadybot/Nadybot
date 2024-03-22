@@ -4,7 +4,7 @@ namespace Nadybot\Core\Event;
 
 /** We receive a message on our channel */
 class MyPrivateChannelMsgEvent extends PrivateChannelMsgEvent {
-	public const EVENT_MASK = "priv";
+	public const EVENT_MASK = 'priv';
 
 	/**
 	 * @param string  $sender  The name of the sender of the message

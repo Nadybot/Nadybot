@@ -36,9 +36,9 @@ use Throwable;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "findorg",
-		accessLevel: "guest",
-		description: "Find orgs by name",
+		command: 'findorg',
+		accessLevel: 'guest',
+		description: 'Find orgs by name',
 	)
 ]
 class FindOrgController extends ModuleInstance {
@@ -49,8 +49,8 @@ class FindOrgController extends ModuleInstance {
 	/** Which service to use for orglist downloads */
 	#[NCA\Setting\Text(
 		options: [
-			"bork.aobots.org (Nadybot)" => PlayerManager::BORK_URL,
-			"people.anarchy-online.com (Funcom)" => PlayerManager::PORK_URL,
+			'bork.aobots.org (Nadybot)' => PlayerManager::BORK_URL,
+			'people.anarchy-online.com (Funcom)' => PlayerManager::PORK_URL,
 		]
 	)]
 	public string $orglistPorkUrl = PlayerManager::BORK_URL;
@@ -80,8 +80,8 @@ class FindOrgController extends ModuleInstance {
 		if (!$this->fs->exists($this->config->paths->cache . '/orglist')) {
 			$this->fs->createDirectory($this->config->paths->cache . '/orglist', 0700);
 		}
-		$this->ready = $this->db->table("organizations")
-			->where("index", "others")
+		$this->ready = $this->db->table('organizations')
+			->where('index', 'others')
 			->exists();
 	}
 
@@ -92,19 +92,19 @@ class FindOrgController extends ModuleInstance {
 
 	public function sendNotReadyError(CommandReply $sendto): void {
 		$sendto->reply(
-			"The org roster is currently being updated, please wait."
+			'The org roster is currently being updated, please wait.'
 		);
 	}
 
 	public function getByID(int $orgID): ?Organization {
-		return $this->db->table("organizations")
-			->where("id", $orgID)
+		return $this->db->table('organizations')
+			->where('id', $orgID)
 			->asObj(Organization::class)
 			->first();
 	}
 
 	/** Find an organization by its name */
-	#[NCA\HandlesCommand("findorg")]
+	#[NCA\HandlesCommand('findorg')]
 	public function findOrgCommand(CmdContext $context, string $search): void {
 		if (!$this->isReady()) {
 			$this->sendNotReadyError($context);
@@ -118,7 +118,7 @@ class FindOrgController extends ModuleInstance {
 			$blob = $this->formatResults($orgs);
 			$msg = $this->text->makeBlob("Org Search Results for '{$search}' ({$count})", $blob);
 		} else {
-			$msg = "No matches found.";
+			$msg = 'No matches found.';
 		}
 		$context->reply($msg);
 	}
@@ -129,13 +129,13 @@ class FindOrgController extends ModuleInstance {
 	 * @throws SQLException
 	 */
 	public function lookupOrg(string $search, int $limit=50): array {
-		$query = $this->db->table("organizations")
+		$query = $this->db->table('organizations')
 			->limit($limit);
-		$tmp = explode(" ", $search);
-		$this->db->addWhereFromParams($query, $tmp, "name");
+		$tmp = explode(' ', $search);
+		$this->db->addWhereFromParams($query, $tmp, 'name');
 
 		$orgs = $query->asObj(Organization::class);
-		$exactMatches = $orgs->filter(function (Organization $org) use ($search): bool {
+		$exactMatches = $orgs->filter(static function (Organization $org) use ($search): bool {
 			return strcasecmp($org->name, $search) === 0;
 		});
 		if ($exactMatches->count() === 1) {
@@ -147,7 +147,7 @@ class FindOrgController extends ModuleInstance {
 	/** @param Organization[] $orgs */
 	public function formatResults(array $orgs): string {
 		$blob = "<header2>Matching orgs<end>\n";
-		usort($orgs, function (Organization $a, Organization $b): int {
+		usort($orgs, static function (Organization $a, Organization $b): int {
 			return strcasecmp($a->name, $b->name);
 		});
 		foreach ($orgs as $org) {
@@ -156,7 +156,7 @@ class FindOrgController extends ModuleInstance {
 			$orgmembers = $this->text->makeChatcmd('Orgmembers', "/tell <myname> orgmembers {$org->id}");
 			$blob .= "<tab><{$org->faction}>{$org->name}<end> ({$org->id}) - ".
 				"<highlight>{$org->num_members}<end> ".
-				$this->text->pluralize("member", $org->num_members).
+				$this->text->pluralize('member', $org->num_members).
 				", {$org->governing_form} [{$orglist}] [{$whoisorg}] [{$orgmembers}]\n";
 		}
 		return $blob;
@@ -177,7 +177,7 @@ class FindOrgController extends ModuleInstance {
 			'</tr>@s';
 
 		$arr = Safe::pregMatchOrderedAll($pattern, $body);
-		$this->logger->info("Updating orgs starting with {letter}", ["letter" => $letter]);
+		$this->logger->info('Updating orgs starting with {letter}', ['letter' => $letter]);
 		$inserts = [];
 		foreach ($arr as $match) {
 			$obj = new Organization();
@@ -194,22 +194,22 @@ class FindOrgController extends ModuleInstance {
 		}
 		try {
 			$this->db->awaitBeginTransaction();
-			$this->db->table("organizations")
-				->where("index", $letter)
+			$this->db->table('organizations')
+				->where('index', $letter)
 				->delete();
-			$this->db->table("organizations")
+			$this->db->table('organizations')
 				->chunkInsert($inserts);
 			$this->db->commit();
 		} catch (Exception $e) {
-			$this->logger->error("Error downloading orgs: " . $e->getMessage(), ["exception" => $e]);
+			$this->logger->error('Error downloading orgs: ' . $e->getMessage(), ['exception' => $e]);
 			$this->db->rollback();
 			$this->ready = true;
 		}
 	}
 
 	#[NCA\Event(
-		name: "timer(24hrs)",
-		description: "Parses all orgs from People of Rubi Ka"
+		name: 'timer(24hrs)',
+		description: 'Parses all orgs from People of Rubi Ka'
 	)]
 	public function downloadAllOrgsEvent(Event $eventObj): void {
 		$searches = [
@@ -218,27 +218,27 @@ class FindOrgController extends ModuleInstance {
 			'others',
 		];
 
-		$cacheFolder = $this->config->paths->cache . "/orglist";
+		$cacheFolder = $this->config->paths->cache . '/orglist';
 		if (!$this->fs->exists($cacheFolder)) {
 			$this->fs->createDirectory($cacheFolder, 0700);
 		}
 
-		$this->ready = $this->db->table("organizations")
-			->where("index", "others")
+		$this->ready = $this->db->table('organizations')
+			->where('index', 'others')
 			->exists();
-		$this->logger->info("Downloading list of all orgs");
+		$this->logger->info('Downloading list of all orgs');
 		try {
 			Pipeline::fromIterable($searches)
 				->concurrent($this->numOrglistDlJobs)
 				->forEach($this->downloadOrglistLetter(...));
 		} catch (Throwable $e) {
-			$this->logger->error("Error downloading orglists: {error}", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Error downloading orglists: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 		}
 		$this->ready = true;
-		$this->logger->info("Finished downloading orglists");
+		$this->logger->info('Finished downloading orglists');
 	}
 
 	/** @return Collection<Organization> */
@@ -246,8 +246,8 @@ class FindOrgController extends ModuleInstance {
 		if (empty($names)) {
 			return new Collection();
 		}
-		return $this->db->table("organizations")
-			->whereIn("name", $names)
+		return $this->db->table('organizations')
+			->whereIn('name', $names)
 			->asObj(Organization::class);
 	}
 
@@ -256,13 +256,13 @@ class FindOrgController extends ModuleInstance {
 		if (empty($ids)) {
 			return new Collection();
 		}
-		return $this->db->table("organizations")
-			->whereIn("id", $ids)
+		return $this->db->table('organizations')
+			->whereIn('id', $ids)
 			->asObj(Organization::class);
 	}
 
 	private function downloadOrglistLetter(string $letter): void {
-		$this->logger->info("Downloading orglist for letter {letter}", ["letter" => $letter]);
+		$this->logger->info('Downloading orglist for letter {letter}', ['letter' => $letter]);
 		$cache = new FileCache(
 			$this->config->paths->cache . '/orglist',
 			new LocalKeyedMutex(),
@@ -277,7 +277,7 @@ class FindOrgController extends ModuleInstance {
 			return;
 		}
 		$body = null;
-		$url = $this->orglistPorkUrl . "/people/lookup/orgs.html".
+		$url = $this->orglistPorkUrl . '/people/lookup/orgs.html'.
 			"?l={$letter}&dim={$this->config->main->dimension}";
 		$client = $this->builder->build();
 		$retry = 5;
@@ -294,11 +294,11 @@ class FindOrgController extends ModuleInstance {
 						throw new UserException("Unable to download orglist for {$letter}");
 					}
 					$this->logger->warning(
-						"Error downloading orglist for letter {letter}, retrying in {retry}s",
+						'Error downloading orglist for letter {letter}, retrying in {retry}s',
 						[
-							"letter" => $letter,
-							"dim" => $this->config->main->dimension,
-							"retry" => 5,
+							'letter' => $letter,
+							'dim' => $this->config->main->dimension,
+							'retry' => 5,
 						]
 					);
 					delay(5);
@@ -307,34 +307,34 @@ class FindOrgController extends ModuleInstance {
 				}
 			} catch (TimeoutException $e) {
 				$this->logger->warning(
-					"Timeout downloading orglist for letter {letter}, retrying in {retry}s",
+					'Timeout downloading orglist for letter {letter}, retrying in {retry}s',
 					[
-						"letter" => $letter,
-						"dim" => $this->config->main->dimension,
-						"retry" => 5,
+						'letter' => $letter,
+						'dim' => $this->config->main->dimension,
+						'retry' => 5,
 					]
 				);
 				delay(5);
 			} catch (Throwable $e) {
 				$this->logger->warning(
-					"Error downloading orglist for letter {letter}: {error}, retrying in {retry}s",
+					'Error downloading orglist for letter {letter}: {error}, retrying in {retry}s',
 					[
-						"letter" => $letter,
-						"error" => $e->getMessage(),
-						"dim" => $this->config->main->dimension,
-						"retry" => 5,
-						"exception" => $e,
+						'letter' => $letter,
+						'error' => $e->getMessage(),
+						'dim' => $this->config->main->dimension,
+						'retry' => 5,
+						'exception' => $e,
 					]
 				);
 				delay(5);
 			}
 		} while ((!isset($response) || $response->getStatus() !== 200) && $retry > 0);
-		if ($body === null || $body === '' || !str_contains($body, "ORGS BEGIN")) {
+		if ($body === null || $body === '' || !str_contains($body, 'ORGS BEGIN')) {
 			throw new Exception("Invalid data received from orglist for {$letter}");
 		}
 
 		/** @var string $body */
-		$cache->set($letter, $body, 23 * 3600);
+		$cache->set($letter, $body, 23 * 3_600);
 
 		$this->handleOrglistResponse($body, $letter);
 	}

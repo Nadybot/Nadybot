@@ -12,23 +12,23 @@ use Nadybot\Core\{
 use Psr\Log\LoggerInterface;
 use stdClass;
 
-#[NCA\Migration(order: 20220126103456, shared: true)]
+#[NCA\Migration(order: 20_220_126_103_456, shared: true)]
 class AddUuidColumn implements SchemaMigration {
 	#[NCA\Inject]
 	private Util $util;
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "news";
-		$db->schema()->table($table, function (Blueprint $table) {
-			$table->string("uuid", 36)->nullable(true);
+		$table = 'news';
+		$db->schema()->table($table, static function (Blueprint $table) {
+			$table->string('uuid', 36)->nullable(true);
 		});
 		$db->table($table)->get()->each(function (stdClass $data) use ($db, $table): void {
-			$db->table($table)->where("id", (int)$data->id)->update([
-				"uuid" => $this->util->createUUID(),
+			$db->table($table)->where('id', (int)$data->id)->update([
+				'uuid' => $this->util->createUUID(),
 			]);
 		});
-		$db->schema()->table($table, function (Blueprint $table) {
-			$table->string("uuid", 36)->nullable(false)->unique()->index()->change();
+		$db->schema()->table($table, static function (Blueprint $table) {
+			$table->string('uuid', 36)->nullable(false)->unique()->index()->change();
 		});
 	}
 }

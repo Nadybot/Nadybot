@@ -15,11 +15,11 @@ class RaffleItem {
 	public function fromString(string $text): void {
 		if (count($matches = Safe::pregMatch("/^(?<count>\d+)x?\s*[^\/\d]/", $text))) {
 			$this->amount = (int)$matches['count'];
-			$text = Safe::pregReplace("/^(\d+)x?\s*/", "", $text);
+			$text = Safe::pregReplace("/^(\d+)x?\s*/", '', $text);
 		}
 
 		/** @var string */
-		$text = Safe::pregReplace("/['\"](itemref:\/\/\d+\/\d+\/\d+)['\"]/", "$1", $text);
+		$text = Safe::pregReplace("/['\"](itemref:\/\/\d+\/\d+\/\d+)['\"]/", '$1', $text);
 		$this->item = $text;
 	}
 
@@ -40,12 +40,12 @@ class RaffleItem {
 					$hasItemGroup = $items->hasItemGroup((int)$matches[1][$i]);
 					if ($hasItemGroup) {
 						$ql = $matches[3][$i];
-					} elseif (str_contains($this->item, "Unit Aban")
-						|| str_contains($this->item, "Unit Beta")
-						|| str_contains($this->item, "Unit Alpha")
+					} elseif (str_contains($this->item, 'Unit Aban')
+						|| str_contains($this->item, 'Unit Beta')
+						|| str_contains($this->item, 'Unit Alpha')
 					) {
 						$ql = $matches[3][$i];
-					} elseif (str_contains($this->item, "Spirit")) {
+					} elseif (str_contains($this->item, 'Spirit')) {
 						$isSpirit = $spirits->isSpirit((int)$matches[1][$i]);
 						if ($isSpirit) {
 							$ql = $matches[3][$i];
@@ -54,13 +54,13 @@ class RaffleItem {
 				}
 				if (isset($ql)) {
 					/** @var string */
-					$item = Safe::pregReplace("/(<a [^>]*?".preg_quote($matches[0][$i], "/")."\E.*?>)/", "QL{$ql} $1", $item);
+					$item = Safe::pregReplace('/(<a [^>]*?'.preg_quote($matches[0][$i], '/')."\E.*?>)/", "QL{$ql} $1", $item);
 				}
 			}
 		}
 		if ($this->amount <= 1) {
 			return $item;
 		}
-		return $this->amount . "x " . $item;
+		return $this->amount . 'x ' . $item;
 	}
 }

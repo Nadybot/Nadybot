@@ -21,16 +21,16 @@ use ReflectionUnionType;
 
 class ApiSpecGenerator {
 	public function loadClasses(): void {
-		foreach (glob(__DIR__ . "/../Core/DBSchema/*.php") ?: [] as $file) {
+		foreach (glob(__DIR__ . '/../Core/DBSchema/*.php') ?: [] as $file) {
 			require_once $file;
 		}
-		foreach (glob(__DIR__ . "/../Core/Modules/*/*.php") ?: [] as $file) {
+		foreach (glob(__DIR__ . '/../Core/Modules/*/*.php') ?: [] as $file) {
 			require_once $file;
 		}
-		foreach (glob(__DIR__ . "/../Core/*.php") ?: [] as $file) {
+		foreach (glob(__DIR__ . '/../Core/*.php') ?: [] as $file) {
 			require_once $file;
 		}
-		foreach (glob(__DIR__ . "/../Modules/*/*.php") ?: [] as $file) {
+		foreach (glob(__DIR__ . '/../Modules/*/*.php') ?: [] as $file) {
 			require_once $file;
 		}
 	}
@@ -79,8 +79,8 @@ class ApiSpecGenerator {
 				/** @var ReflectionParameter[] $params */
 				$params = array_slice($method->getParameters(), 2);
 				$path = preg_replace_callback(
-					"/%[ds]/",
-					function (array $matches) use (&$params): string {
+					'/%[ds]/',
+					static function (array $matches) use (&$params): string {
 						$param = array_shift($params);
 						return '{' . $param->getName() . '}';
 					},
@@ -92,7 +92,7 @@ class ApiSpecGenerator {
 		}
 		uksort(
 			$paths,
-			function (string $a, string $b): int {
+			static function (string $a, string $b): int {
 				return strcmp("{$a}/", "{$b}/");
 			}
 		);
@@ -115,7 +115,7 @@ class ApiSpecGenerator {
 
 	/** @param array<string,array<mixed>> $result */
 	public function addSchema(array &$result, string $className): void {
-		$className = Safe::pregReplace("/\[\]$/", "", $className);
+		$className = Safe::pregReplace("/\[\]$/", '', $className);
 		if (!is_string($className) || isset($result[$className])) {
 			return;
 		}
@@ -126,13 +126,13 @@ class ApiSpecGenerator {
 		$refClass = new ReflectionClass($class);
 		$refProps = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$refDoc = $refClass->getDocComment();
-		$description = $this->getDescriptionFromComment(is_string($refDoc) ? $refDoc : "");
+		$description = $this->getDescriptionFromComment(is_string($refDoc) ? $refDoc : '');
 		$newResult = [
-			"type" => "object",
-			"properties" => [],
+			'type' => 'object',
+			'properties' => [],
 		];
 		if (strlen($description)) {
-			$newResult["description"] = $description;
+			$newResult['description'] = $description;
 		}
 		foreach ($refProps as $refProp) {
 			if ($refProp->getDeclaringClass()->getName() !== $class) {
@@ -142,32 +142,32 @@ class ApiSpecGenerator {
 			if ($nameAndType === null) {
 				continue;
 			}
-			if (is_string($nameAndType[1]) && substr($nameAndType[1], 0, 1) === "#") {
-				$tmp = explode("/", $nameAndType[1]);
+			if (is_string($nameAndType[1]) && substr($nameAndType[1], 0, 1) === '#') {
+				$tmp = explode('/', $nameAndType[1]);
 				$this->addSchema($result, end($tmp));
-				$newResult["properties"][$nameAndType[0]] = [
+				$newResult['properties'][$nameAndType[0]] = [
 					'$ref' => $nameAndType[1],
 				];
 			} elseif (is_array($nameAndType[1])) {
-				$newResult["properties"][$nameAndType[0]] = [
-					"oneOf" => array_map(
-						function (string $type): array {
-							return ["type" => $type];
+				$newResult['properties'][$nameAndType[0]] = [
+					'oneOf' => array_map(
+						static function (string $type): array {
+							return ['type' => $type];
 						},
 						$nameAndType[1]
 					),
 				];
 			} else {
-				$newResult["properties"][$nameAndType[0]] = [
-					"type" => $nameAndType[1],
+				$newResult['properties'][$nameAndType[0]] = [
+					'type' => $nameAndType[1],
 				];
 			}
 			$refType = $refProp->getType();
 			if (!$refType || $refType->allowsNull()) {
-				$newResult["properties"][$nameAndType[0]]["nullable"] = true;
+				$newResult['properties'][$nameAndType[0]]['nullable'] = true;
 			}
 			if (isset($nameAndType[2]) && strlen($nameAndType[2])) {
-				$newResult["properties"][$nameAndType[0]]["description"] = $nameAndType[2];
+				$newResult['properties'][$nameAndType[0]]['description'] = $nameAndType[2];
 			}
 			if ($nameAndType[1] === 'array') {
 				$docBlock = $refProp->getDocComment();
@@ -178,19 +178,19 @@ class ApiSpecGenerator {
 					&& !count($matches = Safe::pregMatch("/@var\s+(.+?)\[\]/", $docBlock))) {
 					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
-				$parts = explode("\\", $matches[1]??"");
-				$newResult["properties"][$nameAndType[0]]["items"] = $this->getSimpleClassRef(end($parts));
+				$parts = explode('\\', $matches[1]??'');
+				$newResult['properties'][$nameAndType[0]]['items'] = $this->getSimpleClassRef(end($parts));
 				$this->addSchema($result, end($parts));
 			}
 		}
 		if ($refClass->getParentClass() !== false) {
 			$parentClass = $refClass->getParentClass()->getName();
 			if ($parentClass !== DBRow::class) {
-				$parentParts = explode("\\", $parentClass);
+				$parentParts = explode('\\', $parentClass);
 				$this->addSchema($result, end($parentParts));
 				$newResult = [
-					"allOf" => [
-						['$ref' => "#/components/schemas/" . end($parentParts)],
+					'allOf' => [
+						['$ref' => '#/components/schemas/' . end($parentParts)],
 						$newResult,
 					],
 				];
@@ -219,17 +219,17 @@ class ApiSpecGenerator {
 	 */
 	public function getSpec(array $mapping): array {
 		$result = [
-			"openapi" => "3.0.0",
-			"info" => $this->getInfoSpec(),
-			"servers" => [
-				["url" => "/api"],
+			'openapi' => '3.0.0',
+			'info' => $this->getInfoSpec(),
+			'servers' => [
+				['url' => '/api'],
 			],
-			"components" => [
-				"schemas" => [],
-				"securitySchemes" => [
-					"basicAuth" => [
-						"type" => "http",
-						"scheme" => "basic",
+			'components' => [
+				'schemas' => [],
+				'securitySchemes' => [
+					'basicAuth' => [
+						'type' => 'http',
+						'scheme' => 'basic',
 					],
 				],
 			],
@@ -241,41 +241,41 @@ class ApiSpecGenerator {
 				$doc = $this->getMethodDoc($refMethod);
 				$doc->path = $path;
 				$newResult[$path] ??= [];
-				$newResult[$path]["parameters"] = $this->getParamDocs($path, $refMethod);
+				$newResult[$path]['parameters'] = $this->getParamDocs($path, $refMethod);
 				foreach ($doc->methods as $method) {
 					$newResult[$path][$method] = [
-						"security" => [["basicAuth" => []]],
-						"description" => $doc->description,
-						"responses" => [],
+						'security' => [['basicAuth' => []]],
+						'description' => $doc->description,
+						'responses' => [],
 					];
 					if (isset($doc->requestBody)) {
-						$newResult[$path][$method]["requestBody"] = $this->getRequestBodyDefinition($doc->requestBody);
+						$newResult[$path][$method]['requestBody'] = $this->getRequestBodyDefinition($doc->requestBody);
 						if (isset($doc->requestBody->class)) {
-							$this->addSchema($result["components"]["schemas"], $doc->requestBody->class);
+							$this->addSchema($result['components']['schemas'], $doc->requestBody->class);
 						}
 					}
 					if (!empty($doc->tags)) {
-						$newResult[$path][$method]["tags"] = $doc->tags;
+						$newResult[$path][$method]['tags'] = $doc->tags;
 					}
 					foreach ($doc->responses as $code => $response) {
 						if (isset($response->class)) {
-							$this->addSchema($result["components"]["schemas"], $response->class);
+							$this->addSchema($result['components']['schemas'], $response->class);
 						}
-						$newResult[$path][$method]["responses"][$code] = [
-							"description" => $response->desc,
+						$newResult[$path][$method]['responses'][$code] = [
+							'description' => $response->desc,
 						];
 						if (isset($response->class)) {
 							$refClass = $this->getClassRef($response->class);
-							$newResult[$path][$method]["responses"][$code]["content"] = [
-								"application/json" => [
-									"schema" => $refClass,
+							$newResult[$path][$method]['responses'][$code]['content'] = [
+								'application/json' => [
+									'schema' => $refClass,
 								],
 							];
 						}
 					}
 				}
 			}
-			$result["paths"] = $newResult;
+			$result['paths'] = $newResult;
 		}
 		return $result;
 	}
@@ -303,21 +303,21 @@ class ApiSpecGenerator {
 				/** @var ReflectionNamedType */
 				$refType = $refParam->getType();
 				$paramResult = [
-					"name" => $param,
-					"required" => true,
-					"in" => "path",
-					"schema" => ["type" => $refType->getName()],
+					'name' => $param,
+					'required' => true,
+					'in' => 'path',
+					'schema' => ['type' => $refType->getName()],
 				];
-				if ($refType->getName() === "int") {
-					$paramResult["schema"]["type"] = "integer";
+				if ($refType->getName() === 'int') {
+					$paramResult['schema']['type'] = 'integer';
 				}
-				if ($refType->getName() === "bool") {
-					$paramResult["schema"]["type"] = "boolean";
+				if ($refType->getName() === 'bool') {
+					$paramResult['schema']['type'] = 'boolean';
 				}
 				$docComment = $method->getDocComment();
-				if (count($matches = Safe::pregMatch("/@param.*?\\$\Q{$param}\E\s+(.+)$/m", is_string($docComment) ? $docComment : ""))) {
-					$matches[1] = Safe::pregReplace("/\*\//", "", $matches[1]);
-					$paramResult["description"] = trim($matches[1]);
+				if (count($matches = Safe::pregMatch("/@param.*?\\$\Q{$param}\E\s+(.+)$/m", is_string($docComment) ? $docComment : ''))) {
+					$matches[1] = Safe::pregReplace("/\*\//", '', $matches[1]);
+					$paramResult['description'] = trim($matches[1]);
 				}
 				$result []= $paramResult;
 			}
@@ -327,11 +327,11 @@ class ApiSpecGenerator {
 			/** @var NCA\QueryParam */
 			$qParam = $qParamAttr->newInstance();
 			$result []= [
-				"name" => $qParam->name,
-				"required" => $qParam->required,
-				"in" => $qParam->in,
-				"schema" => ["type" => $qParam->type],
-				"description" => $qParam->desc,
+				'name' => $qParam->name,
+				'required' => $qParam->required,
+				'in' => $qParam->in,
+				'schema' => ['type' => $qParam->type],
+				'description' => $qParam->desc,
 			];
 		}
 		return $result;
@@ -340,8 +340,8 @@ class ApiSpecGenerator {
 	public function getDescriptionFromComment(string $comment): string {
 		$comment = trim(Safe::pregReplace("|^/\*\*(.*)\*/$|s", '$1', $comment));
 		$comment = Safe::pregReplace("|^\s*\*\s*|m", '', $comment);
-		$comment = trim(Safe::pregReplace("|@.*$|s", '', $comment));
-		$comment = str_replace("\n", " ", $comment);
+		$comment = trim(Safe::pregReplace('|@.*$|s', '', $comment));
+		$comment = str_replace("\n", ' ', $comment);
 		$comment = Safe::pregReplace("/\s*\*$/", '', $comment);
 		return $comment;
 	}
@@ -349,18 +349,18 @@ class ApiSpecGenerator {
 	public function getMethodDoc(ReflectionMethod $method): PathDoc {
 		$doc = new PathDoc();
 		$comment = $method->getDocComment();
-		$doc->description = is_string($comment) ? $this->getDescriptionFromComment($comment) : "No documentation provided";
+		$doc->description = is_string($comment) ? $this->getDescriptionFromComment($comment) : 'No documentation provided';
 
 		$apiResultAttrs = $method->getAttributes(NCA\ApiResult::class);
 		if (empty($apiResultAttrs)) {
-			throw new Exception("Method " . $method->getDeclaringClass()->getName() . '::' . $method->getName() . "() has no #[ApiResult] defined");
+			throw new Exception('Method ' . $method->getDeclaringClass()->getName() . '::' . $method->getName() . '() has no #[ApiResult] defined');
 		}
 		if (($fileName = $method->getFileName()) === false) {
-			throw new Exception("Cannot determine file for" . $method->getDeclaringClass()->getName());
+			throw new Exception('Cannot determine file for' . $method->getDeclaringClass()->getName());
 		}
 		$dir = dirname($fileName);
-		if (count($matches = Safe::pregMatch("{(?:/|^)([A-Z_]+)(?:/|$)}", $dir))) {
-			$doc->tags = [strtolower(Safe::pregReplace("/_MODULE/", "", $matches[1]))];
+		if (count($matches = Safe::pregMatch('{(?:/|^)([A-Z_]+)(?:/|$)}', $dir))) {
+			$doc->tags = [strtolower(Safe::pregReplace('/_MODULE/', '', $matches[1]))];
 		}
 		foreach ($method->getAttributes() as $attr) {
 			$attr = $attr->newInstance();
@@ -391,23 +391,23 @@ class ApiSpecGenerator {
 	public function getRequestBodyDefinition(NCA\RequestBody $requestBody): array {
 		$result = [];
 		if (isset($requestBody->desc)) {
-			$result["description"] = $requestBody->desc;
+			$result['description'] = $requestBody->desc;
 		}
 		if (isset($requestBody->required)) {
-			$result["required"] = $requestBody->required;
+			$result['required'] = $requestBody->required;
 		}
-		$classes = explode("|", $requestBody->class);
+		$classes = explode('|', $requestBody->class);
 		foreach ($classes as &$class) {
 			$class = $this->getClassRef($class);
 		}
 		if (count($classes) > 1) {
-			$classes = ["oneOf" => $classes];
+			$classes = ['oneOf' => $classes];
 		} else {
 			$classes = $classes[0];
 		}
-		$result["content"] = [
-			"application/json" => [
-				"schema" => $classes,
+		$result['content'] = [
+			'application/json' => [
+				'schema' => $classes,
 			],
 		];
 		return $result;
@@ -423,14 +423,14 @@ class ApiSpecGenerator {
 		if (!$refProp->hasType()) {
 			$comment = $refProp->getDocComment();
 			if ($comment === false || !count($matches = Safe::pregMatch("/@var ([^\s]+)/s", $comment))) {
-				return [$propName, "mixed"];
+				return [$propName, 'mixed'];
 			}
-			$types = explode("|", $matches[1]??"");
+			$types = explode('|', $matches[1]??'');
 			foreach ($types as &$type) {
-				if ($type === "int") {
-					$type = "integer";
-				} elseif ($type === "bool") {
-					$type = "boolean";
+				if ($type === 'int') {
+					$type = 'integer';
+				} elseif ($type === 'bool') {
+					$type = 'boolean';
 				}
 			}
 			return [$propName, $types];
@@ -443,7 +443,7 @@ class ApiSpecGenerator {
 		} elseif ($refType instanceof ReflectionNamedType) {
 			$refTypes = [$refType];
 		} else {
-			throw new Exception("Unknown ReflectionClass");
+			throw new Exception('Unknown ReflectionClass');
 		}
 		$types = [];
 		foreach ($refTypes as $refType) {
@@ -452,18 +452,18 @@ class ApiSpecGenerator {
 				continue;
 			}
 			if ($refType->isBuiltin()) {
-				if ($refType->getName() === "int") {
-					$types []= "integer";
-				} elseif ($refType->getName() === "bool") {
-					$types []= "boolean";
+				if ($refType->getName() === 'int') {
+					$types []= 'integer';
+				} elseif ($refType->getName() === 'bool') {
+					$types []= 'boolean';
 				} else {
 					$types []= $refType->getName();
 				}
-			} elseif ($refType->getName() === "DateTime") {
-				$types []= "integer";
+			} elseif ($refType->getName() === 'DateTime') {
+				$types []= 'integer';
 			} else {
-				$name = explode("\\", $refType->getName());
-				$types []= "#/components/schemas/" . end($name);
+				$name = explode('\\', $refType->getName());
+				$types []= '#/components/schemas/' . end($name);
 			}
 		}
 		if (count($types) === 1) {
@@ -484,7 +484,7 @@ class ApiSpecGenerator {
 		if (count($refProperty->getAttributes(NCA\JSON\Ignore::class))) {
 			return null;
 		}
-		$description = $this->getDescriptionFromComment(is_string($docComment) ? $docComment : "");
+		$description = $this->getDescriptionFromComment(is_string($docComment) ? $docComment : '');
 		$nameAttr = $refProperty->getAttributes(NCA\JSON\Name::class);
 		if (count($nameAttr) > 0) {
 			/** @var NCA\JSON\Name */
@@ -503,7 +503,7 @@ class ApiSpecGenerator {
 	 */
 	protected function getClassRef(string $class): array {
 		if (substr($class, -2) === '[]') {
-			return ["type" => "array", "items" => $this->getSimpleClassRef(substr($class, 0, -2))];
+			return ['type' => 'array', 'items' => $this->getSimpleClassRef(substr($class, 0, -2))];
 		}
 		return $this->getSimpleClassRef($class);
 	}
@@ -516,11 +516,11 @@ class ApiSpecGenerator {
 	 * @psalm-return array{"type"?: string, "$ref"?: string}
 	 */
 	protected function getSimpleClassRef(string $class): array {
-		if (in_array($class, ["string", "bool", "int", "float"])) {
-			return ["type" => str_replace(["int", "bool"], ["integer", "boolean"], $class)];
+		if (in_array($class, ['string', 'bool', 'int', 'float'])) {
+			return ['type' => str_replace(['int', 'bool'], ['integer', 'boolean'], $class)];
 		}
-		if ($class === "DateTime") {
-			return ["type" => "integer"];
+		if ($class === 'DateTime') {
+			return ['type' => 'integer'];
 		}
 		return ['$ref' => "#/components/schemas/{$class}"];
 	}

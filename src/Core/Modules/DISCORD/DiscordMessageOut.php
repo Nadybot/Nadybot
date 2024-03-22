@@ -29,7 +29,7 @@ class DiscordMessageOut {
 			return $string;
 		} catch (JsonException $e) {
 			$replacement = clone $this;
-			$replacement->content = "I contain invalid characters";
+			$replacement->content = 'I contain invalid characters';
 			$replacement->file = null;
 			return DiscordAPIClient::encode($replacement);
 		}
@@ -43,16 +43,16 @@ class DiscordMessageOut {
 		}
 		for ($e = 0; $e < count($this->embeds); $e++) {
 			$embed = $this->embeds[$e];
-			$totalLength += strlen($embed->title ?? "");
-			$totalLength += strlen($embed->description ?? "");
+			$totalLength += strlen($embed->title ?? '');
+			$totalLength += strlen($embed->description ?? '');
 			if (!isset($embed->fields)) {
 				continue;
 			}
 			for ($i = 0; $i < count($embed->fields); $i++) {
 				$field = $embed->fields[$i];
-				$totalLength += strlen($field->name ?? "");
-				$totalLength += strlen($field->value ?? "");
-				if ($totalLength >= 6000) {
+				$totalLength += strlen($field->name ?? '');
+				$totalLength += strlen($field->value ?? '');
+				if ($totalLength >= 6_000) {
 					$msg2 = clone $this;
 					$fields = array_splice($embed->fields, $i);
 					$danglingEmbed = clone $embed;

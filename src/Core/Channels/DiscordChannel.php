@@ -75,7 +75,7 @@ class DiscordChannel implements MessageReceiver {
 		} else {
 			$msg = $event->getData();
 		}
-		$pathText = "";
+		$pathText = '';
 		if ($renderPath) {
 			$pathText = $this->messageHub->renderPath($event, $this->getChannelName());
 		}
@@ -88,16 +88,16 @@ class DiscordChannel implements MessageReceiver {
 		$discordMsg = $this->discordController->formatMessage($message, $guild);
 
 		if (isset($event->char)) {
-			$minRankForMentions = $this->settingManager->getString('discord_relay_mention_rank') ?? "superadmin";
+			$minRankForMentions = $this->settingManager->getString('discord_relay_mention_rank') ?? 'superadmin';
 			$sendersRank = $this->accessManager->getAccessLevelForCharacter($event->char->name);
 			if ($this->accessManager->compareAccessLevels($sendersRank, $minRankForMentions) < 0) {
 				$discordMsg->allowed_mentions = (object)[
-					"parse" => ["users", "everyone"],
+					'parse' => ['users', 'everyone'],
 				];
 			}
 		} else {
 			$discordMsg->allowed_mentions = (object)[
-				"parse" => ["everyone"],
+				'parse' => ['everyone'],
 			];
 		}
 

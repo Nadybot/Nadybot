@@ -11,7 +11,7 @@ class LootItem {
 
 	public string $display;
 
-	public string $comment = "";
+	public string $comment = '';
 
 	public int $multiloot = 1;
 

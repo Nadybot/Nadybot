@@ -75,7 +75,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 
 	#[NCA\SettingChangeHandler('websocket')]
 	public function changeWebsocketStatus(string $setting, string $oldValue, string $newValue, mixed $extraData): void {
-		if ($newValue === "1") {
+		if ($newValue === '1') {
 			$this->registerWebChat();
 		} else {
 			$this->unregisterWebChat();
@@ -83,16 +83,16 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 	}
 
 	#[
-		NCA\HttpGet("/events"),
+		NCA\HttpGet('/events'),
 	]
 	public function handleWebsocketStart(Request $request): ?Response {
 		if (!$this->websocket) {
-			$this->logger->notice("Websocket turned off");
+			$this->logger->notice('Websocket turned off');
 			return null;
 		}
 		$httpServer = $this->webserverController->getServer();
 		if (!isset($httpServer)) {
-			$this->logger->notice("No http server found");
+			$this->logger->notice('No http server found');
 			return null;
 		}
 		$websocket = new Websocket(
@@ -101,17 +101,17 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 			acceptor: new AllowOriginAcceptor([$request->getHeader('origin') ?? 'http://127.0.0.1:8080']),
 			clientHandler: $this,
 		);
-		$this->logger->notice("Passing control to Websocket");
+		$this->logger->notice('Passing control to Websocket');
 		return $websocket->handleRequest($request);
 	}
 
 	public function handleClient(WebsocketClient $client, Request $request, Response $response): void {
-		$this->logger->notice("New Websocket connection from {peer}", [
-			"peer" => $client->getRemoteAddress(),
+		$this->logger->notice('New Websocket connection from {peer}', [
+			'peer' => $client->getRemoteAddress(),
 		]);
 		$this->gateway->addClient($client);
 		$this->subscriptions[$client->getId()] = [];
-		$packet = ["command" => "uuid", "data" => (string)$client->getId()];
+		$packet = ['command' => 'uuid', 'data' => (string)$client->getId()];
 		$client->sendText(IMEX\JSON::export($packet));
 		while (null !== ($msg = $client->receive())) {
 			try {
@@ -125,7 +125,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 
 	#[NCA\Event(
 		name: WebsocketSubscribeEvent::EVENT_MASK,
-		description: "Handle Websocket event subscriptions",
+		description: 'Handle Websocket event subscriptions',
 		defaultStatus: 1
 	)]
 	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketClient $client): void {
@@ -135,15 +135,15 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 				return;
 			}
 			$this->subscriptions[$client->getId()] = $event->data->events;
-			$this->logger->info('Websocket subscribed to ' . join(",", $event->data->events));
+			$this->logger->info('Websocket subscribed to ' . implode(',', $event->data->events));
 		} catch (TypeError) {
-			$client->close(4002);
+			$client->close(4_002);
 		}
 	}
 
 	#[NCA\Event(
 		name: WebsocketRequestEvent::EVENT_MASK,
-		description: "Handle API requests"
+		description: 'Handle API requests'
 	)]
 	public function handleRequests(WebsocketRequestEvent $event, WebsocketClient $client): void {
 		// Not implemented yet
@@ -151,7 +151,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 
 	#[NCA\Event(
 		name: Event::EVENT_MASK,
-		description: "Distribute events to Websocket clients",
+		description: 'Distribute events to Websocket clients',
 		defaultStatus: 1
 	)]
 	public function displayEvent(Event $event): void {
@@ -166,7 +166,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 			command: WebsocketCommand::EVENT,
 			data: $event,
 		);
-		$encodedPacket = ["command" => WebsocketCommand::EVENT, "data" => $event];
+		$encodedPacket = ['command' => WebsocketCommand::EVENT, 'data' => $event];
 		foreach ($this->subscriptions as $id => $subscriptions) {
 			if ($event instanceof CommandReplyEvent && $event->uuid !== (string)$id) {
 				continue;
@@ -175,9 +175,9 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 				if ($subscription === $event->type
 					|| fnmatch($subscription, $event->type)) {
 					$this->gateway->sendText(IMEX\JSON::export($encodedPacket), $id);
-					$this->logger->info("Sending {class} to Websocket client", [
-						"class" => get_class($event),
-						"packet" => $packet,
+					$this->logger->info('Sending {class} to Websocket client', [
+						'class' => $event::class,
+						'packet' => $packet,
 					]);
 				}
 			}
@@ -207,7 +207,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 
 	private function handleIncomingMessage(WebsocketClient $client, WebsocketMessage $message): void {
 		$body = $message->buffer();
-		$this->logger->info("[Data inc.] {data}", ["data" => $body]);
+		$this->logger->info('[Data inc.] {data}', ['data' => $body]);
 		try {
 			if (!is_string($body)) {
 				throw new Exception();
@@ -219,7 +219,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 				throw new Exception();
 			}
 		} catch (Throwable) {
-			$client->close(4002);
+			$client->close(4_002);
 			return;
 		}
 		if ($command->command === $command::SUBSCRIBE) {
@@ -232,11 +232,11 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		}
 		try {
 			if (!is_object($command->data)) {
-				throw new Exception("Invalid data received");
+				throw new Exception('Invalid data received');
 			}
 			$newEvent->data->fromJSON($command->data);
 		} catch (Throwable) {
-			$client->close(4002);
+			$client->close(4_002);
 			return;
 		}
 		$this->eventManager->fireEvent($newEvent, $client);

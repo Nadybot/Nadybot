@@ -36,14 +36,14 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "apiauth",
-		accessLevel: "mod",
-		description: "Create public/private key pairs for auth against the API",
+		command: 'apiauth',
+		accessLevel: 'mod',
+		description: 'Create public/private key pairs for auth against the API',
 	),
 	NCA\ProvidesEvent(CommandReplyEvent::class)
 ]
 class ApiController extends ModuleInstance {
-	public const DB_TABLE = "api_key_<myname>";
+	public const DB_TABLE = 'api_key_<myname>';
 
 	/** Enable REST API */
 	#[NCA\Setting\Boolean]
@@ -84,84 +84,82 @@ class ApiController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->commandManager->registerSource("api");
+		$this->commandManager->registerSource('api');
 
 		$this->scanApiAttributes();
 	}
 
 	/** See a list of all currently issued tokens */
-	#[NCA\HandlesCommand("apiauth")]
+	#[NCA\HandlesCommand('apiauth')]
 	public function apiauthListCommand(
 		CmdContext $context,
-		#[NCA\Str("list")]
-		?string $action
+		#[NCA\Str('list')] ?string $action
 	): void {
 		$keys = $this->db->table(static::DB_TABLE)
-			->orderBy("created")
+			->orderBy('created')
 			->asObj(ApiKey::class);
 		if ($keys->isEmpty()) {
-			$context->reply("There are currently no active API tokens");
+			$context->reply('There are currently no active API tokens');
 			return;
 		}
-		$blocks = $keys->groupBy("character")
+		$blocks = $keys->groupBy('character')
 			->map(function (Collection $keys, string $character): string {
 				return "<header2>{$character}<end>\n".
 					$keys->map(function (ApiKey $key): string {
 						$resetLink = $this->text->makeChatcmd(
-							"reset",
+							'reset',
 							"/tell <myname> apiauth reset {$key->token}"
 						);
 						$delLink = $this->text->makeChatcmd(
-							"remove",
+							'remove',
 							"/tell <myname> apiauth rem {$key->token}"
 						);
 						return "<tab><highlight>{$key->token}<end> - ".
 							"sequence {$key->last_sequence_nr} [{$resetLink}], ".
-							"created " . $key->created->format("Y-m-d H:i e").
+							'created ' . $key->created->format('Y-m-d H:i e').
 							" [{$delLink}]";
 					})->join("\n");
 			});
 		$blob = $blocks->join("\n\n");
-		$msg = "All active API tokens (" . $keys->count() . ")";
+		$msg = 'All active API tokens (' . $keys->count() . ')';
 		$msg = $this->text->makeBlob($msg, $blob);
 		$context->reply($msg);
 	}
 
 	/** Create a new token for yourself */
-	#[NCA\HandlesCommand("apiauth")]
+	#[NCA\HandlesCommand('apiauth')]
 	#[NCA\Help\Epilogue(
 		"The <a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki/REST-API#signed-requests'>full API documentation</a> ".
-		"in on the Nadybot WIKI."
+		'in on the Nadybot WIKI.'
 	)]
 	public function apiauthCreateCommand(
 		CmdContext $context,
-		#[NCA\Str("create", "new")]
-		string $action
+		#[NCA\Str('create', 'new')] string $action
 	): void {
 		// @phpstan-ignore-next-line
-		$key = openssl_pkey_new(["private_key_type" => OPENSSL_KEYTYPE_EC, "curve_name" => "prime256v1"]);
+		$key = openssl_pkey_new(['private_key_type' => \OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
 		if ($key === false) {
 			$context->reply("Your PHP installation doesn't support the required cryptographic algorithms.");
 			return;
 		}
 		$keyDetails = openssl_pkey_get_details($key);
 		if ($keyDetails === false) {
-			$context->reply("There was an error creating the public/private key pair");
+			$context->reply('There was an error creating the public/private key pair');
 			return;
 		}
 		$pubKeyPem = $keyDetails['key'];
 		// @phpstan-ignore-next-line
 		if (openssl_pkey_export($key, $privKeyPem) === false) {
 			$context->reply(
-				"There was an error extracting the private key from the generated ".
-				"public/private key pair"
+				'There was an error extracting the private key from the generated '.
+				'public/private key pair'
 			);
 			return;
 		}
 		$apiKey = new ApiKey(
 			pubkey: $pubKeyPem,
 			character: $context->char->name,
-			token: "",
+			token: '',
 		);
 		do {
 			$apiKey->token = bin2hex(random_bytes(4));
@@ -173,22 +171,22 @@ class ApiController extends ModuleInstance {
 		} while (!isset($apiKey->id));
 
 		$blob = "<header2>Your private key<end>\n".
-			"<tab>" . implode("\n<tab>", explode("\n", trim($privKeyPem))) . "\n\n".
+			'<tab>' . implode("\n<tab>", explode("\n", trim($privKeyPem))) . "\n\n".
 			"<header2>Your API token<end>\n".
 			"<tab>{$apiKey->token}\n\n".
 			"<header2>What to do with this?<end>\n".
 			"<tab>Store both of these safely, they cannot be retrieved later.\n".
-			"<tab>See ".
+			'<tab>See '.
 			$this->text->makeChatcmd(
-				"the Nadybot WIKI",
-				"/start https://github.com/Nadybot/Nadybot/wiki/REST-API#signed-requests"
-			) . " for a documentation on how to use them.";
-		$msg = $this->text->makeBlob("Your API key and token", $blob);
+				'the Nadybot WIKI',
+				'/start https://github.com/Nadybot/Nadybot/wiki/REST-API#signed-requests'
+			) . ' for a documentation on how to use them.';
+		$msg = $this->text->makeBlob('Your API key and token', $blob);
 		$context->reply($msg);
 	}
 
 	/** Delete one of your tokens */
-	#[NCA\HandlesCommand("apiauth")]
+	#[NCA\HandlesCommand('apiauth')]
 	public function apiauthDeleteCommand(
 		CmdContext $context,
 		PRemove $action,
@@ -196,7 +194,7 @@ class ApiController extends ModuleInstance {
 	): void {
 		/** @var ?ApiKey */
 		$key = $this->db->table(static::DB_TABLE)
-			->where("token", $token)
+			->where('token', $token)
 			->asObj(ApiKey::class)
 			->first();
 		if (!isset($key)) {
@@ -207,7 +205,7 @@ class ApiController extends ModuleInstance {
 		if ($alDiff !== 1 && $context->char->name !== $key->character) {
 			$context->reply(
 				"Your access level must be higher than the token owner's ".
-				"in order to delete their token."
+				'in order to delete their token.'
 			);
 			return;
 		}
@@ -216,16 +214,15 @@ class ApiController extends ModuleInstance {
 	}
 
 	/** Reset the last used sequence for one of your tokens */
-	#[NCA\HandlesCommand("apiauth")]
+	#[NCA\HandlesCommand('apiauth')]
 	public function apiauthResetCommand(
 		CmdContext $context,
-		#[NCA\Str("reset")]
-		string $action,
+		#[NCA\Str('reset')] string $action,
 		string $token
 	): void {
 		/** @var ?ApiKey */
 		$key = $this->db->table(static::DB_TABLE)
-			->where("token", $token)
+			->where('token', $token)
 			->asObj(ApiKey::class)
 			->first();
 		if (!isset($key)) {
@@ -236,12 +233,12 @@ class ApiController extends ModuleInstance {
 		if ($alDiff !== 1 && $context->char->name !== $key->character) {
 			$context->reply(
 				"Your access level must be higher than the token owner's ".
-				"in order to delete their token."
+				'in order to delete their token.'
 			);
 			return;
 		}
 		$key->last_sequence_nr = 0;
-		$this->db->update(static::DB_TABLE, "id", $key);
+		$this->db->update(static::DB_TABLE, 'id', $key);
 		$context->reply("API token <highlight>{$token}<end> reset.");
 	}
 
@@ -300,7 +297,7 @@ class ApiController extends ModuleInstance {
 		foreach ($paths as $path) {
 			$handler = new ApiHandler();
 			$route = $this->webserverController->routeToRegExp($path);
-			$this->logger->info("Adding route to {path}", ["path" => $path]);
+			$this->logger->info('Adding route to {path}', ['path' => $path]);
 			$handler->path = $path;
 			$handler->route = $route;
 			$handler->allowedMethods = $methods;
@@ -314,16 +311,16 @@ class ApiController extends ModuleInstance {
 			// Longer routes must be handled first, because they are more specific
 			uksort(
 				$this->routes,
-				function (string $a, string $b): int {
-					return (substr_count($b, "/") <=> substr_count($a, "/"))
-						?: substr_count(basename($a), "+?)") <=> substr_count(basename($b), "+?)")
+				static function (string $a, string $b): int {
+					return (substr_count($b, '/') <=> substr_count($a, '/'))
+						?: substr_count(basename($a), '+?)') <=> substr_count(basename($b), '+?)')
 						?: strlen($b) <=> strlen($a);
 				}
 			);
 		}
 	}
 
-	public function getHandlerForRequest(Request $request, string $prefix="/api"): ?ApiHandler {
+	public function getHandlerForRequest(Request $request, string $prefix='/api'): ?ApiHandler {
 		$method = strtolower($request->getMethod());
 		$path = substr($request->getUri()->getPath(), strlen($prefix));
 		foreach ($this->routes as $mask => $data) {
@@ -362,11 +359,11 @@ class ApiController extends ModuleInstance {
 	}
 
 	#[
-		NCA\HttpGet("/api/%s"),
-		NCA\HttpPost("/api/%s"),
-		NCA\HttpPut("/api/%s"),
-		NCA\HttpDelete("/api/%s"),
-		NCA\HttpPatch("/api/%s"),
+		NCA\HttpGet('/api/%s'),
+		NCA\HttpPost('/api/%s'),
+		NCA\HttpPut('/api/%s'),
+		NCA\HttpDelete('/api/%s'),
+		NCA\HttpPatch('/api/%s'),
 	]
 	public function apiRequest(Request $request, string $path): ?Response {
 		if (!$this->api) {
@@ -379,7 +376,7 @@ class ApiController extends ModuleInstance {
 		if (!isset($handler->handler)) {
 			return new Response(
 				status: HttpStatus::METHOD_NOT_ALLOWED,
-				headers: ['Allow' => strtoupper(join(", ", $handler->allowedMethods))]
+				headers: ['Allow' => strtoupper(implode(', ', $handler->allowedMethods))]
 			);
 		}
 		$authorized = true;
@@ -387,7 +384,7 @@ class ApiController extends ModuleInstance {
 		/** @var ?string */
 		$user = $request->getAttribute(WebserverController::USER);
 		if (isset($handler->accessLevel)) {
-			$authorized = $this->accessManager->checkAccess($user??"_", $handler->accessLevel);
+			$authorized = $this->accessManager->checkAccess($user??'_', $handler->accessLevel);
 		} elseif (isset($handler->accessLevelFrom)) {
 			$authorized = $this->checkHasAccess($user, $request, $handler);
 		}
@@ -417,7 +414,7 @@ class ApiController extends ModuleInstance {
 		if ($status >= 200 && $status < 300 && isset($bodyLength) && $bodyLength > 0) {
 			$response->setHeader('Content-Type', 'application/json');
 		} elseif ($status === HttpStatus::OK && $request->getMethod() === 'POST') {
-			$response->setBody("");
+			$response->setBody('');
 			$response->setStatus(HttpStatus::CREATED);
 		} elseif ($status === HttpStatus::OK && in_array($request->getMethod(), ['PUT', 'PATCH', 'DELETE'])) {
 			$response->setStatus(HttpStatus::NO_CONTENT);
@@ -427,13 +424,13 @@ class ApiController extends ModuleInstance {
 
 	/** Execute a command, result is sent via websocket */
 	#[
-		NCA\Api("/execute/%s"),
+		NCA\Api('/execute/%s'),
 		NCA\POST,
-		NCA\AccessLevel("member"),
-		NCA\RequestBody(class: "string", desc: "The command to execute as typed in", required: true),
-		NCA\ApiResult(code: 204, desc: "operation applied successfully"),
-		NCA\ApiResult(code: 404, desc: "Invalid UUID provided"),
-		NCA\ApiResult(code: 422, desc: "Unparsable data received")
+		NCA\AccessLevel('member'),
+		NCA\RequestBody(class: 'string', desc: 'The command to execute as typed in', required: true),
+		NCA\ApiResult(code: 204, desc: 'operation applied successfully'),
+		NCA\ApiResult(code: 404, desc: 'Invalid UUID provided'),
+		NCA\ApiResult(code: 422, desc: 'Unparsable data received')
 	]
 	public function apiExecuteCommand(Request $request, string $uuid): Response {
 		$msg = $request->getAttribute(WebserverController::BODY);
@@ -447,11 +444,11 @@ class ApiController extends ModuleInstance {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		if (isset($msg) && isset($user)) {
-			$set = $this->commandManager->getPermsetMapForSource("api");
+			$set = $this->commandManager->getPermsetMapForSource('api');
 			$handler = new EventCommandReply($uuid);
 			Registry::injectDependencies($handler);
 			$context = new CmdContext($user);
-			$context->source = "api";
+			$context->source = 'api';
 			$context->setIsDM();
 			$context->permissionSet = isset($set)
 				? $set->permission_set
@@ -471,19 +468,19 @@ class ApiController extends ModuleInstance {
 		if (!isset($handler->accessLevelFrom)) {
 			return null;
 		}
-		$set = $this->commandManager->getPermsetMapForSource("api");
+		$set = $this->commandManager->getPermsetMapForSource('api');
 		if (!isset($set)) {
 			return null;
 		}
 		// Check if a subcommands for this exists
-		$mainCommand = explode(" ", $handler->accessLevelFrom)[0];
+		$mainCommand = explode(' ', $handler->accessLevelFrom)[0];
 		if (isset($this->subcommandManager->subcommands[$mainCommand])) {
 			foreach ($this->subcommandManager->subcommands[$mainCommand] as $row) {
 				$perms = $row->permissions[$set->permission_set] ?? null;
 				if (!isset($perms) || $row->cmd !== $handler->accessLevelFrom) {
 					continue;
 				}
-				$files = explode(",", $row->file);
+				$files = explode(',', $row->file);
 				return new CommandHandler($perms->access_level, ...$files);
 			}
 		}
@@ -522,10 +519,7 @@ class ApiController extends ModuleInstance {
 
 		$reqBody = $rqBodyAttrs[0]->newInstance();
 		if ($body === null) {
-			if (!$reqBody->required) {
-				return true;
-			}
-			return false;
+			return $reqBody->required === false;
 		}
 		if (JsonImporter::matchesType($reqBody->class, $body)) {
 			return true;

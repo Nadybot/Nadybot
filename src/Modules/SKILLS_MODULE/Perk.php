@@ -14,11 +14,10 @@ class Perk extends DBRow {
 	 */
 	public function __construct(
 		public string $name,
-		public string $expansion="sl",
+		public string $expansion='sl',
 		public ?string $description=null,
 		public ?int $id=null,
-		#[NCA\DB\Ignore]
-		public array $levels=[],
+		#[NCA\DB\Ignore] public array $levels=[],
 	) {
 	}
 }

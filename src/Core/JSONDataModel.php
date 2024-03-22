@@ -32,9 +32,9 @@ class JSONDataModel {
 			} else {
 				continue;
 			}
-			if ($typeName === "array") {
+			if ($typeName === 'array') {
 				if (($docComment = $refProp->getDocComment()) === false) {
-					$docComment = "";
+					$docComment = '';
 				}
 				$class = null;
 				if (count($matches = Safe::pregMatch("/@var\s+(?:null\||\?)?array<(?:int,)?([a-zA-Z_\\\\]+)>/", $docComment))) {
@@ -42,14 +42,14 @@ class JSONDataModel {
 				} elseif (count($matches = Safe::pregMatch("/@var\s+(?:null\||\?)?([a-zA-Z_\\\\]+)\[\]/", $docComment))) {
 					$class = $matches[1];
 				}
-				if ($class === null || preg_match("/^(int|bool|string|float|object)$/", $class)) {
+				if ($class === null || preg_match('/^(int|bool|string|float|object)$/', $class)) {
 					$refProp->setValue($this, $data->{$propName});
-				} elseif ($class === "DateTime") {
+				} elseif ($class === 'DateTime') {
 					$refProp->setValue($this, null);
 					if (isset($data->{$propName})) {
 						$values = array_map(
-							function (string|int|float $v): DateTime|false {
-								return DateTime::createFromFormat("U", (string)floor((float)$v));
+							static function (string|int|float $v): DateTime|false {
+								return DateTime::createFromFormat('U', (string)floor((float)$v));
 							},
 							$data->{$propName}
 						);
@@ -58,7 +58,7 @@ class JSONDataModel {
 				} else {
 					if (isset($data->{$propName})) {
 						$values = array_map(
-							function (object $v) use ($class): object {
+							static function (object $v) use ($class): object {
 								if (class_exists($class, true) &&is_subclass_of($class, self::class)) {
 									/** @psalm-suppress UnsafeInstantiation */
 									$ret = new $class();
@@ -75,7 +75,7 @@ class JSONDataModel {
 					}
 				}
 			} elseif ($type->isBuiltin() === true) {
-				if ($typeName === "string") {
+				if ($typeName === 'string') {
 					if ($data->{$propName} === null) {
 						$refProp->setValue($this, null);
 					} else {
@@ -84,28 +84,28 @@ class JSONDataModel {
 				} else {
 					$refProp->setValue($this, $data->{$propName});
 				}
-			} elseif ($typeName === "DateTime") {
+			} elseif ($typeName === 'DateTime') {
 				if (isset($data->{$propName})) {
 					if (is_numeric($data->{$propName})) {
-						$refProp->setValue($this, SafeDateTime::createFromFormat("U", (string)floor((float)$data->{$propName})));
+						$refProp->setValue($this, SafeDateTime::createFromFormat('U', (string)floor((float)$data->{$propName})));
 					} else {
 						$refProp->setValue($this, new SafeDateTime($data->{$propName}));
 					}
 				} else {
 					$refProp->setValue($this, null);
 				}
-			} elseif ($typeName === "stdClass") {
+			} elseif ($typeName === 'stdClass') {
 				$refProp->setValue($this, $data->{$propName});
 			} else {
 				$value = new $typeName();
-				if (method_exists($value, "fromJSON")) {
+				if (method_exists($value, 'fromJSON')) {
 					if (!isset($data->{$propName})) {
 						if ($type->allowsNull()) {
 							$refProp->setValue($this, null);
 						} else {
 							throw new UnexpectedValueException(
-								"Trying to assign a null value to ".
-								"non-null property " . get_class($this).
+								'Trying to assign a null value to '.
+								'non-null property ' . static::class.
 								'::$' . $refProp->getName()
 							);
 						}

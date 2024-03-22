@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 
-#[NCA\SettingHandler("options")]
+#[NCA\SettingHandler('options')]
 class OptionsSettingHandler extends SettingHandler {
 	/** @inheritDoc */
 	public function getDescription(): string {
@@ -19,17 +19,17 @@ class OptionsSettingHandler extends SettingHandler {
 	 * @throws \Exception if the option is invalid
 	 */
 	public function save(string $newValue): string {
-		$options = explode(";", $this->row->options??"");
+		$options = explode(';', $this->row->options??'');
 		if (isset($this->row->intoptions) && $this->row->intoptions !== '') {
-			$intoptions = explode(";", $this->row->intoptions);
+			$intoptions = explode(';', $this->row->intoptions);
 			if (in_array($newValue, $intoptions)) {
 				return $newValue;
 			}
-			throw new Exception("This is not a correct option for this setting.");
+			throw new Exception('This is not a correct option for this setting.');
 		}
 		if (in_array($newValue, $options)) {
 			return $newValue;
 		}
-		throw new Exception("This is not a correct option for this setting.");
+		throw new Exception('This is not a correct option for this setting.');
 	}
 }

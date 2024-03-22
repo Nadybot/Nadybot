@@ -19,53 +19,53 @@ use Throwable;
 
 #[
 	NCA\Instance,
-	NCA\EmitsMessages("pvp", "tower-hit-own"),
-	NCA\EmitsMessages("pvp", "tower-shield-own"),
-	NCA\EmitsMessages("pvp", "tower-attack"),
-	NCA\EmitsMessages("pvp", "tower-attack-own"),
-	NCA\EmitsMessages("pvp", "tower-outcome"),
-	NCA\EmitsMessages("pvp", "tower-outcome-own"),
+	NCA\EmitsMessages('pvp', 'tower-hit-own'),
+	NCA\EmitsMessages('pvp', 'tower-shield-own'),
+	NCA\EmitsMessages('pvp', 'tower-attack'),
+	NCA\EmitsMessages('pvp', 'tower-attack-own'),
+	NCA\EmitsMessages('pvp', 'tower-outcome'),
+	NCA\EmitsMessages('pvp', 'tower-outcome-own'),
 	NCA\DefineCommand(
 		command: AttacksController::CMD_ATTACKS,
-		description: "Show the last Tower Attack messages",
-		accessLevel: "guest",
+		description: 'Show the last Tower Attack messages',
+		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
 		command: AttacksController::CMD_OUTCOMES,
-		description: "Show the last tower outcomes",
-		accessLevel: "guest",
+		description: 'Show the last tower outcomes',
+		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
 		command: AttacksController::CMD_STATS,
-		description: "Show how many towers each faction has lost",
-		accessLevel: "guest",
+		description: 'Show how many towers each faction has lost',
+		accessLevel: 'guest',
 	),
 ]
 class AttacksController extends ModuleInstance {
-	public const CMD_ATTACKS = "nw attacks";
-	public const CMD_OUTCOMES = "nw victory";
-	public const CMD_STATS = "nw stats";
+	public const CMD_ATTACKS = 'nw attacks';
+	public const CMD_OUTCOMES = 'nw victory';
+	public const CMD_STATS = 'nw stats';
 
-	private const ATT_FMT_NORMAL = "{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org} ".
-		"{?att-org:- {c-att-name} }{?att-level:({c-att-level}/{c-att-ai-level},{?att-gender: {att-gender} {att-breed}} {c-att-profession}{?att-org-rank:, {att-org-rank}})}";
-	private const VICTORY_FMT_NORMAL = "{c-winning-org} won against {c-losing-org} in <highlight>{pf-short} {site-id}<end>";
-	private const ABANDONED_FMT_NORMAL = "{c-losing-org} abandoned <highlight>{pf-short} {site-id}<end>";
+	private const ATT_FMT_NORMAL = '{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org} '.
+		'{?att-org:- {c-att-name} }{?att-level:({c-att-level}/{c-att-ai-level},{?att-gender: {att-gender} {att-breed}} {c-att-profession}{?att-org-rank:, {att-org-rank}})}';
+	private const VICTORY_FMT_NORMAL = '{c-winning-org} won against {c-losing-org} in <highlight>{pf-short} {site-id}<end>';
+	private const ABANDONED_FMT_NORMAL = '{c-losing-org} abandoned <highlight>{pf-short} {site-id}<end>';
 
 	/** Display format for tower attacks */
 	#[NCA\Setting\Template(
 		options: [
 			self::ATT_FMT_NORMAL,
-			"{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org}",
-			"{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org} CT <highlight>{site-ct-ql}<end>",
+			'{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org}',
+			'{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org} CT <highlight>{site-ct-ql}<end>',
 		],
 		exampleValues: [
 			// ...TowerAttack::EXAMPLE_TOKENS,
-			"att-org-name" => "Team Rainbow",
-			"c-att-org-name" => "<clan>Team Rainbow<end>",
-			"att-org" => "Team Rainbow",
-			"c-att-org" => "<clan>Team Rainbow<end>",
-			"att-org-faction" => 'Clan',
-			"c-att-org-faction" => '<clan>Clan<end>',
+			'att-org-name' => 'Team Rainbow',
+			'c-att-org-name' => '<clan>Team Rainbow<end>',
+			'att-org' => 'Team Rainbow',
+			'c-att-org' => '<clan>Team Rainbow<end>',
+			'att-org-faction' => 'Clan',
+			'c-att-org-faction' => '<clan>Clan<end>',
 			'att-name' => 'Nady',
 			'c-att-name' => '<highlight>Nady<end>',
 			'att-level' => 220,
@@ -84,12 +84,12 @@ class AttacksController extends ModuleInstance {
 			'c-att-breed' => '<highlight>Nano<end>',
 			'att-faction' => 'Clan',
 			'c-att-faction' => '<clan>Clan<end>',
-			"def-org" => "Troet",
-			"c-def-org" => "<neutral>Troet<end>",
-			"def-faction" => "Neutral",
-			"c-def-faction" => "<neutral>Neutral<end>",
-			"att-coord-x" => 700,
-			"att-coord-y" => 800,
+			'def-org' => 'Troet',
+			'c-def-org' => '<neutral>Troet<end>',
+			'def-faction' => 'Neutral',
+			'c-def-faction' => '<neutral>Neutral<end>',
+			'att-coord-x' => 700,
+			'att-coord-y' => 800,
 			// ...SiteUpdate::EXAMPLE_TOKENS,
 			'site-pf-id' => 660,
 			'site-id' => 6,
@@ -112,9 +112,9 @@ class AttacksController extends ModuleInstance {
 			'site-plant-time' => '13-Jan-2023 17:07 UTC',
 			'site-ct-ql' => 25,
 			// ...Playfield::EXAMPLE_TOKENS,
-			"pf-id" => 551,
-			"pf-long" => "Wailing Wastes",
-			"pf-short" => "WW",
+			'pf-id' => 551,
+			'pf-long' => 'Wailing Wastes',
+			'pf-short' => 'WW',
 		],
 	)]
 	public string $towerAttackFormat = self::ATT_FMT_NORMAL;
@@ -126,16 +126,16 @@ class AttacksController extends ModuleInstance {
 		],
 		exampleValues: [
 			// ...TowerOutcome::EXAMPLE_TOKENS,
-			"pf-id" => 551,
-			"timestamp" => "11-Mar-2023 20:12 UTC",
-			"winning-faction" => "Neutral",
-			"c-winning-faction" => "<neutral>Neutral<end>",
-			"winning-org" => "Troet",
-			"c-winning-org" => "<neutral>Troet<end>",
-			"losing-faction" => "Clan",
-			"c-losing-faction" => "<clan>Clan<end>",
-			"losing-org" => "Team Rainbow",
-			"c-losing-org" => "<clan>Team Rainbow<end>",
+			'pf-id' => 551,
+			'timestamp' => '11-Mar-2023 20:12 UTC',
+			'winning-faction' => 'Neutral',
+			'c-winning-faction' => '<neutral>Neutral<end>',
+			'winning-org' => 'Troet',
+			'c-winning-org' => '<neutral>Troet<end>',
+			'losing-faction' => 'Clan',
+			'c-losing-faction' => '<clan>Clan<end>',
+			'losing-org' => 'Team Rainbow',
+			'c-losing-org' => '<clan>Team Rainbow<end>',
 			// ...SiteUpdate::EXAMPLE_TOKENS,
 			'site-pf-id' => 660,
 			'site-id' => 6,
@@ -158,8 +158,8 @@ class AttacksController extends ModuleInstance {
 			'site-plant-time' => '13-Jan-2023 17:07 UTC',
 			'site-ct-ql' => 25,
 			// ...Playfield::EXAMPLE_TOKENS,
-			"pf-long" => "Wailing Wastes",
-			"pf-short" => "WW",
+			'pf-long' => 'Wailing Wastes',
+			'pf-short' => 'WW',
 		],
 		help: 'tower_victory_format.txt',
 	)]
@@ -169,20 +169,20 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Setting\Template(
 		options: [
 			self::ABANDONED_FMT_NORMAL,
-			"{c-losing-org} abandoned their field at <highlight>{pf-short} {site-id}<end>",
+			'{c-losing-org} abandoned their field at <highlight>{pf-short} {site-id}<end>',
 		],
 		exampleValues: [
 			// ...TowerOutcome::EXAMPLE_ABANDON_TOKENS,
-			"pf-id" => 551,
-			"timestamp" => "11-Mar-2023 20:12 UTC",
-			"winning-faction" => "Neutral",
-			"c-winning-faction" => "<neutral>Neutral<end>",
-			"winning-org" => "Troet",
-			"c-winning-org" => "<neutral>Troet<end>",
-			"losing-faction" => "Clan",
-			"c-losing-faction" => "<clan>Clan<end>",
-			"losing-org" => "Team Rainbow",
-			"c-losing-org" => "<clan>Team Rainbow<end>",
+			'pf-id' => 551,
+			'timestamp' => '11-Mar-2023 20:12 UTC',
+			'winning-faction' => 'Neutral',
+			'c-winning-faction' => '<neutral>Neutral<end>',
+			'winning-org' => 'Troet',
+			'c-winning-org' => '<neutral>Troet<end>',
+			'losing-faction' => 'Clan',
+			'c-losing-faction' => '<clan>Clan<end>',
+			'losing-org' => 'Team Rainbow',
+			'c-losing-org' => '<clan>Team Rainbow<end>',
 			// ...SiteUpdate::EXAMPLE_TOKENS,
 			'site-pf-id' => 660,
 			'site-id' => 6,
@@ -205,8 +205,8 @@ class AttacksController extends ModuleInstance {
 			'site-plant-time' => '13-Jan-2023 17:07 UTC',
 			'site-ct-ql' => 25,
 			// ...Playfield::EXAMPLE_TOKENS,
-			"pf-long" => "Wailing Wastes",
-			"pf-short" => "WW",
+			'pf-long' => 'Wailing Wastes',
+			'pf-short' => 'WW',
 		],
 		help: 'site_abandoned_format.txt',
 	)]
@@ -215,58 +215,58 @@ class AttacksController extends ModuleInstance {
 	/** Display format when one of our org's towers is being hit */
 	#[NCA\Setting\Template(
 		options: [
-			"{att-whois} reduced the {tower-type} health to {tower-health}%".
-				" in {site-details}",
-			"{att-whois} reduced the {tower-type} health to {tower-health}%".
-				"{?pf-id: in {pf-short}{?site-id: {site-id}}}",
-			"{?att-faction:<{att-faction}>{att-name}<end>}".
-				"{!att-faction:<highlight>{c-att-name}<end>} ".
-				"reduced the <highlight>{tower-type}<end> health to ".
-				"<highlight>{tower-health}%<end> ".
-				"in {site-details}",
-			"{?att-faction:<{att-faction}>{att-name}<end>}".
-				"{!att-faction:<highlight>{c-att-name}<end>} ".
-				"reduced the <highlight>{tower-type}<end> health to ".
-				"<highlight>{tower-health}%<end>".
-				"{?pf-id: in {pf-short}{?site-id: {site-id}}}",
-			"{tower-type} health reduced to <highlight>{tower-health}%<end> ".
-				"in {site-details}",
-			"{tower-type} health reduced to <highlight>{tower-health}%<end>".
-				"{?pf-id: in {pf-short}{?site-id: {site-id}}}",
+			'{att-whois} reduced the {tower-type} health to {tower-health}%'.
+				' in {site-details}',
+			'{att-whois} reduced the {tower-type} health to {tower-health}%'.
+				'{?pf-id: in {pf-short}{?site-id: {site-id}}}',
+			'{?att-faction:<{att-faction}>{att-name}<end>}'.
+				'{!att-faction:<highlight>{c-att-name}<end>} '.
+				'reduced the <highlight>{tower-type}<end> health to '.
+				'<highlight>{tower-health}%<end> '.
+				'in {site-details}',
+			'{?att-faction:<{att-faction}>{att-name}<end>}'.
+				'{!att-faction:<highlight>{c-att-name}<end>} '.
+				'reduced the <highlight>{tower-type}<end> health to '.
+				'<highlight>{tower-health}%<end>'.
+				'{?pf-id: in {pf-short}{?site-id: {site-id}}}',
+			'{tower-type} health reduced to <highlight>{tower-health}%<end> '.
+				'in {site-details}',
+			'{tower-type} health reduced to <highlight>{tower-health}%<end>'.
+				'{?pf-id: in {pf-short}{?site-id: {site-id}}}',
 		],
 		exampleValues: [
 			'tower-health' => '75',
 			'tower-type' => 'Control Tower - Neutral',
 			'site-details' => "<a href='itemref://301560/301560/30'>WW 6</a>",
-			"att-name" => "Nady",
-			"c-att-name" => "<highlight>Nady<end>",
-			"att-first-name" => null,
-			"att-last-name" => null,
-			"att-level" => 220,
-			"c-att-level" => "<highlight>220<end>",
-			"att-ai-level" => 30,
-			"c-att-ai-level" => "<green>30<end>",
-			"att-prof" => "Bureaucrat",
-			"c-att-prof" => "<highlight>Bureaucrat<end>",
-			"att-profession" => "Bureaucrat",
-			"c-att-profession" => "<highlight>Bureaucrat<end>",
-			"att-org" => "Team Rainbow",
-			"c-att-org" => "<clan>Team Rainbow<end>",
-			"att-org-rank" => "Advisor",
-			"att-breed" => "Nano",
-			"c-att-breed" => "<highlight>Nano<end>",
-			"att-faction" => "Clan",
-			"c-att-faction" => "<clan>Clan<end>",
-			"att-gender" => "Female",
-			"att-whois" => "\"Nady\" (<highlight>220<end>/<green>30<end>, ".
-				"Female Nano <highlight>Bureaucrat<end>, ".
-				"<clan>Clan<end>, Advisor of <clan>Team Rainbow<end>)",
-			"att-short-prof" => "Crat",
-			"c-att-short-prof" => "<highlight>Crat<end>",
+			'att-name' => 'Nady',
+			'c-att-name' => '<highlight>Nady<end>',
+			'att-first-name' => null,
+			'att-last-name' => null,
+			'att-level' => 220,
+			'c-att-level' => '<highlight>220<end>',
+			'att-ai-level' => 30,
+			'c-att-ai-level' => '<green>30<end>',
+			'att-prof' => 'Bureaucrat',
+			'c-att-prof' => '<highlight>Bureaucrat<end>',
+			'att-profession' => 'Bureaucrat',
+			'c-att-profession' => '<highlight>Bureaucrat<end>',
+			'att-org' => 'Team Rainbow',
+			'c-att-org' => '<clan>Team Rainbow<end>',
+			'att-org-rank' => 'Advisor',
+			'att-breed' => 'Nano',
+			'c-att-breed' => '<highlight>Nano<end>',
+			'att-faction' => 'Clan',
+			'c-att-faction' => '<clan>Clan<end>',
+			'att-gender' => 'Female',
+			'att-whois' => '"Nady" (<highlight>220<end>/<green>30<end>, '.
+				'Female Nano <highlight>Bureaucrat<end>, '.
+				'<clan>Clan<end>, Advisor of <clan>Team Rainbow<end>)',
+			'att-short-prof' => 'Crat',
+			'c-att-short-prof' => '<highlight>Crat<end>',
 			// ...Playfield::EXAMPLE_TOKENS,
-			"pf-long" => "Wailing Wastes",
-			"pf-short" => "WW",
-			"pf-id" => 660,
+			'pf-long' => 'Wailing Wastes',
+			'pf-short' => 'WW',
+			'pf-id' => 660,
 			// ...SiteUpdate::EXAMPLE_TOKENS,
 			'site-pf-id' => 660,
 			'site-id' => 6,
@@ -291,47 +291,47 @@ class AttacksController extends ModuleInstance {
 		],
 		help: 'own_tower_hit_format.txt',
 	)]
-	public string $ownTowerHitFormat = "{tower-type} health reduced to <highlight>{tower-health}%<end> in {site-details}";
+	public string $ownTowerHitFormat = '{tower-type} health reduced to <highlight>{tower-health}%<end> in {site-details}';
 
 	/** Display format when the defense shield on one of our sites is disabled */
 	#[NCA\Setting\Template(
 		options: [
-			"{att-name} ({c-att-org}) disabled the defense shield in {site-details}",
-			"{att-name} ({?att-level:{c-att-level}/{c-att-ai-level} {c-att-short-prof}, }{c-att-org}) disabled the defense shield in {site-details}",
-			"{att-whois} disabled the defense shield in {site-details}",
+			'{att-name} ({c-att-org}) disabled the defense shield in {site-details}',
+			'{att-name} ({?att-level:{c-att-level}/{c-att-ai-level} {c-att-short-prof}, }{c-att-org}) disabled the defense shield in {site-details}',
+			'{att-whois} disabled the defense shield in {site-details}',
 		],
 		exampleValues: [
 			'tower-type' => 'Control Tower - Neutral',
 			'site-details' => "<a href='itemref://301560/301560/30'>WW 6</a>",
-			"att-name" => "Nady",
-			"c-att-name" => "<highlight>Nady<end>",
-			"att-first-name" => null,
-			"att-last-name" => null,
-			"att-level" => 220,
-			"c-att-level" => "<highlight>220<end>",
-			"att-ai-level" => 30,
-			"c-att-ai-level" => "<green>30<end>",
-			"att-prof" => "Bureaucrat",
-			"c-att-prof" => "<highlight>Bureaucrat<end>",
-			"att-profession" => "Bureaucrat",
-			"c-att-profession" => "<highlight>Bureaucrat<end>",
-			"att-org" => "Team Rainbow",
-			"c-att-org" => "<clan>Team Rainbow<end>",
-			"att-org-rank" => "Advisor",
-			"att-breed" => "Nano",
-			"c-att-breed" => "<highlight>Nano<end>",
-			"att-faction" => "Clan",
-			"c-att-faction" => "<clan>Clan<end>",
-			"att-gender" => "Female",
-			"att-whois" => "\"Nady\" (<highlight>220<end>/<green>30<end>, ".
-				"Female Nano <highlight>Bureaucrat<end>, ".
-				"<clan>Clan<end>, Advisor of <clan>Team Rainbow<end>)",
-			"att-short-prof" => "Crat",
-			"c-att-short-prof" => "<highlight>Crat<end>",
+			'att-name' => 'Nady',
+			'c-att-name' => '<highlight>Nady<end>',
+			'att-first-name' => null,
+			'att-last-name' => null,
+			'att-level' => 220,
+			'c-att-level' => '<highlight>220<end>',
+			'att-ai-level' => 30,
+			'c-att-ai-level' => '<green>30<end>',
+			'att-prof' => 'Bureaucrat',
+			'c-att-prof' => '<highlight>Bureaucrat<end>',
+			'att-profession' => 'Bureaucrat',
+			'c-att-profession' => '<highlight>Bureaucrat<end>',
+			'att-org' => 'Team Rainbow',
+			'c-att-org' => '<clan>Team Rainbow<end>',
+			'att-org-rank' => 'Advisor',
+			'att-breed' => 'Nano',
+			'c-att-breed' => '<highlight>Nano<end>',
+			'att-faction' => 'Clan',
+			'c-att-faction' => '<clan>Clan<end>',
+			'att-gender' => 'Female',
+			'att-whois' => '"Nady" (<highlight>220<end>/<green>30<end>, '.
+				'Female Nano <highlight>Bureaucrat<end>, '.
+				'<clan>Clan<end>, Advisor of <clan>Team Rainbow<end>)',
+			'att-short-prof' => 'Crat',
+			'c-att-short-prof' => '<highlight>Crat<end>',
 			// ...Playfield::EXAMPLE_TOKENS,
-			"pf-long" => "Wailing Wastes",
-			"pf-short" => "WW",
-			"pf-id" => 660,
+			'pf-long' => 'Wailing Wastes',
+			'pf-short' => 'WW',
+			'pf-id' => 660,
 			// ...SiteUpdate::EXAMPLE_TOKENS,
 			'site-pf-id' => 660,
 			'site-id' => 6,
@@ -356,7 +356,7 @@ class AttacksController extends ModuleInstance {
 		],
 		help: 'own_shield_disabled_format.txt',
 	)]
-	public string $ownShieldDisabledFormat = "{att-name} ({?att-level:{c-att-level}/{c-att-ai-level} {c-att-short-prof}, }{c-att-org}) disabled the defense shield in {site-details}";
+	public string $ownShieldDisabledFormat = '{att-name} ({?att-level:{c-att-level}/{c-att-ai-level} {c-att-short-prof}, }{c-att-org}) disabled the defense shield in {site-details}';
 
 	/** Group tower attacks by site, owner and hot-phase */
 	#[NCA\Setting\Boolean]
@@ -405,7 +405,7 @@ class AttacksController extends ModuleInstance {
 		}
 		if (
 			!count($matches = Safe::pregMatch(
-				"/^Your (?<tower>.+?) tower in (?<site_name>.+?) in (?<playfield>.+?) has had its ".
+				'/^Your (?<tower>.+?) tower in (?<site_name>.+?) in (?<playfield>.+?) has had its '.
 				"defense shield disabled by (?<att_name>[^ ]+) \((?<att_faction>.+?)\)\.\s*".
 				"The attacker is a member of the organization (?<att_org>.+?)\.$/",
 				$eventObj->message,
@@ -420,8 +420,8 @@ class AttacksController extends ModuleInstance {
 
 		/** @var ?FeedMessage\SiteUpdate */
 		$site = ($this->nwCtrl->getEnabledSites())
-			->where("playfield_id", $pf->id)
-			->where("name", $matches['site_name'])
+			->where('playfield_id', $pf->id)
+			->where('name', $matches['site_name'])
 			->first();
 
 		$whois = $this->playerManager->byName($matches['att_name']);
@@ -440,17 +440,17 @@ class AttacksController extends ModuleInstance {
 			))[0];
 		}
 		$tokens = array_merge(
-			$whois->getTokens("att-"),
+			$whois->getTokens('att-'),
 			[
-				"tower-type" => $matches['tower'],
-				"att-name" => $matches["att_name"],
-				"c-att-name" => "<highlight>" . $matches['att_name'] . "<end>",
-				"att-faction" => ucfirst(strtolower($matches["att_faction"])),
-				"c-att-faction" => "<" . strtolower($matches["att_faction"]) . ">".
-					ucfirst(strtolower($matches['att_faction'])) . "<end>",
-				"att-org" => $matches["att_org"],
-				"c-att-org" => "<" . strtolower($matches["att_faction"]) . ">".
-					$matches['att_org'] . "<end>",
+				'tower-type' => $matches['tower'],
+				'att-name' => $matches['att_name'],
+				'c-att-name' => '<highlight>' . $matches['att_name'] . '<end>',
+				'att-faction' => ucfirst(strtolower($matches['att_faction'])),
+				'c-att-faction' => '<' . strtolower($matches['att_faction']) . '>'.
+					ucfirst(strtolower($matches['att_faction'])) . '<end>',
+				'att-org' => $matches['att_org'],
+				'c-att-org' => '<' . strtolower($matches['att_faction']) . '>'.
+					$matches['att_org'] . '<end>',
 				'site-details' => $siteName,
 			],
 			$site?->getTokens() ?? [],
@@ -461,7 +461,7 @@ class AttacksController extends ModuleInstance {
 			$tokens
 		);
 		$rMsg = new RoutableMessage($msg);
-		$rMsg->appendPath(new Source("pvp", "tower-shield-own"));
+		$rMsg->appendPath(new Source('pvp', 'tower-shield-own'));
 		$this->msgHub->handle($rMsg);
 	}
 
@@ -476,7 +476,7 @@ class AttacksController extends ModuleInstance {
 		if (
 			!count($matches = Safe::pregMatch(
 				"/^The tower (?<tower>.+?) in (?<playfield>.+?) was just reduced to (?<health>\d+) % health ".
-				"by (?<att_name>[^ ]+) from the (?<att_org>.+?) organization!$/",
+				'by (?<att_name>[^ ]+) from the (?<att_org>.+?) organization!$/',
 				$eventObj->message,
 			))
 			&& !count($matches = Safe::pregMatch(
@@ -551,14 +551,14 @@ class AttacksController extends ModuleInstance {
 		}
 		$msg = $this->text->renderPlaceholders($this->ownTowerHitFormat, $tokens);
 		$rMsg = new RoutableMessage($msg);
-		$rMsg->appendPath(new Source("pvp", "tower-hit-own"));
+		$rMsg->appendPath(new Source('pvp', 'tower-hit-own'));
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[NCA\Event("tower-attack-info", "Announce tower attacks")]
+	#[NCA\Event('tower-attack-info', 'Announce tower attacks')]
 	public function announceTowerAttack(TowerAttackInfoEvent $event): void {
 		if ($event->site === null) {
-			$this->logger->error("ERROR! Could not find closest site for attack");
+			$this->logger->error('ERROR! Could not find closest site for attack');
 			return;
 		}
 		$site = $event->site;
@@ -566,9 +566,9 @@ class AttacksController extends ModuleInstance {
 		if (!isset($pf)) {
 			return;
 		}
-		$this->logger->info("Site being attacked: {pf_short} {site_id}", [
-			"pf_short" => $pf->short_name,
-			"site_id" => $site->site_id,
+		$this->logger->info('Site being attacked: {pf_short} {site_id}', [
+			'pf_short' => $pf->short_name,
+			'site_id' => $site->site_id,
 		]);
 
 
@@ -591,30 +591,30 @@ class AttacksController extends ModuleInstance {
 			$this->towerAttackFormat,
 			$tokens
 		);
-		$msg = $this->text->blobWrap("{$msg} [", $detailsLink, "]");
+		$msg = $this->text->blobWrap("{$msg} [", $detailsLink, ']');
 
 		foreach ($msg as $page) {
 			if (isset($site->org_id) && $this->config->orgId === $site->org_id) {
 				$rMsg = new RoutableMessage($page);
-				$rMsg->prependPath(new Source('pvp', "tower-attack-own"));
+				$rMsg->prependPath(new Source('pvp', 'tower-attack-own'));
 				$this->msgHub->handle($rMsg);
 			}
 			$rMsg = new RoutableMessage($page);
-			$rMsg->prependPath(new Source('pvp', "tower-attack"));
+			$rMsg->prependPath(new Source('pvp', 'tower-attack'));
 			$this->msgHub->handle($rMsg);
 			$this->siteTracker->fireEvent(new RoutableMessage($page), $site, 'tower-attack');
 		}
 	}
 
-	#[NCA\Event("tower-outcome", "Announce tower victories and abandoned sites")]
+	#[NCA\Event('tower-outcome', 'Announce tower victories and abandoned sites')]
 	public function announceTowerVictories(Event\TowerOutcomeEvent $event): void {
 		$outcome = $event->outcome;
 		$pf = $this->pfCtrl->getPlayfieldById($outcome->playfield_id);
 		$site = $this->nwCtrl->state[$outcome->playfield_id][$outcome->site_id];
 		if (!isset($pf) || !isset($site)) {
-			$this->logger->error("Cannot find site at {pf} {siteId}", [
-				"pf" => $outcome->playfield_id,
-				"siteId" => $outcome->site_id,
+			$this->logger->error('Cannot find site at {pf} {siteId}', [
+				'pf' => $outcome->playfield_id,
+				'siteId' => $outcome->site_id,
 			]);
 			return;
 		}
@@ -633,7 +633,7 @@ class AttacksController extends ModuleInstance {
 			$site->getTokens(),
 			$pf->getTokens(),
 		);
-		$format = isset($tokens["winning-faction"])
+		$format = isset($tokens['winning-faction'])
 			? $this->towerVictoryFormat
 			: $this->siteAbandonedFormat;
 		$msg = $this->text->renderPlaceholders($format, $tokens);
@@ -644,16 +644,16 @@ class AttacksController extends ModuleInstance {
 			$shortSite,
 			$details,
 		);
-		$msg = $this->text->blobWrap("{$msg} [", $detailsLink, "]");
+		$msg = $this->text->blobWrap("{$msg} [", $detailsLink, ']');
 
 		foreach ($msg as $page) {
 			if (isset($site->org_id) && $this->config->orgId === $site->org_id) {
 				$rMsg = new RoutableMessage($page);
-				$rMsg->prependPath(new Source('pvp', "tower-outcome-own"));
+				$rMsg->prependPath(new Source('pvp', 'tower-outcome-own'));
 				$this->msgHub->handle($rMsg);
 			}
 			$rMsg = new RoutableMessage($page);
-			$rMsg->prependPath(new Source("pvp", "tower-outcome"));
+			$rMsg->prependPath(new Source('pvp', 'tower-outcome'));
 			$this->msgHub->handle($rMsg);
 			$this->siteTracker->fireEvent(new RoutableMessage($page), $site, 'tower-outcome');
 		}
@@ -663,15 +663,14 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
 	public function nwAttacksAnywhereCommand(
 		CmdContext $context,
-		#[NCA\Str("attacks")]
-		string $action,
+		#[NCA\Str('attacks')] string $action,
 		?int $page,
 	): void {
 		$query = $this->db->table($this->nwCtrl::DB_ATTACKS);
 		$context->reply($this->nwAttacksCmd(
 			$query,
-			"Tower Attacks",
-			"nw attacks",
+			'Tower Attacks',
+			'nw attacks',
 			$page??1,
 			null,
 		));
@@ -681,8 +680,7 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
 	public function nwAttacksForSiteCommand(
 		CmdContext $context,
-		#[NCA\Str("attacks")]
-		string $action,
+		#[NCA\Str('attacks')] string $action,
 		PTowerSite $towerSite,
 		?int $page,
 	): void {
@@ -693,12 +691,12 @@ class AttacksController extends ModuleInstance {
 			return;
 		}
 		$query = $this->db->table($this->nwCtrl::DB_ATTACKS)
-			->where("playfield_id", $pf->id)
-			->where("site_id", $towerSite->site);
+			->where('playfield_id', $pf->id)
+			->where('site_id', $towerSite->site);
 		$context->reply($this->nwAttacksCmd(
 			$query,
 			"Tower Attacks on {$pf->short_name} {$towerSite->site}",
-			"nw attacks",
+			'nw attacks',
 			$page??1,
 			false,
 		));
@@ -710,21 +708,19 @@ class AttacksController extends ModuleInstance {
 	 * You can use '*' as a wildcard in org names
 	 */
 	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
-	#[NCA\Help\Example("<symbol>nw attacks org *sneak*")]
-	#[NCA\Help\Example("<symbol>nw attacks org Komodo")]
+	#[NCA\Help\Example('<symbol>nw attacks org *sneak*')]
+	#[NCA\Help\Example('<symbol>nw attacks org Komodo')]
 	public function nwAttacksForOrgCommand(
 		CmdContext $context,
-		#[NCA\Str("attacks")]
-		string $action,
-		#[NCA\Str("org")]
-		string $org,
+		#[NCA\Str('attacks')] string $action,
+		#[NCA\Str('org')] string $org,
 		PNonGreedy $orgName,
 		?int $page,
 	): void {
-		$search = str_replace("*", "%", $orgName());
+		$search = str_replace('*', '%', $orgName());
 		$query = $this->db->table($this->nwCtrl::DB_ATTACKS)
-			->whereIlike("att_org", $search)
-			->orWhereIlike("def_org", $search);
+			->whereIlike('att_org', $search)
+			->orWhereIlike('def_org', $search);
 		$context->reply(
 			$this->nwAttacksCmd(
 				$query,
@@ -742,19 +738,17 @@ class AttacksController extends ModuleInstance {
 	 * You can use '*' as a wildcard in character names
 	 */
 	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
-	#[NCA\Help\Example("<symbol>nw attacks char nady*")]
-	#[NCA\Help\Example("<symbol>nw attacks char nadyita")]
+	#[NCA\Help\Example('<symbol>nw attacks char nady*')]
+	#[NCA\Help\Example('<symbol>nw attacks char nadyita')]
 	public function nwAttacksForCharCommand(
 		CmdContext $context,
-		#[NCA\Str("attacks")]
-		string $action,
-		#[NCA\Str("char")]
-		string $char,
+		#[NCA\Str('attacks')] string $action,
+		#[NCA\Str('char')] string $char,
 		PNonGreedy $search,
 		?int $page,
 	): void {
 		$query = $this->db->table($this->nwCtrl::DB_ATTACKS)
-			->whereIlike("att_name", str_replace('*', '%', $search()));
+			->whereIlike('att_name', str_replace('*', '%', $search()));
 		$context->reply(
 			$this->nwAttacksCmd(
 				$query,
@@ -770,56 +764,55 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_STATS)]
 	public function nwSTatsCommand(
 		CmdContext $context,
-		#[NCA\Str("stats")]
-		string $action,
+		#[NCA\Str('stats')] string $action,
 		?PDuration $duration,
 	): void {
-		$from = time() - (isset($duration) ? $duration->toSecs() : 3600 * 24);
+		$from = time() - (isset($duration) ? $duration->toSecs() : 3_600 * 24);
 
 		/** @var Collection<DBTowerAttack> */
 		$attacks = $this->db->table($this->nwCtrl::DB_ATTACKS)
-			->where("timestamp", ">", $from)
-			->whereNotNull("att_faction")
+			->where('timestamp', '>', $from)
+			->whereNotNull('att_faction')
 			->asObj(DBTowerAttack::class);
 
 		/** @var Collection<DBOutcome> */
 		$victories = $this->db->table($this->nwCtrl::DB_OUTCOMES)
-			->where("timestamp", ">", $from)
-			->whereNotNull("attacker_faction")
+			->where('timestamp', '>', $from)
+			->whereNotNull('attacker_faction')
 			->asObj(DBOutcome::class);
 
 		/** @var Collection<DBOutcome> */
 		$abandonments = $this->db->table($this->nwCtrl::DB_OUTCOMES)
-			->where("timestamp", ">", $from)
-			->whereNull("attacker_faction")
+			->where('timestamp', '>', $from)
+			->whereNull('attacker_faction')
 			->asObj(DBOutcome::class);
 
 		$blob = "<header2>Attacks<end>\n".
-			"<tab><clan>Clans<end> have attacked ".
-			$this->times($attacks->where("att_faction", "Clan")->count()) . ".\n".
-			"<tab><neutral>Neutrals<end> have attacked ".
-			$this->times($attacks->where("att_faction", "Neutral")->count()) . ".\n".
-			"<tab><omni>Omnis<end> have attacked ".
-			$this->times($attacks->where("att_faction", "Omni")->count()) . ".".
+			'<tab><clan>Clans<end> have attacked '.
+			$this->times($attacks->where('att_faction', 'Clan')->count()) . ".\n".
+			'<tab><neutral>Neutrals<end> have attacked '.
+			$this->times($attacks->where('att_faction', 'Neutral')->count()) . ".\n".
+			'<tab><omni>Omnis<end> have attacked '.
+			$this->times($attacks->where('att_faction', 'Omni')->count()) . '.'.
 			"\n\n".
 			"<header2>Victories<end>\n".
-			"<tab><clan>Clans<end> have lost ".
-			$this->sites($victories->where("losing_faction", "Clan")->count()) . ".\n".
-			"<tab><neutral>Neutrals<end> have lost ".
-			$this->sites($victories->where("losing_faction", "Neutral")->count()) . ".\n".
-			"<tab><omni>Omnis<end> have lost ".
-			$this->sites($victories->where("losing_faction", "Omni")->count()) . ".".
+			'<tab><clan>Clans<end> have lost '.
+			$this->sites($victories->where('losing_faction', 'Clan')->count()) . ".\n".
+			'<tab><neutral>Neutrals<end> have lost '.
+			$this->sites($victories->where('losing_faction', 'Neutral')->count()) . ".\n".
+			'<tab><omni>Omnis<end> have lost '.
+			$this->sites($victories->where('losing_faction', 'Omni')->count()) . '.'.
 			"\n\n" .
 			"<header2>Abandonments<end>\n".
-			"<tab><clan>Clans<end> have abandoned ".
-			$this->sites($abandonments->where("losing_faction", "Clan")->count()) . ".\n".
-			"<tab><neutral>Neutrals<end> have abandoned ".
-			$this->sites($abandonments->where("losing_faction", "Neutral")->count()) . ".\n".
-			"<tab><omni>Omnis<end> have abandoned ".
-			$this->sites($abandonments->where("losing_faction", "Omni")->count()) . ".";
+			'<tab><clan>Clans<end> have abandoned '.
+			$this->sites($abandonments->where('losing_faction', 'Clan')->count()) . ".\n".
+			'<tab><neutral>Neutrals<end> have abandoned '.
+			$this->sites($abandonments->where('losing_faction', 'Neutral')->count()) . ".\n".
+			'<tab><omni>Omnis<end> have abandoned '.
+			$this->sites($abandonments->where('losing_faction', 'Omni')->count()) . '.';
 
 		$msg = $this->text->makeBlob(
-			"Tower stats for the last " . $this->util->unixtimeToReadable(time() - $from),
+			'Tower stats for the last ' . $this->util->unixtimeToReadable(time() - $from),
 			$blob
 		);
 		$context->reply($msg);
@@ -829,15 +822,14 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_OUTCOMES)]
 	public function nwOutcomesAnywhereCommand(
 		CmdContext $context,
-		#[NCA\Str("victory")]
-		string $action,
+		#[NCA\Str('victory')] string $action,
 		?int $page,
 	): void {
 		$query = $this->db->table($this->nwCtrl::DB_OUTCOMES);
 		$context->reply($this->nwOutcomesCmd(
 			$query,
-			"Tower Victories",
-			"nw victory",
+			'Tower Victories',
+			'nw victory',
 			$page??1,
 		));
 	}
@@ -846,8 +838,7 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_OUTCOMES)]
 	public function nwOutcomesForSiteCommand(
 		CmdContext $context,
-		#[NCA\Str("victory")]
-		string $action,
+		#[NCA\Str('victory')] string $action,
 		PTowerSite $towerSite,
 		?int $page,
 	): void {
@@ -858,12 +849,12 @@ class AttacksController extends ModuleInstance {
 			return;
 		}
 		$query = $this->db->table($this->nwCtrl::DB_OUTCOMES)
-			->where("playfield_id", $pf->id)
-			->where("site_id", $towerSite->site);
+			->where('playfield_id', $pf->id)
+			->where('site_id', $towerSite->site);
 		$context->reply($this->nwOutcomesCmd(
 			$query,
 			"Tower Victories on {$pf->short_name} {$towerSite->site}",
-			"nw victory",
+			'nw victory',
 			$page??1,
 		));
 	}
@@ -874,21 +865,19 @@ class AttacksController extends ModuleInstance {
 	 * You can use '*' as a wildcard in org names
 	 */
 	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
-	#[NCA\Help\Example("<symbol>nw victory org *sneak*")]
-	#[NCA\Help\Example("<symbol>nw victory org Komodo")]
+	#[NCA\Help\Example('<symbol>nw victory org *sneak*')]
+	#[NCA\Help\Example('<symbol>nw victory org Komodo')]
 	public function nwOutcomesForOrgCommand(
 		CmdContext $context,
-		#[NCA\Str("victory")]
-		string $action,
-		#[NCA\Str("org")]
-		string $org,
+		#[NCA\Str('victory')] string $action,
+		#[NCA\Str('org')] string $org,
 		PNonGreedy $orgName,
 		?int $page,
 	): void {
-		$search = str_replace("*", "%", $orgName());
+		$search = str_replace('*', '%', $orgName());
 		$query = $this->db->table($this->nwCtrl::DB_OUTCOMES)
-			->whereIlike("attacker_org", $search)
-			->orWhereIlike("losing_org", $search);
+			->whereIlike('attacker_org', $search)
+			->orWhereIlike('losing_org', $search);
 		$context->reply(
 			$this->nwOutcomesCmd(
 				$query,
@@ -901,11 +890,11 @@ class AttacksController extends ModuleInstance {
 
 	#[
 		NCA\NewsTile(
-			name: "tower-own-new",
+			name: 'tower-own-new',
 			description: "Show the last 5 attacks on your org's towers from the last 3\n".
-				"days - or nothing, if no attacks occurred.",
+				'days - or nothing, if no attacks occurred.',
 			example: "<header2>Notum Wars [<u>see more</u>]<end>\n".
-				"<tab>22-Oct-2021 18:20 UTC - Nady (<clan>Team Rainbow<end>) attacked <u>CLON 6</u> (QL 35-50):"
+				'<tab>22-Oct-2021 18:20 UTC - Nady (<clan>Team Rainbow<end>) attacked <u>CLON 6</u> (QL 35-50):'
 		)
 	]
 	public function towerOwnTile(string $sender): ?string {
@@ -920,15 +909,15 @@ class AttacksController extends ModuleInstance {
 
 	private function getMatchingAttack(Playfield $pf, string $attName, ?string $attOrgName): ?FeedMessage\TowerAttack {
 		$attacks = (new Collection($this->nwCtrl->attacks))
-			->where("playfield_id", $pf->id)
-			->whereNull("penalizing_ended")
-			->where("defender.name", $this->config->general->orgName);
+			->where('playfield_id', $pf->id)
+			->whereNull('penalizing_ended')
+			->where('defender.name', $this->config->general->orgName);
 		if (isset($attOrgName)) {
-			$attacks = $attacks->where("attacker.org.name", $attOrgName);
+			$attacks = $attacks->where('attacker.org.name', $attOrgName);
 		} else {
-			$attacks = $attacks->where("attacker.name", $attName);
+			$attacks = $attacks->where('attacker.name', $attName);
 		}
-		return $attacks->sortByDesc("timestamp")->first();
+		return $attacks->sortByDesc('timestamp')->first();
 	}
 
 	private function getMatchingSite(Playfield $pf, ?FeedMessage\TowerAttack $attack): ?FeedMessage\SiteUpdate {
@@ -936,16 +925,16 @@ class AttacksController extends ModuleInstance {
 			return $this->nwCtrl->state[$attack->playfield_id][$attack->site_id] ?? null;
 		}
 		$sites = (new Collection($this->nwCtrl->getEnabledSites()))
-			->where("playfield_id", $pf->id)
-			->where("org_id", $this->config->orgId);
+			->where('playfield_id', $pf->id)
+			->where('org_id', $this->config->orgId);
 		// Actually, this can only happen with gas 5% or 25%, but if it's 1 site only
 		// already, use that one
 		if ($sites->count() === 1) {
 			return $sites->firstOrFail();
 		}
 		$sites = $sites
-			->whereNull("gas")
-			->where("gas", "!=", 75);
+			->whereNull('gas')
+			->where('gas', '!=', 75);
 		if ($sites->count() === 1) {
 			return $sites->firstOrFail();
 		}
@@ -954,12 +943,12 @@ class AttacksController extends ModuleInstance {
 
 	/** Return <highlight>{$count} tower time(s)<end> */
 	private function times(int $count): string {
-		return "<highlight>{$count} " . $this->text->pluralize("time", $count) . "<end>";
+		return "<highlight>{$count} " . $this->text->pluralize('time', $count) . '<end>';
 	}
 
 	/** Return <highlight>{$count} tower site(s)<end> */
 	private function sites(int $count): string {
-		return "<highlight>{$count} tower " . $this->text->pluralize("site", $count) . "<end>";
+		return "<highlight>{$count} tower " . $this->text->pluralize('site', $count) . '<end>';
 	}
 
 	private function renderAttackInfo(TowerAttackInfoEvent $info, Playfield $pf): string {
@@ -967,7 +956,7 @@ class AttacksController extends ModuleInstance {
 		$attacker = $attack->attacker;
 		$site = $info->site;
 		assert(isset($site));
-		$blob = "";
+		$blob = '';
 		if ($info->attack->isFake) {
 			$blob .= "<highlight>Warning:<end> The attacker is very likely a pet with a fake name!\n\n";
 		}
@@ -992,7 +981,7 @@ class AttacksController extends ModuleInstance {
 
 		$attFaction = $attacker->faction ?? $attacker->org?->faction;
 		if (isset($attFaction)) {
-			$blob .= "<tab>Alignment: <" . strtolower($attFaction) . ">{$attFaction}<end>\n";
+			$blob .= '<tab>Alignment: <' . strtolower($attFaction) . ">{$attFaction}<end>\n";
 		}
 
 		if (isset($attacker->org)) {
@@ -1006,7 +995,7 @@ class AttacksController extends ModuleInstance {
 
 		$blob .= "<header2>Defender<end>\n";
 		$blob .= "<tab>Organization: <highlight>{$attack->defender->name}<end>\n";
-		$blob .= "<tab>Alignment: <" . strtolower($attack->defender->faction) . ">{$attack->defender->faction}<end>\n\n";
+		$blob .= '<tab>Alignment: <' . strtolower($attack->defender->faction) . ">{$attack->defender->faction}<end>\n\n";
 
 		$baseLink = $this->text->makeChatcmd("{$pf->short_name} {$site->site_id}", "/tell <myname> nw lc {$pf->short_name} {$site->site_id}");
 		$attackWaypoint = $this->text->makeChatcmd(
@@ -1021,16 +1010,16 @@ class AttacksController extends ModuleInstance {
 	}
 
 	private function renderDBOutcome(DBOutcome $outcome, FeedMessage\SiteUpdate $site, Playfield $pf): string {
-		$blob = "Time: " . $this->util->date($outcome->timestamp) . " (".
-			"<highlight>" . $this->util->unixtimeToReadable(time() - $outcome->timestamp).
+		$blob = 'Time: ' . $this->util->date($outcome->timestamp) . ' ('.
+			'<highlight>' . $this->util->unixtimeToReadable(time() - $outcome->timestamp).
 			"<end> ago)\n";
 		if (isset($outcome->attacker_org, $outcome->attacker_faction)) {
-			$blob .= "Winner: <" . strtolower($outcome->attacker_faction) . ">".
+			$blob .= 'Winner: <' . strtolower($outcome->attacker_faction) . '>'.
 				$outcome->attacker_org . "<end>\n";
 		} else {
 			$blob .= "Winner: <grey>abandoned<end>\n";
 		}
-		$blob .= "Loser: <" . strtolower($outcome->losing_faction) . ">".
+		$blob .= 'Loser: <' . strtolower($outcome->losing_faction) . '>'.
 			$outcome->losing_org . "<end>\n";
 		$siteLink = $this->text->makeChatcmd(
 			"{$pf->short_name} {$site->site_id}",
@@ -1050,7 +1039,7 @@ class AttacksController extends ModuleInstance {
 			$query = $query->limit(15)->offset(($page-1) * 15);
 		}
 		$attacks = $query
-			->orderByDesc("timestamp")
+			->orderByDesc('timestamp')
 			->asObj(DBTowerAttack::class);
 		return $this->renderAttackList(
 			$command,
@@ -1066,7 +1055,7 @@ class AttacksController extends ModuleInstance {
 	private function nwOutcomesCmd(QueryBuilder $query, string $title, string $command, int $page): array {
 		$numOutcomes = $query->count();
 		$attacks = $query
-			->orderByDesc("timestamp")
+			->orderByDesc('timestamp')
 			->limit(15)
 			->offset(($page-1) * 15)
 			->asObj(DBOutcome::class);
@@ -1087,7 +1076,7 @@ class AttacksController extends ModuleInstance {
 	 */
 	private function groupAttackList(DBTowerAttack ...$attacks): Collection {
 		/** @var Collection<DBTowerAttack> */
-		$attacks = (new Collection($attacks))->sortByDesc("timestamp");
+		$attacks = (new Collection($attacks))->sortByDesc('timestamp');
 
 		/**
 		 * A hash with site/owner key and a list of outcomes for this combination
@@ -1095,11 +1084,11 @@ class AttacksController extends ModuleInstance {
 		 * @var array<string,DBOutcome[]>
 		 */
 		$outcomes = $this->db->table($this->nwCtrl::DB_OUTCOMES)
-			->where("timestamp", ">", $attacks->last()->timestamp)
-			->where("timestamp", "<", $attacks->first()->timestamp)
-			->orderByDesc("timestamp")
+			->where('timestamp', '>', $attacks->last()->timestamp)
+			->where('timestamp', '<', $attacks->first()->timestamp)
+			->orderByDesc('timestamp')
 			->asObj(DBOutcome::class)
-			->groupBy(function (DBOutcome $outcome): string {
+			->groupBy(static function (DBOutcome $outcome): string {
 				return "{$outcome->losing_org}:{$outcome->playfield_id}:{$outcome->site_id}";
 			})->toArray();
 
@@ -1109,7 +1098,7 @@ class AttacksController extends ModuleInstance {
 		 * @var array<string,DBTowerAttack[]>
 		 */
 		$groups = $attacks
-			->reduce(function (array $groups, DBTowerAttack $attack): array {
+			->reduce(static function (array $groups, DBTowerAttack $attack): array {
 				$key = "{$attack->def_org}:{$attack->playfield_id}:{$attack->site_id}";
 				$groups[$key] ??= [];
 				$groups[$key] []= $attack;
@@ -1126,7 +1115,7 @@ class AttacksController extends ModuleInstance {
 				if (isset($lastOutcome) && $lastOutcome->timestamp > $attack->timestamp) {
 					$id++;
 					$lastOutcome = array_shift($keyOutcomes);
-				} elseif (!isset($lastAttack) || abs($lastAttack->timestamp - $attack->timestamp) > 6*3600) {
+				} elseif (!isset($lastAttack) || abs($lastAttack->timestamp - $attack->timestamp) > 6*3_600) {
 					$id++;
 				}
 				$lookup["{$key}:{$attack->timestamp}"] = $id;
@@ -1135,7 +1124,7 @@ class AttacksController extends ModuleInstance {
 		}
 
 		$grouped = (new Collection($attacks))->groupBy(
-			function (DBTowerAttack $attack) use ($lookup): string {
+			static function (DBTowerAttack $attack) use ($lookup): string {
 				$key = "{$attack->def_org}:{$attack->playfield_id}:{$attack->site_id}";
 				return $key . ':' . $lookup["{$key}:{$attack->timestamp}"];
 			}
@@ -1153,7 +1142,7 @@ class AttacksController extends ModuleInstance {
 		DBTowerAttack ...$attacks
 	): array {
 		if (empty($attacks)) {
-			return ["No tower attacks found."];
+			return ['No tower attacks found.'];
 		}
 		$groupTowerAttacks ??= $this->groupTowerAttacks;
 		if ($groupTowerAttacks) {
@@ -1172,13 +1161,13 @@ class AttacksController extends ModuleInstance {
 
 				/** @var ?DBOutcome */
 				$outcome = $this->db->table($this->nwCtrl::DB_OUTCOMES)
-					->where("losing_org", $first->def_org)
-					->where("timestamp", ">", $last->timestamp)
-					->where("timestamp", "<", $last->timestamp + 6 * 3600)
-					->where("playfield_id", $site->playfield_id)
-					->where("site_id", $site->site_id)
-					->whereNotNull("attacker_org")
-					->orderBy("timestamp")
+					->where('losing_org', $first->def_org)
+					->where('timestamp', '>', $last->timestamp)
+					->where('timestamp', '<', $last->timestamp + 6 * 3_600)
+					->where('playfield_id', $site->playfield_id)
+					->where('site_id', $site->site_id)
+					->whereNotNull('attacker_org')
+					->orderBy('timestamp')
 					->limit(1)
 					->asObj(DBOutcome::class)
 					->first();
@@ -1187,7 +1176,7 @@ class AttacksController extends ModuleInstance {
 
 				/** @var DBTowerAttack[] $attacks */
 				foreach ($attacks as $attack) {
-					$blocks []= $this->util->date($attack->timestamp) . ": ".
+					$blocks []= $this->util->date($attack->timestamp) . ': '.
 						$this->renderDBAttacker($attack);
 				}
 				$defColor = strtolower($first->def_faction);
@@ -1198,18 +1187,18 @@ class AttacksController extends ModuleInstance {
 					: " (QL {$site->min_ql}-{$site->max_ql}) ["
 					).
 					$this->text->makeChatcmd(
-						"details",
+						'details',
 						"/tell <myname> <symbol>nw lc {$pf->short_name} {$first->site_id}"
 					) . "]\n".
 					"<tab>Defender: <{$defColor}>{$first->def_org}<end>\n".
 					(
 						isset($outcome, $outcome->attacker_faction, $outcome->attacker_org)
-							? "<tab>Won by <" . strtolower($outcome->attacker_faction) . ">".
-								$outcome->attacker_org . "<end> at ".
+							? '<tab>Won by <' . strtolower($outcome->attacker_faction) . '>'.
+								$outcome->attacker_org . '<end> at '.
 								$this->util->date($outcome->timestamp) . "\n\n"
 							: "\n"
-					) . "<tab>".
-					join("\n<tab>", $blocks);
+					) . '<tab>'.
+					implode("\n<tab>", $blocks);
 			})->toArray();
 		} else {
 			$blocks = [];
@@ -1217,25 +1206,25 @@ class AttacksController extends ModuleInstance {
 				$blocks []= $this->renderDBAttack($attack);
 			}
 		}
-		$prevLink = "&lt;&lt;&lt;";
+		$prevLink = '&lt;&lt;&lt;';
 		if ($page > 1) {
 			$prevLink = $this->text->makeChatcmd(
 				$prevLink,
 				"/tell <myname> {$baseCommand} " . ($page-1)
 			);
 		}
-		$nextLink = "";
+		$nextLink = '';
 		if ($page * 15 < $numAttacks) {
 			$nextLink = $this->text->makeChatcmd(
-				"&gt;&gt;&gt;",
+				'&gt;&gt;&gt;',
 				"/tell <myname> {$baseCommand} " . ($page+1)
 			);
 		}
-		$blob = "";
+		$blob = '';
 		if ($numAttacks > 15) {
 			$blob = "{$prevLink}<tab>Page {$page}<tab>{$nextLink}\n\n";
 		}
-		$blob .= join("\n\n", $blocks);
+		$blob .= implode("\n\n", $blocks);
 		$msg = $this->text->makeBlob(
 			$title,
 			$blob
@@ -1252,7 +1241,7 @@ class AttacksController extends ModuleInstance {
 		DBOutcome ...$outcomes
 	): array {
 		if (empty($outcomes)) {
-			return ["No tower victories found."];
+			return ['No tower victories found.'];
 		}
 		$blocks = [];
 		foreach ($outcomes as $outcome) {
@@ -1263,25 +1252,25 @@ class AttacksController extends ModuleInstance {
 			}
 			$blocks []= $this->renderDBOutcome($outcome, $site, $pf);
 		}
-		$prevLink = "&lt;&lt;&lt;";
+		$prevLink = '&lt;&lt;&lt;';
 		if ($page > 1) {
 			$prevLink = $this->text->makeChatcmd(
 				$prevLink,
 				"/tell <myname> {$baseCommand} " . ($page-1)
 			);
 		}
-		$nextLink = "";
+		$nextLink = '';
 		if ($page * 15 < $numAttacks) {
 			$nextLink = $this->text->makeChatcmd(
-				"&gt;&gt;&gt;",
+				'&gt;&gt;&gt;',
 				"/tell <myname> {$baseCommand} " . ($page+1)
 			);
 		}
-		$blob = "";
+		$blob = '';
 		if ($numAttacks > 15) {
 			$blob = "{$prevLink}<tab>Page {$page}<tab>{$nextLink}\n\n";
 		}
-		$blob .= join("\n\n", $blocks);
+		$blob .= implode("\n\n", $blocks);
 		$msg = $this->text->makeBlob(
 			$title,
 			$blob
@@ -1291,7 +1280,7 @@ class AttacksController extends ModuleInstance {
 
 	/** Render info about an attacker for !nw attacks */
 	private function renderDBAttacker(DBTowerAttack $attack): string {
-		$attColor = strtolower($attack->att_faction ?? "Unknown");
+		$attColor = strtolower($attack->att_faction ?? 'Unknown');
 		$blob = "<{$attColor}>{$attack->att_name}<end>";
 		if (isset($attack->att_level, $attack->att_ai_level, $attack->att_profession)) {
 			$blob .= " ({$attack->att_level}/<green>{$attack->att_ai_level}<end>";
@@ -1308,7 +1297,7 @@ class AttacksController extends ModuleInstance {
 			if (isset($attack->att_org)) {
 				$blob .= " of <{$attColor}>{$attack->att_org}<end>)";
 			} else {
-				$blob .= ")";
+				$blob .= ')';
 			}
 		} elseif (isset($attack->att_org)) {
 			$blob .= " <{$attColor}>{$attack->att_org}<end>";
@@ -1319,11 +1308,11 @@ class AttacksController extends ModuleInstance {
 	/** Render a single, ungrouped !nw attacks line */
 	private function renderDBAttack(DBTowerAttack $attack): string {
 		$defColor = strtolower($attack->def_faction);
-		$blob = "Time: " . $this->util->date($attack->timestamp).
-			" (<highlight>".
+		$blob = 'Time: ' . $this->util->date($attack->timestamp).
+			' (<highlight>'.
 			$this->util->unixtimeToReadable(time() - $attack->timestamp).
 			"<end> ago)\n";
-		$blob .= "Attacker: " . $this->renderDBAttacker($attack) . "\n";
+		$blob .= 'Attacker: ' . $this->renderDBAttacker($attack) . "\n";
 		$blob .= "Defender: <{$defColor}>{$attack->def_org}<end>";
 		$site = $this->nwCtrl->state[$attack->playfield_id][$attack->site_id] ?? null;
 		$pf = $this->pfCtrl->getPlayfieldById($attack->playfield_id);
@@ -1341,8 +1330,8 @@ class AttacksController extends ModuleInstance {
 			return null;
 		}
 		$query = $this->db->table($this->nwCtrl::DB_ATTACKS)
-			->where("def_org", $whois->guild)
-			->where("timestamp", ">=", time() - (3 * 24 * 3600))
+			->where('def_org', $whois->guild)
+			->where('timestamp', '>=', time() - (3 * 24 * 3_600))
 			->limit(5);
 		if ($query->count() === 0) {
 			return null;
@@ -1350,14 +1339,14 @@ class AttacksController extends ModuleInstance {
 		// This is a hacky way, until I make this function even more generic
 		$blob = $this->text->getPopups($this->nwAttacksCmd(
 			$query,
-			"Tower Attacks",
-			"nw attacks",
+			'Tower Attacks',
+			'nw attacks',
 			1,
 			true,
 		)[0])[0];
-		$blob = Safe::pregReplace("/^.+?<header2>/s", "<header2>", $blob);
-		$blob = "<tab>" . join("\n<tab>", explode("\n", $blob));
-		$moreLink = $this->text->makeChatcmd("see more", "/tell <myname> nw attacks org {$whois->guild}");
+		$blob = Safe::pregReplace('/^.+?<header2>/s', '<header2>', $blob);
+		$blob = '<tab>' . implode("\n<tab>", explode("\n", $blob));
+		$moreLink = $this->text->makeChatcmd('see more', "/tell <myname> nw attacks org {$whois->guild}");
 		return "<header2>Notum Wars [{$moreLink}]<end>\n{$blob}";
 	}
 }

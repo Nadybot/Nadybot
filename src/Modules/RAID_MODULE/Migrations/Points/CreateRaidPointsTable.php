@@ -8,16 +8,16 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidPointsController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210427102450)]
+#[NCA\Migration(order: 20_210_427_102_450)]
 class CreateRaidPointsTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaidPointsController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->string("username", 20)->primary();
-			$table->integer("points");
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->string('username', 20)->primary();
+			$table->integer('points');
 		});
 	}
 }

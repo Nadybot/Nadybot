@@ -20,7 +20,7 @@ class Payload extends JSONDataModel {
 
 	public function fromJSON(object $data): void {
 		if (!isset($data->op)) {
-			throw new InvalidArgumentException("Received non-payload data from Discord");
+			throw new InvalidArgumentException('Received non-payload data from Discord');
 		}
 		$this->op = $data->op;
 		$this->d  = $data->d ?? null;

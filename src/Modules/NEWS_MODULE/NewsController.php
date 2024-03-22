@@ -32,27 +32,27 @@ use Throwable;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "news",
-		accessLevel: "member",
-		description: "Shows news",
+		command: 'news',
+		accessLevel: 'member',
+		description: 'Shows news',
 	),
 	NCA\DefineCommand(
 		command: NewsController::CMD_NEWS_MANAGE,
-		accessLevel: "mod",
-		description: "Adds, removes, pins or unpins a news entry",
+		accessLevel: 'mod',
+		description: 'Adds, removes, pins or unpins a news entry',
 	),
 
 	NCA\ProvidesEvent(
 		event: SyncNewsEvent::class,
-		desc: "Triggered whenever someone creates or modifies a news entry"
+		desc: 'Triggered whenever someone creates or modifies a news entry'
 	),
 	NCA\ProvidesEvent(
 		event: SyncNewsDeleteEvent::class,
-		desc: "Triggered when deleting a news entry"
+		desc: 'Triggered when deleting a news entry'
 	)
 ]
 class NewsController extends ModuleInstance {
-	public const CMD_NEWS_MANAGE = "news add/change/delete";
+	public const CMD_NEWS_MANAGE = 'news add/change/delete';
 
 	/** Maximum number of news items shown */
 	#[NCA\Setting\Number(options: [5, 10, 15, 20])]
@@ -92,18 +92,18 @@ class NewsController extends ModuleInstance {
 		if ($this->newsConfirmedForAllAlts) {
 			$player = $this->altsController->getMainOf($player);
 		}
-		$query = $this->db->table("news AS n")
-			->where("deleted", 0)
-			->orderByDesc("sticky")
-			->orderByDesc("time")
+		$query = $this->db->table('news AS n')
+			->where('deleted', 0)
+			->orderByDesc('sticky')
+			->orderByDesc('time')
 			->limit($this->numNewsShown)
-			->select("n.*")
+			->select('n.*')
 			->selectSub(
-				$this->db->table("news_confirmed AS c")
-					->whereColumn("c.id", "n.id")
-					->where("c.player", $player)
-					->selectRaw("COUNT(*) > 0"),
-				"confirmed"
+				$this->db->table('news_confirmed AS c')
+					->whereColumn('c.id', 'n.id')
+					->where('c.player', $player)
+					->selectRaw('COUNT(*) > 0'),
+				'confirmed'
 			);
 		return $query->asObj(INews::class);
 	}
@@ -112,7 +112,7 @@ class NewsController extends ModuleInstance {
 	public function getNews(string $player, bool $onlyUnread=true): ?array {
 		$news = $this->getNewsItems($player);
 		if ($onlyUnread) {
-			$news = $news->where("confirmed", false);
+			$news = $news->where('confirmed', false);
 		}
 		if ($news->count() === 0) {
 			return null;
@@ -120,7 +120,7 @@ class NewsController extends ModuleInstance {
 		$latestNews = null;
 		$msg = '';
 		$blob = '';
-		$sticky = "";
+		$sticky = '';
 		foreach ($news as $item) {
 			if ($latestNews === null || $item->time > $latestNews->time) {
 				$latestNews = $item;
@@ -134,28 +134,28 @@ class NewsController extends ModuleInstance {
 			}
 
 			if ($item->sticky) {
-				$blob .= "<img src=tdb://id:GFX_GUI_PINBUTTON_PRESSED> ";
+				$blob .= '<img src=tdb://id:GFX_GUI_PINBUTTON_PRESSED> ';
 			}
-			$blob .= ($item->confirmed ? "<grey>" : "<highlight>").
+			$blob .= ($item->confirmed ? '<grey>' : '<highlight>').
 				"{$item->news}<end>\n";
-			$blob .= "By {$item->name} " . $this->util->date($item->time) . " ";
-			$blob .= "[" . $this->text->makeChatcmd("remove", "/tell <myname> news rem {$item->id}") . "] ";
+			$blob .= "By {$item->name} " . $this->util->date($item->time) . ' ';
+			$blob .= '[' . $this->text->makeChatcmd('remove', "/tell <myname> news rem {$item->id}") . '] ';
 			if ($item->sticky) {
-				$blob .= "[" . $this->text->makeChatcmd("unpin", "/tell <myname> news unpin {$item->id}") . "] ";
+				$blob .= '[' . $this->text->makeChatcmd('unpin', "/tell <myname> news unpin {$item->id}") . '] ';
 			} else {
-				$blob .= "[" . $this->text->makeChatcmd("pin", "/tell <myname> news pin {$item->id}") . "] ";
+				$blob .= '[' . $this->text->makeChatcmd('pin', "/tell <myname> news pin {$item->id}") . '] ';
 			}
 			if (!$item->confirmed) {
-				$blob .= "[" . $this->text->makeChatcmd("confirm", "/tell <myname> news confirm {$item->id}") . "] ";
+				$blob .= '[' . $this->text->makeChatcmd('confirm', "/tell <myname> news confirm {$item->id}") . '] ';
 			}
 			$blob .= "\n";
 			$sticky = $item->sticky;
 		}
 
 		/** @var ?News */
-		$item = $this->db->table("news")
-			->where("deleted", 0)
-			->orderByDesc("time")
+		$item = $this->db->table('news')
+			->where('deleted', 0)
+			->orderByDesc('time')
 			->limit(1)
 			->asObj(News::class)
 			->first();
@@ -165,15 +165,15 @@ class NewsController extends ModuleInstance {
 		$layout = $this->newsAnnouncementLayout;
 		if ($layout === 1) {
 			$msg = $this->text->makeBlob(
-				"News [Last updated at " . $this->util->date($item->time) . "]",
+				'News [Last updated at ' . $this->util->date($item->time) . ']',
 				$blob
 			);
 		} elseif ($layout === 2) {
 			$msg = $this->text->blobWrap(
 				"<yellow>NEWS:<end> <highlight>{$latestNews->news}<end>\n".
 					"By {$latestNews->name} (".
-					$this->util->date($latestNews->time) . ") ",
-				$this->text->makeBlob("more", $blob, "News")
+					$this->util->date($latestNews->time) . ') ',
+				$this->text->makeBlob('more', $blob, 'News')
 			);
 		}
 		return (array)$msg;
@@ -181,7 +181,7 @@ class NewsController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: LogonEvent::EVENT_MASK,
-		description: "Sends news to org members logging in"
+		description: 'Sends news to org members logging in'
 	)]
 	public function logonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -202,7 +202,7 @@ class NewsController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: JoinMyPrivEvent::EVENT_MASK,
-		description: "Sends news to players joining private channel"
+		description: 'Sends news to players joining private channel'
 	)]
 	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
 		if (!is_string($eventObj->sender)
@@ -218,26 +218,25 @@ class NewsController extends ModuleInstance {
 
 	/** Check if there are recent news for player $player */
 	public function hasRecentNews(string $player): bool {
-		$thirtyDays = time() - (86400 * 30);
+		$thirtyDays = time() - (86_400 * 30);
 		$news = $this->getNewsItems($player);
-		return $news->where("confirmed", false)
-			->contains("time", ">", $thirtyDays);
+		return $news->where('confirmed', false)
+			->contains('time', '>', $thirtyDays);
 	}
 
 	/** Show the latest news entries */
-	#[NCA\HandlesCommand("news")]
+	#[NCA\HandlesCommand('news')]
 	public function newsCommand(CmdContext $context): void {
 		$msg = $this->getNews($context->char->name, false);
 
-		$context->reply($msg ?? "No News recorded yet.");
+		$context->reply($msg ?? 'No News recorded yet.');
 	}
 
 	/** Confirm having read a news entry */
-	#[NCA\HandlesCommand("news")]
+	#[NCA\HandlesCommand('news')]
 	public function newsconfirmCommand(
 		CmdContext $context,
-		#[NCA\Str("confirm")]
-		string $action,
+		#[NCA\Str('confirm')] string $action,
 		int $id
 	): void {
 		$row = $this->getNewsItem($id);
@@ -251,20 +250,20 @@ class NewsController extends ModuleInstance {
 			$sender = $this->altsController->getMainOf($context->char->name);
 		}
 
-		if ($this->db->table("news_confirmed")
-			->where("id", $row->id)
-			->where("player", $sender)
+		if ($this->db->table('news_confirmed')
+			->where('id', $row->id)
+			->where('player', $sender)
 			->exists()
 		) {
 			$msg = "You've already confirmed these news.";
 			$context->reply($msg);
 			return;
 		}
-		$this->db->table("news_confirmed")
+		$this->db->table('news_confirmed')
 			->insert([
-				"id" => $row->id,
-				"player" => $sender,
-				"time" => time(),
+				'id' => $row->id,
+				'player' => $sender,
+				'time' => time(),
 			]);
 		$msg = "News confirmed, it won't be shown to you again.";
 		$context->reply($msg);
@@ -274,27 +273,26 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")]
-		string $action,
+		#[NCA\Str('add')] string $action,
 		string $news
 	): void {
 		$entry = [
-			"time" => time(),
-			"name" => $context->char->name,
-			"news" => $news,
-			"sticky" => 0,
-			"deleted" => 0,
-			"uuid" => $this->util->createUUID(),
+			'time' => time(),
+			'name' => $context->char->name,
+			'news' => $news,
+			'sticky' => 0,
+			'deleted' => 0,
+			'uuid' => $this->util->createUUID(),
 		];
-		$this->db->table("news")
+		$this->db->table('news')
 			->insert($entry);
-		$msg = "News has been added successfully.";
+		$msg = 'News has been added successfully.';
 		$event = new SyncNewsEvent(
-			time: $entry["time"],
-			name: $entry["name"],
-			news: $entry["news"],
-			uuid: $entry["uuid"],
-			sticky: (bool)$entry["sticky"],
+			time: $entry['time'],
+			name: $entry['name'],
+			news: $entry['news'],
+			uuid: $entry['uuid'],
+			sticky: (bool)$entry['sticky'],
 			forceSync: $context->forceSync,
 		);
 		$this->eventManager->fireEvent($event);
@@ -313,9 +311,9 @@ class NewsController extends ModuleInstance {
 		if ($row === null) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
 		} else {
-			$this->db->table("news")
-				->where("id", $id)
-				->update(["deleted" => 1]);
+			$this->db->table('news')
+				->where('id', $id)
+				->update(['deleted' => 1]);
 			$msg = "News entry <highlight>{$id}<end> was deleted successfully.";
 			$event = new SyncNewsDeleteEvent(
 				uuid: $row->uuid,
@@ -331,8 +329,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsPinCommand(
 		CmdContext $context,
-		#[NCA\Str("pin")]
-		string $action,
+		#[NCA\Str('pin')] string $action,
 		int $id
 	): void {
 		$row = $this->getNewsItem($id);
@@ -342,9 +339,9 @@ class NewsController extends ModuleInstance {
 		} elseif ($row->sticky) {
 			$msg = "News ID {$id} is already pinned.";
 		} else {
-			$this->db->table("news")
-				->where("id", $id)
-				->update(["sticky" => 1]);
+			$this->db->table('news')
+				->where('id', $id)
+				->update(['sticky' => 1]);
 			$msg = "News ID {$id} successfully pinned.";
 			$event = new SyncNewsEvent(
 				time: $row->time,
@@ -363,8 +360,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsUnpinCommand(
 		CmdContext $context,
-		#[NCA\Str("unpin")]
-		string $action,
+		#[NCA\Str('unpin')] string $action,
 		int $id
 	): void {
 		$row = $this->getNewsItem($id);
@@ -374,9 +370,9 @@ class NewsController extends ModuleInstance {
 		} elseif (!$row->sticky) {
 			$msg = "News ID {$id} is not pinned.";
 		} else {
-			$this->db->table("news")
-				->where("id", $id)
-				->update(["sticky" => 0]);
+			$this->db->table('news')
+				->where('id', $id)
+				->update(['sticky' => 0]);
 			$msg = "News ID {$id} successfully unpinned.";
 			$event = new SyncNewsEvent(
 				time: $row->time,
@@ -392,24 +388,24 @@ class NewsController extends ModuleInstance {
 	}
 
 	public function getNewsItem(int $id): ?News {
-		return $this->db->table("news")
-			->where("deleted", 0)
-			->where("id", $id)
+		return $this->db->table('news')
+			->where('deleted', 0)
+			->where('id', $id)
 			->asObj(News::class)
 			->first();
 	}
 
 	/** Get a list of all news */
 	#[
-		NCA\Api("/news"),
+		NCA\Api('/news'),
 		NCA\GET,
-		NCA\AccessLevelFrom("news"),
-		NCA\ApiResult(code: 200, class: "News[]", desc: "A list of news items")
+		NCA\AccessLevelFrom('news'),
+		NCA\ApiResult(code: 200, class: 'News[]', desc: 'A list of news items')
 	]
 	public function apiNewsEndpoint(Request $request): Response {
 		/** @var News[] */
-		$result = $this->db->table("news")
-			->where("deleted", 0)
+		$result = $this->db->table('news')
+			->where('deleted', 0)
 			->asObj(News::class)
 			->toArray();
 		return ApiResponse::create($result);
@@ -417,11 +413,11 @@ class NewsController extends ModuleInstance {
 
 	/** Get a single news item by id */
 	#[
-		NCA\Api("/news/%d"),
+		NCA\Api('/news/%d'),
 		NCA\GET,
-		NCA\AccessLevelFrom("news"),
-		NCA\ApiResult(code: 200, class: "News", desc: "The requested news item"),
-		NCA\ApiResult(code: 404, desc: "Given news id not found")
+		NCA\AccessLevelFrom('news'),
+		NCA\ApiResult(code: 200, class: 'News', desc: 'The requested news item'),
+		NCA\ApiResult(code: 404, desc: 'Given news id not found')
 	]
 	public function apiNewsIdEndpoint(Request $request, int $id): Response {
 		$result = $this->getNewsItem($id);
@@ -433,18 +429,18 @@ class NewsController extends ModuleInstance {
 
 	/** Create a new news item */
 	#[
-		NCA\Api("/news"),
+		NCA\Api('/news'),
 		NCA\POST,
 		NCA\AccessLevelFrom(self::CMD_NEWS_MANAGE),
-		NCA\RequestBody(class: "NewNews", desc: "The item to create", required: true),
-		NCA\ApiResult(code: 204, desc: "The news item was created successfully")
+		NCA\RequestBody(class: 'NewNews', desc: 'The item to create', required: true),
+		NCA\ApiResult(code: 204, desc: 'The news item was created successfully')
 	]
 	public function apiNewsCreateEndpoint(Request $request): Response {
-		$user = $request->getAttribute(WebserverController::USER) ?? "_";
+		$user = $request->getAttribute(WebserverController::USER) ?? '_';
 		$body = $request->getAttribute(WebserverController::BODY);
 		try {
 			if (!is_object($body)) {
-				throw new Exception("Wrong content body");
+				throw new Exception('Wrong content body');
 			}
 
 			/** @var NewNews */
@@ -463,7 +459,7 @@ class NewsController extends ModuleInstance {
 		if (!isset($decoded->news)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
-		if ($this->db->insert("news", $decoded)) {
+		if ($this->db->insert('news', $decoded)) {
 			$event = new SyncNewsEvent(
 				time: $decoded->time,
 				name: $decoded->name,
@@ -479,22 +475,22 @@ class NewsController extends ModuleInstance {
 
 	/** Modify an existing news item */
 	#[
-		NCA\Api("/news/%d"),
+		NCA\Api('/news/%d'),
 		NCA\PATCH,
 		NCA\AccessLevelFrom(self::CMD_NEWS_MANAGE),
-		NCA\RequestBody(class: "NewNews", desc: "The new data for the item", required: true),
-		NCA\ApiResult(code: 200, class: "News", desc: "The news item it is now")
+		NCA\RequestBody(class: 'NewNews', desc: 'The new data for the item', required: true),
+		NCA\ApiResult(code: 200, class: 'News', desc: 'The news item it is now')
 	]
 	public function apiNewsModifyEndpoint(Request $request, int $id): Response {
 		$result = $this->getNewsItem($id);
 		if (!isset($result)) {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}
-		$user = $request->getAttribute(WebserverController::USER) ?? "_";
+		$user = $request->getAttribute(WebserverController::USER) ?? '_';
 		$body = $request->getAttribute(WebserverController::BODY);
 		try {
 			if (!is_object($body)) {
-				throw new Exception("Wrong content body");
+				throw new Exception('Wrong content body');
 			}
 
 			/** @var NewNews */
@@ -510,7 +506,7 @@ class NewsController extends ModuleInstance {
 				$result->{$attr} = $value;
 			}
 		}
-		if (!$this->db->update("news", "id", $decoded)) {
+		if (!$this->db->update('news', 'id', $decoded)) {
 			$event = new SyncNewsEvent(
 				time: $decoded->time,
 				name: $decoded->name,
@@ -526,52 +522,52 @@ class NewsController extends ModuleInstance {
 
 	#[
 		NCA\NewsTile(
-			name: "news",
-			description: "Show excerpts of unread news",
+			name: 'news',
+			description: 'Show excerpts of unread news',
 			example: "<header2>News [<u>see more</u>]<end>\n".
-				"<tab><highlight>2021-Oct-18<end>: We have a new tower site..."
+				'<tab><highlight>2021-Oct-18<end>: We have a new tower site...'
 		)
 	]
 	public function newsTile(string $sender): ?string {
-		$thirtyDays = time() - (86400 * 30);
+		$thirtyDays = time() - (86_400 * 30);
 		$news = $this->getNewsItems($sender);
-		$unreadNews = $news->where("confirmed", false)
-			->where("time", ">", $thirtyDays);
+		$unreadNews = $news->where('confirmed', false)
+			->where('time', '>', $thirtyDays);
 		if ($unreadNews->isEmpty()) {
 			return null;
 		}
-		$blob = "<header2>News [".
-			$this->text->makeChatcmd("see all", "/tell <myname> news") . "]<end>\n";
+		$blob = '<header2>News ['.
+			$this->text->makeChatcmd('see all', '/tell <myname> news') . "]<end>\n";
 		$blobLines = [];
 		foreach ($unreadNews as $news) {
 			$firstLine = explode("\n", $news->news)[0];
 			$firstWords = array_slice(preg_split("/\s+/", $firstLine), 0, 5);
-			$blobLines []= "<tab><highlight>" . $this->util->date($news->time).
-				"<end>: " . join(" ", $firstWords) . "...";
+			$blobLines []= '<tab><highlight>' . $this->util->date($news->time).
+				'<end>: ' . implode(' ', $firstWords) . '...';
 		}
-		$blob .= join("\n", $blobLines);
+		$blob .= implode("\n", $blobLines);
 		return $blob;
 	}
 
 	#[NCA\Event(
 		name: SyncNewsEvent::EVENT_MASK,
-		description: "Sync external news created or modified"
+		description: 'Sync external news created or modified'
 	)]
 	public function processNewsSyncEvent(SyncNewsEvent $event): void {
 		if ($event->isLocal()) {
 			return;
 		}
-		$this->db->table("news")
-			->upsert($event->toData(), "uuid", $event->toData());
+		$this->db->table('news')
+			->upsert($event->toData(), 'uuid', $event->toData());
 	}
 
 	#[NCA\Event(
 		name: SyncNewsDeleteEvent::EVENT_MASK,
-		description: "Sync external news being deleted"
+		description: 'Sync external news being deleted'
 	)]
 	public function processNewsDeleteSyncEvent(SyncNewsDeleteEvent $event): void {
 		if (!$event->isLocal()) {
-			$this->db->table("news")->where("uuid", $event->uuid)->update(["deleted" => 1]);
+			$this->db->table('news')->where('uuid', $event->uuid)->update(['deleted' => 1]);
 		}
 	}
 }

@@ -13,7 +13,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210819184432)]
+#[NCA\Migration(order: 20_210_819_184_432)]
 class MigrateUIToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
@@ -24,7 +24,7 @@ class MigrateUIToRoute implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
 		$route = new Route();
-		$route->source = Source::SYSTEM . "(webui)";
+		$route->source = Source::SYSTEM . '(webui)';
 		if (strlen($this->config->general->orgName)) {
 			$route->destination = Source::ORG;
 		} else {

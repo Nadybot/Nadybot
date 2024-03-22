@@ -7,19 +7,19 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210426160022, shared: true)]
+#[NCA\Migration(order: 20_210_426_160_022, shared: true)]
 class CreateSymbiantTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "Symbiant";
+		$table = 'Symbiant';
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->integer("ID")->primary();
-			$table->string("Name", 100);
-			$table->integer("QL");
-			$table->integer("SlotID");
-			$table->integer("TreatmentReq");
-			$table->integer("LevelReq");
-			$table->string("Unit", 20);
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->integer('ID')->primary();
+			$table->string('Name', 100);
+			$table->integer('QL');
+			$table->integer('SlotID');
+			$table->integer('TreatmentReq');
+			$table->integer('LevelReq');
+			$table->string('Unit', 20);
 		});
 	}
 }

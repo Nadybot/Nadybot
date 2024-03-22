@@ -7,17 +7,17 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20230823050054, shared: true)]
+#[NCA\Migration(order: 20_230_823_050_054, shared: true)]
 class CreateFunTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "fun";
+		$table = 'fun';
 		if ($db->schema()->hasTable($table)) {
 			$db->schema()->drop($table);
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->string("type", 15)->index();
-			$table->text("content");
+			$table->string('type', 15)->index();
+			$table->text('content');
 		});
 	}
 }

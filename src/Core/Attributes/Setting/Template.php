@@ -37,78 +37,78 @@ class Template extends DefineSetting {
 			return;
 		}
 		$this->exampleValues = [
-			"name" => "Nady",
-			"c-name" => "<highlight>Nady<end>",
-			"first-name" => "",
-			"last-name" => "",
-			"level" => 220,
-			"c-level" => "<highlight>220<end>",
-			"ai-level" => 30,
-			"c-ai-level" => "<green>30<end>",
-			"prof" => "Bureaucrat",
-			"c-prof" => "<highlight>Bureaucrat<end>",
-			"profession" => "Bureaucrat",
-			"c-profession" => "<highlight>Bureaucrat<end>",
-			"org" => "Team Rainbow",
-			"c-org" => "<clan>Team Rainbow<end>",
-			"org-rank" => "Advisor",
-			"breed" => "Nano",
-			"faction" => "Clan",
-			"c-faction" => "<clan>Clan<end>",
-			"gender" => "Female",
-			"channel-name" => "the private channel",
-			"whois" => "<highlight>\"Nady\"<end> (<highlight>220<end>/<green>30<end>, Female Nano <highlight>Bureaucrat<end>, <clan>Clan<end>, Veteran of <clan>Team Rainbow<end>)",
-			"short-prof" => "Crat",
-			"c-short-prof" => "<highlight>Crat<end>",
-			"main" => "Nadyita",
-			"c-main" => "<highlight>Nadyita<end>",
-			"nick" => null,
-			"c-nick" => null,
-			"alt-of" => "Alt of <highlight>Nadyita<end>",
-			"alt-list" => "<a href=skillid://1>Nadyita's Alts (18)</a>",
-			"logon-msg" => "My logon-message",
-			"logoff-msg" => "My logoff-message",
-			"access-level" => "admin",
-			"admin-level" => "Administrator",
-			"c-admin-level" => "<red>Administrator<end>",
+			'name' => 'Nady',
+			'c-name' => '<highlight>Nady<end>',
+			'first-name' => '',
+			'last-name' => '',
+			'level' => 220,
+			'c-level' => '<highlight>220<end>',
+			'ai-level' => 30,
+			'c-ai-level' => '<green>30<end>',
+			'prof' => 'Bureaucrat',
+			'c-prof' => '<highlight>Bureaucrat<end>',
+			'profession' => 'Bureaucrat',
+			'c-profession' => '<highlight>Bureaucrat<end>',
+			'org' => 'Team Rainbow',
+			'c-org' => '<clan>Team Rainbow<end>',
+			'org-rank' => 'Advisor',
+			'breed' => 'Nano',
+			'faction' => 'Clan',
+			'c-faction' => '<clan>Clan<end>',
+			'gender' => 'Female',
+			'channel-name' => 'the private channel',
+			'whois' => '<highlight>"Nady"<end> (<highlight>220<end>/<green>30<end>, Female Nano <highlight>Bureaucrat<end>, <clan>Clan<end>, Veteran of <clan>Team Rainbow<end>)',
+			'short-prof' => 'Crat',
+			'c-short-prof' => '<highlight>Crat<end>',
+			'main' => 'Nadyita',
+			'c-main' => '<highlight>Nadyita<end>',
+			'nick' => null,
+			'c-nick' => null,
+			'alt-of' => 'Alt of <highlight>Nadyita<end>',
+			'alt-list' => "<a href=skillid://1>Nadyita's Alts (18)</a>",
+			'logon-msg' => 'My logon-message',
+			'logoff-msg' => 'My logoff-message',
+			'access-level' => 'admin',
+			'admin-level' => 'Administrator',
+			'c-admin-level' => '<red>Administrator<end>',
 		];
 
 		/** @var ?SettingManager */
-		$settingManager = Registry::getInstance("settingmanager");
+		$settingManager = Registry::getInstance('settingmanager');
 		if (isset($settingManager)) {
 			if ($settingManager->getBool('guild_channel_status') === false) {
-				$this->exampleValues["channel-name"] = "<myname>";
+				$this->exampleValues['channel-name'] = '<myname>';
 			}
 		}
 
 		/** @var ?NickController */
-		$nickController = Registry::getInstance("nickcontroller");
+		$nickController = Registry::getInstance('nickcontroller');
 
 		/** @var ?Text */
-		$text = Registry::getInstance("text");
+		$text = Registry::getInstance('text');
 		if (isset($nickController, $text)) {
-			$this->exampleValues["nick"] = "Nickname";
-			$this->exampleValues["c-nick"] = $text->renderPlaceholders(
+			$this->exampleValues['nick'] = 'Nickname';
+			$this->exampleValues['c-nick'] = $text->renderPlaceholders(
 				$nickController->nickFormat,
 				[
-					"nick" => $this->exampleValues["nick"],
-					"main" => $this->exampleValues["main"],
+					'nick' => $this->exampleValues['nick'],
+					'main' => $this->exampleValues['main'],
 				]
 			);
 		}
 
 		/** @var ?AccessManager */
-		$accessManager = Registry::getInstance("accessmanager");
+		$accessManager = Registry::getInstance('accessmanager');
 		if (isset($accessManager)) {
-			$alName = ucfirst($accessManager->getDisplayName("admin"));
-			$this->exampleValues["admin-level"] = $alName;
+			$alName = ucfirst($accessManager->getDisplayName('admin'));
+			$this->exampleValues['admin-level'] = $alName;
 		}
 
 		/** @var ?OnlineController */
-		$onlineController = Registry::getInstance("onlinecontroller");
+		$onlineController = Registry::getInstance('onlinecontroller');
 		if (isset($onlineController)) {
-			$this->exampleValues["c-admin-level"] = $onlineController->rankColorAdmin.
-				$this->exampleValues["admin-level"] . "<end>";
+			$this->exampleValues['c-admin-level'] = $onlineController->rankColorAdmin.
+				$this->exampleValues['admin-level'] . '<end>';
 		}
 	}
 }

@@ -3,7 +3,7 @@
 namespace Nadybot\Core\ParamClass;
 
 class PRemove extends Base {
-	protected static string $regExp = "remove|delete|erase|rem|del|rm|off";
+	protected static string $regExp = 'remove|delete|erase|rem|del|rm|off';
 	protected string $value;
 
 	public function __construct(string $value) {
@@ -19,6 +19,6 @@ class PRemove extends Base {
 	}
 
 	public static function getExample(): ?string {
-		return "rem";
+		return 'rem';
 	}
 }

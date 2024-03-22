@@ -10,13 +10,13 @@ use Nadybot\Core\{
 
 #[
 	NCA\EventModifier(
-		name: "remove-online-messages",
+		name: 'remove-online-messages',
 		description: "This modifier removes all XXX has joined/left messages\n".
-			"coming from the relay"
+			'coming from the relay'
 	)
 ]
 class RemoveOnlineMessages extends RemoveEvent {
 	public function __construct() {
-		parent::__construct([Online::TYPE], Source::RELAY . "(*)");
+		parent::__construct([Online::TYPE], Source::RELAY . '(*)');
 	}
 }

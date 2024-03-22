@@ -119,7 +119,7 @@ class Safe {
 	 */
 	public static function pregMatchOffsetAll(string $pattern, string $subject, int $flags=0, int $offset=0): array {
 		$matches = [];
-		$result = preg_match_all($pattern, $subject, $matches, $flags | PREG_OFFSET_CAPTURE, $offset);
+		$result = preg_match_all($pattern, $subject, $matches, $flags | \PREG_OFFSET_CAPTURE, $offset);
 		if ($result === 0 || $result === null || !is_array($matches)) {
 			return [];
 		}
@@ -135,7 +135,7 @@ class Safe {
 	 */
 	public static function pregMatchOrderedAll(string $pattern, string $subject, int $flags=0, int $offset=0): array {
 		$matches = [];
-		$result = preg_match_all($pattern, $subject, $matches, $flags | PREG_SET_ORDER, $offset);
+		$result = preg_match_all($pattern, $subject, $matches, $flags | \PREG_SET_ORDER, $offset);
 		if ($result === 0 || $result === null || !is_array($matches)) {
 			return [];
 		}

@@ -5,7 +5,7 @@ namespace Nadybot\Core\Modules\PROFILE;
 use Nadybot\Core\CommandReply;
 
 class ProfileCommandReply implements CommandReply {
-	public string $result = "";
+	public string $result = '';
 
 	public function reply($msg): void {
 		foreach ((array)$msg as $chunk) {

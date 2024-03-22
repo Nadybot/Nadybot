@@ -20,43 +20,43 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "leader",
-		accessLevel: "guest",
-		description: "Become the Leader of the raid",
+		command: 'leader',
+		accessLevel: 'guest',
+		description: 'Become the Leader of the raid',
 	),
 	NCA\DefineCommand(
 		command: ChatLeaderController::CMD_LEADER_SET,
-		accessLevel: "rl",
-		description: "Sets a specific Leader",
+		accessLevel: 'rl',
+		description: 'Sets a specific Leader',
 	),
 	NCA\DefineCommand(
-		command: "leaderecho",
-		accessLevel: "rl",
-		description: "Set if the text of the leader will be repeated",
+		command: 'leaderecho',
+		accessLevel: 'rl',
+		description: 'Set if the text of the leader will be repeated',
 	),
 	NCA\ProvidesEvent(LeaderClearEvent::class),
 	NCA\ProvidesEvent(LeaderSetEvent::class)
 ]
 class ChatLeaderController extends ModuleInstance implements AccessLevelProvider {
-	public const CMD_LEADER_SET = "leader set leader";
+	public const CMD_LEADER_SET = 'leader set leader';
 
 	/** Repeat the text of the leader */
-	#[NCA\Setting\Boolean(mode: "noedit")]
+	#[NCA\Setting\Boolean(mode: 'noedit')]
 	public bool $leaderecho = true;
 
 	/** Message format for leader echo */
 	#[NCA\Setting\Template(
 		exampleValues: [
-			"message" => "Example message",
+			'message' => 'Example message',
 		],
 		options: [
-			"<yellow>{message}<end>",
+			'<yellow>{message}<end>',
 			"<yellow>------------------------------------------<end>\n".
 			"<tab><red>{message}<end>\n".
-			"<yellow>------------------------------------------<end>",
+			'<yellow>------------------------------------------<end>',
 		]
 	)]
-	public string $leaderEchoFormat = "<yellow>{message}<end>";
+	public string $leaderEchoFormat = '<yellow>{message}<end>';
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;
@@ -83,17 +83,17 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 
 	public function getSingleAccessLevel(string $sender): ?string {
 		if ($this->getLeader() === $sender) {
-			return "rl";
+			return 'rl';
 		}
 		return null;
 	}
 
 	/** Sets the leader of the raid, granting special access */
-	#[NCA\HandlesCommand("leader")]
+	#[NCA\HandlesCommand('leader')]
 	public function leaderCommand(CmdContext $context): void {
 		if ($this->leader === $context->char->name) {
 			$this->leader = null;
-			$this->chatBot->sendPrivate("Raid Leader cleared.");
+			$this->chatBot->sendPrivate('Raid Leader cleared.');
 			$event = new LeaderClearEvent(player: $context->char->name);
 			$this->eventManager->fireEvent($event);
 			return;
@@ -136,50 +136,50 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	}
 
 	/** Enable or disable leader echoing in the private channel */
-	#[NCA\HandlesCommand("leaderecho")]
+	#[NCA\HandlesCommand('leaderecho')]
 	public function leaderEchoOnCommand(CmdContext $context, bool $on): void {
 		if (!$this->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
-		$this->settingManager->save("leaderecho", $on ? "1" : "0");
-		$this->chatBot->sendPrivate("Leader echo has been " . $this->getEchoStatusText());
+		$this->settingManager->save('leaderecho', $on ? '1' : '0');
+		$this->chatBot->sendPrivate('Leader echo has been ' . $this->getEchoStatusText());
 	}
 
 	/** Shows the current echoing state */
-	#[NCA\HandlesCommand("leaderecho")]
+	#[NCA\HandlesCommand('leaderecho')]
 	public function leaderEchoCommand(CmdContext $context): void {
 		if (!$this->checkLeaderAccess($context->char->name)) {
-			$context->reply("You must be Raid Leader to use this command.");
+			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
-		$this->chatBot->sendPrivate("Leader echo is currently " . $this->getEchoStatusText());
+		$this->chatBot->sendPrivate('Leader echo is currently ' . $this->getEchoStatusText());
 	}
 
 	#[NCA\Event(
 		name: MyPrivateChannelMsgEvent::EVENT_MASK,
-		description: "Repeats what the leader says in the color of leaderecho_color setting"
+		description: 'Repeats what the leader says in the color of leaderecho_color setting'
 	)]
 	public function privEvent(MyPrivateChannelMsgEvent $eventObj): void {
 		if (!$this->leaderecho
 			|| $this->leader !== $eventObj->sender
-			|| $eventObj->message[0] === $this->settingManager->get("symbol")) {
+			|| $eventObj->message[0] === $this->settingManager->get('symbol')) {
 			return;
 		}
-		$msg = $this->text->renderPlaceholders($this->leaderEchoFormat, ["message" => $eventObj->message]);
+		$msg = $this->text->renderPlaceholders($this->leaderEchoFormat, ['message' => $eventObj->message]);
 		$this->chatBot->sendPrivate($msg);
 	}
 
 	#[NCA\Event(
 		name: LeaveMyPrivEvent::EVENT_MASK,
-		description: "Removes leader when the leader leaves the channel"
+		description: 'Removes leader when the leader leaves the channel'
 	)]
 	public function leavePrivEvent(LeaveMyPrivEvent $eventObj): void {
 		if ($this->leader !== $eventObj->sender) {
 			return;
 		}
 		$this->leader = null;
-		$msg = "Raid Leader cleared.";
+		$msg = 'Raid Leader cleared.';
 		$this->chatBot->sendPrivate($msg);
 	}
 
@@ -192,25 +192,23 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 			return true;
 		} elseif ($this->leader === $sender) {
 			return true;
-		} elseif ($this->accessManager->checkAccess($sender, "moderator")) {
-			return true;
 		}
-		return false;
+		return $this->accessManager->checkAccess($sender, 'moderator');
 	}
 
 	/** Returns echo's status message based on 'leaderecho' setting. */
 	private function getEchoStatusText(): string {
 		if ($this->leaderecho) {
-			$status = "<on>Enabled<end>";
+			$status = '<on>Enabled<end>';
 		} else {
-			$status = "<off>Disabled<end>";
+			$status = '<off>Disabled<end>';
 		}
 		return $status;
 	}
 
 	/** Returns current leader and echo's current status. */
 	private function getLeaderStatusText(): string {
-		$cmd = $this->leaderecho ? "off" : "on";
+		$cmd = $this->leaderecho ? 'off' : 'on';
 		$status = $this->getEchoStatusText();
 		$msg = "{$this->leader} is now Raid Leader. Leader echo is currently {$status}. You can change it with <symbol>leaderecho {$cmd}";
 		return $msg;

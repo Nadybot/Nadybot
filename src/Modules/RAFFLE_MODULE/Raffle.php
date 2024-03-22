@@ -34,22 +34,22 @@ class Raffle {
 		$this->start = $this->lastAnnounce = time();
 	}
 
-	public function toString(string $prefix=""): string {
+	public function toString(string $prefix=''): string {
 		$list = $this->toList();
 		$items = [];
 		for ($i = 0; $i < count($list); $i++) {
-			$items []= ((count($list) > 1) ? "Item " . ($i + 1) . ": " : "") . "<highlight>{$list[$i]}<end>";
+			$items []= ((count($list) > 1) ? 'Item ' . ($i + 1) . ': ' : '') . "<highlight>{$list[$i]}<end>";
 		}
-		return $prefix . join("\n{$prefix}", $items);
+		return $prefix . implode("\n{$prefix}", $items);
 	}
 
 	public function fromString(string $text): void {
-		$text = Safe::pregReplace("/>\s*</", ">,<", $text);
+		$text = Safe::pregReplace("/>\s*</", '>,<', $text);
 		// Items with "," in their name get this escaped
 		$text = preg_replace_callback(
 			"/(['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?>)(.+?)(<\/a>)/",
-			function (array $matches): string {
-				return $matches[1] .  str_replace(",", "&#44;", $matches[2]) . $matches[3];
+			static function (array $matches): string {
+				return $matches[1] .  str_replace(',', '&#44;', $matches[2]) . $matches[3];
 			},
 			$text
 		);
@@ -74,7 +74,7 @@ class Raffle {
 	public function getParticipantNames(): array {
 		return array_reduce(
 			$this->slots,
-			function (array $carry, RaffleSlot $slot): array {
+			static function (array $carry, RaffleSlot $slot): array {
 				return array_unique([...$carry, ...$slot->participants]);
 			},
 			[]
@@ -97,7 +97,7 @@ class Raffle {
 	public function getWinnerNames(): array {
 		/** @var string[][] */
 		$winners = array_map(
-			function (RaffleSlot $slot): array {
+			static function (RaffleSlot $slot): array {
 				return $slot->getWinnerNames();
 			},
 			$this->slots

@@ -16,13 +16,13 @@ class OnlineOrgStats implements GaugeProvider {
 	public function getValue(): float {
 		return count(array_filter(
 			$this->buddylistManager->buddyList,
-			function (BuddylistEntry $entry): bool {
+			static function (BuddylistEntry $entry): bool {
 				return $entry->online && $entry->hasType('org');
 			}
 		));
 	}
 
 	public function getTags(): array {
-		return ["type" => "org"];
+		return ['type' => 'org'];
 	}
 }

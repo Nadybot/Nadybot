@@ -18,7 +18,7 @@ class HttpRetryRateLimits implements ApplicationInterceptor {
 		while (true) {
 			$response = $httpClient->request(clone $request, $cancellation);
 			if ($response->getStatus() === 429) {
-				$waitFor = (float)($response->getHeader("x-ratelimit-reset-after")??(random_int(10, 50)/10));
+				$waitFor = (float)($response->getHeader('x-ratelimit-reset-after')??(random_int(10, 50)/10));
 				delay($waitFor);
 			} else {
 				return $response;

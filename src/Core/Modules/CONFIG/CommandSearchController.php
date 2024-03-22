@@ -20,11 +20,11 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "cmdsearch",
-		accessLevel: "guest",
-		description: "Finds commands based on key words",
+		command: 'cmdsearch',
+		accessLevel: 'guest',
+		description: 'Finds commands based on key words',
 		defaultStatus: 1,
-		alias: "searchcmd"
+		alias: 'searchcmd'
 	)
 ]
 class CommandSearchController extends ModuleInstance {
@@ -38,7 +38,7 @@ class CommandSearchController extends ModuleInstance {
 	private AccessManager $accessManager;
 
 	/** Search for a command */
-	#[NCA\HandlesCommand("cmdsearch")]
+	#[NCA\HandlesCommand('cmdsearch')]
 	public function searchCommand(CmdContext $context, string $search): void {
 		$commands = $this->getAllCmds();
 		$access = true;
@@ -50,7 +50,7 @@ class CommandSearchController extends ModuleInstance {
 
 		$commands = $this->filterResultsByAccessLevel($context->char->name, $commands);
 
-		$exactMatch = $commands->where("cmd", $search)->first();
+		$exactMatch = $commands->where('cmd', $search)->first();
 
 		if ($exactMatch) {
 			$results = new Collection([$exactMatch]);
@@ -91,11 +91,11 @@ class CommandSearchController extends ModuleInstance {
 	 * @return Collection<CommandSearchResult>
 	 */
 	public function orderBySimilarity(Collection $data, string $search): Collection {
-		return $data->each(function (CommandSearchResult $row) use ($search): void {
+		return $data->each(static function (CommandSearchResult $row) use ($search): void {
 			similar_text($row->cmd, $search, $row->similarity_percent);
-		})->filter(function (CommandSearchResult $row): bool {
+		})->filter(static function (CommandSearchResult $row): bool {
 			return $row->similarity_percent >= 66;
-		})->sort(function (CommandSearchResult $row1, CommandSearchResult $row2): int {
+		})->sort(static function (CommandSearchResult $row1, CommandSearchResult $row2): int {
 			return $row2->similarity_percent <=> $row1->similarity_percent;
 		});
 	}
@@ -108,7 +108,7 @@ class CommandSearchController extends ModuleInstance {
 	public function render(Collection $results, bool $hasAccess, bool $exactMatch): string|array {
 		$blob = '';
 		foreach ($results as $row) {
-			$helpLink = ' [' . $this->text->makeChatcmd("help", "/tell <myname> help {$row->cmd}") . ']';
+			$helpLink = ' [' . $this->text->makeChatcmd('help', "/tell <myname> help {$row->cmd}") . ']';
 			if ($hasAccess) {
 				$module = $this->text->makeChatcmd($row->module, "/tell <myname> config {$row->module}");
 			} else {
@@ -120,7 +120,7 @@ class CommandSearchController extends ModuleInstance {
 
 		$count = $results->count();
 		if ($results->isEmpty()) {
-			return "No results found.";
+			return 'No results found.';
 		}
 		if ($exactMatch) {
 			$msg = $this->text->makeBlob("Command Search Results ({$count})", $blob);
@@ -142,13 +142,13 @@ class CommandSearchController extends ModuleInstance {
 	protected function getAllCmds(): Collection {
 		$permissions = $this->db->table(CommandManager::DB_TABLE_PERMS)
 			->asObj(CmdPermission::class)
-			->groupBy("cmd");
+			->groupBy('cmd');
 		return $this->db->table(CommandManager::DB_TABLE)
-			->where("cmdevent", "cmd")
+			->where('cmdevent', 'cmd')
 			->asObj(CommandSearchResult::class)
-			->each(function (CommandSearchResult $cmd) use ($permissions): void {
+			->each(static function (CommandSearchResult $cmd) use ($permissions): void {
 				$cmd->permissions = $permissions->get($cmd->cmd, new Collection())
-					->keyBy("permission_set")->toArray();
+					->keyBy('permission_set')->toArray();
 			});
 	}
 
@@ -158,8 +158,8 @@ class CommandSearchController extends ModuleInstance {
 	 * @return Collection<CommandSearchResult>
 	 */
 	protected function filterDisabled(Collection $commands): Collection {
-		return $commands->filter(function (CommandSearchResult $cmd): bool {
-			$cmd->permissions = array_filter($cmd->permissions, function (CmdPermission $perm): bool {
+		return $commands->filter(static function (CommandSearchResult $cmd): bool {
+			$cmd->permissions = array_filter($cmd->permissions, static function (CmdPermission $perm): bool {
 				return $perm->enabled;
 			});
 			return count($cmd->permissions) > 0;

@@ -4,7 +4,7 @@ namespace Nadybot\Core\Event;
 
 /** Someone joins our private channel */
 class JoinMyPrivEvent extends JoinPrivEvent {
-	public const EVENT_MASK = "joinpriv";
+	public const EVENT_MASK = 'joinpriv';
 
 	/**
 	 * @param string $sender  The name of the person joning

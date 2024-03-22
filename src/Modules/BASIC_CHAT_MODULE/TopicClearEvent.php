@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 class TopicClearEvent extends TopicEvent {
-	public const EVENT_MASK = "topic(clear)";
+	public const EVENT_MASK = 'topic(clear)';
 
 	/**
 	 * @param string $player The names of the sender

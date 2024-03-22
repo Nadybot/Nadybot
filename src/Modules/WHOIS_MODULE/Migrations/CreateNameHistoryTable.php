@@ -7,19 +7,19 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210428093848, shared: true)]
+#[NCA\Migration(order: 20_210_428_093_848, shared: true)]
 class CreateNameHistoryTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "name_history";
+		$table = 'name_history';
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->bigInteger("charid");
-			$table->string("name", 20);
-			$table->integer("dimension");
-			$table->integer("dt");
-			$table->primary(["charid", "name", "dimension"]);
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->bigInteger('charid');
+			$table->string('name', 20);
+			$table->integer('dimension');
+			$table->integer('dt');
+			$table->primary(['charid', 'name', 'dimension']);
 		});
 	}
 }

@@ -13,7 +13,7 @@ class CmdContext implements CommandReply {
 	 * @phpstan-var array{int,float}[]
 	 */
 	public static array $cmdStats = [];
-	public string $message = "";
+	public string $message = '';
 	public ?string $permissionSet = null;
 	public ?string $source = null;
 	public Character $char;
@@ -37,11 +37,11 @@ class CmdContext implements CommandReply {
 
 	public function __destruct() {
 		static::$cmdStats = array_values(
-			array_filter(static::$cmdStats, function (array $stats): bool {
+			array_filter(static::$cmdStats, static function (array $stats): bool {
 				return time() - $stats[0] <= 600;
 			})
 		);
-		static::$cmdStats []= [time(), (microtime(true)-$this->started) * 1000];
+		static::$cmdStats []= [time(), (microtime(true)-$this->started) * 1_000];
 		foreach ($this->shutdownFunctions as $callback) {
 			$callback();
 		}
@@ -54,7 +54,7 @@ class CmdContext implements CommandReply {
 
 	public function reply($msg): void {
 		if (isset($this->mapping)) {
-			$msg = str_replace("<symbol>", $this->mapping->symbol, $msg);
+			$msg = str_replace('<symbol>', $this->mapping->symbol, $msg);
 		}
 		$this->sendto->reply($msg);
 	}
@@ -69,6 +69,6 @@ class CmdContext implements CommandReply {
 	}
 
 	public function getCommand(): string {
-		return strtolower(explode(" ", $this->message)[0]);
+		return strtolower(explode(' ', $this->message)[0]);
 	}
 }

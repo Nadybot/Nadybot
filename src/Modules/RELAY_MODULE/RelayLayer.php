@@ -13,24 +13,21 @@ class RelayLayer extends DBRow {
 	 */
 	public function __construct(
 		public string $layer,
-		#[NCA\JSON\Ignore]
-		public ?int $id=null,
-		#[NCA\JSON\Ignore]
-		public ?int $relay_id=null,
-		#[NCA\DB\Ignore]
-		public array $arguments=[],
+		#[NCA\JSON\Ignore] public ?int $id=null,
+		#[NCA\JSON\Ignore] public ?int $relay_id=null,
+		#[NCA\DB\Ignore] public array $arguments=[],
 	) {
 	}
 
 	/** @param string[] $secrets */
 	public function toString(?string $linkType=null, array $secrets=[]): string {
 		$arguments = array_map(
-			function (RelayLayerArgument $argument) use ($secrets): string {
+			static function (RelayLayerArgument $argument) use ($secrets): string {
 				return $argument->toString(in_array($argument->name, $secrets));
 			},
 			$this->arguments
 		);
-		$argString = "(" . join(", ", $arguments) . ")";
+		$argString = '(' . implode(', ', $arguments) . ')';
 		if (!isset($linkType)) {
 			return $this->layer . $argString;
 		}
@@ -42,7 +39,7 @@ class RelayLayer extends DBRow {
 	public function getKVArguments(): array {
 		return array_reduce(
 			$this->arguments,
-			function (array $kv, RelayLayerArgument $argument): array {
+			static function (array $kv, RelayLayerArgument $argument): array {
 				$kv[$argument->name] = $argument->value;
 				return $kv;
 			},

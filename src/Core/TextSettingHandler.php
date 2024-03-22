@@ -8,7 +8,7 @@ use Nadybot\Core\Attributes as NCA;
 /**
  * Class to represent a setting with a text value for NadyBot
  */
-#[NCA\SettingHandler("text")]
+#[NCA\SettingHandler('text')]
 class TextSettingHandler extends SettingHandler {
 	/** @inheritDoc */
 	public function getDescription(): string {
@@ -25,7 +25,7 @@ class TextSettingHandler extends SettingHandler {
 	 */
 	public function save(string $newValue): string {
 		if (strlen($newValue) > 255) {
-			throw new Exception("Your text can not be longer than 255 characters.");
+			throw new Exception('Your text can not be longer than 255 characters.');
 		}
 		return $newValue;
 	}
@@ -33,8 +33,8 @@ class TextSettingHandler extends SettingHandler {
 	/** Get a displayable representation of the setting */
 	public function displayValue(string $sender): string {
 		$displayValue = parent::displayValue($sender);
-		if ($displayValue === "<highlight><end>") {
-			$displayValue = "<grey>&lt;empty&gt;<end>";
+		if ($displayValue === '<highlight><end>') {
+			$displayValue = '<grey>&lt;empty&gt;<end>';
 		}
 		return $displayValue;
 	}

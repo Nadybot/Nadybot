@@ -11,10 +11,10 @@ class Paths {
 	 * @param string[] $modules A list of paths where modules are
 	 */
 	public function __construct(
-		public string $cache="./cache/",
-		public string $html="./html/",
-		public string $data="./data/",
-		public string $logs="./logs/",
+		public string $cache='./cache/',
+		public string $html='./html/',
+		public string $data='./data/',
+		public string $logs='./logs/',
 		public array $modules=['./src/Modules', './extras']
 	) {
 	}

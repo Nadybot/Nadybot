@@ -16,6 +16,6 @@ class GauntletBuffStats implements GaugeProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => "gaubuff-{$this->faction}"];
+		return ['type' => "gaubuff-{$this->faction}"];
 	}
 }

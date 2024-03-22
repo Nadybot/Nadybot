@@ -23,6 +23,6 @@ class RelayPacketsStats implements CounterProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => $this->relayType, "name" => $this->relayName, "direction" => $this->direction];
+		return ['type' => $this->relayType, 'name' => $this->relayName, 'direction' => $this->direction];
 	}
 }

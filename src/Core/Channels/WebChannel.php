@@ -34,7 +34,7 @@ class WebChannel implements MessageReceiver {
 		}
 		$path = $this->webChatConverter->convertPath($event->getPath());
 		$color = $this->messageHub->getTextColor($event, $this->getChannelName());
-		if (count($matches = Safe::pregMatch("/#([A-Fa-f0-9]{6})/", $color)) === 2) {
+		if (count($matches = Safe::pregMatch('/#([A-Fa-f0-9]{6})/', $color)) === 2) {
 			$color = $matches[1];
 		}
 		$eventChar = $event->getCharacter();
@@ -46,7 +46,7 @@ class WebChannel implements MessageReceiver {
 			return false;
 		}
 		$webEvent = new AOWebChatEvent(
-			channel: "web",
+			channel: 'web',
 			path: $path,
 			color: $color,
 			sender: $eventChar->name,

@@ -23,7 +23,7 @@ class RaidMemberStats extends Dataset {
 			}
 		}
 		return [
-			"# TYPE raid gauge",
+			'# TYPE raid gauge',
 			"raid{type=\"inactive\"} {$numInactive}",
 			"raid{type=\"active\"} {$numActive}",
 		];

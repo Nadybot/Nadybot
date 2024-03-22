@@ -27,38 +27,38 @@ use Psr\Log\LoggerInterface;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "greeting",
-		description: "Manage custom greeting messages",
-		accessLevel: "mod",
+		command: 'greeting',
+		description: 'Manage custom greeting messages',
+		accessLevel: 'mod',
 	),
 	NCA\DefineCommand(
-		command: "greeting on/off",
-		description: "Enable/Disable greeting messages for oneself",
-		accessLevel: "member",
+		command: 'greeting on/off',
+		description: 'Enable/Disable greeting messages for oneself',
+		accessLevel: 'member',
 	),
 ]
 class GreetController extends ModuleInstance {
-	public const PER_CHARACTER = "per-character";
-	public const PER_MAIN = "per-main";
-	public const PER_JOIN = "per-join";
+	public const PER_CHARACTER = 'per-character';
+	public const PER_MAIN = 'per-main';
+	public const PER_JOIN = 'per-join';
 
-	public const TELL = "tell";
-	public const SOURCE_CHANNEL = "source";
+	public const TELL = 'tell';
+	public const SOURCE_CHANNEL = 'source';
 
-	public const TYPE = "greeting";
-	public const TYPE_CUSTOM = "greeting-custom";
-	public const PREF = "greeting";
-	public const PREF_ON = "on";
-	public const PREF_OFF = "off";
+	public const TYPE = 'greeting';
+	public const TYPE_CUSTOM = 'greeting-custom';
+	public const PREF = 'greeting';
+	public const PREF_ON = 'on';
+	public const PREF_OFF = 'off';
 
 	/** How often to consider the greet probability when someone joins */
 	#[NCA\Setting\Number(
 		options: [
-			"off" => 0,
-			"every time" => 1,
-			"every second time" => 2,
-			"every fifth time" => 5,
-			"every tenth time" => 10,
+			'off' => 0,
+			'every time' => 1,
+			'every second time' => 2,
+			'every fifth time' => 5,
+			'every tenth time' => 10,
 		]
 	)]
 	public int $greetFrequency = 1;
@@ -66,17 +66,17 @@ class GreetController extends ModuleInstance {
 	/** Probability that someone gets greeted when the greet frequency matches */
 	#[NCA\Setting\Number(
 		options: [
-			"off" => 0,
-			"10%" => 10,
-			"20%" => 20,
-			"30%" => 30,
-			"40%" => 40,
-			"50%" => 50,
-			"60%" => 60,
-			"70%" => 70,
-			"80%" => 80,
-			"90%" => 90,
-			"100%" => 100,
+			'off' => 0,
+			'10%' => 10,
+			'20%' => 20,
+			'30%' => 30,
+			'40%' => 40,
+			'50%' => 50,
+			'60%' => 60,
+			'70%' => 70,
+			'80%' => 80,
+			'90%' => 90,
+			'100%' => 100,
 		]
 	)]
 	public int $greetPropability = 0;
@@ -94,8 +94,8 @@ class GreetController extends ModuleInstance {
 	/** Where to greet */
 	#[NCA\Setting\Options(
 		options: [
-			"via tell" => self::TELL,
-			"org/private chat" => self::SOURCE_CHANNEL,
+			'via tell' => self::TELL,
+			'org/private chat' => self::SOURCE_CHANNEL,
 		]
 	)]
 	public string $greetLocation = self::SOURCE_CHANNEL;
@@ -103,12 +103,12 @@ class GreetController extends ModuleInstance {
 	/** Which greetings to use */
 	#[NCA\Setting\Options(
 		options: [
-			"default only" => self::TYPE,
-			"custom only" => self::TYPE_CUSTOM,
-			"default+custom" => self::TYPE . "," . self::TYPE_CUSTOM,
+			'default only' => self::TYPE,
+			'custom only' => self::TYPE_CUSTOM,
+			'default+custom' => self::TYPE . ',' . self::TYPE_CUSTOM,
 		]
 	)]
-	public string $greetSource = self::TYPE . "," . self::TYPE_CUSTOM;
+	public string $greetSource = self::TYPE . ',' . self::TYPE_CUSTOM;
 
 	/** Delay in seconds between joining and receiving the greeting */
 	#[NCA\Setting\Number]
@@ -146,12 +146,12 @@ class GreetController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/greeting.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/greeting.csv');
 	}
 
 	#[NCA\Event(
 		name: JoinMyPrivEvent::EVENT_MASK,
-		description: "Greet players joining the private channel",
+		description: 'Greet players joining the private channel',
 	)]
 	public function sendRandomJoinGreeting(JoinMyPrivEvent $event): void {
 		if (!is_string($event->sender)) {
@@ -176,7 +176,7 @@ class GreetController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: LogonEvent::EVENT_MASK,
-		description: "Greet org members logging on"
+		description: 'Greet org members logging on'
 	)]
 	public function sendRandomLogonGreeting(LogonEvent $event): void {
 		$sender = $event->sender;
@@ -198,28 +198,28 @@ class GreetController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesCommand("greeting")]
+	#[NCA\HandlesCommand('greeting')]
 	/** List all custom-greetings */
 	public function listGreetings(CmdContext $context): void {
-		$lines = $this->db->table("fun")
-			->where("type", self::TYPE_CUSTOM)
+		$lines = $this->db->table('fun')
+			->where('type', self::TYPE_CUSTOM)
 			->asObj(Fun::class)
 			->map(function (Fun $entry) use ($context): string {
 				$delLink = $this->text->makeChatcmd(
-					"remove",
-					"/tell <myname> " . $context->getCommand() . " rem " . $entry->id
+					'remove',
+					'/tell <myname> ' . $context->getCommand() . ' rem ' . $entry->id
 				);
 				return "<tab>- [{$delLink}] {$entry->content}";
 			});
 		if ($lines->isEmpty()) {
 			$context->reply(
-				"No custom greeting defined. Use <highlight><symbol>".
-				$context->getCommand() . " add &lt;greeting&gt;<end> to add one."
+				'No custom greeting defined. Use <highlight><symbol>'.
+				$context->getCommand() . ' add &lt;greeting&gt;<end> to add one.'
 			);
 			return;
 		}
 		$msg = $this->text->makeBlob(
-			"Defined custom greetings",
+			'Defined custom greetings',
 			"<header2>Greetings<end>\n" . $lines->join("\n")
 		);
 		$context->reply($msg);
@@ -231,33 +231,32 @@ class GreetController extends ModuleInstance {
 	 * If the first word is a pair in the form key=value, then the greeting will only
 	 * be used if they match. Possible keys are: name, main, prof, gender, breed, faction
 	 */
-	#[NCA\HandlesCommand("greeting")]
-	#[NCA\Help\Example(command: "greeting add Welcome to the party, *name*!")]
+	#[NCA\HandlesCommand('greeting')]
+	#[NCA\Help\Example(command: 'greeting add Welcome to the party, *name*!')]
 	#[NCA\Help\Example(command: "greeting add prof=doc What's up, doc?")]
-	#[NCA\Help\Example(command: "greeting add main=Nady You again, *name*?")]
+	#[NCA\Help\Example(command: 'greeting add main=Nady You again, *name*?')]
 	public function addGreeting(
 		CmdContext $context,
-		#[NCA\Str("add")]
-		string $action,
+		#[NCA\Str('add')] string $action,
 		string $greeting,
 	): void {
 		$fun = new Fun();
 		$fun->type = self::TYPE_CUSTOM;
 		$fun->content = $greeting;
-		$id = $this->db->insert("fun", $fun);
+		$id = $this->db->insert('fun', $fun);
 		$context->reply("New greeting added as <highlight>#{$id}<end>.");
 	}
 
-	#[NCA\HandlesCommand("greeting")]
+	#[NCA\HandlesCommand('greeting')]
 	/** Remove a custom greeting */
 	public function delGreeting(
 		CmdContext $context,
 		PRemove $action,
 		int $id,
 	): void {
-		$deleted = $this->db->table("fun")
-			->where("type", self::TYPE_CUSTOM)
-			->where("id", $id)
+		$deleted = $this->db->table('fun')
+			->where('type', self::TYPE_CUSTOM)
+			->where('id', $id)
 			->delete();
 		if (!$deleted) {
 			$context->reply("The greeting <highlight>#{$id}<end> doesn't exist.");
@@ -266,33 +265,31 @@ class GreetController extends ModuleInstance {
 		$context->reply("Greeting <highlight>#{$id}<end> deleted successfully.");
 	}
 
-	#[NCA\HandlesCommand("greeting on/off")]
+	#[NCA\HandlesCommand('greeting on/off')]
 	/** Enable greeting messages for you and your alts */
 	public function enableGreetings(
 		CmdContext $context,
-		#[NCA\Str("on")]
-		string $action,
+		#[NCA\Str('on')] string $action,
 	): void {
 		$main = $this->altsController->getMainOf($context->char->name);
 		$this->prefs->save($main, self::PREF, self::PREF_ON);
-		$context->reply("Receiving greetings is now <on>enabled<end>.");
+		$context->reply('Receiving greetings is now <on>enabled<end>.');
 	}
 
-	#[NCA\HandlesCommand("greeting on/off")]
+	#[NCA\HandlesCommand('greeting on/off')]
 	/** Disable greeting messages for you and your alts */
 	public function disableGreetings(
 		CmdContext $context,
-		#[NCA\Str("off")]
-		string $action,
+		#[NCA\Str('off')] string $action,
 	): void {
 		$main = $this->altsController->getMainOf($context->char->name);
 		$this->prefs->save($main, self::PREF, self::PREF_OFF);
-		$context->reply("Receiving greetings is now <off>disabled<end>.");
+		$context->reply('Receiving greetings is now <off>disabled<end>.');
 	}
 
 	#[NCA\Event(
 		name: AltNewMainEvent::EVENT_MASK,
-		description: "Move greeting preferences to new main"
+		description: 'Move greeting preferences to new main'
 	)]
 	public function moveGreetingPrefs(AltNewMainEvent $event): void {
 		$oldSetting = $this->prefs->get($event->alt, self::PREF);
@@ -301,10 +298,10 @@ class GreetController extends ModuleInstance {
 		}
 		$this->prefs->save($event->main, self::PREF, $oldSetting);
 		$this->prefs->delete($event->alt, self::PREF);
-		$this->logger->notice("Moved greeting settings ({old}) from {from} to {to}.", [
-			"old" => $oldSetting,
-			"from" => $event->alt,
-			"to" => $event->main,
+		$this->logger->notice('Moved greeting settings ({old}) from {from} to {to}.', [
+			'old' => $oldSetting,
+			'from' => $event->alt,
+			'to' => $event->main,
 		]);
 	}
 
@@ -317,12 +314,12 @@ class GreetController extends ModuleInstance {
 	 */
 	protected function matchesGreetingCheck(string $token, string $value, string $target): bool {
 		switch ($token) {
-			case "main":
+			case 'main':
 				return $this->altsController->getMainOf($target) === ucfirst(strtolower($value));
-			case "name":
-			case "char":
-			case "charname":
-			case "character":
+			case 'name':
+			case 'char':
+			case 'charname':
+			case 'character':
 				return $target === ucfirst(strtolower($value));
 		}
 
@@ -331,17 +328,17 @@ class GreetController extends ModuleInstance {
 			return false;
 		}
 		switch ($token) {
-			case "prof":
-			case "profession":
+			case 'prof':
+			case 'profession':
 				return $player->profession === $this->util->getProfessionName($value);
-			case "faction":
-			case "side":
+			case 'faction':
+			case 'side':
 				return strtolower($player->faction) === strtolower($value);
-			case "gender":
-			case "sex":
+			case 'gender':
+			case 'sex':
 				return strtolower($player->gender) === strtolower($value);
-			case "race":
-			case "breed":
+			case 'race':
+			case 'breed':
 				return strtolower($player->breed) === strtolower($value);
 			default:
 				return true;
@@ -357,11 +354,11 @@ class GreetController extends ModuleInstance {
 	 * @return ?string Either the greeting, or null if it doesn't apply
 	 */
 	private function greetingFits(string $target, Fun $greeting): ?string {
-		$parts = explode(" ", $greeting->content, 2);
+		$parts = explode(' ', $greeting->content, 2);
 		if (count($parts) < 2) {
 			return $greeting->content;
 		}
-		$tokens = explode("=", $parts[0], 2);
+		$tokens = explode('=', $parts[0], 2);
 		if (count($tokens) < 2) {
 			return $greeting->content;
 		}
@@ -382,8 +379,8 @@ class GreetController extends ModuleInstance {
 	 */
 	private function getMatchingGreeting(string $target): ?string {
 		/** @var array<Fun> */
-		$data = $this->db->table("fun")
-			->whereIn("type", explode(",", $this->greetSource))
+		$data = $this->db->table('fun')
+			->whereIn('type', explode(',', $this->greetSource))
 			->asObj(Fun::class)
 			->toArray();
 		while (count($data) > 0) {
@@ -415,7 +412,7 @@ class GreetController extends ModuleInstance {
 		if ($this->greetCountType === self::PER_MAIN) {
 			$key = $main;
 		} else {
-			$key = "X";
+			$key = 'X';
 		}
 		if (!array_key_exists($key, self::$greetCount)) {
 			self::$greetCount[$key] = 0;

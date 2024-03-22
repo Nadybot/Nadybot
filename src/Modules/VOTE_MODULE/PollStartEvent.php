@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\VOTE_MODULE;
 
 class PollStartEvent extends PollEvent {
-	public const EVENT_MASK = "poll(start)";
+	public const EVENT_MASK = 'poll(start)';
 
 	/** @param Vote[] $votes */
 	public function __construct(

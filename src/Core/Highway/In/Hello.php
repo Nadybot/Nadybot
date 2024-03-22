@@ -15,12 +15,8 @@ class Hello extends InPackage {
 	 */
 	public function __construct(
 		string $type,
-		#[CastListToType('string')]
-		#[MapFrom("public-rooms")]
-		?array $publicRoomsOld,
-		#[CastListToType('string')]
-		#[MapFrom("public_rooms")]
-		?array $publicRoomsNew,
+		#[CastListToType('string')] #[MapFrom('public-rooms')] ?array $publicRoomsOld,
+		#[CastListToType('string')] #[MapFrom('public_rooms')] ?array $publicRoomsNew,
 		public Config $config,
 	) {
 		parent::__construct($type);

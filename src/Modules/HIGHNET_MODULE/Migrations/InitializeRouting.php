@@ -7,31 +7,31 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{Attributes as NCA, Config\BotConfig, DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20230531125312)]
+#[NCA\Migration(order: 20_230_531_125_312)]
 class InitializeRouting implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$hops = ["web", strlen($this->config->general->orgName) ? "aoorg" : "aopriv({$this->config->main->character})"];
+		$hops = ['web', strlen($this->config->general->orgName) ? 'aoorg' : "aopriv({$this->config->main->character})"];
 		foreach ($hops as $hop) {
 			$route = [
-				"source" => 'highnet(*)',
-				"destination" => $hop,
-				"two_way" => false,
+				'source' => 'highnet(*)',
+				'destination' => $hop,
+				'two_way' => false,
 			];
 			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 
 			$route = [
-				"source" => $hop,
-				"destination" => 'highnet',
-				"two_way" => false,
+				'source' => $hop,
+				'destination' => 'highnet',
+				'two_way' => false,
 			];
 			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
 
 		$rhf = new RouteHopFormat();
-		$rhf->hop = "highnet";
+		$rhf->hop = 'highnet';
 		$rhf->render = true;
 		$rhf->format = '@%s';
 		$db->insert(Source::DB_TABLE, $rhf);

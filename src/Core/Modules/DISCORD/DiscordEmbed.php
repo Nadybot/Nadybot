@@ -7,7 +7,7 @@ use Nadybot\Core\JSONDataModel;
 
 class DiscordEmbed extends JSONDataModel {
 	public ?string $title = null;
-	public ?string $type = "rich";
+	public ?string $type = 'rich';
 	public ?string $description = null;
 	public ?string $url = null;
 	public ?DateTime $timestamp = null;

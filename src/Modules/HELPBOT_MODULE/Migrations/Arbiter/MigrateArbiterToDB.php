@@ -11,20 +11,20 @@ use Nadybot\Core\{
 use Nadybot\Modules\HELPBOT_MODULE\ArbiterController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210821063253, shared: true)]
+#[NCA\Migration(order: 20_210_821_063_253, shared: true)]
 class MigrateArbiterToDB implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = ArbiterController::DB_TABLE;
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->string("type", 3)->unique();
-			$table->unsignedInteger("start")->index();
-			$table->unsignedInteger("end")->index();
+			$table->string('type', 3)->unique();
+			$table->unsignedInteger('start')->index();
+			$table->unsignedInteger('end')->index();
 		});
 		$db->table($table)->insert([
-			["type" => ArbiterController::AI,  "start" => 1618704000, "end" => 1619395200],
-			["type" => ArbiterController::BS,  "start" => 1619913600, "end" => 1620604800],
-			["type" => ArbiterController::DIO, "start" => 1621123200, "end" => 1621814400],
+			['type' => ArbiterController::AI,  'start' => 1_618_704_000, 'end' => 1_619_395_200],
+			['type' => ArbiterController::BS,  'start' => 1_619_913_600, 'end' => 1_620_604_800],
+			['type' => ArbiterController::DIO, 'start' => 1_621_123_200, 'end' => 1_621_814_400],
 		]);
 	}
 }

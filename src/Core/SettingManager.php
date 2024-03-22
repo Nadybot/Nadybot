@@ -15,7 +15,7 @@ use Psr\Log\LoggerInterface;
 	NCA\ProvidesEvent(SettingEvent::class)
 ]
 class SettingManager {
-	public const DB_TABLE = "settings_<myname>";
+	public const DB_TABLE = 'settings_<myname>';
 
 	/** @var array<string,SettingValue> */
 	public array $settings = [];
@@ -53,10 +53,10 @@ class SettingManager {
 	private array $settingHandlers = [];
 
 	/** Return the hardcoded value for a setting or a given default */
-	public function getHardcoded(string $setting, bool|int|string|null $default=null): ?string {
+	public function getHardcoded(string $setting, null|bool|int|string $default=null): ?string {
 		$value = $this->config->settings[$setting]??$default;
 		if (is_bool($value)) {
-			return $value ? "1" : "0";
+			return $value ? '1' : '0';
 		} elseif (is_int($value)) {
 			return (string)$value;
 		} elseif (is_string($value)) {
@@ -102,13 +102,13 @@ class SettingManager {
 
 		if (!isset($this->settingHandlers[$type])) {
 			$this->logger->error(
-				"Error in registering Setting {module}:{name}. ".
+				'Error in registering Setting {module}:{name}. '.
 				"Invalid type '{type}'. Allowed are: {allowed_types}.",
 				[
-					"allowed_types" => join(", ", array_keys($this->settingHandlers)),
-					"type" => $type,
-					"module" => $module,
-					"name" => $name,
+					'allowed_types' => implode(', ', array_keys($this->settingHandlers)),
+					'type' => $type,
+					'module' => $module,
+					'name' => $name,
 				]
 			);
 		}
@@ -118,9 +118,9 @@ class SettingManager {
 			$value = $this->util->parseTime((string)$value);
 			if ($value < 1) {
 				$this->logger->error("Error in registering Setting {module}:setting({setting}). Invalid time: '{time}'.", [
-					"module" => $module,
-					"setting" => $name,
-					"time" => $oldvalue,
+					'module' => $module,
+					'setting' => $name,
+					'time' => $oldvalue,
 				]);
 				return;
 			}
@@ -136,13 +136,13 @@ class SettingManager {
 			}
 			$kv[$key] = (string)$optVal;
 		}
-		$options = join(";", array_keys($kv));
+		$options = implode(';', array_keys($kv));
 		$intoptions = null;
 		if ($needIntOptions) {
-			$intoptions = join(";", array_values($kv));
+			$intoptions = implode(';', array_values($kv));
 		}
 
-		if (isset($help) && $help !== "") {
+		if (isset($help) && $help !== '') {
 			$help = $this->helpManager->checkForHelpFile($module, $help);
 		}
 
@@ -156,22 +156,22 @@ class SettingManager {
 			$setting->module      = $module;
 			$setting->name        = $name;
 			$setting->options     = $options;
-			$setting->source      = "db";
+			$setting->source      = 'db';
 			$setting->type        = $type;
 			$setting->verify      = 1;
 			$setting->value       = (string)$value;
 			if (array_key_exists($name, $this->chatBot->existing_settings) || $this->exists($name)) {
 				$this->db->table(self::DB_TABLE)
-					->where("name", $name)
+					->where('name', $name)
 					->update([
-						"module" => $module,
-						"type" => $type,
-						"mode" => $mode,
-						"options" => $options,
-						"intoptions" => $intoptions,
-						"description" => $description,
-						"verify" => 1,
-						"help" => $help,
+						'module' => $module,
+						'type' => $type,
+						'mode' => $mode,
+						'options' => $options,
+						'intoptions' => $intoptions,
+						'description' => $description,
+						'verify' => 1,
+						'help' => $help,
 					]);
 				if (array_key_exists($name, $this->settings)) {
 					$setting->value = $this->settings[$name]->value;
@@ -181,27 +181,27 @@ class SettingManager {
 			} else {
 				$this->db->table(self::DB_TABLE)
 					->insert([
-						"name" => $name,
-						"module" => $module,
-						"type" => $type,
-						"mode" => $mode,
-						"value" => $value,
-						"options" => $options,
-						"intoptions" => $intoptions,
-						"description" => $description,
-						"source" => "db",
-						"admin" => $accessLevel,
-						"verify" => 1,
-						"help" => $help,
+						'name' => $name,
+						'module' => $module,
+						'type' => $type,
+						'mode' => $mode,
+						'value' => $value,
+						'options' => $options,
+						'intoptions' => $intoptions,
+						'description' => $description,
+						'source' => 'db',
+						'admin' => $accessLevel,
+						'verify' => 1,
+						'help' => $help,
 					]);
 			}
 			$this->settings[$name] = new SettingValue($setting);
 		} catch (SQLException $e) {
-			$this->logger->error("Error in registering Setting {module}:setting({setting}): {error}", [
-				"module" => $module,
-				"setting" => $name,
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Error in registering Setting {module}:setting({setting}): {error}', [
+				'module' => $module,
+				'setting' => $name,
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 		}
 	}
@@ -231,7 +231,7 @@ class SettingManager {
 		} elseif (!static::$isInitialized) {
 			/** @var ?Setting */
 			$value = $this->db->table(self::DB_TABLE)
-				->where("name", $name)
+				->where('name', $name)
 				->asObj(Setting::class)
 				->first();
 			if (isset($value)) {
@@ -239,20 +239,20 @@ class SettingManager {
 			}
 		}
 		$this->logger->error("Could not retrieve value for setting '{setting}' because setting does not exist", [
-			"setting" => $name,
+			'setting' => $name,
 		]);
 		return false;
 	}
 
 	/** @return int|bool|string|mixed[]|null */
-	public function getTyped(string $name): int|bool|string|array|null {
+	public function getTyped(string $name): null|int|bool|string|array {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->typed();
 		} elseif (!static::$isInitialized) {
 			/** @var ?Setting */
 			$value = $this->db->table(self::DB_TABLE)
-				->where("name", $name)
+				->where('name', $name)
 				->asObj(Setting::class)
 				->first();
 			if (isset($value)) {
@@ -262,7 +262,7 @@ class SettingManager {
 		}
 
 		$this->logger->error("Could not retrieve value for setting '{setting}' because setting does not exist", [
-			"setting" => $name,
+			'setting' => $name,
 		]);
 		return null;
 	}
@@ -273,9 +273,9 @@ class SettingManager {
 			return (int)$value;
 		}
 		$this->logger->error("Wrong type for setting '{name}' requested. Expected 'int', got '{type}' ({value})", [
-			"name" => $name,
-			"type" => gettype($value),
-			"value" => $value,
+			'name' => $name,
+			'type' => gettype($value),
+			'value' => $value,
 		]);
 		return null;
 	}
@@ -286,9 +286,9 @@ class SettingManager {
 			return $value;
 		}
 		$this->logger->error("Wrong type for setting '{name}' requested. Expected 'bool', got '{type}' ({value})", [
-			"name" => $name,
-			"type" => gettype($value),
-			"value" => $value,
+			'name' => $name,
+			'type' => gettype($value),
+			'value' => $value,
 		]);
 		return null;
 	}
@@ -299,8 +299,8 @@ class SettingManager {
 			return $value;
 		}
 		$this->logger->error("Wrong type for setting '{setting}' requested. Expected 'string', got '{type}'", [
-			"setting" => $name,
-			"type" => gettype($value),
+			'setting' => $name,
+			'type' => gettype($value),
 		]);
 		return null;
 	}
@@ -318,8 +318,8 @@ class SettingManager {
 
 		if (!$this->exists($name)) {
 			$this->logger->error("Could not save value '{value}' for setting '{setting}' because setting does not exist", [
-				"value" => $value,
-				"setting" => $name,
+				'value' => $value,
+				'setting' => $name,
 			]);
 			return false;
 		}
@@ -346,10 +346,10 @@ class SettingManager {
 
 		$this->settings[$name]->value = (string)$value;
 		$this->db->table(self::DB_TABLE)
-			->where("name", $name)
+			->where('name', $name)
 			->update([
-				"verify" => 1,
-				"value" => $value,
+				'verify' => 1,
+				'value' => $value,
 			]);
 		return true;
 	}
@@ -412,7 +412,7 @@ class SettingManager {
 		$handler = $this->settingHandlers[$row->type] ?? null;
 		if (!isset($handler)) {
 			$this->logger->error("Could not find setting handler for setting type '{type}'", [
-				"type" => $row->type,
+				'type' => $row->type,
 			]);
 			return null;
 		}

@@ -23,27 +23,27 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Misc"),
+	NCA\HasMigrations('Migrations/Misc'),
 	NCA\DefineCommand(
-		command: "leprocs",
-		accessLevel: "guest",
+		command: 'leprocs',
+		accessLevel: 'guest',
 		description: "Shows each profession's LE procs",
-		alias: "leproc"
+		alias: 'leproc'
 	),
 	NCA\DefineCommand(
-		command: "ofabarmor",
-		accessLevel: "guest",
-		description: "Shows ofab armors available to a given profession and their VP cost",
+		command: 'ofabarmor',
+		accessLevel: 'guest',
+		description: 'Shows ofab armors available to a given profession and their VP cost',
 	),
 	NCA\DefineCommand(
-		command: "ofabweapons",
-		accessLevel: "guest",
-		description: "Shows Ofab weapons, their marks, and VP cost",
+		command: 'ofabweapons',
+		accessLevel: 'guest',
+		description: 'Shows Ofab weapons, their marks, and VP cost',
 	),
 	NCA\DefineCommand(
-		command: "aigen",
-		accessLevel: "guest",
-		description: "Shows info about Alien City Generals",
+		command: 'aigen',
+		accessLevel: 'guest',
+		description: 'Shows info about Alien City Generals',
 	)
 ]
 class AlienMiscController extends ModuleInstance {
@@ -71,14 +71,14 @@ class AlienMiscController extends ModuleInstance {
 	}
 
 	/** See a list of professions that have LE procs */
-	#[NCA\HandlesCommand("leprocs")]
+	#[NCA\HandlesCommand('leprocs')]
 	public function leprocsCommand(CmdContext $context): void {
 		$blob = "<header2>Choose a profession<end>\n";
-		$blob = $this->db->table("leprocs")
-			->orderBy("profession")
-			->select("profession")
+		$blob = $this->db->table('leprocs')
+			->orderBy('profession')
+			->select('profession')
 			->distinct()
-			->pluckStrings("profession")
+			->pluckStrings('profession')
 			->reduce(
 				function (string $blob, string $profession): string {
 					$professionLink = $this->text->makeChatcmd($profession, "/tell <myname> leprocs {$profession}");
@@ -87,12 +87,12 @@ class AlienMiscController extends ModuleInstance {
 				$blob
 			);
 
-		$msg = $this->text->makeBlob("LE Procs (Choose profession)", $blob);
+		$msg = $this->text->makeBlob('LE Procs (Choose profession)', $blob);
 		$context->reply($msg);
 	}
 
 	/** Shows the LE procs for a specific profession */
-	#[NCA\HandlesCommand("leprocs")]
+	#[NCA\HandlesCommand('leprocs')]
 	public function leprocsInfoCommand(CmdContext $context, string $prof): void {
 		$profession = $this->util->getProfessionName($prof);
 		if (empty($profession)) {
@@ -102,10 +102,10 @@ class AlienMiscController extends ModuleInstance {
 		}
 
 		/** @var Collection<LEProc> */
-		$data = $this->db->table("leprocs")
-			->whereIlike("profession", $profession)
-			->orderBy("proc_type")
-			->orderByDesc("research_lvl")
+		$data = $this->db->table('leprocs')
+			->whereIlike('profession', $profession)
+			->orderBy('proc_type')
+			->orderByDesc('research_lvl')
 			->asObj(LEProc::class);
 		if ($data->count() === 0) {
 			$msg = "No procs found for profession <highlight>{$profession}<end>.";
@@ -117,11 +117,11 @@ class AlienMiscController extends ModuleInstance {
 		foreach ($data as $row) {
 			if ($type !== $row->proc_type) {
 				$type = $row->proc_type;
-				$blob .= "\n<img src=rdb://" . ($type === 1 ? 84789 : 84310) . "><header2>Type {$type}<end>\n";
+				$blob .= "\n<img src=rdb://" . ($type === 1 ? 84_789 : 84_310) . "><header2>Type {$type}<end>\n";
 			}
 
 			$proc_trigger = "<green>{$row->proc_trigger}<end>";
-			$blob .= "<tab>".
+			$blob .= '<tab>'.
 				$this->text->alignNumber($row->research_lvl, 2).
 				" - {$row->name} <orange>{$row->modifiers}<end> {$row->duration} {$proc_trigger}\n";
 		}
@@ -134,21 +134,21 @@ class AlienMiscController extends ModuleInstance {
 	}
 
 	/** Show a list of professions and their LE bio types */
-	#[NCA\HandlesCommand("ofabarmor")]
+	#[NCA\HandlesCommand('ofabarmor')]
 	#[NCA\Help\Epilogue(
 		"Valid QLs are:\n".
-		"<tab>1, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, and 300."
+		'<tab>1, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, and 300.'
 	)]
 	public function ofabarmorCommand(CmdContext $context): void {
 		/** @var int[] */
-		$qls = $this->db->table("ofabarmorcost")
-			->orderBy("ql")
-			->select("ql")
+		$qls = $this->db->table('ofabarmorcost')
+			->orderBy('ql')
+			->select('ql')
 			->distinct()
-			->pluckInts("ql")
+			->pluckInts('ql')
 			->toArray();
-		$blob = $this->db->table("ofabarmortype")
-			->orderBy("profession")
+		$blob = $this->db->table('ofabarmortype')
+			->orderBy('profession')
 			->asObj(OfabArmorType::class)
 			->reduce(
 				function (string $blob, OfabArmorType $row) use ($qls): string {
@@ -159,49 +159,49 @@ class AlienMiscController extends ModuleInstance {
 					}
 					return $blob . "\n\n";
 				},
-				""
+				''
 			);
 
-		$msg = $this->text->makeBlob("Ofab Armor Bio-Material Types", $blob);
+		$msg = $this->text->makeBlob('Ofab Armor Bio-Material Types', $blob);
 		$context->reply($msg);
 	}
 
 	/** Show Ofab armor for a specific profession at a certain ql */
-	#[NCA\HandlesCommand("ofabarmor")]
+	#[NCA\HandlesCommand('ofabarmor')]
 	public function ofabarmorInfoCommand2(CmdContext $context, string $prof, int $ql): void {
 		$this->ofabarmorInfoCommand($context, $ql, $prof);
 	}
 
 	/** Show Ofab armor for a specific profession at a certain ql */
-	#[NCA\HandlesCommand("ofabarmor")]
+	#[NCA\HandlesCommand('ofabarmor')]
 	public function ofabarmorInfoCommand(CmdContext $context, ?int $ql, string $prof): void {
 		$ql ??= 300;
 
 		$profession = $this->util->getProfessionName($prof);
 
 		if ($profession === '') {
-			$msg = "Please choose one of these professions: adv, agent, crat, doc, enf, eng, fix, keep, ma, mp, nt, sol, shade, or trader";
+			$msg = 'Please choose one of these professions: adv, agent, crat, doc, enf, eng, fix, keep, ma, mp, nt, sol, shade, or trader';
 			$context->reply($msg);
 			return;
 		}
 
-		$type = $this->db->table("ofabarmortype")
-			->where("profession", $profession)
-			->pluckInts("type")
+		$type = $this->db->table('ofabarmortype')
+			->where('profession', $profession)
+			->pluckInts('type')
 			->first();
 
 		/** @var Collection<OfabArmor> */
-		$armors = $this->db->table("ofabarmor")
-			->where("profession", $profession)
-			->orderBy("upgrade")
-			->orderBy("name")
+		$armors = $this->db->table('ofabarmor')
+			->where('profession', $profession)
+			->orderBy('upgrade')
+			->orderBy('name')
 			->asObj(OfabArmor::class);
 
 		/** @var Collection<OfabArmorCost> */
-		$costBySlot = $this->db->table("ofabarmorcost")
-			->where("ql", $ql)
+		$costBySlot = $this->db->table('ofabarmorcost')
+			->where('ql', $ql)
 			->asObj(OfabArmorCost::class)
-			->keyBy("slot");
+			->keyBy('slot');
 
 		if ($armors->count() === 0 || $costBySlot->count() === 0) {
 			$msg = "Could not find any OFAB armor for {$profession} in QL {$ql}.";
@@ -215,10 +215,10 @@ class AlienMiscController extends ModuleInstance {
 		$blob .= "Upgrade with {$typeLink} (minimum QL {$typeQl})\n\n";
 
 		/** @var Collection<int> */
-		$qls = $this->db->table("ofabarmorcost")
-			->orderBy("ql")
-			->select("ql")->distinct()
-			->pluckInts("ql");
+		$qls = $this->db->table('ofabarmorcost')
+			->orderBy('ql')
+			->select('ql')->distinct()
+			->pluckInts('ql');
 		foreach ($qls as $currQL) {
 			if ($currQL === $ql) {
 				$blob .= "<yellow>[<end>{$currQL}<yellow>]<end> ";
@@ -240,15 +240,15 @@ class AlienMiscController extends ModuleInstance {
 				$currentUpgrade = $row->upgrade;
 				$blob .= "\n<header2>";
 				if ($currentUpgrade === 0) {
-					$blob .= "No upgrades";
+					$blob .= 'No upgrades';
 				} elseif ($currentUpgrade === 1) {
-					$blob .= "1 upgrade";
+					$blob .= '1 upgrade';
 				} else {
 					$blob .= "{$currentUpgrade} upgrades";
 				}
 				$blob .= "<end>\n";
 			}
-			$blob .= "<tab>" . $this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
+			$blob .= '<tab>' . $this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
 
 			if ($row->upgrade === 0 || $row->upgrade === 3) {
 				$blob .= "  (<highlight>{$vp}<end> VP)";
@@ -263,19 +263,19 @@ class AlienMiscController extends ModuleInstance {
 	}
 
 	/** Show a list of Ofab weapons and the type needed to upgrade */
-	#[NCA\HandlesCommand("ofabweapons")]
+	#[NCA\HandlesCommand('ofabweapons')]
 	#[NCA\Help\Epilogue(
 		"Valid QLs are:\n".
-		"<tab>1, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, and 300."
+		'<tab>1, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, and 300.'
 	)]
 	public function ofabweaponsCommand(CmdContext $context): void {
 		/** @var int[] */
-		$qls = $this->db->table("ofabweaponscost")
-			->orderBy("ql")
-			->select("ql")->distinct()
-			->pluckInts("ql")->toArray();
-		$blob = $this->db->table("ofabweapons")
-			->orderBy("name")
+		$qls = $this->db->table('ofabweaponscost')
+			->orderBy('ql')
+			->select('ql')->distinct()
+			->pluckInts('ql')->toArray();
+		$blob = $this->db->table('ofabweapons')
+			->orderBy('name')
 			->asObj(OfabWeapon::class)
 			->reduce(
 				function (string $blob, OfabWeapon $weapon) use ($qls): string {
@@ -289,24 +289,24 @@ class AlienMiscController extends ModuleInstance {
 					}
 					return "{$blob}\n\n";
 				},
-				""
+				''
 			);
 
-		$msg = $this->text->makeBlob("Ofab Weapons", $blob);
+		$msg = $this->text->makeBlob('Ofab Weapons', $blob);
 		$context->reply($msg);
 	}
 
 	/** Show all 6 marks for a particular Ofab weapon at ql 300, or &lt;search ql&gt; */
-	#[NCA\HandlesCommand("ofabweapons")]
+	#[NCA\HandlesCommand('ofabweapons')]
 	public function ofabweaponsInfoCommand(CmdContext $context, PWord $weapon, ?int $searchQL): void {
 		$weapon = ucfirst($weapon());
 		$searchQL ??= 300;
 
 		/** @var OfabWeaponWithCost|null */
-		$row = $this->db->table("ofabweapons AS w")
-			->crossJoin("ofabweaponscost AS c")
-			->where("w.name", $weapon)
-			->where("c.ql", $searchQL)
+		$row = $this->db->table('ofabweapons AS w')
+			->crossJoin('ofabweaponscost AS c')
+			->where('w.name', $weapon)
+			->where('c.ql', $searchQL)
 			->asObj(OfabWeaponWithCost::class)->first();
 		if ($row === null) {
 			$msg = "Could not find any OFAB weapon <highlight>{$weapon}<end> in QL <highlight>{$searchQL}<end>.";
@@ -319,10 +319,10 @@ class AlienMiscController extends ModuleInstance {
 		$typeLink = $this->text->makeChatcmd("Kyr'Ozch Bio-Material - Type {$row->type}", "/tell <myname> bioinfo {$row->type} {$typeQl}");
 		$blob .= "Upgrade with {$typeLink} (minimum QL {$typeQl})\n\n";
 
-		$blob = $this->db->table("ofabweaponscost")
-			->orderBy("ql")
-			->select("ql")->distinct()
-			->pluckInts("ql")
+		$blob = $this->db->table('ofabweaponscost')
+			->orderBy('ql')
+			->select('ql')->distinct()
+			->pluckInts('ql')
 			->reduce(
 				function (string $blob, int $ql) use ($searchQL, $weapon): string {
 					if ($ql === $searchQL) {
@@ -354,55 +354,54 @@ class AlienMiscController extends ModuleInstance {
 	}
 
 	/** Show info about the Alien City Generals */
-	#[NCA\HandlesCommand("aigen")]
+	#[NCA\HandlesCommand('aigen')]
 	public function aigenCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("ankari", "ilari", "rimah", "jaax", "xoch", "cha")]
-		string $general
+		#[NCA\StrChoice('ankari', 'ilari', 'rimah', 'jaax', 'xoch', 'cha')] string $general
 	): void {
 		$gen = ucfirst(strtolower($general));
 
 		$blob = '';
 		switch ($gen) {
-			case "Ankari":
+			case 'Ankari':
 				$blob .= "Low Evade/Dodge, Low AR, Casts Viral/Virral nukes\n\n";
-				$blob .= $this->itemsController->getItemAndIcon("Arithmetic Lead Viralbots") . "\n";
+				$blob .= $this->itemsController->getItemAndIcon('Arithmetic Lead Viralbots') . "\n";
 				$blob .= "(Nanoskill / Tradeskill)\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 1") . "\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 2") . "\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 48");
 				break;
-			case "Ilari":
+			case 'Ilari':
 				$blob .= "Low Evade/Dodge\n\n";
-				$blob .= $this->itemsController->getItemAndIcon("Spiritual Lead Viralbots") . "\n";
+				$blob .= $this->itemsController->getItemAndIcon('Spiritual Lead Viralbots') . "\n";
 				$blob .= "(Nanocost / Nanopool / Max Nano)\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 992") . "\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 880");
 				break;
-			case "Rimah":
+			case 'Rimah':
 				$blob .= "Low Evade/Dodge\n\n";
-				$blob .= $this->itemsController->getItemAndIcon("Observant Lead Viralbots") . "\n";
+				$blob .= $this->itemsController->getItemAndIcon('Observant Lead Viralbots') . "\n";
 				$blob .= "(Init / Evades)\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 112") . "\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 240");
 				break;
-			case "Jaax":
+			case 'Jaax':
 				$blob .= "High Evade, Low Dodge\n\n";
-				$blob .= $this->itemsController->getItemAndIcon("Strong Lead Viralbots") . "\n";
+				$blob .= $this->itemsController->getItemAndIcon('Strong Lead Viralbots') . "\n";
 				$blob .= "(Melee / Spec Melee / Add All Def / Add Damage)\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 3") . "\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 4");
 				break;
-			case "Xoch":
+			case 'Xoch':
 				$blob .= "High Evade/Dodge, Casts Ilari Biorejuvenation heals\n\n";
-				$blob .= $this->itemsController->getItemAndIcon("Enduring Lead Viralbots") . "\n";
+				$blob .= $this->itemsController->getItemAndIcon('Enduring Lead Viralbots') . "\n";
 				$blob .= "(Max Health / Body Dev)\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 5") . "\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 12");
 				break;
-			case "Cha":
+			case 'Cha':
 				$blob .= "High Evade/NR, Low Dodge\n\n";
-				$blob .= $this->itemsController->getItemAndIcon("Supple Lead Viralbots") . "\n";
+				$blob .= $this->itemsController->getItemAndIcon('Supple Lead Viralbots') . "\n";
 				$blob .= "(Ranged / Spec Ranged / Add All Off)\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 13") . "\n\n";
 				$blob .= $this->itemsController->getItemAndIcon("Kyr'Ozch Bio-Material - Type 76");

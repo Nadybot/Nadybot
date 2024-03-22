@@ -19,9 +19,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "history",
-		accessLevel: "guest",
-		description: "Show history of a player",
+		command: 'history',
+		accessLevel: 'guest',
+		description: 'Show history of a player',
 	)
 ]
 class PlayerHistoryController extends ModuleInstance {
@@ -39,7 +39,7 @@ class PlayerHistoryController extends ModuleInstance {
 	 *
 	 * Valid dimensions are 1 (Atlantean), 2 (Rimor), and 5 (New server)
 	 */
-	#[NCA\HandlesCommand("history")]
+	#[NCA\HandlesCommand('history')]
 	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$name = $char();
 		$dimension ??= $this->config->main->dimension;
@@ -54,33 +54,33 @@ class PlayerHistoryController extends ModuleInstance {
 		if ($history === null) {
 			return "Could not get History of {$name} on RK{$dimension}.";
 		}
-		$blob = "";
+		$blob = '';
 		$header = "Date            Level    AI    Faction    Breed     Guild (rank)\n".
 			"<highlight>_________________________________________________________________<end>\n";
 		foreach ($history->data as $entry) {
-			$date = $entry->last_changed->format("Y-m-d");
+			$date = $entry->last_changed->format('Y-m-d');
 
-			if ($entry->deleted === "1") {
+			if ($entry->deleted === '1') {
 				$blob .= "{$date} <highlight>|<end>   <red>DELETED<end>\n";
 				continue;
 			}
-			if ($entry->defender_rank == "") {
+			if ($entry->defender_rank == '') {
 				$ailevel = 0;
 			} else {
 				$ailevel = (int)$entry->defender_rank;
 			}
 			$ailevel = $this->text->alignNumber($ailevel, 2, 'green');
 
-			if ($entry->faction == "Omni") {
-				$faction = "<omni>Omni<end>    ";
-			} elseif ($entry->faction == "Clan") {
-				$faction = "<clan>Clan<end>     ";
+			if ($entry->faction == 'Omni') {
+				$faction = '<omni>Omni<end>    ';
+			} elseif ($entry->faction == 'Clan') {
+				$faction = '<clan>Clan<end>     ';
 			} else {
-				$faction = "<neutral>Neutral<end>  ";
+				$faction = '<neutral>Neutral<end>  ';
 			}
 
-			if (!isset($entry->guild_name) || $entry->guild_name == "") {
-				$guild = "Not in a guild";
+			if (!isset($entry->guild_name) || $entry->guild_name == '') {
+				$guild = 'Not in a guild';
 			} else {
 				$guild = $entry->guild_name;
 				if (isset($entry->guild_rank_name) && strlen($entry->guild_rank_name)) {

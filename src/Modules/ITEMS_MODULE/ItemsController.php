@@ -19,22 +19,22 @@ use Psr\Log\LoggerInterface;
 
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Items"),
+	NCA\HasMigrations('Migrations/Items'),
 	NCA\DefineCommand(
-		command: "items",
-		accessLevel: "guest",
-		description: "Searches for an item using the default items db",
-		alias: "i"
+		command: 'items',
+		accessLevel: 'guest',
+		description: 'Searches for an item using the default items db',
+		alias: 'i'
 	),
 	NCA\DefineCommand(
-		command: "itemid",
-		accessLevel: "guest",
-		description: "Searches for an item by id",
+		command: 'itemid',
+		accessLevel: 'guest',
+		description: 'Searches for an item by id',
 	),
 	NCA\DefineCommand(
-		command: "id",
-		accessLevel: "guest",
-		description: "Searches for an itemid by name",
+		command: 'id',
+		accessLevel: 'guest',
+		description: 'Searches for an itemid by name',
 	),
 ]
 class ItemsController extends ModuleInstance {
@@ -66,13 +66,13 @@ class ItemsController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/aodb.csv");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_groups.csv");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_group_names.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/aodb.csv');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/item_groups.csv');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/item_group_names.csv');
 
-		$this->skills = $this->db->table("skills")
+		$this->skills = $this->db->table('skills')
 			->asObj(Skill::class)
-			->keyBy("id")
+			->keyBy('id')
 			->toArray();
 	}
 
@@ -81,19 +81,19 @@ class ItemsController extends ModuleInstance {
 	 * You can also use '-&lt;search&gt;' to exclude those matching the term
 	 * and prefix your search with * to include items not in game/gm-only.
 	 */
-	#[NCA\HandlesCommand("items")]
-	#[NCA\Help\Example("<symbol>items first tier nano")]
-	#[NCA\Help\Example("<symbol>items 133 first tier nano")]
-	#[NCA\Help\Example("<symbol>items panther -ofab")]
-	#[NCA\Help\Example("<symbol>items *ebony figurine")]
+	#[NCA\HandlesCommand('items')]
+	#[NCA\Help\Example('<symbol>items first tier nano')]
+	#[NCA\Help\Example('<symbol>items 133 first tier nano')]
+	#[NCA\Help\Example('<symbol>items panther -ofab')]
+	#[NCA\Help\Example('<symbol>items *ebony figurine')]
 	public function itemsCommand(CmdContext $context, ?int $ql, string $search): void {
 		$msg = $this->findItems($ql, $search);
 		$context->reply($msg);
 	}
 
 	/** Show information about an item id */
-	#[NCA\HandlesCommand("itemid")]
-	#[NCA\Help\Example("<symbol>itemid 244718", "Show Burden of Competence")]
+	#[NCA\HandlesCommand('itemid')]
+	#[NCA\Help\Example('<symbol>itemid 244718', 'Show Burden of Competence')]
 	public function itemIdCommand(CmdContext $context, int $id): void {
 		$row = ItemSearchResult::fromItem($this->findById($id));
 		if ($row === null) {
@@ -101,44 +101,44 @@ class ItemsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$blob = "";
-		$types = $this->db->table("item_types")
-			->where("item_id", $id)
-			->select("item_type")
-			->pluckStrings("item_type")
+		$blob = '';
+		$types = $this->db->table('item_types')
+			->where('item_id', $id)
+			->select('item_type')
+			->pluckStrings('item_type')
 			->toArray();
 		foreach (get_object_vars($row) as $key => $value) {
-			if ($key === "numExactMatches") {
+			if ($key === 'numExactMatches') {
 				continue;
 			}
-			$key = str_replace("_", " ", $key);
-			if ($key === "flags") {
-				$blob .= "{$key}: <highlight>" . join(", ", $this->flagsToText((int)$value)) . "<end>\n";
-			} elseif ($key === "slot") {
+			$key = str_replace('_', ' ', $key);
+			if ($key === 'flags') {
+				$blob .= "{$key}: <highlight>" . implode(', ', $this->flagsToText((int)$value)) . "<end>\n";
+			} elseif ($key === 'slot') {
 				$slots = $this->slotToText((int)$value);
-				if (count(array_diff($types, ["Util", "Hud", "Deck", "Weapon"]))) {
+				if (count(array_diff($types, ['Util', 'Hud', 'Deck', 'Weapon']))) {
 					$slots = array_diff($slots, [
-						"UTILS1", "UTILS2", "UTILS3",
-						"HUD1", "HUD2", "HUD3", "DECK", "LHAND", "RHAND",
+						'UTILS1', 'UTILS2', 'UTILS3',
+						'HUD1', 'HUD2', 'HUD3', 'DECK', 'LHAND', 'RHAND',
 					]);
 				}
 				if (count(array_diff($types, [
-					"Arms", "Back", "Chest", "Feet", "Fingers", "Head", "Legs",
-					"Neck", "Shoulders", "Hands", "Wrists",
+					'Arms', 'Back', 'Chest', 'Feet', 'Fingers', 'Head', 'Legs',
+					'Neck', 'Shoulders', 'Hands', 'Wrists',
 				]))) {
 					$slots = array_diff($slots, [
-						"NECK", "HEAD", "BACK", "RSHOULDER", "BODY", "LSHOULDER",
-						"RARM", "HANDS", "LARM", "RWRIST", "LEGS", "LWRIST",
-						"RFINGER", "FEET", "LFINGER",
+						'NECK', 'HEAD', 'BACK', 'RSHOULDER', 'BODY', 'LSHOULDER',
+						'RARM', 'HANDS', 'LARM', 'RWRIST', 'LEGS', 'LWRIST',
+						'RFINGER', 'FEET', 'LFINGER',
 					]);
 				}
 				if (count($slots)) {
-					$blob .= "{$key}: <highlight>" . join(", ", $slots) . "<end>\n";
+					$blob .= "{$key}: <highlight>" . implode(', ', $slots) . "<end>\n";
 				} else {
 					$blob .= "{$key}: <highlight>&lt;none&gt;<end>\n";
 				}
 			} else {
-				$blob .= "{$key}: <highlight>" . (is_bool($value) ? ($value ? "yes" : "no") : ($value??"<empty>")) . "<end>\n";
+				$blob .= "{$key}: <highlight>" . (is_bool($value) ? ($value ? 'yes' : 'no') : ($value??'<empty>')) . "<end>\n";
 			}
 		}
 		$row->ql = $row->highql;
@@ -147,7 +147,7 @@ class ItemsController extends ModuleInstance {
 		}
 		$blob .= "\n" . $this->formatSearchResults([$row], null, true);
 		$msg = $this->text->blobWrap(
-			"Details about item ID ",
+			'Details about item ID ',
 			$this->text->makeBlob((string)$id, $blob, "Details about item ID {$id}"),
 			" ({$row->name})"
 		);
@@ -156,11 +156,11 @@ class ItemsController extends ModuleInstance {
 	}
 
 	public function findById(int $id): ?AODBEntry {
-		return $this->db->table("aodb")
-			->where("lowid", $id)
+		return $this->db->table('aodb')
+			->where('lowid', $id)
 			->union(
-				$this->db->table("aodb")
-					->where("highid", $id)
+				$this->db->table('aodb')
+					->where('highid', $id)
 			)
 			->limit(1)
 			->asObj(AODBEntry::class)
@@ -173,11 +173,11 @@ class ItemsController extends ModuleInstance {
 	 * @return Collection<AODBEntry>
 	 */
 	public function getByIDs(int ...$ids): Collection {
-		return $this->db->table("aodb")
-			->whereIn("lowid", $ids)
+		return $this->db->table('aodb')
+			->whereIn('lowid', $ids)
 			->union(
-				$this->db->table("aodb")
-					->whereIn("highid", $ids)
+				$this->db->table('aodb')
+					->whereIn('highid', $ids)
 			)
 			->asObj(AODBEntry::class);
 	}
@@ -188,8 +188,8 @@ class ItemsController extends ModuleInstance {
 	 * @return Collection<AODBEntry>
 	 */
 	public function getByNames(string ...$names): Collection {
-		return $this->db->table("aodb")
-			->whereIn("name", $names)
+		return $this->db->table('aodb')
+			->whereIn('name', $names)
 			->asObj(AODBEntry::class);
 	}
 
@@ -199,29 +199,29 @@ class ItemsController extends ModuleInstance {
 	 * @return Collection<AODBEntry>
 	 */
 	public function getBySearch(string $search, ?int $ql=null): Collection {
-		$query = $this->db->table("aodb");
-		$tmp = explode(" ", $search);
-		$this->db->addWhereFromParams($query, $tmp, "name");
+		$query = $this->db->table('aodb');
+		$tmp = explode(' ', $search);
+		$this->db->addWhereFromParams($query, $tmp, 'name');
 
 		if ($ql !== null) {
-			$query->where("a.lowql", "<=", $ql)
-				->where("a.highql", ">=", $ql);
+			$query->where('a.lowql', '<=', $ql)
+				->where('a.highql', '>=', $ql);
 		}
 		return $query->asObj(AODBEntry::class);
 	}
 
 	/** Search the item id of an item */
-	#[NCA\HandlesCommand("id")]
+	#[NCA\HandlesCommand('id')]
 	public function idCommand(CmdContext $context, string $search): void {
-		$query = $this->db->table("aodb AS a")
-			->leftJoin("item_groups AS g", "g.item_id", "a.lowid")
-			->leftJoin("item_group_names AS gn", "g.group_id", "gn.group_id")
-			->orderByColFunc("COALESCE", ["gn.name", "a.name"])
-			->orderBy("a.lowql")
-			->select("a.*")
+		$query = $this->db->table('aodb AS a')
+			->leftJoin('item_groups AS g', 'g.item_id', 'a.lowid')
+			->leftJoin('item_group_names AS gn', 'g.group_id', 'gn.group_id')
+			->orderByColFunc('COALESCE', ['gn.name', 'a.name'])
+			->orderBy('a.lowql')
+			->select('a.*')
 			->limit($this->maxitems);
-		$tmp = explode(" ", $search);
-		$this->db->addWhereFromParams($query, $tmp, "a.name");
+		$tmp = explode(' ', $search);
+		$this->db->addWhereFromParams($query, $tmp, 'a.name');
 
 		/** @var AODBEntry[] */
 		$items = $query->asObj(AODBEntry::class)->toArray();
@@ -234,15 +234,15 @@ class ItemsController extends ModuleInstance {
 			$itemLinkLow = $this->text->makeItem($item->lowid, $item->highid, $item->lowql, (string)$item->lowid);
 			$itemLinkHigh = $this->text->makeItem($item->lowid, $item->highid, $item->highql, (string)$item->highid);
 			$blob .= str_replace((string)$item->lowid, $itemLinkLow, $this->text->alignNumber($item->lowid, 6)).
-				"       " . $this->text->alignNumber($item->lowql, 3).
-				"     " . (($item->highid === $item->lowid) ? "        " : str_replace((string)$item->highid, $itemLinkHigh, $this->text->alignNumber($item->highid, 6))).
-				"         " . (($item->highid === $item->lowid) ? "         <black>|<end>" : $this->text->alignNumber($item->highql, 3) . "    ").
+				'       ' . $this->text->alignNumber($item->lowql, 3).
+				'     ' . (($item->highid === $item->lowid) ? '        ' : str_replace((string)$item->highid, $itemLinkHigh, $this->text->alignNumber($item->highid, 6))).
+				'         ' . (($item->highid === $item->lowid) ? '         <black>|<end>' : $this->text->alignNumber($item->highql, 3) . '    ').
 				$item->name . "\n";
 		}
 		if (count($items) >= $this->maxitems) {
-			$blob .= "\n\n<highlight>*Results have been limited to the first " . count($items) . " results.<end>";
+			$blob .= "\n\n<highlight>*Results have been limited to the first " . count($items) . ' results.<end>';
 		}
-		$msg = $this->text->makeBlob("Items matching \"{$search}\" (" . count($items) . ")", $blob);
+		$msg = $this->text->makeBlob("Items matching \"{$search}\" (" . count($items) . ')', $blob);
 		$context->reply($msg);
 	}
 
@@ -250,27 +250,27 @@ class ItemsController extends ModuleInstance {
 	public function findItems(?int $ql, string $search): string|array {
 		if (isset($ql)) {
 			if ($ql < 1 || $ql > 500) {
-				return "QL must be between 1 and 500.";
+				return 'QL must be between 1 and 500.';
 			}
 		}
 
 		$search = htmlspecialchars_decode($search);
 		$dontExclude = false;
 
-		$search = Safe::pregReplace("/\s*\*\s*/", "", $search, 1, $numReplaces);
+		$search = Safe::pregReplace("/\s*\*\s*/", '', $search, 1, $numReplaces);
 		$dontExclude = $numReplaces > 0;
 
 		// local database
 		$data = $this->findItemsFromLocal($search, $ql, $dontExclude);
 
-		$aoiaPlusLink = $this->text->makeChatcmd("AOIA+", "/start https://sourceforge.net/projects/aoiaplus");
-		$footer = "QLs between <red>[<end>brackets<red>]<end> denote items matching your name search";
-		if (count(array_filter($data, fn (ItemSearchResult $i): bool => !$i->in_game))) {
+		$aoiaPlusLink = $this->text->makeChatcmd('AOIA+', '/start https://sourceforge.net/projects/aoiaplus');
+		$footer = 'QLs between <red>[<end>brackets<red>]<end> denote items matching your name search';
+		if (count(array_filter($data, static fn (ItemSearchResult $i): bool => !$i->in_game))) {
 			$footer .= "\n<red>(!)<end> means: This item is GM/ARK-only, not in the game, or unavailable";
 		}
 		$footer .= "\nItem DB rips created using the {$aoiaPlusLink} tool.";
 
-		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->getString('aodb_db_version')??"unknown", $footer);
+		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->getString('aodb_db_version')??'unknown', $footer);
 
 		return $msg;
 	}
@@ -284,44 +284,44 @@ class ItemsController extends ModuleInstance {
 	 * @return ItemSearchResult[]
 	 */
 	public function findItemsFromLocal(string $search, ?int $ql, bool $dontExclude=false): array {
-		$innerQuery = $this->db->table("aodb AS a")
-			->leftJoin("item_groups AS g", "g.item_id", "a.lowid");
-		$tmp = explode(" ", $search);
-		$this->db->addWhereFromParams($innerQuery, $tmp, "name");
+		$innerQuery = $this->db->table('aodb AS a')
+			->leftJoin('item_groups AS g', 'g.item_id', 'a.lowid');
+		$tmp = explode(' ', $search);
+		$this->db->addWhereFromParams($innerQuery, $tmp, 'name');
 
 		if ($ql !== null) {
-			$innerQuery->where("a.lowql", "<=", $ql)
-				->where("a.highql", ">=", $ql);
+			$innerQuery->where('a.lowql', '<=', $ql)
+				->where('a.highql', '>=', $ql);
 		}
-		$innerQuery->groupByRaw($innerQuery->colFunc("COALESCE", ["g.group_id", "a.lowid"])->getValue())
-			->groupBy("a.lowid", "a.highid", "a.lowql", "a.highql", "a.name")
-			->groupBy("a.icon", "a.froob_friendly", "a.slot", "a.flags", "g.group_id")
-			->orderBy("a.name")
-			->orderByDesc("a.highql")
+		$innerQuery->groupByRaw($innerQuery->colFunc('COALESCE', ['g.group_id', 'a.lowid'])->getValue())
+			->groupBy('a.lowid', 'a.highid', 'a.lowql', 'a.highql', 'a.name')
+			->groupBy('a.icon', 'a.froob_friendly', 'a.slot', 'a.flags', 'g.group_id')
+			->orderBy('a.name')
+			->orderByDesc('a.highql')
 			->limit($this->maxitems)
-			->select(["a.*", "g.group_id"]);
+			->select(['a.*', 'g.group_id']);
 		if ($this->onlyItemsInGame && !$dontExclude) {
-			$innerQuery->where("a.in_game", true);
+			$innerQuery->where('a.in_game', true);
 		}
-		$query = $this->db->fromSub($innerQuery, "foo")
-			->leftJoin("item_groups AS g", "foo.group_id", "g.group_id")
-			->leftJoin("item_group_names AS n", "foo.group_id", "n.group_id")
-			->leftJoin("aodb AS a1", "g.item_id", "a1.lowid")
-			->leftJoin("aodb AS a2", "g.item_id", "a2.highid")
-			->orderBy("g.id");
-		$query->selectRaw($query->colFunc("COALESCE", ["a2.name", "a1.name", "foo.name"], "name")->getValue())
-			->addSelect("n.name AS group_name")
-			->addSelect("foo.icon")
-			->addSelect("foo.in_game")
-			->addSelect("g.group_id")
-			->addSelect("foo.flags")
-			->selectRaw($query->colFunc("COALESCE", ["a1.lowid", "a2.lowid", "foo.lowid"], "lowid")->getValue())
-			->selectRaw($query->colFunc("COALESCE", ["a1.highid", "a2.highid", "foo.highid"], "highid")->getValue())
-			->selectRaw($query->colFunc("COALESCE", ["a1.lowql", "a2.highql", "foo.highql"], "ql")->getValue())
-			->selectRaw($query->colFunc("COALESCE", ["a1.lowql", "a2.lowql", "foo.lowql"], "lowql")->getValue())
-			->selectRaw($query->colFunc("COALESCE", ["a1.highql", "a2.highql", "foo.highql"], "highql")->getValue());
+		$query = $this->db->fromSub($innerQuery, 'foo')
+			->leftJoin('item_groups AS g', 'foo.group_id', 'g.group_id')
+			->leftJoin('item_group_names AS n', 'foo.group_id', 'n.group_id')
+			->leftJoin('aodb AS a1', 'g.item_id', 'a1.lowid')
+			->leftJoin('aodb AS a2', 'g.item_id', 'a2.highid')
+			->orderBy('g.id');
+		$query->selectRaw($query->colFunc('COALESCE', ['a2.name', 'a1.name', 'foo.name'], 'name')->getValue())
+			->addSelect('n.name AS group_name')
+			->addSelect('foo.icon')
+			->addSelect('foo.in_game')
+			->addSelect('g.group_id')
+			->addSelect('foo.flags')
+			->selectRaw($query->colFunc('COALESCE', ['a1.lowid', 'a2.lowid', 'foo.lowid'], 'lowid')->getValue())
+			->selectRaw($query->colFunc('COALESCE', ['a1.highid', 'a2.highid', 'foo.highid'], 'highid')->getValue())
+			->selectRaw($query->colFunc('COALESCE', ['a1.lowql', 'a2.highql', 'foo.highql'], 'ql')->getValue())
+			->selectRaw($query->colFunc('COALESCE', ['a1.lowql', 'a2.lowql', 'foo.lowql'], 'lowql')->getValue())
+			->selectRaw($query->colFunc('COALESCE', ['a1.highql', 'a2.highql', 'foo.highql'], 'highql')->getValue());
 		$data = $query->asObj(ItemSearchResult::class);
-		$data = $data->filter(function (ItemSearchResult $item): bool {
+		$data = $data->filter(static function (ItemSearchResult $item): bool {
 			static $found = [];
 			if (isset($found[$item->lowid . '-' . $item->highid . ':' . $item->ql])) {
 				return false;
@@ -329,7 +329,7 @@ class ItemsController extends ModuleInstance {
 			$found[$item->lowid . '-' . $item->highid . ':' . $item->ql] = true;
 			return true;
 		});
-		$groups = $data->groupBy("group_id");
+		$groups = $data->groupBy('group_id');
 		$groupsProcessed = [];
 		$result = new Collection();
 		while (count($result) < $this->maxitems && $data->count() > 0) {
@@ -357,14 +357,14 @@ class ItemsController extends ModuleInstance {
 		$groups = count(
 			array_unique(
 				array_diff(
-					array_map(function (ItemSearchResult $row) {
+					array_map(static function (ItemSearchResult $row) {
 						return $row->group_id;
 					}, $data),
 					[null],
 				)
 			)
 		) + count(
-			array_filter($data, function (ItemSearchResult $row) {
+			array_filter($data, static function (ItemSearchResult $row) {
 				return $row->group_id === null;
 			})
 		);
@@ -386,7 +386,7 @@ class ItemsController extends ModuleInstance {
 			$blob .= "Search: <highlight>{$search}<end>\n";
 		}
 		if ($elapsed) {
-			$blob .= "Time: <highlight>" . round($elapsed, 2) . "s<end>\n";
+			$blob .= 'Time: <highlight>' . round($elapsed, 2) . "s<end>\n";
 		}
 		$blob .= "\n";
 		$blob .= $this->formatSearchResults($data, $ql, true, $search);
@@ -407,7 +407,7 @@ class ItemsController extends ModuleInstance {
 	 * @return ItemSearchResult[]
 	 */
 	public function orderSearchResults(array $data, string $search): array {
-		$searchTerms = explode(" ", $search);
+		$searchTerms = explode(' ', $search);
 		foreach ($data as $row) {
 			if (strcasecmp($search, $row->name) == 0) {
 				$numExactMatches = 100;
@@ -455,10 +455,10 @@ class ItemsController extends ModuleInstance {
 				$newGroup = true;
 				// If this is a group of items, name them by their longest common name
 				if (isset($nameMatches)) {
-					if (substr($list, -2, 2) === ", ") {
-						$list = substr($list, 0, strlen($list) - 2) . "<red>]<end>, ";
+					if (substr($list, -2, 2) === ', ') {
+						$list = substr($list, 0, strlen($list) - 2) . '<red>]<end>, ';
 					} else {
-						$list .= "<red>]<end>";
+						$list .= '<red>]<end>';
 					}
 					unset($nameMatches);
 				}
@@ -479,7 +479,7 @@ class ItemsController extends ModuleInstance {
 						$row->name = $row->group_name;
 					}
 					if (!$inGame) {
-						$row->name .= " <red>(!)<end>";
+						$row->name .= ' <red>(!)<end>';
 					}
 				}
 				if ($list !== '') {
@@ -493,7 +493,7 @@ class ItemsController extends ModuleInstance {
 					if ($showImages) {
 						$list .= "\n";
 					} else {
-						$list .= " - ";
+						$list .= ' - ';
 					}
 				}
 			}
@@ -501,27 +501,27 @@ class ItemsController extends ModuleInstance {
 			if (!isset($row->group_id)) {
 				$list .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
 				if (!$row->in_game) {
-					$list .= " <red>(!)<end>";
+					$list .= ' <red>(!)<end>';
 				}
 				$list .= " (QL {$row->ql})";
 			} else {
 				if ($newGroup === true) {
-					$list .= "QL ";
+					$list .= 'QL ';
 				} elseif (isset($lastQL) && $lastQL === $row->ql) {
 					continue;
 				} else {
-					$list .= ", ";
+					$list .= ', ';
 				}
 				if (isset($search) && $this->itemNameMatchesSearch($origName, $search)) {
 					if (!isset($nameMatches)) {
-						$list .= "<red>[<end>";
+						$list .= '<red>[<end>';
 						$nameMatches = true;
 					}
 				} elseif (isset($nameMatches)) {
-					if (substr($list, -2, 2) === ", ") {
-						$list = substr($list, 0, strlen($list) - 2) . "<red>]<end>, ";
+					if (substr($list, -2, 2) === ', ') {
+						$list = substr($list, 0, strlen($list) - 2) . '<red>]<end>, ';
 					} else {
-						$list .= "<red>]<end>";
+						$list .= '<red>]<end>';
 					}
 					unset($nameMatches);
 				}
@@ -529,16 +529,16 @@ class ItemsController extends ModuleInstance {
 				if ($ql === $row->ql) {
 					$list .= "<yellow>[<end>{$item}<yellow>]<end>";
 				} elseif (isset($ql) && $ql > $row->lowql && $ql < $row->highql && $ql < $row->ql) {
-					$list .= "<yellow>[<end>" . $this->text->makeItem($row->lowid, $row->highid, $ql, (string)$ql) . "<yellow>]<end>";
+					$list .= '<yellow>[<end>' . $this->text->makeItem($row->lowid, $row->highid, $ql, (string)$ql) . '<yellow>]<end>';
 					$list .= ", {$item}";
 				} elseif (
-					isset($ql) &&
-					$ql > $row->lowql && $ql < $row->highql && $ql > $row->ql &&
-					isset($data[$itemNum+1]) && $data[$itemNum+1]->group_id === $row->group_id &&
-					$data[$itemNum+1]->lowql > $ql
+					isset($ql)
+					&& $ql > $row->lowql && $ql < $row->highql && $ql > $row->ql
+					&& isset($data[$itemNum+1]) && $data[$itemNum+1]->group_id === $row->group_id
+					&& $data[$itemNum+1]->lowql > $ql
 				) {
 					$list .= $item;
-					$list .= ", <yellow>[<end>" . $this->text->makeItem($row->lowid, $row->highid, $ql, (string)$ql) . "<yellow>]<end>";
+					$list .= ', <yellow>[<end>' . $this->text->makeItem($row->lowid, $row->highid, $ql, (string)$ql) . '<yellow>]<end>';
 				} else {
 					$list .= $item;
 				}
@@ -546,17 +546,17 @@ class ItemsController extends ModuleInstance {
 			}
 		}
 		if (isset($nameMatches)) {
-			if (substr($list, -2, 2) === ", ") {
-				$list = substr($list, 0, strlen($list) - 2) . "<red>]<end>, ";
+			if (substr($list, -2, 2) === ', ') {
+				$list = substr($list, 0, strlen($list) - 2) . '<red>]<end>, ';
 			} else {
-				$list .= "<red>]<end>";
+				$list .= '<red>]<end>';
 			}
 			unset($nameMatches);
 		}
 		$list = preg_replace_callback(
 			"/^([^<]+?)<red>\[<end>(.+)<red>\]<end>$/m",
-			function (array $matches): string {
-				if (strpos($matches[2], "<red>") !== false) {
+			static function (array $matches): string {
+				if (str_contains($matches[2], '<red>')) {
 					return $matches[0];
 				}
 				return $matches[1].$matches[2];
@@ -572,11 +572,11 @@ class ItemsController extends ModuleInstance {
 		}
 		$tokens = preg_split("/\s+/", $search);
 		foreach ($tokens as $token) {
-			if (substr($token, 0, 1) === "-"
+			if (substr($token, 0, 1) === '-'
 				&& stripos($itemName, substr($token, 1)) !== false) {
 				return false;
 			}
-			if (substr($token, 0, 1) !== "-"
+			if (substr($token, 0, 1) !== '-'
 				&& stripos($itemName, $token) === false) {
 				return false;
 			}
@@ -585,12 +585,12 @@ class ItemsController extends ModuleInstance {
 	}
 
 	public function findByName(string $name, ?int $ql=null): ?AODBEntry {
-		$query = $this->db->table("aodb")
-			->where("name", $name)
-			->orderByDesc("highql")
-			->orderByDesc("highid");
+		$query = $this->db->table('aodb')
+			->where('name', $name)
+			->orderByDesc('highql')
+			->orderByDesc('highid');
 		if ($ql !== null) {
-			$query->where("lowql", "<=", $ql)->where("highql", ">=", $ql);
+			$query->where('lowql', '<=', $ql)->where('highql', '>=', $ql);
 		}
 		return $query->asObj(AODBEntry::class)->first();
 	}
@@ -599,8 +599,8 @@ class ItemsController extends ModuleInstance {
 		$row = $this->findByName($name, $ql);
 		if ($row === null) {
 			$this->logger->warning("Could not find item '{item_name}' at QL '{ql}'", [
-				"item_name" => $name,
-				"ql" => $ql,
+				'item_name' => $name,
+				'ql' => $ql,
 			]);
 			return null;
 		}
@@ -613,13 +613,13 @@ class ItemsController extends ModuleInstance {
 		if ($row === null) {
 			if (isset($ql)) {
 				$this->logger->warning("Could not find item '{item_name}' at QL '{ql}'", [
-					"item_name" => $name,
-					"ql" => $ql,
+					'item_name' => $name,
+					'ql' => $ql,
 				]);
 				return "{$name}@{$ql}";
 			}
 			$this->logger->warning("Could not find item '{item_name}'", [
-				"item_name" => $name,
+				'item_name' => $name,
 			]);
 			return $name;
 		}
@@ -639,8 +639,8 @@ class ItemsController extends ModuleInstance {
 	 * @return string The longest common string of $first and $second
 	 */
 	public function getLongestCommonString(string $first, string $second): string {
-		$first = explode(" ", $first);
-		$second = explode(" ", $second);
+		$first = explode(' ', $first);
+		$second = explode(' ', $second);
 		$longestCommonSubstringIndexInFirst = 0;
 		$table = [];
 		$largestFound = 0;
@@ -667,9 +667,9 @@ class ItemsController extends ModuleInstance {
 			}
 		}
 		if ($largestFound === 0) {
-			return "";
+			return '';
 		}
-		return implode(" ", array_slice($first, $longestCommonSubstringIndexInFirst, $largestFound));
+		return implode(' ', array_slice($first, $longestCommonSubstringIndexInFirst, $largestFound));
 	}
 
 	/**
@@ -686,7 +686,7 @@ class ItemsController extends ModuleInstance {
 	 */
 	public function getLongestCommonStringOfWords(array $words): string {
 		if (empty($words)) {
-			return "";
+			return '';
 		}
 		return trim(
 			array_reduce(
@@ -704,8 +704,8 @@ class ItemsController extends ModuleInstance {
 
 	/** @return Collection<Skill> */
 	public function getSkillByIDs(int ...$ids): Collection {
-		return $this->db->table("skills")
-			->whereIn("id", $ids)
+		return $this->db->table('skills')
+			->whereIn('id', $ids)
 			->asObj(Skill::class);
 	}
 
@@ -713,7 +713,7 @@ class ItemsController extends ModuleInstance {
 	public function searchForSkill(string $skillName): Collection {
 		// check for exact match first, in order to disambiguate
 		// between Bow and Bow special attack
-		$query = $this->db->table("skills");
+		$query = $this->db->table('skills');
 
 		/**
 		 * @psalm-suppress ImplicitToStringCast
@@ -722,33 +722,33 @@ class ItemsController extends ModuleInstance {
 		 *
 		 * @var Collection<Skill>
 		 */
-		$results = $query->where($query->colFunc("LOWER", "name"), strtolower($skillName))
-			->select("*")->distinct()
+		$results = $query->where($query->colFunc('LOWER', 'name'), strtolower($skillName))
+			->select('*')->distinct()
 			->asObj(Skill::class);
 		if ($results->containsOneItem()) {
 			return $results;
 		}
 
-		$query = $this->db->table("skills")->select("*")->distinct();
+		$query = $this->db->table('skills')->select('*')->distinct();
 
-		$tmp = explode(" ", $skillName);
-		$this->db->addWhereFromParams($query, $tmp, "name");
+		$tmp = explode(' ', $skillName);
+		$this->db->addWhereFromParams($query, $tmp, 'name');
 
 		return $query->asObj(Skill::class);
 	}
 
 	/** @return Collection<ItemWithBuffs> */
 	public function addBuffs(AODBEntry ...$items): Collection {
-		$buffs = $this->db->table("item_buffs")
-			->whereIn("item_id", array_unique([...array_column($items, "highid"), ...array_column($items, "lowid")]))
+		$buffs = $this->db->table('item_buffs')
+			->whereIn('item_id', array_unique([...array_column($items, 'highid'), ...array_column($items, 'lowid')]))
 			->asObj(ItemBuff::class);
-		$skills = $this->getSkillByIDs(...$buffs->pluck("attribute_id")->unique()->toArray())
-			->keyBy("id");
+		$skills = $this->getSkillByIDs(...$buffs->pluck('attribute_id')->unique()->toArray())
+			->keyBy('id');
 
 		/** @param Collection<ItemBuff> $buffs */
-		$buffs = $buffs->groupBy("item_id")
-			->map(function (Collection $iBuffs, int $itemId) use ($skills): array {
-				return $iBuffs->map(function (ItemBuff $buff) use ($skills): ExtBuff {
+		$buffs = $buffs->groupBy('item_id')
+			->map(static function (Collection $iBuffs, int $itemId) use ($skills): array {
+				return $iBuffs->map(static function (ItemBuff $buff) use ($skills): ExtBuff {
 					$res = new ExtBuff();
 					$res->skill = $skills->get($buff->attribute_id);
 					$res->amount = $buff->amount;
@@ -772,8 +772,8 @@ class ItemsController extends ModuleInstance {
 
 	/** Check if an aoid is part of an item group */
 	public function hasItemGroup(int $aoid): bool {
-		return $this->db->table("item_groups")
-			->where("item_id", $aoid)
+		return $this->db->table('item_groups')
+			->where('item_id', $aoid)
 			->exists();
 	}
 

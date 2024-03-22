@@ -8,13 +8,13 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\VOTE_MODULE\VoteController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20230503203710)]
+#[NCA\Migration(order: 20_230_503_203_710)]
 class AddAllowOtherAnswers implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "";
+		$table = '';
 		$table = VoteController::DB_POLLS;
-		$db->schema()->table($table, function (Blueprint $table): void {
-			$table->boolean("allow_other_answers")->nullable(false)->default(true);
+		$db->schema()->table($table, static function (Blueprint $table): void {
+			$table->boolean('allow_other_answers')->nullable(false)->default(true);
 		});
 	}
 }

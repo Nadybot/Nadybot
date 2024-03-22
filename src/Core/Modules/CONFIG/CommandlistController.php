@@ -16,9 +16,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "cmdlist",
-		accessLevel: "guild",
-		description: "Shows a list of all commands on the bot",
+		command: 'cmdlist',
+		accessLevel: 'guild',
+		description: 'Shows a list of all commands on the bot',
 		defaultStatus: 1
 	)
 ]
@@ -33,19 +33,19 @@ class CommandlistController extends ModuleInstance {
 	private CommandManager $commandManager;
 
 	/** Show a list of all commands, optionally only for the given access level */
-	#[NCA\HandlesCommand("cmdlist")]
+	#[NCA\HandlesCommand('cmdlist')]
 	public function cmdlistCommand(CmdContext $context, ?string $accessLevel): void {
 		$cmds = $this->commandManager->getAll(true);
 		if (isset($accessLevel)) {
-			$cmds = $cmds->filter(function (CmdCfg $cmd) use ($accessLevel): bool {
-				$cmd->permissions = (new Collection($cmd->permissions))->where("access_level", $accessLevel)
+			$cmds = $cmds->filter(static function (CmdCfg $cmd) use ($accessLevel): bool {
+				$cmd->permissions = (new Collection($cmd->permissions))->where('access_level', $accessLevel)
 					->toArray();
 				return count($cmd->permissions) > 0;
 			});
 		}
-		$cmds = $cmds->sortBy("cmd");
+		$cmds = $cmds->sortBy('cmd');
 		if ($cmds->isEmpty()) {
-			$msg = "No commands were found.";
+			$msg = 'No commands were found.';
 			$context->reply($msg);
 			return;
 		}
@@ -54,18 +54,18 @@ class CommandlistController extends ModuleInstance {
 		$lines = [];
 		foreach ($cmds as $cmd) {
 			$perms = new Collection($cmd->permissions);
-			$numEnabled = $perms->where("enabled", true)->count();
-			$numDisabled = $perms->where("enabled", false)->count();
+			$numEnabled = $perms->where('enabled', true)->count();
+			$numDisabled = $perms->where('enabled', false)->count();
 
-			$links = "";
+			$links = '';
 			if ($isMod) {
-				$onLink = "<black>[on]<end>";
+				$onLink = '<black>[on]<end>';
 				if ($numDisabled > 0) {
-					$onLink = "[" . $this->text->makeChatcmd('on', "/tell <myname> config cmd {$cmd->cmd} enable all") . "]";
+					$onLink = '[' . $this->text->makeChatcmd('on', "/tell <myname> config cmd {$cmd->cmd} enable all") . ']';
 				}
-				$offLink = "<black>[off]<end>";
+				$offLink = '<black>[off]<end>';
 				if ($numEnabled > 0) {
-					$offLink = "[" . $this->text->makeChatcmd('off', "/tell <myname> config cmd {$cmd->cmd} disable all") . "]";
+					$offLink = '[' . $this->text->makeChatcmd('off', "/tell <myname> config cmd {$cmd->cmd} disable all") . ']';
 				}
 				$rightsLink = $this->text->makeChatcmd('rights', "/tell <myname> config cmd {$cmd->cmd}");
 				$links = "[{$rightsLink}]  {$onLink}  {$offLink}";
@@ -81,12 +81,12 @@ class CommandlistController extends ModuleInstance {
 				}
 			}
 
-			$lines []= "{$links}  [" . join("|", $status) . "] <highlight>{$cmd->cmd}<end>: {$cmd->description}";
+			$lines []= "{$links}  [" . implode('|', $status) . "] <highlight>{$cmd->cmd}<end>: {$cmd->description}";
 		}
 
 		$msg = $this->text->makeBlob(
-			"Command List (" . $cmds->count() . ")",
-			join("\n<pagebreak>", $lines)
+			'Command List (' . $cmds->count() . ')',
+			implode("\n<pagebreak>", $lines)
 		);
 		$context->reply($msg);
 	}

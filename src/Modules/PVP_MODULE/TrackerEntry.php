@@ -24,8 +24,8 @@ class TrackerEntry extends DBRow implements MessageEmitter {
 	 *
 	 * @var string[]
 	 */
-	#[NCA\DB\MapRead([self::class, "decodeEvents"])]
-	#[NCA\DB\MapWrite([self::class, "encodeEvents"])]
+	#[NCA\DB\MapRead([self::class, 'decodeEvents'])]
+	#[NCA\DB\MapWrite([self::class, 'encodeEvents'])]
 	public array $events = [];
 
 	/** @var Base[] */
@@ -43,12 +43,12 @@ class TrackerEntry extends DBRow implements MessageEmitter {
 
 	/** @return string[] */
 	public static function decodeEvents(string $events): array {
-		return explode(",", $events);
+		return explode(',', $events);
 	}
 
 	/** @param string[] $events */
 	public static function encodeEvents(array $events): string {
-		return implode(",", $events);
+		return implode(',', $events);
 	}
 
 	public function getChannelName(): string {

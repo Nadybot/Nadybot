@@ -31,12 +31,12 @@ class MockCommandReply implements CommandReply {
 			return;
 		}
 		try {
-			$file = $this->fs->openFile($this->logFile, "a");
+			$file = $this->fs->openFile($this->logFile, 'a');
 			$file->write(
 				json_encode([
-					"command" => $this->command,
-					"output" => $this->output,
-				], JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_UNICODE) . PHP_EOL,
+					'command' => $this->command,
+					'output' => $this->output,
+				], \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE|\JSON_UNESCAPED_UNICODE) . \PHP_EOL,
 			);
 		} finally {
 			if (isset($file)) {
@@ -51,15 +51,15 @@ class MockCommandReply implements CommandReply {
 			if (isset($this->logger)) {
 				$this->logger->notice($result);
 			}
-			$result = Safe::pregReplace("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}( [A-Z]{3,4})?/", "1970-01-01 00:00:00\\1", $result);
-			$result = Safe::pregReplace("/\d\d-[A-Z][a-z]{2}-\d{4} \d{2}:\d{2}:\d{2}( [A-Z]{3,4})?/", "01-Jan-1970 00:00:00\\1", $result);
-			$result = Safe::pregReplace("/\d\d-[A-Z][a-z]{2}-\d{4} \d{2}:\d{2}( [A-Z]{3,4})?/", "01-Jan-1970 00:00\\1", $result);
-			$result = Safe::pregReplace("/\d\d-[A-Z][a-z]{2}-\d{4}/", "01-Jan-1970", $result);
-			$result = Safe::pregReplace("/\d\d?(st|nd|rd) [A-Z][a-z]{2}, \d{2}:\d{2}/", "1st Jan, 00:00", $result);
-			$result = Safe::pregReplace("/\b[12]\d{9}\b/", "1234567890", $result);
-			$result = Safe::pregReplace("/\b[0-9a-fA-F]{40}\b/", "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef", $result);
-			$result = Safe::pregReplace("/\b[0-9a-fA-F]{32}\b/", "deadbeefdeadbeefdeadbeefdeadbeef", $result);
-			$result = Safe::pregReplace("/(\s*\d+ (days|hrs|mins|secs))+/", "<duration>", $result);
+			$result = Safe::pregReplace("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}( [A-Z]{3,4})?/", '1970-01-01 00:00:00\\1', $result);
+			$result = Safe::pregReplace("/\d\d-[A-Z][a-z]{2}-\d{4} \d{2}:\d{2}:\d{2}( [A-Z]{3,4})?/", '01-Jan-1970 00:00:00\\1', $result);
+			$result = Safe::pregReplace("/\d\d-[A-Z][a-z]{2}-\d{4} \d{2}:\d{2}( [A-Z]{3,4})?/", '01-Jan-1970 00:00\\1', $result);
+			$result = Safe::pregReplace("/\d\d-[A-Z][a-z]{2}-\d{4}/", '01-Jan-1970', $result);
+			$result = Safe::pregReplace("/\d\d?(st|nd|rd) [A-Z][a-z]{2}, \d{2}:\d{2}/", '1st Jan, 00:00', $result);
+			$result = Safe::pregReplace("/\b[12]\d{9}\b/", '1234567890', $result);
+			$result = Safe::pregReplace("/\b[0-9a-fA-F]{40}\b/", 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef', $result);
+			$result = Safe::pregReplace("/\b[0-9a-fA-F]{32}\b/", 'deadbeefdeadbeefdeadbeefdeadbeef', $result);
+			$result = Safe::pregReplace("/(\s*\d+ (days|hrs|mins|secs))+/", '<duration>', $result);
 			$this->output []= $result;
 		}
 	}

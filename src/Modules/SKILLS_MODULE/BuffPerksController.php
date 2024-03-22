@@ -37,16 +37,16 @@ use Throwable;
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Perks"),
+	NCA\HasMigrations('Migrations/Perks'),
 	NCA\DefineCommand(
-		command: "perks",
-		accessLevel: "guest",
-		description: "Show buff perks",
+		command: 'perks',
+		accessLevel: 'guest',
+		description: 'Show buff perks',
 	)
 ]
 class BuffPerksController extends ModuleInstance {
-	public const ALIEN_INVASION = "ai";
-	public const SHADOWLANDS = "sl";
+	public const ALIEN_INVASION = 'ai';
+	public const SHADOWLANDS = 'sl';
 
 	/** DB version of perks */
 	#[NCA\Setting\Timestamp(mode: 'noedit')]
@@ -91,11 +91,11 @@ class BuffPerksController extends ModuleInstance {
 	}
 
 	/** See which perks are available for your level and profession */
-	#[NCA\HandlesCommand("perks")]
+	#[NCA\HandlesCommand('perks')]
 	public function buffPerksNoArgsCommand(CmdContext $context): void {
 		$whois = $this->playerManager->byName($context->char->name);
 		if (empty($whois) || !isset($whois->profession) || !isset($whois->level)) {
-			$msg = "Could not retrieve whois info for you.";
+			$msg = 'Could not retrieve whois info for you.';
 			$context->reply($msg);
 			return;
 		}
@@ -107,7 +107,7 @@ class BuffPerksController extends ModuleInstance {
 	 *
 	 * If you give a search string, it will search for perks buffing this skill/attribute
 	 */
-	#[NCA\HandlesCommand("perks")]
+	#[NCA\HandlesCommand('perks')]
 	public function buffPerksLevelFirstCommand(CmdContext $context, int $level, PNonNumberWord $prof, ?string $search): void {
 		$this->buffPerksProfFirstCommand($context, $prof, $level, $search);
 	}
@@ -117,10 +117,10 @@ class BuffPerksController extends ModuleInstance {
 	 *
 	 * If you give a search string, it will search for perks buffing this skill/attribute
 	 */
-	#[NCA\HandlesCommand("perks")]
+	#[NCA\HandlesCommand('perks')]
 	public function buffPerksProfFirstCommand(CmdContext $context, PNonNumberWord $prof, int $level, ?string $search): void {
 		$profession = $this->util->getProfessionName($prof());
-		if ($profession === "") {
+		if ($profession === '') {
 			$msg = "Could not find profession <highlight>{$prof}<end>.";
 			$context->reply($msg);
 			return;
@@ -129,14 +129,13 @@ class BuffPerksController extends ModuleInstance {
 	}
 
 	/** Show detailed information for all of a perk's levels */
-	#[NCA\HandlesCommand("perks")]
+	#[NCA\HandlesCommand('perks')]
 	public function showPerkCommand(
 		CmdContext $context,
-		#[NCA\Str("show")]
-		string $action,
+		#[NCA\Str('show')] string $action,
 		string $perkName
 	): void {
-		$perk = $this->perks->first(function (Perk $perk) use ($perkName): bool {
+		$perk = $this->perks->first(static function (Perk $perk) use ($perkName): bool {
 			return strcasecmp($perk->name, $perkName) === 0;
 		});
 		if (!isset($perk)) {
@@ -151,7 +150,7 @@ class BuffPerksController extends ModuleInstance {
 
 	/** Render a single perk into a blob */
 	public function renderPerk(Perk $perk): string {
-		$blob = "";
+		$blob = '';
 		foreach ($perk->levels as $level) {
 			if (!isset($level->aoid)) {
 				continue;
@@ -160,7 +159,7 @@ class BuffPerksController extends ModuleInstance {
 				$level->aoid,
 				$level->aoid,
 				$level->perk_level,
-				"details"
+				'details'
 			);
 			$blob .= "\n<pagebreak><header2>{$perk->name} {$level->perk_level} [{$perkItem}]<end>\n";
 			if (count($level->professions) >= 14) {
@@ -168,8 +167,8 @@ class BuffPerksController extends ModuleInstance {
 			} elseif (count($level->professions) === 1) {
 				$blob .= "<tab>Profession: <highlight>{$level->professions[0]}<end>\n";
 			} else {
-				$blob .= "<tab>Professions: <highlight>".
-					join("<end>, <highlight>", $level->professions).
+				$blob .= '<tab>Professions: <highlight>'.
+					implode('<end>, <highlight>', $level->professions).
 					"<end>\n";
 			}
 			$blob .= "<tab>Level: <highlight>{$level->required_level}<end>\n";
@@ -184,18 +183,18 @@ class BuffPerksController extends ModuleInstance {
 			}
 			$resistances = $this->resistanceHashToCollection($level->resistances);
 			foreach ($resistances as $res) {
-				$blob .= "<tab>".
+				$blob .= '<tab>'.
 					"Resist {$res->nanoline->name} <highlight>+{$res->amount}%<end>\n";
 			}
 			if (isset($level->action, $level->action->aodb)) {
-				$blob .= "<tab>Add Action: ".
+				$blob .= '<tab>Add Action: '.
 					$this->text->makeItem(
 						$level->action->aodb->lowid,
 						$level->action->aodb->highid,
 						$level->action->aodb->lowql,
 						$level->action->aodb->name
 					).
-					($level->action->scaling ? " (<highlight>scaling<end>)" : "").
+					($level->action->scaling ? ' (<highlight>scaling<end>)' : '').
 					"\n<tab>".
 					$this->text->makeItem(
 						$level->action->aodb->lowid,
@@ -220,7 +219,7 @@ class BuffPerksController extends ModuleInstance {
 		$result = [];
 		foreach ($perks as $perk) {
 			if (
-				preg_match("/(Primary|Secondary) Genome/", $perk->name)
+				preg_match('/(Primary|Secondary) Genome/', $perk->name)
 				&& !preg_match("/^{$breed}/", $perk->name)
 			) {
 				continue;
@@ -242,7 +241,7 @@ class BuffPerksController extends ModuleInstance {
 		/** @var Perk[] */
 		$result = array_values(array_filter(
 			$perks,
-			function (Perk $perk) use ($skill): bool {
+			static function (Perk $perk) use ($skill): bool {
 				// Delete all buffs except for the searched skill
 				foreach ($perk->levels as &$level) {
 					$level = clone $level;
@@ -257,7 +256,7 @@ class BuffPerksController extends ModuleInstance {
 				// Completely delete all perk levels not buffing the searched skill
 				$perk->levels = array_filter(
 					$perk->levels,
-					function (PerkLevel $level): bool {
+					static function (PerkLevel $level): bool {
 						return count($level->buffs) > 0;
 					}
 				);
@@ -288,7 +287,7 @@ class BuffPerksController extends ModuleInstance {
 			if ($count > 1) {
 				$blob = "<header2>Choose a skill<end>\n";
 				foreach ($skills as $skill) {
-					$blob .= "<tab>".
+					$blob .= '<tab>'.
 						$this->text->makeChatcmd(
 							$skill->name,
 							"/tell <myname> perks {$level} {$profession} {$skill->name}"
@@ -304,14 +303,14 @@ class BuffPerksController extends ModuleInstance {
 			}
 			$skill = $skills[0];
 		}
-		$perks = $this->perks->filter(function (Perk $perk) use ($profession, $level): bool {
+		$perks = $this->perks->filter(static function (Perk $perk) use ($profession, $level): bool {
 			return in_array($profession, $perk->levels[1]->professions)
 				&& $perk->levels[1]->required_level <= $level;
 		});
-		$perks = $perks->map(function (Perk $perk) use ($profession, $level): Perk {
+		$perks = $perks->map(static function (Perk $perk) use ($profession, $level): Perk {
 			$p = clone $perk;
 			$p->levels = (new Collection($p->levels))->filter(
-				function (PerkLevel $pl) use ($profession, $level): bool {
+				static function (PerkLevel $pl) use ($profession, $level): bool {
 					return in_array($profession, $pl->professions)
 						&& $pl->required_level <= $level;
 				}
@@ -326,7 +325,7 @@ class BuffPerksController extends ModuleInstance {
 		}
 
 		/** @var PerkAggregate[] */
-		$perks = array_map([$this, "aggregatePerk"], $perks);
+		$perks = array_map([$this, 'aggregatePerk'], $perks);
 		if (empty($perks)) {
 			$msg = "Could not find any perks for level {$level} {$profession}.";
 			$sendto->reply($msg);
@@ -335,25 +334,25 @@ class BuffPerksController extends ModuleInstance {
 
 		/** @var array<string,PerkAggregate[]> */
 		$perkGroups = [
-			"Profession Perks" => [],
-			"Group Perks" => [],
-			"General Perks" => [],
+			'Profession Perks' => [],
+			'Group Perks' => [],
+			'General Perks' => [],
 		];
 		foreach ($perks as $perk) {
 			$count = count($perk->professions);
 			if ($count === 1) {
-				$perkGroups["Profession Perks"] []= $perk;
+				$perkGroups['Profession Perks'] []= $perk;
 			} elseif ($count > 13) {
-				$perkGroups["General Perks"] []= $perk;
+				$perkGroups['General Perks'] []= $perk;
 			} else {
-				$perkGroups["Group Perks"] []= $perk;
+				$perkGroups['Group Perks'] []= $perk;
 			}
 		}
 		$blobs = [];
 		foreach ($perkGroups as $name => $perks2) {
 			usort(
 				$perks2,
-				function (PerkAggregate $o1, PerkAggregate $o2): int {
+				static function (PerkAggregate $o1, PerkAggregate $o2): int {
 					return strcmp($o1->name, $o2->name);
 				}
 			);
@@ -361,11 +360,11 @@ class BuffPerksController extends ModuleInstance {
 				$blobs []= $this->renderPerkAggGroup($name, ...$perks2);
 			}
 		}
-		$buffText = isset($skill) ? " buffing {$skill->name}" : "";
+		$buffText = isset($skill) ? " buffing {$skill->name}" : '';
 		$count = count($perks);
 		$msg = $this->text->makeBlob(
 			"Perks for a level {$level} {$profession}{$buffText} ({$count})",
-			join("\n", $blobs)
+			implode("\n", $blobs)
 		);
 		$sendto->reply($msg);
 	}
@@ -374,18 +373,18 @@ class BuffPerksController extends ModuleInstance {
 	protected function renderPerkAggGroup(string $name, PerkAggregate ...$perks): string {
 		$blobs = [];
 		foreach ($perks as $perk) {
-			$color = "<font color=#FF6666>";
+			$color = '<font color=#FF6666>';
 			if ($perk->expansion === static::ALIEN_INVASION) {
-				$color = "<green>";
+				$color = '<green>';
 			}
 			$detailsLink = $this->text->makeChatcmd(
-				"details",
+				'details',
 				"/tell <myname> perks show {$perk->name}"
 			);
 			$blob = "<pagebreak><tab>{$color}{$perk->name} {$perk->max_level}<end> [{$detailsLink}]\n";
 			if (isset($perk->description)) {
-				$blob .= "<tab><tab><i>".
-					join(
+				$blob .= '<tab><tab><i>'.
+					implode(
 						"</i>\n<tab><tab><i>",
 						explode("\n", $perk->description)
 					).
@@ -408,7 +407,7 @@ class BuffPerksController extends ModuleInstance {
 					$resistance->amount,
 				);
 			}
-			$levels = array_column($perk->actions, "perk_level");
+			$levels = array_column($perk->actions, 'perk_level');
 			$maxLevel = 0;
 			if (count($levels)) {
 				$maxLevel = max($levels);
@@ -421,13 +420,13 @@ class BuffPerksController extends ModuleInstance {
 					"<tab><tab>Add Action at %s: %s%s\n",
 					$this->text->alignNumber($action->perk_level, strlen((string)$maxLevel)),
 					$action->aodb->getLink(),
-					$action->scaling ? " (<highlight>scaling<end>)" : ""
+					$action->scaling ? ' (<highlight>scaling<end>)' : ''
 				);
 			}
 			$blobs []= $blob;
 		}
 		return "<header2>{$name}<end>\n\n".
-			join("\n", $blobs);
+			implode("\n", $blobs);
 	}
 
 	/**
@@ -437,51 +436,51 @@ class BuffPerksController extends ModuleInstance {
 	 * @return string[]
 	 */
 	protected function expandSkill(string $skill): array {
-		if ($skill === "Add. Dmg.") {
+		if ($skill === 'Add. Dmg.') {
 			return [
-				"Add. Cold Dam.",
-				"Add. Chem Dam.",
-				"Add. Energy Dam.",
-				"Add. Fire Dam.",
-				"Add. Melee Dam.",
-				"Add. Poison Dam.",
-				"Add. Rad. Dam.",
-				"Add. Proj. Dam.",
+				'Add. Cold Dam.',
+				'Add. Chem Dam.',
+				'Add. Energy Dam.',
+				'Add. Fire Dam.',
+				'Add. Melee Dam.',
+				'Add. Poison Dam.',
+				'Add. Rad. Dam.',
+				'Add. Proj. Dam.',
 			];
-		} elseif ($skill === "AC") {
+		} elseif ($skill === 'AC') {
 			return [
-				"Melee/ma AC",
-				"Disease AC",
-				"Fire AC",
-				"Cold AC",
-				"Imp/Proj AC",
-				"Energy AC",
-				"Chemical AC",
-				"Radiation AC",
+				'Melee/ma AC',
+				'Disease AC',
+				'Fire AC',
+				'Cold AC',
+				'Imp/Proj AC',
+				'Energy AC',
+				'Chemical AC',
+				'Radiation AC',
 			];
-		} elseif ($skill === "Shield") {
+		} elseif ($skill === 'Shield') {
 			return [
-				"ShieldProjectileAC",
-				"ShieldMeleeAC",
-				"ShieldEnergyAC",
-				"ShieldChemicalAC",
-				"ShieldRadiationAC",
-				"ShieldColdAC",
-				"ShieldNanoAC",
-				"ShieldFireAC",
-				"ShieldPoisonAC",
+				'ShieldProjectileAC',
+				'ShieldMeleeAC',
+				'ShieldEnergyAC',
+				'ShieldChemicalAC',
+				'ShieldRadiationAC',
+				'ShieldColdAC',
+				'ShieldNanoAC',
+				'ShieldFireAC',
+				'ShieldPoisonAC',
 			];
-		} elseif ($skill === "Reflect") {
+		} elseif ($skill === 'Reflect') {
 			return [
-				"ReflectProjectileAC",
-				"ReflectMeleeAC",
-				"ReflectEnergyAC",
-				"ReflectChemicalAC",
-				"ReflectRadiationAC",
-				"ReflectColdAC",
-				"ReflectNanoAC",
-				"ReflectFireAC",
-				"ReflectPoisonAC",
+				'ReflectProjectileAC',
+				'ReflectMeleeAC',
+				'ReflectEnergyAC',
+				'ReflectChemicalAC',
+				'ReflectRadiationAC',
+				'ReflectColdAC',
+				'ReflectNanoAC',
+				'ReflectFireAC',
+				'ReflectPoisonAC',
 			];
 		}
 		return [$skill];
@@ -532,36 +531,36 @@ class BuffPerksController extends ModuleInstance {
 	}
 
 	private function initPerksDatabase(): void {
-		$this->logger->notice("In initPerksDatabase()");
+		$this->logger->notice('In initPerksDatabase()');
 		$startTs = microtime(true);
-		$path = __DIR__ . "/perks.csv";
+		$path = __DIR__ . '/perks.csv';
 
 		$mtime = $this->fs->getModificationTime($path);
 		$dbVersion = $this->perksDBVersion;
 
 		$perkInfo = $this->getPerkInfo();
 		$this->perks = new Collection($perkInfo);
-		$empty = !$this->db->table("perk")->exists();
+		$empty = !$this->db->table('perk')->exists();
 		if (($dbVersion >= $mtime) && !$empty) {
 			return;
 		}
 		$dbTs = microtime(true);
-		$this->logger->notice("(Re)building perk database...");
+		$this->logger->notice('(Re)building perk database...');
 
 		$this->db->awaitBeginTransaction();
 		try {
-			$this->db->table("perk")->truncate();
-			$this->db->table("perk_level")->truncate();
-			$this->db->table("perk_level_prof")->truncate();
-			$this->db->table("perk_level_buffs")->truncate();
-			$this->db->table("perk_level_actions")->truncate();
-			$this->db->table("perk_level_resistances")->truncate();
+			$this->db->table('perk')->truncate();
+			$this->db->table('perk_level')->truncate();
+			$this->db->table('perk_level_prof')->truncate();
+			$this->db->table('perk_level_buffs')->truncate();
+			$this->db->table('perk_level_actions')->truncate();
+			$this->db->table('perk_level_resistances')->truncate();
 
 			$profInserts = [];
 			$resInserts = [];
 			$buffInserts = [];
 			foreach ($perkInfo as $perk) {
-				$perk->id = $this->db->insert("perk", $perk);
+				$perk->id = $this->db->insert('perk', $perk);
 
 				foreach ($perk->levels as $level) {
 					$level->perk_id = $perk->id;
@@ -569,48 +568,48 @@ class BuffPerksController extends ModuleInstance {
 
 					foreach ($level->professions as $profession) {
 						$profInserts []= [
-							"perk_level_id" => $level->id,
-							"profession" => $profession,
+							'perk_level_id' => $level->id,
+							'profession' => $profession,
 						];
 					}
 
 					foreach ($level->resistances as $strain => $amount) {
 						$resInserts []= [
-							"perk_level_id" => $level->id,
-							"strain_id" => (int)$strain,
-							"amount" => (int)$amount,
+							'perk_level_id' => $level->id,
+							'strain_id' => (int)$strain,
+							'amount' => (int)$amount,
 						];
 					}
 
 					if ($level->action) {
 						$level->action->perk_level_id = $level->id;
-						$this->db->insert("perk_level_actions", $level->action);
+						$this->db->insert('perk_level_actions', $level->action);
 					}
 
 					foreach ($level->buffs as $skillId => $amount) {
 						$buffInserts []= [
-							"perk_level_id" => $level->id,
-							"skill_id" => (int)$skillId,
-							"amount" => (int)$amount,
+							'perk_level_id' => $level->id,
+							'skill_id' => (int)$skillId,
+							'amount' => (int)$amount,
 						];
 					}
 				}
 			}
-			$this->db->table("perk_level_prof")->chunkInsert($profInserts);
-			$this->db->table("perk_level_resistances")->chunkInsert($resInserts);
-			$this->db->table("perk_level_buffs")->chunkInsert($buffInserts);
+			$this->db->table('perk_level_prof')->chunkInsert($profInserts);
+			$this->db->table('perk_level_resistances')->chunkInsert($resInserts);
+			$this->db->table('perk_level_buffs')->chunkInsert($buffInserts);
 			$newVersion = max($mtime ?: time(), $dbVersion);
-			$this->settingManager->save("perks_db_version", (string)$newVersion);
+			$this->settingManager->save('perks_db_version', (string)$newVersion);
 		} catch (Throwable $e) {
 			$this->db->rollback();
 			throw $e;
 		}
 		$this->db->commit();
-		$dbDuration = round((microtime(true) - $dbTs) * 1000, 1);
-		$parseDuration = round(($dbTs - $startTs) * 1000, 1);
-		$this->logger->notice("Finished (re)building perk database in {parse_duration}ms + {db_duration}ms", [
-			"parse_duration" => $parseDuration,
-			"db_duration" => $dbDuration,
+		$dbDuration = round((microtime(true) - $dbTs) * 1_000, 1);
+		$parseDuration = round(($dbTs - $startTs) * 1_000, 1);
+		$this->logger->notice('Finished (re)building perk database in {parse_duration}ms + {db_duration}ms', [
+			'parse_duration' => $parseDuration,
+			'db_duration' => $dbDuration,
 		]);
 	}
 
@@ -621,9 +620,9 @@ class BuffPerksController extends ModuleInstance {
 	 * @return array<string,Perk>
 	 */
 	private function getPerkInfo(): array {
-		$path = __DIR__ . "/perks.csv";
+		$path = __DIR__ . '/perks.csv';
 
-		$fileHandle = $this->fs->openFile($path, "r");
+		$fileHandle = $this->fs->openFile($path, 'r');
 		$reader = splitLines($fileHandle);
 		$perks = [];
 		$skillCache = [];
@@ -634,9 +633,9 @@ class BuffPerksController extends ModuleInstance {
 				continue;
 			}
 
-			$parts = explode("|", $line);
+			$parts = explode('|', $line);
 			if (count($parts) < 7) {
-				$this->logger->error("Illegal perk entry: {line}", ["line" => $line]);
+				$this->logger->error('Illegal perk entry: {line}', ['line' => $line]);
 				continue;
 			}
 			[$name, $perkLevel, $expansion, $aoid, $requiredLevel, $profs, $buffs] = $parts;
@@ -644,13 +643,13 @@ class BuffPerksController extends ModuleInstance {
 			$resistances = $parts[8] ?? null;
 			$description = $parts[9] ?? null;
 			if ($profs === '*') {
-				$profs = "Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra";
+				$profs = 'Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra';
 			}
 			$perk = $perks[$name]??null;
 			if (empty($perk)) {
 				$perk = new Perk(
 					name: $name,
-					description: isset($description) ? join("\n", explode("\\n", $description)) : null,
+					description: isset($description) ? implode("\n", explode('\\n', $description)) : null,
 					expansion: $expansion,
 				);
 				$perks[$name] = $perk;
@@ -665,22 +664,22 @@ class BuffPerksController extends ModuleInstance {
 
 			$perk->levels[(int)$perkLevel] = $level;
 
-			$professions = explode(",", $profs);
+			$professions = explode(',', $profs);
 			foreach ($professions as $prof) {
 				$profession = $this->util->getProfessionName(trim($prof));
 				if (empty($profession)) {
 					$this->logger->info("Error parsing profession: '{prof}'", [
-						"prof" => $prof,
+						'prof' => $prof,
 					]);
 				} else {
 					$level->professions []= $profession;
 				}
 			}
 
-			$buffs = explode(",", $buffs);
+			$buffs = explode(',', $buffs);
 			foreach ($buffs as $buff) {
 				$buff = trim($buff);
-				$pos = strrpos($buff, " ");
+				$pos = strrpos($buff, ' ');
 				if ($pos === false) {
 					continue;
 				}
@@ -694,7 +693,7 @@ class BuffPerksController extends ModuleInstance {
 					$skillCache[$skill] = $skillSearch;
 					if (count($skillSearch) !== 1) {
 						$this->logger->info("Error parsing skill: '{skill}'", [
-							"skill" => $skill,
+							'skill' => $skill,
 						]);
 					} else {
 						$level->buffs[$skillSearch[0]->id] = (int)$amount;
@@ -703,14 +702,14 @@ class BuffPerksController extends ModuleInstance {
 			}
 
 			if (strlen($resistances??'')) {
-				$resistances = preg_split("/\s*,\s*/", $resistances??"");
+				$resistances = preg_split("/\s*,\s*/", $resistances??'');
 				foreach ($resistances as $resistance) {
 					[$strainId, $amount] = preg_split("/\s*:\s*/", $resistance);
 					$level->resistances[(int)$strainId] = (int)$amount;
 				}
 			}
 			if (strlen($action??'')) {
-				$actionId = (int)Safe::pregReplace("/\*$/", "", $action??"", -1, $count);
+				$actionId = (int)Safe::pregReplace("/\*$/", '', $action??'', -1, $count);
 				$level->action = new PerkLevelAction(
 					action_id: $actionId,
 					scaling: $count > 0,
@@ -740,7 +739,7 @@ class BuffPerksController extends ModuleInstance {
 			$buff->amount = $amount;
 			$result []= $buff;
 		}
-		return $result->sort(function (ExtBuff $b1, ExtBuff $b2): int {
+		return $result->sort(static function (ExtBuff $b1, ExtBuff $b2): int {
 			return strnatcmp($b1->skill->name, $b2->skill->name);
 		});
 	}
@@ -762,7 +761,7 @@ class BuffPerksController extends ModuleInstance {
 			$resistance->amount = $amount;
 			$result []= $resistance;
 		}
-		return $result->sort(function (ExtResistance $b1, ExtResistance $b2): int {
+		return $result->sort(static function (ExtResistance $b1, ExtResistance $b2): int {
 			return strnatcmp($b1->nanoline->name, $b2->nanoline->name);
 		});
 	}

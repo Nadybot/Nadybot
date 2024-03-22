@@ -47,14 +47,14 @@ use Psr\Log\LoggerInterface;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "profile",
-		accessLevel: "admin",
-		description: "View, add, remove, and load profiles",
-		alias: "profiles"
+		command: 'profile',
+		accessLevel: 'admin',
+		description: 'View, add, remove, and load profiles',
+		alias: 'profiles'
 	)
 ]
 class ProfileController extends ModuleInstance {
-	public const FILE_EXT = ".txt";
+	public const FILE_EXT = '.txt';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -104,10 +104,10 @@ class ProfileController extends ModuleInstance {
 			try {
 				$this->fs->createDirectory($this->path, 0777);
 			} catch (Exception $e) {
-				$this->logger->warning("Unable to create profile directory {dir}: {error}", [
-					"dir" => $this->path,
-					"error" => $e->getMessage(),
-					"exception" => $e,
+				$this->logger->warning('Unable to create profile directory {dir}: {error}', [
+					'dir' => $this->path,
+					'error' => $e->getMessage(),
+					'exception' => $e,
 				]);
 			}
 		}
@@ -134,11 +134,11 @@ class ProfileController extends ModuleInstance {
 	}
 
 	/** See the list of available profiles */
-	#[NCA\HandlesCommand("profile")]
+	#[NCA\HandlesCommand('profile')]
 	#[NCA\Help\Epilogue(
-		"Note: Profiles are stored in ./data/profiles. ".
+		'Note: Profiles are stored in ./data/profiles. '.
 		"Only lines that start with '!' will be executed and all other lines will ".
-		"be ignored. Feel free to add or edit profiles as you wish."
+		'be ignored. Feel free to add or edit profiles as you wish.'
 	)]
 	public function profileListCommand(CmdContext $context): void {
 		try {
@@ -151,8 +151,8 @@ class ProfileController extends ModuleInstance {
 		$linkContents = '';
 		foreach ($profileList as $profile) {
 			$name = ucfirst(strtolower($profile));
-			$viewLink = $this->text->makeChatcmd("view", "/tell <myname> profile view {$profile}");
-			$loadLink = $this->text->makeChatcmd("load", "/tell <myname> profile load {$profile}");
+			$viewLink = $this->text->makeChatcmd('view', "/tell <myname> profile view {$profile}");
+			$loadLink = $this->text->makeChatcmd('load', "/tell <myname> profile load {$profile}");
 			$linkContents .= "{$name} [{$viewLink}] [{$loadLink}]\n";
 		}
 
@@ -160,17 +160,16 @@ class ProfileController extends ModuleInstance {
 			$linkContents .= "\n\n<orange>Warning: Running a profile script will change your configuration.  Proceed only if you understand the consequences.<end>";
 			$msg = $this->text->makeBlob('Profiles (' . count($profileList) . ')', $linkContents);
 		} else {
-			$msg = "No profiles available.";
+			$msg = 'No profiles available.';
 		}
 		$context->reply($msg);
 	}
 
 	/** View a profile */
-	#[NCA\HandlesCommand("profile")]
+	#[NCA\HandlesCommand('profile')]
 	public function profileViewCommand(
 		CmdContext $context,
-		#[NCA\Str("view")]
-		string $action,
+		#[NCA\Str('view')] string $action,
 		PFilename $profileName
 	): void {
 		$profileName = $profileName();
@@ -181,8 +180,8 @@ class ProfileController extends ModuleInstance {
 			return;
 		}
 		$blob = htmlspecialchars($this->fs->read($filename));
-		$blob = Safe::pregReplace("/^([^#])/m", "<tab>$1", $blob);
-		$blob = Safe::pregReplace("/^# (.+)$/m", "<header2>$1<end>", $blob);
+		$blob = Safe::pregReplace('/^([^#])/m', '<tab>$1', $blob);
+		$blob = Safe::pregReplace('/^# (.+)$/m', '<header2>$1<end>', $blob);
 
 		/** @var string $blob */
 		$msg = $this->text->makeBlob("Profile {$profileName}", $blob);
@@ -190,14 +189,14 @@ class ProfileController extends ModuleInstance {
 	}
 
 	/** Save the current configuration as a profile */
-	#[NCA\HandlesCommand("profile")]
-	public function profileSaveCommand(CmdContext $context, #[NCA\Str("save")] string $action, PFilename $profileName): void {
+	#[NCA\HandlesCommand('profile')]
+	public function profileSaveCommand(CmdContext $context, #[NCA\Str('save')] string $action, PFilename $profileName): void {
 		$profileName = $profileName();
 		try {
 			$this->saveProfile($profileName);
 		} catch (Exception $e) {
 			$context->reply(
-				"Error saving the profile: <highlight>" . $e->getMessage() . "<end>"
+				'Error saving the profile: <highlight>' . $e->getMessage() . '<end>'
 			);
 			return;
 		}
@@ -212,15 +211,15 @@ class ProfileController extends ModuleInstance {
 		}
 		$contents = "# Permission maps\n";
 		$sets = $this->commandManager->getExtPermissionSets();
-		$setData = json_encode($sets, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-		$setData = Safe::pregReplace("/\"id\":\d+,/", "", $setData);
+		$setData = json_encode($sets, \JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE);
+		$setData = Safe::pregReplace("/\"id\":\d+,/", '', $setData);
 
 		/** @var string $setData */
 		$contents .= "!permissions {$setData}\n";
 
 		$contents .= "\n# Settings\n";
 		foreach ($this->settingManager->settings as $name => $value) {
-			if ($name !== "botid" && $name !== "version" && !$this->util->endsWith($name, "_db_version")) {
+			if ($name !== 'botid' && $name !== 'version' && !$this->util->endsWith($name, '_db_version')) {
 				$contents .= "!settings save {$name} {$value->value}\n";
 			}
 		}
@@ -229,9 +228,9 @@ class ProfileController extends ModuleInstance {
 		/** @var EventCfg[] */
 		$data = $this->db->table(EventManager::DB_TABLE)->asObj(EventCfg::class)->toArray();
 		foreach ($data as $row) {
-			$status = "disable";
+			$status = 'disable';
 			if ($row->status === 1) {
-				$status = "enable";
+				$status = 'enable';
 			}
 			$contents .= "!config event {$row->type} {$row->file} {$status} all\n";
 		}
@@ -241,7 +240,7 @@ class ProfileController extends ModuleInstance {
 		$data = $this->commandManager->getAll(true);
 		foreach ($data as $row) {
 			foreach ($row->permissions as $channel => $permissions) {
-				$status = $permissions->enabled ? "enable" : "disable";
+				$status = $permissions->enabled ? 'enable' : 'disable';
 				$contents .= "!config {$row->cmdevent} {$row->cmd} {$status} {$channel}\n";
 				$contents .= "!config {$row->cmdevent} {$row->cmd} admin {$channel} {$permissions->access_level}\n";
 			}
@@ -250,8 +249,8 @@ class ProfileController extends ModuleInstance {
 
 		/** @var CmdAlias[] */
 		$data = $this->db->table(CommandAlias::DB_TABLE)
-			->where("status", 1)
-			->orderBy("alias")
+			->where('status', 1)
+			->orderBy('alias')
 			->asObj(CmdAlias::class)->toArray();
 		foreach ($data as $row) {
 			$contents .= "!alias rem {$row->alias}\n";
@@ -260,11 +259,11 @@ class ProfileController extends ModuleInstance {
 
 		$contents .= "\n# Relays\n".
 			"!relay remall\n".
-			join("\n", $this->relayController->getRelayDump()) . "\n";
+			implode("\n", $this->relayController->getRelayDump()) . "\n";
 
 		$contents .= "\n# Routes\n".
 			"!route remall\n".
-			join("\n", $this->messageHub->getRouteDump(true)) . "\n";
+			implode("\n", $this->messageHub->getRouteDump(true)) . "\n";
 
 		$contents .= "\n# Route colors\n".
 			"!route color remall\n";
@@ -273,7 +272,7 @@ class ProfileController extends ModuleInstance {
 		$data = $this->db->table(MessageHub::DB_TABLE_COLORS)
 			->asObj(RouteHopColor::class)->toArray();
 		foreach ($data as $row) {
-			foreach (["text", "tag"] as $color) {
+			foreach (['text', 'tag'] as $color) {
 				if (isset($row->{"{$color}_color"})) {
 					$contents .= "!route color {$color} set {$row->hop} ";
 					if (isset($row->where)) {
@@ -306,7 +305,7 @@ class ProfileController extends ModuleInstance {
 	}
 
 	/** Remove a profile */
-	#[NCA\HandlesCommand("profile")]
+	#[NCA\HandlesCommand('profile')]
 	public function profileRemCommand(
 		CmdContext $context,
 		PRemove $action,
@@ -330,11 +329,10 @@ class ProfileController extends ModuleInstance {
 	}
 
 	/** Load a profile, replacing all your settings with the profile's */
-	#[NCA\HandlesCommand("profile")]
+	#[NCA\HandlesCommand('profile')]
 	public function profileLoadCommand(
 		CmdContext $context,
-		#[NCA\Str("load")]
-		string $action,
+		#[NCA\Str('load')] string $action,
 		PFilename $profileName
 	): void {
 		$profileName = $profileName();
@@ -356,7 +354,7 @@ class ProfileController extends ModuleInstance {
 	}
 
 	public function getFilename(string $profileName): string {
-		return $this->path . DIRECTORY_SEPARATOR . $profileName . static::FILE_EXT;
+		return $this->path . \DIRECTORY_SEPARATOR . $profileName . static::FILE_EXT;
 	}
 
 	public function loadProfile(string $filename, string $sender): ?string {
@@ -372,50 +370,50 @@ class ProfileController extends ModuleInstance {
 			$numSkipped = 0;
 			for ($profileRow=0; $profileRow < count($lines); $profileRow++) {
 				$line = $lines[$profileRow];
-				if (substr($line, 0, 15) === "!settings save ") {
-					$parts = explode(" ", $line, 4);
+				if (substr($line, 0, 15) === '!settings save ') {
+					$parts = explode(' ', $line, 4);
 					if ($this->settingManager->get($parts[2]) === $parts[3]) {
 						$numSkipped++;
 						continue;
 					}
-				} elseif (count($parts = Safe::pregMatch("/^!config (cmd|subcmd) (.+) (enable|disable) ([^ ]+)$/", $line))) {
+				} elseif (count($parts = Safe::pregMatch('/^!config (cmd|subcmd) (.+) (enable|disable) ([^ ]+)$/', $line))) {
 					$exists = $this->db->table(CommandManager::DB_TABLE_PERMS)
-						->where("cmd", $parts[2])
-						->where("permission_set", $parts[4])
-						->where("enabled", $parts[3] === 'enable')
+						->where('cmd', $parts[2])
+						->where('permission_set', $parts[4])
+						->where('enabled', $parts[3] === 'enable')
 						->exists();
 					if ($exists) {
 						$numSkipped++;
 						continue;
 					}
-				} elseif (count($parts = Safe::pregMatch("/^!config (cmd|subcmd) (.+) admin ([^ ]+) ([^ ]+)$/", $line))) {
+				} elseif (count($parts = Safe::pregMatch('/^!config (cmd|subcmd) (.+) admin ([^ ]+) ([^ ]+)$/', $line))) {
 					$exists = $this->db->table(CommandManager::DB_TABLE_PERMS)
-						->where("cmd", $parts[2])
-						->where("permission_set", $parts[3])
-						->where("access_level", $parts[4])
+						->where('cmd', $parts[2])
+						->where('permission_set', $parts[3])
+						->where('access_level', $parts[4])
 						->exists();
 					if ($exists) {
 						$numSkipped++;
 						continue;
 					}
-				} elseif (count($parts = Safe::pregMatch("/^!config event (.+) ([^ ]+) (enable|disable) ([^ ]+)$/", $line))) {
+				} elseif (count($parts = Safe::pregMatch('/^!config event (.+) ([^ ]+) (enable|disable) ([^ ]+)$/', $line))) {
 					$exists = $this->db->table(EventManager::DB_TABLE)
-						->where("type", $parts[1])
-						->where("file", $parts[2])
-						->where("status", ($parts[3] === 'enable') ? 1 : 0)
+						->where('type', $parts[1])
+						->where('file', $parts[2])
+						->where('status', ($parts[3] === 'enable') ? 1 : 0)
 						->exists();
 					if ($exists) {
 						$numSkipped++;
 						continue;
 					}
-				} elseif (substr($line, 0, 11) === "!alias rem ") {
+				} elseif (substr($line, 0, 11) === '!alias rem ') {
 					/** @psalm-suppress PossiblyUndefinedArrayOffset */
-					$alias = explode(" ", $line, 3)[2];
+					$alias = explode(' ', $line, 3)[2];
 					if (count($parts = Safe::pregMatch("/^!alias add \Q{$alias}\E (.+)$/", $lines[$profileRow+1]))) {
 						/** @var ?CmdAlias $data */
 						$data = $this->db->table(CommandAlias::DB_TABLE)
-							->where("status", 1)
-							->where("alias", $alias)
+							->where('status', 1)
+							->where('alias', $alias)
 							->asObj(CmdAlias::class)
 							->first();
 						if ($data !== null) {
@@ -430,16 +428,16 @@ class ProfileController extends ModuleInstance {
 						}
 					}
 				}
-				if (count($matches = Safe::pregMatch("/^!permissions (.+)$/", $line))) {
+				if (count($matches = Safe::pregMatch('/^!permissions (.+)$/', $line))) {
 					$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
 					$this->loadPermissions($matches[1], $profileSendTo);
-					$profileSendTo->reply("");
-				} elseif ($line[0] === "!") {
+					$profileSendTo->reply('');
+				} elseif ($line[0] === '!') {
 					$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
 					$line = substr($line, 1);
 					$context->message = $line;
 					$this->commandManager->processCmd($context);
-					$profileSendTo->reply("");
+					$profileSendTo->reply('');
 				} else {
 					$numSkipped++;
 				}
@@ -451,7 +449,7 @@ class ProfileController extends ModuleInstance {
 			}
 			return $profileSendTo->result;
 		} catch (Exception $e) {
-			$this->logger->error("Could not load profile: " . $e->getMessage(), ["exception" => $e]);
+			$this->logger->error('Could not load profile: ' . $e->getMessage(), ['exception' => $e]);
 			$this->db->rollback();
 			return null;
 		}
@@ -462,7 +460,7 @@ class ProfileController extends ModuleInstance {
 		$this->db->table(CommandManager::DB_TABLE_PERMS)->delete();
 		$this->db->table(CommandManager::DB_TABLE_PERM_SET)->delete();
 		$this->db->table(CommandManager::DB_TABLE_MAPPING)->delete();
-		$reply->reply("All permissions reset");
+		$reply->reply('All permissions reset');
 
 		/** @var ExtCmdPermissionSet[] $sets */
 		$this->commandManager->commands = [];
@@ -483,9 +481,9 @@ class ProfileController extends ModuleInstance {
 				$reply->reply(
 					"Mapped <highlight>{$map->source}<end> ".
 					"to <highlight>{$map->permission_set}<end> ".
-					"with " . ($map->symbol_optional ? "optional " : "").
+					'with ' . ($map->symbol_optional ? 'optional ' : '').
 					"prefix <highlight>{$map->symbol}<end>, ".
-					($map->feedback ? "" : "not ") . "giving unknown command errors."
+					($map->feedback ? '' : 'not ') . 'giving unknown command errors.'
 				);
 			}
 		}

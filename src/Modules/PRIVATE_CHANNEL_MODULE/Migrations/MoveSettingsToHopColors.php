@@ -15,24 +15,24 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210812173658)]
+#[NCA\Migration(order: 20_210_812_173_658)]
 class MoveSettingsToHopColors implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$hop = [
-			"tag_color" => $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3",
-			"text_color" => $this->getSettingColor($db, "guest_color_guild") ?? "C3C3C3",
-			"hop" => Source::PRIV . "(" . $this->config->main->character . ")",
+			'tag_color' => $this->getSettingColor($db, 'guest_color_channel') ?? 'C3C3C3',
+			'text_color' => $this->getSettingColor($db, 'guest_color_guild') ?? 'C3C3C3',
+			'hop' => Source::PRIV . '(' . $this->config->main->character . ')',
 		];
 		$db->table(MessageHub::DB_TABLE_COLORS)->insert($hop);
 
 		if (strlen($this->config->general->orgName)) {
 			$hop = [
-				"tag_color" => $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3",
-				"text_color" => $this->getSettingColor($db, "guest_color_guest") ?? "C3C3C3",
-				"hop" => Source::ORG . "({$this->config->general->orgName})",
+				'tag_color' => $this->getSettingColor($db, 'guest_color_channel') ?? 'C3C3C3',
+				'text_color' => $this->getSettingColor($db, 'guest_color_guest') ?? 'C3C3C3',
+				'hop' => Source::ORG . "({$this->config->general->orgName})",
 			];
 			$db->table(MessageHub::DB_TABLE_COLORS)->insert($hop);
 		}
@@ -41,13 +41,13 @@ class MoveSettingsToHopColors implements SchemaMigration {
 	protected function getSettingColor(DB $db, string $name): ?string {
 		/** @var ?Setting */
 		$setting = $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
+			->where('name', $name)
 			->asObj(Setting::class)
 			->first();
-		if (!isset($setting) || ($setting->value??"") === "") {
+		if (!isset($setting) || ($setting->value??'') === '') {
 			return null;
 		}
-		if (count($matches = Safe::pregMatch("/#([a-f0-9]{6})/i", $setting->value??"")) === 2) {
+		if (count($matches = Safe::pregMatch('/#([a-f0-9]{6})/i', $setting->value??'')) === 2) {
 			return $matches[1];
 		}
 		return null;

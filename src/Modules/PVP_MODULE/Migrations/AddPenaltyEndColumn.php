@@ -8,18 +8,18 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\PVP_MODULE\NotumWarsController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20230321071303)]
+#[NCA\Migration(order: 20_230_321_071_303)]
 class AddPenaltyEndColumn implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = NotumWarsController::DB_ATTACKS;
-		$db->schema()->table($table, function (Blueprint $table) {
-			$table->integer("penalizing_ended")->nullable(true)->index();
+		$db->schema()->table($table, static function (Blueprint $table) {
+			$table->integer('penalizing_ended')->nullable(true)->index();
 		});
 		$query = $db->table($table);
 		$query
-			->where("timestamp", "<", time() - 6 * 3600)
+			->where('timestamp', '<', time() - 6 * 3_600)
 			->update([
-				"penalizing_ended" => $query->raw("timestamp + " . 3600 * 6),
+				'penalizing_ended' => $query->raw('timestamp + ' . 3_600 * 6),
 			]);
 	}
 }

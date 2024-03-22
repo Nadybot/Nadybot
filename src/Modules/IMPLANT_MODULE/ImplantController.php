@@ -17,9 +17,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "implant",
-		accessLevel: "guest",
-		description: "Get information about the QL of an implant",
+		command: 'implant',
+		accessLevel: 'guest',
+		description: 'Get information about the QL of an implant',
 	)
 ]
 class ImplantController extends ModuleInstance {
@@ -51,14 +51,14 @@ class ImplantController extends ModuleInstance {
 		'reqRegular' => [
 			  1 => [6,   11, 0],
 			200 => [404,  951, 0],
-			201 => [426, 1001, 0],
-			300 => [1095, 2051, 0],
+			201 => [426, 1_001, 0],
+			300 => [1_095, 2_051, 0],
 		],
 		'reqJobe' => [
 			  1 => [16,   11, 3],
-			200 => [414, 1005, 4],
-			201 => [476, 1001, 5],
-			300 => [1231, 2051, 6],
+			200 => [414, 1_005, 4],
+			201 => [476, 1_001, 5],
+			300 => [1_231, 2_051, 6],
 		],
 	];
 
@@ -99,7 +99,7 @@ class ImplantController extends ModuleInstance {
 	 */
 	public function findBestQLForBonus(int $bonus, array $itemSpecs): int {
 		if (empty($itemSpecs)) {
-			throw new InvalidArgumentException("\$itemSpecs to findBestQLForBonus() must not be empty");
+			throw new InvalidArgumentException('$itemSpecs to findBestQLForBonus() must not be empty');
 		}
 		for ($searchedQL = min(array_keys($itemSpecs)); $searchedQL <= max(array_keys($itemSpecs)); $searchedQL++) {
 			$value = $this->calcStatFromQL($itemSpecs, $searchedQL);
@@ -156,7 +156,7 @@ class ImplantController extends ModuleInstance {
 	}
 
 	/** Show the highest QL implant for a given ability and treatment */
-	#[NCA\HandlesCommand("implant")]
+	#[NCA\HandlesCommand('implant')]
 	#[NCA\Help\Epilogue(
 		"<header2>Explanation<end>\n\n".
 		"If you had 404 agility and 951 treatment, you would do\n".
@@ -166,7 +166,7 @@ class ImplantController extends ModuleInstance {
 		"When you view more info on an implant ql, the range of numbers next to the modifier tells you the range of quality levels that will give you the same modifier.\n\n".
 		"For instance,\n\n".
 		"<tab>Faded   22 (196 - 208)\n\n".
-		"means that you will get 22 points (of ability, in this case) from the faded cluster slot starting with ql 196 on up to ql 208."
+		'means that you will get 22 points (of ability, in this case) from the faded cluster slot starting with ql 196 on up to ql 208.'
 	)]
 	public function impQlDetermineCommand(CmdContext $context, int $attrib, int $treatment): void {
 		$regularQL = $this->findHighestRegularImplantQL($attrib, $treatment);
@@ -188,14 +188,14 @@ class ImplantController extends ModuleInstance {
 			$msg .= " and the highest possible {$jobeBlob} is QL <highlight>{$jobeQL}<end>";
 		}
 
-		$context->reply($msg . ".");
+		$context->reply($msg . '.');
 	}
 
 	/** Show the stats for implants at a given QL */
-	#[NCA\HandlesCommand("implant")]
+	#[NCA\HandlesCommand('implant')]
 	public function impQlCommand(CmdContext $context, int $ql): void {
 		if ($ql < 1 || $ql > 300) {
-			$msg = "Implants only exist is QLs between 1 and 300.";
+			$msg = 'Implants only exist is QLs between 1 and 300.';
 			$context->reply($msg);
 			return;
 		}
@@ -208,7 +208,7 @@ class ImplantController extends ModuleInstance {
 			$msg .= " and {$jobeBlob} details";
 		}
 
-		$context->reply($msg . ".");
+		$context->reply($msg . '.');
 	}
 
 	/**
@@ -221,7 +221,7 @@ class ImplantController extends ModuleInstance {
 	 */
 	public function renderBlob(string $type, int $ql): array {
 		$specs = $this->getImplantQLSpecs($type, $ql);
-		$indent = "<tab>";
+		$indent = '<tab>';
 
 		$blob = "<header2>Requirements to wear:<end>\n".
 			$indent.$this->text->alignNumber($specs->requirements->abilities, 4, 'highlight').
@@ -277,20 +277,20 @@ class ImplantController extends ModuleInstance {
 		if ($ql >= 201) {
 			$minQL = 201;
 		}
-		$shinyQL = $this->getClusterMinQl($ql, "shiny");
-		$brightQL = $this->getClusterMinQl($ql, "bright");
-		$fadedQL = $this->getClusterMinQl($ql, "faded");
+		$shinyQL = $this->getClusterMinQl($ql, 'shiny');
+		$brightQL = $this->getClusterMinQl($ql, 'bright');
+		$fadedQL = $this->getClusterMinQl($ql, 'faded');
 		$blob .= "<header2>Minimum Cluster QL:<end>\n".
 			$indent.$this->text->alignNumber(max($minQL, $shinyQL), 3, 'highlight') . " Shiny\n".
 			$indent.$this->text->alignNumber(max($minQL, $brightQL), 3, 'highlight') . " Bright\n".
 			$indent.$this->text->alignNumber(max($minQL, $fadedQL), 3, 'highlight') . " Faded\n\n";
 
-		$impName = "Implant";
+		$impName = 'Implant';
 		if ($type === self::JOBE) {
 			if ($ql >= 201) {
-				$impName = "Implant with a shiny Jobe cluster and all other clusters filled";
+				$impName = 'Implant with a shiny Jobe cluster and all other clusters filled';
 			} else {
-				$impName = "Jobe Implant";
+				$impName = 'Jobe Implant';
 			}
 		}
 		return (array)$this->text->makeBlob($impName, $blob, "QL {$ql} {$impName} Details");
@@ -391,7 +391,7 @@ class ImplantController extends ModuleInstance {
 	protected function getBreakpoints(string $type, int $position): array {
 		/** @phpstan-var non-empty-array<int,int> */
 		$breakPoints = array_map(
-			function (array $item) use ($position) {
+			static function (array $item) use ($position) {
 				return $item[$position];
 			},
 			$this->implantBreakpoints[$type]
@@ -410,17 +410,17 @@ class ImplantController extends ModuleInstance {
 	 * @return string the rendered line including newline
 	 */
 	protected function renderBonusLine(ImplantBonusStats $stats, string $type): string {
-		$fromQL = $this->text->alignNumber($stats->range[0], 3, "highlight");
-		$toQL   = $this->text->alignNumber($stats->range[1], 3, "highlight");
+		$fromQL = $this->text->alignNumber($stats->range[0], 3, 'highlight');
+		$toQL   = $this->text->alignNumber($stats->range[1], 3, 'highlight');
 
 		$line = $this->text->alignNumber($stats->buff, 3, 'highlight').
 			" (QL {$fromQL} - QL {$toQL}) " . $stats->slot;
 		if ($stats->range[1] < 300) {
 			$nextBest = $this->getImplantQLSpecs($type, $stats->range[1]+1);
-			$line .= " <header>-><end> ".
-				"<highlight>" . $nextBest->requirements->abilities . "<end>".
-				" / ".
-				"<highlight>" . $nextBest->requirements->treatment . "<end>";
+			$line .= ' <header>-><end> '.
+				'<highlight>' . $nextBest->requirements->abilities . '<end>'.
+				' / '.
+				'<highlight>' . $nextBest->requirements->treatment . '<end>';
 		}
 		return $line . "\n";
 	}

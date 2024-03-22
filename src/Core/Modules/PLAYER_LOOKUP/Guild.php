@@ -10,7 +10,7 @@ class Guild {
 	public string $orgside;
 
 	/** Anarchy, Republic, etc. */
-	public string $governing_form = "Anarchy";
+	public string $governing_form = 'Anarchy';
 
 	/** @var array<string,Player> */
 	public array $members = [];
@@ -19,6 +19,6 @@ class Guild {
 	public ?int $last_update;
 
 	public function getColorName(): string {
-		return "<" . strtolower($this->orgside) . ">{$this->orgname}<end>";
+		return '<' . strtolower($this->orgside) . ">{$this->orgname}<end>";
 	}
 }

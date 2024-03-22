@@ -9,7 +9,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Drill\PacketType;
 class PresentToken extends Base {
 	public function __construct(
 		public string $token,
-		public string $desiredSudomain="",
+		public string $desiredSudomain='',
 	) {
 	}
 
@@ -21,7 +21,7 @@ class PresentToken extends Base {
 	}
 
 	public function toString(): string {
-		return pack("C", PacketType::PRESENT_TOKEN) . $this->token . $this->desiredSudomain;
+		return pack('C', PacketType::PRESENT_TOKEN) . $this->token . $this->desiredSudomain;
 	}
 
 	public function getType(): int {

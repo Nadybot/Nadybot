@@ -20,7 +20,7 @@ use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-#[NCA\Migration(order: 20210826135816)]
+#[NCA\Migration(order: 20_210_826_135_816)]
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;
@@ -36,7 +36,7 @@ class MigrateToRoutes implements SchemaMigration {
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;
-		$showWhere = $this->getSetting($db, "show_tracker_events");
+		$showWhere = $this->getSetting($db, 'show_tracker_events');
 		if (!isset($showWhere)) {
 			if (strlen($this->config->general->orgName)) {
 				$showWhere = 2;
@@ -53,15 +53,15 @@ class MigrateToRoutes implements SchemaMigration {
 		foreach ($map as $flag => $dest) {
 			if ($showWhere & $flag) {
 				$route = [
-					"source" => $this->trackerController->getChannelName(),
-					"destination" => $dest,
-					"two_way" => false,
+					'source' => $this->trackerController->getChannelName(),
+					'destination' => $dest,
+					'two_way' => false,
 				];
 				$db->table($table)->insert($route);
 			}
 		}
-		$notifyChannel = $this->getSetting($db, "discord_notify_channel");
-		if (!isset($notifyChannel) || !isset($notifyChannel->value) || $notifyChannel->value === "off") {
+		$notifyChannel = $this->getSetting($db, 'discord_notify_channel');
+		if (!isset($notifyChannel) || !isset($notifyChannel->value) || $notifyChannel->value === 'off') {
 			return;
 		}
 		if ($showWhere & 4) {
@@ -88,7 +88,7 @@ class MigrateToRoutes implements SchemaMigration {
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
+			->where('name', $name)
 			->asObj(Setting::class)
 			->first();
 	}

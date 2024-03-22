@@ -14,6 +14,6 @@ class OnlinePrivStats implements GaugeProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => "priv"];
+		return ['type' => 'priv'];
 	}
 }

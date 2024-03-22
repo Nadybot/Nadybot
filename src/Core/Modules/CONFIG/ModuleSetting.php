@@ -39,25 +39,25 @@ class ModuleSetting {
 	public bool $editable = true;
 
 	/** A description of what this setting is for */
-	public string $description = "Description missing";
+	public string $description = 'Description missing';
 
 	public ?string $help = null;
 
 	public function __construct(Setting $setting) {
 		$this->editable = $setting->mode === 'edit';
-		$this->description = $setting->description??"No description given";
+		$this->description = $setting->description??'No description given';
 		$this->name = $setting->name;
-		if (strlen($setting->options??"")) {
-			$options = explode(";", $setting->options??"");
+		if (strlen($setting->options??'')) {
+			$options = explode(';', $setting->options??'');
 			$values = $options;
 			if (isset($setting->intoptions) && strlen($setting->intoptions)) {
 				if (in_array($setting->type, ['number', 'time'])) {
-					$values = array_map('intval', explode(";", $setting->intoptions));
+					$values = array_map('intval', explode(';', $setting->intoptions));
 				} else {
-					$values = explode(";", $setting->intoptions);
+					$values = explode(';', $setting->intoptions);
 				}
 			}
-			if ($options === ["true", "false"] && $values === [1, 0]) {
+			if ($options === ['true', 'false'] && $values === [1, 0]) {
 				$this->type = static::TYPE_BOOL;
 			} else {
 				for ($i = 0; $i < count($options); $i++) {
@@ -68,7 +68,7 @@ class ModuleSetting {
 				}
 			}
 		}
-		$this->description = $setting->description??"No description given";
+		$this->description = $setting->description??'No description given';
 		switch ($setting->type) {
 			case 'number':
 				$this->type = static::TYPE_NUMBER;
@@ -100,7 +100,7 @@ class ModuleSetting {
 				} else {
 					$this->type = static::TYPE_OPTIONS;
 					$this->value = (string)$setting->value;
-					if (strlen($setting->intoptions??"")) {
+					if (strlen($setting->intoptions??'')) {
 						$this->type = static::TYPE_INT_OPTIONS;
 						$this->value = (int)$setting->value;
 					}

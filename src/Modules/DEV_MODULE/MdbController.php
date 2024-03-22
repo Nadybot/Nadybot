@@ -17,9 +17,9 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "mdb",
-		accessLevel: "guest",
-		description: "Search for values in the MDB file",
+		command: 'mdb',
+		accessLevel: 'guest',
+		description: 'Search for values in the MDB file',
 	)
 ]
 class MdbController extends ModuleInstance {
@@ -27,27 +27,27 @@ class MdbController extends ModuleInstance {
 	private Text $text;
 
 	/** Get a list of categories from the MDB */
-	#[NCA\HandlesCommand("mdb")]
+	#[NCA\HandlesCommand('mdb')]
 	public function mdbCommand(CmdContext $context): void {
 		$client = AsyncClient::createDefault();
 		$categories = $client->getCategories();
 		if (!isset($categories)) {
-			$context->reply("Cannot find any categories.");
+			$context->reply('Cannot find any categories.');
 			return;
 		}
 
 		$blob = '';
 		foreach ($categories as $category) {
-			$blob .= $this->text->makeChatcmd((string)$category->id, "/tell <myname> mdb " . $category->id) . "\n";
+			$blob .= $this->text->makeChatcmd((string)$category->id, '/tell <myname> mdb ' . $category->id) . "\n";
 		}
 
-		$msg = $this->text->makeBlob("MDB Categories", $blob);
+		$msg = $this->text->makeBlob('MDB Categories', $blob);
 
 		$context->reply($msg);
 	}
 
 	/** Get a list of instances for an MDB category */
-	#[NCA\HandlesCommand("mdb")]
+	#[NCA\HandlesCommand('mdb')]
 	public function mdbCategoryCommand(CmdContext $context, int $categoryId): void {
 		$client = AsyncClient::createDefault();
 		$instances = $client->findAllInstancesInCategory($categoryId);
@@ -67,10 +67,10 @@ class MdbController extends ModuleInstance {
 	}
 
 	/** See an MDB by category and instance */
-	#[NCA\HandlesCommand("mdb")]
+	#[NCA\HandlesCommand('mdb')]
 	public function mdbInstanceCommand(CmdContext $context, int $categoryId, int $instanceId): void {
 		$client = AsyncClient::createDefault();
-		$messageString = $client->getMessageString($categoryId, $instanceId) ?? "- not found -";
+		$messageString = $client->getMessageString($categoryId, $instanceId) ?? '- not found -';
 		$msg = "Unable to find MDB string category <highlight>{$categoryId}<end>, ".
 			"instance <highlight>{$instanceId}<end>.";
 		if ($messageString !== null) {

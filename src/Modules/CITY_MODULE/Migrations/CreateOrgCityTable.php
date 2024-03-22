@@ -8,17 +8,17 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\CITY_MODULE\CloakController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210425134733)]
+#[NCA\Migration(order: 20_210_425_134_733)]
 class CreateOrgCityTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = CloakController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->integer("time")->nullable();
-			$table->string("action", 10)->nullable();
-			$table->string("player", 25)->nullable();
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->integer('time')->nullable();
+			$table->string('action', 10)->nullable();
+			$table->string('player', 25)->nullable();
 		});
 	}
 }

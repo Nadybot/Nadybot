@@ -19,12 +19,12 @@ use RegexIterator;
 
 class ClassLoader {
 	public const INTEGRATED_MODULES = [
-		"ALLIANCE_RELAY_MODULE",
-		"SPAWNTIME_MODULE",
-		"BIGBOSS_MODULE",
-		"GAUNTLET_MODULE",
-		"IMPQL_MODULE",
-		"EXPORT_MODULE",
+		'ALLIANCE_RELAY_MODULE',
+		'SPAWNTIME_MODULE',
+		'BIGBOSS_MODULE',
+		'GAUNTLET_MODULE',
+		'IMPQL_MODULE',
+		'EXPORT_MODULE',
 	];
 
 	/**
@@ -59,7 +59,7 @@ class ClassLoader {
 	/** Load all classes that provide an #[Instance] */
 	public function loadInstances(): void {
 		$newInstances = $this->getInstancesOfClasses(...get_declared_classes());
-		unset($newInstances["logger"]);
+		unset($newInstances['logger']);
 		unset($newInstances[strtolower(Registry::formatName(BotConfig::class))]);
 		$newInstances = array_merge($newInstances, $this->getNewInstancesInDir(__DIR__));
 		foreach ($newInstances as $name => $class) {
@@ -69,15 +69,15 @@ class ClassLoader {
 		$this->loadCoreModules();
 		$this->loadUserModules();
 
-		$this->logger->info("Inject dependencies for all instances");
+		$this->logger->info('Inject dependencies for all instances');
 		foreach (Registry::getAllInstances() as $instance) {
 			Registry::injectDependencies($instance);
 		}
 
-		$this->logger->info("Inject dependencies for all static variables");
+		$this->logger->info('Inject dependencies for all static variables');
 		$classes = get_declared_classes();
 		foreach ($classes as $className) {
-			if (explode("\\", $className)[0] !== 'Nadybot') {
+			if (explode('\\', $className)[0] !== 'Nadybot') {
 				continue;
 			}
 			$reflection = new ReflectionClass($className);
@@ -96,11 +96,11 @@ class ClassLoader {
 			$entries = parse_ini_string($this->fs->read("{$baseDir}/{$moduleName}/module.ini"));
 			// check that current PHP version is greater or equal than module's
 			// minimum required PHP version
-			if (is_array($entries) && isset($entries["minimum_php_version"])) {
-				$minimum = $entries["minimum_php_version"];
-				$current = phpversion();
+			if (is_array($entries) && isset($entries['minimum_php_version'])) {
+				$minimum = $entries['minimum_php_version'];
+				$current = \PHP_VERSION;
 				if (strnatcmp($minimum, $current) > 0) {
-					$this->logger->warning("Could not load module"
+					$this->logger->warning('Could not load module'
 					." {$moduleName} as it requires at least PHP version '{$minimum}',"
 					." but current PHP version is '{$current}'");
 					return;
@@ -111,23 +111,23 @@ class ClassLoader {
 		try {
 			$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$moduleName}");
 		} catch (IntegratedIntoBaseException $e) {
-			$this->logger->error("The module {module} got integrated into Nadybot. You can remove it from {path}.", [
-				"path" => "{$baseDir}/{$moduleName}",
-				"module" => $moduleName,
+			$this->logger->error('The module {module} got integrated into Nadybot. You can remove it from {path}.', [
+				'path' => "{$baseDir}/{$moduleName}",
+				'module' => $moduleName,
 			]);
 			return;
 		} catch (InvalidCodeException $e) {
-			$this->logger->error("Could not load module {module}: {error}", [
-				"module" => $moduleName,
-				"error" => "Parse error in " . $e->getMessage(). ".",
+			$this->logger->error('Could not load module {module}: {error}', [
+				'module' => $moduleName,
+				'error' => 'Parse error in ' . $e->getMessage(). '.',
 			]);
 			return;
 		} catch (InvalidVersionException $e) {
 			$this->logger->warning(
 				"Not enabling module {module}, because it's not compatible with Nadybot {version}.",
 				[
-					"version" => BotRunner::getVersion(false),
-					"module" => $moduleName,
+					'version' => BotRunner::getVersion(false),
+					'module' => $moduleName,
 				]
 			);
 			return;
@@ -141,16 +141,16 @@ class ClassLoader {
 			$obj->setModuleName($moduleName);
 			if (Registry::instanceExists($name) && !$class->overwrite) {
 				$this->logger->warning("Instance with name '{instance}' already registered--replaced with new instance", [
-					"instance" => $name,
+					'instance' => $name,
 				]);
 			}
 			Registry::setInstance($name, $obj);
 		}
 
 		if (count($newInstances) == 0) {
-			$this->logger->error("Could not load module {module}: {error}", [
-				"module" => $moduleName,
-				"error" => "No classes found with #[Instance] attribute",
+			$this->logger->error('Could not load module {module}: {error}', [
+				'module' => $moduleName,
+				'error' => 'No classes found with #[Instance] attribute',
 			]);
 			return;
 		}
@@ -169,9 +169,9 @@ class ClassLoader {
 	public function getNewInstancesInDir(string $path): array {
 		$original = get_declared_classes();
 		$files = [];
-		$isExtraModule = !str_contains($path, "/src/Core")
-			&& strncmp($path, "./src/", 6) !== 0;
-		$checkCode = extension_loaded("pcntl") && $isExtraModule;
+		$isExtraModule = !str_contains($path, '/src/Core')
+			&& strncmp($path, './src/', 6) !== 0;
+		$checkCode = extension_loaded('pcntl') && $isExtraModule;
 		if (!$this->isModuleCompatible($path)) {
 			throw new InvalidVersionException();
 		}
@@ -186,7 +186,7 @@ class ClassLoader {
 		foreach ($iter as $file) {
 			/** @var \SplFileInfo $file */
 			$fileName = $file->getPathname();
-			if (substr($fileName, strlen($path), 9) === DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR) {
+			if (substr($fileName, strlen($path), 9) === \DIRECTORY_SEPARATOR . 'Modules' . \DIRECTORY_SEPARATOR) {
 				continue;
 			}
 			if ($checkCode && !$this->checkFileLoads($fileName)) {
@@ -238,27 +238,27 @@ class ClassLoader {
 	/** Parse and load all core modules */
 	private function loadCoreModules(): void {
 		// load the core modules, hard-code to ensure they are loaded in the correct order
-		$this->logger->notice("Loading CORE modules...");
+		$this->logger->notice('Loading CORE modules...');
 		$coreModules = [
 			'MESSAGES', 'CONFIG', 'SYSTEM', 'ADMIN', 'BAN', 'HELP', 'LIMITS',
 			'PLAYER_LOOKUP', 'BUDDYLIST', 'ALTS', 'USAGE', 'PREFERENCES', 'PROFILE',
 			'COLORS', 'DISCORD', 'CONSOLE', 'SECURITY',
 		];
 		foreach ($coreModules as $moduleName) {
-			$this->registerModule(__DIR__ . "/Modules", $moduleName);
+			$this->registerModule(__DIR__ . '/Modules', $moduleName);
 		}
 	}
 
 	/** Parse and load all user modules */
 	private function loadUserModules(): void {
-		$this->logger->notice("Loading USER modules...");
+		$this->logger->notice('Loading USER modules...');
 		foreach ($this->moduleLoadPaths as $path) {
-			$this->logger->info("Loading modules in path '{path}'", ["path" => $path]);
+			$this->logger->info("Loading modules in path '{path}'", ['path' => $path]);
 			if (!$this->fs->exists($path) || !(($d = dir($path)) instanceof Directory)) {
 				continue;
 			}
 			while (false !== ($moduleName = $d->read())) {
-				if (in_array($moduleName, ["BIGBOSS_MODULE", "GAUNTLET_MODULE"])) {
+				if (in_array($moduleName, ['BIGBOSS_MODULE', 'GAUNTLET_MODULE'])) {
 					continue;
 				}
 				if ($this->isModuleDir($path, $moduleName)) {
@@ -283,7 +283,7 @@ class ClassLoader {
 	private function versionRangeCompatible(string $spec): bool {
 		$parts = preg_split("/\s*,\s*/", $spec);
 		foreach ($parts as $part) {
-			if (!count($matches = Safe::pregMatch("/^([!=<>^]+)(.+)$/", $part))) {
+			if (!count($matches = Safe::pregMatch('/^([!=<>^]+)(.+)$/', $part))) {
 				return false;
 			}
 			if (!SemanticVersion::compareUsing(BotRunner::getVersion(false), $matches[2], $matches[1])) {

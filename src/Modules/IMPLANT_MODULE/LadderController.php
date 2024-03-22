@@ -17,11 +17,11 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Base"),
+	NCA\HasMigrations('Migrations/Base'),
 	NCA\DefineCommand(
-		command: "ladder",
-		accessLevel: "guest",
-		description: "Show sequence of laddering implants for maximum ability or treatment",
+		command: 'ladder',
+		accessLevel: 'guest',
+		description: 'Show sequence of laddering implants for maximum ability or treatment',
 	)
 ]
 class LadderController extends ModuleInstance {
@@ -39,20 +39,19 @@ class LadderController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/implant_requirements.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/implant_requirements.csv');
 	}
 
 	/** Show sequence of laddering implants for an ability or treatment */
-	#[NCA\HandlesCommand("ladder")]
+	#[NCA\HandlesCommand('ladder')]
 	#[NCA\Help\Epilogue(
-		"The base amount should be the treatment or ability you have with all nano buffs, ".
-		"perks, and items-buffing equipment equipped, but minus any implants you have ".
-		"equipped."
+		'The base amount should be the treatment or ability you have with all nano buffs, '.
+		'perks, and items-buffing equipment equipped, but minus any implants you have '.
+		'equipped.'
 	)]
 	public function ladderCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("treatment", "ability")]
-		string $type,
+		#[NCA\StrChoice('treatment', 'ability')] string $type,
 		int $startingValue
 	): void {
 		$type = strtolower($type);
@@ -77,21 +76,21 @@ class LadderController extends ModuleInstance {
 
 		if ($type === 'treatment') {
 			if ($value < 11) {
-				$context->reply("Base treatment must be at least <highlight>11<end>.");
+				$context->reply('Base treatment must be at least <highlight>11<end>.');
 				return;
 			}
 
 			$getMax = function (int $value): ?LadderRequirements {
-				return $this->findMaxImplantQlByReqs(10000, $value);
+				return $this->findMaxImplantQlByReqs(10_000, $value);
 			};
 		} else {
 			if ($value < 6) {
-				$context->reply("Base ability must be at least <highlight>6<end>.");
+				$context->reply('Base ability must be at least <highlight>6<end>.');
 				return;
 			}
 
 			$getMax = function (int $value): ?LadderRequirements {
-				return $this->findMaxImplantQlByReqs($value, 10000);
+				return $this->findMaxImplantQlByReqs($value, 10_000);
 			};
 		}
 
@@ -165,10 +164,10 @@ class LadderController extends ModuleInstance {
 
 	public function findMaxImplantQlByReqs(int $ability, int $treatment): ?LadderRequirements {
 		/** @var ?LadderRequirements */
-		$row = $this->db->table("implant_requirements")
-			->where("ability", "<=", $ability)
-			->where("treatment", "<=", $treatment)
-			->orderByDesc("ql")
+		$row = $this->db->table('implant_requirements')
+			->where('ability', '<=', $ability)
+			->where('treatment', '<=', $treatment)
+			->orderByDesc('ql')
 			->limit(1)
 			->asObj(LadderRequirements::class)->first();
 
@@ -193,10 +192,10 @@ class LadderController extends ModuleInstance {
 	public function setHighestAndLowestQls(LadderRequirements $obj, string $var): void {
 		$varValue = $obj->{$var};
 
-		$min = $this->db->table("implant_requirements")
-			->where($var, $varValue)->min("ql");
-		$max = $this->db->table("implant_requirements")
-			->where($var, $varValue)->max("ql");
+		$min = $this->db->table('implant_requirements')
+			->where($var, $varValue)->min('ql');
+		$max = $this->db->table('implant_requirements')
+			->where($var, $varValue)->max('ql');
 		// camel case var name
 		$tempNameVar = ucfirst($var);
 		$tempHighestName = "highest{$tempNameVar}";

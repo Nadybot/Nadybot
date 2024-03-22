@@ -26,7 +26,7 @@ class AnonObj implements Stringable {
 	}
 
 	public function setProperty(string $property, mixed $value): void {
-		$keys = explode(".", $property);
+		$keys = explode('.', $property);
 		$property = array_pop($keys);
 
 		/** @psalm-suppress UnsupportedPropertyReferenceUsage */

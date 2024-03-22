@@ -7,17 +7,17 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20220629100542, shared: true)]
+#[NCA\Migration(order: 20_220_629_100_542, shared: true)]
 class CreateSpawntimeTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "spawntime";
+		$table = 'spawntime';
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function (Blueprint $table) {
-			$table->string("mob", 50)->primary();
-			$table->string("alias", 50)->nullable(true)->index();
-			$table->string("placeholder", 50)->nullable(true)->index();
-			$table->boolean("can_skip_spawn")->nullable(true);
-			$table->integer("spawntime")->nullable(true);
+		$db->schema()->create($table, static function (Blueprint $table) {
+			$table->string('mob', 50)->primary();
+			$table->string('alias', 50)->nullable(true)->index();
+			$table->string('placeholder', 50)->nullable(true)->index();
+			$table->boolean('can_skip_spawn')->nullable(true);
+			$table->integer('spawntime')->nullable(true);
 		});
 	}
 }

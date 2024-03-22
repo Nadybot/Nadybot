@@ -7,15 +7,15 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210426160512, shared: true)]
+#[NCA\Migration(order: 20_210_426_160_512, shared: true)]
 class CreateSymbiantClusterMatrixTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "SymbiantClusterMatrix";
+		$table = 'SymbiantClusterMatrix';
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->integer("SymbiantID");
-			$table->integer("ClusterID");
-			$table->integer("Amount");
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->integer('SymbiantID');
+			$table->integer('ClusterID');
+			$table->integer('Amount');
 		});
 	}
 }

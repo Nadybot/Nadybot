@@ -11,20 +11,20 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20220329160123)]
+#[NCA\Migration(order: 20_220_329_160_123)]
 class MigrateToRoutes implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$route = [
-			"source" => "auction(*)",
-			"destination" => Source::PRIV . "(" . $db->getMyname() . ")",
-			"two_way" => false,
+			'source' => 'auction(*)',
+			'destination' => Source::PRIV . '(' . $db->getMyname() . ')',
+			'two_way' => false,
 		];
 		$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 
 		$format = [
-			"render" => false,
-			"hop" => 'auction',
-			"format" => '%s',
+			'render' => false,
+			'hop' => 'auction',
+			'format' => '%s',
 		];
 		$db->table(Source::DB_TABLE)->insert($format);
 	}

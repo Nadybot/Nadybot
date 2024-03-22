@@ -5,7 +5,7 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 use Nadybot\Core\Event;
 
 class SayEvent extends Event {
-	public const EVENT_MASK = "leadersay";
+	public const EVENT_MASK = 'leadersay';
 
 	/**
 	 * @param string $player  The names of the sender

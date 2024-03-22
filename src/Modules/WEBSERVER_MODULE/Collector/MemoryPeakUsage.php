@@ -10,6 +10,6 @@ class MemoryPeakUsage implements GaugeProvider {
 	}
 
 	public function getTags(): array {
-		return ["type" => "peak"];
+		return ['type' => 'peak'];
 	}
 }

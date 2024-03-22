@@ -19,7 +19,7 @@ class JsonImporter {
 		}
 		$allClasses = get_declared_classes();
 		foreach ($allClasses as $fullClass) {
-			$parts = explode("\\", $fullClass);
+			$parts = explode('\\', $fullClass);
 			if (end($parts) === $class) {
 				return $fullClass;
 			}
@@ -28,7 +28,7 @@ class JsonImporter {
 	}
 
 	public static function matchesType(string $type, mixed &$value): bool {
-		if (substr($type, 0, 1) === "?") {
+		if (substr($type, 0, 1) === '?') {
 			if ($value === null) {
 				return true;
 			}
@@ -44,7 +44,7 @@ class JsonImporter {
 		}
 
 		foreach ($types[1] as $typeMatch) {
-			if ($typeMatch[1] !== 0 && substr($type, $typeMatch[1] - 1, 1) !== "|") {
+			if ($typeMatch[1] !== 0 && substr($type, $typeMatch[1] - 1, 1) !== '|') {
 				throw new Exception("Illegal type definition: {$type}");
 			}
 			$checkType = $typeMatch[0];
@@ -52,10 +52,10 @@ class JsonImporter {
 			if (static::hasIntervalType($checkType, $value)) {
 				return true;
 			}
-			if (preg_match("/^[a-zA-Z_0-9]+$/", $checkType) && is_object($value)) {
+			if (preg_match('/^[a-zA-Z_0-9]+$/', $checkType) && is_object($value)) {
 				return true;
 			}
-			if (count($matches = Safe::pregMatch("/^array<([a-z]+),(.+)>$/", $checkType))) {
+			if (count($matches = Safe::pregMatch('/^array<([a-z]+),(.+)>$/', $checkType))) {
 				if (is_object($value)) {
 					$value = (array)$value;
 				}
@@ -75,7 +75,7 @@ class JsonImporter {
 				}
 			} elseif (
 				count($matches = Safe::pregMatch("/^([a-z]+)\[\]$/", $checkType))
-				|| count($matches = Safe::pregMatch("/^array<(.+)>$/", $checkType))
+				|| count($matches = Safe::pregMatch('/^array<(.+)>$/', $checkType))
 			) {
 				if (is_array($value)) {
 					$match = true;
@@ -177,21 +177,18 @@ class JsonImporter {
 	}
 
 	protected static function hasIntervalType(string $checkType, mixed $value): bool {
-		if ($checkType === "string" && is_string($value)) {
+		if ($checkType === 'string' && is_string($value)) {
 			return true;
 		}
-		if ($checkType === "int" && is_int($value)) {
+		if ($checkType === 'int' && is_int($value)) {
 			return true;
 		}
-		if ($checkType === "float" && is_float($value)) {
+		if ($checkType === 'float' && is_float($value)) {
 			return true;
 		}
-		if ($checkType === "array" && is_array($value)) {
+		if ($checkType === 'array' && is_array($value)) {
 			return true;
 		}
-		if ($checkType === "bool" && is_bool($value)) {
-			return true;
-		}
-		return false;
+		return $checkType === 'bool' && is_bool($value);
 	}
 }

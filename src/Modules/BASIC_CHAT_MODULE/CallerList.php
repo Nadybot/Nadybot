@@ -18,7 +18,7 @@ class CallerList {
 
 	/** @return string[] */
 	public function getNames(): array {
-		return array_column($this->callers, "name");
+		return array_column($this->callers, 'name');
 	}
 
 	/** Check if $name is in this caller list */
@@ -48,7 +48,7 @@ class CallerList {
 		$this->callers = array_values(
 			array_filter(
 				$this->callers,
-				function (Caller $caller) use ($search, &$removed, $partialMatch, $invert): bool {
+				static function (Caller $caller) use ($search, &$removed, $partialMatch, $invert): bool {
 					$remove = false;
 					if (!$partialMatch) {
 						$remove = $search === $caller->addedBy;

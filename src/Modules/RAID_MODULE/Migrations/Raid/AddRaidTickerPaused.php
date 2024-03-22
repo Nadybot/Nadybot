@@ -8,12 +8,12 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20231002193036)]
+#[NCA\Migration(order: 20_231_002_193_036)]
 class AddRaidTickerPaused implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaidController::DB_TABLE;
-		$db->schema()->table($table, function (Blueprint $table) {
-			$table->boolean("ticker_paused")->default(false);
+		$db->schema()->table($table, static function (Blueprint $table) {
+			$table->boolean('ticker_paused')->default(false);
 		});
 	}
 }

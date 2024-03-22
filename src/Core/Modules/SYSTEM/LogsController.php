@@ -46,19 +46,19 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "logs",
-		accessLevel: "admin",
-		description: "View bot logs",
+		command: 'logs',
+		accessLevel: 'admin',
+		description: 'View bot logs',
 	),
 	NCA\DefineCommand(
-		command: "loglevel",
-		accessLevel: "admin",
-		description: "Change loglevel for debugging",
+		command: 'loglevel',
+		accessLevel: 'admin',
+		description: 'Change loglevel for debugging',
 	),
 	NCA\DefineCommand(
-		command: "debug",
-		accessLevel: "admin",
-		description: "Create debug logs for a command",
+		command: 'debug',
+		accessLevel: 'admin',
+		description: 'Create debug logs for a command',
 	)
 ]
 class LogsController extends ModuleInstance {
@@ -84,18 +84,18 @@ class LogsController extends ModuleInstance {
 	private Filesystem $fs;
 
 	/** View a list of log files */
-	#[NCA\HandlesCommand("logs")]
+	#[NCA\HandlesCommand('logs')]
 	public function logsCommand(CmdContext $context): void {
 		$logger = $this->logger;
 		if (!($logger instanceof LoggerWrapper)) {
-			$context->reply("Your current logging driver does not support this command");
+			$context->reply('Your current logging driver does not support this command');
 			return;
 		}
 		try {
 			if (!$this->fs->exists($logger->getLoggingDirectory())) {
 				$context->reply(
-					"Your bot is either not configured to create log files, ".
-					"lacks the logging directory, or has no permission to access it."
+					'Your bot is either not configured to create log files, '.
+					'lacks the logging directory, or has no permission to access it.'
 				);
 				return;
 			}
@@ -113,15 +113,15 @@ class LogsController extends ModuleInstance {
 			throw $e;
 		}
 		if (!count($files)) {
-			$context->reply("Log Files (0)");
+			$context->reply('Log Files (0)');
 			return;
 		}
 		sort($files);
 		$blob = '';
 		foreach ($files as $file) {
 			$fileLink  = $this->text->makeChatcmd($file, "/tell <myname> logs {$file}");
-			$errorLink = $this->text->makeChatcmd("ERROR", "/tell <myname> logs {$file} ERROR");
-			$chatLink  = $this->text->makeChatcmd("CHAT", "/tell <myname> logs {$file} CHAT");
+			$errorLink = $this->text->makeChatcmd('ERROR', "/tell <myname> logs {$file} ERROR");
+			$chatLink  = $this->text->makeChatcmd('CHAT', "/tell <myname> logs {$file} CHAT");
 			$blob .= "{$fileLink} [{$errorLink}] [{$chatLink}]\n";
 		}
 
@@ -134,15 +134,15 @@ class LogsController extends ModuleInstance {
 	 *
 	 * &lt;search&gt; is a regular expression (without delimiters) and case-insensitive
 	 */
-	#[NCA\HandlesCommand("logs")]
+	#[NCA\HandlesCommand('logs')]
 	public function logsFileCommand(CmdContext $context, PFilename $file, ?string $search): void {
 		$logger = $this->logger;
 		if (!($logger instanceof LoggerWrapper)) {
-			$context->reply("Your current logging driver does not support this command");
+			$context->reply('Your current logging driver does not support this command');
 			return;
 		}
-		$filename = $logger->getLoggingDirectory() . DIRECTORY_SEPARATOR . $file();
-		$readsize = ($this->settingManager->getInt('max_blob_size')??10000) - 500;
+		$filename = $logger->getLoggingDirectory() . \DIRECTORY_SEPARATOR . $file();
+		$readsize = ($this->settingManager->getInt('max_blob_size')??10_000) - 500;
 
 		try {
 			if (!$this->fs->exists($filename)) {
@@ -150,26 +150,26 @@ class LogsController extends ModuleInstance {
 				return;
 			}
 
-			$handle = $this->fs->openFile($filename, "r");
+			$handle = $this->fs->openFile($filename, 'r');
 			$reader = splitLines($handle);
 			$lines = [];
 			foreach ($reader as $line) {
-				if (strlen($line) > 1000) {
-					$line = substr($line, 0, 997) . "[…]";
+				if (strlen($line) > 1_000) {
+					$line = substr($line, 0, 997) . '[…]';
 				}
 				$lines []= $line;
 			}
 			$handle->close();
-			$searchFunc = function (string $line): bool {
+			$searchFunc = static function (string $line): bool {
 				return true;
 			};
-			if (isset($search) && preg_match("/^[a-zA-Z0-9_-]+$/", $search)) {
-				$searchFunc = function (string $line) use ($search): bool {
+			if (isset($search) && preg_match('/^[a-zA-Z0-9_-]+$/', $search)) {
+				$searchFunc = static function (string $line) use ($search): bool {
 					return stripos($line, $search) !== false;
 				};
 			} elseif (isset($search)) {
-				$searchFunc = function (string $line) use ($search): bool {
-					return preg_match(chr(1) . $search . chr(1) ."i", $line) === 1;
+				$searchFunc = static function (string $line) use ($search): bool {
+					return preg_match(chr(1) . $search . chr(1) .'i', $line) === 1;
 				};
 			}
 			$lines = array_reverse($lines);
@@ -185,7 +185,7 @@ class LogsController extends ModuleInstance {
 					continue;
 				}
 				if (count($trace)) {
-					$line .= "\n" . join("\n", $trace);
+					$line .= "\n" . implode("\n", $trace);
 				}
 				$line .= "\n";
 				$trace = [];
@@ -196,7 +196,7 @@ class LogsController extends ModuleInstance {
 			}
 
 			if (empty($contents)) {
-				$msg = "File is empty or nothing matched your search criteria.";
+				$msg = 'File is empty or nothing matched your search criteria.';
 			} else {
 				if (isset($search)) {
 					$contents = "Search: <highlight>{$search}<end>\n\n" . $contents;
@@ -204,13 +204,13 @@ class LogsController extends ModuleInstance {
 				$msg = $this->text->makeBlob($file(), $contents);
 			}
 		} catch (Exception $e) {
-			$msg = "Error: " . $e->getMessage();
+			$msg = 'Error: ' . $e->getMessage();
 		}
 		$context->reply($msg);
 	}
 
 	/** View the current log levels */
-	#[NCA\HandlesCommand("loglevel")]
+	#[NCA\HandlesCommand('loglevel')]
 	public function loglevelCommand(CmdContext $context): void {
 		$loggers = LegacyLogger::getLoggers();
 		$names = [];
@@ -222,27 +222,26 @@ class LogsController extends ModuleInstance {
 			}
 		}
 		if (empty($names)) {
-			$context->reply("No loggers configured.");
+			$context->reply('No loggers configured.');
 			return;
 		}
 		ksort($names);
-		$blob = "<header2>Configured loggers<end>";
+		$blob = '<header2>Configured loggers<end>';
 		foreach ($names as $name => $logLevel) {
 			$blob .= "\n<tab>- {$name}: <highlight>{$logLevel}<end>";
 		}
 		$msg = $this->text->makeBlob(
-			"Configured loggers (" . count($names) . ")",
+			'Configured loggers (' . count($names) . ')',
 			$blob
 		);
 		$context->reply($msg);
 	}
 
 	/** Reset your temporarily changed loglevels back to your configuration */
-	#[NCA\HandlesCommand("loglevel")]
+	#[NCA\HandlesCommand('loglevel')]
 	public function loglevelResetCommand(
 		CmdContext $context,
-		#[NCA\Str("reset")]
-		string $action
+		#[NCA\Str('reset')] string $action
 	): void {
 		$loggers = LegacyLogger::getLoggers();
 		LegacyLogger::getConfig(true);
@@ -254,19 +253,19 @@ class LogsController extends ModuleInstance {
 			}
 		}
 		if (empty($names)) {
-			$context->reply("No loggers needed changing.");
+			$context->reply('No loggers needed changing.');
 			return;
 		}
 		ksort($names);
 		$numChanged = count($names);
-		$blob = "<header2>Loggers changed<end>";
+		$blob = '<header2>Loggers changed<end>';
 		foreach ($names as $name => $changes) {
 			$blob .= "\n<tab>- {$name}: <highlight>{$changes[0]} -> {$changes[1]}<end>";
 		}
 		$msg = $this->text->blobWrap(
-			"Changed ",
+			'Changed ',
 			$this->text->makeBlob(
-				"{$numChanged} " . $this->text->pluralize("logger", $numChanged),
+				"{$numChanged} " . $this->text->pluralize('logger', $numChanged),
 				$blob
 			)
 		);
@@ -274,16 +273,15 @@ class LogsController extends ModuleInstance {
 	}
 
 	/** Temporarily change the log level of the loggers matching &lt;mask&gt; */
-	#[NCA\HandlesCommand("loglevel")]
-	#[NCA\Help\Example("<symbol>loglevel * warning")]
-	#[NCA\Help\Example("<symbol>loglevel RELAY_MODULE/* debug")]
-	#[NCA\Help\Example("<symbol>loglevel RELAY_MODULE/RelayProtocol/* debug")]
-	#[NCA\Help\Example("<symbol>loglevel Core/Nadybot info")]
+	#[NCA\HandlesCommand('loglevel')]
+	#[NCA\Help\Example('<symbol>loglevel * warning')]
+	#[NCA\Help\Example('<symbol>loglevel RELAY_MODULE/* debug')]
+	#[NCA\Help\Example('<symbol>loglevel RELAY_MODULE/RelayProtocol/* debug')]
+	#[NCA\Help\Example('<symbol>loglevel Core/Nadybot info')]
 	public function loglevelFileCommand(
 		CmdContext $context,
 		PWord $mask,
-		#[NCA\StrChoice("debug", "info", "notice", "warning", "error", "emergency", "alert")]
-		string $logLevel
+		#[NCA\StrChoice('debug', 'info', 'notice', 'warning', 'error', 'emergency', 'alert')] string $logLevel
 	): void {
 		$logLevel = strtoupper($logLevel);
 		$loggers = LegacyLogger::getLoggers();
@@ -301,24 +299,24 @@ class LogsController extends ModuleInstance {
 		}
 		ksort($names);
 		$numChanged = count($names);
-		$blob = "<header2>Loggers changed<end>";
+		$blob = '<header2>Loggers changed<end>';
 		foreach ($names as $name => $changes) {
 			$blob .= "\n<tab>- {$name}: <highlight>{$changes[0]} -> {$changes[1]}<end>";
 		}
 		$msg = $this->text->blobWrap(
-			"Changed ",
+			'Changed ',
 			$this->text->makeBlob(
-				"{$numChanged} " . $this->text->pluralize("logger", $numChanged),
+				"{$numChanged} " . $this->text->pluralize('logger', $numChanged),
 				$blob
 			),
-			($mask() !== '*') ? " matching <highlight>'{$mask}'<end>." : ""
+			($mask() !== '*') ? " matching <highlight>'{$mask}'<end>." : ''
 		);
 		$context->reply($msg);
 	}
 
 	/** Debug a single command execution and upload the logs for inspection */
-	#[NCA\HandlesCommand("debug")]
-	#[NCA\Help\Example("<symbol>debug whois nady")]
+	#[NCA\HandlesCommand('debug')]
+	#[NCA\Help\Example('<symbol>debug whois nady')]
 	public function debugCommand(
 		CmdContext $context,
 		string $command
@@ -356,43 +354,43 @@ class LogsController extends ModuleInstance {
 			$content = $this->fs->read($filename);
 			$this->fs->deleteFile($filename);
 		} catch (FilesystemException $e) {
-			$context->reply("Unable to open <highlight>{$filename}<end>: " . $e->getMessage() . ".");
+			$context->reply("Unable to open <highlight>{$filename}<end>: " . $e->getMessage() . '.');
 			return;
 		}
-		$content = str_replace('"' . BotRunner::getBasedir() . "/", "", $content);
+		$content = str_replace('"' . BotRunner::getBasedir() . '/', '', $content);
 		$boundary = '--------------------------'.microtime(true);
 		$client = $this->builder
-			->intercept(new SetRequestHeader("Authorization", "dRtXBMRnAH6AX2lx5ESiAQ=="))
-			->intercept(new SetRequestHeader("Content-Type", "multipart/form-data; boundary={$boundary}"))
+			->intercept(new SetRequestHeader('Authorization', 'dRtXBMRnAH6AX2lx5ESiAQ=='))
+			->intercept(new SetRequestHeader('Content-Type', "multipart/form-data; boundary={$boundary}"))
 			->build();
 		$postData = "--{$boundary}\r\n".
-			"Content-Disposition: form-data; name=\"file\"; filename=\"" . basename($filename) . "\"\r\n".
+			'Content-Disposition: form-data; name="file"; filename="' . basename($filename) . "\"\r\n".
 			"Content-Type: application/json\r\n\r\n".
 			$content . "\r\n".
 			"--{$boundary}--\r\n";
-		$request = new Request("https://debug.nadybot.org", "POST", $postData);
+		$request = new Request('https://debug.nadybot.org', 'POST', $postData);
 		try {
 			$response = $client->request($request);
 		} catch (Throwable $e) {
-			$context->reply("Error uploading debug file: " . $e->getMessage());
+			$context->reply('Error uploading debug file: ' . $e->getMessage());
 			return;
 		}
 		if ($response->getStatus() !== 200) {
 			$context->reply(
-				"Error uploading debug file. ".
-				"Code " . $response->getStatus(). " (".
-				$response->getReason() . ")"
+				'Error uploading debug file. '.
+				'Code ' . $response->getStatus(). ' ('.
+				$response->getReason() . ')'
 			);
 			return;
 		}
 		try {
 			$body = $response->getBody()->buffer();
 		} catch (Throwable $e) {
-			$context->reply("Error uploading debug file: " . $e->getMessage());
+			$context->reply('Error uploading debug file: ' . $e->getMessage());
 			return;
 		}
 		if ($body === '') {
-			$context->reply("The file was uploaded successfully, but we did not receive a storage link.");
+			$context->reply('The file was uploaded successfully, but we did not receive a storage link.');
 			return;
 		}
 		$url = trim($body);

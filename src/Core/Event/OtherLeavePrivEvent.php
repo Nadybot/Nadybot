@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Event;
 
 class OtherLeavePrivEvent extends JoinLeaveEvent {
-	public const EVENT_MASK = "otherleavepriv";
+	public const EVENT_MASK = 'otherleavepriv';
 
 	/**
 	 * @param string $sender  Either the name of the sender or the numeric UID (eg. city raid accouncements)

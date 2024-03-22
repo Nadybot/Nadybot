@@ -35,7 +35,7 @@ class ArraySetting extends DefineSetting {
 		}
 		return array_map(
 			fn ($item) => $this->typeValue($type, $item),
-			explode("|", $value)
+			explode('|', $value)
 		);
 	}
 
@@ -43,7 +43,7 @@ class ArraySetting extends DefineSetting {
 		if (in_array($type, ['number', 'time', 'int', 'integer'])) {
 			return (int)$value;
 		}
-		if ($type === "bool") {
+		if ($type === 'bool') {
 			return (bool)$value;
 		}
 		return $value;

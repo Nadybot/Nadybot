@@ -49,11 +49,11 @@ class SpawntimeController extends ModuleInstance {
 			$blob .= "<header2>{$row->name}<end>\n".
 				"{$row->answer}";
 			if ($row->playfield_id !== 0 && $row->xcoord !== 0 && $row->ycoord !== 0) {
-				$blob .= " [" . $row->toWaypoint() . "]";
+				$blob .= ' [' . $row->toWaypoint() . ']';
 			}
 			$blob .= "\n\n";
 		}
-		$msg = $this->text->makeBlob("locations (" . count($spawntime->coordinates).")", $blob);
+		$msg = $this->text->makeBlob('locations (' . count($spawntime->coordinates).')', $blob);
 		if (is_array($msg)) {
 			throw new Exception("Too many spawn locations for {$spawntime->mob}.");
 		}
@@ -61,9 +61,9 @@ class SpawntimeController extends ModuleInstance {
 	}
 
 	/** List all spawn times */
-	#[NCA\HandlesCommand("spawntime")]
+	#[NCA\HandlesCommand('spawntime')]
 	public function spawntimeListCommand(CmdContext $context): void {
-		$spawnTimes = $this->db->table("spawntime")->asObj(Spawntime::class);
+		$spawnTimes = $this->db->table('spawntime')->asObj(Spawntime::class);
 		if ($spawnTimes->isEmpty()) {
 			$msg = 'There are currently no spawntimes in the database.';
 			$context->reply($msg);
@@ -75,13 +75,13 @@ class SpawntimeController extends ModuleInstance {
 	}
 
 	/** Search for spawn times */
-	#[NCA\HandlesCommand("spawntime")]
+	#[NCA\HandlesCommand('spawntime')]
 	public function spawntimeSearchCommand(CmdContext $context, string $search): void {
-		$tokens = explode(" ", $search);
-		$query = $this->db->table("spawntime");
-		$this->db->addWhereFromParams($query, $tokens, "mob");
-		$this->db->addWhereFromParams($query, $tokens, "placeholder", "or");
-		$this->db->addWhereFromParams($query, $tokens, "alias", "or");
+		$tokens = explode(' ', $search);
+		$query = $this->db->table('spawntime');
+		$this->db->addWhereFromParams($query, $tokens, 'mob');
+		$this->db->addWhereFromParams($query, $tokens, 'placeholder', 'or');
+		$this->db->addWhereFromParams($query, $tokens, 'alias', 'or');
 		$spawnTimes = $query->asObj(Spawntime::class);
 		if ($spawnTimes->isEmpty()) {
 			$msg = "No spawntime matching <highlight>{$search}<end>.";
@@ -110,9 +110,9 @@ class SpawntimeController extends ModuleInstance {
 		if ($row->spawntime !== null) {
 			$time = new DateTime('now', new DateTimeZone('UTC'));
 			$time->setTimestamp($row->spawntime);
-			$line .= "<orange>" . $time->format('H\hi\ms\s') . "<end>";
+			$line .= '<orange>' . $time->format('H\hi\ms\s') . '<end>';
 		} else {
-			$line .= "<orange>&lt;unknown&gt;<end>";
+			$line .= '<orange>&lt;unknown&gt;<end>';
 		}
 		$line = Safe::pregReplace('/00[hms]/', '', $line);
 
@@ -123,25 +123,25 @@ class SpawntimeController extends ModuleInstance {
 			$flags[] = 'can skip spawn';
 		}
 		if (isset($row->placeholder) && strlen($row->placeholder)) {
-			$flags[] = "placeholder: " . $row->placeholder;
+			$flags[] = 'placeholder: ' . $row->placeholder;
 		}
 		if (count($flags)) {
-			$line .= ' (<highlight>' . join(', ', $flags) . '<end>)';
+			$line .= ' (<highlight>' . implode(', ', $flags) . '<end>)';
 		}
 		if ($displayDirectly === true && $row->coordinates->count()) {
-			$line .= " [" . $this->getLocationBlob($row) . "]";
+			$line .= ' [' . $this->getLocationBlob($row) . ']';
 		} elseif ($row->coordinates->count() > 1) {
-			$line .= " [" .
+			$line .= ' [' .
 				$this->text->makeChatcmd(
-					"locations (" . count($row->coordinates) . ")",
-					"/tell <myname> whereis " . $row->mob
+					'locations (' . count($row->coordinates) . ')',
+					'/tell <myname> whereis ' . $row->mob
 				).
-				"]";
+				']';
 		} elseif ($row->coordinates->count() === 1) {
 			/** @var WhereisResult */
 			$coords = $row->coordinates->firstOrFail();
 			if ($coords->playfield_id != 0 && $coords->xcoord != 0 && $coords->ycoord != 0) {
-				$line .= " [". $coords->toWaypoint() . "]";
+				$line .= ' ['. $coords->toWaypoint() . ']';
 			}
 		}
 		return $line;
@@ -154,9 +154,9 @@ class SpawntimeController extends ModuleInstance {
 	 */
 	protected function spawntimesToLines(Collection $spawnTimes): Collection {
 		$mobs = $this->whereisController->getAll();
-		$spawnTimes->each(function (Spawntime $spawn) use ($mobs) {
+		$spawnTimes->each(static function (Spawntime $spawn) use ($mobs) {
 			$spawn->coordinates = $mobs->filter(
-				function (WhereisResult $row) use ($spawn): bool {
+				static function (WhereisResult $row) use ($spawn): bool {
 					return strncasecmp($row->name, $spawn->mob, strlen($spawn->mob)) === 0;
 				}
 			)->values();

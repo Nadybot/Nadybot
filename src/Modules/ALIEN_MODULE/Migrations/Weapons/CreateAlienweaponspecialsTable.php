@@ -7,16 +7,16 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210425130345, shared: true)]
+#[NCA\Migration(order: 20_210_425_130_345, shared: true)]
 class CreateAlienweaponspecialsTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "alienweaponspecials";
+		$table = 'alienweaponspecials';
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->integer("type");
-			$table->string("specials", 255);
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->integer('type');
+			$table->string('specials', 255);
 		});
 	}
 }

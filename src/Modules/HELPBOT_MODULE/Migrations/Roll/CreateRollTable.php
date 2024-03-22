@@ -7,23 +7,23 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210426065331, shared: true)]
+#[NCA\Migration(order: 20_210_426_065_331, shared: true)]
 class CreateRollTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "roll";
-		if ($db->schema()->hasTable("roll")) {
-			$db->schema()->table($table, function (Blueprint $table): void {
-				$table->id("id")->change();
-				$table->text("options")->change();
+		$table = 'roll';
+		if ($db->schema()->hasTable('roll')) {
+			$db->schema()->table($table, static function (Blueprint $table): void {
+				$table->id('id')->change();
+				$table->text('options')->change();
 			});
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
+		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->id();
-			$table->integer("time")->nullable();
-			$table->string("name", 255)->nullable();
-			$table->text("options")->nullable();
-			$table->string("result", 255)->nullable();
+			$table->integer('time')->nullable();
+			$table->string('name', 255)->nullable();
+			$table->text('options')->nullable();
+			$table->string('result', 255)->nullable();
 		});
 	}
 }

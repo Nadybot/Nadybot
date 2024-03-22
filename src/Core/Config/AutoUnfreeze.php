@@ -6,16 +6,15 @@ use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
 
 class AutoUnfreeze {
 	public function __construct(
-		#[CastToType('bool')]
-		public bool $enabled=false,
+		#[CastToType('bool')] public bool $enabled=false,
 		public ?string $login=null,
 		public ?string $password=null,
 		public bool $useNadyproxy=true,
 	) {
-		if ($this->login === "") {
+		if ($this->login === '') {
 			$this->login = null;
 		}
-		if ($this->password === "") {
+		if ($this->password === '') {
 			$this->password = null;
 		}
 	}

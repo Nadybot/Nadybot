@@ -8,7 +8,7 @@ abstract class Event implements Stringable {
 	use StringableTrait;
 
 	/** @var string */
-	public const EVENT_MASK = "*";
+	public const EVENT_MASK = '*';
 
 	public string $type;
 }

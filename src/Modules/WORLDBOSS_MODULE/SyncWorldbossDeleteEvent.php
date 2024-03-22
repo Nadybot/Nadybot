@@ -5,7 +5,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 use Nadybot\Core\SyncEvent;
 
 class SyncWorldbossDeleteEvent extends SyncEvent {
-	public const EVENT_MASK = "sync(worldboss-delete)";
+	public const EVENT_MASK = 'sync(worldboss-delete)';
 
 	/**
 	 * @param string $boss   For which worldboss: tara, reaper, loren, gauntlet

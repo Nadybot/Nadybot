@@ -11,19 +11,19 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20220329132503)]
+#[NCA\Migration(order: 20_220_329_132_503)]
 class MigrateToRoutes implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$botName = $db->getMyname();
 
-		$channels = ["aoorg", "aopriv({$botName})"];
-		$types = ["mass-message", "mass-invite"];
+		$channels = ['aoorg', "aopriv({$botName})"];
+		$types = ['mass-message', 'mass-invite'];
 		foreach ($channels as $channel) {
 			foreach ($types as $type) {
 				$route = [
-					"source" => Source::SYSTEM . "({$type})",
-					"destination" => $channel,
-					"two_way" => false,
+					'source' => Source::SYSTEM . "({$type})",
+					'destination' => $channel,
+					'two_way' => false,
 				];
 				$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 			}

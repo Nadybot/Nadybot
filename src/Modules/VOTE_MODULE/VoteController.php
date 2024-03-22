@@ -30,14 +30,14 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "vote",
-		accessLevel: "member",
-		description: "Vote in polls",
+		command: 'vote',
+		accessLevel: 'member',
+		description: 'Vote in polls',
 	),
 	NCA\DefineCommand(
-		command: "poll",
-		accessLevel: "member",
-		description: "Create, view or delete polls",
+		command: 'poll',
+		accessLevel: 'member',
+		description: 'Create, view or delete polls',
 		alias: 'polls'
 	),
 	NCA\ProvidesEvent(PollStartEvent::class),
@@ -48,10 +48,10 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent(VoteChangeEvent::class)
 ]
 class VoteController extends ModuleInstance implements MessageEmitter {
-	public const DB_POLLS = "polls_<myname>";
-	public const DB_VOTES = "votes_<myname>";
+	public const DB_POLLS = 'polls_<myname>';
+	public const DB_VOTES = 'votes_<myname>';
 
-	public const DELIMITER = "|";
+	public const DELIMITER = '|';
 
 	// status indicates the last alert that happened (not the next alert that will happen)
 	public const STATUS_CREATED = 0;
@@ -89,12 +89,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	public function getChannelName(): string {
-		return Source::SYSTEM . "(votes)";
+		return Source::SYSTEM . '(votes)';
 	}
 
 	public function cacheVotes(): void {
 		$this->db->table(self::DB_POLLS)
-			->where("status", "!=", self::STATUS_ENDED)
+			->where('status', '!=', self::STATUS_ENDED)
 			->asObj(Poll::class)
 			->each(function (Poll $topic): void {
 				$topic->answers = json_decode($topic->possible_answers, false);
@@ -105,9 +105,9 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	public function getPoll(int $id, ?string $creator=null): ?Poll {
-		$query = $this->db->table(self::DB_POLLS)->where("id", $id);
+		$query = $this->db->table(self::DB_POLLS)->where('id', $id);
 		if ($creator !== null) {
-			$query->where("owner", $creator);
+			$query->where('owner', $creator);
 		}
 
 		/** @var ?Poll */
@@ -121,8 +121,8 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 
 	/** This event handler checks for polls ending. */
 	#[NCA\Event(
-		name: "timer(2sec)",
-		description: "Checks polls and periodically updates chat with time left"
+		name: 'timer(2sec)',
+		description: 'Checks polls and periodically updates chat with time left'
 	)]
 	public function checkVote(Event $eventObj): void {
 		if (count($this->polls) === 0) {
@@ -136,14 +136,14 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			if ($timeleft <= 0) {
 				$title = "Finished Vote: {$poll->question}";
 				$this->db->table(self::DB_POLLS)
-					->where("id", $poll->id)
-					->update(["status" => self::STATUS_ENDED]);
+					->where('id', $poll->id)
+					->update(['status' => self::STATUS_ENDED]);
 				$ePoll = clone $poll;
 				unset($ePoll->possible_answers);
 				$event = new PollEndEvent(
 					poll: $ePoll,
 					votes: $this->db->table(self::DB_VOTES)
-						->where("poll_id", $poll->id)
+						->where('poll_id', $poll->id)
 						->asObj(Vote::class)->toArray(),
 				);
 				$this->eventManager->fireEvent($event);
@@ -151,7 +151,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			} elseif ($poll->status === self::STATUS_CREATED) {
 				$title = "Vote: {$poll->question}";
 
-				if ($timeleft > 3600) {
+				if ($timeleft > 3_600) {
 					$mstatus = self::STATUS_STARTED;
 				} elseif ($timeleft > 900) {
 					$mstatus = self::STATUS_60_MINUTES_LEFT;
@@ -168,14 +168,14 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			} elseif ($timeleft <= 900 && $timeleft > 60 && $poll->status !== self::STATUS_15_MINUTES_LEFT) {
 				$title = "15 minutes left: {$poll->question}";
 				$this->polls[$id]->status = self::STATUS_15_MINUTES_LEFT;
-			} elseif ($timeleft <= 3600 && $timeleft > 900 && $poll->status !== self::STATUS_60_MINUTES_LEFT) {
+			} elseif ($timeleft <= 3_600 && $timeleft > 900 && $poll->status !== self::STATUS_60_MINUTES_LEFT) {
 				$title = "60 minutes left: {$poll->question}";
 				$this->polls[$id]->status = self::STATUS_60_MINUTES_LEFT;
 			} else {
-				$title = "";
+				$title = '';
 			}
 
-			if ($title === "") {
+			if ($title === '') {
 				continue;
 			}
 			$blob = $this->getPollBlob($poll);
@@ -186,37 +186,37 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			}
 		}
 		if (count($msg)) {
-			$rMsg = new RoutableMessage(join("\n", $msg));
-			$rMsg->appendPath(new Source(Source::SYSTEM, "votes"));
+			$rMsg = new RoutableMessage(implode("\n", $msg));
+			$rMsg->appendPath(new Source(Source::SYSTEM, 'votes'));
 			$this->messageHub->handle($rMsg);
 		}
 	}
 
 	/** Show all the polls */
-	#[NCA\HandlesCommand("poll")]
-	#[NCA\Help\Group("voting")]
+	#[NCA\HandlesCommand('poll')]
+	#[NCA\Help\Group('voting')]
 	public function pollCommand(CmdContext $context): void {
 		/** @var Poll[] */
 		$topics = $this->db->table(self::DB_POLLS)
-			->orderBy("started")
+			->orderBy('started')
 			->asObj(Poll::class)->toArray();
-		$running = "";
-		$over = "";
-		$blob = "";
+		$running = '';
+		$over = '';
+		$blob = '';
 		if (count($topics) === 0) {
-			$msg = "There are currently no polls.";
+			$msg = 'There are currently no polls.';
 			$context->reply($msg);
 			return;
 		}
 		foreach ($topics as $topic) {
-			$line = "<tab>" . $this->text->makeChatcmd(
+			$line = '<tab>' . $this->text->makeChatcmd(
 				$topic->question,
 				"/tell <myname> poll show {$topic->id}"
 			);
 
 			$timeleft = $topic->getTimeLeft();
 			if ($timeleft > 0) {
-				$running .= $line . " (" . $this->util->unixtimeToReadable($timeleft) . " left)\n";
+				$running .= $line . ' (' . $this->util->unixtimeToReadable($timeleft) . " left)\n";
 			} else {
 				$over .= $line . "\n";
 			}
@@ -228,26 +228,26 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			$blob .= "<off>Finished polls:<end>\n{$over}";
 		}
 
-		$msg = $this->text->makeBlob("All polls", $blob);
+		$msg = $this->text->makeBlob('All polls', $blob);
 		$context->reply($msg);
 	}
 
 	/** Delete a poll */
-	#[NCA\HandlesCommand("poll")]
-	#[NCA\Help\Group("voting")]
+	#[NCA\HandlesCommand('poll')]
+	#[NCA\Help\Group('voting')]
 	public function pollKillCommand(CmdContext $context, PRemove $action, int $pollId): void {
 		$owner = null;
-		if (!$this->accessManager->checkAccess($context->char->name, "moderator")) {
+		if (!$this->accessManager->checkAccess($context->char->name, 'moderator')) {
 			$owner = $context->char->name;
 		}
 		$topic = $this->getPoll($pollId, $owner);
 
 		if ($topic === null || !isset($topic->id)) {
-			$msg = "Either this poll does not exist, or you did not create it.";
+			$msg = 'Either this poll does not exist, or you did not create it.';
 			$context->reply($msg);
 			return;
 		}
-		$this->db->table(self::DB_VOTES)->where("poll_id", $topic->id)->delete();
+		$this->db->table(self::DB_VOTES)->where('poll_id', $topic->id)->delete();
 		$this->db->table(self::DB_POLLS)->delete($topic->id);
 		$ePoll = clone $topic;
 		unset($ePoll->possible_answers);
@@ -259,8 +259,8 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** Remove your vote from a running poll */
-	#[NCA\HandlesCommand("vote")]
-	#[NCA\Help\Group("voting")]
+	#[NCA\HandlesCommand('vote')]
+	#[NCA\Help\Group('voting')]
 	public function voteRemoveCommand(CmdContext $context, PRemove $action, int $pollId): void {
 		if (!isset($this->polls[$pollId])) {
 			$msg = "There is no active poll Nr. <highlight>{$pollId}<end>.";
@@ -269,8 +269,8 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		}
 		$topic = $this->polls[$pollId];
 		$deleted = $this->db->table(self::DB_VOTES)
-			->where("poll_id", $pollId)
-			->where("author", $context->char->name)
+			->where('poll_id', $pollId)
+			->where('author', $context->char->name)
 			->delete();
 		if ($deleted > 0) {
 			$msg = "Your vote for <highlight>{$topic->question}<end> has been removed.";
@@ -288,13 +288,13 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** End a poll (voting will end in 60 seconds) */
-	#[NCA\HandlesCommand("poll")]
-	#[NCA\Help\Group("voting")]
-	public function pollEndCommand(CmdContext $context, #[NCA\Str("end")] string $action, int $pollId): void {
+	#[NCA\HandlesCommand('poll')]
+	#[NCA\Help\Group('voting')]
+	public function pollEndCommand(CmdContext $context, #[NCA\Str('end')] string $action, int $pollId): void {
 		$topic = $this->getPoll($pollId);
 
 		if ($topic === null) {
-			$msg = "Either this poll does not exist, or you did not create it.";
+			$msg = 'Either this poll does not exist, or you did not create it.';
 			$context->reply($msg);
 			return;
 		}
@@ -303,12 +303,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		if ($timeleft > 60) {
 			$topic->duration = (time() - $topic->started) + 61;
 			$this->db->table(self::DB_POLLS)
-				->where("id", $topic->id)
-				->update(["duration" => $topic->duration]);
+				->where('id', $topic->id)
+				->update(['duration' => $topic->duration]);
 			$this->polls[$pollId]->duration = $topic->duration;
-			$msg = "Vote duration reduced to 60 seconds.";
+			$msg = 'Vote duration reduced to 60 seconds.';
 		} elseif ($timeleft <= 0) {
-			$msg = "This poll has already finished.";
+			$msg = 'This poll has already finished.';
 		} else {
 			$msg = "There is only <highlight>{$timeleft}<end> seconds left.";
 		}
@@ -316,9 +316,9 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** View a specific poll */
-	#[NCA\HandlesCommand("poll")]
-	#[NCA\Help\Group("voting")]
-	public function voteShowCommand(CmdContext $context, #[NCA\Str("show", "view")] ?string $action, int $id): void {
+	#[NCA\HandlesCommand('poll')]
+	#[NCA\Help\Group('voting')]
+	public function voteShowCommand(CmdContext $context, #[NCA\Str('show', 'view')] ?string $action, int $id): void {
 		$topic = $this->getPoll($id);
 		if ($topic === null) {
 			$context->reply("There is no poll Nr. <highlight>{$id}<end>.");
@@ -329,15 +329,15 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 
 		/** @var ?Vote */
 		$vote = $this->db->table(self::DB_VOTES)
-			->where("poll_id", $topic->id)
-			->where("author", $context->char->name)
+			->where('poll_id', $topic->id)
+			->where('author', $context->char->name)
 			->asObj(Vote::class)
 			->first();
 		$timeleft = $topic->getTimeLeft();
 		if (isset($vote) && isset($vote->answer) && $timeleft > 0) {
 			$privmsg = "You voted: <highlight>{$vote->answer}<end>.";
 		} elseif ($timeleft > 0) {
-			$privmsg = "You have not voted on this yet.";
+			$privmsg = 'You have not voted on this yet.';
 		}
 
 		$msg = $this->text->makeBlob("Poll Nr. {$topic->id}", $blob);
@@ -349,8 +349,8 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** Vote for a poll */
-	#[NCA\HandlesCommand("vote")]
-	#[NCA\Help\Group("voting")]
+	#[NCA\HandlesCommand('vote')]
+	#[NCA\Help\Group('voting')]
 	public function voteCommand(CmdContext $context, int $pollId, string $answer): void {
 		$topic = $this->getPoll($pollId);
 		if ($topic === null) {
@@ -361,49 +361,49 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$timeleft = $topic->getTimeLeft();
 
 		if ($timeleft <= 0) {
-			$msg = "No longer accepting votes for this poll.";
+			$msg = 'No longer accepting votes for this poll.';
 			$context->reply($msg);
 			return;
 		}
 
 		if (!$topic->allow_other_answers && !in_array($answer, $topic->answers)) {
-			$msg = "You have to pick one of the options ".
-				$this->text->enumerate(...$this->text->arraySprintf("'%s'", ...$topic->answers)) . ". ".
-				"Custom answers are not allowed for this poll.";
+			$msg = 'You have to pick one of the options '.
+				$this->text->enumerate(...$this->text->arraySprintf("'%s'", ...$topic->answers)) . '. '.
+				'Custom answers are not allowed for this poll.';
 			$context->reply($msg);
 			return;
 		}
 
 		/** @var ?Vote */
 		$oldVote = $this->db->table(self::DB_VOTES)
-			->where("poll_id", $topic->id)
-			->where("author", $context->char->name)
+			->where('poll_id', $topic->id)
+			->where('author', $context->char->name)
 			->asObj(Vote::class)
 			->first();
 		$ePoll = clone $topic;
 		unset($ePoll->possible_answers);
 		if (isset($oldVote)) {
 			$this->db->table(self::DB_VOTES)
-				->where("author", $context->char->name)
-				->where("poll_id", $topic->id)
+				->where('author', $context->char->name)
+				->where('poll_id', $topic->id)
 				->update([
-					"answer" => $answer,
-					"time" => time(),
+					'answer' => $answer,
+					'time' => time(),
 				]);
-			$msg = "You have changed your vote to ".
+			$msg = 'You have changed your vote to '.
 				"<highlight>{$answer}<end> for \"{$topic->question}\".";
 			$event = new VoteChangeEvent(
 				poll: $ePoll,
 				player: $context->char->name,
 				vote: $answer,
-				oldVote: $oldVote->answer ?? "unknown",
+				oldVote: $oldVote->answer ?? 'unknown',
 			);
 		} else {
 			$this->db->table(self::DB_VOTES)->insert([
-				"author" => $context->char->name,
-				"answer" => $answer,
-				"time" => time(),
-				"poll_id" => $topic->id,
+				'author' => $context->char->name,
+				'answer' => $answer,
+				'time' => time(),
+				'poll_id' => $topic->id,
 			]);
 			$msg = "You have voted <highlight>{$answer}<end> for \"{$topic->question}\".";
 			$event = new VoteCastEvent(
@@ -422,13 +422,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	 * The format of &lt;definition&gt; is &lt;topic&gt;|&lt;option1&gt;|&lt;option2&gt;...
 	 * If you finish the options with two pipes ||, then custom answers won't be allowed.
 	 */
-	#[NCA\HandlesCommand("poll")]
-	#[NCA\Help\Group("voting")]
-	#[NCA\Help\Example("<symbol>poll create 4d3h2m1s WHAT... Is your favorite color?!?|Blue|Yellow")]
+	#[NCA\HandlesCommand('poll')]
+	#[NCA\Help\Group('voting')]
+	#[NCA\Help\Example('<symbol>poll create 4d3h2m1s WHAT... Is your favorite color?!?|Blue|Yellow')]
 	public function pollCreateCommand(
 		CmdContext $context,
-		#[NCA\Str("add", "create", "new")]
-		string $action,
+		#[NCA\Str('add', 'create', 'new')] string $action,
 		PDuration $duration,
 		string $definition
 	): void {
@@ -437,12 +436,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$duration = $duration->toSecs();
 
 		if ($duration === 0) {
-			$msg = "Invalid duration entered. Time format should be: 1d2h3m4s";
+			$msg = 'Invalid duration entered. Time format should be: 1d2h3m4s';
 			$context->reply($msg);
 			return;
 		}
 		if (count($answers) < 2) {
-			$msg = "You must have at least two options for this poll.";
+			$msg = 'You must have at least two options for this poll.';
 			$context->reply($msg);
 			return;
 		}
@@ -475,7 +474,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	public function getPollBlob(Poll $topic, ?string $sender=null): string {
 		/** @var Vote[] */
 		$votes = $this->db->table(self::DB_VOTES)
-			->where("poll_id", $topic->id)
+			->where('poll_id', $topic->id)
 			->asObj(Vote::class)
 			->toArray();
 
@@ -498,7 +497,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		if ($timeleft > 0) {
 			$blob .= $this->util->unixtimeToReadable($timeleft)." till this poll closes.\n\n";
 		} else {
-			$blob .= "<off>This poll has ended " . $this->util->unixtimeToReadable($timeleft * -1, true) . " ago.<end>\n\n";
+			$blob .= '<off>This poll has ended ' . $this->util->unixtimeToReadable($timeleft * -1, true) . " ago.<end>\n\n";
 		}
 
 		$blob .= "<header2>Answers<end>\n";
@@ -508,7 +507,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			} else {
 				$val = (int)round(100 * ($votes / $totalresults), 0);
 			}
-			$blob .= "<tab>" . $this->text->alignNumber($val, 3) . "% ";
+			$blob .= '<tab>' . $this->text->alignNumber($val, 3) . '% ';
 
 			if ($timeleft > 0) {
 				$blob .= $this->text->makeChatcmd((string)$answer, "/tell <myname> vote {$topic->id} {$answer}") . " (Votes: {$votes})\n";
@@ -535,9 +534,9 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			$blob .="\nAs the creator of this poll, you can:\n";
 		}
 		if ($sender === null || $sender === $topic->author) {
-			$blob .="<tab>" . $this->text->makeChatcmd('Delete the poll completely', "/tell <myname> poll delete {$topic->id}") . "\n";
+			$blob .='<tab>' . $this->text->makeChatcmd('Delete the poll completely', "/tell <myname> poll delete {$topic->id}") . "\n";
 			if ($timeleft > 0) {
-				$blob .="<tab>" . $this->text->makeChatcmd('End the poll early', "/tell <myname> poll end {$topic->id}");
+				$blob .='<tab>' . $this->text->makeChatcmd('End the poll early', "/tell <myname> poll end {$topic->id}");
 			}
 		}
 
@@ -546,17 +545,17 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 
 	#[
 		NCA\NewsTile(
-			name: "polls",
-			description: "Shows currently running polls - if any",
+			name: 'polls',
+			description: 'Shows currently running polls - if any',
 			example: "<header2>Polls<end>\n".
 				"<tab>Shall we use startpage instead of news? [<u>show</u>]\n".
-				"<tab>New logo for Discord [<u>show</u>]"
+				'<tab>New logo for Discord [<u>show</u>]'
 		)
 	]
 	public function pollsNewsTile(string $sender): ?string {
 		/** @var Poll[] */
 		$topics = $this->db->table(self::DB_POLLS)
-			->orderBy("started")
+			->orderBy('started')
 			->asObj(Poll::class)->toArray();
 		if (count($topics) === 0) {
 			return null;
@@ -564,12 +563,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$lines = [];
 		foreach ($topics as $topic) {
 			$lines []= "<tab>{$topic->question} [" . $this->text->makeChatcmd(
-				"show",
+				'show',
 				"/tell <myname> poll show {$topic->id}"
-			) . "]";
+			) . ']';
 		}
 		$blob = "<header2>Polls<end>\n".
-			join("\n", $lines);
+			implode("\n", $lines);
 		return $blob;
 	}
 }

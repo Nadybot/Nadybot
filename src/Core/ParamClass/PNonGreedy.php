@@ -3,7 +3,7 @@
 namespace Nadybot\Core\ParamClass;
 
 class PNonGreedy extends Base {
-	protected static string $regExp = ".+?";
+	protected static string $regExp = '.+?';
 	protected string $value;
 
 	public function __construct(string $value) {

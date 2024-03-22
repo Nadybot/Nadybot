@@ -31,10 +31,10 @@ use Throwable;
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "radio",
-		accessLevel: "guest",
-		description: "List what is currently playing on GridStream",
-		alias: "gsp"
+		command: 'radio',
+		accessLevel: 'guest',
+		description: 'List what is currently playing on GridStream',
+		alias: 'gsp'
 	),
 	NCA\ProvidesEvent(GSPShowStartEvent::class),
 	NCA\ProvidesEvent(GSPShowEndEvent::class)
@@ -50,10 +50,10 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	protected int $showRunning = 0;
 
 	/** The name of the currently running show or empty if none */
-	protected string $showName = "";
+	protected string $showName = '';
 
 	/** Location of the currently running show or empty if none */
-	protected string $showLocation = "";
+	protected string $showLocation = '';
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 
@@ -70,7 +70,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	private EventManager $eventManager;
 
 	public function getChannelName(): string {
-		return Source::SYSTEM . "(gsp)";
+		return Source::SYSTEM . '(gsp)';
 	}
 
 	#[NCA\Setup]
@@ -79,8 +79,8 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\Event(
-		name: "timer(1min)",
-		description: "Check if a GSP show is running"
+		name: 'timer(1min)',
+		description: 'Check if a GSP show is running'
 	)]
 	public function announceIfShowRunning(): void {
 		try {
@@ -134,19 +134,19 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		}
 		$event = new GSPShowStartEvent(show: $show);
 		$this->eventManager->fireEvent($event);
-		$specialDelimiter = "<yellow>-----------------------------<end>";
+		$specialDelimiter = '<yellow>-----------------------------<end>';
 		$msg = "\n".
 			$specialDelimiter . "\n".
 			$this->getNotificationMessage(). "\n".
 			$specialDelimiter;
 		$r = new RoutableMessage($msg);
-		$r->prependPath(new Source(Source::SYSTEM, "gsp"));
+		$r->prependPath(new Source(Source::SYSTEM, 'gsp'));
 		$this->messageHub->handle($r);
 	}
 
 	#[NCA\Event(
 		name: LogonEvent::EVENT_MASK,
-		description: "Announce running shows on logon"
+		description: 'Announce running shows on logon'
 	)]
 	public function gspShowLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -165,7 +165,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** Show what GridStream Productions is currently playing */
-	#[NCA\HandlesCommand("radio")]
+	#[NCA\HandlesCommand('radio')]
 	public function radioCommand(CmdContext $context): void {
 		$client = $this->builder->build();
 
@@ -183,10 +183,10 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	 * @return string The time in a format 6:53 or 0:05
 	 */
 	public function msToTime(int $milliSecs): string {
-		if ($milliSecs < 3600000) {
-			return Safe::pregReplace('/^0/', '', gmdate("i:s", (int)round($milliSecs/1000)));
+		if ($milliSecs < 3_600_000) {
+			return Safe::pregReplace('/^0/', '', gmdate('i:s', (int)round($milliSecs/1_000)));
 		}
-		return gmdate("G:i:s", (int)round($milliSecs/1000));
+		return gmdate('G:i:s', (int)round($milliSecs/1_000));
 	}
 
 	/** Render a blob how players can tune into GSP */
@@ -198,28 +198,28 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		$blob = "<header2>Available qualities<end>\n<tab>";
 		foreach ($show->stream as $stream) {
 			$streams[] = sprintf(
-				"%s: %s",
+				'%s: %s',
 				$stream->id,
-				$this->text->makeChatcmd("tune in", "/start ".$stream->url)
+				$this->text->makeChatcmd('tune in', '/start '.$stream->url)
 			);
 		}
-		$blob .= join("\n<tab>", $streams);
-		return " - " . ((array)$this->text->makeBlob("tune in", $blob, "Choose your stream quality"))[0];
+		$blob .= implode("\n<tab>", $streams);
+		return ' - ' . ((array)$this->text->makeBlob('tune in', $blob, 'Choose your stream quality'))[0];
 	}
 
 	/** Get a line describing what GSP is currently playing */
 	public function getCurrentlyPlaying(Show $show, Song $song): string {
 		$msg = sprintf(
-			"Currently playing on %s: <highlight>%s<end> - <highlight>%s<end>",
-			($show->live === 1 && $show->name) ? "<yellow>".$show->name."<end>" : "GSP",
+			'Currently playing on %s: <highlight>%s<end> - <highlight>%s<end>',
+			($show->live === 1 && $show->name) ? '<yellow>'.$show->name.'<end>' : 'GSP',
 			$song->artist ?? '<unknown artist>',
 			$song->title ?? '<unknown song>'
 		);
 		if (isset($song->duration) && $song->duration > 0) {
-			$startTime = DateTime::createFromFormat("Y-m-d*H:i:sT", $song->date)->setTimezone(new DateTimeZone("UTC"));
-			$time = DateTime::createFromFormat("Y-m-d*H:i:sT", $show->date)->setTimezone(new DateTimeZone("UTC"));
+			$startTime = DateTime::createFromFormat('Y-m-d*H:i:sT', $song->date)->setTimezone(new DateTimeZone('UTC'));
+			$time = DateTime::createFromFormat('Y-m-d*H:i:sT', $show->date)->setTimezone(new DateTimeZone('UTC'));
 			$diff = $time->diff($startTime, true);
-			$msg .= " [".$diff->format("%i:%S")."/".$this->msToTime($song->duration)."]";
+			$msg .= ' ['.$diff->format('%i:%S').'/'.$this->msToTime($song->duration).']';
 		}
 		return $msg;
 	}
@@ -227,16 +227,16 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	/** Create a message with information about what's currently playing on GSP */
 	public function renderPlaylist(Response $response, string $body): string {
 		if ($body === '' || $response->getStatus() !== 200) {
-			return "GSP seems to have problems with their service. Please try again later.";
+			return 'GSP seems to have problems with their service. Please try again later.';
 		}
 		$show = new Show();
 		try {
 			$show->fromJSON(json_decode($body));
 		} catch (JsonException $e) {
-			return "GSP seems to have problems with their service. Please try again later.";
+			return 'GSP seems to have problems with their service. Please try again later.';
 		}
 		if (empty($show->history)) {
-			return "GSP is currently not playing any music.";
+			return 'GSP is currently not playing any music.';
 		}
 		$song = array_shift($show->history);
 		$currentlyPlaying = $this->getCurrentlyPlaying($show, $song);
@@ -244,18 +244,18 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		$songs = $this->getPlaylistInfos($show->history);
 		$showInfos = $this->getShowInfos($show);
 		$lastSongsPage = ((array)$this->text->makeBlob(
-			"last songs",
-			$showInfos."<header2><u>Time         Song                                                                     </u><end>\n".join("\n", $songs),
-			"Last played songs (all times in UTC)",
+			'last songs',
+			$showInfos."<header2><u>Time         Song                                                                     </u><end>\n".implode("\n", $songs),
+			'Last played songs (all times in UTC)',
 		))[0];
-		$msg = $currentlyPlaying." - ".$lastSongsPage.$this->renderTuneIn($show);
+		$msg = $currentlyPlaying.' - '.$lastSongsPage.$this->renderTuneIn($show);
 		return $msg;
 	}
 
 	#[
 		NCA\NewsTile(
-			name: "gsp-show",
-			description: "Show the currently running GSP show and location - if any",
+			name: 'gsp-show',
+			description: 'Show the currently running GSP show and location - if any',
 			example: "<header2>GSP<end>\n".
 				"<tab>GSP is now running <highlight>Shigy's odd end<end>. Location: <highlight>Borealis at the whompahs<end>."
 		)
@@ -265,19 +265,19 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 			return null;
 		}
 		$msg = "<header2>GSP<end>\n".
-			"<tab>" . $this->getNotificationMessage();
+			'<tab>' . $this->getNotificationMessage();
 		return $msg;
 	}
 
 	#[
 		NCA\NewsTile(
-			name: "gsp",
+			name: 'gsp',
 			description: "Show what's currently playing on GSP.\n".
 				"If there's a show, it also shows which one and its location.",
 			example: "<header2>GSP<end>\n".
 				"<tab>Currently playing on <yellow>The Odd End /w DJ Shigy<end>: <highlight>Molly Hatchet<end> - <highlight>Whiskey Man<end> [2:50/3:41]\n".
 				"<tab>Current show: <highlight>The Odd End /w DJ Shigy<end>\n".
-				"<tab>Location: <highlight>Borealis west of the wompahs (AO)<end>"
+				'<tab>Location: <highlight>Borealis west of the wompahs (AO)<end>'
 		)
 	]
 	public function gspTile(string $sender): ?string {
@@ -295,22 +295,22 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	public function renderForGspTile(Response $response, string $body): string {
 		if ($body === '') {
-			throw new Exception("No content received");
+			throw new Exception('No content received');
 		}
 		if ($response->getStatus() !== 200) {
-			throw new Exception("Recdeiced a " . $response->getStatus() . ".");
+			throw new Exception('Recdeiced a ' . $response->getStatus() . '.');
 		}
 		$show = new Show();
 		$show->fromJSON(json_decode($body));
 		$blob = "<header2>GSP<end>\n<tab>";
 		if (empty($show->history)) {
-			return $blob . "GSP is currently not playing any music.";
+			return $blob . 'GSP is currently not playing any music.';
 		}
 		$song = array_shift($show->history);
 		$currentlyPlaying = $this->getCurrentlyPlaying($show, $song);
 		$showInfos = $this->getShowInfos($show);
 		if (strlen($showInfos)) {
-			$showInfos = "\n<tab>" . join("\n<tab>", explode("\n", $showInfos));
+			$showInfos = "\n<tab>" . implode("\n<tab>", explode("\n", $showInfos));
 		}
 		return "{$blob}{$currentlyPlaying}{$showInfos}";
 	}
@@ -338,15 +338,15 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	protected function getPlaylistInfos(array $history): array {
 		$songs = [];
 		foreach ($history as $song) {
-			$time = DateTime::createFromFormat("Y-m-d*H:i:sT", $song->date)->setTimezone(new DateTimeZone("UTC"));
+			$time = DateTime::createFromFormat('Y-m-d*H:i:sT', $song->date)->setTimezone(new DateTimeZone('UTC'));
 			$info = sprintf(
-				"%s   <highlight>%s<end> - %s",
-				$time->format("H:i:s"),
-				$song->artist ?? "Unknown Artist",
-				$song->title ?? "Unknown Song",
+				'%s   <highlight>%s<end> - %s',
+				$time->format('H:i:s'),
+				$song->artist ?? 'Unknown Artist',
+				$song->title ?? 'Unknown Song',
 			);
 			if (isset($song->duration) && $song->duration > 0) {
-				$info .= " [".$this->msToTime($song->duration)."]";
+				$info .= ' ['.$this->msToTime($song->duration).']';
 			}
 			$songs[] = $info;
 		}
@@ -356,11 +356,11 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	/** Get information about the currently running GSP show */
 	protected function getShowInfos(Show $show): string {
 		if ($show->live !== 1 || !strlen($show->name)) {
-			return "";
+			return '';
 		}
-		$showInfos = "Current show: <highlight>".$show->name."<end>\n";
+		$showInfos = 'Current show: <highlight>'.$show->name."<end>\n";
 		if (strlen($show->info)) {
-			$showInfos .= "Location: <highlight>".$show->info."<end>\n";
+			$showInfos .= 'Location: <highlight>'.$show->info."<end>\n";
 		}
 		$showInfos .= "\n";
 		return $showInfos;

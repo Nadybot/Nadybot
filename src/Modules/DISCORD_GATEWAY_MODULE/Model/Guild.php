@@ -135,7 +135,7 @@ class Guild extends JSONDataModel {
 	public array $presences;
 
 	/** the maximum number of presences for the guild (the default value, currently 25000, is in effect when null is returned) */
-	public ?int $max_presences = 25000;
+	public ?int $max_presences = 25_000;
 
 	/** the maximum number of members for the guild */
 	public int $max_members;

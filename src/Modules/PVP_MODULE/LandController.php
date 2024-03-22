@@ -10,12 +10,12 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: LandController::LC_CMD,
-		description: "Perform Notum Wars commands",
-		accessLevel: "guest",
+		description: 'Perform Notum Wars commands',
+		accessLevel: 'guest',
 	)
 ]
 class LandController extends ModuleInstance {
-	public const LC_CMD = "nw lc";
+	public const LC_CMD = 'nw lc';
 
 	#[NCA\Inject]
 	private PlayfieldController $pfCtrl;
@@ -30,11 +30,10 @@ class LandController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::LC_CMD)]
 	public function listNWPlayfields(
 		CmdContext $context,
-		#[NCA\Str("lc")]
-		string $action,
+		#[NCA\Str('lc')] string $action,
 	): void {
 		if (empty($this->nwCtrl->state)) {
-			$context->reply("The Tower-API is still initializing.");
+			$context->reply('The Tower-API is still initializing.');
 			return;
 		}
 		$lines = [];
@@ -46,9 +45,9 @@ class LandController extends ModuleInstance {
 		}
 		ksort($lines);
 		$msg = $this->text->makeBlob(
-			"Land Control Index",
+			'Land Control Index',
 			"<header2>Playfields with notum fields<end>\n".
-			"<tab>" . join("\n<tab>", $lines)
+			'<tab>' . implode("\n<tab>", $lines)
 		);
 		$context->reply($msg);
 	}
@@ -57,12 +56,11 @@ class LandController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::LC_CMD)]
 	public function listTowerSites(
 		CmdContext $context,
-		#[NCA\Str("lc")]
-		string $action,
+		#[NCA\Str('lc')] string $action,
 		PPlayfield $pf
 	): void {
 		if (empty($this->nwCtrl->state)) {
-			$context->reply("The Tower-API is still initializing.");
+			$context->reply('The Tower-API is still initializing.');
 			return;
 		}
 		$playfieldName = $pf();
@@ -86,7 +84,7 @@ class LandController extends ModuleInstance {
 		);
 		$msg = $this->text->makeBlob(
 			"All bases in {$playfield->long_name}",
-			join("\n\n", $blocks)
+			implode("\n\n", $blocks)
 		);
 		$context->reply($msg);
 	}
@@ -95,12 +93,11 @@ class LandController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::LC_CMD)]
 	public function showTowerSite(
 		CmdContext $context,
-		#[NCA\Str("lc")]
-		string $action,
+		#[NCA\Str('lc')] string $action,
 		PTowerSite $site,
 	): void {
 		if (empty($this->nwCtrl->state)) {
-			$context->reply("The Tower-API is still initializing.");
+			$context->reply('The Tower-API is still initializing.');
 			return;
 		}
 		$playfield = $this->pfCtrl->getPlayfieldByName($site->pf);

@@ -22,16 +22,16 @@ use Psr\Log\LoggerInterface;
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Boss"),
+	NCA\HasMigrations('Migrations/Boss'),
 	NCA\DefineCommand(
-		command: "boss",
-		accessLevel: "guest",
-		description: "Shows bosses and their loot",
+		command: 'boss',
+		accessLevel: 'guest',
+		description: 'Shows bosses and their loot',
 	),
 	NCA\DefineCommand(
-		command: "bossloot",
-		accessLevel: "guest",
-		description: "Finds which boss drops certain loot",
+		command: 'bossloot',
+		accessLevel: 'guest',
+		description: 'Finds which boss drops certain loot',
 	)
 ]
 class BosslootController extends ModuleInstance {
@@ -52,16 +52,16 @@ class BosslootController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ ."/boss_namedb.csv");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ ."/boss_lootdb.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ .'/boss_namedb.csv');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ .'/boss_lootdb.csv');
 	}
 
 	/** See the drop table for a boss */
-	#[NCA\HandlesCommand("boss")]
+	#[NCA\HandlesCommand('boss')]
 	public function bossCommand(CmdContext $context, string $bossName): void {
 		$bossName = strtolower($bossName);
 
-		$query = $this->db->table("boss_namedb");
+		$query = $this->db->table('boss_namedb');
 		$this->db->addWhereFromParams($query, explode(' ', $bossName), 'bossname');
 
 		/** @var Collection<BossNamedb> */
@@ -69,7 +69,7 @@ class BosslootController extends ModuleInstance {
 		$count = $bosses->count();
 
 		if ($count === 0) {
-			$output = "There were no matches for your search.";
+			$output = 'There were no matches for your search.';
 			$context->reply($output);
 			return;
 		}
@@ -85,52 +85,52 @@ class BosslootController extends ModuleInstance {
 		}
 		// If single match found, output full loot table
 		$row = $bosses[0];
-		$blob = "";
+		$blob = '';
 
 		$locations = $this->getBossLocations($row->bossname);
 		if ($locations->isNotEmpty()) {
 			$blob .= "<header2>Location<end>\n";
-			$blob .= "<tab>" . $locations->join("\n<tab>") . "\n\n";
+			$blob .= '<tab>' . $locations->join("\n<tab>") . "\n\n";
 		}
 
 		$blob .= "<header2>Loot<end>\n";
 
 		/** @var Collection<BossLootdb> */
-		$data = $this->db->table("boss_lootdb")
-			->where("bossid", $row->bossid)
+		$data = $this->db->table('boss_lootdb')
+			->where('bossid', $row->bossid)
 			->asObj(BossLootdb::class);
 		$this->addItemsToLoot($data);
 		foreach ($data as $row2) {
 			if (!isset($row2->item)) {
-				$this->logger->error("Missing item in AODB: {item_name}.", [
-					"item_name" => $row2->itemname,
+				$this->logger->error('Missing item in AODB: {item_name}.', [
+					'item_name' => $row2->itemname,
 				]);
 				continue;
 			}
-			$blob .= "<tab>" . $this->text->makeImage($row2->item->icon) . "\n";
-			$blob .= "<tab>" . $row2->item->getLink($row2->item->highql, $row2->itemname) . "\n\n";
+			$blob .= '<tab>' . $this->text->makeImage($row2->item->icon) . "\n";
+			$blob .= '<tab>' . $row2->item->getLink($row2->item->highql, $row2->itemname) . "\n\n";
 		}
 		$output = $this->text->makeBlob($row->bossname, $blob);
 		$context->reply($output);
 	}
 
 	/** Search for the boss dropping the item */
-	#[NCA\HandlesCommand("bossloot")]
+	#[NCA\HandlesCommand('bossloot')]
 	public function bosslootCommand(CmdContext $context, string $item): void {
 		$item = strtolower($item);
 
 		$blob = "Bosses that drop items matching '{$item}':\n\n";
 
-		$query = $this->db->table("boss_lootdb AS b1")
-			->join("boss_namedb AS b2", "b2.bossid", "b1.bossid")
-			->select(["b2.bossid", "b2.bossname"])->distinct();
+		$query = $this->db->table('boss_lootdb AS b1')
+			->join('boss_namedb AS b2', 'b2.bossid', 'b1.bossid')
+			->select(['b2.bossid', 'b2.bossname'])->distinct();
 		$this->db->addWhereFromParams($query, explode(' ', $item), 'b1.itemname');
 
 		/** @var Collection<BossNamedb> */
 		$loot = $query->asObj(BossNamedb::class);
 		$count = $loot->count();
 
-		$output = "There were no matches for your search.";
+		$output = 'There were no matches for your search.';
 		if ($count !== 0) {
 			foreach ($loot as $row) {
 				$blob .= $this->getBossLootOutput($row, $item);
@@ -141,8 +141,8 @@ class BosslootController extends ModuleInstance {
 	}
 
 	public function getBossLootOutput(BossNamedb $row, ?string $search=null): string {
-		$query = $this->db->table("boss_lootdb")
-			->where("bossid", $row->bossid);
+		$query = $this->db->table('boss_lootdb')
+			->where('bossid', $row->bossid);
 		if (isset($search)) {
 			$this->db->addWhereFromParams($query, explode(' ', $search), 'itemname');
 		}
@@ -151,19 +151,19 @@ class BosslootController extends ModuleInstance {
 		$data = $query->asObj(BossLootdb::class);
 		$this->addItemsToLoot($data);
 
-		$blob = "<pagebreak><header2>{$row->bossname} [" . $this->text->makeChatcmd("details", "/tell <myname> boss {$row->bossname}") . "]<end>\n";
+		$blob = "<pagebreak><header2>{$row->bossname} [" . $this->text->makeChatcmd('details', "/tell <myname> boss {$row->bossname}") . "]<end>\n";
 		$locations = $this->getBossLocations($row->bossname);
 		if ($locations->count()) {
-			$blob .= "<tab>Location: " . $locations->join(", ") . "\n";
+			$blob .= '<tab>Location: ' . $locations->join(', ') . "\n";
 		}
-		$blob .= "<tab>Loot: ";
-		$lootItems = $data->map(function (BossLootdb $loot): ?string {
+		$blob .= '<tab>Loot: ';
+		$lootItems = $data->map(static function (BossLootdb $loot): ?string {
 			return isset($loot->item) ? $loot->item->getLink($loot->item->highql) : null;
 		})->filter();
 		if (isset($search)) {
 			$blob .= $lootItems->join("\n<tab><black>Loot: <end>") . "\n\n";
 		} else {
-			$blob .= $lootItems->join(", ") . "\n\n";
+			$blob .= $lootItems->join(', ') . "\n\n";
 		}
 		return $blob;
 	}
@@ -171,12 +171,12 @@ class BosslootController extends ModuleInstance {
 	/** @param Collection<BossLootdb> $data */
 	private function addItemsToLoot(Collection $data): void {
 		$itemsByName = $this->itemsController
-			->getByNames(...$data->whereNull("aoid")->pluck("itemname")->toArray())
-			->keyBy("name");
+			->getByNames(...$data->whereNull('aoid')->pluck('itemname')->toArray())
+			->keyBy('name');
 		$itemsByAoid = $this->itemsController
-			->getByIDs(...$data->whereNotNull("aoid")->pluck("aoid")->toArray())
-			->keyBy("aoid");
-		$data->each(function (BossLootdb $loot) use ($itemsByName, $itemsByAoid): void {
+			->getByIDs(...$data->whereNotNull('aoid')->pluck('aoid')->toArray())
+			->keyBy('aoid');
+		$data->each(static function (BossLootdb $loot) use ($itemsByName, $itemsByAoid): void {
 			if (isset($loot->aoid)) {
 				$loot->item = $itemsByAoid->get($loot->aoid);
 			} else {

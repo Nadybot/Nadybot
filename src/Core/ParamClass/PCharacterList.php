@@ -12,9 +12,9 @@ class PCharacterList extends Base {
 
 	public function __construct(string $value) {
 		$this->chars = preg_split("/\s+/", $value);
-		$this->chars = array_map("strtolower", $this->chars);
-		$this->chars = array_map("ucfirst", $this->chars);
-		$this->value = join(", ", $this->chars);
+		$this->chars = array_map('strtolower', $this->chars);
+		$this->chars = array_map('ucfirst', $this->chars);
+		$this->value = implode(', ', $this->chars);
 	}
 
 	/** @return string[] */

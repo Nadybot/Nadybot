@@ -40,8 +40,8 @@ class PlayerLookupJob {
 	 * @return Collection<Player>
 	 */
 	public function getOudatedCharacters(): Collection {
-		return $this->db->table("players")
-			->where("last_update", "<", time() - PlayerManager::CACHE_GRACE_TIME)
+		return $this->db->table('players')
+			->where('last_update', '<', time() - PlayerManager::CACHE_GRACE_TIME)
 			->asObj(Player::class);
 	}
 
@@ -52,12 +52,12 @@ class PlayerLookupJob {
 	 */
 	public function getMissingAlts(): Collection {
 		/** @var Collection<Player> */
-		$result = $this->db->table("alts")
-			->whereNotExists(function (QueryBuilder $query): void {
-				$query->from("players")
-					->whereColumn("alts.alt", "players.name");
-			})->select("alt")
-			->pluckStrings("alt")
+		$result = $this->db->table('alts')
+			->whereNotExists(static function (QueryBuilder $query): void {
+				$query->from('players')
+					->whereColumn('alts.alt', 'players.name');
+			})->select('alt')
+			->pluckStrings('alt')
 			->map(function (string $alt): Player {
 				$result = new Player();
 				$result->name = $alt;
@@ -81,11 +81,11 @@ class PlayerLookupJob {
 		$this->toUpdate = $this->getMissingAlts()
 			->concat($this->getOudatedCharacters());
 		if ($this->toUpdate->isEmpty()) {
-			$this->logger->info("No outdate player information found.");
+			$this->logger->info('No outdate player information found.');
 			$callback(...$args);
 			return;
 		}
-		$this->logger->info($this->toUpdate->count() . " missing / outdated characters found.");
+		$this->logger->info($this->toUpdate->count() . ' missing / outdated characters found.');
 		async(function () use ($numJobs, $callback, $args): void {
 			$threads = [];
 			for ($i = 0; $i < $numJobs; $i++) {
@@ -94,7 +94,7 @@ class PlayerLookupJob {
 				$threads []= async($this->startThread(...), $i+1);
 			}
 			await($threads);
-			$this->logger->info("All threads done, stopping lookup.");
+			$this->logger->info('All threads done, stopping lookup.');
 			$callback(...$args);
 		});
 	}
@@ -102,43 +102,43 @@ class PlayerLookupJob {
 	private function startThread(int $threadNum): void {
 		while ($todo = $this->toUpdate->shift()) {
 			/** @var Player $todo */
-			$this->logger->debug("[Thread #{thread_num}] Looking up {character}", [
-				"thread_num" => $threadNum,
-				"character" => $todo->name,
+			$this->logger->debug('[Thread #{thread_num}] Looking up {character}', [
+				'thread_num' => $threadNum,
+				'character' => $todo->name,
 			]);
 			try {
 				$uid = $this->chatBot->getUid($todo->name);
 				if (!isset($uid)) {
-					$this->logger->debug("[Thread #{thread_num}] Character {character} is inactive, not updating.", [
-						"thread_num" => $threadNum,
-						"character" => $todo->name,
+					$this->logger->debug('[Thread #{thread_num}] Character {character} is inactive, not updating.', [
+						'thread_num' => $threadNum,
+						'character' => $todo->name,
 					]);
 					continue;
 				}
 				$start = microtime(true);
 				$player = $this->playerManager->byName($todo->name, $todo->dimension, true);
-				$duration = round((microtime(true) - $start) * 1000, 1);
+				$duration = round((microtime(true) - $start) * 1_000, 1);
 				$this->logger->debug(
-					"[Thread #{thread_num}] PORK lookup for {character} done after {duration}s: {result}",
+					'[Thread #{thread_num}] PORK lookup for {character} done after {duration}s: {result}',
 					[
-						"thread_num" => $threadNum,
-						"character" => $todo->name,
-						"result" => isset($player) ? 'data updated' : 'no data found',
-						"duration" => $duration,
+						'thread_num' => $threadNum,
+						'character' => $todo->name,
+						'result' => isset($player) ? 'data updated' : 'no data found',
+						'duration' => $duration,
 					]
 				);
 				delay(0.5);
 			} catch (Throwable $e) {
-				$this->logger->error("[Thread #{thread_num}] Exception looking up {character}: {error}", [
-					"thread_num" => $threadNum,
-					"character" => $todo->name,
-					"error" => $e->getMessage(),
-					"Exception" => $e,
+				$this->logger->error('[Thread #{thread_num}] Exception looking up {character}: {error}', [
+					'thread_num' => $threadNum,
+					'character' => $todo->name,
+					'error' => $e->getMessage(),
+					'Exception' => $e,
 				]);
 			}
 		}
-		$this->logger->debug("[Thread #{thread_num}] Queue empty, stopping thread.", [
-			"thread_num" => $threadNum,
+		$this->logger->debug('[Thread #{thread_num}] Queue empty, stopping thread.', [
+			'thread_num' => $threadNum,
 		]);
 	}
 }

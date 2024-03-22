@@ -18,9 +18,9 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "disc",
-		accessLevel: "guest",
-		description: "Show which nano a disc will turn into",
+		command: 'disc',
+		accessLevel: 'guest',
+		description: 'Show which nano a disc will turn into',
 	)
 ]
 class DiscController extends ModuleInstance {
@@ -42,27 +42,27 @@ class DiscController extends ModuleInstance {
 	 * @return Disc[] An array of database entries that matched
 	 */
 	public function getDiscsByName(string $discName): array {
-		$query = $this->db->table("discs");
+		$query = $this->db->table('discs');
 		$this->db->addWhereFromParams($query, explode(' ', $discName), 'disc_name');
 		return $query->asObj(Disc::class)->toArray();
 	}
 
 	/** Get the instruction disc from its id and return the result or null */
 	public function getDiscById(int $discId): ?Disc {
-		return $this->db->table("discs")
-			->where("disc_id", $discId)
+		return $this->db->table('discs')
+			->where('disc_id', $discId)
 			->asObj(Disc::class)
 			->first();
 	}
 
 	/** Show what nano a disc will turn into */
-	#[NCA\HandlesCommand("disc")]
-	#[NCA\Help\Example("<symbol>disc <a href=itemref://163410/163410/139>Instruction Disc (Tranquility of the Vale)</a>")]
+	#[NCA\HandlesCommand('disc')]
+	#[NCA\Help\Example('<symbol>disc <a href=itemref://163410/163410/139>Instruction Disc (Tranquility of the Vale)</a>')]
 	public function discByItemCommand(CmdContext $context, PItem $item): void {
 		$disc = $this->getDiscById($item->lowID);
 		if (!isset($disc)) {
 			$msg = "Either <highlight>{$item}<end> is not an instruction disc, or it ".
-				"cannot be turned into a nano anymore.";
+				'cannot be turned into a nano anymore.';
 			$context->reply($msg);
 			return;
 		}
@@ -70,8 +70,8 @@ class DiscController extends ModuleInstance {
 	}
 
 	/** Show what nano a disc will turn into */
-	#[NCA\HandlesCommand("disc")]
-	#[NCA\Help\Example("<symbol>disc tranquility vale")]
+	#[NCA\HandlesCommand('disc')]
+	#[NCA\Help\Example('<symbol>disc tranquility vale')]
 	public function discByNameCommand(CmdContext $context, string $search): void {
 		// If only a name was given, lookup the disc's ID
 		$discs = $this->getDiscsByName($search);
@@ -100,24 +100,24 @@ class DiscController extends ModuleInstance {
 			return;
 		}
 		$msg = sprintf(
-			"%s will turn into %s (%s, %s, <highlight>%s<end>).",
+			'%s will turn into %s (%s, %s, <highlight>%s<end>).',
 			$discLink,
 			$nanoLink,
-			implode(", ", explode(":", $nanoDetails->professions)),
+			implode(', ', explode(':', $nanoDetails->professions)),
 			$nanoDetails->nanoline_name,
 			$nanoDetails->location
 		);
-		if (strlen($disc->comment ?? "")) {
-			$msg .= " <red>" . ($disc->comment??"") . "!<end>";
+		if (strlen($disc->comment ?? '')) {
+			$msg .= ' <red>' . ($disc->comment??'') . '!<end>';
 		}
 		$context->reply($msg);
 	}
 
 	/** Get additional information about the nano of a disc */
 	public function getNanoDetails(Disc $disc): ?NanoDetails {
-		return $this->db->table("nanos")
-			->where("crystal_id", $disc->crystal_id)
-			->select(["location", "professions", "strain AS nanoline_name"])
+		return $this->db->table('nanos')
+			->where('crystal_id', $disc->crystal_id)
+			->select(['location', 'professions', 'strain AS nanoline_name'])
 			->asObj(NanoDetails::class)
 			->first();
 	}
@@ -132,17 +132,17 @@ class DiscController extends ModuleInstance {
 	public function getDiscChoiceDialogue(array $discs): array {
 		$blob = [];
 		foreach ($discs as $disc) {
-			$text = $this->text->makeChatcmd($disc->disc_name, "/tell <myname> disc ".$disc->disc_name);
+			$text = $this->text->makeChatcmd($disc->disc_name, '/tell <myname> disc '.$disc->disc_name);
 			$blob []= $text;
 		}
 		$msg = $this->text->makeBlob(
-			count($discs). " matches matching your search",
+			count($discs). ' matches matching your search',
 			implode("\n<pagebreak>", $blob),
-			"Multiple matches, please choose one"
+			'Multiple matches, please choose one'
 		);
 		if (is_array($msg)) {
 			return array_map(
-				function ($blob) {
+				static function ($blob) {
 					return "Found {$blob}.";
 				},
 				$msg

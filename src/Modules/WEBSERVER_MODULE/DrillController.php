@@ -20,14 +20,14 @@ use Throwable;
 #[NCA\ProvidesEvent(DrillPacketEvent::class)]
 #[NCA\Instance]
 class DrillController extends ModuleInstance {
-	public const OFF = "off";
+	public const OFF = 'off';
 
 	/** Service to make the webserver publicly accessible */
 	#[NCA\Setting\Text(
 		options: [
-			"off" => self::OFF,
-			"US-based" => "wss://drill.us.nadybot.org",
-			"EU-based" => "wss://drill.nadybot.org",
+			'off' => self::OFF,
+			'US-based' => 'wss://drill.us.nadybot.org',
+			'EU-based' => 'wss://drill.nadybot.org',
 		]
 	)]
 	public string $drillServer=self::OFF;
@@ -49,7 +49,7 @@ class DrillController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
-		description: "Connect to Drill server",
+		description: 'Connect to Drill server',
 	)]
 	public function connectToDrill(): void {
 		if ($this->drillServer === self::OFF) {
@@ -58,7 +58,7 @@ class DrillController extends ModuleInstance {
 		async($this->connect(...));
 	}
 
-	#[NCA\SettingChangeHandler("drill_server")]
+	#[NCA\SettingChangeHandler('drill_server')]
 	public function switchDrill(string $setting, string $old, string $new): void {
 		if ($new !== self::OFF && !preg_match("/^wss?:\/\//", $new)) {
 			throw new UserException("<highlight>{$new}<end> is not a valid Drill-server");
@@ -82,13 +82,13 @@ class DrillController extends ModuleInstance {
 			->build();
 		$client = new Rfc6455Connector(httpClient: $httpClient);
 		try {
-			$this->logger->info("Connecting to Drill server {url}", ["url" => $url]);
+			$this->logger->info('Connecting to Drill server {url}', ['url' => $url]);
 
 			$connection = $client->connect($handshake, null);
 			$this->client = $connection;
 			$event = new DrillConnectEvent(client: $connection);
 			$this->eventManager->fireEvent($event);
-			$this->logger->info("Connected to Drill server {url}", ["url" => $url]);
+			$this->logger->info('Connected to Drill server {url}', ['url' => $url]);
 			while (null !== ($message = $connection->receive())) {
 				$payload = $message->buffer();
 
@@ -96,26 +96,26 @@ class DrillController extends ModuleInstance {
 			}
 			if ($this->client->getCloseInfo()->isByPeer()) {
 				throw new WebsocketClosedException(
-					"Drill unexpectedly closed the connection",
+					'Drill unexpectedly closed the connection',
 					$this->client->getCloseInfo()->getCode(),
 					$this->client->getCloseInfo()->getReason(),
 				);
 			}
 		} catch (WebsocketConnectException $e) {
-			$this->logger->error("Still endpoint errored: {error}", [
-				"error" => $e->getMessage(),
+			$this->logger->error('Still endpoint errored: {error}', [
+				'error' => $e->getMessage(),
 			]);
 			return;
 		} catch (HttpException $e) {
-			$this->logger->error("Request to connect to Drill failed: {error}", [
-				"error" => $e->getMessage(),
+			$this->logger->error('Request to connect to Drill failed: {error}', [
+				'error' => $e->getMessage(),
 			]);
 			delay($this->reconnectDelay);
 			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
 			$this->connect();
 		} catch (WebsocketClosedException $e) {
-			$this->logger->notice("Reconnecting to Drill in {delay}s.", [
-				"delay" => $this->reconnectDelay,
+			$this->logger->notice('Reconnecting to Drill in {delay}s.', [
+				'delay' => $this->reconnectDelay,
 			]);
 			delay($this->reconnectDelay);
 			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
@@ -123,8 +123,8 @@ class DrillController extends ModuleInstance {
 		} finally {
 			$this->client = null;
 		}
-		$this->logger->notice("Connection to {url} successfully closed.", [
-			"url" => $url,
+		$this->logger->notice('Connection to {url} successfully closed.', [
+			'url' => $url,
 		]);
 	}
 
@@ -132,13 +132,13 @@ class DrillController extends ModuleInstance {
 		try {
 			$packet = Drill\PacketFactory::parse($msg);
 		} catch (Drill\UnsupportedPacketException $e) {
-			$this->logger->warning("Received unsupported Drill package type {type}", [
-				"type" => $e->getMessage(),
+			$this->logger->warning('Received unsupported Drill package type {type}', [
+				'type' => $e->getMessage(),
 			]);
 			return;
 		}
-		$this->logger->debug("Received Drill-package {type}", [
-			"type" => get_class($packet),
+		$this->logger->debug('Received Drill-package {type}', [
+			'type' => $packet::class,
 		]);
 		$event = new DrillPacketEvent(
 			client: $client,
@@ -148,18 +148,18 @@ class DrillController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "drill(hello)",
-		description: "Choose Drill authentication",
+		name: 'drill(hello)',
+		description: 'Choose Drill authentication',
 	)]
 	public function chooseDrillAuth(DrillPacketEvent $event): void {
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\Hello);
 		$this->logger->notice(
-			"Connected to Drill-server {url} running Drill protocol v{proto}: {greeting}",
+			'Connected to Drill-server {url} running Drill protocol v{proto}: {greeting}',
 			[
-				"proto" => $packet->protoVersion,
-				"url" => $this->drillServer,
-				"greeting" => $packet->description,
+				'proto' => $packet->protoVersion,
+				'url' => $this->drillServer,
+				'greeting' => $packet->description,
 			]
 		);
 		if ($packet->authMode !== Drill\Auth::AO_TELL) {
@@ -168,7 +168,7 @@ class DrillController extends ModuleInstance {
 			return;
 		}
 		if ($packet->protoVersion !== 1) {
-			$this->logger->error("Drill server runs unsupported protocol version");
+			$this->logger->error('Drill server runs unsupported protocol version');
 			$event->client->close();
 			return;
 		}
@@ -178,15 +178,15 @@ class DrillController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "drill(token-in-ao-tell)",
-		description: "Handle Drill authentication",
+		name: 'drill(token-in-ao-tell)',
+		description: 'Handle Drill authentication',
 	)]
 	public function authenticateDrill(DrillPacketEvent $event): void {
 		/** @var DeferredFuture<string> */
 		$deferred = new DeferredFuture();
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\TokenInAoTell);
-		$resolver = function (RecvMsgEvent $eventObj) use ($packet, $deferred): void {
+		$resolver = static function (RecvMsgEvent $eventObj) use ($packet, $deferred): void {
 			if ($eventObj->sender !== $packet->sender) {
 				return;
 			}
@@ -195,9 +195,9 @@ class DrillController extends ModuleInstance {
 				throw new StopExecutionException();
 			}
 		};
-		$this->eventManager->subscribe("msg", $resolver);
-		$this->logger->info("Waiting 30s for token from {sender}", [
-			"sender" => $packet->sender,
+		$this->eventManager->subscribe('msg', $resolver);
+		$this->logger->info('Waiting 30s for token from {sender}', [
+			'sender' => $packet->sender,
 		]);
 
 		$future = $deferred->getFuture();
@@ -205,22 +205,22 @@ class DrillController extends ModuleInstance {
 			$code = $future->await(new TimeoutCancellation(30));
 
 			/** @var string */
-			$code = Safe::pregReplace("/^!drill\s+/", "", $code);
-			$this->logger->info("Drill-code received: {code}", [
-				"code" => $code,
+			$code = Safe::pregReplace("/^!drill\s+/", '', $code);
+			$this->logger->info('Drill-code received: {code}', [
+				'code' => $code,
 			]);
 		} catch (TimeoutException $e) {
-			$this->logger->warning("No Drill auth token from {sender} received for 30s", [
-				"sender" => $packet->sender,
+			$this->logger->warning('No Drill auth token from {sender} received for 30s', [
+				'sender' => $packet->sender,
 			]);
 			return;
 		} catch (Throwable $e) {
-			$this->logger->warning("Error waiting for Drill auth token", [
-				"exception" => $e,
+			$this->logger->warning('Error waiting for Drill auth token', [
+				'exception' => $e,
 			]);
 			return;
 		} finally {
-			$this->eventManager->unsubscribe("msg", $resolver);
+			$this->eventManager->unsubscribe('msg', $resolver);
 		}
 		$answer = new Drill\Packet\PresentToken(
 			token: $code,
@@ -231,30 +231,30 @@ class DrillController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "drill(lets-go)",
-		description: "Activate Drill",
+		name: 'drill(lets-go)',
+		description: 'Activate Drill',
 	)]
 	public function activateDrill(DrillPacketEvent $event): void {
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\LetsGo);
-		$this->logger->notice("This bot is now exposed via {url}", [
-			"url" => $packet->publicUrl,
+		$this->logger->notice('This bot is now exposed via {url}', [
+			'url' => $packet->publicUrl,
 		]);
 	}
 
 	#[NCA\Event(
-		name: "drill(data)",
-		description: "Handle Drill data",
+		name: 'drill(data)',
+		description: 'Handle Drill data',
 	)]
 	public function receiveData(DrillPacketEvent $event): void {
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\Data);
-		$this->logger->info("Number of active clients: {num_conn}", [
-			"num_conn" => count(array_keys($this->handlers)),
+		$this->logger->info('Number of active clients: {num_conn}', [
+			'num_conn' => count(array_keys($this->handlers)),
 		]);
-		$this->logger->debug("Received data for UUID {uuid}: {data}", [
-			"uuid" => $packet->uuid,
-			"data" => $packet->data,
+		$this->logger->debug('Received data for UUID {uuid}: {data}', [
+			'uuid' => $packet->uuid,
+			'data' => $packet->data,
 		]);
 
 		if (!isset($this->handlers[$packet->uuid])) {
@@ -266,7 +266,7 @@ class DrillController extends ModuleInstance {
 			Registry::injectDependencies($handler);
 			$success = $handler->loop();
 			if (!$success) {
-				$this->logger->notice("Drill error connecting to local webserver, sending 502");
+				$this->logger->notice('Drill error connecting to local webserver, sending 502');
 				$http = "HTTP/1.1 502\r\n".
 					"Content-Length: 0\r\n".
 					"\r\n";
@@ -284,14 +284,14 @@ class DrillController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "drill(closed)",
-		description: "Handle Drill disconnect",
+		name: 'drill(closed)',
+		description: 'Handle Drill disconnect',
 	)]
 	public function clientDisconnect(DrillPacketEvent $event): void {
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\Closed);
-		$this->logger->info("Drill received disconnect for UUID {uuid}", [
-			"uuid" => $packet->uuid,
+		$this->logger->info('Drill received disconnect for UUID {uuid}', [
+			'uuid' => $packet->uuid,
 		]);
 
 		if (!isset($this->handlers[$packet->uuid])) {
@@ -302,24 +302,24 @@ class DrillController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
-		name: "drill(disallowed-packet)",
-		description: "Handle disallowed packets",
+		name: 'drill(disallowed-packet)',
+		description: 'Handle disallowed packets',
 	)]
 	public function handleDisallowedPacket(): void {
-		$this->logger->warning("Drill server complains about disallowed packet");
+		$this->logger->warning('Drill server complains about disallowed packet');
 	}
 
 	#[NCA\Event(
-		name: "drill(auth-failed)",
-		description: "Handle failed authentication",
+		name: 'drill(auth-failed)',
+		description: 'Handle failed authentication',
 	)]
 	public function handleAuthFailed(): void {
-		$this->logger->notice("Failed to authenticate to the Drill server. Retrying.");
+		$this->logger->notice('Failed to authenticate to the Drill server. Retrying.');
 	}
 
 	#[NCA\Event(
-		name: "drill(out-of-capacity)",
-		description: "Handle Drill-server full error",
+		name: 'drill(out-of-capacity)',
+		description: 'Handle Drill-server full error',
 	)]
 	public function handleOOC(): void {
 		$this->logger->warning("Drill server currently doesn't have any capacity for this bot. Retrying.");

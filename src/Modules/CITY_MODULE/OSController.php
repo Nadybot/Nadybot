@@ -28,13 +28,13 @@ class OSController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: OrgMsgChannelMsgEvent::EVENT_MASK,
-		description: "Sets a timer when an OS/AS is launched"
+		description: 'Sets a timer when an OS/AS is launched'
 	)]
 	public function osTimerEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		// create a timer for 15m when an OS/AS is launched (so org knows when they can launch again)
 		// [Org Msg] Blammo! Player has launched an orbital attack!
 
-		if (count($arr = Safe::pregMatch("/^Blammo! (.+) has launched an orbital attack!$/i", $eventObj->message)) === 2) {
+		if (count($arr = Safe::pregMatch('/^Blammo! (.+) has launched an orbital attack!$/i', $eventObj->message)) === 2) {
 			$launcher = $arr[1];
 
 			for ($i = 1; $i <= 10; $i++) {

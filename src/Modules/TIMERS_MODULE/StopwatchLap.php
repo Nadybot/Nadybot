@@ -16,12 +16,12 @@ class StopwatchLap {
 
 	public function __construct(?string $name=null) {
 		$this->time = new DateTime();
-		$this->name = strlen($name??"") ? $name : null;
+		$this->name = strlen($name??'') ? $name : null;
 	}
 
 	/** Get a textual representation of the lap relative to timestamp $last */
 	public function toString(DateTime $last): string {
-		$descr = "Lap:    +" . $this->time->diff($last)->format('%I:%S');
+		$descr = 'Lap:    +' . $this->time->diff($last)->format('%I:%S');
 		if (isset($this->name)) {
 			$descr .= " ({$this->name})";
 		}

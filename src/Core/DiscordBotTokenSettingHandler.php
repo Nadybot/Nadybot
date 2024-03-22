@@ -11,7 +11,7 @@ use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 /**
  * Class to represent a discord bot token setting
  */
-#[NCA\SettingHandler("discord_bot_token")]
+#[NCA\SettingHandler('discord_bot_token')]
 class DiscordBotTokenSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;
@@ -32,14 +32,14 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 
 	/** @throws \Exception when the Discord token is invalid */
 	public function save(string $newValue): string {
-		if ($newValue === "off") {
+		if ($newValue === 'off') {
 			return $newValue;
 		}
 		$client = $this->builder
 			->intercept(new AddRequestHeader('Authorization', 'Bot ' . $newValue))
 			->build();
 
-		$response = $client->request(new Request(DiscordAPIClient::DISCORD_API . "/users/@me"));
+		$response = $client->request(new Request(DiscordAPIClient::DISCORD_API . '/users/@me'));
 		if ($response->getStatus() !== 200) {
 			throw new Exception("<highlight>{$newValue}<end> is not a valid Discord Bot Token");
 		}
@@ -48,11 +48,11 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 
 	public function displayValue(string $sender): string {
 		$newValue = $this->row->value;
-		if ($newValue === "off") {
+		if ($newValue === 'off') {
 			return "<highlight>{$newValue}<end>";
 		}
-		if (!$this->accessManager->checkAccess($sender, $this->row->admin??"all")) {
-			return "<highlight>*********<end>";
+		if (!$this->accessManager->checkAccess($sender, $this->row->admin??'all')) {
+			return '<highlight>*********<end>';
 		}
 		return "<highlight>{$newValue}<end>";
 	}

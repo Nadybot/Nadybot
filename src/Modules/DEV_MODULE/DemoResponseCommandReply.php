@@ -17,14 +17,14 @@ class DemoResponseCommandReply implements CommandReply {
 
 	public function reply($msg): void {
 		if ($this->source === 'aopriv') {
-			$msg = str_replace("chatcmd:///tell {$this->botname} ", "chatcmd:///g <myname> <symbol>demo ", $msg);
-			$msg = str_replace("chatcmd:///tell <myname> ", "chatcmd:///g <myname> <symbol>demo ", $msg);
+			$msg = str_replace("chatcmd:///tell {$this->botname} ", 'chatcmd:///g <myname> <symbol>demo ', $msg);
+			$msg = str_replace('chatcmd:///tell <myname> ', 'chatcmd:///g <myname> <symbol>demo ', $msg);
 		} elseif (count($matches = Safe::pregMatch("/^aopriv\((.+)\)$/", $this->source))) {
 			$msg = str_replace("chatcmd:///tell {$this->botname} ", "chatcmd:///g {$matches[1]} <symbol>demo ", $msg);
-			$msg = str_replace("chatcmd:///tell <myname> ", "chatcmd:///g {$matches[1]} <symbol>demo ", $msg);
+			$msg = str_replace('chatcmd:///tell <myname> ', "chatcmd:///g {$matches[1]} <symbol>demo ", $msg);
 		} elseif ($this->source === 'aoorg') {
-			$msg = str_replace("chatcmd:///tell {$this->botname} ", "chatcmd:///o <symbol>demo ", $msg);
-			$msg = str_replace("chatcmd:///tell <myname> ", "chatcmd:///o <symbol>demo ", $msg);
+			$msg = str_replace("chatcmd:///tell {$this->botname} ", 'chatcmd:///o <symbol>demo ', $msg);
+			$msg = str_replace('chatcmd:///tell <myname> ', 'chatcmd:///o <symbol>demo ', $msg);
 		}
 		$this->sendto->reply($msg);
 	}

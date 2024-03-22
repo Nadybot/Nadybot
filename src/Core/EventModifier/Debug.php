@@ -15,15 +15,15 @@ use Nadybot\Core\{
 
 #[
 	NCA\EventModifier(
-		name: "debug",
+		name: 'debug',
 		description: "This modifier allows you to modify the message of an\n".
-			"event by replacing text, or adding a prefix."
+			'event by replacing text, or adding a prefix.'
 	),
 	NCA\Param(
-		name: "to",
-		type: "string",
+		name: 'to',
+		type: 'string',
 		description: "The routing destination where to send debug information to.\n".
-			"Can be anything from \"<symbol>route list dst\", e.g. aopriv or aotell(Nady)",
+			'Can be anything from "<symbol>route list dst", e.g. aopriv or aotell(Nady)',
 		required: true
 	)
 ]
@@ -48,8 +48,8 @@ class Debug implements EventModifier {
 			return $event;
 		}
 		$msgs = (array)$this->text->makeBlob(
-			"Debug message",
-			json_encode($event, JSON_PRETTY_PRINT, 512)
+			'Debug message',
+			json_encode($event, \JSON_PRETTY_PRINT, 512)
 		);
 		foreach ($msgs as $msg) {
 			$r = new RoutableMessage($msg);

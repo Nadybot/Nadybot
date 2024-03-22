@@ -8,16 +8,16 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\GUILD_MODULE\GuildRankController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210426045558)]
+#[NCA\Migration(order: 20_210_426_045_558)]
 class CreateOrgRankMappingTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = GuildRankController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->string("access_level", 15)->primary();
-			$table->integer("min_rank")->unique();
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->string('access_level', 15)->primary();
+			$table->integer('min_rank')->unique();
 		});
 	}
 }

@@ -7,18 +7,18 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210426084124, shared: true)]
+#[NCA\Migration(order: 20_210_426_084_124, shared: true)]
 class CreateImplantDesignTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = "implant_design";
+		$table = 'implant_design';
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->string("name", 50);
-			$table->string("owner", 20);
-			$table->integer("dt")->nullable();
-			$table->text("design")->nullable();
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->string('name', 50);
+			$table->string('owner', 20);
+			$table->integer('dt')->nullable();
+			$table->text('design')->nullable();
 		});
 	}
 }

@@ -22,14 +22,14 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "gmi",
-		accessLevel: "guest",
-		description: "Search GMI for an item",
+		command: 'gmi',
+		accessLevel: 'guest',
+		description: 'Search GMI for an item',
 	),
 ]
 class GmiController extends ModuleInstance {
-	public const EU_GMI_API = "https://gmi.eu.nadybot.org/v1.0";
-	public const US_GMI_API = "https://gmi.us.nadybot.org/v1.0";
+	public const EU_GMI_API = 'https://gmi.eu.nadybot.org/v1.0';
+	public const US_GMI_API = 'https://gmi.us.nadybot.org/v1.0';
 
 	/** GMI API to use */
 	#[NCA\Setting\Text(options: [self::EU_GMI_API, self::US_GMI_API])]
@@ -64,8 +64,8 @@ class GmiController extends ModuleInstance {
 			}
 			if ($response->getStatus() !== 200) {
 				throw new UserException(
-					"The GMI API is encountered a temporary error. ".
-					"Please try again later."
+					'The GMI API is encountered a temporary error. '.
+					'Please try again later.'
 				);
 			}
 			$body = $response->getBody()->buffer();
@@ -77,36 +77,36 @@ class GmiController extends ModuleInstance {
 		} catch (UserException $e) {
 			throw $e;
 		} catch (JsonException $e) {
-			throw new UserException("The GMI API returned invalid data.");
+			throw new UserException('The GMI API returned invalid data.');
 		} catch (UnableToHydrateObject $e) {
-			throw new UserException("The GMI API returned invalid data.");
+			throw new UserException('The GMI API returned invalid data.');
 		} catch (Throwable) {
-			throw new UserException("Unknown error occurred contacting the GMI API.");
+			throw new UserException('Unknown error occurred contacting the GMI API.');
 		}
 		return $gmiResult;
 	}
 
 	/** Check prices on GMI for an item */
-	#[HandlesCommand("gmi")]
+	#[HandlesCommand('gmi')]
 	public function gmiIdCommand(CmdContext $context, int $itemId): void {
 		$entry = $this->itemsController->findById($itemId);
 		$this->gmiCommand($context, $entry);
 	}
 
 	/** Check prices on GMI for an item */
-	#[HandlesCommand("gmi")]
+	#[HandlesCommand('gmi')]
 	public function gmiItemCommand(CmdContext $context, PItem $item): void {
 		$entry = $this->itemsController->findById($item->lowID);
 		$this->gmiCommand($context, $entry, $item->ql);
 	}
 
 	/** Check prices on GMI for an item */
-	#[HandlesCommand("gmi")]
+	#[HandlesCommand('gmi')]
 	public function gmiSearchCommand(CmdContext $context, string $search): void {
 		$matches = $this->itemsController->findItemsFromLocal($search, null);
 		$perfectMatches = array_filter(
 			$matches,
-			function (ItemSearchResult $item) use ($search): bool {
+			static function (ItemSearchResult $item) use ($search): bool {
 				return strcasecmp($item->name, $search) === 0;
 			}
 		);
@@ -117,7 +117,7 @@ class GmiController extends ModuleInstance {
 			$matches = array_values(
 				array_filter(
 					$matches,
-					function (ItemSearchResult $item) use (&$usedIds): bool {
+					static function (ItemSearchResult $item) use (&$usedIds): bool {
 						if ($item->flags & ItemFlag::NO_DROP) {
 							return false;
 						}
@@ -144,11 +144,11 @@ class GmiController extends ModuleInstance {
 				$useQL .= "-{$item->highql}";
 			}
 			$itemLink = $this->text->makeItem($item->lowid, $item->highid, $item->ql, $item->name);
-			$gmiLink = $this->text->makeChatcmd("GMI", "/tell <myname> gmi {$item->lowid}");
+			$gmiLink = $this->text->makeChatcmd('GMI', "/tell <myname> gmi {$item->lowid}");
 			$blob .= "<tab>[{$gmiLink}] {$itemLink} (QL {$useQL})\n";
 		}
 		if ($numMatches === 0) {
-			$context->reply("No yesdrop-items matched your search criteria.");
+			$context->reply('No yesdrop-items matched your search criteria.');
 			return;
 		}
 		$msg = $this->text->makeBlob("Items matching your search ({$numMatches})", $blob);
@@ -157,11 +157,11 @@ class GmiController extends ModuleInstance {
 
 	protected function gmiCommand(CmdContext $context, ?AODBEntry $item, ?int $ql=null): void {
 		if (!isset($item)) {
-			$context->reply("This item does not exist.");
+			$context->reply('This item does not exist.');
 			return;
 		}
 		if ($item->flags & ItemFlag::NO_DROP) {
-			$context->reply("NODROP items cannot be traded via GMI.");
+			$context->reply('NODROP items cannot be traded via GMI.');
 			return;
 		}
 
@@ -173,23 +173,23 @@ class GmiController extends ModuleInstance {
 	/** @return string[] */
 	protected function renderGmiResult(GmiResult $gmi, AODBEntry $item, ?int $ql=null): array {
 		if (!count($gmi->buyOrders) && !count($gmi->sellOrders)) {
-			return ["There are no orders on GMI."];
+			return ['There are no orders on GMI.'];
 		}
 		$numBuy = count($gmi->buyOrders);
 		$numSell = count($gmi->sellOrders);
-		$buyCutString = "";
+		$buyCutString = '';
 		if (count($gmi->buyOrders) > 10) {
-			$buyCutString = " (top 10 only)";
+			$buyCutString = ' (top 10 only)';
 			$gmi->buyOrders = array_slice($gmi->buyOrders, 0, 10);
 		}
-		$sellCutString = "";
+		$sellCutString = '';
 		if (count($gmi->sellOrders) > 10) {
-			$sellCutString = " (top 10 only)";
+			$sellCutString = ' (top 10 only)';
 			$gmi->sellOrders = array_slice($gmi->sellOrders, 0, 10);
 		}
 		$orders = new Collection([...$gmi->buyOrders, ...$gmi->sellOrders]);
-		$highestAmount = $orders->max("count");
-		$highestPrice = $orders->max("price");
+		$highestAmount = $orders->max('count');
+		$highestPrice = $orders->max('price');
 		$buyers = "<header2>Buy orders{$buyCutString}<end>";
 		if (count($gmi->buyOrders)) {
 			foreach ($gmi->buyOrders as $buyOrder) {
@@ -208,7 +208,7 @@ class GmiController extends ModuleInstance {
 		}
 		return (array)$this->text->makeBlob(
 			sprintf(
-				"GMI orders for %s (%d buy, %d sell)",
+				'GMI orders for %s (%d buy, %d sell)',
 				$item->name,
 				$numBuy,
 				$numSell
@@ -220,18 +220,18 @@ class GmiController extends ModuleInstance {
 	protected function renderSellOrder(GmiSellOrder $order, AODBEntry $item, int $highestAmount, int $highestPrice): string {
 		if ($item->lowql !== $item->highql) {
 			return sprintf(
-				"%sx QL %s for %s from %s  (ends in %s)",
+				'%sx QL %s for %s from %s  (ends in %s)',
 				$this->text->alignNumber($order->count, strlen((string)$highestAmount)),
 				$this->text->alignNumber($order->ql, 3),
-				$this->text->alignNumber($order->price, strlen((string)$highestPrice), "highlight", true),
+				$this->text->alignNumber($order->price, strlen((string)$highestPrice), 'highlight', true),
 				$order->seller,
 				$this->util->unixtimeToReadable($order->expiration),
 			);
 		}
 		return sprintf(
-			"%sx for %s from %s  (ends in %s)",
+			'%sx for %s from %s  (ends in %s)',
 			$this->text->alignNumber($order->count, strlen((string)$highestAmount)),
-			$this->text->alignNumber($order->price, strlen((string)$highestPrice), "highlight", true),
+			$this->text->alignNumber($order->price, strlen((string)$highestPrice), 'highlight', true),
 			$order->seller,
 			$this->util->unixtimeToReadable($order->expiration),
 		);
@@ -241,26 +241,26 @@ class GmiController extends ModuleInstance {
 		if ($item->lowql !== $item->highql) {
 			$highlight = null;
 			if (isset($ql) && ($order->minQl <= $ql) && ($order->maxQl >= $ql)) {
-				$highlight = "green";
+				$highlight = 'green';
 			}
-			$ql = $this->text->alignNumber($order->minQl, 3, $highlight) . "-".
+			$ql = $this->text->alignNumber($order->minQl, 3, $highlight) . '-'.
 				$this->text->alignNumber($order->maxQl, 3, $highlight);
 			if ($order->minQl === $order->maxQl) {
-				$ql = "<black>000-<end>" . $this->text->alignNumber($order->maxQl, 3, $highlight);
+				$ql = '<black>000-<end>' . $this->text->alignNumber($order->maxQl, 3, $highlight);
 			}
 			return sprintf(
-				"%sx QL %s for %s from %s  (ends in %s)",
+				'%sx QL %s for %s from %s  (ends in %s)',
 				$this->text->alignNumber($order->count, strlen((string)$highestAmount)),
 				$ql,
-				$this->text->alignNumber($order->price, strlen((string)$highestPrice), "highlight", true),
+				$this->text->alignNumber($order->price, strlen((string)$highestPrice), 'highlight', true),
 				$order->buyer,
 				$this->util->unixtimeToReadable($order->expiration),
 			);
 		}
 		return sprintf(
-			"%sx for %s from %s  (ends in %s)",
+			'%sx for %s from %s  (ends in %s)',
 			$this->text->alignNumber($order->count, strlen((string)$highestAmount)),
-			$this->text->alignNumber($order->price, strlen((string)$highestPrice), "highlight", true),
+			$this->text->alignNumber($order->price, strlen((string)$highestPrice), 'highlight', true),
 			$order->buyer,
 			$this->util->unixtimeToReadable($order->expiration),
 		);

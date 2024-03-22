@@ -8,20 +8,20 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayCommandHandler;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210425191122)]
+#[NCA\Migration(order: 20_210_425_191_122)]
 class CreateDiscordMappingTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = DiscordGatewayCommandHandler::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->string("name", 12);
-			$table->string("discord_id", 50);
-			$table->string("token", 32)->nullable();
-			$table->integer("created");
-			$table->integer("confirmed")->nullable();
-			$table->unique(["name", "discord_id"]);
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->string('name', 12);
+			$table->string('discord_id', 50);
+			$table->string('token', 32)->nullable();
+			$table->integer('created');
+			$table->integer('confirmed')->nullable();
+			$table->unique(['name', 'discord_id']);
 		});
 	}
 }

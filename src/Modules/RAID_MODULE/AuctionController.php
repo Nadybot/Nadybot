@@ -34,22 +34,22 @@ use Safe\DateTime;
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Auctions"),
+	NCA\HasMigrations('Migrations/Auctions'),
 	NCA\DefineCommand(
-		command: "bid",
-		alias: "auction",
-		accessLevel: "member",
-		description: "Bid points for an auctioned item",
+		command: 'bid',
+		alias: 'auction',
+		accessLevel: 'member',
+		description: 'Bid points for an auctioned item',
 	),
 	NCA\DefineCommand(
 		command: AuctionController::CMD_BID_AUCTION,
-		accessLevel: "raid_leader_1",
-		description: "Manage auctions",
+		accessLevel: 'raid_leader_1',
+		description: 'Manage auctions',
 	),
 	NCA\DefineCommand(
 		command: AuctionController::CMD_BID_REIMBURSE,
-		accessLevel: "raid_leader_1",
-		description: "Give back points for an auction",
+		accessLevel: 'raid_leader_1',
+		description: 'Give back points for an auction',
 	),
 
 	NCA\ProvidesEvent(AuctionStartEvent::class),
@@ -57,17 +57,17 @@ use Safe\DateTime;
 	NCA\ProvidesEvent(AuctionCancelEvent::class),
 	NCA\ProvidesEvent(AuctionBidEvent::class),
 
-	NCA\EmitsMessages("auction", "start"),
-	NCA\EmitsMessages("auction", "end"),
-	NCA\EmitsMessages("auction", "cancel"),
-	NCA\EmitsMessages("auction", "bid"),
-	NCA\EmitsMessages("auction", "bid-too-low"),
-	NCA\EmitsMessages("auction", "reimburse"),
+	NCA\EmitsMessages('auction', 'start'),
+	NCA\EmitsMessages('auction', 'end'),
+	NCA\EmitsMessages('auction', 'cancel'),
+	NCA\EmitsMessages('auction', 'bid'),
+	NCA\EmitsMessages('auction', 'bid-too-low'),
+	NCA\EmitsMessages('auction', 'reimburse'),
 ]
 class AuctionController extends ModuleInstance {
-	public const CMD_BID_AUCTION = "bid auction";
-	public const CMD_BID_REIMBURSE = "bid reimburse";
-	public const DB_TABLE = "auction_<myname>";
+	public const CMD_BID_AUCTION = 'bid auction';
+	public const CMD_BID_REIMBURSE = 'bid reimburse';
+	public const DB_TABLE = 'auction_<myname>';
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
 
 	/** Allow auctions only for people in the raid */
@@ -104,7 +104,7 @@ class AuctionController extends ModuleInstance {
 
 	/** Refund maximum age of auction */
 	#[NCA\Setting\Time]
-	public int $auctionRefundMaxTime = 3600; // 1h
+	public int $auctionRefundMaxTime = 3_600; // 1h
 
 	/** Layout of the auction announcement */
 	#[NCA\Setting\Options(options: [
@@ -130,15 +130,15 @@ class AuctionController extends ModuleInstance {
 	/** Message to show when no one bid on an item */
 	#[NCA\Setting\Template(
 		options: [
-			"Auction is over. No one placed any bids. Do not loot it.",
-			"Auction is over. No one placed any bids. The item is <highlight>FFA<end>!",
-			"Auction is over. No one placed any bids. {item} is <highlight>FFA<end>!",
+			'Auction is over. No one placed any bids. Do not loot it.',
+			'Auction is over. No one placed any bids. The item is <highlight>FFA<end>!',
+			'Auction is over. No one placed any bids. {item} is <highlight>FFA<end>!',
 		],
 		exampleValues: [
-			"item" => "<a href='itemref://267528/267528/300'>Item</a>",
+			'item' => "<a href='itemref://267528/267528/300'>Item</a>",
 		],
 	)]
-	public string $unauctionedItemMessage = "Auction is over. No one placed any bids. Do not loot it.";
+	public string $unauctionedItemMessage = 'Auction is over. No one placed any bids. Do not loot it.';
 
 	/**
 	 * A list of suggested bids for the auction popup
@@ -187,15 +187,14 @@ class AuctionController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->commandAlias->register($this->moduleName, "bid history", "bh");
+		$this->commandAlias->register($this->moduleName, 'bid history', 'bh');
 	}
 
 	/** Auction an item */
 	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	public function bidStartCommand(
 		CmdContext $context,
-		#[NCA\Str("start")]
-		string $action,
+		#[NCA\Str('start')] string $action,
 		string $item
 	): void {
 		if ($this->auctionsOnlyForRaid && !isset($this->raidController->raid)) {
@@ -216,11 +215,10 @@ class AuctionController extends ModuleInstance {
 
 	/** Cancel the running auction */
 	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
-	#[NCA\Help\Group("auction")]
+	#[NCA\Help\Group('auction')]
 	public function bidCancelCommand(
 		CmdContext $context,
-		#[NCA\Str("cancel")]
-		string $action
+		#[NCA\Str('cancel')] string $action
 	): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
@@ -239,8 +237,7 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	public function bidEndCommand(
 		CmdContext $context,
-		#[NCA\Str("end")]
-		string $action
+		#[NCA\Str('end')] string $action
 	): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
@@ -264,22 +261,21 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_BID_REIMBURSE)]
 	public function bidReimburseCommand(
 		CmdContext $context,
-		#[NCA\Str("reimburse", "payback", "refund")]
-		string $action,
+		#[NCA\Str('reimburse', 'payback', 'refund')] string $action,
 		PCharacter $winner
 	): void {
 		$winner = $winner();
 
 		/** @var ?DBAuction */
 		$lastAuction = $this->db->table(self::DB_TABLE)
-			->where("winner", $winner)
-			->orderByDesc("id")
+			->where('winner', $winner)
+			->orderByDesc('id')
 			->limit(1)
 			->asObj(DBAuction::class)->first();
 		if ($lastAuction === null) {
 			$context->reply(
 				"<highlight>{$winner}<end> haven't won any auction ".
-				"that they could be reimbursed for."
+				'that they could be reimbursed for.'
 			);
 			return;
 		}
@@ -287,8 +283,8 @@ class AuctionController extends ModuleInstance {
 		if (time() - $lastAuction->end > $maxAge) {
 			$context->reply(
 				"<highlight>{$lastAuction->item}<end> was auctioned longer than ".
-				$this->util->unixtimeToReadable($maxAge) . " ".
-				"ago and can no longer be reimbursed."
+				$this->util->unixtimeToReadable($maxAge) . ' '.
+				'ago and can no longer be reimbursed.'
 			);
 			return;
 		}
@@ -318,13 +314,13 @@ class AuctionController extends ModuleInstance {
 			$context->reply(
 				"The minimum penalty for a refund is {$minPenalty} points. ".
 				"So if the cost of {$lastAuction->item} is {$lastAuction->cost} points, ".
-				"0 points would be given back."
+				'0 points would be given back.'
 			);
 			return;
 		}
 		if ($giveBack === 0) {
 			$context->reply(
-				"{$lastAuction->cost} point" . (($lastAuction->cost !== 1) ? "s" : "").
+				"{$lastAuction->cost} point" . (($lastAuction->cost !== 1) ? 's' : '').
 				" minus the {$penalty}% penalty would result in 0 points given back."
 			);
 			return;
@@ -338,33 +334,33 @@ class AuctionController extends ModuleInstance {
 			$lastAuction->winner,
 			$giveBack,
 			true,
-			"Refund for " . $lastAuction->item,
+			'Refund for ' . $lastAuction->item,
 			$context->char->name,
 			$raid
 		);
 		$this->db->table(self::DB_TABLE)
-			->where("id", $lastAuction->id)
-			->update(["reimbursed" => true]);
+			->where('id', $lastAuction->id)
+			->update(['reimbursed' => true]);
 		if ($minPenalty > $percentualPenalty) {
 			$this->routeMessage(
-				"reimburse",
+				'reimburse',
 				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
-				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$minPenalty} points min penalty) for ".
-				$lastAuction->item . "."
+				(($giveBack > 1) ? 's' : '') . " ({$lastAuction->cost} - {$minPenalty} points min penalty) for ".
+				$lastAuction->item . '.'
 			);
 		} elseif ($maxPenalty > 0 && $maxPenalty < $percentualPenalty) {
 			$this->routeMessage(
-				"reimburse",
+				'reimburse',
 				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
-				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$maxPenalty} points max penalty) for ".
-				$lastAuction->item . "."
+				(($giveBack > 1) ? 's' : '') . " ({$lastAuction->cost} - {$maxPenalty} points max penalty) for ".
+				$lastAuction->item . '.'
 			);
 		} else {
 			$this->routeMessage(
-				"reimburse",
+				'reimburse',
 				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
-				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$penalty}% penalty) for ".
-				$lastAuction->item . "."
+				(($giveBack > 1) ? 's' : '') . " ({$lastAuction->cost} - {$penalty}% penalty) for ".
+				$lastAuction->item . '.'
 			);
 		}
 	}
@@ -380,10 +376,10 @@ class AuctionController extends ModuleInstance {
 	 * You can also use the same command to increase an already given maximum offer,
 	 * but not to lower it.
 	 */
-	#[NCA\HandlesCommand("bid")]
+	#[NCA\HandlesCommand('bid')]
 	public function bidCommand(CmdContext $context, int $bid): void {
 		if (!$context->isDM()) {
-			$context->reply("<red>The <symbol>bid command only works in tells<end>.");
+			$context->reply('<red>The <symbol>bid command only works in tells<end>.');
 			return;
 		}
 		if (!isset($this->auction)) {
@@ -392,9 +388,9 @@ class AuctionController extends ModuleInstance {
 		}
 		if ($this->raidBlockController->isBlocked($context->char->name, RaidBlockController::AUCTION_BIDS)) {
 			$context->reply(
-				"You are currently blocked from ".
+				'You are currently blocked from '.
 				$this->raidBlockController->blockToString(RaidBlockController::AUCTION_BIDS).
-				"."
+				'.'
 			);
 			return;
 		}
@@ -405,7 +401,7 @@ class AuctionController extends ModuleInstance {
 				|| isset($this->raidController->raid->raiders[$context->char->name]->left)
 			)
 		) {
-			$context->reply("This auction is for the members of the current raid only.");
+			$context->reply('This auction is for the members of the current raid only.');
 			return;
 		}
 		$myPoints = $this->raidPointsController->getRaidPoints($context->char->name);
@@ -421,53 +417,51 @@ class AuctionController extends ModuleInstance {
 	}
 
 	/** See a list of the last 40 auctions */
-	#[NCA\HandlesCommand("bid")]
+	#[NCA\HandlesCommand('bid')]
 	public function bidHistoryCommand(
 		CmdContext $context,
-		#[NCA\Str("history")]
-		string $action
+		#[NCA\Str('history')] string $action
 	): void {
 		/** @var DBAuction[] */
 		$items = $this->db->table(self::DB_TABLE)
-			->orderByDesc("id")
+			->orderByDesc('id')
 			->limit(40)
 			->asObj(DBAuction::class)
 			->toArray();
 		if (!count($items)) {
-			$context->reply("No auctions have ever been started on this bot.");
+			$context->reply('No auctions have ever been started on this bot.');
 			return;
 		}
 		$context->reply(
 			$this->text->makeBlob(
-				"Last auctions (" . count($items) . ")",
+				'Last auctions (' . count($items) . ')',
 				$this->renderAuctionList($items)
 			)
 		);
 	}
 
 	/** Search the bid history for an item */
-	#[NCA\HandlesCommand("bid")]
+	#[NCA\HandlesCommand('bid')]
 	public function bidHistorySearchCommand(
 		CmdContext $context,
-		#[NCA\Str("history")]
-		string $action,
+		#[NCA\Str('history')] string $action,
 		string $search
 	): void {
 		$shortcuts = [
-			"boc"  => ["%Burden of Competence%"],
-			"acdc" => ["%Alien Combat Directive Controller%", "%acdc%", "%Invasion Plan%"],
-			"belt" => ["%Inertial Adjustment Processing Unit%"],
-			"apf belt" => ["%Inertial Adjustment Processing Unit%"],
-			"vlrd" => ["%Visible Light Remodulation Device%", "%vlrd%"],
-			"eru" => ["%Energy Redistribution Unit%"],
-			"nac" => ["%Notum Amplification Coil%"],
-			"ape" => ["%Action Probability Estimator%"],
+			'boc'  => ['%Burden of Competence%'],
+			'acdc' => ['%Alien Combat Directive Controller%', '%acdc%', '%Invasion Plan%'],
+			'belt' => ['%Inertial Adjustment Processing Unit%'],
+			'apf belt' => ['%Inertial Adjustment Processing Unit%'],
+			'vlrd' => ['%Visible Light Remodulation Device%', '%vlrd%'],
+			'eru' => ['%Energy Redistribution Unit%'],
+			'nac' => ['%Notum Amplification Coil%'],
+			'ape' => ['%Action Probability Estimator%'],
 		];
 		$quickSearch = $shortcuts[strtolower($search)] ?? [];
 		$query = $this->db->table(self::DB_TABLE);
 		if (count($quickSearch)) {
 			foreach ($quickSearch as $searchTerm) {
-				$query->orWhereIlike("item", $searchTerm);
+				$query->orWhereIlike('item', $searchTerm);
 			}
 		} else {
 			$this->db->addWhereFromParams(
@@ -479,7 +473,7 @@ class AuctionController extends ModuleInstance {
 
 		/** @var DBAuction[] */
 		$items = (clone $query)
-			->orderByDesc("end")
+			->orderByDesc('end')
 			->limit(40)
 			->asObj(DBAuction::class)->toArray();
 		if (!count($items)) {
@@ -489,21 +483,21 @@ class AuctionController extends ModuleInstance {
 
 		/** @var DBAuction */
 		$mostExpensiveItem = (clone $query)
-			->orderByDesc("cost")
+			->orderByDesc('cost')
 			->limit(1)
 			->asObj(DBAuction::class)->first();
-		$avgCost = (int)(clone $query)->avg("cost");
-		$queryLastTen = (clone $query)->orderByDesc("id")->limit(10);
-		$avgCostLastTen = (int)$this->db->fromSub($queryLastTen, "last_auctions")
-			->avg("cost");
+		$avgCost = (int)(clone $query)->avg('cost');
+		$queryLastTen = (clone $query)->orderByDesc('id')->limit(10);
+		$avgCostLastTen = (int)$this->db->fromSub($queryLastTen, 'last_auctions')
+			->avg('cost');
 		$text = "<header2>Most expensive result<end>\n".
-			"<tab>On " . DateTime::createFromFormat("U", (string)$mostExpensiveItem->end)->format("Y-m-d").
+			'<tab>On ' . DateTime::createFromFormat('U', (string)$mostExpensiveItem->end)->format('Y-m-d').
 			", <highlight>{$mostExpensiveItem->winner}<end> paid ".
-			"<highlight>" . number_format($mostExpensiveItem->cost??0) . "<end> raid points ".
-			"for " . Safe::pregReplace('|"(itemref://\d+/\d+/\d+)"|', "$1", $mostExpensiveItem->item) . "\n\n".
+			'<highlight>' . number_format($mostExpensiveItem->cost??0) . '<end> raid points '.
+			'for ' . Safe::pregReplace('|"(itemref://\d+/\d+/\d+)"|', '$1', $mostExpensiveItem->item) . "\n\n".
 		$text = "<header2>Average cost<end>\n".
-			"<tab>Total: <highlight>" . number_format($avgCost, 1) . "<end>\n".
-			"<tab>Last 10: <highlight>" . number_format($avgCostLastTen, 1) . "<end>\n\n".
+			'<tab>Total: <highlight>' . number_format($avgCost, 1) . "<end>\n".
+			'<tab>Last 10: <highlight>' . number_format($avgCostLastTen, 1) . "<end>\n\n".
 			$this->renderAuctionList($items);
 		$blob = $this->text->makeBlob("Auction history results for {$search}", $text);
 		$context->reply($blob);
@@ -516,16 +510,16 @@ class AuctionController extends ModuleInstance {
 			$result []= $this->renderAuctionItem($item);
 		}
 		return "<header2><u>Time                              Cost     Winner                                                  </u><end>\n".
-			join("\n", $result);
+			implode("\n", $result);
 	}
 
 	public function renderAuctionItem(DBAuction $item): string {
 		return sprintf(
-			"%s     %s     %s",
-			DateTime::createFromFormat("U", (string)$item->end)->format("Y-m-d H:i:s"),
-			($item->cost > 0) ? $this->text->alignNumber($item->cost, 5, null, true) : "      -",
-			"<highlight>" . ($item->winner ?? "nobody") . "<end> won ".
-			Safe::pregReplace('|"(itemref://\d+/\d+/\d+)"|', "$1", $item->item)
+			'%s     %s     %s',
+			DateTime::createFromFormat('U', (string)$item->end)->format('Y-m-d H:i:s'),
+			($item->cost > 0) ? $this->text->alignNumber($item->cost, 5, null, true) : '      -',
+			'<highlight>' . ($item->winner ?? 'nobody') . '<end> won '.
+			Safe::pregReplace('|"(itemref://\d+/\d+/\d+)"|', '$1', $item->item)
 		);
 	}
 
@@ -547,7 +541,7 @@ class AuctionController extends ModuleInstance {
 		}
 		if ($sender === $this->auction->top_bidder) {
 			if ($this->auction->max_bid >= $offer) {
-				$sendto->reply("You cannot reduce your maximum offer.");
+				$sendto->reply('You cannot reduce your maximum offer.');
 				return;
 			}
 			$this->auction->max_bid = $offer;
@@ -559,18 +553,18 @@ class AuctionController extends ModuleInstance {
 			// If both bid the same, the oldest offer has priority
 			$this->auction->bid = $offer;
 			if ($this->auctionsShowRivalBidders) {
-				$this->routeMessage("bid-too-low", "{$sender}'s bid was not high enough.");
+				$this->routeMessage('bid-too-low', "{$sender}'s bid was not high enough.");
 			}
 		} elseif ($offer < $this->auction->max_bid) {
 			// If the new bidder bid less, than old bidder bids one more than them
 			$this->auction->bid = $offer+1;
 			if ($this->auctionsShowRivalBidders) {
-				$this->routeMessage("bid-too-low", "{$sender}'s bid was not high enough.");
+				$this->routeMessage('bid-too-low', "{$sender}'s bid was not high enough.");
 			}
 		} else {
 			if (!$this->auctionsShowMaxBidder && isset($this->auction->top_bidder)) {
 				$this->chatBot->sendMassTell(
-					"You are no longer the top bidder.",
+					'You are no longer the top bidder.',
 					$this->auction->top_bidder
 				);
 			}
@@ -578,7 +572,7 @@ class AuctionController extends ModuleInstance {
 			$this->auction->bid = $this->auction->max_bid+1;
 			$this->auction->max_bid = $offer;
 			$this->auction->top_bidder = $sender;
-			$sendto->reply("You are now the top bidder.");
+			$sendto->reply('You are now the top bidder.');
 		}
 
 		$minTime = $this->auctionMinTimeAfterBid;
@@ -647,28 +641,28 @@ class AuctionController extends ModuleInstance {
 	public function getBiddingInfo(): string {
 		$info = "<header2>Placing a bid<end>\n".
 			"To place a bid, use\n".
-			"<tab><highlight>/tell " . $this->config->main->character . " bid &lt;points&gt;<end>\n".
+			'<tab><highlight>/tell ' . $this->config->main->character . " bid &lt;points&gt;<end>\n".
 			"<i>(Replace &lt;points&gt; with the number of points you would like to bid)</i>\n\n".
 			"The auction ends after {$this->auctionDuration}s, or ".
 			"{$this->auctionMinTimeAfterBid}s after the last bid was placed.\n\n".
 			"<header2>How it works<end>\n".
-			"Bidding works like ebay: You bid the maximum number of points you would like ".
+			'Bidding works like ebay: You bid the maximum number of points you would like '.
 			"to spend on an item.\n".
 			"The actual number of points spent will be that of the second highest bidder plus one,\n".
 			"so you will only actually bid as many points as needed - not more.\n\n".
 			"<header2>Note<end>\n".
-			"When 2 people are bidding the same amount for an item, the first person ".
+			'When 2 people are bidding the same amount for an item, the first person '.
 			"placing the bid will get the item.\n".
-			"Slowly increasing your bid might cost you points!";
+			'Slowly increasing your bid might cost you points!';
 		if (!empty($this->bidPresets)) {
 			$info .= "\n\nBid points: ";
 			$links = array_map(
 				function (string $amount): string {
-					return "[" . $this->text->makeChatcmd($amount, "/tell <myname> bid {$amount}") . "]";
+					return '[' . $this->text->makeChatcmd($amount, "/tell <myname> bid {$amount}") . ']';
 				},
 				$this->bidPresets,
 			);
-			$info .= join(" ", $links);
+			$info .= implode(' ', $links);
 		}
 		return $info;
 	}
@@ -682,8 +676,8 @@ class AuctionController extends ModuleInstance {
 	 */
 	public function getAnnouncementBorders(): array {
 		$layout = $this->auctionAnnouncementLayout;
-		$shortDash = str_repeat("-", 25);
-		$longDash = str_repeat("-", 65);
+		$shortDash = str_repeat('-', 25);
+		$longDash = str_repeat('-', 65);
 		switch ($layout) {
 			case 5:
 				return [
@@ -698,7 +692,7 @@ class AuctionController extends ModuleInstance {
 			case 3:
 				return [
 					"<yellow>{$shortDash}[ AUCTION ]{$shortDash}<end>\n",
-					"",
+					'',
 				];
 			case 2:
 				return [
@@ -706,47 +700,47 @@ class AuctionController extends ModuleInstance {
 					"<yellow>{$longDash}<end>",
 				];
 			default:
-				return ["", ""];
+				return ['', ''];
 		}
 	}
 
 	public function getAuctionAnnouncement(Auction $auction): string {
 		[$top, $bottom] = $this->getAnnouncementBorders();
 		$item = $auction->item->toString();
-		$bidInfo = ((array)$this->text->makeBlob("click for info", $this->getBiddingInfo(), "Howto bid"))[0];
+		$bidInfo = ((array)$this->text->makeBlob('click for info', $this->getBiddingInfo(), 'Howto bid'))[0];
 		$secondsLeft = ($auction->end - time());
 		$msg = "\n{$top}".
 			"<highlight>{$auction->auctioneer}<end> started an auction for ".
 			"<highlight>{$item}<end>!\n".
 			"You have <highlight>{$secondsLeft} seconds<end> to place bids :: {$bidInfo}".
-			(strlen($bottom) ? "\n{$bottom}" : "");
+			(strlen($bottom) ? "\n{$bottom}" : '');
 		return $msg;
 	}
 
 	#[NCA\Event(
 		name: AuctionStartEvent::EVENT_MASK,
-		description: "Announce a new auction"
+		description: 'Announce a new auction'
 	)]
 	public function announceAuction(AuctionStartEvent $event): void {
-		$this->routeMessage("start", $this->getAuctionAnnouncement($event->auction));
+		$this->routeMessage('start', $this->getAuctionAnnouncement($event->auction));
 	}
 
 	#[NCA\Event(
 		name: AuctionEndEvent::EVENT_MASK,
-		description: "Announce the winner of an auction"
+		description: 'Announce the winner of an auction'
 	)]
 	public function announceAuctionWinner(AuctionEndEvent $event): void {
 		if ($event->auction->top_bidder === null) {
 			$msg = $this->text->renderPlaceholders(
 				$this->unauctionedItemMessage,
 				[
-					"item" => $event->auction->item->item,
+					'item' => $event->auction->item->item,
 				]
 			);
-			$this->routeMessage("end", $msg);
+			$this->routeMessage('end', $msg);
 			return;
 		}
-		$points = "point" . (($event->auction->bid > 1) ? "s" : "");
+		$points = 'point' . (($event->auction->bid > 1) ? 's' : '');
 		$layout = $this->auctionWinnerAnnouncement;
 		$msg = sprintf(
 			$this->getAuctionWinnerLayout($layout),
@@ -755,31 +749,31 @@ class AuctionController extends ModuleInstance {
 			$event->auction->bid,
 			$points
 		);
-		$this->routeMessage("end", $msg);
+		$this->routeMessage('end', $msg);
 	}
 
 	public function getAuctionWinnerLayout(int $type): string {
-		$line1 = "<highlight>%s<end> won <highlight>%s<end> for <highlight>%d<end> %s.";
+		$line1 = '<highlight>%s<end> won <highlight>%s<end> for <highlight>%d<end> %s.';
 		switch ($type) {
 			case 6:
 				return "\n".
-					$this->rainbow("CONGRATULATIONS!") . "  {$line1}";
+					$this->rainbow('CONGRATULATIONS!') . "  {$line1}";
 			case 5:
 				return "\n".
-					$this->rainbow(str_repeat("-", 65), 5) . "\n".
+					$this->rainbow(str_repeat('-', 65), 5) . "\n".
 					$line1 . "\n".
-					$this->rainbow(str_repeat("-", 65), 5);
+					$this->rainbow(str_repeat('-', 65), 5);
 			case 4:
-				return "\n<font color=#FF1493>" . str_repeat("-", 65) . "</font>\n".
+				return "\n<font color=#FF1493>" . str_repeat('-', 65) . "</font>\n".
 					$line1 . "\n".
-					"<font color=#FF1493>" . str_repeat("-", 65) . "</font>";
+					'<font color=#FF1493>' . str_repeat('-', 65) . '</font>';
 			case 3:
-				return "\n<yellow>" . str_repeat("-", 25) . "[ AUCTION ]" . str_repeat("-", 25) . "<end>\n".
+				return "\n<yellow>" . str_repeat('-', 25) . '[ AUCTION ]' . str_repeat('-', 25) . "<end>\n".
 					$line1;
 			case 2:
-				return "\n<yellow>" . str_repeat("-", 65) . "<end>\n".
+				return "\n<yellow>" . str_repeat('-', 65) . "<end>\n".
 					$line1 . "\n".
-					"<yellow>" . str_repeat("-", 65) . "<end>";
+					'<yellow>' . str_repeat('-', 65) . '<end>';
 			default:
 				return $line1;
 		}
@@ -787,34 +781,34 @@ class AuctionController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: AuctionCancelEvent::EVENT_MASK,
-		description: "Announce the cancellation of an auction"
+		description: 'Announce the cancellation of an auction'
 	)]
 	public function announceAuctionCancellation(AuctionCancelEvent $event): void {
-		$this->routeMessage("cancel", "The auction was cancelled.");
+		$this->routeMessage('cancel', 'The auction was cancelled.');
 	}
 
 	public function getRunningAuctionInfo(Auction $auction): string {
-		$msg = "The highest offer is currently ";
+		$msg = 'The highest offer is currently ';
 		if ($this->auctionsShowMaxBidder) {
 			$msg = "<highlight>{$auction->top_bidder}<end> leads with ";
 		}
-		$msg .= "<highlight>{$auction->bid}<end> point" . ($auction->bid > 1 ? "s" : "") . ". ".
-			"Auction ends in <highlight>" . ($auction->end - time()) . " seconds<end> :: ".
-			((array)$this->text->makeBlob("click for info", $this->getBiddingInfo(), "Howto bid"))[0];
+		$msg .= "<highlight>{$auction->bid}<end> point" . ($auction->bid > 1 ? 's' : '') . '. '.
+			'Auction ends in <highlight>' . ($auction->end - time()) . ' seconds<end> :: '.
+			((array)$this->text->makeBlob('click for info', $this->getBiddingInfo(), 'Howto bid'))[0];
 		return $msg;
 	}
 
 	#[NCA\Event(
 		name: AuctionBidEvent::EVENT_MASK,
-		description: "Announce a new bid"
+		description: 'Announce a new bid'
 	)]
 	public function announceAuctionBid(AuctionBidEvent $event): void {
-		$this->routeMessage("bid", $this->getRunningAuctionInfo($event->auction));
+		$this->routeMessage('bid', $this->getRunningAuctionInfo($event->auction));
 	}
 
 	protected function routeMessage(string $type, string $message): void {
 		$rMessage = new RoutableMessage($message);
-		$rMessage->prependPath(new Source("auction", $type));
+		$rMessage->prependPath(new Source('auction', $type));
 		$this->messageHub->handle($rMessage);
 	}
 
@@ -822,31 +816,31 @@ class AuctionController extends ModuleInstance {
 	protected function recordAuctionInDB(Auction $auction): bool {
 		return $this->db->table(self::DB_TABLE)
 			->insert([
-				"item" => $auction->item->toString(),
-				"auctioneer" => $auction->auctioneer,
-				"cost" => $auction->bid,
-				"winner" => $auction->top_bidder,
-				"end" => $auction->end,
-				"reimbursed" => false,
+				'item' => $auction->item->toString(),
+				'auctioneer' => $auction->auctioneer,
+				'cost' => $auction->bid,
+				'winner' => $auction->top_bidder,
+				'end' => $auction->end,
+				'reimbursed' => false,
 			]);
 	}
 
 	protected function rainbow(string $text, int $length=1): string {
 		if ($length < 1) {
-			throw new InvalidArgumentException("Argument\$length to " . __FUNCTION__ . "() cannot be less than 1");
+			throw new InvalidArgumentException('Argument$length to ' . __FUNCTION__ . '() cannot be less than 1');
 		}
 		$colors = [
-			"FF0000",
-			"FFa500",
-			"FFFF00",
-			"00BB00",
-			"6666FF",
-			"EE82EE",
+			'FF0000',
+			'FFa500',
+			'FFFF00',
+			'00BB00',
+			'6666FF',
+			'EE82EE',
 		];
 		$chars = str_split($text, $length);
-		$result = "";
+		$result = '';
 		for ($i = 0; $i < count($chars); $i++) {
-			$result .= "<font color=#" . $colors[$i % count($colors)] . ">{$chars[$i]}</font>";
+			$result .= '<font color=#' . $colors[$i % count($colors)] . ">{$chars[$i]}</font>";
 		}
 		return $result;
 	}

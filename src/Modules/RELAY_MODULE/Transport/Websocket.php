@@ -39,25 +39,25 @@ use Throwable;
 
 #[
 	NCA\RelayTransport(
-		name: "websocket",
+		name: 'websocket',
 		description: "You can use websockets as a relay transport.\n".
 			"Websockets provide near-realtime communication, but since they\n".
 			"are not part of Anarchy Online, if they are down, you might have\n".
 			"a hard time debugging this.\n".
 			"Websockets require a transport protocol in order to work properly\n".
 			"and if they are public, you might also want to add an encryption\n".
-			"layer on top of that."
+			'layer on top of that.'
 	),
 	NCA\Param(
-		name: "server",
-		type: "string",
-		description: "The URI of the websocket to connect to",
+		name: 'server',
+		type: 'string',
+		description: 'The URI of the websocket to connect to',
 		required: true
 	),
 	NCA\Param(
-		name: "authorization",
-		type: "secret",
-		description: "If set, authorize against the Websocket server with a password",
+		name: 'authorization',
+		type: 'secret',
+		description: 'If set, authorize against the Websocket server with a password',
 		required: false
 	)
 ]
@@ -109,7 +109,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 	 * @return array{100|200|250|300|400|500|550|600,string,array<string,mixed>}
 	 */
 	public function wrapLogs(int $logLevel, string $message, array $context): array {
-		$message = "[Websocket {uri}] " . $message;
+		$message = '[Websocket {uri}] ' . $message;
 		$context['uri'] = $this->uri;
 		return [$logLevel, $message, $context];
 	}
@@ -142,7 +142,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 			->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
 			->intercept(new RemoveRequestHeader('origin'));
 		if (isset($this->authorization)) {
-			$httpClientBuilder->intercept(new AddRequestHeader("Authorization", $this->authorization));
+			$httpClientBuilder->intercept(new AddRequestHeader('Authorization', $this->authorization));
 		}
 		$httpClient = $httpClientBuilder->build();
 		$client = new Rfc6455Connector(httpClient: $httpClient);
@@ -160,10 +160,10 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 						return;
 					}
 					$error = $e->getMessage();
-					$this->logger->error("{error} - retrying in {delay}s", [
-						"error" => $error,
-						"delay" => 10,
-						"exception" => $e,
+					$this->logger->error('{error} - retrying in {delay}s', [
+						'error' => $error,
+						'delay' => 10,
+						'exception' => $e,
 					]);
 					$this->status = new RelayStatus(RelayStatus::INIT, $error);
 
@@ -191,13 +191,13 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 				return;
 			}
 			$this->client = $connection;
-			$this->logger->notice("Connected successfully.");
+			$this->logger->notice('Connected successfully.');
 			if (!isset($this->initCallback)) {
 				return;
 			}
 			$callback = $this->initCallback;
 			unset($this->initCallback);
-			$this->status = new RelayStatus(RelayStatus::READY, "ready");
+			$this->status = new RelayStatus(RelayStatus::READY, 'ready');
 			$callback();
 			async($this->mainLoop(...));
 		});
@@ -238,10 +238,10 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 			if ($this->chatBot->isShuttingDown()) {
 				return;
 			}
-			$this->logger->error("{error}, retrying in {delay}s", [
-				"error" => $e->getMessage(),
-				"delay" => 10,
-				"exception" => $e,
+			$this->logger->error('{error}, retrying in {delay}s', [
+				'error' => $e->getMessage(),
+				'delay' => 10,
+				'exception' => $e,
 			]);
 			$this->status = new RelayStatus(RelayStatus::INIT, $e->getMessage());
 			unset($this->client);
@@ -255,7 +255,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 		} catch (Throwable) {
 		}
 		unset($this->client);
-		$this->logger->notice("Reconnecting.");
+		$this->logger->notice('Reconnecting.');
 		$this->retryHandler = EventLoop::defer(function (string $token): void {
 			$this->relay->init();
 		});

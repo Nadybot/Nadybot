@@ -15,6 +15,6 @@ class EventModel extends DBRow {
 
 	/** @return string[] */
 	public function getAttendees(): array {
-		return array_values(array_diff(explode(",", $this->event_attendees ?? ""), [""]));
+		return array_values(array_diff(explode(',', $this->event_attendees ?? ''), ['']));
 	}
 }

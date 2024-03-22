@@ -17,7 +17,7 @@ use Safe\Exceptions\JsonException;
 
 #[
 	NCA\RelayStackMember(
-		name: "tyr-relay",
+		name: 'tyr-relay',
 		description: "This is the protocol spoken by Tyrence's websocket-server"
 	)
 ]
@@ -54,16 +54,16 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 		$encoded = [];
 		foreach ($data as $packet) {
 			$json = (object)[
-				"type" => "message",
-				"payload" => $packet,
+				'type' => 'message',
+				'payload' => $packet,
 			];
 			try {
-				$encoded []= json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+				$encoded []= json_encode($json, \JSON_THROW_ON_ERROR|\JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
 			} catch (JsonException $e) {
 				$this->logger->error(
-					"Unable to encode the relay data into tyr-relay protocol: ".
+					'Unable to encode the relay data into tyr-relay protocol: '.
 						$e->getMessage(),
-					["exception" => $e]
+					['exception' => $e]
 				);
 				continue;
 			}
@@ -78,7 +78,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
-					"Unable to decode tyr-relay message: " . $e->getMessage()
+					'Unable to decode tyr-relay message: ' . $e->getMessage()
 				);
 				$this->logger->error($this->status->text);
 				$data = null;
@@ -96,14 +96,14 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 				$data = null;
 				continue;
 			}
-			if ($json->type === "left") {
+			if ($json->type === 'left') {
 				if (isset($msg->sender)) {
 					$this->relay->setClientOffline($msg->sender);
 				}
 				$data = null;
 				continue;
 			}
-			if ($json->type !== "message") {
+			if ($json->type !== 'message') {
 				$data = null;
 				continue;
 			}

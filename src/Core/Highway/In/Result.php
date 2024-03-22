@@ -13,6 +13,6 @@ class Result extends InPackage {
 		?string $body,
 	) {
 		parent::__construct($type);
-		$this->message = $message ?? $body ?? "";
+		$this->message = $message ?? $body ?? '';
 	}
 }

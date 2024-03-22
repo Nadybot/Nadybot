@@ -8,18 +8,18 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidMemberController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20210427102206)]
+#[NCA\Migration(order: 20_210_427_102_206)]
 class CreateRaidMemberTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaidMemberController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->integer("raid_id")->index();
-			$table->string("player", 20)->index();
-			$table->integer("joined")->nullable();
-			$table->integer("left")->nullable();
+		$db->schema()->create($table, static function (Blueprint $table): void {
+			$table->integer('raid_id')->index();
+			$table->string('player', 20)->index();
+			$table->integer('joined')->nullable();
+			$table->integer('left')->nullable();
 		});
 	}
 }

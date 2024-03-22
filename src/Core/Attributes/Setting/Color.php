@@ -33,7 +33,7 @@ class Color extends DefineSetting {
 		if (!is_string($value)) {
 			throw new Exception("Type for {$this->name} must be string.");
 		}
-		if (count($matches = Safe::pregMatch("/^#?([0-9a-f]{6})$/i", $value))) {
+		if (count($matches = Safe::pregMatch('/^#?([0-9a-f]{6})$/i', $value))) {
 			return $this->defaultValue = "<font color='#{$matches[1]}'>";
 		}
 		return $value;

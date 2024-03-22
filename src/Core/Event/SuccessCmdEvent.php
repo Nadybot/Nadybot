@@ -5,7 +5,7 @@ namespace Nadybot\Core\Event;
 use Nadybot\Core\{CmdEvent, CommandHandler};
 
 class SuccessCmdEvent extends CmdEvent {
-	public const EVENT_MASK = "command(success)";
+	public const EVENT_MASK = 'command(success)';
 
 	/**
 	 * @param string         $sender     Either the name of the sender or the numeric UID (eg. city raid accouncements)

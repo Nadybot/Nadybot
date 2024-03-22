@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 class PongEvent extends Event {
-	public const EVENT_MASK = "pong";
+	public const EVENT_MASK = 'pong';
 
 	/** @param string $worker Which worker received the pong */
 	public function __construct(

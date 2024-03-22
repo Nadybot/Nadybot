@@ -20,9 +20,9 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
-		command: "whompah",
-		accessLevel: "guest",
-		description: "Shows the whompah route from one city to another",
+		command: 'whompah',
+		accessLevel: 'guest',
+		description: 'Shows the whompah route from one city to another',
 		alias: ['whompahs', 'whompa', 'whompas'],
 	)
 ]
@@ -35,16 +35,16 @@ class WhompahController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities.csv");
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities_rel.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/whompah_cities.csv');
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/whompah_cities_rel.csv');
 	}
 
 	/** Shows a list of whompah cities */
-	#[NCA\HandlesCommand("whompah")]
+	#[NCA\HandlesCommand('whompah')]
 	public function whompahListCommand(CmdContext $context): void {
 		/** @var Collection<WhompahCity> */
-		$data = $this->db->table("whompah_cities")
-			->orderBy("city_name")
+		$data = $this->db->table('whompah_cities')
+			->orderBy('city_name')
 			->asObj(WhompahCity::class);
 
 		$blob = "<header2>All known cities with Whom-Pahs<end>\n";
@@ -60,7 +60,7 @@ class WhompahController extends ModuleInstance {
 	}
 
 	/** Searches a whompah-route from one location to another */
-	#[NCA\HandlesCommand("whompah")]
+	#[NCA\HandlesCommand('whompah')]
 	public function whompahTravelCommand(CmdContext $context, PWord $start, PWord $end): void {
 		$startCity = $this->findCity($start());
 		$endCity   = $this->findCity($end());
@@ -82,7 +82,7 @@ class WhompahController extends ModuleInstance {
 		$obj = $this->findWhompahPath([$whompah], $whompahs, $startCity->id);
 
 		if ($obj === null) {
-			$msg = "There was an error while trying to find the whompah path.";
+			$msg = 'There was an error while trying to find the whompah path.';
 			$context->reply($msg);
 			return;
 		}
@@ -92,13 +92,13 @@ class WhompahController extends ModuleInstance {
 			$obj = $obj->previous;
 		}
 		$cityList = $this->getColoredNamelist($cities);
-		$msg = implode(" -> ", $cityList);
+		$msg = implode(' -> ', $cityList);
 
 		$context->reply($msg);
 	}
 
 	/** Show all whompah-connections of a city */
-	#[NCA\HandlesCommand("whompah")]
+	#[NCA\HandlesCommand('whompah')]
 	public function whompahDestinationsCommand(CmdContext $context, string $cityName): void {
 		$city = $this->findCity($cityName);
 
@@ -109,11 +109,11 @@ class WhompahController extends ModuleInstance {
 		}
 
 		/** @var WhompahCity[] */
-		$cities = $this->db->table("whompah_cities_rel AS w1")
-			->join("whompah_cities AS w2", "w1.city2_id", "w2.id")
-			->where("w1.city1_id", $city->id)
-			->orderBy("w2.city_name")
-			->select("w2.*")
+		$cities = $this->db->table('whompah_cities_rel AS w1')
+			->join('whompah_cities AS w2', 'w1.city2_id', 'w2.id')
+			->where('w1.city1_id', $city->id)
+			->orderBy('w2.city_name')
+			->select('w2.*')
 			->asObj(WhompahCity::class)->toArray();
 
 		$msg = "From <highlight>{$city->city_name}<end> ({$city->short_name}) you can get to\n- " .
@@ -152,10 +152,10 @@ class WhompahController extends ModuleInstance {
 	}
 
 	public function findCity(string $search): ?WhompahCity {
-		$q1 = $this->db->table("whompah_cities")->whereIlike("city_name", $search)
-			->orWhereIlike("short_name", $search);
-		$q2 = $this->db->table("whompah_cities")->whereIlike("city_name", "%{$search}%")
-			->orWhereIlike("short_name", "%{$search}%");
+		$q1 = $this->db->table('whompah_cities')->whereIlike('city_name', $search)
+			->orWhereIlike('short_name', $search);
+		$q2 = $this->db->table('whompah_cities')->whereIlike('city_name', "%{$search}%")
+			->orWhereIlike('short_name', "%{$search}%");
 		return $q1->asObj(WhompahCity::class)->first()
 			?: $q2->asObj(WhompahCity::class)->first();
 	}
@@ -163,9 +163,9 @@ class WhompahController extends ModuleInstance {
 	/** @return array<int,WhompahPath> */
 	public function buildWhompahNetwork(): array {
 		/** @var array<int,WhompahCity> */
-		$cities = $this->db->table("whompah_cities")
+		$cities = $this->db->table('whompah_cities')
 			->asObj(WhompahCity::class)
-			->keyBy("id")
+			->keyBy('id')
 			->toArray();
 
 		/** @var array<int,WhompahPath> */
@@ -174,9 +174,9 @@ class WhompahController extends ModuleInstance {
 			$network[$id] = new WhompahPath(current: $city);
 		}
 
-		$this->db->table("whompah_cities_rel")->orderBy("city1_id")
+		$this->db->table('whompah_cities_rel')->orderBy('city1_id')
 			->asObj(WhompahCityRel::class)
-			->each(function (WhompahCityRel $city) use ($network) {
+			->each(static function (WhompahCityRel $city) use ($network) {
 				$network[$city->city1_id]->connections[] = $city->city2_id;
 			});
 
@@ -189,7 +189,7 @@ class WhompahController extends ModuleInstance {
 	 * @return string[]
 	 */
 	protected function getColoredNamelist(array $cities, bool $addShort=false): array {
-		return array_map(function (WhompahCity $city) use ($addShort): string {
+		return array_map(static function (WhompahCity $city) use ($addShort): string {
 			$faction = strtolower($city->faction->value);
 			if ($city->faction === Faction::Neutral) {
 				$faction = 'green';

@@ -145,7 +145,7 @@ class Response {
 	/** @param array<string,null|string> $headers */
 	public function __construct(int $code=200, array $headers=[], ?string $body=null) {
 		$this->code = $code;
-		$codeString = static::DEFAULT_RESPONSE_TEXT[$this->code] ?? "Unknown";
+		$codeString = static::DEFAULT_RESPONSE_TEXT[$this->code] ?? 'Unknown';
 		$this->codeString = $codeString;
 		$this->body = $body;
 		$date = (new DateTime())->format(DateTime::RFC7231);
@@ -162,27 +162,27 @@ class Response {
 			&& !isset($this->body)
 			&& (!isset($request->method) || $request->method !== $request::HEAD)
 		) {
-			$this->body = "<!DOCTYPE html>".
-				"<html>".
-					"<head>".
+			$this->body = '<!DOCTYPE html>'.
+				'<html>'.
+					'<head>'.
 						"<title>{$this->codeString}</title>".
-					"</head>".
-					"<body>".
-						"<h1>".
+					'</head>'.
+					'<body>'.
+						'<h1>'.
 							"{$this->code} {$this->codeString}".
-						"</h1>".
-					"</body>".
-				"</html>";
+						'</h1>'.
+					'</body>'.
+				'</html>';
 		}
-		if (isset($this->body) && !isset($this->headers["Content-Type"])) {
-			$this->headers["Content-Type"] = "text/html; charset=utf-8";
+		if (isset($this->body) && !isset($this->headers['Content-Type'])) {
+			$this->headers['Content-Type'] = 'text/html; charset=utf-8';
 		}
 		if (isset($this->body) || in_array($this->code, [static::OK, static::CREATED])) {
 			if (!array_key_exists('Content-Length', $this->headers)) {
-				$this->headers["Content-Length"] = (string)strlen($this->body??"");
+				$this->headers['Content-Length'] = (string)strlen($this->body??'');
 			}
 		}
-		$headers = "";
+		$headers = '';
 		foreach ($this->headers as $key => $value) {
 			if ($value !== null) {
 				$headers .= "{$key}: {$value}\r\n";

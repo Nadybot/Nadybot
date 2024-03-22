@@ -62,28 +62,28 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 				$this->chatBot->char?->id
 			));
 			$rMessage->path = [
-				new Source(Source::WEB, "Web"),
+				new Source(Source::WEB, 'Web'),
 			];
 			$this->messageHub->handle($rMessage);
 		}
 		$msgs = $this->webChatConverter->convertMessages($msg);
 		foreach ($msgs as $msg) {
-			$path = new WebSource(Source::WEB, "Web");
+			$path = new WebSource(Source::WEB, 'Web');
 			$path->renderAs = $path->render(null);
-			$hopColor = $this->messageHub->getHopColor($rMessage->path, Source::WEB, new Source(Source::WEB, "Web"), "tag_color");
+			$hopColor = $this->messageHub->getHopColor($rMessage->path, Source::WEB, new Source(Source::WEB, 'Web'), 'tag_color');
 			if (isset($color, $hopColor->tag_color)) {
 				$path->color = $hopColor->tag_color;
 			} else {
-				$path->color = "";
+				$path->color = '';
 			}
-			$color = "#FFFFFF";
-			if (count($matches = Safe::pregMatch("/#([A-Fa-f0-9]{6})/", $this->settingManager->getString("default_routed_sys_color")??"<font>"))) {
+			$color = '#FFFFFF';
+			if (count($matches = Safe::pregMatch('/#([A-Fa-f0-9]{6})/', $this->settingManager->getString('default_routed_sys_color')??'<font>'))) {
 				$color = $matches[1];
 			}
 			$xmlMessage = new AOWebChatEvent(
 				message: $msg,
 				sender: $this->config->main->character,
-				channel: "web",
+				channel: 'web',
 				path: [$path],
 				color: $color,
 			);

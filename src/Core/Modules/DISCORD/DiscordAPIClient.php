@@ -27,7 +27,7 @@ use Throwable;
  */
 #[NCA\Instance]
 class DiscordAPIClient extends ModuleInstance {
-	public const DISCORD_API = "https://discord.com/api/v10";
+	public const DISCORD_API = 'https://discord.com/api/v10';
 
 	/** @var ChannelQueueItem[] */
 	protected array $outQueue = [];
@@ -60,7 +60,7 @@ class DiscordAPIClient extends ModuleInstance {
 	 * @throws JsonException on encoding error
 	 */
 	public static function encode(mixed $data): string {
-		$data = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
+		$data = json_encode($data, \JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE|\JSON_INVALID_UTF8_SUBSTITUTE);
 		$data = Safe::pregReplace('/,"[^"]+":null/', '', $data);
 		$data = Safe::pregReplace('/"[^"]+":null,/', '', $data);
 		$data = Safe::pregReplace('/"[^"]+":null/', '', $data);
@@ -69,14 +69,14 @@ class DiscordAPIClient extends ModuleInstance {
 
 	public function getGateway(): DiscordGateway {
 		return $this->sendRequest(
-			new Request(self::DISCORD_API . "/gateway/bot"),
+			new Request(self::DISCORD_API . '/gateway/bot'),
 			new DiscordGateway(),
 		);
 	}
 
 	public function modifyGuildMember(string $guildId, string $userId, string $data): stdClass {
 		$uri = self::DISCORD_API . "/guilds/{$guildId}/members/{$userId}";
-		$request = new Request($uri, "PATCH");
+		$request = new Request($uri, 'PATCH');
 		$request->setBody(new DiscordBody($data));
 		return $this->sendRequest($request, new stdClass());
 	}
@@ -87,7 +87,7 @@ class DiscordAPIClient extends ModuleInstance {
 		string $message,
 	): array {
 		$url = self::DISCORD_API . "/applications/{$applicationId}/commands";
-		$request = new Request($url, "PUT");
+		$request = new Request($url, 'PUT');
 		$request->setBody(new DiscordBody($message));
 		return $this->sendRequest($request, [new ApplicationCommand()]);
 	}
@@ -97,7 +97,7 @@ class DiscordAPIClient extends ModuleInstance {
 		string $commandId,
 	): stdClass {
 		$url = self::DISCORD_API . "/applications/{$applicationId}/commands/{$commandId}";
-		return $this->sendRequest(new Request($url, "DELETE"), new stdClass());
+		return $this->sendRequest(new Request($url, 'DELETE'), new stdClass());
 	}
 
 	/** @return ApplicationCommand[] */
@@ -114,7 +114,7 @@ class DiscordAPIClient extends ModuleInstance {
 		string $message,
 	): stdClass {
 		$url = DiscordAPIClient::DISCORD_API . "/interactions/{$interactionId}/{$interactionToken}/callback";
-		$request = new Request($url, "POST");
+		$request = new Request($url, 'POST');
 		$request->setBody(new DiscordBody($message));
 		return $this->sendRequest($request, new stdClass());
 	}
@@ -122,13 +122,13 @@ class DiscordAPIClient extends ModuleInstance {
 	public function leaveGuild(string $guildId): stdClass {
 		return $this->sendRequest(new Request(
 			self::DISCORD_API . "/users/@me/guilds/{$guildId}",
-			"DELETE"
+			'DELETE'
 		), new stdClass());
 	}
 
 	public function queueToChannel(string $channel, string $message): void {
-		$this->logger->info("Adding discord message to end of channel queue {channel}", [
-			"channel" => $channel,
+		$this->logger->info('Adding discord message to end of channel queue {channel}', [
+			'channel' => $channel,
 		]);
 		$suspension = EventLoop::getSuspension();
 		$this->outQueue []= new ChannelQueueItem($channel, $message, $suspension);
@@ -139,8 +139,8 @@ class DiscordAPIClient extends ModuleInstance {
 	}
 
 	public function sendToChannel(string $channel, string $message): void {
-		$this->logger->info("Adding discord message to front of channel queue {channel}", [
-			"channel" => $channel,
+		$this->logger->info('Adding discord message to front of channel queue {channel}', [
+			'channel' => $channel,
 		]);
 		$suspension = EventLoop::getSuspension();
 		array_unshift($this->outQueue, new ChannelQueueItem($channel, $message, $suspension));
@@ -151,8 +151,8 @@ class DiscordAPIClient extends ModuleInstance {
 	}
 
 	public function queueToWebhook(string $applicationId, string $interactionToken, string $message): void {
-		$this->logger->info("Adding discord message to end of webhook queue {interaction}", [
-			"interaction" => $interactionToken,
+		$this->logger->info('Adding discord message to end of webhook queue {interaction}', [
+			'interaction' => $interactionToken,
 		]);
 		$suspension = EventLoop::getSuspension();
 		$this->webhookQueue []= new WebhookQueueItem($applicationId, $interactionToken, $message, $suspension);
@@ -163,13 +163,13 @@ class DiscordAPIClient extends ModuleInstance {
 	}
 
 	public function sendToUser(string $user, string $message): void {
-		$this->logger->info("Sending message to discord user {user}", [
-			"user" => $user,
-			"message" => $message,
+		$this->logger->info('Sending message to discord user {user}', [
+			'user' => $user,
+			'message' => $message,
 		]);
-		$request = new Request(self::DISCORD_API . "/users/@me/channels", "POST");
+		$request = new Request(self::DISCORD_API . '/users/@me/channels', 'POST');
 		$request->setBody(BufferedContent::fromString(
-			json_encode(["recipient_id" => $user]),
+			json_encode(['recipient_id' => $user]),
 			'application/json; charset=utf-8'
 		));
 		$channel = $this->sendRequest($request, new DiscordChannel());
@@ -181,20 +181,20 @@ class DiscordAPIClient extends ModuleInstance {
 	}
 
 	public function getChannel(string $channelId): DiscordChannel {
-		$this->logger->info("Looking up discord channel {channelId}", [
-			"channelId" => $channelId,
+		$this->logger->info('Looking up discord channel {channelId}', [
+			'channelId' => $channelId,
 		]);
 		$request = new Request(self::DISCORD_API . "/channels/{$channelId}");
 		return $this->sendRequest($request, new DiscordChannel());
 	}
 
 	public function getUser(string $userId): DiscordUser {
-		$this->logger->info("Looking up discord user {userId}", [
-			"userId" => $userId,
+		$this->logger->info('Looking up discord user {userId}', [
+			'userId' => $userId,
 		]);
 		if (isset($this->userCache[$userId])) {
-			$this->logger->debug("Information found in cache", [
-				"cache" => $this->userCache[$userId],
+			$this->logger->debug('Information found in cache', [
+				'cache' => $this->userCache[$userId],
 			]);
 			return $this->userCache[$userId];
 		}
@@ -212,13 +212,13 @@ class DiscordAPIClient extends ModuleInstance {
 	}
 
 	public function getGuildMember(string $guildId, string $userId): GuildMember {
-		$this->logger->info("Looking up discord guild {guildId} member {userId}", [
-			"guildId" => $guildId,
-			"userId" => $userId,
+		$this->logger->info('Looking up discord guild {guildId} member {userId}', [
+			'guildId' => $guildId,
+			'userId' => $userId,
 		]);
 		if (isset($this->guildMemberCache[$guildId][$userId])) {
-			$this->logger->debug("Information found in cache", [
-				"cache" => $this->guildMemberCache[$guildId][$userId],
+			$this->logger->debug('Information found in cache', [
+				'cache' => $this->guildMemberCache[$guildId][$userId],
 			]);
 			return $this->guildMemberCache[$guildId][$userId];
 		}
@@ -230,12 +230,12 @@ class DiscordAPIClient extends ModuleInstance {
 
 	/** Create a new channel invite */
 	public function createChannelInvite(string $channelId, int $maxAge, int $maxUses): DiscordChannelInvite {
-		$request = new Request(self::DISCORD_API . "/channels/{$channelId}/invites", "POST");
+		$request = new Request(self::DISCORD_API . "/channels/{$channelId}/invites", 'POST');
 		$request->setBody(BufferedContent::fromString(
 			json_encode([
-				"max_age" => $maxAge,
-				"max_uses" => $maxUses,
-				"unique" => true,
+				'max_age' => $maxAge,
+				'max_uses' => $maxUses,
+				'unique' => true,
 			]),
 			'application/json; charset=utf-8'
 		));
@@ -274,12 +274,12 @@ class DiscordAPIClient extends ModuleInstance {
 
 	/** Register a new Emoji in the $guildId */
 	public function createEmoji(string $guildId, string $name, string $image): Emoji {
-		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis", "POST");
+		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis", 'POST');
 		$request->setBody(BufferedContent::fromString(
 			json_encode([
-				"name" => $name,
-				"image" => $image,
-				"roles" => [],
+				'name' => $name,
+				'image' => $image,
+				'roles' => [],
 			]),
 			'application/json; charset=utf-8'
 		));
@@ -289,14 +289,14 @@ class DiscordAPIClient extends ModuleInstance {
 	/** Change the data for an already existing Emoji */
 	public function changeEmoji(string $guildId, Emoji $emoji, string $image): Emoji {
 		if (!isset($emoji->id) || !isset($emoji->name)) {
-			throw new RuntimeException("Wrong emoji given");
+			throw new RuntimeException('Wrong emoji given');
 		}
-		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis/{$emoji->id}", "PATCH");
+		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis/{$emoji->id}", 'PATCH');
 		$request->setBody(BufferedContent::fromString(
 			json_encode([
-				"name" => $emoji->name,
-				"image" => $image,
-				"roles" => [],
+				'name' => $emoji->name,
+				'image' => $image,
+				'roles' => [],
 			]),
 			'application/json; charset=utf-8'
 		));
@@ -305,23 +305,23 @@ class DiscordAPIClient extends ModuleInstance {
 
 	/** Delete an already existing emoji */
 	public function deleteEmoji(string $guildId, string $emojiId): stdClass {
-		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis/{$emojiId}", "DELETE");
+		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis/{$emojiId}", 'DELETE');
 		return $this->sendRequest($request, new stdClass());
 	}
 
 	private function getClient(): HttpClient {
 		$botToken = $this->discordCtrl->discordBotToken;
 		$client = $this->builder
-			->intercept(new SetRequestHeaderIfUnset("Authorization", "Bot {$botToken}"))
+			->intercept(new SetRequestHeaderIfUnset('Authorization', "Bot {$botToken}"))
 			->intercept(new HttpRetryRateLimits())
 			->build();
 		return $client;
 	}
 
 	private function processQueue(): void {
-		$this->logger->info("Processing discord-queue");
+		$this->logger->info('Processing discord-queue');
 		if (empty($this->outQueue)) {
-			$this->logger->info("Channel queue empty, stopping processing");
+			$this->logger->info('Channel queue empty, stopping processing');
 			$this->queueProcessing = false;
 			return;
 		}
@@ -332,21 +332,21 @@ class DiscordAPIClient extends ModuleInstance {
 
 	private function immediatelySendToChannel(ChannelQueueItem $item): void {
 		try {
-			$this->logger->info("Sending message to discord channel {channel}", [
-				"channel" => $item->channelId,
-				"message" => $item->message,
+			$this->logger->info('Sending message to discord channel {channel}', [
+				'channel' => $item->channelId,
+				'message' => $item->message,
 			]);
 			$url = self::DISCORD_API . "/channels/{$item->channelId}/messages";
-			$request = new Request($url, "POST");
+			$request = new Request($url, 'POST');
 			$request->setBody(new DiscordBody($item->message));
 			$this->sendRequest($request, new stdClass());
 			if (isset($item->suspension)) {
 				$item->suspension->resume();
 			}
 		} catch (Throwable $e) {
-			$this->logger->error("Sending message failed: {error}", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Sending message failed: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 		}
 		$this->processQueue();
@@ -364,21 +364,21 @@ class DiscordAPIClient extends ModuleInstance {
 
 	private function immediatelySendToWebhook(WebhookQueueItem $item): void {
 		try {
-			$this->logger->info("Sending message to discord webhook {webhook}", [
-				"webhook" => $item->interactionToken,
-				"message" => $item->message,
+			$this->logger->info('Sending message to discord webhook {webhook}', [
+				'webhook' => $item->interactionToken,
+				'message' => $item->message,
 			]);
 			$url = self::DISCORD_API . "/webhooks/{$item->applicationId}/{$item->interactionToken}";
-			$request = new Request($url, "POST");
+			$request = new Request($url, 'POST');
 			$request->setBody(new DiscordBody($item->message));
 			$result = $this->sendRequest($request, new stdClass());
 			if (isset($item->suspension)) {
 				$item->suspension->resume($result);
 			}
 		} catch (Throwable $e) {
-			$this->logger->error("Error sending request: {error}. Dropping message", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
+			$this->logger->error('Error sending request: {error}. Dropping message', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
 			]);
 		}
 		$this->processWebhookQueue();
@@ -401,7 +401,7 @@ class DiscordAPIClient extends ModuleInstance {
 			$retries--;
 			try {
 				if ($retries < $maxTries -1) {
-					$this->logger->notice("Retrying discord-message");
+					$this->logger->notice('Retrying discord-message');
 				}
 
 				$response = $client->request($request);
@@ -410,10 +410,10 @@ class DiscordAPIClient extends ModuleInstance {
 				if ($response->getStatus() >= 500 && $response->getStatus() < 600) {
 					$delay = 0.5;
 					$this->logger->warning(
-						"Got a {code} when sending message to Discord{retry}",
+						'Got a {code} when sending message to Discord{retry}',
 						[
-							"retry" => ($retries > 0) ? ", retrying in {$delay}s" : "",
-							"code" => $response->getStatus(),
+							'retry' => ($retries > 0) ? ", retrying in {$delay}s" : '',
+							'code' => $response->getStatus(),
 						]
 					);
 					$retry = true;
@@ -425,11 +425,11 @@ class DiscordAPIClient extends ModuleInstance {
 			} catch (\Exception $e) {
 				$delay = 0.5;
 				$this->logger->error(
-					"Error sending message to discord: {error}{retry}",
+					'Error sending message to discord: {error}{retry}',
 					[
-						"retry" => ($retries > 0) ? ", retrying in {$delay}s" : "",
-						"error" => $e->getMessage(),
-						"delay" => $delay,
+						'retry' => ($retries > 0) ? ", retrying in {$delay}s" : '',
+						'error' => $e->getMessage(),
+						'delay' => $delay,
 					]
 				);
 				$retry = true;
@@ -455,7 +455,7 @@ class DiscordAPIClient extends ModuleInstance {
 			throw new DiscordException("Unable to send message with {$maxTries} tries");
 		}
 		if ($retries !== $maxTries -1) {
-			$this->logger->notice("Message sent successfully.");
+			$this->logger->notice('Message sent successfully.');
 		}
 		if ($response->getStatus() === 204) {
 			/** @psalm-suppress InvalidReturnStatement */
@@ -483,13 +483,13 @@ class DiscordAPIClient extends ModuleInstance {
 			$reply = $o;
 		}
 		if (is_object($reply)) {
-			$this->logger->info("Decoded discord reply into {class}", [
-				"class" => basename(str_replace('\\', '/', get_class($reply))),
-				"object" => $reply,
+			$this->logger->info('Decoded discord reply into {class}', [
+				'class' => basename(str_replace('\\', '/', $reply::class)),
+				'object' => $reply,
 			]);
 		} elseif (is_array($reply)) {
-			$this->logger->info("Decoded discord reply into an array", [
-				"object" => $reply,
+			$this->logger->info('Decoded discord reply into an array', [
+				'object' => $reply,
 			]);
 		}
 		return $reply;

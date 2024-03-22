@@ -23,16 +23,16 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  */
 #[
 	NCA\Instance,
-	NCA\HasMigrations("Migrations/Weapons"),
+	NCA\HasMigrations('Migrations/Weapons'),
 	NCA\DefineCommand(
-		command: "bio",
-		accessLevel: "guest",
+		command: 'bio',
+		accessLevel: 'guest',
 		description: "Identifies Solid Clump of Kyr'Ozch Bio-Material",
 	),
 	NCA\DefineCommand(
-		command: "bioinfo",
-		accessLevel: "guest",
-		description: "Shows info about a particular bio type",
+		command: 'bioinfo',
+		accessLevel: 'guest',
+		description: 'Shows info about a particular bio type',
 	)
 ]
 class AlienBioController extends ModuleInstance {
@@ -58,98 +58,98 @@ class AlienBioController extends ModuleInstance {
 	}
 
 	/** Identify a "Solid Clump of Kyr'Ozch Bio-Material" */
-	#[NCA\HandlesCommand("bio")]
-	#[NCA\Help\Epilogue("Just drag and drop biomaterials into the chat as parameters.")]
+	#[NCA\HandlesCommand('bio')]
+	#[NCA\Help\Epilogue('Just drag and drop biomaterials into the chat as parameters.')]
 	public function bioCommand(CmdContext $context, #[NCA\SpaceOptional] PItem ...$clumps): void {
 		$blob = '';
-		$bioinfo = "";
-		$name = "Unknown Bio-Material";
+		$bioinfo = '';
+		$name = 'Unknown Bio-Material';
 		foreach ($clumps as $clump) {
 			switch ($clump->highID) {
-				case 247707:
-				case 247708:
-					$bioinfo = "1";
+				case 247_707:
+				case 247_708:
+					$bioinfo = '1';
 					$name = "Kyr'Ozch Bio-Material - Type 1";
 					break;
-				case 247709:
-				case 247710:
-					$bioinfo = "2";
+				case 247_709:
+				case 247_710:
+					$bioinfo = '2';
 					$name = "Kyr'Ozch Bio-Material - Type 2";
 					break;
-				case 247717:
-				case 247718:
-					$bioinfo = "3";
+				case 247_717:
+				case 247_718:
+					$bioinfo = '3';
 					$name = "Kyr'Ozch Bio-Material - Type 3 ";
 					break;
-				case 247711:
-				case 247712:
-					$bioinfo = "4";
+				case 247_711:
+				case 247_712:
+					$bioinfo = '4';
 					$name = "Kyr'Ozch Bio-Material - Type 4";
 					break;
-				case 247713:
-				case 247714:
-					$bioinfo = "5";
+				case 247_713:
+				case 247_714:
+					$bioinfo = '5';
 					$name = "Kyr'Ozch Bio-Material - Type 5";
 					break;
-				case 247715:
-				case 247716:
-					$bioinfo = "12";
+				case 247_715:
+				case 247_716:
+					$bioinfo = '12';
 					$name = "Kyr'Ozch Bio-Material - Type 12 ";
 					break;
-				case 247719:
-				case 247720:
-					$bioinfo = "13";
+				case 247_719:
+				case 247_720:
+					$bioinfo = '13';
 					$name = "Kyr'Ozch Bio-Material - Type 13";
 					break;
-				case 288699:
-				case 288700:
-					$bioinfo = "48";
+				case 288_699:
+				case 288_700:
+					$bioinfo = '48';
 					$name = "Kyr'Ozch Bio-Material - Type 48";
 					break;
-				case 247697:
-				case 247698:
-					$bioinfo = "76";
+				case 247_697:
+				case 247_698:
+					$bioinfo = '76';
 					$name = "Kyr'Ozch Bio-Material - Type 76";
 					break;
-				case 247699:
-				case 247700:
-					$bioinfo = "112";
+				case 247_699:
+				case 247_700:
+					$bioinfo = '112';
 					$name = "Kyr'Ozch Bio-Material - Type 112";
 					break;
-				case 247701:
-				case 247702:
-					$bioinfo = "240";
+				case 247_701:
+				case 247_702:
+					$bioinfo = '240';
 					$name = "Kyr'Ozch Bio-Material - Type 240";
 					break;
-				case 247703:
-				case 247704:
-					$bioinfo = "880";
+				case 247_703:
+				case 247_704:
+					$bioinfo = '880';
 					$name = "Kyr'Ozch Bio-Material - Type 880";
 					break;
-				case 247705:
-				case 247706:
-					$bioinfo = "992";
+				case 247_705:
+				case 247_706:
+					$bioinfo = '992';
 					$name = "Kyr'Ozch Bio-Material - Type 992";
 					break;
-				case 247102:
-				case 247103:
-					$bioinfo = "pristine";
+				case 247_102:
+				case 247_103:
+					$bioinfo = 'pristine';
 					$name = "Pristine Kyr'Ozch Bio-Material";
 					break;
-				case 247104:
-				case 247105:
-					$bioinfo = "mutated";
+				case 247_104:
+				case 247_105:
+					$bioinfo = 'mutated';
 					$name = "Mutated Kyr'Ozch Bio-Material";
 					break;
-				case 247764:
-				case 254804:
-					$bioinfo = "serum";
+				case 247_764:
+				case 254_804:
+					$bioinfo = 'serum';
 					$name = "Kyr'Ozch Viral Serum";
 					break;
 				default:
-					$bioinfo = "";
+					$bioinfo = '';
 					if ($clump->name === "Solid Clump of Kyr'Ozch Bio-Material") {
-						$name = "Unknown Bio-Material";
+						$name = 'Unknown Bio-Material';
 					} else {
 						$context->reply("{$clump} is not bio material.");
 						return;
@@ -158,7 +158,7 @@ class AlienBioController extends ModuleInstance {
 			}
 
 			$biotypeLink = $name;
-			if ($bioinfo !== "") {
+			if ($bioinfo !== '') {
 				$biotypeLink = $this->text->makeChatcmd($name, "/tell <myname> bioinfo {$bioinfo} {$clump->ql}");
 			}
 			$blob .= "<header2>QL {$clump->ql} clump<end>\n".
@@ -174,13 +174,13 @@ class AlienBioController extends ModuleInstance {
 				$this->bioinfoCommand($context, new PWord($bioinfo), $clumps[0]->ql);
 			}
 		} else {
-			$msg = $this->text->makeBlob("Identified Bio-Materials", $blob);
+			$msg = $this->text->makeBlob('Identified Bio-Materials', $blob);
 			$context->reply($msg);
 		}
 	}
 
 	/** See all bio material types */
-	#[NCA\HandlesCommand("bioinfo")]
+	#[NCA\HandlesCommand('bioinfo')]
 	public function bioinfoListCommand(CmdContext $context): void {
 		$blob  = "<header2>OFAB Armor Types<end>\n";
 		$blob .= $this->getTypeBlob(self::LE_ARMOR_TYPES);
@@ -194,7 +194,7 @@ class AlienBioController extends ModuleInstance {
 		$blob .= "\n<header2>AI Weapon Types<end>\n";
 		$blob .= $this->getTypeBlob(self::AI_WEAPON_TYPES);
 
-		$msg = $this->text->makeBlob("Bio-Material Types", $blob);
+		$msg = $this->text->makeBlob('Bio-Material Types', $blob);
 		$context->reply($msg);
 	}
 
@@ -202,18 +202,18 @@ class AlienBioController extends ModuleInstance {
 	public function getTypeBlob(array $types): string {
 		$blob = '';
 		foreach ($types as $type) {
-			$blob .= "<tab>" . $this->text->makeChatcmd((string)$type, "/tell <myname> bioinfo {$type}") . "\n";
+			$blob .= '<tab>' . $this->text->makeChatcmd((string)$type, "/tell <myname> bioinfo {$type}") . "\n";
 		}
 		return $blob;
 	}
 
 	/** Show info about a particular bio type */
-	#[NCA\HandlesCommand("bioinfo")]
+	#[NCA\HandlesCommand('bioinfo')]
 	public function bioinfoIDCommand(CmdContext $context, int $bio, ?int $ql): void {
 		$ql ??= 300;
 		$ql = min(300, max(1, $ql));
 
-		$msg = "Unknown Bio-Material";
+		$msg = 'Unknown Bio-Material';
 		if (in_array($bio, self::LE_ARMOR_TYPES)) {
 			$msg = $this->ofabArmorBio($ql, $bio);
 		} elseif (in_array($bio, self::LE_WEAPON_TYPES)) {
@@ -226,13 +226,13 @@ class AlienBioController extends ModuleInstance {
 	}
 
 	/** This command handler shows info about a particular bio type. */
-	#[NCA\HandlesCommand("bioinfo")]
+	#[NCA\HandlesCommand('bioinfo')]
 	public function bioinfoCommand(CmdContext $context, PWord $bio, ?int $ql): void {
 		$bio = strtolower($bio());
 		$ql ??= 300;
 		$ql = min(300, max(1, $ql));
 
-		$msg = "Unknown Bio-Material";
+		$msg = 'Unknown Bio-Material';
 		if (in_array($bio, self::AI_ARMOR_TYPES)) {
 			$msg = $this->alienArmorBio($ql, $bio);
 		} elseif ($bio === 'serum') {
@@ -265,12 +265,12 @@ class AlienBioController extends ModuleInstance {
 		$name = "Kyr'Ozch Bio-Material - Type {$type}";
 		$item = $this->itemsController->getItem($name, $ql);
 		if ($item === null) {
-			throw new Exception("Cannot find expected ofab bio material in database.");
+			throw new Exception('Cannot find expected ofab bio material in database.');
 		}
 
 		/** @var OfabArmorType[] $data */
-		$data = $this->db->table("ofabarmortype")
-			->where("type", $type)
+		$data = $this->db->table('ofabarmortype')
+			->where('type', $type)
 			->asObj(OfabArmorType::class)
 			->toArray();
 
@@ -291,12 +291,12 @@ class AlienBioController extends ModuleInstance {
 		$name = "Kyr'Ozch Bio-Material - Type {$type}";
 		$item = $this->itemsController->getItem($name, $ql);
 		if ($item === null) {
-			throw new Exception("Cannot find expected ofab bio material in database.");
+			throw new Exception('Cannot find expected ofab bio material in database.');
 		}
 
 		/** @var OfabWeapon[] $data */
-		$data = $this->db->table("ofabweapons")
-			->where("type", $type)
+		$data = $this->db->table('ofabweapons')
+			->where('type', $type)
 			->asObj(OfabWeapon::class)->toArray();
 
 		$blob = $item . "\n\n";
@@ -317,7 +317,7 @@ class AlienBioController extends ModuleInstance {
 		$name = "Kyr'Ozch Bio-Material - Type {$type}";
 		$item = $this->itemsController->getItem($name, $ql);
 		if ($item === null) {
-			throw new Exception("Cannot find expected alien bio material in database.");
+			throw new Exception('Cannot find expected alien bio material in database.');
 		}
 
 		// Ensures that the maximum AI weapon that combines into doesn't go over QL 300 when the user presents a QL 271+ bio-material
@@ -328,11 +328,11 @@ class AlienBioController extends ModuleInstance {
 
 		$requiredEEandCL = (int)floor($ql * 4.5);
 
-		$specials = $this->db->table("alienweaponspecials")
-			->where("type", $type)
-			->select("specials")
+		$specials = $this->db->table('alienweaponspecials')
+			->where('type', $type)
+			->select('specials')
 			->limit(1)
-			->pluckStrings("specials")
+			->pluckStrings('specials')
 			->first();
 
 		$blob = $item . "\n\n";
@@ -341,14 +341,14 @@ class AlienBioController extends ModuleInstance {
 		$blob .= "<highlight>Adds {$specials} to:<end>\n";
 
 		/** @var AlienWeapon[] $data */
-		$data = $this->db->table("alienweapons")
-			->where("type", $type)
+		$data = $this->db->table('alienweapons')
+			->where('type', $type)
 			->asObj(AlienWeapon::class)
 			->toArray();
 		foreach ($data as $row) {
 			$item = $this->itemsController->getItem($row->name, $maxAIType);
 			if (!isset($item)) {
-				throw new Exception("Cannot find expected alien bio material in database.");
+				throw new Exception('Cannot find expected alien bio material in database.');
 			}
 			$blob .= "{$item}\n";
 		}
@@ -380,25 +380,25 @@ class AlienBioController extends ModuleInstance {
 		$requiredPsychology = (int)floor($ql    * 6);
 		$max_psyco          = (int)floor($maxQL * 6);
 		$requiredEEandCL    = (int)floor($ql    * 4.5);
-		$name = "UNKNOWN";
-		if (strtolower($type) == "mutated") {
+		$name = 'UNKNOWN';
+		if (strtolower($type) == 'mutated') {
 			$name = "Mutated Kyr'Ozch Bio-Material";
 			$reqiredChem = (int)floor($ql * 7);
-			$chemMsg = "7 * QL";
-			$extraInfo = "";
-		} elseif (strtolower($type) == "pristine") {
+			$chemMsg = '7 * QL';
+			$extraInfo = '';
+		} elseif (strtolower($type) == 'pristine') {
 			$name = "Pristine Kyr'Ozch Bio-Material";
 			$reqiredChem = (int)floor($ql * 4.5);
-			$chemMsg = "4.5 * QL";
-			$extraInfo = "(<highlight>less tradeskill requirements than mutated.<end>)";
+			$chemMsg = '4.5 * QL';
+			$extraInfo = '(<highlight>less tradeskill requirements than mutated.<end>)';
 		} else {
-			return "Unknown tradeskil process";
+			return 'Unknown tradeskil process';
 		}
 		// End of tradeskill processes
 
 		$item = $this->itemsController->getItem($name, $ql);
 		if (!isset($item)) {
-			throw new Exception("Cannot find expected alien bio material in database.");
+			throw new Exception('Cannot find expected alien bio material in database.');
 		}
 
 		$blob = $item . "\n\n";
@@ -412,7 +412,7 @@ class AlienBioController extends ModuleInstance {
 			"Nano Programming - <highlight>{$requiredNP}<end> (<highlight>6 * QL<end>)\n" .
 			"Pharma Tech - <highlight>{$requiredPharma}<end> (<highlight>6 * QL<end>)\n" .
 			"Psychology - <highlight>{$requiredPsychology}<end> (<highlight>6 * QL<end>)\n\n" .
-			"Note:<highlight> Tradeskill requirements are based off the lowest QL items needed throughout the entire process.<end>";
+			'Note:<highlight> Tradeskill requirements are based off the lowest QL items needed throughout the entire process.<end>';
 
 		$blob .= "\n\nFor Supple, Arithmetic, or Enduring:\n\n" .
 			"<highlight>When completed, the armor piece can have as low as<end> QL {$minQL} <highlight>combined into it, depending on available tradeskill options.\n\n" .
@@ -434,7 +434,7 @@ class AlienBioController extends ModuleInstance {
 		$name = "Kyr'Ozch Viral Serum";
 		$item = $this->itemsController->getItem($name, $ql);
 		if (!isset($item)) {
-			throw new Exception("Cannot find expected alien bio material in database.");
+			throw new Exception('Cannot find expected alien bio material in database.');
 		}
 
 		$requiredPharma    = (int)floor($ql * 3.5);
@@ -452,7 +452,7 @@ class AlienBioController extends ModuleInstance {
 
 		// Used to change dialog between minimum and actual requirements, for requirements that go under 400
 		if ($requiredPharma < 400) {
-			$blob .= "<highlight>400<end>";
+			$blob .= '<highlight>400<end>';
 		} else {
 			$blob .= "<highlight>{$requiredPharma}<end>";
 		}
@@ -460,7 +460,7 @@ class AlienBioController extends ModuleInstance {
 		$blob .= " (<highlight>3.5 * QL<end>) 400 is minimum requirement\nChemistry - ";
 
 		if ($requiredChemAndME < 400) {
-			$blob .= "<highlight>400<end>";
+			$blob .= '<highlight>400<end>';
 		} else {
 			$blob .= "<highlight>{$requiredChemAndME}<end>";
 		}

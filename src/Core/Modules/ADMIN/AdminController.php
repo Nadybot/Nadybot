@@ -29,22 +29,22 @@ use Psr\Log\LoggerInterface;
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
-		command: "adminlist",
-		accessLevel: "all",
-		description: "Shows the list of administrators and moderators",
+		command: 'adminlist',
+		accessLevel: 'all',
+		description: 'Shows the list of administrators and moderators',
 		defaultStatus: 1,
-		alias: "admins"
+		alias: 'admins'
 	),
 	NCA\DefineCommand(
-		command: "admin",
-		accessLevel: "superadmin",
-		description: "Add or remove an administrator",
+		command: 'admin',
+		accessLevel: 'superadmin',
+		description: 'Add or remove an administrator',
 		defaultStatus: 1
 	),
 	NCA\DefineCommand(
-		command: "mod",
-		accessLevel: "admin",
-		description: "Add or remove a moderator",
+		command: 'mod',
+		accessLevel: 'admin',
+		description: 'Add or remove a moderator',
 		defaultStatus: 1
 	)
 ]
@@ -86,61 +86,59 @@ class AdminController extends ModuleInstance {
 	public function setup(): void {
 		$this->adminManager->uploadAdmins();
 
-		$this->commandAlias->register($this->moduleName, "admin add", "addadmin");
-		$this->commandAlias->register($this->moduleName, "admin rem", "remadmin");
-		$this->commandAlias->register($this->moduleName, "mod add", "addmod");
-		$this->commandAlias->register($this->moduleName, "mod rem", "remmod");
+		$this->commandAlias->register($this->moduleName, 'admin add', 'addadmin');
+		$this->commandAlias->register($this->moduleName, 'admin rem', 'remadmin');
+		$this->commandAlias->register($this->moduleName, 'mod add', 'addmod');
+		$this->commandAlias->register($this->moduleName, 'mod rem', 'remmod');
 	}
 
 	/** Make &lt;who&gt; an administrator */
-	#[NCA\HandlesCommand("admin")]
-	#[NCA\Help\Group("ranks")]
+	#[NCA\HandlesCommand('admin')]
+	#[NCA\Help\Group('ranks')]
 	public function adminAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")]
-		string $action,
+		#[NCA\Str('add')] string $action,
 		PCharacter $who
 	): void {
 		$intlevel = 4;
-		$rankName = $this->accessManager->getDisplayName("admin");
+		$rankName = $this->accessManager->getDisplayName('admin');
 		$rank = $this->addArticle($rankName);
 
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
 	/** Make &lt;who&gt; a moderator */
-	#[NCA\HandlesCommand("mod")]
-	#[NCA\Help\Group("ranks")]
+	#[NCA\HandlesCommand('mod')]
+	#[NCA\Help\Group('ranks')]
 	public function modAddCommand(
 		CmdContext $context,
-		#[NCA\Str("add")]
-		string $action,
+		#[NCA\Str('add')] string $action,
 		PCharacter $who
 	): void {
 		$intlevel = 3;
-		$rankName = $this->accessManager->getDisplayName("mod");
+		$rankName = $this->accessManager->getDisplayName('mod');
 		$rank = $this->addArticle($rankName);
 
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
 	/** Demote &lt;who&gt; from administrator */
-	#[NCA\HandlesCommand("admin")]
-	#[NCA\Help\Group("ranks")]
+	#[NCA\HandlesCommand('admin')]
+	#[NCA\Help\Group('ranks')]
 	public function adminRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$intlevel = 4;
-		$rankName = $this->accessManager->getDisplayName("admin");
+		$rankName = $this->accessManager->getDisplayName('admin');
 		$rank = $this->addArticle($rankName);
 
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
 	/** Demote &lt;who&gt; from moderator */
-	#[NCA\HandlesCommand("mod")]
-	#[NCA\Help\Group("ranks")]
+	#[NCA\HandlesCommand('mod')]
+	#[NCA\Help\Group('ranks')]
 	public function modRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$intlevel = 3;
-		$rankName = $this->accessManager->getDisplayName("mod");
+		$rankName = $this->accessManager->getDisplayName('mod');
 		$rank = $this->addArticle($rankName);
 
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
@@ -150,12 +148,12 @@ class AdminController extends ModuleInstance {
 	 * See the list of moderators and administrators.
 	 * Add 'all' to include offline alts
 	 */
-	#[NCA\HandlesCommand("adminlist")]
-	#[NCA\Help\Group("ranks")]
-	public function adminlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
+	#[NCA\HandlesCommand('adminlist')]
+	#[NCA\Help\Group('ranks')]
+	public function adminlistCommand(CmdContext $context, #[NCA\Str('all')] ?string $all): void {
 		$blobs = $this->getLeaderList(isset($all));
 
-		$link = $this->text->makeBlob('Bot administrators', join("\n", $blobs));
+		$link = $this->text->makeBlob('Bot administrators', implode("\n", $blobs));
 		$context->reply($link);
 	}
 
@@ -183,36 +181,36 @@ class AdminController extends ModuleInstance {
 				$this->getAltAdminInfo($who, $showOfflineAlts);
 			if ($isSuperAdmin) {
 				$superadmins []= $line;
-			} elseif ($data["level"] === 4) {
+			} elseif ($data['level'] === 4) {
 				$admins []= $line;
-			} elseif ($data["level"] === 3) {
+			} elseif ($data['level'] === 3) {
 				$mods []= $line;
 			}
 		}
 		if (count($superadmins)) {
-			$blobs []= "<header2>".
-				ucfirst($this->accessManager->getDisplayName("superadmin")).
+			$blobs []= '<header2>'.
+				ucfirst($this->accessManager->getDisplayName('superadmin')).
 				"s<end>\n".
-				join("", $superadmins);
+				implode('', $superadmins);
 		}
 		if (count($admins)) {
-			$blobs []= "<header2>".
-				ucfirst($this->accessManager->getDisplayName("admin")).
+			$blobs []= '<header2>'.
+				ucfirst($this->accessManager->getDisplayName('admin')).
 				"s<end>\n".
-				join("", $admins);
+				implode('', $admins);
 		}
 		if (count($mods)) {
-			$blobs []= "<header2>".
-				ucfirst($this->accessManager->getDisplayName("mod")).
+			$blobs []= '<header2>'.
+				ucfirst($this->accessManager->getDisplayName('mod')).
 				"s<end>\n".
-				join("", $mods);
+				implode('', $mods);
 		}
 		return $blobs;
 	}
 
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
-		description: "Add administrators and moderators to the buddy list",
+		description: 'Add administrators and moderators to the buddy list',
 		defaultStatus: 1
 	)]
 	public function checkAdminsEvent(ConnectEvent $eventObj): void {
@@ -287,7 +285,7 @@ class AdminController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: AltNewMainEvent::EVENT_MASK,
-		description: "Move admin rank to new main"
+		description: 'Move admin rank to new main'
 	)]
 	public function moveAdminrank(AltNewMainEvent $event): void {
 		$oldRank = $this->adminManager->admins[$event->alt]??null;
@@ -295,15 +293,15 @@ class AdminController extends ModuleInstance {
 			return;
 		}
 		$this->adminManager->removeFromLists($event->alt, $event->main);
-		$this->adminManager->addToLists($event->main, $oldRank["level"], $event->alt);
+		$this->adminManager->addToLists($event->main, $oldRank['level'], $event->alt);
 		$this->logger->notice("Moved {alt}'s admin rank to {main}.", [
-			"alt" => $event->alt,
-			"main" => $event->main,
+			'alt' => $event->alt,
+			'main' => $event->main,
 		]);
 	}
 
 	private function addArticle(string $rank): string {
-		return in_array(substr($rank, 0, 1), ["a", "e", "i", "o", "u"])
+		return in_array(substr($rank, 0, 1), ['a', 'e', 'i', 'o', 'u'])
 			? "an {$rank}"
 			: "a {$rank}";
 	}
@@ -317,26 +315,26 @@ class AdminController extends ModuleInstance {
 	 */
 	private function getOnlineStatus(string $who, bool $showLastSeen=false): string {
 		if ($this->buddylistManager->isOnline($who) && isset($this->chatBot->chatlist[$who])) {
-			return " (<on>Online and in chat<end>)";
+			return ' (<on>Online and in chat<end>)';
 		} elseif ($this->buddylistManager->isOnline($who)) {
-			return " (<on>Online<end>)";
+			return ' (<on>Online<end>)';
 		}
 		if (!$showLastSeen) {
-			return " (<off>Offline<end>)";
+			return ' (<off>Offline<end>)';
 		}
 		$main = $this->altsController->getMainOf($who);
 
 		/** @var ?LastOnline */
-		$lastSeen = $this->db->table("last_online")
-			->whereIn("name", $this->altsController->getAltsOf($main))
-			->orderByDesc("dt")
+		$lastSeen = $this->db->table('last_online')
+			->whereIn('name', $this->altsController->getAltsOf($main))
+			->orderByDesc('dt')
 			->limit(1)
 			->asObj(LastOnline::class)
 			->first();
 		if (!isset($lastSeen)) {
-			return " (<off>Offline<end>)";
+			return ' (<off>Offline<end>)';
 		}
-		return " (<off>Offline<end>, last seen ".
+		return ' (<off>Offline<end>, last seen '.
 			$this->util->date($lastSeen->dt, false).
 			" on {$lastSeen->name})";
 	}

@@ -6,7 +6,7 @@ use Nadybot\Core\Event\AOChatEvent;
 use Nadybot\Core\Modules\DISCORD\DiscordMessageIn;
 
 class DiscordMessageEvent extends AOChatEvent {
-	public const EVENT_MASK = "discordpriv";
+	public const EVENT_MASK = 'discordpriv';
 
 	/**
 	 * @param string  $sender  The name of the sender of the message

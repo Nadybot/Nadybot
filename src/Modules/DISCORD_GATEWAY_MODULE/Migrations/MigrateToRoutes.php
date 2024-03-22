@@ -22,7 +22,7 @@ use Nadybot\Core\{
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-#[NCA\Migration(order: 20210822104239)]
+#[NCA\Migration(order: 20_210_822_104_239)]
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private DiscordAPIClient $discordApiClient;
@@ -35,21 +35,21 @@ class MigrateToRoutes implements SchemaMigration {
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		// throw new Exception("Hollera!");
-		$tagColor = $this->getColor($db, "discord_color_channel");
-		$textColor = $this->getColor($db, "discord_color_guild", "discord_color_priv");
+		$tagColor = $this->getColor($db, 'discord_color_channel');
+		$textColor = $this->getColor($db, 'discord_color_guild', 'discord_color_priv');
 		$this->saveColor($db, Source::DISCORD_PRIV, $tagColor, $textColor);
 
-		$relayChannel = $this->getSetting($db, "discord_relay_channel");
-		$relayWhat = $this->getSetting($db, "discord_relay");
-		if (!isset($relayChannel) || !isset($relayChannel->value) || $relayChannel->value === "off") {
+		$relayChannel = $this->getSetting($db, 'discord_relay_channel');
+		$relayWhat = $this->getSetting($db, 'discord_relay');
+		if (!isset($relayChannel) || !isset($relayChannel->value) || $relayChannel->value === 'off') {
 			return;
 		}
-		if (!isset($relayWhat) || $relayWhat->value === "0") {
+		if (!isset($relayWhat) || $relayWhat->value === '0') {
 			return;
 		}
-		$relayCommands = $this->getSetting($db, "discord_relay_commands");
+		$relayCommands = $this->getSetting($db, 'discord_relay_commands');
 		if (isset($relayCommands)) {
-			$relayCommands = $relayCommands->value === "1";
+			$relayCommands = $relayCommands->value === '1';
 		} else {
 			$relayCommands = false;
 		}
@@ -81,7 +81,7 @@ class MigrateToRoutes implements SchemaMigration {
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
+			->where('name', $name)
 			->asObj(Setting::class)
 			->first();
 	}
@@ -92,19 +92,19 @@ class MigrateToRoutes implements SchemaMigration {
 			if (!isset($setting) || $setting->value !== "<font color='#C3C3C3'>") {
 				continue;
 			}
-			if (!count($matches = Safe::pregMatch("/#([A-F0-9]{6})/i", $setting->value))) {
+			if (!count($matches = Safe::pregMatch('/#([A-F0-9]{6})/i', $setting->value))) {
 				continue;
 			}
 			return $matches[1];
 		}
-		return "C3C3C3";
+		return 'C3C3C3';
 	}
 
 	protected function saveColor(DB $db, string $hop, string $tag, string $text): void {
 		$spec = [
-			"hop" => $hop,
-			"tag_color" => $tag,
-			"text_color" => $text,
+			'hop' => $hop,
+			'tag_color' => $tag,
+			'text_color' => $text,
 		];
 		$db->table(MessageHub::DB_TABLE_COLORS)->insert($spec);
 	}
@@ -115,17 +115,17 @@ class MigrateToRoutes implements SchemaMigration {
 		$route->destination = $to;
 		$route->two_way = true;
 		$route->id = $db->table(MessageHub::DB_TABLE_ROUTES)->insertGetId([
-			"source" => $route->source,
-			"destination" => $route->destination,
-			"two_way" => $route->two_way,
+			'source' => $route->source,
+			'destination' => $route->destination,
+			'two_way' => $route->two_way,
 		]);
 		if (!$relayCommands) {
 			$mod = new RouteModifier();
 			$mod->route_id = $route->id;
-			$mod->modifier = "if-not-command";
+			$mod->modifier = 'if-not-command';
 			$mod->id = $db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER)->insertGetId([
-				"route_id" => $mod->route_id,
-				"modifier" => $mod->modifier,
+				'route_id' => $mod->route_id,
+				'modifier' => $mod->modifier,
 			]);
 			$route->modifiers []= $mod;
 		}

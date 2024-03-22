@@ -23,7 +23,7 @@ abstract class Base implements MessageReceiver {
 		}
 		$channelName ??= $this->getChannelName();
 		$msgColor = $hub->getTextColor($event, $channelName);
-		$message = ($renderPath ? $hub->renderPath($event, $channelName) : "").
+		$message = ($renderPath ? $hub->renderPath($event, $channelName) : '').
 			$msgColor.$msg;
 		return $message;
 	}
