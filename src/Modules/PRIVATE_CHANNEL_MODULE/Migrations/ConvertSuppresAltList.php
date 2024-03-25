@@ -7,7 +7,7 @@ use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\{DB, SchemaMigration, SettingManager};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_221_207_152_330)]
+#[NCA\Migration(order: 2022_12_07_15_23_30)]
 class ConvertSuppresAltList implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = SettingManager::DB_TABLE;

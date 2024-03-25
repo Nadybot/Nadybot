@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\VOTE_MODULE\VoteController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_428_082_915)]
+#[NCA\Migration(order: 2021_04_28_08_29_15)]
 class CreatePollsTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = VoteController::DB_POLLS;

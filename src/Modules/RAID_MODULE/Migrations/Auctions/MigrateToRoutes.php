@@ -11,7 +11,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_220_329_160_123)]
+#[NCA\Migration(order: 2022_03_29_16_01_23)]
 class MigrateToRoutes implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$route = [

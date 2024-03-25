@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_220_411_154_426)]
+#[NCA\Migration(order: 2022_04_11_15_44_26)]
 class CreateOnlineHideTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = OnlineController::DB_TABLE_HIDE;

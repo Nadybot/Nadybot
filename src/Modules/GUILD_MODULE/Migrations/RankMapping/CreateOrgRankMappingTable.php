@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\GUILD_MODULE\GuildRankController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_426_045_558)]
+#[NCA\Migration(order: 2021_04_26_04_55_58)]
 class CreateOrgRankMappingTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = GuildRankController::DB_TABLE;

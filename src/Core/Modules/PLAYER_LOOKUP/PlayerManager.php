@@ -347,33 +347,30 @@ class PlayerManager extends ModuleInstance {
 			return null;
 		}
 
-		$obj = new Player();
-
-		// parsing of the player data
-		$obj->firstname      = trim($char->FIRSTNAME);
-		$obj->name           = $char->NAME;
-		$obj->lastname       = trim($char->LASTNAME);
-		$obj->level          = $char->LEVELX;
-		$obj->breed          = $char->BREED ?? '';
-		$obj->gender         = $char->SEX ?? '';
-		$obj->faction        = $char->SIDE ?? '';
-		$obj->profession     = $char->PROF;
-		$obj->prof_title     = $char->PROFNAME ?? '';
-		$obj->ai_rank        = $char->RANK_name ?? '';
-		$obj->ai_level       = $char->ALIENLEVEL;
-		$obj->guild_id       = $org->ORG_INSTANCE;
-		$obj->guild          = $org->NAME ?? '';
-		$obj->guild_rank     = $org->RANK_TITLE ?? '';
-		$obj->guild_rank_id  = $org->RANK;
-
-		$obj->head_id        = $char->HEADID;
-		$obj->pvp_rating     = $char->PVPRATING;
-		$obj->pvp_title      = $char->PVPTITLE;
-
-		// $obj->charid        = $char->CHAR_INSTANCE;
-		$obj->dimension      = $char->CHAR_DIMENSION;
 		$luDateTime = DateTime::createFromFormat('Y/m/d H:i:s', $lastUpdated, new DateTimeZone('UTC'));
-		$obj->last_update = $luDateTime->getTimestamp();
+		$obj = new Player(
+			firstname: trim($char->FIRSTNAME),
+			name: $char->NAME,
+			lastname: trim($char->LASTNAME),
+			level: $char->LEVELX,
+			breed: $char->BREED ?? '',
+			gender: $char->SEX ?? '',
+			faction: $char->SIDE ?? '',
+			profession: $char->PROF,
+			prof_title: $char->PROFNAME ?? '',
+			ai_rank: $char->RANK_name ?? '',
+			ai_level: $char->ALIENLEVEL,
+			guild_id: $org->ORG_INSTANCE,
+			guild: $org->NAME ?? '',
+			guild_rank: $org->RANK_TITLE ?? '',
+			guild_rank_id: $org->RANK,
+			head_id: $char->HEADID,
+			pvp_rating: $char->PVPRATING,
+			pvp_title: $char->PVPTITLE,
+			charid: $char->CHAR_INSTANCE,
+			dimension: $char->CHAR_DIMENSION,
+			last_update: $luDateTime->getTimestamp(),
+		);
 
 		return $obj;
 	}

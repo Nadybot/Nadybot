@@ -7,7 +7,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{Attributes as NCA, Config\BotConfig, DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_230_531_125_312)]
+#[NCA\Migration(order: 2023_05_31_12_53_12)]
 class InitializeRouting implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;

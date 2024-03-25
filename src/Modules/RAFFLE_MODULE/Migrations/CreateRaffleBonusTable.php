@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAFFLE_MODULE\RaffleController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_427_073_222)]
+#[NCA\Migration(order: 2021_04_27_07_32_22)]
 class CreateRaffleBonusTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaffleController::DB_TABLE;

@@ -11,7 +11,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_230_115_112_647)]
+#[NCA\Migration(order: 2023_01_15_11_26_47)]
 class AddMaintainerNotificationRoute implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;

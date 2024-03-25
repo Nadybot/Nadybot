@@ -8,7 +8,7 @@ use Nadybot\Core\Modules\ALTS\NickController;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_221_220_081_807, shared: true)]
+#[NCA\Migration(order: 2022_12_20_08_18_07, shared: true)]
 class CreateNicknameTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = NickController::DB_TABLE;

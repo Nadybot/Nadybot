@@ -8,7 +8,7 @@ use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_211_023_133_302)]
+#[NCA\Migration(order: 2021_10_23_13_33_02)]
 class MakeValueText implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = Preferences::DB_TABLE;

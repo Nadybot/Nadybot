@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidBlockController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_427_093_120)]
+#[NCA\Migration(order: 2021_04_27_09_31_20)]
 class CreateRaidBlockTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaidBlockController::DB_TABLE;

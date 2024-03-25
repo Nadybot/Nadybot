@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\BANK_MODULE\WishlistController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_220_706_091_321, shared: true)]
+#[NCA\Migration(order: 2022_07_06_09_13_21, shared: true)]
 class CreateWishlists implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = WishlistController::DB_TABLE;

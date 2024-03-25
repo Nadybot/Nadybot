@@ -27,7 +27,7 @@ use Nadybot\Modules\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_220_209_073_229)]
+#[NCA\Migration(order: 2022_02_09_07_32_29)]
 class MigrateSubCmds implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$deletedAliases = [

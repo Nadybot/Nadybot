@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\GUILD_MODULE\GuildController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_426_045_214)]
+#[NCA\Migration(order: 2021_04_26_04_52_14)]
 class CreateOrgMembersTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = GuildController::DB_TABLE;

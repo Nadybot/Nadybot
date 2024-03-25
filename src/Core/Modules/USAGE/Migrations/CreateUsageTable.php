@@ -8,7 +8,7 @@ use Nadybot\Core\Modules\USAGE\UsageController;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_425_125_523)]
+#[NCA\Migration(order: 2021_04_25_12_55_23)]
 class CreateUsageTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = UsageController::DB_TABLE;

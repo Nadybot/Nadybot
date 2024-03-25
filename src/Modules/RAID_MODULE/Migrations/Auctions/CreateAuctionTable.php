@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\AuctionController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_427_074_056)]
+#[NCA\Migration(order: 2021_04_27_07_40_56)]
 class CreateAuctionTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = AuctionController::DB_TABLE;

@@ -15,86 +15,55 @@ use Nadybot\Core\{
  * @package Nadybot\Core\DBSchema
  */
 class Player extends DBRow {
-	/** The character ID as used by Anarchy Online */
-	public int $charid;
-
-	/** The character's first name (the name before $name) */
-	#[JSON\Name('first_name')]
-	public string $firstname = '';
-
-	/** The character's name as it appears in the game */
-	public string $name;
-
-	/** The character's last name (the name after $name) */
-	#[JSON\Name('last_name')]
-	public string $lastname = '';
-
-	/** What level (1-220) is the character or null if unknown */
-	public ?int $level = null;
-
-	/** Any of Nano, Solitus, Atrox or Opifex. Also empty string if unknown */
-	public string $breed = '';
-
-	/** Male, Female, Neuter or an empty string if unknown */
-	public string $gender = '';
-
-	/** Omni, Clan, Neutral or an empty string if unknown */
-	public string $faction = '';
-
-	/** The long profession name (e.g. "Enforcer", not "enf" or "enfo") or an empty string if unknown */
-	public ?string $profession = '';
-
 	/**
-	 * The title-level title for the profession of this player
-	 * For example "The man", "Don" or empty if unknown.
+	 * @param int     $charid        The character ID as used by Anarchy Online
+	 * @param string  $name          The character's name as it appears in the game
+	 * @param ?int    $dimension     In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19
+	 * @param string  $firstname     The character's first name (the name before $name)
+	 * @param string  $lastname      The character's last name (the name after $name)
+	 * @param ?int    $level         What level (1-220) is the character or null if unknown
+	 * @param string  $breed         Any of Nano, Solitus, Atrox or Opifex. Also empty string if unknown
+	 * @param string  $gender        Male, Female, Neuter or an empty string if unknown
+	 * @param string  $faction       Omni, Clan, Neutral or an empty string if unknown
+	 * @param ?string $profession    The long profession name (e.g. "Enforcer", not "enf" or "enfo") or an empty string if unknown
+	 * @param string  $prof_title    The title-level title for the profession of this player For example "The man", "Don" or empty if unknown.
+	 * @param string  $ai_rank       The name of the ai_level as a rank or empty string if unknown
+	 * @param ?int    $ai_level      AI level of this player or null if unknown
+	 * @param ?int    $guild_id      The id of the org this player is in or null if none or unknown
+	 * @param ?string $guild         The name of the org this player is in or null if none/unknown
+	 * @param ?string $guild_rank    The name of the rank the player has in their org (Veteran, Apprentice) or null if not in an org or unknown
+	 * @param ?int    $guild_rank_id The numeric rank of the player in their org or null if not in an org/unknown
+	 * @param ?int    $head_id       Which head is the player using
+	 * @param ?int    $pvp_rating    Numeric PvP-rating of the player (1-7) or null if unknown
+	 * @param ?string $pvp_title     Name of the player's PvP title derived from their $pvp_rating or null if unknown
+	 * @param string  $source        Sourceof the information
+	 * @param ?int    $last_update   Unix timestamp of the last update of these data
 	 */
-	public string $prof_title= '';
-
-	/** The name of the ai_level as a rank or empty string if unknown */
-	public string $ai_rank = '';
-
-	/** AI level of this player or null if unknown */
-	public ?int $ai_level = null;
-
-	/** The id of the org this player is in or null if none or unknown */
-	#[JSON\Name('org_id')]
-	public ?int $guild_id = null;
-
-	/** The name of the org this player is in or null if none/unknown */
-	#[JSON\Name('org')]
-	public ?string $guild = '';
-
-	/**
-	 * The name of the rank the player has in their org (Veteran, Apprentice) or null if not in an org
-	 * or unknown
-	 */
-	#[JSON\Name('org_rank')]
-	public ?string $guild_rank = '';
-
-	/** The numeric rank of the player in their org or null if not in an org/unknown */
-	#[JSON\Name('org_rank_id')]
-	public ?int $guild_rank_id = null;
-
-	/** In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19 */
-	public ?int $dimension;
-
-	/** Which head is the player using */
-	public ?int $head_id = null;
-
-	/** Numeric PvP-rating of the player (1-7) or null if unknown */
-	public ?int $pvp_rating = null;
-
-	/**
-	 * Name of the player's PvP title derived from their $pvp_rating or
-	 * null if unknown
-	 */
-	public ?string $pvp_title = null;
-
-	#[JSON\Ignore]
-	public string $source = '';
-
-	/** Unix timestamp of the last update of these data */
-	public ?int $last_update;
+	final public function __construct(
+		public int $charid,
+		public string $name,
+		public ?int $dimension=null,
+		#[JSON\Name('first_name')] public string $firstname='',
+		#[JSON\Name('last_name')] public string $lastname='',
+		public ?int $level=null,
+		public string $breed='',
+		public string $gender='',
+		public string $faction='',
+		public ?string $profession='',
+		public string $prof_title='',
+		public string $ai_rank='',
+		public ?int $ai_level=null,
+		#[JSON\Name('org_id')] public ?int $guild_id=null,
+		#[JSON\Name('org')] public ?string $guild='',
+		#[JSON\Name('org_rank')] public ?string $guild_rank='',
+		#[JSON\Name('org_rank_id')] public ?int $guild_rank_id=null,
+		public ?int $head_id=null,
+		public ?int $pvp_rating=null,
+		public ?string $pvp_title=null,
+		#[JSON\Ignore] public string $source='',
+		public ?int $last_update=null,
+	) {
+	}
 
 	public function getPronoun(): string {
 		if (strtolower($this->gender) === 'female') {

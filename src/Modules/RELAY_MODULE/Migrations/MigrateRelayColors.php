@@ -16,7 +16,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_821_213_338)]
+#[NCA\Migration(order: 2021_08_21_21_33_38)]
 class MigrateRelayColors implements SchemaMigration {
 	#[NCA\Inject]
 	private SettingManager $settingManager;

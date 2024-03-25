@@ -17,7 +17,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_812_052_246)]
+#[NCA\Migration(order: 2021_08_12_05_22_46)]
 class MoveSettingsToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;

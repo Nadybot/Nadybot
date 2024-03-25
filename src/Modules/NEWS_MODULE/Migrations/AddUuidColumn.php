@@ -12,7 +12,7 @@ use Nadybot\Core\{
 use Psr\Log\LoggerInterface;
 use stdClass;
 
-#[NCA\Migration(order: 20_220_126_103_456, shared: true)]
+#[NCA\Migration(order: 2022_01_26_10_34_56, shared: true)]
 class AddUuidColumn implements SchemaMigration {
 	#[NCA\Inject]
 	private Util $util;

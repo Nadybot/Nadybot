@@ -12,7 +12,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\CITY_MODULE\CloakController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_819_073_121)]
+#[NCA\Migration(order: 2021_08_19_07_31_21)]
 class MigrateCloakToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private CloakController $cloakController;

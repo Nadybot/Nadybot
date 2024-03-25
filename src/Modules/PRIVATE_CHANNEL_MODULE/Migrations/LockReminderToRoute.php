@@ -7,7 +7,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{Attributes as NCA, Config\BotConfig, DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_230_228_152_817)]
+#[NCA\Migration(order: 2023_02_28_15_28_17)]
 class LockReminderToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;

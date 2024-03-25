@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\PACKAGE_MODULE\PackageController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_427_061_100)]
+#[NCA\Migration(order: 2021_04_27_06_11_00)]
 class CreatePackageFilesTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = PackageController::DB_TABLE;

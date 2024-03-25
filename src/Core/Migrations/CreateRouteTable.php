@@ -12,7 +12,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_722_072_916)]
+#[NCA\Migration(order: 2021_07_22_07_29_16)]
 class CreateRouteTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;

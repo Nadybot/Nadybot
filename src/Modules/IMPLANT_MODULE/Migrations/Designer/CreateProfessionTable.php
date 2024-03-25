@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_426_155_738, shared: true)]
+#[NCA\Migration(order: 2021_04_26_15_57_38, shared: true)]
 class CreateProfessionTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = 'Profession';

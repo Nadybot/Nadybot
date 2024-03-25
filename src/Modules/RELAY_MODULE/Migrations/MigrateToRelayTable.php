@@ -27,7 +27,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_817_090_334)]
+#[NCA\Migration(order: 2021_08_17_09_03_34)]
 class MigrateToRelayTable implements SchemaMigration {
 	protected string $prefix = '';
 	#[NCA\Inject]

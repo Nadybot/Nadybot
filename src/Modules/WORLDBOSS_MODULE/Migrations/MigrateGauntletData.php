@@ -17,7 +17,7 @@ use Nadybot\Modules\{
 use Psr\Log\LoggerInterface;
 use stdClass;
 
-#[NCA\Migration(order: 20_211_023_192_050)]
+#[NCA\Migration(order: 2021_10_23_19_20_50)]
 class MigrateGauntletData implements SchemaMigration {
 	#[NCA\Inject]
 	private WorldBossController $worldBossController;

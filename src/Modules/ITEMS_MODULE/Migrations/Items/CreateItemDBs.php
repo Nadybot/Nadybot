@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_230_108_112_714, shared: true)]
+#[NCA\Migration(order: 2023_01_08_11_27_14, shared: true)]
 class CreateItemDBs implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$db->schema()->dropIfExists('aodb');

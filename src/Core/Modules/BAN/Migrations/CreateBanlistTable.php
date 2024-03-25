@@ -8,7 +8,7 @@ use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_423_121_037)]
+#[NCA\Migration(order: 2021_04_23_12_10_37)]
 class CreateBanlistTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = BanController::DB_TABLE;

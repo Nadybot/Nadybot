@@ -8,7 +8,7 @@ use Nadybot\Core\Event\OrgMsgChannelMsgEvent;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, MessageHub, ModuleInstance, QueryBuilder, Safe, Text, Util};
+use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, Faction, MessageHub, ModuleInstance, QueryBuilder, Safe, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
@@ -426,11 +426,17 @@ class AttacksController extends ModuleInstance {
 
 		$whois = $this->playerManager->byName($matches['att_name']);
 		if ($whois === null) {
-			$whois = new Player();
-			$whois->name = $matches['att_name'];
+			$whois = new Player(
+				name: $matches['att_name'],
+				charid: 0,
+				dimension: $this->config->main->dimension,
+				faction: ucfirst(strtolower($matches['att_faction'])),
+				guild: $matches['att_org'],
+			);
+		} else {
+			$whois->faction = ucfirst(strtolower($matches['att_faction']));
+			$whois->guild = $matches['att_org'];
 		}
-		$whois->faction = ucfirst(strtolower($matches['att_faction']));
-		$whois->guild = $matches['att_org'];
 		$siteName = $pf->short_name;
 		if (isset($site)) {
 			$siteName .= " {$site->site_id}";
@@ -498,9 +504,12 @@ class AttacksController extends ModuleInstance {
 
 		$whois = $this->playerManager->byName($attPlayer);
 		if ($whois === null) {
-			$whois = new Player();
-			$whois->name = $attPlayer;
-			$whois->faction = 'Unknown';
+			$whois = new Player(
+				charid: 0,
+				dimension: $this->config->main->dimension,
+				name: $attPlayer,
+				faction: Faction::Unknown->value,
+			);
 		}
 		$whois->guild = $attOrg;
 		if (isset($attack, $attack->attacker->org) && $attack->attacker->org->name === $attOrg) {

@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_426_155_545, shared: true)]
+#[NCA\Migration(order: 2021_04_26_15_55_45, shared: true)]
 class CreateImplantTypeTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = 'ImplantType';

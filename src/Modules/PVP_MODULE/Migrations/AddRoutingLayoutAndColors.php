@@ -8,7 +8,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_230_314_061_225)]
+#[NCA\Migration(order: 2023_03_14_06_12_25)]
 class AddRoutingLayoutAndColors implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		if ($db->table(Source::DB_TABLE)->whereIlike('hop', 'pvp%')->exists()) {

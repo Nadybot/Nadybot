@@ -17,7 +17,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_811_125_555)]
+#[NCA\Migration(order: 2021_08_11_12_55_55)]
 class CreateRouteHopColorTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_COLORS;

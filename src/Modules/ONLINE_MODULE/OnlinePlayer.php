@@ -29,21 +29,23 @@ class OnlinePlayer extends Player {
 	/** True if this player is currently online, false otherwise */
 	public bool $online = false;
 
-	final public function __construct() {
-	}
-
 	public static function fromPlayer(?Player $player=null, ?Online $online=null): static {
-		$op = new static();
-		if (isset($player)) {
-			foreach (get_object_vars($player) as $key => $value) {
-				$op->{$key} = $value;
-			}
+		if (!isset($player) && !isset($online)) {
+			throw new \InvalidArgumentException(__CLASS__ . '::' . __FUNCTION__ . '() requires at least onr of $player or $online');
 		}
+		if (!isset($player)) {
+			$player = new Player(
+				charid: 0,
+				name: $online->name,
+			);
+		}
+		$op = new static(...get_object_vars($player));
 		if (isset($online)) {
 			$op->online = true;
 			$op->name = $online->name;
 			$op->afk = $online->afk ?? '';
 		}
+		$op->pmain = $player->name;
 		return $op;
 	}
 }

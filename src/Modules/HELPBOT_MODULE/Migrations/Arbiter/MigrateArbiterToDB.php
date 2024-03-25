@@ -11,7 +11,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\HELPBOT_MODULE\ArbiterController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_821_063_253, shared: true)]
+#[NCA\Migration(order: 2021_08_21_06_32_53, shared: true)]
 class MigrateArbiterToDB implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = ArbiterController::DB_TABLE;

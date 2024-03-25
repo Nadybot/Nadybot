@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE;
 
 use function Amp\async;
+use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -116,15 +117,14 @@ class Relay implements MessageReceiver {
 		]);
 		$character = ucfirst(strtolower($character));
 		$this->onlineChars[$where] ??= [];
-		$player = new OnlinePlayer();
-		$player->name = $character;
+		$player = OnlinePlayer::fromPlayer(new Player(
+			name: $character,
+			charid: $uid ?? 0,
+			source: $clientId,
+		));
 		$player->pmain = $main ?? $character;
 		$player->online = true;
 		$player->afk = '';
-		$player->source = $clientId;
-		if (isset($uid)) {
-			$player->charid = $uid;
-		}
 		$this->onlineChars[$where][$character] = $player;
 		async(function () use ($character, $dimension, $where, $clientId): void {
 			$player = $this->playerManager->byName($character, $dimension);

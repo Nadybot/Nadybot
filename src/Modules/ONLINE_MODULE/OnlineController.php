@@ -6,6 +6,7 @@ use function Safe\preg_match;
 
 use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
+use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Event\{GuildChannelMsgEvent, MyPrivateChannelMsgEvent};
 use Nadybot\Core\{
 	AccessManager,
@@ -717,13 +718,14 @@ class OnlineController extends ModuleInstance {
 					'dt' => time(),
 				]);
 		}
-		$op = new OnlinePlayer();
 		$player = $this->playerManager->findInDb($sender, $this->config->main->dimension);
-		if (isset($player)) {
-			foreach (get_object_vars($player) as $key => $value) {
-				$op->{$key} = $value;
-			}
+		if (!isset($player)) {
+			$player = new Player(
+				charid: 0,
+				name: $sender,
+			);
 		}
+		$op = OnlinePlayer::fromPlayer($player);
 		$op->online = true;
 		$op->pmain = $this->altsController->getMainOf($sender);
 		$op->nick = $this->nickController->getNickname($sender);

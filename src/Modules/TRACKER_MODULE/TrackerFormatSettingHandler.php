@@ -67,16 +67,18 @@ class TrackerFormatSettingHandler extends SettingHandler {
 	}
 
 	private function getDummyPlayer(): Player {
-		$player = new Player();
-		$player->ai_level = 30;
-		$player->level = 220;
-		$player->name = 'Nady';
-		$player->guild = 'Team Rainbow';
-		$player->guild_id = 123;
-		$player->gender = 'Female';
-		$player->faction = 'Clan';
-		$player->profession = 'Bureaucrat';
-		$player->breed = 'Nanomage';
+		$player = new Player(
+			charid: 1_082_663_656,
+			ai_level: 30,
+			level: 220,
+			name: 'Nady',
+			guild: 'Team Rainbow',
+			guild_id: 1_329_153,
+			gender: 'Female',
+			faction: 'Clan',
+			profession: 'Bureaucrat',
+			breed: 'Nanomage',
+		);
 		return $player;
 	}
 }

@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_220_903_062_802, shared: true)]
+#[NCA\Migration(order: 2022_09_03_06_28_02, shared: true)]
 class CreateNanosTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = 'nanos';

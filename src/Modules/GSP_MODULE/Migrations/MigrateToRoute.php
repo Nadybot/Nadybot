@@ -14,7 +14,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\GSP_MODULE\GSPController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_819_071_037)]
+#[NCA\Migration(order: 2021_08_19_07_10_37)]
 class MigrateToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private GSPController $gspController;

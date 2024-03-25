@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, HelpManager, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_423_085_647)]
+#[NCA\Migration(order: 2021_04_23_08_56_47)]
 class CreateHlpcfgTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = HelpManager::DB_TABLE;

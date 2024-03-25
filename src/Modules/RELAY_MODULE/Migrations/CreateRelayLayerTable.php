@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_808_154_625)]
+#[NCA\Migration(order: 2021_08_08_15_46_25)]
 class CreateRelayLayerTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RelayController::DB_TABLE_LAYER;

@@ -6,7 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{CommandManager, DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_220_504_021_436)]
+#[NCA\Migration(order: 2022_05_04_02_14_36)]
 class MergeMembersAndMemberCommands implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$db->table(CommandManager::DB_TABLE)

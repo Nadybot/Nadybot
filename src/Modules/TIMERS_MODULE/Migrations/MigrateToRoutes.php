@@ -20,7 +20,7 @@ use Psr\Log\LoggerInterface;
 use stdClass;
 use Throwable;
 
-#[NCA\Migration(order: 20_210_908_074_258)]
+#[NCA\Migration(order: 2021_09_08_07_42_58)]
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private DiscordAPIClient $discordAPIClient;

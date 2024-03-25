@@ -17,7 +17,7 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 class PlayerLookupJob {
-	/** @var Collection<Player> */
+	/** @var Collection<MissingAlt> */
 	public Collection $toUpdate;
 
 	protected int $numActiveThreads = 0;
@@ -48,20 +48,21 @@ class PlayerLookupJob {
 	/**
 	 * Get a list of character names who are alts without info
 	 *
-	 * @return Collection<Player>
+	 * @return Collection<MissingAlt>
 	 */
 	public function getMissingAlts(): Collection {
-		/** @var Collection<Player> */
+		/** @var Collection<MissingAlt> */
 		$result = $this->db->table('alts')
 			->whereNotExists(static function (QueryBuilder $query): void {
 				$query->from('players')
 					->whereColumn('alts.alt', 'players.name');
 			})->select('alt')
 			->pluckStrings('alt')
-			->map(function (string $alt): Player {
-				$result = new Player();
-				$result->name = $alt;
-				$result->dimension = $this->db->getDim();
+			->map(function (string $alt): MissingAlt {
+				$result = new MissingAlt(
+					name: $alt,
+					dimension: $this->db->getDim(),
+				);
 				return $result;
 			});
 		return $result;

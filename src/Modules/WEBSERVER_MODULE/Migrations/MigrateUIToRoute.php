@@ -13,7 +13,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_819_184_432)]
+#[NCA\Migration(order: 2021_08_19_18_44_32)]
 class MigrateUIToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;

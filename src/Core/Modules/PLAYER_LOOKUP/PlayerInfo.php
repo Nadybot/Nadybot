@@ -60,30 +60,29 @@ class PlayerInfo {
 	}
 
 	public function toPlayer(): Player {
-		$player = new Player();
-		$player->ai_level = $this->aiLevel;
-		$player->ai_rank = $this->aiRank;
-		$player->breed = $this->breed ?? '';
-		$player->charid = $this->uid;
-		$player->dimension = $this->dimension;
-		$player->faction = $this->faction ?? '';
-		$player->firstname = $this->firstName;
-		$player->gender = $this->gender ?? '';
-		$player->guild = $this->orgName ?? '';
-		$player->guild_id = $this->orgId ?? 0;
-		$player->guild_rank = $this->orgRank ?? '';
-		$player->guild_rank_id = $this->orgRankId;
-		$player->head_id = $this->headMesh;
-		$player->last_update = $this->lastUpdated->getTimestamp();
-		$player->lastname = $this->lastName;
-		$player->level = $this->level;
-		$player->name = $this->name;
-		$player->prof_title = $this->profTitle ?? '';
-		$player->profession = $this->profession;
-		$player->pvp_rating = $this->pvpRating;
-		$player->pvp_title = $this->pvpTitle;
-		$player->source = 'AO';
-
-		return $player;
+		return new Player(
+			ai_level: $this->aiLevel,
+			ai_rank: $this->aiRank,
+			breed: $this->breed ?? '',
+			charid: $this->uid,
+			dimension: $this->dimension,
+			faction: $this->faction ?? '',
+			firstname: $this->firstName,
+			gender: $this->gender ?? '',
+			guild: $this->orgName ?? '',
+			guild_id: $this->orgId ?? 0,
+			guild_rank: $this->orgRank ?? '',
+			guild_rank_id: $this->orgRankId,
+			head_id: $this->headMesh,
+			last_update: $this->lastUpdated->getTimestamp(),
+			lastname: $this->lastName,
+			level: $this->level,
+			name: $this->name,
+			prof_title: $this->profTitle ?? '',
+			profession: $this->profession,
+			pvp_rating: $this->pvpRating,
+			pvp_title: $this->pvpTitle,
+			source: 'AO',
+		);
 	}
 }

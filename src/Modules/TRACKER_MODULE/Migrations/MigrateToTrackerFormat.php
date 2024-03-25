@@ -7,7 +7,7 @@ use Nadybot\Core\{Attributes as NCA, DB, SchemaMigration, SettingManager};
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_220_510_153_452)]
+#[NCA\Migration(order: 2022_05_10_15_34_52)]
 class MigrateToTrackerFormat implements SchemaMigration {
 	#[NCA\Inject]
 	private TrackerController $trackerController;

@@ -13,7 +13,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_828_081_307)]
+#[NCA\Migration(order: 2021_08_28_08_13_07)]
 class ConvertCmdMgrErrorToMsg implements SchemaMigration {
 	#[NCA\Inject]
 	private MessageHub $messageHub;

@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_211_004_084_807)]
+#[NCA\Migration(order: 2021_10_04_08_48_07)]
 class CreateOrgTrackingTables implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = TrackerController::DB_ORG;

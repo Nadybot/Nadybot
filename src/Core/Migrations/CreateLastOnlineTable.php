@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_220_502_092_908, shared: true)]
+#[NCA\Migration(order: 2022_05_02_09_29_08, shared: true)]
 class CreateLastOnlineTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = 'last_online';

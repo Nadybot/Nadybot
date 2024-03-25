@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{CommandAlias, DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_423_090_608)]
+#[NCA\Migration(order: 2021_04_23_09_06_08)]
 class CreateCmdAliasTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = CommandAlias::DB_TABLE;

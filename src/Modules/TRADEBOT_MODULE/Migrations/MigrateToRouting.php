@@ -14,7 +14,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_816_063_218)]
+#[NCA\Migration(order: 2021_08_16_06_32_18)]
 class MigrateToRouting implements SchemaMigration {
 	#[NCA\Inject]
 	private MessageHub $messageHub;

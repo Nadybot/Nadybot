@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordSlashCommandController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_220_512_132_749)]
+#[NCA\Migration(order: 2022_05_12_13_27_49)]
 class CreateSlashCommandTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = DiscordSlashCommandController::DB_SLASH_TABLE;

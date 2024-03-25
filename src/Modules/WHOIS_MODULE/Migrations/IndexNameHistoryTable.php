@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_211_207_084_930, shared: true)]
+#[NCA\Migration(order: 2021_12_07_08_49_30, shared: true)]
 class IndexNameHistoryTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = 'name_history';

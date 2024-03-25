@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_211_207_060_105, shared: true)]
+#[NCA\Migration(order: 2021_12_07_06_01_05, shared: true)]
 class IndexAlienWeaponTables implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = 'alienweapons';

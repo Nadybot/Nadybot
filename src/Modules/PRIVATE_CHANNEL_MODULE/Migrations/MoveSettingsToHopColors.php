@@ -15,7 +15,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_812_173_658)]
+#[NCA\Migration(order: 2021_08_12_17_36_58)]
 class MoveSettingsToHopColors implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;

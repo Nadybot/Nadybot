@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_427_163_641)]
+#[NCA\Migration(order: 2021_04_27_16_36_41)]
 class CreateTimersTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = TimerController::DB_TABLE;

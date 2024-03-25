@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration, SettingManager};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_211_018_065_415)]
+#[NCA\Migration(order: 2021_10_18_06_54_15)]
 class OptimizeSettingsTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = SettingManager::DB_TABLE;

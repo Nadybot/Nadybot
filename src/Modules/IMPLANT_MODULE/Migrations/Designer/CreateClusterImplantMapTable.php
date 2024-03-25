@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_426_141_912, shared: true)]
+#[NCA\Migration(order: 2021_04_26_14_19_12, shared: true)]
 class CreateClusterImplantMapTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = 'ClusterImplantMap';

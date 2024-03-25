@@ -22,7 +22,7 @@ use Nadybot\Core\{
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-#[NCA\Migration(order: 20_210_822_104_239)]
+#[NCA\Migration(order: 2021_08_22_10_42_39)]
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private DiscordAPIClient $discordApiClient;

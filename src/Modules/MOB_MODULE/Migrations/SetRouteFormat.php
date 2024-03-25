@@ -8,7 +8,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_230_331_211_436)]
+#[NCA\Migration(order: 2023_03_31_21_14_36)]
 class SetRouteFormat implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$rhf = new RouteHopFormat(

@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_220_629_100_542, shared: true)]
+#[NCA\Migration(order: 2022_06_29_10_05_42, shared: true)]
 class CreateSpawntimeTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = 'spawntime';

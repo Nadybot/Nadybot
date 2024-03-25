@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_727_073_009)]
+#[NCA\Migration(order: 2021_07_27_07_30_09)]
 class CreateRouteModifierTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTE_MODIFIER;

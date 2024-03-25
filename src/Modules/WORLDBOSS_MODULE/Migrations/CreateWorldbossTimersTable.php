@@ -9,7 +9,7 @@ use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
 use Psr\Log\LoggerInterface;
 use stdClass;
 
-#[NCA\Migration(order: 20_211_023_123_955)]
+#[NCA\Migration(order: 2021_10_23_12_39_55)]
 class CreateWorldbossTimersTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = WorldBossController::DB_TABLE;

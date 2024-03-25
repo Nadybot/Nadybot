@@ -20,7 +20,7 @@ use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-#[NCA\Migration(order: 20_210_826_135_816)]
+#[NCA\Migration(order: 2021_08_26_13_58_16)]
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private BotConfig $config;

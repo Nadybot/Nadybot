@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidPointsController;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_505_103_103)]
+#[NCA\Migration(order: 2021_05_05_10_31_03)]
 class MakeRewardIdAutoIncrement implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = RaidPointsController::DB_TABLE_REWARD;

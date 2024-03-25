@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_426_164_751, shared: true)]
+#[NCA\Migration(order: 2021_04_26_16_47_51, shared: true)]
 class CreateBuffDBs implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$db->schema()->dropIfExists('item_buffs');

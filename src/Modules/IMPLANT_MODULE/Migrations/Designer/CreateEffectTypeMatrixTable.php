@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_210_426_145_354, shared: true)]
+#[NCA\Migration(order: 2021_04_26_14_53_54, shared: true)]
 class CreateEffectTypeMatrixTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = 'EffectTypeMatrix';

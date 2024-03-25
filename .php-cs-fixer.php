@@ -154,7 +154,7 @@ return $config
 		'normalize_index_brace' => true,
 		'nullable_type_declaration_for_default_null_value' => true,
 		'numeric_literal_separator' => [
-			'override_existing' => true,
+			'override_existing' => false,
 			'strategy' => 'use_separator',
 		],
 		'object_operator_without_whitespace' => true,

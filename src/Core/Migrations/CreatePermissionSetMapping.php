@@ -8,7 +8,7 @@ use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\{CommandManager, DB, SchemaMigration, SettingManager};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_220_123_081_144)]
+#[NCA\Migration(order: 2022_01_23_08_11_44)]
 class CreatePermissionSetMapping implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = CommandManager::DB_TABLE_MAPPING;

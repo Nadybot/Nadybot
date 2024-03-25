@@ -7,7 +7,7 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 use stdClass;
 
-#[NCA\Migration(order: 20_210_424_212_023, shared: true)]
+#[NCA\Migration(order: 2021_04_24_21_20_23, shared: true)]
 class MigrateWhitelistTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		if (!$db->schema()->hasTable('whitelist')) {

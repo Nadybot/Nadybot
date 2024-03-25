@@ -8,7 +8,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_211_006_141_548)]
+#[NCA\Migration(order: 2021_10_06_14_15_48)]
 class AddViaToRoute implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_COLORS;

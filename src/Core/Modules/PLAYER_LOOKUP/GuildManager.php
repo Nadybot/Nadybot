@@ -179,29 +179,29 @@ class GuildManager extends ModuleInstance {
 				$charid = 0;
 			}
 
-			$guild->members[$name]                = new Player();
-			$guild->members[$name]->charid        = $charid;
-			$guild->members[$name]->firstname     = trim($member->FIRSTNAME);
-			$guild->members[$name]->name          = $name;
-			$guild->members[$name]->lastname      = trim($member->LASTNAME);
-			$guild->members[$name]->level         = $member->LEVELX;
-			$guild->members[$name]->breed         = $member->BREED;
-			$guild->members[$name]->gender        = $member->SEX;
-			$guild->members[$name]->faction       = $guild->orgside;
-			$guild->members[$name]->profession    = $member->PROF;
-			$guild->members[$name]->prof_title    = $member->PROF_TITLE;
-			$guild->members[$name]->ai_rank       = $member->DEFENDER_RANK_TITLE;
-			$guild->members[$name]->ai_level      = $member->ALIENLEVEL;
-			$guild->members[$name]->guild_id      = $guild->guild_id;
-			$guild->members[$name]->guild         = $guild->orgname;
-			$guild->members[$name]->guild_rank    = $member->RANK_TITLE;
-			$guild->members[$name]->guild_rank_id = $member->RANK;
-			$guild->members[$name]->dimension     = $dimension;
-			$guild->members[$name]->source        = 'org_roster';
-
-			$guild->members[$name]->head_id       = $member->HEADID;
-			$guild->members[$name]->pvp_rating    = $member->PVPRATING;
-			$guild->members[$name]->pvp_title     = $member->PVPTITLE;
+			$guild->members[$name] = new Player(
+				charid: $charid,
+				firstname: trim($member->FIRSTNAME),
+				name: $name,
+				lastname: trim($member->LASTNAME),
+				level: $member->LEVELX,
+				breed: $member->BREED,
+				gender: $member->SEX,
+				faction: $guild->orgside,
+				profession: $member->PROF,
+				prof_title: $member->PROF_TITLE,
+				ai_rank: $member->DEFENDER_RANK_TITLE,
+				ai_level: $member->ALIENLEVEL,
+				guild_id: $guild->guild_id,
+				guild: $guild->orgname,
+				guild_rank: $member->RANK_TITLE,
+				guild_rank_id: $member->RANK,
+				dimension: $dimension,
+				source: 'org_roster',
+				head_id: $member->HEADID,
+				pvp_rating: $member->PVPRATING,
+				pvp_title: $member->PVPTITLE,
+			);
 		}
 
 		// If this result is from our cache, then this information is already present

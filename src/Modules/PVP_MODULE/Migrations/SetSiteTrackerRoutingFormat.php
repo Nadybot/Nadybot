@@ -6,7 +6,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{Attributes as NCA, DB, MessageHub, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 20_230_308_163_957)]
+#[NCA\Migration(order: 2023_03_08_16_39_57)]
 class SetSiteTrackerRoutingFormat implements SchemaMigration {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
