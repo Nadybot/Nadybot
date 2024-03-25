@@ -385,7 +385,6 @@ class Nadybot {
 
 	public function sendPackage(Package\Out $package, ?string $worker=null): void {
 		try {
-			$this->logger->notice('Write {package} via {worker}', ['package' => $package, 'worker' => $worker]);
 			$this->aoClient->write(package: $package, worker: $worker);
 		} catch (StreamException $e) {
 			$this->logger->critical('Whoa: {error}', [
@@ -417,10 +416,11 @@ class Nadybot {
 			);
 		}
 
+		// LegacyLogger::tempLogLevelOrderride('Core/Multi', 'debug');
 		$this->aoClient = new Multi(
 			workers: $workers,
 			mainCharacter: $this->config->main->character,
-			logger: $this->logger,
+			logger: new LoggerWrapper('Core/Multi'),
 		);
 		$this->aoClient->login();
 		$this->char = new Character(
@@ -463,12 +463,7 @@ class Nadybot {
 			EventLoop::onSignal(\SIGTERM, $this->signalHandler(...));
 			EventLoop::onSignal(\SIGINT, $this->signalHandler(...));
 		}
-		async(function (): void {
-			foreach ($this->aoClient->getPackages() as $package) {
-				$this->logger->notice('Read {package}', ['package' => $package]);
-				$this->processPackage($package);
-			}
-		});
+		async($this->aoPackageLoop(...));
 		EventLoop::repeat(1, $this->sendPings(...));
 		EventLoop::run();
 		$this->logger->notice('Graceful shutdown.');
@@ -1383,6 +1378,9 @@ class Nadybot {
 		if (isset($this->uidToName[$uid])) {
 			return $this->uidToName[$uid];
 		}
+		if ($uid === 0) {
+			return null;
+		}
 		return $this->aoClient->lookupCharacter($uid, $cacheOnly);
 	}
 
@@ -1611,6 +1609,25 @@ class Nadybot {
 		$this->logger->notice($line);
 	}
 
+	private function aoPackageLoop(): void {
+		foreach ($this->aoClient->getPackages() as $package) {
+			// $this->logger->notice('Read {package}', ['package' => $package]);
+			$this->processPackage($package);
+		}
+		$this->logger->error('Connection closed, shutting down.');
+		$this->shutdownBot();
+	}
+
+	private function shutdownBot(): void {
+		$this->shuttingDown = true;
+		foreach (EventLoop::getIdentifiers() as $identifier) {
+			try {
+				EventLoop::disable($identifier);
+			} catch (Throwable) {
+			}
+		}
+	}
+
 	private function errorHandler(Throwable $e): void {
 		if ($e instanceof StopExecutionException) {
 			return;
@@ -1623,13 +1640,7 @@ class Nadybot {
 
 	private function signalHandler(): void {
 		$this->logger->notice('Shutdown requested.');
-		$this->shuttingDown = true;
-		foreach (EventLoop::getIdentifiers() as $identifier) {
-			try {
-				EventLoop::disable($identifier);
-			} catch (Throwable $e) {
-			}
-		}
+		$this->shutdownBot();
 	}
 
 	private function sendPings(): void {
