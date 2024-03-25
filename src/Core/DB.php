@@ -574,7 +574,6 @@ class DB {
 	}
 
 	public function runMigrations(CoreMigration ...$migrations): void {
-		$this->logger->notice('Considering migrations {migrations}', ['migrations' => $migrations]);
 		$migrations = new Collection($migrations);
 		$this->createMigrationTables();
 		$groupedMigs = $migrations->groupBy('module');
@@ -587,13 +586,13 @@ class DB {
 		if ($missingMigs->isEmpty()) {
 			return;
 		}
-		$this->logger->notice('Missing migrations: {migrations}', ['migrations' => $missingMigs]);
+		$this->logger->info('Missing migrations: {migrations}', ['migrations' => $missingMigs]);
 		$start = microtime(true);
 		$this->logger->notice('Applying {numMigs} database migrations', [
 			'numMigs' => $missingMigs->count(),
 		]);
 		foreach ($missingMigs as $mig) {
-			$this->logger->notice('Applying migration: {migration}', ['migration' => $mig]);
+			$this->logger->info('Applying migration: {migration}', ['migration' => $mig]);
 			try {
 				$this->beginTransaction();
 				$this->applyMigration($mig);
@@ -775,11 +774,12 @@ class DB {
 		if (!isset($migDir->module)) {
 			return new Collection();
 		}
-		$fullFile = $ref->getFileName();
+		$fullFile = str_replace("/", \DIRECTORY_SEPARATOR, $ref->getFileName());
 		if (!is_string($fullFile)) {
 			return new Collection();
 		}
 		$fullDir = rtrim(dirname($fullFile) . \DIRECTORY_SEPARATOR . $migDir->dir, \DIRECTORY_SEPARATOR);
+		$fullDir = str_replace("/", \DIRECTORY_SEPARATOR, $fullDir);
 		foreach (get_declared_classes() as $class) {
 			if (!in_array(SchemaMigration::class, class_implements($class))) {
 				continue;
