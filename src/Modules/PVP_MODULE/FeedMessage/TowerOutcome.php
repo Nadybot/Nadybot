@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
 use function Safe\date;
 use EventSauce\ObjectHydrator\MapFrom;
-use Nadybot\Core\{StringableTrait, Util};
+use Nadybot\Core\{Faction, StringableTrait, Util};
 
 class TowerOutcome {
 	use StringableTrait;
@@ -43,9 +43,9 @@ class TowerOutcome {
 		public int $playfield_id,
 		public int $site_id,
 		public int $timestamp,
-		#[MapFrom('attacking_faction')] public ?string $attacker_faction,
+		#[MapFrom('attacking_faction')] public ?Faction $attacker_faction,
 		#[MapFrom('attacking_org')] public ?string $attacker_org,
-		public string $losing_faction,
+		public Faction $losing_faction,
 		public string $losing_org,
 	) {
 	}
@@ -56,22 +56,16 @@ class TowerOutcome {
 			'pf-id' => $this->playfield_id,
 			'site-id' => $this->site_id,
 			'timestamp' => date(Util::DATETIME, $this->timestamp),
-			'winning-faction' => $this->attacker_faction,
-			'c-winning-faction' => isset($this->attacker_faction)
-				? '<' . strtolower($this->attacker_faction) . '>'.
-				$this->attacker_faction . '<end>'
-				: null,
+			'winning-faction' => $this->attacker_faction?->name,
+			'c-winning-faction' => $this->attacker_faction?->inColor(),
 			'winning-org' => $this->attacker_org,
 			'c-winning-org' => isset($this->attacker_faction, $this->attacker_org)
-				? '<' . strtolower($this->attacker_faction) . '>'.
-				$this->attacker_org . '<end>'
+				? $this->attacker_faction->inColor($this->attacker_org)
 				: null,
-			'losing-faction' => $this->losing_org,
-			'c-losing-faction' => '<' . strtolower($this->losing_faction) . '>'.
-				$this->losing_faction . '<end>',
-			'losing-org' => $this->losing_faction,
-			'c-losing-org' => '<' . strtolower($this->losing_faction) . '>'.
-				$this->losing_org . '<end>',
+			'losing-faction' => $this->losing_faction->name,
+			'c-losing-faction' => $this->losing_faction->inColor(),
+			'losing-org' => $this->losing_org,
+			'c-losing-org' => $this->losing_faction->inColor($this->losing_org),
 		];
 	}
 }

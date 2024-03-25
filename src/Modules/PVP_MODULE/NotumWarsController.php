@@ -958,12 +958,10 @@ class NotumWarsController extends ModuleInstance {
 			if (isset($lastOutcome) && $lastOutcome->timestamp + 3_600 > time()) {
 				if (isset($lastOutcome->attacker_org, $lastOutcome->attacker_faction)) {
 					$blob .= '<tab>Destroyed by: '.
-						'<' . strtolower($lastOutcome->attacker_faction) . '>'.
-						$lastOutcome->attacker_org . '<end>';
+						$lastOutcome->attacker_faction->inColor($lastOutcome->attacker_org);
 				} else {
 					$blob .= '<tab>Abandoned by: '.
-						'<' . strtolower($lastOutcome->losing_faction) . '>'.
-						$lastOutcome->losing_org . '<end>';
+						$lastOutcome->losing_faction->inColor($lastOutcome->losing_org);
 				}
 				if ($showPlantInfo) {
 					$blob .= ' ' . $this->util->unixtimeToReadable(time() - $lastOutcome->timestamp).

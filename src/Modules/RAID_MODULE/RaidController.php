@@ -220,12 +220,13 @@ class RaidController extends ModuleInstance {
 		if ($raidCat !== null) {
 			return $raidCat;
 		}
-		$raidCat = new CommentCategory();
-		$raidCat->name = static::CAT_RAID;
-		$raidCat->created_by = $this->config->main->character;
-		$raidCat->min_al_read = 'raid_leader_1';
-		$raidCat->min_al_write = 'raid_leader_2';
-		$raidCat->user_managed = false;
+		$raidCat = new CommentCategory(
+			name: static::CAT_RAID,
+			created_by: $this->config->main->character,
+			min_al_read: 'raid_leader_1',
+			min_al_write: 'raid_leader_2',
+			user_managed: false,
+		);
 		$this->commentController->saveCategory($raidCat);
 		return $raidCat;
 	}

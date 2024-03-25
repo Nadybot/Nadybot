@@ -739,17 +739,18 @@ class LootController extends ModuleInstance {
 			} else {
 				$list .= 'Winners: ';
 			}
-			$lootHistory = new LootHistory();
-			$lootHistory->roll = $this->roll;
-			$lootHistory->dt = time();
-			$lootHistory->pos = $key;
-			$lootHistory->amount = $item->multiloot;
-			$lootHistory->added_by = $item->added_by;
-			$lootHistory->icon = $item->icon;
-			$lootHistory->name = $item->name;
-			$lootHistory->display = $item->display;
-			$lootHistory->comment = $item->comment;
-			$lootHistory->rolled_by = $context->char->name;
+			$lootHistory = new LootHistory(
+				roll: $this->roll,
+				dt: time(),
+				pos: $key,
+				amount: $item->multiloot,
+				added_by: $item->added_by,
+				icon: $item->icon,
+				name: $item->name,
+				display: $item->display,
+				comment: $item->comment,
+				rolled_by: $context->char->name,
+			);
 			if ($numUsers === 0) {
 				$list .= "<highlight>No one added.<end>\n\n";
 				$this->residual[$resnum] = $item;
@@ -1032,11 +1033,11 @@ class LootController extends ModuleInstance {
 		);
 	}
 
-	protected function getLootEntryID(int $id): ?RaidLootSearch {
-		/** @var ?RaidLootSearch */
+	protected function getLootEntryID(int $id): ?RaidLoot {
+		/** @var ?RaidLoot */
 		$raidLoot = $this->db->table('raid_loot AS r')
 					->where('r.id', $id)
-					->asObj(RaidLootSearch::class)
+					->asObj(RaidLoot::class)
 					->first();
 		if (!isset($raidLoot)) {
 			return null;

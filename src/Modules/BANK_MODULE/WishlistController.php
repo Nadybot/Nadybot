@@ -446,17 +446,16 @@ class WishlistController extends ModuleInstance {
 			return;
 		}
 		$fromChars = $this->getActiveFroms();
-		$entry = new Wish();
-		$entry->created_by = $context->char->name;
-		$entry->from = $character();
-		$entry->item = $item;
-		if (isset($amount)) {
-			$entry->amount = $amount();
-		}
+		$entry = new Wish(
+			created_by: $context->char->name,
+			from: $character(),
+			item: $item,
+			amount: isset($amount) ? $amount() : 1,
+		);
 		$entry->id = $this->db->insert(self::DB_TABLE, $entry);
 		$context->reply("Item added to your wishlist as #{$entry->id}.");
 		if (!in_array($entry->from, $fromChars)) {
-			$this->buddylistManager->addName($entry->from, 'wishlist');
+			$this->buddylistManager->addName($character(), 'wishlist');
 		}
 	}
 
@@ -471,19 +470,16 @@ class WishlistController extends ModuleInstance {
 		?PQuantity $amount,
 		string $item,
 	): void {
-		$entry = new Wish();
-		$entry->created_by = $context->char->name;
-		$entry->item = $item;
-		if (isset($amount)) {
-			$entry->amount = $amount();
-		}
 		$expireDuration = isset($expires) ? $expires->toSecs() : null;
 		if (($this->maxWishLifetime > 0) && (!isset($expireDuration) || $this->maxWishLifetime < $expireDuration)) {
 			$expireDuration = $this->maxWishLifetime;
 		}
-		if (isset($expireDuration)) {
-			$entry->expires_on = time() + $expireDuration;
-		}
+		$entry = new Wish(
+			created_by: $context->char->name,
+			item: $item,
+			amount: isset($amount) ? $amount() : 1,
+			expires_on: isset($expireDuration) ? time() + $expireDuration : null,
+		);
 		$entry->id = $this->db->insert(self::DB_TABLE, $entry);
 		$context->reply("Item added to your wishlist as #{$entry->id}.");
 	}
@@ -658,7 +654,7 @@ class WishlistController extends ModuleInstance {
 			->where('id', $id)
 			->asObj(Wish::class)
 			->first();
-		if (!isset($entry)) {
+		if (!isset($entry) || !isset($entry->id)) {
 			$context->reply("No item #{$id} on your wishlist or wished from you.");
 			return;
 		}
@@ -670,10 +666,11 @@ class WishlistController extends ModuleInstance {
 			$context->reply('This wish has already been fulfilled.');
 			return;
 		}
-		$fulfilment = new WishFulfilment();
-		$fulfilment->amount = isset($amount) ? $amount() : ($entry->amount - $numFulfilled);
-		$fulfilment->fulfilled_by = $context->char->name;
-		$fulfilment->wish_id = $entry->id;
+		$fulfilment = new WishFulfilment(
+			amount: isset($amount) ? $amount() : ($entry->amount - $numFulfilled),
+			fulfilled_by: $context->char->name,
+			wish_id: $entry->id,
+		);
 		$oldFrom = $this->getActiveFroms();
 		$this->db->awaitBeginTransaction();
 		try {

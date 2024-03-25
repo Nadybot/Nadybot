@@ -7,6 +7,11 @@ enum Faction: string {
 		return '<' . strtolower($this->value) . '>';
 	}
 
+	public function inColor(?string $text=null): string {
+		$text ??= $this->name;
+		return '<' . strtolower($this->value) . ">{$text}<end>";
+	}
+
 	case Neutral = 'Neutral';
 	case Omni = 'Omni';
 	case Clan = 'Clan';

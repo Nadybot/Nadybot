@@ -153,11 +153,12 @@ class NotesController extends ModuleInstance {
 	public function saveNote(string $noteText, string $sender, int $reminder=0): int {
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->getValidatedMain($sender);
-		$note = new Note();
-		$note->added_by = $sender;
-		$note->owner = $main;
-		$note->note = $noteText;
-		$note->reminder = $reminder;
+		$note = new Note(
+			added_by: $sender,
+			owner: $main,
+			note: $noteText,
+			reminder: $reminder,
+		);
 
 		return $this->db->insert('notes', $note);
 	}
@@ -338,12 +339,16 @@ class NotesController extends ModuleInstance {
 	#[NCA\Help\Group('notes')]
 	public function reminderformatShowCommand(CmdContext $context): void {
 		$reminderFormat = $this->getReminderFormat($context->char->name);
-		$exampleNote1 = new Note();
-		$exampleNote1->added_by = $context->char->name;
-		$exampleNote1->note = 'Example text about something super important';
-		$exampleNote2 = new Note();
-		$exampleNote2->added_by = 'Nadyita';
-		$exampleNote2->note = "Don't forget to buy grenades!";
+		$exampleNote1 = new Note(
+			added_by: $context->char->name,
+			owner: $context->char->name,
+			note: 'Example text about something super important',
+		);
+		$exampleNote2 = new Note(
+			added_by: 'Nadyita',
+			owner: 'Nadyita',
+			note: "Don't forget to buy grenades!",
+		);
 		$exampleNotes = [$exampleNote1, $exampleNote2];
 		$formats = static::VALID_FORMATS;
 		$blob = "When you logon or enter the bot's private channel, the bot will\n".

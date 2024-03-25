@@ -44,12 +44,12 @@ class CmdSourceMapping {
 
 	public function toPermSetMapping(): CmdPermSetMapping {
 		$source = $this->source . (isset($this->sub_source) ? "({$this->sub_source})" : '');
-		$map = new CmdPermSetMapping();
-		$map->source = $source;
-		$map->permission_set = $this->permission_set;
-		$map->feedback = $this->unknown_cmd_feedback;
-		$map->symbol = $this->cmd_prefix ?? '!';
-		$map->symbol_optional = $this->cmd_prefix_optional;
-		return $map;
+		return new CmdPermSetMapping(
+			source: $source,
+			permission_set: $this->permission_set,
+			feedback: $this->unknown_cmd_feedback,
+			symbol: $this->cmd_prefix ?? '!',
+			symbol_optional: $this->cmd_prefix_optional,
+		);
 	}
 }

@@ -737,11 +737,11 @@ class LootListsController extends ModuleInstance {
 	public function findRaidLoot(string $raid, string $category, CmdContext $context): string {
 		$sender = $context->char->name;
 
-		/** @var Collection<RaidLootSearch> */
+		/** @var Collection<RaidLoot> */
 		$loot = $this->db->table('raid_loot AS r')
 					->whereIlike('r.raid', $raid)
 					->whereIlike('r.category', $category)
-					->asObj(RaidLootSearch::class);
+					->asObj(RaidLoot::class);
 		$aoids = $loot->whereNotNull('aoid')->pluck('aoid')->toArray();
 		$itemsByID = $this->itemsController->getByIDs(...$aoids)->keyBy('highid');
 		$names = $loot->whereNull('aoid')->pluck('name')->toArray();
@@ -769,7 +769,7 @@ class LootListsController extends ModuleInstance {
 		$blob = "\n<pagebreak><header2>{$category}<end>\n\n";
 		$showLootPics = $this->showRaidLootPics;
 		foreach ($loot as $row) {
-			/** @var RaidLootSearch $row */
+			/** @var RaidLoot $row */
 			$actions = [];
 			if ($lootEnabled && $this->showLootLootLinks) {
 				$actions []= $this->text->makeChatcmd(

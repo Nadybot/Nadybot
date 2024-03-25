@@ -913,13 +913,14 @@ class ImportController extends ModuleInstance {
 				->delete();
 			foreach ($categories as $category) {
 				$oldEntry = $this->commentController->getCategory($category->name);
-				$entry = new CommentCategory();
-				$entry->name = $category->name;
 				$createdBy = $this->characterToName($category->createdBy ??null);
-				$entry->created_by = $createdBy ?? $this->config->main->character;
-				$entry->created_at = $category->createdAt ?? time();
-				$entry->min_al_read = $this->getMappedRank($rankMap, $category->minRankToRead) ?? 'mod';
-				$entry->min_al_write = $this->getMappedRank($rankMap, $category->minRankToWrite) ?? 'admin';
+				$entry = new CommentCategory(
+					name: $category->name,
+					created_by: $createdBy ?? $this->config->main->character,
+					created_at: $category->createdAt ?? time(),
+					min_al_read: $this->getMappedRank($rankMap, $category->minRankToRead) ?? 'mod',
+					min_al_write: $this->getMappedRank($rankMap, $category->minRankToWrite) ?? 'admin',
+				);
 
 				/** @psalm-suppress RiskyTruthyFalsyComparison */
 				$entry->user_managed = isset($oldEntry) ? $oldEntry->user_managed : !($category->systemEntry ?? false);
@@ -951,21 +952,23 @@ class ImportController extends ModuleInstance {
 				if (!isset($name)) {
 					continue;
 				}
-				$entry = new Comment();
-				$entry->comment = $comment->comment;
-				$entry->character = $name;
 				$createdBy = $this->characterToName($comment->createdBy ??null);
-				$entry->created_by = $createdBy ?? $this->config->main->character;
-				$entry->created_at = $comment->createdAt ?? time();
-				$entry->category = $comment->category ?? 'admin';
+				$entry = new Comment(
+					comment: $comment->comment,
+					character: $name,
+					created_by: $createdBy ?? $this->config->main->character,
+					created_at: $comment->createdAt ?? time(),
+					category: $comment->category ?? 'admin',
+				);
 				if ($this->commentController->getCategory($entry->category) === null) {
-					$cat = new CommentCategory();
-					$cat->name = $entry->category;
-					$cat->created_by = $this->config->main->character;
-					$cat->created_at = time();
-					$cat->min_al_read = 'mod';
-					$cat->min_al_write = 'admin';
-					$cat->user_managed = true;
+					$cat = new CommentCategory(
+						name: $entry->category,
+						created_by: $this->config->main->character,
+						created_at: time(),
+						min_al_read: 'mod',
+						min_al_write: 'admin',
+						user_managed: true,
+					);
 					$this->db->insert('<table:comment_categories>', $cat, null);
 				}
 				$this->db->insert('<table:comments>', $entry);

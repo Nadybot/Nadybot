@@ -252,9 +252,10 @@ class MessageHubController extends ModuleInstance {
 			$context->reply("No message source for <highlight>{$from}<end> found.");
 			return;
 		}
-		$route = new Route();
-		$route->source = $from;
-		$route->destination = $to;
+		$route = new Route(
+			source: $from,
+			destination: $to,
+		);
 		if ($direction->isTwoWay()) {
 			$route->two_way = true;
 			$receiver = $this->messageHub->getReceiver($from);
@@ -772,10 +773,11 @@ class MessageHubController extends ModuleInstance {
 		}
 		$colorDef = $this->getHopColor($tag, $where, $via);
 		if (!isset($colorDef)) {
-			$colorDef = new RouteHopColor();
-			$colorDef->hop = $tag;
-			$colorDef->where = $where;
-			$colorDef->via = $via;
+			$colorDef = new RouteHopColor(
+				hop: $tag,
+				where: $where,
+				via: $via,
+			);
 		}
 		if ($type === 'text') {
 			$colorDef->text_color = $color;
@@ -991,9 +993,10 @@ class MessageHubController extends ModuleInstance {
 		$format = Source::$format->first(static fn (RouteHopFormat $x) => $x->hop === $hop);
 		$update = true;
 		if (!isset($format)) {
-			$format = new RouteHopFormat();
-			$format->hop = $hop;
-			$format->format = '%s';
+			$format = new RouteHopFormat(
+				hop: $hop,
+				format: '%s',
+			);
 			$update = false;
 		}
 		$format->render = $state;
@@ -1015,8 +1018,7 @@ class MessageHubController extends ModuleInstance {
 		/** @var ?RouteHopFormat $spec */
 		$update = true;
 		if (!isset($spec)) {
-			$spec = new RouteHopFormat();
-			$spec->hop = $hop;
+			$spec = new RouteHopFormat(hop: $hop);
 			$update = false;
 		}
 		$spec->format = $format;

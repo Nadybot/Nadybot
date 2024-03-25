@@ -114,10 +114,11 @@ class PermissionSetMappingController extends ModuleInstance {
 			);
 			return;
 		}
-		$map = new CmdPermSetMapping();
-		$map->source = $source;
-		$map->permission_set = $permissionSet;
-		$map->symbol = $this->settingManager->getString('symbol') ?? '!';
+		$map = new CmdPermSetMapping(
+			source: $source,
+			permission_set: $permissionSet,
+			symbol: $this->settingManager->getString('symbol') ?? '!',
+		);
 		try {
 			$map->id = $this->db->insert(CommandManager::DB_TABLE_MAPPING, $map);
 		} catch (SQLException) {

@@ -1748,11 +1748,12 @@ class DiscordGatewayController extends ModuleInstance {
 			->where('discord_id', $userId)
 			->where('name', $invite->character)
 			->delete();
-		$mapping = new DiscordMapping();
-		$mapping->name = $invite->character;
-		$mapping->discord_id = $userId;
-		$mapping->confirmed = time();
-		$mapping->created = time();
+		$mapping = new DiscordMapping(
+			name: $invite->character,
+			discord_id: $userId,
+			confirmed: time(),
+			created: time(),
+		);
 		$this->db->insert(DiscordGatewayCommandHandler::DB_TABLE, $mapping);
 		$this->logger->notice('The Discord user {userId} is now linked to {aoChar}', [
 			'userId' => $mapping->discord_id,
@@ -1936,12 +1937,13 @@ class DiscordGatewayController extends ModuleInstance {
 					continue;
 				}
 				if (!isset($oldDBEmoji)) {
-					$dbEmoji = new DBEmoji();
-					$dbEmoji->emoji_id = $registeredEmoji->id;
-					$dbEmoji->name = $info['filename'];
-					$dbEmoji->registered = time();
-					$dbEmoji->version = $stats[9]??time();
-					$dbEmoji->guild_id = $guild->id;
+					$dbEmoji = new DBEmoji(
+						emoji_id: $registeredEmoji->id,
+						name: $info['filename'],
+						registered: time(),
+						version: $stats[9]??time(),
+						guild_id: $guild->id,
+					);
 					$this->db->insert(self::EMOJI_TABLE, $dbEmoji);
 				} else {
 					$oldDBEmoji->registered = time();

@@ -320,11 +320,12 @@ class CommentController extends ModuleInstance {
 		}
 		$cat = $this->getCategory($category());
 		if ($cat === null) {
-			$cat = new CommentCategory();
-			$cat->created_by = $context->char->name;
-			$cat->name = $category();
-			$cat->min_al_read = $alForReading;
-			$cat->min_al_write = $alForWriting;
+			$cat = new CommentCategory(
+				created_by: $context->char->name,
+				name: $category(),
+				min_al_read: $alForReading,
+				min_al_write: $alForWriting,
+			);
 			$this->saveCategory($cat);
 			$context->reply("Category <highlight>{$category}<end> successfully created.");
 			return;
@@ -384,11 +385,12 @@ class CommentController extends ModuleInstance {
 			$context->reply('You cannot comment on yourself.');
 			return;
 		}
-		$comment = new Comment();
-		$comment->category = $cat->name;
-		$comment->character = $character;
-		$comment->comment = trim($commentText);
-		$comment->created_by = $context->char->name;
+		$comment = new Comment(
+			category: $cat->name,
+			character: $character,
+			comment: trim($commentText),
+			created_by: $context->char->name,
+		);
 		$cooldown = $this->saveComment($comment);
 		if ($cooldown > 0) {
 			$context->reply(

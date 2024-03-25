@@ -154,14 +154,16 @@ class ArbiterController extends ModuleInstance {
 		try {
 			$this->db->table(static::DB_TABLE)->truncate();
 			for ($i = 0; $i < 3; $i++) {
-				$arb = new ICCArbiter();
-
-				$arb->type = $validTypes[($pos + $i) % 3];
-				$arb->start = (new DateTime())->setTimestamp($start);
-				$arb->end = (new DateTime())->setTimestamp($end);
+				$arbStart = (new DateTime())->setTimestamp($start);
+				$arbEnd = (new DateTime())->setTimestamp($end);
 				$days = 14 * $i;
-				$arb->start->add(new DateInterval("P{$days}D"));
-				$arb->end->add(new DateInterval("P{$days}D"));
+				$arbStart->add(new DateInterval("P{$days}D"));
+				$arbEnd->add(new DateInterval("P{$days}D"));
+				$arb = new ICCArbiter(
+					type: $validTypes[($pos + $i) % 3],
+					start: $arbStart,
+					end: $arbEnd,
+				);
 				$this->db->insert(static::DB_TABLE, $arb);
 			}
 		} catch (Exception $e) {

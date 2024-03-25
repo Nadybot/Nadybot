@@ -188,10 +188,13 @@ class HelpManager {
 				continue;
 			}
 			if (!isset($context) || $this->checkAccessLevels($accessLevel, explode(',', $row->admin_list))) {
-				$obj = new HelpTopic();
-				$obj->module = $row->module;
-				$obj->name = $row->name;
-				$obj->description = $row->description;
+				$obj = new HelpTopic(
+					module: $row->module,
+					name: $row->name,
+					description: $row->description,
+					admin_list: $row->admin_list,
+					sort: $row->sort,
+				);
 				$topics []= $obj;
 				$added[$key] = true;
 			}

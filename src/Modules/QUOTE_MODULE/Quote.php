@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\QUOTE_MODULE;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class Quote extends DBRow {
-	public int $id;
-	public string $poster;
-	public int $dt;
-	public string $msg;
+	public function __construct(
+		public string $poster,
+		public int $dt,
+		public string $msg,
+		#[NCA\DB\AutoInc] public ?int $id=null,
+	) {
+	}
 }

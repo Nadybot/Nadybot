@@ -74,9 +74,10 @@ class MigrateToRoutes implements SchemaMigration {
 	}
 
 	public function migrateChannelToRoute(DiscordChannel $channel, DB $db): void {
-		$route = new Route();
-		$route->source = $this->trackerController->getChannelName();
-		$route->destination = Source::DISCORD_PRIV . "({$channel->name})";
+		$route = new Route(
+			source: $this->trackerController->getChannelName(),
+			destination: Source::DISCORD_PRIV . "({$channel->name})",
+		);
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
 		try {
 			$msgRoute = $this->messageHub->createMessageRoute($route);

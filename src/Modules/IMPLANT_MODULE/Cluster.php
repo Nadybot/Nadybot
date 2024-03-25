@@ -5,10 +5,13 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 use Nadybot\Core\DBRow;
 
 class Cluster extends DBRow {
-	public int $ClusterID;
-	public int $EffectTypeID;
-	public string $LongName;
-	public string $OfficialName;
-	public int $NPReq;
-	public int $SkillID;
+	public function __construct(
+		public int $ClusterID,
+		public int $EffectTypeID,
+		public string $LongName,
+		public string $OfficialName,
+		public int $NPReq,
+		public int $SkillID,
+	) {
+	}
 }

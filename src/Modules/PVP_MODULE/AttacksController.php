@@ -1014,13 +1014,11 @@ class AttacksController extends ModuleInstance {
 			'<highlight>' . $this->util->unixtimeToReadable(time() - $outcome->timestamp).
 			"<end> ago)\n";
 		if (isset($outcome->attacker_org, $outcome->attacker_faction)) {
-			$blob .= 'Winner: <' . strtolower($outcome->attacker_faction) . '>'.
-				$outcome->attacker_org . "<end>\n";
+			$blob .= 'Winner: ' . $outcome->attacker_faction->inColor($outcome->attacker_org) . "<end>\n";
 		} else {
 			$blob .= "Winner: <grey>abandoned<end>\n";
 		}
-		$blob .= 'Loser: <' . strtolower($outcome->losing_faction) . '>'.
-			$outcome->losing_org . "<end>\n";
+		$blob .= 'Loser: ' . $outcome->losing_faction->inColor($outcome->losing_org) . "\n";
 		$siteLink = $this->text->makeChatcmd(
 			"{$pf->short_name} {$site->site_id}",
 			"/tell <myname> <symbol>nw lc {$pf->short_name} {$site->site_id}"
@@ -1179,7 +1177,7 @@ class AttacksController extends ModuleInstance {
 					$blocks []= $this->util->date($attack->timestamp) . ': '.
 						$this->renderDBAttacker($attack);
 				}
-				$defColor = strtolower($first->def_faction);
+				$defColor = $first->def_faction->getColor();
 				return "<header2>{$pf->short_name} {$first->site_id}<end>".
 					(
 						isset($first->ql)
@@ -1190,12 +1188,11 @@ class AttacksController extends ModuleInstance {
 						'details',
 						"/tell <myname> <symbol>nw lc {$pf->short_name} {$first->site_id}"
 					) . "]\n".
-					"<tab>Defender: <{$defColor}>{$first->def_org}<end>\n".
+					"<tab>Defender: {$defColor}{$first->def_org}<end>\n".
 					(
 						isset($outcome, $outcome->attacker_faction, $outcome->attacker_org)
-							? '<tab>Won by <' . strtolower($outcome->attacker_faction) . '>'.
-								$outcome->attacker_org . '<end> at '.
-								$this->util->date($outcome->timestamp) . "\n\n"
+							? '<tab>Won by ' . $outcome->attacker_faction->inColor($outcome->attacker_org).
+								' at ' . $this->util->date($outcome->timestamp) . "\n\n"
 							: "\n"
 					) . '<tab>'.
 					implode("\n<tab>", $blocks);
@@ -1280,7 +1277,7 @@ class AttacksController extends ModuleInstance {
 
 	/** Render info about an attacker for !nw attacks */
 	private function renderDBAttacker(DBTowerAttack $attack): string {
-		$attColor = strtolower($attack->att_faction ?? 'Unknown');
+		$attColor = strtolower($attack->att_faction?->value ?? 'Unknown');
 		$blob = "<{$attColor}>{$attack->att_name}<end>";
 		if (isset($attack->att_level, $attack->att_ai_level, $attack->att_profession)) {
 			$blob .= " ({$attack->att_level}/<green>{$attack->att_ai_level}<end>";
@@ -1307,13 +1304,13 @@ class AttacksController extends ModuleInstance {
 
 	/** Render a single, ungrouped !nw attacks line */
 	private function renderDBAttack(DBTowerAttack $attack): string {
-		$defColor = strtolower($attack->def_faction);
+		$defColor = $attack->def_faction->getColor();
 		$blob = 'Time: ' . $this->util->date($attack->timestamp).
 			' (<highlight>'.
 			$this->util->unixtimeToReadable(time() - $attack->timestamp).
 			"<end> ago)\n";
 		$blob .= 'Attacker: ' . $this->renderDBAttacker($attack) . "\n";
-		$blob .= "Defender: <{$defColor}>{$attack->def_org}<end>";
+		$blob .= "Defender: {$defColor}{$attack->def_org}<end>";
 		$site = $this->nwCtrl->state[$attack->playfield_id][$attack->site_id] ?? null;
 		$pf = $this->pfCtrl->getPlayfieldById($attack->playfield_id);
 		if (isset($site, $pf)) {

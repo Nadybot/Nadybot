@@ -2,12 +2,14 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class NewsConfirmed extends DBRow {
-	/** The internal ID of this news entry */
-	public int $id;
-
-	public string $player;
-	public int $time;
+	/** @param ?int $id The internal ID of this news entry */
+	public function __construct(
+		#[NCA\DB\AutoInc] public ?int $id,
+		public string $player,
+		public int $time,
+	) {
+	}
 }

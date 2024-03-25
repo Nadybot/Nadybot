@@ -5,6 +5,9 @@ namespace Nadybot\Modules\DEV_MODULE;
 use Nadybot\Core\DBRow;
 
 class SilenceCmd extends DBRow {
-	public string $cmd;
-	public string $channel;
+	public function __construct(
+		public string $cmd,
+		public string $channel,
+	) {
+	}
 }

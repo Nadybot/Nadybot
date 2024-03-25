@@ -30,16 +30,18 @@ class InitializeRouting implements SchemaMigration {
 			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
 
-		$rhf = new RouteHopFormat();
-		$rhf->hop = 'highnet';
-		$rhf->render = true;
-		$rhf->format = '@%s';
+		$rhf = new RouteHopFormat(
+			hop: 'highnet',
+			render: true,
+			format: '@%s',
+		);
 		$db->insert(Source::DB_TABLE, $rhf);
 
-		$rhc = new RouteHopColor();
-		$rhc->hop = 'highnet';
-		$rhc->tag_color = '00EFFF';
-		$rhc->text_color = '00BFFF';
+		$rhc = new RouteHopColor(
+			hop: 'highnet',
+			tag_color: '00EFFF',
+			text_color: '00BFFF',
+		);
 		$db->insert(MessageHub::DB_TABLE_COLORS, $rhc);
 	}
 }

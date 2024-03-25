@@ -19,7 +19,9 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	Event,
+	Faction,
 	Filesystem,
+	Government,
 	ModuleInstance,
 	SQLException,
 	Safe,
@@ -154,10 +156,10 @@ class FindOrgController extends ModuleInstance {
 			$whoisorg = $this->text->makeChatcmd('Whoisorg', "/tell <myname> whoisorg {$org->id}");
 			$orglist = $this->text->makeChatcmd('Orglist', "/tell <myname> orglist {$org->id}");
 			$orgmembers = $this->text->makeChatcmd('Orgmembers', "/tell <myname> orgmembers {$org->id}");
-			$blob .= "<tab><{$org->faction}>{$org->name}<end> ({$org->id}) - ".
+			$blob .= "<tab>{$org->faction->inColor($org->name)} ({$org->id}) - ".
 				"<highlight>{$org->num_members}<end> ".
 				$this->text->pluralize('member', $org->num_members).
-				", {$org->governing_form} [{$orglist}] [{$whoisorg}] [{$orgmembers}]\n";
+				", {$org->governing_form->name} [{$orglist}] [{$whoisorg}] [{$orgmembers}]\n";
 		}
 		return $blob;
 	}
@@ -180,14 +182,14 @@ class FindOrgController extends ModuleInstance {
 		$this->logger->info('Updating orgs starting with {letter}', ['letter' => $letter]);
 		$inserts = [];
 		foreach ($arr as $match) {
-			$obj = new Organization();
-			$obj->id = (int)$match[2];
-			$obj->name = trim($match[3]);
-			$obj->num_members = (int)$match[4];
-			$obj->faction = $match[6];
-			$obj->index = $letter;
-			$obj->governing_form = $match[7];
-			$inserts []= get_object_vars($obj);
+			$inserts []= [
+				'id' => (int)$match[2],
+				'name' => trim($match[3]),
+				'num_members' => (int)$match[4],
+				'faction' => Faction::from($match[6])->name,
+				'index' => $letter,
+				'governing_form' => Government::from($match[7])->name,
+			];
 		}
 		while ($this->db->inTransaction()) {
 			delay(0.1);

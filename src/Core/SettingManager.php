@@ -147,19 +147,20 @@ class SettingManager {
 		}
 
 		try {
-			$setting = new Setting();
-			$setting->admin       = $accessLevel;
-			$setting->description = $description;
-			$setting->help        = $help;
-			$setting->intoptions  = $intoptions;
-			$setting->mode        = $mode;
-			$setting->module      = $module;
-			$setting->name        = $name;
-			$setting->options     = $options;
-			$setting->source      = 'db';
-			$setting->type        = $type;
-			$setting->verify      = 1;
-			$setting->value       = (string)$value;
+			$setting = new Setting(
+				admin: $accessLevel,
+				description: $description,
+				help: $help,
+				intoptions: $intoptions,
+				mode: $mode,
+				module: $module,
+				name: $name,
+				options: $options,
+				source: 'db',
+				type: $type,
+				verify: 1,
+				value: (string)$value,
+			);
 			if (array_key_exists($name, $this->chatBot->existing_settings) || $this->exists($name)) {
 				$this->db->table(self::DB_TABLE)
 					->where('name', $name)

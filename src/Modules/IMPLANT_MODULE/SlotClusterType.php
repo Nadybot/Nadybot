@@ -5,6 +5,9 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 use Nadybot\Core\DBRow;
 
 class SlotClusterType extends DBRow {
-	public string $Slot;
-	public string $ClusterType;
+	public function __construct(
+		public string $Slot,
+		public string $ClusterType,
+	) {
+	}
 }

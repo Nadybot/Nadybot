@@ -5,6 +5,9 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\DBRow;
 
 class Nickname extends DBRow {
-	public string $main;
-	public string $nick;
+	public function __construct(
+		public string $main,
+		public string $nick,
+	) {
+	}
 }

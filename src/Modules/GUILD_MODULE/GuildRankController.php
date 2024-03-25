@@ -215,9 +215,10 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		$alName = $this->accessManager->getDisplayName($accessLevel);
 		$rankName = $ranks[$rank];
 
-		$rankMapping = new OrgRankMapping();
-		$rankMapping->access_level = $accessLevel;
-		$rankMapping->min_rank = $rank;
+		$rankMapping = new OrgRankMapping(
+			access_level: $accessLevel,
+			min_rank: $rank,
+		);
 
 		/** @var ?OrgRankMapping */
 		$alEntry = $this->db->table(self::DB_TABLE)

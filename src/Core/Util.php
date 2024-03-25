@@ -691,7 +691,7 @@ class Util {
 	}
 
 	/** Create a valid UUID that is unique worldwide */
-	public function createUUID(): string {
+	public static function createUUID(): string {
 		$data = random_bytes(16);
 
 		// Set version to 0100

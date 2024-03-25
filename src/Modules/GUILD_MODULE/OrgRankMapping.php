@@ -5,6 +5,9 @@ namespace Nadybot\Modules\GUILD_MODULE;
 use Nadybot\Core\DBRow;
 
 class OrgRankMapping extends DBRow {
-	public string $access_level;
-	public int $min_rank;
+	public function __construct(
+		public string $access_level,
+		public int $min_rank,
+	) {
+	}
 }

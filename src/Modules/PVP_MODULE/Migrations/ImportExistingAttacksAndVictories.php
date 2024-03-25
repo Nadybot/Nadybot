@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\PVP_MODULE\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Faction, SchemaMigration};
 use Nadybot\Modules\PVP_MODULE\{DBOutcome, DBTowerAttack, NotumWarsController};
 use Psr\Log\LoggerInterface;
 use stdClass;
@@ -26,21 +26,23 @@ class ImportExistingAttacksAndVictories implements SchemaMigration {
 				->get()
 				->each(static function (stdClass $old) use ($db, &$processed): void {
 					$processed++;
-					$attack = new DBTowerAttack();
 					try {
-						$attack->timestamp = $old->time;
-						$attack->att_org = $old->att_guild_name;
-						$attack->att_faction = $old->att_faction;
-						$attack->att_name = $old->att_player;
-						$attack->att_level = $old->att_level;
-						$attack->att_ai_level = $old->att_ai_level;
-						$attack->att_profession = $old->att_profession;
-						$attack->def_org = $old->def_guild_name;
-						$attack->def_faction = $old->def_faction;
-						$attack->playfield_id = $old->playfield_id;
-						$attack->site_id = $old->site_number;
-						$attack->location_x = $old->x_coords;
-						$attack->location_y = $old->y_coords;
+						$attack = new DBTowerAttack(
+							timestamp: $old->time,
+							playfield_id: $old->playfield_id,
+							location_x: $old->x_coords,
+							location_y: $old->y_coords,
+							site_id: $old->site_number,
+							ql: null,
+							att_org: $old->att_guild_name,
+							att_faction: $old->att_faction,
+							att_name: $old->att_player,
+							att_level: $old->att_level,
+							att_ai_level: $old->att_ai_level,
+							att_profession: $old->att_profession,
+							def_org: $old->def_guild_name,
+							def_faction: $old->def_faction,
+						);
 						$db->insert(NotumWarsController::DB_ATTACKS, $attack, null);
 					} catch (\Throwable $e) {
 						// Ignore incomplete data for now
@@ -61,15 +63,16 @@ class ImportExistingAttacksAndVictories implements SchemaMigration {
 				->get()
 				->each(static function (stdClass $old) use ($db, &$processed): void {
 					$processed++;
-					$outcome = new DBOutcome();
 					try {
-						$outcome->timestamp = $old->time;
-						$outcome->attacker_org = $old->win_guild_name;
-						$outcome->attacker_faction = $old->win_faction;
-						$outcome->losing_org = $old->lose_guild_name;
-						$outcome->losing_faction = $old->lose_faction;
-						$outcome->playfield_id = $old->playfield_id;
-						$outcome->site_id = $old->site_number;
+						$outcome = new DBOutcome(
+							timestamp: $old->time,
+							attacker_org: $old->win_guild_name,
+							attacker_faction: Faction::tryFrom($old->win_faction??''),
+							losing_org: $old->lose_guild_name,
+							losing_faction: Faction::tryFrom($old->lose_faction??'') ?? Faction::Unknown,
+							playfield_id: $old->playfield_id,
+							site_id: $old->site_number,
+						);
 						$db->insert(NotumWarsController::DB_OUTCOMES, $outcome, null);
 					} catch (\Throwable $e) {
 						// Ignore incomplete data for now

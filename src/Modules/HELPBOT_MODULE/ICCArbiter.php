@@ -3,11 +3,14 @@
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use DateTime;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class ICCArbiter extends DBRow {
-	public int $id;
-	public string $type;
-	public DateTime $start;
-	public DateTime $end;
+	public function __construct(
+		public string $type,
+		public DateTime $start,
+		public DateTime $end,
+		#[NCA\DB\AutoInc] public ?int $id=null,
+	) {
+	}
 }

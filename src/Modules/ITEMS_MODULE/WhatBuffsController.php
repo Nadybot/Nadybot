@@ -196,12 +196,13 @@ class WhatBuffsController extends ModuleInstance {
 				->asObj(Skill::class)
 				->keyBy('id');
 			$data = $perkBuffs->map(static function (int $buff, int $skillId) use ($skillsById): ?SkillBuffItemCount {
-				$result = new SkillBuffItemCount();
 				if ($skillsById->get($skillId) === null) {
 					return null;
 				}
-				$result->skill = $skillsById->get($skillId)->name;
-				$result->num = $buff;
+				$result = new SkillBuffItemCount(
+					skill: $skillsById->get($skillId)->name,
+					num: $buff,
+				);
 				return $result;
 			})->filter()->sortBy('skill');
 		} else {
@@ -365,9 +366,10 @@ class WhatBuffsController extends ModuleInstance {
 			$numPerks = $this->buffPerksController->perks->filter(
 				$this->createPerkFilter($skillId)
 			)->count();
-			$perkCount = new SkillBuffTypeCount();
-			$perkCount->item_type = 'Perk';
-			$perkCount->num = $numPerks;
+			$perkCount = new SkillBuffTypeCount(
+				item_type: 'Perk',
+				num: $numPerks,
+			);
 			$data = $data->push($perkCount)->sortBy('item_type');
 		}
 		if (count($data) === 0) {
@@ -437,13 +439,14 @@ class WhatBuffsController extends ModuleInstance {
 					if (!isset($perkLevel->buffs[$skill->id])) {
 						continue;
 					}
-					$result = new PerkBuffSearchResult();
-					$result->name = $perk->name;
-					$result->amount = $perkLevel->buffs[$skill->id];
-					$result->expansion = $perk->expansion;
-					$result->perk_level = $perkLevel->perk_level;
-					$result->profs = implode(',', $perkLevel->professions);
-					$result->unit = $skill->unit;
+					$result = new PerkBuffSearchResult(
+						name: $perk->name,
+						amount: $perkLevel->buffs[$skill->id],
+						expansion: $perk->expansion,
+						perk_level: $perkLevel->perk_level,
+						profs: implode(',', $perkLevel->professions),
+						unit: $skill->unit,
+					);
 					$data []= $result;
 				}
 			});

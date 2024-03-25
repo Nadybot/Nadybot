@@ -50,7 +50,7 @@ class ResearchController extends ModuleInstance {
 			->first();
 
 		$levelcap = $row->levelcap;
-		$sk = $row->sk??0;
+		$sk = $row->sk;
 		$xp = $sk * 1_000;
 		$capXP = number_format(round($xp * .1));
 		$capSK = number_format(round($sk * .1));

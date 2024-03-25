@@ -5,8 +5,11 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\DBRow;
 
 class CmdAlias extends DBRow {
-	public string $cmd;
-	public ?string $module = null;
-	public string $alias;
-	public int $status = 0;
+	public function __construct(
+		public string $cmd,
+		public string $alias,
+		public ?string $module=null,
+		public int $status=0,
+	) {
+	}
 }

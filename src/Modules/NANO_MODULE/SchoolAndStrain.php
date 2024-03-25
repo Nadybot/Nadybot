@@ -5,6 +5,9 @@ namespace Nadybot\Modules\NANO_MODULE;
 use Nadybot\Core\DBRow;
 
 class SchoolAndStrain extends DBRow {
-	public string $school;
-	public string $strain;
+	public function __construct(
+		public string $school,
+		public string $strain,
+	) {
+	}
 }

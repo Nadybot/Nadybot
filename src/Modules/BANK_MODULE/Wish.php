@@ -6,21 +6,23 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class Wish extends DBRow {
-	public int $id;
 	public int $created_on;
-	public ?int $expires_on = null;
-	public string $created_by;
-	public string $item;
-	public int $amount = 1;
-	public ?string $from = null;
-	public bool $fulfilled = false;
 
 	/** @var Collection<WishFulfilment> */
 	#[NCA\DB\Ignore]
 	public Collection $fulfilments;
 
-	public function __construct() {
-		$this->created_on = time();
+	public function __construct(
+		public string $created_by,
+		public string $item,
+		?int $created_on=null,
+		public ?int $expires_on=null,
+		public int $amount=1,
+		public ?string $from=null,
+		public bool $fulfilled=false,
+		#[NCA\DB\AutoInc] public ?int $id=null,
+	) {
+		$this->created_on = $created_on ?? time();
 		$this->fulfilments = new Collection();
 	}
 

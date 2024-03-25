@@ -38,11 +38,12 @@ class CommandAlias {
 
 	/** Registers a command alias */
 	public function register(string $module, string $command, string $alias, int $status=1): void {
-		$entry = new CmdAlias();
-		$entry->alias = strtolower($alias);
-		$entry->module = strtoupper($module);
-		$entry->cmd = strtolower($command);
-		$entry->status = $status;
+		$entry = new CmdAlias(
+			alias: strtolower($alias),
+			module: strtoupper($module),
+			cmd: strtolower($command),
+			status: $status,
+		);
 
 		$row = $this->get($alias);
 		if ($row !== null) {

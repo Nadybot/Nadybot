@@ -170,7 +170,6 @@ class SiteTrackerController extends ModuleInstance {
 	): void {
 		$entry = $this->parseExpression($expression);
 		$entry->created_by = $context->char->name;
-		$entry->created_on = time();
 		$entry->id = $this->db->insert(self::DB_TRACKER, $entry);
 		$this->msgHub->registerMessageEmitter($entry);
 		$this->trackers [$entry->id] = $entry;
@@ -396,8 +395,6 @@ class SiteTrackerController extends ModuleInstance {
 	private function parseExpression(string $expression): TrackerEntry {
 		$parser = new TrackerArgumentParser();
 		$config = $parser->parse($expression);
-		$entry = new TrackerEntry();
-		$entry->expression = $expression;
 		if (empty($config->events)) {
 			$config->events = ['*'];
 		}
@@ -409,7 +406,7 @@ class SiteTrackerController extends ModuleInstance {
 				throw new UserException("There is no event '<highlight>{$eventPattern}<end>'.");
 			}
 		}
-		$entry->events = $config->events;
+		$handlers = [];
 		foreach ($config->arguments as $argument) {
 			$argument->name = strtolower($argument->name);
 			$className = $this->handlers[$argument->name] ?? null;
@@ -419,7 +416,7 @@ class SiteTrackerController extends ModuleInstance {
 			if (is_subclass_of($className, Base::class)) {
 				try {
 					/** @psalm-suppress UnsafeInstantiation */
-					$entry->handlers []= new $className($argument->value);
+					$handlers []= new $className($argument->value);
 				} catch (UserException $e) {
 					throw $e;
 				} catch (Throwable) {
@@ -427,6 +424,13 @@ class SiteTrackerController extends ModuleInstance {
 				}
 			}
 		}
+		$entry = new TrackerEntry(
+			expression: $expression,
+			events: $config->events,
+			handlers: $handlers,
+			created_by: $this->config->main->character,
+			id: 0,
+		);
 		return $entry;
 	}
 }

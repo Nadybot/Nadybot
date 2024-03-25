@@ -2,13 +2,16 @@
 
 namespace Nadybot\Modules\ALIEN_MODULE;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{DBRow, Profession};
 
 class OfabArmor extends DBRow {
-	public string $profession;
-	public string $name;
-	public string $slot;
-	public int $lowid;
-	public int $highid;
-	public int $upgrade;
+	public function __construct(
+		public Profession $profession,
+		public string $name,
+		public string $slot,
+		public int $lowid,
+		public int $highid,
+		public int $upgrade,
+	) {
+	}
 }

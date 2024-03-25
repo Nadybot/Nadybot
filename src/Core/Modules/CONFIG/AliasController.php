@@ -99,11 +99,12 @@ class AliasController extends ModuleInstance {
 	public function aliasAddCommand(CmdContext $context, string $alias, string $cmd): void {
 		$alias = strtolower($alias);
 
-		$aliasObj = new CmdAlias();
-		$aliasObj->module = '';
-		$aliasObj->cmd = $cmd;
-		$aliasObj->alias = $alias;
-		$aliasObj->status = 1;
+		$aliasObj = new CmdAlias(
+			module: '',
+			cmd: $cmd,
+			alias: $alias,
+			status: 1,
+		);
 
 		$command = $this->commandManager->get($alias);
 		$enabled = false;

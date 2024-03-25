@@ -36,11 +36,12 @@ class SyncOrgNoteEvent extends SyncEvent {
 	}
 
 	public function toOrgNote(): OrgNote {
-		$note = new OrgNote();
-		$note->added_by = $this->name;
-		$note->added_on = $this->time;
-		$note->uuid = $this->uuid;
-		$note->note = $this->note;
+		$note = new OrgNote(
+			added_by: $this->name,
+			added_on: $this->time,
+			uuid: $this->uuid,
+			note: $this->note,
+		);
 		return $note;
 	}
 }

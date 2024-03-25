@@ -205,6 +205,7 @@ class GreetController extends ModuleInstance {
 			->where('type', self::TYPE_CUSTOM)
 			->asObj(Fun::class)
 			->map(function (Fun $entry) use ($context): string {
+				assert(isset($entry->id));
 				$delLink = $this->text->makeChatcmd(
 					'remove',
 					'/tell <myname> ' . $context->getCommand() . ' rem ' . $entry->id
@@ -240,9 +241,10 @@ class GreetController extends ModuleInstance {
 		#[NCA\Str('add')] string $action,
 		string $greeting,
 	): void {
-		$fun = new Fun();
-		$fun->type = self::TYPE_CUSTOM;
-		$fun->content = $greeting;
+		$fun = new Fun(
+			type: self::TYPE_CUSTOM,
+			content: $greeting,
+		);
 		$id = $this->db->insert('fun', $fun);
 		$context->reply("New greeting added as <highlight>#{$id}<end>.");
 	}

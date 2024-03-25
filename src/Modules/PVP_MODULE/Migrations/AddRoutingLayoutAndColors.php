@@ -14,18 +14,20 @@ class AddRoutingLayoutAndColors implements SchemaMigration {
 		if ($db->table(Source::DB_TABLE)->whereIlike('hop', 'pvp%')->exists()) {
 			return;
 		}
-		$rhf = new RouteHopFormat();
-		$rhf->hop = 'pvp';
-		$rhf->render = true;
-		$rhf->format = 'PVP';
+		$rhf = new RouteHopFormat(
+			hop: 'pvp',
+			render: true,
+			format: 'PVP',
+		);
 		$db->insert(Source::DB_TABLE, $rhf);
 
 		if ($db->table(MessageHub::DB_TABLE_COLORS)->whereIlike('hop', 'pvp%')->exists()) {
 			return;
 		}
-		$rhc = new RouteHopColor();
-		$rhc->hop = 'pvp';
-		$rhc->tag_color = 'F06AED';
+		$rhc = new RouteHopColor(
+			hop: 'pvp',
+			tag_color: 'F06AED',
+		);
 		$db->insert(MessageHub::DB_TABLE_COLORS, $rhc);
 	}
 }

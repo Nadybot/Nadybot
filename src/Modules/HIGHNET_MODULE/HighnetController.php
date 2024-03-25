@@ -461,28 +461,32 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$hops = ['web', isset($this->config->orgId) ? 'aoorg' : "aopriv({$this->config->main->character})"];
 
 		foreach ($hops as $hop) {
-			$route = new Route();
-			$route->source = 'highnet(*)';
-			$route->two_way = false;
-			$route->destination = $hop;
+			$route = new Route(
+				source: 'highnet(*)',
+				two_way: false,
+				destination: $hop,
+			);
 			$routes []= $route;
 
-			$route = new Route();
-			$route->source = $hop;
-			$route->two_way = false;
-			$route->destination = 'highnet';
+			$route = new Route(
+				source: $hop,
+				two_way: false,
+				destination: 'highnet',
+			);
 			$routes []= $route;
 		}
 
-		$rhf = new RouteHopFormat();
-		$rhf->hop = 'highnet';
-		$rhf->render = true;
-		$rhf->format = '@%s';
+		$rhf = new RouteHopFormat(
+			hop: 'highnet',
+			render: true,
+			format: '@%s',
+		);
 
-		$rhc = new RouteHopColor();
-		$rhc->hop = 'highnet';
-		$rhc->tag_color = '00EFFF';
-		$rhc->text_color = '00BFFF';
+		$rhc = new RouteHopColor(
+			hop: 'highnet',
+			tag_color: '00EFFF',
+			text_color: '00BFFF',
+		);
 
 		$msgRoutes = [];
 		$this->db->awaitBeginTransaction();
@@ -1002,9 +1006,10 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		?PDuration $duration,
 		int $dimension,
 	): void {
-		$entry = new FilterEntry();
-		$entry->creator = $context->char->name;
-		$entry->dimension = $dimension;
+		$entry = new FilterEntry(
+			creator: $context->char->name,
+			dimension: $dimension,
+		);
 		if (isset($duration)) {
 			$secDuration = $duration->toSecs();
 			if ($secDuration > 3_600 * 24) {
@@ -1044,9 +1049,10 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		PCharacter $name,
 		int $dimension,
 	): void {
-		$entry = new FilterEntry();
-		$entry->creator = $context->char->name;
-		$entry->dimension = $dimension;
+		$entry = new FilterEntry(
+			creator: $context->char->name,
+			dimension: $dimension,
+		);
 		if (isset($duration)) {
 			$secDuration = $duration->toSecs();
 			if ($secDuration > 3_600 * 24) {
@@ -1081,9 +1087,10 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		PWord $channel,
 		?int $dimension,
 	): void {
-		$entry = new FilterEntry();
-		$entry->creator = $context->char->name;
-		$entry->dimension = $dimension;
+		$entry = new FilterEntry(
+			creator: $context->char->name,
+			dimension: $dimension,
+		);
 		if (isset($duration)) {
 			$secDuration = $duration->toSecs();
 			if ($secDuration > 3_600 * 24) {

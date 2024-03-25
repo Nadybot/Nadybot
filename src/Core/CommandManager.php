@@ -198,11 +198,12 @@ class CommandManager implements MessageEmitter {
 			'command' => $command,
 			'file' => $filename,
 		]);
-		$defaultPerms = new CmdPermission();
-		$defaultPerms->access_level = $accessLevel;
-		$defaultPerms->enabled = (bool)$status;
-		$defaultPerms->cmd = $command;
-		$defaultPerms->permission_set = 'default';
+		$defaultPerms = new CmdPermission(
+			access_level: $accessLevel,
+			enabled: (bool)$status,
+			cmd: $command,
+			permission_set: 'default',
+		);
 		$this->cmdDefaultPermissions[$command] = $defaultPerms;
 		try {
 			$this->db->table(self::DB_TABLE)

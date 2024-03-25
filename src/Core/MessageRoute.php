@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\Routing\RoutableEvent;
@@ -9,18 +10,20 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 class MessageRoute {
-	protected Route $route;
-
 	/** @var EventModifier[] */
-	protected array $modifiers = [];
+	private array $modifiers = [];
+
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
-	public function __construct(Route $route) {
-		$this->route = $route;
+	public function __construct(private Route $route) {
+		if (!isset($route->id)) {
+			throw new InvalidArgumentException(__CLASS__ . '(): Argument #1 ($route) must have an id');
+		}
 	}
 
 	public function getID(): int {
+		assert(isset($this->route->id));
 		return $this->route->id;
 	}
 

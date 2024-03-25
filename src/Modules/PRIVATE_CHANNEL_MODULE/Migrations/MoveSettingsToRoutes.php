@@ -34,19 +34,21 @@ class MoveSettingsToRoutes implements SchemaMigration {
 		$unfiltered = (!isset($ignoreSenders) || !strlen($ignoreSenders->value??''))
 			&& (!isset($relayFilter) || !strlen($relayFilter->value??''));
 
-		$route = new Route();
-		$route->source = Source::PRIV . "({$this->config->main->character})";
-		$route->destination = Source::ORG;
-		$route->two_way = $unfiltered;
+		$route = new Route(
+			source: Source::PRIV . "({$this->config->main->character})",
+			destination: Source::ORG,
+			two_way: $unfiltered,
+		);
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
 		$this->addCommandFilter($db, $relayCommands, $route->id);
 		if ($unfiltered) {
 			return;
 		}
-		$route = new Route();
-		$route->source = Source::ORG;
-		$route->destination = Source::PRIV . "({$this->config->main->character})";
-		$route->two_way = false;
+		$route = new Route(
+			source: Source::ORG,
+			destination: Source::PRIV . "({$this->config->main->character})",
+			two_way: false,
+		);
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
 		$this->addCommandFilter($db, $relayCommands, $route->id);
 
@@ -71,45 +73,51 @@ class MoveSettingsToRoutes implements SchemaMigration {
 		if (!isset($relayCommands) || $relayCommands->value === '1') {
 			return;
 		}
-		$mod = new RouteModifier();
-		$mod->modifier = 'if-not-command';
-		$mod->route_id = $routeId;
+		$mod = new RouteModifier(
+			modifier: 'if-not-command',
+			route_id: $routeId,
+		);
 		$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
 	}
 
 	protected function ignoreSenders(DB $db, int $routeId, string ...$senders): void {
 		foreach ($senders as $sender) {
-			$mod = new RouteModifier();
-			$mod->modifier = 'if-not-by';
-			$mod->route_id = $routeId;
+			$mod = new RouteModifier(
+				modifier: 'if-not-by',
+				route_id: $routeId,
+			);
 			$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
 
-			$arg = new RouteModifierArgument();
-			$arg->name = 'sender';
-			$arg->value = $sender;
-			$arg->route_modifier_id = $mod->id;
+			$arg = new RouteModifierArgument(
+				name: 'sender',
+				value: $sender,
+				route_modifier_id: $mod->id,
+			);
 
 			$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT, $arg);
 		}
 	}
 
 	protected function addRegExpFilter(DB $db, int $routeId, string $filter): void {
-		$mod = new RouteModifier();
-		$mod->modifier = 'if-matches';
-		$mod->route_id = $routeId;
+		$mod = new RouteModifier(
+			modifier: 'if-matches',
+			route_id: $routeId,
+		);
 		$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
 
-		$arg = new RouteModifierArgument();
-		$arg->name = 'text';
-		$arg->value = $filter;
-		$arg->route_modifier_id = $mod->id;
+		$arg = new RouteModifierArgument(
+			name: 'text',
+			value: $filter,
+			route_modifier_id: $mod->id,
+		);
 
 		$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT, $arg);
 
-		$arg = new RouteModifierArgument();
-		$arg->name = 'regexp';
-		$arg->value = 'true';
-		$arg->route_modifier_id = $mod->id;
+		$arg = new RouteModifierArgument(
+			name: 'regexp',
+			value: 'true',
+			route_modifier_id: $mod->id,
+		);
 
 		$mod->id = $db->insert(MessageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT, $arg);
 	}

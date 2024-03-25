@@ -2,12 +2,15 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class Roll extends DBRow {
-	public int $id;
-	public ?int $time;
-	public ?string $name;
-	public ?string $options;
-	public ?string $result;
+	public function __construct(
+		public ?int $time,
+		public ?string $name,
+		public ?string $options,
+		public ?string $result,
+		#[NCA\DB\AutoInc] public ?int $id=null,
+	) {
+	}
 }

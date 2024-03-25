@@ -5,10 +5,13 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\DBRow;
 
 class HelpTopic extends DBRow {
-	public ?string $file = null;
-	public int $sort;
-	public string $admin_list;
-	public string $module;
-	public string $name;
-	public string $description;
+	public function __construct(
+		public int $sort,
+		public string $admin_list,
+		public string $module,
+		public string $name,
+		public string $description,
+		public ?string $file=null,
+	) {
+	}
 }

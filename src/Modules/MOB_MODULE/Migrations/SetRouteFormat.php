@@ -11,15 +11,17 @@ use Psr\Log\LoggerInterface;
 #[NCA\Migration(order: 20_230_331_211_436)]
 class SetRouteFormat implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$rhf = new RouteHopFormat();
-		$rhf->hop = 'mobs';
-		$rhf->render = false;
-		$rhf->format = 'MOBS';
+		$rhf = new RouteHopFormat(
+			hop: 'mobs',
+			render: false,
+			format: 'MOBS',
+		);
 		$db->insert(Source::DB_TABLE, $rhf);
 
-		$rhc = new RouteHopColor();
-		$rhc->hop = 'mobs';
-		$rhc->tag_color = '00A9B5';
+		$rhc = new RouteHopColor(
+			hop: 'mobs',
+			tag_color: '00A9B5',
+		);
 		$db->insert(MessageHub::DB_TABLE_COLORS, $rhc);
 	}
 }

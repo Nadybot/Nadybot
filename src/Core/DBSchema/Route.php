@@ -5,26 +5,21 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class Route extends DBRow {
-	/** The unique ID of this route */
-	public int $id;
-
-	/** The source channel for this route */
-	public string $source;
-
-	/** The destination channel for this route */
-	public string $destination;
-
-	/** Set to true if this route is also the other way around */
-	public bool $two_way=false;
-
-	/** If set, the route is disabled until the set timestamp */
-	public ?int $disabled_until = null;
-
 	/**
-	 * The modifiers for this route
-	 *
-	 * @var RouteModifier[]
+	 * @param string          $source         The source channel for this route
+	 * @param string          $destination    The destination channel for this route
+	 * @param bool            $two_way        Set to true if this route is also the other way around
+	 * @param ?int            $disabled_until If set, the route is disabled until the set timestamp
+	 * @param ?int            $id             The unique ID of this route
+	 * @param RouteModifier[] $modifiers      The modifiers for this route
 	 */
-	#[NCA\DB\Ignore]
-	public array $modifiers = [];
+	public function __construct(
+		public string $source,
+		public string $destination,
+		public bool $two_way=false,
+		public ?int $disabled_until=null,
+		#[NCA\DB\AutoInc] public ?int $id=null,
+		#[NCA\DB\Ignore] public array $modifiers=[],
+	) {
+	}
 }

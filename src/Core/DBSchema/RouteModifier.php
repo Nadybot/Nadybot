@@ -5,18 +5,19 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class RouteModifier extends DBRow {
-	/** The id of the route modifier. Lower id means higher priority */
-	public int $id;
-
-	/** The id of the route where this modifier belongs to */
-	public int $route_id;
-
-	/** The name of the modifier */
-	public string $modifier;
-
-	/** @var RouteModifierArgument[] */
-	#[NCA\DB\Ignore]
-	public array $arguments = [];
+	/**
+	 * @param string                  $modifier  The name of the modifier
+	 * @param ?int                    $id        The id of the route modifier. Lower id means higher priority
+	 * @param ?int                    $route_id  The id of the route where this modifier belongs to
+	 * @param RouteModifierArgument[] $arguments
+	 */
+	public function __construct(
+		public string $modifier,
+		#[NCA\DB\AutoInc] public ?int $id=null,
+		public ?int $route_id=null,
+		#[NCA\DB\Ignore] public array $arguments=[],
+	) {
+	}
 
 	public function toString(bool $asLink=false): string {
 		$arguments = array_map(

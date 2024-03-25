@@ -2,18 +2,21 @@
 
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class FilterEntry extends DBRow {
-	public int $id;
-	public string $creator;
-	public ?string $sender_name=null;
-	public ?int $sender_uid=null;
-	public ?string $bot_name=null;
-	public ?int $bot_uid=null;
-	public ?string $channel=null;
-	public ?int $dimension=null;
-	public ?int $expires=null;
+	public function __construct(
+		public string $creator,
+		#[NCA\DB\AutoInc] public ?int $id=null,
+		public ?string $sender_name=null,
+		public ?int $sender_uid=null,
+		public ?string $bot_name=null,
+		public ?int $bot_uid=null,
+		public ?string $channel=null,
+		public ?int $dimension=null,
+		public ?int $expires=null,
+	) {
+	}
 
 	public function matches(Message $message): bool {
 		if (

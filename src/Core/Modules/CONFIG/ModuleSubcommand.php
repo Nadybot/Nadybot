@@ -9,8 +9,12 @@ class ModuleSubcommand extends CmdCfg {
 	public const TYPE_SUBCOMMAND = 'subcmd';
 
 	public function __construct(CmdCfg $src) {
-		foreach (get_object_vars($src) as $key => $value) {
-			$this->{$key} = $value;
-		}
+		$this->module = $src->module;
+		$this->cmdevent = $src->cmdevent;
+		$this->file = $src->file;
+		$this->cmd = $src->cmd;
+		$this->description = $src->description;
+		$this->verify = $src->verify;
+		$this->dependson = $src->dependson;
 	}
 }

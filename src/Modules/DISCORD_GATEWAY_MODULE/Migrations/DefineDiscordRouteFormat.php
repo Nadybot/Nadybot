@@ -11,15 +11,17 @@ use Psr\Log\LoggerInterface;
 #[NCA\Migration(order: 20_230_515_143_704)]
 class DefineDiscordRouteFormat implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$rhf = new RouteHopFormat();
-		$rhf->hop = 'discord';
-		$rhf->render = false;
-		$rhf->format = 'DISCORD';
+		$rhf = new RouteHopFormat(
+			hop: 'discord',
+			render: false,
+			format: 'DISCORD',
+		);
 		$db->insert(Source::DB_TABLE, $rhf);
 
-		$rhc = new RouteHopColor();
-		$rhc->hop = 'discord';
-		$rhc->tag_color = 'C3C3C3';
+		$rhc = new RouteHopColor(
+			hop: 'discord',
+			tag_color: 'C3C3C3',
+		);
 		$db->insert(MessageHub::DB_TABLE_COLORS, $rhc);
 
 		$route = [

@@ -5,10 +5,13 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 use Nadybot\Core\DBRow;
 
 class EffectTypeMatrix extends DBRow {
-	public int $ID;
-	public string $Name;
-	public int $MinValLow;
-	public int $MaxValLow;
-	public int $MinValHigh;
-	public int $MaxValHigh;
+	public function __construct(
+		public int $ID,
+		public string $Name,
+		public int $MinValLow,
+		public int $MaxValLow,
+		public int $MinValHigh,
+		public int $MaxValHigh,
+	) {
+	}
 }

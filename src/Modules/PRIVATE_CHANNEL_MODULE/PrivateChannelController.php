@@ -639,11 +639,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 
 		if (!$this->db->table(self::DB_TABLE)->where('name', $context->char->name)->exists()) {
-			$memberObj = new Member();
-			$memberObj->name = $context->char->name;
-			$memberObj->added_by = $context->char->name;
-			$memberObj->joined = time();
-			$memberObj->autoinv = $onOrOff;
+			$memberObj = new Member(
+				name: $context->char->name,
+				added_by: $context->char->name,
+				autoinv: $onOrOff,
+			);
 			$this->db->insert(self::DB_TABLE, $memberObj);
 			$this->members[$context->char->name] = $memberObj;
 			$msg = 'You have been added as a member of this bot. '.
@@ -894,11 +894,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		$autoInvite = $this->autoinviteDefault;
-		$memberObj = new Member();
-		$memberObj->name = $context->char->name;
-		$memberObj->added_by = $context->char->name;
-		$memberObj->joined = time();
-		$memberObj->autoinv = $autoInvite ? 1 : 0;
+		$memberObj = new Member(
+			name: $context->char->name,
+			added_by: $context->char->name,
+			autoinv: $autoInvite ? 1 : 0,
+		);
 		$this->db->insert(self::DB_TABLE, $memberObj);
 		$this->members[$context->char->name] = $memberObj;
 		$msg = 'You have been added as a member of this bot. '.
@@ -1527,11 +1527,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if ($this->db->table(self::DB_TABLE)->where('name', $name)->exists()) {
 			return "<highlight>{$name}<end> is already a member of this bot.";
 		}
-		$memberObj = new Member();
-		$memberObj->name = $name;
-		$memberObj->added_by = $sender;
-		$memberObj->joined = time();
-		$memberObj->autoinv = $autoInvite ? 1 : 0;
+		$memberObj = new Member(
+			name: $name,
+			added_by: $sender,
+			autoinv: $autoInvite ? 1 : 0,
+		);
 		$this->db->insert(self::DB_TABLE, $memberObj, null);
 		$this->members[$name] = $memberObj;
 		$event = new MemberAddEvent(sender: $name);

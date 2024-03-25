@@ -76,19 +76,21 @@ class MigrateToRelayTable implements SchemaMigration {
 	}
 
 	protected function addMod(DB $db, int $routeId, string $modifier): int {
-		$mod = new RouteModifier();
-		$mod->route_id = $routeId;
-		$mod->modifier = $modifier;
+		$mod = new RouteModifier(
+			route_id: $routeId,
+			modifier: $modifier,
+		);
 		return $db->insert($this->messageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
 	}
 
 	/** @param array<string,mixed> $kv */
 	protected function addArgs(DB $db, int $modId, array $kv): void {
 		foreach ($kv as $name => $value) {
-			$arg = new RouteModifierArgument();
-			$arg->route_modifier_id = $modId;
-			$arg->name = $name;
-			$arg->value = (string)$value;
+			$arg = new RouteModifierArgument(
+				route_modifier_id: $modId,
+				name: $name,
+				value: (string)$value,
+			);
 			$db->insert($this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT, $arg);
 		}
 	}
@@ -151,23 +153,27 @@ class MigrateToRelayTable implements SchemaMigration {
 	protected function addRouting(DB $db, RelayConfig $relay): void {
 		$guestRelay = $this->getSetting($db, 'guest_relay');
 		$routesOut = [];
-		$route = new Route();
-		$route->source = Source::RELAY . "({$relay->name})";
-		$route->destination = Source::ORG;
+		$route = new Route(
+			source: Source::RELAY . "({$relay->name})",
+			destination: Source::ORG,
+		);
 		$routeInOrg = $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
-		$route = new Route();
-		$route->source = Source::ORG;
-		$route->destination = Source::RELAY . "({$relay->name})";
+		$route = new Route(
+			source: Source::ORG,
+			destination: Source::RELAY . "({$relay->name})",
+		);
 		$routesOut []= $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 
 		if (isset($guestRelay) && (int)$guestRelay->value) {
-			$route = new Route();
-			$route->source = Source::RELAY . "({$relay->name})";
-			$route->destination = Source::PRIV . "({$this->config->main->character})";
+			$route = new Route(
+				source: Source::RELAY . "({$relay->name})",
+				destination: Source::PRIV . "({$this->config->main->character})",
+			);
 			$routeInPriv = $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
-			$route = new Route();
-			$route->source = Source::PRIV . "({$this->config->main->character})";
-			$route->destination = Source::RELAY . "({$relay->name})";
+			$route = new Route(
+				source: Source::PRIV . "({$this->config->main->character})",
+				destination: Source::RELAY . "({$relay->name})",
+			);
 			$routesOut []= $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 		}
 		$relayWhen = $this->getSetting($db, 'relay_symbol_method');

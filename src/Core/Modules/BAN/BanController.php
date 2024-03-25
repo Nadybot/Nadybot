@@ -649,7 +649,7 @@ class BanController extends ModuleInstance {
 		}
 		foreach ($orgs as $org) {
 			$addLink = $this->text->makeChatcmd('ban', sprintf($banCmd, $org->id));
-			$blob .= "<{$org->faction}>{$org->name}<end> ({$org->id}) - {$org->num_members} members [{$addLink}]\n\n";
+			$blob .= $org->faction->inColor($org->name) . " ({$org->id}) - {$org->num_members} members [{$addLink}]\n\n";
 		}
 		return $blob;
 	}
@@ -667,13 +667,14 @@ class BanController extends ModuleInstance {
 			}
 			$endDate = time() + $durationInSecs;
 		}
-		$ban = new BannedOrg();
-		$ban->org_id = $orgId;
-		$ban->banned_by = $bannedBy;
-		$ban->start = time();
-		$ban->end = $endDate;
-		$ban->reason = $reason;
-		$ban->org_name = "org #{$ban->org_id}";
+		$ban = new BannedOrg(
+			org_id: $orgId,
+			banned_by: $bannedBy,
+			start: time(),
+			end: $endDate,
+			reason: $reason,
+			org_name: "org #{$orgId}",
+		);
 		$this->db->insert(self::DB_TABLE_BANNED_ORGS, $ban, null);
 		return $this->addOrgToBanlist($ban);
 	}

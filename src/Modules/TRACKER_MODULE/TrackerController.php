@@ -590,7 +590,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				"remove {$name} from the tracklist, you might need to remove ".
 				"the org ID {$orgMember->org_id} ";
 		} else {
-			$orgName = '<' . strtolower($org->faction) . ">{$org->name}<end>";
+			$orgName = $org->faction->inColor($org->name);
 			$msg .= " {$orgName} is being tracked. {$name} will be re-added ".
 				'to the tracking list during the next tracker roster update, '.
 				'unless they have left this org. '.
@@ -649,7 +649,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 
 		if ($this->db->table(static::DB_ORG)->where('org_id', $orgId)->exists()) {
-			$msg = 'The org <' . strtolower($org->faction) . ">{$org->name}<end> is already being tracked.";
+			$msg = "The org {$org->faction->inColor($org->name)} is already being tracked.";
 			$context->reply($msg);
 			return;
 		}
@@ -658,11 +658,11 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			added_by: $context->char->name,
 		);
 		$this->db->insert(static::DB_ORG, $tOrg, null);
-		$context->reply('Adding <' . strtolower($org->faction) . ">{$org->name}<end> to the tracker.");
+		$context->reply("Adding {$org->faction->inColor($org->name)} to the tracker.");
 		try {
 			$guild = $this->guildManager->byId($orgId, $this->config->main->dimension, true);
 			if (!isset($guild)) {
-				$context->reply('No data found for <' . strtolower($org->faction) . ">{$org->name}<end>.");
+				$context->reply("No data found for {$org->faction->inColor($org->name)}.");
 				return;
 			}
 			$this->updateRosterForOrg($guild);
@@ -672,7 +672,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 		$context->reply(
-			'Added all members of <' . strtolower($org->faction) .">{$org->name}<end> to the roster."
+			"Added all members of {$org->faction->inColor($org->name)} to the roster."
 		);
 	}
 
@@ -726,7 +726,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if ($this->db->table(static::DB_ORG)->where('org_id', $orgId)->doesntExist()) {
 			$msg = "The org <highlight>#{$orgId}<end> is not being tracked.";
 			if (isset($org)) {
-				$msg = 'The org <' . strtolower($org->faction) . ">{$org->name}<end> is not being tracked.";
+				$msg = "The org {$org->faction->inColor($org->name)} is not being tracked.";
 			}
 			$context->reply($msg);
 			return;
@@ -745,7 +745,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->delete();
 		$msg = "The org <highlight>#{$orgId}<end> is no longer being tracked.";
 		if (isset($org)) {
-			$msg = 'The org <' . strtolower($org->faction) . ">{$org->name}<end> is no longer being tracked.";
+			$msg = "The org {$org->faction->inColor($org->name)} is no longer being tracked.";
 		}
 		$context->reply($msg);
 	}
@@ -773,7 +773,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				return null;
 			}
 			$delLink = $this->text->makeChatcmd('remove', "/tell <myname> track remorg {$o->org->id}");
-			return "<tab>{$o->org->name} (<" . strtolower($o->org->faction) . ">{$o->org->faction}<end>) - ".
+			return "<tab>{$o->org->name} ({$o->org->faction->inColor()}) - ".
 				"<highlight>{$o->org->num_members}<end> members, added by <highlight>{$o->added_by}<end> ".
 				"[{$delLink}]";
 		})->filter();

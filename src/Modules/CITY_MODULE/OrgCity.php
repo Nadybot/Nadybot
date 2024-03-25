@@ -5,7 +5,10 @@ namespace Nadybot\Modules\CITY_MODULE;
 use Nadybot\Core\DBRow;
 
 class OrgCity extends DBRow {
-	public int $time;
-	public string $action;
-	public string $player;
+	public function __construct(
+		public int $time,
+		public string $action,
+		public string $player,
+	) {
+	}
 }

@@ -7,30 +7,27 @@ use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 use Nadybot\Modules\PVP_MODULE\Handlers\Base;
 
 class TrackerEntry extends DBRow implements MessageEmitter {
-	/** The id of the tracker entry */
-	public int $id;
-
-	/** Name of the character who created this entry */
-	public string $created_by;
-
 	/** Timestamp when the entry was created */
 	public int $created_on;
 
-	/** The expression to filter on */
-	public string $expression;
-
 	/**
-	 * The events to trigger for this tracker
-	 *
-	 * @var string[]
+	 * @param int      $id         The id of the tracker entry
+	 * @param string   $created_by Name of the character who created this entry
+	 * @param string   $expression The expression to filter on
+	 * @param string[] $events     The events to trigger for this tracker
+	 * @param Base[]   $handlers
+	 * @param ?int     $created_on Timestamp when the entry was created
 	 */
-	#[NCA\DB\MapRead([self::class, 'decodeEvents'])]
-	#[NCA\DB\MapWrite([self::class, 'encodeEvents'])]
-	public array $events = [];
-
-	/** @var Base[] */
-	#[NCA\DB\Ignore]
-	public array $handlers=[];
+	public function __construct(
+		#[NCA\DB\AutoInc] public int $id,
+		public string $created_by,
+		public string $expression,
+		#[NCA\DB\MapRead([self::class, 'decodeEvents'])] #[NCA\DB\MapWrite([self::class, 'encodeEvents'])] public array $events=[],
+		#[NCA\DB\Ignore] public array $handlers=[],
+		?int $created_on=null,
+	) {
+		$this->created_on = $created_on ?? time();
+	}
 
 	public function matches(SiteUpdate $site, ?string $eventName=null): bool {
 		foreach ($this->handlers as $handler) {

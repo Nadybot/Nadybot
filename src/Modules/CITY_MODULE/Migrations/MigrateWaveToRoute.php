@@ -22,8 +22,7 @@ class MigrateWaveToRoute implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$channel = $this->getSetting($db, 'city_wave_announce');
 		if (!isset($channel)) {
-			$channel = new Setting();
-			$channel->value = 'org';
+			$channel = new Setting(name: 'city_wave_announce', mode: 'edit', value: 'org');
 		}
 		$map = [
 			'priv' => Source::PRIV . '(' . $db->getMyname() .')',

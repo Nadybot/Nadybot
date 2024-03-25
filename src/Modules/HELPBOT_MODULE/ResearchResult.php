@@ -5,6 +5,9 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 use Nadybot\Core\DBRow;
 
 class ResearchResult extends DBRow {
-	public int $totalsk;
-	public int $levelcap;
+	public function __construct(
+		public int $totalsk,
+		public int $levelcap,
+	) {
+	}
 }

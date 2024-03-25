@@ -5,15 +5,16 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class BossLootdb extends DBRow {
-	/** The internal ID of the boss for this loot */
-	public int $bossid;
-
-	/** Full name of this item */
-	public string $itemname;
-
-	/** The internal ID of this item */
-	public int $aoid;
-
-	#[NCA\DB\Ignore]
-	public ?AODBEntry $item = null;
+	/**
+	 * @param int    $bossid   The internal ID of the boss for this loot
+	 * @param string $itemname Full name of this item
+	 * @param int    $aoid     The internal ID of this item
+	 */
+	public function __construct(
+		public int $bossid,
+		public string $itemname,
+		public int $aoid,
+		#[NCA\DB\Ignore] public ?AODBEntry $item=null,
+	) {
+	}
 }

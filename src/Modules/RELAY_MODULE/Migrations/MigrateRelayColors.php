@@ -66,11 +66,12 @@ class MigrateRelayColors implements SchemaMigration {
 	}
 
 	protected function saveColor(DB $db, string $hop, ?string $where, ?string $tag, string $text): void {
-		$spec = new RouteHopColor();
-		$spec->hop = $hop;
-		$spec->where = $where;
-		$spec->tag_color = $tag;
-		$spec->text_color = $text;
+		$spec = new RouteHopColor(
+			hop: $hop,
+			where: $where,
+			tag_color: $tag,
+			text_color: $text,
+		);
 		$db->insert(MessageHub::DB_TABLE_COLORS, $spec);
 	}
 

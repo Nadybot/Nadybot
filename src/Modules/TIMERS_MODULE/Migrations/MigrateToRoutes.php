@@ -125,9 +125,10 @@ class MigrateToRoutes implements SchemaMigration {
 	}
 
 	private function addRoute(DB $db, string $to): Route {
-		$route = new Route();
-		$route->source = Source::SYSTEM . '(timers)';
-		$route->destination = $to;
+		$route = new Route(
+			source: Source::SYSTEM . '(timers)',
+			destination: $to,
+		);
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
 		return $route;
 	}

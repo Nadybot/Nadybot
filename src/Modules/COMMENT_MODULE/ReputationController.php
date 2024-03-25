@@ -45,12 +45,13 @@ class ReputationController extends ModuleInstance {
 		if ($repCat !== null) {
 			return $repCat;
 		}
-		$repCat = new CommentCategory();
-		$repCat->name = static::CAT_REPUTATION;
-		$repCat->created_by = $this->config->main->character;
-		$repCat->min_al_read = 'guild';
-		$repCat->min_al_write = 'guild';
-		$repCat->user_managed = false;
+		$repCat = new CommentCategory(
+			name: static::CAT_REPUTATION,
+			created_by: $this->config->main->character,
+			min_al_read: 'guild',
+			min_al_write: 'guild',
+			user_managed: false,
+		);
 		$this->commentController->saveCategory($repCat);
 		return $repCat;
 	}

@@ -78,23 +78,25 @@ class ModifierExpressionParser {
 	}
 
 	protected function parseModifier(Branch $modifier): RouteModifier {
-		$result = new RouteModifier();
-		$result->modifier = $modifier->findFirst('modifierName')->toString();
+		$modifierArguments = [];
 		foreach ($modifier->findAll('argument') as $argument) {
-			$result->arguments []= $this->parseArgument($argument);
+			$modifierArguments []= $this->parseArgument($argument);
 		}
-		return $result;
+		return new RouteModifier(
+			modifier: $modifier->findFirst('modifierName')->toString(),
+			arguments: $modifierArguments,
+		);
 	}
 
 	protected function parseArgument(Branch $argument): RouteModifierArgument {
-		$result = new RouteModifierArgument();
-		$result->name = $argument->findFirst('key')->toString();
+		$name = $argument->findFirst('key')->toString();
 		$value = $argument->findFirst('value');
 		if ($value->getDetailType() === 'string') {
-			$result->value = json_decode($value->toString());
+			$value = json_decode($value->toString());
 		} else {
-			$result->value = $value->toString();
+			$value = $value->toString();
 		}
+		$result = new RouteModifierArgument(name: $name, value: $value);
 		return $result;
 	}
 }

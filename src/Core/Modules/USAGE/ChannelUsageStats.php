@@ -5,6 +5,9 @@ namespace Nadybot\Core\Modules\USAGE;
 use Nadybot\Core\DBRow;
 
 class ChannelUsageStats extends DBRow {
-	public string $channel;
-	public int $count;
+	public function __construct(
+		public string $channel,
+		public int $count,
+	) {
+	}
 }

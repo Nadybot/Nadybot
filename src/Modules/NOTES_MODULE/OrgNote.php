@@ -2,16 +2,18 @@
 
 namespace Nadybot\Modules\NOTES_MODULE;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class OrgNote extends DBRow {
-	public ?int $id = null;
-	public string $uuid;
-	public string $added_by;
 	public int $added_on;
-	public string $note;
 
-	public function __construct() {
-		$this->added_on = time();
+	public function __construct(
+		public string $uuid,
+		public string $added_by,
+		public string $note,
+		?int $added_on=null,
+		#[NCA\DB\AutoInc] public ?int $id=null,
+	) {
+		$this->added_on = $added_on ?? time();
 	}
 }

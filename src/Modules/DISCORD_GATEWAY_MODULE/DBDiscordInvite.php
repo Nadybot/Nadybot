@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class DBDiscordInvite extends DBRow {
-	public int $id;
-	public string $character;
-	public string $token;
-	public ?int $expires = null;
+	public function __construct(
+		public string $character,
+		public string $token,
+		public ?int $expires=null,
+		#[NCA\DB\AutoInc] public ?int $id=null,
+	) {
+	}
 }

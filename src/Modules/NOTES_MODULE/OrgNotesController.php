@@ -82,10 +82,11 @@ class OrgNotesController extends ModuleInstance {
 	}
 
 	public function createOrgNote(string $creator, string $text, bool $forceSync=false): OrgNote {
-		$note = new OrgNote();
-		$note->added_by = $creator;
-		$note->uuid = $this->util->createUUID();
-		$note->note = $text;
+		$note = new OrgNote(
+			added_by: $creator,
+			uuid: $this->util->createUUID(),
+			note: $text,
+		);
 		$note->id = $this->db->insert(self::DB_TABLE, $note);
 
 		$event = SyncOrgNoteEvent::fromOrgNote($note);

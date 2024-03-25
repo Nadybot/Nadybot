@@ -272,8 +272,7 @@ class ColorsController extends ModuleInstance {
 	private function setRoutedSysColor(string $color): bool {
 		$colorDef = $this->msgHubCtrl->getHopColor('system', null, null);
 		if (!isset($colorDef)) {
-			$colorDef = new RouteHopColor();
-			$colorDef->hop = 'system';
+			$colorDef = new RouteHopColor(hop: 'system');
 		}
 		$colorDef->text_color = $color;
 		$table = $this->msgHub::DB_TABLE_COLORS;

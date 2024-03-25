@@ -325,9 +325,10 @@ class OnlineController extends ModuleInstance {
 			$context->reply("The mask <highlight>{$mask}<end> is too long.");
 			return;
 		}
-		$hidden = new OnlineHide();
-		$hidden->mask = $mask;
-		$hidden->created_by = $context->char->name;
+		$hidden = new OnlineHide(
+			mask: $mask,
+			created_by: $context->char->name,
+		);
 		$this->db->insert(self::DB_TABLE_HIDE, $hidden);
 		$context->reply("<highlight>{$mask}<end> added to the online hidden mask list.");
 	}

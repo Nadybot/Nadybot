@@ -232,6 +232,7 @@ class AlienMiscController extends ModuleInstance {
 		$currentUpgrade = null;
 		$fullSetVP = 0;
 		foreach ($armors as $row) {
+			/** @var OfabArmor $row */
 			if (!$costBySlot->has($row->slot)) {
 				continue;
 			}

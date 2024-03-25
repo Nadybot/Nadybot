@@ -2,13 +2,16 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class DBEmoji extends DBRow {
-	public int $id;
-	public string $name;
-	public string $guild_id;
-	public string $emoji_id;
-	public int $registered;
-	public int $version;
+	public function __construct(
+		public string $name,
+		public string $guild_id,
+		public string $emoji_id,
+		public int $registered,
+		public int $version,
+		#[NCA\DB\AutoInc] public ?int $id=null,
+	) {
+	}
 }

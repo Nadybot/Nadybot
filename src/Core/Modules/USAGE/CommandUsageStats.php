@@ -5,6 +5,9 @@ namespace Nadybot\Core\Modules\USAGE;
 use Nadybot\Core\DBRow;
 
 class CommandUsageStats extends DBRow {
-	public string $command;
-	public int $count;
+	public function __construct(
+		public string $command,
+		public int $count,
+	) {
+	}
 }

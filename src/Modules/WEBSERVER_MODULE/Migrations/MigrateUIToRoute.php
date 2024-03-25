@@ -23,13 +23,15 @@ class MigrateUIToRoute implements SchemaMigration {
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
-		$route = new Route();
-		$route->source = Source::SYSTEM . '(webui)';
 		if (strlen($this->config->general->orgName)) {
-			$route->destination = Source::ORG;
+			$destination = Source::ORG;
 		} else {
-			$route->destination = Source::PRIV . "({$this->config->main->character})";
+			$destination = Source::PRIV . "({$this->config->main->character})";
 		}
+		$route = new Route(
+			source: Source::SYSTEM . '(webui)',
+			destination: $destination,
+		);
 		$db->insert($table, $route);
 	}
 }

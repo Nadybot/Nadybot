@@ -128,6 +128,7 @@ class QuoteController extends ModuleInstance {
 			->whereIlike('poster', $searchParam)
 			->asObj(Quote::class)
 			->map(function (Quote $quote): string {
+				assert(isset($quote->id));
 				return $this->text->makeChatcmd(
 					(string)$quote->id,
 					"/tell <myname> quote {$quote->id}"
@@ -143,6 +144,7 @@ class QuoteController extends ModuleInstance {
 			->whereIlike('msg', $searchParam)
 			->asObj(Quote::class)
 			->map(function (Quote $quote): string {
+				assert(isset($quote->id));
 				return $this->text->makeChatcmd(
 					(string)$quote->id,
 					"/tell <myname> quote {$quote->id}"
@@ -225,7 +227,7 @@ class QuoteController extends ModuleInstance {
 		}
 
 		/** @var ?Quote $row */
-		if ($row === null) {
+		if ($row === null || $row->id === null) {
 			return null;
 		}
 

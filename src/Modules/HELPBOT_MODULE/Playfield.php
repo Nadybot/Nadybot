@@ -12,9 +12,12 @@ class Playfield extends DBRow {
 		'pf-short' => 'WW',
 	];
 
-	public int $id;
-	public string $long_name;
-	public string $short_name;
+	public function __construct(
+		public int $id,
+		public string $long_name,
+		public string $short_name,
+	) {
+	}
 
 	/** @return array<string,string|int|null> */
 	public function getTokens(): array {

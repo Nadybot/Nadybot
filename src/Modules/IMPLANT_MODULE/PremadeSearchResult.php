@@ -2,13 +2,16 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{DBRow, Profession};
 
 class PremadeSearchResult extends DBRow {
-	public string $slot;
-	public string $profession;
-	public string $ability;
-	public string $shiny;
-	public string $bright;
-	public string $faded;
+	public function __construct(
+		public string $slot,
+		public Profession $profession,
+		public string $ability,
+		public string $shiny,
+		public string $bright,
+		public string $faded,
+	) {
+	}
 }
