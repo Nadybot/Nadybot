@@ -822,7 +822,7 @@ class DB {
 		$applied = $this->getAppliedMigrations($module);
 		return $migrations->filter(static function (CoreMigration $m) use ($applied): bool {
 			return !$applied->contains('migration', $m->baseName);
-		});
+		})->flatten();
 	}
 
 	private function applyMigration(CoreMigration $mig): void {
