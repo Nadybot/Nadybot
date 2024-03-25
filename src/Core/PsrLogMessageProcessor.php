@@ -43,34 +43,7 @@ class PsrLogMessageProcessor implements ProcessorInterface {
 			if (!str_contains($record['message'], $placeholder)) {
 				continue;
 			}
-
-			if (is_null($val)) {
-				$replacements[$placeholder] = '<null>';
-			} elseif (is_scalar($val) || (is_object($val) && method_exists($val, '__toString'))) {
-				$replacements[$placeholder] = $val;
-			} elseif ($val instanceof \DateTimeInterface) {
-				if (!isset($this->dateFormat) && $val instanceof \Monolog\DateTimeImmutable) {
-					// handle monolog dates using __toString if no specific dateFormat was asked for
-					// so that it follows the useMicroseconds flag
-					$replacements[$placeholder] = (string)$val;
-				} else {
-					$replacements[$placeholder] = $val->format(
-						$this->dateFormat ?? static::SIMPLE_DATE
-					);
-				}
-			} elseif ($val instanceof \UnitEnum) {
-				$replacements[$placeholder] = $val instanceof \BackedEnum ? $val->value : $val->name;
-			} elseif (is_object($val)) {
-				if ($val instanceof Loggable) {
-					$replacements[$placeholder] = $val->toLog();
-				} else {
-					$replacements[$placeholder] = '[object ' . Utils::getClass($val) . ']';
-				}
-			} elseif (is_array($val)) {
-				$replacements[$placeholder] = 'array' . Utils::jsonEncode($val, null, true);
-			} else {
-				$replacements[$placeholder] = '[' . gettype($val) . ']';
-			}
+			$replacements[$placeholder] = $this->toReplacement($val);
 
 			if ($this->removeUsedContextFields) {
 				unset($record['context'][$key]);
@@ -80,5 +53,35 @@ class PsrLogMessageProcessor implements ProcessorInterface {
 		$record['message'] = strtr($record['message'], $replacements);
 
 		return $record;
+	}
+
+	private function toReplacement(mixed $val): mixed {
+		if (is_null($val)) {
+			return '<null>';
+		} elseif (is_scalar($val)) {
+			return $val;
+		} elseif (is_object($val) && method_exists($val, '__toString')) {
+			return (string)$val;
+		} elseif ($val instanceof \DateTimeInterface) {
+			if (!isset($this->dateFormat) && $val instanceof \Monolog\DateTimeImmutable) {
+				// handle monolog dates using __toString if no specific dateFormat was asked for
+				// so that it follows the useMicroseconds flag
+				return (string)$val;
+			}
+			return $val->format($this->dateFormat ?? static::SIMPLE_DATE);
+		} elseif ($val instanceof \UnitEnum) {
+			return $val instanceof \BackedEnum ? $val->value : $val->name;
+		} elseif (is_object($val)) {
+			if ($val instanceof Loggable) {
+				return $val->toLog();
+			}
+			return '[object ' . Utils::getClass($val) . ']';
+		} elseif (is_array($val)) {
+			if (array_is_list($val)) {
+				return '[' . implode(',', array_map($this->toReplacement(...), $val)) . ']';
+			}
+			return 'array' . Utils::jsonEncode($val, null, true);
+		}
+		return '[' . gettype($val) . ']';
 	}
 }

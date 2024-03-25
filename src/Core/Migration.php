@@ -2,7 +2,11 @@
 
 namespace Nadybot\Core;
 
-class Migration {
+use Stringable;
+
+class Migration implements Stringable {
+	use StringableTrait;
+
 	/** @param class-string $className */
 	public function __construct(
 		public string $filePath,

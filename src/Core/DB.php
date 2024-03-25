@@ -574,6 +574,7 @@ class DB {
 	}
 
 	public function runMigrations(CoreMigration ...$migrations): void {
+		$this->logger->notice('Considering migrations {migrations}', ['migrations' => $migrations]);
 		$migrations = new Collection($migrations);
 		$this->createMigrationTables();
 		$groupedMigs = $migrations->groupBy('module');
@@ -586,11 +587,13 @@ class DB {
 		if ($missingMigs->isEmpty()) {
 			return;
 		}
+		$this->logger->notice('Missing migrations: {migrations}', ['migrations' => $missingMigs]);
 		$start = microtime(true);
 		$this->logger->notice('Applying {numMigs} database migrations', [
 			'numMigs' => $missingMigs->count(),
 		]);
 		foreach ($missingMigs as $mig) {
+			$this->logger->notice('Applying migration: {migration}', ['migration' => $mig]);
 			try {
 				$this->beginTransaction();
 				$this->applyMigration($mig);
