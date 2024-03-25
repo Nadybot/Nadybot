@@ -400,7 +400,7 @@ class AttacksController extends ModuleInstance {
 		description: "Notify if org's tower site defense shield is disabled via pvp(tower-shield-own)"
 	)]
 	public function shieldLoweredMessageEvent(OrgMsgChannelMsgEvent $eventObj): void {
-		if ($this->util->isValidSender($eventObj->sender)) {
+		if (isset($eventObj->sender)) {
 			return;
 		}
 		if (
@@ -476,7 +476,7 @@ class AttacksController extends ModuleInstance {
 		description: "Notify if org's towers are attacked via pvp(tower-hit-own)"
 	)]
 	public function attackOwnOrgMessageEvent(OrgMsgChannelMsgEvent $eventObj): void {
-		if ($this->util->isValidSender($eventObj->sender)) {
+		if (isset($eventObj->sender)) {
 			return;
 		}
 		if (

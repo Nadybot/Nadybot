@@ -606,7 +606,9 @@ class OnlineController extends ModuleInstance {
 		),
 	]
 	public function afkCheckGuildChannelEvent(GuildChannelMsgEvent $eventObj): void {
-		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
+		if (isset($eventObj->sender)) {
+			$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
+		}
 	}
 
 	#[

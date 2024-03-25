@@ -177,7 +177,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		description: 'Records when the cloak is raised or lowered'
 	)]
 	public function recordCloakChangesEvent(GuildChannelMsgEvent $eventObj): void {
-		if ($this->util->isValidSender($eventObj->sender)
+		if (isset($eventObj->sender)
 			|| !count($arr = Safe::pregMatch('/^(.+) turned the cloaking device in your city (on|off).$/i', $eventObj->message))
 		) {
 			return;

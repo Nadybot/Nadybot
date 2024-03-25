@@ -1246,13 +1246,15 @@ class Nadybot {
 			return;
 		}
 		$sender = $this->getName($senderId);
-		if (!is_string($sender)) {
+		if ($senderId !== 0 && !is_string($sender)) {
 			$this->logger->info('Invalid sender ID in {package}', [
 				'package' => $package,
 			]);
 			return;
+		} elseif (isset($sender)) {
+			$this->updateLastOnline($senderId, $sender, true);
 		}
-		$this->updateLastOnline($senderId, $sender, true);
+
 
 		$this->logger->info('Handling {package}', ['package' => $package->package]);
 
@@ -1262,7 +1264,7 @@ class Nadybot {
 		if ($sender !== $this->config->main->character) {
 			if (!$isOrgMessage || $this->settingManager->getBool('guild_channel_status')) {
 				$rMessage = new RoutableMessage($package->package->message);
-				if ($this->util->isValidSender($sender)) {
+				if (isset($sender)) {
 					$rMessage->setCharacter(new Character($sender, $senderId));
 				}
 				if ($isOrgMessage) {
@@ -1284,7 +1286,7 @@ class Nadybot {
 
 		// don't log tower messages with rest of chat messages
 		if ($channel != 'All Towers' && $channel != 'Tower Battle Outcome' && (!$isOrgMessage || $this->settingManager->getBool('guild_channel_status'))) {
-			$this->logChat($channel->name, $sender, $package->package->message);
+			$this->logChat($channel->name, $sender ?? 'System', $package->package->message);
 		} else {
 			$this->logger->info('[{channel}]: {message}', [
 				'channel' => $channel->name,
@@ -1324,6 +1326,9 @@ class Nadybot {
 			);
 
 			if ($this->eventManager->fireEvent($eventObj)) {
+				return;
+			}
+			if (!isset($sender)) {
 				return;
 			}
 			$context = new CmdContext($sender, $senderId);
