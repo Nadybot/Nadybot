@@ -774,12 +774,13 @@ class DB {
 		if (!isset($migDir->module)) {
 			return new Collection();
 		}
-		$fullFile = str_replace("/", \DIRECTORY_SEPARATOR, $ref->getFileName());
-		if (!is_string($fullFile)) {
+		$fileName = $ref->getFileName();
+		if ($fileName === false) {
 			return new Collection();
 		}
+		$fullFile = str_replace('/', \DIRECTORY_SEPARATOR, $fileName);
 		$fullDir = rtrim(dirname($fullFile) . \DIRECTORY_SEPARATOR . $migDir->dir, \DIRECTORY_SEPARATOR);
-		$fullDir = str_replace("/", \DIRECTORY_SEPARATOR, $fullDir);
+		$fullDir = str_replace('/', \DIRECTORY_SEPARATOR, $fullDir);
 		foreach (get_declared_classes() as $class) {
 			if (!in_array(SchemaMigration::class, class_implements($class))) {
 				continue;
