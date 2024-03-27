@@ -356,7 +356,7 @@ class NanoController extends ModuleInstance {
 
 		$this->showBestNanosCommand(
 			$context,
-			$whois->profession,
+			$whois->profession->value,
 			$whois->level,
 			$context->getCommand() === 'bestnanosfroob',
 			!isset($long)

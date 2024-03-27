@@ -58,6 +58,7 @@ class OrgMembersController extends ModuleInstance {
 
 		$currentLetter = '';
 		foreach ($players as $player) {
+			/** @var Player $player */
 			if ($currentLetter !== $player->name[0]) {
 				$currentLetter = $player->name[0];
 				$blob .= "\n\n<pagebreak><header2>{$currentLetter}<end>\n";
@@ -67,7 +68,7 @@ class OrgMembersController extends ModuleInstance {
 			if ($player->ai_level > 0) {
 				$blob .= "/<green>{$player->ai_level}<end>";
 			}
-			$blob .= ", {$player->gender} {$player->breed} <highlight>{$player->profession}<end>, {$player->guild_rank})\n";
+			$blob .= ", {$player->gender} {$player->breed} {$player->profession?->inColor()}, {$player->guild_rank})\n";
 		}
 
 		$msg = $this->text->makeBlob("Org members for '{$org->orgname}' ({$numrows})", $blob);

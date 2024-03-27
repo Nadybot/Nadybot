@@ -5,6 +5,8 @@ namespace Nadybot\Modules\SKILLS_MODULE;
 use function Amp\async;
 use function Amp\ByteStream\splitLines;
 use function Safe\{preg_match, preg_split};
+
+use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
@@ -15,6 +17,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	ParamClass\PNonNumberWord,
+	Profession,
 	Safe,
 	SettingManager,
 	Text,
@@ -119,8 +122,9 @@ class BuffPerksController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand('perks')]
 	public function buffPerksProfFirstCommand(CmdContext $context, PNonNumberWord $prof, int $level, ?string $search): void {
-		$profession = $this->util->getProfessionName($prof());
-		if ($profession === '') {
+		try {
+			$profession = Profession::byName($prof());
+		} catch (Exception) {
 			$msg = "Could not find profession <highlight>{$prof}<end>.";
 			$context->reply($msg);
 			return;
@@ -270,12 +274,12 @@ class BuffPerksController extends ModuleInstance {
 	 * Show all perks for $profession at $level, optionally only searching for
 	 * a specific buff to the skill $search
 	 *
-	 * @param string       $profession Name of the profession
+	 * @param Profession   $profession Name of the profession
 	 * @param int          $level      Level of the character
 	 * @param string|null  $search     Name of the skill to search for
 	 * @param CommandReply $sendto     Where to send the output to
 	 */
-	protected function showPerks(string $profession, int $level, ?string $breed, ?string $search, CommandReply $sendto): void {
+	protected function showPerks(Profession $profession, int $level, ?string $breed, ?string $search, CommandReply $sendto): void {
 		$skill = null;
 		if ($search !== null) {
 			$skills = $this->whatBuffsController->searchForSkill($search);
@@ -290,7 +294,7 @@ class BuffPerksController extends ModuleInstance {
 					$blob .= '<tab>'.
 						$this->text->makeChatcmd(
 							$skill->name,
-							"/tell <myname> perks {$level} {$profession} {$skill->name}"
+							"/tell <myname> perks {$level} {$profession->value} {$skill->name}"
 						).
 						"\n";
 				}
@@ -304,14 +308,14 @@ class BuffPerksController extends ModuleInstance {
 			$skill = $skills[0];
 		}
 		$perks = $this->perks->filter(static function (Perk $perk) use ($profession, $level): bool {
-			return in_array($profession, $perk->levels[1]->professions)
+			return in_array($profession->value, $perk->levels[1]->professions)
 				&& $perk->levels[1]->required_level <= $level;
 		});
 		$perks = $perks->map(static function (Perk $perk) use ($profession, $level): Perk {
 			$p = clone $perk;
 			$p->levels = (new Collection($p->levels))->filter(
 				static function (PerkLevel $pl) use ($profession, $level): bool {
-					return in_array($profession, $pl->professions)
+					return in_array($profession->value, $pl->professions)
 						&& $pl->required_level <= $level;
 				}
 			)->toArray();
@@ -327,7 +331,7 @@ class BuffPerksController extends ModuleInstance {
 		/** @var PerkAggregate[] */
 		$perks = array_map([$this, 'aggregatePerk'], $perks);
 		if (empty($perks)) {
-			$msg = "Could not find any perks for level {$level} {$profession}.";
+			$msg = "Could not find any perks for level {$level} {$profession->value}.";
 			$sendto->reply($msg);
 			return;
 		}
@@ -363,7 +367,7 @@ class BuffPerksController extends ModuleInstance {
 		$buffText = isset($skill) ? " buffing {$skill->name}" : '';
 		$count = count($perks);
 		$msg = $this->text->makeBlob(
-			"Perks for a level {$level} {$profession}{$buffText} ({$count})",
+			"Perks for a level {$level} {$profession->value}{$buffText} ({$count})",
 			implode("\n", $blobs)
 		);
 		$sendto->reply($msg);

@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use EventSauce\ObjectHydrator\MapFrom;
 use EventSauce\ObjectHydrator\PropertyCasters\CastToDateTimeImmutable;
 use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Profession;
 
 /**
  * This represents the data the highway feed gives for a player
@@ -79,7 +80,7 @@ class PlayerInfo {
 			level: $this->level,
 			name: $this->name,
 			prof_title: $this->profTitle ?? '',
-			profession: $this->profession,
+			profession: Profession::tryFrom($this->profession),
 			pvp_rating: $this->pvpRating,
 			pvp_title: $this->pvpTitle,
 			source: 'AO',

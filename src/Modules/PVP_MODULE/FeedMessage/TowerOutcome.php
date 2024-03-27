@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
 use function Safe\date;
 use EventSauce\ObjectHydrator\MapFrom;
-use Nadybot\Core\{Faction, StringableTrait, Util};
+use Nadybot\Core\{Faction, Playfield, StringableTrait, Util};
 
 class TowerOutcome {
 	use StringableTrait;
@@ -40,7 +40,7 @@ class TowerOutcome {
 		];
 
 	public function __construct(
-		public int $playfield_id,
+		#[MapFrom('playfield_id')] public Playfield $playfield,
 		public int $site_id,
 		public int $timestamp,
 		#[MapFrom('attacking_faction')] public ?Faction $attacker_faction,
@@ -53,7 +53,7 @@ class TowerOutcome {
 	/** @return array<string,string|int|null> */
 	public function getTokens(): array {
 		return [
-			'pf-id' => $this->playfield_id,
+			'pf-id' => $this->playfield->value,
 			'site-id' => $this->site_id,
 			'timestamp' => date(Util::DATETIME, $this->timestamp),
 			'winning-faction' => $this->attacker_faction?->name,

@@ -402,7 +402,7 @@ class WhoisController extends ModuleInstance {
 		}
 		$blob .= "Breed: <highlight>{$whois->breed}<end>\n";
 		$blob .= "Gender: <highlight>{$whois->gender}<end>\n";
-		$blob .= "Profession: <highlight>{$whois->profession}<end> (<highlight>" . trim($whois->prof_title) . "<end>)\n";
+		$blob .= "Profession: <highlight>{$whois->profession?->value}<end> (<highlight>" . trim($whois->prof_title) . "<end>)\n";
 		$blob .= "Level: <highlight>{$whois->level}<end>\n";
 		$blob .= "AI Level: <green>{$whois->ai_level}<end> (<highlight>{$whois->ai_rank}<end>)\n";
 		$blob .= 'Faction: <'.strtolower($whois->faction).">{$whois->faction}<end>\n";

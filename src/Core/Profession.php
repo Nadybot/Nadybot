@@ -25,6 +25,30 @@ enum Profession: string {
 		};
 	}
 
+	/**
+	 * Get the short form
+	 *
+	 * Adventurer becomes Adv, etc.
+	 */
+	public function short(): string {
+		return match ($this) {
+			self::Adventurer => 'Adv',
+			self::Bureaucrat => 'Crat',
+			self::Doctor => 'Doc',
+			self::Enforcer => 'Enf',
+			self::Engineer => 'Eng',
+			self::MartialArtist => 'MA',
+			self::MetaPhysicist => 'MP',
+			self::NanoTechnician => 'NT',
+			self::Soldier => 'Sol',
+			default => $this->name,
+		};
+	}
+
+	public function inColor(): string {
+		return '<highlight>' . $this->value . '<end>';
+	}
+
 	public function toIcon(): string {
 		return '<img src=tdb://id:GFX_GUI_ICON_PROFESSION_'.$this->toNumber().'>';
 	}
@@ -59,7 +83,7 @@ enum Profession: string {
 				return self::Fixer;
 			case 'keep':
 			case 'keeper':
-				return self::Fixer;
+				return self::Keeper;
 			case 'ma':
 			case 'martial':
 			case 'martialartist':
@@ -88,6 +112,69 @@ enum Profession: string {
 				return self::Shade;
 			default:
 				throw new InvalidArgumentException("Invalid profession '{$search}'");
+		}
+	}
+
+	/** Check if the given string matches the profession (abbreviated or not) */
+	public function is(string $search): bool {
+		$search = strtolower($search);
+		switch ($search) {
+			case 'adv':
+			case 'advy':
+			case 'adventurer':
+				return $this === self::Adventurer;
+			case 'age':
+			case 'agent':
+				return $this === self::Agent;
+			case 'crat':
+			case 'bureaucrat':
+				return $this === self::Bureaucrat;
+			case 'doc':
+			case 'doctor':
+				return $this === self::Doctor;
+			case 'enf':
+			case 'enfo':
+			case 'enforcer':
+				return $this === self::Enforcer;
+			case 'eng':
+			case 'engi':
+			case 'engy':
+			case 'engineer':
+				return $this === self::Engineer;
+			case 'fix':
+			case 'fixer':
+				return $this === self::Fixer;
+			case 'keep':
+			case 'keeper':
+				return $this === self::Keeper;
+			case 'ma':
+			case 'martial':
+			case 'martialartist':
+			case 'martial artist':
+				return $this === self::MartialArtist;
+			case 'mp':
+			case 'meta':
+			case 'metaphysicist':
+			case 'meta-physicist':
+				return $this === self::MetaPhysicist;
+			case 'nt':
+			case 'nano':
+			case 'nanotechnician':
+			case 'nano-technician':
+				return $this === self::NanoTechnician;
+			case 'sol':
+			case 'sold':
+			case 'soldier':
+				return $this === self::Soldier;
+			case 'tra':
+			case 'trad':
+			case 'trader':
+				return $this === self::Trader;
+			case 'sha':
+			case 'shade':
+				return $this === self::Shade;
+			default:
+				return false;
 		}
 	}
 

@@ -22,7 +22,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	Text,
 };
-use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 #[
 	NCA\Instance,
@@ -93,9 +92,6 @@ class RaidMemberController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private RaidBlockController $raidBlockController;
-
-	#[NCA\Inject]
-	private OnlineController $onlineController;
 
 	#[NCA\Inject]
 	private Text $text;
@@ -490,8 +486,7 @@ class RaidMemberController extends ModuleInstance {
 			if ($pInfo === null) {
 				continue;
 			}
-			$profIcon = '<img src=tdb://id:GFX_GUI_ICON_PROFESSION_'.
-				($this->onlineController->getProfessionId($pInfo->profession??'unknown')??0).'>';
+			$profIcon = $pInfo->profession?->toIcon() ?? '?';
 			$line  = "<tab>{$profIcon} {$pInfo->name} - ".
 				"{$pInfo->level}/{$pInfo->ai_level} ".
 				'<' . strtolower($pInfo->faction) . ">{$pInfo->faction}<end>".

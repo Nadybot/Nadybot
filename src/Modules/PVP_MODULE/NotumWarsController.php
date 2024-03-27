@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, EventManager, MessageHub, ModuleInstance, Nadybot, Safe, Text, Util};
+use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, EventManager, Faction, MessageHub, ModuleInstance, Nadybot, Playfield as CorePlayfield, Safe, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfoEvent;
@@ -724,13 +724,10 @@ class NotumWarsController extends ModuleInstance {
 
 	/** Update the state of a site with the data given */
 	public function updateSiteInfo(FeedMessage\SiteUpdate $site): void {
-		$playfield = $this->pfCtrl->getPlayfieldById($site->playfield_id);
-		if (!isset($playfield)) {
-			return;
-		}
-		$pfState = $this->state[$site->playfield_id] ?? new PlayfieldState($playfield);
+		$playfield = $site->playfield;
+		$pfState = $this->state[$playfield->value] ?? new PlayfieldState($playfield);
 		$pfState[$site->site_id] = clone $site;
-		$this->state[$site->playfield_id] = $pfState;
+		$this->state[$playfield->value] = $pfState;
 	}
 
 	/** Add the given attack to the attack cache */
@@ -746,19 +743,16 @@ class NotumWarsController extends ModuleInstance {
 
 	#[NCA\Event('site-update', 'Update tower information from the API')]
 	public function updateSiteInfoFromFeed(Event\SiteUpdateEvent $event): void {
-		$oldSite = $this->state[$event->site->playfield_id][$event->site->site_id] ?? null;
+		$oldSite = $this->state[$event->site->playfield->value][$event->site->site_id] ?? null;
 		$this->updateSiteInfo($event->site);
 		$site = $event->site;
-		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
-		if (!isset($pf)) {
-			return;
-		}
+		$pf = $site->playfield;
 		if (!isset($oldSite->ct_pos) && isset($site->ct_pos)) {
-			$this->handleSitePlanted($site, $pf);
+			$this->handleSitePlanted($site);
 		} elseif (isset($oldSite->ct_pos) && !isset($site->ct_pos)) {
-			$this->handleSiteDestroyed($oldSite, $site, $pf);
+			$this->handleSiteDestroyed($oldSite, $site);
 		} elseif (isset($oldSite)) {
-			$this->handleSiteTowerChange($oldSite, $site, $pf);
+			$this->handleSiteTowerChange($oldSite, $site);
 		}
 	}
 
@@ -812,14 +806,11 @@ class NotumWarsController extends ModuleInstance {
 
 	#[NCA\Event('gas-update', 'Update gas information from the API')]
 	public function updateGasInfoFromFeed(Event\GasUpdateEvent $event): void {
-		$site = $this->state[$event->gas->playfield_id][$event->gas->site_id] ?? null;
+		$site = $this->state[$event->gas->playfield->value][$event->gas->site_id] ?? null;
 		if (!isset($site)) {
 			return;
 		}
-		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
-		if (!isset($pf)) {
-			return;
-		}
+		$pf = $site->playfield;
 		if ($site->gas === $event->gas->gas) {
 			return;
 		}
@@ -835,18 +826,18 @@ class NotumWarsController extends ModuleInstance {
 				'gas-new' => "{$event->gas->gas}%",
 				'c-gas-new' => $newGas->colored(),
 				'c-gas-old' => isset($oldGas) ? $oldGas->colored() : null,
-				'site-short' => "{$pf->short_name} {$site->site_id}",
+				'site-short' => "{$pf->short()} {$site->site_id}",
 				'c-site-short' => isset($site->org_faction)
-					? '<' . strtolower($site->org_faction) . ">{$pf->short_name} {$site->site_id}<end>"
-					: "<highlight>{$pf->short_name} {$site->site_id}<end>",
+					? $site->org_faction->inColor("{$pf->short()} {$site->site_id}")
+					: "<highlight>{$pf->short()} {$site->site_id}<end>",
 			]
 		);
 		$tokens['details'] = ((array)$this->text->makeBlob(
 			'details',
 			$this->renderSite($site, $pf),
-			"{$pf->short_name} {$site->site_id} ({$site->name})",
+			"{$pf->short()} {$site->site_id} ({$site->name})",
 		))[0];
-		$color = strtolower($site->org_faction ?? 'neutral');
+		$color = ($site->org_faction ?? Faction::Neutral)->lower();
 		$msg = $this->text->renderPlaceholders($this->gasChangeFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source('pvp', "gas-change-{$color}"));
@@ -854,11 +845,11 @@ class NotumWarsController extends ModuleInstance {
 		$this->siteTracker->fireEvent(new RoutableMessage($msg), $site, 'gas-change');
 
 		if ($newGas->gas === 75 && $oldGas?->gas !== 75 && isset($site->org_faction)) {
-			$source = "site-cold-{$site->org_faction}";
+			$source = "site-cold-{$site->org_faction->lower()}";
 			$trackerSource = 'site-cold';
 			$msg = $this->text->renderPlaceholders($this->siteGoesColdFormat, $tokens);
 		} elseif ($newGas->gas !== 75 && $oldGas?->gas === 75 && isset($site->org_faction)) {
-			$source = "site-hot-{$site->org_faction}";
+			$source = "site-hot-{$site->org_faction->lower()}";
 			$trackerSource = 'site-hot';
 			$msg = $this->text->renderPlaceholders($this->siteGoesHotFormat, $tokens);
 		} else {
@@ -889,24 +880,27 @@ class NotumWarsController extends ModuleInstance {
 	/** Render the Popup-block for a single given site */
 	public function renderSite(
 		FeedMessage\SiteUpdate $site,
-		Playfield $pf,
+		Playfield|CorePlayfield $pf,
 		bool $showOrgLinks=true,
 		bool $showPlantInfo=true,
 		?FeedMessage\TowerOutcome $outcome=null,
 	): string {
+		if ($pf instanceof Playfield) {
+			$pf = CorePlayfield::from($pf->id);
+		}
 		$lastOutcome = $outcome ?? $this->getLastSiteOutcome($site);
 		$centerWaypointLink = $this->text->makeChatcmd(
 			'Center',
-			"/waypoint {$site->center->x} {$site->center->y} {$pf->id}"
+			"/waypoint {$site->center->x} {$site->center->y} {$pf->value}"
 		);
 		if (isset($site->ct_pos)) {
 			$ctWaypointLink = $this->text->makeChatcmd(
 				'CT',
-				"/waypoint {$site->ct_pos->x} {$site->ct_pos->y} {$pf->id}"
+				"/waypoint {$site->ct_pos->x} {$site->ct_pos->y} {$pf->value}"
 			);
 		}
 
-		$blob = "<header2>{$pf->short_name} {$site->site_id} ({$site->name})<end>\n";
+		$blob = "<header2>{$pf->short()} {$site->site_id} ({$site->name})<end>\n";
 		if ($site->enabled === false) {
 			$blob .= "<tab><grey><i>disabled</i><end>\n";
 			return $blob;
@@ -919,7 +913,7 @@ class NotumWarsController extends ModuleInstance {
 		if (isset($site->ql, $site->org_faction, $site->org_name, $site->org_id)) {
 			// If the site is planted, show gas information
 			$blob .= "<tab>CT: QL <highlight>{$site->ql}<end>, Type " . $this->qlToSiteType($site->ql) . ' '.
-				'(<' . strtolower($site->org_faction) .">{$site->org_name}<end>)";
+				'(' . $site->org_faction->inColor($site->org_name) . ')';
 			if ($showOrgLinks) {
 				$orgLink = $this->text->makeChatcmd(
 					'show sites',
@@ -979,7 +973,7 @@ class NotumWarsController extends ModuleInstance {
 					if (!$this->autoPlantTimer && $plantTs > time()) {
 						$blob .= ' [' . $this->text->makeChatcmd(
 							'timer',
-							"/tell <myname> <symbol>nw timer {$pf->short_name} {$site->site_id} {$plantTs}",
+							"/tell <myname> <symbol>nw timer {$pf->short()} {$site->site_id} {$plantTs}",
 						) . ']';
 					}
 					$blob .= "\n";
@@ -999,7 +993,7 @@ class NotumWarsController extends ModuleInstance {
 				"{$numRecentAttacks} ".
 				(($this->mostRecentAttacksAge > 0) ? 'recent ' : '').
 				$this->text->pluralize('attack', $numRecentAttacks),
-				"/tell <myname> nw attacks {$pf->short_name} {$site->site_id}"
+				"/tell <myname> nw attacks {$pf->short()} {$site->site_id}"
 			);
 		}
 		$numRecentOutcomes = $this->countRecentOutcomes($site);
@@ -1008,7 +1002,7 @@ class NotumWarsController extends ModuleInstance {
 				"{$numRecentOutcomes} ".
 				(($this->mostRecentOutcomesAge > 0) ? 'recent ' : '').
 				$this->text->pluralize('victory', $numRecentOutcomes),
-				"/tell <myname> nw victory {$pf->short_name} {$site->site_id}"
+				"/tell <myname> nw victory {$pf->short()} {$site->site_id}"
 			);
 		}
 		if (count($links) > 0) {
@@ -1086,6 +1080,8 @@ class NotumWarsController extends ModuleInstance {
 		#[NCA\Str('top', 'highcontracts', 'highcontract')] string $action,
 	): void {
 		$orgQls = [];
+
+		/** @var array<string,Faction> */
 		$orgFaction = [];
 		$this->getEnabledSites()
 			->whereNotNull('org_name')
@@ -1106,9 +1102,10 @@ class NotumWarsController extends ModuleInstance {
 				'sites',
 				"/tell <myname> <symbol>nw sites {$orgName}"
 			);
+			$faction = $orgFaction[$orgName] ?? Faction::Unknown;
 			$blob .= "\n<tab>" . $this->text->alignNumber($rank, 2).
 				'. ' . $this->text->alignNumber($points, 4, 'highlight', true).
-				' <' . strtolower($orgFaction[$orgName] ?? 'unknown') . ">{$orgName}<end>".
+				' ' . $faction->inColor($orgName).
 				" [{$sitesLink}]";
 			$rank++;
 		}
@@ -1549,9 +1546,8 @@ class NotumWarsController extends ModuleInstance {
 		$grouping = $this->groupHotTowers;
 		if ($grouping === 1) {
 			$sites = $sites->sortBy('site_id');
-			$grouped = $sites->groupBy(function (FeedMessage\SiteUpdate $site): string {
-				$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
-				return $pf?->long_name ?? 'Unknown';
+			$grouped = $sites->groupBy(static function (FeedMessage\SiteUpdate $site): string {
+				return $site->playfield->long();
 			});
 		} elseif ($grouping === 2) {
 			$sites = $sites->sortBy('ql');
@@ -1633,7 +1629,7 @@ class NotumWarsController extends ModuleInstance {
 	/** Count how many attacks on a field occurred in the recent past */
 	private function countRecentAttacks(FeedMessage\SiteUpdate $site): int {
 		$query = $this->db->table(self::DB_ATTACKS)
-			->where('playfield_id', $site->playfield_id)
+			->where('playfield_id', $site->playfield)
 			->where('site_id', $site->site_id);
 		if ($this->mostRecentAttacksAge > 0) {
 			$query =$query
@@ -1645,7 +1641,7 @@ class NotumWarsController extends ModuleInstance {
 	/** Count how many victories/abandonments on a field occurred in the recent past */
 	private function countRecentOutcomes(FeedMessage\SiteUpdate $site): int {
 		$query = $this->db->table(self::DB_OUTCOMES)
-			->where('playfield_id', $site->playfield_id)
+			->where('playfield_id', $site->playfield)
 			->where('site_id', $site->site_id);
 		if ($this->mostRecentOutcomesAge > 0) {
 			$query =$query
@@ -1655,7 +1651,8 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	/** Handle whatever is necessary when a site gets newly planted */
-	private function handleSitePlanted(FeedMessage\SiteUpdate $site, Playfield $pf): void {
+	private function handleSitePlanted(FeedMessage\SiteUpdate $site): void {
+		$pf = $site->playfield;
 		// Remove any plant timers for this site
 		$timerName = $this->getPlantTimerName($site, $pf);
 		$this->timerController->remove($timerName);
@@ -1664,18 +1661,18 @@ class NotumWarsController extends ModuleInstance {
 			$site->getTokens(),
 			$pf->getTokens(),
 			[
-				'site-short' => "{$pf->short_name} {$site->site_id}",
+				'site-short' => "{$pf->short()} {$site->site_id}",
 				'c-site-short' => isset($site->org_faction)
-					? '<' . strtolower($site->org_faction) . ">{$pf->short_name} {$site->site_id}<end>"
-					: "<highlight>{$pf->short_name} {$site->site_id}<end>",
+					? $site->org_faction->inColor("{$pf->short()} {$site->site_id}")
+					: "<highlight>{$pf->short()} {$site->site_id}<end>",
 			]
 		);
 		$tokens['details'] = ((array)$this->text->makeBlob(
 			'details',
 			$this->renderSite($site, $pf),
-			"{$pf->short_name} {$site->site_id} ({$site->name})",
+			"{$pf->short()} {$site->site_id} ({$site->name})",
 		))[0];
-		$color = strtolower($site->org_faction ?? 'neutral');
+		$color = ($site->org_faction ?? Faction::Neutral)->lower();
 		$msg = $this->text->renderPlaceholders($this->sitePlantedFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source('pvp', "site-planted-{$color}"));
@@ -1684,7 +1681,8 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	/** Handle whatever is necessary when a site gets destroyed */
-	private function handleSiteDestroyed(FeedMessage\SiteUpdate $oldSite, FeedMessage\SiteUpdate $site, Playfield $pf): void {
+	private function handleSiteDestroyed(FeedMessage\SiteUpdate $oldSite, FeedMessage\SiteUpdate $site): void {
+		$pf = $site->playfield;
 		// If automatic plan timers are enabled,
 		// remove old one and set a new one for this site
 		if ($this->autoPlantTimer) {
@@ -1705,18 +1703,18 @@ class NotumWarsController extends ModuleInstance {
 			$oldSite->getTokens(),
 			$pf->getTokens(),
 			[
-				'site-short' => "{$pf->short_name} {$site->site_id}",
+				'site-short' => "{$pf->short()} {$site->site_id}",
 				'c-site-short' => isset($oldSite->org_faction)
-					? '<' . strtolower($oldSite->org_faction) . ">{$pf->short_name} {$site->site_id}<end>"
-					: "<highlight>{$pf->short_name} {$site->site_id}<end>",
+					? $oldSite->org_faction->inColor("{$pf->short()} {$site->site_id}")
+					: "<highlight>{$pf->short()} {$site->site_id}<end>",
 			]
 		);
 		$tokens['details'] = ((array)$this->text->makeBlob(
 			'details',
 			$this->renderSite($site, $pf),
-			"{$pf->short_name} {$site->site_id} ({$site->name})",
+			"{$pf->short()} {$site->site_id} ({$site->name})",
 		))[0];
-		$color = strtolower($oldSite->org_faction ?? 'neutral');
+		$color = ($oldSite->org_faction ?? Faction::Neutral)->lower();
 		$msg = $this->text->renderPlaceholders($this->siteDestroyedFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source('pvp', "site-destroyed-{$color}"));
@@ -1725,21 +1723,22 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	/** Handle whatever is necessary when a site gets or loses a non-CT-tower */
-	private function handleSiteTowerChange(FeedMessage\SiteUpdate $oldSite, FeedMessage\SiteUpdate $site, Playfield $pf): void {
+	private function handleSiteTowerChange(FeedMessage\SiteUpdate $oldSite, FeedMessage\SiteUpdate $site): void {
+		$pf = $site->playfield;
 		$tokens = array_merge(
 			$site->getTokens(),
 			$pf->getTokens(),
 			[
-				'site-short' => "{$pf->short_name} {$site->site_id}",
+				'site-short' => "{$pf->short()} {$site->site_id}",
 				'c-site-short' => isset($site->org_faction)
-					? '<' . strtolower($site->org_faction) . ">{$pf->short_name} {$site->site_id}<end>"
-					: "<highlight>{$pf->short_name} {$site->site_id}<end>",
+					? $site->org_faction->inColor("{$pf->short()} {$site->site_id}")
+					: "<highlight>{$pf->short()} {$site->site_id}<end>",
 			]
 		);
 		$tokens['details'] = ((array)$this->text->makeBlob(
 			'details',
 			$this->renderSite($site, $pf),
-			"{$pf->short_name} {$site->site_id} ({$site->name})",
+			"{$pf->short()} {$site->site_id} ({$site->name})",
 		))[0];
 		$tokens['c-site-num-turrets'] = $site->num_turrets . ' '.
 			$this->text->pluralize('turret', $site->num_turrets);
@@ -1775,7 +1774,7 @@ class NotumWarsController extends ModuleInstance {
 
 		$subType = $tokens['tower-action'] . 'ed';
 		// Send "WW 6 conductors ±1 [details]"-message
-		$color = strtolower($site->org_faction ?? 'neutral');
+		$color = ($site->org_faction ?? Faction::Neutral)->lower();
 		$msg = $this->text->renderPlaceholders($this->siteTowerChangeFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source('pvp', "tower-{$subType}-{$color}"));
@@ -1784,21 +1783,23 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	/** Get the name of the plant timer for the given site */
-	private function getPlantTimerName(FeedMessage\SiteUpdate $site, Playfield $pf): string {
-		$siteShort = "{$pf->short_name} {$site->site_id}";
+	private function getPlantTimerName(FeedMessage\SiteUpdate $site, Playfield|CorePlayfield $pf): string {
+		if ($pf instanceof Playfield) {
+			$pf = CorePlayfield::from($pf->id);
+		}
+		$siteShort = "{$pf->short()} {$site->site_id}";
 		return 'plant_' . strtolower(str_replace(' ', '_', $siteShort));
 	}
 
 	/** Get the plant timer for a given site and time */
 	private function getPlantTimer(FeedMessage\SiteUpdate $site, int $timestamp): Timer {
-		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
-		assert(isset($pf));
+		$pf = $site->playfield;
 
 		/** @var Alert[] */
 		$alerts = [];
 
 		$siteDetails = $this->renderSite($site, $pf, false, false);
-		$siteShort = "{$pf->short_name} {$site->site_id}";
+		$siteShort = "{$pf->short()} {$site->site_id}";
 		$siteLink = ((array)$this->text->makeBlob(
 			$siteShort,
 			$siteDetails,
@@ -1856,7 +1857,7 @@ class NotumWarsController extends ModuleInstance {
 	 */
 	private function getLastSiteOutcome(FeedMessage\SiteUpdate $site): ?FeedMessage\TowerOutcome {
 		foreach ($this->outcomes as $outcome) {
-			if ($outcome->playfield_id !== $site->playfield_id
+			if ($outcome->playfield !== $site->playfield
 				|| $outcome->site_id !== $site->site_id) {
 				continue;
 			}
@@ -1877,9 +1878,7 @@ class NotumWarsController extends ModuleInstance {
 			$ctPts = $sites->pluck('ql')->sum() * 2;
 			return "<{$faction}>{$orgName}<end> (QL {$ctPts} contracts)\n\n".
 				$sites->map(function (FeedMessage\SiteUpdate $site): string {
-					$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
-					assert(isset($pf));
-					return $this->renderSite($site, $pf, false);
+					return $this->renderSite($site, $site->playfield, false);
 				})->join("\n\n");
 		})->join("\n");
 		return trim($blob);
@@ -1887,21 +1886,17 @@ class NotumWarsController extends ModuleInstance {
 
 	/** Render the line of a single site for the !hot-command */
 	private function renderHotSite(FeedMessage\SiteUpdate $site, ?int $time=null): string {
-		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
-		assert($pf !== null);
+		$pf = $site->playfield;
 		assert(isset($site->gas));
-		$shortName = "{$pf->short_name} {$site->site_id}";
+		$shortName = "{$pf->short()} {$site->site_id}";
 		$line = '<tab>'.
 			$this->text->makeChatcmd(
 				$shortName,
 				"/tell <myname> <symbol>nw lc {$shortName}"
 			);
 		$line .= " QL {$site->min_ql}/<highlight>{$site->ql}<end>/{$site->max_ql} -";
-		$factionColor = '';
 		if (isset($site->org_faction)) {
-			$factionColor = '<' . strtolower($site->org_faction) . '>';
-			$org = $site->org_name ?? $site->org_faction;
-			$line .= " {$factionColor}{$org}<end>";
+			$line .= ' ' . $site->org_faction->inColor($site->org_name);
 		} else {
 			$line .= ' &lt;Free or unknown planter&gt;';
 		}

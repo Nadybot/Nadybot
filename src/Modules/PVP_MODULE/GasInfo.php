@@ -160,7 +160,7 @@ class GasInfo {
 		/** @var ?Util */
 		$util = Registry::getInstance(Util::class);
 		assert(isset($util));
-		$pf = $pfCtrl->getPlayfieldById($this->site->playfield_id);
+		$pf = $pfCtrl->getPlayfieldById($this->site->playfield->value);
 		assert(isset($pf));
 		$closingOffset = $this->closingOffset();
 		assert(isset($closingOffset));

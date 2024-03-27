@@ -8,7 +8,7 @@ use Nadybot\Core\Event\OrgMsgChannelMsgEvent;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, Faction, MessageHub, ModuleInstance, QueryBuilder, Safe, Text, Util};
+use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, Faction, MessageHub, ModuleInstance, Playfield as CorePlayfield, QueryBuilder, Safe, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
@@ -516,7 +516,7 @@ class AttacksController extends ModuleInstance {
 			$whois->guild_id = $attack->attacker->org->id;
 		}
 		if (isset($attack, $attack->attacker->faction)) {
-			$whois->faction = $attack->attacker->faction;
+			$whois->faction = $attack->attacker->faction->value;
 		}
 		if (isset($attack) && $attack->attacker->name === $attPlayer) {
 			if (isset($attack->attacker->level)) {
@@ -526,7 +526,7 @@ class AttacksController extends ModuleInstance {
 				$whois->ai_level = $attack->attacker->ai_level;
 			}
 			if (isset($attack->attacker->faction)) {
-				$whois->faction = $attack->attacker->faction;
+				$whois->faction = $attack->attacker->faction->value;
 			}
 			if (isset($attack->attacker->org_rank)) {
 				$whois->guild_rank = $attack->attacker->org_rank;
@@ -571,18 +571,14 @@ class AttacksController extends ModuleInstance {
 			return;
 		}
 		$site = $event->site;
-		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
-		if (!isset($pf)) {
-			return;
-		}
 		$this->logger->info('Site being attacked: {pf_short} {site_id}', [
-			'pf_short' => $pf->short_name,
+			'pf_short' => $site->playfield->short(),
 			'site_id' => $site->site_id,
 		]);
 
 
-		$details = $this->renderAttackInfo($event, $pf);
-		$shortSite = "{$pf->short_name} {$site->site_id}";
+		$details = $this->renderAttackInfo($event, $site->playfield);
+		$shortSite = "{$site->playfield->short()} {$site->site_id}";
 		$detailsLink = $this->text->makeBlob(
 			$shortSite,
 			$details,
@@ -592,7 +588,7 @@ class AttacksController extends ModuleInstance {
 		/** @var array<string,int|string|null> */
 		$tokens = array_merge(
 			$event->attack->getTokens(),
-			$pf->getTokens(),
+			$site->playfield->getTokens(),
 			$site->getTokens(),
 		);
 
@@ -618,13 +614,9 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Event('tower-outcome', 'Announce tower victories and abandoned sites')]
 	public function announceTowerVictories(Event\TowerOutcomeEvent $event): void {
 		$outcome = $event->outcome;
-		$pf = $this->pfCtrl->getPlayfieldById($outcome->playfield_id);
-		$site = $this->nwCtrl->state[$outcome->playfield_id][$outcome->site_id];
-		if (!isset($pf) || !isset($site)) {
-			$this->logger->error('Cannot find site at {pf} {siteId}', [
-				'pf' => $outcome->playfield_id,
-				'siteId' => $outcome->site_id,
-			]);
+		$pf = $outcome->playfield;
+		$site = $this->nwCtrl->state[$pf->value][$outcome->site_id];
+		if (!isset($site)) {
 			return;
 		}
 		$site->ct_pos = null;
@@ -648,7 +640,7 @@ class AttacksController extends ModuleInstance {
 		$msg = $this->text->renderPlaceholders($format, $tokens);
 
 		$details = $this->nwCtrl->renderSite($site, $pf, false, true, $outcome);
-		$shortSite = "{$pf->short_name} {$site->site_id}";
+		$shortSite = "{$pf->short()} {$site->site_id}";
 		$detailsLink = $this->text->makeBlob(
 			$shortSite,
 			$details,
@@ -960,7 +952,7 @@ class AttacksController extends ModuleInstance {
 		return "<highlight>{$count} tower " . $this->text->pluralize('site', $count) . '<end>';
 	}
 
-	private function renderAttackInfo(TowerAttackInfoEvent $info, Playfield $pf): string {
+	private function renderAttackInfo(TowerAttackInfoEvent $info, CorePlayfield $pf): string {
 		$attack = $info->attack;
 		$attacker = $attack->attacker;
 		$site = $info->site;
@@ -978,8 +970,8 @@ class AttacksController extends ModuleInstance {
 			$blob .= "<tab>Gender: <highlight>{$attacker->gender}<end>\n";
 		}
 
-		if (isset($attacker->profession) && strlen($attacker->profession)) {
-			$blob .= "<tab>Profession: <highlight>{$attacker->profession}<end>\n";
+		if (isset($attacker->profession)) {
+			$blob .= '<tab>Profession: ' . $attacker->profession->inColor() . "\n";
 		}
 		if (isset($attacker->level, $attacker->ai_level)) {
 			$level_info = $this->lvlCtrl->getLevelInfo($attacker->level);
@@ -990,7 +982,7 @@ class AttacksController extends ModuleInstance {
 
 		$attFaction = $attacker->faction ?? $attacker->org?->faction;
 		if (isset($attFaction)) {
-			$blob .= '<tab>Alignment: <' . strtolower($attFaction) . ">{$attFaction}<end>\n";
+			$blob .= "<tab>Alignment: {$attFaction->inColor()}\n";
 		}
 
 		if (isset($attacker->org)) {
@@ -1006,31 +998,31 @@ class AttacksController extends ModuleInstance {
 		$blob .= "<tab>Organization: <highlight>{$attack->defender->name}<end>\n";
 		$blob .= '<tab>Alignment: <' . strtolower($attack->defender->faction) . ">{$attack->defender->faction}<end>\n\n";
 
-		$baseLink = $this->text->makeChatcmd("{$pf->short_name} {$site->site_id}", "/tell <myname> nw lc {$pf->short_name} {$site->site_id}");
+		$baseLink = $this->text->makeChatcmd("{$pf->short()} {$site->site_id}", "/tell <myname> nw lc {$pf->short()} {$site->site_id}");
 		$attackWaypoint = $this->text->makeChatcmd(
 			"{$attack->location->x}x{$attack->location->y}",
-			"/waypoint {$attack->location->x} {$attack->location->y} {$pf->id}"
+			"/waypoint {$attack->location->x} {$attack->location->y} {$pf->value}"
 		);
 		$blob .= "<header2>Waypoints<end>\n";
 		$blob .= "<tab>Site: <highlight>{$baseLink} ({$site->min_ql}-{$site->max_ql})<end>\n";
-		$blob .= "<tab>Attack: <highlight>{$pf->long_name} ({$attackWaypoint})<end>\n";
+		$blob .= "<tab>Attack: <highlight>{$pf->long()} ({$attackWaypoint})<end>\n";
 
 		return $blob;
 	}
 
-	private function renderDBOutcome(DBOutcome $outcome, FeedMessage\SiteUpdate $site, Playfield $pf): string {
+	private function renderDBOutcome(DBOutcome $outcome, FeedMessage\SiteUpdate $site, CorePlayfield $pf): string {
 		$blob = 'Time: ' . $this->util->date($outcome->timestamp) . ' ('.
 			'<highlight>' . $this->util->unixtimeToReadable(time() - $outcome->timestamp).
 			"<end> ago)\n";
 		if (isset($outcome->attacker_org, $outcome->attacker_faction)) {
-			$blob .= 'Winner: ' . $outcome->attacker_faction->inColor($outcome->attacker_org) . "<end>\n";
+			$blob .= 'Winner: ' . $outcome->attacker_faction->inColor($outcome->attacker_org) . "\n";
 		} else {
 			$blob .= "Winner: <grey>abandoned<end>\n";
 		}
 		$blob .= 'Loser: ' . $outcome->losing_faction->inColor($outcome->losing_org) . "\n";
 		$siteLink = $this->text->makeChatcmd(
-			"{$pf->short_name} {$site->site_id}",
-			"/tell <myname> <symbol>nw lc {$pf->short_name} {$site->site_id}"
+			"{$pf->short()} {$site->site_id}",
+			"/tell <myname> <symbol>nw lc {$pf->short()} {$site->site_id}"
 		);
 		$blob .= "Site: {$siteLink} (QL {$site->min_ql}-{$site->max_ql})";
 
@@ -1096,7 +1088,7 @@ class AttacksController extends ModuleInstance {
 			->orderByDesc('timestamp')
 			->asObj(DBOutcome::class)
 			->groupBy(static function (DBOutcome $outcome): string {
-				return "{$outcome->losing_org}:{$outcome->playfield_id}:{$outcome->site_id}";
+				return "{$outcome->losing_org}:{$outcome->playfield->value}:{$outcome->site_id}";
 			})->toArray();
 
 		/**
@@ -1171,7 +1163,7 @@ class AttacksController extends ModuleInstance {
 					->where('losing_org', $first->def_org)
 					->where('timestamp', '>', $last->timestamp)
 					->where('timestamp', '<', $last->timestamp + 6 * 3_600)
-					->where('playfield_id', $site->playfield_id)
+					->where('playfield_id', $site->playfield)
 					->where('site_id', $site->site_id)
 					->whereNotNull('attacker_org')
 					->orderBy('timestamp')
@@ -1251,9 +1243,9 @@ class AttacksController extends ModuleInstance {
 		}
 		$blocks = [];
 		foreach ($outcomes as $outcome) {
-			$pf = $this->pfCtrl->getPlayfieldById($outcome->playfield_id);
-			$site = $this->nwCtrl->state[$outcome->playfield_id][$outcome->site_id] ?? null;
-			if (!isset($pf) || !isset($site)) {
+			$pf = $outcome->playfield;
+			$site = $this->nwCtrl->state[$pf->value][$outcome->site_id] ?? null;
+			if (!isset($site)) {
 				continue;
 			}
 			$blocks []= $this->renderDBOutcome($outcome, $site, $pf);

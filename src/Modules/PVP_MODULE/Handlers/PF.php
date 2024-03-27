@@ -21,7 +21,7 @@ class PF extends Base {
 		if (!isset($this->pf)) {
 			return false;
 		}
-		return $this->pf->id === $site->playfield_id;
+		return $this->pf->id === $site->playfield->value;
 	}
 
 	protected function validateValue(): void {

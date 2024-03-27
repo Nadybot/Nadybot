@@ -12,9 +12,7 @@ use Nadybot\Core\{
 	Nadybot,
 	SettingManager,
 	Text,
-	Util,
 };
-use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 class AltInfo {
 	/** The main char of this character */
@@ -27,8 +25,6 @@ class AltInfo {
 	 * @var array<string,AltValidationStatus>
 	 */
 	public array $alts = [];
-	#[NCA\Inject]
-	private OnlineController $onlineController;
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;
@@ -50,9 +46,6 @@ class AltInfo {
 
 	#[NCA\Inject]
 	private Text $text;
-
-	#[NCA\Inject]
-	private Util $util;
 
 	/** The nickname of this character */
 	private ?string $nick = null;
@@ -231,10 +224,7 @@ class AltInfo {
 		$blob .= $this->text->alignNumber($player->ai_level, 2, 'green');
 		$blob .= ' ';
 		if ($profDisplay & 1 && $player->profession !== null) {
-			$profId = $this->onlineController->getProfessionId($player->profession);
-			if (isset($profId)) {
-				$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_{$profId}> ";
-			}
+			$blob .= $player->profession->toIcon() . ' ';
 		} elseif ($profDisplay & 1) {
 			$blob .= '<img src=tdb://id:GFX_GUI_WINDOW_QUESTIONMARK> ';
 		}
@@ -242,10 +232,10 @@ class AltInfo {
 
 		$extraInfo = [];
 		if ($profDisplay & 2 && $player->profession !== null) {
-			$extraInfo []= $this->util->getProfessionAbbreviation($player->profession);
+			$extraInfo []= $player->profession->short();
 		}
 		if ($profDisplay & 4 && $player->profession !== null) {
-			$extraInfo []= $player->profession;
+			$extraInfo []= $player->profession->value;
 		}
 		if ($this->settingManager->getBool('alts_show_org') && $player->faction !== null && !$firstPageOnly) {
 			$factionColor = strtolower($player->faction);
@@ -286,20 +276,17 @@ class AltInfo {
 			$blob .= $this->text->alignNumber($row->player?->ai_level??0, 2, 'green');
 			$blob .= ' ';
 			if ($profDisplay & 1 && isset($row->player) && $row->player->profession !== null) {
-				$profId = $this->onlineController->getProfessionId($row->player->profession);
-				if (isset($profId)) {
-					$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_{$profId}> ";
-				}
+				$blob .= $row->player->profession->toIcon() . ' ';
 			} elseif ($profDisplay & 1) {
 				$blob .= '<img src=tdb://id:GFX_GUI_WINDOW_QUESTIONMARK> ';
 			}
 			$blob .= $this->formatCharName($row->alt, $online);
 			$extraInfo = [];
 			if ($profDisplay & 2 && isset($row->player) && $row->player->profession !== null) {
-				$extraInfo []= $this->util->getProfessionAbbreviation($row->player->profession);
+				$extraInfo []= $row->player->profession->short();
 			}
 			if ($profDisplay & 4 && isset($row->player) && $row->player->profession !== null) {
-				$extraInfo []= $row->player->profession;
+				$extraInfo []= $row->player->profession->value;
 			}
 			if (isset($row->player) && $this->settingManager->getBool('alts_show_org') && $row->player->faction !== null && !$firstPageOnly) {
 				$factionColor = strtolower($row->player->faction);

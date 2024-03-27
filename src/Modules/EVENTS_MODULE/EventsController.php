@@ -236,7 +236,7 @@ class EventsController extends ModuleInstance {
 			$row = $this->playerManager->findInDb($name, $this->db->getDim());
 			$info = '';
 			if ($row !== null) {
-				$info = ", <highlight>Lvl {$row->level} {$row->profession}<end>";
+				$info = ", <highlight>Lvl {$row->level} {$row->profession?->value}<end>";
 			}
 
 			$altInfo = $this->altsController->getAltInfo($name);

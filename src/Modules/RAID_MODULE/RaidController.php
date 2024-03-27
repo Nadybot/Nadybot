@@ -953,13 +953,13 @@ class RaidController extends ModuleInstance {
 				continue;
 			}
 			$blob .="<header2>{$name}<end>\n";
-			$blob .= "<tab>- <highlight>{$name}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession} :: <red>in raid<end>\n";
+			$blob .= "<tab>- <highlight>{$name}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession?->value} :: <red>in raid<end>\n";
 			foreach ($alts as $alt => $inRaid) {
 				$player = $lookup[$alt];
 				if ($player === null) {
 					continue;
 				}
-				$blob .= "<tab>- <highlight>{$alt}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession}";
+				$blob .= "<tab>- <highlight>{$alt}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession?->value}";
 				if ($inRaid) {
 					$blob .= ' :: <red>in raid<end>';
 				}
@@ -1262,8 +1262,7 @@ class RaidController extends ModuleInstance {
 		foreach ($players as $name => $player) {
 			if ($player instanceof Player && isset($player->profession)) {
 				$addLink = $this->text->makeChatcmd('Add to raid', "/tell <myname> <symbol>raid add {$player->name}");
-				$profIcon = '<img src=tdb://id:GFX_GUI_ICON_PROFESSION_'.
-					($this->onlineController->getProfessionId($player->profession)??0).'>';
+				$profIcon = $player->profession->toIcon();
 				$blob .= "<tab>{$profIcon} {$player->name} - {$player->level}/{$player->ai_level} [{$addLink}]\n";
 				$charNames[] = $player->name;
 			} else {

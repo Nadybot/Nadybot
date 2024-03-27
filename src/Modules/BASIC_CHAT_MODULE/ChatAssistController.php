@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
 	ParamClass\PWord,
+	Profession,
 	Text,
 	Util,
 };
@@ -617,7 +618,7 @@ class ChatAssistController extends ModuleInstance {
 	 */
 	protected function removeNeverCallers(string ...$members): array {
 		$forbiddenProfs = array_map(
-			[$this->util, 'getProfessionName'],
+			Profession::byName(...),
 			explode(':', $this->neverAutoCallers)
 		);
 		$players = $this->playerManager->searchByNames(

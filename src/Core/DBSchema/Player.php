@@ -5,8 +5,7 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\{
 	Attributes\JSON,
 	DBRow,
-	Registry,
-	Util,
+	Profession,
 };
 
 /**
@@ -16,28 +15,28 @@ use Nadybot\Core\{
  */
 class Player extends DBRow {
 	/**
-	 * @param int     $charid        The character ID as used by Anarchy Online
-	 * @param string  $name          The character's name as it appears in the game
-	 * @param ?int    $dimension     In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19
-	 * @param string  $firstname     The character's first name (the name before $name)
-	 * @param string  $lastname      The character's last name (the name after $name)
-	 * @param ?int    $level         What level (1-220) is the character or null if unknown
-	 * @param string  $breed         Any of Nano, Solitus, Atrox or Opifex. Also empty string if unknown
-	 * @param string  $gender        Male, Female, Neuter or an empty string if unknown
-	 * @param string  $faction       Omni, Clan, Neutral or an empty string if unknown
-	 * @param ?string $profession    The long profession name (e.g. "Enforcer", not "enf" or "enfo") or an empty string if unknown
-	 * @param string  $prof_title    The title-level title for the profession of this player For example "The man", "Don" or empty if unknown.
-	 * @param string  $ai_rank       The name of the ai_level as a rank or empty string if unknown
-	 * @param ?int    $ai_level      AI level of this player or null if unknown
-	 * @param ?int    $guild_id      The id of the org this player is in or null if none or unknown
-	 * @param ?string $guild         The name of the org this player is in or null if none/unknown
-	 * @param ?string $guild_rank    The name of the rank the player has in their org (Veteran, Apprentice) or null if not in an org or unknown
-	 * @param ?int    $guild_rank_id The numeric rank of the player in their org or null if not in an org/unknown
-	 * @param ?int    $head_id       Which head is the player using
-	 * @param ?int    $pvp_rating    Numeric PvP-rating of the player (1-7) or null if unknown
-	 * @param ?string $pvp_title     Name of the player's PvP title derived from their $pvp_rating or null if unknown
-	 * @param string  $source        Sourceof the information
-	 * @param ?int    $last_update   Unix timestamp of the last update of these data
+	 * @param int         $charid        The character ID as used by Anarchy Online
+	 * @param string      $name          The character's name as it appears in the game
+	 * @param ?int        $dimension     In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19
+	 * @param string      $firstname     The character's first name (the name before $name)
+	 * @param string      $lastname      The character's last name (the name after $name)
+	 * @param ?int        $level         What level (1-220) is the character or null if unknown
+	 * @param string      $breed         Any of Nano, Solitus, Atrox or Opifex. Also empty string if unknown
+	 * @param string      $gender        Male, Female, Neuter or an empty string if unknown
+	 * @param string      $faction       Omni, Clan, Neutral or an empty string if unknown
+	 * @param ?Profession $profession    The long profession name (e.g. "Enforcer", not "enf" or "enfo") or an empty string if unknown
+	 * @param string      $prof_title    The title-level title for the profession of this player For example "The man", "Don" or empty if unknown.
+	 * @param string      $ai_rank       The name of the ai_level as a rank or empty string if unknown
+	 * @param ?int        $ai_level      AI level of this player or null if unknown
+	 * @param ?int        $guild_id      The id of the org this player is in or null if none or unknown
+	 * @param ?string     $guild         The name of the org this player is in or null if none/unknown
+	 * @param ?string     $guild_rank    The name of the rank the player has in their org (Veteran, Apprentice) or null if not in an org or unknown
+	 * @param ?int        $guild_rank_id The numeric rank of the player in their org or null if not in an org/unknown
+	 * @param ?int        $head_id       Which head is the player using
+	 * @param ?int        $pvp_rating    Numeric PvP-rating of the player (1-7) or null if unknown
+	 * @param ?string     $pvp_title     Name of the player's PvP title derived from their $pvp_rating or null if unknown
+	 * @param string      $source        Sourceof the information
+	 * @param ?int        $last_update   Unix timestamp of the last update of these data
 	 */
 	final public function __construct(
 		public int $charid,
@@ -49,7 +48,7 @@ class Player extends DBRow {
 		public string $breed='',
 		public string $gender='',
 		public string $faction='',
-		public ?string $profession='',
+		public ?Profession $profession=Profession::Unknown,
 		public string $prof_title='',
 		public string $ai_rank='',
 		public ?int $ai_level=null,
@@ -157,10 +156,10 @@ class Player extends DBRow {
 			"c-{$prefix}level" => isset($this->level) ? "<highlight>{$this->level}<end>" : null,
 			"{$prefix}ai-level" => $this->ai_level,
 			"c-{$prefix}ai-level" => isset($this->ai_level) ? "<green>{$this->ai_level}<end>" : null,
-			"{$prefix}prof" => $this->profession,
-			"c-{$prefix}prof" => isset($this->profession) ? "<highlight>{$this->profession}<end>" : null,
-			"{$prefix}profession" => $this->profession,
-			"c-{$prefix}profession" => isset($this->profession) ? "<highlight>{$this->profession}<end>" : null,
+			"{$prefix}prof" => $this->profession?->value,
+			"c-{$prefix}prof" => $this->profession?->inColor(),
+			"{$prefix}profession" => $this->profession?->value,
+			"c-{$prefix}profession" => $this->profession?->inColor(),
 			"{$prefix}org" => $this->guild,
 			"c-{$prefix}org" => isset($this->guild)
 				? '<' . strtolower($this->faction ?? 'highlight') . ">{$this->guild}<end>"
@@ -178,10 +177,8 @@ class Player extends DBRow {
 			"c-{$prefix}short-prof" => null,
 		];
 
-		/** @var ?Util */
-		$util = Registry::getInstance(Util::class);
-		if (isset($util, $this->profession)) {
-			$abbr = $tokens["{$prefix}short-prof"] = $util->getProfessionAbbreviation($this->profession);
+		if (isset($this->profession)) {
+			$abbr = $tokens["{$prefix}short-prof"] = $this->profession->short();
 			$tokens["c-{$prefix}short-prof"] = "<highlight>{$abbr}<end>";
 		}
 		return $tokens;
@@ -201,7 +198,7 @@ class Player extends DBRow {
 		}
 
 		$msg .= "(<highlight>{$this->level}<end>/<green>{$this->ai_level}<end>";
-		$msg .= ", {$this->gender} {$this->breed} <highlight>{$this->profession}<end>";
+		$msg .= ", {$this->gender} {$this->breed} <highlight>{$this->profession?->value}<end>";
 		$msg .= ', <' . strtolower($this->faction) . ">{$this->faction}<end>";
 
 		if (isset($this->guild) && strlen($this->guild)) {

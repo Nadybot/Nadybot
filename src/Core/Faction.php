@@ -3,13 +3,17 @@
 namespace Nadybot\Core;
 
 enum Faction: string {
+	public function lower(): string {
+		return strtolower($this->value);
+	}
+
 	public function getColor(): string {
 		return '<' . strtolower($this->value) . '>';
 	}
 
 	public function inColor(?string $text=null): string {
 		$text ??= $this->name;
-		return '<' . strtolower($this->value) . ">{$text}<end>";
+		return "<{$this->lower()}>{$text}<end>";
 	}
 
 	case Neutral = 'Neutral';

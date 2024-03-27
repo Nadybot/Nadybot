@@ -4,7 +4,8 @@ namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
 use function Safe\date;
 
-use Nadybot\Core\{StringableTrait, Util};
+use EventSauce\ObjectHydrator\MapFrom;
+use Nadybot\Core\{Faction, Playfield, StringableTrait, Util};
 use Nadybot\Modules\PVP_MODULE\Attributes\CastToTiming;
 
 class SiteUpdate {
@@ -39,7 +40,7 @@ class SiteUpdate {
 	];
 
 	public function __construct(
-		public int $playfield_id,
+		#[MapFrom('playfield_id')] public Playfield $playfield,
 		public int $site_id,
 		public bool $enabled,
 		public int $min_ql,
@@ -51,7 +52,7 @@ class SiteUpdate {
 		public ?Coordinates $ct_pos=null,
 		public int $num_turrets=0,
 		public ?int $gas=null,
-		public ?string $org_faction=null,
+		public ?Faction $org_faction=null,
 		public ?int $org_id=null,
 		public ?string $org_name=null,
 		public ?int $plant_time=null,
@@ -62,7 +63,7 @@ class SiteUpdate {
 	/** @return array<string,string|int|null> */
 	public function getTokens(): array {
 		$tokens = [
-			'site-pf-id' => $this->playfield_id,
+			'site-pf-id' => $this->playfield->value,
 			'site-id' => $this->site_id,
 			'site-nr' => $this->site_id,
 			'site-number' => $this->site_id,
@@ -74,7 +75,7 @@ class SiteUpdate {
 			'site-num-turrets' => $this->num_turrets,
 			'site-num-cts' => isset($this->ql) ? '1' : '0',
 			'site-gas' => $this->gas,
-			'site-faction' => $this->org_faction,
+			'site-faction' => $this->org_faction?->value,
 			'site-org-id' => $this->org_id,
 			'site-org-name' => $this->org_name,
 			'site-plant-time' => isset($this->plant_time)
@@ -84,9 +85,8 @@ class SiteUpdate {
 		];
 
 		if (isset($this->org_faction, $this->org_name)) {
-			$color = strtolower($this->org_faction);
-			$tokens['c-site-faction'] = "<{$color}>{$this->org_faction}<end>";
-			$tokens['c-site-org-name'] = "<{$color}>{$this->org_name}<end>";
+			$tokens['c-site-faction'] = $this->org_faction->inColor();
+			$tokens['c-site-org-name'] = $this->org_faction->inColor($this->org_name);
 		}
 		if (isset($this->gas)) {
 			$tokens['site-gas'] = "{$this->gas}%";

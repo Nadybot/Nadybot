@@ -5,6 +5,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 use ArrayAccess;
 use Exception;
 use Iterator;
+use Nadybot\Core\Playfield as CorePlayfield;
 use Nadybot\Modules\HELPBOT_MODULE\Playfield;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 
@@ -20,10 +21,16 @@ class PlayfieldState implements ArrayAccess, Iterator {
 	/** @var array<int,SiteUpdate> */
 	private array $sites=[];
 
-	public function __construct(Playfield $playfield) {
-		$this->id = $playfield->id;
-		$this->shortName = $playfield->short_name;
-		$this->longName = $playfield->long_name;
+	public function __construct(Playfield|CorePlayfield $playfield) {
+		if ($playfield instanceof Playfield) {
+			$this->id = $playfield->id;
+			$this->shortName = $playfield->short_name;
+			$this->longName = $playfield->long_name;
+		} else {
+			$this->id = $playfield->value;
+			$this->shortName = $playfield->short();
+			$this->longName = $playfield->long();
+		}
 	}
 
 	public function offsetExists(mixed $offset): bool {

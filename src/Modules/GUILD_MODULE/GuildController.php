@@ -839,10 +839,10 @@ class GuildController extends ModuleInstance {
 			'c-level' => $whois ? "<highlight>{$whois->level}<end>" : null,
 			'ai-level' => $whois?->ai_level,
 			'c-ai-level' => $whois ? "<green>{$whois->ai_level}<end>" : null,
-			'prof' => $whois?->profession,
-			'c-prof' => $whois ? "<highlight>{$whois->profession}<end>" : null,
-			'profession' => $whois?->profession,
-			'c-profession' => $whois ? "<highlight>{$whois->profession}<end>" : null,
+			'prof' => $whois?->profession?->value,
+			'c-prof' => $whois?->profession?->inColor(),
+			'profession' => $whois?->profession?->value,
+			'c-profession' => $whois?->profession?->inColor(),
 			'org' => $whois?->guild,
 			'c-org' => $whois
 				? '<' . strtolower($whois->faction ?? 'highlight') . ">{$whois->guild}<end>"
@@ -879,7 +879,7 @@ class GuildController extends ModuleInstance {
 		if (isset($whois)) {
 			$tokens['whois'] = $this->playerManager->getInfo($whois);
 			if (isset($whois->profession)) {
-				$tokens['short-prof'] = $this->util->getProfessionAbbreviation($whois->profession);
+				$tokens['short-prof'] = $whois->profession->short();
 				$tokens['c-short-prof'] = "<highlight>{$tokens['short-prof']}<end>";
 			}
 		}

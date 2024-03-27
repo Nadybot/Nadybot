@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	Text,
-	Util,
 };
 use Psr\Log\LoggerInterface;
 
@@ -116,9 +115,6 @@ class GreetController extends ModuleInstance {
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
-
-	#[NCA\Inject]
-	private Util $util;
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;
@@ -332,7 +328,7 @@ class GreetController extends ModuleInstance {
 		switch ($token) {
 			case 'prof':
 			case 'profession':
-				return $player->profession === $this->util->getProfessionName($value);
+				return $player->profession?->is($value) ?? false;
 			case 'faction':
 			case 'side':
 				return strtolower($player->faction) === strtolower($value);

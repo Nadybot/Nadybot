@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
-use Nadybot\Core\StringableTrait;
+use Nadybot\Core\{Faction, Profession, StringableTrait};
 
 class Attacker {
 	use StringableTrait;
@@ -42,11 +42,11 @@ class Attacker {
 		public ?int $character_id,
 		public ?int $level,
 		public ?int $ai_level,
-		public ?string $profession,
+		public ?Profession $profession,
 		public ?string $org_rank,
 		public ?string $gender,
 		public ?string $breed,
-		public ?string $faction,
+		public ?Faction $faction,
 		public ?AttackerOrg $org,
 	) {
 	}
@@ -64,14 +64,10 @@ class Attacker {
 			'c-att-ai-level' => isset($this->ai_level)
 				? "<green>{$this->ai_level}<end>"
 				: null,
-			'att-prof' => $this->profession,
-			'att-profession' => $this->profession,
-			'c-att-prof' => isset($this->profession)
-				? "<highlight>{$this->profession}<end>"
-				: null,
-			'c-att-profession' => isset($this->profession)
-				? "<highlight>{$this->profession}<end>"
-				: null,
+			'att-prof' => $this->profession?->value,
+			'att-profession' => $this->profession?->value,
+			'c-att-prof' => $this->profession?->inColor(),
+			'c-att-profession' => $this->profession?->inColor(),
 			'att-org-rank' => $this->org_rank,
 			'c-att-org-rank' => isset($this->org_rank)
 				? "<highlight>{$this->org_rank}<end>"
@@ -84,17 +80,14 @@ class Attacker {
 			'c-att-breed' => isset($this->breed)
 				? "<highlight>{$this->breed}<end>"
 				: null,
-			'att-faction' => $this->faction,
-			'c-att-faction' => isset($this->faction)
-				? '<' . strtolower($this->faction) . ">{$this->faction}<end>"
-				: null,
+			'att-faction' => $this->faction?->value,
+			'c-att-faction' => $this->faction?->inColor(),
 		];
 		if (isset($this->org)) {
 			$tokens = array_merge($tokens, $this->org->getTokens());
 		} else {
 			if (isset($this->faction)) {
-				$tokens['c-att-name'] = '<' . strtolower($this->faction) . '>'.
-					$tokens['att-name'] . '<end>';
+				$tokens['c-att-name'] = $this->faction->inColor($tokens['att-name']);
 			} else {
 				$tokens['c-att-name'] = "<unknown>{$tokens['att-name']}<end>";
 			}

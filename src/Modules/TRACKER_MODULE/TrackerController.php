@@ -35,7 +35,6 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\{
-	ONLINE_MODULE\OnlineController,
 	ORGLIST_MODULE\FindOrgController,
 	ORGLIST_MODULE\Organization,
 	PVP_MODULE\Event\TowerAttackEvent,
@@ -198,9 +197,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	private PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	private OnlineController $onlineController;
 
 	#[NCA\Inject]
 	private FindOrgController $findOrgController;
@@ -401,8 +397,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (isset($player)) {
 			$replacements['faction'] = strtolower($player->faction);
 			if (isset($player->profession)) {
-				$replacements['profession'] = $player->profession;
-				$replacements['prof'] = $this->util->getProfessionAbbreviation($player->profession);
+				$replacements['profession'] = $player->profession->value;
+				$replacements['prof'] = $player->profession->short();
 			}
 			$replacements['org'] = $player->guild ?? '&lt;no org&gt;';
 			$replacements['gender'] = strtolower($player->gender);
@@ -921,12 +917,12 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			}
 		} elseif ($groupBy === static::GROUP_PROF) {
 			foreach ($players as $player) {
-				$prof = $player->profession??'Unknown';
-				$profIcon = '<img src=tdb://id:GFX_GUI_ICON_PROFESSION_'.($this->onlineController->getProfessionId($player->profession??'_')??0).'>';
+				$prof = $player->profession?->value ?? 'Unknown';
+				$profIcon = $player->profession?->toIcon() ?? '?';
 				$groups[$prof] ??= (object)[
-					'title' => $profIcon . ' ' . ($player->profession ?? 'Unknown'),
+					'title' => $profIcon . ' ' . $prof,
 					'members' => [],
-					'sort' => $player->profession??'Unknown',
+					'sort' => $prof,
 				];
 				$groups[$prof]->members []= $player;
 			}
@@ -1026,19 +1022,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$faction = strtolower($player->faction);
 		$blob = '';
 		if ($groupBy !== static::GROUP_PROF) {
-			if ($player->profession === null) {
-				$blob .= '? ';
-			} else {
-				$blob .= '<img src=tdb://id:GFX_GUI_ICON_PROFESSION_'.
-					($this->onlineController->getProfessionId($player->profession)??0) . '> ';
-			}
+			$blob .= ($player->profession?->toIcon() ?? '?') . ' ';
 		}
 		if ($this->trackerUseFactionColor) {
 			$blob .= "<{$faction}>{$player->name}<end>";
 		} else {
 			$blob .= "<highlight>{$player->name}<end>";
 		}
-		$prof = $this->util->getProfessionAbbreviation($player->profession??'Unknown');
+		$prof = $player->profession?->short() ?? 'Unknown';
 		$blob .= " ({$player->level}/<green>{$player->ai_level}<end>, {$prof})";
 		if ($player->guild !== null && $player->guild !== '') {
 			$blob .= " :: <{$faction}>{$player->guild}<end> ({$player->guild_rank})";

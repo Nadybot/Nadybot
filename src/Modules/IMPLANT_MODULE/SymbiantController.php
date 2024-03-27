@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	ParamClass\PWord,
+	Profession,
 	Safe,
 	Text,
 	Util,
@@ -296,20 +297,21 @@ class SymbiantController extends ModuleInstance {
 			}
 			return $this->getAndRenderBestSymbiants($whois->profession, $whois->level);
 		}
-		$profession = $this->util->getProfessionName($prof());
-		if ($profession === '') {
+		try {
+			$profession = Profession::byName($prof());
+		} catch (\Exception) {
 			return ["Could not find profession <highlight>{$prof}<end>."];
 		}
 		return $this->getAndRenderBestSymbiants($profession, $level);
 	}
 
 	/** @return string[] */
-	private function getAndRenderBestSymbiants(string $prof, int $level): array {
+	private function getAndRenderBestSymbiants(Profession $prof, int $level): array {
 		$query = $this->db->table('Symbiant AS s')
 			->join('SymbiantProfessionMatrix AS spm', 'spm.SymbiantID', 's.ID')
 			->join('Profession AS p', 'p.ID', 'spm.ProfessionID')
 			->join('ImplantType AS it', 'it.ImplantTypeID', 's.SlotID')
-			->where('p.Name', $prof)
+			->where('p.Name', $prof->value)
 			->where('s.LevelReq', '<=', $level)
 			->where('s.Name', 'NOT LIKE', 'Prototype%')
 			->select(['s.*', 'it.ShortName AS SlotName', 'it.Name AS SlotLongName']);
@@ -331,7 +333,7 @@ class SymbiantController extends ModuleInstance {
 		}
 		$blob = $this->configsToBlob($configs);
 		$msg = $this->text->makeBlob(
-			"Best 3 symbiants in each slot for a level {$level} {$prof}",
+			"Best 3 symbiants in each slot for a level {$level} {$prof->value}",
 			$blob
 		);
 		return (array)$msg;

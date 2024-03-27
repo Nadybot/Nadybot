@@ -8,6 +8,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\Query\{Builder, Expression};
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Attributes\DB\ColName;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -180,7 +181,14 @@ class QueryBuilder extends Builder {
 	 */
 	protected function convertToClass(PDOStatement $ps, string $className, array $values): object {
 		$row = [];
+		$colMappings = [];
 		$refClass = new ReflectionClass($className);
+		foreach ($refClass->getProperties() as $refProperty) {
+			$colMapping = $refProperty->getAttributes(ColName::class);
+			if (count($colMapping)) {
+				$colMappings[$colMapping[0]->newInstance()->col] = $refProperty->getName();
+			}
+		}
 		$numColumns = count($values);
 		for ($col=0; $col < $numColumns; $col++) {
 			$colMeta = $ps->getColumnMeta($col);
@@ -196,9 +204,10 @@ class QueryBuilder extends Builder {
 				continue;
 			}
 			$colName = $colMeta['name'];
+			$propName = $colMappings[$colMeta['name']] ?? $colMeta['name'];
 			if ($values[$col] === null) {
 				try {
-					$refProp = $refClass->getProperty($colName);
+					$refProp = $refClass->getProperty($propName);
 					$refType = $refProp->getType();
 					if (isset($refType) && $refType->allowsNull()) {
 						$row[$colName] = null;
@@ -220,16 +229,16 @@ class QueryBuilder extends Builder {
 				continue;
 			}
 			try {
-				if (!$refClass->hasProperty($colName)) {
+				if (!$refClass->hasProperty($propName)) {
 					$this->logger->error("Unable to load data into {class}::\${property}: property doesn't exist", [
 						'class' => $refClass->getName(),
-						'property' => $colName,
+						'property' => $propName,
 						'exception' => new Exception(),
 					]);
 					continue;
 				}
-				$type = $this->guessVarTypeFromReflection($refClass, $colName);
-				$refProp = $refClass->getProperty($colName);
+				$type = $this->guessVarTypeFromReflection($refClass, $propName);
+				$refProp = $refClass->getProperty($propName);
 				$readMap = $refProp->getAttributes(NCA\DB\MapRead::class);
 				if (count($readMap)) {
 					foreach ($readMap as $mapper) {
@@ -251,6 +260,10 @@ class QueryBuilder extends Builder {
 					} else {
 						$row[$colName] = $values[$col];
 					}
+				}
+				if ($propName !== $colName) {
+					$row[$propName] = $row[$colName];
+					unset($row[$colName]);
 				}
 			} catch (Throwable $e) {
 				$this->logger->error($e->getMessage(), ['exception' => $e]);

@@ -23,7 +23,7 @@ class Site extends Base {
 		if (!isset($this->pf) || !isset($this->siteId)) {
 			return false;
 		}
-		return $this->pf->id === $site->playfield_id && $this->siteId === $site->site_id;
+		return $this->pf->id === $site->playfield->value && $this->siteId === $site->site_id;
 	}
 
 	protected function validateValue(): void {

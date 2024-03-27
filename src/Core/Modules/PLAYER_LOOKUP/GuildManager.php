@@ -25,6 +25,7 @@ use Nadybot\Core\{
 	Filesystem,
 	ModuleInstance,
 	Nadybot,
+	Profession,
 };
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
@@ -188,7 +189,7 @@ class GuildManager extends ModuleInstance {
 				breed: $member->BREED,
 				gender: $member->SEX,
 				faction: $guild->orgside,
-				profession: $member->PROF,
+				profession: Profession::tryFrom($member->PROF),
 				prof_title: $member->PROF_TITLE,
 				ai_rank: $member->DEFENDER_RANK_TITLE,
 				ai_level: $member->ALIENLEVEL,

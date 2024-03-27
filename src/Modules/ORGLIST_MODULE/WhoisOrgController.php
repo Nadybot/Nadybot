@@ -106,8 +106,8 @@ class WhoisOrgController extends ModuleInstance {
 			$maxLevel = max($member->level, $maxLevel);
 
 			if (isset($member->profession)) {
-				$countProfs[$member->profession] ??= 0;
-				$countProfs[$member->profession]++;
+				$countProfs[$member->profession->value] ??= 0;
+				$countProfs[$member->profession->value]++;
 			}
 		}
 		$averageLevel = round($sumLevels/$numMembers);
@@ -121,7 +121,7 @@ class WhoisOrgController extends ModuleInstance {
 		if (isset($leader)) {
 			$link .= "<header2>{$leader->guild_rank}<end>\n";
 			$link .= "<tab>Name: <highlight>{$leader->name}<end>\n";
-			$link .= "<tab>Profession: <highlight>{$leader->profession}<end>\n";
+			$link .= "<tab>Profession: {$leader->profession?->inColor()}\n";
 			$link .= "<tab>Level: <highlight>{$leader->level}<end>\n";
 			$link .= "<tab>Gender: <highlight>{$leader->gender}<end>\n";
 			$link .= "<tab>Breed: <highlight>{$leader->breed}<end>\n\n";

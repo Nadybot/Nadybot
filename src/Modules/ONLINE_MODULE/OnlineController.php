@@ -430,6 +430,7 @@ class OnlineController extends ModuleInstance {
 			return;
 		}
 		foreach ($players as $player) {
+			/** @var OnlinePlayer $player */
 			if ($currentMain !== $player->pmain) {
 				$mainCount++;
 				$blob .= "\n<highlight>{$player->pmain}<end> has\n";
@@ -443,8 +444,8 @@ class OnlineController extends ModuleInstance {
 			if ($player->profession === null) {
 				$blob .= "<tab>({$playerName})\n";
 			} else {
-				$prof = $this->util->getProfessionAbbreviation($player->profession);
-				$profIcon = '<img src=tdb://id:GFX_GUI_ICON_PROFESSION_'.($this->getProfessionId($player->profession)??0).'>';
+				$prof = $player->profession->short();
+				$profIcon = $player->profession->toIcon();
 				$blob.= "<tab>{$profIcon} {$playerName} - {$player->level}/<green>{$player->ai_level}<end> {$prof}";
 			}
 			if ($player->online) {
@@ -1010,13 +1011,10 @@ class OnlineController extends ModuleInstance {
 				}
 			} elseif ($groupBy === static::GROUP_BY_PROFESSION) {
 				$list->countMains++;
-				if ($currentGroup !== $player->profession) {
-					$profIcon = '?';
-					if ($player->profession !== null) {
-						$profIcon = '<img src=tdb://id:GFX_GUI_ICON_PROFESSION_'.($this->getProfessionId($player->profession)??0).'>';
-					}
-					$list->blob .= "\n<pagebreak>{$profIcon}<highlight>{$player->profession}<end>\n";
-					$currentGroup = $player->profession;
+				if ($currentGroup !== $player->profession?->value) {
+					$profIcon = $player->profession?->toIcon() ?? '?';
+					$list->blob .= "\n<pagebreak>{$profIcon}{$player->profession?->inColor()}\n";
+					$currentGroup = $player->profession?->value;
 				}
 			} elseif ($groupBy === static::GROUP_BY_FACTION) {
 				$list->countMains++;
@@ -1037,14 +1035,14 @@ class OnlineController extends ModuleInstance {
 			if ($player->profession === null) {
 				$list->blob .= "<tab>? {$raidPre}{$player->name}{$admin}{$raidPost}{$afk}\n";
 			} else {
-				$prof = $this->util->getProfessionAbbreviation($player->profession);
+				$prof = $player->profession->short();
 				$orgRank = '';
 				if (isset($player->guild, $player->guild_rank)) {
 					$orgRank = $this->getOrgInfo($showOrgInfo, $separator, $player->guild, $player->guild_rank);
 				}
 				$profIcon = '';
 				if ($groupBy !== static::GROUP_BY_PROFESSION) {
-					$profIcon = '<img src=tdb://id:GFX_GUI_ICON_PROFESSION_'.($this->getProfessionId($player->profession)??0).'> ';
+					$profIcon = $player->profession->toIcon() . ' ';
 				}
 				$list->blob.= "<tab>{$profIcon}{$raidPre}{$player->name} - {$player->level}/<green>{$player->ai_level}<end> {$prof}{$orgRank}{$admin}{$raidPost}{$afk}\n";
 			}
@@ -1160,11 +1158,8 @@ class OnlineController extends ModuleInstance {
 				$chars = array_values($onlineChars);
 				foreach ($chars as $char) {
 					if ($groupBy === self::GROUP_BY_PROFESSION) {
-						$key = $char->profession ?? 'Unknown';
-						$profIcon = '?';
-						if ($char->profession !== null) {
-							$profIcon = '<img src=tdb://id:GFX_GUI_ICON_PROFESSION_'.($this->getProfessionId($char->profession)??0).'>';
-						}
+						$key = $char->profession?->value ?? 'Unknown';
+						$profIcon = $char->profession?->toIcon() ?? '?';
 						$key = "{$profIcon} {$key}";
 					} elseif ($groupBy === self::GROUP_BY_MAIN) {
 						$key = $char->nick ?? $char->pmain ?? $char->name;

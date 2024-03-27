@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Nadybot\Core\{DBRow, Faction};
+use Nadybot\Core\{DBRow, Faction, Profession};
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{Attacker, AttackerOrg, Coordinates, DefenderOrg, TowerAttack};
 
 class DBTowerAttack extends DBRow {
@@ -40,13 +40,13 @@ class DBTowerAttack extends DBRow {
 			location_x: $att->location->x,
 			location_y: $att->location->y,
 			att_name: $att->attacker->name,
-			att_faction: isset($attFaction) ? Faction::from($attFaction) : null,
+			att_faction: $attFaction,
 			att_org: $att->attacker->org?->name,
 			att_org_id: $att->attacker->org?->id,
 			att_org_rank: $att->attacker->org_rank,
 			att_level: $att->attacker->level,
 			att_ai_level: $att->attacker->ai_level,
-			att_profession: $att->attacker->profession,
+			att_profession: $att->attacker->profession?->value,
 			att_gender: $att->attacker->gender,
 			att_breed: $att->attacker->breed,
 			def_faction: Faction::from($att->defender->faction),
@@ -70,15 +70,15 @@ class DBTowerAttack extends DBRow {
 				character_id: $this->att_uid,
 				level: $this->att_level,
 				ai_level: $this->att_ai_level,
-				profession: $this->att_profession,
+				profession: Profession::tryFrom($this->att_profession ?? ''),
 				org_rank: $this->att_org_rank,
 				gender: $this->att_gender,
 				breed: $this->att_breed,
-				faction: $this->att_faction?->value,
+				faction: $this->att_faction,
 				org: isset($this->att_org, $this->att_faction)
 					? new AttackerOrg(
 						name: $this->att_org,
-						faction: $this->att_faction->value,
+						faction: $this->att_faction,
 						id: $this->att_org_id,
 					) : null,
 			),

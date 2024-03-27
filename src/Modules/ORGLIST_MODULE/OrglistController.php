@@ -327,7 +327,7 @@ class OrglistController extends ModuleInstance {
 		$line .= ', '.$member->gender;
 		$line .= ' '.$member->breed;
 		if (isset($member->profession)) {
-			$line .= " <highlight>{$member->profession}<end>)";
+			$line .= ' ' . $member->profession->inColor() . ')';
 		}
 		return $line;
 	}

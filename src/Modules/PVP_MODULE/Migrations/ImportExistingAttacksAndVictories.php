@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\PVP_MODULE\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, Faction, SchemaMigration};
+use Nadybot\Core\{DB, Faction, Playfield, SchemaMigration};
 use Nadybot\Modules\PVP_MODULE\{DBOutcome, DBTowerAttack, NotumWarsController};
 use Psr\Log\LoggerInterface;
 use stdClass;
@@ -70,7 +70,7 @@ class ImportExistingAttacksAndVictories implements SchemaMigration {
 							attacker_faction: Faction::tryFrom($old->win_faction??''),
 							losing_org: $old->lose_guild_name,
 							losing_faction: Faction::tryFrom($old->lose_faction??'') ?? Faction::Unknown,
-							playfield_id: $old->playfield_id,
+							playfield: Playfield::from($old->playfield_id),
 							site_id: $old->site_number,
 						);
 						$db->insert(NotumWarsController::DB_OUTCOMES, $outcome, null);

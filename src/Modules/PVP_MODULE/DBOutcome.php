@@ -2,12 +2,17 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Nadybot\Core\{DBRow, Faction};
+use Nadybot\Core\Attributes\DB\{ColName, MapRead, MapWrite};
+use Nadybot\Core\{DBRow, Faction, Playfield};
 use Nadybot\Modules\PVP_MODULE\FeedMessage\TowerOutcome;
 
 class DBOutcome extends DBRow {
 	public function __construct(
-		public int $playfield_id,
+		#[
+			ColName('playfield_id'),
+			MapRead([Playfield::class, 'from']),
+			MapWrite([Playfield::class, 'toDB'])
+		] public Playfield $playfield,
 		public int $site_id,
 		public int $timestamp,
 		public Faction $losing_faction,
@@ -19,7 +24,7 @@ class DBOutcome extends DBRow {
 
 	public static function fromTowerOutcome(TowerOutcome $outcome): self {
 		$obj = new self(
-			playfield_id: $outcome->playfield_id,
+			playfield: $outcome->playfield,
 			site_id: $outcome->site_id,
 			timestamp: $outcome->timestamp,
 			losing_faction: $outcome->losing_faction,
@@ -32,6 +37,7 @@ class DBOutcome extends DBRow {
 	}
 
 	public function toTowerOutcome(): TowerOutcome {
-		return new TowerOutcome(...(array)$this);
+		$array = get_object_vars($this);
+		return new TowerOutcome(...$array);
 	}
 }
