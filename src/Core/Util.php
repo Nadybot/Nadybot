@@ -44,7 +44,7 @@ class Util {
 	 *
 	 * Converts 3688 to "1hr, 1min, 18secs"
 	 */
-	public function unixtimeToReadable(int $time, bool $showSeconds=true): string {
+	public static function unixtimeToReadable(int $time, bool $showSeconds=true): string {
 		if ($time == 0) {
 			return '0 secs';
 		}
@@ -426,7 +426,7 @@ class Util {
 	}
 
 	/** Convert UNIX timestamp to date and time */
-	public function date(int $unixtime, bool $withTime=true): string {
+	public static function date(int $unixtime, bool $withTime=true): string {
 		return date($withTime ? self::DATETIME : self::DATE, $unixtime);
 	}
 
@@ -586,7 +586,7 @@ class Util {
 	}
 
 	/** Calculate the title level from the player's level */
-	public function levelToTL(int $level): int {
+	public static function levelToTL(int $level): int {
 		if ($level < 15) {
 			return 1;
 		}

@@ -5,6 +5,13 @@ namespace Nadybot\Core;
 use ValueError;
 
 enum Playfield: int {
+	/** @var array<string,string|int|null> */
+	public const EXAMPLE_TOKENS = [
+		'pf-id' => 551,
+		'pf-long' => 'Wailing Wastes',
+		'pf-short' => 'WW',
+	];
+
 	/** @return array<string,string|int|null> */
 	public function getTokens(): array {
 		return [

@@ -25,10 +25,10 @@ class Text {
 	 *
 	 * @return string A string that combines all links into one
 	 */
-	public function makeHeaderLinks(array $links): string {
+	public static function makeHeaderLinks(array $links): string {
 		$output = '';
 		foreach ($links as $title => $command) {
-			$output .= ' ::: ' . $this->makeChatcmd($title, $command, 'style="text-decoration:none;"') . ' ::: ';
+			$output .= ' ::: ' . self::makeChatcmd($title, $command, 'style="text-decoration:none;"') . ' ::: ';
 		}
 		return $output;
 	}
@@ -42,7 +42,7 @@ class Text {
 	 *
 	 * @return string[]
 	 */
-	public function blobWrap(string $before, string|array $blob, ?string $after=''): array {
+	public static function blobWrap(string $before, string|array $blob, ?string $after=''): array {
 		$blob = (array)$blob;
 		foreach ($blob as &$page) {
 			$page = "{$before}{$page}{$after}";
@@ -118,42 +118,6 @@ class Text {
 	}
 
 	/**
-	 * Creates an info window
-	 *
-	 * @param string $name    The text part of the clickable link
-	 * @param string $content The content of the info window
-	 *
-	 * @return string|string[] The string with link and reference or an array of strings if the message would be too big
-	 */
-	public function makeLegacyBlob(string $name, string $content): string|array {
-		// escape double quotes
-		$content = str_replace('"', '&quot;', $content);
-
-		// $content = $this->formatMessage($content);
-
-		$pages = $this->paginate($content, $this->settingManager->getInt('max_blob_size')??0, ['<pagebreak>', "\n", ' ']);
-		$num = count($pages);
-
-		if ($num == 1) {
-			$page = $pages[0];
-			$page = '<a href="text://'.($this->settingManager->getString('default_window_color')??'').$page."\">{$name}</a>";
-			return $page;
-		}
-		$i = 1;
-		foreach ($pages as $key => $page) {
-			if ($i > 1) {
-				$header = "<header>{$name} (Page {$i} / {$num})<end>\n\n";
-			} else {
-				$header = '';
-			}
-			$page = '<a href="text://'.($this->settingManager->getString('default_window_color')??'').$header.$page."\">{$name}</a> (Page <highlight>{$i} / {$num}<end>)";
-			$pages[$key] = $page;
-			$i++;
-		}
-		return $pages;
-	}
-
-	/**
 	 * Convert a single long string into multiple pages of maximum $maxLength size
 	 *
 	 * @param string   $input     The text to paginate
@@ -222,7 +186,7 @@ class Text {
 	 *
 	 * @return string The link
 	 */
-	public function makeChatcmd(string $name, string $content, ?string $style=''): string {
+	public static function makeChatcmd(string $name, string $content, ?string $style=''): string {
 		$style ??= '';
 		if ($style !== '') {
 			$style .= ' ';
@@ -243,7 +207,7 @@ class Text {
 	 *
 	 * @return string The link to the user
 	 */
-	public function makeUserlink(string $user, string $style=''): string {
+	public static function makeUserlink(string $user, string $style=''): string {
 		if ($style !== '') {
 			$style .= ' ';
 		}
@@ -260,7 +224,7 @@ class Text {
 	 *
 	 * @return string A link to the given item
 	 */
-	public function makeItem(int $lowId, int $highId, int $ql, string $name): string {
+	public static function makeItem(int $lowId, int $highId, int $ql, string $name): string {
 		return "<a href='itemref://{$lowId}/{$highId}/{$ql}'>{$name}</a>";
 	}
 
@@ -272,7 +236,7 @@ class Text {
 	 *
 	 * @return string The image as <img> tag
 	 */
-	public function makeImage(int $imageId, string $db='rdb'): string {
+	public static function makeImage(int $imageId, string $db='rdb'): string {
 		return "<img src='{$db}://{$imageId}'>";
 	}
 
@@ -367,7 +331,7 @@ class Text {
 	 *
 	 * @return string The zero-prefixed $number
 	 */
-	public function alignNumber(?int $number, int $digits, ?string $colortag=null, bool $grouping=false): string {
+	public static function alignNumber(?int $number, int $digits, ?string $colortag=null, bool $grouping=false): string {
 		if ($number === null) {
 			if ($grouping) {
 				$digits += floor($digits / 3);
@@ -396,7 +360,7 @@ class Text {
 	 *
 	 * @return string The enumerated string
 	 */
-	public function enumerate(string ...$words): string {
+	public static function enumerate(string ...$words): string {
 		$last = array_pop($words);
 		if (count($words) === 0) {
 			return $last;
@@ -413,7 +377,7 @@ class Text {
 	 *
 	 * @return string[] The formatted array
 	 */
-	public function arraySprintf(string $format, string ...$strings): array {
+	public static function arraySprintf(string $format, string ...$strings): array {
 		return array_map(
 			static function (string $text) use ($format): string {
 				return sprintf($format, $text);
@@ -422,7 +386,7 @@ class Text {
 		);
 	}
 
-	public function removePopups(string $message, bool $removeLinks=false): string {
+	public static function removePopups(string $message, bool $removeLinks=false): string {
 		$message = preg_replace_callback(
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
 			static function (array $matches) use ($removeLinks): string {
@@ -442,7 +406,7 @@ class Text {
 	}
 
 	/** @return string[] */
-	public function getPopups(string $message): array {
+	public static function getPopups(string $message): array {
 		$popups = [];
 		$message = preg_replace_callback(
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
@@ -456,7 +420,7 @@ class Text {
 	}
 
 	/** Return the pluralized version of $word if $amount is not 1 */
-	public function pluralize(string $word, int $amount): string {
+	public static function pluralize(string $word, int $amount): string {
 		if ($amount === 1) {
 			return $word;
 		}
@@ -523,7 +487,7 @@ class Text {
 	 *
 	 * @return string The rendered text
 	 */
-	public function renderPlaceholders(string $text, array $tokens): string {
+	public static function renderPlaceholders(string $text, array $tokens): string {
 		// First, we try to replace {?token:<whatever>} and
 		// {!token:<whatever>} with either an empty string or <whatever>
 		// If the token isn't found, don't touch the text

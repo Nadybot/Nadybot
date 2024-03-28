@@ -10,8 +10,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, EventManager, Faction, MessageHub, ModuleInstance, Nadybot, Playfield as CorePlayfield, Safe, Text, Util};
-use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
+use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, EventManager, Faction, MessageHub, ModuleInstance, Nadybot, Playfield, Safe, Text, Util};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfoEvent;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
@@ -19,6 +18,7 @@ use Nadybot\Modules\TIMERS_MODULE\{Alert, Timer, TimerController};
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Safe\Exceptions\JsonException;
+use Throwable;
 
 #[
 	NCA\Instance,
@@ -470,10 +470,7 @@ class NotumWarsController extends ModuleInstance {
 	private LoggerInterface $logger;
 
 	#[NCA\Inject]
-	private HttpClientBuilder $builder;
-
-	#[NCA\Inject]
-	private PlayfieldController $pfCtrl;
+	private HttpClientBuilder $http;
 
 	#[NCA\Inject]
 	private SiteTrackerController $siteTracker;
@@ -505,9 +502,6 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Inject]
 	private Text $text;
 
-	#[NCA\Inject]
-	private Util $util;
-
 	#[NCA\Event('timer(1h)', 'Announce unplanted sites via pvp(unplanted-sites)')]
 	public function announceUnplantedSites(): void {
 		$unplantedSites = $this->getUnplantedSites();
@@ -538,7 +532,7 @@ class NotumWarsController extends ModuleInstance {
 
 	#[NCA\Event('connect', 'Load all towers from the API')]
 	public function initTowersFromApi(): void {
-		$client = $this->builder->build();
+		$client = $this->http->build();
 
 		$response = $client->request(new Request(self::TOWER_API));
 		if ($response->getStatus() !== 200) {
@@ -595,7 +589,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Event('connect', 'Load all attacks from the API')]
 	public function initAttacksFromApi(): void {
 		$maxTS = $this->db->table(self::DB_ATTACKS)->max('timestamp');
-		$client = $this->builder->build();
+		$client = $this->http->build();
 		$uri = self::ATTACKS_API;
 		if (isset($maxTS)) {
 			$uri .= '?' . http_build_query(['since' => $maxTS+1]);
@@ -657,7 +651,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Event('connect', 'Load all tower outcomes from the API')]
 	public function initOutcomesFromApi(): void {
 		$maxTS = $this->db->table(self::DB_OUTCOMES)->max('timestamp');
-		$client = $this->builder->build();
+		$client = $this->http->build();
 		$uri = self::OUTCOMES_API;
 		if (isset($maxTS)) {
 			$uri .= '?' . http_build_query(['since' => $maxTS+1]);
@@ -882,12 +876,12 @@ class NotumWarsController extends ModuleInstance {
 	): string {
 		$pf = $site->playfield;
 		$lastOutcome = $outcome ?? $this->getLastSiteOutcome($site);
-		$centerWaypointLink = $this->text->makeChatcmd(
+		$centerWaypointLink = Text::makeChatcmd(
 			'Center',
 			"/waypoint {$site->center->x} {$site->center->y} {$pf->value}"
 		);
 		if (isset($site->ct_pos)) {
-			$ctWaypointLink = $this->text->makeChatcmd(
+			$ctWaypointLink = Text::makeChatcmd(
 				'CT',
 				"/waypoint {$site->ct_pos->x} {$site->ct_pos->y} {$pf->value}"
 			);
@@ -901,14 +895,14 @@ class NotumWarsController extends ModuleInstance {
 		$blob .= "<tab>Level range: <highlight>{$site->min_ql}<end>-<highlight>{$site->max_ql}<end>\n";
 		if (isset($site->plant_time, $site->ql, $site->org_faction, $site->org_name, $site->org_id)) {
 			$blob .= '<tab>Planted: <highlight>'.
-				$this->util->date($site->plant_time) . "<end>\n";
+				Util::date($site->plant_time) . "<end>\n";
 		}
 		if (isset($site->ql, $site->org_faction, $site->org_name, $site->org_id)) {
 			// If the site is planted, show gas information
 			$blob .= "<tab>CT: QL <highlight>{$site->ql}<end>, Type " . $this->qlToSiteType($site->ql) . ' '.
 				'(' . $site->org_faction->inColor($site->org_name) . ')';
 			if ($showOrgLinks) {
-				$orgLink = $this->text->makeChatcmd(
+				$orgLink = Text::makeChatcmd(
 					'show sites',
 					"/tell <myname> nw sites {$site->org_id}"
 				);
@@ -921,11 +915,11 @@ class NotumWarsController extends ModuleInstance {
 				if (isset($gas) && $gas->gas === 75) {
 					$secsToHot = ($gasInfo->goesHot()??time()) - time();
 					$blob .= '<tab>Gas: ' . $gas->colored() . ', opens in '.
-						$this->util->unixtimeToReadable($secsToHot) . "\n";
+						Util::unixtimeToReadable($secsToHot) . "\n";
 				} elseif (isset($gas)) {
 					$secsToCold = ($gasInfo->goesCold()??time()) - time();
 					$coldIn = ($secsToCold > 0)
-						? 'in ' . $this->util->unixtimeToReadable($secsToCold)
+						? 'in ' . Util::unixtimeToReadable($secsToCold)
 						: 'any time now';
 					$blob .= '<tab>Gas: ' . $gas->colored() . ", closes {$coldIn}\n";
 				} else {
@@ -951,20 +945,20 @@ class NotumWarsController extends ModuleInstance {
 						$lastOutcome->losing_faction->inColor($lastOutcome->losing_org);
 				}
 				if ($showPlantInfo) {
-					$blob .= ' ' . $this->util->unixtimeToReadable(time() - $lastOutcome->timestamp).
+					$blob .= ' ' . Util::unixtimeToReadable(time() - $lastOutcome->timestamp).
 						" ago\n";
 				} else {
-					$blob .= ' on ' . $this->util->date($lastOutcome->timestamp) . "\n";
+					$blob .= ' on ' . Util::date($lastOutcome->timestamp) . "\n";
 				}
 				if ($showPlantInfo) {
 					$plantTs = $lastOutcome->timestamp + 20 * 60;
 					$blob .= '<tab>Plantable: ';
 					$plantIn = ($plantTs <= time())
 						? 'Now'
-						: $this->util->unixtimeToReadable($plantTs - time());
+						: Util::unixtimeToReadable($plantTs - time());
 					$blob .= "<highlight>{$plantIn}<end>";
 					if (!$this->autoPlantTimer && $plantTs > time()) {
-						$blob .= ' [' . $this->text->makeChatcmd(
+						$blob .= ' [' . Text::makeChatcmd(
 							'timer',
 							"/tell <myname> <symbol>nw timer {$pf->short()} {$site->site_id} {$plantTs}",
 						) . ']';
@@ -982,7 +976,7 @@ class NotumWarsController extends ModuleInstance {
 		$links = [];
 		$numRecentAttacks = $this->countRecentAttacks($site);
 		if ($numRecentAttacks > 0) {
-			$links []= $this->text->makeChatcmd(
+			$links []= Text::makeChatcmd(
 				"{$numRecentAttacks} ".
 				(($this->mostRecentAttacksAge > 0) ? 'recent ' : '').
 				$this->text->pluralize('attack', $numRecentAttacks),
@@ -991,7 +985,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$numRecentOutcomes = $this->countRecentOutcomes($site);
 		if ($numRecentOutcomes > 0) {
-			$links []= $this->text->makeChatcmd(
+			$links []= Text::makeChatcmd(
 				"{$numRecentOutcomes} ".
 				(($this->mostRecentOutcomesAge > 0) ? 'recent ' : '').
 				$this->text->pluralize('victory', $numRecentOutcomes),
@@ -1019,18 +1013,19 @@ class NotumWarsController extends ModuleInstance {
 		PTowerSite $site,
 		int $timestamp,
 	): void {
-		$pf = $this->pfCtrl->getPlayfieldByName($site->pf);
-		if (!isset($pf)) {
+		try {
+			$pf = Playfield::byName($site->pf);
+		} catch (Throwable) {
 			$context->reply("Unknown playfield {$site->pf}.");
 			return;
 		}
-		$towerSite = $this->state[$pf->id][$site->site] ?? null;
+		$towerSite = $this->state[$pf->value][$site->site] ?? null;
 		if (!isset($towerSite)) {
-			$context->reply("No tower field {$pf->short_name} {$site->site} found.");
+			$context->reply("No tower field {$pf->short()} {$site->site} found.");
 			return;
 		}
 		if ($timestamp <= time()) {
-			$context->reply("Plant {$pf->short_name} {$site->site} <highlight>NOW<end>!");
+			$context->reply("Plant {$pf->short()} {$site->site} <highlight>NOW<end>!");
 			return;
 		}
 		$timer = $this->getPlantTimer($towerSite, $timestamp);
@@ -1091,7 +1086,7 @@ class NotumWarsController extends ModuleInstance {
 		$blob = "<header2>Top contract points<end>\n";
 		$rank = 1;
 		foreach ($top as $orgName => $points) {
-			$sitesLink = $this->text->makeChatcmd(
+			$sitesLink = Text::makeChatcmd(
 				'sites',
 				"/tell <myname> <symbol>nw sites {$orgName}"
 			);
@@ -1217,12 +1212,13 @@ class NotumWarsController extends ModuleInstance {
 			$this->logger->info('Found playfield search for <{pf}>', [
 				'pf' => $matches[1],
 			]);
-			$pf = $this->pfCtrl->getPlayfieldByName($matches[1]);
-			if (!isset($pf)) {
+			try {
+				$pf = Playfield::byName($matches[1]);
+			} catch (Throwable) {
 				$context->reply("Unable to find playfield <highlight>{$matches[1]}<end>.");
 				return;
 			}
-			$hotSites = $hotSites->where('playfield_id', $pf->id);
+			$hotSites = $hotSites->where('playfield_id', $pf->value);
 			$search = Safe::pregReplace("/\s+([a-z]{2,}|\d[a-z]{2,})\b/i", '', $search);
 		}
 		$search = trim($search);
@@ -1544,8 +1540,8 @@ class NotumWarsController extends ModuleInstance {
 			});
 		} elseif ($grouping === 2) {
 			$sites = $sites->sortBy('ql');
-			$grouped = $sites->groupBy(function (FeedMessage\SiteUpdate $site): string {
-				return 'TL' . $this->util->levelToTL($site->ql??1);
+			$grouped = $sites->groupBy(static function (FeedMessage\SiteUpdate $site): string {
+				return 'TL' . Util::levelToTL($site->ql??1);
 			});
 		} elseif ($grouping === 3) {
 			$sites = $sites->sortBy('ql');
@@ -1773,10 +1769,7 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	/** Get the name of the plant timer for the given site */
-	private function getPlantTimerName(FeedMessage\SiteUpdate $site, Playfield|CorePlayfield $pf): string {
-		if ($pf instanceof Playfield) {
-			$pf = CorePlayfield::from($pf->id);
-		}
+	private function getPlantTimerName(FeedMessage\SiteUpdate $site, Playfield $pf): string {
 		$siteShort = "{$pf->short()} {$site->site_id}";
 		return 'plant_' . strtolower(str_replace(' ', '_', $siteShort));
 	}
@@ -1797,7 +1790,7 @@ class NotumWarsController extends ModuleInstance {
 		))[0];
 		$alert = new Alert();
 		$alert->time = time();
-		$duration = $this->util->unixtimeToReadable($timestamp - time());
+		$duration = Util::unixtimeToReadable($timestamp - time());
 		$alert->message = "Started {$duration} countdown for planting {$siteLink}";
 		$alerts []= $alert;
 
@@ -1880,7 +1873,7 @@ class NotumWarsController extends ModuleInstance {
 		assert(isset($site->gas));
 		$shortName = "{$pf->short()} {$site->site_id}";
 		$line = '<tab>'.
-			$this->text->makeChatcmd(
+			Text::makeChatcmd(
 				$shortName,
 				"/tell <myname> <symbol>nw lc {$shortName}"
 			);
@@ -1911,18 +1904,18 @@ class NotumWarsController extends ModuleInstance {
 		}
 		if (isset($goesHot)) {
 			if (!isset($time)) {
-				$line .= ', opens in ' . $this->util->unixtimeToReadable($goesHot - time());
+				$line .= ', opens in ' . Util::unixtimeToReadable($goesHot - time());
 			} elseif ($time > $goesHot) {
-				$line .= ', opens in ' . $this->util->unixtimeToReadable($goesHot - $time);
+				$line .= ', opens in ' . Util::unixtimeToReadable($goesHot - $time);
 			}
 		} elseif (isset($goesCold)) {
 			if (!isset($time)) {
 				$goesColdText = ($goesCold <= time())
 					? 'any time now'
-					: 'in ' . $this->util->unixtimeToReadable($goesCold - time());
+					: 'in ' . Util::unixtimeToReadable($goesCold - time());
 				$line .= ", closes {$goesColdText}{$note}";
 			} elseif ($goesCold && $goesCold > $time) {
-				$goesColdText = 'in ' . $this->util->unixtimeToReadable($goesCold - $time);
+				$goesColdText = 'in ' . Util::unixtimeToReadable($goesCold - $time);
 				$line .= ", closes {$goesColdText}{$note}";
 			}
 		}
