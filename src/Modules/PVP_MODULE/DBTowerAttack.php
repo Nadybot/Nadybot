@@ -2,13 +2,14 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Nadybot\Core\{DBRow, Faction, Profession};
+use Nadybot\Core\Attributes\DB\ColName;
+use Nadybot\Core\{DBRow, Faction, Playfield, Profession};
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{Attacker, AttackerOrg, Coordinates, DefenderOrg, TowerAttack};
 
 class DBTowerAttack extends DBRow {
 	public function __construct(
 		public int $timestamp,
-		public int $playfield_id,
+		#[ColName('playfield_id')] public Playfield $playfield,
 		public int $location_x,
 		public int $location_y,
 		public int $site_id,
@@ -21,7 +22,7 @@ class DBTowerAttack extends DBRow {
 		public ?int $att_org_id=null,
 		public ?int $att_level=null,
 		public ?int $att_ai_level=null,
-		public ?string $att_profession=null,
+		public ?Profession $att_profession=null,
 		public ?string $att_org_rank=null,
 		public ?string $att_breed=null,
 		public ?string $att_gender=null,
@@ -34,7 +35,7 @@ class DBTowerAttack extends DBRow {
 		$attFaction = $att->attacker->org?->faction ?? $att->attacker->faction;
 		$obj = new self(
 			timestamp: $att->timestamp,
-			playfield_id: $att->playfield_id,
+			playfield: $att->playfield,
 			site_id: $att->site_id,
 			ql: $att->ql,
 			location_x: $att->location->x,
@@ -46,10 +47,10 @@ class DBTowerAttack extends DBRow {
 			att_org_rank: $att->attacker->org_rank,
 			att_level: $att->attacker->level,
 			att_ai_level: $att->attacker->ai_level,
-			att_profession: $att->attacker->profession?->value,
+			att_profession: $att->attacker->profession,
 			att_gender: $att->attacker->gender,
 			att_breed: $att->attacker->breed,
-			def_faction: Faction::from($att->defender->faction),
+			def_faction: $att->defender->faction,
 			def_org: $att->defender->name,
 			penalizing_ended: $att->penalizing_ended,
 		);
@@ -61,7 +62,7 @@ class DBTowerAttack extends DBRow {
 		return new TowerAttack(
 			timestamp: $this->timestamp,
 			penalizing_ended: $this->penalizing_ended,
-			playfield_id: $this->playfield_id,
+			playfield: $this->playfield,
 			site_id: $this->site_id,
 			ql: $this->ql,
 			location: new Coordinates($this->location_x, $this->location_y),
@@ -70,7 +71,7 @@ class DBTowerAttack extends DBRow {
 				character_id: $this->att_uid,
 				level: $this->att_level,
 				ai_level: $this->att_ai_level,
-				profession: Profession::tryFrom($this->att_profession ?? ''),
+				profession: $this->att_profession,
 				org_rank: $this->att_org_rank,
 				gender: $this->att_gender,
 				breed: $this->att_breed,
@@ -83,7 +84,7 @@ class DBTowerAttack extends DBRow {
 					) : null,
 			),
 			defender: new DefenderOrg(
-				faction: $this->def_faction->value,
+				faction: $this->def_faction,
 				name: $this->def_org,
 			),
 		);

@@ -8,8 +8,7 @@ use Nadybot\Core\Event\OrgMsgChannelMsgEvent;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, Faction, MessageHub, ModuleInstance, Playfield as CorePlayfield, QueryBuilder, Safe, Text, Util};
-use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
+use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, Faction, MessageHub, ModuleInstance, Playfield, QueryBuilder, Safe, Text, Util};
 
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfoEvent;
@@ -369,9 +368,6 @@ class AttacksController extends ModuleInstance {
 	private SiteTrackerController $siteTracker;
 
 	#[NCA\Inject]
-	private PlayfieldController $pfCtrl;
-
-	#[NCA\Inject]
 	private NotumWarsController $nwCtrl;
 
 	#[NCA\Inject]
@@ -413,14 +409,15 @@ class AttacksController extends ModuleInstance {
 		) {
 			return;
 		}
-		$pf = $this->pfCtrl->getPlayfieldByName($matches['playfield']);
-		if (!isset($pf)) {
+		try {
+			$pf = Playfield::byName($matches['playfield']);
+		} catch (Throwable) {
 			return;
 		}
 
 		/** @var ?FeedMessage\SiteUpdate */
 		$site = ($this->nwCtrl->getEnabledSites())
-			->where('playfield_id', $pf->id)
+			->where('playfield_id', $pf->value)
 			->where('name', $matches['site_name'])
 			->first();
 
@@ -437,12 +434,12 @@ class AttacksController extends ModuleInstance {
 			$whois->faction = ucfirst(strtolower($matches['att_faction']));
 			$whois->guild = $matches['att_org'];
 		}
-		$siteName = $pf->short_name;
+		$siteName = $pf->short();
 		if (isset($site)) {
 			$siteName .= " {$site->site_id}";
 			$siteName = ((array)$this->text->makeBlob(
 				$siteName,
-				$this->nwCtrl->renderSite($site, $pf, false, false, null),
+				$this->nwCtrl->renderSite($site, false, false, null),
 			))[0];
 		}
 		$tokens = array_merge(
@@ -493,8 +490,9 @@ class AttacksController extends ModuleInstance {
 			return;
 		}
 
-		$pf = $this->pfCtrl->getPlayfieldByName($matches['playfield']);
-		if (!isset($pf)) {
+		try {
+			$pf = Playfield::byName($matches['playfield']);
+		} catch (Throwable) {
 			return;
 		}
 		$attPlayer = $matches['att_name'];
@@ -538,12 +536,12 @@ class AttacksController extends ModuleInstance {
 				$whois->charid = $attack->attacker->character_id;
 			}
 		}
-		$siteName = $pf->short_name;
+		$siteName = $pf->short();
 		if (isset($site)) {
 			$siteName .= " {$site->site_id}";
 			$siteName = ((array)$this->text->makeBlob(
 				$siteName,
-				$this->nwCtrl->renderSite($site, $pf, false, false, null),
+				$this->nwCtrl->renderSite($site, false, false, null),
 			))[0];
 		}
 		$tokens = array_merge(
@@ -639,7 +637,7 @@ class AttacksController extends ModuleInstance {
 			: $this->siteAbandonedFormat;
 		$msg = $this->text->renderPlaceholders($format, $tokens);
 
-		$details = $this->nwCtrl->renderSite($site, $pf, false, true, $outcome);
+		$details = $this->nwCtrl->renderSite($site, false, true, $outcome);
 		$shortSite = "{$pf->short()} {$site->site_id}";
 		$detailsLink = $this->text->makeBlob(
 			$shortSite,
@@ -685,18 +683,19 @@ class AttacksController extends ModuleInstance {
 		PTowerSite $towerSite,
 		?int $page,
 	): void {
-		$pf = $this->pfCtrl->getPlayfieldByName($towerSite->pf);
-		if (!isset($pf)) {
+		try {
+			$pf = Playfield::byName($towerSite->pf);
+		} catch (Throwable) {
 			$msg = "Playfield <highlight>{$towerSite->pf}<end> could not be found.";
 			$context->reply($msg);
 			return;
 		}
 		$query = $this->db->table($this->nwCtrl::DB_ATTACKS)
-			->where('playfield_id', $pf->id)
+			->where('playfield_id', $pf->value)
 			->where('site_id', $towerSite->site);
 		$context->reply($this->nwAttacksCmd(
 			$query,
-			"Tower Attacks on {$pf->short_name} {$towerSite->site}",
+			"Tower Attacks on {$pf->short()} {$towerSite->site}",
 			'nw attacks',
 			$page??1,
 			false,
@@ -843,18 +842,19 @@ class AttacksController extends ModuleInstance {
 		PTowerSite $towerSite,
 		?int $page,
 	): void {
-		$pf = $this->pfCtrl->getPlayfieldByName($towerSite->pf);
-		if (!isset($pf)) {
+		try {
+			$pf = Playfield::byName($towerSite->pf);
+		} catch (Throwable) {
 			$msg = "Playfield <highlight>{$towerSite->pf}<end> could not be found.";
 			$context->reply($msg);
 			return;
 		}
 		$query = $this->db->table($this->nwCtrl::DB_OUTCOMES)
-			->where('playfield_id', $pf->id)
+			->where('playfield_id', $pf->value)
 			->where('site_id', $towerSite->site);
 		$context->reply($this->nwOutcomesCmd(
 			$query,
-			"Tower Victories on {$pf->short_name} {$towerSite->site}",
+			"Tower Victories on {$pf->short()} {$towerSite->site}",
 			'nw victory',
 			$page??1,
 		));
@@ -910,7 +910,7 @@ class AttacksController extends ModuleInstance {
 
 	private function getMatchingAttack(Playfield $pf, string $attName, ?string $attOrgName): ?FeedMessage\TowerAttack {
 		$attacks = (new Collection($this->nwCtrl->attacks))
-			->where('playfield_id', $pf->id)
+			->where('playfield_id', $pf->value)
 			->whereNull('penalizing_ended')
 			->where('defender.name', $this->config->general->orgName);
 		if (isset($attOrgName)) {
@@ -923,10 +923,10 @@ class AttacksController extends ModuleInstance {
 
 	private function getMatchingSite(Playfield $pf, ?FeedMessage\TowerAttack $attack): ?FeedMessage\SiteUpdate {
 		if (isset($attack)) {
-			return $this->nwCtrl->state[$attack->playfield_id][$attack->site_id] ?? null;
+			return $this->nwCtrl->state[$attack->playfield->value][$attack->site_id] ?? null;
 		}
 		$sites = (new Collection($this->nwCtrl->getEnabledSites()))
-			->where('playfield_id', $pf->id)
+			->where('playfield_id', $pf->value)
 			->where('org_id', $this->config->orgId);
 		// Actually, this can only happen with gas 5% or 25%, but if it's 1 site only
 		// already, use that one
@@ -952,7 +952,7 @@ class AttacksController extends ModuleInstance {
 		return "<highlight>{$count} tower " . $this->text->pluralize('site', $count) . '<end>';
 	}
 
-	private function renderAttackInfo(TowerAttackInfoEvent $info, CorePlayfield $pf): string {
+	private function renderAttackInfo(TowerAttackInfoEvent $info, Playfield $pf): string {
 		$attack = $info->attack;
 		$attacker = $attack->attacker;
 		$site = $info->site;
@@ -996,7 +996,7 @@ class AttacksController extends ModuleInstance {
 
 		$blob .= "<header2>Defender<end>\n";
 		$blob .= "<tab>Organization: <highlight>{$attack->defender->name}<end>\n";
-		$blob .= '<tab>Alignment: <' . strtolower($attack->defender->faction) . ">{$attack->defender->faction}<end>\n\n";
+		$blob .= '<tab>Alignment: ' . $attack->defender->faction->inColor() . "\n\n";
 
 		$baseLink = $this->text->makeChatcmd("{$pf->short()} {$site->site_id}", "/tell <myname> nw lc {$pf->short()} {$site->site_id}");
 		$attackWaypoint = $this->text->makeChatcmd(
@@ -1010,7 +1010,7 @@ class AttacksController extends ModuleInstance {
 		return $blob;
 	}
 
-	private function renderDBOutcome(DBOutcome $outcome, FeedMessage\SiteUpdate $site, CorePlayfield $pf): string {
+	private function renderDBOutcome(DBOutcome $outcome, FeedMessage\SiteUpdate $site, Playfield $pf): string {
 		$blob = 'Time: ' . $this->util->date($outcome->timestamp) . ' ('.
 			'<highlight>' . $this->util->unixtimeToReadable(time() - $outcome->timestamp).
 			"<end> ago)\n";
@@ -1098,7 +1098,7 @@ class AttacksController extends ModuleInstance {
 		 */
 		$groups = $attacks
 			->reduce(static function (array $groups, DBTowerAttack $attack): array {
-				$key = "{$attack->def_org}:{$attack->playfield_id}:{$attack->site_id}";
+				$key = "{$attack->def_org}:{$attack->playfield->value}:{$attack->site_id}";
 				$groups[$key] ??= [];
 				$groups[$key] []= $attack;
 				return $groups;
@@ -1124,7 +1124,7 @@ class AttacksController extends ModuleInstance {
 
 		$grouped = (new Collection($attacks))->groupBy(
 			static function (DBTowerAttack $attack) use ($lookup): string {
-				$key = "{$attack->def_org}:{$attack->playfield_id}:{$attack->site_id}";
+				$key = "{$attack->def_org}:{$attack->playfield->value}:{$attack->site_id}";
 				return $key . ':' . $lookup["{$key}:{$attack->timestamp}"];
 			}
 		);
@@ -1152,10 +1152,9 @@ class AttacksController extends ModuleInstance {
 
 				/** @var ?DBTowerAttack */
 				$last = $attacks->last();
-				$pf = $this->pfCtrl->getPlayfieldById($first->playfield_id);
-				$site = $this->nwCtrl->state[$first->playfield_id][$first->site_id] ?? null;
+				$pf = $first->playfield;
+				$site = $this->nwCtrl->state[$pf->value][$first->site_id] ?? null;
 				assert(isset($last));
-				assert(isset($pf));
 				assert(isset($site));
 
 				/** @var ?DBOutcome */
@@ -1163,7 +1162,7 @@ class AttacksController extends ModuleInstance {
 					->where('losing_org', $first->def_org)
 					->where('timestamp', '>', $last->timestamp)
 					->where('timestamp', '<', $last->timestamp + 6 * 3_600)
-					->where('playfield_id', $site->playfield)
+					->where('playfield_id', $site->playfield->value)
 					->where('site_id', $site->site_id)
 					->whereNotNull('attacker_org')
 					->orderBy('timestamp')
@@ -1179,7 +1178,7 @@ class AttacksController extends ModuleInstance {
 						$this->renderDBAttacker($attack);
 				}
 				$defColor = $first->def_faction->getColor();
-				return "<header2>{$pf->short_name} {$first->site_id}<end>".
+				return "<header2>{$pf->short()} {$first->site_id}<end>".
 					(
 						isset($first->ql)
 					? " (QL {$first->ql}) ["
@@ -1187,7 +1186,7 @@ class AttacksController extends ModuleInstance {
 					).
 					$this->text->makeChatcmd(
 						'details',
-						"/tell <myname> <symbol>nw lc {$pf->short_name} {$first->site_id}"
+						"/tell <myname> <symbol>nw lc {$pf->short()} {$first->site_id}"
 					) . "]\n".
 					"<tab>Defender: {$defColor}{$first->def_org}<end>\n".
 					(
@@ -1288,7 +1287,7 @@ class AttacksController extends ModuleInstance {
 			if (isset($attack->att_breed)) {
 				$blob .= " {$attack->att_breed}";
 			}
-			$blob .= " <highlight>{$attack->att_profession}<end>";
+			$blob .= " <highlight>{$attack->att_profession->value}<end>";
 			if (isset($attack->att_org_rank)) {
 				$blob .= ", {$attack->att_org_rank}";
 			}
@@ -1312,12 +1311,12 @@ class AttacksController extends ModuleInstance {
 			"<end> ago)\n";
 		$blob .= 'Attacker: ' . $this->renderDBAttacker($attack) . "\n";
 		$blob .= "Defender: {$defColor}{$attack->def_org}<end>";
-		$site = $this->nwCtrl->state[$attack->playfield_id][$attack->site_id] ?? null;
-		$pf = $this->pfCtrl->getPlayfieldById($attack->playfield_id);
-		if (isset($site, $pf)) {
+		$site = $this->nwCtrl->state[$attack->playfield->value][$attack->site_id] ?? null;
+		$pf = $attack->playfield;
+		if (isset($site)) {
 			$blob .= "\nSite: " . $this->text->makeChatcmd(
-				"{$pf->short_name} {$attack->site_id}",
-				"/tell <myname> nw lc {$pf->short_name} {$attack->site_id}"
+				"{$pf->short()} {$attack->site_id}",
+				"/tell <myname> nw lc {$pf->short()} {$attack->site_id}"
 			) . " (QL {$site->min_ql}-{$site->max_ql})";
 		}
 		return $blob;

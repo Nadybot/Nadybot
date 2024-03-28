@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
+	Faction,
 	LogoffEvent,
 	LogonEvent,
 	MessageEmitter,
@@ -315,13 +316,13 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			}
 		}
 		if ($trackWho >= self::ATT_CLAN) {
-			if ($defFaction === 'Clan' && ($trackWho & self::ATT_CLAN) === 0) {
+			if ($defFaction === Faction::Clan && ($trackWho & self::ATT_CLAN) === 0) {
 				return;
 			}
-			if ($defFaction === 'Omni' && ($trackWho & self::ATT_OMNI) === 0) {
+			if ($defFaction === Faction::Omni && ($trackWho & self::ATT_OMNI) === 0) {
 				return;
 			}
-			if ($defFaction === 'Neutral' && ($trackWho & self::ATT_NEUTRAL) === 0) {
+			if ($defFaction === Faction::Neutral && ($trackWho & self::ATT_NEUTRAL) === 0) {
 				return;
 			}
 		}

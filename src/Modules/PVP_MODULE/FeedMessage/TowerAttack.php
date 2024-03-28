@@ -2,8 +2,9 @@
 
 namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
+use EventSauce\ObjectHydrator\MapFrom;
 use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\{Faction, StringableTrait};
+use Nadybot\Core\{Faction, Playfield, StringableTrait};
 
 class TowerAttack {
 	use StringableTrait;
@@ -50,7 +51,7 @@ class TowerAttack {
 	public bool $isFake = false;
 
 	public function __construct(
-		public int $playfield_id,
+		#[MapFrom('playfield_id')] public Playfield $playfield,
 		public int $site_id,
 		public ?int $ql,
 		public Attacker $attacker,
@@ -78,7 +79,7 @@ class TowerAttack {
 	/** @return array<string,string|int|null> */
 	public function getTokens(): array {
 		$tokens = [
-			'pf-id' => $this->playfield_id,
+			'pf-id' => $this->playfield->value,
 			'att-coord-x' => $this->location->x,
 			'att-coord-y' => $this->location->y,
 		];

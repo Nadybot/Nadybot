@@ -426,6 +426,10 @@ class DB {
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$data = [];
 		foreach ($props as $prop) {
+			$colName = $prop->name;
+			if (count($colProp = $prop->getAttributes(NCA\DB\ColName::class))) {
+				$colName = $colProp[0]->newInstance()->col;
+			}
 			if (count($prop->getAttributes(NCA\DB\Ignore::class))) {
 				continue;
 			}
@@ -435,15 +439,15 @@ class DB {
 			if (!$prop->isInitialized($row)) {
 				continue;
 			}
-			$data[$prop->name] = $prop->getValue($row);
+			$data[$colName] = $prop->getValue($row);
 			if (count($attrs = $prop->getAttributes(NCA\DB\MapWrite::class))) {
 				/** @var NCA\DB\MapWrite */
 				$mapper = $attrs[0]->newInstance();
-				$data[$prop->name] = $mapper->map($data[$prop->name]);
-			} elseif ($data[$prop->name] instanceof DateTime) {
-				$data[$prop->name] = $data[$prop->name]->getTimestamp();
-			} elseif ($data[$prop->name] instanceof BackedEnum) {
-				$data[$prop->name] = $data[$prop->name]->value;
+				$data[$colName] = $mapper->map($data[$colName]);
+			} elseif ($data[$colName] instanceof DateTime) {
+				$data[$colName] = $data[$colName]->getTimestamp();
+			} elseif ($data[$colName] instanceof BackedEnum) {
+				$data[$colName] = $data[$colName]->value;
 			}
 		}
 		$table = $this->formatSql($table);

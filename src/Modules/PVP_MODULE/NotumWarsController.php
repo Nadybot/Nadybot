@@ -732,10 +732,6 @@ class NotumWarsController extends ModuleInstance {
 
 	/** Add the given attack to the attack cache */
 	public function registerAttack(FeedMessage\TowerAttack $attack): void {
-		$playfield = $this->pfCtrl->getPlayfieldById($attack->playfield_id);
-		if (!isset($playfield)) {
-			return;
-		}
 		$this->attacks = (new Collection([$attack, ...$this->attacks]))
 			->where('timestamp', '>=', time() - 6 * 3_600)
 			->toArray();
@@ -779,7 +775,7 @@ class NotumWarsController extends ModuleInstance {
 			$player = $this->playerManager->byName($attacker->name);
 			$attack->addLookups($player);
 		}
-		$site = $this->state[$attack->playfield_id][$attack->site_id]??null;
+		$site = $this->state[$attack->playfield->value][$attack->site_id]??null;
 		if (isset($site)) {
 			$attack->ql ??= $site->ql;
 		}
@@ -834,7 +830,7 @@ class NotumWarsController extends ModuleInstance {
 		);
 		$tokens['details'] = ((array)$this->text->makeBlob(
 			'details',
-			$this->renderSite($site, $pf),
+			$this->renderSite($site),
 			"{$pf->short()} {$site->site_id} ({$site->name})",
 		))[0];
 		$color = ($site->org_faction ?? Faction::Neutral)->lower();
@@ -880,14 +876,11 @@ class NotumWarsController extends ModuleInstance {
 	/** Render the Popup-block for a single given site */
 	public function renderSite(
 		FeedMessage\SiteUpdate $site,
-		Playfield|CorePlayfield $pf,
 		bool $showOrgLinks=true,
 		bool $showPlantInfo=true,
 		?FeedMessage\TowerOutcome $outcome=null,
 	): string {
-		if ($pf instanceof Playfield) {
-			$pf = CorePlayfield::from($pf->id);
-		}
+		$pf = $site->playfield;
 		$lastOutcome = $outcome ?? $this->getLastSiteOutcome($site);
 		$centerWaypointLink = $this->text->makeChatcmd(
 			'Center',
@@ -1586,11 +1579,10 @@ class NotumWarsController extends ModuleInstance {
 			->whereNull('penalizing_ended')
 			->where('att_org_id', $site->org_id)
 			->each(function (FeedMessage\TowerAttack &$attack): void {
-				$pf = $this->pfCtrl->getPlayfieldById($attack->playfield_id);
-				assert(isset($pf));
+				$pf = $attack->playfield;
 				$this->logger->notice('Unpenalizing attack {from} -> {site}', [
 					'from' => $attack->attacker->org?->name,
-					'site' => "{$pf->short_name} {$attack->site_id}",
+					'site' => "{$pf->short()} {$attack->site_id}",
 				]);
 				$attack->penalizing_ended = time();
 			});
@@ -1614,12 +1606,10 @@ class NotumWarsController extends ModuleInstance {
 	private function getUnplantedSites(): array {
 		$unplantedSites = [];
 		foreach ($this->state as $pfId => $sites) {
-			$pf = $this->pfCtrl->getPlayfieldById($pfId);
-			assert(isset($pf));
 			foreach ($sites as $siteId => $site) {
 				/** @var FeedMessage\SiteUpdate $site */
 				if ($site->enabled && !isset($site->ct_pos)) {
-					$unplantedSites []= $this->renderSite($site, $pf);
+					$unplantedSites []= $this->renderSite($site);
 				}
 			}
 		}
@@ -1669,7 +1659,7 @@ class NotumWarsController extends ModuleInstance {
 		);
 		$tokens['details'] = ((array)$this->text->makeBlob(
 			'details',
-			$this->renderSite($site, $pf),
+			$this->renderSite($site),
 			"{$pf->short()} {$site->site_id} ({$site->name})",
 		))[0];
 		$color = ($site->org_faction ?? Faction::Neutral)->lower();
@@ -1711,7 +1701,7 @@ class NotumWarsController extends ModuleInstance {
 		);
 		$tokens['details'] = ((array)$this->text->makeBlob(
 			'details',
-			$this->renderSite($site, $pf),
+			$this->renderSite($site),
 			"{$pf->short()} {$site->site_id} ({$site->name})",
 		))[0];
 		$color = ($oldSite->org_faction ?? Faction::Neutral)->lower();
@@ -1737,7 +1727,7 @@ class NotumWarsController extends ModuleInstance {
 		);
 		$tokens['details'] = ((array)$this->text->makeBlob(
 			'details',
-			$this->renderSite($site, $pf),
+			$this->renderSite($site),
 			"{$pf->short()} {$site->site_id} ({$site->name})",
 		))[0];
 		$tokens['c-site-num-turrets'] = $site->num_turrets . ' '.
@@ -1798,7 +1788,7 @@ class NotumWarsController extends ModuleInstance {
 		/** @var Alert[] */
 		$alerts = [];
 
-		$siteDetails = $this->renderSite($site, $pf, false, false);
+		$siteDetails = $this->renderSite($site, false, false);
 		$siteShort = "{$pf->short()} {$site->site_id}";
 		$siteLink = ((array)$this->text->makeBlob(
 			$siteShort,
@@ -1878,7 +1868,7 @@ class NotumWarsController extends ModuleInstance {
 			$ctPts = $sites->pluck('ql')->sum() * 2;
 			return "<{$faction}>{$orgName}<end> (QL {$ctPts} contracts)\n\n".
 				$sites->map(function (FeedMessage\SiteUpdate $site): string {
-					return $this->renderSite($site, $site->playfield, false);
+					return $this->renderSite($site, false);
 				})->join("\n\n");
 		})->join("\n");
 		return trim($blob);

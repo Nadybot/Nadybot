@@ -2,17 +2,13 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Nadybot\Core\Attributes\DB\{ColName, MapRead, MapWrite};
+use Nadybot\Core\Attributes\DB\{ColName};
 use Nadybot\Core\{DBRow, Faction, Playfield};
 use Nadybot\Modules\PVP_MODULE\FeedMessage\TowerOutcome;
 
 class DBOutcome extends DBRow {
 	public function __construct(
-		#[
-			ColName('playfield_id'),
-			MapRead([Playfield::class, 'from']),
-			MapWrite([Playfield::class, 'toDB'])
-		] public Playfield $playfield,
+		#[ColName('playfield_id')] public Playfield $playfield,
 		public int $site_id,
 		public int $timestamp,
 		public Faction $losing_faction,

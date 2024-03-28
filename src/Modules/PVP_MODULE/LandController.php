@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\PVP_MODULE;
 
 use Nadybot\Core\ParamClass\{PPlayfield, PTowerSite};
-use Nadybot\Core\{Attributes as NCA, CmdContext, ModuleInstance, Text};
-use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
+use Nadybot\Core\{Attributes as NCA, CmdContext, ModuleInstance, Playfield, Text};
+use Throwable;
 
 #[
 	NCA\Instance,
@@ -16,9 +16,6 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 ]
 class LandController extends ModuleInstance {
 	public const LC_CMD = 'nw lc';
-
-	#[NCA\Inject]
-	private PlayfieldController $pfCtrl;
 
 	#[NCA\Inject]
 	private NotumWarsController $nwCtrl;
@@ -64,26 +61,27 @@ class LandController extends ModuleInstance {
 			return;
 		}
 		$playfieldName = $pf();
-		$playfield = $this->pfCtrl->getPlayfieldByName($playfieldName);
-		if ($playfield === null) {
+		try {
+			$playfield = Playfield::byName($playfieldName);
+		} catch (Throwable) {
 			$msg = "Playfield <highlight>{$playfieldName}<end> could not be found.";
 			$context->reply($msg);
 			return;
 		}
-		$sites = $this->nwCtrl->state[$playfield->id] ?? null;
+		$sites = $this->nwCtrl->state[$playfield->value] ?? null;
 		if (!isset($sites)) {
 			$msg = "No tower sites found on <highlight>{$playfieldName}<end>.";
 			$context->reply($msg);
 			return;
 		}
 		$blocks = array_map(
-			function (FeedMessage\SiteUpdate $site) use ($playfield): string {
-				return $this->nwCtrl->renderSite($site, $playfield);
+			function (FeedMessage\SiteUpdate $site): string {
+				return $this->nwCtrl->renderSite($site);
 			},
 			$sites->sorted()
 		);
 		$msg = $this->text->makeBlob(
-			"All bases in {$playfield->long_name}",
+			"All bases in {$playfield->long()}",
 			implode("\n\n", $blocks)
 		);
 		$context->reply($msg);
@@ -100,21 +98,22 @@ class LandController extends ModuleInstance {
 			$context->reply('The Tower-API is still initializing.');
 			return;
 		}
-		$playfield = $this->pfCtrl->getPlayfieldByName($site->pf);
-		if ($playfield === null) {
+		try {
+			$playfield = Playfield::byName($site->pf);
+		} catch (Throwable) {
 			$msg = "Playfield <highlight>{$site->pf}<end> could not be found.";
 			$context->reply($msg);
 			return;
 		}
-		$siteInfo = $this->nwCtrl->state[$playfield->id][$site->site] ?? null;
+		$siteInfo = $this->nwCtrl->state[$playfield->value][$site->site] ?? null;
 		if (!isset($siteInfo)) {
-			$msg = "No tower sites <highlight>{$playfield->short_name} {$site->site}<end> found.";
+			$msg = "No tower sites <highlight>{$playfield->short()} {$site->site}<end> found.";
 			$context->reply($msg);
 			return;
 		}
-		$blob = $this->nwCtrl->renderSite($siteInfo, $playfield);
+		$blob = $this->nwCtrl->renderSite($siteInfo);
 		$msg = $this->text->makeBlob(
-			"{$playfield->short_name} {$site->site} ({$siteInfo->name})",
+			"{$playfield->short()} {$site->site} ({$siteInfo->name})",
 			$blob,
 		);
 		$context->reply($msg);

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
-use Nadybot\Core\StringableTrait;
+use Nadybot\Core\{Faction, StringableTrait};
 
 class DefenderOrg {
 	use StringableTrait;
@@ -17,18 +17,17 @@ class DefenderOrg {
 
 	public function __construct(
 		public string $name,
-		public string $faction,
+		public Faction $faction,
 	) {
 	}
 
 	/** @return array<string,string|int|null> */
 	public function getTokens(): array {
-		$faction = strtolower($this->faction);
 		return [
 				'def-org' => $this->name,
-				'c-def-org' => "<{$faction}>{$this->name}<end>",
-				'def-faction' => $this->faction,
-				'c-def-faction' => "<{$faction}>{$this->faction}<end>",
+				'c-def-org' => $this->faction->inColor($this->name),
+				'def-faction' => $this->faction->value,
+				'c-def-faction' => $this->faction->inColor(),
 		];
 	}
 }
