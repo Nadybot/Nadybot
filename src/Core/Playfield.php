@@ -14,10 +14,6 @@ enum Playfield: int {
 		];
 	}
 
-	public static function toDB(self $pf): int {
-		return $pf->value;
-	}
-
 	public static function byName(string $name): self {
 		return match (strtolower($name)) {
 			'4 holes' => self::FourHoles,
