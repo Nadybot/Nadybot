@@ -98,7 +98,7 @@ class WhoisOrgController extends ModuleInstance {
 		foreach ($org->members as $member) {
 			if ($member->guild_rank_id === 0) {
 				$leader = $member;
-				$faction = $leader->faction;
+				$faction = $leader->faction->value;
 			}
 			$sumLevels += $member->level??0;
 

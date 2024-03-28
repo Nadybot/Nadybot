@@ -844,15 +844,11 @@ class GuildController extends ModuleInstance {
 			'profession' => $whois?->profession?->value,
 			'c-profession' => $whois?->profession?->inColor(),
 			'org' => $whois?->guild,
-			'c-org' => $whois
-				? '<' . strtolower($whois->faction ?? 'highlight') . ">{$whois->guild}<end>"
-				: null,
+			'c-org' => $whois?->faction->inColor($whois?->guild),
 			'org-rank' => $whois?->guild_rank,
 			'breed' => $whois?->breed,
-			'faction' => $whois?->faction,
-			'c-faction' => $whois
-				? '<' . strtolower($whois->faction ?? 'highlight') . ">{$whois->faction}<end>"
-				: null,
+			'faction' => $whois?->faction->value,
+			'c-faction' => $whois?->faction->inColor(),
 			'gender' => $whois?->gender,
 			'channel-name' => 'the private channel',
 			'whois' => $player,

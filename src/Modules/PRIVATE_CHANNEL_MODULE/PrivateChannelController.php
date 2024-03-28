@@ -1123,18 +1123,18 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		// check faction limit
 		if (
 			in_array($reqFaction, ['Omni', 'Clan', 'Neutral'])
-			&& $reqFaction === $whois->faction
+			&& $reqFaction === $whois->faction->value
 		) {
 			return;
 		}
 		if (in_array($reqFaction, ['not Omni', 'not Clan', 'not Neutral'], true)) {
 			$tmp = explode(' ', $reqFaction);
-			if ($tmp[1] !== $whois->faction) {
+			if ($tmp[1] !== $whois->faction->value) {
 				return;
 			}
 		}
 		// Ban
-		$faction = strtolower($whois->faction);
+		$faction = $whois->faction->lower();
 		$this->banController->add(
 			$whois->charid,
 			$this->config->main->character,
@@ -1408,15 +1408,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			'profession' => $whois?->profession?->value,
 			'c-profession' => $whois?->profession?->inColor(),
 			'org' => $whois?->guild,
-			'c-org' => $whois
-				? '<' . strtolower($whois->faction ?? 'highlight') . ">{$whois->guild}<end>"
-				: null,
+			'c-org' => $whois?->faction->inColor($whois?->guild),
 			'org-rank' => $whois?->guild_rank,
 			'breed' => $whois?->breed,
-			'faction' => $whois?->faction,
-			'c-faction' => $whois
-				? '<' . strtolower($whois->faction ?? 'highlight') . ">{$whois->faction}<end>"
-				: null,
+			'faction' => $whois?->faction->value,
+			'c-faction' => $whois?->faction->inColor(),
 			'gender' => $whois?->gender,
 			'channel-name' => 'the private channel',
 			'whois' => $player,

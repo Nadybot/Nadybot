@@ -396,7 +396,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			'tl' => '?',
 		];
 		if (isset($player)) {
-			$replacements['faction'] = strtolower($player->faction);
+			$replacements['faction'] = $player->faction->lower();
 			if (isset($player->profession)) {
 				$replacements['profession'] = $player->profession->value;
 				$replacements['prof'] = $player->profession->short();
@@ -929,7 +929,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			}
 		} elseif ($groupBy === static::GROUP_FACTION) {
 			foreach ($players as $player) {
-				$faction = $player->faction;
+				$faction = $player->faction->value;
 				$groups[$faction] ??= (object)[
 					'title' => $faction,
 					'members' => [],
@@ -1020,20 +1020,19 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	 * @return string A single like without newlines
 	 */
 	public function renderPlayerLine(OnlineTrackedUser $player, int $groupBy, bool $edit): string {
-		$faction = strtolower($player->faction);
 		$blob = '';
 		if ($groupBy !== static::GROUP_PROF) {
 			$blob .= ($player->profession?->toIcon() ?? '?') . ' ';
 		}
 		if ($this->trackerUseFactionColor) {
-			$blob .= "<{$faction}>{$player->name}<end>";
+			$blob .= $player->faction->inColor($player->name);
 		} else {
 			$blob .= "<highlight>{$player->name}<end>";
 		}
 		$prof = $player->profession?->short() ?? 'Unknown';
 		$blob .= " ({$player->level}/<green>{$player->ai_level}<end>, {$prof})";
 		if ($player->guild !== null && $player->guild !== '') {
-			$blob .= " :: <{$faction}>{$player->guild}<end> ({$player->guild_rank})";
+			$blob .= ' :: ' . $player->faction->inColor($player->guild) . " ({$player->guild_rank})";
 		}
 		if ($edit) {
 			$historyLink = $this->text->makeChatcmd('history', "/tell <myname> track show {$player->name}");

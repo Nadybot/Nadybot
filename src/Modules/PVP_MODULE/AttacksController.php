@@ -427,11 +427,11 @@ class AttacksController extends ModuleInstance {
 				name: $matches['att_name'],
 				charid: 0,
 				dimension: $this->config->main->dimension,
-				faction: ucfirst(strtolower($matches['att_faction'])),
+				faction: Faction::from(ucfirst(strtolower($matches['att_faction']))),
 				guild: $matches['att_org'],
 			);
 		} else {
-			$whois->faction = ucfirst(strtolower($matches['att_faction']));
+			$whois->faction = Faction::from(ucfirst(strtolower($matches['att_faction'])));
 			$whois->guild = $matches['att_org'];
 		}
 		$siteName = $pf->short();
@@ -506,7 +506,7 @@ class AttacksController extends ModuleInstance {
 				charid: 0,
 				dimension: $this->config->main->dimension,
 				name: $attPlayer,
-				faction: Faction::Unknown->value,
+				faction: Faction::Unknown,
 			);
 		}
 		$whois->guild = $attOrg;
@@ -514,7 +514,7 @@ class AttacksController extends ModuleInstance {
 			$whois->guild_id = $attack->attacker->org->id;
 		}
 		if (isset($attack, $attack->attacker->faction)) {
-			$whois->faction = $attack->attacker->faction->value;
+			$whois->faction = $attack->attacker->faction;
 		}
 		if (isset($attack) && $attack->attacker->name === $attPlayer) {
 			if (isset($attack->attacker->level)) {
@@ -524,7 +524,7 @@ class AttacksController extends ModuleInstance {
 				$whois->ai_level = $attack->attacker->ai_level;
 			}
 			if (isset($attack->attacker->faction)) {
-				$whois->faction = $attack->attacker->faction->value;
+				$whois->faction = $attack->attacker->faction;
 			}
 			if (isset($attack->attacker->org_rank)) {
 				$whois->guild_rank = $attack->attacker->org_rank;

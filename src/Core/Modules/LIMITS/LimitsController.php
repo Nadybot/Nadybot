@@ -388,7 +388,7 @@ class LimitsController extends ModuleInstance {
 		// check faction limit
 		if (
 			in_array($tellReqFaction, ['Omni', 'Clan', 'Neutral'])
-			&& $tellReqFaction !== $whois->faction
+			&& $tellReqFaction !== $whois->faction->value
 		) {
 			throw new UserException(
 				'Error! You must be <'.strtolower($tellReqFaction).">{$tellReqFaction}<end>."
@@ -396,7 +396,7 @@ class LimitsController extends ModuleInstance {
 		}
 		if (in_array($tellReqFaction, ['not Omni', 'not Clan', 'not Neutral'])) {
 			$tmp = explode(' ', $tellReqFaction);
-			if ($tmp[1] === $whois->faction) {
+			if ($tmp[1] === $whois->faction->value) {
 				throw new UserException(
 					'Error! You must not be <'.strtolower($tmp[1]).">{$tmp[1]}<end>."
 				);

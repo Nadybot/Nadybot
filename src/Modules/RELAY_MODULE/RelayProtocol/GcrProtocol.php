@@ -505,7 +505,7 @@ class GcrProtocol implements RelayProtocolInterface {
 			"##highlight##{$player->name}##end## ".
 			"(Lvl ##logon_level##{$player->level}##end##/".
 			"##logon_ailevel##{$player->ai_level}##end## ".
-			$player->faction;
+			$player->faction->value;
 		if (isset($player->profession)) {
 			$msg .= ' ' . $player->profession->value;
 		}

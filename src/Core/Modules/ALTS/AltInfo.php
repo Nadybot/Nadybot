@@ -237,10 +237,8 @@ class AltInfo {
 		if ($profDisplay & 4 && $player->profession !== null) {
 			$extraInfo []= $player->profession->value;
 		}
-		if ($this->settingManager->getBool('alts_show_org') && $player->faction !== null && !$firstPageOnly) {
-			$factionColor = strtolower($player->faction);
-			$orgName = strlen($player->guild??'') ? $player->guild : $player->faction;
-			$extraInfo []= "<{$factionColor}>{$orgName}<end>";
+		if ($this->settingManager->getBool('alts_show_org') && !$firstPageOnly) {
+			$extraInfo []= $player->faction->inColor($player->guild);
 		}
 		if (count($extraInfo)) {
 			$blob .= ' - ' .implode(', ', $extraInfo);
@@ -288,12 +286,8 @@ class AltInfo {
 			if ($profDisplay & 4 && isset($row->player) && $row->player->profession !== null) {
 				$extraInfo []= $row->player->profession->value;
 			}
-			if (isset($row->player) && $this->settingManager->getBool('alts_show_org') && $row->player->faction !== null && !$firstPageOnly) {
-				$factionColor = strtolower($row->player->faction);
-				$orgName = ($row->player->guild !== '')
-					? $row->player->guild
-					: $row->player->faction;
-				$extraInfo []= "<{$factionColor}>{$orgName}<end>";
+			if (isset($row->player) && $this->settingManager->getBool('alts_show_org') && !$firstPageOnly) {
+				$extraInfo []= $row->player->faction->inColor($row->player->guild);
 			}
 			if (count($extraInfo)) {
 				$blob .= ' - ' .implode(', ', $extraInfo);

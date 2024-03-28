@@ -331,7 +331,7 @@ class GreetController extends ModuleInstance {
 				return $player->profession?->is($value) ?? false;
 			case 'faction':
 			case 'side':
-				return strtolower($player->faction) === strtolower($value);
+				return strtolower($player->faction->value) === strtolower($value);
 			case 'gender':
 			case 'sex':
 				return strtolower($player->gender) === strtolower($value);

@@ -6,7 +6,7 @@ use DateTimeImmutable;
 use EventSauce\ObjectHydrator\MapFrom;
 use EventSauce\ObjectHydrator\PropertyCasters\CastToDateTimeImmutable;
 use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Profession;
+use Nadybot\Core\{Faction, Profession};
 
 /**
  * This represents the data the highway feed gives for a player
@@ -67,7 +67,7 @@ class PlayerInfo {
 			breed: $this->breed ?? '',
 			charid: $this->uid,
 			dimension: $this->dimension,
-			faction: $this->faction ?? '',
+			faction: Faction::from($this->faction),
 			firstname: $this->firstName,
 			gender: $this->gender ?? '',
 			guild: $this->orgName ?? '',

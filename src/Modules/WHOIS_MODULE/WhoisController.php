@@ -405,7 +405,7 @@ class WhoisController extends ModuleInstance {
 		$blob .= "Profession: <highlight>{$whois->profession?->value}<end> (<highlight>" . trim($whois->prof_title) . "<end>)\n";
 		$blob .= "Level: <highlight>{$whois->level}<end>\n";
 		$blob .= "AI Level: <green>{$whois->ai_level}<end> (<highlight>{$whois->ai_rank}<end>)\n";
-		$blob .= 'Faction: <'.strtolower($whois->faction).">{$whois->faction}<end>\n";
+		$blob .= 'Faction: ' . $whois->faction->inColor() . "\n";
 		$blob .= "Head Id: <highlight>{$whois->head_id}<end>\n";
 		// $blob .= "PVP Rating: <highlight>{$whois->pvp_rating}<end>\n";
 		// $blob .= "PVP Title: <highlight>{$whois->pvp_title}<end>\n";

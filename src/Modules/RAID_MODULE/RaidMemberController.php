@@ -489,7 +489,7 @@ class RaidMemberController extends ModuleInstance {
 			$profIcon = $pInfo->profession?->toIcon() ?? '?';
 			$line  = "<tab>{$profIcon} {$pInfo->name} - ".
 				"{$pInfo->level}/{$pInfo->ai_level} ".
-				'<' . strtolower($pInfo->faction) . ">{$pInfo->faction}<end>".
+				$pInfo->faction->inColor().
 				' ['.
 				$this->text->makeChatcmd('Raid Kick', "/tell <myname> raid kick {$name}").
 				']';

@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
 use EventSauce\ObjectHydrator\MapFrom;
 use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\{Faction, Playfield, StringableTrait};
+use Nadybot\Core\{Playfield, StringableTrait};
 
 class TowerAttack {
 	use StringableTrait;
@@ -66,7 +66,7 @@ class TowerAttack {
 
 	public function addLookups(?Player $player): void {
 		$this->attacker->ai_level ??= $player?->ai_level;
-		$this->attacker->faction ??= Faction::tryFrom($player?->faction??'');
+		$this->attacker->faction ??= $player?->faction;
 		$this->attacker->breed ??= $player?->breed;
 		$this->attacker->gender ??= $player?->gender;
 		$this->attacker->level ??= $player?->level;

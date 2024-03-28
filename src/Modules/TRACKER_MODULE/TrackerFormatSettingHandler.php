@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\{Attributes as NCA, Profession, SettingHandler};
+use Nadybot\Core\{Attributes as NCA, Faction, Profession, SettingHandler};
 
 /**
  * Class to represent a setting with a tracker format value for NadyBot
@@ -75,7 +75,7 @@ class TrackerFormatSettingHandler extends SettingHandler {
 			guild: 'Team Rainbow',
 			guild_id: 1_329_153,
 			gender: 'Female',
-			faction: 'Clan',
+			faction: Faction::Clan,
 			profession: Profession::Bureaucrat,
 			breed: 'Nanomage',
 		);

@@ -5,6 +5,7 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\{
 	Attributes\JSON,
 	DBRow,
+	Faction,
 	Profession,
 };
 
@@ -23,7 +24,7 @@ class Player extends DBRow {
 	 * @param ?int        $level         What level (1-220) is the character or null if unknown
 	 * @param string      $breed         Any of Nano, Solitus, Atrox or Opifex. Also empty string if unknown
 	 * @param string      $gender        Male, Female, Neuter or an empty string if unknown
-	 * @param string      $faction       Omni, Clan, Neutral or an empty string if unknown
+	 * @param Faction     $faction       Omni, Clan, Neutral or an empty string if unknown
 	 * @param ?Profession $profession    The long profession name (e.g. "Enforcer", not "enf" or "enfo") or an empty string if unknown
 	 * @param string      $prof_title    The title-level title for the profession of this player For example "The man", "Don" or empty if unknown.
 	 * @param string      $ai_rank       The name of the ai_level as a rank or empty string if unknown
@@ -47,7 +48,7 @@ class Player extends DBRow {
 		public ?int $level=null,
 		public string $breed='',
 		public string $gender='',
-		public string $faction='',
+		public Faction $faction=Faction::Unknown,
 		public ?Profession $profession=Profession::Unknown,
 		public string $prof_title='',
 		public string $ai_rank='',
@@ -162,15 +163,13 @@ class Player extends DBRow {
 			"c-{$prefix}profession" => $this->profession?->inColor(),
 			"{$prefix}org" => $this->guild,
 			"c-{$prefix}org" => isset($this->guild)
-				? '<' . strtolower($this->faction ?? 'highlight') . ">{$this->guild}<end>"
+				? $this->faction->inColor($this->guild)
 				: null,
 			"{$prefix}org-rank" => $this->guild_rank,
 			"{$prefix}breed" => $this->breed,
 			"c-{$prefix}breed" => isset($this->breed) ? "<highlight>{$this->breed}<end>" : null,
-			"{$prefix}faction" => $this->faction,
-			"c-{$prefix}faction" => isset($this->faction)
-				? '<' . strtolower($this->faction) . ">{$this->faction}<end>"
-				: null,
+			"{$prefix}faction" => $this->faction->value,
+			"c-{$prefix}faction" => $this->faction->inColor(),
 			"{$prefix}gender" => $this->gender,
 			"{$prefix}whois" => $this->getInfo(),
 			"{$prefix}short-prof" => null,
@@ -199,10 +198,10 @@ class Player extends DBRow {
 
 		$msg .= "(<highlight>{$this->level}<end>/<green>{$this->ai_level}<end>";
 		$msg .= ", {$this->gender} {$this->breed} <highlight>{$this->profession?->value}<end>";
-		$msg .= ', <' . strtolower($this->faction) . ">{$this->faction}<end>";
+		$msg .= ', ' . $this->faction->inColor();
 
 		if (isset($this->guild) && strlen($this->guild)) {
-			$msg .= ", {$this->guild_rank} of <" . strtolower($this->faction) . ">{$this->guild}<end>)";
+			$msg .= ", {$this->guild_rank} of " . $this->faction->inColor($this->guild);
 		} else {
 			$msg .= ', Not in a guild)';
 		}

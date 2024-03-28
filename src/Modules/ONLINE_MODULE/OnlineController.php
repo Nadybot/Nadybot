@@ -988,9 +988,8 @@ class OnlineController extends ModuleInstance {
 		$factions = [];
 		if ($groupBy === static::GROUP_BY_FACTION) {
 			foreach ($players as $player) {
-				$player->faction = $player->faction ?: 'Neutral';
-				$factions[$player->faction] ??= 0;
-				$factions[$player->faction]++;
+				$factions[$player->faction->value] ??= 0;
+				$factions[$player->faction->value]++;
 			}
 		}
 		foreach ($players as $player) {
@@ -1018,10 +1017,11 @@ class OnlineController extends ModuleInstance {
 				}
 			} elseif ($groupBy === static::GROUP_BY_FACTION) {
 				$list->countMains++;
-				if ($currentGroup !== $player->faction) {
-					$list->blob .= "\n<pagebreak><" . strtolower($player->faction) . '>'.
-						$player->faction . ' (' . ($factions[$player->faction]??1) . ")<end>\n";
-					$currentGroup = $player->faction;
+				if ($currentGroup !== $player->faction->value) {
+					$list->blob .= "\n<pagebreak>" . $player->faction->inColor(
+						$player->faction->value . ' (' . ($factions[$player->faction->value]??1) . ')'
+					) . "\n";
+					$currentGroup = $player->faction->value;
 				}
 			} else {
 				$list->mains []= $player->name;

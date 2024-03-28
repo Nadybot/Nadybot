@@ -1258,9 +1258,8 @@ class NotumWarsController extends ModuleInstance {
 		}
 		assert(isset($player->guild));
 		$matches = $this->getEnabledSites()->whereStrict('org_id', $player->guild_id);
-		$orgColor = strtolower($player->faction);
 		if ($matches->isEmpty()) {
-			$context->reply("<{$orgColor}>{$player->guild}<end> currently don't have any tower fields.");
+			$context->reply($player->faction->inColor($player->guild) . " currently don't have any tower fields.");
 			return;
 		}
 		$blob = $this->renderOrgSites(...$matches->toArray());
