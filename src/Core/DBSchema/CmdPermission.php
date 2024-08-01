@@ -3,9 +3,12 @@
 namespace Nadybot\Core\DBSchema;
 
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'cmd_permission')]
 class CmdPermission extends DBTable {
+	#[NCA\JSON\Ignore] #[NCA\DB\PK] public UuidInterface $id;
+
 	/**
 	 * @param string $permission_set The name of the permission-set
 	 * @param string $access_level   The access-level (member,admin,guest,all,etc)
@@ -16,7 +19,8 @@ class CmdPermission extends DBTable {
 		#[NCA\JSON\Ignore] public string $cmd,
 		public string $access_level,
 		public bool $enabled,
-		#[NCA\JSON\Ignore] #[NCA\DB\AutoInc] public ?int $id=null,
+		?UuidInterface $id=null,
 	) {
+		$this->id = $id ?? Uuid::uuid7();
 	}
 }

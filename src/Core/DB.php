@@ -425,13 +425,9 @@ class DB {
 	}
 
 	/** @return array<int,UuidInterface> */
-	public function migrateIdToUuid(string $table, string $column='id', ?string $timeColumn=null): array {
+	public function migrateIdToUuid(string $table, \Closure $callback, string $column='id', ?string $timeColumn=null): array {
+		$this->schema()->create($table . '_tmp', $callback);
 		$entries = $this->table($table)->orderBy($column)->get();
-		$this->table($table)->truncate();
-		$this->schema()->dropColumns($table, $column);
-		$this->schema()->table($table, static function (Blueprint $table) use ($column): void {
-			$table->uuid($column)->nullable(false)->primary();
-		});
 
 		$result = [];
 
@@ -449,7 +445,12 @@ class DB {
 			$entry->{$column} = $uuid->toString();
 			return (array)$entry;
 		})->toList();
-		$this->table($table)->chunkInsert($entries);
+		$this->table($table . '_tmp')->chunkInsert($entries);
+		$this->schema()->drop($table);
+		$this->schema()->rename(
+			$this->formatSql($table . '_tmp'),
+			$this->formatSql($table)
+		);
 		return $result;
 	}
 

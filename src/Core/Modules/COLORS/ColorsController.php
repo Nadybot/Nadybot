@@ -286,8 +286,7 @@ class ColorsController extends ModuleInstance {
 			if (isset($colorDef->id)) {
 				$success = $this->db->update($colorDef) > 0;
 			} else {
-				$colorDef->id = $this->db->insert($colorDef);
-				$success = $colorDef->id > 0;
+				$success = $this->db->insert($colorDef) > 0;
 			}
 			$this->msgHub->loadTagColor();
 		} catch (Exception) {

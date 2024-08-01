@@ -11,7 +11,16 @@ use Psr\Log\LoggerInterface;
 #[NCA\Migration(order: 2024_08_01_11_05_00)]
 class MigrateRouteTableToUuids implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$idMapping = $db->migrateIdToUuid(Route::getTable(), 'id');
+		$idMapping = $db->migrateIdToUuid(
+			Route::getTable(),
+			static function (Blueprint $table): void {
+				$table->uuid('id')->primary();
+				$table->string('source', 100);
+				$table->string('destination', 100);
+				$table->boolean('two_way')->default(false);
+				$table->unsignedInteger('disabled_until')->nullable(true);
+			}
+		);
 
 		$table = RouteModifier::getTable();
 		$entries = $db->table($table)->get();

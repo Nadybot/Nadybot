@@ -787,7 +787,7 @@ class MessageHubController extends ModuleInstance {
 		if (isset($colorDef->id)) {
 			$this->db->update($colorDef);
 		} else {
-			$colorDef->id = $this->db->insert($colorDef);
+			$this->db->insert($colorDef);
 			$this->messageHub->loadTagColor();
 		}
 		$context->reply(
@@ -997,12 +997,8 @@ class MessageHubController extends ModuleInstance {
 			);
 		}
 		$format->render = $state;
-		if (isset($format->id)) {
-			$this->db->update($format);
-		} else {
-			$format->id = $this->db->insert($format);
-			$this->messageHub->loadTagFormat();
-		}
+		$this->db->upsert($format);
+		$this->messageHub->loadTagFormat();
 	}
 
 	/** Define how to render a specific hop */
@@ -1016,12 +1012,8 @@ class MessageHubController extends ModuleInstance {
 			$spec = new RouteHopFormat(hop: $hop);
 		}
 		$spec->format = $format;
-		if (isset($spec->id)) {
-			$this->db->update($spec);
-		} else {
-			$spec->id = $this->db->insert($spec);
-			$this->messageHub->loadTagFormat();
-		}
+		$this->db->upsert($spec);
+		$this->messageHub->loadTagFormat();
 	}
 
 	public function clearHopFormat(string $hop): bool {
