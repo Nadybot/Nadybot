@@ -165,7 +165,6 @@ class CommentController extends ModuleInstance {
 					->where('comment', $comment->comment)
 					->exists();
 				if (!$exists) {
-					$comment->id = null;
 					$this->db->insert($comment);
 				}
 			}
@@ -590,7 +589,7 @@ class CommentController extends ModuleInstance {
 	public function deleteCommentCommand(
 		CmdContext $context,
 		PRemove $action,
-		int $id
+		string $id
 	): void {
 		/** @var ?Comment */
 		$comment = $this->db->table(Comment::getTable())

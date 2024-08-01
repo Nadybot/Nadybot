@@ -3,19 +3,24 @@
 namespace Nadybot\Modules\COMMENT_MODULE;
 
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Ramsey\Uuid\{Uuid, UuidInterface};
+use Safe\DateTimeImmutable;
 
 #[NCA\DB\Table(name: '<table:comments>')]
 class Comment extends DBTable {
 	/** Unix timestamp when the comment was created */
 	public int $created_at;
 
+	/** The internal id of the comment */
+	#[NCA\DB\PK] public UuidInterface $id;
+
 	/**
-	 * @param string $character  About whom the comment is
-	 * @param string $created_by Who created the comment?
-	 * @param string $category   Category of the comment
-	 * @param ?int   $created_at Unix timestamp when the comment was created
-	 * @param string $comment    The actual comment
-	 * @param ?int   $id         The internal id of the comment
+	 * @param string         $character  About whom the comment is
+	 * @param string         $created_by Who created the comment?
+	 * @param string         $category   Category of the comment
+	 * @param ?int           $created_at Unix timestamp when the comment was created
+	 * @param string         $comment    The actual comment
+	 * @param ?UuidInterface $id         The internal id of the comment
 	 */
 	public function __construct(
 		public string $character,
@@ -23,8 +28,13 @@ class Comment extends DBTable {
 		public string $category,
 		?int $created_at=null,
 		public string $comment='',
-		#[NCA\DB\AutoInc] public ?int $id=null,
+		?UuidInterface $id=null,
 	) {
 		$this->created_at = $created_at ?? time();
+		$dt = null;
+		if (isset($created_at) && !isset($id)) {
+			$dt = (new DateTimeImmutable())->setTimestamp($created_at);
+		}
+		$this->id = $id ?? Uuid::uuid7($dt);
 	}
 }

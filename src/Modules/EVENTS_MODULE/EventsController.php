@@ -91,20 +91,20 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 	 */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
 	public function eventsAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, string $eventName): void {
-		$eventId = $this->db->table(EventModel::getTable())
-			->insertGetId([
-				'time_submitted' => time(),
-				'submitter_name' => $context->char->name,
-				'event_name' => $eventName,
-				'event_date' => null,
-			]);
-		$msg = "Event: '{$eventName}' was added [Event ID {$eventId}].";
+		$event = new EventModel(
+			time_submitted: time(),
+			submitter_name: $context->char->name,
+			event_name: $eventName,
+			event_date: null,
+		);
+		$this->db->insert($event);
+		$msg = "Event: '{$eventName}' was added [Event ID {$event->id}].";
 		$context->reply($msg);
 	}
 
 	/** Delete an event */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
+	public function eventsRemoveCommand(CmdContext $context, PRemove $action, string $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find an event with id {$id}.";
@@ -117,7 +117,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Change the description of an event */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str('setdesc')] string $action, int $id, string $description): void {
+	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str('setdesc')] string $action, string $id, string $description): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find an event with id {$id}.";
@@ -135,7 +135,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 	public function eventsSetDateCommand(
 		CmdContext $context,
 		#[NCA\Str('setdate')] string $action,
-		int $id,
+		string $id,
 		string $date,
 	): void {
 		$row = $this->getEvent($id);
@@ -156,16 +156,16 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 		$context->reply($msg);
 	}
 
-	public function getEvent(int $id): ?EventModel {
+	public function getEvent(\Stringable|string $id): ?EventModel {
 		return $this->db->table(EventModel::getTable())
-			->where('id', $id)
+			->where('id', (string)$id)
 			->asObj(EventModel::class)
 			->first();
 	}
 
 	/** Join event #id */
 	#[NCA\HandlesCommand('events')]
-	public function eventsJoinCommand(CmdContext $context, #[NCA\Str('join')] string $action, int $id): void {
+	public function eventsJoinCommand(CmdContext $context, #[NCA\Str('join')] string $action, string $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>{$id}<end>.";
@@ -194,7 +194,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Leave event #id */
 	#[NCA\HandlesCommand('events')]
-	public function eventsLeaveCommand(CmdContext $context, #[NCA\Str('leave')] string $action, int $id): void {
+	public function eventsLeaveCommand(CmdContext $context, #[NCA\Str('leave')] string $action, string $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>{$id}<end>.";
@@ -222,7 +222,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** List all characters marked as joining event #id */
 	#[NCA\HandlesCommand('events')]
-	public function eventsListCommand(CmdContext $context, #[NCA\Str('list')] string $action, int $id): void {
+	public function eventsListCommand(CmdContext $context, #[NCA\Str('list')] string $action, string $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find event with id <highlight>{$id}<end>.";

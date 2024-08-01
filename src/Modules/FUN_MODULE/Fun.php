@@ -3,13 +3,17 @@
 namespace Nadybot\Modules\FUN_MODULE;
 
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'fun', shared: NCA\DB\Shared::Yes)]
 class Fun extends DBTable {
+	#[NCA\DB\AutoInc] public UuidInterface $id;
+
 	public function __construct(
 		public string $type,
 		public string $content,
-		#[NCA\DB\AutoInc] public ?int $id=null,
+		?UuidInterface $id=null,
 	) {
+		$this->id = $id ?? Uuid::uuid7();
 	}
 }

@@ -496,15 +496,20 @@ class DB {
 
 	public function createMigrationTables(): void {
 		foreach (['migrations', 'migrations_<myname>'] as $table) {
-			if ($this->schema()->hasTable($table)) {
-				continue;
-			}
-			$this->schema()->create($table, static function (Blueprint $table): void {
-				$table->id();
+			$newSchema = static function (Blueprint $table): void {
+				$table->uuid('id')->primary();
 				$table->string('module');
 				$table->string('migration');
 				$table->integer('applied_at');
-			});
+			};
+			if ($this->schema()->hasTable($table)) {
+				if (!str_starts_with(strtolower($this->schema()->getColumnType($table, 'id')), 'int')) {
+					continue;
+				}
+				$this->migrateIdToUuid($table, $newSchema, 'id', 'applied_at');
+				continue;
+			}
+			$this->schema()->create($table, $newSchema);
 		}
 	}
 
@@ -1047,6 +1052,7 @@ class DB {
 			'module' => $mig->module,
 			'migration' => $mig->baseName,
 			'applied_at' => time(),
+			'id' => Uuid::uuid7(),
 		]);
 	}
 }

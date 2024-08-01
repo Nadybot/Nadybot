@@ -4,15 +4,19 @@ namespace Nadybot\Core\DBSchema;
 
 use Nadybot\Core\Attributes\DB\Shared;
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
 
 #[NCA\DB\Table(name: 'migrations', shared: Shared::Both)]
 class Migration extends DBTable {
+	#[NCA\DB\PK] public UuidInterface $id;
+
 	public function __construct(
 		public string $module,
 		public string $migration,
 		public DateTimeImmutable $applied_at,
-		#[NCA\DB\AutoInc] public ?int $id=null,
+		?UuidInterface $id=null,
 	) {
+		$this->id = $id ?? Uuid::uuid7($applied_at);
 	}
 }
