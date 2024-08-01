@@ -443,8 +443,8 @@ class WishlistController extends ModuleInstance {
 			item: $item,
 			amount: isset($amount) ? $amount() : 1,
 		);
-		$entry->id = $this->db->insert($entry);
-		$context->reply("Item added to your wishlist as #{$entry->id}.");
+		$this->db->insert($entry);
+		$context->reply("Item added to your wishlist as {$entry->id}.");
 		if (!in_array($entry->from, $fromChars, true)) {
 			$this->buddylistManager->addName($character(), 'wishlist');
 		}
@@ -471,8 +471,8 @@ class WishlistController extends ModuleInstance {
 			amount: isset($amount) ? $amount() : 1,
 			expires_on: isset($expireDuration) ? time() + $expireDuration : null,
 		);
-		$entry->id = $this->db->insert($entry);
-		$context->reply("Item added to your wishlist as #{$entry->id}.");
+		$this->db->insert($entry);
+		$context->reply("Item added to your wishlist as {$entry->id}.");
 	}
 
 	/** Delete all your, and optionally all your alts', wishlists */
@@ -518,7 +518,7 @@ class WishlistController extends ModuleInstance {
 	public function removeFromWishlistCommand(
 		CmdContext $context,
 		PRemove $action,
-		int $id,
+		string $id,
 	): void {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
@@ -628,7 +628,7 @@ class WishlistController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('fulfil', 'fulfill', 'fullfil', 'fullfill')] string $action,
 		?PQuantity $amount,
-		int $id,
+		string $id,
 	): void {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
@@ -667,7 +667,7 @@ class WishlistController extends ModuleInstance {
 		$oldFrom = $this->getActiveFroms();
 		$this->db->awaitBeginTransaction();
 		try {
-			$fulfilment->id = $this->db->insert($fulfilment);
+			$this->db->insert($fulfilment);
 			if ($numFulfilled + $fulfilment->amount >= $entry->amount) {
 				$this->db->table(Wish::getTable())
 					->where('id', $entry->id)
@@ -695,7 +695,7 @@ class WishlistController extends ModuleInstance {
 	public function denyWishCommand(
 		CmdContext $context,
 		#[NCA\Str('deny')] string $action,
-		int $id,
+		string $id,
 	): void {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
@@ -765,7 +765,7 @@ class WishlistController extends ModuleInstance {
 				});
 		}
 
-		$ids = $query->pluckInts('id')->toList();
+		$ids = $query->pluckStrings('id')->toList();
 		if (count($ids) === 0) {
 			if ($includeActive) {
 				throw new UserException('Your wishlist is empty.');

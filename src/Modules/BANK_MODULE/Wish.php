@@ -4,10 +4,13 @@ namespace Nadybot\Modules\BANK_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{Attributes\DB, DBTable};
+use Ramsey\Uuid\{Uuid, UuidInterface};
+use Safe\DateTimeImmutable;
 
 #[DB\Table(name: 'wishlist', shared: DB\Shared::Yes)]
 class Wish extends DBTable {
 	public int $created_on;
+	#[DB\PK] public UuidInterface $id;
 
 	/** @var Collection<int,WishFulfilment> */
 	#[DB\Ignore]
@@ -21,10 +24,15 @@ class Wish extends DBTable {
 		public int $amount=1,
 		public ?string $from=null,
 		public bool $fulfilled=false,
-		#[DB\AutoInc] public ?int $id=null,
+		?UuidInterface $id=null,
 	) {
 		$this->created_on = $created_on ?? time();
+		$dt = null;
+		if (isset($created_on) && !isset($id)) {
+			$dt = (new DateTimeImmutable())->setTimestamp($created_on);
+		}
 		$this->fulfilments = new Collection();
+		$this->id = $id ?? Uuid::uuid7($dt);
 	}
 
 	/** Get how many items are still needed */

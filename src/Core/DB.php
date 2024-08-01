@@ -426,8 +426,9 @@ class DB {
 
 	/** @return array<int,UuidInterface> */
 	public function migrateIdToUuid(string $table, \Closure $callback, string $column='id', ?string $timeColumn=null): array {
-		$this->schema()->create($table . '_tmp', $callback);
 		$entries = $this->table($table)->orderBy($column)->get();
+		$this->schema()->drop($table);
+		$this->schema()->create($table, $callback);
 
 		$result = [];
 
@@ -445,12 +446,7 @@ class DB {
 			$entry->{$column} = $uuid->toString();
 			return (array)$entry;
 		})->toList();
-		$this->table($table . '_tmp')->chunkInsert($entries);
-		$this->schema()->drop($table);
-		$this->schema()->rename(
-			$this->formatSql($table . '_tmp'),
-			$this->formatSql($table)
-		);
+		$this->table($table)->chunkInsert($entries);
 		return $result;
 	}
 
