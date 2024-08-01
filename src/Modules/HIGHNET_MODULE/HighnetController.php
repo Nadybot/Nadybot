@@ -500,7 +500,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$this->db->insert($rhc);
 			$this->db->insert($rhf);
 			foreach ($routes as $route) {
-				$route->id = $this->db->insert($route);
+				$this->db->insert($route);
 				$msgRoutes []= $this->msgHub->createMessageRoute($route);
 			}
 		} catch (Exception $e) {

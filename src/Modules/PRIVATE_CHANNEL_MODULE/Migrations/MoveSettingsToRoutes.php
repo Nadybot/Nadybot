@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	SchemaMigration,
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\UuidInterface;
 
 #[NCA\Migration(order: 2021_08_12_05_22_46)]
 class MoveSettingsToRoutes implements SchemaMigration {
@@ -37,7 +38,7 @@ class MoveSettingsToRoutes implements SchemaMigration {
 			destination: Source::ORG,
 			two_way: $unfiltered,
 		);
-		$route->id = $db->insert($route);
+		$db->insert($route);
 		$this->addCommandFilter($db, $relayCommands, $route->id);
 		if ($unfiltered) {
 			return;
@@ -47,7 +48,7 @@ class MoveSettingsToRoutes implements SchemaMigration {
 			destination: Source::PRIV . "({$this->config->main->character})",
 			two_way: false,
 		);
-		$route->id = $db->insert($route);
+		$db->insert($route);
 		$this->addCommandFilter($db, $relayCommands, $route->id);
 
 		if (isset($ignoreSenders) && strlen($ignoreSenders->value??'') > 0) {
@@ -67,7 +68,7 @@ class MoveSettingsToRoutes implements SchemaMigration {
 			->first();
 	}
 
-	protected function addCommandFilter(DB $db, ?Setting $relayCommands, int $routeId): void {
+	protected function addCommandFilter(DB $db, ?Setting $relayCommands, UuidInterface $routeId): void {
 		if (!isset($relayCommands) || $relayCommands->value === '1') {
 			return;
 		}
@@ -78,7 +79,7 @@ class MoveSettingsToRoutes implements SchemaMigration {
 		$mod->id = $db->insert($mod);
 	}
 
-	protected function ignoreSenders(DB $db, int $routeId, string ...$senders): void {
+	protected function ignoreSenders(DB $db, UuidInterface $routeId, string ...$senders): void {
 		foreach ($senders as $sender) {
 			$mod = new RouteModifier(
 				modifier: 'if-not-by',
@@ -96,7 +97,7 @@ class MoveSettingsToRoutes implements SchemaMigration {
 		}
 	}
 
-	protected function addRegExpFilter(DB $db, int $routeId, string $filter): void {
+	protected function addRegExpFilter(DB $db, UuidInterface $routeId, string $filter): void {
 		$mod = new RouteModifier(
 			modifier: 'if-matches',
 			route_id: $routeId,

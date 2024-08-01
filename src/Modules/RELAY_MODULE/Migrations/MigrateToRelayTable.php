@@ -23,6 +23,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayLayerArgument,
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\{UuidInterface};
 
 #[NCA\Migration(order: 2021_08_17_09_03_34)]
 class MigrateToRelayTable implements SchemaMigration {
@@ -67,7 +68,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		return $relayLogon;
 	}
 
-	protected function addMod(DB $db, int $routeId, string $modifier): int {
+	protected function addMod(DB $db, UuidInterface $routeId, string $modifier): int {
 		return $db->insert(new RouteModifier(
 			route_id: $routeId,
 			modifier: $modifier,
@@ -140,29 +141,35 @@ class MigrateToRelayTable implements SchemaMigration {
 
 	protected function addRouting(DB $db, RelayConfig $relay): void {
 		$guestRelay = $this->getSetting($db, 'guest_relay');
+
+		/** @var list<UuidInterface> */
 		$routesOut = [];
 		$route = new Route(
 			source: Source::RELAY . "({$relay->name})",
 			destination: Source::ORG,
 		);
-		$routeInOrg = $db->insert($route);
+		$db->insert($route);
+		$routeInOrg = $route->id;
 		$route = new Route(
 			source: Source::ORG,
 			destination: Source::RELAY . "({$relay->name})",
 		);
-		$routesOut []= $db->insert($route);
+		$db->insert($route);
+		$routesOut []= $route->id;
 
 		if (isset($guestRelay) && (int)$guestRelay->value) {
 			$route = new Route(
 				source: Source::RELAY . "({$relay->name})",
 				destination: Source::PRIV . "({$this->config->main->character})",
 			);
-			$routeInPriv = $db->insert($route);
+			$db->insert($route);
+			$routeInPriv = $route->id;
 			$route = new Route(
 				source: Source::PRIV . "({$this->config->main->character})",
 				destination: Source::RELAY . "({$relay->name})",
 			);
-			$routesOut []= $db->insert($route);
+			$db->insert($route);
+			$routesOut []= $route->id;
 		}
 		$relayWhen = $this->getSetting($db, 'relay_symbol_method');
 		$relaySymbol = $this->getSetting($db, 'relaysymbol');

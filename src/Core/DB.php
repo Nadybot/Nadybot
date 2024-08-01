@@ -30,10 +30,11 @@ use Nadybot\Core\{
 use PDO;
 use PDOException;
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\{Uuid, UuidInterface};
 use ReflectionClass;
 use ReflectionProperty;
 use Revolt\EventLoop;
-
+use Safe\DateTimeImmutable;
 use Throwable;
 
 #[NCA\Instance]
@@ -295,6 +296,8 @@ class DB {
 				$data[$colName] = $data[$colName]->getTimestamp();
 			} elseif ($data[$colName] instanceof BackedEnum) {
 				$data[$colName] = $data[$colName]->value;
+			} elseif ($data[$colName] instanceof UuidInterface) {
+				$data[$colName] = $data[$colName]->toString();
 			}
 		}
 		$table = $this->formatSql($table);
@@ -343,6 +346,8 @@ class DB {
 				$data[$colName] = $data[$colName]->getTimestamp();
 			} elseif ($data[$colName] instanceof BackedEnum) {
 				$data[$colName] = $data[$colName]->value;
+			} elseif ($data[$colName] instanceof UuidInterface) {
+				$data[$colName] = $data[$colName]->toString();
 			}
 		}
 		$table = $this->formatSql($table);
@@ -393,6 +398,8 @@ class DB {
 				$updates[$colName] = $updates[$colName]->getTimestamp();
 			} elseif ($updates[$colName] instanceof BackedEnum) {
 				$updates[$colName] = $updates[$colName]->value;
+			} elseif ($updates[$colName] instanceof UuidInterface) {
+				$updates[$colName] = $updates[$colName]->toString();
 			}
 		}
 		$query = $this->table($table);
@@ -415,6 +422,35 @@ class DB {
 		Registry::injectDependencies($logger);
 		$builder = new SchemaBuilder($schema, $this);
 		return $builder;
+	}
+
+	/** @return array<int,UuidInterface> */
+	public function migrateIdToUuid(string $table, string $column='id', ?string $timeColumn=null): array {
+		$entries = $this->table($table)->orderBy($column)->get();
+		$this->table($table)->truncate();
+		$this->schema()->dropColumns($table, $column);
+		$this->schema()->table($table, static function (Blueprint $table) use ($column): void {
+			$table->uuid($column)->nullable(false)->primary();
+		});
+
+		$result = [];
+
+		/** @return array<string,mixed> */
+		$entries = $entries->map(static function (\stdClass $entry) use ($column, $timeColumn, &$result): array {
+			$time = null;
+			if (isset($timeColumn)) {
+				$time = $entry->{$timeColumn} ?? null;
+			}
+			if (isset($time)) {
+				$time = (new DateTimeImmutable())->setTimestamp($time);
+			}
+			$uuid = Uuid::uuid7($time);
+			$result[(int)$entry->{$column}] = $uuid;
+			$entry->{$column} = $uuid->toString();
+			return (array)$entry;
+		})->toList();
+		$this->table($table)->chunkInsert($entries);
+		return $result;
 	}
 
 	/**

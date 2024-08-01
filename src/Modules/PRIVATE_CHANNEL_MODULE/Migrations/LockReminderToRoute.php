@@ -18,13 +18,13 @@ class LockReminderToRoute implements SchemaMigration {
 			destination: Source::PRIV . "({$this->config->main->character})",
 			two_way: false,
 		);
-		$route->id = $db->insert($route);
+		$db->insert($route);
 
 		$route = new Route(
 			source: Source::SYSTEM . '(lock-reminder)',
 			destination: Source::ORG,
 			two_way: false,
 		);
-		$route->id = $db->insert($route);
+		$db->insert($route);
 	}
 }

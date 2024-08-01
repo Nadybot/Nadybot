@@ -130,7 +130,7 @@ class MigrateToRoutes implements SchemaMigration {
 			source: Source::SYSTEM . '(timers)',
 			destination: $to,
 		);
-		$route->id = $db->insert($route);
+		$db->insert($route);
 		return $route;
 	}
 }

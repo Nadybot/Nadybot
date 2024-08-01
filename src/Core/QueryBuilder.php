@@ -14,6 +14,7 @@ use PDO;
 use PDOException;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\{Uuid, UuidInterface};
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
@@ -289,6 +290,8 @@ class QueryBuilder extends Builder {
 						$row[$colName] = (new DateTimeImmutable())->setTimestamp((int)$values[$col]);
 					} elseif ($type === \DateTimeInterface::class) {
 						$row[$colName] = (new DateTimeImmutable())->setTimestamp((int)$values[$col]);
+					} elseif ($type === UuidInterface::class) {
+						$row[$colName] = Uuid::fromString($values[$col]);
 					} elseif (is_a($type, \BackedEnum::class, true)) {
 						$row[$colName] = $type::from($values[$col]);
 					} else {

@@ -601,7 +601,7 @@ class MessageHub {
 		foreach ($this->routes as $source => $destData) {
 			foreach ($destData as $dest => $routes) {
 				foreach ($routes as $route) {
-					$allRoutes [$route->getID()] = $route;
+					$allRoutes [$route->getID()->toString()] = $route;
 				}
 			}
 		}
@@ -632,13 +632,14 @@ class MessageHub {
 		}, $routes);
 	}
 
-	public function deleteRouteID(int $id): ?MessageRoute {
+	public function deleteRouteID(\Stringable|string $id): ?MessageRoute {
+		$id = (string)$id;
 		$result = null;
 		foreach ($this->routes as $source => $destData) {
 			foreach ($destData as $dest => $routes) {
 				for ($i = 0; $i < count($routes); $i++) {
 					$route = $routes[0];
-					if ($route->getID() !== $id) {
+					if ((string)$route->getID() !== $id) {
 						continue;
 					}
 					$result = $route;

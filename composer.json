@@ -57,7 +57,8 @@
 		"amphp/parallel": "^2.2",
 		"amphp/http-server": "^3.3.0",
 		"amphp/websocket-server": "^4.0.0",
-		"doctrine/dbal": "^3"
+		"doctrine/dbal": "^3",
+		"ramsey/uuid": "^4.7"
 	},
 	"autoload": {
 		"psr-4": {

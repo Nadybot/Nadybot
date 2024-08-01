@@ -32,6 +32,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\UuidInterface;
 use ReflectionClass;
 use ReflectionException;
 use Safe\Exceptions\JsonException;
@@ -106,10 +107,8 @@ class MessageHubController extends ModuleInstance {
 			->orderBy('id')
 			->asObj(Route::class)
 			->each(function (Route $route) use ($modifiers): void {
-				assert(isset($route->id));
-
 				/** @var list<RouteModifier> */
-				$routeModifiers = $modifiers->get($route->id, new Collection())->toList();
+				$routeModifiers = $modifiers->get($route->id->toString(), new Collection())->toList();
 				$route->modifiers = $routeModifiers;
 				try {
 					$msgRoute = $this->messageHub->createMessageRoute($route);
@@ -133,12 +132,12 @@ class MessageHubController extends ModuleInstance {
 	public function routeMuteIdCommand(
 		CmdContext $context,
 		#[NCA\Str('mute', 'disable')] string $action,
-		int $id,
+		string $id,
 		#[NCA\PDuration] #[NCA\Str('off')] string $duration
 	): void {
 		$route = $this->getMsgRoute($id);
 		if (!isset($route)) {
-			$context->reply("No route <highlight>#{$id}<end> found.");
+			$context->reply("No route <highlight>{$id}<end> found.");
 			return;
 		}
 		$from = $route->getSource();
@@ -174,11 +173,11 @@ class MessageHubController extends ModuleInstance {
 	public function routeMuteCommand(
 		CmdContext $context,
 		#[NCA\Str('mute', 'disable')] string $action,
-		int $id,
+		string $id,
 	): void {
 		$route = $this->getMsgRoute($id);
 		if (!isset($route)) {
-			$context->reply("No route <highlight>#{$id}<end> found.");
+			$context->reply("No route <highlight>{$id}<end> found.");
 			return;
 		}
 		$durations = [60, 300, 600, 1_800, 3_600, 6*3_600, 24*3_600];
@@ -282,7 +281,7 @@ class MessageHubController extends ModuleInstance {
 
 		/** @var ?list<RouteModifier> $modifiers */
 		try {
-			$route->id = $this->db->insert($route);
+			$this->db->insert($route);
 			foreach ($modifiers??[] as $modifier) {
 				$modifier->route_id = $route->id;
 				$modifier->id = $this->db->insert($modifier);
@@ -439,10 +438,10 @@ class MessageHubController extends ModuleInstance {
 
 	/** Delete a route by its ID */
 	#[NCA\HandlesCommand('route')]
-	public function routeDel(CmdContext $context, PRemove $action, int $id): void {
+	public function routeDel(CmdContext $context, PRemove $action, string $id): void {
 		$route = $this->getRoute($id);
 		if (!isset($route)) {
-			$context->reply("No route <highlight>#{$id}<end> found.");
+			$context->reply("No route <highlight>{$id}<end> found.");
 			return;
 		}
 
@@ -472,7 +471,7 @@ class MessageHubController extends ModuleInstance {
 				"Route #{$id} (" . trim($this->renderRoute($deleted)) . ') deleted.'
 			);
 		} else {
-			$context->reply("Route <highlight>#{$id}<end> deleted.");
+			$context->reply("Route <highlight>{$id}<end> deleted.");
 		}
 	}
 
@@ -1057,10 +1056,10 @@ class MessageHubController extends ModuleInstance {
 			});
 	}
 
-	public function getRoute(int $id): ?Route {
+	public function getRoute(\Stringable|string $id): ?Route {
 		/** @var Route|null */
 		$route = $this->db->table(Route::getTable())
-			->where('id', $id)
+			->where('id', (string)$id)
 			->limit(1)
 			->asObj(Route::class)
 			->first();
@@ -1068,7 +1067,7 @@ class MessageHubController extends ModuleInstance {
 			return null;
 		}
 		$route->modifiers = $this->db->table(RouteModifier::getTable())
-		->where('route_id', $id)
+		->where('route_id', (string)$id)
 		->orderBy('id')
 		->asObjArr(RouteModifier::class);
 		foreach ($route->modifiers as $modifier) {
@@ -1080,10 +1079,10 @@ class MessageHubController extends ModuleInstance {
 		return $route;
 	}
 
-	public function getMsgRoute(int $id): ?MessageRoute {
+	public function getMsgRoute(UuidInterface|string $id): ?MessageRoute {
 		$routes = $this->messageHub->getRoutes();
 		foreach ($routes as $route) {
-			if ($route->getID() === $id) {
+			if ((string)$route->getID() === (string)$id) {
 				return $route;
 			}
 		}

@@ -2,12 +2,12 @@
 
 namespace Nadybot\Core;
 
-use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Types\EventModifier;
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\UuidInterface;
 use Throwable;
 
 class MessageRoute {
@@ -18,13 +18,9 @@ class MessageRoute {
 	private LoggerInterface $logger;
 
 	public function __construct(private Route $route) {
-		if (!isset($route->id)) {
-			throw new InvalidArgumentException(__CLASS__ . '(): Argument #1 ($route) must have an id');
-		}
 	}
 
-	public function getID(): int {
-		assert(isset($this->route->id));
+	public function getID(): UuidInterface {
 		return $this->route->id;
 	}
 

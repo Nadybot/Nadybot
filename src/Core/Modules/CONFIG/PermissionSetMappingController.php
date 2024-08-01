@@ -119,7 +119,7 @@ class PermissionSetMappingController extends ModuleInstance {
 			symbol: $this->settingManager->getString('symbol') ?? '!',
 		);
 		try {
-			$map->id = $this->db->insert($map);
+			$this->db->insert($map);
 		} catch (SQLException) {
 			$context->reply('There was an error saving your mapping into the database.');
 			return;
