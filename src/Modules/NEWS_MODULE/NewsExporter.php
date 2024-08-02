@@ -11,10 +11,10 @@ use Nadybot\Core\{
 	ExportCharacter,
 	ExporterInterface,
 	ImporterInterface,
-	ModuleInstance,
-	Util
+	ModuleInstance
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use Throwable;
 
 /**
@@ -36,7 +36,7 @@ class NewsExporter extends ModuleInstance implements ExporterInterface, Importer
 			->map(static function (News $topic) use ($db): ExportNews {
 				$data = new ExportNews(
 					author: new ExportCharacter(name: $topic->name),
-					uuid: $topic->uuid,
+					uuid: $topic->id->toString(),
 					addedTime: $topic->time,
 					news: $topic->news,
 					pinned: $topic->sticky,
@@ -70,21 +70,22 @@ class NewsExporter extends ModuleInstance implements ExporterInterface, Importer
 				if (!($item instanceof ExportNews)) {
 					throw new InvalidArgumentException(__CLASS__ . '::' . __METHOD__ . '() called with wrong data');
 				}
-				$newsId = $db->insert(new News(
+				$news = new News(
 					time: $item->addedTime ?? time(),
-					uuid: $item->uuid ?? Util::createUUID(),
+					id: isset($item->uuid) ? Uuid::fromString($item->uuid) : null,
 					name: $item->author?->tryGetName() ?? $this->config->main->character,
 					news: $item->news,
 					sticky: $item->pinned ?? false,
 					deleted: $item->deleted ?? false,
-				));
+				);
+				$db->insert($news);
 				foreach ($item->confirmedBy??[] as $confirmation) {
 					$name = $confirmation->character->tryGetName();
 					if (!isset($name)) {
 						continue;
 					}
 					$db->insert(new NewsConfirmed(
-						id: $newsId,
+						id: $news->id,
 						player: $name,
 						time: $confirmation->confirmationTime ?? time(),
 					));

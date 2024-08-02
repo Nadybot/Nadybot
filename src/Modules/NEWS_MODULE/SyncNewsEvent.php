@@ -33,7 +33,7 @@ class SyncNewsEvent extends SyncEvent {
 			time: $news->time,
 			name: $news->name,
 			news: $news->news,
-			uuid: $news->uuid,
+			uuid: $news->id->toString(),
 			sticky: $news->sticky,
 		);
 	}
