@@ -503,10 +503,13 @@ class DB {
 				$table->integer('applied_at');
 			};
 			if ($this->schema()->hasTable($table)) {
-				if (!str_starts_with(strtolower($this->schema()->getColumnType($table, 'id')), 'int')) {
-					continue;
+				$colType = strtolower($this->schema()->getColumnType($table, 'id'));
+				if (str_starts_with($colType, 'int')
+					|| str_ends_with($colType, 'int')
+					|| str_ends_with($colType, 'integer')
+				) {
+					$this->migrateIdToUuid($table, $newSchema, 'id', 'applied_at');
 				}
-				$this->migrateIdToUuid($table, $newSchema, 'id', 'applied_at');
 				continue;
 			}
 			$this->schema()->create($table, $newSchema);
