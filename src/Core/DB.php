@@ -15,7 +15,7 @@ use Illuminate\Database\{
 	Connection,
 	Schema\Blueprint,
 };
-use Illuminate\Support\Collection;
+use Illuminate\Support\{Collection, Fluent};
 use InvalidArgumentException;
 use Nadybot\Core\Attributes\Migration as AttributesMigration;
 use Nadybot\Core\{
@@ -837,6 +837,11 @@ class DB {
 			// @phpstan-ignore-next-line
 			protected function typeFloat(\Illuminate\Support\Fluent $column) {
 				return 'real';
+			}
+
+			// @phpstan-ignore-next-line
+			protected function typeUuid(\Illuminate\Support\Fluent $column) {
+				return 'text';
 			}
 
 			// @phpstan-ignore-next-line
