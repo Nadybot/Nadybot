@@ -7,7 +7,7 @@ use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'fun', shared: NCA\DB\Shared::Yes)]
 class Fun extends DBTable {
-	#[NCA\DB\AutoInc] public UuidInterface $id;
+	#[NCA\DB\PK] public UuidInterface $id;
 
 	public function __construct(
 		public string $type,
