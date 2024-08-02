@@ -5,12 +5,13 @@ namespace Nadybot\Modules\NOTES_MODULE\Migrations\Links;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Modules\NOTES_MODULE\Link;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_27_05_36_08, shared: true)]
 class CreateLinksTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = 'links';
+		$table = Link::getTable();
 		if ($db->schema()->hasTable($table)) {
 			$db->schema()->table($table, static function (Blueprint $table): void {
 				$table->id('id')->change();

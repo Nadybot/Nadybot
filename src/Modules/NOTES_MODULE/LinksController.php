@@ -98,9 +98,9 @@ class LinksController extends ModuleInstance implements ImporterInterface, Expor
 		$context->reply($msg);
 	}
 
-	/** Remoev a link from the list */
+	/** Remove a link from the list */
 	#[NCA\HandlesCommand('links')]
-	public function linksRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
+	public function linksRemoveCommand(CmdContext $context, PRemove $action, string $id): void {
 		/** @var ?Link */
 		$obj = $this->db->table(Link::getTable())
 			->where('id', $id)

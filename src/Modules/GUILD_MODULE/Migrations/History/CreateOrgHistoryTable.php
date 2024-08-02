@@ -5,12 +5,13 @@ namespace Nadybot\Modules\GUILD_MODULE\Migrations\History;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Modules\GUILD_MODULE\OrgHistory;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_26_05_03_03, shared: true)]
 class CreateOrgHistoryTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = 'org_history';
+		$table = OrgHistory::getTable();
 		if ($db->schema()->hasTable($table)) {
 			$db->schema()->table($table, static function (Blueprint $table): void {
 				$table->id('id')->change();
