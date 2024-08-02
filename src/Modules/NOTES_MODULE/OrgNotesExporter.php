@@ -9,10 +9,10 @@ use Nadybot\Core\{
 	ExportCharacter,
 	ExporterInterface,
 	ImporterInterface,
-	ModuleInstance,
-	Util
+	ModuleInstance
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use Throwable;
 
 /**
@@ -33,7 +33,7 @@ class OrgNotesExporter extends ModuleInstance implements ExporterInterface, Impo
 					author: new ExportCharacter(name: $note->added_by),
 					creationTime: $note->added_on,
 					text: $note->note,
-					uuid: $note->uuid,
+					uuid: $note->id->toString(),
 				);
 			})->toList();
 	}
@@ -58,7 +58,7 @@ class OrgNotesExporter extends ModuleInstance implements ExporterInterface, Impo
 					added_by: $owner,
 					note: $note->text,
 					added_on: $note->creationTime ?? null,
-					uuid: $note->uuid ?? Util::createUUID(),
+					id: isset($note->uuid) ? Uuid::fromString($note->uuid) : null,
 				));
 			}
 		} catch (Throwable $e) {

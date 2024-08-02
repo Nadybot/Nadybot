@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Ramsey\Uuid\Uuid;
 
 /**
  * @author Nadyita (RK5)
@@ -69,9 +70,9 @@ class OrgNotesController extends ModuleInstance {
 	}
 
 	/** Get a single org note */
-	public function getOrgNote(int $id): ?OrgNote {
+	public function getOrgNote(\Stringable|string $id): ?OrgNote {
 		return $this->db->table(OrgNote::getTable())
-			->where('id', $id)
+			->where('id', (string)$id)
 			->asObj(OrgNote::class)
 			->first();
 	}
@@ -79,10 +80,9 @@ class OrgNotesController extends ModuleInstance {
 	public function createOrgNote(string $creator, string $text, bool $forceSync=false): OrgNote {
 		$note = new OrgNote(
 			added_by: $creator,
-			uuid: Util::createUUID(),
 			note: $text,
 		);
-		$note->id = $this->db->insert($note);
+		$this->db->insert($note);
 
 		$event = SyncOrgNoteEvent::fromOrgNote($note);
 		$event->forceSync = $forceSync;
@@ -97,7 +97,7 @@ class OrgNotesController extends ModuleInstance {
 			return false;
 		}
 		$event = new SyncOrgNoteDeleteEvent(
-			uuid: $note->uuid,
+			uuid: $note->id->toString(),
 			forceSync: $forceSync,
 		);
 		$this->eventManager->fireEvent($event);
@@ -109,7 +109,7 @@ class OrgNotesController extends ModuleInstance {
 	 *
 	 * @throws InsufficientAccessException if no right to delete note
 	 */
-	public function removeOrgNoteId(int $noteId, string $actor, bool $forceSync=false): bool {
+	public function removeOrgNoteId(\Stringable|string $noteId, string $actor, bool $forceSync=false): bool {
 		$note = $this->getOrgNote($noteId);
 		if (!isset($note)) {
 			return false;
@@ -166,7 +166,7 @@ class OrgNotesController extends ModuleInstance {
 	public function cmdRemOrgNote(
 		CmdContext $context,
 		PRemove $action,
-		int $id
+		string $id
 	): void {
 		try {
 			$removed = $this->removeOrgNoteId($id, $context->char->name, $context->forceSync);
@@ -190,11 +190,12 @@ class OrgNotesController extends ModuleInstance {
 			return;
 		}
 		$note = $event->toOrgNote();
-		$note->id = $this->db->table(OrgNote::getTable())
+		$id = $this->db->table(OrgNote::getTable())
 			->where('uuid', $event->uuid)
-			->pluckInts('id')
+			->pluckStrings('id')
 			->first();
-		if (isset($note->id)) {
+		if (isset($id)) {
+			$note->id = Uuid::fromString($id);
 			$this->db->update($note);
 		} else {
 			$this->db->insert($note);

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\NOTES_MODULE;
 
 use Nadybot\Core\Events\SyncEvent;
+use Ramsey\Uuid\Uuid;
 
 class SyncOrgNoteEvent extends SyncEvent {
 	public const EVENT_MASK = 'sync(orgnote)';
@@ -31,7 +32,7 @@ class SyncOrgNoteEvent extends SyncEvent {
 			time: $note->added_on,
 			name: $note->added_by,
 			note: $note->note,
-			uuid: $note->uuid,
+			uuid: $note->id->toString(),
 		);
 	}
 
@@ -39,7 +40,7 @@ class SyncOrgNoteEvent extends SyncEvent {
 		$note = new OrgNote(
 			added_by: $this->name,
 			added_on: $this->time,
-			uuid: $this->uuid,
+			id: Uuid::fromString($this->uuid),
 			note: $this->note,
 		);
 		return $note;

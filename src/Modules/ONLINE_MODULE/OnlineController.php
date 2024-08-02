@@ -337,12 +337,12 @@ class OnlineController extends ModuleInstance {
 	public function onlineDelHiddenByIDCommand(
 		CmdContext $context,
 		#[NCA\Str('show', 'unhide')] string $action,
-		int $id
+		string $id
 	): void {
 		if ($this->db->table(OnlineHide::getTable())->delete($id) === 0) {
-			$context->reply("The mask <highlight>#{$id}<end> is not hidden.");
+			$context->reply("The mask <highlight>{$id}<end> is not hidden.");
 		} else {
-			$context->reply("<highlight>#{$id}<end> removed from the online hidden mask list.");
+			$context->reply("<highlight>{$id}<end> removed from the online hidden mask list.");
 		}
 	}
 
