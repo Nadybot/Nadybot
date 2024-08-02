@@ -1,5 +1,6 @@
 # Table: fun
 # Replaces: type=greeting
+# uuid: id
 type,content
 greeting,"Welcome, *name*! Nice to see you."
 greeting,"You're like a breath of fresh air, *name*."
@@ -9,6 +10,6 @@ greeting,"Now that you're here, everything will be better, *name*."
 greeting,"Welcome to that chat!"
 greeting,"Uh oh! Shhhh, trouble's here! Oh! Hi *name*!"
 greeting,"Hi, *name*"
-greeting,"Hey, *name*! How's you?" 
+greeting,"Hey, *name*! How's you?"
 greeting,"Hey *name*! Welcome to the party!"
 

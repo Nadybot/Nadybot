@@ -13,18 +13,18 @@ class LockReminderToRoute implements SchemaMigration {
 	private BotConfig $config;
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$route = new Route(
-			source: Source::SYSTEM . '(lock-reminder)',
-			destination: Source::PRIV . "({$this->config->main->character})",
-			two_way: false,
-		);
-		$db->insert($route);
+		$route = [
+			'source' => Source::SYSTEM . '(lock-reminder)',
+			'destination' => Source::PRIV . "({$this->config->main->character})",
+			'two_way' => false,
+		];
+		$db->table(Route::getTable())->insert($route);
 
-		$route = new Route(
-			source: Source::SYSTEM . '(lock-reminder)',
-			destination: Source::ORG,
-			two_way: false,
-		);
-		$db->insert($route);
+		$route = [
+			'source' => Source::SYSTEM . '(lock-reminder)',
+			'destination' => Source::ORG,
+			'two_way' => false,
+		];
+		$db->table(Route::getTable())->insert($route);
 	}
 }

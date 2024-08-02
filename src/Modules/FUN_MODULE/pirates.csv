@@ -1,5 +1,6 @@
 # Table: fun
 # Replaces: type=pirates
+# uuid: id
 type,content
 pirates,"Lord Beckett: You're mad!<br>Jack Sparrow: well that's good cause If I wasn't, this'd probably never work."
 pirates,"Barbossa: There's not been a gathering like this in our lifetime.<br>Jack Sparrow: And I owe them all money."

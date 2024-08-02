@@ -1,5 +1,6 @@
 # Table: fun
 # Replaces: type=fact
+# uuid: id
 type,content
 fact,"It is impossible to lick your elbow."
 fact,"Intelligent people have more zinc and copper in their hair."

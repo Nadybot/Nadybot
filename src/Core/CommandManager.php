@@ -239,6 +239,7 @@ class CommandManager implements MessageEmitter {
 						'access_level' => $accessLevel,
 						'cmd' => $command,
 						'enabled' => (bool)$status,
+						'id' => Uuid::uuid7(),
 					]
 				);
 		}

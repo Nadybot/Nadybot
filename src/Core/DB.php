@@ -591,6 +591,7 @@ class DB {
 		}
 		$version = $this->fs->getModificationTime($file);
 		$handle = $this->fs->openFile($file, 'r');
+		$uuidCol = null;
 		foreach (splitLines($handle) as $line) {
 			if (substr($line, 0, 1) !== '#') {
 				break;
@@ -606,6 +607,9 @@ class DB {
 					break;
 				case 'version':
 					$version = $value;
+					break;
+				case 'uuid':
+					$uuidCol = $value;
 					break;
 				case 'table':
 					$table = $value;
@@ -654,6 +658,9 @@ class DB {
 				$this->table($table)->delete();
 			}
 			foreach ($csv->items() as $item) {
+				if (isset($uuidCol)) {
+					$item[$uuidCol] ??= Uuid::uuid7();
+				}
 				$itemCount++;
 				$items []= $item;
 				if ((count($items)+1) * count($item) > $this->maxPlaceholders) {

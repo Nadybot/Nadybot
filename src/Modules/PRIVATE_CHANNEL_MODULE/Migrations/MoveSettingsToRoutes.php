@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	SchemaMigration,
 };
 use Psr\Log\LoggerInterface;
-use Ramsey\Uuid\UuidInterface;
 
 #[NCA\Migration(order: 2021_08_12_05_22_46)]
 class MoveSettingsToRoutes implements SchemaMigration {
@@ -33,31 +32,31 @@ class MoveSettingsToRoutes implements SchemaMigration {
 		$unfiltered = (!isset($ignoreSenders) || !strlen($ignoreSenders->value??''))
 			&& (!isset($relayFilter) || !strlen($relayFilter->value??''));
 
-		$route = new Route(
-			source: Source::PRIV . "({$this->config->main->character})",
-			destination: Source::ORG,
-			two_way: $unfiltered,
-		);
-		$db->insert($route);
-		$this->addCommandFilter($db, $relayCommands, $route->id);
+		$route = [
+			'source' => Source::PRIV . "({$this->config->main->character})",
+			'destination' => Source::ORG,
+			'two_way' => $unfiltered,
+		];
+		$route['id'] = $db->table(Route::getTable())->insertGetId($route);
+		$this->addCommandFilter($db, $relayCommands, $route['id']);
 		if ($unfiltered) {
 			return;
 		}
-		$route = new Route(
-			source: Source::ORG,
-			destination: Source::PRIV . "({$this->config->main->character})",
-			two_way: false,
-		);
-		$db->insert($route);
-		$this->addCommandFilter($db, $relayCommands, $route->id);
+		$route = [
+			'source' => Source::ORG,
+			'destination' => Source::PRIV . "({$this->config->main->character})",
+			'two_way' => false,
+		];
+		$route['id'] = $db->table(Route::getTable())->insertGetId($route);
+		$this->addCommandFilter($db, $relayCommands, $route['id']);
 
 		if (isset($ignoreSenders) && strlen($ignoreSenders->value??'') > 0) {
 			$toIgnore = explode(',', $ignoreSenders->value??'');
-			$this->ignoreSenders($db, $route->id, ...$toIgnore);
+			$this->ignoreSenders($db, $route['id'], ...$toIgnore);
 		}
 
 		if (isset($relayFilter) && strlen($relayFilter->value??'') > 0) {
-			$this->addRegExpFilter($db, $route->id, $relayFilter->value??'');
+			$this->addRegExpFilter($db, $route['id'], $relayFilter->value??'');
 		}
 	}
 
@@ -68,52 +67,52 @@ class MoveSettingsToRoutes implements SchemaMigration {
 			->first();
 	}
 
-	protected function addCommandFilter(DB $db, ?Setting $relayCommands, UuidInterface $routeId): void {
+	protected function addCommandFilter(DB $db, ?Setting $relayCommands, int $routeId): void {
 		if (!isset($relayCommands) || $relayCommands->value === '1') {
 			return;
 		}
-		$mod = new RouteModifier(
-			modifier: 'if-not-command',
-			route_id: $routeId,
-		);
-		$mod->id = $db->insert($mod);
+		$mod = [
+			'modifier' => 'if-not-command',
+			'route_id' => $routeId,
+		];
+		$db->table(RouteModifier::getTable())->insert($mod);
 	}
 
-	protected function ignoreSenders(DB $db, UuidInterface $routeId, string ...$senders): void {
+	protected function ignoreSenders(DB $db, int $routeId, string ...$senders): void {
 		foreach ($senders as $sender) {
-			$mod = new RouteModifier(
-				modifier: 'if-not-by',
-				route_id: $routeId,
-			);
-			$mod->id = $db->insert($mod);
+			$mod = [
+				'modifier' => 'if-not-by',
+				'route_id' => $routeId,
+			];
+			$mod['id'] = $db->table(RouteModifier::getTable())->insertGetId($mod);
 
-			$arg = new RouteModifierArgument(
-				name: 'sender',
-				value: $sender,
-				route_modifier_id: $mod->id,
-			);
+			$arg = [
+				'name' => 'sender',
+				'value' => $sender,
+				'route_modifier_id' => $mod['id'],
+			];
 
-			$arg->id = $db->insert($arg);
+			$arg['id'] = $db->table(RouteModifierArgument::getTable())->insertGetId($arg);
 		}
 	}
 
-	protected function addRegExpFilter(DB $db, UuidInterface $routeId, string $filter): void {
-		$mod = new RouteModifier(
-			modifier: 'if-matches',
-			route_id: $routeId,
-		);
-		$mod->id = $db->insert($mod);
+	protected function addRegExpFilter(DB $db, int $routeId, string $filter): void {
+		$mod = [
+			'modifier' => 'if-matches',
+			'route_id' => $routeId,
+		];
+		$mod['id'] = $db->table(RouteModifier::getTable())->insertGetId($mod);
 
-		$db->insert(new RouteModifierArgument(
-			name: 'text',
-			value: $filter,
-			route_modifier_id: $mod->id,
-		));
+		$db->table(RouteModifierArgument::getTable())->insert([
+			'name' => 'text',
+			'value' => $filter,
+			'route_modifier_id' => $mod['id'],
+		]);
 
-		$db->insert(new RouteModifierArgument(
-			name: 'regexp',
-			value: 'true',
-			route_modifier_id: $mod->id,
-		));
+		$db->table(RouteModifierArgument::getTable())->insert([
+			'name' => 'regexp',
+			'value' => 'true',
+			'route_modifier_id' => $mod['id'],
+		]);
 	}
 }

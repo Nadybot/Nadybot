@@ -3,14 +3,11 @@
 namespace Nadybot\Modules\PVP_MODULE\Migrations;
 
 use Nadybot\Core\DBSchema\{RouteHopColor, RouteHopFormat};
-use Nadybot\Core\{Attributes as NCA, DB, MessageHub, SchemaMigration};
+use Nadybot\Core\{Attributes as NCA, DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2023_03_08_16_39_57)]
 class SetSiteTrackerRoutingFormat implements SchemaMigration {
-	#[NCA\Inject]
-	private MessageHub $messageHub;
-
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$towerColor = 'F06AED';
 		$hopColor = [
@@ -26,7 +23,5 @@ class SetSiteTrackerRoutingFormat implements SchemaMigration {
 			'render' => true,
 		];
 		$db->table(RouteHopFormat::getTable())->insert($hopFormat);
-
-		$this->messageHub->loadTagFormat();
 	}
 }

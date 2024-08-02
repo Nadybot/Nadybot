@@ -1,5 +1,6 @@
 # Table: fun
 # Replaces: type=beer
+# uuid: id
 type,content
 beer,"*name* are you buying?"
 beer,"Beer! lets get this party started *name*!!"

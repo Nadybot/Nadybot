@@ -23,9 +23,9 @@ class MigrateUIToRoute implements SchemaMigration {
 		} else {
 			$destination = Source::PRIV . "({$this->config->main->character})";
 		}
-		$db->insert(new Route(
-			source: Source::SYSTEM . '(webui)',
-			destination: $destination,
-		));
+		$db->table(Route::getTable())->insert([
+			'source' => Source::SYSTEM . '(webui)',
+			'destination' => $destination,
+		]);
 	}
 }

@@ -8,13 +8,12 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Route,
 	DBSchema\Setting,
-	MessageHub,
 	Modules\DISCORD\DiscordAPIClient,
 	Modules\DISCORD\DiscordChannel,
 	Routing\Source,
 	SchemaMigration,
 };
-use Nadybot\Modules\TIMERS_MODULE\{Timer};
+use Nadybot\Modules\TIMERS_MODULE\Timer;
 use Psr\Log\LoggerInterface;
 use stdClass;
 use Throwable;
@@ -23,9 +22,6 @@ use Throwable;
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	private DiscordAPIClient $discordAPIClient;
-
-	#[NCA\Inject]
-	private MessageHub $messageHub;
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = Timer::getTable();
@@ -113,24 +109,27 @@ class MigrateToRoutes implements SchemaMigration {
 		if (!in_array('discord', $defaultMode, true)) {
 			return;
 		}
-		$route = $this->addRoute(
+		$this->addRoute(
 			$db,
 			Source::DISCORD_PRIV . "({$channel->name})",
 		);
+		/*
 		try {
 			$msgRoute = $this->messageHub->createMessageRoute($route);
 			$this->messageHub->addRoute($msgRoute);
 		} catch (Throwable) {
 			// Ain't nothing we can do, errors will be given on next restart
 		}
+		*/
 	}
 
-	private function addRoute(DB $db, string $to): Route {
-		$route = new Route(
-			source: Source::SYSTEM . '(timers)',
-			destination: $to,
-		);
-		$db->insert($route);
+	/** @return array<string,mixed> */
+	private function addRoute(DB $db, string $to): array {
+		$route = [
+			'source' => Source::SYSTEM . '(timers)',
+			'destination' => $to,
+		];
+		$db->table(Route::getTable())->insert($route);
 		return $route;
 	}
 }

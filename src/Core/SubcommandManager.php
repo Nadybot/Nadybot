@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	DBSchema\CmdPermission,
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 
 #[NCA\Instance]
 class SubcommandManager {
@@ -99,6 +100,7 @@ class SubcommandManager {
 						'access_level' => $accessLevel,
 						'cmd' => $command,
 						'enabled' => (bool)$status,
+						'id' => Uuid::uuid7(),
 					],
 				);
 		}

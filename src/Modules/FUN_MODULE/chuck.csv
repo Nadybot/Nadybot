@@ -1,5 +1,6 @@
 # Table: fun
 # Replaces: type=chuck
+# uuid: id
 type,content
 chuck,"Chuck Norris counted to infinity - twice."
 chuck,"Some kids piss their name in the snow. Chuck Norris can piss his name into concrete."

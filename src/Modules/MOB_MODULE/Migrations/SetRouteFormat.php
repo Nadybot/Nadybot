@@ -10,15 +10,15 @@ use Psr\Log\LoggerInterface;
 #[NCA\Migration(order: 2023_03_31_21_14_36)]
 class SetRouteFormat implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$db->insert(new RouteHopFormat(
-			hop: 'mobs',
-			render: false,
-			format: 'MOBS',
-		));
+		$db->table(RouteHopFormat::getTable())->insert([
+			'hop' => 'mobs',
+			'render' => false,
+			'format' => 'MOBS',
+		]);
 
-		$db->insert(new RouteHopColor(
-			hop: 'mobs',
-			tag_color: '00A9B5',
-		));
+		$db->table(RouteHopColor::getTable())->insert([
+			'hop' => 'mobs',
+			'tag_color' => '00A9B5',
+		]);
 	}
 }

@@ -1,5 +1,6 @@
 # Table: fun
 # Replaces: type=compliment
+# uuid: id
 type,content
 compliment,"You're the only person I want to come back to when it feels like the rest of the world has become too much."
 compliment,"Your bellybutton is kind of adorable."

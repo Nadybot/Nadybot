@@ -29,16 +29,16 @@ class InitializeRouting implements SchemaMigration {
 			$db->table(Route::getTable())->insert($route);
 		}
 
-		$db->insert(new RouteHopFormat(
-			hop: 'highnet',
-			render: true,
-			format: '@%s',
-		));
+		$db->table(RouteHopFormat::getTable())->insert([
+			'hop' => 'highnet',
+			'render' => true,
+			'format' => '@%s',
+		]);
 
-		$db->insert(new RouteHopColor(
-			hop: 'highnet',
-			tag_color: '00EFFF',
-			text_color: '00BFFF',
-		));
+		$db->table(RouteHopColor::getTable())->insert([
+			'hop' => 'highnet',
+			'tag_color' => '00EFFF',
+			'text_color' => '00BFFF',
+		]);
 	}
 }
