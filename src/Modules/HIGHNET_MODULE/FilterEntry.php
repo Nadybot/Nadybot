@@ -3,12 +3,15 @@
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'highnet_filter')]
 class FilterEntry extends DBTable {
+	#[NCA\DB\PK] public UuidInterface $id;
+
 	public function __construct(
 		public string $creator,
-		#[NCA\DB\AutoInc] public ?int $id=null,
+		?UuidInterface $id=null,
 		public ?string $sender_name=null,
 		public ?int $sender_uid=null,
 		public ?string $bot_name=null,
@@ -17,6 +20,7 @@ class FilterEntry extends DBTable {
 		public ?int $dimension=null,
 		public ?int $expires=null,
 	) {
+		$this->id = $id ?? Uuid::uuid7();
 	}
 
 	public function matches(Message $message): bool {

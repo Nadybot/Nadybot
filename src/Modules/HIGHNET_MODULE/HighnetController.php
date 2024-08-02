@@ -645,7 +645,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		CmdContext $context,
 		#[NCA\Str('filter')] string $filter,
 		PRemove $action,
-		int $id
+		string $id
 	): void {
 		/** @var ?FilterEntry */
 		$filter = $this->db
@@ -654,7 +654,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			->asObj(FilterEntry::class)
 			->first();
 		if (!isset($filter)) {
-			$context->reply("Highnet filter <highlight>#{$id}<end> does not exist.");
+			$context->reply("Highnet filter <highlight>{$id}<end> does not exist.");
 			return;
 		}
 		if (!isset($filter->expires)) {
@@ -1017,7 +1017,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			}
 			$entry->expires = time() + $secDuration;
 		}
-		$entry->id = $this->db->insert($entry);
+		$this->db->insert($entry);
 		$this->reloadFilters();
 		$context->reply('Filter ' . $this->getFilterDescr($entry) . ' added.');
 	}
