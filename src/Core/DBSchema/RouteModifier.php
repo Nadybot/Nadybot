@@ -3,22 +3,26 @@
 namespace Nadybot\Core\DBSchema;
 
 use Nadybot\Core\{Attributes as NCA, DBTable};
-use Ramsey\Uuid\UuidInterface;
+use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'route_modifier')]
 class RouteModifier extends DBTable {
+	/** The id of the route modifier. Lower id means higher priority */
+	#[NCA\DB\PK] public UuidInterface $id;
+
 	/**
 	 * @param string                      $modifier  The name of the modifier
-	 * @param ?int                        $id        The id of the route modifier. Lower id means higher priority
-	 * @param ?UuidInterface              $route_id  The id of the route where this modifier belongs to
+	 * @param UuidInterface               $route_id  The id of the route where this modifier belongs to
+	 * @param ?UuidInterface              $id        The id of the route modifier. Lower id means higher priority
 	 * @param list<RouteModifierArgument> $arguments
 	 */
 	public function __construct(
 		public string $modifier,
-		#[NCA\DB\AutoInc] public ?int $id=null,
-		public ?UuidInterface $route_id=null,
+		public UuidInterface $route_id,
+		?UuidInterface $id=null,
 		#[NCA\DB\Ignore] public array $arguments=[],
 	) {
+		$this->id = $id ?? Uuid::uuid7();
 	}
 
 	public function toString(bool $asLink=false): string {

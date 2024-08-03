@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\MESSAGES;
 
 use function Safe\json_decode;
-use Nadybot\Core\DBSchema\{RouteModifier, RouteModifierArgument};
+use Nadybot\Core\DBSchema\{Route, RouteModifier, RouteModifierArgument};
 use ParserGenerator\Parser;
 
 use ParserGenerator\SyntaxTreeNode\{Branch, Root};
@@ -44,7 +44,7 @@ class ModifierExpressionParser {
 	 *
 	 * @throws ModifierParserException
 	 */
-	public function parse(string $input): array {
+	public function parse(Route $route, string $input): array {
 		$parser = $this->getParser();
 
 		/** @var Root|false */
@@ -76,27 +76,28 @@ class ModifierExpressionParser {
 		$modifiers = $expr->findAll('modifier');
 		$result = [];
 		foreach ($modifiers as $modifier) {
-			$result []= $this->parseModifier($modifier);
+			$result []= $this->parseModifier($route, $modifier);
 		}
 		return $result;
 	}
 
-	protected function parseModifier(Branch $modifier): RouteModifier {
-		$modifierArguments = [];
-		foreach ($modifier->findAll('argument') as $argument) {
-			$modifierArguments []= $this->parseArgument($argument);
-		}
+	protected function parseModifier(Route $route, Branch $modifier): RouteModifier {
 		$modifierName = $modifier->findFirst('modifierName')?->toString();
 		if (!isset($modifierName)) {
 			throw new \Exception('Invalid expression structure');
 		}
-		return new RouteModifier(
+		$routeModifier = new RouteModifier(
+			route_id: $route->id,
 			modifier: $modifierName,
-			arguments: $modifierArguments,
+			arguments: [],
 		);
+		foreach ($modifier->findAll('argument') as $argument) {
+			$routeModifier->arguments []= $this->parseArgument($routeModifier, $argument);
+		}
+		return $routeModifier;
 	}
 
-	protected function parseArgument(Branch $argument): RouteModifierArgument {
+	protected function parseArgument(RouteModifier $routeModifier, Branch $argument): RouteModifierArgument {
 		$name = $argument->findFirst('key')?->toString();
 		$value = $argument->findFirst('value');
 		if (!isset($name) || !isset($value)) {
@@ -107,7 +108,11 @@ class ModifierExpressionParser {
 		} else {
 			$value = $value->toString();
 		}
-		$result = new RouteModifierArgument(name: $name, value: $value);
+		$result = new RouteModifierArgument(
+			name: $name,
+			value: $value,
+			route_modifier_id: $routeModifier->id,
+		);
 		return $result;
 	}
 }

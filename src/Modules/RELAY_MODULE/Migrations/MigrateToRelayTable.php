@@ -23,7 +23,6 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayLayerArgument,
 };
 use Psr\Log\LoggerInterface;
-use Ramsey\Uuid\{UuidInterface};
 
 #[NCA\Migration(order: 2021_08_17_09_03_34)]
 class MigrateToRelayTable implements SchemaMigration {
@@ -68,21 +67,21 @@ class MigrateToRelayTable implements SchemaMigration {
 		return $relayLogon;
 	}
 
-	protected function addMod(DB $db, UuidInterface $routeId, string $modifier): int {
-		return $db->insert(new RouteModifier(
-			route_id: $routeId,
-			modifier: $modifier,
-		));
+	protected function addMod(DB $db, int $routeId, string $modifier): int {
+		return $db->table(RouteModifier::getTable())->insertGetId([
+			'route_id' => $routeId,
+			'modifier' => $modifier,
+		]);
 	}
 
 	/** @param array<string,mixed> $kv */
 	protected function addArgs(DB $db, int $modId, array $kv): void {
 		foreach ($kv as $name => $value) {
-			$db->insert(new RouteModifierArgument(
-				route_modifier_id: $modId,
-				name: $name,
-				value: (string)$value,
-			));
+			$db->table(RouteModifierArgument::getTable())->insert([
+				'route_modifier_id' => $modId,
+				'name' => $name,
+				'value' => (string)$value,
+			]);
 		}
 	}
 
@@ -142,34 +141,26 @@ class MigrateToRelayTable implements SchemaMigration {
 	protected function addRouting(DB $db, RelayConfig $relay): void {
 		$guestRelay = $this->getSetting($db, 'guest_relay');
 
-		/** @var list<UuidInterface> */
 		$routesOut = [];
-		$route = new Route(
-			source: Source::RELAY . "({$relay->name})",
-			destination: Source::ORG,
-		);
-		$db->insert($route);
-		$routeInOrg = $route->id;
-		$route = new Route(
-			source: Source::ORG,
-			destination: Source::RELAY . "({$relay->name})",
-		);
-		$db->insert($route);
-		$routesOut []= $route->id;
+
+		$routeInOrg = $db->table(Route::getTable())->insertGetId([
+			'source' => Source::RELAY . "({$relay->name})",
+			'destination' => Source::ORG,
+		]);
+		$routesOut []= $db->table(Route::getTable())->insertGetId([
+			'source' => Source::ORG,
+			'destination' => Source::RELAY . "({$relay->name})",
+		]);
 
 		if (isset($guestRelay) && (int)$guestRelay->value) {
-			$route = new Route(
-				source: Source::RELAY . "({$relay->name})",
-				destination: Source::PRIV . "({$this->config->main->character})",
-			);
-			$db->insert($route);
-			$routeInPriv = $route->id;
-			$route = new Route(
-				source: Source::PRIV . "({$this->config->main->character})",
-				destination: Source::RELAY . "({$relay->name})",
-			);
-			$db->insert($route);
-			$routesOut []= $route->id;
+			$routeInPriv = $db->table(Route::getTable())->insertGetId([
+				'source' => Source::RELAY . "({$relay->name})",
+				'destination' => Source::PRIV . "({$this->config->main->character})",
+			]);
+			$routesOut[] = $db->table(Route::getTable())->insertGetId([
+				'source' => Source::PRIV . "({$this->config->main->character})",
+				'destonation' => Source::RELAY . "({$relay->name})",
+			]);
 		}
 		$relayWhen = $this->getSetting($db, 'relay_symbol_method');
 		$relaySymbol = $this->getSetting($db, 'relaysymbol');

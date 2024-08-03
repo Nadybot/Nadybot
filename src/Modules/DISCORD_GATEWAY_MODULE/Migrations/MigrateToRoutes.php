@@ -114,19 +114,18 @@ class MigrateToRoutes implements SchemaMigration {
 			destination: $to,
 			two_way: true,
 		);
-		$db->table(Route::getTable())->insert([
+		$routeId = $db->table(Route::getTable())->insertGetId([
 			'source' => $route->source,
 			'destination' => $route->destination,
 			'two_way' => $route->two_way,
-			'id' => $route->id->toString(),
 		]);
 		if (!$relayCommands) {
 			$mod = new RouteModifier(
 				route_id: $route->id,
 				modifier: 'if-not-command',
 			);
-			$mod->id = $db->table(RouteModifier::getTable())->insertGetId([
-				'route_id' => $mod->route_id,
+			$db->table(RouteModifier::getTable())->insert([
+				'route_id' => $routeId,
 				'modifier' => $mod->modifier,
 			]);
 			$route->modifiers []= $mod;

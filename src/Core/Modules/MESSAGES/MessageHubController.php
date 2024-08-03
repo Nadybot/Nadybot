@@ -96,10 +96,8 @@ class MessageHubController extends ModuleInstance {
 			->orderBy('id')
 			->asObj(RouteModifier::class)
 			->each(static function (RouteModifier $mod) use ($arguments): void {
-				assert(isset($mod->id));
-
 				/** @var list<RouteModifierArgument> */
-				$modArguments = $arguments->get($mod->id, new Collection())->toList();
+				$modArguments = $arguments->get($mod->id->toString(), new Collection())->toList();
 				$mod->arguments = $modArguments;
 			})
 			->groupBy('route_id');
@@ -272,7 +270,7 @@ class MessageHubController extends ModuleInstance {
 		if (isset($modifiers)) {
 			$parser = new ModifierExpressionParser();
 			try {
-				$modifiers = $parser->parse($modifiers);
+				$modifiers = $parser->parse($route, $modifiers);
 			} catch (ModifierParserException $e) {
 				$context->reply($e->getMessage());
 				return;
@@ -280,14 +278,13 @@ class MessageHubController extends ModuleInstance {
 		}
 
 		/** @var ?list<RouteModifier> $modifiers */
+		$this->db->awaitBeginTransaction();
 		try {
 			$this->db->insert($route);
 			foreach ($modifiers??[] as $modifier) {
-				$modifier->route_id = $route->id;
-				$modifier->id = $this->db->insert($modifier);
+				$this->db->insert($modifier);
 				foreach ($modifier->arguments as $argument) {
-					$argument->route_modifier_id = $modifier->id;
-					$argument->id = $this->db->insert($argument);
+					$this->db->insert($argument);
 				}
 				$route->modifiers []= $modifier;
 			}
