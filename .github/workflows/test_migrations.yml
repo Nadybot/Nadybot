@@ -41,7 +41,7 @@ jobs:
     name: Test MySQL migrations
     services:
       mysql:
-        image: mysql:5.7
+        image: ghcr.io/rblaine95/mysql:5.7
         env:
           MYSQL_ROOT_PASSWORD: 123456
           MYSQL_USER: budabot
@@ -141,7 +141,7 @@ jobs:
     name: Test PostgreSQL migrations
     services:
       postgres:
-        image: postgres:9
+        image: ghcr.io/rblaine95/postgres:9
         env:
           POSTGRES_PASSWORD: 123456
           POSTGRES_USER: budabot
