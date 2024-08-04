@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Ramsey\Uuid\{Uuid, UuidInterface};
+use Safe\DateTimeImmutable;
 
 #[NCA\DB\Table(name: 'raid')]
 class Raid extends DBTable {
@@ -17,6 +19,9 @@ class Raid extends DBTable {
 	 * raid points for participation
 	 */
 	#[NCA\DB\Ignore] public int $last_award_from_ticker;
+
+	/** The internal ID of this raid */
+	#[NCA\DB\PK] public UuidInterface $raid_id;
 
 	/**
 	 * @param string                   $description            The description of the raid
@@ -35,7 +40,7 @@ class Raid extends DBTable {
 	 * @param ?int                     $max_members            Maximum number of allowed characters in the raid
 	 *                                                         If 0 or NULL, this is not limited
 	 * @param bool                     $ticker_paused          If set, then no points will be awarded until resumed
-	 * @param ?int                     $raid_id                The internal ID of this raid
+	 * @param ?UuidInterface           $raid_id                The internal ID of this raid
 	 * @param array<string,RaidMember> $raiders                List of all players who are or were in the raid
 	 * @param array<string,bool>       $pointsGiven            Internal array to track which mains already received points
 	 */
@@ -52,7 +57,7 @@ class Raid extends DBTable {
 		public ?string $stopped_by=null,
 		public ?int $max_members=null,
 		public bool $ticker_paused=false,
-		#[NCA\DB\AutoInc] public ?int $raid_id=null,
+		?UuidInterface $raid_id=null,
 		#[NCA\DB\Ignore] public array $raiders=[],
 		#[NCA\DB\Ignore] public array $pointsGiven=[],
 		#[NCA\DB\Ignore] public bool $we_are_most_recent_message=false,
@@ -60,6 +65,11 @@ class Raid extends DBTable {
 		$this->started = $started ?? time();
 		$this->last_announcement = $last_announcement ?? time();
 		$this->last_award_from_ticker = $last_award_from_ticker ?? time();
+		$dt = null;
+		if (isset($started) && !isset($raid_id)) {
+			$dt = (new DateTimeImmutable())->setTimestamp($started);
+		}
+		$this->raid_id = $raid_id ?? Uuid::uuid7($dt);
 	}
 
 	public function numActiveRaiders(): int {

@@ -41,8 +41,8 @@ class RaidExporter extends ModuleInstance implements ExporterInterface, Importer
 		/** @var array<string,ExportRaid> */
 		$raids = [];
 		foreach ($data as $raid) {
-			$raids[$raid->raid_id] ??= new ExportRaid(
-				raidId: $raid->raid_id,
+			$raids[$raid->raid_id->toString()] ??= new ExportRaid(
+				raidId: $raid->raid_id->toString(),
 				time: $raid->time,
 				raidDescription: $raid->description,
 				raidLocked: $raid->locked,
@@ -51,9 +51,9 @@ class RaidExporter extends ModuleInstance implements ExporterInterface, Importer
 				history: [],
 			);
 			if ($raid->seconds_per_point > 0) {
-				$raids[$raid->raid_id]->raidSecondsPerPoint = $raid->seconds_per_point;
+				$raids[$raid->raid_id->toString()]->raidSecondsPerPoint = $raid->seconds_per_point;
 			}
-			$raids[$raid->raid_id]->history []= new ExportRaidState(
+			$raids[$raid->raid_id->toString()]->history []= new ExportRaidState(
 				time: $raid->time,
 				raidDescription: $raid->description,
 				raidLocked: $raid->locked,
@@ -72,7 +72,7 @@ class RaidExporter extends ModuleInstance implements ExporterInterface, Importer
 			if (isset($raidMember->left)) {
 				$raider->leaveTime = $raidMember->left;
 			}
-			$raids[$raidMember->raid_id]->raiders []= $raider;
+			$raids[$raidMember->raid_id->toString()]->raiders []= $raider;
 		}
 		return array_values($raids);
 	}
@@ -128,13 +128,13 @@ class RaidExporter extends ModuleInstance implements ExporterInterface, Importer
 			announce_interval: $raid->raidAnnounceInterval ?? $this->settingManager->getInt('raid_announcement_interval') ?? 0,
 			locked: $raid->raidLocked ?? false,
 		);
-		$raidId = $db->insert($entry);
+		$db->insert($entry);
 		$historyEntry = new RaidLog(
 			description: $entry->description,
 			seconds_per_point: $entry->seconds_per_point,
 			announce_interval: $entry->announce_interval,
 			locked: $entry->locked,
-			raid_id: $raidId,
+			raid_id: $entry->raid_id,
 			time: time(),
 		);
 		foreach ($raid->raiders??[] as $raider) {
@@ -143,7 +143,7 @@ class RaidExporter extends ModuleInstance implements ExporterInterface, Importer
 				continue;
 			}
 			$raiderEntry = new RaidMember(
-				raid_id: $raidId,
+				raid_id: $entry->raid_id,
 				player: $name,
 				joined: $raider->joinTime ?? time(),
 				left: $raider->leaveTime ?? time(),

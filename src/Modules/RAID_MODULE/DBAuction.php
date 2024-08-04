@@ -3,9 +3,12 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'auction')]
 class DBAuction extends DBTable {
+	#[NCA\DB\PK] public UuidInterface $id;
+
 	/**
 	 * @param string  $item       Item that was auctioned
 	 * @param string  $auctioneer Person auctioning the item
@@ -22,7 +25,8 @@ class DBAuction extends DBTable {
 		public int $end,
 		public bool $reimbursed,
 		public ?int $raid_id=null,
-		#[NCA\DB\AutoInc] public ?int $id=null,
+		?UuidInterface $id=null,
 	) {
+		$this->id = $id ?? Uuid::uuid7();
 	}
 }

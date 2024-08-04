@@ -6,7 +6,7 @@ use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 
 class ExportRaid {
 	/**
-	 * @param ?int               $raidId               The internal raid number, used so it can be referenced by the auctions
+	 * @param ?string            $raidId               The internal raid number, used so it can be referenced by the auctions
 	 * @param ?int               $time                 When did the raid start?
 	 * @param ?string            $raidDescription      What was raided?
 	 * @param ?bool              $raidLocked           Is/was the raid locked and only raid leaders were allowed to add raiders?
@@ -19,7 +19,7 @@ class ExportRaid {
 	 * @psalm-param ?list<ExportRaidState> $history
 	 */
 	public function __construct(
-		public ?int $raidId=null,
+		public ?string $raidId=null,
 		public ?int $time=null,
 		public ?string $raidDescription=null,
 		public ?bool $raidLocked=null,

@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	ModuleInstance
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use Throwable;
 
 /**
@@ -45,7 +46,7 @@ class RaidPointsLogExporter extends ModuleInstance implements ExporterInterface,
 					givenIndividually: $datum->individual,
 				);
 				if (isset($datum->raid_id)) {
-					$raidLog->raidId = $datum->raid_id;
+					$raidLog->raidId = $datum->raid_id->toString();
 				}
 				return $raidLog;
 			})->toList();
@@ -73,7 +74,7 @@ class RaidPointsLogExporter extends ModuleInstance implements ExporterInterface,
 					time: $point->time ?? time(),
 					changed_by: $point->givenBy?->tryGetName() ?? $this->config->main->character,
 					individual: $point->givenIndividually ?? true,
-					raid_id: $point->raidId ?? null,
+					raid_id: isset($point->raidId) ? Uuid::fromString($point->raidId) : null,
 					reason: $point->reason ?? 'Raid participation',
 					ticker: $point->givenByTick ?? false,
 				));
