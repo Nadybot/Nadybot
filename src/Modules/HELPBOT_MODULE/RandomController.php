@@ -5,7 +5,6 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 use function Safe\{preg_match_all, preg_split};
 use InvalidArgumentException;
 use Nadybot\Core\ParamClass\PItem;
-
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -219,25 +218,31 @@ class RandomController extends ModuleInstance {
 
 	/** Verify a roll */
 	#[NCA\HandlesCommand('verify')]
-	public function verifyCommand(CmdContext $context, int $rollId): void {
-		/** @var ?Roll */
-		$row = $this->db->table(Roll::getTable())
+	public function verifyCommand(CmdContext $context, string $rollId): void {
+		$roll = $this->db->table(Roll::getTable())
 			->where('id', $rollId)
 			->asObj(Roll::class)
 			->first();
-		if ($row === null) {
+		if ($roll === null) {
 			$msg = "Roll number <highlight>{$rollId}<end> does not exist.";
 		} else {
-			$options = isset($row->options) ? explode('|', $row->options) : ['&lt;none&gt;'];
-			$result = isset($row->result) ? explode('|', $row->result) : ['&lt;none&gt;'];
-			$time = 'an unknown time';
-			if (isset($row->time)) {
-				$time = Util::unixtimeToReadable(time() - $row->time);
+			$msg = $this->renderRollVerify($roll);
+			$lines = $this->db->table(Roll::getTable())
+				->where('id', '<', $rollId)
+				->orderByDesc('id')
+				->limit(3)
+				->asObj(Roll::class)
+				->map(function (Roll $roll): string {
+					return $this->renderRollVerify($roll);
+				});
+			if ($lines->isNotEmpty()) {
+				$blob = $this->text->makeBlob(
+					'previous rolls',
+					$lines->join("\n\n"),
+					'Results of previous rolls'
+				);
+				$msg = Text::blobWrap($msg . ' [', $blob, ']');
 			}
-			$msg = $this->joinOptions($result, 'highlight').
-				" rolled by <highlight>{$row->name}<end> {$time} ago.\n".
-				'Possible options were: '.
-				$this->joinOptions($options, 'highlight') . '.';
 		}
 
 		$context->reply($msg);
@@ -251,7 +256,7 @@ class RandomController extends ModuleInstance {
 	 *
 	 * @return array An array with the roll number and the chosen option
 	 *
-	 * @psalm-return array{0:int, 1:string}
+	 * @psalm-return array{0:\Ramsey\Uuid\UuidInterface, 1:string}
 	 *
 	 * @throws SQLException on SQL errors
 	 */
@@ -263,14 +268,12 @@ class RandomController extends ModuleInstance {
 		mt_srand();
 		$result = (array)array_rand($revOptions, $amount);
 		$result = implode('|', $result);
-		$id = $this->db->table(Roll::getTable())
-			->insertGetId([
-				'time' => time(),
-				'name' => $sender,
-				'options' => implode('|', $options),
-				'result' => $result,
-			]);
-		return [$id, $result];
+		$this->db->insert($roll = new Roll(
+			name : $sender,
+			options : implode('|', $options),
+			result : $result,
+		));
+		return [$roll->id, $result];
 	}
 
 	/**
@@ -293,5 +296,18 @@ class RandomController extends ModuleInstance {
 			$options = [implode("{$endTag}, {$startTag}", $options)];
 		}
 		return "{$startTag}" . implode("{$endTag} and {$startTag}", [...$options, $lastOption]) . "{$endTag}";
+	}
+
+	private function renderRollVerify(Roll $roll): string {
+		$options = isset($roll->options) ? explode('|', $roll->options) : ['&lt;none&gt;'];
+		$result = isset($roll->result) ? explode('|', $roll->result) : ['&lt;none&gt;'];
+		$time = 'an unknown time';
+		if (isset($roll->time)) {
+			$time = Util::unixtimeToReadable(time() - $roll->time);
+		}
+		return $this->joinOptions($result, 'highlight').
+			" rolled by <highlight>{$roll->name}<end> {$time} ago.\n".
+			'Possible options were: '.
+			$this->joinOptions($options, 'highlight') . '.';
 	}
 }
