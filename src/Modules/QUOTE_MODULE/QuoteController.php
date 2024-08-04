@@ -69,13 +69,12 @@ class QuoteController extends ModuleInstance {
 		}
 		$poster = $context->char->name;
 
-		$id = $this->db->table(Quote::getTable())
-			->insertGetId([
-				'poster' => $poster,
-				'dt' => time(),
-				'msg' => $quoteMsg,
-			]);
-		$msg = "Quote <highlight>{$id}<end> has been added.";
+		$this->db->insert($quote = new Quote(
+			poster: $poster,
+			dt: time(),
+			msg: $quoteMsg,
+		));
+		$msg = "Quote <highlight>{$quote->id}<end> has been added.";
 		$context->reply($msg);
 	}
 
@@ -84,7 +83,7 @@ class QuoteController extends ModuleInstance {
 	public function quoteRemoveCommand(
 		CmdContext $context,
 		PRemove $action,
-		int $id
+		string $id
 	): void {
 		/** @var ?Quote */
 		$row = $this->db->table(Quote::getTable())
@@ -165,7 +164,7 @@ class QuoteController extends ModuleInstance {
 	public function quoteShowCommand(
 		CmdContext $context,
 		#[NCA\StrChoice('org', 'priv')] ?string $channel,
-		int $id
+		string $id
 	): void {
 		$result = $this->getQuoteInfo($id);
 
@@ -200,13 +199,9 @@ class QuoteController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	public function getMaxId(): int {
-		return (int)($this->db->table(Quote::getTable())->max('id') ?? 0);
-	}
-
 	/** @return ?list<string> */
-	public function getQuoteInfo(?int $id=null): ?array {
-		$count = $this->getMaxId();
+	public function getQuoteInfo(null|string|\Stringable $id=null): ?array {
+		$count = $this->db->table(Quote::getTable())->count();
 
 		if ($count === 0) {
 			return null;
@@ -224,7 +219,7 @@ class QuoteController extends ModuleInstance {
 		}
 
 		/** @var ?Quote $row */
-		if ($row === null || $row->id === null) {
+		if (!isset($row)) {
 			return null;
 		}
 
