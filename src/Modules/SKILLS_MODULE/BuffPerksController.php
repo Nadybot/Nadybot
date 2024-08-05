@@ -551,35 +551,33 @@ class BuffPerksController extends ModuleInstance {
 			$resInserts = [];
 			$buffInserts = [];
 			foreach ($perkInfo as $perk) {
-				$perk->id = $this->db->insert($perk);
+				$this->db->insert($perk);
 
 				foreach ($perk->levels as $level) {
-					$level->perk_id = $perk->id;
-					$level->id = $this->db->insert($level);
+					$this->db->insert($level);
 
 					foreach ($level->professions as $profession) {
 						$profInserts []= [
-							'perk_level_id' => $level->id,
+							'perk_level_id' => $level->id->toString(),
 							'profession' => $profession,
 						];
 					}
 
 					foreach ($level->resistances as $strain => $amount) {
 						$resInserts []= [
-							'perk_level_id' => $level->id,
+							'perk_level_id' => $level->id->toString(),
 							'strain_id' => $strain,
 							'amount' => $amount,
 						];
 					}
 
 					if ($level->action) {
-						$level->action->perk_level_id = $level->id;
 						$this->db->insert($level->action);
 					}
 
 					foreach ($level->buffs as $skillId => $amount) {
 						$buffInserts []= [
-							'perk_level_id' => $level->id,
+							'perk_level_id' => $level->id->toString(),
 							'skill_id' => $skillId,
 							'amount' => $amount,
 						];
@@ -649,7 +647,7 @@ class BuffPerksController extends ModuleInstance {
 			}
 
 			$level = new PerkLevel(
-				perk_id: -1, // Will be filled out by the perk itself
+				perk_id: $perk->id,
 				perk_level: (int)$perkLevel,
 				required_level: (int)$requiredLevel,
 				aoid: (int)$aoid,
@@ -707,6 +705,7 @@ class BuffPerksController extends ModuleInstance {
 					action_id: $actionId,
 					scaling: $count > 0,
 					perk_level: $level->perk_level,
+					perk_level_id: $level->id,
 					aodb: $this->itemsController->getByIDs($actionId)->first(),
 				);
 			}

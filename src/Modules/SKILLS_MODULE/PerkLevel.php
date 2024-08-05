@@ -3,11 +3,14 @@
 namespace Nadybot\Modules\SKILLS_MODULE;
 
 use Nadybot\Core\{Attributes\DB, DBTable};
+use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[DB\Table(name: 'perk_level', shared: DB\Shared::Yes)]
 class PerkLevel extends DBTable {
+	#[DB\PK] public UuidInterface $id;
+
 	/**
-	 * @param int                       $perk_id          The internal ID of the perk line
+	 * @param UuidInterface             $perk_id          The internal ID of the perk line
 	 * @param int                       $perk_level       Which level of $perk_id does this represent?
 	 * @param int                       $required_level   Required character level to perk this perk level
 	 * @param ?int                      $aoid             The internal ID of the perk level in AO
@@ -18,10 +21,10 @@ class PerkLevel extends DBTable {
 	 * @param list<PerkLevelResistance> $perk_resistances
 	 */
 	public function __construct(
-		public int $perk_id,
+		public UuidInterface $perk_id,
 		public int $perk_level,
 		public int $required_level,
-		#[DB\AutoInc] public ?int $id=null,
+		?UuidInterface $id=null,
 		public ?int $aoid=null,
 		#[DB\Ignore] public array $professions=[],
 		#[DB\Ignore] public array $buffs=[],
@@ -30,5 +33,6 @@ class PerkLevel extends DBTable {
 		#[DB\Ignore] public array $perk_resistances=[],
 		#[DB\Ignore] public ?PerkLevelAction $action=null,
 	) {
+		$this->id = $id ?? Uuid::uuid7();
 	}
 }
