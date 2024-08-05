@@ -24,6 +24,7 @@ use Nadybot\Core\{
 	Text,
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use Safe\DateTimeImmutable;
 use Throwable;
 
@@ -743,7 +744,12 @@ class RaidPointsController extends ModuleInstance {
 		PRemove $action,
 		PNonNumberWord $name
 	): void {
-		$reward = $this->getRaidReward($name());
+		$name = $name();
+		if (Uuid::isValid($name) || ctype_digit($name)) {
+			$this->rewardRemIdCommand($context, $action, new PUuid($name));
+			return;
+		}
+		$reward = $this->getRaidReward($name);
 		if (!isset($reward) || !isset($reward->id)) {
 			$context->reply("The raid reward <highlight>{$name}<end> does not exist.");
 			return;
@@ -754,6 +760,7 @@ class RaidPointsController extends ModuleInstance {
 	/** Remove a pre-defined raid reward */
 	#[NCA\HandlesCommand(self::CMD_REWARD_EDIT)]
 	public function rewardRemIdCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+		$id = $id();
 		$deleted = $this->db->table(RaidReward::getTable())->delete($id);
 		if ($deleted) {
 			$context->reply("Raid reward <highlight>{$id}<end> successfully deleted.");
