@@ -5,6 +5,7 @@ namespace Nadybot\Modules\TRADEBOT_MODULE;
 use function Safe\preg_match;
 use AO\Package;
 use Nadybot\Core\Events\{ConnectEvent, ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -325,12 +326,13 @@ class TradebotController extends ModuleInstance {
 
 	/** Remove a custom defined color */
 	#[NCA\HandlesCommand('tradecolor')]
-	public function remTradecolorCommand(CmdContext $context, PRemove $action, int $id): void {
+	public function remTradecolorCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+		$id = $id();
 		if (!$this->db->table(TradebotColors::getTable())->delete($id)) {
-			$context->reply("Tradebot color <highlight>#{$id}<end> doesn't exist.");
+			$context->reply("Tradebot color <highlight>{$id}<end> doesn't exist.");
 			return;
 		}
-		$context->reply("Tradebot color <highlight>#{$id}<end> deleted.");
+		$context->reply("Tradebot color <highlight>{$id}<end> deleted.");
 	}
 
 	/** Configure the tag-colors, based on the channel and the tradebot */
@@ -376,7 +378,7 @@ class TradebotController extends ModuleInstance {
 			$colorDef->id = $oldValue->id;
 			$this->db->update($colorDef);
 		} else {
-			$colorDef->id = $this->db->insert($colorDef);
+			$this->db->insert($colorDef);
 		}
 		$context->reply(
 			"Color for <highlight>{$tradeBot} &gt; [{$tag}]<end> set to ".

@@ -100,7 +100,7 @@ class PollsExporter extends ModuleInstance implements ExporterInterface, Importe
 
 	/** Import a single poll and its votes */
 	private function importPoll(DB $db, ExportPoll $poll): void {
-		$pollId = $db->insert(new Poll(
+		$dbPoll = new Poll(
 			author: $poll->author?->tryGetName() ?? $this->config->main->character,
 			question: $poll->question,
 			possible_answers: json_encode(
@@ -112,11 +112,12 @@ class PollsExporter extends ModuleInstance implements ExporterInterface, Importe
 			started: $poll->startTime ?? time(),
 			duration: ($poll->endTime ?? time()) - ($poll->startTime ?? time()),
 			status: VoteController::STATUS_STARTED,
-		));
+		);
+		$db->insert($dbPoll);
 		foreach ($poll->answers??[] as $answer) {
 			foreach ($answer->votes??[] as $vote) {
 				$db->insert(new Vote(
-					poll_id: $pollId,
+					poll_id: $dbPoll->id,
 					author: $vote->character?->tryGetName() ?? 'Unknown',
 					answer: $answer->answer,
 					time: $vote->voteTime ?? time(),

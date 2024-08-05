@@ -4,6 +4,7 @@ namespace Nadybot\Modules\VOTE_MODULE;
 
 use function Safe\{json_decode, json_encode};
 use Nadybot\Core\Events\TimerEvent;
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -74,7 +75,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
 
-	/** @var array<int,Poll> */
+	/** @var array<string,Poll> */
 	private $polls = [];
 
 	#[NCA\Setup]
@@ -93,14 +94,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			->asObj(Poll::class)
 			->each(function (Poll $topic): void {
 				$topic->answers = json_decode($topic->possible_answers, false);
-				if (isset($topic->id)) {
-					$this->polls[$topic->id] = $topic;
-				}
+				$this->polls[$topic->id->toString()] = $topic;
 			});
 	}
 
-	public function getPoll(int $id, ?string $creator=null): ?Poll {
-		$query = $this->db->table(Poll::getTable())->where('id', $id);
+	public function getPoll(\Stringable|string $id, ?string $creator=null): ?Poll {
+		$query = $this->db->table(Poll::getTable())->where('id', (string)$id);
 		if ($creator !== null) {
 			$query->where('owner', $creator);
 		}
@@ -228,7 +227,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	/** Delete a poll */
 	#[NCA\HandlesCommand('poll')]
 	#[NCA\Help\Group('voting')]
-	public function pollKillCommand(CmdContext $context, PRemove $action, int $pollId): void {
+	public function pollKillCommand(
+		CmdContext $context,
+		PRemove $action,
+		PUuid $pollId
+	): void {
+		$pollId = $pollId();
 		$owner = null;
 		if (!$this->accessManager->checkAccess($context->char->name, 'moderator')) {
 			$owner = $context->char->name;
@@ -243,7 +247,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$this->db->table(Vote::getTable())->where('poll_id', $topic->id)->delete();
 		$this->db->table(Poll::getTable())->delete($topic->id);
 		$ePoll = clone $topic;
-		unset($this->polls[$topic->id]);
+		unset($this->polls[$topic->id->toString()]);
 		$msg = "The poll <highlight>{$topic->question}<end> has been removed.";
 		$context->reply($msg);
 		$event = new PollDelEvent(poll: $ePoll, votes: []);
@@ -253,9 +257,14 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	/** Remove your vote from a running poll */
 	#[NCA\HandlesCommand('vote')]
 	#[NCA\Help\Group('voting')]
-	public function voteRemoveCommand(CmdContext $context, PRemove $action, int $pollId): void {
+	public function voteRemoveCommand(
+		CmdContext $context,
+		PRemove $action,
+		PUuid $pollId
+	): void {
+		$pollId = $pollId();
 		if (!isset($this->polls[$pollId])) {
-			$msg = "There is no active poll Nr. <highlight>{$pollId}<end>.";
+			$msg = "There is no active poll <highlight>{$pollId}<end>.";
 			$context->reply($msg);
 			return;
 		}
@@ -281,7 +290,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	/** End a poll (voting will end in 60 seconds) */
 	#[NCA\HandlesCommand('poll')]
 	#[NCA\Help\Group('voting')]
-	public function pollEndCommand(CmdContext $context, #[NCA\Str('end')] string $action, int $pollId): void {
+	public function pollEndCommand(
+		CmdContext $context,
+		#[NCA\Str('end')] string $action,
+		PUuid $pollId
+	): void {
+		$pollId = $pollId();
 		$topic = $this->getPoll($pollId);
 
 		if ($topic === null) {
@@ -309,10 +323,15 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	/** View a specific poll */
 	#[NCA\HandlesCommand('poll')]
 	#[NCA\Help\Group('voting')]
-	public function voteShowCommand(CmdContext $context, #[NCA\Str('show', 'view')] ?string $action, int $id): void {
+	public function voteShowCommand(
+		CmdContext $context,
+		#[NCA\Str('show', 'view')] ?string $action,
+		PUuid $id
+	): void {
+		$id = $id();
 		$topic = $this->getPoll($id);
 		if ($topic === null) {
-			$context->reply("There is no poll Nr. <highlight>{$id}<end>.");
+			$context->reply("There is no poll <highlight>{$id}<end>.");
 			return;
 		}
 
@@ -342,10 +361,11 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	/** Vote for a poll */
 	#[NCA\HandlesCommand('vote')]
 	#[NCA\Help\Group('voting')]
-	public function voteCommand(CmdContext $context, int $pollId, string $answer): void {
+	public function voteCommand(CmdContext $context, PUuid $pollId, string $answer): void {
+		$pollId = $pollId();
 		$topic = $this->getPoll($pollId);
 		if ($topic === null) {
-			$msg = "Poll Nr. <highlight>{$pollId}<end> does not exist.";
+			$msg = "The poll <highlight>{$pollId}<end> does not exist.";
 			$context->reply($msg);
 			return;
 		}
@@ -393,7 +413,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 				author: $context->char->name,
 				answer: $answer,
 				time: time(),
-				poll_id: $pollId,
+				poll_id: $topic->id,
 			));
 			$msg = "You have voted <highlight>{$answer}<end> for \"{$topic->question}\".";
 			$event = new VoteCastEvent(
@@ -450,8 +470,8 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			status: self::STATUS_CREATED,
 		);
 
-		$topic->id = $this->db->insert($topic);
-		$this->polls[$topic->id] = $topic;
+		$this->db->insert($topic);
+		$this->polls[$topic->id->toString()] = $topic;
 		$msg = "Poll <highlight>{$topic->id}<end> has been created.";
 
 		$context->reply($msg);
