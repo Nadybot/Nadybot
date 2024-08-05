@@ -5,6 +5,7 @@ namespace Nadybot\Modules\TIMERS_MODULE;
 use function Safe\{preg_match};
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -26,8 +27,8 @@ use Nadybot\Core\{
 	Types\MessageEmitter,
 	Util,
 };
-
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\{Uuid, UuidInterface};
 use ReflectionClass;
 
 /**
@@ -200,10 +201,17 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		}
 		$endTime = (int)$timer->data + $alert->time;
 		$alerts = $this->generateAlerts($timer->owner, $timer->name, $endTime, explode(' ', $this->timerAlertTimes));
-		if (isset($timer->id)) {
-			$this->remove($timer->id);
-		}
-		$this->add($timer->name, $timer->owner, $timer->mode, $alerts, $timer->callback, $timer->data, $timer->origin, $timer->id);
+		$this->remove($timer->id);
+		$this->add(
+			name: $timer->name,
+			owner: $timer->owner,
+			mode: $timer->mode,
+			alerts: $alerts,
+			callback: $timer->callback,
+			data: $timer->data,
+			origin: $timer->origin,
+			id: $timer->id
+		);
 	}
 
 	public function sendAlertMessage(Timer $timer, Alert $alert): void {
@@ -347,7 +355,8 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	 */
 	#[NCA\HandlesCommand('timers')]
 	#[NCA\Help\Group('timers')]
-	public function timersRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
+	public function timersRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+		$id = $id();
 		$timer = $this->get($id);
 		if ($timer === null) {
 			$msg = "Could not find timer <highlight>#{$id}<end>.";
@@ -512,7 +521,16 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** @param list<Alert> $alerts */
-	public function add(string $name, string $owner, ?string $mode, array $alerts, string $callback, ?string $data=null, ?string $origin=null, ?int $id=null): int {
+	public function add(
+		string $name,
+		string $owner,
+		?string $mode,
+		array $alerts,
+		string $callback,
+		?string $data=null,
+		?string $origin=null,
+		?UuidInterface $id=null
+	): Timer {
 		usort($alerts, static function (Alert $a, Alert $b): int {
 			return $a->time <=> $b->time;
 		});
@@ -534,15 +552,16 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 
 		$event = new TimerStartEvent(timer: $timer);
 
-		$timer->id = $this->db->insert($timer);
+		$this->db->insert($timer);
 
 		$this->timers[strtolower($name)] = $timer;
 		$this->eventManager->fireEvent($event);
-		return $timer->id;
+		return $timer;
 	}
 
-	public function remove(string|int $name): void {
-		if (is_string($name)) {
+	public function remove(string|\Stringable $name): void {
+		$name = (string)$name;
+		if (!Uuid::isValid($name)) {
 			$this->db->table(Timer::getTable())
 				->whereIlike('name', $name)
 				->delete();
@@ -551,23 +570,20 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		}
 		$this->db->table(Timer::getTable())->delete($name);
 		foreach ($this->timers as $tName => $timer) {
-			if ($timer->id === $name) {
+			if ($timer->id->toString() === $name) {
 				unset($this->timers[$tName]);
 				return;
 			}
 		}
 	}
 
-	public function get(string|int $name): ?Timer {
+	public function get(\Stringable|string $name): ?Timer {
 		$timer = $this->timers[strtolower((string)$name)] ?? null;
 		if (isset($timer)) {
 			return $timer;
 		}
-		if (!preg_match("/^\d+$/", (string)$name)) {
-			return null;
-		}
 		foreach ($this->timers as $tName => $curTimer) {
-			if ($curTimer->id === (int)$name) {
+			if ($curTimer->id->toString() === (string)$name) {
 				return $curTimer;
 			}
 		}

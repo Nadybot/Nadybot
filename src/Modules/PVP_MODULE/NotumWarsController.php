@@ -909,11 +909,11 @@ class NotumWarsController extends ModuleInstance {
 		$this->timerController->remove($timer->name);
 
 		$this->timerController->add(
-			$timer->name,
-			$context->char->name,
-			$timer->mode,
-			$timer->alerts,
-			'timercontroller.timerCallback'
+			name: $timer->name,
+			owner: $context->char->name,
+			mode: $timer->mode,
+			alerts: $timer->alerts,
+			callback: 'timercontroller.timerCallback',
 		);
 	}
 
@@ -1551,11 +1551,11 @@ class NotumWarsController extends ModuleInstance {
 			$this->timerController->remove($timer->name);
 
 			$this->timerController->add(
-				$timer->name,
-				$this->config->main->character,
-				$timer->mode,
-				$timer->alerts,
-				'timercontroller.timerCallback'
+				name: $timer->name,
+				owner: $this->config->main->character,
+				mode: $timer->mode,
+				alerts: $timer->alerts,
+				callback: 'timercontroller.timerCallback',
 			);
 		}
 		// Send "WW 6 @ QL 112 destroyed [details]"-message

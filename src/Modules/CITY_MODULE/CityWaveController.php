@@ -201,11 +201,11 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		}
 		$this->timerController->remove(self::TIMER_NAME);
 		$this->timerController->add(
-			self::TIMER_NAME,
-			$this->config->main->character,
-			'none',
-			$alerts,
-			'citywavecontroller.timerCallback'
+			name: self::TIMER_NAME,
+			owner: $this->config->main->character,
+			mode: 'none',
+			alerts: $alerts,
+			callback: 'citywavecontroller.timerCallback',
 		);
 	}
 

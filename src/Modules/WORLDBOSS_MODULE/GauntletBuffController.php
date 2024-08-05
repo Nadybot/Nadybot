@@ -247,12 +247,12 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 
 		$this->timerController->remove("Gaubuff_{$side->lower()}");
 		$this->timerController->add(
-			"Gaubuff_{$side->lower()}",
-			$this->config->main->character,
-			'',
-			$alerts,
-			'GauntletBuffController.gaubuffcallback',
-			json_encode($data)
+			name: "Gaubuff_{$side->lower()}",
+			owner: $this->config->main->character,
+			mode: '',
+			alerts: $alerts,
+			callback: 'GauntletBuffController.gaubuffcallback',
+			data: json_encode($data)
 		);
 	}
 
