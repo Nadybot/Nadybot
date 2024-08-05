@@ -4,26 +4,31 @@ namespace Nadybot\Modules\RELAY_MODULE;
 
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'relay_layer')]
 class RelayLayer extends DBTable {
+	/** The id of the relay layer. Lower id means higher priority */
+	#[NCA\JSON\Ignore] #[NCA\DB\PK] public UuidInterface $id;
+
 	/**
 	 * @param string               $layer     Which relay stack layer does this represent?
-	 * @param ?int                 $id        The id of the relay layer. Lower id means higher priority
-	 * @param ?int                 $relay_id  The id of the relay where this layer belongs to
+	 * @param UuidInterface        $relay_id  The id of the relay where this layer belongs to
+	 * @param ?UuidInterface       $id        The id of the relay layer. Lower id means higher priority
 	 * @param RelayLayerArgument[] $arguments
 	 *
 	 * @psalm-param list<RelayLayerArgument> $arguments
 	 */
 	public function __construct(
 		public string $layer,
-		#[NCA\JSON\Ignore] #[NCA\DB\AutoInc] public ?int $id=null,
-		#[NCA\JSON\Ignore] public ?int $relay_id=null,
+		#[NCA\JSON\Ignore] public UuidInterface $relay_id,
+		?UuidInterface $id=null,
 		#[
 			NCA\DB\Ignore,
 			CastListToType(RelayLayerArgument::class)
 		] public array $arguments=[],
 	) {
+		$this->id = $id ?? Uuid::uuid7();
 	}
 
 	/** @param string[] $secrets */

@@ -45,7 +45,7 @@ class RelayLayerExpressionParser {
 	 *
 	 * @throws LayerParserException
 	 */
-	public function parse(string $input): array {
+	public function parse(RelayConfig $relay, string $input): array {
 		$parser = $this->getParser();
 		$expr = $parser->parse($input);
 		if ($expr === false) {
@@ -73,28 +73,28 @@ class RelayLayerExpressionParser {
 		$layers = $expr->findAll('layer');
 		$result = [];
 		foreach ($layers as $layer) {
-			$result []= $this->parselayer($layer);
+			$result []= $this->parselayer($relay, $layer);
 		}
 		return $result;
 	}
 
-	protected function parselayer(Branch $layer): RelayLayer {
-		$arguments = [];
-		foreach ($layer->findAll('argument') as $argument) {
-			$arguments []= $this->parseArgument($argument);
-		}
+	protected function parselayer(RelayConfig $relay, Branch $layer): RelayLayer {
 		$layerName = $layer->findFirst('layerName')?->toString();
 		if (!isset($layerName)) {
 			throw new Exception('Invalid Relay Layer structure');
 		}
 		$result = new RelayLayer(
+			relay_id: $relay->id,
 			layer: $layerName,
-			arguments: $arguments,
+			arguments: [],
 		);
+		foreach ($layer->findAll('argument') as $argument) {
+			$result->arguments []= $this->parseArgument($result, $argument);
+		}
 		return $result;
 	}
 
-	protected function parseArgument(Branch $argument): RelayLayerArgument {
+	protected function parseArgument(RelayLayer $layer, Branch $argument): RelayLayerArgument {
 		$name = $argument->findFirst('key')?->toString();
 		$value = $argument->findFirst('value');
 		if (!isset($name) || !isset($value)) {
@@ -105,7 +105,11 @@ class RelayLayerExpressionParser {
 		} else {
 			$value = $value->toString();
 		}
-		$result = new RelayLayerArgument(name: $name, value: $value);
+		$result = new RelayLayerArgument(
+			layer_id: $layer->id,
+			name: $name,
+			value: $value
+		);
 		return $result;
 	}
 }

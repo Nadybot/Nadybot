@@ -4,21 +4,24 @@ namespace Nadybot\Modules\RELAY_MODULE;
 
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'relay')]
 class RelayConfig extends DBTable {
+	#[NCA\JSON\Ignore] #[NCA\DB\PK] public UuidInterface $id;
+
 	/**
-	 * @param string       $name   The name of this relay
-	 * @param ?int         $id     The unique ID of this relay config
-	 * @param RelayLayer[] $layers The individual layers that make up this relay
-	 * @param RelayEvent[] $events A list of events this relay allows in- and/or outbound
+	 * @param string         $name   The name of this relay
+	 * @param ?UuidInterface $id     The unique ID of this relay config
+	 * @param RelayLayer[]   $layers The individual layers that make up this relay
+	 * @param RelayEvent[]   $events A list of events this relay allows in- and/or outbound
 	 *
 	 * @psalm-param list<RelayLayer> $layers
 	 * @psalm-param list<RelayEvent> $events
 	 */
 	public function __construct(
 		public string $name,
-		#[NCA\JSON\Ignore] #[NCA\DB\AutoInc] public ?int $id=null,
+		?UuidInterface $id=null,
 		#[
 			NCA\DB\Ignore,
 			CastListToType(RelayLayer::class)
@@ -28,6 +31,7 @@ class RelayConfig extends DBTable {
 			CastListToType(RelayEvent::class)
 		] public array $events=[],
 	) {
+		$this->id = $id ?? Uuid::uuid7();
 	}
 
 	public function getEvent(string $name): ?RelayEvent {

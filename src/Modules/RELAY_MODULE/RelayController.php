@@ -10,6 +10,7 @@ use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Events\ConnectEvent;
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
 use Nadybot\Core\Types\AccessLevelProvider;
 use Nadybot\Core\{
@@ -40,6 +41,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\StatsController,
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use ReflectionClass;
 
 use ReflectionException;
@@ -384,7 +386,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		$relayConf = new RelayConfig(name: $name);
 		$parser = new RelayLayerExpressionParser();
 		try {
-			$relayConf->layers = $parser->parse($spec);
+			$relayConf->layers = $parser->parse($relayConf, $spec);
 		} catch (LayerParserException $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -427,18 +429,15 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			$transactionActive = true;
 		}
 		try {
-			$relayConf->id = $this->db->insert($relayConf);
+			$this->db->insert($relayConf);
 			foreach ($relayConf->layers as $layer) {
-				$layer->relay_id = $relayConf->id;
-				$layer->id = $this->db->insert($layer);
+				$this->db->insert($layer);
 				foreach ($layer->arguments as $argument) {
-					$argument->layer_id = $layer->id;
-					$argument->id = $this->db->insert($argument);
+					$this->db->insert($argument);
 				}
 			}
 			foreach ($relayConf->events as $event) {
-				$event->relay_id = $relayConf->id;
-				$event->id = $this->db->insert($event);
+				$this->db->insert($event);
 			}
 		} catch (Throwable $e) {
 			if ($transactionActive) {
@@ -564,9 +563,13 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	public function relayDescribeIdCommand(
 		CmdContext $context,
 		#[NCA\Str('describe')] string $action,
-		int $id
+		string $id
 	): void {
-		$this->relayDescribeCommand($context, $id, null);
+		if (Uuid::isValid($id)) {
+			$this->relayDescribeCommand($context, $id, null);
+		} else {
+			$this->relayDescribeCommand($context, null, $id);
+		}
 	}
 
 	/**
@@ -583,7 +586,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		$this->relayDescribeCommand($context, null, $name());
 	}
 
-	public function relayDescribeCommand(CmdContext $context, ?int $id, ?string $name): void {
+	public function relayDescribeCommand(CmdContext $context, null|\Stringable|string $id, ?string $name): void {
 		if (!$context->isDM()) {
 			$context->reply(
 				'Because the relay stack might contain passwords, '.
@@ -599,7 +602,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		if (!isset($relay)) {
 			$context->reply(
 				'Relay <highlight>'.
-				(isset($id) ? "#{$id}" : ($name??'unknown')).
+				(isset($id) ? "{$id}" : ($name??'unknown')).
 				'<end> not found.'
 			);
 			return;
@@ -640,8 +643,12 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Delete a relay */
 	#[NCA\HandlesCommand('relay')]
-	public function relayRemIdCommand(CmdContext $context, PRemove $action, int $id): void {
-		$this->relayRemCommand($context, $id, null);
+	public function relayRemIdCommand(CmdContext $context, PRemove $action, string $id): void {
+		if (Uuid::isValid($id)) {
+			$this->relayRemCommand($context, $id, null);
+		} else {
+			$this->relayRemCommand($context, null, $id);
+		}
 	}
 
 	/** Delete a relay */
@@ -650,7 +657,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		$this->relayRemCommand($context, null, $name());
 	}
 
-	public function relayRemCommand(CmdContext $context, ?int $id, ?string $name): void {
+	public function relayRemCommand(CmdContext $context, null|\Stringable|string $id, ?string $name): void {
 		$relay = isset($id)
 			? $this->getRelay($id)
 			: $this->getRelayByName($name??'');
@@ -682,7 +689,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Set if players from other relay-bots are treated as guests by this bot */
 	#[NCA\HandlesCommand('relay')]
-	public function relayGuestmodeCommand(CmdContext $context, #[NCA\Str('guestmode')] string $action, int $id, bool $on): void {
+	public function relayGuestmodeCommand(CmdContext $context, #[NCA\Str('guestmode')] string $action, PUuid $id, bool $on): void {
+		$id = $id();
 		$relay = $this->getRelay($id);
 		if (!isset($relay)) {
 			$context->reply("Relay <highlight>#{$id}<end> not found.");
@@ -701,24 +709,28 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Configure a relay. Only supported for nadynative */
 	#[NCA\HandlesCommand('relay')]
-	public function relayConfigIdCommand(CmdContext $context, #[NCA\Str('config')] string $action, int $id): void {
-		$this->relayConfigCommand($context, $id, null);
-	}
-
-	/** Configure a relay. Only supported for nadynative */
-	#[NCA\HandlesCommand('relay')]
 	public function relayConfigNameCommand(CmdContext $context, #[NCA\Str('config')] string $action, PNonNumberWord $name): void {
 		$this->relayConfigCommand($context, null, $name());
 	}
 
-	public function relayConfigCommand(CmdContext $context, ?int $id, ?string $name): void {
+	/** Configure a relay. Only supported for nadynative */
+	#[NCA\HandlesCommand('relay')]
+	public function relayConfigIdCommand(CmdContext $context, #[NCA\Str('config')] string $action, string $id): void {
+		if (Uuid::isValid($id)) {
+			$this->relayConfigCommand($context, $id, null);
+		} else {
+			$this->relayConfigCommand($context, null, $id);
+		}
+	}
+
+	public function relayConfigCommand(CmdContext $context, null|\Stringable|string $id, ?string $name): void {
 		$relay = isset($id)
 			? $this->getRelay($id)
 			: $this->getRelayByName($name??'');
 		if (!isset($relay)) {
 			$context->reply(
 				'Relay <highlight>'.
-				(isset($id) ? "#{$id}" : ($name??'unknown')).
+				(isset($id) ? "{$id}" : ($name??'unknown')).
 				'<end> not found.'
 			);
 			return;
@@ -851,7 +863,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 				incoming: stripos($dir, 'I') !== false,
 				outgoing: stripos($dir, 'O') !== false,
 			);
-			$event->id = $this->db->insert($event);
+			$this->db->insert($event);
 			$relay->addEvent($event);
 		}
 		$this->relays[$relay->name]->setEvents($relay->events);
@@ -886,7 +898,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			->asObj(RelayLayer::class)
 			->each(static function (RelayLayer $layer) use ($arguments): void {
 				assert(isset($layer->id));
-				$layer->arguments = $arguments->get($layer->id, new Collection())->toList();
+				$layer->arguments = $arguments->get($layer->id->toString(), new Collection())->toList();
 			})
 			->groupBy('relay_id');
 		$events = $this->db->table(RelayEvent::getTable())
@@ -898,8 +910,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			->asObj(RelayConfig::class)
 			->each(static function (RelayConfig $relay) use ($layers, $events): void {
 				assert(isset($relay->id));
-				$relay->layers = $layers->get($relay->id, new Collection())->toList();
-				$relay->events = $events->get($relay->id, new Collection())->toList();
+				$relay->layers = $layers->get($relay->id->toString(), new Collection())->toList();
+				$relay->events = $events->get($relay->id->toString(), new Collection())->toList();
 			})
 			->toList();
 
@@ -908,10 +920,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	/** Read a relay by its ID */
-	public function getRelay(int $id): ?RelayConfig {
+	public function getRelay(\Stringable|string $id): ?RelayConfig {
 		/** @var RelayConfig|null */
 		$relay = $this->db->table(RelayConfig::getTable())
-			->where('id', $id)
+			->where('id', (string)$id)
 			->limit(1)
 			->asObj(RelayConfig::class)
 			->first();
@@ -1124,6 +1136,9 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		if (!is_array($body)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
+		foreach ($body as &$item) {
+			$item['relay_id'] ??= $relay->id;
+		}
 
 		try {
 			/** @psalm-suppress PossiblyInvalidArgument */
@@ -1141,8 +1156,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			$relay->events = [];
 
 			foreach ($events as $event) {
-				$event->relay_id = $relay->id;
-				$event->id = $this->db->insert($event);
+				$this->db->insert($event);
 				$relay->addEvent($event);
 			}
 			$this->relays[$relay->name]->setEvents($relay->events);
@@ -1380,7 +1394,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		if (!isset($relay->id)) {
 			return false;
 		}
-		$event = $relay->getEvent($eventName);
+		$oldEvent = $event = $relay->getEvent($eventName);
 		if (!isset($event)) {
 			if ($enable === false) {
 				return false;
@@ -1391,7 +1405,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			return false;
 		}
 		$event->{$direction} = $enable;
-		if (isset($event->id)) {
+		if (isset($oldEvent)) {
 			if ($event->incoming === false && $event->outgoing === false) {
 				$this->db->table(RelayEvent::getTable())->delete($event->id);
 				$relay->deleteEvent($eventName);
@@ -1399,7 +1413,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 				$this->db->update($event);
 			}
 		} else {
-			$event->id = $this->db->insert($event);
+			$this->db->insert($event);
 			$relay->addEvent($event);
 		}
 		$this->relays[$relay->name]->setEvents($relay->events);

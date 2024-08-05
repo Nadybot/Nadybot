@@ -6,21 +6,26 @@ use function Safe\{json_encode, preg_match};
 
 use Nadybot\Core\Attributes\{DB, JSON};
 use Nadybot\Core\DBTable;
+use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[DB\Table(name: 'relay_layer_argument')]
 class RelayLayerArgument extends DBTable {
+	/** The id of the argument */
+	#[JSON\Ignore] #[DB\PK] public UuidInterface $id;
+
 	/**
-	 * @param string $name     The name of the argument
-	 * @param string $value    The value of the argument
-	 * @param ?int   $id       The id of the argument
-	 * @param ?int   $layer_id The id of the layer where this argument belongs to
+	 * @param string         $name     The name of the argument
+	 * @param string         $value    The value of the argument
+	 * @param UuidInterface  $layer_id The id of the layer where this argument belongs to
+	 * @param ?UuidInterface $id       The id of the argument
 	 */
 	public function __construct(
 		public string $name,
 		public string $value,
-		#[JSON\Ignore] #[DB\AutoInc] public ?int $id=null,
-		#[JSON\Ignore] public ?int $layer_id=null,
+		#[JSON\Ignore] public UuidInterface $layer_id,
+		?UuidInterface $id=null,
 	) {
+		$this->id = $id ?? Uuid::uuid7();
 	}
 
 	public function toString(bool $isSecret): string {
