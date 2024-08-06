@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\NOTES_MODULE;
 
 use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -194,7 +195,8 @@ class NotesController extends ModuleInstance {
 	/** Remove a note from your list */
 	#[NCA\HandlesCommand('notes')]
 	#[NCA\Help\Group('notes')]
-	public function notesRemoveCommand(CmdContext $context, PRemove $action, string $id): void {
+	public function notesRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+		$id = $id();
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
 
@@ -224,8 +226,9 @@ class NotesController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('set')] string $action,
 		#[NCA\StrChoice('all', 'self', 'off')] string $type,
-		string $id
+		PUuid $id
 	): void {
+		$id = $id();
 		$reminder = Note::REMIND_ALL;
 		if ($type === 'self') {
 			$reminder = Note::REMIND_SELF;

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\NOTES_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -166,8 +167,9 @@ class OrgNotesController extends ModuleInstance {
 	public function cmdRemOrgNote(
 		CmdContext $context,
 		PRemove $action,
-		string $id
+		PUuid $id
 	): void {
+		$id = $id();
 		try {
 			$removed = $this->removeOrgNoteId($id, $context->char->name, $context->forceSync);
 		} catch (InsufficientAccessException $e) {

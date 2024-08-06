@@ -4,6 +4,7 @@ namespace Nadybot\Modules\NOTES_MODULE;
 
 use InvalidArgumentException;
 use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -100,7 +101,9 @@ class LinksController extends ModuleInstance implements ImporterInterface, Expor
 
 	/** Remove a link from the list */
 	#[NCA\HandlesCommand('links')]
-	public function linksRemoveCommand(CmdContext $context, PRemove $action, string $id): void {
+	public function linksRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+		$id = $id();
+
 		/** @var ?Link */
 		$obj = $this->db->table(Link::getTable())
 			->where('id', $id)

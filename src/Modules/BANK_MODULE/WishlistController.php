@@ -4,7 +4,7 @@ namespace Nadybot\Modules\BANK_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\{PCharacter, PDuration, PQuantity, PRemove};
+use Nadybot\Core\ParamClass\{PCharacter, PDuration, PQuantity, PRemove, PUuid};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -518,8 +518,9 @@ class WishlistController extends ModuleInstance {
 	public function removeFromWishlistCommand(
 		CmdContext $context,
 		PRemove $action,
-		string $id,
+		PUuid $id,
 	): void {
+		$id = $id();
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
 
@@ -628,8 +629,9 @@ class WishlistController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('fulfil', 'fulfill', 'fullfil', 'fullfill')] string $action,
 		?PQuantity $amount,
-		string $id,
+		PUuid $id,
 	): void {
+		$id = $id();
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
 
@@ -695,8 +697,9 @@ class WishlistController extends ModuleInstance {
 	public function denyWishCommand(
 		CmdContext $context,
 		#[NCA\Str('deny')] string $action,
-		string $id,
+		PUuid $id,
 	): void {
+		$id = $id();
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
 

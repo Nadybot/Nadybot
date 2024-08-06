@@ -6,6 +6,7 @@ use function Safe\preg_match;
 
 use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -337,8 +338,9 @@ class OnlineController extends ModuleInstance {
 	public function onlineDelHiddenByIDCommand(
 		CmdContext $context,
 		#[NCA\Str('show', 'unhide')] string $action,
-		string $id
+		PUuid $id
 	): void {
+		$id = $id();
 		if ($this->db->table(OnlineHide::getTable())->delete($id) === 0) {
 			$context->reply("The mask <highlight>{$id}<end> is not hidden.");
 		} else {

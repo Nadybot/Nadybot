@@ -9,6 +9,7 @@ use Amp\Http\Server\{Request, Response};
 use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, ObjectMapperUsingReflection};
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -236,8 +237,9 @@ class NewsController extends ModuleInstance {
 	public function newsconfirmCommand(
 		CmdContext $context,
 		#[NCA\Str('confirm')] string $action,
-		string $id
+		PUuid $id
 	): void {
+		$id = $id();
 		$row = $this->getNewsItem($id);
 		if ($row === null) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
@@ -301,8 +303,9 @@ class NewsController extends ModuleInstance {
 	public function newsRemCommand(
 		CmdContext $context,
 		PRemove $action,
-		string $id
+		PUuid $id
 	): void {
+		$id = $id();
 		$row = $this->getNewsItem($id);
 		if ($row === null) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
@@ -326,8 +329,9 @@ class NewsController extends ModuleInstance {
 	public function newsPinCommand(
 		CmdContext $context,
 		#[NCA\Str('pin')] string $action,
-		string $id
+		PUuid $id
 	): void {
+		$id = $id();
 		$row = $this->getNewsItem($id);
 
 		if (!isset($row)) {
@@ -357,8 +361,9 @@ class NewsController extends ModuleInstance {
 	public function newsUnpinCommand(
 		CmdContext $context,
 		#[NCA\Str('unpin')] string $action,
-		string $id
+		PUuid $id
 	): void {
+		$id = $id();
 		$row = $this->getNewsItem($id);
 
 		if (!isset($row)) {

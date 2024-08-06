@@ -8,6 +8,7 @@ use function Safe\{json_encode, preg_match};
 use Exception;
 use Illuminate\Support\Collection;
 use Monolog\Logger;
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\DiscordChannel,
@@ -130,9 +131,10 @@ class MessageHubController extends ModuleInstance {
 	public function routeMuteIdCommand(
 		CmdContext $context,
 		#[NCA\Str('mute', 'disable')] string $action,
-		string $id,
+		PUuid $id,
 		#[NCA\PDuration] #[NCA\Str('off')] string $duration
 	): void {
+		$id = $id();
 		$route = $this->getMsgRoute($id);
 		if (!isset($route)) {
 			$context->reply("No route <highlight>{$id}<end> found.");
@@ -171,8 +173,9 @@ class MessageHubController extends ModuleInstance {
 	public function routeMuteCommand(
 		CmdContext $context,
 		#[NCA\Str('mute', 'disable')] string $action,
-		string $id,
+		PUuid $id,
 	): void {
+		$id = $id();
 		$route = $this->getMsgRoute($id);
 		if (!isset($route)) {
 			$context->reply("No route <highlight>{$id}<end> found.");

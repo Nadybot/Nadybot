@@ -95,4 +95,8 @@
     "phpstan.initialAnalysis": true,
     "phpstan.memoryLimit": "-1",
     "phpstan.path": "./vendor/phpstan/phpstan/phpstan.phar",
+    "phpstan.binCommand": [
+        "./vendor/phpstan/phpstan/phpstan.phar"
+    ],
+    "phpstan.checkValidity": true,
 }

@@ -5,6 +5,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 // pf, site
 
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -214,8 +215,9 @@ class SiteTrackerController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('track', 'tracker')] string $action,
 		PRemove $subAction,
-		string $id,
+		PUuid $id,
 	): void {
+		$id = $id();
 		$tracker = $this->trackers[$id] ?? null;
 		if (!isset($tracker)) {
 			$context->reply("No tracker <highlight>{$id}<end> found.");
@@ -261,8 +263,9 @@ class SiteTrackerController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('track', 'tracker')] string $action,
 		#[NCA\Str('show', 'view')] string $subAction,
-		string $id,
+		PUuid $id,
 	): void {
+		$id = $id();
 		$tracker = $this->trackers[$id] ?? null;
 		if (!isset($tracker)) {
 			$context->reply("No tracker <highlight>{$id}<end> found.");

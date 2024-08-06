@@ -8,7 +8,7 @@ use Nadybot\Core\Modules\ALTS\{AltNewMainEvent, AltsController};
 
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
-use Nadybot\Core\ParamClass\PRemove;
+use Nadybot\Core\ParamClass\{PRemove, PUuid};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -245,8 +245,9 @@ class GreetController extends ModuleInstance {
 	public function delGreeting(
 		CmdContext $context,
 		PRemove $action,
-		string $id,
+		PUuid $id,
 	): void {
+		$id = $id();
 		$deleted = $this->db->table(Fun::getTable())
 			->where('type', self::TYPE_CUSTOM)
 			->where('id', $id)

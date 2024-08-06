@@ -5,6 +5,7 @@ namespace Nadybot\Modules\COMMENT_MODULE;
 use Exception;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -589,8 +590,10 @@ class CommentController extends ModuleInstance {
 	public function deleteCommentCommand(
 		CmdContext $context,
 		PRemove $action,
-		string $id
+		PUuid $id
 	): void {
+		$id = $id();
+
 		/** @var ?Comment */
 		$comment = $this->db->table(Comment::getTable())
 			->where('id', $id)

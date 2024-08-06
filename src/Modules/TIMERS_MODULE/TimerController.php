@@ -330,8 +330,8 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	public function timersViewCommand(CmdContext $context, #[NCA\Str('view')] string $action, string $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
-			if (preg_match("/^\d+$/", $id)) {
-				$msg = "Could not find timer <highlight>#{$id}<end>.";
+			if (!Uuid::isValid($id)) {
+				$msg = "Could not find timer <highlight>{$id}<end>.";
 			} else {
 				$msg = "Could not find a timer named <highlight>{$id}<end>.";
 			}

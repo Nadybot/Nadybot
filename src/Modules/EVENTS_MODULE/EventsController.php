@@ -6,6 +6,7 @@ use function Safe\strtotime;
 
 use InvalidArgumentException;
 use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -104,7 +105,8 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Delete an event */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsRemoveCommand(CmdContext $context, PRemove $action, string $id): void {
+	public function eventsRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find an event with id {$id}.";
@@ -117,7 +119,8 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Change the description of an event */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str('setdesc')] string $action, string $id, string $description): void {
+	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str('setdesc')] string $action, PUuid $id, string $description): void {
+		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find an event with id {$id}.";
@@ -135,9 +138,10 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 	public function eventsSetDateCommand(
 		CmdContext $context,
 		#[NCA\Str('setdate')] string $action,
-		string $id,
+		PUuid $id,
 		string $date,
 	): void {
+		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find an event with id {$id}.";
@@ -165,7 +169,8 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Join event #id */
 	#[NCA\HandlesCommand('events')]
-	public function eventsJoinCommand(CmdContext $context, #[NCA\Str('join')] string $action, string $id): void {
+	public function eventsJoinCommand(CmdContext $context, #[NCA\Str('join')] string $action, PUuid $id): void {
+		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>{$id}<end>.";
@@ -194,7 +199,8 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Leave event #id */
 	#[NCA\HandlesCommand('events')]
-	public function eventsLeaveCommand(CmdContext $context, #[NCA\Str('leave')] string $action, string $id): void {
+	public function eventsLeaveCommand(CmdContext $context, #[NCA\Str('leave')] string $action, PUuid $id): void {
+		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>{$id}<end>.";
@@ -222,7 +228,8 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** List all characters marked as joining event #id */
 	#[NCA\HandlesCommand('events')]
-	public function eventsListCommand(CmdContext $context, #[NCA\Str('list')] string $action, string $id): void {
+	public function eventsListCommand(CmdContext $context, #[NCA\Str('list')] string $action, PUuid $id): void {
+		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find event with id <highlight>{$id}<end>.";

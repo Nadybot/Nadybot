@@ -13,7 +13,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
 use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
-use Nadybot\Core\ParamClass\{PCharacter, PDuration, PRemove, PWord};
+use Nadybot\Core\ParamClass\{PCharacter, PDuration, PRemove, PUuid, PWord};
 use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
 
 use Nadybot\Core\{
@@ -645,8 +645,10 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		CmdContext $context,
 		#[NCA\Str('filter')] string $filter,
 		PRemove $action,
-		string $id
+		PUuid $id
 	): void {
+		$id = $id();
+
 		/** @var ?FilterEntry */
 		$filter = $this->db
 			->table(FilterEntry::getTable())

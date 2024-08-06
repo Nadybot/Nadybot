@@ -4,6 +4,7 @@ namespace Nadybot\Modules\QUOTE_MODULE;
 
 use function Safe\preg_split;
 
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -83,8 +84,10 @@ class QuoteController extends ModuleInstance {
 	public function quoteRemoveCommand(
 		CmdContext $context,
 		PRemove $action,
-		string $id
+		PUuid $id
 	): void {
+		$id = $id();
+
 		/** @var ?Quote */
 		$row = $this->db->table(Quote::getTable())
 			->where('id', $id)
@@ -164,8 +167,9 @@ class QuoteController extends ModuleInstance {
 	public function quoteShowCommand(
 		CmdContext $context,
 		#[NCA\StrChoice('org', 'priv')] ?string $channel,
-		string $id
+		PUuid $id
 	): void {
+		$id = $id();
 		$result = $this->getQuoteInfo($id);
 
 		if ($result === null) {
