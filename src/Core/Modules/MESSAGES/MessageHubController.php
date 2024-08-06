@@ -280,8 +280,12 @@ class MessageHubController extends ModuleInstance {
 			}
 		}
 
+		$inTransaction = $this->db->inTransaction();
+
 		/** @var ?list<RouteModifier> $modifiers */
-		$this->db->awaitBeginTransaction();
+		if (!$inTransaction) {
+			$this->db->awaitBeginTransaction();
+		}
 		try {
 			$this->db->insert($route);
 			foreach ($modifiers??[] as $modifier) {
@@ -292,7 +296,9 @@ class MessageHubController extends ModuleInstance {
 				$route->modifiers []= $modifier;
 			}
 		} catch (Throwable $e) {
-			$this->db->rollback();
+			if (!$inTransaction) {
+				$this->db->rollback();
+			}
 			$context->reply('Error saving the route: ' . $e->getMessage());
 			return;
 		}
@@ -303,11 +309,15 @@ class MessageHubController extends ModuleInstance {
 		try {
 			$msgRoute = $this->messageHub->createMessageRoute($route);
 		} catch (Exception $e) {
-			$this->db->rollback();
+			if (!$inTransaction) {
+				$this->db->rollback();
+			}
 			$context->reply($e->getMessage());
 			return;
 		}
-		$this->db->commit();
+		if (!$inTransaction) {
+			$this->db->commit();
+		}
 		$this->messageHub->addRoute($msgRoute);
 		$context->reply(
 			"Route added from <highlight>{$from}<end> ".

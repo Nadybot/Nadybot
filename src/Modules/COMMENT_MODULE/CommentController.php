@@ -115,7 +115,7 @@ class CommentController extends ModuleInstance {
 				if (!$this->db->schema()->hasTable('comments')) {
 					$this->logger->notice('Creating table comments');
 					$this->db->schema()->create('comments', static function (Blueprint $table): void {
-						$table->id();
+						$table->uuid('id')->primary();
 						$table->string('character', 15)->index();
 						$table->string('created_by', 15);
 						$table->integer('created_at');
