@@ -159,13 +159,14 @@ class ApiController extends ModuleInstance {
 			token: '',
 		);
 		do {
+			$success = false;
 			$apiKey->token = bin2hex(random_bytes(4));
 			try {
-				$apiKey->id = $this->db->insert($apiKey);
+				$success = $this->db->insert($apiKey) >= 1;
 			} catch (Throwable $e) {
 				// Ignore and retry
 			}
-		} while (!isset($apiKey->id));
+		} while (!$success);
 
 		$blob = "<header2>Your private key<end>\n".
 			'<tab>' . implode("\n<tab>", explode("\n", trim($privKeyPem))) . "\n\n".
