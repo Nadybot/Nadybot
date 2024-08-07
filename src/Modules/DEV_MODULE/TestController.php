@@ -107,27 +107,6 @@ class TestController extends ModuleInstance {
 			$testContext->message = substr($line, 1);
 			$this->commandManager->processCmd($testContext);
 		}
-/*
-		do {
-			$line = array_shift($commands);
-		} while (isset($line) && $line[0] !== '!');
-		if (!isset($line)) {
-			return;
-		}
-		$testContext = clone $context;
-		if ($this->showTestCommands) {
-			$this->chatBot->sendTell($line, $context->char->name);
-		} else {
-			$this->logger->notice('{line}', ['line' => $line]);
-			if (!$this->showTestResults) {
-				$testContext->sendto = new MockCommandReply($line, $logFile);
-				Registry::injectDependencies($testContext->sendto);
-			}
-		}
-		$testContext->message = substr($line, 1);
-		$this->commandManager->processCmd($testContext);
-		$this->runTests($commands, $context, $logFile);
-*/
 	}
 
 	/** Pretend that &lt;char&gt; joins your org */
