@@ -36,8 +36,20 @@ class QueryBuilder extends Builder {
 	 * @return Collection<int,T>
 	 */
 	public function asObj(string $class): Collection {
-		/** @var list<T> */
-		$result = $this->fetchAll($class, $this->toSql(), ...$this->getBindings());
+		try {
+			/** @var list<T> */
+			$result = $this->fetchAll($class, $this->toSql(), ...$this->getBindings());
+		} catch (SQLException $e) {
+			$errorInfo = $e->getPrevious()?->errorInfo ?? [''];
+			if ($errorInfo[0] === '22003') { // Numeric value out of range
+				$this->logger->notice('{message}', [
+					'message' => str_replace('ERROR:  ', '', $e->getMessage()),
+					'exception' => $e,
+				]);
+				return Collection::make([]);
+			}
+			throw $e;
+		}
 
 		/** @var Collection<int,T> $x */
 		$x = collect($result);
@@ -395,7 +407,7 @@ class QueryBuilder extends Builder {
 				$conn->reconnect();
 				return $this->executeQuery(...func_get_args());
 			}
-			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: {$sql}\nParams: " . json_encode($params, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES), 0, $e);
+			throw new SQLException("{$e->errorInfo[2]}\nQuery: {$sql}\nParams: " . json_encode($params, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES), 0, $e);
 		}
 	}
 
