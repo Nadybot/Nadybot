@@ -4,7 +4,7 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use function Safe\{preg_match_all, preg_split};
 use InvalidArgumentException;
-use Nadybot\Core\ParamClass\PItem;
+use Nadybot\Core\ParamClass\{PItem, PUuid};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -218,7 +218,8 @@ class RandomController extends ModuleInstance {
 
 	/** Verify a roll */
 	#[NCA\HandlesCommand('verify')]
-	public function verifyCommand(CmdContext $context, string $rollId): void {
+	public function verifyCommand(CmdContext $context, PUuid $rollId): void {
+		$rollId = $rollId();
 		$roll = $this->db->table(Roll::getTable())
 			->where('id', $rollId)
 			->asObj(Roll::class)

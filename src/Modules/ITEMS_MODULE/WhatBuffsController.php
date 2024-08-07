@@ -468,7 +468,7 @@ class WhatBuffsController extends ModuleInstance {
 				})->groupBy([
 					'a.name', 'a.lowql', 'a.highql', 'b.amount', 'b2.amount', 'a.lowid',
 					'a.highid', 'a.icon', 'a.froob_friendly', 'a.slot', 'a.flags', 's.unit',
-					'a.in_game',
+					'a.in_game', 'a.type',
 				])->orderByDesc($query->raw($query->colFunc('ABS', 'b.amount')))
 				->orderByDesc('name')
 				->select([

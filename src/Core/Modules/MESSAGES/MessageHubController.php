@@ -448,7 +448,8 @@ class MessageHubController extends ModuleInstance {
 
 	/** Delete a route by its ID */
 	#[NCA\HandlesCommand('route')]
-	public function routeDel(CmdContext $context, PRemove $action, string $id): void {
+	public function routeDel(CmdContext $context, PRemove $action, PUuid $id): void {
+		$id = $id();
 		$route = $this->getRoute($id);
 		if (!isset($route)) {
 			$context->reply("No route <highlight>{$id}<end> found.");

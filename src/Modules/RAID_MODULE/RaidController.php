@@ -9,6 +9,7 @@ use Amp\Pipeline\Pipeline;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Events\{MyPrivateChannelMsgEvent, SendPrivEvent};
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -753,8 +754,10 @@ class RaidController extends ModuleInstance {
 	public function raidHistoryDetailCommand(
 		CmdContext $context,
 		#[NCA\Str('history')] string $action,
-		int $raidId
+		PUuid $raidId,
 	): void {
+		${$raidId} = $raidId();
+
 		/** @var ?Raid */
 		$raid = $this->db->table(Raid::getTable())
 			->where('raid_id', $raidId)
@@ -809,9 +812,11 @@ class RaidController extends ModuleInstance {
 	public function raidHistoryDetailRaiderCommand(
 		CmdContext $context,
 		#[NCA\Str('history')] string $action,
-		int $raidId,
+		PUuid $raidId,
 		PCharacter $char
 	): void {
+		$raidId = $raidId();
+
 		/** @var ?Raid */
 		$raid = $this->db->table(Raid::getTable())
 			->where('raid_id', $raidId)

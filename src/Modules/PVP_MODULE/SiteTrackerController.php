@@ -228,7 +228,7 @@ class SiteTrackerController extends ModuleInstance {
 		$routes = $this->msgHub->getRoutes();
 		foreach ($routes as $route) {
 			if ($route->getSource() === $tracker->getChannelName()) {
-				$this->msgHubCtrl->routeDel($context, $subAction, $route->getID()->toString());
+				$this->msgHubCtrl->routeDel($context, $subAction, new PUuid($route->getID()->toString()));
 			}
 		}
 		unset($this->trackers[$id]);
