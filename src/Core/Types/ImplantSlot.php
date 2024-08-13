@@ -43,6 +43,11 @@ enum ImplantSlot: int {
 		};
 	}
 
+	/**
+	 * Return the name of the slot as needed by the implant designer
+	 *
+	 * @psalm-return 'eye'|'head'|'ear'|'rarm'|'chest'|'larm'|'rwrist'|'waist'|'lwrist'|'rhand'|'legs'|'lhand'|'feet'
+	 */
 	public function designSlotName(): string {
 		return match ($this) {
 			self::Eye => 'eye',

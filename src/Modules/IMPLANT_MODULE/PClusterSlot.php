@@ -6,19 +6,26 @@ use Nadybot\Core\ParamClass\Base;
 
 class PClusterSlot extends Base {
 	protected static string $regExp = 'shiny|bright|faded|symbiant|symb';
+
+	/** @var 'shiny'|'bright'|'faded'|'symb' */
 	protected string $value;
 
 	public function __construct(string $value) {
-		$this->value = strtolower($value);
-		if ($this->value === 'symbiant') {
+		$value = strtolower($value);
+		if ($value === 'symbiant') {
 			$this->value = 'symb';
+		} else {
+			assert($value === 'shiny' || $value === 'bright' || $value === 'faded');
+			$this->value = $value;
 		}
 	}
 
+	/** @return 'shiny'|'bright'|'faded'|'symb' */
 	public function __invoke(): string {
 		return $this->value;
 	}
 
+	/** @return 'shiny'|'bright'|'faded'|'symb' */
 	public function __toString(): string {
 		return $this->value;
 	}

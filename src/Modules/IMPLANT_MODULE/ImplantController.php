@@ -122,6 +122,8 @@ class ImplantController extends ModuleInstance {
 	 * @param string $type           self::REGULAR or self::JOBE
 	 *
 	 * @return int The highest usable implant QL
+	 *
+	 * @psalm-return int<0,300> The highest usable implant QL
 	 */
 	public function findHighestImplantQL(int $attributeLevel, int $treatmentLevel, string $type): int {
 		$attributeBreakpoints = $this->getBreakpoints($type, self::ATTRIBUTE);
@@ -129,7 +131,10 @@ class ImplantController extends ModuleInstance {
 		$bestAttribQL = $this->findBestQLForBonus($attributeLevel, $attributeBreakpoints);
 		$bestTreatmentQL = $this->findBestQLForBonus($treatmentLevel, $treatmentBreakpoints);
 
-		return min($bestAttribQL, $bestTreatmentQL);
+		$ql = min($bestAttribQL, $bestTreatmentQL, 300);
+		assert($ql >= 1);
+		assert($ql <= 300);
+		return $ql;
 	}
 
 	/**
@@ -139,6 +144,8 @@ class ImplantController extends ModuleInstance {
 	 * @param int $treatmentLevel How much treatment do you have?
 	 *
 	 * @return int The highest usable regular implant QL
+	 *
+	 * @psalm-return int<0,300> The highest usable regular implant QL
 	 */
 	public function findHighestRegularImplantQL(int $attributeLevel, int $treatmentLevel): int {
 		return $this->findHighestImplantQL($attributeLevel, $treatmentLevel, 'reqRegular');
@@ -151,6 +158,8 @@ class ImplantController extends ModuleInstance {
 	 * @param int $treatmentLevel How much treatment do you have?
 	 *
 	 * @return int The highest usable Jobe Implant QL
+	 *
+	 * @psalm-return int<0,300> The highest usable Jobe Implant QL
 	 */
 	public function findHighestJobeImplantQL(int $attributeLevel, int $treatmentLevel): int {
 		return $this->findHighestImplantQL($attributeLevel, $treatmentLevel, 'reqJobe');
@@ -217,6 +226,8 @@ class ImplantController extends ModuleInstance {
 	 *
 	 * @param string $type self::REGULAR or self::JOBE
 	 * @param int    $ql   The QL to render for
+	 *
+	 * @psalm-param int<1,300>    $ql   The QL to render for
 	 *
 	 * @return list<string> the full link to the blob
 	 */
@@ -297,15 +308,24 @@ class ImplantController extends ModuleInstance {
 		return (array)$this->text->makeBlob($impName, $blob, "QL {$ql} {$impName} Details");
 	}
 
+	/**
+	 * @psalm-param int<1,300> $ql
+	 *
+	 * @psalm-return int<1,300>
+	 */
 	public function getClusterMinQl(int $ql, string $grade): int {
 		if ($grade === 'shiny') {
-			return (int)floor($ql * 0.86);
+			$minQL = (int)floor($ql * 0.86);
 		} elseif ($grade === 'bright') {
-			return (int)floor($ql * 0.84);
+			$minQL = (int)floor($ql * 0.84);
 		} elseif ($grade === 'faded') {
-			return (int)floor($ql * 0.82);
+			$minQL = (int)floor($ql * 0.82);
+		} else {
+			throw new Exception("Invalid grade: '{$grade}'.  Must be one of: 'shiny', 'bright', 'faded'");
 		}
-		throw new Exception("Invalid grade: '{$grade}'.  Must be one of: 'shiny', 'bright', 'faded'");
+		assert($minQL >= 1);
+		assert($minQL <= 300);
+		return $minQL;
 	}
 
 	/**
