@@ -94,6 +94,38 @@ enum Profession: string {
 		};
 	}
 
+	public static function byNumber(int $search): self {
+		return match ($search) {
+			0 => self::Unknown,
+			1 => self::Soldier,
+			2 => self::MartialArtist,
+			3 => self::Engineer,
+			4 => self::Fixer,
+			5 => self::Agent,
+			6 => self::Adventurer,
+			7 => self::Trader,
+			8 => self::Bureaucrat,
+			9 => self::Enforcer,
+			10 => self::Doctor,
+			11 => self::NanoTechnician,
+			12 => self::MetaPhysicist,
+			14 => self::Keeper,
+			15 => self::Shade,
+			default => throw new InvalidArgumentException("Invalid profession '{$search}'"),
+		};
+	}
+
+	public static function tryByNumber(?int $search): ?self {
+		try {
+			if (!isset($search)) {
+				return null;
+			}
+			return self::byNumber($search);
+		} catch (\Throwable) {
+			return null;
+		}
+	}
+
 	/** Check if the given string matches the profession (abbreviated or not) */
 	public function is(string $search): bool {
 		return self::tryByName($search) === $this;

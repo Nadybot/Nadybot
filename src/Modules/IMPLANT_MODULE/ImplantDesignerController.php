@@ -63,7 +63,6 @@ class ImplantDesignerController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/EffectValue.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ImplantMatrix.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ImplantType.csv');
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/Profession.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/Symbiant.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/SymbiantAbilityMatrix.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/SymbiantClusterMatrix.csv');
