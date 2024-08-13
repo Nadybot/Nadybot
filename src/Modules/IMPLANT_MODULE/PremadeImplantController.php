@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	Types\ImplantSlot,
 	Types\Profession,
 };
+use Nadybot\Modules\IMPLANT_MODULE\Profession as DBProfession;
 use Nadybot\Modules\ITEMS_MODULE\{
 	Skill,
 	WhatBuffsController,
@@ -139,7 +140,7 @@ class PremadeImplantController extends ModuleInstance {
 	protected function getBaseQuery(): QueryBuilder {
 		$query = $this->db->table(PremadeImplant::getTable(), 'p')
 			->join(ImplantType::getTable(as: 'i'), 'p.implant_type_id', 'i.implant_type_id')
-			->join('profession AS p2', 'p.profession_id', 'p2.id')
+			->join(DBProfession::getTable(as: 'p2'), 'p.profession_id', 'p2.id')
 			->join(Ability::getTable(as: 'a'), 'p.ability_id', 'a.ability_id')
 			->join(Cluster::getTable(as: 'cs'), 'p.shiny_cluster_id', 'cs.cluster_id')
 			->join(Cluster::getTable(as: 'cb'), 'p.bright_cluster_id', 'cb.cluster_id')

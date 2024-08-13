@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	Types\Profession,
 	Util,
 };
-
 use Nadybot\Modules\ITEMS_MODULE\{
 	ExtBuff,
 	ItemWithBuffs,
@@ -173,7 +172,7 @@ class SymbiantController extends ModuleInstance {
 			->asObjArr(ImplantType::class);
 
 		/** @var array<string,string> */
-		$typeMap = array_column($types, 'Name', 'ShortName');
+		$typeMap = array_column($types, 'name', 'short_name');
 		$blob = '';
 		$slots = get_class_vars(SymbiantConfig::class);
 		foreach ($slots as $slot => $defaultValue) {
@@ -313,9 +312,8 @@ class SymbiantController extends ModuleInstance {
 	private function getAndRenderBestSymbiants(Profession $prof, int $level): array {
 		$query = $this->db->table(Symbiant::getTable(), 's')
 			->join(SymbiantProfessionMatrix::getTable('spm'), 'spm.symbiant_id', 's.id')
-			->join('profession AS p', 'p.id', 'spm.profession_id')
 			->join(ImplantType::getTable(as: 'it'), 'it.implant_type_id', 's.slot_id')
-			->where('p.name', $prof->value)
+			->where('spm.profession_id', $prof->toNumber())
 			->where('s.level_req', '<=', $level)
 			->where('s.name', 'NOT LIKE', 'Prototype%')
 			->select(['s.*', 'it.short_name AS slot_name', 'it.name AS slot_long_name']);

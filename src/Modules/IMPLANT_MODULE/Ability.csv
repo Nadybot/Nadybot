@@ -1,8 +1,8 @@
 # table: ability
 ability_id,name
-1,Agility
-2,Intelligence
-3,Psychic
-4,Sense
-5,Stamina
-6,Strength
+17,Agility
+19,Intelligence
+21,Psychic
+20,Sense
+18,Stamina
+16,Strength

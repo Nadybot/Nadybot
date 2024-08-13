@@ -1,16 +1,16 @@
 # table: profession
 id,name
-1,Adventurer
-2,Agent
-3,Bureaucrat
-4,Doctor
-5,Enforcer
-6,Engineer
-7,Fixer
-8,Keeper
-9,"Martial Artist"
-10,Meta-Physicist
+6,Adventurer
+5,Agent
+8,Bureaucrat
+10,Doctor
+9,Enforcer
+3,Engineer
+4,Fixer
+14,Keeper
+2,"Martial Artist"
+12,Meta-Physicist
 11,Nano-Technician
-12,Shade
-13,Soldier
-14,Trader
+15,Shade
+1,Soldier
+7,Trader

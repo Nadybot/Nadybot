@@ -18,8 +18,8 @@ enum Profession: string {
 			self::MartialArtist => 2,
 			self::MetaPhysicist => 12,
 			self::NanoTechnician => 11,
-			self::Soldier => 1,
 			self::Shade => 15,
+			self::Soldier => 1,
 			self::Trader => 7,
 			self::Unknown => 0,
 		};
