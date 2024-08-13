@@ -36,19 +36,19 @@ class ClusterController extends ModuleInstance {
 	#[NCA\HandlesCommand('cluster')]
 	public function clusterListCommand(CmdContext $context): void {
 		$data = $this->db->table(Cluster::getTable())
-			->orderBy('LongName')
+			->orderBy('long_name')
 			->asObj(Cluster::class);
 		$count = $data->count();
 
 		$blob = "<header2>Clusters<end>\n";
 		foreach ($data as $cluster) {
-			if ($cluster->ClusterID === 0) {
+			if ($cluster->cluster_id === 0) {
 				continue;
 			}
 			$blob .= '<tab>'.
 				Text::makeChatcmd(
-					$cluster->LongName,
-					"/tell <myname> cluster {$cluster->LongName}"
+					$cluster->long_name,
+					"/tell <myname> cluster {$cluster->long_name}"
 				).
 				"\n";
 		}
@@ -68,7 +68,7 @@ class ClusterController extends ModuleInstance {
 			return;
 		}
 		$data = $this->db->table(Cluster::getTable())
-			->whereIn('SkillID', array_column($skills, 'id'))
+			->whereIn('skill_id', array_column($skills, 'id'))
 			->asObj(Cluster::class);
 		$count = $data->count();
 
@@ -80,22 +80,22 @@ class ClusterController extends ModuleInstance {
 		$implantDesignerLink = Text::makeChatcmd('implant designer', '/tell <myname> implantdesigner');
 		$blob = "Click 'Add' to add cluster to {$implantDesignerLink}.\n\n";
 		foreach ($data as $cluster) {
-			$results = $this->db->table(ClusterImplantMap::getTable(), 'c1')
-				->join('ClusterType AS c2', 'c1.ClusterTypeID', 'c2.ClusterTypeID')
-				->join('ImplantType AS i', 'c1.ImplantTypeID', 'i.ImplantTypeID')
-				->where('c1.ClusterID', $cluster->ClusterID)
-				->orderByDesc('c2.ClusterTypeID')
-				->select(['i.ShortName as Slot', 'c2.Name AS ClusterType'])
+			$results = $this->db->table(ClusterImplantMap::getTable(), 'cim')
+				->join(ClusterType::getTable(as: 'ct'), 'cim.cluster_type_id', 'ct.cluster_type_id')
+				->join(ImplantType::getTable(as: 'i'), 'cim.implant_type_id', 'i.implant_type_id')
+				->where('cim.cluster_id', $cluster->cluster_id)
+				->orderByDesc('ct.cluster_type_id')
+				->select(['i.short_name as slot', 'ct.name AS cluster_type'])
 				->asObj(SlotClusterType::class);
-			$blob .= "<pagebreak><header2>{$cluster->LongName}<end>:\n";
+			$blob .= "<pagebreak><header2>{$cluster->long_name}<end>:\n";
 
 			foreach ($results as $row) {
 				$impDesignerLink = Text::makeChatcmd(
 					'add',
-					"/tell <myname> implantdesigner {$row->Slot} {$row->ClusterType} {$cluster->LongName}"
+					"/tell <myname> implantdesigner {$row->slot} {$row->cluster_type} {$cluster->long_name}"
 				);
-				$clusterType = ucfirst($row->ClusterType);
-				$blob .= "<tab><highlight>{$clusterType}<end>: {$row->Slot} [{$impDesignerLink}]";
+				$clusterType = ucfirst($row->cluster_type);
+				$blob .= "<tab><highlight>{$clusterType}<end>: {$row->slot} [{$impDesignerLink}]";
 			}
 			$blob .= "\n\n";
 		}

@@ -8,15 +8,16 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\IMPLANT_MODULE\ImplantType;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 2021_04_26_15_55_45, shared: true)]
+#[NCA\Migration(order: 2024_08_13_11_04_01, shared: true)]
 class CreateImplantTypeTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = ImplantType::getTable();
 		$db->schema()->dropIfExists($table);
+		$db->schema()->dropIfExists('ImplantType');
 		$db->schema()->create($table, static function (Blueprint $table): void {
-			$table->integer('ImplantTypeID')->primary();
-			$table->string('Name', 20);
-			$table->string('ShortName', 10);
+			$table->integer('implant_type_id')->primary();
+			$table->string('name', 20);
+			$table->string('short_name', 10);
 		});
 	}
 }

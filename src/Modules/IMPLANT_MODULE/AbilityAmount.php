@@ -6,8 +6,8 @@ use Nadybot\Core\DBRow;
 
 class AbilityAmount extends DBRow {
 	public function __construct(
-		public string $Name,
-		public int $Amount,
+		public string $name,
+		public int $amount,
 	) {
 	}
 }

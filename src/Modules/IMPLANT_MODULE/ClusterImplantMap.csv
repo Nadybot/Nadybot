@@ -1,4 +1,5 @@
-ImplantTypeID,ClusterID,ClusterTypeID
+# table: cluster_implant_map
+implant_type_id,cluster_id,cluster_type_id
 1,8,3
 1,9,1
 1,12,1

@@ -8,25 +8,26 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\IMPLANT_MODULE\ImplantMatrix;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 2021_04_26_15_50_49, shared: true)]
+#[NCA\Migration(order: 2024_08_13_09_26_01, shared: true)]
 class CreateImplantMatrixTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = ImplantMatrix::getTable();
 		$db->schema()->dropIfExists($table);
+		$db->schema()->dropIfExists('ImplantMatrix');
 		$db->schema()->create($table, static function (Blueprint $table): void {
-			$table->integer('ID')->primary();
-			$table->integer('ShiningID')->index();
-			$table->integer('BrightID');
-			$table->integer('FadedID');
-			$table->integer('AbilityID');
-			$table->integer('TreatQL1');
-			$table->integer('AbilityQL1');
-			$table->integer('TreatQL200');
-			$table->integer('AbilityQL200');
-			$table->integer('TreatQL201');
-			$table->integer('AbilityQL201');
-			$table->integer('TreatQL300');
-			$table->integer('AbilityQL300');
+			$table->integer('id')->primary();
+			$table->integer('shining_id')->index();
+			$table->integer('bright_id');
+			$table->integer('faded_id');
+			$table->integer('ability_id');
+			$table->integer('treat_ql1');
+			$table->integer('ability_ql1');
+			$table->integer('treat_ql200');
+			$table->integer('ability_ql200');
+			$table->integer('treat_ql201');
+			$table->integer('ability_ql201');
+			$table->integer('treat_ql300');
+			$table->integer('ability_ql300');
 		});
 	}
 }

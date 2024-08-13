@@ -8,18 +8,19 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\IMPLANT_MODULE\Cluster;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 2023_09_29_21_14_33, shared: true)]
+#[NCA\Migration(order: 2024_08_13_10_20_01, shared: true)]
 class CreateClusterTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = Cluster::getTable();
+		$db->schema()->dropIfExists('Cluster');
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, static function (Blueprint $table): void {
-			$table->integer('ClusterID')->primary();
-			$table->integer('EffectTypeID');
-			$table->string('LongName', 50);
-			$table->string('OfficialName', 100);
-			$table->integer('NPReq');
-			$table->integer('SkillID')->nullable();
+			$table->integer('cluster_id')->primary();
+			$table->integer('effect_type_id');
+			$table->string('long_name', 50);
+			$table->string('official_name', 100);
+			$table->integer('np_req');
+			$table->integer('skill_id')->nullable();
 		});
 	}
 }

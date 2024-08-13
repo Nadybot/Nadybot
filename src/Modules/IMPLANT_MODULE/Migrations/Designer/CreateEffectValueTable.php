@@ -8,15 +8,16 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\IMPLANT_MODULE\EffectValue;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 2021_04_26_15_45_46, shared: true)]
+#[NCA\Migration(order: 2024_08_13_11_11_01, shared: true)]
 class CreateEffectValueTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = EffectValue::getTable();
 		$db->schema()->dropIfExists($table);
+		$db->schema()->dropIfExists('EffectValue');
 		$db->schema()->create($table, static function (Blueprint $table): void {
-			$table->integer('EffectID')->primary();
-			$table->string('Name', 50);
-			$table->integer('Q200Value');
+			$table->integer('effect_id')->primary();
+			$table->string('name', 50);
+			$table->integer('q200_value');
 		});
 	}
 }

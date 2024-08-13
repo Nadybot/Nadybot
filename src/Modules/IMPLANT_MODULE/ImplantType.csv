@@ -1,4 +1,5 @@
-ImplantTypeID,Name,ShortName
+# table: implant_type
+implant_type_id,name,short_name
 1,Eye,eye
 2,Head,head
 3,Ear,ear

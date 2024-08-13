@@ -6,17 +6,17 @@ use Nadybot\Core\DBRow;
 
 class ImplantLayout extends DBRow {
 	public function __construct(
-		public int $AbilityQL1,
-		public int $AbilityQL200,
-		public int $AbilityQL201,
-		public int $AbilityQL300,
-		public int $TreatQL1,
-		public int $TreatQL200,
-		public int $TreatQL201,
-		public int $TreatQL300,
-		public string $ShinyEffect,
-		public string $BrightEffect,
-		public string $FadedEffect,
+		public int $ability_ql1,
+		public int $ability_ql200,
+		public int $ability_ql201,
+		public int $ability_ql300,
+		public int $treat_ql1,
+		public int $treat_ql200,
+		public int $treat_ql201,
+		public int $treat_ql300,
+		public string $shiny_effect,
+		public string $bright_effect,
+		public string $faded_effect,
 	) {
 	}
 }

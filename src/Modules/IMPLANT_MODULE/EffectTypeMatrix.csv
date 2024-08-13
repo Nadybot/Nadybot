@@ -1,4 +1,5 @@
-ID,Name,MinValLow,MaxValLow,MinValHigh,MaxValHigh
+# table: effect_type_matrix
+id,name,min_val_low,max_val_low,min_val_high,max_val_high
 1,Skill,6,105,106,141
 2,Ability,5,55,55,73
 3,AC,8,505,508,687

@@ -1,4 +1,5 @@
-AbilityID,Name
+# table: ability
+ability_id,name
 1,Agility
 2,Intelligence
 3,Psychic

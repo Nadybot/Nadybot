@@ -5,22 +5,22 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 use Nadybot\Core\DBRow;
 
 class ImplantInfo extends DBRow {
-	public int $Ability = 0;
-	public int $Treatment = 0;
+	public int $ability = 0;
+	public int $treatment = 0;
 
 	public function __construct(
-		public int $AbilityQL1,
-		public int $AbilityQL200,
-		public int $AbilityQL201,
-		public int $AbilityQL300,
-		public int $TreatQL1,
-		public int $TreatQL200,
-		public int $TreatQL201,
-		public int $TreatQL300,
-		public int $ShinyEffectTypeID,
-		public int $BrightEffectTypeID,
-		public int $FadedEffectTypeID,
-		public string $AbilityName,
+		public int $ability_ql1,
+		public int $ability_ql200,
+		public int $ability_ql201,
+		public int $ability_ql300,
+		public int $treat_ql1,
+		public int $treat_ql200,
+		public int $treat_ql201,
+		public int $treat_ql300,
+		public int $shiny_effect_type_id,
+		public int $bright_effect_type_id,
+		public int $faded_effect_type_id,
+		public string $ability_name,
 	) {
 	}
 }

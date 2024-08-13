@@ -1,4 +1,5 @@
-ID,ShiningID,BrightID,FadedID,AbilityID,TreatQL1,AbilityQL1,TreatQL200,AbilityQL200,TreatQL201,AbilityQL201,TreatQL300,AbilityQL300
+# table: implant_matrix
+id,shining_id,bright_id,faded_id,ability_id,treat_ql1,ability_ql1,treat_ql200,ability_ql200,treat_ql201,ability_ql201,treat_ql300,ability_ql300
 1,102,109,0,3,11,16,1005,464,1001,476,2051,1231
 2,87,3,100,3,11,16,1005,414,1001,426,2051,1095
 3,95,13,20,6,11,16,1005,464,1001,476,2051,1231

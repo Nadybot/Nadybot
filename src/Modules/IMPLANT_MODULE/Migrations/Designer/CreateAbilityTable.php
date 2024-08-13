@@ -8,14 +8,15 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\IMPLANT_MODULE\Ability;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 2021_04_26_08_36_29, shared: true)]
+#[NCA\Migration(order: 2024_08_13_11_17_01, shared: true)]
 class CreateAbilityTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = Ability::getTable();
 		$db->schema()->dropIfExists($table);
+		$db->schema()->dropIfExists('Ability');
 		$db->schema()->create($table, static function (Blueprint $table): void {
-			$table->integer('AbilityID')->primary();
-			$table->string('Name', 20);
+			$table->integer('ability_id')->primary();
+			$table->string('name', 20);
 		});
 	}
 }

@@ -1,4 +1,5 @@
-EffectID,Name,Q200Value
+# table: effect_value
+effect_id,name,q200_value
 1,"AC Faded",162
 2,"AC Bright",243
 3,"AC Shining",405

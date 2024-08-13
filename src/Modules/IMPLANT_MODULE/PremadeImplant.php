@@ -8,12 +8,12 @@ use Nadybot\Core\DBTable;
 #[Table(name: 'premade_implant', shared: Shared::Yes)]
 class PremadeImplant extends DBTable {
 	public function __construct(
-		public int $ImplantTypeID,
-		public int $ProfessionID,
-		public int $AbilityID,
-		public int $ShinyClusterID,
-		public int $BrightClusterID,
-		public int $FadedClusterID,
+		public int $implant_type_id,
+		public int $profession_id,
+		public int $ability_id,
+		public int $shiny_cluster_id,
+		public int $bright_cluster_id,
+		public int $faded_cluster_id,
 	) {
 	}
 }

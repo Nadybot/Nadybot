@@ -77,13 +77,13 @@ class PremadeImplantController extends ModuleInstance {
 
 	/** @return Collection<int,PremadeSearchResult> */
 	public function searchByProfession(Profession $profession): Collection {
-		return $this->getBaseQuery()->where('p2.Name', $profession->value)
+		return $this->getBaseQuery()->where('p2.name', $profession->value)
 			->asObj(PremadeSearchResult::class);
 	}
 
 	/** @return Collection<int,PremadeSearchResult> */
 	public function searchBySlot(ImplantSlot $slot): Collection {
-		return $this->getBaseQuery()->where('i.ShortName', $slot->designSlotName())
+		return $this->getBaseQuery()->where('i.short_name', $slot->designSlotName())
 			->asObj(PremadeSearchResult::class);
 	}
 
@@ -102,9 +102,9 @@ class PremadeImplantController extends ModuleInstance {
 			$skills
 		);
 		$query = $this->getBaseQuery()
-			->whereIn('c1.SkillID', $skillIds)
-			->orWhereIn('c2.SkillID', $skillIds)
-			->orWhereIn('c3.SkillID', $skillIds);
+			->whereIn('cs.skill_id', $skillIds)
+			->orWhereIn('cb.skill_id', $skillIds)
+			->orWhereIn('cf.skill_id', $skillIds);
 
 		return $query->asObj(PremadeSearchResult::class);
 	}
@@ -138,30 +138,30 @@ class PremadeImplantController extends ModuleInstance {
 
 	protected function getBaseQuery(): QueryBuilder {
 		$query = $this->db->table(PremadeImplant::getTable(), 'p')
-			->join(ImplantType::getTable(as: 'i'), 'p.ImplantTypeID', 'i.ImplantTypeID')
-			->join('Profession AS p2', 'p.ProfessionID', 'p2.ID')
-			->join(Ability::getTable(as: 'a'), 'p.AbilityID', 'a.AbilityID')
-			->join(Cluster::getTable(as: 'c1'), 'p.ShinyClusterID', 'c1.ClusterID')
-			->join(Cluster::getTable(as: 'c2'), 'p.BrightClusterID', 'c2.ClusterID')
-			->join(Cluster::getTable(as: 'c3'), 'p.FadedClusterID', 'c3.ClusterID')
+			->join(ImplantType::getTable(as: 'i'), 'p.implant_type_id', 'i.implant_type_id')
+			->join('profession AS p2', 'p.profession_id', 'p2.id')
+			->join(Ability::getTable(as: 'a'), 'p.ability_id', 'a.ability_id')
+			->join(Cluster::getTable(as: 'cs'), 'p.shiny_cluster_id', 'cs.cluster_id')
+			->join(Cluster::getTable(as: 'cb'), 'p.bright_cluster_id', 'cb.cluster_id')
+			->join(Cluster::getTable(as: 'cf'), 'p.faded_cluster_id', 'cf.cluster_id')
 			->orderBy('slot')
-			->select(['i.Name AS slot', 'p2.Name AS profession', 'a.Name as ability']);
+			->select(['i.name AS slot', 'p2.name AS profession', 'a.name as ability']);
 		$query->selectRaw(
-			'CASE WHEN ' . $query->grammar->wrap('c1.ClusterID') . ' = 0 '.
+			'CASE WHEN ' . $query->grammar->wrap('cs.cluster_id') . ' = 0 '.
 			'THEN ? '.
-			'ELSE ' .$query->grammar->wrap('c1.LongName'). ' '.
+			'ELSE ' .$query->grammar->wrap('cs.long_name'). ' '.
 			'END AS ' . $query->grammar->wrap('shiny')
 		)->addBinding('N/A', 'select');
 		$query->selectRaw(
-			'CASE WHEN ' . $query->grammar->wrap('c2.ClusterID') . ' = 0 '.
+			'CASE WHEN ' . $query->grammar->wrap('cb.cluster_id') . ' = 0 '.
 			'THEN ? '.
-			'ELSE ' .$query->grammar->wrap('c2.LongName'). ' '.
+			'ELSE ' .$query->grammar->wrap('cb.long_name'). ' '.
 			'END AS ' . $query->grammar->wrap('bright')
 		)->addBinding('N/A', 'select');
 		$query->selectRaw(
-			'CASE WHEN ' . $query->grammar->wrap('c3.ClusterID') . ' = 0 '.
+			'CASE WHEN ' . $query->grammar->wrap('cf.cluster_id') . ' = 0 '.
 			'THEN ? '.
-			'ELSE ' .$query->grammar->wrap('c3.LongName'). ' '.
+			'ELSE ' .$query->grammar->wrap('cf.long_name'). ' '.
 			'END AS ' . $query->grammar->wrap('faded')
 		)->addBinding('N/A', 'select');
 		return $query;

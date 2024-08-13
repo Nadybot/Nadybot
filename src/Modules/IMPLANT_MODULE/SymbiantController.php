@@ -285,10 +285,10 @@ class SymbiantController extends ModuleInstance {
 	private function findSymbiantsBuffing(Skill $skill): array {
 		return $this->db->table(Symbiant::getTable(), 'sym')
 			->join('SymbiantClusterMatrix AS scm', 'scm.SymbiantID', '=', 'sym.ID')
-			->join(Cluster::getTable() . ' AS c', 'c.ClusterID', '=', 'scm.ClusterID')
+			->join(Cluster::getTable() . ' AS c', 'c.cluster_id', '=', 'scm.ClusterID')
 			->join('ImplantType AS it', 'it.ImplantTypeID', 'sym.SlotID')
 			->select(['sym.*', 'it.ShortName AS SlotName', 'it.Name AS SlotLongName'])
-			->where('c.SkillID', $skill->id)
+			->where('c.skill_id', $skill->id)
 			->asObjArr(Symbiant::class);
 	}
 

@@ -8,14 +8,15 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\IMPLANT_MODULE\ClusterType;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 2024_08_08_14_10_00, shared: true)]
+#[NCA\Migration(order: 2024_08_13_10_40_01, shared: true)]
 class CreateClusterTypeTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = ClusterType::getTable();
 		$db->schema()->dropIfExists($table);
+		$db->schema()->dropIfExists('ClusterType');
 		$db->schema()->create($table, static function (Blueprint $table): void {
-			$table->integer('ClusterTypeID')->primary();
-			$table->string('Name', 10);
+			$table->integer('cluster_type_id')->primary();
+			$table->string('name', 10);
 		});
 	}
 }

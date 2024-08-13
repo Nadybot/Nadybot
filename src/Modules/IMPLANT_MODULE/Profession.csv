@@ -1,4 +1,5 @@
-ID,Name
+# table: profession
+id,name
 1,Adventurer
 2,Agent
 3,Bureaucrat

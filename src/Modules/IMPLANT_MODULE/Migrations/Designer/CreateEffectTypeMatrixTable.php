@@ -8,18 +8,19 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\IMPLANT_MODULE\EffectTypeMatrix;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 2021_04_26_14_53_54, shared: true)]
+#[NCA\Migration(order: 2024_08_13_10_54_01, shared: true)]
 class CreateEffectTypeMatrixTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = EffectTypeMatrix::getTable();
 		$db->schema()->dropIfExists($table);
+		$db->schema()->dropIfExists('EffectTypeMatrix');
 		$db->schema()->create($table, static function (Blueprint $table): void {
-			$table->integer('ID')->primary();
-			$table->string('Name', 20);
-			$table->integer('MinValLow');
-			$table->integer('MaxValLow');
-			$table->integer('MinValHigh');
-			$table->integer('MaxValHigh');
+			$table->integer('id')->primary();
+			$table->string('name', 20);
+			$table->integer('min_val_low');
+			$table->integer('max_val_low');
+			$table->integer('min_val_high');
+			$table->integer('max_val_high');
 		});
 	}
 }

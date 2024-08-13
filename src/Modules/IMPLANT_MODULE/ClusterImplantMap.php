@@ -5,12 +5,12 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 use Nadybot\Core\Attributes\DB\{Shared, Table};
 use Nadybot\Core\DBTable;
 
-#[Table(name: 'ClusterImplantMap', shared: Shared::Yes)]
+#[Table(name: 'cluster_implant_map', shared: Shared::Yes)]
 class ClusterImplantMap extends DBTable {
 	public function __construct(
-		public int $ImplantTypeID,
-		public int $ClusterID,
-		public int $ClusterTypeID,
+		public int $implant_type_id,
+		public int $cluster_id,
+		public int $cluster_type_id,
 	) {
 	}
 }

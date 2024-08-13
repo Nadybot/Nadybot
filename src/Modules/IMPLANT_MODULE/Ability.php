@@ -5,11 +5,11 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 use Nadybot\Core\Attributes\DB\{Shared, Table};
 use Nadybot\Core\DBTable;
 
-#[Table(name: 'Ability', shared: Shared::Yes)]
+#[Table(name: 'ability', shared: Shared::Yes)]
 class Ability extends DBTable {
 	public function __construct(
-		public int $AbilityID,
-		public string $Name,
+		public int $ability_id,
+		public string $name,
 	) {
 	}
 }

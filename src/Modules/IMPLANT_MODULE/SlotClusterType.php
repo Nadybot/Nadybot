@@ -6,8 +6,8 @@ use Nadybot\Core\DBRow;
 
 class SlotClusterType extends DBRow {
 	public function __construct(
-		public string $Slot,
-		public string $ClusterType,
+		public string $slot,
+		public string $cluster_type,
 	) {
 	}
 }
