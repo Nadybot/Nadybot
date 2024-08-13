@@ -253,7 +253,7 @@ class ImplantDesignerController extends ModuleInstance {
 		if ($grade === 'symb') {
 			/** @var ?Symbiant */
 			$symbRow = $this->db->table(Symbiant::getTable(), 's')
-				->join('ImplantType AS i', 's.SlotID', 'i.ImplantTypeID')
+				->join(ImplantType::getTable(as: 'i'), 's.SlotID', 'i.ImplantTypeID')
 				->where('i.ShortName', $slot->designSlotName())
 				->where('s.Name', $cluster)
 				->select('s.*')
@@ -717,9 +717,9 @@ class ImplantDesignerController extends ModuleInstance {
 	public function getClustersForSlot(string $implantType, string $clusterType): array {
 		return $this->db
 			->table(Cluster::getTable(), 'c1')
-			->join('ClusterImplantMap AS c2', 'c1.ClusterID', 'c2.ClusterID')
-			->join('ClusterType AS c3', 'c2.ClusterTypeID', 'c3.ClusterTypeID')
-			->join('ImplantType AS i', 'c2.ImplantTypeID', 'i.ImplantTypeID')
+			->join(ClusterImplantMap::getTable(as: 'c2'), 'c1.ClusterID', 'c2.ClusterID')
+			->join(ClusterType::getTable(as: 'c3'), 'c2.ClusterTypeID', 'c3.ClusterTypeID')
+			->join(ImplantType::getTable(as: 'i'), 'c2.ImplantTypeID', 'i.ImplantTypeID')
 			->where('i.ShortName', strtolower($implantType))
 			->where('c3.Name', strtolower($clusterType))
 			->select('LongName AS skill')

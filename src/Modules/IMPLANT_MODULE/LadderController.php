@@ -29,13 +29,7 @@ class LadderController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private ImplantController $implantController;
-
-	#[NCA\Inject]
 	private Text $text;
-
-	#[NCA\Inject]
-	private Util $util;
 
 	#[NCA\Setup]
 	public function setup(): void {
