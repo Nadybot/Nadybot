@@ -186,7 +186,7 @@ class SymbiantController extends ModuleInstance {
 				if (!count($config->{$slot})) {
 					continue;
 				}
-				$aoids []= $config->{$slot}[0]->ID;
+				$aoids []= $config->{$slot}[0]->id;
 			}
 			$blob .= ' [' . Text::makeChatcmd(
 				'compare',
@@ -203,10 +203,10 @@ class SymbiantController extends ModuleInstance {
 				/** @var list<string> */
 				$links = array_map(
 					static function (Symbiant $symb): string {
-						$name =  "QL{$symb->QL}";
-						if ($symb->Unit === 'Special') {
-							$name = $symb->Name;
-						} elseif (count($matches = Safe::pregMatch("/\b(Alpha|Beta)$/", $symb->Name)) === 2) {
+						$name =  "QL{$symb->ql}";
+						if ($symb->unit === 'Special') {
+							$name = $symb->name;
+						} elseif (count($matches = Safe::pregMatch("/\b(Alpha|Beta)$/", $symb->name)) === 2) {
 							$name = $matches[1];
 						}
 						return $symb->getLink(text: $name);
@@ -225,18 +225,18 @@ class SymbiantController extends ModuleInstance {
 		$symbs = collect($symbiants);
 
 		/** @var Collection<string,Collection<int,Symbiant>> */
-		$bySlot = $symbs->groupBy('SlotLongName');
+		$bySlot = $symbs->groupBy('slot_long_name');
 		foreach ($bySlot as $slotName => $slotSymbs) {
 			$lines = ["<tab><highlight>{$slotName}<end>"];
 
 			/** @var Collection<string,Collection<int,Symbiant>> */
-			$byUnit = $slotSymbs->groupBy('Unit');
+			$byUnit = $slotSymbs->groupBy('unit');
 			foreach ($byUnit as $unitName => $unitSymbs) {
 				if ($unitName === '') {
 					$lines = array_merge(
 						$lines,
 						$unitSymbs->map(static function (Symbiant $symb): string {
-							return '<tab>- ' . $symb->Name;
+							return '<tab>- ' . $symb->name;
 						})->toArray()
 					);
 					continue;
@@ -245,9 +245,9 @@ class SymbiantController extends ModuleInstance {
 
 				$inRegular = $unitSymbs->first(
 					static function (Symbiant $symb): bool {
-						return $symb->QL < 300 || (
-							!str_contains($symb->Name, 'Beta')
-							&& !str_contains($symb->Name, 'Alpha')
+						return $symb->ql < 300 || (
+							!str_contains($symb->name, 'Beta')
+							&& !str_contains($symb->name, 'Alpha')
 						);
 					}
 				) !== null;
@@ -256,7 +256,7 @@ class SymbiantController extends ModuleInstance {
 				}
 				$inBeta = $unitSymbs->first(
 					static function (Symbiant $symb): bool {
-						return $symb->QL === 300 && str_contains($symb->Name, 'Beta');
+						return $symb->ql === 300 && str_contains($symb->name, 'Beta');
 					}
 				) !== null;
 				if ($inBeta) {
@@ -264,7 +264,7 @@ class SymbiantController extends ModuleInstance {
 				}
 				$inAlpha = $unitSymbs->first(
 					static function (Symbiant $symb): bool {
-						return $symb->QL === 300 && str_contains($symb->Name, 'Alpha');
+						return $symb->ql === 300 && str_contains($symb->name, 'Alpha');
 					}
 				) !== null;
 				if ($inAlpha) {
@@ -284,10 +284,10 @@ class SymbiantController extends ModuleInstance {
 	 */
 	private function findSymbiantsBuffing(Skill $skill): array {
 		return $this->db->table(Symbiant::getTable(), 'sym')
-			->join('SymbiantClusterMatrix AS scm', 'scm.SymbiantID', '=', 'sym.ID')
-			->join(Cluster::getTable() . ' AS c', 'c.cluster_id', '=', 'scm.ClusterID')
-			->join('ImplantType AS it', 'it.ImplantTypeID', 'sym.SlotID')
-			->select(['sym.*', 'it.ShortName AS SlotName', 'it.Name AS SlotLongName'])
+			->join(SymbiantClusterMatrix::getTable(as: 'scm'), 'scm.symbiant_id', '=', 'sym.id')
+			->join(Cluster::getTable() . ' AS c', 'c.cluster_id', '=', 'scm.cluster_id')
+			->join(ImplantType::getTable(as: 'it'), 'it.implant_type_id', 'sym.slot_id')
+			->select(['sym.*', 'it.short_name AS slot_name', 'it.name AS slot_long_name'])
 			->where('c.skill_id', $skill->id)
 			->asObjArr(Symbiant::class);
 	}
@@ -312,27 +312,27 @@ class SymbiantController extends ModuleInstance {
 	/** @return list<string> */
 	private function getAndRenderBestSymbiants(Profession $prof, int $level): array {
 		$query = $this->db->table(Symbiant::getTable(), 's')
-			->join(SymbiantProfessionMatrix::getTable('spm'), 'spm.SymbiantID', 's.ID')
-			->join('Profession AS p', 'p.ID', 'spm.ProfessionID')
-			->join('ImplantType AS it', 'it.ImplantTypeID', 's.SlotID')
-			->where('p.Name', $prof->value)
-			->where('s.LevelReq', '<=', $level)
-			->where('s.Name', 'NOT LIKE', 'Prototype%')
-			->select(['s.*', 'it.ShortName AS SlotName', 'it.Name AS SlotLongName']);
-		$query->orderByRaw($query->grammar->wrap('s.Name') . ' like ? desc', ['%Alpha']);
-		$query->orderByRaw($query->grammar->wrap('s.Name') . ' like ? desc', ['%Beta']);
-		$query->orderByDesc('s.QL');
+			->join(SymbiantProfessionMatrix::getTable('spm'), 'spm.symbiant_id', 's.id')
+			->join('profession AS p', 'p.id', 'spm.profession_id')
+			->join(ImplantType::getTable(as: 'it'), 'it.implant_type_id', 's.slot_id')
+			->where('p.name', $prof->value)
+			->where('s.level_req', '<=', $level)
+			->where('s.name', 'NOT LIKE', 'Prototype%')
+			->select(['s.*', 'it.short_name AS slot_name', 'it.name AS slot_long_name']);
+		$query->orderByRaw($query->grammar->wrap('s.name') . ' like ? desc', ['%Alpha']);
+		$query->orderByRaw($query->grammar->wrap('s.name') . ' like ? desc', ['%Beta']);
+		$query->orderByDesc('s.ql');
 
 		$symbiants = $query->asObj(Symbiant::class);
 
 		/** @var array<string,SymbiantConfig> */
 		$configs = [];
 		foreach ($symbiants as $symbiant) {
-			if (!strlen($symbiant->Unit)) {
-				$symbiant->Unit = 'Special';
+			if (!strlen($symbiant->unit)) {
+				$symbiant->unit = 'Special';
 			}
-			$configs[$symbiant->Unit] ??= new SymbiantConfig();
-			$configs[$symbiant->Unit]->{$symbiant->SlotName} []= $symbiant;
+			$configs[$symbiant->unit] ??= new SymbiantConfig();
+			$configs[$symbiant->unit]->{$symbiant->slot_name} []= $symbiant;
 		}
 		$blob = $this->configsToBlob($configs);
 		$msg = $this->text->makeBlob(

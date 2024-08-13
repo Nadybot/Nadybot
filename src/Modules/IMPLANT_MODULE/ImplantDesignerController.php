@@ -190,26 +190,28 @@ class ImplantDesignerController extends ModuleInstance {
 		$blob .= "\n\n\n";
 
 		$design = $this->getDesign($context->char->name, '@');
+
+		/** @var ?SlotConfig */
 		$slotObj = $design->{$slot};
 
-		if ($slotObj->symb !== null) {
+		if (isset($slotObj) && $slotObj->symb !== null) {
 			$symb = $slotObj->symb;
 			$blob .= $symb->name ."\n\n";
 			$blob .= "<header2>Requirements<end>\n";
-			$blob .= "Treatment: {$symb->Treatment}\n";
-			$blob .= "Level: {$symb->Level}\n";
+			$blob .= "Treatment: {$symb->treatment}\n";
+			$blob .= "Level: {$symb->level}\n";
 			foreach ($symb->reqs as $req) {
-				$blob .= "{$req->Name}: {$req->Amount}\n";
+				$blob .= "{$req->name}: {$req->amount}\n";
 			}
 			$blob .= "\n<header2>Modifications<end>\n";
 			foreach ($symb->mods as $mod) {
-				$blob .= "{$mod->Name}: {$mod->Amount}\n";
+				$blob .= "{$mod->name}: {$mod->amount}\n";
 			}
 			$blob .= "\n\n";
 		} else {
-			$ql = (int)($design->{$slot}?->ql ?? 300);
+			$ql = $slotObj?->ql ?? 300;
 			$blob .= "<header2>QL<end> {$ql}";
-			$implant = $this->getImplantInfo($ql, $design->{$slot}->shiny, $design->{$slot}->bright, $design->{$slot}->faded);
+			$implant = $this->getImplantInfo($ql, $slotObj?->shiny, $slotObj?->bright, $slotObj?->faded);
 			if ($implant !== null) {
 				$blob .= " - Treatment: {$implant->treatment} {$implant->ability_name}: {$implant->ability}";
 			}
@@ -253,12 +255,12 @@ class ImplantDesignerController extends ModuleInstance {
 		if ($grade === 'symb') {
 			/** @var ?Symbiant */
 			$symbRow = $this->db->table(Symbiant::getTable(), 's')
-				->join(ImplantType::getTable(as: 'i'), 's.SlotID', 'i.implant_type_id')
+				->join(ImplantType::getTable(as: 'i'), 's.slot_id', 'i.implant_type_id')
 				->where('i.short_name', $slot->designSlotName())
-				->where('s.Name', $cluster)
+				->where('s.name', $cluster)
 				->select('s.*')
-				->addSelect('i.short_name AS SlotName')
-				->addSelect('i.name AS SlotLongName')
+				->addSelect('i.short_name AS slot_name')
+				->addSelect('i.name AS slot_long_name')
 				->asObj(Symbiant::class)->first();
 
 			if ($symbRow === null) {
@@ -271,18 +273,18 @@ class ImplantDesignerController extends ModuleInstance {
 				$slotObj->ql = null;
 
 				$symb = new SymbiantSlot(
-					name: $symbRow->Name,
-					Treatment: $symbRow->TreatmentReq,
-					Level: $symbRow->LevelReq,
+					name: $symbRow->name,
+					treatment: $symbRow->treatment_req,
+					level: $symbRow->level_req,
 					reqs: $this->db->table(SymbiantAbilityMatrix::getTable(), 's')
-						->join(Ability::getTable(as: 'a'), 's.AbilityID', 'a.ability_id')
-						->where('s.SymbiantID', $symbRow->ID)
-						->select(['a.name', 's.Amount as amount'])
+						->join(Ability::getTable(as: 'a'), 's.ability_id', 'a.ability_id')
+						->where('s.symbiant_id', $symbRow->id)
+						->select(['a.name', 's.amount'])
 						->asObjArr(AbilityAmount::class),
 					mods: $this->db->table(SymbiantClusterMatrix::getTable(), 's')
-						->join(Cluster::getTable(as: 'c'), 's.ClusterID', 'c.cluster_id')
-						->where('SymbiantID', $symbRow->ID)
-						->select(['c.long_name AS Name', 's.Amount'])
+						->join(Cluster::getTable(as: 'c'), 's.cluster_id', 'c.cluster_id')
+						->where('s.symbiant_id', $symbRow->id)
+						->select(['c.long_name AS name', 's.amount'])
 						->asObjArr(AbilityAmount::class)
 				);
 
@@ -589,11 +591,11 @@ class ImplantDesignerController extends ModuleInstance {
 				$symb = $slotObj->symb;
 
 				// add reqs
-				if ($symb->Treatment > $reqs['Treatment']) {
-					$reqs['Treatment'] = $symb->Treatment;
+				if ($symb->treatment > $reqs['Treatment']) {
+					$reqs['Treatment'] = $symb->treatment;
 				}
-				if ($symb->Level > $reqs['Level']) {
-					$reqs['Level'] = $symb->Level;
+				if ($symb->level > $reqs['Level']) {
+					$reqs['Level'] = $symb->level;
 				}
 				foreach ($symb->reqs as $req) {
 					if ($req->amount > $reqs[$req->name]) {
@@ -807,8 +809,16 @@ class ImplantDesignerController extends ModuleInstance {
 
 	private function getImplantSummary(stdClass|SlotConfig $slotObj): string {
 		if ($slotObj->symb !== null) {
-			$msg = ' ' . $slotObj->symb->name . "\n";
-			return $msg;
+			$msg = ' ' . $slotObj->symb->name.
+				" - Treatment: {$slotObj->symb->treatment}".
+				" Level: {$slotObj->symb->level}";
+			foreach ($slotObj->symb->reqs as $req) {
+				$msg .= " {$req->name}: {$req->amount}";
+			}
+			foreach ($slotObj->symb->mods as $mod) {
+				$msg .= "\n<tab><highlight>{$mod->name}<end> ({$mod->amount})";
+			}
+			return $msg . "\n";
 		}
 		$ql = (int)($slotObj->ql ?? 300);
 		$implant = $this->getImplantInfo($ql, $slotObj->shiny, $slotObj->bright, $slotObj->faded);

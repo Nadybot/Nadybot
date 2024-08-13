@@ -1,4 +1,5 @@
-SymbiantID,ProfessionID
+# table: symbiant_profession_matrix
+symbiant_id,profession_id
 236309,14
 236309,3
 236309,10

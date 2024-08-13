@@ -1,4 +1,5 @@
-SymbiantID,ClusterID,Amount
+# table: symbiant_cluster_matrix
+symbiant_id,cluster_id,amount
 204613,42,40
 204613,72,27
 204613,40,20

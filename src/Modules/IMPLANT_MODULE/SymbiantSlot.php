@@ -12,8 +12,8 @@ class SymbiantSlot {
 	 */
 	public function __construct(
 		public string $name,
-		public int $Treatment,
-		public int $Level,
+		public int $treatment,
+		public int $level,
 		public array $reqs,
 		public array $mods,
 	) {

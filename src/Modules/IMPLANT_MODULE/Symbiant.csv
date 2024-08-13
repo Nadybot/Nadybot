@@ -1,4 +1,5 @@
-ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
+# table: symbiant
+id,name,ql,slot_id,treatment_req,level_req,unit
 236309,"Active Brain Symbiant, Control Unit Aban",170,2,1011,125,Control
 235859,"Active Brain Symbiant, Extermination Unit Aban",170,2,1011,125,Extermination
 235468,"Active Chest Symbiant, Artillery Unit Aban",170,4,1011,125,Artillery

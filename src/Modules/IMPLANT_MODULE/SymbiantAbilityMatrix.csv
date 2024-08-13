@@ -1,4 +1,5 @@
-SymbiantID,AbilityID,Amount
+# table: symbiant_ability_matrix
+symbiant_id,ability_id,amount
 236309,1,383
 236309,2,383
 236309,3,383

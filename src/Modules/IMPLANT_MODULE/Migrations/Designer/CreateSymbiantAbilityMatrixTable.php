@@ -8,15 +8,16 @@ use Nadybot\Core\{DB, SchemaMigration};
 use Nadybot\Modules\IMPLANT_MODULE\SymbiantAbilityMatrix;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 2021_04_26_16_03_25, shared: true)]
+#[NCA\Migration(order: 2024_08_13_12_21_00, shared: true)]
 class CreateSymbiantAbilityMatrixTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = SymbiantAbilityMatrix::getTable();
 		$db->schema()->dropIfExists($table);
+		$db->schema()->dropIfExists('SymbiantAbilityMatrix');
 		$db->schema()->create($table, static function (Blueprint $table): void {
-			$table->integer('SymbiantID');
-			$table->integer('AbilityID');
-			$table->integer('Amount');
+			$table->integer('symbiant_id');
+			$table->integer('ability_id');
+			$table->integer('amount');
 		});
 	}
 }
