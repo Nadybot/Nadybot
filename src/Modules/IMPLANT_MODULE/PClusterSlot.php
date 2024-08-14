@@ -15,7 +15,7 @@ class PClusterSlot extends Base {
 		if ($value === 'symbiant') {
 			$this->value = 'symb';
 		} else {
-			assert($value === 'shiny' || $value === 'bright' || $value === 'faded');
+			assert($value === 'shiny' || $value === 'bright' || $value === 'faded' || $value === 'symb');
 			$this->value = $value;
 		}
 	}

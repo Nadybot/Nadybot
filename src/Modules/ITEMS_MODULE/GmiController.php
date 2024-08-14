@@ -186,7 +186,7 @@ class GmiController extends ModuleInstance {
 			$gmi->sellOrders = array_slice($gmi->sellOrders, 0, 10);
 		}
 		$orders = collect([...$gmi->buyOrders, ...$gmi->sellOrders]);
-		$highestAmount = $orders->max('count');
+		$highestAmount = $orders->max(static fn (GmiBuyOrder|GmiSellOrder $item): int => $item->count);
 		$highestPrice = $orders->max('price');
 		$buyers = "<header2>Buy orders{$buyCutString}<end>";
 		if (count($gmi->buyOrders)) {
