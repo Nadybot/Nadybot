@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	Text,
 	Types\ImplantSlot,
 };
+use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 /**
  * @author Tyrence (RK2)
@@ -40,6 +41,9 @@ class PocketbossController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private DB $db;
+
+	#[NCA\Inject]
+	private ItemsController $itemsController;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -79,7 +83,9 @@ class PocketbossController extends ModuleInstance {
 		}
 		$symbs = '';
 		foreach ($data as $symb) {
-			if (in_array($symb->line, ['Alpha', 'Beta'], true)) {
+			if ($symb->type === 'Special') {
+				$name = $this->itemsController->findById($symb->itemid)?->getName() ?? 'Unknown';
+			} elseif (in_array($symb->line, ['Alpha', 'Beta'], true)) {
 				$name = "Xan {$symb->slot} Symbiant, {$symb->type} Unit {$symb->line}";
 			} else {
 				$name = "{$symb->line} {$symb->slot} Symbiant, {$symb->type} Unit Aban";
@@ -262,7 +268,9 @@ class PocketbossController extends ModuleInstance {
 		$implantDesignerLink = Text::makeChatcmd('implant designer', '/tell <myname> implantdesigner');
 		$blob = "Click '[add]' to add symbiant to {$implantDesignerLink}.\n\n";
 		foreach ($data as $row) {
-			if (in_array($row->line, ['Alpha', 'Beta'], true)) {
+			if ($row->type === 'Special') {
+				$name = $this->itemsController->findById($row->itemid)?->getName() ?? 'Unknown';
+			} elseif (in_array($row->line, ['Alpha', 'Beta'], true)) {
 				$name = "Xan {$row->slot} Symbiant, {$row->type} Unit {$row->line}";
 			} else {
 				$name = "{$row->line} {$row->slot} Symbiant, {$row->type} Unit Aban";

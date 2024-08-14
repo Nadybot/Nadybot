@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Types\ImplantSlot;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -173,17 +174,18 @@ class ImplantDesignerController extends ModuleInstance {
 	#[NCA\HandlesCommand('implantdesigner')]
 	#[NCA\Help\Group('implantdesigner')]
 	public function implantdesignerSlotCommand(CmdContext $context, PImplantSlot $slot): void {
-		$slot = $slot()->designSlotName();
+		$slot = $slot();
+		$slotName = $slot->designSlotName();
 
 		$blob  = '[' . Text::makeChatcmd('See Build', '/tell <myname> implantdesigner');
 		$blob .= ']<tab>[';
-		$blob .= Text::makeChatcmd('Clear this slot', "/tell <myname> implantdesigner {$slot} clear");
+		$blob .= Text::makeChatcmd('Clear this slot', "/tell <myname> implantdesigner {$slotName} clear");
 		$blob .= ']<tab>[';
-		$blob .= Text::makeChatcmd('Require Ability', "/tell <myname> implantdesigner {$slot} require");
+		$blob .= Text::makeChatcmd('Require Ability', "/tell <myname> implantdesigner {$slotName} require");
 		$blob .= "]\n\n\n";
 		$blob .= '<header2>Implants<end>  ';
 		foreach ([25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300] as $ql) {
-			$blob .= Text::makeChatcmd((string)$ql, "/tell <myname> implantdesigner {$slot} {$ql}") . ' ';
+			$blob .= Text::makeChatcmd((string)$ql, "/tell <myname> implantdesigner {$slotName} {$ql}") . ' ';
 		}
 		$blob .= "\n\n" . $this->getSymbiantsLinks($slot);
 		$blob .= "\n\n\n";
@@ -191,7 +193,7 @@ class ImplantDesignerController extends ModuleInstance {
 		$design = $this->getDesign($context->char->name, '@');
 
 		/** @var ?SlotConfig */
-		$slotObj = $design->{$slot};
+		$slotObj = $design->{$slotName};
 
 		if (isset($slotObj) && $slotObj->symb !== null) {
 			$symb = $slotObj->symb;
@@ -217,16 +219,16 @@ class ImplantDesignerController extends ModuleInstance {
 			$blob .= "\n\n";
 
 			$blob .= '<header2>Shiny<end>';
-			$blob .= $this->showClusterChoices($design, $slot, 'shiny');
+			$blob .= $this->showClusterChoices($design, $slotName, 'shiny');
 
 			$blob .= '<header2>Bright<end>';
-			$blob .= $this->showClusterChoices($design, $slot, 'bright');
+			$blob .= $this->showClusterChoices($design, $slotName, 'bright');
 
 			$blob .= '<header2>Faded<end>';
-			$blob .= $this->showClusterChoices($design, $slot, 'faded');
+			$blob .= $this->showClusterChoices($design, $slotName, 'faded');
 		}
 
-		$msg = $this->text->makeBlob("Implant Designer ({$slot})", $blob);
+		$msg = $this->text->makeBlob("Implant Designer ({$slotName})", $blob);
 
 		$context->reply($msg);
 	}
@@ -867,13 +869,17 @@ class ImplantDesignerController extends ModuleInstance {
 		return (int)$modAmount;
 	}
 
-	private function getSymbiantsLinks(string $slot): string {
-		$artilleryLink = Text::makeChatcmd('Artillery', "/tell <myname> symb {$slot} artillery");
-		$controlLink = Text::makeChatcmd('Control', "/tell <myname> symb {$slot} control");
-		$exterminationLink = Text::makeChatcmd('Extermination', "/tell <myname> symb {$slot} extermination");
-		$infantryLink = Text::makeChatcmd('Infantry', "/tell <myname> symb {$slot} infantry");
-		$supportLink = Text::makeChatcmd('Support', "/tell <myname> symb {$slot} support");
-		return "<header2>Symbiants<end>  {$artilleryLink}  {$controlLink}  {$exterminationLink}  {$infantryLink}  {$supportLink}";
+	private function getSymbiantsLinks(ImplantSlot $slot): string {
+		$links = $this->db->table(Pocketboss::getTable())
+			->where('slot', $slot->longName())
+			->select('type')
+			->distinct()
+			->orderBy('type')
+			->pluckStrings('type')
+			->map(static function (string $type) use ($slot): string {
+				return Text::makeChatcmd($type, "/tell <myname> symb {$slot->designSlotName()} " . strtolower($type));
+			});
+		return '<header2>Symbiants<end>  [' . $links->join('] [') . ']';
 	}
 
 	private function showClusterChoices(object $design, string $slot, string $grade): string {

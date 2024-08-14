@@ -878,3 +878,22 @@ id,pb,pb_location,bp_mob,bp_lvl,bp_location,type,slot,line,ql,itemid
 877,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Feet,Alpha,300,278982
 878,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Feet,Alpha,300,278995
 879,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Feet,Alpha,300,279008
+880,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Ocular,Special,1,305507
+881,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Left Wrist,Special,1,305505
+882,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Ocular,Special,1,305510
+883,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Chest,Special,1,305509
+884,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Left Wrist,Special,1,305513
+885,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Brain,Special,1,305504
+886,"Gartua the Gate Guardian","TOTW Raid","Boss",300,"Right path",Special,Chest,Special,1,305509
+887,"Gartua the Gate Guardian","TOTW Raid","Boss",300,"Right path",Special,Waist,Special,1,305508
+888,"Gartua the Doorkeeper","TOTW","Boss",300,"Right path",Special,Waist,Special,1,204650
+889,"Nematet the Custodian of Time","TOTW","Boss",300,"Central path",Special,Ocular,Special,1,204613
+890,"Nematet the Custodian of Time","TOTW","Boss",300,"Central path",Special,Brain,Special,1,204647
+891,"Nematet the Custodian of Time","TOTW","Boss",300,"Central path",Special,Right Arm,Special,1,204651
+892,"Aztur the Immortal","TOTW","Boss",300,"Central path",Special,Brain,Special,1,204647
+893,"Defender of the Three","TOTW","Boss",300,"Central hall",Special,Left Wrist,Special,1,204649
+894,"The Curator","TOTW","Boss",300,"Central path",Special,Right Arm,Special,1,204651
+895,"Dominus Ummoh the Pedagogue","Inner Sanctum","Side Boss",300,"Boss room",Special,Brain,Special,1,206246
+896,"Hezak the Immortal","Inner Sanctum","Boss",300,"Boss room",Special,Brain,Special,1,206246
+897,"Inobak the Gelid","Inner Sanctum","Boss",300,"Boss room",Special,Brain,Special,1,206246
+898,"Inobak the Gelid","Inner Sanctum","Boss",300,"Boss room",Special,Left Wrist,Special,1,206247
