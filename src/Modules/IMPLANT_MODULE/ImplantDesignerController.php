@@ -12,8 +12,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Nadybot\Modules\ITEMS_MODULE\{WhatBuffsController};
-use stdClass;
+use Nadybot\Modules\ITEMS_MODULE\{Skill, WhatBuffsController};
 
 /**
  * @author Tyrence (RK2)
@@ -183,12 +182,12 @@ class ImplantDesignerController extends ModuleInstance {
 		$blob .= ']<tab>[';
 		$blob .= Text::makeChatcmd('Require Ability', "/tell <myname> implantdesigner {$slotName} require");
 		$blob .= "]\n\n\n";
-		$blob .= '<header2>Implants<end>  ';
+		$blob .= "<header2>Implants<end>\n<tab>";
 		foreach ([25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300] as $ql) {
-			$blob .= Text::makeChatcmd((string)$ql, "/tell <myname> implantdesigner {$slotName} {$ql}") . ' ';
+			$blob .= '[' . Text::makeChatcmd((string)$ql, "/tell <myname> implantdesigner {$slotName} {$ql}") . '] ';
 		}
 		$blob .= "\n\n" . $this->getSymbiantsLinks($slot);
-		$blob .= "\n\n\n";
+		$blob .= "\n\n";
 
 		$design = $this->getDesign($context->char->name, '@');
 
@@ -208,24 +207,24 @@ class ImplantDesignerController extends ModuleInstance {
 			foreach ($symb->mods as $mod) {
 				$blob .= "{$mod->name}: {$mod->amount}\n";
 			}
-			$blob .= "\n\n";
+			$blob .= "\n";
 		} else {
 			$ql = $slotObj?->ql ?? 300;
-			$blob .= "<header2>QL<end> {$ql}";
+			$blob .= "<header2>Specs<end>\n<tab>QL: {$ql}\n";
 			$implant = $this->getImplantInfo($ql, $slotObj?->shiny, $slotObj?->bright, $slotObj?->faded);
 			if ($implant !== null) {
-				$blob .= " - Treatment: {$implant->treatment} {$implant->ability_name}: {$implant->ability}";
+				$blob .= "<tab>Treatment: {$implant->treatment} {$implant->ability_name}: {$implant->ability}\n";
 			}
-			$blob .= "\n\n";
+			$blob .= "\n";
 
 			$blob .= '<header2>Shiny<end>';
-			$blob .= $this->showClusterChoices($design, $slotName, 'shiny');
+			$blob .= $this->showClusterChoices($design, $slotName, 'shiny', $ql);
 
 			$blob .= '<header2>Bright<end>';
-			$blob .= $this->showClusterChoices($design, $slotName, 'bright');
+			$blob .= $this->showClusterChoices($design, $slotName, 'bright', $ql);
 
 			$blob .= '<header2>Faded<end>';
-			$blob .= $this->showClusterChoices($design, $slotName, 'faded');
+			$blob .= $this->showClusterChoices($design, $slotName, 'faded', $ql);
 		}
 
 		$msg = $this->text->makeBlob("Implant Designer ({$slotName})", $blob);
@@ -795,12 +794,13 @@ class ImplantDesignerController extends ModuleInstance {
 		$blob .= Text::makeChatcmd('Shopping List', '/tell <myname> implantshoppinglist');
 		$blob .= "]\n\n\n";
 
-		foreach ($this->slots as $slot) {
-			$blob .= Text::makeChatcmd($slot, "/tell <myname> implantdesigner {$slot}");
-			if (isset($design->{$slot})) {
-				$blob .= $this->getImplantSummary($design->{$slot});
+		foreach (ImplantSlot::cases() as $slot) {
+			$slotName = $slot->designSlotName();
+			$blob .= Text::makeChatcmd($slot->longName(), "/tell <myname> implantdesigner {$slotName}");
+			if (isset($design->{$slotName})) {
+				$blob .= $this->getImplantSummary($design->{$slotName});
 			} else {
-				$blob .= "\n";
+				$blob .= " -Empty-\n";
 			}
 			$blob .= "\n";
 		}
@@ -808,7 +808,7 @@ class ImplantDesignerController extends ModuleInstance {
 		return $blob;
 	}
 
-	private function getImplantSummary(stdClass|SlotConfig $slotObj): string {
+	private function getImplantSummary(SlotConfig $slotObj): string {
 		if ($slotObj->symb !== null) {
 			$msg = ' ' . $slotObj->symb->name.
 				" - Treatment: {$slotObj->symb->treatment}".
@@ -821,7 +821,7 @@ class ImplantDesignerController extends ModuleInstance {
 			}
 			return $msg . "\n";
 		}
-		$ql = (int)($slotObj->ql ?? 300);
+		$ql = $slotObj->ql ?? 300;
 		$implant = $this->getImplantInfo($ql, $slotObj->shiny, $slotObj->bright, $slotObj->faded);
 		$msg = ' QL' . $ql;
 		if ($implant !== null) {
@@ -830,13 +830,28 @@ class ImplantDesignerController extends ModuleInstance {
 		$msg .= "\n";
 
 		foreach ($this->grades as $grade) {
+			/** @psalm-var 'shiny'|'bright'|'faded' $grade */
 			if (!isset($slotObj->{$grade})) {
 				$msg .= "<tab><highlight>-Empty-<end>\n";
-			} else {
-				$effectTypeIdName = strtolower($grade) . '_effect_type_id';
-				$effectId = $implant->{$effectTypeIdName};
-				$msg .= "<tab><highlight>{$slotObj->{$grade}}<end> (" . $this->getClusterModAmount($ql, $grade, $effectId) . ")\n";
+				continue;
 			}
+			$skill = $slotObj->{$grade};
+			assert(is_string($skill));
+			$displaySkill = str_replace(' (%)', '', $skill);
+			$unit = $this->db->table(Cluster::getTable(), 'c')
+				->join(Skill::getTable(as: 's'), 'c.skill_id', 's.id')
+				->where('c.long_name', $skill)
+				->select('s.unit')
+				->pluckStrings('unit')
+				->first() ?? '';
+			$effectTypeIdName = "{$grade}_effect_type_id";
+			$effectId = $implant->{$effectTypeIdName};
+			$bonus = $this->getClusterModAmount($ql, $grade, $effectId);
+			$prefix = '+';
+			if (in_array($displaySkill, ['SkillLockModifier', '% Add. Nano Cost'], true)) {
+				$prefix = '-';
+			}
+			$msg .= "<tab><highlight>{$displaySkill}<end> ({$prefix}{$bonus}{$unit})\n";
 		}
 		return $msg;
 	}
@@ -879,21 +894,43 @@ class ImplantDesignerController extends ModuleInstance {
 			->map(static function (string $type) use ($slot): string {
 				return Text::makeChatcmd($type, "/tell <myname> symb {$slot->designSlotName()} " . strtolower($type));
 			});
-		return '<header2>Symbiants<end>  [' . $links->join('] [') . ']';
+		return "<header2>Symbiants<end>\n<tab>[" . $links->join('] [') . ']';
 	}
 
-	private function showClusterChoices(object $design, string $slot, string $grade): string {
+	private function showClusterChoices(ImplantConfig $design, string $slot, string $grade, int $ql): string {
+		$oldCluster = $design->{$slot}->{$grade};
 		$msg = '';
-		if (isset($design->{$slot}->{$grade})) {
-			$msg .= " - {$design->{$slot}->{$grade}}";
+		if (isset($oldCluster)) {
+			$msg .= ' [' . Text::makeChatcmd('clear', "/tell <myname> implantdesigner {$slot} {$grade} clear") . ']';
 		}
 		$msg .= "\n";
-		$msg .= Text::makeChatcmd('-Empty-', "/tell <myname> implantdesigner {$slot} {$grade} clear") . "\n";
 		$skills = $this->getClustersForSlot($slot, $grade);
 		foreach ($skills as $skill) {
-			$msg .= Text::makeChatcmd($skill, "/tell <myname> implantdesigner {$slot} {$grade} {$skill}") . "\n";
+			$effect = $this->db->table(Cluster::getTable(), 'c')
+				->join(Skill::getTable(as: 's'), 'c.skill_id', 's.id')
+				->where('c.long_name', $skill)
+				->select(['s.unit', 'c.effect_type_id'])
+				->get()
+				->first();
+			$displaySkill = str_replace(' (%)', '', $skill);
+			if (isset($oldCluster) && $oldCluster === $skill) {
+				$msg .= "<tab><highlight>{$displaySkill}<end>";
+			} else {
+				$msg .= "<tab>{$displaySkill}";
+			}
+			if (isset($effect)) {
+				$prefix = '+';
+				if (in_array($skill, ['SkillLockModifier', '% Add. Nano Cost'], true)) {
+					$prefix = '-';
+				}
+				$msg .= " {$prefix}".
+					$this->getClusterModAmount($ql, $grade, $effect->effect_type_id).
+					$effect->unit;
+			}
+			$msg .= ' [' . Text::makeChatcmd('set', "/tell <myname> implantdesigner {$slot} {$grade} {$skill}");
+			$msg .= "]\n";
 		}
-		$msg .= "\n\n";
+		$msg .= "\n";
 		return $msg;
 	}
 
