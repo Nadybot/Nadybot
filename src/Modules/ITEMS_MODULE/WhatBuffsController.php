@@ -110,10 +110,10 @@ class WhatBuffsController extends ModuleInstance {
 		$suffix = $froobFriendly ? 'Froob' : '';
 		$blob = "<header2>Choose a skill<end>\n";
 
-		$skills = $this->db->table(Skill::getTable())
-			->join('item_buffs', 'item_buffs.attribute_id', '=', 'skills.id')
-			->orderBy('skills.name')
-			->select('skills.*')
+		$skills = $this->db->table(Skill::getTable(), 's')
+			->join(ItemBuff::getTable(as: 'ib'), 'ib.attribute_id', '=', 's.id')
+			->orderBy('s.name')
+			->select('s.*')
 			->distinct()
 			->asObj(Skill::class);
 		foreach ($skills as $skill) {
@@ -148,23 +148,23 @@ class WhatBuffsController extends ModuleInstance {
 			return;
 		}
 		if ($type === 'Nanoprogram') {
-			$query = $this->db->table(Buff::getTable());
+			$query = $this->db->table(Buff::getTable(), 'b');
 			$query
-				->join('item_buffs', 'item_buffs.item_id', '=', 'buffs.id')
-				->join('skills', 'item_buffs.attribute_id', '=', 'skills.id')
+				->join(ItemBuff::getTable(as: 'ib'), 'ib.item_id', '=', 'b.id')
+				->join(Skill::getTable(as: 's'), 'ib.attribute_id', '=', 's.id')
 				->where(static function (QueryBuilder $query): void {
-					$query->whereIn('skills.name', ['SkillLockModifier', '% Add. Nano Cost'])
-						->orWhere('item_buffs.amount', '>', 0);
+					$query->whereIn('s.name', ['SkillLockModifier', '% Add. Nano Cost'])
+						->orWhere('ib.amount', '>', 0);
 				})
-				->groupBy('skills.name')
+				->groupBy('s.name')
 				->havingRaw($query->rawFunc('COUNT', 1) . ' > 0')
-				->orderBy('skills.name')
+				->orderBy('s.name')
 				->select([
-					'skills.name AS skill',
+					's.name AS skill',
 					$query->raw($query->rawFunc('COUNT', 1, 'num')),
 				]);
 			if ($froobFriendly) {
-				$query->where('buffs.froob_friendly', '=', true);
+				$query->where('b.froob_friendly', '=', true);
 			}
 			$data = $query->asObj(SkillBuffItemCount::class);
 		} elseif ($type === 'Perk') {
@@ -206,25 +206,25 @@ class WhatBuffsController extends ModuleInstance {
 				return $result;
 			})->filter()->sortBy('skill');
 		} else {
-			$query = $this->db->table(AODBEntry::getTable());
+			$query = $this->db->table(AODBEntry::getTable(), 'i');
 			$query
-				->join('item_types', 'item_types.item_id', '=', 'aodb.highid')
-				->join('item_buffs', 'item_buffs.item_id', '=', 'aodb.highid')
-				->join('skills', 'item_buffs.attribute_id', '=', 'skills.id')
-				->where('item_types.item_type', '=', $type)
-				->whereNotIn('aodb.name', ['Brad Test Nano'])
-				->groupBy('skills.name')
+				->join(ItemType::getTable(as: 'it'), 'it.item_id', '=', 'i.highid')
+				->join(ItemBuff::getTable(as: 'ib'), 'ib.item_id', '=', 'i.highid')
+				->join(Skill::getTable(as: 's'), 'ib.attribute_id', '=', 's.id')
+				->where('it.item_type', '=', $type)
+				->whereNotIn('i.name', ['Brad Test Nano'])
+				->groupBy('s.name')
 				->havingRaw($query->rawFunc('COUNT', 1) . ' > 0')
-				->orderBy('skills.name')
+				->orderBy('s.name')
 				->select([
-					'skills.name AS skill',
+					's.name AS skill',
 					$query->raw($query->rawFunc('COUNT', 1, 'num')),
 				]);
 			if ($froobFriendly) {
-				$query->where('aodb.froob_friendly', '=', true);
+				$query->where('i.froob_friendly', '=', true);
 			}
 			if ($this->itemsController->onlyItemsInGame) {
-				$query->where('aodb.in_game', '=', true);
+				$query->where('i.in_game', '=', true);
 			}
 			$data = $query->asObj(SkillBuffItemCount::class);
 		}
@@ -320,26 +320,26 @@ class WhatBuffsController extends ModuleInstance {
 		}
 		$skillId = $data[0]->id;
 		$skillName = $data[0]->name;
-		$itemQuery = $this->db->table(AODBEntry::getTable());
+		$itemQuery = $this->db->table(AODBEntry::getTable(), 'i');
 		$itemQuery
-			->join('item_types', 'item_types.item_id', '=', 'aodb.highid')
-			->join('item_buffs', 'item_buffs.item_id', '=', 'aodb.highid')
-			->join('skills', 'skills.id', '=', 'item_buffs.attribute_id')
-			->where('skills.id', '=', $skillId)
+			->join(ItemType::getTable(as: 'it'), 'it.item_id', '=', 'i.highid')
+			->join(ItemBuff::getTable(as: 'ib'), 'ib.item_id', '=', 'i.highid')
+			->join(Skill::getTable(as: 's'), 's.id', '=', 'ib.attribute_id')
+			->where('s.id', '=', $skillId)
 			->where(static function (QueryBuilder $query): void {
-				$query->whereIn('skills.name', ['SkillLockModifier', '% Add. Nano Cost'])
-					->orWhere('item_buffs.amount', '>', 0);
+				$query->whereIn('s.name', ['SkillLockModifier', '% Add. Nano Cost'])
+					->orWhere('ib.amount', '>', 0);
 			})
-			->groupBy('aodb.name', 'item_types.item_type', 'aodb.lowql', 'aodb.highql', 'item_buffs.amount')
-			->select('item_types.item_type');
-		$nanoQuery = $this->db->table(Buff::getTable());
+			->groupBy('i.name', 'it.item_type', 'i.lowql', 'i.highql', 'ib.amount')
+			->select('it.item_type');
+		$nanoQuery = $this->db->table(Buff::getTable(), 'b');
 		$nanoQuery
-			->join('item_buffs', 'item_buffs.item_id', '=', 'buffs.id')
-			->join('skills', 'skills.id', '=', 'item_buffs.attribute_id')
-			->where('skills.id', '=', $skillId)
+			->join(ItemBuff::getTable(as: 'ib'), 'ib.item_id', '=', 'b.id')
+			->join(Skill::getTable(as: 's'), 's.id', '=', 'ib.attribute_id')
+			->where('s.id', '=', $skillId)
 			->where(static function (QueryBuilder $query): void {
-				$query->whereIn('skills.name', ['SkillLockModifier', '% Add. Nano Cost'])
-					->orWhere('item_buffs.amount', '>', 0);
+				$query->whereIn('s.name', ['SkillLockModifier', '% Add. Nano Cost'])
+					->orWhere('ib.amount', '>', 0);
 			})
 			->select(
 				$nanoQuery->raw(
@@ -348,11 +348,11 @@ class WhatBuffsController extends ModuleInstance {
 				)
 			);
 		if ($froobFriendly) {
-			$itemQuery->where('aodb.froob_friendly', '=', true);
-			$nanoQuery->where('buffs.froob_friendly', '=', true);
+			$itemQuery->where('i.froob_friendly', '=', true);
+			$nanoQuery->where('b.froob_friendly', '=', true);
 		}
 		if ($this->itemsController->onlyItemsInGame) {
-			$itemQuery->where('aodb.in_game', '=', true);
+			$itemQuery->where('i.in_game', '=', true);
 		}
 		$innerQuery = $itemQuery
 			->unionAll($nanoQuery);
@@ -454,7 +454,7 @@ class WhatBuffsController extends ModuleInstance {
 		} else {
 			$query = $this->db->table(AODBEntry::getTable(), 'a');
 			$query
-				->join('item_types AS i', 'i.item_id', 'a.highid')
+				->join(ItemType::getTable(as: 'i'), 'i.item_id', 'a.highid')
 				->join(ItemBuff::getTable(as: 'b'), 'b.item_id', 'a.highid')
 				->leftJoin(ItemBuff::getTable(as: 'b2'), 'b2.item_id', 'a.lowid')
 				->join(Skill::getTable() . ' AS s', static function (JoinClause $join): void {

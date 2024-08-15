@@ -490,7 +490,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 
 		/** @var Collection<int,NameHistory> */
 		$names = $this->db->table(BanEntry::getTable(), 'bl')
-			->join('name_history AS nh', 'bl.charid', 'nh.charid')
+			->join(NameHistory::getTable(as: 'nh'), 'bl.charid', 'nh.charid')
 			->where('nh.dimension', $this->db->getDim())
 			->orderBy('nh.dt')
 			->select('nh.*')

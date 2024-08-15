@@ -427,7 +427,7 @@ class Text {
 		if (count($msgs) < 2) {
 			return $msgs;
 		}
-		if (count($matches = Safe::pregMatch("/<a\s+href\s*=\s*([\"'])text:\/\/(<font.*?>)?<header>[^\n]*<end>\n\n(.+?)\\1\s*>(.*?)<\/a> \(Page <highlight>1 \/ (\d+)<end>/is", $msgs[0])) < 4) {
+		if (count($matches = Safe::pregMatch("/<a\s+href\s*=\s*([\"'])text:\/\/(<font.*?>)?<header>[^\n]*<end>\n\n(.+?)\\1\s*>(.*?)<\/a> \(Page <highlight>1 \/ (\d+)<end>\)/is", $msgs[0])) < 4) {
 			return $msgs;
 		}
 		$blocks = [
@@ -435,7 +435,7 @@ class Text {
 		];
 		for ($i = 1; $i < count($msgs); $i++) {
 			if (count($matches2 = Safe::pregMatch(
-				"/<a\s+href\s*=\s*([\"'])text:\/\/(?:<font.*?>)?<header>[^\n]*<end>\n\n(.*?)\\1\s*>(.*?)<\/a> \(Page <highlight>" . ($i+1) . " \/ " . $matches[5] . '<end>/is',
+				"/<a\s+href\s*=\s*([\"'])text:\/\/(?:<font.*?>)?<header>[^\n]*<end>\n\n(.*?)\\1\s*>(.*?)<\/a> \(Page <highlight>" . ($i+1) . " \/ " . $matches[5] . '<end>\)/is',
 				$msgs[$i]
 			))) {
 				$expand = Safe::pregReplace("/^<header>[^\n]*<end>\n{0,2}/", '', $matches2[2]);

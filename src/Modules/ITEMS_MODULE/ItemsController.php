@@ -195,8 +195,8 @@ class ItemsController extends ModuleInstance {
 	#[NCA\HandlesCommand('id')]
 	public function idCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table(AODBEntry::getTable(), 'a')
-			->leftJoin('item_groups AS g', 'g.item_id', 'a.lowid')
-			->leftJoin('item_group_names AS gn', 'g.group_id', 'gn.group_id')
+			->leftJoin(ItemGroup::getTable(as: 'g'), 'g.item_id', 'a.lowid')
+			->leftJoin(ItemGroupName::getTable(as: 'gn'), 'g.group_id', 'gn.group_id')
 			->orderByColFunc('COALESCE', ['gn.name', 'a.name'])
 			->orderBy('a.lowql')
 			->select('a.*')
@@ -265,7 +265,7 @@ class ItemsController extends ModuleInstance {
 	 */
 	public function findItemsFromLocal(string $search, ?int $ql, bool $dontExclude=false): array {
 		$innerQuery = $this->db->table(AODBEntry::getTable(), 'a')
-			->leftJoin('item_groups AS g', 'g.item_id', 'a.lowid');
+			->leftJoin(ItemGroup::getTable(as: 'g'), 'g.item_id', 'a.lowid');
 		$tmp = explode(' ', $search);
 		$this->db->addWhereFromParams($innerQuery, $tmp, 'name');
 
@@ -295,10 +295,10 @@ class ItemsController extends ModuleInstance {
 			$innerQuery->where('a.in_game', true);
 		}
 		$query = $this->db->fromSub($innerQuery, 'foo')
-			->leftJoin('item_groups AS g', 'foo.group_id', 'g.group_id')
-			->leftJoin('item_group_names AS n', 'foo.group_id', 'n.group_id')
-			->leftJoin('aodb AS a1', 'g.item_id', 'a1.lowid')
-			->leftJoin('aodb AS a2', 'g.item_id', 'a2.highid')
+			->leftJoin(ItemGroup::getTable(as: 'g'), 'foo.group_id', 'g.group_id')
+			->leftJoin(ItemGroupName::getTable(as: 'n'), 'foo.group_id', 'n.group_id')
+			->leftJoin(AODBEntry::getTable(as: 'a1'), 'g.item_id', 'a1.lowid')
+			->leftJoin(AODBEntry::getTable(as: 'a2'), 'g.item_id', 'a2.highid')
 			->orderBy('g.id');
 		$query->selectRaw($query->colFunc('COALESCE', ['a2.name', 'a1.name', 'foo.name'], 'name'))
 			->addSelect('n.name AS group_name')

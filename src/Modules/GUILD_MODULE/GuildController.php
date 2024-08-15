@@ -512,7 +512,7 @@ class GuildController extends ModuleInstance {
 
 		$org = $this->guildManager->byId($this->config->orgId, $this->config->main->dimension, false);
 		$members = $this->db->table(OrgMember::getTable(), 'om')
-			->join('players AS p', 'om.name', '=', 'p.name')
+			->join(Player::getTable(as: 'p'), 'om.name', '=', 'p.name')
 			->select('p.*')
 			->asObj(Player::class);
 		if ($members->isEmpty()) {
