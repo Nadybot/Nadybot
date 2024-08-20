@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
+use Amp\Promise;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -11,6 +13,13 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\ParamClass\PRemove;
+
+use function Amp\call;
+use function Safe\preg_split;
 
 /**
  * @author Nadyiya (RK5)
@@ -26,7 +35,12 @@ use Nadybot\Core\{
 		command: "death restart",
 		accessLevel: "admin",
 		description: "Reset/Wipe death counters",
-	)
+	),
+	NCA\DefineCommand(
+		command: "deathmsg",
+		accessLevel: "mod",
+		description: "Manage custom death messages",
+	),
 ]
 class DeathController extends ModuleInstance {
 	public const DB_TABLE = 'death_<myname>';
@@ -43,9 +57,20 @@ class DeathController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	#[NCA\Inject]
+	public AltsController $altsController;
+
+	#[NCA\Inject]
+	public PlayerManager $playerManager;
+
 	/** Automatically register someone's char when they use death +1 */
 	#[NCA\Setting\Boolean]
 	public bool $autoRegisterDeath = false;
+
+	#[NCA\Setup]
+	public function setup(): void {
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/death.csv");
+	}
 
 	/** How and whether to display the death counter */
 	#[NCA\Setting\Template(
@@ -100,7 +125,7 @@ class DeathController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\StrChoice('+', '-')] string $action,
 		#[NCA\SpaceOptional] int $delta
-	): void {
+	): Generator {
 		$death = $this->getDeath($context->char->name);
 		if (!isset($death)) {
 			if ($this->autoRegisterDeath) {
@@ -126,79 +151,148 @@ class DeathController extends ModuleInstance {
 		}
 		$death->counter += $delta;
 		$this->db->update(self::DB_TABLE, 'character', $death);
-		if ($death->counter === 1) {
-			$deathText = [
-				"You didn't even start yet...",
-				"There's a first time for everything.",
-				"A magic dwells in each beginning.",
-				"This is how it all started",
-				"Congrats, you've officially lost your noob status!",
-				"Ah, the sweet taste of your first respawn!",
-				"Don't worry, it only gets worse from here.",
-				"First time dying? Well, now you've got experience... in failing!",
-			];
-		} elseif ($death->counter === 9) {
-			$deathText = [
-				"Only 3 more, and you have a dozen!",
-			];
-		} else {
-			$deathText = [
-				"Dun dun dun dun, and another one bites the dust.",
-				"And another one gone, and another one gone, another one bites the dust.",
-				"How do you think I'm gonna get along without you, when you're gone?",
-				"On behalf of the entire team, please accept our deepest sympathies.",
-				"Blame the doc!",
-				"I think the tank sucks. Go tell them!",
-				"Our hearts go out to you during this time of sorrow.",
-				"I hold you close in my thoughts at this sad time.",
-				"I'd like to express our sincere condolences to you and your team.",
-				"You and your whole team are in my thoughts.",
-				"He's dead, Jim!",
-				"Team, you have my deepest condolences for the loss of someone so dear.",
-				"Words seem inadequate, so I send this flower as a token of my great sympathy\n".
-				"<tab><green>--,--`-<end><red>@<end>",
-				"Today and always, may loving memories bring you strength, peace, and fast rezzing.",
-				"Sending heartfelt condolences",
-				"Someone so special will never be forgotten. Except by the tank. And the doc.",
-				"Geez, reclaim takes forever...",
-				"Whoops-a-daisy",
-				"R U nubi?".
-				"Did you trip over your own pixels?",
-				"I've seen NPCs with better survival instincts.",
-				"Respawn faster than your reaction time!",
-				"Was that a tactical faceplant?",
-				"Need a tutorial on dodging?",
-				"Did you just uninstall mid-fight?",
-				"At least your gear died with dignity.",
-				"I didn't know you were speedrunning to the reclaim.",
-				"Is the reclaim your new home address?",
-				"Remember, it's all in good fun!",
-				"I did not pull my gun!",
-				"Newland is that way!",
-				"Like a punk!",
-				"Well, here we are. At reclaim. Again.",
-				"It was just a single rollerrat and you weren't ready for it...",
-				"Was that lag or just your reflexes?",
-				"Holy sh***",
-				"The escape route was the opposite direction of the big red beast.",
-			];
-			if ($death->counter < 10) {
-				$deathText = array_merge($deathText, [
-					"These are rookie numbers. Go and die some more!",
-					"Keep up the good work, you're getting the hang of it!",
-				]);
-			}
+		/** @var ?string */
+		$deathText = yield $this->getRandomDeathMessage($death);
+		if (!isset($deathText)) {
+			return;
 		}
-		$randomLine = $this->util->randomArrayValue($deathText);
 		$text = $this->text->renderPlaceholders(
 			$this->deathCounterDisplay,
 			[
 				'counter' => $death->counter,
 				'name' => $death->character,
-				'text' => $randomLine,
+				'text' => $deathText,
 			]
 		);
 		$context->reply($text);
+	}
+
+	/**
+	 * Get a matching death message for a given death
+	 *
+	 * @param Death $death The death properties
+	 *
+	 * @return Promise<?string> A matching death message, or null;
+	 */
+	private function getRandomDeathMessage(Death $death): Promise {
+		return call(function () use ($death): Generator {
+			/** @var array<Fun> */
+			$data = $this->db->table("fun")
+				->whereIn("type", ['death', 'death-custom'])
+				->whereIlike('content', 'counter=' . $death->counter . ' %')
+				->asObj(Fun::class)
+				->toArray();
+			if (count($data) === 0) {
+				/** @var array<Fun> */
+				$data = $this->db->table("fun")
+					->whereIn("type", ['death', 'death-custom'])
+					->asObj(Fun::class)
+					->toArray();
+			}
+			while (count($data) > 0) {
+				$key = array_rand($data, 1);
+
+				/** @var ?string */
+				$deathMsg = yield $this->deathMsgFits($death, $data[$key]);
+				if (isset($deathMsg)) {
+					return str_replace("\\n", "\n", $deathMsg);
+				}
+				unset($data[$key]);
+			}
+			return null;
+		});
+	}
+
+	/**
+	 * Check if a given death message applies to a given death
+	 *
+	 * @param Death $death   The death properties
+	 * @param Fun    $fun The Fun object with the death message
+	 *
+	 * @return Promise<?string> Either the death message, or null if it doesn't apply
+	 */
+	private function deathMsgFits(Death $death, Fun $fun): Promise {
+		return call(function () use ($death, $fun): Generator {
+			$parts = explode(" ", $fun->content, 2);
+			if (count($parts) < 2) {
+				return $fun->content;
+			}
+			$tokens = preg_split('/(!=|[=<>])/', $parts[0], 2, \PREG_SPLIT_DELIM_CAPTURE);
+			if (count($tokens) < 3) {
+				return $fun->content;
+			}
+
+			/** @var bool */
+			$matches = yield $this->matchesDeathCheck($tokens[0], $tokens[1], $tokens[2], $death);
+			if ($matches) {
+				return $parts[1];
+			}
+			return null;
+		});
+	}
+
+	/**
+	 * Check if the given death-check applies to the player
+	 *
+	 * @param string $token  The token to check (main, name, prof)
+	 * @param string $value  The value to check against
+	 * @param Death $death The death properties
+	 *
+	 * @return Promise<bool> A promise that resolves into true (matches) or false (doesn't match)
+	 */
+	private function matchesDeathCheck(string $token, string $operator, string $value, Death $death): Promise {
+		return call(function () use ($token, $operator, $value, $death): Generator {
+			switch ($operator) {
+				case '>':
+					$comparison = fn (mixed $a, mixed $b): bool => $a > $b;
+					break;
+				case '<':
+					$comparison = fn (mixed $a, mixed $b): bool => $a < $b;
+					break;
+				case '!=':
+					$comparison = fn (mixed $a, mixed $b): bool => $a !== $b;
+					break;
+				default:
+					$comparison = fn (mixed $a, mixed $b): bool => $a === $b;
+			}
+			switch ($token) {
+				case "main":
+					return $comparison($this->altsController->getMainOf($death->character), ucfirst(strtolower($value)));
+				case "name":
+				case "char":
+				case "charname":
+				case "character":
+					return $comparison($death->character, ucfirst(strtolower($value)));
+				case "count":
+				case "counter":
+					return $comparison($death->counter, (int)$value);
+			}
+
+			/** @var ?Player */
+			$player = yield $this->playerManager->byName($death->character);
+			if (!isset($player)) {
+				return false;
+			}
+			switch ($token) {
+				case "prof":
+				case "profession":
+					return $comparison($player->profession, $this->util->getProfessionName($value));
+				case "faction":
+				case "side":
+					return $comparison(strtolower($player->faction), strtolower($value));
+				case "gender":
+				case "sex":
+					return $comparison(strtolower($player->gender), strtolower($value));
+				case "race":
+				case "breed":
+					return $comparison(strtolower($player->breed), strtolower($value));
+				case "level":
+				case "lvl":
+					return $comparison($player->level, (int)$value);
+				default:
+					return true;
+			}
+		});
 	}
 
 	/** Register your character for taking part in counting deaths */
@@ -357,5 +451,76 @@ class DeathController extends ModuleInstance {
 				"<tab>{$death->character}";
 		})->join("\n");
 		return (array)$this->text->makeBlob($text, $blob);
+	}
+
+	#[NCA\HandlesCommand("deathmsg")]
+	/** List all custom death messages */
+	public function listDeathMessages(CmdContext $context): void {
+		$lines = $this->db->table("fun")
+			->where("type", 'death-custom')
+			->asObj(Fun::class)
+			->map(function (Fun $entry) use ($context): string {
+				$delLink = $this->text->makeChatcmd(
+					"remove",
+					"/tell <myname> " . $context->getCommand() . " rem " . $entry->id
+				);
+				return "<tab>- [{$delLink}] {$entry->content}";
+			});
+		if ($lines->isEmpty()) {
+			$context->reply(
+				"No custom death messages defined. Use <highlight><symbol>".
+				$context->getCommand() . " add &lt;death message&gt;<end> to add one."
+			);
+			return;
+		}
+		$msg = $this->text->makeBlob(
+			"Defined custom death messages",
+			"<header2>Death messages<end>\n" . $lines->join("\n")
+		);
+		$context->reply($msg);
+	}
+
+	/**
+	 * Add a new custom death message. Use *counter* as a placeholder for the
+	 * number of deaths
+	 *
+	 * If the first word is a pair in the form key=value, key&gt;value, key&lt;value, or key!=value,
+	 * then the death message will only be used if they match.
+	 * Possible keys are: name, main, prof, gender, breed, faction, level, counter
+	 */
+	#[NCA\HandlesCommand("deathmsg")]
+	#[NCA\Help\Example(command: "deathmsg add You suck!")]
+	#[NCA\Help\Example(command: "deathmsg add counter<10 These are rookie numbers!")]
+	#[NCA\Help\Example(command: "deathmsg add prof=enf The doc really sucks")]
+	#[NCA\Help\Example(command: "deathmsg add prof!=enf Blame the tank")]
+	#[NCA\Help\Example(command: "deathmsg add main=Nady Again, Nady?")]
+	public function addDeathMessage(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		string $deathMessage,
+	): void {
+		$fun = new Fun();
+		$fun->type = 'death-custom';
+		$fun->content = $deathMessage;
+		$id = $this->db->insert("fun", $fun);
+		$context->reply("New death message added as <highlight>#{$id}<end>.");
+	}
+
+	#[NCA\HandlesCommand("deathmsg")]
+	/** Remove a custom death message */
+	public function delDeathMessage(
+		CmdContext $context,
+		PRemove $action,
+		int $id,
+	): void {
+		$deleted = $this->db->table("fun")
+			->where("type", 'death-custom')
+			->where("id", $id)
+			->delete();
+		if (!$deleted) {
+			$context->reply("The death message <highlight>#{$id}<end> doesn't exist.");
+			return;
+		}
+		$context->reply("Death message <highlight>#{$id}<end> deleted successfully.");
 	}
 }
