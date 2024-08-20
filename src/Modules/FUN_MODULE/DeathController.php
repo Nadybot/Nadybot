@@ -63,7 +63,7 @@ class DeathController extends ModuleInstance {
 			'supershort2' => "[<highlight>{counter}<end>] {text}",
 		]
 	)]
-	public string $deathCounterDisplay = "[<highlight>{counter}] {text}";
+	public string $deathCounterDisplay = "[<highlight>{counter}<end>] {text}";
 
 	public function getDeath(string $character): ?Death {
 		return $this->db->table(self::DB_TABLE)
