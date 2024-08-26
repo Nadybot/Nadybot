@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{preg_split};
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
@@ -922,7 +921,7 @@ class CommandManager implements MessageEmitter {
 				$empty []= [$m];
 				continue;
 			}
-			$headline = $this->cleanComment($comment)[0];
+			$headline = $this->cleanComment($comment)->headline;
 			$lookup[$headline] ??= [];
 			$lookup[$headline] []= $m;
 		}
@@ -1048,10 +1047,10 @@ class CommandManager implements MessageEmitter {
 		$extra = [];
 		$comment = $first?->getDocComment() ?? false;
 		if ($comment !== false) {
-			$parts = $this->cleanComment($comment);
-			$lines []= trim($parts[0]);
-			if (isset($parts[1])) {
-				$extra []= '<i>' . trim($parts[1]) . '</i>';
+			$cleanComment = $this->cleanComment($comment);
+			$lines []= trim($cleanComment->headline);
+			if (isset($cleanComment->description)) {
+				$extra []= '<i>' . trim($cleanComment->description) . '</i>';
 			}
 		}
 		$j = -1;
@@ -1511,19 +1510,16 @@ class CommandManager implements MessageEmitter {
 		return $refMethod;
 	}
 
-	/**
-	 * @return list<?string>
-	 *
-	 * @psalm-return array{string, ?string}
-	 */
-	private function cleanComment(string $comment): array {
+	private function cleanComment(string $comment): Comment {
 		$comment = trim(Safe::pregReplace("|^/\*\*(.*)\*/|s", '$1', $comment));
 		$comment = Safe::pregReplace("/^[ \t]*\*[ \t]*/m", '', $comment);
 		$comment = trim(Safe::pregReplace('/^@.*/m', '', $comment));
 
-		/** @phpstan-var array{string, ?string} */
-		$result = preg_split("/\r?\n\r?\n/", $comment, 2);
-		return [trim($result[0]), isset($result[1]) ? trim($result[1]) : null];
+		$result = Safe::pregSplit("/\r?\n\r?\n/", $comment, 2);
+		return new Comment(
+			headline: trim($result[0]),
+			description: isset($result[1]) ? trim($result[1]) : null,
+		);
 	}
 
 	/** @return Collection<int,ReflectionMethod> */

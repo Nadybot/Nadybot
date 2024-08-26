@@ -157,13 +157,19 @@ class Safe {
 	 *                          substring.  A limit of -1 or 0 means "no limit".
 	 *                          into subject at offset 1.
 	 *
-	 * @return list<string> Returns an array containing substrings of subject
-	 *                      split along boundaries matched by pattern.
+	 * @return string[] Returns an array containing substrings of subject
+	 *                  split along boundaries matched by pattern.
+	 *
+	 * @psalm-return non-empty-list<string>
 	 *
 	 * @throws PcreException
 	 */
 	public static function pregSplit(string $pattern, string $subject, ?int $limit=-1): array {
-		/** @var list<string> */
+		/**
+		 * @var string[]
+		 *
+		 * @psalm-var non-empty-list<string>
+		 */
 		$result = preg_split($pattern, $subject, $limit);
 		return $result;
 	}
