@@ -913,36 +913,29 @@ class OnlineController extends ModuleInstance {
 		return '';
 	}
 
-	/**
-	 * @return list<string>
-	 *
-	 * @psalm-return array{0: string, 1: string}
-	 *
-	 * @phpstan-return array{0: string, 1: string}
-	 */
-	public function getRaidInfo(string $name, string $fancyColon): array {
+	public function getRaidInfo(string $name, string $fancyColon): RaidInfo {
 		$mode = $this->onlineRaid;
 		if ($mode === 0) {
-			return ['', ''];
+			return new RaidInfo();
 		}
 		if (!isset($this->raidController->raid)) {
-			return ['', ''];
+			return new RaidInfo();
 		}
 		$inRaid = isset($this->raidController->raid->raiders[$name])
 			&& $this->raidController->raid->raiders[$name]->left === null;
 
 		if (($mode & static::RAID_IN) && $inRaid) {
 			if ($mode & static::RAID_COMPACT) {
-				return ['[<on>R<end>] ', ''];
+				return new RaidInfo(pre: '[<on>R<end>] ');
 			}
-			return ['', " {$fancyColon} <on>in raid<end>"];
+			return new RaidInfo(post: " {$fancyColon} <on>in raid<end>");
 		} elseif (($mode & static::RAID_NOT_IN) && !$inRaid) {
 			if ($mode & static::RAID_COMPACT) {
-				return ['[<off>R<end>] ', ''];
+				return new RaidInfo(pre: '[<off>R<end>] ');
 			}
-			return ['', " {$fancyColon} <off>not in raid<end>"];
+			return new RaidInfo(post: " {$fancyColon} <off>not in raid<end>");
 		}
-		return ['', ''];
+		return new RaidInfo();
 	}
 
 	public function getAfkInfo(string $afk, string $fancyColon): string {
@@ -1019,11 +1012,11 @@ class OnlineController extends ModuleInstance {
 			}
 
 			$admin = $this->getAdminInfo($player->name, $separator);
-			[$raidPre, $raidPost] = $this->getRaidInfo($player->name, $separator);
+			$raidInfo = $this->getRaidInfo($player->name, $separator);
 			$afk = $this->getAfkInfo($player->afk??'', $separator);
 
 			if ($player->profession === null) {
-				$list->blob .= "<tab>? {$raidPre}{$player->name}{$admin}{$raidPost}{$afk}\n";
+				$list->blob .= "<tab>? {$raidInfo->pre}{$player->name}{$admin}{$raidInfo->post}{$afk}\n";
 			} else {
 				$prof = $player->profession->short();
 				$orgRank = '';
@@ -1034,7 +1027,7 @@ class OnlineController extends ModuleInstance {
 				if ($groupBy !== static::GROUP_BY_PROFESSION) {
 					$profIcon = $player->profession->toIcon() . ' ';
 				}
-				$list->blob.= "<tab>{$profIcon}{$raidPre}{$player->name} - {$player->level}/<green>{$player->ai_level}<end> {$prof}{$orgRank}{$admin}{$raidPost}{$afk}\n";
+				$list->blob.= "<tab>{$profIcon}{$raidInfo->pre}{$player->name} - {$player->level}/<green>{$player->ai_level}<end> {$prof}{$orgRank}{$admin}{$raidInfo->post}{$afk}\n";
 			}
 		}
 
