@@ -80,12 +80,8 @@ class SkillRechargeInfo {
 	 * @return self The recharge information
 	 */
 	public static function fromFlingShot(int $currentSkill, float $weaponAttack): self {
-		// Comment: KelticDanor: Fast attack is confirmed, 1701 to cap fast attack of tonfa, that is correct. 1700 is 7 seconds, 1701 is 6 seconds.
-		$hardCapTime = (int)floor($weaponAttack + 5);
-		$skillToCap = (int)floor(($weaponAttack * 1600) - ($hardCapTime + 1) * 100 + 1);
-		$skillRecharge = (int)floor(($weaponAttack * 16) - ($currentSkill / 100));
-		$skillRecharge = max($skillRecharge, $hardCapTime);
-		return new self($skillToCap, $skillRecharge, $hardCapTime);
+		// Fling Shot works the same as Fast Attack
+		return self::fromFastAttack($currentSkill, $weaponAttack);
 	}
 
 	/**
@@ -97,8 +93,12 @@ class SkillRechargeInfo {
 	 * @return self The recharge information
 	 */
 	public static function fromFastAttack(int $currentSkill, float $weaponAttack): self {
-		// Fast attack works the same as fling shot
-		return self::FromFlingShot($currentSkill, $weaponAttack);
+		// Comment: KelticDanor: Fast attack is confirmed, 1701 to cap fast attack of tonfa, that is correct. 1700 is 7 seconds, 1701 is 6 seconds.
+		$hardCapTime = (int)floor($weaponAttack + 5);
+		$skillToCap = (int)floor(($weaponAttack * 1600) - ($hardCapTime + 1) * 100 + 1);
+		$skillRecharge = (int)floor(($weaponAttack * 16) - ($currentSkill / 100));
+		$skillRecharge = max($skillRecharge, $hardCapTime);
+		return new self($skillToCap, $skillRecharge, $hardCapTime);
 	}
 
 	/**
