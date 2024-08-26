@@ -152,11 +152,11 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		$who = $who();
 		$length = $duration->toSecs();
 
-		[$success, $msgs] = $this->banPlayer($who, $context->char->name, $length, $reason, $context);
-		if (count($msgs)) {
-			$context->reply(implode("\n", $msgs));
+		$banResult = $this->banPlayer($who, $context->char->name, $length, $reason, $context);
+		if (count($banResult->messages)) {
+			$context->reply(implode("\n", $banResult->messages));
 		}
-		if (!$success) {
+		if (!$banResult->success) {
 			return;
 		}
 
@@ -184,11 +184,11 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		$who = $who();
 		$length = $duration->toSecs();
 
-		[$success, $msgs] = $this->banPlayer($who, $context->char->name, $length, '', $context);
-		if (count($msgs)) {
-			$context->reply(implode("\n", $msgs));
+		$banResult = $this->banPlayer($who, $context->char->name, $length, '', $context);
+		if (count($banResult->messages)) {
+			$context->reply(implode("\n", $banResult->messages));
 		}
-		if (!$success) {
+		if (!$banResult->success) {
 			return;
 		}
 
@@ -215,11 +215,11 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	): void {
 		$who = $who();
 
-		[$success, $msgs] = $this->banPlayer($who, $context->char->name, null, $reason, $context);
-		if (count($msgs)) {
-			$context->reply(implode("\n", $msgs));
+		$banResult = $this->banPlayer($who, $context->char->name, null, $reason, $context);
+		if (count($banResult->messages)) {
+			$context->reply(implode("\n", $banResult->messages));
 		}
-		if (!$success) {
+		if (!$banResult->success) {
 			return;
 		}
 
@@ -241,11 +241,11 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	public function banPlayerCommand(CmdContext $context, PCharacter $who): void {
 		$who = $who();
 
-		[$success, $msgs] = $this->banPlayer($who, $context->char->name, null, '', $context);
-		if (count($msgs)) {
-			$context->reply(implode("\n", $msgs));
+		$banResult = $this->banPlayer($who, $context->char->name, null, '', $context);
+		if (count($banResult->messages)) {
+			$context->reply(implode("\n", $banResult->messages));
 		}
-		if (!$success) {
+		if (!$banResult->success) {
 			return;
 		}
 
@@ -792,12 +792,8 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		return "Added <highlight>{$ban->org_name}<end> to the banlist.";
 	}
 
-	/**
-	 * This helper method bans player with given arguments.
-	 *
-	 * @return array{bool,list<string>}
-	 */
-	private function banPlayer(string $who, string $sender, ?int $length, ?string $reason, CmdContext $context): array {
+	/** This helper method bans player with given arguments. */
+	private function banPlayer(string $who, string $sender, ?int $length, ?string $reason, CmdContext $context): BanResult {
 		$toBan = [$who];
 		if ($this->banAllAlts) {
 			$altInfo = $this->altsController->getAltInfo($who);
@@ -828,7 +824,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 			}
 
 			if ($length === 0) {
-				return [false, $msgs];
+				return new BanResult(success: false, messages: $msgs);
 			}
 
 			if ($this->add($charId, $sender, $length, $reason)) {
@@ -857,6 +853,6 @@ class BanController extends ModuleInstance implements ImporterInterface {
 				$numErrors++;
 			}
 		}
-		return [$numSuccess > 0, $msgs];
+		return new BanResult(success: $numSuccess > 0, messages: $msgs);
 	}
 }

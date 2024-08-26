@@ -350,33 +350,27 @@ class Util {
 		return 7;
 	}
 
-	/**
-	 * Calculate the level range from the player's title level
-	 *
-	 * @return list<int>
-	 *
-	 * @psalm-return array{int,int}
-	 */
-	public static function tlToLevelRange(int $tl): array {
+	/** Calculate the level range from the player's title level */
+	public static function tlToLevelRange(int $tl): MinMax {
 		if ($tl === 1) {
-			return [1, 14];
+			return new MinMax(min: 1, max: 14);
 		}
 		if ($tl === 2) {
-			return [15, 49];
+			return new MinMax(min: 15, max: 49);
 		}
 		if ($tl === 3) {
-			return [50, 99];
+			return new MinMax(min: 50, max: 99);
 		}
 		if ($tl === 4) {
-			return [100, 149];
+			return new MinMax(min: 100, max: 149);
 		}
 		if ($tl === 5) {
-			return [150, 189];
+			return new MinMax(min: 150, max: 189);
 		}
 		if ($tl === 6) {
-			return [190, 204];
+			return new MinMax(min: 190, max: 204);
 		}
-		return [205, 220];
+		return new MinMax(min: 205, max: 220);
 	}
 
 	/** @phpstan-param class-string $class */
@@ -487,6 +481,8 @@ class Util {
 		if (is_array($iter)) {
 			return new \ArrayIterator($iter);
 		}
+
+		/** @disregard P1006 */
 		return new \IteratorIterator($iter);
 	}
 }

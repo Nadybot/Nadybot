@@ -92,10 +92,10 @@ class WishlistController extends ModuleInstance {
 		if ($wishlistGrouped->isEmpty()) {
 			return;
 		}
-		[$numItems, $blob] = $this->renderCheckWishlist($wishlistGrouped, $event->sender);
+		$render = $this->renderCheckWishlist($wishlistGrouped, $event->sender);
 		$msg = $this->text->makeBlob(
-			"People are wishing items from you ({$numItems})",
-			$blob
+			"People are wishing items from you ({$render->numItems})",
+			$render->blob
 		);
 		$this->chatBot->sendMassTell($msg, $event->sender);
 	}
@@ -334,10 +334,10 @@ class WishlistController extends ModuleInstance {
 			$context->reply("{$char}'s wishlist is empty.");
 			return;
 		}
-		[$numItems, $blob] = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
+		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
 		$msg = $this->text->makeBlob(
-			"{$char}'s wishlists ({$numItems})",
-			$blob
+			"{$char}'s wishlists ({$render->numItems})",
+			$render->blob
 		);
 		$context->reply($msg);
 	}
@@ -368,10 +368,10 @@ class WishlistController extends ModuleInstance {
 			$context->reply("No one is wishing for {$what}.");
 			return;
 		}
-		[$numItems, $blob] = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
+		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
 		$msg = $this->text->makeBlob(
-			"Others' wishlists with '{$what}' ({$numItems})",
-			$blob
+			"Others' wishlists with '{$what}' ({$render->numItems})",
+			$render->blob
 		);
 		$context->reply($msg);
 	}
@@ -390,10 +390,10 @@ class WishlistController extends ModuleInstance {
 			$context->reply('No one is wishing anything from you.');
 			return;
 		}
-		[$numItems, $blob] = $this->renderCheckWishlist($wishlistGrouped, ...$allChars);
+		$render = $this->renderCheckWishlist($wishlistGrouped, ...$allChars);
 		$msg = $this->text->makeBlob(
-			"Others' wishlists ({$numItems})",
-			$blob
+			"Others' wishlists ({$render->numItems})",
+			$render->blob
 		);
 		$context->reply($msg);
 	}
@@ -802,12 +802,8 @@ class WishlistController extends ModuleInstance {
 		return $item;
 	}
 
-	/**
-	 * @param Collection<string,Collection<int,Wish>> $wishlistGrouped
-	 *
-	 * @return array{int,string}
-	 */
-	private function renderCheckWishlist(Collection $wishlistGrouped, string ...$allChars): array {
+	/** @param Collection<string,Collection<int,Wish>> $wishlistGrouped */
+	private function renderCheckWishlist(Collection $wishlistGrouped, string ...$allChars): RenderedWishlist {
 		$numItems = 0;
 
 		/** @param Collection<int,Wish> $wishlist */
@@ -861,7 +857,7 @@ class WishlistController extends ModuleInstance {
 		})->join("\n\n");
 
 		/** @var int $numItems */
-		return [$numItems, $blob];
+		return new RenderedWishlist(blob: $blob, numItems: $numItems);
 	}
 
 	/** @return list<string> */

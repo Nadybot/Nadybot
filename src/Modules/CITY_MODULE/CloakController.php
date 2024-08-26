@@ -286,10 +286,9 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		if (!isset($data)) {
 			return;
 		}
-		[$case, $msg] = $data;
 
-		if ($case <= $this->showcloakstatus) {
-			$this->chatBot->sendMassTell($msg, $eventObj->sender);
+		if ($data->status <= $this->showcloakstatus) {
+			$this->chatBot->sendMassTell($data->message, $eventObj->sender);
 		}
 	}
 
@@ -307,18 +306,10 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		if (!isset($data)) {
 			return null;
 		}
-		[$case, $msg] = $data;
-		return "<header2>City<end>\n<tab>{$msg}";
+		return "<header2>City<end>\n<tab>{$data->message}";
 	}
 
-	/**
-	 * @return null|array<int|string>
-	 *
-	 * @psalm-return null|array{0:int,1:string}
-	 *
-	 * @phpstan-return null|array{0:int,1:string}
-	 */
-	protected function getCloakStatus(): ?array {
+	protected function getCloakStatus(): ?CloakStatus {
 		$row = $this->getLastOrgEntry(true);
 
 		if ($row === null) {
@@ -328,8 +319,11 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		$timeString = Util::unixtimeToReadable(3_600 - $timeSinceChange, false);
 
 		if ($timeSinceChange >= 60*60 && $row->action === 'off') {
-			return [1, 'The cloaking device is <off>disabled<end>. '.
-				'It is possible to enable it.', ];
+			return new CloakStatus(
+				status: 1,
+				message: 'The cloaking device is <off>disabled<end>. '.
+					'It is possible to enable it.'
+			);
 		} elseif ($timeSinceChange < 60*30 && $row->action === 'off') {
 			$msg = 'RAID IN PROGRESS, <red>DO NOT ENTER CITY!<end>';
 			$wave = $this->cityWaveController->getWave();
@@ -338,17 +332,26 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 			} elseif (isset($wave)) {
 				$msg .= " - Waiting for <highlight>wave {$wave}<end>.";
 			}
-			return [1, $msg];
+			return new CloakStatus(status: 1, message: $msg);
 		} elseif ($timeSinceChange < 60*60 && $row->action === 'off') {
-			return [1, 'Cloaking device is <off>disabled<end>. '.
-				"It is possible in <highlight>{$timeString}<end> to enable it.", ];
+			return new CloakStatus(
+				status: 1,
+				message: 'Cloaking device is <off>disabled<end>. '.
+					"It is possible in <highlight>{$timeString}<end> to enable it."
+			);
 		} elseif ($timeSinceChange >= 60*60 && $row->action === 'on') {
-			return [2, 'The cloaking device is <on>enabled<end>. '.
-				'It is possible to disable it.', ];
+			return new CloakStatus(
+				status: 2,
+				message: 'The cloaking device is <on>enabled<end>. '.
+					'It is possible to disable it.'
+			);
 		} elseif ($timeSinceChange < 60*60 && $row->action === 'on') {
-			return [2, 'The cloaking device is <on>enabled<end>. '.
-				"It is possible in <highlight>{$timeString}<end> to disable it.", ];
+			return new CloakStatus(
+				status: 2,
+				message: 'The cloaking device is <on>enabled<end>. '.
+					"It is possible in <highlight>{$timeString}<end> to disable it."
+			);
 		}
-		return [1, 'Unknown status on city cloak!'];
+		return new CloakStatus(status: 1, message: 'Unknown status on city cloak!');
 	}
 }

@@ -1368,14 +1368,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			foreach ($filters['titleLevelRange'] as $range) {
 				$from = Util::tlToLevelRange((int)substr($range, 2, 1));
 				$to = Util::tlToLevelRange((int)substr($range, 4, 1));
-				$filters['levelRange'] []= "{$from[0]}-{$to[1]}";
+				$filters['levelRange'] []= "{$from->min}-{$to->max}";
 			}
 		}
 		if (isset($filters['titleLevel'])) {
 			$filters['levelRange'] ??= [];
 			foreach ($filters['titleLevel'] as $tl) {
-				[$from, $to] = Util::tlToLevelRange((int)substr($tl, 2));
-				$filters['levelRange'] []= "{$from}-{$to}";
+				$range = Util::tlToLevelRange((int)substr($tl, 2));
+				$filters['levelRange'] []= "{$range->min}-{$range->max}";
 			}
 		}
 		if (isset($filters['level'])) {

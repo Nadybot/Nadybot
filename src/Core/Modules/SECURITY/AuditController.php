@@ -82,7 +82,7 @@ class AuditController extends ModuleInstance {
 			return;
 		}
 
-		[$prevLink, $nextLink] = $this->getPrevNextLinks($data, $params);
+		$links = $this->getPrevNextLinks($data, $params);
 		if ($data->count() > $params['limit']) {
 			$data->pop();
 		}
@@ -93,10 +93,10 @@ class AuditController extends ModuleInstance {
 				"<highlight>{$audit->action}<end> {$audit->value}";
 		});
 		$blob = "<header2>Matching entries<end>\n" . $lines->join("\n");
-		if (isset($prevLink) || isset($nextLink)) {
+		if (isset($links->prev) || isset($links->next)) {
 			$blob .= "\n\n".
-				(isset($prevLink) ? "[{$prevLink}] " : '').
-				(isset($nextLink) ? "[{$nextLink}]" : '');
+				(isset($links->prev) ? "[{$links->prev}] " : '').
+				(isset($links->next) ? "[{$links->next}]" : '');
 		}
 		$msg = 'Audit entries (' . $lines->count() . ')';
 		$msg = $this->text->makeBlob($msg, $blob);
@@ -247,36 +247,30 @@ class AuditController extends ModuleInstance {
 	/**
 	 * @param Collection<int,Audit> $data
 	 * @param array<string,mixed>   $params
-	 *
-	 * @return list<string>
-	 *
-	 * @psalm-return array{0: ?string, 1: ?string}
-	 *
-	 * @psalm-param array{"offset":int,"limit":int} $params
 	 */
-	protected function getPrevNextLinks(Collection $data, array $params): array {
-		$prevLink = $nextLink = null;
+	protected function getPrevNextLinks(Collection $data, array $params): PrevNext {
+		$result = new PrevNext();
 		if ($params['offset'] > 0) {
 			$prevParams = $params;
-			$prevParams['offset'] = max(0, $prevParams['offset'] - $prevParams['limit']);
+			$prevParams['offset'] = max(0, (int)$prevParams['offset'] - (int)$prevParams['limit']);
 			$cmdArgs = implode(' ', array_map(
 				static fn (string $k, int|string $v): string => "{$k}={$v}",
 				array_keys($prevParams),
 				array_values($prevParams)
 			));
-			$prevLink = Text::makeChatcmd('&lt; prev', "/tell <myname> audit {$cmdArgs}");
+			$result->prev = Text::makeChatcmd('&lt; prev', "/tell <myname> audit {$cmdArgs}");
 		}
-		if ($data->count() > $params['limit']) {
+		if ($data->count() > (int)$params['limit']) {
 			$nextParams = $params;
-			$nextParams['offset'] += $nextParams['limit'];
+			$nextParams['offset'] += (int)$nextParams['limit'];
 			$cmdArgs = implode(' ', array_map(
 				static fn (string $k, int|string $v): string => "{$k}={$v}",
 				array_keys($nextParams),
 				array_values($nextParams)
 			));
-			$nextLink = Text::makeChatcmd('next &gt;', "/tell <myname> audit {$cmdArgs}");
+			$result->next = Text::makeChatcmd('next &gt;', "/tell <myname> audit {$cmdArgs}");
 		}
-		return [$prevLink, $nextLink];
+		return $result;
 	}
 
 	protected function addRangeLimits(Request $request, QueryBuilder $query): ?Response {
