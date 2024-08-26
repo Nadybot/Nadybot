@@ -5,7 +5,7 @@ namespace Nadybot\Modules\PVP_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\PVP_MODULE\{DBTowerAttack};
+use Nadybot\Modules\PVP_MODULE\DBTowerAttack;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2023_03_21_07_13_03)]

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\WORLDBOSS_MODULE\{WorldBossTimer};
+use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossTimer;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2022_06_28_05_34_01)]

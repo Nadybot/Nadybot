@@ -2,17 +2,17 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\{delay};
+use function Amp\delay;
 use function Safe\{json_decode, parse_url, preg_match};
 
-use Amp\File\{FileCache};
+use Amp\File\FileCache;
 use Amp\Http\Client\{
 	HttpClientBuilder,
 	Request,
 	TimeoutException,
 };
 use Amp\Sync\LocalKeyedMutex;
-use Amp\{TimeoutCancellation};
+use Amp\TimeoutCancellation;
 use AO\Utils;
 use DateTimeZone;
 use Illuminate\Support\Collection;
@@ -31,8 +31,8 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
+use Safe\DateTimeImmutable;
 use Safe\Exceptions\JsonException;
-use Safe\{DateTimeImmutable};
 
 /**
  * @author Tyrence (RK2)

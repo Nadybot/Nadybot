@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use function Safe\preg_match;
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use AO\Package;
 use Exception;
 use Illuminate\Support\Collection;
@@ -797,8 +797,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				(int)round($org->numPlayers * 100 / $online->count(), 0),
 				3
 			);
-			$avg_level = round($org->avgLevel, 1);
-			return "<tab>{$percent}% <highlight>{$guild}<end> - {$org->numPlayers} member(s), average level {$avg_level}";
+			$avgLevel = round($org->avgLevel, 1);
+			return "<tab>{$percent}% <highlight>{$guild}<end> - {$org->numPlayers} member(s), average level {$avgLevel}";
 		});
 		$blob = "<header2>Org statistics<end>\n" . $lines->join("\n");
 

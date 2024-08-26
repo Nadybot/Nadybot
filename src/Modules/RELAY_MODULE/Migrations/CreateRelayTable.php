@@ -5,7 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\RELAY_MODULE\{RelayConfig};
+use Nadybot\Modules\RELAY_MODULE\RelayConfig;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_08_08_15_43_07)]

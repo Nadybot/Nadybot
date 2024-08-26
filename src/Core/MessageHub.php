@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{preg_match};
+use function Safe\preg_match;
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;

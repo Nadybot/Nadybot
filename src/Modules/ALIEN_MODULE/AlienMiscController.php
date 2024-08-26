@@ -117,10 +117,10 @@ class AlienMiscController extends ModuleInstance {
 				$blob .= "\n<img src=rdb://" . ($type === 1 ? 84_789 : 84_310) . "><header2>Type {$type}<end>\n";
 			}
 
-			$proc_trigger = "<green>{$row->proc_trigger}<end>";
+			$procTrigger = "<green>{$row->proc_trigger}<end>";
 			$blob .= '<tab>'.
 				Text::alignNumber($row->research_lvl, 2).
-				" - {$row->name} <orange>{$row->modifiers}<end> {$row->duration} {$proc_trigger}\n";
+				" - {$row->name} <orange>{$row->modifiers}<end> {$row->duration} {$procTrigger}\n";
 		}
 		$blob .= "\n".
 			"\n<i>Offensive procs have a 5% chance of firing every time you attack</i>".
@@ -149,8 +149,8 @@ class AlienMiscController extends ModuleInstance {
 				static function (string $blob, OfabArmorType $row) use ($qls): string {
 					$blob .= "<pagebreak>{$row->profession->value} - Type {$row->type}\n";
 					foreach ($qls as $ql) {
-						$ql_link = Text::makeChatcmd((string)$ql, "/tell <myname> ofabarmor {$row->profession->short()} {$ql}");
-						$blob .= "[{$ql_link}] ";
+						$qlLink = Text::makeChatcmd((string)$ql, "/tell <myname> ofabarmor {$row->profession->short()} {$ql}");
+						$blob .= "[{$qlLink}] ";
 					}
 					return $blob . "\n\n";
 				},
@@ -274,11 +274,11 @@ class AlienMiscController extends ModuleInstance {
 				static function (string $blob, OfabWeapon $weapon) use ($qls): string {
 					$blob .= "<pagebreak>{$weapon->name} - Type {$weapon->type}\n";
 					foreach ($qls as $ql) {
-						$ql_link = Text::makeChatcmd(
+						$qlLink = Text::makeChatcmd(
 							(string)$ql,
 							"/tell <myname> ofabweapons {$weapon->name} {$ql}"
 						);
-						$blob .= "[{$ql_link}] ";
+						$blob .= "[{$qlLink}] ";
 					}
 					return "{$blob}\n\n";
 				},
@@ -321,11 +321,11 @@ class AlienMiscController extends ModuleInstance {
 					if ($ql === $searchQL) {
 						return "{$blob}<yellow>[<end>{$ql}<yellow>]<end> ";
 					}
-					$ql_link = Text::makeChatcmd(
+					$qlLink = Text::makeChatcmd(
 						(string)$ql,
 						"/tell <myname> ofabweapons {$weapon} {$ql}"
 					);
-					return "{$blob}[{$ql_link}] ";
+					return "{$blob}[{$qlLink}] ";
 				},
 				$blob
 			);

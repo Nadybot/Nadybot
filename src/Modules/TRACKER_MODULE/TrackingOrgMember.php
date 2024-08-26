@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
-use Nadybot\Core\Attributes\DB\{Table};
+use Nadybot\Core\Attributes\DB\Table;
 use Nadybot\Core\DBTable;
 
 #[Table(name: 'tracking_org_member')]

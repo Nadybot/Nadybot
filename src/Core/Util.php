@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 use function Safe\{date, getcwd};
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use BackedEnum;
 use Exception;
 use Illuminate\Support\Collection;

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Amp\{delay};
+use function Amp\delay;
 use function Safe\json_decode;
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\HttpClientBuilder;

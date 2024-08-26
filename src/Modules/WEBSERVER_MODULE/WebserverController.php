@@ -4,7 +4,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Safe\{base64_decode, json_decode, mime_content_type, openssl_verify, preg_split};
 
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Server\{DefaultErrorHandler, HttpServer, Request, RequestHandler, Response, SocketHttpServer};
 use Amp\Http\{Client, HttpStatus};
@@ -28,8 +28,8 @@ use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionFunction;
 use Revolt\EventLoop;
+use Safe\DateTimeImmutable;
 use Safe\Exceptions\{OpensslException, PcreException, UrlException};
-use Safe\{DateTimeImmutable};
 use Throwable;
 
 #[

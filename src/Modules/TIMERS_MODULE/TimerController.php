@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use function Safe\{preg_match};
+use function Safe\preg_match;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\ParamClass\PUuid;
@@ -426,7 +426,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			$name = $timer->name;
 			$owner = $timer->owner;
 
-			$remove_link = Text::makeChatcmd('Remove', "/tell <myname> timers rem {$timer->id}");
+			$removeLink = Text::makeChatcmd('Remove', "/tell <myname> timers rem {$timer->id}");
 
 			$repeatingInfo = '';
 			if ($timer->callback === 'timercontroller.repeatingTimerCallback') {
@@ -434,7 +434,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 				$repeatingInfo = " (Repeats every {$repeatingTimeString})";
 			}
 
-			$blob .= "Name: <highlight>{$name}<end> {$remove_link}\n";
+			$blob .= "Name: <highlight>{$name}<end> {$removeLink}\n";
 			$blob .= "Time left: <highlight>{$timeLeft}<end> {$repeatingInfo}\n";
 			$blob .= "Set by: <highlight>{$owner}<end>\n\n";
 		}

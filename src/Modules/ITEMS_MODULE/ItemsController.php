@@ -7,7 +7,7 @@ use function Safe\preg_split;
 use BackedEnum;
 use Illuminate\Support\Collection;
 
-use Nadybot\Core\Types\{Bitfield};
+use Nadybot\Core\Types\Bitfield;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,

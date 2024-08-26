@@ -5,7 +5,7 @@ namespace Nadybot\Modules\GUILD_MODULE\Migrations\RankMapping;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\GUILD_MODULE\{OrgRankMapping};
+use Nadybot\Modules\GUILD_MODULE\OrgRankMapping;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_26_04_55_58)]

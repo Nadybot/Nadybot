@@ -5,7 +5,7 @@ namespace Nadybot\Modules\NOTES_MODULE\Migrations\OrgNotes;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\NOTES_MODULE\{OrgNote};
+use Nadybot\Modules\NOTES_MODULE\OrgNote;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2024_08_02_15_06_00, shared: true)]

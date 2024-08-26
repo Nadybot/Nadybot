@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use Nadybot\Core\Events\JoinMyPrivEvent;
 use Nadybot\Core\{
 	Attributes as NCA,

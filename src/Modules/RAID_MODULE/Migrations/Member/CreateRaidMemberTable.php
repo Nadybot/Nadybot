@@ -5,7 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE\Migrations\Member;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\RAID_MODULE\{RaidMember};
+use Nadybot\Modules\RAID_MODULE\RaidMember;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_27_10_22_06)]

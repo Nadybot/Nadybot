@@ -5,7 +5,7 @@ namespace Nadybot\Modules\TIMERS_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\TIMERS_MODULE\{Timer};
+use Nadybot\Modules\TIMERS_MODULE\Timer;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_27_16_36_41)]

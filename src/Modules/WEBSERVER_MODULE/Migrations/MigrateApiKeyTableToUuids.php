@@ -5,7 +5,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\WEBSERVER_MODULE\{ApiKey};
+use Nadybot\Modules\WEBSERVER_MODULE\ApiKey;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2024_08_06_07_25_00)]

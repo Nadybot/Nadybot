@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\TIMERS_MODULE;
 
 use DateTimeInterface;
-use Safe\{DateTimeImmutable};
+use Safe\DateTimeImmutable;
 
 /**
  * An object representing a running stopwatch

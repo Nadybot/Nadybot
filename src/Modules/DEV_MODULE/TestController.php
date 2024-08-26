@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use function Safe\{date};
-use Amp\File\{FilesystemException};
+use function Safe\date;
+use Amp\File\FilesystemException;
 use AO\Client\{SingleClient, WorkerPackage};
 use AO\Package;
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;

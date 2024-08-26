@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use function Safe\preg_grep;
 
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,

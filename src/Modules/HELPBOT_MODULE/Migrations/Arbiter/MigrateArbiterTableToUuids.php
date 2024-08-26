@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	DB,
 	SchemaMigration,
 };
-use Nadybot\Modules\HELPBOT_MODULE\{ICCArbiter};
+use Nadybot\Modules\HELPBOT_MODULE\ICCArbiter;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2024_08_01_12_25_00, shared: true)]

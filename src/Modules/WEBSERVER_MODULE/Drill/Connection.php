@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE\Drill;
 
+use function Amp\delay;
 use function Amp\Socket\connect;
-use function Amp\{delay};
 
 use Amp\Socket\{ConnectContext, ConnectException, Socket};
 use Amp\Websocket\Client\WebsocketConnection;

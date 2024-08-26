@@ -4,7 +4,7 @@ namespace Nadybot\Modules\GUIDE_MODULE;
 
 use function Safe\preg_split;
 
-use Amp\File\{FileCache};
+use Amp\File\FileCache;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\Sync\LocalKeyedMutex;
 use DOMDocument;

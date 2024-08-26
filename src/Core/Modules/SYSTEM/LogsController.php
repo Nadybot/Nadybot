@@ -5,7 +5,7 @@ namespace Nadybot\Core\Modules\SYSTEM;
 use function Amp\ByteStream\splitLines;
 use function Safe\preg_match;
 
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use Amp\Http\Client\{
 	HttpClientBuilder,
 	Interceptor\SetRequestHeader,

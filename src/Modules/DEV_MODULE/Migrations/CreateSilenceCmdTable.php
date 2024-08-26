@@ -5,7 +5,7 @@ namespace Nadybot\Modules\DEV_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\DEV_MODULE\{SilenceCmd};
+use Nadybot\Modules\DEV_MODULE\SilenceCmd;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_25_16_38_59)]

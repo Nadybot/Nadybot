@@ -904,8 +904,8 @@ class LootController extends ModuleInstance {
 		foreach ($this->loot as $key => $item) {
 			$add = Text::makeChatcmd('add', "/tell <myname> add {$key}");
 			$rem = Text::makeChatcmd('remove', '/tell <myname> rem');
-			$added_players = count($item->users);
-			$players += $added_players;
+			$addedPlayers = count($item->users);
+			$players += $addedPlayers;
 
 			if ($item->icon !== null && $this->showLootPics) {
 				$list .= Text::makeImage($item->icon) . "\n";
@@ -922,7 +922,7 @@ class LootController extends ModuleInstance {
 			}
 			$list .= " - [{$add}] [{$rem}]";
 			if (count($item->users) > 0) {
-				$list .= "\n<tab>Players added (<highlight>{$added_players}<end>): ";
+				$list .= "\n<tab>Players added (<highlight>{$addedPlayers}<end>): ";
 				$list .= implode(
 					', ',
 					array_map(

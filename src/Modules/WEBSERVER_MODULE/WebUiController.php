@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Amp\ByteStream\WritableResourceStream;
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use ErrorException;
 use Exception;

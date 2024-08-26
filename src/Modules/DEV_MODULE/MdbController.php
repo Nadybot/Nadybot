@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use AO\MMDB\{AsyncMMDBClient};
+use AO\MMDB\AsyncMMDBClient;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,

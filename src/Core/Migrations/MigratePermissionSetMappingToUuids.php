@@ -4,7 +4,7 @@ namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\{CmdPermSetMapping};
+use Nadybot\Core\DBSchema\CmdPermSetMapping;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 

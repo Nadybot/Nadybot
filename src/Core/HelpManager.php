@@ -51,8 +51,8 @@ class HelpManager {
 		$command = strtolower($command);
 
 		// Check if the file exists
-		$actual_filename = $this->util->verifyFilename($module . '/' . $filename);
-		if ($actual_filename === '') {
+		$actualFilename = $this->util->verifyFilename($module . '/' . $filename);
+		if ($actualFilename === '') {
 			$this->logger->error('Error registering {help_file}: {error}', [
 				'help_file' => $logObj,
 				'error' => "The file doesn't exist",
@@ -64,7 +64,7 @@ class HelpManager {
 			$this->db->table(HlpCfg::getTable())->where('name', $command)
 				->update([
 					'verify' => 1,
-					'file' => $actual_filename,
+					'file' => $actualFilename,
 					'module' => $module,
 					'description' => $description,
 				]);
@@ -73,7 +73,7 @@ class HelpManager {
 				name: $command,
 				admin: $admin,
 				verify: 1,
-				file: $actual_filename,
+				file: $actualFilename,
 				module: $module,
 				description: $description,
 			));

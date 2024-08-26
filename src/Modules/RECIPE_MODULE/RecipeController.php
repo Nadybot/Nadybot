@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RECIPE_MODULE;
 
 use function Safe\json_decode;
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use Exception;
 use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\{

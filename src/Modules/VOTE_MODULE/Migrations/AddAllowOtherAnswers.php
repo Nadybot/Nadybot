@@ -5,7 +5,7 @@ namespace Nadybot\Modules\VOTE_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\VOTE_MODULE\{Poll};
+use Nadybot\Modules\VOTE_MODULE\Poll;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2023_05_03_20_37_10)]

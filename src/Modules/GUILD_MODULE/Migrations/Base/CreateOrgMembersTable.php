@@ -5,7 +5,7 @@ namespace Nadybot\Modules\GUILD_MODULE\Migrations\Base;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\GUILD_MODULE\{OrgMember};
+use Nadybot\Modules\GUILD_MODULE\OrgMember;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_26_04_52_14)]

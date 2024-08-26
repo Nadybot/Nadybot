@@ -5,7 +5,7 @@ namespace Nadybot\Modules\PACKAGE_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\PACKAGE_MODULE\{PackageFile};
+use Nadybot\Modules\PACKAGE_MODULE\PackageFile;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_27_06_11_00)]

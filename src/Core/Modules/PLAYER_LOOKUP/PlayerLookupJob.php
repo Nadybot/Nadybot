@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\{delay};
+use function Amp\delay;
 
 use Amp\Pipeline\Pipeline;
 use Illuminate\Support\Collection;

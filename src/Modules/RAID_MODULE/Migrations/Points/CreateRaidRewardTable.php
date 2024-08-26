@@ -5,7 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE\Migrations\Points;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\RAID_MODULE\{RaidReward};
+use Nadybot\Modules\RAID_MODULE\RaidReward;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_27_13_12_55)]

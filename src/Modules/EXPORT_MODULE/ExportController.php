@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\EXPORT_MODULE;
 
-use function Safe\{json_encode};
+use function Safe\json_encode;
 
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, ObjectMapperUsingReflection, UnableToSerializeObject};
 use Nadybot\Core\{
 	Attributes as NCA,

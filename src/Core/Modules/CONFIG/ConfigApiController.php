@@ -24,7 +24,7 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\{WebserverController};
+use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordRelayController,
 	WEBSERVER_MODULE\ApiResponse,
