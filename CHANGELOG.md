@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix several PostgreSQL issues related to grouping
+- Some specials recharge times were off. While the calculations are probably still not 100% correct, the new formulas by Conci, Keex-1, Keltias, TinkeringIdiot, and Tradias should improve things a lot.
 
 ## [6.2.9] - 2024-05-08
 
