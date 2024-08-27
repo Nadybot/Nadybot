@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use function Amp\{delay};
+use function Amp\delay;
 
 use Amp\Http\Client\{
 	Connection\DefaultConnectionFactory,

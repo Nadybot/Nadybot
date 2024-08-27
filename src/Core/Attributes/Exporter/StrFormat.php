@@ -7,7 +7,7 @@ namespace Nadybot\Core\Attributes\Exporter;
 use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster, PropertySerializer};
 use InvalidArgumentException;
-use Nadybot\Core\{Safe};
+use Nadybot\Core\Safe;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final class StrFormat implements PropertyCaster, PropertySerializer {

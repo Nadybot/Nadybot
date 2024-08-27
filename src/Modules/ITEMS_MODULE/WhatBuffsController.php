@@ -503,15 +503,14 @@ class WhatBuffsController extends ModuleInstance {
 			}
 		}
 
-		[$count, $blob] = $result;
-		if ($count === 0) {
+		if ($result->numItems === 0) {
 			$msg = "No items found of type <highlight>{$category}<end> that buff <highlight>{$skill->name}<end>.";
 		} else {
 			if ($addNotInGameNotice) {
-				$blob .= "\n<red>(!)<end> means: This item is GM/ARK-only, not in the game, or unavailable";
+				$result->blob .= "\n<red>(!)<end> means: This item is GM/ARK-only, not in the game, or unavailable";
 			}
-			$blob .= "\nItem Extraction Info provided by AOIA+";
-			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - {$category} {$skill->name} ({$count})", $blob);
+			$result->blob .= "\nItem Extraction Info provided by AOIA+";
+			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - {$category} {$skill->name} ({$result->numItems})", $result->blob);
 		}
 		return $msg;
 	}
@@ -578,12 +577,8 @@ class WhatBuffsController extends ModuleInstance {
 	 * Format a list of item buff search results
 	 *
 	 * @param iterable<array-key,ItemBuffSearchResult> $items The items that matched the search
-	 *
-	 * @return (int|string)[]
-	 *
-	 * @psalm-return array{0: int, 1:string}
 	 */
-	public function formatItems(iterable $items, Skill $skill, string $category): array {
+	public function formatItems(iterable $items, Skill $skill, string $category): RenderedList {
 		$showUniques = $this->whatbuffsShowUnique;
 		$showNodrops = $this->whatbuffsShowNodrop;
 		$blob = '<header2>' . ucfirst($this->locationToItem($category)) . " that buff {$skill->name}<end>\n";
@@ -666,7 +661,7 @@ class WhatBuffsController extends ModuleInstance {
 		}
 
 		$count = count($items);
-		return [$count, $blob];
+		return new RenderedList(numItems: $count, blob: $blob);
 	}
 
 	/**
@@ -702,14 +697,8 @@ class WhatBuffsController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * @param iterable<PerkBuffSearchResult> $perks
-	 *
-	 * @return (int|string)[]
-	 *
-	 * @psalm-return array{0: int, 1:string}
-	 */
-	public function formatPerkBuffs(iterable $perks, Skill $skill): array {
+	/** @param iterable<PerkBuffSearchResult> $perks */
+	public function formatPerkBuffs(iterable $perks, Skill $skill): RenderedList {
 		$blob = "<header2>Perks that buff {$skill->name}<end>\n";
 		$maxBuff = $numPerks = 0;
 		foreach ($perks as $perk) {
@@ -735,17 +724,11 @@ class WhatBuffsController extends ModuleInstance {
 			$blob .= $prefix . "{$perk->unit}  {$perk->name} ({$color}{$perk->profs}<end>)\n";
 		}
 
-		return [$numPerks, $blob];
+		return new RenderedList(numItems: $numPerks, blob: $blob);
 	}
 
-	/**
-	 * @param iterable<array-key,NanoBuffSearchResult> $items
-	 *
-	 * @return (int|string)[]
-	 *
-	 * @psalm-return array{0: int, 1: string}
-	 */
-	public function formatBuffs(iterable $items, Skill $skill): array {
+	/** @param iterable<array-key,NanoBuffSearchResult> $items */
+	public function formatBuffs(iterable $items, Skill $skill): RenderedList {
 		$items = collect($items)->filter(
 			static function (NanoBuffSearchResult $nano): bool {
 				return !preg_match("/^Composite .+ Expertise \(\d hours\)$/", $nano->name);
@@ -777,7 +760,7 @@ class WhatBuffsController extends ModuleInstance {
 			$blob .= "\n";
 		}
 
-		return [$numItems, $blob];
+		return new RenderedList(numItems: $numItems, blob: $blob);
 	}
 
 	/**

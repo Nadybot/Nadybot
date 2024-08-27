@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use function Amp\{delay};
+use function Amp\delay;
 use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\Http\Client\{BufferedContent, HttpClient, HttpClientBuilder, Request};

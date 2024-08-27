@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	MinMax,
 	ModuleInstance,
 	Text,
 };
@@ -335,11 +336,9 @@ class ImplantController extends ModuleInstance {
 	 * @param int    $slot  The cluster slot type (0 => faded, 1 => bright, 2 => shiny)
 	 * @param int    $bonus The bonus for which to return the QL-range
 	 *
-	 * @return ?list<int> An array with the min- and the max-ql
-	 *
-	 * @psalm-return ?list{int,int}
+	 * @return ?MinMax The min- and the max-ql
 	 */
-	public function getBonusQLRange(string $type, int $slot, int $bonus): ?array {
+	public function getBonusQLRange(string $type, int $slot, int $bonus): ?MinMax {
 		$breakpoints = $this->getBreakpoints($type, $slot);
 
 		/** @var int */
@@ -352,7 +351,7 @@ class ImplantController extends ModuleInstance {
 		for ($ql = $minQL; $ql <= $maxQL; $ql++) {
 			$statBonus = $this->calcStatFromQL($breakpoints, $ql);
 			if (($statBonus??0) > $bonus) {
-				return [$foundMinQL, $foundMaxQL];
+				return new MinMax(min: $foundMinQL, max: $foundMaxQL);
 			} elseif ($statBonus === $bonus) {
 				$foundMaxQL = $ql;
 				if ($foundMinQL === 0) {
@@ -361,7 +360,7 @@ class ImplantController extends ModuleInstance {
 			}
 		}
 		if (isset($statBonus) && $statBonus === $bonus) {
-			return [$foundMinQL, $foundMaxQL];
+			return new MinMax(min: $foundMinQL, max: $foundMaxQL);
 		}
 		return null;
 	}
@@ -430,13 +429,13 @@ class ImplantController extends ModuleInstance {
 	 * @return string the rendered line including newline
 	 */
 	protected function renderBonusLine(ImplantBonusStats $stats, string $type): string {
-		$fromQL = Text::alignNumber($stats->range[0], 3, 'highlight');
-		$toQL   = Text::alignNumber($stats->range[1], 3, 'highlight');
+		$fromQL = Text::alignNumber($stats->range->min, 3, 'highlight');
+		$toQL   = Text::alignNumber($stats->range->max, 3, 'highlight');
 
 		$line = Text::alignNumber($stats->buff, 3, 'highlight').
 			" (QL {$fromQL} - QL {$toQL}) " . $stats->slot;
-		if ($stats->range[1] < 300) {
-			$nextBest = $this->getImplantQLSpecs($type, $stats->range[1]+1);
+		if ($stats->range->max < 300) {
+			$nextBest = $this->getImplantQLSpecs($type, $stats->range->max+1);
 			$line .= ' <header>-><end> '.
 				'<highlight>' . $nextBest->requirements->abilities . '<end>'.
 				' / '.

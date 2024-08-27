@@ -4,8 +4,8 @@ namespace Nadybot\Core;
 
 use function Safe\{parse_ini_string, preg_split};
 
-use Amp\File\{FilesystemException};
-use Amp\Parallel\Worker\{TaskFailureError};
+use Amp\File\FilesystemException;
+use Amp\Parallel\Worker\TaskFailureError;
 use Amp\TimeoutCancellation;
 use Directory;
 use Nadybot\Core\Attributes as NCA;

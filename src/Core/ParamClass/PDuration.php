@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\ParamClass;
 
-use Nadybot\Core\{Util};
+use Nadybot\Core\Util;
 
 class PDuration extends Base {
 	protected static string $strictRegExp = "(?:(?:,?\s*\d+(?:yr?|years?|m|months?|w|weeks?|d|days?|h|hrs?|hours?|m|mins?|s|secs?))+)";

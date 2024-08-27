@@ -460,9 +460,9 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$blob .= '<tab>Peak Memory Usage (Real): <highlight>' . Util::bytesConvert($info->memory->peak_usage_real) . "<end>\n\n";
 
 		$blob .= "<header2>Misc<end>\n";
-		$date_string = Util::unixtimeToReadable($info->misc->uptime);
+		$dateString = Util::unixtimeToReadable($info->misc->uptime);
 		$blob .= '<tab>Using Chat Proxy: <highlight>' . ($info->misc->using_chat_proxy ? 'enabled' : 'disabled') . "<end>\n";
-		$blob .= "<tab>Bot Uptime: <highlight>{$date_string}<end>\n\n";
+		$blob .= "<tab>Bot Uptime: <highlight>{$dateString}<end>\n\n";
 
 		$blob .= "<header2>Configuration<end>\n";
 		foreach ($info->config->active_commands as $cmdChannelStats) {

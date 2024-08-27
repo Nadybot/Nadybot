@@ -6,7 +6,7 @@ use function Safe\{json_decode, json_encode};
 
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Nadybot\Core\Attributes\DB\{MapRead, MapWrite, PK, Shared, Table};
-use Nadybot\Core\{DBTable};
+use Nadybot\Core\DBTable;
 
 #[Table(name: 'implant_design', shared: Shared::Yes)]
 class ImplantDesign extends DBTable {

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\PVP_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\PVP_MODULE\{DBOutcome};
+use Nadybot\Modules\PVP_MODULE\DBOutcome;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2024_04_10_15_15_15)]

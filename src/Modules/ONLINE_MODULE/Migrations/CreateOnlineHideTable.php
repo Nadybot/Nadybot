@@ -5,7 +5,7 @@ namespace Nadybot\Modules\ONLINE_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\ONLINE_MODULE\{OnlineHide};
+use Nadybot\Modules\ONLINE_MODULE\OnlineHide;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2022_04_11_15_44_26)]

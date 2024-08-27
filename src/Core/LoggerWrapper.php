@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{ini_get};
+use function Safe\ini_get;
 
 use Amp\File\FilesystemException;
 use Closure;

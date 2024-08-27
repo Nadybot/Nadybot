@@ -5,7 +5,7 @@ namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\TRACKER_MODULE\{TrackedUser};
+use Nadybot\Modules\TRACKER_MODULE\TrackedUser;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_10_05_10_27_49)]

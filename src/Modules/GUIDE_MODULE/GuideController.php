@@ -4,7 +4,7 @@ namespace Nadybot\Modules\GUIDE_MODULE;
 
 use function Amp\ByteStream\splitLines;
 
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use IteratorIterator;
 use Nadybot\Core\{
 	Attributes as NCA,

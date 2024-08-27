@@ -144,9 +144,9 @@ class JWT {
 		if (version_compare(\PHP_VERSION, '5.4.0', '>=') && !(defined('JSON_C_VERSION') && \PHP_INT_SIZE > 4)) {
 			$obj = json_decode($input, false, 512, \JSON_BIGINT_AS_STRING);
 		} else {
-			$max_int_length = strlen((string)\PHP_INT_MAX) - 1;
-			$json_without_bigints = Safe::pregReplace('/:\s*(-?\d{' . $max_int_length . ',})/', ': "$1"', $input);
-			$obj = json_decode($json_without_bigints);
+			$maxIntLength = strlen((string)\PHP_INT_MAX) - 1;
+			$jsonWithoutBigints = Safe::pregReplace('/:\s*(-?\d{' . $maxIntLength . ',})/', ': "$1"', $input);
+			$obj = json_decode($jsonWithoutBigints);
 		}
 
 		if ($errno = json_last_error()) {
@@ -272,13 +272,13 @@ class JWT {
 	 * @return string the encoded object
 	 */
 	private static function encodeDER(int $type, string $value): string {
-		$tag_header = 0;
+		$tagHeader = 0;
 		if ($type === self::ASN1_SEQUENCE) {
-			$tag_header |= 0x20;
+			$tagHeader |= 0x20;
 		}
 
 		// Type
-		$der = chr($tag_header | $type);
+		$der = chr($tagHeader | $type);
 
 		// Length
 		$der .= chr(strlen($value));

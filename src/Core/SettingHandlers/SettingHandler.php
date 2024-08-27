@@ -50,11 +50,11 @@ abstract class SettingHandler {
 		$options = explode(';', $this->row->options??'');
 		if (strlen($this->row->intoptions??'')) {
 			$intoptions = explode(';', $this->row->intoptions??'');
-			$options_map = array_combine($intoptions, $options);
+			$optionsMap = array_combine($intoptions, $options);
 		}
 		$msg = "<header2>Predefined Options<end>\n";
-		if (isset($options_map)) {
-			foreach ($options_map as $key => $label) {
+		if (isset($optionsMap)) {
+			foreach ($optionsMap as $key => $label) {
 				$saveLink = Text::makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$key}");
 				$msg .= '<tab><highlight>' . htmlspecialchars($label) . "<end> [{$saveLink}]\n";
 			}

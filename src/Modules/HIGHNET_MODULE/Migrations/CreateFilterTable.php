@@ -5,7 +5,7 @@ namespace Nadybot\Modules\HIGHNET_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\HIGHNET_MODULE\{FilterEntry};
+use Nadybot\Modules\HIGHNET_MODULE\FilterEntry;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2023_05_31_13_14_25)]

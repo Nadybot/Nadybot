@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Amp\{delay};
+use function Amp\delay;
 use function Safe\preg_match;
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;

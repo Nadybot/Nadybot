@@ -111,12 +111,12 @@ class AXPController extends ModuleInstance {
 			return;
 		}
 
-		$axp_comp = 0;
+		$axpComp = 0;
 		for ($i = $startLevel; $i < $endLevel; $i++) {
-			$axp_comp += $this->aiRanks[$i][0];
+			$axpComp += $this->aiRanks[$i][0];
 		}
 
-		$msg = "From the beginning of AI level <highlight>{$startLevel}<end> you need <highlight>".number_format($axp_comp)."<end> AXP to reach AI level <highlight>{$endLevel}<end>.";
+		$msg = "From the beginning of AI level <highlight>{$startLevel}<end> you need <highlight>".number_format($axpComp)."<end> AXP to reach AI level <highlight>{$endLevel}<end>.";
 
 		$context->reply($msg);
 	}

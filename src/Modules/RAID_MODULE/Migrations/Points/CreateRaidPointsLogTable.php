@@ -5,7 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE\Migrations\Points;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\RAID_MODULE\{RaidPointsLog};
+use Nadybot\Modules\RAID_MODULE\RaidPointsLog;
 use Psr\Log\LoggerInterface;
 use stdClass;
 

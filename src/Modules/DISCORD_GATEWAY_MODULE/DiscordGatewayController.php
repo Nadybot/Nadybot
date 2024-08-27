@@ -13,7 +13,7 @@ use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, WebsocketConnection, WebsocketHandshake};
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException, WebsocketCount};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
-use Illuminate\Support\{ItemNotFoundException};
+use Illuminate\Support\ItemNotFoundException;
 use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\Filesystem;
 use Nadybot\Core\Modules\DISCORD\{

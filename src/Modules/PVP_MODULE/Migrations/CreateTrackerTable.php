@@ -5,7 +5,7 @@ namespace Nadybot\Modules\PVP_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\PVP_MODULE\{TrackerEntry};
+use Nadybot\Modules\PVP_MODULE\TrackerEntry;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2023_03_06_14_23_12)]

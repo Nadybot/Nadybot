@@ -5,7 +5,7 @@ namespace Nadybot\Modules\BANK_MODULE;
 use function Amp\async;
 use function Amp\Future\await;
 use function Safe\{preg_match, preg_split};
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -109,8 +109,8 @@ class BankController extends ModuleInstance {
 		$blob = "<header2>Containers on {$name}<end>\n";
 		foreach ($data as $container => $items) {
 			$firstItem = $items->firstOrFail();
-			$container_link = Text::makeChatcmd($container, "/tell <myname> bank browse {$name} {$firstItem->container_id}");
-			$blob .= "<tab>{$container_link} (" . $items->count() . " items)\n";
+			$containerLink = Text::makeChatcmd($container, "/tell <myname> bank browse {$name} {$firstItem->container_id}");
+			$blob .= "<tab>{$containerLink} (" . $items->count() . " items)\n";
 		}
 
 		$msg = $this->text->makeBlob("Containers for {$name}", $blob);

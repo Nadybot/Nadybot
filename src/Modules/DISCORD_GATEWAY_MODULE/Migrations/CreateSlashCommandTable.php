@@ -5,7 +5,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\{DiscordSlashCommand};
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordSlashCommand;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2022_05_12_13_27_49)]

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\BANK_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\BANK_MODULE\{Wish};
+use Nadybot\Modules\BANK_MODULE\Wish;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2023_08_25_07_52_11)]

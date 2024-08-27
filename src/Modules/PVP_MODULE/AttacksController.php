@@ -820,9 +820,9 @@ class AttacksController extends ModuleInstance {
 			$blob .= '<tab>Profession: ' . $attacker->profession->inColor() . "\n";
 		}
 		if (isset($attacker->level, $attacker->ai_level)) {
-			$level_info = $this->lvlCtrl->getLevelInfo($attacker->level);
-			if (isset($level_info)) {
-				$blob .= "<tab>Level: <highlight>{$attacker->level}/<green>{$attacker->ai_level}<end> ({$level_info->pvpMin}-{$level_info->pvpMax})<end>\n";
+			$levelInfo = $this->lvlCtrl->getLevelInfo($attacker->level);
+			if (isset($levelInfo)) {
+				$blob .= "<tab>Level: <highlight>{$attacker->level}/<green>{$attacker->ai_level}<end> ({$levelInfo->pvpMin}-{$levelInfo->pvpMax})<end>\n";
 			}
 		}
 

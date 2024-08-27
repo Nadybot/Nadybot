@@ -36,12 +36,12 @@ class TemplateSettingHandler extends SettingHandler {
 		}
 		$options = explode(';', $this->row->options??'');
 		if (strlen($this->row->intoptions??'')) {
-			$intoptions = explode(';', $this->row->intoptions??'');
-			$options_map = array_combine($intoptions, $options);
+			$intOptions = explode(';', $this->row->intoptions??'');
+			$optionsMap = array_combine($intOptions, $options);
 		}
 		$msg = "<header2>Predefined Values<end>\n";
-		if (isset($options_map)) {
-			foreach ($options_map as $key => $label) {
+		if (isset($optionsMap)) {
+			foreach ($optionsMap as $key => $label) {
 				$saveLink = Text::makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$key}");
 				$label = htmlspecialchars($label);
 				$label = implode('<end>/<highlight>', explode('/', $label));

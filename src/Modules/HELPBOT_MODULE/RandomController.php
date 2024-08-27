@@ -116,8 +116,9 @@ class RandomController extends ModuleInstance {
 		for ($i = $min; $i <= $max; $i++) {
 			$options []= (string)$i;
 		}
-		[$rollNumber, $result] = $this->roll($context->char->name, $options);
-		$msg = "The roll is <highlight>{$result}<end> between {$min} and {$max}. To verify do /tell <myname> verify {$rollNumber}";
+		$roll = $this->roll($context->char->name, $options);
+		assert(isset($roll->result));
+		$msg = "The roll is <highlight>{$roll->result}<end> between {$min} and {$max}. To verify do /tell <myname> verify {$roll->id}";
 		$blob = Text::makeChatcmd('Send to team chat', "/t {$msg}") . "\n".
 			Text::makeChatcmd('Send to raid chat', "/g raid {$msg}");
 
@@ -162,14 +163,15 @@ class RandomController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		[$rollNumber, $result] = $this->roll($context->char->name, $options, $amount);
-		$winners = $this->joinOptions(explode('|', $result), 'highlight');
+		$roll = $this->roll($context->char->name, $options, $amount);
+		assert(isset($roll->result));
+		$winners = $this->joinOptions(explode('|', $roll->result), 'highlight');
 		if ($amount === 1) {
 			$msg = "The winner is {$winners} out of the possible options ".
-				$this->joinOptions($options, 'highlight') . ". To verify do /tell <myname> verify {$rollNumber}";
+				$this->joinOptions($options, 'highlight') . ". To verify do /tell <myname> verify {$roll->id}";
 		} else {
 			$msg = "The winners are {$winners} out of the possible options ".
-				$this->joinOptions($options, 'highlight') . ". To verify do /tell <myname> verify {$rollNumber}";
+				$this->joinOptions($options, 'highlight') . ". To verify do /tell <myname> verify {$roll->id}";
 		}
 		$blob = Text::makeChatcmd('Send to team chat', "/t {$msg}") . "\n".
 			Text::makeChatcmd('Send to raid chat', "/g raid {$msg}");
@@ -203,9 +205,10 @@ class RandomController extends ModuleInstance {
 			$options,
 			preg_split("/(,\s+|\s+|,)/", $listOfNames)
 		);
-		[$rollNumber, $result] = $this->roll($context->char->name, $options);
-		$msg = "The roll is <highlight>{$result}<end> out of the possible options ".
-			$this->joinOptions($options, 'highlight') . ". To verify do /tell <myname> verify {$rollNumber}";
+		$roll = $this->roll($context->char->name, $options);
+		assert(isset($roll->result));
+		$msg = "The roll is <highlight>{$roll->result}<end> out of the possible options ".
+			$this->joinOptions($options, 'highlight') . ". To verify do /tell <myname> verify {$roll->id}";
 		$blob = Text::makeChatcmd('Send to team chat', "/t {$msg}") . "\n".
 			Text::makeChatcmd('Send to raid chat', "/g raid {$msg}");
 
@@ -255,13 +258,11 @@ class RandomController extends ModuleInstance {
 	 * @param string       $sender  Name of the person rolling
 	 * @param list<string> $options The options to roll between
 	 *
-	 * @return array An array with the roll number and the chosen option
-	 *
-	 * @psalm-return array{0:\Ramsey\Uuid\UuidInterface, 1:string}
+	 * @return Roll The roll result
 	 *
 	 * @throws SQLException on SQL errors
 	 */
-	public function roll(string $sender, array $options, int $amount=1): array {
+	public function roll(string $sender, array $options, int $amount=1): Roll {
 		$revOptions = array_flip($options);
 		if (!count($revOptions)) {
 			throw new InvalidArgumentException('$options to roll() must not be empty');
@@ -274,7 +275,7 @@ class RandomController extends ModuleInstance {
 			options : implode('|', $options),
 			result : $result,
 		));
-		return [$roll->id, $result];
+		return $roll;
 	}
 
 	/**

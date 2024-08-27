@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{preg_match};
+use function Safe\preg_match;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
 use Psr\Log\LoggerInterface;

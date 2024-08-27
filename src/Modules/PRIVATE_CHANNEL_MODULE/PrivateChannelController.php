@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use function Safe\preg_match;
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use AO\Package;
 use Exception;
 use Illuminate\Support\Collection;
@@ -674,9 +674,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 		$chars = $this->onlineController->getPlayers('priv', $this->config->main->character);
 		if (isset($raidOnly)) {
-			[$errMsg, $chars] = $this->filterRaid($chars);
-			if (isset($errMsg)) {
-				$context->reply($errMsg);
+			try {
+				$chars = $this->filterRaid($chars);
+			} catch (NoRaidException) {
+				$context->reply(RaidController::ERR_NO_RAID);
 				return;
 			}
 		}
@@ -721,9 +722,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	): void {
 		$chars = $this->onlineController->getPlayers('priv', $this->config->main->character);
 		if (isset($raidOnly)) {
-			[$errMsg, $chars] = $this->filterRaid($chars);
-			if (isset($errMsg)) {
-				$context->reply($errMsg);
+			try {
+				$chars = $this->filterRaid($chars);
+			} catch (NoRaidException) {
+				$context->reply(RaidController::ERR_NO_RAID);
 				return;
 			}
 		}
@@ -759,9 +761,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	): void {
 		$online = $this->onlineController->getPlayers('priv', $this->config->main->character);
 		if (isset($raidOnly)) {
-			[$errMsg, $online] = $this->filterRaid($online);
-			if (isset($errMsg)) {
-				$context->reply($errMsg);
+			try {
+				$online = $this->filterRaid($online);
+			} catch (NoRaidException) {
+				$context->reply(RaidController::ERR_NO_RAID);
 				return;
 			}
 		}
@@ -794,8 +797,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				(int)round($org->numPlayers * 100 / $online->count(), 0),
 				3
 			);
-			$avg_level = round($org->avgLevel, 1);
-			return "<tab>{$percent}% <highlight>{$guild}<end> - {$org->numPlayers} member(s), average level {$avg_level}";
+			$avgLevel = round($org->avgLevel, 1);
+			return "<tab>{$percent}% <highlight>{$guild}<end> - {$org->numPlayers} member(s), average level {$avgLevel}";
 		});
 		$blob = "<header2>Org statistics<end>\n" . $lines->join("\n");
 
@@ -821,9 +824,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$data = collect($this->onlineController->getPlayers('priv', $this->config->main->character))
 			->where('profession', $prof->value);
 		if (isset($raidOnly)) {
-			[$errMsg, $data] = $this->filterRaid($data->toArray());
-			if (isset($errMsg)) {
-				$context->reply($errMsg);
+			try {
+				$data = $this->filterRaid($data->toArray());
+			} catch (NoRaidException) {
+				$context->reply(RaidController::ERR_NO_RAID);
 				return;
 			}
 			$data = collect($data);
@@ -1452,14 +1456,18 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	 *
 	 * @param OnlinePlayer[] $chars
 	 *
-	 * @return array{?string,list<OnlinePlayer>}
+	 * @return OnlinePlayer[]
+	 *
+	 * @psalm-return list<OnlinePlayer>
+	 *
+	 * @throws NoRaidException if no raid is running
 	 */
 	private function filterRaid(array $chars): array {
 		$raid = $this->raidController->raid;
 		if (!isset($raid)) {
-			return [RaidController::ERR_NO_RAID, []];
+			throw new NoRaidException();
 		}
-		$chars = array_values(
+		return array_values(
 			array_filter(
 				$chars,
 				static function (OnlinePlayer $char) use ($raid): bool {
@@ -1468,7 +1476,6 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				}
 			)
 		);
-		return [null, $chars];
 	}
 
 	private function addUser(string $name, string $sender): string {

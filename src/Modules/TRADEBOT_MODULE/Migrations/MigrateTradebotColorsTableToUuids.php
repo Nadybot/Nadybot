@@ -5,7 +5,7 @@ namespace Nadybot\Modules\TRADEBOT_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\TRADEBOT_MODULE\{TradebotColors};
+use Nadybot\Modules\TRADEBOT_MODULE\TradebotColors;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2024_08_05_16_28_00)]

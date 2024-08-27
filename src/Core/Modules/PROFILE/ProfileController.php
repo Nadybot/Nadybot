@@ -4,7 +4,7 @@ namespace Nadybot\Core\Modules\PROFILE;
 
 use function Safe\{json_decode, json_encode};
 
-use Amp\File\{FilesystemException};
+use Amp\File\FilesystemException;
 use Exception;
 use Nadybot\Core\DBSchema\{
 	CmdAlias,

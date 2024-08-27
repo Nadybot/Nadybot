@@ -655,7 +655,7 @@ class DB {
 		$items = [];
 		$itemCount = 0;
 		try {
-			if (isset($where) && count($where)) {
+			if (isset($where)) {
 				$this->table($table)->where(...$where)->delete();
 			} else {
 				$this->table($table)->delete();

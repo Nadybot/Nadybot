@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use function Amp\{delay};
+use function Amp\delay;
 
-use Amp\File\{FileCache};
+use Amp\File\FileCache;
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
 use Amp\Pipeline\Pipeline;
 use Amp\Sync\LocalKeyedMutex;

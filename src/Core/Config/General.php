@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Config;
 
 use EventSauce\ObjectHydrator\MapFrom;
-use EventSauce\ObjectHydrator\PropertyCasters\{CastToType};
+use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
 use Nadybot\Core\Attributes\ForceList;
 
 class General {

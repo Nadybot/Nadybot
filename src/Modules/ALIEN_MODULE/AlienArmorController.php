@@ -163,25 +163,25 @@ class AlienArmorController extends ModuleInstance {
 
 		$list .= "<header2>Step 8<end>\n";
 
-		$vb_ql = (int)floor($ql * 0.8);
+		$vbQl = (int)floor($ql * 0.8);
 		switch ($armortype) {
 			case 'Arithmetic':
-				$list .= '<tab>' . $this->itemsController->getItemAndIcon('Arithmetic Lead Viralbots', $vb_ql) . " QL{$vb_ql}";
+				$list .= '<tab>' . $this->itemsController->getItemAndIcon('Arithmetic Lead Viralbots', $vbQl) . " QL{$vbQl}";
 				break;
 			case 'Supple':
-				$list .= '<tab>' . $this->itemsController->getItemAndIcon('Supple Lead Viralbots', $vb_ql) . " QL{$vb_ql}";
+				$list .= '<tab>' . $this->itemsController->getItemAndIcon('Supple Lead Viralbots', $vbQl) . " QL{$vbQl}";
 				break;
 			case 'Enduring':
-				$list .= '<tab>' . $this->itemsController->getItemAndIcon('Enduring Lead Viralbots', $vb_ql) . " QL{$vb_ql}";
+				$list .= '<tab>' . $this->itemsController->getItemAndIcon('Enduring Lead Viralbots', $vbQl) . " QL{$vbQl}";
 				break;
 			case 'Observant':
-				$list .= '<tab>' . $this->itemsController->getItemAndIcon('Observant Lead Viralbots', $vb_ql) . " QL{$vb_ql}";
+				$list .= '<tab>' . $this->itemsController->getItemAndIcon('Observant Lead Viralbots', $vbQl) . " QL{$vbQl}";
 				break;
 			case 'Strong':
-				$list .= '<tab>' . $this->itemsController->getItemAndIcon('Strong Lead Viralbots', $vb_ql) . " QL{$vb_ql}";
+				$list .= '<tab>' . $this->itemsController->getItemAndIcon('Strong Lead Viralbots', $vbQl) . " QL{$vbQl}";
 				break;
 			case 'Spiritual':
-				$list .= '<tab>' . $this->itemsController->getItemAndIcon('Spiritual Lead Viralbots', $vb_ql) . " QL{$vb_ql}";
+				$list .= '<tab>' . $this->itemsController->getItemAndIcon('Spiritual Lead Viralbots', $vbQl) . " QL{$vbQl}";
 				break;
 		}
 		$list .= " (<highlight>Rare Drop off Alien City Generals<end>)\n";

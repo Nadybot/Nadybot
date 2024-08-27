@@ -134,19 +134,19 @@ class AltInfo {
 	 * @return list<string>
 	 */
 	public function getOnlineAlts(): array {
-		$online_list = [];
+		$onlineList = [];
 
 		if ($this->buddylistManager->isOnline($this->main)) {
-			$online_list []= $this->main;
+			$onlineList []= $this->main;
 		}
 
 		foreach ($this->alts as $name => $validated) {
 			if ($this->buddylistManager->isOnline($name)) {
-				$online_list []= $name;
+				$onlineList []= $name;
 			}
 		}
 
-		return $online_list;
+		return $onlineList;
 	}
 
 	/**
@@ -155,9 +155,9 @@ class AltInfo {
 	 * @return list<string>
 	 */
 	public function getAllAlts(): array {
-		$online_list = [$this->main, ...array_map('strval', array_keys($this->alts))];
+		$onlineList = [$this->main, ...array_map('strval', array_keys($this->alts))];
 
-		return $online_list;
+		return $onlineList;
 	}
 
 	public function hasUnvalidatedAlts(): bool {

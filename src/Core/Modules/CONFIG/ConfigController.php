@@ -875,14 +875,14 @@ class ConfigController extends ModuleInstance {
 			if ($moduleCmds->isEmpty() && !isset($row)) {
 				continue;
 			}
-			$num_commands_enabled = 0;
-			$num_commands_disabled = 0;
+			$numCommandsEnabled = 0;
+			$numCommandsDisabled = 0;
 			if ($moduleCmds->isNotEmpty()) {
-				$num_commands_enabled = $moduleCmds
+				$numCommandsEnabled = $moduleCmds
 					->reduce(static function (int $enabled, CmdCfg $cfg): int {
 						return $enabled + collect($cfg->permissions)->where('enabled', true)->count();
 					}, 0);
-				$num_commands_disabled = $moduleCmds
+				$numCommandsDisabled = $moduleCmds
 					->reduce(static function (int $disabled, CmdCfg $cfg): int {
 						return $disabled + collect($cfg->permissions)->where('enabled', false)->count();
 					}, 0);
@@ -890,8 +890,8 @@ class ConfigController extends ModuleInstance {
 			$result []= new ConfigModule(
 				name: $module,
 				description: $this->getModuleDescription($module),
-				num_commands_enabled: $num_commands_enabled,
-				num_commands_disabled: $num_commands_disabled,
+				num_commands_enabled: $numCommandsEnabled,
+				num_commands_disabled: $numCommandsDisabled,
 				num_events_disabled: isset($row) ? $row->count_events_disabled : 0,
 				num_events_enabled: isset($row) ? $row->count_events_enabled : 0,
 				num_settings: isset($row) ? $row->count_settings : 0,

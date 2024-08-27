@@ -4,7 +4,7 @@ namespace Nadybot\Core\Modules\BAN\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Modules\BAN\{BannedOrg};
+use Nadybot\Core\Modules\BAN\BannedOrg;
 use Nadybot\Core\{DB, SchemaMigration};
 use Psr\Log\LoggerInterface;
 

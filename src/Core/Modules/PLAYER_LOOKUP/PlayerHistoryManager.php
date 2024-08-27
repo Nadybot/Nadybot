@@ -3,8 +3,8 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use function Amp\async;
-use function Safe\{json_decode};
-use Amp\File\{FileCache};
+use function Safe\json_decode;
+use Amp\File\FileCache;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use function Amp\{delay};
+use function Amp\delay;
 
 use Amp\Pipeline\Pipeline;
 use Nadybot\Core\{

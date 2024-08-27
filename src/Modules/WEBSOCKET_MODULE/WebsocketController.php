@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
-use function Safe\{json_decode};
+use function Safe\json_decode;
 
 use Amp\Http\Server\{Request, Response};
 use Amp\Websocket\Server\{AllowOriginAcceptor, Websocket, WebsocketClientGateway, WebsocketClientHandler, WebsocketGateway};

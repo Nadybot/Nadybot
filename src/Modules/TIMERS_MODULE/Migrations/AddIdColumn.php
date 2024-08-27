@@ -6,7 +6,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, SchemaMigration};
-use Nadybot\Modules\TIMERS_MODULE\{Timer};
+use Nadybot\Modules\TIMERS_MODULE\Timer;
 use Psr\Log\LoggerInterface;
 use stdClass;
 

@@ -69,49 +69,43 @@ class SystemdController extends ModuleInstance {
 	 * @param list<int> $fds
 	 */
 	public function notifyWithFDs(int $pid, bool $unsetEnvironment, string $state, array $fds): int {
-		[$fd, $result] = $this->sdPidNotifyWithFDs($pid, $state, $fds);
-		if (isset($fd) && $fd instanceof Socket) {
-			socket_close($fd);
+		$notifyResult = $this->sdPidNotifyWithFDs($pid, $state, $fds);
+		if (isset($notifyResult->fd) && $notifyResult->fd instanceof Socket) {
+			socket_close($notifyResult->fd);
 		}
 
 		if ($unsetEnvironment) {
 			putenv('NOTIFY_SOCKET');
 		}
 
-		return $result;
+		return $notifyResult->result;
 	}
 
-	/**
-	 * @param list<int> $fds
-	 *
-	 * @return array<null|bool|int|Socket>
-	 *
-	 * @phpstan-return array{null|bool|Socket,int}
-	 */
-	public function sdPidNotifyWithFDs(int $pid, string $state, array $fds): array {
+	/** @param list<int> $fds */
+	public function sdPidNotifyWithFDs(int $pid, string $state, array $fds): NotifyResult {
 		$state = trim($state);
 
 		if ($state === '' || !defined('SCM_CREDENTIALS')) {
 			$result = -1 * self::EINVAL;
-			return [null, $result];
+			return new NotifyResult(fd: null, result: $result);
 		}
 
 		$notifySocket = getenv('NOTIFY_SOCKET');
 		if ($notifySocket === false) {
-			return [null, 0];
+			return new NotifyResult(fd: null, result: 0);
 		}
 
 		// Must be an abstract socket, or an absolute path
 		if (strlen($notifySocket) < 2 || (!str_starts_with($notifySocket, '@')   && !str_starts_with($notifySocket, '/'))) {
 			$result = -1 * self::EINVAL;
-			return [null, $result];
+			return new NotifyResult(fd: null, result: $result);
 		}
 
 		// @phpstan-ignore-next-line
 		$fd = socket_create(\AF_UNIX, \SOCK_DGRAM, 0);
 		if ($fd === false) {
 			$result = -1 * socket_last_error();
-			return [$fd, $result];
+			return new NotifyResult(fd: $fd, result: $result);
 		}
 
 		$messageHeader = [
@@ -155,7 +149,7 @@ class SystemdController extends ModuleInstance {
 		// @phpstan-ignore-next-line
 		if (@socket_sendmsg($fd, $messageHeader, \MSG_NOSIGNAL) !== false) {
 			$result = 1;
-			return [$fd, $result];
+			return new NotifyResult(fd: $fd, result: $result);
 		}
 
 		// If that failed, try with our own ucred instead
@@ -164,13 +158,13 @@ class SystemdController extends ModuleInstance {
 
 			// @phpstan-ignore-next-line
 			if (@socket_sendmsg($fd, $messageHeader, \MSG_NOSIGNAL) !== false) {
-				return [$fd, 1];
+				return new NotifyResult(fd: $fd, result: 1);
 			}
 		}
 
 		$result = -1 * socket_last_error($fd);
 
-		return [$fd, $result];
+		return new NotifyResult(fd: $fd, result: $result);
 	}
 
 	/**

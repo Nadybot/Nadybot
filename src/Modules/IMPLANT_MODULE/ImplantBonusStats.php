@@ -2,17 +2,14 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\MinMax;
+
 class ImplantBonusStats {
 	public string $slot = 'Faded';
 
-	/**
-	 * @param int[] $range
-	 *
-	 * @psalm-param list{int,int} $range
-	 */
 	public function __construct(
 		public int $buff,
-		public array $range,
+		public MinMax $range,
 		int|string $slot,
 	) {
 		if (is_string($slot)) {
