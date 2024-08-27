@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Don't cache chars from other dimensions, overwriting our own id
+- Some specials recharge times were off. While the calculations are probably still not 100% correct, the new formulas by Conci, Keex-1, Keltias, TinkeringIdiot, and Tradias should improve things a lot.
 
 ## [6.2.8] - 2024-02-21
 

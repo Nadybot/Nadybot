@@ -197,21 +197,18 @@ class SkillsController extends ModuleInstance {
 		"<tab><a href='chatcmd:///tell <myname> <symbol>aimshot 1.2 1.5 1200'>/tell <myname> <symbol>aimshot 1.2 1.5 1200</a>"
 	)]
 	public function aimshotCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $aimedShot): void {
-		[$cap, $ASCap] = $this->capAimedShot($attackTime, $rechargeTime);
+		$stats = SARechargeInfo::fromAimedShot($aimedShot, $attackTime, $rechargeTime);
 
-		$ASRecharge	= (int)ceil(($rechargeTime * 40) - ($aimedShot * 3 / 100) + $attackTime - 1);
-		if ($ASRecharge < $cap) {
-			$ASRecharge = $cap;
-		}
 		$ASMultiplier	= (int)round($aimedShot / 95, 0);
 
-		$blob = "Attack:       <highlight>{$attackTime}<end> second(s)\n";
-		$blob .= "Recharge:    <highlight>{$rechargeTime}<end> second(s)\n";
-		$blob .= "Aimed Shot: <highlight>{$aimedShot}<end>\n\n";
-		$blob .= "Aimed Shot Multiplier: <highlight>1-{$ASMultiplier}x<end>\n";
-		$blob .= "Aimed Shot Recharge: <highlight>{$ASRecharge}<end> seconds\n";
-		$blob .= "With your weapon, your Aimed Shot recharge will cap at <highlight>{$cap}<end>s.\n";
-		$blob .= "You need <highlight>{$ASCap}<end> Aimed Shot skill to cap your recharge.";
+		$blob =
+			"Attack:       <highlight>{$attackTime}<end> second(s)\n".
+			"Recharge:    <highlight>{$rechargeTime}<end> second(s)\n".
+			"Aimed Shot: <highlight>{$aimedShot}<end>\n\n".
+			"Aimed Shot Multiplier: <highlight>1-{$ASMultiplier}x<end>\n".
+			"Aimed Shot Recharge: <highlight>{$stats->currentRechargeTime}<end> seconds\n".
+			"With your weapon, your Aimed Shot recharge will cap at <highlight>{$stats->hardCapTime}<end>s.\n".
+			"You need <highlight>{$stats->skillToCap}<end> Aimed Shot skill to cap your recharge.";
 
 		$msg = $this->text->makeBlob('Aimed Shot Results', $blob);
 		$context->reply($msg);
@@ -271,19 +268,19 @@ class SkillsController extends ModuleInstance {
 		"<a href='chatcmd:///start http://www.auno.org'>auno.org</a> as Burst Cycle.</i>"
 	)]
 	public function burstCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $burstDelay, int $burstSkill): void {
-		[$burstWeaponCap, $burstSkillCap] = $this->capBurst($attackTime, $rechargeTime, $burstDelay);
+		$stats = SARechargeInfo::fromBurst($burstSkill, $attackTime, $rechargeTime, $burstDelay);
 
-		$burstRecharge = (int)floor(($rechargeTime * 20) + ($burstDelay / 100) - ($burstSkill / 25) + $attackTime);
-		$burstRecharge = max($burstRecharge, $burstWeaponCap);
-
-		$blob = "Attack:       <highlight>{$attackTime}<end> second(s)\n";
-		$blob .= "Recharge:    <highlight>{$rechargeTime}<end> second(s)\n";
-		$blob .= "Burst Delay: <highlight>{$burstDelay}<end>\n";
-		$blob .= "Burst Skill:   <highlight>{$burstSkill}<end>\n\n";
-		$blob .= "Your burst recharge: <highlight>{$burstRecharge}<end>s\n\n";
-		$blob .= "You need <highlight>{$burstSkillCap}<end> ".
-			'burst skill to cap your recharge at the minimum of '.
-			"<highlight>{$burstWeaponCap}<end>s.";
+		$blob =
+			"Attack:       <highlight>{$attackTime}<end> second(s)\n".
+			"Recharge:    <highlight>{$rechargeTime}<end> second(s)\n".
+			"Burst Delay: <highlight>{$burstDelay}<end>\n".
+			"Burst Skill:   <highlight>{$burstSkill}<end>\n".
+			"\n".
+			"Your burst recharge: <highlight>{$stats->currentRechargeTime}<end>s\n".
+			"\n".
+			"You need <highlight>{$stats->skillToCap}<end> ".
+				'burst skill to cap your recharge at the minimum of '.
+				"<highlight>{$stats->hardCapTime}<end>s.";
 
 		$msg = $this->text->makeBlob('Burst Results', $blob);
 		$context->reply($msg);
@@ -352,21 +349,15 @@ class SkillsController extends ModuleInstance {
 		"<tab><a href='chatcmd:///tell <myname> <symbol>fastattack 1.2 900'>/tell <myname> <symbol>fastattack 1.2 900</a>"
 	)]
 	public function fastAttackCommand(CmdContext $context, float $attackTime, int $fastAttack): void {
-		[$weaponCap, $skillNeededForCap] = $this->capFastAttack($attackTime);
+		$stats = SARechargeInfo::fromFastAttack($fastAttack, $attackTime);
 
-		$recharge = (int)round(($attackTime * 16) - ($fastAttack / 100));
-
-		if ($recharge < $weaponCap) {
-			$recharge = $weaponCap;
-		} else {
-			$recharge = ceil($recharge);
-		}
-
-		$blob  = "Attack:           <highlight>{$attackTime}<end>s\n";
-		$blob .= "Fast Attack:    <highlight>{$fastAttack}<end>\n";
-		$blob .= "Your Recharge: <highlight>{$recharge}<end>s\n\n";
-		$blob .= "You need <highlight>{$skillNeededForCap}<end> Fast Attack Skill to cap your fast attack at <highlight>{$weaponCap}<end>s.\n";
-		$blob .= 'Every 100 points in Fast Attack skill less than this will increase the recharge by 1s.';
+		$blob =
+			"Attack:           <highlight>{$attackTime}<end>s\n".
+			"Fast Attack:    <highlight>{$fastAttack}<end>\n".
+			"Your Recharge: <highlight>{$stats->currentRechargeTime}<end>s\n".
+			"\n".
+			"You need <highlight>{$stats->skillToCap}<end> Fast Attack Skill to cap your fast attack at <highlight>{$stats->hardCapTime}<end>s.\n".
+			'Every 100 points in Fast Attack skill less than this will increase the recharge by 1s.';
 
 		$msg = $this->text->makeBlob('Fast Attack Results', $blob);
 		$context->reply($msg);
@@ -383,16 +374,14 @@ class SkillsController extends ModuleInstance {
 		"<tab><a href='chatcmd:///tell <myname> <symbol>fling 1.2 900'>/tell <myname> <symbol>fling 1.2 900</a>"
 	)]
 	public function flingShotCommand(CmdContext $context, float $attackTime, int $flingShot): void {
-		[$weaponCap, $skillCap] = $this->capFlingShot($attackTime);
+		$stats = SARechargeInfo::fromFlingShot($flingShot, $attackTime);
 
-		$recharge =  round(($attackTime * 16) - ($flingShot / 100));
-
-		$recharge = max($weaponCap, $recharge);
-
-		$blob = "Attack:           <highlight>{$attackTime}<end>s\n";
-		$blob .= "Fling Shot:       <highlight>{$flingShot}<end>\n";
-		$blob .= "Your Recharge: <highlight>{$recharge}<end>s\n\n";
-		$blob .= "You need <highlight>{$skillCap}<end> Fling Shot skill to cap your fling at <highlight>{$weaponCap}<end>s.";
+		$blob =
+			"Attack:           <highlight>{$attackTime}<end>s\n".
+			"Fling Shot:       <highlight>{$flingShot}<end>\n".
+			"Your Recharge: <highlight>{$stats->currentRechargeTime}<end>s\n".
+			"\n".
+			"You need <highlight>{$stats->skillToCap}<end> Fling Shot skill to cap your fling at <highlight>{$stats->hardCapTime}<end>s.";
 
 		$msg = $this->text->makeBlob('Fling Results', $blob);
 		$context->reply($msg);
@@ -413,25 +402,25 @@ class SkillsController extends ModuleInstance {
 		"<a href='chatcmd:///start http://www.auno.org'>auno.org</a> as FullAuto Cycle.</i>"
 	)]
 	public function fullAutoCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $faRecharge, int $faSkill): void {
-		[$faWeaponCap, $faSkillCap] = $this->capFullAuto($attackTime, $rechargeTime, $faRecharge);
-
-		$myFullAutoRecharge = (int)round(($rechargeTime * 40) + ($faRecharge / 100) - ($faSkill / 25) + round($attackTime - 1));
-		$myFullAutoRecharge = max($myFullAutoRecharge, $faWeaponCap);
+		$stats = SARechargeInfo::fromFullAuto($faSkill, $attackTime, $rechargeTime, $faRecharge);
 
 		$maxBullets = 5 + (int)floor($faSkill / 100);
 
-		$blob = "Weapon Attack: <highlight>{$attackTime}<end>s\n";
-		$blob .= "Weapon Recharge: <highlight>{$rechargeTime}<end>s\n";
-		$blob .= "Full Auto Recharge value: <highlight>{$faRecharge}<end>\n";
-		$blob .= "FA Skill: <highlight>{$faSkill}<end>\n\n";
-		$blob .= "Your Full Auto recharge: <highlight>{$myFullAutoRecharge}<end>s\n";
-		$blob .= "Your Full Auto can fire a maximum of <highlight>{$maxBullets}<end> bullets.\n";
-		$blob .= "Full Auto recharge always caps at <highlight>{$faWeaponCap}<end>s.\n";
-		$blob .= "You will need at least <highlight>{$faSkillCap}<end> Full Auto skill to cap your recharge.\n\n";
-		$blob .= "From <black>0<end><highlight>0<end><black>K<end><highlight> to 10.0K<end> damage, the bullet damage is unchanged.\n";
-		$blob .= "From <highlight>10K to 11.5K<end> damage, each bullet damage is halved.\n";
-		$blob .= "From <highlight>11K to 15.0K<end> damage, each bullet damage is halved again.\n";
-		$blob .= '<highlight>15K<end> is the damage cap.';
+		$blob =
+			"Weapon Attack: <highlight>{$attackTime}<end>s\n".
+			"Weapon Recharge: <highlight>{$rechargeTime}<end>s\n".
+			"Full Auto Recharge value: <highlight>{$faRecharge}<end>\n".
+			"FA Skill: <highlight>{$faSkill}<end>\n".
+			"\n".
+			"Your Full Auto recharge: <highlight>{$stats->currentRechargeTime}<end>s\n".
+			"Your Full Auto can fire a maximum of <highlight>{$maxBullets}<end> bullets.\n".
+			"Full Auto recharge always caps at <highlight>{$stats->hardCapTime}<end>s.\n".
+			"You will need at least <highlight>{$stats->skillToCap}<end> Full Auto skill to cap your recharge.\n".
+			"\n".
+			"From <black>0<end><highlight>0<end><black>K<end><highlight> to 10.0K<end> damage, the bullet damage is unchanged.\n".
+			"From <highlight>10K to 11.5K<end> damage, each bullet damage is halved.\n".
+			"From <highlight>11K to 15.0K<end> damage, each bullet damage is halved again.\n".
+			'<highlight>15K<end> is the damage cap.';
 
 		$msg = $this->text->makeBlob('Full Auto Results', $blob);
 		$context->reply($msg);
@@ -583,7 +572,6 @@ class SkillsController extends ModuleInstance {
 	public function weaponCommand(CmdContext $context, int $highid, int $ql): void {
 		// this is a hack since Worn Soft Pepper Pistol has its high and low ids reversed in-game
 		// there may be others
-		/** @var ?AODBEntry */
 		$row = $this->itemsController->getByIDs($highid)
 			->where('lowql', '<=', $ql)
 			->where('highql', '>=', $ql)
@@ -597,13 +585,11 @@ class SkillsController extends ModuleInstance {
 			return;
 		}
 
-		/** @var ?WeaponAttribute */
 		$lowAttributes = $this->db->table(WeaponAttribute::getTable())
 			->where('id', $row->lowid)
 			->asObj(WeaponAttribute::class)
 			->first();
 
-		/** @var ?WeaponAttribute */
 		$highAttributes = $this->db->table(WeaponAttribute::getTable())
 			->where('id', $row->highid)
 			->asObj(WeaponAttribute::class)
@@ -622,61 +608,58 @@ class SkillsController extends ModuleInstance {
 		$attackTime /= 100;
 		$itemLink = $row->getLink(ql: $ql);
 
-		$blob = '';
-
-		$blob .= "<header2>Stats<end>\n";
-		$blob .= "<tab>Item:       {$itemLink}\n";
-		$blob .= '<tab>Attack:    <highlight>' . sprintf('%.2f', $attackTime) . "<end>s\n";
-		$blob .= '<tab>Recharge: <highlight>' . sprintf('%.2f', $rechargeTime) . "<end>s\n\n";
-
-		// inits
-		$blob .= "<header2>Agg/Def<end>\n";
-		$blob .= $this->getInitDisplay($attackTime, $rechargeTime);
-		$blob .= "\n";
+		$blob =
+			"<header2>Stats<end>\n".
+			"<tab>Item:       {$itemLink}\n".
+			'<tab>Attack:    <highlight>' . sprintf('%.2f', $attackTime) . "<end>s\n".
+			'<tab>Recharge: <highlight>' . sprintf('%.2f', $rechargeTime) . "<end>s\n".
+			"\n".
+			"<header2>Agg/Def<end>\n".
+			'<tab>' . $this->getInitDisplay($attackTime, $rechargeTime) . "\n";
 
 		$found = false;
 		if ($highAttributes->full_auto !== null && $lowAttributes->full_auto !== null) {
-			$full_auto_recharge = Util::interpolate($row->lowql, $row->highql, $lowAttributes->full_auto, $highAttributes->full_auto, $ql);
-			[$weaponCap, $skillCap] = $this->capFullAuto($attackTime, $rechargeTime, $full_auto_recharge);
-			$blob .= "<header2>Full Auto<end>\n";
-			$blob .= '<tab>You need <highlight>'.$skillCap.'<end> Full Auto skill to cap your recharge at <highlight>'.$weaponCap."<end>s.\n\n";
+			$fullAutoRecharge = Util::interpolate($row->lowql, $row->highql, $lowAttributes->full_auto, $highAttributes->full_auto, $ql);
+			$stats = SARechargeInfo::fromFullAuto(0, $attackTime, $rechargeTime, $fullAutoRecharge);
+			$blob .= "<header2>Full Auto<end>\n".
+				"<tab>You need <highlight>{$stats->skillToCap}<end> Full Auto skill to cap your recharge at <highlight>{$stats->hardCapTime}<end>s.\n\n";
 			$found = true;
 		}
 		if ($highAttributes->burst !== null && $lowAttributes->burst !== null) {
-			$burst_recharge = Util::interpolate($row->lowql, $row->highql, $lowAttributes->burst, $highAttributes->burst, $ql);
-			[$weaponCap, $skillCap] = $this->capBurst($attackTime, $rechargeTime, $burst_recharge);
-			$blob .= "<header2>Burst<end>\n";
-			$blob .= '<tab>You need <highlight>'.$skillCap.'<end> Burst skill to cap your recharge at <highlight>'.$weaponCap."<end>s.\n\n";
+			$burstRecharge = Util::interpolate($row->lowql, $row->highql, $lowAttributes->burst, $highAttributes->burst, $ql);
+			$stats = SARechargeInfo::fromBurst(0, $attackTime, $rechargeTime, $burstRecharge);
+			$blob .= "<header2>Burst<end>\n".
+				"<tab>You need <highlight>{$stats->skillToCap}<end> Burst skill to cap your recharge at <highlight>{$stats->hardCapTime}<end>s.\n\n";
 			$found = true;
 		}
 		if ($highAttributes->fling_shot) {
-			[$weaponCap, $skillCap] = $this->capFlingShot($attackTime);
-			$blob .= "<header2>Fling Shot<end>\n";
-			$blob .= '<tab>You need <highlight>'.$skillCap.'<end> Fling Shot skill to cap your recharge at <highlight>'.$weaponCap."<end>s.\n\n";
+			$stats = SARechargeInfo::fromFlingShot(0, $attackTime);
+			$blob .= "<header2>Fling Shot<end>\n".
+				"<tab>You need <highlight>{$stats->skillToCap}<end> Fling Shot skill to cap your recharge at <highlight>{$stats->hardCapTime}<end>s.\n\n";
 			$found = true;
 		}
 		if ($highAttributes->fast_attack) {
-			[$weaponCap, $skillCap] = $this->capFastAttack($attackTime);
-			$blob .= "<header2>Fast Attack<end>\n";
-			$blob .= '<tab>You need <highlight>'.$skillCap.'<end> Fast Attack skill to cap your recharge at <highlight>'.$weaponCap."<end>s.\n\n";
+			$stats = SARechargeInfo::fromFastAttack(0, $attackTime);
+			$blob .= "<header2>Fast Attack<end>\n".
+				"<tab>You need <highlight>{$stats->skillToCap}<end> Fast Attack skill to cap your recharge at <highlight>{$stats->hardCapTime}<end>s.\n\n";
 			$found = true;
 		}
 		if ($highAttributes->aimed_shot) {
-			[$weaponCap, $skillCap] = $this->capAimedShot($attackTime, $rechargeTime);
-			$blob .= "<header2>Aimed Shot<end>\n";
-			$blob .= '<tab>You need <highlight>'.$skillCap.'<end> Aimed Shot skill to cap your recharge at <highlight>'.$weaponCap."<end>s.\n\n";
+			$stats = SARechargeInfo::fromAimedShot(0, $attackTime, $rechargeTime);
+			$blob .= "<header2>Aimed Shot<end>\n".
+				"<tab>You need <highlight>{$stats->skillToCap}<end> Aimed Shot skill to cap your recharge at <highlight>{$stats->hardCapTime}<end>s.\n\n";
 			$found = true;
 		}
 		if ($highAttributes->brawl) {
-			$blob .= "<header2>Brawl<end>\n";
-			$blob .= "<tab>This weapon supports 1 brawl attack every <highlight>15s<end> (constant).\n\n";
+			$blob .= "<header2>Brawl<end>\n".
+				"<tab>This weapon supports 1 brawl attack every <highlight>15s<end> (constant).\n\n";
 			$found = true;
 		}
 		if ($highAttributes->sneak_attack) {
-			$blob .= "<header2>Sneak Attack<end>\n";
-			$blob .= "<tab>This weapon supports sneak attacks.\n";
-			$blob .= "<tab>The recharge depends solely on your Sneak Attack Skill:\n";
-			$blob .= "<tab>40 - (Sneak Attack skill) / 150\n\n";
+			$blob .= "<header2>Sneak Attack<end>\n".
+				"<tab>This weapon supports sneak attacks.\n".
+				"<tab>The recharge depends solely on your Sneak Attack Skill:\n".
+				"<tab>40 - (Sneak Attack skill) / 150\n\n";
 			$found = true;
 		}
 
@@ -684,7 +667,8 @@ class SkillsController extends ModuleInstance {
 			$blob .= "There are no specials on this weapon that could be calculated.\n\n";
 		}
 
-		$blob .= "\nRewritten by Nadyita (RK5)";
+		$blob .= "\nRewritten by Nadyita (RK5)".
+			"\nSpecials recharge fixes by Conci (RK5), Keex-1 (RK5), Keltias (RK5), TinkeringIdiot, Tradias (RK5)";
 		$msg = $this->text->makeBlob("Weapon Info for {$name}", $blob);
 
 		$context->reply($msg);
@@ -777,72 +761,12 @@ class SkillsController extends ModuleInstance {
 		return round(1_200 + ($attackTime - 6) * 600, 2);
 	}
 
-	/**
-	 * @return list<float>
-	 *
-	 * @psalm-return list{float,float}
-	 */
-	public function capFullAuto(float $attackTime, float $rechargeTime, int $fullAutoRecharge): array {
-		$weaponCap = floor(10 + $attackTime);
-		$skillCap = ((40 * $rechargeTime) + ($fullAutoRecharge / 100) - 11) * 25;
-
-		return [$weaponCap, $skillCap];
-	}
-
-	/**
-	 * @return list<int>
-	 *
-	 * @psalm-return list{int,int}
-	 */
-	public function capBurst(float $attackTime, float $rechargeTime, int $burstRecharge): array {
-		$hard_cap = (int)round($attackTime + 8, 0);
-		$skill_cap = (int)floor((($rechargeTime * 20) + ($burstRecharge / 100) - 8) * 25);
-
-		return [$hard_cap, $skill_cap];
-	}
-
-	/**
-	 * @return list<float>
-	 *
-	 * @psalm-return list{float,float}
-	 */
-	public function capFlingShot(float $attackTime): array {
-		$weaponCap = 5 + $attackTime;
-		$skillCap = (($attackTime * 16) - $weaponCap) * 100;
-
-		return [$weaponCap, $skillCap];
-	}
-
-	/**
-	 * @return list<float>
-	 *
-	 * @psalm-return list{float,float}
-	 */
-	public function capFastAttack(float $attackTime): array {
-		$weaponCap = (int)floor(5 + $attackTime);
-		$skillCap = (($attackTime * 16) - $weaponCap) * 100;
-
-		return [$weaponCap, $skillCap];
-	}
-
-	/**
-	 * @return list<int>
-	 *
-	 * @psalm-return list{int,int}
-	 */
-	public function capAimedShot(float $attackTime, float $rechargeTime): array {
-		$hardCap = (int)floor($attackTime + 10);
-		$skillCap = (int)ceil((4_000 * $rechargeTime - 1_100) / 3);
-
-		return [$hardCap, $skillCap];
-	}
-
 	public function getInitDisplay(float $attack, float $recharge): string {
 		$blob = '';
 		for ($percent = 100; $percent >= 0; $percent -= 10) {
 			$init = $this->getInitsForPercent($percent, $attack, $recharge);
 
-			$blob .= '<tab>DEF ';
+			$blob .= 'DEF ';
 			$blob .= $this->getAggdefBar($percent);
 			$blob .= ' AGG ';
 			$blob .= Text::alignNumber($init, 4, 'highlight');
