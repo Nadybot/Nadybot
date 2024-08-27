@@ -42,11 +42,10 @@ class Text {
 	 * @param string      $content The content of the info window
 	 * @param string|null $header  If set, use $header as header, otherwise $name
 	 *
-	 * @return string|list<string> The string with link and reference or an array of strings if the message would be too big
+	 * @return string The string with link and reference
 	 */
-	public function makeBlob(string $name, string $content, ?string $header=null, ?string $permanentHeader=''): string|array {
+	public function makeBlob(string $name, string $content, ?string $header=null, ?string $permanentHeader=null): string {
 		$header ??= $name;
-		$permanentHeader ??= '';
 
 		// trim extra whitespace from beginning and ending
 		$content = trim($content);
@@ -55,49 +54,17 @@ class Text {
 		$content = str_replace('"', '&quot;', $content);
 		$header = str_replace('"', '&quot;', $header);
 
-		// $content = $this->formatMessage($content);
-
 		// if the content is blank, add a space so the blob will at least appear
 		if ($content === '') {
 			$content = ' ';
 		}
 
-		$pageSize = ($this->settingManager->getInt('max_blob_size')??0) - strlen($permanentHeader);
-		$pages = $this->paginate($content, $pageSize, ['<pagebreak>', "\n", ' ']);
-		$num = count($pages);
-
-		if ($num === 1) {
-			$page = $pages[0];
-			$headerMarkup = "<header>{$header}<end>\n\n{$permanentHeader}";
-			$page = '<a href="text://'.($this->settingManager->getString('default_window_color')??'').$headerMarkup.$page."\">{$name}</a>";
-			return $page;
+		$headerMarkup = "<header>{$header}<end>\n\n";
+		if (isset($permanentHeader) && strlen($permanentHeader)) {
+			$headerMarkup .= "<permheader>{$permanentHeader}</permheader>";
 		}
-		$addHeaderRanges = $this->settingManager->getBool('add_header_ranges') ?? false;
-		$i = 1;
-		foreach ($pages as $key => $page) {
-			$headerInfo = '';
-			if ($addHeaderRanges
-				&& count($headers = Safe::pregMatchOffsetAll(
-					'/<header2>([^<]+)<end>/',
-					$page,
-				)) > 0
-			) {
-				if ($headers[1][0][1] === 9) {
-					$from = $headers[1][0][0];
-					$to = $headers[1][count($headers[1])-1][0];
-					$headerInfo = " - {$from}";
-					if ($to !== $from) {
-						$headerInfo .= " -&gt; {$to}";
-					}
-				}
-			}
-
-			$headerMarkup = "<header>{$header} (Page {$i} / {$num})<end>\n\n{$permanentHeader}";
-			$page = '<a href="text://'.($this->settingManager->getString('default_window_color')??'').$headerMarkup.$page."\">{$name}</a> (Page <highlight>{$i} / {$num}<end>{$headerInfo})";
-			$pages[$key] = $page;
-			$i++;
-		}
-		return $pages;
+		$page = "<a href=\"text://{$headerMarkup}{$content}\">{$name}</a>";
+		return $page;
 	}
 
 	/**
