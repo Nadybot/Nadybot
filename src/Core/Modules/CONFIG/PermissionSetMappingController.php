@@ -118,6 +118,7 @@ class PermissionSetMappingController extends ModuleInstance {
 			return;
 		}
 		$map = new CmdPermSetMapping();
+		unset($map->id);
 		$map->source = $source;
 		$map->permission_set = $permissionSet;
 		$map->symbol = $this->settingManager->getString("symbol") ?? "!";

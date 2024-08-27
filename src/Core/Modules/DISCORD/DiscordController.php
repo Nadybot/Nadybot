@@ -68,6 +68,7 @@ class DiscordController extends ModuleInstance {
 		options: [
 			"aoitems" => "https://aoitems.com/item/{id}{?ql:/{ql}}",
 			"auno" => "https://auno.org/ao/db.php?id={id}{?ql:&ql={ql}}",
+			"tinkertools" => "https://ao.tinkeringidiot.com/item/{id}{?ql:/{ql}}",
 		]
 	)]
 	public string $itemWebsite = "https://auno.org/ao/db.php?id={id}{?ql:&ql={ql}}";

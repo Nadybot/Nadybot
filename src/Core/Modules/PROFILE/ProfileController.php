@@ -474,6 +474,7 @@ class ProfileController extends ModuleInstance {
 					$map->{$key} = $value;
 				}
 				$map->permission_set = $set->name;
+				unset($map->id);
 				$map->id = $this->db->insert(CommandManager::DB_TABLE_MAPPING, $map);
 				$reply->reply(
 					"Mapped <highlight>{$map->source}<end> ".
