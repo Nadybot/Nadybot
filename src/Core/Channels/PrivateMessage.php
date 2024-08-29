@@ -5,6 +5,7 @@ namespace Nadybot\Core\Channels;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Blob,
 	BuddylistManager,
 	MessageHub,
 	Nadybot,
@@ -42,16 +43,18 @@ class PrivateMessage extends Base {
 
 	private function sendToGroup(RoutableEvent $event, string $group): bool {
 		$where = Source::TELL . "(@{$group})";
-		$message = $this->getEventMessage($event, $this->messageHub, $where);
-		if (!isset($message)) {
+		$eventMessage = $this->getEventMessage($event, $this->messageHub, $where);
+		if (!isset($eventMessage)) {
 			return false;
 		}
-		$message = $this->text->formatMessage($message);
-		foreach ($this->buddyListManager->getOnline() as $buddy) {
-			if (!$this->accessManager->checkAccess($buddy, $group)) {
-				continue;
+		$messages = (array)Blob::create($eventMessage)->render();
+		foreach ($messages as $message) {
+			foreach ($this->buddyListManager->getOnline() as $buddy) {
+				if (!$this->accessManager->checkAccess($buddy, $group)) {
+					continue;
+				}
+				$this->chatBot->sendRawTell(character: $buddy, message: $message);
 			}
-			$this->chatBot->sendRawTell(character: $buddy, message: $message);
 		}
 		return true;
 	}

@@ -4,6 +4,7 @@ namespace Nadybot\Core\Channels;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	MessageHub,
 	Modules\CONSOLE\ConsoleCommandReply,
 	Routing\RoutableEvent,
@@ -28,7 +29,7 @@ class ConsoleChannel extends Base {
 		if (!isset($message)) {
 			return false;
 		}
-		$this->sendto->replyOnly($message);
+		$this->sendto->replyOnly(Blob::create($message)->getText());
 		return true;
 	}
 }

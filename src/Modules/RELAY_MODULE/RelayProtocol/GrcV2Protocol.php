@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 use function Safe\preg_match;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	Routing\Character,
 	Routing\Events\Base,
 	Routing\RoutableEvent,
@@ -49,9 +50,6 @@ class GrcV2Protocol implements RelayProtocolInterface {
 
 	protected string $command = 'grc';
 	protected string $prefix = '';
-
-	#[NCA\Inject]
-	private Text $text;
 
 	public function __construct(string $command='grc', string $prefix='') {
 		$this->command = $command;
@@ -99,11 +97,12 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		} else {
 			$msgColor = '<relay_bot_color>';
 		}
-		return [
-			"{$this->prefix}{$this->command} <v2>".
-				implode(' ', $hops) . " {$senderLink}{$msgColor}".
-				$this->text->formatMessage($event->getData()) . '</end>',
-		];
+		$pages = (array)Blob::create($event->getData())->render(formatMessage: true);
+		return array_map(
+			fn (string $page): string => "{$this->prefix}{$this->command} <v2>".
+				implode(' ', $hops) . " {$senderLink}{$msgColor}{$page}</end>",
+			$pages
+		);
 	}
 
 	public function receive(RelayMessage $message): ?RoutableEvent {
@@ -116,7 +115,7 @@ class GrcV2Protocol implements RelayProtocolInterface {
 			return null;
 		}
 		$data = $matches[1];
-		$message = new RoutableMessage($data);
+		$message = new RoutableMessage(Blob::LITERAL . $data);
 		while (count($matches = Safe::pregMatch("/^<relay_(.+?)_tag_color>\[(.*?)\]<\/end>\s*(.*)/s", $data))) {
 			if (strlen($matches[2])) {
 				$type = ($matches[1] === 'guild') ? Source::ORG : Source::PRIV;

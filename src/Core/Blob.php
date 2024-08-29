@@ -7,6 +7,7 @@ use Nadybot\Core\Config\BotConfig;
 use Psr\Log\LoggerInterface;
 
 class Blob implements \Stringable {
+	public const LITERAL = "\x00lit\x00";
 	private LoggerInterface $logger;
 	private SettingManager $settingManager;
 
@@ -43,7 +44,8 @@ class Blob implements \Stringable {
 	}
 
 	public function getText(): string {
-		$text = Safe::pregReplace('/<permheader>(.*?)<\/permheader>/s', '$1', $this->text);
+		$text = str_replace(static::LITERAL, '', $this->text);
+		$text = Safe::pregReplace('/<permheader>(.*?)<\/permheader>/s', '$1', $text);
 		$text = str_replace('<pagebreak>', '', $text);
 		return $text;
 	}
@@ -81,16 +83,18 @@ class Blob implements \Stringable {
 	 */
 	public function render(?int $pageSize=null, bool $formatMessage=true, bool $renderColors=true): string|array {
 		$pageSize ??= ($this->settingManager->getInt('max_blob_size') ?? 0);
+		$text = str_replace(static::LITERAL, '', $this->text);
 		$matches = Safe::pregMatchOffsetAll(
 			'/(?<block><a href="text:\/\/(?<popup>.+?)">(?<link>.*?)<\/a>)/s',
-			$this->text
+			$text
 		);
 		$lastPosition = 0;
 		$resultBlocks = [];
 		$hasPaging = false;
-		for ($i = 0; $i < count($matches['block']); $i++) {
+		$blocks = $matches['block'] ?? [];
+		for ($i = 0; $i < count($blocks); $i++) {
 			$blockStart = $matches['block'][$i][1];
-			$preText = substr($this->text, $lastPosition, $blockStart - $lastPosition);
+			$preText = substr($text, $lastPosition, $blockStart - $lastPosition);
 			if ($formatMessage) {
 				$preText = $this->formatMessage($preText, $renderColors);
 			}
@@ -105,7 +109,7 @@ class Blob implements \Stringable {
 			$hasPaging = is_array($splitPopup);
 			$resultBlocks []= $splitPopup;
 		}
-		$resultBlocks []= substr($this->text, $lastPosition);
+		$resultBlocks []= substr($text, $lastPosition);
 		$result = [];
 		$continue = false;
 		do {

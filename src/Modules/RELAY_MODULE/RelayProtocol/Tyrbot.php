@@ -6,6 +6,7 @@ use function Safe\{json_decode, json_encode};
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	Config\BotConfig,
 	Nadybot,
 	Routing\Character,
@@ -200,34 +201,39 @@ class Tyrbot implements RelayProtocolInterface {
 		} else {
 			return [];
 		}
-		$packet = [
-			'type' => 'message',
-			'message' => $event->data,
-		];
-		if (isset($event->char)
-			&& ($event->char->id ?? null) !== $this->chatBot->char?->id) {
-			$packet['user'] = ['name' => $event->char->name];
-			if (isset($event->char->id)) {
-				$packet['user']['id'] = $event->char->id;
+		$pages = [];
+		$parts = (array)Blob::create($event->data)->render(formatMessage: false);
+		foreach ($parts as $part) {
+			$packet = [
+				'type' => 'message',
+				'message' => $part,
+			];
+			if (isset($event->char)
+				&& ($event->char->id ?? null) !== $this->chatBot->char?->id) {
+				$packet['user'] = ['name' => $event->char->name];
+				if (isset($event->char->id)) {
+					$packet['user']['id'] = $event->char->id;
+				}
+			} else {
+				$packet['user'] = null;
 			}
-		} else {
-			$packet['user'] = null;
-		}
-		$packet['source'] = $this->nadyPathToTyr($event);
-		try {
-			$data = $this->jsonEncode($packet);
-		} catch (JsonException $e) {
-			$this->logger->error('Error encoding Tyrbot message: {error}', [
-				'error' => $e->getMessage(),
-				'exception' => $e,
+			$packet['source'] = $this->nadyPathToTyr($event);
+			try {
+				$data = $this->jsonEncode($packet);
+			} catch (JsonException $e) {
+				$this->logger->error('Error encoding Tyrbot message: {error}', [
+					'error' => $e->getMessage(),
+					'exception' => $e,
+				]);
+				return [];
+			}
+			$this->logger->debug('Successfully encoded message into Tyrbot format on relay {relay}', [
+				'relay' => $this->relay->getName(),
+				'data' => $data,
 			]);
-			return [];
+			$pages []= $data;
 		}
-		$this->logger->debug('Successfully encoded message into Tyrbot format on relay {relay}', [
-			'relay' => $this->relay->getName(),
-			'data' => $data,
-		]);
-		return [$data];
+		return $pages;
 	}
 
 	/** @param array<mixed> $data */
@@ -418,7 +424,7 @@ class Tyrbot implements RelayProtocolInterface {
 				$packet->source->server
 			));
 		}
-		$event->setData($this->convertFromTyrColors($packet->message));
+		$event->setData(Blob::LITERAL . $this->convertFromTyrColors($packet->message));
 		$this->logger->debug('Decoded message on relay {relay}', [
 			'relay' => $this->relay->getName(),
 			'event' => $event,

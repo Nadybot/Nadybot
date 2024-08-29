@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	MessageHub,
 	Routing\Character,
 	Routing\Events\Base,
@@ -11,7 +12,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
-	Text,
 };
 
 use Nadybot\Modules\RELAY_MODULE\{
@@ -48,9 +48,6 @@ class GrcV1Protocol implements RelayProtocolInterface {
 	protected string $prefix = '';
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private MessageHub $messageHub;
 
 	public function __construct(string $command='grc', string $prefix='') {
@@ -67,10 +64,16 @@ class GrcV1Protocol implements RelayProtocolInterface {
 			$event2->setData($event->data->message);
 			$event = $event2;
 		}
-		return [
-			"{$this->prefix}{$this->command} " . $this->messageHub->renderPath($event, '*', false).
-			$this->text->formatMessage($event->getData()),
-		];
+		// return [
+		// 	"{$this->prefix}{$this->command} " . $this->messageHub->renderPath($event, '*', false).
+		// 	$this->text->formatMessage($event->getData()),
+		// ];
+		$pages = (array)Blob::create($event->getData())->render(formatMessage: true);
+		return array_map(
+			fn (string $page): string => "{$this->prefix}{$this->command} ".
+				$this->messageHub->renderPath($event, '*', false).$page,
+			$pages
+		);
 	}
 
 	public function receive(RelayMessage $message): ?RoutableEvent {
@@ -103,7 +106,7 @@ class GrcV1Protocol implements RelayProtocolInterface {
 			$message->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}
-		$message->setData($data);
+		$message->setData(Blob::LITERAL . $data);
 		return $message;
 	}
 
