@@ -222,7 +222,7 @@ class GcrProtocol implements RelayProtocolInterface {
 			$data = Safe::pregReplace("/\s*##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##\s*/", '', $data);
 		}
 		if (count($matches = Safe::pregMatch("/\s*##relay_message##(.*)##end##$/s", $data))) {
-			$r->setData($this->replaceBeBotColors($matches[1]));
+			$r->setData(Blob::LITERAL . $this->replaceBeBotColors($matches[1]));
 		}
 		return $r;
 	}

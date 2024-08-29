@@ -115,7 +115,7 @@ class GrcV2Protocol implements RelayProtocolInterface {
 			return null;
 		}
 		$data = $matches[1];
-		$message = new RoutableMessage(Blob::LITERAL . $data);
+		$message = new RoutableMessage($data);
 		while (count($matches = Safe::pregMatch("/^<relay_(.+?)_tag_color>\[(.*?)\]<\/end>\s*(.*)/s", $data))) {
 			if (strlen($matches[2])) {
 				$type = ($matches[1] === 'guild') ? Source::ORG : Source::PRIV;
@@ -136,7 +136,7 @@ class GrcV2Protocol implements RelayProtocolInterface {
 
 		$data = Safe::pregReplace('/^<relay_[a-z]+_color>(.*)$/s', '$1', $data);
 		$data = Safe::pregReplace("/<\/end>$/s", '', $data);
-		$message->setData(ltrim($data));
+		$message->setData(Blob::LITERAL . ltrim($data));
 		return $message;
 	}
 

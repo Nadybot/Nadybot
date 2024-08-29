@@ -83,7 +83,10 @@ class Blob implements \Stringable {
 	 */
 	public function render(?int $pageSize=null, bool $formatMessage=true, bool $renderColors=true): string|array {
 		$pageSize ??= ($this->settingManager->getInt('max_blob_size') ?? 0);
-		$text = str_replace(static::LITERAL, '', $this->text);
+		$text = str_replace(static::LITERAL, '', $this->text, $count);
+		if ($count > 0) {
+			return $this->getText();
+		}
 		$matches = Safe::pregMatchOffsetAll(
 			'/(?<block><a href="text:\/\/(?<popup>.+?)">(?<link>.*?)<\/a>)/s',
 			$text
