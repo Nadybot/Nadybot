@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	Types\CommandReply,
 	Types\MessageEmitter,
 };
+use Revolt\EventLoop;
 
 class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	#[NCA\Inject]
@@ -48,7 +49,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			$rMessage = new RoutableMessage($text);
 			$rMessage->setCharacter(new Character($this->config->main->character, $this->chatBot->char?->id));
 			$rMessage->prependPath(new Source(Source::CONSOLE, 'Console'));
-			$this->messageHub->handle($rMessage);
+			EventLoop::queue($this->messageHub->handle(...), $rMessage);
 			$text = $this->formatMsg(Blob::create($text)->getText());
 			echo("{$this->config->main->character}: {$text}\n");
 		}
