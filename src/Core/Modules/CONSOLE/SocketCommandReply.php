@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\CONSOLE;
 use Amp\Socket\ResourceSocket;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	Config\BotConfig,
 	Safe,
 	Types\CommandReply,
@@ -19,9 +20,10 @@ class SocketCommandReply implements CommandReply {
 	public function __construct(private ResourceSocket $socket) {
 	}
 
-	public function reply($msg): void {
+	/** @inheritDoc */
+	public function reply(string|array $msg): void {
 		foreach ((array)$msg as $text) {
-			$text = $this->formatMsg($text);
+			$text = $this->formatMsg(Blob::create($text)->getText());
 			try {
 				$this->socket->write("{$text}\n");
 			} catch (Throwable) {

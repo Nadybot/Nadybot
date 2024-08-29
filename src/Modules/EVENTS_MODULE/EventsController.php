@@ -272,8 +272,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 		$context->reply($msg);
 	}
 
-	/** @return ?list<string> */
-	public function getEvents(): ?array {
+	public function getEvents(): ?string {
 		$data = $this->db->table(EventModel::getTable())
 			->orderByDesc('event_date')
 			->limit($this->numEventsShown)
@@ -331,7 +330,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 			$link = "<i>More to come. Check back soon!</i>\n\n";
 		}
 
-		return (array)$this->text->makeBlob('Events [Last updated ' . Util::date($updated).']', $link);
+		return $this->text->makeBlob('Events [Last updated ' . Util::date($updated).']', $link);
 	}
 
 	#[NCA\Event(

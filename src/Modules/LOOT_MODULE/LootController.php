@@ -886,12 +886,8 @@ class LootController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Get the current loot list
-	 *
-	 * @return string|list<string>
-	 */
-	public function getCurrentLootList(): string|array {
+	/** Get the current loot list */
+	public function getCurrentLootList(): string {
 		if (!count($this->loot)) {
 			$msg = 'No loot list exists yet.';
 			return $msg;

@@ -361,7 +361,7 @@ class RaidController extends ModuleInstance {
 				$context->char->name
 			);
 		}
-		$msg = ((array)$this->text->makeBlob('click to join', $this->getRaidJoinLink(), 'Raid information'))[0];
+		$msg = $this->text->makeBlob('click to join', $this->getRaidJoinLink(), 'Raid information');
 		$announceMsg = $this->raid->getAnnounceMessage($msg);
 		$context->reply($announceMsg);
 	}
@@ -1020,11 +1020,11 @@ class RaidController extends ModuleInstance {
 		$this->routeMessage(
 			'announce',
 			$this->raid->getAnnounceMessage(
-				((array)$this->text->makeBlob(
+				$this->text->makeBlob(
 					'click to join',
 					$this->getRaidJoinLink(),
 					'Raid information'
-				))[0]
+				)
 			)
 		);
 		$this->raid->last_announcement = time();
@@ -1041,11 +1041,11 @@ class RaidController extends ModuleInstance {
 			'start',
 			"<highlight>{$event->raid->started_by}<end> started a raid: ".
 			"<highlight>{$event->raid->description}<end> :: ".
-			((array)$this->text->makeBlob(
+			$this->text->makeBlob(
 				'click to join',
 				$this->getRaidJoinLink(),
 				'Raid information'
-			))[0]
+			)
 		);
 	}
 
@@ -1235,12 +1235,8 @@ class RaidController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * @param array<null|Player> $players
-	 *
-	 * @return list<string>
-	 */
-	protected function reportNotInResult(array $players): array {
+	/** @param array<null|Player> $players */
+	protected function reportNotInResult(array $players): string {
 		$blob = "<header2>Players that were warned<end>\n";
 		ksort($players);
 		$charNames = [];
@@ -1262,11 +1258,9 @@ class RaidController extends ModuleInstance {
 		);
 		$blob .= "\n{$addAllLink}";
 		$s = (count($players) === 1) ? '' : 's';
-		$msgs = (array)$this->text->makeBlob(count($players) . " player{$s}", $blob, 'Players not in the raid');
-		foreach ($msgs as &$msg) {
-			$msg = "Sent not in raid warning to {$msg}.";
-		}
-		return $msgs;
+		$msg = $this->text->makeBlob(count($players) . " player{$s}", $blob, 'Players not in the raid');
+		$msg = "Sent not in raid warning to {$msg}.";
+		return $msg;
 	}
 
 	protected function getRaidSummary(Raid $raid): string {

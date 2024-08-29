@@ -229,10 +229,8 @@ class ImplantController extends ModuleInstance {
 	 * @param int    $ql   The QL to render for
 	 *
 	 * @psalm-param int<1,300>    $ql   The QL to render for
-	 *
-	 * @return list<string> the full link to the blob
 	 */
-	public function renderBlob(string $type, int $ql): array {
+	public function renderBlob(string $type, int $ql): string {
 		$specs = $this->getImplantQLSpecs($type, $ql);
 		$indent = '<tab>';
 
@@ -306,7 +304,7 @@ class ImplantController extends ModuleInstance {
 				$impName = 'Jobe Implant';
 			}
 		}
-		return (array)$this->text->makeBlob($impName, $blob, "QL {$ql} {$impName} Details");
+		return $this->text->makeBlob($impName, $blob, "QL {$ql} {$impName} Details");
 	}
 
 	/**

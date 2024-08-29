@@ -4,6 +4,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	EventManager,
 	Types\CommandReply,
 };
@@ -20,10 +21,14 @@ class EventCommandReply implements CommandReply {
 		$this->uuid = $uuid;
 	}
 
-	/** @param string|list<string> $msg */
+	/** @inheritDoc */
 	public function reply(string|array $msg): void {
+		$msg = array_map(
+			static fn (string $text): string => Blob::create($text)->getText(),
+			(array)$msg
+		);
 		$event = new CommandReplyEvent(
-			msgs: $this->webChatConverter->convertMessages((array)$msg),
+			msgs: $this->webChatConverter->convertMessages($msg),
 			uuid: $this->uuid,
 		);
 		$this->eventManager->fireEvent($event);

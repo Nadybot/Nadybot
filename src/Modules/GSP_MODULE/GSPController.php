@@ -205,7 +205,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 			);
 		}
 		$blob .= implode("\n<tab>", $streams);
-		return ' - ' . ((array)$this->text->makeBlob('tune in', $blob, 'Choose your stream quality'))[0];
+		return ' - ' . $this->text->makeBlob('tune in', $blob, 'Choose your stream quality');
 	}
 
 	/** Get a line describing what GSP is currently playing */
@@ -244,11 +244,11 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 		$songs = $this->getPlaylistInfos($show->history);
 		$showInfos = $this->getShowInfos($show);
-		$lastSongsPage = ((array)$this->text->makeBlob(
+		$lastSongsPage = $this->text->makeBlob(
 			'last songs',
 			$showInfos."<header2><u>Time         Song                                                                     </u><end>\n".implode("\n", $songs),
 			'Last played songs (all times in UTC)',
-		))[0];
+		);
 		$msg = $currentlyPlaying.' - '.$lastSongsPage.$this->renderTuneIn($show);
 		return $msg;
 	}

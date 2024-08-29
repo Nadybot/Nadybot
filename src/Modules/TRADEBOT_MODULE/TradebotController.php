@@ -481,7 +481,7 @@ class TradebotController extends ModuleInstance {
 		$comText = ($numComments > 1) ? "{$numComments} Comments" : '1 Comment';
 		$blob = Text::makeChatcmd("Read {$comText}", "/tell <myname> comments get {$match[1]}").
 			' if you have the necessary access level.';
-		$message .= ' [' . ((array)$this->text->makeBlob($comText, $blob))[0] . ']';
+		$message .= ' [' . $this->text->makeBlob($comText, $blob) . ']';
 		return $message;
 	}
 

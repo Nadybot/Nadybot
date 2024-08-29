@@ -71,8 +71,7 @@ class WhoisOrgController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** @return string|list<string> */
-	public function getOrgInfo(?Guild $org): string|array {
+	public function getOrgInfo(?Guild $org): string {
 		if ($org === null) {
 			$msg = 'Error in getting the org info. '.
 				"Either the org does not exist or AO's server ".

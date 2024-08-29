@@ -108,12 +108,8 @@ class PackageController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @param iterable<array-key,Package> $packages
-	 *
-	 * @return string|list<string>
-	 */
-	public function renderPackageList(iterable $packages): string|array {
+	/** @param iterable<array-key,Package> $packages */
+	public function renderPackageList(iterable $packages): string {
 		/** @var array<string,PackageGroup> */
 		$groupedPackages = [];
 
@@ -773,12 +769,8 @@ class PackageController extends ModuleInstance {
 		return $packages;
 	}
 
-	/**
-	 * @param iterable<array-key,Package> $packages
-	 *
-	 * @return string|list<string>
-	 */
-	private function getPackageDetail(iterable $packages): string|array {
+	/** @param iterable<array-key,Package> $packages */
+	private function getPackageDetail(iterable $packages): string {
 		$packages = collect($packages);
 		$firstPackage = $packages->first();
 		if (!isset($firstPackage)) {

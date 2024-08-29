@@ -200,11 +200,11 @@ class SiteTrackerController extends ModuleInstance {
 				"<tab><highlight><symbol>route add {$channel} -> discordpriv(foo)<end>\n".
 				"<tab><i>To display them in the Discord-channel 'foo'.";
 			$details = ' You need to add a route in order to see the events '.
-				'this tracker generates [' . ((array)$this->text->makeBlob(
+				'this tracker generates [' . $this->text->makeBlob(
 					'see how',
 					$blob,
 					'How to configure routing for a tower tracker'
-				))[0] . ']';
+				) . ']';
 		}
 		$context->reply("Tracker #{$entry->id} installed successfully, matching {$numMatches} sites.{$details}");
 	}

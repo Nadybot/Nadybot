@@ -384,14 +384,13 @@ class ChatAssistController extends ModuleInstance {
 		);
 		$this->storeBackup($backup);
 
-		$blob = (array)$this->text->makeBlob('list of callers', $this->getAssistMessage());
-		foreach ($blob as &$page) {
-			if ($groupName === '') {
-				$page = "Callers set, here is the {$page}";
-			} else {
-				$page = "Callers set for <highlight>{$groupName}<end>, here is the {$page}";
-			}
+		$blob = $this->text->makeBlob('list of callers', $this->getAssistMessage());
+		if ($groupName === '') {
+			$blob = "Callers set, here is the {$blob}";
+		} else {
+			$blob = "Callers set for <highlight>{$groupName}<end>, here is the {$blob}";
 		}
+
 		$context->reply($blob);
 		$event = new AssistSetEvent(
 			lists: array_values($this->callers),

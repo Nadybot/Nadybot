@@ -179,15 +179,7 @@ class BestQLController extends ModuleInstance {
 		}
 
 		$blob = $this->text->makeBlob('breakpoints', $msg, 'Calculated breakpoints for your item');
-		if (is_string($blob)) {
-			$msg = "Found <highlight>{$numFoundItems}<end> {$blob} with different stats.";
-			$context->reply($msg);
-			return;
-		}
-		$pages = [];
-		for ($i = 0; $i < count($blob); $i++) {
-			$pages []= "Found <highlight>{$numFoundItems}<end> ".$blob[$i].' with different stats.';
-		}
-		$context->reply($pages);
+		$msg = "Found <highlight>{$numFoundItems}<end> {$blob} with different stats.";
+		$context->reply($msg);
 	}
 }

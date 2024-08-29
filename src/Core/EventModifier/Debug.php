@@ -47,14 +47,12 @@ class Debug implements EventModifier {
 		if (!isset($receiver)) {
 			return $event;
 		}
-		$msgs = (array)$this->text->makeBlob(
+		$msg = $this->text->makeBlob(
 			'Debug message',
 			json_encode($event, \JSON_PRETTY_PRINT, 512)
 		);
-		foreach ($msgs as $msg) {
-			$r = new RoutableMessage($msg);
-			$receiver->receive($r, $this->sendTo);
-		}
+		$r = new RoutableMessage($msg);
+		$receiver->receive($r, $this->sendTo);
 		return $event;
 	}
 }

@@ -161,11 +161,11 @@ class RaidMemberController extends ModuleInstance {
 					"with {$numRaiders}/{$raid->max_members} players.";
 			}
 			if (isset($source) && strncmp($source, 'aopriv', 6) === 0) {
-				$msg .= ' [' . ((array)$this->text->makeBlob(
+				$msg .= ' [' . $this->text->makeBlob(
 					'admin',
 					Text::makeChatcmd("Add {$player} to the raid", "/tell <myname> raid add {$player}"),
 					'Admin controls'
-				))[0] . ']';
+				) . ']';
 			}
 			return $msg;
 		}
@@ -198,11 +198,11 @@ class RaidMemberController extends ModuleInstance {
 			$this->routeMessage(
 				'join',
 				"<highlight>{$player}<end> has <on>joined<end> the raid{$countMsg} :: ".
-				((array)$this->text->makeBlob(
+				$this->text->makeBlob(
 					'click to join',
 					$this->raidController->getRaidJoinLink(),
 					'Raid information'
-				))[0]
+				)
 			);
 			$this->chatBot->sendMassTell('You have <highlight>joined<end> the raid.', $player);
 		}
@@ -377,11 +377,11 @@ class RaidMemberController extends ModuleInstance {
 		foreach ($notInRaid as $player) {
 			$this->chatBot->sendMassTell(
 				'::: <red>Attention<end> ::: <highlight>You are not in the running raid!<end> :: '.
-				((array)$this->text->makeBlob(
+				$this->text->makeBlob(
 					'click to join',
 					$this->raidController->getRaidJoinLink(),
 					'Raid information'
-				))[0],
+				),
 				$player
 			);
 		}
@@ -415,12 +415,8 @@ class RaidMemberController extends ModuleInstance {
 		return $notInRaid;
 	}
 
-	/**
-	 * Get the blob for the !raid list command
-	 *
-	 * @return list<string>
-	 */
-	public function getRaidListBlob(Raid $raid, bool $justBlob=false): array {
+	/** Get the blob for the !raid list command */
+	public function getRaidListBlob(Raid $raid, bool $justBlob=false): string {
 		ksort($raid->raiders);
 		$lines = [];
 		$active = 0;
@@ -454,24 +450,18 @@ class RaidMemberController extends ModuleInstance {
 			$lines []= $line;
 		}
 		$blob = implode("\n", $lines);
-		$blobMsgs = (array)$this->text->makeBlob('click to view', $blob, 'Raid User List');
+		$blobMsg = $this->text->makeBlob('click to view', $blob, 'Raid User List');
 		if ($justBlob) {
-			return $blobMsgs;
+			return $blobMsg;
 		}
-		foreach ($blobMsgs as &$msg) {
-			$msg = "<highlight>{$active}<end> active ".
-				"and <highlight>{$inactive}<end> inactive ".
-				'player' . (($inactive !== 1) ? 's' : '') . " in the raid :: {$msg}";
-		}
-		return $blobMsgs;
+		$msg = "<highlight>{$active}<end> active ".
+			"and <highlight>{$inactive}<end> inactive ".
+			'player' . (($inactive !== 1) ? 's' : '') . " in the raid :: {$blobMsg}";
+		return $msg;
 	}
 
-	/**
-	 * Get the blob for the !raid check command to $sendto
-	 *
-	 * @return string|list<string>
-	 */
-	public function getRaidCheckBlob(Raid $raid): string|array {
+	/** Get the blob for the !raid check command to $sendto */
+	public function getRaidCheckBlob(Raid $raid): string {
 		$activeNames = [];
 		foreach ($raid->raiders as $player => $raider) {
 			if ($raider->left === null) {
@@ -512,12 +502,10 @@ class RaidMemberController extends ModuleInstance {
 			"{$checkCmd}\n".
 			"\n".
 			implode("\n", $lines);
-		$blobs = (array)$this->text->makeBlob('click to view', $blob, 'Players in the raid');
-		foreach ($blobs as &$msg) {
-			$msg = '<highlight>' . count($activePlayers) . '<end> player'.
-				((count($activePlayers) !== 1) ? 's' : '') . " in the raid :: {$msg}";
-		}
-		return $blobs;
+		$msg = $this->text->makeBlob('click to view', $blob, 'Players in the raid');
+		$msg = '<highlight>' . count($activePlayers) . '<end> player'.
+			((count($activePlayers) !== 1) ? 's' : '') . " in the raid :: {$msg}";
+		return $msg;
 	}
 
 	#[NCA\Event(

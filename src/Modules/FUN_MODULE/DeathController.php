@@ -470,14 +470,10 @@ class DeathController extends ModuleInstance {
 	 * Render the top deaths
 	 *
 	 * @param Collection<int,Death> $topDeaths
-	 *
-	 * @return string[]
-	 *
-	 * @psalm-return list<string>
 	 */
-	private function renderTopDeaths(Collection $topDeaths): array {
+	private function renderTopDeaths(Collection $topDeaths): string {
 		if ($topDeaths->isEmpty()) {
-			return ['No one has registered for dying yet.'];
+			return 'No one has registered for dying yet.';
 		}
 		$maxDeaths = $topDeaths->max('counter');
 		$text = 'The top ' . $topDeaths->count() . ' deaths';
@@ -486,6 +482,6 @@ class DeathController extends ModuleInstance {
 			return Text::alignNumber($death->counter, strlen((string)$maxDeaths)).
 				"<tab>{$death->character}";
 		})->join("\n");
-		return (array)$this->text->makeBlob($text, $blob);
+		return $this->text->makeBlob($text, $blob);
 	}
 }

@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\CONSOLE;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	Config\BotConfig,
 	MessageHub,
 	Modules\COLORS\ColorsController,
@@ -39,15 +40,16 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		return Source::CONSOLE;
 	}
 
-	/** @param string|list<string> $msg */
+	/** @inheritDoc */
 	public function reply(string|array $msg): void {
-		$msg = Text::unbreakPopups((array)$msg);
+		// $msg = Text::unbreakPopups((array)$msg);
+		$msg = (array)$msg;
 		foreach ($msg as $text) {
 			$rMessage = new RoutableMessage($text);
 			$rMessage->setCharacter(new Character($this->config->main->character, $this->chatBot->char?->id));
 			$rMessage->prependPath(new Source(Source::CONSOLE, 'Console'));
 			$this->messageHub->handle($rMessage);
-			$text = $this->formatMsg($text);
+			$text = $this->formatMsg(Blob::create($text)->getText());
 			echo("{$this->config->main->character}: {$text}\n");
 		}
 	}

@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\WHEREIS_MODULE;
 
 use DateTimeZone;
-use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -55,9 +54,6 @@ class SpawntimeController extends ModuleInstance {
 			$blob .= "\n\n";
 		}
 		$msg = $this->text->makeBlob('locations (' . count($spawntime->coordinates).')', $blob);
-		if (is_array($msg)) {
-			throw new Exception("Too many spawn locations for {$spawntime->mob}.");
-		}
 		return $msg;
 	}
 

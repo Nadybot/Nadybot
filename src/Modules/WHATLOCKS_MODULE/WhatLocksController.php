@@ -75,11 +75,7 @@ class WhatLocksController extends ModuleInstance {
 			$lines->count() . ' skills that can be locked by items',
 			$blob
 		);
-		if (is_array($pages)) {
-			$msg = array_map(static fn (string $page): string => "{$page} found.", $pages);
-		} else {
-			$msg = "{$pages} found.";
-		}
+		$msg = "{$pages} found.";
 		$context->reply($msg);
 	}
 
@@ -152,13 +148,7 @@ class WhatLocksController extends ModuleInstance {
 			$blob,
 			'The following ' . count($lines) . ' items lock '. $skills[0]->name
 		);
-		if (is_array($pages)) {
-			$msg = array_map(static function (string $page) use ($skills): string {
-				return "{$page} found that lock <highlight>{$skills[0]->name}<end>.";
-			}, $pages);
-		} else {
-			$msg =  "{$pages} found that lock <highlight>{$skills[0]->name}<end>.";
-		}
+		$msg =  "{$pages} found that lock <highlight>{$skills[0]->name}<end>.";
 		$context->reply($msg);
 	}
 

@@ -1249,10 +1249,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 		$msg = $this->welcomeMsgString;
 		if (count($matches = Safe::pregMatch("/^(.*)<link>(.*?)<\/link>(.*)$/", $msg))) {
-			$msg = (array)$this->text->makeBlob($matches[2], $content);
-			foreach ($msg as &$part) {
-				$part = "{$matches[1]}{$part}{$matches[3]}";
-			}
+			$msg = $this->text->makeBlob($matches[2], $content);
+			$msg = "{$matches[1]}{$msg}{$matches[3]}";
 		} else {
 			$msg = $this->text->makeBlob('Welcome to <myname>!', $content);
 		}

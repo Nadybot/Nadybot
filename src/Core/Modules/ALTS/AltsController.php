@@ -471,7 +471,7 @@ class AltsController extends ModuleInstance {
 			Text::makeChatcmd('no', "/tell <myname> altdecline {$altInfo->main}").
 			']';
 		$msg = "{$altInfo->main} requested to add you as their alt :: ".
-			((array)$this->text->makeBlob('decide', $blob, "Decide if you are {$altInfo->main}'s alt"))[0];
+			$this->text->makeBlob('decide', $blob, "Decide if you are {$altInfo->main}'s alt");
 		$this->chatBot->sendTell($msg, $sender);
 	}
 
@@ -491,7 +491,7 @@ class AltsController extends ModuleInstance {
 		}
 		$msg = 'You have <highlight>' . count($alts) . '<end> unanswered '.
 			"alt request{$plural} :: ".
-			((array)$this->text->makeBlob('decide', $blob, 'Decide who is your alt'))[0];
+			$this->text->makeBlob('decide', $blob, 'Decide who is your alt');
 		$this->chatBot->sendTell($msg, $main);
 	}
 

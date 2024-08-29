@@ -50,8 +50,7 @@ class PlayerHistoryController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** @return string|list<string> */
-	private function renderPlayerHistory(?PlayerHistory $history, string $name, int $dimension): string|array {
+	private function renderPlayerHistory(?PlayerHistory $history, string $name, int $dimension): string {
 		if ($history === null) {
 			return "Could not get History of {$name} on RK{$dimension}.";
 		}

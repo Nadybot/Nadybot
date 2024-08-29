@@ -13,6 +13,7 @@ use DateTimeZone;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Blob,
 	CmdContext,
 	Events\JoinMyPrivEvent,
 	Events\LogonEvent,
@@ -475,7 +476,9 @@ class StartpageController extends ModuleInstance {
 			public Nadybot $chatBot;
 			public string $receiver;
 
-			public function reply($msg): void {
+			/** @inheritDoc */
+			public function reply(string|array $msg): void {
+				$msg = Blob::renderMulti(text: $msg, formatMessage: false);
 				$this->chatBot->sendMassTell($msg, $this->receiver);
 			}
 		};

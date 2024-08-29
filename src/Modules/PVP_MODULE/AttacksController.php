@@ -286,10 +286,10 @@ class AttacksController extends ModuleInstance {
 		$siteName = $pf->short();
 		if (isset($site)) {
 			$siteName .= " {$site->site_id}";
-			$siteName = ((array)$this->text->makeBlob(
+			$siteName = $this->text->makeBlob(
 				$siteName,
 				$this->nwCtrl->renderSite($site, false, false, null),
-			))[0];
+			);
 		}
 		$tokens = array_merge(
 			$whois->getTokens('att-'),
@@ -388,10 +388,10 @@ class AttacksController extends ModuleInstance {
 		$siteName = $pf->short();
 		if (isset($site)) {
 			$siteName .= " {$site->site_id}";
-			$siteName = ((array)$this->text->makeBlob(
+			$siteName = $this->text->makeBlob(
 				$siteName,
 				$this->nwCtrl->renderSite($site, false, false, null),
-			))[0];
+			);
 		}
 		$tokens = array_merge(
 			[

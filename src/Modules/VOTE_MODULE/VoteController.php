@@ -173,10 +173,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			}
 			$blob = $this->getPollBlob($poll);
 
-			$pages = (array)$this->text->makeBlob($title, $blob);
-			foreach ($pages as $page) {
-				$msg []= $page;
-			}
+			$msg []= $this->text->makeBlob($title, $blob);
 		}
 		if (count($msg)) {
 			$rMsg = new RoutableMessage(implode("\n", $msg));

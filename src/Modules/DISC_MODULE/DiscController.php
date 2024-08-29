@@ -127,10 +127,8 @@ class DiscController extends ModuleInstance {
 	 * Generate a choice dialogue if multiple discs match the search criteria
 	 *
 	 * @param iterable<Disc> $discs The discs that matched the search
-	 *
-	 * @return list<string>
 	 */
-	public function getDiscChoiceDialogue(iterable $discs): array {
+	public function getDiscChoiceDialogue(iterable $discs): string {
 		$blob = [];
 		foreach ($discs as $disc) {
 			$text = Text::makeChatcmd($disc->disc_name, '/tell <myname> disc '.$disc->disc_name);
@@ -141,12 +139,6 @@ class DiscController extends ModuleInstance {
 			implode("\n<pagebreak>", $blob),
 			'Multiple matches, please choose one'
 		);
-		if (is_array($msg)) {
-			return array_map(
-				static fn (string $blob): string => "Found {$blob}.",
-				$msg
-			);
-		}
-		return ["Found {$msg}."];
+		return "Found {$msg}.";
 	}
 }

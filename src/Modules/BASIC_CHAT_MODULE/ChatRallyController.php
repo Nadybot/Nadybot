@@ -227,7 +227,7 @@ class ChatRallyController extends ModuleInstance {
 		$link = Text::makeChatcmd("Rally: {$xCoords}x{$yCoords} {$name}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
 		$blob = "Click here to use rally: {$link}";
 		$blob .= "\n\n" . Text::makeChatcmd('Clear Rally', '/tell <myname> rally clear');
-		return ((array)$this->text->makeBlob("Rally: {$xCoords}x{$yCoords} {$name}", $blob))[0];
+		return $this->text->makeBlob("Rally: {$xCoords}x{$yCoords} {$name}", $blob);
 	}
 
 	public function clear(): void {

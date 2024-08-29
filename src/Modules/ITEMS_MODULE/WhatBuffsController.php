@@ -386,12 +386,8 @@ class WhatBuffsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Gives a blob with all items buffing $skill in slot $category
-	 *
-	 * @return string|list<string>
-	 */
-	public function getSearchResults(string $category, Skill $skill, bool $froobFriendly): string|array {
+	/** Gives a blob with all items buffing $skill in slot $category */
+	public function getSearchResults(string $category, Skill $skill, bool $froobFriendly): string {
 		$suffix = $froobFriendly ? 'Froob' : '';
 		$addNotInGameNotice = false;
 		if ($category === 'Nanoprogram') {
@@ -763,12 +759,8 @@ class WhatBuffsController extends ModuleInstance {
 		return new RenderedList(numItems: $numItems, blob: $blob);
 	}
 
-	/**
-	 * Show what buffs $skillName in slot $category
-	 *
-	 * @return string|list<string>
-	 */
-	public function showSearchResults(string $category, string $skillName, bool $froobFriendly): string|array {
+	/** Show what buffs $skillName in slot $category */
+	public function showSearchResults(string $category, string $skillName, bool $froobFriendly): string {
 		$category = ucfirst(strtolower($category));
 
 		$skills = $this->searchForSkill($skillName);

@@ -698,11 +698,11 @@ class NotumWarsController extends ModuleInstance {
 					: "<highlight>{$pf->short()} {$site->site_id}<end>",
 			]
 		);
-		$tokens['details'] = ((array)$this->text->makeBlob(
+		$tokens['details'] = $this->text->makeBlob(
 			'details',
 			$this->renderSite($site),
 			"{$pf->short()} {$site->site_id} ({$site->name})",
-		))[0];
+		);
 		$color = ($site->org_faction ?? Faction::Neutral)->lower();
 		$msg = Text::renderPlaceholders($this->gasChangeFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
@@ -1527,11 +1527,11 @@ class NotumWarsController extends ModuleInstance {
 					: "<highlight>{$pf->short()} {$site->site_id}<end>",
 			]
 		);
-		$tokens['details'] = ((array)$this->text->makeBlob(
+		$tokens['details'] = $this->text->makeBlob(
 			'details',
 			$this->renderSite($site),
 			"{$pf->short()} {$site->site_id} ({$site->name})",
-		))[0];
+		);
 		$color = ($site->org_faction ?? Faction::Neutral)->lower();
 		$msg = Text::renderPlaceholders($this->sitePlantedFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
@@ -1569,11 +1569,11 @@ class NotumWarsController extends ModuleInstance {
 					: "<highlight>{$pf->short()} {$site->site_id}<end>",
 			]
 		);
-		$tokens['details'] = ((array)$this->text->makeBlob(
+		$tokens['details'] = $this->text->makeBlob(
 			'details',
 			$this->renderSite($site),
 			"{$pf->short()} {$site->site_id} ({$site->name})",
-		))[0];
+		);
 		$color = ($oldSite->org_faction ?? Faction::Neutral)->lower();
 		$msg = Text::renderPlaceholders($this->siteDestroyedFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
@@ -1595,11 +1595,11 @@ class NotumWarsController extends ModuleInstance {
 					: "<highlight>{$pf->short()} {$site->site_id}<end>",
 			]
 		);
-		$tokens['details'] = ((array)$this->text->makeBlob(
+		$tokens['details'] = $this->text->makeBlob(
 			'details',
 			$this->renderSite($site),
 			"{$pf->short()} {$site->site_id} ({$site->name})",
-		))[0];
+		);
 		$tokens['c-site-num-turrets'] = $site->num_turrets . ' '.
 			Text::pluralize('turret', $site->num_turrets);
 		$tokens['c-site-num-conductors'] = $site->num_conductors . ' '.
@@ -1657,11 +1657,11 @@ class NotumWarsController extends ModuleInstance {
 
 		$siteDetails = $this->renderSite($site, false, false);
 		$siteShort = "{$pf->short()} {$site->site_id}";
-		$siteLink = ((array)$this->text->makeBlob(
+		$siteLink = $this->text->makeBlob(
 			$siteShort,
 			$siteDetails,
 			"{$siteShort} ({$site->name})",
-		))[0];
+		);
 		$duration = Util::unixtimeToReadable($timestamp - time());
 		$alerts []= new Alert(
 			message: "Started {$duration} countdown for planting {$siteLink}",

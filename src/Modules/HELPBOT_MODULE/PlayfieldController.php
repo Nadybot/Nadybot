@@ -162,10 +162,9 @@ class PlayfieldController extends ModuleInstance {
 			->asObj(Playfield::class);
 	}
 
-	/** @return list<string> */
-	private function processWaypointCommand(string $xCoords, string $yCoords, string $playfieldName, int $playfieldId): array {
+	private function processWaypointCommand(string $xCoords, string $yCoords, string $playfieldName, int $playfieldId): string {
 		$link = Text::makeChatcmd("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
 		$blob = "Click here to use waypoint: {$link}";
-		return (array)$this->text->makeBlob("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", $blob);
+		return $this->text->makeBlob("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", $blob);
 	}
 }

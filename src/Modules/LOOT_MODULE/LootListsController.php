@@ -558,15 +558,14 @@ class LootListsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>tnh')]
 	public function pandeSubCommand(CmdContext $context, string $mob): void {
 		$msg = $this->getPandemoniumLoot('Pande', $mob, $context);
-		if (!isset($msg) || !count($msg)) {
+		if (!isset($msg)) {
 			$context->reply("No loot found for <highlight>{$mob}<end>.");
 			return;
 		}
 		$context->reply($msg);
 	}
 
-	/** @return ?list<string> */
-	public function getPandemoniumLoot(string $raid, string $category, CmdContext $context): ?array {
+	public function getPandemoniumLoot(string $raid, string $category, CmdContext $context): ?string {
 		$category = ucwords(strtolower($category));
 		try {
 			$blob = $this->findRaidLoot($raid, $category, $context);
@@ -577,7 +576,7 @@ class LootListsController extends ModuleInstance {
 			return null;
 		}
 		$blob .= "\n\nPande Loot By Marinerecon (RK2)";
-		return (array)$this->text->makeBlob("{$raid} \"{$category}\" Loot", $blob);
+		return $this->text->makeBlob("{$raid} \"{$category}\" Loot", $blob);
 	}
 
 	/**

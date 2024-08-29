@@ -5,13 +5,9 @@ namespace Nadybot\Core;
 use function Safe\preg_match;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
-use Psr\Log\LoggerInterface;
 
 #[NCA\Instance]
 class Text {
-	#[NCA\Logger]
-	private LoggerInterface $logger;
-
 	#[NCA\Inject]
 	private BotConfig $config;
 
@@ -65,66 +61,6 @@ class Text {
 		}
 		$page = "<a href=\"text://{$headerMarkup}{$content}\">{$name}</a>";
 		return $page;
-	}
-
-	/**
-	 * Convert a single long string into multiple pages of maximum $maxLength size
-	 *
-	 * @param string       $input     The text to paginate
-	 * @param int          $maxLength The maximum allowed length of one page
-	 * @param list<string> $symbols   An array of strings at which we allow page breaks
-	 *
-	 * @return list<string> An array of strings with the resulting pages
-	 */
-	public function paginate(string $input, int $maxLength, array $symbols): array {
-		if (count($symbols) === 0) {
-			$this->logger->error('Could not successfully page blob due to lack of paging symbols');
-			return (array)$input;
-		}
-
-		$pageSize = 0;
-		$currentPage = '';
-		$result = [];
-		$symbol = array_shift($symbols);
-		if (!strlen($symbol)) {
-			$this->logger->error('Could not successfully page blob due to lack of paging symbols');
-			return (array)$input;
-		}
-
-		/** @var non-empty-string $symbol */
-
-		$lines = explode($symbol, $input);
-		foreach ($lines as $line) {
-			// retain new lines and spaces in output
-			if ($symbol === "\n" || $symbol === ' ') {
-				$line .= $symbol;
-			}
-
-			$lineLength = strlen($line);
-			if ($lineLength > $maxLength) {
-				if ($pageSize !== 0) {
-					$result []= $currentPage;
-					$currentPage = '';
-					$pageSize = 0;
-				}
-
-				$newResult = $this->paginate($line, $maxLength, $symbols);
-				$result = array_merge($result, $newResult);
-			} elseif ($pageSize + $lineLength < $maxLength) {
-				$currentPage .= $line;
-				$pageSize += $lineLength;
-			} else {
-				$result []= $currentPage;
-				$currentPage = $line;
-				$pageSize = $lineLength;
-			}
-		}
-
-		if ($pageSize > 0) {
-			$result []= $currentPage;
-		}
-
-		return $result;
 	}
 
 	/**

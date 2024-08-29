@@ -144,8 +144,7 @@ class GauntletInventoryController extends ModuleInstance {
 		return true;
 	}
 
-	/** @return list<string> */
-	private function renderBastionInventory(string $name, int $numArmors): array {
+	private function renderBastionInventory(string $name, int $numArmors): string {
 		$inventory = $this->getData($name);
 		if (($numArmors < 1) || ($numArmors > 3)) {
 			$numArmors = 1;
@@ -186,10 +185,7 @@ class GauntletInventoryController extends ModuleInstance {
 		}
 		$refreshLink = Text::makeChatcmd('Refresh', "/tell <myname> gaulist {$name} {$numArmors}");
 		$list .= "\n<tab>[{$refreshLink}]";
-		$blob = (array)$this->text->makeBlob("Bastion inventory for {$name}", $list);
-		foreach ($blob as &$page) {
-			$page = "Bastion inventory: {$page}";
-		}
-		return $blob;
+		$blob = $this->text->makeBlob("Bastion inventory for {$name}", $list);
+		return "Bastion inventory: {$blob}";
 	}
 }

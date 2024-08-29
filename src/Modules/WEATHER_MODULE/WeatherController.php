@@ -266,8 +266,7 @@ class WeatherController extends ModuleInstance {
 		return $blob;
 	}
 
-	/** @return string|list<string> */
-	protected function getWeatherBlob(Nominatim $nominatim, Weather $weather): string|array {
+	protected function getWeatherBlob(Nominatim $nominatim, Weather $weather): string {
 		$blob = $this->renderWeather($nominatim, $weather);
 		$placeParts = explode(', ', $nominatim->display_name);
 		$locationName = $placeParts[0];
@@ -287,12 +286,8 @@ class WeatherController extends ModuleInstance {
 		$tempUnit = $this->nameToDegree($weather->properties->meta->units->air_temperature);
 		$blob = $this->text->makeBlob('details', $blob, strip_tags($header));
 
-		$msg = Text::blobWrap(
-			"{$header}: <highlight>{$currentTemp}{$tempUnit}<end>, ".
-			"<highlight>{$currentSummary}<end> [",
-			$blob,
-			']'
-		);
+		$msg = "{$header}: <highlight>{$currentTemp}{$tempUnit}<end>, ".
+			"<highlight>{$currentSummary}<end> [{$blob}]";
 		return $msg;
 	}
 

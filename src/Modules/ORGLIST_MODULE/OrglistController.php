@@ -204,10 +204,8 @@ class OrglistController extends ModuleInstance {
 	 * Render the given org and list of online chars into a nice blob
 	 *
 	 * @param array<string,bool> $onlineStates
-	 *
-	 * @return list<string>
 	 */
-	private function renderOrglist(Guild $org, array $onlineStates, float $startTime, bool $renderOffline): array {
+	private function renderOrglist(Guild $org, array $onlineStates, float $startTime, bool $renderOffline): string {
 		$orgRankNames = $org->governing_form->getOrgRanks();
 
 		$totalOnline = count(array_filter($onlineStates, static fn (bool $online) => $online));
@@ -242,7 +240,7 @@ class OrglistController extends ModuleInstance {
 		$totalTime = round((microtime(true) - $startTime), 1);
 		$blob .= "\n\n<i>Lookup took {$totalTime} seconds.</i>";
 
-		return (array)$this->text->makeBlob("Orglist for '{$org->orgname}' ({$totalOnline} / {$totalCount})", $blob);
+		return $this->text->makeBlob("Orglist for '{$org->orgname}' ({$totalOnline} / {$totalCount})", $blob);
 	}
 
 	/** Render the online/offline list for a single rank */

@@ -916,16 +916,14 @@ class RaidPointsController extends ModuleInstance {
 		}
 		$raid = $this->raidController->raid;
 		$numRecipients = $this->awardRaidPoints($raid, $context->char->name, $points * -1, $reason);
-		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
+		$blob = $this->raidMemberController->getRaidListBlob($raid, true);
 		$pointsGiven = "<highlight>{$points} points<end> were removed";
 		if ($points === 1) {
 			$pointsGiven = '<highlight>1 point<end> was removed';
 		}
 		$pointsGiven .= " from all raiders ({$numRecipients}) by <highlight>{$context->char->name}<end> :: ";
-		foreach ($msgs as &$blob) {
-			$blob = "{$pointsGiven} {$blob}";
-			$this->routeMessage('reward', $blob);
-		}
+		$blob = "{$pointsGiven} {$blob}";
+		$this->routeMessage('reward', $blob);
 	}
 
 	private function giveRaidReward(
@@ -943,15 +941,13 @@ class RaidPointsController extends ModuleInstance {
 		}
 		$raid = $this->raidController->raid;
 		$numRecipients = $this->awardRaidPoints($raid, $context->char->name, $points, $reason);
-		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
+		$blob = $this->raidMemberController->getRaidListBlob($raid, true);
 		$pointsGiven = "<highlight>{$points}<end> points were given";
 		if ($points === 1) {
 			$pointsGiven = '<highlight>1<end> point was given';
 		}
 		$pointsGiven .= " to all raiders (<highlight>{$numRecipients}<end>) by {$context->char->name} :: ";
-		foreach ($msgs as &$blob) {
-			$blob = "{$pointsGiven} {$blob}";
-			$this->routeMessage('reward', $blob);
-		}
+		$msg = "{$pointsGiven} {$blob}";
+		$this->routeMessage('reward', $msg);
 	}
 }

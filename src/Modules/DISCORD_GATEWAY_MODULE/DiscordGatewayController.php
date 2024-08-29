@@ -624,10 +624,10 @@ class DiscordGatewayController extends ModuleInstance {
 				$blob = "Details <a href='chatcmd:///start {$embed->url}'>here</a>\n\n".
 					$blob;
 			}
-			$msg = ((array)$this->text->makeBlob(
+			$msg = $this->text->makeBlob(
 				DiscordRelayController::formatMessage($embed->title),
 				$blob
-			))[0];
+			);
 		} else {
 			$msg = $blob;
 		}
@@ -2288,8 +2288,7 @@ class DiscordGatewayController extends ModuleInstance {
 		return true;
 	}
 
-	/** @return list<string> */
-	private function renderInvites(): array {
+	private function renderInvites(): string {
 		$blobs = [];
 		$numInvites = 0;
 		$charInvites = $this->db->table(DBDiscordInvite::getTable())
@@ -2333,15 +2332,13 @@ class DiscordGatewayController extends ModuleInstance {
 			}
 			$blobs []= $blob;
 		}
-		$msg = (array)$this->text->makeBlob(
+		return $this->text->makeBlob(
 			"Discord invites ({$numInvites})",
 			implode("\n\n", $blobs),
 		);
-		return $msg;
 	}
 
-	/** @return list<string> */
-	private function getInviteReply(DiscordChannelInvite $invite): array {
+	private function getInviteReply(DiscordChannelInvite $invite): string {
 		$guildName = $invite->guild->name ?? 'Discord server';
 		$joinLink = Text::makeChatcmd('this link', "/start https://discord.gg/{$invite->code}");
 		$blob = "<header2>Join Discord<end>\n\n".
@@ -2351,6 +2348,6 @@ class DiscordGatewayController extends ModuleInstance {
 			"Linking your Discord user with an AO character effectively\n".
 			"gives the Discord user the same rights. Do not give away your\n".
 			'personal invite code!';
-		return (array)$this->text->makeBlob("Join {$guildName}", $blob);
+		return $this->text->makeBlob("Join {$guildName}", $blob);
 	}
 }

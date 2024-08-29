@@ -84,8 +84,7 @@ class HelpController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, 'help modules', 'modules');
 	}
 
-	/** @return string|list<string> */
-	public function getAbout(): string|array {
+	public function getAbout(): string {
 		$data = $this->fs->read(__DIR__ . '/about.txt');
 		$version = BotRunner::getVersion();
 		$data = str_replace('<version>', $version, $data);

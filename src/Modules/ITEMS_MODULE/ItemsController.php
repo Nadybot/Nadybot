@@ -226,8 +226,7 @@ class ItemsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** @return string|list<string> */
-	public function findItems(?int $ql, string $search): string|array {
+	public function findItems(?int $ql, string $search): string {
 		if (isset($ql)) {
 			if ($ql < 1 || $ql > 500) {
 				return 'QL must be between 1 and 500.';
@@ -343,12 +342,8 @@ class ItemsController extends ModuleInstance {
 		return $result->toList();
 	}
 
-	/**
-	 * @param iterable<array-key,ItemSearchResult> $data
-	 *
-	 * @return string|list<string>
-	 */
-	public function createItemsBlob(iterable $data, string $search, ?int $ql, string $version, string $footer, mixed $elapsed=null): string|array {
+	/** @param iterable<array-key,ItemSearchResult> $data */
+	public function createItemsBlob(iterable $data, string $search, ?int $ql, string $version, string $footer, mixed $elapsed=null): string {
 		$data = collect($data);
 		$numItems = count($data);
 		$groups = $data->map(static fn (ItemSearchResult $row): ?int => $row->group_id)

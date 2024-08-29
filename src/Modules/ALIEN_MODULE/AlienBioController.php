@@ -278,7 +278,7 @@ class AlienBioController extends ModuleInstance {
 			$blob .= Text::makeChatcmd($row->profession->value, "/tell <myname> ofabarmor {$row->profession->short()}") . "\n";
 		}
 
-		return ((array)$this->text->makeBlob("{$name} (QL {$ql})", $blob))[0];
+		return $this->text->makeBlob("{$name} (QL {$ql})", $blob);
 	}
 
 	/**
@@ -302,7 +302,7 @@ class AlienBioController extends ModuleInstance {
 			$blob .= Text::makeChatcmd("Ofab {$row->name} Mk 1", "/tell <myname> ofabweapons {$row->name}") . "\n";
 		}
 
-		return ((array)$this->text->makeBlob("{$name} (QL {$ql})", $blob))[0];
+		return $this->text->makeBlob("{$name} (QL {$ql})", $blob);
 	}
 
 	/**
@@ -351,7 +351,7 @@ class AlienBioController extends ModuleInstance {
 		$blob .= $this->getWeaponInfo($maxAIType);
 		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";
 
-		return ((array)$this->text->makeBlob("{$name} (QL {$ql})", $blob))[0];
+		return $this->text->makeBlob("{$name} (QL {$ql})", $blob);
 	}
 
 	/**
@@ -418,7 +418,7 @@ class AlienBioController extends ModuleInstance {
 
 		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";
 
-		return ((array)$this->text->makeBlob("{$name} (QL {$ql})", $blob))[0];
+		return $this->text->makeBlob("{$name} (QL {$ql})", $blob);
 	}
 
 	/**
@@ -467,6 +467,6 @@ class AlienBioController extends ModuleInstance {
 
 		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";
 
-		return ((array)$this->text->makeBlob("{$name} (QL {$ql})", $blob))[0];
+		return $this->text->makeBlob("{$name} (QL {$ql})", $blob);
 	}
 }

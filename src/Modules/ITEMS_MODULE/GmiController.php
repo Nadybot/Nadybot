@@ -168,10 +168,9 @@ class GmiController extends ModuleInstance {
 		$context->reply($message);
 	}
 
-	/** @return list<string> */
-	protected function renderGmiResult(GmiResult $gmi, AOItemSpec&AOIcon $item, ?int $ql=null): array {
+	protected function renderGmiResult(GmiResult $gmi, AOItemSpec&AOIcon $item, ?int $ql=null): string {
 		if (!count($gmi->buyOrders) && !count($gmi->sellOrders)) {
-			return ['There are no orders on GMI.'];
+			return 'There are no orders on GMI.';
 		}
 		$numBuy = count($gmi->buyOrders);
 		$numSell = count($gmi->sellOrders);
@@ -204,7 +203,7 @@ class GmiController extends ModuleInstance {
 		} else {
 			$sellers .= "\n<tab>- none -";
 		}
-		return (array)$this->text->makeBlob(
+		return $this->text->makeBlob(
 			sprintf(
 				'GMI orders for %s (%d buy, %d sell)',
 				$item->getName(),
