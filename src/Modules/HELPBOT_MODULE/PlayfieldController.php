@@ -36,9 +36,6 @@ class PlayfieldController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/playfields.csv');
@@ -54,7 +51,7 @@ class PlayfieldController extends ModuleInstance {
 				return "{$blob}[<highlight>{$row->id}<end>] {$row->long_name} ({$row->short_name})\n";
 			}, '');
 
-		$msg = $this->text->makeBlob('Playfields', $blob);
+		$msg = Text::makeBlob('Playfields', $blob);
 		$context->reply($msg);
 	}
 
@@ -76,7 +73,7 @@ class PlayfieldController extends ModuleInstance {
 				$blob .= "<tab>[<highlight>{$row->id}<end>] {$row->long_name}\n";
 			}
 
-			$msg = $this->text->makeBlob("Playfields ({$count})", $blob);
+			$msg = Text::makeBlob("Playfields ({$count})", $blob);
 		} elseif ($count === 1) {
 			$row = $data[0];
 			$msg = "[<highlight>{$row->id}<end>] {$row->long_name}";
@@ -165,6 +162,6 @@ class PlayfieldController extends ModuleInstance {
 	private function processWaypointCommand(string $xCoords, string $yCoords, string $playfieldName, int $playfieldId): string {
 		$link = Text::makeChatcmd("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
 		$blob = "Click here to use waypoint: {$link}";
-		return $this->text->makeBlob("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", $blob);
+		return Text::makeBlob("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", $blob);
 	}
 }

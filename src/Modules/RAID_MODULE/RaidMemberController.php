@@ -94,9 +94,6 @@ class RaidMemberController extends ModuleInstance {
 	private RaidBlockController $raidBlockController;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Nadybot $chatBot;
 
 	/** Resume an old raid after a bot restart */
@@ -161,7 +158,7 @@ class RaidMemberController extends ModuleInstance {
 					"with {$numRaiders}/{$raid->max_members} players.";
 			}
 			if (isset($source) && strncmp($source, 'aopriv', 6) === 0) {
-				$msg .= ' [' . $this->text->makeBlob(
+				$msg .= ' [' . Text::makeBlob(
 					'admin',
 					Text::makeChatcmd("Add {$player} to the raid", "/tell <myname> raid add {$player}"),
 					'Admin controls'
@@ -198,7 +195,7 @@ class RaidMemberController extends ModuleInstance {
 			$this->routeMessage(
 				'join',
 				"<highlight>{$player}<end> has <on>joined<end> the raid{$countMsg} :: ".
-				$this->text->makeBlob(
+				Text::makeBlob(
 					'click to join',
 					$this->raidController->getRaidJoinLink(),
 					'Raid information'
@@ -327,7 +324,7 @@ class RaidMemberController extends ModuleInstance {
 			$context->reply($messages[0]);
 		} else {
 			$blob = implode("\n", $messages);
-			$msg = $this->text->makeBlob('Results', $blob);
+			$msg = Text::makeBlob('Results', $blob);
 			$context->reply($msg);
 		}
 	}
@@ -377,7 +374,7 @@ class RaidMemberController extends ModuleInstance {
 		foreach ($notInRaid as $player) {
 			$this->chatBot->sendMassTell(
 				'::: <red>Attention<end> ::: <highlight>You are not in the running raid!<end> :: '.
-				$this->text->makeBlob(
+				Text::makeBlob(
 					'click to join',
 					$this->raidController->getRaidJoinLink(),
 					'Raid information'
@@ -450,7 +447,7 @@ class RaidMemberController extends ModuleInstance {
 			$lines []= $line;
 		}
 		$blob = implode("\n", $lines);
-		$blobMsg = $this->text->makeBlob('click to view', $blob, 'Raid User List');
+		$blobMsg = Text::makeBlob('click to view', $blob, 'Raid User List');
 		if ($justBlob) {
 			return $blobMsg;
 		}
@@ -502,7 +499,7 @@ class RaidMemberController extends ModuleInstance {
 			"{$checkCmd}\n".
 			"\n".
 			implode("\n", $lines);
-		$msg = $this->text->makeBlob('click to view', $blob, 'Players in the raid');
+		$msg = Text::makeBlob('click to view', $blob, 'Players in the raid');
 		$msg = '<highlight>' . count($activePlayers) . '<end> player'.
 			((count($activePlayers) !== 1) ? 's' : '') . " in the raid :: {$msg}";
 		return $msg;

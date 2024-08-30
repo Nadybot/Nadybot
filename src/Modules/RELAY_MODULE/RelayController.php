@@ -408,7 +408,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		$msg = "Relay <highlight>{$name}<end> added.";
 		// @phpstan-ignore-next-line
 		if (!$this->messageHub->hasRouteFor($relay->getChannelName()) && !($context instanceof ProfileCommandReply)) {
-			$help = $this->text->makeBlob('setup your routing', $blob);
+			$help = Text::makeBlob('setup your routing', $blob);
 			$msg .= " Make sure to {$help}, otherwise no messages will be exchanged.";
 		}
 		if ($relay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
@@ -637,7 +637,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		$blob .= "\n\n\n".
 			'<i>For more information about how to color the individual tags and '.
 			"texts, see the {$wikiLink}.</i>";
-		$msg = $this->text->makeBlob('Relays (' . count($relays) . ')', $blob);
+		$msg = Text::makeBlob('Relays (' . count($relays) . ')', $blob);
 		$context->reply($msg);
 	}
 
@@ -778,7 +778,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			}
 			$blob .= "\n";
 		}
-		$msg = $this->text->makeBlob("Relay configuration for {$relay->name}", $blob);
+		$msg = Text::makeBlob("Relay configuration for {$relay->name}", $blob);
 		$context->reply($msg);
 	}
 
@@ -1306,7 +1306,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			$blobs []= $entry;
 		}
 		$blob = implode("\n\n", $blobs);
-		return $this->text->makeBlob("Available {$name}s ({$count})", $blob);
+		return Text::makeBlob("Available {$name}s ({$count})", $blob);
 	}
 
 	/** @param array<string,ClassSpec> $specs */
@@ -1353,7 +1353,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 					"</i>\n\n";
 			}
 		}
-		return $this->text->makeBlob(
+		return Text::makeBlob(
 			"Detailed description for {$spec->name}",
 			$blob
 		);

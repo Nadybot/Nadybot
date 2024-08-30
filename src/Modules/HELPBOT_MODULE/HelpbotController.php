@@ -43,9 +43,6 @@ class HelpbotController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private PlayfieldController $pfController;
 
 	#[NCA\Setup]
@@ -76,7 +73,7 @@ class HelpbotController extends ModuleInstance {
 
 		$blob .= $this->formatResults($data);
 
-		$msg = $this->text->makeBlob('Dynacamps (' . $data->count() . ')', $blob);
+		$msg = Text::makeBlob('Dynacamps (' . $data->count() . ')', $blob);
 		$context->reply($msg);
 	}
 
@@ -103,7 +100,7 @@ class HelpbotController extends ModuleInstance {
 
 		$blob .= $this->formatResults($data);
 
-		$msg = $this->text->makeBlob("Dynacamps ({$count})", $blob);
+		$msg = Text::makeBlob("Dynacamps ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -139,10 +136,8 @@ class HelpbotController extends ModuleInstance {
 			"<black>0<end>0%: <highlight>{$oe25}<end> or higher\n\n".
 			'WARNING: May be plus/minus 1 point!';
 
-		$msg = Text::blobWrap(
-			"<highlight>{$lowOE100}<end> - {$skillRequirement} - <highlight>{$oe100}<end> ",
-			$this->text->makeBlob('More info', $blob, 'Over-equipped Calculation')
-		);
+		$msg = "<highlight>{$lowOE100}<end> - {$skillRequirement} - <highlight>{$oe100}<end> ".
+			Text::makeBlob('More info', $blob, 'Over-equipped Calculation');
 
 		$context->reply($msg);
 	}

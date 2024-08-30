@@ -21,9 +21,6 @@ use Nadybot\Core\{
 	)
 ]
 class AXPController extends ModuleInstance {
-	#[NCA\Inject]
-	private Text $text;
-
 	/**
 	 * @var array<array<int|string>>
 	 *
@@ -77,7 +74,7 @@ class AXPController extends ModuleInstance {
 				'  |  ' . $rankInfo[2] . "\n";
 		}
 
-		$msg = $this->text->makeBlob('Alien Experience', $blob);
+		$msg = Text::makeBlob('Alien Experience', $blob);
 
 		$context->reply($msg);
 	}

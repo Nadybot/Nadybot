@@ -40,9 +40,6 @@ class AuditController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/**
 	 * See the most recent audit entries in the database, optionally filtered
 	 *
@@ -99,7 +96,7 @@ class AuditController extends ModuleInstance {
 				(isset($links->next) ? "[{$links->next}]" : '');
 		}
 		$msg = 'Audit entries (' . $lines->count() . ')';
-		$msg = $this->text->makeBlob($msg, $blob);
+		$msg = Text::makeBlob($msg, $blob);
 		$context->reply($msg);
 	}
 

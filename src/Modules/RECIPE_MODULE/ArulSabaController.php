@@ -50,9 +50,6 @@ class ArulSabaController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private ItemsController $itemsController;
 
 	#[NCA\Setup]
@@ -77,7 +74,7 @@ class ArulSabaController extends ModuleInstance {
 					"{$type->lesser_prefix}/{$type->regular_prefix} ".
 					"{$type->name}: <highlight>{$type->buffs}<end>\n";
 			}, $blob);
-		$msg = $this->text->makeBlob('Arul Saba - Choose type', $blob);
+		$msg = Text::makeBlob('Arul Saba - Choose type', $blob);
 		$context->reply($msg);
 	}
 
@@ -115,7 +112,7 @@ class ArulSabaController extends ModuleInstance {
 			$blob .= "<tab>Recipe: [{$leftLink}] [{$rightLink}]\n\n";
 			$gems++;
 		}
-		$msg = $this->text->makeBlob("Types of a Arul Saba {$aruls[0]->name} bracelet", $blob);
+		$msg = Text::makeBlob("Types of a Arul Saba {$aruls[0]->name} bracelet", $blob);
 		$context->reply($msg);
 	}
 
@@ -418,7 +415,7 @@ class ArulSabaController extends ModuleInstance {
 			'to do the tradeskill. The example numbers listed are only correct '.
 			'for the exact QLs shown in the equation</i>';
 
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"Recipe for a Bracelet of Arul Saba ({$prefix} {$arul->name} - ".
 			"{$reqGems}/{$reqGems} - " . ucfirst($side) . ')',
 			$blob

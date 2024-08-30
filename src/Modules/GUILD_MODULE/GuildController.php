@@ -177,9 +177,6 @@ class GuildController extends ModuleInstance {
 	private MessageHub $messageHub;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private AltsController $altsController;
 
 	#[NCA\Inject]
@@ -288,7 +285,7 @@ class GuildController extends ModuleInstance {
 
 		$msg = "Character <highlight>{$name}<end> is not a member of the org.";
 		if ($data->count() !== 0) {
-			$msg = $this->text->makeBlob("Last Seen Info for {$altInfo->main}", $blob);
+			$msg = Text::makeBlob("Last Seen Info for {$altInfo->main}", $blob);
 		}
 
 		$context->reply($msg);
@@ -369,7 +366,7 @@ class GuildController extends ModuleInstance {
 				$highlight = true;
 			}
 		}
-		$msg = $this->text->makeBlob("{$numRecentCount} recently seen org members", $blob);
+		$msg = Text::makeBlob("{$numRecentCount} recently seen org members", $blob);
 		$context->reply($msg);
 	}
 
@@ -566,7 +563,7 @@ class GuildController extends ModuleInstance {
 			"\n\n<header2>Numbers by title level<end>".
 			$members->sortBy('level')->groupBy($tlFunc)
 			->map($statsFunc)->join('');
-		$msg = $this->text->makeBlob('Org statistics', $blob);
+		$msg = Text::makeBlob('Org statistics', $blob);
 		$context->reply($msg);
 	}
 

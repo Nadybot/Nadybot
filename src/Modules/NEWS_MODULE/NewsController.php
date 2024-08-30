@@ -84,9 +84,6 @@ class NewsController extends ModuleInstance {
 	#[NCA\Inject]
 	private EventManager $eventManager;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
@@ -111,8 +108,7 @@ class NewsController extends ModuleInstance {
 		return $query->asObj(INews::class);
 	}
 
-	/** @return ?list<string> */
-	public function getNews(string $player, bool $onlyUnread=true): ?array {
+	public function getNews(string $player, bool $onlyUnread=true): ?string {
 		$news = $this->getNewsItems($player);
 		if ($onlyUnread) {
 			$news = $news->where('confirmed', false);
@@ -167,19 +163,17 @@ class NewsController extends ModuleInstance {
 		}
 		$layout = $this->newsAnnouncementLayout;
 		if ($layout === 1) {
-			$msg = $this->text->makeBlob(
+			$msg = Text::makeBlob(
 				'News [Last updated at ' . Util::date($item->time) . ']',
 				$blob
 			);
 		} elseif ($layout === 2) {
-			$msg = Text::blobWrap(
-				"<yellow>NEWS:<end> <highlight>{$latestNews->news}<end>\n".
-					"By {$latestNews->name} (".
-					Util::date($latestNews->time) . ') ',
-				$this->text->makeBlob('more', $blob, 'News')
-			);
+			$msg = "<yellow>NEWS:<end> <highlight>{$latestNews->news}<end>\n".
+				"By {$latestNews->name} (".
+				Util::date($latestNews->time) . ') '.
+				Text::makeBlob('more', $blob, 'News');
 		}
-		return (array)$msg;
+		return $msg;
 	}
 
 	#[NCA\Event(

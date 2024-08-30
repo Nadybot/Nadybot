@@ -109,9 +109,6 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	private BotConfig $config;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	/**
@@ -309,9 +306,9 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		}
 		$blob = implode("\n<pagebreak>", $bans);
 		if (isset($search)) {
-			$msg = $this->text->makeBlob("Banlist matches for '{$search}' ({$count})", $blob);
+			$msg = Text::makeBlob("Banlist matches for '{$search}' ({$count})", $blob);
 		} else {
-			$msg = $this->text->makeBlob("Banlist ({$count})", $blob);
+			$msg = Text::makeBlob("Banlist ({$count})", $blob);
 		}
 		$context->reply($msg);
 	}
@@ -565,7 +562,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 			$context->reply('No orgs are banned at the moment');
 			return;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"Banned orgs ({$count})",
 			implode("\n", $blocks)
 		);

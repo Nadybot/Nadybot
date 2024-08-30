@@ -71,9 +71,6 @@ class AdminController extends ModuleInstance {
 	private CommandAlias $commandAlias;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Inject]
@@ -150,7 +147,7 @@ class AdminController extends ModuleInstance {
 	public function adminlistCommand(CmdContext $context, #[NCA\Str('all')] ?string $all): void {
 		$blobs = $this->getLeaderList(isset($all));
 
-		$link = $this->text->makeBlob('Bot administrators', implode("\n", $blobs));
+		$link = Text::makeBlob('Bot administrators', implode("\n", $blobs));
 		$context->reply($link);
 	}
 

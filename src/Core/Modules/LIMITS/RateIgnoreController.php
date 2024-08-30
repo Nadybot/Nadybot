@@ -33,9 +33,6 @@ class RateIgnoreController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/** See a list of characters on the rate ignore list */
 	#[NCA\HandlesCommand('rateignore')]
 	#[NCA\Help\Prologue(
@@ -55,7 +52,7 @@ class RateIgnoreController extends ModuleInstance {
 			$date = Util::date($entry->added_dt);
 			$blob .= "<highlight>{$entry->name}<end> [added by {$entry->added_by}] {$date} {$remove}\n";
 		}
-		$msg = $this->text->makeBlob('Rate limit ignore list', $blob);
+		$msg = Text::makeBlob('Rate limit ignore list', $blob);
 		$context->reply($msg);
 	}
 

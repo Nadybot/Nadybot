@@ -32,9 +32,6 @@ use Nadybot\Core\{
 ]
 class RulesController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Nadybot $chatBot;
 
 	#[NCA\Inject]
@@ -61,7 +58,7 @@ class RulesController extends ModuleInstance {
 			$context->reply('This bot has rules defined, but I was unable to read them.');
 			return;
 		}
-		$msg = $this->text->makeBlob("<myname>'s rules", $content);
+		$msg = Text::makeBlob("<myname>'s rules", $content);
 		$context->reply($msg);
 	}
 
@@ -83,7 +80,7 @@ class RulesController extends ModuleInstance {
 			$context->reply('This bot has raid rules defined, but I was unable to read them.');
 			return;
 		}
-		$msg = $this->text->makeBlob("<myname>'s raid rules", $content);
+		$msg = Text::makeBlob("<myname>'s raid rules", $content);
 		$context->reply($msg);
 	}
 
@@ -101,7 +98,7 @@ class RulesController extends ModuleInstance {
 		} catch (FilesystemException) {
 			return;
 		}
-		$msg = $this->text->makeBlob("<myname>'s rules", $content);
+		$msg = Text::makeBlob("<myname>'s rules", $content);
 		$this->chatBot->sendMassTell($msg, $eventObj->sender);
 	}
 }

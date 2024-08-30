@@ -154,7 +154,7 @@ class LadderController extends ModuleInstance {
 
 		$blob .= "-------------------\n\nEnding {$type}: {$value}";
 		$blob .= "\n\n<highlight>Inspired by a command written by Lucier of the same name<end>";
-		$msg = $this->text->makeBlob("Laddering from {$startingValue} to {$value} " . ucfirst($type), $blob);
+		$msg = Text::makeBlob("Laddering from {$startingValue} to {$value} " . ucfirst($type), $blob);
 
 		$context->reply($msg);
 	}

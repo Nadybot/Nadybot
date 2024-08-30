@@ -15,23 +15,6 @@ class Text {
 	private SettingManager $settingManager;
 
 	/**
-	 * Wraps a block in a before and after part
-	 *
-	 * @param string              $before String before the link
-	 * @param string|list<string> $blob   The blob to wrap
-	 * @param string|null         $after  The optional string after the blob
-	 *
-	 * @return list<string>
-	 */
-	public static function blobWrap(string $before, string|array $blob, ?string $after=''): array {
-		$blob = (array)$blob;
-		foreach ($blob as &$page) {
-			$page = "{$before}{$page}{$after}";
-		}
-		return $blob;
-	}
-
-	/**
 	 * Creates an info window, supporting pagination
 	 *
 	 * @param string      $name    The text part of the clickable link
@@ -40,7 +23,7 @@ class Text {
 	 *
 	 * @return string The string with link and reference
 	 */
-	public function makeBlob(string $name, string $content, ?string $header=null, ?string $permanentHeader=null): string {
+	public static function makeBlob(string $name, string $content, ?string $header=null, ?string $permanentHeader=null): string {
 		$header ??= $name;
 
 		// trim extra whitespace from beginning and ending

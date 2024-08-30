@@ -70,9 +70,6 @@ class MobController extends ModuleInstance {
 	#[NCA\Inject]
 	private MessageHub $msgHub;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Event('connect', 'Load all mobs from the API')]
 	public function initMobsFromApi(): void {
 		$client = $this->builder->build();
@@ -166,7 +163,7 @@ class MobController extends ModuleInstance {
 			"/waypoint {$mob->x} {$mob->y} {$mob->playfield->value}"
 		);
 		$msg = "<highlight>{$mob->name}<end> is being attacked in ".
-			$this->text->makeBlob(
+			Text::makeBlob(
 				$mob->playfield->long(),
 				$blob,
 				"{$mob->name} waypoint",
@@ -187,7 +184,7 @@ class MobController extends ModuleInstance {
 			"/waypoint {$mob->x} {$mob->y} {$mob->playfield->value}"
 		);
 		$msg = "<highlight>{$mob->name}<end> has spawned in ".
-			$this->text->makeBlob(
+			Text::makeBlob(
 				$mob->playfield->long(),
 				$blob,
 				"{$mob->name} waypoint",
@@ -208,7 +205,7 @@ class MobController extends ModuleInstance {
 			"/waypoint {$mob->x} {$mob->y} {$mob->playfield->value}"
 		);
 		$msg = "<highlight>{$mob->name}<end> was killed in ".
-			$this->text->makeBlob(
+			Text::makeBlob(
 				$mob->playfield->long(),
 				$blob,
 				"{$mob->name} waypoint",
@@ -236,7 +233,7 @@ class MobController extends ModuleInstance {
 			$context->reply('There is currently no data for any prisoner. Maybe the API is down.');
 			return;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Status of all prisoners (' . $blobs->count() . ')',
 			$blobs->join("\n\n")
 		);
@@ -273,7 +270,7 @@ class MobController extends ModuleInstance {
 
 		/** @param Collection<int,Mob> $hags */
 		$blobs = $factions->map(function (Collection $hags, string $faction): string {
-			return $this->text->makeBlob(
+			return Text::makeBlob(
 				ucfirst($faction) . ' hags (' . $hags->count() . ')',
 				$hags->map($this->renderMob(...))->join("\n\n")
 			);
@@ -322,7 +319,7 @@ class MobController extends ModuleInstance {
 			return;
 		}
 		$blobs = $factions->map(function (Collection $dreads, string $faction): string {
-			return $this->text->makeBlob(
+			return Text::makeBlob(
 				ucfirst($faction) . ' Dreadloch camps (' . $dreads->count() . ')',
 				$dreads->map(Closure::fromCallable($this->renderMob(...)))->join("\n\n")
 			);
@@ -350,7 +347,7 @@ class MobController extends ModuleInstance {
 			$context->reply('There is currently no data for Jack Legchopper or his clones. Maybe the API is down.');
 			return;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Status of Jack and his clones (' . $blobs->count() . ')',
 			$blobs->join("\n\n")
 		);
@@ -385,11 +382,7 @@ class MobController extends ModuleInstance {
 			return;
 		}
 		$blob = $this->renderMob($mob);
-		$msg = Text::blobWrap(
-			'',
-			$this->text->makeBlob($mob->name, $blob),
-			': ' . $this->renderMobStatus($mob)
-		);
+		$msg = Text::makeBlob($mob->name, $blob) . ': ' . $this->renderMobStatus($mob);
 		$context->reply($msg);
 	}
 

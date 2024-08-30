@@ -33,9 +33,6 @@ class SpawntimeController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private WhereisController $whereisController;
 
 	#[NCA\Setup]
@@ -53,7 +50,7 @@ class SpawntimeController extends ModuleInstance {
 			}
 			$blob .= "\n\n";
 		}
-		$msg = $this->text->makeBlob('locations (' . count($spawntime->coordinates).')', $blob);
+		$msg = Text::makeBlob('locations (' . count($spawntime->coordinates).')', $blob);
 		return $msg;
 	}
 
@@ -67,7 +64,7 @@ class SpawntimeController extends ModuleInstance {
 			return;
 		}
 		$timeLines = $this->spawntimesToLines($spawnTimes);
-		$msg = $this->text->makeBlob('All known spawntimes', $timeLines->join("\n"));
+		$msg = Text::makeBlob('All known spawntimes', $timeLines->join("\n"));
 		$context->reply($msg);
 	}
 
@@ -93,7 +90,7 @@ class SpawntimeController extends ModuleInstance {
 			$msg = "Spawntimes matching <highlight>{$search}<end>:\n".
 				$timeLines->join("\n");
 		} else {
-			$msg = $this->text->makeBlob(
+			$msg = Text::makeBlob(
 				"Spawntimes for \"{$search}\" ({$count})",
 				$timeLines->join("\n")
 			);

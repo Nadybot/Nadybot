@@ -45,9 +45,6 @@ class CustomCmdController extends ModuleInstance {
 	private LoggerInterface $logger;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private CommandManager $cmdManager;
 
 	#[NCA\Inject]
@@ -131,7 +128,7 @@ class CustomCmdController extends ModuleInstance {
 			array_shift($lines)
 		);
 		$context->reply(
-			$this->text->makeBlob(
+			Text::makeBlob(
 				$firstLine,
 				$headerHadTags ? $content : implode("\n", $lines),
 			)

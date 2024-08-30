@@ -141,7 +141,7 @@ class TrickleController extends ModuleInstance {
 				$blob .= "<tab><highlight>{$row->name}<end>: ".
 					$this->getTrickleAmounts($row) . "\n";
 			}
-			$msg = $this->text->makeBlob("Trickle Info: {$skill}", $blob);
+			$msg = Text::makeBlob("Trickle Info: {$skill}", $blob);
 		}
 
 		$context->reply($msg);
@@ -216,7 +216,7 @@ class TrickleController extends ModuleInstance {
 		$results = $this->getTrickleResults($abilities);
 		$blob = $this->formatOutput($results);
 		$blob .= "\nBy Tyrence (RK2), inspired by the Bebot command of the same name";
-		return $this->text->makeBlob(
+		return Text::makeBlob(
 			'Trickle Results for ' . implode(', ', $msgParts),
 			$blob,
 			"Trickle Results for {$abilitiesHeader}",

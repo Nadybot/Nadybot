@@ -63,9 +63,6 @@ class ImplantController extends ModuleInstance {
 		],
 	];
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/**
 	 * Try to determine the bonus for an interpolated QL
 	 *
@@ -304,7 +301,7 @@ class ImplantController extends ModuleInstance {
 				$impName = 'Jobe Implant';
 			}
 		}
-		return $this->text->makeBlob($impName, $blob, "QL {$ql} {$impName} Details");
+		return Text::makeBlob($impName, $blob, "QL {$ql} {$impName} Details");
 	}
 
 	/**

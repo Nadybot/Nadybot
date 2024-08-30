@@ -29,9 +29,6 @@ use Nadybot\Core\{
 ]
 class GauntletInventoryController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private AltsController $altsController;
 
 	#[NCA\Inject]
@@ -185,7 +182,7 @@ class GauntletInventoryController extends ModuleInstance {
 		}
 		$refreshLink = Text::makeChatcmd('Refresh', "/tell <myname> gaulist {$name} {$numArmors}");
 		$list .= "\n<tab>[{$refreshLink}]";
-		$blob = $this->text->makeBlob("Bastion inventory for {$name}", $list);
+		$blob = Text::makeBlob("Bastion inventory for {$name}", $list);
 		return "Bastion inventory: {$blob}";
 	}
 }

@@ -33,9 +33,6 @@ class OrgHistoryController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/** Show the last org actions (invite, kick, leave) */
 	#[NCA\HandlesCommand('orghistory')]
 	public function orgHistoryCommand(CmdContext $context, ?int $page): void {
@@ -60,7 +57,7 @@ class OrgHistoryController extends ModuleInstance {
 			$blob .= $this->formatOrgAction($row);
 		}
 
-		$msg = $this->text->makeBlob('Org History', $blob);
+		$msg = Text::makeBlob('Org History', $blob);
 
 		$context->reply($msg);
 	}
@@ -92,7 +89,7 @@ class OrgHistoryController extends ModuleInstance {
 			$blob .= $this->formatOrgAction($row);
 		}
 
-		$msg = $this->text->makeBlob("Org History for {$player}", $blob);
+		$msg = Text::makeBlob("Org History for {$player}", $blob);
 
 		$context->reply($msg);
 	}

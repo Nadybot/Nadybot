@@ -104,9 +104,6 @@ class TradebotController extends ModuleInstance {
 	private CommentController $commentController;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Event(
@@ -317,7 +314,7 @@ class TradebotController extends ModuleInstance {
 			}
 			$blob .= "\n";
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Tradebot colors (' . count($allColors) . ')',
 			$blob
 		);
@@ -408,7 +405,7 @@ class TradebotController extends ModuleInstance {
 		foreach ($colorList as $color => $name) {
 			$blob .= "<tab>[<a href='chatcmd:///tell <myname> tradecolor set {$tradeBot} {$tag} {$color}'>Pick this one</a>] <font color='{$color}'>Example Text</font> ({$name})\n";
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Choose from colors (' . count($colorList) . ')',
 			$blob
 		);
@@ -481,7 +478,7 @@ class TradebotController extends ModuleInstance {
 		$comText = ($numComments > 1) ? "{$numComments} Comments" : '1 Comment';
 		$blob = Text::makeChatcmd("Read {$comText}", "/tell <myname> comments get {$match[1]}").
 			' if you have the necessary access level.';
-		$message .= ' [' . $this->text->makeBlob($comText, $blob) . ']';
+		$message .= ' [' . Text::makeBlob($comText, $blob) . ']';
 		return $message;
 	}
 

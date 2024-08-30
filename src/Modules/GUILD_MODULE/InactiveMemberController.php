@@ -30,9 +30,6 @@ class InactiveMemberController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private AltsController $altsController;
 
 	/** Show org members who have not logged on for a specified amount of time */
@@ -95,7 +92,7 @@ class InactiveMemberController extends ModuleInstance {
 			}
 			$blob .= $player;
 		}
-		$msg = $this->text->makeBlob("{$numInactive} Inactive Org Members", $blob);
+		$msg = Text::makeBlob("{$numInactive} Inactive Org Members", $blob);
 		$context->reply($msg);
 	}
 }

@@ -24,9 +24,6 @@ class ChatCheckController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/** Checks who in the private channel is in the area */
 	#[NCA\HandlesCommand('check')]
 	public function checkAllCommand(CmdContext $context): void {
@@ -46,7 +43,7 @@ class ChatCheckController extends ModuleInstance {
 		}
 
 		$list = Text::makeChatcmd('Check Players', "/text Assisting All: {$content}");
-		$msg = $this->text->makeBlob('Check Players In Vicinity', $list);
+		$msg = Text::makeBlob('Check Players In Vicinity', $list);
 		$context->reply($msg);
 	}
 }

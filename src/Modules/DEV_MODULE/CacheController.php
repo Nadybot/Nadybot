@@ -33,9 +33,6 @@ class CacheController extends ModuleInstance {
 	private CacheManager $cacheManager;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Filesystem $fs;
 
 	#[NCA\Inject]
@@ -48,7 +45,7 @@ class CacheController extends ModuleInstance {
 		foreach ($this->cacheManager->getGroups() as $group) {
 			$blob .= Text::makeChatcmd($group, "/tell <myname> cache browse {$group}") . "\n";
 		}
-		$msg = $this->text->makeBlob('Cache Groups', $blob);
+		$msg = Text::makeBlob('Cache Groups', $blob);
 		$context->reply($msg);
 	}
 
@@ -71,7 +68,7 @@ class CacheController extends ModuleInstance {
 			$blob .= '  [' . Text::makeChatcmd('View', "/tell <myname> cache view {$group} {$file}") . ']';
 			$blob .= '  [' . Text::makeChatcmd('Delete', "/tell <myname> cache rem {$group} {$file}") . "]\n";
 		}
-		$msg = $this->text->makeBlob("Cache Group: {$group}", $blob);
+		$msg = Text::makeBlob("Cache Group: {$group}", $blob);
 		$context->reply($msg);
 	}
 
@@ -109,7 +106,7 @@ class CacheController extends ModuleInstance {
 			if (str_ends_with($file, '.json')) {
 				$contents = json_encode(json_decode($contents), \JSON_PRETTY_PRINT);
 			}
-			$msg = $this->text->makeBlob("Cache File: {$group} {$file}", htmlspecialchars($contents));
+			$msg = Text::makeBlob("Cache File: {$group} {$file}", htmlspecialchars($contents));
 		} else {
 			$msg = "Could not find file <highlight>{$file}<end> in cache group <highlight>{$group}<end>.";
 		}

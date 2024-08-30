@@ -30,9 +30,6 @@ use Safe\DateTimeImmutable;
 ]
 class WhatLocksController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private ItemsController $itemsController;
 
 	#[NCA\Inject]
@@ -71,7 +68,7 @@ class WhatLocksController extends ModuleInstance {
 		});
 		$blob = "<header2>Choose a skill to see which items lock it<end>\n<tab>".
 			$lines->join("\n<pagebreak><tab>");
-		$pages = $this->text->makeBlob(
+		$pages = Text::makeBlob(
 			$lines->count() . ' skills that can be locked by items',
 			$blob
 		);
@@ -96,7 +93,7 @@ class WhatLocksController extends ModuleInstance {
 				"/tell <myname> whatlocks {$skill->name}"
 			);
 		}, $skills);
-		$msg = $this->text->makeBlob('WhatLocks - Choose Skill', implode("\n", $lines));
+		$msg = Text::makeBlob('WhatLocks - Choose Skill', implode("\n", $lines));
 		return (array)$msg;
 	}
 
@@ -143,7 +140,7 @@ class WhatLocksController extends ModuleInstance {
 				$item->item->getLink($item->item->lowql);
 		});
 		$blob = $lines->filter()->join("\n<pagebreak>");
-		$pages = $this->text->makeBlob(
+		$pages = Text::makeBlob(
 			count($lines) . ' items',
 			$blob,
 			'The following ' . count($lines) . ' items lock '. $skills[0]->name

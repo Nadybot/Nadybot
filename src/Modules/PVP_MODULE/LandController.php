@@ -20,9 +20,6 @@ class LandController extends ModuleInstance {
 	#[NCA\Inject]
 	private NotumWarsController $nwCtrl;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/** List all playfields with tower sites */
 	#[NCA\HandlesCommand(self::LC_CMD)]
 	public function listNWPlayfields(
@@ -41,7 +38,7 @@ class LandController extends ModuleInstance {
 			) . " <highlight>({$pfState->shortName})<end>";
 		}
 		ksort($lines);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Land Control Index',
 			"<header2>Playfields with notum fields<end>\n".
 			'<tab>' . implode("\n<tab>", $lines)
@@ -80,7 +77,7 @@ class LandController extends ModuleInstance {
 			},
 			$sites->sorted()
 		);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"All bases in {$playfield->long()}",
 			implode("\n\n", $blocks)
 		);
@@ -112,7 +109,7 @@ class LandController extends ModuleInstance {
 			return;
 		}
 		$blob = $this->nwCtrl->renderSite($siteInfo);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"{$playfield->short()} {$site->site} ({$siteInfo->name})",
 			$blob,
 		);

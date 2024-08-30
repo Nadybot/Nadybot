@@ -31,9 +31,6 @@ class WhoisOrgController extends ModuleInstance {
 	private BotConfig $config;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private PlayerManager $playerManager;
 
 	#[NCA\Inject]
@@ -137,7 +134,7 @@ class WhoisOrgController extends ModuleInstance {
 				).
 				"%)  {$profession->toIcon()} {$prof}\n";
 		}
-		$msg = $this->text->makeBlob("Org Info for {$org->orgname}", $link);
+		$msg = Text::makeBlob("Org Info for {$org->orgname}", $link);
 
 		return $msg;
 	}

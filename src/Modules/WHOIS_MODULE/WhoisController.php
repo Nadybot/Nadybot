@@ -72,9 +72,6 @@ class WhoisController extends ModuleInstance {
 	private BanController $banController;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private AltsController $altsController;
 
 	#[NCA\Inject]
@@ -188,7 +185,7 @@ class WhoisController extends ModuleInstance {
 			$link = Text::makeChatcmd($player->name, "/tell <myname> lookup {$player->name}");
 			$blob .= "<tab>{$link} " . Util::date($player->dt) . "\n";
 		}
-		$msg = $this->text->makeBlob("Name History for {$charID} ({$count})", $blob);
+		$msg = Text::makeBlob("Name History for {$charID} ({$count})", $blob);
 
 		$context->reply($msg);
 	}
@@ -215,7 +212,7 @@ class WhoisController extends ModuleInstance {
 			$link = Text::makeChatcmd((string)$player->charid, "/tell <myname> lookup {$player->charid}");
 			$blob .= "<tab>{$link} " . Util::date($player->dt) . "\n";
 		}
-		$msg = $this->text->makeBlob("Character Ids for {$name} ({$count})", $blob);
+		$msg = Text::makeBlob("Character Ids for {$name} ({$count})", $blob);
 
 		$context->reply($msg);
 	}
@@ -373,7 +370,7 @@ class WhoisController extends ModuleInstance {
 				$blob .= $this->getNameHistory($charID, $this->config->main->dimension);
 			}
 
-			$msg = $this->text->makeBlob("Basic Info for {$name}", $blob);
+			$msg = Text::makeBlob("Basic Info for {$name}", $blob);
 			return $msg;
 		}
 		$altInfo = $this->altsController->getAltInfo($name);
@@ -467,14 +464,14 @@ class WhoisController extends ModuleInstance {
 				$msg .= ' :: <off>Offline<end>';
 			}
 		}
-		$msg .= ' :: ' . $this->text->makeBlob('More Info', $blob, "Detailed Info for {$name}");
+		$msg .= ' :: ' . Text::makeBlob('More Info', $blob, "Detailed Info for {$name}");
 		if ($this->whoisAddComments) {
 			$numComments = $this->commentController->countComments(null, $whois->name);
 			if ($numComments) {
 				$comText = ($numComments > 1) ? "{$numComments} Comments" : '1 Comment';
 				$blob = Text::makeChatcmd("Read {$comText}", "/tell <myname> comments get {$whois->name}").
 					' if you have the necessary access level.';
-				$msg .= ' :: ' . $this->text->makeBlob($comText, $blob);
+				$msg .= ' :: ' . Text::makeBlob($comText, $blob);
 			}
 		}
 

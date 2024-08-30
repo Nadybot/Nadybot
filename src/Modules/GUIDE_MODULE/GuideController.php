@@ -32,8 +32,6 @@ use Nadybot\Core\{
 ]
 class GuideController extends ModuleInstance {
 	private const FILE_EXT = '.txt';
-	#[NCA\Inject]
-	private Text $text;
 
 	#[NCA\Inject]
 	private Filesystem $fs;
@@ -100,7 +98,7 @@ class GuideController extends ModuleInstance {
 		}
 
 		if (count($topicList)) {
-			$msg = $this->text->makeBlob('Topics (' . count($topicList) . ')', $linkContents);
+			$msg = Text::makeBlob('Topics (' . count($topicList) . ')', $linkContents);
 		} else {
 			$msg = 'No topics available.';
 		}
@@ -142,7 +140,7 @@ class GuideController extends ModuleInstance {
 			$lines = explode("\n", $info);
 			$firstLine = Safe::pregReplace('/<header>(.+)<end>/', '$1', array_shift($lines));
 			$info = trim(implode("\n", $lines));
-			$msg = $this->text->makeBlob('Guide for "' . $firstLine . '"', $info, $firstLine);
+			$msg = Text::makeBlob('Guide for "' . $firstLine . '"', $info, $firstLine);
 		} catch (FilesystemException) {
 			$msg = "No guide named <highlight>{$fileName}<end> was found.";
 		}

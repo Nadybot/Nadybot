@@ -55,9 +55,6 @@ class SiteTrackerController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private NotumWarsController $nwCtrl;
 
 	#[NCA\Inject]
@@ -200,7 +197,7 @@ class SiteTrackerController extends ModuleInstance {
 				"<tab><highlight><symbol>route add {$channel} -> discordpriv(foo)<end>\n".
 				"<tab><i>To display them in the Discord-channel 'foo'.";
 			$details = ' You need to add a route in order to see the events '.
-				'this tracker generates [' . $this->text->makeBlob(
+				'this tracker generates [' . Text::makeBlob(
 					'see how',
 					$blob,
 					'How to configure routing for a tower tracker'
@@ -250,7 +247,7 @@ class SiteTrackerController extends ModuleInstance {
 		foreach ($this->trackers as $tracker) {
 			$blocks []= $this->renderTracker($tracker);
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Registered trackers (' . count($this->trackers) . ')',
 			implode("\n\n", $blocks)
 		);
@@ -278,7 +275,7 @@ class SiteTrackerController extends ModuleInstance {
 			->sortBy('playfield_id');
 		$blob = $this->nwCtrl->renderHotSites(null, ...$sites->toArray());
 		$expression = Safe::pregReplace('/\s+'.implode('\s+', array_map('preg_quote', $tracker->events)).'$/', '', $tracker->expression);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"Sites matching tracker '{$expression}' (" . $sites->count() . ')',
 			$blob
 		);
@@ -326,7 +323,7 @@ class SiteTrackerController extends ModuleInstance {
 				'/tell <myname> <symbol>nw track events'
 			) . " for a list of events to use in '<highlight><symbol>nw track add<end>'.\n\n".
 			implode("\n\n", $blocks);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Available patterns (' . count($blocks) . ')',
 			$blob
 		);
@@ -354,7 +351,7 @@ class SiteTrackerController extends ModuleInstance {
 			"You can also give multiple events, just as you need it.\n\n".
 			"<header2>Available site tracker events<end>\n".
 			implode("\n", $blocks);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Available events (' . count($blocks) . ')',
 			$blob
 		);

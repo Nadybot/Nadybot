@@ -57,9 +57,6 @@ class ItemsController extends ModuleInstance {
 	#[NCA\Inject]
 	private SettingManager $settingManager;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/** @var array<int,Skill> */
 	private array $skills = [];
 
@@ -127,11 +124,9 @@ class ItemsController extends ModuleInstance {
 		}
 		$row = ItemSearchResult::fromItem($row->atQL($ql));
 		$blob .= "\n" . $this->formatSearchResults([$row], null, true);
-		$msg = Text::blobWrap(
-			'Details about item ID ',
-			$this->text->makeBlob((string)$id, $blob, "Details about item ID {$id}"),
-			" ({$row->name})"
-		);
+		$msg = 'Details about item ID '.
+			Text::makeBlob((string)$id, $blob, "Details about item ID {$id}").
+			" ({$row->name})";
 
 		$context->reply($msg);
 	}
@@ -222,7 +217,7 @@ class ItemsController extends ModuleInstance {
 		if (count($items) >= $this->maxitems) {
 			$blob .= "\n\n<highlight>*Results have been limited to the first " . count($items) . ' results.<end>';
 		}
-		$msg = $this->text->makeBlob("Items matching \"{$search}\" (" . count($items) . ')', $blob);
+		$msg = Text::makeBlob("Items matching \"{$search}\" (" . count($items) . ')', $blob);
 		$context->reply($msg);
 	}
 
@@ -376,7 +371,7 @@ class ItemsController extends ModuleInstance {
 			$blob .= "\n\n<highlight>*Results have been limited to the first {$numItems} results.<end>";
 		}
 		$blob .= "\n\n" . $footer;
-		$link = $this->text->makeBlob("Item Search Results ({$numItems})", $blob);
+		$link = Text::makeBlob("Item Search Results ({$numItems})", $blob);
 
 		return $link;
 	}

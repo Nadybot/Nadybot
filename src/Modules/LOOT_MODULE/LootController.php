@@ -124,9 +124,6 @@ class LootController extends ModuleInstance {
 	private CommandAlias $commandAlias;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private ChatLeaderController $chatLeaderController;
 
 	/**
@@ -205,7 +202,7 @@ class LootController extends ModuleInstance {
 				"{$showLink}, rolled by {$firstItem->rolled_by}";
 		});
 		$msg = 'Last loot rolls (' . $lines->count() . ')';
-		$context->reply($this->text->makeBlob(
+		$context->reply(Text::makeBlob(
 			$msg,
 			"<header2>Last loot rolls<end>\n" . $lines->join("\n")
 		));
@@ -256,7 +253,7 @@ class LootController extends ModuleInstance {
 		$rolledTime = Util::date($items->firstOrFail()->dt);
 		$blob = "Loot #{$roll} was rolled <highlight>{$rolledTime}<end> by <highlight>{$rolledBy}<end>.\n\n";
 		$blob .= $lines->join("\n\n");
-		$context->reply($this->text->makeBlob(
+		$context->reply(Text::makeBlob(
 			"Loot roll #{$roll} (" . $lines->count() . ' slots)',
 			$blob
 		));
@@ -305,7 +302,7 @@ class LootController extends ModuleInstance {
 		});
 		$blob = "<header2>Last items won by {$winner}<end>\n".
 			$lines->join("\n");
-		$context->reply($this->text->makeBlob("Last items won by {$winner}", $blob));
+		$context->reply(Text::makeBlob("Last items won by {$winner}", $blob));
 	}
 
 	/**
@@ -367,7 +364,7 @@ class LootController extends ModuleInstance {
 		$blob = "<header2>Last rolled items matching '{$search}'<end>\n".
 			$lines->join("\n");
 		$context->reply(
-			$this->text->makeBlob("Last rolled items matching '{$search}'", $blob)
+			Text::makeBlob("Last rolled items matching '{$search}'", $blob)
 		);
 	}
 
@@ -681,19 +678,11 @@ class LootController extends ModuleInstance {
 		// Create FFA message
 		$msg = '';
 		if ($numItems > 1) {
-			$blob = $this->text->makeBlob('All remaining items', $list, 'These items are FFA');
-			$msg = Text::blobWrap(
-				'',
-				$blob,
-				" were declared <green>free for all<end> by <highlight>{$context->char->name}."
-			);
+			$msg = Text::makeBlob('All remaining items', $list, 'These items are FFA').
+				" were declared <green>free for all<end> by <highlight>{$context->char->name}.";
 		} else {
-			$blob = $this->text->makeBlob('The remaining item', $list, 'This item is FFA');
-			$msg = Text::blobWrap(
-				'',
-				$blob,
-				" was declared <green>free for all<end> by <highlight>{$context->char->name}."
-			);
+			$msg = Text::makeBlob('The remaining item', $list, 'This item is FFA').
+				" was declared <green>free for all<end> by <highlight>{$context->char->name}.";
 		}
 		$this->chatBot->sendPrivate($msg);
 		if ($context->isDM()) {
@@ -795,14 +784,10 @@ class LootController extends ModuleInstance {
 				'<tab>'.
 				Text::makeChatcmd('Announce remaining items FFA', '/tell <myname> ffa');
 		}
-		$msg = $this->text->makeBlob('Winner List', $list);
+		$msg = Text::makeBlob('Winner List', $list);
 		if (count($this->residual) > 0) {
-			$msg = Text::blobWrap(
-				'',
-				$msg,
-				' (There are item(s) left to be rolled. To re-add, type <symbol>reroll, or '.
-				'use <symbol>ffa to make them free for all)'
-			);
+			$msg .= ' (There are item(s) left to be rolled. To re-add, type <symbol>reroll, or '.
+				'use <symbol>ffa to make them free for all)';
 		}
 
 		$this->chatBot->sendPrivate($msg);
@@ -930,7 +915,7 @@ class LootController extends ModuleInstance {
 
 			$list .= "\n\n";
 		}
-		$msg = $this->text->makeBlob("Loot List (Items: {$items}, Players: {$players})", $list);
+		$msg = Text::makeBlob("Loot List (Items: {$items}, Players: {$players})", $list);
 
 		return $msg;
 	}
@@ -1006,11 +991,7 @@ class LootController extends ModuleInstance {
 		}
 		$lootList = $this->getCurrentLootList();
 		$this->chatBot->sendPrivate(
-			Text::blobWrap(
-				"{$context->char->name} added " . count($items) . ' items to the ',
-				$lootList,
-				'.'
-			)
+			"{$context->char->name} added " . count($items) . " items to the {$lootList}."
 		);
 	}
 

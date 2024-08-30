@@ -114,7 +114,7 @@ class ColorsController extends ModuleInstance {
 		}
 		$blob = implode("\n<pagebreak>", $blobs);
 		$count = count($themes);
-		$msg = $this->text->makeBlob("Themes ({$count})", $blob);
+		$msg = Text::makeBlob("Themes ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -136,7 +136,7 @@ class ColorsController extends ModuleInstance {
 		}
 		$blob = implode("\n\n<pagebreak>", $blobs);
 		$count = count($themes);
-		$msg = $this->text->makeBlob("Themes ({$count})", $blob);
+		$msg = Text::makeBlob("Themes ({$count})", $blob);
 		$context->reply($msg);
 	}
 

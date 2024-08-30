@@ -24,9 +24,6 @@ use Safe\DateTimeImmutable;
 	)
 ]
 class TimeController extends ModuleInstance {
-	#[NCA\Inject]
-	private Text $text;
-
 	/** Show the current time in a list of time zones */
 	#[NCA\HandlesCommand('time')]
 	public function timeListCommand(CmdContext $context): void {
@@ -93,10 +90,9 @@ class TimeController extends ModuleInstance {
 		$link .= '<tab><tab>' . time() . "\n";
 
 		$msg = '<highlight>'.Util::date(time()).'<end>';
-		$context->reply(Text::blobWrap(
-			"{$msg} ",
-			$this->text->makeBlob('All Timezones', $link)
-		));
+		$context->reply(
+			"{$msg} " . Text::makeBlob('All Timezones', $link)
+		);
 	}
 
 	/** Show the current time in a given time zones */

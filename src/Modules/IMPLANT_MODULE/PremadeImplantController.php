@@ -36,9 +36,6 @@ class PremadeImplantController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private WhatBuffsController $whatBuffsController;
 
 	#[NCA\Setup]
@@ -67,7 +64,7 @@ class PremadeImplantController extends ModuleInstance {
 
 		if (count($results)) {
 			$blob = trim($this->formatResults($results));
-			$msg = $this->text->makeBlob("Implant Search Results for '{$searchTerms}'", $blob);
+			$msg = Text::makeBlob("Implant Search Results for '{$searchTerms}'", $blob);
 		} else {
 			$msg = 'No results found.';
 		}

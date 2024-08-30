@@ -47,9 +47,6 @@ class RandomController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private CommandAlias $commandAlias;
 
 	#[NCA\Setup]
@@ -81,11 +78,9 @@ class RandomController extends ModuleInstance {
 		$msg = 'Randomized order: <highlight>' . implode('<end> -&gt; <highlight>', $list) . '<end>';
 		$blob = Text::makeChatcmd('Send to team chat', "/t {$msg}") . "\n".
 			Text::makeChatcmd('Send to raid chat', "/g raid {$msg}");
-		$context->reply(Text::blobWrap(
-			$msg . ' [',
-			$this->text->makeBlob('announce', $blob, 'Announce result'),
-			']'
-		));
+		$context->reply(
+			"{$msg} [" . Text::makeBlob('announce', $blob, 'Announce result') . ']'
+		);
 	}
 
 	/** Roll a number between &lt;num1&gt; and &lt;num2&gt; or just 1 and &lt;num1&gt; */
@@ -122,11 +117,9 @@ class RandomController extends ModuleInstance {
 		$blob = Text::makeChatcmd('Send to team chat', "/t {$msg}") . "\n".
 			Text::makeChatcmd('Send to raid chat', "/g raid {$msg}");
 
-		$context->reply(Text::blobWrap(
-			$msg . ' [',
-			$this->text->makeBlob('announce', $blob, 'Announce result'),
-			']'
-		));
+		$context->reply(
+			"{$msg} [" . Text::makeBlob('announce', $blob, 'Announce result') . ']'
+		);
 	}
 
 	/** Roll multiple random values from a list */
@@ -176,11 +169,9 @@ class RandomController extends ModuleInstance {
 		$blob = Text::makeChatcmd('Send to team chat', "/t {$msg}") . "\n".
 			Text::makeChatcmd('Send to raid chat', "/g raid {$msg}");
 
-		$context->reply(Text::blobWrap(
-			$msg . ' [',
-			$this->text->makeBlob('announce', $blob, 'Announce result'),
-			']'
-		));
+		$context->reply(
+			"{$msg} [" . Text::makeBlob('announce', $blob, 'Announce result') . ']'
+		);
 	}
 
 	/** Roll a random value from a list of names */
@@ -212,11 +203,9 @@ class RandomController extends ModuleInstance {
 		$blob = Text::makeChatcmd('Send to team chat', "/t {$msg}") . "\n".
 			Text::makeChatcmd('Send to raid chat', "/g raid {$msg}");
 
-		$context->reply(Text::blobWrap(
-			$msg . ' [',
-			$this->text->makeBlob('announce', $blob, 'Announce result'),
-			']'
-		));
+		$context->reply(
+			"{$msg} [" . Text::makeBlob('announce', $blob, 'Announce result') . ']'
+		);
 	}
 
 	/** Verify a roll */
@@ -240,12 +229,12 @@ class RandomController extends ModuleInstance {
 					return $this->renderRollVerify($roll);
 				});
 			if ($lines->isNotEmpty()) {
-				$blob = $this->text->makeBlob(
+				$blob = Text::makeBlob(
 					'previous rolls',
 					$lines->join("\n\n"),
 					'Results of previous rolls'
 				);
-				$msg = Text::blobWrap($msg . ' [', $blob, ']');
+				$msg .= " [{$blob}]";
 			}
 		}
 

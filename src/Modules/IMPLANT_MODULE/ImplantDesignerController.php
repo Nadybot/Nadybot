@@ -138,7 +138,7 @@ class ImplantDesignerController extends ModuleInstance {
 			$context->reply('Nothing to buy.');
 			return;
 		}
-		$msg = $this->text->makeBlob('Implant Shopping List', $blob);
+		$msg = Text::makeBlob('Implant Shopping List', $blob);
 		$context->reply($msg);
 	}
 
@@ -151,7 +151,7 @@ class ImplantDesignerController extends ModuleInstance {
 	)]
 	public function implantdesignerCommand(CmdContext $context): void {
 		$blob = $this->getImplantDesignerBuild($context->char->name);
-		$msg = $this->text->makeBlob('Implant Designer', $blob);
+		$msg = Text::makeBlob('Implant Designer', $blob);
 		$context->reply($msg);
 	}
 
@@ -165,7 +165,7 @@ class ImplantDesignerController extends ModuleInstance {
 
 		// send results
 		$blob = $this->getImplantDesignerBuild($context->char->name);
-		$msg = $this->text->makeBlob('Implant Designer', $blob);
+		$msg = Text::makeBlob('Implant Designer', $blob);
 		$context->reply($msg);
 	}
 
@@ -227,7 +227,7 @@ class ImplantDesignerController extends ModuleInstance {
 			$blob .= $this->showClusterChoices($design, $slotName, 'faded', $ql);
 		}
 
-		$msg = $this->text->makeBlob("Implant Designer ({$slotName})", $blob);
+		$msg = Text::makeBlob("Implant Designer ({$slotName})", $blob);
 
 		$context->reply($msg);
 	}
@@ -344,7 +344,7 @@ class ImplantDesignerController extends ModuleInstance {
 
 		// send results
 		$blob = $this->getImplantDesignerBuild($context->char->name);
-		$msg = $this->text->makeBlob('Implant Designer', $blob);
+		$msg = Text::makeBlob('Implant Designer', $blob);
 		$context->reply($msg);
 	}
 
@@ -378,7 +378,7 @@ class ImplantDesignerController extends ModuleInstance {
 
 		// send results
 		$blob = $this->getImplantDesignerBuild($context->char->name);
-		$msg = $this->text->makeBlob('Implant Designer', $blob);
+		$msg = Text::makeBlob('Implant Designer', $blob);
 		$context->reply($msg);
 	}
 
@@ -402,7 +402,7 @@ class ImplantDesignerController extends ModuleInstance {
 
 		// send results
 		$blob = $this->getImplantDesignerBuild($context->char->name);
-		$msg = $this->text->makeBlob('Implant Designer', $blob);
+		$msg = Text::makeBlob('Implant Designer', $blob);
 		$context->reply($msg);
 	}
 
@@ -441,7 +441,7 @@ class ImplantDesignerController extends ModuleInstance {
 			foreach ($abilities as $ability) {
 				$blob .= Text::makeChatcmd($ability, "/tell <myname> implantdesigner {$slot->designSlotName()} require {$ability}") . "\n";
 			}
-			$msg = $this->text->makeBlob("Implant Designer Require Ability ({$slot->longName()})", $blob);
+			$msg = Text::makeBlob("Implant Designer Require Ability ({$slot->longName()})", $blob);
 		}
 
 		$context->reply($msg);
@@ -541,7 +541,7 @@ class ImplantDesignerController extends ModuleInstance {
 				}
 			}
 			$count = count($data);
-			$msg = $this->text->makeBlob("Implant Designer Require {$ability} ({$slot->longName()}) ({$count})", $blob);
+			$msg = Text::makeBlob("Implant Designer Require {$ability} ({$slot->longName()}) ({$count})", $blob);
 		}
 
 		$context->reply($msg);
@@ -553,7 +553,7 @@ class ImplantDesignerController extends ModuleInstance {
 	public function implantdesignerResultCommand(CmdContext $context, #[NCA\Str('result', 'results')] string $action): void {
 		$blob = $this->getImplantDesignerResults($context->char->name);
 
-		$msg = $this->text->makeBlob('Implant Designer Results', $blob);
+		$msg = Text::makeBlob('Implant Designer Results', $blob);
 
 		$context->reply($msg);
 	}

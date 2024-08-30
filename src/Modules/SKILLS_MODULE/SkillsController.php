@@ -89,9 +89,6 @@ class SkillsController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private ItemsController $itemsController;
 
 	#[NCA\Setup]
@@ -112,7 +109,7 @@ class SkillsController extends ModuleInstance {
 	public function aggdefCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $initValue): void {
 		$blob = $this->getAggDefOutput($attackTime, $rechargeTime, $initValue);
 
-		$msg = $this->text->makeBlob('Agg/Def Results', $blob);
+		$msg = Text::makeBlob('Agg/Def Results', $blob);
 		$context->reply($msg);
 	}
 
@@ -210,7 +207,7 @@ class SkillsController extends ModuleInstance {
 			"With your weapon, your Aimed Shot recharge will cap at <highlight>{$stats->hardCapTime}<end>s.\n".
 			"You need <highlight>{$stats->skillToCap}<end> Aimed Shot skill to cap your recharge.";
 
-		$msg = $this->text->makeBlob('Aimed Shot Results', $blob);
+		$msg = Text::makeBlob('Aimed Shot Results', $blob);
 		$context->reply($msg);
 	}
 
@@ -249,7 +246,7 @@ class SkillsController extends ModuleInstance {
 		$blob .= 'Stun duration: '.$stunDuration."\n";
 		$blob .= "\n\nby Imoutochan, RK1";
 
-		$msg = $this->text->makeBlob('Brawl Results', $blob);
+		$msg = Text::makeBlob('Brawl Results', $blob);
 		$context->reply($msg);
 	}
 
@@ -282,7 +279,7 @@ class SkillsController extends ModuleInstance {
 				'burst skill to cap your recharge at the minimum of '.
 				"<highlight>{$stats->hardCapTime}<end>s.";
 
-		$msg = $this->text->makeBlob('Burst Results', $blob);
+		$msg = Text::makeBlob('Burst Results', $blob);
 		$context->reply($msg);
 	}
 
@@ -334,7 +331,7 @@ class SkillsController extends ModuleInstance {
 
 		$blob .= 'by Imoutochan, RK1';
 
-		$msg = $this->text->makeBlob('Dimach Results', $blob);
+		$msg = Text::makeBlob('Dimach Results', $blob);
 		$context->reply($msg);
 	}
 
@@ -359,7 +356,7 @@ class SkillsController extends ModuleInstance {
 			"You need <highlight>{$stats->skillToCap}<end> Fast Attack Skill to cap your fast attack at <highlight>{$stats->hardCapTime}<end>s.\n".
 			'Every 100 points in Fast Attack skill less than this will increase the recharge by 1s.';
 
-		$msg = $this->text->makeBlob('Fast Attack Results', $blob);
+		$msg = Text::makeBlob('Fast Attack Results', $blob);
 		$context->reply($msg);
 	}
 
@@ -383,7 +380,7 @@ class SkillsController extends ModuleInstance {
 			"\n".
 			"You need <highlight>{$stats->skillToCap}<end> Fling Shot skill to cap your fling at <highlight>{$stats->hardCapTime}<end>s.";
 
-		$msg = $this->text->makeBlob('Fling Results', $blob);
+		$msg = Text::makeBlob('Fling Results', $blob);
 		$context->reply($msg);
 	}
 
@@ -422,7 +419,7 @@ class SkillsController extends ModuleInstance {
 			"From <highlight>11K to 15.0K<end> damage, each bullet damage is halved again.\n".
 			'<highlight>15K<end> is the damage cap.';
 
-		$msg = $this->text->makeBlob('Full Auto Results', $blob);
+		$msg = Text::makeBlob('Full Auto Results', $blob);
 		$context->reply($msg);
 	}
 
@@ -501,7 +498,7 @@ class SkillsController extends ModuleInstance {
 		$blob .= "<tab>Fist speed:   <highlight>{$speed}<end>s/<highlight>{$speed}<end>s\n";
 		$blob .= "<tab>Fist damage: {$dmg}\n\n";
 
-		$msg = $this->text->makeBlob('Martial Arts Results', $blob);
+		$msg = Text::makeBlob('Martial Arts Results', $blob);
 		$context->reply($msg);
 	}
 
@@ -549,7 +546,7 @@ class SkillsController extends ModuleInstance {
 		$blob .= '  Neutral (87.5%): <highlight>' . round(max(0, $effectiveCastingTime), 1) . "s<end>\n";
 		$blob .= '  Full Def (0%):     <highlight>' . round(max(0, $effectiveCastingTime+1), 1) . "s<end>\n";
 
-		$msg = $this->text->makeBlob('Nano Init Results', $blob);
+		$msg = Text::makeBlob('Nano Init Results', $blob);
 		$context->reply($msg);
 	}
 
@@ -669,7 +666,7 @@ class SkillsController extends ModuleInstance {
 
 		$blob .= "\nRewritten by Nadyita (RK5)".
 			"\nSpecials recharge fixes by Conci (RK5), Keex-1 (RK5), Keltias (RK5), TinkeringIdiot, Tradias (RK5)";
-		$msg = $this->text->makeBlob("Weapon Info for {$name}", $blob);
+		$msg = Text::makeBlob("Weapon Info for {$name}", $blob);
 
 		$context->reply($msg);
 	}
@@ -728,7 +725,7 @@ class SkillsController extends ModuleInstance {
 			$statsLink = Text::makeChatcmd('stats', "/tell <myname> weapon {$item->lowid} {$useQL}");
 			$blob .= "<tab>[{$statsLink}] {$itemLink} (QL {$useQL})\n";
 		}
-		$msg = $this->text->makeBlob('Weapons (' . count($data) .')', $blob);
+		$msg = Text::makeBlob('Weapons (' . count($data) .')', $blob);
 		$context->reply($msg);
 	}
 

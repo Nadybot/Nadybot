@@ -166,9 +166,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	private LoggerInterface $logger;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Inject]
@@ -511,7 +508,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$blob .= "<tab><highlight>{$user->name}<end> ({$status}{$lastAction}) - [{$remove}] [{$history}]\n";
 		}
 
-		$msg = $this->text->makeBlob("Tracklist ({$numrows})", $blob);
+		$msg = Text::makeBlob("Tracklist ({$numrows})", $blob);
 		$context->reply($msg);
 	}
 
@@ -685,7 +682,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 		$blob = $this->formatOrglist(...$orgs->toArray());
-		$msg = $this->text->makeBlob("Org Search Results for '{$orgName}' ({$count})", $blob);
+		$msg = Text::makeBlob("Org Search Results for '{$orgName}' ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -774,7 +771,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 		$blob = "<header2>Orgs being tracked<end>\n".
 			$lines->join("\n");
-		$msg = $this->text->makeBlob('Tracked orgs(' . $lines->count() . ')', $blob);
+		$msg = Text::makeBlob('Tracked orgs(' . $lines->count() . ')', $blob);
 		$context->reply($msg);
 	}
 
@@ -882,9 +879,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$blob .= "\n\n" . implode("\n", $footNotes);
 		}
 		if ($hasFilters) {
-			$msg = $this->text->makeBlob('Online tracked players matching your filter (' . count($data). ')', $blob);
+			$msg = Text::makeBlob('Online tracked players matching your filter (' . count($data). ')', $blob);
 		} else {
-			$msg = $this->text->makeBlob('Online tracked players (' . $data->count(). ')', $blob);
+			$msg = Text::makeBlob('Online tracked players (' . $data->count(). ')', $blob);
 		}
 		$context->reply($msg);
 		return true;
@@ -1207,7 +1204,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$blob .= "<tab> {$status} - " . Util::date($event->dt) ."\n";
 		}
 
-		$msg = $this->text->makeBlob("Track History for {$char}", $blob);
+		$msg = Text::makeBlob("Track History for {$char}", $blob);
 		$context->reply($msg);
 	}
 

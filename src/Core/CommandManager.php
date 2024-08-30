@@ -80,9 +80,6 @@ class CommandManager implements MessageEmitter {
 	private Preferences $preferences;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	#[NCA\Inject]
@@ -1011,7 +1008,7 @@ class CommandManager implements MessageEmitter {
 		if (count($epilogues)) {
 			$blob .= "\n\n" . implode("\n\n", $epilogues);
 		}
-		return $this->text->makeBlob("Help ({$cmd})", $blob . $this->getSyntaxExplanation($context));
+		return Text::makeBlob("Help ({$cmd})", $blob . $this->getSyntaxExplanation($context));
 	}
 
 	public function getSyntaxExplanation(CmdContext $context, bool $ignorePrefs=false): string {

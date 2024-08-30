@@ -69,9 +69,6 @@ class FindOrgController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	#[NCA\Inject]
@@ -118,7 +115,7 @@ class FindOrgController extends ModuleInstance {
 
 		if ($count > 0) {
 			$blob = $this->formatResults($orgs);
-			$msg = $this->text->makeBlob("Org Search Results for '{$search}' ({$count})", $blob);
+			$msg = Text::makeBlob("Org Search Results for '{$search}' ({$count})", $blob);
 		} else {
 			$msg = 'No matches found.';
 		}

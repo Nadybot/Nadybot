@@ -27,9 +27,6 @@ class ClusterController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private WhatBuffsController $wbCtrl;
 
 	/** Get a list of skills/attributes you can get clusters for */
@@ -52,7 +49,7 @@ class ClusterController extends ModuleInstance {
 				).
 				"\n";
 		}
-		$msg = $this->text->makeBlob("Cluster List ({$count})", $blob);
+		$msg = Text::makeBlob("Cluster List ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -99,7 +96,7 @@ class ClusterController extends ModuleInstance {
 			}
 			$blob .= "\n\n";
 		}
-		$msg = $this->text->makeBlob("Cluster search results ({$count})", $blob);
+		$msg = Text::makeBlob("Cluster search results ({$count})", $blob);
 		$context->reply($msg);
 	}
 }

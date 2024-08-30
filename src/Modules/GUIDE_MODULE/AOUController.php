@@ -47,9 +47,6 @@ class AOUController extends ModuleInstance {
 	private BotConfig $config;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private ItemsController $itemsController;
 
 	#[NCA\Inject]
@@ -146,7 +143,7 @@ class AOUController extends ModuleInstance {
 
 		$blob .= "\n\n<i>Powered by " . Text::makeChatcmd('AO-Universe', '/start https://www.ao-universe.com') . '</i>';
 
-		$msg = $this->text->makeBlob($title, $blob);
+		$msg = Text::makeBlob($title, $blob);
 		return $msg;
 	}
 
@@ -236,7 +233,7 @@ class AOUController extends ModuleInstance {
 			} else {
 				$title = "AO-Universe Guides containing '{$search}' ({$count})";
 			}
-			$msg = $this->text->makeBlob($title, $blob);
+			$msg = Text::makeBlob($title, $blob);
 		} else {
 			$msg = "Could not find any guides containing: '{$search}'.";
 			if (!$searchGuideText) {

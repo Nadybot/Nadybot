@@ -31,9 +31,6 @@ class Debug implements EventModifier {
 	#[NCA\Inject]
 	private MessageHub $msgHub;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	public function __construct(
 		protected string $sendTo,
 	) {
@@ -47,7 +44,7 @@ class Debug implements EventModifier {
 		if (!isset($receiver)) {
 			return $event;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Debug message',
 			json_encode($event, \JSON_PRETTY_PRINT, 512)
 		);

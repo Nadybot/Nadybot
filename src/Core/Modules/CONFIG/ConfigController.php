@@ -46,9 +46,6 @@ use ReflectionClass;
 ]
 class ConfigController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Inject]
@@ -136,7 +133,7 @@ class ConfigController extends ModuleInstance {
 		}
 
 		$count = count($modules);
-		$msg = $this->text->makeBlob("Module Config ({$count})", $blob);
+		$msg = Text::makeBlob("Module Config ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -573,7 +570,7 @@ class ConfigController extends ModuleInstance {
 			$blob .= "<header>Help ({$cmd})<end>\n\n" . $help;
 		}
 
-		$msg = $this->text->makeBlob(ucfirst($cmd).' Config', $blob);
+		$msg = Text::makeBlob(ucfirst($cmd).' Config', $blob);
 		$context->reply($msg);
 	}
 
@@ -724,7 +721,7 @@ class ConfigController extends ModuleInstance {
 		}
 
 		if ($found) {
-			$msg = $this->text->makeBlob("{$module} Configuration", $blob);
+			$msg = Text::makeBlob("{$module} Configuration", $blob);
 		} else {
 			$msg = "Could not find module <highlight>{$module}<end>.";
 		}

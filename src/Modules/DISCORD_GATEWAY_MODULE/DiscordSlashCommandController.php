@@ -88,9 +88,6 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/** If the state changes to/from disabled, then we need to re-register the slash-cmds */
 	#[NCA\SettingChangeHandler('discord_slash_commands')]
 	public function syncSlashCmdsOnStateChange(string $settingName, string $oldValue, string $newValue): void {
@@ -158,7 +155,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		}
 		$blob = "<header2>Currently registered Slash-commands<end>\n".
 			$lines->join("\n");
-		$context->reply($this->text->makeBlob(
+		$context->reply(Text::makeBlob(
 			'Registered Slash-commands (' . $lines->count() . ')',
 			$blob
 		));
@@ -319,7 +316,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 					$lines->join("\n");
 			});
 		$blob = $parts->join("\n\n");
-		$context->reply($this->text->makeBlob(
+		$context->reply(Text::makeBlob(
 			'Pick from available commands (' . $cmds->count() . ')',
 			$blob,
 		));

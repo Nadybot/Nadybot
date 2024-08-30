@@ -130,9 +130,6 @@ class RaidPointsController extends ModuleInstance {
 	private AltsController $altsController;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Nadybot $chatBot;
 
 	/** Give points when the ticker is enabled */
@@ -404,7 +401,7 @@ class RaidPointsController extends ModuleInstance {
 			$blob .= "\n<tab>" . Text::alignNumber($raider->points, $maxDigits) . "    {$raider->username}";
 		}
 		$context->reply(
-			$this->text->makeBlob("Top raiders ({$topRaiders->count()})", $blob)
+			Text::makeBlob("Top raiders ({$topRaiders->count()})", $blob)
 		);
 	}
 
@@ -435,7 +432,7 @@ class RaidPointsController extends ModuleInstance {
 				Text::makeChatcmd('/tell <myname> points log all', '/tell <myname> points log all').
 				'.</i>';
 		}
-		$msg = $this->text->makeBlob('Your raid points log', $blob, null, $header);
+		$msg = Text::makeBlob('Your raid points log', $blob, null, $header);
 		$context->reply($msg);
 	}
 
@@ -482,7 +479,7 @@ class RaidPointsController extends ModuleInstance {
 				Text::makeChatcmd("/tell <myname> {$context->message} all", "/tell <myname> {$context->message} all").
 				'.</i>';
 		}
-		$msg = $this->text->makeBlob("{$char}'s raid points log", $blob, null, $header);
+		$msg = Text::makeBlob("{$char}'s raid points log", $blob, null, $header);
 		$context->reply($msg);
 	}
 
@@ -694,7 +691,7 @@ class RaidPointsController extends ModuleInstance {
 				"<tab>Log: <highlight>{$reward->reason}<end>\n".
 				"<tab>ID: <highlight>{$reward->id}<end> [{$remCmd}]\n\n";
 		}
-		$msg = $this->text->makeBlob('Raid rewards (' . count($rewards). ')', $blob);
+		$msg = Text::makeBlob('Raid rewards (' . count($rewards). ')', $blob);
 		$context->reply($msg);
 	}
 

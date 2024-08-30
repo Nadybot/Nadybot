@@ -540,7 +540,6 @@ class Nadybot {
 	 * @param ?string                 $group        Name of the private group to send message into or null for the bot's own
 	 */
 	public function sendPrivate(string|iterable $message, bool $disableRelay=false, ?string $group=null, bool $addDefaultColor=true): void {
-		// for when $text->makeBlob generates several pages
 		if (is_iterable($message)) {
 			foreach ($message as $page) {
 				$this->sendPrivate($page, $disableRelay, $group);
@@ -602,7 +601,6 @@ class Nadybot {
 			return;
 		}
 
-		// for when $text->makeBlob generates several pages
 		if (is_iterable($message)) {
 			foreach ($message as $page) {
 				$this->sendGuild($page, $disableRelay, $priority);
@@ -686,7 +684,7 @@ class Nadybot {
 			$this->sendMassTell($message, $character, $priority, $formatMessage);
 			return;
 		}
-		// for when $text->makeBlob generates several pages
+		// for when $text generates several pages
 		if (is_iterable($message)) {
 			foreach ($message as $page) {
 				$this->sendTell($page, $character, $priority, $formatMessage);
@@ -781,7 +779,6 @@ class Nadybot {
 			]);
 			return;
 		}
-		// for when $text->makeBlob generates several pages
 		if (is_iterable($message)) {
 			foreach ($message as $page) {
 				$this->sendPublic($page, $channel, $priority);

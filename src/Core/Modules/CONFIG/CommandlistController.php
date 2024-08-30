@@ -26,9 +26,6 @@ class CommandlistController extends ModuleInstance {
 	private AccessManager $accessManager;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private CommandManager $commandManager;
 
 	/** Show a list of all commands, optionally only for the given access level */
@@ -83,7 +80,7 @@ class CommandlistController extends ModuleInstance {
 			$lines []= "{$links}  [" . implode('|', $status) . "] <highlight>{$cmd->cmd}<end>: {$cmd->description}";
 		}
 
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Command List (' . $cmds->count() . ')',
 			implode("\n<pagebreak>", $lines)
 		);

@@ -26,9 +26,6 @@ use Nadybot\Modules\NANO_MODULE\Nano;
 ]
 class DiscController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Setup]
@@ -134,7 +131,7 @@ class DiscController extends ModuleInstance {
 			$text = Text::makeChatcmd($disc->disc_name, '/tell <myname> disc '.$disc->disc_name);
 			$blob []= $text;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			count($blob). ' matches matching your search',
 			implode("\n<pagebreak>", $blob),
 			'Multiple matches, please choose one'

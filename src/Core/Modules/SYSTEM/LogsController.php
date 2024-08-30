@@ -78,9 +78,6 @@ class LogsController extends ModuleInstance {
 	private BotConfig $config;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Filesystem $fs;
 
 	/** View a list of log files */
@@ -125,7 +122,7 @@ class LogsController extends ModuleInstance {
 			$blob .= "{$fileLink} [{$errorLink}] [{$chatLink}]\n";
 		}
 
-		$msg = $this->text->makeBlob('Log Files (' . count($files) . ')', $blob);
+		$msg = Text::makeBlob('Log Files (' . count($files) . ')', $blob);
 		$context->reply($msg);
 	}
 
@@ -201,7 +198,7 @@ class LogsController extends ModuleInstance {
 				if (isset($search)) {
 					$contents = "Search: <highlight>{$search}<end>\n\n" . $contents;
 				}
-				$msg = $this->text->makeBlob($file(), $contents);
+				$msg = Text::makeBlob($file(), $contents);
 			}
 		} catch (Exception $e) {
 			$msg = 'Error: ' . $e->getMessage();
@@ -230,7 +227,7 @@ class LogsController extends ModuleInstance {
 		foreach ($names as $name => $logLevel) {
 			$blob .= "\n<tab>- {$name}: <highlight>{$logLevel}<end>";
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Configured loggers (' . count($names) . ')',
 			$blob
 		);
@@ -262,12 +259,9 @@ class LogsController extends ModuleInstance {
 		foreach ($names as $name => $changes) {
 			$blob .= "\n<tab>- {$name}: <highlight>{$changes[0]} -> {$changes[1]}<end>";
 		}
-		$msg = Text::blobWrap(
-			'Changed ',
-			$this->text->makeBlob(
-				"{$numChanged} " . Text::pluralize('logger', $numChanged),
-				$blob
-			)
+		$msg = 'Changed ' . Text::makeBlob(
+			"{$numChanged} " . Text::pluralize('logger', $numChanged),
+			$blob
 		);
 		$context->reply($msg);
 	}
@@ -303,14 +297,12 @@ class LogsController extends ModuleInstance {
 		foreach ($names as $name => $changes) {
 			$blob .= "\n<tab>- {$name}: <highlight>{$changes[0]} -> {$changes[1]}<end>";
 		}
-		$msg = Text::blobWrap(
-			'Changed ',
-			$this->text->makeBlob(
-				"{$numChanged} " . Text::pluralize('logger', $numChanged),
-				$blob
-			),
-			($mask() !== '*') ? " matching <highlight>'{$mask}'<end>." : ''
+		$msg = Text::makeBlob(
+			"{$numChanged} " . Text::pluralize('logger', $numChanged),
+			$blob
 		);
+		$msg = 'Changed ' . $msg .
+			(($mask() !== '*') ? " matching <highlight>'{$mask}'<end>." : '');
 		$context->reply($msg);
 	}
 

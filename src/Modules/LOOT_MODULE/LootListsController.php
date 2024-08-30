@@ -161,9 +161,6 @@ class LootListsController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private LootController $lootController;
 
 	#[NCA\Inject]
@@ -220,7 +217,7 @@ class LootListsController extends ModuleInstance {
 		$blob .= $this->findRaidLoot('Albtraum', 'Samples', $context);
 		$blob .= $this->findRaidLoot('Albtraum', 'Rings and Preservation Units', $context);
 		$blob .= $this->findRaidLoot('Albtraum', 'Pocket Boss Crystals', $context);
-		$msg = $this->text->makeBlob('Albtraum Loot', $blob);
+		$msg = Text::makeBlob('Albtraum Loot', $blob);
 		$context->reply($msg);
 	}
 
@@ -234,7 +231,7 @@ class LootListsController extends ModuleInstance {
 	public function db1Command(CmdContext $context): void {
 		$blob = $this->findRaidLoot('DustBrigade', 'Armor', $context);
 		$blob .= $this->findRaidLoot('DustBrigade', 'DB1', $context);
-		$msg = $this->text->makeBlob('DB1 Loot', $blob);
+		$msg = Text::makeBlob('DB1 Loot', $blob);
 		$context->reply($msg);
 	}
 
@@ -248,7 +245,7 @@ class LootListsController extends ModuleInstance {
 	public function db2Command(CmdContext $context): void {
 		$blob = $this->findRaidLoot('DustBrigade', 'Armor', $context);
 		$blob .= $this->findRaidLoot('DustBrigade', 'DB2', $context);
-		$msg = $this->text->makeBlob('DB2 Loot', $blob);
+		$msg = Text::makeBlob('DB2 Loot', $blob);
 		$context->reply($msg);
 	}
 
@@ -261,7 +258,7 @@ class LootListsController extends ModuleInstance {
 	#[NCA\Help\Group('loot-db')]
 	public function db3Command(CmdContext $context): void {
 		$blob = $this->findRaidLoot('DustBrigade', 'DB3', $context);
-		$msg = $this->text->makeBlob('DB3 Loot', $blob);
+		$msg = Text::makeBlob('DB3 Loot', $blob);
 		$context->reply($msg);
 	}
 
@@ -274,7 +271,7 @@ class LootListsController extends ModuleInstance {
 		$blob .= $this->findRaidLoot($raid, 'NCU', $context);
 		$blob .= $this->findRaidLoot($raid, 'Weapons', $context);
 		$blob .= $this->findRaidLoot($raid, 'Viralbots', $context);
-		$msg = $this->text->makeBlob("{$raid} Loot", $blob);
+		$msg = Text::makeBlob("{$raid} Loot", $blob);
 		$context->reply($msg);
 	}
 
@@ -405,7 +402,7 @@ class LootListsController extends ModuleInstance {
 		$list .= "<tab><tab>     - {$itemlink['SKR3']}\n";
 		$list .= "<tab><tab>     - {$itemlink['ASC']}\n\n";
 
-		$msg = $this->text->makeBlob("Loot table for sector {$sector}", $list);
+		$msg = Text::makeBlob("Loot table for sector {$sector}", $list);
 
 		$context->reply($msg);
 	}
@@ -458,7 +455,7 @@ class LootListsController extends ModuleInstance {
 		$list .= "<tab><tab>     - {$itemlink['AKC13']}\n";
 		$list .= "<tab><tab>     - {$itemlink['AKC5']}\n\n";
 
-		$msg = $this->text->makeBlob("Loot table for sector {$sector}", $list);
+		$msg = Text::makeBlob("Loot table for sector {$sector}", $list);
 
 		$context->reply($msg);
 	}
@@ -512,7 +509,7 @@ class LootListsController extends ModuleInstance {
 		$list .= "<tab><tab>     - {$itemlink['SSSS']}\n";
 		$list .= "<tab><tab>     - {$itemlink['EPP']}\n\n";
 
-		$msg = $this->text->makeBlob("Loot table for sector {$sector}", $list);
+		$msg = Text::makeBlob("Loot table for sector {$sector}", $list);
 
 		$context->reply($msg);
 	}
@@ -527,7 +524,7 @@ class LootListsController extends ModuleInstance {
 	): void {
 		$key = 'Sector 42 ' . ucfirst(strtolower($side));
 		$blob = $this->findRaidLoot('APF', $key, $context);
-		$msg = $this->text->makeBlob("{$key} Loot", $blob);
+		$msg = Text::makeBlob("{$key} Loot", $blob);
 		$context->reply($msg);
 	}
 
@@ -539,7 +536,7 @@ class LootListsController extends ModuleInstance {
 		$blob .= $this->findRaidLoot('Pande', 'Beast Weapons', $context);
 		$blob .= $this->findRaidLoot('Pande', 'Stars', $context);
 		$blob .= $this->findRaidLoot('Pande', 'Shadowbreeds', $context);
-		$msg = $this->text->makeBlob('Beast Loot', $blob);
+		$msg = Text::makeBlob('Beast Loot', $blob);
 		$context->reply($msg);
 	}
 
@@ -576,7 +573,7 @@ class LootListsController extends ModuleInstance {
 			return null;
 		}
 		$blob .= "\n\nPande Loot By Marinerecon (RK2)";
-		return $this->text->makeBlob("{$raid} \"{$category}\" Loot", $blob);
+		return Text::makeBlob("{$raid} \"{$category}\" Loot", $blob);
 	}
 
 	/**
@@ -616,7 +613,7 @@ class LootListsController extends ModuleInstance {
 
 		$list .= "\n\nPandemonium Loot By Marinerecon (RK2)";
 
-		$msg = $this->text->makeBlob('Pandemonium Loot', $list);
+		$msg = Text::makeBlob('Pandemonium Loot', $list);
 		$context->reply($msg);
 	}
 
@@ -631,7 +628,7 @@ class LootListsController extends ModuleInstance {
 		$blob = $this->findRaidLoot('Vortexx', 'General', $context);
 		$blob .= $this->findRaidLoot('Vortexx', 'Symbiants', $context);
 		$blob .= $this->findRaidLoot('Vortexx', 'Spirits', $context);
-		$msg = $this->text->makeBlob('Vortexx loot', $blob);
+		$msg = Text::makeBlob('Vortexx loot', $blob);
 		$context->reply($msg);
 	}
 
@@ -646,7 +643,7 @@ class LootListsController extends ModuleInstance {
 		$blob = $this->findRaidLoot('Mitaar', 'General', $context);
 		$blob .= $this->findRaidLoot('Mitaar', 'Symbiants', $context);
 		$blob .= $this->findRaidLoot('Mitaar', 'Spirits', $context);
-		$msg = $this->text->makeBlob('Mitaar loot', $blob);
+		$msg = Text::makeBlob('Mitaar loot', $blob);
 		$context->reply($msg);
 	}
 
@@ -662,7 +659,7 @@ class LootListsController extends ModuleInstance {
 		$blob .= $this->findRaidLoot('12Man', 'Symbiants', $context);
 		$blob .= $this->findRaidLoot('12Man', 'Spirits', $context);
 		$blob .= $this->findRaidLoot('12Man', 'Profession Gems', $context);
-		$msg = $this->text->makeBlob('12-Man loot', $blob);
+		$msg = Text::makeBlob('12-Man loot', $blob);
 		$context->reply($msg);
 	}
 
@@ -672,7 +669,7 @@ class LootListsController extends ModuleInstance {
 		$blob = $this->findRaidLoot('Pyramid of Home', 'General', $context);
 		$blob .= $this->findRaidLoot('Pyramid of Home', 'HUD/NCU', $context);
 		$blob .= $this->findRaidLoot('Pyramid of Home', 'Weapons', $context);
-		$msg = $this->text->makeBlob('Pyramid of Home Loot', $blob);
+		$msg = Text::makeBlob('Pyramid of Home Loot', $blob);
 
 		$context->reply($msg);
 	}
@@ -686,7 +683,7 @@ class LootListsController extends ModuleInstance {
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'NCU', $context);
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Weapons', $context);
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Rings', $context);
-		$msg = $this->text->makeBlob('Temple of the Three Winds Loot', $blob);
+		$msg = Text::makeBlob('Temple of the Three Winds Loot', $blob);
 
 		$context->reply($msg);
 	}
@@ -699,7 +696,7 @@ class LootListsController extends ModuleInstance {
 		$blob .= $this->findRaidLoot('Subway', 'Belt', $context);
 		$blob .= $this->findRaidLoot('Subway', 'Rings', $context);
 		$blob .= $this->findRaidLoot('Subway', 'HUD/Utils', $context);
-		$msg = $this->text->makeBlob('Subway Loot', $blob);
+		$msg = Text::makeBlob('Subway Loot', $blob);
 
 		$context->reply($msg);
 	}
@@ -728,7 +725,7 @@ class LootListsController extends ModuleInstance {
 			"and cannot be found anywhere else.\n";
 		$blob .= Safe::pregReplace("/(<header2>.*?<end>\n)/", "<pagebreak>$1\n{$huph}", $this->findRaidLoot('Halloween', 'Harvesting Uncle Pumpkin-Head', $context));
 		$blob .= $this->findRaidLoot('Halloween', 'Solo Instance', $context);
-		$msg = $this->text->makeBlob('Halloween loot', $blob);
+		$msg = Text::makeBlob('Halloween loot', $blob);
 		$context->reply($msg);
 	}
 
@@ -845,7 +842,7 @@ class LootListsController extends ModuleInstance {
 		$list .= "<tab>- Chest\n";
 		$list .= "<tab>- Left Wrist\n";
 		$list .= "<tab>- Left Hand\n";
-		$msg = $this->text->makeBlob('LoX Hub Loot', $list);
+		$msg = Text::makeBlob('LoX Hub Loot', $list);
 		$context->reply($msg);
 	}
 

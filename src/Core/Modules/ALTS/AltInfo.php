@@ -33,9 +33,6 @@ class AltInfo {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/**
 	 * @param string                            $main The nickname of this character
 	 * @param array<string,AltValidationStatus> $alts The list of alts for this character
@@ -305,7 +302,7 @@ class AltInfo {
 
 		$nick = $this->getDisplayNick();
 		$altOwner = $nick ?? $this->main;
-		$msg = $this->text->makeBlob("Alts of {$altOwner} ({$count})", $blob);
+		$msg = Text::makeBlob("Alts of {$altOwner} ({$count})", $blob);
 
 		return $msg;
 	}

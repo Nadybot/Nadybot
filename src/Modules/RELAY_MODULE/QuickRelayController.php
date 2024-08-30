@@ -24,9 +24,6 @@ use Nadybot\Core\{
 	)
 ]
 class QuickRelayController extends ModuleInstance {
-	#[NCA\Inject]
-	private Text $text;
-
 	/** List all supported quick relay types */
 	#[NCA\HandlesCommand('quickrelay')]
 	public function quickrelayListCommand(CmdContext $context): void {
@@ -74,7 +71,7 @@ class QuickRelayController extends ModuleInstance {
 			$blobs []= '<header2>' . ucfirst($type) . " [{$runLink}]<end>\n".
 				'<tab>' . implode("\n<tab>", explode("\n", $description));
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			count($types) . ' relay-types found',
 			implode("\n\n", $blobs)
 		);
@@ -96,7 +93,7 @@ class QuickRelayController extends ModuleInstance {
 			$this->getRouteInformation($type, true).
 			$this->getDisclaimer($type);
 		$msg = "Instructions to setup the relay \"{$type}\"";
-		$msg = $this->text->makeBlob($msg, $blob);
+		$msg = Text::makeBlob($msg, $blob);
 		$context->reply($msg);
 	}
 
@@ -113,7 +110,7 @@ class QuickRelayController extends ModuleInstance {
 			$this->getRouteInformation('nady', true).
 			$this->getDisclaimer('nady');
 		$msg = 'Instructions to setup the relay "nady"';
-		$msg = $this->text->makeBlob($msg, $blob);
+		$msg = Text::makeBlob($msg, $blob);
 		$context->reply($msg);
 	}
 
@@ -130,7 +127,7 @@ class QuickRelayController extends ModuleInstance {
 			$this->getRouteInformation('alliance').
 			$this->getDisclaimer('alliance');
 		$msg = 'Instructions to setup the relay "alliance"';
-		$msg = $this->text->makeBlob($msg, $blob);
+		$msg = Text::makeBlob($msg, $blob);
 		$context->reply($msg);
 	}
 
@@ -147,7 +144,7 @@ class QuickRelayController extends ModuleInstance {
 			$this->getRouteInformation('compat').
 			$this->getDisclaimer('compat');
 		$msg = 'Instructions to setup the relay "compat"';
-		$msg = $this->text->makeBlob($msg, $blob);
+		$msg = Text::makeBlob($msg, $blob);
 		$context->reply($msg);
 	}
 

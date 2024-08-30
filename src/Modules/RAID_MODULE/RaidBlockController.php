@@ -56,9 +56,6 @@ class RaidBlockController extends ModuleInstance {
 	#[NCA\Inject]
 	private AltsController $altsController;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->loadBlocks();
@@ -204,7 +201,7 @@ class RaidBlockController extends ModuleInstance {
 			}
 			$blob .= " (by <highlight>{$block->blocked_by}<end>: {$block->reason})";
 		}
-		$context->reply($this->text->makeBlob($msg, $blob));
+		$context->reply(Text::makeBlob($msg, $blob));
 	}
 
 	/** Lift all or just one raid block from a character */

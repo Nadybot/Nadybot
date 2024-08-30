@@ -77,9 +77,6 @@ class MassMsgController extends ModuleInstance {
 	public ?DateTimeImmutable $lastMessage;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private AccessManager $accessManager;
 
 	#[NCA\Inject]
@@ -120,7 +117,7 @@ class MassMsgController extends ModuleInstance {
 			"<tab>Change your preferences:\n\n".
 			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Mass messages\n".
 			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Mass invites\n";
-		$prefLink = $this->text->makeBlob('Preferences', $blob, 'Change your mass message preferences');
+		$prefLink = Text::makeBlob('Preferences', $blob, 'Change your mass message preferences');
 
 		return "[{$prefLink}]";
 	}
@@ -369,7 +366,7 @@ class MassMsgController extends ModuleInstance {
 		if (count($result) === 0) {
 			return $msg;
 		}
-		$msg .= ' :: ' . $this->text->makeBlob('Messaging details', $blob);
+		$msg .= ' :: ' . Text::makeBlob('Messaging details', $blob);
 		return $msg;
 	}
 
@@ -395,7 +392,7 @@ class MassMsgController extends ModuleInstance {
 		$blob = "<header2>Current preferences<end>\n".
 			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Mass messages\n".
 			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Mass invites\n";
-		$prefLink = $this->text->makeBlob('Your current mass message preferences', $blob);
+		$prefLink = Text::makeBlob('Your current mass message preferences', $blob);
 
 		$context->reply($prefLink);
 	}

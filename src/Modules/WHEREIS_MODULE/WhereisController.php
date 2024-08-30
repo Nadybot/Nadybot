@@ -27,9 +27,6 @@ use Nadybot\Core\{
 ]
 class WhereisController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Setup]
@@ -79,7 +76,7 @@ class WhereisController extends ModuleInstance {
 		}
 		$blob = $lines->join("\n\n");
 
-		$msg = $this->text->makeBlob("Matches for \"{$search}\" ({$count})", $blob);
+		$msg = Text::makeBlob("Matches for \"{$search}\" ({$count})", $blob);
 		$context->reply($msg);
 	}
 }

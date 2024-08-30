@@ -24,16 +24,13 @@ use Nadybot\Core\{
 ]
 class GauntletTradeController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Filesystem $fs;
 
 	/** Show the Bastion tradeskill process for a single piece */
 	#[NCA\HandlesCommand('gautrade')]
 	public function gautradeCommand(CmdContext $context): void {
 		$info = $this->fs->read(__DIR__ . '/gautrade.html');
-		$msg = $this->text->makeBlob('Gauntlet Tradeskills', $info);
+		$msg = Text::makeBlob('Gauntlet Tradeskills', $info);
 		$context->reply($msg);
 	}
 }

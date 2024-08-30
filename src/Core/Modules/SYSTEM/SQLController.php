@@ -35,9 +35,6 @@ class SQLController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/** Execute a non-select SQL command */
 	#[NCA\HandlesCommand('executesql')]
 	#[NCA\Help\Group('sql')]
@@ -59,7 +56,7 @@ class SQLController extends ModuleInstance {
 				$msg = 'Query run successfully, but no rows affected.';
 			}
 		} catch (SQLException $e) {
-			$msg = $this->text->makeBlob('SQL Error', $e->getMessage());
+			$msg = Text::makeBlob('SQL Error', $e->getMessage());
 		}
 		$context->reply($msg);
 	}
@@ -92,10 +89,10 @@ class SQLController extends ModuleInstance {
 			if (!count($data)) {
 				$msg = "Results ({$count})";
 			} else {
-				$msg = $this->text->makeBlob("Results ({$count})", $blob);
+				$msg = Text::makeBlob("Results ({$count})", $blob);
 			}
 		} catch (SQLException $e) {
-			$msg = $this->text->makeBlob('SQL Error', $e->getMessage());
+			$msg = Text::makeBlob('SQL Error', $e->getMessage());
 		}
 		$context->reply($msg);
 	}

@@ -63,9 +63,6 @@ class OrglistController extends ModuleInstance {
 	private GuildManager $guildManager;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private PlayerManager $playerManager;
 
 	#[NCA\Inject]
@@ -105,7 +102,7 @@ class OrglistController extends ModuleInstance {
 				return;
 			} elseif ($count !== 1) {
 				$blob = $this->findOrgController->formatResults($orgs);
-				$msg = $this->text->makeBlob("Org Search Results for '{$search}' ({$count})", $blob);
+				$msg = Text::makeBlob("Org Search Results for '{$search}' ({$count})", $blob);
 				$context->reply($msg);
 				return;
 			}
@@ -240,7 +237,7 @@ class OrglistController extends ModuleInstance {
 		$totalTime = round((microtime(true) - $startTime), 1);
 		$blob .= "\n\n<i>Lookup took {$totalTime} seconds.</i>";
 
-		return $this->text->makeBlob("Orglist for '{$org->orgname}' ({$totalOnline} / {$totalCount})", $blob);
+		return Text::makeBlob("Orglist for '{$org->orgname}' ({$totalOnline} / {$totalCount})", $blob);
 	}
 
 	/** Render the online/offline list for a single rank */

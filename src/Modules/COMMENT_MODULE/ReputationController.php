@@ -29,9 +29,6 @@ class ReputationController extends ModuleInstance {
 	public const CAT_REPUTATION = 'reputation';
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	#[NCA\Inject]
@@ -96,7 +93,7 @@ class ReputationController extends ModuleInstance {
 			}
 			$blobs []= $blob;
 		}
-		$msg = $this->text->makeBlob("Reputation List ({$count})", implode("\n\n", $blobs));
+		$msg = Text::makeBlob("Reputation List ({$count})", implode("\n\n", $blobs));
 		$context->reply($msg);
 	}
 
@@ -176,7 +173,7 @@ class ReputationController extends ModuleInstance {
 			$blob .= "\n" . Text::makeChatcmd('Show all comments', "/tell <myname> reputation {$name} all");
 		}
 
-		$msg = $this->text->makeBlob("Reputation for {$name} (+{$numPositive} -{$numNegative})", $blob);
+		$msg = Text::makeBlob("Reputation for {$name} (+{$numPositive} -{$numNegative})", $blob);
 
 		$context->reply($msg);
 	}

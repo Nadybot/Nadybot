@@ -37,9 +37,6 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 ]
 class PocketbossController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Inject]
@@ -61,14 +58,14 @@ class PocketbossController extends ModuleInstance {
 		} elseif ($numrows === 1) {
 			$name = $data[0]->pb;
 			$blob .= $this->singlePbBlob($name);
-			$msg = $this->text->makeBlob("Remains of {$name}", $blob);
+			$msg = Text::makeBlob("Remains of {$name}", $blob);
 		} else {
 			$blob = '';
 			foreach ($data as $row) {
 				$pbLink = Text::makeChatcmd($row->pb, "/tell <myname> pocketboss {$row->pb}");
 				$blob .= $pbLink . "\n";
 			}
-			$msg = $this->text->makeBlob("Search results for {$search} ({$numrows})", $blob);
+			$msg = Text::makeBlob("Search results for {$search} ({$numrows})", $blob);
 		}
 		$context->reply($msg);
 	}
@@ -304,7 +301,7 @@ class PocketbossController extends ModuleInstance {
 					})->join(', ', ', and ');
 				return $blob;
 			})->join("\n\n");
-		$msg = $this->text->makeBlob("Symbiant Search Results ({$numrows})", $blob);
+		$msg = Text::makeBlob("Symbiant Search Results ({$numrows})", $blob);
 		$context->reply($msg);
 	}
 }

@@ -63,9 +63,6 @@ class ProfileController extends ModuleInstance {
 	private SettingManager $settingManager;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private CommandManager $commandManager;
 
 	#[NCA\Inject]
@@ -152,7 +149,7 @@ class ProfileController extends ModuleInstance {
 
 		if ($linkContents) {
 			$linkContents .= "\n\n<orange>Warning: Running a profile script will change your configuration.  Proceed only if you understand the consequences.<end>";
-			$msg = $this->text->makeBlob('Profiles (' . count($profileList) . ')', $linkContents);
+			$msg = Text::makeBlob('Profiles (' . count($profileList) . ')', $linkContents);
 		} else {
 			$msg = 'No profiles available.';
 		}
@@ -178,7 +175,7 @@ class ProfileController extends ModuleInstance {
 		$blob = Safe::pregReplace('/^# (.+)$/m', '<header2>$1<end>', $blob);
 
 		/** @var string $blob */
-		$msg = $this->text->makeBlob("Profile {$profileName}", $blob);
+		$msg = Text::makeBlob("Profile {$profileName}", $blob);
 		$context->reply($msg);
 	}
 
@@ -337,7 +334,7 @@ class ProfileController extends ModuleInstance {
 		if ($output === null) {
 			$msg = "There was an error loading the profile <highlight>{$profileName}<end>.";
 		} else {
-			$msg = $this->text->makeBlob("Profile Results: {$profileName}", $output);
+			$msg = Text::makeBlob("Profile Results: {$profileName}", $output);
 		}
 		$context->reply($msg);
 	}

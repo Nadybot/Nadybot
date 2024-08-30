@@ -125,9 +125,6 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/** @todo: Add support for the raid levels */
 	#[NCA\Setup]
 	public function setup(): void {
@@ -418,7 +415,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		if (count($adminLines)) {
 			$title = 'All leaders and admins';
 		}
-		$link = $this->text->makeBlob($title, $blob);
+		$link = Text::makeBlob($title, $blob);
 		$context->reply($link);
 	}
 

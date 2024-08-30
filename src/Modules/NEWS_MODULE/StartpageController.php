@@ -69,9 +69,6 @@ class StartpageController extends ModuleInstance {
 	protected array $tiles = [];
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Nadybot $chatBot;
 
 	#[NCA\Inject]
@@ -245,7 +242,7 @@ class StartpageController extends ModuleInstance {
 			return;
 		}
 		$blob = implode("\n\n", $dataParts);
-		$msg = $this->text->makeBlob($this->getStartpageString($sender), $blob);
+		$msg = Text::makeBlob($this->getStartpageString($sender), $blob);
 		$sendto->reply($msg);
 	}
 
@@ -292,7 +289,7 @@ class StartpageController extends ModuleInstance {
 			return;
 		}
 		$blob = implode("\n", $blobLines);
-		$msg = $this->text->makeBlob('Pick a tile to insert', $blob);
+		$msg = Text::makeBlob('Pick a tile to insert', $blob);
 		$context->reply($msg);
 	}
 
@@ -501,9 +498,9 @@ class StartpageController extends ModuleInstance {
 		}
 		$blob = $this->renderLayout($tiles);
 		if ($changed) {
-			$msg = $this->text->makeBlob('New startpage layout', $blob);
+			$msg = Text::makeBlob('New startpage layout', $blob);
 		} else {
-			$msg = $this->text->makeBlob('Current startpage layout', $blob);
+			$msg = Text::makeBlob('Current startpage layout', $blob);
 		}
 		$context->reply($msg);
 	}

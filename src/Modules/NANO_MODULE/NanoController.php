@@ -93,9 +93,6 @@ class NanoController extends ModuleInstance {
 	#[NCA\Inject]
 	private CommandAlias $commandAlias;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/nanos.csv');
@@ -163,16 +160,14 @@ class NanoController extends ModuleInstance {
 			$blob .= "<tab>{$info}\n";
 		}
 		$blob .= $this->getFooter();
-		$msg = $this->text->makeBlob("Nano Search Results ({$count})", $blob);
+		$msg = Text::makeBlob("Nano Search Results ({$count})", $blob);
 		if (count($data) === 1) {
 			assert(isset($info, $gmiLink));
 
+			$popup = Text::makeBlob('details', $blob);
+
 			/** @psalm-suppress PossiblyInvalidOperand */
-			$msg = Text::blobWrap(
-				str_replace($gmiLink, '', $info) . ' [',
-				$this->text->makeBlob('details', $blob),
-				']'
-			);
+			$msg = str_replace($gmiLink, '', $info) . " [{$popup}]";
 		}
 
 		$context->reply($msg);
@@ -216,7 +211,7 @@ class NanoController extends ModuleInstance {
 			$blob .= "\n";
 		}
 		$blob .= $this->getFooter();
-		$msg = $this->text->makeBlob('Nanolines', $blob);
+		$msg = Text::makeBlob('Nanolines', $blob);
 
 		$context->reply($msg);
 	}
@@ -282,7 +277,7 @@ class NanoController extends ModuleInstance {
 			) . " ({$count}) \n";
 		}
 		$blob .= $this->getFooter();
-		$msg = $this->text->makeBlob('Nano Locations', $blob);
+		$msg = Text::makeBlob('Nano Locations', $blob);
 		$context->reply($msg);
 	}
 
@@ -325,7 +320,7 @@ class NanoController extends ModuleInstance {
 			$blob .= "\n";
 		}
 
-		$msg = $this->text->makeBlob("Nanos for Location '{$location}' ({$count})", $blob);
+		$msg = Text::makeBlob("Nanos for Location '{$location}' ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -496,7 +491,7 @@ class NanoController extends ModuleInstance {
 				"/tell <myname> {$cmdName} long {$profession->short()} {$level}",
 			) . "\n\n{$blob}";
 		}
-		$msg = $this->text->makeBlob("Best available nanos for a level {$level} {$froobPrefix}{$profession->value} ({$count})", $blob);
+		$msg = Text::makeBlob("Best available nanos for a level {$level} {$froobPrefix}{$profession->value} ({$count})", $blob);
 
 		$context->reply($msg);
 	}
@@ -615,9 +610,9 @@ class NanoController extends ModuleInstance {
 			$blob .= '<tab>' . Text::alignNumber($nano->ql, 3) . $gmiLink . " [{$crystalLink}] {$nanoLink} ({$nano->location})\n";
 		}
 		$blob .= $this->getFooter();
-		$msg = $this->text->makeBlob("All {$data[0]->strain} Nanos", $blob);
+		$msg = Text::makeBlob("All {$data[0]->strain} Nanos", $blob);
 		if ($prof !== null) {
-			$msg = $this->text->makeBlob("All {$data[0]->strain} Nanos for {$prof}", $blob);
+			$msg = Text::makeBlob("All {$data[0]->strain} Nanos for {$prof}", $blob);
 		}
 
 		$context->reply($msg);
@@ -670,7 +665,7 @@ class NanoController extends ModuleInstance {
 			$blob .= "\n";
 		}
 		$blob .= $this->getFooter();
-		$msg = $this->text->makeBlob("{$profession} Nanolines", $blob);
+		$msg = Text::makeBlob("{$profession} Nanolines", $blob);
 
 		$context->reply($msg);
 	}

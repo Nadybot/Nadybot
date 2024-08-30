@@ -83,9 +83,6 @@ class DevController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, 'querysql select', 'select');
@@ -182,9 +179,9 @@ class DevController extends ModuleInstance {
 			$blob .= "\n\n";
 		}
 		if (isset($cmd)) {
-			$msg = $this->text->makeBlob("Regexes for {$cmd} ({$count})", $blob);
+			$msg = Text::makeBlob("Regexes for {$cmd} ({$count})", $blob);
 		} else {
-			$msg = $this->text->makeBlob("Regexes for commands ({$count})", $blob);
+			$msg = Text::makeBlob("Regexes for commands ({$count})", $blob);
 		}
 		$context->reply($msg);
 	}
@@ -247,7 +244,7 @@ class DevController extends ModuleInstance {
 			$pos = $count-$i;
 			$blob .= "\n<tab>" . Text::alignNumber($pos, 2, 'highlight') . ". {$lines[$i]}";
 		}
-		$msg = $this->text->makeBlob("Current Stacktrace ({$count})", $blob);
+		$msg = Text::makeBlob("Current Stacktrace ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -301,7 +298,7 @@ class DevController extends ModuleInstance {
 			}
 		}
 
-		$msg = $this->text->makeBlob("Command Handlers for '{$cmd}'", $blob);
+		$msg = Text::makeBlob("Command Handlers for '{$cmd}'", $blob);
 
 		$context->reply($msg);
 	}
@@ -319,7 +316,7 @@ class DevController extends ModuleInstance {
 
 		for ($i = 0; $i < $numBlobs; $i++) {
 			$blob = $this->randString($length);
-			$msg = $this->text->makeBlob("Blob {$i}", $blob);
+			$msg = Text::makeBlob("Blob {$i}", $blob);
 			$context->reply($msg);
 		}
 	}

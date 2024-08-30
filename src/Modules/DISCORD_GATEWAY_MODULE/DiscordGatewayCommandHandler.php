@@ -41,9 +41,6 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private CommandManager $commandManager;
 
 	#[NCA\Inject]
@@ -231,8 +228,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			'['.
 				Text::makeChatcmd('Reject', "/tell <myname> extauth reject {$uid}").
 			']';
-		$msg = $this->text->makeBlob("Request to link your account with {$context->char->name}", $blob);
-		$msg = Text::blobWrap('You have received a ', $msg, '.');
+		$msg = Text::makeBlob("Request to link your account with {$context->char->name}", $blob);
+		$msg = "You have received a {$msg}.";
 		$this->chatBot->sendMassTell($msg, $name);
 
 		$context->reply(

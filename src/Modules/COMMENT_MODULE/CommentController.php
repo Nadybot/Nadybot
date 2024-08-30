@@ -82,9 +82,6 @@ class CommentController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	#[NCA\Setup]
@@ -246,7 +243,7 @@ class CommentController extends ModuleInstance {
 			}
 			$blob .= "\n\n";
 		}
-		$msg = $this->text->makeBlob('Comment categories (' . count($categories) . ')', $blob);
+		$msg = Text::makeBlob('Comment categories (' . count($categories) . ')', $blob);
 		$context->reply($msg);
 	}
 
@@ -463,7 +460,7 @@ class CommentController extends ModuleInstance {
 		$msg = "Comments about {$character}".
 			(isset($category) ? " in category {$category->name}" : '').
 			' (' . count($comments) . ')';
-		$msg = $this->text->makeBlob($msg, $formatted->blob);
+		$msg = Text::makeBlob($msg, $formatted->blob);
 		$context->reply($msg);
 	}
 
@@ -499,7 +496,7 @@ class CommentController extends ModuleInstance {
 		$formatted = $this->formatComments($comments, false, false);
 		$msg = "Comments in {$categoryName} ".
 			'(' . count($comments) . ')';
-		$msg = $this->text->makeBlob($msg, $formatted->blob);
+		$msg = Text::makeBlob($msg, $formatted->blob);
 		$context->reply($msg);
 	}
 

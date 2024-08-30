@@ -23,9 +23,6 @@ use Nadybot\Core\{
 	)
 ]
 class MdbController extends ModuleInstance {
-	#[NCA\Inject]
-	private Text $text;
-
 	/** Get a list of categories from the MDB */
 	#[NCA\HandlesCommand('mdb')]
 	public function mdbCommand(CmdContext $context): void {
@@ -41,7 +38,7 @@ class MdbController extends ModuleInstance {
 			$blob .= Text::makeChatcmd((string)$category->id, '/tell <myname> mdb ' . $category->id) . "\n";
 		}
 
-		$msg = $this->text->makeBlob('MDB Categories', $blob);
+		$msg = Text::makeBlob('MDB Categories', $blob);
 
 		$context->reply($msg);
 	}
@@ -61,7 +58,7 @@ class MdbController extends ModuleInstance {
 			$blob .= Text::makeChatcmd((string)$instance->id, "/tell <myname> mdb {$categoryId} " . $instance->id) . "\n";
 		}
 
-		$msg = $this->text->makeBlob("MDB Instances for Category {$categoryId}", $blob);
+		$msg = Text::makeBlob("MDB Instances for Category {$categoryId}", $blob);
 
 		$context->reply($msg);
 	}

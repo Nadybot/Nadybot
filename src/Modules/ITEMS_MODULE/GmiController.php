@@ -37,9 +37,6 @@ class GmiController extends ModuleInstance {
 	public string $gmiApi = self::EU_GMI_API;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 
 	#[NCA\Inject]
@@ -149,7 +146,7 @@ class GmiController extends ModuleInstance {
 			$context->reply('No yesdrop-items matched your search criteria.');
 			return;
 		}
-		$msg = $this->text->makeBlob("Items matching your search ({$numMatches})", $blob);
+		$msg = Text::makeBlob("Items matching your search ({$numMatches})", $blob);
 		$context->reply($msg);
 	}
 
@@ -203,7 +200,7 @@ class GmiController extends ModuleInstance {
 		} else {
 			$sellers .= "\n<tab>- none -";
 		}
-		return $this->text->makeBlob(
+		return Text::makeBlob(
 			sprintf(
 				'GMI orders for %s (%d buy, %d sell)',
 				$item->getName(),

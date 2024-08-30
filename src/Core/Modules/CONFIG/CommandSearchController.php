@@ -31,9 +31,6 @@ class CommandSearchController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private AccessManager $accessManager;
 
 	/** Search for a command */
@@ -117,9 +114,9 @@ class CommandSearchController extends ModuleInstance {
 			return 'No results found.';
 		}
 		if ($exactMatch) {
-			return $this->text->makeBlob("Command Search Results ({$count})", $blob);
+			return Text::makeBlob("Command Search Results ({$count})", $blob);
 		}
-		return $this->text->makeBlob("Possible Matches ({$count})", $blob);
+		return Text::makeBlob("Possible Matches ({$count})", $blob);
 	}
 
 	/** @return Collection<int,CommandSearchResult> */
