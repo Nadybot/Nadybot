@@ -10,6 +10,7 @@ class Mob {
 	public const T_DREAD = "dreadloch";
 	public const T_UNIQUES = "unique";
 	public const T_LEGCHOPPER = "legchopper";
+	public const T_RECK = "reck";
 
 	public const STATUS_UP = "up";
 	public const STATUS_DOWN = "down";

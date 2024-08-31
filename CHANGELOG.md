@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New command `!death` to track death-counters and get some (hopefully) funny replies
 - Support https://ao.tinkeringidiot.com/ for Discord item links
+- New command `!reck` to show mob-status in The Reck
 
 ### Fixed
 

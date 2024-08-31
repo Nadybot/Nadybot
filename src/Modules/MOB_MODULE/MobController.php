@@ -52,6 +52,11 @@ use Safe\Exceptions\JsonException;
 		description: "Get the status of Jack \"Leg-chopper\" Menendez and his clones",
 		accessLevel: "guest",
 	),
+	NCA\DefineCommand(
+		command: "reck",
+		description: "Get the status of the mobs in The Reck",
+		accessLevel: "guest",
+	),
 ]
 class MobController extends ModuleInstance {
 	public const MOB_API = "https://mobs.aobots.org/api/";
@@ -387,6 +392,27 @@ class MobController extends ModuleInstance {
 	/** Show whether Otacustes, or one of his placeholders are up */
 	public function showOtacustesCommand(CmdContext $context): void {
 		$this->showUniqueCommand($context, "otacustes", "Otacustes");
+	}
+
+	#[
+		HandlesCommand("reck"),
+		NCA\Help\Group("mobs"),
+	]
+	/** Show which mobs in The Reck are up or down */
+	public function showReckCommand(CmdContext $context): void {
+		/** @var Collection<string> */
+		$blobs = (new Collection(array_values($this->mobs[Mob::T_RECK]??[])))
+			->sortBy("name")
+			->map(Closure::fromCallable([$this, "renderMob"]));
+		if ($blobs->isEmpty()) {
+			$context->reply("There is currently no data for any Reck mobs. Maybe the API is down.");
+			return;
+		}
+		$msg = $this->text->makeBlob(
+			"Status of all mobs in The Reck (" . $blobs->count() . ")",
+			$blobs->join("\n\n")
+		);
+		$context->reply($msg);
 	}
 
 	public function showUniqueCommand(CmdContext $context, string $key, string $name): void {
