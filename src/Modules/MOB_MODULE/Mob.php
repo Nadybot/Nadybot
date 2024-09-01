@@ -11,6 +11,7 @@ class Mob {
 	public const T_UNIQUES = "unique";
 	public const T_LEGCHOPPER = "legchopper";
 	public const T_RECK = "reck";
+	public const T_HI = "hi";
 
 	public const STATUS_UP = "up";
 	public const STATUS_DOWN = "down";

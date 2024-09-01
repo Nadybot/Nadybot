@@ -57,6 +57,12 @@ use Safe\Exceptions\JsonException;
 		description: "Get the status of the mobs in The Reck",
 		accessLevel: "guest",
 	),
+	NCA\DefineCommand(
+		command: "hollowisland",
+		alias: ["hollow", "hi"],
+		description: "Get the status of Hollow Island",
+		accessLevel: "guest",
+	),
 ]
 class MobController extends ModuleInstance {
 	public const MOB_API = "https://mobs.aobots.org/api/";
@@ -415,6 +421,105 @@ class MobController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	#[
+		HandlesCommand("hollowisland"),
+		NCA\Help\Group("mobs"),
+	]
+	/** Show the current status of Hollow Island */
+	public function showHollowIslandCommand(CmdContext $context): void {
+		/** @var Collection<Mob> */
+		$mobs = new Collection(array_values($this->mobs[Mob::T_HI]??[]));
+		if ($mobs->isEmpty()) {
+			$context->reply("There is currently no data for Hollow Island. Maybe the API is down.");
+			return;
+		}
+
+		/**
+		 * @var array<string,Mob>
+		 * @psalm-var non-empty-array<string,Mob>
+		 */
+		$mobs = $mobs->keyBy('key')->toArray();
+
+		$sapling = $mobs['sapling'] ?? null;
+		$sapKilled = $sapling?->last_killed;
+		$nextSapling = null;
+		if (isset($sapling) && isset($sapKilled)) {
+			$nextSapling = ($sapKilled + ($sapling->respawn_timer ?? 7 * 3600)) - time();
+			if ($nextSapling > 0) {
+				$nextSapling = "in " . $this->util->unixtimeToReadable($nextSapling);
+			} else {
+				$nextSapling = "any moment now";
+			}
+		}
+
+		if (isset($sapling) && $sapling->status === Mob::STATUS_UP) {
+			$state = "{$sapling->name}: <on>UP<end>";
+		} elseif (
+			isset($mobs['weed'])
+			&& in_array($mobs['weed']->status, [Mob::STATUS_UP, Mob::STATUS_ATTACKED], true)
+		) {
+			$state = "Weed: " . $this->renderMobStatus($mobs['weed']);
+		} else {
+			for ($i = 10; $i >= 1; $i--) {
+				if (isset($mobs["sapling-{$i}"]) && $mobs["sapling-{$i}"]->status === Mob::STATUS_UP) {
+					$state = "Wave {$i} <yellow>RUNNING<end>";
+					break;
+				}
+			}
+			if (!isset($state)) {
+				$mob = $this->getMostRecentMobAction(array_values($mobs));
+
+				if (!isset($mob) || $mob->status === Mob::STATUS_UNKNOWN) {
+					$state = "<unknown>UNKNOWN<end>";
+				} elseif ($mob->status === Mob::STATUS_OUT_OF_RANGE) {
+					$state = "<off>COOLDOWN<end>";
+					if (isset($mob->last_seen)) {
+						if (isset($nextSapling)) {
+							$state .= " (Sapling respawns {$nextSapling})";
+						} else {
+							$state = "{$state} (wiped at Weed ".
+								$this->util->unixtimeToReadable(time() - $mob->last_seen).
+								" ago)";
+						}
+					}
+				} else {
+					$state = "<off>COOLDOWN<end>";
+					if ($mob->key === 'weed' && isset($mob->last_killed)) {
+						if (isset($nextSapling)) {
+							$state = "{$state} (Sapling respawns {$nextSapling})";
+						} else {
+							$state = "{$state} (Weed killed ".
+								$this->util->unixtimeToReadable(time() - $mob->last_killed).
+								" ago)";
+						}
+					} elseif (isset($mob->last_killed)) {
+						$extra = "";
+						if (str_starts_with($mob->key, 'sapling-')) {
+							$extra = " at wave " . substr($mob->key, 8) . ',';
+						}
+						if (isset($nextSapling)) {
+							$state = "{$state} (Sapling respawns {$nextSapling})";
+						} else {
+							$state = "{$state} (abandoned{$extra} ".
+								$this->util->unixtimeToReadable(time() - $mob->last_killed).
+								" ago)";
+						}
+					}
+				}
+			}
+		}
+
+		$blob = "<header2>Hollow Island<end> [".
+			$this->text->makeChatcmd(
+				"2250x650 BF",
+				"/waypoint 2250 650 605"
+			) . "]\n".
+			"<tab>{$state}";
+
+		$msg = $this->text->makeBlob("Hollow Island", $blob);
+		$context->reply($msg);
+	}
+
 	public function showUniqueCommand(CmdContext $context, string $key, string $name): void {
 		/** @var ?Mob */
 		$mob = (new Collection(array_values($this->mobs[Mob::T_UNIQUES]??[])))
@@ -431,6 +536,26 @@ class MobController extends ModuleInstance {
 			": " . $this->renderMobStatus($mob)
 		);
 		$context->reply($msg);
+	}
+
+	/**
+	 * @param Mob[] $mobs
+	 * @psalm-param list<Mob> $mobs
+	 */
+	private function getMostRecentMobAction(array $mobs): ?Mob {
+		$mostRecent = 0;
+		$match = null;
+		foreach ($mobs as $mob) {
+			if (isset($mob->last_seen) && $mob->last_seen > $mostRecent) {
+				$mostRecent = $mob->last_seen;
+				$match = $mob;
+			}
+			if (isset($mob->last_killed) && $mob->last_killed > $mostRecent) {
+				$mostRecent = $mob->last_killed;
+				$match = $mob;
+			}
+		}
+		return $match;
 	}
 
 	private function renderMobStatus(Mob $mob): string {
@@ -465,7 +590,7 @@ class MobController extends ModuleInstance {
 				}
 				return "{$status} (killed ".
 					$this->util->unixtimeToReadable(time() - $mob->last_killed).
-					"ago)";
+					" ago)";
 			case $mob::STATUS_UP:
 			case $mob::STATUS_ATTACKED:
 				$hp = (int)round($mob->hp_percent??100, 0);
