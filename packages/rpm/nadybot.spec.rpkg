@@ -206,6 +206,19 @@ exit 0
 %endif
 
 %changelog
+* Sun Sep 01 2024 Nadyita <nadyita@hodorraid.org> 6.2.10-1
+- New command "!death" to track death-counters and get some (hopefully) funny replies
+- Support https://ao.tinkeringidiot.com/ for Discord item links
+- New command "!reck" to show mob-status in The Reck
+- New command "!hi" to show status of Hollow Island,
+  including which wave is currently running.
+  We're deliberately not showing any ninja-looting related information.
+- Fix several PostgreSQL issues related to grouping
+- Some specials recharge times were off.
+  While the calculations are probably still not 100% correct,
+  the new formulas by Conci, Keex-1, Keltias, TinkeringIdiot, and Tradias
+  should improve things a lot.
+
 * Wed May 08 2024 Nadyita <nadyita@hodorraid.org> 6.2.9-1
 - Don't cache UIDs of players from other dimensions.
 

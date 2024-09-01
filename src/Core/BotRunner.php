@@ -26,7 +26,7 @@ use Throwable;
 
 class BotRunner {
 	/** Nadybot's current version */
-	public const VERSION = "6.2.9";
+	public const VERSION = "6.2.10";
 
 	public const AMP_FS_HANDLER = 'amp_fs_handler';
 

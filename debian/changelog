@@ -1,3 +1,19 @@
+nadybot (6.2.10-1+ubuntu1) bionic; urgency=medium
+  Added
+  - New command "!death" to track death-counters and get some (hopefully) funny replies
+  - Support https://ao.tinkeringidiot.com/ for Discord item links
+  - New command "!reck" to show mob-status in The Reck
+  - New command "!hi" to show status of Hollow Island,
+    including which wave is currently running.
+    We're deliberately not showing any ninja-looting related information.
+  Fixed
+  - Fix several PostgreSQL issues related to grouping
+  - Some specials recharge times were off.
+    While the calculations are probably still not 100% correct,
+    the new formulas by Conci, Keex-1, Keltias, TinkeringIdiot,
+    and Tradias should improve things a lot.
+ -- Nadyita <nadyita@hodorraid.org>  Sun, 01 Sep 2024 09:53:00 +0200
+
 nadybot (6.2.9-1+ubuntu1) bionic; urgency=medium
   Fixed
   - Don't cache UIDs of players from other dimensions.
