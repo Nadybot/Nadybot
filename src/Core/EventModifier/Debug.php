@@ -31,9 +31,6 @@ class Debug implements EventModifier {
 	#[NCA\Inject]
 	private MessageHub $msgHub;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	public function __construct(
 		protected string $sendTo,
 	) {
@@ -47,14 +44,12 @@ class Debug implements EventModifier {
 		if (!isset($receiver)) {
 			return $event;
 		}
-		$msgs = (array)$this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Debug message',
 			json_encode($event, \JSON_PRETTY_PRINT, 512)
 		);
-		foreach ($msgs as $msg) {
-			$r = new RoutableMessage($msg);
-			$receiver->receive($r, $this->sendTo);
-		}
+		$r = new RoutableMessage($msg);
+		$receiver->receive($r, $this->sendTo);
 		return $event;
 	}
 }

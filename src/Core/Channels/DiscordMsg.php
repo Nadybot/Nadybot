@@ -8,6 +8,7 @@ use Nadybot\Core\Modules\DISCORD\{DiscordAllowedMentionType, DiscordAllowedMenti
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Blob,
 	MessageHub,
 	Modules\DISCORD\DiscordAPIClient,
 	Modules\DISCORD\DiscordController,
@@ -60,6 +61,7 @@ class DiscordMsg implements MessageReceiver {
 		} else {
 			$msg = $event->getData();
 		}
+		$msg = Blob::create($msg)->getText();
 		$pathText = '';
 		if ($renderPath) {
 			$pathText = $this->messageHub->renderPath($event, $this->getChannelName());

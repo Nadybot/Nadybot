@@ -28,9 +28,6 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\Inject]
 	private CommandManager $cmdManager;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/** Create a new permission &lt;name&gt; set with default permissions */
 	#[NCA\HandlesCommand('permset')]
 	#[NCA\Help\Prologue(
@@ -155,7 +152,7 @@ class PermissionSetController extends ModuleInstance {
 		$blocks = $sets->map(Closure::fromCallable($this->renderPermissionSet(...)));
 		$blob = $blocks->join("\n\n<pagebreak>");
 		$context->reply(
-			$this->text->makeBlob('Permission sets (' . $blocks->count() . ')', $blob)
+			Text::makeBlob('Permission sets (' . $blocks->count() . ')', $blob)
 		);
 	}
 

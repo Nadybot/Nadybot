@@ -25,9 +25,6 @@ use Nadybot\Core\{
 	)
 ]
 class BestQLController extends ModuleInstance {
-	#[NCA\Inject]
-	private Text $text;
-
 	/**
 	 * Try to determine the bonus for an interpolated QL
 	 *
@@ -178,16 +175,8 @@ class BestQLController extends ModuleInstance {
 			return;
 		}
 
-		$blob = $this->text->makeBlob('breakpoints', $msg, 'Calculated breakpoints for your item');
-		if (is_string($blob)) {
-			$msg = "Found <highlight>{$numFoundItems}<end> {$blob} with different stats.";
-			$context->reply($msg);
-			return;
-		}
-		$pages = [];
-		for ($i = 0; $i < count($blob); $i++) {
-			$pages []= "Found <highlight>{$numFoundItems}<end> ".$blob[$i].' with different stats.';
-		}
-		$context->reply($pages);
+		$blob = Text::makeBlob('breakpoints', $msg, 'Calculated breakpoints for your item');
+		$msg = "Found <highlight>{$numFoundItems}<end> {$blob} with different stats.";
+		$context->reply($msg);
 	}
 }

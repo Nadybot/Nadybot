@@ -75,9 +75,6 @@ class ChatAssistController extends ModuleInstance {
 	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private ChatLeaderController $chatLeaderController;
 
 	#[NCA\Inject]
@@ -190,7 +187,7 @@ class ChatAssistController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$context->reply($this->text->makeBlob('Current callers', $this->getAssistMessage()));
+		$context->reply(Text::makeBlob('Current callers', $this->getAssistMessage()));
 	}
 
 	/** Remove a player from all or only a specific assist list */
@@ -384,14 +381,13 @@ class ChatAssistController extends ModuleInstance {
 		);
 		$this->storeBackup($backup);
 
-		$blob = (array)$this->text->makeBlob('list of callers', $this->getAssistMessage());
-		foreach ($blob as &$page) {
-			if ($groupName === '') {
-				$page = "Callers set, here is the {$page}";
-			} else {
-				$page = "Callers set for <highlight>{$groupName}<end>, here is the {$page}";
-			}
+		$blob = Text::makeBlob('list of callers', $this->getAssistMessage());
+		if ($groupName === '') {
+			$blob = "Callers set, here is the {$blob}";
+		} else {
+			$blob = "Callers set for <highlight>{$groupName}<end>, here is the {$blob}";
 		}
+
 		$context->reply($blob);
 		$event = new AssistSetEvent(
 			lists: array_values($this->callers),
@@ -454,10 +450,7 @@ class ChatAssistController extends ModuleInstance {
 		$this->storeBackup($backup);
 
 		$blob = $this->getAssistMessage();
-		$msg = Text::blobWrap(
-			"{$msg}. ",
-			$this->text->makeBlob('List of callers', $blob)
-		);
+		$msg .= '. ' . Text::makeBlob('List of callers', $blob);
 		$context->reply($msg);
 		$event = new AssistAddEvent(
 			lists: array_values($this->callers),
@@ -480,10 +473,7 @@ class ChatAssistController extends ModuleInstance {
 		$this->callers = array_splice($this->lastCallers, -1 * $steps)[0]->callers;
 		$msg = 'Callers configuration restored. ';
 		if (count($this->callers) > 0) {
-			$msg = Text::blobWrap(
-				$msg,
-				$this->text->makeBlob('List of callers', $this->getAssistMessage())
-			);
+			$msg .= Text::makeBlob('List of callers', $this->getAssistMessage());
 		} else {
 			$msg .= 'No callers set.';
 		}
@@ -518,7 +508,7 @@ class ChatAssistController extends ModuleInstance {
 				Util::date($backup->time->getTimestamp()).
 				"<tab><highlight><symbol>{$backup->command}<end> ({$backup->changer})\n";
 		}
-		$msg = $this->text->makeBlob("Caller history ({$count})", $blob);
+		$msg = Text::makeBlob("Caller history ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -534,10 +524,8 @@ class ChatAssistController extends ModuleInstance {
 		$blob = "<header2>Assist macro<end>\n".
 			'<tab>' . Text::makeChatcmd('Click me for a macro', "/macro {$name} /assist {$name}");
 		$context->reply(
-			Text::blobWrap(
-				'Please all ',
-				$this->text->makeBlob("assist {$name}", $blob, "Quick assist macro for {$name}")
-			)
+			'Please all '.
+			Text::makeBlob("assist {$name}", $blob, "Quick assist macro for {$name}")
 		);
 	}
 
@@ -598,10 +586,7 @@ class ChatAssistController extends ModuleInstance {
 		$this->storeBackup($backup);
 
 		$blob = $this->getAssistMessage();
-		$msg = Text::blobWrap(
-			"{$msg}. ",
-			$this->text->makeBlob('List of callers', $blob)
-		);
+		$msg .= '. ' . Text::makeBlob('List of callers', $blob);
 		$context->reply($msg);
 		$event = new AssistSetEvent(
 			lists: array_values($this->callers),

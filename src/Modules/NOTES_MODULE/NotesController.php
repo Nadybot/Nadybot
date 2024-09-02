@@ -75,9 +75,6 @@ class NotesController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Nadybot $chatBot;
 
 	#[NCA\Inject]
@@ -118,7 +115,7 @@ class NotesController extends ModuleInstance {
 			return;
 		}
 		$blob = $this->renderNotes($notes, $context->char->name);
-		$msg = $this->text->makeBlob("Notes for {$context->char->name} ({$count})", $blob);
+		$msg = Text::makeBlob("Notes for {$context->char->name} ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -146,7 +143,7 @@ class NotesController extends ModuleInstance {
 			'you can use the '.
 			Text::makeChatcmd('!reminderformat', '/tell <myname> reminderformat').
 			' command.</i>';
-		$msg = $this->text->makeBlob("Reminders for {$context->char->name} ({$count})", $blob);
+		$msg = Text::makeBlob("Reminders for {$context->char->name} ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -369,12 +366,8 @@ class NotesController extends ModuleInstance {
 		}
 		$blob .= "\n<i>Your reminder format preference is the same for all of your alts</i>.";
 
-		$blobLink = $this->text->makeBlob('Details', $blob, 'The available reminder formats');
-		$msg = Text::blobWrap(
-			"Your reminder format is <highlight>{$reminderFormat}<end> :: [",
-			$blobLink,
-			']'
-		);
+		$blobLink = Text::makeBlob('Details', $blob, 'The available reminder formats');
+		$msg = "Your reminder format is <highlight>{$reminderFormat}<end> :: [{$blobLink}]";
 		$context->reply($msg);
 	}
 

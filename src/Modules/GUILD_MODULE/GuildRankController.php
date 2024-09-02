@@ -61,9 +61,6 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	#[NCA\Inject]
 	private GuildManager $guildManager;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
@@ -146,7 +143,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			}
 			$blob .= "\n";
 		}
-		$msg = $this->text->makeBlob("Defined mappings ({$maps->count()})", $blob);
+		$msg = Text::makeBlob("Defined mappings ({$maps->count()})", $blob);
 		$context->reply($msg);
 	}
 
@@ -310,7 +307,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		foreach ($ranks as $id => $name) {
 			$blob .= "<tab>{$id}: <highlight>{$name}<end>\n";
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"Ranks of {$guild->governing_form->value} (" . count($ranks) . ')',
 			$blob,
 			$guild->governing_form->value,

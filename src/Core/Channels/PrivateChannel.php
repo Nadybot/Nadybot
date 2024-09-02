@@ -4,6 +4,7 @@ namespace Nadybot\Core\Channels;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	MessageHub,
 	Nadybot,
 	Routing\RoutableEvent,
@@ -29,6 +30,7 @@ class PrivateChannel extends Base {
 		if (!isset($message)) {
 			return false;
 		}
+		$message = Blob::create($message)->render(formatMessage: false);
 		$this->chatBot->sendPrivate($message, true, $this->channel, false);
 		return true;
 	}

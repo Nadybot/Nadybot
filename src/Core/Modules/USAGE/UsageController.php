@@ -112,7 +112,7 @@ class UsageController extends ModuleInstance {
 				$blob .= Text::alignNumber($row->count, 3) . " <highlight>{$row->command}<end>\n";
 			}
 
-			$msg = $this->text->makeBlob("Usage for {$character} - {$timeString} ({$count})", $blob);
+			$msg = Text::makeBlob("Usage for {$character} - {$timeString} ({$count})", $blob);
 		} else {
 			$msg = "No usage statistics found for <highlight>{$character}<end>.";
 		}
@@ -157,7 +157,7 @@ class UsageController extends ModuleInstance {
 				$blob .= Text::alignNumber($row->count, 3) . " <highlight>{$row->sender}<end>\n";
 			}
 
-			$msg = $this->text->makeBlob("Usage for {$cmd} - {$timeString} ({$count})", $blob);
+			$msg = Text::makeBlob("Usage for {$cmd} - {$timeString} ({$count})", $blob);
 		} else {
 			$msg = "No usage statistics found for <highlight>{$cmd}<end>.";
 		}
@@ -172,7 +172,7 @@ class UsageController extends ModuleInstance {
 			$info,
 			\JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES|\JSON_THROW_ON_ERROR
 		);
-		$msg = $this->text->makeBlob('Collected usage info', $blob);
+		$msg = Text::makeBlob('Collected usage info', $blob);
 		$context->reply($msg);
 	}
 
@@ -244,7 +244,7 @@ class UsageController extends ModuleInstance {
 				" {$senderLink}\n";
 		}
 
-		$msg = $this->text->makeBlob("Usage Statistics - {$timeString}", $blob);
+		$msg = Text::makeBlob("Usage Statistics - {$timeString}", $blob);
 		$context->reply($msg);
 	}
 

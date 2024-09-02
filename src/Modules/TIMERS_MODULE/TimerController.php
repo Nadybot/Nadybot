@@ -80,9 +80,6 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	private MessageHub $messageHub;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DiscordController $discordController;
 
 	#[NCA\Inject]
@@ -438,7 +435,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			$blob .= "Time left: <highlight>{$timeLeft}<end> {$repeatingInfo}\n";
 			$blob .= "Set by: <highlight>{$owner}<end>\n\n";
 		}
-		$msg = $this->text->makeBlob("Timers ({$count})", $blob);
+		$msg = Text::makeBlob("Timers ({$count})", $blob);
 		$context->reply($msg);
 	}
 

@@ -253,9 +253,6 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	private MessageHub $messageHub;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Filesystem $fs;
 
 	#[NCA\Inject]
@@ -390,7 +387,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$list .= "<tab>{$member->name} {$status}\n";
 		}
 
-		$msg = $this->text->makeBlob("Members ({$count})", $list);
+		$msg = Text::makeBlob("Members ({$count})", $list);
 		$context->reply($msg);
 	}
 
@@ -474,7 +471,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			}
 			$lines []= $line . " [{$remLink}]";
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Inactive Org Members (' . $inactiveMembers->count() . ')',
 			$blob . implode("\n", $lines)
 		);
@@ -530,7 +527,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 
 		$context->reply(
-			$this->text->makeBlob(
+			Text::makeBlob(
 				"Removed alts of {$main} (" . count($alts) . ')',
 				"<header2>Alts of {$main}<end>\n".
 				implode("\n", $lines)
@@ -802,7 +799,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		});
 		$blob = "<header2>Org statistics<end>\n" . $lines->join("\n");
 
-		$msg = $this->text->makeBlob('Organizations (' . $lines->count() . ')', $blob);
+		$msg = Text::makeBlob('Organizations (' . $lines->count() . ')', $blob);
 		$context->reply($msg);
 	}
 
@@ -1249,12 +1246,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 		$msg = $this->welcomeMsgString;
 		if (count($matches = Safe::pregMatch("/^(.*)<link>(.*?)<\/link>(.*)$/", $msg))) {
-			$msg = (array)$this->text->makeBlob($matches[2], $content);
-			foreach ($msg as &$part) {
-				$part = "{$matches[1]}{$part}{$matches[3]}";
-			}
+			$msg = Text::makeBlob($matches[2], $content);
+			$msg = "{$matches[1]}{$msg}{$matches[3]}";
 		} else {
-			$msg = $this->text->makeBlob('Welcome to <myname>!', $content);
+			$msg = Text::makeBlob('Welcome to <myname>!', $content);
 		}
 		$this->chatBot->sendMassTell($msg, $event->sender);
 	}
@@ -1326,7 +1321,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			}
 			return $oneHas ? -1 : 1;
 		})->join("\n");
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"Last Logon Info for {$char}",
 			$blob,
 		);

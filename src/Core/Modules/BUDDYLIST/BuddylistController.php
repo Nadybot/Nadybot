@@ -38,9 +38,6 @@ class BuddylistController extends ModuleInstance {
 	private BuddylistManager $buddylistManager;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	/** Show all characters currently on the buddylist */
@@ -87,7 +84,7 @@ class BuddylistController extends ModuleInstance {
 				'/tell <myname> <symbol>buddylist rebalance'
 			) . ']';
 		}
-		$msg = $this->text->makeBlob("Buddy list ({$count})", $blob);
+		$msg = Text::makeBlob("Buddy list ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -127,7 +124,7 @@ class BuddylistController extends ModuleInstance {
 		$blob .="\n\nRemoved: ({$orphanCount})";
 
 		$context->reply("Removed {$orphanCount} characters from the buddy list.");
-		$msg = $this->text->makeBlob("Buddy list ({$count})", $blob);
+		$msg = Text::makeBlob("Buddy list ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -231,7 +228,7 @@ class BuddylistController extends ModuleInstance {
 		}
 
 		if ($count > 0) {
-			$msg = $this->text->makeBlob("Buddy List Search ({$count})", $blob);
+			$msg = Text::makeBlob("Buddy List Search ({$count})", $blob);
 		} else {
 			$msg = "No characters on the buddy list found containing '{$search}'";
 		}

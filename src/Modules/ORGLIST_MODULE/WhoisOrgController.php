@@ -31,9 +31,6 @@ class WhoisOrgController extends ModuleInstance {
 	private BotConfig $config;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private PlayerManager $playerManager;
 
 	#[NCA\Inject]
@@ -71,8 +68,7 @@ class WhoisOrgController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** @return string|list<string> */
-	public function getOrgInfo(?Guild $org): string|array {
+	public function getOrgInfo(?Guild $org): string {
 		if ($org === null) {
 			$msg = 'Error in getting the org info. '.
 				"Either the org does not exist or AO's server ".
@@ -138,7 +134,7 @@ class WhoisOrgController extends ModuleInstance {
 				).
 				"%)  {$profession->toIcon()} {$prof}\n";
 		}
-		$msg = $this->text->makeBlob("Org Info for {$org->orgname}", $link);
+		$msg = Text::makeBlob("Org Info for {$org->orgname}", $link);
 
 		return $msg;
 	}

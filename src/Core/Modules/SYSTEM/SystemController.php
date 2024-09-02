@@ -236,9 +236,6 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	private SettingManager $settingManager;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private MessageHub $messageHub;
 
 	#[NCA\Inject]
@@ -492,7 +489,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			$blob .= "<tab><highlight>{$channel->name}<end> ({$channel->class}:{$channel->id})\n";
 		}
 
-		$msg = $this->text->makeBlob('System Info', $blob);
+		$msg = Text::makeBlob('System Info', $blob);
 		$context->reply($msg);
 	}
 
@@ -642,7 +639,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			\JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE
 		);
 		$context->reply(
-			$this->text->makeBlob('Your config', $json)
+			Text::makeBlob('Your config', $json)
 		);
 	}
 
@@ -666,15 +663,13 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$oldFilePath = $this->config->getFilePath();
 		$newFilePath = Safe::pregReplace('/\.[^.]+$/', '', $oldFilePath) . '.toml';
 		$context->reply(
-			Text::blobWrap(
-				'Your upgraded config for ',
-				$this->text->makeBlob(
-					$newFilePath,
-					"Copy the following and save it as <highlight>{$newFilePath}<end>.\n".
-					"Make sure to use <highlight>{$newFilePath}<end> as your new config ".
-					"file from then on:\n\n<highlight>" . trim($toml) . '<end>',
-					'Your new configuration'
-				)
+			'Your upgraded config for '.
+			Text::makeBlob(
+				$newFilePath,
+				"Copy the following and save it as <highlight>{$newFilePath}<end>.\n".
+				"Make sure to use <highlight>{$newFilePath}<end> as your new config ".
+				"file from then on:\n\n<highlight>" . trim($toml) . '<end>',
+				'Your new configuration'
 			)
 		);
 	}

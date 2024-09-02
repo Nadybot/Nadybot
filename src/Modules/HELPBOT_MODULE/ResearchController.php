@@ -27,9 +27,6 @@ class ResearchController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/research.csv');
@@ -61,7 +58,7 @@ class ResearchController extends ModuleInstance {
 		$blob .= "You need <highlight>{$sk} SK<end> to reach <highlight>Research Level {$level}<end> per research line.\n\n";
 		$blob .= "This equals <highlight>{$xp} XP<end>.\n\n";
 		$blob .= "Your research will cap at <highlight>~{$capXP} XP<end> or <highlight>~{$capSK} SK<end>.";
-		$msg = $this->text->makeBlob("Research Level {$level}", $blob);
+		$msg = Text::makeBlob("Research Level {$level}", $blob);
 
 		$context->reply($msg);
 	}
@@ -99,7 +96,7 @@ class ResearchController extends ModuleInstance {
 		$blob = "You must be <highlight>Level {$row->levelcap}<end> to reach Research Level <highlight>{$hiLevel}.<end>\n";
 		$blob .= "It takes <highlight>{$sk} SK<end> to go from Research Level <highlight>{$loLevel}<end> to Research Level <highlight>{$hiLevel}<end> per research line.\n\n";
 		$blob .= "This equals <highlight>{$xp} XP<end>.";
-		$msg = $this->text->makeBlob("Research Levels {$loLevel} - {$hiLevel}", $blob);
+		$msg = Text::makeBlob("Research Levels {$loLevel} - {$hiLevel}", $blob);
 
 		$context->reply($msg);
 	}

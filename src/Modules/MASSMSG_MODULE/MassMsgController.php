@@ -77,9 +77,6 @@ class MassMsgController extends ModuleInstance {
 	public ?DateTimeImmutable $lastMessage;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private AccessManager $accessManager;
 
 	#[NCA\Inject]
@@ -120,7 +117,7 @@ class MassMsgController extends ModuleInstance {
 			"<tab>Change your preferences:\n\n".
 			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Mass messages\n".
 			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Mass invites\n";
-		$prefLink = ((array)$this->text->makeBlob('Preferences', $blob, 'Change your mass message preferences'))[0];
+		$prefLink = Text::makeBlob('Preferences', $blob, 'Change your mass message preferences');
 
 		return "[{$prefLink}]";
 	}
@@ -322,10 +319,8 @@ class MassMsgController extends ModuleInstance {
 	 * Turn the result of a massCallback() into a nice popup
 	 *
 	 * @param array<string,string> $result
-	 *
-	 * @return list<string>
 	 */
-	protected function getMassResultPopup(array $result): array {
+	protected function getMassResultPopup(array $result): string {
 		ksort($result);
 		$blob = "<header2>Result of your mass message<end>\n";
 		$numSent = 0;
@@ -369,13 +364,10 @@ class MassMsgController extends ModuleInstance {
 			' blocking mass messages';
 		}
 		if (count($result) === 0) {
-			return (array)$msg;
+			return $msg;
 		}
-		$parts = (array)$this->text->makeBlob('Messaging details', $blob);
-		foreach ($parts as &$part) {
-			$part = "{$msg} :: {$part}";
-		}
-		return $parts;
+		$msg .= ' :: ' . Text::makeBlob('Messaging details', $blob);
+		return $msg;
 	}
 
 	/** Show a character their current mass message and -invite preferences */
@@ -400,7 +392,7 @@ class MassMsgController extends ModuleInstance {
 		$blob = "<header2>Current preferences<end>\n".
 			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Mass messages\n".
 			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Mass invites\n";
-		$prefLink = $this->text->makeBlob('Your current mass message preferences', $blob);
+		$prefLink = Text::makeBlob('Your current mass message preferences', $blob);
 
 		$context->reply($prefLink);
 	}

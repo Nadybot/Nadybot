@@ -34,9 +34,6 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/spiritsdb.csv');
@@ -74,7 +71,7 @@ class SpiritsController extends ModuleInstance {
 			return;
 		}
 		$spirits = $this->formatSpiritOutput($data);
-		$spirits = $this->text->makeBlob('Spirits', $spirits, $title);
+		$spirits = Text::makeBlob('Spirits', $spirits, $title);
 		$context->reply($spirits);
 	}
 
@@ -103,7 +100,7 @@ class SpiritsController extends ModuleInstance {
 			return;
 		}
 		$spirits = $this->formatSpiritOutput($data);
-		$spirits = $this->text->makeBlob("Spirits ({$data->count()})", $spirits, $title);
+		$spirits = Text::makeBlob("Spirits ({$data->count()})", $spirits, $title);
 		$context->reply($spirits);
 	}
 
@@ -126,7 +123,7 @@ class SpiritsController extends ModuleInstance {
 			return;
 		}
 		$spirits = $this->formatSpiritOutput($data);
-		$spirits = $this->text->makeBlob("Spirits ({$data->count()})", $spirits, $title);
+		$spirits = Text::makeBlob("Spirits ({$data->count()})", $spirits, $title);
 		$context->reply($spirits);
 	}
 
@@ -154,7 +151,7 @@ class SpiritsController extends ModuleInstance {
 			return;
 		}
 		$spirits .= $this->formatSpiritOutput($data);
-		$spirits = $this->text->makeBlob("Spirits ({$data->count()})", $spirits, $title);
+		$spirits = Text::makeBlob("Spirits ({$data->count()})", $spirits, $title);
 		$context->reply($spirits);
 	}
 
@@ -186,7 +183,7 @@ class SpiritsController extends ModuleInstance {
 			return;
 		}
 		$spirits = $this->formatSpiritOutput($data);
-		$spirits = $this->text->makeBlob("Spirits ({$data->count()})", $spirits, $title);
+		$spirits = Text::makeBlob("Spirits ({$data->count()})", $spirits, $title);
 		$context->reply($spirits);
 	}
 
@@ -213,7 +210,7 @@ class SpiritsController extends ModuleInstance {
 			return;
 		}
 		$spirits = $this->formatSpiritOutput($data);
-		$spirits = $this->text->makeBlob("Spirits ({$data->count()})", $spirits, $title);
+		$spirits = Text::makeBlob("Spirits ({$data->count()})", $spirits, $title);
 		$context->reply($spirits);
 	}
 

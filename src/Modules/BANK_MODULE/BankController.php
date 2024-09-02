@@ -60,9 +60,6 @@ class BankController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Filesystem $fs;
 
 	/** List the bank characters in the database: */
@@ -82,7 +79,7 @@ class BankController extends ModuleInstance {
 			$blob .= "<tab>{$characterLink}\n";
 		}
 
-		$msg = $this->text->makeBlob('Bank Characters', $blob);
+		$msg = Text::makeBlob('Bank Characters', $blob);
 		$context->reply($msg);
 	}
 
@@ -113,7 +110,7 @@ class BankController extends ModuleInstance {
 			$blob .= "<tab>{$containerLink} (" . $items->count() . " items)\n";
 		}
 
-		$msg = $this->text->makeBlob("Containers for {$name}", $blob);
+		$msg = Text::makeBlob("Containers for {$name}", $blob);
 		$context->reply($msg);
 	}
 
@@ -147,7 +144,7 @@ class BankController extends ModuleInstance {
 			$blob .= "<tab>{$itemLink} [{$askLink}]\n";
 		}
 
-		$msg = $this->text->makeBlob("Contents of {$data[0]->container}", $blob);
+		$msg = Text::makeBlob("Contents of {$data[0]->container}", $blob);
 		$context->reply($msg);
 	}
 
@@ -198,7 +195,7 @@ class BankController extends ModuleInstance {
 			$blob .= "{$itemLink} in <highlight>{$item->player} &gt; {$item->container}<end> [{$askLink}]\n";
 		}
 
-		$msg = $this->text->makeBlob("Bank Search Results for {$search}", $blob);
+		$msg = Text::makeBlob("Bank Search Results for {$search}", $blob);
 		$context->reply($msg);
 	}
 

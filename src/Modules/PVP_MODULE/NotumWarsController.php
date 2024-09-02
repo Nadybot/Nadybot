@@ -377,9 +377,6 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Event('timer(1h)', 'Announce unplanted sites via pvp(unplanted-sites)')]
 	public function announceUnplantedSites(): void {
 		$unplantedSites = $this->getUnplantedSites();
@@ -393,19 +390,14 @@ class NotumWarsController extends ModuleInstance {
 			$announcement = count($unplantedSites) . ' unplanted sites';
 		}
 
-		$msgs = Text::blobWrap(
-			$announcementPre,
-			$this->text->makeBlob(
+		$msg = $announcementPre.
+			Text::makeBlob(
 				$announcement,
 				implode("\n\n", $unplantedSites),
-			),
-			' for grab'
-		);
-		foreach ($msgs as $msg) {
-			$rMsg = new RoutableMessage($msg);
-			$rMsg->prependPath(new Source('pvp', 'unplanted-sites'));
-			$this->msgHub->handle($rMsg);
-		}
+			) . ' for grab';
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->prependPath(new Source('pvp', 'unplanted-sites'));
+		$this->msgHub->handle($rMsg);
 	}
 
 	#[NCA\Event('connect', 'Load all towers from the API')]
@@ -698,11 +690,11 @@ class NotumWarsController extends ModuleInstance {
 					: "<highlight>{$pf->short()} {$site->site_id}<end>",
 			]
 		);
-		$tokens['details'] = ((array)$this->text->makeBlob(
+		$tokens['details'] = Text::makeBlob(
 			'details',
 			$this->renderSite($site),
 			"{$pf->short()} {$site->site_id} ({$site->name})",
-		))[0];
+		);
 		$color = ($site->org_faction ?? Faction::Neutral)->lower();
 		$msg = Text::renderPlaceholders($this->gasChangeFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
@@ -928,7 +920,7 @@ class NotumWarsController extends ModuleInstance {
 			$context->reply('No unplanted sites.');
 			return;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Unplanted sites (' . count($unplantedSites) . ')',
 			implode("\n\n", $unplantedSites)
 		);
@@ -971,7 +963,7 @@ class NotumWarsController extends ModuleInstance {
 				" [{$sitesLink}]";
 			$rank++;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Top ' . count($top) . ' contracts',
 			$blob
 		);
@@ -1106,11 +1098,11 @@ class NotumWarsController extends ModuleInstance {
 		$blob = $this->renderHotSites($time, ...$hotSites->toArray());
 		if ($soon > 0) {
 			$sitesLabel = isset($faction) ? ucfirst(strtolower($faction)) . ' sites' : 'Sites';
-			$msg = $this->text->makeBlob("{$sitesLabel} going hot soon ({$hotSites->count()})", $blob);
+			$msg = Text::makeBlob("{$sitesLabel} going hot soon ({$hotSites->count()})", $blob);
 		} else {
 			$faction = isset($faction) ? ' ' . strtolower($faction) : '';
 			$inPenalty = ($penalty > 0) ? ' in penalty' : '';
-			$msg = $this->text->makeBlob("Hot{$faction} sites{$inPenalty} ({$hotSites->count()})", $blob);
+			$msg = Text::makeBlob("Hot{$faction} sites{$inPenalty} ({$hotSites->count()})", $blob);
 		}
 
 		$context->reply($msg);
@@ -1134,7 +1126,7 @@ class NotumWarsController extends ModuleInstance {
 			return;
 		}
 		$blob = $this->renderOrgSites(...$matches->toArray());
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"All tower sites of {$player->guild}",
 			$blob
 		);
@@ -1154,7 +1146,7 @@ class NotumWarsController extends ModuleInstance {
 			return;
 		}
 		$blob = $this->renderOrgSites(...$matches->toArray());
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'All tower sites of ' . ($matches->firstOrFail()->org_name ?? 'Unknown Org'),
 			$blob
 		);
@@ -1204,7 +1196,7 @@ class NotumWarsController extends ModuleInstance {
 			return;
 		}
 		$blob = $this->renderOrgSites(...$matches->toArray());
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"All tower sites of '{$searchTerm}'",
 			$blob
 		);
@@ -1219,7 +1211,7 @@ class NotumWarsController extends ModuleInstance {
 		#[NCA\Str('all')] ?string $all,
 	): void {
 		if (isset($all)) {
-			$msg = $this->text->makeBlob('Allowed number of towers', $this->getAllTowerQuantitiesBlob());
+			$msg = Text::makeBlob('Allowed number of towers', $this->getAllTowerQuantitiesBlob());
 			$context->reply($msg);
 			return;
 		}
@@ -1227,7 +1219,7 @@ class NotumWarsController extends ModuleInstance {
 		$player = $this->playerManager->byName($context->char->name);
 		$blob = $this->getAllTowerQuantitiesBlob();
 		if (!isset($player)) {
-			$msg = $this->text->makeBlob('Allowed number of towers', $blob);
+			$msg = Text::makeBlob('Allowed number of towers', $blob);
 			$context->reply($msg);
 			return;
 		}
@@ -1242,10 +1234,7 @@ class NotumWarsController extends ModuleInstance {
 		} else {
 			$msg = "Your level ({$player->level}) allows you to have <highlight>4<end> towers.";
 		}
-		$msg = Text::blobWrap(
-			$msg . ' ',
-			$this->text->makeBlob('See full list', $blob, 'Towers by level')
-		);
+		$msg .= ' ' . Text::makeBlob('See full list', $blob, 'Towers by level');
 		$context->reply($msg);
 	}
 
@@ -1268,7 +1257,7 @@ class NotumWarsController extends ModuleInstance {
 				': Type ' . $roman[$type-2];
 			$minQL = $ql;
 		}
-		$msg = $this->text->makeBlob('Tower types by QL', $blob);
+		$msg = Text::makeBlob('Tower types by QL', $blob);
 		$context->reply($msg);
 	}
 
@@ -1393,7 +1382,7 @@ class NotumWarsController extends ModuleInstance {
 			$blobs []= "<highlight>Site at 75%, too early<end>".
 				$gasTest7->dump();
 
-			$msg = $this->text->makeBlob("Test results", join("\n\n", $blobs));
+			$msg = Text::makeBlob("Test results", join("\n\n", $blobs));
 			$context->reply($msg);
 		}
 	*/
@@ -1527,11 +1516,11 @@ class NotumWarsController extends ModuleInstance {
 					: "<highlight>{$pf->short()} {$site->site_id}<end>",
 			]
 		);
-		$tokens['details'] = ((array)$this->text->makeBlob(
+		$tokens['details'] = Text::makeBlob(
 			'details',
 			$this->renderSite($site),
 			"{$pf->short()} {$site->site_id} ({$site->name})",
-		))[0];
+		);
 		$color = ($site->org_faction ?? Faction::Neutral)->lower();
 		$msg = Text::renderPlaceholders($this->sitePlantedFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
@@ -1569,11 +1558,11 @@ class NotumWarsController extends ModuleInstance {
 					: "<highlight>{$pf->short()} {$site->site_id}<end>",
 			]
 		);
-		$tokens['details'] = ((array)$this->text->makeBlob(
+		$tokens['details'] = Text::makeBlob(
 			'details',
 			$this->renderSite($site),
 			"{$pf->short()} {$site->site_id} ({$site->name})",
-		))[0];
+		);
 		$color = ($oldSite->org_faction ?? Faction::Neutral)->lower();
 		$msg = Text::renderPlaceholders($this->siteDestroyedFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
@@ -1595,11 +1584,11 @@ class NotumWarsController extends ModuleInstance {
 					: "<highlight>{$pf->short()} {$site->site_id}<end>",
 			]
 		);
-		$tokens['details'] = ((array)$this->text->makeBlob(
+		$tokens['details'] = Text::makeBlob(
 			'details',
 			$this->renderSite($site),
 			"{$pf->short()} {$site->site_id} ({$site->name})",
-		))[0];
+		);
 		$tokens['c-site-num-turrets'] = $site->num_turrets . ' '.
 			Text::pluralize('turret', $site->num_turrets);
 		$tokens['c-site-num-conductors'] = $site->num_conductors . ' '.
@@ -1657,11 +1646,11 @@ class NotumWarsController extends ModuleInstance {
 
 		$siteDetails = $this->renderSite($site, false, false);
 		$siteShort = "{$pf->short()} {$site->site_id}";
-		$siteLink = ((array)$this->text->makeBlob(
+		$siteLink = Text::makeBlob(
 			$siteShort,
 			$siteDetails,
 			"{$siteShort} ({$site->name})",
-		))[0];
+		);
 		$duration = Util::unixtimeToReadable($timestamp - time());
 		$alerts []= new Alert(
 			message: "Started {$duration} countdown for planting {$siteLink}",

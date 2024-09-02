@@ -44,9 +44,6 @@ class LinksController extends ModuleInstance implements ImporterInterface, Expor
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	#[NCA\Inject]
@@ -75,7 +72,7 @@ class LinksController extends ModuleInstance implements ImporterInterface, Expor
 			$blob .= "<tab>{$website} <highlight>{$link->comments}<end> (by {$link->name}) [{$remove}]\n";
 		}
 
-		$msg = $this->text->makeBlob('Links', $blob);
+		$msg = Text::makeBlob('Links', $blob);
 		$context->reply($msg);
 	}
 

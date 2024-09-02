@@ -237,9 +237,6 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Event(
 		name: OrgMsgChannelMsgEvent::EVENT_MASK,
 		description: "Notify if org's tower site defense shield is disabled via pvp(tower-shield-own)"
@@ -286,10 +283,10 @@ class AttacksController extends ModuleInstance {
 		$siteName = $pf->short();
 		if (isset($site)) {
 			$siteName .= " {$site->site_id}";
-			$siteName = ((array)$this->text->makeBlob(
+			$siteName = Text::makeBlob(
 				$siteName,
 				$this->nwCtrl->renderSite($site, false, false, null),
-			))[0];
+			);
 		}
 		$tokens = array_merge(
 			$whois->getTokens('att-'),
@@ -388,10 +385,10 @@ class AttacksController extends ModuleInstance {
 		$siteName = $pf->short();
 		if (isset($site)) {
 			$siteName .= " {$site->site_id}";
-			$siteName = ((array)$this->text->makeBlob(
+			$siteName = Text::makeBlob(
 				$siteName,
 				$this->nwCtrl->renderSite($site, false, false, null),
-			))[0];
+			);
 		}
 		$tokens = array_merge(
 			[
@@ -426,7 +423,7 @@ class AttacksController extends ModuleInstance {
 
 		$details = $this->renderAttackInfo($event, $site->playfield);
 		$shortSite = "{$site->playfield->short()} {$site->site_id}";
-		$detailsLink = $this->text->makeBlob(
+		$detailsLink = Text::makeBlob(
 			$shortSite,
 			$details,
 			"Attack on {$shortSite}",
@@ -443,19 +440,17 @@ class AttacksController extends ModuleInstance {
 			$this->towerAttackFormat,
 			$tokens
 		);
-		$msg = Text::blobWrap("{$msg} [", $detailsLink, ']');
+		$msg .= " [{$detailsLink}]";
 
-		foreach ($msg as $page) {
-			if (isset($site->org_id) && $this->config->orgId === $site->org_id) {
-				$rMsg = new RoutableMessage($page);
-				$rMsg->prependPath(new Source('pvp', 'tower-attack-own'));
-				$this->msgHub->handle($rMsg);
-			}
-			$rMsg = new RoutableMessage($page);
-			$rMsg->prependPath(new Source('pvp', 'tower-attack'));
+		if (isset($site->org_id) && $this->config->orgId === $site->org_id) {
+			$rMsg = new RoutableMessage($msg);
+			$rMsg->prependPath(new Source('pvp', 'tower-attack-own'));
 			$this->msgHub->handle($rMsg);
-			$this->siteTracker->fireEvent(new RoutableMessage($page), $site, 'tower-attack');
 		}
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->prependPath(new Source('pvp', 'tower-attack'));
+		$this->msgHub->handle($rMsg);
+		$this->siteTracker->fireEvent(new RoutableMessage($msg), $site, 'tower-attack');
 	}
 
 	#[NCA\Event('tower-outcome', 'Announce tower victories and abandoned sites')]
@@ -466,6 +461,7 @@ class AttacksController extends ModuleInstance {
 		if (!isset($site)) {
 			return;
 		}
+		/*
 		$site->ct_pos = null;
 		$site->num_conductors = 0;
 		$site->num_turrets = 0;
@@ -474,6 +470,7 @@ class AttacksController extends ModuleInstance {
 		$site->org_name = null;
 		$site->plant_time = null;
 		$site->ql = null;
+		*/
 
 		/** @var array<string,string|int|null> */
 		$tokens = array_merge(
@@ -488,23 +485,21 @@ class AttacksController extends ModuleInstance {
 
 		$details = $this->nwCtrl->renderSite($site, false, true, $outcome);
 		$shortSite = "{$pf->short()} {$site->site_id}";
-		$detailsLink = $this->text->makeBlob(
+		$detailsLink = Text::makeBlob(
 			$shortSite,
 			$details,
 		);
-		$msg = Text::blobWrap("{$msg} [", $detailsLink, ']');
+		$msg .= " [{$detailsLink}]";
 
-		foreach ($msg as $page) {
-			if (isset($site->org_id) && $this->config->orgId === $site->org_id) {
-				$rMsg = new RoutableMessage($page);
-				$rMsg->prependPath(new Source('pvp', 'tower-outcome-own'));
-				$this->msgHub->handle($rMsg);
-			}
-			$rMsg = new RoutableMessage($page);
-			$rMsg->prependPath(new Source('pvp', 'tower-outcome'));
+		if (isset($site->org_id) && $this->config->orgId === $site->org_id) {
+			$rMsg = new RoutableMessage($msg);
+			$rMsg->prependPath(new Source('pvp', 'tower-outcome-own'));
 			$this->msgHub->handle($rMsg);
-			$this->siteTracker->fireEvent(new RoutableMessage($page), $site, 'tower-outcome');
 		}
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->prependPath(new Source('pvp', 'tower-outcome'));
+		$this->msgHub->handle($rMsg);
+		$this->siteTracker->fireEvent(new RoutableMessage($msg), $site, 'tower-outcome');
 	}
 
 	/** Show the last tower attack messages */
@@ -657,7 +652,7 @@ class AttacksController extends ModuleInstance {
 			'<tab><omni>Omnis<end> have abandoned '.
 			$this->sites($abandonments->where('losing_faction', 'Omni')->count()) . '.';
 
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Tower stats for the last ' . Util::unixtimeToReadable(time() - $from),
 			$blob
 		);
@@ -1066,7 +1061,7 @@ class AttacksController extends ModuleInstance {
 			$blob = "{$prevLink}<tab>Page {$page}<tab>{$nextLink}\n\n";
 		}
 		$blob .= implode("\n\n", $blocks);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			$title,
 			$blob
 		);
@@ -1112,7 +1107,7 @@ class AttacksController extends ModuleInstance {
 			$blob = "{$prevLink}<tab>Page {$page}<tab>{$nextLink}\n\n";
 		}
 		$blob .= implode("\n\n", $blocks);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			$title,
 			$blob
 		);

@@ -205,9 +205,6 @@ class DiscordGatewayController extends ModuleInstance {
 	private Filesystem $fs;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Nadybot $chatBot;
 
 	#[NCA\Inject]
@@ -624,10 +621,10 @@ class DiscordGatewayController extends ModuleInstance {
 				$blob = "Details <a href='chatcmd:///start {$embed->url}'>here</a>\n\n".
 					$blob;
 			}
-			$msg = ((array)$this->text->makeBlob(
+			$msg = Text::makeBlob(
 				DiscordRelayController::formatMessage($embed->title),
 				$blob
-			))[0];
+			);
 		} else {
 			$msg = $blob;
 		}
@@ -1086,13 +1083,11 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 		$blob = implode("\n\n", $guildBlobs);
 		$context->reply(
-			Text::blobWrap(
-				"Connected as {$this->me->getName()} to ",
-				$this->text->makeBlob(
-					count($this->guilds) . ' Discord server'.
-					((count($this->guilds) !== 1) ? 's' : ''),
-					$blob
-				)
+			"Connected as {$this->me->getName()} to ".
+			Text::makeBlob(
+				count($this->guilds) . ' Discord server'.
+				((count($this->guilds) !== 1) ? 's' : ''),
+				$blob
 			)
 		);
 	}
@@ -1211,7 +1206,7 @@ class DiscordGatewayController extends ModuleInstance {
 					$blobs []= "<tab>[{$joinLink}] <highlight>{$guild->name}<end> (ID {$guild->id})";
 				}
 				$context->reply(
-					$this->text->makeBlob(
+					Text::makeBlob(
 						'Choose which Discord server to join',
 						implode("\n", $blobs)
 					)
@@ -1434,7 +1429,7 @@ class DiscordGatewayController extends ModuleInstance {
 			);
 			return;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Upcoming events (' . count($blobs) . ')',
 			implode("\n\n", $blobs)
 		);
@@ -1458,15 +1453,10 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 
 		$blob = $this->renderEvent($guild, $event);
-		$msgs = Text::blobWrap(
-			'New Discord event: ',
-			$this->text->makeBlob($event->name, $blob),
-		);
-		foreach ($msgs as $msg) {
-			$rMsg = new RoutableMessage($msg);
-			$rMsg->prependPath(new Source('discord', 'event-create'));
-			$this->messageHub->handle($rMsg);
-		}
+		$msg = 'New Discord event: ' . Text::makeBlob($event->name, $blob);
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->prependPath(new Source('discord', 'event-create'));
+		$this->messageHub->handle($rMsg);
 	}
 
 	#[NCA\Event(
@@ -1489,15 +1479,10 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 
 		$blob = $this->renderEvent($guild, $event);
-		$msgs = Text::blobWrap(
-			'Discord event started: ',
-			$this->text->makeBlob($event->name, $blob),
-		);
-		foreach ($msgs as $msg) {
-			$rMsg = new RoutableMessage($msg);
-			$rMsg->prependPath(new Source('discord', 'event-start'));
-			$this->messageHub->handle($rMsg);
-		}
+		$msg = 'Discord event started: ' . Text::makeBlob($event->name, $blob);
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->prependPath(new Source('discord', 'event-start'));
+		$this->messageHub->handle($rMsg);
 	}
 
 	#[NCA\Event(
@@ -2288,8 +2273,7 @@ class DiscordGatewayController extends ModuleInstance {
 		return true;
 	}
 
-	/** @return list<string> */
-	private function renderInvites(): array {
+	private function renderInvites(): string {
 		$blobs = [];
 		$numInvites = 0;
 		$charInvites = $this->db->table(DBDiscordInvite::getTable())
@@ -2333,15 +2317,13 @@ class DiscordGatewayController extends ModuleInstance {
 			}
 			$blobs []= $blob;
 		}
-		$msg = (array)$this->text->makeBlob(
+		return Text::makeBlob(
 			"Discord invites ({$numInvites})",
 			implode("\n\n", $blobs),
 		);
-		return $msg;
 	}
 
-	/** @return list<string> */
-	private function getInviteReply(DiscordChannelInvite $invite): array {
+	private function getInviteReply(DiscordChannelInvite $invite): string {
 		$guildName = $invite->guild->name ?? 'Discord server';
 		$joinLink = Text::makeChatcmd('this link', "/start https://discord.gg/{$invite->code}");
 		$blob = "<header2>Join Discord<end>\n\n".
@@ -2351,6 +2333,6 @@ class DiscordGatewayController extends ModuleInstance {
 			"Linking your Discord user with an AO character effectively\n".
 			"gives the Discord user the same rights. Do not give away your\n".
 			'personal invite code!';
-		return (array)$this->text->makeBlob("Join {$guildName}", $blob);
+		return Text::makeBlob("Join {$guildName}", $blob);
 	}
 }

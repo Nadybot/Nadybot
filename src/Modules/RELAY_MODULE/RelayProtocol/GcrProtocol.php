@@ -7,6 +7,7 @@ use Closure;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	DBSchema\Player,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Routing\Character,
@@ -16,7 +17,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	SettingManager,
-	Text,
 	Util,
 };
 use Nadybot\Modules\{
@@ -70,9 +70,6 @@ class GcrProtocol implements RelayProtocolInterface {
 	protected bool $spamOnline = true;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private SettingManager $settingManager;
 
 	#[NCA\Inject]
@@ -121,11 +118,13 @@ class GcrProtocol implements RelayProtocolInterface {
 		if (isset($character) && Util::isValidSender($character->name)) {
 			$senderLink = "##relay_name##{$character->name}:##end##";
 		}
-		return [
-			$this->prefix.$this->command . ' '.
+		$pages = (array)Blob::create($event->getData())->render(formatMessage: true);
+		return array_map(
+			fn (string $page): string => $this->prefix.$this->command . ' '.
 				implode(' ', $hops) . " {$senderLink} ". '##relay_message##'.
-				$this->text->formatMessage($event->getData()). '##end##',
-		];
+				$page . '##end##',
+			$pages
+		);
 	}
 
 	/** @return list<string> */
@@ -169,7 +168,7 @@ class GcrProtocol implements RelayProtocolInterface {
 			return $this->handleLogonSpam($message->sender, $data);
 		}
 		$data = $matches[1];
-		$r = new RoutableMessage($data);
+		$r = new RoutableMessage(Blob::LITERAL . $data);
 		while (count($matches = Safe::pregMatch("/^\s*\[##relay_channel##(.*?)##end##\]\s*/s", $data))) {
 			if (preg_match('/ Guest$/', $matches[1])) {
 				$source = new Source(
@@ -223,7 +222,7 @@ class GcrProtocol implements RelayProtocolInterface {
 			$data = Safe::pregReplace("/\s*##relay_name##([a-zA-Z0-9_-]+)(.*?)##end##\s*/", '', $data);
 		}
 		if (count($matches = Safe::pregMatch("/\s*##relay_message##(.*)##end##$/s", $data))) {
-			$r->setData($this->replaceBeBotColors($matches[1]));
+			$r->setData(Blob::LITERAL . $this->replaceBeBotColors($matches[1]));
 		}
 		return $r;
 	}
@@ -234,7 +233,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		}
 		$online = new Online(
 			online: $matches[1] === 'on',
-			message: $this->replaceBeBotColors($matches[2]),
+			message: Blob::LITERAL . $this->replaceBeBotColors($matches[2]),
 			renderPath: false,
 		);
 		$r = new RoutableEvent(

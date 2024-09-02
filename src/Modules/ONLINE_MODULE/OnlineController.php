@@ -240,9 +240,6 @@ class OnlineController extends ModuleInstance {
 	private StatsController $statsController;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private PlayerManager $playerManager;
 
 	#[NCA\Setup]
@@ -292,7 +289,7 @@ class OnlineController extends ModuleInstance {
 		$blob = "<header2>Hidden characters<end>\n".
 			$blobs->join("\n");
 		$context->reply(
-			$this->text->makeBlob(
+			Text::makeBlob(
 				'Hidden characters (' . $blobs->count() . ')',
 				$blob
 			)
@@ -454,7 +451,7 @@ class OnlineController extends ModuleInstance {
 			$blob .= "\n";
 		}
 		$blob .= "\nWritten by Naturarum (RK2)";
-		$msg = $this->text->makeBlob("{$profession->value} Search Results ({$mainCount})", $blob);
+		$msg = Text::makeBlob("{$profession->value} Search Results ({$mainCount})", $blob);
 
 		$context->reply($msg);
 	}
@@ -863,10 +860,10 @@ class OnlineController extends ModuleInstance {
 		}
 		if ($totalCount > 0) {
 			$blob .= 'Originally written by Naturarum (RK2)';
-			$msg = (array)$this->text->makeBlob("Players Online ({$totalMain})", $blob);
+			$msg = (array)Text::makeBlob("Players Online ({$totalMain})", $blob);
 		}
 		if ($allianceTotalCount > 0 && $includeRelay === self::RELAY_SEPARATE) {
-			$allianceMsg = (array)$this->text->makeBlob("Players Online in alliance ({$allianceTotalMain})", $blob2);
+			$allianceMsg = (array)Text::makeBlob("Players Online in alliance ({$allianceTotalMain})", $blob2);
 			$msg = array_merge($msg, $allianceMsg);
 		}
 		if (!count($msg)) {

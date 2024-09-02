@@ -71,9 +71,6 @@ class ApiController extends ModuleInstance {
 	private WebsocketController $websocketController;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Inject]
@@ -119,7 +116,7 @@ class ApiController extends ModuleInstance {
 			});
 		$blob = $blocks->join("\n\n");
 		$msg = 'All active API tokens (' . $keys->count() . ')';
-		$msg = $this->text->makeBlob($msg, $blob);
+		$msg = Text::makeBlob($msg, $blob);
 		$context->reply($msg);
 	}
 
@@ -179,7 +176,7 @@ class ApiController extends ModuleInstance {
 				'the Nadybot WIKI',
 				'/start https://github.com/Nadybot/Nadybot/wiki/REST-API#signed-requests'
 			) . ' for a documentation on how to use them.';
-		$msg = $this->text->makeBlob('Your API key and token', $blob);
+		$msg = Text::makeBlob('Your API key and token', $blob);
 		$context->reply($msg);
 	}
 

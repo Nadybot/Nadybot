@@ -57,9 +57,6 @@ class ItemsController extends ModuleInstance {
 	#[NCA\Inject]
 	private SettingManager $settingManager;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/** @var array<int,Skill> */
 	private array $skills = [];
 
@@ -127,11 +124,9 @@ class ItemsController extends ModuleInstance {
 		}
 		$row = ItemSearchResult::fromItem($row->atQL($ql));
 		$blob .= "\n" . $this->formatSearchResults([$row], null, true);
-		$msg = Text::blobWrap(
-			'Details about item ID ',
-			$this->text->makeBlob((string)$id, $blob, "Details about item ID {$id}"),
-			" ({$row->name})"
-		);
+		$msg = 'Details about item ID '.
+			Text::makeBlob((string)$id, $blob, "Details about item ID {$id}").
+			" ({$row->name})";
 
 		$context->reply($msg);
 	}
@@ -222,12 +217,11 @@ class ItemsController extends ModuleInstance {
 		if (count($items) >= $this->maxitems) {
 			$blob .= "\n\n<highlight>*Results have been limited to the first " . count($items) . ' results.<end>';
 		}
-		$msg = $this->text->makeBlob("Items matching \"{$search}\" (" . count($items) . ')', $blob);
+		$msg = Text::makeBlob("Items matching \"{$search}\" (" . count($items) . ')', $blob);
 		$context->reply($msg);
 	}
 
-	/** @return string|list<string> */
-	public function findItems(?int $ql, string $search): string|array {
+	public function findItems(?int $ql, string $search): string {
 		if (isset($ql)) {
 			if ($ql < 1 || $ql > 500) {
 				return 'QL must be between 1 and 500.';
@@ -343,12 +337,8 @@ class ItemsController extends ModuleInstance {
 		return $result->toList();
 	}
 
-	/**
-	 * @param iterable<array-key,ItemSearchResult> $data
-	 *
-	 * @return string|list<string>
-	 */
-	public function createItemsBlob(iterable $data, string $search, ?int $ql, string $version, string $footer, mixed $elapsed=null): string|array {
+	/** @param iterable<array-key,ItemSearchResult> $data */
+	public function createItemsBlob(iterable $data, string $search, ?int $ql, string $version, string $footer, mixed $elapsed=null): string {
 		$data = collect($data);
 		$numItems = count($data);
 		$groups = $data->map(static fn (ItemSearchResult $row): ?int => $row->group_id)
@@ -381,7 +371,7 @@ class ItemsController extends ModuleInstance {
 			$blob .= "\n\n<highlight>*Results have been limited to the first {$numItems} results.<end>";
 		}
 		$blob .= "\n\n" . $footer;
-		$link = $this->text->makeBlob("Item Search Results ({$numItems})", $blob);
+		$link = Text::makeBlob("Item Search Results ({$numItems})", $blob);
 
 		return $link;
 	}

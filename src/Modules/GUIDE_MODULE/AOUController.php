@@ -47,9 +47,6 @@ class AOUController extends ModuleInstance {
 	private BotConfig $config;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private ItemsController $itemsController;
 
 	#[NCA\Inject]
@@ -117,12 +114,8 @@ class AOUController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @phpstan-param non-empty-string $body
-	 *
-	 * @return string|list<string>
-	 */
-	public function renderAOUGuide(string $body, int $guideId): array|string {
+	/** @phpstan-param non-empty-string $body */
+	public function renderAOUGuide(string $body, int $guideId): string {
 		$dom = new DOMDocument();
 		$dom->loadXML($body);
 
@@ -150,7 +143,7 @@ class AOUController extends ModuleInstance {
 
 		$blob .= "\n\n<i>Powered by " . Text::makeChatcmd('AO-Universe', '/start https://www.ao-universe.com') . '</i>';
 
-		$msg = $this->text->makeBlob($title, $blob);
+		$msg = Text::makeBlob($title, $blob);
 		return $msg;
 	}
 
@@ -176,8 +169,7 @@ class AOUController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** @return string|list<string> */
-	private function searchAndGetAOUGuide(string $search, bool $searchGuideText): string|array {
+	private function searchAndGetAOUGuide(string $search, bool $searchGuideText): string {
 		$params = [
 			'mode' => 'search',
 			'search' => $search,
@@ -196,12 +188,8 @@ class AOUController extends ModuleInstance {
 		return $this->renderAOUGuideList($body, $searchGuideText, $search);
 	}
 
-	/**
-	 * @phpstan-param non-empty-string $body
-	 *
-	 * @return string|list<string>
-	 */
-	private function renderAOUGuideList(string $body, bool $searchGuideText, string $search): array|string {
+	/** @phpstan-param non-empty-string $body */
+	private function renderAOUGuideList(string $body, bool $searchGuideText, string $search): string {
 		$searchTerms = explode(' ', $search);
 
 		$dom = new DOMDocument();
@@ -211,6 +199,9 @@ class AOUController extends ModuleInstance {
 		$blob = '';
 		$count = 0;
 		foreach ($sections as $section) {
+			if (!($section instanceof DOMElement)) { // @phpstan-ignore-line
+				continue;
+			}
 			$category = $this->getSearchResultCategory($section);
 
 			$guides = $section->getElementsByTagName('guide');
@@ -242,7 +233,7 @@ class AOUController extends ModuleInstance {
 			} else {
 				$title = "AO-Universe Guides containing '{$search}' ({$count})";
 			}
-			$msg = $this->text->makeBlob($title, $blob);
+			$msg = Text::makeBlob($title, $blob);
 		} else {
 			$msg = "Could not find any guides containing: '{$search}'.";
 			if (!$searchGuideText) {
@@ -266,6 +257,9 @@ class AOUController extends ModuleInstance {
 		$folders = $section->getElementsByTagName('folder');
 		$output = [];
 		foreach ($folders as $folder) {
+			if (!($folder instanceof DOMElement)) { // @phpstan-ignore-line
+				continue;
+			}
 			$output []= $folder->getElementsByTagName('name')->item(0)->nodeValue;
 		}
 		return implode(' - ', array_reverse($output));

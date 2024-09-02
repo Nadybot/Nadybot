@@ -27,9 +27,6 @@ use Nadybot\Core\{
 ]
 class TimezoneController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	#[NCA\Inject]
@@ -44,7 +41,7 @@ class TimezoneController extends ModuleInstance {
 		foreach ($timezoneAreas as $area => $code) {
 			$blob .= '<tab>' . Text::makeChatcmd($area, "/tell <myname> timezone {$area}") . "\n";
 		}
-		$msg = $this->text->makeBlob('Timezone Areas', $blob);
+		$msg = Text::makeBlob('Timezone Areas', $blob);
 		$context->reply($msg);
 	}
 
@@ -69,7 +66,7 @@ class TimezoneController extends ModuleInstance {
 		foreach ($timezones as $timezone) {
 			$blob .= '<tab>' . Text::makeChatcmd($timezone, "/tell <myname> timezone set {$timezone}") . "\n";
 		}
-		$msg = $this->text->makeBlob("Timezones for {$area} ({$count})", $blob);
+		$msg = Text::makeBlob("Timezones for {$area} ({$count})", $blob);
 		$context->reply($msg);
 	}
 

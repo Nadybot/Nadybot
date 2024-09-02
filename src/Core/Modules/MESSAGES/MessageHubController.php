@@ -195,7 +195,7 @@ class MessageHubController extends ModuleInstance {
 		$to = $route->getDest();
 		$direction = $route->getTwoWay() ? '&lt;-&gt;' : '-&gt;';
 		$context->reply(
-			$this->text->makeBlob(
+			Text::makeBlob(
 				"Choose how long to mute {$from} {$direction} {$to}",
 				$blob
 			)
@@ -341,7 +341,7 @@ class MessageHubController extends ModuleInstance {
 		$blob = $emitters->groupBy($this->getEmitterType(...))
 			->map($this->renderEmitterGroup(...))
 			->join("\n\n");
-		$msg = $this->text->makeBlob("Message sources ({$count})", $blob);
+		$msg = Text::makeBlob("Message sources ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -359,7 +359,7 @@ class MessageHubController extends ModuleInstance {
 		$blob = $receivers->groupBy($this->getEmitterType(...))
 			->map($this->renderEmitterGroup(...))
 			->join("\n\n");
-		$msg = $this->text->makeBlob("Message targets ({$count})", $blob);
+		$msg = Text::makeBlob("Message targets ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -387,7 +387,7 @@ class MessageHubController extends ModuleInstance {
 			$blobs []= $entry;
 		}
 		$blob = implode("\n\n", $blobs);
-		$msg = $this->text->makeBlob("Message modifiers ({$count})", $blob);
+		$msg = Text::makeBlob("Message modifiers ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -442,7 +442,7 @@ class MessageHubController extends ModuleInstance {
 					"</i>\n\n";
 			}
 		}
-		$msg = $this->text->makeBlob("{$mod->name}", $blob);
+		$msg = Text::makeBlob("{$mod->name}", $blob);
 		$context->reply($msg);
 	}
 
@@ -510,7 +510,7 @@ class MessageHubController extends ModuleInstance {
 		}
 		$blob = "<header2>Active routes<end>\n<tab>";
 		$blob .= implode("\n<tab>", $list);
-		$msg = $this->text->makeBlob('Message Routes (' . count($routes) . ')', $blob);
+		$msg = Text::makeBlob('Message Routes (' . count($routes) . ')', $blob);
 		$context->reply($msg);
 	}
 
@@ -602,7 +602,7 @@ class MessageHubController extends ModuleInstance {
 		} else {
 			$msg .= "({$numTotal})";
 		}
-		$msg = $this->text->makeBlob($msg, $blob);
+		$msg = Text::makeBlob($msg, $blob);
 		$context->reply($msg);
 	}
 
@@ -672,7 +672,7 @@ class MessageHubController extends ModuleInstance {
 			"<tab><highlight><symbol>route color text pick type(name)<end>,\n".
 			"<tab><highlight><symbol>route color text pick type(name) -&gt; type(name)<end> or \n".
 			'<tab><highlight><symbol>route color text pick type(name) -&gt; type(name) via type(name)<end>';
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Routing colors (' . count($colors) . ')',
 			$blob
 		);
@@ -857,7 +857,7 @@ class MessageHubController extends ModuleInstance {
 			);
 			$blob .= "<tab>[{$link}] <font color='{$color}'>Example Text</font> ({$colorName})\n";
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Choose from colors (' . count($colorList) . ')',
 			$blob
 		);
@@ -906,7 +906,7 @@ class MessageHubController extends ModuleInstance {
 			"Set the format with\n".
 			"<tab><highlight><symbol>route format render type(name) false<end> or\n".
 			'<tab><highlight><symbol>route format display type(name) gsp:%s<end>.';
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Routing formats (' . count($formats) . ')',
 			$blob
 		);

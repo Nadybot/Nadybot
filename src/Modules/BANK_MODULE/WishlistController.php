@@ -53,9 +53,6 @@ class WishlistController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Nadybot $chatBot;
 
 	#[NCA\Inject]
@@ -93,7 +90,7 @@ class WishlistController extends ModuleInstance {
 			return;
 		}
 		$render = $this->renderCheckWishlist($wishlistGrouped, $event->sender);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"People are wishing items from you ({$render->numItems})",
 			$render->blob
 		);
@@ -164,7 +161,7 @@ class WishlistController extends ModuleInstance {
 			}
 			$charGroups []= implode("\n", $lines);
 		}
-		$blob = $this->text->makeBlob(
+		$blob = Text::makeBlob(
 			"The global wishlist ({$numItems})",
 			implode("\n\n", $charGroups)
 		);
@@ -260,7 +257,7 @@ class WishlistController extends ModuleInstance {
 			}
 			$charGroups []= implode("\n", $lines);
 		}
-		$blob = $this->text->makeBlob(
+		$blob = Text::makeBlob(
 			"Your wishlist ({$numItems})",
 			implode("\n\n", $charGroups)
 		);
@@ -335,7 +332,7 @@ class WishlistController extends ModuleInstance {
 			return;
 		}
 		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"{$char}'s wishlists ({$render->numItems})",
 			$render->blob
 		);
@@ -369,7 +366,7 @@ class WishlistController extends ModuleInstance {
 			return;
 		}
 		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"Others' wishlists with '{$what}' ({$render->numItems})",
 			$render->blob
 		);
@@ -391,7 +388,7 @@ class WishlistController extends ModuleInstance {
 			return;
 		}
 		$render = $this->renderCheckWishlist($wishlistGrouped, ...$allChars);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"Others' wishlists ({$render->numItems})",
 			$render->blob
 		);

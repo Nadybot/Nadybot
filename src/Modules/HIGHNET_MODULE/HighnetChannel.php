@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
 use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\{Attributes as NCA, Types\MessageEmitter, Types\MessageReceiver};
+use Nadybot\Core\{Attributes as NCA, Blob, Types\MessageEmitter, Types\MessageReceiver};
 
 class HighnetChannel implements MessageEmitter, MessageReceiver {
 	#[NCA\Inject]
@@ -23,6 +23,7 @@ class HighnetChannel implements MessageEmitter, MessageReceiver {
 		if (!is_string($data)) {
 			return false;
 		}
+		$data = Blob::create($data)->getText();
 		return $this->highnetController->handleIncoming($event, $destination, $data);
 	}
 }

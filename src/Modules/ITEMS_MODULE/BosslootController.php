@@ -43,9 +43,6 @@ class BosslootController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private WhereisController $whereisController;
 
 	#[NCA\Inject]
@@ -79,7 +76,7 @@ class BosslootController extends ModuleInstance {
 			foreach ($bosses as $row) {
 				$blob .= $this->getBossLootOutput($row);
 			}
-			$output = $this->text->makeBlob("Boss Search Results ({$count})", $blob);
+			$output = Text::makeBlob("Boss Search Results ({$count})", $blob);
 			$context->reply($output);
 			return;
 		}
@@ -109,7 +106,7 @@ class BosslootController extends ModuleInstance {
 			$blob .= '<tab>' . Text::makeImage($row2->item->icon) . "\n";
 			$blob .= '<tab>' . $row2->item->getLink($row2->item->highql, $row2->itemname) . "\n\n";
 		}
-		$output = $this->text->makeBlob($row->bossname, $blob);
+		$output = Text::makeBlob($row->bossname, $blob);
 		$context->reply($output);
 	}
 
@@ -133,7 +130,7 @@ class BosslootController extends ModuleInstance {
 			foreach ($loot as $row) {
 				$blob .= $this->getBossLootOutput($row, $item);
 			}
-			$output = $this->text->makeBlob("Bossloot Search Results ({$count})", $blob);
+			$output = Text::makeBlob("Bossloot Search Results ({$count})", $blob);
 		}
 		$context->reply($output);
 	}

@@ -13,7 +13,8 @@ class MessageInfoCommandReply implements CommandReply {
 		$this->startTime = microtime(true);
 	}
 
-	public function reply($msg): void {
+	/** @inheritDoc */
+	public function reply(string|array $msg): void {
 		$endTime = microtime(true);
 		if (!is_array($msg)) {
 			$msg = [$msg];

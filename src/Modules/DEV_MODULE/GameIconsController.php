@@ -21,9 +21,6 @@ use Nadybot\Core\{
 	)
 ]
 class GameIconsController extends ModuleInstance {
-	#[NCA\Inject]
-	private Text $text;
-
 	/** List all game icons with their name */
 	#[NCA\HandlesCommand('gameicons')]
 	public function gameIconsCommand(CmdContext $context): void {
@@ -823,7 +820,7 @@ class GameIconsController extends ModuleInstance {
 		foreach ($icons as $icon) {
 			$blob .= "<pagebreak>Icon: <img src=tdb://id:{$icon}> {$icon}\n";
 		}
-		$msg = $this->text->makeBlob('All game icons', $blob);
+		$msg = Text::makeBlob('All game icons', $blob);
 		$context->reply($msg);
 	}
 }

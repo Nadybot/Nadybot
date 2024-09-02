@@ -37,9 +37,6 @@ class GmiController extends ModuleInstance {
 	public string $gmiApi = self::EU_GMI_API;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 
 	#[NCA\Inject]
@@ -149,7 +146,7 @@ class GmiController extends ModuleInstance {
 			$context->reply('No yesdrop-items matched your search criteria.');
 			return;
 		}
-		$msg = $this->text->makeBlob("Items matching your search ({$numMatches})", $blob);
+		$msg = Text::makeBlob("Items matching your search ({$numMatches})", $blob);
 		$context->reply($msg);
 	}
 
@@ -168,10 +165,9 @@ class GmiController extends ModuleInstance {
 		$context->reply($message);
 	}
 
-	/** @return list<string> */
-	protected function renderGmiResult(GmiResult $gmi, AOItemSpec&AOIcon $item, ?int $ql=null): array {
+	protected function renderGmiResult(GmiResult $gmi, AOItemSpec&AOIcon $item, ?int $ql=null): string {
 		if (!count($gmi->buyOrders) && !count($gmi->sellOrders)) {
-			return ['There are no orders on GMI.'];
+			return 'There are no orders on GMI.';
 		}
 		$numBuy = count($gmi->buyOrders);
 		$numSell = count($gmi->sellOrders);
@@ -204,7 +200,7 @@ class GmiController extends ModuleInstance {
 		} else {
 			$sellers .= "\n<tab>- none -";
 		}
-		return (array)$this->text->makeBlob(
+		return Text::makeBlob(
 			sprintf(
 				'GMI orders for %s (%d buy, %d sell)',
 				$item->getName(),

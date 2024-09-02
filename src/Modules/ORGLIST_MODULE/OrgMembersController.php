@@ -28,9 +28,6 @@ class OrgMembersController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private GuildManager $guildManager;
 
 	/** Show the members of an organization, sorted by name */
@@ -69,7 +66,7 @@ class OrgMembersController extends ModuleInstance {
 			$blob .= ", {$player->gender} {$player->breed} {$player->profession?->inColor()}, {$player->guild_rank})\n";
 		}
 
-		$msg = $this->text->makeBlob("Org members for '{$org->orgname}' ({$numrows})", $blob);
+		$msg = Text::makeBlob("Org members for '{$org->orgname}' ({$numrows})", $blob);
 		$context->reply($msg);
 	}
 }

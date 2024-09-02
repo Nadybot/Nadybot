@@ -169,9 +169,6 @@ class AuctionController extends ModuleInstance {
 	private CommandAlias $commandAlias;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	#[NCA\Inject]
@@ -426,7 +423,7 @@ class AuctionController extends ModuleInstance {
 			return;
 		}
 		$context->reply(
-			$this->text->makeBlob(
+			Text::makeBlob(
 				'Last auctions (' . count($items) . ')',
 				$this->renderAuctionList($items)
 			)
@@ -490,7 +487,7 @@ class AuctionController extends ModuleInstance {
 			'<tab>Total: <highlight>' . number_format($avgCost, 1) . "<end>\n".
 			'<tab>Last 10: <highlight>' . number_format($avgCostLastTen, 1) . "<end>\n\n".
 			$this->renderAuctionList($items);
-		$blob = $this->text->makeBlob("Auction history results for {$search}", $text);
+		$blob = Text::makeBlob("Auction history results for {$search}", $text);
 		$context->reply($blob);
 	}
 
@@ -696,7 +693,7 @@ class AuctionController extends ModuleInstance {
 	public function getAuctionAnnouncement(Auction $auction): string {
 		[$top, $bottom] = $this->getAnnouncementBorders();
 		$item = $auction->item->toString();
-		$bidInfo = ((array)$this->text->makeBlob('click for info', $this->getBiddingInfo(), 'Howto bid'))[0];
+		$bidInfo = Text::makeBlob('click for info', $this->getBiddingInfo(), 'Howto bid');
 		$secondsLeft = ($auction->end - time());
 		$msg = "\n{$top}".
 			"<highlight>{$auction->auctioneer}<end> started an auction for ".
@@ -783,7 +780,7 @@ class AuctionController extends ModuleInstance {
 		}
 		$msg .= "<highlight>{$auction->bid}<end> point" . ($auction->bid > 1 ? 's' : '') . '. '.
 			'Auction ends in <highlight>' . ($auction->end - time()) . ' seconds<end> :: '.
-			((array)$this->text->makeBlob('click for info', $this->getBiddingInfo(), 'Howto bid'))[0];
+			Text::makeBlob('click for info', $this->getBiddingInfo(), 'Howto bid');
 		return $msg;
 	}
 

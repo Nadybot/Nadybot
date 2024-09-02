@@ -41,9 +41,6 @@ class RecipeController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Filesystem $fs;
 
 	#[NCA\Inject]
@@ -140,7 +137,7 @@ class RecipeController extends ModuleInstance {
 			$blob .= '<tab>' . Text::makeChatcmd($row->name, "/tell <myname> recipe {$row->id}") . "\n";
 		}
 
-		$msg = $this->text->makeBlob("Recipes matching '{$search}' ({$count})", $blob);
+		$msg = Text::makeBlob("Recipes matching '{$search}' ({$count})", $blob);
 
 		$context->reply($msg);
 	}
@@ -158,8 +155,7 @@ class RecipeController extends ModuleInstance {
 		return $input;
 	}
 
-	/** @return list<string> */
-	public function createRecipeBlob(Recipe $row): array {
+	public function createRecipeBlob(Recipe $row): string {
 		$recipeName = $row->name;
 		$author = ($row->author === '') ? 'Unknown' : $row->author;
 
@@ -167,7 +163,7 @@ class RecipeController extends ModuleInstance {
 		$recipeText .= "Author: <highlight>{$author}<end>\n\n";
 		$recipeText .= $this->formatRecipeText($row->recipe);
 
-		return (array)$this->text->makeBlob("Recipe for {$recipeName}", $recipeText);
+		return Text::makeBlob("Recipe for {$recipeName}", $recipeText);
 	}
 
 	private function parseTextFile(int $id, string $fileName): Recipe {

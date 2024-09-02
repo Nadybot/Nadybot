@@ -33,9 +33,6 @@ class AltInfo {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/**
 	 * @param string                            $main The nickname of this character
 	 * @param array<string,AltValidationStatus> $alts The list of alts for this character
@@ -118,8 +115,7 @@ class AltInfo {
 		return $alts;
 	}
 
-	/** @return string|list<string> */
-	public function getAltsBlob(bool $firstPageOnly=false): string|array {
+	public function getAltsBlob(bool $firstPageOnly=false): string {
 		if (count($this->alts) === 0) {
 			return 'No registered alts.';
 		}
@@ -210,8 +206,7 @@ class AltInfo {
 		return $text;
 	}
 
-	/** @return string|list<string> */
-	protected function getAltsBlobForPlayer(?Player $player, bool $firstPageOnly): string|array {
+	protected function getAltsBlobForPlayer(?Player $player, bool $firstPageOnly): string {
 		if (!isset($player)) {
 			return 'Main character not found.';
 		}
@@ -265,6 +260,9 @@ class AltInfo {
 			$alts = $alts->sortBy('alt');
 		}
 		$count = $alts->count() + 1;
+		if ($firstPageOnly) {
+			$alts = $alts->slice(0, 15);
+		}
 		foreach ($alts as $row) {
 			/** @var AltPlayer $row */
 			$online = $this->buddylistManager->isOnline($row->alt);
@@ -298,14 +296,14 @@ class AltInfo {
 
 			$blob .= "\n";
 		}
+		if ($firstPageOnly && $count > $alts->count()) {
+			$blob .= '(+' . ($count - $alts->count()) . ' more)';
+		}
 
 		$nick = $this->getDisplayNick();
 		$altOwner = $nick ?? $this->main;
-		$msg = $this->text->makeBlob("Alts of {$altOwner} ({$count})", $blob);
+		$msg = Text::makeBlob("Alts of {$altOwner} ({$count})", $blob);
 
-		if ($firstPageOnly && is_array($msg)) {
-			return $msg[0];
-		}
 		return $msg;
 	}
 }

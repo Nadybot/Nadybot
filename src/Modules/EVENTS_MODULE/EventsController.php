@@ -69,9 +69,6 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 	private PlayerManager $playerManager;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private AltsController $altsController;
 
 	/** Show the five closest past and upcoming events */
@@ -267,13 +264,12 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 			$link .= "<tab>- {$name}{$info} :: [{$alt}]\n";
 		}
-		$msg = $this->text->makeBlob("Players Attending Event {$id} ({$numAttendees})", $link);
+		$msg = Text::makeBlob("Players Attending Event {$id} ({$numAttendees})", $link);
 
 		$context->reply($msg);
 	}
 
-	/** @return ?list<string> */
-	public function getEvents(): ?array {
+	public function getEvents(): ?string {
 		$data = $this->db->table(EventModel::getTable())
 			->orderByDesc('event_date')
 			->limit($this->numEventsShown)
@@ -331,7 +327,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 			$link = "<i>More to come. Check back soon!</i>\n\n";
 		}
 
-		return (array)$this->text->makeBlob('Events [Last updated ' . Util::date($updated).']', $link);
+		return Text::makeBlob('Events [Last updated ' . Util::date($updated).']', $link);
 	}
 
 	#[NCA\Event(

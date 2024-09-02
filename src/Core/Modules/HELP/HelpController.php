@@ -65,9 +65,6 @@ class HelpController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Filesystem $fs;
 
 	#[NCA\Setup]
@@ -84,12 +81,11 @@ class HelpController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, 'help modules', 'modules');
 	}
 
-	/** @return string|list<string> */
-	public function getAbout(): string|array {
+	public function getAbout(): string {
 		$data = $this->fs->read(__DIR__ . '/about.txt');
 		$version = BotRunner::getVersion();
 		$data = str_replace('<version>', $version, $data);
-		return $this->text->makeBlob("About Nadybot {$version}", $data);
+		return Text::makeBlob("About Nadybot {$version}", $data);
 	}
 
 	/** Get a list of all help topics */
@@ -116,7 +112,7 @@ class HelpController extends ModuleInstance {
 			$blob .= "<tab>{$helpLink}: {$row->description}\n";
 		}
 
-		$msg = $this->text->makeBlob('Help (main)', $blob);
+		$msg = Text::makeBlob('Help (main)', $blob);
 
 		$context->reply($msg);
 	}
@@ -132,7 +128,7 @@ class HelpController extends ModuleInstance {
 			[$version, $database, \PHP_VERSION],
 			$data
 		);
-		$msg = $this->text->makeBlob('Help', $data);
+		$msg = Text::makeBlob('Help', $data);
 		$context->reply($msg);
 	}
 
@@ -143,7 +139,7 @@ class HelpController extends ModuleInstance {
 		#[NCA\Str('syntax')] string $action
 	): void {
 		$data = $this->fs->read(__DIR__ . '/syntax.txt');
-		$msg = $this->text->makeBlob('Help', trim($data));
+		$msg = Text::makeBlob('Help', trim($data));
 		$context->reply($msg);
 	}
 
@@ -181,7 +177,7 @@ class HelpController extends ModuleInstance {
 				"a module's settings, events and commands.\n\n";
 		}
 		$blob .= implode("\n\n", $blobs);
-		$msg = $this->text->makeBlob('Help', $blob);
+		$msg = Text::makeBlob('Help', $blob);
 		$context->reply($msg);
 	}
 
@@ -189,7 +185,7 @@ class HelpController extends ModuleInstance {
 	#[NCA\HandlesCommand('adminhelp')]
 	public function adminhelpCommand(CmdContext $context): void {
 		$data = $this->fs->read(__DIR__ . '/adminhelp.txt');
-		$msg = $this->text->makeBlob('Help', $data);
+		$msg = Text::makeBlob('Help', $data);
 		$context->reply($msg);
 	}
 
@@ -239,7 +235,7 @@ class HelpController extends ModuleInstance {
 			return;
 		}
 		$topic = ucfirst($topic);
-		$msg = $this->text->makeBlob("Help ({$topic})", $blob);
+		$msg = Text::makeBlob("Help ({$topic})", $blob);
 		$context->reply($msg);
 	}
 }

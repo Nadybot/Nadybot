@@ -132,9 +132,6 @@ class GreetController extends ModuleInstance {
 	private PlayerManager $playerManager;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	/** @var array<string,int> */
@@ -210,7 +207,7 @@ class GreetController extends ModuleInstance {
 			);
 			return;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Defined custom greetings',
 			"<header2>Greetings<end>\n" . $lines->join("\n")
 		);

@@ -136,7 +136,7 @@ class SymbiantController extends ModuleInstance {
 			}
 			return $blob;
 		});
-		$msg = $this->text->makeBlob('Item comparison', $blobs->join("\n"));
+		$msg = Text::makeBlob('Item comparison', $blobs->join("\n"));
 		$context->reply($msg);
 	}
 
@@ -161,7 +161,7 @@ class SymbiantController extends ModuleInstance {
 			return;
 		}
 		$blob = implode("\n\n", $skillBlocks);
-		$msg = $this->text->makeBlob("Symbiants buffing '{$skillName}'", $blob);
+		$msg = Text::makeBlob("Symbiants buffing '{$skillName}'", $blob);
 		$context->reply($msg);
 	}
 
@@ -333,7 +333,7 @@ class SymbiantController extends ModuleInstance {
 			$configs[$symbiant->unit]->{$symbiant->slot_name} []= $symbiant;
 		}
 		$blob = $this->configsToBlob($configs);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"Best 3 symbiants in each slot for a level {$level} {$prof->value}",
 			$blob
 		);

@@ -70,9 +70,6 @@ class WhatBuffsController extends ModuleInstance {
 	public int $whatbuffsShowNodrop = 0;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Inject]
@@ -120,7 +117,7 @@ class WhatBuffsController extends ModuleInstance {
 			$blob .= '<tab>' . Text::makeChatcmd($skill->name, "/tell <myname> {$command} {$skill->name}") . "\n";
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
-		$msg = $this->text->makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
+		$msg = Text::makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -241,7 +238,7 @@ class WhatBuffsController extends ModuleInstance {
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
 		$suffix = $froobFriendly ? 'Froob' : '';
-		$msg = $this->text->makeBlob("WhatBuffs{$suffix} {$type} - Choose Skill", $blob);
+		$msg = Text::makeBlob("WhatBuffs{$suffix} {$type} - Choose Skill", $blob);
 		$sendto->reply($msg);
 	}
 
@@ -314,7 +311,7 @@ class WhatBuffsController extends ModuleInstance {
 				$blob .= '<tab>' . Text::makeChatcmd(ucfirst($row->name), "/tell <myname> {$command} {$row->name}") . "\n";
 			}
 			$blob .= "\nItem Extraction Info provided by AOIA+";
-			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
+			$msg = Text::makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
 			$context->reply($msg);
 			return;
 		}
@@ -382,16 +379,12 @@ class WhatBuffsController extends ModuleInstance {
 			$blob .= '<tab>' . Text::makeChatcmd(ucfirst($row->item_type), "/tell <myname> {$command} {$row->item_type} {$skillName}") . " ({$row->num})\n";
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
-		$msg = $this->text->makeBlob("WhatBuffs{$suffix} {$skillName} - Choose Type", $blob);
+		$msg = Text::makeBlob("WhatBuffs{$suffix} {$skillName} - Choose Type", $blob);
 		$context->reply($msg);
 	}
 
-	/**
-	 * Gives a blob with all items buffing $skill in slot $category
-	 *
-	 * @return string|list<string>
-	 */
-	public function getSearchResults(string $category, Skill $skill, bool $froobFriendly): string|array {
+	/** Gives a blob with all items buffing $skill in slot $category */
+	public function getSearchResults(string $category, Skill $skill, bool $froobFriendly): string {
 		$suffix = $froobFriendly ? 'Froob' : '';
 		$addNotInGameNotice = false;
 		if ($category === 'Nanoprogram') {
@@ -510,7 +503,7 @@ class WhatBuffsController extends ModuleInstance {
 				$result->blob .= "\n<red>(!)<end> means: This item is GM/ARK-only, not in the game, or unavailable";
 			}
 			$result->blob .= "\nItem Extraction Info provided by AOIA+";
-			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - {$category} {$skill->name} ({$result->numItems})", $result->blob);
+			$msg = Text::makeBlob("WhatBuffs{$suffix} - {$category} {$skill->name} ({$result->numItems})", $result->blob);
 		}
 		return $msg;
 	}
@@ -763,12 +756,8 @@ class WhatBuffsController extends ModuleInstance {
 		return new RenderedList(numItems: $numItems, blob: $blob);
 	}
 
-	/**
-	 * Show what buffs $skillName in slot $category
-	 *
-	 * @return string|list<string>
-	 */
-	public function showSearchResults(string $category, string $skillName, bool $froobFriendly): string|array {
+	/** Show what buffs $skillName in slot $category */
+	public function showSearchResults(string $category, string $skillName, bool $froobFriendly): string {
 		$category = ucfirst(strtolower($category));
 
 		$skills = $this->searchForSkill($skillName);
@@ -786,7 +775,7 @@ class WhatBuffsController extends ModuleInstance {
 			foreach ($skills as $skill) {
 				$blob .= Text::makeChatcmd(ucfirst($skill->name), "/tell <myname> {$command} {$category} {$skill->name}") . "\n";
 			}
-			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
+			$msg = Text::makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
 		}
 
 		return $msg;

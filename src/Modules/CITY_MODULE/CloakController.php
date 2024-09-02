@@ -66,9 +66,6 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private AltsController $altsController;
 
 	#[NCA\Inject]
@@ -135,10 +132,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 			$list .= 'Action: <highlight>Cloaking device turned ' . $row->action . "<end>\n";
 			$list .= 'Character: <highlight>' . $row->player . "<end>\n\n";
 		}
-		$blob = (array)$this->text->makeBlob('Cloak History', $list);
-		foreach ($blob as &$page) {
-			$page = "{$msg} {$page}";
-		}
+		$blob = "{$msg} " . Text::makeBlob('Cloak History', $list);
 		$context->reply($blob);
 	}
 

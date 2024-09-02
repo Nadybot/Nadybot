@@ -33,9 +33,6 @@ class ChatGroupingController extends ModuleInstance {
 	/** @var array<int,list<string>> */
 	public array $grouped = [];
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/** Clear current grouping */
 	#[NCA\HandlesCommand('group manage')]
 	public function groupClearCommand(
@@ -60,17 +57,13 @@ class ChatGroupingController extends ModuleInstance {
 			$blob = "<header2>Joined players<end>\n<tab>- ".
 				implode("\n<tab>- ", $this->joined) . "\n\n".
 				'<i>Use <highlight><symbol>group divide &lt;number of groups&gt;<end> to divide into groups.</i>';
-			$msg = $this->text->makeBlob(count($this->joined) . ' players joined', $blob);
-			$msg = Text::blobWrap(
-				'No current groups, ',
-				$msg,
-				'.'
-			);
+			$msg = Text::makeBlob(count($this->joined) . ' players joined', $blob);
+			$msg = "No current groups, {$msg}.";
 			$context->reply($msg);
 			return;
 		}
 		$blob = $this->renderGroups($this->grouped);
-		$msg = $this->text->makeBlob('Current groups', $blob);
+		$msg = Text::makeBlob('Current groups', $blob);
 		$context->reply($msg);
 	}
 
@@ -98,7 +91,7 @@ class ChatGroupingController extends ModuleInstance {
 			unset($queue[$entry]);
 		}
 		$blob = $this->renderGroups($this->grouped);
-		$msg = $this->text->makeBlob('Divided ' . count($this->joined) . ' players', $blob);
+		$msg = Text::makeBlob('Divided ' . count($this->joined) . ' players', $blob);
 		$context->reply($msg);
 	}
 

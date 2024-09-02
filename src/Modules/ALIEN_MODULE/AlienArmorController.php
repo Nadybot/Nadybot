@@ -27,9 +27,6 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 ]
 class AlienArmorController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private ItemsController $itemsController;
 
 	/** Get an overview of the supported alien armor types */
@@ -65,7 +62,7 @@ class AlienArmorController extends ModuleInstance {
 		$list .= "\n<tab>" . Text::makeChatcmd("Combined Paramedic's Armor", '/tell <myname> aiarmor cp');
 		$list .= "\n<tab>" . Text::makeChatcmd("Combined Scout's Armor", '/tell <myname> aiarmor cs');
 		$list .= "\n<tab>" . Text::makeChatcmd("Combined Sharpshooter's Armor", '/tell <myname> aiarmor css');
-		$msg = $this->text->makeBlob('Alien Armor List', $list);
+		$msg = Text::makeBlob('Alien Armor List', $list);
 		$context->reply($msg);
 	}
 
@@ -211,7 +208,7 @@ class AlienArmorController extends ModuleInstance {
 		$list .= "<highlight>Required Skills:<end>\n";
 		$list .= '- '.floor($ql * 6)." Psychology\n\n";
 
-		$msg = $this->text->makeBlob("Building process for {$ql} {$armortype}", $list);
+		$msg = Text::makeBlob("Building process for {$ql} {$armortype}", $list);
 		$context->reply($msg);
 	}
 
@@ -313,7 +310,7 @@ class AlienArmorController extends ModuleInstance {
 		$list .= "<header2>Target Armor<end>\n";
 		$list .= $this->itemsController->getItemAndIcon($nameArmorTarget, $targetQL) . " QL{$targetQL}";
 		$list .= ' (' . Text::makeChatcmd('Tradeskill process for this item', "/tell <myname> aiarmor {$nameTarget} {$targetQL}") . ')';
-		$msg = $this->text->makeBlob("Building process for {$ql} {$nameArmorResult}", $list);
+		$msg = Text::makeBlob("Building process for {$ql} {$nameArmorResult}", $list);
 		$context->reply($msg);
 	}
 }

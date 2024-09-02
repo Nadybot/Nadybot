@@ -141,7 +141,7 @@ class TrickleController extends ModuleInstance {
 				$blob .= "<tab><highlight>{$row->name}<end>: ".
 					$this->getTrickleAmounts($row) . "\n";
 			}
-			$msg = $this->text->makeBlob("Trickle Info: {$skill}", $blob);
+			$msg = Text::makeBlob("Trickle Info: {$skill}", $blob);
 		}
 
 		$context->reply($msg);
@@ -200,8 +200,7 @@ class TrickleController extends ModuleInstance {
 		return $msg;
 	}
 
-	/** @return list<string> */
-	private function processAbilities(AbilityConfig $abilities): array {
+	private function processAbilities(AbilityConfig $abilities): string {
 		$headerParts = [];
 		$msgParts = [];
 		foreach (get_object_vars($abilities) as $short => $bonus) {
@@ -217,7 +216,7 @@ class TrickleController extends ModuleInstance {
 		$results = $this->getTrickleResults($abilities);
 		$blob = $this->formatOutput($results);
 		$blob .= "\nBy Tyrence (RK2), inspired by the Bebot command of the same name";
-		return (array)$this->text->makeBlob(
+		return Text::makeBlob(
 			'Trickle Results for ' . implode(', ', $msgParts),
 			$blob,
 			"Trickle Results for {$abilitiesHeader}",

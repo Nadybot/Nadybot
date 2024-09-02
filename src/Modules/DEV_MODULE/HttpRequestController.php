@@ -28,9 +28,6 @@ use Throwable;
 ]
 class HttpRequestController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 
 	/** Load the given URL and show the result */
@@ -73,7 +70,7 @@ class HttpRequestController extends ModuleInstance {
 				}
 			}
 		}
-		$msg = $this->text->makeBlob('Reply received', $blob, 'Server reply');
+		$msg = Text::makeBlob('Reply received', $blob, 'Server reply');
 		$context->reply($msg);
 	}
 }

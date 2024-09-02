@@ -27,9 +27,6 @@ class FindPlayerController extends ModuleInstance {
 	private BotConfig $config;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private PlayerManager $playerManager;
 
 	/** Find a player by name in the local database */
@@ -50,7 +47,7 @@ class FindPlayerController extends ModuleInstance {
 		foreach ($players as $player) {
 			$blob .= '<tab>' . $this->playerManager->getInfo($player, false) . "\n";
 		}
-		$msg = $this->text->makeBlob("Search results for \"{$search}\" ({$count})", $blob);
+		$msg = Text::makeBlob("Search results for \"{$search}\" ({$count})", $blob);
 
 		$context->reply($msg);
 	}

@@ -130,9 +130,6 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private EventManager $eventManager;
 
 	#[NCA\Inject]
@@ -320,26 +317,22 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			return;
 		}
 		$popup = $this->getInfoPopup($message);
-		$msgs = Text::blobWrap(
-			$message->message . ' [',
-			$this->text->makeBlob('details', $popup, 'Message details'),
-			']'
-		);
-		foreach ($msgs as $msg) {
-			$rMsg = new RoutableMessage($msg);
-			$rMsg->setCharacter(new Character(
-				name: $message->sender_name,
-				id: $message->sender_uid,
-				dimension: $message->dimension,
-			));
-			$rMsg->prependPath(new Source(
-				type: 'highnet',
-				name: strtolower($message->channel),
-				label: $message->channel,
-				dimension: $message->dimension,
-			));
-			$this->msgHub->handle($rMsg);
-		}
+		$msg = $message->message . ' ['.
+			Text::makeBlob('details', $popup, 'Message details').
+			']';
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->setCharacter(new Character(
+			name: $message->sender_name,
+			id: $message->sender_uid,
+			dimension: $message->dimension,
+		));
+		$rMsg->prependPath(new Source(
+			type: 'highnet',
+			name: strtolower($message->channel),
+			label: $message->channel,
+			dimension: $message->dimension,
+		));
+		$this->msgHub->handle($rMsg);
 	}
 
 	/** Show information about the Highnet connection */
@@ -413,14 +406,10 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 				) . " with <highlight>{$numClients}<end> attached"
 			)
 			: '&lt;none&gt;');
-		$msgs = Text::blobWrap(
-			$channelMsg . ' [',
-			$this->text->makeBlob('instructions', $popup, 'Instructions how to use Highnet'),
-			']'
-		);
-		foreach ($msgs as $msg) {
-			$context->reply($msg);
-		}
+		$msg = $channelMsg . ' ['.
+			Text::makeBlob('instructions', $popup, 'Instructions how to use Highnet').
+			']';
+		$context->reply($msg);
 	}
 
 	/** Reset the whole Highnet configuration and setup default routes and colors */
@@ -534,7 +523,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$this->filters
 				->map(Closure::fromCallable($this->renderFilter(...)))
 				->join("\n");
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Highnet filters (' . $this->filters->count() . ')',
 			$blob
 		);

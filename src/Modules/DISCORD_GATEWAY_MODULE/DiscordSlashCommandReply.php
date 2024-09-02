@@ -4,6 +4,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	Config\BotConfig,
 	MessageHub,
 	Modules\DISCORD\DiscordAPIClient,
@@ -77,7 +78,8 @@ class DiscordSlashCommandReply implements CommandReply {
 		);
 	}
 
-	public function reply($msg): void {
+	/** @inheritDoc */
+	public function reply(string|array $msg): void {
 		if (!is_array($msg)) {
 			$msg = [$msg];
 		}
@@ -121,7 +123,7 @@ class DiscordSlashCommandReply implements CommandReply {
 		for ($i = 0; $i < count($msg); $i++) {
 			$msgPack = $msg[$i];
 			$messageObj = $this->discordController->formatMessage(
-				$msgPack,
+				Blob::create($msgPack)->getText(),
 				$this->gw->getChannelGuild($this->channelId)
 			);
 			$messageObj->flags = $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_EPHEMERAL

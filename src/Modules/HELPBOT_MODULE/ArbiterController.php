@@ -44,9 +44,6 @@ class ArbiterController extends ModuleInstance {
 	public const CYCLE_LENGTH = 3_628_800;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	/** Calculate the next (or current) times for an event */
@@ -244,17 +241,12 @@ class ArbiterController extends ModuleInstance {
 		}
 		$blob .= "\n\n<i>All arbiter weeks last for 8 days (Sunday 00:00 to Sunday 23:59)</i>";
 		if ($upcomingEvents[0]->isActiveOn($time)) {
-			$msg = Text::blobWrap(
-				"{$msg} ",
-				$this->text->makeBlob('Upcoming arbiter events', $blob)
-			);
+			$msg .= ' ' . Text::makeBlob('Upcoming arbiter events', $blob);
 		} else {
-			$msg = Text::blobWrap(
-				"{$msg} ",
-				$this->text->makeBlob('Next arbiter event', $blob, 'Upcoming arbiter events'),
+			$msg .= ' '.
+				Text::makeBlob('Next arbiter event', $blob, 'Upcoming arbiter events').
 				' is ' . $upcomingEvents[0]->longName . ' in '.
-					$this->niceTimeWithoutSecs($upcomingEvents[0]->start - $time) . '.'
-			);
+				$this->niceTimeWithoutSecs($upcomingEvents[0]->start - $time) . '.';
 		}
 		$context->reply($msg);
 	}

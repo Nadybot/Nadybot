@@ -16,7 +16,8 @@ class WebUIChannel implements CommandReply, MessageEmitter {
 		return Source::SYSTEM . '(webui)';
 	}
 
-	public function reply($msg): void {
+	/** @inheritDoc */
+	public function reply(string|array $msg): void {
 		foreach ((array)$msg as $packet) {
 			$r = new RoutableMessage($packet);
 			$r->appendPath(new Source(

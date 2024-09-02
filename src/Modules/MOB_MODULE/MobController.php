@@ -81,9 +81,6 @@ class MobController extends ModuleInstance {
 	#[NCA\Inject]
 	private MessageHub $msgHub;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Event('connect', 'Load all mobs from the API')]
 	public function initMobsFromApi(): void {
 		$client = $this->builder->build();
@@ -177,11 +174,11 @@ class MobController extends ModuleInstance {
 			"/waypoint {$mob->x} {$mob->y} {$mob->playfield->value}"
 		);
 		$msg = "<highlight>{$mob->name}<end> is being attacked in ".
-			((array)$this->text->makeBlob(
+			Text::makeBlob(
 				$mob->playfield->long(),
 				$blob,
 				"{$mob->name} waypoint",
-			))[0] . '.';
+			) . '.';
 		$rMsg = new RoutableMessage($msg);
 		$rMsg->prependPath(new Source('mobs', "{$mob->type}-{$mob->key}-attacked"));
 		$this->msgHub->handle($rMsg);
@@ -198,11 +195,11 @@ class MobController extends ModuleInstance {
 			"/waypoint {$mob->x} {$mob->y} {$mob->playfield->value}"
 		);
 		$msg = "<highlight>{$mob->name}<end> has spawned in ".
-			((array)$this->text->makeBlob(
+			Text::makeBlob(
 				$mob->playfield->long(),
 				$blob,
 				"{$mob->name} waypoint",
-			))[0] . '.';
+			) . '.';
 		$rMsg = new RoutableMessage($msg);
 		$rMsg->prependPath(new Source('mobs', "{$mob->type}-{$mob->key}-spawn"));
 		$this->msgHub->handle($rMsg);
@@ -219,11 +216,11 @@ class MobController extends ModuleInstance {
 			"/waypoint {$mob->x} {$mob->y} {$mob->playfield->value}"
 		);
 		$msg = "<highlight>{$mob->name}<end> was killed in ".
-			((array)$this->text->makeBlob(
+			Text::makeBlob(
 				$mob->playfield->long(),
 				$blob,
 				"{$mob->name} waypoint",
-			))[0] . '.';
+			) . '.';
 		if (isset($mob->respawn_timer)) {
 			$msg .= ' Respawn will be in '.
 				Util::unixtimeToReadable($mob->respawn_timer) . '.';
@@ -247,7 +244,7 @@ class MobController extends ModuleInstance {
 			$context->reply('There is currently no data for any prisoner. Maybe the API is down.');
 			return;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Status of all prisoners (' . $blobs->count() . ')',
 			$blobs->join("\n\n")
 		);
@@ -284,10 +281,10 @@ class MobController extends ModuleInstance {
 
 		/** @param Collection<int,Mob> $hags */
 		$blobs = $factions->map(function (Collection $hags, string $faction): string {
-			return ((array)$this->text->makeBlob(
+			return Text::makeBlob(
 				ucfirst($faction) . ' hags (' . $hags->count() . ')',
 				$hags->map($this->renderMob(...))->join("\n\n")
-			))[0];
+			);
 		});
 		$msg = 'Status of all ' . $blobs->join(' and ') . '.';
 		$context->reply($msg);
@@ -333,10 +330,10 @@ class MobController extends ModuleInstance {
 			return;
 		}
 		$blobs = $factions->map(function (Collection $dreads, string $faction): string {
-			return ((array)$this->text->makeBlob(
+			return Text::makeBlob(
 				ucfirst($faction) . ' Dreadloch camps (' . $dreads->count() . ')',
 				$dreads->map(Closure::fromCallable($this->renderMob(...)))->join("\n\n")
-			))[0];
+			);
 		});
 		$msg = 'Status of all ' . $blobs->join(' and ') . '.';
 		$context->reply($msg);
@@ -361,7 +358,7 @@ class MobController extends ModuleInstance {
 			$context->reply('There is currently no data for Jack Legchopper or his clones. Maybe the API is down.');
 			return;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Status of Jack and his clones (' . $blobs->count() . ')',
 			$blobs->join("\n\n")
 		);
@@ -400,7 +397,7 @@ class MobController extends ModuleInstance {
 			$context->reply('There is currently no data for mobs in The Reck. Maybe the API is down.');
 			return;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Status of mobs in The Reck (' . $blobs->count() . ')',
 			$blobs->join("\n\n")
 		);
@@ -429,7 +426,7 @@ class MobController extends ModuleInstance {
 			) . "]\n".
 			"<tab>{$state}";
 
-		$msg = $this->text->makeBlob('Hollow Island', $blob);
+		$msg = Text::makeBlob('Hollow Island', $blob);
 		$context->reply($msg);
 	}
 
@@ -443,11 +440,7 @@ class MobController extends ModuleInstance {
 			return;
 		}
 		$blob = $this->renderMob($mob);
-		$msg = Text::blobWrap(
-			'',
-			$this->text->makeBlob($mob->name, $blob),
-			': ' . $this->renderMobStatus($mob)
-		);
+		$msg = Text::makeBlob($mob->name, $blob) . ': ' . $this->renderMobStatus($mob);
 		$context->reply($msg);
 	}
 

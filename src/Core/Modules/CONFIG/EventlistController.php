@@ -22,9 +22,6 @@ use Nadybot\Core\{
 ]
 class EventlistController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	/** Show a list of all events on the bot. Give &lt;event type&gt; to show only events matching a string */
@@ -68,7 +65,7 @@ class EventlistController extends ModuleInstance {
 			}
 		}
 
-		$msg = $this->text->makeBlob("Event List ({$count})", $blob);
+		$msg = Text::makeBlob("Event List ({$count})", $blob);
 		$context->reply($msg);
 	}
 }

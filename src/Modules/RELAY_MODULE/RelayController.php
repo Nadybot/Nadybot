@@ -408,8 +408,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		$msg = "Relay <highlight>{$name}<end> added.";
 		// @phpstan-ignore-next-line
 		if (!$this->messageHub->hasRouteFor($relay->getChannelName()) && !($context instanceof ProfileCommandReply)) {
-			$help = (array)$this->text->makeBlob('setup your routing', $blob);
-			$msg .= " Make sure to {$help[0]}, otherwise no messages will be exchanged.";
+			$help = Text::makeBlob('setup your routing', $blob);
+			$msg .= " Make sure to {$help}, otherwise no messages will be exchanged.";
 		}
 		if ($relay->protocolSupportsFeature(RelayProtocolInterface::F_EVENT_SYNC)) {
 			$msg .= ' This protocol supports relaying certain events. Use '.
@@ -637,7 +637,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		$blob .= "\n\n\n".
 			'<i>For more information about how to color the individual tags and '.
 			"texts, see the {$wikiLink}.</i>";
-		$msg = $this->text->makeBlob('Relays (' . count($relays) . ')', $blob);
+		$msg = Text::makeBlob('Relays (' . count($relays) . ')', $blob);
 		$context->reply($msg);
 	}
 
@@ -778,7 +778,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			}
 			$blob .= "\n";
 		}
-		$msg = $this->text->makeBlob("Relay configuration for {$relay->name}", $blob);
+		$msg = Text::makeBlob("Relay configuration for {$relay->name}", $blob);
 		$context->reply($msg);
 	}
 
@@ -1288,15 +1288,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		return ApiResponse::create($this->getRegisteredSyncEvents());
 	}
 
-	/**
-	 * @param array<string,ClassSpec> $specs
-	 *
-	 * @return list<string>
-	 */
-	protected function renderClassSpecOverview(array $specs, string $name, string $subCommand): array {
+	/** @param array<string,ClassSpec> $specs */
+	protected function renderClassSpecOverview(array $specs, string $name, string $subCommand): string {
 		$count = count($specs);
 		if (!$count) {
-			return ["No {$name}s available."];
+			return "No {$name}s available.";
 		}
 		$blobs = [];
 		foreach ($specs as $spec) {
@@ -1310,18 +1306,14 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			$blobs []= $entry;
 		}
 		$blob = implode("\n\n", $blobs);
-		return (array)$this->text->makeBlob("Available {$name}s ({$count})", $blob);
+		return Text::makeBlob("Available {$name}s ({$count})", $blob);
 	}
 
-	/**
-	 * @param array<string,ClassSpec> $specs
-	 *
-	 * @return list<string>
-	 */
-	protected function renderClassSpecDetails(array $specs, string $key, string $name): array {
+	/** @param array<string,ClassSpec> $specs */
+	protected function renderClassSpecDetails(array $specs, string $key, string $name): string {
 		$spec = $specs[$key] ?? null;
 		if (!isset($spec)) {
-			return ["No {$name} <highlight>{$key}<end> found."];
+			return "No {$name} <highlight>{$key}<end> found.";
 		}
 		$refClass = new ReflectionClass($spec->class);
 		try {
@@ -1361,7 +1353,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 					"</i>\n\n";
 			}
 		}
-		return (array)$this->text->makeBlob(
+		return Text::makeBlob(
 			"Detailed description for {$spec->name}",
 			$blob
 		);

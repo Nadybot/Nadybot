@@ -42,9 +42,6 @@ class SilenceController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private CommandManager $commandManager;
 
 	/** Get a list of all commands that have been silenced */
@@ -63,7 +60,7 @@ class SilenceController extends ModuleInstance {
 			$unsilenceLink = Text::makeChatcmd('Unsilence', "/tell <myname> unsilence {$row->cmd} {$row->channel}");
 			return "{$blob}<highlight>{$row->cmd}<end> ({$row->channel}) - {$unsilenceLink}\n";
 		}, '');
-		$msg = $this->text->makeBlob('Silenced Commands', $blob);
+		$msg = Text::makeBlob('Silenced Commands', $blob);
 		$context->reply($msg);
 	}
 

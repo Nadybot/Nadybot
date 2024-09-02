@@ -61,9 +61,6 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	public const STATUS_ENDED = 9;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Inject]
@@ -173,10 +170,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			}
 			$blob = $this->getPollBlob($poll);
 
-			$pages = (array)$this->text->makeBlob($title, $blob);
-			foreach ($pages as $page) {
-				$msg []= $page;
-			}
+			$msg []= Text::makeBlob($title, $blob);
 		}
 		if (count($msg)) {
 			$rMsg = new RoutableMessage(implode("\n", $msg));
@@ -220,7 +214,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			$blob .= "<off>Finished polls:<end>\n{$over}";
 		}
 
-		$msg = $this->text->makeBlob('All polls', $blob);
+		$msg = Text::makeBlob('All polls', $blob);
 		$context->reply($msg);
 	}
 
@@ -350,7 +344,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			$privmsg = 'You have not voted on this yet.';
 		}
 
-		$msg = $this->text->makeBlob("Poll Nr. {$topic->id}", $blob);
+		$msg = Text::makeBlob("Poll Nr. {$topic->id}", $blob);
 		if (isset($privmsg)) {
 			$context->reply($privmsg);
 		}

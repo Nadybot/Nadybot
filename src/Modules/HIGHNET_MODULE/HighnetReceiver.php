@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
 use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\{Attributes as NCA, Safe, Types\MessageReceiver};
+use Nadybot\Core\{Attributes as NCA, Blob, Safe, Types\MessageReceiver};
 
 use Psr\Log\LoggerInterface;
 
@@ -30,6 +30,7 @@ class HighnetReceiver implements MessageReceiver {
 			$this->logger->info('No data in message to Highnet - dropping.');
 			return false;
 		}
+		$data = Blob::create($data)->getText();
 		$prefix = $this->highnetController->highnetPrefix;
 		if (!count($matches = Safe::pregMatch('/^' . preg_quote($prefix, '/') . '([a-zA-Z]+)/', $data))) {
 			$this->logger->info('Data to Highnet does not have the {prefix} prefix.', [

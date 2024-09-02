@@ -357,11 +357,11 @@ class RaidController extends ModuleInstance {
 		$canAdminRaid = $this->commandManager->couldRunCommand($context, 'raid start test');
 		if ($canAdminRaid) {
 			$this->chatBot->sendTell(
-				$this->text->makeBlob('Raid Control', $this->getControlInterface()),
+				Text::makeBlob('Raid Control', $this->getControlInterface()),
 				$context->char->name
 			);
 		}
-		$msg = ((array)$this->text->makeBlob('click to join', $this->getRaidJoinLink(), 'Raid information'))[0];
+		$msg = Text::makeBlob('click to join', $this->getRaidJoinLink(), 'Raid information');
 		$announceMsg = $this->raid->getAnnounceMessage($msg);
 		$context->reply($announceMsg);
 	}
@@ -745,7 +745,7 @@ class RaidController extends ModuleInstance {
 				"with avg. <highlight>{$avgPoints}<end> points ".
 				"[{$detailsCmd}]\n";
 		}
-		$msg = $this->text->makeBlob('Last Raids (' . count($raids).')', $blob);
+		$msg = Text::makeBlob('Last Raids (' . count($raids).')', $blob);
 		$context->reply($msg);
 	}
 
@@ -803,7 +803,7 @@ class RaidController extends ModuleInstance {
 			}
 			$blob .= "\n";
 		}
-		$msg = $this->text->makeBlob("Raid {$raid->raid_id} details", $blob);
+		$msg = Text::makeBlob("Raid {$raid->raid_id} details", $blob);
 		$context->reply($msg);
 	}
 
@@ -881,7 +881,7 @@ class RaidController extends ModuleInstance {
 			$blob .= '<tab>' . Util::date($raid->stopped) . '<tab>'.
 				"Raid stopped by {$raid->stopped_by}\n";
 		}
-		$msg = $this->text->makeBlob("Raid {$raid->raid_id} details for {$char}", $blob);
+		$msg = Text::makeBlob("Raid {$raid->raid_id} details for {$char}", $blob);
 		$context->reply($msg);
 	}
 
@@ -956,7 +956,7 @@ class RaidController extends ModuleInstance {
 			}
 			$blob .= "\n";
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Dual-logged players (' . count($duals) .')',
 			$blob,
 			'Dual-logged players with at last 1 char in the raid'
@@ -1020,11 +1020,11 @@ class RaidController extends ModuleInstance {
 		$this->routeMessage(
 			'announce',
 			$this->raid->getAnnounceMessage(
-				((array)$this->text->makeBlob(
+				Text::makeBlob(
 					'click to join',
 					$this->getRaidJoinLink(),
 					'Raid information'
-				))[0]
+				)
 			)
 		);
 		$this->raid->last_announcement = time();
@@ -1041,11 +1041,11 @@ class RaidController extends ModuleInstance {
 			'start',
 			"<highlight>{$event->raid->started_by}<end> started a raid: ".
 			"<highlight>{$event->raid->description}<end> :: ".
-			((array)$this->text->makeBlob(
+			Text::makeBlob(
 				'click to join',
 				$this->getRaidJoinLink(),
 				'Raid information'
-			))[0]
+			)
 		);
 	}
 
@@ -1126,7 +1126,7 @@ class RaidController extends ModuleInstance {
 		}
 		$format = $this->commentController->formatComments($comments, true);
 		$msg = "Comments ({$format->numComments}) about the current raiders ({$format->numMains})";
-		$msg = $this->text->makeBlob($msg, $format->blob);
+		$msg = Text::makeBlob($msg, $format->blob);
 		$context->reply($msg);
 	}
 
@@ -1230,17 +1230,13 @@ class RaidController extends ModuleInstance {
 			$this->raidMemberController->joinRaid($context->char->name, $context->char->name, $context->source, false);
 		}
 		$this->chatBot->sendTell(
-			$this->text->makeBlob('Raid Control', $this->getControlInterface()),
+			Text::makeBlob('Raid Control', $this->getControlInterface()),
 			$context->char->name
 		);
 	}
 
-	/**
-	 * @param array<null|Player> $players
-	 *
-	 * @return list<string>
-	 */
-	protected function reportNotInResult(array $players): array {
+	/** @param array<null|Player> $players */
+	protected function reportNotInResult(array $players): string {
 		$blob = "<header2>Players that were warned<end>\n";
 		ksort($players);
 		$charNames = [];
@@ -1262,11 +1258,9 @@ class RaidController extends ModuleInstance {
 		);
 		$blob .= "\n{$addAllLink}";
 		$s = (count($players) === 1) ? '' : 's';
-		$msgs = (array)$this->text->makeBlob(count($players) . " player{$s}", $blob, 'Players not in the raid');
-		foreach ($msgs as &$msg) {
-			$msg = "Sent not in raid warning to {$msg}.";
-		}
-		return $msgs;
+		$msg = Text::makeBlob(count($players) . " player{$s}", $blob, 'Players not in the raid');
+		$msg = "Sent not in raid warning to {$msg}.";
+		return $msg;
 	}
 
 	protected function getRaidSummary(Raid $raid): string {

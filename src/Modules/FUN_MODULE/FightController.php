@@ -24,9 +24,6 @@ use Nadybot\Core\{
 	)
 ]
 class FightController extends ModuleInstance {
-	#[NCA\Inject]
-	private Text $text;
-
 	/**
 	 * Let 2 people fight against each other
 	 *
@@ -72,13 +69,13 @@ class FightController extends ModuleInstance {
 
 		if ($fighter1->hp > $fighter2->hp) {
 			$list .= "\nAnd the winner is …… <highlight>{$player1}!<end>";
-			$msg = $this->text->makeBlob("{$player1} vs {$player2}: {$player1} wins!", $list);
+			$msg = Text::makeBlob("{$player1} vs {$player2}: {$player1} wins!", $list);
 		} elseif ($fighter2->hp > $fighter1->hp) {
 			$list .= "\nAnd the winner is …… <highlight>{$player2}!<end>";
-			$msg = $this->text->makeBlob("{$player1} vs {$player2}: {$player2} wins!", $list);
+			$msg = Text::makeBlob("{$player1} vs {$player2}: {$player2} wins!", $list);
 		} else {
 			$list .= "\nIt's a tie!!";
-			$msg = $this->text->makeBlob("{$player1} vs {$player2}: It's a tie!", $list);
+			$msg = Text::makeBlob("{$player1} vs {$player2}: It's a tie!", $list);
 		}
 
 		$context->reply($msg);

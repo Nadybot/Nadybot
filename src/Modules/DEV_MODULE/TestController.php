@@ -71,9 +71,6 @@ class TestController extends ModuleInstance {
 	private Util $util;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Filesystem $fs;
 
 	#[NCA\Inject]
@@ -534,7 +531,7 @@ class TestController extends ModuleInstance {
 			$name = str_replace('.txt', '', $file);
 			$blob .= Text::makeChatcmd($name, "/tell <myname> test {$name}") . "\n";
 		}
-		$msg = $this->text->makeBlob("Tests Available ({$count})", $blob);
+		$msg = Text::makeBlob("Tests Available ({$count})", $blob);
 		$context->reply($msg);
 	}
 

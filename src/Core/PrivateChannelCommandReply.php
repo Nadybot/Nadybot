@@ -16,7 +16,12 @@ class PrivateChannelCommandReply implements CommandReply, MessageEmitter {
 		return Source::PRIV . "({$this->channel})";
 	}
 
-	public function reply($msg): void {
-		$this->chatBot->sendPrivate($msg, false, $this->channel);
+	/** @inheritDoc */
+	public function reply(string|array $msg): void {
+		$this->chatBot->sendPrivate(
+			message: Blob::renderMulti(text: $msg, formatMessage: false),
+			disableRelay: false,
+			group: $this->channel
+		);
 	}
 }

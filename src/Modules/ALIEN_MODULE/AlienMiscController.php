@@ -51,9 +51,6 @@ class AlienMiscController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private ItemsController $itemsController;
 
 	#[NCA\Setup]
@@ -84,7 +81,7 @@ class AlienMiscController extends ModuleInstance {
 				$blob
 			);
 
-		$msg = $this->text->makeBlob('LE Procs (Choose profession)', $blob);
+		$msg = Text::makeBlob('LE Procs (Choose profession)', $blob);
 		$context->reply($msg);
 	}
 
@@ -126,7 +123,7 @@ class AlienMiscController extends ModuleInstance {
 			"\n<i>Offensive procs have a 5% chance of firing every time you attack</i>".
 			"\n<i>Defensive procs have a 10% chance of firing every time something attacks you.</i>";
 
-		$msg = $this->text->makeBlob("{$profession->value} LE Procs", $blob);
+		$msg = Text::makeBlob("{$profession->value} LE Procs", $blob);
 		$context->reply($msg);
 	}
 
@@ -157,7 +154,7 @@ class AlienMiscController extends ModuleInstance {
 				''
 			);
 
-		$msg = $this->text->makeBlob('Ofab Armor Bio-Material Types', $blob);
+		$msg = Text::makeBlob('Ofab Armor Bio-Material Types', $blob);
 		$context->reply($msg);
 	}
 
@@ -251,7 +248,7 @@ class AlienMiscController extends ModuleInstance {
 		}
 		$blob .= "\nCost for full set: <highlight>{$fullSetVP}<end> VP";
 
-		$msg = $this->text->makeBlob("{$profession->value} Ofab Armor (QL {$ql})", $blob);
+		$msg = Text::makeBlob("{$profession->value} Ofab Armor (QL {$ql})", $blob);
 		$context->reply($msg);
 	}
 
@@ -285,7 +282,7 @@ class AlienMiscController extends ModuleInstance {
 				''
 			);
 
-		$msg = $this->text->makeBlob('Ofab Weapons', $blob);
+		$msg = Text::makeBlob('Ofab Weapons', $blob);
 		$context->reply($msg);
 	}
 
@@ -342,7 +339,7 @@ class AlienMiscController extends ModuleInstance {
 			}
 		}
 
-		$msg = $this->text->makeBlob("Ofab {$weapon} (QL {$searchQL})", $blob);
+		$msg = Text::makeBlob("Ofab {$weapon} (QL {$searchQL})", $blob);
 		$context->reply($msg);
 	}
 
@@ -401,7 +398,7 @@ class AlienMiscController extends ModuleInstance {
 				break;
 		}
 
-		$msg = $this->text->makeBlob("General {$gen}", $blob);
+		$msg = Text::makeBlob("General {$gen}", $blob);
 		$context->reply($msg);
 	}
 }

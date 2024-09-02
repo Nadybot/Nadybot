@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	MessageHub,
 	Routing\Character,
 	Routing\Events\Base,
@@ -11,7 +12,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
-	Text,
 };
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
@@ -71,9 +71,6 @@ class AgcrProtocol implements RelayProtocolInterface {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	public function __construct(string $command='agcr', string $prefix='!', bool $forceSingleHop=false, bool $sendUserLinks=true) {
 		$this->command = $command;
 		$this->prefix = $prefix;
@@ -119,11 +116,11 @@ class AgcrProtocol implements RelayProtocolInterface {
 		if ($this->forceSingleHop) {
 			$path = implode(' ', explode('] [', $path));
 		}
-		return [
-			$this->prefix.$this->command . ' '.
-				$path.
-				$this->text->formatMessage($event->getData()),
-		];
+		$pages = (array)Blob::create($event->getData())->render(formatMessage: true);
+		return array_map(
+			fn (string $page): string => $this->prefix.$this->command . " {$path}{$page}",
+			$pages
+		);
 	}
 
 	public function receive(RelayMessage $message): ?RoutableEvent {
@@ -159,7 +156,7 @@ class AgcrProtocol implements RelayProtocolInterface {
 			$message->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}
-		$message->setData($data);
+		$message->setData(Blob::LITERAL . $data);
 		$this->logger->debug('Relay {relay} decoded agcr message successfully', [
 			'relay' => $this->relay->getName(),
 			'message' => $message,

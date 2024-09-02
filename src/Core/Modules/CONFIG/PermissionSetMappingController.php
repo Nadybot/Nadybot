@@ -34,9 +34,6 @@ class PermissionSetMappingController extends ModuleInstance {
 	private CommandManager $cmdManager;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Inject]
@@ -80,7 +77,7 @@ class PermissionSetMappingController extends ModuleInstance {
 				'<end></i>';
 		}
 		$context->reply(
-			$this->text->makeBlob('Permission set mappings (' . $blocks->count() . ')', $blob)
+			Text::makeBlob('Permission set mappings (' . $blocks->count() . ')', $blob)
 		);
 	}
 
@@ -126,13 +123,11 @@ class PermissionSetMappingController extends ModuleInstance {
 		}
 		$this->cmdManager->loadPermsetMappings();
 		$context->reply(
-			Text::blobWrap(
-				"Mapping from {$source} to {$permissionSet} created. ",
-				$this->text->makeBlob(
-					'Configure it',
-					$this->renderPermSetMapping($map),
-					'Configure your mapping'
-				)
+			"Mapping from {$source} to {$permissionSet} created. ".
+			Text::makeBlob(
+				'Configure it',
+				$this->renderPermSetMapping($map),
+				'Configure your mapping'
 			)
 		);
 	}
@@ -148,7 +143,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		$blob = "<header2>Registered sources<end>\n".
 			'<tab>' . $sources->join("\n<tab>");
 		$context->reply(
-			$this->text->makeBlob(
+			Text::makeBlob(
 				'Registered cmd sources (' . $sources->count() . ')',
 				$blob
 			)
@@ -208,7 +203,7 @@ class PermissionSetMappingController extends ModuleInstance {
 			return '<tab>' . Text::makeChatcmd($set->name, "/tell <myname> cmdmap permset set {$source} {$set->name}");
 		})->join("\n");
 		$context->reply(
-			$this->text->makeBlob(
+			Text::makeBlob(
 				"Choose a permission set for {$source}",
 				"<header2>Available permission sets<end>\n" . $choices
 			)
@@ -246,7 +241,7 @@ class PermissionSetMappingController extends ModuleInstance {
 			return "<tab><highlight>{$option}<end> [" . Text::makeChatcmd('use this', "/tell <myname> cmdmap symbol set {$source} {$option}") . ']';
 		})->join("\n");
 		$context->reply(
-			$this->text->makeBlob(
+			Text::makeBlob(
 				"Choose a symbol for {$source}",
 				"<header2>Available symbols<end>\n" . $choices
 			)

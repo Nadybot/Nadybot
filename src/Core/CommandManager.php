@@ -80,9 +80,6 @@ class CommandManager implements MessageEmitter {
 	private Preferences $preferences;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	#[NCA\Inject]
@@ -895,9 +892,9 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Get the help text for a command
 	 *
-	 * @return string|list<string> The help text as one or more pages
+	 * @return string The help text
 	 */
-	public function getHelpForCommand(string $cmd, CmdContext $context): string|array {
+	public function getHelpForCommand(string $cmd, CmdContext $context): string {
 		$result = $this->get($cmd);
 		if (!isset($result)) {
 			return "Unknown command '{$cmd}'";
@@ -934,9 +931,9 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Get the help text for a command, purely from the code
 	 *
-	 * @return string|list<string> The help text as one or more pages
+	 * @return string The help text
 	 */
-	public function getCmdHelpFromCode(string $cmd, CmdContext $context): string|array {
+	public function getCmdHelpFromCode(string $cmd, CmdContext $context): string {
 		$cmds = $this->db->table(CmdCfg::getTable())
 			->where('dependson', $cmd)
 			->orWhere('cmd', $cmd)
@@ -1011,7 +1008,7 @@ class CommandManager implements MessageEmitter {
 		if (count($epilogues)) {
 			$blob .= "\n\n" . implode("\n\n", $epilogues);
 		}
-		return $this->text->makeBlob("Help ({$cmd})", $blob . $this->getSyntaxExplanation($context));
+		return Text::makeBlob("Help ({$cmd})", $blob . $this->getSyntaxExplanation($context));
 	}
 
 	public function getSyntaxExplanation(CmdContext $context, bool $ignorePrefs=false): string {

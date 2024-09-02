@@ -5,6 +5,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 use Nadybot\Core\Modules\DISCORD\DiscordMessageReference;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	Channels\DiscordChannel as ChannelsDiscordChannel,
 	Config\BotConfig,
 	MessageHub,
@@ -62,7 +63,8 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 		return Source::DISCORD_PRIV . "({$this->channelId})";
 	}
 
-	public function reply($msg): void {
+	/** @inheritDoc */
+	public function reply(string|array $msg): void {
 		if (!is_array($msg)) {
 			$msg = [$msg];
 		}
@@ -74,9 +76,11 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 				}
 			}
 		}
+		// @TODO: Move the logic of paging to formatMessage instead of hardcoding 3k
+		$msg = (array)Blob::renderMulti(text: $msg, pageSize: 3_000, formatMessage: false);
 		foreach ($msg as $msgPack) {
 			$messageObj = $this->discordController->formatMessage(
-				$msgPack,
+				Blob::create($msgPack)->getText(),
 				$this->discordGatewayController->getChannelGuild($this->channelId)
 					?? array_values($this->discordGatewayController->getGuilds())[0]
 					?? null

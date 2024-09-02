@@ -330,9 +330,6 @@ class WorldBossController extends ModuleInstance {
 	private HttpClientBuilder $builder;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private CommandAlias $commandAlias;
 
 	#[NCA\Inject]
@@ -429,7 +426,7 @@ class WorldBossController extends ModuleInstance {
 				"\n<tab>Submitter: <highlight>". $timer->submitter_name . '<end>'.
 				"\n<tab>Precise: " . (($this->lastSpawnPrecise[$timer->mob_name]??false) ? '<green>yes<end>' : '<red>no<end>');
 		}
-		$msg = $this->text->makeBlob('Worldboss timings', implode("\n\n", $blocks));
+		$msg = Text::makeBlob('Worldboss timings', implode("\n\n", $blocks));
 		$context->reply($msg);
 	}
 
@@ -503,7 +500,7 @@ class WorldBossController extends ModuleInstance {
 	public function formatWorldBossMessage(WorldBossTimer $timer, bool $short=true, bool $startpage=false): string {
 		$showSpawn = $this->worldbossShowSpawn;
 		$nextSpawnsMessage = $this->getNextSpawnsMessage($timer);
-		$spawntimes = (array)$this->text->makeBlob("Spawntimes for {$timer->mob_name}", $nextSpawnsMessage);
+		$spawntimes = Text::makeBlob("Spawntimes for {$timer->mob_name}", $nextSpawnsMessage);
 
 		/** @phpstan-var null|array{int,int,int} */
 		$coords = self::BOSS_DATA[$timer->mob_name][self::COORDS] ?? null;
@@ -524,11 +521,11 @@ class WorldBossController extends ModuleInstance {
 						Text::makeChatcmd('see AO-Universe', "/start https://www.ao-universe.com/guides/{$aou}").
 						']';
 				}
-				$mobName = ((array)$this->text->makeBlob(
+				$mobName = Text::makeBlob(
 					$timer->mob_name,
 					$blob,
 					"Waypoint for {$timer->mob_name}",
-				))[0];
+				);
 			}
 		}
 		if (isset($timer->next_spawn) && time() < $timer->next_spawn) {
@@ -538,8 +535,8 @@ class WorldBossController extends ModuleInstance {
 					$portalOpen = 6*60 + 30 - $secsDead;
 					$portalOpenTime = Util::unixtimeToReadable($portalOpen);
 					$msg = "The Gauntlet portal will be open for <highlight>{$portalOpenTime}<end>.";
-					if (!$short && count($spawntimes)) {
-						$msg .= " {$spawntimes[0]}";
+					if (!$short) {
+						$msg .= " {$spawntimes}";
 					}
 					return $msg;
 				}
@@ -590,9 +587,7 @@ class WorldBossController extends ModuleInstance {
 				return "{$mobName}{$spawnTimeMessage}{$killTimeMessage}.";
 			}
 			$msg = "{$mobName}{$spawnTimeMessage}{$killTimeMessage}.";
-			if (count($spawntimes)) {
-				$msg .= " {$spawntimes[0]}";
-			}
+			$msg .= " {$spawntimes}";
 			return $msg;
 		}
 		return "{$timer->mob_name} does currently not have an accurate timer.";
@@ -1230,11 +1225,11 @@ class WorldBossController extends ModuleInstance {
 				Text::makeChatcmd('see AO-Universe', "/start https://www.ao-universe.com/guides/{$aou}").
 				']';
 		}
-		$popup = ((array)$this->text->makeBlob(
+		$popup = Text::makeBlob(
 			'waypoint',
 			$blob,
 			"Waypoint for {$timer->mob_name}",
-		))[0];
+		);
 		$msg .= " [{$popup}]";
 		return $msg;
 	}

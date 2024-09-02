@@ -30,9 +30,6 @@ class AliasController extends ModuleInstance {
 	#[NCA\Inject]
 	private CommandManager $commandManager;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	/** Add a new alias with spaces for a command */
 	#[NCA\HandlesCommand('alias')]
 	public function aliasAddCommand1(
@@ -163,7 +160,7 @@ class AliasController extends ModuleInstance {
 			}
 		}
 
-		$msg = $this->text->makeBlob('Alias List', $blob);
+		$msg = Text::makeBlob('Alias List', $blob);
 		$context->reply($msg);
 	}
 

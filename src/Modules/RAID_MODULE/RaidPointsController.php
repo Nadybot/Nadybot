@@ -130,9 +130,6 @@ class RaidPointsController extends ModuleInstance {
 	private AltsController $altsController;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Nadybot $chatBot;
 
 	/** Give points when the ticker is enabled */
@@ -404,7 +401,7 @@ class RaidPointsController extends ModuleInstance {
 			$blob .= "\n<tab>" . Text::alignNumber($raider->points, $maxDigits) . "    {$raider->username}";
 		}
 		$context->reply(
-			$this->text->makeBlob("Top raiders ({$topRaiders->count()})", $blob)
+			Text::makeBlob("Top raiders ({$topRaiders->count()})", $blob)
 		);
 	}
 
@@ -435,7 +432,7 @@ class RaidPointsController extends ModuleInstance {
 				Text::makeChatcmd('/tell <myname> points log all', '/tell <myname> points log all').
 				'.</i>';
 		}
-		$msg = $this->text->makeBlob('Your raid points log', $blob, null, $header);
+		$msg = Text::makeBlob('Your raid points log', $blob, null, $header);
 		$context->reply($msg);
 	}
 
@@ -482,7 +479,7 @@ class RaidPointsController extends ModuleInstance {
 				Text::makeChatcmd("/tell <myname> {$context->message} all", "/tell <myname> {$context->message} all").
 				'.</i>';
 		}
-		$msg = $this->text->makeBlob("{$char}'s raid points log", $blob, null, $header);
+		$msg = Text::makeBlob("{$char}'s raid points log", $blob, null, $header);
 		$context->reply($msg);
 	}
 
@@ -694,7 +691,7 @@ class RaidPointsController extends ModuleInstance {
 				"<tab>Log: <highlight>{$reward->reason}<end>\n".
 				"<tab>ID: <highlight>{$reward->id}<end> [{$remCmd}]\n\n";
 		}
-		$msg = $this->text->makeBlob('Raid rewards (' . count($rewards). ')', $blob);
+		$msg = Text::makeBlob('Raid rewards (' . count($rewards). ')', $blob);
 		$context->reply($msg);
 	}
 
@@ -916,16 +913,14 @@ class RaidPointsController extends ModuleInstance {
 		}
 		$raid = $this->raidController->raid;
 		$numRecipients = $this->awardRaidPoints($raid, $context->char->name, $points * -1, $reason);
-		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
+		$blob = $this->raidMemberController->getRaidListBlob($raid, true);
 		$pointsGiven = "<highlight>{$points} points<end> were removed";
 		if ($points === 1) {
 			$pointsGiven = '<highlight>1 point<end> was removed';
 		}
 		$pointsGiven .= " from all raiders ({$numRecipients}) by <highlight>{$context->char->name}<end> :: ";
-		foreach ($msgs as &$blob) {
-			$blob = "{$pointsGiven} {$blob}";
-			$this->routeMessage('reward', $blob);
-		}
+		$blob = "{$pointsGiven} {$blob}";
+		$this->routeMessage('reward', $blob);
 	}
 
 	private function giveRaidReward(
@@ -943,15 +938,13 @@ class RaidPointsController extends ModuleInstance {
 		}
 		$raid = $this->raidController->raid;
 		$numRecipients = $this->awardRaidPoints($raid, $context->char->name, $points, $reason);
-		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
+		$blob = $this->raidMemberController->getRaidListBlob($raid, true);
 		$pointsGiven = "<highlight>{$points}<end> points were given";
 		if ($points === 1) {
 			$pointsGiven = '<highlight>1<end> point was given';
 		}
 		$pointsGiven .= " to all raiders (<highlight>{$numRecipients}<end>) by {$context->char->name} :: ";
-		foreach ($msgs as &$blob) {
-			$blob = "{$pointsGiven} {$blob}";
-			$this->routeMessage('reward', $blob);
-		}
+		$msg = "{$pointsGiven} {$blob}";
+		$this->routeMessage('reward', $msg);
 	}
 }

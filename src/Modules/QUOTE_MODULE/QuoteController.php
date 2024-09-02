@@ -39,9 +39,6 @@ class QuoteController extends ModuleInstance {
 	private AccessManager $accessManager;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Nadybot $chatBot;
 
 	#[NCA\Inject]
@@ -155,7 +152,7 @@ class QuoteController extends ModuleInstance {
 		}
 
 		if ($msg) {
-			$msg = $this->text->makeBlob("Results for: '{$search}'", $msg);
+			$msg = Text::makeBlob("Results for: '{$search}'", $msg);
 		} else {
 			$msg = 'Could not find any matches for this search.';
 		}
@@ -203,8 +200,7 @@ class QuoteController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** @return ?list<string> */
-	public function getQuoteInfo(null|string|\Stringable $id=null): ?array {
+	public function getQuoteInfo(null|string|\Stringable $id=null): ?string {
 		$count = $this->db->table(Quote::getTable())->count();
 
 		if ($count === 0) {
@@ -256,11 +252,7 @@ class QuoteController extends ModuleInstance {
 			});
 		$msg .= '<tab>' . $idList->join(', ');
 
-		return Text::blobWrap(
-			'',
-			$this->text->makeBlob('Quote', $msg),
-			": \"{$quoteMsg}\""
-		);
+		return Text::makeBlob('Quote', $msg) . ": \"{$quoteMsg}\"";
 	}
 
 	#[

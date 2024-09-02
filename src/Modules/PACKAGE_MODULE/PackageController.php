@@ -69,9 +69,6 @@ class PackageController extends ModuleInstance {
 	private BotConfig $config;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private Filesystem $fs;
 
 	#[NCA\Setup]
@@ -108,12 +105,8 @@ class PackageController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @param iterable<array-key,Package> $packages
-	 *
-	 * @return string|list<string>
-	 */
-	public function renderPackageList(iterable $packages): string|array {
+	/** @param iterable<array-key,Package> $packages */
+	public function renderPackageList(iterable $packages): string {
 		/** @var array<string,PackageGroup> */
 		$groupedPackages = [];
 
@@ -192,7 +185,7 @@ class PackageController extends ModuleInstance {
 			}
 			$blobs []= $blob;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Available Packages (' . count($groupedPackages) . ')',
 			implode("\n", $blobs)
 		);
@@ -272,7 +265,7 @@ class PackageController extends ModuleInstance {
 				$blob .= " <i>incompatible with your version</i>\n";
 			}
 		}
-		$msg = $this->text->makeBlob("Details for {$packageName}", $blob);
+		$msg = Text::makeBlob("Details for {$packageName}", $blob);
 		$context->reply($msg);
 	}
 
@@ -773,12 +766,8 @@ class PackageController extends ModuleInstance {
 		return $packages;
 	}
 
-	/**
-	 * @param iterable<array-key,Package> $packages
-	 *
-	 * @return string|list<string>
-	 */
-	private function getPackageDetail(iterable $packages): string|array {
+	/** @param iterable<array-key,Package> $packages */
+	private function getPackageDetail(iterable $packages): string {
 		$packages = collect($packages);
 		$firstPackage = $packages->first();
 		if (!isset($firstPackage)) {
@@ -833,7 +822,7 @@ class PackageController extends ModuleInstance {
 				$blob .= " <i>incompatible with your version</i>\n";
 			}
 		}
-		return $this->text->makeBlob("Details for {$packages[0]->name}", $blob);
+		return Text::makeBlob("Details for {$packages[0]->name}", $blob);
 	}
 
 	/**

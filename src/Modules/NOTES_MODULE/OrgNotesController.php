@@ -49,9 +49,6 @@ class OrgNotesController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private AccessManager $accessManager;
 
 	#[NCA\Inject]
@@ -147,7 +144,7 @@ class OrgNotesController extends ModuleInstance {
 		}
 		$blob = "<header2>Notes in your org/alliance<end>\n\n".
 			implode("\n\n", $chunks);
-		$msg = $this->text->makeBlob('Org notes (' . $notes->count() . ')', $blob);
+		$msg = Text::makeBlob('Org notes (' . $notes->count() . ')', $blob);
 		$context->reply($msg);
 	}
 

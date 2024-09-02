@@ -72,9 +72,6 @@ class WhoisController extends ModuleInstance {
 	private BanController $banController;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private AltsController $altsController;
 
 	#[NCA\Inject]
@@ -188,7 +185,7 @@ class WhoisController extends ModuleInstance {
 			$link = Text::makeChatcmd($player->name, "/tell <myname> lookup {$player->name}");
 			$blob .= "<tab>{$link} " . Util::date($player->dt) . "\n";
 		}
-		$msg = $this->text->makeBlob("Name History for {$charID} ({$count})", $blob);
+		$msg = Text::makeBlob("Name History for {$charID} ({$count})", $blob);
 
 		$context->reply($msg);
 	}
@@ -215,7 +212,7 @@ class WhoisController extends ModuleInstance {
 			$link = Text::makeChatcmd((string)$player->charid, "/tell <myname> lookup {$player->charid}");
 			$blob .= "<tab>{$link} " . Util::date($player->dt) . "\n";
 		}
-		$msg = $this->text->makeBlob("Character Ids for {$name} ({$count})", $blob);
+		$msg = Text::makeBlob("Character Ids for {$name} ({$count})", $blob);
 
 		$context->reply($msg);
 	}
@@ -352,8 +349,7 @@ class WhoisController extends ModuleInstance {
 		return $result;
 	}
 
-	/** @return string|list<string> */
-	private function playerToWhois(?Player $whois, string $name, bool $online): string|array {
+	private function playerToWhois(?Player $whois, string $name, bool $online): string {
 		$charID = $this->chatBot->getUid($name);
 		$lookupNameLink = Text::makeChatcmd('lookup', "/tell <myname> lookup {$name}");
 		$historyNameLink = Text::makeChatcmd('history', "/tell <myname> history {$name}");
@@ -374,7 +370,7 @@ class WhoisController extends ModuleInstance {
 				$blob .= $this->getNameHistory($charID, $this->config->main->dimension);
 			}
 
-			$msg = $this->text->makeBlob("Basic Info for {$name}", $blob);
+			$msg = Text::makeBlob("Basic Info for {$name}", $blob);
 			return $msg;
 		}
 		$altInfo = $this->altsController->getAltInfo($name);
@@ -468,14 +464,14 @@ class WhoisController extends ModuleInstance {
 				$msg .= ' :: <off>Offline<end>';
 			}
 		}
-		$msg .= ' :: ' . ((array)$this->text->makeBlob('More Info', $blob, "Detailed Info for {$name}"))[0];
+		$msg .= ' :: ' . Text::makeBlob('More Info', $blob, "Detailed Info for {$name}");
 		if ($this->whoisAddComments) {
 			$numComments = $this->commentController->countComments(null, $whois->name);
 			if ($numComments) {
 				$comText = ($numComments > 1) ? "{$numComments} Comments" : '1 Comment';
 				$blob = Text::makeChatcmd("Read {$comText}", "/tell <myname> comments get {$whois->name}").
 					' if you have the necessary access level.';
-				$msg .= ' :: ' . ((array)$this->text->makeBlob($comText, $blob))[0];
+				$msg .= ' :: ' . Text::makeBlob($comText, $blob);
 			}
 		}
 
@@ -483,6 +479,6 @@ class WhoisController extends ModuleInstance {
 			return $msg;
 		}
 		$altsBlob = $altInfo->getAltsBlob(true);
-		return "{$msg} :: " . ((array)$altsBlob)[0];
+		return "{$msg} :: {$altsBlob}";
 	}
 }

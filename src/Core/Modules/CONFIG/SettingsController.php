@@ -30,9 +30,6 @@ use Nadybot\Core\{
 ]
 class SettingsController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Inject]
@@ -81,7 +78,7 @@ class SettingsController extends ModuleInstance {
 			$blob .= "\n";
 		}
 
-		$msg = $this->text->makeBlob('Bot Settings', $blob);
+		$msg = Text::makeBlob('Bot Settings', $blob);
 		$context->reply($msg);
 	}
 
@@ -123,7 +120,7 @@ class SettingsController extends ModuleInstance {
 			$blob .= "\n\n<header2>Help ({$settingName})<end>\n\n" . $help;
 		}
 
-		$msg = $this->text->makeBlob("Settings Info for {$settingName}", $blob);
+		$msg = Text::makeBlob("Settings Info for {$settingName}", $blob);
 
 		$context->reply($msg);
 	}

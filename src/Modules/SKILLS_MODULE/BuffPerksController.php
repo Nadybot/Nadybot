@@ -63,9 +63,6 @@ class BuffPerksController extends ModuleInstance {
 	private LoggerInterface $logger;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Inject]
@@ -146,7 +143,7 @@ class BuffPerksController extends ModuleInstance {
 			return;
 		}
 		$blob = $this->renderPerk($perk);
-		$msg = $this->text->makeBlob("Details for the perk '{$perk->name}'", $blob);
+		$msg = Text::makeBlob("Details for the perk '{$perk->name}'", $blob);
 		$context->reply($msg);
 	}
 
@@ -287,7 +284,7 @@ class BuffPerksController extends ModuleInstance {
 						).
 						"\n";
 				}
-				$msg = $this->text->makeBlob(
+				$msg = Text::makeBlob(
 					"Matches for <highlight>{$search}<end> ({$count})",
 					$blob
 				);
@@ -354,7 +351,7 @@ class BuffPerksController extends ModuleInstance {
 		}
 		$buffText = isset($skill) ? " buffing {$skill->name}" : '';
 		$count = count($perks);
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			"Perks for a level {$level} {$profession->value}{$buffText} ({$count})",
 			implode("\n", $blobs)
 		);

@@ -30,9 +30,6 @@ class PlayerHistoryController extends ModuleInstance {
 	private BotConfig $config;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private PlayerHistoryManager $playerHistoryManager;
 
 	/**
@@ -50,8 +47,7 @@ class PlayerHistoryController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** @return string|list<string> */
-	private function renderPlayerHistory(?PlayerHistory $history, string $name, int $dimension): string|array {
+	private function renderPlayerHistory(?PlayerHistory $history, string $name, int $dimension): string {
 		if ($history === null) {
 			return "Could not get History of {$name} on RK{$dimension}.";
 		}
@@ -89,7 +85,7 @@ class PlayerHistoryController extends ModuleInstance {
 			$blob .= "{$date} <highlight>|<end>  {$level}  <highlight>|<end> {$ailevel} <highlight>|<end> {$faction} <highlight>|<end> {$entry->breed} <highlight>|<end> {$guild}\n";
 		}
 		$blob .= "\nHistory provided by Auno.org, Chrisax, and Athen Paladins";
-		$msg = $this->text->makeBlob("History of {$name} for RK{$dimension}", $blob, null, $header);
+		$msg = Text::makeBlob("History of {$name} for RK{$dimension}", $blob, null, $header);
 
 		return $msg;
 	}

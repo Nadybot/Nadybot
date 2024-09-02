@@ -4,6 +4,7 @@ namespace Nadybot\Core\Channels;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Blob,
 	MessageHub,
 	Nadybot,
 	Routing\RoutableEvent,
@@ -26,6 +27,7 @@ class OrgChannel extends Base {
 		if (!isset($message)) {
 			return false;
 		}
+		$message = Blob::create($message)->render(formatMessage: false);
 		$this->chatBot->sendGuild($message, true, null, false);
 		return true;
 	}

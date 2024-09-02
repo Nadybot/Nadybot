@@ -30,9 +30,6 @@ use Safe\Exceptions\JsonException;
 ]
 class WeatherController extends ModuleInstance {
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 
 	/** @var LocalCache<string> */
@@ -266,8 +263,7 @@ class WeatherController extends ModuleInstance {
 		return $blob;
 	}
 
-	/** @return string|list<string> */
-	protected function getWeatherBlob(Nominatim $nominatim, Weather $weather): string|array {
+	protected function getWeatherBlob(Nominatim $nominatim, Weather $weather): string {
 		$blob = $this->renderWeather($nominatim, $weather);
 		$placeParts = explode(', ', $nominatim->display_name);
 		$locationName = $placeParts[0];
@@ -285,14 +281,10 @@ class WeatherController extends ModuleInstance {
 		$currentSummary = $this->iconToForecastSummary($currentIcon);
 		$currentTemp = $weather->properties->timeseries[0]->data->instant->details->air_temperature;
 		$tempUnit = $this->nameToDegree($weather->properties->meta->units->air_temperature);
-		$blob = $this->text->makeBlob('details', $blob, strip_tags($header));
+		$blob = Text::makeBlob('details', $blob, strip_tags($header));
 
-		$msg = Text::blobWrap(
-			"{$header}: <highlight>{$currentTemp}{$tempUnit}<end>, ".
-			"<highlight>{$currentSummary}<end> [",
-			$blob,
-			']'
-		);
+		$msg = "{$header}: <highlight>{$currentTemp}{$tempUnit}<end>, ".
+			"<highlight>{$currentSummary}<end> [{$blob}]";
 		return $msg;
 	}
 

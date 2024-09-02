@@ -29,9 +29,6 @@ class WhompahController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/whompah_cities.csv');
@@ -52,7 +49,7 @@ class WhompahController extends ModuleInstance {
 		}
 		$blob .= "\nWritten By Tyrence (RK2)\nDatabase from a Bebot module written by POD13";
 
-		$msg = $this->text->makeBlob('Whompah Cities', $blob);
+		$msg = Text::makeBlob('Whompah Cities', $blob);
 
 		$context->reply($msg);
 	}

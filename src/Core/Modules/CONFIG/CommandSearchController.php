@@ -31,9 +31,6 @@ class CommandSearchController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private AccessManager $accessManager;
 
 	/** Search for a command */
@@ -98,12 +95,8 @@ class CommandSearchController extends ModuleInstance {
 		});
 	}
 
-	/**
-	 * @param Collection<int,CommandSearchResult> $results
-	 *
-	 * @return string|list<string>
-	 */
-	public function render(Collection $results, bool $hasAccess, bool $exactMatch): string|array {
+	/** @param Collection<int,CommandSearchResult> $results */
+	public function render(Collection $results, bool $hasAccess, bool $exactMatch): string {
 		$blob = '';
 		foreach ($results as $row) {
 			$helpLink = ' [' . Text::makeChatcmd('help', "/tell <myname> help {$row->cmd}") . ']';
@@ -121,11 +114,9 @@ class CommandSearchController extends ModuleInstance {
 			return 'No results found.';
 		}
 		if ($exactMatch) {
-			$msg = $this->text->makeBlob("Command Search Results ({$count})", $blob);
-		} else {
-			$msg = $this->text->makeBlob("Possible Matches ({$count})", $blob);
+			return Text::makeBlob("Command Search Results ({$count})", $blob);
 		}
-		return $msg;
+		return Text::makeBlob("Possible Matches ({$count})", $blob);
 	}
 
 	/** @return Collection<int,CommandSearchResult> */
