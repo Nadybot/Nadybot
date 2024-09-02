@@ -51,6 +51,17 @@ use Safe\Exceptions\JsonException;
 		description: 'Get the status of Jack "Leg-chopper" Menendez and his clones',
 		accessLevel: 'guest',
 	),
+	NCA\DefineCommand(
+		command: 'reck',
+		description: 'Get the status of mobs in The Reck',
+		accessLevel: 'guest',
+	),
+	NCA\DefineCommand(
+		command: 'hollowisland',
+		alias: ['hollow', 'hi'],
+		description: 'Get the status of Hollow Island',
+		accessLevel: 'guest',
+	),
 ]
 class MobController extends ModuleInstance {
 	public const MOB_API = 'https://mobs.aobots.org/api/';
@@ -372,6 +383,53 @@ class MobController extends ModuleInstance {
 		$this->showUniqueCommand($context, 'otacustes', 'Otacustes');
 	}
 
+	#[
+		HandlesCommand('reck'),
+		NCA\Help\Group('mobs'),
+	]
+	/** Show status of mobs in The Reck */
+	public function showReckCommand(CmdContext $context): void {
+		/** @var Collection<int,string> */
+		$blobs = (new Collection(array_values($this->mobs[Mob::T_RECK]??[])))
+			->sortBy('name')
+			->map(Closure::fromCallable($this->renderMob(...)));
+		if ($blobs->isEmpty()) {
+			$context->reply('There is currently no data for mobs in The Reck. Maybe the API is down.');
+			return;
+		}
+		$msg = $this->text->makeBlob(
+			'Status of mobs in The Reck (' . $blobs->count() . ')',
+			$blobs->join("\n\n")
+		);
+		$context->reply($msg);
+	}
+
+	#[
+		HandlesCommand('hollowisland'),
+		NCA\Help\Group('mobs'),
+	]
+	/** Show the current status of Hollow Island */
+	public function showHollowIslandCommand(CmdContext $context): void {
+		/** @var Collection<int,Mob> */
+		$mobs = new Collection(array_values($this->mobs[Mob::T_HI]??[]));
+		if ($mobs->isEmpty()) {
+			$context->reply('There is currently no data for Hollow Island. Maybe the API is down.');
+			return;
+		}
+		$mobs = $mobs->keyBy(static fn (Mob $mob): string => $mob->key)->toArray();
+
+		$state = $this->getHiStatus($mobs);
+		$blob = '<header2>Hollow Island<end> ['.
+			Text::makeChatcmd(
+				'2250x650 BF',
+				'/waypoint 2250 650 605'
+			) . "]\n".
+			"<tab>{$state}";
+
+		$msg = $this->text->makeBlob('Hollow Island', $blob);
+		$context->reply($msg);
+	}
+
 	public function showUniqueCommand(CmdContext $context, string $key, string $name): void {
 		/** @var ?Mob */
 		$mob = (new Collection(array_values($this->mobs[Mob::T_UNIQUES]??[])))
@@ -384,6 +442,102 @@ class MobController extends ModuleInstance {
 		$blob = $this->renderMob($mob);
 		$msg = Text::makeBlob($mob->name, $blob) . ': ' . $this->renderMobStatus($mob);
 		$context->reply($msg);
+	}
+
+	/** @param array<string,Mob> $mobs */
+	private function getHiStatus(array $mobs): string {
+		$sapling = $mobs['sapling'] ?? null;
+		$sapKilled = $sapling?->last_killed;
+		$nextSapling = null;
+		if (isset($sapling) && isset($sapKilled)) {
+			$nextSapling = ($sapKilled + ($sapling->respawn_timer ?? 7 * 3_600)) - time();
+			if ($nextSapling > 0) {
+				$nextSapling = 'in ' . Util::unixtimeToReadable($nextSapling);
+			} else {
+				$nextSapling = 'any moment now';
+			}
+		}
+
+		if (isset($sapling) && $sapling->status === Mob::STATUS_UP) {
+			return "{$sapling->name}: <on>UP<end>";
+		}
+		if (
+			isset($mobs['weed'])
+			&& in_array($mobs['weed']->status, [Mob::STATUS_UP, Mob::STATUS_ATTACKED], true)
+		) {
+			return 'Weed: ' . $this->renderMobStatus($mobs['weed']);
+		}
+		for ($i = 10; $i >= 1; $i--) {
+			if (isset($mobs["sapling-{$i}"]) && $mobs["sapling-{$i}"]->status === Mob::STATUS_UP) {
+				return "Wave {$i} <yellow>RUNNING<end>";
+			}
+		}
+		$state = '<off>COOLDOWN<end>';
+		if (isset($nextSapling)) {
+			return "{$state} (Sapling respawns {$nextSapling})";
+		}
+
+		$mob = $this->getMostRecentMobAction($mobs);
+
+		if (!isset($mob) || $mob->status === Mob::STATUS_UNKNOWN) {
+			return '<unknown>UNKNOWN<end>';
+		}
+
+		// We don't know when the sapling despawned, so we don't know when
+		// a new one will spawn. Let's show the last state we're sure of
+
+		// Weed despawned
+		if ($mob->status === Mob::STATUS_OUT_OF_RANGE) {
+			if (isset($mob->last_seen)) {
+				return '{$state} (wiped at Weed '.
+					Util::unixtimeToReadable(time() - $mob->last_seen).
+					' ago)';
+			}
+			return $state;
+		}
+		// Weed killed
+		if ($mob->key === 'weed' && isset($mob->last_killed)) {
+			return "{$state} (Weed killed ".
+				Util::unixtimeToReadable(time() - $mob->last_killed).
+				' ago)';
+		}
+		// Abandoned during a wave
+		if (!isset($mob->last_killed)) {
+			return $state;
+		}
+		$extra = '';
+		if (str_starts_with($mob->key, 'sapling-')) {
+			$extra = ' at wave ' . substr($mob->key, 8) . ',';
+		}
+		return "{$state} (abandoned{$extra} ".
+			Util::unixtimeToReadable(time() - $mob->last_killed).
+			' ago)';
+	}
+
+	/** @param array<string,Mob> $mobs */
+	private function getMostRecentMobAction(array $mobs): ?Mob {
+		$mostRecent = 0;
+		$match = null;
+		foreach ($mobs as $mob) {
+			if (isset($mob->last_seen) && $mob->last_seen > $mostRecent) {
+				$mostRecent = $mob->last_seen;
+				$match = $mob;
+			}
+			if (isset($mob->last_killed) && $mob->last_killed > $mostRecent) {
+				$mostRecent = $mob->last_killed;
+				$match = $mob;
+			}
+		}
+		if (
+			$match?->key === 'sapling-10'
+			&& isset($mobs['weed'])
+			&& isset($mobs['weed']->last_killed)
+			&& isset($match->last_killed)
+			&& ($match->last_killed - $mobs['weed']->last_killed) < 3_600
+		) {
+			return $mobs['weed'];
+		}
+		return $match;
 	}
 
 	private function renderMobStatus(Mob $mob): string {
