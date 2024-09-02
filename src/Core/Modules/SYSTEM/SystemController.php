@@ -595,7 +595,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		// send a message to guild channel
 		$rMsg = new RoutableMessage($msg);
 		$rMsg->appendPath(new Source(Source::SYSTEM, 'status'));
-		$this->messageHub->handle($rMsg);
+		EventLoop::queue($this->messageHub->handle(...), $rMsg);
 	}
 
 	/** Show  the output of &lt;cmd&gt; to &lt;name&gt; */
