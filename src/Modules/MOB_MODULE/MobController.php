@@ -397,7 +397,7 @@ class MobController extends ModuleInstance {
 			$context->reply('There is currently no data for mobs in The Reck. Maybe the API is down.');
 			return;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = Text::makeBlob(
 			'Status of mobs in The Reck (' . $blobs->count() . ')',
 			$blobs->join("\n\n")
 		);
@@ -426,7 +426,7 @@ class MobController extends ModuleInstance {
 			) . "]\n".
 			"<tab>{$state}";
 
-		$msg = $this->text->makeBlob('Hollow Island', $blob);
+		$msg = Text::makeBlob('Hollow Island', $blob);
 		$context->reply($msg);
 	}
 
