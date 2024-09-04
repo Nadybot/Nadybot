@@ -874,7 +874,7 @@ class GuildController extends ModuleInstance {
 				$tokens['c-short-prof'] = "<highlight>{$tokens['short-prof']}<end>";
 			}
 		}
-		if ($this->settingManager->getBool('guild_channel_status') === false) {
+		if ($this->chatBot->guildChannelStatus === false) {
 			$tokens['channel-name'] = '<myname>';
 		}
 		if ($altInfo->main !== $player) {

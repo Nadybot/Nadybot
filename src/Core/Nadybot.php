@@ -158,6 +158,22 @@ class Nadybot {
 	/** @var list<int> */
 	public array $buddyQueue = [];
 
+	/** Enable colors for the guild channel */
+	#[NCA\Setting\Boolean]
+	public bool $guildChannelColors = true;
+
+	/** Enable colors for private channels */
+	#[NCA\Setting\Boolean]
+	public bool $privChannelColors = true;
+
+	/** Enable colors for the tell-messages */
+	#[NCA\Setting\Boolean]
+	public bool $tellColors = true;
+
+	/** Enable the guild channel */
+	#[NCA\Setting\Boolean]
+	public bool $guildChannelStatus = true;
+
 	protected int $started = 0;
 
 	protected int $numSpamMsgsSent = 0;
@@ -557,7 +573,7 @@ class Nadybot {
 			return;
 		}
 
-		if ($this->settingManager->getBool('priv_channel_colors')) {
+		if ($this->privChannelColors) {
 			$message = $this->text->formatMessage($origMsg = $message);
 		} else {
 			$message = $this->text->stripColors($origMsg = $message);
@@ -601,7 +617,7 @@ class Nadybot {
 	 * @param ?int                    $priority     The priority of the message or medium if unset
 	 */
 	public function sendGuild(string|iterable $message, bool $disableRelay=false, ?int $priority=null, bool $addDefaultColor=true): void {
-		if (!isset($this->orgGroup) || !$this->settingManager->getBool('guild_channel_status')) {
+		if (!isset($this->orgGroup) || !$this->guildChannelStatus) {
 			return;
 		}
 
@@ -616,7 +632,7 @@ class Nadybot {
 
 		$priority ??= QueueInterface::PRIORITY_MED;
 
-		if ($this->settingManager->getBool('guild_channel_colors')) {
+		if ($this->guildChannelColors) {
 			$message = $this->text->formatMessage($origMsg = $message);
 		} else {
 			$message = $this->text->stripColors($origMsg = $message);
@@ -708,7 +724,7 @@ class Nadybot {
 		$rMessage = new RoutableMessage($message);
 		$tellColor = '';
 		if ($formatMessage) {
-			if ($this->settingManager->getBool('tell_colors')) {
+			if ($this->tellColors) {
 				$message = $this->text->formatMessage($message);
 			} else {
 				$message = $this->text->stripColors($message);
@@ -1323,7 +1339,7 @@ class Nadybot {
 
 		// Route public messages not from the bot itself
 		if ($sender !== $this->config->main->character) {
-			if (!$isOrgMessage || $this->settingManager->getBool('guild_channel_status') === true) {
+			if (!$isOrgMessage || $this->guildChannelStatus === true) {
 				$rMessage = new RoutableMessage($package->package->message);
 				if (isset($sender)) {
 					$rMessage->setCharacter(new Character($sender, $senderId));
@@ -1346,7 +1362,7 @@ class Nadybot {
 		}
 
 		// don't log tower messages with rest of chat messages
-		if ($channel->name !== 'All Towers' && $channel->name !== 'Tower Battle Outcome' && (!$isOrgMessage || $this->settingManager->getBool('guild_channel_status') === true)) {
+		if ($channel->name !== 'All Towers' && $channel->name !== 'Tower Battle Outcome' && (!$isOrgMessage || $this->guildChannelStatus === true)) {
 			$this->logChat($channel->name, $sender ?? 'System', $package->package->message);
 		} else {
 			$this->logger->info('[{channel}]: {message}', [
@@ -1378,7 +1394,7 @@ class Nadybot {
 			);
 
 			$this->eventManager->fireEvent($eventObj);
-		} elseif ($isOrgMessage && $this->settingManager->getBool('guild_channel_status') === true) {
+		} elseif ($isOrgMessage && $this->guildChannelStatus === true) {
 			$eventObj = new GuildChannelMsgEvent(
 				sender: $sender,
 				channel: $channel->name,

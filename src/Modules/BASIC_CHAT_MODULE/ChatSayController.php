@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Modules\SYSTEM\SystemController;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -60,9 +59,6 @@ class ChatSayController extends ModuleInstance {
 	#[NCA\Inject]
 	private GuildController $guildController;
 
-	#[NCA\Inject]
-	private SystemController $systemController;
-
 	/** Have the bot say something in the org channel */
 	#[NCA\HandlesCommand('say')]
 	public function sayOrgCommand(CmdContext $context, #[NCA\Str('org')] string $channel, string $message): void {
@@ -70,7 +66,7 @@ class ChatSayController extends ModuleInstance {
 			$context->reply('You can only use this command on a bot in a guild.');
 			return;
 		}
-		if ($this->systemController->guildChannelStatus === false) {
+		if ($this->chatBot->guildChannelStatus === false) {
 			$context->reply('The bot is currently muted on the org channel.');
 			return;
 		}

@@ -1016,7 +1016,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		$channelName = 'the <highlight><myname><end> channel';
-		if ($this->settingManager->getBool('guild_channel_status') === false) {
+		if ($this->chatBot->guildChannelStatus === false) {
 			$channelName = '<highlight><myname><end>';
 		}
 		$msg = "You have been auto invited to {$channelName}. ".
@@ -1418,7 +1418,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				$tokens['c-short-prof'] = "<highlight>{$tokens['short-prof']}<end>";
 			}
 		}
-		if ($this->settingManager->getBool('guild_channel_status') === false) {
+		if ($this->chatBot->guildChannelStatus === false) {
 			$tokens['channel-name'] = '<myname>';
 		}
 		if ($altInfo->main !== $player) {
