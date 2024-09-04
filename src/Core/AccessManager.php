@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	DBSchema\Audit,
 	Modules\ALTS\AltsController,
 	Modules\SECURITY\AuditController,
-	Modules\SYSTEM\SystemController,
 };
 use Psr\Log\LoggerInterface;
 use SplObjectStorage;
@@ -34,6 +33,34 @@ class AccessManager {
 	public const DEL_ALT = 'del-alt';
 	public const SET_MAIN = 'set-main';
 
+	/** Display name for the rank "superadmin" */
+	#[NCA\Setting\Text]
+	public string $rankNameSuperadmin = 'superadmin';
+
+	/** Display name for the rank "admin" */
+	#[NCA\Setting\Text]
+	public string $rankNameAdmin = 'administrator';
+
+	/** Display name for the rank "moderator" */
+	#[NCA\Setting\Text]
+	public string $rankNameMod = 'moderator';
+
+	/** Display name for the rank "guild" */
+	#[NCA\Setting\Text]
+	public string $rankNameGuild = 'guild';
+
+	/** Display name for the rank "member" */
+	#[NCA\Setting\Text]
+	public string $rankNameMember = 'member';
+
+	/** Display name for the rank "guest" */
+	#[NCA\Setting\Text]
+	public string $rankNameGuest = 'guest';
+
+	/** Display name for the temporary rank "raidleader" */
+	#[NCA\Setting\Text]
+	public string $rankNameRL = 'raidleader';
+
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
@@ -50,10 +77,8 @@ class AccessManager {
 	private AltsController $altsController;
 
 	#[NCA\Inject]
-	private SystemController $systemController;
-
-	#[NCA\Inject]
 	private BotConfig $config;
+
 
 	/** @var array<string,int> */
 	private static array $ACCESS_LEVELS = [
@@ -82,6 +107,29 @@ class AccessManager {
 
 	public function __construct() {
 		$this->providers = new SplObjectStorage();
+	}
+
+	#[
+		NCA\SettingChangeHandler('rank_name_superadmin'),
+		NCA\SettingChangeHandler('rank_name_admin'),
+		NCA\SettingChangeHandler('rank_name_mod'),
+		NCA\SettingChangeHandler('rank_name_guild'),
+		NCA\SettingChangeHandler('rank_name_member'),
+		NCA\SettingChangeHandler('rank_name_guest'),
+		NCA\SettingChangeHandler('rank_name_rl'),
+	]
+	public function preventRankNameDupes(string $setting, string $old, string $new): void {
+		$new = strtolower($new);
+		if (strtolower($this->rankNameSuperadmin) === $new
+			|| strtolower($this->rankNameAdmin) === $new
+			|| strtolower($this->rankNameMod) === $new
+			|| strtolower($this->rankNameGuild) === $new
+			|| strtolower($this->rankNameMember) === $new
+			|| strtolower($this->rankNameGuest) === $new
+			|| strtolower($this->rankNameRL) === $new
+		) {
+			throw new Exception("The display name <highlight>{$new}<end> is already used for another rank.");
+		}
 	}
 
 	/**
@@ -173,19 +221,19 @@ class AccessManager {
 		$displayName = $this->getAccessLevel($accessLevel);
 		switch ($displayName) {
 			case 'rl':
-				return $this->systemController->rankNameRL;
+				return $this->rankNameRL;
 			case 'guest':
-				return $this->systemController->rankNameGuest;
+				return $this->rankNameGuest;
 			case 'member':
-				return $this->systemController->rankNameMember;
+				return $this->rankNameMember;
 			case 'guild':
-				return $this->systemController->rankNameGuild;
+				return $this->rankNameGuild;
 			case 'mod':
-				return $this->systemController->rankNameMod;
+				return $this->rankNameMod;
 			case 'admin':
-				return $this->systemController->rankNameAdmin;
+				return $this->rankNameAdmin;
 			case 'superadmin':
-				return $this->systemController->rankNameSuperadmin;
+				return $this->rankNameSuperadmin;
 		}
 		if (substr($displayName, 0, 5) === 'raid_') {
 			$setName = $this->settingManager->getString("name_{$displayName}");
@@ -278,28 +326,28 @@ class AccessManager {
 	public function getAccessLevel(string $accessLevel): string {
 		$accessLevel = strtolower($accessLevel);
 		switch ($accessLevel) {
-			case $this->systemController->rankNameRL:
+			case $this->rankNameRL:
 			case 'raidleader':
 				$accessLevel = 'rl';
 				break;
-			case $this->systemController->rankNameMod:
+			case $this->rankNameMod:
 			case 'moderator':
 				$accessLevel = 'mod';
 				break;
-			case $this->systemController->rankNameAdmin:
+			case $this->rankNameAdmin:
 			case 'administrator':
 				$accessLevel = 'admin';
 				break;
-			case $this->systemController->rankNameSuperadmin:
+			case $this->rankNameSuperadmin:
 				$accessLevel = 'superadmin';
 				break;
-			case $this->systemController->rankNameMember:
+			case $this->rankNameMember:
 				$accessLevel = 'member';
 				break;
-			case $this->systemController->rankNameGuest:
+			case $this->rankNameGuest:
 				$accessLevel = 'guest';
 				break;
-			case $this->systemController->rankNameGuild:
+			case $this->rankNameGuild:
 				$accessLevel = 'guild';
 				break;
 		}

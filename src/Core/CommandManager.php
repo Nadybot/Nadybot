@@ -6,7 +6,6 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Modules\SYSTEM\SystemController;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -58,6 +57,14 @@ class CommandManager implements MessageEmitter {
 	/** @var array<string,array<string,CommandHandler>> */
 	public array $commands;
 
+	/** Reply to send when a non-member tries to access the bot */
+	#[NCA\Setting\Text]
+	public string $noMemberErrorMsg = 'I only listen to members of this bot.';
+
+	/** Reply to send when the access-level is too low for a command */
+	#[NCA\Setting\Text]
+	public string $accessDeniedErrorMsg = 'Error! Access denied.';
+
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
@@ -96,9 +103,6 @@ class CommandManager implements MessageEmitter {
 
 	#[NCA\Inject]
 	private BanController $banController;
-
-	#[NCA\Inject]
-	private SystemController $systemController;
 
 	/** @var array<string,CmdPermission> */
 	private array $cmdDefaultPermissions = [];
@@ -712,9 +716,9 @@ class CommandManager implements MessageEmitter {
 
 		$charAL = $this->accessManager->getAccessLevelForCharacter($context->char->name);
 		if ($charAL === 'all') {
-			$context->reply($this->systemController->noMemberErrorMsg);
+			$context->reply($this->noMemberErrorMsg);
 		} else {
-			$context->reply($this->systemController->accessDeniedErrorMsg);
+			$context->reply($this->accessDeniedErrorMsg);
 		}
 		return false;
 	}

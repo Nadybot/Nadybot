@@ -174,6 +174,22 @@ class Nadybot {
 	#[NCA\Setting\Boolean]
 	public bool $guildChannelStatus = true;
 
+	/** When using workers, allow sending tells via the workers */
+	#[NCA\Setting\Boolean]
+	public bool $allowMassTells = true;
+
+	/** When using workers, always send tells via the workers */
+	#[NCA\Setting\Boolean]
+	public bool $forceMassTells = false;
+
+	/** When using workers, always reply via the worker that sent the tell */
+	#[NCA\Setting\Boolean]
+	public bool $replyOnSameWorker = false;
+
+	/** When using workers, always send multi-page replies via one worker */
+	#[NCA\Setting\Boolean]
+	public bool $pagingOnSameWorker = true;
+
 	protected int $started = 0;
 
 	protected int $numSpamMsgsSent = 0;
@@ -697,11 +713,7 @@ class Nadybot {
 	 */
 	public function sendTell(string|iterable $message, string $character, ?int $priority=null, bool $formatMessage=true): void {
 		$numWorkers = count($this->config->worker);
-		if (
-			($numWorkers > 0)
-			&& $this->settingManager->getBool('force_mass_tells') === true
-			&& $this->settingManager->getBool('allow_mass_tells') === true
-		) {
+		if (($numWorkers > 0) && $this->forceMassTells && $this->allowMassTells) {
 			if (is_iterable($message)) {
 				/** @var Collection<int,string> */
 				$message = new Collection($message);
@@ -755,8 +767,7 @@ class Nadybot {
 		$numWorkers = count($this->config->worker);
 
 		// If we're not using workers, or mass tells are disabled, this doesn't do anything
-		if (($numWorkers === 0)
-			|| !$this->settingManager->getBool('allow_mass_tells')) {
+		if (($numWorkers === 0) || !$this->allowMassTells) {
 			$this->sendTell($message, $character, $priority, $formatMessage);
 			return;
 		}
@@ -764,10 +775,8 @@ class Nadybot {
 		if (is_string($message)) {
 			$message = (array)$message;
 		}
-		$sendToWorker = isset($worker)
-			&& $this->settingManager->getBool('reply_on_same_worker') === true;
-		$sendByMsg = $this->settingManager->getBool('paging_on_same_worker') === true
-			&& count($message) > 1;
+		$sendToWorker = isset($worker) && $this->replyOnSameWorker;
+		$sendByMsg = $this->pagingOnSameWorker && count($message) > 1;
 		if ($sendToWorker) {
 			if (is_int($worker)) {
 				$worker = $this->config->worker[$worker]->character;

@@ -6,7 +6,6 @@ use function Safe\{ini_get, json_encode};
 
 use Amp\Http\Server\{Request, Response};
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
-use Exception;
 use Nadybot\Core\Attributes\Confidential;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Events\ConnectEvent;
@@ -128,58 +127,6 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Setting\Text(mode: SettingMode::NoEdit)]
 	public string $version = '0';
 
-	/** When using the proxy, allow sending tells via the workers */
-	#[NCA\Setting\Boolean]
-	public bool $allowMassTells = true;
-
-	/** When using the proxy, always send tells via the workers */
-	#[NCA\Setting\Boolean]
-	public bool $forceMassTells = false;
-
-	/** When using the proxy, always reply via the worker that sent the tell */
-	#[NCA\Setting\Boolean]
-	public bool $replyOnSameWorker = false;
-
-	/** When using the proxy, always send multi-page replies via one worker */
-	#[NCA\Setting\Boolean]
-	public bool $pagingOnSameWorker = true;
-
-	/** Display name for the rank "superadmin" */
-	#[NCA\Setting\Text]
-	public string $rankNameSuperadmin = 'superadmin';
-
-	/** Display name for the rank "admin" */
-	#[NCA\Setting\Text]
-	public string $rankNameAdmin = 'administrator';
-
-	/** Display name for the rank "moderator" */
-	#[NCA\Setting\Text]
-	public string $rankNameMod = 'moderator';
-
-	/** Display name for the rank "guild" */
-	#[NCA\Setting\Text]
-	public string $rankNameGuild = 'guild';
-
-	/** Display name for the rank "member" */
-	#[NCA\Setting\Text]
-	public string $rankNameMember = 'member';
-
-	/** Display name for the rank "guest" */
-	#[NCA\Setting\Text]
-	public string $rankNameGuest = 'guest';
-
-	/** Display name for the temporary rank "raidleader" */
-	#[NCA\Setting\Text]
-	public string $rankNameRL = 'raidleader';
-
-	/** Reply to send when a non-member tries to access the bot */
-	#[NCA\Setting\Text]
-	public string $noMemberErrorMsg = 'I only listen to members of this bot.';
-
-	/** Reply to send when the access-level is too low for a command */
-	#[NCA\Setting\Text]
-	public string $accessDeniedErrorMsg = 'Error! Access denied.';
-
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
@@ -227,29 +174,6 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	private Filesystem $fs;
-
-	#[
-		NCA\SettingChangeHandler('rank_name_superadmin'),
-		NCA\SettingChangeHandler('rank_name_admin'),
-		NCA\SettingChangeHandler('rank_name_mod'),
-		NCA\SettingChangeHandler('rank_name_guild'),
-		NCA\SettingChangeHandler('rank_name_member'),
-		NCA\SettingChangeHandler('rank_name_guest'),
-		NCA\SettingChangeHandler('rank_name_rl'),
-	]
-	public function preventRankNameDupes(string $setting, string $old, string $new): void {
-		$new = strtolower($new);
-		if (strtolower($this->rankNameSuperadmin) === $new
-			|| strtolower($this->rankNameAdmin) === $new
-			|| strtolower($this->rankNameMod) === $new
-			|| strtolower($this->rankNameGuild) === $new
-			|| strtolower($this->rankNameMember) === $new
-			|| strtolower($this->rankNameGuest) === $new
-			|| strtolower($this->rankNameRL) === $new
-		) {
-			throw new Exception("The display name <highlight>{$new}<end> is already used for another rank.");
-		}
-	}
 
 	#[NCA\Setup]
 	public function setup(): void {
