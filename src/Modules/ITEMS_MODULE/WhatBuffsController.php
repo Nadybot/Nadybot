@@ -278,6 +278,10 @@ class WhatBuffsController extends ModuleInstance {
 
 	public function handleOtherComandline(bool $froobFriendly, CmdContext $context, string $search): void {
 		$tokens = explode(' ', $search);
+		$skillSearch = $this->searchForSkill($search);
+		if (count($skillSearch) === 1 && strtolower($skillSearch[0]->name) === $search) {
+			$tokens = [$search];
+		}
 		$firstType = ucfirst(strtolower($this->resolveLocationAlias($tokens[0])));
 		$lastType = ucfirst(strtolower($this->resolveLocationAlias($tokens[count($tokens) - 1])));
 
