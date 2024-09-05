@@ -396,6 +396,10 @@ class QueryBuilder extends Builder {
 				}
 				$type = $this->guessVarTypeFromReflection($refClass, $propName);
 				$refProp = $refClass->getProperty($propName);
+				$defaultValue = 'null';
+				if ($refProp->hasDefaultValue()) {
+					$defaultValue = var_export($refProp->getDefaultValue(), true);
+				}
 				$readMap = $refProp->getAttributes(NCA\DB\MapRead::class);
 				if (count($readMap)) {
 					foreach ($readMap as $mapper) {
@@ -403,23 +407,23 @@ class QueryBuilder extends Builder {
 					}
 				} else {
 					if ($type === 'bool') {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (bool)\$data->{$colName} : null,";
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (bool)\$data->{$colName} : {$defaultValue},";
 					} elseif ($type === 'int') {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (int)\$data->{$colName} : null,";
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (int)\$data->{$colName} : {$defaultValue},";
 					} elseif ($type === 'float') {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (float)\$data->{$colName} : null,";
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (float)\$data->{$colName} : {$defaultValue},";
 					} elseif ($type === \DateTime::class || $type === DateTime::class) {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTime())->setTimestamp((int)\$data->{$colName}) : null,";
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTime())->setTimestamp((int)\$data->{$colName}) : {$defaultValue},";
 					} elseif ($type === \DateTimeImmutable::class || $type === DateTimeImmutable::class) {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName}) : null,";
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName}) : {$defaultValue},";
 					} elseif ($type === \DateTimeInterface::class) {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName}) : null,";
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName}) : {$defaultValue},";
 					} elseif ($type === UuidInterface::class) {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? \\" . Uuid::class . "::fromString(\$data->{$colName}) : null,";
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? \\" . Uuid::class . "::fromString(\$data->{$colName}) : {$defaultValue},";
 					} elseif (is_a($type, \BackedEnum::class, true)) {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? \\{$type}::from(\$data->{$colName}) : null,";
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? \\{$type}::from(\$data->{$colName}) : {$defaultValue},";
 					} else {
-						$cacheLines []= "{$propName}: \$data->{$colName},";
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? \$data->{$colName} : {$defaultValue},";
 					}
 				}
 			} catch (Throwable $e) {
