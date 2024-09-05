@@ -217,6 +217,7 @@ class BotRunner {
 			$this->checkRequiredModules();
 			$this->checkRequiredPackages();
 			$this->createMissingDirs();
+			self::setupDBCache($config, self::getFS());
 
 			// these must happen first since the classes that are loaded may be used by processes below
 			$timezone = $config->general->timezone;
@@ -327,6 +328,20 @@ class BotRunner {
 	/** Utility function to check whether the bot is running Linux */
 	public static function isLinux(): bool {
 		return \PHP_OS_FAMILY === 'Linux';
+	}
+
+	private static function setupDBCache(BotConfig $config, Filesystem $fs): void {
+		$dbCachePath = $config->paths->cache . '/db';
+		if (!$fs->exists($dbCachePath)) {
+			$fs->createDirectory($dbCachePath);
+		} else {
+			$oldCache = $fs->listFiles($dbCachePath);
+			foreach ($oldCache as $file) {
+				if ($fs->isFile("{$dbCachePath}/{$file}")) {
+					$fs->deleteFile("{$dbCachePath}/{$file}");
+				}
+			}
+		}
 	}
 
 	private static function getFS(): Filesystem {
