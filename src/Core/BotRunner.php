@@ -330,16 +330,17 @@ class BotRunner {
 		return \PHP_OS_FAMILY === 'Linux';
 	}
 
+	/** Setup a directory under cache/db, and make sure it's empty */
 	private static function setupDBCache(BotConfig $config, Filesystem $fs): void {
 		$dbCachePath = $config->paths->cache . '/db';
 		if (!$fs->exists($dbCachePath)) {
 			$fs->createDirectory($dbCachePath);
-		} else {
-			$oldCache = $fs->listFiles($dbCachePath);
-			foreach ($oldCache as $file) {
-				if ($fs->isFile("{$dbCachePath}/{$file}")) {
-					$fs->deleteFile("{$dbCachePath}/{$file}");
-				}
+			return;
+		}
+		$oldCache = $fs->listFiles($dbCachePath);
+		foreach ($oldCache as $file) {
+			if ($fs->isFile("{$dbCachePath}/{$file}")) {
+				$fs->deleteFile("{$dbCachePath}/{$file}");
 			}
 		}
 	}
