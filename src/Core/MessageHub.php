@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use function Amp\async;
+use function Amp\Future\awaitAll;
 use function Safe\preg_match;
 use Exception;
 use Illuminate\Support\Collection;
@@ -419,7 +421,7 @@ class MessageHub {
 				'type' => $type,
 				'event' => $event,
 			]);
-		} catch (JsonException $e) {
+		} catch (JsonException) {
 			// Ignore
 		}
 		if ($this->routingLoaded === false) {
@@ -430,6 +432,7 @@ class MessageHub {
 			$this->handle($queued);
 		}
 		$returnStatus = static::EVENT_NOT_ROUTED;
+		$deliveries = [];
 		foreach ($this->routes as $source => $dest) {
 			if (!str_contains($source, '(')) {
 				$source .= '(*)';
@@ -484,13 +487,14 @@ class MessageHub {
 					if (count($matches = Safe::pregMatch("/\((.+)\)$/", $destination))) {
 						$destination = $matches[1];
 					}
-					$receiver->receive($modifiedEvent, $destination);
+					$deliveries []= async($receiver->receive(...), $modifiedEvent, $destination);
 					if (!$modifiedEvent->routeSilently) {
 						$returnStatus = static::EVENT_DELIVERED;
 					}
 				}
 			}
 		}
+		awaitAll($deliveries);
 		return $returnStatus;
 	}
 
