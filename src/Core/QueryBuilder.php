@@ -2,16 +2,13 @@
 
 namespace Nadybot\Core;
 
-use function Safe\json_encode;
 use Exception;
-use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Attributes\DB\ColName;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Exceptions\SQLException;
-use PDO;
-use PDOException;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\{Uuid, UuidInterface};
@@ -19,11 +16,18 @@ use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
 use Safe\{DateTime, DateTimeImmutable};
+use stdClass;
 use Throwable;
 
 class QueryBuilder extends Builder {
 	#[NCA\Inject]
+	public BotConfig $config;
+
+	#[NCA\Inject]
 	public DB $nadyDB;
+
+	#[NCA\Inject]
+	public Filesystem $fs;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -37,8 +41,8 @@ class QueryBuilder extends Builder {
 	 */
 	public function asObj(string $class): Collection {
 		try {
-			/** @var list<T> */
-			$result = $this->fetchAll($class, $this->toSql(), ...$this->getBindings());
+			/** @var Collection<int,T> */
+			return $this->fetchAll($class);
 		} catch (SQLException $e) {
 			$errorInfo = $e->getPrevious()?->errorInfo ?? [''];
 			if ($errorInfo[0] === '22003') { // Numeric value out of range
@@ -50,10 +54,6 @@ class QueryBuilder extends Builder {
 			}
 			throw $e;
 		}
-
-		/** @var Collection<int,T> $x */
-		$x = collect($result);
-		return $x;
 	}
 
 	/**
@@ -64,9 +64,9 @@ class QueryBuilder extends Builder {
 	 * @return list<T>
 	 */
 	public function asObjArr(string $class): array {
-		/** @var list<T> */
-		$result = $this->fetchAll($class, $this->toSql(), ...$this->getBindings());
-		return $result;
+		/** @var Collection<int,T> */
+		$result = $this->fetchAll($class);
+		return $result->toList();
 	}
 
 	/**
@@ -223,6 +223,7 @@ class QueryBuilder extends Builder {
 	 * @return T
 	 */
 	protected function convertToClass(PDOStatement $ps, string $className, array $values): object {
+		$cacheLines = [];
 		$row = [];
 		$colMappings = [];
 		$refClass = new ReflectionClass($className);
@@ -288,26 +289,36 @@ class QueryBuilder extends Builder {
 					foreach ($readMap as $mapper) {
 						$mapper = $mapper->newInstance();
 						$row[$colName] = $mapper->map($values[$col]);
+						$cacheLines []= "{$colName}: unserialize(" . var_export(serialize($mapper), true) . ')->map($data->' . $colName . '),';
 					}
 				} else {
 					if ($type === 'bool') {
 						$row[$colName] = (bool)$values[$col];
+						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? (bool)\$data->{$colName} : null,";
 					} elseif ($type === 'int') {
 						$row[$colName] = (int)$values[$col];
+						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? (int)\$data->{$colName} : null,";
 					} elseif ($type === 'float') {
 						$row[$colName] = (float)$values[$col];
+						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? (float)\$data->{$colName} : null,";
 					} elseif ($type === \DateTime::class || $type === DateTime::class) {
 						$row[$colName] = (new DateTime())->setTimestamp((int)$values[$col]);
+						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTime())->setTimestamp((int)\$data->{$colName}) : null,";
 					} elseif ($type === \DateTimeImmutable::class || $type === DateTimeImmutable::class) {
 						$row[$colName] = (new DateTimeImmutable())->setTimestamp((int)$values[$col]);
+						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName}) : null,";
 					} elseif ($type === \DateTimeInterface::class) {
 						$row[$colName] = (new DateTimeImmutable())->setTimestamp((int)$values[$col]);
+						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName}) : null,";
 					} elseif ($type === UuidInterface::class) {
 						$row[$colName] = Uuid::fromString($values[$col]);
+						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? \\" . Uuid::class . "::fromString(\$data->{$colName}) : null,";
 					} elseif (is_a($type, \BackedEnum::class, true)) {
 						$row[$colName] = $type::from($values[$col]);
+						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? \\{$type}::from(\$data->{$colName}) : null,";
 					} else {
 						$row[$colName] = $values[$col];
+						$cacheLines []= "{$colName}: \$data->{$colName},";
 					}
 				}
 				if ($propName !== $colName) {
@@ -322,6 +333,7 @@ class QueryBuilder extends Builder {
 				throw $e;
 			}
 		}
+		$this->compileCache($className, $cacheLines);
 		try {
 			$constructor = $refClass->getMethod('__construct');
 			if (count($constructor->getParameters())) {
@@ -360,55 +372,100 @@ class QueryBuilder extends Builder {
 		return $function;
 	}
 
-	/**
-	 * Execute an SQL query, returning the statement object
-	 *
-	 * @param array<mixed> $params
-	 *
-	 * @throws SQLException when the query errors
-	 */
-	private function executeQuery(string $sql, array $params): PDOStatement {
-		/** @var Connection */
-		$conn = $this->getConnection();
-		$this->logger->debug('{sql}', [
-			'sql' => $sql,
-			'params' => $params,
-			'driver' => $conn->getPdo()->getAttribute(PDO::ATTR_DRIVER_NAME),
-			'version' => $conn->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION),
-		]);
-
-		try {
-			$ps = $conn->getPdo()->prepare($sql);
-			$count = 1;
-			foreach ($params as $param) {
-				if ($param === 'NULL' || $param === null) {
-					$ps->bindValue($count++, $param, PDO::PARAM_NULL);
-				} elseif (is_bool($param)) {
-					$ps->bindValue($count++, $param, PDO::PARAM_BOOL);
-				} elseif (is_int($param)) {
-					$ps->bindValue($count++, $param, PDO::PARAM_INT);
-				} else {
-					$ps->bindValue($count++, $param);
+	/** @param class-string $className */
+	private function compileFromClass(string $className, stdClass $data): void {
+		$cacheLines = [];
+		$colMappings = [];
+		$refClass = new ReflectionClass($className);
+		foreach ($refClass->getProperties() as $refProperty) {
+			$colMapping = $refProperty->getAttributes(ColName::class);
+			if (count($colMapping)) {
+				$colMappings[$colMapping[0]->newInstance()->col] = $refProperty->getName();
+			}
+		}
+		foreach (get_object_vars($data) as $colName => $colValue) {
+			$propName = $colMappings[$colName] ?? $colName;
+			try {
+				if (!$refClass->hasProperty($propName)) {
+					$this->logger->error("Unable to load data into {class}::\${property}: property doesn't exist", [
+						'class' => $refClass->getName(),
+						'property' => $propName,
+						'exception' => new Exception(),
+					]);
+					continue;
 				}
-			}
-			$ps->execute();
-			return $ps;
-		} catch (PDOException $e) {
-			$e->errorInfo ??= [0, ''];
-			if ($this->nadyDB->getType() === DB\Type::SQLite && $e->errorInfo[1] === 17) {
-				// fix for Sqlite schema changed error (retry the query)
-				return $this->executeQuery($sql, $params);
-			}
-			if ($this->nadyDB->getType() === DB\Type::MySQL && in_array($e->errorInfo[1], [1_927, 2_006], true)) {
-				$this->logger->warning('DB had recoverable error: {error} - reconnecting', [
-					'error' => trim($e->errorInfo[2]),
+				$type = $this->guessVarTypeFromReflection($refClass, $propName);
+				$refProp = $refClass->getProperty($propName);
+				$readMap = $refProp->getAttributes(NCA\DB\MapRead::class);
+				if (count($readMap)) {
+					foreach ($readMap as $mapper) {
+						$cacheLines []= "{$propName}: unserialize(" . var_export(serialize($mapper->newInstance()), true) . ')->map($data->' . $colName . '),';
+					}
+				} else {
+					if ($type === 'bool') {
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (bool)\$data->{$colName} : null,";
+					} elseif ($type === 'int') {
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (int)\$data->{$colName} : null,";
+					} elseif ($type === 'float') {
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (float)\$data->{$colName} : null,";
+					} elseif ($type === \DateTime::class || $type === DateTime::class) {
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTime())->setTimestamp((int)\$data->{$colName}) : null,";
+					} elseif ($type === \DateTimeImmutable::class || $type === DateTimeImmutable::class) {
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName}) : null,";
+					} elseif ($type === \DateTimeInterface::class) {
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName}) : null,";
+					} elseif ($type === UuidInterface::class) {
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? \\" . Uuid::class . "::fromString(\$data->{$colName}) : null,";
+					} elseif (is_a($type, \BackedEnum::class, true)) {
+						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? \\{$type}::from(\$data->{$colName}) : null,";
+					} else {
+						$cacheLines []= "{$propName}: \$data->{$colName},";
+					}
+				}
+			} catch (Throwable $e) {
+				$this->logger->error('{error}', [
+					'error' => $e->getMessage(),
 					'exception' => $e,
 				]);
-				$conn->reconnect();
-				return $this->executeQuery(...func_get_args());
+				throw $e;
 			}
-			throw new SQLException("{$e->errorInfo[2]}\nQuery: {$sql}\nParams: " . json_encode($params, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES), 0, $e);
 		}
+		$this->compileCache($className, $cacheLines);
+	}
+
+	private function getCacheFile(string $className): string {
+		$safeClassName = Safe::pregReplace(
+			'/[^a-zA-Z0-9]/',
+			'_',
+			$className,
+		);
+		return $this->config->paths->cache . "/db/cmd_{$safeClassName}_compiler.php";
+	}
+
+	/**
+	 * Compile and save the cache
+	 *
+	 * @param string[] $cacheLines
+	 */
+	private function compileCache(string $className, array $cacheLines): void {
+		$nsParts = explode('\\', $className);
+		$classShortName = array_pop($nsParts);
+		$nameSpace = implode('\\', $nsParts);
+		$code = '<?php' . \PHP_EOL.
+			\PHP_EOL.
+			"namespace {$nameSpace};" . \PHP_EOL.
+			\PHP_EOL.
+			"class {$classShortName}_compiler {" . \PHP_EOL.
+			"\tpublic static function fromDB(\\stdClass \$data): {$classShortName} {" . \PHP_EOL.
+			"\t\treturn new {$classShortName}(" . \PHP_EOL.
+			"\t\t\t". implode(\PHP_EOL . "\t\t\t", $cacheLines) . \PHP_EOL.
+			"\t\t);" . \PHP_EOL.
+			"\t}" . \PHP_EOL.
+			'}' . \PHP_EOL;
+		$this->fs->write(
+			$this->getCacheFile($className),
+			$code
+		);
 	}
 
 	/**
@@ -418,24 +475,24 @@ class QueryBuilder extends Builder {
 	 *
 	 * @param class-string<T> $className
 	 *
-	 * @return list<T>
+	 * @return Collection<int,T>
 	 */
-	private function fetchAll(string $className, string $sql, mixed ...$args): array {
-		$sql = $this->nadyDB->formatSql($sql);
-
-		$sql = $this->nadyDB->applySQLCompatFixes($sql);
-		$ps = $this->executeQuery($sql, $args);
-
-		/** @var list<T> */
-		$data = $ps->fetchAll(
-			PDO::FETCH_FUNC,
-			function (mixed ...$values) use ($ps, $className): object {
-				assert(array_is_list($values));
-
-				/** @var list<mixed> $values */
-				return $this->convertToClass($ps, $className, $values);
+	private function fetchAll(string $className): Collection {
+		$cacheClass = "{$className}_compiler";
+		$cacheFile = $this->getCacheFile($className);
+		$data = $this->get();
+		if ($data->isEmpty()) {
+			return $data;
+		}
+		if (!class_exists($cacheClass)) {
+			if (!$this->fs->exists($cacheFile)) {
+				$this->compileFromClass($className, $data->firstOrFail());
 			}
-		);
-		return $data;
+			require_once $cacheFile;
+		}
+		if (class_exists($cacheClass)) {
+			return $data->map($cacheClass::fromDB(...));
+		}
+		throw new \Exception('Unable to infer a type from the given SQL result');
 	}
 }
