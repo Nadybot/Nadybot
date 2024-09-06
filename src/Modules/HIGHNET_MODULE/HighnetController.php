@@ -7,7 +7,7 @@ namespace Nadybot\Modules\HIGHNET_MODULE;
 use function Safe\json_decode;
 
 use Closure;
-use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
+use EventSauce\ObjectHydrator\{UnableToHydrateObject};
 use Exception;
 
 use Illuminate\Support\Collection;
@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	EventManager,
 	Events\LowLevelEventFeedEvent,
 	Highway,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
@@ -273,9 +274,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$body = json_decode($body, true);
 		}
 
-		$mapper = new ObjectMapperUsingReflection();
 		try {
-			$message = $mapper->hydrateObject(Message::class, $body);
+			$message = Hydrator::hydrate(Message::class, $body);
 			if (!$this->isWantedMessage($message)) {
 				$this->logger->info('Highnet message was filtered away.');
 				return;
@@ -837,8 +837,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			channel: $channel,
 			message: $message,
 		);
-		$serializer = new ObjectMapperUsingReflection();
-		$hwBody = $serializer->serializeObject($message);
+		$hwBody = Hydrator::serialize($message);
 		if (!is_array($hwBody)) {
 			$this->logger->warning('Cannot serialize data for Highnet - dropping', [
 				'message' => $message,

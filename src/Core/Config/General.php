@@ -19,6 +19,7 @@ class General {
 		#[CastToType('int')] public int $defaultModuleStatus=1,
 		#[CastToType('bool')] public bool $enableConsoleClient=true,
 		#[CastToType('bool')] public bool $enablePackageModule=true,
+		#[CastToType('bool')] public bool $enableHydratorCache=true,
 		#[CastToType('bool')] #[MapFrom('auto_org_name')] public bool $autoOrgName=false,
 		public ?string $timezone=null,
 	) {

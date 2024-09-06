@@ -3,7 +3,6 @@
 namespace Nadybot\Core\Modules\COLORS;
 
 use function Safe\{json_decode, preg_match};
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Filesystem;
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	DBSchema\RouteHopColor,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Modules\MESSAGES\MessageHubController,
@@ -207,8 +207,7 @@ class ColorsController extends ModuleInstance {
 			return null;
 		}
 		$data['name'] = basename($filename, '.json');
-		$mapper = new ObjectMapperUsingReflection();
-		return $mapper->hydrateObject(Theme::class, $data);
+		return Hydrator::hydrate(Theme::class, $data);
 	}
 
 	/** Activate all colors of the given theme */

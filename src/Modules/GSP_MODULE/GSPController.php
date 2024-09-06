@@ -5,13 +5,13 @@ namespace Nadybot\Modules\GSP_MODULE;
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use DateTimeZone;
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	EventManager,
 	Events\LogonEvent,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
@@ -105,9 +105,8 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		if ($response->getStatus() !== 200 || $body === '') {
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
 		try {
-			$show = $mapper->hydrateObject(Show::class, json_decode($body, true));
+			$show = Hydrator::hydrate(Show::class, json_decode($body, true));
 		} catch (\Throwable) {
 			return;
 		}
@@ -227,9 +226,8 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		if ($body === '' || $response->getStatus() !== 200) {
 			return 'GSP seems to have problems with their service. Please try again later.';
 		}
-		$mapper = new ObjectMapperUsingReflection();
 		try {
-			$show = $mapper->hydrateObject(Show::class, json_decode($body, true));
+			$show = Hydrator::hydrate(Show::class, json_decode($body, true));
 		} catch (\Throwable $e) {
 			return 'GSP seems to have problems with their service. Please try again later.';
 		}
@@ -298,10 +296,9 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		if ($response->getStatus() !== 200) {
 			throw new Exception('Recdeiced a ' . $response->getStatus() . '.');
 		}
-		$mapper = new ObjectMapperUsingReflection();
 		try {
-			$show = $mapper->hydrateObject(Show::class, json_decode($body, true));
-		} catch (\Throwable $e) {
+			$show = Hydrator::hydrate(Show::class, json_decode($body, true));
+		} catch (\Throwable) {
 			return 'GSP seems to have problems with their service. Please try again later.';
 		}
 		$blob = "<header2>GSP<end>\n<tab>";

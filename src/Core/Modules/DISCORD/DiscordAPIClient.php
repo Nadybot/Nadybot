@@ -6,11 +6,11 @@ use function Amp\delay;
 use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\Http\Client\{BufferedContent, HttpClient, HttpClientBuilder, Request};
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	HttpRetryRateLimits,
+	Hydrator,
 	ModuleInstance,
 	Safe,
 };
@@ -70,8 +70,7 @@ class DiscordAPIClient extends ModuleInstance {
 
 	public function getGateway(): DiscordGateway {
 		$body = $this->sendRequest(new Request(self::DISCORD_API . '/gateway/bot'));
-		$mapper = new ObjectMapperUsingReflection();
-		return $mapper->hydrateObject(DiscordGateway::class, json_decode($body, true));
+		return Hydrator::hydrate(DiscordGateway::class, json_decode($body, true));
 	}
 
 	public function modifyGuildMember(string $guildId, string $userId, string $data): stdClass {
@@ -90,8 +89,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$request = new Request($url, 'PUT');
 		$request->setBody(new DiscordBody($message));
 		$json = $this->sendRequest($request);
-		$mapper = new ObjectMapperUsingReflection();
-		return $mapper->hydrateObjects(ApplicationCommand::class, json_decode($json, true))->toArray();
+		return Hydrator::hydrateObjects(ApplicationCommand::class, json_decode($json, true))->toArray();
 	}
 
 	public function deleteGlobalApplicationCommand(
@@ -104,9 +102,8 @@ class DiscordAPIClient extends ModuleInstance {
 
 	/** @return list<ApplicationCommand> */
 	public function getGlobalApplicationCommands(string $applicationId): array {
-		$mapper = new ObjectMapperUsingReflection();
 		$json = $this->sendRequest(new Request(self::DISCORD_API . "/applications/{$applicationId}/commands"));
-		return $mapper->hydrateObjects(ApplicationCommand::class, json_decode($json, true))->toArray();
+		return Hydrator::hydrateObjects(ApplicationCommand::class, json_decode($json, true))->toArray();
 	}
 
 	public function sendInteractionResponse(
@@ -172,8 +169,7 @@ class DiscordAPIClient extends ModuleInstance {
 			'application/json; charset=utf-8'
 		));
 		$json = $this->sendRequest($request);
-		$mapper = new ObjectMapperUsingReflection();
-		$channel = $mapper->hydrateObject(DiscordChannel::class, json_decode($json, true));
+		$channel = Hydrator::hydrate(DiscordChannel::class, json_decode($json, true));
 		$this->queueToChannel($channel->id, $message);
 	}
 
@@ -187,8 +183,7 @@ class DiscordAPIClient extends ModuleInstance {
 		]);
 		$request = new Request(self::DISCORD_API . "/channels/{$channelId}");
 		$json = $this->sendRequest($request);
-		$mapper = new ObjectMapperUsingReflection();
-		return $mapper->hydrateObject(DiscordChannel::class, json_decode($json, true));
+		return Hydrator::hydrate(DiscordChannel::class, json_decode($json, true));
 	}
 
 	public function getUser(string $userId): DiscordUser {
@@ -201,10 +196,9 @@ class DiscordAPIClient extends ModuleInstance {
 			]);
 			return $this->userCache[$userId];
 		}
-		$mapper = new ObjectMapperUsingReflection();
 		$request = new Request(self::DISCORD_API . "/users/{$userId}");
 		$json = $this->sendRequest($request);
-		$user = $mapper->hydrateObject(DiscordUser::class, json_decode($json, true));
+		$user = Hydrator::hydrate(DiscordUser::class, json_decode($json, true));
 		$this->cacheUser($user);
 		return $user;
 	}
@@ -229,8 +223,7 @@ class DiscordAPIClient extends ModuleInstance {
 		}
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/members/{$userId}");
 		$json = $this->sendRequest($request);
-		$mapper = new ObjectMapperUsingReflection();
-		$member = $mapper->hydrateObject(GuildMember::class, json_decode($json, true));
+		$member = Hydrator::hydrate(GuildMember::class, json_decode($json, true));
 		$this->cacheGuildMember($guildId, $member);
 		return $member;
 	}
@@ -247,8 +240,7 @@ class DiscordAPIClient extends ModuleInstance {
 			'application/json; charset=utf-8'
 		));
 		$json = $this->sendRequest($request);
-		$mapper = new ObjectMapperUsingReflection();
-		return $mapper->hydrateObject(DiscordChannelInvite::class, json_decode($json, true));
+		return Hydrator::hydrate(DiscordChannelInvite::class, json_decode($json, true));
 	}
 
 	/**
@@ -259,8 +251,7 @@ class DiscordAPIClient extends ModuleInstance {
 	public function getGuildInvites(string $guildId): array {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/invites");
 		$json = json_decode($this->sendRequest($request), true);
-		$mapper = new ObjectMapperUsingReflection();
-		return $mapper->hydrateObjects(DiscordChannelInvite::class, $json)->toArray();
+		return Hydrator::hydrateObjects(DiscordChannelInvite::class, $json)->toArray();
 	}
 
 	/**
@@ -271,8 +262,7 @@ class DiscordAPIClient extends ModuleInstance {
 	public function getGuildEvents(string $guildId): array {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/scheduled-events?with_user_count=true");
 		$json = json_decode($this->sendRequest($request), true);
-		$mapper = new ObjectMapperUsingReflection();
-		return $mapper->hydrateObjects(DiscordScheduledEvent::class, $json)->toArray();
+		return Hydrator::hydrateObjects(DiscordScheduledEvent::class, $json)->toArray();
 	}
 
 	/**
@@ -283,8 +273,7 @@ class DiscordAPIClient extends ModuleInstance {
 	public function getEmojis(string $guildId): array {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis");
 		$json = json_decode($this->sendRequest($request), true);
-		$mapper = new ObjectMapperUsingReflection();
-		return $mapper->hydrateObjects(Emoji::class, $json)->toArray();
+		return Hydrator::hydrateObjects(Emoji::class, $json)->toArray();
 	}
 
 	/** Register a new Emoji in the $guildId */
@@ -298,9 +287,8 @@ class DiscordAPIClient extends ModuleInstance {
 			]),
 			'application/json; charset=utf-8'
 		));
-		$mapper = new ObjectMapperUsingReflection();
 		$json = json_decode($this->sendRequest($request), true);
-		return $mapper->hydrateObject(Emoji::class, $json);
+		return Hydrator::hydrate(Emoji::class, $json);
 	}
 
 	/** Change the data for an already existing Emoji */
@@ -317,9 +305,8 @@ class DiscordAPIClient extends ModuleInstance {
 			]),
 			'application/json; charset=utf-8'
 		));
-		$mapper = new ObjectMapperUsingReflection();
 		$json = json_decode($this->sendRequest($request), true);
-		return $mapper->hydrateObject(Emoji::class, $json);
+		return Hydrator::hydrate(Emoji::class, $json);
 	}
 
 	/** Delete an already existing emoji */

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\EXPORT_MODULE;
 use function Safe\json_encode;
 
 use Amp\File\FilesystemException;
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, ObjectMapperUsingReflection, UnableToSerializeObject};
+use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, UnableToSerializeObject};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	DB,
 	ExporterInterface,
 	Filesystem,
+	Hydrator,
 	ModuleInstance,
 	Registry,
 };
@@ -97,15 +98,13 @@ class ExportController extends ModuleInstance {
 		foreach ($this->exporters as $key => $exporter) {
 			$exports[$key] = $exporter->export($this->db, $this->logger);
 		}
-		$mapper = new ObjectMapperUsingReflection(
-			new DefinitionProvider(
-				keyFormatter: new KeyFormatterWithoutConversion(),
-			),
+		$dp = new DefinitionProvider(
+			keyFormatter: new KeyFormatterWithoutConversion(),
 		);
 		try {
 			$serialized = [];
 			foreach ($exports as $key => $data) {
-				$serialized[$key] = $mapper->serializeObjects($data)->toArray();
+				$serialized[$key] = Hydrator::serializeObjects($data, $dp)->toArray();
 			}
 			$cleaned = self::stripNull($serialized);
 			$output = json_encode($cleaned, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES);

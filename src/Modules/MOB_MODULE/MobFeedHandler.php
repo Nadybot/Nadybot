@@ -3,9 +3,9 @@
 namespace Nadybot\Modules\MOB_MODULE;
 
 use Closure;
-use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
+use EventSauce\ObjectHydrator\{UnableToHydrateObject};
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{EventManager, ModuleInstance, Types\EventFeedHandler};
+use Nadybot\Core\{EventManager, Hydrator, ModuleInstance, Types\EventFeedHandler};
 use Nadybot\Modules\MOB_MODULE\FeedMessage\Spawn;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -54,9 +54,8 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 			FeedMessage\Base::SPAWN  => FeedMessage\Spawn::class,
 			FeedMessage\Base::OOR    => FeedMessage\OutOfReach::class,
 		];
-		$mapper = new ObjectMapperUsingReflection();
 		try {
-			$baseInfo = $mapper->hydrateObject(FeedMessage\Base::class, $data);
+			$baseInfo = Hydrator::hydrate(FeedMessage\Base::class, $data);
 			$class = $mapping[$baseInfo->event] ?? null;
 			if (!isset($class)) {
 				$this->logger->notice('Unknown mob-event {type}: {data}', [
@@ -67,7 +66,7 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 			}
 
 			/** @var FeedMessage\Base */
-			$update = $mapper->hydrateObject($class, $data);
+			$update = Hydrator::hydrate($class, $data);
 			$mob = $this->mobCtrl->mobs[$update->type][$update->key]??null;
 			if (!isset($mob)) {
 				$this->logger->notice('Event for unknown mob: {type}/{key} - reloading from API', [

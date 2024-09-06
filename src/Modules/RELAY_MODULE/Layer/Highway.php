@@ -3,10 +3,10 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use function Safe\json_encode;
-use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToSerializeObject};
+use EventSauce\ObjectHydrator\{UnableToSerializeObject};
 use Exception;
 use Nadybot\Core\Highway\{In, Out, Parser, ParserHighwayException, ParserJsonException};
-use Nadybot\Core\{Attributes as NCA, Safe};
+use Nadybot\Core\{Attributes as NCA, Hydrator, Safe};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -269,8 +269,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	}
 
 	private function encodePackage(Out\OutPackage $package): string {
-		$mapper = new ObjectMapperUsingReflection();
-		$json = $mapper->serializeObject($package);
+		$json = Hydrator::serialize($package);
 		unset($json['id']);
 		return json_encode($json, \JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE|\JSON_INVALID_UTF8_SUBSTITUTE);
 	}

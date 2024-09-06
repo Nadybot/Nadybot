@@ -6,7 +6,6 @@ use function Safe\date;
 use Amp\File\FilesystemException;
 use AO\Client\{SingleClient, WorkerPackage};
 use AO\Package;
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -18,6 +17,7 @@ use Nadybot\Core\{
 	Events\PrivateChannelMsgEvent,
 	Exceptions\UserException,
 	Filesystem,
+	Hydrator,
 	ModuleInstance,
 	Modules\DISCORD\DiscordMessageIn,
 	Nadybot,
@@ -360,7 +360,6 @@ class TestController extends ModuleInstance {
 		PCharacter $nick,
 		string $content
 	): void {
-		$mapper = new ObjectMapperUsingReflection();
 		$payload = [
 			'type' => 0,
 			'tts' => false,
@@ -396,7 +395,7 @@ class TestController extends ModuleInstance {
 			'attachments' => [],
 			'guild_id' => '731552006069551184',
 		];
-		$message = $mapper->hydrateObject(DiscordMessageIn::class, $payload);
+		$message = Hydrator::hydrate(DiscordMessageIn::class, $payload);
 		$event = new DiscordMessageEvent(
 			message: $message->content,
 			sender: $nick(),

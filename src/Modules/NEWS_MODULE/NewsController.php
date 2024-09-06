@@ -6,7 +6,7 @@ use function Safe\preg_split;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, ObjectMapperUsingReflection};
+use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\ParamClass\PUuid;
@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	EventManager,
 	Events\JoinMyPrivEvent,
 	Events\LogonEvent,
+	Hydrator,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Nadybot,
@@ -432,11 +433,6 @@ class NewsController extends ModuleInstance {
 		$user = $request->getAttribute(WebserverController::USER) ?? '_';
 		$body = $request->getAttribute(WebserverController::BODY);
 		$this->logger->notice('Body: {body}', ['body' => $body]);
-		$mapper = new ObjectMapperUsingReflection(
-			new DefinitionProvider(
-				keyFormatter: new KeyFormatterWithoutConversion(),
-			),
-		);
 		try {
 			if (!is_array($body)) {
 				throw new Exception('Wrong content body');
@@ -450,7 +446,13 @@ class NewsController extends ModuleInstance {
 			];
 			$data = Util::mergeArraysRecursive($default, $body);
 
-			$news = $mapper->hydrateObject(News::class, $data);
+			$news = Hydrator::hydrate(
+				className: News::class,
+				data: $data,
+				definitionProvider: new DefinitionProvider(
+					keyFormatter: new KeyFormatterWithoutConversion(),
+				),
+			);
 		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
@@ -477,18 +479,24 @@ class NewsController extends ModuleInstance {
 		}
 		$user = $request->getAttribute(WebserverController::USER) ?? '_';
 		$body = $request->getAttribute(WebserverController::BODY);
-		$mapper = new ObjectMapperUsingReflection(
-			new DefinitionProvider(
-				keyFormatter: new KeyFormatterWithoutConversion(),
-			),
-		);
 		try {
 			if (!is_array($body)) {
 				throw new Exception('Wrong content body');
 			}
-			$oldData = $mapper->serializeObject($oldItem);
+			$oldData = Hydrator::serialize(
+				object: $oldItem,
+				definitionProvider: new DefinitionProvider(
+					keyFormatter: new KeyFormatterWithoutConversion(),
+				),
+			);
 			$data = Util::mergeArraysRecursive($oldData, $body);
-			$news = $mapper->hydrateObject(News::class, $data);
+			$news = Hydrator::hydrate(
+				className: News::class,
+				data: $data,
+				definitionProvider: new DefinitionProvider(
+					keyFormatter: new KeyFormatterWithoutConversion(),
+				),
+			);
 		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}

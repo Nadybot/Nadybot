@@ -23,6 +23,7 @@ show_aoml_markup = false
 default_module_status = 0
 enable_console_client = true
 enable_package_module = true
+enable_hydrator_cache = true
 auto_org_name = false
 
 [proxy]

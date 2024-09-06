@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
+use EventSauce\ObjectHydrator\{UnableToHydrateObject};
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{EventManager, Events\Event as CoreEvent, ModuleInstance, Types\EventFeedHandler};
+use Nadybot\Core\{EventManager, Events\Event as CoreEvent, Hydrator, ModuleInstance, Types\EventFeedHandler};
 use Nadybot\Modules\PVP_MODULE\Event\{GasUpdateEvent, SiteUpdateEvent, TowerAttackEvent, TowerOutcomeEvent};
 use Psr\Log\LoggerInterface;
 
@@ -61,9 +61,8 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 				Event\TowerOutcomeEvent::class,
 			],
 		];
-		$mapper = new ObjectMapperUsingReflection();
 		try {
-			$baseInfo = $mapper->hydrateObject(FeedMessage\Base::class, $data);
+			$baseInfo = Hydrator::hydrate(FeedMessage\Base::class, $data);
 			$specs = $mapping[$baseInfo->type] ?? null;
 			if (!isset($specs)) {
 				$this->logger->notice('Unknown tower-package {type}', [
@@ -71,7 +70,7 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 				]);
 				return;
 			}
-			$info = $mapper->hydrateObject($specs[0], $data);
+			$info = Hydrator::hydrate($specs[0], $data);
 			$event = new ($specs[1])($info);
 			$this->logger->info('Received tower-feed event {event}', ['event' => $event]);
 			if ($event instanceof CoreEvent) {

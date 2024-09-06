@@ -5,7 +5,7 @@ namespace Nadybot\Modules\EXPORT_MODULE;
 use function Safe\json_decode;
 
 use Amp\File\FilesystemException;
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, ObjectMapperUsingReflection, UnableToHydrateObject};
+use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, UnableToHydrateObject};
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	Filesystem,
+	Hydrator,
 	ImporterInterface,
 	ModuleInstance,
 	ParamClass\PFilename,
@@ -219,15 +220,17 @@ class ImportController extends ModuleInstance {
 		}
 		$this->logger->notice('Loading schema data');
 		$sendto->reply('Validating the import data. This could take a while.');
-		$mapper = new ObjectMapperUsingReflection(
-			new DefinitionProvider(
-				keyFormatter: new KeyFormatterWithoutConversion(),
-			),
+		$defProv = new DefinitionProvider(
+			keyFormatter: new KeyFormatterWithoutConversion(),
 		);
 		$result = [];
 		try {
 			foreach ($import as $key => $importData) {
-				$result[$key] = $mapper->hydrateObjects($this->keyToClass[$key], $importData)->toArray();
+				$result[$key] = Hydrator::hydrateObjects(
+					className: $this->keyToClass[$key],
+					data: $importData,
+					definitionProvider: $defProv,
+				)->toArray();
 			}
 		} catch (UnableToHydrateObject $e) {
 			$sendto->reply('The import data is not valid: <highlight>' . $e->getMessage() . '<end>.');

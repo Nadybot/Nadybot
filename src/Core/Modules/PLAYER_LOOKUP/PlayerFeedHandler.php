@@ -2,12 +2,12 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
+use EventSauce\ObjectHydrator\{UnableToHydrateObject};
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Events\SettingEvent;
 use Nadybot\Core\Types\EventFeedHandler;
-use Nadybot\Core\{EventFeed, ModuleInstance, Nadybot};
+use Nadybot\Core\{EventFeed, Hydrator, ModuleInstance, Nadybot};
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -57,9 +57,8 @@ class PlayerFeedHandler extends ModuleInstance implements EventFeedHandler {
 
 	/** @param array<string,mixed> $data */
 	public function handleEventFeedMessage(string $room, array $data): void {
-		$mapper = new ObjectMapperUsingReflection();
 		try {
-			$playerInfo = $mapper->hydrateObject(PlayerInfo::class, $data);
+			$playerInfo = Hydrator::hydrate(PlayerInfo::class, $data);
 			$player = $playerInfo->toPlayer();
 			$this->playerManager->update($player);
 			if ($player->dimension === $this->config->main->dimension) {

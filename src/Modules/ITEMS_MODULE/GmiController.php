@@ -4,12 +4,13 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
+use EventSauce\ObjectHydrator\{UnableToHydrateObject};
 use Nadybot\Core\Types\ItemFlag;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	Exceptions\UserException,
+	Hydrator,
 	ModuleInstance,
 	ParamClass\PItem,
 	Text,
@@ -64,11 +65,9 @@ class GmiController extends ModuleInstance {
 				);
 			}
 			$body = $response->getBody()->buffer();
-			$mapper = new ObjectMapperUsingReflection();
 			$json = json_decode($body, true);
 
-			/** @var GmiResult */
-			$gmiResult = $mapper->hydrateObject(GmiResult::class, $json);
+			$gmiResult = Hydrator::hydrate(GmiResult::class, $json);
 		} catch (UserException $e) {
 			throw $e;
 		} catch (JsonException $e) {
