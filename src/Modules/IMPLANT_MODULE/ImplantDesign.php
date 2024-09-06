@@ -28,7 +28,7 @@ class ImplantDesign extends DBTable {
 		return Hydrator::hydrate(ImplantConfig::class, json_decode($design, true));
 	}
 
-	public static function encodeDesign(?object $design): ?string {
+	public static function encodeDesign(?ImplantConfig $design): ?string {
 		if (!isset($design)) {
 			return null;
 		}

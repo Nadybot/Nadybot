@@ -5,8 +5,15 @@ namespace Nadybot\Core;
 use EventSauce\ObjectHydrator\{DefinitionProvider, IterableList, ObjectMapper, ObjectMapperCodeGenerator, ObjectMapperUsingReflection, UnableToHydrateObject, UnableToSerializeObject};
 use Exception;
 use Nadybot\Core\Config\BotConfig;
+use Throwable;
 
 class Hydrator {
+	/** @var array<string,true> */
+	private static $badSerializers = [];
+
+	/** @var array<string,true> */
+	private static $badHydrators = [];
+
 	/**
 	 * @template T of object
 	 *
@@ -24,11 +31,15 @@ class Hydrator {
 	): object {
 		$hydratorClass = self::getHydratorClass($className);
 		self::ensureHydratorExists($hydratorClass, $className, $definitionProvider);
-		if (class_exists($hydratorClass, false)) {
+		if (class_exists($hydratorClass, false) && !isset(self::$badHydrators[$className])) {
 			if (is_subclass_of($hydratorClass, ObjectMapper::class)) {
-				/** @var ObjectMapper */
-				$hydrator = new $hydratorClass();
-				return $hydrator->hydrateObject($className, $data);
+				try {
+					/** @var ObjectMapper */
+					$hydrator = new $hydratorClass();
+					return $hydrator->hydrateObject($className, $data);
+				} catch (Throwable) {
+					self::$badHydrators[$className] = true;
+				}
 			}
 		}
 		$mapper = new ObjectMapperUsingReflection($definitionProvider);
@@ -52,11 +63,15 @@ class Hydrator {
 	): IterableList {
 		$hydratorClass = self::getHydratorClass($className);
 		self::ensureHydratorExists($hydratorClass, $className, $definitionProvider);
-		if (class_exists($hydratorClass, false)) {
+		if (class_exists($hydratorClass, false) && !isset(self::$badHydrators[$className])) {
 			if (is_subclass_of($hydratorClass, ObjectMapper::class)) {
-				/** @var ObjectMapper */
-				$hydrator = new $hydratorClass();
-				return $hydrator->hydrateObjects($className, $data);
+				try {
+					/** @var ObjectMapper */
+					$hydrator = new $hydratorClass();
+					return $hydrator->hydrateObjects($className, $data);
+				} catch (Throwable) {
+					self::$badHydrators[$className] = true;
+				}
 			}
 		}
 		$mapper = new ObjectMapperUsingReflection($definitionProvider);
@@ -70,11 +85,15 @@ class Hydrator {
 		$className = $object::class;
 		$hydratorClass = self::getHydratorClass($className);
 		self::ensureHydratorExists($hydratorClass, $className, $definitionProvider);
-		if (class_exists($hydratorClass, false)) {
+		if (class_exists($hydratorClass, false) && !isset(self::$badSerializers[$className])) {
 			if (is_subclass_of($hydratorClass, ObjectMapper::class)) {
-				/** @var ObjectMapper */
-				$hydrator = new $hydratorClass();
-				return $hydrator->serializeObject($object);
+				try {
+					/** @var ObjectMapper */
+					$hydrator = new $hydratorClass();
+					return $hydrator->serializeObject($object);
+				} catch (Throwable) {
+					self::$badSerializers[$className] = true;
+				}
 			}
 		}
 		$mapper = new ObjectMapperUsingReflection($definitionProvider);
@@ -101,11 +120,15 @@ class Hydrator {
 		$className = get_class($objects[0]);
 		$hydratorClass = self::getHydratorClass($className);
 		self::ensureHydratorExists($hydratorClass, $className, $definitionProvider);
-		if (class_exists($hydratorClass, false)) {
+		if (class_exists($hydratorClass, false) && !isset(self::$badSerializers[$className])) {
 			if (is_subclass_of($hydratorClass, ObjectMapper::class)) {
-				/** @var ObjectMapper */
-				$hydrator = new $hydratorClass();
-				return $hydrator->serializeObjects($objects);
+				try {
+					/** @var ObjectMapper */
+					$hydrator = new $hydratorClass();
+					return $hydrator->serializeObjects($objects);
+				} catch (Throwable) {
+					self::$badSerializers[$className] = true;
+				}
 			}
 		}
 		$mapper = new ObjectMapperUsingReflection($definitionProvider);
