@@ -9,16 +9,18 @@ use Nadybot\Core\{DBTable, Hydrator};
 
 #[Table(name: 'implant_design', shared: Shared::Yes)]
 class ImplantDesign extends DBTable {
+	public int $dt;
+
 	public function __construct(
 		#[PK] public string $name,
 		#[PK] public string $owner,
-		public ?int $dt=null,
+		?int $dt=null,
 		#[
 			MapRead([self::class, 'decodeDesign']),
 			MapWrite([self::class, 'encodeDesign']),
 		] public ?ImplantConfig $design=null,
 	) {
-		$this->dt ??= time();
+		$this->dt = $dt ?? time();
 	}
 
 	public static function decodeDesign(?string $design): ?ImplantConfig {
