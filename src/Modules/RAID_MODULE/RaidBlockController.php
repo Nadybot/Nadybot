@@ -64,8 +64,9 @@ class RaidBlockController extends ModuleInstance {
 	/** Load all blocks from the database into memory */
 	public function loadBlocks(): void {
 		$this->db->table(RaidBlock::getTable())
-			->whereNull('expiration')
-			->orWhere('expiration', '>', time())
+			->orWhere('expiration', '<=', time())
+			->delete();
+		$this->db->table(RaidBlock::getTable())
 			->asObj(RaidBlock::class)
 			->each(function (RaidBlock $block): void {
 				$this->blocks[$block->player] ??= [];

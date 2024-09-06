@@ -275,7 +275,8 @@ class QueryBuilder extends Builder {
 					} else {
 						$cacheLine = "\$data->{$colName}";
 					}
-					if (isset($defaultValue)) {
+					if (isset($defaultValue) || $refParam->allowsNull()) {
+						$defaultValue ??= 'NULL';
 						$cacheLines []= "{$paramName}: isset(\$data->{$colName}) ? {$cacheLine} : {$defaultValue},";
 					} else {
 						$cacheLines []= "{$paramName}: {$cacheLine},";
