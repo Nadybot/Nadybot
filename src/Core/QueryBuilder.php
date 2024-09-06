@@ -9,12 +9,11 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Attributes\DB\ColName;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Exceptions\SQLException;
-use PDOStatement;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use ReflectionClass;
-use ReflectionException;
 use ReflectionNamedType;
+use ReflectionParameter;
 use Safe\{DateTime, DateTimeImmutable};
 use stdClass;
 use Throwable;
@@ -204,158 +203,12 @@ class QueryBuilder extends Builder {
 		return $result;
 	}
 
-	/** @phpstan-param ReflectionClass<object> $refClass */
-	protected function guessVarTypeFromReflection(ReflectionClass $refClass, string $colName): ?string {
-		$refProp = $refClass->getProperty($colName);
-		$refType = $refProp->getType();
+	protected function guessVarTypeFromReflection(ReflectionParameter $refParam): ?string {
+		$refType = $refParam->getType();
 		if ($refType instanceof ReflectionNamedType) {
 			return $refType->getName();
 		}
 		return null;
-	}
-
-	/**
-	 * @param class-string<T> $className
-	 * @param list<?string>   $values
-	 *
-	 * @template T of object
-	 *
-	 * @return T
-	 */
-	protected function convertToClass(PDOStatement $ps, string $className, array $values): object {
-		$cacheLines = [];
-		$row = [];
-		$colMappings = [];
-		$refClass = new ReflectionClass($className);
-		foreach ($refClass->getProperties() as $refProperty) {
-			$colMapping = $refProperty->getAttributes(ColName::class);
-			if (count($colMapping)) {
-				$colMappings[$colMapping[0]->newInstance()->col] = $refProperty->getName();
-			}
-		}
-		$numColumns = count($values);
-		for ($col=0; $col < $numColumns; $col++) {
-			$colMeta = $ps->getColumnMeta($col);
-			if ($colMeta === false) {
-				$this->logger->error(
-					'Error trying to get the meta information for {className}, column {colNum}: {error}',
-					[
-						'className' => $className,
-						'colNum' => $col,
-						'error' => "query didn't return that many columns",
-					]
-				);
-				continue;
-			}
-			$colName = $colMeta['name'];
-			$propName = $colMappings[$colMeta['name']] ?? $colMeta['name'];
-			if ($values[$col] === null) {
-				try {
-					$refProp = $refClass->getProperty($propName);
-					$refType = $refProp->getType();
-					if (isset($refType) && $refType->allowsNull()) {
-						$row[$colName] = null;
-					}
-				} catch (ReflectionException $e) {
-					$row[$colName] = null;
-				} catch (Throwable $e) {
-					$this->logger->error(
-						'Error trying to get the meta information for {className}, column {colNum}: {error}',
-						[
-							'className' => $className,
-							'colNum' => $col,
-							'error' => $e->getMessage(),
-							'exception' => $e,
-							'colMeta' => $colMeta,
-						]
-					);
-				}
-				continue;
-			}
-			assert(isset($values[$col]));
-			try {
-				if (!$refClass->hasProperty($propName)) {
-					$this->logger->error("Unable to load data into {class}::\${property}: property doesn't exist", [
-						'class' => $refClass->getName(),
-						'property' => $propName,
-						'exception' => new Exception(),
-					]);
-					continue;
-				}
-				$type = $this->guessVarTypeFromReflection($refClass, $propName);
-				$refProp = $refClass->getProperty($propName);
-				$readMap = $refProp->getAttributes(NCA\DB\MapRead::class);
-				if (count($readMap)) {
-					foreach ($readMap as $mapper) {
-						$mapper = $mapper->newInstance();
-						$row[$colName] = $mapper->map($values[$col]);
-						$cacheLines []= "{$colName}: unserialize(" . var_export(serialize($mapper), true) . ')->map($data->' . $colName . '),';
-					}
-				} else {
-					if ($type === 'bool') {
-						$row[$colName] = (bool)$values[$col];
-						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? (bool)\$data->{$colName} : null,";
-					} elseif ($type === 'int') {
-						$row[$colName] = (int)$values[$col];
-						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? (int)\$data->{$colName} : null,";
-					} elseif ($type === 'float') {
-						$row[$colName] = (float)$values[$col];
-						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? (float)\$data->{$colName} : null,";
-					} elseif ($type === \DateTime::class || $type === DateTime::class) {
-						$row[$colName] = (new DateTime())->setTimestamp((int)$values[$col]);
-						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTime())->setTimestamp((int)\$data->{$colName}) : null,";
-					} elseif ($type === \DateTimeImmutable::class || $type === DateTimeImmutable::class) {
-						$row[$colName] = (new DateTimeImmutable())->setTimestamp((int)$values[$col]);
-						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName}) : null,";
-					} elseif ($type === \DateTimeInterface::class) {
-						$row[$colName] = (new DateTimeImmutable())->setTimestamp((int)$values[$col]);
-						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName}) : null,";
-					} elseif ($type === UuidInterface::class) {
-						$row[$colName] = Uuid::fromString($values[$col]);
-						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? \\" . Uuid::class . "::fromString(\$data->{$colName}) : null,";
-					} elseif (is_a($type, \BackedEnum::class, true)) {
-						$row[$colName] = $type::from($values[$col]);
-						$cacheLines []= "{$colName}: isset(\$data->{$colName}) ? \\{$type}::from(\$data->{$colName}) : null,";
-					} else {
-						$row[$colName] = $values[$col];
-						$cacheLines []= "{$colName}: \$data->{$colName},";
-					}
-				}
-				if ($propName !== $colName) {
-					$row[$propName] = $row[$colName];
-					unset($row[$colName]);
-				}
-			} catch (Throwable $e) {
-				$this->logger->error('{error}', [
-					'error' => $e->getMessage(),
-					'exception' => $e,
-				]);
-				throw $e;
-			}
-		}
-		$this->compileCache($className, $cacheLines);
-		try {
-			$constructor = $refClass->getMethod('__construct');
-			if (count($constructor->getParameters())) {
-				$obj = $refClass->newInstance(...$row);
-				return $obj;
-			}
-		} catch (ReflectionException) {
-		} catch (\Throwable $e) {
-			$this->logger->error('Cannot create instance of {class}: {error}. Given: {data}, constructed from {values}', [
-				'class' => $refClass->name,
-				'error' => $e->getMessage(),
-				'data' => $row,
-				'values' => $values,
-				'exception' => $e,
-			]);
-			throw $e;
-		}
-		$obj = new $className();
-		foreach ($row as $key => $value) {
-			$obj->{$key} = $value;
-		}
-		return $obj;
 	}
 
 	protected function dbFunc(string $function): string {
@@ -380,50 +233,53 @@ class QueryBuilder extends Builder {
 		foreach ($refClass->getProperties() as $refProperty) {
 			$colMapping = $refProperty->getAttributes(ColName::class);
 			if (count($colMapping)) {
-				$colMappings[$colMapping[0]->newInstance()->col] = $refProperty->getName();
+				// $colMappings[$colMapping[0]->newInstance()->col] = $refProperty->getName();
+				$colMappings[$refProperty->getName()] = $colMapping[0]->newInstance()->col;
 			}
 		}
-		foreach (get_object_vars($data) as $colName => $colValue) {
-			$propName = $colMappings[$colName] ?? $colName;
+		$refConstr = $refClass->getConstructor();
+		if (!isset($refConstr)) {
+			throw new Exception("{$className} has no constructor.");
+		}
+		foreach ($refConstr->getParameters() as $refParam) {
+			$paramName = $refParam->getName();
+			$colName = $colMappings[$paramName] ?? $paramName;
 			try {
-				if (!$refClass->hasProperty($propName)) {
-					$this->logger->error("Unable to load data into {class}::\${property}: property doesn't exist", [
-						'class' => $refClass->getName(),
-						'property' => $propName,
-						'exception' => new Exception(),
-					]);
-					continue;
+				$type = $this->guessVarTypeFromReflection($refParam);
+				$defaultValue = null;
+				if ($refParam->isOptional()) {
+					$defaultValue = var_export($refParam->getDefaultValue(), true);
 				}
-				$type = $this->guessVarTypeFromReflection($refClass, $propName);
-				$refProp = $refClass->getProperty($propName);
-				$defaultValue = 'null';
-				if ($refProp->hasDefaultValue()) {
-					$defaultValue = var_export($refProp->getDefaultValue(), true);
-				}
-				$readMap = $refProp->getAttributes(NCA\DB\MapRead::class);
+				$refProp = $refClass->hasProperty($paramName) ? $refClass->getProperty($paramName) : null;
+				$readMap = isset($refProp) ? $refProp->getAttributes(NCA\DB\MapRead::class) : [];
 				if (count($readMap)) {
 					foreach ($readMap as $mapper) {
-						$cacheLines []= "{$propName}: unserialize(" . var_export(serialize($mapper->newInstance()), true) . ')->map($data->' . $colName . '),';
+						$cacheLines []= "{$paramName}: unserialize(" . var_export(serialize($mapper->newInstance()), true) . ')->map($data->' . $colName . '),';
 					}
 				} else {
 					if ($type === 'bool') {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (bool)\$data->{$colName} : {$defaultValue},";
+						$cacheLine = "(bool)\$data->{$colName}";
 					} elseif ($type === 'int') {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (int)\$data->{$colName} : {$defaultValue},";
+						$cacheLine = "(int)\$data->{$colName}";
 					} elseif ($type === 'float') {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (float)\$data->{$colName} : {$defaultValue},";
+						$cacheLine = "(float)\$data->{$colName}";
 					} elseif ($type === \DateTime::class || $type === DateTime::class) {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTime())->setTimestamp((int)\$data->{$colName}) : {$defaultValue},";
+						$cacheLine = "(new \\Safe\\DateTime())->setTimestamp((int)\$data->{$colName})";
 					} elseif ($type === \DateTimeImmutable::class || $type === DateTimeImmutable::class) {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName}) : {$defaultValue},";
+						$cacheLine = "(new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName})";
 					} elseif ($type === \DateTimeInterface::class) {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? (new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName}) : {$defaultValue},";
+						$cacheLine = "(new \\Safe\\DateTimeImmutable())->setTimestamp((int)\$data->{$colName})";
 					} elseif ($type === UuidInterface::class) {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? \\" . Uuid::class . "::fromString(\$data->{$colName}) : {$defaultValue},";
+						$cacheLine = '\\' . Uuid::class . "::fromString(\$data->{$colName})";
 					} elseif (is_a($type, \BackedEnum::class, true)) {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? \\{$type}::from(\$data->{$colName}) : {$defaultValue},";
+						$cacheLine = "\\{$type}::from(\$data->{$colName})";
 					} else {
-						$cacheLines []= "{$propName}: isset(\$data->{$colName}) ? \$data->{$colName} : {$defaultValue},";
+						$cacheLine = "\$data->{$colName}";
+					}
+					if (isset($defaultValue)) {
+						$cacheLines []= "{$paramName}: isset(\$data->{$colName}) ? {$cacheLine} : {$defaultValue},";
+					} else {
+						$cacheLines []= "{$paramName}: {$cacheLine},";
 					}
 				}
 			} catch (Throwable $e) {
@@ -455,7 +311,7 @@ class QueryBuilder extends Builder {
 		$nsParts = explode('\\', $className);
 		$classShortName = array_pop($nsParts);
 		$nameSpace = implode('\\', $nsParts);
-		$code = '<?php' . \PHP_EOL.
+		$code = '<?php declare(strict_types=1);' . \PHP_EOL.
 			\PHP_EOL.
 			"namespace {$nameSpace};" . \PHP_EOL.
 			\PHP_EOL.
