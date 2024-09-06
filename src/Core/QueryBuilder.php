@@ -15,7 +15,6 @@ use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionParameter;
 use Safe\{DateTime, DateTimeImmutable};
-use stdClass;
 use Throwable;
 
 class QueryBuilder extends Builder {
@@ -226,7 +225,7 @@ class QueryBuilder extends Builder {
 	}
 
 	/** @param class-string $className */
-	private function compileFromClass(string $className, stdClass $data): void {
+	private function compileFromClass(string $className): void {
 		$cacheLines = [];
 		$colMappings = [];
 		$refClass = new ReflectionClass($className);
@@ -340,13 +339,16 @@ class QueryBuilder extends Builder {
 	private function fetchAll(string $className): Collection {
 		$cacheClass = "{$className}_compiler";
 		$cacheFile = $this->getCacheFile($className);
+
 		$data = $this->get();
 		if ($data->isEmpty()) {
 			return $data;
 		}
+
+		/** @var Collection<int,\stdClass> $data */
 		if (!class_exists($cacheClass)) {
 			if (!$this->fs->exists($cacheFile)) {
-				$this->compileFromClass($className, $data->firstOrFail());
+				$this->compileFromClass($className);
 			}
 			require_once $cacheFile;
 		}
