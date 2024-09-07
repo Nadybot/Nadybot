@@ -5,6 +5,8 @@ namespace Nadybot\Core;
 use function Safe\preg_match;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\Modules\COLORS\ColorsController;
+use Nadybot\Core\Modules\SYSTEM\SystemController;
 
 #[NCA\Instance]
 class Text {
@@ -12,7 +14,10 @@ class Text {
 	private BotConfig $config;
 
 	#[NCA\Inject]
-	private SettingManager $settingManager;
+	private SystemController $systemController;
+
+	#[NCA\Inject]
+	private ColorsController $colors;
 
 	/**
 	 * Creates an info window, supporting pagination
@@ -112,11 +117,11 @@ class Text {
 	/** @return array<string,string> */
 	public function getColors(): array {
 		return [
-			'<header>' => str_replace("'", '', $this->settingManager->getString('default_header_color')??''),
-			'<header2>' => str_replace("'", '', $this->settingManager->getString('default_header2_color')??''),
-			'<highlight>' => str_replace("'", '', $this->settingManager->getString('default_highlight_color')??''),
-			'<on>' => str_replace("'", '', $this->settingManager->getString('default_enabled_color')??''),
-			'<off>' => str_replace("'", '', $this->settingManager->getString('default_disabled_color')??''),
+			'<header>' => str_replace("'", '', $this->colors->defaultHeaderColor),
+			'<header2>' => str_replace("'", '', $this->colors->defaultHeader2Color),
+			'<highlight>' => str_replace("'", '', $this->colors->defaultHighlightColor),
+			'<on>' => str_replace("'", '', $this->colors->defaultEnabledColor),
+			'<off>' => str_replace("'", '', $this->colors->defaultDisabledColor),
 			'<black>' => '<font color=#000000>',
 			'<white>' => '<font color=#FFFFFF>',
 			'<yellow>' => '<font color=#FFFF00>',
@@ -128,10 +133,10 @@ class Text {
 			'<cyan>' => '<font color=#00FFFF>',
 			'<violet>' => '<font color=#8F00FF>',
 
-			'<neutral>' => $this->settingManager->getString('default_neut_color')??'',
-			'<omni>' => $this->settingManager->getString('default_omni_color')??'',
-			'<clan>' => $this->settingManager->getString('default_clan_color')??'',
-			'<unknown>' => $this->settingManager->getString('default_unknown_color')??'',
+			'<neutral>' => $this->colors->defaultNeutColor,
+			'<omni>' => $this->colors->defaultOmniColor,
+			'<clan>' => $this->colors->defaultClanColor,
+			'<unknown>' => $this->colors->defaultUnknownColor,
 		];
 	}
 
@@ -150,7 +155,7 @@ class Text {
 				'<myguild>' => $this->config->general->orgName,
 				'<tab>' => '    ',
 				'<end>' => '</font>',
-				'<symbol>' => $this->settingManager->getString('symbol')??'!',
+				'<symbol>' => $this->systemController->symbol,
 				'<br>' => "\n",
 			]
 		);
@@ -180,7 +185,7 @@ class Text {
 				'<myguild>' => $this->config->general->orgName,
 				'<tab>' => '    ',
 				'<end>' => '',
-				'<symbol>' => $this->settingManager->getString('symbol')??'!',
+				'<symbol>' => $this->systemController->symbol,
 				'<br>' => "\n",
 			]
 		);
