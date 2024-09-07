@@ -71,16 +71,19 @@ use Throwable;
 	),
 	NCA\DefineCommand(
 		command: 'nw hot',
+		alias: 'hot',
 		description: 'Show sites which are hot',
 		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
 		command: 'nw free',
+		alias: 'unplanted',
 		description: 'Show all unplanted sites',
 		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
 		command: 'nw sites',
+		alias: 'sites',
 		description: 'Show all sites of an org',
 		accessLevel: 'guest',
 	),
@@ -91,11 +94,13 @@ use Throwable;
 	),
 	NCA\DefineCommand(
 		command: 'nw towerqty',
+		alias: 'towerqty',
 		description: 'Show how many towers each level is allowed to plant',
 		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
 		command: 'nw types',
+		alias: 'towertype',
 		description: 'Show the level ranges for tower types',
 		accessLevel: 'guest',
 	),

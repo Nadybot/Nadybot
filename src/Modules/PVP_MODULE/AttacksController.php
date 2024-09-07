@@ -41,16 +41,19 @@ use Throwable;
 	NCA\EmitsMessages('pvp', 'tower-outcome-own'),
 	NCA\DefineCommand(
 		command: AttacksController::CMD_ATTACKS,
+		alias: 'attacks',
 		description: 'Show the last Tower Attack messages',
 		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
 		command: AttacksController::CMD_OUTCOMES,
+		alias: 'outcomes',
 		description: 'Show the last tower outcomes',
 		accessLevel: 'guest',
 	),
 	NCA\DefineCommand(
 		command: AttacksController::CMD_STATS,
+		alias: 'towerstats',
 		description: 'Show how many towers each faction has lost',
 		accessLevel: 'guest',
 	),

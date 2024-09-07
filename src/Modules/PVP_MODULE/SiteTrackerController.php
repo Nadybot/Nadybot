@@ -34,6 +34,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'nw track',
+		alias: 'towertrack',
 		description: 'Track tower sites',
 		accessLevel: 'member'
 	),

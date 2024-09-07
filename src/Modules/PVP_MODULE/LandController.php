@@ -10,6 +10,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: LandController::LC_CMD,
+		alias: 'lc',
 		description: 'Perform Notum Wars commands',
 		accessLevel: 'guest',
 	)
