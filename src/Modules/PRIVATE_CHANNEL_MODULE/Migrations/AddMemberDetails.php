@@ -31,9 +31,7 @@ class AddMemberDetails implements SchemaMigration {
 				->where('action', AccessManager::ADD_RANK)
 				->orderBy('time')
 				->orderBy('id')
-				->limit(1)
-				->asObj(Audit::class)
-				->first();
+				->firstObj(Audit::class);
 
 			if (isset($audit)) {
 				$db->table($table)

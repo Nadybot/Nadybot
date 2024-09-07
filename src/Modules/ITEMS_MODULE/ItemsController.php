@@ -138,9 +138,7 @@ class ItemsController extends ModuleInstance {
 				$this->db->table(AODBEntry::getTable())
 					->where('highid', $id)
 			)
-			->limit(1)
-			->asObj(AODBEntry::class)
-			->first();
+			->firstObj(AODBEntry::class);
 	}
 
 	/**
@@ -540,9 +538,9 @@ class ItemsController extends ModuleInstance {
 			$query->where('lowql', '<=', $ql)->where('highql', '>=', $ql);
 			$query->select('aodb.*');
 			$query->selectRaw("{$ql} " . $query->as('ql'));
-			return $query->asObj(AODBItem::class)->first();
+			return $query->firstObj(AODBItem::class);
 		}
-		return $query->asObj(AODBEntry::class)->first();
+		return $query->firstObj(AODBEntry::class);
 	}
 
 	public function getItem(string $name, ?int $ql=null): ?string {

@@ -61,6 +61,17 @@ class QueryBuilder extends Builder {
 	 *
 	 * @param class-string<T> $class
 	 *
+	 * @return ?T
+	 */
+	public function firstObj(string $class): ?object {
+		return $this->limit(1)->asObj($class)->first();
+	}
+
+	/**
+	 * @template T of object
+	 *
+	 * @param class-string<T> $class
+	 *
 	 * @return T[]
 	 *
 	 * @psalm-return list<T>

@@ -150,8 +150,7 @@ class LevelController extends ModuleInstance {
 	public function getLevelInfo(int $level): ?Level {
 		return $this->db->table(Level::getTable())
 			->where('level', $level)
-			->asObj(Level::class)
-			->first();
+			->firstObj(Level::class);
 	}
 
 	/** @return list<Level> */

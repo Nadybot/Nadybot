@@ -569,9 +569,7 @@ class AltsController extends ModuleInstance {
 		$old = $this->db->table(Alt::getTable())
 			->where('alt', $alt)
 			->where('main', $main)
-			->limit(1)
-			->asObj(Alt::class)
-			->first();
+			->firstObj(Alt::class);
 		$deleted = $this->db->table(Alt::getTable())
 			->where('alt', $alt)
 			->where('main', $main)

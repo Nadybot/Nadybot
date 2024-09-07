@@ -71,8 +71,7 @@ class OrgNotesController extends ModuleInstance {
 	public function getOrgNote(\Stringable|string $id): ?OrgNote {
 		return $this->db->table(OrgNote::getTable())
 			->where('id', (string)$id)
-			->asObj(OrgNote::class)
-			->first();
+			->firstObj(OrgNote::class);
 	}
 
 	public function createOrgNote(string $creator, string $text, bool $forceSync=false): OrgNote {

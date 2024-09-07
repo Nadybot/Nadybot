@@ -177,9 +177,7 @@ class PlayerManager extends ModuleInstance {
 		$player = $this->db->table(Player::getTable())
 			->whereIlike('name', $name)
 			->where('dimension', $dimension)
-			->limit(1)
-			->asObj(Player::class)
-			->first();
+			->firstObj(Player::class);
 		if (isset($player)) {
 			$this->logger->info('Found cached information for {character} on RK{dimension}', [
 				'character' => $name,

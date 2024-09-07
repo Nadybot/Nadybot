@@ -98,8 +98,7 @@ class FindOrgController extends ModuleInstance {
 	public function getByID(int $orgID): ?Organization {
 		return $this->db->table(Organization::getTable())
 			->where('id', $orgID)
-			->asObj(Organization::class)
-			->first();
+			->firstObj(Organization::class);
 	}
 
 	/** Find an organization by its name */

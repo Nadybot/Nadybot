@@ -93,7 +93,7 @@ class RecipeController extends ModuleInstance {
 	#[NCA\HandlesCommand('recipe')]
 	public function recipeShowCommand(CmdContext $context, int $id): void {
 		/** @var ?Recipe */
-		$row = $this->db->table(Recipe::getTable())->where('id', $id)->asObj(Recipe::class)->first();
+		$row = $this->db->table(Recipe::getTable())->where('id', $id)->firstObj(Recipe::class);
 
 		if ($row === null) {
 			$msg = "Could not find recipe with id <highlight>{$id}<end>.";

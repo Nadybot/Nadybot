@@ -1062,9 +1062,7 @@ class MessageHubController extends ModuleInstance {
 	public function getRoute(\Stringable|string $id): ?Route {
 		$route = $this->db->table(Route::getTable())
 			->where('id', (string)$id)
-			->limit(1)
-			->asObj(Route::class)
-			->first();
+			->firstObj(Route::class);
 		if (!isset($route)) {
 			return null;
 		}

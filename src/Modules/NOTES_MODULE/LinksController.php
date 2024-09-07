@@ -103,8 +103,7 @@ class LinksController extends ModuleInstance implements ImporterInterface, Expor
 
 		$obj = $this->db->table(Link::getTable())
 			->where('id', $id)
-			->asObj(Link::class)
-			->first();
+			->firstObj(Link::class);
 		if ($obj === null) {
 			$msg = "Link with ID <highlight>{$id}<end> could not be found.";
 		} elseif ($obj->name === $context->char->name

@@ -122,8 +122,7 @@ class ConfigApiController extends ModuleInstance {
 	public function changeModuleSettingEndpoint(Request $request, string $module, string $setting): Response {
 		$oldSetting = $this->db->table(Setting::getTable())
 			->where('name', $setting)->where('module', $module)
-			->limit(1)
-			->asObj(Setting::class)->first();
+			->firstObj(Setting::class);
 		if ($oldSetting === null) {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}

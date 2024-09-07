@@ -84,8 +84,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		return $this->db->table(DiscordMapping::getTable())
 			->where('discord_id', $discordId)
 			->whereNotNull('confirmed')
-			->asObj(DiscordMapping::class)
-			->first()
+			->firstObj(DiscordMapping::class)
 			?->name;
 	}
 
@@ -100,8 +99,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		$data = $this->db->table(DiscordMapping::getTable())
 			->where('name', $uid)
 			->whereNotNull('confirmed')
-			->asObj(DiscordMapping::class)
-			->first();
+			->firstObj(DiscordMapping::class);
 		if ($data !== null) {
 			$msg = "You have already linked your account with <highlight>{$data->discord_id}<end>.";
 			$context->reply($msg);
@@ -111,8 +109,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		$data = $this->db->table(DiscordMapping::getTable())
 			->where('name', $context->char->name)
 			->where('token', $uid)
-			->asObj(DiscordMapping::class)
-			->first();
+			->firstObj(DiscordMapping::class);
 		if ($data === null) {
 			$msg = 'There is currently no request to link with this token.';
 			$context->reply($msg);
@@ -183,8 +180,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		$data = $this->db->table(DiscordMapping::getTable())
 			->where('name', $name)
 			->whereNotNull('confirmed')
-			->asObj(DiscordMapping::class)
-			->first();
+			->firstObj(DiscordMapping::class);
 		if ($data !== null) {
 			$msg = "<highlight>{$name}<end> is already linked with a different Discord user.";
 			$context->reply($msg);
@@ -194,8 +190,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		$data = $this->db->table(DiscordMapping::getTable())
 			->where('name', $name)
 			->where('discord_id', $discordUserId)
-			->asObj(DiscordMapping::class)
-			->first();
+			->firstObj(DiscordMapping::class);
 		// Never tried to link before
 		if ($data === null) {
 			$uid = strtoupper(bin2hex(random_bytes(16)));

@@ -214,8 +214,7 @@ class RandomController extends ModuleInstance {
 		$rollId = $rollId();
 		$roll = $this->db->table(Roll::getTable())
 			->where('id', $rollId)
-			->asObj(Roll::class)
-			->first();
+			->firstObj(Roll::class);
 		if ($roll === null) {
 			$msg = "Roll number <highlight>{$rollId}<end> does not exist.";
 		} else {

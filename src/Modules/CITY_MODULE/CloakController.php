@@ -188,7 +188,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		if ($cloakOnly) {
 			$query->whereIn('action', ['on', 'off']);
 		}
-		return $query->asObj(OrgCity::class)->first();
+		return $query->firstObj(OrgCity::class);
 	}
 
 	public function sendCloakMessage(string $message): void {

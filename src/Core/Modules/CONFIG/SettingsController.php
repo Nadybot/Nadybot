@@ -89,8 +89,7 @@ class SettingsController extends ModuleInstance {
 
 		$row = $this->db->table(Setting::getTable())
 			->where('name', $settingName)
-			->asObj(Setting::class)
-			->first();
+			->firstObj(Setting::class);
 		if ($row === null) {
 			$msg = "Could not find setting <highlight>{$settingName}<end>.";
 			$context->reply($msg);
@@ -136,8 +135,7 @@ class SettingsController extends ModuleInstance {
 
 		$setting = $this->db->table(Setting::getTable())
 			->where('name', $name)
-			->asObj(Setting::class)
-			->first();
+			->firstObj(Setting::class);
 		if ($setting === null) {
 			$msg = "Could not find setting <highlight>{$name}<end>.";
 			$context->reply($msg);

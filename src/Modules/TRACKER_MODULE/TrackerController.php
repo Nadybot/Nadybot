@@ -444,8 +444,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->join(TrackingOrg::getTable() . ' AS o', 'om.org_id', '=', 'o.org_id')
 			->where('om.uid', $uid)
 			->select('o.*')
-			->asObj(TrackingOrg::class)
-			->first();
+			->firstObj(TrackingOrg::class);
 		if (isset($orgMember) && (time() - $orgMember->added_dt->getTimestamp()) < 60) {
 			return;
 		}
@@ -483,9 +482,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$lastState = $this->db->table(Tracking::getTable())
 				->where('uid', $user->uid)
 				->orderByDesc('dt')
-				->limit(1)
-				->asObj(Tracking::class)
-				->first();
+				->firstObj(Tracking::class);
 			$lastAction = '';
 			if ($lastState !== null) {
 				$lastAction = ' ' . Util::date($lastState->dt);
@@ -550,8 +547,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 		$orgMember = $this->db->table(TrackingOrgMember::getTable())
 			->where('uid', $uid)
-			->asObj(TrackingOrgMember::class)
-			->first();
+			->firstObj(TrackingOrgMember::class);
 		if (!isset($orgMember)) {
 			$msg = "<highlight>{$name}<end> is not on the track list.";
 			$context->reply($msg);
@@ -1141,14 +1137,12 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 		$user = $this->db->table(TrackedUser::getTable())
 			->where('uid', $uid)
-			->asObj(TrackedUser::class)
-			->first();
+			->firstObj(TrackedUser::class);
 
 		if ($user === null) {
 			$orgMember = $this->db->table(TrackingOrgMember::getTable())
 				->where('uid', $uid)
-				->asObj(TrackingOrgMember::class)
-				->first();
+				->firstObj(TrackingOrgMember::class);
 			if ($orgMember === null) {
 				$msg = "<highlight>{$char}<end> is not being tracked.";
 				$context->reply($msg);

@@ -229,8 +229,7 @@ class PermissionSetMappingController extends ModuleInstance {
 
 		$row = $this->db->table(Setting::getTable())
 			->where('name', 'symbol')
-			->asObj(Setting::class)
-			->first();
+			->firstObj(Setting::class);
 		if ($row === null || !isset($row->options) || !strlen($row->options)) {
 			$msg = 'Could not find setting <highlight>symbol<end>.';
 			$context->reply($msg);

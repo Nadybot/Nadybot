@@ -164,9 +164,7 @@ class LadderController extends ModuleInstance {
 			->where('ability', '<=', $ability)
 			->where('treatment', '<=', $treatment)
 			->orderByDesc('ql')
-			->limit(1)
-			->asObj(LadderRequirements::class)
-			->first();
+			->firstObj(LadderRequirements::class);
 
 		$this->addClusterInfo($row);
 

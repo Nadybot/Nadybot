@@ -81,8 +81,7 @@ class DeathController extends ModuleInstance {
 	public function getDeath(string $character): ?Death {
 		return $this->db->table(Death::getTable())
 			->where('character', $character)
-			->asObj(Death::class)
-			->first();
+			->firstObj(Death::class);
 	}
 
 	public function registerDeathCharacter(string $character): Death {

@@ -119,8 +119,7 @@ class ArulSabaController extends ModuleInstance {
 	public function readIngredientByAoid(int $aoid, int $amount=1, ?int $ql=null, bool $qlCanBeHigher=false): Ingredient {
 		$ing = $this->db->table(Ingredient::getTable())
 			->where('aoid', $aoid)
-			->asObj(Ingredient::class)
-			->first();
+			->firstObj(Ingredient::class);
 		if (!isset($ing)) {
 			throw new Exception("Cannot find ingredient #{$aoid} in the bot's database.");
 		}
@@ -130,13 +129,12 @@ class ArulSabaController extends ModuleInstance {
 	public function readIngredientByName(string $name, int $amount=1, ?int $ql=null, bool $qlCanBeHigher=false): Ingredient {
 		$ing = $this->db->table(Ingredient::getTable())
 			->where('name', $name)
-			->asObj(Ingredient::class)
-			->first();
+			->firstObj(Ingredient::class);
 		if (!isset($ing)) {
 			$query = $this->db->table(Ingredient::getTable());
 			$tmp = explode(' ', $name);
 			$this->db->addWhereFromParams($query, $tmp, 'name');
-			$ing = $query->asObj(Ingredient::class)->first();
+			$ing = $query->firstObj(Ingredient::class);
 		}
 		if (!isset($ing)) {
 			throw new Exception("Cannot find ingredient {$name} in the bot's database.");
@@ -236,8 +234,7 @@ class ArulSabaController extends ModuleInstance {
 
 		$arul = $this->db->table(ArulSaba::getTable())
 			->where('name', $type)
-			->asObj(ArulSaba::class)
-			->first();
+			->firstObj(ArulSaba::class);
 
 		/** @psalm-suppress InvalidArrayOffset */
 		if (!isset($arul) || ($numGems > 0 && !isset($blueprints[$numGems]))) {
@@ -542,7 +539,6 @@ class ArulSabaController extends ModuleInstance {
 	protected function readSkill(int $id): ?Skill {
 		return $this->db->table(Skill::getTable())
 			->where('id', $id)
-			->asObj(Skill::class)
-			->first();
+			->firstObj(Skill::class);
 	}
 }

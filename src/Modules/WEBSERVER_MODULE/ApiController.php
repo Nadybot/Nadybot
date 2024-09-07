@@ -189,8 +189,7 @@ class ApiController extends ModuleInstance {
 	): void {
 		$key = $this->db->table(ApiKey::getTable())
 			->where('token', $token)
-			->asObj(ApiKey::class)
-			->first();
+			->firstObj(ApiKey::class);
 		if (!isset($key)) {
 			$context->reply("The API token <highlight>{$token}<end> was not found.");
 			return;
@@ -216,8 +215,7 @@ class ApiController extends ModuleInstance {
 	): void {
 		$key = $this->db->table(ApiKey::getTable())
 			->where('token', $token)
-			->asObj(ApiKey::class)
-			->first();
+			->firstObj(ApiKey::class);
 		if (!isset($key)) {
 			$context->reply("The API token <highlight>{$token}<end> was not found.");
 			return;

@@ -49,8 +49,7 @@ class DiscController extends ModuleInstance {
 	public function getDiscById(int $discId): ?Disc {
 		return $this->db->table(Disc::getTable())
 			->where('disc_id', $discId)
-			->asObj(Disc::class)
-			->first();
+			->firstObj(Disc::class);
 	}
 
 	/** Show what nano a disc will turn into */
@@ -116,8 +115,7 @@ class DiscController extends ModuleInstance {
 		return $this->db->table(Nano::getTable())
 			->where('crystal_id', $disc->crystal_id)
 			->select(['location', 'professions', 'strain AS nanoline_name'])
-			->asObj(NanoDetails::class)
-			->first();
+			->firstObj(NanoDetails::class);
 	}
 
 	/**

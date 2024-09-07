@@ -584,13 +584,11 @@ class SkillsController extends ModuleInstance {
 
 		$lowAttributes = $this->db->table(WeaponAttribute::getTable())
 			->where('id', $row->lowid)
-			->asObj(WeaponAttribute::class)
-			->first();
+			->firstObj(WeaponAttribute::class);
 
 		$highAttributes = $this->db->table(WeaponAttribute::getTable())
 			->where('id', $row->highid)
-			->asObj(WeaponAttribute::class)
-			->first();
+			->firstObj(WeaponAttribute::class);
 
 		if ($lowAttributes === null || $highAttributes === null) {
 			$msg = 'Could not find any weapon info for this item.';

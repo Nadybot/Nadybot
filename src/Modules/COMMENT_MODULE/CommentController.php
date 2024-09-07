@@ -186,7 +186,7 @@ class CommentController extends ModuleInstance {
 	public function getCategory(string $category): ?CommentCategory {
 		return $this->db->table(CommentCategory::getTable())
 			->whereIlike('name', $category)
-			->asObj(CommentCategory::class)->first();
+			->firstObj(CommentCategory::class);
 	}
 
 	/** Create a new category */
@@ -593,8 +593,7 @@ class CommentController extends ModuleInstance {
 
 		$comment = $this->db->table(Comment::getTable())
 			->where('id', $id)
-			->asObj(Comment::class)
-			->first();
+			->firstObj(Comment::class);
 		if (!isset($comment)) {
 			$context->reply("The comment <highlight>#{$id}<end> does not exist.");
 			return;

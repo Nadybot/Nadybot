@@ -264,7 +264,7 @@ class ImplantDesignerController extends ModuleInstance {
 				->select('s.*')
 				->addSelect('i.short_name AS slot_name')
 				->addSelect('i.name AS slot_long_name')
-				->asObj(Symbiant::class)->first();
+				->firstObj(Symbiant::class);
 
 			if ($symbRow === null) {
 				$msg = "Could not find symbiant <highlight>{$cluster}<end>.";
@@ -305,9 +305,7 @@ class ImplantDesignerController extends ModuleInstance {
 			} else {
 				$clusterObj = $this->db->table(Cluster::getTable())
 					->whereIlike('long_name', strtolower($cluster))
-					->limit(1)
-					->asObj(Cluster::class)
-					->first();
+					->firstObj(Cluster::class);
 				if (!isset($clusterObj)) {
 					$matches = $this->whatBuffsController->searchForSkill($cluster);
 					if (count($matches) !== 1) {
@@ -317,8 +315,7 @@ class ImplantDesignerController extends ModuleInstance {
 					$match = $matches[0];
 					$clusterObj = $this->db->table(Cluster::getTable())
 						->where('skill_id', $match->id)
-						->asObj(Cluster::class)
-						->first();
+						->firstObj(Cluster::class);
 					if (!isset($clusterObj)) {
 						$context->reply("There is no cluster for <highlight>{$cluster}<end>.");
 						return;
@@ -707,9 +704,7 @@ class ImplantDesignerController extends ModuleInstance {
 			->addSelect('cb.effect_type_id as bright_effect_type_id')
 			->addSelect('cf.effect_type_id as faded_effect_type_id')
 			->addSelect('a.name AS ability_name')
-			->limit(1)
-			->asObj(ImplantInfo::class)
-			->first();
+			->firstObj(ImplantInfo::class);
 
 		if ($row === null) {
 			return null;
@@ -735,8 +730,7 @@ class ImplantDesignerController extends ModuleInstance {
 		$design = $this->db->table(ImplantDesign::getTable())
 			->where('owner', $sender)
 			->where('name', $name)
-			->asObj(ImplantDesign::class)
-			->first();
+			->firstObj(ImplantDesign::class);
 		return $design->design ?? new ImplantConfig();
 	}
 

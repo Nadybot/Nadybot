@@ -164,8 +164,7 @@ class CommandAlias {
 
 		return $this->db->table(CmdAlias::getTable())
 			->where('alias', $alias)
-			->asObj(CmdAlias::class)
-			->first();
+			->firstObj(CmdAlias::class);
 	}
 
 	/** Get the command for which an alias actually is an alias */

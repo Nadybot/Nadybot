@@ -91,9 +91,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		$rank = $this->db->table(OrgRankMapping::getTable())
 			->where('min_rank', '>=', $rank)
 			->orderBy('min_rank')
-			->limit(1)
-			->asObj(OrgRankMapping::class)
-			->first();
+			->firstObj(OrgRankMapping::class);
 		return $rank?->access_level ?? 'guild';
 	}
 
@@ -213,13 +211,11 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 
 		$alEntry = $this->db->table(OrgRankMapping::getTable())
 			->where('access_level', $rankMapping->access_level)
-			->asObj(OrgRankMapping::class)
-			->first();
+			->firstObj(OrgRankMapping::class);
 
 		$rankEntry = $this->db->table(OrgRankMapping::getTable())
 			->where('min_rank', $rankMapping->min_rank)
-			->asObj(OrgRankMapping::class)
-			->first();
+			->firstObj(OrgRankMapping::class);
 		if (isset($alEntry, $rankEntry)) {
 			$sendto->reply("You have already assigned rank mapping for both {$alName} and {$rankName}.");
 			return;
@@ -259,8 +255,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 
 		$oldEntry = $this->db->table(OrgRankMapping::getTable())
 			->where('min_rank', $rank)
-			->asObj(OrgRankMapping::class)
-			->first();
+			->firstObj(OrgRankMapping::class);
 		if (!isset($oldEntry)) {
 			$context->reply("You haven't defined any access level for <highlight>{$ranks[$rank]}<end>.");
 			return;

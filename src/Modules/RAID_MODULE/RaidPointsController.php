@@ -698,7 +698,7 @@ class RaidPointsController extends ModuleInstance {
 	public function getRaidReward(string $name): ?RaidReward {
 		return $this->db->table(RaidReward::getTable())
 			->whereIlike('name', $name)
-			->asObj(RaidReward::class)->first();
+			->firstObj(RaidReward::class);
 	}
 
 	/** Create a new pre-defined raid reward with a name, points and reason */

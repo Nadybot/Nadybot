@@ -43,7 +43,6 @@ class ConvertCmdMgrErrorToMsg implements SchemaMigration {
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(Setting::getTable())
 			->where('name', $name)
-			->asObj(Setting::class)
-			->first();
+			->firstObj(Setting::class);
 	}
 }

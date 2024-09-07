@@ -642,8 +642,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$filter = $this->db
 			->table(FilterEntry::getTable())
 			->where('id', $id)
-			->asObj(FilterEntry::class)
-			->first();
+			->firstObj(FilterEntry::class);
 		if (!isset($filter)) {
 			$context->reply("Highnet filter <highlight>{$id}<end> does not exist.");
 			return;

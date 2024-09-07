@@ -1222,8 +1222,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$oldInvite = $this->db->table(DBDiscordInvite::getTable())
 			->where('character', $aoChar)
 			->where('expires', '>', time())
-			->asObj(DBDiscordInvite::class)
-			->first();
+			->firstObj(DBDiscordInvite::class);
 		if (isset($oldInvite)) {
 			$invite = new DiscordChannelInvite(
 				channel: new DiscordChannel(id: '', type: DiscordChannel::GUILD_TEXT),
@@ -1759,8 +1758,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$data = $this->db->table(DiscordMapping::getTable())
 			->where('discord_id', $userId)
 			->whereNotNull('confirmed')
-			->asObj(DiscordMapping::class)
-			->first();
+			->firstObj(DiscordMapping::class);
 		if ($data !== null) {
 			$this->logger->warning('The Discord user {userId} is already connected to {aoChar}', [
 				'userId' => $userId,

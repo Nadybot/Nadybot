@@ -102,7 +102,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		}
 
 		/** @var ?Poll */
-		$topic = $query->asObj(Poll::class)->first();
+		$topic = $query->firstObj(Poll::class);
 		if ($topic === null) {
 			return null;
 		}
@@ -334,8 +334,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$vote = $this->db->table(Vote::getTable())
 			->where('poll_id', $topic->id)
 			->where('author', $context->char->name)
-			->asObj(Vote::class)
-			->first();
+			->firstObj(Vote::class);
 		$timeleft = $topic->getTimeLeft();
 		if (isset($vote) && isset($vote->answer) && $timeleft > 0) {
 			$privmsg = "You voted: <highlight>{$vote->answer}<end>.";
@@ -381,8 +380,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$oldVote = $this->db->table(Vote::getTable())
 			->where('poll_id', $topic->id)
 			->where('author', $context->char->name)
-			->asObj(Vote::class)
-			->first();
+			->firstObj(Vote::class);
 		$ePoll = clone $topic;
 		if (isset($oldVote)) {
 			$this->db->table(Vote::getTable())

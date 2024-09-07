@@ -914,9 +914,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	public function getRelay(\Stringable|string $id): ?RelayConfig {
 		$relay = $this->db->table(RelayConfig::getTable())
 			->where('id', (string)$id)
-			->limit(1)
-			->asObj(RelayConfig::class)
-			->first();
+			->firstObj(RelayConfig::class);
 		if (!isset($relay)) {
 			return null;
 		}
@@ -928,9 +926,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	public function getRelayByName(string $name): ?RelayConfig {
 		$relay = $this->db->table(RelayConfig::getTable())
 			->where('name', $name)
-			->limit(1)
-			->asObj(RelayConfig::class)
-			->first();
+			->firstObj(RelayConfig::class);
 		if (!isset($relay)) {
 			return null;
 		}

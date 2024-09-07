@@ -475,9 +475,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		// if the bot doesn't query the mysql database for 8 hours the db connection is closed
 		$this->logger->info('Pinging database');
 		$this->db->table(Setting::getTable())
-			->limit(1)
-			->asObj(Setting::class)
-			->first();
+			->firstObj(Setting::class);
 	}
 
 	#[NCA\Event(

@@ -1010,9 +1010,7 @@ class AttacksController extends ModuleInstance {
 					->where('site_id', $site->site_id)
 					->whereNotNull('attacker_org')
 					->orderBy('timestamp')
-					->limit(1)
-					->asObj(DBOutcome::class)
-					->first();
+					->firstObj(DBOutcome::class);
 
 				$blocks = [];
 

@@ -223,9 +223,7 @@ class SpiritsController extends ModuleInstance {
 				->union(
 					$this->db->table(AODBEntry::getTable())
 						->where('highid', $spirit->id)
-				)->limit(1)
-				->asObj(AODBEntry::class)
-				->first();
+				)->firstObj(AODBEntry::class);
 			if ($dbSpirit) {
 				$msg .= Text::makeImage($dbSpirit->icon) . ' ';
 				$msg .= $dbSpirit->getLink(ql: $dbSpirit->highql) . "\n";

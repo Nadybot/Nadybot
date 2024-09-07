@@ -266,8 +266,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 
 		$key = $this->db->table(ApiKey::getTable())
 			->where('token', $keyId)
-			->asObj(ApiKey::class)
-			->first();
+			->firstObj(ApiKey::class);
 		if (!isset($key)) {
 			return null;
 		}

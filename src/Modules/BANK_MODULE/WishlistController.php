@@ -524,8 +524,7 @@ class WishlistController extends ModuleInstance {
 		$entry = $this->db->table(Wish::getTable())
 			->whereIn('created_by', [$mainChar, ...$alts])
 			->where('id', $id)
-			->asObj(Wish::class)
-			->first();
+			->firstObj(Wish::class);
 		if (!isset($entry)) {
 			$context->reply("No item #{$id} on your wishlist.");
 			return;
@@ -568,8 +567,7 @@ class WishlistController extends ModuleInstance {
 
 		$fullfillment = $this->db->table(WishFulfilment::getTable())
 			->where('id', $fulfilmentId)
-			->asObj(WishFulfilment::class)
-			->first();
+			->firstObj(WishFulfilment::class);
 		if (!isset($fullfillment)) {
 			$context->reply("There is no fulfilment #{$fulfilmentId}.");
 			return;
@@ -577,8 +575,7 @@ class WishlistController extends ModuleInstance {
 
 		$entry = $this->db->table(Wish::getTable())
 			->where('id', $fullfillment->wish_id)
-			->asObj(Wish::class)
-			->first();
+			->firstObj(Wish::class);
 		if (!isset($entry)) {
 			$this->db->table(WishFulfilment::getTable())->delete($fulfilmentId);
 			$context->reply("There is no fulfilment #{$fulfilmentId}.");
@@ -632,14 +629,12 @@ class WishlistController extends ModuleInstance {
 		$entry = $this->db->table(Wish::getTable())
 			->whereIn('created_by', [$mainChar, ...$alts])
 			->where('id', $id)
-			->asObj(Wish::class)
-			->first()
+			->firstObj(Wish::class)
 			??
 			$this->db->table(Wish::getTable())
 			->whereIn('from', [$mainChar, ...$alts])
 			->where('id', $id)
-			->asObj(Wish::class)
-			->first();
+			->firstObj(Wish::class);
 		if (!isset($entry) || !isset($entry->id)) {
 			$context->reply("No item #{$id} on your wishlist or wished from you.");
 			return;
@@ -699,8 +694,7 @@ class WishlistController extends ModuleInstance {
 		$entry = $this->db->table(Wish::getTable())
 			->whereIn('from', [$mainChar, ...$alts])
 			->where('id', $id)
-			->asObj(Wish::class)
-			->first();
+			->firstObj(Wish::class);
 		if (!isset($entry)) {
 			$context->reply("No item {$id} wished from you.");
 			return;

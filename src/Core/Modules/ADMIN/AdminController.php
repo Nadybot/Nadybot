@@ -321,9 +321,7 @@ class AdminController extends ModuleInstance {
 		$lastSeen = $this->db->table(LastOnline::getTable())
 			->whereIn('name', $this->altsController->getAltsOf($main))
 			->orderByDesc('dt')
-			->limit(1)
-			->asObj(LastOnline::class)
-			->first();
+			->firstObj(LastOnline::class);
 		if (!isset($lastSeen)) {
 			return ' (<off>Offline<end>)';
 		}

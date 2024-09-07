@@ -50,8 +50,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 		return $db->table(Setting::getTable())
 			->where('name', $name)
-			->asObj(Setting::class)
-			->first();
+			->firstObj(Setting::class);
 	}
 
 	protected function relayLogon(DB $db): bool {

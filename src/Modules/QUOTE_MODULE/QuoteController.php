@@ -54,7 +54,7 @@ class QuoteController extends ModuleInstance {
 		$quoteMsg = trim($quote);
 		$row = $this->db->table(Quote::getTable())
 			->whereIlike('msg', $quoteMsg)
-			->asObj(Quote::class)->first();
+			->firstObj(Quote::class);
 		if (isset($row)) {
 			$msg = "This quote has already been added as quote <highlight>{$row->id}<end>.";
 			$context->reply($msg);
@@ -87,8 +87,7 @@ class QuoteController extends ModuleInstance {
 
 		$row = $this->db->table(Quote::getTable())
 			->where('id', $id)
-			->asObj(Quote::class)
-			->first();
+			->firstObj(Quote::class);
 
 		if ($row === null) {
 			$msg = 'Could not find this quote. Already deleted?';
@@ -210,12 +209,11 @@ class QuoteController extends ModuleInstance {
 		if ($id === null) {
 			$row = $this->db->table(Quote::getTable())
 				->inRandomOrder()
-				->limit(1)
-				->asObj(Quote::class)->first();
+				->firstObj(Quote::class);
 		} else {
 			$row = $this->db->table(Quote::getTable())
 				->where('id', $id)
-				->asObj(Quote::class)->first();
+				->firstObj(Quote::class);
 		}
 
 		/** @var ?Quote $row */
@@ -266,9 +264,7 @@ class QuoteController extends ModuleInstance {
 	public function quoteTile(string $sender): ?string {
 		$row = $this->db->table(Quote::getTable())
 			->inRandomOrder()
-			->limit(1)
-			->asObj(Quote::class)
-			->first();
+			->firstObj(Quote::class);
 		if (!isset($row)) {
 			return null;
 		}

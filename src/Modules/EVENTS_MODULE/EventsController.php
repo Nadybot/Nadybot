@@ -160,8 +160,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 	public function getEvent(\Stringable|string $id): ?EventModel {
 		return $this->db->table(EventModel::getTable())
 			->where('id', (string)$id)
-			->asObj(EventModel::class)
-			->first();
+			->firstObj(EventModel::class);
 	}
 
 	/** Join event #id */

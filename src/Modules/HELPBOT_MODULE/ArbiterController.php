@@ -52,8 +52,7 @@ class ArbiterController extends ModuleInstance {
 
 		$entry = $this->db->table(ICCArbiter::getTable())
 			->where('type', $type)
-			->asObj(ICCArbiter::class)
-			->first();
+			->firstObj(ICCArbiter::class);
 		if (!isset($entry)) {
 			throw new Exception("No arbiter data found for {$type}.");
 		}

@@ -401,9 +401,7 @@ class ProfileController extends ModuleInstance {
 						$data = $this->db->table(CmdAlias::getTable())
 							->where('status', 1)
 							->where('alias', $alias)
-							->limit(1)
-							->asObj(CmdAlias::class)
-							->first();
+							->firstObj(CmdAlias::class);
 						if ($data !== null) {
 							if ($data->cmd === $parts[1]) {
 								$profileRow++;

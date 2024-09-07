@@ -234,8 +234,7 @@ class SettingManager {
 		} elseif (!static::$isInitialized) {
 			$value = $this->db->table(Setting::getTable())
 				->where('name', $name)
-				->asObj(Setting::class)
-				->first();
+				->firstObj(Setting::class);
 			if (isset($value)) {
 				return (new SettingValue($value))->value;
 			}
@@ -254,9 +253,7 @@ class SettingManager {
 		} elseif (!static::$isInitialized) {
 			$value = $this->db->table(Setting::getTable())
 				->where('name', $name)
-				->limit(1)
-				->asObj(Setting::class)
-				->first();
+				->firstObj(Setting::class);
 			if (isset($value)) {
 				return (new SettingValue($value))->typed();
 			}

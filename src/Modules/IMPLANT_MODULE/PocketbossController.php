@@ -115,9 +115,7 @@ class PocketbossController extends ModuleInstance {
 		$row = $this->db->table(Pocketboss::getTable())
 			->whereIlike('pb', $search)
 			->orderBy('pb')
-			->limit(1)
-			->asObj(Pocketboss::class)
-			->first();
+			->firstObj(Pocketboss::class);
 		if ($row !== null) {
 			return [$row];
 		}

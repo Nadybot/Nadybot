@@ -41,8 +41,7 @@ class MoveSettingsToHopColors implements SchemaMigration {
 		/** @var ?Setting */
 		$setting = $db->table(Setting::getTable())
 			->where('name', $name)
-			->asObj(Setting::class)
-			->first();
+			->firstObj(Setting::class);
 		if (!isset($setting) || ($setting->value??'') === '') {
 			return null;
 		}

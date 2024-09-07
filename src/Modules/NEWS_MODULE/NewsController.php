@@ -155,9 +155,7 @@ class NewsController extends ModuleInstance {
 		$item = $this->db->table(News::getTable())
 			->where('deleted', 0)
 			->orderByDesc('time')
-			->limit(1)
-			->asObj(News::class)
-			->first();
+			->firstObj(News::class);
 		if (!isset($item)) {
 			return null;
 		}
@@ -386,8 +384,7 @@ class NewsController extends ModuleInstance {
 		return $this->db->table(News::getTable())
 			->where('deleted', 0)
 			->where('id', (string)$id)
-			->asObj(News::class)
-			->first();
+			->firstObj(News::class);
 	}
 
 	/** Get a list of all news */

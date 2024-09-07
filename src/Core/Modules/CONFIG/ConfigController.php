@@ -740,8 +740,7 @@ class ConfigController extends ModuleInstance {
 
 		$row = $this->db->table(Setting::getTable())
 			->where('name', $setting)
-			->asObj(Setting::class)
-			->first();
+			->firstObj(Setting::class);
 		if ($row === null) {
 			$context->reply("No setting <highlight>{$setting}<end> found.");
 			return;
@@ -790,8 +789,7 @@ class ConfigController extends ModuleInstance {
 
 		$row = $this->db->table(Setting::getTable())
 			->where('name', $setting)
-			->asObj(Setting::class)
-			->first();
+			->firstObj(Setting::class);
 		if ($row === null) {
 			return 0;
 		}

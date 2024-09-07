@@ -295,9 +295,7 @@ class AlienMiscController extends ModuleInstance {
 			->crossJoin('ofabweaponscost AS c')
 			->where('w.name', $weapon)
 			->where('c.ql', $searchQL)
-			->limit(1)
-			->asObj(OfabWeaponWithCost::class)
-			->first();
+			->firstObj(OfabWeaponWithCost::class);
 		if ($row === null) {
 			$msg = "Could not find any OFAB weapon <highlight>{$weapon}<end> in QL <highlight>{$searchQL}<end>.";
 			$context->reply($msg);

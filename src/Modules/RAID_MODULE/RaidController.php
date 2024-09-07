@@ -370,9 +370,7 @@ class RaidController extends ModuleInstance {
 	public function resumeRaid(): void {
 		$lastRaid = $this->db->table(Raid::getTable())
 			->orderByDesc('raid_id')
-			->limit(1)
-			->asObj(Raid::class)
-			->first();
+			->firstObj(Raid::class);
 		if ($lastRaid === null || (int)$lastRaid->stopped > 0) {
 			return;
 		}
@@ -380,9 +378,7 @@ class RaidController extends ModuleInstance {
 		$lastRaidLog = $this->db->table(RaidLog::getTable())
 			->where('raid_id', $lastRaid->raid_id)
 			->orderByDesc('time')
-			->limit(1)
-			->asObj(RaidLog::class)
-			->first();
+			->firstObj(RaidLog::class);
 		if ($lastRaidLog) {
 			foreach (get_object_vars($lastRaidLog) as $key => $value) {
 				if (property_exists($lastRaid, $key)) {
@@ -758,8 +754,7 @@ class RaidController extends ModuleInstance {
 
 		$raid = $this->db->table(Raid::getTable())
 			->where('raid_id', $raidId)
-			->asObj(Raid::class)
-			->first();
+			->firstObj(Raid::class);
 		if ($raid === null) {
 			$context->reply("The raid <highlight>{$raidId}<end> doesn't exist.");
 			return;
@@ -817,8 +812,7 @@ class RaidController extends ModuleInstance {
 
 		$raid = $this->db->table(Raid::getTable())
 			->where('raid_id', $raidId)
-			->asObj(Raid::class)
-			->first();
+			->firstObj(Raid::class);
 		if ($raid === null) {
 			$context->reply("The raid <highlight>{$raidId}<end> doesn't exist.");
 			return;
