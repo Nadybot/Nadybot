@@ -11,12 +11,14 @@ class Route extends DBTable {
 	#[NCA\DB\PK] public UuidInterface $id;
 
 	/**
-	 * @param string              $source         The source channel for this route
-	 * @param string              $destination    The destination channel for this route
-	 * @param bool                $two_way        Set to true if this route is also the other way around
-	 * @param ?int                $disabled_until If set, the route is disabled until the set timestamp
-	 * @param ?UuidInterface      $id             The unique ID of this route (if known)
-	 * @param list<RouteModifier> $modifiers      The modifiers for this route
+	 * @param string          $source         The source channel for this route
+	 * @param string          $destination    The destination channel for this route
+	 * @param bool            $two_way        Set to true if this route is also the other way around
+	 * @param ?int            $disabled_until If set, the route is disabled until the set timestamp
+	 * @param ?UuidInterface  $id             The unique ID of this route (if known)
+	 * @param RouteModifier[] $modifiers      The modifiers for this route
+	 *
+	 * @psalm-param list<RouteModifier> $modifiers
 	 */
 	public function __construct(
 		public string $source,

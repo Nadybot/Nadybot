@@ -1060,7 +1060,6 @@ class MessageHubController extends ModuleInstance {
 	}
 
 	public function getRoute(\Stringable|string $id): ?Route {
-		/** @var Route|null */
 		$route = $this->db->table(Route::getTable())
 			->where('id', (string)$id)
 			->limit(1)
@@ -1070,14 +1069,14 @@ class MessageHubController extends ModuleInstance {
 			return null;
 		}
 		$route->modifiers = $this->db->table(RouteModifier::getTable())
-		->where('route_id', (string)$id)
-		->orderBy('id')
-		->asObjArr(RouteModifier::class);
+			->where('route_id', (string)$id)
+			->orderBy('id')
+			->asObjArr(RouteModifier::class);
 		foreach ($route->modifiers as $modifier) {
 			$modifier->arguments = $this->db->table(RouteModifierArgument::getTable())
-			->where('route_modifier_id', $modifier->id)
-			->orderBy('id')
-			->asObjArr(RouteModifierArgument::class);
+				->where('route_modifier_id', $modifier->id)
+				->orderBy('id')
+				->asObjArr(RouteModifierArgument::class);
 		}
 		return $route;
 	}

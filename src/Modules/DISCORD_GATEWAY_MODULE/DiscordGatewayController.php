@@ -1219,7 +1219,6 @@ class DiscordGatewayController extends ModuleInstance {
 
 		$aoChar = $this->altsController->getMainOf($context->char->name);
 
-		/** @var ?DBDiscordInvite */
 		$oldInvite = $this->db->table(DBDiscordInvite::getTable())
 			->where('character', $aoChar)
 			->where('expires', '>', time())
@@ -1734,7 +1733,6 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 		$inviteCode = $usedInviteCodes[array_keys($usedInviteCodes)[0]];
 		try {
-			/** @var DBDiscordInvite */
 			$invite = $this->db->table(DBDiscordInvite::getTable())
 				->where('token', $inviteCode)
 				->asObj(DBDiscordInvite::class)
@@ -1758,7 +1756,6 @@ class DiscordGatewayController extends ModuleInstance {
 		);
 		$this->handleAccountLinking($guildId, $userId, $invite->character);
 
-		/** @var ?DiscordMapping */
 		$data = $this->db->table(DiscordMapping::getTable())
 			->where('discord_id', $userId)
 			->whereNotNull('confirmed')

@@ -623,11 +623,16 @@ class RaffleController extends ModuleInstance {
 		}
 		$losersUpdate = [];
 		if (count($losers)) {
-			/** @var list<string> */
+			/**
+			 * @var string[]
+			 *
+			 * @psalm-var list<string>
+			 */
 			$losersUpdate = $this->db->table(RaffleBonus::getTable())
-					->whereIn('name', $losers)
-					->select('name')
-					->pluckStrings('name')->toList();
+				->whereIn('name', $losers)
+				->select('name')
+				->pluckStrings('name')
+				->toList();
 		}
 		$losersInsert = array_diff($losers, $losersUpdate);
 		if (count($losersUpdate)) {

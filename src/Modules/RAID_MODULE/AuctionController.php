@@ -258,12 +258,12 @@ class AuctionController extends ModuleInstance {
 	): void {
 		$winner = $winner();
 
-		/** @var ?DBAuction */
 		$lastAuction = $this->db->table(DBAuction::getTable())
 			->where('winner', $winner)
 			->orderByDesc('id')
 			->limit(1)
-			->asObj(DBAuction::class)->first();
+			->asObj(DBAuction::class)
+			->first();
 		if ($lastAuction === null) {
 			$context->reply(
 				"<highlight>{$winner}<end> haven't won any auction ".

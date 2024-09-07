@@ -87,7 +87,6 @@ class SettingsController extends ModuleInstance {
 	public function changeCommand(CmdContext $context, #[NCA\Str('change')] string $action, PWord $setting): void {
 		$settingName = strtolower($setting());
 
-		/** @var ?Setting $row */
 		$row = $this->db->table(Setting::getTable())
 			->where('name', $settingName)
 			->asObj(Setting::class)
@@ -135,7 +134,6 @@ class SettingsController extends ModuleInstance {
 	): void {
 		$name = strtolower($setting());
 
-		/** @var ?Setting */
 		$setting = $this->db->table(Setting::getTable())
 			->where('name', $name)
 			->asObj(Setting::class)

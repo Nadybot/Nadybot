@@ -318,7 +318,6 @@ class AdminController extends ModuleInstance {
 		}
 		$main = $this->altsController->getMainOf($who);
 
-		/** @var ?LastOnline */
 		$lastSeen = $this->db->table(LastOnline::getTable())
 			->whereIn('name', $this->altsController->getAltsOf($main))
 			->orderByDesc('dt')

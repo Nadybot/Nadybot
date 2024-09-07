@@ -152,7 +152,6 @@ class NewsController extends ModuleInstance {
 			$sticky = $item->sticky;
 		}
 
-		/** @var ?News */
 		$item = $this->db->table(News::getTable())
 			->where('deleted', 0)
 			->orderByDesc('time')

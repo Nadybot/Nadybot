@@ -81,13 +81,12 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	}
 
 	public function getNameForDiscordId(string $discordId): ?string {
-		/** @var ?DiscordMapping */
-		$data = $this->db->table(DiscordMapping::getTable())
+		return $this->db->table(DiscordMapping::getTable())
 			->where('discord_id', $discordId)
 			->whereNotNull('confirmed')
 			->asObj(DiscordMapping::class)
-			->first();
-		return $data ? $data->name : null;
+			->first()
+			?->name;
 	}
 
 	/** Accept to be linked with a Discord account */
@@ -98,7 +97,6 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		}
 		$uid = strtoupper($uid);
 
-		/** @var ?DiscordMapping */
 		$data = $this->db->table(DiscordMapping::getTable())
 			->where('name', $uid)
 			->whereNotNull('confirmed')
@@ -110,7 +108,6 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			return;
 		}
 
-		/** @var ?DiscordMapping */
 		$data = $this->db->table(DiscordMapping::getTable())
 			->where('name', $context->char->name)
 			->where('token', $uid)
@@ -183,7 +180,6 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			return;
 		}
 
-		/** @var ?DiscordMapping */
 		$data = $this->db->table(DiscordMapping::getTable())
 			->where('name', $name)
 			->whereNotNull('confirmed')
@@ -195,7 +191,6 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			return;
 		}
 
-		/** @var ?DiscordMapping */
 		$data = $this->db->table(DiscordMapping::getTable())
 			->where('name', $name)
 			->where('discord_id', $discordUserId)

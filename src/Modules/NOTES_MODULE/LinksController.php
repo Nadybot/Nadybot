@@ -101,7 +101,6 @@ class LinksController extends ModuleInstance implements ImporterInterface, Expor
 	public function linksRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
 		$id = $id();
 
-		/** @var ?Link */
 		$obj = $this->db->table(Link::getTable())
 			->where('id', $id)
 			->asObj(Link::class)

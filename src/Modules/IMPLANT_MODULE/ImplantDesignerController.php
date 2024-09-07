@@ -80,6 +80,11 @@ class ImplantDesignerController extends ModuleInstance {
 		$lookup = $this->db->table(Cluster::getTable())
 			->asObj(Cluster::class)
 			->reduce(
+				/**
+				 * @param array<string,string> $lookup
+				 *
+				 * @return array<string,string>
+				 */
 				static function (array $lookup, Cluster $cluster): array {
 					$lookup[$cluster->long_name] = $cluster->official_name;
 					return $lookup;
@@ -121,7 +126,6 @@ class ImplantDesignerController extends ModuleInstance {
 				$addImp = true;
 			}
 			if ($addImp) {
-				/** @var string */
 				$longName = $this->db->table(ImplantType::getTable())
 					->where('short_name', $slot)
 					->pluckStrings('name')
@@ -253,7 +257,6 @@ class ImplantDesignerController extends ModuleInstance {
 		$slotObj = $design->{$slotName};
 
 		if ($grade === 'symb') {
-			/** @var ?Symbiant */
 			$symbRow = $this->db->table(Symbiant::getTable(), 's')
 				->join(ImplantType::getTable(as: 'i'), 's.slot_id', 'i.implant_type_id')
 				->where('i.short_name', $slot->designSlotName())
@@ -689,7 +692,6 @@ class ImplantDesignerController extends ModuleInstance {
 	}
 
 	public function getImplantInfo(int $ql, ?string $shiny, ?string $bright, ?string $faded): ?ImplantInfo {
-		/** @var ?ImplantInfo */
 		$row = $this->db->table(ImplantMatrix::getTable(), 'i')
 			->join(Cluster::getTable(as: 'cs'), 'i.shining_id', 'cs.cluster_id')
 			->join(Cluster::getTable(as: 'cb'), 'i.bright_id', 'cb.cluster_id')
@@ -858,10 +860,10 @@ class ImplantDesignerController extends ModuleInstance {
 	}
 
 	private function getClusterModAmount(int $ql, string $grade, int $effectId): int {
-		/** @var EffectTypeMatrix */
 		$etm = $this->db->table(EffectTypeMatrix::getTable())
 			->where('id', $effectId)
-			->asObj(EffectTypeMatrix::class)->firstOrFail();
+			->asObj(EffectTypeMatrix::class)
+			->firstOrFail();
 
 		if ($ql < 201) {
 			$minVal = $etm->min_val_low;

@@ -160,13 +160,13 @@ class LadderController extends ModuleInstance {
 	}
 
 	public function findMaxImplantQlByReqs(int $ability, int $treatment): ?LadderRequirements {
-		/** @var ?LadderRequirements */
 		$row = $this->db->table(LadderRequirements::getTable())
 			->where('ability', '<=', $ability)
 			->where('treatment', '<=', $treatment)
 			->orderByDesc('ql')
 			->limit(1)
-			->asObj(LadderRequirements::class)->first();
+			->asObj(LadderRequirements::class)
+			->first();
 
 		$this->addClusterInfo($row);
 

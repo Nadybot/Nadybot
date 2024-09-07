@@ -368,7 +368,6 @@ class RaidController extends ModuleInstance {
 
 	/** Try to resume a raid that was already running when the bot shut down */
 	public function resumeRaid(): void {
-		/** @var ?Raid */
 		$lastRaid = $this->db->table(Raid::getTable())
 			->orderByDesc('raid_id')
 			->limit(1)
@@ -378,7 +377,6 @@ class RaidController extends ModuleInstance {
 			return;
 		}
 
-		/** @var ?RaidLog */
 		$lastRaidLog = $this->db->table(RaidLog::getTable())
 			->where('raid_id', $lastRaid->raid_id)
 			->orderByDesc('time')
@@ -758,10 +756,10 @@ class RaidController extends ModuleInstance {
 	): void {
 		${$raidId} = $raidId();
 
-		/** @var ?Raid */
 		$raid = $this->db->table(Raid::getTable())
 			->where('raid_id', $raidId)
-			->asObj(Raid::class)->first();
+			->asObj(Raid::class)
+			->first();
 		if ($raid === null) {
 			$context->reply("The raid <highlight>{$raidId}<end> doesn't exist.");
 			return;
@@ -817,7 +815,6 @@ class RaidController extends ModuleInstance {
 	): void {
 		$raidId = $raidId();
 
-		/** @var ?Raid */
 		$raid = $this->db->table(Raid::getTable())
 			->where('raid_id', $raidId)
 			->asObj(Raid::class)

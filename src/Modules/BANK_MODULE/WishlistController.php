@@ -521,7 +521,6 @@ class WishlistController extends ModuleInstance {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
 
-		/** @var ?Wish */
 		$entry = $this->db->table(Wish::getTable())
 			->whereIn('created_by', [$mainChar, ...$alts])
 			->where('id', $id)
@@ -567,7 +566,6 @@ class WishlistController extends ModuleInstance {
 		$alts = $this->altsController->getAltsOf($mainChar);
 		$allChars = [$mainChar, ...$alts];
 
-		/** @var ?WishFulfilment */
 		$fullfillment = $this->db->table(WishFulfilment::getTable())
 			->where('id', $fulfilmentId)
 			->asObj(WishFulfilment::class)
@@ -577,7 +575,6 @@ class WishlistController extends ModuleInstance {
 			return;
 		}
 
-		/** @var ?Wish */
 		$entry = $this->db->table(Wish::getTable())
 			->where('id', $fullfillment->wish_id)
 			->asObj(Wish::class)
@@ -632,7 +629,6 @@ class WishlistController extends ModuleInstance {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
 
-		/** @var ?Wish */
 		$entry = $this->db->table(Wish::getTable())
 			->whereIn('created_by', [$mainChar, ...$alts])
 			->where('id', $id)
@@ -700,14 +696,13 @@ class WishlistController extends ModuleInstance {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
 
-		/** @var ?Wish */
 		$entry = $this->db->table(Wish::getTable())
 			->whereIn('from', [$mainChar, ...$alts])
 			->where('id', $id)
 			->asObj(Wish::class)
 			->first();
 		if (!isset($entry)) {
-			$context->reply("No item #{$id} wished from you.");
+			$context->reply("No item {$id} wished from you.");
 			return;
 		}
 		$oldFrom = $this->getActiveFroms();

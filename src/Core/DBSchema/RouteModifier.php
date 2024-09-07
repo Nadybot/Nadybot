@@ -11,10 +11,12 @@ class RouteModifier extends DBTable {
 	#[NCA\DB\PK] public UuidInterface $id;
 
 	/**
-	 * @param string                      $modifier  The name of the modifier
-	 * @param UuidInterface               $route_id  The id of the route where this modifier belongs to
-	 * @param ?UuidInterface              $id        The id of the route modifier. Lower id means higher priority
-	 * @param list<RouteModifierArgument> $arguments
+	 * @param string                  $modifier  The name of the modifier
+	 * @param UuidInterface           $route_id  The id of the route where this modifier belongs to
+	 * @param ?UuidInterface          $id        The id of the route modifier. Lower id means higher priority
+	 * @param RouteModifierArgument[] $arguments
+	 *
+	 * @psalm-param list<RouteModifierArgument> $arguments
 	 */
 	public function __construct(
 		public string $modifier,

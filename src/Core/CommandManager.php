@@ -1248,7 +1248,6 @@ class CommandManager implements MessageEmitter {
 	}
 
 	public function getPermissionSet(string $name): ?CmdPermissionSet {
-		/** @var ?CmdPermissionSet */
 		$permSet = $this->db->table(CmdPermissionSet::getTable())
 			->where('name', $name)
 			->asObj(CmdPermissionSet::class)
@@ -1257,9 +1256,9 @@ class CommandManager implements MessageEmitter {
 	}
 
 	public function getExtPermissionSet(string $name): ?ExtCmdPermissionSet {
-		/** @var ?ExtCmdPermissionSet */
 		$permSet = $this->db->table(CmdPermissionSet::getTable())
 			->where('name', $name)
+			->limit(1)
 			->asObj(ExtCmdPermissionSet::class)
 			->first();
 		if (isset($permSet)) {

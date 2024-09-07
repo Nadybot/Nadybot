@@ -40,11 +40,10 @@ class ResearchController extends ModuleInstance {
 			return;
 		}
 
-		/** @var Research */
 		$row = $this->db->table(Research::getTable())
 			->where('level', $level)
 			->asObj(Research::class)
-			->first();
+			->firstOrFail();
 
 		$levelcap = $row->levelcap;
 		$sk = $row->sk;

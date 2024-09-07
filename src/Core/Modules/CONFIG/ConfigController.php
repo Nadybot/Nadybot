@@ -738,7 +738,6 @@ class ConfigController extends ModuleInstance {
 	): void {
 		$setting = strtolower($setting());
 
-		/** @var ?Setting */
 		$row = $this->db->table(Setting::getTable())
 			->where('name', $setting)
 			->asObj(Setting::class)
@@ -789,7 +788,6 @@ class ConfigController extends ModuleInstance {
 	public function changeSettingAL(string $sender, string $setting, string $accessLevel): int {
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 
-		/** @var ?Setting */
 		$row = $this->db->table(Setting::getTable())
 			->where('name', $setting)
 			->asObj(Setting::class)
@@ -926,12 +924,18 @@ class ConfigController extends ModuleInstance {
 	/**
 	 * Get all settings for a module
 	 *
-	 * @return list<SettingHandler>
+	 * @return SettingHandler[]
+	 *
+	 * @psalm-return list<SettingHandler>
 	 */
 	public function getModuleSettings(string $module): array {
 		$module = strtoupper($module);
 
-		/** @var list<SettingHandler> */
+		/**
+		 * @var SettingHandler[]
+		 *
+		 * @psalm-var list<SettingHandler>
+		 */
 		$handlers = $this->db->table(Setting::getTable())
 			->where('module', $module)
 			->orderBy('mode')

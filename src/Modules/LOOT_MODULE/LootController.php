@@ -522,7 +522,6 @@ class LootController extends ModuleInstance {
 			$itemName = $input;
 		}
 
-		/** @var ?AODBEntry */
 		$row = $this->db->table(AODBEntry::getTable())
 			->whereIlike('name', $itemName)
 			->asObj(AODBEntry::class)
@@ -996,11 +995,10 @@ class LootController extends ModuleInstance {
 	}
 
 	protected function getLootEntryID(int $id): ?RaidLoot {
-		/** @var ?RaidLoot */
-		$raidLoot = $this->db->table(RaidLoot::getTable(), 'r')
-					->where('r.id', $id)
-					->asObj(RaidLoot::class)
-					->first();
+		$raidLoot = $this->db->table(RaidLoot::getTable())
+			->where('id', $id)
+			->asObj(RaidLoot::class)
+			->first();
 		if (!isset($raidLoot)) {
 			return null;
 		}

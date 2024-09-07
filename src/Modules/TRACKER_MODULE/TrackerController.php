@@ -440,7 +440,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 
 		// Prevent excessive "XXX logged off" messages after adding a whole org
-		/** @var ?TrackingOrg */
 		$orgMember = $this->db->table(TrackingOrgMember::getTable(), 'om')
 			->join(TrackingOrg::getTable() . ' AS o', 'om.org_id', '=', 'o.org_id')
 			->where('om.uid', $uid)
@@ -481,7 +480,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 		$blob = "<header2>Tracked players<end>\n";
 		foreach ($users as $user) {
-			/** @var ?Tracking */
 			$lastState = $this->db->table(Tracking::getTable())
 				->where('uid', $user->uid)
 				->orderByDesc('dt')
@@ -550,7 +548,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 
-		/** @var ?TrackingOrgMember */
 		$orgMember = $this->db->table(TrackingOrgMember::getTable())
 			->where('uid', $uid)
 			->asObj(TrackingOrgMember::class)
@@ -1142,14 +1139,12 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 		$orgMember = null;
 
-		/** @var ?TrackedUser */
 		$user = $this->db->table(TrackedUser::getTable())
 			->where('uid', $uid)
 			->asObj(TrackedUser::class)
 			->first();
 
 		if ($user === null) {
-			/** @var ?TrackingOrgMember */
 			$orgMember = $this->db->table(TrackingOrgMember::getTable())
 				->where('uid', $uid)
 				->asObj(TrackingOrgMember::class)

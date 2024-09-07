@@ -88,14 +88,13 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	}
 
 	public function getEffectiveAccessLevel(int $rank): string {
-		/** @var ?OrgRankMapping */
 		$rank = $this->db->table(OrgRankMapping::getTable())
 			->where('min_rank', '>=', $rank)
 			->orderBy('min_rank')
 			->limit(1)
 			->asObj(OrgRankMapping::class)
 			->first();
-		return $rank ? $rank->access_level : 'guild';
+		return $rank?->access_level ?? 'guild';
 	}
 
 	/** Get a list of all your defined mappings of org rank to bot access level */
@@ -212,13 +211,11 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			min_rank: $rank,
 		);
 
-		/** @var ?OrgRankMapping */
 		$alEntry = $this->db->table(OrgRankMapping::getTable())
 			->where('access_level', $rankMapping->access_level)
 			->asObj(OrgRankMapping::class)
 			->first();
 
-		/** @var ?OrgRankMapping */
 		$rankEntry = $this->db->table(OrgRankMapping::getTable())
 			->where('min_rank', $rankMapping->min_rank)
 			->asObj(OrgRankMapping::class)
@@ -260,7 +257,6 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			return;
 		}
 
-		/** @var ?OrgRankMapping */
 		$oldEntry = $this->db->table(OrgRankMapping::getTable())
 			->where('min_rank', $rank)
 			->asObj(OrgRankMapping::class)

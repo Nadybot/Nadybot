@@ -187,7 +187,6 @@ class ApiController extends ModuleInstance {
 		PRemove $action,
 		string $token
 	): void {
-		/** @var ?ApiKey */
 		$key = $this->db->table(ApiKey::getTable())
 			->where('token', $token)
 			->asObj(ApiKey::class)
@@ -215,7 +214,6 @@ class ApiController extends ModuleInstance {
 		#[NCA\Str('reset')] string $action,
 		string $token
 	): void {
-		/** @var ?ApiKey */
 		$key = $this->db->table(ApiKey::getTable())
 			->where('token', $token)
 			->asObj(ApiKey::class)

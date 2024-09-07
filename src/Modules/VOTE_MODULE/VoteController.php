@@ -331,7 +331,6 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 
 		$blob = $this->getPollBlob($topic, $context->char->name);
 
-		/** @var ?Vote */
 		$vote = $this->db->table(Vote::getTable())
 			->where('poll_id', $topic->id)
 			->where('author', $context->char->name)
@@ -379,7 +378,6 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 
-		/** @var ?Vote */
 		$oldVote = $this->db->table(Vote::getTable())
 			->where('poll_id', $topic->id)
 			->where('author', $context->char->name)

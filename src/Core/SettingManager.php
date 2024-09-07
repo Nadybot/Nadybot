@@ -232,7 +232,6 @@ class SettingManager {
 		if ($this->exists($name)) {
 			return $this->settings[$name]->value;
 		} elseif (!static::$isInitialized) {
-			/** @var ?Setting */
 			$value = $this->db->table(Setting::getTable())
 				->where('name', $name)
 				->asObj(Setting::class)
@@ -253,9 +252,9 @@ class SettingManager {
 		if ($this->exists($name)) {
 			return $this->settings[$name]->typed();
 		} elseif (!static::$isInitialized) {
-			/** @var ?Setting */
 			$value = $this->db->table(Setting::getTable())
 				->where('name', $name)
+				->limit(1)
 				->asObj(Setting::class)
 				->first();
 			if (isset($value)) {

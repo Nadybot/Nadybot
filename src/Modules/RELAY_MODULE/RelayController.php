@@ -912,7 +912,6 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Read a relay by its ID */
 	public function getRelay(\Stringable|string $id): ?RelayConfig {
-		/** @var RelayConfig|null */
 		$relay = $this->db->table(RelayConfig::getTable())
 			->where('id', (string)$id)
 			->limit(1)
@@ -927,7 +926,6 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Read a relay by its name */
 	public function getRelayByName(string $name): ?RelayConfig {
-		/** @var RelayConfig|null */
 		$relay = $this->db->table(RelayConfig::getTable())
 			->where('name', $name)
 			->limit(1)

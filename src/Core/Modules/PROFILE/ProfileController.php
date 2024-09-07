@@ -398,10 +398,10 @@ class ProfileController extends ModuleInstance {
 					/** @psalm-suppress PossiblyUndefinedArrayOffset */
 					$alias = explode(' ', $line, 3)[2];
 					if (count($parts = Safe::pregMatch("/^!alias add \Q{$alias}\E (.+)$/", $lines[$profileRow+1]))) {
-						/** @var ?CmdAlias $data */
 						$data = $this->db->table(CmdAlias::getTable())
 							->where('status', 1)
 							->where('alias', $alias)
+							->limit(1)
 							->asObj(CmdAlias::class)
 							->first();
 						if ($data !== null) {

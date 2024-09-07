@@ -117,7 +117,6 @@ class ArulSabaController extends ModuleInstance {
 	}
 
 	public function readIngredientByAoid(int $aoid, int $amount=1, ?int $ql=null, bool $qlCanBeHigher=false): Ingredient {
-		/** @var Ingredient|null */
 		$ing = $this->db->table(Ingredient::getTable())
 			->where('aoid', $aoid)
 			->asObj(Ingredient::class)
@@ -129,7 +128,6 @@ class ArulSabaController extends ModuleInstance {
 	}
 
 	public function readIngredientByName(string $name, int $amount=1, ?int $ql=null, bool $qlCanBeHigher=false): Ingredient {
-		/** @var Ingredient|null */
 		$ing = $this->db->table(Ingredient::getTable())
 			->where('name', $name)
 			->asObj(Ingredient::class)
@@ -236,7 +234,6 @@ class ArulSabaController extends ModuleInstance {
 			151_022,
 		];
 
-		/** @var ArulSaba|null */
 		$arul = $this->db->table(ArulSaba::getTable())
 			->where('name', $type)
 			->asObj(ArulSaba::class)

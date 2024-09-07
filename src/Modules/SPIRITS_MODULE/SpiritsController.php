@@ -218,7 +218,6 @@ class SpiritsController extends ModuleInstance {
 	public function formatSpiritOutput(iterable $spirits): string {
 		$msg = '';
 		foreach ($spirits as $spirit) {
-			/** @var ?AODBEntry */
 			$dbSpirit = $this->db->table(AODBEntry::getTable())
 				->where('lowid', $spirit->id)
 				->union(

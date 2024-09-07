@@ -50,7 +50,6 @@ class ArbiterController extends ModuleInstance {
 	public function getNextForType(string $type, ?int $time=null): ArbiterEvent {
 		$time ??= time();
 
-		/** @var ?ICCArbiter */
 		$entry = $this->db->table(ICCArbiter::getTable())
 			->where('type', $type)
 			->asObj(ICCArbiter::class)

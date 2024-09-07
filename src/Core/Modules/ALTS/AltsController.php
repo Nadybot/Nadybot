@@ -566,10 +566,10 @@ class AltsController extends ModuleInstance {
 
 	/** This method removes given a $alt from being $main's alt character. */
 	public function remAlt(string $main, string $alt): int {
-		/** @var ?Alt */
 		$old = $this->db->table(Alt::getTable())
 			->where('alt', $alt)
 			->where('main', $main)
+			->limit(1)
 			->asObj(Alt::class)
 			->first();
 		$deleted = $this->db->table(Alt::getTable())

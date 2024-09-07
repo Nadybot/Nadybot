@@ -120,9 +120,9 @@ class ConfigApiController extends ModuleInstance {
 		NCA\ApiResult(code: 422, desc: 'Invalid value given')
 	]
 	public function changeModuleSettingEndpoint(Request $request, string $module, string $setting): Response {
-		/** @var Setting|null */
 		$oldSetting = $this->db->table(Setting::getTable())
 			->where('name', $setting)->where('module', $module)
+			->limit(1)
 			->asObj(Setting::class)->first();
 		if ($oldSetting === null) {
 			return new Response(status: HttpStatus::NOT_FOUND);

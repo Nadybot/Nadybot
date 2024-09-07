@@ -259,7 +259,6 @@ class AlienMiscController extends ModuleInstance {
 		'<tab>1, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, and 300.'
 	)]
 	public function ofabweaponsCommand(CmdContext $context): void {
-		/** @var list<int> */
 		$qls = $this->db->table(OfabWeaponCost::getTable())
 			->orderBy('ql')
 			->select('ql')->distinct()
@@ -292,12 +291,13 @@ class AlienMiscController extends ModuleInstance {
 		$weapon = ucfirst($weapon());
 		$searchQL ??= 300;
 
-		/** @var OfabWeaponWithCost|null */
 		$row = $this->db->table(OfabWeapon::getTable(), 'w')
 			->crossJoin('ofabweaponscost AS c')
 			->where('w.name', $weapon)
 			->where('c.ql', $searchQL)
-			->asObj(OfabWeaponWithCost::class)->first();
+			->limit(1)
+			->asObj(OfabWeaponWithCost::class)
+			->first();
 		if ($row === null) {
 			$msg = "Could not find any OFAB weapon <highlight>{$weapon}<end> in QL <highlight>{$searchQL}<end>.";
 			$context->reply($msg);

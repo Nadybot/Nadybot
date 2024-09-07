@@ -85,10 +85,10 @@ class QuoteController extends ModuleInstance {
 	): void {
 		$id = $id();
 
-		/** @var ?Quote */
 		$row = $this->db->table(Quote::getTable())
 			->where('id', $id)
-			->asObj(Quote::class)->first();
+			->asObj(Quote::class)
+			->first();
 
 		if ($row === null) {
 			$msg = 'Could not find this quote. Already deleted?';
@@ -264,11 +264,11 @@ class QuoteController extends ModuleInstance {
 		)
 	]
 	public function quoteTile(string $sender): ?string {
-		/** @var ?Quote */
 		$row = $this->db->table(Quote::getTable())
 			->inRandomOrder()
 			->limit(1)
-			->asObj(Quote::class)->first();
+			->asObj(Quote::class)
+			->first();
 		if (!isset($row)) {
 			return null;
 		}

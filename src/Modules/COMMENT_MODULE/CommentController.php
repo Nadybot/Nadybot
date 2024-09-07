@@ -591,7 +591,6 @@ class CommentController extends ModuleInstance {
 	): void {
 		$id = $id();
 
-		/** @var ?Comment */
 		$comment = $this->db->table(Comment::getTable())
 			->where('id', $id)
 			->asObj(Comment::class)
