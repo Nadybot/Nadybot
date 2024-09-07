@@ -5,12 +5,12 @@ namespace Nadybot\Core\Highway;
 use function Safe\json_encode;
 use Amp\Websocket\Client\WebsocketConnection;
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException};
-use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
+use EventSauce\ObjectHydrator\{UnableToHydrateObject};
 use Exception;
 use Nadybot\Core\Highway\In\InPackage;
 use Nadybot\Core\Highway\Out\OutPackage;
 use Nadybot\Core\Types\LogWrapInterface;
-use Nadybot\Core\{Attributes as NCA, LoggerWrapper, SemanticVersion};
+use Nadybot\Core\{Attributes as NCA, Hydrator, LoggerWrapper, SemanticVersion};
 
 class Connection implements LogWrapInterface {
 	public const SUPPORTED_VERSIONS = ['~0.1.1', '~0.2.0-alpha.1'];
@@ -94,8 +94,7 @@ class Connection implements LogWrapInterface {
 
 	public function send(OutPackage $package): void {
 		$this->logger->info('Sending package {package}', ['package' => $package]);
-		$mapper = new ObjectMapperUsingReflection();
-		$json = $mapper->serializeObject($package);
+		$json = Hydrator::serialize($package);
 		$serverSupportsIds = SemanticVersion::compareUsing($this->getVersion(), '0.2.0-alpha.1', '>=');
 		if (!isset($json['id']) || !$serverSupportsIds) {
 			unset($json['id']);

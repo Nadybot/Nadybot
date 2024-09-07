@@ -12,7 +12,7 @@ use Amp\Http\Client\{HttpClientBuilder, HttpException};
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, WebsocketConnection, WebsocketHandshake};
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException, WebsocketCount};
-use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
+use EventSauce\ObjectHydrator\{UnableToHydrateObject};
 use Illuminate\Support\ItemNotFoundException;
 use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\Filesystem;
@@ -40,6 +40,7 @@ use Nadybot\Core\{
 	CommandManager,
 	DB,
 	EventManager,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -364,12 +365,11 @@ class DiscordGatewayController extends ModuleInstance {
 
 	public function processWebsocketMessage(string $message): void {
 		$this->logger->debug('Received discord message', ['message' => $message]);
-		$mapper = new ObjectMapperUsingReflection();
 		try {
 			if ($message === '') {
 				throw new JsonException('null message received.');
 			}
-			$payload = $mapper->hydrateObject(Payload::class, json_decode($message, true));
+			$payload = Hydrator::hydrate(Payload::class, json_decode($message, true));
 		} catch (JsonException | UnableToHydrateObject $e) {
 			$this->logger->error('Invalid JSON data received from Discord: {error}', [
 				'error' => $e->getMessage(),
@@ -490,8 +490,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
-		$chunk = $mapper->hydrateObject(GuildMemberChunk::class, $event->payload->d);
+		$chunk = Hydrator::hydrate(GuildMemberChunk::class, $event->payload->d);
 		$this->logger->debug('Processing incoming discord members chunk {chunk}', [
 			'chunk' => $chunk,
 		]);
@@ -525,8 +524,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
-		$message = $mapper->hydrateObject(DiscordMessageIn::class, $event->payload->d);
+		$message = Hydrator::hydrate(DiscordMessageIn::class, $event->payload->d);
 
 		$this->logger->info('Processing incoming discord message {message}', [
 			'message' => $message,
@@ -683,8 +681,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
-		$guild = $mapper->hydrateObject(Guild::class, $event->payload->d);
+		$guild = Hydrator::hydrate(Guild::class, $event->payload->d);
 
 		$this->logger->info('Received {event} for {guild}', [
 			'event' => $event->payload->t,
@@ -772,8 +769,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
-		$channel = $mapper->hydrateObject(DiscordChannel::class, $event->payload->d);
+		$channel = Hydrator::hydrate(DiscordChannel::class, $event->payload->d);
 
 		$this->logger->info('Received {event} for {channel}', [
 			'event' => $event->payload->t,
@@ -853,8 +849,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d) || !isset($payload->d['user'])) {
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
-		$user = $mapper->hydrateObject(DiscordUser::class, $payload->d['user']);
+		$user = Hydrator::hydrate(DiscordUser::class, $payload->d['user']);
 
 		$this->sessionId = $payload->d['session_id'] ?? null;
 		$this->me = $user;
@@ -892,8 +887,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
-		$voiceState = $mapper->hydrateObject(VoiceState::class, $payload->d);
+		$voiceState = Hydrator::hydrate(VoiceState::class, $payload->d);
 		$this->logger->info('Received {event}: {voice_state}', [
 			'event' => 'voice_state_update',
 			'voice_state' => $voiceState,
@@ -1445,8 +1439,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
-		$event = $mapper->hydrateObject(DiscordScheduledEvent::class, $payload->d);
+		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $payload->d);
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -1468,8 +1461,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
-		$event = $mapper->hydrateObject(DiscordScheduledEvent::class, $payload->d);
+		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $payload->d);
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -1494,8 +1486,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
-		$event = $mapper->hydrateObject(DiscordScheduledEvent::class, $payload->d);
+		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $payload->d);
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -1514,8 +1505,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
-		$event = $mapper->hydrateObject(DiscordScheduledEvent::class, $payload->d);
+		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $payload->d);
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -2190,8 +2180,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($this->client)) {
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
-		$serialized = self::stripNull($mapper->serializeObject($login));
+		$serialized = self::stripNull(Hydrator::serialize($login));
 		$this->client->sendText(json_encode($serialized));
 	}
 

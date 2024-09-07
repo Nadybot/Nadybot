@@ -5,11 +5,11 @@ namespace Nadybot\Modules\MOB_MODULE;
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Closure;
-use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
+use EventSauce\ObjectHydrator\{UnableToHydrateObject};
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\{Event, HandlesCommand};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, MessageHub, ModuleInstance, Safe, Text, Util};
+use Nadybot\Core\{Attributes as NCA, CmdContext, Hydrator, MessageHub, ModuleInstance, Safe, Text, Util};
 use Nadybot\Modules\WHEREIS_MODULE\{Whereis, WhereisController};
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
@@ -95,15 +95,14 @@ class MobController extends ModuleInstance {
 		$body = $response->getBody()->buffer();
 
 		try {
-			/** @var array<string,array<mixed>> */
+			/** @var array<string,list<array<string,mixed>>> */
 			$json = json_decode($body, true);
-			$mapper = new ObjectMapperUsingReflection();
 
 			$this->mobs = [];
 			foreach ($json as $type => $entries) {
 				$this->mobs[$type] = [];
 
-				$mobs = $mapper->hydrateObjects(Mob::class, $entries)->getIterator();
+				$mobs = Hydrator::hydrateObjects(Mob::class, $entries)->getIterator();
 				foreach ($mobs as $mob) {
 					$this->mobs[$type][$mob->key] = $mob;
 				}
@@ -136,12 +135,11 @@ class MobController extends ModuleInstance {
 		$body = $response->getBody()->buffer();
 
 		try {
-			/** @var array<string,array<mixed>> */
+			/** @var array<string,list<array<string,mixed>>> */
 			$json = json_decode($body, true);
-			$mapper = new ObjectMapperUsingReflection();
 
 			foreach ($json as $entry) {
-				$mob = $mapper->hydrateObjects(Mob::class, $entry)->getIterator();
+				$mob = Hydrator::hydrateObjects(Mob::class, $entry)->getIterator();
 
 				/** @var Mob $mob */
 				if ($mob->key === $key) {

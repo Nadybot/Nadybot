@@ -5,9 +5,9 @@ namespace Nadybot\Core\Config;
 use function Safe\json_decode;
 
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
-use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, ObjectMapperUsingReflection};
+use EventSauce\ObjectHydrator\{MapFrom, MapperSettings};
 use Nadybot\Core\Attributes\Instance;
-use Nadybot\Core\Filesystem;
+use Nadybot\Core\{Filesystem, Hydrator};
 use Nadylib\IMEX;
 
 /**
@@ -62,14 +62,13 @@ class BotConfig {
 		}
 		$vars = self::convertOldSettings($vars);
 		$vars['file_path'] = $filePath;
-		$mapper = new ObjectMapperUsingReflection();
 		for ($i = 0; $i < count($vars['worker']??[]); $i++) {
 			$vars['worker'][$i]['dimension'] ??= $vars['main']['dimension'] ?? null;
 			$vars['worker'][$i]['login']     ??= $vars['main']['login'] ?? null;
 			$vars['worker'][$i]['password']  ??= $vars['main']['password'] ?? null;
 		}
 
-		$config = $mapper->hydrateObject(self::class, $vars);
+		$config = Hydrator::hydrate(self::class, $vars);
 		$config->autoUnfreeze ??= new AutoUnfreeze();
 		return $config;
 	}
@@ -81,8 +80,7 @@ class BotConfig {
 
 	/** Saves the config file, creating the file if it doesn't exist yet. */
 	public function save(Filesystem $fs): void {
-		$mapper = new ObjectMapperUsingReflection();
-		$vars = $mapper->serializeObject($this);
+		$vars = Hydrator::serialize($this);
 		unset($vars['file_path']);
 		unset($vars['org_id']);
 		$vars = array_filter($vars, static function (mixed $value): bool {

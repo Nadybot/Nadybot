@@ -3,8 +3,8 @@
 namespace Nadybot\Core\Highway;
 
 use function Safe\json_decode;
-use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
-use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
+use EventSauce\ObjectHydrator\{UnableToHydrateObject};
+use Nadybot\Core\{Attributes as NCA, Hydrator, LoggerWrapper};
 
 use Safe\Exceptions\JsonException;
 
@@ -32,9 +32,8 @@ class Parser {
 		} catch (JsonException $e) {
 			throw new ParserJsonException($e->getMessage(), $e->getCode(), $e);
 		}
-		$mapper = new ObjectMapperUsingReflection();
 		try {
-			$baseInfo = $mapper->hydrateObject(In\InPackage::class, $json);
+			$baseInfo = Hydrator::hydrate(In\InPackage::class, $json);
 		} catch (UnableToHydrateObject $e) {
 			throw new ParserHighwayException($e->getMessage(), $e->getCode(), $e);
 		}
@@ -54,7 +53,7 @@ class Parser {
 
 		try {
 			/** @var In\InPackage */
-			$package = $mapper->hydrateObject($targetClass, $json);
+			$package = Hydrator::hydrate($targetClass, $json);
 		} catch (UnableToHydrateObject $e) {
 			throw new ParserHighwayException($e->getMessage(), $e->getCode(), $e);
 		}

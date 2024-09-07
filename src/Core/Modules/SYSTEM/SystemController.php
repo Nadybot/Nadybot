@@ -5,7 +5,6 @@ namespace Nadybot\Core\Modules\SYSTEM;
 use function Safe\{ini_get, json_encode};
 
 use Amp\Http\Server\{Request, Response};
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Nadybot\Core\Attributes\Confidential;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Events\ConnectEvent;
@@ -24,6 +23,7 @@ use Nadybot\Core\{
 	EventManager,
 	Events\Event,
 	HelpManager,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Modules\BAN\BanController,
@@ -533,9 +533,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	/** Show your current config file with sensitive information removed */
 	#[NCA\HandlesCommand('showconfig')]
 	public function showConfigCommand(CmdContext $context): void {
-		$mapper = new ObjectMapperUsingReflection();
 		Confidential::$active = true;
-		$config = $mapper->serializeObject($this->config);
+		$config = Hydrator::serialize($this->config);
 		Confidential::$active = false;
 
 		$json = json_encode(
@@ -554,9 +553,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			$context->reply('For security reasons, this command only works in tells');
 			return;
 		}
-		$mapper = new ObjectMapperUsingReflection();
 		Confidential::$active = false;
-		$vars = $mapper->serializeObject($this->config);
+		$vars = Hydrator::serialize($this->config);
 		if (!isset($vars['org_id'])) {
 			unset($vars['org_id']);
 		}

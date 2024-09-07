@@ -7,7 +7,6 @@ use function Safe\json_decode;
 use Amp\Http\Server\{Request, Response};
 use Amp\Websocket\Server\{AllowOriginAcceptor, Websocket, WebsocketClientGateway, WebsocketClientHandler, WebsocketGateway};
 use Amp\Websocket\{WebsocketClient, WebsocketMessage};
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	EventManager,
 	Events\Event,
 	Events\PackageEvent,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Registry,
@@ -212,8 +212,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		$this->logger->info('[Data inc.] {data}', ['data' => $body]);
 		try {
 			$data = json_decode($body, true);
-			$mapper = new ObjectMapperUsingReflection();
-			$command = $mapper->hydrateObject(WebsocketCommand::class, $data);
+			$command = Hydrator::hydrate(WebsocketCommand::class, $data);
 			if (!in_array($command->command, $command::ALLOWED_COMMANDS, true)) {
 				throw new Exception();
 			}
@@ -223,11 +222,11 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		}
 		if ($command->command === $command::SUBSCRIBE) {
 			$newEvent = new WebsocketSubscribeEvent(
-				data: $mapper->hydrateObject(NadySubscribe::class, $command->data),
+				data: Hydrator::hydrate(NadySubscribe::class, $command->data),
 			);
 		} elseif ($command->command === $command::REQUEST) {
 			$newEvent = new WebsocketRequestEvent(
-				data: $mapper->hydrateObject(NadyRequest::class, $command->data),
+				data: Hydrator::hydrate(NadyRequest::class, $command->data),
 			);
 		} else {
 			// Unknown command received is just silently ignored in case another handler deals with it

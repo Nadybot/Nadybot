@@ -6,11 +6,12 @@ use function Safe\{json_decode, preg_match};
 use Amp\Cache\LocalCache;
 use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, ObjectMapperUsingReflection};
+use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	Exceptions\UserException,
+	Hydrator,
 	ModuleInstance,
 	Safe,
 	Text,
@@ -320,8 +321,7 @@ class WeatherController extends ModuleInstance {
 		if (!count($data)) {
 			throw new UserException('Location not found');
 		}
-		$mapper = new ObjectMapperUsingReflection();
-		$nominatim = $mapper->hydrateObject(Nominatim::class, $data[0]);
+		$nominatim = Hydrator::hydrate(Nominatim::class, $data[0]);
 		return $nominatim;
 	}
 
@@ -342,12 +342,10 @@ class WeatherController extends ModuleInstance {
 				'<highlight>' . print_r($data, true) . '<end>.'
 			);
 		}
-		$mapper = new ObjectMapperUsingReflection(
-			new DefinitionProvider(
-				keyFormatter: new KeyFormatterWithoutConversion(),
-			)
+		$dp =  new DefinitionProvider(
+			keyFormatter: new KeyFormatterWithoutConversion(),
 		);
-		$weather = $mapper->hydrateObject(Weather::class, $data);
+		$weather = Hydrator::hydrate(Weather::class, $data, $dp);
 		return $weather;
 	}
 }

@@ -5,7 +5,6 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 use function Amp\delay;
 use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	Events\ConnectEvent,
 	Events\JoinMyPrivEvent,
 	Events\LogonEvent,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
@@ -496,14 +496,13 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 
 		/** @var list<ApiGauntletBuff> */
 		$buffs = [];
-		$mapper = new ObjectMapperUsingReflection();
 		try {
 			$data = json_decode($body, true);
 			if (!is_array($data)) {
 				throw new JsonException();
 			}
 			foreach ($data as $gauntletData) {
-				$buffs []= $mapper->hydrateObject(ApiGauntletBuff::class, $gauntletData);
+				$buffs []= Hydrator::hydrate(ApiGauntletBuff::class, $gauntletData);
 			}
 		} catch (JsonException) {
 			$this->logger->error('Gauntlet buff API sent invalid json.');

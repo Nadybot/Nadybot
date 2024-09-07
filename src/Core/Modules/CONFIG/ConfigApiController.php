@@ -6,7 +6,6 @@ use function Safe\preg_match;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, ObjectMapper, ObjectMapperUsingReflection};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	Exceptions\InsufficientAccessException,
 	Exceptions\SQLException,
 	HelpManager,
+	Hydrator,
 	ModuleInstance,
 	Safe,
 	SettingManager,
@@ -57,15 +57,6 @@ class ConfigApiController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private DB $db;
-
-	public function __construct(
-		private ObjectMapper $mapper=new ObjectMapperUsingReflection(
-			new DefinitionProvider(
-				keyFormatter: new KeyFormatterWithoutConversion(),
-			),
-		)
-	) {
-	}
 
 	/** Get a list of available modules to configure */
 	#[
@@ -468,7 +459,7 @@ class ConfigApiController extends ModuleInstance {
 				throw new Exception('Wrong content body');
 			}
 
-			$permSet = $this->mapper->hydrateObject(CmdPermissionSet::class, $set);
+			$permSet = Hydrator::hydrate(CmdPermissionSet::class, $set);
 		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
@@ -500,7 +491,7 @@ class ConfigApiController extends ModuleInstance {
 				throw new Exception('Wrong content body');
 			}
 
-			$permSet = $this->mapper->hydrateObject(CmdPermissionSet::class, $set);
+			$permSet = Hydrator::hydrate(CmdPermissionSet::class, $set);
 		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
@@ -658,7 +649,7 @@ class ConfigApiController extends ModuleInstance {
 			}
 			$body['source'] = $source;
 
-			$mapping = $this->mapper->hydrateObject(CmdSourceMapping::class, $body);
+			$mapping = Hydrator::hydrate(CmdSourceMapping::class, $body);
 		} catch (Throwable $e) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
@@ -686,7 +677,7 @@ class ConfigApiController extends ModuleInstance {
 
 			$body['source'] = strtolower($source);
 			$body['sub_source'] = null;
-			$mapping = $this->mapper->hydrateObject(CmdSourceMapping::class, $body);
+			$mapping = Hydrator::hydrate(CmdSourceMapping::class, $body);
 		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
@@ -714,7 +705,7 @@ class ConfigApiController extends ModuleInstance {
 
 			$body['source'] = strtolower($source);
 			$body['sub_source'] = strtolower($subSource);
-			$mapping = $this->mapper->hydrateObject(CmdSourceMapping::class, $body);
+			$mapping = Hydrator::hydrate(CmdSourceMapping::class, $body);
 		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}

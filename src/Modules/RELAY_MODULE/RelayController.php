@@ -6,7 +6,6 @@ use function Safe\{json_decode, json_encode, preg_match, preg_split};
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, ObjectMapper, ObjectMapperUsingReflection};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Events\ConnectEvent;
@@ -22,6 +21,7 @@ use Nadybot\Core\{
 	DB,
 	EventManager,
 	EventType,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Modules\PROFILE\ProfileCommandReply,
@@ -119,15 +119,6 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	#[NCA\Inject]
 	private EventManager $eventManager;
-
-	public function __construct(
-		private ObjectMapper $mapper=new ObjectMapperUsingReflection(
-			new DefinitionProvider(
-				keyFormatter: new KeyFormatterWithoutConversion(),
-			),
-		)
-	) {
-	}
 
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
@@ -1142,7 +1133,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 		try {
 			/** @psalm-suppress PossiblyInvalidArgument */
-			$events = $this->mapper->hydrateObjects(RelayEvent::class, $body)->toArray();
+			$events = Hydrator::hydrateObjects(RelayEvent::class, $body)->toArray();
 		} catch (Throwable $e) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
@@ -1192,9 +1183,9 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		try {
-			$oldData = $this->mapper->serializeObject($relay);
+			$oldData = Hydrator::serialize($relay);
 			$update = Util::mergeArraysRecursive($oldData, $body);
-			$event = $this->mapper->hydrateObject(RelayEvent::class, $update);
+			$event = Hydrator::hydrate(RelayEvent::class, $update);
 		} catch (Throwable $e) {
 			return new Response(
 				status: HttpStatus::UNPROCESSABLE_ENTITY,
@@ -1262,7 +1253,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		try {
-			$relay = $this->mapper->hydrateObject(RelayConfig::class, $body);
+			$relay = Hydrator::hydrate(RelayConfig::class, $body);
 		} catch (Throwable $e) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}

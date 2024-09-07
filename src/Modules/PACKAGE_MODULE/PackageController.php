@@ -7,7 +7,7 @@ use Amp\File\{FileCache, FilesystemException};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, ObjectMapperUsingReflection};
+use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	DB,
 	Exceptions\UserException,
 	Filesystem,
+	Hydrator,
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PWord,
@@ -747,14 +748,14 @@ class PackageController extends ModuleInstance {
 			throw new UserException('Package data was not in the expected format');
 		}
 
-		$mapper = new ObjectMapperUsingReflection(
-			new DefinitionProvider(
-				keyFormatter: new KeyFormatterWithoutConversion(),
-			),
+		/** @var list<array<mixed>> $data */
+
+		$dp = new DefinitionProvider(
+			keyFormatter: new KeyFormatterWithoutConversion(),
 		);
 
 		$packages = new Collection(
-			$mapper->hydrateObjects(Package::class, $data)->toArray()
+			Hydrator::hydrateObjects(Package::class, $data, $dp)->toArray()
 		);
 		$packages = $packages->filter(static function (Package $package): bool {
 			return $package->bot_type === 'Nadybot';

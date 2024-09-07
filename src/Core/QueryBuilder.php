@@ -18,6 +18,8 @@ use Safe\{DateTime, DateTimeImmutable};
 use Throwable;
 
 class QueryBuilder extends Builder {
+	private const CLASS_SEP = '⚡️';
+
 	#[NCA\Inject]
 	public BotConfig $config;
 
@@ -225,7 +227,7 @@ class QueryBuilder extends Builder {
 	}
 
 	/** @param class-string $className */
-	private function compileFromClass(string $className): void {
+	private function compileForClass(string $className): void {
 		$cacheLines = [];
 		$colMappings = [];
 		$refClass = new ReflectionClass($className);
@@ -293,15 +295,6 @@ class QueryBuilder extends Builder {
 		$this->compileCache($className, $cacheLines);
 	}
 
-	private function getCacheFile(string $className): string {
-		$safeClassName = Safe::pregReplace(
-			'/[^a-zA-Z0-9]/',
-			'_',
-			$className,
-		);
-		return $this->config->paths->cache . "/db/cmd_{$safeClassName}_compiler.php";
-	}
-
 	/**
 	 * Compile and save the cache
 	 *
@@ -315,17 +308,20 @@ class QueryBuilder extends Builder {
 			\PHP_EOL.
 			"namespace {$nameSpace};" . \PHP_EOL.
 			\PHP_EOL.
-			"class {$classShortName}_compiler {" . \PHP_EOL.
+			"class {$classShortName}" . self::CLASS_SEP . 'compiler {' . \PHP_EOL.
 			"\tpublic static function fromDB(\\stdClass \$data): {$classShortName} {" . \PHP_EOL.
 			"\t\treturn new {$classShortName}(" . \PHP_EOL.
 			"\t\t\t". implode(\PHP_EOL . "\t\t\t", $cacheLines) . \PHP_EOL.
 			"\t\t);" . \PHP_EOL.
 			"\t}" . \PHP_EOL.
 			'}' . \PHP_EOL;
-		$this->fs->write(
-			$this->getCacheFile($className),
-			$code
-		);
+		$fileName = $this->fs->tempnam($this->config->paths->cache . \DIRECTORY_SEPARATOR, 'db_');
+		$this->fs->write($fileName, $code);
+		try {
+			require_once $fileName;
+		} finally {
+			$this->fs->deleteFile($fileName);
+		}
 	}
 
 	/**
@@ -338,8 +334,7 @@ class QueryBuilder extends Builder {
 	 * @return Collection<int,T>
 	 */
 	private function fetchAll(string $className): Collection {
-		$cacheClass = "{$className}_compiler";
-		$cacheFile = $this->getCacheFile($className);
+		$cacheClass = "{$className}" . self::CLASS_SEP . 'compiler';
 
 		$data = $this->get();
 		if ($data->isEmpty()) {
@@ -347,15 +342,12 @@ class QueryBuilder extends Builder {
 		}
 
 		/** @var Collection<int,\stdClass> $data */
-		if (!class_exists($cacheClass)) {
-			if (!$this->fs->exists($cacheFile)) {
-				$this->compileFromClass($className);
-			}
-			require_once $cacheFile;
+		if (!class_exists($cacheClass, false)) {
+			$this->compileForClass($className);
 		}
-		if (class_exists($cacheClass)) {
+		if (class_exists($cacheClass, false)) {
 			return $data->map($cacheClass::fromDB(...));
 		}
-		throw new \Exception('Unable to infer a type from the given SQL result');
+		throw new \Exception("Unable to infer a database mapper for {$className}");
 	}
 }

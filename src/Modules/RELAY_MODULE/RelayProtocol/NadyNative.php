@@ -4,13 +4,14 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use function Safe\{json_decode, json_encode};
 
-use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToSerializeObject};
+use EventSauce\ObjectHydrator\{UnableToSerializeObject};
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	EventManager,
 	Events\SyncEvent,
+	Hydrator,
 	Routing\Character,
 	Routing\Events\Base,
 	Routing\Events\Online,
@@ -90,9 +91,8 @@ class NadyNative implements RelayProtocolInterface {
 		} elseif (is_object($event->data) && !($event->data instanceof SyncEvent) && is_string($event->data->message??null)) {
 			$event->data->message = str_replace('<myname>', $this->config->main->character, $event->data->message??'');
 		}
-		$mapper = new ObjectMapperUsingReflection();
 		try {
-			$serialized = $mapper->serializeObject($event);
+			$serialized = Hydrator::serialize($event);
 			$data = json_encode($serialized, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException | UnableToSerializeObject $e) {
 			$this->logger->error('Cannot send event via Nadynative protocol: {error}', [
@@ -128,7 +128,6 @@ class NadyNative implements RelayProtocolInterface {
 		if (!is_array($data)) {
 			return null;
 		}
-		$mapper = new ObjectMapperUsingReflection();
 		$data['type'] ??= RoutableEvent::TYPE_MESSAGE;
 		switch ($data['type']) {
 			case 'online_list_request':
@@ -138,7 +137,7 @@ class NadyNative implements RelayProtocolInterface {
 				return null;
 			case 'online_list':
 				if ($this->syncOnline) {
-					$cmd = $mapper->hydrateObject(OnlineList::class, $data);
+					$cmd = Hydrator::hydrate(OnlineList::class, $data);
 					$this->handleOnlineList($message->sender, $cmd);
 				}
 				return null;
@@ -169,7 +168,7 @@ class NadyNative implements RelayProtocolInterface {
 			&& isset($message->sender)
 			&& $this->syncOnline
 		) {
-			$event->data = $mapper->hydrateObject(Online::class, $eventData);
+			$event->data = Hydrator::hydrate(Online::class, $eventData);
 			$this->logger->debug('Received online event for {relay}: {event}', [
 				'relay' => $this->relay->getName(),
 				'event' => $event,

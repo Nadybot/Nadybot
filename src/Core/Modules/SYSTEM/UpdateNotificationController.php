@@ -2,10 +2,10 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Routing\RoutableMessage,
@@ -26,8 +26,7 @@ class UpdateNotificationController extends ModuleInstance implements EventFeedHa
 
 	/** @param array<string,mixed> $data */
 	public function handleEventFeedMessage(string $room, array $data): void {
-		$mapper = new ObjectMapperUsingReflection();
-		$package = $mapper->hydrateObject(UpdateNotification::class, $data);
+		$package = Hydrator::hydrate(UpdateNotification::class, $data);
 		$myVersion = new SemanticVersion(BotRunner::getVersion(false));
 		if ((isset($package->minVersion) && $package->minVersion->cmp($myVersion) > 0)
 			|| (isset($package->maxVersion) && $package->maxVersion->cmp($myVersion) < 0)) {

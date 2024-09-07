@@ -8,11 +8,11 @@ use Amp\File\FileCache;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Filesystem,
+	Hydrator,
 	ModuleInstance,
 };
 use Safe\Exceptions\JsonException;
@@ -89,14 +89,13 @@ class PlayerHistoryManager extends ModuleInstance {
 
 	/** @psalm-param callable(?PlayerHistory, mixed...) $callback */
 	private function parsePlayerHistory(string $data, string $name): ?PlayerHistory {
-		$mapper = new ObjectMapperUsingReflection();
 		try {
 			$history = json_decode($data, true);
 		} catch (JsonException) {
 			return null;
 		}
 
-		$entries = $mapper->hydrateObjects(PlayerHistoryData::class, $history)->toArray();
+		$entries = Hydrator::hydrateObjects(PlayerHistoryData::class, $history)->toArray();
 		return new PlayerHistory(name: $name, data: $entries);
 	}
 }

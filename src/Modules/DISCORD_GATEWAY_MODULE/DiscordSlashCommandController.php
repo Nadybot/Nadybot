@@ -4,7 +4,6 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use function Safe\preg_split;
 
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\DISCORD\{ApplicationCommand, ApplicationCommandOption, DiscordException};
 use Nadybot\Core\{
@@ -14,6 +13,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\CmdCfg,
 	Exceptions\UserException,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Modules\DISCORD\DiscordAPIClient,
@@ -333,8 +333,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			return;
 		}
 		$this->logger->info('Received interaction on Discord');
-		$mapper = new ObjectMapperUsingReflection();
-		$interaction = $mapper->hydrateObject(Interaction::class, $payload->d);
+		$interaction = Hydrator::hydrate(Interaction::class, $payload->d);
 		$this->logger->debug('Interaction decoded', [
 			'interaction' => $interaction,
 		]);

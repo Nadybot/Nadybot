@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
+use EventSauce\ObjectHydrator\{UnableToHydrateObject};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	EventManager,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
@@ -414,9 +415,8 @@ class NotumWarsController extends ModuleInstance {
 		$body = $response->getBody()->buffer();
 		try {
 			$json = json_decode($body, true);
-			$mapper = new ObjectMapperUsingReflection();
 
-			$sites = $mapper->hydrateObjects(FeedMessage\SiteUpdate::class, $json)->getIterator();
+			$sites = Hydrator::hydrateObjects(FeedMessage\SiteUpdate::class, $json)->getIterator();
 			foreach ($sites as $site) {
 				$this->updateSiteInfo($site);
 			}
@@ -475,9 +475,8 @@ class NotumWarsController extends ModuleInstance {
 		$body = $response->getBody()->buffer();
 		try {
 			$json = json_decode($body, true);
-			$mapper = new ObjectMapperUsingReflection();
 
-			$attacks = $mapper->hydrateObjects(FeedMessage\TowerAttack::class, $json);
+			$attacks = Hydrator::hydrateObjects(FeedMessage\TowerAttack::class, $json);
 
 			foreach ($attacks as $attack) {
 				$breedRequired = !isset($attack->attacker->breed)
@@ -537,9 +536,8 @@ class NotumWarsController extends ModuleInstance {
 		$body = $response->getBody()->buffer();
 		try {
 			$json = json_decode($body, true);
-			$mapper = new ObjectMapperUsingReflection();
 
-			$outcomes = $mapper->hydrateObjects(FeedMessage\TowerOutcome::class, $json);
+			$outcomes = Hydrator::hydrateObjects(FeedMessage\TowerOutcome::class, $json);
 
 			foreach ($outcomes as $outcome) {
 				$this->db->insert(DBOutcome::fromTowerOutcome($outcome));
