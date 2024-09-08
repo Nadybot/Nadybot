@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
+use AO\SendPriority;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -15,7 +16,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PDuration,
 	PrivateChannelCommandReply,
-	QueueInterface,
 	Safe,
 	Text,
 	Util,
@@ -199,7 +199,7 @@ class RaffleController extends ModuleInstance {
 				'Raffle Admin Menu',
 				$this->getRaffleAdminPage($context->char->name)
 			) . '.';
-		$this->chatBot->sendTell($adminMsg, $context->char->name, QueueInterface::PRIORITY_HIGH);
+		$this->chatBot->sendTell($adminMsg, $context->char->name, SendPriority::High);
 	}
 
 	/**
@@ -273,7 +273,7 @@ class RaffleController extends ModuleInstance {
 					'Raffle Admin Menu',
 					$this->getRaffleAdminPage($context->char->name)
 				) . '.';
-			$this->chatBot->sendTell($adminMsg, $context->char->name, QueueInterface::PRIORITY_HIGH);
+			$this->chatBot->sendTell($adminMsg, $context->char->name, SendPriority::High);
 			return;
 		}
 		$this->announceRaffleAdd($raffle);

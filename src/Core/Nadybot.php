@@ -11,7 +11,7 @@ use AO\Client\{MultiClient, WorkerConfig, WorkerPackage};
 use AO\Exceptions\AccountsFrozenException;
 use AO\Group\{GroupId, GroupType};
 use AO\Package\OutPackage;
-use AO\{FrozenAccount, Group, Package, Utils};
+use AO\{FrozenAccount, Group, Package, SendPriority, Utils};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\Setting\ArraySetting;
@@ -419,9 +419,10 @@ class Nadybot {
 		return $this->aoClient->getGroup($groupId);
 	}
 
-	public function sendPackage(OutPackage $package, ?string $worker=null): void {
+	public function sendPackage(OutPackage $package, ?string $worker=null, ?SendPriority $priority=null): void {
+		$priority ??= SendPriority::Medium;
 		try {
-			$this->aoClient->write(package: $package, worker: $worker);
+			$this->aoClient->write(package: $package, worker: $worker, priority: $priority);
 		} catch (StreamException $e) {
 			$this->logger->critical('Whoa: {error}', [
 				'error' => $e->getMessage(),
@@ -630,9 +631,14 @@ class Nadybot {
 	 *
 	 * @param string|iterable<string> $message      One or more messages to send
 	 * @param bool                    $disableRelay Set to true to disable relaying the message into the bot's private channel
-	 * @param ?int                    $priority     The priority of the message or medium if unset
+	 * @param ?SendPriority           $priority     The priority of the message or medium if unset
 	 */
-	public function sendGuild(string|iterable $message, bool $disableRelay=false, ?int $priority=null, bool $addDefaultColor=true): void {
+	public function sendGuild(
+		string|iterable $message,
+		bool $disableRelay=false,
+		?SendPriority $priority=null,
+		bool $addDefaultColor=true
+	): void {
 		if (!isset($this->orgGroup) || !$this->guildChannelStatus) {
 			return;
 		}
@@ -646,7 +652,7 @@ class Nadybot {
 			return;
 		}
 
-		$priority ??= QueueInterface::PRIORITY_MED;
+		$priority ??= SendPriority::Medium;
 
 		if ($this->guildChannelColors) {
 			$message = $this->text->formatMessage($origMsg = $message);
@@ -663,7 +669,8 @@ class Nadybot {
 			package: new Package\Out\GroupMessage(
 				groupId: $this->orgGroup->id,
 				message: $guildColor.$message,
-			)
+			),
+			priority: $priority,
 		);
 		$event = new SendGuildEvent(
 			channel: $this->config->general->orgName,
@@ -686,7 +693,7 @@ class Nadybot {
 		EventLoop::queue($this->messageHub->handle(...), $rMessage);
 	}
 
-	public function sendRawTell(int|string $character, string $message, ?int $priority=null, ?string $worker=null): bool {
+	public function sendRawTell(int|string $character, string $message, ?SendPriority $priority=null, ?string $worker=null): bool {
 		if (is_string($character)) {
 			$character = $this->getUid(Utils::normalizeCharacter($character));
 			if (!isset($character)) {
@@ -699,6 +706,7 @@ class Nadybot {
 				message: $message,
 			),
 			worker: $worker,
+			priority: $priority,
 		);
 		return true;
 	}
@@ -708,10 +716,10 @@ class Nadybot {
 	 *
 	 * @param string|iterable<string> $message       One or more messages to send
 	 * @param string                  $character     Name of the person to send the tell to
-	 * @param ?int                    $priority      The priority of the message or medium if unset
+	 * @param ?SendPriority           $priority      The priority of the message or medium if unset
 	 * @param bool                    $formatMessage If set, replace tags with their corresponding colors
 	 */
-	public function sendTell(string|iterable $message, string $character, ?int $priority=null, bool $formatMessage=true): void {
+	public function sendTell(string|iterable $message, string $character, ?SendPriority $priority=null, bool $formatMessage=true): void {
 		$numWorkers = count($this->config->worker);
 		if (($numWorkers > 0) && $this->forceMassTells && $this->allowMassTells) {
 			if (is_iterable($message)) {
@@ -731,7 +739,7 @@ class Nadybot {
 			return;
 		}
 
-		$priority ??= QueueInterface::PRIORITY_MED;
+		$priority ??= SendPriority::Medium;
 
 		$rMessage = new RoutableMessage($message);
 		$tellColor = '';
@@ -762,8 +770,8 @@ class Nadybot {
 	 *
 	 * @param string|list<string>|Collection<int,string> $message
 	 */
-	public function sendMassTell(string|array|Collection $message, string $character, ?int $priority=null, bool $formatMessage=true, null|int|string $worker=null): void {
-		$priority ??= QueueInterface::PRIORITY_HIGH;
+	public function sendMassTell(string|array|Collection $message, string $character, ?SendPriority $priority=null, bool $formatMessage=true, null|int|string $worker=null): void {
+		$priority ??= SendPriority::High;
 		$numWorkers = count($this->config->worker);
 
 		// If we're not using workers, or mass tells are disabled, this doesn't do anything
@@ -805,9 +813,9 @@ class Nadybot {
 	 *
 	 * @param string|iterable<string> $message  One or more messages to send
 	 * @param string                  $channel  Name of the channel to send the message to
-	 * @param ?int                    $priority The priority of the message or medium if unset
+	 * @param ?SendPriority           $priority The priority of the message or medium if unset
 	 */
-	public function sendPublic(string|iterable $message, string $channel, ?int $priority=null): void {
+	public function sendPublic(string|iterable $message, string $channel, ?SendPriority $priority=null): void {
 		$group = $this->getGroupByName($channel);
 		if (!isset($group)) {
 			$this->logger->warning("Trying to send to unknown group '{group}'", [
@@ -821,8 +829,6 @@ class Nadybot {
 			}
 			return;
 		}
-
-		$priority ??= QueueInterface::PRIORITY_MED;
 
 		$message = $this->text->formatMessage($origMessage = $message);
 		$guildColor = $this->settingManager->getString('default_guild_color')??'';
@@ -838,7 +844,8 @@ class Nadybot {
 			package: new Package\Out\GroupMessage(
 				groupId: $group->id,
 				message: $guildColor.$message,
-			)
+			),
+			priority: $priority,
 		);
 	}
 

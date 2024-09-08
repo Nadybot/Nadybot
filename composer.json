@@ -49,7 +49,7 @@
 		"eventsauce/object-hydrator": "^1.1.0",
 		"amphp/http-tunnel": "^2.0.0-beta.2",
 		"nadylib/imex": "^1.0.0",
-		"nadybot/aolib": "^0.1.0",
+		"nadybot/aolib": "^0.1.1",
 		"nadylib/leaky-bucket": "^0.1.0",
 		"amphp/pipeline": "^1.2",
 		"amphp/process": "^2.0",

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use AO\SendPriority;
 use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -9,7 +10,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	ModuleInstance,
 	Nadybot,
-	QueueInterface,
 };
 use Psr\Log\LoggerInterface;
 
@@ -42,7 +42,7 @@ class SendTellController extends ModuleInstance {
 		if ($this->logger instanceof LoggerWrapper) {
 			$this->logger->logChat('Out. Msg.', $character(), $message);
 		}
-		$this->chatBot->sendRawTell($uid, $message, QueueInterface::PRIORITY_MED);
+		$this->chatBot->sendRawTell($uid, $message, SendPriority::Medium);
 		$context->reply("Message has been sent to <highlight>{$character}<end>.");
 	}
 }
