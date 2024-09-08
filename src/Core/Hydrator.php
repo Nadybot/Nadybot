@@ -163,6 +163,6 @@ class Hydrator {
 	}
 
 	private static function getHydratorClass(string $className): string {
-		return "Nadybot\\Cache\Hydrator\\Hyd_" . md5($className);
+		return 'Nadybot\\Cache\\Hydrator\\Hyd_' . md5($className);
 	}
 }
