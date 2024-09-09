@@ -6,6 +6,7 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Nadybot\Core\Types\ParamAttribute;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,

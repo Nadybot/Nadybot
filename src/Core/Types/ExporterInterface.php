@@ -1,7 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core;
+namespace Nadybot\Core\Types;
 
+use Nadybot\Core\DB;
 use Psr\Log\LoggerInterface;
 
 interface ExporterInterface {

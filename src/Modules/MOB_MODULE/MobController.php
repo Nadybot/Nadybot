@@ -5,7 +5,7 @@ namespace Nadybot\Modules\MOB_MODULE;
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Closure;
-use EventSauce\ObjectHydrator\{UnableToHydrateObject};
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\{Event, HandlesCommand};
 use Nadybot\Core\Routing\{RoutableMessage, Source};

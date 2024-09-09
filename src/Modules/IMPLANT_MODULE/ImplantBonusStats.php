@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\MinMax;
+use Nadybot\Core\Types\MinMax;
 
 class ImplantBonusStats {
 	public string $slot = 'Faded';

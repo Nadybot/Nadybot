@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use EventSauce\ObjectHydrator\{UnableToHydrateObject};
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Events\SettingEvent;

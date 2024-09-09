@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use EventSauce\ObjectHydrator\{UnableToHydrateObject};
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{EventManager, Events\Event as CoreEvent, Hydrator, ModuleInstance, Types\EventFeedHandler};
 use Nadybot\Modules\PVP_MODULE\Event\{GasUpdateEvent, SiteUpdateEvent, TowerAttackEvent, TowerOutcomeEvent};

@@ -20,7 +20,6 @@ use Nadybot\Core\{
 	EventManager,
 	Events\Event,
 	Exceptions\SQLException,
-	ImporterInterface,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\GuildManager,
@@ -30,6 +29,7 @@ use Nadybot\Core\{
 	ParamClass\PDuration,
 	ParamClass\PRemove,
 	Text,
+	Types\ImporterInterface,
 	Util,
 };
 use Nadybot\Modules\ORGLIST_MODULE\Organization;

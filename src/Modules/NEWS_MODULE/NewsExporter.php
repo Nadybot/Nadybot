@@ -9,9 +9,9 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
 	ExportCharacter,
-	ExporterInterface,
-	ImporterInterface,
-	ModuleInstance
+	ModuleInstance,
+	Types\ExporterInterface,
+	Types\ImporterInterface
 };
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;

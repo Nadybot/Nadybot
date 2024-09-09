@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE\Drill\Packet;
 
 use Amp\Websocket\Client\WebsocketConnection;
-use Nadybot\Core\{Attributes as NCA};
+use Nadybot\Core\Attributes as NCA;
 use Psr\Log\LoggerInterface;
 
 abstract class Base {

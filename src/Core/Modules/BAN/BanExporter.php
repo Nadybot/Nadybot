@@ -8,9 +8,9 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
 	ExportCharacter,
-	ExporterInterface,
 	ModuleInstance,
-	Nadybot
+	Nadybot,
+	Types\ExporterInterface
 };
 use Psr\Log\LoggerInterface;
 

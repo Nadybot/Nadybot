@@ -3,7 +3,7 @@
 namespace Nadybot\Core\SettingHandlers;
 
 use Exception;
-use Nadybot\Core\{Attributes as NCA, ModuleInstance, Nadybot, Registry, Safe, Text};
+use Nadybot\Core\{Attributes as NCA, ModuleInstance, Registry, Safe, Text};
 use ReflectionAttribute;
 
 use ReflectionObject;
@@ -107,7 +107,7 @@ class TemplateSettingHandler extends SettingHandler {
 			foreach ($refObj->getProperties() as $refProp) {
 				foreach ($refProp->getAttributes(NCA\Setting\Template::class, ReflectionAttribute::IS_INSTANCEOF) as $refAttr) {
 					$attr = $refAttr->newInstance();
-					$attr->name ??= Nadybot::toSnakeCase($refProp->getName());
+					$attr->name ??= Text::toSnakeCase($refProp->getName());
 					if ($attr->name === $this->row->name) {
 						return $attr;
 					}

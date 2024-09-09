@@ -11,12 +11,12 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ExportCharacter,
-	ExporterInterface,
-	ImporterInterface,
 	ModuleInstance,
 	ParamClass\PRemove,
 	ParamClass\PWord,
 	Text,
+	Types\ExporterInterface,
+	Types\ImporterInterface,
 };
 use Psr\Log\LoggerInterface;
 use Throwable;

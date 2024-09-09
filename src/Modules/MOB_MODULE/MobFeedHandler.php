@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\MOB_MODULE;
 
 use Closure;
-use EventSauce\ObjectHydrator\{UnableToHydrateObject};
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{EventManager, Hydrator, ModuleInstance, Types\EventFeedHandler};
 use Nadybot\Modules\MOB_MODULE\FeedMessage\Spawn;

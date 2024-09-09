@@ -3,11 +3,12 @@
 namespace Nadybot\Core\Attributes;
 
 use Attribute;
-use Nadybot\Core\{ParamAttribute, Safe};
+use Nadybot\Core\Safe;
+use Nadybot\Core\Types\ParamAttribute as TypesParamAttribute;
 use ReflectionParameter;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
-class PDuration implements ParamAttribute {
+class PDuration implements TypesParamAttribute {
 	public function __construct(
 		public ?string $example=null
 	) {

@@ -14,11 +14,11 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	ExportCharacter,
-	ExporterInterface,
-	ImporterInterface,
 	ModuleInstance,
 	Nadybot,
-	Safe
+	Safe,
+	Types\ExporterInterface,
+	Types\ImporterInterface
 };
 use Nadybot\Modules\GUILD_MODULE\OrgMember;
 use Nadybot\Modules\MASSMSG_MODULE\MassMsgController;

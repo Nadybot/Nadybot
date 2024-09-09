@@ -7,9 +7,9 @@ use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	MinMax,
 	ModuleInstance,
 	Text,
+	Types\MinMax,
 };
 
 /**

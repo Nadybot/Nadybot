@@ -14,14 +14,14 @@ use Nadybot\Core\{
 	Events\JoinMyPrivEvent,
 	Events\LogonEvent,
 	ExportCharacter,
-	ExporterInterface,
-	ImporterInterface,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PRemove,
 	Text,
+	Types\ExporterInterface,
+	Types\ImporterInterface,
 	Util,
 };
 use Psr\Log\LoggerInterface;

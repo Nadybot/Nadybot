@@ -9,10 +9,10 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
 	ExportCharacter,
-	ExporterInterface,
-	ImporterInterface,
 	ModuleInstance,
-	SettingManager
+	SettingManager,
+	Types\ExporterInterface,
+	Types\ImporterInterface
 };
 use Psr\Log\LoggerInterface;
 use Throwable;

@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Highway;
 
 use function Safe\json_decode;
-use EventSauce\ObjectHydrator\{UnableToHydrateObject};
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\{Attributes as NCA, Hydrator, LoggerWrapper};
 
 use Safe\Exceptions\JsonException;

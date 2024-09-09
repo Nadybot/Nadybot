@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\{Attributes as NCA};
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\GaugeProvider;
 
 class OnlineRelayStats implements GaugeProvider {

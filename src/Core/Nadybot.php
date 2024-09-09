@@ -1623,24 +1623,6 @@ class Nadybot {
 		}
 	}
 
-	public static function toSnakeCase(string $name): string {
-		return strtolower(
-			Safe::pregReplace(
-				'/([A-Z][a-z])/',
-				'_$1',
-				Safe::pregReplace(
-					'/([A-Z]{2,})(?=[A-Z][a-z]|$)/',
-					'_$1',
-					Safe::pregReplace(
-						"/(\d+)$/",
-						'_$1',
-						$name
-					)
-				)
-			)
-		);
-	}
-
 	/** Call the setup method for an object */
 	public function callSetupMethod(string $class, object $obj): void {
 		$reflection = new ReflectionClass($obj);
@@ -1828,7 +1810,7 @@ class Nadybot {
 			}
 
 			$attribute = $attrs[0]->newInstance();
-			$attribute->name ??= self::toSnakeCase($property->getName());
+			$attribute->name ??= Text::toSnakeCase($property->getName());
 
 			$type = $property->getType();
 			if ($type === null) {

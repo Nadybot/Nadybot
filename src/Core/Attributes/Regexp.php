@@ -3,11 +3,12 @@
 namespace Nadybot\Core\Attributes;
 
 use Attribute;
-use Nadybot\Core\{ParamAttribute, Safe};
+use Nadybot\Core\Safe;
+use Nadybot\Core\Types\ParamAttribute as TypesParamAttribute;
 use ReflectionParameter;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
-class Regexp implements ParamAttribute {
+class Regexp implements TypesParamAttribute {
 	public function __construct(
 		public string $value,
 		public ?string $example=null,

@@ -8,9 +8,9 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	ExportCharacter,
-	ExporterInterface,
-	ImporterInterface,
-	ModuleInstance
+	ModuleInstance,
+	Types\ExporterInterface,
+	Types\ImporterInterface
 };
 use Psr\Log\LoggerInterface;
 use Throwable;

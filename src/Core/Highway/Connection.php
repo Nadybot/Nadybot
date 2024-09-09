@@ -5,7 +5,7 @@ namespace Nadybot\Core\Highway;
 use function Safe\json_encode;
 use Amp\Websocket\Client\WebsocketConnection;
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException};
-use EventSauce\ObjectHydrator\{UnableToHydrateObject};
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\Highway\In\InPackage;
 use Nadybot\Core\Highway\Out\OutPackage;

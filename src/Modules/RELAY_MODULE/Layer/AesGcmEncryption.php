@@ -4,7 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use function Safe\{base64_decode, openssl_cipher_iv_length, openssl_decrypt, openssl_digest, openssl_encrypt, pack, sodium_crypto_aead_aes256gcm_decrypt};
 use Exception;
-use Nadybot\Core\{Attributes as NCA};
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,

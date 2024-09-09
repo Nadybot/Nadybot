@@ -11,11 +11,11 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	DB,
-	ExporterInterface,
 	Filesystem,
 	Hydrator,
 	ModuleInstance,
 	Registry,
+	Types\ExporterInterface,
 };
 use Psr\Log\LoggerInterface;
 use ReflectionClass;

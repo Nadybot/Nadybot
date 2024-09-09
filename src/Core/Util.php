@@ -11,6 +11,7 @@ use InvalidArgumentException;
 use Iterator;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\Types\MinMax;
 use RangeException;
 
 use ReflectionClass;

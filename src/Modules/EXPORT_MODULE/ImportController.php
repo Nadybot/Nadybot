@@ -15,11 +15,11 @@ use Nadybot\Core\{
 	DB,
 	Filesystem,
 	Hydrator,
-	ImporterInterface,
 	ModuleInstance,
 	ParamClass\PFilename,
 	Registry,
 	Safe,
+	Types\ImporterInterface,
 };
 use Psr\Log\LoggerInterface;
 use ReflectionClass;

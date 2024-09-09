@@ -523,7 +523,7 @@ class BotRunner {
 						]);
 						exit;
 					}
-					$attr->name ??= Nadybot::toSnakeCase($refProp->getName());
+					$attr->name ??= Text::toSnakeCase($refProp->getName());
 					try {
 						$value = $settingManager->getTyped($attr->name);
 					} catch (Throwable) {

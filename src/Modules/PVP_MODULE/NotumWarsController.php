@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use EventSauce\ObjectHydrator\{UnableToHydrateObject};
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;

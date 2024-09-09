@@ -439,6 +439,24 @@ class Text {
 		return $text;
 	}
 
+	public static function toSnakeCase(string $name): string {
+		return strtolower(
+			Safe::pregReplace(
+				'/([A-Z][a-z])/',
+				'_$1',
+				Safe::pregReplace(
+					'/([A-Z]{2,})(?=[A-Z][a-z]|$)/',
+					'_$1',
+					Safe::pregReplace(
+						"/(\d+)$/",
+						'_$1',
+						$name
+					)
+				)
+			)
+		);
+	}
+
 	protected static function removeCommonLines(string $firstBlock, string $nextBlock): string {
 		$firstPageLines = explode("\n", $firstBlock);
 		$nextPageLines = explode("\n", $nextBlock);

@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Attributes;
 
 use Attribute;
-use Nadybot\Core\ParamAttribute;
+use Nadybot\Core\Types\ParamAttribute;
 use ReflectionParameter;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]

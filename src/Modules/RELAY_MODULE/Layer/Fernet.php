@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Fernet\Fernet as FernetProto;
-use Nadybot\Core\{Attributes as NCA};
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,

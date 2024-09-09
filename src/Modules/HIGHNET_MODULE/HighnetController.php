@@ -7,9 +7,8 @@ namespace Nadybot\Modules\HIGHNET_MODULE;
 use function Safe\json_decode;
 
 use Closure;
-use EventSauce\ObjectHydrator\{UnableToHydrateObject};
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
-
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
 use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
