@@ -4,7 +4,7 @@ namespace Nadybot\Modules\NOTES_MODULE\Migrations\Links;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\NOTES_MODULE\Link;
 use Psr\Log\LoggerInterface;
 

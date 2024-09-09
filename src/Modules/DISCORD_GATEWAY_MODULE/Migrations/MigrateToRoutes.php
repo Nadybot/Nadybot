@@ -16,7 +16,7 @@ use Nadybot\Core\{
 	Modules\DISCORD\DiscordChannel,
 	Routing\Source,
 	Safe,
-	SchemaMigration,
+	Types\SchemaMigration,
 };
 use Psr\Log\LoggerInterface;
 use Throwable;

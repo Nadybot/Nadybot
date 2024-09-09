@@ -4,7 +4,7 @@ namespace Nadybot\Modules\GUILD_MODULE\Migrations\RankMapping;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\GUILD_MODULE\OrgRankMapping;
 use Psr\Log\LoggerInterface;
 

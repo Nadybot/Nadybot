@@ -4,7 +4,7 @@ namespace Nadybot\Modules\RAID_MODULE\Migrations\Raid;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidLog;
 use Psr\Log\LoggerInterface;
 

@@ -4,7 +4,7 @@ namespace Nadybot\Modules\GUILD_MODULE\Migrations\History;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\GUILD_MODULE\OrgHistory;
 use Psr\Log\LoggerInterface;
 

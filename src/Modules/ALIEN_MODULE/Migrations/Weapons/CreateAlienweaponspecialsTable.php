@@ -4,7 +4,7 @@ namespace Nadybot\Modules\ALIEN_MODULE\Migrations\Weapons;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\ALIEN_MODULE\AlienWeaponSpecials;
 use Psr\Log\LoggerInterface;
 

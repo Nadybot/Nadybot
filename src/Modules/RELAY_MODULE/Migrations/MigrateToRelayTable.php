@@ -14,8 +14,8 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	Modules\CONFIG\ConfigController,
 	Routing\Source,
-	SchemaMigration,
 	SettingManager,
+	Types\SchemaMigration,
 };
 use Nadybot\Modules\RELAY_MODULE\{
 	RelayConfig,

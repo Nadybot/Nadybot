@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2022_12_07_15_23_30)]

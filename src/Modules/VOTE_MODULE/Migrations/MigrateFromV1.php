@@ -4,7 +4,7 @@ namespace Nadybot\Modules\VOTE_MODULE\Migrations;
 
 use function Safe\json_encode;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\VOTE_MODULE\{Poll, Vote, VoteController};
 use Psr\Log\LoggerInterface;
 

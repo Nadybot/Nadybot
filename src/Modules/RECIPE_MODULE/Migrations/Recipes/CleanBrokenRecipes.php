@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RECIPE_MODULE\Migrations\Recipes;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\RECIPE_MODULE\Recipe;
 use Psr\Log\LoggerInterface;
 

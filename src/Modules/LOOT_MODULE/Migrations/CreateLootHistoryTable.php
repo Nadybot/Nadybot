@@ -4,7 +4,7 @@ namespace Nadybot\Modules\LOOT_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\LOOT_MODULE\LootHistory;
 use Psr\Log\LoggerInterface;
 

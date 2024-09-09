@@ -6,7 +6,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	DB,
-	SchemaMigration,
+	Types\SchemaMigration,
 };
 use Nadybot\Modules\HELPBOT_MODULE\ICCArbiter;
 use Psr\Log\LoggerInterface;

@@ -4,7 +4,7 @@ namespace Nadybot\Modules\IMPLANT_MODULE\Migrations\Premade;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\IMPLANT_MODULE\PremadeImplant;
 use Psr\Log\LoggerInterface;
 

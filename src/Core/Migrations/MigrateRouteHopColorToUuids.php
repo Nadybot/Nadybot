@@ -5,7 +5,7 @@ namespace Nadybot\Core\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\RouteHopColor;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2024_08_01_15_35_00)]

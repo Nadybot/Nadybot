@@ -6,7 +6,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	SchemaMigration,
+	Types\SchemaMigration,
 };
 use Nadybot\Modules\COMMENT_MODULE\{Comment, ReputationController};
 use Psr\Log\LoggerInterface;

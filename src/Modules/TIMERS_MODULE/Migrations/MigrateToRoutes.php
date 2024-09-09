@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	Modules\DISCORD\DiscordAPIClient,
 	Modules\DISCORD\DiscordChannel,
 	Routing\Source,
-	SchemaMigration,
+	Types\SchemaMigration,
 };
 use Nadybot\Modules\TIMERS_MODULE\Timer;
 use Psr\Log\LoggerInterface;

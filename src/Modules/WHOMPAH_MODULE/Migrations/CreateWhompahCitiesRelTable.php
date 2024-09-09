@@ -4,7 +4,7 @@ namespace Nadybot\Modules\WHOMPAH_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\WHOMPAH_MODULE\WhompahCityRel;
 use Psr\Log\LoggerInterface;
 

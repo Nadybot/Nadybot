@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE\Migrations\Designer;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2024_08_13_11_54_01, shared: true)]

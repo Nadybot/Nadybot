@@ -5,7 +5,7 @@ namespace Nadybot\Core\Modules\BAN\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\BAN\BannedOrg;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_06_22_06_47_01)]

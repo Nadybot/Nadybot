@@ -4,7 +4,7 @@ namespace Nadybot\Modules\DISC_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\DISC_MODULE\Disc;
 use Psr\Log\LoggerInterface;
 

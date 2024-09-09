@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	Routing\Source,
-	SchemaMigration,
+	Types\SchemaMigration,
 };
 use Psr\Log\LoggerInterface;
 

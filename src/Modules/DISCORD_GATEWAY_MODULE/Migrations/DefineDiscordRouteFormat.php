@@ -5,7 +5,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
 use Nadybot\Core\Routing\Source;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2023_05_15_14_37_04)]

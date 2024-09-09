@@ -4,7 +4,7 @@ namespace Nadybot\Modules\HELPBOT_MODULE\Migrations\Dyna;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\HELPBOT_MODULE\DynaDB;
 use Psr\Log\LoggerInterface;
 

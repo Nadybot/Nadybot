@@ -4,7 +4,7 @@ namespace Nadybot\Modules\NOTES_MODULE\Migrations\OrgNotes;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\NOTES_MODULE\OrgNote;
 use Psr\Log\LoggerInterface;
 

@@ -13,7 +13,7 @@ use Nadybot\Core\{
 	Modules\DISCORD\DiscordAPIClient,
 	Modules\DISCORD\DiscordChannel,
 	Routing\Source,
-	SchemaMigration,
+	Types\SchemaMigration,
 };
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 use Psr\Log\LoggerInterface;

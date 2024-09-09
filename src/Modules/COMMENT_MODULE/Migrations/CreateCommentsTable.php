@@ -4,7 +4,7 @@ namespace Nadybot\Modules\COMMENT_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_25_13_55_43)]

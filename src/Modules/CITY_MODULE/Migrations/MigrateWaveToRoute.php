@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Setting,
 	Routing\Source,
-	SchemaMigration,
+	Types\SchemaMigration,
 	Types\SettingMode,
 };
 use Nadybot\Modules\CITY_MODULE\CityWaveController;

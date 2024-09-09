@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
 	Routing\Source,
-	SchemaMigration,
+	Types\SchemaMigration,
 };
 use Nadybot\Modules\CITY_MODULE\CloakController;
 use Psr\Log\LoggerInterface;

@@ -6,7 +6,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	SchemaMigration,
+	Types\SchemaMigration,
 	Util,
 };
 use Nadybot\Modules\NEWS_MODULE\News;

@@ -4,7 +4,7 @@ namespace Nadybot\Modules\RAID_MODULE\Migrations\Ranks;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidRank;
 use Psr\Log\LoggerInterface;
 

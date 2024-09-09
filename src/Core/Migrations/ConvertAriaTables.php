@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_10_27_08_45_01)]

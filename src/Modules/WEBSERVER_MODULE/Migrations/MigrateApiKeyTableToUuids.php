@@ -4,7 +4,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\WEBSERVER_MODULE\ApiKey;
 use Psr\Log\LoggerInterface;
 

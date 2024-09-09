@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
 	Routing\Character,
-	SchemaMigration,
+	Types\SchemaMigration,
 };
 use Nadybot\Modules\TIMERS_MODULE\Timer;
 use Nadybot\Modules\{

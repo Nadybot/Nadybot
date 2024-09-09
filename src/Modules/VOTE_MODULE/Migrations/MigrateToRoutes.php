@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Setting,
 	Routing\Source,
-	SchemaMigration,
+	Types\SchemaMigration,
 };
 use Nadybot\Modules\VOTE_MODULE\VoteController;
 use Psr\Log\LoggerInterface;

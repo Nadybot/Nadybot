@@ -4,7 +4,7 @@ namespace Nadybot\Modules\SKILLS_MODULE\Migrations\Perks;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\SKILLS_MODULE\PerkLevelBuff;
 use Psr\Log\LoggerInterface;
 

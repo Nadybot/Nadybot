@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	Routing\Source,
 	Safe,
-	SchemaMigration,
+	Types\SchemaMigration,
 };
 use Psr\Log\LoggerInterface;
 

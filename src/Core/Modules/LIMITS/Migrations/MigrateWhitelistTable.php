@@ -4,7 +4,7 @@ namespace Nadybot\Core\Modules\LIMITS\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\RateIgnoreList;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Psr\Log\LoggerInterface;
 use stdClass;
 

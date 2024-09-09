@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	DBSchema\RouteModifierArgument,
 	DBSchema\Setting,
 	Routing\Source,
-	SchemaMigration,
+	Types\SchemaMigration,
 };
 use Psr\Log\LoggerInterface;
 

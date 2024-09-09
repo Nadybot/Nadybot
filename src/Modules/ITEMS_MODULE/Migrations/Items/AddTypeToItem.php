@@ -4,7 +4,7 @@ namespace Nadybot\Modules\ITEMS_MODULE\Migrations\Items;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 use Psr\Log\LoggerInterface;
 

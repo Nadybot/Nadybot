@@ -4,7 +4,7 @@ namespace Nadybot\Modules\CITY_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\CITY_MODULE\OrgCity;
 use Psr\Log\LoggerInterface;
 

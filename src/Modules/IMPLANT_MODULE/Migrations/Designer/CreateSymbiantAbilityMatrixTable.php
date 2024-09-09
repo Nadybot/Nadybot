@@ -4,7 +4,7 @@ namespace Nadybot\Modules\IMPLANT_MODULE\Migrations\Designer;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\IMPLANT_MODULE\SymbiantAbilityMatrix;
 use Psr\Log\LoggerInterface;
 

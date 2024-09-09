@@ -15,9 +15,8 @@ use Illuminate\Database\{
 	Connection,
 	Schema\Blueprint,
 };
-use Illuminate\Support\{Collection, Fluent};
+use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Attributes\Migration as AttributesMigration;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CSV\Reader,
@@ -25,6 +24,7 @@ use Nadybot\Core\{
 	DBSchema\Migration,
 	Migration as CoreMigration,
 	Types\ModuleInstanceInterface,
+	Types\SchemaMigration,
 	Types\SettingMode,
 };
 use PDO;
@@ -1006,7 +1006,7 @@ class DB {
 			if (!str_starts_with($fileName, $fullDir . \DIRECTORY_SEPARATOR)) {
 				continue;
 			}
-			$migAttr = $refClass->getAttributes(AttributesMigration::class);
+			$migAttr = $refClass->getAttributes(NCA\Migration::class);
 			if (count($migAttr) !== 1) {
 				continue;
 			}

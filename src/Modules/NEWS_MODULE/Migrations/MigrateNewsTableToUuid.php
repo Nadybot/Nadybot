@@ -4,7 +4,7 @@ namespace Nadybot\Modules\NEWS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, SchemaMigration};
+use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\NEWS_MODULE\{News, NewsConfirmed};
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
