@@ -17,6 +17,6 @@ class GuildChannelCommandReply implements CommandReply, MessageEmitter {
 
 	/** @inheritDoc */
 	public function reply(string|array $msg): void {
-		$this->chatBot->sendGuild(Blob::renderMulti(text: $msg, formatMessage: false));
+		$this->chatBot->sendGuild(message: $msg);
 	}
 }

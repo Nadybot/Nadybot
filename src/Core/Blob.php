@@ -85,7 +85,11 @@ class Blob implements \Stringable {
 		$pageSize ??= ($this->settingManager->getInt('max_blob_size') ?? 0);
 		$text = str_replace(static::LITERAL, '', $this->text, $count);
 		if ($count > 0) {
-			return $this->getText();
+			$text = $this->getText();
+			if ($formatMessage) {
+				return $this->formatMessage(message: $text, renderColors: $renderColors);
+			}
+			return $text;
 		}
 		$matches = Safe::pregMatchOffsetAll(
 			'/(?<block><a href="text:\/\/(?<popup>.+?)">(?<link>.*?)<\/a>)/s',
@@ -112,7 +116,11 @@ class Blob implements \Stringable {
 			$hasPaging = is_array($splitPopup);
 			$resultBlocks []= $splitPopup;
 		}
-		$resultBlocks []= substr($text, $lastPosition);
+		$postText = substr($text, $lastPosition);
+		if ($formatMessage) {
+			$postText = $this->formatMessage($postText, $renderColors);
+		}
+		$resultBlocks []= $postText;
 		$result = [];
 		$continue = false;
 		do {
@@ -175,28 +183,27 @@ class Blob implements \Stringable {
 		}
 		if ($formatMessage) {
 			$popup = $this->formatMessage($popup, $renderColors);
-			$header = $this->formatMessage($header, $renderColors);
+			$formattedHeader = $this->formatMessage($header, $renderColors);
 			$permheader = $this->formatMessage($permheader, $renderColors);
 		}
+		$color = $this->settingManager->getString('default_window_color') ?? '';
 		$pages = $this->paginate(
 			$popup,
-			$pageSize - strlen($header) - strlen($permheader),
+			$pageSize - strlen($formattedHeader ?? $header) - strlen($permheader) - strlen($color),
 			['<pagebreak>', "\n", ' ']
 		);
 		$num = count($pages);
 
 		if ($num === 1) {
-			return '<a href="text://'.
-				($this->settingManager->getString('default_window_color') ?? '').
-				"<header>{$header}<end>\n\n{$permheader}{$pages[0]}\">{$link}</a>";
+			return "<a href=\"text://{$color}".
+				$this->formatMessage("<header>{$header}<end>\n\n", $renderColors).
+				"{$permheader}{$pages[0]}\">{$link}</a>";
 		}
 		$i = 1;
 		foreach ($pages as $key => $page) {
-			$pages[$key] = '<a href="text://'.
-				($this->settingManager->getString('default_window_color') ?? '').
-				"<header>{$header} (Page {$i} / {$num})<end>\n\n{$permheader}".
-				"{$page}\">".
-				"{$link} (Page {$i} / {$num})</a>";
+			$pages[$key] = "<a href=\"text://{$color}".
+				$this->formatMessage("<header>{$header} (Page {$i} / {$num})<end>\n\n", $renderColors).
+				"{$permheader}{$page}\">{$link} (Page {$i} / {$num})</a>";
 			$i++;
 		}
 		return $pages;

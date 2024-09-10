@@ -4,7 +4,6 @@ namespace Nadybot\Core\Channels;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	Blob,
 	MessageHub,
 	Nadybot,
 	Routing\RoutableEvent,
@@ -30,7 +29,6 @@ class PublicChannel extends Base {
 		if (!isset($message)) {
 			return false;
 		}
-		$message = Blob::create($message)->render(formatMessage: false);
 		$this->chatBot->sendPublic($message, $this->channel);
 		return true;
 	}

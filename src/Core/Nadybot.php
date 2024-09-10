@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Amp\delay;
+use function Amp\{async, delay};
 use function Safe\{preg_match, sapi_windows_set_ctrl_handler, unpack};
 
 use Amp\ByteStream\StreamException;
@@ -419,8 +419,11 @@ class Nadybot {
 		return $this->aoClient->getGroup($groupId);
 	}
 
-	public function sendPackage(OutPackage $package, ?string $worker=null, ?SendPriority $priority=null): void {
-		$priority ??= SendPriority::Medium;
+	public function sendPackage(
+		OutPackage $package,
+		?string $worker=null,
+		SendPriority $priority=SendPriority::Medium,
+	): void {
 		try {
 			$this->aoClient->write(package: $package, worker: $worker, priority: $priority);
 		} catch (StreamException $e) {
@@ -574,11 +577,11 @@ class Nadybot {
 	 */
 	public function sendPrivate(string|iterable $message, bool $disableRelay=false, ?string $group=null, bool $addDefaultColor=true): void {
 		if (is_iterable($message)) {
-			EventLoop::queue(function () use ($message, $disableRelay, $group): void {
+			async(function () use ($message, $disableRelay, $group, $addDefaultColor): void {
 				foreach ($message as $page) {
-					$this->sendPrivate($page, $disableRelay, $group);
+					$this->sendPrivate($page, $disableRelay, $group, $addDefaultColor);
 				}
-			});
+			})->await();
 			return;
 		}
 
@@ -590,40 +593,40 @@ class Nadybot {
 			return;
 		}
 
-		if ($this->privChannelColors) {
-			$message = $this->text->formatMessage($origMsg = $message);
-		} else {
-			$message = $this->text->stripColors($origMsg = $message);
-		}
+		$pages = (array)Blob::create(text: $message, settingManager: $this->settingManager)
+			->render(renderColors: $this->privChannelColors);
 		$privColor = '';
 		if ($addDefaultColor) {
 			$privColor = $this->settingManager->getString('default_priv_color') ?? '';
 		}
 
-		EventLoop::queue(
-			$this->sendPackage(...),
-			new Package\Out\PrivateChannelMessage(
-				channelId: $uid,
-				message: $privColor.$message
-			)
-		);
+		$sender = async(function () use ($privColor, $pages, $uid): void {
+			foreach ($pages as $page) {
+				$this->sendPackage(
+					new Package\Out\PrivateChannelMessage(
+						channelId: $uid,
+						message: $privColor.$page
+					)
+				);
+			}
+		});
 		$event = new SendPrivEvent(
 			channel: $group,
-			message: $origMsg,
+			message: $message,
 			sender: $this->config->main->character,
 		);
 		$this->eventManager->fireEvent($event, $disableRelay);
-		if ($disableRelay) {
-			return;
+		if (!$disableRelay) {
+			$rMessage = new RoutableMessage($message);
+			$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
+			$label = null;
+			if (strlen($this->config->general->orgName)) {
+				$label = 'Guest';
+			}
+			$rMessage->prependPath(new Source(Source::PRIV, $this->config->main->character, $label));
+			EventLoop::queue($this->messageHub->handle(...), $rMessage);
 		}
-		$rMessage = new RoutableMessage($origMsg);
-		$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
-		$label = null;
-		if (strlen($this->config->general->orgName)) {
-			$label = 'Guest';
-		}
-		$rMessage->prependPath(new Source(Source::PRIV, $this->config->main->character, $label));
-		EventLoop::queue($this->messageHub->handle(...), $rMessage);
+		$sender->await();
 	}
 
 	/**
@@ -631,47 +634,46 @@ class Nadybot {
 	 *
 	 * @param string|iterable<string> $message      One or more messages to send
 	 * @param bool                    $disableRelay Set to true to disable relaying the message into the bot's private channel
-	 * @param ?SendPriority           $priority     The priority of the message or medium if unset
+	 * @param SendPriority            $priority     The priority of the message or medium if unset
 	 */
 	public function sendGuild(
 		string|iterable $message,
 		bool $disableRelay=false,
-		?SendPriority $priority=null,
+		SendPriority $priority=SendPriority::Medium,
 		bool $addDefaultColor=true
 	): void {
-		if (!isset($this->orgGroup) || !$this->guildChannelStatus) {
+		$orgGroup = $this->orgGroup;
+		if (!isset($orgGroup) || !$this->guildChannelStatus) {
 			return;
 		}
 
 		if (is_iterable($message)) {
-			EventLoop::queue(function () use ($message, $disableRelay, $priority): void {
+			async(function () use ($message, $disableRelay, $priority, $addDefaultColor): void {
 				foreach ($message as $page) {
-					$this->sendGuild($page, $disableRelay, $priority);
+					$this->sendGuild($page, $disableRelay, $priority, $addDefaultColor);
 				}
-			});
+			})->await();
 			return;
 		}
 
-		$priority ??= SendPriority::Medium;
-
-		if ($this->guildChannelColors) {
-			$message = $this->text->formatMessage($origMsg = $message);
-		} else {
-			$message = $this->text->stripColors($origMsg = $message);
-		}
+		$pages = (array)Blob::create(text: $origMsg = $message, settingManager: $this->settingManager)
+			->render(renderColors: $this->guildChannelColors);
 		$guildColor = '';
 		if ($addDefaultColor) {
 			$guildColor = $this->settingManager->getString('default_guild_color')??'';
 		}
 
-		EventLoop::queue(
-			$this->sendPackage(...),
-			package: new Package\Out\GroupMessage(
-				groupId: $this->orgGroup->id,
-				message: $guildColor.$message,
-			),
-			priority: $priority,
-		);
+		$sender = async(function () use ($orgGroup, $guildColor, $pages, $priority): void {
+			foreach ($pages as $page) {
+				$this->sendPackage(
+					package: new Package\Out\GroupMessage(
+						groupId: $orgGroup->id,
+						message: $guildColor.$page,
+					),
+					priority: $priority,
+				);
+			}
+		});
 		$event = new SendGuildEvent(
 			channel: $this->config->general->orgName,
 			message: $origMsg,
@@ -679,21 +681,26 @@ class Nadybot {
 		);
 		$this->eventManager->fireEvent($event, $disableRelay);
 
-		if ($disableRelay) {
-			return;
+		if (!$disableRelay) {
+			$rMessage = new RoutableMessage($origMsg);
+			$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
+			$abbr = $this->settingManager->getString('relay_guild_abbreviation');
+			$rMessage->prependPath(new Source(
+				Source::ORG,
+				$this->config->general->orgName,
+				($abbr === 'none') ? null : $abbr
+			));
+			EventLoop::queue($this->messageHub->handle(...), $rMessage);
 		}
-		$rMessage = new RoutableMessage($origMsg);
-		$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
-		$abbr = $this->settingManager->getString('relay_guild_abbreviation');
-		$rMessage->prependPath(new Source(
-			Source::ORG,
-			$this->config->general->orgName,
-			($abbr === 'none') ? null : $abbr
-		));
-		EventLoop::queue($this->messageHub->handle(...), $rMessage);
+		$sender->await();
 	}
 
-	public function sendRawTell(int|string $character, string $message, ?SendPriority $priority=null, ?string $worker=null): bool {
+	public function sendRawTell(
+		int|string $character,
+		string $message,
+		SendPriority $priority=SendPriority::Medium,
+		?string $worker=null
+	): bool {
 		if (is_string($character)) {
 			$character = $this->getUid(Utils::normalizeCharacter($character));
 			if (!isset($character)) {
@@ -716,44 +723,63 @@ class Nadybot {
 	 *
 	 * @param string|iterable<string> $message       One or more messages to send
 	 * @param string                  $character     Name of the person to send the tell to
-	 * @param ?SendPriority           $priority      The priority of the message or medium if unset
+	 * @param SendPriority            $priority      The priority of the message or medium if unset
 	 * @param bool                    $formatMessage If set, replace tags with their corresponding colors
 	 */
-	public function sendTell(string|iterable $message, string $character, ?SendPriority $priority=null, bool $formatMessage=true): void {
+	public function sendTell(
+		string|iterable $message,
+		string $character,
+		SendPriority $priority=SendPriority::Medium,
+		bool $formatMessage=true
+	): void {
 		$numWorkers = count($this->config->worker);
 		if (($numWorkers > 0) && $this->forceMassTells && $this->allowMassTells) {
 			if (is_iterable($message)) {
 				/** @var Collection<int,string> */
 				$message = new Collection($message);
 			}
-			$this->sendMassTell($message, $character, $priority, $formatMessage);
+			$this->sendMassTell(
+				message: $message,
+				character: $character,
+				priority: $priority,
+				formatMessage: $formatMessage
+			);
 			return;
 		}
 		// for when $text generates several pages
 		if (is_iterable($message)) {
-			EventLoop::queue(function () use ($message, $character, $priority, $formatMessage): void {
+			async(function () use ($message, $character, $priority, $formatMessage): void {
 				foreach ($message as $page) {
-					$this->sendTell($page, $character, $priority, $formatMessage);
+					$this->sendTell(
+						message: $page,
+						character: $character,
+						priority: $priority,
+						formatMessage: $formatMessage
+					);
 				}
-			});
+			})->await();
 			return;
 		}
 
-		$priority ??= SendPriority::Medium;
-
 		$rMessage = new RoutableMessage($message);
 		$tellColor = '';
+		$pages = (array)$message;
 		if ($formatMessage) {
-			if ($this->tellColors) {
-				$message = $this->text->formatMessage($message);
-			} else {
-				$message = $this->text->stripColors($message);
-			}
+			$pages = (array)Blob::create(text: $message, settingManager: $this->settingManager)
+				->render(renderColors: $this->tellColors);
 			$tellColor = $this->settingManager->getString('default_tell_color')??'';
 		}
 
 		$this->logChat('Out. Msg.', $character, $message);
-		$this->sendRawTell($character, $tellColor.$message);
+		$sender = async(function () use ($character, $tellColor, $pages, $priority): void {
+			foreach ($pages as $page) {
+				$this->sendRawTell(
+					character: $character,
+					message: $tellColor.$page,
+					priority: $priority,
+				);
+			}
+		});
 		$event = new SendMsgEvent(
 			channel: $character,
 			message: $message,
@@ -763,6 +789,7 @@ class Nadybot {
 		$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
 		$rMessage->prependPath(new Source(Source::TELL, $this->config->main->character));
 		EventLoop::queue($this->messageHub->handle(...), $rMessage);
+		$sender->await();
 	}
 
 	/**
@@ -770,8 +797,13 @@ class Nadybot {
 	 *
 	 * @param string|list<string>|Collection<int,string> $message
 	 */
-	public function sendMassTell(string|array|Collection $message, string $character, ?SendPriority $priority=null, bool $formatMessage=true, null|int|string $worker=null): void {
-		$priority ??= SendPriority::High;
+	public function sendMassTell(
+		string|array|Collection $message,
+		string $character,
+		SendPriority $priority=SendPriority::High,
+		bool $formatMessage=true,
+		null|int|string $worker=null
+	): void {
 		$numWorkers = count($this->config->worker);
 
 		// If we're not using workers, or mass tells are disabled, this doesn't do anything
@@ -779,33 +811,52 @@ class Nadybot {
 			$this->sendTell($message, $character, $priority, $formatMessage);
 			return;
 		}
-		$this->numSpamMsgsSent++;
-		if (is_string($message)) {
-			$message = (array)$message;
+		if (!is_string($message)) {
+			async(function () use ($message, $character, $priority, $formatMessage, $worker): void {
+				foreach ($message as $page) {
+					$this->sendMassTell(
+						message: $page,
+						character: $character,
+						priority: $priority,
+						formatMessage: $formatMessage,
+						worker: $worker,
+					);
+				}
+			})->await();
+			return;
 		}
-		$sendToWorker = isset($worker) && $this->replyOnSameWorker;
-		$sendByMsg = $this->pagingOnSameWorker && count($message) > 1;
-		if ($sendToWorker) {
-			if (is_int($worker)) {
-				$worker = $this->config->worker[$worker]->character;
-			}
-		} elseif ($sendByMsg) {
-			$worker = random_int(0, $numWorkers -1);
-			$worker = $this->config->worker[$worker]->character;
+		$pages = (array)Blob::create(text: $message, settingManager: $this->settingManager)
+			->render(formatMessage: $formatMessage);
+		$tellColor = '';
+		if ($formatMessage) {
+			$tellColor = $this->settingManager->getString('default_tell_color')??'';
 		}
-		foreach ($message as $page) {
-			$tellColor = '';
-			if ($formatMessage) {
-				$page = $this->text->formatMessage($page);
-				$tellColor = $this->settingManager->getString('default_tell_color')??'';
-			}
-			if (!is_string($worker) || (!$sendByMsg && !$sendToWorker)) {
+		async(function () use ($pages, $character, $priority, $tellColor, $worker, $numWorkers): void {
+			$this->numSpamMsgsSent++;
+			$sendToWorker = isset($worker) && $this->replyOnSameWorker;
+			$sendByMsg = $this->pagingOnSameWorker && count($pages) > 1;
+			if ($sendToWorker) {
+				if (is_int($worker)) {
+					$worker = $this->config->worker[$worker]->character;
+				}
+			} elseif ($sendByMsg) {
 				$worker = random_int(0, $numWorkers -1);
 				$worker = $this->config->worker[$worker]->character;
 			}
-			$this->logChat('Out. Msg. via ' . $worker, $character, $page);
-			$this->sendRawTell($character, $tellColor.$page, null, $worker);
-		}
+			foreach ($pages as $page) {
+				if (!is_string($worker) || (!$sendByMsg && !$sendToWorker)) {
+					$worker = random_int(0, $numWorkers -1);
+					$worker = $this->config->worker[$worker]->character;
+				}
+				$this->logChat('Out. Msg. via ' . $worker, $character, $page);
+				$this->sendRawTell(
+					character: $character,
+					message: $tellColor.$page,
+					priority: $priority,
+					worker: $worker,
+				);
+			}
+		})->await();
 	}
 
 	/**
@@ -813,9 +864,13 @@ class Nadybot {
 	 *
 	 * @param string|iterable<string> $message  One or more messages to send
 	 * @param string                  $channel  Name of the channel to send the message to
-	 * @param ?SendPriority           $priority The priority of the message or medium if unset
+	 * @param SendPriority            $priority The priority of the message or medium if unset
 	 */
-	public function sendPublic(string|iterable $message, string $channel, ?SendPriority $priority=null): void {
+	public function sendPublic(
+		string|iterable $message,
+		string $channel,
+		SendPriority $priority=SendPriority::Medium
+	): void {
 		$group = $this->getGroupByName($channel);
 		if (!isset($group)) {
 			$this->logger->warning("Trying to send to unknown group '{group}'", [
@@ -824,29 +879,35 @@ class Nadybot {
 			return;
 		}
 		if (is_iterable($message)) {
-			foreach ($message as $page) {
-				$this->sendPublic($page, $channel, $priority);
-			}
+			async(function () use ($message, $channel, $priority): void {
+				foreach ($message as $page) {
+					$this->sendPublic(message: $page, channel: $channel, priority: $priority);
+				}
+			})->await();
 			return;
 		}
 
-		$message = $this->text->formatMessage($origMessage = $message);
+		$pages = (array)Blob::create(text: $message, settingManager: $this->settingManager)->render();
 		$guildColor = $this->settingManager->getString('default_guild_color')??'';
 
-		$rMessage = new RoutableMessage($origMessage);
+		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(new Character(
 			$this->config->main->character,
 			$this->char?->id
 		));
 		$rMessage->prependPath(new Source(Source::PUB, $channel));
-		$this->messageHub->handle($rMessage);
-		$this->sendPackage(
-			package: new Package\Out\GroupMessage(
-				groupId: $group->id,
-				message: $guildColor.$message,
-			),
-			priority: $priority,
-		);
+		EventLoop::queue($this->messageHub->handle(...), $rMessage);
+		async(function () use ($group, $guildColor, $pages, $priority): void {
+			foreach ($pages as $page) {
+				$this->sendPackage(
+					package: new Package\Out\GroupMessage(
+						groupId: $group->id,
+						message: $guildColor.$page,
+					),
+					priority: $priority,
+				);
+			}
+		})->await();
 	}
 
 	/** Process an incoming message packet that the bot receives */

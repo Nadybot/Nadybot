@@ -1068,7 +1068,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			message: $msg,
 		);
 		$this->dispatchRoutableEvent($e);
-		$this->chatBot->sendPrivate($msg, true);
+		$this->chatBot->sendPrivate(message: $msg, disableRelay: true);
 		$this->guildController->lastLogonMsgs[$eMain] = time();
 
 		$whois = $this->playerManager->byName($sender);
