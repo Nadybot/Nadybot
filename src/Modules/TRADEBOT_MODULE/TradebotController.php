@@ -190,9 +190,9 @@ class TradebotController extends ModuleInstance {
 				'or <highlight><symbol>route add tradebot(*) -&gt; aoorg<end> to '.
 				'set up message routing between the tradebot and your org- and/or private channel.';
 			if (strlen($this->config->general->orgName)) {
-				$this->chatBot->sendGuild($msg, true);
+				$this->chatBot->sendGuild(message: $msg, disableRelay: true);
 			} else {
-				$this->chatBot->sendPrivate($msg, true);
+				$this->chatBot->sendPrivate(message: $msg, disableRelay: true);
 			}
 		}
 	}

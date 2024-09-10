@@ -4,7 +4,6 @@ namespace Nadybot\Modules\MASSMSG_MODULE;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	Blob,
 	Nadybot,
 	Routing\Events\Base,
 	Routing\RoutableEvent,
@@ -45,7 +44,6 @@ class MassMsgReceiver implements MessageReceiver {
 		}
 		$message = "{$ctrl->massmsgColor}{$msg}<end>".
 			' :: ' . $ctrl->getMassMsgOptInOutBlob();
-		$message = Blob::create($message)->render(formatMessage: false);
 
 		EventLoop::queue(
 			$ctrl->massCallback(...),
