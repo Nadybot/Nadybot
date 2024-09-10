@@ -128,6 +128,10 @@ class HelpManager {
 
 	public function checkForHelpFile(string $module, string $file): string {
 		$actualFilename = $this->util->verifyFilename($module . \DIRECTORY_SEPARATOR . $file);
+		$baseDir = rtrim(BotRunner::getBasedir(), \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR;
+		if (str_starts_with($actualFilename, $baseDir)) {
+			$actualFilename = './' . substr($actualFilename, strlen($baseDir));
+		}
 		if ($actualFilename === '') {
 			$this->logger->warning('Error in registering the help file {module}/{file}: {error}', [
 				'error' => "The file doesn't exist",
