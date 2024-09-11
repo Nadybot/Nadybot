@@ -109,6 +109,9 @@ class Blob implements \Stringable {
 			$lastPosition = $blockStart + strlen($matches['block'][$i][0]);
 			$popup = $matches['popup'][$i][0];
 			$link = $matches['link'][$i][0];
+			if ($formatMessage) {
+				$link = $this->formatMessage($link, $renderColors);
+			}
 			$splitPopup = $this->processPopup($pageSize, $link, $popup, $formatMessage, $renderColors);
 			if (is_array($splitPopup) && $hasPaging) {
 				throw new Exception('Cannot process more than 1 paging popup');

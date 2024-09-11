@@ -770,7 +770,9 @@ class Nadybot {
 			$tellColor = $this->settingManager->getString('default_tell_color')??'';
 		}
 
-		$this->logChat('Out. Msg.', $character, $message);
+		foreach ($pages as $page) {
+			$this->logChat('Out. Msg.', $character, $page);
+		}
 		$sender = async(function () use ($character, $tellColor, $pages, $priority): void {
 			foreach ($pages as $page) {
 				$this->sendRawTell(

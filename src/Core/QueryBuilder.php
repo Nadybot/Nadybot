@@ -331,7 +331,10 @@ class QueryBuilder extends Builder {
 		$fileName = $this->fs->tempnam($this->config->paths->cache . \DIRECTORY_SEPARATOR, 'db_');
 		$this->fs->write($fileName, $code);
 		try {
-			require_once $fileName;
+			// Sometimes, the same class is requested multiple times async
+			if (!class_exists($className . self::CLASS_SEP . 'compiler', false)) {
+				require_once $fileName;
+			}
 		} finally {
 			$this->fs->deleteFile($fileName);
 		}
