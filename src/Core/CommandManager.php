@@ -43,7 +43,7 @@ use ReflectionException;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
-
+use Revolt\EventLoop;
 use Throwable;
 
 #[
@@ -568,127 +568,129 @@ class CommandManager implements MessageEmitter {
 	}
 
 	public function processCmd(CmdContext $context): void {
-		$cmd = explode(' ', $context->message, 2)[0];
-		$cmd = strtolower($cmd);
+		EventLoop::queue(function () use ($context): void {
+			$cmd = explode(' ', $context->message, 2)[0];
+			$cmd = strtolower($cmd);
 
-		if ($this->limitsController->isIgnored($context->char->name)) {
-			return;
-		}
-		if (!isset($context->permissionSet)) {
-			return;
-		}
-		$commandHandler = $this->getActiveCommandHandler($cmd, $context->permissionSet, $context->message);
+			if ($this->limitsController->isIgnored($context->char->name)) {
+				return;
+			}
+			if (!isset($context->permissionSet)) {
+				return;
+			}
+			$commandHandler = $this->getActiveCommandHandler($cmd, $context->permissionSet, $context->message);
 
-		// if command doesn't exist
-		if ($commandHandler === null) {
-			if (isset($context->mapping) && !$context->mapping->feedback) {
+			// if command doesn't exist
+			if ($commandHandler === null) {
+				if (isset($context->mapping) && !$context->mapping->feedback) {
+					return;
+				}
+
+				$cmdNames = $this->commandSearchController
+					->findSimilarCommands($cmd, $context->char->name)
+					->filter(static function (CommandSearchResult $row) use ($context): bool {
+						return $row->permissions[$context->permissionSet]->enabled ?? false;
+					})->slice(0, 5)
+					->pluck('cmd');
+
+				$msg = "Unknown command '{$cmd}'.";
+				if ($cmdNames->isNotEmpty()) {
+					$msg .= ' Did you mean ' . $cmdNames->join(', ', ' or ') . '?';
+				}
+				$context->reply($msg);
+				$event = new UnknownCmdEvent(
+					channel: $context->permissionSet,
+					cmd: $cmd,
+					sender: $context->char->name,
+				);
+				$this->eventManager->fireEvent($event);
 				return;
 			}
 
-			$cmdNames = $this->commandSearchController
-				->findSimilarCommands($cmd, $context->char->name)
-				->filter(static function (CommandSearchResult $row) use ($context): bool {
-					return $row->permissions[$context->permissionSet]->enabled ?? false;
-				})->slice(0, 5)
-				->pluck('cmd');
+			// Remove all handler we are not allowed to call or which don't match
+			$commandHandler->files = array_values(array_filter(
+				$commandHandler->files,
+				function (string $handler) use ($context): bool {
+					return $this->canCallHandler($context, $handler);
+				}
+			));
 
-			$msg = "Unknown command '{$cmd}'.";
-			if ($cmdNames->isNotEmpty()) {
-				$msg .= ' Did you mean ' . $cmdNames->join(', ', ' or ') . '?';
-			}
-			$context->reply($msg);
-			$event = new UnknownCmdEvent(
-				channel: $context->permissionSet,
-				cmd: $cmd,
-				sender: $context->char->name,
-			);
-			$this->eventManager->fireEvent($event);
-			return;
-		}
-
-		// Remove all handler we are not allowed to call or which don't match
-		$commandHandler->files = array_values(array_filter(
-			$commandHandler->files,
-			function (string $handler) use ($context): bool {
-				return $this->canCallHandler($context, $handler);
-			}
-		));
-
-		// If there are no handlers we have access to and the character doesn't
-		// even have access to the main-command: error
-		if (!count($commandHandler->files) && !$this->checkAccessLevel($context, $cmd, $commandHandler)) {
-			$event = new ForbiddenCmdEvent(
-				channel: $context->permissionSet,
-				cmd: $cmd,
-				sender: $context->char->name,
-				cmdHandler: $commandHandler,
-			);
-			$this->eventManager->fireEvent($event);
-			return;
-		}
-
-		try {
-			$handler = $this->executeCommandHandler($commandHandler, $context);
-
-			// No handler found? Display the help
-			if ($handler === null) {
-				$help = $this->getHelpForCommand($cmd, $context);
-				$context->reply($help);
-				$event = new HelpCmdEvent(
+			// If there are no handlers we have access to and the character doesn't
+			// even have access to the main-command: error
+			if (!count($commandHandler->files) && !$this->checkAccessLevel($context, $cmd, $commandHandler)) {
+				$event = new ForbiddenCmdEvent(
 					channel: $context->permissionSet,
 					cmd: $cmd,
 					sender: $context->char->name,
 					cmdHandler: $commandHandler,
 				);
-			} else {
-				$event = new SuccessCmdEvent(
+				$this->eventManager->fireEvent($event);
+				return;
+			}
+
+			try {
+				$handler = $this->executeCommandHandler($commandHandler, $context);
+
+				// No handler found? Display the help
+				if ($handler === null) {
+					$help = $this->getHelpForCommand($cmd, $context);
+					$context->reply($help);
+					$event = new HelpCmdEvent(
+						channel: $context->permissionSet,
+						cmd: $cmd,
+						sender: $context->char->name,
+						cmdHandler: $commandHandler,
+					);
+				} else {
+					$event = new SuccessCmdEvent(
+						channel: $context->permissionSet,
+						cmd: $cmd,
+						sender: $context->char->name,
+						cmdHandler: $commandHandler,
+					);
+				}
+			} catch (StopExecutionException $e) {
+				throw $e;
+			} catch (SQLException $e) {
+				$this->logger->error('{error}', [
+					'error' => $e->getMessage(),
+					'exception' => $e,
+				]);
+				$context->reply('There was an SQL error executing your command.');
+				$event = new ErrorCmdEvent(
+					channel: $context->permissionSet,
+					cmd: $cmd,
+					sender: $context->char->name,
+					cmdHandler: $commandHandler,
+				);
+			} catch (Throwable $e) {
+				$this->logger->error("Error executing '{command}': {error}", [
+					'command' => $context->message,
+					'error' => $e->getMessage(),
+					'exception' => $e,
+				]);
+				$context->reply('There was an error executing your command: ' . $e->getMessage());
+				$event = new ErrorCmdEvent(
 					channel: $context->permissionSet,
 					cmd: $cmd,
 					sender: $context->char->name,
 					cmdHandler: $commandHandler,
 				);
 			}
-		} catch (StopExecutionException $e) {
-			throw $e;
-		} catch (SQLException $e) {
-			$this->logger->error('{error}', [
-				'error' => $e->getMessage(),
-				'exception' => $e,
-			]);
-			$context->reply('There was an SQL error executing your command.');
-			$event = new ErrorCmdEvent(
-				channel: $context->permissionSet,
-				cmd: $cmd,
-				sender: $context->char->name,
-				cmdHandler: $commandHandler,
-			);
-		} catch (Throwable $e) {
-			$this->logger->error("Error executing '{command}': {error}", [
-				'command' => $context->message,
-				'error' => $e->getMessage(),
-				'exception' => $e,
-			]);
-			$context->reply('There was an error executing your command: ' . $e->getMessage());
-			$event = new ErrorCmdEvent(
-				channel: $context->permissionSet,
-				cmd: $cmd,
-				sender: $context->char->name,
-				cmdHandler: $commandHandler,
-			);
-		}
-		$this->eventManager->fireEvent($event);
+			$this->eventManager->fireEvent($event);
 
-		try {
-			// record usage stats (in try/catch block in case there is an error)
-			if ($this->usageController->recordUsageStats && isset($handler)) {
-				$this->usageController->record($context->permissionSet, $cmd, $context->char->name, $handler);
+			try {
+				// record usage stats (in try/catch block in case there is an error)
+				if ($this->usageController->recordUsageStats && isset($handler)) {
+					$this->usageController->record($context->permissionSet, $cmd, $context->char->name, $handler);
+				}
+			} catch (Exception $e) {
+				$this->logger->error('{error}', [
+					'error' => $e->getMessage(),
+					'exception' => $e,
+				]);
 			}
-		} catch (Exception $e) {
-			$this->logger->error('{error}', [
-				'error' => $e->getMessage(),
-				'exception' => $e,
-			]);
-		}
+		});
 	}
 
 	/**

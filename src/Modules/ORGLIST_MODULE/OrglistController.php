@@ -2,21 +2,18 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use function Amp\delay;
-
-use Amp\Pipeline\Pipeline;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	DBSchema\Player,
-	Exceptions\UserException,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PNonGreedy,
+	Registry,
 	Text,
 };
 use Psr\Log\LoggerInterface;
@@ -163,33 +160,9 @@ class OrglistController extends ModuleInstance {
 	 * @return array<string,bool>
 	 */
 	public function getOnlineStates(Guild $org): array {
-		$todo = [];
-		foreach ($org->members as $member) {
-			$todo []= $member->name;
-		}
-
-		$numThreads = min($this->getFreeBuddylistSlots() - 5, count($org->members));
-		if (count($org->members) > 100 && $numThreads < 10) {
-			throw new UserException(
-				'You need more buddylist slots to be able to use this command.'
-			);
-		}
-		$this->logger->notice('Using {numThreads} threads to get online status', [
-			'numThreads' => $numThreads,
-		]);
-		$onlineList = Pipeline::fromIterable($todo)
-			->concurrent($numThreads)
-			->map(function (string $name): bool {
-				$uid = $this->chatBot->getUid($name);
-				if (!isset($uid)) {
-					return false;
-				}
-				while ($this->getFreeBuddylistSlots() < 5) {
-					delay(0.01);
-				}
-				return $this->buddylistManager->checkIsOnline($uid);
-			})->toArray();
-		return array_combine($todo, $onlineList);
+		$orglist = new OrglistJob(org: $org, logger: $this->logger);
+		Registry::injectDependencies($orglist);
+		return $orglist->run();
 	}
 
 	/** Get the number of currently unused buddylist slots */

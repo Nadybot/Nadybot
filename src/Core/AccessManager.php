@@ -256,6 +256,7 @@ class AccessManager {
 		/** @var array<string,int> */
 		$ranks = [];
 		foreach ($this->providers as $provider) {
+			/** @phpstan-ignore-next-line */
 			$rank = $provider->getSingleAccessLevel($sender);
 			if (isset($rank)) {
 				$ranks[$rank] = self::$ACCESS_LEVELS[$rank] ?? self::$ACCESS_LEVELS['all'];
@@ -265,6 +266,8 @@ class AccessManager {
 			return 'all';
 		}
 		asort($ranks);
+
+		/** @phpstan-ignore-next-line */
 		return array_keys($ranks)[0];
 	}
 
