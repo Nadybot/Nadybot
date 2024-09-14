@@ -16,7 +16,7 @@ class BuddylistEntry implements Stringable {
 	 * @param bool               $known  Set to true if the buddy was confirmed
 	 *                                   to be on the list by AO
 	 * @param bool               $online Online-status of the buddy
-	 * @param array<int,bool>    $worker Which worker(s) holds this as their buddy
+	 * @param array<string,bool> $worker Which worker(s) holds this as their buddy
 	 * @param array<string,bool> $types  Internal list to track, why someone
 	 *                                   is on the buddy-list
 	 */

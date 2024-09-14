@@ -35,7 +35,7 @@ class BuddylistManager {
 	/**
 	 * List of all characters currently removed for rebalancing
 	 *
-	 * @var array<int,array<int,bool>>
+	 * @var array<int,array<string,bool>>
 	 */
 	private array $pendingRebalance = [];
 
@@ -266,7 +266,7 @@ class BuddylistManager {
 	}
 
 	/** Update the cached information in the friendlist */
-	public function update(int $userId, bool $status, int $worker=0): void {
+	public function update(int $userId, bool $status, string $worker): void {
 		if ($this->isRebalancing($userId)) {
 			unset($this->pendingRebalance[$userId]);
 			$this->logger->info('{uid} is now on worker {worker}', [
@@ -308,17 +308,29 @@ class BuddylistManager {
 	}
 
 	/** Forcefully delete cached information in the friendlist */
-	public function updateRemoved(int $uid): void {
-		$this->logger->info('UID {uid} removed from buddylist', ['uid' => $uid]);
+	public function updateRemoved(int $uid, string $worker): void {
+		$this->logger->info('UID {uid} removed from buddylist of worker {worker}', [
+			'uid' => $uid,
+			'worker' => $worker,
+		]);
 		if (!$this->isRebalancing($uid)) {
-			unset($this->buddyList[$uid]);
+			if (!isset($this->buddyList[$uid])) {
+				return;
+			}
+			unset($this->buddyList[$uid]->worker[$worker]);
+			if (count($this->buddyList[$uid]->worker) === 0) {
+				unset($this->buddyList[$uid]);
+			}
 			return;
 		}
-		$worker = array_rand($this->pendingRebalance[$uid]);
-		unset($this->pendingRebalance[$uid][$worker]);
-		unset($this->buddyList[$uid]->worker[$worker]);
-		if (count($this->pendingRebalance[$uid]) > 0) {
-			return;
+		if (isset($this->buddyList[$uid])) {
+			unset($this->buddyList[$uid]->worker[$worker]);
+		}
+		if (isset($this->pendingRebalance[$uid])) {
+			unset($this->pendingRebalance[$uid][$worker]);
+			if (count($this->pendingRebalance[$uid]) > 0) {
+				return;
+			}
 		}
 		$this->logger->info('Re-adding {uid} to buddylist for rebalance', [
 			'uid' => $uid,
@@ -342,9 +354,9 @@ class BuddylistManager {
 				return;
 			}
 			$uid = array_rand($this->inRebalance);
-			foreach ($this->buddyList[$uid]->worker as $wid => $true) {
+			foreach ($this->buddyList[$uid]->worker as $worker => $true) {
 				$this->pendingRebalance[$uid] ??= [];
-				$this->pendingRebalance[$uid][$wid] = true;
+				$this->pendingRebalance[$uid][$worker] = true;
 			}
 			unset($this->inRebalance[$uid]);
 			$this->logger->info('Rebalancing {uid}', ['uid' => $uid]);

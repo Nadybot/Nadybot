@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	BuddylistEntry,
 	BuddylistManager,
 	CmdContext,
-	Config\BotConfig,
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PCharacter,
@@ -36,9 +35,6 @@ class BuddylistController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	private BotConfig $config;
 
 	/** Show all characters currently on the buddylist */
 	#[NCA\HandlesCommand('buddylist')]
@@ -197,8 +193,8 @@ class BuddylistController extends ModuleInstance {
 		} else {
 			$blob .= ' [-]';
 		}
-		if ($this->config->proxy?->enabled === true && count($entry->worker) > 1) {
-			$blob .= ' Worker ' . implode('+', array_keys($entry->worker));
+		if (count($entry->worker) > 1) {
+			$blob .= ' {' . implode(', ', array_keys($entry->worker)) . '}';
 		}
 		if ($entry->known && $entry->online) {
 			$blob .= ' <on>Online<end>';

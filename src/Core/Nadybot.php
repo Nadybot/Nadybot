@@ -1190,14 +1190,13 @@ class Nadybot {
 				$this->logger->info('Removing non-existing UID {user_id} from buddylist', [
 					'user_id' => $remUid,
 				]);
-				$this->buddylistManager->updateRemoved($remUid);
+				$this->buddylistManager->updateRemoved($remUid, $package->worker);
 				$remUid = array_shift($this->buddyQueue);
 			}
 		}
 		$inRebalance = $this->buddylistManager->isRebalancing($userId);
 		$wasOnline = $this->buddylistManager->isOnline($sender);
-		$workerId = $this->getWorkerId($worker);
-		$this->buddylistManager->update($userId, $package->package->online, $workerId);
+		$this->buddylistManager->update($userId, $package->package->online, $worker);
 
 		// Ignore Logon/Logoff from other bots or phantom logon/offs
 		if ($inRebalance || $sender === '') {
@@ -1228,7 +1227,7 @@ class Nadybot {
 
 		$this->logger->info('Handling {package}', ['package' => $package->package]);
 
-		$this->buddylistManager->updateRemoved($package->package->charId);
+		$this->buddylistManager->updateRemoved($package->package->charId, $package->worker);
 	}
 
 	/** Handle an incoming tell */

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "026eb32837879fae434bd6287b89f043",
+    "content-hash": "856401edd82672393c7828ec39ce9537",
     "packages": [
         {
             "name": "amphp/amp",
@@ -3226,16 +3226,16 @@
         },
         {
             "name": "nadybot/aolib",
-            "version": "0.1.2",
+            "version": "0.1.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Nadybot/aolib.git",
-                "reference": "63630adc7213886ad94c02cd62ac3fc8f52c902d"
+                "reference": "86f29f5fced59fb97f63a6b5abc4aab9449471a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Nadybot/aolib/zipball/63630adc7213886ad94c02cd62ac3fc8f52c902d",
-                "reference": "63630adc7213886ad94c02cd62ac3fc8f52c902d",
+                "url": "https://api.github.com/repos/Nadybot/aolib/zipball/86f29f5fced59fb97f63a6b5abc4aab9449471a9",
+                "reference": "86f29f5fced59fb97f63a6b5abc4aab9449471a9",
                 "shasum": ""
             },
             "require": {
@@ -3278,9 +3278,9 @@
             "description": "An amphp3-based client library for the Anarchy Online chat server",
             "support": {
                 "issues": "https://github.com/Nadybot/aolib/issues",
-                "source": "https://github.com/Nadybot/aolib/tree/0.1.2"
+                "source": "https://github.com/Nadybot/aolib/tree/0.1.3"
             },
-            "time": "2024-09-13T20:03:39+00:00"
+            "time": "2024-09-14T21:36:58+00:00"
         },
         {
             "name": "nadylib/imex",
