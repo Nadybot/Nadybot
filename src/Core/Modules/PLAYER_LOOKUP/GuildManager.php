@@ -11,9 +11,9 @@ use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
 use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;
 
-use Closure;
 use DateInterval;
 use DateTimeZone;
+use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -22,6 +22,7 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	EventManager,
 	Filesystem,
+	Hydrator,
 	ModuleInstance,
 	Nadybot,
 	Types\Faction,
@@ -30,7 +31,6 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 use Safe\DateTimeImmutable;
-use Safe\Exceptions\JsonException;
 
 /**
  * @author Tyrence (RK2)
@@ -134,11 +134,14 @@ class GuildManager extends ModuleInstance {
 			throw new Exception('Empty data received when reading org data');
 		}
 
-		[$orgInfo, $members, $lastUpdated] = json_decode($body);
+		[$orgInfo, $members, $lastUpdated] = json_decode($body, true);
 
+		$dp = new DefinitionProvider(keyFormatter: new KeyFormatterWithoutConversion());
+		$orgInfo = Hydrator::hydrate(DTOGuild::class, $orgInfo, $dp);
 		if ($orgInfo->NAME === null) {
 			return null;
 		}
+		$members = Hydrator::hydrateObjects(DTOGuildMember::class, $members, $dp)->toArray();
 
 		// parsing of the member data
 		$guild = new Guild(
@@ -176,12 +179,8 @@ class GuildManager extends ModuleInstance {
 		await($futures);
 
 		foreach ($members as $member) {
-			/** @var string */
 			$name = $member->NAME;
-			$charid = $member->CHAR_INSTANCE ?? $this->chatBot->getUid($name, true);
-			if ($charid === null || $charid === false) {
-				$charid = 0;
-			}
+			$charid = $member->CHAR_INSTANCE ?? $this->chatBot->getUid($name, true) ?? 0;
 
 			$guild->members[$name] = new Player(
 				charid: $charid,
@@ -234,19 +233,5 @@ class GuildManager extends ModuleInstance {
 	public function isMyGuild(int $guildId): bool {
 		return isset($this->config->orgId)
 			&& $this->config->orgId === $guildId;
-	}
-
-	protected function getJsonValidator(): Closure {
-		return static function (?string $data): bool {
-			try {
-				if ($data === null) {
-					return false;
-				}
-				$result = json_decode($data);
-				return $result !== null;
-			} catch (JsonException $e) {
-				return false;
-			}
-		};
 	}
 }

@@ -126,6 +126,9 @@ class OrglistJob {
 			$first ??= $worker;
 		} while ($this->slotsFree[$worker] - count($this->procQueue[$worker] ?? []) <= 0);
 		$uid = $player->charid;
+		if ($uid === 0) {
+			return new OrglistItem(name: $player->name, online: false);
+		}
 		if (isset($this->addQueue[$uid])) {
 			throw new Exception('Broken queue, restart the bot!');
 		}
@@ -186,6 +189,7 @@ class OrglistJob {
 		if (!($package instanceof Ping) || $package->extra !== $this->uuid) {
 			return;
 		}
+		$this->procQueue[$event->packet->worker] ??= [];
 		while (($oldestUid = array_shift($this->procQueue[$event->packet->worker]))) {
 			$resolver = $this->addQueue[$oldestUid] ?? null;
 			if (isset($resolver)) {
