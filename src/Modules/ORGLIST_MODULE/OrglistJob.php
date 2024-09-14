@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use function Amp\delay;
 use Amp\DeferredFuture;
 use Amp\Pipeline\{ConcurrentIterator, Pipeline};
 use AO\Package\In\{BuddyRemoved, BuddyState, Ping};
@@ -15,6 +16,7 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 use Nadybot\Core\{Attributes as NCA, BuddylistManager, EventManager, Nadybot};
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
+
 use Revolt\EventLoop;
 
 class OrglistJob {
@@ -113,10 +115,15 @@ class OrglistJob {
 		if (is_bool($cachedOnline)) {
 			return new OrglistItem(name: $player->name, online: $cachedOnline);
 		}
+		$first = null;
 		do {
 			$worker = array_shift($this->workers);
 			assert(isset($worker));
 			$this->workers[] = $worker;
+			if (isset($first) && $first === $worker) {
+				delay(0.01);
+			}
+			$first ??= $worker;
 		} while ($this->slotsFree[$worker] - count($this->procQueue[$worker] ?? []) <= 0);
 		$uid = $player->charid;
 		if (isset($this->addQueue[$uid])) {
