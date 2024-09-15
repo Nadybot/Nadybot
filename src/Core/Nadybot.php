@@ -182,7 +182,7 @@ class Nadybot {
 	#[NCA\Setting\Boolean]
 	public bool $forceMassTells = false;
 
-	/** When using workers, always reply via the worker that sent the tell */
+	/** When using workers, always reply via the worker that received the tell */
 	#[NCA\Setting\Boolean]
 	public bool $replyOnSameWorker = false;
 
