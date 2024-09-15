@@ -84,6 +84,11 @@ class Blob implements \Stringable {
 	public function render(?int $pageSize=null, bool $formatMessage=true, bool $renderColors=true): string|array {
 		$pageSize ??= ($this->settingManager->getInt('max_blob_size') ?? 0);
 		$text = str_replace(static::LITERAL, '', $this->text, $count);
+		if ($count === 0) {
+			if (count(Safe::pregMatch("/<a href=[\"']text:\/\/<font color=/s", $this->text)) > 0) {
+				$count = 1;
+			}
+		}
 		if ($count > 0) {
 			$text = $this->getText();
 			if ($formatMessage) {
@@ -174,7 +179,7 @@ class Blob implements \Stringable {
 	 */
 	private function processPopup(int $pageSize, string $link, string $popup, bool $formatMessage, bool $renderColors): string|array {
 		$headers = Safe::pregMatch(
-			"/<header>(?<header>.+?)<end>\n\n(?:<permheader>(?<permheader>.*?)<\/permheader>)?/s",
+			"/^(?:<font color=['\"]?#[A-F0-9a-f]{6}['\"]?>)?<header>(?<header>.+?)<end>\n\n(?:<permheader>(?<permheader>.*?)<\/permheader>)?/s",
 			$popup
 		);
 		$header = '';
