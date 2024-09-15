@@ -233,7 +233,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		}
 		$topic = $this->getPoll($pollId, $owner);
 
-		if ($topic === null || !isset($topic->id)) {
+		if ($topic === null) {
 			$msg = 'Either this poll does not exist, or you did not create it.';
 			$context->reply($msg);
 			return;

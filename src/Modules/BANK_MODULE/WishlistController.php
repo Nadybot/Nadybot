@@ -635,7 +635,7 @@ class WishlistController extends ModuleInstance {
 			->whereIn('from', [$mainChar, ...$alts])
 			->where('id', $id)
 			->firstObj(Wish::class);
-		if (!isset($entry) || !isset($entry->id)) {
+		if (!isset($entry)) {
 			$context->reply("No item #{$id} on your wishlist or wished from you.");
 			return;
 		}

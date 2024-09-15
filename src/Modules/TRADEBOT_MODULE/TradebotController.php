@@ -298,9 +298,6 @@ class TradebotController extends ModuleInstance {
 		foreach ($colorDefs as $tradebot => $colors) {
 			$blob = "<pagebreak><header2>{$tradebot}<end>\n";
 			foreach ($colors as $color) {
-				if (!isset($color->id)) {
-					continue;
-				}
 				$blob .= "<tab>[{$color->channel}]: <highlight>#{$color->color}<end><tab>".
 					"<font color='#{$color->color}'>[Example Tag]</font> ".
 					'[' . Text::makeChatcmd(

@@ -747,7 +747,7 @@ class RaidPointsController extends ModuleInstance {
 			return;
 		}
 		$reward = $this->getRaidReward($name);
-		if (!isset($reward) || !isset($reward->id)) {
+		if (!isset($reward)) {
 			$context->reply("The raid reward <highlight>{$name}<end> does not exist.");
 			return;
 		}

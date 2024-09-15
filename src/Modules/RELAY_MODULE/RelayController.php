@@ -743,9 +743,6 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			"with 'sync' instead of enabling that outgoing sync-event, e.g. '<symbol>sync cd KILL!'.\n\n";
 		$blob .= '<header2>Syncable events<end>';
 		foreach ($events as $event) {
-			if (!isset($relay->id)) {
-				continue;
-			}
 			$eConf = $relay->getEvent($event->name) ?? new RelayEvent(relay_id: $relay->id, event: $event->name);
 			$line = "\n<tab><highlight>{$event->name}<end>:";
 			foreach (['incoming', 'outgoing'] as $type) {
@@ -845,9 +842,6 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			->delete();
 		$relay->events = [];
 		foreach ($eventConfigs as $eventName => $dir) {
-			if (!isset($relay->id)) {
-				continue;
-			}
 			$event = new RelayEvent(
 				relay_id: $relay->id,
 				event: (string)$eventName,
@@ -888,7 +882,6 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			->orderBy('id')
 			->asObj(RelayLayer::class)
 			->each(static function (RelayLayer $layer) use ($arguments): void {
-				assert(isset($layer->id));
 				$layer->arguments = $arguments->get($layer->id->toString(), new Collection())->toList();
 			})
 			->groupBy('relay_id');
@@ -900,7 +893,6 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			->orderBy('id')
 			->asObj(RelayConfig::class)
 			->each(static function (RelayConfig $relay) use ($layers, $events): void {
-				assert(isset($relay->id));
 				$relay->layers = $layers->get($relay->id->toString(), new Collection())->toList();
 				$relay->events = $events->get($relay->id->toString(), new Collection())->toList();
 			})
@@ -1110,7 +1102,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	]
 	public function apiPutRelayEventsByNameEndpoint(Request $request, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
-		if (!isset($relay) || !isset($relay->id)) {
+		if (!isset($relay)) {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		$oRelay = $this->relays[$relay->name]??null;
@@ -1345,9 +1337,6 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	protected function saveRelayProperties(RelayConfig $relay): bool {
-		if (!isset($relay->id)) {
-			return false;
-		}
 		$oRelay = $this->relays[$relay->name] ?? null;
 		if (!isset($oRelay)) {
 			return false;
@@ -1368,9 +1357,6 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	protected function changeRelayEventStatus(RelayConfig $relay, string $eventName, string $direction, bool $enable): bool {
-		if (!isset($relay->id)) {
-			return false;
-		}
 		$oldEvent = $event = $relay->getEvent($eventName);
 		if (!isset($event)) {
 			if ($enable === false) {
@@ -1548,9 +1534,6 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	private function changeRelayProperty(RelayConfig $relay, string $property, string $value): void {
-		if (!isset($relay->id)) {
-			return;
-		}
 		$this->db->upsert(new RelayProperty(
 			relay_id: $relay->id,
 			property: $property,

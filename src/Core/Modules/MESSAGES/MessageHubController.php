@@ -783,6 +783,7 @@ class MessageHubController extends ModuleInstance {
 			return;
 		}
 		$colorDef = $this->getHopColor($tag, $where, $via);
+		$update = isset($colorDef);
 		if (!isset($colorDef)) {
 			$colorDef = new RouteHopColor(
 				hop: $tag,
@@ -795,7 +796,7 @@ class MessageHubController extends ModuleInstance {
 		} else {
 			$colorDef->tag_color = $color;
 		}
-		if (isset($colorDef->id)) {
+		if ($update) {
 			$this->db->update($colorDef);
 		} else {
 			$this->db->insert($colorDef);
