@@ -33,28 +33,28 @@ class Safe {
 	 * n can be from 0 to 99, and
 	 * \\0 or $0 refers to the text matched
 	 * by the whole pattern. Opening parentheses are counted from left to right
-	 * (starting from 1) to obtain the number of the capturing subpattern.
+	 * (starting from 1) to obtain the number of the capturing sub-pattern.
 	 * To use backslash in replacement, it must be doubled
 	 * ("\\\\" PHP string).
 	 *
-	 * When working with a replacement pattern where a backreference is
+	 * When working with a replacement pattern where a back-reference is
 	 * immediately followed by another number (i.e.: placing a literal number
 	 * immediately after a matched pattern), you cannot use the familiar
-	 * \\1 notation for your backreference.
+	 * \\1 notation for your back-reference.
 	 * \\11, for example, would confuse
 	 * preg_replace since it does not know whether you
-	 * want the \\1 backreference followed by a literal
-	 * 1, or the \\11 backreference
+	 * want the \\1 back-reference followed by a literal
+	 * 1, or the \\11 back-reference
 	 * followed by nothing.  In this case the solution is to use
 	 * ${1}1.  This creates an isolated
-	 * $1 backreference, leaving the 1
+	 * $1 back-reference, leaving the 1
 	 * as a literal.
 	 *
 	 * When using the deprecated e modifier, this function escapes
 	 * some characters (namely ', ",
 	 * \ and NULL) in the strings that replace the
-	 * backreferences. This is done to ensure that no syntax errors arise
-	 * from backreference usage with either single or double quotes (e.g.
+	 * back-references. This is done to ensure that no syntax errors arise
+	 * from back-reference usage with either single or double quotes (e.g.
 	 * 'strlen(\'$1\')+strlen("$2")'). Make sure you are
 	 * aware of PHP's string
 	 * syntax to know exactly how the interpreted string will look.

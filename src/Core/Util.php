@@ -238,7 +238,7 @@ class Util {
 		return $string;
 	}
 
-	/** Get a stacktrace of the calling stack as a string */
+	/** Get a stack trace of the calling stack as a string */
 	public static function getStackTrace(): string {
 		$trace = debug_backtrace();
 		$arr1 = [];

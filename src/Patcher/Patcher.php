@@ -35,9 +35,9 @@ class Patcher {
 	}
 
 	/**
-	 * Patch PHP Parsing tool to allow fynamic properties
+	 * Patch PHP Parsing tool to allow dynamic properties
 	 *
-	 * @param string                    $vendorDir The installation basepath
+	 * @param string                    $vendorDir The installation base path
 	 * @param \Composer\Package\Package $package   The package being installed
 	 */
 	public static function patchParsingTool($vendorDir, Package $package): void {

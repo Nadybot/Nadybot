@@ -52,7 +52,7 @@ class SettingManager {
 	/** @var array<string,string> */
 	private array $settingHandlers = [];
 
-	/** Return the hardcoded value for a setting or a given default */
+	/** Return the hard-coded value for a setting or a given default */
 	public function getHardcoded(string $setting, null|bool|int|string $default=null): ?string {
 		$value = $this->config->settings[$setting]??$default;
 		if (is_bool($value)) {
@@ -382,7 +382,7 @@ class SettingManager {
 	 *
 	 * @param string  $settingName changed setting's name
 	 * @param Closure $callback    the callback function to call
-	 * @param mixed   $data        any data which will be passed to to the callback (optional)
+	 * @param mixed   $data        any data which will be passed to the callback (optional)
 	 */
 	public function registerChangeListener(string $settingName, Closure $callback, mixed $data=null): void {
 		$settingName = strtolower($settingName);

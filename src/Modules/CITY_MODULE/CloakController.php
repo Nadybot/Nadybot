@@ -212,7 +212,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		$timeSinceChange = time() - $row->time;
 		if ($row->action === 'off') {
 			// send message to org chat every 5 minutes that the cloaking device is
-			// disabled past the the time that the cloaking device could be enabled.
+			// disabled past the time that the cloaking device could be enabled.
 			$interval = $this->cloakReminderInterval;
 			$canSendReminder = !isset($this->lastReminderSent)
 				|| (time() - $this->lastReminderSent) > $interval;

@@ -10,7 +10,7 @@ class ExportOrgNote {
 	 * @param string           $text         The text of the note
 	 * @param ?ExportCharacter $author       The character who posted the note
 	 * @param ?int             $creationTime Timestamp of when the note was created
-	 * @param ?string          $uuid         The unique itentifier for this org note
+	 * @param ?string          $uuid         The unique identifier for this org note
 	 */
 	public function __construct(
 		public string $text,

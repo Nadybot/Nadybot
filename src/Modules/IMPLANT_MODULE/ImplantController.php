@@ -327,7 +327,7 @@ class ImplantController extends ModuleInstance {
 	/**
 	 * Returns the min- and max-ql for an implant to return a bonus
 	 *
-	 * @param string $type  The cluster type ("skill" or "abililities")
+	 * @param string $type  The cluster type ("skill" or "abilities")
 	 * @param int    $slot  The cluster slot type (0 => faded, 1 => bright, 2 => shiny)
 	 * @param int    $bonus The bonus for which to return the QL-range
 	 *

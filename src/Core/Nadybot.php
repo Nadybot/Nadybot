@@ -1092,7 +1092,7 @@ class Nadybot {
 
 			$this->logChat('Priv Group', -1, "{$sender} left the channel.");
 
-			// Remove from Chatlist array
+			// Remove from chatlist array
 			unset($this->chatlist[$sender]);
 
 			$this->eventManager->fireEvent($eventObj);

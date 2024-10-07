@@ -512,7 +512,7 @@ class AuctionController extends ModuleInstance {
 	/**
 	 * Have $sender place a bid of $offer in the current auction
 	 *
-	 * @param string       $sender Nme of the character placing the bid
+	 * @param string       $sender Name of the character placing the bid
 	 * @param int          $offer  Height of the bid
 	 * @param CommandReply $sendto Where to send messages about success/failure
 	 */

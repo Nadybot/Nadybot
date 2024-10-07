@@ -19,7 +19,7 @@ class DiscordRole implements Stringable {
 	 * @param bool             $managed       whether this role is managed by an integration
 	 * @param bool             $mentionable   whether this role is mentionable
 	 * @param ?DiscordRoleTags $tags          the tags this role has
-	 * @param int              $flags         role flags combined as a bitfield
+	 * @param int              $flags         role flags combined as a bit field
 	 */
 	public function __construct(
 		public string $id,

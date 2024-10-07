@@ -8,7 +8,7 @@ class ModuleEventConfig {
 	/**
 	 * @param string $event       The event for this module
 	 * @param string $handler     The function handling this event
-	 * @param string $description What is supposed to happed when this event occurs?
+	 * @param string $description What is supposed to happen when this event occurs?
 	 * @param bool   $enabled     Is the event handler turned on?
 	 */
 	public function __construct(

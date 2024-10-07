@@ -127,7 +127,7 @@ class RateIgnoreController extends ModuleInstance {
 	}
 
 	/**
-	 * Get all rateignorelist entries
+	 * Get all rate ignore list entries
 	 *
 	 * @return Collection<int,RateIgnoreList>
 	 *

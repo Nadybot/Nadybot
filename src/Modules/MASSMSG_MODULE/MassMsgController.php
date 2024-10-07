@@ -69,7 +69,7 @@ class MassMsgController extends ModuleInstance {
 	#[NCA\Setting\Color]
 	public string $massmsgColor = '#FF9999';
 
-	/** Cooldown between sending 2 mass-messages/-invites */
+	/** Cool-down between sending 2 mass-messages/-invites */
 	#[NCA\Setting\Time(options: ['1s', '30s', '1m', '5m', '15m'])]
 	public int $massmsgCooldown = 1;
 

@@ -87,7 +87,7 @@ class DB {
 	/** The low-level Capsule manager object */
 	private Capsule $capsule;
 
-	/** Get the lowercased name of the bot */
+	/** Get the lower-cased name of the bot */
 	public function getBotname(): string {
 		return strtolower($this->config->main->character);
 	}
@@ -469,7 +469,7 @@ class DB {
 	}
 
 	/**
-	 * Makes "from" fetch from a subquery.
+	 * Makes "from" fetch from a sub-query.
 	 *
 	 * @param \Closure|\Illuminate\Database\Query\Builder|string $query
 	 */

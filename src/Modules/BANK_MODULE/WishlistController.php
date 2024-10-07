@@ -122,7 +122,7 @@ class WishlistController extends ModuleInstance {
 		$charGroups = [];
 		$numItems = 0;
 		foreach ($wishlistGrouped as $char => $wishes) {
-			// Because we group by main, we need to reduce dupliocated wishes to a
+			// Because we group by main, we need to reduce duplicated wishes to a
 			// single one with a higher amount
 			$wishlist = $wishes->reduce(
 				static function (Collection $items, Wish $wish): Collection {

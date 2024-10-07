@@ -99,4 +99,5 @@
         "./vendor/phpstan/phpstan/phpstan.phar"
     ],
     "phpstan.checkValidity": true,
+    "vale.enableSpellcheck": true,
 }

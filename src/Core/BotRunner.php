@@ -312,7 +312,7 @@ class BotRunner {
 			exit(0);
 		}
 
-		// connect to ao chat server
+		// connect to AO chat server
 		$chatBot->connectAO();
 
 		// pass control to Nadybot class

@@ -56,6 +56,16 @@ if [ -n "$CHANGED_FILES" ]; then
 else
   true &
 fi
+if command -v vale &> /dev/null; then
+  if [ -n "${CHANGED_FILES}" ]; then
+    CHANGED_FILES="src"
+  else
+    CHANGED_FILES=$(grep -P '^src/' <<<"${CHANGED_FILES}")
+  fi
+  vale ${CHANGED_FILES} &
+else
+  true &
+fi
 
 wait -n
 RESULT_ONE=$?
@@ -67,8 +77,10 @@ wait -n
 RESULT_FOUR=$?
 wait -n
 RESULT_FIVE=$?
+wait -n
+RESULT_SIX=$?
 
-if [ "${RESULT_ONE}" -ne 0 ] || [ "${RESULT_TWO}" -ne 0 ] || [ "${RESULT_THREE}" -ne 0 ] || [ "${RESULT_FOUR}" -ne 0 ] || [ "${RESULT_FIVE}" -ne 0 ]; then
+if [ "${RESULT_ONE}" -ne 0 ] || [ "${RESULT_TWO}" -ne 0 ] || [ "${RESULT_THREE}" -ne 0 ] || [ "${RESULT_FOUR}" -ne 0 ] || [ "${RESULT_FIVE}" -ne 0 ] || [ "${RESULT_SIX}" -ne 0 ]; then
     exit 1
 fi
 exit 0

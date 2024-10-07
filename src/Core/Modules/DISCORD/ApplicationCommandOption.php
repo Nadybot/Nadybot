@@ -35,7 +35,7 @@ class ApplicationCommandOption implements Stringable {
 	 * @param string                            $name                      1-32 character name
 	 * @param string                            $description               1-100 character description
 	 * @param ?array<string,string>             $name_localizations        Localization dictionary for the name field. Values follow the same restrictions as name
-	 * @param ?array<string,string>             $description_localizations Localization dictionary for the description field. Values follow the same restrictions as descript
+	 * @param ?array<string,string>             $description_localizations Localization dictionary for the description field. Values follow the same restrictions as descriptions
 	 * @param bool                              $required                  If the parameter is required or optional--default false
 	 * @param ?ApplicationCommandOptionChoice[] $choices                   Choices for STRING, INTEGER, and NUMBER types for the user to pick from, max 25
 	 * @param ?ApplicationCommandOption[]       $options                   If the option is a subcommand or subcommand group type, these nested options will be the parameters

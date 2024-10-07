@@ -39,7 +39,7 @@ class EventManager {
 	protected bool $eventsReady = false;
 
 	/**
-	 * Events that were disabled before eventhandler was initialized
+	 * Events that were disabled before event handler was initialized
 	 *
 	 * @var array<string,array<string,bool>>
 	 */

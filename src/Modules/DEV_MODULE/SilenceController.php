@@ -82,7 +82,7 @@ class SilenceController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** Unsilence a command for a specific permission set */
+	/** Un-silence a command for a specific permission set */
 	#[NCA\HandlesCommand('unsilence')]
 	public function unsilenceAddCommand(CmdContext $context, string $command, PWord $permissionSet): void {
 		$command = strtolower($command);

@@ -18,7 +18,7 @@ use Nadybot\Modules\WHEREIS_MODULE\{
 use Psr\Log\LoggerInterface;
 
 /**
- * Bossloot Module Ver 1.1
+ * Boss loot Module
  * Originally written By Jaqueme for Budabot
  */
 #[

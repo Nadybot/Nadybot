@@ -26,14 +26,14 @@ class BuddylistManager {
 	private BotConfig $config;
 
 	/**
-	 * List of all characters currently queued for rebalancing
+	 * List of all characters currently queued for re-balancing
 	 *
 	 * @var array<int,bool>
 	 */
 	private array $inRebalance = [];
 
 	/**
-	 * List of all characters currently removed for rebalancing
+	 * List of all characters currently removed for re-balancing
 	 *
 	 * @var array<int,array<string,bool>>
 	 */
@@ -55,7 +55,7 @@ class BuddylistManager {
 		);
 	}
 
-	/** Check if we are currently rebalancing (the given uid) */
+	/** Check if we are currently re-balancing (the given uid) */
 	public function isRebalancing(?int $uid=null): bool {
 		if (isset($uid)) {
 			return isset($this->pendingRebalance[$uid]);
@@ -241,7 +241,7 @@ class BuddylistManager {
 	 * Remove a user from the bot's friendlist for a given purpose
 	 *
 	 * This does not necessarily remove the user from the friendlist, because
-	 * they might be on it for more than 1 reason. The user is noly really removed
+	 * they might be on it for more than 1 reason. The user is only really removed
 	 * when the last reason to be on the list was removed.
 	 */
 	public function removeId(int $uid, string $type=''): bool {

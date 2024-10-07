@@ -15,7 +15,7 @@ class PColor extends Base {
 	/** The hex code with #, e.g. #AA00FF */
 	protected string $hex;
 
-	/** The full html tag: <font color=#AA00FF> */
+	/** The full HTML tag: <font color=#AA00FF> */
 	protected string $html;
 
 	public function __construct(string $value) {
@@ -45,7 +45,7 @@ class PColor extends Base {
 		return $this->hex;
 	}
 
-	/** The full html tag: <font color=#AA00FF> */
+	/** The full HTML tag: <font color=#AA00FF> */
 	public function getHTML(): string {
 		return $this->html;
 	}

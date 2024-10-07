@@ -34,7 +34,7 @@ class OnlinePlayer extends Player {
 	 * @param ?int        $head_id       Which head is the player using
 	 * @param ?int        $pvp_rating    Numeric PvP-rating of the player (1-7) or null if unknown
 	 * @param ?string     $pvp_title     Name of the player's PvP title derived from their $pvp_rating or null if unknown
-	 * @param string      $source        Sourceof the information
+	 * @param string      $source        Source of the information
 	 * @param ?int        $last_update   Unix timestamp of the last update of these data
 	 * @param string      $afk           The AFK message of the player or an empty string
 	 * @param ?string     $nick          The nickname of the main character, or null if unset

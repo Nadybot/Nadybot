@@ -12,7 +12,7 @@ class RaidLog extends DBTable {
 	 * @param UuidInterface $raid_id           The ID of the raid to which this belongs
 	 * @param ?string       $description       The raid description of the raid
 	 * @param int           $seconds_per_point How many seconds for 1 raid point or 0 if disabled
-	 * @param int           $announce_interval At which interval was the raid announced? 0 meansoff
+	 * @param int           $announce_interval At which interval was the raid announced? 0 means: off
 	 * @param bool          $locked            Was the raid locked?
 	 * @param int           $time              At which time did the change occur?
 	 * @param ?int          $max_members       Maximum number of allowed characters in the raid If 0 or NULL, this is not limited

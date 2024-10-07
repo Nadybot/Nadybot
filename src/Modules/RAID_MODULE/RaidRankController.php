@@ -232,7 +232,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		return ($this->ranks[$who]->rank??-1) === $rank;
 	}
 
-	/** Chheck if $actor's access level is higher than $actee's */
+	/** Check if $actor's access level is higher than $actee's */
 	public function checkAccessLevel(string $actor, string $actee): bool {
 		$senderAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
 		$whoAccessLevel = $this->accessManager->getSingleAccessLevel($actee);
@@ -525,7 +525,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	/**
 	 * Get the string of the online status
 	 *
-	 * @param string $who Playername
+	 * @param string $who Name of the character
 	 *
 	 * @return string " (<on>online<end>)" and so on
 	 */

@@ -10,7 +10,7 @@ class DiscordRoleTags implements Stringable {
 	/**
 	 * @param ?string $bot_id                  the id of the bot this role belongs to
 	 * @param ?string $integration_id          the id of the integration this role belongs to
-	 * @param ?string $subscription_listing_id the id of this role's subscription sku and listing
+	 * @param ?string $subscription_listing_id the id of this role's subscription SKU and listing
 	 * @param bool    $premium_subscriber      whether this is the guild's Booster role
 	 * @param bool    $available_for_purchase  whether this role is available for purchase
 	 * @param bool    $guild_connections       whether this role is a guild's linked role

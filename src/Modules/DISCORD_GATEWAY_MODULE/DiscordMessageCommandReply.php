@@ -76,7 +76,7 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 				}
 			}
 		}
-		// @TODO: Move the logic of paging to formatMessage instead of hardcoding 3k
+		// @TODO: Move the logic of paging to formatMessage instead of hard-coding 3k
 		$msg = (array)Blob::renderMulti(text: $msg, pageSize: 3_000, formatMessage: false);
 		foreach ($msg as $msgPack) {
 			$messageObj = $this->discordController->formatMessage(

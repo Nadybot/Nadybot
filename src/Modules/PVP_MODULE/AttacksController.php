@@ -1142,7 +1142,7 @@ class AttacksController extends ModuleInstance {
 		return $blob;
 	}
 
-	/** Render a single, ungrouped !nw attacks line */
+	/** Render a single, un-grouped !nw attacks line */
 	private function renderDBAttack(DBTowerAttack $attack): string {
 		$blob = 'Time: ' . Util::date($attack->timestamp).
 			' (<highlight>'.

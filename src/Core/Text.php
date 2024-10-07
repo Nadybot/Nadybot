@@ -74,7 +74,7 @@ class Text {
 	 *
 	 * This adds support for right clicking usernames in chat,
 	 * providing you with a menu of options (ignore etc.)
-	 * (see 18.1 AO patchnotes)
+	 * (see 18.1 AO patch notes)
 	 *
 	 * @param string $user  The name of the user to create a link for
 	 * @param string $style (optional) any styling you want applied to the link, e.g. color="..."
@@ -92,7 +92,7 @@ class Text {
 	 * Creates a link to an item in a specific QL
 	 *
 	 * @param int    $lowId  The Item ID of the low QL version
-	 * @param int    $highId The Imtem ID of the high QL version
+	 * @param int    $highId The Item ID of the high QL version
 	 * @param int    $ql     The QL to show the  item at
 	 * @param string $name   The name of the item as it should appear in the created link
 	 *
@@ -106,7 +106,7 @@ class Text {
 	 * Creates an image
 	 *
 	 * @param int    $imageId The id of the image, e.g. 205508
-	 * @param string $db      (optional) image database to use, default is the resource database "rdb"
+	 * @param string $db      (optional) image database to use, default is the resource database "RDB"
 	 *
 	 * @return string The image as <img> tag
 	 */

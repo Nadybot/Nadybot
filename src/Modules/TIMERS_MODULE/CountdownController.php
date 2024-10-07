@@ -44,7 +44,7 @@ class CountdownController extends ModuleInstance {
 	#[NCA\Setting\Text]
 	public string $cdDefaultText = 'GO';
 
-	/** How long is the cooldown between starting 2 countdowns */
+	/** How long is the cool-down between starting 2 countdowns */
 	#[NCA\Setting\Time(options: ['6s', '15s', '30s', '1m', '5m'])]
 	public int $cdCooldown = 30;
 

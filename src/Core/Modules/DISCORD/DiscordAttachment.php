@@ -24,8 +24,8 @@ class DiscordAttachment implements Stringable {
 	 * @param ?int    $width         width of file (if image)
 	 * @param ?bool   $ephemeral     whether this attachment is ephemeral
 	 * @param ?float  $duration_secs the duration of the audio file (currently for voice messages)
-	 * @param ?string $waveform      base64 encoded bytearray representing a sampled waveform (currently for voice messages)
-	 * @param ?int    $flags         attachment flags combined as a bitfield
+	 * @param ?string $waveform      base64 encoded byte array representing a sampled waveform (currently for voice messages)
+	 * @param ?int    $flags         attachment flags combined as a bit-field
 	 */
 	public function __construct(
 		public string $id,
