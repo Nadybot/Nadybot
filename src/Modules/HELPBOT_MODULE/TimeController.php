@@ -46,10 +46,10 @@ class TimeController extends ModuleInstance {
 		$link .= '<tab><tab>Standard Time (JST = UTC+9): ' . $this->safeGetTimezone('JST')->time . "\n\n";
 
 		$link .= "<header2>Europe<end>\n";
-		$link .= "<tab><highlight>England,Spain,Portugal<end>\n";
+		$link .= "<tab><highlight>England/Portugal<end>\n";
 		$link .= '<tab><tab>Standard Time (UTC = UTC): ' . $this->safeGetTimezone('UTC')->time . "\n";
 		$link .= '<tab><tab>Summer Time (BST = UTC+1): ' . $this->safeGetTimezone('BST')->time . "\n";
-		$link .= "<tab><highlight>Germany/France/Netherlands/Italy/Norway<end>\n";
+		$link .= "<tab><highlight>France/Germany/Italy/Netherlands/Norway/Spain<end>\n";
 		$link .= '<tab><tab>Standard Time (CET = UTC+1): ' . $this->safeGetTimezone('CET')->time . "\n";
 		$link .= '<tab><tab>Summer Time (CEST = UTC+2): ' . $this->safeGetTimezone('CEST')->time . "\n";
 		$link .= "<tab><highlight>Egypt/Bulgary/Finland/Greece<end>\n";

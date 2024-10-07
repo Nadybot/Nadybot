@@ -20,17 +20,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Results of `!flatroll` are now using standard color theme and the text to show on items where no one added is configurable, defaulting to `-` in order to easier spot actual winners.
-- The default file format of the configuration file has changed from php to toml.
+- The default file format of the configuration file has changed from PHP to TOML.
 - Don't show links to `!config` if you cannot run it anyway.
 - The `!verify`-command will now show the results of the last 3 rolls, because it would be impossible to guess the previous UUID.
 - Multipage-output in the console is now automatically grouped into a single page.
-- The `!implantdesigner` was reworked and modernized. It now supports special symbiants (totw drops, etc.), and also shows the bonus that adding a cluster would give you when choosing the cluster for a slot. It now recognizes cluster names as well as skill names and their shortcuts (`implantdesigner head shiny cl` works for example)
+- The `!implantdesigner` was reworked and modernized. It now supports special symbiants (TOTW drops, etc.), and also shows the bonus that adding a cluster would give you when choosing the cluster for a slot. It now recognizes cluster names as well as skill names and their shortcuts (`implantdesigner head shiny cl` works for example)
 
 ### Coding
 
-- The whole Amphp2-subsystem was updated to Amphp3.
-- The webserver now uses the Amphp webserver.
-- The websocket server now uses the Amphp webserver.
+- The whole AMPHP2-subsystem was updated to AMPHP3.
+- The webserver now uses the AMPHP webserver.
+- The websocket server now uses the AMPHP webserver.
 - All filesystem-calls are now async.
 - Don't block on orglist updates anymore
 - Apply stricter checks and rules for everything
@@ -40,12 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Profession, Faction, and Playfield are now Enums
 - No uninitialized properties anymore. All non-injected properties without default are now part of the constructor
 - Switched from auto incrementing columns to UUID7 IDs
-- Get all table names from the models, don't hardcode them.
+- Get all table names from the models, don't hard-code them.
 
 ### Fixed
 
 - Don't cache chars from other dimensions, overwriting our own id
 - Some specials recharge times were off. While the calculations are probably still not 100% correct, the new formulas by Conci, Keex-1, Keltias, TinkeringIdiot, and Tradias should improve things a lot.
+- Unbeknown to many, Spain is not GMT/BST, but CET/CEST
 
 ## [6.2.8] - 2024-02-21
 
@@ -148,8 +149,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new protocol "Drill" for the Nadybot webserver. This allows exposing the webserver of the bot to an external host (`<botname>.nadybotter.eu` or `<botname>.nadybotter.org`), without exposing the whole server.
   This also makes the bot HTTP-traffic fully encrypted with a valid certificate.
 - Added Highnet, a cross-bot chat-platform similar to Darknet, but with full local control.
-- Allow automatic untracking of characters who haven't logged in for a configurable amount of time.
-- Add support for continuously updated WHOIS-information via Highway, so newly created characters are not unknown and the information available faster.
+- Allow automatic un-tracking of characters who haven't logged in for a configurable amount of time.
+- Add support for continuously updated whois-information via Highway, so newly created characters are not unknown and the information available faster.
 - Allow `!whois` on UIDs
 - Add new `!raidrules` command to allow having separate bot- and raid-rules.
 
@@ -213,7 +214,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New option `raffle_allow_multi_join` to forbid joining a raffle for more than one item at the same time - also counting alts.
 - `aotell()` now allows messaging access levels by prepending them with a `@`. So `aotell(@mod)` as a receiver will send a message to all mods online.
 - Add new module `PVP_MODULE` that provides a completely different way to interact with a new Tower-API. It can be used alongside the old `TOWER_MODULE`, because all `PVP-MODULE`-commands are subcommands of `!nw`. To get a list of all hot sites, use `!nw hot`, and so on. See <https://github.com/Nadybot/Nadybot/wiki/PVP> for details.
-- Add new module `MOB_MODULE` that will automatically track some heavily-farmed NPCs on RK. It gives you their current state and HP and you can even have the module send messages for spawns, kills and people starting to attack it. Curreently supported are:
+- Add new module `MOB_MODULE` that will automatically track some heavily-farmed NPCs on RK. It gives you their current state and HP and you can even have the module send messages for spawns, kills and people starting to attack it. Currently supported are:
   - Milky Way prisoners
   - Clan and Omni Dreadloch camps
   - Clan and Omni Biodome hags
@@ -288,7 +289,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `!track info <name>` now also shows who added a character to the tracker.
 - Allow muting (temporarily disabling) of routes
 - Add the new RK19 worldbosses that spawn on the birthday event as non-repeating worldboss-timers, because they only have a chance to spawn, so we never know if a spawn was skipped or it just took longer to kill the last spawn.
-  Also added waypoints and links to AOU-articles to each worldboss.
+  Also added waypoints and links to AO-Universe-articles to each worldboss.
 - Add a new news-time "all-boss-timers" that will also show seasonal non-guaranteed spawns, like Desert Rider, Zaal, etc.
 - The SPAWNTIME_MODULE is now integrated into the WHEREIS_MODULE, giving everyone access to `!spawn <name>` to query a mob's respawn-timer.
 - Add a new command `!updatewb` to update the world bosses from the API. Usually, this should not be necessary, because the global timer events should update these automatically, but this aids in debugging.
@@ -302,7 +303,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Replaced the EventLoop with an Amp (amphp) event loop. Migrated the following functionality to Amp:
+- Replaced the EventLoop with an Amp (AMPHP) event loop. Migrated the following functionality to Amp:
   - The AO-connection
   - Cron-events
   - Timer->callLater()
@@ -335,7 +336,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- You can now sync bans and unbans via nadynative
+- You can now sync bans and ban-removals via nadynative
 - When changing the message that should be send to Discord whenever your own towers are being attacked, the bot will now warn if there is no route in place to actually make use of this message.
 - Add a link to bank browse- and search-results to ask the bank character to give you a specific item, including its location.
 
@@ -378,7 +379,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The `!track online`-command got a real parser now and supports filtering by level (ranges), title level (ranges), faction(s) and profession(s).
-- The message that's displayed when a tracked character goes on/offline is now completely configurable with {placeholders}. To display this properly, a new setting type `tracker_format` has been introduced that will display rendered and unrendered versions of the setting. There is also logic to remove `{org}` from the message is the character is not member of an org.
+- The message that's displayed when a tracked character goes on/offline is now completely configurable with {placeholders}. To display this properly, a new setting type `tracker_format` has been introduced that will display rendered and non-rendered versions of the setting. There is also logic to remove `{org}` from the message is the character is not member of an org.
 - Gracefully support URLs for bank-CSV location. Download will be async with proper error handling.
 - Raid ranks in online-list are also shown for access-level "guild".
 - Joining and leaving voice chats will now display the linked AO character, if available.
@@ -401,7 +402,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New command `members inactive` to list members who haven't logged in for a given amount of time.
 - `!adminlist` now shows the last time the bot has seen each admin and on which alt.
 - Add new option `--strict` to make SQLite checks more strict. This is mainly for development purpose.
-- Add new prometheus metric `states{type="raid_lock"}`
+- Add new Prometheus metric `states{type="raid_lock"}`
 - The `LOOT_MODULE` now keeps a full history of what was rolled when, and who won what on which roll. You can search this history by using `!loot history`, `!loot history <number>|last`, `!loot search winner=Nady` and `!loot search item=leg`.
 - All Docker images now support setting fixed settings via setting environment variables `CONFIG_SETTING_<setting>=<value>`, e.g. `CONFIG_SETTING_CONSOLE_COLOR=1`
 - New commands `!config setting <name>` and `!config setting <name> admin <access level>` to change the required access level to change a setting's value.
@@ -413,20 +414,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `!discord`-command got completely changed. It now acts as the central command to manage the discord connection, manage Discord invites, see invites and leave Discord servers. To get people a Discord link, just have them `!discord join` and click the link, the bot will automatically rename the Discord user to match the main AO character and optionally also assign one or more Discord roles.
 - Add a new command `!assist random <number>` to pick `<number>` random callers from the currently running raid. You can exclude professions from this random pick by changing the `never_auto_callers` setting, default excludes docs and crats.
 - `!raid punish` now also accepts the name of a pre-defined reward, analogue to `!raid reward`.
-- The loglevel of handlers used to always be ignored and scaled with the configuration option of channels. This has been changed so that the new log level "default" will now automatically scale, while explicitly given ones like "error" will always stay on error. This allows you to log error output into separate files.
-- Retries for 502 Http results are now delayed by 5s, in order not to hammer the webserver
+- The log-level of handlers used to always be ignored and scaled with the configuration option of channels. This has been changed so that the new log level "default" will now automatically scale, while explicitly given ones like "error" will always stay on error. This allows you to log error output into separate files.
+- Retries for 502 HTTP results are now delayed by 5s, in order not to hammer the webserver
 - The `!member`-command is now a sub-command of `!members`, so `!members add <who>` now works the same as `!member add`. Access levels are migrated.
 - If audits are enabled (`!settings save audit_enabled 1`), `!whois <name>` will now show information from the audit when and by whom the person was added to the bot.
 - `!auction` is now an alias of `!bid`. The former was removed, because the command `!auction` was originally only added to have separate access levels for auctioneers and bidders and I didn't expect anyone to use `!auction start` over the alias `!bid start` and so on.
 - If no log files are available (Docker), don't show an empty popup.
-- Logging in Docker is now the same format as logfiles - not like console.
+- Logging in Docker is now the same format as log files - not like console.
 - Locking the private channel is now persistent across bot restarts.
 - Location of the `text.mdb`-file was changed from `data/` to `res/`, so it doesn't collide with user data and makes it easier for containers to just mount a generic data-folder into `/nadybot/data`.
 - When configured to use a proxy, don't exit when the proxy isn't reachable, but retry until it is. This fixes cases when the chat proxy has lots of workers and takes longer to accept connection than Nadybot to start to connect.
 
 ### Fixed
 
-- Fix `/api/access_levels` endpoint and make settings webfrontend work again.
+- Fix `/api/access_levels` endpoint and make settings web frontend work again.
 - Fix for `!raid reward <points> <reason>` and `!raid punish <points> <reason>`. They both work again as expected.
 - Detect if the Discord Cloudflare server restart and also do an automatic reconnect in that case. In fact, make automatic reconnect the default, unless manually disconnected.
 - Websocket timeout detection works properly now and Discord should automatically reconnect after connection is lost.
@@ -495,7 +496,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed all module settings to use attributes (if possible)
 - Text settings with empty strings are now marked as &lt;empty&gt;
 - Mass-messages and -invites are now a system route source. By default, `system(mass-message)` and `system(mass-invite)` will be routed to `aoorg` and `aopriv`, but you can also route them to Discord.
-- All messages from the RAID_MODULE are no longer hardcoded to being sent to the bot's private channel. Instead, there are now a bunch of new routing sources `raid(*)` and `auction(*)` which are routed to `aopriv` by default. This allows for routing of `raid(start)` or `raid(points-modified)` to Discord channels.
+- All messages from the RAID_MODULE are no longer hard-coded to being sent to the bot's private channel. Instead, there are now a bunch of new routing sources `raid(*)` and `auction(*)` which are routed to `aopriv` by default. This allows for routing of `raid(start)` or `raid(points-modified)` to Discord channels.
 
 ### Removed
 
@@ -648,7 +649,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- The logline deduplicator threw exceptions when exceptions were logged
+- The log line deduplicator threw exceptions when exceptions were logged
 - Race condition for the shared online list fixed, which lead to players shown as online when they already logged off
 - Fixed tyrbot() protocol errors when relaying only with a prefix
 - Fix `genRandomString()` from sometimes returning fewer chars than requested This also fixes Sec-WebSocket-Key from being non-standard sometimes
@@ -672,7 +673,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Highway didn't properly deinit its relay stack, leading to lingering websocket connections.
+- Highway didn't properly de-init its relay stack, leading to lingering websocket connections.
 - Fix the arbiter tile when there is no arbiter.
 - PHP8 fix when `!orglist` had an unused org rank
 
@@ -884,7 +885,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New security module that lets you configure to log security-relevant events and makes them available via !audit command and API calls
 - API endpoint `/org/history` to complement the audit API
 - Support for signed API calls, so pure API-calls don't need to re-authenticate once per hour.
-- Thanks to the message hub, you can now route messages into the console and into the webchat. Yes, even Darknet, relays and discord... everything
+- Thanks to the message hub, you can now route messages into the console and into the web chat. Yes, even Darknet, relays and discord... everything
 - API spec is now tagged for better overview
 
 ### Fixed
@@ -965,7 +966,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `!raid` will now give the control panel in a tell
 - Automatically kick banned people from the bot
 - Use Discord's API v9
-- Add all missing totw loot
+- Add all missing TOTW loot
 - The old database interface is now deprecated and will be removed in 5.2
 
 ## [5.0.2] - 2021-04-24
@@ -980,9 +981,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce raid rank promotion/demotion distance
 - Sync player data update with PORK, so we are only lagging less than 1h behind
 - New command: `!arulsaba`
-- Allow to set the autoinvite default setting for new members
+- Allow to set the auto-invite default setting for new members
 - Allow automatic banning of players from or not from a specific faction
-- Add an option whether to show the full altlist on joining/logging in
+- Add an option whether to show the full alt list on joining/logging in
 - New command: `!leaderlist` / `!leaders`
 - `!alts setmain` will now move the rights and raid points to the new main
 - New rights for starting/ending raffles
@@ -1037,7 +1038,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add the AI perks
   - Add actions given
   - Add grouping
-- Allow `!whatbuffs` to mark one-slotted items, nodrops and uniques
+- Allow `!whatbuffs` to mark one-slotted items, nodrops and unique items
 - Support listing of all comments of a type
 - Symbiant revamp and fuzzy finding symbiant types with `!symb` command
 - Introduce reminders for `!notes`
@@ -1090,11 +1091,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix the dynadb and display
-- Fix alignment of `!updateorg` timer to always be at 10 mins after last update
+- Fix alignment of `!updateorg` timer to always be at 10 minutes after last update
 - Fix bots relaying their own Discord messages
 - Fix nanos:
   - Fixed and added multiple locations.
-    A lot of inferno sanctuary nanos were also buyable in Pandemonium garden.
+    A lot of inferno sanctuary nanos were also acquirable in Pandemonium garden.
   - Make overview better to read
   - Reclassified Vehicle nanos
   - Added legacy Adventurer nanos and Playful Cub (Other)
@@ -1127,7 +1128,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support the new AOChatProxy and its mass tell features (see [https://github.com/Nadybot/Nadybot/wiki/AOChatProxy](https://github.com/Nadybot/Nadybot/wiki/AOChatProxy) for details)
 - Allow configuring which tradebot channels to relay
-- Add subway and totw loot to `!boss` command
+- Add subway and TOTW loot to `!boss` command
 - Add documentation to modules to show in NadyUI and the `!config <module>`
 
 ### Coding
@@ -1151,7 +1152,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow `!alts main <name>` again and allow confirmation of alt and/or main
 - Speed up orglist by roughly 30% by not sending UID lookup packets twice
-- Try to align guild roster updates with the Funcom export time, so we're always updating 10 mins after them
+- Try to align guild roster updates with the Funcom export time, so we're always updating 10 minutes after them
 - Handle custom emojis in Discord, delete unsupported chars from Discord names and properly support backticks
 - Add `!assist <name>` for a quick alternative to `!caller add <name>`
 - Add more buttons to callers
@@ -1272,7 +1273,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for filtering outgoing and incoming messages in relays
 - Added switchable timer to notify when to plant after a notum wars win
 - Added possibility to turn off pictures in `!loot` and the loot lists
-- Added new totw 201+ loot with `!totw` and grouped all other
+- Added new TOTW 201+ loot with `!totw` and grouped all other
 
 ### Changed
 
@@ -1296,7 +1297,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Coding
 
-- Restructured the file-system layout to make PSR-4 autoloading work properly
+- Restructured the file-system layout to make PSR-4 auto-loading work properly
 - Replaced all bundled versions of software for the bot with composer modules
 - SQL files now support multi-line commands
   - Better readability for create commands
@@ -1353,7 +1354,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - and several commands for testing different things on the bot
 - Updated items-database to 18.08.26
 - `!sendtell` is now included in releases, to allow for scripts to configure the bots for spam relay
-- Added chat_commands, rollable_items, special_attacks, deflect, chatfilter, spamfilter to `!guides` (thanks longsdale)
+- Added chat_commands, rollable_items, special_attacks, deflect, chatfilter, spamfilter to `!guides` (thanks Longsdale)
 - Added several default aliases that were in wide use:
   - `!i` for `!items`
   - `!w` for `!whois` and
@@ -1365,7 +1366,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- All references to gmp module have been removed, and bcmath module is now required
+- All references to GMP module have been removed, and bcmath module is now required
 - `alts_inherit_admin` functionality is now always on, and removed the setting
 - `!notes` now show all notes for all alts, and which alt they belong to
 - `!multiloot` is now `!loot addmulti`
@@ -1434,7 +1435,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixes for running Budabot with PHP 7
 - Fixed issue with caching lookup results
 - Various bug fixes and code cleanups
-- Fix for `!penalty` (thanks equi)
+- Fix for `!penalty` (thanks Equi)
 - Minimum cluster QL in `!implant` should now be more correct (thanks MDK)
 
 ### Coding
@@ -1478,7 +1479,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Coding
 
-- Overhauled TIMERS_MODULE to allow custom callbacks (thanks equi for the request)
+- Overhauled TIMERS_MODULE to allow custom callbacks (thanks Equi for the request)
 
 ## [3.3_GA] - 2015-07-05
 
@@ -1499,7 +1500,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Some minor changes to `!reputation`
 - `!whompah` routes have been updated for 18.7 changes
 - Updated items-database to 18.08.01
-- `!recipe` now uses local database to address issues with Recipebook going down
+- `!recipe` now uses local database to address issues with recipe book going down
 - References to [xyphos.com](xyphos.com) replaced with references to [aoitems.com](https://aoitems.com) (thanks Zyamada)
 - `!quote rem` will now re-number quotes when a quote is deleted, so there are no "holes"
 - Various changes relating to 18.7 patch
@@ -1677,9 +1678,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Timer events can now be called reliably every second
 - Modules are now declared and defined using an object-oriented approach with annotations
 - Modules can now set a priority for messages sent from the bot
-- `$db->query()` now returns the resultset
+- `$db->query()` now returns the result set
 - Added prepared statement support to `DB.class.php`
-- Added `$db->queryRow()` for returning the first row from the resultset
+- Added `$db->queryRow()` for returning the first row from the result set
 
 ### Security
 
@@ -1700,7 +1701,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added option `notify_banned_player` to control whether the bot sends a tell to a player when they are banned or unbanned from the bot
 - `!neutnet on` now accepts neutnet spam from the new Neutnet satellite bots (Neutnet15, Neutnet16)
 - Some core commands are now configurable
-- On logon, the bot now notifies players if they have unvalidated alts
+- On logon, the bot now notifies players if they have non-validated alts
 - Added `!aliaslist` to show current aliases that are active on the bot
 - Added `!logoff` to set a logoff message (similar to setting a logon message with `!logon`) (thanks Rageballs (RK1) for implementing this)
 - Timed/cron events can now take an arbitrary time value (in Budatime) (thanks Argufix (RK2) for requesting)
@@ -1875,7 +1876,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `!reboot` to `!restart`
 - Updated `!about`
 - Merged `!memory` and `!uptime` into `!system` and added additional info output
-- Rewrote much of RAID_MODULE which now includes loot lists for pandemonium, APFs, dust brigade (Chachy (RK2)), albtraum (Dare2005 (RK2)), and Xan-PFs (Morgo (RK2))
+- Rewrote much of RAID_MODULE which now includes loot lists for Pandemonium, APFs, Dust Brigade (Chachy (RK2)), Albtraum (Dare2005 (RK2)), and Xan-PFs (Morgo (RK2))
 - Reduced chat spam when the bot logs on
 - Sub-commands can now be enabled or disabled separately from their parent command
 - Updated `!whoisorg`, `!orgmembers`, `!orgranks` to accept either a character name or an org-ID (or nothing to use the current org)
@@ -2015,7 +2016,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Changed the name of the `php.ini` to `php-win.ini`
-- Added the loading of the `php-win.ini` in the Batchfile and in the `mainloop.php` (if the OS is Windows)
+- Added the loading of the `php-win.ini` in the batch file and in the `mainloop.php` (if the OS is Windows)
 - Added that the org-members variable gets created during the start of the Bot
 - Added that players can join the guest-channel without an invitation of an org-member. You can set if everyone or just players on guest-list can join.
 - Added that `!verify` and `!guestjoin` commands by-pass the tell requirements
@@ -2059,7 +2060,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - changed all paths that they are only including `/` instead of `.` For Linux compatibility
 - Chatbot.bat is starting the php.exe with a reference to the new php-win.ini
 - Added that only PHP files will be accepted that are in lowercase
-- Added the XML Infofile required for the BotManager
+- Added the XML info file required for the BotManager
 - Updated the items-database to 17.0.1
 
 ### Fixed
@@ -2085,7 +2086,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added that you can relay also the commands and results
 - Added that you can set if the guest-channel will be always/automatic/never relayed
 - Added a little news script for the private group join. One for admins and one for normal users
-- Added a very flexible raidmodule. Including `!raidloot`, `!raidlist`, `!raidkick`, `!raidstart`, `!raidcheck`, `!rules`, `!spawntime`, `!raidhistory` (Items can be flatrolled or pts). The `!raidloot` table can easily be extended
+- Added a very flexible raidmodule. Including `!raidloot`, `!raidlist`, `!raidkick`, `!raidstart`, `!raidcheck`, `!rules`, `!spawntime`, `!raidhistory` (Items can be flat-rolled or pts). The `!raidloot` table can easily be extended
 - Added the old `!about` command and updated the `about.txt`
 - Added the `!whereis` script from Blackruby
 - Added the Alien City General Info File from Blackruby (shows what drops of a specific General)
@@ -2112,7 +2113,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a problem within the admin module that their online status was not shown correctly
 - Removed an old Tower debug-message that was shown on the console
 - Corrected some item links in the bio material script
-- Some old helpfile descriptions weren't stored correctly in the Database
+- Some old help file descriptions weren't stored correctly in the Database
 - Fixed a problem when assigning some to a team when he had a number in his name
 - Fixed that players that left the Bot couldn't be removed from a team
 - Fixed a problem with commands that are used in different modules but where shown on one cmd config window
@@ -2133,12 +2134,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added a new Module to show who is online and in the private chat
 - The online commands are available for tells now too. You can choose over a setting if it should show the guild or private members that are online
-- Added a helpfile for the secure tell module
+- Added a help file for the secure tell module
 - `!guestlist` is showing if the user is online/in chat or offline
 - `!memberslist` shows now if the user is online/offline and in chat
 - Added version number and support forum address (startup logo)
 - Added a little fun module
-- Added autoreinvite for players that have been in the private channel after a bot restart or crash
+- Added auto re-invite for players that have been in the private channel after a bot restart or crash
 - Topic can now be sent too when an org-member logs on
 - Added the days to the topic command for the time it has been set
 - Added a list to show current org-members, their stats and when they logged off the last time
@@ -2157,7 +2158,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - guests list looks the same way as the online list and the `!guestslist` is now sorted by player names
 - Changed the look of the online list a bit and added the alien-level is shown too now
 - The logon-message that is relayed looks now the same way as normal logons
-- The Helpfile system got an overwork. Now only help files of active modules are shown, they are categorized, their access-level can be changed over the `!config` command and the `!help` command now works in guild channel, too.
+- The help file system got an overwork. Now only help files of active modules are shown, they are categorized, their access-level can be changed over the `!config` command and the `!help` command now works in guild channel, too.
 - Logons are now relayed to the relay-org
 - Guest-channel messages are now sent over guild-relay, too
 - Did a little overhaul of the timer module. Some old timers didn't get deleted in the DB and you can now use as time 2days 18hr 15min instead of setting it with the time in minutes.
