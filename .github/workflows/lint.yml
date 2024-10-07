@@ -10,7 +10,7 @@ jobs:
           uses: actions/checkout@v4
 
         - name: Run Codespell
-          uses: codespell-project/actions-codespell@master
+          uses: codespell-project/actions-codespell@v2.1
           with:
             skip: .vscode,debian,data,cache,logs,vendor,html,*.git*,tags,*.sql,50.txt,*.csv,*.temp,*.stub,*.neon,styles/config/vocabularies/Nadybot/accept.txt
             ignore_words_list: ot,ether,vektor,keep-alives,ist,fulfilment,fulfil,fullfil,fulfill,fullfill,hastable,ore,counsil,offen,thar,spacial,pris,crystalised,crystalized,notin,notIn,newLetter
