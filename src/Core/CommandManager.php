@@ -55,6 +55,9 @@ use Throwable;
 	NCA\ProvidesEvent(ErrorCmdEvent::class)
 ]
 class CommandManager implements MessageEmitter {
+	private const DIRECT = 1;
+	private const PUBLIC = 2;
+
 	/** @var array<string,array<string,CommandHandler>> */
 	public array $commands;
 
@@ -65,6 +68,20 @@ class CommandManager implements MessageEmitter {
 	/** Reply to send when the access-level is too low for a command */
 	#[NCA\Setting\Text]
 	public string $accessDeniedErrorMsg = 'Error! Access denied.';
+
+	/** Give 'Unknown command'-message on disabled/non-existing commands */
+	#[NCA\Setting\Number(
+		options: [
+			'on all messages' => self::DIRECT | self::PUBLIC,
+			'on direct messages only' => self::DIRECT,
+			'on public messages only' => self::PUBLIC,
+		]
+	)]
+	public int $errorOnUnknownCommand = self::DIRECT | self::PUBLIC;
+
+	/** Show command suggestions with 'Unknown command'-message */
+	#[NCA\Setting\Boolean]
+	public bool $suggestionsOnUnknownCommand = true;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -586,18 +603,26 @@ class CommandManager implements MessageEmitter {
 					return;
 				}
 
-				$cmdNames = $this->commandSearchController
-					->findSimilarCommands($cmd, $context->char->name)
-					->filter(static function (CommandSearchResult $row) use ($context): bool {
-						return $row->permissions[$context->permissionSet]->enabled ?? false;
-					})->slice(0, 5)
-					->pluck('cmd');
+				$cmdNames = new Collection();
+				if ($this->suggestionsOnUnknownCommand) {
+					$cmdNames = $this->commandSearchController
+						->findSimilarCommands($cmd, $context->char->name)
+						->filter(static function (CommandSearchResult $row) use ($context): bool {
+							return $row->permissions[$context->permissionSet]->enabled ?? false;
+						})->slice(0, 5)
+						->pluck('cmd');
+				}
 
 				$msg = "Unknown command '{$cmd}'.";
 				if ($cmdNames->isNotEmpty()) {
 					$msg .= ' Did you mean ' . $cmdNames->join(', ', ' or ') . '?';
 				}
-				$context->reply($msg);
+				if (
+					$context->isDM() && (($this->errorOnUnknownCommand & self::DIRECT) === self::DIRECT)
+					|| !$context->isDM() && (($this->errorOnUnknownCommand & self::PUBLIC) === self::PUBLIC)
+				) {
+					$context->reply($msg);
+				}
 				$event = new UnknownCmdEvent(
 					channel: $context->permissionSet,
 					cmd: $cmd,

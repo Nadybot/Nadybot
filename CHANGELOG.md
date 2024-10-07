@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support hyperlinks in the console on terminals supporting this feature.
 - Add `!upgradeconfig` to upgrade any config (format) to new TOML.
 - Add the `!death`- and `!deathmsg`-commands
+- Option to turn off 'Unknown command'-messages or suggestions for direct and/or public messages.
 
 ### Changed
 
