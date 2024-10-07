@@ -26,7 +26,7 @@ class DiscordMessageIn implements Stringable {
 	 * @param ?array<mixed>        $reactions
 	 * @param ?MessageActivity     $activity          sent with Rich Presence-related chat embeds
 	 * @param ?stdClass            $application       sent with Rich Presence-related chat embeds
-	 * @param ?stdClass            $message_reference reference data sent with crossposted messages
+	 * @param ?stdClass            $message_reference reference data sent with cross-posted messages
 	 * @param ?int                 $flags             message flags ORd together, describes extra
 	 *                                                features of the message
 	 *

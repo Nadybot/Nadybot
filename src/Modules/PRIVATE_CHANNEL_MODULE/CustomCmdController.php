@@ -38,7 +38,7 @@ class CustomCmdController extends ModuleInstance {
 			'data',
 		]
 	)]
-	/** Directory in which to search for custom textfile commands */
+	/** Directory in which to search for custom text file commands */
 	public string $customCmdDir = self::OFF;
 
 	#[NCA\Logger]

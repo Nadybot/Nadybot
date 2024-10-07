@@ -133,7 +133,7 @@ class DevController extends ModuleInstance {
 
 		$this->commandManager->sortCalls($calls);
 
-		// get regexes for calls
+		// get regular expressions for calls
 		$regexes = [];
 		foreach ($calls as $call) {
 			[$name, $method] = explode('.', $call);

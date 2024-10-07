@@ -174,7 +174,7 @@ class CommandManager implements MessageEmitter {
 	 * @param string   $module         The module that wants to register a new command
 	 * @param string   $filename       A comma-separated list of "classname.method" handling $command
 	 * @param string   $command        The command to be registered
-	 * @param string   $accessLevelStr The required access level to call this comnand. Valid values are:
+	 * @param string   $accessLevelStr The required access level to call this command. Valid values are:
 	 *                                 "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
 	 *                                 "mod", "guild", "member", "rl", "guest", "all"
 	 * @param string   $description    A short description what this command is for

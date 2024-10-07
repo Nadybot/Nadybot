@@ -108,7 +108,7 @@ class RaidController extends ModuleInstance {
 
 	/** Point rate, in seconds */
 	#[NCA\Setting\Time(accessLevel: 'raid_admin_2')]
-	public int $raidPointsInterval = 5 * 60; // 5 mins
+	public int $raidPointsInterval = 5 * 60; // 5 minutes
 
 	/** Add raid initiator to the raid */
 	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
@@ -1168,7 +1168,7 @@ class RaidController extends ModuleInstance {
 			return;
 		}
 		$this->logger->notice('Removing non-raiding bot members');
-		// Get a list of the main chars of everyone who's raided in the given timeframe
+		// Get a list of the main chars of everyone who's raided in the given time frame
 		$activeMains = $this->db->table(RaidMember::getTable())
 			->where('joined', '>', time() - $this->raidDemoteMembersInterval)
 			->select('player')
@@ -1182,8 +1182,8 @@ class RaidController extends ModuleInstance {
 				return [$main => true];
 			})->toArray();
 		$members = $this->privateChannelController->getMembers();
-		// Remove all members who are older than the given timeframe and haven't raided
-		// with un in the given timeframe
+		// Remove all members who are older than the given time frame and haven't raided
+		// within in the given time frame
 		foreach ($members as $member => $data) {
 			$this->logger->info('Checking {name} for raid activity', ['name' => $member]);
 			$memberMain = $this->altsController->getMainOf($member);

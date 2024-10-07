@@ -137,7 +137,7 @@ class PermissionSetMappingController extends ModuleInstance {
 	public function cmdmapListSourcesCommand(
 		CmdContext $context,
 		#[NCA\Str('list')] string $action,
-		#[NCA\Str('src', 'source', 'sources')] string $subaction,
+		#[NCA\Str('src', 'source', 'sources')] string $subAction,
 	): void {
 		$sources = collect($this->cmdManager->getSources())->sort();
 		$blob = "<header2>Registered sources<end>\n".

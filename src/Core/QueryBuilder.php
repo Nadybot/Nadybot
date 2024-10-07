@@ -95,7 +95,7 @@ class QueryBuilder extends Builder {
 	}
 
 	/**
-	 * Pluck values as ints
+	 * Pluck values as integers
 	 *
 	 * @return Collection<int,int>
 	 */
@@ -195,7 +195,7 @@ class QueryBuilder extends Builder {
 	}
 
 	/**
-	 * Upsert more than 1 entry into the database
+	 * {}	 * Upsert more than 1 entry into the database
 	 *
 	 * Depending on the DB system, there is a limit of maximum
 	 * rows or placeholders that we can insert.

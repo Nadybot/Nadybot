@@ -156,7 +156,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Setting\Boolean]
 	public bool $addMemberOnJoin = false;
 
-	/** Enable autoinvite for new members by default */
+	/** Enable auto-invite for new members by default */
 	#[NCA\Setting\Boolean]
 	public bool $autoinviteDefault = true;
 
@@ -164,7 +164,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Setting\Boolean]
 	public bool $countEmptyProfs = true;
 
-	/** Faction allowed on the bot - autoban everything else */
+	/** Faction allowed on the bot - auto-ban everything else */
 	#[NCA\Setting\Options(options: [
 		'all', 'Omni', 'Neutral', 'Clan', 'not Omni', 'not Neutral', 'not Clan',
 	])]

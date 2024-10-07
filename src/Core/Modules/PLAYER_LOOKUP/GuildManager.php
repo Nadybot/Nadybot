@@ -158,7 +158,7 @@ class GuildManager extends ModuleInstance {
 			$cache->set($cacheKey, $body, $newCacheDuration);
 		}
 		if (isset($luDateTime) && $this->isMyGuild($guild->guild_id)) {
-			// Try to time the next rosterupdate to occur 1 day and 10m after the last export
+			// Try to time the next roster update to occur 1 day and 10m after the last export
 			$key = $this->eventManager->getKeyForCronEvent(24*3_600, 'guildcontroller.downloadOrgRosterEvent');
 			if (isset($key)) {
 				$nextTime = $luDateTime->add(new DateInterval('P1DT10M'));

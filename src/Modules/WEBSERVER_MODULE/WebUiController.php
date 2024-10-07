@@ -224,7 +224,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		if ($this->settingManager->getString('webserver_auth') !== WebserverController::AUTH_BASIC) {
 			return;
 		}
-		$schema = 'http'; /* $this->settingManager->getBool('webserver_tls') ? "https" : "http"; */
+		$schema = 'http';
 		$port = $this->settingManager->getInt('webserver_port');
 		if (!count($this->config->general->superAdmins)) {
 			return;

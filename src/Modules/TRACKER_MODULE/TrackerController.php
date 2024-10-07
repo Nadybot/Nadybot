@@ -146,7 +146,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	])]
 	public int $trackerAddAttackers = self::ATT_NONE;
 
-	/** Time after which characters not logging on will be untracked */
+	/** Time after which characters not logging on will be un-tracked */
 	#[NCA\Setting\TimeOrOff(
 		options: [
 			'off',
@@ -1211,7 +1211,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		return true;
 	}
 
-	/** Check if $uid has logged in too long ago and untrack if so  */
+	/** Check if $uid has logged in too long ago and un-track if so  */
 	private function untrackIfTooOld(int $uid, int $age): void {
 		if ($age <= $this->trackerAutoUntrack) {
 			return;

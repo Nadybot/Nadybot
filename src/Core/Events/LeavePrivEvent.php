@@ -7,7 +7,7 @@ class LeavePrivEvent extends JoinLeaveEvent {
 	public const EVENT_MASK = 'extleavepriv';
 
 	/**
-	 * @param string $sender  Either the name of the sender or the numeric UID (eg. city raid accouncements)
+	 * @param string $sender  Either the name of the sender or the numeric UID (e.g. city raid announcements)
 	 * @param string $channel The channel (msg, priv, guild) via which the message was sent
 	 */
 	public function __construct(

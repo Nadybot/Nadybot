@@ -12,7 +12,7 @@ class ExportRaidPointLog {
 	 * @param ?ExportCharacter $givenBy           Who gave the raid points?
 	 * @param ?string          $reason            Why were the raid points given?
 	 * @param ?bool            $givenByTick       True if the raidpoints were automatically given for raid participation
-	 * @param ?bool            $givenIndividually True if these points were given to only this character, false if to the whole raidforce
+	 * @param ?bool            $givenIndividually True if these points were given to only this character, false if to the whole raid force
 	 * @param ?string          $raidId            If these points were given during a raid, this is the raid's ID
 	 */
 	public function __construct(

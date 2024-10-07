@@ -48,7 +48,7 @@ class PlayerManager extends ModuleInstance {
 	#[NCA\Setting\Options(options: ['Off' => 0, 1, 2, 3, 4, 5, 10])]
 	public int $lookupJobs = 0;
 
-	/** Which service to use for character lookups */
+	/** Which service to use for character look-ups */
 	#[NCA\Setting\Text(
 		options: [
 			'bork.aobots.org (Nadybot)' => self::BORK_URL,

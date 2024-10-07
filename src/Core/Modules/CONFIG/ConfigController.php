@@ -894,7 +894,7 @@ class ConfigController extends ModuleInstance {
 	}
 
 	/**
-	 * Get all accesslevels, their name, full name and numeric value
+	 * Get all access levels, their name, full name and numeric value
 	 *
 	 * @return list<ModuleAccessLevel>
 	 */

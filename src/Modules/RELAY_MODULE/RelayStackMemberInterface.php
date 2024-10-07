@@ -13,7 +13,7 @@ interface RelayStackMemberInterface {
 	/**
 	 * Bring down the layer and call the $callback when done
 	 *
-	 * @return list<string> The data to bubble down the stack during deinit
+	 * @return list<string> The data to bubble down the stack during de-init
 	 */
 	public function deinit(callable $callback): array;
 

@@ -6,7 +6,7 @@ class UnknownCmdEvent extends CmdEvent {
 	public const EVENT_MASK = 'command(unknown)';
 
 	/**
-	 * @param string $sender  Either the name of the sender or the numeric UID (eg. city raid accouncements)
+	 * @param string $sender  Either the name of the sender or the numeric UID (e.g. city raid announcements)
 	 * @param string $channel Where was the command received
 	 * @param string $cmd     The actual command
 	 */

@@ -216,7 +216,7 @@ class AccessManager {
 		return $this->compareAccessLevels($charAccessLevel, $accessLevel) >= 0;
 	}
 
-	/** Turn the short accesslevel (rl, mod, admin) into the long version */
+	/** Turn the short access level (rl, mod, admin) into the long version */
 	public function getDisplayName(string $accessLevel): string {
 		$displayName = $this->getAccessLevel($accessLevel);
 		switch ($displayName) {
@@ -322,7 +322,7 @@ class AccessManager {
 	}
 
 	/**
-	 * Get the short version of the accesslevel, e.g. raidleader => rl
+	 * Get the short version of the access level, e.g. raidleader => rl
 	 *
 	 * @throws Exception
 	 */

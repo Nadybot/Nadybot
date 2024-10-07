@@ -437,7 +437,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/** Clears the outgoing chatqueue from all pending messages */
+	/** Clears the outgoing chat queue from all pending messages */
 	#[NCA\HandlesCommand('clearqueue')]
 	public function clearqueueCommand(CmdContext $context): void {
 		/*
@@ -445,9 +445,9 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			$context->reply("There is currently no Chat queue set up.");
 			return;
 		}
-		$num = $this->chatBot->chatqueue->clear();
+		$numDeleted = $this->chatBot->chatqueue->clear();
 
-		$context->reply("Chat queue has been cleared of <highlight>{$num}<end> messages.");
+		$context->reply("Chat queue has been cleared of <highlight>{$numDeleted}<end> messages.");
 		*/
 		$context->reply('This command is currently unsupported');
 	}
@@ -472,7 +472,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		defaultStatus: 1
 	)]
 	public function refreshMySQLConnectionEvent(Event $eventObj): void {
-		// if the bot doesn't query the mysql database for 8 hours the db connection is closed
+		// if the bot doesn't query the MySQL database for 8 hours the db connection is closed
 		$this->logger->info('Pinging database');
 		$this->db->table(Setting::getTable())
 			->firstObj(Setting::class);

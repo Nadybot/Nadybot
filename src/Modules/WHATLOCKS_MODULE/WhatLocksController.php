@@ -152,7 +152,7 @@ class WhatLocksController extends ModuleInstance {
 	/**
 	 * Get a pretty short string of a duration in seconds
 	 *
-	 * @param int $duration The ducation in seconds
+	 * @param int $duration The duration in seconds
 	 * @param int $cutAway  (optional) Cut away the first $cutAway characters
 	 *                      from the returned string
 	 *

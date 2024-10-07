@@ -142,7 +142,7 @@ class ArulSabaController extends ModuleInstance {
 		return $this->enrichIngredient($ing, $amount, $ql, $qlCanBeHigher);
 	}
 
-	/** See the recipe for a specific Arul Sabe bracelet */
+	/** See the recipe for a specific Arul Saba bracelet */
 	#[NCA\HandlesCommand('arulsaba')]
 	#[NCA\Help\Example('<symbol>arulsaba desert 5 left')]
 	public function arulSabaRecipeCommand(

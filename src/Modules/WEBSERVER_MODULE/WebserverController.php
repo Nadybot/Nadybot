@@ -84,7 +84,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	)]
 	public string $webserverAoauthUrl = 'https://aoauth.org';
 
-	/** Minimum accesslevel for the bot API and web UI */
+	/** Minimum access level for the bot API and web UI */
 	#[NCA\Setting\Rank]
 	public string $webserverMinAL = 'mod';
 

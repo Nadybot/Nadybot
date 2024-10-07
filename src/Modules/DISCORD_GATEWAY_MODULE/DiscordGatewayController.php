@@ -1017,7 +1017,7 @@ class DiscordGatewayController extends ModuleInstance {
 		return str_replace(array_keys($replace), array_values($replace), $this->discordRenameUsers);
 	}
 
-	/** Rename/assign ranks to linked Discord <-> Ao Accounts */
+	/** Rename/assign ranks to linked Discord <-> AO-accounts */
 	public function handleAccountLinking(string $guildId, string $userId, string $aoName): void {
 		$discordNick = $this->formatDiscordNick($aoName);
 		$discordRole = $this->discordAssignRole;

@@ -64,7 +64,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		}
 	}
 
-	/** Replace color names with hexcodes */
+	/** Replace color names with hex codes */
 	public function replaceColorNamesWithCodes(string $text): string {
 		$namesToHex = [
 			'aliceblue' => '#f0f8ff',

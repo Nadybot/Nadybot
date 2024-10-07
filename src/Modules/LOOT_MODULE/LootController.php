@@ -739,9 +739,9 @@ class LootController extends ModuleInstance {
 				/** @psalm-var non-empty-array<string, bool> */
 				$users = $item->users;
 				if ($item->multiloot > 1) {
-					$arrolnum = min($item->multiloot, $numUsers);
-					// Get $arrolnum random values from $users
-					$winners = (array)array_rand($users, $arrolnum);
+					$arrolNum = min($item->multiloot, $numUsers);
+					// Get $arrolNum random values from $users
+					$winners = (array)array_rand($users, $arrolNum);
 					foreach ($winners as $winner) {
 						$lootHistory->winner = $winner;
 						$this->db->insert($lootHistory);
@@ -755,8 +755,8 @@ class LootController extends ModuleInstance {
 						)
 					);
 
-					if ($arrolnum < $item->multiloot) {
-						$newmultiloot = $item->multiloot - $arrolnum;
+					if ($arrolNum < $item->multiloot) {
+						$newmultiloot = $item->multiloot - $arrolNum;
 						$this->residual[$resnum] = $item;
 						$this->residual[$resnum]->multiloot = $newmultiloot;
 						$resnum++;

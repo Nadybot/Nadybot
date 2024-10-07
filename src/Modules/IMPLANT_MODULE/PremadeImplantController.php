@@ -43,7 +43,7 @@ class PremadeImplantController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/premade_implant.csv');
 	}
 
-	/** Search for implants by profession, slot, or modifier in the premade implant booth */
+	/** Search for implants by profession, slot, or modifier in the pre-made implant booth */
 	#[NCA\HandlesCommand('premade')]
 	#[NCA\Help\Example('<symbol>premade agent')]
 	#[NCA\Help\Example('<symbol>premade cl')]

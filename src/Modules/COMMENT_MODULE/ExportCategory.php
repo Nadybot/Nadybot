@@ -11,7 +11,7 @@ class ExportCategory {
 	 * @param ?int             $createdAt      When was the category created?
 	 * @param ?bool            $systemEntry    If set, this denounces a system-entry. What that is, is up to  the implementation, but it usually means it's locked, cannot be deleted, etc.
 	 * @param ?string          $minRankToRead  The minimum rank required to read comments in this category
-	 * @param ?string          $minRankToWrite The minimum rank required to crete or delete comments in this category
+	 * @param ?string          $minRankToWrite The minimum rank required to create or delete comments in this category
 	 */
 	public function __construct(
 		public string $name,

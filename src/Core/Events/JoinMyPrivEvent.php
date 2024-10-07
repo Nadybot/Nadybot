@@ -7,7 +7,7 @@ class JoinMyPrivEvent extends JoinPrivEvent {
 	public const EVENT_MASK = 'joinpriv';
 
 	/**
-	 * @param string $sender  The name of the person joning
+	 * @param string $sender  The name of the person joining
 	 * @param string $channel The name of the channel via which the message was sent (us)
 	 */
 	public function __construct(

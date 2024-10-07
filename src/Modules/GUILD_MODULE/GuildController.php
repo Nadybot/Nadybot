@@ -953,7 +953,7 @@ class GuildController extends ModuleInstance {
 	}
 
 	private function updateRosterForGuild(?Guild $org): void {
-		// Check if guild xml file is correct if not abort
+		// Check if guild XML file is correct if not abort
 		if ($org === null) {
 			$this->logger->error('Error downloading the guild roster xml file');
 			return;

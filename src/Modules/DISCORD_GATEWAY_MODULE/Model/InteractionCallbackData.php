@@ -20,7 +20,7 @@ class InteractionCallbackData implements Stringable {
 	 * @param ?string                      $content          message content
 	 * @param ?DiscordEmbed[]              $embeds           supports up to 10 embeds
 	 * @param ?DiscordAllowedMentions      $allowed_mentions allowed mentions object
-	 * @param ?int                         $flags            message flags combined as a bitfield
+	 * @param ?int                         $flags            message flags combined as a bit field
 	 *                                                       (only SUPPRESS_EMBEDS and EPHEMERAL can be set)
 	 * @param ?DiscordActionRowComponent[] $components       message components
 	 * @param ?DiscordAttachment[]         $attachments      attachment objects with filename and description

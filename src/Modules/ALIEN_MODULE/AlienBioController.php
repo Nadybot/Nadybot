@@ -420,7 +420,7 @@ class AlienBioController extends ModuleInstance {
 
 	/**
 	 * Tells how much skills is required to analyze serum bio material and how
-	 * much skills are needed to to build buildings from it.
+	 * much skills are needed to build buildings from it.
 	 */
 	private function serumBio(int $ql): string {
 		$name = "Kyr'Ozch Viral Serum";

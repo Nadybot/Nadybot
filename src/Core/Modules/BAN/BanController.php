@@ -138,7 +138,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	/** Temporarily ban a player from this bot */
 	#[NCA\HandlesCommand('ban')]
 	#[NCA\Help\Group('ban')]
-	#[NCA\Help\Example('<symbol>ban badplayer 2 weeks for ninjalooting')]
+	#[NCA\Help\Example('<symbol>ban badplayer 2 weeks for ninja-looting')]
 	public function banPlayerWithTimeAndReasonCommand(
 		CmdContext $context,
 		PCharacter $who,
@@ -203,7 +203,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	/** Permanently ban a player from this bot */
 	#[NCA\HandlesCommand('ban')]
 	#[NCA\Help\Group('ban')]
-	#[NCA\Help\Example('<symbol>ban badplayer for ninjalooting')]
+	#[NCA\Help\Example('<symbol>ban badplayer for ninja-looting')]
 	public function banPlayerWithReasonCommand(
 		CmdContext $context,
 		PCharacter $who,
@@ -313,7 +313,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		$context->reply($msg);
 	}
 
-	/** Unbans a character and all their alts from this bot */
+	/** Un-bans a character and all their alts from this bot */
 	#[NCA\HandlesCommand('unban')]
 	#[NCA\Help\Group('ban')]
 	public function unbanAllCommand(
@@ -356,7 +356,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		}
 	}
 
-	/** Unbans a character from this bot */
+	/** Un-bans a character from this bot */
 	#[NCA\HandlesCommand('unban')]
 	#[NCA\Help\Group('ban')]
 	public function unbanCommand(CmdContext $context, PCharacter $who): void {
@@ -420,7 +420,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	}
 
 	/**
-	 * Actually add $charId to the banlist with optional duration and reason
+	 * Actually add $charId to the ban list with optional duration and reason
 	 *
 	 * @param int         $charId The UID of the player to ban
 	 * @param string      $sender The name of the player banning them
@@ -461,7 +461,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		return $inserted === 1;
 	}
 
-	/** Remove $charId from the banlist */
+	/** Remove $charId from the ban list */
 	public function remove(int $charId): bool {
 		$deleted = $this->db->table(BanEntry::getTable())
 			->where('charid', $charId)
@@ -475,7 +475,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		return true;
 	}
 
-	/** Sync the banlist from the database */
+	/** Sync the ban list from the database */
 	public function uploadBanlist(): void {
 		$this->banlist = [];
 

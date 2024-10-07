@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Monolog\Handler\AbstractHandler;
 
 /**
- * Dedup
+ * De-duplication
  */
 class DedupHandler extends AbstractHandler {
 	/** @var null|array<string,mixed> */

@@ -64,7 +64,7 @@ class LimitsController extends ModuleInstance {
 	])]
 	public int $tellErrorMsgType = 2;
 
-	/** Ratelimit: Which commands to account for? */
+	/** Rate limit: Which commands to account for? */
 	#[NCA\Setting\Options(options: [
 		'All' => 3,
 		'Only errors/denied' => 2,
@@ -73,7 +73,7 @@ class LimitsController extends ModuleInstance {
 	])]
 	public int $limitsCmdType = 0;
 
-	/** Ratelimit: Which time window to check? */
+	/** Rate limit: Which time window to check? */
 	#[NCA\Setting\Options(options: [
 		'5 secs' => 5,
 		'10 secs' => 10,
@@ -82,11 +82,11 @@ class LimitsController extends ModuleInstance {
 	])]
 	public int $limitsWindow = 5;
 
-	/** Ratelimit: How many commands per time window trigger actions? */
+	/** Rate limit: How many commands per time window trigger actions? */
 	#[NCA\Setting\Number(options: ['off' => 0, 2, 3, 4, 5, 6, 7, 8, 9, 10])]
 	public int $limitsThreshold = 5;
 
-	/** Ratelimit: Action when players exceed the allowed command rate */
+	/** Rate limit: Action when players exceed the allowed command rate */
 	#[NCA\Setting\Options(options: [
 		'Kick' => 1,
 		'Temp. ban' => 2,
@@ -96,11 +96,11 @@ class LimitsController extends ModuleInstance {
 	])]
 	public int $limitsOverrateAction = 4;
 
-	/** Ratelimit: How long to temporarily ban or ignore? */
+	/** Rate limit: How long to temporarily ban or ignore? */
 	#[NCA\Setting\Time(options: ['1m', '2m', '5m', '10m', '30m', '1h', '6h'])]
 	public int $limitsIgnoreDuration = 300;
 
-	/** Ratelimit: Ignore ratelimit for everyone of this rank or higher */
+	/** Rate limit: Ignore rate limit for everyone of this rank or higher */
 	#[NCA\Setting\Rank] public string $limitsExemptRank = 'mod';
 
 	/** @var array<string,list<int>> */
@@ -375,7 +375,7 @@ class LimitsController extends ModuleInstance {
 		$tellReqFaction = $this->tellReqFaction;
 		$tellReqLevel = $this->tellReqLvl;
 
-		// check minlvl
+		// check min-lvl
 		if ($tellReqLevel > 0 && $tellReqLevel > ($whois->level??0)) {
 			throw new UserException(
 				"Error! You must be at least level <highlight>{$tellReqLevel}<end>."

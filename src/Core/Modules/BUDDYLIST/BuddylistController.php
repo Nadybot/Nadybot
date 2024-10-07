@@ -231,7 +231,7 @@ class BuddylistController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** Rebalance the buddies on the workers by removing and re-adding all of them */
+	/** Re-balance the buddies on the workers by removing and re-adding all of them */
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistRebalanceCommand(
 		CmdContext $context,

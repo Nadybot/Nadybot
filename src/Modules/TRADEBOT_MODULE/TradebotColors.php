@@ -11,7 +11,7 @@ class TradebotColors extends DBTable {
 	#[NCA\DB\PK] public UuidInterface $id;
 
 	/**
-	 * @param string         $tradebot Name of the tradebnot (Darknet/Lightnet)
+	 * @param string         $tradebot Name of the tradebot (Darknet/Lightnet)
 	 * @param string         $channel  The channel mask (wtb, *, wt?, ...)
 	 * @param string         $color    The 6 hex digits of the color, like FFFFFF
 	 * @param ?UuidInterface $id       Internal primary key

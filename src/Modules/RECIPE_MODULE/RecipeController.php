@@ -147,7 +147,7 @@ class RecipeController extends ModuleInstance {
 		$input = Safe::pregReplaceCallback('/#L "([^"]+)" "([0-9]+)"/', $this->replaceItem(...), $input);
 		$input = Safe::pregReplace('/#L "([^"]+)" "([^"]+)"/', "<a href='chatcmd://\\2'>\\1</a>", $input);
 
-		// we can't use <myname> in the sql since that will get converted on load,
+		// we can't use <myname> in the SQL since that will get converted on load,
 		// and we need to wait to convert until display time due to the possibility
 		// of several bots sharing the same db
 		$input = str_replace('{myname}', '<myname>', $input);

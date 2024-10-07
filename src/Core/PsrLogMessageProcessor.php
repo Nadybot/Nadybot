@@ -65,7 +65,7 @@ class PsrLogMessageProcessor implements ProcessorInterface {
 			return (string)$val;
 		} elseif ($val instanceof \DateTimeInterface) {
 			if (!isset($this->dateFormat) && $val instanceof \Monolog\DateTimeImmutable) {
-				// handle monolog dates using __toString if no specific dateFormat was asked for
+				// handle monolog dates using __toString() if no specific dateFormat was asked for
 				// so that it follows the useMicroseconds flag
 				return (string)$val;
 			}

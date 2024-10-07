@@ -234,7 +234,7 @@ class LogsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** Reset your temporarily changed loglevels back to your configuration */
+	/** Reset your temporarily changed log levels back to your configuration */
 	#[NCA\HandlesCommand('loglevel')]
 	public function loglevelResetCommand(
 		CmdContext $context,

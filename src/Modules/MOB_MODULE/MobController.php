@@ -481,10 +481,10 @@ class MobController extends ModuleInstance {
 			return '<unknown>UNKNOWN<end>';
 		}
 
-		// We don't know when the sapling despawned, so we don't know when
+		// We don't know when the sapling de-spawned, so we don't know when
 		// a new one will spawn. Let's show the last state we're sure of
 
-		// Weed despawned
+		// Weed de-spawned
 		if ($mob->status === Mob::STATUS_OUT_OF_RANGE) {
 			if (isset($mob->last_seen)) {
 				return '{$state} (wiped at Weed '.

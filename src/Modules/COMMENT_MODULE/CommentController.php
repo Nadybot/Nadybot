@@ -47,7 +47,7 @@ use Psr\Log\LoggerInterface;
 class CommentController extends ModuleInstance {
 	public const ADMIN = 'admin';
 
-	/** How long is the cooldown between leaving 2 comments for the same character */
+	/** How long is the cool-down between leaving 2 comments for the same character */
 	#[NCA\Setting\Time(options: ['1s', '1h', '6h', '24h'])]
 	public int $commentCooldown = 6 * 3_600;
 
@@ -399,7 +399,7 @@ class CommentController extends ModuleInstance {
 	}
 
 	/**
-	 * Save a comment and take the cooldown into consideration
+	 * Save a comment and take the cool-down into consideration
 	 *
 	 * @return int 0 for success, otherwise the remaining time in seconds for posting
 	 */
@@ -686,7 +686,7 @@ class CommentController extends ModuleInstance {
 		if ($lastComment === false) {
 			return 0;
 		}
-		// If the age of the last comment is less than the cooldown, return the remaining cooldown
+		// If the age of the last comment is less than the cool-down, return the remaining cool-down
 		if (time() - $lastComment->created_at < $cooldown) {
 			return $cooldown - time() + $lastComment->created_at;
 		}

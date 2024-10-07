@@ -24,7 +24,7 @@ class ApplicationCommand implements Stringable {
 	 * @param ?string                     $application_id             ID of the parent application
 	 * @param ?string                     $guild_id                   guild id of the command, if not global
 	 * @param string                      $name                       Name of command, 1-32 characters
-	 * @param ?string                     $version                    Autoincrementing version identifier updated
+	 * @param ?string                     $version                    Auto-incrementing version identifier updated
 	 *                                                                during substantial record changes
 	 * @param string                      $description                Description for CHAT_INPUT commands,
 	 *                                                                1-100 characters.

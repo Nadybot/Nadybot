@@ -69,7 +69,7 @@ class AltsController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $altsRequireConfirmation = true;
 
-	/** Show the org in the altlist */
+	/** Show the org in the alt list */
 	#[NCA\Setting\Boolean]
 	public bool $altsShowOrg = true;
 
@@ -247,7 +247,7 @@ class AltsController extends ModuleInstance {
 		// insert into database
 		$this->addAlt($newMainAltInfo->main, $context->char->name, false, true);
 
-		// Try to inform a validated player from that account about new unvalidated alts
+		// Try to inform a validated player from that account about new un-validated alts
 		$sentTo = null;
 		$receivers = [$newMainAltInfo->main, ...$newMainAltInfo->getAllValidatedAlts()];
 		foreach ($receivers as $receiver) {
@@ -266,7 +266,7 @@ class AltsController extends ModuleInstance {
 		// update character information for both, main and alt
 		async($this->playerManager->byName(...), $newMain)->ignore();
 		async($this->playerManager->byName(...), $context->char->name)->ignore();
-		// @todo Send a warning if the new main's accesslevel is lower than ours
+		// @todo Send a warning if the new main's access level is lower than ours
 
 		$msg = "Successfully requested to be added as <highlight>{$newMain}'s<end> alt. ".
 			'Make sure to confirm the request on <highlight>';
@@ -904,7 +904,7 @@ class AltsController extends ModuleInstance {
 			$result []= "{$numAlts} added successfully, but <highlight>require{$s} confirmation<end>. " .
 			'Make sure to confirm you as their main.';
 		}
-		// @todo Send a warning if the alt's accesslevel is higher than ours
+		// @todo Send a warning if the alt's access level is higher than ours
 		return $result;
 	}
 
@@ -967,7 +967,7 @@ class AltsController extends ModuleInstance {
 		);
 		$this->accessManager->addAudit($audit);
 
-		// @todo Send a warning if the new main's accesslevel is not the highest
+		// @todo Send a warning if the new main's access level is not the highest
 		$event = new AltNewMainEvent(
 			main: $newMain,
 			alt: $altInfo->main,

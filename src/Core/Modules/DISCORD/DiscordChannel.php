@@ -24,7 +24,7 @@ class DiscordChannel implements Stringable {
 	/** an organizational category that contains up to 50 channels */
 	public const GUILD_CATEGORY = 4;
 
-	/** a channel that users can follow and crosspost into their own server */
+	/** a channel that users can follow and cross-post into their own server */
 	public const GUILD_ANNOUNCEMENT = 5;
 
 	/** a temporary sub-channel within a GUILD_ANNOUNCEMENT channel */
@@ -55,7 +55,7 @@ class DiscordChannel implements Stringable {
 	 * @param ?string            $last_message_id       the id of the last message sent in this
 	 *                                                  channel (may not point to an existing or
 	 *                                                  valid message)
-	 * @param ?int               $bitrate               bitrate (in bits) of the voice channel
+	 * @param ?int               $bitrate               bit rate (in bits) of the voice channel
 	 * @param ?int               $user_limit            the user limit of the voice channel
 	 * @param ?int               $rate_limit_per_user   amount of seconds a user has to wait
 	 *                                                  before sending another message (0-21600);

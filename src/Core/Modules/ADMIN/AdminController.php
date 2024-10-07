@@ -303,7 +303,7 @@ class AdminController extends ModuleInstance {
 	/**
 	 * Get the string of the online status
 	 *
-	 * @param string $who Playername
+	 * @param string $who name of the character
 	 *
 	 * @return string " (<on>online<end>)" and so on
 	 */
