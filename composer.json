@@ -77,7 +77,7 @@
 		"nadyita/phpstan-amp-file-rule": "^1.0.1",
 		"squizlabs/php_codesniffer": "^3.9.0",
 		"composer/composer": "^2.7.0",
-		"composer-phar/phpstan": "^1.10.59",
+		"phpstan/phpstan": "^1.12.3",
 		"phpstan/phpstan-deprecation-rules": "^1.0",
 		"composer-phar/php-cs-fixer": "^3.51.0",
 		"psalm/phar": "^5.22.2",

@@ -222,9 +222,6 @@ class Nadybot {
 	private BanController $banController;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private EventFeed $eventFeed;
 
 	#[NCA\Inject]
