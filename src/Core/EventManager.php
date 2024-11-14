@@ -60,7 +60,7 @@ class EventManager {
 	#[NCA\Inject]
 	private MessageHubController $messageHubController;
 
-	/** @var array<int,CronEntry> */
+	/** @var list<CronEntry> */
 	private array $cronevents = [];
 
 	/** @var array<string,EventType> */
@@ -311,7 +311,7 @@ class EventManager {
 					$found = true;
 					EventLoop::cancel($this->cronevents[$key]->moveHandle ?? '');
 					EventLoop::cancel($this->cronevents[$key]->handle ?? '');
-					unset($this->cronevents[$key]);
+					array_splice($this->cronevents, $key, 1);
 				}
 			} else {
 				$this->logger->error('Error deactivating {event}: {error}', [
@@ -413,7 +413,7 @@ class EventManager {
 						if ($key !== null) {
 							EventLoop::cancel($this->cronevents[$key]->moveHandle ?? '');
 							EventLoop::cancel($this->cronevents[$key]->handle ?? '');
-							unset($this->cronevents[$key]);
+							array_splice($this->cronevents, $key, 1);
 						}
 					}
 				} else {
