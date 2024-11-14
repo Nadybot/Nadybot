@@ -133,10 +133,10 @@ class AOUController extends ModuleInstance {
 
 		$blob = Text::makeChatcmd('Guide on AO-Universe', "/start https://www.ao-universe.com/main.php?site=knowledge&id={$guideId}") . "\n\n";
 
-		$blob .= 'Updated: <highlight>' . ($content->getElementsByTagName('update')->item(0)?->nodeValue ?? '-') . "<end>\n";
-		$blob .= 'Profession: <highlight>' . ($content->getElementsByTagName('class')->item(0)?->nodeValue ?? '-') . "<end>\n";
-		$blob .= 'Faction: <highlight>' . ($content->getElementsByTagName('faction')->item(0)?->nodeValue ?? '-') . "<end>\n";
-		$blob .= 'Level: <highlight>' . ($content->getElementsByTagName('level')->item(0)?->nodeValue ?? '-') . "<end>\n";
+		$blob .= 'Updated: <highlight>' . ($content->getElementsByTagName('update')->item(0)->nodeValue ?? '-') . "<end>\n";
+		$blob .= 'Profession: <highlight>' . ($content->getElementsByTagName('class')->item(0)->nodeValue ?? '-') . "<end>\n";
+		$blob .= 'Faction: <highlight>' . ($content->getElementsByTagName('faction')->item(0)->nodeValue ?? '-') . "<end>\n";
+		$blob .= 'Level: <highlight>' . ($content->getElementsByTagName('level')->item(0)->nodeValue ?? '-') . "<end>\n";
 		$blob .= 'Author: <highlight>' . $this->processInput($content->getElementsByTagName('author')->item(0)->nodeValue) . "<end>\n\n";
 
 		$blob .= $this->processInput($content->getElementsByTagName('text')->item(0)->nodeValue);

@@ -292,7 +292,7 @@ class TradebotController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,list<TradebotColors>> */
+		/** @var array<string,iterable<TradebotColors>> */
 		$colorDefs = $allColors->groupBy('tradebot')->toArray();
 		$blob = '';
 		foreach ($colorDefs as $tradebot => $colors) {

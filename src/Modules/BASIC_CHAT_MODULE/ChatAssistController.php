@@ -213,16 +213,18 @@ class ChatAssistController extends ModuleInstance {
 			if (isset($group) && $group !== $name) {
 				continue;
 			}
-			for ($i = 0; $i < count($list->callers); $i++) {
-				$caller = $list->callers[$i];
-				if ($caller->name === $toRemove) {
-					$removed = true;
-					unset($list->callers[$i]);
-				}
-			}
-
-			/** @psalm-suppress RedundantFunctionCall */
-			$list->callers = array_values($list->callers);
+			$list->callers = array_values(
+				array_filter(
+					$list->callers,
+					static function (Caller $caller) use (&$removed, $toRemove): bool {
+						if ($caller->name === $toRemove) {
+							$removed = true;
+							return false;
+						}
+						return true;
+					}
+				)
+			);
 		}
 		if (!$removed) {
 			$msg = "<highlight>{$toRemove}<end> is not in the list of callers.";

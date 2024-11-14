@@ -53,14 +53,8 @@ class JWT {
 	 *
 	 * @return stdClass The JWT's payload as a PHP object
 	 *
-	 * @throws InvalidArgumentException  Provided JWT was empty
-	 * @throws UnexpectedValueException  Provided JWT was invalid
-	 * @throws SignatureInvalidException Provided JWT was invalid because the signature verification failed
-	 * @throws BeforeValidException      Provided JWT is trying to be used before it's eligible as defined by 'nbf'
-	 * @throws BeforeValidException      Provided JWT is trying to be used before it's been created as defined by 'iat'
-	 * @throws ExpiredException          Provided JWT has since expired, as defined by the 'exp' claim
-	 *
-	 * @phpstan-ignore-next-line
+	 * @throws InvalidArgumentException Provided JWT was empty
+	 * @throws UnexpectedValueException Provided JWT was invalid
 	 */
 	public static function decode(string $jwt, string $key, array $allowed_algs=[]): stdClass {
 		$timestamp = is_null(static::$timestamp) ? time() : static::$timestamp;

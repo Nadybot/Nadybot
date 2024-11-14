@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
+use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -90,8 +91,12 @@ class FunController extends ModuleInstance {
 			->whereIn('type', explode(',', $type))
 			->asObj(Fun::class);
 		if ($number === null) {
-			/** @var ?Fun */
-			$row = $data->random();
+			try {
+				/** @var Fun */
+				$row = $data->random();
+			} catch (InvalidArgumentException) {
+				$row = null;
+			}
 		} else {
 			$row = $data[$number] ?? null;
 		}

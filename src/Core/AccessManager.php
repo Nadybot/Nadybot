@@ -256,6 +256,7 @@ class AccessManager {
 		/** @var array<string,int> */
 		$ranks = [];
 		foreach ($this->providers as $provider) {
+			/** @var AccessLevelProvider $provider */
 			$rank = $provider->getSingleAccessLevel($sender);
 			if (isset($rank)) {
 				$ranks[$rank] = self::$ACCESS_LEVELS[$rank] ?? self::$ACCESS_LEVELS['all'];

@@ -3,8 +3,7 @@
 namespace Nadybot\Core;
 
 use function Amp\delay;
-use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, Request, Response, SocketException};
-use Amp\Http\Http2\Http2ConnectionException as Http2Http2ConnectionException;
+use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, HttpException, Request, Response};
 use Amp\{Cancellation, ForbidCloning as AmpForbidCloning, ForbidSerialization as AmpForbidSerialization};
 use Nadybot\Core\Attributes as NCA;
 
@@ -38,7 +37,7 @@ final class HttpRetry implements ApplicationInterceptor {
 			}
 			try {
 				return $httpClient->request(clone $request, $cancellation);
-			} catch (SocketException | Http2Http2ConnectionException $exception) {
+			} catch (HttpException $exception) {
 				if (!$request->isIdempotent()) {
 					throw $exception;
 				}

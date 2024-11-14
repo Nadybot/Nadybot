@@ -51,6 +51,10 @@ class Fernet implements RelayLayerInterface {
 
 	protected Relay $relay;
 
+	/**
+	 * @param non-falsy-string $hashAlgo
+	 * @param positive-int     $iterations
+	 */
 	public function __construct(string $password, string $salt, string $hashAlgo='sha256', int $iterations=10_000) {
 		$key = hash_pbkdf2($hashAlgo, $password, $salt, $iterations, 32, true);
 		$base64Key = FernetProto::base64url_encode($key);

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Migrations;
 
-use function Safe\preg_match;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 
@@ -50,7 +49,7 @@ class CreateRouteHopColorTable implements SchemaMigration {
 		if (!isset($privSysColor)) {
 			return;
 		}
-		if (!preg_match('/#([0-9a-f]{6})/i', $privSysColor->value??'', $matches)) {
+		if (!count($matches = Safe::pregMatch('/#([0-9a-f]{6})/i', $privSysColor->value??''))) {
 			return;
 		}
 		$privSysColor = $matches[1]??'';

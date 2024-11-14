@@ -410,9 +410,9 @@ class MessageHub {
 		$eventLogLevel = null;
 		if ($path[0]->type === Source::LOG) {
 			/**
-			 * @phpstan-ignore-next-line
-			 *
 			 * @psalm-suppress ArgumentTypeCoercion
+			 *
+			 * @phpstan-ignore-next-line
 			 */
 			$eventLogLevel = Logger::toMonologLevel($path[0]->name);
 		}
@@ -647,7 +647,7 @@ class MessageHub {
 						continue;
 					}
 					$result = $route;
-					unset($this->routes[$source][$dest][$i]);
+					array_splice($this->routes[$source][$dest], $i, 1);
 					$char = $this->getCharacter($dest);
 					if (isset($char)) {
 						$this->buddyListManager->remove($char, 'msg_hub');
@@ -660,10 +660,6 @@ class MessageHub {
 					}
 				}
 
-				/** @psalm-suppress RedundantFunctionCallGivenDocblockType */
-				$this->routes[$source][$dest] = array_values(
-					$this->routes[$source][$dest]
-				);
 				if (!count($this->routes[$source][$dest])) {
 					unset($this->routes[$source][$dest]);
 				}

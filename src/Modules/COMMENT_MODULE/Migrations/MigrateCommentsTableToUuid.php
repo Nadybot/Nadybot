@@ -11,7 +11,7 @@ use Psr\Log\LoggerInterface;
 #[NCA\Migration(order: 2024_08_01_19_47_43)]
 class MigrateCommentsTableToUuid implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		$table = $this->getSetting($db, 'table_name_comments')?->value ?? 'comments_<myname>';
+		$table = $this->getSetting($db, 'table_name_comments')->value ?? 'comments_<myname>';
 		$db->migrateIdToUuid(
 			$table,
 			static function (Blueprint $table): void {

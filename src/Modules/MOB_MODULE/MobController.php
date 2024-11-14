@@ -139,12 +139,13 @@ class MobController extends ModuleInstance {
 			$json = json_decode($body, true);
 
 			foreach ($json as $entry) {
-				$mob = Hydrator::hydrateObjects(Mob::class, $entry)->getIterator();
+				$mobs = Hydrator::hydrateObjects(Mob::class, $entry)->getIterator();
 
-				/** @var Mob $mob */
-				if ($mob->key === $key) {
-					$this->mobs[$type] ??= [];
-					$this->mobs[$type][$key] = $mob;
+				foreach ($mobs as $mob) {
+					if ($mob->key === $key) {
+						$this->mobs[$type] ??= [];
+						$this->mobs[$type][$key] = $mob;
+					}
 				}
 			}
 		} catch (JsonException $e) {

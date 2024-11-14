@@ -1602,7 +1602,7 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * @param Collection<int,list<ReflectionMethod>> $list
 	 *
-	 * @return Collection<string,list<ReflectionMethod>>
+	 * @return Collection<string,Collection<int, list<ReflectionMethod>>>
 	 */
 	private function groupBySubcmd(Collection $list): Collection {
 		/**
@@ -1620,10 +1620,6 @@ class CommandManager implements MessageEmitter {
 
 		/**
 		 * @param list<ReflectionMethod> $refMethods
-		 *
-		 * @var Collection<string,list<ReflectionMethod>> $grouped
-		 *
-		 * @phpstan-ignore-next-line
 		 */
 		$grouped = $sList->groupBy(static function (array $refMethods): string {
 			if (!count($refMethods)) {

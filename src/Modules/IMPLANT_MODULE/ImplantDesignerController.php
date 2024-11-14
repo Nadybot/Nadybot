@@ -213,7 +213,7 @@ class ImplantDesignerController extends ModuleInstance {
 			}
 			$blob .= "\n";
 		} else {
-			$ql = $slotObj?->ql ?? 300;
+			$ql = $slotObj->ql ?? 300;
 			$blob .= "<header2>Specs<end>\n<tab>QL: {$ql}\n";
 			$implant = $this->getImplantInfo($ql, $slotObj?->shiny, $slotObj?->bright, $slotObj?->faded);
 			if ($implant !== null) {
@@ -417,6 +417,8 @@ class ImplantDesignerController extends ModuleInstance {
 		$slot = $slot();
 
 		$design = $this->getDesign($context->char->name, '@');
+
+		/** @var ?SlotConfig */
 		$slotObj = $design->{$slot->designSlotName()};
 		if (!isset($slotObj)) {
 			$msg = 'You must have at least one cluster filled to require an ability.';
@@ -432,9 +434,7 @@ class ImplantDesignerController extends ModuleInstance {
 			$blob .= Text::makeChatcmd('Clear this slot', "/tell <myname> implantdesigner {$slot->designSlotName()} clear");
 			$blob .= "]\n\n\n";
 			$blob .= Text::makeChatcmd($slot->longName(), "/tell <myname> implantdesigner {$slot->designSlotName()}");
-			if ($slotObj instanceof SlotConfig) {
-				$blob .= $this->getImplantSummary($slotObj) . "\n";
-			}
+			$blob .= $this->getImplantSummary($slotObj) . "\n";
 			$blob .= "Which ability do you want to require for {$slot->longName()}?\n\n";
 			$abilities = $this->db->table(Ability::getTable())->select('name')
 				->pluckStrings('name')->toArray();
@@ -460,6 +460,8 @@ class ImplantDesignerController extends ModuleInstance {
 		$ability = $ability();
 
 		$design = $this->getDesign($context->char->name, '@');
+
+		/** @var ?SlotConfig */
 		$slotObj = $design->{$slot->designSlotName()};
 		if (!isset($slotObj)) {
 			$msg = 'You must have at least one cluster filled to require an ability.';
@@ -475,9 +477,7 @@ class ImplantDesignerController extends ModuleInstance {
 			$blob .= Text::makeChatcmd('Clear this slot', "/tell <myname> implantdesigner {$slot->designSlotName()} clear");
 			$blob .= "]\n\n\n";
 			$blob .= Text::makeChatcmd($slot->longName(), "/tell <myname> implantdesigner {$slot->designSlotName()}");
-			if ($slotObj instanceof SlotConfig) {
-				$blob .= $this->getImplantSummary($slotObj) . "\n";
-			}
+			$blob .= $this->getImplantSummary($slotObj) . "\n";
 			$blob .= "Combinations for <highlight>{$slot->longName()}<end> that will require {$ability}:\n";
 			$query = $this->db
 				->table(ImplantMatrix::getTable(), 'i')

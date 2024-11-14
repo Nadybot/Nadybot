@@ -355,8 +355,7 @@ class ApiController extends ModuleInstance {
 				}
 			}
 
-			/** @var list<mixed> $parts */
-			$handler->args = $parts;
+			$handler->args = array_values($parts);
 			return $handler;
 		}
 		return null;

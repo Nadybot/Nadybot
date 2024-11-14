@@ -824,11 +824,11 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$character->id = $this->chatBot->getUid($character->name);
 		}
 		$message = new Message(
-			dimension: $character?->dimension ?? $this->config->main->dimension,
+			dimension: $character->dimension ?? $this->config->main->dimension,
 			bot_uid: $botUid,
 			bot_name: $this->config->main->character,
 			sender_uid: $character?->id,
-			sender_name: $character?->name ?? $this->config->main->character,
+			sender_name: $character->name ?? $this->config->main->character,
 			main: $character ? $this->altsCtrl->getMainOf($character->name) : null,
 			nick: $character ? $this->nickCtrl->getNickname($character->name) : null,
 			sent: time(),

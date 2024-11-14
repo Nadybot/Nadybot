@@ -153,6 +153,7 @@ parameters:
     noVariableVariables: false
     strictArrayFilter: true
 includes:
+    - phar://phpstan.phar/conf/bleedingEdge.neon
     - vendor/phpstan/phpstan-deprecation-rules/rules.neon
     - vendor/nadyita/phpstan-amp-file-rule/phpstan-amp-file-rule.neon
     - vendor/thecodingmachine/phpstan-safe-rule/phpstan-safe-rule.neon

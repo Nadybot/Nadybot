@@ -456,7 +456,7 @@ class MessageHubController extends ModuleInstance {
 			return;
 		}
 
-		/** @var list<int> List of modifier-ids for the route */
+		/** @var list<UuidInterface> List of modifier-ids for the route */
 		$modifiers = array_column($route->modifiers, 'id');
 		$this->db->awaitBeginTransaction();
 		try {

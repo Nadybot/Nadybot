@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	Text,
 };
 use Psr\Log\LoggerInterface;
-use stdClass;
 
 /**
  * @author Tyrence (RK2)
@@ -181,12 +180,13 @@ class OrglistController extends ModuleInstance {
 		$totalOnline = count(array_filter($onlineStates, static fn (bool $online) => $online));
 		$totalCount = count($org->members);
 
+		/** @var array<int,RankGroup> */
 		$rankGroups = [];
 		foreach ($org->members as $member) {
 			if (!isset($member->guild_rank_id)) {
 				continue;
 			}
-			$rankGroups[$member->guild_rank_id] ??= (object)['total' => 0, 'online' => [], 'offline' => []];
+			$rankGroups[$member->guild_rank_id] ??= new RankGroup();
 			$rankGroups[$member->guild_rank_id]->total++;
 			if ($onlineStates[$member->name] ?? false) {
 				$rankGroups[$member->guild_rank_id]->online []= $member;
@@ -196,8 +196,6 @@ class OrglistController extends ModuleInstance {
 				}
 			}
 		}
-
-		/** @var array<int,stdClass> $rankGroups */
 
 		$renderedGroups = [];
 		for ($rankid = 0; $rankid < count($orgRankNames); $rankid++) {
@@ -214,7 +212,7 @@ class OrglistController extends ModuleInstance {
 	}
 
 	/** Render the online/offline list for a single rank */
-	private function renderOrglistRankGroup(string $rankName, stdClass $rankGroup): string {
+	private function renderOrglistRankGroup(string $rankName, RankGroup $rankGroup): string {
 		$blob = "<pagebreak><header2>{$rankName}<end> (" . count($rankGroup->online) . "/{$rankGroup->total})";
 		$sortFunc = static fn (Player $p1, Player $p2): int => strcmp($p1->name, $p2->name);
 		usort($rankGroup->online, $sortFunc);

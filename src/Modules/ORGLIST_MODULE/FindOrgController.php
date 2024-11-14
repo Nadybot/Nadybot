@@ -328,7 +328,8 @@ class FindOrgController extends ModuleInstance {
 			throw new Exception("Invalid data received from orglist for {$letter}");
 		}
 
-		/** @var string $body */
+		/** @psalm-var non-falsy-string $body */
+
 		$cache->set($letter, $body, 23 * 3_600);
 
 		$this->handleOrglistResponse($body, $letter);

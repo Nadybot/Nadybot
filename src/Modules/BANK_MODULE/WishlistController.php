@@ -842,7 +842,6 @@ class WishlistController extends ModuleInstance {
 			return "<header2>{$char}<end>\n" . $groupLines->flatten()->join("\n");
 		})->join("\n\n");
 
-		/** @var int $numItems */
 		return new RenderedWishlist(blob: $blob, numItems: $numItems);
 	}
 

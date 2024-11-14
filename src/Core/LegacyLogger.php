@@ -141,11 +141,11 @@ class LegacyLogger {
 			}
 
 			/**
-			 * @phpstan-ignore-next-line
-			 *
 			 * @psalm-suppress ArgumentTypeCoercion
+			 *
+			 * @phpstan-ignore-next-line
 			 */
-			$newLevel = $logger->toMonologLevel($logLevelConf[1]);
+			$newLevel = $logger::toMonologLevel($logLevelConf[1]);
 			foreach ($handlers as $name => $handler) {
 				if ($handler instanceof AbstractHandler) {
 					if (static::$dynamicHandlers->contains($handler)) {

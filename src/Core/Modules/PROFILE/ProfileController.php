@@ -461,8 +461,7 @@ class ProfileController extends ModuleInstance {
 				"with letter <highlight>{$set->letter}<end>."
 			);
 			foreach ($set->mappings as $mapping) {
-				/** @var string */
-				$id = $mapping->id;
+				$id = (string)$mapping->id;
 				$mapping->id = Uuid::fromString($id);
 				$map = new CmdPermSetMapping(...get_object_vars($mapping));
 				$map->permission_set = $set->name;

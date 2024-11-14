@@ -14,6 +14,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 use Psr\Log\LoggerInterface;
 
 use Safe\Exceptions\JsonException;
+use stdClass;
 
 #[
 	NCA\RelayStackMember(
@@ -77,6 +78,9 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 		foreach ($msg->packages as &$data) {
 			try {
 				$json = json_decode($data);
+				if (!is_object($json) || !($json instanceof stdClass)) {
+					throw new JsonException('Non-object received');
+				}
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,

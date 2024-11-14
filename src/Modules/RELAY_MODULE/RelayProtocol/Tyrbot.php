@@ -31,7 +31,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 };
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
-
+use stdClass;
 use Throwable;
 
 #[
@@ -193,7 +193,7 @@ class Tyrbot implements RelayProtocolInterface {
 		$event = clone $event;
 		if (is_string($event->data)) {
 			$event->data = str_replace('<myname>', $this->config->main->character, $event->data);
-		} elseif (is_object($event->data) && is_string($event->data->message??null)) {
+		} elseif (is_object($event->data) && ($event->data instanceof stdClass) && is_string($event->data->message??null)) {
 			$event->data = str_replace('<myname>', $this->config->main->character, $event->data->message??'');
 		} else {
 			return [];

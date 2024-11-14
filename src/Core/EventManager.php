@@ -60,7 +60,7 @@ class EventManager {
 	#[NCA\Inject]
 	private MessageHubController $messageHubController;
 
-	/** @var list<CronEntry> */
+	/** @var array<int,CronEntry> */
 	private array $cronevents = [];
 
 	/** @var array<string,EventType> */

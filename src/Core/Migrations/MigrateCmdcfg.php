@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\{CmdCfg, CmdPermission, CmdPermissionSet};
 use Nadybot\Core\{DB, Types\SchemaMigration};
@@ -18,7 +19,7 @@ class MigrateCmdcfg implements SchemaMigration {
 			['name' => 'guild', 'letter' => 'G'],
 		]);
 
-		/** @var list<object{"module":?string,"cmdevent":?string,"type":?string,"file":?string,"cmd":?string,"admin":?string,"description":?string,"verify":?int,"status":?int,"dependson":?string,"help":?string}> */
+		/** @var Collection<int,object{"module":?string,"cmdevent":?string,"type":?string,"file":?string,"cmd":?string,"admin":?string,"description":?string,"verify":?int,"status":?int,"dependson":?string,"help":?string}> */
 		$entries = $db->table($table)->get();
 		$db->table($table)->truncate();
 

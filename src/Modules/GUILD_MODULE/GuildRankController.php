@@ -92,7 +92,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			->where('min_rank', '>=', $rank)
 			->orderBy('min_rank')
 			->firstObj(OrgRankMapping::class);
-		return $rank?->access_level ?? 'guild';
+		return $rank->access_level ?? 'guild';
 	}
 
 	/** Get a list of all your defined mappings of org rank to bot access level */

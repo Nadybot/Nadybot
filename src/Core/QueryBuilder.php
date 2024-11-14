@@ -9,6 +9,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Attributes\DB\ColName;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Exceptions\SQLException;
+use PDOException;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use ReflectionClass;
@@ -44,7 +45,11 @@ class QueryBuilder extends Builder {
 			/** @var Collection<int,T> */
 			return $this->fetchAll($class);
 		} catch (SQLException $e) {
-			$errorInfo = $e->getPrevious()?->errorInfo ?? [''];
+			$errorInfo = [''];
+			$previous = $e->getPrevious();
+			if (isset($previous) && $previous instanceof PDOException) {
+				$errorInfo = $previous->errorInfo ?? [''];
+			}
 			if ($errorInfo[0] === '22003') { // Numeric value out of range
 				$this->logger->notice('{message}', [
 					'message' => str_replace('ERROR:  ', '', $e->getMessage()),

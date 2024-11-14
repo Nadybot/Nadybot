@@ -151,8 +151,7 @@ class TrickleController extends ModuleInstance {
 		$arr = ['amountAgi', 'amountInt', 'amountPsy', 'amountSta', 'amountStr', 'amountSen'];
 		$reqs = [];
 		foreach ($arr as $ability) {
-			if ($row->{$ability} > 0) {
-				/** @var float */
+			if (is_float($row->{$ability}) && $row->{$ability} > 0) {
 				$amount = $row->{$ability};
 				$abilityName = Util::getAbility(substr($ability, 6), true);
 				$value = round(4 / $amount, 2);

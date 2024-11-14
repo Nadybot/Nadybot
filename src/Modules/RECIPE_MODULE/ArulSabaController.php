@@ -153,7 +153,7 @@ class ArulSabaController extends ModuleInstance {
 	): void {
 		$type = ucfirst(strtolower($type()));
 
-		/** @var int */
+		/** @var int<1,max> */
 		$reqGems = max(1, $numGems);
 		$side = strtolower($side);
 

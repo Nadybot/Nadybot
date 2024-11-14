@@ -266,9 +266,9 @@ class AltInfo {
 		foreach ($alts as $row) {
 			/** @var AltPlayer $row */
 			$online = $this->buddylistManager->isOnline($row->alt);
-			$blob .= Text::alignNumber($row->player?->level??0, 3, 'highlight');
+			$blob .= Text::alignNumber($row->player->level??0, 3, 'highlight');
 			$blob .= ' ';
-			$blob .= Text::alignNumber($row->player?->ai_level??0, 2, 'green');
+			$blob .= Text::alignNumber($row->player->ai_level??0, 2, 'green');
 			$blob .= ' ';
 			if ($profDisplay & 1 && isset($row->player) && $row->player->profession !== null) {
 				$blob .= $row->player->profession->toIcon() . ' ';

@@ -251,7 +251,11 @@ class BuddylistController extends ModuleInstance {
 		);
 	}
 
-	/** @return array<int,BuddylistEntry> */
+	/**
+	 * @return array<int,BuddylistEntry>
+	 *
+	 * @psalm-return list<BuddylistEntry>
+	 */
 	public function getSortedBuddyList(): array {
 		$buddylist = $this->buddylistManager->buddyList;
 		usort($buddylist, static function (BuddylistEntry $entry1, BuddylistEntry $entry2): int {

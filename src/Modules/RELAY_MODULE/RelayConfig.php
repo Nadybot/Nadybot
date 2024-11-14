@@ -44,10 +44,9 @@ class RelayConfig extends DBTable {
 	}
 
 	public function addEvent(RelayEvent $newEvent): void {
-		for ($i = 0; $i < count($this->events); $i++) {
-			$event = $this->events[$i];
+		foreach ($this->events as &$event) {
 			if ($event->event === $newEvent->event) {
-				$this->events[$i] = $newEvent;
+				$event = $newEvent;
 				return;
 			}
 		}
@@ -58,8 +57,7 @@ class RelayConfig extends DBTable {
 		for ($i = 0; $i < count($this->events); $i++) {
 			$event = $this->events[$i];
 			if ($event->event === $name) {
-				unset($this->events[$i]);
-				$this->events = array_values($this->events);
+				array_splice($this->events, $i, 1);
 				return true;
 			}
 		}

@@ -993,8 +993,8 @@ class DiscordGatewayController extends ModuleInstance {
 		defaultStatus: 1
 	)]
 	public function connectNewUsersWithAO(DiscordGatewayEvent $event): void {
-		$userId = $event->payload->d?->user?->id ?? null;
-		$guildId = $event->payload->d?->guild_id ?? null;
+		$userId = $event->payload->d->user->id ?? null;
+		$guildId = $event->payload->d->guild_id ?? null;
 		if (!isset($userId) || !isset($guildId) || isset($this->noManageInviteRights[$guildId])) {
 			return;
 		}
@@ -1297,7 +1297,7 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 		$informDelete = function (DiscordGatewayEvent $event) use ($context, $guild, &$informDelete): void {
-			$guildId = $event->payload->d?->id ?? null;
+			$guildId = $event->payload->d->id ?? null;
 			if ($guildId !== $guild->id) {
 				return;
 			}
@@ -1575,7 +1575,7 @@ class DiscordGatewayController extends ModuleInstance {
 			if (isset($event->creator_id)) {
 				$creator =(
 					$this->discordGatewayCommandHandler->getNameForDiscordId($event->creator_id)
-					?? $event->creator?->username
+					?? $event->creator->username
 					?? ($this->discordAPIClient->getUser($event->creator_id))->username
 					?? 'UNKNOWN'
 				);

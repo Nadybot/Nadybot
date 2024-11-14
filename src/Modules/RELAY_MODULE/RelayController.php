@@ -41,7 +41,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\StatsController,
 };
 use Psr\Log\LoggerInterface;
-use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\{Uuid, UuidInterface};
 use ReflectionClass;
 
 use ReflectionException;
@@ -463,7 +463,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	public function deleteRelay(RelayConfig $relay): bool {
-		/** @var list<int> List of modifier-ids for the route */
+		/** @var list<UuidInterface> List of modifier-ids for the route */
 		$layers = array_column($relay->layers, 'id');
 		$transactionActive = false;
 		try {
@@ -1386,7 +1386,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	/**
 	 * Get a list of all registered sync events as array with names
 	 *
-	 * @return EventType[]
+	 * @return list<EventType>
 	 */
 	protected function getRegisteredSyncEvents(): array {
 		return array_values(

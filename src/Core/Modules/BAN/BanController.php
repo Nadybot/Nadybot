@@ -499,9 +499,9 @@ class BanController extends ModuleInstance implements ImporterInterface {
 			->searchByUids($this->db->getDim(), ...$bannedUids)
 			->keyBy('charid');
 		$bans->each(function (BanEntry $ban) use ($players, $names): void {
-			$ban->name = $players->get($ban->charid)?->name
+			$ban->name = $players->get($ban->charid)->name
 				?? $this->chatBot->getName($ban->charid)
-				?? $names->get($ban->charid)?->name
+				?? $names->get($ban->charid)->name
 				?? (string)$ban->charid;
 			$this->banlist[$ban->charid] = $ban;
 		});

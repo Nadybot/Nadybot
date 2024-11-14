@@ -902,7 +902,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			}
 		} elseif ($groupBy === static::GROUP_PROF) {
 			foreach ($players as $player) {
-				$prof = $player->profession?->value ?? 'Unknown';
+				$prof = $player->profession->value ?? 'Unknown';
 				$profIcon = $player->profession?->toIcon() ?? '?';
 				$groups[$prof] ??= (object)[
 					'title' => $profIcon . ' ' . $prof,

@@ -925,6 +925,11 @@ class AttacksController extends ModuleInstance {
 		/** @var array<string,list<DBOutcome>> $outcomes */
 		$outcomes = [];
 		if (isset($firstAttack) && isset($lastAttack)) {
+			/**
+			 * @var array<string,list<DBOutcome>>
+			 *
+			 * @phpstan-ignore-next-line
+			 */
 			$outcomes = $this->db->table(DBOutcome::getTable())
 				->where('timestamp', '>', $lastAttack->timestamp)
 				->where('timestamp', '<', $firstAttack->timestamp)
@@ -932,9 +937,7 @@ class AttacksController extends ModuleInstance {
 				->asObj(DBOutcome::class)
 				->groupBy(static function (DBOutcome $outcome): string {
 					return "{$outcome->losing_org}:{$outcome->playfield->value}:{$outcome->site_id}";
-				})->toList();
-
-			/** @var array<string,list<DBOutcome>> $outcomes */
+				})->toArray();
 		}
 
 		/**
@@ -1117,7 +1120,7 @@ class AttacksController extends ModuleInstance {
 
 	/** Render info about an attacker for !nw attacks */
 	private function renderDBAttacker(DBTowerAttack $attack): string {
-		$attColor = strtolower($attack->att_faction?->value ?? 'Unknown');
+		$attColor = strtolower($attack->att_faction->value ?? 'Unknown');
 		$blob = "<{$attColor}>{$attack->att_name}<end>";
 		if (isset($attack->att_level, $attack->att_ai_level, $attack->att_profession)) {
 			$blob .= " ({$attack->att_level}/<green>{$attack->att_ai_level}<end>";

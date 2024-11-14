@@ -208,8 +208,8 @@ class Blob implements \Stringable {
 				"{$permheader}{$pages[0]}\">{$link}</a>";
 		}
 		$i = 1;
-		foreach ($pages as $key => $page) {
-			$pages[$key] = "<a href=\"text://{$color}".
+		foreach ($pages as &$page) {
+			$page = "<a href=\"text://{$color}".
 				$this->formatMessage("<header>{$header} (Page {$i} / {$num})<end>\n\n", $renderColors).
 				"{$permheader}{$page}\">{$link} (Page {$i} / {$num})</a>";
 			$i++;

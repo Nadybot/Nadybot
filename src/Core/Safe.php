@@ -84,6 +84,7 @@ class Safe {
 	 * @psalm-suppress ReferenceConstraintViolation
 	 */
 	public static function pregReplace(string $pattern, string $replacement, string $subject, int $limit=-1, ?int &$count=null): string {
+		/** @phpstan-ignore-next-line */
 		return preg_replace($pattern, $replacement, $subject, $limit, $count);
 	}
 
@@ -133,8 +134,6 @@ class Safe {
 	 * @return array<string|int,string>[]
 	 *
 	 * @phpstan-return list<array<array-key,string>>
-	 *
-	 * @psalm-suppress MoreSpecificReturnType
 	 */
 	public static function pregMatchOrderedAll(string $pattern, string $subject, int $flags=0, int $offset=0): array {
 		$matches = [];
@@ -143,7 +142,8 @@ class Safe {
 			return [];
 		}
 
-		/** @psalm-suppress LessSpecificReturnStatement */
+		/** @psalm-var list<string[]> $matches */
+
 		return $matches;
 	}
 
@@ -183,8 +183,6 @@ class Safe {
 	 * @param array<TKey, TValue|null> $values
 	 *
 	 * @return array<TKey, TValue>
-	 *
-	 * @psalm-pure
 	 */
 	public static function removeNull(array $values): array {
 		$result = array_filter($values, static fn (mixed $value): bool => !is_null($value));

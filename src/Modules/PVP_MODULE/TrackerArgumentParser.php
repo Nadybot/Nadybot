@@ -50,7 +50,6 @@ class TrackerArgumentParser {
 		if ($expr === false) {
 			$error = $parser->getError();
 
-			/** @var array{"char":int} */
 			$posData = $this->parser::getLineAndCharacterFromOffset($input, $error['index']);
 
 			$expected = implode('<end> or <highlight>', $this->parser->generalizeErrors($error['expected']));

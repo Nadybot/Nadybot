@@ -16,7 +16,7 @@ use Illuminate\Database\Schema\Builder;
  * @method void                            dropAllTables()                                            Drop all tables from the database.
  * @method void                            dropAllViews()                                             Drop all views from the database.
  * @method void                            dropAllTypes()                                             Drop all types from the database.
- * @method array                           getAllTables()                                             Get all of the table names for the database.
+ * @method string[]                        getAllTables()                                             Get all of the table names for the database.
  * @method void                            rename(string $from, string $to)                           Rename a table on the schema.
  * @method bool                            enableForeignKeyConstraints()                              Enable foreign key constraints.
  * @method bool                            disableForeignKeyConstraints()                             Disable foreign key constraints.

@@ -1725,7 +1725,7 @@ class NotumWarsController extends ModuleInstance {
 
 		/** @param Collection<int,FeedMessage\SiteUpdate> $sites */
 		$blob = $matches->map(function (Collection $sites, string $orgName): string {
-			$faction = strtolower($sites->first()->org_faction?->value ?? 'unknown');
+			$faction = strtolower($sites->first()->org_faction->value ?? 'unknown');
 
 			/** @var int */
 			$ctPts = $sites->pluck('ql')->sum();

@@ -52,7 +52,6 @@ class Parser {
 		}
 
 		try {
-			/** @var In\InPackage */
 			$package = Hydrator::hydrate($targetClass, $json);
 		} catch (UnableToHydrateObject $e) {
 			throw new ParserHighwayException($e->getMessage(), $e->getCode(), $e);

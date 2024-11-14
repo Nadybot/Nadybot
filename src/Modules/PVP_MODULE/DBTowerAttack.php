@@ -33,7 +33,7 @@ class DBTowerAttack extends DBTable {
 	}
 
 	public static function fromTowerAttack(TowerAttack $att): self {
-		$attFaction = $att->attacker->org?->faction ?? $att->attacker->faction;
+		$attFaction = $att->attacker->org->faction ?? $att->attacker->faction;
 		$obj = new self(
 			timestamp: $att->timestamp,
 			playfield: $att->playfield,

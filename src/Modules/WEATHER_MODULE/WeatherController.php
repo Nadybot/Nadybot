@@ -213,12 +213,12 @@ class WeatherController extends ModuleInstance {
 	public function renderWeather(Nominatim $nominatim, Weather $weather): string {
 		$units = $weather->properties->meta->units;
 		$currentWeather = $weather->properties->timeseries[0]->data->instant->details;
-		$currentIcon = $weather->properties->timeseries[0]->data->next_1_hours?->summary->symbol_code ?? 'unknown';
-		$forecastIcon = $weather->properties->timeseries[0]->data->next_6_hours?->summary->symbol_code ?? 'unknown';
+		$currentIcon = $weather->properties->timeseries[0]->data->next_1_hours->summary->symbol_code ?? 'unknown';
+		$forecastIcon = $weather->properties->timeseries[0]->data->next_6_hours->summary->symbol_code ?? 'unknown';
 		$currentSummary = $this->iconToForecastSummary($currentIcon);
 		$forecastSummary = $this->iconToForecastSummary($forecastIcon);
-		$precipitation = $weather->properties->timeseries[0]->data->next_1_hours?->details?->precipitation_amount ?? 0.00;
-		$precipitationForecast = $weather->properties->timeseries[0]->data->next_6_hours?->details?->precipitation_amount ?? 0.00;
+		$precipitation = $weather->properties->timeseries[0]->data->next_1_hours->details->precipitation_amount ?? 0.00;
+		$precipitationForecast = $weather->properties->timeseries[0]->data->next_6_hours->details->precipitation_amount ?? 0.00;
 		$mapCommand = Text::makeChatcmd('OpenStreetMap', '/start '.$this->getOSMLink($nominatim));
 		$lastUpdated = $weather->properties->timeseries[0]->time;
 		$lastUpdated = str_replace('T', ' ', $lastUpdated);

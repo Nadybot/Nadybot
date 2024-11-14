@@ -132,6 +132,8 @@ class OrglistJob {
 		if (isset($this->addQueue[$uid])) {
 			throw new Exception('Broken queue, restart the bot!');
 		}
+
+		/** @phpstan-ignore-next-line */
 		$this->addQueue[$uid] = new DeferredFuture();
 		// $this->logger->notice('Adding {uid} on {worker}', ['uid' => $uid, 'worker' => $worker]);
 		$this->chatBot->sendPackage(new BuddyAdd(charId: $uid), $worker);
@@ -143,7 +145,9 @@ class OrglistJob {
 		}
 		// $this->logger->notice('Awaiting adding of {uid} on {worker}', ['uid' => $uid, 'worker' => $worker]);
 		$isOnline = $this->addQueue[$uid]->getFuture()->await();
+
 		// $this->logger->notice('Awaiting adding of {uid} on {worker}: {online}', ['uid' => $uid, 'worker' => $worker, 'online' => json_encode($isOnline)]);
+		/** @phpstan-ignore-next-line */
 		unset($this->addQueue[$uid]);
 		if (!isset($isOnline)) {
 			// Character UID is inactive

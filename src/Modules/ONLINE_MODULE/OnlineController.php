@@ -768,7 +768,7 @@ class OnlineController extends ModuleInstance {
 		$relayList = [];
 		$relayOrgInfo = $this->onlineShowOrgGuildRelay;
 		foreach ($relayGrouped as $group => $chars) {
-			$chars = $this->filterHiddenCharacters($chars, (string)$group);
+			$chars = $this->filterHiddenCharacters($chars, $group);
 			$groupBy = static::GROUP_OFF;
 			if ($this->onlineRelayGroupBy === self::GROUP_BY_ORG_THEN_MAIN) {
 				$groupBy = static::GROUP_BY_PLAYER;
@@ -1086,12 +1086,14 @@ class OnlineController extends ModuleInstance {
 	 *
 	 * @param array<string,Relay> $relays
 	 *
-	 * @return array<string|int,list<OnlinePlayer>>
+	 * @return array<string,list<OnlinePlayer>>
 	 */
 	protected function groupRelayList(array $relays): array {
 		$groupBy = $this->onlineRelayGroupBy;
-		$result = [];
-		foreach ($this->relayController->relays as $relayKey => $relay) {
+
+		/** @var array<string,array<string,OnlinePlayer>> */
+		$byKeyAndName = [];
+		foreach ($relays as $relayKey => $relay) {
 			$this->logger->info('Getting online list for relay {relay}', [
 				'relay' => $relay->getName(),
 			]);
@@ -1119,28 +1121,30 @@ class OnlineController extends ModuleInstance {
 				$chars = array_values($onlineChars);
 				foreach ($chars as $char) {
 					if ($groupBy === self::GROUP_BY_PROFESSION) {
-						$key = $char->profession?->value ?? 'Unknown';
+						$key = $char->profession->value ?? 'Unknown';
 						$profIcon = $char->profession?->toIcon() ?? '?';
 						$key = "{$profIcon} {$key}";
 					} elseif ($groupBy === self::GROUP_BY_MAIN) {
+						/** @var string */
 						$key = $char->nick ?? $char->pmain ?? $char->name;
 					}
-					$result[$key] ??= [];
-					$result[$key][$char->name] = $char;
+					$byKeyAndName[$key] ??= [];
+					$byKeyAndName[$key][$char->name] = $char;
 				}
 			}
 		}
-		foreach ($result as $key => &$chars) {
-			$chars = array_values($chars);
-			usort($chars, static function (OnlinePlayer $a, OnlinePlayer $b): int {
+
+		/** @var array<string,list<OnlinePlayer>> */
+		$result = [];
+		foreach ($byKeyAndName as $key => $chars) {
+			$result[$key] = array_values($chars);
+			usort($result[$key], static function (OnlinePlayer $a, OnlinePlayer $b): int {
 				return strcasecmp($a->name, $b->name);
 			});
 		}
 		uksort($result, static function (string $a, string $b): int {
 			return strcasecmp(strip_tags($a), strip_tags($b));
 		});
-
-		/** @var array<string|int,list<OnlinePlayer>> $result */
 
 		return $result;
 	}

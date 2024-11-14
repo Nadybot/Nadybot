@@ -54,7 +54,7 @@ class BotRunner {
 	 */
 	private array $argv = [];
 
-	private ?BotConfig $configFile;
+	private ?BotConfig $configFile = null;
 
 	private static Filesystem $fs;
 

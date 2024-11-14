@@ -25,6 +25,7 @@ use Nadybot\Modules\{
 	RELAY_MODULE\RelayMessage,
 };
 use Revolt\EventLoop;
+use stdClass;
 
 #[
 	NCA\RelayProtocol(
@@ -93,7 +94,7 @@ class GcrProtocol implements RelayProtocolInterface {
 			return $this->renderMessage($event);
 		}
 		if ($event->getType() === RoutableEvent::TYPE_EVENT) {
-			/** @var object $llEvent */
+			/** @var stdClass $llEvent */
 			$llEvent = $event->getData();
 			if (isset($llEvent->type) && ($llEvent->type === Online::TYPE)) {
 				return $this->renderUserState($event);

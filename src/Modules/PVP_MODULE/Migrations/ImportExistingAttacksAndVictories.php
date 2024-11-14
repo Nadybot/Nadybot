@@ -6,7 +6,6 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, Types\Faction, Types\Playfield, Types\Profession, Types\SchemaMigration};
 use Nadybot\Modules\PVP_MODULE\{DBOutcome, DBTowerAttack};
 use Psr\Log\LoggerInterface;
-use stdClass;
 
 #[NCA\Migration(order: 2023_03_09_08_34_20)]
 class ImportExistingAttacksAndVictories implements SchemaMigration {
@@ -24,7 +23,7 @@ class ImportExistingAttacksAndVictories implements SchemaMigration {
 				->offset($offset)
 				->limit(self::CHUNK_SIZE)
 				->get()
-				->each(static function (stdClass $old) use ($db, &$processed): void {
+				->each(static function (object $old) use ($db, &$processed): void {
 					/** @var object{time:int,playfield_id:int,x_coords:int,y_coords:int,site_number:int,att_guild_name:?string,att_faction:?string,att_player:string,att_level:?int,att_ai_level:?int,att_profession:?string,def_guild_name:string,def_faction:string} $old */
 					$processed++;
 					try {
@@ -61,7 +60,7 @@ class ImportExistingAttacksAndVictories implements SchemaMigration {
 				->limit(self::CHUNK_SIZE)
 				->select(['tv.*', 'ta.playfield_id', 'ta.site_number'])
 				->get()
-				->each(static function (stdClass $old) use ($db, &$processed): void {
+				->each(static function (object $old) use ($db, &$processed): void {
 					/** @var object{time:int,win_guild_name:?string,win_faction:?string,lose_guild_name:string,lose_faction:?string,playfield_id:int,site_number:int} $old */
 					$processed++;
 					try {

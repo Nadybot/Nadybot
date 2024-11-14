@@ -21,6 +21,9 @@ use Nadybot\Core\{
 	Safe,
 	Types\ImporterInterface,
 };
+use Nadybot\Modules\COMMENT_MODULE\ExportCategory;
+use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\ExportMember;
+use Nadybot\Modules\VOTE_MODULE\ExportPoll;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Throwable;
@@ -174,11 +177,17 @@ class ImportController extends ModuleInstance {
 	private function getRanks(array $import): array {
 		$ranks = [];
 		foreach ($import['members']??[] as $member) {
+			if (!($member instanceof ExportMember)) {
+				continue;
+			}
 			if (isset($member->rank)) {
 				$ranks[$member->rank] = true;
 			}
 		}
 		foreach ($import['commentCategories']??[] as $category) {
+			if (!($category instanceof ExportCategory)) {
+				continue;
+			}
 			if (isset($category->minRankToRead)) {
 				$ranks[$category->minRankToRead] = true;
 			}
@@ -187,6 +196,9 @@ class ImportController extends ModuleInstance {
 			}
 		}
 		foreach ($import['polls']??[] as $poll) {
+			if (!($poll instanceof ExportPoll)) {
+				continue;
+			}
 			if (isset($poll->minRankToVote)) {
 				$ranks[$poll->minRankToVote] = true;
 			}

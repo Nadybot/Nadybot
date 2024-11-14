@@ -18,7 +18,9 @@ class Reader {
 	/**
 	 * Get a line from the CSV as hash
 	 *
-	 * @return Generator<array<string,mixed>>
+	 * @return Generator<int,array<string,?string>>
+	 *
+	 * @phpstan-ignore-next-line
 	 */
 	public function items(): Generator {
 		$file = $this->filesystem->openFile($this->file, 'r');
@@ -65,7 +67,9 @@ class Reader {
 				}
 			}
 
-			yield array_combine($headers, $row);
+			/** @var array<string,?string> */
+			$result = array_combine($headers, $row);
+			yield $result;
 			$iter->next();
 		}
 

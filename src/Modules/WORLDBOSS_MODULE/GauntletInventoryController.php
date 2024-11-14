@@ -49,7 +49,7 @@ class GauntletInventoryController extends ModuleInstance {
 		[292_517, 292_762, 3],
 	];
 
-	/** @return list<int> */
+	/** @return array<int<0,16>,int> */
 	public function getData(string $name): array {
 		$data = $this->preferences->get($name, 'gauntlet');
 		if (isset($data)) {
@@ -58,7 +58,7 @@ class GauntletInventoryController extends ModuleInstance {
 		return array_fill(0, 17, 0);
 	}
 
-	/** @param list<int> $inv */
+	/** @param array<int<0,16>,int> $inv */
 	public function saveData(string $sender, array $inv): void {
 		$this->preferences->save($sender, 'gauntlet', json_encode($inv));
 	}
@@ -96,7 +96,9 @@ class GauntletInventoryController extends ModuleInstance {
 			return;
 		}
 		$items = $this->getData($name);
-		++$items[$pos];
+		if (isset($items[$pos])) {
+			++$items[$pos];
+		}
 		$this->saveData($name, $items);
 		$msg = 'Item increased!';
 		$context->reply($msg);
