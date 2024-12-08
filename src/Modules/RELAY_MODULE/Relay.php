@@ -35,7 +35,7 @@ class Relay implements MessageReceiver {
 	public bool $treatOnlineAsGuest = false;
 
 	/** @var array<string,array<string,OnlinePlayer>> */
-	private $onlineChars = [];
+	private array $onlineChars = [];
 
 	/** @var array<string,RelayEvent> */
 	private array $events = [];

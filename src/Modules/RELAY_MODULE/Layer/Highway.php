@@ -54,10 +54,10 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	protected ?RelayStatus $status = null;
 
 	/** @var ?callable */
-	protected $initCallback = null;
+	protected mixed $initCallback = null;
 
 	/** @var ?callable */
-	protected $deInitCallback = null;
+	protected mixed $deInitCallback = null;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;

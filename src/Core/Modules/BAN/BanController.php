@@ -116,14 +116,14 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	 *
 	 * @var array<int,BanEntry>
 	 */
-	private $banlist = [];
+	private array $banlist = [];
 
 	/**
 	 * List of all banned orgs, indexed by guild_id
 	 *
 	 * @var array<int,BannedOrg>
 	 */
-	private $orgbanlist = [];
+	private array $orgbanlist = [];
 
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,

@@ -234,7 +234,7 @@ class MessageHubController extends ModuleInstance {
 		PSource $to,
 		?string $modifiers
 	): void {
-		$force = (strtolower($action) === 'addforce');
+		$force = strtolower($action) === 'addforce';
 		$to = $this->fixDiscordChannelName($to());
 		$from = $this->fixDiscordChannelName($from());
 		if ($to === Source::PRIV) {
@@ -1001,7 +1001,7 @@ class MessageHubController extends ModuleInstance {
 	/** Turn on/off rendering of a specific hop */
 	public function setHopRender(string $hop, bool $state): void {
 		/** @var ?RouteHopFormat */
-		$format = Source::$format->first(static fn (RouteHopFormat $x) => $x->hop === $hop);
+		$format = Source::$format->first(static fn (RouteHopFormat $x): bool => $x->hop === $hop);
 		if (!isset($format)) {
 			$format = new RouteHopFormat(
 				hop: $hop,
@@ -1018,7 +1018,7 @@ class MessageHubController extends ModuleInstance {
 		if (preg_match('/%[^%]/', $format)) {
 			$_ignore = sprintf($format, 'text');
 		}
-		$spec = Source::$format->first(static fn (RouteHopFormat $x) => $x->hop === $hop);
+		$spec = Source::$format->first(static fn (RouteHopFormat $x): bool => $x->hop === $hop);
 
 		if (!isset($spec)) {
 			$spec = new RouteHopFormat(hop: $hop);
@@ -1030,7 +1030,7 @@ class MessageHubController extends ModuleInstance {
 
 	public function clearHopFormat(string $hop): bool {
 		/** @var ?RouteHopFormat */
-		$format = Source::$format->first(static fn (RouteHopFormat $x) => $x->hop === $hop);
+		$format = Source::$format->first(static fn (RouteHopFormat $x): bool => $x->hop === $hop);
 		if (!isset($format)) {
 			return false;
 		}

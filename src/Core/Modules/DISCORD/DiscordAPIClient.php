@@ -39,10 +39,10 @@ class DiscordAPIClient extends ModuleInstance {
 	protected bool $webhookQueueProcessing = false;
 
 	/** @var array<string,array<string,GuildMember>> */
-	protected $guildMemberCache = [];
+	protected array $guildMemberCache = [];
 
 	/** @var array<string,DiscordUser> */
-	protected $userCache = [];
+	protected array $userCache = [];
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;

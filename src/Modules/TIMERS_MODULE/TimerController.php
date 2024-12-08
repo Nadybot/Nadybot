@@ -86,7 +86,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	private EventManager $eventManager;
 
 	/** @var array<string,Timer> */
-	private $timers = [];
+	private array $timers = [];
 
 	public function getChannelName(): string {
 		return Source::SYSTEM . '(timers)';

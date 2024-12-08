@@ -28,7 +28,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 	protected ?RelayStatus $status = null;
 
 	/** @var ?callable */
-	protected $initCallback = null;
+	protected mixed $initCallback = null;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;

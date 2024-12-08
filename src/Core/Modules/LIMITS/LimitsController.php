@@ -412,7 +412,6 @@ class LimitsController extends ModuleInstance {
 
 		/** @var PlayerHistoryData */
 		$entry = array_pop($history->data);
-		// TODO check for rename
 
 		if ($entry->last_changed->getTimestamp() > $minAge) {
 			$timeString = Util::unixtimeToReadable($this->tellMinPlayerAge);

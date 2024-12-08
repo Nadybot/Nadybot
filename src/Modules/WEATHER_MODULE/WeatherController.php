@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEATHER_MODULE;
 
-use function Safe\{json_decode, preg_match};
+use function Safe\{json_decode, json_encode, preg_match};
 use Amp\Cache\LocalCache;
 use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, Request};
@@ -315,7 +315,7 @@ class WeatherController extends ModuleInstance {
 		if (!is_array($data)) {
 			throw new UserException(
 				'Invalid answer received from Location provider: '.
-				'<highlight>' . print_r($data, true) . '<end>.'
+				'<highlight>' . json_encode($data) . '<end>.'
 			);
 		}
 		if (!count($data)) {
@@ -339,7 +339,7 @@ class WeatherController extends ModuleInstance {
 		if (!is_array($data)) {
 			throw new UserException(
 				'Invalid answer received from Weather provider: '.
-				'<highlight>' . print_r($data, true) . '<end>.'
+				'<highlight>' . json_encode($data) . '<end>.'
 			);
 		}
 		$dp =  new DefinitionProvider(

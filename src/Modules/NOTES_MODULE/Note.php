@@ -26,7 +26,7 @@ class Note extends DBTable {
 		$this->dt = $dt ?? time();
 		$time = null;
 		if (isset($dt) && !isset($id)) {
-			$time = ((new DateTimeImmutable())->setTimestamp($dt));
+			$time = (new DateTimeImmutable())->setTimestamp($dt);
 		}
 		$this->id = $id ?? Uuid::uuid7($time);
 	}

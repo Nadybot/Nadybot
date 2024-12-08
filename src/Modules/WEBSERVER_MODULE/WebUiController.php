@@ -372,7 +372,10 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 				umask($oldMask);
 			}
 			if (isset($extractor)) {
-				@$extractor->close();
+				try {
+					Safe::exceptionWrapper($extractor->close(...));
+				} catch (ErrorException) {
+				}
 			}
 			if (isset($handle)) {
 				$handle->close();

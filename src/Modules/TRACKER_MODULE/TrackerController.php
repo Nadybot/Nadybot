@@ -115,7 +115,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	)]
 	public string $trackerLogoff = 'TRACK: <{faction}>{name}<end> logged <off>off<end>.';
 
-	/** Use faction color for the name in the online list*/
+	/** Use faction color for the name in the online list */
 	#[NCA\Setting\Boolean]
 	public bool $trackerUseFactionColor = true;
 

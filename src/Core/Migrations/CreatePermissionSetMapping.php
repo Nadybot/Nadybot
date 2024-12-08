@@ -39,7 +39,7 @@ class CreatePermissionSetMapping implements SchemaMigration {
 			],
 			[
 				'permission_set' => 'priv',
-				'source' => 'aopriv(' . strtolower(($this->getSettingValue($db, 'default_private_channel') ?? $db->getMyname())) . ')',
+				'source' => 'aopriv(' . strtolower($this->getSettingValue($db, 'default_private_channel') ?? $db->getMyname()) . ')',
 				'symbol' => $symbol,
 				'symbol_optional' => false,
 				'feedback' => (bool)($this->getSettingValue($db, 'private_channel_cmd_feedback') ?? '1'),

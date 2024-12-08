@@ -1573,12 +1573,10 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 		try {
 			if (isset($event->creator_id)) {
-				$creator =(
-					$this->discordGatewayCommandHandler->getNameForDiscordId($event->creator_id)
+				$creator = $this->discordGatewayCommandHandler->getNameForDiscordId($event->creator_id)
 					?? $event->creator->username
 					?? ($this->discordAPIClient->getUser($event->creator_id))->username
-					?? 'UNKNOWN'
-				);
+					?? 'UNKNOWN';
 				$blob .= "\n<tab>Created by: <highlight>{$creator}<end>";
 			}
 		} catch (Throwable) {
@@ -2064,7 +2062,7 @@ class DiscordGatewayController extends ModuleInstance {
 			try {
 				$connection = $client->connect($handshake, null);
 				$this->client = $connection;
-				$handleId = EventLoop::repeat(10, fn (string $handleId) => $this->countOutgoingPackets($handleId));
+				$handleId = EventLoop::repeat(10, $this->countOutgoingPackets(...));
 				while (null !== ($message = $connection->receive())) {
 					$payload = $message->buffer();
 					$this->inStats->inc();
@@ -2228,8 +2226,8 @@ class DiscordGatewayController extends ModuleInstance {
 
 	private function canReconnect(int $code): bool {
 		if (
-			(($code === 1_000 && $this->mustReconnect)
-			|| $this->shouldReconnect($code))
+			($code === 1_000 && $this->mustReconnect)
+			|| $this->shouldReconnect($code)
 		) {
 			return true;
 		} elseif ($code === CloseEvents::DISALLOWED_INTENT) {

@@ -56,6 +56,12 @@ if [ -n "$CHANGED_FILES" ]; then
 else
   true &
 fi
+if command -v mago &> /dev/null; then
+  mago lint
+else
+  true &
+fi
+
 if command -v vale &> /dev/null; then
   if [ -n "${CHANGED_FILES}" ]; then
     CHANGED_FILES=$(grep -P '^src/' <<<"${CHANGED_FILES}")

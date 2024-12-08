@@ -70,7 +70,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 	protected ?string $authorization;
 
 	/** @var ?callable */
-	protected $initCallback;
+	protected mixed $initCallback;
 
 	protected ?WebsocketConnection $client = null;
 

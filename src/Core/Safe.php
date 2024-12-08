@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use function Safe\{preg_match, preg_match_all, preg_replace, preg_split};
+
 use Safe\Exceptions\PcreException;
 
 class Safe {
@@ -195,7 +196,7 @@ class Safe {
 	 * @param string|list<string> $pattern
 	 * @param string|list<string> $subject
 	 * @param int                 $limit   The maximum possible replacements for each pattern in each subject string. Defaults to -1 (no limit).
-	 * @param int                 $count   If specified, this variable will be filled with the number of replacements done.
+	 * @param ?int                $count   If specified, this variable will be filled with the number of replacements done.
 	 *
 	 * @param-out int $count   If specified, this variable will be filled with the number of replacements done.
 	 *
@@ -213,7 +214,7 @@ class Safe {
 		callable $callback,
 		array|string $subject,
 		int $limit=-1,
-		&$count=null,
+		?int &$count=null,
 		int $flags=0
 	): array|string {
 		error_clear_last();
@@ -222,5 +223,27 @@ class Safe {
 			throw PcreException::createFromPhpError();
 		}
 		return $result;
+	}
+
+	/** Wrap a call to $closure so that any error is converted into an exception */
+	public static function exceptionWrapper(
+		callable $closure,
+		mixed ...$args
+	): mixed {
+		set_error_handler(
+			static function (int $code, string $message, ?string $file, ?int $line): void {
+				throw new \ErrorException(
+					message: $message,
+					severity: $code,
+					filename: $file,
+					line: $line,
+				);
+			}
+		);
+		try {
+			return $closure(...$args);
+		} finally {
+			restore_error_handler();
+		}
 	}
 }

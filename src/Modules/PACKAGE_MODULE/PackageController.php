@@ -95,7 +95,7 @@ class PackageController extends ModuleInstance {
 		return static::EXTRA;
 	}
 
-	/** Get a full list of all available packages*/
+	/** Get a full list of all available packages */
 	#[NCA\HandlesCommand('package')]
 	public function listPackagesCommand(
 		CmdContext $context,

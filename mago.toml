@@ -1,0 +1,42 @@
+[source]
+paths = ["src"]
+includes = []
+excludes = [
+  "src/Core/QueryBuilder.php"
+]
+
+[linter]
+level = "Error"
+
+[[linter.rules]]
+# Rule name
+name = "best-practices/no-unused-parameter"
+level = "Off"
+
+[[linter.rules]]
+name = "naming/interface"
+psr = false
+
+[[linter.rules]]
+name = "naming/class"
+psr = false
+
+[[linter.rules]]
+name = "strictness/no-assignment-in-condition"
+level = "Off"
+
+[[linter.rules]]
+name = "strictness/require-constant-type"
+level = "Off"
+
+[[linter.rules]]
+name = "safety/no-suppressed-expression"
+level = "Off"
+
+[[linter.rules]]
+name = "safety/no-eval"
+level = "Off"
+
+[[linter.rules]]
+name = "comment/docblock-syntax"
+level = "Note"

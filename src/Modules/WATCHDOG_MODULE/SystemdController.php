@@ -3,11 +3,14 @@
 namespace Nadybot\Modules\WATCHDOG_MODULE;
 
 use function Safe\{getmygid, getmypid, getmyuid, putenv};
+
+use ErrorException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventManager,
 	Events\Event,
 	ModuleInstance,
+	Safe,
 };
 
 use Socket;
@@ -146,19 +149,20 @@ class SystemdController extends ModuleInstance {
 		}
 
 		// First try with fake ucred data, as requested
-		// @phpstan-ignore-next-line
-		if (@socket_sendmsg($fd, $messageHeader, \MSG_NOSIGNAL) !== false) {
-			$result = 1;
-			return new NotifyResult(fd: $fd, result: $result);
+		try {
+			Safe::exceptionWrapper(socket_sendmsg(...), $fd, $messageHeader, \MSG_NOSIGNAL);
+			return new NotifyResult(fd: $fd, result: -1);
+		} catch (ErrorException) {
 		}
 
 		// If that failed, try with our own ucred instead
 		if ($havePID) {
 			$messageHeader['control'] = [];
 
-			// @phpstan-ignore-next-line
-			if (@socket_sendmsg($fd, $messageHeader, \MSG_NOSIGNAL) !== false) {
+			try {
+				Safe::exceptionWrapper(socket_sendmsg(...), $fd, $messageHeader, \MSG_NOSIGNAL);
 				return new NotifyResult(fd: $fd, result: 1);
+			} catch (ErrorException) {
 			}
 		}
 

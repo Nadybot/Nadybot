@@ -21,7 +21,12 @@ logs
 img
 tags
 style
+Stubs
 src/Api
 generateApiDoc.php
 extras/*
 .codespellrc
+.php-cs-fixer.dist.php
+.vale.ini
+mago.toml
+psalm.xml

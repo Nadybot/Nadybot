@@ -177,7 +177,7 @@ class OrglistController extends ModuleInstance {
 	private function renderOrglist(Guild $org, array $onlineStates, float $startTime, bool $renderOffline): string {
 		$orgRankNames = $org->governing_form->getOrgRanks();
 
-		$totalOnline = count(array_filter($onlineStates, static fn (bool $online) => $online));
+		$totalOnline = count(array_filter($onlineStates, static fn (bool $online): bool => $online));
 		$totalCount = count($org->members);
 
 		/** @var array<int,RankGroup> */
@@ -205,7 +205,7 @@ class OrglistController extends ModuleInstance {
 		}
 
 		$blob = implode("\n\n", $renderedGroups);
-		$totalTime = round((microtime(true) - $startTime), 1);
+		$totalTime = round(microtime(true) - $startTime, 1);
 		$blob .= "\n\n<i>Lookup took {$totalTime} seconds.</i>";
 
 		return Text::makeBlob("Orglist for '{$org->orgname}' ({$totalOnline} / {$totalCount})", $blob);

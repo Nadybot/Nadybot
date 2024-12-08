@@ -8,8 +8,10 @@ use function Safe\{class_implements, preg_match};
 
 use Amp\File\FilesystemException;
 use BackedEnum;
+use Closure;
 use DateTimeInterface;
 use Exception;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\{
 	Capsule\Manager as Capsule,
 	Connection,
@@ -450,12 +452,8 @@ class DB {
 		return $result;
 	}
 
-	/**
-	 * Get a fluent query builder instance.
-	 *
-	 * @param \Closure|\Illuminate\Database\Query\Builder|string $table
-	 */
-	public function table($table, ?string $as=null, ?string $connection=null): QueryBuilder {
+	/** Get a fluent query builder instance. */
+	public function table(Closure|Builder|string $table, ?string $as=null, ?string $connection=null): QueryBuilder {
 		if (is_string($table)) {
 			$table = $this->formatSql($table);
 		}
@@ -468,12 +466,8 @@ class DB {
 		return $myBuilder;
 	}
 
-	/**
-	 * Makes "from" fetch from a sub-query.
-	 *
-	 * @param \Closure|\Illuminate\Database\Query\Builder|string $query
-	 */
-	public function fromSub($query, string $as): QueryBuilder {
+	/** Makes "from" fetch from a sub-query. */
+	public function fromSub(Closure|Builder|string $query, string $as): QueryBuilder {
 		$query = $this->capsule->getConnection()->query()->fromSub($query, $as);
 		$builder = new QueryBuilder($query->connection, $query->grammar, $query->processor);
 		Registry::injectDependencies($builder);
@@ -823,49 +817,50 @@ class DB {
 		// SQLite 3.37.0 adds strict tables. These do actual type checking
 		$strictGrammar = new class () extends \Illuminate\Database\Schema\Grammars\SQLiteGrammar {
 			// @phpstan-ignore-next-line
-			public function compileCreate(\Illuminate\Database\Schema\Blueprint $blueprint, \Illuminate\Support\Fluent $command) {
+			public function compileCreate(\Illuminate\Database\Schema\Blueprint $blueprint, \Illuminate\Support\Fluent $command): string {
 				return parent::compileCreate($blueprint, $command) . ' strict';
 			}
 
 			// @phpstan-ignore-next-line
-			protected function typeChar(\Illuminate\Support\Fluent $column) {
+			protected function typeChar(\Illuminate\Support\Fluent $column): string {
 				return 'text';
 			}
 
 			// @phpstan-ignore-next-line
-			protected function typeString(\Illuminate\Support\Fluent $column) {
+			protected function typeString(\Illuminate\Support\Fluent $column): string {
 				return 'text';
 			}
 
 			// @phpstan-ignore-next-line
-			protected function typeFloat(\Illuminate\Support\Fluent $column) {
+			protected function typeFloat(\Illuminate\Support\Fluent $column): string {
 				return 'real';
 			}
 
 			// @phpstan-ignore-next-line
-			protected function typeUuid(\Illuminate\Support\Fluent $column) {
+			protected function typeUuid(\Illuminate\Support\Fluent $column): string {
 				return 'text';
 			}
 
 			// @phpstan-ignore-next-line
-			protected function typeDouble(\Illuminate\Support\Fluent $column) {
+			protected function typeDouble(\Illuminate\Support\Fluent $column): string {
 				return 'real';
 			}
 
 			// @phpstan-ignore-next-line
-			protected function typeBoolean(\Illuminate\Support\Fluent $column) {
+			protected function typeBoolean(\Illuminate\Support\Fluent $column): string {
 				return 'integer';
 			}
 
 			// @phpstan-ignore-next-line
-			protected function typeDecimal(\Illuminate\Support\Fluent $column) {
+			protected function typeDecimal(\Illuminate\Support\Fluent $column): string {
 				return 'text';
 			}
 		};
 		// Querying non-existing columns throws no error when escaped with ",
 		// so we switch to ` instead, which brings back errors
 		$strictQuery = new class () extends \Illuminate\Database\Query\Grammars\SQLiteGrammar {
-			protected function wrapValue($value): string {
+			/** @param string $value */
+			protected function wrapValue(mixed $value): string {
 				return $value === '*' ? $value : '`' . str_replace('`', '``', $value) . '`';
 			}
 		};

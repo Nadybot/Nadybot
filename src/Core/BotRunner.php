@@ -221,9 +221,12 @@ class BotRunner {
 			// these must happen first since the classes that are loaded may be used by processes below
 			$timezone = $config->general->timezone;
 			if (isset($timezone) && strlen($timezone) > 1) {
-				/** @psalm-suppress ArgumentTypeCoercion */
-				if (@date_default_timezone_set($timezone) === false) {
-					exit("Invalid timezone: \"{$timezone}\"\n");
+				try {
+					Safe::exceptionWrapper(date_default_timezone_set(...), $timezone);
+				} catch (ErrorException) {
+					getStderr()->write("Invalid timezone: \"{$timezone}\"\n");
+					sleep(5);
+					exit(1);
 				}
 			}
 			$logFolderName = "{$config->paths->logs}/{$config->main->character}.{$config->main->dimension}";

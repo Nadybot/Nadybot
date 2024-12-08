@@ -125,7 +125,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Inject]
 	private DB $db;
 
-	/** @todo: Add support for the raid levels */
+	/** @TODO: Add support for the raid levels */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);

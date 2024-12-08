@@ -62,7 +62,7 @@ class SemanticVersion implements Stringable {
 			} elseif (!ctype_digit($t2)) {
 				return -1;
 			}
-			if (($cmp = ($t1 <=> $t2)) === 0) {
+			if (($cmp = $t1 <=> $t2) === 0) {
 				continue;
 			}
 			return $cmp;

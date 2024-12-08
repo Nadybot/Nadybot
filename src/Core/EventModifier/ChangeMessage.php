@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\EventModifier;
 
+use ErrorException;
 use Exception;
 
 use Nadybot\Core\{
@@ -54,11 +55,16 @@ class ChangeMessage implements EventModifier {
 		if (isset($search) && !isset($replace)) {
 			throw new Exception("Missing parameter 'replace'");
 		}
-		// @phpstan-ignore-next-line
-		if (isset($search) && $isRegExp && @\preg_match(chr(1) . $search . chr(1) . 'si', '') === false) {
-			$error = error_get_last()['message']??'Unknown error';
-			$error = Safe::pregReplace("/^preg_match\(\): (Compilation failed: )?/", '', $error);
-			throw new Exception("Invalid regular expression '{$search}': {$error}.");
+		try {
+			if (isset($search) && $isRegExp) {
+				Safe::exceptionWrapper(preg_match(...), chr(1) . $search . chr(1) . 'si', '');
+			}
+		} catch (ErrorException $e) {
+			$error = Safe::pregReplace("/^preg_match\(\): (Compilation failed: )?/", '', $e->getMessage());
+			throw new Exception(
+				message: "Invalid regular expression '{$search}': {$error}.",
+				previous: $e
+			);
 		}
 	}
 

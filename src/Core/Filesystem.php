@@ -618,7 +618,7 @@ final class Filesystem {
 	 *
 	 * @throws FilesystemException
 	 */
-	public function tmpfile() {
+	public function tmpfile(): mixed {
 		$callNum = self::$callNum++;
 		$this->logger?->debug('[{call}] -> tmpfile()', [
 			'call' => sprintf('%6d', $callNum),

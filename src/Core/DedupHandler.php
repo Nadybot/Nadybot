@@ -21,8 +21,8 @@ class DedupHandler extends AbstractHandler {
 		}
 		$keys = array_unique(array_merge(array_keys($rec), array_keys($this->lastRecord)));
 		foreach ($keys as $key) {
-			$new = ($rec[$key]??null);
-			$old = ($this->lastRecord[$key]??null);
+			$new = $rec[$key] ?? null;
+			$old = $this->lastRecord[$key] ?? null;
 			if ($new === $old) {
 				continue;
 			}

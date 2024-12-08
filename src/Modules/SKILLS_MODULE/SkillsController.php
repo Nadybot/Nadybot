@@ -455,7 +455,7 @@ class SkillsController extends ModuleInstance {
 			$i = 5;
 		}
 
-		$aoidQL = (((int)ceil($maSkill / 2) - 1) % 500 + 1);
+		$aoidQL = ((int)ceil($maSkill / 2) - 1) % 500 + 1;
 
 		$fistQL = min(1_500, (int)round($maSkill / 2, 0));
 		if ($fistQL <= 200) {
@@ -732,7 +732,7 @@ class SkillsController extends ModuleInstance {
 			$highRecharge = $initSkill - 1_200;
 			$attackTimeReduction = ($highRecharge / 600) + 6;
 		} else {
-			$attackTimeReduction = ($initSkill / 200);
+			$attackTimeReduction = $initSkill / 200;
 		}
 
 		return $attackTimeReduction;

@@ -40,7 +40,7 @@ class Patcher {
 	 * @param string                    $vendorDir The installation base path
 	 * @param \Composer\Package\Package $package   The package being installed
 	 */
-	public static function patchParsingTool($vendorDir, Package $package): void {
+	public static function patchParsingTool(string $vendorDir, Package $package): void {
 		$file = $vendorDir . '/' . $package->getName() . '/src/SyntaxTreeNode/Base.php';
 		$oldContent = file_get_contents($file); // @phpstan-ignore-line
 		if ($oldContent === false) {

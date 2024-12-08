@@ -82,7 +82,7 @@ class Blob implements \Stringable {
 	 * @psalm-return string|list<string>
 	 */
 	public function render(?int $pageSize=null, bool $formatMessage=true, bool $renderColors=true): string|array {
-		$pageSize ??= ($this->settingManager->getInt('max_blob_size') ?? 0);
+		$pageSize ??= $this->settingManager->getInt('max_blob_size') ?? 0;
 		$text = str_replace(static::LITERAL, '', $this->text, $count);
 		if ($count === 0) {
 			if (count(Safe::pregMatch("/<a href=[\"']text:\/\/<font color=/s", $this->text)) > 0) {

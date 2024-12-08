@@ -89,7 +89,7 @@ class LootController extends ModuleInstance {
 	])]
 	public int $addOnLoot = 2;
 
-	/** Text to show on items where no one added*/
+	/** Text to show on items where no one added */
 	#[NCA\Setting\Text(options: [
 		'-',
 		'None',
@@ -131,14 +131,14 @@ class LootController extends ModuleInstance {
 	 *
 	 * @var LootItem[]
 	 */
-	private $loot = [];
+	private array $loot = [];
 
 	/**
 	 * The leftovers from the last loot roll
 	 *
 	 * @var LootItem[]
 	 */
-	private $residual = [];
+	private array $residual = [];
 
 	private int $roll = 1;
 

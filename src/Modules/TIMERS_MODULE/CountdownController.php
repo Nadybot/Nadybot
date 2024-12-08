@@ -97,7 +97,7 @@ class CountdownController extends ModuleInstance {
 				$color = '<yellow>';
 			}
 			$msg = "[{$color}-------&gt; {$i} &lt;-------<end>]";
-			EventLoop::delay((6-$i), static function (string $token) use ($callback, $msg): void {
+			EventLoop::delay(6 - $i, static function (string $token) use ($callback, $msg): void {
 				$callback($msg);
 			});
 		}

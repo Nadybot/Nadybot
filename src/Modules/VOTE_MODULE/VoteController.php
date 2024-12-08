@@ -73,7 +73,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	private MessageHub $messageHub;
 
 	/** @var array<string,Poll> */
-	private $polls = [];
+	private array $polls = [];
 
 	#[NCA\Setup]
 	public function setup(): void {

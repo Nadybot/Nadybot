@@ -7,7 +7,7 @@ use Nadybot\Core\Types\CommandReply;
 class ProfileCommandReply implements CommandReply {
 	public string $result = '';
 
-	public function reply($msg): void {
+	public function reply(string|array $msg): void {
 		foreach ((array)$msg as $chunk) {
 			$this->result .= $chunk . "\n";
 		}

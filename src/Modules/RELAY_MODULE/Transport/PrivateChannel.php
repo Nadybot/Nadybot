@@ -42,7 +42,8 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 	protected string $channel;
 
 	/** @var ?callable */
-	protected $initCallback;
+	protected mixed $initCallback;
+
 	#[NCA\Inject]
 	private Nadybot $chatBot;
 

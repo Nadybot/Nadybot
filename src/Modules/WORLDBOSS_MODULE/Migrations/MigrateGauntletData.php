@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
 	Routing\Character,
+	Safe,
 	Types\SchemaMigration,
 };
 use Nadybot\Modules\TIMERS_MODULE\Timer;
@@ -87,9 +88,12 @@ class MigrateGauntletData implements SchemaMigration {
 		$db->table(self::GAUNTLET_TABLE)
 			->get()
 			->each(function (stdClass $inv): void {
-				$items = @unserialize((string)$inv->items);
-				if (is_array($items) && array_is_list($items) && count($items) === 17) {
-					$this->gauntletInventoryController->saveData((string)$inv->player, $items);
+				try {
+					$items = Safe::exceptionWrapper(unserialize(...), (string)$inv->items);
+					if (is_array($items) && array_is_list($items) && count($items) === 17) {
+						$this->gauntletInventoryController->saveData((string)$inv->player, $items);
+					}
+				} catch (\ErrorException) {
 				}
 			});
 		$db->schema()->dropIfExists(self::GAUNTLET_TABLE);

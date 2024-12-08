@@ -206,7 +206,7 @@ class JWT {
 	 *
 	 * @param int $errno An error number from json_last_error()
 	 */
-	private static function handleJsonError($errno): void {
+	private static function handleJsonError(int $errno): void {
 		$messages = [
 			\JSON_ERROR_DEPTH => 'Maximum stack depth exceeded',
 			\JSON_ERROR_STATE_MISMATCH => 'Invalid or malformed JSON',

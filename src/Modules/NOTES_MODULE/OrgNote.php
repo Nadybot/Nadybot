@@ -20,7 +20,7 @@ class OrgNote extends DBTable {
 		$this->added_on = $added_on ?? time();
 		$time = null;
 		if (isset($added_on) && !isset($id)) {
-			$time = ((new DateTimeImmutable())->setTimestamp($added_on));
+			$time = (new DateTimeImmutable())->setTimestamp($added_on);
 		}
 		$this->id = $id ?? Uuid::uuid7($time);
 	}

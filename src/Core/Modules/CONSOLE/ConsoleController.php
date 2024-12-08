@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\CONSOLE;
 
 use function Safe\{readline_add_history, readline_callback_handler_install, readline_read_history, readline_write_history, stream_isatty};
 
+use ErrorException;
 use Exception;
 use Nadybot\Core\Events\ConnectEvent;
 
@@ -21,6 +22,7 @@ use Nadybot\Core\{
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 };
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
@@ -55,7 +57,7 @@ class ConsoleController extends ModuleInstance {
 	 *
 	 * @psalm-var resource|closed-resource
 	 */
-	public $socket;
+	public mixed $socket;
 
 	public bool $useReadline = false;
 
@@ -183,7 +185,7 @@ class ConsoleController extends ModuleInstance {
 			$this->logger->notice('StdIn console activated, accepting commands');
 			$this->socketHandle = EventLoop::onReadable($this->socket, $callback);
 			if ($this->useReadline) {
-				readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
+				readline_callback_handler_install('> ', $this->processLine(...));
 			} else {
 				echo('> ');
 			}
@@ -198,8 +200,10 @@ class ConsoleController extends ModuleInstance {
 		// @phpstan-ignore-next-line
 		if (feof($this->socket)) {
 			echo("EOF received, closing console.\n");
-		// @phpstan-ignore-next-line
-			@fclose($this->socket);
+			try {
+				Safe::exceptionWrapper(fclose(...), $this->socket);
+			} catch (ErrorException) {
+			}
 			EventLoop::cancel($this->socketHandle);
 			return;
 		}
@@ -214,14 +218,14 @@ class ConsoleController extends ModuleInstance {
 	private function processLine(?string $line): void {
 		if ($line === null || trim($line) === '') {
 			if ($this->useReadline) {
-				readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
+				readline_callback_handler_install('> ', $this->processLine(...));
 			}
 			return;
 		}
 		if ($this->useReadline) {
 			readline_add_history($line);
 			EventLoop::queue($this->saveHistory(...));
-			readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
+			readline_callback_handler_install('> ', $this->processLine(...));
 		}
 
 		$sendto = new ConsoleCommandReply($this->chatBot);

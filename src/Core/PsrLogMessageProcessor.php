@@ -17,11 +17,9 @@ use Nadybot\Core\Types\Loggable;
 class PsrLogMessageProcessor implements ProcessorInterface {
 	public const SIMPLE_DATE = "Y-m-d\TH:i:s";
 
-	/** @var string|null */
-	private $dateFormat;
+	private ?string $dateFormat;
 
-	/** @var bool */
-	private $removeUsedContextFields;
+	private bool $removeUsedContextFields;
 
 	/**
 	 * @param string|null $dateFormat              The format of the timestamp: one supported by DateTime::format

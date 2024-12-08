@@ -81,7 +81,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		);
 	}
 
-	/** Map commands from &lt;source&gt; to use the &lt;permission set&gt;*/
+	/** Map commands from &lt;source&gt; to use the &lt;permission set&gt; */
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapNewCommand(
 		CmdContext $context,

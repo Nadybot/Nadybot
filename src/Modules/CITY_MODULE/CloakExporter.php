@@ -35,7 +35,7 @@ class CloakExporter extends ModuleInstance implements ExporterInterface, Importe
 				return new ExportCloak(
 					character: new ExportCharacter(name: rtrim($cloakEntry->player, '*')),
 					manualEntry: str_ends_with($cloakEntry->player, '*'),
-					cloakOn: ($cloakEntry->action === 'on'),
+					cloakOn: $cloakEntry->action === 'on',
 					time: $cloakEntry->time,
 				);
 			})->toList();

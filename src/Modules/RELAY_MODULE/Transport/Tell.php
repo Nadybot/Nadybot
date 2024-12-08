@@ -44,7 +44,8 @@ class Tell implements TransportInterface {
 	protected string $bot;
 
 	/** @var ?callable */
-	protected $initCallback;
+	protected mixed $initCallback;
+
 	#[NCA\Inject]
 	private Nadybot $chatBot;
 

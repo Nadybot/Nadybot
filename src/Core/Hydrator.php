@@ -9,10 +9,10 @@ use Throwable;
 
 class Hydrator {
 	/** @var array<string,true> */
-	private static $badSerializers = [];
+	private static array $badSerializers = [];
 
 	/** @var array<string,true> */
-	private static $badHydrators = [];
+	private static array $badHydrators = [];
 
 	/**
 	 * @template T of object

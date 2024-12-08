@@ -692,7 +692,7 @@ class AuctionController extends ModuleInstance {
 		[$top, $bottom] = $this->getAnnouncementBorders();
 		$item = $auction->item->toString();
 		$bidInfo = Text::makeBlob('click for info', $this->getBiddingInfo(), 'Howto bid');
-		$secondsLeft = ($auction->end - time());
+		$secondsLeft = $auction->end - time();
 		$msg = "\n{$top}".
 			"<highlight>{$auction->auctioneer}<end> started an auction for ".
 			"<highlight>{$item}<end>!\n".

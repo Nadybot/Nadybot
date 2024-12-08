@@ -6,10 +6,5 @@ use Nadybot\Core\DB;
 use Psr\Log\LoggerInterface;
 
 interface SchemaMigration {
-	/**
-	 * @psalm-suppress MissingReturnType
-	 *
-	 * @phpstan-ignore-next-line
-	 */
-	public function migrate(LoggerInterface $logger, DB $db);
+	public function migrate(LoggerInterface $logger, DB $db): void;
 }

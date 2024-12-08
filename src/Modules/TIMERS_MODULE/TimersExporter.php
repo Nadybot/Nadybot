@@ -128,6 +128,6 @@ class TimersExporter extends ModuleInstance implements ExporterInterface, Import
 
 	/** @param list<ExportChannel> $channels */
 	private function channelsToMode(array $channels): string {
-		return implode(',', array_map(static fn (ExportChannel $channel) => $channel->toNadybot(), $channels));
+		return implode(',', array_map(static fn (ExportChannel $channel): string => $channel->toNadybot(), $channels));
 	}
 }

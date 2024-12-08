@@ -78,7 +78,7 @@ class ImplantController extends ModuleInstance {
 				$lastSpec = [$itemQL, $itemBonus];
 			} else {
 				if ($lastSpec[0] <= $searchedQL && $itemQL >= $searchedQL) {
-					$multi = (1 / ($itemQL - $lastSpec[0]));
+					$multi = 1 / ($itemQL - $lastSpec[0]);
 					return (int)round($lastSpec[1] + (($itemBonus-$lastSpec[1]) * ($multi *($searchedQL-($lastSpec[0]-1)-1))));
 				}
 				$lastSpec = [$itemQL, $itemBonus];

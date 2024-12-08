@@ -624,7 +624,9 @@ class EventManager {
 	}
 
 	private function startCron(CronEntry $entry): void {
-		$entry->handle = EventLoop::defer(fn () => $this->startCronRun($entry));
+		$entry->handle = EventLoop::defer(function () use ($entry): void {
+			$this->startCronRun($entry);
+		});
 	}
 
 	private function startCronRun(CronEntry $entry): void {

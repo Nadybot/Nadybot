@@ -15,7 +15,10 @@ class Ingredients extends IteratorIterator {
 	}
 
 	public function current(): Ingredient {
-		return parent::current();
+		$ingredient = parent::current();
+		// @phpstan-ignore-next-line
+		assert($ingredient instanceof Ingredient);
+		return $ingredient;
 	}
 
 	public function add(Ingredient $ingredient): void {

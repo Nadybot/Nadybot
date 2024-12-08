@@ -896,8 +896,8 @@ class AltsController extends ModuleInstance {
 		if ($success === 0) {
 			return $result;
 		}
-		$s = ($success === 1 ? 's' : '');
-		$numAlts = ($success === 1 ? 'Alt' : "{$success} alts");
+		$s = ($success === 1) ? 's' : '';
+		$numAlts = ($success === 1) ? 'Alt' : "{$success} alts";
 		if ($validated) {
 			$result []= "{$numAlts} added successfully.";
 		} else {

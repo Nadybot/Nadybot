@@ -49,7 +49,7 @@ class Chunker implements RelayLayerInterface {
 	protected Relay $relay;
 
 	/** @var array<string,array<int,Chunk>> */
-	protected $queue = [];
+	protected array $queue = [];
 
 	protected ?string $timerHandler = null;
 	#[NCA\Logger]

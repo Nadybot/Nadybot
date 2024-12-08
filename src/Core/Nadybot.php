@@ -1542,7 +1542,8 @@ class Nadybot {
 			return null;
 		}
 		if (!isset($this->aoClient)) {
-			debug_print_backtrace(\DEBUG_BACKTRACE_IGNORE_ARGS);
+			$this->logger->emergency('No AO-client set, aborting immediately.');
+			exit(1);
 		}
 		return $this->aoClient->lookupCharacter($uid, $cacheOnly);
 	}

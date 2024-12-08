@@ -630,7 +630,7 @@ class ConfigController extends ModuleInstance {
 		}
 
 		foreach ($data as $row) {
-			$blob .= '<tab>' . implode("\n<tab>", explode("\n", ($row->getData()->description ?? '')));
+			$blob .= '<tab>' . implode("\n<tab>", explode("\n", $row->getData()->description ?? ''));
 
 			if ($row->isEditable() && $this->accessManager->checkAccess($context->char->name, $row->getData()->admin??'superadmin')) {
 				$blob .= ' [' . $row->getModifyLink() . ']';

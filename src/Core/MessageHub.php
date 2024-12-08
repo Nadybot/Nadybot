@@ -513,7 +513,7 @@ class MessageHub {
 		$hopText = '';
 		$char = $event->getCharacter();
 		// Render "[Name]" instead of "[Name] Name: "
-		$isTell = (isset($lastHop) && $lastHop->type === Source::TELL);
+		$isTell = isset($lastHop) && $lastHop->type === Source::TELL;
 		if (isset($char) && !$isTell) {
 			$aoSources = [Source::ORG, Source::PRIV, Source::PUB, Source::TELL];
 			$nickName = $this->nickController->getNickname($char->name);

@@ -244,7 +244,7 @@ class Util {
 		$arr1 = [];
 		$arr2 = [];
 		foreach ($trace as $obj) {
-			$file = str_replace(getcwd() . '/', '', ($obj['file'] ?? '{Closure}'));
+			$file = str_replace(getcwd() . '/', '', $obj['file'] ?? '{Closure}');
 			if (isset($obj['line'])) {
 				$arr1 []= "{$file}({$obj['line']})";
 			} else {

@@ -6,7 +6,7 @@ use function Safe\preg_split;
 use Nadybot\Core\{Safe, Types\CommandReply};
 
 class Raffle {
-	/** Timestamp when the raffle was started*/
+	/** Timestamp when the raffle was started */
 	public int $start;
 
 	/** Unix timestamp when the raffle was announced the last time */

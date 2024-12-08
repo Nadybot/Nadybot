@@ -456,10 +456,10 @@ class RaffleController extends ModuleInstance {
 		$myMain = $this->altsController->getMainOf($context->char->name);
 		foreach ($this->raffle->slots as $slotNum => &$raffleSlot) {
 			/** @psalm-suppress RedundantCast: */
-			$sameSlot = ($slot === (int)$slotNum); // @phpstan-ignore-line
+			$sameSlot = $slot === (int)$slotNum; // @phpstan-ignore-line
 			foreach ($raffleSlot->participants as $participant) {
-				$sameChar = ($participant === $context->char->name);
-				$sameMain = ($myMain === $this->altsController->getMainOf($participant));
+				$sameChar = $participant === $context->char->name;
+				$sameMain = $myMain === $this->altsController->getMainOf($participant);
 				if ($sameChar && !$sameSlot && !$this->raffle->allowMultiJoin) {
 					$msg = 'You are already in the raffle for '.
 						$this->raffle->slots[$slotNum]->toString() . ' and '.

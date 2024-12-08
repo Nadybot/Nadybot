@@ -3,6 +3,8 @@
 namespace Nadybot\Core\EventModifier;
 
 use function Safe\preg_match;
+
+use ErrorException;
 use Exception;
 
 use Nadybot\Core\{
@@ -54,11 +56,16 @@ class IfMatches implements EventModifier {
 		protected bool $inverse=false
 	) {
 		foreach ($text as $match) {
-			// @phpstan-ignore-next-line
-			if ($isRegexp && @\preg_match(chr(1) . $match . chr(1) . 'si', '') === false) {
-				$error = error_get_last()['message'] ?? 'Unknown error';
-				$error = Safe::pregReplace("/^preg_match\(\): (Compilation failed: )?/", '', $error);
-				throw new Exception("Invalid regular expression '{$match}': {$error}.");
+			try {
+				if ($isRegexp) {
+					preg_match(chr(1) . $match . chr(1) . 'si', '');
+				}
+			} catch (ErrorException $e) {
+				$error = Safe::pregReplace("/^preg_match\(\): (Compilation failed: )?/", '', $e->getMessage());
+				throw new Exception(
+					message: "Invalid regular expression '{$match}': {$error}.",
+					previous: $e,
+				);
 			}
 		}
 	}

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use ErrorException;
 use Exception;
 
 use Nadybot\Core\{
@@ -236,7 +237,10 @@ class WebChatConverter extends ModuleInstance {
 	public function fixUnclosedTags(string $message): string {
 		$message = Safe::pregReplace("/<(\/?[a-z]+):/", '<$1___', $message);
 		$xml = new \DOMDocument();
-		@$xml->loadHTML('<?xml encoding="UTF-8">' . $message);
+		try {
+			Safe::exceptionWrapper($xml->loadHTML(...), '<?xml encoding="UTF-8">' . $message);
+		} catch (ErrorException) {
+		}
 		if (($message = $xml->saveXML()) === false) {
 			throw new Exception('Invalid XML data created');
 		}
