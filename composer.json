@@ -80,7 +80,7 @@
 		"phpstan/phpstan": "^1.12.3",
 		"phpstan/phpstan-deprecation-rules": "^1.0",
 		"composer-phar/php-cs-fixer": "^3.51.0",
-		"psalm/phar": "^5.22.2",
+		"psalm/phar": "^5.26.1",
 		"thecodingmachine/phpstan-safe-rule": "^1.2",
 		"struggle-for-php/sfp-phpstan-psr-log": "^0.21.0",
 		"phpstan/phpstan-strict-rules": "^1.5",
