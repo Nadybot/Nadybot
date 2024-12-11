@@ -2,7 +2,11 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use Exception;
 use Illuminate\Support\Collection;
+use MathParser\Exceptions\UnknownVariableException;
+use MathParser\Interpreting\Evaluator;
+use MathParser\StdMathParser;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -11,8 +15,6 @@ use Nadybot\Core\{
 	Safe,
 	Text,
 };
-
-use ParseError;
 
 /**
  * @author Tyrence (RK2)
@@ -147,34 +149,25 @@ class HelpbotController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>calc 1+1')]
 	#[NCA\Help\Example('<symbol>calc 2^16')]
 	public function calcCommand(CmdContext $context, string $formula): void {
-		$calc = strtolower($formula);
-
-		// check if the calc string includes not allowed chars
-		$numValidChars = strspn($calc, '0123456789.+^-*%()/\\ ');
-
-		if ($numValidChars !== strlen($calc)) {
-			$context->reply('Cannot compute.');
-			return;
-		}
-		$calc = str_replace('^', '**', $calc);
+		$parser = new StdMathParser();
+		$parser->setSimplifying(false);
+		$tree = $parser->parse($formula);
 		try {
-			$result = 0;
-			$calc = "\$result = {$calc};";
-			eval($calc);
-
-			$result = Safe::pregReplace("/\.?0+$/", '', number_format(round($result, 4), 4));
-			$result = str_replace(',', '<end>,<highlight>', $result);
-		} catch (ParseError $e) {
-			$context->reply('Cannot compute.');
+			$evaluator = new Evaluator([]);
+			$result = (float)$tree->accept($evaluator);
+			$printer = new AOPrinter();
+			$formula = (string)$tree->accept($printer);
+		} catch (UnknownVariableException) {
+			$context->reply('Variables are not yet supported.');
+			return;
+		} catch (Exception $e) {
+			$context->reply("Cannot compute: {$e->getMessage()}");
 			return;
 		}
-		$matches = Safe::pregMatchAll("{(\d*\.?\d+|[+%()/^-]|\*+)}", $formula);
-		$expression = implode(' ', $matches[1]??[]);
-		$expression = str_replace(['* *', '( ', ' )', '*'], ['^', '(', ')', '×'], $expression);
-		$expression = Safe::pregReplace("/(\d+)/", '<cyan>$1<end>', $expression);
+		$result = Safe::pregReplace("/\.?0+$/", '', number_format(round($result, 4), 4));
+		$result = str_replace(',', '<end>,<highlight>', $result);
 
-		$msg ="{$expression} = <highlight>{$result}<end>";
-		$context->reply($msg);
+		$context->reply("{$formula} = <highlight>{$result}<end>");
 	}
 
 	/**

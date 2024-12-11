@@ -34,9 +34,5 @@ name = "safety/no-suppressed-expression"
 level = "Off"
 
 [[linter.rules]]
-name = "safety/no-eval"
-level = "Off"
-
-[[linter.rules]]
 name = "comment/docblock-syntax"
 level = "Note"

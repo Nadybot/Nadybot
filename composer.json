@@ -58,7 +58,8 @@
 		"amphp/http-server": "^3.3.0",
 		"amphp/websocket-server": "^4.0.0",
 		"doctrine/dbal": "^3",
-		"ramsey/uuid": "^4.7"
+		"ramsey/uuid": "^4.7",
+		"nadybot/math-parser": "^1.4.0"
 	},
 	"autoload": {
 		"psr-4": {
