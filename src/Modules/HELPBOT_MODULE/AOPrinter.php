@@ -115,12 +115,25 @@ class AOPrinter implements VisitorInterface {
 		if (!isset($operand)) {
 			throw new SyntaxErrorException();
 		}
+		switch ($functionName) {
+			case 'sqrt':
+				$functionName = '√';
+		}
 
 		return "<cyan>{$functionName}<end>({$operand})";
 	}
 
 	public function visitConstantNode(ConstantNode $node): string {
-		return "<cyan>{$node->getName()}<end>";
+		$name = $node->getName();
+		switch ($name) {
+			case 'pi':
+				$name = 'π';
+				break;
+			case 'INF':
+				$name = '∞';
+				break;
+		}
+		return "<cyan>{$name}<end>";
 	}
 
 	public function parenthesize(Node $node, ExpressionNode $cutoff, string $prepend='', bool $conservative=false): string {

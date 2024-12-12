@@ -164,8 +164,12 @@ class HelpbotController extends ModuleInstance {
 			$context->reply("Cannot compute: {$e->getMessage()}");
 			return;
 		}
-		$result = Safe::pregReplace("/\.?0+$/", '', number_format(round($result, 4), 4));
-		$result = str_replace(',', '<end>,<highlight>', $result);
+		if ($result === \INF) {
+			$result = '∞';
+		} else {
+			$result = Safe::pregReplace("/\.?0+$/", '', number_format(round($result, 4), 4));
+			$result = str_replace(',', '<end>,<highlight>', $result);
+		}
 
 		$context->reply("{$formula} = <highlight>{$result}<end>");
 	}
