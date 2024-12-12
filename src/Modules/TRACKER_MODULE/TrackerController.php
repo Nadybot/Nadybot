@@ -1304,6 +1304,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 						'name' => $buddy['name'],
 						'uid' => $buddy['uid'],
 					]);
+					$this->chatBot->cacheUidNameMapping($buddy['name'], $buddy['uid']);
 					$this->buddylistManager->addId($buddy['uid'], static::REASON_ORG_TRACKER);
 				}
 			}
@@ -1317,8 +1318,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 					'uid' => $exMember->uid,
 				]);
 				$this->buddylistManager->removeId($exMember->uid, static::REASON_ORG_TRACKER);
-				$this->db->table(Tracking::getTable())
+				$this->db->table(TrackingOrgMember::getTable())
 					->where('uid', $exMember->uid)
+					->where('org_id', $exMember->org_id)
 					->delete();
 			});
 		} catch (Throwable $e) {
