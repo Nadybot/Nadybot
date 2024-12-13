@@ -378,10 +378,12 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			'faction' => 'neutral',
 			'name' => $name,
 			'profession' => 'Unknown',
+			'dimension' => $this->config->main->dimension,
 			'prof' => '???',
 			'level' => '?',
 			'ai_level' => '?',
 			'org' => '&lt;no org&gt;',
+			'org_rank' => '&lt;no rank&gt;',
 			'breed' => '?',
 			'gender' => '?',
 			'tl' => '?',
@@ -392,6 +394,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				$replacements['profession'] = $player->profession->value;
 				$replacements['prof'] = $player->profession->short();
 			}
+			$replacements['dimension'] = $player->dimension;
 			$replacements['org'] = $player->guild ?? '&lt;no org&gt;';
 			$replacements['gender'] = strtolower($player->gender);
 			$replacements['org_rank'] = $player->guild_rank ?? '&lt;no rank&gt;';

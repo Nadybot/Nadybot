@@ -38,6 +38,7 @@ class TrackerFormatSettingHandler extends SettingHandler {
 			"<tab><highlight>{gender}<end>: The character's gender in lowercase\n".
 			"<tab><highlight>{Gender}<end>: The character's gender, first letter uppercase\n".
 			"<tab><highlight>{tl}<end>: The character's title level\n\n".
+			"<tab><highlight>{dimension}<end>: The character's play dimension\n\n".
 			"You can change it manually with the command\n\n".
 			"/tell <myname> settings save {$this->row->name} &lt;new format&gt;\n\n".
 			"Or you can choose from one of the predefined options\n\n";
