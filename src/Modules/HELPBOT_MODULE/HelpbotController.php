@@ -2,17 +2,12 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use Exception;
 use Illuminate\Support\Collection;
-use MathParser\Exceptions\UnknownVariableException;
-use MathParser\Interpreting\Evaluator;
-use MathParser\StdMathParser;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
-	Safe,
 	Text,
 };
 
@@ -34,11 +29,6 @@ use Nadybot\Core\{
 		accessLevel: 'guest',
 		description: 'Over-equipped calculation',
 	),
-	NCA\DefineCommand(
-		command: 'calc',
-		accessLevel: 'guest',
-		description: 'Calculator',
-	)
 ]
 class HelpbotController extends ModuleInstance {
 	#[NCA\Inject]
@@ -142,36 +132,6 @@ class HelpbotController extends ModuleInstance {
 			Text::makeBlob('More info', $blob, 'Over-equipped Calculation');
 
 		$context->reply($msg);
-	}
-
-	/** Use a calculator */
-	#[NCA\HandlesCommand('calc')]
-	#[NCA\Help\Example('<symbol>calc 1+1')]
-	#[NCA\Help\Example('<symbol>calc 2^16')]
-	public function calcCommand(CmdContext $context, string $formula): void {
-		$parser = new StdMathParser();
-		$parser->setSimplifying(false);
-		$tree = $parser->parse($formula);
-		try {
-			$evaluator = new Evaluator([]);
-			$result = (float)$tree->accept($evaluator);
-			$printer = new AOPrinter();
-			$formula = (string)$tree->accept($printer);
-		} catch (UnknownVariableException) {
-			$context->reply('Variables are not yet supported.');
-			return;
-		} catch (Exception $e) {
-			$context->reply("Cannot compute: {$e->getMessage()}");
-			return;
-		}
-		if ($result === \INF) {
-			$result = '∞';
-		} else {
-			$result = Safe::pregReplace("/\.?0+$/", '', number_format(round($result, 4), 4));
-			$result = str_replace(',', '<end>,<highlight>', $result);
-		}
-
-		$context->reply("{$formula} = <highlight>{$result}<end>");
 	}
 
 	/**

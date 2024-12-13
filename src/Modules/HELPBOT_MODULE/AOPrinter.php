@@ -4,7 +4,8 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use MathParser\Exceptions\{SyntaxErrorException, UnknownOperatorException};
 use MathParser\Interpreting\Visitors\VisitorInterface;
-use MathParser\Parsing\Nodes\{ConstantNode, ExpressionNode, FunctionNode, IntegerNode, Node, NumberNode, RationalNode, VariableNode};
+use MathParser\Parsing\Nodes\{ConstantNode, ExpressionNode, FunctionNode, IntegerNode, Node, NumberNode, NumericNode, RationalNode, VariableNode};
+use Nadybot\Core\Safe;
 
 /**
  * Create AO code for prettyprinting a mathematical expression
@@ -12,6 +13,11 @@ use MathParser\Parsing\Nodes\{ConstantNode, ExpressionNode, FunctionNode, Intege
  * Implementation of a Visitor, transforming an AST into a string
  */
 class AOPrinter implements VisitorInterface {
+	public function __construct(
+		private FormulaController $fc
+	) {
+	}
+
 	/**
 	 * Generate AO HTML output code for an ExpressionNode
 	 *
@@ -55,7 +61,28 @@ class AOPrinter implements VisitorInterface {
 				}
 				$leftValue = $this->parenthesize($left, $node, '', false);
 				$rightValue = $this->parenthesize($right, $node, '', true);
-				return "{$leftValue} {$operator} {$rightValue}";
+				if ($leftValue === '1' && $rightValue === '2') {
+					return '½';
+				}
+				if ($leftValue === '1' && $rightValue === '4') {
+					return '¼';
+				}
+				if ($leftValue === '3' && $rightValue === '4') {
+					return '¾';
+				}
+				if ($leftValue === '1' && $rightValue === '8') {
+					return '⅛';
+				}
+				if ($leftValue === '3' && $rightValue === '8') {
+					return '⅜';
+				}
+				if ($leftValue === '5' && $rightValue === '8') {
+					return '⅝';
+				}
+				if ($leftValue === '7' && $rightValue === '8') {
+					return '⅞';
+				}
+				return "{$leftValue} {$this->fc->divisionSign} {$rightValue}";
 
 			case '*':
 				if (!isset($left) || !isset($right)) {
@@ -63,7 +90,10 @@ class AOPrinter implements VisitorInterface {
 				}
 				$leftValue = $this->parenthesize($left, $node, '', false);
 				$rightValue = $this->parenthesize($right, $node, '', true);
-				return "{$leftValue} × {$rightValue}";
+				if (!$this->fc->simplifyFormula || $right instanceof NumericNode) {
+					return "{$leftValue} {$this->fc->multiplicationSign} {$rightValue}";
+				}
+				return "{$leftValue}{$rightValue}";
 
 			case '^':
 				if (!isset($left) || !isset($right)) {
@@ -71,6 +101,11 @@ class AOPrinter implements VisitorInterface {
 				}
 				$leftValue = $this->parenthesize($left, $node, '', true);
 				$rightValue = $this->parenthesize($right, $node, '', false);
+				if ($rightValue === '<cyan>2<end>') {
+					return "{$leftValue}<cyan>²<end>";
+				} elseif ($rightValue === '<cyan>3<end>') {
+					return "{$leftValue}<cyan>³<end>";
+				}
 				return "{$leftValue}{$operator}{$rightValue}";
 
 			default:
@@ -97,6 +132,27 @@ class AOPrinter implements VisitorInterface {
 			return "<cyan>{$p}<end>";
 		}
 
+		if ($p === 1.0 && $q === 2.0) {
+			return '<cyan>½<end>';
+		}
+		if ($p === 1.0 && $q === 4.0) {
+			return '<cyan>¼<end>';
+		}
+		if ($p === 3.0 && $q === 4.0) {
+			return '<cyan>¾<end>';
+		}
+		if ($p === 1.0 && $q === 8.0) {
+			return '<cyan>⅛<end>';
+		}
+		if ($p === 3.0 && $q === 8.0) {
+			return '<cyan>⅜<end>';
+		}
+		if ($p === 5.0 && $q === 8.0) {
+			return '<cyan>⅝<end>';
+		}
+		if ($p === 7.0 && $q === 8.0) {
+			return '<cyan>⅞<end>';
+		}
 		return "<cyan>{$p}/{$q}<end>";
 	}
 
@@ -174,7 +230,8 @@ class AOPrinter implements VisitorInterface {
 			$fakeNode = new ExpressionNode($node->getNumerator(), '/', $node->getDenominator());
 
 			if ($fakeNode->lowerPrecedenceThan($cutoff)) {
-				return "({$text})";
+				$containsFractions = count(Safe::pregMatch('/[¼½¼¾⅛⅜⅝⅞]/', $text)) === 1;
+				return $containsFractions ? $text : "({$text})";
 			}
 		}
 

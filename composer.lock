@@ -540,16 +540,16 @@
         },
         {
             "name": "amphp/http-client",
-            "version": "v5.2.0",
+            "version": "v5.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/amphp/http-client.git",
-                "reference": "30888873d747d994ad0b2719134211c587134fb5"
+                "reference": "2117f7e7cd1ecf35d4d0daea1ba5dc6fd318b114"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/amphp/http-client/zipball/30888873d747d994ad0b2719134211c587134fb5",
-                "reference": "30888873d747d994ad0b2719134211c587134fb5",
+                "url": "https://api.github.com/repos/amphp/http-client/zipball/2117f7e7cd1ecf35d4d0daea1ba5dc6fd318b114",
+                "reference": "2117f7e7cd1ecf35d4d0daea1ba5dc6fd318b114",
                 "shasum": ""
             },
             "require": {
@@ -560,8 +560,8 @@
                 "amphp/pipeline": "^1",
                 "amphp/socket": "^2",
                 "amphp/sync": "^2",
-                "league/uri": "^6 | ^7",
-                "league/uri-components": "^2.4 | ^7",
+                "league/uri": "^7",
+                "league/uri-components": "^7",
                 "league/uri-interfaces": "^7.1",
                 "php": ">=8.1",
                 "psr/http-message": "^1 | ^2",
@@ -623,7 +623,7 @@
             ],
             "support": {
                 "issues": "https://github.com/amphp/http-client/issues",
-                "source": "https://github.com/amphp/http-client/tree/v5.2.0"
+                "source": "https://github.com/amphp/http-client/tree/v5.2.1"
             },
             "funding": [
                 {
@@ -631,7 +631,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-12-07T00:28:37+00:00"
+            "time": "2024-12-13T16:16:08+00:00"
         },
         {
             "name": "amphp/http-server",
@@ -3282,16 +3282,16 @@
         },
         {
             "name": "nadybot/math-parser",
-            "version": "v1.4.1",
+            "version": "v1.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Nadybot/math-parser.git",
-                "reference": "e369d998ef019da032ebb89ea8a123fbca13bade"
+                "reference": "a80b15ccf87c21d33fc0a6c78ffb4faf44dbbdc4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Nadybot/math-parser/zipball/e369d998ef019da032ebb89ea8a123fbca13bade",
-                "reference": "e369d998ef019da032ebb89ea8a123fbca13bade",
+                "url": "https://api.github.com/repos/Nadybot/math-parser/zipball/a80b15ccf87c21d33fc0a6c78ffb4faf44dbbdc4",
+                "reference": "a80b15ccf87c21d33fc0a6c78ffb4faf44dbbdc4",
                 "shasum": ""
             },
             "require": {
@@ -3337,9 +3337,9 @@
                 "parser"
             ],
             "support": {
-                "source": "https://github.com/Nadybot/math-parser/tree/v1.4.1"
+                "source": "https://github.com/Nadybot/math-parser/tree/v1.4.2"
             },
-            "time": "2024-12-12T15:13:40+00:00"
+            "time": "2024-12-13T19:55:48+00:00"
         },
         {
             "name": "nadylib/imex",

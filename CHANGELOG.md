@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `!verify`-command will now show the results of the last 3 rolls, because it would be impossible to guess the previous UUID.
 - Multipage-output in the console is now automatically grouped into a single page.
 - The `!implantdesigner` was reworked and modernized. It now supports special symbiants (TOTW drops, etc.), and also shows the bonus that adding a cluster would give you when choosing the cluster for a slot. It now recognizes cluster names as well as skill names and their shortcuts (`implantdesigner head shiny cl` works for example)
-- The `!calc`-command  now uses a proper calculator implementation that supports math-functions, as well as constants like `e`, and `pi`. `!calc INF^0`, or `!calc cot(2pi)` work now as well, and the road is paved for saving formulas with variables.
+- The `!calc`-command  now uses a proper calculator implementation that supports math-functions, as well as constants like `e`, and `pi`. `!calc INF^0`, or `!calc cot(2pi)` work now as well. And while I was at it, I added the possibility to store and solve formulas with the new `!formula`-command.
 
 ### Coding
 
