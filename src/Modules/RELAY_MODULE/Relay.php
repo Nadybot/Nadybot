@@ -170,7 +170,6 @@ class Relay implements MessageReceiver {
 				$newList[$where] ??= [];
 				$newList[$where][$name] = $player;
 				$skipped []= "{$where}.{$name}";
-				continue;
 			}
 		}
 		$this->onlineChars = $newList;

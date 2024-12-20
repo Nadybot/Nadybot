@@ -1795,7 +1795,7 @@ class Nadybot {
 	}
 
 	private function processSystemMessage(WorkerPackage $package): void {
-		assert($package->package instanceof Package\In\SystemMessage);
+		assert($package->package instanceof Package\In\SystemMessage, 'Can only process SystemMessages');
 		$infoGradeMsgs = [
 			158_601_204 => true, // XXX is offline
 			54_583_877 => true, // Could not send message to offline player

@@ -319,9 +319,7 @@ class ImplantController extends ModuleInstance {
 		} else {
 			throw new Exception("Invalid grade: '{$grade}'.  Must be one of: 'shiny', 'bright', 'faded'");
 		}
-		assert($minQL >= 1);
-		assert($minQL <= 300);
-		return $minQL;
+		return max(min($minQL, 300), 1);
 	}
 
 	/**

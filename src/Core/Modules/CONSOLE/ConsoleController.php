@@ -126,7 +126,7 @@ class ConsoleController extends ModuleInstance {
 	public function saveHistory(): void {
 		$file = $this->getCacheFile();
 		if (!$this->fs->exists($file)) {
-			$this->fs->createDirectoryRecursively(dirname($file), 0700);
+			$this->fs->createDirectoryRecursively(dirname($file), 0o700);
 		}
 		try {
 			readline_write_history($file);

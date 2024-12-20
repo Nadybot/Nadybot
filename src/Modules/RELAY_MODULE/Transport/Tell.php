@@ -139,7 +139,7 @@ class Tell implements TransportInterface {
 		if (isset($buddy) && !count($buddy->types)) {
 			// We need to wait for the buddy-remove packet
 			$waitForRemoval = function (PackageEvent $event) use ($callback, &$waitForRemoval): void {
-				assert($event->packet->package instanceof Package\In\BuddyRemoved);
+				assert($event->packet->package instanceof Package\In\BuddyRemoved, 'Wrong package type received');
 				$uid = $event->packet->package->charId;
 				$name = $this->chatBot->getName($uid);
 				if ($name === $this->bot) {

@@ -247,12 +247,12 @@ class LoggerWrapper implements LoggerInterface {
 			if (isset($this->wrapper)) {
 				[$logLevel, $message, $context] = call_user_func($this->wrapper, $logLevel, $message, $context);
 
-				assert(is_int($logLevel));
+				assert(is_int($logLevel), null);
 
 				/** @phpstan-var 100|200|250|300|400|500|550|600 $logLevel */
-				assert(is_string($message));
+				assert(is_string($message), null);
 
-				assert(is_array($context));
+				assert(is_array($context), null);
 
 				/** @phpstan-var array<string,mixed> $context */
 			}

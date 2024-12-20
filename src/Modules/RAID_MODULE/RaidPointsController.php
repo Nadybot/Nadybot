@@ -210,10 +210,10 @@ class RaidPointsController extends ModuleInstance {
 			$pointsChar = $this->altsController->getMainOf($pointsChar);
 		}
 		// If that player already received reward based points for this reward on an alt ignore this
-		if (isset($raid) && isset($raid->pointsGiven[$pointsChar])) {
+		if (isset($raid, $raid->pointsGiven[$pointsChar])) {
 			return $pointsChar;
 		}
-		if (isset($raid) && isset($raid->raiders[$player])) {
+		if (isset($raid, $raid->raiders[$player])) {
 			$raid->raiders[$player]->points += $delta;
 			if ($individual) {
 				$raid->raiders[$player]->pointsIndividual += $delta;

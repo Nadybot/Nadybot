@@ -38,7 +38,7 @@ class CacheManager {
 			return;
 		}
 		try {
-			$this->fs->createDirectory($this->cacheDir, 0777);
+			$this->fs->createDirectory($this->cacheDir, 0o777);
 		} catch (FilesystemException $e) {
 			$this->logger->warning('Unable to create the cache directory {dir}: {error}', [
 				'dir' => $this->cacheDir,
@@ -77,7 +77,7 @@ class CacheManager {
 		$cacheFile = "{$this->cacheDir}/{$groupName}/{$filename}";
 		try {
 			if (!$this->fs->isDirectory($this->cacheDir . '/' . $groupName)) {
-				$this->fs->createDirectory($this->cacheDir . '/' . $groupName, 0777);
+				$this->fs->createDirectory($this->cacheDir . '/' . $groupName, 0o777);
 			}
 
 			// at least in windows, modification timestamp will not change unless this is done

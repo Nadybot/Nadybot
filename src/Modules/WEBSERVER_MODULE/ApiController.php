@@ -454,7 +454,7 @@ class ApiController extends ModuleInstance {
 		if ($this->websocketController->clientExists($uuid) === false) {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}
-		if (isset($msg) && isset($user)) {
+		if (isset($msg, $user)) {
 			$set = $this->commandManager->getPermsetMapForSource('api');
 			$handler = new EventCommandReply($uuid);
 			Registry::injectDependencies($handler);

@@ -1118,7 +1118,7 @@ class WorldBossController extends ModuleInstance {
 	private function isVulnerable(WorldBossTimer $timer, int $lastCheck, bool $manual): bool {
 		$nextKillTime = null;
 		$invulnerableTime = $timer->killable - $timer->spawn;
-		if (isset($timer->timer) && isset($timer->next_spawn)) {
+		if (isset($timer->timer, $timer->next_spawn)) {
 			$nextKillTime = $timer->next_spawn + $timer->timer + $invulnerableTime;
 		}
 		return (
@@ -1142,7 +1142,7 @@ class WorldBossController extends ModuleInstance {
 			$tokens['c-immortal'] = '<highlight>' . $tokens['immortal'] . '<end>';
 		}
 		if ($this->isPrespawn($timer, $lastCheck, $manual)) {
-			assert(isset($timer->next_spawn));
+			assert(isset($timer->next_spawn), 'A pre-spawn timer must know the next spawn');
 			$this->logger->notice('{boss} pre-spawn check success', ['boss' => $timer->mob_name]);
 			$tokens['next-spawn'] = Util::unixtimeToReadable($timer->next_spawn-time());
 			$tokens['c-next-spawn'] = '<highlight>' . $tokens['next-spawn'] . '<end>';

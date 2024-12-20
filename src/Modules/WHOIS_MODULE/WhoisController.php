@@ -148,7 +148,8 @@ class WhoisController extends ModuleInstance {
 		$packet = $eventObj->packet->package;
 		assert(
 			($packet instanceof Package\In\CharacterName)
-			|| ($packet instanceof Package\In\CharacterLookupResult)
+			|| ($packet instanceof Package\In\CharacterLookupResult),
+			'Cannot record UIDs or names for packates other than lookup-results or caches'
 		);
 		if ($packet->charId > 0 && $packet->charId >= 4_294_967_295) {
 			return;

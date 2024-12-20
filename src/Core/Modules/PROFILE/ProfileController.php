@@ -93,7 +93,7 @@ class ProfileController extends ModuleInstance {
 		// make sure that the profile folder exists
 		if (!$this->fs->isDirectory($this->path)) {
 			try {
-				$this->fs->createDirectory($this->path, 0777);
+				$this->fs->createDirectory($this->path, 0o777);
 			} catch (Exception $e) {
 				$this->logger->warning('Unable to create profile directory {dir}: {error}', [
 					'dir' => $this->path,

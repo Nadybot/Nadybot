@@ -9,8 +9,11 @@ excludes = [
 level = "Error"
 
 [[linter.rules]]
-# Rule name
 name = "best-practices/no-unused-parameter"
+level = "Off"
+
+[[linter.rules]]
+name = "best-practices/loop-does-not-iterate"
 level = "Off"
 
 [[linter.rules]]
@@ -30,9 +33,17 @@ name = "strictness/require-constant-type"
 level = "Off"
 
 [[linter.rules]]
+name = "strictness/missing-assert-description"
+level = "Off"
+
+[[linter.rules]]
 name = "safety/no-suppressed-expression"
 level = "Off"
 
 [[linter.rules]]
 name = "comment/docblock-syntax"
 level = "Note"
+
+[[linter.rules]]
+name = "deprecation/optional-parameter-before-required"
+level = "Off"

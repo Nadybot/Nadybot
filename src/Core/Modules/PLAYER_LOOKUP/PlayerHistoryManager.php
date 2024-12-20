@@ -33,7 +33,7 @@ class PlayerHistoryManager extends ModuleInstance {
 	public function setup(): void {
 		$path = $this->getCacheDir();
 		if (!$this->fs->exists($path)) {
-			$this->fs->createDirectory($path, 0700);
+			$this->fs->createDirectory($path, 0o700);
 		}
 	}
 

@@ -377,7 +377,7 @@ class EventFeed {
 	}
 
 	private function handleHello(LowLevelEventFeedEvent $event): void {
-		assert($event->highwayPackage instanceof Highway\In\Hello);
+		assert($event->highwayPackage instanceof Highway\In\Hello, 'Function called for non-hello package');
 		$attachedRooms = [];
 		$this->availableRooms = [];
 		$this->logger->notice('Public rooms on highway {version} server {server}: {rooms}', [

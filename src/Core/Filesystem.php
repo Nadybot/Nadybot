@@ -393,7 +393,7 @@ final class Filesystem {
 	 *
 	 * @throws FilesystemException If the operation fails.
 	 */
-	public function createDirectory(string $path, int $mode=0777): void {
+	public function createDirectory(string $path, int $mode=0o777): void {
 		$callNum = self::$callNum++;
 		$this->logger?->debug('[{call}] -> createDirectory({path}, {mode})', [
 			'call' => sprintf('%6d', $callNum),
@@ -413,7 +413,7 @@ final class Filesystem {
 	 *
 	 * @throws FilesystemException If the operation fails.
 	 */
-	public function createDirectoryRecursively(string $path, int $mode=0777): void {
+	public function createDirectoryRecursively(string $path, int $mode=0o777): void {
 		$callNum = self::$callNum++;
 		$this->logger?->debug('[{call}] -> createDirectoryRecursively({path}, {mode})', [
 			'call' => sprintf('%6d', $callNum),

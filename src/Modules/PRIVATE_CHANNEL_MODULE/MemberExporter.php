@@ -122,7 +122,7 @@ class MemberExporter extends ModuleInstance implements ExporterInterface, Import
 			}
 		}
 		foreach ($result as &$datum) {
-			assert(isset($datum->character->name));
+			assert(isset($datum->character->name), 'Every member of the bot must have a name');
 			$datum->rank = $this->accessManager->getSingleAccessLevel($datum->character->name);
 			$logonMessage = $this->preferences->get($datum->character->name, 'logon_msg');
 			$logoffMessage = $this->preferences->get($datum->character->name, 'logoff_msg');

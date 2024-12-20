@@ -77,7 +77,7 @@ class FindOrgController extends ModuleInstance {
 	#[NCA\Setup]
 	public function setup(): void {
 		if (!$this->fs->exists($this->config->paths->cache . '/orglist')) {
-			$this->fs->createDirectory($this->config->paths->cache . '/orglist', 0700);
+			$this->fs->createDirectory($this->config->paths->cache . '/orglist', 0o700);
 		}
 		$this->ready = $this->db->table(Organization::getTable())
 			->where('index', 'others')
@@ -215,7 +215,7 @@ class FindOrgController extends ModuleInstance {
 
 		$cacheFolder = $this->config->paths->cache . '/orglist';
 		if (!$this->fs->exists($cacheFolder)) {
-			$this->fs->createDirectory($cacheFolder, 0700);
+			$this->fs->createDirectory($cacheFolder, 0o700);
 		}
 
 		$this->ready = $this->db->table(Organization::getTable())

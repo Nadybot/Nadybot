@@ -338,7 +338,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	 */
 	private function installNewRelease(string $body): void {
 		try {
-			$oldMask = umask(0027);
+			$oldMask = umask(0o027);
 			try {
 				$file = $this->fs->tmpfile();
 			} catch (FilesystemException $e) {

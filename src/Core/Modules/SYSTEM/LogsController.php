@@ -322,7 +322,7 @@ class LogsController extends ModuleInstance {
 		if ($this->fs->exists($debugFile)) {
 			$this->fs->deleteFile($debugFile);
 		}
-		$handler = new StreamHandler($debugFile, Logger::DEBUG, true, 0600);
+		$handler = new StreamHandler($debugFile, Logger::DEBUG, true, 0o600);
 		$handler->setFormatter($formatter);
 		$processor = new IntrospectionProcessor(Logger::DEBUG, [], 1);
 		$handler->pushProcessor($processor);

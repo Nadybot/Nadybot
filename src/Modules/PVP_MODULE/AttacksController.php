@@ -924,7 +924,7 @@ class AttacksController extends ModuleInstance {
 
 		/** @var array<string,list<DBOutcome>> $outcomes */
 		$outcomes = [];
-		if (isset($firstAttack) && isset($lastAttack)) {
+		if (isset($firstAttack, $lastAttack)) {
 			/**
 			 * @var array<string,list<DBOutcome>>
 			 *

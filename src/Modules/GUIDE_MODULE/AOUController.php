@@ -56,7 +56,7 @@ class AOUController extends ModuleInstance {
 	public function setup(): void {
 		$cacheFolder = $this->config->paths->cache . '/guide';
 		if (!$this->fs->exists($cacheFolder)) {
-			$this->fs->createDirectory($cacheFolder, 0700);
+			$this->fs->createDirectory($cacheFolder, 0o700);
 		}
 	}
 

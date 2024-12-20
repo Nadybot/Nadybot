@@ -75,7 +75,7 @@ class PackageController extends ModuleInstance {
 	#[NCA\Setup]
 	public function setup(): void {
 		if (!$this->fs->exists($this->config->paths->cache . '/PACKAGE_MODULE')) {
-			$this->fs->createDirectory($this->config->paths->cache . '/PACKAGE_MODULE', 0700);
+			$this->fs->createDirectory($this->config->paths->cache . '/PACKAGE_MODULE', 0o700);
 		}
 		$this->scanForUnregisteredExtraModules();
 	}
@@ -968,7 +968,7 @@ class PackageController extends ModuleInstance {
 		]);
 		if (!$this->fs->exists("{$targetDir}/{$cmd->package}/")) {
 			try {
-				$this->fs->createDirectoryRecursively("{$targetDir}/{$cmd->package}", 0700);
+				$this->fs->createDirectoryRecursively("{$targetDir}/{$cmd->package}", 0o700);
 			} catch (\Exception $e) {
 				$this->logger->error('Error on mkdir of {dir}: {error}', [
 					'dir' => $targetDir . \DIRECTORY_SEPARATOR . $cmd->package,
@@ -1016,7 +1016,7 @@ class PackageController extends ModuleInstance {
 			if (substr($targetFile, -1, 1) === '/') {
 				try {
 					if (!$this->fs->exists($targetFile)) {
-						$this->fs->createDirectoryRecursively($targetFile, 0700);
+						$this->fs->createDirectoryRecursively($targetFile, 0o700);
 					}
 				} catch (Throwable $e) {
 					$this->logger->error('Error on mkdir of {dir}: {error}', [

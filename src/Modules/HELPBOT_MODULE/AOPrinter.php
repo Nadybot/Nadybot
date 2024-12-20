@@ -41,7 +41,7 @@ class AOPrinter implements VisitorInterface {
 				return "{$leftValue} + {$rightValue}";
 
 			case '-':
-				if (isset($right) && isset($left)) {
+				if (isset($right, $left)) {
 					// Binary minus
 
 					$leftValue = $left->accept($this);

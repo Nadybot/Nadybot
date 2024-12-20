@@ -234,7 +234,7 @@ class JWT {
 		}
 		// Separate the signature into r-value and s-value
 		$rs = str_split($sig, $chunkSize);
-		assert(count($rs) >= 2);
+		assert(count($rs) >= 2, 'Wrong length of signature');
 		[$r, $s] = $rs;
 
 		// Trim leading zeros

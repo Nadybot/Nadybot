@@ -91,7 +91,7 @@ class ExportController extends ModuleInstance {
 			$fileName .= '.json';
 		}
 		if (!$this->fs->exists("{$dataPath}/export")) {
-			$this->fs->createDirectory("{$dataPath}/export", 0700);
+			$this->fs->createDirectory("{$dataPath}/export", 0o700);
 		}
 		$context->reply('Starting export...');
 		$exports = [];

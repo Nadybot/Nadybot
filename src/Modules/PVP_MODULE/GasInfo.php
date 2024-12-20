@@ -165,7 +165,7 @@ class GasInfo {
 		$blob = '';
 
 		$closingOffset = $this->closingOffset();
-		assert(isset($closingOffset));
+		assert(isset($closingOffset), 'Cannot dump information on unplanted sites');
 		$blob .= "<header2>{$this->site->playfield->short()} {$this->site->site_id}<end>\n".
 			'Time:        ' . $niceTime($this->time) . "\n".
 			'Planted:     ' . $niceDateTime($this->site->plant_time) . "\n".

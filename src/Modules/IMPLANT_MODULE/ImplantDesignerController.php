@@ -426,7 +426,7 @@ class ImplantDesignerController extends ModuleInstance {
 			$msg = 'You cannot require an ability for a symbiant.';
 		} elseif (!isset($slotObj->shiny) && !isset($slotObj->bright) && !isset($slotObj->faded)) {
 			$msg = 'You must have at least one cluster filled to require an ability.';
-		} elseif (isset($slotObj->shiny) && isset($slotObj->bright) && isset($slotObj->faded) > 0) {
+		} elseif (isset($slotObj->shiny, $slotObj->bright) && isset($slotObj->faded) > 0) {
 			$msg = 'You must have at least one empty cluster to require an ability.';
 		} else {
 			$blob  = '[' . Text::makeChatcmd('See Build', '/tell <myname> implantdesigner');
@@ -469,7 +469,7 @@ class ImplantDesignerController extends ModuleInstance {
 			$msg = 'You cannot require an ability for a symbiant.';
 		} elseif (!isset($slotObj->shiny) && !isset($slotObj->bright) && !isset($slotObj->faded)) {
 			$msg = 'You must have at least one cluster filled to require an ability.';
-		} elseif (isset($slotObj->shiny) && isset($slotObj->bright) && isset($slotObj->faded)) {
+		} elseif (isset($slotObj->shiny, $slotObj->bright, $slotObj->faded)) {
 			$msg = 'You must have at least one empty cluster to require an ability.';
 		} else {
 			$blob  = '[' . Text::makeChatcmd('See Build', '/tell <myname> implantdesigner');
@@ -832,7 +832,7 @@ class ImplantDesignerController extends ModuleInstance {
 				continue;
 			}
 			$skill = $slotObj->{$grade};
-			assert(is_string($skill));
+			assert(is_string($skill), null);
 			$displaySkill = str_replace(' (%)', '', $skill);
 			$unit = $this->db->table(Cluster::getTable(), 'c')
 				->join(Skill::getTable(as: 's'), 'c.skill_id', 's.id')

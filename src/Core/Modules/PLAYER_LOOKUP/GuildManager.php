@@ -65,7 +65,7 @@ class GuildManager extends ModuleInstance {
 	public function setup(): void {
 		$filePath = $this->config->paths->cache . '/guild_roster';
 		if (!$this->fs->exists($filePath)) {
-			$this->fs->createDirectory($filePath, 0700);
+			$this->fs->createDirectory($filePath, 0o700);
 		}
 	}
 

@@ -372,12 +372,12 @@ class BotRunner {
 		$path = $this->getConfigFile()->paths;
 		foreach (get_object_vars($path) as $name => $dir) {
 			if (is_string($dir) && !self::getFS()->exists($dir)) {
-				self::getFS()->createDirectory($dir, 0700);
+				self::getFS()->createDirectory($dir, 0o700);
 			}
 		}
 		foreach ($path->modules as $dir) {
 			if (!self::getFS()->exists($dir)) {
-				self::getFS()->createDirectory($dir, 0700);
+				self::getFS()->createDirectory($dir, 0o700);
 			}
 		}
 	}
