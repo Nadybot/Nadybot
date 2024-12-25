@@ -77,6 +77,11 @@ class BotRunner {
 	public static function getVersion(bool $withBranch=true): string {
 		if (!isset(self::$calculatedVersion)) {
 			self::$calculatedVersion = self::calculateVersion();
+			$gitver = new SemanticVersion(self::$calculatedVersion);
+			$apiver = new SemanticVersion(self::VERSION);
+			if ($apiver->cmp($gitver) === 1) {
+				self::$calculatedVersion = self::VERSION;
+			}
 		}
 		if (!$withBranch) {
 			return Safe::pregReplace('/@.+/', '', self::$calculatedVersion);
