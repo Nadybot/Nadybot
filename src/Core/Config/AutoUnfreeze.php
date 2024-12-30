@@ -2,12 +2,12 @@
 
 namespace Nadybot\Core\Config;
 
-use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
+use Nadybot\Core\Attributes\ConvertToBool;
 
 class AutoUnfreeze {
 	public function __construct(
-		#[CastToType('bool')] public bool $enabled=false,
-		public bool $useNadyproxy=true,
+		#[ConvertToBool] public bool $enabled=false,
+		#[ConvertToBool] public bool $useNadyproxy=true,
 	) {
 	}
 }

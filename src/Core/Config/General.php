@@ -4,7 +4,7 @@ namespace Nadybot\Core\Config;
 
 use EventSauce\ObjectHydrator\MapFrom;
 use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
-use Nadybot\Core\Attributes\ForceList;
+use Nadybot\Core\Attributes\{ConvertToBool, ForceList};
 
 class General {
 	/**
@@ -15,12 +15,12 @@ class General {
 	public function __construct(
 		public string $orgName,
 		#[ForceList] #[MapFrom('super_admins')] public array $superAdmins,
-		#[CastToType('bool')] public bool $showAomlMarkup=false,
+		#[ConvertToBool] public bool $showAomlMarkup=false,
 		#[CastToType('int')] public int $defaultModuleStatus=1,
-		#[CastToType('bool')] public bool $enableConsoleClient=true,
-		#[CastToType('bool')] public bool $enablePackageModule=true,
-		#[CastToType('bool')] public bool $enableHydratorCache=true,
-		#[CastToType('bool')] #[MapFrom('auto_org_name')] public bool $autoOrgName=false,
+		#[ConvertToBool] public bool $enableConsoleClient=true,
+		#[ConvertToBool] public bool $enablePackageModule=true,
+		#[ConvertToBool] public bool $enableHydratorCache=true,
+		#[ConvertToBool] #[MapFrom('auto_org_name')] public bool $autoOrgName=false,
 		public ?string $timezone=null,
 	) {
 		$this->superAdmins = array_map(static function (string $char): string {
