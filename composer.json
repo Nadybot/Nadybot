@@ -78,6 +78,7 @@
 		],
 		"post-package-update": [
 			"Nadybot\\Patcher\\Patcher::patch"
-		]
+		],
+		"test" : "./src/Scripts/tests.sh"
 	}
 }

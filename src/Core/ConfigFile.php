@@ -142,7 +142,6 @@ class ConfigFile {
 			}
 			return isset($value);
 		});
-		var_dump($vars);
 		if (str_ends_with($this->filePath, '.yml') || str_ends_with($this->filePath, '.yaml')) {
 			$yaml = Yaml::dump($vars);
 			\Safe\file_put_contents($this->filePath, $yaml);
