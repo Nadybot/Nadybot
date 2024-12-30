@@ -68,7 +68,7 @@ else
 fi
 
 if command -v vale &> /dev/null; then
-  if [ -z "${CHANGED_FILES}" ]; then
+  if [ -n "${CHANGED_FILES}" ]; then
     CHANGED_FILES=$(grep -P '^src/' <<<"${CHANGED_FILES}")
   else
     CHANGED_FILES="src"
