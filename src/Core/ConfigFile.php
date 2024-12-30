@@ -142,6 +142,7 @@ class ConfigFile {
 			}
 			return isset($value);
 		});
+		var_dump($vars);
 		if (str_ends_with($this->filePath, '.yml') || str_ends_with($this->filePath, '.yaml')) {
 			$yaml = Yaml::dump($vars);
 			\Safe\file_put_contents($this->filePath, $yaml);
@@ -169,12 +170,12 @@ class ConfigFile {
 			if (preg_match("/^\s*\/\//", $line) || $inComment) {
 				continue;
 			}
-			if (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=(.*)\"(.*)\";(.*)$/si", $line, $arr)) {
+			if (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=(.*)(?:\"(.*)\"|true|false);(.*)$/si", $line, $arr)) {
 				$lines[$key] = "{$arr[1]}vars['{$arr[3]}']{$arr[5]}={$arr[6]}".
 					json_encode($vars[$arr[3]], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE).
 					";{$arr[8]}";
 				$usedVars[$arr[3]] = true;
-			} elseif (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=([ 	]+)([0-9]+|true|false);(.*)$/si", $line, $arr)) {
+			} elseif (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=([ 	]+)([0-9]+);(.*)$/si", $line, $arr)) {
 				$lines[$key] = "{$arr[1]}vars['{$arr[3]}']{$arr[5]}={$arr[6]}{$vars[$arr[3]]};{$arr[8]}";
 				$usedVars[$arr[3]] = true;
 			}
