@@ -57,13 +57,18 @@ else
   true &
 fi
 if command -v mago &> /dev/null; then
+  OUTPUT=$(mago self-update 2>&1)
+  if [ $? -ne 0 ]; then
+    echo "$OUTPUT"
+    exit 1
+  fi
   mago lint
 else
   true &
 fi
 
 if command -v vale &> /dev/null; then
-  if [ -n "${CHANGED_FILES}" ]; then
+  if [ -z "${CHANGED_FILES}" ]; then
     CHANGED_FILES=$(grep -P '^src/' <<<"${CHANGED_FILES}")
   else
     CHANGED_FILES="src"

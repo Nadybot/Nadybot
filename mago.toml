@@ -1,9 +1,10 @@
 [source]
 paths = ["src"]
-includes = []
 excludes = [
   "src/Core/QueryBuilder.php"
 ]
+includes = ["vendor", "src/Core"]
+extensions = ["php", "php81"]
 
 [linter]
 level = "Error"
@@ -46,4 +47,12 @@ level = "Note"
 
 [[linter.rules]]
 name = "deprecation/optional-parameter-before-required"
+level = "Off"
+
+[[linter.rules]]
+name = "best-practices/no-multi-assignments"
+level = "Off"
+
+[[linter.rules]]
+name = "migration/readonly-class-promotion"
 level = "Off"

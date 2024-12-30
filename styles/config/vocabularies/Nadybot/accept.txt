@@ -38,6 +38,7 @@ Basalis
 bcmath
 beaufort
 bigburger
+binomic
 Biodome
 bioinfo
 biomaterials
@@ -296,6 +297,7 @@ TValue
 ucred
 uid|UID
 uk|UK
+[uU]nary
 unescape
 unhide
 unicode

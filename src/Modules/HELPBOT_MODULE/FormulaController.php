@@ -145,7 +145,7 @@ class FormulaController extends ModuleInstance {
 
 	/** Solve a stored formula */
 	#[NCA\HandlesCommand(self::FORMULA)]
-	#[NCA\Help\Example('<symbol>formula solve binom x=2 y=10')]
+	#[NCA\Help\Example('<symbol>formula solve binomic x=2 y=10')]
 	public function formulaRunCommand(
 		CmdContext $context,
 		#[Str('solve', 'use', 'run', 'exec')] string $subCommand,
@@ -199,7 +199,7 @@ class FormulaController extends ModuleInstance {
 
 	/** Remove a stored new formula */
 	#[NCA\HandlesCommand(self::FORMULA_MODIFY)]
-	#[NCA\Help\Example('<symbol>formula rem binom')]
+	#[NCA\Help\Example('<symbol>formula rem binomic')]
 	public function formulaDelCommand(
 		CmdContext $context,
 		PRemove $subAction,
