@@ -372,7 +372,7 @@ class ApiController extends ModuleInstance {
 		if (!$this->api) {
 			return null;
 		}
-		$this->logger->notice('Receiving {method} API-call to {path}. Body is {body}', [
+		$this->logger->info('Receiving {method} API-call to {path}. Body is {body}', [
 			'method' => $request->getMethod(),
 			'path' => $path,
 			'body' => $request->hasAttribute(WebserverController::BODY)

@@ -106,6 +106,9 @@ class ConsoleController extends ModuleInstance {
 	}
 
 	public function loadHistory(): void {
+		if (!function_exists('readline_read_history')) {
+			return;
+		}
 		$file = $this->getCacheFile();
 		if ($this->fs->exists($file)) {
 			try {
