@@ -642,7 +642,6 @@ class ItemsController extends ModuleInstance {
 		return trim($words->reduce($this->getLongestCommonString(...), $firstWord));
 	}
 
-	/** @return ?Skill */
 	public function getSkillByID(int $id): ?Skill {
 		return $this->skills[$id] ?? null;
 	}

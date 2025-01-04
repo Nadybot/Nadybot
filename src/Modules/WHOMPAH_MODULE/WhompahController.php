@@ -119,8 +119,6 @@ class WhompahController extends ModuleInstance {
 	/**
 	 * @param list<WhompahPath>      $queue
 	 * @param array<int,WhompahPath> $whompahs
-	 *
-	 * @return ?WhompahPath
 	 */
 	public function findWhompahPath(array $queue, array $whompahs, int $endCity): ?WhompahPath {
 		$currentWhompah = array_shift($queue);
