@@ -4,9 +4,9 @@ psalmCheck() {
   VENDOR=$(composer config vendor-dir)
   BINDIR=$(composer config bin-dir)
   if [ -e "${BINDIR}/psalm.phar" ]; then
-    OUTPUT=$("${BINDIR}/psalm.phar" --show-info=true --no-progress --threads=6 --output-format=pylint)
+    OUTPUT=$("${BINDIR}/psalm.phar" --show-info=true --no-progress --output-format=pylint)
   else
-    OUTPUT=$("${VENDOR}/vimeo/psalm/psalm" --show-info=true --no-progress --threads=6 --output-format=pylint)
+    OUTPUT=$("${VENDOR}/vimeo/psalm/psalm" --show-info=true --no-progress --output-format=pylint)
   fi
   if [ -n "$OUTPUT" ]; then
     echo "$OUTPUT"
@@ -40,7 +40,7 @@ fi
 VENDOR=$(composer config vendor-dir)
 BINDIR=$(composer config bin-dir)
 psalmCheck &
-php81 -dopcache.enable_cli=1 -d memory_limit=2G "${VENDOR}/phpstan/phpstan/phpstan.phar" --no-progress -n --no-ansi analyse --error-format raw &
+php -dopcache.enable_cli=1 -d memory_limit=2G "${VENDOR}/phpstan/phpstan/phpstan.phar" --no-progress -n --no-ansi analyse --error-format raw &
 if [ -n "$CHANGED_FILES" ]; then
   php -dopcache.enable_cli=1 "${BINDIR}/phpcs" --cache --ignore=vendor --ignore=Stubs ${CHANGED_FILES} -q --report=emacs &
 else
