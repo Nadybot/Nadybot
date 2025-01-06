@@ -57,7 +57,7 @@ else
   true &
 fi
 if command -v mago &> /dev/null; then
-  OUTPUT=$(mago self-update 2>&1)
+  OUTPUT=$(mago self-update --no-confirm 2>&1)
   if [ $? -ne 0 ]; then
     echo "$OUTPUT"
     exit 1
