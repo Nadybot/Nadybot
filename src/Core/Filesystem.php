@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Amp\File\{File, Filesystem as AmpFilesystem, FilesystemException};
+use Nadybot\Core\Types\LazyValue;
 use Psr\Log\LoggerInterface;
 
 final class Filesystem {
@@ -560,14 +561,17 @@ final class Filesystem {
 	 */
 	public function write(string $path, string $contents): void {
 		$callNum = self::$callNum++;
-		$this->logger?->debug('[{call}] -> write({path} ,…)', [
+		$numBytes = new LazyValue(mb_strlen(...), $contents, '8bit');
+		$this->logger?->debug('[{call}] -> write({path}, {bytes} bytes)', [
 			'call' => sprintf('%6d', $callNum),
 			'path' => $path,
+			'bytes' => $numBytes,
 		]);
 		$this->fs->write($path, $contents);
-		$this->logger?->debug('[{call}] <- write({path} ,…)', [
+		$this->logger?->debug('[{call}] <- write({path}, {bytes} bytes)', [
 			'call' => sprintf('%6d', $callNum),
 			'path' => $path,
+			'bytes' => $numBytes,
 		]);
 	}
 

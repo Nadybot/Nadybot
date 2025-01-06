@@ -344,6 +344,7 @@ class BotRunner {
 		if (!self::isLinux()) {
 			putenv('AMP_FS_DRIVER=' . BlockingFilesystemDriver::class);
 		}
+		// putenv('AMP_FS_DRIVER=' . BlockingFilesystemDriver::class);
 		$fsDriverClass = getenv('AMP_FS_DRIVER');
 		if ($fsDriverClass !== false && class_exists($fsDriverClass) && is_subclass_of($fsDriverClass, FilesystemDriver::class)) {
 			$fsDriver = new $fsDriverClass();
