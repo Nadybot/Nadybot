@@ -414,10 +414,11 @@ class BotRunner {
 		if (!self::isWindows()) {
 			return;
 		}
-		$wmicPath = 'C:' . DIRECTORY_SEPARATOR . 'Windows'.
-			DIRECTORY_SEPARATOR . 'System32' . DIRECTORY_SEPARATOR.
-			'wbem' . DIRECTORY_SEPARATOR . 'WMIC.exe';
+		$wmicPath = 'C:' . \DIRECTORY_SEPARATOR . 'Windows'.
+			\DIRECTORY_SEPARATOR . 'System32' . \DIRECTORY_SEPARATOR.
+			'wbem' . \DIRECTORY_SEPARATOR . 'WMIC.exe';
 		if (!self::$fs->exists($wmicPath)) {
+			// @phpstan-ignore-next-line
 			fwrite(
 				\STDERR,
 				"Nadybot 7 needs WMIC to run on Windows\n".
