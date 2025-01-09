@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core;
 
-use function Safe\preg_match;
-
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Types\LogWrapInterface;
@@ -132,9 +130,9 @@ class Registry {
 					$tag = $loggerAttr->tag;
 				} else {
 					$array = explode('\\', $reflection->name);
-					if (preg_match('/^Nadybot\\\\Modules\\\\/', $reflection->name)) {
+					if (str_starts_with($reflection->name, 'Nadybot\\Modules\\')) {
 						$tag = implode('/', array_slice($array, 2));
-					} elseif (preg_match('/^Nadybot\\\\User\\\\Modules\\\\/', $reflection->name)) {
+					} elseif (str_starts_with($reflection->name, 'Nadybot\\User\\Modules\\')) {
 						$tag = implode('/', array_slice($array, 3));
 					} else {
 						$tag = implode('/', array_slice($array, -2));
