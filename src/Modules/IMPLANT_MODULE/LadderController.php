@@ -2,14 +2,15 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Types\Ability;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	Text,
-	Util,
 };
+use ValueError;
 
 /**
  * @author Tyrence (RK2)
@@ -45,7 +46,7 @@ class LadderController extends ModuleInstance {
 	)]
 	public function ladderCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('treatment', 'ability')] string $type,
+		#[NCA\Regexp('\w+', '&lt;treatment|ability&gt;')] string $type,
 		int $startingValue
 	): void {
 		$type = strtolower($type);
@@ -56,8 +57,10 @@ class LadderController extends ModuleInstance {
 
 		// allow treatment, ability, or any of the 6 abilities
 		if ($type !== 'treatment' && $type !== 'ability') {
-			$type = Util::getAbility($type, true);
-			if ($type === null) {
+			try {
+				$type = Ability::fromShort($type)->name;
+			} catch (ValueError) {
+				$context->reply("<highlight>{$type}<end> is no valid ability.");
 				return;
 			}
 			$type = strtolower($type);

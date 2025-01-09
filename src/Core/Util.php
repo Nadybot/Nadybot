@@ -171,38 +171,6 @@ class Util {
 	}
 
 	/**
-	 * Try to expand or shorten an ability
-	 *
-	 * e.g. AGI -> Agility, SEN -> Sense
-	 * or Sense -> SEN if $getFullName set to false
-	 *
-	 * @param string $ability     The short or long form
-	 * @param bool   $getFullName true if you want to expand, false if you want to shorten
-	 *
-	 * @return string|null The short or long form
-	 */
-	public static function getAbility(string $ability, bool $getFullName=false): ?string {
-		$abilities = [
-			'agi' => 'Agility',
-			'int' => 'Intelligence',
-			'psy' => 'Psychic',
-			'sta' => 'Stamina',
-			'str' => 'Strength',
-			'sen' => 'Sense',
-		];
-
-		$ability = strtolower(substr($ability, 0, 3));
-
-		if (!isset($abilities[$ability])) {
-			return null;
-		}
-		if ($getFullName) {
-			return $abilities[$ability];
-		}
-		return $ability;
-	}
-
-	/**
 	 * Randomly get a value from an array
 	 *
 	 * @param array<mixed> $array

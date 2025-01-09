@@ -5,13 +5,13 @@ namespace Nadybot\Modules\TRICKLE_MODULE;
 use function Safe\preg_split;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\Ability;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	Text,
-	Util,
 };
 
 /**
@@ -27,12 +27,6 @@ use Nadybot\Core\{
 	)
 ]
 class TrickleController extends ModuleInstance {
-	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
-	private Util $util;
-
 	#[NCA\Inject]
 	private DB $db;
 
@@ -78,7 +72,7 @@ class TrickleController extends ModuleInstance {
 
 		foreach ($pairs as $pair) {
 			[$ability, $amount] = preg_split("/\s+/", $pair);
-			$shortAbility = Util::getAbility($ability);
+			$shortAbility = Ability::tryFromShort($ability)?->value;
 			if ($shortAbility === null) {
 				$msg = "Unknown ability <highlight>{$ability}<end>.";
 				$context->reply($msg);
@@ -108,7 +102,7 @@ class TrickleController extends ModuleInstance {
 
 		foreach ($pairs as $pair) {
 			[$amount, $ability] = preg_split("/\s+/", $pair);
-			$shortAbility = Util::getAbility($ability);
+			$shortAbility = Ability::tryFromShort($ability)?->value;
 			if ($shortAbility === null) {
 				$msg = "Unknown ability <highlight>{$ability}<end>.";
 				$context->reply($msg);
@@ -153,7 +147,7 @@ class TrickleController extends ModuleInstance {
 		foreach ($arr as $ability) {
 			if (is_float($row->{$ability}) && $row->{$ability} > 0) {
 				$amount = $row->{$ability};
-				$abilityName = Util::getAbility(substr($ability, 6), true);
+				$abilityName = Ability::tryFromShort(substr($ability, 6))->name ?? $ability;
 				$value = round(4 / $amount, 2);
 				$reqs []= "{$value} {$abilityName}";
 			}
@@ -204,10 +198,9 @@ class TrickleController extends ModuleInstance {
 		$msgParts = [];
 		foreach (get_object_vars($abilities) as $short => $bonus) {
 			if ($bonus > 0) {
-				$msgParts []= (Util::getAbility($short, true) ?? 'Unknown ability').
-					": {$bonus}";
-				$headerParts []= (Util::getAbility($short, true) ?? 'Unknown ability').
-					": <highlight>{$bonus}<end>";
+				$abiLong = Ability::tryFromShort($short)->name ?? 'Unknown ability';
+				$msgParts []= "{$abiLong}: {$bonus}";
+				$headerParts []= "{$abiLong}: <highlight>{$bonus}<end>";
 			}
 		}
 		$abilitiesHeader = implode(', ', $headerParts);
