@@ -345,15 +345,14 @@ class BotRunner {
 		if (!self::isLinux()) {
 			putenv('AMP_FS_DRIVER=' . BlockingFilesystemDriver::class);
 		}
-		// putenv('AMP_FS_DRIVER=' . BlockingFilesystemDriver::class);
 		$fsDriverClass = getenv('AMP_FS_DRIVER');
 		if ($fsDriverClass !== false && class_exists($fsDriverClass) && is_subclass_of($fsDriverClass, FilesystemDriver::class)) {
 			$fsDriver = new $fsDriverClass();
 		} else {
 			$fsDriver = createDefaultDriver();
-		}
-		if ($fsDriver instanceof EioFilesystemDriver) {
-			$fsDriver = new ParallelFilesystemDriver();
+			if ($fsDriver instanceof EioFilesystemDriver || $fsDriver instanceof ParallelFilesystemDriver) {
+				$fsDriver = new BlockingFilesystemDriver();
+			}
 		}
 		self::$fsDriver = class_basename($fsDriver);
 
