@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Ramsey\Uuid\Uuid;
 
 /**
  * @author Tyrence
@@ -101,7 +102,7 @@ class QuickRelayController extends ModuleInstance {
 	#[NCA\HandlesCommand('quickrelay')]
 	public function quickrelayNadyCommand(CmdContext $context, #[NCA\Str('nady')] string $type): void {
 		$password = Util::getPassword(16);
-		$room = Util::createUUID();
+		$room = Uuid::uuid7()->toString();
 		$blob = "To setup a relay called \"nady\" between multiple Nadybots, run this on all bots:\n".
 			'<tab><highlight><symbol>relay add nady websocket(server="wss://ws.nadybot.org") '.
 				"highway(room=\"{$room}\") ".

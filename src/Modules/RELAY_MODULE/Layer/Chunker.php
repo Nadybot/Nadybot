@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	Hydrator,
 	Safe,
-	Util,
 };
 use Nadybot\Modules\RELAY_MODULE\{
 	Layer\Chunker\Chunk,
@@ -17,6 +16,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayMessage,
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use Revolt\EventLoop;
 use Throwable;
 
@@ -184,7 +184,7 @@ class Chunker implements RelayLayerInterface {
 		/** @var list<string> */
 		$chunks = str_split($packet, $this->chunkSize);
 		$result = [];
-		$uuid = Util::createUUID();
+		$uuid = Uuid::uuid7()->toString();
 		$part = 1;
 		$created = time();
 		foreach ($chunks as $chunk) {

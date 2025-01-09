@@ -27,6 +27,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{ApiResponse, WebserverController};
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use Throwable;
 
 /**
@@ -438,7 +439,7 @@ class NewsController extends ModuleInstance {
 				'name' => $user,
 				'sticky' => false,
 				'deleted' => false,
-				'uuid' => Util::createUUID(),
+				'uuid' => Uuid::uuid7()->toString(),
 			];
 			$data = Util::mergeArraysRecursive($default, $body);
 

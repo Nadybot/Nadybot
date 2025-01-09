@@ -7,10 +7,10 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
 	Types\SchemaMigration,
-	Util,
 };
 use Nadybot\Modules\NEWS_MODULE\News;
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use stdClass;
 
 #[NCA\Migration(order: 2022_01_26_10_34_56, shared: true)]
@@ -22,7 +22,7 @@ class AddUuidColumn implements SchemaMigration {
 		});
 		$db->table($table)->get()->each(static function (stdClass $data) use ($db, $table): void {
 			$db->table($table)->where('id', (int)$data->id)->update([
-				'uuid' => Util::createUUID(),
+				'uuid' => Uuid::uuid7()->toString(),
 			]);
 		});
 		$db->schema()->table($table, static function (Blueprint $table): void {

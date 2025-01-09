@@ -8,7 +8,6 @@ use BackedEnum;
 use Exception;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Iterator;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Types\MinMax;
@@ -298,48 +297,28 @@ class Util {
 
 	/** Calculate the title level from the player's level */
 	public static function levelToTL(int $level): int {
-		if ($level < 15) {
-			return 1;
-		}
-		if ($level < 50) {
-			return 2;
-		}
-		if ($level < 100) {
-			return 3;
-		}
-		if ($level < 150) {
-			return 4;
-		}
-		if ($level < 190) {
-			return 5;
-		}
-		if ($level < 205) {
-			return 6;
-		}
-		return 7;
+		return match (true) {
+			$level < 15 => 1,
+			$level < 50 => 2,
+			$level < 100 => 3,
+			$level < 150 => 4,
+			$level < 190 => 5,
+			$level < 205 => 6,
+			default => 7,
+		};
 	}
 
 	/** Calculate the level range from the player's title level */
 	public static function tlToLevelRange(int $tl): MinMax {
-		if ($tl === 1) {
-			return new MinMax(min: 1, max: 14);
-		}
-		if ($tl === 2) {
-			return new MinMax(min: 15, max: 49);
-		}
-		if ($tl === 3) {
-			return new MinMax(min: 50, max: 99);
-		}
-		if ($tl === 4) {
-			return new MinMax(min: 100, max: 149);
-		}
-		if ($tl === 5) {
-			return new MinMax(min: 150, max: 189);
-		}
-		if ($tl === 6) {
-			return new MinMax(min: 190, max: 204);
-		}
-		return new MinMax(min: 205, max: 220);
+		return match ($tl) {
+			1 => new MinMax(min: 1, max: 14),
+			2 => new MinMax(min: 15, max: 49),
+			3 => new MinMax(min: 50, max: 99),
+			4 => new MinMax(min: 100, max: 149),
+			5 => new MinMax(min: 150, max: 189),
+			6 => new MinMax(min: 190, max: 204),
+			default => new MinMax(min: 205, max: 220),
+		};
 	}
 
 	/** @phpstan-param class-string $class */
@@ -390,19 +369,6 @@ class Util {
 		);
 	}
 
-	/** Create a valid UUID that is unique worldwide */
-	public static function createUUID(): string {
-		$data = random_bytes(16);
-
-		// Set version to 0100
-		$data[6] = chr(ord($data[6]) & 0x0F | 0x40);
-		// Set bits 6-7 to 10
-		$data[8] = chr(ord($data[8]) & 0x3F | 0x80);
-
-		// Output the 36 character UUID.
-		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-	}
-
 	/** Create a cryptographically secure password */
 	public static function getPassword(int $length=16): string {
 		if ($length < 1) {
@@ -435,23 +401,5 @@ class Util {
 			}
 		}
 		return $a;
-	}
-
-	/**
-	 * Convert the given iterable into an iterator
-	 *
-	 * @template T
-	 *
-	 * @param iterable<T> $iter
-	 *
-	 * @return Iterator<T>
-	 */
-	public static function toIterator(iterable $iter): Iterator {
-		if (is_array($iter)) {
-			return new \ArrayIterator($iter);
-		}
-
-		/** @disregard P1006 */
-		return new \IteratorIterator($iter);
 	}
 }
