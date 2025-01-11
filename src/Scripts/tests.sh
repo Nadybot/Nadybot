@@ -19,7 +19,7 @@ phpCsFixer() {
   if [ ! -e "${BINDIR}/php-cs-fixer.phar" ]; then
     exit 0
   fi
-  if ! echo "$1" | grep -qE "^(\\.php-cs-fixer(\\.dist)?\\.php|composer\\.lock)$"; then EXTRA_ARGS=$(printf -- '--path-mode=intersection\n--\n%s' "$1"); else EXTRA_ARGS=''; fi
+  if ! echo "$1" | grep -qE "^(\\.php-cs-fixer(\\.dist)?\\.php|composer\\.lock)$"; then EXTRA_ARGS=$(printf -- '--path-mode=intersection\n--\n%s' "$1" | grep -P '^src'); else EXTRA_ARGS=''; fi
   OUTPUT=$(php -dopcache.enable_cli=1 "${BINDIR}/php-cs-fixer.phar" fix --config=.php-cs-fixer.dist.php -v --dry-run --stop-on-violation --using-cache=no ${EXTRA_ARGS} 2>&1)
   if [ $? -ne 0 ]; then
     echo "$OUTPUT"
@@ -42,7 +42,12 @@ BINDIR=$(composer config bin-dir)
 psalmCheck &
 php -dopcache.enable_cli=1 -d memory_limit=2G "${VENDOR}/phpstan/phpstan/phpstan.phar" --no-progress -n --no-ansi analyse --error-format raw &
 if [ -n "$CHANGED_FILES" ]; then
-  php -dopcache.enable_cli=1 "${BINDIR}/phpcs" --cache --ignore=vendor --ignore=Stubs ${CHANGED_FILES} -q --report=emacs &
+  EXTRA_ARGS=$(grep -P '^src' <<< "${CHANGED_FILES}")
+  if [ -n "${EXTRA_ARGS}" ]; then
+    php -dopcache.enable_cli=1 "${BINDIR}/phpcs" --cache --ignore=vendor --ignore=Stubs ${EXTRA_ARGS} -q --report=emacs &
+  else
+    true &
+  fi
 else
   true &
 fi

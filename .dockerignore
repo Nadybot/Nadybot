@@ -12,6 +12,7 @@ debian
 packages
 cache
 data
+nadyui
 !data/.keepme
 composer_install.bat
 conf/*.php
@@ -30,3 +31,7 @@ extras/*
 .vale.ini
 mago.toml
 psalm.xml
+install-php.ps1
+php-win.ini
+createMigration.php
+phpstan.neon.dist

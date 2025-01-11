@@ -28,6 +28,16 @@ jobs:
         shell: bash
         run: |
           sed -i'' -e 's/public const VERSION = "[^"]*";/public const VERSION = "${{ github.event.release.tag_name }}";/g' src/Core/BotRunner.php
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install NadyUI
+        shell: bash
+        run: |
+          composer install-ui
+          sed -i -e "s/public const COMMIT = '';/public const COMMIT = '$(git rev-parse HEAD)';/" src/Core/BotRunner.php
+          rm -rf nadyui
       - name: Create directory zip
         shell: bash
         run: |

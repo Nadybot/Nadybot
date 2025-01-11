@@ -1,4 +1,4 @@
 [codespell]
-skip = .vscode,debian,data,cache,logs,vendor,html,*.git*,tags,*.sql,50.txt,*.csv,*.temp,*.stub,*.neon,./styles/config/vocabularies/Nadybot/accept.txt,styles/config/vocabularies/Nadybot/accept.txt
+skip = .vscode,debian,data,cache,logs,vendor,html,*.git*,tags,*.sql,50.txt,*.csv,*.temp,*.stub,*.neon,./styles/config/vocabularies/Nadybot/accept.txt,styles/config/vocabularies/Nadybot/accept.txt,nadyui/package-lock.json
 ignore-words-list = ot,ether,vektor,keep-alives,ist,fulfilment,fulfil,fullfil,fulfill,fullfill,hastable,ore,counsil,offen,thar,spacial,pris,crystalised,crystalized,notin,notIn,newLetter
 ignore-regex = ([\'"]/.+|\WND\W|\W!nd\W)
