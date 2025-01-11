@@ -19,3 +19,5 @@
 !/html/api.json
 /php
 .php-cs-fixer.cache
+/nadyui/dist/
+/nadyui/node_modules/

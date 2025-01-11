@@ -94,6 +94,8 @@
 		"post-package-update": [
 			"Nadybot\\Patcher\\Patcher::patch"
 		],
-		"test" : "./src/Scripts/tests.sh"
+		"test" : "./src/Scripts/tests.sh",
+		"compile-ui" : "./src/Scripts/compile-ui.sh",
+		"install-ui" : "./src/Scripts/compile-ui.sh install"
 	}
 }

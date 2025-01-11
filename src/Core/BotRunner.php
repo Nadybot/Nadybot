@@ -31,6 +31,7 @@ use Throwable;
 class BotRunner {
 	/** Nadybot's current version */
 	public const VERSION = '7.0.0.alpha';
+	public const COMMIT = '';
 
 	/**
 	 * The parsed command line arguments
@@ -67,6 +68,27 @@ class BotRunner {
 	 */
 	public function __construct(array $argv) {
 		$this->argv = $argv;
+	}
+
+	public static function getCommit(): string {
+		$baseDir = self::getBasedir();
+
+		// @phpstan-ignore-next-line
+		if (self::COMMIT !== '') {
+			return self::COMMIT;
+		}
+		if (!self::getFS()->exists("{$baseDir}/.git")) {
+			throw new Exception('Unable to get a commit ID for the code');
+		}
+		$process = Process::start('git rev-parse HEAD', $baseDir);
+		$bufReader = new BufferedReader($process->getStdout());
+		$reader = async($bufReader->buffer(...));
+		$exitCode = $process->join();
+		$stdout = $reader->await();
+		if ($exitCode !== 0 || $stdout === '') {
+			throw new Exception('Unable to get a commit ID for the code. Make sure git is installed.');
+		}
+		return trim($stdout);
 	}
 
 	/**

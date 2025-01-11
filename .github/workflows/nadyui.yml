@@ -1,0 +1,22 @@
+name: Publish NadyUI release
+on: [push]
+jobs:
+  build:
+    name: Build and publish NadyUI
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout sources
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+        - name: Setup node
+          uses: actions/setup-node@v4
+          with:
+            node-version: 22
+        - name: Build zip
+          run: ./src/Scripts/compile-ui.sh
+        - name: Upload zip
+          shell: bash
+          run: |
+            curl -H "Authorization: ${{ secrets.UPLOAD_TOKEN }}" "https://artifacts.on.nadybot.org/$(git rev-parse HEAD).zip" --data-binary @nadyui/nadyui.zip
+

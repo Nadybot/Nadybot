@@ -5,6 +5,7 @@ on:
       - unstable
       - stable
       - nadybot7
+      - nadyui
     tags:
       - '*'
 jobs:
@@ -16,6 +17,15 @@ jobs:
           uses: actions/checkout@v4
           with:
             fetch-depth: 0
+        - name: Setup node
+          uses: actions/setup-node@v4
+          with:
+            node-version: 22
+        - name: Install NadyUI
+          shell: bash
+          run: |
+            composer install-ui
+            sed -i -e "s/public const COMMIT = '';/public const COMMIT = '$(git rev-parse HEAD)';/" src/Core/BotRunner.php
         - name: Set up QEMU
           uses: docker/setup-qemu-action@v3
         - name: Set up Docker Buildx
