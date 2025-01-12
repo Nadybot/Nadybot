@@ -193,6 +193,10 @@ class BotRunner {
 			// set default timezone
 			date_default_timezone_set('UTC');
 
+			$this->checkRequiredModules();
+			$this->checkRequiredPackages();
+			$this->checkRequiredPrograms();
+
 			$config = $this->getConfigFile();
 			Registry::setInstance(Registry::formatName(BotConfig::class), $config);
 			$retryHandler = new HttpRetry(8);
@@ -219,9 +223,6 @@ class BotRunner {
 				}
 			}
 			Registry::setInstance('HttpClientBuilder', $httpClientBuilder);
-			$this->checkRequiredModules();
-			$this->checkRequiredPackages();
-			$this->checkRequiredPrograms();
 			$this->createMissingDirs();
 
 			// these must happen first since the classes that are loaded may be used by processes below

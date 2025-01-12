@@ -380,520 +380,521 @@ id,pb,pb_location,bp_mob,bp_lvl,bp_location,type,slot,line,ql,itemid
 379,Screech,"Central Elysium (W)","Named Rafters",80,"NE from Boneyard, W from Yuttos",Infantry,"Left Hand",Moving,80,235804
 380,Screech,"Central Elysium (W)","Named Rafters",80,"NE from Boneyard, W from Yuttos",Infantry,Thigh,Vibrating,90,235787
 381,Screech,"Central Elysium (W)","Named Rafters",80,"NE from Boneyard, W from Yuttos",Infantry,"Right Hand",Breathing,100,235772
-382,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Artillery,Ocular,Persisting,220,219140
-383,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,Feet,Persisting,220,236502
-384,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Infantry,"Left Arm",Persisting,220,235710
-385,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,Thigh,Persisting,220,236470
-386,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,"Left Hand",Effective,240,236486
-387,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Support,Ear,Effective,240,236107
-388,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Support,Chest,Effective,240,236137
-389,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Artillery,"Left Arm",Effective,240,235490
-390,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Artillery,Feet,Effective,240,235611
-391,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Support,"Right Arm",Effective,240,236120
-392,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Support,"Left Arm",Effective,240,236159
-393,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Support,Thigh,Effective,240,236249
-394,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Infantry,Chest,Persisting,220,235693
-395,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,Waist,Persisting,220,236417
-396,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,"Left Wrist",Persisting,220,236431
-397,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,"Left Wrist",Vigorous,230,236432
-398,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,"Right Hand",Persisting,220,236453
-399,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Artillery,Chest,Growing,200,235471
-400,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,"Left Wrist",Effective,240,236433
-401,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Artillery,Ocular,Animated,70,219130
-402,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Infantry,Ocular,Lulled,60,235620
-403,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Infantry,Ear,Animated,70,235651
-404,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Artillery,Ear,Lulled,60,235429
-405,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Artillery,Feet,Moving,80,235603
-406,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Infantry,Ocular,Animated,70,235621
-407,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Infantry,Brain,Lulled,60,235637
-408,Skulky,"Adonis NW","Skulking Dryad",165,"The Jaws",Artillery,"Right Hand",Active,170,235556
-409,Skulky,"Adonis NW","Skulking Dryad",165,"The Jaws",Infantry,Chest,Awakened,180,235690
-410,Skulky,"Adonis NW","Skulking Dryad",165,"The Jaws",Infantry,Chest,Living,210,235692
-411,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Artillery,"Left Wrist",Living,210,235539
-412,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Control,Thigh,Active,170,236466
-413,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Control,Thigh,Awakened,180,236467
-414,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Control,Thigh,Growing,200,236468
-415,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Control,Thigh,Living,210,236469
-416,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Infantry,Chest,Awakened,180,235690
-417,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Control,"Left Hand",Working,160,236484
-418,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Artillery,Waist,Enduring,190,235522
-419,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Infantry,Ear,Living,210,235659
-420,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Control,Brain,Growing,200,236310
-421,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Control,Ear,Enduring,190,236327
-422,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Control,"Right Arm",Growing,200,236343
-423,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Control,Chest,Awakened,180,236361
-424,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Control,"Left Arm",Growing,200,236377
-425,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Control,"Right Wrist",Enduring,190,236395
-426,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Artillery,Ocular,Surviving,150,219134
-427,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Artillery,"Left Hand",Vibrating,90,235585
-428,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Infantry,"Left Hand",Residing,130,235806
-429,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Infantry,"Left Hand",Running,140,235807
-430,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Artillery,"Right Arm",Breathing,100,235450
-431,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Infantry,Feet,Prevailing,120,235824
-432,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Infantry,"Left Hand",Surviving,150,235808
-433,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Artillery,Chest,Enduring,190,235470
-434,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Artillery,Chest,Growing,200,235471
-435,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Artillery,Feet,Living,210,235610
-436,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Extermination,Feet,Active,170,236050
-437,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Extermination,Feet,Persisting,220,236052
-438,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Support,Ocular,Surviving,150,236067
-439,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Support,Ocular,Growing,200,236070
-440,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Support,Ocular,Living,210,236071
-441,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Support,Brain,Enduring,190,236084
-442,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Support,Brain,Living,210,236085
-443,Tcheser,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,"Right Arm",Lulled,60,236339
-444,Tcheser,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,Chest,Sluggish,40,236355
-445,Tcheser,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Artillery,"Right Hand",Sluggish,40,235550
-446,Tcheser,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,Ear,Sluggish,40,236319
-447,Tcheser,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,"Right Arm",Sluggish,40,236338
-448,"The Abysmal Lord","Adonis Abyss","TripTrapTrub Named Spiders",160,"The Depression or 1100x1500",Infantry,"Left Wrist",Residing,130,235756
-449,"The Abyssal Widow","Adonis Abyss","TinyTripTrapTrup Named Spiders",165,"Abyss SW",Infantry,Waist,Awakened,180,235740
-450,"The Achbile Guardian",Elysium,"Croaker & Minx",120,"Just South from Ergo",Infantry,"Left Wrist",Breathing,100,235755
-451,"The Adonian Soul Dredge","Adonis Ark 1","Soul Dredges",165,"Dead Ends Ancient Device Ark 1",Infantry,"Right Wrist",Residing,130,235722
-452,"The Adonian Soul Dredge","Adonis Ark 1","Soul Dredges",165,"Dead Ends Ancient Device Ark 1",Artillery,Thigh,Enduring,190,235571
-453,"The Adonis Spirit Master","Adonis North",Spirits/Souls/Dredges,165,"Sacellum & Sea of Adonis & Ark1",Artillery,"Left Hand",Prevailing,120,235587
-454,"The Adonis Spirit Master","Adonis North",Spirits/Souls/Dredges,165,"Sacellum & Sea of Adonis & Ark1",Infantry,Waist,Residing,130,235738
-455,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Artillery,"Left Wrist",Breathing,100,235535
-456,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Infantry,"Left Arm",Vibrating,90,235705
-457,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Control,Thigh,Vibrating,90,236463
-458,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Control,Thigh,Residing,130,236464
-459,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Control,Thigh,Running,140,236465
-460,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Control,"Left Hand",Vibrating,90,236480
-461,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Control,"Left Hand",Breathing,100,236481
-462,"The Brobdingnagian Mother","Penumbra Forest","Resolute Dryad",185,"East of Blue Mist",Infantry,"Left Wrist",Surviving,150,235757
-463,"The Dredge Driver","Adonis City","Spirit Soul Dredge",165,"The Suburbs/The Dig",Artillery,Thigh,Living,210,235573
-464,"The Dredge Driver","Adonis City","Spirit Soul Dredge",165,"The Suburbs/The Dig",Infantry,"Right Wrist",Living,210,235724
-465,"The Dryad Demigod","Inferno Frontier","Apprentice Beasthandler/Scrupulous Hiathlin/Punctilious Hiathlin/Tyro Beasthandler",220,"East from QL 255 Incarnator",Infantry,Chest,Vital,260,235694
-466,"The Dryad Shuffle","Penumbra Forest","Named Dryads & Hollows",185,"Blue Mist - from S to N",Artillery,Chest,Awakened,180,235469
-467,"The Dryad Shuffle","Penumbra Forest","Named Dryads & Hollows",185,"Blue Mist - from S to N",Extermination,"Left Hand",Enduring,190,236034
-468,"The Dryad Shuffle","Penumbra Forest","Named Dryads & Hollows",185,"Blue Mist - from S to N",Extermination,"Right Hand",Vigorous,230,236003
-469,"The Dryad Shuffle","Penumbra Forest","Named Dryads & Hollows",185,"Blue Mist - from S to N",Artillery,Feet,Growing,200,235609
-470,"The Dryad Shuffle","Penumbra Forest","Named Dryads & Hollows",185,"Blue Mist - from S to N",Extermination,Feet,Enduring,190,236051
-471,"The Dryad Shuffle","Penumbra Forest","Named Dryads & Hollows",185,"Blue Mist - from S to N",Extermination,"Left Hand",Growing,200,236035
-472,"The Dune Suzerain","Elysium Northwest","Coiling Eremite and Others (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Extermination,Ocular,Operative,110,235841
-473,"The Dune Suzerain","Elysium Northwest","Coiling Eremite and Others (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Artillery,Brain,Operative,110,235412
-474,"The Dune Suzerain","Elysium Northwest","Coiling Eremite and Others (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Artillery,"Right Hand",Moving,80,235552
-475,"The Dune Suzerain","Elysium Northwest","Coiling Eremite and Others (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Extermination,"Left Arm",Vibrating,90,235925
-476,"The Dune Suzerain","Elysium Northwest","Coiling Eremite and Others (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Extermination,Chest,Operative,110,235908
-477,"The Dune Suzerain","Elysium Northwest","Coiling Eremite and Others (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Infantry,Feet,Operative,110,235823
-478,"The Elysian Soul Dredge","East Elysium","Spirit Soul Dredge",90,"Linger Echo",Extermination,Thigh,Animated,70,236011
-479,"The Elysian Soul Dredge","East Elysium","Spirit Soul Dredge",90,"Linger Echo",Extermination,Thigh,Moving,80,236012
-480,"The Elysian Soul Dredge","East Elysium","Spirit Soul Dredge",90,"Linger Echo",Extermination,Thigh,Breathing,100,236014
-481,"The Elysian Soul Dredge","East Elysium","Spirit Soul Dredge",90,"Linger Echo",Extermination,"Left Hand",Animated,70,236029
-482,"The Elysian Soul Dredge","East Elysium","Spirit Soul Dredge",90,"Linger Echo",Artillery,"Right Arm",Animated,70,235448
-483,"The Elysian Soul Dredge","East Elysium","Spirit Soul Dredge",90,"Linger Echo",Artillery,Thigh,Operative,110,235569
-484,"The Enrapt One",Elysium,"Mortiig bosses",120,"SW Elysium",Artillery,"Right Hand",Breathing,100,235553
-485,"The Enrapt One",Elysium,"Mortiig bosses",120,"SW Elysium",Infantry,"Left Arm",Running,140,235708
-486,"The Indomitable Chimera",Inferno,"Chimera Mornitor/Trainer/Driver",220,"Burning Marshes - Misty Marshes Statue",Infantry,"Right Wrist",Excited,250,235725
-487,"The Infernal Soul Dredge",Inferno,"Named Spirits",220,???,Infantry,Waist,Vigorous,230,235743
-488,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Infantry,"Right Hand",Excited,250,235778
-489,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Infantry,"Right Hand",Vital,260,235779
-490,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Infantry,Thigh,Excited,250,235795
-491,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Infantry,Thigh,Vital,260,235796
-492,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Artillery,Brain,Persisting,220,235418
-493,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Artillery,"Right Wrist",Excited,250,235507
-494,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Infantry,Feet,Effective,240,235829
-495,"The Numb One",Elysium,"Mortiig bosses",120,"Elysium (SW ?)",Artillery,"Left Wrist",Surviving,150,235537
-496,"The Numb One",Elysium,"Mortiig bosses",120,"Elysium (SW ?)",Infantry,"Left Arm",Operative,110,235707
-497,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Artillery,"Left Hand",Living,210,235590
-498,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Extermination,Ear,Living,210,235879
-499,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Extermination,"Right Arm",Growing,200,235895
-500,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Extermination,Chest,Awakened,180,235912
-501,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Extermination,Chest,Growing,200,235913
-502,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Extermination,"Left Arm",Awakened,180,235930
-503,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Artillery,Ear,Awakened,180,235437
-504,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Artillery,"Left Wrist",Enduring,190,235538
-505,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Infantry,"Right Arm",Living,210,235675
-506,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Left Wrist",Living,210,236430
-507,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Right Hand",Growing,200,236452
-508,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Right Hand",Working,160,236449
-509,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Right Hand",Active,170,236450
-510,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Right Hand",Awakened,180,236451
-511,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Artillery,Waist,Living,210,235523
-512,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Infantry,"Right Arm",Awakened,180,235674
-513,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,Waist,Awakened,180,236414
-514,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,Waist,Enduring,190,236415
-515,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,Waist,Growing,200,236416
-516,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Left Wrist",Enduring,190,236429
-517,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Left Wrist",Living,210,236430
-518,"The Proprietrix","Adonis City","Soul Dredges",165,"The Suburbs/The Dig",Artillery,"Left Hand",Residing,130,235588
-519,"The Proprietrix","Adonis City","Soul Dredges",165,"The Suburbs/The Dig",Infantry,Waist,Active,170,235739
-520,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Artillery,Waist,Surviving,150,235519
-521,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Infantry,Chest,Running,140,235688
-522,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Control,Waist,Surviving,150,236413
-523,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Control,"Left Wrist",Prevailing,120,236426
-524,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Control,"Left Wrist",Vibrating,90,236425
-525,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Control,"Left Wrist",Residing,130,236427
-526,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Control,Waist,Running,140,236412
-527,"The Stupendous Breeder","Penumbra Forest","Named Dryads & Hollows",185,"East Frozen Lakes from S to N",Infantry,"Left Wrist",Working,160,235758
-528,"The Talus Suzerain","Elysium Northwest","Coiling Eremite and Named (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Extermination,"Right Wrist",Animated,70,235943
-529,"The Talus Suzerain","Elysium Northwest","Coiling Eremite and Named (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Extermination,"Right Wrist",Moving,80,235944
-530,"The Talus Suzerain","Elysium Northwest","Coiling Eremite and Named (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Extermination,"Right Wrist",Vibrating,90,235945
-531,"The Talus Suzerain","Elysium Northwest","Coiling Eremite and Named (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Artillery,Ear,Breathing,100,235431
-532,"The Watchdog","Adonis North",Spirits/Souls,165,"Sacellum & Sea of Adonis",Artillery,Thigh,Growing,200,235572
-533,"The Watchdog","Adonis North",Spirits/Souls,165,"Sacellum & Sea of Adonis",Infantry,"Right Wrist",Surviving,150,235723
-534,"The Worm King","Penumbra Forest","Death Wing & Named Slithers",202,"Muktuk Area SW from NW Red Temple",Extermination,"Right Arm",Effective,240,235896
-535,"The Worm King","Penumbra Forest","Death Wing & Named Slithers",202,"Muktuk Area SW from NW Red Temple",Extermination,Chest,Excited,250,235915
-536,"The Worm King","Penumbra Forest","Death Wing & Named Slithers",202,"Muktuk Area SW from NW Red Temple",Artillery,Chest,Excited,250,235472
-537,"The Worm King","Penumbra Forest","Death Wing & Named Slithers",202,"Muktuk Area SW from NW Red Temple",Artillery,Thigh,Excited,250,235575
-538,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Artillery,"Right Wrist",Residing,130,235501
-539,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Control,Brain,Running,140,236307
-540,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Control,Brain,Working,160,236308
-541,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Control,Brain,Active,170,236309
-542,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Artillery,"Right Wrist",Running,140,235502
-543,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Infantry,"Right Arm",Prevailing,120,235670
-544,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Control,Brain,Operative,110,236306
-545,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Control,Ear,Operative,110,236321
-546,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Artillery,"Right Wrist",Vigorous,230,235505
-547,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Support,"Left Wrist",Persisting,220,236216
-548,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Support,Feet,Effective,240,236280
-549,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Control,Ocular,Persisting,220,236295
-550,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Infantry,"Right Arm",Persisting,220,235676
-551,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Support,"Left Hand",Persisting,220,236267
-552,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Control,Ocular,Effective,240,236296
-553,Tough,"Scheol Lower","Rigid Solid Robust Girders",125,"The Approach (South of Necropolis)",Artillery,"Left Arm",Breathing,100,235485
-554,Tough,"Scheol Lower","Rigid Solid Robust Girders",125,"The Approach (South of Necropolis)",Support,"Right Hand",Vibrating,90,236225
-555,Tough,"Scheol Lower","Rigid Solid Robust Girders",125,"The Approach (South of Necropolis)",Support,"Right Hand",Breathing,100,236226
-556,Tough,"Scheol Lower","Rigid Solid Robust Girders",125,"The Approach (South of Necropolis)",Support,"Right Hand",Operative,110,236227
-557,Tough,"Scheol Lower","Rigid Solid Robust Girders",125,"The Approach (South of Necropolis)",Support,"Right Hand",Residing,130,236228
-558,Tough,"Scheol Lower","Rigid Solid Robust Girders",125,"The Approach (South of Necropolis)",Support,"Right Hand",Running,140,236229
-559,Ungulera,"East Elysium","Named Hiathlin",90,"Fission Fissure",Extermination,"Right Hand",Moving,80,235993
-560,Ungulera,"East Elysium","Named Hiathlin",90,"Fission Fissure",Artillery,Ear,Operative,110,235432
-561,Ungulera,"East Elysium","Named Hiathlin",90,"Fission Fissure",Artillery,Thigh,Moving,80,235568
-562,Ungulera,"East Elysium","Named Hiathlin",90,"Fission Fissure",Extermination,Waist,Vibrating,90,235959
-563,Ungulera,"East Elysium","Named Hiathlin",90,"Fission Fissure",Extermination,"Left Wrist",Vibrating,90,235975
-564,Upenpet,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,"Left Arm",Sluggish,40,236371
-565,Upenpet,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,"Right Hand",Sluggish,40,236443
-566,Upenpet,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,Waist,Sluggish,40,236407
-567,Ushqa,Inferno,"Maychwaham, Ushamaham",220,"Oasis, south from Inferno Frontier",Infantry,Ocular,Excited,250,235628
-568,Ushqa,Inferno,"Maychwaham, Ushamaham",220,"Oasis, south from Inferno Frontier",Control,Ear,Vital,260,236329
-569,Ushqa,Inferno,"Maychwaham, Ushamaham",220,"Oasis, south from Inferno Frontier",Control,Chest,Excited,250,236363
-570,Ushqa,Inferno,"Maychwaham, Ushamaham",220,"Oasis, south from Inferno Frontier",Control,"Right Arm",Vital,260,236347
-571,"Viscious Visitant","Adonis SW",Spirits,165,"The Suburbs",Artillery,Thigh,Surviving,150,235570
-572,"Viscious Visitant","Adonis SW",Spirits,165,"The Suburbs",Infantry,"Right Wrist",Prevailing,120,235721
-573,"Wacky Suzerain","Scheol Upper","Named Eremites: Coiling, Sparkling, Bending...",125,"NW from West Incarnator",Artillery,"Right Wrist",Breathing,100,235500
-574,"Wacky Suzerain","Scheol Upper","Named Eremites: Coiling, Sparkling, Bending...",125,"NW from West Incarnator",Infantry,"Right Arm",Vibrating,90,235668
-575,"Wacky Suzerain","Scheol Upper","Named Eremites: Coiling, Sparkling, Bending...",125,"NW from West Incarnator",Support,"Left Hand",Prevailing,120,236261
-576,"Wacky Suzerain","Scheol Upper","Named Eremites: Coiling, Sparkling, Bending...",125,"NW from West Incarnator",Support,"Left Hand",Running,140,236262
-577,"Wacky Suzerain","Scheol Upper","Named Eremites: Coiling, Sparkling, Bending...",125,"NW from West Incarnator",Support,"Left Hand",Surviving,150,236263
-578,"Wacky Suzerain","Scheol Upper","Named Eremites: Coiling, Sparkling, Bending...",125,"NW from West Incarnator",Support,Feet,Breathing,100,236275
-579,White,"Elysium South","Chill Spider & 2 Named Bosses",120,"White Pass (The Scoop)",Infantry,"Left Arm",Operative,110,235707
-580,White,"Elysium South","Chill Spider & 2 Named Bosses",120,"White Pass (The Scoop)",Control,"Left Hand",Residing,130,236483
-581,White,"Elysium South","Chill Spider & 2 Named Bosses",120,"White Pass (The Scoop)",Control,Feet,Residing,130,236498
-582,White,"Elysium South","Chill Spider & 2 Named Bosses",120,"White Pass (The Scoop)",Control,Feet,Prevailing,120,236497
-583,White,"Elysium South","Chill Spider & 2 Named Bosses",120,"White Pass (The Scoop)",Infantry,"Left Arm",Breathing,100,235706
-584,"Xark the Battletoad","Penumbra Forest","Death Wing, Slithers, Maar...",255,"South from Purity",Artillery,"Left Wrist",Alert,280,235542
-585,"Xark the Battletoad","Penumbra Forest","Death Wing, Slithers, Maar...",255,"South from Purity",Support,Waist,Alert,280,236199
-586,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Artillery,Chest,Awakened,180,235469
-587,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Artillery,Chest,Growing,200,235471
-588,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Infantry,Ocular,Growing,200,235624
-589,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Support,Brain,Persisting,220,236086
-590,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Support,Brain,Vigorous,230,236087
-591,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Support,Ear,Awakened,180,236104
-592,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Support,Ear,Growing,200,236105
-593,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Support,Ear,Persisting,220,236106
-594,Shullat,"Inferno Frontier","Tinos, Astypalia, Phatmos",255,"Clan Sanctuary Exit: Razor's Lair",Control,Ocular,Alert,280,236298
-595,Shullat,"Inferno Frontier","Tinos, Astypalia, Phatmos",255,"Clan Sanctuary Exit: Razor's Lair",Support,Feet,Alert,280,236282
-596,"Taille Frees","Inferno Frontier","Aniitap's Shadow/Aniitap(250)/Wicked Shadow",220,"Path to the Redeemed Temple - Aniitap Spot",Infantry,Ear,Excited,250,235660
-597,"Taille Frees","Inferno Frontier","Aniitap's Shadow/Aniitap(250)/Wicked Shadow",220,"Path to the Redeemed Temple - Aniitap Spot",Control,"Left Wrist",Excited,250,236434
-598,Waqa,"Inferno Yuttos Marshes","Natsmaahpt, Sanatsimk",220,"South of Xark's Lair - North from Yuttos",Support,Brain,Excited,250,236088
-599,Waqa,"Inferno Yuttos Marshes","Natsmaahpt, Sanatsimk",220,"South of Xark's Lair - North from Yuttos",Support,"Right Arm",Vital,260,236121
-600,Waqa,"Inferno Yuttos Marshes","Natsmaahpt, Sanatsimk",220,"South of Xark's Lair - North from Yuttos",Artillery,Thigh,Cognizant,270,235576
-601,Waqa,"Inferno Yuttos Marshes","Natsmaahpt, Sanatsimk",220,"South of Xark's Lair - North from Yuttos",Support,Ocular,Excited,250,236072
-602,Waqa,"Inferno Yuttos Marshes","Natsmaahpt, Sanatsimk",220,"South of Xark's Lair - North from Yuttos",Support,Ocular,Vital,260,236073
-603,Waqa,"Inferno Yuttos Marshes","Natsmaahpt, Sanatsimk",220,"South of Xark's Lair - North from Yuttos",Support,Brain,Vital,260,236089
-604,"Arch Bigot Biap","Inferno Dark Hill","Obsolete Soul Dredge",220,"North from Incarnator 255",Infantry,"Left Arm",Cognizant,270,235712
-605,"Asase Ya","Inferno Burning Marshes","Asase's Drudge, Nyame's Abettor, Asase's Child",255,"SW limits of Inferno by Sorrow South",Support,Brain,Alert,280,236090
-606,"Canceroid Cupid","Nascence Wilds","Named Cripplers",40,"Steppe of Dispair",Extermination,"Right Arm",Sleeping,30,235889
-607,"Canceroid Cupid","Nascence Wilds","Named Cripplers",40,"Steppe of Dispair",Extermination,"Right Wrist",Sluggish,40,235941
-608,Sasabonsam,"Inferno Frontier","Anansi's Disciple",220,"Dark Hills - SE from 255 incarnator",Infantry,Ear,Cognizant,270,235661
-609,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Artillery,Brain,Breathing,100,235411
-610,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Infantry,Feet,Moving,80,235821
-611,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Artillery,"Left Arm",Moving,80,235483
-612,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Extermination,Ocular,Animated,70,235840
-613,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Extermination,Brain,Animated,70,235854
-614,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Extermination,Brain,Vibrating,90,235855
-615,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Infantry,Feet,Vibrating,90,235822
-616,"Agent of Decay","Inferno Frontier","Eremites East from Hebiel & Ahomac",255,"Near 225 Incarnator (Eremites)",Extermination,Ocular,Alert,280,235847
-617,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Artillery,Ocular,Beta,300,278893
-618,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Control,Ocular,Beta,300,279010
-619,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Extermination,Ocular,Beta,300,279023
-620,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Infantry,Ocular,Beta,300,279036
-621,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Support,Ocular,Beta,300,279049
-622,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Artillery,Brain,Beta,300,278892
-623,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Control,Brain,Beta,300,279009
-624,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Extermination,Brain,Beta,300,279022
-625,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Infantry,Brain,Beta,300,279035
-626,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Support,Brain,Beta,300,279048
-627,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Artillery,Ear,Beta,300,278894
-628,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Control,Ear,Beta,300,279011
-629,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Extermination,Ear,Beta,300,279024
-630,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Infantry,Ear,Beta,300,279037
-631,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Support,Ear,Beta,300,279050
-632,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Artillery,"Left Arm",Beta,300,278896
-633,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Control,"Left Arm",Beta,300,279013
-634,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Extermination,"Left Arm",Beta,300,279026
-635,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Infantry,"Left Arm",Beta,300,279039
-636,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Support,"Left Arm",Beta,300,279052
-637,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Artillery,Chest,Beta,300,278895
-638,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Control,Chest,Beta,300,279012
-639,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Extermination,Chest,Beta,300,279025
-640,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Infantry,Chest,Beta,300,279038
-641,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Support,Chest,Beta,300,279051
-642,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Artillery,"Right Arm",Beta,300,278899
-643,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Control,"Right Arm",Beta,300,279016
-644,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Extermination,"Right Arm",Beta,300,279029
-645,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Infantry,"Right Arm",Beta,300,279042
-646,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Support,"Right Arm",Beta,300,279055
-647,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Artillery,"Left Wrist",Beta,300,278898
-648,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Control,"Left Wrist",Beta,300,279015
-649,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Extermination,"Left Wrist",Beta,300,279028
-650,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Infantry,"Left Wrist",Beta,300,279041
-651,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Support,"Left Wrist",Beta,300,279054
-652,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Artillery,Waist,Beta,300,278902
-653,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Control,Waist,Beta,300,279019
-654,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Extermination,Waist,Beta,300,279032
-655,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Infantry,Waist,Beta,300,279045
-656,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Support,Waist,Beta,300,279058
-657,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Artillery,"Right Wrist",Beta,300,278901
-658,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Control,"Right Wrist",Beta,300,279018
-659,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Extermination,"Right Wrist",Beta,300,279031
-660,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Infantry,"Right Wrist",Beta,300,279044
-661,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Support,"Right Wrist",Beta,300,279057
-662,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Artillery,"Left Hand",Beta,300,278897
-663,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Control,"Left Hand",Beta,300,279014
-664,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Extermination,"Left Hand",Beta,300,279027
-665,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Infantry,"Left Hand",Beta,300,279040
-666,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Support,"Left Hand",Beta,300,279053
-667,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Artillery,Thigh,Beta,300,278903
-668,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Control,Thigh,Beta,300,279020
-669,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Extermination,Thigh,Beta,300,279033
-670,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Infantry,Thigh,Beta,300,279046
-671,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Support,Thigh,Beta,300,279059
-672,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Artillery,"Right Hand",Beta,300,278900
-673,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Control,"Right Hand",Beta,300,279017
-674,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Extermination,"Right Hand",Beta,300,279030
-675,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Infantry,"Right Hand",Beta,300,279043
-676,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Support,"Right Hand",Beta,300,279056
-677,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Artillery,Feet,Beta,300,278904
-678,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Control,Feet,Beta,300,279021
-679,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Extermination,Feet,Beta,300,279034
-680,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Infantry,Feet,Beta,300,279047
-681,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Support,Feet,Beta,300,279060
-682,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Ocular,Intelligent,300,219139
-683,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Ocular,Intelligent,300,236299
-684,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Ocular,Intelligent,300,235849
-685,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Ocular,Intelligent,300,235631
-686,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Ocular,Intelligent,300,236074
-687,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Brain,Intelligent,300,235422
-688,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Brain,Intelligent,300,236314
-689,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Brain,Intelligent,300,235866
-690,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Brain,Intelligent,300,235646
-691,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Brain,Intelligent,300,236091
-692,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Ear,Intelligent,300,235440
-693,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Ear,Intelligent,300,236331
-694,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Ear,Intelligent,300,235883
-695,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Ear,Intelligent,300,235663
-696,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Ear,Intelligent,300,236108
-697,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Left Arm",Intelligent,300,235492
-698,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Arm",Intelligent,300,236384
-699,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Arm",Intelligent,300,235935
-700,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Left Arm",Intelligent,300,235713
-701,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Left Arm",Intelligent,300,236164
-702,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Chest,Intelligent,300,235475
-703,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Chest,Intelligent,300,236366
-704,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Chest,Intelligent,300,235918
-705,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Chest,Intelligent,300,235696
-706,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Chest,Intelligent,300,236143
-707,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Right Arm",Intelligent,300,235457
-708,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Arm",Intelligent,300,236349
-709,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Arm",Intelligent,300,235901
-710,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Right Arm",Intelligent,300,235680
-711,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Right Arm",Intelligent,300,236124
-712,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Left Wrist",Intelligent,300,235544
-713,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Wrist",Intelligent,300,236437
-714,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Wrist",Intelligent,300,235987
-715,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Left Wrist",Intelligent,300,235763
-716,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Left Wrist",Intelligent,300,236218
-717,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Waist,Intelligent,300,235527
-718,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Waist,Intelligent,300,236420
-719,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Waist,Intelligent,300,235969
-720,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Waist,Intelligent,300,235746
-721,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Waist,Intelligent,300,236200
-722,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Right Wrist",Intelligent,300,235509
-723,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Wrist",Intelligent,300,236402
-724,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Wrist",Intelligent,300,235952
-725,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Right Wrist",Intelligent,300,235729
-726,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Right Wrist",Intelligent,300,236183
-727,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Left Hand",Intelligent,300,235596
-728,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Hand",Intelligent,300,236489
-729,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Hand",Intelligent,300,236040
-730,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Left Hand",Intelligent,300,235815
-731,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Left Hand",Intelligent,300,236268
-732,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Thigh,Intelligent,300,235579
-733,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Thigh,Intelligent,300,236473
-734,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Thigh,Intelligent,300,236023
-735,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Thigh,Intelligent,300,235798
-736,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Thigh,Intelligent,300,236252
-737,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Right Hand",Intelligent,300,235562
-738,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Hand",Intelligent,300,236455
-739,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Hand",Intelligent,300,236005
-740,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Right Hand",Intelligent,300,235781
-741,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Right Hand",Intelligent,300,236235
-742,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Feet,Intelligent,300,235614
-743,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Feet,Intelligent,300,236505
-744,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Feet,Intelligent,300,236057
-745,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Feet,Intelligent,300,235833
-746,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Feet,Intelligent,300,236284
-747,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Hand",Excited,250,236454
-748,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Hand",Effective,240,236486
-749,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Thigh,Excited,250,236471
-750,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Feet,Excited,250,236503
-751,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Waist,Vital,260,236418
-752,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Feet,Cognizant,270,236504
-753,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Arm",Cognizant,270,236383
-754,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Wrist",Cognizant,270,236400
-755,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Chest,Alert,280,236365
-756,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Hand",Alert,280,236488
-757,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Wrist",Conscious,290,236401
-758,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Wrist",Conscious,290,236436
-759,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Chest,Vital,260,235473
-760,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Left Arm",Conscious,290,235491
-761,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Waist,Conscious,290,235526
-762,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Thigh,Alert,280,235577
-763,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Thigh,Conscious,290,235578
-764,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Feet,Conscious,290,235613
-765,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Right Hand",Alert,280,235561
-766,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Chest,Conscious,290,235474
-767,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Ear,Cognizant,270,236330
-768,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Arm",Cognizant,270,236348
-769,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Thigh,Conscious,290,236472
-770,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Brain,Cognizant,270,235865
-771,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Ear,Cognizant,270,235882
-772,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Arm",Vital,260,235898
-773,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Arm",Conscious,290,235900
-774,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Arm",Alert,280,235934
-775,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Waist,Conscious,290,235968
-776,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Wrist",Persisting,220,235983
-777,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Wrist",Excited,250,235984
-778,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Hand",Conscious,290,236004
-779,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Thigh,Cognizant,270,236021
-780,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Thigh,Conscious,290,236022
-781,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Hand",Persisting,220,236036
-782,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Hand",Effective,240,236037
-783,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Hand",Alert,280,236038
-784,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Hand",Conscious,290,236039
-785,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Right Wrist",Alert,280,235727
-786,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Right Wrist",Conscious,290,235728
-787,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Left Wrist",Conscious,290,235762
-788,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Thigh,Cognizant,270,235797
-789,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Left Hand",Conscious,290,235814
-790,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Feet,Cognizant,270,235831
-791,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Right Arm",Conscious,290,236123
-792,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Chest,Conscious,290,236142
-793,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Left Arm",Vital,260,236161
-794,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Feet,Conscious,290,235832
-795,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Ocular,Conscious,290,219138
-796,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Brain,Conscious,290,235421
-797,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Left Wrist",Conscious,290,235543
-798,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Arm",Effective,240,236380
-799,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Ear,Excited,250,235881
-800,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Feet,Effective,240,236053
-801,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Arm",Excited,250,235897
-802,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Arm",Alert,280,235899
-803,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Waist,Alert,280,235967
-804,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Chest,Conscious,290,235917
-805,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Wrist",Conscious,290,235951
-806,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Right Hand",Conscious,290,235780
-807,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Waist,Conscious,290,235745
-808,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Feet,Cognizant,270,236281
-809,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Left Arm",Conscious,290,236163
-810,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Thigh,Conscious,290,236251
-811,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Right Wrist",Cognizant,270,235508
-812,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Hand",Excited,250,236487
-813,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Arm",Excited,250,235932
-814,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Brain,Conscious,290,235645
-815,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Ocular,Alpha,300,278945
-816,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Ocular,Alpha,300,278958
-817,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Ocular,Alpha,300,278971
-818,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Ocular,Alpha,300,278984
-819,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Ocular,Alpha,300,278997
-820,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Brain,Alpha,300,278944
-821,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Brain,Alpha,300,278957
-822,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Brain,Alpha,300,278970
-823,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Brain,Alpha,300,278983
-824,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Brain,Alpha,300,278996
-825,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Ear,Alpha,300,278946
-826,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Ear,Alpha,300,278959
-827,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Ear,Alpha,300,278972
-828,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Ear,Alpha,300,278985
-829,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Ear,Alpha,300,278998
-830,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,"Left Arm",Alpha,300,278948
-831,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,"Left Arm",Alpha,300,278961
-832,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,"Left Arm",Alpha,300,278974
-833,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,"Left Arm",Alpha,300,278987
-834,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,"Left Arm",Alpha,300,279000
-835,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Chest,Alpha,300,278947
-836,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Chest,Alpha,300,278960
-837,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Chest,Alpha,300,278973
-838,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Chest,Alpha,300,278986
-839,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Chest,Alpha,300,278999
-840,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,"Right Arm",Alpha,300,278951
-841,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,"Right Arm",Alpha,300,278964
-842,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,"Right Arm",Alpha,300,278977
-843,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,"Right Arm",Alpha,300,278990
-844,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,"Right Arm",Alpha,300,279003
-845,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,"Left Wrist",Alpha,300,278950
-846,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,"Left Wrist",Alpha,300,278963
-847,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,"Left Wrist",Alpha,300,278976
-848,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,"Left Wrist",Alpha,300,278989
-849,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,"Left Wrist",Alpha,300,279002
-850,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Waist,Alpha,300,278954
-851,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Waist,Alpha,300,278967
-852,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Waist,Alpha,300,278980
-853,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Waist,Alpha,300,278993
-854,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Waist,Alpha,300,279006
-855,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,"Right Wrist",Alpha,300,278953
-856,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,"Right Wrist",Alpha,300,278966
-857,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,"Right Wrist",Alpha,300,278979
-858,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,"Right Wrist",Alpha,300,278992
-859,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,"Right Wrist",Alpha,300,279005
-860,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,"Left Hand",Alpha,300,278949
-861,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,"Left Hand",Alpha,300,278962
-862,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,"Left Hand",Alpha,300,278975
-863,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,"Left Hand",Alpha,300,278988
-864,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,"Left Hand",Alpha,300,279001
-865,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Thigh,Alpha,300,278955
-866,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Thigh,Alpha,300,278968
-867,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Thigh,Alpha,300,278981
-868,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Thigh,Alpha,300,278994
-869,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Thigh,Alpha,300,279007
-870,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,"Right Hand",Alpha,300,278952
-871,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,"Right Hand",Alpha,300,278965
-872,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,"Right Hand",Alpha,300,278978
-873,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,"Right Hand",Alpha,300,278991
-874,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,"Right Hand",Alpha,300,279004
-875,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Feet,Alpha,300,278956
-876,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Feet,Alpha,300,278969
-877,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Feet,Alpha,300,278982
-878,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Feet,Alpha,300,278995
-879,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Feet,Alpha,300,279008
-880,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Ocular,Special,1,305507
-881,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Left Wrist,Special,1,305505
-882,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Ocular,Special,1,305510
-883,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Chest,Special,1,305509
-884,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Left Wrist,Special,1,305513
-885,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Brain,Special,1,305504
-886,"Gartua the Gate Guardian","TOTW Raid","Boss",300,"Right path",Special,Chest,Special,1,305509
-887,"Gartua the Gate Guardian","TOTW Raid","Boss",300,"Right path",Special,Waist,Special,1,305508
-888,"Gartua the Doorkeeper","TOTW","Boss",300,"Right path",Special,Waist,Special,1,204650
-889,"Nematet the Custodian of Time","TOTW","Boss",300,"Central path",Special,Ocular,Special,1,204613
-890,"Nematet the Custodian of Time","TOTW","Boss",300,"Central path",Special,Brain,Special,1,204647
-891,"Nematet the Custodian of Time","TOTW","Boss",300,"Central path",Special,Right Arm,Special,1,204651
-892,"Aztur the Immortal","TOTW","Boss",300,"Central path",Special,Brain,Special,1,204647
-893,"Defender of the Three","TOTW","Boss",300,"Central hall",Special,Left Wrist,Special,1,204649
-894,"The Curator","TOTW","Boss",300,"Central path",Special,Right Arm,Special,1,204651
-895,"Dominus Ummoh the Pedagogue","Inner Sanctum","Side Boss",300,"Boss room",Special,Brain,Special,1,206246
-896,"Hezak the Immortal","Inner Sanctum","Boss",300,"Boss room",Special,Brain,Special,1,206246
-897,"Inobak the Gelid","Inner Sanctum","Boss",300,"Boss room",Special,Brain,Special,1,206246
-898,"Inobak the Gelid","Inner Sanctum","Boss",300,"Boss room",Special,Left Wrist,Special,1,206247
+382,Screech,"Central Elysium (W)","Named Rafters",80,"NE from Boneyard, W from Yuttos",Infantry,"Thigh",Breathing,100,235788
+383,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Artillery,Ocular,Persisting,220,219140
+384,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,Feet,Persisting,220,236502
+385,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Infantry,"Left Arm",Persisting,220,235710
+386,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,Thigh,Persisting,220,236470
+387,Shake,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,"Left Hand",Effective,240,236486
+388,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Support,Ear,Effective,240,236107
+389,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Support,Chest,Effective,240,236137
+390,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Artillery,"Left Arm",Effective,240,235490
+391,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Artillery,Feet,Effective,240,235611
+392,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Support,"Right Arm",Effective,240,236120
+393,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Support,"Left Arm",Effective,240,236159
+394,"Shake (Golem)","Adonis West Brink","Named Golems",195,"Hollow Maze",Support,Thigh,Effective,240,236249
+395,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Infantry,Chest,Persisting,220,235693
+396,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,Waist,Persisting,220,236417
+397,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,"Left Wrist",Persisting,220,236431
+398,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,"Left Wrist",Vigorous,230,236432
+399,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,"Right Hand",Persisting,220,236453
+400,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Artillery,Chest,Growing,200,235471
+401,Shiver,"Adonis Abyss NW","Named Slithers",192,"Icicle Keep (NW White Cave)",Control,"Left Wrist",Effective,240,236433
+402,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Artillery,Ocular,Animated,70,219130
+403,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Infantry,Ocular,Lulled,60,235620
+404,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Infantry,Ear,Animated,70,235651
+405,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Artillery,Ear,Lulled,60,235429
+406,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Artillery,Feet,Moving,80,235603
+407,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Infantry,Ocular,Animated,70,235621
+408,"Silver Fang","Central Elysium","4 Predator Cat Boss",80,"SE from Nero",Infantry,Brain,Lulled,60,235637
+409,Skulky,"Adonis NW","Skulking Dryad",165,"The Jaws",Artillery,"Right Hand",Active,170,235556
+410,Skulky,"Adonis NW","Skulking Dryad",165,"The Jaws",Infantry,Chest,Awakened,180,235690
+411,Skulky,"Adonis NW","Skulking Dryad",165,"The Jaws",Infantry,Chest,Living,210,235692
+412,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Artillery,"Left Wrist",Living,210,235539
+413,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Control,Thigh,Active,170,236466
+414,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Control,Thigh,Awakened,180,236467
+415,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Control,Thigh,Growing,200,236468
+416,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Control,Thigh,Living,210,236469
+417,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Infantry,Chest,Awakened,180,235690
+418,Slinky,"Adonis NW","Named Dryads (5)",165,"The Jaws",Control,"Left Hand",Working,160,236484
+419,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Artillery,Waist,Enduring,190,235522
+420,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Infantry,Ear,Living,210,235659
+421,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Control,Brain,Growing,200,236310
+422,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Control,Ear,Enduring,190,236327
+423,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Control,"Right Arm",Growing,200,236343
+424,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Control,Chest,Awakened,180,236361
+425,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Control,"Left Arm",Growing,200,236377
+426,Smee,"Adonis Abyss","Named Dryads (6)",165,"West / North",Control,"Right Wrist",Enduring,190,236395
+427,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Artillery,Ocular,Surviving,150,219134
+428,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Artillery,"Left Hand",Vibrating,90,235585
+429,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Infantry,"Left Hand",Residing,130,235806
+430,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Infantry,"Left Hand",Running,140,235807
+431,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Artillery,"Right Arm",Breathing,100,235450
+432,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Infantry,Feet,Prevailing,120,235824
+433,"Spiritless Soul Dredge","Scheol Lower","Spirit Soul Dredge",115,Necropolis,Infantry,"Left Hand",Surviving,150,235808
+434,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Artillery,Chest,Enduring,190,235470
+435,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Artillery,Chest,Growing,200,235471
+436,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Artillery,Feet,Living,210,235610
+437,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Extermination,Feet,Active,170,236050
+438,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Extermination,Feet,Persisting,220,236052
+439,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Support,Ocular,Surviving,150,236067
+440,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Support,Ocular,Growing,200,236070
+441,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Support,Ocular,Living,210,236071
+442,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Support,Brain,Enduring,190,236084
+443,Srahir,"Penumbra Hollows","Shadows and Hiathlins",180,"South Shadow Camps",Support,Brain,Living,210,236085
+444,Tcheser,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,"Right Arm",Lulled,60,236339
+445,Tcheser,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,Chest,Sluggish,40,236355
+446,Tcheser,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Artillery,"Right Hand",Sluggish,40,235550
+447,Tcheser,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,Ear,Sluggish,40,236319
+448,Tcheser,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,"Right Arm",Sluggish,40,236338
+449,"The Abysmal Lord","Adonis Abyss","TripTrapTrub Named Spiders",160,"The Depression or 1100x1500",Infantry,"Left Wrist",Residing,130,235756
+450,"The Abyssal Widow","Adonis Abyss","TinyTripTrapTrup Named Spiders",165,"Abyss SW",Infantry,Waist,Awakened,180,235740
+451,"The Achbile Guardian",Elysium,"Croaker & Minx",120,"Just South from Ergo",Infantry,"Left Wrist",Breathing,100,235755
+452,"The Adonian Soul Dredge","Adonis Ark 1","Soul Dredges",165,"Dead Ends Ancient Device Ark 1",Infantry,"Right Wrist",Residing,130,235722
+453,"The Adonian Soul Dredge","Adonis Ark 1","Soul Dredges",165,"Dead Ends Ancient Device Ark 1",Artillery,Thigh,Enduring,190,235571
+454,"The Adonis Spirit Master","Adonis North",Spirits/Souls/Dredges,165,"Sacellum & Sea of Adonis & Ark1",Artillery,"Left Hand",Prevailing,120,235587
+455,"The Adonis Spirit Master","Adonis North",Spirits/Souls/Dredges,165,"Sacellum & Sea of Adonis & Ark1",Infantry,Waist,Residing,130,235738
+456,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Artillery,"Left Wrist",Breathing,100,235535
+457,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Infantry,"Left Arm",Vibrating,90,235705
+458,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Control,Thigh,Vibrating,90,236463
+459,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Control,Thigh,Residing,130,236464
+460,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Control,Thigh,Running,140,236465
+461,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Control,"Left Hand",Vibrating,90,236480
+462,"The Archbile Queen",Elysium,"Croaker & Minx",120,"Just South from Ergo",Control,"Left Hand",Breathing,100,236481
+463,"The Brobdingnagian Mother","Penumbra Forest","Resolute Dryad",185,"East of Blue Mist",Infantry,"Left Wrist",Surviving,150,235757
+464,"The Dredge Driver","Adonis City","Spirit Soul Dredge",165,"The Suburbs/The Dig",Artillery,Thigh,Living,210,235573
+465,"The Dredge Driver","Adonis City","Spirit Soul Dredge",165,"The Suburbs/The Dig",Infantry,"Right Wrist",Living,210,235724
+466,"The Dryad Demigod","Inferno Frontier","Apprentice Beasthandler/Scrupulous Hiathlin/Punctilious Hiathlin/Tyro Beasthandler",220,"East from QL 255 Incarnator",Infantry,Chest,Vital,260,235694
+467,"The Dryad Shuffle","Penumbra Forest","Named Dryads & Hollows",185,"Blue Mist - from S to N",Artillery,Chest,Awakened,180,235469
+468,"The Dryad Shuffle","Penumbra Forest","Named Dryads & Hollows",185,"Blue Mist - from S to N",Extermination,"Left Hand",Enduring,190,236034
+469,"The Dryad Shuffle","Penumbra Forest","Named Dryads & Hollows",185,"Blue Mist - from S to N",Extermination,"Right Hand",Vigorous,230,236003
+470,"The Dryad Shuffle","Penumbra Forest","Named Dryads & Hollows",185,"Blue Mist - from S to N",Artillery,Feet,Growing,200,235609
+471,"The Dryad Shuffle","Penumbra Forest","Named Dryads & Hollows",185,"Blue Mist - from S to N",Extermination,Feet,Enduring,190,236051
+472,"The Dryad Shuffle","Penumbra Forest","Named Dryads & Hollows",185,"Blue Mist - from S to N",Extermination,"Left Hand",Growing,200,236035
+473,"The Dune Suzerain","Elysium Northwest","Coiling Eremite and Others (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Extermination,Ocular,Operative,110,235841
+474,"The Dune Suzerain","Elysium Northwest","Coiling Eremite and Others (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Artillery,Brain,Operative,110,235412
+475,"The Dune Suzerain","Elysium Northwest","Coiling Eremite and Others (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Artillery,"Right Hand",Moving,80,235552
+476,"The Dune Suzerain","Elysium Northwest","Coiling Eremite and Others (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Extermination,"Left Arm",Vibrating,90,235925
+477,"The Dune Suzerain","Elysium Northwest","Coiling Eremite and Others (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Extermination,Chest,Operative,110,235908
+478,"The Dune Suzerain","Elysium Northwest","Coiling Eremite and Others (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Infantry,Feet,Operative,110,235823
+479,"The Elysian Soul Dredge","East Elysium","Spirit Soul Dredge",90,"Linger Echo",Extermination,Thigh,Animated,70,236011
+480,"The Elysian Soul Dredge","East Elysium","Spirit Soul Dredge",90,"Linger Echo",Extermination,Thigh,Moving,80,236012
+481,"The Elysian Soul Dredge","East Elysium","Spirit Soul Dredge",90,"Linger Echo",Extermination,Thigh,Breathing,100,236014
+482,"The Elysian Soul Dredge","East Elysium","Spirit Soul Dredge",90,"Linger Echo",Extermination,"Left Hand",Animated,70,236029
+483,"The Elysian Soul Dredge","East Elysium","Spirit Soul Dredge",90,"Linger Echo",Artillery,"Right Arm",Animated,70,235448
+484,"The Elysian Soul Dredge","East Elysium","Spirit Soul Dredge",90,"Linger Echo",Artillery,Thigh,Operative,110,235569
+485,"The Enrapt One",Elysium,"Mortiig bosses",120,"SW Elysium",Artillery,"Right Hand",Breathing,100,235553
+486,"The Enrapt One",Elysium,"Mortiig bosses",120,"SW Elysium",Infantry,"Left Arm",Running,140,235708
+487,"The Indomitable Chimera",Inferno,"Chimera Mornitor/Trainer/Driver",220,"Burning Marshes - Misty Marshes Statue",Infantry,"Right Wrist",Excited,250,235725
+488,"The Infernal Soul Dredge",Inferno,"Named Spirits",220,???,Infantry,Waist,Vigorous,230,235743
+489,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Infantry,"Right Hand",Excited,250,235778
+490,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Infantry,"Right Hand",Vital,260,235779
+491,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Infantry,Thigh,Excited,250,235795
+492,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Infantry,Thigh,Vital,260,235796
+493,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Artillery,Brain,Persisting,220,235418
+494,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Artillery,"Right Wrist",Excited,250,235507
+495,"The Maggot Lord","Penumbra Forest","Named Eremites",205,"N of Blue Mist - South of The Pipe",Infantry,Feet,Effective,240,235829
+496,"The Numb One",Elysium,"Mortiig bosses",120,"Elysium (SW ?)",Artillery,"Left Wrist",Surviving,150,235537
+497,"The Numb One",Elysium,"Mortiig bosses",120,"Elysium (SW ?)",Infantry,"Left Arm",Operative,110,235707
+498,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Artillery,"Left Hand",Living,210,235590
+499,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Extermination,Ear,Living,210,235879
+500,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Extermination,"Right Arm",Growing,200,235895
+501,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Extermination,Chest,Awakened,180,235912
+502,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Extermination,Chest,Growing,200,235913
+503,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Extermination,"Left Arm",Awakened,180,235930
+504,"The Penumbral Spirit Hunter","Penumbra Valley","Vamoosing/Skedaddling Spirit",165,"Spirit Ruins",Artillery,Ear,Awakened,180,235437
+505,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Artillery,"Left Wrist",Enduring,190,235538
+506,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Infantry,"Right Arm",Living,210,235675
+507,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Left Wrist",Living,210,236430
+508,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Right Hand",Growing,200,236452
+509,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Right Hand",Working,160,236449
+510,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Right Hand",Active,170,236450
+511,"The Peristaltic Abomination","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Right Hand",Awakened,180,236451
+512,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Artillery,Waist,Living,210,235523
+513,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Infantry,"Right Arm",Awakened,180,235674
+514,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,Waist,Awakened,180,236414
+515,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,Waist,Enduring,190,236415
+516,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,Waist,Growing,200,236416
+517,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Left Wrist",Enduring,190,236429
+518,"The Peristaltic Aversion","Adonis Abyss","Eremites and Named",172,Worlmhole,Control,"Left Wrist",Living,210,236430
+519,"The Proprietrix","Adonis City","Soul Dredges",165,"The Suburbs/The Dig",Artillery,"Left Hand",Residing,130,235588
+520,"The Proprietrix","Adonis City","Soul Dredges",165,"The Suburbs/The Dig",Infantry,Waist,Active,170,235739
+521,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Artillery,Waist,Surviving,150,235519
+522,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Infantry,Chest,Running,140,235688
+523,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Control,Waist,Surviving,150,236413
+524,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Control,"Left Wrist",Prevailing,120,236426
+525,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Control,"Left Wrist",Vibrating,90,236425
+526,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Control,"Left Wrist",Residing,130,236427
+527,"The Scheolian Soul Dredge","Scheol Lower","Spirits/Spirit Hunters",125,"Necropolis (Ergo)",Control,Waist,Running,140,236412
+528,"The Stupendous Breeder","Penumbra Forest","Named Dryads & Hollows",185,"East Frozen Lakes from S to N",Infantry,"Left Wrist",Working,160,235758
+529,"The Talus Suzerain","Elysium Northwest","Coiling Eremite and Named (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Extermination,"Right Wrist",Animated,70,235943
+530,"The Talus Suzerain","Elysium Northwest","Coiling Eremite and Named (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Extermination,"Right Wrist",Moving,80,235944
+531,"The Talus Suzerain","Elysium Northwest","Coiling Eremite and Named (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Extermination,"Right Wrist",Vibrating,90,235945
+532,"The Talus Suzerain","Elysium Northwest","Coiling Eremite and Named (310x1260)",90,"The Brink - Tinker Tower - Shell Beach",Artillery,Ear,Breathing,100,235431
+533,"The Watchdog","Adonis North",Spirits/Souls,165,"Sacellum & Sea of Adonis",Artillery,Thigh,Growing,200,235572
+534,"The Watchdog","Adonis North",Spirits/Souls,165,"Sacellum & Sea of Adonis",Infantry,"Right Wrist",Surviving,150,235723
+535,"The Worm King","Penumbra Forest","Death Wing & Named Slithers",202,"Muktuk Area SW from NW Red Temple",Extermination,"Right Arm",Effective,240,235896
+536,"The Worm King","Penumbra Forest","Death Wing & Named Slithers",202,"Muktuk Area SW from NW Red Temple",Extermination,Chest,Excited,250,235915
+537,"The Worm King","Penumbra Forest","Death Wing & Named Slithers",202,"Muktuk Area SW from NW Red Temple",Artillery,Chest,Excited,250,235472
+538,"The Worm King","Penumbra Forest","Death Wing & Named Slithers",202,"Muktuk Area SW from NW Red Temple",Artillery,Thigh,Excited,250,235575
+539,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Artillery,"Right Wrist",Residing,130,235501
+540,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Control,Brain,Running,140,236307
+541,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Control,Brain,Working,160,236308
+542,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Control,Brain,Active,170,236309
+543,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Artillery,"Right Wrist",Running,140,235502
+544,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Infantry,"Right Arm",Prevailing,120,235670
+545,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Control,Brain,Operative,110,236306
+546,"Thunderous Chimera","Scheol Upper",Chimera,125,"Marble Orchards, East Passage",Control,Ear,Operative,110,236321
+547,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Artillery,"Right Wrist",Vigorous,230,235505
+548,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Support,"Left Wrist",Persisting,220,236216
+549,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Support,Feet,Effective,240,236280
+550,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Control,Ocular,Persisting,220,236295
+551,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Infantry,"Right Arm",Persisting,220,235676
+552,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Support,"Left Hand",Persisting,220,236267
+553,Toss,"Adonis West Brink","Named Golems",195,"Hollow Maze",Control,Ocular,Effective,240,236296
+554,Tough,"Scheol Lower","Rigid Solid Robust Girders",125,"The Approach (South of Necropolis)",Artillery,"Left Arm",Breathing,100,235485
+555,Tough,"Scheol Lower","Rigid Solid Robust Girders",125,"The Approach (South of Necropolis)",Support,"Right Hand",Vibrating,90,236225
+556,Tough,"Scheol Lower","Rigid Solid Robust Girders",125,"The Approach (South of Necropolis)",Support,"Right Hand",Breathing,100,236226
+557,Tough,"Scheol Lower","Rigid Solid Robust Girders",125,"The Approach (South of Necropolis)",Support,"Right Hand",Operative,110,236227
+558,Tough,"Scheol Lower","Rigid Solid Robust Girders",125,"The Approach (South of Necropolis)",Support,"Right Hand",Residing,130,236228
+559,Tough,"Scheol Lower","Rigid Solid Robust Girders",125,"The Approach (South of Necropolis)",Support,"Right Hand",Running,140,236229
+560,Ungulera,"East Elysium","Named Hiathlin",90,"Fission Fissure",Extermination,"Right Hand",Moving,80,235993
+561,Ungulera,"East Elysium","Named Hiathlin",90,"Fission Fissure",Artillery,Ear,Operative,110,235432
+562,Ungulera,"East Elysium","Named Hiathlin",90,"Fission Fissure",Artillery,Thigh,Moving,80,235568
+563,Ungulera,"East Elysium","Named Hiathlin",90,"Fission Fissure",Extermination,Waist,Vibrating,90,235959
+564,Ungulera,"East Elysium","Named Hiathlin",90,"Fission Fissure",Extermination,"Left Wrist",Vibrating,90,235975
+565,Upenpet,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,"Left Arm",Sluggish,40,236371
+566,Upenpet,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,"Right Hand",Sluggish,40,236443
+567,Upenpet,Nascense,"Croaker Boss all around",48,"Around Two Mountains",Control,Waist,Sluggish,40,236407
+568,Ushqa,Inferno,"Maychwaham, Ushamaham",220,"Oasis, south from Inferno Frontier",Infantry,Ocular,Excited,250,235628
+569,Ushqa,Inferno,"Maychwaham, Ushamaham",220,"Oasis, south from Inferno Frontier",Control,Ear,Vital,260,236329
+570,Ushqa,Inferno,"Maychwaham, Ushamaham",220,"Oasis, south from Inferno Frontier",Control,Chest,Excited,250,236363
+571,Ushqa,Inferno,"Maychwaham, Ushamaham",220,"Oasis, south from Inferno Frontier",Control,"Right Arm",Vital,260,236347
+572,"Viscious Visitant","Adonis SW",Spirits,165,"The Suburbs",Artillery,Thigh,Surviving,150,235570
+573,"Viscious Visitant","Adonis SW",Spirits,165,"The Suburbs",Infantry,"Right Wrist",Prevailing,120,235721
+574,"Wacky Suzerain","Scheol Upper","Named Eremites: Coiling, Sparkling, Bending...",125,"NW from West Incarnator",Artillery,"Right Wrist",Breathing,100,235500
+575,"Wacky Suzerain","Scheol Upper","Named Eremites: Coiling, Sparkling, Bending...",125,"NW from West Incarnator",Infantry,"Right Arm",Vibrating,90,235668
+576,"Wacky Suzerain","Scheol Upper","Named Eremites: Coiling, Sparkling, Bending...",125,"NW from West Incarnator",Support,"Left Hand",Prevailing,120,236261
+577,"Wacky Suzerain","Scheol Upper","Named Eremites: Coiling, Sparkling, Bending...",125,"NW from West Incarnator",Support,"Left Hand",Running,140,236262
+578,"Wacky Suzerain","Scheol Upper","Named Eremites: Coiling, Sparkling, Bending...",125,"NW from West Incarnator",Support,"Left Hand",Surviving,150,236263
+579,"Wacky Suzerain","Scheol Upper","Named Eremites: Coiling, Sparkling, Bending...",125,"NW from West Incarnator",Support,Feet,Breathing,100,236275
+580,White,"Elysium South","Chill Spider & 2 Named Bosses",120,"White Pass (The Scoop)",Infantry,"Left Arm",Operative,110,235707
+581,White,"Elysium South","Chill Spider & 2 Named Bosses",120,"White Pass (The Scoop)",Control,"Left Hand",Residing,130,236483
+582,White,"Elysium South","Chill Spider & 2 Named Bosses",120,"White Pass (The Scoop)",Control,Feet,Residing,130,236498
+583,White,"Elysium South","Chill Spider & 2 Named Bosses",120,"White Pass (The Scoop)",Control,Feet,Prevailing,120,236497
+584,White,"Elysium South","Chill Spider & 2 Named Bosses",120,"White Pass (The Scoop)",Infantry,"Left Arm",Breathing,100,235706
+585,"Xark the Battletoad","Penumbra Forest","Death Wing, Slithers, Maar...",255,"South from Purity",Artillery,"Left Wrist",Alert,280,235542
+586,"Xark the Battletoad","Penumbra Forest","Death Wing, Slithers, Maar...",255,"South from Purity",Support,Waist,Alert,280,236199
+587,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Artillery,Chest,Awakened,180,235469
+588,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Artillery,Chest,Growing,200,235471
+589,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Infantry,Ocular,Growing,200,235624
+590,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Support,Brain,Persisting,220,236086
+591,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Support,Brain,Vigorous,230,236087
+592,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Support,Ear,Awakened,180,236104
+593,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Support,Ear,Growing,200,236105
+594,"Zoetic Oak","Penumbra Forest","Stubby Stalker and Named",180,"SW Glacier Hill - SW Statue",Support,Ear,Persisting,220,236106
+595,Shullat,"Inferno Frontier","Tinos, Astypalia, Phatmos",255,"Clan Sanctuary Exit: Razor's Lair",Control,Ocular,Alert,280,236298
+596,Shullat,"Inferno Frontier","Tinos, Astypalia, Phatmos",255,"Clan Sanctuary Exit: Razor's Lair",Support,Feet,Alert,280,236282
+597,"Taille Frees","Inferno Frontier","Aniitap's Shadow/Aniitap(250)/Wicked Shadow",220,"Path to the Redeemed Temple - Aniitap Spot",Infantry,Ear,Excited,250,235660
+598,"Taille Frees","Inferno Frontier","Aniitap's Shadow/Aniitap(250)/Wicked Shadow",220,"Path to the Redeemed Temple - Aniitap Spot",Control,"Left Wrist",Excited,250,236434
+599,Waqa,"Inferno Yuttos Marshes","Natsmaahpt, Sanatsimk",220,"South of Xark's Lair - North from Yuttos",Support,Brain,Excited,250,236088
+600,Waqa,"Inferno Yuttos Marshes","Natsmaahpt, Sanatsimk",220,"South of Xark's Lair - North from Yuttos",Support,"Right Arm",Vital,260,236121
+601,Waqa,"Inferno Yuttos Marshes","Natsmaahpt, Sanatsimk",220,"South of Xark's Lair - North from Yuttos",Artillery,Thigh,Cognizant,270,235576
+602,Waqa,"Inferno Yuttos Marshes","Natsmaahpt, Sanatsimk",220,"South of Xark's Lair - North from Yuttos",Support,Ocular,Excited,250,236072
+603,Waqa,"Inferno Yuttos Marshes","Natsmaahpt, Sanatsimk",220,"South of Xark's Lair - North from Yuttos",Support,Ocular,Vital,260,236073
+604,Waqa,"Inferno Yuttos Marshes","Natsmaahpt, Sanatsimk",220,"South of Xark's Lair - North from Yuttos",Support,Brain,Vital,260,236089
+605,"Arch Bigot Biap","Inferno Dark Hill","Obsolete Soul Dredge",220,"North from Incarnator 255",Infantry,"Left Arm",Cognizant,270,235712
+606,"Asase Ya","Inferno Burning Marshes","Asase's Drudge, Nyame's Abettor, Asase's Child",255,"SW limits of Inferno by Sorrow South",Support,Brain,Alert,280,236090
+607,"Canceroid Cupid","Nascence Wilds","Named Cripplers",40,"Steppe of Dispair",Extermination,"Right Arm",Sleeping,30,235889
+608,"Canceroid Cupid","Nascence Wilds","Named Cripplers",40,"Steppe of Dispair",Extermination,"Right Wrist",Sluggish,40,235941
+609,Sasabonsam,"Inferno Frontier","Anansi's Disciple",220,"Dark Hills - SE from 255 incarnator",Infantry,Ear,Cognizant,270,235661
+610,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Artillery,Brain,Breathing,100,235411
+611,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Infantry,Feet,Moving,80,235821
+612,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Artillery,"Left Arm",Moving,80,235483
+613,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Extermination,Ocular,Animated,70,235840
+614,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Extermination,Brain,Animated,70,235854
+615,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Extermination,Brain,Vibrating,90,235855
+616,Circumbendibum,Elysium,"Named Dryads",80,Southmire,Infantry,Feet,Vibrating,90,235822
+617,"Agent of Decay","Inferno Frontier","Eremites East from Hebiel & Ahomac",255,"Near 225 Incarnator (Eremites)",Extermination,Ocular,Alert,280,235847
+618,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Artillery,Ocular,Beta,300,278893
+619,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Control,Ocular,Beta,300,279010
+620,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Extermination,Ocular,Beta,300,279023
+621,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Infantry,Ocular,Beta,300,279036
+622,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Support,Ocular,Beta,300,279049
+623,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Artillery,Brain,Beta,300,278892
+624,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Control,Brain,Beta,300,279009
+625,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Extermination,Brain,Beta,300,279022
+626,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Infantry,Brain,Beta,300,279035
+627,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Support,Brain,Beta,300,279048
+628,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Artillery,Ear,Beta,300,278894
+629,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Control,Ear,Beta,300,279011
+630,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Extermination,Ear,Beta,300,279024
+631,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Infantry,Ear,Beta,300,279037
+632,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Support,Ear,Beta,300,279050
+633,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Artillery,"Left Arm",Beta,300,278896
+634,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Control,"Left Arm",Beta,300,279013
+635,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Extermination,"Left Arm",Beta,300,279026
+636,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Infantry,"Left Arm",Beta,300,279039
+637,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Support,"Left Arm",Beta,300,279052
+638,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Artillery,Chest,Beta,300,278895
+639,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Control,Chest,Beta,300,279012
+640,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Extermination,Chest,Beta,300,279025
+641,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Infantry,Chest,Beta,300,279038
+642,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Support,Chest,Beta,300,279051
+643,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Artillery,"Right Arm",Beta,300,278899
+644,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Control,"Right Arm",Beta,300,279016
+645,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Extermination,"Right Arm",Beta,300,279029
+646,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Infantry,"Right Arm",Beta,300,279042
+647,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Support,"Right Arm",Beta,300,279055
+648,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Artillery,"Left Wrist",Beta,300,278898
+649,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Control,"Left Wrist",Beta,300,279015
+650,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Extermination,"Left Wrist",Beta,300,279028
+651,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Infantry,"Left Wrist",Beta,300,279041
+652,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Support,"Left Wrist",Beta,300,279054
+653,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Artillery,Waist,Beta,300,278902
+654,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Control,Waist,Beta,300,279019
+655,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Extermination,Waist,Beta,300,279032
+656,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Infantry,Waist,Beta,300,279045
+657,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Support,Waist,Beta,300,279058
+658,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Artillery,"Right Wrist",Beta,300,278901
+659,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Control,"Right Wrist",Beta,300,279018
+660,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Extermination,"Right Wrist",Beta,300,279031
+661,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Infantry,"Right Wrist",Beta,300,279044
+662,"Ground Chief Vortexx","LoX Hub","LoX Boss",300,"LoX Hub SE corner",Support,"Right Wrist",Beta,300,279057
+663,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Artillery,"Left Hand",Beta,300,278897
+664,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Control,"Left Hand",Beta,300,279014
+665,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Extermination,"Left Hand",Beta,300,279027
+666,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Infantry,"Left Hand",Beta,300,279040
+667,"Technomaster Sinuh","LoX Hub","LoX Boss",300,"LoX Hub SW corner",Support,"Left Hand",Beta,300,279053
+668,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Artillery,Thigh,Beta,300,278903
+669,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Control,Thigh,Beta,300,279020
+670,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Extermination,Thigh,Beta,300,279033
+671,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Infantry,Thigh,Beta,300,279046
+672,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Support,Thigh,Beta,300,279059
+673,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Artillery,"Right Hand",Beta,300,278900
+674,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Control,"Right Hand",Beta,300,279017
+675,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Extermination,"Right Hand",Beta,300,279030
+676,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Infantry,"Right Hand",Beta,300,279043
+677,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Support,"Right Hand",Beta,300,279056
+678,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Artillery,Feet,Beta,300,278904
+679,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Control,Feet,Beta,300,279021
+680,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Extermination,Feet,Beta,300,279034
+681,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Infantry,Feet,Beta,300,279047
+682,"Deranged Xan","LoX Hub","LoX Boss",300,"LoX Hub South",Support,Feet,Beta,300,279060
+683,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Ocular,Intelligent,300,219139
+684,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Ocular,Intelligent,300,236299
+685,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Ocular,Intelligent,300,235849
+686,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Ocular,Intelligent,300,235631
+687,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Ocular,Intelligent,300,236074
+688,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Brain,Intelligent,300,235422
+689,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Brain,Intelligent,300,236314
+690,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Brain,Intelligent,300,235866
+691,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Brain,Intelligent,300,235646
+692,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Brain,Intelligent,300,236091
+693,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Ear,Intelligent,300,235440
+694,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Ear,Intelligent,300,236331
+695,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Ear,Intelligent,300,235883
+696,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Ear,Intelligent,300,235663
+697,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Ear,Intelligent,300,236108
+698,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Left Arm",Intelligent,300,235492
+699,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Arm",Intelligent,300,236384
+700,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Arm",Intelligent,300,235935
+701,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Left Arm",Intelligent,300,235713
+702,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Left Arm",Intelligent,300,236164
+703,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Chest,Intelligent,300,235475
+704,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Chest,Intelligent,300,236366
+705,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Chest,Intelligent,300,235918
+706,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Chest,Intelligent,300,235696
+707,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Chest,Intelligent,300,236143
+708,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Right Arm",Intelligent,300,235457
+709,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Arm",Intelligent,300,236349
+710,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Arm",Intelligent,300,235901
+711,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Right Arm",Intelligent,300,235680
+712,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Right Arm",Intelligent,300,236124
+713,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Left Wrist",Intelligent,300,235544
+714,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Wrist",Intelligent,300,236437
+715,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Wrist",Intelligent,300,235987
+716,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Left Wrist",Intelligent,300,235763
+717,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Left Wrist",Intelligent,300,236218
+718,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Waist,Intelligent,300,235527
+719,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Waist,Intelligent,300,236420
+720,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Waist,Intelligent,300,235969
+721,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Waist,Intelligent,300,235746
+722,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Waist,Intelligent,300,236200
+723,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Right Wrist",Intelligent,300,235509
+724,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Wrist",Intelligent,300,236402
+725,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Wrist",Intelligent,300,235952
+726,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Right Wrist",Intelligent,300,235729
+727,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Right Wrist",Intelligent,300,236183
+728,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Left Hand",Intelligent,300,235596
+729,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Hand",Intelligent,300,236489
+730,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Hand",Intelligent,300,236040
+731,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Left Hand",Intelligent,300,235815
+732,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Left Hand",Intelligent,300,236268
+733,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Thigh,Intelligent,300,235579
+734,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Thigh,Intelligent,300,236473
+735,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Thigh,Intelligent,300,236023
+736,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Thigh,Intelligent,300,235798
+737,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Thigh,Intelligent,300,236252
+738,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Right Hand",Intelligent,300,235562
+739,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Hand",Intelligent,300,236455
+740,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Hand",Intelligent,300,236005
+741,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Right Hand",Intelligent,300,235781
+742,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Right Hand",Intelligent,300,236235
+743,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Feet,Intelligent,300,235614
+744,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Feet,Intelligent,300,236505
+745,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Feet,Intelligent,300,236057
+746,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Feet,Intelligent,300,235833
+747,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Feet,Intelligent,300,236284
+748,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Hand",Excited,250,236454
+749,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Hand",Effective,240,236486
+750,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Thigh,Excited,250,236471
+751,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Feet,Excited,250,236503
+752,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Waist,Vital,260,236418
+753,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Feet,Cognizant,270,236504
+754,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Arm",Cognizant,270,236383
+755,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Wrist",Cognizant,270,236400
+756,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Chest,Alert,280,236365
+757,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Hand",Alert,280,236488
+758,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Wrist",Conscious,290,236401
+759,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Wrist",Conscious,290,236436
+760,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Chest,Vital,260,235473
+761,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Left Arm",Conscious,290,235491
+762,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Waist,Conscious,290,235526
+763,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Thigh,Alert,280,235577
+764,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Thigh,Conscious,290,235578
+765,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Feet,Conscious,290,235613
+766,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Right Hand",Alert,280,235561
+767,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Chest,Conscious,290,235474
+768,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Ear,Cognizant,270,236330
+769,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Right Arm",Cognizant,270,236348
+770,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,Thigh,Conscious,290,236472
+771,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Brain,Cognizant,270,235865
+772,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Ear,Cognizant,270,235882
+773,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Arm",Vital,260,235898
+774,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Arm",Conscious,290,235900
+775,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Arm",Alert,280,235934
+776,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Waist,Conscious,290,235968
+777,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Wrist",Persisting,220,235983
+778,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Wrist",Excited,250,235984
+779,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Hand",Conscious,290,236004
+780,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Thigh,Cognizant,270,236021
+781,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Thigh,Conscious,290,236022
+782,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Hand",Persisting,220,236036
+783,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Hand",Effective,240,236037
+784,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Hand",Alert,280,236038
+785,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Hand",Conscious,290,236039
+786,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Right Wrist",Alert,280,235727
+787,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Right Wrist",Conscious,290,235728
+788,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Left Wrist",Conscious,290,235762
+789,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Thigh,Cognizant,270,235797
+790,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Left Hand",Conscious,290,235814
+791,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Feet,Cognizant,270,235831
+792,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Right Arm",Conscious,290,236123
+793,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Chest,Conscious,290,236142
+794,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Left Arm",Vital,260,236161
+795,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Feet,Conscious,290,235832
+796,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Ocular,Conscious,290,219138
+797,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,Brain,Conscious,290,235421
+798,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Left Wrist",Conscious,290,235543
+799,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Arm",Effective,240,236380
+800,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Ear,Excited,250,235881
+801,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Feet,Effective,240,236053
+802,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Arm",Excited,250,235897
+803,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Arm",Alert,280,235899
+804,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Waist,Alert,280,235967
+805,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,Chest,Conscious,290,235917
+806,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Right Wrist",Conscious,290,235951
+807,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,"Right Hand",Conscious,290,235780
+808,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Waist,Conscious,290,235745
+809,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Feet,Cognizant,270,236281
+810,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,"Left Arm",Conscious,290,236163
+811,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Support,Thigh,Conscious,290,236251
+812,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Artillery,"Right Wrist",Cognizant,270,235508
+813,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Control,"Left Hand",Excited,250,236487
+814,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Extermination,"Left Arm",Excited,250,235932
+815,"The Night Heart",Pandemonion,Zodiac,300,Pandemonium,Infantry,Brain,Conscious,290,235645
+816,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Ocular,Alpha,300,278945
+817,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Ocular,Alpha,300,278958
+818,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Ocular,Alpha,300,278971
+819,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Ocular,Alpha,300,278984
+820,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Ocular,Alpha,300,278997
+821,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Brain,Alpha,300,278944
+822,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Brain,Alpha,300,278957
+823,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Brain,Alpha,300,278970
+824,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Brain,Alpha,300,278983
+825,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Brain,Alpha,300,278996
+826,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Ear,Alpha,300,278946
+827,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Ear,Alpha,300,278959
+828,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Ear,Alpha,300,278972
+829,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Ear,Alpha,300,278985
+830,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Ear,Alpha,300,278998
+831,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,"Left Arm",Alpha,300,278948
+832,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,"Left Arm",Alpha,300,278961
+833,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,"Left Arm",Alpha,300,278974
+834,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,"Left Arm",Alpha,300,278987
+835,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,"Left Arm",Alpha,300,279000
+836,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Chest,Alpha,300,278947
+837,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Chest,Alpha,300,278960
+838,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Chest,Alpha,300,278973
+839,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Chest,Alpha,300,278986
+840,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Chest,Alpha,300,278999
+841,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,"Right Arm",Alpha,300,278951
+842,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,"Right Arm",Alpha,300,278964
+843,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,"Right Arm",Alpha,300,278977
+844,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,"Right Arm",Alpha,300,278990
+845,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,"Right Arm",Alpha,300,279003
+846,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,"Left Wrist",Alpha,300,278950
+847,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,"Left Wrist",Alpha,300,278963
+848,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,"Left Wrist",Alpha,300,278976
+849,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,"Left Wrist",Alpha,300,278989
+850,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,"Left Wrist",Alpha,300,279002
+851,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Waist,Alpha,300,278954
+852,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Waist,Alpha,300,278967
+853,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Waist,Alpha,300,278980
+854,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Waist,Alpha,300,278993
+855,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Waist,Alpha,300,279006
+856,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,"Right Wrist",Alpha,300,278953
+857,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,"Right Wrist",Alpha,300,278966
+858,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,"Right Wrist",Alpha,300,278979
+859,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,"Right Wrist",Alpha,300,278992
+860,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,"Right Wrist",Alpha,300,279005
+861,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,"Left Hand",Alpha,300,278949
+862,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,"Left Hand",Alpha,300,278962
+863,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,"Left Hand",Alpha,300,278975
+864,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,"Left Hand",Alpha,300,278988
+865,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,"Left Hand",Alpha,300,279001
+866,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Thigh,Alpha,300,278955
+867,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Thigh,Alpha,300,278968
+868,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Thigh,Alpha,300,278981
+869,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Thigh,Alpha,300,278994
+870,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Thigh,Alpha,300,279007
+871,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,"Right Hand",Alpha,300,278952
+872,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,"Right Hand",Alpha,300,278965
+873,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,"Right Hand",Alpha,300,278978
+874,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,"Right Hand",Alpha,300,278991
+875,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,"Right Hand",Alpha,300,279004
+876,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Artillery,Feet,Alpha,300,278956
+877,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Control,Feet,Alpha,300,278969
+878,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Extermination,Feet,Alpha,300,278982
+879,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Infantry,Feet,Alpha,300,278995
+880,"Intelligent+Beta combine",Anywhere,"TNH+LoX boss",300,Anywhere,Support,Feet,Alpha,300,279008
+881,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Ocular,Special,1,305507
+882,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Left Wrist,Special,1,305505
+883,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Ocular,Special,1,305510
+884,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Chest,Special,1,305509
+885,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Left Wrist,Special,1,305513
+886,"Nematet the Subjugator of Time","TOTW Raid","Boss",300,"Central path",Special,Brain,Special,1,305504
+887,"Gartua the Gate Guardian","TOTW Raid","Boss",300,"Right path",Special,Chest,Special,1,305509
+888,"Gartua the Gate Guardian","TOTW Raid","Boss",300,"Right path",Special,Waist,Special,1,305508
+889,"Gartua the Doorkeeper","TOTW","Boss",300,"Right path",Special,Waist,Special,1,204650
+890,"Nematet the Custodian of Time","TOTW","Boss",300,"Central path",Special,Ocular,Special,1,204613
+891,"Nematet the Custodian of Time","TOTW","Boss",300,"Central path",Special,Brain,Special,1,204647
+892,"Nematet the Custodian of Time","TOTW","Boss",300,"Central path",Special,Right Arm,Special,1,204651
+893,"Aztur the Immortal","TOTW","Boss",300,"Central path",Special,Brain,Special,1,204647
+894,"Defender of the Three","TOTW","Boss",300,"Central hall",Special,Left Wrist,Special,1,204649
+895,"The Curator","TOTW","Boss",300,"Central path",Special,Right Arm,Special,1,204651
+896,"Dominus Ummoh the Pedagogue","Inner Sanctum","Side Boss",300,"Boss room",Special,Brain,Special,1,206246
+897,"Hezak the Immortal","Inner Sanctum","Boss",300,"Boss room",Special,Brain,Special,1,206246
+898,"Inobak the Gelid","Inner Sanctum","Boss",300,"Boss room",Special,Brain,Special,1,206246
+899,"Inobak the Gelid","Inner Sanctum","Boss",300,"Boss room",Special,Left Wrist,Special,1,206247
