@@ -31,12 +31,14 @@ Source:     {{{ git_dir_pack path="$(git rev-parse --show-toplevel)" source_name
 %define php_prefix %{nil}
 %define php_exec php
 %if 0%{?rhel} > 1
-%define php_prefix php80-
-%define php_exec php80
+%define php_prefix php81-
+%define php_exec php81
 %endif
-BuildRequires: %{php_prefix}php-cli >= 8.0
+BuildRequires: %{php_prefix}php-cli >= 8.1.17
 BuildRequires: curl
 BuildRequires: sed
+BuildRequires: nodejs
+BuildRequires: nodejs-npm
 BuildRequires: %{php_prefix}php-pdo
 %if 0%{?suse_version}
 BuildRequires: %{php_prefix}php-fileinfo
@@ -69,7 +71,7 @@ Requires(pre): shadow
 %else
 Requires(pre): shadow-utils
 %endif
-Requires: %{php_prefix}php-cli >= 8.0
+Requires: %{php_prefix}php-cli >= 8.1.17
 Requires: %{php_prefix}php-pdo
 %if 0%{?suse_version}
 Requires: %{php_prefix}php-fileinfo
@@ -113,7 +115,9 @@ exit 0
 curl -o composer-stable.phar https://getcomposer.org/composer-stable.phar
 %{php_exec} composer-stable.phar install --no-dev
 %{php_exec} composer-stable.phar dumpautoload --no-dev --optimize
+src/Scripts/compile-ui.sh install
 rm -f composer-stable.phar
+sed -i'' -e "s/public const COMMIT = '';/public const COMMIT = '$(git rev-parse HEAD)';/" src/Core/BotRunner.php
 sed -i'' -e 's|\$vars\[.enable_console_client.\].*|$vars["enable_console_client"] = 0;|g' conf/config.template.php
 sed -i'' -e 's|\$vars\[.default_module_status.\].*|$vars["default_module_status"] = 1;|g' conf/config.template.php
 sed -i'' -e 's|\$vars\[.DB Name.\].*|$vars["DB Name"] = $vars["name"] . ".db";|g' conf/config.template.php
