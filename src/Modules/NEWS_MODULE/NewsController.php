@@ -404,7 +404,7 @@ class NewsController extends ModuleInstance {
 
 	/** Get a single news item by id */
 	#[
-		NCA\Api('/news/%d'),
+		NCA\Api('/news/%s'),
 		NCA\GET,
 		NCA\AccessLevelFrom('news'),
 		NCA\ApiResult(code: 200, class: 'News', desc: 'The requested news item'),
@@ -423,7 +423,7 @@ class NewsController extends ModuleInstance {
 		NCA\Api('/news'),
 		NCA\POST,
 		NCA\AccessLevelFrom(self::CMD_NEWS_MANAGE),
-		NCA\RequestBody(class: 'NewNews', desc: 'The item to create', required: true),
+		NCA\RequestBody(class: 'News', desc: 'The item to create', required: true),
 		NCA\ApiResult(code: 204, desc: 'The news item was created successfully')
 	]
 	public function apiNewsCreateEndpoint(Request $request): Response {
@@ -463,10 +463,10 @@ class NewsController extends ModuleInstance {
 
 	/** Modify an existing news item */
 	#[
-		NCA\Api('/news/%d'),
+		NCA\Api('/news/%s'),
 		NCA\PATCH,
 		NCA\AccessLevelFrom(self::CMD_NEWS_MANAGE),
-		NCA\RequestBody(class: 'NewNews', desc: 'The new data for the item', required: true),
+		NCA\RequestBody(class: 'News', desc: 'The new data for the item', required: true),
 		NCA\ApiResult(code: 200, class: 'News', desc: 'The news item it is now')
 	]
 	public function apiNewsModifyEndpoint(Request $request, string $id): Response {

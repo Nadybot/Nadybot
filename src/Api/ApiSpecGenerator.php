@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	Registry,
 	Safe,
 };
+use Ramsey\Uuid\UuidInterface;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -135,6 +136,12 @@ class ApiSpecGenerator {
 		}
 		$refClass = new ReflectionClass($class);
 		$refProps = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
+		usort(
+			$refProps,
+			static function (ReflectionProperty $a, ReflectionProperty $b): int {
+				return strnatcmp($a->getName(), $b->getName());
+			}
+		);
 		$refDoc = $refClass->getDocComment();
 		$description = $this->getDescriptionFromComment(is_string($refDoc) ? $refDoc : '');
 		$newResult = [
@@ -476,6 +483,8 @@ class ApiSpecGenerator {
 				} else {
 					$types []= $refType->getName();
 				}
+			} elseif (is_a($refType->getName(), UuidInterface::class, true)) {
+				$types []= 'string';
 			} elseif (is_a($refType->getName(), DateTimeInterface::class, true)) {
 				$types []= 'integer';
 			} else {
