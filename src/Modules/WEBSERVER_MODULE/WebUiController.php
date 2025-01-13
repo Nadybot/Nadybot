@@ -7,8 +7,10 @@ use function Amp\File\openFile;
 use function Safe\tempnam;
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use Amp\{CancelledException, TimeoutCancellation};
 use ErrorException;
 use Exception;
+use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -53,8 +55,8 @@ class WebUiController extends ModuleInstance {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
-	#[NCA\Setup]
-	public function setup(): void {
+	#[NCA\Event(name: ConnectEvent::EVENT_MASK, description: 'Download missing NadyUI')]
+	public function onConnect(ConnectEvent $event): void {
 		$commit = BotRunner::getCommit();
 		$this->logger->debug('Current HEAD commit is {commit}', ['commit' => $commit]);
 		$path = $this->config->paths->html;
@@ -177,14 +179,14 @@ class WebUiController extends ModuleInstance {
 	}
 
 	protected function createAdminLogin(): void {
-		if (!$this->settingManager->getBool('webserver')) {
+		if (!$this->webserverController->webserver) {
 			return;
 		}
-		if ($this->settingManager->getString('webserver_auth') !== WebserverController::AUTH_BASIC) {
+		if ($this->webserverController->webserverAuth !== WebserverController::AUTH_BASIC) {
 			return;
 		}
 		$schema = 'http';
-		$port = $this->settingManager->getInt('webserver_port');
+		$port = $this->webserverController->webserverPort;
 		if (!count($this->config->general->superAdmins)) {
 			return;
 		}
@@ -229,7 +231,14 @@ class WebUiController extends ModuleInstance {
 		$uri = sprintf('https://artifacts.on.nadybot.org/%s.zip', $commit);
 		$client = $this->builder->build();
 
-		$response = $client->request(new Request($uri));
+		try {
+			$response = $client->request(new Request($uri), new TimeoutCancellation(10));
+		} catch (CancelledException $e) {
+			throw new Exception(
+				message: "Downloading the WebUI took too long. Retry manually with '!webui install'",
+				previous: $e
+			);
+		}
 		if ($response->getStatus() === 404) {
 			throw new Exception("No release found for {$commit}.");
 		} elseif ($response->getStatus() !== 200) {
