@@ -418,28 +418,6 @@
 					}
 				}
 			},
-			"Faction": {
-				"type": "object",
-				"properties": {
-					"name": {
-						"type": "string"
-					},
-					"value": {
-						"type": "string"
-					}
-				}
-			},
-			"Profession": {
-				"type": "object",
-				"properties": {
-					"name": {
-						"type": "string"
-					},
-					"value": {
-						"type": "string"
-					}
-				}
-			},
 			"Player": {
 				"type": "object",
 				"properties": {
@@ -465,7 +443,13 @@
 						"description": "In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19"
 					},
 					"faction": {
-						"$ref": "#/components/schemas/Faction",
+						"type": "string",
+						"enum": [
+							"Neutral",
+							"Omni",
+							"Clan",
+							"Unknown"
+						],
 						"description": "Omni, Clan, Neutral or an empty string if unknown"
 					},
 					"first_name": {
@@ -524,8 +508,25 @@
 						"description": "The title-level title for the profession of this player For example \"The man\", \"Don\" or empty if unknown."
 					},
 					"profession": {
-						"$ref": "#/components/schemas/Profession",
+						"type": "string",
 						"nullable": true,
+						"enum": [
+							"Adventurer",
+							"Agent",
+							"Bureaucrat",
+							"Doctor",
+							"Enforcer",
+							"Engineer",
+							"Fixer",
+							"Keeper",
+							"Martial Artist",
+							"Meta-Physicist",
+							"Nano-Technician",
+							"Shade",
+							"Soldier",
+							"Trader",
+							"Unknown"
+						],
 						"description": "The long profession name (e.g. \"Enforcer\", not \"enf\" or \"enfo\") or an empty string if unknown"
 					},
 					"pvp_rating": {
@@ -847,6 +848,10 @@
 					},
 					"endianness": {
 						"type": "string",
+						"enum": [
+							"big-endian",
+							"little-endian"
+						],
 						"description": "Which endianness (little-endian, big-endian) are we running on?"
 					},
 					"event_loop": {

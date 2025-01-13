@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Safe\json_encode;
+
+use BackedEnum;
 use DateTimeInterface;
 use Nadybot\Core\Attributes\JSON;
 use ReflectionClass;
@@ -19,6 +21,9 @@ class JsonExporter {
 		}
 		if ($data instanceof DateTimeInterface) {
 			return (string)$data->getTimestamp();
+		}
+		if ($data instanceof BackedEnum) {
+			return static::jsonEncode($data->value);
 		}
 		if (is_array($data)) {
 			if (!count($data)) {

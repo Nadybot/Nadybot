@@ -4,6 +4,7 @@ namespace Nadybot\Api;
 
 use function Safe\{glob, preg_match};
 
+use BackedEnum;
 use DateTimeInterface;
 use Exception;
 use Nadybot\Core\{
@@ -183,6 +184,11 @@ class ApiSpecGenerator {
 			$refType = $refProp->getType();
 			if (!$refType || $refType->allowsNull()) {
 				$newResult['properties'][$nameAndType[0]]['nullable'] = true;
+			}
+			if ($refType instanceof ReflectionNamedType && is_a($refType->getName(), BackedEnum::class, true)) {
+				$enum = $refType->getName();
+				$values = array_map(static fn (BackedEnum $x): string|int => $x->value, $enum::cases());
+				$newResult['properties'][$nameAndType[0]]['enum'] = $values;
 			}
 			if (isset($nameAndType[2]) && strlen($nameAndType[2])) {
 				$newResult['properties'][$nameAndType[0]]['description'] = $nameAndType[2];
@@ -494,6 +500,16 @@ class ApiSpecGenerator {
 				}
 			} elseif (is_a($refType->getName(), UuidInterface::class, true)) {
 				$types []= 'string';
+			} elseif (is_a($refType->getName(), BackedEnum::class, true)) {
+				$enum = $refType->getName();
+				$first = $enum::cases()[0]->value;
+				if (is_string($first)) {
+					$types []= 'string';
+				} elseif (is_int($first)) {
+					$types []= 'integer';
+				} else {
+					throw new Exception('Cannot infer enum type for ' . $refType->getName());
+				}
 			} elseif (is_a($refType->getName(), DateTimeInterface::class, true)) {
 				$types []= 'integer';
 			} else {
