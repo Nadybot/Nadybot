@@ -182,34 +182,31 @@ class WebUiController extends ModuleInstance {
 		if (!$this->webserverController->webserver) {
 			return;
 		}
-		if ($this->webserverController->webserverAuth !== WebserverController::AUTH_BASIC) {
-			return;
-		}
-		$schema = 'http';
-		$port = $this->webserverController->webserverPort;
 		if (!count($this->config->general->superAdmins)) {
 			return;
 		}
 		$superUser = $this->config->general->superAdmins[0];
-		$uuid = $this->webserverController->authenticate($superUser, 6 * 3_600);
 		$this->logger->notice(
 			'>>> You can now configure this bot at {schema}://127.0.0.1:{port}/',
 			[
-				'schema' => $schema,
-				'port' => $port,
+				'schema' => 'http',
+				'port' => $this->webserverController->webserverPort,
 			]
 		);
-		$this->logger->notice('>>> Login with username "{username}" and password "{password}"', [
-			'username' => $superUser,
-			'password' => $uuid,
-		]);
-		$this->logger->notice(
-			'>>> Use the {symbol}webauth command to create a new password after '.
-			'this expired',
-			[
-				'symbol' => $this->settingManager->getString('symbol')??'!',
-			]
-		);
+		if ($this->webserverController->webserverAuth === WebserverController::AUTH_BASIC) {
+			$uuid = $this->webserverController->authenticate($superUser, 6 * 3_600);
+			$this->logger->notice('>>> Login with username "{username}" and password "{password}"', [
+				'username' => $superUser,
+				'password' => $uuid,
+			]);
+			$this->logger->notice(
+				'>>> Use the {symbol}webauth command to create a new password after '.
+				'this expired, or switch to aoauth',
+				[
+					'symbol' => $this->settingManager->getString('symbol')??'!',
+				]
+			);
+		}
 	}
 
 	private function unlink(string $path): bool {
