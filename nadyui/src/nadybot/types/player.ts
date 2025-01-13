@@ -53,7 +53,7 @@ export interface PlayerBase {
   readonly name: string;
   // The character's last name (the name after $name)
   readonly last_name: string;
-  // What level (1-220) is the characer or null if unknown
+  // What level (1-220) is the character or null if unknown
   readonly level: number;
   // Any of Nanomage, Solitus, Atrox or Opifex. Also empty string if unknown
   readonly breed: Breed;

@@ -120,7 +120,7 @@ export default defineComponent({
       await this.loadOnlineUsers();
       this.showAlert = false;
     },
-    // Sort two players by their leve primarily and AI level secondarily
+    // Sort two players by their level primarily and AI level secondarily
     levelSort(a: OnlinePlayer, b: OnlinePlayer): number {
       if (a.level == b.level) {
         if (a.ai_level > b.ai_level) {
