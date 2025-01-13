@@ -166,6 +166,7 @@ class ApiSpecGenerator {
 					'$ref' => $nameAndType[1],
 				];
 			} elseif (is_array($nameAndType[1])) {
+				$nameAndType[1] = array_values(array_diff($nameAndType[1], ['null']));
 				$newResult['properties'][$nameAndType[0]] = [
 					'oneOf' => array_map(
 						static function (string $type): array {
@@ -212,12 +213,20 @@ class ApiSpecGenerator {
 			if (!in_array($parentClass, [DBRow::class, DBTable::class], true)) {
 				$parentParts = explode('\\', $parentClass);
 				$this->addSchema($result, end($parentParts));
-				$newResult = [
-					'allOf' => [
-						['$ref' => '#/components/schemas/' . end($parentParts)],
-						$newResult,
-					],
-				];
+				if (!count($newResult['properties'])) {
+					$newResult = [
+						'allOf' => [
+							['$ref' => '#/components/schemas/' . end($parentParts)],
+						],
+					];
+				} else {
+					$newResult = [
+						'allOf' => [
+							['$ref' => '#/components/schemas/' . end($parentParts)],
+							$newResult,
+						],
+					];
+				}
 			}
 		}
 		$result[$className] = $newResult;
@@ -243,7 +252,7 @@ class ApiSpecGenerator {
 	 */
 	public function getSpec(array $mapping): array {
 		$result = [
-			'openapi' => '3.0.0',
+			'openapi' => '3.0.3',
 			'info' => $this->getInfoSpec(),
 			'servers' => [
 				['url' => '/api'],

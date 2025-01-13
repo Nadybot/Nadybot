@@ -1,5 +1,5 @@
 {
-	"openapi": "3.0.0",
+	"openapi": "3.0.3",
 	"info": {
 		"title": "Nadybot API",
 		"description": "This API provides access to Nadybot functions in a REST API",
@@ -284,10 +284,6 @@
 				"allOf": [
 					{
 						"$ref": "#/components/schemas/CmdCfg"
-					},
-					{
-						"type": "object",
-						"properties": []
 					}
 				]
 			},
@@ -386,9 +382,6 @@
 							},
 							{
 								"type": "boolean"
-							},
-							{
-								"type": "null"
 							}
 						],
 						"nullable": true,
