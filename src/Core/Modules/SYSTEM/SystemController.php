@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use function Safe\{ini_get, json_encode};
+use function Safe\{ini_get, json_encode, unpack};
 
 use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\Attributes\Confidential;
@@ -252,6 +252,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			event_loop: class_basename(EventLoop::getDriver()),
 			fs: class_basename($fsClass),
 			superadmins: $this->config->general->superAdmins,
+			endianness: (unpack('L', '1234') === unpack('V', '1234')) ? 'little-endian' : 'big-endian',
 		);
 		$memoryLimit = ini_get('memory_limit');
 		if (count($matches = Safe::pregMatch('/^(\d+)([kmg])$/i', $memoryLimit)) === 3) {
@@ -341,7 +342,11 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 				"<end>\n";
 		}
 		if (isset($info->basic->org)) {
-			$blob .= "<tab>Guild: <highlight>'{$info->basic->org}' ({$info->basic->org_id})<end>\n";
+			if (!isset($info->basic->org_id)) {
+				$blob .= "<tab>Guild: <highlight>'{$info->basic->org}'<end> is set, but not a member\n";
+			} else {
+				$blob .= "<tab>Guild: <highlight>'{$info->basic->org}' ({$info->basic->org_id})<end>\n";
+			}
 		} else {
 			$blob .= "<tab>Guild: - <highlight>none<end> -\n";
 		}
@@ -351,6 +356,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$blob .= "<tab>Event loop: <highlight>Amp {$info->basic->event_loop}<end> using ".
 			"<highlight>{$info->basic->fs}<end> filesystem\n";
 		$blob .= "<tab>OS: <highlight>{$info->basic->os}<end>\n";
+		$blob .= "<tab>Endianness: <highlight>{$info->basic->endianness}<end>\n";
 		$blob .= "<tab>Database: <highlight>{$info->basic->db_type}<end>\n\n";
 
 		$blob .= "<header2>Memory<end>\n";

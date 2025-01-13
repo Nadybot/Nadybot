@@ -28,6 +28,8 @@ export interface BasicSystemInformation {
   readonly fs: string;
   // Which operating system/kernel are we running?
   readonly os: string;
+  // Which endianness are we running?
+  readonly endianness: string;
   // Which database type (mysql/sqlite) are we using?
   readonly db_type: DatabaseType;
 }
@@ -134,6 +136,7 @@ const basicSystemInformationDecoderMapping = {
   event_loop: JsonDecoder.string,
   fs: JsonDecoder.string,
   os: JsonDecoder.string,
+  endianness: JsonDecoder.string,
   db_type: databaseTypeDecoder,
 };
 

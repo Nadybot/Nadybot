@@ -78,6 +78,10 @@
             <div class="text-end col-9">{{ info.basic.os }}</div>
           </li>
           <li class="list-group-item">
+            <div class="col-3">Endianness:</div>
+            <div class="text-end col-9">{{ info.basic.endianness }}</div>
+          </li>
+          <li class="list-group-item">
             <div class="col-3">DB type:</div>
             <div class="text-end col-9">{{ info.basic.db_type }}</div>
           </li>

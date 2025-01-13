@@ -15,6 +15,7 @@ class BasicSystemInformation {
 	 * @param string   $fs          Which file system driver are we running?
 	 * @param string   $os          Which operating system/kernel are we running?
 	 * @param string   $db_type     Which database type (mysql/sqlite) are we using?
+	 * @param string   $endianness  Which endianness (little-endian, big-endian) are we running on?
 	 *
 	 * @psalm-param list<string> $superadmins
 	 * @psalm-param list<string> $workers
@@ -31,6 +32,7 @@ class BasicSystemInformation {
 		public string $fs,
 		public string $os,
 		public string $db_type,
+		public string $endianness,
 	) {
 	}
 }
