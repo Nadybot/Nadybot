@@ -525,7 +525,8 @@
 							"Shade",
 							"Soldier",
 							"Trader",
-							"Unknown"
+							"Unknown",
+							null
 						],
 						"description": "The long profession name (e.g. \"Enforcer\", not \"enf\" or \"enfo\") or an empty string if unknown"
 					},

@@ -189,6 +189,9 @@ class ApiSpecGenerator {
 				$enum = $refType->getName();
 				$values = array_map(static fn (BackedEnum $x): string|int => $x->value, $enum::cases());
 				$newResult['properties'][$nameAndType[0]]['enum'] = $values;
+				if ($refType->allowsNull()) {
+					$newResult['properties'][$nameAndType[0]]['enum'] []= null;
+				}
 			}
 			if (isset($nameAndType[2]) && strlen($nameAndType[2])) {
 				$newResult['properties'][$nameAndType[0]]['description'] = $nameAndType[2];
