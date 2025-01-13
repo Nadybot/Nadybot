@@ -18,5 +18,5 @@ jobs:
         - name: Upload zip
           shell: bash
           run: |
-            curl -H "Authorization: ${{ secrets.UPLOAD_TOKEN }}" "https://artifacts.on.nadybot.org/$(git rev-parse HEAD).zip" --data-binary @nadyui/nadyui.zip
+            curl -H "Authorization: ${{ secrets.UPLOAD_TOKEN }}" "https://artifacts.on.nadybot.org/nadyui/$(git rev-parse HEAD).zip" --data-binary @nadyui/nadyui.zip
 

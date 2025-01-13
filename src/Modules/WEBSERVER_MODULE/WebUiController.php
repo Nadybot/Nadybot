@@ -37,6 +37,8 @@ use ZipArchive;
 	NCA\HasMigrations
 ]
 class WebUiController extends ModuleInstance {
+	public const ARTIFACTS = 'https://artifacts.on.nadybot.org/nadyui/%s.zip';
+
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
@@ -225,7 +227,7 @@ class WebUiController extends ModuleInstance {
 					'you must have the PHP Zip extension installed.'
 			);
 		}
-		$uri = sprintf('https://artifacts.on.nadybot.org/%s.zip', $commit);
+		$uri = sprintf(self::ARTIFACTS, $commit);
 		$client = $this->builder->build();
 
 		try {
