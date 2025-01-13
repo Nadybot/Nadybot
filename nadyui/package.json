@@ -8,7 +8,7 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build-dev": "vue-cli-service build --mode development",
+    "build-dev": "vue-cli-service build --mode development --no-clean --watch --dest ../html",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
