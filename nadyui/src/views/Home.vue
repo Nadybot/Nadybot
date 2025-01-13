@@ -9,6 +9,28 @@
             <div class="col-3">Bot name:</div>
             <div class="text-end col-9">{{ info.basic.bot_name }}</div>
           </li>
+          <li class="list-group-item" v-if="0 < info.basic.workers.length">
+            <div class="col-3">
+              <span v-if="1 === info.basic.workers.length">Worker:</span>
+              <span v-else>Workers:</span>
+            </div>
+            <div class="text-end col-9">
+              <ul class="list-inline">
+                <li
+                  v-for="(worker, index) in info.basic.workers"
+                  :key="worker"
+                  class="list-inline-item"
+                >
+                  <span v-if="index + 1 < info.basic.workers.length">
+                    {{ worker }},
+                  </span>
+                  <span v-else>
+                    {{ worker }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </li>
           <li class="list-group-item">
             <div class="col-3">Superadmins:</div>
             <div class="text-end col-9">
@@ -30,7 +52,10 @@
           </li>
           <li class="list-group-item" v-if="info.basic.org">
             <div class="col-3">Org:</div>
-            <div class="text-end col-9">{{ info.basic.org }}</div>
+            <div v-if="null === info.basic.org_id" class="text-end col-9">
+              ({{ info.basic.org }})
+            </div>
+            <div v-else class="text-end col-9">{{ info.basic.org }}</div>
           </li>
           <li class="list-group-item">
             <div class="col-3">Bot version:</div>

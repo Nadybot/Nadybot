@@ -97,6 +97,9 @@
 		"test" : "./src/Scripts/tests.sh",
 		"compile-ui" : "./src/Scripts/compile-ui.sh",
 		"install-ui" : "./src/Scripts/compile-ui.sh install",
-		"test-ui" : "cd nadyui && npm run build-dev"
+		"test-ui" : [
+			"Composer\\Config::disableProcessTimeout",
+			"cd nadyui && npm run build-dev"
+		]
 	}
 }
