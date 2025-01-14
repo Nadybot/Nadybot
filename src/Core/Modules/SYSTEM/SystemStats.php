@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+/** Internal bot-system statistics */
 class SystemStats {
 	/**
 	 * @param int $buddy_list_size     How many characters are currently on the friendlist

@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\Types\SettingMode;
 
+/** A setting of the bot */
 class ModuleSetting {
 	public const TYPE_BOOL = 'bool';
 	public const TYPE_TEXT = 'text';

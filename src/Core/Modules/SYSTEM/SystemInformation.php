@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+/** A collection of several statistics and config options of the bot */
 class SystemInformation {
 	/**
 	 * @param BasicSystemInformation $basic    Basic information like OS

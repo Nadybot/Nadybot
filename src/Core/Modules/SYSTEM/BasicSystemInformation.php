@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+/** Basic information about the bot, like OS, architecture, bot name, workers, and org */
 class BasicSystemInformation {
 	/**
 	 * @param string     $bot_name    Name of the bot character in AO

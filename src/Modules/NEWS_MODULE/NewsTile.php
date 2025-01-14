@@ -10,6 +10,7 @@ use ReflectionNamedType;
 use ReflectionUnionType;
 use RuntimeException;
 
+/** A news tile with name and description */
 class NewsTile {
 	/**
 	 * @param string  $name        The name of this news tile

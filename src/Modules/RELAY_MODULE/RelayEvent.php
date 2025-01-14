@@ -6,6 +6,7 @@ use Nadybot\Core\{Attributes as NCA, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'relay_event')]
+/** Configuration for routable events on a relay */
 class RelayEvent extends DBTable {
 	/** The id of the relay event. Lower id means higher priority */
 

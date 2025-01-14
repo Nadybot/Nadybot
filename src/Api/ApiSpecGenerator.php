@@ -24,6 +24,9 @@ use ReflectionProperty;
 use ReflectionUnionType;
 
 class ApiSpecGenerator {
+	/** @var array<string,string> */
+	private array $tags = [];
+
 	public function loadClasses(): void {
 		// @phpstan-ignore-next-line
 		foreach (glob(__DIR__ . '/../Core/DBSchema/*.php') ?: [] as $file) {
@@ -194,7 +197,9 @@ class ApiSpecGenerator {
 				}
 			}
 			if (isset($nameAndType[2]) && strlen($nameAndType[2])) {
-				$newResult['properties'][$nameAndType[0]]['description'] = $nameAndType[2];
+				if (!is_string($nameAndType[1]) || substr($nameAndType[1], 0, 1) !== '#') {
+					$newResult['properties'][$nameAndType[0]]['description'] = $nameAndType[2];
+				}
 			}
 			if ($nameAndType[1] === 'array') {
 				$docBlock = $refProp->getDocComment();
@@ -236,6 +241,12 @@ class ApiSpecGenerator {
 						],
 					];
 				}
+				if (strlen($description)) {
+					$newResult['description'] = $description;
+				}
+				if (isset($newResult['allOf'][1])) {
+					unset($newResult['allOf'][1]['description']);
+				}
 			}
 		}
 		$result[$className] = $newResult;
@@ -266,16 +277,17 @@ class ApiSpecGenerator {
 			'servers' => [
 				['url' => '/api'],
 			],
+			'tags' => [],
 			'components' => [
 				'schemas' => [],
 				'securitySchemes' => [
 					'basicAuth' => [
 						'type' => 'http',
 						'scheme' => 'basic',
+						'description' => 'Login with user/password',
 					],
 				],
 			],
-
 		];
 		$newResult = [];
 		foreach ($mapping as $path => $refMethods) {
@@ -317,6 +329,12 @@ class ApiSpecGenerator {
 				}
 			}
 			$result['paths'] = $newResult;
+		}
+		foreach ($this->tags as $tag => $description) {
+			$result['tags'] []= [
+				'name' => $tag,
+				'description' => $description,
+			];
 		}
 		return $result;
 	}
@@ -402,7 +420,9 @@ class ApiSpecGenerator {
 		}
 		$dir = dirname($fileName);
 		if (count($matches = Safe::pregMatch('{(?:/|^)([A-Z_]+)(?:/|$)}', $dir))) {
-			$doc->tags = [strtolower(Safe::pregReplace('/_MODULE/', '', $matches[1]))];
+			$tag = strtolower(Safe::pregReplace('/_MODULE/', '', $matches[1]));
+			$doc->tags = [$tag];
+			$this->tags[$tag] = "Module \"{$matches[1]}\"";
 		}
 		foreach ($method->getAttributes() as $attr) {
 			$attr = $attr->newInstance();
@@ -410,6 +430,9 @@ class ApiSpecGenerator {
 				$doc->responses[$attr->code] = $attr;
 			} elseif ($attr instanceof NCA\ApiTag) {
 				$doc->tags []= $attr->tag;
+				if (!isset($this->tags[$attr->tag])) {
+					$this->tags[$attr->tag] = "Functions for {$attr->tag}";
+				}
 			} elseif ($attr instanceof NCA\RequestBody) {
 				$doc->requestBody = $attr;
 			} elseif ($attr instanceof NCA\VERB) {

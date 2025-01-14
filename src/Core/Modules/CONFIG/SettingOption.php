@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+/** This represents an option for a bot-setting*/
 class SettingOption {
 	/**
 	 * @param string     $name  Name of this option for displaying

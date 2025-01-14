@@ -7,6 +7,7 @@ use Nadybot\Core\Attributes\JSON;
 use Nadybot\Core\DBSchema\CmdPermSetMapping;
 use Nadybot\Core\Safe;
 
+/** The full configuration for a single command source */
 class CmdSourceMapping {
 	/**
 	 * @param string  $source               The name of this command source

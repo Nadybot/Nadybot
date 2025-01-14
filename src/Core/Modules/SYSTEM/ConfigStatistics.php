@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+/** Amount of active commands, aliases, events, etc. */
 class ConfigStatistics {
 	/**
 	 * @param ChannelCommandStats[] $active_commands      Number of commands activated for each channel

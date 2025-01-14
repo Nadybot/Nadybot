@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Nadybot\Core\DBSchema\EventCfg;
 
+/** A user-controllable event of the bot */
 class ModuleEventConfig {
 	/**
 	 * @param string $event       The event for this module

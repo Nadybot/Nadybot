@@ -69,7 +69,13 @@ class ConfigApiController extends ModuleInstance {
 		return ApiResponse::create($this->configController->getModules());
 	}
 
-	/** Activate or deactivate an event */
+	/**
+	 * Activate or deactivate an event
+	 *
+	 * @param string $module  The name of the module this event is provided by
+	 * @param string $event   The name of the event to activate/deactivate
+	 * @param string $handler The handler for the event, as returned by the API
+	 */
 	#[
 		NCA\Api('/module/%s/events/%s/%s'),
 		NCA\PATCH,
@@ -108,7 +114,12 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
-	/** Change a setting's value */
+	/**
+	 * Change a setting's value
+	 *
+	 * @param string $module  The name of the module this setting is provided by
+	 * @param string $setting The name of the setting to change
+	 */
 	#[
 		NCA\Api('/module/%s/settings/%s'),
 		NCA\PATCH,
@@ -189,7 +200,13 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
-	/** Activate or deactivate a Command */
+	/**
+	 * Activate or deactivate a Command for a single command-channel
+	 *
+	 * @param string $module  The name of the module this command is provided by
+	 * @param string $command The name of the command to activate/deactivate
+	 * @param string $channel The name of the command-channel this change should apply to
+	 */
 	#[
 		NCA\Api('/module/%s/commands/%s/%s'),
 		NCA\PATCH,
@@ -244,7 +261,12 @@ class ConfigApiController extends ModuleInstance {
 		return ApiResponse::create($moduleCommand);
 	}
 
-	/** Activate or deactivate a command */
+	/**
+	 * Activate or deactivate a command for all channels
+	 *
+	 * @param string $module  The name of the module this command is provided by
+	 * @param string $command The name of the command to activate/deactivate
+	 */
 	#[
 		NCA\Api('/module/%s/commands/%s'),
 		NCA\PATCH,
@@ -282,7 +304,11 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(status: HttpStatus::NOT_FOUND);
 	}
 
-	/** Activate or deactivate a module */
+	/**
+	 * Activate or deactivate a whole module
+	 *
+	 * @param string $module The name of the module that should be changed
+	 */
 	#[
 		NCA\Api('/module/%s'),
 		NCA\PATCH,
@@ -314,7 +340,11 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(status: HttpStatus::NOT_FOUND);
 	}
 
-	/** Get the description of a module */
+	/**
+	 * Get the description of a module
+	 *
+	 * @param string $module The name of the module
+	 */
 	#[
 		NCA\Api('/module/%s/description'),
 		NCA\GET,
@@ -330,7 +360,11 @@ class ConfigApiController extends ModuleInstance {
 		return ApiResponse::create($description);
 	}
 
-	/** Get a list of available settings for a module */
+	/**
+	 * Get a list of available settings for a module
+	 *
+	 * @param string $module The name of the module
+	 */
 	#[
 		NCA\Api('/module/%s/settings'),
 		NCA\GET,
@@ -366,7 +400,11 @@ class ConfigApiController extends ModuleInstance {
 		return ApiResponse::create($result);
 	}
 
-	/** Get a list of available events for a module */
+	/**
+	 * Get a list of available events for a module
+	 *
+	 * @param string $module The name of the module
+	 */
 	#[
 		NCA\Api('/module/%s/events'),
 		NCA\GET,
@@ -384,7 +422,11 @@ class ConfigApiController extends ModuleInstance {
 		return ApiResponse::create($events->toArray());
 	}
 
-	/** Get a list of available commands for a module */
+	/**
+	 * Get a list of available commands for a module
+	 *
+	 * @param string $module The name of the module
+	 */
 	#[
 		NCA\Api('/module/%s/commands'),
 		NCA\GET,
@@ -428,7 +470,11 @@ class ConfigApiController extends ModuleInstance {
 		return ApiResponse::create($this->commandManager->getExtPermissionSets()->toArray());
 	}
 
-	/** Get a permission set by its name */
+	/**
+	 * Get a permission set by its name
+	 *
+	 * @param string $name The name of the permission set
+	 */
 	#[
 		NCA\Api('/permission_set/%s'),
 		NCA\GET,
@@ -475,7 +521,11 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(HttpStatus::NO_CONTENT);
 	}
 
-	/** Change a permission set */
+	/**
+	 * Change a permission set
+	 *
+	 * @param string $name The name of the permission set
+	 */
 	#[
 		NCA\Api('/permission_set/%s'),
 		NCA\PATCH,
@@ -532,7 +582,11 @@ class ConfigApiController extends ModuleInstance {
 		return ApiResponse::create($result);
 	}
 
-	/** Get details for a specific command source */
+	/**
+	 * Get details for a specific command source
+	 *
+	 * @param string $source The name of the source
+	 */
 	#[
 		NCA\Api('/cmd_source/%s'),
 		NCA\GET,
@@ -548,7 +602,11 @@ class ConfigApiController extends ModuleInstance {
 		return ApiResponse::create($cmdSrc);
 	}
 
-	/** Get mappings for a specific command source */
+	/**
+	 * Get mappings for a specific command source
+	 *
+	 * @param string $source The name of the source
+	 */
 	#[
 		NCA\Api('/cmd_source/%s/mappings'),
 		NCA\GET,
@@ -563,7 +621,12 @@ class ConfigApiController extends ModuleInstance {
 		return ApiResponse::create($this->getCmdSourceMappings($source)->toArray());
 	}
 
-	/** Get mappings for a specific command source */
+	/**
+	 * Get mappings for a specific command source
+	 *
+	 * @param string $source    The name of the source
+	 * @param string $subSource The name of the sub-source
+	 */
 	#[
 		NCA\Api('/cmd_source/%s/mappings/%s'),
 		NCA\GET,
@@ -583,7 +646,12 @@ class ConfigApiController extends ModuleInstance {
 		return ApiResponse::create($mapping);
 	}
 
-	/** Delete mapping for a specific command sub-source */
+	/**
+	 * Delete mapping for a specific command sub-source
+	 *
+	 * @param string $source    The name of the source
+	 * @param string $subSource The name of the sub-source
+	 */
 	#[
 		NCA\Api('/cmd_source/%s/mappings/%s'),
 		NCA\DELETE,
@@ -606,7 +674,11 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
-	/** Delete mapping for a specific command source */
+	/**
+	 * Delete mapping for a specific command source
+	 *
+	 * @param string $source The name of the source
+	 */
 	#[
 		NCA\Api('/cmd_source/%s/mappings'),
 		NCA\DELETE,
@@ -628,7 +700,11 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
-	/** Create a new mapping */
+	/**
+	 * Create a new mapping
+	 *
+	 * @param string $source The name of the source
+	 */
 	#[
 		NCA\Api('/cmd_source/%s/mappings'),
 		NCA\POST,
@@ -656,7 +732,11 @@ class ConfigApiController extends ModuleInstance {
 		return $this->createCmdSourceMapping($mapping);
 	}
 
-	/** Modify mapping for a specific command source */
+	/**
+	 * Modify mapping for a specific command source
+	 *
+	 * @param string $source The name of the source
+	 */
 	#[
 		NCA\Api('/cmd_source/%s/mappings'),
 		NCA\PUT,
@@ -684,7 +764,12 @@ class ConfigApiController extends ModuleInstance {
 		return $this->modifyCmdSourceMapping($mapping);
 	}
 
-	/** Modify mapping for a specific command source */
+	/**
+	 * Modify mapping for a specific command source
+	 *
+	 * @param string $source    The name of the source
+	 * @param string $subSource The name of the sub-source
+	 */
 	#[
 		NCA\Api('/cmd_source/%s/mappings/%s'),
 		NCA\PUT,

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+/** A public channel */
 class ChannelInfo {
 	public const ORG = 3;
 	public const READ_ONLY = 10;

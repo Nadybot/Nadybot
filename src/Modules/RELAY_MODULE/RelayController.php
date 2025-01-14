@@ -1059,7 +1059,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		return ApiResponse::create($this->getRelays());
 	}
 
-	/** Get a single relay */
+	/**
+	 * Get a single relay
+	 *
+	 * @param string $relay The name of the relay
+	 */
 	#[
 		NCA\Api('/relay/%s'),
 		NCA\GET,
@@ -1075,7 +1079,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		return ApiResponse::create($relay);
 	}
 
-	/** Get a single relay's event config */
+	/**
+	 * Get a single relay's event config
+	 *
+	 * @param string $relay The name of the relay
+	 */
 	#[
 		NCA\Api('/relay/%s/events'),
 		NCA\GET,
@@ -1091,7 +1099,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		return ApiResponse::create($relay->events);
 	}
 
-	/** Get a single relay's event config */
+	/**
+	 * Get a single relay's event config
+	 *
+	 * @param string $relay The name of the relay
+	 */
 	#[
 		NCA\Api('/relay/%s/events'),
 		NCA\PUT,
@@ -1146,7 +1158,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
-	/** Get a single relay's event config */
+	/**
+	 * Get a single relay's event config
+	 *
+	 * @param string $relay The name of the relay
+	 */
 	#[
 		NCA\Api('/relay/%s/events'),
 		NCA\PATCH,
@@ -1187,7 +1203,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
-	/** Delete a relay */
+	/**
+	 * Delete a relay
+	 *
+	 * @param string $relay The name of the relay
+	 */
 	#[
 		NCA\Api('/relay/%s'),
 		NCA\DELETE,
@@ -1211,7 +1231,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
-	/** Get a relay's status */
+	/**
+	 * Get a relay's status
+	 *
+	 * @param string $relay The name of the relay
+	 */
 	#[
 		NCA\Api('/relay/%s/status'),
 		NCA\GET,

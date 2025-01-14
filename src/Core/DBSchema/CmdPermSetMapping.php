@@ -6,6 +6,11 @@ use Nadybot\Core\{Attributes as NCA, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'cmd_permission_set_mapping')]
+/**
+ * A permission-set mapping:
+ * which command-source triggers commands with which prefix using which
+ * permission-set
+ */
 class CmdPermSetMapping extends DBTable {
 	#[NCA\JSON\Ignore] #[NCA\DB\PK] public UuidInterface $id;
 

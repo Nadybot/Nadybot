@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Nadybot\Core\DBSchema\CmdCfg;
 
+/** A (sub-)command entry of the bot */
 class ModuleSubcommand extends CmdCfg {
 	public const TYPE_COMMAND = 'cmd';
 	public const TYPE_SUBCOMMAND = 'subcmd';

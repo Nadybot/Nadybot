@@ -7,6 +7,7 @@ use Nadybot\Core\{Attributes as NCA, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'relay_layer')]
+/** A layer of a relay (transport, protocol, etc.) */
 class RelayLayer extends DBTable {
 	/** The id of the relay layer. Lower id means higher priority */
 	#[NCA\JSON\Ignore] #[NCA\DB\PK] public UuidInterface $id;

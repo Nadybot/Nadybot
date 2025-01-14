@@ -8,6 +8,7 @@ use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
 
 #[Table(name: 'audit')]
+/** A single audited action */
 class Audit extends DBTable {
 	#[NCA\DB\PK] public UuidInterface $id;
 

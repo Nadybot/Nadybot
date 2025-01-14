@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+/** This represents an access level on the bot */
 class ModuleAccessLevel extends SettingOption {
 	/**
 	 * @param string     $name          Name of this option for displaying

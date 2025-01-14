@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+/** The status of a relay = error, warning, or ready */
 class RelayStatus {
 	public const ERROR = 'error';
 	public const INIT = 'warning';

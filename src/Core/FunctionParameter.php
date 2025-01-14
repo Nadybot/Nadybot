@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+/** The name and specs of a function parameter */
 class FunctionParameter {
 	public const TYPE_SECRET = 'secret';
 	public const TYPE_STRING = 'string';

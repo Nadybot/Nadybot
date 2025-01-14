@@ -7,6 +7,7 @@ use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
 
 #[NCA\DB\Table(name: 'news', shared: NCA\DB\Shared::Yes)]
+/** A news item */
 class News extends DBTable {
 	/** The internal ID of this news entry */
 	#[NCA\DB\PK] public UuidInterface $id;

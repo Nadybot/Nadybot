@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+/** Name and description of a bot-event */
 class EventType {
 	/**
 	 * @param string  $name        The name of the event

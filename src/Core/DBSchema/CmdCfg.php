@@ -5,6 +5,7 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\{Attributes as NCA, DBTable};
 
 #[NCA\DB\Table(name: 'cmdcfg')]
+/** A single bot-command */
 class CmdCfg extends DBTable {
 	/**
 	 * @var array<string,CmdPermission>

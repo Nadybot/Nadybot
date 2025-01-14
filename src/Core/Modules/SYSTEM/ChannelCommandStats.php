@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+/** Name and number of active commands for a configure command channel */
 class ChannelCommandStats {
 	/**
 	 * @param string $name            Name of the channel

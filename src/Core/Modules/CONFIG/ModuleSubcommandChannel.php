@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+/** The access level needed to execute a command, and if it's enabled at all */
 class ModuleSubcommandChannel {
 	/**
 	 * @param string $access_level The access level you need to have

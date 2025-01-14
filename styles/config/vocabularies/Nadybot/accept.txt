@@ -98,7 +98,7 @@ dynacamp
 dynadb|DynaDB
 elmer
 else's
-endianness
+[Ee]ndianness
 enf(o|orcer)?
 Equi
 errno

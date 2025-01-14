@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+/** A Command of the bot */
 class ModuleCommand extends ModuleSubcommand {
 	/**
 	 * A list of subcommands for this command.

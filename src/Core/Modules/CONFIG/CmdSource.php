@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+/** A source channel where commands for the bot can be received on */
 class CmdSource {
 	/**
 	 * A list of permission set mappings this command source maps to

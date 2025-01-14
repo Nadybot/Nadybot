@@ -6,6 +6,7 @@ use Nadybot\Core\{Attributes as NCA, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'route_hop_format')]
+/** How to display a single hop of a route text-wise */
 class RouteHopFormat extends DBTable {
 	#[NCA\JSON\Ignore] #[NCA\DB\PK] public UuidInterface $id;
 

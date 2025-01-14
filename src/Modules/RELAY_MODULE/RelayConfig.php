@@ -7,6 +7,7 @@ use Nadybot\Core\{Attributes as NCA, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[NCA\DB\Table(name: 'relay')]
+/** The full configuration of an active relay */
 class RelayConfig extends DBTable {
 	#[NCA\JSON\Ignore] #[NCA\DB\PK] public UuidInterface $id;
 

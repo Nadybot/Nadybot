@@ -8,6 +8,7 @@ use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
 
 #[Table(name: 'org_history', shared: Shared::Yes)]
+/** A promotion/demotion/invite in the organization */
 class OrgHistory extends DBTable {
 	/** Internal ID of this history entry */
 	#[PK] public UuidInterface $id;

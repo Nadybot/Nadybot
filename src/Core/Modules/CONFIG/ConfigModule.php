@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+/** Name, description and stats for a module */
 class ConfigModule {
 	/**
 	 * @param string  $name                  Name of the module

@@ -433,7 +433,11 @@ class ApiController extends ModuleInstance {
 		return $response;
 	}
 
-	/** Execute a command, result is sent via websocket */
+	/**
+	 * Execute a command, result is sent via websocket
+	 *
+	 * @param string $uuid The UUID of the websocket connection where to send the reply to
+	 */
 	#[
 		NCA\Api('/execute/%s'),
 		NCA\POST,

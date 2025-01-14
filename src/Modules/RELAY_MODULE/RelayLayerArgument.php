@@ -9,6 +9,7 @@ use Nadybot\Core\DBTable;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[DB\Table(name: 'relay_layer_argument')]
+/** Name and value for an argument of a relay layer */
 class RelayLayerArgument extends DBTable {
 	/** The id of the argument */
 	#[JSON\Ignore] #[DB\PK] public UuidInterface $id;

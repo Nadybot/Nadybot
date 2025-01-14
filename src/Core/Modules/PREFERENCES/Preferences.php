@@ -54,7 +54,11 @@ class Preferences extends ModuleInstance {
 			->delete() !== 0;
 	}
 
-	/** Get the value of a setting */
+	/**
+	 * Get the value of a setting
+	 *
+	 * @param string $key The name of the setting
+	 */
 	#[
 		NCA\Api('/setting/%s'),
 		NCA\GET,
@@ -71,7 +75,11 @@ class Preferences extends ModuleInstance {
 		return ApiResponse::create($result);
 	}
 
-	/** Create a new setting */
+	/**
+	 * Create a new setting
+	 *
+	 * @param string $key The name of the setting
+	 */
 	#[
 		NCA\Api('/setting/%s'),
 		NCA\POST,
@@ -103,7 +111,11 @@ class Preferences extends ModuleInstance {
 		return new Response(status: HttpStatus::CREATED);
 	}
 
-	/** Store a setting */
+	/**
+	 * Store a setting
+	 *
+	 * @param string $key The name of the setting
+	 */
 	#[
 		NCA\Api('/setting/%s'),
 		NCA\PUT,
@@ -126,7 +138,11 @@ class Preferences extends ModuleInstance {
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
-	/** Delete a setting */
+	/**
+	 * Delete a setting
+	 *
+	 * @param string $key The name of the setting
+	 */
 	#[
 		NCA\Api('/setting/%s'),
 		NCA\DELETE,

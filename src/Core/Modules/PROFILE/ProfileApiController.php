@@ -37,7 +37,11 @@ class ProfileApiController extends ModuleInstance {
 		return ApiResponse::create($profiles);
 	}
 
-	/** View a profile */
+	/**
+	 * View a profile
+	 *
+	 * @param string $profile The name of the profile
+	 */
 	#[
 		NCA\Api('/profile/%s'),
 		NCA\GET,
@@ -65,7 +69,11 @@ class ProfileApiController extends ModuleInstance {
 		return ApiResponse::create($content);
 	}
 
-	/** Delete a profile */
+	/**
+	 * Delete a profile
+	 *
+	 * @param string $profile The name of the profile
+	 */
 	#[
 		NCA\Api('/profile/%s'),
 		NCA\DELETE,
@@ -87,7 +95,11 @@ class ProfileApiController extends ModuleInstance {
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
-	/** Load a profile */
+	/**
+	 * Load a profile
+	 *
+	 * @param string $profile The name of the profile
+	 */
 	#[
 		NCA\Api('/profile/%s'),
 		NCA\PATCH,
@@ -124,7 +136,11 @@ class ProfileApiController extends ModuleInstance {
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
-	/** Load a profile */
+	/**
+	 * Save a new profile
+	 *
+	 * @param string $profile The name of the profile
+	 */
 	#[
 		NCA\Api('/profile/%s'),
 		NCA\POST,

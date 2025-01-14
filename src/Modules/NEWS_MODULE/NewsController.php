@@ -402,7 +402,11 @@ class NewsController extends ModuleInstance {
 		return ApiResponse::create($result);
 	}
 
-	/** Get a single news item by id */
+	/**
+	 * Get a single news item by id
+	 *
+	 * @param string $id The UUID of the news item
+	 */
 	#[
 		NCA\Api('/news/%s'),
 		NCA\GET,
@@ -461,7 +465,11 @@ class NewsController extends ModuleInstance {
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
-	/** Modify an existing news item */
+	/**
+	 * Modify an existing news item
+	 *
+	 * @param string $id The UUID of the news item
+	 */
 	#[
 		NCA\Api('/news/%s'),
 		NCA\PATCH,

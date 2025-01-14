@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+/** Memory usage statistics for the bot */
 class MemoryInformation {
 	/**
 	 * @param int $available          Maximum available memory for PHP in bytes

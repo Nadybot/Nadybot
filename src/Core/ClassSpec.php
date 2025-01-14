@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use InvalidArgumentException;
 
+/** Class specs (name, PHP-class, description, and parameters) */
 class ClassSpec {
 	/**
 	 * @param class-string            $name
