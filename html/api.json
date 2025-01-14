@@ -930,6 +930,12 @@
 					},
 					"db_type": {
 						"type": "string",
+						"enum": [
+							"sqlite",
+							"mysql",
+							"postgresql",
+							"mssql"
+						],
 						"description": "Which database type (mysql/sqlite) are we using?"
 					},
 					"endianness": {

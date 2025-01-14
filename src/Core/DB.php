@@ -44,11 +44,6 @@ use Throwable;
 class DB {
 	public const SQLITE_MIN_VERSION = '3.24.0';
 
-	public const MYSQL = 'mysql';
-	public const SQLITE = 'sqlite';
-	public const POSTGRESQL = 'postgresql';
-	public const MSSQL = 'mssql';
-
 	public int $maxPlaceholders = 9_000;
 
 	/** The database name */

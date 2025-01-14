@@ -244,7 +244,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			bot_name: $this->config->main->character,
 			workers: array_column($this->config->worker, 'character'),
 			bot_version: $this->chatBot->runner::getVersion(),
-			db_type: $this->db->getType()->value,
+			db_type: $this->db->getType(),
 			org: strlen($this->config->general->orgName) ? $this->config->general->orgName : null,
 			org_id: $this->config->orgId,
 			php_version: \PHP_VERSION,
@@ -357,7 +357,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			"<highlight>{$info->basic->fs}<end> filesystem\n";
 		$blob .= "<tab>OS: <highlight>{$info->basic->os}<end>\n";
 		$blob .= "<tab>Endianness: <highlight>{$info->basic->endianness->value}<end>\n";
-		$blob .= "<tab>Database: <highlight>{$info->basic->db_type}<end>\n\n";
+		$blob .= "<tab>Database: <highlight>{$info->basic->db_type->name}<end>\n\n";
 
 		$blob .= "<header2>Memory<end>\n";
 		$blob .= '<tab>Available Memory for PHP: <highlight>' . Util::bytesConvert($info->memory->available) . "<end>\n";

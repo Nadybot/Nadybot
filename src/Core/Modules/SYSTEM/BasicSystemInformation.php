@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use Nadybot\Core\DB;
+
 /** Basic information about the bot, like OS, architecture, bot name, workers, and org */
 class BasicSystemInformation {
 	/**
@@ -15,7 +17,7 @@ class BasicSystemInformation {
 	 * @param string     $event_loop  Which event loop driver are we running?
 	 * @param string     $fs          Which file system driver are we running?
 	 * @param string     $os          Which operating system/kernel are we running?
-	 * @param string     $db_type     Which database type (mysql/sqlite) are we using?
+	 * @param DB\Type    $db_type     Which database type (mysql/sqlite) are we using?
 	 * @param Endianness $endianness  Which endianness (little-endian, big-endian) are we running on?
 	 *
 	 * @psalm-param list<string> $superadmins
@@ -32,7 +34,7 @@ class BasicSystemInformation {
 		public string $event_loop,
 		public string $fs,
 		public string $os,
-		public string $db_type,
+		public DB\Type $db_type,
 		public Endianness $endianness,
 	) {
 	}
