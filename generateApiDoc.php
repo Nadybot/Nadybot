@@ -2,8 +2,6 @@
 
 use function Safe\json_encode;
 
-use Nadybot\Core\Safe;
-
 require 'vendor/autoload.php';
 
 $runner = new Nadybot\Api\ApiSpecGenerator();
@@ -26,12 +24,4 @@ foreach ($spec['paths'] as $path => &$data) {
 	);
 }
 
-echo(
-	Safe::pregReplaceCallback(
-		'/^((?:    )+)/m',
-		static function (array $matches): string {
-			return str_repeat("\t", (int)floor(strlen($matches[1]) / 4));
-		},
-		json_encode($spec, \JSON_UNESCAPED_SLASHES|\JSON_PRETTY_PRINT)
-	)
-);
+echo(json_encode($spec, \JSON_UNESCAPED_SLASHES|\JSON_PRETTY_PRINT));
