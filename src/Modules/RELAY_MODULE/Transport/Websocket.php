@@ -31,6 +31,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayMessage,
 	RelayStatus,
+	RelayStatusType,
 	StatusProvider,
 };
 use Psr\Log\LoggerInterface;
@@ -152,7 +153,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 				if ($this->deinitializing) {
 					return;
 				}
-				$this->status = new RelayStatus(RelayStatus::INIT, "Connecting to {$this->uri}");
+				$this->status = new RelayStatus(RelayStatusType::INIT, "Connecting to {$this->uri}");
 				try {
 					$connection = $client->connect($handshake, null);
 				} catch (Throwable $e) {
@@ -165,7 +166,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 						'delay' => 10,
 						'exception' => $e,
 					]);
-					$this->status = new RelayStatus(RelayStatus::INIT, $error);
+					$this->status = new RelayStatus(RelayStatusType::INIT, $error);
 
 					if ($e instanceof TimeoutException) {
 						if (isset($this->initCallback)) {
@@ -197,7 +198,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 			}
 			$callback = $this->initCallback;
 			$this->initCallback = null;
-			$this->status = new RelayStatus(RelayStatus::READY, 'ready');
+			$this->status = new RelayStatus(RelayStatusType::READY, 'ready');
 			$callback();
 			EventLoop::queue($this->mainLoop(...));
 		});
@@ -241,7 +242,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 				'delay' => 10,
 				'exception' => $e,
 			]);
-			$this->status = new RelayStatus(RelayStatus::INIT, $e->getMessage());
+			$this->status = new RelayStatus(RelayStatusType::INIT, $e->getMessage());
 			$this->client = null;
 			$this->retryHandler = EventLoop::delay(10, function (string $token): void {
 				$this->relay->init();

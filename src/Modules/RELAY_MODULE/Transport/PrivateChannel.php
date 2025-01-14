@@ -14,6 +14,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayMessage,
 	RelayStatus,
+	RelayStatusType,
 	StatusProvider,
 };
 
@@ -120,7 +121,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		if (strtolower($event->channel) !== strtolower($this->channel)) {
 			return;
 		}
-		$this->status = new RelayStatus(RelayStatus::READY, 'ready');
+		$this->status = new RelayStatus(RelayStatusType::READY, 'ready');
 		if (isset($this->initCallback)) {
 			$callback = $this->initCallback;
 			$this->initCallback = null;
@@ -144,7 +145,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		$this->eventManager->subscribe('extLeavePriv', $this->leftPrivateChannel(...));
 		if (!isset($this->chatBot->privateChats[$this->channel])) {
 			$this->status = new RelayStatus(
-				RelayStatus::INIT,
+				RelayStatusType::INIT,
 				"Waiting for invite to {$this->channel}"
 			);
 			// In case we have a race condition and received the invite before

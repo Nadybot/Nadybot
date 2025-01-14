@@ -12,6 +12,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayLayerInterface,
 	RelayMessage,
 	RelayStatus,
+	RelayStatusType,
 	StatusProvider,
 };
 use Psr\Log\LoggerInterface;
@@ -88,7 +89,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				$encoded = $this->encodePackage($joinMsg);
 			} catch (JsonException | UnableToSerializeObject $e) {
 				$this->status = new RelayStatus(
-					RelayStatus::ERROR,
+					RelayStatusType::ERROR,
 					'Unable to encode subscribe-command into highway protocol: '.
 						$e->getMessage()
 				);
@@ -100,7 +101,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 			}
 			$this->initCallback = $callback;
 			$this->status = new RelayStatus(
-				RelayStatus::INIT,
+				RelayStatusType::INIT,
 				"Joining room {$room}"
 			);
 			$cmd []= $encoded;
@@ -120,7 +121,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				$encoded = $this->encodePackage($leaveMsg);
 			} catch (JsonException | UnableToSerializeObject $e) {
 				$this->status = new RelayStatus(
-					RelayStatus::ERROR,
+					RelayStatusType::ERROR,
 					'Unable to encode unsubscribe-command into highway protocol: '.
 						$e->getMessage()
 				);
@@ -183,7 +184,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				]);
 			} catch (ParserJsonException $e) {
 				$this->status = new RelayStatus(
-					RelayStatus::ERROR,
+					RelayStatusType::ERROR,
 					'Unable to decode highway message: ' . $e->getMessage()
 				);
 				$this->logger->error('Unable to decode highway message on {relay}: {error}', [
@@ -196,7 +197,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				continue;
 			} catch (ParserHighwayException $e) {
 				$this->status = new RelayStatus(
-					RelayStatus::ERROR,
+					RelayStatusType::ERROR,
 					'Invalid highway package received: ' . $e->getMessage()
 				);
 				$this->logger->error('Invalid highway package received on {relay}: {error}', [
@@ -209,7 +210,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				continue;
 			}
 			if (($package instanceof In\RoomInfo) && isset($this->initCallback)) {
-				$this->status = new RelayStatus(RelayStatus::READY, 'ready');
+				$this->status = new RelayStatus(RelayStatusType::READY, 'ready');
 				$callback = $this->initCallback;
 				$this->initCallback = null;
 				$callback();
@@ -229,7 +230,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 					'message' => $package->message,
 				]);
 				$this->status = new RelayStatus(
-					RelayStatus::ERROR,
+					RelayStatusType::ERROR,
 					$package->message,
 				);
 				$data = null;
@@ -247,7 +248,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 			}
 			if (!isset($package->body)) {
 				$this->status = new RelayStatus(
-					RelayStatus::INIT,
+					RelayStatusType::INIT,
 					'Received highway message without body'
 				);
 				$this->logger->error('Received highway message without body on {relay}', [

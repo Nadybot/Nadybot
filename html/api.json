@@ -888,7 +888,12 @@
 						"type": "string"
 					},
 					"type": {
-						"type": "string"
+						"type": "string",
+						"enum": [
+							"error",
+							"warning",
+							"ready"
+						]
 					}
 				},
 				"description": "The status of a relay = error, warning, or ready"

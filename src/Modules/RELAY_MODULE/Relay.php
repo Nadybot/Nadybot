@@ -183,12 +183,12 @@ class Relay implements MessageReceiver {
 
 	public function getStatus(): RelayStatus {
 		if ($this->initialized) {
-			return new RelayStatus(RelayStatus::READY, 'ready');
+			return new RelayStatus(RelayStatusType::READY, 'ready');
 		}
 		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
 		$element = $elements[$this->initStep] ?? null;
 		if (!isset($element)) {
-			return new RelayStatus(RelayStatus::ERROR, 'unknown');
+			return new RelayStatus(RelayStatusType::ERROR, 'unknown');
 		}
 		$class = $element::class;
 		if (($pos = strrpos($class, '\\')) !== false) {
@@ -200,7 +200,7 @@ class Relay implements MessageReceiver {
 			return $status;
 		}
 		return new RelayStatus(
-			RelayStatus::INIT,
+			RelayStatusType::INIT,
 			"initializing {$class}"
 		);
 	}

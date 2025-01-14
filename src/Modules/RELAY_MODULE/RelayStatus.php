@@ -4,24 +4,14 @@ namespace Nadybot\Modules\RELAY_MODULE;
 
 /** The status of a relay = error, warning, or ready */
 class RelayStatus {
-	public const ERROR = 'error';
-	public const INIT = 'warning';
-	public const READY = 'ready';
-
 	public function __construct(
-		public string $type=self::ERROR,
+		public RelayStatusType $type=RelayStatusType::ERROR,
 		public string $text='Unknown',
 	) {
 	}
 
 	public function toString(): string {
-		$statusMap = [
-			static::ERROR => 'off',
-			static::INIT => 'yellow',
-			static::READY => 'on',
-		];
-
-		$color = $statusMap[$this->type] ?? 'red';
+		$color = $this->type->getColor();
 		return "<{$color}>{$this->text}<end>";
 	}
 }

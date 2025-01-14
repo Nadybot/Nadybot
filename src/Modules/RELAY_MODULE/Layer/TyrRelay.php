@@ -9,6 +9,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayLayerInterface,
 	RelayMessage,
 	RelayStatus,
+	RelayStatusType,
 	StatusProvider,
 };
 use Psr\Log\LoggerInterface;
@@ -83,7 +84,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 				}
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
-					RelayStatus::ERROR,
+					RelayStatusType::ERROR,
 					'Unable to decode tyr-relay message: ' . $e->getMessage()
 				);
 				$this->logger->error('{error}', [
@@ -98,7 +99,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 			}
 			if (!isset($json->type)) {
 				$this->status = new RelayStatus(
-					RelayStatus::ERROR,
+					RelayStatusType::ERROR,
 					'Received tyr-relay message without type'
 				);
 				$this->logger->error('{error}', ['error' => $this->status->text]);
@@ -118,7 +119,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 			}
 			if (!isset($json->payload)) {
 				$this->status = new RelayStatus(
-					RelayStatus::ERROR,
+					RelayStatusType::ERROR,
 					'Received tyr-relay message without payload'
 				);
 				$this->logger->error('{error}', ['error' => $this->status->text]);
