@@ -3,7 +3,11 @@
 namespace Nadybot\Core\Modules\SETUP;
 
 use function Amp\ByteStream\getStdin;
+use function Amp\Socket\connect;
+
 use Amp\ByteStream\BufferedReader;
+use Amp\TimeoutCancellation;
+use AO\Client\{SingleClient, WorkerConfig};
 use Nadybot\Core\Filesystem;
 
 use Nadybot\Core\{Config\BotConfig, DB};
@@ -43,7 +47,7 @@ class Setup {
 		echo "{$indentString}**********************************************************\n";
 		echo $indentString.implode("\n{$indentString}", $lines)."\n";
 		echo "{$indentString}**********************************************************\n";
-		echo "\n\n\n\n\n\n\n\n\n";
+		echo str_repeat("\n", max(1, (int)floor(11 - count($lines)/2)));
 	}
 
 	public function showIntro(): void {
@@ -98,18 +102,60 @@ class Setup {
 	}
 
 	public function queryCharacter(): void {
-		$this->showStep(
-			"Enter the character the bot will run on.\n".
+		/** @var ?list<\AO\Character> */
+		$chars = null;
+		try {
+			$workerConf = new WorkerConfig(
+				dimension: $this->configFile->main->dimension,
+				username: $this->configFile->main->login,
+				password: $this->configFile->main->password,
+				character: 'Xxxx'
+			);
+			$connection = connect(uri: $workerConf->getServer(), cancellation: new TimeoutCancellation(10));
+			$client = new SingleClient(
+				connection: new \AO\Connection(reader: $connection, writer: $connection),
+				parser: \AO\Parser::createDefault(),
+			);
+			$chars = $client->getChars($workerConf->username, $workerConf->password);
+		} catch (\Throwable) {
+		}
+		$text = "Enter the character the bot will run on.\n".
 			"If the character does not already exist, close this\n".
 			"and create the character and then start the bot again.\n".
 			"Make sure the bot toon is not currently logged on\n".
-			"or the bot will not be able to log on.\n"
-		);
+			"or the bot will not be able to log on.\n";
+
+		if (isset($chars)) {
+			if (!count($chars)) {
+				$text .= "\nThere are no characters on this account!\n";
+			} else {
+				$text .= "\nThe following characters were found on this account:";
+				$i = 1;
+				foreach ($chars as $char) {
+					$text .= "\n    [{$i}] {$char->name} (level {$char->level})";
+					if ($char->online) {
+						$text .= ' - logged in';
+					}
+					$i++;
+				}
+				$text .= "\n";
+			}
+			$text .= "    [B] Back\n";
+		}
+
+		$this->showStep($text);
 
 		$msg = 'Enter the Character the bot will run as: ';
 		do {
-			$this->configFile->main->character = $this->readInput($msg);
-		} while ($this->configFile->main->character === '');
+			$choice = $this->readInput($msg);
+			if (ctype_digit($choice) && isset($chars) && count($chars) >= (int)$choice) {
+				$choice = $chars[(int)$choice-1]->name;
+			}
+		} while (!in_array($choice, ['b', 'B'], true) && strlen($choice) < 4);
+		if (in_array($choice, ['b', 'B'], true)) {
+			$this->queryAccountUsername();
+		}
+		$this->configFile->main->character = ucfirst(strtolower($choice));
 		$this->queryOrgname();
 	}
 
@@ -138,7 +184,7 @@ class Setup {
 		do {
 			$superAdmin = $this->readInput($msg);
 		} while ($superAdmin === '');
-		$this->configFile->general->superAdmins = [$superAdmin];
+		$this->configFile->general->superAdmins = [ucfirst(strtolower($superAdmin))];
 		$this->queryDatabaseInstallation();
 	}
 
