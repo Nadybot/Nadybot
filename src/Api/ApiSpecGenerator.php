@@ -584,8 +584,13 @@ class ApiSpecGenerator {
 	 * @psalm-return array{"type"?: string, "$ref"?: string}|array{"type": "array", "items":array{"type"?: string, "$ref"?: string}}
 	 */
 	protected function getClassRef(string $class): array {
-		if (substr($class, -2) === '[]') {
-			return ['type' => 'array', 'items' => $this->getSimpleClassRef(substr($class, 0, -2))];
+		if (
+			preg_match('/^(.+)\[\]$/', $class, $matches)
+			|| preg_match('/^array<(.+)>$/', $class, $matches)
+			|| preg_match('/^list<(.+)>$/', $class, $matches)
+		) {
+			/** @var array{0:string,1:string} $matches */
+			return ['type' => 'array', 'items' => $this->getSimpleClassRef($matches[1])];
 		}
 		return $this->getSimpleClassRef($class);
 	}
