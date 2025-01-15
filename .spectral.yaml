@@ -1,4 +1,3 @@
 extends: ["spectral:oas", "spectral:asyncapi", "spectral:arazzo"]
 rules:
   operation-operationId: false
-  # paths-kebab-case: false

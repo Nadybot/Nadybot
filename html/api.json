@@ -7,6 +7,10 @@
             "name": "GPL3",
             "url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
         },
+        "contact": {
+            "name": "Support",
+            "url": "https://discord.gg/aDR9UBxRfg"
+        },
         "version": "7.0.0.alpha"
     },
     "servers": [
@@ -16,20 +20,16 @@
     ],
     "tags": [
         {
-            "name": "config",
-            "description": "Module \"CONFIG\""
-        },
-        {
-            "name": "security",
-            "description": "Module \"SECURITY\""
-        },
-        {
             "name": "audit",
             "description": "Functions for audit"
         },
         {
-            "name": "webserver",
-            "description": "Module \"WEBSERVER_MODULE\""
+            "name": "config",
+            "description": "Module \"CONFIG\""
+        },
+        {
+            "name": "guild",
+            "description": "Module \"GUILD_MODULE\""
         },
         {
             "name": "messages",
@@ -44,8 +44,8 @@
             "description": "Module \"ONLINE_MODULE\""
         },
         {
-            "name": "guild",
-            "description": "Module \"GUILD_MODULE\""
+            "name": "preferences",
+            "description": "Module \"PREFERENCES\""
         },
         {
             "name": "profile",
@@ -56,73 +56,20 @@
             "description": "Module \"RELAY_MODULE\""
         },
         {
-            "name": "preferences",
-            "description": "Module \"PREFERENCES\""
+            "name": "security",
+            "description": "Module \"SECURITY\""
         },
         {
             "name": "system",
             "description": "Module \"SYSTEM\""
+        },
+        {
+            "name": "webserver",
+            "description": "Module \"WEBSERVER_MODULE\""
         }
     ],
     "components": {
         "schemas": {
-            "SettingOption": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "Name of this option for displaying"
-                    },
-                    "value": {
-                        "oneOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "integer"
-                            }
-                        ],
-                        "description": "Which value does this option represent?"
-                    }
-                },
-                "description": "This represents an option for a bot-setting"
-            },
-            "ModuleAccessLevel": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/SettingOption"
-                    },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "enabled": {
-                                "type": "boolean",
-                                "description": "Some ranks only work if a module is enabled"
-                            },
-                            "name": {
-                                "type": "string",
-                                "description": "Name of this option for displaying"
-                            },
-                            "numeric_value": {
-                                "type": "integer",
-                                "description": "Higher value means fewer rights. Use this to sort on"
-                            },
-                            "value": {
-                                "oneOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "integer"
-                                    }
-                                ],
-                                "description": "Which value does this option represent?"
-                            }
-                        }
-                    }
-                ],
-                "description": "This represents an access level on the bot"
-            },
             "Audit": {
                 "type": "object",
                 "properties": {
@@ -141,6 +88,10 @@
                     },
                     "id": {
                         "type": "string",
+                        "format": "uuid",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                        "minLength": 36,
+                        "maxLength": 36,
                         "description": "ID of this audit entry (if known)"
                     },
                     "time": {
@@ -154,6 +105,227 @@
                     }
                 },
                 "description": "A single audited action"
+            },
+            "BasicSystemInformation": {
+                "type": "object",
+                "properties": {
+                    "bot_name": {
+                        "type": "string",
+                        "description": "Name of the bot character in AO"
+                    },
+                    "bot_version": {
+                        "type": "string",
+                        "description": "Which Nadybot version are we running?"
+                    },
+                    "db_type": {
+                        "type": "string",
+                        "enum": [
+                            "sqlite",
+                            "mysql",
+                            "postgresql",
+                            "mssql"
+                        ],
+                        "description": "Which database type (mysql/sqlite) are we using?"
+                    },
+                    "endianness": {
+                        "type": "string",
+                        "enum": [
+                            "big-endian",
+                            "little-endian"
+                        ],
+                        "description": "Which endianness (little-endian, big-endian) are we running on?"
+                    },
+                    "event_loop": {
+                        "type": "string",
+                        "description": "Which event loop driver are we running?"
+                    },
+                    "fs": {
+                        "type": "string",
+                        "description": "Which file system driver are we running?"
+                    },
+                    "org": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Name of the org this bot is in or null if not in an org"
+                    },
+                    "org_id": {
+                        "type": "integer",
+                        "nullable": true,
+                        "description": "ID of the org this bot is in or null if not in an org"
+                    },
+                    "os": {
+                        "type": "string",
+                        "description": "Which operating system/kernel are we running?"
+                    },
+                    "php_version": {
+                        "type": "string",
+                        "description": "Which PHP version are we running?"
+                    },
+                    "superadmins": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Name(s) of the character(s) running the bot, empty if not set"
+                    },
+                    "workers": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Name(s) of the worker characters in AO"
+                    }
+                },
+                "description": "Basic information about the bot, like OS, architecture, bot name, workers, and org"
+            },
+            "ChannelCommandStats": {
+                "type": "object",
+                "properties": {
+                    "active_commands": {
+                        "type": "integer",
+                        "description": "Number of active commands in this channel"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the channel"
+                    }
+                },
+                "description": "Name and number of active commands for a configure command channel"
+            },
+            "ChannelInfo": {
+                "type": "object",
+                "properties": {
+                    "class": {
+                        "type": "integer",
+                        "description": "The class of the channel (OOC, towers, etc.)"
+                    },
+                    "id": {
+                        "type": "integer",
+                        "description": "The ID the game uses for this channel"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the public channel"
+                    }
+                },
+                "description": "A public channel"
+            },
+            "ClassSpec": {
+                "type": "object",
+                "properties": {
+                    "class": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "params": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/FunctionParameter"
+                        },
+                        "description": "/"
+                    }
+                },
+                "description": "Class specs (name, PHP-class, description, and parameters)"
+            },
+            "CmdCfg": {
+                "type": "object",
+                "properties": {
+                    "cmd": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "permissions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CmdPermission"
+                        }
+                    }
+                },
+                "description": "A single bot-command"
+            },
+            "CmdPermSetMapping": {
+                "type": "object",
+                "properties": {
+                    "feedback": {
+                        "type": "boolean",
+                        "description": "Shall we report an error if the command doesn't exist"
+                    },
+                    "permission_set": {
+                        "type": "string",
+                        "description": "The permission set to map $source to"
+                    },
+                    "source": {
+                        "type": "string",
+                        "description": "to"
+                    },
+                    "symbol": {
+                        "type": "string",
+                        "description": "The symbol that triggers a command if it's the first letter"
+                    },
+                    "symbol_optional": {
+                        "type": "boolean",
+                        "description": "Is the symbol required to interpret the msg as command or optional"
+                    }
+                },
+                "description": "A permission-set mapping: which command-source triggers commands with which prefix using which permission-set"
+            },
+            "CmdPermission": {
+                "type": "object",
+                "properties": {
+                    "access_level": {
+                        "type": "string",
+                        "description": "The access-level (member,admin,guest,all,etc)"
+                    },
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "Is the (sub-)command enabled on this permission-set"
+                    },
+                    "permission_set": {
+                        "type": "string",
+                        "description": "The name of the permission-set"
+                    }
+                },
+                "description": "The permission required to execute a command via a specific command-channel"
+            },
+            "CmdPermissionSet": {
+                "type": "object",
+                "properties": {
+                    "letter": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "description": "A set of permissions for commands that can be mapped to a command-source"
+            },
+            "CmdSource": {
+                "type": "object",
+                "properties": {
+                    "has_sub_sources": {
+                        "type": "boolean"
+                    },
+                    "mappings": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CmdSourceMapping"
+                        },
+                        "description": "A list of permission set mappings this command source maps to"
+                    },
+                    "source": {
+                        "type": "string",
+                        "description": "The name/mask of this command source"
+                    }
+                },
+                "description": "A source channel where commands for the bot can be received on"
             },
             "CmdSourceMapping": {
                 "type": "object",
@@ -181,84 +353,6 @@
                     }
                 },
                 "description": "The full configuration for a single command source"
-            },
-            "CmdSource": {
-                "type": "object",
-                "properties": {
-                    "has_sub_sources": {
-                        "type": "boolean"
-                    },
-                    "mappings": {
-                        "type": "array",
-                        "description": "A list of permission set mappings this command source maps to",
-                        "items": {
-                            "$ref": "#/components/schemas/CmdSourceMapping"
-                        }
-                    },
-                    "source": {
-                        "type": "string",
-                        "description": "The name/mask of this command source"
-                    }
-                },
-                "description": "A source channel where commands for the bot can be received on"
-            },
-            "RouteHopColor": {
-                "type": "object",
-                "properties": {
-                    "hop": {
-                        "type": "string",
-                        "description": "The hop mask (discord, *, aopriv, ...)"
-                    },
-                    "tag_color": {
-                        "type": "string",
-                        "nullable": true,
-                        "description": "The 6 hex digits of the tag color, like FFFFFF"
-                    },
-                    "text_color": {
-                        "type": "string",
-                        "nullable": true,
-                        "description": "The 6 hex digits of the text color, like FFFFFF"
-                    },
-                    "via": {
-                        "type": "string",
-                        "nullable": true,
-                        "description": "Only apply this color if the event was routed via this hop"
-                    },
-                    "where": {
-                        "type": "string",
-                        "nullable": true,
-                        "description": "The channel for which to apply these colors or null for all"
-                    }
-                },
-                "description": "Which colors to use for displaying a hop of a routed message"
-            },
-            "RouteHopFormat": {
-                "type": "object",
-                "properties": {
-                    "format": {
-                        "type": "string",
-                        "description": "The format what the text of the tag should look like"
-                    },
-                    "hop": {
-                        "type": "string",
-                        "description": "The hop mask (discord, *, aopriv, ...)"
-                    },
-                    "render": {
-                        "type": "boolean",
-                        "description": "Whether to render this tag or not"
-                    },
-                    "via": {
-                        "type": "string",
-                        "nullable": true,
-                        "description": "Only apply these settings if the event was routed via this hop"
-                    },
-                    "where": {
-                        "type": "string",
-                        "nullable": true,
-                        "description": "The channel for which to apply these, or null for all"
-                    }
-                },
-                "description": "How to display a single hop of a route text-wise"
             },
             "ConfigModule": {
                 "type": "object",
@@ -295,59 +389,163 @@
                 },
                 "description": "Name, description and stats for a module"
             },
-            "Operation": {
+            "ConfigStatistics": {
                 "type": "object",
                 "properties": {
-                    "op": {
-                        "type": "string",
-                        "description": "The operation to perform"
-                    }
-                },
-                "description": "An operation to perform"
-            },
-            "CmdPermission": {
-                "type": "object",
-                "properties": {
-                    "access_level": {
-                        "type": "string",
-                        "description": "The access-level (member,admin,guest,all,etc)"
+                    "active_aliases": {
+                        "type": "integer",
+                        "description": "Number of aliases"
                     },
-                    "enabled": {
-                        "type": "boolean",
-                        "description": "Is the (sub-)command enabled on this permission-set"
-                    },
-                    "permission_set": {
-                        "type": "string",
-                        "description": "The name of the permission-set"
-                    }
-                },
-                "description": "The permission required to execute a command via a specific command-channel"
-            },
-            "CmdCfg": {
-                "type": "object",
-                "properties": {
-                    "cmd": {
-                        "type": "string"
-                    },
-                    "description": {
-                        "type": "string"
-                    },
-                    "permissions": {
+                    "active_commands": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/CmdPermission"
-                        }
+                            "$ref": "#/components/schemas/ChannelCommandStats"
+                        },
+                        "description": "Number of commands activated for each channel"
+                    },
+                    "active_events": {
+                        "type": "integer",
+                        "description": "Number of currently active events"
+                    },
+                    "active_help_commands": {
+                        "type": "integer",
+                        "description": "Number of active help texts for commands"
+                    },
+                    "active_subcommands": {
+                        "type": "integer",
+                        "description": "Number of subcommands activated"
                     }
                 },
-                "description": "A single bot-command"
+                "description": "Amount of active commands, aliases, events, etc."
             },
-            "ModuleSubcommand": {
+            "EventType": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The optional description, explaining when it occurs"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the event"
+                    }
+                },
+                "description": "Name and description of a bot-event"
+            },
+            "ExtCmdPermissionSet": {
                 "allOf": [
                     {
-                        "$ref": "#/components/schemas/CmdCfg"
+                        "$ref": "#/components/schemas/CmdPermissionSet"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "mappings": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/CmdPermSetMapping"
+                                }
+                            }
+                        }
                     }
                 ],
-                "description": "A (sub-)command entry of the bot"
+                "description": "A set of permissions for commands that can be mapped to a command-source"
+            },
+            "FunctionParameter": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "required": {
+                        "type": "boolean"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "description": "The name and specs of a function parameter"
+            },
+            "MemoryInformation": {
+                "type": "object",
+                "properties": {
+                    "available": {
+                        "type": "integer",
+                        "description": "Maximum available memory for PHP in bytes"
+                    },
+                    "current_usage": {
+                        "type": "integer",
+                        "description": "Current memory usage in bytes"
+                    },
+                    "current_usage_real": {
+                        "type": "integer",
+                        "description": "Current memory usage in bytes including allocated system pages"
+                    },
+                    "peak_usage": {
+                        "type": "integer",
+                        "description": "Peak memory usage in bytes"
+                    },
+                    "peak_usage_real": {
+                        "type": "integer",
+                        "description": "Peak memory usage in bytes including allocated system pages"
+                    }
+                },
+                "description": "Memory usage statistics for the bot"
+            },
+            "MiscSystemInformation": {
+                "type": "object",
+                "properties": {
+                    "uptime": {
+                        "type": "integer",
+                        "description": "Number of seconds since the bot was started"
+                    },
+                    "using_chat_proxy": {
+                        "type": "boolean",
+                        "description": "Is the bot using a chat proxy for mass messages or more than 1000 friends"
+                    }
+                },
+                "description": "System statistics that don't fit any other category"
+            },
+            "ModuleAccessLevel": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/SettingOption"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "enabled": {
+                                "type": "boolean",
+                                "description": "Some ranks only work if a module is enabled"
+                            },
+                            "name": {
+                                "type": "string",
+                                "description": "Name of this option for displaying"
+                            },
+                            "numeric_value": {
+                                "type": "integer",
+                                "description": "Higher value means fewer rights. Use this to sort on"
+                            },
+                            "value": {
+                                "oneOf": [
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ],
+                                "description": "Which value does this option represent?"
+                            }
+                        }
+                    }
+                ],
+                "description": "This represents an access level on the bot"
             },
             "ModuleCommand": {
                 "allOf": [
@@ -359,29 +557,15 @@
                         "properties": {
                             "subcommands": {
                                 "type": "array",
-                                "description": "A list of subcommands for this command. Subcommands can have different rights, but cannot be enabled without the command itself being enabled.",
                                 "items": {
                                     "$ref": "#/components/schemas/ModuleSubcommand"
-                                }
+                                },
+                                "description": "A list of subcommands for this command. Subcommands can have different rights, but cannot be enabled without the command itself being enabled."
                             }
                         }
                     }
                 ],
                 "description": "A Command of the bot"
-            },
-            "ModuleSubcommandChannel": {
-                "type": "object",
-                "properties": {
-                    "access_level": {
-                        "type": "string",
-                        "description": "The access level you need to have"
-                    },
-                    "enabled": {
-                        "type": "boolean",
-                        "description": "Can this command be used in this channel?"
-                    }
-                },
-                "description": "The access level needed to execute a command, and if it's enabled at all"
             },
             "ModuleEventConfig": {
                 "type": "object",
@@ -426,10 +610,10 @@
                     },
                     "options": {
                         "type": "array",
-                        "description": "A list of predefined options to pick from",
                         "items": {
                             "$ref": "#/components/schemas/SettingOption"
-                        }
+                        },
+                        "description": "A list of predefined options to pick from"
                     },
                     "type": {
                         "type": "string"
@@ -437,16 +621,25 @@
                     "value": {
                         "oneOf": [
                             {
-                                "type": "array"
+                                "type": "integer"
                             },
                             {
                                 "type": "string"
                             },
                             {
-                                "type": "integer"
+                                "type": "boolean"
                             },
                             {
-                                "type": "boolean"
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
                             }
                         ],
                         "nullable": true,
@@ -454,6 +647,28 @@
                     }
                 },
                 "description": "A setting of the bot"
+            },
+            "ModuleSubcommand": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/CmdCfg"
+                    }
+                ],
+                "description": "A (sub-)command entry of the bot"
+            },
+            "ModuleSubcommandChannel": {
+                "type": "object",
+                "properties": {
+                    "access_level": {
+                        "type": "string",
+                        "description": "The access level you need to have"
+                    },
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "Can this command be used in this channel?"
+                    }
+                },
+                "description": "The access level needed to execute a command, and if it's enabled at all"
             },
             "News": {
                 "type": "object",
@@ -464,6 +679,10 @@
                     },
                     "id": {
                         "type": "string",
+                        "format": "uuid",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                        "minLength": 36,
+                        "maxLength": 36,
                         "description": "The internal ID of this news entry"
                     },
                     "name": {
@@ -484,6 +703,124 @@
                     }
                 },
                 "description": "A news item"
+            },
+            "NewsTile": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string",
+                        "description": "An example what this could look like if there was data"
+                    },
+                    "example": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The callback that returns the news tile data"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The name of this news tile"
+                    }
+                },
+                "description": "A news tile with name and description"
+            },
+            "OnlinePlayer": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Player"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "afk_message": {
+                                "type": "string",
+                                "description": "The AFK message of the player or an empty string"
+                            },
+                            "nickname": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "The nickname of the main character, or null if unset"
+                            },
+                            "online": {
+                                "type": "boolean",
+                                "description": "True if this player is currently online, false otherwise"
+                            },
+                            "main_character": {
+                                "type": "string",
+                                "description": "The name of the main character, or the same as $name if this is the main character of the player"
+                            }
+                        }
+                    }
+                ],
+                "description": "This represents a single player in the online list"
+            },
+            "OnlinePlayers": {
+                "type": "object",
+                "properties": {
+                    "org": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OnlinePlayer"
+                        },
+                        "description": "All players online in the org"
+                    },
+                    "private_channel": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OnlinePlayer"
+                        },
+                        "description": "All players online in the private channel"
+                    }
+                },
+                "description": "This is the list of all players considered to be online by the bot"
+            },
+            "Operation": {
+                "type": "object",
+                "properties": {
+                    "op": {
+                        "type": "string",
+                        "description": "The operation to perform"
+                    }
+                },
+                "description": "An operation to perform"
+            },
+            "OrgHistory": {
+                "type": "object",
+                "properties": {
+                    "actee": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Optional, the person the actor is acting on"
+                    },
+                    "action": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The action the actor is doing"
+                    },
+                    "actor": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The person doing the action"
+                    },
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "description": "Internal ID of this history entry"
+                    },
+                    "organization": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Name of the organization this action was done in"
+                    },
+                    "time": {
+                        "type": "integer",
+                        "nullable": true,
+                        "description": "Timestamp when the action happened"
+                    }
+                },
+                "description": "A promotion/demotion/invite in the organization"
             },
             "Player": {
                 "type": "object",
@@ -528,7 +865,7 @@
                         "description": "Male, Female, Neuter or an empty string if unknown"
                     },
                     "org": {
-                        "type": "string",
+                        "type": "integer",
                         "nullable": true,
                         "description": "The name of the org this player is in or null if none/unknown"
                     },
@@ -610,204 +947,29 @@
                 },
                 "description": "This represents the data the bot stores about a player in the cache and database"
             },
-            "OnlinePlayer": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Player"
-                    },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "afk_message": {
-                                "type": "string",
-                                "description": "The AFK message of the player or an empty string"
-                            },
-                            "nickname": {
-                                "type": "string",
-                                "nullable": true,
-                                "description": "The nickname of the main character, or null if unset"
-                            },
-                            "online": {
-                                "type": "boolean",
-                                "description": "True if this player is currently online, false otherwise"
-                            },
-                            "main_character": {
-                                "type": "string",
-                                "description": "The name of the main character, or the same as $name if this is the main character of the player"
-                            }
-                        }
-                    }
-                ],
-                "description": "This represents a single player in the online list"
-            },
-            "OnlinePlayers": {
+            "RelayConfig": {
                 "type": "object",
                 "properties": {
-                    "org": {
+                    "events": {
                         "type": "array",
-                        "description": "All players online in the org",
                         "items": {
-                            "$ref": "#/components/schemas/OnlinePlayer"
-                        }
+                            "$ref": "#/components/schemas/RelayEvent"
+                        },
+                        "description": "A list of events this relay allows in- and/or outbound"
                     },
-                    "private_channel": {
+                    "layers": {
                         "type": "array",
-                        "description": "All players online in the private channel",
                         "items": {
-                            "$ref": "#/components/schemas/OnlinePlayer"
-                        }
-                    }
-                },
-                "description": "This is the list of all players considered to be online by the bot"
-            },
-            "OrgHistory": {
-                "type": "object",
-                "properties": {
-                    "actee": {
-                        "type": "string",
-                        "nullable": true,
-                        "description": "Optional, the person the actor is acting on"
-                    },
-                    "action": {
-                        "type": "string",
-                        "nullable": true,
-                        "description": "The action the actor is doing"
-                    },
-                    "actor": {
-                        "type": "string",
-                        "nullable": true,
-                        "description": "The person doing the action"
-                    },
-                    "id": {
-                        "type": "string",
-                        "description": "Internal ID of this history entry"
-                    },
-                    "organization": {
-                        "type": "string",
-                        "nullable": true,
-                        "description": "Name of the organization this action was done in"
-                    },
-                    "time": {
-                        "type": "integer",
-                        "nullable": true,
-                        "description": "Timestamp when the action happened"
-                    }
-                },
-                "description": "A promotion/demotion/invite in the organization"
-            },
-            "CmdPermSetMapping": {
-                "type": "object",
-                "properties": {
-                    "feedback": {
-                        "type": "boolean",
-                        "description": "Shall we report an error if the command doesn't exist"
-                    },
-                    "permission_set": {
-                        "type": "string",
-                        "description": "The permission set to map $source to"
-                    },
-                    "source": {
-                        "type": "string",
-                        "description": "to"
-                    },
-                    "symbol": {
-                        "type": "string",
-                        "description": "The symbol that triggers a command if it's the first letter"
-                    },
-                    "symbol_optional": {
-                        "type": "boolean",
-                        "description": "Is the symbol required to interpret the msg as command or optional"
-                    }
-                },
-                "description": "A permission-set mapping: which command-source triggers commands with which prefix using which permission-set"
-            },
-            "CmdPermissionSet": {
-                "type": "object",
-                "properties": {
-                    "letter": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "description": "A set of permissions for commands that can be mapped to a command-source"
-            },
-            "ExtCmdPermissionSet": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/CmdPermissionSet"
-                    },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "mappings": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/CmdPermSetMapping"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "description": "A set of permissions for commands that can be mapped to a command-source"
-            },
-            "EventType": {
-                "type": "object",
-                "properties": {
-                    "description": {
-                        "type": "string",
-                        "nullable": true,
-                        "description": "The optional description, explaining when it occurs"
+                            "$ref": "#/components/schemas/RelayLayer"
+                        },
+                        "description": "The individual layers that make up this relay"
                     },
                     "name": {
                         "type": "string",
-                        "description": "The name of the event"
+                        "description": "The name of this relay"
                     }
                 },
-                "description": "Name and description of a bot-event"
-            },
-            "FunctionParameter": {
-                "type": "object",
-                "properties": {
-                    "description": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "required": {
-                        "type": "boolean"
-                    },
-                    "type": {
-                        "type": "string"
-                    }
-                },
-                "description": "The name and specs of a function parameter"
-            },
-            "ClassSpec": {
-                "type": "object",
-                "properties": {
-                    "class": {
-                        "type": "string"
-                    },
-                    "description": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "params": {
-                        "type": "array",
-                        "description": "/",
-                        "items": {
-                            "$ref": "#/components/schemas/FunctionParameter"
-                        }
-                    }
-                },
-                "description": "Class specs (name, PHP-class, description, and parameters)"
+                "description": "The full configuration of an active relay"
             },
             "RelayEvent": {
                 "type": "object",
@@ -827,20 +989,6 @@
                 },
                 "description": "Configuration for routable events on a relay"
             },
-            "RelayLayerArgument": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "The name of the argument"
-                    },
-                    "value": {
-                        "type": "string",
-                        "description": "The value of the argument"
-                    }
-                },
-                "description": "Name and value for an argument of a relay layer"
-            },
             "RelayLayer": {
                 "type": "object",
                 "properties": {
@@ -857,29 +1005,19 @@
                 },
                 "description": "A layer of a relay (transport, protocol, etc.)"
             },
-            "RelayConfig": {
+            "RelayLayerArgument": {
                 "type": "object",
                 "properties": {
-                    "events": {
-                        "type": "array",
-                        "description": "A list of events this relay allows in- and/or outbound",
-                        "items": {
-                            "$ref": "#/components/schemas/RelayEvent"
-                        }
-                    },
-                    "layers": {
-                        "type": "array",
-                        "description": "The individual layers that make up this relay",
-                        "items": {
-                            "$ref": "#/components/schemas/RelayLayer"
-                        }
-                    },
                     "name": {
                         "type": "string",
-                        "description": "The name of this relay"
+                        "description": "The name of the argument"
+                    },
+                    "value": {
+                        "type": "string",
+                        "description": "The value of the argument"
                     }
                 },
-                "description": "The full configuration of an active relay"
+                "description": "Name and value for an argument of a relay layer"
             },
             "RelayStatus": {
                 "type": "object",
@@ -898,197 +1036,112 @@
                 },
                 "description": "The status of a relay = error, warning, or ready"
             },
-            "NewsTile": {
+            "RouteHopColor": {
                 "type": "object",
                 "properties": {
-                    "description": {
+                    "hop": {
                         "type": "string",
-                        "description": "An example what this could look like if there was data"
+                        "description": "The hop mask (discord, *, aopriv, ...)"
                     },
-                    "example": {
+                    "tag_color": {
                         "type": "string",
                         "nullable": true,
-                        "description": "The callback that returns the news tile data"
+                        "description": "The 6 hex digits of the tag color, like FFFFFF"
                     },
-                    "name": {
-                        "type": "string",
-                        "description": "The name of this news tile"
-                    }
-                },
-                "description": "A news tile with name and description"
-            },
-            "BasicSystemInformation": {
-                "type": "object",
-                "properties": {
-                    "bot_name": {
-                        "type": "string",
-                        "description": "Name of the bot character in AO"
-                    },
-                    "bot_version": {
-                        "type": "string",
-                        "description": "Which Nadybot version are we running?"
-                    },
-                    "db_type": {
-                        "type": "string",
-                        "enum": [
-                            "sqlite",
-                            "mysql",
-                            "postgresql",
-                            "mssql"
-                        ],
-                        "description": "Which database type (mysql/sqlite) are we using?"
-                    },
-                    "endianness": {
-                        "type": "string",
-                        "enum": [
-                            "big-endian",
-                            "little-endian"
-                        ],
-                        "description": "Which endianness (little-endian, big-endian) are we running on?"
-                    },
-                    "event_loop": {
-                        "type": "string",
-                        "description": "Which event loop driver are we running?"
-                    },
-                    "fs": {
-                        "type": "string",
-                        "description": "Which file system driver are we running?"
-                    },
-                    "org": {
+                    "text_color": {
                         "type": "string",
                         "nullable": true,
-                        "description": "Name of the org this bot is in or null if not in an org"
+                        "description": "The 6 hex digits of the text color, like FFFFFF"
                     },
-                    "org_id": {
-                        "type": "integer",
+                    "via": {
+                        "type": "string",
                         "nullable": true,
-                        "description": "ID of the org this bot is in or null if not in an org"
+                        "description": "Only apply this color if the event was routed via this hop"
                     },
-                    "os": {
+                    "where": {
                         "type": "string",
-                        "description": "Which operating system/kernel are we running?"
-                    },
-                    "php_version": {
+                        "nullable": true,
+                        "description": "The channel for which to apply these colors or null for all"
+                    }
+                },
+                "description": "Which colors to use for displaying a hop of a routed message"
+            },
+            "RouteHopFormat": {
+                "type": "object",
+                "properties": {
+                    "format": {
                         "type": "string",
-                        "description": "Which PHP version are we running?"
+                        "description": "The format what the text of the tag should look like"
                     },
-                    "superadmins": {
-                        "type": "array",
-                        "description": "Name(s) of the character(s) running the bot, empty if not set",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "workers": {
-                        "type": "array",
-                        "description": "Name(s) of the worker characters in AO",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                },
-                "description": "Basic information about the bot, like OS, architecture, bot name, workers, and org"
-            },
-            "ChannelInfo": {
-                "type": "object",
-                "properties": {
-                    "class": {
-                        "type": "integer",
-                        "description": "The class of the channel (OOC, towers, etc.)"
-                    },
-                    "id": {
-                        "type": "integer",
-                        "description": "The ID the game uses for this channel"
-                    },
-                    "name": {
+                    "hop": {
                         "type": "string",
-                        "description": "The name of the public channel"
-                    }
-                },
-                "description": "A public channel"
-            },
-            "ChannelCommandStats": {
-                "type": "object",
-                "properties": {
-                    "active_commands": {
-                        "type": "integer",
-                        "description": "Number of active commands in this channel"
+                        "description": "The hop mask (discord, *, aopriv, ...)"
                     },
-                    "name": {
-                        "type": "string",
-                        "description": "Name of the channel"
-                    }
-                },
-                "description": "Name and number of active commands for a configure command channel"
-            },
-            "ConfigStatistics": {
-                "type": "object",
-                "properties": {
-                    "active_aliases": {
-                        "type": "integer",
-                        "description": "Number of aliases"
-                    },
-                    "active_commands": {
-                        "type": "array",
-                        "description": "Number of commands activated for each channel",
-                        "items": {
-                            "$ref": "#/components/schemas/ChannelCommandStats"
-                        }
-                    },
-                    "active_events": {
-                        "type": "integer",
-                        "description": "Number of currently active events"
-                    },
-                    "active_help_commands": {
-                        "type": "integer",
-                        "description": "Number of active help texts for commands"
-                    },
-                    "active_subcommands": {
-                        "type": "integer",
-                        "description": "Number of subcommands activated"
-                    }
-                },
-                "description": "Amount of active commands, aliases, events, etc."
-            },
-            "MemoryInformation": {
-                "type": "object",
-                "properties": {
-                    "available": {
-                        "type": "integer",
-                        "description": "Maximum available memory for PHP in bytes"
-                    },
-                    "current_usage": {
-                        "type": "integer",
-                        "description": "Current memory usage in bytes"
-                    },
-                    "current_usage_real": {
-                        "type": "integer",
-                        "description": "Current memory usage in bytes including allocated system pages"
-                    },
-                    "peak_usage": {
-                        "type": "integer",
-                        "description": "Peak memory usage in bytes"
-                    },
-                    "peak_usage_real": {
-                        "type": "integer",
-                        "description": "Peak memory usage in bytes including allocated system pages"
-                    }
-                },
-                "description": "Memory usage statistics for the bot"
-            },
-            "MiscSystemInformation": {
-                "type": "object",
-                "properties": {
-                    "uptime": {
-                        "type": "integer",
-                        "description": "Number of seconds since the bot was started"
-                    },
-                    "using_chat_proxy": {
+                    "render": {
                         "type": "boolean",
-                        "description": "Is the bot using a chat proxy for mass messages or more than 1000 friends"
+                        "description": "Whether to render this tag or not"
+                    },
+                    "via": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Only apply these settings if the event was routed via this hop"
+                    },
+                    "where": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The channel for which to apply these, or null for all"
                     }
                 },
-                "description": "System statistics that don't fit any other category"
+                "description": "How to display a single hop of a route text-wise"
+            },
+            "SettingOption": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of this option for displaying"
+                    },
+                    "value": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "description": "Which value does this option represent?"
+                    }
+                },
+                "description": "This represents an option for a bot-setting"
+            },
+            "SystemInformation": {
+                "type": "object",
+                "properties": {
+                    "basic": {
+                        "$ref": "#/components/schemas/BasicSystemInformation"
+                    },
+                    "channels": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ChannelInfo"
+                        },
+                        "description": "Which channels is the bot listening to"
+                    },
+                    "config": {
+                        "$ref": "#/components/schemas/ConfigStatistics"
+                    },
+                    "memory": {
+                        "$ref": "#/components/schemas/MemoryInformation"
+                    },
+                    "misc": {
+                        "$ref": "#/components/schemas/MiscSystemInformation"
+                    },
+                    "stats": {
+                        "$ref": "#/components/schemas/SystemStats"
+                    }
+                },
+                "description": "A collection of several statistics and config options of the bot"
             },
             "SystemStats": {
                 "type": "object",
@@ -1119,34 +1172,6 @@
                     }
                 },
                 "description": "Internal bot-system statistics"
-            },
-            "SystemInformation": {
-                "type": "object",
-                "properties": {
-                    "basic": {
-                        "$ref": "#/components/schemas/BasicSystemInformation"
-                    },
-                    "channels": {
-                        "type": "array",
-                        "description": "Which channels is the bot listening to",
-                        "items": {
-                            "$ref": "#/components/schemas/ChannelInfo"
-                        }
-                    },
-                    "config": {
-                        "$ref": "#/components/schemas/ConfigStatistics"
-                    },
-                    "memory": {
-                        "$ref": "#/components/schemas/MemoryInformation"
-                    },
-                    "misc": {
-                        "$ref": "#/components/schemas/MiscSystemInformation"
-                    },
-                    "stats": {
-                        "$ref": "#/components/schemas/SystemStats"
-                    }
-                },
-                "description": "A collection of several statistics and config options of the bot"
             }
         },
         "securitySchemes": {

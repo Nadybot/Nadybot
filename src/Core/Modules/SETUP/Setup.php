@@ -10,7 +10,7 @@ use Amp\TimeoutCancellation;
 use AO\Client\{SingleClient, WorkerConfig};
 use Nadybot\Core\Filesystem;
 
-use Nadybot\Core\{Config\BotConfig, DB};
+use Nadybot\Core\{Config\BotConfig, DB\DBType};
 
 /**
  * Description: Configuration of the Basicbot settings
@@ -255,9 +255,9 @@ class Setup {
 
 		$msg = 'Choose a Database system (1/2/3): ';
 		$dbs = [
-			1 => DB\Type::SQLite,
-			2 => DB\Type::MySQL,
-			3 => DB\Type::PostgreSQL,
+			1 => DBType::SQLite,
+			2 => DBType::MySQL,
+			3 => DBType::PostgreSQL,
 		];
 		do {
 			$dbType = $this->readInput($msg);
@@ -270,7 +270,7 @@ class Setup {
 	public function queryDatabaseName(): void {
 		$txt = "What is the name of the database that you\n".
 			"wannna use?\n";
-		if ($this->configFile->database->type === DB\Type::SQLite) {
+		if ($this->configFile->database->type === DBType::SQLite) {
 			$txt .= "(This is the filename of the database)\n".
 				"(Default: nadybot.db)\n";
 		} else {
@@ -280,12 +280,12 @@ class Setup {
 		$msg = 'Enter the Databasename (leave blank for default setting): ';
 		$this->configFile->database->name = $this->readInput($msg);
 
-		if ($this->configFile->database->name === '' && $this->configFile->database->type === DB\Type::SQLite) {
+		if ($this->configFile->database->name === '' && $this->configFile->database->type === DBType::SQLite) {
 			$this->configFile->database->name = 'nadybot.db';
-		} elseif ($this->configFile->database->name === '' && $this->configFile->database->type !== DB\Type::SQLite) {
+		} elseif ($this->configFile->database->name === '' && $this->configFile->database->type !== DBType::SQLite) {
 			$this->configFile->database->name = 'nadybot';
 		}
-		if ($this->configFile->database->type === DB\Type::SQLite) {
+		if ($this->configFile->database->type === DBType::SQLite) {
 			$this->querySqlitePath();
 		} else {
 			$this->queryMysqlHostname();

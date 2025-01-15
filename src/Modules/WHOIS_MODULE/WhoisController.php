@@ -7,6 +7,7 @@ use function Amp\Future\await;
 
 use AO\Package;
 use Illuminate\Support\Collection;
+use Nadybot\Core\DB\DBType;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -97,7 +98,7 @@ class WhoisController extends ModuleInstance {
 		$this->db->awaitBeginTransaction();
 		try {
 			foreach ($this->nameHistoryCache as $entry) {
-				if ($this->db->getType() === DB\Type::MSSQL) {
+				if ($this->db->getType() === DBType::MSSQL) {
 					if ($this->db->table(NameHistory::getTable())
 						->where('name', $entry->name)
 						->where('charid', $entry->charid)

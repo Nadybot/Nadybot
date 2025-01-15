@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\DB;
 
-enum Type: string {
+enum DBType: string {
 	case SQLite = 'sqlite';
 	case MySQL = 'mysql';
 	case PostgreSQL = 'postgresql';

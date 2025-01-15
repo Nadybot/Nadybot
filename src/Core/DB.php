@@ -24,6 +24,7 @@ use Nadybot\Core\{
 	CSV\Reader,
 	Config\BotConfig,
 	DBSchema\Migration,
+	DB\DBType,
 	Migration as CoreMigration,
 	Types\ModuleInstanceInterface,
 	Types\SchemaMigration,
@@ -76,7 +77,7 @@ class DB {
 	private Filesystem $fs;
 
 	/** The database type: mysql/sqlite */
-	private DB\Type $type;
+	private DBType $type;
 
 	/** The PDO object to talk to the database */
 	private ?PDO $sql = null;
@@ -128,10 +129,10 @@ class DB {
 		$this->capsule = new Capsule();
 
 		$errorShown = match ($this->type) {
-			DB\Type::MySQL => $this->initMySQL($errorShown),
-			DB\Type::SQLite => $this->initSQLite($errorShown),
-			DB\Type::PostgreSQL => $this->initPostgreSQL($errorShown),
-			DB\Type::MSSQL => $this->initMSSQL($errorShown),
+			DBType::MySQL => $this->initMySQL($errorShown),
+			DBType::SQLite => $this->initSQLite($errorShown),
+			DBType::PostgreSQL => $this->initPostgreSQL($errorShown),
+			DBType::MSSQL => $this->initMSSQL($errorShown),
 		};
 		$this->capsule->setAsGlobal();
 		$this->capsule->setFetchMode(PDO::FETCH_CLASS);
@@ -151,7 +152,7 @@ class DB {
 	}
 
 	/** Get the configured database type */
-	public function getType(): DB\Type {
+	public function getType(): DBType {
 		return $this->type;
 	}
 

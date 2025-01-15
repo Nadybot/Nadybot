@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Attributes\DB\ColName;
 use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\DB\DBType;
 use Nadybot\Core\Exceptions\SQLException;
 use PDOException;
 use Psr\Log\LoggerInterface;
@@ -234,7 +235,7 @@ class QueryBuilder extends Builder {
 		$type = $this->nadyDB->getType();
 		switch (strtolower($function)) {
 			case 'length':
-				if ($type === DB\Type::MySQL) {
+				if ($type === DBType::MySQL) {
 					return 'length';
 				}
 				break;

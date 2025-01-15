@@ -78,6 +78,7 @@ DBEmoji
 dbloot
 DBRow
 DBTable
+DBType
 [dD]arknet
 [dD]iamondine
 [dD]owntimes?

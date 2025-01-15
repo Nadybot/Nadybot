@@ -3,13 +3,14 @@
 namespace Nadybot\Core\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\DB\DBType;
 use Nadybot\Core\{DB, Types\SchemaMigration};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_10_27_08_45_01)]
 class ConvertAriaTables implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		if ($db->getType() !== DB\Type::MySQL) {
+		if ($db->getType() !== DBType::MySQL) {
 			return;
 		}
 
