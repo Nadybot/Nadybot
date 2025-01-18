@@ -39,9 +39,6 @@ class ImplantDesignerController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private WhatBuffsController $whatBuffsController;
 
 	#[NCA\Inject]
@@ -49,9 +46,6 @@ class ImplantDesignerController extends ModuleInstance {
 
 	/** @var list<string> */
 	private array $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
-
-	/** @var list<string> */
-	private array $grades = ['shiny', 'bright', 'faded'];
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -105,23 +99,22 @@ class ImplantDesignerController extends ModuleInstance {
 			if ($ql > 200) {
 				$refined = 'Refined ';
 			}
-			foreach (['shiny', 'bright', 'faded'] as $grade) {
-				/** @psalm-var 'shiny'|'bright'|'faded' $grade */
-				if (!isset($slotObj->{$grade})) {
+			foreach (ClusterGrade::cases() as $grade) {
+				if (!isset($slotObj->{$grade->value})) {
 					continue;
 				}
-				$name = $lookup[$slotObj->{$grade}];
+				$name = $lookup[$slotObj->{$grade->value}];
 				if (str_ends_with($name, 'Jobe')) {
 					$name = str_replace(' Jobe', " {$refined}Jobe Cluster", $name);
 				} else {
 					$name .= " {$refined}Cluster";
 				}
-				$clusterQL = $this->implantController->getClusterMinQl($ql, $grade);
+				$clusterQL = $this->implantController->getClusterMinQl($ql, $grade->value);
 				if ($ql > 200 && $clusterQL < 201) {
 					$clusterQL = 201;
 				}
 				$name .= " (QL {$clusterQL}+)";
-				$listGrade = "{$grade}Clusters";
+				$listGrade = "{$grade->value}Clusters";
 				$list->{$listGrade} []= $name;
 				$addImp = true;
 			}
@@ -221,14 +214,10 @@ class ImplantDesignerController extends ModuleInstance {
 			}
 			$blob .= "\n";
 
-			$blob .= '<header2>Shiny<end>';
-			$blob .= $this->showClusterChoices($design, $slotName, 'shiny', $ql);
-
-			$blob .= '<header2>Bright<end>';
-			$blob .= $this->showClusterChoices($design, $slotName, 'bright', $ql);
-
-			$blob .= '<header2>Faded<end>';
-			$blob .= $this->showClusterChoices($design, $slotName, 'faded', $ql);
+			foreach (ClusterGrade::cases() as $grade) {
+				$blob .= "<header2>{$grade->name}<end>";
+				$blob .= $this->showClusterChoices($design, $slotName, $grade->value, $ql);
+			}
 		}
 
 		$msg = Text::makeBlob("Implant Designer ({$slotName})", $blob);
@@ -511,13 +500,13 @@ class ImplantDesignerController extends ModuleInstance {
 			foreach ($data as $row) {
 				$results = [];
 				if (!isset($slotObj->shiny)) {
-					$results []= ['shiny', $row->shiny_effect];
+					$results []= [ClusterGrade::Shiny->value, $row->shiny_effect];
 				}
 				if (!isset($slotObj->bright)) {
-					$results []= ['bright', $row->bright_effect];
+					$results []= [ClusterGrade::Bright->value, $row->bright_effect];
 				}
 				if (!isset($slotObj->faded)) {
-					$results []= ['faded', $row->faded_effect];
+					$results []= [ClusterGrade::Faded->value, $row->faded_effect];
 				}
 
 				/** @var list<string> $results */
@@ -626,17 +615,17 @@ class ImplantDesignerController extends ModuleInstance {
 				);
 
 				// add mods
-				foreach ($this->grades as $grade) {
-					if (isset($slotObj->{$grade})) {
-						$effectTypeIdName = strtolower($grade) . '_effect_type_id';
+				foreach (ClusterGrade::cases() as $grade) {
+					if (isset($slotObj->{$grade->value})) {
+						$effectTypeIdName = $grade->value . '_effect_type_id';
 						$effectId = $implant->{$effectTypeIdName};
-						$mods[$slotObj->{$grade}] += $this->getClusterModAmount($ql, $grade, $effectId);
+						$mods[$slotObj->{$grade}] += $this->getClusterModAmount($ql, $grade->value, $effectId);
 
 						// add cluster
 						$clusters []= new ShoppingCluster(
-							ql: $this->implantController->getClusterMinQl($ql, $grade),
+							ql: $this->implantController->getClusterMinQl($ql, $grade->value),
 							slot: $slot,
-							grade: $grade,
+							grade: $grade->value,
 							name: $slotObj->{$grade},
 						);
 					}
@@ -648,7 +637,7 @@ class ImplantDesignerController extends ModuleInstance {
 		ksort($mods);
 
 		// sort clusters by name alphabetically, and then by grade, shiny first
-		$grades = $this->grades;
+		$grades = array_map(static fn (ClusterGrade $grade): string => $grade->value, ClusterGrade::cases());
 		usort($clusters, static function (object $cluster1, object $cluster2) use ($grades): int {
 			$val = strcmp($cluster1->name, $cluster2->name);
 			if ($val === 0) {
@@ -825,13 +814,12 @@ class ImplantDesignerController extends ModuleInstance {
 		}
 		$msg .= "\n";
 
-		foreach ($this->grades as $grade) {
-			/** @psalm-var 'shiny'|'bright'|'faded' $grade */
-			if (!isset($slotObj->{$grade})) {
+		foreach (ClusterGrade::cases() as $grade) {
+			if (!isset($slotObj->{$grade->value})) {
 				$msg .= "<tab><highlight>-Empty-<end>\n";
 				continue;
 			}
-			$skill = $slotObj->{$grade};
+			$skill = $slotObj->{$grade->value};
 			assert(is_string($skill), null);
 			$displaySkill = str_replace(' (%)', '', $skill);
 			$unit = $this->db->table(Cluster::getTable(), 'c')
@@ -840,9 +828,9 @@ class ImplantDesignerController extends ModuleInstance {
 				->select('s.unit')
 				->pluckStrings('unit')
 				->first() ?? '';
-			$effectTypeIdName = "{$grade}_effect_type_id";
+			$effectTypeIdName = "{$grade->value}_effect_type_id";
 			$effectId = $implant->{$effectTypeIdName};
-			$bonus = $this->getClusterModAmount($ql, $grade, $effectId);
+			$bonus = $this->getClusterModAmount($ql, $grade->value, $effectId);
 			$msg .= sprintf(
 				"<tab><highlight>%s<end> (%+d%s)\n",
 				$displaySkill,

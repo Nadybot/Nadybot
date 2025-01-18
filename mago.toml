@@ -1,13 +1,15 @@
+php_version = "8.2"
+
 [source]
 paths = ["src"]
 excludes = [
   "src/Core/QueryBuilder.php"
 ]
 includes = ["vendor", "src/Core"]
-extensions = ["php", "php81"]
+extensions = ["php"]
 
 [linter]
-level = "Error"
+default_plugins = true
 
 [[linter.rules]]
 name = "best-practices/no-unused-parameter"
@@ -51,8 +53,4 @@ level = "Off"
 
 [[linter.rules]]
 name = "best-practices/no-multi-assignments"
-level = "Off"
-
-[[linter.rules]]
-name = "migration/readonly-class-promotion"
 level = "Off"
