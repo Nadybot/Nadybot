@@ -285,9 +285,9 @@ class ImplantController extends ModuleInstance {
 		if ($ql >= 201) {
 			$minQL = 201;
 		}
-		$shinyQL = $this->getClusterMinQl($ql, 'shiny');
-		$brightQL = $this->getClusterMinQl($ql, 'bright');
-		$fadedQL = $this->getClusterMinQl($ql, 'faded');
+		$shinyQL = $this->getClusterMinQl($ql, ClusterGrade::Shiny);
+		$brightQL = $this->getClusterMinQl($ql, ClusterGrade::Bright);
+		$fadedQL = $this->getClusterMinQl($ql, ClusterGrade::Faded);
 		$blob .= "<header2>Minimum Cluster QL:<end>\n".
 			$indent.Text::alignNumber(max($minQL, $shinyQL), 3, 'highlight') . " Shiny\n".
 			$indent.Text::alignNumber(max($minQL, $brightQL), 3, 'highlight') . " Bright\n".
@@ -309,16 +309,12 @@ class ImplantController extends ModuleInstance {
 	 *
 	 * @psalm-return int<1,300>
 	 */
-	public function getClusterMinQl(int $ql, string $grade): int {
-		if ($grade === 'shiny') {
-			$minQL = (int)floor($ql * 0.86);
-		} elseif ($grade === 'bright') {
-			$minQL = (int)floor($ql * 0.84);
-		} elseif ($grade === 'faded') {
-			$minQL = (int)floor($ql * 0.82);
-		} else {
-			throw new Exception("Invalid grade: '{$grade}'.  Must be one of: 'shiny', 'bright', 'faded'");
-		}
+	public function getClusterMinQl(int $ql, ClusterGrade $grade): int {
+		$minQL = match ($grade) {
+			ClusterGrade::Shiny => (int)floor($ql * 0.86),
+			ClusterGrade::Bright => (int)floor($ql * 0.84),
+			ClusterGrade::Faded => (int)floor($ql * 0.82),
+		};
 		return max(min($minQL, 300), 1);
 	}
 

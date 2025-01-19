@@ -24,6 +24,30 @@ enum ImplantSlot: int {
 		};
 	}
 
+	public static function tryByName(string $name): ?self {
+		try {
+			return static::byName($name);
+		} catch (ValueError) {
+			return null;
+		}
+	}
+
+	public static function getNameRegexp(): string {
+		return 'eyes?|ocular'.
+		'|head|brain'.
+		'|ear'.
+		'|right arm|rarm'.
+		'|body|chest'.
+		'|left arm|larm'.
+		'|right wrist|rwrist'.
+		'|waist'.
+		'|left wrist|lwrist'.
+		'|right hand|rhand'.
+		'|legs|leg|thigh'.
+		'|left hand|lhand'.
+		'|foot|feet';
+	}
+
 	public static function byDesignSlotName(string $name): self {
 		return match (strtolower($name)) {
 			'eye' => self::Eye,

@@ -56,8 +56,8 @@ class PremadeImplantController extends ModuleInstance {
 		if (isset($profession)) {
 			$searchTerms = $profession->value;
 			$results = $this->searchByProfession($profession);
-		} elseif (PImplantSlot::matches($searchTerms)) {
-			$results = $this->searchBySlot((new PImplantSlot($searchTerms))());
+		} elseif (null !== ($slot = ImplantSlot::tryByName($searchTerms))) {
+			$results = $this->searchBySlot($slot);
 		} else {
 			$results = $this->searchByModifier($searchTerms);
 		}

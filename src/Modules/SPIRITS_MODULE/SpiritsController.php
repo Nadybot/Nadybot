@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\SPIRITS_MODULE;
 
+use Nadybot\Core\Types\ImplantSlot;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -12,7 +13,6 @@ use Nadybot\Core\{
 	Text,
 };
 use Nadybot\Modules\{
-	IMPLANT_MODULE\PImplantSlot,
 	ITEMS_MODULE\AODBEntry,
 };
 
@@ -42,17 +42,25 @@ class SpiritsController extends ModuleInstance {
 	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand('spirits')]
 	#[NCA\Help\Example('<symbol>spirits head 60-70')]
-	public function spiritsSlotAndRangeCommand(CmdContext $context, PImplantSlot $slot, PNumRange $qlRange): void {
+	public function spiritsSlotAndRangeCommand(
+		CmdContext $context,
+		#[NCA\ImplantSlotStr] string $slot,
+		PNumRange $qlRange,
+	): void {
 		$this->spiritsRangeAndSlotCommand($context, $qlRange, $slot);
 	}
 
 	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand('spirits')]
 	#[NCA\Help\Example('<symbol>spirits 60-70 feet')]
-	public function spiritsRangeAndSlotCommand(CmdContext $context, PNumRange $qlRange, PImplantSlot $slot): void {
+	public function spiritsRangeAndSlotCommand(
+		CmdContext $context,
+		PNumRange $qlRange,
+		#[NCA\ImplantSlotStr] string $slot,
+	): void {
 		$lowQL = $qlRange->low;
 		$highQL = $qlRange->high;
-		$slot = $slot();
+		$slot = ImplantSlot::byName($slot);
 		$title = "{$slot->longName()} Spirits QL {$lowQL} to {$highQL}";
 		if ($lowQL < 1 or $highQL > 300 or $lowQL >= $highQL) {
 			$msg = 'Invalid Ql range specified.';
@@ -78,16 +86,24 @@ class SpiritsController extends ModuleInstance {
 	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand('spirits')]
 	#[NCA\Help\Example('<symbol>spirits grave feet')]
-	public function spiritsCommandTypeAndSlot(CmdContext $context, PNonNumber $name, PImplantSlot $slot): void {
+	public function spiritsCommandTypeAndSlot(
+		CmdContext $context,
+		PNonNumber $name,
+		#[NCA\ImplantSlotStr] string $slot
+	): void {
 		$this->spiritsCommandSlotAndType($context, $slot, $name);
 	}
 
 	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand('spirits')]
 	#[NCA\Help\Example('<symbol>spirits feet grave')]
-	public function spiritsCommandSlotAndType(CmdContext $context, PImplantSlot $slot, PNonNumber $name): void {
+	public function spiritsCommandSlotAndType(
+		CmdContext $context,
+		#[NCA\ImplantSlotStr] string $slot,
+		PNonNumber $name
+	): void {
 		$name = ucwords(strtolower($name()));
-		$slot = $slot();
+		$slot = ImplantSlot::byName($slot);
 		$title = "Spirits Database for {$name} {$slot->longName()}";
 
 		$data = $this->db->table(Spirit::getTable())
@@ -158,15 +174,23 @@ class SpiritsController extends ModuleInstance {
 	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand('spirits')]
 	#[NCA\Help\Example('<symbol>spirits chest 210')]
-	public function spiritsTypeAndQlCommand(CmdContext $context, PImplantSlot $slot, int $ql): void {
+	public function spiritsTypeAndQlCommand(
+		CmdContext $context,
+		#[NCA\ImplantSlotStr] string $slot,
+		int $ql,
+	): void {
 		$this->spiritsQlAndTypeCommand($context, $ql, $slot);
 	}
 
 	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand('spirits')]
 	#[NCA\Help\Example('<symbol>spirits 210 chest')]
-	public function spiritsQlAndTypeCommand(CmdContext $context, int $ql, PImplantSlot $slot): void {
-		$slot = $slot();
+	public function spiritsQlAndTypeCommand(
+		CmdContext $context,
+		int $ql,
+		#[NCA\ImplantSlotStr] string $slot,
+	): void {
+		$slot = ImplantSlot::byName($slot);
 		$title = "{$slot->longName()} Spirits QL {$ql}";
 		if ($ql < 1 or $ql > 300) {
 			$msg = 'Invalid Ql specified.';
@@ -193,9 +217,7 @@ class SpiritsController extends ModuleInstance {
 	public function spiritsCommandSearch(CmdContext $context, PNonNumber $search): void {
 		$name = ucwords(strtolower($search()));
 		$title = "Spirits Database for {$name}";
-		if (PImplantSlot::matches($name)) {
-			$name = (new PImplantSlot($name))()->designSlotName();
-		}
+		$name = ImplantSlot::tryByName($name)?->designSlotName() ?? $name;
 
 		$data = $this->db->table(Spirit::getTable())
 			->whereIlike('name', "%{$name}%")

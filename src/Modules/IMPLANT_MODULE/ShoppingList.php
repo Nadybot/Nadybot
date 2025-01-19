@@ -16,4 +16,13 @@ class ShoppingList {
 		public array $fadedClusters=[],
 	) {
 	}
+
+	/** Add a cluster in a specific grade to the shopping list */
+	public function addCluster(ClusterGrade $grade, string $cluster): void {
+		match ($grade) {
+			ClusterGrade::Shiny => $this->shinyClusters []= $cluster,
+			ClusterGrade::Bright => $this->brightClusters []= $cluster,
+			ClusterGrade::Faded => $this->fadedClusters []= $cluster,
+		};
+	}
 }
