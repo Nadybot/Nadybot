@@ -52,12 +52,10 @@ phpCsCheck() {
 }
 
 magoCheck() {
-  if command -v mago &> /dev/null; then
-    OUTPUT=$(mago self-update --no-confirm 2>&1 && mago lint 2>&1)
-    if [ $? -ne 0 ]; then
-      echo "$OUTPUT"
-      exit 1
-    fi
+  OUTPUT=$("${BINDIR}/mago" lint 2>&1)
+  if [ $? -ne 0 ]; then
+    echo "$OUTPUT"
+    exit 1
   fi
 }
 

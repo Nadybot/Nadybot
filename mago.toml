@@ -54,3 +54,27 @@ level = "Off"
 [[linter.rules]]
 name = "best-practices/no-multi-assignments"
 level = "Off"
+
+[[linter.rules]]
+name = "maintainability/excessive-parameter-list"
+level = "Off"
+
+[[linter.rules]]
+name = "maintainability/too-many-properties"
+level = "Off"
+
+[[linter.rules]]
+name = "maintainability/too-many-methods"
+level = "Off"
+
+[[linter.rules]]
+name = "maintainability/kan-defect"
+level = "Off"
+
+[[linter.rules]]
+name = "maintainability/halstead"
+level = "Off"
+
+[[linter.rules]]
+name = "maintainability/cyclomatic-complexity"
+level = "Off"
