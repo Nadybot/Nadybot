@@ -70,8 +70,7 @@
 	"config": {
 		"vendor-dir": "vendor",
 		"allow-plugins": {
-			"composer/package-versions-deprecated": true,
-			"carthage-software/mago": true
+			"composer/package-versions-deprecated": true
 		}
 	},
 	"require-dev": {
@@ -86,8 +85,7 @@
 		"thecodingmachine/phpstan-safe-rule": "^1.2",
 		"struggle-for-php/sfp-phpstan-psr-log": "^0.21.0",
 		"phpstan/phpstan-strict-rules": "^1.5",
-		"shipmonk/phpstan-rules": "^2.12",
-		"carthage-software/mago": "^0.4.0"
+		"shipmonk/phpstan-rules": "^2.12"
 	},
 	"scripts": {
 		"post-package-install": [
