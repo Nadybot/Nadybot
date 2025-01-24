@@ -3,12 +3,19 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE\Drill\Packet;
 
 use Amp\Websocket\Client\WebsocketConnection;
-use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Types\Loggable;
+use Nadybot\Core\{Attributes as NCA, LoggableTrait};
 use Psr\Log\LoggerInterface;
 
-abstract class Base {
+abstract class Base implements Loggable {
+	use LoggableTrait;
+
 	#[NCA\Logger]
 	protected LoggerInterface $logger;
+
+	public function toLog(): string {
+		return $this->traitedToLog(hide: ['logger']);
+	}
 
 	public function send(WebsocketConnection $connection): void {
 		$message = $this->toString();

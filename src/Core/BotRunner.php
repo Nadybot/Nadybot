@@ -641,8 +641,8 @@ class BotRunner {
 		if (!$this->shouldShowSetup($config)) {
 			return false;
 		}
-		$setup = new Setup($this->getConfigFile(), self::getFS());
-		$setup->showIntro();
+		$setup = new Setup($this->getConfigFile(), self::getFS(), $this->logger);
+		$this->configFile = $setup->showIntro();
 		$this->logger->notice('Reloading configuration and testing your settings.');
 		return true;
 	}

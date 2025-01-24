@@ -11,6 +11,7 @@ use AO\Client\{SingleClient, WorkerConfig};
 use Nadybot\Core\Filesystem;
 
 use Nadybot\Core\{Config\BotConfig, DB\DBType};
+use Psr\Log\LoggerInterface;
 
 /**
  * Description: Configuration of the Basicbot settings
@@ -31,6 +32,7 @@ class Setup {
 	public function __construct(
 		private BotConfig $configFile,
 		private Filesystem $fs,
+		private LoggerInterface $logger,
 	) {
 	}
 
@@ -50,14 +52,24 @@ class Setup {
 		echo str_repeat("\n", max(1, (int)floor(11 - count($lines)/2)));
 	}
 
-	public function showIntro(): void {
+	public function showIntro(): BotConfig {
 		$this->showStep(
 			"You will need to provide some information\n".
-			"regarding the basic configuration of the bot.\n"
+			"regarding the basic configuration of the bot.\n".
+			"Do you want to configure the boto via\n".
+			"\t[1] Basic text mode questions\n".
+			"\t[2] A proper WebUI"
 		);
 		$msg = "Press enter to continue.\n";
-		$this->readInput($msg);
+		do {
+			$result = $this->readInput($msg);
+		} while (!in_array($result, ['1', '2'], true));
+		if ($result === '2') {
+			$webUI = new WebSetup($this, $this->configFile, $this->fs, $this->logger);
+			return $webUI->serve();
+		}
 		$this->queryAccountUsername();
+		return $this->configFile;
 	}
 
 	public function queryAccountUsername(): void {
