@@ -32,10 +32,6 @@ name = "strictness/no-assignment-in-condition"
 level = "Off"
 
 [[linter.rules]]
-name = "strictness/require-constant-type"
-level = "Off"
-
-[[linter.rules]]
 name = "strictness/missing-assert-description"
 level = "Off"
 
