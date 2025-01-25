@@ -3,6 +3,7 @@
 /cache
 /conf/config*.php
 /conf/config*.toml
+/conf/config*.json
 !/conf/config.template.php
 !/conf/config.template.toml
 /data/*
