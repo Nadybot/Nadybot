@@ -187,8 +187,7 @@ class DrillController extends ModuleInstance {
 			return;
 		}
 		$answer = new Drill\Packet\AoAuth(characterName: $this->config->main->character);
-		Registry::injectDependencies($answer);
-		$answer->send($event->client);
+		$event->client->sendBinary($answer->toString());
 	}
 
 	#[NCA\Event(
@@ -241,8 +240,7 @@ class DrillController extends ModuleInstance {
 			token: $code,
 			desiredSudomain: strtolower($this->config->main->character)
 		);
-		Registry::injectDependencies($answer);
-		$answer->send($event->client);
+		$event->client->sendBinary($answer->toString());
 	}
 
 	#[NCA\Event(
@@ -286,11 +284,9 @@ class DrillController extends ModuleInstance {
 					"Content-Length: 0\r\n".
 					"\r\n";
 				$errReply = new Drill\Packet\Data(uuid: $packet->uuid, data: $http);
-				Registry::injectDependencies($errReply);
-				$errReply->send($event->client);
+				$event->client->sendBinary($errReply->toString());
 				$closeReply = new Drill\Packet\Closed(uuid: $packet->uuid);
-				Registry::injectDependencies($closeReply);
-				$closeReply->send($event->client);
+				$event->client->sendBinary($closeReply->toString());
 				return;
 			}
 			$this->handlers[$packet->uuid] = $handler;

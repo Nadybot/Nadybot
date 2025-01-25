@@ -17,12 +17,11 @@ use Amp\Websocket\WebsocketClosedException;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\Config\{AutoUnfreeze, BotConfig};
-use Nadybot\Core\{Filesystem, Hydrator, Registry};
+use Nadybot\Core\{Filesystem, Hydrator};
 use Nadybot\Modules\WEBSERVER_MODULE\Drill;
 use Nadylib\IMEX;
 use Nadylib\IMEX\ImportException;
 use Psr\Log\LoggerInterface;
-
 use Revolt\EventLoop;
 use Throwable;
 
@@ -49,9 +48,14 @@ class WebSetup {
 		$errorHandler = new DefaultErrorHandler();
 
 		$server = SocketHttpServer::createForDirectAccess($this->logger);
-		$server->expose(new InternetAddress('0.0.0.0', 1_337));
-		$server->expose(new InternetAddress('[::]', 1_337));
-		$documentRoot = new DocumentRoot($server, $errorHandler, __DIR__ . '/html');
+		$server->expose(new InternetAddress('0.0.0.0', 8_080));
+		$server->expose(new InternetAddress('[::]', 8_080));
+		$documentRoot = new DocumentRoot(
+			httpServer: $server,
+			errorHandler: $errorHandler,
+			root: __DIR__ . '/html',
+			filesystem: $this->fs->getFilesystem()
+		);
 		$router = new Router($server, $this->logger, $errorHandler);
 		$router->setFallback($documentRoot);
 		$router->addRoute('POST', '/config', new ClosureRequestHandler(fn (Request $request): Response => $this->saveConfig($server, $request)));
@@ -59,7 +63,7 @@ class WebSetup {
 		EventLoop::queue($this->setupDrill(...));
 		$this->setup->showStep(
 			"You can now connect to\n\n".
-			"    http://127.0.0.1:1337\n\n".
+			"    http://127.0.0.1:8080\n\n".
 			"to configure your bot.\n"
 		);
 		EventLoop::run();
@@ -77,7 +81,7 @@ class WebSetup {
 			$handler = new DrillConnection(
 				uuid: $packet->uuid,
 				host: '127.0.0.1',
-				port: 1_337,
+				port: 8_080,
 				logger: $this->logger,
 				wsConnection: $connection,
 			);
@@ -88,11 +92,9 @@ class WebSetup {
 					"Content-Length: 0\r\n".
 					"\r\n";
 				$errReply = new Drill\Packet\Data(uuid: $packet->uuid, data: $http);
-				Registry::injectDependencies($errReply);
-				$errReply->send($connection);
+				$connection->sendBinary($errReply->toString());
 				$closeReply = new Drill\Packet\Closed(uuid: $packet->uuid);
-				Registry::injectDependencies($closeReply);
-				$closeReply->send($connection);
+				$connection->sendBinary($closeReply->toString());
 				return;
 			}
 			$this->handlers[$packet->uuid] = $handler;
@@ -165,7 +167,7 @@ class WebSetup {
 		$this->setup->showStep(
 			"You can now connect to\n\n".
 			"    {$packet->publicUrl} or \n".
-			"    http://127.0.0.1:1337\n\n".
+			"    http://127.0.0.1:8080\n\n".
 			"to configure your bot.\n"
 		);
 	}
@@ -194,8 +196,7 @@ class WebSetup {
 			return;
 		}
 		$answer = new Drill\Packet\PresentToken(token: str_repeat('x', 36));
-		Registry::injectDependencies($answer);
-		$answer->send($connection);
+		$connection->sendBinary($answer->toString());
 	}
 
 	private function saveConfig(HttpServer $server, Request $request): Response {

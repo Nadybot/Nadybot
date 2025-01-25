@@ -7,7 +7,7 @@ use function Amp\Socket\connect;
 
 use Amp\Socket\{ConnectContext, ConnectException, Socket};
 use Amp\Websocket\Client\WebsocketConnection;
-use Nadybot\Core\{Attributes as NCA, Registry};
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
@@ -68,17 +68,15 @@ class Connection {
 		while (isset($this->webClient) && ($chunk = $this->webClient->read()) !== null) {
 			$this->logger->info('Received reply from Webserver');
 			$packet = new Packet\Data(data: $chunk, uuid: $this->uuid);
-			Registry::injectDependencies($packet);
 			$this->logger->debug('Sending answer to Drill server: {answer}', [
 				'answer' => $chunk,
 			]);
-			$packet->send($this->wsConnection);
+			$this->wsConnection->sendBinary($packet->toString());
 		}
 		$this->logger->info('Empty read from webserver, closing');
 		if (isset($this->webClient)) {
 			$packet = new Packet\Closed(uuid: $this->uuid);
-			Registry::injectDependencies($packet);
-			$packet->send($this->wsConnection);
+			$this->wsConnection->sendBinary($packet->toString());
 		}
 	}
 }

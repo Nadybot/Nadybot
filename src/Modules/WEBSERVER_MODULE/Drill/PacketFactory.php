@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE\Drill;
 
-use Nadybot\Core\Registry;
-
 class PacketFactory {
 	/** @var array<int,class-string> */
 	public const CLASS_MAP = [
@@ -26,7 +24,6 @@ class PacketFactory {
 			throw new UnsupportedPacketException((string)$type);
 		}
 		$obj = $class::fromString($message);
-		Registry::injectDependencies($obj);
 		return $obj;
 	}
 }

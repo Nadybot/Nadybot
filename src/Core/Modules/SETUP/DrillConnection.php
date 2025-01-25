@@ -66,13 +66,13 @@ class DrillConnection {
 			$this->logger->debug('Sending answer to Drill server: {answer}', [
 				'answer' => $chunk,
 			]);
-			$packet->send($this->wsConnection);
+			$this->wsConnection->sendBinary($packet->toString());
 		}
 		$this->logger->info('Empty read from webserver, closing');
 		if (isset($this->webClient)) {
 			$packet = new Drill\Packet\Closed(uuid: $this->uuid);
 			Registry::injectDependencies($packet);
-			$packet->send($this->wsConnection);
+			$this->wsConnection->sendBinary($packet->toString());
 		}
 	}
 }
