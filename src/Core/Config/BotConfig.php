@@ -6,7 +6,7 @@ use function Safe\json_decode;
 
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 use EventSauce\ObjectHydrator\{MapFrom, MapperSettings};
-use Nadybot\Core\Attributes\Instance;
+use Nadybot\Core\Attributes\{Instance, JSON\Ignore};
 use Nadybot\Core\{Filesystem, Hydrator};
 use Nadylib\IMEX;
 
@@ -20,21 +20,21 @@ use Nadylib\IMEX;
 ]
 class BotConfig {
 	/**
-	 * @param string                    $filePath     The location in the filesystem of this config file
-	 * @param Database                  $database     What type of database should be used? ('sqlite', 'postgresql', or 'mysql')
-	 * @param Paths                     $paths        Configuration of the different paths of the bot
-	 * @param Credentials               $main         Credentials of the main character
-	 * @param General                   $general      General config settings
-	 * @param ?Proxy                    $proxy        Information about whether and which proxy to use
-	 * @param ?AutoUnfreeze             $autoUnfreeze Settings for automatic unfreezing of accounts
-	 * @param Credentials[]             $worker       Credentials of the worker characters
-	 * @param array<string,null|scalar> $settings     Define settings values which will be immutable
+	 * @param string                $filePath     The location in the filesystem of this config file
+	 * @param Database              $database     What type of database should be used? ('sqlite', 'postgresql', or 'mysql')
+	 * @param Paths                 $paths        Configuration of the different paths of the bot
+	 * @param Credentials           $main         Credentials of the main character
+	 * @param General               $general      General config settings
+	 * @param ?Proxy                $proxy        Information about whether and which proxy to use
+	 * @param ?AutoUnfreeze         $autoUnfreeze Settings for automatic unfreezing of accounts
+	 * @param Credentials[]         $worker       Credentials of the worker characters
+	 * @param array<string,?scalar> $settings     Define settings values which will be immutable
 	 *
 	 * @psalm-param list<Credentials> $worker
 	 */
 	public function __construct(
 		private string $filePath,
-		public ?int $orgId,
+		#[Ignore] public ?int $orgId,
 		public Database $database,
 		public Paths $paths,
 		public Credentials $main,

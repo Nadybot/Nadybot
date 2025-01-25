@@ -5,6 +5,7 @@ namespace Nadybot\Core\Config;
 use Nadybot\Core\Attributes\Confidential;
 use Nadybot\Core\DB\DBType;
 
+/** The database configuration */
 class Database {
 	/**
 	 * @param DBType      $type     What type of database should be used? ('sqlite', 'postgresql', or 'mysql')

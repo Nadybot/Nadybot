@@ -5,6 +5,7 @@ namespace Nadybot\Core\Config;
 use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
 use Nadybot\Core\Attributes\ConvertToBool;
 
+/** Proxy settings (obsolete) */
 class Proxy {
 	/**
 	 * @param bool   $enabled Whether to enable (true) proxy usage or not

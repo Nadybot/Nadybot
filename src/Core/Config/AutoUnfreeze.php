@@ -4,6 +4,7 @@ namespace Nadybot\Core\Config;
 
 use Nadybot\Core\Attributes\ConvertToBool;
 
+/** Settings for the auto-unfreezer */
 class AutoUnfreeze {
 	public function __construct(
 		#[ConvertToBool] public bool $enabled=false,

@@ -4,6 +4,7 @@ namespace Nadybot\Core\Config;
 
 use Nadybot\Core\Attributes\Confidential;
 
+/** Credentials for a single character */
 class Credentials {
 	public function __construct(
 		public string $login,

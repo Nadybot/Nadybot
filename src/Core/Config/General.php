@@ -6,6 +6,7 @@ use EventSauce\ObjectHydrator\MapFrom;
 use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
 use Nadybot\Core\Attributes\{ConvertToBool, ForceList};
 
+/** General config settings */
 class General {
 	/**
 	 * @param string[] $superAdmins

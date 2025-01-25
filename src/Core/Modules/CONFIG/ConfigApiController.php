@@ -8,6 +8,7 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandManager,
@@ -54,6 +55,9 @@ class ConfigApiController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private WebChatConverter $webChatConverter;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	#[NCA\Inject]
 	private DB $db;
@@ -795,6 +799,17 @@ class ConfigApiController extends ModuleInstance {
 		}
 
 		return $this->modifyCmdSourceMapping($mapping);
+	}
+
+	/** Get the current system configuration */
+	#[
+		NCA\Api('/config'),
+		NCA\GET,
+		NCA\AccessLevel('superadmin'),
+		NCA\ApiResult(code: 200, class: 'BotConfig', desc: 'The full bot configuration')
+	]
+	public function apiSonfigGetEndpoint(Request $request): Response {
+		return ApiResponse::create($this->config);
 	}
 
 	/** @return Collection<int,CmdSourceMapping> */

@@ -106,6 +106,18 @@
                 },
                 "description": "A single audited action"
             },
+            "AutoUnfreeze": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "useNadyproxy": {
+                        "type": "boolean"
+                    }
+                },
+                "description": "Settings for the auto-unfreezer"
+            },
             "BasicSystemInformation": {
                 "type": "object",
                 "properties": {
@@ -177,6 +189,54 @@
                     }
                 },
                 "description": "Basic information about the bot, like OS, architecture, bot name, workers, and org"
+            },
+            "BotConfig": {
+                "type": "object",
+                "properties": {
+                    "autoUnfreeze": {
+                        "$ref": "#/components/schemas/AutoUnfreeze"
+                    },
+                    "database": {
+                        "$ref": "#/components/schemas/Database"
+                    },
+                    "general": {
+                        "$ref": "#/components/schemas/General"
+                    },
+                    "main": {
+                        "$ref": "#/components/schemas/Credentials"
+                    },
+                    "paths": {
+                        "$ref": "#/components/schemas/Paths"
+                    },
+                    "proxy": {
+                        "$ref": "#/components/schemas/Proxy"
+                    },
+                    "settings": {
+                        "type": "array",
+                        "items": {
+                            "oneOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "boolean"
+                                }
+                            ]
+                        },
+                        "description": "Define settings values which will be immutable"
+                    },
+                    "worker": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Credentials"
+                        },
+                        "description": "Credentials of the worker characters"
+                    }
+                },
+                "description": "The BotConfig class provides convenient interface for reading and saving config files located in conf-subdirectory."
             },
             "ChannelCommandStats": {
                 "type": "object",
@@ -418,6 +478,74 @@
                 },
                 "description": "Amount of active commands, aliases, events, etc."
             },
+            "Credentials": {
+                "type": "object",
+                "properties": {
+                    "character": {
+                        "type": "string"
+                    },
+                    "dimension": {
+                        "type": "integer"
+                    },
+                    "login": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    },
+                    "webLogin": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "webPassword": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "description": "Credentials for a single character"
+            },
+            "Database": {
+                "type": "object",
+                "properties": {
+                    "host": {
+                        "type": "string",
+                        "description": "Hostname or sqlite file location"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the database"
+                    },
+                    "password": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "nullable": true,
+                        "description": "MySQL or PostgreSQL password"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "sqlite",
+                            "mysql",
+                            "postgresql",
+                            "mssql"
+                        ],
+                        "description": "What type of database should be used? ('sqlite', 'postgresql', or 'mysql')"
+                    },
+                    "username": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "nullable": true,
+                        "description": "MySQL or PostgreSQL username"
+                    }
+                },
+                "description": "The database configuration"
+            },
             "EventType": {
                 "type": "object",
                 "properties": {
@@ -470,6 +598,43 @@
                     }
                 },
                 "description": "The name and specs of a function parameter"
+            },
+            "General": {
+                "type": "object",
+                "properties": {
+                    "autoOrgName": {
+                        "type": "boolean"
+                    },
+                    "defaultModuleStatus": {
+                        "type": "integer"
+                    },
+                    "enableConsoleClient": {
+                        "type": "boolean"
+                    },
+                    "enableHydratorCache": {
+                        "type": "boolean"
+                    },
+                    "enablePackageModule": {
+                        "type": "boolean"
+                    },
+                    "orgName": {
+                        "type": "string"
+                    },
+                    "showAomlMarkup": {
+                        "type": "boolean"
+                    },
+                    "superAdmins": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "description": "General config settings"
             },
             "MemoryInformation": {
                 "type": "object",
@@ -822,6 +987,35 @@
                 },
                 "description": "A promotion/demotion/invite in the organization"
             },
+            "Paths": {
+                "type": "object",
+                "properties": {
+                    "cache": {
+                        "type": "string",
+                        "description": "Path to store cache files"
+                    },
+                    "data": {
+                        "type": "string",
+                        "description": "Path to store data"
+                    },
+                    "html": {
+                        "type": "string",
+                        "description": "Path to store HTML files"
+                    },
+                    "logs": {
+                        "type": "string",
+                        "description": "Path for the logs"
+                    },
+                    "modules": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "A list of paths where modules are"
+                    }
+                },
+                "description": "Settings for the paths the bot uses"
+            },
             "Player": {
                 "type": "object",
                 "properties": {
@@ -946,6 +1140,24 @@
                     }
                 },
                 "description": "This represents the data the bot stores about a player in the cache and database"
+            },
+            "Proxy": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "Whether to enable (true) proxy usage or not"
+                    },
+                    "port": {
+                        "type": "integer",
+                        "description": "Port of the proxy server"
+                    },
+                    "server": {
+                        "type": "string",
+                        "description": "hostname or IP address of the proxy server"
+                    }
+                },
+                "description": "Proxy settings (obsolete)"
             },
             "RelayConfig": {
                 "type": "object",
@@ -1589,6 +1801,32 @@
                     "description": "The name of the sub-source"
                 }
             ]
+        },
+        "/config": {
+            "get": {
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "description": "Get the current system configuration",
+                "responses": {
+                    "200": {
+                        "description": "The full bot configuration",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BotConfig"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "config"
+                ]
+            },
+            "parameters": []
         },
         "/execute/{uuid}": {
             "post": {

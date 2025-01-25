@@ -6,6 +6,7 @@ use function Safe\{glob, preg_match};
 
 use BackedEnum;
 use Exception;
+use Nadybot\Core\Config\{AutoUnfreeze, Proxy};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -22,7 +23,8 @@ use ReflectionProperty;
 use ReflectionUnionType;
 
 /**
- * @psalm-type SpecDef = array{"type"?: string, "$ref"?: string, "format"?: string, "pattern"?: string, "minLength"?: int, "maxLength"?: int}
+ * @psalm-type BaseSpecDef = array{"type"?: string, "$ref"?: string, "format"?: string, "pattern"?: string, "minLength"?: int, "maxLength"?: int}
+ * @psalm-type SpecDef = BaseSpecDef|array{"oneOf": list<BaseSpecDef>}
  */
 class ApiSpecGenerator {
 	/** @var array<string,string> */
@@ -38,6 +40,10 @@ class ApiSpecGenerator {
 		}
 		// @phpstan-ignore-next-line
 		foreach (glob(__DIR__ . '/../Core/Modules/*/*.php') ?: [] as $file) {
+			require_once $file;
+		}
+		// @phpstan-ignore-next-line
+		foreach (glob(__DIR__ . '/../Core/Config/*.php') ?: [] as $file) {
 			require_once $file;
 		}
 		// @phpstan-ignore-next-line
@@ -193,7 +199,9 @@ class ApiSpecGenerator {
 			}
 			$refType = $refProp->getType();
 			if (!$refType || $refType->allowsNull()) {
-				$newResult['properties'][$nameAndType[0]]['nullable'] = true;
+				if (!($refType instanceof ReflectionNamedType) || !in_array($refType->getName(), [Proxy::class, AutoUnfreeze::class], true)) {
+					$newResult['properties'][$nameAndType[0]]['nullable'] = true;
+				}
 			}
 			if ($refType instanceof ReflectionNamedType && is_a($refType->getName(), BackedEnum::class, true)) {
 				$enum = $refType->getName();
@@ -625,6 +633,13 @@ class ApiSpecGenerator {
 	 */
 	protected function getSimpleClassRef(string $class, ?ReflectionProperty $refProp=null): array {
 		$class = Safe::pregReplace('/^\?/', '', $class);
+		if ($class === 'scalar') {
+			return ['oneOf' => [
+				['type' => 'string'],
+				['type' => 'integer'],
+				['type' => 'boolean'],
+			]];
+		}
 		if (in_array($class, ['boolean', 'integer', 'string', 'float'], true)) {
 			return ['type' => $class];
 		}
