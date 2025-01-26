@@ -17,7 +17,7 @@ use Amp\Websocket\WebsocketClosedException;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\Config\{AutoUnfreeze, BotConfig};
-use Nadybot\Core\{Filesystem, Hydrator};
+use Nadybot\Core\{BotRunner, DB, Filesystem, Hydrator};
 use Nadybot\Modules\WEBSERVER_MODULE\Drill;
 use Nadylib\IMEX;
 use Nadylib\IMEX\ImportException;
@@ -58,6 +58,7 @@ class WebSetup {
 		);
 		$router = new Router($server, $this->logger, $errorHandler);
 		$router->setFallback($documentRoot);
+		$router->addRoute('GET', '/specs', new ClosureRequestHandler($this->getSystemSpecs(...)));
 		$router->addRoute('POST', '/config', new ClosureRequestHandler(fn (Request $request): Response => $this->saveConfig($server, $request)));
 		$server->start($router, $errorHandler);
 		EventLoop::queue($this->setupDrill(...));
@@ -68,6 +69,19 @@ class WebSetup {
 		);
 		EventLoop::run();
 		return $this->configFile;
+	}
+
+	private function getSystemSpecs(Request $request): Response {
+		return new Response(
+			HttpStatus::OK,
+			['content-type' => 'application/json'],
+			Imex\JSON::export([
+				'bot_version' => BotRunner::getVersion(false),
+				'php_version' => \PHP_MAJOR_VERSION . '.' . \PHP_MINOR_VERSION . '.' . \PHP_RELEASE_VERSION,
+				'os' => \PHP_OS_FAMILY,
+				'databases' => DB::getSupportedDBs(),
+			])
+		);
 	}
 
 	private function handleDrillData(WebsocketConnection $connection, Drill\Packet\Data $packet): void {

@@ -116,6 +116,27 @@ class DB {
 		return $this->config->database->type->name . " {$version}";
 	}
 
+	/** @return list<DBType> */
+	public static function getSupportedDBs(): array {
+		$result = [];
+		if (!extension_loaded('PDO')) {
+			return $result;
+		}
+		if (extension_loaded('pdo_sqlite')) {
+			$result []= DBType::SQLite;
+		}
+		if (extension_loaded('pdo_mysql')) {
+			$result []= DBType::MySQL;
+		}
+		if (extension_loaded('pdo_pgsql')) {
+			$result []= DBType::PostgreSQL;
+		}
+		if (extension_loaded('pdo_dblib')) {
+			$result []= DBType::MSSQL;
+		}
+		return $result;
+	}
+
 	/**
 	 * Connect to the database
 	 *
