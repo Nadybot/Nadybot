@@ -10,7 +10,7 @@ use Amp\TimeoutCancellation;
 use AO\Client\{SingleClient, WorkerConfig};
 use Nadybot\Core\Filesystem;
 
-use Nadybot\Core\{Config\BotConfig, DB\DBType};
+use Nadybot\Core\{Config\BotConfig, DB\DBType, Terminal};
 use Psr\Log\LoggerInterface;
 
 /**
@@ -43,13 +43,14 @@ class Setup {
 	}
 
 	public function showStep(string $text): void {
+		$height = Terminal::getHeight();
 		$indentString = str_repeat(' ', self::INDENT);
 		$lines = explode("\n", trim($text));
-		echo "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+		echo str_repeat(\PHP_EOL, $height);
 		echo "{$indentString}**********************************************************\n";
 		echo $indentString.implode("\n{$indentString}", $lines)."\n";
 		echo "{$indentString}**********************************************************\n";
-		echo str_repeat("\n", max(1, (int)floor(11 - count($lines)/2)));
+		echo str_repeat("\n", max(1, (int)floor(($height - count($lines) - 2)/2)));
 	}
 
 	public function showIntro(): BotConfig {
@@ -60,7 +61,7 @@ class Setup {
 			"\t[1] Basic text mode questions\n".
 			"\t[2] A proper WebUI"
 		);
-		$msg = "Press enter to continue.\n";
+		$msg = 'Choose [1] or [2]: ';
 		do {
 			$result = $this->readInput($msg);
 		} while (!in_array($result, ['1', '2'], true));

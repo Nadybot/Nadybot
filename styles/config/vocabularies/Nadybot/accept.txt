@@ -105,6 +105,7 @@ Equi
 errno
 eventcfg
 extratags
+[fF]abien
 fahrenheit
 fclose
 fds
@@ -225,6 +226,7 @@ perf
 Plugsz
 pmain
 PostgreSQL|postgresql
+Potencier
 [pP]ande(monium)?
 [pP]arsable
 [pP]layfield
@@ -271,10 +273,12 @@ src
 [sS]pawntime
 [sS]uper[aA]dmin
 stdin
+stty
 subcommands?
 symb
 symbiants?
 symbolopt
+[sS]ymfony
 syncable
 Taylorka
 Technomaster
@@ -321,6 +325,7 @@ Woah
 wtb|WTB
 [wW]estminster
 [wW]hereis
+[wW]x[hH]
 Wyziddyj
 Xan
 xoch
