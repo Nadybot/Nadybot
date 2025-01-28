@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SETUP;
 
+use function Safe\ini_get;
 use Amp\ByteStream\BufferException;
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\HttpClientBuilder;
@@ -17,12 +18,13 @@ use Amp\Websocket\WebsocketClosedException;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\Config\{AutoUnfreeze, BotConfig};
-use Nadybot\Core\{BotRunner, DB, Filesystem, Hydrator};
+use Nadybot\Core\{BotRunner, DB, Filesystem, Hydrator, Safe};
 use Nadybot\Modules\WEBSERVER_MODULE\Drill;
 use Nadylib\IMEX;
 use Nadylib\IMEX\ImportException;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
+
 use Throwable;
 
 /**
@@ -72,6 +74,19 @@ class WebSetup {
 	}
 
 	private function getSystemSpecs(Request $request): Response {
+		$memoryLimit = ini_get('memory_limit');
+		if (count($matches = Safe::pregMatch('/^(\d+)([kmg])$/i', $memoryLimit)) === 3) {
+			if (strtolower($matches[2]) === 'm') {
+				$memoryLimit = (int)$matches[1] * 1_024 * 1_024;
+			} elseif (strtolower($matches[2]) === 'k') {
+				$memoryLimit = (int)$matches[1] * 1_024;
+			} elseif (strtolower($matches[2]) === 'g') {
+				$memoryLimit = (int)$matches[1] * 1_024 * 1_024 * 1_024;
+			} else {
+				$memoryLimit = (int)$matches[1];
+			}
+		}
+
 		return new Response(
 			HttpStatus::OK,
 			['content-type' => 'application/json'],
@@ -80,6 +95,13 @@ class WebSetup {
 				'php_version' => \PHP_MAJOR_VERSION . '.' . \PHP_MINOR_VERSION . '.' . \PHP_RELEASE_VERSION,
 				'os' => \PHP_OS_FAMILY,
 				'databases' => DB::getSupportedDBs(),
+				'memory' => [
+					'current_usage' => memory_get_usage(),
+					'current_usage_real' => memory_get_usage(true),
+					'peak_usage' => memory_get_peak_usage(),
+					'peak_usage_real' => memory_get_peak_usage(true),
+					'available' => (int)$memoryLimit,
+				],
 			])
 		);
 	}
