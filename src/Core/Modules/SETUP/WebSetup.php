@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SETUP;
 
+use function Amp\Socket\connect;
 use function Safe\ini_get;
 use Amp\ByteStream\BufferException;
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
@@ -15,6 +16,7 @@ use Amp\Socket\{ConnectContext, InternetAddress};
 use Amp\TimeoutCancellation;
 use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnection, WebsocketHandshake};
 use Amp\Websocket\WebsocketClosedException;
+use AO\Client\{SingleClient, WorkerConfig};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\Config\{AutoUnfreeze, BotConfig};
@@ -60,6 +62,7 @@ class WebSetup {
 		);
 		$router = new Router($server, $this->logger, $errorHandler);
 		$router->setFallback($documentRoot);
+		$router->addRoute('GET', '/characters', new ClosureRequestHandler($this->getAccountCharacters(...)));
 		$router->addRoute('GET', '/specs', new ClosureRequestHandler($this->getSystemSpecs(...)));
 		$router->addRoute('POST', '/config', new ClosureRequestHandler(fn (Request $request): Response => $this->saveConfig($server, $request)));
 		$server->start($router, $errorHandler);
@@ -71,6 +74,47 @@ class WebSetup {
 		);
 		EventLoop::run();
 		return $this->configFile;
+	}
+
+	private function getAccountCharacters(Request $request): Response {
+		$dimension = $request->getQueryParameter('dimension');
+		$login = $request->getQueryParameter('login');
+		$password = $request->getQueryParameter('password');
+		if (!isset($dimension, $login, $password)) {
+			return new Response(
+				HttpStatus::UNPROCESSABLE_ENTITY,
+				['content-type' => 'text/plain'],
+				'Required parameters: dimension, login, password'
+			);
+		}
+
+		/** @var ?list<\AO\Character> */
+		$chars = null;
+		try {
+			$workerConf = new WorkerConfig(
+				dimension: (int)$dimension,
+				username: $login,
+				password: $password,
+				character: 'Xxxx'
+			);
+			$connection = connect(uri: $workerConf->getServer(), cancellation: new TimeoutCancellation(10));
+			$client = new SingleClient(
+				connection: new \AO\Connection(reader: $connection, writer: $connection),
+				parser: \AO\Parser::createDefault(),
+			);
+			$chars = $client->getChars($workerConf->username, $workerConf->password);
+		} catch (\Throwable) {
+			return new Response(
+				HttpStatus::UNAUTHORIZED,
+				['content-type' => 'text/plain'],
+				'Wrong username and/ord password'
+			);
+		}
+		return new Response(
+			HttpStatus::OK,
+			['content-type' => 'application/json'],
+			IMEX\JSON::export(iterator_to_array(Hydrator::serializeObjects($chars), false))
+		);
 	}
 
 	private function getSystemSpecs(Request $request): Response {
