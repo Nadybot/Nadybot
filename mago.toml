@@ -66,3 +66,11 @@ level = "Off"
 [[linter.rules]]
 name = "maintainability/cyclomatic-complexity"
 level = "Off"
+
+[[linter.rules]]
+name = "security/no-insecure-comparison"
+level = "Off"
+
+[[linter.rules]]
+name = "security/no-literal-password"
+level = "Off"

@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\SETUP;
 
 use function Amp\Socket\connect;
 use function Safe\ini_get;
+
 use Amp\ByteStream\BufferException;
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\HttpClientBuilder;
@@ -13,20 +14,19 @@ use Amp\Http\Server\RequestHandler\ClosureRequestHandler;
 use Amp\Http\Server\StaticContent\DocumentRoot;
 use Amp\Http\Server\{DefaultErrorHandler, HttpServer, Request, Response, Router, SocketHttpServer};
 use Amp\Socket\{ConnectContext, InternetAddress};
-use Amp\TimeoutCancellation;
 use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnection, WebsocketHandshake};
 use Amp\Websocket\WebsocketClosedException;
+use Amp\{CancelledException, TimeoutCancellation, TimeoutException};
 use AO\Client\{SingleClient, WorkerConfig};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
+use InvalidArgumentException;
 use Nadybot\Core\Config\{AutoUnfreeze, BotConfig};
 use Nadybot\Core\{BotRunner, DB, Filesystem, Hydrator, Safe};
 use Nadybot\Modules\WEBSERVER_MODULE\Drill;
 use Nadylib\IMEX;
-use Nadylib\IMEX\ImportException;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
-
 use Throwable;
 
 /**
@@ -52,8 +52,8 @@ class WebSetup {
 		$errorHandler = new DefaultErrorHandler();
 
 		$server = SocketHttpServer::createForDirectAccess($this->logger);
-		$server->expose(new InternetAddress('0.0.0.0', 8_080));
-		$server->expose(new InternetAddress('[::]', 8_080));
+		$server->expose(new InternetAddress('127.0.0.1', 8_080));
+		$server->expose(new InternetAddress('[::1]', 8_080));
 		$documentRoot = new DocumentRoot(
 			httpServer: $server,
 			errorHandler: $errorHandler,
@@ -76,20 +76,30 @@ class WebSetup {
 		return $this->configFile;
 	}
 
+	/** @param array<string,string> $replacements */
+	private function errPage(int $code, array $replacements=[]): Response {
+		$text = str_replace(
+			array_map(static fn (string $a): string => '{$' . $a . '}', array_keys($replacements)),
+			array_values($replacements),
+			$this->fs->read(__DIR__ . \DIRECTORY_SEPARATOR . 'html' . \DIRECTORY_SEPARATOR . $code . '.html')
+		);
+		return new Response($code, ['content-type' => 'text/html'], $text);
+	}
+
 	private function getAccountCharacters(Request $request): Response {
 		$dimension = $request->getQueryParameter('dimension');
 		$login = $request->getQueryParameter('login');
 		$password = $request->getQueryParameter('password');
-		if (!isset($dimension, $login, $password)) {
-			return new Response(
-				HttpStatus::UNPROCESSABLE_ENTITY,
-				['content-type' => 'text/plain'],
-				'Required parameters: dimension, login, password'
+		if (!isset($dimension, $login, $password) || !ctype_digit($dimension)) {
+			return $this->errPage(
+				HttpStatus::BAD_REQUEST,
+				['message' => 'Required parameters: dimension, login, password']
 			);
 		}
 
 		/** @var ?list<\AO\Character> */
 		$chars = null;
+		$timeout = 0.01;
 		try {
 			$workerConf = new WorkerConfig(
 				dimension: (int)$dimension,
@@ -97,23 +107,34 @@ class WebSetup {
 				password: $password,
 				character: 'Xxxx'
 			);
-			$connection = connect(uri: $workerConf->getServer(), cancellation: new TimeoutCancellation(10));
+			$connection = connect(uri: $workerConf->getServer(), cancellation: new TimeoutCancellation($timeout));
 			$client = new SingleClient(
 				connection: new \AO\Connection(reader: $connection, writer: $connection),
 				parser: \AO\Parser::createDefault(),
 			);
 			$chars = $client->getChars($workerConf->username, $workerConf->password);
-		} catch (\Throwable) {
-			return new Response(
-				HttpStatus::UNAUTHORIZED,
-				['content-type' => 'text/plain'],
-				'Wrong username and/ord password'
+		} catch (InvalidArgumentException) {
+			return $this->errPage(
+				HttpStatus::UNPROCESSABLE_ENTITY,
+				['message' => "Unknown dimension &quot;{$dimension}&quot;"]
 			);
+		} catch (CancelledException $e) {
+			if ($e->getPrevious() instanceof TimeoutException) {
+				return $this->errPage(HttpStatus::REQUEST_TIMEOUT, ['timeout' => (string)$timeout]);
+			}
+			return $this->errPage(
+				HttpStatus::INTERNAL_SERVER_ERROR,
+				['message' => htmlentities($e->getMessage())],
+			);
+		} catch (\Throwable) {
+			return $this->errPage(HttpStatus::UNAUTHORIZED);
 		}
 		return new Response(
 			HttpStatus::OK,
 			['content-type' => 'application/json'],
-			IMEX\JSON::export(iterator_to_array(Hydrator::serializeObjects($chars), false))
+			IMEX\JSON::export(
+				iterator_to_array(Hydrator::serializeObjects($chars), false)
+			)
 		);
 	}
 
@@ -280,12 +301,11 @@ class WebSetup {
 	}
 
 	private function saveConfig(HttpServer $server, Request $request): Response {
-		$contentType = $request->getHeader('content-type');
+		$contentType = $request->getHeader('content-type') ?? 'unset';
 		if ($contentType !== 'application/json') {
-			return new Response(
+			return $this->errPage(
 				HttpStatus::UNSUPPORTED_MEDIA_TYPE,
-				['content-type' => 'text/plain'],
-				'Please only send json with proper content-type application/json'
+				['content-type' => htmlentities($contentType)],
 			);
 		}
 		try {
@@ -303,7 +323,7 @@ class WebSetup {
 				['content-type' => 'text/plain'],
 				'This is way too large for a json config'
 			);
-		} catch (ImportException) {
+		} catch (IMEX\ImportException) {
 			return new Response(
 				HttpStatus::UNPROCESSABLE_ENTITY,
 				['content-type' => 'text/plain'],
