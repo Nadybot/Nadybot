@@ -9,22 +9,22 @@ use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster, PropertySerializer}
 use InvalidArgumentException;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
-final class Min implements PropertyCaster, PropertySerializer {
+final class Max implements PropertyCaster, PropertySerializer {
 	public function __construct(
-		private int $min,
+		private int $max,
 	) {
 	}
 
 	public function cast(mixed $value, ObjectMapper $hydrator): mixed {
-		if (isset($value) && $value < $this->min) {
-			throw new InvalidArgumentException("{$value} is lower than the minimum value of {$this->min}");
+		if (isset($value) && $value > $this->max) {
+			throw new InvalidArgumentException("{$value} is higher than the maximum value of {$this->max}");
 		}
 		return $value;
 	}
 
 	public function serialize(mixed $value, ObjectMapper $hydrator): mixed {
-		if (isset($value) && $value < $this->min) {
-			throw new InvalidArgumentException("{$value} is lower than the minimum value of {$this->min}");
+		if (isset($value) && $value > $this->max) {
+			throw new InvalidArgumentException("{$value} is higher than the maximum value of {$this->max}");
 		}
 
 		return $value;

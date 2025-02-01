@@ -3,14 +3,15 @@
 namespace Nadybot\Core\Config;
 
 use Nadybot\Core\Attributes\Confidential;
+use Nadybot\Core\Attributes\Exporter\{Max, Min, StrLength};
 
 /** Credentials for a single character */
 class Credentials {
 	public function __construct(
 		public string $login,
 		#[Confidential] public string $password,
-		public string $character,
-		public int $dimension,
+		#[StrLength(min: 4, max: 12)] public string $character,
+		#[Min(4), Max(6)] public int $dimension,
 		#[Confidential] public ?string $webLogin=null,
 		#[Confidential] public ?string $webPassword=null,
 	) {

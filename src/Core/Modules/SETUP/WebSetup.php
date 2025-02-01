@@ -344,7 +344,7 @@ class WebSetup {
 		return new Response(
 			HttpStatus::OK,
 			['content-type' => 'text/plain'],
-			'Hello, script!'
+			'Config saved successfully'
 		);
 	}
 }

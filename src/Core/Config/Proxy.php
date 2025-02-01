@@ -4,6 +4,7 @@ namespace Nadybot\Core\Config;
 
 use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
 use Nadybot\Core\Attributes\ConvertToBool;
+use Nadybot\Core\Attributes\Exporter\{Filter, Max, Min};
 
 /** Proxy settings (obsolete) */
 class Proxy {
@@ -14,8 +15,10 @@ class Proxy {
 	 */
 	public function __construct(
 		#[ConvertToBool] public bool $enabled=false,
-		public string $server='127.0.0.1',
-		#[CastToType('int')] public int $port=9_993,
+		#[
+			Filter(filter: \FILTER_VALIDATE_IP, options: \FILTER_FLAG_IPV4, type: 'IP address')
+		] public string $server='127.0.0.1',
+		#[CastToType('int'), Min(1), Max(65_535)] public int $port=9_993,
 	) {
 	}
 }
