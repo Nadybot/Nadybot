@@ -6,16 +6,11 @@ use function Amp\Socket\connect;
 use function Safe\ini_get;
 
 use Amp\ByteStream\BufferException;
-use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\RequestHandler\ClosureRequestHandler;
 use Amp\Http\Server\StaticContent\DocumentRoot;
 use Amp\Http\Server\{DefaultErrorHandler, HttpServer, Request, Response, Router, SocketHttpServer};
-use Amp\Socket\{ConnectContext, InternetAddress};
-use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnection, WebsocketHandshake};
-use Amp\Websocket\WebsocketClosedException;
+use Amp\Socket\{InternetAddress};
 use Amp\{CancelledException, TimeoutCancellation, TimeoutException};
 use AO\Client\{SingleClient, WorkerConfig};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
@@ -35,7 +30,7 @@ use Throwable;
  * @author Nadyita (RK5)
  */
 class WebSetup {
-	private ?WebsocketConnection $drillConnection=null;
+	private ?DrillClient $drillConnection=null;
 
 	/** @var array<string,DrillConnection> */
 	private array $handlers = [];
@@ -171,7 +166,7 @@ class WebSetup {
 		);
 	}
 
-	private function handleDrillData(WebsocketConnection $connection, Drill\Packet\Data $packet): void {
+	private function handleDrillData(DrillClient $connection, Drill\Packet\Data $packet): void {
 		$this->logger->debug('Received data for UUID {uuid}: {data}', [
 			'uuid' => $packet->uuid,
 			'data' => $packet->data,
@@ -184,7 +179,7 @@ class WebSetup {
 				host: '127.0.0.1',
 				port: 8_080,
 				logger: $this->logger,
-				wsConnection: $connection,
+				drillClient: $connection,
 			);
 			$success = $handler->loop();
 			if (!$success) {
@@ -193,9 +188,9 @@ class WebSetup {
 					"Content-Length: 0\r\n".
 					"\r\n";
 				$errReply = new Drill\Packet\Data(uuid: $packet->uuid, data: $http);
-				$connection->sendBinary($errReply->toString());
+				$connection->send($errReply);
 				$closeReply = new Drill\Packet\Closed(uuid: $packet->uuid);
-				$connection->sendBinary($closeReply->toString());
+				$connection->send($closeReply);
 				return;
 			}
 			$this->handlers[$packet->uuid] = $handler;
@@ -204,67 +199,36 @@ class WebSetup {
 	}
 
 	private function setupDrill(): void {
-		$url = 'wss://drill.nadysetup.org';
-		$handshake = new WebsocketHandshake($url);
-		$connectContext = (new ConnectContext())->withTcpNoDelay();
-		$httpClient = (new HttpClientBuilder())
-			->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
-			->intercept(new RemoveRequestHeader('origin'))
-			->build();
-		$client = new Rfc6455Connector(httpClient: $httpClient);
-		try {
-			$this->logger->info('Connecting to Drill server {url}', ['url' => $url]);
-
-			$this->drillConnection = $connection = $client->connect($handshake, null);
-			while (null !== ($message = $connection->receive())) {
-				$payload = $message->buffer();
-
-				$this->processWebsocketMessage($connection, $payload);
-			}
-			if ($connection->getCloseInfo()->isByPeer()) {
-				throw new WebsocketClosedException(
-					'Drill unexpectedly closed the connection',
-					$connection->getCloseInfo()->getCode(),
-					$connection->getCloseInfo()->getReason(),
-				);
-			}
-		} catch (Throwable $e) {
-			$this->logger->error('Still endpoint errored: {error}', [
-				'error' => $e->getMessage(),
-				'exception' => $e,
-			]);
+		$client = new DrillClient(url: 'wss://drill.nadysetup.org', logger: $this->logger);
+		if (!$client->connect()) {
 			return;
-		} finally {
-			unset($client);
 		}
-		$this->logger->info('Connection to {url} successfully closed.', [
-			'url' => $url,
-		]);
+		$this->drillConnection = $client;
+		EventLoop::queue($this->sendAndReceiveDrill(...), $client);
 	}
 
-	private function processWebsocketMessage(WebsocketConnection $connection, string $msg): void {
+	private function sendAndReceiveDrill(DrillClient $client): void {
 		try {
-			$packet = Drill\PacketFactory::parse($msg);
-		} catch (Drill\UnsupportedPacketException $e) {
-			$this->logger->warning('Received unsupported Drill package type {type}', [
-				'type' => $e->getMessage(),
-				'exception' => $e,
-			]);
-			return;
+			while (null !== ($message = $client->receive())) {
+				$this->processDrillMessage($client, $message);
+			}
+		} catch (Throwable $e) {
+			$client->close();
 		}
-		$this->logger->debug('Received Drill-package {package}', [
-			'package' => $packet,
-		]);
+		$this->logger->info('Drill connection successfully closed.');
+	}
+
+	private function processDrillMessage(DrillClient $client, Drill\Packet\Base $packet): void {
 		match (true) {
-			$packet instanceof Drill\Packet\Hello => $this->handleDrillHello($connection, $packet),
-			$packet instanceof Drill\Packet\LetsGo => $this->handleDrillLetsGo($connection, $packet),
-			$packet instanceof Drill\Packet\Data => $this->handleDrillData($connection, $packet),
-			$packet instanceof Drill\Packet\Closed => $this->handleDrillClosed($connection, $packet),
+			$packet instanceof Drill\Packet\Hello => $this->handleDrillHello($client, $packet),
+			$packet instanceof Drill\Packet\LetsGo => $this->handleDrillLetsGo($client, $packet),
+			$packet instanceof Drill\Packet\Data => $this->handleDrillData($client, $packet),
+			$packet instanceof Drill\Packet\Closed => $this->handleDrillClosed($client, $packet),
 			default => throw new Exception('Inappropriate drill-package received'),
 		};
 	}
 
-	private function handleDrillLetsGo(WebsocketConnection $connection, Drill\Packet\LetsGo $packet): void {
+	private function handleDrillLetsGo(DrillClient $connection, Drill\Packet\LetsGo $packet): void {
 		$this->setup->showStep(
 			"You can now connect to\n\n".
 			"    {$packet->publicUrl} or \n".
@@ -273,7 +237,7 @@ class WebSetup {
 		);
 	}
 
-	private function handleDrillClosed(WebsocketConnection $connection, Drill\Packet\Closed $packet): void {
+	private function handleDrillClosed(DrillClient $connection, Drill\Packet\Closed $packet): void {
 		$this->logger->info('Drill received disconnect for UUID {uuid}', [
 			'uuid' => $packet->uuid,
 		]);
@@ -285,7 +249,7 @@ class WebSetup {
 		unset($this->handlers[$packet->uuid]);
 	}
 
-	private function handleDrillHello(WebsocketConnection $connection, Drill\Packet\Hello $packet): void {
+	private function handleDrillHello(DrillClient $connection, Drill\Packet\Hello $packet): void {
 		if ($packet->authMode !== Drill\Auth::ANONYMOUS) {
 			$this->logger->error("Drill server doesn't support Anonymous authentication");
 			$connection->close();
@@ -297,7 +261,7 @@ class WebSetup {
 			return;
 		}
 		$answer = new Drill\Packet\PresentToken(token: str_repeat('x', 36));
-		$connection->sendBinary($answer->toString());
+		$connection->send($answer);
 	}
 
 	private function saveConfig(HttpServer $server, Request $request): Response {
@@ -333,7 +297,7 @@ class WebSetup {
 			return new Response(
 				HttpStatus::UNPROCESSABLE_ENTITY,
 				['content-type' => 'text/plain'],
-				'This is not a valid config: ' . $e->getMessage(),
+				'This issrc/Core/Modules/SETUP/DrillConnection.phpnot a valid config: ' . $e->getMessage(),
 			);
 		}
 		$drill = $this->drillConnection;

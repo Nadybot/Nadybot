@@ -6,8 +6,6 @@ use function Amp\delay;
 use function Amp\Socket\connect;
 
 use Amp\Socket\{ConnectContext, ConnectException, Socket};
-use Amp\Websocket\Client\WebsocketConnection;
-use Nadybot\Core\Registry;
 use Nadybot\Modules\WEBSERVER_MODULE\Drill;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
@@ -19,7 +17,7 @@ class DrillConnection {
 		private readonly string $uuid,
 		private readonly string $host,
 		private readonly int $port,
-		private WebsocketConnection $wsConnection,
+		private DrillClient $drillClient,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -62,17 +60,12 @@ class DrillConnection {
 		while (isset($this->webClient) && ($chunk = $this->webClient->read()) !== null) {
 			$this->logger->info('Received reply from Webserver');
 			$packet = new Drill\Packet\Data(data: $chunk, uuid: $this->uuid);
-			Registry::injectDependencies($packet);
-			$this->logger->debug('Sending answer to Drill server: {answer}', [
-				'answer' => $chunk,
-			]);
-			$this->wsConnection->sendBinary($packet->toString());
+			$this->drillClient->send($packet);
 		}
 		$this->logger->info('Empty read from webserver, closing');
 		if (isset($this->webClient)) {
 			$packet = new Drill\Packet\Closed(uuid: $this->uuid);
-			Registry::injectDependencies($packet);
-			$this->wsConnection->sendBinary($packet->toString());
+			$this->drillClient->send($packet);
 		}
 	}
 }
