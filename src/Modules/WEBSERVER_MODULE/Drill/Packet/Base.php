@@ -8,10 +8,6 @@ use Nadybot\Core\Types\Loggable;
 abstract class Base implements Loggable {
 	use LoggableTrait;
 
-	public function toLog(): string {
-		return $this->traitedToLog(hide: ['logger']);
-	}
-
 	abstract public static function fromString(string $message): self;
 
 	abstract public function toString(): string;

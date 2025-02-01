@@ -13,7 +13,7 @@ modules = ["./src/Modules", "./extras"]
 [main]
 login = ""
 password = ""
-character = ""
+character = "Xxxx"
 dimension = 5
 
 [general]
