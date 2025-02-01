@@ -30,9 +30,9 @@ use Throwable;
  * @author Nadyita (RK5)
  */
 class WebSetup {
-	private ?DrillClient $drillConnection=null;
+	private ?DrillConnection $drillConnection=null;
 
-	/** @var array<string,DrillConnection> */
+	/** @var array<string,DrillHttpConnection> */
 	private array $handlers = [];
 
 	public function __construct(
@@ -166,7 +166,7 @@ class WebSetup {
 		);
 	}
 
-	private function handleDrillData(DrillClient $connection, Drill\Packet\Data $packet): void {
+	private function handleDrillData(DrillConnection $connection, Drill\Packet\Data $packet): void {
 		$this->logger->debug('Received data for UUID {uuid}: {data}', [
 			'uuid' => $packet->uuid,
 			'data' => $packet->data,
@@ -174,12 +174,12 @@ class WebSetup {
 
 		if (!isset($this->handlers[$packet->uuid])) {
 			$this->logger->info('New client connected via Drill');
-			$handler = new DrillConnection(
+			$handler = new DrillHttpConnection(
 				uuid: $packet->uuid,
 				host: '127.0.0.1',
 				port: 8_080,
 				logger: $this->logger,
-				drillClient: $connection,
+				drillConnection: $connection,
 			);
 			$success = $handler->loop();
 			if (!$success) {
@@ -199,36 +199,37 @@ class WebSetup {
 	}
 
 	private function setupDrill(): void {
-		$client = new DrillClient(url: 'wss://drill.nadysetup.org', logger: $this->logger);
-		if (!$client->connect()) {
-			return;
+		try {
+			$client = new DrillConnector(uri: 'wss://drill.nadysetup.org', logger: $this->logger);
+			$this->drillConnection = $client->connect();
+			EventLoop::queue($this->sendAndReceiveDrill(...), $this->drillConnection);
+		} catch (Throwable) {
+			$this->logger->warning('No Drill connection for this web  setup');
 		}
-		$this->drillConnection = $client;
-		EventLoop::queue($this->sendAndReceiveDrill(...), $client);
 	}
 
-	private function sendAndReceiveDrill(DrillClient $client): void {
+	private function sendAndReceiveDrill(DrillConnection $connection): void {
 		try {
-			while (null !== ($message = $client->receive())) {
-				$this->processDrillMessage($client, $message);
+			while (null !== ($message = $connection->receive())) {
+				$this->processDrillMessage($connection, $message);
 			}
 		} catch (Throwable $e) {
-			$client->close();
+			$connection->close();
 		}
 		$this->logger->info('Drill connection successfully closed.');
 	}
 
-	private function processDrillMessage(DrillClient $client, Drill\Packet\Base $packet): void {
+	private function processDrillMessage(DrillConnection $connection, Drill\Packet\Base $packet): void {
 		match (true) {
-			$packet instanceof Drill\Packet\Hello => $this->handleDrillHello($client, $packet),
-			$packet instanceof Drill\Packet\LetsGo => $this->handleDrillLetsGo($client, $packet),
-			$packet instanceof Drill\Packet\Data => $this->handleDrillData($client, $packet),
-			$packet instanceof Drill\Packet\Closed => $this->handleDrillClosed($client, $packet),
+			$packet instanceof Drill\Packet\Hello => $this->handleDrillHello($connection, $packet),
+			$packet instanceof Drill\Packet\LetsGo => $this->handleDrillLetsGo($connection, $packet),
+			$packet instanceof Drill\Packet\Data => $this->handleDrillData($connection, $packet),
+			$packet instanceof Drill\Packet\Closed => $this->handleDrillClosed($connection, $packet),
 			default => throw new Exception('Inappropriate drill-package received'),
 		};
 	}
 
-	private function handleDrillLetsGo(DrillClient $connection, Drill\Packet\LetsGo $packet): void {
+	private function handleDrillLetsGo(DrillConnection $connection, Drill\Packet\LetsGo $packet): void {
 		$this->setup->showStep(
 			"You can now connect to\n\n".
 			"    {$packet->publicUrl} or \n".
@@ -237,7 +238,7 @@ class WebSetup {
 		);
 	}
 
-	private function handleDrillClosed(DrillClient $connection, Drill\Packet\Closed $packet): void {
+	private function handleDrillClosed(DrillConnection $connection, Drill\Packet\Closed $packet): void {
 		$this->logger->info('Drill received disconnect for UUID {uuid}', [
 			'uuid' => $packet->uuid,
 		]);
@@ -249,7 +250,7 @@ class WebSetup {
 		unset($this->handlers[$packet->uuid]);
 	}
 
-	private function handleDrillHello(DrillClient $connection, Drill\Packet\Hello $packet): void {
+	private function handleDrillHello(DrillConnection $connection, Drill\Packet\Hello $packet): void {
 		if ($packet->authMode !== Drill\Auth::ANONYMOUS) {
 			$this->logger->error("Drill server doesn't support Anonymous authentication");
 			$connection->close();

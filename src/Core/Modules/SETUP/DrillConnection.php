@@ -2,70 +2,63 @@
 
 namespace Nadybot\Core\Modules\SETUP;
 
-use function Amp\delay;
-use function Amp\Socket\connect;
-
-use Amp\Socket\{ConnectContext, ConnectException, Socket};
+use Amp\Cancellation;
+use Amp\Websocket\Client\{WebsocketConnection};
+use Amp\Websocket\WebsocketClosedException;
 use Nadybot\Modules\WEBSERVER_MODULE\Drill;
+use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
-use Revolt\EventLoop;
 
 class DrillConnection {
-	private ?Socket $webClient=null;
-
 	public function __construct(
-		private readonly string $uuid,
-		private readonly string $host,
-		private readonly int $port,
-		private DrillClient $drillClient,
+		private WebsocketConnection $connection,
+		private UriInterface $uri,
 		private LoggerInterface $logger,
 	) {
 	}
 
-	public function loop(): bool {
-		// Connect locally to the webserver
-		$connectContext = new ConnectContext();
+	public function close(): void {
+		$this->connection->close();
+	}
 
-		$this->logger->info('Connecting Drill to {host}:{port}', [
-			'host' => $this->host,
-			'port' => $this->port,
+	public function receive(?Cancellation $cancellation=null): ?Drill\Packet\Base {
+		if (null !== ($message = $this->connection->receive($cancellation))) {
+			$payload = $message->buffer($cancellation);
+
+			return $this->parseDrillMessage($payload);
+		}
+		if ($this->connection->getCloseInfo()->isByPeer()) {
+			throw new WebsocketClosedException(
+				'Drill unexpectedly closed the connection',
+				$this->connection->getCloseInfo()->getCode(),
+				$this->connection->getCloseInfo()->getReason(),
+			);
+		}
+		return null;
+	}
+
+	public function send(Drill\Packet\Base $packet): void {
+		$this->logger->debug('Sending Drill packet to {url}: {packet}', [
+			'url' => $this->uri,
+			'packet' => $packet,
 		]);
+		$this->connection->sendBinary($packet->toString());
+	}
+
+	private function parseDrillMessage(string $payload): Drill\Packet\Base {
 		try {
-			$this->webClient = connect($this->host . ':' . $this->port, $connectContext);
-		} catch (ConnectException $e) {
-			return false;
+			$packet = Drill\PacketFactory::parse($payload);
+		} catch (Drill\UnsupportedPacketException $e) {
+			$this->logger->warning('Received unsupported Drill package type {type}', [
+				'type' => $e->getMessage(),
+				'exception' => $e,
+			]);
+			throw $e;
 		}
-		$this->logger->info('Connected Drill to local webserver');
-		EventLoop::queue($this->mainLoop(...));
-		return true;
-	}
-
-	public function handleDisconnect(): void {
-		if (isset($this->webClient)) {
-			$this->webClient->close();
-		}
-	}
-
-	public function handle(Drill\Packet\Data $packet): void {
-		$this->logger->info('Received package to route to webserver');
-		while (!isset($this->webClient)) {
-			$this->logger->info('Waiting for connection');
-			delay(0.1);
-		}
-		$this->logger->info('Sending data to Webserver');
-		$this->webClient->write($packet->data);
-	}
-
-	private function mainLoop(): void {
-		while (isset($this->webClient) && ($chunk = $this->webClient->read()) !== null) {
-			$this->logger->info('Received reply from Webserver');
-			$packet = new Drill\Packet\Data(data: $chunk, uuid: $this->uuid);
-			$this->drillClient->send($packet);
-		}
-		$this->logger->info('Empty read from webserver, closing');
-		if (isset($this->webClient)) {
-			$packet = new Drill\Packet\Closed(uuid: $this->uuid);
-			$this->drillClient->send($packet);
-		}
+		$this->logger->debug('Received Drill packet from {url}: {package}', [
+			'url' => $this->uri,
+			'package' => $packet,
+		]);
+		return $packet;
 	}
 }
