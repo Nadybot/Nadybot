@@ -1,7 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core\Modules\SETUP;
+namespace Nadybot\Core\Drill;
 
+use Amp\Cancellation;
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
@@ -29,7 +30,7 @@ class DrillConnector {
 		$this->uri = $uri;
 	}
 
-	public function connect(): DrillConnection {
+	public function connect(?Cancellation $cancellation=null): DrillConnection {
 		$handshake = new WebsocketHandshake($this->uri);
 		if (!isset($this->connector)) {
 			$connectContext = (new ConnectContext())->withTcpNoDelay();
@@ -44,11 +45,13 @@ class DrillConnector {
 		try {
 			$this->logger->info('Connecting to Drill server {url}', ['url' => $this->uri]);
 
-			return new DrillConnection(
-				connection: $client->connect($handshake, null),
+			$connection = new DrillConnection(
+				connection: $client->connect($handshake, $cancellation),
 				uri: $this->uri,
 				logger: $this->logger
 			);
+			$this->logger->info('Connected to Drill server {url}', ['url' => $this->uri]);
+			return $connection;
 		} catch (\Throwable $e) {
 			$this->logger->error('Drill endpoint errored: {error}', [
 				'error' => $e->getMessage(),

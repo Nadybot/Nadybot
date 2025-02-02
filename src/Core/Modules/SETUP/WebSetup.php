@@ -10,15 +10,16 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\RequestHandler\ClosureRequestHandler;
 use Amp\Http\Server\StaticContent\DocumentRoot;
 use Amp\Http\Server\{DefaultErrorHandler, HttpServer, Request, Response, Router, SocketHttpServer};
-use Amp\Socket\{InternetAddress};
+use Amp\Socket\InternetAddress;
 use Amp\{CancelledException, TimeoutCancellation, TimeoutException};
 use AO\Client\{SingleClient, WorkerConfig};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\Config\{AutoUnfreeze, BotConfig};
+use Nadybot\Core\Drill;
+use Nadybot\Core\Drill\{AbstractDrillPacket, DrillAuthMode, DrillConnection, DrillConnector, DrillHttpConnection};
 use Nadybot\Core\{BotRunner, DB, Filesystem, Hydrator, Safe};
-use Nadybot\Modules\WEBSERVER_MODULE\Drill;
 use Nadylib\IMEX;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
@@ -94,7 +95,7 @@ class WebSetup {
 
 		/** @var ?list<\AO\Character> */
 		$chars = null;
-		$timeout = 0.01;
+		$timeout = 10;
 		try {
 			$workerConf = new WorkerConfig(
 				dimension: (int)$dimension,
@@ -213,13 +214,13 @@ class WebSetup {
 			while (null !== ($message = $connection->receive())) {
 				$this->processDrillMessage($connection, $message);
 			}
-		} catch (Throwable $e) {
+		} catch (Throwable) {
 			$connection->close();
 		}
 		$this->logger->info('Drill connection successfully closed.');
 	}
 
-	private function processDrillMessage(DrillConnection $connection, Drill\Packet\Base $packet): void {
+	private function processDrillMessage(DrillConnection $connection, AbstractDrillPacket $packet): void {
 		match (true) {
 			$packet instanceof Drill\Packet\Hello => $this->handleDrillHello($connection, $packet),
 			$packet instanceof Drill\Packet\LetsGo => $this->handleDrillLetsGo($connection, $packet),
@@ -251,7 +252,7 @@ class WebSetup {
 	}
 
 	private function handleDrillHello(DrillConnection $connection, Drill\Packet\Hello $packet): void {
-		if ($packet->authMode !== Drill\Auth::ANONYMOUS) {
+		if ($packet->authMode !== DrillAuthMode::ANONYMOUS) {
 			$this->logger->error("Drill server doesn't support Anonymous authentication");
 			$connection->close();
 			return;

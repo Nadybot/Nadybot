@@ -1,12 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\WEBSERVER_MODULE\Drill\Packet;
+namespace Nadybot\Core\Drill\Packet;
 
-use function Safe\pack;
+use Nadybot\Core\Drill\{AbstractDrillPacket, PacketType};
 
-use Nadybot\Modules\WEBSERVER_MODULE\Drill\PacketType;
-
-class PresentToken extends Base {
+final class PresentToken extends AbstractDrillPacket {
 	public function __construct(
 		public string $token,
 		public string $desiredSudomain='',
@@ -21,10 +19,10 @@ class PresentToken extends Base {
 	}
 
 	public function toString(): string {
-		return pack('C', PacketType::PRESENT_TOKEN) . $this->token . $this->desiredSudomain;
+		return $this->getType()->toBin() . $this->token . $this->desiredSudomain;
 	}
 
-	public function getType(): int {
+	public function getType(): PacketType {
 		return PacketType::PRESENT_TOKEN;
 	}
 }

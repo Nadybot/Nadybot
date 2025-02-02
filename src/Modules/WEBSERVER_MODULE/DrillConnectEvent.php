@@ -2,13 +2,13 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Amp\Websocket\Client\WebsocketConnection;
+use Nadybot\Core\Drill\DrillConnection;
 
 class DrillConnectEvent extends DrillEvent {
 	public const EVENT_MASK = 'drill(connect)';
 
 	public function __construct(
-		public WebsocketConnection $client,
+		public DrillConnection $connection,
 	) {
 		$this->type = self::EVENT_MASK;
 	}

@@ -1,12 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\WEBSERVER_MODULE\Drill\Packet;
+namespace Nadybot\Core\Drill\Packet;
 
-use function Safe\pack;
+use Nadybot\Core\Drill\{AbstractDrillPacket, PacketType};
 
-use Nadybot\Modules\WEBSERVER_MODULE\Drill\PacketType;
-
-class AoAuth extends Base {
+final class AoAuth extends AbstractDrillPacket {
 	public function __construct(
 		public string $characterName,
 	) {
@@ -19,10 +17,10 @@ class AoAuth extends Base {
 	}
 
 	public function toString(): string {
-		return pack('C', PacketType::AO_AUTH) . $this->characterName;
+		return $this->getType()->toBin() . $this->characterName;
 	}
 
-	public function getType(): int {
+	public function getType(): PacketType {
 		return PacketType::AO_AUTH;
 	}
 }

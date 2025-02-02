@@ -2,18 +2,17 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Amp\Websocket\Client\WebsocketConnection;
+use Nadybot\Core\Drill\{AbstractDrillPacket, DrillConnection};
 use Nadybot\Core\Safe;
-use Nadybot\Modules\WEBSERVER_MODULE\Drill\Packet;
 
 class DrillPacketEvent extends DrillEvent {
 	public const EVENT_MASK = 'drill(*)';
 
 	public function __construct(
-		WebsocketConnection $client,
-		public Packet\Base $packet,
+		DrillConnection $connection,
+		public AbstractDrillPacket $packet,
 	) {
-		parent::__construct(client: $client);
+		parent::__construct(connection: $connection);
 		$kebabCase = Safe::pregReplace(
 			'/([a-z])([A-Z])/',
 			'$1-$2',

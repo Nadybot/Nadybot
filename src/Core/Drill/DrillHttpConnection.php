@@ -1,12 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core\Modules\SETUP;
+namespace Nadybot\Core\Drill;
 
 use function Amp\delay;
 use function Amp\Socket\connect;
 
 use Amp\Socket\{ConnectContext, ConnectException, Socket};
-use Nadybot\Modules\WEBSERVER_MODULE\Drill;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 
@@ -46,7 +45,7 @@ class DrillHttpConnection {
 		}
 	}
 
-	public function handle(Drill\Packet\Data $packet): void {
+	public function handle(Packet\Data $packet): void {
 		$this->logger->info('Received package to route to webserver');
 		while (!isset($this->webClient)) {
 			$this->logger->info('Waiting for connection');
@@ -59,12 +58,12 @@ class DrillHttpConnection {
 	private function mainLoop(): void {
 		while (isset($this->webClient) && ($chunk = $this->webClient->read()) !== null) {
 			$this->logger->info('Received reply from Webserver');
-			$packet = new Drill\Packet\Data(data: $chunk, uuid: $this->uuid);
+			$packet = new Packet\Data(data: $chunk, uuid: $this->uuid);
 			$this->drillConnection->send($packet);
 		}
 		$this->logger->info('Empty read from webserver, closing');
 		if (isset($this->webClient)) {
-			$packet = new Drill\Packet\Closed(uuid: $this->uuid);
+			$packet = new Packet\Closed(uuid: $this->uuid);
 			$this->drillConnection->send($packet);
 		}
 	}

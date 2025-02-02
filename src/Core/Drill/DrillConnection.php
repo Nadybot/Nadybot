@@ -1,11 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core\Modules\SETUP;
+namespace Nadybot\Core\Drill;
 
 use Amp\Cancellation;
-use Amp\Websocket\Client\{WebsocketConnection};
+use Amp\Websocket\Client\WebsocketConnection;
 use Amp\Websocket\WebsocketClosedException;
-use Nadybot\Modules\WEBSERVER_MODULE\Drill;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 
@@ -21,7 +20,7 @@ class DrillConnection {
 		$this->connection->close();
 	}
 
-	public function receive(?Cancellation $cancellation=null): ?Drill\Packet\Base {
+	public function receive(?Cancellation $cancellation=null): ?AbstractDrillPacket {
 		if (null !== ($message = $this->connection->receive($cancellation))) {
 			$payload = $message->buffer($cancellation);
 
@@ -37,7 +36,7 @@ class DrillConnection {
 		return null;
 	}
 
-	public function send(Drill\Packet\Base $packet): void {
+	public function send(AbstractDrillPacket $packet): void {
 		$this->logger->debug('Sending Drill packet to {url}: {packet}', [
 			'url' => $this->uri,
 			'packet' => $packet,
@@ -45,10 +44,10 @@ class DrillConnection {
 		$this->connection->sendBinary($packet->toString());
 	}
 
-	private function parseDrillMessage(string $payload): Drill\Packet\Base {
+	private function parseDrillMessage(string $payload): AbstractDrillPacket {
 		try {
-			$packet = Drill\PacketFactory::parse($payload);
-		} catch (Drill\UnsupportedPacketException $e) {
+			$packet = PacketFactory::parse($payload);
+		} catch (UnsupportedPacketException $e) {
 			$this->logger->warning('Received unsupported Drill package type {type}', [
 				'type' => $e->getMessage(),
 				'exception' => $e,
