@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	ExportCharacter,
 	ModuleInstance,
 	ParamClass\PRemove,
-	ParamClass\PWord,
 	Text,
 	Types\ExporterInterface,
 	Types\ImporterInterface,
@@ -78,8 +77,13 @@ class LinksController extends ModuleInstance implements ImporterInterface, Expor
 
 	/** Add a link to the list */
 	#[NCA\HandlesCommand('links')]
-	public function linksAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, PWord $url, string $comments): void {
-		$website = htmlspecialchars($url());
+	public function linksAddCommand(
+		CmdContext $context,
+		#[NCA\Str('add')] string $action,
+		#[NCA\WordStr] string $url,
+		string $comments
+	): void {
+		$website = htmlspecialchars($url);
 		if (filter_var($website, \FILTER_VALIDATE_URL) === false) {
 			$msg = "<highlight>{$website}<end> is not a valid URL.";
 			$context->reply($msg);

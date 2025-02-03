@@ -28,7 +28,6 @@ use Nadybot\Core\{
 	ParamClass\PNonNumber,
 	ParamClass\PNonNumberWord,
 	ParamClass\PRemove,
-	ParamClass\PWord,
 	Registry,
 	Text,
 	Util,
@@ -366,10 +365,9 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	public function relayAddCommand(
 		CmdContext $context,
 		#[NCA\Str('add')] string $action,
-		PWord $name,
+		#[NCA\WordStr] string $name,
 		string $spec
 	): void {
-		$name = $name();
 		if (strlen($name) > 100) {
 			$context->reply('The name of the relay must be 100 characters max.');
 			return;
@@ -775,13 +773,12 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	public function relayConfigEventmodCommand(
 		CmdContext $context,
 		#[NCA\Str('config')] string $action,
-		PWord $name,
+		#[NCA\WordStr] string $name,
 		#[NCA\Str('eventmod')] string $subAction,
-		PWord $event,
+		#[NCA\WordStr] string $event,
 		bool $enable,
 		#[NCA\Str('incoming', 'outgoing')] string $direction
 	): void {
-		$name = $name();
 		$relay = $this->getRelayByName($name);
 		if (!isset($relay)) {
 			$context->reply("Relay <highlight>{$name}<end> not found.");
@@ -796,15 +793,15 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			return;
 		}
 		$statusMsg = $enable ? '<on>enabled<end>' : '<off>disabled<end>';
-		if ($this->changeRelayEventStatus($relay, $event(), $direction, $enable)) {
+		if ($this->changeRelayEventStatus($relay, $event, $direction, $enable)) {
 			$context->reply(
-				"Successfully {$statusMsg} {$direction} events of type <highlight>".
-				$event() . "<end> for relay <highlight>{$relay->name}<end>."
+				"Successfully {$statusMsg} {$direction} events of type ".
+				"<highlight>{$event}<end> for relay <highlight>{$relay->name}<end>."
 			);
 			return;
 		}
 		$context->reply(
-			ucfirst($direction) . ' events of type <highlight>' . $event() . '<end> '.
+			ucfirst($direction) . " events of type <highlight>{$event}<end> ".
 			"were already {$statusMsg} for relay <highlight>{$relay->name}<end>."
 		);
 	}
@@ -814,11 +811,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	public function relayConfigEventsetCommand(
 		CmdContext $context,
 		#[NCA\Str('config')] string $action,
-		PWord $name,
+		#[NCA\WordStr] string $name,
 		#[NCA\Str('eventset')] string $subAction,
 		#[NCA\Regexp("[a-z()_-]+\s+(?:IO|O|I)", example: '&lt;event I|O|IO&gt;')] ?string ...$events
 	): void {
-		$name = $name();
 		$relay = $this->getRelayByName($name);
 		if (!isset($relay)) {
 			$context->reply("Relay <highlight>{$name}<end> not found.");

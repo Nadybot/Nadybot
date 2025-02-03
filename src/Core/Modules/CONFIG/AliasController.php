@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	DBSchema\CmdAlias,
 	ModuleInstance,
 	ParamClass\PRemove,
-	ParamClass\PWord,
 	Text,
 };
 
@@ -87,10 +86,10 @@ class AliasController extends ModuleInstance {
 	public function aliasAddCommand3(
 		CmdContext $context,
 		#[NCA\Str('add')] string $action,
-		PWord $alias,
+		#[NCA\WordStr] string $alias,
 		string $command
 	): void {
-		$this->aliasAddCommand($context, $alias(), $command);
+		$this->aliasAddCommand($context, $alias, $command);
 	}
 
 	public function aliasAddCommand(CmdContext $context, string $alias, string $cmd): void {

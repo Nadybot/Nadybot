@@ -3,29 +3,14 @@
 namespace Nadybot\Core\Attributes;
 
 use Attribute;
-use Nadybot\Core\Safe;
-use Nadybot\Core\Types\ParamAttribute as TypesParamAttribute;
-use ReflectionParameter;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
-class Regexp implements TypesParamAttribute {
+class Regexp extends AbstractParamAttribute {
 	public function __construct(
 		public string $value,
-		public ?string $example=null,
+		?string $example=null,
 	) {
-	}
-
-	public function renderParameter(ReflectionParameter $param): string {
-		if (isset($this->example)) {
-			return $this->example;
-		}
-		return '&lt;' . Safe::pregReplaceCallback(
-			'/([A-Z]+)/',
-			static function (array $matches): string {
-				return ' ' . strtolower($matches[1]);
-			},
-			$param->getName(),
-		) . '&gt;';
+		parent::__construct($example);
 	}
 
 	public function getRegexp(): string {

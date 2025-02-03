@@ -7,7 +7,6 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
-	ParamClass\PWord,
 	Text,
 	Types\Profession,
 };
@@ -287,8 +286,12 @@ class AlienMiscController extends ModuleInstance {
 
 	/** Show all 6 marks for a particular Ofab weapon at ql 300, or &lt;search ql&gt; */
 	#[NCA\HandlesCommand('ofabweapons')]
-	public function ofabweaponsInfoCommand(CmdContext $context, PWord $weapon, ?int $searchQL): void {
-		$weapon = ucfirst($weapon());
+	public function ofabweaponsInfoCommand(
+		CmdContext $context,
+		#[NCA\WordStr] string $weapon,
+		?int $searchQL
+	): void {
+		$weapon = ucfirst($weapon);
 		$searchQL ??= 300;
 
 		$row = $this->db->table(OfabWeapon::getTable(), 'w')

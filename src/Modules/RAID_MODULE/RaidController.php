@@ -25,7 +25,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PNonGreedy,
-	ParamClass\PWord,
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -466,7 +465,7 @@ class RaidController extends ModuleInstance {
 	public function raidChangeMaxMembersCommand(
 		CmdContext $context,
 		#[NCA\Str('limit')] string $action,
-		#[NCA\PNumber] #[NCA\Str('off')] string $maxMembers
+		#[NCA\NumberStr] #[NCA\Str('off')] string $maxMembers
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -496,7 +495,7 @@ class RaidController extends ModuleInstance {
 	public function raidChangeSppCommand(
 		CmdContext $context,
 		#[NCA\Str('ticker', 'spp')] string $action,
-		#[NCA\PDuration] #[NCA\StrChoice('off', 'pause', 'resume')] string $interval
+		#[NCA\DurationStr] #[NCA\StrChoice('off', 'pause', 'resume')] string $interval
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -533,7 +532,7 @@ class RaidController extends ModuleInstance {
 	public function raidChangeAnnounceCommand(
 		CmdContext $context,
 		#[NCA\Str('announce', 'announcement')] string $action,
-		#[NCA\PDuration] #[NCA\Str('off')] string $interval
+		#[NCA\DurationStr] #[NCA\Str('off')] string $interval
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -1136,7 +1135,7 @@ class RaidController extends ModuleInstance {
 			$context,
 			'new',
 			$char,
-			new PWord($catName),
+			$catName,
 			$note
 		);
 	}
@@ -1155,7 +1154,7 @@ class RaidController extends ModuleInstance {
 			$context,
 			'get',
 			$char,
-			new PWord($catName),
+			$catName,
 		);
 	}
 

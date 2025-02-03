@@ -167,7 +167,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('slash')] string $action,
 		#[NCA\Str('add')] string $subAction,
-		#[NCA\PWord] string ...$commands,
+		#[NCA\WordStr] string ...$commands,
 	): void {
 		$cmds = $this->db->table(DiscordSlashCommand::getTable())
 			->orderBy('cmd')
@@ -241,7 +241,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('slash')] string $action,
 		PRemove $subAction,
-		#[NCA\PWord] string ...$commands,
+		#[NCA\WordStr] string ...$commands,
 	): void {
 		$cmds = $this->db->table(DiscordSlashCommand::getTable())
 			->orderBy('cmd')

@@ -12,7 +12,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
 use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
-use Nadybot\Core\ParamClass\{PCharacter, PDuration, PRemove, PUuid, PWord};
+use Nadybot\Core\ParamClass\{PCharacter, PDuration, PRemove, PUuid};
 use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
 
 use Nadybot\Core\{
@@ -574,7 +574,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		#[NCA\Str('filter', 'filters')] string $action,
 		#[NCA\Str('permanent')] string $permanent,
 		#[NCA\Str('channel')] string $where,
-		PWord $channel,
+		#[NCA\WordStr] string $channel,
 		?int $dimension,
 	): void {
 		$this->highnetAddChannelFilter(
@@ -592,7 +592,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		#[NCA\Str('filter', 'filters')] string $action,
 		PDuration $duration,
 		#[NCA\Str('channel')] string $where,
-		PWord $channel,
+		#[NCA\WordStr] string $channel,
 		?int $dimension,
 	): void {
 		$this->highnetAddChannelFilter(
@@ -1071,7 +1071,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	private function highnetAddChannelFilter(
 		CmdContext $context,
 		?PDuration $duration,
-		PWord $channel,
+		string $channel,
 		?int $dimension,
 	): void {
 		$entry = new FilterEntry(
@@ -1086,11 +1086,11 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			}
 			$entry->expires = time() + $secDuration;
 		}
-		if ($this->getPrettyChannelName($channel()) === null) {
+		if ($this->getPrettyChannelName($channel) === null) {
 			$context->reply("The channel {$channel} does not exist.");
 			return;
 		}
-		$entry->channel = strtolower($channel());
+		$entry->channel = strtolower($channel);
 		$this->db->insert($entry);
 		$this->reloadFilters();
 		$context->reply('Filter ' . $this->getFilterDescr($entry) . ' added.');

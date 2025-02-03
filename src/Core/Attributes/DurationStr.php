@@ -3,11 +3,10 @@
 namespace Nadybot\Core\Attributes;
 
 use Attribute;
-use Nadybot\Core\Types\ImplantSlot;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
-class ImplantSlotStr extends AbstractParamAttribute {
+class DurationStr extends AbstractParamAttribute {
 	public function getRegexp(): string {
-		return ImplantSlot::getNameRegexp();
+		return "(?:(?:,?\s*\d+(?:yr?|years?|m|months?|w|weeks?|d|days?|h|hrs?|hours?|m|mins?|s|secs?))+|[1-9]\d*)";
 	}
 }

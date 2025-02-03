@@ -18,7 +18,6 @@ use Nadybot\Core\{
 	ParamClass\PNonNumber,
 	ParamClass\PNonNumberWord,
 	ParamClass\PRemove,
-	ParamClass\PWord,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
@@ -709,16 +708,16 @@ class RaidPointsController extends ModuleInstance {
 	public function rewardAddCommand(
 		CmdContext $context,
 		#[NCA\Str('add')] string $action,
-		PWord $name,
+		#[NCA\WordStr] string $name,
 		int $points,
 		string $reason
 	): void {
-		if ($this->getRaidReward($name())) {
+		if ($this->getRaidReward($name)) {
 			$context->reply("The raid reward <highlight>{$name}<end> is already defined.");
 			return;
 		}
 		$reward = new RaidReward(
-			name: $name(),
+			name: $name,
 			points: $points,
 			reason: $reason,
 		);
@@ -772,16 +771,16 @@ class RaidPointsController extends ModuleInstance {
 	public function rewardChangeCommand(
 		CmdContext $context,
 		#[NCA\Str('change', 'edit', 'alter', 'mod', 'modify')] string $action,
-		PWord $name,
+		#[NCA\WordStr] string $name,
 		int $points,
 		?string $reason
 	): void {
-		$reward = $this->getRaidReward($name());
+		$reward = $this->getRaidReward($name);
 		if (!isset($reward)) {
 			$context->reply("The raid reward <highlight>{$name}<end> is not yet defined.");
 			return;
 		}
-		$reward->name = $name();
+		$reward->name = $name;
 		$reward->points = $points;
 		$reward->reason = $reason ?? $reward->reason;
 		if (strlen($reward->name) > 20) {

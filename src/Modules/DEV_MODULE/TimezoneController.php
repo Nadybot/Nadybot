@@ -3,13 +3,14 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use DateTimeZone;
+use ErrorException;
 use Nadybot\Core\Filesystem;
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	Config\BotConfig,
 	ModuleInstance,
+	Safe,
 	Text,
 };
 
@@ -47,9 +48,7 @@ class TimezoneController extends ModuleInstance {
 
 	/** See a list of time zones for an area */
 	#[NCA\HandlesCommand('timezone')]
-	public function timezoneAreaCommand(CmdContext $context, PWord $area): void {
-		$area = $area();
-
+	public function timezoneAreaCommand(CmdContext $context, #[NCA\WordStr] string $area): void {
 		$timezoneAreas = $this->getTimezoneAreas();
 		$code = $timezoneAreas[$area] ?? null;
 		if (!isset($code) || $code === 0) {
@@ -77,16 +76,20 @@ class TimezoneController extends ModuleInstance {
 	 * All dates and timestamps will from then on be displayed in the given time zone.
 	 */
 	#[NCA\HandlesCommand('timezone')]
-	public function timezoneSetCommand(CmdContext $context, #[NCA\Str('set')] string $action, PWord $timezone): void {
-		$result = date_default_timezone_set($timezone());
-
-		if ($result === false) {
+	public function timezoneSetCommand(
+		CmdContext $context,
+		#[NCA\Str('set')] string $action,
+		#[NCA\WordStr] string $timezone
+	): void {
+		try {
+			Safe::exceptionWrapper(date_default_timezone_set(...), $timezone);
+		} catch (ErrorException) {
 			$msg = "<highlight>{$timezone}<end> is not a valid timezone.";
 			$context->reply($msg);
 			return;
 		}
 		$msg = "Timezone has been set to <highlight>{$timezone}<end>.";
-		$this->config->general->timezone = $timezone();
+		$this->config->general->timezone = $timezone;
 		$this->config->save($this->fs);
 		$context->reply($msg);
 	}

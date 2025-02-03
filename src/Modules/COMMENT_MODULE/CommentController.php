@@ -18,7 +18,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
-	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Types\SettingMode,
@@ -302,23 +301,23 @@ class CommentController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('category', 'categories')] string $action,
 		#[NCA\Str('add', 'create', 'new', 'edit', 'change')] string $subAction,
-		PWord $category,
-		PWord $alForReading,
-		?PWord $alForWriting
+		#[NCA\WordStr] string $category,
+		#[NCA\WordStr] string $alForReading,
+		#[NCA\WordStr] ?string $alForWriting
 	): void {
 		$alForWriting ??= $alForReading;
 		try {
-			$alForReading = $this->accessManager->getAccessLevel($alForReading());
-			$alForWriting = $this->accessManager->getAccessLevel($alForWriting());
+			$alForReading = $this->accessManager->getAccessLevel($alForReading);
+			$alForWriting = $this->accessManager->getAccessLevel($alForWriting);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
 		}
-		$cat = $this->getCategory($category());
+		$cat = $this->getCategory($category);
 		if ($cat === null) {
 			$cat = new CommentCategory(
 				created_by: $context->char->name,
-				name: $category(),
+				name: $category,
 				min_al_read: $alForReading,
 				min_al_write: $alForWriting,
 			);
@@ -354,11 +353,11 @@ class CommentController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('add', 'create', 'new')] string $action,
 		PCharacter $char,
-		PWord $category,
+		#[NCA\WordStr] string $category,
 		string $commentText
 	): void {
 		$character = $char();
-		$category = $category();
+		$category = $category;
 
 		$cat = $this->getCategory($category);
 		if ($cat === null) {
@@ -422,7 +421,7 @@ class CommentController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('get', 'search', 'find')] string $action,
 		PCharacter $char,
-		?PWord $category
+		#[NCA\WordStr] ?string $category
 	): void {
 		$character = $char();
 		$uid = $this->chatBot->getUid($character);
@@ -432,7 +431,7 @@ class CommentController extends ModuleInstance {
 		}
 
 		if (isset($category)) {
-			$categoryName = $category();
+			$categoryName = $category;
 			$category = $this->getCategory($categoryName);
 			if ($category === null) {
 				$context->reply("The category <highlight>{$categoryName}<end> does not exist.");
@@ -469,9 +468,9 @@ class CommentController extends ModuleInstance {
 	public function listCommentsCommand(
 		CmdContext $context,
 		#[NCA\Str('list')] string $action,
-		PWord $categoryName
+		#[NCA\WordStr] string $categoryName
 	): void {
-		$category = $this->getCategory($categoryName());
+		$category = $this->getCategory($categoryName);
 		if ($category === null) {
 			$context->reply("The category <highlight>{$categoryName}<end> does not exist.");
 			return;

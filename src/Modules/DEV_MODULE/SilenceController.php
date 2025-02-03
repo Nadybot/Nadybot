@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\CmdCfg,
 	ModuleInstance,
-	ParamClass\PWord,
 	Text,
 };
 use Psr\Log\LoggerInterface;
@@ -66,9 +65,13 @@ class SilenceController extends ModuleInstance {
 
 	/** Silence a command for a specific permission set */
 	#[NCA\HandlesCommand('silence')]
-	public function silenceAddCommand(CmdContext $context, string $command, PWord $permissionSet): void {
+	public function silenceAddCommand(
+		CmdContext $context,
+		string $command,
+		#[NCA\WordStr] string $permissionSet
+	): void {
 		$command = strtolower($command);
-		$permissionSet = strtolower($permissionSet());
+		$permissionSet = strtolower($permissionSet);
 
 		$cmdCfg = $this->commandManager->get($command);
 		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$permissionSet]) || !$cmdCfg->permissions[$permissionSet]->enabled) {
@@ -84,9 +87,13 @@ class SilenceController extends ModuleInstance {
 
 	/** Un-silence a command for a specific permission set */
 	#[NCA\HandlesCommand('unsilence')]
-	public function unsilenceAddCommand(CmdContext $context, string $command, PWord $permissionSet): void {
+	public function unsilenceAddCommand(
+		CmdContext $context,
+		string $command,
+		#[NCA\WordStr] string $permissionSet
+	): void {
 		$command = strtolower($command);
-		$permissionSet = strtolower($permissionSet());
+		$permissionSet = strtolower($permissionSet);
 
 		$cmdCfg = $this->commandManager->get($command);
 		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$permissionSet]) || !$cmdCfg->permissions[$permissionSet]->enabled) {

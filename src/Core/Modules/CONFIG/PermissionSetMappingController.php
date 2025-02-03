@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	Exceptions\SQLException,
 	ModuleInstance,
 	ParamClass\PRemove,
-	ParamClass\PWord,
 	SettingManager,
 	Text,
 };
@@ -87,14 +86,14 @@ class PermissionSetMappingController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('new', 'create')] string $action,
 		string $source,
-		PWord $permissionSet
+		#[NCA\WordStr] string $permissionSet
 	): void {
 		$source = strtolower($source);
 		if ($this->cmdManager->getPermSetMappings()->where('source', $source)->isNotEmpty()) {
 			$context->reply("There is already a permission set map for <highlight>{$source}<end>.");
 			return;
 		}
-		$permissionSet = strtolower($permissionSet());
+		$permissionSet = strtolower($permissionSet);
 		if (!$this->cmdManager->hasPermissionSet($permissionSet)) {
 			$context->reply("There is no permission set <highlight>{$permissionSet}<end>.");
 			return;
@@ -253,9 +252,9 @@ class PermissionSetMappingController extends ModuleInstance {
 		#[NCA\Str('permset')] string $action,
 		#[NCA\Str('set')] string $subAction,
 		string $source,
-		PWord $permissionSet
+		#[NCA\WordStr] string $permissionSet
 	): void {
-		$permissionSet = strtolower($permissionSet());
+		$permissionSet = strtolower($permissionSet);
 		if ($this->cmdManager->getPermissionSets()->where('name', $permissionSet)->isEmpty()) {
 			$context->reply("The permission set <highlight>{$permissionSet}<end> doesn't exist.");
 			return;

@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Nadybot,
 	ParamClass\PRemove,
-	ParamClass\PWord,
 	Text,
 	Types\AccessLevelProvider,
 	Types\CommandReply,
@@ -158,13 +157,18 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	#[NCA\Help\Epilogue(
 		"Use <a href='chatcmd:///tell <myname> ranks'><symbol>ranks</a> to get the numeric rank IDs of your org"
 	)]
-	public function maprankCommand(CmdContext $context, int $rankId, #[NCA\Str('to')] ?string $to, PWord $accessLevel): void {
+	public function maprankCommand(
+		CmdContext $context,
+		int $rankId,
+		#[NCA\Str('to')] ?string $to,
+		#[NCA\WordStr] string $accessLevel
+	): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply('The bot must be in an org.');
 			return;
 		}
 		$org = $this->guildManager->byId($this->config->orgId??0, null, false);
-		$this->setRankMapping($org, $rankId, $accessLevel(), $context->char->name, $context);
+		$this->setRankMapping($org, $rankId, $accessLevel, $context->char->name, $context);
 	}
 
 	public function setRankMapping(?Guild $guild, int $rank, string $accessLevel, string $sender, CommandReply $sendto): void {

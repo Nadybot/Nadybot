@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	CommandManager,
 	DB,
 	ModuleInstance,
-	ParamClass\PWord,
 	QueryBuilder,
 	Text,
 	Types\AOItemSpec,
@@ -126,16 +125,16 @@ class WhatBuffsController extends ModuleInstance {
 		NCA\HandlesCommand('whatbuffs'),
 		NCA\HandlesCommand('whatbuffsfroob')
 	]
-	public function whatbuffsOneWordCommand(CmdContext $context, PWord $search): void {
+	public function whatbuffsOneWordCommand(CmdContext $context, #[NCA\WordStr] string $search): void {
 		$command = explode(' ', $context->message)[0];
 		$froobFriendly = strtolower($command) === 'whatbuffsfroob';
-		$type = ucfirst(strtolower($this->resolveLocationAlias($search())));
+		$type = ucfirst(strtolower($this->resolveLocationAlias($search)));
 
 		if ($this->verifySlot($type)) {
 			$this->showSkillsBuffingType($type, $froobFriendly, $command, $context);
 			return;
 		}
-		$this->handleOtherComandline($froobFriendly, $context, $search());
+		$this->handleOtherComandline($froobFriendly, $context, $search);
 	}
 
 	public function showSkillsBuffingType(string $type, bool $froobFriendly, string $command, CommandReply $sendto): void {

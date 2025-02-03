@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	DBSchema\ExtCmdPermissionSet,
 	ModuleInstance,
 	ParamClass\PRemove,
-	ParamClass\PWord,
 	Text,
 };
 
@@ -45,11 +44,11 @@ class PermissionSetController extends ModuleInstance {
 	public function permsetNewCommand(
 		CmdContext $context,
 		#[NCA\Str('new', 'create')] string $action,
-		PWord $name,
+		#[NCA\WordStr] string $name,
 		?string $letter
 	): void {
 		try {
-			$this->cmdManager->createPermissionSet($name(), $letter ?? substr($name(), 0, 1));
+			$this->cmdManager->createPermissionSet($name, $letter ?? substr($name, 0, 1));
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -62,13 +61,13 @@ class PermissionSetController extends ModuleInstance {
 	public function permsetCloneCommand(
 		CmdContext $context,
 		#[NCA\Str('clone')] string $action,
-		PWord $toClone,
+		#[NCA\WordStr] string $toClone,
 		#[NCA\Str('into')] ?string $into,
-		PWord $name,
+		#[NCA\WordStr] string $name,
 		string $letter
 	): void {
 		try {
-			$this->cmdManager->clonePermissionSet($toClone(), $name(), $letter);
+			$this->cmdManager->clonePermissionSet($toClone, $name, $letter);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -81,10 +80,10 @@ class PermissionSetController extends ModuleInstance {
 	public function permsetRemoveCommand(
 		CmdContext $context,
 		PRemove $action,
-		PWord $name
+		#[NCA\WordStr] string $name,
 	): void {
 		try {
-			$this->cmdManager->deletePermissionSet($name());
+			$this->cmdManager->deletePermissionSet($name);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -97,18 +96,18 @@ class PermissionSetController extends ModuleInstance {
 	public function permsetRenameCommand(
 		CmdContext $context,
 		#[NCA\Str('rename')] string $action,
-		PWord $oldName,
+		#[NCA\WordStr] string $oldName,
 		#[NCA\Str('to')] ?string $to,
-		PWord $newName
+		#[NCA\WordStr] string $newName
 	): void {
-		$old = $this->cmdManager->getPermissionSet($oldName());
+		$old = $this->cmdManager->getPermissionSet($oldName);
 		if (!isset($old)) {
 			$context->reply("The permission set <highlight>{$oldName}<end> doesn't exist.");
 			return;
 		}
-		$old->name = $newName();
+		$old->name = $newName;
 		try {
-			$this->cmdManager->changePermissionSet($oldName(), $old);
+			$this->cmdManager->changePermissionSet($oldName, $old);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -123,18 +122,18 @@ class PermissionSetController extends ModuleInstance {
 	public function permsetChangeLetterCommand(
 		CmdContext $context,
 		#[NCA\Str('letter')] string $action,
-		PWord $name,
-		PWord $newLetter
+		#[NCA\WordStr] string $name,
+		#[NCA\WordStr] string $newLetter
 	): void {
-		$old = $this->cmdManager->getPermissionSet($name());
+		$old = $this->cmdManager->getPermissionSet($name);
 		if (!isset($old)) {
 			$context->reply("The permission set <highlight>{$name}<end> doesn't exist.");
 			return;
 		}
 		$oldLetter = $old->letter;
-		$old->letter = strtoupper($newLetter());
+		$old->letter = strtoupper($newLetter);
 		try {
-			$this->cmdManager->changePermissionSet($name(), $old);
+			$this->cmdManager->changePermissionSet($name, $old);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;

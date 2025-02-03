@@ -23,7 +23,6 @@ use Nadybot\Core\{
 	Modules\DISCORD\DiscordMessageIn,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PWord,
 	Registry,
 	SettingManager,
 	Text,
@@ -559,8 +558,8 @@ class TestController extends ModuleInstance {
 
 	/** Run all bot tests of a given file */
 	#[NCA\HandlesCommand('test')]
-	public function testModuleCommand(CmdContext $context, PWord $file): void {
-		$file = "{$file}.txt";
+	public function testModuleCommand(CmdContext $context, #[NCA\WordStr] string $file): void {
+		$file .= '.txt';
 
 		$testContext = clone $context;
 		$testContext->permissionSet = 'msg';

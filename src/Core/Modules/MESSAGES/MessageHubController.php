@@ -132,7 +132,7 @@ class MessageHubController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('mute', 'disable')] string $action,
 		PUuid $id,
-		#[NCA\PDuration] #[NCA\Str('off')] string $duration
+		#[NCA\DurationStr] #[NCA\Str('off')] string $duration
 	): void {
 		$id = $id();
 		$route = $this->getMsgRoute($id);

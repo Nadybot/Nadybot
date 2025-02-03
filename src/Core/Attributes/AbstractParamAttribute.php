@@ -2,15 +2,13 @@
 
 namespace Nadybot\Core\Attributes;
 
-use Attribute;
 use Nadybot\Core\Safe;
-use Nadybot\Core\Types\ParamAttribute as TypesParamAttribute;
+use Nadybot\Core\Types\ParamAttribute;
 use ReflectionParameter;
 
-#[Attribute(Attribute::TARGET_PARAMETER)]
-class PWord implements TypesParamAttribute {
+abstract class AbstractParamAttribute implements ParamAttribute {
 	public function __construct(
-		public ?string $example=null
+		protected readonly ?string $example=null
 	) {
 	}
 
@@ -27,7 +25,5 @@ class PWord implements TypesParamAttribute {
 		) . '&gt;';
 	}
 
-	public function getRegexp(): string {
-		return '[^ ]+';
-	}
+	abstract public function getRegexp(): string;
 }

@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
-	ParamClass\PWord,
 	Safe,
 	Text,
 };
@@ -81,9 +80,9 @@ class ArulSabaController extends ModuleInstance {
 	/** See the different types of a specific Arul Saba bracelet */
 	#[NCA\HandlesCommand('arulsaba')]
 	#[NCA\Help\Example('<symbol>arulsaba desert')]
-	public function arulSabaChooseQLCommand(CmdContext $context, PWord $name): void {
+	public function arulSabaChooseQLCommand(CmdContext $context, #[NCA\WordStr] string $name): void {
 		$aruls = $this->db->table(ArulSabaBuffs::getTable())
-			->where('name', ucfirst(strtolower($name())))
+			->where('name', ucfirst(strtolower($name)))
 			->orderBy('min_level')
 			->asObj(ArulSabaBuffs::class);
 		if ($aruls->isEmpty()) {
@@ -147,11 +146,11 @@ class ArulSabaController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>arulsaba desert 5 left')]
 	public function arulSabaRecipeCommand(
 		CmdContext $context,
-		PWord $type,
+		#[NCA\WordStr] string $type,
 		int $numGems,
 		#[NCA\StrChoice('left', 'right')] string $side
 	): void {
-		$type = ucfirst(strtolower($type()));
+		$type = ucfirst(strtolower($type));
 
 		/** @var int<1,max> */
 		$reqGems = max(1, $numGems);

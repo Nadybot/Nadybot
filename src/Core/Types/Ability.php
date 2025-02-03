@@ -32,6 +32,10 @@ enum Ability: string {
 		return $long;
 	}
 
+	public static function getNameRegexp(): string {
+		return '(agi|agl|int|psy|sta|stm|str|sen|sns)\w*';
+	}
+
 	case Agility = 'agi';
 	case Intelligence = 'int';
 	case Psychic = 'psy';

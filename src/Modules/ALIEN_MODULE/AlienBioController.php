@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	ParamClass\PItem,
-	ParamClass\PWord,
 	Text,
 };
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
@@ -168,7 +167,7 @@ class AlienBioController extends ModuleInstance {
 				$this->bioinfoIDCommand($context, (int)$bioinfo, $clumps[0]->ql);
 			} elseif (strlen($bioinfo) > 0) {
 				/** @psalm-var non-empty-string $bioinfo */
-				$this->bioinfoCommand($context, new PWord($bioinfo), $clumps[0]->ql);
+				$this->bioinfoCommand($context, $bioinfo, $clumps[0]->ql);
 			}
 		} else {
 			$msg = Text::makeBlob('Identified Bio-Materials', $blob);
@@ -224,8 +223,8 @@ class AlienBioController extends ModuleInstance {
 
 	/** This command handler shows info about a particular bio type. */
 	#[NCA\HandlesCommand('bioinfo')]
-	public function bioinfoCommand(CmdContext $context, PWord $bio, ?int $ql): void {
-		$bio = strtolower($bio());
+	public function bioinfoCommand(CmdContext $context, #[NCA\WordStr] string $bio, ?int $ql): void {
+		$bio = strtolower($bio);
 		$ql ??= 300;
 		$ql = min(300, max(1, $ql));
 

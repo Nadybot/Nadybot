@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	HelpManager,
 	ModuleInstance,
-	ParamClass\PWord,
 	SettingHandlers\SettingHandler,
 	SettingHandlers\TemplateSettingHandler,
 	SettingManager,
@@ -84,8 +83,12 @@ class SettingsController extends ModuleInstance {
 
 	/** See info about a setting and its allowed values */
 	#[NCA\HandlesCommand('settings')]
-	public function changeCommand(CmdContext $context, #[NCA\Str('change')] string $action, PWord $setting): void {
-		$settingName = strtolower($setting());
+	public function changeCommand(
+		CmdContext $context,
+		#[NCA\Str('change')] string $action,
+		#[NCA\WordStr] string $setting,
+	): void {
+		$settingName = strtolower($setting);
 
 		$row = $this->db->table(Setting::getTable())
 			->where('name', $settingName)
@@ -128,10 +131,10 @@ class SettingsController extends ModuleInstance {
 	public function saveCommand(
 		CmdContext $context,
 		#[NCA\Str('save')] string $action,
-		PWord $setting,
+		#[NCA\WordStr] string $setting,
 		string $newValue
 	): void {
-		$name = strtolower($setting());
+		$name = strtolower($setting);
 
 		$setting = $this->db->table(Setting::getTable())
 			->where('name', $name)

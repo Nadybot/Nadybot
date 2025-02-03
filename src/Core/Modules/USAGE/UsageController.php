@@ -18,7 +18,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
-	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Types\SettingMode,
@@ -124,7 +123,7 @@ class UsageController extends ModuleInstance {
 	public function usageCmdCommand(
 		CmdContext $context,
 		#[NCA\Str('cmd')] string $action,
-		PWord $cmd,
+		#[NCA\WordStr] string $cmd,
 		?PDuration $duration
 	): void {
 		$time = 604_800;
@@ -140,7 +139,7 @@ class UsageController extends ModuleInstance {
 		$timeString = Util::unixtimeToReadable($time);
 		$time = time() - $time;
 
-		$cmd = strtolower($cmd());
+		$cmd = strtolower($cmd);
 
 		$query = $this->db->table(Usage::getTable())
 			->where('command', $cmd)

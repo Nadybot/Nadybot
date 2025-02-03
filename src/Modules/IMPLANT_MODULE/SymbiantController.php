@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
-	ParamClass\PWord,
 	Safe,
 	Text,
 	Types\Profession,
@@ -66,18 +65,26 @@ class SymbiantController extends ModuleInstance {
 	/** Show the 3 best symbiants for a profession at a given level */
 	#[NCA\HandlesCommand('bestsymbiants')]
 	#[NCA\Help\Example('<symbol>bestsymbiants 120 enf')]
-	public function findBestSymbiantsLvlProf(CmdContext $context, int $level, PWord $prof): void {
+	public function findBestSymbiantsLvlProf(
+		CmdContext $context,
+		int $level,
+		#[NCA\ProfessionStr] string $prof
+	): void {
 		$context->reply(
-			$this->findBestSymbiants($context, $prof, $level)
+			$this->findBestSymbiants($context, Profession::byName($prof), $level)
 		);
 	}
 
 	/** Show the 3 best symbiants for a profession at a given level */
 	#[NCA\HandlesCommand('bestsymbiants')]
 	#[NCA\Help\Example('<symbol>bestsymbiants 15 trader')]
-	public function findBestSymbiantsProfLvl(CmdContext $context, PWord $prof, int $level): void {
+	public function findBestSymbiantsProfLvl(
+		CmdContext $context,
+		#[NCA\ProfessionStr] string $prof,
+		int $level
+	): void {
 		$context->reply(
-			$this->findBestSymbiants($context, $prof, $level)
+			$this->findBestSymbiants($context, Profession::byName($prof), $level)
 		);
 	}
 
@@ -291,18 +298,13 @@ class SymbiantController extends ModuleInstance {
 	}
 
 	/** @return list<string> */
-	private function findBestSymbiants(CmdContext $context, ?PWord $prof, ?int $level): array {
-		if (!isset($level) || !isset($prof)) {
+	private function findBestSymbiants(CmdContext $context, ?Profession $profession, ?int $level): array {
+		if (!isset($level) || !isset($profession)) {
 			$whois = $this->playerManager->byName($context->char->name);
 			if (!isset($whois) || !isset($whois->profession) || !isset($whois->level)) {
 				return ['Could not retrieve whois info for you.'];
 			}
 			return $this->getAndRenderBestSymbiants($whois->profession, $whois->level);
-		}
-		try {
-			$profession = Profession::byName($prof());
-		} catch (\Exception) {
-			return ["Could not find profession <highlight>{$prof}<end>."];
 		}
 		return $this->getAndRenderBestSymbiants($profession, $level);
 	}

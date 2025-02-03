@@ -3,30 +3,10 @@
 namespace Nadybot\Core\Attributes;
 
 use Attribute;
-use Nadybot\Core\Safe;
-use Nadybot\Core\Types\{Faction, ParamAttribute};
-use ReflectionParameter;
+use Nadybot\Core\Types\Faction;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
-class FactionStr implements ParamAttribute {
-	public function __construct(
-		public ?string $example=null
-	) {
-	}
-
-	public function renderParameter(ReflectionParameter $param): string {
-		if (isset($this->example)) {
-			return $this->example;
-		}
-		return '&lt;' . Safe::pregReplaceCallback(
-			'/([A-Z]+)/',
-			static function (array $matches): string {
-				return ' ' . strtolower($matches[1]);
-			},
-			$param->getName(),
-		) . '&gt;';
-	}
-
+class FactionStr extends AbstractParamAttribute {
 	public function getRegexp(): string {
 		return Faction::getNameRegexp();
 	}

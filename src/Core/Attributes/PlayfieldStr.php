@@ -3,29 +3,15 @@
 namespace Nadybot\Core\Attributes;
 
 use Attribute;
-use Nadybot\Core\Safe;
-use Nadybot\Core\Types\{ParamAttribute, Playfield};
-use ReflectionParameter;
+use Nadybot\Core\Types\Playfield;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
-class PlayfieldStr implements ParamAttribute {
+class PlayfieldStr extends AbstractParamAttribute {
 	public function __construct(
 		private bool $allowLong=false,
-		public ?string $example=null
+		?string $example=null
 	) {
-	}
-
-	public function renderParameter(ReflectionParameter $param): string {
-		if (isset($this->example)) {
-			return $this->example;
-		}
-		return '&lt;' . Safe::pregReplaceCallback(
-			'/([A-Z]+)/',
-			static function (array $matches): string {
-				return ' ' . strtolower($matches[1]);
-			},
-			$param->getName(),
-		) . '&gt;';
+		parent::__construct($example);
 	}
 
 	public function getRegexp(): string {

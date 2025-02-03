@@ -3,13 +3,12 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Nadybot\Core\Attributes\Str;
-use Nadybot\Core\Types\ImplantSlot;
+use Nadybot\Core\Types\{Ability as TAbility, ImplantSlot};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
-	ParamClass\PAttribute,
 	Text,
 	Util,
 };
@@ -439,10 +438,10 @@ class ImplantDesignerController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\ImplantSlotStr] string $slot,
 		#[NCA\Str('require')] string $action,
-		PAttribute $ability
+		#[NCA\AbilityStr] string $ability
 	): void {
 		$slot = ImplantSlot::byName($slot);
-		$ability = $ability();
+		$ability = TAbility::fromShort($ability);
 
 		$design = $this->getDesign($context->char->name);
 
@@ -462,14 +461,14 @@ class ImplantDesignerController extends ModuleInstance {
 			$blob .= "]\n\n\n";
 			$blob .= Text::makeChatcmd($slot->longName(), "/tell <myname> implantdesigner {$slot->designSlotName()}");
 			$blob .= $this->getImplantSummary($slotObj) . "\n";
-			$blob .= "Combinations for <highlight>{$slot->longName()}<end> that will require {$ability}:\n";
+			$blob .= "Combinations for <highlight>{$slot->longName()}<end> that will require {$ability->name}:\n";
 			$query = $this->db
 				->table(ImplantMatrix::getTable(), 'i')
 				->join(Cluster::getTable(as: 'c1'), 'i.shining_id', 'c1.cluster_id')
 				->join(Cluster::getTable(as: 'c2'), 'i.bright_id', 'c2.cluster_id')
 				->join(Cluster::getTable(as: 'c3'), 'i.faded_id', 'c3.cluster_id')
 				->join(Ability::getTable(as: 'a'), 'i.ability_id', 'a.ability_id')
-				->where('a.name', ucfirst($ability))
+				->where('a.name', $ability->name)
 				->select(['i.ability_ql1', 'i.ability_ql200', 'i.ability_ql201'])
 				->addSelect(['i.ability_ql300', 'i.treat_ql1', 'i.treat_ql200'])
 				->addSelect(['i.treat_ql201', 'i.treat_ql300'])
@@ -531,7 +530,7 @@ class ImplantDesignerController extends ModuleInstance {
 				}
 			}
 			$count = count($data);
-			$msg = Text::makeBlob("Implant Designer Require {$ability} ({$slot->longName()}) ({$count})", $blob);
+			$msg = Text::makeBlob("Implant Designer Require {$ability->name} ({$slot->longName()}) ({$count})", $blob);
 		}
 
 		$context->reply($msg);

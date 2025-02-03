@@ -21,7 +21,6 @@ use Nadybot\Core\{
 	Hydrator,
 	ModuleInstance,
 	Nadybot,
-	ParamClass\PWord,
 	Safe,
 	SemanticVersion,
 	Text,
@@ -358,7 +357,7 @@ class PackageController extends ModuleInstance {
 	public function packageInstallCommand(
 		CmdContext $context,
 		#[NCA\Str('install')] string $action,
-		PWord $package,
+		#[NCA\WordStr] string $package,
 		?string $version
 	): void {
 		if (!$this->config->general->enablePackageModule) {
@@ -370,13 +369,13 @@ class PackageController extends ModuleInstance {
 			return;
 		}
 		$cmd = new PackageAction(
-			package: $package(),
+			package: $package,
 			action: PackageAction::INSTALL,
 			version: isset($version) ? new SemanticVersion($version) : null,
 			sender: $context->char->name,
 			sendto: $context,
 		);
-		$packages = $this->getPackage($package());
+		$packages = $this->getPackage($package);
 		if (!count($packages)) {
 			$context->reply("{$package} is not compatible with Nadybot.");
 			return;
@@ -392,7 +391,7 @@ class PackageController extends ModuleInstance {
 	public function packageUpdateCommand(
 		CmdContext $context,
 		#[NCA\Str('update')] string $action,
-		PWord $package,
+		#[NCA\WordStr] string $package,
 		?string $version
 	): void {
 		if (!$this->config->general->enablePackageModule) {
@@ -404,13 +403,13 @@ class PackageController extends ModuleInstance {
 			return;
 		}
 		$cmd = new PackageAction(
-			package: $package(),
+			package: $package,
 			action: PackageAction::UPGRADE,
 			version: isset($version) ? new SemanticVersion($version) : null,
 			sender: $context->char->name,
 			sendto: $context,
 		);
-		$packages = $this->getPackage($package());
+		$packages = $this->getPackage($package);
 		if (!count($packages)) {
 			$context->reply("{$package} is not compatible with Nadybot.");
 			return;

@@ -3,11 +3,11 @@
 namespace Nadybot\Core\Attributes;
 
 use Attribute;
-use Nadybot\Core\Types\ImplantSlot;
+use Nadybot\Core\Types\Ability;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
-class ImplantSlotStr extends AbstractParamAttribute {
+class AbilityStr extends AbstractParamAttribute {
 	public function getRegexp(): string {
-		return ImplantSlot::getNameRegexp();
+		return Ability::getNameRegexp();
 	}
 }

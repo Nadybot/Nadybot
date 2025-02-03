@@ -8,7 +8,7 @@ use MathParser\Interpreting\Evaluator;
 use MathParser\Parsing\Parser;
 use MathParser\StdMathParser;
 use Nadybot\Core\Attributes\Str;
-use Nadybot\Core\ParamClass\{PRemove, PWord};
+use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -106,10 +106,9 @@ class FormulaController extends ModuleInstance {
 	public function formulaAddCommand(
 		CmdContext $context,
 		#[Str('add')] string $subCommand,
-		PWord $name,
+		#[NCA\WordStr] string $name,
 		string $formula
 	): void {
-		$name = $name();
 		if (strlen($name) > 20) {
 			$context->reply('The maximum length of a formula\'s length is 20 characters.');
 			return;
@@ -149,11 +148,11 @@ class FormulaController extends ModuleInstance {
 	public function formulaRunCommand(
 		CmdContext $context,
 		#[Str('solve', 'use', 'run', 'exec')] string $subCommand,
-		PWord $formulaName,
+		#[NCA\WordStr] string $formulaName,
 		#[Str('for')] ?string $for='for',
 		#[NCA\Regexp("\w+=\w+", example: '&lt;variable&gt;=&lt;value&gt;')] ?string ...$variables
 	): void {
-		$name = $formulaName();
+		$name = $formulaName;
 		$formula = $this->db->table(Formula::getTable())
 			->where('name', $name)
 			->firstObj(Formula::class);
@@ -203,9 +202,8 @@ class FormulaController extends ModuleInstance {
 	public function formulaDelCommand(
 		CmdContext $context,
 		PRemove $subAction,
-		PWord $name,
+		#[NCA\WordStr] string $name,
 	): void {
-		$name = $name();
 		$numDeleted = $this->db->table(Formula::getTable())
 			->where('name', $name)
 			->delete();

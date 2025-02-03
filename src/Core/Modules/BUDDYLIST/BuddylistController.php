@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
-	ParamClass\PWord,
 	Text,
 };
 
@@ -134,11 +133,11 @@ class BuddylistController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('add')] string $action,
 		PCharacter $who,
-		PWord $type
+		#[NCA\WordStr] string $type
 	): void {
 		$name = $who();
 
-		if (true === $this->buddylistManager->addName($name, $type())) {
+		if (true === $this->buddylistManager->addName($name, $type)) {
 			$msg = "<highlight>{$name}<end> added to the buddy list successfully.";
 		} else {
 			$msg = "Could not add <highlight>{$name}<end> to the buddy list.";
@@ -172,11 +171,11 @@ class BuddylistController extends ModuleInstance {
 		CmdContext $context,
 		PRemove $action,
 		PCharacter $who,
-		PWord $type
+		#[NCA\WordStr] string $type
 	): void {
 		$name = $who();
 
-		if ($this->buddylistManager->remove($name, $type())) {
+		if ($this->buddylistManager->remove($name, $type)) {
 			$msg = "<highlight>{$name}<end> removed from the buddy list successfully.";
 		} else {
 			$msg = "Could not remove <highlight>{$name}<end> from the buddy list.";

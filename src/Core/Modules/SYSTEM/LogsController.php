@@ -32,7 +32,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	ModuleInstance,
 	ParamClass\PFilename,
-	ParamClass\PWord,
 	SettingManager,
 	Text,
 };
@@ -274,12 +273,12 @@ class LogsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>loglevel Core/Nadybot info')]
 	public function loglevelFileCommand(
 		CmdContext $context,
-		PWord $mask,
+		#[NCA\WordStr] string $mask,
 		#[NCA\StrChoice('debug', 'info', 'notice', 'warning', 'error', 'emergency', 'alert')] string $logLevel
 	): void {
 		$logLevel = strtoupper($logLevel);
 		$loggers = LegacyLogger::getLoggers();
-		LegacyLogger::tempLogLevelOrderride($mask(), $logLevel);
+		LegacyLogger::tempLogLevelOrderride($mask, $logLevel);
 		$names = [];
 		foreach ($loggers as $logger) {
 			$changes = LegacyLogger::assignLogLevel($logger);
@@ -302,7 +301,7 @@ class LogsController extends ModuleInstance {
 			$blob
 		);
 		$msg = 'Changed ' . $msg .
-			(($mask() !== '*') ? " matching <highlight>'{$mask}'<end>." : '');
+			(($mask !== '*') ? " matching <highlight>'{$mask}'<end>." : '');
 		$context->reply($msg);
 	}
 

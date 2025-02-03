@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	ModuleInstance,
 	ParamClass\PCharacter,
-	ParamClass\PWord,
 	Text,
 	Util,
 };
@@ -111,7 +110,7 @@ class ReputationController extends ModuleInstance {
 			$context,
 			'add',
 			$char,
-			new PWord($catName),
+			$catName,
 			"{$action} {$comment}"
 		);
 	}

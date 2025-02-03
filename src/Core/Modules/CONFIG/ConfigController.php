@@ -24,7 +24,6 @@ use Nadybot\Core\{
 	HelpManager,
 	ModuleInstance,
 	Nadybot,
-	ParamClass\PWord,
 	Registry,
 	Safe,
 	SettingHandlers\SettingHandler,
@@ -145,7 +144,7 @@ class ConfigController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('cmd')] string $cmd,
 		bool $status,
-		#[NCA\PWord] #[NCA\Str('all')] string $permissionSet,
+		#[NCA\WordStr] #[NCA\Str('all')] string $permissionSet,
 	): void {
 		$permissionSet = strtolower($permissionSet);
 		if ($permissionSet !== 'all' && !$this->commandManager->hasPermissionSet($permissionSet)) {
@@ -200,7 +199,7 @@ class ConfigController extends ModuleInstance {
 		#[NCA\Str('mod')] string $action,
 		string $module,
 		bool $enable,
-		#[NCA\PWord] #[NCA\Str('all')] string $permissionSet,
+		#[NCA\WordStr] #[NCA\Str('all')] string $permissionSet,
 	): void {
 		$permissionSet = strtolower($permissionSet);
 		if ($permissionSet !== 'all' && !$this->commandManager->hasPermissionSet($permissionSet)) {
@@ -235,7 +234,7 @@ class ConfigController extends ModuleInstance {
 		#[NCA\StrChoice('cmd', 'subcmd')] string $type,
 		string $cmd,
 		bool $enable,
-		#[NCA\PWord] #[NCA\Str('all')] string $permissionSet,
+		#[NCA\WordStr] #[NCA\Str('all')] string $permissionSet,
 	): void {
 		$type = strtolower($type);
 		$permissionSet = strtolower($permissionSet);
@@ -283,10 +282,10 @@ class ConfigController extends ModuleInstance {
 	public function toggleEventCommand(
 		CmdContext $context,
 		#[NCA\Str('event')] string $type,
-		PWord $event,
+		#[NCA\WordStr] string $event,
 		string $eventHandler,
 		bool $enable,
-		#[NCA\PWord] #[NCA\Str('all')] string $permissionSet,
+		#[NCA\WordStr] #[NCA\Str('all')] string $permissionSet,
 	): void {
 		$permissionSet = strtolower($permissionSet);
 		if ($permissionSet !== 'all' && !$this->commandManager->hasPermissionSet($permissionSet)) {
@@ -294,7 +293,7 @@ class ConfigController extends ModuleInstance {
 			return;
 		}
 
-		if (!$this->toggleEvent($event(), $eventHandler, $enable)) {
+		if (!$this->toggleEvent($event, $eventHandler, $enable)) {
 			$msg = "Could not find event <highlight>{$event}<end> for handler <highlight>{$eventHandler}<end>.";
 			$context->reply($msg);
 			return;
@@ -433,7 +432,7 @@ class ConfigController extends ModuleInstance {
 		#[NCA\StrChoice('subcmd', 'cmd')] string $category,
 		string $cmd,
 		#[NCA\Str('admin')] string $admin,
-		#[NCA\PWord] #[NCA\Str('all')] string $permissionSet,
+		#[NCA\WordStr] #[NCA\Str('all')] string $permissionSet,
 		string $accessLevel
 	): void {
 		$category = strtolower($category);
@@ -531,9 +530,9 @@ class ConfigController extends ModuleInstance {
 	public function configCommandCommand(
 		CmdContext $context,
 		#[NCA\Str('cmd')] string $action,
-		PWord $cmd
+		#[NCA\WordStr] string $cmd
 	): void {
-		$cmd = strtolower($cmd());
+		$cmd = strtolower($cmd);
 
 		$aliasCmd = $this->commandAlias->getBaseCommandForAlias($cmd);
 		if ($aliasCmd !== null) {
@@ -602,8 +601,8 @@ class ConfigController extends ModuleInstance {
 
 	/** Show configuration and controls for a single module */
 	#[NCA\HandlesCommand('config')]
-	public function configModuleCommand(CmdContext $context, PWord $module): void {
-		$module = strtoupper($module());
+	public function configModuleCommand(CmdContext $context, #[NCA\WordStr] string $module): void {
+		$module = strtoupper($module);
 		$found = false;
 
 		$on = Text::makeChatcmd('enable', "/tell <myname> config mod {$module} enable all");
@@ -734,9 +733,9 @@ class ConfigController extends ModuleInstance {
 	public function getAccessLevelOfSetting(
 		CmdContext $context,
 		#[NCA\StrChoice('setting')] string $category,
-		PWord $setting,
+		#[NCA\WordStr] string $setting,
 	): void {
-		$setting = strtolower($setting());
+		$setting = strtolower($setting);
 
 		$row = $this->db->table(Setting::getTable())
 			->where('name', $setting)
@@ -757,11 +756,11 @@ class ConfigController extends ModuleInstance {
 	public function setAccessLevelOfSetting(
 		CmdContext $context,
 		#[NCA\StrChoice('setting')] string $category,
-		PWord $setting,
+		#[NCA\WordStr] string $setting,
 		#[NCA\Str('admin')] string $admin,
 		string $accessLevel
 	): void {
-		$setting = strtolower($setting());
+		$setting = strtolower($setting);
 
 		try {
 			$accessLevel = $this->accessManager->getAccessLevel($accessLevel);

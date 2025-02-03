@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
-	ParamClass\PWord,
 	Text,
 	Types\Profession,
 	Util,
@@ -402,7 +401,7 @@ class ChatAssistController extends ModuleInstance {
 	public function assistAddCommand(
 		CmdContext $context,
 		#[NCA\Str('add')] string $action,
-		?PWord $assistList,
+		#[NCA\WordStr] ?string $assistList,
 		PCharacter $caller
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -410,7 +409,7 @@ class ChatAssistController extends ModuleInstance {
 			return;
 		}
 
-		$assistList = isset($assistList) ? $assistList() : '';
+		$assistList ??= '';
 		$name = $caller();
 		$groupKey = strtolower($assistList);
 

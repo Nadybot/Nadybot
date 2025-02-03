@@ -216,7 +216,7 @@ class LootController extends ModuleInstance {
 	public function lootShowNumberCommand(
 		CmdContext $context,
 		#[NCA\StrChoice('show', 'history')] string $action,
-		#[NCA\PNumber] #[NCA\Str('last')] string $number,
+		#[NCA\NumberStr] #[NCA\Str('last')] string $number,
 	): void {
 		if (strtolower($number) === 'last') {
 			$number = $this->db->table(LootHistory::getTable())->max('roll');

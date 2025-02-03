@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
-	ParamClass\PWord,
 	Safe,
 	Text,
 	Types\ImplantSlot,
@@ -196,9 +195,9 @@ class PocketbossController extends ModuleInstance {
 	)]
 	public function symbiantCommand(
 		CmdContext $context,
-		PWord $arg1,
-		?PWord $arg2,
-		?PWord $arg3
+		#[NCA\WordStr] string $arg1,
+		#[NCA\WordStr] ?string $arg2,
+		#[NCA\WordStr] ?string $arg3
 	): void {
 		$args = $context->args;
 

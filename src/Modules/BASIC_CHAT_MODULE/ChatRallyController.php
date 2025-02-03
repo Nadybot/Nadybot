@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	Events\JoinMyPrivEvent,
 	ModuleInstance,
 	Nadybot,
-	ParamClass\PWord,
 	Safe,
 	SettingManager,
 	Text,
@@ -97,7 +96,7 @@ class ChatRallyController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $x,
 		#[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $y,
-		PWord $playfield
+		#[NCA\WordStr] string $playfield
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
@@ -106,9 +105,9 @@ class ChatRallyController extends ModuleInstance {
 		$xCoords = (float)$x;
 		$yCoords = (float)$y;
 
-		$playfieldName = $playfield();
-		if (is_numeric($playfield())) {
-			$playfieldId = (int)$playfield();
+		$playfieldName = $playfield;
+		if (is_numeric($playfield)) {
+			$playfieldId = (int)$playfield;
 			$playfieldName = (string)$playfieldId;
 
 			$pfObj = Playfield::tryFrom($playfieldId);
@@ -116,7 +115,6 @@ class ChatRallyController extends ModuleInstance {
 				$playfieldName = $pfObj->short();
 			}
 		} else {
-			$playfieldName = $playfield();
 			$pfObj = Playfield::tryByName($playfieldName);
 			if ($pfObj === null) {
 				$context->reply("Could not find playfield '{$playfieldName}'");
