@@ -7,6 +7,7 @@ use Amp\File\FilesystemException;
 use AO\Client\{SingleClient, WorkerPackage};
 use AO\Package;
 use Exception;
+use Nadybot\Core\Types\Faction;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -22,8 +23,6 @@ use Nadybot\Core\{
 	Modules\DISCORD\DiscordMessageIn,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PFaction,
-	ParamClass\PPlayfield,
 	ParamClass\PWord,
 	Registry,
 	SettingManager,
@@ -176,20 +175,22 @@ class TestController extends ModuleInstance {
 	public function testTowerVictoryCommand(
 		CmdContext $context,
 		#[NCA\Str('towervictory')] string $action,
-		PFaction $attFaction,
+		#[NCA\FactionStr] string $attFaction,
 		string $attOrg,
-		PFaction $defFaction,
+		#[NCA\FactionStr] string $defFaction,
 		string $defOrg,
-		PPlayfield $playfield
+		#[NCA\PlayfieldStr] string $playfield
 	): void {
-		$pf = Playfield::tryByName($playfield());
+		$attFaction = Faction::byName($attFaction);
+		$defFaction = Faction::byName($defFaction);
+		$pf = Playfield::tryByName($playfield);
 		if (!isset($pf)) {
 			$context->reply("There is no playfield <highlight>{$playfield}<end>.");
 			return;
 		}
 		$this->sendTowerMsg(
-			"The {$attFaction} organization {$attOrg} ".
-			"attacked the {$defFaction} {$defOrg} at their base in ".
+			"The {$attFaction->value} organization {$attOrg} ".
+			"attacked the {$defFaction->value} {$defOrg} at their base in ".
 			"{$pf->long()}. The attackers won!!"
 		);
 	}

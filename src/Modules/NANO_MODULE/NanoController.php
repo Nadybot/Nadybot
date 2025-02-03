@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	DB,
 	Exceptions\UserException,
 	ModuleInstance,
-	ParamClass\PProfession,
 	SettingManager,
 	Text,
 	Types\Profession,
@@ -354,12 +353,12 @@ class NanoController extends ModuleInstance {
 	public function bestNanos2Command(
 		CmdContext $context,
 		#[NCA\Str('long')] ?string $long,
-		PProfession $profession,
+		#[NCA\ProfessionStr] string $profession,
 		int $level,
 	): void {
 		$this->showBestNanosCommand(
 			$context,
-			$profession(),
+			Profession::byName($profession),
 			$level,
 			$context->getCommand() === 'bestnanosfroob',
 			!isset($long)
@@ -374,11 +373,11 @@ class NanoController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('long')] ?string $long,
 		int $level,
-		PProfession $profession,
+		#[NCA\ProfessionStr] string $profession,
 	): void {
 		$this->showBestNanosCommand(
 			$context,
-			$profession(),
+			Profession::byName($profession),
 			$level,
 			$context->getCommand() === 'bestnanosfroob',
 			!isset($long)

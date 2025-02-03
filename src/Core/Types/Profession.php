@@ -5,6 +5,23 @@ namespace Nadybot\Core\Types;
 use InvalidArgumentException;
 
 enum Profession: string {
+	public static function getNameRegexp(): string {
+		return 'adv(|y|enturer)'.
+		'|age(nt)?'.
+		'|(bureau)?crat'.
+		'|doc(tor)?'.
+		'|enf(o|orcer)?'.
+		'|eng([iy]|ineer)?'.
+		'|fix(er)?'.
+		'|keep(er)?'.
+		'|ma(rtial( ?artist)?)?'.
+		'|mp|meta(-?physicist)?'.
+		'|nt|nano(-?technician)?'.
+		'|sol(d|dier)?'.
+		'|tra(d|der)?'.
+		'|sha(de)?';
+	}
+
 	public function toNumber(): int {
 		return match ($this) {
 			self::Adventurer => 6,

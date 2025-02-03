@@ -9,6 +9,10 @@ enum Faction: string {
 		return strtolower($this->value);
 	}
 
+	public static function getNameRegexp(): string {
+		return 'neut|neutral|omni|clan';
+	}
+
 	public function inColor(?string $text=null): string {
 		$text ??= $this->value;
 		return "<{$this->lower()}>{$text}<end>";

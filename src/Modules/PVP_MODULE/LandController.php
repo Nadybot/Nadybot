@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Nadybot\Core\ParamClass\{PPlayfield, PTowerSite};
+use Nadybot\Core\ParamClass\PTowerSite;
 use Nadybot\Core\{Attributes as NCA, CmdContext, ModuleInstance, Text, Types\Playfield};
 use Throwable;
 
@@ -52,23 +52,22 @@ class LandController extends ModuleInstance {
 	public function listTowerSites(
 		CmdContext $context,
 		#[NCA\Str('lc')] string $action,
-		PPlayfield $pf
+		#[NCA\PlayfieldStr] string $pf
 	): void {
 		if (!count($this->nwCtrl->state)) {
 			$context->reply('The Tower-API is still initializing.');
 			return;
 		}
-		$playfieldName = $pf();
 		try {
-			$playfield = Playfield::byName($playfieldName);
+			$playfield = Playfield::byName($pf);
 		} catch (Throwable) {
-			$msg = "Playfield <highlight>{$playfieldName}<end> could not be found.";
+			$msg = "Playfield <highlight>{$pf}<end> could not be found.";
 			$context->reply($msg);
 			return;
 		}
 		$sites = $this->nwCtrl->state[$playfield->value] ?? null;
 		if (!isset($sites)) {
-			$msg = "No tower sites found on <highlight>{$playfieldName}<end>.";
+			$msg = "No tower sites found on <highlight>{$playfield->long()}<end>.";
 			$context->reply($msg);
 			return;
 		}
