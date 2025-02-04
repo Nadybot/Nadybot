@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Modules\MESSAGES\MessageHubController,
-	ParamClass\PFilename,
 	SettingManager,
 	Text,
 };
@@ -145,7 +144,7 @@ class ColorsController extends ModuleInstance {
 	public function cmdApplyTheme(
 		CmdContext $context,
 		#[NCA\Str('apply')] string $action,
-		PFilename $themeName
+		#[NCA\FilenameStr] string $themeName
 	): void {
 		$paths = explode(':', $this->themePath);
 
@@ -160,7 +159,7 @@ class ColorsController extends ModuleInstance {
 				$files->push(__DIR__ . "/{$path}/{$fileName}");
 			}
 		}
-		$files = $files->filter(static fn (string $path): bool => basename($path, '.json') === $themeName());
+		$files = $files->filter(static fn (string $path): bool => basename($path, '.json') === $themeName);
 		try {
 			$theme = $this->loadTheme($files->firstOrFail());
 			if (!isset($theme)) {

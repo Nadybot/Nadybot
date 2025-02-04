@@ -31,7 +31,6 @@ use Nadybot\Core\{
 	LegacyLogger,
 	LoggerWrapper,
 	ModuleInstance,
-	ParamClass\PFilename,
 	SettingManager,
 	Text,
 };
@@ -131,13 +130,17 @@ class LogsController extends ModuleInstance {
 	 * &lt;search&gt; is a regular expression (without delimiters) and case-insensitive
 	 */
 	#[NCA\HandlesCommand('logs')]
-	public function logsFileCommand(CmdContext $context, PFilename $file, ?string $search): void {
+	public function logsFileCommand(
+		CmdContext $context,
+		#[NCA\FilenameStr] string $file,
+		?string $search
+	): void {
 		$logger = $this->logger;
 		if (!($logger instanceof LoggerWrapper)) {
 			$context->reply('Your current logging driver does not support this command');
 			return;
 		}
-		$filename = $logger::getLoggingDirectory() . \DIRECTORY_SEPARATOR . $file();
+		$filename = $logger::getLoggingDirectory() . \DIRECTORY_SEPARATOR . $file;
 		$readsize = ($this->settingManager->getInt('max_blob_size')??10_000) - 500;
 
 		try {
@@ -197,7 +200,7 @@ class LogsController extends ModuleInstance {
 				if (isset($search)) {
 					$contents = "Search: <highlight>{$search}<end>\n\n" . $contents;
 				}
-				$msg = Text::makeBlob($file(), $contents);
+				$msg = Text::makeBlob($file, $contents);
 			}
 		} catch (Exception $e) {
 			$msg = 'Error: ' . $e->getMessage();

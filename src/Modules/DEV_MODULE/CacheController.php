@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	ModuleInstance,
-	ParamClass\PFilename,
 	ParamClass\PRemove,
 	Text,
 	Util,
@@ -78,10 +77,8 @@ class CacheController extends ModuleInstance {
 		CmdContext $context,
 		PRemove $action,
 		#[NCA\Regexp('[a-z0-9_-]+')] string $group,
-		PFilename $file
+		#[NCA\FilenameStr] string $file
 	): void {
-		$file = $file();
-
 		if ($this->cacheManager->cacheExists($group, $file)) {
 			$this->cacheManager->remove($group, $file);
 			$msg = "Cache file <highlight>{$file}<end> in cache group <highlight>{$group}<end> has been deleted.";
@@ -97,10 +94,8 @@ class CacheController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('view')] string $action,
 		#[NCA\Regexp('[a-z0-9_-]+')] string $group,
-		PFilename $file
+		#[NCA\FilenameStr] string $file
 	): void {
-		$file = $file();
-
 		if ($this->cacheManager->cacheExists($group, $file)) {
 			$contents = $this->cacheManager->retrieve($group, $file)??'null';
 			if (str_ends_with($file, '.json')) {

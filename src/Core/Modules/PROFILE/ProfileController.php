@@ -26,7 +26,6 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
-	ParamClass\PFilename,
 	ParamClass\PRemove,
 	Safe,
 	SettingManager,
@@ -161,9 +160,8 @@ class ProfileController extends ModuleInstance {
 	public function profileViewCommand(
 		CmdContext $context,
 		#[NCA\Str('view')] string $action,
-		PFilename $profileName
+		#[NCA\FilenameStr] string $profileName
 	): void {
-		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!$this->fs->exists($filename)) {
 			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
@@ -181,8 +179,11 @@ class ProfileController extends ModuleInstance {
 
 	/** Save the current configuration as a profile */
 	#[NCA\HandlesCommand('profile')]
-	public function profileSaveCommand(CmdContext $context, #[NCA\Str('save')] string $action, PFilename $profileName): void {
-		$profileName = $profileName();
+	public function profileSaveCommand(
+		CmdContext $context,
+		#[NCA\Str('save')] string $action,
+		#[NCA\FilenameStr] string $profileName
+	): void {
 		try {
 			$this->saveProfile($profileName);
 		} catch (Exception $e) {
@@ -295,9 +296,8 @@ class ProfileController extends ModuleInstance {
 	public function profileRemCommand(
 		CmdContext $context,
 		PRemove $action,
-		PFilename $profileName
+		#[NCA\FilenameStr] string $profileName
 	): void {
-		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!$this->fs->exists($filename)) {
 			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
@@ -319,9 +319,8 @@ class ProfileController extends ModuleInstance {
 	public function profileLoadCommand(
 		CmdContext $context,
 		#[NCA\Str('load')] string $action,
-		PFilename $profileName
+		#[NCA\FilenameStr] string $profileName
 	): void {
-		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 
 		if (false === $this->fs->exists($filename)) {

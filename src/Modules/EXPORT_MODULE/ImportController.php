@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	Filesystem,
 	Hydrator,
 	ModuleInstance,
-	ParamClass\PFilename,
 	Registry,
 	Safe,
 	Types\ImporterInterface,
@@ -115,11 +114,11 @@ class ImportController extends ModuleInstance {
 	)]
 	public function importCommand(
 		CmdContext $context,
-		PFilename $file,
+		#[NCA\FilenameStr] string $file,
 		#[NCA\Regexp("\w+=\w+", example: '&lt;exported al&gt;=&lt;new al&gt;')] ?string ...$mappings
 	): void {
 		$dataPath = $this->config->paths->data;
-		$fileName = "{$dataPath}/export/" . basename($file());
+		$fileName = "{$dataPath}/export/" . basename($file);
 		if ((pathinfo($fileName)['extension'] ?? '') !== 'json') {
 			$fileName .= '.json';
 		}
