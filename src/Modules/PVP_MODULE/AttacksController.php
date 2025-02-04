@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
+use Nadybot\Core\ParamClass\{PDuration, PTowerSite};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -561,10 +561,10 @@ class AttacksController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('attacks')] string $action,
 		#[NCA\Str('org')] string $org,
-		PNonGreedy $orgName,
+		#[NCA\NonGreedy] string $orgName,
 		?int $page,
 	): void {
-		$search = str_replace('*', '%', $orgName());
+		$search = str_replace('*', '%', $orgName);
 		$query = $this->db->table(DBTowerAttack::getTable())
 			->whereIlike('att_org', $search)
 			->orWhereIlike('def_org', $search);
@@ -591,11 +591,11 @@ class AttacksController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('attacks')] string $action,
 		#[NCA\Str('char')] string $char,
-		PNonGreedy $search,
+		#[NCA\NonGreedy] string $search,
 		?int $page,
 	): void {
 		$query = $this->db->table(DBTowerAttack::getTable())
-			->whereIlike('att_name', str_replace('*', '%', $search()));
+			->whereIlike('att_name', str_replace('*', '%', $search));
 		$context->reply(
 			$this->nwAttacksCmd(
 				$query,
@@ -716,10 +716,10 @@ class AttacksController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('victory')] string $action,
 		#[NCA\Str('org')] string $org,
-		PNonGreedy $orgName,
+		#[NCA\NonGreedy] string $orgName,
 		?int $page,
 	): void {
-		$search = str_replace('*', '%', $orgName());
+		$search = str_replace('*', '%', $orgName);
 		$query = $this->db->table(DBOutcome::getTable())
 			->whereIlike('attacker_org', $search)
 			->orWhereIlike('losing_org', $search);

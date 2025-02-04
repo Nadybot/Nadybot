@@ -24,7 +24,6 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PNonGreedy,
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -394,14 +393,14 @@ class RaidController extends ModuleInstance {
 	public function raidStartWithLimitsCommand(
 		CmdContext $context,
 		#[NCA\Str('start', 'run', 'create')] string $action,
-		PNonGreedy $description,
+		#[NCA\NonGreedy] string $description,
 		#[NCA\Str('limit')] string $subAction,
 		int $maxMembers,
 	): void {
 		$raid = new Raid(
 			started_by: $context->char->name,
 			max_members: $maxMembers,
-			description: $description(),
+			description: $description,
 			announce_interval: $this->raidAnnouncement ? $this->raidAnnouncementInterval : 0,
 			seconds_per_point: ($this->raidPointsForTime) ? $this->raidPointsInterval : 0,
 			ticker_paused: $this->raidTickerStartPaused,

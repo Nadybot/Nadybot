@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
-	ParamClass\PNonGreedy,
 	Registry,
 	Text,
 };
@@ -75,13 +74,12 @@ class OrglistController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>orglist Nadyita')]
 	public function orglistCommand(
 		CmdContext $context,
-		PNonGreedy $search,
+		#[NCA\NonGreedy] string $search,
 		#[NCA\Str('all')] ?string $all,
 	): void {
 		if ($this->orglistShowOffline) {
 			$all = 'all';
 		}
-		$search = $search();
 		if (ctype_digit($search)) {
 			$orgId = (int)$search;
 		} else {
