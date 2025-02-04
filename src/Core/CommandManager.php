@@ -833,8 +833,6 @@ class CommandManager implements MessageEmitter {
 							break;
 					}
 				}
-				// methods will return false to indicate a syntax error, so when a false is returned,
-				// we set $syntaxError = true, otherwise we set it to false
 				$methodResult = $refMethod->invoke($instance, $context, ...$args);
 			} catch (UserException $e) {
 				$context->reply($e->getMessage());

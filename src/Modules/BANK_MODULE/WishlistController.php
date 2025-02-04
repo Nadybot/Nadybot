@@ -4,7 +4,7 @@ namespace Nadybot\Modules\BANK_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\{PCharacter, PDuration, PQuantity, PUuid};
+use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -425,7 +425,7 @@ class WishlistController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('from')] string $action,
 		PCharacter $character,
-		?PQuantity $amount,
+		#[NCA\Quantity] ?int $amount,
 		string $item,
 	): void {
 		$uid = $this->chatBot->getUid($character());
@@ -438,7 +438,7 @@ class WishlistController extends ModuleInstance {
 			created_by: $context->char->name,
 			from: $character(),
 			item: $item,
-			amount: isset($amount) ? $amount() : 1,
+			amount: $amount ?? 1,
 		);
 		$this->db->insert($entry);
 		$context->reply("Item added to your wishlist as {$entry->id}.");
@@ -455,7 +455,7 @@ class WishlistController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('add')] string $action,
 		?PDuration $expires,
-		?PQuantity $amount,
+		#[NCA\Quantity] ?int $amount,
 		string $item,
 	): void {
 		$expireDuration = isset($expires) ? $expires->toSecs() : null;
@@ -465,7 +465,7 @@ class WishlistController extends ModuleInstance {
 		$entry = new Wish(
 			created_by: $context->char->name,
 			item: $item,
-			amount: isset($amount) ? $amount() : 1,
+			amount: $amount ?? 1,
 			expires_on: isset($expireDuration) ? time() + $expireDuration : null,
 		);
 		$this->db->insert($entry);
@@ -619,7 +619,7 @@ class WishlistController extends ModuleInstance {
 	public function fulfillWishlistCommand(
 		CmdContext $context,
 		#[NCA\Str('fulfil', 'fulfill', 'fullfil', 'fullfill')] string $action,
-		?PQuantity $amount,
+		#[NCA\Quantity] ?int $amount,
 		PUuid $id,
 	): void {
 		$id = $id();
@@ -650,7 +650,7 @@ class WishlistController extends ModuleInstance {
 			return;
 		}
 		$fulfilment = new WishFulfilment(
-			amount: isset($amount) ? $amount() : ($entry->amount - $numFulfilled),
+			amount: $amount ?? ($entry->amount - $numFulfilled),
 			fulfilled_by: $context->char->name,
 			wish_id: $entry->id,
 		);

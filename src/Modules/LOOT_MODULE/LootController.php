@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PItem,
-	ParamClass\PQuantity,
 	Safe,
 	Text,
 	Util,
@@ -493,7 +492,7 @@ class LootController extends ModuleInstance {
 	public function multilootCommand(
 		CmdContext $context,
 		#[NCA\Str('addmulti', 'multiadd')] string $action,
-		PQuantity $amount,
+		#[NCA\Quantity] int $amount,
 		string $items
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -501,7 +500,7 @@ class LootController extends ModuleInstance {
 			return;
 		}
 
-		$this->addLootItem($items, $amount(), $context->char->name);
+		$this->addLootItem($items, $amount, $context->char->name);
 	}
 
 	/** Add one item to the loot roll */
