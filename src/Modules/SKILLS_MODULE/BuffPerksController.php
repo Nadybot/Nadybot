@@ -6,7 +6,6 @@ use function Amp\async;
 use function Amp\ByteStream\splitLines;
 use function Safe\{preg_match, preg_split};
 
-use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
@@ -16,7 +15,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
-	ParamClass\PNonNumberWord,
 	Safe,
 	SettingManager,
 	Text,
@@ -106,8 +104,13 @@ class BuffPerksController extends ModuleInstance {
 	 * If you give a search string, it will search for perks buffing this skill/attribute
 	 */
 	#[NCA\HandlesCommand('perks')]
-	public function buffPerksLevelFirstCommand(CmdContext $context, int $level, PNonNumberWord $prof, ?string $search): void {
-		$this->buffPerksProfFirstCommand($context, $prof, $level, $search);
+	public function buffPerksLevelFirstCommand(
+		CmdContext $context,
+		int $level,
+		#[NCA\ProfessionStr] string $prof,
+		?string $search
+	): void {
+		$this->showPerks(Profession::byName($prof), $level, null, $search, $context);
 	}
 
 	/**
@@ -116,15 +119,13 @@ class BuffPerksController extends ModuleInstance {
 	 * If you give a search string, it will search for perks buffing this skill/attribute
 	 */
 	#[NCA\HandlesCommand('perks')]
-	public function buffPerksProfFirstCommand(CmdContext $context, PNonNumberWord $prof, int $level, ?string $search): void {
-		try {
-			$profession = Profession::byName($prof());
-		} catch (Exception) {
-			$msg = "Could not find profession <highlight>{$prof}<end>.";
-			$context->reply($msg);
-			return;
-		}
-		$this->showPerks($profession, $level, null, $search, $context);
+	public function buffPerksProfFirstCommand(
+		CmdContext $context,
+		#[NCA\ProfessionStr] string $prof,
+		int $level,
+		?string $search
+	): void {
+		$this->showPerks(Profession::byName($prof), $level, null, $search, $context);
 	}
 
 	/** Show detailed information for all of a perk's levels */

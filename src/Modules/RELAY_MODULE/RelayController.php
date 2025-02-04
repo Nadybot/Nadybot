@@ -25,7 +25,6 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Modules\PROFILE\ProfileCommandReply,
-	ParamClass\PNonNumberWord,
 	Registry,
 	Text,
 	Util,
@@ -700,8 +699,12 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Configure a relay. Only supported for nadynative */
 	#[NCA\HandlesCommand('relay')]
-	public function relayConfigNameCommand(CmdContext $context, #[NCA\Str('config')] string $action, PNonNumberWord $name): void {
-		$this->relayConfigCommand($context, null, $name());
+	public function relayConfigNameCommand(
+		CmdContext $context,
+		#[NCA\Str('config')] string $action,
+		#[NCA\NonNumberWord] string $name
+	): void {
+		$this->relayConfigCommand($context, null, $name);
 	}
 
 	/** Configure a relay. Only supported for nadynative */

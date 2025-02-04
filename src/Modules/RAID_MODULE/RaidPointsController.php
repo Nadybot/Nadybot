@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PNonNumberWord,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
@@ -736,9 +735,8 @@ class RaidPointsController extends ModuleInstance {
 	public function rewardRemCommand(
 		CmdContext $context,
 		#[NCA\Remove] string $action,
-		PNonNumberWord $name
+		#[NCA\NonNumberWord] string $name
 	): void {
-		$name = $name();
 		if (Uuid::isValid($name) || ctype_digit($name)) {
 			$this->rewardRemIdCommand($context, $action, new PUuid($name));
 			return;
