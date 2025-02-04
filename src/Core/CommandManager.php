@@ -1515,6 +1515,11 @@ class CommandManager implements MessageEmitter {
 		return true;
 	}
 
+	/**
+	 * Check if a Command parameter has a valid type
+	 *
+	 * @psalm-assert-if-false !ReflectionNamedType $type
+	 */
 	private function isValidParamType(ReflectionType $type): bool {
 		if (!($type instanceof ReflectionNamedType)) {
 			return false;
@@ -1662,7 +1667,6 @@ class CommandManager implements MessageEmitter {
 			return null;
 		}
 
-		/** @var ReflectionNamedType $type */
 		$varName = $param->getName();
 		if ($type->isBuiltin()) {
 			$mask = null;
