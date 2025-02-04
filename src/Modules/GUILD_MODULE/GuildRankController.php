@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Nadybot,
-	ParamClass\PRemove,
 	Text,
 	Types\AccessLevelProvider,
 	Types\CommandReply,
@@ -237,7 +236,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	/** Remove the special rights for an org rank */
 	#[NCA\HandlesCommand('maprank')]
 	#[NCA\Help\Group('org-ranks')]
-	public function maprankDelCommand(CmdContext $context, PRemove $action, int $rankId): void {
+	public function maprankDelCommand(CmdContext $context, #[NCA\Remove] string $action, int $rankId): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply('The bot must be in an org.');
 			return;

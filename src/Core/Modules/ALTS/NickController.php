@@ -5,7 +5,6 @@ namespace Nadybot\Core\Modules\ALTS;
 use Illuminate\Database\QueryException;
 use Nadybot\Core\Attributes\HandlesCommand;
 use Nadybot\Core\DBSchema\Nickname;
-use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -192,7 +191,7 @@ class NickController extends ModuleInstance {
 	#[HandlesCommand('nick')]
 	public function clearNickCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 	): void {
 		if (!$this->clearNickname($context->char->name)) {
 			$context->reply("You don't have a nickname set.");

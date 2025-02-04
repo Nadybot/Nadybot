@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	CommandManager,
 	DBSchema\ExtCmdPermissionSet,
 	ModuleInstance,
-	ParamClass\PRemove,
 	Text,
 };
 
@@ -79,7 +78,7 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand('permset')]
 	public function permsetRemoveCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		#[NCA\WordStr] string $name,
 	): void {
 		try {

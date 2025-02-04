@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	DB,
 	ExportCharacter,
 	ModuleInstance,
-	ParamClass\PRemove,
 	Text,
 	Types\ExporterInterface,
 	Types\ImporterInterface,
@@ -102,7 +101,7 @@ class LinksController extends ModuleInstance implements ImporterInterface, Expor
 
 	/** Remove a link from the list */
 	#[NCA\HandlesCommand('links')]
-	public function linksRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function linksRemoveCommand(CmdContext $context, #[NCA\Remove] string $action, PUuid $id): void {
 		$id = $id();
 
 		$obj = $this->db->table(Link::getTable())

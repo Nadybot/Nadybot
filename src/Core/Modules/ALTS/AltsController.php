@@ -21,7 +21,6 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
 	QueryBuilder,
 	Registry,
 	Text,
@@ -286,7 +285,7 @@ class AltsController extends ModuleInstance {
 	public function removeSomeonesAltCommand(
 		CmdContext $context,
 		PCharacter $main,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PCharacter $alt
 	): void {
 		$main = $main();
@@ -324,7 +323,7 @@ class AltsController extends ModuleInstance {
 	/** Remove one of your alts */
 	#[NCA\HandlesCommand('alts')]
 	#[NCA\Help\Group('alts')]
-	public function removeAltCommand(CmdContext $context, PRemove $rem, PCharacter $name): void {
+	public function removeAltCommand(CmdContext $context, #[NCA\Remove] string $rem, PCharacter $name): void {
 		$name = $name();
 
 		$altInfo = $this->getAltInfo($context->char->name, true);

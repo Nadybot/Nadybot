@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	Exceptions\InsufficientAccessException,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
-	ParamClass\PRemove,
 	Text,
 	Util,
 };
@@ -162,7 +161,7 @@ class OrgNotesController extends ModuleInstance {
 	#[NCA\HandlesCommand('orgnotes')]
 	public function cmdRemOrgNote(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();

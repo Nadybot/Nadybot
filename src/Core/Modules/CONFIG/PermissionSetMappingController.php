@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	Exceptions\SQLException,
 	ModuleInstance,
-	ParamClass\PRemove,
 	SettingManager,
 	Text,
 };
@@ -153,7 +152,7 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapDeleteCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		string $source,
 	): void {
 		$source = strtolower($source);

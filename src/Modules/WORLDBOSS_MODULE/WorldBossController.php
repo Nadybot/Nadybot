@@ -20,7 +20,6 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	ParamClass\PDuration,
-	ParamClass\PRemove,
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -715,7 +714,7 @@ class WorldBossController extends ModuleInstance {
 		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
 		NCA\Help\Group('worldboss')
 	]
-	public function bossDeleteCommand(CmdContext $context, PRemove $action): void {
+	public function bossDeleteCommand(CmdContext $context, #[NCA\Remove] string $action): void {
 		$boss = $this->getMobFromContext($context);
 		$msg = $this->worldBossDeleteCommand($context->char, $boss);
 		$context->reply($msg);

@@ -8,7 +8,6 @@ use MathParser\Interpreting\Evaluator;
 use MathParser\Parsing\Parser;
 use MathParser\StdMathParser;
 use Nadybot\Core\Attributes\Str;
-use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -201,7 +200,7 @@ class FormulaController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>formula rem binomic')]
 	public function formulaDelCommand(
 		CmdContext $context,
-		PRemove $subAction,
+		#[NCA\Remove] string $subAction,
 		#[NCA\WordStr] string $name,
 	): void {
 		$numDeleted = $this->db->table(Formula::getTable())

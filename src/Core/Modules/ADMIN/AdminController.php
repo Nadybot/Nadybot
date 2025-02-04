@@ -19,7 +19,6 @@ use Nadybot\Core\{
 	Modules\ALTS\NickController,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
 	Text,
 	Types\CommandReply,
 	Util,
@@ -119,7 +118,7 @@ class AdminController extends ModuleInstance {
 	/** Demote &lt;who&gt; from administrator */
 	#[NCA\HandlesCommand('admin')]
 	#[NCA\Help\Group('ranks')]
-	public function adminRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
+	public function adminRemoveCommand(CmdContext $context, #[NCA\Remove] string $rem, PCharacter $who): void {
 		$intlevel = 4;
 		$rankName = $this->accessManager->getDisplayName('admin');
 		$rank = $this->addArticle($rankName);
@@ -130,7 +129,7 @@ class AdminController extends ModuleInstance {
 	/** Demote &lt;who&gt; from moderator */
 	#[NCA\HandlesCommand('mod')]
 	#[NCA\Help\Group('ranks')]
-	public function modRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
+	public function modRemoveCommand(CmdContext $context, #[NCA\Remove] string $rem, PCharacter $who): void {
 		$intlevel = 3;
 		$rankName = $this->accessManager->getDisplayName('mod');
 		$rank = $this->addArticle($rankName);

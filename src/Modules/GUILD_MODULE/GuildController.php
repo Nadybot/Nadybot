@@ -27,7 +27,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
-	ParamClass\PRemove,
 	Routing\Character,
 	Routing\Events\Base,
 	Routing\Events\Online,
@@ -425,7 +424,7 @@ class GuildController extends ModuleInstance {
 	#[NCA\HandlesCommand('notify')]
 	public function notifyRemoveCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PCharacter $char
 	): void {
 		$name = $char();

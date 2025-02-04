@@ -8,7 +8,7 @@ use Nadybot\Core\Modules\ALTS\{AltNewMainEvent, AltsController};
 
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
-use Nadybot\Core\ParamClass\{PRemove, PUuid};
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -241,7 +241,7 @@ class GreetController extends ModuleInstance {
 	/** Remove a custom greeting */
 	public function delGreeting(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PUuid $id,
 	): void {
 		$id = $id();

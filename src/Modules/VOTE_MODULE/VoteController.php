@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	ParamClass\PDuration,
-	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
@@ -223,7 +222,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Group('voting')]
 	public function pollKillCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PUuid $pollId
 	): void {
 		$pollId = $pollId();
@@ -253,7 +252,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Group('voting')]
 	public function voteRemoveCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PUuid $pollId
 	): void {
 		$pollId = $pollId();

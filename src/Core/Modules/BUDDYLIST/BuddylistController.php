@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
 	Text,
 };
 
@@ -150,7 +149,7 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistRemAllCommand(
 		CmdContext $context,
-		PRemove $rem,
+		#[NCA\Remove] string $rem,
 		#[NCA\Str('all')] string $all
 	): void {
 		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
@@ -169,7 +168,7 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistRemCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PCharacter $who,
 		#[NCA\WordStr] string $type
 	): void {

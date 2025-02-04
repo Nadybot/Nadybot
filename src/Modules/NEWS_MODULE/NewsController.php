@@ -21,7 +21,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Nadybot,
-	ParamClass\PRemove,
 	Text,
 	Util,
 };
@@ -295,7 +294,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsRemCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();

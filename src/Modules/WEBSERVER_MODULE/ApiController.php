@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\SYSTEM\SystemController,
 	Nadybot,
-	ParamClass\PRemove,
 	Registry,
 	Safe,
 	SubcommandManager,
@@ -184,7 +183,7 @@ class ApiController extends ModuleInstance {
 	#[NCA\HandlesCommand('apiauth')]
 	public function apiauthDeleteCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		string $token
 	): void {
 		$key = $this->db->table(ApiKey::getTable())

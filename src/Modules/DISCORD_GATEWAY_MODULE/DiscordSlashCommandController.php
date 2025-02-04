@@ -20,7 +20,6 @@ use Nadybot\Core\{
 	Modules\DISCORD\DiscordChannel,
 	Nadybot,
 	ParamClass\Base,
-	ParamClass\PRemove,
 	Registry,
 	Routing\Character,
 	Routing\RoutableMessage,
@@ -240,7 +239,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	public function remDiscordSlashCommands(
 		CmdContext $context,
 		#[NCA\Str('slash')] string $action,
-		PRemove $subAction,
+		#[NCA\Remove] string $subAction,
 		#[NCA\WordStr] string ...$commands,
 	): void {
 		$cmds = $this->db->table(DiscordSlashCommand::getTable())

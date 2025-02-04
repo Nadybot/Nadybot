@@ -24,7 +24,6 @@ use Nadybot\Core\{
 	MessageRoute,
 	ModuleInstance,
 	ParamClass\PColor,
-	ParamClass\PRemove,
 	Routing\Source,
 	Safe,
 	SettingHandlers\ColorSettingHandler,
@@ -448,7 +447,7 @@ class MessageHubController extends ModuleInstance {
 
 	/** Delete a route by its ID */
 	#[NCA\HandlesCommand('route')]
-	public function routeDel(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function routeDel(CmdContext $context, #[NCA\Remove] string $action, PUuid $id): void {
 		$id = $id();
 		$route = $this->getRoute($id);
 		if (!isset($route)) {
@@ -685,7 +684,7 @@ class MessageHubController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('color')] string $action,
 		#[NCA\StrChoice('tag', 'text')] string $type,
-		PRemove $subAction,
+		#[NCA\Remove] string $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via
@@ -919,7 +918,7 @@ class MessageHubController extends ModuleInstance {
 	public function routeFormatClearCommand(
 		CmdContext $context,
 		#[NCA\Str('format')] string $action,
-		PRemove $subAction,
+		#[NCA\Remove] string $subAction,
 		PSource $hop
 	): void {
 		$hop = $this->fixDiscordChannelName($hop());

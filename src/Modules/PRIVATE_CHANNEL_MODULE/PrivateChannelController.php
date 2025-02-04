@@ -37,7 +37,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
-	ParamClass\PRemove,
 	Registry,
 	Routing\Character,
 	Routing\Events\Online,
@@ -503,7 +502,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Help\Group('private-channel')]
 	public function remUserCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PCharacter $member
 	): void {
 		$msg = $this->removeUser($member(), $context->char->name);

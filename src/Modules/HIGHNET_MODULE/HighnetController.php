@@ -12,7 +12,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
 use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
-use Nadybot\Core\ParamClass\{PCharacter, PDuration, PRemove, PUuid};
+use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
 
 use Nadybot\Core\{
@@ -632,7 +632,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	public function highnetDeleteFilter(
 		CmdContext $context,
 		#[NCA\Str('filter')] string $filter,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();

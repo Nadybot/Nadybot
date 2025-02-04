@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
 	Text,
 	Types\Profession,
 	Util,
@@ -193,7 +192,7 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	#[NCA\Help\Example('<symbol>assist rem Nady', 'Remove Nady from all assist lists')]
 	#[NCA\Help\Example('<symbol>assist rem FOO.Nady', 'Remove Nady from the assist lists FOO')]
-	public function assistRemCommand(CmdContext $context, PRemove $action, string $toRemove): void {
+	public function assistRemCommand(CmdContext $context, #[NCA\Remove] string $action, string $toRemove): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;

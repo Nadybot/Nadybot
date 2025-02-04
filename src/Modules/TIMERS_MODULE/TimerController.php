@@ -18,7 +18,6 @@ use Nadybot\Core\{
 	Modules\DISCORD\DiscordController,
 	Nadybot,
 	ParamClass\PDuration,
-	ParamClass\PRemove,
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -352,7 +351,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	 */
 	#[NCA\HandlesCommand('timers')]
 	#[NCA\Help\Group('timers')]
-	public function timersRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function timersRemoveCommand(CmdContext $context, #[NCA\Remove] string $action, PUuid $id): void {
 		$id = $id();
 		$timer = $this->get($id);
 		if ($timer === null) {

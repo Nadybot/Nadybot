@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	CommandManager,
 	DBSchema\CmdAlias,
 	ModuleInstance,
-	ParamClass\PRemove,
 	Text,
 };
 
@@ -165,7 +164,7 @@ class AliasController extends ModuleInstance {
 
 	/** Remove a command alias */
 	#[NCA\HandlesCommand('alias')]
-	public function aliasRemCommand(CmdContext $context, PRemove $rem, string $alias): void {
+	public function aliasRemCommand(CmdContext $context, #[NCA\Remove] string $rem, string $alias): void {
 		$alias = strtolower($alias);
 
 		$row = $this->commandAlias->get($alias);

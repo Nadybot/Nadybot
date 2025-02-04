@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{Alt, Player};
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\ParamClass\{PRemove, PUuid};
+use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -351,7 +351,7 @@ class DeathController extends ModuleInstance {
 	/** Remove a custom death message */
 	public function delDeathMessage(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PUuid $id,
 	): void {
 		$id = $id();

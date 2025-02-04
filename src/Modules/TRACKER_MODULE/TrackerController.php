@@ -26,7 +26,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PNonNumber,
-	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
@@ -514,7 +513,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackRemoveNameCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -530,7 +529,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackRemoveUidCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		int $uid
 	): void {
 		$char = $this->chatBot->getName($uid);

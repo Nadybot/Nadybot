@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
-	ParamClass\PRemove,
 	Text,
 };
 use Psr\Log\LoggerInterface;
@@ -192,7 +191,7 @@ class NotesController extends ModuleInstance {
 	/** Remove a note from your list */
 	#[NCA\HandlesCommand('notes')]
 	#[NCA\Help\Group('notes')]
-	public function notesRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function notesRemoveCommand(CmdContext $context, #[NCA\Remove] string $action, PUuid $id): void {
 		$id = $id();
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);

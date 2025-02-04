@@ -27,7 +27,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
-	ParamClass\PRemove,
 	Text,
 	Types\ImporterInterface,
 	Util,
@@ -673,7 +672,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	/** Remove an organization from the ban list, given their org id */
 	#[NCA\HandlesCommand('orgban')]
 	#[NCA\Help\Group('ban')]
-	public function orgbanRemCommand(CmdContext $context, PRemove $rem, int $orgId): void {
+	public function orgbanRemCommand(CmdContext $context, #[NCA\Remove] string $rem, int $orgId): void {
 		if (!$this->orgIsBanned($orgId)) {
 			$guild = $this->guildManager->byId($orgId);
 			if (!isset($guild)) {

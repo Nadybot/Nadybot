@@ -18,7 +18,6 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
-	ParamClass\PRemove,
 	Text,
 	Types\ExporterInterface,
 	Types\ImporterInterface,
@@ -102,7 +101,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Delete an event */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function eventsRemoveCommand(CmdContext $context, #[NCA\Remove] string $action, PUuid $id): void {
 		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {

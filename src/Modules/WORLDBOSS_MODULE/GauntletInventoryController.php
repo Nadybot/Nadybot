@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
 	Text,
 };
 
@@ -109,7 +108,7 @@ class GauntletInventoryController extends ModuleInstance {
 	#[NCA\Help\Hide()]
 	public function gaulistDelCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PCharacter $name,
 		int $pos
 	): void {

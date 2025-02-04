@@ -4,7 +4,7 @@ namespace Nadybot\Modules\BANK_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\{PCharacter, PDuration, PQuantity, PRemove, PUuid};
+use Nadybot\Core\ParamClass\{PCharacter, PDuration, PQuantity, PUuid};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -514,7 +514,7 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand('wish')]
 	public function removeFromWishlistCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PUuid $id,
 	): void {
 		$id = $id();
@@ -557,7 +557,7 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand('wish')]
 	public function removeFulfilmentCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		#[NCA\Str('fulfilment', 'fulfillment', 'fullfilment', 'fullfillment')] string $subAction,
 		int $fulfilmentId,
 	): void {

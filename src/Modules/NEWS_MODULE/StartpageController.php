@@ -20,7 +20,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\BAN\BanController,
 	Nadybot,
-	ParamClass\PRemove,
 	Registry,
 	Safe,
 	SettingManager,
@@ -369,7 +368,7 @@ class StartpageController extends ModuleInstance {
 	/** Remove a tile from the startpage */
 	#[NCA\HandlesCommand('startpage')]
 	#[NCA\Help\Group('start')]
-	public function startpageRemTileCommand(CmdContext $context, PRemove $action, string $tileName): void {
+	public function startpageRemTileCommand(CmdContext $context, #[NCA\Remove] string $action, string $tileName): void {
 		$currentTiles = $this->getActiveLayout();
 		if (!isset($currentTiles[$tileName])) {
 			$context->reply("<highlight>{$tileName}<end> is currently not used.");

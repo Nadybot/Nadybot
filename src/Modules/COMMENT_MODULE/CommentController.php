@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
 	SettingManager,
 	Text,
 	Types\SettingMode,
@@ -255,7 +254,7 @@ class CommentController extends ModuleInstance {
 	public function deleteCategoryCommand(
 		CmdContext $context,
 		#[NCA\Str('category', 'categories')] string $action,
-		PRemove $subAction,
+		#[NCA\Remove] string $subAction,
 		string $category
 	): void {
 		$cat = $this->getCategory($category);
@@ -585,7 +584,7 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment')]
 	public function deleteCommentCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();

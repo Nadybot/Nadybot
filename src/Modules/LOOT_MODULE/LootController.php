@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	ParamClass\PItem,
 	ParamClass\PQuantity,
-	ParamClass\PRemove,
 	Safe,
 	Text,
 	Util,
@@ -574,7 +573,7 @@ class LootController extends ModuleInstance {
 	/** Remove a single item from the loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group('loot')]
-	public function lootRemCommand(CmdContext $context, PRemove $action, int $key): void {
+	public function lootRemCommand(CmdContext $context, #[NCA\Remove] string $action, int $key): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;

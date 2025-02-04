@@ -27,7 +27,6 @@ use Nadybot\Core\{
 	Modules\PROFILE\ProfileCommandReply,
 	ParamClass\PNonNumber,
 	ParamClass\PNonNumberWord,
-	ParamClass\PRemove,
 	Registry,
 	Text,
 	Util,
@@ -632,7 +631,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Delete a relay */
 	#[NCA\HandlesCommand('relay')]
-	public function relayRemIdCommand(CmdContext $context, PRemove $action, string $id): void {
+	public function relayRemIdCommand(CmdContext $context, #[NCA\Remove] string $action, string $id): void {
 		if (Uuid::isValid($id)) {
 			$this->relayRemCommand($context, $id, null);
 		} else {
@@ -642,7 +641,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Delete a relay */
 	#[NCA\HandlesCommand('relay')]
-	public function relayRemNameCommand(CmdContext $context, PRemove $action, PNonNumber $name): void {
+	public function relayRemNameCommand(CmdContext $context, #[NCA\Remove] string $action, PNonNumber $name): void {
 		$this->relayRemCommand($context, null, $name());
 	}
 

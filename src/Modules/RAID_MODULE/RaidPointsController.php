@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	ParamClass\PNonNumber,
 	ParamClass\PNonNumberWord,
-	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
@@ -583,7 +582,7 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function pointsRem2Command(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		int $points,
 		PCharacter $char,
 		string $reason
@@ -596,7 +595,7 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function pointsRemCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PCharacter $char,
 		int $points,
 		string $reason
@@ -737,7 +736,7 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_REWARD_EDIT)]
 	public function rewardRemCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PNonNumberWord $name
 	): void {
 		$name = $name();
@@ -755,7 +754,7 @@ class RaidPointsController extends ModuleInstance {
 
 	/** Remove a pre-defined raid reward */
 	#[NCA\HandlesCommand(self::CMD_REWARD_EDIT)]
-	public function rewardRemIdCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function rewardRemIdCommand(CmdContext $context, #[NCA\Remove] string $action, PUuid $id): void {
 		$id = $id();
 		$deleted = $this->db->table(RaidReward::getTable())->delete($id);
 		if ($deleted) {

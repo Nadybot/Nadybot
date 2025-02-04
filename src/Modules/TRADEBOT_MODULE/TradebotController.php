@@ -19,7 +19,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PColor,
-	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
@@ -320,7 +319,7 @@ class TradebotController extends ModuleInstance {
 
 	/** Remove a custom defined color */
 	#[NCA\HandlesCommand('tradecolor')]
-	public function remTradecolorCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function remTradecolorCommand(CmdContext $context, #[NCA\Remove] string $action, PUuid $id): void {
 		$id = $id();
 		if (!$this->db->table(TradebotColors::getTable())->delete($id)) {
 			$context->reply("Tradebot color <highlight>{$id}<end> doesn't exist.");

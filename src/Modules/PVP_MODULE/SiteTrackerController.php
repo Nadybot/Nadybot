@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	Exceptions\UserException,
 	MessageHub,
 	ModuleInstance,
-	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
@@ -212,7 +211,7 @@ class SiteTrackerController extends ModuleInstance {
 	public function delTowerTracker(
 		CmdContext $context,
 		#[NCA\Str('track', 'tracker')] string $action,
-		PRemove $subAction,
+		#[NCA\Remove] string $subAction,
 		PUuid $id,
 	): void {
 		$id = $id();

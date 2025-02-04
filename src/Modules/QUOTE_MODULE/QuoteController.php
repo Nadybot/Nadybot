@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Nadybot,
-	ParamClass\PRemove,
 	Text,
 	Util,
 };
@@ -80,7 +79,7 @@ class QuoteController extends ModuleInstance {
 	#[NCA\HandlesCommand('quote')]
 	public function quoteRemoveCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();

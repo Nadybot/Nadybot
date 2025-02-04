@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	ModuleInstance,
-	ParamClass\PRemove,
 	Text,
 	Util,
 };
@@ -75,7 +74,7 @@ class CacheController extends ModuleInstance {
 	#[NCA\HandlesCommand('cache')]
 	public function cacheRemCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		#[NCA\Regexp('[a-z0-9_-]+')] string $group,
 		#[NCA\FilenameStr] string $file
 	): void {

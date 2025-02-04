@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
-	ParamClass\PRemove,
 	Text,
 	Util,
 };
@@ -209,7 +208,7 @@ class RaidBlockController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAIDBLOCK_EDIT)]
 	public function raidBlockLiftCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		PCharacter $char,
 		#[NCA\StrChoice('points', 'join', 'bid')] ?string $blockFrom
 	): void {

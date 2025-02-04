@@ -26,7 +26,6 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
-	ParamClass\PRemove,
 	Safe,
 	SettingManager,
 	SubcommandManager,
@@ -295,7 +294,7 @@ class ProfileController extends ModuleInstance {
 	#[NCA\HandlesCommand('profile')]
 	public function profileRemCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Remove] string $action,
 		#[NCA\FilenameStr] string $profileName
 	): void {
 		$filename = $this->getFilename($profileName);

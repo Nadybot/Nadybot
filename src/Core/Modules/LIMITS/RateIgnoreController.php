@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	Exceptions\SQLException,
 	ModuleInstance,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
 	Text,
 	Util,
 };
@@ -64,7 +63,7 @@ class RateIgnoreController extends ModuleInstance {
 
 	/** Remove a character from the rate ignore list */
 	#[NCA\HandlesCommand('rateignore')]
-	public function rateignoreRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
+	public function rateignoreRemoveCommand(CmdContext $context, #[NCA\Remove] string $rem, PCharacter $who): void {
 		$context->reply($this->remove($who()));
 	}
 
