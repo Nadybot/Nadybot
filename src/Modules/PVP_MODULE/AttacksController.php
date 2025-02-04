@@ -530,19 +530,12 @@ class AttacksController extends ModuleInstance {
 		PTowerSite $towerSite,
 		?int $page,
 	): void {
-		try {
-			$pf = Playfield::byName($towerSite->pf);
-		} catch (Throwable) {
-			$msg = "Playfield <highlight>{$towerSite->pf}<end> could not be found.";
-			$context->reply($msg);
-			return;
-		}
 		$query = $this->db->table(DBTowerAttack::getTable())
-			->where('playfield_id', $pf->value)
+			->where('playfield_id', $towerSite->pf->value)
 			->where('site_id', $towerSite->site);
 		$context->reply($this->nwAttacksCmd(
 			$query,
-			"Tower Attacks on {$pf->short()} {$towerSite->site}",
+			"Tower Attacks on {$towerSite->pf->short()} {$towerSite->site}",
 			'nw attacks',
 			$page??1,
 			false,
@@ -686,19 +679,12 @@ class AttacksController extends ModuleInstance {
 		PTowerSite $towerSite,
 		?int $page,
 	): void {
-		try {
-			$pf = Playfield::byName($towerSite->pf);
-		} catch (Throwable) {
-			$msg = "Playfield <highlight>{$towerSite->pf}<end> could not be found.";
-			$context->reply($msg);
-			return;
-		}
 		$query = $this->db->table(DBOutcome::getTable())
-			->where('playfield_id', $pf->value)
+			->where('playfield_id', $towerSite->pf->value)
 			->where('site_id', $towerSite->site);
 		$context->reply($this->nwOutcomesCmd(
 			$query,
-			"Tower Victories on {$pf->short()} {$towerSite->site}",
+			"Tower Victories on {$towerSite->pf->short()} {$towerSite->site}",
 			'nw victory',
 			$page??1,
 		));

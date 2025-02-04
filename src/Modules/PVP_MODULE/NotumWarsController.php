@@ -882,19 +882,13 @@ class NotumWarsController extends ModuleInstance {
 		PTowerSite $site,
 		int $timestamp,
 	): void {
-		try {
-			$pf = Playfield::byName($site->pf);
-		} catch (Throwable) {
-			$context->reply("Unknown playfield {$site->pf}.");
-			return;
-		}
-		$towerSite = $this->state[$pf->value][$site->site] ?? null;
+		$towerSite = $this->state[$site->pf->value][$site->site] ?? null;
 		if (!isset($towerSite)) {
-			$context->reply("No tower field {$pf->short()} {$site->site} found.");
+			$context->reply("No tower field {$site->pf->short()} {$site->site} found.");
 			return;
 		}
 		if ($timestamp <= time()) {
-			$context->reply("Plant {$pf->short()} {$site->site} <highlight>NOW<end>!");
+			$context->reply("Plant {$site->pf->short()} {$site->site} <highlight>NOW<end>!");
 			return;
 		}
 		$timer = $this->getPlantTimer($towerSite, $timestamp);

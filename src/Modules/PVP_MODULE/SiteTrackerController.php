@@ -417,7 +417,6 @@ class SiteTrackerController extends ModuleInstance {
 			}
 			if (is_subclass_of($className, Base::class)) {
 				try {
-					/** @psalm-suppress UnsafeInstantiation */
 					$handlers []= new $className($argument->value);
 				} catch (UserException $e) {
 					throw $e;

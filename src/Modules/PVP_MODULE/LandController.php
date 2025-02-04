@@ -95,22 +95,15 @@ class LandController extends ModuleInstance {
 			$context->reply('The Tower-API is still initializing.');
 			return;
 		}
-		try {
-			$playfield = Playfield::byName($site->pf);
-		} catch (Throwable) {
-			$msg = "Playfield <highlight>{$site->pf}<end> could not be found.";
-			$context->reply($msg);
-			return;
-		}
-		$siteInfo = $this->nwCtrl->state[$playfield->value][$site->site] ?? null;
+		$siteInfo = $this->nwCtrl->state[$site->pf->value][$site->site] ?? null;
 		if (!isset($siteInfo)) {
-			$msg = "No tower sites <highlight>{$playfield->short()} {$site->site}<end> found.";
+			$msg = "No tower sites <highlight>{$site->pf->short()} {$site->site}<end> found.";
 			$context->reply($msg);
 			return;
 		}
 		$blob = $this->nwCtrl->renderSite($siteInfo);
 		$msg = Text::makeBlob(
-			"{$playfield->short()} {$site->site} ({$siteInfo->name})",
+			"{$site->pf->short()} {$site->site} ({$siteInfo->name})",
 			$blob,
 		);
 		$context->reply($msg);

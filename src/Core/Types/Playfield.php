@@ -418,6 +418,11 @@ enum Playfield: int {
 		]);
 	}
 
+	/**
+	 * Try to guess the Playfield by its short or long name
+	 *
+	 * @throws ValueError for illegal names
+	 */
 	public static function byName(string $name): self {
 		return match (strtolower($name)) {
 			'4 holes' => self::FourHoles,
