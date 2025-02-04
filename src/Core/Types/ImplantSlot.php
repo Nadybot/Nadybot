@@ -4,7 +4,11 @@ namespace Nadybot\Core\Types;
 
 use ValueError;
 
-enum ImplantSlot: int {
+enum ImplantSlot: int implements EnumParameterInterface {
+	public static function fromParam(string $param): self {
+		return self::byName($param);
+	}
+
 	public static function byName(string $name): self {
 		return match (strtolower($name)) {
 			'eye','eyes','ocular' => self::Eye,
@@ -32,7 +36,7 @@ enum ImplantSlot: int {
 		}
 	}
 
-	public static function getNameRegexp(): string {
+	public static function getParamRegexp(): string {
 		return 'eyes?|ocular'.
 		'|head|brain'.
 		'|ear'.

@@ -4,7 +4,7 @@ namespace Nadybot\Core\Types;
 
 use ValueError;
 
-enum Playfield: int {
+enum Playfield: int implements EnumParameterInterface {
 	/** @var array<string,string|int|null> */
 	public const EXAMPLE_TOKENS = [
 		'pf-id' => 551,
@@ -19,6 +19,14 @@ enum Playfield: int {
 			'pf-long' => $this->long(),
 			'pf-short' => $this->short(),
 		];
+	}
+
+	public static function fromParam(string $param): self {
+		return self::byName($param);
+	}
+
+	public static function getParamRegexp(): string {
+		return self::getShortRegexp();
 	}
 
 	public static function getShortRegexp(): string {
@@ -153,7 +161,7 @@ enum Playfield: int {
 		]);
 	}
 
-	public static function getNameRegexp(): string {
+	public static function getLongRegexp(): string {
 		return implode('|', [
 			'4 holes',
 			'andromeda',

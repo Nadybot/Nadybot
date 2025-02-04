@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	Types\Profession,
 };
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Throwable;
 
 /**
  * @author Blackruby (RK2)
@@ -86,15 +85,10 @@ class AlienMiscController extends ModuleInstance {
 
 	/** Shows the LE procs for a specific profession */
 	#[NCA\HandlesCommand('leprocs')]
-	public function leprocsInfoCommand(CmdContext $context, string $prof): void {
-		try {
-			$profession = Profession::byName($prof);
-		} catch (Throwable) {
-			$msg = "<highlight>{$prof}<end> is not a valid profession.";
-			$context->reply($msg);
-			return;
-		}
-
+	public function leprocsInfoCommand(
+		CmdContext $context,
+		Profession $profession
+	): void {
 		$data = $this->db->table(LEProc::getTable())
 			->whereIlike('profession', $profession->value)
 			->orderBy('proc_type')
@@ -159,22 +153,22 @@ class AlienMiscController extends ModuleInstance {
 
 	/** Show Ofab armor for a specific profession at a certain ql */
 	#[NCA\HandlesCommand('ofabarmor')]
-	public function ofabarmorInfoCommand2(CmdContext $context, string $prof, int $ql): void {
-		$this->ofabarmorInfoCommand($context, $ql, $prof);
+	public function ofabarmorInfoCommand2(
+		CmdContext $context,
+		Profession $profession,
+		int $ql
+	): void {
+		$this->ofabarmorInfoCommand($context, $ql, $profession);
 	}
 
 	/** Show Ofab armor for a specific profession at a certain ql */
 	#[NCA\HandlesCommand('ofabarmor')]
-	public function ofabarmorInfoCommand(CmdContext $context, ?int $ql, string $prof): void {
+	public function ofabarmorInfoCommand(
+		CmdContext $context,
+		?int $ql,
+		Profession $profession,
+	): void {
 		$ql ??= 300;
-
-		try {
-			$profession = Profession::byName($prof);
-		} catch (Throwable) {
-			$msg = 'Please choose one of these professions: ' . Text::enumerateOr(...Profession::shortNames());
-			$context->reply($msg);
-			return;
-		}
 
 		$type = $this->db->table(OfabArmorType::getTable())
 			->where('profession', $profession->value)

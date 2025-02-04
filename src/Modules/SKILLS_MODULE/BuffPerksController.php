@@ -107,10 +107,10 @@ class BuffPerksController extends ModuleInstance {
 	public function buffPerksLevelFirstCommand(
 		CmdContext $context,
 		int $level,
-		#[NCA\ProfessionStr] string $prof,
+		Profession $prof,
 		?string $search
 	): void {
-		$this->showPerks(Profession::byName($prof), $level, null, $search, $context);
+		$this->showPerks($prof, $level, null, $search, $context);
 	}
 
 	/**
@@ -121,11 +121,11 @@ class BuffPerksController extends ModuleInstance {
 	#[NCA\HandlesCommand('perks')]
 	public function buffPerksProfFirstCommand(
 		CmdContext $context,
-		#[NCA\ProfessionStr] string $prof,
+		Profession $prof,
 		int $level,
 		?string $search
 	): void {
-		$this->showPerks(Profession::byName($prof), $level, null, $search, $context);
+		$this->showPerks($prof, $level, null, $search, $context);
 	}
 
 	/** Show detailed information for all of a perk's levels */

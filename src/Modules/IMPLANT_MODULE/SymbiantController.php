@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	Safe,
 	Text,
 	Types\Profession,
-	Util,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
 	ExtBuff,
@@ -59,19 +58,16 @@ class SymbiantController extends ModuleInstance {
 	#[NCA\Inject]
 	private WhatBuffsController $wbCtrl;
 
-	#[NCA\Inject]
-	private Util $util;
-
 	/** Show the 3 best symbiants for a profession at a given level */
 	#[NCA\HandlesCommand('bestsymbiants')]
 	#[NCA\Help\Example('<symbol>bestsymbiants 120 enf')]
 	public function findBestSymbiantsLvlProf(
 		CmdContext $context,
 		int $level,
-		#[NCA\ProfessionStr] string $prof
+		Profession $prof
 	): void {
 		$context->reply(
-			$this->findBestSymbiants($context, Profession::byName($prof), $level)
+			$this->findBestSymbiants($context, $prof, $level)
 		);
 	}
 
@@ -80,11 +76,11 @@ class SymbiantController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>bestsymbiants 15 trader')]
 	public function findBestSymbiantsProfLvl(
 		CmdContext $context,
-		#[NCA\ProfessionStr] string $prof,
+		Profession $prof,
 		int $level
 	): void {
 		$context->reply(
-			$this->findBestSymbiants($context, Profession::byName($prof), $level)
+			$this->findBestSymbiants($context, $prof, $level)
 		);
 	}
 

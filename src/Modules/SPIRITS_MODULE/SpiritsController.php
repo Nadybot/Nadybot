@@ -42,7 +42,7 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits head 60-70')]
 	public function spiritsSlotAndRangeCommand(
 		CmdContext $context,
-		#[NCA\ImplantSlotStr] string $slot,
+		ImplantSlot $slot,
 		#[NCA\Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
 		#[NCA\NoSpace, NCA\Regexp('\s*\d+', example: '')] int $highQL,
 	): void {
@@ -56,9 +56,8 @@ class SpiritsController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
 		#[NCA\NoSpace, NCA\Regexp('\s*\d+', example: '')] int $highQL,
-		#[NCA\ImplantSlotStr] string $slot,
+		ImplantSlot $slot,
 	): void {
-		$slot = ImplantSlot::byName($slot);
 		$title = "{$slot->longName()} Spirits QL {$lowQL} to {$highQL}";
 		if ($lowQL < 1 or $highQL > 300 or $lowQL >= $highQL) {
 			$msg = 'Invalid Ql range specified.';
@@ -87,7 +86,7 @@ class SpiritsController extends ModuleInstance {
 	public function spiritsCommandTypeAndSlot(
 		CmdContext $context,
 		#[NCA\NonNumberStr] string $name,
-		#[NCA\ImplantSlotStr] string $slot
+		ImplantSlot $slot
 	): void {
 		$this->spiritsCommandSlotAndType($context, $slot, $name);
 	}
@@ -97,11 +96,10 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits feet grave')]
 	public function spiritsCommandSlotAndType(
 		CmdContext $context,
-		#[NCA\ImplantSlotStr] string $slot,
+		ImplantSlot $slot,
 		#[NCA\NonNumberStr] string $name
 	): void {
 		$name = ucwords(strtolower($name));
-		$slot = ImplantSlot::byName($slot);
 		$title = "Spirits Database for {$name} {$slot->longName()}";
 
 		$data = $this->db->table(Spirit::getTable())
@@ -176,7 +174,7 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits chest 210')]
 	public function spiritsTypeAndQlCommand(
 		CmdContext $context,
-		#[NCA\ImplantSlotStr] string $slot,
+		ImplantSlot $slot,
 		int $ql,
 	): void {
 		$this->spiritsQlAndTypeCommand($context, $ql, $slot);
@@ -188,9 +186,8 @@ class SpiritsController extends ModuleInstance {
 	public function spiritsQlAndTypeCommand(
 		CmdContext $context,
 		int $ql,
-		#[NCA\ImplantSlotStr] string $slot,
+		ImplantSlot $slot,
 	): void {
-		$slot = ImplantSlot::byName($slot);
 		$title = "{$slot->longName()} Spirits QL {$ql}";
 		if ($ql < 1 or $ql > 300) {
 			$msg = 'Invalid Ql specified.';

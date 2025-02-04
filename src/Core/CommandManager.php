@@ -6,7 +6,7 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Types\ParamAttribute;
+use Nadybot\Core\Types\{EnumParameterInterface, ParamAttribute};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -43,6 +43,7 @@ use ReflectionException;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
+use ReflectionType;
 use Revolt\EventLoop;
 use Throwable;
 
@@ -793,7 +794,7 @@ class CommandManager implements MessageEmitter {
 						continue;
 					}
 					$type = $params[$i]->getType();
-					if (!($type instanceof ReflectionNamedType) || (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class))) {
+					if (!$this->isValidParamType($type)) {
 						$args []= null;
 						continue;
 					}
@@ -802,7 +803,8 @@ class CommandManager implements MessageEmitter {
 					if (is_array($context->args[$var]) && !$params[$i]->isVariadic()) {
 						$context->args[$var] = $context->args[$var][0];
 					}
-					switch ($type->getName()) {
+					$className = $type->getName();
+					switch ($className) {
 						case 'int':
 							foreach ((array)$context->args[$var] as $val) {
 								$args []= (int)$val;
@@ -819,11 +821,14 @@ class CommandManager implements MessageEmitter {
 							}
 							break;
 						default:
-							if (is_subclass_of($type->getName(), Base::class)) {
-								$class = $type->getName();
+							if (is_subclass_of($className, Base::class)) {
 								foreach ((array)$context->args[$var] as $val) {
 									/** @psalm-suppress UnsafeInstantiation */
-									$args []= new $class($val);
+									$args []= new $className($val);
+								}
+							} elseif (is_subclass_of($className, EnumParameterInterface::class)) {
+								foreach ((array)$context->args[$var] as $val) {
+									$args []= $className::fromParam($val);
 								}
 							} else {
 								foreach ((array)$context->args[$var] as $val) {
@@ -1131,12 +1136,11 @@ class CommandManager implements MessageEmitter {
 			return null;
 		}
 		$type = $param->getType();
-		if (!($type instanceof ReflectionNamedType)) {
+		if (!$this->isValidParamType($type)) {
 			return null;
 		}
-		if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
-			return null;
-		}
+
+		/** @var ReflectionNamedType $type */
 		$niceName = Safe::pregReplaceCallback(
 			'/([A-Z]+)/',
 			static function (array $matches): string {
@@ -1172,6 +1176,7 @@ class CommandManager implements MessageEmitter {
 			if (isset($example)) {
 				$niceName = $example;
 			}
+		} elseif (is_subclass_of($type->getName(), EnumParameterInterface::class)) {
 		}
 		return $niceName;
 	}
@@ -1510,6 +1515,20 @@ class CommandManager implements MessageEmitter {
 		return true;
 	}
 
+	private function isValidParamType(ReflectionType $type): bool {
+		if (!($type instanceof ReflectionNamedType)) {
+			return false;
+		}
+		if ($type->isBuiltin()) {
+			return true;
+		}
+
+		if (is_subclass_of($type->getName(), Base::class)) {
+			return true;
+		}
+		return is_subclass_of($type->getName(), EnumParameterInterface::class);
+	}
+
 	private function getRefMethodForHandler(string $handler): ?ReflectionMethod {
 		[$name, $method] = explode('.', $handler);
 		[$method, $line] = explode(':', $method);
@@ -1639,12 +1658,11 @@ class CommandManager implements MessageEmitter {
 			return null;
 		}
 		$type = $param->getType();
-		if (!($type instanceof ReflectionNamedType)) {
+		if (!$this->isValidParamType($type)) {
 			return null;
 		}
-		if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
-			return null;
-		}
+
+		/** @var ReflectionNamedType $type */
 		$varName = $param->getName();
 		if ($type->isBuiltin()) {
 			$mask = null;
@@ -1676,6 +1694,9 @@ class CommandManager implements MessageEmitter {
 					$new  = "(?<{$varName}>{$mask})";
 					break;
 			}
+		} elseif (is_subclass_of($type->getName(), EnumParameterInterface::class)) {
+			$class = $type->getName();
+			$new = "(?<{$varName}>" . $class::getParamRegexp() . ')';
 		} else {
 			$c1 = [$type->getName(), 'getPreRegExp'];
 			$c2 = [$type->getName(), 'getRegexp'];

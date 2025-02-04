@@ -4,8 +4,8 @@ namespace Nadybot\Core\Types;
 
 use ValueError;
 
-enum Ability: string {
-	public static function tryFromShort(string $short): ?static {
+enum Ability: string implements EnumParameterInterface {
+	public static function tryFromShort(string $short): ?self {
 		return match (strtolower(substr($short, 0, 3))) {
 			'agi','agl' => static::Agility,
 			'int' => static::Intelligence,
@@ -24,15 +24,19 @@ enum Ability: string {
 	 *
 	 * @throws ValueError if nothing matches
 	 */
-	public static function fromShort(string $short): static {
-		$long = static::tryFromShort($short);
+	public static function fromShort(string $short): self {
+		$long = self::tryFromShort($short);
 		if (!isset($long)) {
 			throw new ValueError("\"{$short}\" is not a valid backing value for enum " . static::class);
 		}
 		return $long;
 	}
 
-	public static function getNameRegexp(): string {
+	public static function fromParam(string $param): self {
+		return self::fromShort($param);
+	}
+
+	public static function getParamRegexp(): string {
 		return '(agi|agl|int|psy|sta|stm|str|sen|sns)\w*';
 	}
 

@@ -174,23 +174,16 @@ class TestController extends ModuleInstance {
 	public function testTowerVictoryCommand(
 		CmdContext $context,
 		#[NCA\Str('towervictory')] string $action,
-		#[NCA\FactionStr] string $attFaction,
+		Faction $attFaction,
 		string $attOrg,
-		#[NCA\FactionStr] string $defFaction,
+		Faction $defFaction,
 		string $defOrg,
-		#[NCA\PlayfieldStr] string $playfield
+		Playfield $playfield
 	): void {
-		$attFaction = Faction::byName($attFaction);
-		$defFaction = Faction::byName($defFaction);
-		$pf = Playfield::tryByName($playfield);
-		if (!isset($pf)) {
-			$context->reply("There is no playfield <highlight>{$playfield}<end>.");
-			return;
-		}
 		$this->sendTowerMsg(
 			"The {$attFaction->value} organization {$attOrg} ".
 			"attacked the {$defFaction->value} {$defOrg} at their base in ".
-			"{$pf->long()}. The attackers won!!"
+			"{$playfield->long()}. The attackers won!!"
 		);
 	}
 

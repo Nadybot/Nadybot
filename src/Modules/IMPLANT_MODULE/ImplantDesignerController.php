@@ -168,9 +168,8 @@ class ImplantDesignerController extends ModuleInstance {
 	#[NCA\Help\Group('implantdesigner')]
 	public function implantdesignerSlotCommand(
 		CmdContext $context,
-		#[NCA\ImplantSlotStr] string $slot
+		ImplantSlot $slot
 	): void {
-		$slot = ImplantSlot::byName($slot);
 		$slotName = $slot->designSlotName();
 
 		$blob  = '[' . Text::makeChatcmd('See Build', '/tell <myname> implantdesigner');
@@ -229,11 +228,10 @@ class ImplantDesignerController extends ModuleInstance {
 	#[NCA\Help\Group('implantdesigner')]
 	public function implantdesignerSlotAddClusterCommand(
 		CmdContext $context,
-		#[NCA\ImplantSlotStr] string $slot,
+		ImplantSlot $slot,
 		#[NCA\ClusterGradeStr] #[Str('symbiant', 'symb')] string $grade,
 		string $cluster
 	): void {
-		$slot = ImplantSlot::byName($slot);
 		$design = $this->getDesign($context->char->name);
 		$slotObj = $design->setSlotIfUnset($slot, new SlotConfig());
 
@@ -372,11 +370,9 @@ class ImplantDesignerController extends ModuleInstance {
 	#[NCA\Help\Group('implantdesigner')]
 	public function implantdesignerSlotClearCommand(
 		CmdContext $context,
-		#[NCA\ImplantSlotStr] string $slot,
+		ImplantSlot $slot,
 		#[NCA\Str('clear')] string $action
 	): void {
-		$slot = ImplantSlot::byName($slot);
-
 		$design = $this->getDesign($context->char->name);
 		$design->setSlot($slot, null);
 		$this->saveDesign($context->char->name, $design);
@@ -396,11 +392,9 @@ class ImplantDesignerController extends ModuleInstance {
 	#[NCA\Help\Group('implantdesigner')]
 	public function implantdesignerSlotRequireCommand(
 		CmdContext $context,
-		#[NCA\ImplantSlotStr] string $slot,
+		ImplantSlot $slot,
 		#[NCA\Str('require')] string $action
 	): void {
-		$slot = ImplantSlot::byName($slot);
-
 		$design = $this->getDesign($context->char->name);
 
 		$slotObj = $design->getSlot($slot);
@@ -436,13 +430,10 @@ class ImplantDesignerController extends ModuleInstance {
 	#[NCA\Help\Group('implantdesigner')]
 	public function implantdesignerSlotRequireAbilityCommand(
 		CmdContext $context,
-		#[NCA\ImplantSlotStr] string $slot,
+		ImplantSlot $slot,
 		#[NCA\Str('require')] string $action,
-		#[NCA\AbilityStr] string $ability
+		TAbility $ability
 	): void {
-		$slot = ImplantSlot::byName($slot);
-		$ability = TAbility::fromShort($ability);
-
 		$design = $this->getDesign($context->char->name);
 
 		$slotObj = $design->getSlot($slot);

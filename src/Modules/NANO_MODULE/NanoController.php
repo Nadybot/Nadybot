@@ -353,12 +353,12 @@ class NanoController extends ModuleInstance {
 	public function bestNanos2Command(
 		CmdContext $context,
 		#[NCA\Str('long')] ?string $long,
-		#[NCA\ProfessionStr] string $profession,
+		Profession $profession,
 		int $level,
 	): void {
 		$this->showBestNanosCommand(
 			$context,
-			Profession::byName($profession),
+			$profession,
 			$level,
 			$context->getCommand() === 'bestnanosfroob',
 			!isset($long)
@@ -373,11 +373,11 @@ class NanoController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('long')] ?string $long,
 		int $level,
-		#[NCA\ProfessionStr] string $profession,
+		Profession $profession,
 	): void {
 		$this->showBestNanosCommand(
 			$context,
-			Profession::byName($profession),
+			$profession,
 			$level,
 			$context->getCommand() === 'bestnanosfroob',
 			!isset($long)

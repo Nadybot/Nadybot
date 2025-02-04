@@ -33,7 +33,7 @@ class TrackerOnlineParser {
 			faction :=> ("omni"|"clan"|"neutral"|"neut").
 			all :=> "all".
 			edit :=> "--edit".
-			profession :=> /' . Profession::getNameRegexp() . '/.
+			profession :=> /' . Profession::getParamRegexp() . '/.
 		';
 	}
 

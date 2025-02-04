@@ -4,12 +4,12 @@ namespace Nadybot\Core\Types;
 
 use ValueError;
 
-enum Faction: string {
+enum Faction: string implements EnumParameterInterface {
 	public function lower(): string {
 		return strtolower($this->value);
 	}
 
-	public static function getNameRegexp(): string {
+	public static function getParamRegexp(): string {
 		return 'neut|neutral|omni|clan';
 	}
 
@@ -25,6 +25,10 @@ enum Faction: string {
 			'clan' => self::Clan,
 			default => throw new ValueError("Invalid faction '{$name}'"),
 		};
+	}
+
+	public static function fromParam(string $param): self {
+		return self::byName($param);
 	}
 
 	public static function tryByName(string $name): ?self {

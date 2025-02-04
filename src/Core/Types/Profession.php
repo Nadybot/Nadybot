@@ -4,8 +4,8 @@ namespace Nadybot\Core\Types;
 
 use InvalidArgumentException;
 
-enum Profession: string {
-	public static function getNameRegexp(): string {
+enum Profession: string implements EnumParameterInterface {
+	public static function getParamRegexp(): string {
 		return 'adv(|y|enturer)'.
 		'|age(nt)?'.
 		'|(bureau)?crat'.
@@ -109,6 +109,10 @@ enum Profession: string {
 			'sha','shade' => self::Shade,
 			default => throw new InvalidArgumentException("Invalid profession '{$search}'"),
 		};
+	}
+
+	public static function fromParam(string $param): self {
+		return self::byName($param);
 	}
 
 	public static function byNumber(int $search): self {
