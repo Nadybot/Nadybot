@@ -25,7 +25,6 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Modules\PROFILE\ProfileCommandReply,
-	ParamClass\PNonNumber,
 	ParamClass\PNonNumberWord,
 	Registry,
 	Text,
@@ -569,9 +568,9 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	public function relayDescribeNameCommand(
 		CmdContext $context,
 		#[NCA\Str('describe')] string $action,
-		PNonNumber $name
+		#[NCA\NonNumberStr] string $name
 	): void {
-		$this->relayDescribeCommand($context, null, $name());
+		$this->relayDescribeCommand($context, null, $name);
 	}
 
 	public function relayDescribeCommand(CmdContext $context, null|\Stringable|string $id, ?string $name): void {
@@ -641,8 +640,12 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Delete a relay */
 	#[NCA\HandlesCommand('relay')]
-	public function relayRemNameCommand(CmdContext $context, #[NCA\Remove] string $action, PNonNumber $name): void {
-		$this->relayRemCommand($context, null, $name());
+	public function relayRemNameCommand(
+		CmdContext $context,
+		#[NCA\Remove] string $action,
+		#[NCA\NonNumberStr] string $name
+	): void {
+		$this->relayRemCommand($context, null, $name);
 	}
 
 	public function relayRemCommand(CmdContext $context, null|\Stringable|string $id, ?string $name): void {

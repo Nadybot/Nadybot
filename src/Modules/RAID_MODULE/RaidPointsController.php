@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PNonNumber,
 	ParamClass\PNonNumberWord,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -316,9 +315,9 @@ class RaidPointsController extends ModuleInstance {
 	public function raidRewardPredefCommand(
 		CmdContext $context,
 		#[NCA\Str('reward')] string $action,
-		PNonNumber $mob
+		#[NCA\NonNumberStr] string $mob
 	): void {
-		$reward = $this->getRaidReward($mob());
+		$reward = $this->getRaidReward($mob);
 		if (!isset($reward)) {
 			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
 			return;
@@ -352,9 +351,9 @@ class RaidPointsController extends ModuleInstance {
 	public function raidPunishPredefCommand(
 		CmdContext $context,
 		#[NCA\Str('punish')] string $action,
-		PNonNumber $mob
+		#[NCA\NonNumberStr] string $mob
 	): void {
-		$reward = $this->getRaidReward($mob());
+		$reward = $this->getRaidReward($mob);
 		if (!isset($reward)) {
 			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
 			return;

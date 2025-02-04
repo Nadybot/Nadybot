@@ -25,7 +25,6 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PNonNumber,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
@@ -664,13 +663,13 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	public function trackAddOrgNameCommand(
 		CmdContext $context,
 		#[NCA\Str('addorg')] string $action,
-		PNonNumber $orgName
+		#[NCA\NonNumberStr] string $orgName,
 	): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
 		}
-		$orgs = collect($this->findOrgController->lookupOrg($orgName()));
+		$orgs = collect($this->findOrgController->lookupOrg($orgName));
 		$count = $orgs->count();
 		if ($count === 0) {
 			$context->reply('No matches found.');

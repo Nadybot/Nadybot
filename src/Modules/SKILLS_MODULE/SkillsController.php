@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	ParamClass\PItem,
-	ParamClass\PNonNumber,
 	Text,
 	Util,
 };
@@ -676,8 +675,7 @@ class SkillsController extends ModuleInstance {
 	#[NCA\HandlesCommand('weapon')]
 	#[NCA\Help\Example('<symbol>weapon perf diamondine')]
 	#[NCA\Help\Example('<symbol>weapon 144 nippy')]
-	public function weaponSearchCommand(CmdContext $context, ?int $ql, PNonNumber $search): void {
-		$search = $search();
+	public function weaponSearchCommand(CmdContext $context, ?int $ql, #[NCA\NonNumberStr] string $search): void {
 		$data = $this->itemsController->findItemsFromLocal($search, $ql);
 		$kept = [];
 		$data = array_values(

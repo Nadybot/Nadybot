@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
-	ParamClass\PNonNumber,
 	ParamClass\PNumRange,
 	Text,
 };
@@ -88,7 +87,7 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits grave feet')]
 	public function spiritsCommandTypeAndSlot(
 		CmdContext $context,
-		PNonNumber $name,
+		#[NCA\NonNumberStr] string $name,
 		#[NCA\ImplantSlotStr] string $slot
 	): void {
 		$this->spiritsCommandSlotAndType($context, $slot, $name);
@@ -100,9 +99,9 @@ class SpiritsController extends ModuleInstance {
 	public function spiritsCommandSlotAndType(
 		CmdContext $context,
 		#[NCA\ImplantSlotStr] string $slot,
-		PNonNumber $name
+		#[NCA\NonNumberStr] string $name
 	): void {
-		$name = ucwords(strtolower($name()));
+		$name = ucwords(strtolower($name));
 		$slot = ImplantSlot::byName($slot);
 		$title = "Spirits Database for {$name} {$slot->longName()}";
 
@@ -214,8 +213,11 @@ class SpiritsController extends ModuleInstance {
 	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand('spirits')]
 	#[NCA\Help\Example('<symbol>spirits beta')]
-	public function spiritsCommandSearch(CmdContext $context, PNonNumber $search): void {
-		$name = ucwords(strtolower($search()));
+	public function spiritsCommandSearch(
+		CmdContext $context,
+		#[NCA\NonNumberStr] string $search
+	): void {
+		$name = ucwords(strtolower($search));
 		$title = "Spirits Database for {$name}";
 		$name = ImplantSlot::tryByName($name)?->designSlotName() ?? $name;
 
