@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
-	ParamClass\PNumRange,
 	Text,
 };
 use Nadybot\Modules\{
@@ -44,9 +43,10 @@ class SpiritsController extends ModuleInstance {
 	public function spiritsSlotAndRangeCommand(
 		CmdContext $context,
 		#[NCA\ImplantSlotStr] string $slot,
-		PNumRange $qlRange,
+		#[NCA\Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
+		#[NCA\NoSpace, NCA\Regexp('\s*\d+', example: '')] int $highQL,
 	): void {
-		$this->spiritsRangeAndSlotCommand($context, $qlRange, $slot);
+		$this->spiritsRangeAndSlotCommand($context, $lowQL, $highQL, $slot);
 	}
 
 	/** Search for spirits by a variety of attributes */
@@ -54,11 +54,10 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits 60-70 feet')]
 	public function spiritsRangeAndSlotCommand(
 		CmdContext $context,
-		PNumRange $qlRange,
+		#[NCA\Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
+		#[NCA\NoSpace, NCA\Regexp('\s*\d+', example: '')] int $highQL,
 		#[NCA\ImplantSlotStr] string $slot,
 	): void {
-		$lowQL = $qlRange->low;
-		$highQL = $qlRange->high;
 		$slot = ImplantSlot::byName($slot);
 		$title = "{$slot->longName()} Spirits QL {$lowQL} to {$highQL}";
 		if ($lowQL < 1 or $highQL > 300 or $lowQL >= $highQL) {
@@ -145,10 +144,12 @@ class SpiritsController extends ModuleInstance {
 	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand('spirits')]
 	#[NCA\Help\Example('<symbol>spirits 210-230')]
-	public function spiritsCommandQLRange(CmdContext $context, PNumRange $qlRange): void {
+	public function spiritsCommandQLRange(
+		CmdContext $context,
+		#[NCA\Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
+		#[NCA\NoSpace, NCA\Regexp('\s*\d+', example: '')] int $highQL,
+	): void {
 		$spirits = '';
-		$lowQL = $qlRange->low;
-		$highQL = $qlRange->high;
 		if ($lowQL < 1 or $highQL > 300 or $lowQL >= $highQL) {
 			$msg = 'Invalid Ql range specified.';
 			$context->reply($msg);
