@@ -2,160 +2,635 @@
 
 namespace Nadybot\Core\Types;
 
-enum Skill: string {
-	case AddNanoCost = '% Add. Nano Cost';
-	case AddXP = '% Add. Xp';
-	case OneHB = '1h Blunt';
-	case OneHE = '1h Edged';
-	case TwoHB = '2h Blunt';
-	case TwoHE = '2h Edged';
-	case AAD = 'Add All Def.';
-	case AAO = 'Add All Off.';
-	case AddChemDmg = 'Add. Chem. Dam.';
-	case AddColdDmg = 'Add. Cold Dam.';
-	case AddEnergyDmg = 'Add. Energy Dam.';
-	case AddFireDmg = 'Add. Fire Dam.';
-	case AddMeleeDmg = 'Add. Melee Dam.';
-	case AddNanoDmg = 'Add. Nano Dam.';
-	case AddPoisonDmg = 'Add. Poison Dam.';
-	case AddProjDmg = 'Add. Proj. Dam.';
-	case AddRadDmg = 'Add. Rad. Dam.';
-	case Adventuring = 'Adventuring';
-	case AggDef = 'Aggdef';
-	case Aggressiveness = 'Aggressiveness';
-	case Agility = 'Agility';
-	case AimedShot = 'Aimed Shot';
-	case AssaultRifle = 'Assault Rifle';
-	case AttackRating = 'Attack rating';
-	case BM = 'Bio Metamor';
-	case BodyDev = 'Body Dev.';
-	case Bow = 'Bow';
-	case BowSpcAtt = 'Bow Spc Att';
-	case Brawling = 'Brawling';
-	case BreakAndAntry = 'Break&Entry';
-	case Burst = 'Burst';
-	case ChemicalAC = 'Chemical AC';
-	case Chemistry = 'Chemistry';
-	case ColdAC = 'Cold AC';
-	case CL = 'Comp. Liter';
-	case Concealment = 'Concealment';
-	case CriticalDecrease = 'Critical Decrease';
-	case CriticalIncrease = 'CriticalIncrease';
-	case DmgToPet = 'Damage to Pet';
-	case DmgToPetMultiplier = 'Damage To Pet Damage Multiplier';
-	case DecNanoInt = 'Decreased Nano-Interrupt Modifier %';
-	case Deflect = 'Deflect';
-	case Dimach = 'Dimach';
-	case DirectNanoDmgEff = 'Direct Nano Damage Efficiency';
-	case DiseaseAC = 'Disease AC';
-	case DodgeRng = 'Dodge-Rng';
-	case DuckExp = 'Duck-Exp';
-	case ElecEngi = 'Elec. Engi';
-	case EnergyAC = 'Energy AC';
-	case EvadeClsC = 'Evade-ClsC';
-	case FactionGuardian = 'Faction with Guardian of Shadow';
-	case FastAttack = 'Fast Attack';
-	case FireAC = 'Fire AC';
-	case FirstAif = 'First Aid';
-	case FlingShot = 'Fling Shot';
-	case FreeDeckSlot = 'Free deck slot';
-	case FullAuto = 'Full Auto';
-	case Grenade = 'Grenade';
-	case HealReactivity = 'Heal Reactivity';
-	case HealDelta = 'HealDelta';
-	case HealingEfficiency = 'Healing Efficiency';
-	case HeavyWeapons = 'Heavy Weapons';
-	case ImpProjAC = 'Imp/Proj AC';
-	case Intelligence = 'Intelligence';
-	case InvadersKiller = 'InvadersKilled';
-	case IP = 'IP';
-	case MapNavig = 'Map Navig.';
-/*
-"Martial Arts",""
-Matt.Metam,""
-"Matter Crea",""
-"Max Health",""
-"Max Nano",""
-"Max NCU",""
-MaxReflectedChemicalDmg,""
-MaxReflectedColdDmg,""
-MaxReflectedEnergyDmg,""
-MaxReflectedFireDmg,""
-MaxReflectedMeleeDmg,""
-MaxReflectedNanoDmg,""
-MaxReflectedPoisonDmg,""
-MaxReflectedProjectileDmg,""
-MaxReflectedRadiationDmg,""
-"Mech. Engi",""
-"Melee Ener.",""
-"Melee. Init.",""
-"Melee/ma AC",""
-"MG / SMG",""
-"Mult. Melee",""
-"Multi Ranged",""
-"Nano Pool",""
-"Nano Progra",""
-"Nano Resist",""
-"NanoC. Init.",""
-NanoDelta,""
-Perception,""
-"Pharma Tech",""
-"Physic. Init",""
-Piercing,""
-Pistol,""
-Psychic,""
-"Psycho Modi",""
-Psychology,""
-PVPDuelScore,""
-"Quantum FT",""
-"Radiation AC",""
-"Ranged Ener",""
-"Ranged. Init.",""
-"RangeInc. NF",%
-"RangeInc. Weapon",%
-ReflectChemicalAC,%
-ReflectColdAC,%
-ReflectEnergyAC,%
-ReflectFireAC,%
-ReflectMeleeAC,%
-ReflectNanoAC,%
-ReflectPoisonAC,%
-ReflectProjectileAC,%
-ReflectRadiationAC,%
-"Regain XP Percentage",%
-Rifle,""
-Riposte,""
-"Run Speed",""
-Scale,""
-Sense,""
-"Sensory Impr",""
-ShadowBreed,""
-"Sharp Obj",""
-ShieldChemicalAC,""
-ShieldColdAC,""
-ShieldEnergyAC,""
-ShieldFireAC,""
-ShieldMeleeAC,""
-ShieldNanoAC,""
-ShieldPoisonAC,""
-ShieldProjectileAC,""
-ShieldRadiationAC,""
-Shotgun,""
-Side,""
-SkillLockModifier,%
-"Sneak Atck",""
-Stamina,""
-Strength,""
-Swimming,""
-Time&Space,""
-"Trap Disarm.",""
-Treatment,""
-Tutoring,""
-"Used NCU",""
-"Vehicle Air",""
-"Vehicle Ground",""
-"Vehicle Water",""
-"Weapon Smt",""
-"XP",""
-*/
+enum Skill: int {
+	public function getUnit(): string {
+		/** @psalm-suppress UnhandledMatchCondition */
+		return match ($this) {
+			self::AddNanoCost => '%',
+			self::AddXP => '%',
+			self::OneHB => '',
+			self::OneHE => '',
+			self::TwoHB => '',
+			self::TwoHE => '',
+			self::AAD => '',
+			self::AAO => '',
+			self::AddChemDmg => '',
+			self::AddColdDmg => '',
+			self::AddEnergyDmg => '',
+			self::AddFireDmg => '',
+			self::AddMeleeDmg => '',
+			self::AddNanoDmg => '',
+			self::AddPoisonDmg => '',
+			self::AddProjDmg => '',
+			self::AddRadDmg => '',
+			self::Adventuring => '',
+			self::AggDef => '',
+			self::Aggressiveness => '',
+			self::Agility => '',
+			self::AimedShot => '',
+			self::AssaultRifle => '',
+			self::AttackRating => '',
+			self::BM => '',
+			self::BodyDev => '',
+			self::Bow => '',
+			self::BowSpcAtt => '',
+			self::Brawling => '',
+			self::BreakAndAntry => '',
+			self::Burst => '',
+			self::ChemicalAC => '',
+			self::Chemistry => '',
+			self::ColdAC => '',
+			self::CL => '',
+			self::Concealment => '',
+			self::CriticalDecrease => '%',
+			self::CriticalIncrease => '%',
+			self::DmgToPet => '',
+			self::DmgToPetMultiplier => '',
+			self::DecNanoInt => '%',
+			self::Deflect => '',
+			self::Dimach => '',
+			self::DirectNanoDmgEff => '%',
+			self::DiseaseAC => '',
+			self::DodgeRng => '',
+			self::DuckExp => '',
+			self::ElecEngi => '',
+			self::EnergyAC => '',
+			self::EvadeClsC => '',
+			self::FactionGuardian => '',
+			self::FastAttack => '',
+			self::FireAC => '',
+			self::FirstAid => '',
+			self::FlingShot => '',
+			self::FreeDeckSlot => '',
+			self::FullAuto => '',
+			self::Grenade => '',
+			self::HealReactivity => '%',
+			self::HealDelta => '',
+			self::HealingEfficiency => '%',
+			self::HeavyWeapons => '',
+			self::ImpProjAC => '',
+			self::Intelligence => '',
+			self::InvadersKilled => '',
+			self::IP => '',
+			self::MapNavig => '',
+			self::MA => '',
+			self::MM => '',
+			self::MC => '',
+			self::MaxHealth => '',
+			self::MaxNano => '',
+			self::MaxNCU => '',
+			self::MaxReflectedChemicalDmg => '',
+			self::MaxReflectedColdDmg => '',
+			self::MaxReflectedEnergyDmg => '',
+			self::MaxReflectedFireDmg => '',
+			self::MaxReflectedMeleeDmg => '',
+			self::MaxReflectedNanoDmg => '',
+			self::MaxReflectedPoisonDmg => '',
+			self::MaxReflectedProjectileDmg => '',
+			self::MaxReflectedRadiationDmg => '',
+			self::MechEngi => '',
+			self::MeleeEner => '',
+			self::MeleeInit => '',
+			self::MeleeAC => '',
+			self::SMG => '',
+			self::MultiMelee => '',
+			self::MultiRanged => '',
+			self::NanoPool => '',
+			self::NanoProgramming => '',
+			self::NanoResist => '',
+			self::NanoInit => '',
+			self::NanoDelta => '',
+			self::Perception => '',
+			self::PharmaTech => '',
+			self::PhysicInit => '',
+			self::Piercing => '',
+			self::Pistol => '',
+			self::Psychic => '',
+			self::PM => '',
+			self::Psychology => '',
+			self::PVPDuelScore => '',
+			self::QuantumFT => '',
+			self::RadiationAC => '',
+			self::RangedEner => '',
+			self::RangedInit => '',
+			self::RangeIncNF => '%',
+			self::RangeIncWeapon => '%',
+			self::ReflectChemicalAC => '%',
+			self::ReflectColdAC => '%',
+			self::ReflectEnergyAC => '%',
+			self::ReflectFireAC => '%',
+			self::ReflectMeleeAC => '%',
+			self::ReflectNanoAC => '%',
+			self::ReflectPoisonAC => '%',
+			self::ReflectProjectileAC => '%',
+			self::ReflectRadiationAC => '%',
+			self::RegainXP => '%',
+			self::Rifle => '',
+			self::Riposte => '',
+			self::RunSpeed => '',
+			self::Scale => '',
+			self::Sense => '',
+			self::SI => '',
+			self::ShadowBreed => '',
+			self::SharpObj => '',
+			self::ShieldChemicalAC => '',
+			self::ShieldColdAC => '',
+			self::ShieldEnergyAC => '',
+			self::ShieldFireAC => '',
+			self::ShieldMeleeAC => '',
+			self::ShieldNanoAC => '',
+			self::ShieldPoisonAC => '',
+			self::ShieldProjectileAC => '',
+			self::ShieldRadiationAC => '',
+			self::Shotgun => '',
+			self::Side => '',
+			self::SkillLockModifier => '%',
+			self::SneakAttack => '',
+			self::Stamina => '',
+			self::Strength => '',
+			self::Swimming => '',
+			self::TS => '',
+			self::TrapDisarm => '',
+			self::Treatment => '',
+			self::Tutoring => '',
+			self::UsedNCU => '',
+			self::VehicleAir => '',
+			self::VehicleGround => '',
+			self::VehicleWater => '',
+			self::WeaponSmt => '',
+			self::XP => '',
+		};
+	}
+
+	public function niceLong(): string {
+		/** @psalm-suppress UnhandledMatchCondition */
+		return match ($this) {
+			self::AddNanoCost => 'Nano Cost',
+			self::AddXP => 'Add XP',
+			self::OneHB => '1 Handed Blunt Weapons',
+			self::OneHE => '1 Handed Edged Weapons',
+			self::TwoHB => '2 Handed Blunt Weapons',
+			self::TwoHE => '2 Handed Edged Weapons',
+			self::AAD => 'Add All Defense',
+			self::AAO => 'Add All Offense',
+			self::AddChemDmg => 'Add Chemical Damage',
+			self::AddColdDmg => 'Add Cold Damage',
+			self::AddEnergyDmg => 'Add Energy Damage',
+			self::AddFireDmg => 'Add Fire Damage',
+			self::AddMeleeDmg => 'Add Melee Damage',
+			self::AddNanoDmg => 'Add Nano Damage',
+			self::AddPoisonDmg => 'Add Poison Damage',
+			self::AddProjDmg => 'Add Projectile Damage',
+			self::AddRadDmg => 'Add Radiation Damage',
+			self::Adventuring => 'Adventuring',
+			self::AggDef => 'Aggdef',
+			self::Aggressiveness => 'Aggressiveness',
+			self::Agility => 'Agility',
+			self::AimedShot => 'Aimed Shot',
+			self::AssaultRifle => 'Assault Rifle',
+			self::AttackRating => 'Attack Rating',
+			self::BM => 'Biological Metamorphosis',
+			self::BodyDev => 'Body Development',
+			self::Bow => 'Bow',
+			self::BowSpcAtt => 'Bow Special Attack',
+			self::Brawling => 'Brawling',
+			self::BreakAndAntry => 'Breaking and Entry',
+			self::Burst => 'Burst',
+			self::ChemicalAC => 'Chemical AC',
+			self::Chemistry => 'Chemistry',
+			self::ColdAC => 'Cold AC',
+			self::CL => 'Computer Literacy',
+			self::Concealment => 'Concealment',
+			self::CriticalDecrease => 'Critical Decrease',
+			self::CriticalIncrease => 'Crticical Increase',
+			self::DmgToPet => 'Damage to Pet',
+			self::DmgToPetMultiplier => 'Damage To Pet Damage Multiplier',
+			self::DecNanoInt => 'Nano Interrupt',
+			self::Deflect => 'Deflect',
+			self::Dimach => 'Dimach',
+			self::DirectNanoDmgEff => 'Direct Nano Damage Efficiency',
+			self::DiseaseAC => 'Disease AC',
+			self::DodgeRng => 'Dodge Ranged Attacks',
+			self::DuckExp => 'Duck Explosives',
+			self::ElecEngi => 'Electrical Engineering',
+			self::EnergyAC => 'Energy AC',
+			self::EvadeClsC => 'Evade Close Combat',
+			self::FactionGuardian => 'Faction with Guardian of Shadow',
+			self::FastAttack => 'Fast Attack',
+			self::FireAC => 'Fire AC',
+			self::FirstAid => 'First Aid',
+			self::FlingShot => 'Fling Shot',
+			self::FreeDeckSlot => 'Free deck slot',
+			self::FullAuto => 'Full Auto',
+			self::Grenade => 'Grenade Throwing',
+			self::HealReactivity => 'Heal Reactivity',
+			self::HealDelta => 'Heal Delta',
+			self::HealingEfficiency => 'Healing Efficiency',
+			self::HeavyWeapons => 'Heavy Weapons',
+			self::ImpProjAC => 'Projectile AC',
+			self::Intelligence => 'Intelligence',
+			self::InvadersKilled => 'Invaders Killed',
+			self::IP => 'IP',
+			self::MapNavig => 'Map Navigation',
+			self::MA => 'Martial Arts',
+			self::MM => 'Matter Metamorphosis',
+			self::MC => 'Matter Creation',
+			self::MaxHealth => 'Max Health',
+			self::MaxNano => 'Max Nano',
+			self::MaxNCU => 'Add Max NCU',
+			self::MaxReflectedChemicalDmg => 'Maximum Reflected Chemical Damage',
+			self::MaxReflectedColdDmg => 'Maximum Reflected Cold Damage',
+			self::MaxReflectedEnergyDmg => 'Maximum Reflected Energy Damage',
+			self::MaxReflectedFireDmg => 'Maximum Reflected Fire Damage',
+			self::MaxReflectedMeleeDmg => 'Maximum Reflected Melee Damage',
+			self::MaxReflectedNanoDmg => 'Maximum Reflected Nano Damage',
+			self::MaxReflectedPoisonDmg => 'Maximum Reflected Poison Damage',
+			self::MaxReflectedProjectileDmg => 'Maximum Reflected Projectile Damage',
+			self::MaxReflectedRadiationDmg => 'Maximum Reflected Radiation Damage',
+			self::MechEngi => 'Mechanical Engineering',
+			self::MeleeEner => 'Melee Energy Weapons',
+			self::MeleeInit => 'Melee Weapons Initiative',
+			self::MeleeAC => 'Malee AC',
+			self::SMG => 'MG/SMG',
+			self::MultiMelee => 'Multiple Melee Weapons',
+			self::MultiRanged => 'Multiple Ranged Weapons',
+			self::NanoPool => 'Nano Pool',
+			self::NanoProgramming => 'Nano Programming',
+			self::NanoResist => 'Nano Resistance',
+			self::NanoInit => 'Nano Initiative',
+			self::NanoDelta => 'Nano Delta',
+			self::Perception => 'Perception',
+			self::PharmaTech => 'Pharmaceuticals',
+			self::PhysicInit => 'Physical Initiative',
+			self::Piercing => 'Piercing',
+			self::Pistol => 'Pistol',
+			self::Psychic => 'Psychic',
+			self::PM => 'Psychological Modifications',
+			self::Psychology => 'Psychology',
+			self::PVPDuelScore => 'PVP Duel Score',
+			self::QuantumFT => 'Quantum Physics',
+			self::RadiationAC => 'Radiation AC',
+			self::RangedEner => 'Ranged Energy',
+			self::RangedInit => 'Ranged Initiative',
+			self::RangeIncNF => 'Add Nano Range',
+			self::RangeIncWeapon => 'Add Weapon Range',
+			self::ReflectChemicalAC => 'Reflect Chemical AC',
+			self::ReflectColdAC => 'Reflect Cold AC',
+			self::ReflectEnergyAC => 'Reflect Energy AC',
+			self::ReflectFireAC => 'Reflect Fire AC',
+			self::ReflectMeleeAC => 'Reflect Melee AC',
+			self::ReflectNanoAC => 'Reflect Nano AC',
+			self::ReflectPoisonAC => 'Reflect Poison AC',
+			self::ReflectProjectileAC => 'Reflect Projectile AC',
+			self::ReflectRadiationAC => 'Reflect Radiation AC',
+			self::RegainXP => 'Regain XP',
+			self::Rifle => 'Rifle',
+			self::Riposte => 'Riposte',
+			self::RunSpeed => 'Run Speed',
+			self::Scale => 'Scale',
+			self::Sense => 'Sense',
+			self::SI => 'Sensory Improvement',
+			self::ShadowBreed => 'Shadow Breed',
+			self::SharpObj => 'Sharp Objects',
+			self::ShieldChemicalAC => 'Chemical Damage Shield',
+			self::ShieldColdAC => 'Cold Damage Shield',
+			self::ShieldEnergyAC => 'Energy Damage Shield',
+			self::ShieldFireAC => 'Fire Damage Shield',
+			self::ShieldMeleeAC => 'Melee Damage Shield',
+			self::ShieldNanoAC => 'Nano Damage Shield',
+			self::ShieldPoisonAC => 'Poison Damage Shield',
+			self::ShieldProjectileAC => 'Projectile Damage Shield',
+			self::ShieldRadiationAC => 'Radiation Damage Shield',
+			self::Shotgun => 'Shotgun',
+			self::Side => 'Side',
+			self::SkillLockModifier => 'Skill Lock',
+			self::SneakAttack => 'Sneak Attack',
+			self::Stamina => 'Stamina',
+			self::Strength => 'Strength',
+			self::Swimming => 'Swimming',
+			self::TS => 'Time and Space',
+			self::TrapDisarm => 'Trap Disarming',
+			self::Treatment => 'Treatment',
+			self::Tutoring => 'Tutoring',
+			self::UsedNCU => 'Used NCU',
+			self::VehicleAir => 'Vehicle Air',
+			self::VehicleGround => 'Vehicle Ground',
+			self::VehicleWater => 'Vehicle Water',
+			self::WeaponSmt => 'Weapon Smithing',
+			self::XP => 'XP',
+		};
+	}
+
+	public function inGame(): string {
+		/** @psalm-suppress UnhandledMatchCondition */
+		return match ($this) {
+			self::AddNanoCost => '% Add. Nano Cost',
+			self::AddXP => '% Add. Xp',
+			self::OneHB => '1h Blunt',
+			self::OneHE => '1h Edged',
+			self::TwoHB => '2h Blunt',
+			self::TwoHE => '2h Edged',
+			self::AAD => 'Add All Def.',
+			self::AAO => 'Add All Off.',
+			self::AddChemDmg => 'Add. Chem. Dam.',
+			self::AddColdDmg => 'Add. Cold Dam.',
+			self::AddEnergyDmg => 'Add. Energy Dam.',
+			self::AddFireDmg => 'Add. Fire Dam.',
+			self::AddMeleeDmg => 'Add. Melee Dam.',
+			self::AddNanoDmg => 'Add. Nano Dam.',
+			self::AddPoisonDmg => 'Add. Poison Dam.',
+			self::AddProjDmg => 'Add. Proj. Dam.',
+			self::AddRadDmg => 'Add. Rad. Dam.',
+			self::Adventuring => 'Adventuring',
+			self::AggDef => 'Aggdef',
+			self::Aggressiveness => 'Aggressiveness',
+			self::Agility => 'Agility',
+			self::AimedShot => 'Aimed Shot',
+			self::AssaultRifle => 'Assault Rifle',
+			self::AttackRating => 'Attack rating',
+			self::BM => 'Bio Metamor',
+			self::BodyDev => 'Body Dev.',
+			self::Bow => 'Bow',
+			self::BowSpcAtt => 'Bow Spc Att',
+			self::Brawling => 'Brawling',
+			self::BreakAndAntry => 'Break&Entry',
+			self::Burst => 'Burst',
+			self::ChemicalAC => 'Chemical AC',
+			self::Chemistry => 'Chemistry',
+			self::ColdAC => 'Cold AC',
+			self::CL => 'Comp. Liter',
+			self::Concealment => 'Concealment',
+			self::CriticalDecrease => 'Critical Decrease',
+			self::CriticalIncrease => 'CriticalIncrease',
+			self::DmgToPet => 'Damage to Pet',
+			self::DmgToPetMultiplier => 'Damage To Pet Damage Multiplier',
+			self::DecNanoInt => 'Decreased Nano-Interrupt Modifier %',
+			self::Deflect => 'Deflect',
+			self::Dimach => 'Dimach',
+			self::DirectNanoDmgEff => 'Direct Nano Damage Efficiency',
+			self::DiseaseAC => 'Disease AC',
+			self::DodgeRng => 'Dodge-Rng',
+			self::DuckExp => 'Duck-Exp',
+			self::ElecEngi => 'Elec. Engi',
+			self::EnergyAC => 'Energy AC',
+			self::EvadeClsC => 'Evade-ClsC',
+			self::FactionGuardian => 'Faction with Guardian of Shadow',
+			self::FastAttack => 'Fast Attack',
+			self::FireAC => 'Fire AC',
+			self::FirstAid => 'First Aid',
+			self::FlingShot => 'Fling Shot',
+			self::FreeDeckSlot => 'Free deck slot',
+			self::FullAuto => 'Full Auto',
+			self::Grenade => 'Grenade',
+			self::HealReactivity => 'Heal Reactivity',
+			self::HealDelta => 'HealDelta',
+			self::HealingEfficiency => 'Healing Efficiency',
+			self::HeavyWeapons => 'Heavy Weapons',
+			self::ImpProjAC => 'Imp/Proj AC',
+			self::Intelligence => 'Intelligence',
+			self::InvadersKilled => 'InvadersKilled',
+			self::IP => 'IP',
+			self::MapNavig => 'Map Navig.',
+			self::MA => 'Martial Arts',
+			self::MM => 'Matt.Metam',
+			self::MC => 'Matter Crea',
+			self::MaxHealth => 'Max Health',
+			self::MaxNano => 'Max Nano',
+			self::MaxNCU => 'Max NCU',
+			self::MaxReflectedChemicalDmg => 'MaxReflectedChemicalDmg',
+			self::MaxReflectedColdDmg => 'MaxReflectedColdDmg',
+			self::MaxReflectedEnergyDmg => 'MaxReflectedEnergyDmg',
+			self::MaxReflectedFireDmg => 'MaxReflectedFireDmg',
+			self::MaxReflectedMeleeDmg => 'MaxReflectedMeleeDmg',
+			self::MaxReflectedNanoDmg => 'MaxReflectedNanoDmg',
+			self::MaxReflectedPoisonDmg => 'MaxReflectedPoisonDmg',
+			self::MaxReflectedProjectileDmg => 'MaxReflectedProjectileDmg',
+			self::MaxReflectedRadiationDmg => 'MaxReflectedRadiationDmg',
+			self::MechEngi => 'Mech. Engi',
+			self::MeleeEner => 'Melee Ener.',
+			self::MeleeInit => 'Melee. Init.',
+			self::MeleeAC => 'Melee/ma AC',
+			self::SMG => 'MG / SMG',
+			self::MultiMelee => 'Mult. Melee',
+			self::MultiRanged => 'Multi Ranged',
+			self::NanoPool => 'Nano Pool',
+			self::NanoProgramming => 'Nano Progra',
+			self::NanoResist => 'Nano Resist',
+			self::NanoInit => 'NanoC. Init.',
+			self::NanoDelta => 'NanoDelta',
+			self::Perception => 'Perception',
+			self::PharmaTech => 'Pharma Tech',
+			self::PhysicInit => 'Physic. Init',
+			self::Piercing => 'Piercing',
+			self::Pistol => 'Pistol',
+			self::Psychic => 'Psychic',
+			self::PM => 'Psycho Modi',
+			self::Psychology => 'Psychology',
+			self::PVPDuelScore => 'PVPDuelScore',
+			self::QuantumFT => 'Quantum FT',
+			self::RadiationAC => 'Radiation AC',
+			self::RangedEner => 'Ranged Ener',
+			self::RangedInit => 'Ranged. Init.',
+			self::RangeIncNF => 'RangeInc. NF',
+			self::RangeIncWeapon => 'RangeInc. Weapon',
+			self::ReflectChemicalAC => 'ReflectChemicalAC',
+			self::ReflectColdAC => 'ReflectColdAC',
+			self::ReflectEnergyAC => 'ReflectEnergyAC',
+			self::ReflectFireAC => 'ReflectFireAC',
+			self::ReflectMeleeAC => 'ReflectMeleeAC',
+			self::ReflectNanoAC => 'ReflectNanoAC',
+			self::ReflectPoisonAC => 'ReflectPoisonAC',
+			self::ReflectProjectileAC => 'ReflectProjectileAC',
+			self::ReflectRadiationAC => 'ReflectRadiationAC',
+			self::RegainXP => 'Regain XP Percentage',
+			self::Rifle => 'Rifle',
+			self::Riposte => 'Riposte',
+			self::RunSpeed => 'Run Speed',
+			self::Scale => 'Scale',
+			self::Sense => 'Sense',
+			self::SI => 'Sensory Impr',
+			self::ShadowBreed => 'ShadowBreed',
+			self::SharpObj => 'Sharp Obj',
+			self::ShieldChemicalAC => 'ShieldChemicalAC',
+			self::ShieldColdAC => 'ShieldColdAC',
+			self::ShieldEnergyAC => 'ShieldEnergyAC',
+			self::ShieldFireAC => 'ShieldFireAC',
+			self::ShieldMeleeAC => 'ShieldMeleeAC',
+			self::ShieldNanoAC => 'ShieldNanoAC',
+			self::ShieldPoisonAC => 'ShieldPoisonAC',
+			self::ShieldProjectileAC => 'ShieldProjectileAC',
+			self::ShieldRadiationAC => 'ShieldRadiationAC',
+			self::Shotgun => 'Shotgun',
+			self::Side => 'Side',
+			self::SkillLockModifier => 'SkillLockModifier',
+			self::SneakAttack => 'Sneak Atck',
+			self::Stamina => 'Stamina',
+			self::Strength => 'Strength',
+			self::Swimming => 'Swimming',
+			self::TS => 'Time&Space',
+			self::TrapDisarm => 'Trap Disarm.',
+			self::Treatment => 'Treatment',
+			self::Tutoring => 'Tutoring',
+			self::UsedNCU => 'Used NCU',
+			self::VehicleAir => 'Vehicle Air',
+			self::VehicleGround => 'Vehicle Ground',
+			self::VehicleWater => 'Vehicle Water',
+			self::WeaponSmt => 'Weapon Smt',
+			self::XP => 'XP',
+		};
+	}
+
+	case AddNanoCost = 318;
+	case AddXP = 319;
+	case OneHB = 102;
+	case OneHE = 103;
+	case TwoHB = 107;
+	case TwoHE = 105;
+	case AAD = 277;
+	case AAO = 276;
+	case AddChemDmg = 281;
+	case AddColdDmg = 311;
+	case AddEnergyDmg = 280;
+	case AddFireDmg = 316;
+	case AddMeleeDmg = 279;
+	case AddNanoDmg = 315;
+	case AddPoisonDmg = 317;
+	case AddProjDmg = 278;
+	case AddRadDmg = 282;
+	case Adventuring = 137;
+	case AggDef = 51;
+	case Aggressiveness = 201;
+	case Agility = 17;
+	case AimedShot = 151;
+	case AssaultRifle = 116;
+	case AttackRating = 22;
+	case BM = 128;
+	case BodyDev = 152;
+	case Bow = 111;
+	case BowSpcAtt = 121;
+	case Brawling = 142;
+	case BreakAndAntry = 165;
+	case Burst = 148;
+	case ChemicalAC = 93;
+	case Chemistry = 163;
+	case ColdAC = 95;
+	case CL = 161;
+	case Concealment = 164;
+	case CriticalDecrease = 391;
+	case CriticalIncrease = 379;
+	case DmgToPet = 35;
+	case DmgToPetMultiplier = 39;
+	case DecNanoInt = 383;
+	case Deflect = 145;
+	case Dimach = 144;
+	case DirectNanoDmgEff = 536;
+	case DiseaseAC = 96;
+	case DodgeRng = 154;
+	case DuckExp = 153;
+	case ElecEngi = 126;
+	case EnergyAC = 92;
+	case EvadeClsC = 155;
+	case FactionGuardian = 566;
+	case FastAttack = 147;
+	case FireAC = 97;
+	case FirstAid = 123;
+	case FlingShot = 150;
+	case FreeDeckSlot = 45;
+	case FullAuto = 167;
+	case Grenade = 109;
+	case HealReactivity = 689;
+	case HealDelta = 343;
+	case HealingEfficiency = 535;
+	case HeavyWeapons = 110;
+	case ImpProjAC = 90;
+	case Intelligence = 19;
+	case InvadersKilled = 615;
+	case IP = 53;
+	case MapNavig = 140;
+	case MA = 100;
+	case MM = 127;
+	case MC = 130;
+	case MaxHealth = 1;
+	case MaxNano = 221;
+	case MaxNCU = 181;
+	case MaxReflectedChemicalDmg = 478;
+	case MaxReflectedColdDmg = 480;
+	case MaxReflectedEnergyDmg = 477;
+	case MaxReflectedFireDmg = 482;
+	case MaxReflectedMeleeDmg = 476;
+	case MaxReflectedNanoDmg = 481;
+	case MaxReflectedPoisonDmg = 483;
+	case MaxReflectedProjectileDmg = 475;
+	case MaxReflectedRadiationDmg = 479;
+	case MechEngi = 125;
+	case MeleeEner = 104;
+	case MeleeInit = 118;
+	case MeleeAC = 91;
+	case SMG = 114;
+	case MultiMelee = 101;
+	case MultiRanged = 134;
+	case NanoPool = 132;
+	case NanoProgramming = 160;
+	case NanoResist = 168;
+	case NanoInit = 149;
+	case NanoDelta = 364;
+	case Perception = 136;
+	case PharmaTech = 159;
+	case PhysicInit = 120;
+	case Piercing = 106;
+	case Pistol = 112;
+	case Psychic = 21;
+	case PM = 129;
+	case Psychology = 162;
+	case PVPDuelScore = 684;
+	case QuantumFT = 157;
+	case RadiationAC = 94;
+	case RangedEner = 133;
+	case RangedInit = 119;
+	case RangeIncNF = 381;
+	case RangeIncWeapon = 380;
+	case ReflectChemicalAC = 208;
+	case ReflectColdAC = 217;
+	case ReflectEnergyAC = 207;
+	case ReflectFireAC = 219;
+	case ReflectMeleeAC = 206;
+	case ReflectNanoAC = 218;
+	case ReflectPoisonAC = 225;
+	case ReflectProjectileAC = 205;
+	case ReflectRadiationAC = 216;
+	case RegainXP = 593;
+	case Rifle = 113;
+	case Riposte = 143;
+	case RunSpeed = 156;
+	case Scale = 360;
+	case Sense = 20;
+	case SI = 122;
+	case ShadowBreed = 532;
+	case SharpObj = 108;
+	case ShieldChemicalAC = 229;
+	case ShieldColdAC = 231;
+	case ShieldEnergyAC = 228;
+	case ShieldFireAC = 233;
+	case ShieldMeleeAC = 227;
+	case ShieldNanoAC = 232;
+	case ShieldPoisonAC = 234;
+	case ShieldProjectileAC = 226;
+	case ShieldRadiationAC = 230;
+	case Shotgun = 115;
+	case Side = 33;
+	case SkillLockModifier = 382;
+	case SneakAttack = 146;
+	case Stamina = 18;
+	case Strength = 16;
+	case Swimming = 138;
+	case TS = 131;
+	case TrapDisarm = 135;
+	case Treatment = 124;
+	case Tutoring = 141;
+	case UsedNCU = 180;
+	case VehicleAir = 139;
+	case VehicleGround = 166;
+	case VehicleWater = 117;
+	case WeaponSmt = 158;
+	case XP = 52;
 }
