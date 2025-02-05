@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Nadybot\Core\DBRow;
+use Nadybot\Core\Types\Skill;
 
-class AbilityAmount extends DBRow {
+class SkillAmount extends DBRow {
 	public function __construct(
-		public string $name,
+		public Skill $skill,
 		public int $amount,
 	) {
 	}

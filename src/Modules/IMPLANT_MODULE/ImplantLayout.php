@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Nadybot\Core\DBRow;
+use Nadybot\Core\Types\Skill;
 
 class ImplantLayout extends DBRow {
 	public function __construct(
@@ -14,9 +15,9 @@ class ImplantLayout extends DBRow {
 		public int $treat_ql200,
 		public int $treat_ql201,
 		public int $treat_ql300,
-		public string $shiny_effect,
-		public string $bright_effect,
-		public string $faded_effect,
+		public ?Skill $shiny_effect,
+		public ?Skill $bright_effect,
+		public ?Skill $faded_effect,
 	) {
 	}
 }

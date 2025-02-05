@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Types\ImplantSlot;
+use Nadybot\Core\Types\{ImplantSlot, Skill};
 
 class ShoppingCluster {
 	/** psalm-param int<0,300> $ql */
@@ -10,7 +10,7 @@ class ShoppingCluster {
 		public int $ql,
 		public ImplantSlot $slot,
 		public ClusterGrade $grade,
-		public string $name,
+		public Skill $skill,
 	) {
 	}
 }

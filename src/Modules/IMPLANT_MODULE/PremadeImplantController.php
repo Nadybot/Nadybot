@@ -127,7 +127,7 @@ class PremadeImplantController extends ModuleInstance {
 	}
 
 	public function getFormattedLine(PremadeSearchResult $implant): string {
-		return "<tab><highlight>{$implant->profession->name}<end> ({$implant->ability})\n".
+		return "<tab><highlight>{$implant->profession->name}<end> ({$implant->ability->name})\n".
 			"<tab>S: {$implant->shiny}\n".
 			"<tab>B: {$implant->bright}\n".
 			"<tab>F: {$implant->faded}\n\n";
@@ -136,12 +136,11 @@ class PremadeImplantController extends ModuleInstance {
 	protected function getBaseQuery(): QueryBuilder {
 		$query = $this->db->table(PremadeImplant::getTable(), 'p')
 			->join(ImplantType::getTable(as: 'i'), 'p.implant_type_id', 'i.implant_type_id')
-			->join(Ability::getTable(as: 'a'), 'p.ability_id', 'a.ability_id')
 			->join(Cluster::getTable(as: 'cs'), 'p.shiny_cluster_id', 'cs.cluster_id')
 			->join(Cluster::getTable(as: 'cb'), 'p.bright_cluster_id', 'cb.cluster_id')
 			->join(Cluster::getTable(as: 'cf'), 'p.faded_cluster_id', 'cf.cluster_id')
 			->orderBy('slot')
-			->select(['i.name AS slot', 'p.profession_id', 'a.name as ability']);
+			->select(['i.name AS slot', 'p.profession_id', 'p.ability_id']);
 		$query->selectRaw(
 			'CASE WHEN ' . $query->grammar->wrap('cs.cluster_id') . ' = 0 '.
 			'THEN ? '.

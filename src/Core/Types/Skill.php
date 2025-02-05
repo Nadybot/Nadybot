@@ -2,7 +2,390 @@
 
 namespace Nadybot\Core\Types;
 
+use Nadybot\Core\Safe;
+use ValueError;
+
 enum Skill: int {
+	/**
+	 * @return null|self|list<self>
+	 *
+	 * @psalm-return null|self|non-empty-list<self>
+	 *
+	 * @throws ValueError on non-existing skill
+	 */
+	public static function tryByName(string $name, bool $exactMatchOnly=true): null|self|array {
+		try {
+			return self::byName($name, $exactMatchOnly);
+		} catch (ValueError) {
+			return null;
+		}
+	}
+
+	/**
+	 * @return self|list<self>
+	 *
+	 * @psalm-return self|non-empty-list<self>
+	 *
+	 * @throws ValueError on non-existing skill
+	 */
+	public static function byName(string $name, bool $exactMatchOnly=true): self|array {
+		$name = strtolower($name);
+
+		/** @var array<string,self> */
+		$mapping = [
+			'nano cost' => self::AddNanoCost,
+			'percentage additional nano execution cost' => self::AddNanoCost,
+			'add xp' => self::AddXP,
+			'percentage additional experience' => self::AddXP,
+			'1 handed blunt weapons' => self::OneHB,
+			'1 hand blunt weapons' => self::OneHB,
+			'1hb' => self::OneHB,
+			'1 handed edged weapons' => self::OneHE,
+			'1 hand edged weapons' => self::OneHE,
+			'1he' => self::OneHE,
+			'2 handed blunt weapons' => self::TwoHB,
+			'2hb' => self::TwoHB,
+			'2 handed edged weapons' => self::TwoHE,
+			'2he' => self::TwoHE,
+			'add all defense' => self::AAD,
+			'added to all defencive rolls' => self::AAD,
+			'added to all defensive rolls' => self::AAD,
+			'aad' => self::AAD,
+			'added to all offensive rolls' => self::AAO,
+			'add all offense' => self::AAO,
+			'aao' => self::AAO,
+			'add chemical damage' => self::AddChemDmg,
+			'added to chemical damage' => self::AddChemDmg,
+			'add cold damage' => self::AddColdDmg,
+			'added to cold damage' => self::AddColdDmg,
+			'add energy damage' => self::AddEnergyDmg,
+			'added to energy damage' => self::AddEnergyDmg,
+			'add fire damage' => self::AddFireDmg,
+			'added to fire damage' => self::AddFireDmg,
+			'add melee damage' => self::AddMeleeDmg,
+			'added to melee damage' => self::AddMeleeDmg,
+			'add nano damage' => self::AddNanoDmg,
+			'added to nano damage' => self::AddNanoDmg,
+			'add poison damage' => self::AddPoisonDmg,
+			'added to poison damage' => self::AddPoisonDmg,
+			'add projectile damage' => self::AddProjDmg,
+			'added to projectile damage' => self::AddProjDmg,
+			'add radiation damage' => self::AddRadDmg,
+			'added to radiation damage' => self::AddRadDmg,
+			'adventuring' => self::Adventuring,
+			'outdoor adventuring' => self::Adventuring,
+			'aggdef' => self::AggDef,
+			'aggressiveness' => self::Aggressiveness,
+			'agility' => self::Agility,
+			'agl' => self::Agility,
+			'agi' => self::Agility,
+			'aimed shot' => self::AimedShot,
+			'as' => self::AimedShot,
+			'assault rifle' => self::AssaultRifle,
+			'assault rif' => self::AssaultRifle,
+			'attack rating' => self::AttackRating,
+			'biological metamorphosis' => self::BM,
+			'bm' => self::BM,
+			'body development' => self::BodyDev,
+			'bodydev' => self::BodyDev,
+			'bow' => self::Bow,
+			'bow special attack' => self::BowSpcAtt,
+			'brawling' => self::Brawling,
+			'breaking and entry' => self::BreakAndAntry,
+			'breaking and entering' => self::BreakAndAntry,
+			'b&e' => self::BreakAndAntry,
+			'burst' => self::Burst,
+			'chemical ac' => self::ChemicalAC,
+			'chemicalk armor-class' => self::ChemicalAC,
+			'chemistry' => self::Chemistry,
+			'cold ac' => self::ColdAC,
+			'cold armor-class' => self::ColdAC,
+			'computer literacy' => self::CL,
+			'cl' => self::CL,
+			'complit' => self::CL,
+			'concealment' => self::Concealment,
+			'critical decrease' => self::CriticalDecrease,
+			'crticical increase' => self::CriticalIncrease,
+			'damage to pet' => self::DmgToPet,
+			'damage to pet damage multiplier' => self::DmgToPetMultiplier,
+			'nano interrupt' => self::DecNanoInt,
+			'deflect' => self::Deflect,
+			'dimach' => self::Dimach,
+			'dimach (soul attack)' => self::Dimach,
+			'direct nano damage efficiency' => self::DirectNanoDmgEff,
+			'disease ac' => self::DiseaseAC,
+			'disease and poison armor-class' => self::DiseaseAC,
+			'dodge ranged attacks' => self::DodgeRng,
+			'duck explosives' => self::DuckExp,
+			'duck explosives and thrown objects' => self::DuckExp,
+			'electrical engineering' => self::ElecEngi,
+			'energy ac' => self::EnergyAC,
+			'energy attack armor-class' => self::EnergyAC,
+			'evade close combat' => self::EvadeClsC,
+			'evade close combat and martial art attacks' => self::EvadeClsC,
+			'faction with guardian of shadow' => self::FactionGuardian,
+			'fast attack' => self::FastAttack,
+			'fire ac' => self::FireAC,
+			'fire armor-class' => self::FireAC,
+			'first aid' => self::FirstAid,
+			'fling shot' => self::FlingShot,
+			'free deck slot' => self::FreeDeckSlot,
+			'full auto' => self::FullAuto,
+			'grenade throwing' => self::Grenade,
+			'grenade or lumping throwing' => self::Grenade,
+			'heal reactivity' => self::HealReactivity,
+			'heal delta' => self::HealDelta,
+			'healing efficiency' => self::HealingEfficiency,
+			'heavy weapons' => self::HeavyWeapons,
+			'operate heavy weapons' => self::HeavyWeapons,
+			'projectile ac' => self::ImpProjAC,
+			'impact and projectile weapon armor-class' => self::ImpProjAC,
+			'intelligence' => self::Intelligence,
+			'int' => self::Intelligence,
+			'invaders killed' => self::InvadersKilled,
+			'ip' => self::IP,
+			'map navigation' => self::MapNavig,
+			'martial arts' => self::MA,
+			'ma' => self::MA,
+			'matter metamorphosis' => self::MM,
+			'mm' => self::MM,
+			'matter creation' => self::MC,
+			'matter creations' => self::MC,
+			'mc' => self::MC,
+			'max health' => self::MaxHealth,
+			'max nano' => self::MaxNano,
+			'add max ncu' => self::MaxNCU,
+			'maximum reflected chemical damage' => self::MaxReflectedChemicalDmg,
+			'maximum reflected cold damage' => self::MaxReflectedColdDmg,
+			'maximum reflected energy damage' => self::MaxReflectedEnergyDmg,
+			'maximum reflected fire damage' => self::MaxReflectedFireDmg,
+			'maximum reflected melee damage' => self::MaxReflectedMeleeDmg,
+			'maximum reflected nano damage' => self::MaxReflectedNanoDmg,
+			'maximum reflected poison damage' => self::MaxReflectedPoisonDmg,
+			'maximum reflected projectile damage' => self::MaxReflectedProjectileDmg,
+			'maximum reflected radiation damage' => self::MaxReflectedRadiationDmg,
+			'mechanical engineering' => self::MechEngi,
+			'me' => self::MechEngi,
+			'melee energy weapons' => self::MeleeEner,
+			'melee weapons initiative' => self::MeleeInit,
+			'melee ac' => self::MeleeAC,
+			'melee attacks and martial art armor-class' => self::MeleeAC,
+			'mg/smg' => self::SMG,
+			'machine guns and sub machine guns' => self::SMG,
+			'multiple melee weapons' => self::MultiMelee,
+			'multi melee' => self::MultiMelee,
+			'multiple ranged weapons' => self::MultiRanged,
+			'mr' => self::MultiRanged,
+			'nano pool' => self::NanoPool,
+			'nano energy pool' => self::NanoPool,
+			'nano programming' => self::NanoProgramming,
+			'nano-bot programming' => self::NanoProgramming,
+			'nano resistance' => self::NanoResist,
+			'nano initiative' => self::NanoInit,
+			'nano execution init' => self::NanoInit,
+			'nano delta' => self::NanoDelta,
+			'perception' => self::Perception,
+			'perception and spotting'=> self::Perception,
+			'pharmaceuticals' => self::PharmaTech,
+			'pharmacological technology' => self::PharmaTech,
+			'physical initiative' => self::PhysicInit,
+			'physical prowess and martial arts initiative' => self::PhysicInit,
+			'piercing' => self::Piercing,
+			'piercing weapons' => self::Piercing,
+			'pistol' => self::Pistol,
+			'psychic' => self::Psychic,
+			'psy' => self::Psychic,
+			'psychological modifications' => self::PM,
+			'pm' => self::PM,
+			'psychology' => self::Psychology,
+			'pvp duel score' => self::PVPDuelScore,
+			'quantum physics' => self::QuantumFT,
+			'quantum force field technology' => self::QuantumFT,
+			'qft' => self::QuantumFT,
+			'radiation ac' => self::RadiationAC,
+			'radiation armor-class' => self::RadiationAC,
+			'ranged energy' => self::RangedEner,
+			'ranged energy weapons' => self::RangedEner,
+			'ranged initiative' => self::RangedInit,
+			'ranged weapons initiative' => self::RangedInit,
+			'add nano range' => self::RangeIncNF,
+			'rangeincreasernf' => self::RangeIncNF,
+			'add weapon range' => self::RangeIncWeapon,
+			'rangeincreaserweapon' => self::RangeIncWeapon,
+			'reflect chemical ac' => self::ReflectChemicalAC,
+			'reflect cold ac' => self::ReflectColdAC,
+			'reflect energy ac' => self::ReflectEnergyAC,
+			'reflect fire ac' => self::ReflectFireAC,
+			'reflect melee ac' => self::ReflectMeleeAC,
+			'reflect nano ac' => self::ReflectNanoAC,
+			'reflect poison ac' => self::ReflectPoisonAC,
+			'reflect projectile ac' => self::ReflectProjectileAC,
+			'reflect radiation ac' => self::ReflectRadiationAC,
+			'regain xp' => self::RegainXP,
+			'rifle' => self::Rifle,
+			'rifle and sniper-rifle' => self::Rifle,
+			'riposte' => self::Riposte,
+			'run speed' => self::RunSpeed,
+			'scale' => self::Scale,
+			'sense' => self::Sense,
+			'sen' => self::Sense,
+			'sensory improvement' => self::SI,
+			'sensory improvement and modification' => self::SI,
+			'si' => self::SI,
+			'shadow breed' => self::ShadowBreed,
+			'sharp objects' => self::SharpObj,
+			'knife or sharp object throwing' => self::SharpObj,
+			'chemical damage shield' => self::ShieldChemicalAC,
+			'cold damage shield' => self::ShieldColdAC,
+			'energy damage shield' => self::ShieldEnergyAC,
+			'fire damage shield' => self::ShieldFireAC,
+			'melee damage shield' => self::ShieldMeleeAC,
+			'nano damage shield' => self::ShieldNanoAC,
+			'poison damage shield' => self::ShieldPoisonAC,
+			'projectile damage shield' => self::ShieldProjectileAC,
+			'radiation damage shield' => self::ShieldRadiationAC,
+			'shotgun' => self::Shotgun,
+			'side' => self::Side,
+			'skill lock' => self::SkillLockModifier,
+			'sneak attack' => self::SneakAttack,
+			'stamina' => self::Stamina,
+			'sta' => self::Stamina,
+			'strength' => self::Strength,
+			'str' => self::Strength,
+			'swimming' => self::Swimming,
+			'time and space' => self::TS,
+			'time and space alteration' => self::TS,
+			'ts' => self::TS,
+			'trap disarming' => self::TrapDisarm,
+			'trap disarmament' => self::TrapDisarm,
+			'treatment' => self::Treatment,
+			'tutoring' => self::Tutoring,
+			'used ncu' => self::UsedNCU,
+			'vehicle air' => self::VehicleAir,
+			'vehicle navigation, airborne' => self::VehicleAir,
+			'vehicle ground' => self::VehicleGround,
+			'vehicle navigation, ground' => self::VehicleGround,
+			'vehicle water' => self::VehicleWater,
+			'vehicle navigation, water' => self::VehicleWater,
+			'weapon smithing' => self::WeaponSmt,
+			'xp' => self::XP,
+			'% add. nano cost' => self::AddNanoCost,
+			'% add. xp' => self::AddXP,
+			'1h blunt' => self::OneHB,
+			'1h edged' => self::OneHE,
+			'2h blunt' => self::TwoHB,
+			'2h edged' => self::TwoHE,
+			'add all def.' => self::AAD,
+			'add all off.' => self::AAO,
+			'add. chem. dam.' => self::AddChemDmg,
+			'add. cold dam.' => self::AddColdDmg,
+			'add. energy dam.' => self::AddEnergyDmg,
+			'add. fire dam.' => self::AddFireDmg,
+			'add. melee dam.' => self::AddMeleeDmg,
+			'add. nano dam.' => self::AddNanoDmg,
+			'add. poison dam.' => self::AddPoisonDmg,
+			'add. proj. dam.' => self::AddProjDmg,
+			'add. rad. dam.' => self::AddRadDmg,
+			'bio metamor' => self::BM,
+			'body dev.' => self::BodyDev,
+			'bow spc att' => self::BowSpcAtt,
+			'break&entry' => self::BreakAndAntry,
+			'comp. liter' => self::CL,
+			'criticalincrease' => self::CriticalIncrease,
+			'decreased nano-interrupt modifier %' => self::DecNanoInt,
+			'dodge-rng' => self::DodgeRng,
+			'duck-exp' => self::DuckExp,
+			'elec. engi' => self::ElecEngi,
+			'evade-clsc' => self::EvadeClsC,
+			'grenade' => self::Grenade,
+			'healdelta' => self::HealDelta,
+			'imp/proj ac' => self::ImpProjAC,
+			'invaderskilled' => self::InvadersKilled,
+			'map navig.' => self::MapNavig,
+			'matt.metam' => self::MM,
+			'matter crea' => self::MC,
+			'max ncu' => self::MaxNCU,
+			'maxreflectedchemicaldmg' => self::MaxReflectedChemicalDmg,
+			'maxreflectedcolddmg' => self::MaxReflectedColdDmg,
+			'maxreflectedenergydmg' => self::MaxReflectedEnergyDmg,
+			'maxreflectedfiredmg' => self::MaxReflectedFireDmg,
+			'maxreflectedmeleedmg' => self::MaxReflectedMeleeDmg,
+			'maxreflectednanodmg' => self::MaxReflectedNanoDmg,
+			'maxreflectedpoisondmg' => self::MaxReflectedPoisonDmg,
+			'maxreflectedprojectiledmg' => self::MaxReflectedProjectileDmg,
+			'maxreflectedradiationdmg' => self::MaxReflectedRadiationDmg,
+			'mech. engi' => self::MechEngi,
+			'melee ener.' => self::MeleeEner,
+			'melee. init.' => self::MeleeInit,
+			'melee/ma ac' => self::MeleeAC,
+			'mg / smg' => self::SMG,
+			'mult. melee' => self::MultiMelee,
+			'multi ranged' => self::MultiRanged,
+			'nano progra' => self::NanoProgramming,
+			'nano resist' => self::NanoResist,
+			'nanoc. init.' => self::NanoInit,
+			'nanodelta' => self::NanoDelta,
+			'pharma tech' => self::PharmaTech,
+			'physic. init' => self::PhysicInit,
+			'psycho modi' => self::PM,
+			'pvpduelscore' => self::PVPDuelScore,
+			'quantum ft' => self::QuantumFT,
+			'ranged ener' => self::RangedEner,
+			'ranged. init.' => self::RangedInit,
+			'rangeinc. nf' => self::RangeIncNF,
+			'rangeinc. weapon' => self::RangeIncWeapon,
+			'reflectchemicalac' => self::ReflectChemicalAC,
+			'reflectcoldac' => self::ReflectColdAC,
+			'reflectenergyac' => self::ReflectEnergyAC,
+			'reflectfireac' => self::ReflectFireAC,
+			'reflectmeleeac' => self::ReflectMeleeAC,
+			'reflectnanoac' => self::ReflectNanoAC,
+			'reflectpoisonac' => self::ReflectPoisonAC,
+			'reflectprojectileac' => self::ReflectProjectileAC,
+			'reflectradiationac' => self::ReflectRadiationAC,
+			'regain xp percentage' => self::RegainXP,
+			'sensory impr' => self::SI,
+			'shadowbreed' => self::ShadowBreed,
+			'sharp obj' => self::SharpObj,
+			'shieldchemicalac' => self::ShieldChemicalAC,
+			'shieldcoldac' => self::ShieldColdAC,
+			'shieldenergyac' => self::ShieldEnergyAC,
+			'shieldfireac' => self::ShieldFireAC,
+			'shieldmeleeac' => self::ShieldMeleeAC,
+			'shieldnanoac' => self::ShieldNanoAC,
+			'shieldpoisonac' => self::ShieldPoisonAC,
+			'shieldprojectileac' => self::ShieldProjectileAC,
+			'shieldradiationac' => self::ShieldRadiationAC,
+			'skilllockmodifier' => self::SkillLockModifier,
+			'sneak atck' => self::SneakAttack,
+			'time&space' => self::TS,
+			'trap disarm.' => self::TrapDisarm,
+			'weapon smt' => self::WeaponSmt,
+		];
+		$exactMatch = $mapping[$name] ?? null;
+		if (isset($exactMatch)) {
+			return $exactMatch;
+		}
+		if ($exactMatchOnly) {
+			throw new ValueError("Unknown skill \"{$name}\"");
+		}
+
+		/** @var list<self> */
+		$result = [];
+		$search = Safe::pregSplit('/\s+/', $name);
+		foreach ($mapping as $key => $value) {
+			if (!self::matchesSearch($search, $key)) {
+				continue;
+			} elseif (!in_array($value, $result, true)) {
+				$result []= $value;
+			}
+		}
+		if (count($result) === 0) {
+			throw new ValueError("Unknown skill \"{$name}\"");
+		}
+		return count($result) === 1 ? $result[0] : $result;
+	}
+
 	public function getUnit(): string {
 		/** @psalm-suppress UnhandledMatchCondition */
 		return match ($this) {
@@ -162,7 +545,7 @@ enum Skill: int {
 		};
 	}
 
-	public function niceLong(): string {
+	public function fullName(): string {
 		/** @psalm-suppress UnhandledMatchCondition */
 		return match ($this) {
 			self::AddNanoCost => 'Nano Cost',
@@ -250,7 +633,7 @@ enum Skill: int {
 			self::MechEngi => 'Mechanical Engineering',
 			self::MeleeEner => 'Melee Energy Weapons',
 			self::MeleeInit => 'Melee Weapons Initiative',
-			self::MeleeAC => 'Malee AC',
+			self::MeleeAC => 'Melee AC',
 			self::SMG => 'MG/SMG',
 			self::MultiMelee => 'Multiple Melee Weapons',
 			self::MultiRanged => 'Multiple Ranged Weapons',
@@ -478,6 +861,16 @@ enum Skill: int {
 			self::WeaponSmt => 'Weapon Smt',
 			self::XP => 'XP',
 		};
+	}
+
+	/** @param list<string> $search */
+	private static function matchesSearch(array $search, string $term): bool {
+		foreach ($search as $token) {
+			if (!str_contains($term, $token)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	case AddNanoCost = 318;

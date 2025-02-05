@@ -4,11 +4,11 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 
 class SymbiantSlot {
 	/**
-	 * @param AbilityAmount[] $reqs
-	 * @param AbilityAmount[] $mods
+	 * @param SkillAmount[] $reqs
+	 * @param SkillAmount[] $mods
 	 *
-	 * @psalm-param list<AbilityAmount> $reqs
-	 * @psalm-param list<AbilityAmount> $mods
+	 * @psalm-param list<SkillAmount> $reqs
+	 * @psalm-param list<SkillAmount> $mods
 	 */
 	public function __construct(
 		public string $name,

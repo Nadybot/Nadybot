@@ -51,7 +51,7 @@ enum Ability: string implements EnumParameterInterface {
 		};
 	}
 
-	public function byID(int $id): self {
+	public static function byID(int $id): self {
 		return match ($id) {
 			16 => self::Strength,
 			17 => self::Agility,

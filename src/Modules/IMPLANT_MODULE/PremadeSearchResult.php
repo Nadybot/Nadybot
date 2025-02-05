@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Nadybot\Core\Attributes\DB\{ColName, MapRead};
+use Nadybot\Core\Types\Ability;
 use Nadybot\Core\{DBRow, Types\Profession};
 
 class PremadeSearchResult extends DBRow {
@@ -12,7 +13,10 @@ class PremadeSearchResult extends DBRow {
 			MapRead([Profession::class, 'byNumber']),
 			ColName('profession_id')
 		] public Profession $profession,
-		public string $ability,
+		#[
+			MapRead([Ability::class, 'byID']),
+			ColName('ability_id')
+		] public Ability $ability,
 		public string $shiny,
 		public string $bright,
 		public string $faded,
