@@ -21,6 +21,22 @@ enum Skill: int {
 		}
 	}
 
+	public function negativeIsGood(): bool {
+		return in_array($this, [self::AddNanoCost, self::SkillLockModifier], true);
+	}
+
+	/** @return list<self> */
+	public static function getMatching(string $name): array {
+		$matching = self::tryByName($name, false);
+		if (!isset($matching)) {
+			return [];
+		}
+		if (!is_array($matching)) {
+			return [$matching];
+		}
+		return $matching;
+	}
+
 	/**
 	 * @return self|list<self>
 	 *

@@ -7,11 +7,11 @@ use function Amp\ByteStream\splitLines;
 use function Safe\{preg_match, preg_split};
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	Filesystem,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
@@ -21,11 +21,11 @@ use Nadybot\Core\{
 	Types\CommandReply,
 	Types\Profession,
 	Types\SettingMode,
+	Types\Skill,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
 	ExtBuff,
 	ItemsController,
-	Skill,
 	WhatBuffsController,
 };
 use Nadybot\Modules\NANO_MODULE\NanoController;
@@ -238,8 +238,8 @@ class BuffPerksController extends ModuleInstance {
 					$level = clone $level;
 					$level->resistances = [];
 					$level->action = null;
-					if (($level->buffs[$skill->id]??0) > 0) {
-						$level->buffs = [$skill->id => $level->buffs[$skill->id]];
+					if (($level->buffs[$skill->value]??0) > 0) {
+						$level->buffs = [$skill->value => $level->buffs[$skill->value]];
 					} else {
 						$level->buffs = [];
 					}
@@ -269,7 +269,8 @@ class BuffPerksController extends ModuleInstance {
 	protected function showPerks(Profession $profession, int $level, ?string $breed, ?string $search, CommandReply $sendto): void {
 		$skill = null;
 		if ($search !== null) {
-			$skills = $this->whatBuffsController->searchForSkill($search);
+			$skills = collect(Skill::getMatching($search))
+				->sortBy(static fn (Skill $s): string => $s->fullName());
 			$count = count($skills);
 			if ($count === 0) {
 				$sendto->reply("No skill <highlight>{$search}<end> found.");
@@ -280,8 +281,8 @@ class BuffPerksController extends ModuleInstance {
 				foreach ($skills as $skill2) {
 					$blob .= '<tab>'.
 						Text::makeChatcmd(
-							$skill2->name,
-							"/tell <myname> perks {$level} {$profession->value} {$skill2->name}"
+							$skill2->fullName(),
+							"/tell <myname> perks {$level} {$profession->value} {$skill2->fullName()}"
 						).
 						"\n";
 				}

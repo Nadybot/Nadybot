@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RECIPE_MODULE;
 
 use Exception;
-use Nadybot\Core\Types\ItemFlag;
+use Nadybot\Core\Types\{ItemFlag, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -16,7 +16,6 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	AODBItem,
 	ItemWithBuffs,
 	ItemsController,
-	Skill,
 };
 
 /**
@@ -516,16 +515,16 @@ class ArulSabaController extends ModuleInstance {
 		$requirements = [];
 		foreach ($skillReqs as $skillID => $amount) {
 			$amount = (string)$amount;
-			$skill = $this->readSkill($skillID);
+			$skill = Skill::tryFrom($skillID);
 			if (!isset($skill)) {
 				throw new Exception("Unable to find skill {$skillID}");
 			}
 			if (substr($amount, 0, 1) === '*') {
 				$exAmount = (int)ceil((float)substr($amount, 1) * $dest->ql);
-				$requirements []= "<yellow>{$skill->name}: {$exAmount}<end> (" . substr($amount, 1) . 'x)';
+				$requirements []= "<yellow>{$skill->fullName()}: {$exAmount}<end> (" . substr($amount, 1) . 'x)';
 			} else {
 				$exAmount = (int)$amount;
-				$requirements []= "<yellow>{$skill->name}: {$exAmount}<end>";
+				$requirements []= "<yellow>{$skill->fullName()}: {$exAmount}<end>";
 			}
 		}
 		$line .= '<tab>' . implode(', ', $requirements) . "\n\n";
@@ -533,11 +532,5 @@ class ArulSabaController extends ModuleInstance {
 			$line .= "\n";
 		}
 		return $line;
-	}
-
-	protected function readSkill(int $id): ?Skill {
-		return $this->db->table(Skill::getTable())
-			->where('id', $id)
-			->firstObj(Skill::class);
 	}
 }

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\Skill;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -12,10 +13,6 @@ use Nadybot\Core\{
 	Text,
 	Types\ImplantSlot,
 	Types\Profession,
-};
-use Nadybot\Modules\ITEMS_MODULE\{
-	Skill,
-	WhatBuffsController,
 };
 
 /**
@@ -34,9 +31,6 @@ use Nadybot\Modules\ITEMS_MODULE\{
 class PremadeImplantController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
-
-	#[NCA\Inject]
-	private WhatBuffsController $whatBuffsController;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -86,18 +80,16 @@ class PremadeImplantController extends ModuleInstance {
 
 	/** @return Collection<int,PremadeSearchResult> */
 	public function searchByModifier(string $modifier): Collection {
-		$skills = $this->whatBuffsController->searchForSkill($modifier);
-		if (!count($skills)) {
+		$skills = Skill::tryByName($modifier, false);
+		if (!isset($skills)) {
 			/** @var Collection<int,PremadeSearchResult> */
 			$empty = new Collection();
 			return $empty;
+		} elseif (!is_array($skills)) {
+			$skills = [$skills];
 		}
-		$skillIds = array_map(
-			static function (Skill $s): int {
-				return $s->id;
-			},
-			$skills
-		);
+
+		$skillIds = array_map(static fn (Skill $s): int => $s->value, $skills);
 		$query = $this->getBaseQuery()
 			->whereIn('cs.skill_id', $skillIds)
 			->orWhereIn('cb.skill_id', $skillIds)

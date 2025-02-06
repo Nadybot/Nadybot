@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\Skill;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -17,8 +18,6 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	ExtBuff,
 	ItemWithBuffs,
 	ItemsController,
-	Skill,
-	WhatBuffsController,
 };
 
 /**
@@ -50,13 +49,7 @@ class SymbiantController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private ItemsController $itemsController;
-
-	#[NCA\Inject]
-	private WhatBuffsController $wbCtrl;
 
 	/** Show the 3 best symbiants for a profession at a given level */
 	#[NCA\HandlesCommand('bestsymbiants')]
@@ -146,7 +139,7 @@ class SymbiantController extends ModuleInstance {
 	/** Find symbiants  buffing a given skill */
 	#[NCA\HandlesCommand('symbbuffs')]
 	public function findSymbiants(CmdContext $context, string $skillName): void {
-		$skills = $this->wbCtrl->searchForSkill($skillName);
+		$skills = Skill::getMatching($skillName);
 		if (count($skills) === 0) {
 			$context->reply("No skill matching '<highlight>{$skillName}<end>' found.");
 			return;
@@ -157,7 +150,7 @@ class SymbiantController extends ModuleInstance {
 			if (count($symbs) === 0) {
 				continue;
 			}
-			$skillBlocks []= "<header2>{$skill->name}<end>\n" . $this->renderSymbiantBuffs(...$symbs);
+			$skillBlocks []= "<header2>{$skill->inGame()}<end>\n" . $this->renderSymbiantBuffs(...$symbs);
 		}
 		if (count($skillBlocks) === 0) {
 			$context->reply("No symbiants buffing '<highlight>{$skillName}<end>' found.");
@@ -289,7 +282,7 @@ class SymbiantController extends ModuleInstance {
 			->join(Cluster::getTable() . ' AS c', 'c.cluster_id', '=', 'scm.cluster_id')
 			->join(ImplantType::getTable(as: 'it'), 'it.implant_type_id', 'sym.slot_id')
 			->select(['sym.*', 'it.short_name AS slot_name', 'it.name AS slot_long_name'])
-			->where('c.skill_id', $skill->id)
+			->where('c.skill_id', $skill->value)
 			->asObjArr(Symbiant::class);
 	}
 

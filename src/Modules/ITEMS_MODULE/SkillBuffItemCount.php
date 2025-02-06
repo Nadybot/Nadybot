@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Nadybot\Core\DBRow;
+use Nadybot\Core\Types\Skill;
 
 class SkillBuffItemCount extends DBRow {
 	public function __construct(
-		public string $skill,
+		public Skill $skill,
 		public int $num,
 	) {
 	}

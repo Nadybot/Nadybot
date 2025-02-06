@@ -10,7 +10,6 @@ class PerkBuffSearchResult extends DBRow {
 		public int $amount,
 		public int $perk_level,
 		public string $profs,
-		public string $unit,
 		public string $expansion,
 		public array $profMax=[],
 		public ?string $name=null,

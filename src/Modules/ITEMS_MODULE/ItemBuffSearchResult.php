@@ -5,7 +5,6 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 class ItemBuffSearchResult extends AODBEntry {
 	public function __construct(
 		public int $amount,
-		public string $unit,
 		int $lowid,
 		int $highid,
 		int $lowql,

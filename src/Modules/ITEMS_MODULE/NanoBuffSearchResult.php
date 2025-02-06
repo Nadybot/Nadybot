@@ -19,7 +19,6 @@ class NanoBuffSearchResult extends Buff {
 		int $range,
 		int $initskill,
 		public int $amount,
-		public string $unit,
 		public bool $froob_friendly=false,
 		public ?string $use_name=null,
 		public ?int $lowid=null,

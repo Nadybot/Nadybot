@@ -3,11 +3,10 @@
 namespace Nadybot\Modules\WHATLOCKS_MODULE;
 
 use Nadybot\Core\DBRow;
-use Nadybot\Modules\ITEMS_MODULE\Skill;
+use Nadybot\Core\Types\Skill;
 
-class SkillIdCount extends DBRow {
+class SkillCount extends DBRow {
 	public function __construct(
-		public int $skill_id,
 		public int $amount,
 		public Skill $skill,
 	) {

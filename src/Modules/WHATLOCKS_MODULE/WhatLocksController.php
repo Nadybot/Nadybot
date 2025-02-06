@@ -11,8 +11,9 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\Skill,
 };
-use Nadybot\Modules\ITEMS_MODULE\{ItemsController, Skill};
+use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 use Safe\DateTimeImmutable;
 
@@ -46,25 +47,20 @@ class WhatLocksController extends ModuleInstance {
 		$query = $this->db->table(WhatLocks::getTable())->groupBy('skill_id');
 		$skills = $query->select(['skill_id', $query->raw($query->rawFunc('COUNT', '*', 'amount'))])
 			->get();
-		$skillsById = $this->itemsController->getSkillByIDs(
-			...$skills->pluck('skill_id')->toArray()
-		)->keyBy('id');
-		$lines = $skills->map(static function (\stdClass $item) use ($skillsById): SkillIdCount {
-			$skill = $skillsById->get($item->skill_id);
+		$lines = $skills->map(static function (\stdClass $item): SkillCount {
+			$skill = Skill::tryFrom($item->skill_id);
 			if (!isset($skill)) {
 				throw new UserException('Unknown skill encountered');
 			}
-			return new SkillIdCount(
-				skill_id: $item->skill_id,
-				amount: $item->amount,
+			return new SkillCount(
 				skill: $skill,
+				amount: $item->amount,
 			);
-		})->sort(static function (SkillIdCount $s1, SkillIdCount $s2): int {
-			return strnatcmp($s1->skill->name, $s2->skill->name);
-		})->map(static function (SkillIdCount $row): string {
+		})->sortBy(static fn (SkillCount $s): string => $s->skill->fullName())
+		->map(static function (SkillCount $row): string {
 			return Text::alignNumber($row->amount, 4).
 				' - '.
-				Text::makeChatcmd($row->skill->name, "/tell <myname> whatlocks {$row->skill->name}");
+				Text::makeChatcmd($row->skill->fullName(), "/tell <myname> whatlocks {$row->skill->fullName()}");
 		});
 		$blob = "<header2>Choose a skill to see which items lock it<end>\n<tab>".
 			$lines->join("\n<pagebreak><tab>");
@@ -85,12 +81,12 @@ class WhatLocksController extends ModuleInstance {
 	 */
 	public function getSkillChoiceDialog(Skill ...$skills): array {
 		usort($skills, static function (Skill $a, Skill $b): int {
-			return strnatcmp($a->name, $b->name);
+			return strnatcmp($a->fullName(), $b->fullName());
 		});
 		$lines = array_map(static function (Skill $skill): string {
 			return Text::makeChatcmd(
-				$skill->name,
-				"/tell <myname> whatlocks {$skill->name}"
+				$skill->fullName(),
+				"/tell <myname> whatlocks {$skill->fullName()}"
 			);
 		}, $skills);
 		$msg = Text::makeBlob('WhatLocks - Choose Skill', implode("\n", $lines));
@@ -100,24 +96,24 @@ class WhatLocksController extends ModuleInstance {
 	/** Search for a list of items that lock a specific skill */
 	#[NCA\HandlesCommand('whatlocks')]
 	public function whatLocksSkillCommand(CmdContext $context, string $skill): void {
-		$skills = $this->itemsController->searchForSkill($skill);
-		if ($skills->isEmpty()) {
+		$skills = Skill::getMatching($skill);
+		if (!count($skills)) {
 			$msg = "Could not find any skills matching <highlight>{$skill}<end>.";
 			$context->reply($msg);
 			return;
-		} elseif ($skills->count() > 1) {
-			$msg = $this->getSkillChoiceDialog(...$skills->toArray());
+		} elseif (count($skills) > 1) {
+			$msg = $this->getSkillChoiceDialog(...$skills);
 			$context->reply($msg);
 			return;
 		}
 
 		$items = $this->db->table(WhatLocks::getTable())
-			->where('skill_id', $skills->firstOrFail()->id)
+			->where('skill_id', $skills[0]->value)
 			->orderBy('duration')
 			->asObj(WhatLocks::class);
 		if ($items->isEmpty()) {
 			$msg = 'There is currently no item in the game locking '.
-				"<highlight>{$skills[0]->name}<end>.";
+				"<highlight>{$skills[0]->fullName()}<end>.";
 			$context->reply($msg);
 			return;
 		}
@@ -143,9 +139,9 @@ class WhatLocksController extends ModuleInstance {
 		$pages = Text::makeBlob(
 			count($lines) . ' items',
 			$blob,
-			'The following ' . count($lines) . ' items lock '. $skills[0]->name
+			'The following ' . count($lines) . ' items lock '. $skills[0]->fullName()
 		);
-		$msg =  "{$pages} found that lock <highlight>{$skills[0]->name}<end>.";
+		$msg =  "{$pages} found that lock <highlight>{$skills[0]->fullName()}<end>.";
 		$context->reply($msg);
 	}
 
