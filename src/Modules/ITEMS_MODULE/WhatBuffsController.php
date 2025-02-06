@@ -729,7 +729,7 @@ class WhatBuffsController extends ModuleInstance {
 			$command = 'whatbuffs' . ($froobFriendly ? 'froob' : '');
 			$suffix = $froobFriendly ? 'Froob' : '';
 			foreach ($skills as $skill) {
-				$blob .= Text::makeChatcmd(ucfirst($skill->name), "/tell <myname> {$command} {$category} {$skill->name}") . "\n";
+				$blob .= Text::makeChatcmd(ucfirst($skill->fullName()), "/tell <myname> {$command} {$category} {$skill->fullName()}") . "\n";
 			}
 			$msg = Text::makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
 		}

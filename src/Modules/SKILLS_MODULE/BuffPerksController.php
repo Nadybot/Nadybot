@@ -347,7 +347,7 @@ class BuffPerksController extends ModuleInstance {
 				$blobs []= $this->renderPerkAggGroup($name, ...$perks2);
 			}
 		}
-		$buffText = isset($skill) ? " buffing {$skill->name}" : '';
+		$buffText = isset($skill) ? " buffing {$skill->fullName()}" : '';
 		$count = count($perks);
 		$msg = Text::makeBlob(
 			"Perks for a level {$level} {$profession->value}{$buffText} ({$count})",
