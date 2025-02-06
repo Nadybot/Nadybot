@@ -25,6 +25,7 @@ use Nadybot\Modules\SKILLS_MODULE\{
 	Perk,
 	SkillsController,
 };
+use ValueError;
 
 #[
 	NCA\Instance,
@@ -111,7 +112,7 @@ class WhatBuffsController extends ModuleInstance {
 			->filter();
 		$skills = $skills->sortBy(static fn (Skill $s1): string => $s1->fullName());
 		foreach ($skills as $skill) {
-			$blob .= '<tab>' . Text::makeChatcmd($skill->fullName(), "/tell <myname> {$command} {$skill->fullName()}") . "\n";
+			$blob .= '<tab>' . Text::makeChatcmd($skill->fullName(), "/tell <myname> {$command} {$skill->value}") . "\n";
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
 		$msg = Text::makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
@@ -249,7 +250,7 @@ class WhatBuffsController extends ModuleInstance {
 			$blob .= '<tab>'.
 				Text::makeChatcmd(
 					$row->skill->fullName(),
-					"/tell <myname> {$command} {$type} {$row->skill->fullName()}"
+					"/tell <myname> {$command} {$type} {$row->skill->value}"
 				).
 				" ({$row->num})\n";
 		}
@@ -289,7 +290,7 @@ class WhatBuffsController extends ModuleInstance {
 
 	public function handleOtherComandline(bool $froobFriendly, CmdContext $context, string $search): void {
 		$tokens = explode(' ', $search);
-		$skillSearch = Skill::tryByName($search, true);
+		$skillSearch = ctype_digit($search) ? Skill::tryFrom((int)$search) : Skill::tryByName($search, true);
 		if (isset($skillSearch)) {
 			$tokens = [$search];
 		}
@@ -311,7 +312,11 @@ class WhatBuffsController extends ModuleInstance {
 		$command = 'whatbuffs' . ($froobFriendly ? 'froob' : '');
 		$suffix = $froobFriendly ? 'Froob' : '';
 
-		$skills = Skill::getMatching($skill);
+		try {
+			$skills = ctype_digit($skill) ? [Skill::from((int)$search)] : Skill::getMatching($skill);
+		} catch (ValueError) {
+			$skills = [];
+		}
 		$count = count($skills);
 
 		$blob = '';
@@ -323,14 +328,14 @@ class WhatBuffsController extends ModuleInstance {
 		if ($count > 1) {
 			$blob .= "<header2>Choose a skill<end>\n";
 			foreach ($skills as $row) {
-				$blob .= '<tab>' . Text::makeChatcmd($row->fullName(), "/tell <myname> {$command} {$row->fullName()}") . "\n";
+				$blob .= '<tab>' . Text::makeChatcmd($row->fullName(), "/tell <myname> {$command} {$row->value}") . "\n";
 			}
 			$blob .= "\nItem Extraction Info provided by AOIA+";
 			$msg = Text::makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
 			$context->reply($msg);
 			return;
 		}
-		$skill = $skills[0];
+		$skill = array_shift($skills);
 		$itemQuery = $this->db->table(AODBEntry::getTable(), 'i');
 		$itemQuery
 			->join(ItemType::getTable(as: 'it'), 'it.item_id', '=', 'i.highid')
@@ -382,7 +387,7 @@ class WhatBuffsController extends ModuleInstance {
 		}
 		$blob = "<header2>Choose buff type<end>\n";
 		foreach ($data as $row) {
-			$blob .= '<tab>' . Text::makeChatcmd(ucfirst($row->item_type), "/tell <myname> {$command} {$row->item_type} {$skill->fullName()}") . " ({$row->num})\n";
+			$blob .= '<tab>' . Text::makeChatcmd(ucfirst($row->item_type), "/tell <myname> {$command} {$row->item_type} {$skill->value}") . " ({$row->num})\n";
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
 		$msg = Text::makeBlob("WhatBuffs{$suffix} {$skill->fullName()} - Choose Type", $blob);
@@ -716,20 +721,24 @@ class WhatBuffsController extends ModuleInstance {
 	public function showSearchResults(string $category, string $skillName, bool $froobFriendly): string {
 		$category = ucfirst(strtolower($category));
 
-		$skills = Skill::getMatching($skillName);
+		try {
+			$skills = ctype_digit($skillName) ? [Skill::from((int)$skillName)] : Skill::getMatching($skillName);
+		} catch (ValueError) {
+			$skills = [];
+		}
 		$count = count($skills);
 
 		if ($count === 0) {
 			$msg = "Could not find any skills matching <highlight>{$skillName}<end>.";
 		} elseif ($count === 1) {
-			$skill = $skills[0];
+			$skill = array_shift($skills);
 			$msg = $this->getSearchResults($category, $skill, $froobFriendly);
 		} else {
 			$blob = '';
 			$command = 'whatbuffs' . ($froobFriendly ? 'froob' : '');
 			$suffix = $froobFriendly ? 'Froob' : '';
 			foreach ($skills as $skill) {
-				$blob .= Text::makeChatcmd(ucfirst($skill->fullName()), "/tell <myname> {$command} {$category} {$skill->fullName()}") . "\n";
+				$blob .= Text::makeChatcmd($skill->fullName(), "/tell <myname> {$command} {$category} {$skill->value}") . "\n";
 			}
 			$msg = Text::makeBlob("WhatBuffs{$suffix} - Choose Skill", $blob);
 		}
