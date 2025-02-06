@@ -103,7 +103,7 @@ class ArulSabaController extends ModuleInstance {
 			$blob .= "<header2>{$shortName}<end>\n".
 				"<tab>Min level: <highlight>{$arul->min_level}<end>\n";
 			foreach ($item->buffs as $buff) {
-				$blob .= "<tab>{$buff->skill->name}: <highlight>+{$buff->amount}{$buff->skill->unit}<end>\n";
+				$blob .= "<tab>{$buff->skill->fullName()}: <highlight>+{$buff->amount}{$buff->skill->getUnit()}<end>\n";
 			}
 			$leftLink = Text::makeChatcmd('Left', "/tell <myname> arulsaba {$arul->name} {$gems} left");
 			$rightLink = Text::makeChatcmd('Right', "/tell <myname> arulsaba {$arul->name} {$gems} right");

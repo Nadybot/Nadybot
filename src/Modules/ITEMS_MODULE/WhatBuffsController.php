@@ -20,7 +20,6 @@ use Nadybot\Core\{
 	Types\Profession,
 	Util,
 };
-use Nadybot\Modules\ITEMS_MODULE\Skill as DBSkill;
 use Nadybot\Modules\SKILLS_MODULE\{
 	BuffPerksController,
 	Perk,
@@ -85,8 +84,6 @@ class WhatBuffsController extends ModuleInstance {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/item_buffs.csv');
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/skills.csv');
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/skill_alias.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/item_types.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/buffs.csv');
 	}
@@ -519,53 +516,6 @@ class WhatBuffsController extends ModuleInstance {
 		return $this->db->table(ItemType::getTable())
 			->where('item_type', $type)
 			->exists() || strtolower($type) === 'perk';
-	}
-
-	/**
-	 * Search for all skills and skill aliases matching $skill
-	 *
-	 * @return list<DBSkill>
-	 */
-	public function searchForSkill(string $skill): array {
-		// check for exact match first, in order to disambiguate
-		// between Bow and Bow special attack
-		$results = $this->db->table(DBSkill::getTable())
-			->whereIlike('name', $skill)
-			->select(['id', 'name', 'unit'])
-			->distinct()
-			->union(
-				$this->db->table(SkillAlias::getTable())
-					->join(DBSkill::getTable(), 'skills.id', 'skill_alias.id')
-					->whereIlike('skill_alias.name', $skill)
-					->select(['skill_alias.id', 'skills.name', 'skills.unit'])
-					->distinct()
-			)->asObj(DBSkill::class);
-		if ($results->count() === 1) {
-			return $results->toList();
-		}
-
-		$skillsQuery = $this->db->table(DBSkill::getTable())
-			->select(['id', 'name', 'unit'])
-			->distinct();
-		$aliasQuery = $this->db->table(SkillAlias::getTable(), 'a')
-			->join(DBSkill::getTable(as: 's'), 'a.id', 's.id')
-			->select(['s.id', 's.name', 's.unit'])
-			->distinct();
-
-		$tmp = explode(' ', $skill);
-		$this->db->addWhereFromParams($skillsQuery, $tmp, 'name');
-		$this->db->addWhereFromParams($aliasQuery, $tmp, 'a.name');
-
-		$skills = $this->db
-			->fromSub(
-				$skillsQuery->union($aliasQuery),
-				'foo'
-			)
-			->groupBy('id', 'name', 'unit')
-			->orderBy('name')
-			->select(['id', 'name', 'unit'])
-			->asObjArr(DBSkill::class);
-		return $skills;
 	}
 
 	public function showItemLink(AOItemSpec $item, int $ql): string {

@@ -7,7 +7,6 @@ use function Safe\preg_split;
 use BackedEnum;
 use Illuminate\Support\Collection;
 
-use Nadybot\Core\Types\Bitfield;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -16,6 +15,8 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 	Text,
+	Types\Bitfield,
+	Types\Skill,
 };
 use Psr\Log\LoggerInterface;
 
@@ -57,19 +58,11 @@ class ItemsController extends ModuleInstance {
 	#[NCA\Inject]
 	private SettingManager $settingManager;
 
-	/** @var array<int,Skill> */
-	private array $skills = [];
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/aodb.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/item_groups.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/item_group_names.csv');
-
-		$this->skills = $this->db->table(Skill::getTable())
-			->asObj(Skill::class)
-			->keyBy('id')
-			->toArray();
 	}
 
 	/**
@@ -642,51 +635,17 @@ class ItemsController extends ModuleInstance {
 		return trim($words->reduce($this->getLongestCommonString(...), $firstWord));
 	}
 
-	public function getSkillByID(int $id): ?Skill {
-		return $this->skills[$id] ?? null;
-	}
-
-	/** @return Collection<int,Skill> */
-	public function getSkillByIDs(int ...$ids): Collection {
-		return $this->db->table(Skill::getTable())
-			->whereIn('id', $ids)
-			->asObj(Skill::class);
-	}
-
-	/** @return Collection<int,Skill> */
-	public function searchForSkill(string $skillName): Collection {
-		// check for exact match first, in order to disambiguate
-		// between Bow and Bow special attack
-		$query = $this->db->table(Skill::getTable());
-
-		$results = $query->where($query->raw($query->colFunc('LOWER', 'name')), strtolower($skillName))
-			->select('*')->distinct()
-			->asObj(Skill::class);
-		if ($results->containsOneItem()) {
-			return $results;
-		}
-
-		$query = $this->db->table(Skill::getTable())->select('*')->distinct();
-
-		$tmp = explode(' ', $skillName);
-		$this->db->addWhereFromParams($query, $tmp, 'name');
-
-		return $query->asObj(Skill::class);
-	}
-
 	/** @return Collection<int,ItemWithBuffs> */
 	public function addBuffs(AODBEntry ...$items): Collection {
 		$buffs = $this->db->table(ItemBuff::getTable())
 			->whereIn('item_id', array_unique([...array_column($items, 'highid'), ...array_column($items, 'lowid')]))
 			->asObj(ItemBuff::class);
-		$skills = $this->getSkillByIDs(...$buffs->pluck('attribute_id')->unique()->toArray())
-			->keyBy('id');
 
 		/** @param Collection<ItemBuff> $buffs */
 		$buffs = $buffs->groupBy('item_id')
-			->map(static function (Collection $iBuffs, int $itemId) use ($skills): array {
-				return $iBuffs->map(static function (ItemBuff $buff) use ($skills): ExtBuff {
-					if (null === ($skill = $skills->get($buff->attribute_id))) {
+			->map(static function (Collection $iBuffs, int $itemId): array {
+				return $iBuffs->map(static function (ItemBuff $buff): ExtBuff {
+					if (null === ($skill = Skill::tryFrom($buff->attribute_id))) {
 						throw new \Exception("Unknown skill {$buff->attribute_id} encountered");
 					}
 					return new ExtBuff(

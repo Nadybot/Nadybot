@@ -26,7 +26,6 @@ use Nadybot\Core\{
 use Nadybot\Modules\ITEMS_MODULE\{
 	ExtBuff,
 	ItemsController,
-	WhatBuffsController,
 };
 use Nadybot\Modules\NANO_MODULE\NanoController;
 use Psr\Log\LoggerInterface;
@@ -65,9 +64,6 @@ class BuffPerksController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private Filesystem $fs;
-
-	#[NCA\Inject]
-	private WhatBuffsController $whatBuffsController;
 
 	#[NCA\Inject]
 	private PlayerManager $playerManager;
@@ -176,9 +172,9 @@ class BuffPerksController extends ModuleInstance {
 			foreach ($buffs as $buff) {
 				$blob .= sprintf(
 					"<tab>%s <highlight>%+d%s<end>\n",
-					$buff->skill->name,
+					$buff->skill->fullName(),
 					$buff->amount,
-					$buff->skill->unit
+					$buff->skill->getUnit(),
 				);
 			}
 			$resistances = $this->resistanceHashToCollection($level->resistances);
@@ -385,9 +381,9 @@ class BuffPerksController extends ModuleInstance {
 			foreach ($buffs as $buff) {
 				$blob .= sprintf(
 					"<tab><tab>%s <highlight>%+d%s<end>\n",
-					$buff->skill->name,
+					$buff->skill->fullName(),
 					$buff->amount,
-					$buff->skill->unit,
+					$buff->skill->getUnit(),
 				);
 			}
 			$resistances = $this->resistanceHashToCollection($perk->resistances);
@@ -679,14 +675,14 @@ class BuffPerksController extends ModuleInstance {
 				$skills = $this->expandSkill($skillName);
 				foreach ($skills as $skill) {
 					$skillSearch = $skillCache[$skill]
-						?? $this->whatBuffsController->searchForSkill($skill);
+						?? Skill::getMatching($skill);
 					$skillCache[$skill] = $skillSearch;
 					if (count($skillSearch) !== 1) {
 						$this->logger->info("Error parsing skill: '{skill}'", [
 							'skill' => $skill,
 						]);
 					} else {
-						$level->buffs[$skillSearch[0]->id] = (int)$amount;
+						$level->buffs[$skillSearch[0]->value] = (int)$amount;
 					}
 				}
 			}
@@ -722,7 +718,7 @@ class BuffPerksController extends ModuleInstance {
 		/** @var Collection<int,ExtBuff> */
 		$result = new Collection();
 		foreach ($buffs as $skillId => $amount) {
-			$skill = $this->itemsController->getSkillByID($skillId);
+			$skill = Skill::tryFrom($skillId);
 			if (!isset($skill)) {
 				continue;
 			}
@@ -731,9 +727,7 @@ class BuffPerksController extends ModuleInstance {
 				amount: $amount,
 			);
 		}
-		return $result->sort(static function (ExtBuff $b1, ExtBuff $b2): int {
-			return strnatcmp($b1->skill->name, $b2->skill->name);
-		});
+		return $result->sortBy(static fn (ExtBuff $b1): string => $b1->skill->fullName());
 	}
 
 	/**

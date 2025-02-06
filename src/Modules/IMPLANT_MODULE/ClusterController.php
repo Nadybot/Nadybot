@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Types\Skill;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -9,7 +10,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Text,
 };
-use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
 
 /**
  * @author Tyrence (RK2)
@@ -25,9 +25,6 @@ use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
 class ClusterController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
-
-	#[NCA\Inject]
-	private WhatBuffsController $wbCtrl;
 
 	/** Get a list of skills/attributes you can get clusters for */
 	#[NCA\HandlesCommand('cluster')]
@@ -58,14 +55,14 @@ class ClusterController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>cluster comp lit')]
 	#[NCA\Help\Example('<symbol>cluster agility')]
 	public function clusterCommand(CmdContext $context, string $search): void {
-		$skills = $this->wbCtrl->searchForSkill($search);
+		$skills = Skill::getMatching($search);
 		if (count($skills) === 0) {
 			$msg = "No skills found that match <highlight>{$search}<end>.";
 			$context->reply($msg);
 			return;
 		}
 		$data = $this->db->table(Cluster::getTable())
-			->whereIn('skill_id', array_column($skills, 'id'))
+			->whereIn('skill_id', array_column($skills, 'value'))
 			->asObj(Cluster::class);
 		$count = $data->count();
 
