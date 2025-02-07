@@ -170,10 +170,7 @@
                 "required": ["database", "general", "main", "paths"],
                 "properties": {
                     "autoUnfreeze": {
-                        "oneOf": [
-                            { "$ref": "#/components/schemas/AutoUnfreeze" },
-                            { "type": "null" }
-                        ]
+                        "$ref": "#/components/schemas/AutoUnfreeze"
                     },
                     "database": {
                         "$ref": "#/components/schemas/Database"
@@ -188,10 +185,7 @@
                         "$ref": "#/components/schemas/Paths"
                     },
                     "proxy": {
-                        "oneOf": [
-                            { "type": "null" },
-                            { "$ref": "#/components/schemas/Proxy" }
-                        ]
+                        "$ref": "#/components/schemas/Proxy"
                     },
                     "settings": {
                         "type": "object",
