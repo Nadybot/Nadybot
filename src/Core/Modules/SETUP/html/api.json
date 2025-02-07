@@ -104,6 +104,7 @@
             },
             "Password": {
                 "description": "A valid password for Anarchy Online",
+                "example": "CfGoHMb4YS1XnlGi",
                 "type": "string",
                 "minLength": 6,
                 "maxLength": 20,
@@ -309,6 +310,7 @@
                         "type": "integer",
                         "description": "Enable all current and upcoming modules (1) or only the bare minimum (0)",
                         "enum": [0, 1],
+                        "example": 1,
                         "default": 1
                     },
                     "enableConsoleClient": {
@@ -339,7 +341,7 @@
                     "superAdmins": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/Character"
+                            "$ref": "#/components/schemas/CharacterName"
                         },
                         "minItems": 1,
                         "uniqueItems": true
@@ -436,6 +438,7 @@
                             "minimum": 4,
                             "maximum": 6
                         },
+                        "example": 5,
                         "description": "The dimension to login to"
                     },
                     {
@@ -445,7 +448,8 @@
                         "schema": {
                             "type": "string",
                             "minLength": 6,
-                            "maxLength": 15
+                            "maxLength": 15,
+                            "example": "nadylogin"
                         },
                         "description": "The username to use for login"
                     },
