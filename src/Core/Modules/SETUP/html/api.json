@@ -107,6 +107,7 @@
                 "pattern": "^[a-zA-Z0-9-]{6,20}$"
             },
             "DatabaseType": {
+                "example": "sqlite",
                 "type": "string",
                 "enum": [
                     "sqlite",
@@ -284,7 +285,6 @@
                     },
                     "type": {
                         "$ref": "#/components/schemas/DatabaseType",
-                        "example": "sqlite",
                         "description": "What type of database should be used? ('sqlite', 'postgresql', or 'mysql')"
                     },
                     "username": {
