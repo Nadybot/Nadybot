@@ -78,7 +78,7 @@ valeCheck() {
 
 spectralCheck() {
   if command -v spectral &> /dev/null; then
-    OUTPUT=$(spectral lint -F hint html/api.json)
+    OUTPUT=$(spectral lint -F hint src/Core/Modules/SETUP/html/api.json html/api.json)
     if [ $? -ne 0 ]; then
       echo "$OUTPUT"
       exit 1

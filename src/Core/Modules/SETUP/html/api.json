@@ -59,6 +59,8 @@
             },
             "Specs": {
                 "type": "object",
+                "summary": "Basic system specs",
+                "description": "These are basic systems specs that might be useful to show in the WebUI when asking data from the user.",
                 "required": ["bot_version", "php_version", "os", "databases", "memory"],
                 "properties": {
                     "bot_version": {
@@ -93,7 +95,7 @@
                 }
             },
             "CharacterName": {
-                "description": "The character name",
+                "description": "A valid Anarchy Online character name",
                 "example": "Nady",
                 "type": "string",
                 "pattern": "^[A-Z][a-z0-9]{3,}(-?\\d)?$",
@@ -101,12 +103,14 @@
                 "maxLength": 12
             },
             "Password": {
+                "description": "A valid password for Anarchy Online",
                 "type": "string",
                 "minLength": 6,
                 "maxLength": 20,
                 "pattern": "^[a-zA-Z0-9-]{6,20}$"
             },
             "DatabaseType": {
+                "description": "A list of allowed databases",
                 "example": "sqlite",
                 "type": "string",
                 "enum": [
@@ -426,7 +430,8 @@
             "get": {
                 "operationId": "getCharacters",
                 "security": [ ],
-                "summary": "Get a list of all characters on a given account",
+                "summary": "Get character list",
+                "description": "Get a list of all characters on a given account",
                 "parameters": [
                     {
                         "name": "dimension",
@@ -527,7 +532,8 @@
             "get": {
                 "operationId": "getSpecs",
                 "security": [ ],
-                "summary": "Get some basic specs of the server we're running on",
+                "summary": "Basic system specs",
+                "description": "Get some basic specs of the server we're running on",
                 "parameters": [ ],
                 "responses": {
                     "200": {
@@ -568,6 +574,7 @@
                 "operationId": "saveConfig",
                 "security": [ ],
                 "summary": "Save the given system configuration",
+                "description": "This saves the given configuration at the location that was given when starting the bot in setup mode.",
                 "requestBody": {
                     "description": "The system configuration to save",
                     "required": true,
