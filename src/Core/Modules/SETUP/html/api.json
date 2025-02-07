@@ -554,16 +554,6 @@
                                 }
                             }
                         }
-                    },
-                    "400": {
-                        "description": "Invalid or missing parameter `dimension`, `login`, or `password`",
-                        "content": {
-                            "text/html": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
                     }
                 }
             }
