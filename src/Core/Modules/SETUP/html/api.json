@@ -22,6 +22,7 @@
         "schemas": {
             "MemorySpecs": {
                 "description": "Basic memory specs",
+                "required": ["current_usage", "current_usage_real", "peak_usage", "peak_usage_real", "available"],
                 "type": "object",
                 "properties": {
                     "current_usage": {
@@ -58,6 +59,7 @@
             },
             "Specs": {
                 "type": "object",
+                "required": ["bot_version", "php_version", "os", "databases", "memory"],
                 "properties": {
                     "bot_version": {
                         "description": "The full bot version",
@@ -115,6 +117,7 @@
             },
             "Character": {
                 "type": "object",
+                "required": ["uid", "name", "online", "level"],
                 "properties": {
                     "uid": {
                         "description": "The user id of this character",
@@ -142,15 +145,16 @@
             },
             "AutoUnfreeze": {
                 "type": "object",
+                "required": ["enabled", "useNadyproxy"],
                 "properties": {
                     "enabled": {
                         "description": "Automatically try to unfreeze frozen accounts",
                         "type": "boolean",
-                        "example": true
+                        "default": false
                     },
                     "useNadyproxy": {
                         "description": "If enabled, try to unfreeze a frozen account via a proxy to work around the limit of maximum of 3 unfreezings per IP address",
-                        "example": false,
+                        "default": true,
                         "type": "boolean"
                     }
                 },
@@ -158,6 +162,7 @@
             },
             "BotConfig": {
                 "type": "object",
+                "required": ["database", "general", "main", "paths"],
                 "properties": {
                     "autoUnfreeze": {
                         "oneOf": [
@@ -204,6 +209,7 @@
                         "items": {
                             "$ref": "#/components/schemas/Credentials"
                         },
+                        "uniqueItems": true,
                         "description": "Credentials of the worker characters"
                     }
                 },
@@ -211,6 +217,7 @@
             },
             "Credentials": {
                 "type": "object",
+                "required": ["character", "dimension", "login", "password"],
                 "properties": {
                     "character": {
                         "$ref": "#/components/schemas/CharacterName"
@@ -232,7 +239,7 @@
                     },
                     "webLogin": {
                         "description": "The login credentials to use when unfreezing this character. Only set if different to the login",
-                        "example": null,
+                        "default": null,
                         "oneOf": [
                             {
                                 "type": "string",
@@ -244,7 +251,7 @@
                     },
                     "webPassword": {
                         "description": "The password credentials to use when unfreezing this character. Only set if different to the password",
-                        "example": null,
+                        "default": null,
                         "oneOf": [
                             { "$ref": "#/components/schemas/Password" },
                             { "type": "null" }
@@ -255,15 +262,16 @@
             },
             "Database": {
                 "type": "object",
+                "required": ["type"],
                 "properties": {
                     "host": {
                         "type": "string",
-                        "example": "./data/",
+                        "default": "./data/",
                         "description": "Hostname or sqlite file location"
                     },
                     "name": {
                         "type": "string",
-                        "example": "nadybot.db",
+                        "default": "nadybot.db",
                         "description": "Name of the database"
                     },
                     "password": {
@@ -272,7 +280,7 @@
                             {"type": "null"}
                         ],
                         "description": "MySQL or PostgreSQL password, otherwise null",
-                        "example": null
+                        "default": null
                     },
                     "type": {
                         "$ref": "#/components/schemas/DatabaseType",
@@ -284,7 +292,7 @@
                             { "type": "string" },
                             { "type": "null" }
                         ],
-                        "example": null,
+                        "default": null,
                         "description": "MySQL or PostgreSQL username, otherwise null"
                     }
                 },
@@ -292,32 +300,33 @@
             },
             "General": {
                 "type": "object",
+                "required": ["superAdmins", "orgName"],
                 "properties": {
                     "autoOrgName": {
                         "type": "boolean",
                         "description": "Automatically rename the bot's org if it changed in-game",
-                        "example": true
+                        "default": false
                     },
                     "defaultModuleStatus": {
                         "type": "integer",
                         "description": "Enable all current and upcoming modules (1) or only the bare minimum (0)",
                         "enum": [0, 1],
-                        "example": 1
+                        "default": 1
                     },
                     "enableConsoleClient": {
                         "type": "boolean",
                         "description": "Enable controlling the bot via the Linux console. Does not work on Windows.",
-                        "example": true
+                        "default": true
                     },
                     "enableHydratorCache": {
                         "type": "boolean",
                         "description": "Speed up JSON parsing by compiling the schema. Uses more memory",
-                        "example": true
+                        "default": true
                     },
                     "enablePackageModule": {
                         "type": "boolean",
                         "description": "Enable the `!package`-command",
-                        "example": true
+                        "default": true
                     },
                     "orgName": {
                         "type": "string",
@@ -327,13 +336,15 @@
                     "showAomlMarkup": {
                         "type": "boolean",
                         "description": "Show raw AO-HTML data in logfiles, instead of converting it to ASCII",
-                        "example": false
+                        "default": false
                     },
                     "superAdmins": {
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/Character"
-                        }
+                        },
+                        "minItems": 1,
+                        "uniqueItems": true
                     },
                     "timezone": {
                         "oneOf": [
@@ -350,25 +361,26 @@
             },
             "Paths": {
                 "type": "object",
+                "required": [],
                 "properties": {
                     "cache": {
                         "type": "string",
-                        "example": "./cache/",
+                        "default": "./cache/",
                         "description": "Path to store cache files"
                     },
                     "data": {
                         "type": "string",
-                        "example": "./data/",
+                        "default": "./data/",
                         "description": "Path to store data"
                     },
                     "html": {
                         "type": "string",
-                        "example": "./html/",
+                        "default": "./html/",
                         "description": "Path to store HTML files"
                     },
                     "logs": {
                         "type": "string",
-                        "example": "./logs/",
+                        "default": "./logs/",
                         "description": "Path for the logs"
                     },
                     "modules": {
@@ -376,7 +388,8 @@
                         "items": {
                             "type": "string"
                         },
-                        "example": ["./src/Modules", "./extras"],
+                        "default": ["./src/Modules", "./extras"],
+                        "uniqueItems": true,
                         "description": "A list of paths where modules are"
                     }
                 },
@@ -384,22 +397,23 @@
             },
             "Proxy": {
                 "type": "object",
+                "required": [],
                 "properties": {
                     "enabled": {
                         "type": "boolean",
-                        "example": false,
+                        "default": false,
                         "description": "Whether to enable (true) proxy usage or not"
                     },
                     "port": {
                         "type": "integer",
                         "minimum": 1024,
                         "maximum": 65535,
-                        "example": 9993,
+                        "default": 9993,
                         "description": "Port of the proxy server"
                     },
                     "server": {
                         "type": "string",
-                        "example": "127.0.0.1",
+                        "default": "127.0.0.1",
                         "description": "hostname or IP address of the proxy server"
                     }
                 },
@@ -521,10 +535,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Specs"
-                                    }
+                                    "$ref": "#/components/schemas/Specs"
                                 }
                             }
                         }
