@@ -104,13 +104,9 @@
             },
             "Password": {
                 "description": "A valid password for Anarchy Online",
-                "examples": [
-                    "CfGoHMb4YS1XnlGi",
-                    "6DC3IeVoMZkxajZE",
-                    "fkSbkCr94RjX2B7V",
-                    "6Qybnc-t8qHu10PX"
-                ],
+                "example": "6Qybnc-t8qHu10PX",
                 "type": "string",
+                "format": "password",
                 "minLength": 6,
                 "maxLength": 20,
                 "pattern": "^[a-zA-Z0-9-]{6,20}$"
@@ -125,6 +121,13 @@
                     "postgresql",
                     "mssql"
                 ]
+            },
+            "Dimension": {
+                "type": "integer",
+                "description": "Which dimension to login:\n* `4`: Test,\n* `5`: Rubi-Ka,\n* `6`: RK19",
+                "minimum": 4,
+                "maximum": 6,
+                "example": 5
             },
             "Character": {
                 "type": "object",
@@ -147,6 +150,7 @@
                     "uid": {
                         "description": "The user id of this character",
                         "type": "integer",
+                        "minimum": 1,
                         "example": 1082663656
                     },
                     "name": {
@@ -255,11 +259,7 @@
                         "$ref": "#/components/schemas/CharacterName"
                     },
                     "dimension": {
-                        "type": "integer",
-                        "description": "Which dimension to login: 4 => Test, 5 => Rubi-Ka, 6 => RK19",
-                        "minimum": 4,
-                        "maximum": 6,
-                        "example": 5
+                        "$ref": "#/components/schemas/Dimension"
                     },
                     "login": {
                         "type": "string",
@@ -272,14 +272,9 @@
                     "webLogin": {
                         "description": "The login credentials to use when unfreezing this character. Only set if different to the login",
                         "default": null,
-                        "oneOf": [
-                            {
-                                "type": "string",
-                                "minLength": 6,
-                                "maxLength": 15
-                            },
-                            {"type": "null"}
-                        ]
+                        "type": [ "string", "null" ],
+                        "minLength": 6,
+                        "maxLength": 15
                     },
                     "webPassword": {
                         "description": "The password credentials to use when unfreezing this character. Only set if different to the password",
@@ -307,10 +302,7 @@
                         "description": "Name of the database"
                     },
                     "password": {
-                        "oneOf": [
-                            {"type": "string"},
-                            {"type": "null"}
-                        ],
+                        "type": [ "string", "null"],
                         "description": "MySQL or PostgreSQL password, otherwise null",
                         "default": null
                     },
@@ -319,10 +311,7 @@
                         "description": "What type of database should be used? ('sqlite', 'postgresql', or 'mysql')"
                     },
                     "username": {
-                        "oneOf": [
-                            { "type": "string" },
-                            { "type": "null" }
-                        ],
+                        "type": [ "string", "null" ],
                         "default": null,
                         "description": "MySQL or PostgreSQL username, otherwise null"
                     }
@@ -379,14 +368,9 @@
                         "uniqueItems": true
                     },
                     "timezone": {
-                        "oneOf": [
-                            {
-                                "type": "string",
-                                "description": "The timezone to use when displaying date and time.",
-                                "example": "Europe/Amsterdam"
-                            },
-                            {"type": "null"}
-                        ]
+                        "type": [ "string", "null" ],
+                        "description": "The timezone to use when displaying date and time.",
+                        "example": "Europe/Amsterdam"
                     }
                 },
                 "description": "General config settings"
@@ -466,9 +450,7 @@
                         "required": true,
                         "in": "query",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 4,
-                            "maximum": 6
+                            "$ref": "#/components/schemas/Dimension"
                         },
                         "example": 5,
                         "description": "The dimension to login to"
