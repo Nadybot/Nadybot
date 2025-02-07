@@ -60,6 +60,7 @@ class WebSetup {
 		$router->setFallback($documentRoot);
 		$router->addRoute('GET', '/characters', new ClosureRequestHandler($this->getAccountCharacters(...)));
 		$router->addRoute('GET', '/specs', new ClosureRequestHandler($this->getSystemSpecs(...)));
+		$router->addRoute('GET', '/timezones', new ClosureRequestHandler($this->getTimezones(...)));
 		$router->addRoute('POST', '/config', new ClosureRequestHandler(fn (Request $request): Response => $this->saveConfig($server, $request)));
 		$server->start($router, $errorHandler);
 		EventLoop::queue($this->setupDrill(...));
@@ -131,6 +132,26 @@ class WebSetup {
 			IMEX\JSON::export(
 				iterator_to_array(Hydrator::serializeObjects($chars), false)
 			)
+		);
+	}
+
+	private function getTimezones(Request $request): Response {
+		$timezones = \DateTimeZone::listIdentifiers();
+		$hierarchy = [];
+		foreach ($timezones as $timezone) {
+			$parts = explode('/', $timezone, 2);
+			if (count($parts) === 2) {
+				$hierarchy[$parts[0]] ??= [];
+				$hierarchy[$parts[0]] []= $timezone;
+			} else {
+				$hierarchy['Other'] ??= [];
+				$hierarchy['Other'] []= $timezone;
+			}
+		}
+		return new Response(
+			HttpStatus::OK,
+			['content-type' => 'application/json'],
+			Imex\JSON::export($hierarchy)
 		);
 	}
 

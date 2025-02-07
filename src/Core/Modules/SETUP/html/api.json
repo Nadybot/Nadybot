@@ -129,6 +129,14 @@
                 "maximum": 6,
                 "example": 5
             },
+            "Timezones": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "minItems": 1,
+                "description": "An array with time zones in that region"
+            },
             "Character": {
                 "type": "object",
                 "required": ["uid", "name", "online", "level"],
@@ -303,6 +311,7 @@
                     },
                     "password": {
                         "type": [ "string", "null"],
+                        "format": "password",
                         "description": "MySQL or PostgreSQL password, otherwise null",
                         "default": null
                     },
@@ -409,7 +418,7 @@
                         "description": "A list of paths where modules are"
                     }
                 },
-                "description": "Settings for the paths the bot uses"
+                "description": "Settings for the paths the bot uses. All relative to the bot's base directory, unless starting with a `/`"
             },
             "Proxy": {
                 "type": "object",
@@ -429,6 +438,7 @@
                     },
                     "server": {
                         "type": "string",
+                        "format": "idn-hostname",
                         "default": "127.0.0.1",
                         "description": "hostname or IP address of the proxy server"
                     }
@@ -559,6 +569,64 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Specs"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/timezones": {
+            "get": {
+                "operationId": "getTimezones",
+                "security": [ ],
+                "summary": "Timezones",
+                "description": "Get all system supported time zones",
+                "parameters": [ ],
+                "responses": {
+                    "200": {
+                        "description": "All system supported time zones",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [ "Other" ],
+                                    "properties": {
+                                        "Other": {
+                                            "$ref": "#/components/schemas/Timezones"
+                                        }
+                                    },
+                                    "description": "An object with regions and the time zones in these regions",
+                                    "additionalProperties": {
+                                        "$ref": "#/components/schemas/Timezones"
+                                    },
+                                    "example": {
+                                        "Africa": ["Africa/Luanda"],
+                                        "America": [
+                                            "America/Anchorage",
+                                            "America/Argentina/Buenos_Aires"
+                                        ],
+                                        "Asia": [
+                                            "Asia/Jakarta",
+                                            "Asia/Tehran"
+                                        ],
+                                        "Europe": [
+                                            "Europe/Amsterdam",
+                                            "Europe/Berlin",
+                                            "Europe/London"
+                                        ],
+                                        "Other": ["UTC"]
+                                    }
                                 }
                             }
                         }
