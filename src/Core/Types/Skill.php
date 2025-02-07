@@ -27,6 +27,12 @@ enum Skill: int {
 
 	/** @return list<self> */
 	public static function getMatching(string $name): array {
+		if (ctype_digit($name)) {
+			$matching = self::tryFrom((int)$name);
+			if (isset($matching)) {
+				return [$matching];
+			}
+		}
 		$matching = self::tryByName($name, false);
 		if (!isset($matching)) {
 			return [];

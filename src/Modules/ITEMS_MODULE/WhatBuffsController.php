@@ -25,7 +25,6 @@ use Nadybot\Modules\SKILLS_MODULE\{
 	Perk,
 	SkillsController,
 };
-use ValueError;
 
 #[
 	NCA\Instance,
@@ -165,16 +164,7 @@ class WhatBuffsController extends ModuleInstance {
 				$query->where('b.froob_friendly', '=', true);
 			}
 
-			$data = $query->get()->map(static function (\stdClass $data): ?SkillBuffItemCount {
-				$skill = Skill::tryFrom($data->skill);
-				if (!isset($skill)) {
-					return null;
-				}
-				return new SkillBuffItemCount(
-					skill: $skill,
-					num: (int)$data->num,
-				);
-			})->filter();
+			$data = $query->asObj(SkillBuffItemCount::class);
 		} elseif ($type === 'Perk') {
 			if ($froobFriendly) {
 				$sendto->reply("Froobs don't have perks.");
@@ -200,16 +190,12 @@ class WhatBuffsController extends ModuleInstance {
 				new Collection()
 			);
 
-			$data = $perkBuffs->map(static function (int $buff, int $skillId): ?SkillBuffItemCount {
-				if (($skill = Skill::tryFrom($skillId)) === null) {
-					return null;
-				}
-				$result = new SkillBuffItemCount(
-					skill: $skill,
+			$data = $perkBuffs->map(static function (int $buff, int $skillId): SkillBuffItemCount {
+				return new SkillBuffItemCount(
+					skill: Skill::tryFrom($skillId),
 					num: $buff,
 				);
-				return $result;
-			})->filter();
+			});
 		} else {
 			$query = $this->db->table(AODBEntry::getTable(), 'i');
 			$query
@@ -230,23 +216,16 @@ class WhatBuffsController extends ModuleInstance {
 				$query->where('i.in_game', '=', true);
 			}
 
-			$data = $query->get()->map(static function (\stdClass $data): ?SkillBuffItemCount {
-				$skill = Skill::tryFrom($data->skill);
-				if (!isset($skill)) {
-					return null;
-				}
-				return new SkillBuffItemCount(
-					skill: $skill,
-					num: (int)$data->num,
-				);
-			})->filter();
+			$data = $query->asObj(SkillBuffItemCount::class);
 		}
 
-		/** @var Collection<int,SkillBuffItemCount> $data */
-		$sorted = $data->sortBy(static fn (SkillBuffItemCount $b): string => $b->skill->fullName());
+		$sorted = $data->sortBy(static fn (SkillBuffItemCount $b): ?string => $b->skill?->fullName());
 
 		$blob = "<header2>Choose the skill to buff<end>\n";
 		foreach ($sorted as $row) {
+			if (!isset($row->skill)) {
+				continue;
+			}
 			$blob .= '<tab>'.
 				Text::makeChatcmd(
 					$row->skill->fullName(),
@@ -290,7 +269,7 @@ class WhatBuffsController extends ModuleInstance {
 
 	public function handleOtherComandline(bool $froobFriendly, CmdContext $context, string $search): void {
 		$tokens = explode(' ', $search);
-		$skillSearch = ctype_digit($search) ? Skill::tryFrom((int)$search) : Skill::tryByName($search, true);
+		$skillSearch = Skill::tryByName($search, true);
 		if (isset($skillSearch)) {
 			$tokens = [$search];
 		}
@@ -312,11 +291,7 @@ class WhatBuffsController extends ModuleInstance {
 		$command = 'whatbuffs' . ($froobFriendly ? 'froob' : '');
 		$suffix = $froobFriendly ? 'Froob' : '';
 
-		try {
-			$skills = ctype_digit($skill) ? [Skill::from((int)$search)] : Skill::getMatching($skill);
-		} catch (ValueError) {
-			$skills = [];
-		}
+		$skills = Skill::getMatching($skill);
 		$count = count($skills);
 
 		$blob = '';
@@ -335,7 +310,7 @@ class WhatBuffsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$skill = array_shift($skills);
+		$skill = $skills[0];
 		$itemQuery = $this->db->table(AODBEntry::getTable(), 'i');
 		$itemQuery
 			->join(ItemType::getTable(as: 'it'), 'it.item_id', '=', 'i.highid')
@@ -721,17 +696,13 @@ class WhatBuffsController extends ModuleInstance {
 	public function showSearchResults(string $category, string $skillName, bool $froobFriendly): string {
 		$category = ucfirst(strtolower($category));
 
-		try {
-			$skills = ctype_digit($skillName) ? [Skill::from((int)$skillName)] : Skill::getMatching($skillName);
-		} catch (ValueError) {
-			$skills = [];
-		}
+		$skills = Skill::getMatching($skillName);
 		$count = count($skills);
 
 		if ($count === 0) {
 			$msg = "Could not find any skills matching <highlight>{$skillName}<end>.";
 		} elseif ($count === 1) {
-			$skill = array_shift($skills);
+			$skill = $skills[0];
 			$msg = $this->getSearchResults($category, $skill, $froobFriendly);
 		} else {
 			$blob = '';
