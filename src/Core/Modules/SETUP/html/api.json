@@ -96,7 +96,7 @@
             },
             "CharacterName": {
                 "description": "A valid Anarchy Online character name",
-                "example": "Nady",
+                "examples": ["Nady", "Nadyita", "Nadyuschka", "Nadyaki", "Nadya"],
                 "type": "string",
                 "pattern": "^[A-Z][a-z0-9]{3,}(-?\\d)?$",
                 "minLength": 4,
@@ -104,7 +104,12 @@
             },
             "Password": {
                 "description": "A valid password for Anarchy Online",
-                "example": "CfGoHMb4YS1XnlGi",
+                "examples": [
+                    "CfGoHMb4YS1XnlGi",
+                    "6DC3IeVoMZkxajZE",
+                    "fkSbkCr94RjX2B7V",
+                    "6Qybnc-t8qHu10PX"
+                ],
                 "type": "string",
                 "minLength": 6,
                 "maxLength": 20,
@@ -124,11 +129,25 @@
             "Character": {
                 "type": "object",
                 "required": ["uid", "name", "online", "level"],
+                "examples": [
+                    {
+                        "uid": 1082663656,
+                        "name": "Nady",
+                        "online": false,
+                        "level": 220
+                    },
+                    {
+                        "uid": 1082663654,
+                        "name": "Nadya",
+                        "online": true,
+                        "level": 154
+                    }
+                ],
                 "properties": {
                     "uid": {
                         "description": "The user id of this character",
                         "type": "integer",
-                        "example": 1234567
+                        "example": 1082663656
                     },
                     "name": {
                         "description": "The character name",
@@ -142,9 +161,8 @@
                     "level": {
                         "description": "The level of this character",
                         "type": "integer",
-                        "example": 1,
                         "minimum": 1,
-                        "maximum": 200
+                        "maximum": 220
                     }
                 },
                 "description": "A single character from the login character list"
@@ -209,6 +227,20 @@
                         "items": {
                             "$ref": "#/components/schemas/Credentials"
                         },
+                        "example": [
+                            {
+                                "character": "Nadya",
+                                "dimension": 5,
+                                "login": "nadylogin2",
+                                "password": "vK-rvnwGKhFGs1S5"
+                            },
+                            {
+                                "character": "Nadyaki",
+                                "dimension": 5,
+                                "login": "nadylogin2",
+                                "password": "vK-rvnwGKhFGs1S5"
+                            }
+                        ],
                         "uniqueItems": true,
                         "description": "Credentials of the worker characters"
                     }
