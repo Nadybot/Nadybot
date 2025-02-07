@@ -438,7 +438,9 @@
                         "required": true,
                         "in": "query",
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "minimum": 4,
+                            "maximum": 6
                         },
                         "description": "The dimension to login to"
                     },
@@ -447,7 +449,9 @@
                         "required": true,
                         "in": "query",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 6,
+                            "maxLength": 15
                         },
                         "description": "The username to use for login"
                     },
@@ -456,6 +460,7 @@
                         "required": true,
                         "in": "query",
                         "schema": {
+                            "$ref": "#/components/schemas/Password",
                             "type": "string"
                         },
                         "description": "The password to use for login"
