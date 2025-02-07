@@ -299,7 +299,7 @@ class WebSetup {
 			return new Response(
 				HttpStatus::UNPROCESSABLE_ENTITY,
 				['content-type' => 'text/plain'],
-				'This issrc/Core/Modules/SETUP/DrillConnection.phpnot a valid config: ' . $e->getMessage(),
+				'This is not a valid config: ' . $e->getMessage(),
 			);
 		}
 		$drill = $this->drillConnection;
