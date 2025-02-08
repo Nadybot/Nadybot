@@ -482,7 +482,7 @@
                         "required": true,
                         "in": "query",
                         "schema": {
-                            "$ref": "#/components/schemas/Password",
+                            "$ref": "#/components/schemas/Password"
                         },
                         "description": "The password to use for login"
                     }
