@@ -329,9 +329,7 @@ class WebSetup {
 		}
 		EventLoop::queue($server->stop(...));
 		return new Response(
-			HttpStatus::OK,
-			['content-type' => 'text/plain'],
-			'Config saved successfully'
+			HttpStatus::NO_CONTENT,
 		);
 	}
 }

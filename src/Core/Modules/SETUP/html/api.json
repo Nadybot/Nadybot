@@ -661,15 +661,8 @@
                     }
                 },
                 "responses": {
-                    "200": {
-                        "description": "Config saved successfully",
-                        "content": {
-                            "text/plain": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
+                    "204": {
+                        "description": "Config saved successfully"
                     },
                     "413": {
                         "description": "Payload too large. Too much data sent",
