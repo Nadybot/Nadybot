@@ -5,7 +5,7 @@ namespace Nadybot\Modules\TRICKLE_MODULE;
 use function Safe\preg_split;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\Ability;
+use Nadybot\Core\Types\{Ability, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -120,19 +120,20 @@ class TrickleController extends ModuleInstance {
 	#[NCA\HandlesCommand('trickle')]
 	#[NCA\Help\Example('<symbol>trickle treatment')]
 	public function trickleSkillCommand(CmdContext $context, string $skill): void {
+		$skills = Skill::getMatching($skill);
 		$data = $this->db->table(Trickle::getTable())
-			->whereIlike('name', '%' . str_replace(' ', '%', $skill) . '%')
+			->whereIn('skill_id', array_column($skills, 'value'))
 			->asObj(Trickle::class);
 		$count = $data->count();
 		if ($count === 0) {
 			$msg = "Could not find any skills for search '{$skill}'";
 		} elseif ($count === 1) {
-			$msg = "To trickle 1 skill point into <highlight>{$data[0]->name}<end>, ".
+			$msg = "To trickle 1 skill point into <highlight>{$data[0]->skill->fullName()}<end>, ".
 				'you need ' . $this->getTrickleAmounts($data[0]);
 		} else {
 			$blob = "<header2>Required to increase skill by 1<end>\n";
 			foreach ($data as $row) {
-				$blob .= "<tab><highlight>{$row->name}<end>: ".
+				$blob .= "<tab><highlight>{$row->skill->fullName()}<end>: ".
 					$this->getTrickleAmounts($row) . "\n";
 			}
 			$msg = Text::makeBlob("Trickle Info: {$skill}", $blob);
@@ -142,15 +143,14 @@ class TrickleController extends ModuleInstance {
 	}
 
 	public function getTrickleAmounts(Trickle $row): string {
-		$arr = ['amountAgi', 'amountInt', 'amountPsy', 'amountSta', 'amountStr', 'amountSen'];
 		$reqs = [];
-		foreach ($arr as $ability) {
-			if (is_float($row->{$ability}) && $row->{$ability} > 0) {
-				$amount = $row->{$ability};
-				$abilityName = Ability::tryFromShort(substr($ability, 6))->name ?? $ability;
-				$value = round(4 / $amount, 2);
-				$reqs []= "{$value} {$abilityName}";
+		foreach (Ability::cases() as $ability) {
+			$amount = $row->get($ability);
+			if ($amount <= 0) {
+				continue;
 			}
+			$value = round(4 / $amount, 2);
+			$reqs []= "{$value} {$ability->name}";
 		}
 		$msg = collect($reqs)->join(', ', ' or ');
 		return $msg;
@@ -187,7 +187,7 @@ class TrickleController extends ModuleInstance {
 			$amountInt = (int)floor($amount);
 			$msg .= '<tab>' . Text::alignNumber($amountInt, 3, 'highlight').
 				'.<highlight>' . substr(number_format($amount-$amountInt, 2), 2) . '<end> '.
-				"<a href=skillid://{$result->skill_id}>{$result->name}</a>\n";
+				"<a href=skillid://{$result->skill->value}>{$result->skill->inGame()}</a>\n";
 		}
 
 		return $msg;
