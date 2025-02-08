@@ -483,7 +483,6 @@
                         "in": "query",
                         "schema": {
                             "$ref": "#/components/schemas/Password",
-                            "type": "string"
                         },
                         "description": "The password to use for login"
                     }
