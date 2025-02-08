@@ -25,8 +25,8 @@ class MigrateDesignsToSkillEnum implements SchemaMigration {
 				 * @return array<string,int>
 				 */
 				static function (array $result, Cluster $cluster): array {
-					if (isset($cluster->skill_id)) {
-						$result[$cluster->long_name] = $cluster->skill_id;
+					if (isset($cluster->skill)) {
+						$result[$cluster->long_name] = $cluster->skill->value;
 					}
 					return $result;
 				},

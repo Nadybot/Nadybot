@@ -73,15 +73,17 @@ class ImplantDesignerController extends ModuleInstance {
 				 * @return array<int,string>
 				 */
 				static function (array $lookup, Cluster $cluster): array {
-					if (isset($cluster->skill_id)) {
-						$lookup[$cluster->skill_id] = $cluster->official_name;
+					if (isset($cluster->skill)) {
+						$lookup[$cluster->skill->value] = $cluster->official_name;
 					}
 					return $lookup;
 				},
 				[]
 			);
-		foreach (get_object_vars($design) as $slot => $slotObj) {
-			if (!($slotObj instanceof SlotConfig)) {
+		foreach (ImplantSlot::cases() as $slot) {
+			$slotObj = $design->getSlot($slot);
+
+			if (!isset($slotObj)) {
 				continue;
 			}
 			// Symbiants are not part of the shopping list
@@ -115,7 +117,7 @@ class ImplantDesignerController extends ModuleInstance {
 			}
 			if ($addImp) {
 				$longName = $this->db->table(ImplantType::getTable())
-					->where('short_name', $slot)
+					->where('short_name', $slot->designSlotName())
 					->pluckStrings('name')
 					->firstOrFail();
 				if ($ql > 200) {
@@ -409,8 +411,7 @@ class ImplantDesignerController extends ModuleInstance {
 			$blob .= Text::makeChatcmd($slot->longName(), "/tell <myname> implantdesigner {$slot->designSlotName()}");
 			$blob .= $this->getImplantSummary($slotObj) . "\n";
 			$blob .= "Which ability do you want to require for {$slot->longName()}?\n\n";
-			$abilities = Ability::cases();
-			foreach ($abilities as $ability) {
+			foreach (Ability::cases() as $ability) {
 				$blob .= Text::makeChatcmd($ability->name, "/tell <myname> implantdesigner {$slot->designSlotName()} require {$ability->name}") . "\n";
 			}
 			$msg = Text::makeBlob("Implant Designer Require Ability ({$slot->longName()})", $blob);

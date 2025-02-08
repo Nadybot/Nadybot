@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
-use EventSauce\ObjectHydrator\MapFrom;
 use Nadybot\Core\Types\Skill;
 use Nadybot\Core\{Attributes\DB, DBTable};
 use Ramsey\Uuid\UuidInterface;
@@ -11,7 +10,7 @@ use Ramsey\Uuid\UuidInterface;
 class PerkLevelBuff extends DBTable {
 	public function __construct(
 		#[DB\PK] public UuidInterface $perk_level_id,
-		#[DB\PK, MapFrom('skill_id')] public Skill $skill,
+		#[DB\PK, DB\ColName('skill_id')] public Skill $skill,
 		public int $amount,
 	) {
 	}

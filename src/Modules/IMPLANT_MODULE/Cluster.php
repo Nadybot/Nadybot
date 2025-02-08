@@ -2,8 +2,9 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Attributes\DB\{PK, Shared, Table};
+use Nadybot\Core\Attributes\DB\{ColName, PK, Shared, Table};
 use Nadybot\Core\DBTable;
+use Nadybot\Core\Types\Skill;
 
 #[Table(name: 'cluster', shared: Shared::Yes)]
 class Cluster extends DBTable {
@@ -13,7 +14,7 @@ class Cluster extends DBTable {
 		public string $long_name,
 		public string $official_name,
 		public int $np_req,
-		public ?int $skill_id=null,
+		#[ColName('skill_id')] public ?Skill $skill=null,
 	) {
 	}
 }
