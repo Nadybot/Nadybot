@@ -2,12 +2,14 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Attributes\DB\MapRead;
 use Nadybot\Core\DBRow;
+use Nadybot\Core\Types\ImplantSlot;
 
 class SlotClusterType extends DBRow {
 	public function __construct(
-		public string $slot,
-		public string $cluster_type,
+		#[MapRead([ImplantSlot::class, 'byTypeId'])] public ImplantSlot $slot,
+		#[MapRead([ClusterGrade::class, 'fromId'])] public ClusterGrade $grade,
 	) {
 	}
 }

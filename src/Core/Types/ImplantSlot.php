@@ -71,6 +71,43 @@ enum ImplantSlot: int implements EnumParameterInterface {
 		};
 	}
 
+	public static function byTypeId(int $type): self {
+		return match ($type) {
+			1 => self::Eye,
+			2 => self::Head,
+			3 => self::Ear,
+			4 => self::Chest,
+			5 => self::Waist,
+			6 => self::Leg,
+			7 => self::Feet,
+			8 => self::LeftArm,
+			9 => self::LeftWrist,
+			10 => self::LeftHand,
+			11 => self::RightArm,
+			12 => self::RightWrist,
+			13 => self::RightHand,
+			default => throw new ValueError("Unknown implant type id '{$type}'"),
+		};
+	}
+
+	public function typeId(): int {
+		return match ($this) {
+			self::Eye => 1,
+			self::Head => 2,
+			self::Ear => 3,
+			self::Chest => 4,
+			self::Waist => 5,
+			self::Leg => 6,
+			self::Feet => 7,
+			self::LeftArm => 8,
+			self::LeftWrist => 9,
+			self::LeftHand => 10,
+			self::RightArm => 11,
+			self::RightWrist => 12,
+			self::RightHand => 13,
+		};
+	}
+
 	/**
 	 * Return the name of the slot as needed by the implant designer
 	 *

@@ -3,12 +3,12 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Nadybot\Core\Attributes\DB\{ColName, MapRead};
-use Nadybot\Core\Types\Ability;
+use Nadybot\Core\Types\{Ability, ImplantSlot};
 use Nadybot\Core\{DBRow, Types\Profession};
 
 class PremadeSearchResult extends DBRow {
 	public function __construct(
-		public string $slot,
+		#[MapRead([ImplantSlot::class, 'byTypeId'])] public ImplantSlot $slot,
 		#[
 			MapRead([Profession::class, 'byNumber']),
 			ColName('profession_id')

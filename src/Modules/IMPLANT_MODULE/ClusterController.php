@@ -75,21 +75,18 @@ class ClusterController extends ModuleInstance {
 		$blob = "Click 'Add' to add cluster to {$implantDesignerLink}.\n\n";
 		foreach ($data as $cluster) {
 			$results = $this->db->table(ClusterImplantMap::getTable(), 'cim')
-				->join(ClusterType::getTable(as: 'ct'), 'cim.cluster_type_id', 'ct.cluster_type_id')
-				->join(ImplantType::getTable(as: 'i'), 'cim.implant_type_id', 'i.implant_type_id')
 				->where('cim.cluster_id', $cluster->cluster_id)
-				->orderByDesc('ct.cluster_type_id')
-				->select(['i.short_name as slot', 'ct.name AS cluster_type'])
+				->orderByDesc('cim.cluster_type_id')
+				->select(['cim.implant_type_id as slot', 'cim.cluster_type_id AS grade'])
 				->asObj(SlotClusterType::class);
 			$blob .= "<pagebreak><header2>{$cluster->long_name}<end>:\n";
 
 			foreach ($results as $row) {
 				$impDesignerLink = Text::makeChatcmd(
 					'add',
-					"/tell <myname> implantdesigner {$row->slot} {$row->cluster_type} {$cluster->long_name}"
+					"/tell <myname> implantdesigner {$row->slot->designSlotName()} {$row->grade->name} {$cluster->long_name}"
 				);
-				$clusterType = ucfirst($row->cluster_type);
-				$blob .= "<tab><highlight>{$clusterType}<end>: {$row->slot} [{$impDesignerLink}]";
+				$blob .= "<tab><highlight>{$row->grade->name}<end>: {$row->slot->longName()} [{$impDesignerLink}]";
 			}
 			$blob .= "\n\n";
 		}

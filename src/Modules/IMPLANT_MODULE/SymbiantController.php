@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\Skill;
+use Nadybot\Core\Types\{ImplantSlot, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -163,36 +163,29 @@ class SymbiantController extends ModuleInstance {
 
 	/** @param iterable<string,SymbiantConfig> $configs */
 	protected function configsToBlob(iterable $configs): string {
-		$types = $this->db->table(ImplantType::getTable())
-			->asObjArr(ImplantType::class);
-
-		/** @var array<string,string> */
-		$typeMap = array_column($types, 'name', 'short_name');
 		$blob = '';
-		$slots = get_class_vars(SymbiantConfig::class);
-		foreach ($slots as $slot => $defaultValue) {
-			if (!isset($typeMap[$slot])) {
-				continue;
-			}
-			$blob .= "\n<pagebreak><header2>" . $typeMap[$slot];
+		foreach (ImplantSlot::cases() as $slot) {
+			$blob .= "\n<pagebreak><header2>{$slot->longName()}";
 			$aoids = [];
 			foreach ($configs as $unit => $config) {
-				if (!count($config->{$slot})) {
+				$symbs = $config->get($slot);
+				if (!count($symbs)) {
 					continue;
 				}
-				$aoids []= $config->{$slot}[0]->id;
+				$aoids []= $symbs[0]->id;
 			}
 			$blob .= ' [' . Text::makeChatcmd(
 				'compare',
 				'/tell <myname> symbcompare ' . implode(' ', $aoids)
 			) . "]<end>\n";
 			foreach ($configs as $unit => $config) {
-				if (!count($config->{$slot})) {
+				$symbs = $config->get($slot);
+				if (!count($symbs)) {
 					continue;
 				}
 
 				/** @var list<Symbiant> */
-				$symbs = array_slice($config->{$slot}, 0, 3);
+				$symbs = array_slice($symbs, 0, 3);
 
 				/** @var list<string> */
 				$links = array_map(
@@ -219,7 +212,7 @@ class SymbiantController extends ModuleInstance {
 		$symbs = collect($symbiants);
 
 		/** @var Collection<string,Collection<int,Symbiant>> */
-		$bySlot = $symbs->groupBy('slot_long_name');
+		$bySlot = $symbs->groupBy(static fn (Symbiant $s): string => $s->slot->longName());
 		foreach ($bySlot as $slotName => $slotSymbs) {
 			$lines = ["<tab><highlight>{$slotName}<end>"];
 
@@ -280,8 +273,7 @@ class SymbiantController extends ModuleInstance {
 		return $this->db->table(Symbiant::getTable(), 'sym')
 			->join(SymbiantClusterMatrix::getTable(as: 'scm'), 'scm.symbiant_id', '=', 'sym.id')
 			->join(Cluster::getTable() . ' AS c', 'c.cluster_id', '=', 'scm.cluster_id')
-			->join(ImplantType::getTable(as: 'it'), 'it.implant_type_id', 'sym.slot_id')
-			->select(['sym.*', 'it.short_name AS slot_name', 'it.name AS slot_long_name'])
+			->select(['sym.*'])
 			->where('c.skill_id', $skill->value)
 			->asObjArr(Symbiant::class);
 	}
@@ -302,11 +294,10 @@ class SymbiantController extends ModuleInstance {
 	private function getAndRenderBestSymbiants(Profession $prof, int $level): array {
 		$query = $this->db->table(Symbiant::getTable(), 's')
 			->join(SymbiantProfessionMatrix::getTable('spm'), 'spm.symbiant_id', 's.id')
-			->join(ImplantType::getTable(as: 'it'), 'it.implant_type_id', 's.slot_id')
 			->where('spm.profession_id', $prof->toNumber())
 			->where('s.level_req', '<=', $level)
 			->where('s.name', 'NOT LIKE', 'Prototype%')
-			->select(['s.*', 'it.short_name AS slot_name', 'it.name AS slot_long_name']);
+			->select(['s.*']);
 		$query->orderByRaw($query->grammar->wrap('s.name') . ' like ? desc', ['%Alpha']);
 		$query->orderByRaw($query->grammar->wrap('s.name') . ' like ? desc', ['%Beta']);
 		$query->orderByDesc('s.ql');
@@ -320,7 +311,7 @@ class SymbiantController extends ModuleInstance {
 				$symbiant->unit = 'Special';
 			}
 			$configs[$symbiant->unit] ??= new SymbiantConfig();
-			$configs[$symbiant->unit]->{$symbiant->slot_name} []= $symbiant;
+			$configs[$symbiant->unit]->set($symbiant);
 		}
 		$blob = $this->configsToBlob($configs);
 		$msg = Text::makeBlob(

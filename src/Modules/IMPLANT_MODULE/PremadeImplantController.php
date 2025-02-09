@@ -74,7 +74,7 @@ class PremadeImplantController extends ModuleInstance {
 
 	/** @return Collection<int,PremadeSearchResult> */
 	public function searchBySlot(ImplantSlot $slot): Collection {
-		return $this->getBaseQuery()->where('i.short_name', $slot->designSlotName())
+		return $this->getBaseQuery()->where('p.implant_type_id', $slot->typeId())
 			->asObj(PremadeSearchResult::class);
 	}
 
@@ -105,8 +105,8 @@ class PremadeImplantController extends ModuleInstance {
 		/** @var array<string,list<PremadeSearchResult>> */
 		$slotMap = [];
 		foreach ($implants as $implant) {
-			$slotMap[$implant->slot] ??= [];
-			$slotMap[$implant->slot] []= $implant;
+			$slotMap[$implant->slot->longName()] ??= [];
+			$slotMap[$implant->slot->longName()] []= $implant;
 		}
 		foreach ($slotMap as $slot => $slotImplants) {
 			$blob .= "<header2>{$slot}<end>\n";
@@ -127,12 +127,11 @@ class PremadeImplantController extends ModuleInstance {
 
 	protected function getBaseQuery(): QueryBuilder {
 		$query = $this->db->table(PremadeImplant::getTable(), 'p')
-			->join(ImplantType::getTable(as: 'i'), 'p.implant_type_id', 'i.implant_type_id')
 			->join(Cluster::getTable(as: 'cs'), 'p.shiny_cluster_id', 'cs.cluster_id')
 			->join(Cluster::getTable(as: 'cb'), 'p.bright_cluster_id', 'cb.cluster_id')
 			->join(Cluster::getTable(as: 'cf'), 'p.faded_cluster_id', 'cf.cluster_id')
 			->orderBy('slot')
-			->select(['i.name AS slot', 'p.profession_id', 'p.ability_id']);
+			->select(['p.implant_type_id AS slot', 'p.profession_id', 'p.ability_id']);
 		$query->selectRaw(
 			'CASE WHEN ' . $query->grammar->wrap('cs.cluster_id') . ' = 0 '.
 			'THEN ? '.

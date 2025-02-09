@@ -45,11 +45,9 @@ class ImplantDesignerController extends ModuleInstance {
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/Cluster.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ClusterImplantMap.csv');
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ClusterType.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/EffectTypeMatrix.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/EffectValue.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ImplantMatrix.csv');
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ImplantType.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/Symbiant.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/SymbiantAbilityMatrix.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/SymbiantClusterMatrix.csv');
@@ -116,14 +114,10 @@ class ImplantDesignerController extends ModuleInstance {
 				$addImp = true;
 			}
 			if ($addImp) {
-				$longName = $this->db->table(ImplantType::getTable())
-					->where('short_name', $slot->designSlotName())
-					->pluckStrings('name')
-					->firstOrFail();
 				if ($ql > 200) {
-					$list->implants []= "{$longName} Implant Refined Empty (QL {$ql})";
+					$list->implants []= "{$slot->longName()} Implant Refined Empty (QL {$ql})";
 				} else {
-					$list->implants []= "Basic {$longName} Implant (QL {$ql})";
+					$list->implants []= "Basic {$slot->longName()} Implant (QL {$ql})";
 				}
 			}
 		}
@@ -236,13 +230,9 @@ class ImplantDesignerController extends ModuleInstance {
 		$slotObj = $design->setSlotIfUnset($slot, new SlotConfig());
 
 		if (in_array($grade, ['symb', 'symbiant'], true)) {
-			$symbRow = $this->db->table(Symbiant::getTable(), 's')
-				->join(ImplantType::getTable(as: 'i'), 's.slot_id', 'i.implant_type_id')
-				->where('i.short_name', $slot->designSlotName())
-				->where('s.name', $cluster)
-				->select('s.*')
-				->addSelect('i.short_name AS slot_name')
-				->addSelect('i.name AS slot_long_name')
+			$symbRow = $this->db->table(Symbiant::getTable())
+				->where('slot_id', $slot->typeId())
+				->where('name', $cluster)
 				->firstObj(Symbiant::class);
 
 			if ($symbRow === null) {
@@ -299,12 +289,10 @@ class ImplantDesignerController extends ModuleInstance {
 					return;
 				}
 				$valid = $this->db
-					->table(ClusterImplantMap::getTable(), 'cim')
-					->join(ImplantType::getTable(as: 'it'), 'cim.implant_type_id', 'it.implant_type_id')
-					->join(ClusterType::getTable(as: 'ct'), 'cim.cluster_type_id', 'ct.cluster_type_id')
-					->where('cim.cluster_id', $clusterObj->cluster_id)
-					->where('ct.name', $grade->value)
-					->where('it.short_name', $slot->designSlotName())
+					->table(ClusterImplantMap::getTable())
+					->where('cluster_id', $clusterObj->cluster_id)
+					->where('cluster_type_id', $grade->getId())
+					->where('implant_type_id', $slot->typeId())
 					->exists();
 				if (!$valid) {
 					$context->reply("There is no {$grade->value} {$clusterObj->long_name} cluster for the {$slot->longName()}.");
@@ -692,10 +680,8 @@ class ImplantDesignerController extends ModuleInstance {
 		return $this->db
 			->table(Cluster::getTable(), 'c')
 			->join(ClusterImplantMap::getTable(as: 'cim'), 'c.cluster_id', 'cim.cluster_id')
-			->join(ClusterType::getTable(as: 'ct'), 'cim.cluster_type_id', 'ct.cluster_type_id')
-			->join(ImplantType::getTable(as: 'i'), 'cim.implant_type_id', 'i.implant_type_id')
-			->where('i.short_name', $implantType->designSlotName())
-			->where('ct.name', $clusterType->value)
+			->where('cim.implant_type_id', $implantType->typeId())
+			->where('cim.cluster_type_id', $clusterType->getId())
 			->select('c.skill_id')
 			->pluckInts('skill_id')
 			->map(Skill::from(...))
