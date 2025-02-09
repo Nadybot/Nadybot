@@ -1116,7 +1116,7 @@ class Nadybot {
 		$channel = $this->getName($package->package->channelId);
 		if (!is_string($channel)) {
 			$this->logger->info('Invalid channel ID for {package}', [
-				'package' => $package->{$package},
+				'package' => $package->package,
 			]);
 			return;
 		}

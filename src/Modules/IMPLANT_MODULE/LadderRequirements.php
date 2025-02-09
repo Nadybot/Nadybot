@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use InvalidArgumentException;
 use Nadybot\Core\Attributes\DB\{PK, Shared, Table};
 use Nadybot\Core\DBTable;
 
@@ -31,5 +32,37 @@ class LadderRequirements extends DBTable {
 		public int $skillBright,
 		public int $skillFaded,
 	) {
+	}
+
+	public function get(ClusterGrade $grade, string $type): int {
+		return match ($type) {
+			'ability' => match ($grade) {
+				ClusterGrade::Shiny => $this->abilityShiny,
+				ClusterGrade::Bright => $this->abilityBright,
+				ClusterGrade::Faded => $this->abilityFaded,
+			},
+			'skill' => match ($grade) {
+				ClusterGrade::Shiny => $this->abilityShiny,
+				ClusterGrade::Bright => $this->abilityBright,
+				ClusterGrade::Faded => $this->abilityFaded,
+			},
+			default => throw new InvalidArgumentException("Unknown ladder type \"{$type}\"."),
+		};
+	}
+
+	public function getLowest(ClusterGrade $grade, string $type): int {
+		return match ($type) {
+			'ability' => match ($grade) {
+				ClusterGrade::Shiny => $this->lowestAbilityShiny,
+				ClusterGrade::Bright => $this->lowestAbilityBright,
+				ClusterGrade::Faded => $this->lowestAbilityFaded,
+			},
+			'skill' => match ($grade) {
+				ClusterGrade::Shiny => $this->lowestAbilityShiny,
+				ClusterGrade::Bright => $this->lowestAbilityBright,
+				ClusterGrade::Faded => $this->lowestAbilityFaded,
+			},
+			default => throw new InvalidArgumentException("Unknown ladder type \"{$type}\"."),
+		};
 	}
 }

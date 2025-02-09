@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use function Amp\delay;
 use Nadybot\Core\Types\Ability;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -10,6 +11,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Text,
 };
+
 use ValueError;
 
 /**
@@ -94,66 +96,35 @@ class LadderController extends ModuleInstance {
 		$shiny = null;
 		$bright = null;
 		$faded = null;
+		$currentClusters = [];
 		$added = true;
 
 		// will continue to loop as long as at least one implant is added each loop
 		while ($added) {
 			$added = false;
 
-			// add shiny
-			// @phpstan-ignore-next-line
-			$tempValue = $shiny === null ? $value : $value - $shiny->{$prefix . 'Shiny'};
-
-			/** @var LadderRequirements */
-			$newShiny = $getMax($tempValue);
-			if ($shiny === null || $newShiny->{$prefix . 'Shiny'} > $shiny->{$prefix . 'Shiny'}) {
-				$added = true;
-				if ($shiny !== null) {
-					$value -= $shiny->{$prefix . 'Shiny'};
-					$blob .= "Remove shiny QL {$shiny->ql}\n\n";
-				}
-				$shiny = $newShiny;
-				$value += $shiny->{$prefix . 'Shiny'};
-				$lowest = $shiny->{'lowest' . ucfirst($prefix) . 'Shiny'};
-				$blob .= "<highlight>Add shiny QL {$shiny->ql}<end> ({$lowest}) - Treatment: {$shiny->treatment}, Ability: {$shiny->ability}\n\n";
-			}
-
-			// add bright
-			// @phpstan-ignore-next-line
-			$tempValue = $bright === null ? $value : $value - $bright->{$prefix . 'Bright'};
-			$newBright = $getMax($tempValue);
-			if ($bright === null || $newBright->{$prefix . 'Bright'} > $bright->{$prefix . 'Bright'}) {
-				$added = true;
-				if ($bright !== null) {
-					$value -= $bright->{$prefix . 'Bright'};
-					$blob .= "Remove bright QL {$bright->ql}\n\n";
-				}
-				if (isset($newBright)) {
-					$bright = $newBright;
-					$value += $bright->{$prefix . 'Bright'};
-					$lowest = $bright->{'lowest' . ucfirst($prefix) . 'Bright'};
-					$blob .= "<highlight>Add bright QL {$bright->ql}<end> ({$lowest}) - Treatment: {$bright->treatment}, Ability: {$bright->ability}\n\n";
+			foreach (ClusterGrade::cases() as $grade) {
+				$current = $currentClusters[$grade->getId()] ?? null;
+				$tempValue = ($current instanceof LadderRequirements) ? $value - $current->get($grade, $prefix) : $value;
+				$new = $getMax($tempValue);
+				if ($current === null || $new->get($grade, $prefix) > $current->get($grade, $prefix)) {
+					$added = true;
+					if ($current !== null) {
+						$value -= $current->get($grade, $prefix);
+						$blob .= "Remove {$grade->value} QL {$current->ql}\n\n";
+						echo("Remove {$grade->value} QL {$current->ql}\n");
+					}
+					$current = $new;
+					$value += $current->get($grade, $prefix);
+					$lowest = $current->getLowest($grade, $prefix);
+					$blob .= "<highlight>Add {$grade->value} QL {$current->ql}<end> ({$lowest}) - Treatment: {$current->treatment}, Ability: {$current->ability}\n\n";
+					echo("<highlight>Add {$grade->value} QL {$current->ql}<end> ({$lowest}) - Treatment: {$current->treatment}, Ability: {$current->ability}\n");
+					$currentClusters[$grade->getId()] = $current;
 				}
 			}
-
-			// add faded
-			// @phpstan-ignore-next-line
-			$tempValue = $faded === null ? $value : $value - $faded->{$prefix . 'Faded'};
-			$newFaded = $getMax($tempValue);
-			if ($faded === null || $newFaded->{$prefix . 'Faded'} > $faded->{$prefix . 'Faded'}) {
-				$added = true;
-				if ($faded !== null) {
-					$value -= $faded->{$prefix . 'Faded'};
-					$blob .= "Remove faded QL {$faded->ql}\n\n";
-				}
-				if (isset($newFaded)) {
-					$faded = $newFaded;
-					$value += $faded->{$prefix . 'Faded'};
-					$lowest = $faded->{'lowest' . ucfirst($prefix) . 'Faded'};
-					$blob .= "<highlight>Add faded QL {$faded->ql}<end> ({$lowest}) - Treatment: {$faded->treatment}, Ability: {$faded->ability}\n\n";
-				}
-			}
+			delay(0.2);
 		}
+		var_dump($currentClusters);
 
 		$blob .= "-------------------\n\nEnding {$type}: {$value}";
 		$blob .= "\n\n<highlight>Inspired by a command written by Lucier of the same name<end>";
