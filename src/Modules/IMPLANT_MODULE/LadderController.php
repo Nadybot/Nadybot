@@ -2,11 +2,10 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Exceptions\UserException;
+use Nadybot\Core\Types\MinMax;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	DB,
 	ModuleInstance,
 	Text,
 };
@@ -27,12 +26,7 @@ use ValueError;
 ]
 class LadderController extends ModuleInstance {
 	#[NCA\Inject]
-	private DB $db;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/implant_requirements.csv');
-	}
+	private ImplantController $impCtr;
 
 	/** Show sequence of laddering implants for an ability or treatment */
 	#[NCA\HandlesCommand('ladder')]
@@ -47,7 +41,7 @@ class LadderController extends ModuleInstance {
 		int $startingValue
 	): void {
 		try {
-			$type = LadderType::fromName($typeName);
+			$type = ImplantBuff::fromName($typeName);
 		} catch (ValueError) {
 			$context->reply("<highlight>{$typeName}<end> is no valid ability.");
 			return;
@@ -57,18 +51,14 @@ class LadderController extends ModuleInstance {
 
 		$blob = "Starting {$type->name}: {$value}\n\n-------------------\n\n";
 
-		if ($type === LadderType::Skill) {
+		if ($type === ImplantBuff::Skill) {
 			if ($value < 11) {
 				$context->reply('Base treatment must be at least <highlight>11<end>.');
 				return;
 			}
 
-			$getMax = function (int $value): LadderRequirements {
-				$reqs = $this->findMaxImplantQlByReqs(10_000, $value);
-				if (!isset($reqs)) {
-					throw new UserException('Your pathetic skills are too low to work with implants.');
-				}
-				return $reqs;
+			$getMax = function (int $value): int {
+				return $this->impCtr->findHighestEquippableImplant(10_000, $value, false);
 			};
 		} else {
 			if ($value < 6) {
@@ -76,16 +66,12 @@ class LadderController extends ModuleInstance {
 				return;
 			}
 
-			$getMax = function (int $value): LadderRequirements {
-				$reqs = $this->findMaxImplantQlByReqs($value, 10_000);
-				if (!isset($reqs)) {
-					throw new UserException('Your pathetic skills are too low to work with implants.');
-				}
-				return $reqs;
+			$getMax = function (int $value): int {
+				return $this->impCtr->findHighestEquippableImplant($value, 10_000, false);
 			};
 		}
 
-		/** @var array<int,LadderRequirements> */
+		/** @var array<int,int> */
 		$currentClusters = [];
 		$added = true;
 
@@ -95,18 +81,21 @@ class LadderController extends ModuleInstance {
 
 			foreach (ClusterGrade::cases() as $grade) {
 				$current = $currentClusters[$grade->getId()] ?? null;
-				$tempValue = ($current instanceof LadderRequirements) ? $value - $current->get($grade, $type) : $value;
+				$tempValue = isset($current) ? $value - Implant::getBuff($type, $grade, $current) : $value;
 				$new = $getMax($tempValue);
-				if ($current === null || $new->get($grade, $type) > $current->get($grade, $type)) {
+				$newBuff = Implant::getBuff($type, $grade, $new);
+				if ($current === null || $newBuff > Implant::getBuff($type, $grade, $current)) {
 					$added = true;
 					if ($current !== null) {
-						$value -= $current->get($grade, $type);
-						$blob .= "Remove {$grade->value} QL {$current->ql}\n\n";
+						$value -= Implant::getBuff($type, $grade, $current);
+						$blob .= "Remove {$grade->value} QL {$current}\n\n";
 					}
 					$current = $new;
-					$value += $current->get($grade, $type);
-					$lowest = $current->getLowest($grade, $type);
-					$blob .= "<highlight>Add {$grade->value} QL {$current->ql}<end> ({$lowest}) - Treatment: {$current->treatment}, Ability: {$current->ability}\n\n";
+					$value += $newBuff;
+					$range = $this->impCtr->getBonusQLRange($type, $grade, $newBuff) ?? new MinMax(min: $current, max: $current);
+					$treatmentReq = Implant::getRequirement(ImplantRequirement::Treatment, false, $current);
+					$abilityReq = Implant::getRequirement(ImplantRequirement::Ability, false, $current);
+					$blob .= "<highlight>Add {$grade->value} QL {$current}<end> ({$range->min}) - Treatment: {$treatmentReq}, Ability: {$abilityReq}\n\n";
 					$currentClusters[$grade->getId()] = $current;
 				}
 			}
@@ -117,38 +106,5 @@ class LadderController extends ModuleInstance {
 		$msg = Text::makeBlob("Laddering from {$startingValue} to {$value} {$type->name}", $blob);
 
 		$context->reply($msg);
-	}
-
-	public function findMaxImplantQlByReqs(int $ability, int $treatment): ?LadderRequirements {
-		$row = $this->db->table(LadderRequirements::getTable())
-			->where('ability', '<=', $ability)
-			->where('treatment', '<=', $treatment)
-			->orderByDesc('ql')
-			->firstObj(LadderRequirements::class);
-
-		$this->addClusterInfo($row);
-
-		return $row;
-	}
-
-	public function addClusterInfo(?LadderRequirements $obj): void {
-		if ($obj === null) {
-			return;
-		}
-
-		foreach (ClusterGrade::cases() as $grade) {
-			foreach (LadderType::cases() as $type) {
-				$this->setLowestQls($obj, $grade, $type);
-			}
-		}
-	}
-
-	public function setLowestQls(LadderRequirements $obj, ClusterGrade $grade, LadderType $type): void {
-		$varValue = $obj->get($grade, $type);
-
-		$min = $this->db->table(LadderRequirements::getTable())
-			->where($type->value . $grade->name, $varValue)->min('ql');
-
-		$obj->setLowest($grade, $type, (int)$min);
 	}
 }
