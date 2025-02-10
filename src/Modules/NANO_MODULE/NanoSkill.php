@@ -2,13 +2,11 @@
 
 namespace Nadybot\Modules\NANO_MODULE;
 
-use Nadybot\Core\Types\Skill;
-
 enum NanoSkill: int {
-	case MM = Skill::MM->value;
-	case PM = Skill::PM->value;
-	case BM = Skill::BM->value;
-	case SI = Skill::SI->value;
-	case TS = Skill::TS->value;
-	case MC = Skill::MC->value;
+	case MM = 127;
+	case PM = 129;
+	case BM = 128;
+	case SI = 122;
+	case TS = 131;
+	case MC = 130;
 }
