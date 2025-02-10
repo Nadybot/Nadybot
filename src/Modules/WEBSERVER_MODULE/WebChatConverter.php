@@ -48,9 +48,7 @@ class WebChatConverter extends ModuleInstance {
 		$lastHop = null;
 		foreach ($path as $hop) {
 			$newHop = new WebSource(type: $hop->type, name: $hop->name, label: $hop->label, color: '');
-			foreach (get_object_vars($hop) as $key => $value) {
-				$newHop->{$key} = $value;
-			}
+			$newHop = $newHop->updateWith($hop);
 			$newHop->renderAs = $newHop->render($lastHop);
 			$lastHop = $hop;
 			$color = $this->messageHub->getHopColor($path, Source::WEB, $newHop, 'tag_color');

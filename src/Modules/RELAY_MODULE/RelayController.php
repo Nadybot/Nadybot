@@ -709,7 +709,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Configure a relay. Only supported for nadynative */
 	#[NCA\HandlesCommand('relay')]
-	public function relayConfigIdCommand(CmdContext $context, #[NCA\Str('config')] string $action, string $id): void {
+	public function relayConfigIdCommand(CmdContext $context, #[NCA\Str('config')] string $action, #[NCA\WordStr] string $id): void {
 		if (Uuid::isValid($id)) {
 			$this->relayConfigCommand($context, $id, null);
 		} else {
@@ -748,18 +748,18 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		foreach ($events as $event) {
 			$eConf = $relay->getEvent($event->name) ?? new RelayEvent(relay_id: $relay->id, event: $event->name);
 			$line = "\n<tab><highlight>{$event->name}<end>:";
-			foreach (['incoming', 'outgoing'] as $type) {
-				if ($eConf->{$type}) {
-					$line .= ' <on>' . ucfirst($type) . '<end> ['.
+			foreach (EventDirection::cases() as $type) {
+				if ($eConf->getEnabled($type)) {
+					$line .= " <on>{$type->name}<end> [".
 						Text::makeChatcmd(
 							'disable',
-							"/tell <myname> relay config {$relay->name} eventmod {$event->name} disable {$type}"
+							"/tell <myname> relay config {$relay->name} eventmod {$event->name} disable {$type->value}"
 						) . ']';
 				} else {
-					$line .= ' <off>' . ucfirst($type) . '<end> ['.
+					$line .= " <off>{$type->name}<end> [".
 						Text::makeChatcmd(
 							'enable',
-							"/tell <myname> relay config {$relay->name} eventmod {$event->name} enable {$type}"
+							"/tell <myname> relay config {$relay->name} eventmod {$event->name} enable {$type->value}"
 						) . ']';
 				}
 			}
@@ -782,7 +782,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		#[NCA\Str('eventmod')] string $subAction,
 		#[NCA\WordStr] string $event,
 		bool $enable,
-		#[NCA\Str('incoming', 'outgoing')] string $direction
+		EventDirection $direction
 	): void {
 		$relay = $this->getRelayByName($name);
 		if (!isset($relay)) {
@@ -800,13 +800,13 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		$statusMsg = $enable ? '<on>enabled<end>' : '<off>disabled<end>';
 		if ($this->changeRelayEventStatus($relay, $event, $direction, $enable)) {
 			$context->reply(
-				"Successfully {$statusMsg} {$direction} events of type ".
+				"Successfully {$statusMsg} {$direction->value} events of type ".
 				"<highlight>{$event}<end> for relay <highlight>{$relay->name}<end>."
 			);
 			return;
 		}
 		$context->reply(
-			ucfirst($direction) . " events of type <highlight>{$event}<end> ".
+			"{$direction->name} events of type <highlight>{$event}<end> ".
 			"were already {$statusMsg} for relay <highlight>{$relay->name}<end>."
 		);
 	}
@@ -1196,10 +1196,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			);
 		}
 		if (isset($event->incoming)) {
-			$this->changeRelayEventStatus($relay, $event->event, 'incoming', $event->incoming);
+			$this->changeRelayEventStatus($relay, $event->event, EventDirection::Incoming, $event->incoming);
 		}
 		if (isset($event->outgoing)) {
-			$this->changeRelayEventStatus($relay, $event->event, 'outgoing', $event->outgoing);
+			$this->changeRelayEventStatus($relay, $event->event, EventDirection::Outgoing, $event->outgoing);
 		}
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
@@ -1381,7 +1381,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		return true;
 	}
 
-	protected function changeRelayEventStatus(RelayConfig $relay, string $eventName, string $direction, bool $enable): bool {
+	protected function changeRelayEventStatus(RelayConfig $relay, string $eventName, EventDirection $direction, bool $enable): bool {
 		$oldEvent = $event = $relay->getEvent($eventName);
 		if (!isset($event)) {
 			if ($enable === false) {
@@ -1389,10 +1389,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			}
 			$event = new RelayEvent(event: $eventName, relay_id: $relay->id);
 		}
-		if ($event->{$direction} === $enable) {
+		if ($event->getEnabled($direction) === $enable) {
 			return false;
 		}
-		$event->{$direction} = $enable;
+		$event->setEnabled($direction, $enable);
 		if (isset($oldEvent)) {
 			if ($event->incoming === false && $event->outgoing === false) {
 				$this->db->table(RelayEvent::getTable())->delete($event->id);

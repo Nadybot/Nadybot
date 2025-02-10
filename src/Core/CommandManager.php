@@ -6,7 +6,7 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Types\{EnumParameterInterface, ParamAttribute};
+use Nadybot\Core\Types\{EnumExampleInterface, EnumParameterInterface, ParamAttribute};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -1149,6 +1149,7 @@ class CommandManager implements MessageEmitter {
 			$param->getName(),
 		);
 		$niceName = "&lt;{$niceName}&gt;";
+		$class = $type->getName();
 		if ($type->isBuiltin()) {
 			$attrs = $param->getAttributes(ParamAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
 			if (count($attrs) > 0) {
@@ -1170,13 +1171,13 @@ class CommandManager implements MessageEmitter {
 				default:
 					return $niceName;
 			}
-		} elseif (is_subclass_of($type->getName(), Base::class)) {
-			$class = $type->getName();
+		} elseif (is_subclass_of($class, Base::class)) {
 			$example = $class::getExample();
 			if (isset($example)) {
 				$niceName = $example;
 			}
-		} elseif (is_subclass_of($type->getName(), EnumParameterInterface::class)) {
+		} elseif (is_subclass_of($class, EnumExampleInterface::class)) {
+			$niceName = $class::getExample();
 		}
 		return $niceName;
 	}
