@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use InvalidArgumentException;
 use Nadybot\Core\Attributes\DB\{PK, Shared, Table};
 use Nadybot\Core\DBTable;
 
@@ -14,12 +13,6 @@ class LadderRequirements extends DBTable {
 	public int $lowestSkillShiny = -1;
 	public int $lowestSkillBright = -1;
 	public int $lowestSkillFaded = -1;
-	public int $highestAbilityShiny = -1;
-	public int $highestAbilityBright = -1;
-	public int $highestAbilityFaded = -1;
-	public int $highestSkillShiny = -1;
-	public int $highestSkillBright = -1;
-	public int $highestSkillFaded = -1;
 
 	public function __construct(
 		#[PK] public int $ql,
@@ -34,35 +27,48 @@ class LadderRequirements extends DBTable {
 	) {
 	}
 
-	public function get(ClusterGrade $grade, string $type): int {
+	public function get(ClusterGrade $grade, LadderType $type): int {
 		return match ($type) {
-			'ability' => match ($grade) {
+			LadderType::Ability => match ($grade) {
 				ClusterGrade::Shiny => $this->abilityShiny,
 				ClusterGrade::Bright => $this->abilityBright,
 				ClusterGrade::Faded => $this->abilityFaded,
 			},
-			'skill' => match ($grade) {
-				ClusterGrade::Shiny => $this->abilityShiny,
-				ClusterGrade::Bright => $this->abilityBright,
-				ClusterGrade::Faded => $this->abilityFaded,
+			LadderType::Skill => match ($grade) {
+				ClusterGrade::Shiny => $this->skillShiny,
+				ClusterGrade::Bright => $this->skillBright,
+				ClusterGrade::Faded => $this->skillFaded,
 			},
-			default => throw new InvalidArgumentException("Unknown ladder type \"{$type}\"."),
 		};
 	}
 
-	public function getLowest(ClusterGrade $grade, string $type): int {
+	public function getLowest(ClusterGrade $grade, LadderType $type): int {
 		return match ($type) {
-			'ability' => match ($grade) {
+			LadderType::Ability => match ($grade) {
 				ClusterGrade::Shiny => $this->lowestAbilityShiny,
 				ClusterGrade::Bright => $this->lowestAbilityBright,
 				ClusterGrade::Faded => $this->lowestAbilityFaded,
 			},
-			'skill' => match ($grade) {
-				ClusterGrade::Shiny => $this->lowestAbilityShiny,
-				ClusterGrade::Bright => $this->lowestAbilityBright,
-				ClusterGrade::Faded => $this->lowestAbilityFaded,
+			LadderType::Skill => match ($grade) {
+				ClusterGrade::Shiny => $this->lowestSkillShiny,
+				ClusterGrade::Bright => $this->lowestSkillBright,
+				ClusterGrade::Faded => $this->lowestSkillFaded,
 			},
-			default => throw new InvalidArgumentException("Unknown ladder type \"{$type}\"."),
+		};
+	}
+
+	public function setLowest(ClusterGrade $grade, LadderType $type, int $value): int {
+		return match ($type) {
+			LadderType::Ability => match ($grade) {
+				ClusterGrade::Shiny => $this->lowestAbilityShiny = $value,
+				ClusterGrade::Bright => $this->lowestAbilityBright = $value,
+				ClusterGrade::Faded => $this->lowestAbilityFaded = $value,
+			},
+			LadderType::Skill => match ($grade) {
+				ClusterGrade::Shiny => $this->lowestSkillShiny = $value,
+				ClusterGrade::Bright => $this->lowestSkillBright = $value,
+				ClusterGrade::Faded => $this->lowestSkillFaded = $value,
+			},
 		};
 	}
 }

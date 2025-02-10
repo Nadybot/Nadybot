@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use function Amp\delay;
-use Nadybot\Core\Types\Ability;
+use Nadybot\Core\Exceptions\UserException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -11,7 +10,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Text,
 };
-
 use ValueError;
 
 /**
@@ -31,9 +29,6 @@ class LadderController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Inject]
-	private Text $text;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/implant_requirements.csv');
@@ -48,39 +43,32 @@ class LadderController extends ModuleInstance {
 	)]
 	public function ladderCommand(
 		CmdContext $context,
-		#[NCA\Regexp('\w+', '&lt;treatment|ability&gt;')] string $type,
+		#[NCA\Regexp('\w+', '&lt;treatment|ability&gt;')] string $typeName,
 		int $startingValue
 	): void {
-		$type = strtolower($type);
-
-		if ($type === 'treat') {
-			$type = 'treatment';
-		}
-
-		// allow treatment, ability, or any of the 6 abilities
-		if ($type !== 'treatment' && $type !== 'ability') {
-			try {
-				$type = Ability::fromShort($type)->name;
-			} catch (ValueError) {
-				$context->reply("<highlight>{$type}<end> is no valid ability.");
-				return;
-			}
-			$type = strtolower($type);
+		try {
+			$type = LadderType::fromName($typeName);
+		} catch (ValueError) {
+			$context->reply("<highlight>{$typeName}<end> is no valid ability.");
+			return;
 		}
 
 		$value = $startingValue;
-		$prefix = $type === 'treatment' ? 'skill' : 'ability';
 
-		$blob = "Starting {$type}: {$value}\n\n-------------------\n\n";
+		$blob = "Starting {$type->name}: {$value}\n\n-------------------\n\n";
 
-		if ($type === 'treatment') {
+		if ($type === LadderType::Skill) {
 			if ($value < 11) {
 				$context->reply('Base treatment must be at least <highlight>11<end>.');
 				return;
 			}
 
-			$getMax = function (int $value): ?LadderRequirements {
-				return $this->findMaxImplantQlByReqs(10_000, $value);
+			$getMax = function (int $value): LadderRequirements {
+				$reqs = $this->findMaxImplantQlByReqs(10_000, $value);
+				if (!isset($reqs)) {
+					throw new UserException('Your pathetic skills are too low to work with implants.');
+				}
+				return $reqs;
 			};
 		} else {
 			if ($value < 6) {
@@ -88,14 +76,16 @@ class LadderController extends ModuleInstance {
 				return;
 			}
 
-			$getMax = function (int $value): ?LadderRequirements {
-				return $this->findMaxImplantQlByReqs($value, 10_000);
+			$getMax = function (int $value): LadderRequirements {
+				$reqs = $this->findMaxImplantQlByReqs($value, 10_000);
+				if (!isset($reqs)) {
+					throw new UserException('Your pathetic skills are too low to work with implants.');
+				}
+				return $reqs;
 			};
 		}
 
-		$shiny = null;
-		$bright = null;
-		$faded = null;
+		/** @var array<int,LadderRequirements> */
 		$currentClusters = [];
 		$added = true;
 
@@ -105,30 +95,26 @@ class LadderController extends ModuleInstance {
 
 			foreach (ClusterGrade::cases() as $grade) {
 				$current = $currentClusters[$grade->getId()] ?? null;
-				$tempValue = ($current instanceof LadderRequirements) ? $value - $current->get($grade, $prefix) : $value;
+				$tempValue = ($current instanceof LadderRequirements) ? $value - $current->get($grade, $type) : $value;
 				$new = $getMax($tempValue);
-				if ($current === null || $new->get($grade, $prefix) > $current->get($grade, $prefix)) {
+				if ($current === null || $new->get($grade, $type) > $current->get($grade, $type)) {
 					$added = true;
 					if ($current !== null) {
-						$value -= $current->get($grade, $prefix);
+						$value -= $current->get($grade, $type);
 						$blob .= "Remove {$grade->value} QL {$current->ql}\n\n";
-						echo("Remove {$grade->value} QL {$current->ql}\n");
 					}
 					$current = $new;
-					$value += $current->get($grade, $prefix);
-					$lowest = $current->getLowest($grade, $prefix);
+					$value += $current->get($grade, $type);
+					$lowest = $current->getLowest($grade, $type);
 					$blob .= "<highlight>Add {$grade->value} QL {$current->ql}<end> ({$lowest}) - Treatment: {$current->treatment}, Ability: {$current->ability}\n\n";
-					echo("<highlight>Add {$grade->value} QL {$current->ql}<end> ({$lowest}) - Treatment: {$current->treatment}, Ability: {$current->ability}\n");
 					$currentClusters[$grade->getId()] = $current;
 				}
 			}
-			delay(0.2);
 		}
-		var_dump($currentClusters);
 
-		$blob .= "-------------------\n\nEnding {$type}: {$value}";
+		$blob .= "-------------------\n\nEnding {$type->name}: {$value}";
 		$blob .= "\n\n<highlight>Inspired by a command written by Lucier of the same name<end>";
-		$msg = Text::makeBlob("Laddering from {$startingValue} to {$value} " . ucfirst($type), $blob);
+		$msg = Text::makeBlob("Laddering from {$startingValue} to {$value} {$type->name}", $blob);
 
 		$context->reply($msg);
 	}
@@ -150,27 +136,19 @@ class LadderController extends ModuleInstance {
 			return;
 		}
 
-		$this->setHighestAndLowestQls($obj, 'abilityShiny');
-		$this->setHighestAndLowestQls($obj, 'abilityBright');
-		$this->setHighestAndLowestQls($obj, 'abilityFaded');
-		$this->setHighestAndLowestQls($obj, 'skillShiny');
-		$this->setHighestAndLowestQls($obj, 'skillBright');
-		$this->setHighestAndLowestQls($obj, 'skillFaded');
+		foreach (ClusterGrade::cases() as $grade) {
+			foreach (LadderType::cases() as $type) {
+				$this->setLowestQls($obj, $grade, $type);
+			}
+		}
 	}
 
-	public function setHighestAndLowestQls(LadderRequirements $obj, string $var): void {
-		$varValue = $obj->{$var};
+	public function setLowestQls(LadderRequirements $obj, ClusterGrade $grade, LadderType $type): void {
+		$varValue = $obj->get($grade, $type);
 
 		$min = $this->db->table(LadderRequirements::getTable())
-			->where($var, $varValue)->min('ql');
-		$max = $this->db->table(LadderRequirements::getTable())
-			->where($var, $varValue)->max('ql');
-		// camel case var name
-		$tempNameVar = ucfirst($var);
-		$tempHighestName = "highest{$tempNameVar}";
-		$tempLowestName = "lowest{$tempNameVar}";
+			->where($type->value . $grade->name, $varValue)->min('ql');
 
-		$obj->{$tempLowestName} = (int)$min;
-		$obj->{$tempHighestName} = (int)$max;
+		$obj->setLowest($grade, $type, (int)$min);
 	}
 }
