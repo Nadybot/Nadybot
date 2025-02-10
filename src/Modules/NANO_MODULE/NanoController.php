@@ -544,9 +544,10 @@ class NanoController extends ModuleInstance {
 				$info = 'QL' . Text::alignNumber($row->ql, 3) . $gmiLink . " [{$crystalLink}] {$nanoLink} ({$row->location})";
 				$blob .= "<tab>{$info}\n";
 				$reqs = [];
-				foreach (['mm', 'bm', 'pm', 'si', 'ts', 'mc'] as $skill) {
-					if (isset($row->{$skill})) {
-						$reqs []= strtoupper($skill) . ": {$row->{$skill}}";
+				foreach (NanoSkill::cases() as $skill) {
+					$requirement = $row->getRequirement($skill);
+					if (isset($requirement)) {
+						$reqs []= "{$skill->name}: {$requirement}";
 					}
 				}
 				if (isset($row->min_level)) {

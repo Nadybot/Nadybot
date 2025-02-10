@@ -39,6 +39,17 @@ class Nano extends DBTable {
 	) {
 	}
 
+	public function getRequirement(NanoSkill $skill): ?int {
+		return match ($skill) {
+			NanoSkill::MM => $this->mm,
+			NanoSkill::BM => $this->bm,
+			NanoSkill::PM => $this->pm,
+			NanoSkill::SI => $this->si,
+			NanoSkill::TS => $this->ts,
+			NanoSkill::MC => $this->mc,
+		};
+	}
+
 	public function getCrystalLink(?string $text=null): ?string {
 		if (!isset($this->crystal_id)) {
 			return null;
