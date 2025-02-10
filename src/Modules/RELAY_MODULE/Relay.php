@@ -134,9 +134,7 @@ class Relay implements MessageReceiver {
 				return;
 			}
 			$player->source = $clientId;
-			foreach (get_object_vars($player) as $key => $value) {
-				$this->onlineChars[$where][$character]->{$key} = $value;
-			}
+			$this->onlineChars[$where][$character] = $this->onlineChars[$where][$character]->updateWith($player);
 		});
 	}
 

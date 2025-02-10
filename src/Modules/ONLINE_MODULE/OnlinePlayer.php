@@ -114,4 +114,34 @@ class OnlinePlayer extends Player {
 		$op['pmain'] = $op['name'];
 		return new static(...$op);
 	}
+
+	public function updateWith(Player $player): static {
+		return new static(
+			charid: $player->charid,
+			name: $player->name,
+			pmain: $this->pmain,
+			dimension: $player->dimension,
+			firstname: $player->firstname,
+			lastname: $player->lastname,
+			level: $player->level ?? $this->level,
+			breed: $player->breed,
+			gender: $player->gender,
+			faction: $player->faction,
+			profession: $player->profession,
+			prof_title: $player->prof_title,
+			ai_rank: $player->ai_rank,
+			ai_level: $player->ai_level,
+			guild_id: $player->guild_id,
+			guild: $player->guild,
+			guild_rank: $player->guild_rank,
+			guild_rank_id: $player->guild_rank_id,
+			head_id: $player->head_id,
+			pvp_rating: $player->pvp_rating,
+			pvp_title: $player->pvp_title,
+			last_update: $player->last_update,
+			afk: $this->afk,
+			nick: $this->nick,
+			online: $this->online,
+		);
+	}
 }
