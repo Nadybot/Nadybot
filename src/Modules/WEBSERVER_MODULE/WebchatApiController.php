@@ -4,6 +4,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
+use Nadybot\Core\Types\HopColorType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -17,7 +18,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
-
 use Nadybot\Modules\{
 	WEBSOCKET_MODULE\WebsocketCommandReply,
 };
@@ -68,14 +68,14 @@ class WebchatApiController extends ModuleInstance {
 			color: '',
 		);
 		$src->renderAs = $src->render(null);
-		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, 'Web'), 'tag_color');
+		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, 'Web'), HopColorType::TagColor);
 		if (isset($color, $color->tag_color)) {
 			$src->color = $color->tag_color;
 		} else {
 			$src->color = '';
 		}
 		$eventColor = '';
-		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, 'Web'), 'text_color');
+		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, 'Web'), HopColorType::TextColor);
 		if (isset($color, $color->text_color)) {
 			$eventColor = $color->text_color;
 		}

@@ -259,14 +259,19 @@ class ProfileController extends ModuleInstance {
 		$data = $this->db->table(RouteHopColor::getTable())
 			->asObj(RouteHopColor::class);
 		foreach ($data as $row) {
-			foreach (['text', 'tag'] as $color) {
-				if (isset($row->{"{$color}_color"})) {
-					$contents .= "!route color {$color} set {$row->hop} ";
-					if (isset($row->where)) {
-						$contents .= "-> {$row->where} ";
-					}
-					$contents .= $row->{"{$color}_color"} . "\n";
+			if (isset($row->text_color)) {
+				$contents .= "!route color text set {$row->hop} ";
+				if (isset($row->where)) {
+					$contents .= "-> {$row->where} ";
 				}
+				$contents .= $row->text_color . "\n";
+			}
+			if (isset($row->tag_color)) {
+				$contents .= "!route color tag set {$row->hop} ";
+				if (isset($row->where)) {
+					$contents .= "-> {$row->where} ";
+				}
+				$contents .= $row->tag_color . "\n";
 			}
 		}
 

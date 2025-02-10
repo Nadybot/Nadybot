@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\DBSchema;
 
+use Nadybot\Core\Types\HopColorType;
 use Nadybot\Core\{Attributes as NCA, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
@@ -27,5 +28,12 @@ class RouteHopColor extends DBTable {
 		?UuidInterface $id=null,
 	) {
 		$this->id = $id  ?? Uuid::uuid7();
+	}
+
+	public function getColor(HopColorType $type): ?string {
+		return match ($type) {
+			HopColorType::TagColor => $this->tag_color,
+			HopColorType::TextColor => $this->text_color,
+		};
 	}
 }

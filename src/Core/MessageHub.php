@@ -10,6 +10,7 @@ use Illuminate\Support\Collection;
 use JsonException;
 use Monolog\Logger;
 use Nadybot\Core\DBSchema\{RouteModifier, RouteModifierArgument};
+use Nadybot\Core\Types\HopColorType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -560,7 +561,7 @@ class MessageHub {
 		if (!$withColor) {
 			return "[{$name}]";
 		}
-		$color = $this->getHopColor($hops, $where, $source, 'tag_color');
+		$color = $this->getHopColor($hops, $where, $source, HopColorType::TagColor);
 		if (!isset($color)) {
 			return "[{$name}]";
 		}
@@ -718,7 +719,7 @@ class MessageHub {
 	}
 
 	/** @param list<Source> $path */
-	public function getHopColor(array $path, string $where, Source $source, string $color): ?RouteHopColor {
+	public function getHopColor(array $path, string $where, Source $source, HopColorType $color): ?RouteHopColor {
 		$colorDefs = static::$colors;
 		if (isset($source->name)) {
 			$fullDefs = $colorDefs->filter(static function (RouteHopColor $color): bool {
@@ -736,7 +737,7 @@ class MessageHub {
 				if (isset($colorDef->via) && !$this->isSentVia($colorDef->via, $path)) {
 					continue;
 				}
-				if (isset($colorDef->{$color})) {
+				if ($colorDef->getColor($color) !== null) {
 					return $colorDef;
 				}
 			}
@@ -751,7 +752,7 @@ class MessageHub {
 				continue;
 			}
 			if (fnmatch($colorDef->hop, $source->type, \FNM_CASEFOLD)
-				&& isset($colorDef->{$color})
+				&& $colorDef->getColor($color) !== null
 			) {
 				return $colorDef;
 			}
@@ -777,7 +778,7 @@ class MessageHub {
 		if (!isset($hop)) {
 			return '';
 		}
-		$color = $this->getHopColor($path, $where, $hop, 'text_color');
+		$color = $this->getHopColor($path, $where, $hop, HopColorType::TextColor);
 		if (!isset($color) || !isset($color->text_color)) {
 			return '';
 		}

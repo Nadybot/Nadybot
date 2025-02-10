@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use ErrorException;
 use Exception;
 
+use Nadybot\Core\Types\HopColorType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -51,7 +52,7 @@ class WebChatConverter extends ModuleInstance {
 			$newHop = $newHop->updateWith($hop);
 			$newHop->renderAs = $newHop->render($lastHop);
 			$lastHop = $hop;
-			$color = $this->messageHub->getHopColor($path, Source::WEB, $newHop, 'tag_color');
+			$color = $this->messageHub->getHopColor($path, Source::WEB, $newHop, HopColorType::TagColor);
 			if (isset($color)) {
 				$newHop->color = $color->tag_color ?? '';
 			} else {
