@@ -99,4 +99,32 @@ class Raid extends DBTable {
 		}
 		return $msg;
 	}
+
+	/**
+	 * Update a raid by incorporating all changes from a RaidLog entry
+	 *
+	 * @param RaidLog $raidLog The raidLog entry to incorporate
+	 *
+	 * @return self A new raid with all merged changes
+	 */
+	public function updateByLog(RaidLog $raidLog): self {
+		return new self(
+			description: $raidLog->description ?? $this->description,
+			seconds_per_point: $raidLog->seconds_per_point,
+			announce_interval: $raidLog->announce_interval,
+			started_by: $this->started_by,
+			locked: $raidLog->locked,
+			started: $this->started,
+			last_announcement: $this->last_announcement,
+			last_award_from_ticker: $this->last_award_from_ticker,
+			stopped: $this->stopped,
+			stopped_by: $this->stopped_by,
+			max_members: $raidLog->max_members,
+			ticker_paused: $raidLog->ticker_paused,
+			raid_id: $this->raid_id,
+			raiders: $this->raiders,
+			pointsGiven: $this->pointsGiven,
+			we_are_most_recent_message: $this->we_are_most_recent_message,
+		);
+	}
 }

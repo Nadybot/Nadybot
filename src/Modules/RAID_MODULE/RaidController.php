@@ -144,9 +144,6 @@ class RaidController extends ModuleInstance {
 	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Inject]
@@ -378,11 +375,7 @@ class RaidController extends ModuleInstance {
 			->orderByDesc('time')
 			->firstObj(RaidLog::class);
 		if ($lastRaidLog) {
-			foreach (get_object_vars($lastRaidLog) as $key => $value) {
-				if (property_exists($lastRaid, $key)) {
-					$lastRaid->{$key} = $value;
-				}
-			}
+			$lastRaid = $lastRaid->updateByLog($lastRaidLog);
 		}
 		$this->startRaid($lastRaid);
 		$this->raidMemberController->resumeRaid($lastRaid);

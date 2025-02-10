@@ -543,20 +543,19 @@ class ConfigApiController extends ModuleInstance {
 			if (!is_array($set)) {
 				throw new Exception('Wrong content body');
 			}
+			$old = $this->commandManager->getPermissionSet($name);
+			if (!isset($old)) {
+				return new Response(HttpStatus::NOT_FOUND);
+			}
+			$oldData = Hydrator::serialize($old);
+			$newData = array_merge($oldData, $set);
 
-			$permSet = Hydrator::hydrate(CmdPermissionSet::class, $set);
+			$permSet = Hydrator::hydrate(CmdPermissionSet::class, $newData);
 		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
-		$old = $this->commandManager->getPermissionSet($name);
-		if (!isset($old)) {
-			return new Response(HttpStatus::NOT_FOUND);
-		}
-		foreach (get_object_vars($permSet) as $key => $value) {
-			$old->{$key} = $value;
-		}
 		try {
-			$this->commandManager->changePermissionSet($name, $old);
+			$this->commandManager->changePermissionSet($name, $permSet);
 		} catch (Exception $e) {
 			return new Response(
 				status: HttpStatus::UNPROCESSABLE_ENTITY,
