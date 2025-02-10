@@ -97,7 +97,7 @@ class PlayfieldController extends ModuleInstance {
 
 		$playfieldName = $args[4];
 
-		$playfield = CorePlayfield::tryByName($playfieldName);
+		$playfield = CorePlayfield::tryFromName($playfieldName);
 		if ($playfield === null) {
 			$context->reply("Could not find playfield '{$playfieldName}'.");
 			return;
@@ -134,7 +134,7 @@ class PlayfieldController extends ModuleInstance {
 				$playfieldName = $playfield->short();
 			}
 		} elseif (isset($playfieldName)) {
-			$playfield = CorePlayfield::tryByName($playfieldName);
+			$playfield = CorePlayfield::tryFromName($playfieldName);
 			if (!isset($playfield)) {
 				$context->reply("Unknown playfield {$playfieldName}");
 				return;

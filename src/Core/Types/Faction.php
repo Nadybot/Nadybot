@@ -18,7 +18,7 @@ enum Faction: string implements EnumParameterInterface {
 		return "<{$this->lower()}>{$text}<end>";
 	}
 
-	public static function byName(string $name): self {
+	public static function fromName(string $name): self {
 		return match (strtolower($name)) {
 			'neutral','neut' => self::Neutral,
 			'omni' => self::Omni,
@@ -28,12 +28,12 @@ enum Faction: string implements EnumParameterInterface {
 	}
 
 	public static function fromParam(string $param): self {
-		return self::byName($param);
+		return self::fromName($param);
 	}
 
-	public static function tryByName(string $name): ?self {
+	public static function tryFromName(string $name): ?self {
 		try {
-			return self::byName($name);
+			return self::fromName($name);
 		} catch (\Throwable) {
 			return null;
 		}

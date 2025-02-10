@@ -22,7 +22,7 @@ enum Playfield: int implements EnumParameterInterface {
 	}
 
 	public static function fromParam(string $param): self {
-		return self::byName($param);
+		return self::fromName($param);
 	}
 
 	public static function getParamRegexp(): string {
@@ -431,7 +431,7 @@ enum Playfield: int implements EnumParameterInterface {
 	 *
 	 * @throws ValueError for illegal names
 	 */
-	public static function byName(string $name): self {
+	public static function fromName(string $name): self {
 		return match (strtolower($name)) {
 			'4 holes' => self::FourHoles,
 			'andromeda' => self::Andromeda,
@@ -697,9 +697,9 @@ enum Playfield: int implements EnumParameterInterface {
 		};
 	}
 
-	public static function tryByName(string $name): ?self {
+	public static function tryFromName(string $name): ?self {
 		try {
-			return self::byName($name);
+			return self::fromName($name);
 		} catch (ValueError) {
 			return null;
 		}

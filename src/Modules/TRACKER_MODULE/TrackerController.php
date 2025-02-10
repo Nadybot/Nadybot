@@ -1341,14 +1341,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (isset($filters['profession'])) {
 			$professions = [];
 			foreach ($filters['profession'] as $prof) {
-				$professions []= Profession::byName($prof)->value;
+				$professions []= Profession::fromName($prof)->value;
 			}
 			$data = $data->whereIn('profession', $professions);
 		}
 		if (isset($filters['faction'])) {
 			$factions = [];
 			foreach ($filters['faction'] as $faction) {
-				$factions []= Faction::byName($faction)->value;
+				$factions []= Faction::fromName($faction)->value;
 			}
 			$data = $data->whereIn('faction', $factions);
 		}

@@ -115,7 +115,7 @@ class ChatRallyController extends ModuleInstance {
 				$playfieldName = $pfObj->short();
 			}
 		} else {
-			$pfObj = Playfield::tryByName($playfieldName);
+			$pfObj = Playfield::tryFromName($playfieldName);
 			if ($pfObj === null) {
 				$context->reply("Could not find playfield '{$playfieldName}'");
 				return;

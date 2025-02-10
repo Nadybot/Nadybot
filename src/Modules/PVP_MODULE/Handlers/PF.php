@@ -24,7 +24,7 @@ class PF extends Base {
 	}
 
 	protected function validateValue(): void {
-		$this->pf = Playfield::tryByName($this->value);
+		$this->pf = Playfield::tryFromName($this->value);
 		if (!isset($this->pf)) {
 			throw new UserException("'<highlight>{$this->value}<end>' is not a known playfield.");
 		}

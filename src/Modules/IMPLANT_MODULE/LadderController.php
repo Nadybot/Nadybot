@@ -80,7 +80,7 @@ class LadderController extends ModuleInstance {
 			$added = false;
 
 			foreach (ClusterGrade::cases() as $grade) {
-				$current = $currentClusters[$grade->getId()] ?? null;
+				$current = $currentClusters[$grade->id()] ?? null;
 				$tempValue = isset($current) ? $value - Implant::getBuff($type, $grade, $current) : $value;
 				$new = $getMax($tempValue);
 				$newBuff = Implant::getBuff($type, $grade, $new);
@@ -96,7 +96,7 @@ class LadderController extends ModuleInstance {
 					$treatmentReq = Implant::getRequirement(ImplantRequirement::Treatment, false, $current);
 					$abilityReq = Implant::getRequirement(ImplantRequirement::Ability, false, $current);
 					$blob .= "<highlight>Add {$grade->value} QL {$current}<end> ({$range->min}) - Treatment: {$treatmentReq}, Ability: {$abilityReq}\n\n";
-					$currentClusters[$grade->getId()] = $current;
+					$currentClusters[$grade->id()] = $current;
 				}
 			}
 		}

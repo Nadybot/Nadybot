@@ -95,7 +95,7 @@ class ChatAssistController extends ModuleInstance {
 		$profs = explode(':', $new);
 		foreach ($profs as $prof) {
 			try {
-				Profession::byName($prof);
+				Profession::fromName($prof);
 			} catch (Throwable $e) {
 				throw new Exception("<highlight>{$prof}<end> is not a recognized profession", 0, $e);
 			}
@@ -611,7 +611,7 @@ class ChatAssistController extends ModuleInstance {
 	 */
 	protected function removeNeverCallers(string ...$members): array {
 		$forbiddenProfs = array_map(
-			Profession::byName(...),
+			Profession::fromName(...),
 			explode(':', $this->neverAutoCallers)
 		);
 		$players = $this->playerManager->searchByNames(

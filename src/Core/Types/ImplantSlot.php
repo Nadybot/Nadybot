@@ -6,10 +6,10 @@ use ValueError;
 
 enum ImplantSlot: int implements EnumParameterInterface {
 	public static function fromParam(string $param): self {
-		return self::byName($param);
+		return self::fromName($param);
 	}
 
-	public static function byName(string $name): self {
+	public static function fromName(string $name): self {
 		return match (strtolower($name)) {
 			'eye','eyes','ocular' => self::Eye,
 			'head','brain' => self::Head,
@@ -28,9 +28,9 @@ enum ImplantSlot: int implements EnumParameterInterface {
 		};
 	}
 
-	public static function tryByName(string $name): ?self {
+	public static function tryFromName(string $name): ?self {
 		try {
-			return static::byName($name);
+			return static::fromName($name);
 		} catch (ValueError) {
 			return null;
 		}
@@ -52,7 +52,7 @@ enum ImplantSlot: int implements EnumParameterInterface {
 		'|foot|feet';
 	}
 
-	public static function byDesignSlotName(string $name): self {
+	public static function fromDesignSlotName(string $name): self {
 		return match (strtolower($name)) {
 			'eye' => self::Eye,
 			'head' => self::Head,
@@ -71,7 +71,7 @@ enum ImplantSlot: int implements EnumParameterInterface {
 		};
 	}
 
-	public static function byTypeId(int $type): self {
+	public static function fromTypeID(int $type): self {
 		return match ($type) {
 			1 => self::Eye,
 			2 => self::Head,

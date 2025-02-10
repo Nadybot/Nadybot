@@ -11,11 +11,11 @@ class PremadeImplant extends DBTable {
 	public function __construct(
 		public int $implant_type_id,
 		#[
-			MapRead([Profession::class, 'byNumber']),
+			MapRead([Profession::class, 'fromNumber']),
 			ColName('profession_id'),
 		] public Profession $profession,
 		#[
-			MapRead([Ability::class, 'byID']),
+			MapRead([Ability::class, 'fromID']),
 			ColName('ability_id'),
 		] public Ability $ability,
 		public int $shiny_cluster_id,

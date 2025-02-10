@@ -6,7 +6,7 @@ use ValueError;
 
 enum WearSlot: int {
 	/** @return EnumBitfield<WearSlot> */
-	public static function byName(string $name): EnumBitfield {
+	public static function fromName(string $name): EnumBitfield {
 		$result = new EnumBitfield(self::class);
 		return match (strtolower($name)) {
 			'neck' => $result->set(self::Neck),

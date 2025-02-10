@@ -8,13 +8,13 @@ use Nadybot\Core\{DBRow, Types\Profession};
 
 class PremadeSearchResult extends DBRow {
 	public function __construct(
-		#[MapRead([ImplantSlot::class, 'byTypeId'])] public ImplantSlot $slot,
+		#[MapRead([ImplantSlot::class, 'fromTypeID'])] public ImplantSlot $slot,
 		#[
-			MapRead([Profession::class, 'byNumber']),
+			MapRead([Profession::class, 'fromNumber']),
 			ColName('profession_id')
 		] public Profession $profession,
 		#[
-			MapRead([Ability::class, 'byID']),
+			MapRead([Ability::class, 'fromID']),
 			ColName('ability_id')
 		] public Ability $ability,
 		public string $shiny,

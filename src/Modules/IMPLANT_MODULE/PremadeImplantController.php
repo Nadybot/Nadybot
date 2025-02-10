@@ -46,11 +46,11 @@ class PremadeImplantController extends ModuleInstance {
 		$searchTerms = strtolower($search);
 		$results = null;
 
-		$profession = Profession::tryByName($searchTerms);
+		$profession = Profession::tryFromName($searchTerms);
 		if (isset($profession)) {
 			$searchTerms = $profession->value;
 			$results = $this->searchByProfession($profession);
-		} elseif (null !== ($slot = ImplantSlot::tryByName($searchTerms))) {
+		} elseif (null !== ($slot = ImplantSlot::tryFromName($searchTerms))) {
 			$results = $this->searchBySlot($slot);
 		} else {
 			$results = $this->searchByModifier($searchTerms);
@@ -80,7 +80,7 @@ class PremadeImplantController extends ModuleInstance {
 
 	/** @return Collection<int,PremadeSearchResult> */
 	public function searchByModifier(string $modifier): Collection {
-		$skills = Skill::tryByName($modifier, false);
+		$skills = Skill::tryFromName($modifier, false);
 		if (!isset($skills)) {
 			/** @var Collection<int,PremadeSearchResult> */
 			$empty = new Collection();

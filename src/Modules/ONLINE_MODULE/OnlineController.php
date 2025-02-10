@@ -380,7 +380,7 @@ class OnlineController extends ModuleInstance {
 	/** Show a list of players that have the specified profession as an alt */
 	#[NCA\HandlesCommand('online')]
 	public function onlineProfCommand(CmdContext $context, string $profName): void {
-		$profession = Profession::tryByName($profName);
+		$profession = Profession::tryFromName($profName);
 		if (!isset($profession)) {
 			$msg = "<highlight>{$profName}<end> is not a recognized profession.";
 			$context->reply($msg);

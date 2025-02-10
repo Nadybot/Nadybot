@@ -13,7 +13,7 @@ class Symbiant extends DBTable implements AOItem {
 		public int $ql,
 		#[
 			NCA\DB\ColName('slot_id'),
-			NCA\DB\MapRead([ImplantSlot::class, 'byTypeId'])
+			NCA\DB\MapRead([ImplantSlot::class, 'fromTypeID'])
 		] public ImplantSlot $slot,
 		public int $treatment_req,
 		public int $level_req,

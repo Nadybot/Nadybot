@@ -14,7 +14,7 @@ enum CarrySlot: int {
 	}
 
 	/** @return EnumBitfield<CarrySlot> */
-	public static function byName(string $name): EnumBitfield {
+	public static function fromName(string $name): EnumBitfield {
 		$result = new EnumBitfield(self::class);
 		return match (strtolower($name)) {
 			'hud1' => $result->set(self::HUD1),

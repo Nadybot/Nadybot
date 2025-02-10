@@ -8,8 +8,8 @@ use Nadybot\Core\Types\ImplantSlot;
 
 class SlotClusterType extends DBRow {
 	public function __construct(
-		#[MapRead([ImplantSlot::class, 'byTypeId'])] public ImplantSlot $slot,
-		#[MapRead([ClusterGrade::class, 'fromId'])] public ClusterGrade $grade,
+		#[MapRead([ImplantSlot::class, 'fromTypeID'])] public ImplantSlot $slot,
+		#[MapRead([ClusterGrade::class, 'fromID'])] public ClusterGrade $grade,
 	) {
 	}
 }

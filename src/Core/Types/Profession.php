@@ -83,15 +83,15 @@ enum Profession: string implements EnumParameterInterface {
 		return '<img src=tdb://id:GFX_GUI_ICON_PROFESSION_'.$this->toNumber().'>';
 	}
 
-	public static function tryByName(string $search): ?self {
+	public static function tryFromName(string $search): ?self {
 		try {
-			return self::byName($search);
+			return self::fromName($search);
 		} catch (\Throwable) {
 			return null;
 		}
 	}
 
-	public static function byName(string $search): self {
+	public static function fromName(string $search): self {
 		return match (strtolower($search)) {
 			'adv','advy','adventurer' => self::Adventurer,
 			'age','agent' => self::Agent,
@@ -112,10 +112,10 @@ enum Profession: string implements EnumParameterInterface {
 	}
 
 	public static function fromParam(string $param): self {
-		return self::byName($param);
+		return self::fromName($param);
 	}
 
-	public static function byNumber(int $search): self {
+	public static function fromNumber(int $search): self {
 		return match ($search) {
 			0 => self::Unknown,
 			1 => self::Soldier,
@@ -136,12 +136,12 @@ enum Profession: string implements EnumParameterInterface {
 		};
 	}
 
-	public static function tryByNumber(?int $search): ?self {
+	public static function tryFromNumber(?int $search): ?self {
 		try {
 			if (!isset($search)) {
 				return null;
 			}
-			return self::byNumber($search);
+			return self::fromNumber($search);
 		} catch (\Throwable) {
 			return null;
 		}
@@ -149,7 +149,7 @@ enum Profession: string implements EnumParameterInterface {
 
 	/** Check if the given string matches the profession (abbreviated or not) */
 	public function is(string $search): bool {
-		return self::tryByName($search) === $this;
+		return self::tryFromName($search) === $this;
 	}
 
 	case Adventurer = 'Adventurer';

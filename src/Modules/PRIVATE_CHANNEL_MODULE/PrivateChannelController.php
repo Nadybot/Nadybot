@@ -810,7 +810,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		string $profession
 	): void {
 		try {
-			$prof = Profession::byName($profession);
+			$prof = Profession::fromName($profession);
 		} catch (Throwable) {
 			$msg = 'Please choose one of these professions: ' . Text::enumerateOr(...[...Profession::shortNames(), 'all']);
 			$context->reply($msg);

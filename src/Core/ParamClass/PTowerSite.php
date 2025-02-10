@@ -19,7 +19,7 @@ class PTowerSite extends Base {
 			throw new InvalidArgumentException(__CLASS__ . '() needs a tower site');
 		}
 		try {
-			$this->pf = Playfield::byName($matches[1]);
+			$this->pf = Playfield::fromName($matches[1]);
 		} catch (ValueError $e) {
 			throw new UserException(
 				message: "<highlight>{$matches[1]}<end> is not a known playfield.",

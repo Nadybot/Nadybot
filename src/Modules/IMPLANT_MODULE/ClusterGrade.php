@@ -20,7 +20,7 @@ enum ClusterGrade: string implements EnumParameterInterface {
 		return $myPos <=> $otherPos;
 	}
 
-	public static function fromId(int $id): self {
+	public static function fromID(int $id): self {
 		return match ($id) {
 			1 => self::Faded,
 			2 => self::Bright,
@@ -29,7 +29,7 @@ enum ClusterGrade: string implements EnumParameterInterface {
 		};
 	}
 
-	public function getId(): int {
+	public function id(): int {
 		return match ($this) {
 			self::Faded => 1,
 			self::Bright => 2,

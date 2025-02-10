@@ -217,7 +217,7 @@ class SpiritsController extends ModuleInstance {
 	): void {
 		$name = ucwords(strtolower($search));
 		$title = "Spirits Database for {$name}";
-		$name = ImplantSlot::tryByName($name)?->designSlotName() ?? $name;
+		$name = ImplantSlot::tryFromName($name)?->designSlotName() ?? $name;
 
 		$data = $this->db->table(Spirit::getTable())
 			->whereIlike('name', "%{$name}%")

@@ -194,7 +194,7 @@ class ImplantDesignerController extends ModuleInstance {
 			}
 			$blob .= "\n<header2>Modifications<end>\n";
 			foreach ($symb->mods as $mod) {
-				$blob .= "{$mod->skill->fullName()}: {$mod->amount}{$mod->skill->getUnit()}\n";
+				$blob .= "{$mod->skill->fullName()}: {$mod->amount}{$mod->skill->unit()}\n";
 			}
 			$blob .= "\n";
 		} else {
@@ -273,7 +273,7 @@ class ImplantDesignerController extends ModuleInstance {
 				}
 			} else {
 				try {
-					$skill = Skill::byName($cluster, false);
+					$skill = Skill::fromName($cluster, false);
 					if (is_array($skill)) {
 						$skill = $skill[0];
 					}
@@ -291,7 +291,7 @@ class ImplantDesignerController extends ModuleInstance {
 				$valid = $this->db
 					->table(ClusterImplantMap::getTable())
 					->where('cluster_id', $clusterObj->cluster_id)
-					->where('cluster_type_id', $grade->getId())
+					->where('cluster_type_id', $grade->id())
 					->where('implant_type_id', $slot->typeId())
 					->exists();
 				if (!$valid) {
@@ -331,7 +331,7 @@ class ImplantDesignerController extends ModuleInstance {
 			$slots = ImplantSlot::cases();
 			$msg = "<highlight>All slots<end> have been set to QL <highlight>{$ql}<end>.";
 		} else {
-			$slots = [ImplantSlot::byName($slot)];
+			$slots = [ImplantSlot::fromName($slot)];
 			$msg = "<highlight>{$slots[0]->longName()}<end> has been set to QL <highlight>{$ql}<end>.";
 		}
 		foreach ($slots as $impSlot) {
@@ -681,7 +681,7 @@ class ImplantDesignerController extends ModuleInstance {
 			->table(Cluster::getTable(), 'c')
 			->join(ClusterImplantMap::getTable(as: 'cim'), 'c.cluster_id', 'cim.cluster_id')
 			->where('cim.implant_type_id', $implantType->typeId())
-			->where('cim.cluster_type_id', $clusterType->getId())
+			->where('cim.cluster_type_id', $clusterType->id())
 			->select('c.skill_id')
 			->pluckInts('skill_id')
 			->map(Skill::from(...))
@@ -774,7 +774,7 @@ class ImplantDesignerController extends ModuleInstance {
 			$msg .= " {$req->skill->fullName()}: {$req->amount}";
 		}
 		foreach ($symb->mods as $mod) {
-			$msg .= "\n<tab><highlight>{$mod->skill->fullName()}<end> ({$mod->amount}{$mod->skill->getUnit()})";
+			$msg .= "\n<tab><highlight>{$mod->skill->fullName()}<end> ({$mod->amount}{$mod->skill->unit()})";
 		}
 		return $msg . "\n";
 	}
@@ -800,7 +800,7 @@ class ImplantDesignerController extends ModuleInstance {
 				$msg .= "<tab><highlight>-Empty-<end>\n";
 				continue;
 			}
-			$unit = $skill->getUnit();
+			$unit = $skill->unit();
 			$effectId = $implant->getEffectTypeId($grade);
 			$bonus = $this->getClusterModAmount($ql, $grade, $effectId);
 			$msg .= sprintf(
@@ -872,7 +872,7 @@ class ImplantDesignerController extends ModuleInstance {
 				$msg .= sprintf(
 					' %+d%s',
 					$this->getClusterModAmount($ql, $grade, $effectTypeID),
-					$skill->getUnit(),
+					$skill->unit(),
 				);
 			}
 			$msg .= ' [' . Text::makeChatcmd('set', "/tell <myname> implantdesigner {$slot->designSlotName()} {$grade->value} {$skill->fullName()}");

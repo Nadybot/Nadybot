@@ -259,7 +259,7 @@ class AttacksController extends ModuleInstance {
 			return;
 		}
 		try {
-			$pf = Playfield::byName($matches['playfield']);
+			$pf = Playfield::fromName($matches['playfield']);
 		} catch (Throwable) {
 			return;
 		}
@@ -340,7 +340,7 @@ class AttacksController extends ModuleInstance {
 		}
 
 		try {
-			$pf = Playfield::byName($matches['playfield']);
+			$pf = Playfield::fromName($matches['playfield']);
 		} catch (Throwable) {
 			return;
 		}

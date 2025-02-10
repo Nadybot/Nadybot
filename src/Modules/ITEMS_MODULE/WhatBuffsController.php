@@ -269,7 +269,7 @@ class WhatBuffsController extends ModuleInstance {
 
 	public function handleOtherComandline(bool $froobFriendly, CmdContext $context, string $search): void {
 		$tokens = explode(' ', $search);
-		$skillSearch = Skill::tryByName($search, true);
+		$skillSearch = Skill::tryFromName($search, true);
 		if (isset($skillSearch)) {
 			$tokens = [$search];
 		}
@@ -562,7 +562,7 @@ class WhatBuffsController extends ModuleInstance {
 			}
 			$sign = ($item->amount > 0) ? '+' : '-';
 			$prefix = '<tab>' . $sign.Text::alignNumber(abs($item->amount), $maxDigits, 'highlight');
-			$blob .= $prefix . $skill->getUnit() . '  ';
+			$blob .= $prefix . $skill->unit() . '  ';
 			$blob .= $this->getSlotPrefix($item, $category);
 			$blob .= $this->showItemLink($item, $item->highql);
 			if (!$item->in_game) {
@@ -641,7 +641,7 @@ class WhatBuffsController extends ModuleInstance {
 				$perk->profs = implode(
 					"<end>, {$color}",
 					array_map(
-						static fn (string $long): string => Profession::byName($long)->short(),
+						static fn (string $long): string => Profession::fromName($long)->short(),
 						explode(',', $perk->profs)
 					)
 				);
@@ -650,7 +650,7 @@ class WhatBuffsController extends ModuleInstance {
 			}
 			$sign = ($perk->amount > 0) ? '+' : '-';
 			$prefix = "<tab>{$sign}" . Text::alignNumber(abs($perk->amount), $maxDigits, 'highlight');
-			$blob .= $prefix . "{$skill->getUnit()}  {$perk->name} ({$color}{$perk->profs}<end>)\n";
+			$blob .= $prefix . "{$skill->unit()}  {$perk->name} ({$color}{$perk->profs}<end>)\n";
 		}
 
 		return new RenderedList(numItems: $numPerks, blob: $blob);
@@ -677,7 +677,7 @@ class WhatBuffsController extends ModuleInstance {
 				$item->ncu = 0;
 			}
 			$prefix = '<tab>' . Text::alignNumber($item->amount, $maxDigits, 'highlight');
-			$blob .= "{$prefix}{$skill->getUnit()}  <a href='itemid://53019/{$item->id}'>{$item->name}</a> ";
+			$blob .= "{$prefix}{$skill->unit()}  <a href='itemid://53019/{$item->id}'>{$item->name}</a> ";
 			if (isset($item->low_ncu, $item->low_amount)) {
 				$blob .= "({$item->low_ncu} NCU (<highlight>{$item->low_amount}<end>) - {$item->ncu} NCU (<highlight>{$item->amount}<end>))";
 			} else {

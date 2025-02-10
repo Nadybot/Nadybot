@@ -215,7 +215,7 @@ class PocketbossController extends ModuleInstance {
 		$impDesignSlot = null;
 		for ($i = 0; $i < $paramCount; $i++) {
 			try {
-				$impSlot = ImplantSlot::byName($args[$i]);
+				$impSlot = ImplantSlot::fromName($args[$i]);
 				$impDesignSlot = $impSlot->designSlotName();
 				$slot = $impSlot->longName();
 				continue;
@@ -230,7 +230,7 @@ class PocketbossController extends ModuleInstance {
 			}
 
 			try {
-				$symbtype = SymbiantType::byName($args[$i])->name;
+				$symbtype = SymbiantType::fromName($args[$i])->name;
 				continue;
 			} catch (\Throwable) {
 			}

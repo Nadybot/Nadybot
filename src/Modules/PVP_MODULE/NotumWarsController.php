@@ -1073,7 +1073,7 @@ class NotumWarsController extends ModuleInstance {
 				'pf' => $matches[1],
 			]);
 			try {
-				$pf = Playfield::byName($matches[1]);
+				$pf = Playfield::fromName($matches[1]);
 			} catch (Throwable) {
 				$context->reply("Unable to find playfield <highlight>{$matches[1]}<end>.");
 				return;

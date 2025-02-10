@@ -13,9 +13,9 @@ enum Skill: int {
 	 *
 	 * @throws ValueError on non-existing skill
 	 */
-	public static function tryByName(string $name, bool $exactMatchOnly=true): null|self|array {
+	public static function tryFromName(string $name, bool $exactMatchOnly=true): null|self|array {
 		try {
-			return self::byName($name, $exactMatchOnly);
+			return self::fromName($name, $exactMatchOnly);
 		} catch (ValueError) {
 			return null;
 		}
@@ -33,7 +33,7 @@ enum Skill: int {
 				return [$matching];
 			}
 		}
-		$matching = self::tryByName($name, false);
+		$matching = self::tryFromName($name, false);
 		if (!isset($matching)) {
 			return [];
 		}
@@ -50,7 +50,7 @@ enum Skill: int {
 	 *
 	 * @throws ValueError on non-existing skill
 	 */
-	public static function byName(string $name, bool $exactMatchOnly=true): self|array {
+	public static function fromName(string $name, bool $exactMatchOnly=true): self|array {
 		$name = strtolower($name);
 
 		/** @var array<string,self> */
@@ -408,7 +408,7 @@ enum Skill: int {
 		return count($result) === 1 ? $result[0] : $result;
 	}
 
-	public function getUnit(): string {
+	public function unit(): string {
 		/** @psalm-suppress UnhandledMatchCondition */
 		return match ($this) {
 			self::AddNanoCost => '%',

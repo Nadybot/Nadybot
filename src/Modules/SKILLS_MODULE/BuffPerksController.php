@@ -174,7 +174,7 @@ class BuffPerksController extends ModuleInstance {
 					"<tab>%s <highlight>%+d%s<end>\n",
 					$buff->skill->fullName(),
 					$buff->amount,
-					$buff->skill->getUnit(),
+					$buff->skill->unit(),
 				);
 			}
 			$resistances = $this->resistanceHashToCollection($level->resistances);
@@ -383,7 +383,7 @@ class BuffPerksController extends ModuleInstance {
 					"<tab><tab>%s <highlight>%+d%s<end>\n",
 					$buff->skill->fullName(),
 					$buff->amount,
-					$buff->skill->getUnit(),
+					$buff->skill->unit(),
 				);
 			}
 			$resistances = $this->resistanceHashToCollection($perk->resistances);
@@ -652,7 +652,7 @@ class BuffPerksController extends ModuleInstance {
 
 			$professions = explode(',', $profs);
 			foreach ($professions as $prof) {
-				$profession = Profession::tryByName(trim($prof));
+				$profession = Profession::tryFromName(trim($prof));
 				if (!isset($profession)) {
 					$this->logger->info("Error parsing profession: '{prof}'", [
 						'prof' => $prof,

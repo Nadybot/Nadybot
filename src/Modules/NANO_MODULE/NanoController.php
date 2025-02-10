@@ -233,7 +233,7 @@ class NanoController extends ModuleInstance {
 		$arg = html_entity_decode($arg);
 		$nanoArgs = explode(' > ', $arg);
 		$profArg = array_shift($nanoArgs);
-		$profession = Profession::tryByName($profArg)?->value;
+		$profession = Profession::tryFromName($profArg)?->value;
 		if (in_array($profArg, ['general', 'General'], true)) {
 			$profession = 'General';
 		}
