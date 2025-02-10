@@ -71,15 +71,15 @@ class TrickleController extends ModuleInstance {
 		$abilities = new AbilityConfig();
 
 		foreach ($pairs as $pair) {
-			[$ability, $amount] = preg_split("/\s+/", $pair);
-			$shortAbility = Ability::tryFromShort($ability)?->value;
-			if ($shortAbility === null) {
-				$msg = "Unknown ability <highlight>{$ability}<end>.";
+			[$abilityName, $amount] = preg_split("/\s+/", $pair);
+			$ability = Ability::tryFromShort($abilityName);
+			if ($ability === null) {
+				$msg = "Unknown ability <highlight>{$abilityName}<end>.";
 				$context->reply($msg);
 				return true;
 			}
 
-			$abilities->{$shortAbility} += $amount;
+			$abilities->add($ability, (int)$amount);
 		}
 
 		$msg = $this->processAbilities($abilities);
@@ -101,15 +101,15 @@ class TrickleController extends ModuleInstance {
 		$abilities = new AbilityConfig();
 
 		foreach ($pairs as $pair) {
-			[$amount, $ability] = preg_split("/\s+/", $pair);
-			$shortAbility = Ability::tryFromShort($ability)?->value;
-			if ($shortAbility === null) {
-				$msg = "Unknown ability <highlight>{$ability}<end>.";
+			[$amount, $abilityName] = preg_split("/\s+/", $pair);
+			$ability = Ability::tryFromShort($abilityName);
+			if ($ability === null) {
+				$msg = "Unknown ability <highlight>{$abilityName}<end>.";
 				$context->reply($msg);
 				return;
 			}
 
-			$abilities->{$shortAbility} += $amount;
+			$abilities->add($ability, (int)$amount);
 		}
 
 		$msg = $this->processAbilities($abilities);

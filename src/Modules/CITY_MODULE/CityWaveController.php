@@ -42,6 +42,7 @@ use Nadybot\Modules\TIMERS_MODULE\{
 ]
 class CityWaveController extends ModuleInstance implements MessageEmitter {
 	public const TIMER_NAME = 'City Raid';
+	public const WAVE = 'wave';
 
 	/** Times to display timer alerts */
 	#[NCA\Setting\Text(
@@ -155,16 +156,17 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 
 	public function getWave(): ?int {
 		$timer = $this->timerController->get(self::TIMER_NAME);
-		if ($timer === null || !isset($timer->alerts[0]->wave)) {
+		if ($timer === null || !isset($timer->alerts[0]->extra[self::WAVE])) {
 			return null;
 		}
-		return $timer->alerts[0]->wave;
+		return (int)$timer->alerts[0]->extra[self::WAVE];
 	}
 
-	public function sendAlertMessage(Timer $timer, WaveAlert $alert): void {
+	public function sendAlertMessage(Timer $timer, Alert $alert): void {
 		$this->sendWaveMessage($alert->message);
-		if ($alert->wave === 9) {
-			$event = new CityRaidWaveEvent(wave: $alert->wave);
+		$wave = $alert->extra[self::WAVE] ?? null;
+		if ($wave === 9) {
+			$event = new CityRaidWaveEvent(wave: $wave);
 			$event->type = 'cityraid(end)';
 		} else {
 			$event = new CityRaidEndEvent();
@@ -189,12 +191,12 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 			$time = Util::parseTime($alertTime);
 			$lastTime += $time;
 
-			$alerts []= new WaveAlert(
+			$alerts []= new Alert(
 				message: ($wave === 9)
 					? 'General Incoming.'
 					: "Wave {$wave} incoming.",
 				time: $lastTime,
-				wave: $wave,
+				extra: [self::WAVE => $wave],
 			);
 
 			$wave++;
