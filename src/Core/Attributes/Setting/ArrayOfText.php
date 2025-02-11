@@ -23,6 +23,7 @@ class ArrayOfText extends ArraySetting {
 		public string $accessLevel='mod',
 		public ?string $help=null,
 		public ?string $delimiter='|',
+		public ?bool $confidential=false,
 	) {
 		$this->type = 'text[]';
 	}

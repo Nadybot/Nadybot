@@ -56,7 +56,7 @@ class FormulaController extends ModuleInstance {
 	)]
 	public string $divisionSign = '/';
 
-	/** How to show divisions in calculations */
+	/** Simplify math formulas */
 	#[NCA\Setting\Boolean]
 	public bool $simplifyFormula = true;
 

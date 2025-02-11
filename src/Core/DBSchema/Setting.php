@@ -19,6 +19,7 @@ class Setting extends DBTable {
 		public ?string $options='0',
 		public ?string $intoptions='0',
 		public ?int $verify=0,
+		public ?bool $confidential=false,
 	) {
 	}
 }

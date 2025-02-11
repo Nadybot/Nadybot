@@ -632,11 +632,18 @@ class ConfigController extends ModuleInstance {
 		foreach ($data as $row) {
 			$blob .= '<tab>' . implode("\n<tab>", explode("\n", $row->getData()->description ?? ''));
 
-			if ($row->isEditable() && $this->accessManager->checkAccess($context->char->name, $row->getData()->admin??'superadmin')) {
+			$alToChange = $row->getData()->admin ?? 'superadmin';
+			$canChangeSetting = $this->accessManager->checkAccess($context->char->name, $alToChange);
+			if ($row->isEditable() && $canChangeSetting) {
 				$blob .= ' [' . $row->getModifyLink() . ']';
 			}
 
-			$blob .= ': ' . $row->displayValue($context->char->name) . "\n";
+			if (!$row->canViewValue($context)) {
+				$displayValue = '<highlight>*********<end>';
+			} else {
+				$displayValue = $row->displayValue($context->char->name);
+			}
+			$blob .= ": {$displayValue}\n";
 		}
 
 		$data = $this->commandManager->getAll(true)->where('module', $module);
@@ -943,7 +950,11 @@ class ConfigController extends ModuleInstance {
 				return $this->settingManager->getSettingHandler($setting);
 			})
 			->filter(static fn (?SettingHandler $handler): bool => isset($handler))
-			->toList();
+			->each(static function (?SettingHandler $handler): void {
+				if (isset($handler)) {
+					Registry::injectDependencies($handler);
+				}
+			})->toList();
 		return $handlers;
 	}
 

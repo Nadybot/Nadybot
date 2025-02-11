@@ -24,6 +24,7 @@ class Time extends DefineSetting {
 		public array $options=[],
 		public string $accessLevel='mod',
 		public ?string $help=null,
+		public ?bool $confidential=false,
 	) {
 		$this->type = 'time';
 	}

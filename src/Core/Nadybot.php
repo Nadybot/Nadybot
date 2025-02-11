@@ -1916,6 +1916,7 @@ class Nadybot {
 				options: $attribute->options,
 				accessLevel: $attribute->accessLevel,
 				help: $attribute->help,
+				confidential: $attribute->confidential,
 			);
 			$this->updateTypedProperty($obj, $property, $this->settingManager->settings[$attribute->name]->value);
 			$this->eventManager->subscribe(

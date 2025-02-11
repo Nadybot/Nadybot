@@ -5,7 +5,7 @@ namespace Nadybot\Core\Attributes;
 use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertySerializer};
 
-#[Attribute(Attribute::TARGET_PARAMETER | Attribute::IS_REPEATABLE)]
+#[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 final class Confidential implements PropertySerializer {
 	public static bool $active = false;
 

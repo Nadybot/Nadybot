@@ -23,7 +23,8 @@ class DiscordController extends ModuleInstance {
 	#[NCA\DefineSetting(
 		type: 'discord_bot_token',
 		options: ['off'],
-		accessLevel: 'superadmin'
+		accessLevel: 'superadmin',
+		confidential: true,
 	)]
 	public string $discordBotToken = 'off';
 

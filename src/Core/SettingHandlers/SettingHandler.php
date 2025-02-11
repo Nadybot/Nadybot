@@ -3,11 +3,14 @@
 namespace Nadybot\Core\SettingHandlers;
 
 use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\{Attributes as NCA, Text, Types\SettingMode};
+use Nadybot\Core\{AccessManager, Attributes as NCA, CmdContext, Text, Types\SettingMode};
 
 abstract class SettingHandler {
 	#[NCA\Inject]
 	protected Text $text;
+
+	#[NCA\Inject]
+	protected AccessManager $accessManager;
 
 	/** Construct a new handler out of a given database row */
 	public function __construct(
@@ -17,6 +20,17 @@ abstract class SettingHandler {
 
 	public function isEditable(): bool {
 		return $this->row->mode === SettingMode::Edit;
+	}
+
+	public function canViewValue(CmdContext $context): bool {
+		if ($this->row->confidential !== true) {
+			return true;
+		}
+		if (!$context->isDM()) {
+			return false;
+		}
+		$alToChange = $this->row->admin ?? 'superadmin';
+		return $this->accessManager->checkAccess($context->char->name, $alToChange);
 	}
 
 	public function getData(): Setting {

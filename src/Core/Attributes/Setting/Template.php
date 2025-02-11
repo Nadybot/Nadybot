@@ -33,6 +33,7 @@ class Template extends DefineSetting {
 		public string $accessLevel='mod',
 		public ?string $help=null,
 		public ?array $exampleValues=null,
+		public ?bool $confidential=false,
 	) {
 		$this->type = 'template';
 		if (isset($this->exampleValues)) {

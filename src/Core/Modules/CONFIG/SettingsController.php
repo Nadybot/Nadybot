@@ -73,7 +73,11 @@ class SettingsController extends ModuleInstance {
 
 			$settingHandler = $this->settingManager->getSettingHandler($row);
 			if ($settingHandler instanceof SettingHandler) {
-				$blob .= ': ' . $settingHandler->displayValue($context->char->name);
+				if ($settingHandler->canViewValue($context)) {
+					$blob .= ': ' . $settingHandler->displayValue($context->char->name);
+				} else {
+					$blob .= ': <highlight>********<end>';
+				}
 			}
 			$blob .= "\n";
 		}
@@ -108,7 +112,11 @@ class SettingsController extends ModuleInstance {
 		$blob .= "<tab>Name: <highlight>{$row->name}<end>\n";
 		$blob .= "<tab>Module: <highlight>{$row->module}<end>\n";
 		$blob .= "<tab>Description: <highlight>{$row->description}<end>\n";
-		$blob .= '<tab>Current Value: ' . $settingHandler->displayValue($context->char->name) . "\n";
+		$currentValue = '<highlight>********<end>';
+		if ($settingHandler->canViewValue($context)) {
+			$currentValue = $settingHandler->displayValue($context->char->name);
+		}
+		$blob .= "<tab>Current Value: {$currentValue}\n";
 		if ($settingHandler instanceof TemplateSettingHandler) {
 			$blob .= '<tab>Raw value: <highlight>' . htmlentities($settingHandler->getData()->value ?? '<empty>') . "<end>\n";
 		}

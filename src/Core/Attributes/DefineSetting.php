@@ -19,6 +19,7 @@ class DefineSetting {
 	 *                                                             Alternatively, use an associative array [label => value], where label is optional.
 	 * @param string                                 $accessLevel  The permission level needed to change this setting (default: mod) (optional)
 	 * @param ?string                                $help         A help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
+	 * @param ?bool                                  $confidential Is this setting confidential and shouldn't show up outside of PMs?
 	 */
 	public function __construct(
 		public string $type,
@@ -28,6 +29,7 @@ class DefineSetting {
 		public array $options=[],
 		public string $accessLevel='mod',
 		public ?string $help=null,
+		public ?bool $confidential=false,
 	) {
 	}
 

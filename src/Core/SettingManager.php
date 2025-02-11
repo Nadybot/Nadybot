@@ -90,6 +90,7 @@ class SettingManager {
 		array $options=[],
 		string $accessLevel='mod',
 		?string $help=null,
+		?bool $confidential=false,
 	): void {
 		$value = $this->getHardcoded($name) ?? $value;
 		$name = strtolower($name);
@@ -163,6 +164,7 @@ class SettingManager {
 				type: $type,
 				verify: 1,
 				value: (string)$value,
+				confidential: $confidential,
 			);
 			if (array_key_exists($name, $this->chatBot->existing_settings) || $this->exists($name)) {
 				$this->db->table(Setting::getTable())
@@ -174,6 +176,7 @@ class SettingManager {
 						'options' => $options,
 						'intoptions' => $intoptions,
 						'description' => $description,
+						'confidential' => $confidential,
 						'verify' => 1,
 						'help' => $help,
 					]);
@@ -196,6 +199,7 @@ class SettingManager {
 					admin: $accessLevel,
 					verify: 1,
 					help: $help,
+					confidential: $confidential,
 				));
 			}
 			$this->settings[$name] = new SettingValue($setting);
