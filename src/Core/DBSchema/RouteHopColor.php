@@ -36,4 +36,11 @@ class RouteHopColor extends DBTable {
 			HopColorType::TextColor => $this->text_color,
 		};
 	}
+
+	public function setColor(HopColorType $type, ?string $color): ?string {
+		return match ($type) {
+			HopColorType::TagColor => $this->tag_color = $color,
+			HopColorType::TextColor => $this->text_color = $color,
+		};
+	}
 }

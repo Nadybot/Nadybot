@@ -9,6 +9,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use Monolog\Logger;
 use Nadybot\Core\ParamClass\PUuid;
+use Nadybot\Core\Types\HopColorType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\DiscordChannel,
@@ -73,9 +74,6 @@ class MessageHubController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private MessageHub $messageHub;
-
-	#[NCA\Inject]
-	private Text $text;
 
 	#[NCA\Inject]
 	private DB $db;
@@ -683,7 +681,7 @@ class MessageHubController extends ModuleInstance {
 	public function routeTagColorRemCommand(
 		CmdContext $context,
 		#[NCA\Str('color')] string $action,
-		#[NCA\StrChoice('tag', 'text')] string $type,
+		HopColorType $type,
 		#[NCA\Remove] string $subAction,
 		PSource $tag,
 		?PWhere $where,
@@ -694,12 +692,12 @@ class MessageHubController extends ModuleInstance {
 			$where = $this->fixDiscordChannelName($where());
 		}
 
-		/** @var ?string $where */
+		/** @x-var ?string $where */
 		if (isset($via)) {
 			$via = $this->fixDiscordChannelName($via());
 		}
 
-		/** @var ?string $via */
+		/** @x-var ?string $via */
 		$color = $this->getHopColor($tag, $where??null, $via??null);
 		$name = $tag;
 		if (isset($where)) {
@@ -708,20 +706,19 @@ class MessageHubController extends ModuleInstance {
 		if (isset($via)) {
 			$name .= "<end> via <highlight>{$via}";
 		}
-		$attr = "{$type}_color";
-		$otherAttr = 'text_color';
-		if ($type === 'text') {
-			$otherAttr = 'tag_color';
+		$otherType = HopColorType::TextColor;
+		if ($type === HopColorType::TextColor) {
+			$otherType = HopColorType::TagColor;
 		}
-		if (!isset($color) || !isset($color->{$attr})) {
-			$context->reply("No {$type} color for <highlight>{$name}<end> defined.");
+		if (!isset($color) || $color->getColor($type) === null) {
+			$context->reply("No {$type->value} color for <highlight>{$name}<end> defined.");
 			return;
 		}
-		if (isset($color->{$otherAttr})) {
-			$color->{$attr} = null;
+		if ($color->getColor($otherType) !== null) {
+			$color->setColor($type, null);
 			$this->db->update($color);
 			$context->reply(
-				ucfirst($type) . ' color definition for '.
+				ucfirst($type->value) . ' color definition for '.
 				"<highlight>{$name}<end> deleted."
 			);
 			return;
@@ -746,7 +743,7 @@ class MessageHubController extends ModuleInstance {
 	public function routeSetColorCommand(
 		CmdContext $context,
 		#[NCA\Str('color')] string $action,
-		#[NCA\StrChoice('tag', 'text')] string $type,
+		HopColorType $type,
 		#[NCA\Str('set')] string $subAction,
 		PSource $tag,
 		?PWhere $where,
@@ -767,7 +764,6 @@ class MessageHubController extends ModuleInstance {
 		if (isset($via)) {
 			$name .= "<end> via <highlight>{$via}";
 		}
-		$type = strtolower($type);
 		$color = $color->getCode();
 		if (strlen($tag) > 50) {
 			$context->reply('Your tag is longer than the supported 50 characters.');
@@ -790,11 +786,7 @@ class MessageHubController extends ModuleInstance {
 				via: $via,
 			);
 		}
-		if ($type === 'text') {
-			$colorDef->text_color = $color;
-		} else {
-			$colorDef->tag_color = $color;
-		}
+		$colorDef->setColor($type, $color);
 		if ($update) {
 			$this->db->update($colorDef);
 		} else {
@@ -802,7 +794,7 @@ class MessageHubController extends ModuleInstance {
 			$this->messageHub->loadTagColor();
 		}
 		$context->reply(
-			ucfirst($type) . ' color for '.
+			ucfirst($type->value) . ' color for '.
 			"<highlight>{$name}<end> set to ".
 			"<font color='#{$color}'>#{$color}</font>."
 		);
@@ -813,7 +805,7 @@ class MessageHubController extends ModuleInstance {
 	public function routePickColorCommand(
 		CmdContext $context,
 		#[NCA\Str('color')] string $action,
-		#[NCA\StrChoice('tag', 'text')] string $type,
+		HopColorType $type,
 		#[NCA\Str('pick')] string $subAction,
 		PSource $tag,
 		?PWhere $where,
@@ -835,7 +827,6 @@ class MessageHubController extends ModuleInstance {
 			$name .= " <i>via {$via}</i>";
 			$id .= " via {$via}";
 		}
-		$type = strtolower($type);
 		if (strlen($tag) > 50) {
 			$context->reply('Your tag name is too long.');
 			return;
@@ -849,11 +840,11 @@ class MessageHubController extends ModuleInstance {
 			return;
 		}
 		$colorList = ColorSettingHandler::getExampleColors();
-		$blob = "<header2>Pick a {$type} color for {$name}<end>\n";
+		$blob = "<header2>Pick a {$type->value} color for {$name}<end>\n";
 		foreach ($colorList as $color => $colorName) {
 			$link = Text::makeChatcmd(
 				'Pick this one',
-				"/tell <myname> route color {$type} set {$id} {$color}"
+				"/tell <myname> route color {$type->value} set {$id} {$color}"
 			);
 			$blob .= "<tab>[{$link}] <font color='{$color}'>Example Text</font> ({$colorName})\n";
 		}

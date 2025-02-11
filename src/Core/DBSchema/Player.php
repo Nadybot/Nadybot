@@ -141,7 +141,32 @@ class Player extends DBTable {
 				$lc = strtolower($pronoun);
 				if (!isset($pronouns[$gender][$lc])) {
 					if (property_exists($this, $lc)) {
-						$result = lcfirst((string)($this->{$lc} ?? ''));
+						$result = match ($lc) {
+							'charid' => (string)$this->charid,
+							'name' => $this->name,
+							'dimension' => (string)$this->dimension,
+							'firstname' => $this->firstname,
+							'lastname' => $this->lastname,
+							'level' => (string)$this->level,
+							'breed' => $this->breed,
+							'gender' => $this->gender,
+							'faction' => $this->faction->value,
+							'profession' => $this->profession?->value,
+							'prof_title' => $this->prof_title,
+							'ai_rank' => $this->ai_rank,
+							'ai_level' => isset($this->ai_level) ? (string)$this->ai_level : null,
+							'guild_id' => isset($this->guild_id) ? (string)$this->guild_id : null,
+							'guild' => $this->guild,
+							'guild_rank' => $this->guild_rank,
+							'guild_rank_id' => isset($this->guild_rank_id) ? (string)$this->guild_rank_id : null,
+							'head_id' => isset($this->head_id) ? (string)$this->head_id : null,
+							'pvp_rating' => isset($this->pvp_rating) ? (string)$this->pvp_rating : null,
+							'pvp_title' => $this->pvp_title,
+							'source' => $this->source,
+							'last_update' => isset($this->last_update) ? (string)$this->last_update : null,
+							default => null,
+						};
+						$result = lcfirst($result ?? '');
 					} else {
 						return $pronoun;
 					}
