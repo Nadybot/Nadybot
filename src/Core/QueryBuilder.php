@@ -23,13 +23,13 @@ class QueryBuilder extends Builder {
 	private const CLASS_SEP = '⚡️';
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	#[NCA\Inject]
-	public DB $nadyDB;
+	private DB $nadyDB;
 
 	#[NCA\Inject]
-	public Filesystem $fs;
+	private Filesystem $fs;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
