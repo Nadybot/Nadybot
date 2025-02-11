@@ -9,9 +9,6 @@ use Nadybot\Core\{Attributes as NCA, Text};
  */
 #[NCA\SettingHandler('text[]')]
 class ArrayOfTextSettingHandler extends SettingHandler {
-	#[NCA\Inject]
-	protected Text $text;
-
 	/** @inheritDoc */
 	public function getDescription(): string {
 		$msg = "For this setting you can enter any amount of text values you want, separated by a pipe (|)\n";

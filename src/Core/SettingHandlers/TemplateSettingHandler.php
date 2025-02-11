@@ -13,6 +13,9 @@ use ReflectionObject;
  */
 #[NCA\SettingHandler('template')]
 class TemplateSettingHandler extends SettingHandler {
+	#[NCA\Inject]
+	private Text $text;
+
 	/** Get a displayable representation of the setting */
 	public function displayValue(string $sender): string {
 		$examples = [];

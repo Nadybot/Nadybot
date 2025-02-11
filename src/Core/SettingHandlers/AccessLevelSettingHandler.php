@@ -3,8 +3,8 @@
 namespace Nadybot\Core\SettingHandlers;
 
 use Exception;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\CONFIG\ConfigController;
+use Nadybot\Core\{AccessManager, Attributes as NCA};
 
 /**
  * Class to represent a setting with an access level value for NadyBot
@@ -13,6 +13,9 @@ use Nadybot\Core\Modules\CONFIG\ConfigController;
 class AccessLevelSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	private ConfigController $configController;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
 
 	/** @inheritDoc */
 	public function getDescription(): string {

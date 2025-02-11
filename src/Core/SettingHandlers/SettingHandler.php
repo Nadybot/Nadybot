@@ -7,10 +7,7 @@ use Nadybot\Core\{AccessManager, Attributes as NCA, CmdContext, Text, Types\Sett
 
 abstract class SettingHandler {
 	#[NCA\Inject]
-	protected Text $text;
-
-	#[NCA\Inject]
-	protected AccessManager $accessManager;
+	private AccessManager $accessManager;
 
 	/** Construct a new handler out of a given database row */
 	public function __construct(

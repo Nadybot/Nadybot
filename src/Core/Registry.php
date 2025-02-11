@@ -88,70 +88,75 @@ class Registry {
 	public static function injectDependencies(string|object $instance): void {
 		// inject other instances that have the #[Inject] attribute
 		$reflection = new ReflectionClass($instance);
-		foreach ($reflection->getProperties() as $property) {
-			if (is_string($instance) && !$property->isStatic()) {
-				continue;
-			}
-			$injectAttrs = $property->getAttributes(NCA\Inject::class);
-			if (count($injectAttrs)) {
-				$injectAttr = $injectAttrs[0]->newInstance();
-				$dependencyName = $injectAttr->instance;
-				if (!isset($dependencyName)) {
-					$type = $property->getType();
-					if (!($type instanceof ReflectionNamedType)) {
-						throw new RuntimeException("Cannot determine type of {$reflection->getName()}::\${$property->getName()}");
-					}
-					$dependencyName = static::formatName($type->getName());
+		$iteration = 0;
+		do {
+			$iteration++;
+			foreach ($reflection->getProperties() as $property) {
+				if (is_string($instance) && !$property->isStatic()) {
+					continue;
 				}
-				$dependency = Registry::tryGetInstance($dependencyName);
-				if ($dependency === null) {
-					static::getLogger()->warning(
-						"Could not resolve dependency '{dependencyName}' in '{class}'",
-						[
-							'dependencyName' => $dependencyName,
-							'class' => is_string($instance) ? $instance : $instance::class,
-						]
-					);
-				} else {
-					$property->setAccessible(true);
-					if ($property->isStatic()) {
-						$property->setValue(null, $dependency);
-					} elseif (is_object($instance)) {
-						$property->setValue($instance, $dependency);
+				$injectAttrs = $property->getAttributes(NCA\Inject::class);
+				if (count($injectAttrs)) {
+					$injectAttr = $injectAttrs[0]->newInstance();
+					$dependencyName = $injectAttr->instance;
+					if (!isset($dependencyName)) {
+						$type = $property->getType();
+						if (!($type instanceof ReflectionNamedType)) {
+							throw new RuntimeException("Cannot determine type of {$reflection->getName()}::\${$property->getName()}");
+						}
+						$dependencyName = static::formatName($type->getName());
 					}
-				}
-				continue;
-			}
-
-			$loggerAttrs = $property->getAttributes(NCA\Logger::class);
-			if (count($loggerAttrs)) {
-				$loggerAttr = $loggerAttrs[0]->newInstance();
-				if (isset($loggerAttr->tag)) {
-					$tag = $loggerAttr->tag;
-				} else {
-					$array = explode('\\', $reflection->name);
-					if (str_starts_with($reflection->name, 'Nadybot\\Modules\\')) {
-						$tag = implode('/', array_slice($array, 2));
-					} elseif (str_starts_with($reflection->name, 'Nadybot\\User\\Modules\\')) {
-						$tag = implode('/', array_slice($array, 3));
+					$dependency = Registry::tryGetInstance($dependencyName);
+					if ($dependency === null) {
+						static::getLogger()->warning(
+							"Could not resolve dependency '{dependencyName}' in '{class}'",
+							[
+								'dependencyName' => $dependencyName,
+								'class' => is_string($instance) ? $instance : $instance::class,
+							]
+						);
 					} else {
-						$tag = implode('/', array_slice($array, -2));
+						$property->setAccessible(true);
+						if ($property->isStatic()) {
+							$property->setValue(null, $dependency);
+						} elseif (is_object($instance)) {
+							$property->setValue($instance, $dependency);
+						}
 					}
+					continue;
 				}
-				$property->setAccessible(true);
-				$logger = new LoggerWrapper($tag);
-				if ($instance instanceof LogWrapInterface) {
-					$closure = $reflection->getMethod('wrapLogs')->getClosure($instance);
-					$logger->wrap($closure);
+
+				$loggerAttrs = $property->getAttributes(NCA\Logger::class);
+				if (count($loggerAttrs)) {
+					$loggerAttr = $loggerAttrs[0]->newInstance();
+					if (isset($loggerAttr->tag)) {
+						$tag = $loggerAttr->tag;
+					} else {
+						$array = explode('\\', $reflection->name);
+						if (str_starts_with($reflection->name, 'Nadybot\\Modules\\')) {
+							$tag = implode('/', array_slice($array, 2));
+						} elseif (str_starts_with($reflection->name, 'Nadybot\\User\\Modules\\')) {
+							$tag = implode('/', array_slice($array, 3));
+						} else {
+							$tag = implode('/', array_slice($array, -2));
+						}
+					}
+					$property->setAccessible(true);
+					$logger = new LoggerWrapper($tag);
+					if ($instance instanceof LogWrapInterface) {
+						$closure = $reflection->getMethod('wrapLogs')->getClosure($instance);
+						$logger->wrap($closure);
+					}
+					if ($property->isStatic()) {
+						$property->setValue(null, $logger);
+					} elseif (is_object($instance)) {
+						$property->setValue($instance, $logger);
+					}
+					static::injectDependencies($logger);
 				}
-				if ($property->isStatic()) {
-					$property->setValue(null, $logger);
-				} elseif (is_object($instance)) {
-					$property->setValue($instance, $logger);
-				}
-				static::injectDependencies($logger);
 			}
-		}
+			$reflection = $reflection->getParentClass();
+		} while ($reflection !== false);
 	}
 
 	/**
