@@ -14,4 +14,11 @@ class CmdAlias extends DBTable {
 		public int $status=0,
 	) {
 	}
+
+	public function sameAS(self $that): bool {
+		return $this->cmd === $that->cmd
+			&& $this->alias === $that->alias
+			&& $this->module === $that->module
+			&& $this->status === $that->status;
+	}
 }

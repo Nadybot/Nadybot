@@ -44,6 +44,9 @@ class CommandAlias {
 		);
 
 		$row = $this->get($alias);
+		if (isset($row) && $row->sameAS($entry)) {
+			return;
+		}
 		if ($row !== null) {
 			$this->logger->info('Updating {alias}', ['alias' => $entry]);
 			// do not update an alias that a user created
