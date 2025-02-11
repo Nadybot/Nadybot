@@ -25,8 +25,6 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\RELAY_MODULE\{RelayConfig, RelayLayer};
 
-use stdClass;
-
 /**
  * @author Tyrence (RK2)
  * Commands this class contains:
@@ -61,12 +59,6 @@ class UsageController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private Filesystem $fs;
-
-	#[NCA\Inject]
-	private Util $util;
-
-	#[NCA\Inject]
-	private Text $text;
 
 	#[NCA\Inject]
 	private BotConfig $config;
@@ -280,10 +272,15 @@ class UsageController extends ModuleInstance {
 			->select('command');
 		$query->selectRaw($query->rawFunc('COUNT', '*', 'count'));
 		$commands = $query->asObj(CommandUsageStats::class)
-			->reduce(static function (stdClass $carry, CommandUsageStats $entry): stdClass {
-				$carry->{$entry->command} = $entry->count;
+			/**
+			 * @param array<string,int> $carry
+			 *
+			 * @return array<string,int>
+			 */
+			->reduce(static function (array $carry, CommandUsageStats $entry): array {
+				$carry[$entry->command] = $entry->count;
 				return $carry;
-			}, new stdClass());
+			}, []);
 
 		$fsObj = $this->fs->getFilesystem();
 		$fs = new \ReflectionObject($fsObj);
@@ -303,7 +300,7 @@ class UsageController extends ModuleInstance {
 			fs_type                : $fsClass,
 			bot_version            : BotRunner::getVersion(),
 			using_git              : $this->fs->exists(BotRunner::getBasedir() . '/.git'),
-			os                     : BotRunner::isWindows() ? 'Windows' : php_uname('s'),
+			os                     : \PHP_OS_FAMILY,
 			symbol                 : $this->settingManager->getString('symbol')??'!',
 			num_relays             : $this->db->table(RelayConfig::getTable())->count(),
 			relay_protocols        : $this->db->table(RelayLayer::getTable())
@@ -318,6 +315,7 @@ class UsageController extends ModuleInstance {
 			online_show_org_priv   : $this->settingManager->getInt('online_show_org_priv')??-1,
 			online_admin           : $this->settingManager->getBool('online_admin')??false,
 			http_server_enable     : $this->eventManager->getKeyForCronEvent(60, 'httpservercontroller.startHTTPServer') !== null,
+			drill_server           : $this->settingManager->getString('drill_server') ?? 'off',
 		);
 
 		return new UsageStats(
@@ -330,25 +328,16 @@ class UsageController extends ModuleInstance {
 	}
 
 	public function getGuildSizeClass(int $size): string {
-		$guildClass = 'class7';
-		if ($size === 0) {
-			$guildClass = 'class0';
-		} elseif ($size < 10) {
-			$guildClass = 'class1';
-		} elseif ($size < 30) {
-			$guildClass = 'class2';
-		} elseif ($size < 150) {
-			$guildClass = 'class3';
-		} elseif ($size < 300) {
-			$guildClass = 'class4';
-		} elseif ($size < 650) {
-			$guildClass = 'class5';
-		} elseif ($size < 1_000) {
-			$guildClass = 'class6';
-		} else {
-			$guildClass = 'class7';
-		}
-		return $guildClass;
+		return match (true) {
+			$size === 0   => 'class0',
+			$size < 10    => 'class1',
+			$size < 30    => 'class2',
+			$size < 150   => 'class3',
+			$size < 300   => 'class4',
+			$size < 650   => 'class5',
+			$size < 1_000 => 'class6',
+			default => 'class7',
+		};
 	}
 
 	#[
