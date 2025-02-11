@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use Exception;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Collection;
+use Illuminate\Support\{Arr, Collection};
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Attributes\DB\ColName;
 use Nadybot\Core\Config\BotConfig;
@@ -234,6 +234,56 @@ class QueryBuilder extends Builder {
 			$result += $this->upsert($chunk, $uniqueBy, $update);
 		}
 		return $result;
+	}
+
+	/**
+	 * Get the raw SQL representation of the query with embedded bindings.
+	 *
+	 * @param array<string,scalar> $values
+	 */
+	public function toUpdateSql(array $values): string {
+		$this->applyBeforeQueryCallbacks();
+		return $this->grammar->compileUpdate($this, $values);
+	}
+
+	/**
+	 * Get the raw SQL representation of the query with embedded bindings.
+	 *
+	 * @param array<string,scalar> $values
+	 */
+	public function toInsertSql(array $values): string {
+		$this->applyBeforeQueryCallbacks();
+		return $this->grammar->compileInsert($this, $values);
+	}
+
+	/**
+	 * Get the raw SQL representation of the query with embedded bindings.
+	 *
+	 * @param array<string,scalar> $values
+	 */
+	public function toRawUpdateSql(array $values): string {
+		$sql = $this->toUpdateSql($values);
+
+		return $this->grammar->substituteBindingsIntoRawSql(
+			$sql,
+			$this->cleanBindings(
+				$this->grammar->prepareBindingsForUpdate($this->bindings, $values)
+			),
+		);
+	}
+
+	/**
+	 * Get the raw SQL representation of the query with embedded bindings.
+	 *
+	 * @param array<string,scalar> $values
+	 */
+	public function toRawInsertSql(array $values): string {
+		$sql = $this->toInsertSql($values);
+
+		return $this->grammar->substituteBindingsIntoRawSql(
+			$sql,
+			$this->cleanBindings(Arr::flatten($values, 1))
+		);
 	}
 
 	protected function guessVarTypeFromReflection(ReflectionParameter $refParam): ?string {
