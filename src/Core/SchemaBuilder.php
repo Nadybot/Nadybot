@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Closure;
+use Error;
 use Illuminate\Database\Schema\Builder;
 
 /**
@@ -33,7 +34,11 @@ class SchemaBuilder {
 
 	/** @param list<mixed> $arguments */
 	public function __call(string $name, array $arguments): mixed {
-		return $this->builder->{$name}(...$arguments);
+		$proxy = [$this->builder, $name];
+		if (!is_callable($proxy)) {
+			throw new Error('Call to undefined method ' . __CLASS__ . "::{$name}()");
+		}
+		return call_user_func_array($proxy, $arguments);
 	}
 
 	/** Create a database in the schema.  */

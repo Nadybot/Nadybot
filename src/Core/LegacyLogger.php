@@ -202,7 +202,12 @@ class LegacyLogger {
 				static::$dynamicHandlers->attach($obj);
 			}
 			foreach ($config['calls']??[] as $func => $params) {
-				$obj->{$func}(...array_values($params));
+				$callable = [$obj, $func];
+				if (is_callable($callable)) {
+					call_user_func_array($callable, array_values($params));
+				} else {
+					throw new \Error('Call to undefined method ' . $obj::class . "::{$func}()");
+				}
 			}
 			if (isset($config['formatter'])) {
 				if (!isset($formatters[$config['formatter']])) {
@@ -232,7 +237,12 @@ class LegacyLogger {
 			/** @var FormatterInterface */
 			$obj = new $class(...array_values($config['options']));
 			foreach ($config['calls']??[] as $func => $params) {
-				$obj->{$func}(...array_values($params));
+				$callable = [$obj, $func];
+				if (is_callable($callable)) {
+					call_user_func_array($callable, array_values($params));
+				} else {
+					throw new \Error('Call to undefined method ' . $obj::class . "::{$func}()");
+				}
 			}
 			$result[$name] = $obj;
 		}

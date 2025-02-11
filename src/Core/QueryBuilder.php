@@ -62,6 +62,19 @@ class QueryBuilder extends Builder {
 		}
 	}
 
+	public static function fromBuilder(Builder $builder): self {
+		$instance = new self(
+			$builder->getConnection(),
+			$builder->getGrammar(),
+			$builder->getProcessor()
+		);
+		foreach (get_object_vars($builder) as $attr => $value) {
+			$instance->{$attr} = $value;
+		}
+		Registry::injectDependencies($instance);
+		return $instance;
+	}
+
 	/**
 	 * @template T of object
 	 *

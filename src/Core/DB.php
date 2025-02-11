@@ -391,7 +391,7 @@ class DB {
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$updates = [];
 		$propNames = [];
-		$pks = [];
+		$query = $this->table($table);
 		foreach ($props as $prop) {
 			if (count($prop->getAttributes(NCA\DB\Ignore::class))) {
 				continue;
@@ -403,10 +403,12 @@ class DB {
 			if (count($colNameProp = $prop->getAttributes(NCA\DB\ColName::class))) {
 				$colName = $colNameProp[0]->newInstance()->col;
 			}
-			if (count($prop->getAttributes(NCA\DB\AutoInc::class))) {
-				$pks []= $colName;
-			} elseif (count($prop->getAttributes(NCA\DB\PK::class))) {
-				$pks []= $colName;
+			$isAutoInc = count($prop->getAttributes(NCA\DB\AutoInc::class)) > 0;
+			$isPK = count($prop->getAttributes(NCA\DB\PK::class)) > 0;
+			$isWhere = isset($key) && in_array($colName, (array)$key, true);
+			if ($isWhere || (!isset($key) && $isAutoInc) || (!isset($key) && $isPK)) {
+				$query->where($colName, $prop->getValue($row));
+				continue;
 			}
 			$propNames[$colName] = $prop->name;
 			$updates[$colName] = $prop->getValue($row);
@@ -420,11 +422,6 @@ class DB {
 			} elseif ($updates[$colName] instanceof UuidInterface) {
 				$updates[$colName] = $updates[$colName]->toString();
 			}
-		}
-		$query = $this->table($table);
-		$key ??= $pks;
-		foreach ((array)$key as $k) {
-			$query->where($k, $row->{$propNames[$k]});
 		}
 		return $query->update($updates);
 	}
@@ -475,23 +472,13 @@ class DB {
 			$table = $this->formatSql($table);
 		}
 		$builder = $this->capsule::table($table, $as, $connection);
-		$myBuilder = new QueryBuilder($builder->getConnection(), $builder->getGrammar(), $builder->getProcessor());
-		Registry::injectDependencies($myBuilder);
-		foreach (get_object_vars($builder) as $attr => $value) {
-			$myBuilder->{$attr} = $value;
-		}
-		return $myBuilder;
+		return QueryBuilder::fromBuilder($builder);
 	}
 
 	/** Makes "from" fetch from a sub-query. */
 	public function fromSub(Closure|Builder|string $query, string $as): QueryBuilder {
 		$query = $this->capsule->getConnection()->query()->fromSub($query, $as);
-		$builder = new QueryBuilder($query->connection, $query->grammar, $query->processor);
-		Registry::injectDependencies($builder);
-		foreach (get_object_vars($query) as $attr => $value) {
-			$builder->{$attr} = $value;
-		}
-		return $builder;
+		return QueryBuilder::fromBuilder($query);
 	}
 
 	public function createDatabaseSchema(): void {

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use ErrorException;
 use Exception;
 
-use Nadybot\Core\Types\HopColorType;
+use Nadybot\Core\Types\{HopColorType, Profession};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -71,46 +71,8 @@ class WebChatConverter extends ModuleInstance {
 	public function convertMessages(array $msgs): array {
 		return array_map(
 			$this->toXML(...),
-			$this->tryToUnbreakPopups(
-				array_map($this->parseAOFormat(...), $msgs)
-			)
+			array_map($this->parseAOFormat(...), $msgs)
 		);
-	}
-
-	/**
-	 * Try to reverse the splitting of a large message into multiple ones
-	 *
-	 * @param list<AOMsg> $msgs
-	 *
-	 * @return list<AOMsg>
-	 */
-	public function tryToUnbreakPopups(array $msgs): array {
-		if (count($matches = Safe::pregMatch("/<popup ref=\"(ao-\d)\">(.+?)<\/popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/", $msgs[0]->message)) < 4) {
-			return $msgs;
-		}
-		$msgs[0]->message = Safe::pregReplace(
-			'/<popup ref="'.
-			preg_quote($matches[1], '/').
-			"\">(.+?)<\/popup> \(Page <strong>1 \/ (\d+)<\/strong>\)/",
-			"<popup ref=\"{$matches[1]}\">{$matches[2]}</popup>",
-			$msgs[0]->message
-		);
-		$msgs[0]->popups->{$matches[1]} = Safe::pregReplace("/ \(Page 1 \/ \d+\)<\/h1>/", '</h1>', $msgs[0]->popups->{$matches[1]});
-		for ($i = 1; $i < count($msgs); $i++) {
-			if (count($matches2 = Safe::pregMatch(
-				"/<popup ref=\"(ao-\d+)\">" .
-					preg_quote($matches[2], '/') .
-					"<\/popup> " .
-					"\(Page <strong>\d+ \/ " .
-					preg_quote($matches[3], '/') .
-					"<\/strong>\)/",
-				$msgs[$i]->message,
-			))) {
-				$expand = Safe::pregReplace("/^<h1>.+?<\/h1>(<br \/>){0,2}/", '', $msgs[$i]->popups->{$matches2[1]});
-				$msgs[0]->popups->{$matches[1]} .= $expand;
-			}
-		}
-		return [$msgs[0]];
 	}
 
 	public function getColorFromSetting(string $setting): string {
@@ -237,7 +199,7 @@ class WebChatConverter extends ModuleInstance {
 		$message = Safe::pregReplace("/<(\/?[a-z]+):/", '<$1___', $message);
 		$xml = new \DOMDocument();
 		try {
-			Safe::exceptionWrapper($xml->loadHTML(...), '<?xml encoding="UTF-8">' . $message);
+			Safe::exceptionWrapper($xml->loadHTML(...), '<?xml encoding="UTF-8">' . $message, \LIBXML_BIGLINES|\LIBXML_PARSEHUGE|\LIBXML_NOWARNING|\LIBXML_NOERROR);
 		} catch (ErrorException) {
 		}
 		if (($message = $xml->saveXML()) === false) {
@@ -297,22 +259,6 @@ class WebChatConverter extends ModuleInstance {
 	}
 
 	public function professionIdToName(int $id): string {
-		$idToProf = [
-			1  => 'Soldier',
-			2  => 'Martial Artist',
-			3  => 'Engineer',
-			4  => 'Fixer',
-			5  => 'Agent',
-			6  => 'Adventurer',
-			7  => 'Trader',
-			8  => 'Bureaucrat',
-			9  => 'Enforcer',
-			10 => 'Doctor',
-			11 => 'Nano-Technician',
-			12 => 'Meta-Physicist',
-			14 => 'Keeper',
-			15 => 'Shade',
-		];
-		return $idToProf[$id] ?? 'Unknown';
+		return (Profession::tryFromNumber($id) ?? Profession::Unknown)->value;
 	}
 }
