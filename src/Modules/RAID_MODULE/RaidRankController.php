@@ -24,6 +24,7 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevelProvider,
 	Types\CommandReply,
+	Types\Status,
 };
 use Psr\Log\LoggerInterface;
 
@@ -44,7 +45,7 @@ use Psr\Log\LoggerInterface;
 		command: 'leaderlist',
 		accessLevel: 'all',
 		description: 'Shows the list of raid leaders and admins',
-		defaultStatus: 1,
+		defaultStatus: Status::Enabled,
 		alias: 'leaders'
 	)
 ]
@@ -151,7 +152,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Add raid leader and admins to the buddy list',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)]
 	public function checkRaidRanksEvent(): void {
 		$this->db->table(RaidRank::getTable())

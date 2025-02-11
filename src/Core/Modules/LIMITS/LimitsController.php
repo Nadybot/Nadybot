@@ -28,6 +28,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Types\Status,
 	Util,
 };
 use Psr\Log\LoggerInterface;
@@ -315,7 +316,7 @@ class LimitsController extends ModuleInstance {
 	#[NCA\Event(
 		name: 'timer(1min)',
 		description: 'Check ignores to see if they have expired',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)]
 	public function expireIgnores(): void {
 		$now = time();
@@ -332,7 +333,7 @@ class LimitsController extends ModuleInstance {
 	#[NCA\Event(
 		name: 'timer(10min)',
 		description: 'Cleanup expired command counts',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)]
 	public function expireBuckets(): void {
 		$now = time();

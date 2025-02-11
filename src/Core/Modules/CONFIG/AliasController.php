@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	DBSchema\CmdAlias,
 	ModuleInstance,
 	Text,
+	Types\Status,
 };
 
 #[
@@ -18,7 +19,7 @@ use Nadybot\Core\{
 		command: 'alias',
 		accessLevel: 'mod',
 		description: 'Manage command aliases',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)
 ]
 class AliasController extends ModuleInstance {

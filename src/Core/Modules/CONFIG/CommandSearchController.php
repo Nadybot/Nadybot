@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	Exceptions\SQLException,
 	ModuleInstance,
 	Text,
+	Types\Status,
 };
 
 #[
@@ -22,7 +23,7 @@ use Nadybot\Core\{
 		command: 'cmdsearch',
 		accessLevel: 'guest',
 		description: 'Finds commands based on key words',
-		defaultStatus: 1,
+		defaultStatus: Status::Enabled,
 		alias: 'searchcmd'
 	)
 ]

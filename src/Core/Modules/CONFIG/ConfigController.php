@@ -31,6 +31,7 @@ use Nadybot\Core\{
 	SubcommandManager,
 	Text,
 	Types\ModuleInstanceInterface,
+	Types\Status,
 };
 use ReflectionClass;
 
@@ -39,7 +40,7 @@ use ReflectionClass;
 		command: 'config',
 		accessLevel: 'mod',
 		description: 'Configure bot settings',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\Instance
 ]
@@ -411,7 +412,7 @@ class ConfigController extends ModuleInstance {
 	}
 
 	public function toggleEventCfg(EventCfg $cfg, bool $enable): void {
-		if ((bool)$cfg->status === $enable) {
+		if (($cfg->status === Status::Enabled) === $enable) {
 			return;
 		}
 		if ($cfg->verify !== 0) {
@@ -700,13 +701,13 @@ class ConfigController extends ModuleInstance {
 			$blob .= "\n<header2>Events<end>\n";
 		}
 		foreach ($data as $row) {
-			if ($row->status) {
+			if ($row->status === Status::Enabled) {
 				$statusLink = Text::makeChatcmd('disable', '/tell <myname> config event '.$row->type.' '.$row->file.' disable all');
 			} else {
 				$statusLink = Text::makeChatcmd('enable', '/tell <myname> config event '.$row->type.' '.$row->file.' enable all');
 			}
 
-			if ($row->status === 1) {
+			if ($row->status === Status::Enabled) {
 				$status = '<on>Enabled<end>';
 			} else {
 				$status = '<off>Disabled<end>';

@@ -10,6 +10,7 @@ use Amp\TimeoutCancellation;
 use AO\Client\{SingleClient, WorkerConfig};
 use Nadybot\Core\Filesystem;
 
+use Nadybot\Core\Types\Status;
 use Nadybot\Core\{Config\BotConfig, DB\DBType, Terminal};
 use Psr\Log\LoggerInterface;
 
@@ -239,7 +240,7 @@ class Setup {
 			$defaultModuleStatus = strtolower($this->readInput($msg));
 		} while (!in_array($defaultModuleStatus, ['yes', 'no'], true));
 
-		$this->configFile->general->defaultModuleStatus = ($defaultModuleStatus === 'yes') ? 1 : 0;
+		$this->configFile->general->defaultModuleStatus = ($defaultModuleStatus === 'yes') ? Status::Enabled : Status::Disabled;
 		$this->saveSettings();
 	}
 

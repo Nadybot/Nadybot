@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PCharacter,
 	Text,
+	Types\Status,
 	Util,
 };
 
@@ -25,7 +26,7 @@ use Nadybot\Core\{
 		command: 'rateignore',
 		accessLevel: 'mod',
 		description: 'Add players to the rate limit ignore list to bypass limits check',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)
 ]
 class RateIgnoreController extends ModuleInstance {

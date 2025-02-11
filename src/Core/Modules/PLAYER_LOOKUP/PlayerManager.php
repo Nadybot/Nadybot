@@ -28,6 +28,7 @@ use Nadybot\Core\{
 	Registry,
 	Types\Faction,
 	Types\Profession,
+	Types\Status,
 };
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
@@ -88,7 +89,7 @@ class PlayerManager extends ModuleInstance {
 	#[NCA\Event(
 		name: 'timer(1h)',
 		description: 'Periodically lookup missing or outdated player data',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)]
 	public function lookupMissingCharacterData(): void {
 		if ($this->lookupJobs === 0) {

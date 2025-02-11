@@ -11,8 +11,8 @@ use Nadybot\Core\{
 	Events\Event,
 	ModuleInstance,
 	Safe,
+	Types\Status,
 };
-
 use Socket;
 
 /**
@@ -45,7 +45,7 @@ class SystemdController extends ModuleInstance {
 	#[NCA\Event(
 		name: 'timer(1sec)',
 		description: 'Handle SystemD watchdog',
-		defaultStatus: 0
+		defaultStatus: Status::Disabled,
 	)]
 	public function watchdogPing(Event $event): void {
 		if (!$this->enabled || $this->lastPing + $this->watchdogInterval > time()) {

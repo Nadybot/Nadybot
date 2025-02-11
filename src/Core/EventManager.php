@@ -8,6 +8,7 @@ use function Safe\preg_match;
 
 use Closure;
 use Exception;
+use Nadybot\Core\Types\Status;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -80,7 +81,7 @@ class EventManager {
 	}
 
 	/** Registers an event on the bot so it can be configured */
-	public function register(string $module, string $type, string $filename, string $description='none', ?string $help='', ?int $defaultStatus=null): void {
+	public function register(string $module, string $type, string $filename, string $description='none', ?string $help='', ?Status $defaultStatus=null): void {
 		$type = strtolower($type);
 
 		$this->logger->info('Registering event Type:({type}) Handler:({handler}) Module:({module})', [
@@ -122,22 +123,14 @@ class EventManager {
 					]);
 				return;
 			}
-			if ($defaultStatus === null) {
-				if ($this->config->general->defaultModuleStatus) {
-					$status = 1;
-				} else {
-					$status = 0;
-				}
-			} else {
-				$status = $defaultStatus;
-			}
+			$defaultStatus ??= $this->config->general->defaultModuleStatus;
 			$this->db->insert(new EventCfg(
 				module: $module,
 				type: $type,
 				file: $filename,
 				verify: 1,
 				description: $description,
-				status: $status,
+				status: $defaultStatus,
 				help: $help,
 			));
 		} catch (SQLException $e) {

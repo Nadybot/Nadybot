@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 	Types\SettingMode,
+	Types\Status,
 };
 
 #[
@@ -24,7 +25,7 @@ use Nadybot\Core\{
 		command: 'settings',
 		accessLevel: 'mod',
 		description: 'Change settings on the bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)
 ]
 class SettingsController extends ModuleInstance {

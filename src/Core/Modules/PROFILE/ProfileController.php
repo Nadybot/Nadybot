@@ -16,6 +16,7 @@ use Nadybot\Core\DBSchema\{
 	RouteHopColor,
 	RouteHopFormat,
 };
+use Nadybot\Core\Types\Status;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -219,7 +220,7 @@ class ProfileController extends ModuleInstance {
 		$data = $this->db->table(EventCfg::getTable())->asObj(EventCfg::class);
 		foreach ($data as $row) {
 			$status = 'disable';
-			if ($row->status === 1) {
+			if ($row->status === Status::Enabled) {
 				$status = 'enable';
 			}
 			$contents .= "!config event {$row->type} {$row->file} {$status} all\n";

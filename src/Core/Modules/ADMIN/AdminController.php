@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\ADMIN;
 
-use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	AccessManager,
@@ -14,6 +13,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Admin,
 	DBSchema\LastOnline,
+	Events\ConnectEvent,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\ALTS\NickController,
@@ -21,6 +21,7 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	Text,
 	Types\CommandReply,
+	Types\Status,
 	Util,
 };
 use Psr\Log\LoggerInterface;
@@ -31,20 +32,20 @@ use Psr\Log\LoggerInterface;
 		command: 'adminlist',
 		accessLevel: 'all',
 		description: 'Shows the list of administrators and moderators',
-		defaultStatus: 1,
+		defaultStatus: Status::Enabled,
 		alias: 'admins'
 	),
 	NCA\DefineCommand(
 		command: 'admin',
 		accessLevel: 'superadmin',
 		description: 'Add or remove an administrator',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled,
 	),
 	NCA\DefineCommand(
 		command: 'mod',
 		accessLevel: 'admin',
 		description: 'Add or remove a moderator',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled,
 	)
 ]
 class AdminController extends ModuleInstance {
@@ -204,7 +205,7 @@ class AdminController extends ModuleInstance {
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Add administrators and moderators to the buddy list',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled,
 	)]
 	public function checkAdminsEvent(ConnectEvent $eventObj): void {
 		$this->db->table(Admin::getTable())->asObj(Admin::class)

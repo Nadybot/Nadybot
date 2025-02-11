@@ -2,11 +2,13 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Types\Status;
+
 class CmdDef {
 	public function __construct(
 		public string $description,
 		public string $accessLevel='mod',
-		public ?int $defaultStatus=null,
+		public ?Status $defaultStatus=null,
 		public ?string $help=null,
 		/** @var list<string> */
 		public array $handlers=[],

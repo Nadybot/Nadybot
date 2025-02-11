@@ -22,6 +22,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Registry,
 	Safe,
+	Types\Status,
 };
 use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
@@ -170,7 +171,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	#[NCA\Event(
 		name: 'timer(10min)',
 		description: 'Remove expired authentications',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)]
 	public function clearExpiredAuthentications(): void {
 		foreach ($this->authentications as $user => $data) {

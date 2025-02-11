@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	DBSchema\ExtCmdPermissionSet,
 	ModuleInstance,
 	Text,
+	Types\Status,
 };
 
 #[
@@ -19,7 +20,7 @@ use Nadybot\Core\{
 		command: 'permset',
 		accessLevel: 'superadmin',
 		description: 'Manages permission sets',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 ]
 class PermissionSetController extends ModuleInstance {

@@ -23,6 +23,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
+	Types\Status,
 };
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
@@ -152,7 +153,7 @@ class ConsoleController extends ModuleInstance {
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Initializes the console',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)]
 	public function setupConsole(): void {
 		if (!$this->config->general->enableConsoleClient) {

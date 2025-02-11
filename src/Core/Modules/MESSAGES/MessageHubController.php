@@ -30,6 +30,7 @@ use Nadybot\Core\{
 	SettingHandlers\ColorSettingHandler,
 	Text,
 	Types\MessageEmitter,
+	Types\Status,
 	Util,
 };
 use Psr\Log\LoggerInterface;
@@ -50,7 +51,7 @@ use Throwable;
 		command: 'route',
 		accessLevel: 'mod',
 		description: 'Set which message are routed from where to where',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)
 ]
 class MessageHubController extends ModuleInstance {

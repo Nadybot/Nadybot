@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Safe,
 	Text,
+	Types\Status,
 };
 
 /**
@@ -28,13 +29,13 @@ use Nadybot\Core\{
 		command: 'help',
 		accessLevel: 'all',
 		description: 'Show help topics',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'adminhelp',
 		accessLevel: 'mod',
 		description: 'Show admin help topics',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 ]
 class HelpController extends ModuleInstance {

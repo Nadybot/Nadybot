@@ -19,8 +19,8 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\Status,
 };
-
 use Psr\Log\LoggerInterface;
 
 /**
@@ -175,7 +175,7 @@ class CustomCmdController extends ModuleInstance {
 			$cmdName,
 			'guest',
 			"A dynamic command based on {$cmdName}",
-			1
+			Status::Enabled,
 		);
 		if (!$activate) {
 			return;

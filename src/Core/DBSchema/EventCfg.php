@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\DBSchema;
 
+use Nadybot\Core\Types\Status;
 use Nadybot\Core\{Attributes as NCA, DBTable};
 
 #[NCA\DB\Table(name: 'eventcfg')]
@@ -12,7 +13,7 @@ class EventCfg extends DBTable {
 		#[NCA\DB\PK] public string $file,
 		public string $description,
 		public int $verify=0,
-		public int $status=0,
+		public Status $status=Status::Disabled,
 		public ?string $help=null,
 	) {
 	}

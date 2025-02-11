@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Registry,
+	Types\Status,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	CommandReplyEvent,
@@ -126,7 +127,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 	#[NCA\Event(
 		name: WebsocketSubscribeEvent::EVENT_MASK,
 		description: 'Handle Websocket event subscriptions',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)]
 	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketClient $client): void {
 		try {
@@ -154,7 +155,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 	#[NCA\Event(
 		name: Event::EVENT_MASK,
 		description: 'Distribute events to Websocket clients',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)]
 	public function displayEvent(Event $event): void {
 		$isPrivatPacket = $event->type === 'msg'

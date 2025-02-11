@@ -6,7 +6,7 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Types\{EnumExampleInterface, EnumParameterInterface, ParamAttribute};
+use Nadybot\Core\Types\{EnumExampleInterface, EnumParameterInterface, ParamAttribute, Status};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -172,17 +172,17 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Registers a command
 	 *
-	 * @param string   $module         The module that wants to register a new command
-	 * @param string   $filename       A comma-separated list of "classname.method" handling $command
-	 * @param string   $command        The command to be registered
-	 * @param string   $accessLevelStr The required access level to call this command. Valid values are:
-	 *                                 "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
-	 *                                 "mod", "guild", "member", "rl", "guest", "all"
-	 * @param string   $description    A short description what this command is for
-	 * @param int|null $defaultStatus  The default state of this command:
-	 *                                 1 (enabled), 0 (disabled) or null (use default value as configured)
+	 * @param string      $module         The module that wants to register a new command
+	 * @param string      $filename       A comma-separated list of "classname.method" handling $command
+	 * @param string      $command        The command to be registered
+	 * @param string      $accessLevelStr The required access level to call this command. Valid values are:
+	 *                                    "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
+	 *                                    "mod", "guild", "member", "rl", "guest", "all"
+	 * @param string      $description    A short description what this command is for
+	 * @param Status|null $defaultStatus  The default state of this command:
+	 *                                    1 (enabled), 0 (disabled) or null (use default value as configured)
 	 */
-	public function register(string $module, string $filename, string $command, string $accessLevelStr, string $description, ?int $defaultStatus=null): void {
+	public function register(string $module, string $filename, string $command, string $accessLevelStr, string $description, ?Status $defaultStatus=null): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevelStr);
@@ -207,15 +207,7 @@ class CommandManager implements MessageEmitter {
 			}
 		}
 
-		if ($defaultStatus === null) {
-			if ($this->config->general->defaultModuleStatus) {
-				$status = 1;
-			} else {
-				$status = 0;
-			}
-		} else {
-			$status = $defaultStatus;
-		}
+		$status = $defaultStatus ?? $this->config->general->defaultModuleStatus;
 
 		$this->logger->info('Adding Command to list:({command}) File:({file})', [
 			'command' => $command,
@@ -223,7 +215,7 @@ class CommandManager implements MessageEmitter {
 		]);
 		$defaultPerms = new CmdPermission(
 			access_level: $accessLevel,
-			enabled: (bool)$status,
+			enabled: $status === Status::Enabled,
 			cmd: $command,
 			permission_set: 'default',
 		);
@@ -257,7 +249,7 @@ class CommandManager implements MessageEmitter {
 						'permission_set' => $permSet,
 						'access_level' => $accessLevel,
 						'cmd' => $command,
-						'enabled' => (bool)$status,
+						'enabled' => $status === Status::Enabled,
 						'id' => Uuid::uuid7(),
 					]
 				);

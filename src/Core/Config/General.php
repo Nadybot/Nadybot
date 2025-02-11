@@ -6,6 +6,7 @@ use EventSauce\ObjectHydrator\MapFrom;
 use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
 use InvalidArgumentException;
 use Nadybot\Core\Attributes\{ConvertToBool, ForceList};
+use Nadybot\Core\Types\Status;
 
 /** General config settings */
 class General {
@@ -18,7 +19,7 @@ class General {
 		public string $orgName,
 		#[ForceList] #[MapFrom('super_admins')] public array $superAdmins,
 		#[ConvertToBool] public bool $showAomlMarkup=false,
-		#[CastToType('int')] public int $defaultModuleStatus=1,
+		#[CastToType('int')] public Status $defaultModuleStatus=Status::Enabled,
 		#[ConvertToBool] public bool $enableConsoleClient=true,
 		#[ConvertToBool] public bool $enablePackageModule=true,
 		#[ConvertToBool] public bool $enableHydratorCache=true,

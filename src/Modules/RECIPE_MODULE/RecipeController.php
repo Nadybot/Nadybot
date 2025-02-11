@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	ParamClass\PItem,
 	Safe,
 	Text,
+	Types\Status,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
 	AODBItem,
@@ -52,7 +53,7 @@ class RecipeController extends ModuleInstance {
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Initializes the recipe database',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)]
 	public function connectEvent(): void {
 		$this->path = __DIR__ . '/recipes/';

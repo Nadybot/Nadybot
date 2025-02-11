@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Attributes;
 
 use Attribute;
+use Nadybot\Core\Types\Status;
 
 #[Attribute(Attribute::TARGET_CLASS|Attribute::IS_REPEATABLE)]
 class DefineCommand {
@@ -12,7 +13,7 @@ class DefineCommand {
 		public string $description,
 		public ?string $accessLevel=null,
 		public ?string $help=null,
-		public ?int $defaultStatus=null,
+		public ?Status $defaultStatus=null,
 		public null|string|array $alias=null
 	) {
 	}

@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	SettingManager,
 	Text,
+	Types\Status,
 };
 
 #[
@@ -24,7 +25,7 @@ use Nadybot\Core\{
 		command: 'cmdmap',
 		accessLevel: 'superadmin',
 		description: 'Manages command to permission mappings',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)
 ]
 class PermissionSetMappingController extends ModuleInstance {

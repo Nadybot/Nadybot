@@ -7,17 +7,17 @@ use function Amp\async;
 use AO\Package\Out\PrivateChannelKick;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
+	Config\BotConfig,
 	DB,
 	DBSchema\Audit,
 	DBSchema\BanEntry,
 	DBSchema\Player,
 	EventManager,
+	Events\ConnectEvent,
 	Events\Event,
 	Exceptions\SQLException,
 	ModuleInstance,
@@ -29,6 +29,7 @@ use Nadybot\Core\{
 	ParamClass\PDuration,
 	Text,
 	Types\ImporterInterface,
+	Types\Status,
 	Util,
 };
 use Nadybot\Modules\ORGLIST_MODULE\Organization;
@@ -44,19 +45,19 @@ use Throwable;
 		command: 'ban',
 		accessLevel: 'mod',
 		description: 'Ban a character from this bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'banlist',
 		accessLevel: 'mod',
 		description: 'Shows who is on the banlist',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'unban',
 		accessLevel: 'mod',
 		description: 'Unban a character from this bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'orgban',
@@ -127,7 +128,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Upload banlist into memory',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled,
 	)]
 	public function initializeBanList(ConnectEvent $eventObj): void {
 		$this->uploadBanlist();
@@ -390,7 +391,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	#[NCA\Event(
 		name: 'timer(1min)',
 		description: 'Check temp bans to see if they have expired',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled,
 	)]
 	public function checkTempBan(Event $eventObj): void {
 		$numRows = $this->db->table(BanEntry::getTable())

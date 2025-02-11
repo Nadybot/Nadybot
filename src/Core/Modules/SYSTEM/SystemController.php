@@ -38,6 +38,7 @@ use Nadybot\Core\{
 	Text,
 	Types\MessageEmitter,
 	Types\SettingMode,
+	Types\Status,
 	Util,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
@@ -82,25 +83,25 @@ use Revolt\EventLoop;
 		command: 'restart',
 		accessLevel: 'admin',
 		description: 'Restart the bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'shutdown',
 		accessLevel: 'admin',
 		description: 'Shutdown the bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'showconfig',
 		accessLevel: 'admin',
 		description: 'Show a cleaned up version of your current config file',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'upgradeconfig',
 		accessLevel: 'superadmin',
 		description: 'Show a version of your current config file upgraded to latest standards',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 ]
 class SystemController extends ModuleInstance implements MessageEmitter {
@@ -183,7 +184,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Event(
 		name: 'timer(1h)',
 		description: 'Warn if the buddylist is full',
-		defaultStatus: 1,
+		defaultStatus: Status::Enabled,
 	)]
 	public function checkBuddylistFull(): void {
 		$numBuddies = $this->buddylistManager->getUsedBuddySlots();
@@ -475,7 +476,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Event(
 		name: 'timer(1hr)',
 		description: 'This event handler is called every hour to keep MySQL connection active',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)]
 	public function refreshMySQLConnectionEvent(Event $eventObj): void {
 		// if the bot doesn't query the MySQL database for 8 hours the db connection is closed
@@ -487,7 +488,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Event(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Notify private channel, guild channel, and admins that bot is online',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)]
 	public function onConnectEvent(ConnectEvent $eventObj): void {
 		// send Admin(s) a tell that the bot is online

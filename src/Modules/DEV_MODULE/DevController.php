@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	Safe,
 	SubcommandManager,
 	Text,
+	Types\Status,
 	Util,
 };
 use Psr\Log\LoggerInterface;
@@ -91,7 +92,7 @@ class DevController extends ModuleInstance {
 	#[NCA\Event(
 		name: 'timer(1m)',
 		description: 'Log the memory usage once per minute',
-		defaultStatus: 0,
+		defaultStatus: Status::Disabled,
 	)]
 	public function logMemoryUsage(): void {
 		$this->logger->notice('Current memory usage: {usage}MB / {real}MB', [

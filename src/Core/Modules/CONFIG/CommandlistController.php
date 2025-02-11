@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	DBSchema\CmdCfg,
 	ModuleInstance,
 	Text,
+	Types\Status,
 };
 
 #[
@@ -18,7 +19,7 @@ use Nadybot\Core\{
 		command: 'cmdlist',
 		accessLevel: 'guild',
 		description: 'Shows a list of all commands on the bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled,
 	)
 ]
 class CommandlistController extends ModuleInstance {

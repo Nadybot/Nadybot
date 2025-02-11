@@ -21,6 +21,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 	Types\SettingMode,
+	Types\Status,
 	Util,
 };
 use Nadybot\Modules\RELAY_MODULE\{RelayConfig, RelayLayer};
@@ -36,7 +37,7 @@ use Nadybot\Modules\RELAY_MODULE\{RelayConfig, RelayLayer};
 		command: 'usage',
 		accessLevel: 'guild',
 		description: 'Shows usage stats',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 ]
 class UsageController extends ModuleInstance {

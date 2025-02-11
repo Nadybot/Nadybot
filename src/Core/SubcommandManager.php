@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\CmdPermissionSet;
+use Nadybot\Core\Types\Status;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -41,7 +42,7 @@ class SubcommandManager {
 		string $accessLevel,
 		string $parentCommand,
 		string $description='none',
-		?int $defaultStatus=null
+		?Status $defaultStatus=null
 	): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
@@ -56,19 +57,11 @@ class SubcommandManager {
 			return;
 		}
 
-		if ($defaultStatus === null) {
-			if ($this->config->general->defaultModuleStatus === 1) {
-				$status = 1;
-			} else {
-				$status = 0;
-			}
-		} else {
-			$status = $defaultStatus;
-		}
+		$status = $defaultStatus ?? $this->config->general->defaultModuleStatus;
 
 		$defaultPerms = new CmdPermission(
 			access_level: $accessLevel,
-			enabled: (bool)$status,
+			enabled: $status === Status::Enabled,
 			cmd: $command,
 			permission_set: 'default',
 		);
@@ -99,7 +92,7 @@ class SubcommandManager {
 						'permission_set' => $permSet,
 						'access_level' => $accessLevel,
 						'cmd' => $command,
-						'enabled' => (bool)$status,
+						'enabled' => $status === Status::Enabled,
 						'id' => Uuid::uuid7(),
 					],
 				);
