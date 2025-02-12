@@ -17,15 +17,25 @@ class TimeOrOff extends DefineSetting {
 	 *                                                             Alternatively, use an associative array [label => value], where label is optional.
 	 */
 	public function __construct(
-		public string $type='time_or_off',
-		public ?string $name=null,
-		public null|int|float|string|bool|array $defaultValue=null,
-		public SettingMode $mode=SettingMode::Edit,
-		public array $options=[],
-		public string $accessLevel='mod',
-		public ?string $help=null,
-		public ?bool $confidential=false,
+		string $type='time_or_off',
+		?string $name=null,
+		null|int|float|string|bool|array $defaultValue=null,
+		SettingMode $mode=SettingMode::Edit,
+		array $options=[],
+		string $accessLevel='mod',
+		?string $help=null,
+		?bool $confidential=false,
 	) {
+		parent::__construct(
+			type: $type,
+			name: $name,
+			defaultValue: $defaultValue,
+			mode: $mode,
+			options: $options,
+			accessLevel: $accessLevel,
+			help: $help,
+			confidential: $confidential,
+		);
 		$this->type = 'time_or_off';
 	}
 

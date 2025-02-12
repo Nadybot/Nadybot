@@ -25,16 +25,26 @@ class Template extends DefineSetting {
 	 * @param ?array<string,string|int|null>         $exampleValues An optional list of example values to calculate the current display value
 	 */
 	public function __construct(
-		public string $type='template',
-		public ?string $name=null,
-		public null|int|float|string|bool|array $defaultValue=null,
-		public SettingMode $mode=SettingMode::Edit,
-		public array $options=[],
-		public string $accessLevel='mod',
-		public ?string $help=null,
+		string $type='template',
+		?string $name=null,
+		null|int|float|string|bool|array $defaultValue=null,
+		SettingMode $mode=SettingMode::Edit,
+		array $options=[],
+		string $accessLevel='mod',
+		?string $help=null,
+		?bool $confidential=false,
 		public ?array $exampleValues=null,
-		public ?bool $confidential=false,
 	) {
+		parent::__construct(
+			type: $type,
+			name: $name,
+			defaultValue: $defaultValue,
+			mode: $mode,
+			options: $options,
+			accessLevel: $accessLevel,
+			help: $help,
+			confidential: $confidential,
+		);
 		$this->type = 'template';
 		if (isset($this->exampleValues)) {
 			return;

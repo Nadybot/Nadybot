@@ -15,16 +15,26 @@ class ArrayOfText extends ArraySetting {
 	 *                                                             Alternatively, use an associative array [label => value], where label is optional.
 	 */
 	public function __construct(
-		public string $type='text[]',
-		public ?string $name=null,
-		public null|int|float|string|bool|array $defaultValue=null,
-		public SettingMode $mode=SettingMode::Edit,
-		public array $options=[],
-		public string $accessLevel='mod',
-		public ?string $help=null,
+		string $type='text[]',
+		?string $name=null,
+		null|int|float|string|bool|array $defaultValue=null,
+		SettingMode $mode=SettingMode::Edit,
+		array $options=[],
+		string $accessLevel='mod',
+		?string $help=null,
+		?bool $confidential=false,
 		public ?string $delimiter='|',
-		public ?bool $confidential=false,
 	) {
+		parent::__construct(
+			type: $type,
+			name: $name,
+			defaultValue: $defaultValue,
+			mode: $mode,
+			options: $options,
+			accessLevel: $accessLevel,
+			help: $help,
+			confidential: $confidential,
+		);
 		$this->type = 'text[]';
 	}
 }
