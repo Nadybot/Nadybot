@@ -4,17 +4,14 @@ namespace Nadybot\Modules\GUIDE_MODULE;
 
 use function Safe\preg_split;
 
-use Amp\File\FileCache;
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use Amp\Sync\LocalKeyedMutex;
+use DateInterval;
 use DOMDocument;
 use DOMElement;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	Config\BotConfig,
-	Filesystem,
 	ModuleInstance,
 	Safe,
 	Text,
@@ -24,7 +21,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\ITEMS_MODULE\{
 	ItemsController,
 };
-
+use Psr\SimpleCache\CacheInterface;
 use Throwable;
 
 /**
@@ -44,21 +41,10 @@ class AOUController extends ModuleInstance {
 	private HttpClientBuilder $builder;
 
 	#[NCA\Inject]
-	private BotConfig $config;
-
-	#[NCA\Inject]
 	private ItemsController $itemsController;
 
-	#[NCA\Inject]
-	private Filesystem $fs;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$cacheFolder = $this->config->paths->cache . '/guide';
-		if (!$this->fs->exists($cacheFolder)) {
-			$this->fs->createDirectory($cacheFolder, 0o700);
-		}
-	}
+	#[NCA\Cache(prefix: 'guide')]
+	private CacheInterface $cache;
 
 	public function isValidXML(?string $data): bool {
 		if (!isset($data) || !strlen($data)) {
@@ -69,7 +55,7 @@ class AOUController extends ModuleInstance {
 		try {
 			$dom = new DOMDocument();
 			return $dom->loadXML($data) !== false;
-		} catch (Throwable $e) {
+		} catch (Throwable) {
 			return false;
 		}
 	}
@@ -82,13 +68,8 @@ class AOUController extends ModuleInstance {
 			'id' => $guideId,
 		];
 
-		$cache = new FileCache(
-			$this->config->paths->cache . '/guide',
-			new LocalKeyedMutex(),
-			$this->fs->getFilesystem(),
-		);
 		$cacheKey = (string)$guideId;
-		$body = $cache->get($cacheKey);
+		$body = $this->cache->get($cacheKey);
 
 		if ($body === null) {
 			$client = $this->builder->build();
@@ -101,7 +82,7 @@ class AOUController extends ModuleInstance {
 				$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>{$guideId}<end>.";
 				$context->reply($msg);
 			}
-			$cache->set($cacheKey, $body, 3_600*24);
+			$this->cache->set($cacheKey, $body, new DateInterval('PT24H'));
 		}
 		try {
 			/** @phpstan-var non-empty-string $body */

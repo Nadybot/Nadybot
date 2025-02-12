@@ -36,6 +36,9 @@ final class FileCache implements CacheInterface {
 		$filesystem ??= filesystem();
 		$this->filesystem = $filesystem;
 		$this->directory = $directory = \rtrim($directory, '/\\');
+		if (!$filesystem->exists($this->directory)) {
+			$filesystem->createDirectory($this->directory, 0o700);
+		}
 
 		$gcWatcher = static function () use ($directory, $mutex, $filesystem): void {
 			try {

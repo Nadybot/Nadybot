@@ -2,8 +2,10 @@
 
 namespace Nadybot\Core;
 
+use Amp\File\KeyedFileMutex;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Types\LogWrapInterface;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -153,6 +155,29 @@ class Registry {
 						$property->setValue($instance, $logger);
 					}
 					static::injectDependencies($logger);
+				}
+				$cacheAttrs = $property->getAttributes(NCA\Cache::class);
+				if (count($cacheAttrs)) {
+					$cacheAttr = $cacheAttrs[0]->newInstance();
+					$baseDir = self::getInstance(BotConfig::class)->paths->cache;
+					if (isset($cacheAttr->prefix)) {
+						$baseDir .= '/' . $cacheAttr->prefix;
+					}
+					$cache = new FileCache(
+						directory: $baseDir,
+						// Or new LocalKeyedMutex()?
+						mutex: new KeyedFileMutex(
+							directory: $baseDir,
+							filesystem: self::getInstance(Filesystem::class)->getFilesystem(),
+						),
+						filesystem: self::getInstance(Filesystem::class)->getFilesystem(),
+					);
+					$property->setAccessible(true);
+					if ($property->isStatic()) {
+						$property->setValue(null, $cache);
+					} elseif (is_object($instance)) {
+						$property->setValue($instance, $cache);
+					}
 				}
 			}
 			$reflection = $reflection->getParentClass();

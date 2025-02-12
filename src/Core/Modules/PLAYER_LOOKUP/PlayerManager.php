@@ -5,13 +5,11 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 use function Amp\delay;
 use function Safe\{json_decode, parse_url, preg_match};
 
-use Amp\File\FileCache;
 use Amp\Http\Client\{
 	HttpClientBuilder,
 	Request,
 	TimeoutException,
 };
-use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;
 use AO\Utils;
 use DateTimeZone;
@@ -22,7 +20,6 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	Exceptions\SQLException,
-	Filesystem,
 	ModuleInstance,
 	Nadybot,
 	Registry,
@@ -31,6 +28,7 @@ use Nadybot\Core\{
 	Types\Status,
 };
 use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\CacheInterface;
 use Revolt\EventLoop;
 use Safe\DateTimeImmutable;
 use Safe\Exceptions\JsonException;
@@ -75,16 +73,8 @@ class PlayerManager extends ModuleInstance {
 	#[NCA\Inject]
 	private Nadybot $chatBot;
 
-	#[NCA\Inject]
-	private Filesystem $fs;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$path = $this->config->paths->cache . '/players';
-		if (!$this->fs->exists($path)) {
-			$this->fs->createDirectory($path);
-		}
-	}
+	#[NCA\Cache(prefix: 'players')]
+	private CacheInterface $cache;
 
 	#[NCA\Event(
 		name: 'timer(1h)',
@@ -206,13 +196,8 @@ class PlayerManager extends ModuleInstance {
 				try {
 					$url = $baseUrl . "/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json";
 
-					$cache = new FileCache(
-						$this->config->paths->cache . '/players',
-						new LocalKeyedMutex(),
-						$this->fs->getFilesystem()
-					);
 					$cacheKey = "{$name}.{$dimension}";
-					$body = $cache->get($cacheKey);
+					$body = $this->cache->get($cacheKey);
 
 					if (isset($body)) {
 						$player = $this->parsePlayerFromBody($body);
@@ -229,7 +214,7 @@ class PlayerManager extends ModuleInstance {
 
 					if ($response->getStatus() === 200) {
 						$body = $response->getBody()->buffer();
-						$cache->set($cacheKey, $body, 60);
+						$this->cache->set($cacheKey, $body, 60);
 						$player = $this->parsePlayerFromBody($body);
 					} else {
 						$this->logger->debug('Looking up {name}.{dimension}: {code}', [

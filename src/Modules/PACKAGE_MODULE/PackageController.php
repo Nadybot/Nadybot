@@ -3,10 +3,10 @@
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
 use function Safe\{json_decode, preg_match, preg_split};
-use Amp\File\{FileCache, FilesystemException};
+use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;
+use DateInterval;
 use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	Text,
 };
 use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\CacheInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Safe\Exceptions\{DirException, JsonException};
@@ -71,11 +72,11 @@ class PackageController extends ModuleInstance {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
+	#[NCA\Cache(prefix: 'PACKAGE_MODULE')]
+	private CacheInterface $cache;
+
 	#[NCA\Setup]
 	public function setup(): void {
-		if (!$this->fs->exists($this->config->paths->cache . '/PACKAGE_MODULE')) {
-			$this->fs->createDirectory($this->config->paths->cache . '/PACKAGE_MODULE', 0o700);
-		}
 		$this->scanForUnregisteredExtraModules();
 	}
 
@@ -682,12 +683,7 @@ class PackageController extends ModuleInstance {
 	 * @return list<Package>
 	 */
 	private function getPackages(): array {
-		$cache = new FileCache(
-			$this->config->paths->cache . '/PACKAGE_MODULE',
-			new LocalKeyedMutex(),
-			$this->fs->getFilesystem(),
-		);
-		if (null !== ($body = $cache->get('packages'))) {
+		if (null !== ($body = $this->cache->get('packages'))) {
 			return $this->parsePackages($body);
 		}
 		$client = $this->builder->build();
@@ -701,7 +697,7 @@ class PackageController extends ModuleInstance {
 			throw new UserException('Empty response while retrieving the list of available packages.');
 		}
 		$packages = $this->parsePackages($body);
-		$cache->set('packages', $body, 3_600);
+		$this->cache->set('packages', $body, new DateInterval('PT1H'));
 		return $packages;
 	}
 
@@ -711,12 +707,7 @@ class PackageController extends ModuleInstance {
 	 * @return list<Package>
 	 */
 	private function getPackage(string $package): array {
-		$cache = new FileCache(
-			$this->config->paths->cache . '/PACKAGE_MODULE',
-			new LocalKeyedMutex(),
-			$this->fs->getFilesystem(),
-		);
-		if (null !== ($body = $cache->get($package))) {
+		if (null !== ($body = $this->cache->get($package))) {
 			return $this->parsePackages($body);
 		}
 		$client = $this->builder->build();
@@ -732,7 +723,7 @@ class PackageController extends ModuleInstance {
 			throw new UserException('Empty response received from HTTP server.');
 		}
 		$packages = $this->parsePackages($body);
-		$cache->set($package, $body, 3_600);
+		$this->cache->set($package, $body, new DateInterval('PT1H'));
 		return $packages;
 	}
 
