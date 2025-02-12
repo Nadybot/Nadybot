@@ -309,39 +309,6 @@ class Text {
 		return $popups;
 	}
 
-	/**
-	 * @param list<string> $msgs
-	 *
-	 * @return list<string>
-	 */
-	public static function unbreakPopups(array $msgs): array {
-		if (count($msgs) < 2) {
-			return $msgs;
-		}
-		if (count($matches = Safe::pregMatch("/<a\s+href\s*=\s*([\"'])text:\/\/(<font.*?>)?<header>[^\n]*<end>\n\n(.+?)\\1\s*>(.*?)<\/a> \(Page <highlight>1 \/ (\d+)<end>\)/is", $msgs[0])) < 4) {
-			return $msgs;
-		}
-		$blocks = [
-			$matches[2] . "<header>{$matches[4]}<end>\n\n" . rtrim($matches[3]),
-		];
-		for ($i = 1; $i < count($msgs); $i++) {
-			if (count($matches2 = Safe::pregMatch(
-				"/<a\s+href\s*=\s*([\"'])text:\/\/(?:<font.*?>)?<header>[^\n]*<end>\n\n(.*?)\\1\s*>(.*?)<\/a> \(Page <highlight>" . ($i+1) . " \/ " . $matches[5] . '<end>\)/is',
-				$msgs[$i]
-			))) {
-				$expand = Safe::pregReplace("/^<header>[^\n]*<end>\n{0,2}/", '', $matches2[2]);
-				$block = static::removeCommonLines($matches[3], trim($expand));
-				if (str_starts_with($block, '<header2>')) {
-					$block = "\n{$block}";
-				}
-				$blocks []= $block;
-			}
-		}
-		$popup = implode("\n", $blocks);
-		$result = str_replace($matches[0], "<a href={$matches[1]}text://{$popup}{$matches[1]}>{$matches[4]}</a>", $msgs[0]);
-		return (array)$result;
-	}
-
 	/** Return the pluralized version of $word if $amount is not 1 */
 	public static function pluralize(string $word, int $amount): string {
 		if ($amount === 1) {

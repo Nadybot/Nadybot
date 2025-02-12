@@ -57,7 +57,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 
 	/** @param string|list<string> $msg */
 	public function replyOnly(string|array $msg): void {
-		$msg = Text::unbreakPopups((array)$msg);
+		$msg = (array)$msg;
 		foreach ($msg as $text) {
 			$text = $this->formatMsg($text);
 			echo("{$this->config->main->character}: {$text}\n");
