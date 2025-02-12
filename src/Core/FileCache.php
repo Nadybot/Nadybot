@@ -93,7 +93,7 @@ final class FileCache implements CacheInterface {
 	public function clear(): bool {
 		foreach ($this->filesystem->listFiles($this->directory) as $file) {
 			if (Safe::pregMatch('/^[a-f0-9]{64}\.cache$/', $file)) {
-				echo("Deleting {$file}\n");
+				$this->filesystem->deleteFile($this->directory . '/' . $file);
 			}
 		}
 		return true;
@@ -151,15 +151,12 @@ final class FileCache implements CacheInterface {
 	}
 
 	public function set(string $key, mixed $value, null|int|\DateInterval $ttl=null): bool {
-		if ($ttl === null) {
-			$ttl = \PHP_INT_MAX;
-		} elseif (is_int($ttl)) {
-			$ttl = \time() + $ttl;
+		if (is_int($ttl)) {
+			$ttl = time() + $ttl;
 		} elseif ($ttl instanceof \DateInterval) {
 			$ttl = (new DateTimeImmutable('now'))->add($ttl)->getTimestamp();
 		}
-
-		/** @var int $ttl */
+		$ttl ??= \PHP_INT_MAX;
 
 		if ($ttl < 0) {
 			throw new \Error("Invalid cache TTL ({$ttl}); integer >= 0 or null required");
