@@ -613,11 +613,10 @@ class BotRunner {
 	private function sendBotBanner(): void {
 		$this->logger->notice(
 			'{eol}'.
-			' _   _  __     {eol}'.
-			"| \ | |/ /_    Nadybot version: {version}{eol}".
-			"|  \| | '_ \   Project Site:    {project_url}{eol}".
-			"| |\  | (_) |  In-Game Contact: {in_game_contact}{eol}".
-			"|_| \_|\___/   Discord:         {discord_link}{eol}{eol}",
+			' _  _ ____   Nadybot version: {version}{eol}'.
+			'| \| |__  |  Project Site:    {project_url}{eol}'.
+			'| .` | / /   In-Game Contact: {in_game_contact}{eol}'.
+			'|_|\_|/_/    Discord:         {discord_link}{eol}{eol}',
 			[
 				'eol' => \PHP_EOL,
 				'version' => self::getVersion(),
