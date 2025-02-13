@@ -226,7 +226,7 @@ class HelpController extends ModuleInstance {
 
 		// check for alias
 		$row = $this->commandAlias->get($topic);
-		if ($row !== null && $row->status === 1) {
+		if ($row !== null && $row->status === Status::Enabled) {
 			$topic = explode(' ', $row->cmd)[0];
 		}
 

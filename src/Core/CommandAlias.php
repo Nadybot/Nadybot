@@ -6,7 +6,7 @@ use function Safe\preg_match;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\CmdAlias;
-
+use Nadybot\Core\Types\Status;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Instance]
@@ -35,7 +35,7 @@ class CommandAlias {
 	}
 
 	/** Registers a command alias */
-	public function register(string $module, string $command, string $alias, int $status=1): void {
+	public function register(string $module, string $command, string $alias, Status $status=Status::Enabled): void {
 		$entry = new CmdAlias(
 			alias: strtolower($alias),
 			module: strtoupper($module),
@@ -175,7 +175,7 @@ class CommandAlias {
 		$row = $this->get($alias);
 
 		// if alias doesn't exist or is disabled
-		if ($row === null || $row->status !== 1) {
+		if ($row === null || $row->status !== Status::Enabled) {
 			return null;
 		}
 		[$cmd] = explode(' ', $row->cmd, 2);

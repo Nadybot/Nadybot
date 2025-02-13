@@ -99,7 +99,7 @@ class AliasController extends ModuleInstance {
 			module: '',
 			cmd: $cmd,
 			alias: $alias,
-			status: 1,
+			status: Status::Enabled,
 		);
 
 		$command = $this->commandManager->get($alias);
@@ -119,14 +119,12 @@ class AliasController extends ModuleInstance {
 			$this->commandAlias->add($aliasObj);
 			$this->commandAlias->activate($cmd, $alias);
 			$msg = "Alias <highlight>{$alias}<end> for command <highlight>{$cmd}<end> added successfully.";
-		} elseif ($row->status === 0 || ($row->status === 1 && $row->cmd === $cmd)) {
+		} elseif ($row->status === Status::Disabled || $row->cmd === $cmd) {
 			$this->commandAlias->update($aliasObj);
 			$this->commandAlias->activate($cmd, $alias);
 			$msg = "Alias <highlight>{$alias}<end> for command <highlight>{$cmd}<end> added successfully.";
-		} elseif ($row->status === 1 && $row->cmd !== $cmd) {
-			$msg = "Cannot add alias <highlight>{$alias}<end> since an alias with that name already exists.";
 		} else {
-			$msg = "Cannot add alias <highlight>{$alias}<end>.";
+			$msg = "Cannot add alias <highlight>{$alias}<end> since an alias with that name already exists.";
 		}
 		$context->reply($msg);
 	}
@@ -169,10 +167,10 @@ class AliasController extends ModuleInstance {
 		$alias = strtolower($alias);
 
 		$row = $this->commandAlias->get($alias);
-		if ($row === null || $row->status !== 1) {
+		if ($row === null || $row->status === Status::Disabled) {
 			$msg = "Could not find alias <highlight>{$alias}<end>!";
 		} else {
-			$row->status = 0;
+			$row->status = Status::Disabled;
 			$this->commandAlias->update($row);
 			$this->commandAlias->deactivate($alias);
 

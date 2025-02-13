@@ -2,8 +2,11 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\Attributes\DB\Table;
-use Nadybot\Core\DBTable;
+use Nadybot\Core\{
+	Attributes\DB\Table,
+	DBTable,
+	Types\Status,
+};
 
 #[Table(name: 'cmd_alias')]
 class CmdAlias extends DBTable {
@@ -11,7 +14,7 @@ class CmdAlias extends DBTable {
 		public string $cmd,
 		public string $alias,
 		public ?string $module=null,
-		public int $status=0,
+		public Status $status=Status::Disabled,
 	) {
 	}
 
