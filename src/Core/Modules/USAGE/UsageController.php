@@ -295,7 +295,7 @@ class UsageController extends ModuleInstance {
 		$settings = new SettingsUsageStats(
 			dimension              : $this->config->main->dimension,
 			is_guild_bot           : strlen($this->config->general->orgName) > 0,
-			guildsize              : $this->getGuildSizeClass(count($this->chatBot->guildmembers)),
+			guildsize              : $this->getGuildSizeClass(count($this->chatBot->getOrgMembers())),
 			num_workers            : 1 + count($this->config->worker),
 			db_type                : $this->db->getType()->value,
 			fs_type                : $fsClass,

@@ -255,25 +255,23 @@ class LimitsController extends ModuleInstance {
 	public function executeOverrateAction(CmdEvent $event): void {
 		$action = $this->limitsOverrateAction;
 		$blockadeLength = $this->limitsIgnoreDuration;
-		if ($action & 1) {
-			if (isset($this->chatBot->chatlist[$event->sender])) {
-				$this->chatBot->sendPrivate("Slow it down with the commands, <highlight>{$event->sender}<end>.");
-				$this->logger->notice('Kicking {character} from private channel.', [
-					'character' => $event->sender,
-				]);
-				$sender = $this->chatBot->getUid($event->sender);
-				if (isset($sender)) {
-					$this->chatBot->sendPackage(
-						package: new Package\Out\PrivateChannelKick(charId: $sender)
-					);
-				}
-				$audit = new Audit(
-					actor: $event->sender,
-					action: AccessManager::KICK,
-					value: 'limits exceeded',
+		if (($action & 1) && $this->chatBot->inChatlist($event->sender)) {
+			$this->chatBot->sendPrivate("Slow it down with the commands, <highlight>{$event->sender}<end>.");
+			$this->logger->notice('Kicking {character} from private channel.', [
+				'character' => $event->sender,
+			]);
+			$sender = $this->chatBot->getUid($event->sender);
+			if (isset($sender)) {
+				$this->chatBot->sendPackage(
+					package: new Package\Out\PrivateChannelKick(charId: $sender)
 				);
-				$this->accessManager->addAudit($audit);
 			}
+			$audit = new Audit(
+				actor: $event->sender,
+				action: AccessManager::KICK,
+				value: 'limits exceeded',
+			);
+			$this->accessManager->addAudit($audit);
 		}
 		if ($action & 2) {
 			$uid = $this->chatBot->getUid($event->sender);

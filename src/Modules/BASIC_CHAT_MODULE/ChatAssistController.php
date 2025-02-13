@@ -347,9 +347,9 @@ class ChatAssistController extends ModuleInstance {
 			if (!isset($uid)) {
 				$errors []= "Character <highlight>{$name}<end> does not exist.";
 			} elseif (
-				!isset($this->chatBot->guildmembers[$name])
+				!$this->chatBot->isOrgMember($name)
 				&& !$this->buddylistManager->isUidOnline($uid)
-				&& !isset($this->chatBot->chatlist[$name])
+				&& !$this->chatBot->inChatlist($name)
 			) {
 				$errors []= "Character <highlight>{$name}<end> is not in this bot.";
 			} else {
@@ -418,9 +418,9 @@ class ChatAssistController extends ModuleInstance {
 			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;
 		} elseif (
-			!isset($this->chatBot->guildmembers[$name])
+			!$this->chatBot->isOrgMember($name)
 			&& !$this->buddylistManager->isUidOnline($uid)
-			&& !isset($this->chatBot->chatlist[$name])
+			&& !$this->chatBot->inChatlist($name)
 		) {
 			$context->reply("Character <highlight>{$name}<end> is not in this bot.");
 			return;

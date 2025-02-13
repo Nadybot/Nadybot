@@ -234,11 +234,11 @@ class MassMsgController extends ModuleInstance {
 				|| !$this->accessManager->checkAccess($name, 'member')) {
 				continue;
 			}
-			if (isset($this->chatBot->chatlist[$name])) {
+			if ($this->chatBot->inChatlist($name)) {
 				$result[$name] = static::IN_CHAT;
 				continue;
 			}
-			if (isset($this->chatBot->guildmembers[$name])) {
+			if ($this->chatBot->isOrgMember($name)) {
 				$result[$name] = static::IN_ORG;
 				continue;
 			}

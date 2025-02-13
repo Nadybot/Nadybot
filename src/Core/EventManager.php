@@ -111,7 +111,7 @@ class EventManager {
 		}
 
 		try {
-			if (isset($this->chatBot->existing_events[$type][$filename])) {
+			if ($this->chatBot->wasEventConfiguredOnStartup($type, $filename)) {
 				$this->db->table(EventCfg::getTable())
 					->where('type', $type)
 					->where('file', $filename)

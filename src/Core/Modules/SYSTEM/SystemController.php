@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	Attributes as NCA,
+	BotRunner,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -176,7 +177,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	public function setup(): void {
 		$this->helpManager->register($this->moduleName, 'budatime', 'budatime.txt', 'all', 'Format for budatime');
 
-		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
+		$this->settingManager->save('version', BotRunner::getVersion());
 
 		$this->messageHub->registerMessageEmitter($this);
 	}
@@ -244,7 +245,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$basicInfo = new BasicSystemInformation(
 			bot_name: $this->config->main->character,
 			workers: array_column($this->config->worker, 'character'),
-			bot_version: $this->chatBot->runner::getVersion(),
+			bot_version: BotRunner::getVersion(),
 			db_type: $this->db->getType(),
 			org: strlen($this->config->general->orgName) ? $this->config->general->orgName : null,
 			org_id: $this->config->orgId,
@@ -277,7 +278,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		);
 
 		$miscInfo = new MiscSystemInformation(
-			uptime: time() - $this->chatBot->startup,
+			uptime: time() - $this->chatBot->getStarted(),
 			using_chat_proxy: $this->config->proxy?->enabled === true,
 		);
 
@@ -299,8 +300,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			charinfo_cache_size: $this->db->table(Player::getTable())->count(),
 			buddy_list_size: $this->buddylistManager->countConfirmedBuddies(),
 			max_buddy_list_size: $this->chatBot->getBuddyListSize(),
-			priv_channel_size: count($this->chatBot->chatlist),
-			org_size: count($this->chatBot->guildmembers),
+			priv_channel_size: count($this->chatBot->getChatlist()),
+			org_size: count($this->chatBot->getOrgMembers()),
 			chatqueue_length: 0,
 		);
 
@@ -498,7 +499,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			}
 		}
 
-		$version = $this->chatBot->runner::getVersion();
+		$version = BotRunner::getVersion();
 		$msg = "Nadybot <highlight>{$version}<end> is now <on>online<end>.";
 
 		// send a message to guild channel

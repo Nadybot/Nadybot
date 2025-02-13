@@ -335,7 +335,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 	public function logonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
-			|| !isset($this->chatBot->guildmembers[$sender])
+			|| !$this->chatBot->isOrgMember($sender)
 			|| $eventObj->wasOnline !== false
 			|| !$this->hasRecentEvents()
 		) {

@@ -121,7 +121,7 @@ class RaidMemberController extends ModuleInstance {
 			}
 			return 'You are already in the raid.';
 		}
-		if (!isset($this->chatBot->chatlist[$player])) {
+		if (!$this->chatBot->inChatlist($player)) {
 			if ($sender !== $player) {
 				return "{$player} is not in the private group.";
 			}
@@ -352,7 +352,7 @@ class RaidMemberController extends ModuleInstance {
 		/** @var list<string> */
 		$notInRaid = [];
 		$allowMultilog = $this->raidAllowMultiJoining;
-		foreach ($this->chatBot->chatlist as $player => $online) {
+		foreach ($this->chatBot->getChatlist() as $player => $online) {
 			$alts = [$player];
 			if (!$allowMultilog) {
 				$alts = $this->altsController->getAltInfo($player)->getAllValidated($player);
@@ -393,7 +393,7 @@ class RaidMemberController extends ModuleInstance {
 	public function kickNotInRaid(Raid $raid, bool $all): array {
 		/** @var list<string> */
 		$notInRaid = [];
-		foreach ($this->chatBot->chatlist as $player => $online) {
+		foreach ($this->chatBot->getChatlist() as $player => $online) {
 			if (isset($raid->raiders[$player])) {
 				// Is or was in the running raid. Could still rejoin
 				if (!$all || !isset($raid->raiders[$player]->left)) {

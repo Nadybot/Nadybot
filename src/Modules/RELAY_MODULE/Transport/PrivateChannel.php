@@ -143,7 +143,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		$this->eventManager->subscribe('extJoinPrivRequest', $this->receiveInvite(...));
 		$this->eventManager->subscribe('otherLeavePriv', $this->receiveLeave(...));
 		$this->eventManager->subscribe('extLeavePriv', $this->leftPrivateChannel(...));
-		if (!isset($this->chatBot->privateChats[$this->channel])) {
+		if (!$this->chatBot->isInPrivateChannel($this->channel)) {
 			$this->status = new RelayStatus(
 				RelayStatusType::INIT,
 				"Waiting for invite to {$this->channel}"

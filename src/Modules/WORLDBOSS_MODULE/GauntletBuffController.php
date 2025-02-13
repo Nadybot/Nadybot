@@ -272,7 +272,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public function gaubufflogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
-			|| (!isset($this->chatBot->guildmembers[$sender]))
+			|| !$this->chatBot->isOrgMember($sender)
 			|| !$this->gaubuffLogon
 			|| $eventObj->wasOnline !== false
 		) {

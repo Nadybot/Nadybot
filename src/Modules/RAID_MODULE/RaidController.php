@@ -896,7 +896,7 @@ class RaidController extends ModuleInstance {
 				if ($alt === $name) {
 					continue;
 				}
-				if (!isset($this->chatBot->chatlist[$alt])) {
+				if (!$this->chatBot->inChatlist($alt)) {
 					continue;
 				}
 				$duals[$name] ??= [];

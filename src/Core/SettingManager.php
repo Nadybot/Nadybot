@@ -166,7 +166,7 @@ class SettingManager {
 				value: (string)$value,
 				confidential: $confidential,
 			);
-			if (array_key_exists($name, $this->chatBot->existing_settings) || $this->exists($name)) {
+			if ($this->chatBot->wasSettingConfiguredOnStartup($name) || $this->exists($name)) {
 				$this->db->table(Setting::getTable())
 					->where('name', $name)
 					->update([

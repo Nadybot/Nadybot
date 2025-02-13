@@ -322,7 +322,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if ($isMember) {
 			return 'member';
 		}
-		if (isset($this->chatBot->chatlist[$sender])) {
+		if ($this->chatBot->inChatlist($sender)) {
 			return 'guest';
 		}
 		return null;
@@ -373,7 +373,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$list = "<header2>Members of <myname><end>\n";
 		foreach ($members as $member) {
 			$online = $this->buddylistManager->isOnline($member->name);
-			if (isset($this->chatBot->chatlist[$member->name])) {
+			if ($this->chatBot->inChatlist($member->name)) {
 				$status = '(<on>Online and in channel<end>)';
 			} elseif ($online === true) {
 				$status = '(<on>Online<end>)';
@@ -553,7 +553,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$context->reply($msg);
 			return;
 		}
-		if (isset($this->chatBot->chatlist[$name])) {
+		if ($this->chatBot->inChatlist($name)) {
 			$msg = "<highlight>{$name}<end> is already in the private channel.";
 			$context->reply($msg);
 			return;
@@ -592,7 +592,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$uid = $this->chatBot->getUid($name);
 		if (!isset($uid)) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
-		} elseif (!isset($this->chatBot->chatlist[$name])) {
+		} elseif (!$this->chatBot->inChatlist($name)) {
 			$msg = "Character <highlight>{$name}<end> is not in the private channel.";
 		} else {
 			if ($this->accessManager->compareCharacterAccessLevels($context->char->name, $name) > 0) {
@@ -875,7 +875,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$context->reply("The private channel is currently <off>locked<end>: {$this->lockReason}");
 			return;
 		}
-		if (isset($this->chatBot->chatlist[$context->char->name])) {
+		if ($this->chatBot->inChatlist($context->char->name)) {
 			$msg = 'You are already in the private channel.';
 			$context->reply($msg);
 			return;
@@ -930,7 +930,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->settingManager->save('lock_reason', trim($reason));
 		$this->chatBot->sendPrivate("The private chat has been <off>locked<end> by {$context->char->name}: <highlight>{$this->lockReason}<end>");
 		$alRequired = $this->lockMinrank;
-		foreach ($this->chatBot->chatlist as $char => $online) {
+		foreach ($this->chatBot->getChatlist() as $char => $online) {
 			$alChar = $this->accessManager->getAccessLevelForCharacter($char);
 			if ($this->accessManager->compareAccessLevels($alChar, $alRequired) < 0) {
 				$this->kickChar($char);

@@ -462,7 +462,7 @@ class OnlineController extends ModuleInstance {
 	)]
 	public function recordLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])) {
+		if (!$this->chatBot->isOrgMember($sender)) {
 			return;
 		}
 		$player = $this->addPlayerToOnlineList($sender, $this->config->general->orgName, 'guild');
@@ -479,7 +479,7 @@ class OnlineController extends ModuleInstance {
 	)]
 	public function recordLogoffEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])) {
+		if (!$this->chatBot->isOrgMember($sender)) {
 			return;
 		}
 		$this->removePlayerFromOnlineList($sender, 'guild');
@@ -496,7 +496,7 @@ class OnlineController extends ModuleInstance {
 	)]
 	public function showOnlineOnLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])
+		if (!$this->chatBot->isOrgMember($sender)
 			|| !$this->chatBot->isReady()
 			|| $eventObj->wasOnline !== false
 		) {
@@ -538,7 +538,7 @@ class OnlineController extends ModuleInstance {
 
 		$time = time();
 
-		foreach ($this->chatBot->guildmembers as $name => $rank) {
+		foreach ($this->chatBot->getOrgMembers() as $name => $rank) {
 			if ($this->buddylistManager->isOnline($name)) {
 				if (in_array($name, $guildArray, true)) {
 					$this->buildOnlineQuery($name, 'guild')
@@ -555,7 +555,7 @@ class OnlineController extends ModuleInstance {
 			}
 		}
 
-		foreach ($this->chatBot->chatlist as $name => $value) {
+		foreach ($this->chatBot->getChatlist() as $name => $value) {
 			if (in_array($name, $privArray, true)) {
 				$this->buildOnlineQuery($name, 'priv')
 						->update(['dt' => $time]);

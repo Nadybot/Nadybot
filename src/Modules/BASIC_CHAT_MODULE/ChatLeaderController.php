@@ -118,7 +118,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		if (!isset($uid)) {
 			return "Character <highlight>{$name}<end> does not exist.";
 		}
-		if (!isset($this->chatBot->chatlist[$name])) {
+		if (!$this->chatBot->inChatlist($name)) {
 			return "Character <highlight>{$name}<end> is not in the private channel.";
 		}
 		if (isset($this->leader)

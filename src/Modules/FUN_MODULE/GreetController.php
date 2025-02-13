@@ -170,7 +170,7 @@ class GreetController extends ModuleInstance {
 	)]
 	public function sendRandomLogonGreeting(LogonEvent $event): void {
 		$sender = $event->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])
+		if (!$this->chatBot->isOrgMember($sender)
 			|| !$this->chatBot->isReady()
 			|| $event->wasOnline !== false) {
 			return;

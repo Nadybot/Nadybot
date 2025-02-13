@@ -60,7 +60,7 @@ class HelpManager {
 			return;
 		}
 
-		if (isset($this->chatBot->existing_helps[$command])) {
+		if ($this->chatBot->wasHelpConfiguredOnStartup($command)) {
 			$this->db->table(HlpCfg::getTable())->where('name', $command)
 				->update([
 					'verify' => 1,

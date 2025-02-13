@@ -414,7 +414,7 @@ class GuildController extends ModuleInstance {
 			));
 		}
 		$this->buddylistManager->addName($name, 'org');
-		$this->chatBot->guildmembers[$name] = 6;
+		$this->chatBot->setOrgMember($name, 6);
 		$msg = "<highlight>{$name}<end> has been added to the Notify list.";
 
 		$context->reply($msg);
@@ -451,7 +451,7 @@ class GuildController extends ModuleInstance {
 				->update(['mode' => 'del']);
 			$this->delMemberFromOnline($name);
 			$this->buddylistManager->remove($name, 'org');
-			unset($this->chatBot->guildmembers[$name]);
+			$this->chatBot->delOrgMember($name);
 			$msg = "Removed <highlight>{$name}<end> from the Notify list.";
 		}
 
@@ -602,7 +602,7 @@ class GuildController extends ModuleInstance {
 			$this->db->table(OrgMember::getTable())
 				->upsert(['mode' => 'add', 'name' => $name], 'name');
 			$this->buddylistManager->addName($name, 'org');
-			$this->chatBot->guildmembers[$name] = 6;
+			$this->chatBot->setOrgMember($name, 6);
 
 			// update character info
 			$this->playerManager->byName($name);
@@ -619,7 +619,7 @@ class GuildController extends ModuleInstance {
 				->update(['mode' => 'del']);
 			$this->delMemberFromOnline($name);
 
-			unset($this->chatBot->guildmembers[$name]);
+			$this->chatBot->delOrgMember($name);
 			$this->buddylistManager->remove($name, 'org');
 		}
 	}
@@ -665,7 +665,7 @@ class GuildController extends ModuleInstance {
 	)]
 	public function orgMemberLogonMessageEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])
+		if (!$this->chatBot->isOrgMember($sender)
 			|| !$this->chatBot->isReady()
 			|| $eventObj->wasOnline !== false) {
 			return;
@@ -724,7 +724,7 @@ class GuildController extends ModuleInstance {
 	)]
 	public function orgMemberLogoffMessageEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])
+		if (!$this->chatBot->isOrgMember($sender)
 			|| !$this->chatBot->isReady()
 			|| $eventObj->wasOnline !== true) {
 			return;
@@ -755,7 +755,7 @@ class GuildController extends ModuleInstance {
 	)]
 	public function orgMemberLogoffRecordEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])
+		if (!$this->chatBot->isOrgMember($sender)
 			|| !$this->chatBot->isReady()
 		) {
 			return;
@@ -916,9 +916,7 @@ class GuildController extends ModuleInstance {
 		$altsInChat = array_values(
 			array_filter(
 				$altInfo->getAllValidatedAlts(),
-				function (string $alt): bool {
-					return isset($this->chatBot->chatlist[$alt]);
-				}
+				$this->chatBot->inChatlist(...),
 			)
 		);
 
@@ -928,9 +926,7 @@ class GuildController extends ModuleInstance {
 			$altsInOrgOnline = array_values(
 				array_filter(
 					$altInfo->getOnlineAlts(),
-					function (string $char): bool {
-						return isset($this->chatBot->guildmembers[$char]);
-					}
+					$this->chatBot->isOrgMember(...),
 				)
 			);
 		}
@@ -939,7 +935,7 @@ class GuildController extends ModuleInstance {
 	}
 
 	private function loadGuildMembers(): void {
-		$this->chatBot->guildmembers = [];
+		$this->chatBot->clearOrgMembers();
 		$members = $this->db->table(OrgMember::getTable())
 			->where('mode', '!=', 'del')
 			->orderBy('name')
@@ -947,7 +943,7 @@ class GuildController extends ModuleInstance {
 		$players = $this->playerManager
 			->searchByNames($this->db->getDim(), ...$members->pluck('name')->toArray());
 		$players->each(function (Player $player): void {
-			$this->chatBot->guildmembers[$player->name] = $player->guild_rank_id ?? 6;
+			$this->chatBot->setOrgMember($player->name, $player->guild_rank_id ?? 6);
 		});
 	}
 
@@ -1001,62 +997,66 @@ class GuildController extends ModuleInstance {
 
 		$this->db->awaitBeginTransaction();
 
-		$this->chatBot->ready = false;
-
-		// Going through each member of the org and add or update his/her
-		foreach ($org->members as $member) {
-			// don't do anything if $member is the bot itself
-			if (strtolower($member->name) === strtolower($this->config->main->character)) {
-				continue;
-			}
-
-			// If there exists already data about the character just update him/her
-			if (isset($dbEntries[$member->name])) {
-				if ($dbEntries[$member->name]['mode'] === 'del') {
-					// members who are not on notify should not be on the buddy list but should remain in the database
-					$this->buddylistManager->remove($member->name, 'org');
-					unset($this->chatBot->guildmembers[$member->name]);
-				} else {
-					// add org members who are on notify to buddy list
-					EventLoop::queue($this->buddylistManager->addName(...), $member->name, 'org');
-					$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
-
-					// if member was added to notify list manually, switch mode to org and let guild roster update from now on
-					if ($dbEntries[$member->name]['mode'] === 'add') {
-						$this->db->table(OrgMember::getTable())
-							->where('name', $member->name)
-							->update(['mode' => 'org']);
-					}
+		$this->chatBot->setReady(false);
+		try {
+			// Going through each member of the org and add or update his/her
+			foreach ($org->members as $member) {
+				// don't do anything if $member is the bot itself
+				if (strtolower($member->name) === strtolower($this->config->main->character)) {
+					continue;
 				}
-				// else insert his/her data
-			} else {
-				// add new org members to buddy list
-				EventLoop::queue($this->buddylistManager->addName(...), $member->name, 'org');
-				$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
 
-				$this->db->insert(new OrgMember(
-					name: $member->name,
-					mode: 'org',
-				));
+				// If there exists already data about the character just update him/her
+				if (isset($dbEntries[$member->name])) {
+					if ($dbEntries[$member->name]['mode'] === 'del') {
+						// members who are not on notify should not be on the buddy list but should remain in the database
+						$this->buddylistManager->remove($member->name, 'org');
+						$this->chatBot->delOrgMember($member->name);
+					} else {
+						// add org members who are on notify to buddy list
+						EventLoop::queue($this->buddylistManager->addName(...), $member->name, 'org');
+						$this->chatBot->setOrgMember($member->name, $member->guild_rank_id ?? 0);
+
+						// if member was added to notify list manually, switch mode to org and let guild roster update from now on
+						if ($dbEntries[$member->name]['mode'] === 'add') {
+							$this->db->table(OrgMember::getTable())
+								->where('name', $member->name)
+								->update(['mode' => 'org']);
+						}
+					}
+					// else insert his/her data
+				} else {
+					// add new org members to buddy list
+					EventLoop::queue($this->buddylistManager->addName(...), $member->name, 'org');
+					$this->chatBot->setOrgMember($member->name, $member->guild_rank_id ?? 0);
+
+					$this->db->insert(new OrgMember(
+						name: $member->name,
+						mode: 'org',
+					));
+				}
+				unset($dbEntries[$member->name]);
 			}
-			unset($dbEntries[$member->name]);
-		}
 
-		$this->db->commit();
+			$this->db->commit();
 
-		// remove buddies who are no longer org members
-		foreach ($dbEntries as $buddy) {
-			if ($buddy['mode'] !== 'add') {
-				$this->delMemberFromOnline($buddy['name']);
-				$this->db->table(OrgMember::getTable())
-					->where('name', $buddy['name'])
-					->delete();
-				$this->buddylistManager->remove($buddy['name'], 'org');
-				unset($this->chatBot->guildmembers[$buddy['name']]);
+			// remove buddies who are no longer org members
+			foreach ($dbEntries as $buddy) {
+				if ($buddy['mode'] !== 'add') {
+					$this->delMemberFromOnline($buddy['name']);
+					$this->db->table(OrgMember::getTable())
+						->where('name', $buddy['name'])
+						->delete();
+					$this->buddylistManager->remove($buddy['name'], 'org');
+					$this->chatBot->delOrgMember($buddy['name']);
+				}
 			}
+		} catch (Throwable $e) {
+			$this->db->rollback();
+			throw $e;
+		} finally {
+			$this->chatBot->setReady(true);
 		}
-
-		$this->chatBot->ready = true;
 		$this->logger->notice('Finished Roster update');
 	}
 }

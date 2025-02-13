@@ -65,13 +65,13 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	}
 
 	public function getSingleAccessLevel(string $sender): ?string {
-		if (!isset($this->chatBot->guildmembers[$sender])) {
+		if (!$this->chatBot->isOrgMember($sender)) {
 			return null;
 		}
 		if (!$this->mapOrgRanksToBotRanks) {
 			return 'guild';
 		}
-		return $this->getEffectiveAccessLevel($this->chatBot->guildmembers[$sender]);
+		return $this->getEffectiveAccessLevel($this->chatBot->getOrgMember($sender) ?? 0);
 	}
 
 	/**

@@ -183,8 +183,6 @@ class EventFeed {
 			),
 		);
 
-		$connector = new Rfc6455Connector($connectionFactory);
-
 		$handshake = (new WebsocketHandshake(self::URI))
 			->withTcpConnectTimeout(3_000)
 			->withTlsHandshakeTimeout(3_000);

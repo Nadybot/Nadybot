@@ -148,7 +148,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		$sender = $eventObj->sender;
 		if (
 			!$this->chatBot->isReady()
-			|| !isset($this->chatBot->guildmembers[$sender])
+			|| !$this->chatBot->isOrgMember($sender)
 			|| !$this->gspShowLogon
 			|| !$this->showRunning
 			|| $eventObj->wasOnline !== false

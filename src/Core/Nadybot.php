@@ -14,7 +14,6 @@ use AO\Package\OutPackage;
 use AO\{FrozenAccount, Group, Package, SendPriority, Utils};
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes\Setting\ArraySetting;
 use Nadybot\Core\DBSchema\{
 	Audit,
 	CmdCfg,
@@ -49,7 +48,6 @@ use Nadybot\Core\Exceptions\{
 	StopExecutionException,
 	UserException
 };
-use Nadybot\Core\Types\ModuleInstanceInterface;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\PrivateChannel,
@@ -61,6 +59,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	SettingHandlers\SettingHandler,
+	Types\ModuleInstanceInterface,
 };
 use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
@@ -84,79 +83,8 @@ class Nadybot {
 
 	public MultiClient $aoClient;
 
-	public BotRunner $runner;
-
-	public bool $ready = false;
-
 	/** The currently logged in character or null if not logged in */
 	public ?Character $char=null;
-
-	/**
-	 * Names of players in our private channel
-	 *
-	 * @var array<string,bool>
-	 */
-	public array $chatlist = [];
-
-	/**
-	 * Names of private channels we're in
-	 *
-	 * @var array<string,bool>
-	 */
-	public array $privateChats = [];
-
-	/** @var array<string,bool> */
-	public array $existing_subcmds = [];
-
-	/** @var array<string,array<string,bool>> */
-	public array $existing_events = [];
-
-	/** @var array<string,bool> */
-	public array $existing_helps = [];
-
-	/** @var array<string,bool> */
-	public array $existing_settings = [];
-
-	/**
-	 * The rank for each member of this bot's guild/org
-	 * [(string)name => (int)rank]
-	 *
-	 * @var array<string,int>
-	 */
-	public array $guildmembers = [];
-
-	/** Time the bot was started */
-	public int $startup;
-
-	/**
-	 * A list of channels that we ignore messages from
-	 *
-	 * Ignore Messages from Vicinity/IRRK New Wire/OT OOC/OT Newbie OOC...
-	 *
-	 * @var list<string>
-	 */
-	public array $channelsToIgnore = [
-		'IRRK News Wire', 'OT OOC', 'OT Newbie OOC', 'OT shopping 11-50',
-		'Tour Announcements', 'Neu. Newbie OOC', 'Neu. shopping 11-50', 'Neu. OOC', 'Clan OOC',
-		'Clan Newbie OOC', 'Clan shopping 11-50', 'OT German OOC', 'Clan German OOC', 'Neu. German OOC',
-	];
-
-	/**
-	 * A lookup cache for group id => group name
-	 *
-	 * @var array<string,string>
-	 */
-	public array $groupIdToName = [];
-
-	/**
-	 * A lookup cache for group name => id
-	 *
-	 * @var array<string,GroupId>
-	 */
-	public array $groupNameToId = [];
-
-	/** @var list<int> */
-	public array $buddyQueue = [];
 
 	/** Enable colors for the guild channel */
 	#[NCA\Setting\Boolean]
@@ -190,9 +118,62 @@ class Nadybot {
 	#[NCA\Setting\Boolean]
 	public bool $pagingOnSameWorker = true;
 
+	/** Time the bot was started */
 	protected int $started = 0;
 
 	protected int $numSpamMsgsSent = 0;
+
+	/**
+	 * The rank for each member of this bot's guild/org
+	 * [(string)name => (int)rank]
+	 *
+	 * @var array<string,int>
+	 */
+	private array $orgMembers = [];
+
+	/**
+	 * Names of private channels we're in
+	 *
+	 * @var array<string,bool>
+	 */
+	private array $privateChats = [];
+
+	/**
+	 * Names of players in our private channel
+	 *
+	 * @var array<string,bool>
+	 */
+	private array $chatlist = [];
+
+	/**
+	 * A list of channels that we ignore messages from
+	 *
+	 * Ignore Messages from Vicinity/IRRK New Wire/OT OOC/OT Newbie OOC...
+	 *
+	 * @var list<string>
+	 */
+	private array $channelsToIgnore = [
+		'IRRK News Wire', 'OT OOC', 'OT Newbie OOC', 'OT shopping 11-50',
+		'Tour Announcements', 'Neu. Newbie OOC', 'Neu. shopping 11-50', 'Neu. OOC', 'Clan OOC',
+		'Clan Newbie OOC', 'Clan shopping 11-50', 'OT German OOC', 'Clan German OOC', 'Neu. German OOC',
+	];
+
+	/** @var list<int> */
+	private array $buddyQueue = [];
+
+	private bool $ready = false;
+
+	/** @var array<string,bool> */
+	private array $configuredSettings = [];
+
+	/** @var array<string,bool> */
+	private array $configuredHelp = [];
+
+	/** @var array<string,bool> */
+	private array $configuredSubcmds = [];
+
+	/** @var array<string,array<string,bool>> */
+	private array $configuredEvents = [];
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -251,12 +232,8 @@ class Nadybot {
 	private bool $shuttingDown = false;
 
 	/** Initialize the bot */
-	public function init(BotRunner $runner): void {
+	public function init(): void {
 		$this->started = time();
-		$this->runner = $runner;
-
-		// Set startup time
-		$this->startup = time();
 
 		$this->logger->info('Initializing bot');
 
@@ -272,23 +249,23 @@ class Nadybot {
 			->where('cmdevent', 'subcmd')
 			->asObj(CmdCfg::class)
 			->each(function (CmdCfg $row): void {
-				$this->existing_subcmds[$row->cmd] = true;
+				$this->configuredSubcmds[$row->cmd] = true;
 			});
 
 		$this->db->table(EventCfg::getTable())->asObj(EventCfg::class)
 			->each(function (EventCfg $row): void {
-				$this->existing_events[$row->type??''][$row->file??''] = true;
+				$this->configuredEvents[$row->type??''][$row->file??''] = true;
 			});
 
 		$this->db->table(HlpCfg::getTable())->asObj(HlpCfg::class)
 			->each(function (HlpCfg $row): void {
-				$this->existing_helps[$row->name] = true;
+				$this->configuredHelp[$row->name] = true;
 			});
 
-		$this->existing_settings = [];
+		$this->configuredSettings = [];
 		$this->db->table(Setting::getTable())->asObj(Setting::class)
 			->each(function (Setting $row): void {
-				$this->existing_settings[$row->name] = true;
+				$this->configuredSettings[$row->name] = true;
 			});
 
 		$this->db->beginTransaction();
@@ -972,8 +949,6 @@ class Nadybot {
 		$groupId = $package->package->groupId;
 		$groupName = $package->package->groupName;
 		$this->logger->info('Handling {packet}', ['packet' => $package->package]);
-		$this->groupIdToName[$groupId->toBinary()] = $groupName;
-		$this->groupNameToId[$groupName] = $groupId;
 		if ($groupId->type === GroupType::Org) {
 			$this->orgGroup = new Group(
 				id: $groupId,
@@ -1709,6 +1684,11 @@ class Nadybot {
 		return $this->ready;
 	}
 
+	/** Get the UNIX timestamp the bot was started */
+	public function getStarted(): int {
+		return $this->started;
+	}
+
 	/** Check if a private channel is this bot's private channel */
 	public function isDefaultPrivateChannel(string $channel): bool {
 		return $channel === $this->char?->name;
@@ -1738,6 +1718,71 @@ class Nadybot {
 			'error' => $e->getMessage(),
 			'exception' => $e,
 		]);
+	}
+
+	public function wasEventConfiguredOnStartup(string $type, string $filename): bool {
+		return $this->configuredEvents[$type][$filename] ?? false;
+	}
+
+	public function wasSubcommandConfiguredOnStartup(string $command): bool {
+		return $this->configuredSubcmds[$command] ?? false;
+	}
+
+	public function wasHelpConfiguredOnStartup(string $command): bool {
+		return $this->configuredHelp[$command] ?? false;
+	}
+
+	public function wasSettingConfiguredOnStartup(string $setting): bool {
+		return $this->configuredSettings[$setting] ?? false;
+	}
+
+	public function setReady(bool $ready): void {
+		$this->ready = $ready;
+	}
+
+	/** Check if a character is in our private channel */
+	public function inChatlist(string $character): bool {
+		$character = Utils::normalizeCharacter($character);
+		return isset($this->chatlist[$character]);
+	}
+
+	public function isOrgMember(string $character): bool {
+		$character = Utils::normalizeCharacter($character);
+		return isset($this->orgMembers[$character]);
+	}
+
+	public function setOrgMember(string $character, int $value): int {
+		$character = Utils::normalizeCharacter($character);
+		return $this->orgMembers[$character] = $value;
+	}
+
+	public function getOrgMember(string $character): ?int {
+		$character = Utils::normalizeCharacter($character);
+		return $this->orgMembers[$character] ?? null;
+	}
+
+	/** @return array<string,int> */
+	public function getOrgMembers(): array {
+		return $this->orgMembers;
+	}
+
+	public function delOrgMember(string $character): void {
+		$character = Utils::normalizeCharacter($character);
+		unset($this->orgMembers[$character]);
+	}
+
+	public function clearOrgMembers(): void {
+		$this->orgMembers = [];
+	}
+
+	public function isInPrivateChannel(string $channel): bool {
+		$channel = Utils::normalizeCharacter($channel);
+		return isset($this->privateChats[$channel]);
+	}
+
+	/** @return array<string,bool> */
+	public function getChatlist(): array {
+		return $this->chatlist;
 	}
 
 	private function aoPackageLoop(): void {
@@ -1955,7 +2000,7 @@ class Nadybot {
 				$property->setValue($obj, $value);
 				return;
 			case 'array':
-				$attrs = $property->getAttributes(ArraySetting::class, ReflectionAttribute::IS_INSTANCEOF);
+				$attrs = $property->getAttributes(NCA\Setting\ArraySetting::class, ReflectionAttribute::IS_INSTANCEOF);
 				foreach ($attrs as $attr) {
 					$attrObj = $attr->newInstance();
 					$property->setValue($obj, $attrObj->toArray($value));

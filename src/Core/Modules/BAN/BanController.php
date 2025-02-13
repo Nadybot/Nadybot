@@ -759,7 +759,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 
 	protected function addOrgToBanlist(BannedOrg $ban): ?string {
 		$this->orgbanlist[$ban->org_id] = $ban;
-		if (!$this->chatBot->ready) {
+		if (!$this->chatBot->isReady()) {
 			return null;
 		}
 
@@ -777,7 +777,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		// Kick all org members from our private chat
 		if (isset($guild)) {
 			foreach ($guild->members as $name => $char) {
-				if ($this->chatBot->chatlist[$char->name]) {
+				if ($this->chatBot->inChatlist($char->name)) {
 					$this->logger->notice('Kicking banned char {name} from private channel', [
 						'name' => $char->name,
 					]);

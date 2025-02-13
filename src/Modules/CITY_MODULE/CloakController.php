@@ -270,7 +270,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	)]
 	public function cityGuildLogonEvent(LogonEvent $eventObj): void {
 		if (!$this->chatBot->isReady()
-			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
+			|| !$this->chatBot->isOrgMember($eventObj->sender)
 			|| $eventObj->wasOnline !== false
 		) {
 			return;

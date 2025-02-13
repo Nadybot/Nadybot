@@ -6,7 +6,6 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Types\{EnumExampleInterface, EnumParameterInterface, ParamAttribute, Status};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -33,7 +32,11 @@ use Nadybot\Core\{
 	ParamClass\Base,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Types\EnumExampleInterface,
+	Types\EnumParameterInterface,
 	Types\MessageEmitter,
+	Types\ParamAttribute,
+	Types\Status,
 };
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
@@ -180,7 +183,7 @@ class CommandManager implements MessageEmitter {
 	 *                                    "mod", "guild", "member", "rl", "guest", "all"
 	 * @param string      $description    A short description what this command is for
 	 * @param Status|null $defaultStatus  The default state of this command:
-	 *                                    1 (enabled), 0 (disabled) or null (use default value as configured)
+	 *                                    Enabled, Disabled or null (use default value as configured)
 	 */
 	public function register(string $module, string $filename, string $command, string $accessLevelStr, string $description, ?Status $defaultStatus=null): void {
 		$command = strtolower($command);

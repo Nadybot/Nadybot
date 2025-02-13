@@ -104,7 +104,7 @@ class StartpageController extends ModuleInstance {
 		) {
 			return;
 		}
-		if (isset($this->chatBot->guildmembers[$sender])) {
+		if ($this->chatBot->isOrgMember($sender)) {
 			$this->showStartpage($sender, $this->getMassTell($sender));
 			return;
 		}
@@ -130,7 +130,7 @@ class StartpageController extends ModuleInstance {
 	)]
 	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!$this->chatBot->isReady() || isset($this->chatBot->guildmembers[$sender])) {
+		if (!$this->chatBot->isReady() || $this->chatBot->isOrgMember($sender)) {
 			return;
 		}
 		if ($this->startpageShowMembers !== 2) {

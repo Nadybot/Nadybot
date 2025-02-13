@@ -342,7 +342,7 @@ class BotRunner {
 		} else {
 			$this->logger->notice('Initializing modules and db tables...');
 		}
-		$chatBot->init($this);
+		$chatBot->init();
 
 		if (self::$arguments->setupOnly) {
 			exit(0);

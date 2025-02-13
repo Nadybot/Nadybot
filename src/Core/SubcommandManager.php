@@ -80,7 +80,7 @@ class SubcommandManager {
 			dependson: $parentCommand,
 			cmdevent: 'subcmd',
 		));
-		if (isset($this->chatBot->existing_subcmds[$command])) {
+		if ($this->chatBot->wasSubcommandConfiguredOnStartup($command)) {
 			return;
 		}
 		$permSets = $this->db->table(CmdPermissionSet::getTable())

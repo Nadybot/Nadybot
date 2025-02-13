@@ -120,7 +120,7 @@ class ChatTopicController extends ModuleInstance {
 	)]
 	public function logonEvent(LogonEvent $eventObj): void {
 		if ($this->topic === ''
-			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
+			|| !$this->chatBot->isOrgMember($eventObj->sender)
 			|| !$this->chatBot->isReady()
 			|| $eventObj->wasOnline !== false
 		) {
