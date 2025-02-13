@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use function Amp\async;
 
+use Nadybot\Core\Types\RankChange;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -18,9 +19,11 @@ use Nadybot\Core\{
 #[NCA\Instance]
 class AdminManager implements AccessLevelProvider {
 	/**
-	 * Admin access levels of our admin users
+	 * Admin access levels of our admin users, keyed by character name
 	 *
 	 * @var array<string,array<string,int>>
+	 *
+	 * @psalm-var array<string,array{"level":int}>
 	 */
 	public array $admins = [];
 
@@ -74,11 +77,14 @@ class AdminManager implements AccessLevelProvider {
 
 	/** Demote someone from the admin position */
 	public function removeFromLists(string $who, string $sender): void {
-		$oldRank = $this->admins[$who]??[];
+		$oldRank = $this->admins[$who]??null;
 		unset($this->admins[$who]);
 		$this->db->table(Admin::getTable())->where('name', $who)->delete();
 		$this->buddylistManager->remove($who, 'admin');
 		$alMod = $this->accessManager->getAccessLevels()['mod'];
+		if (!isset($oldRank)) {
+			return;
+		}
 		$audit = new Audit(
 			actor: $sender,
 			actee: $who,
@@ -88,20 +94,16 @@ class AdminManager implements AccessLevelProvider {
 		$this->accessManager->addAudit($audit);
 	}
 
-	/**
-	 * Set the admin level of a user
-	 *
-	 * @return string Either "demoted" or "promoted"
-	 */
-	public function addToLists(string $who, int $intlevel, string $sender): string {
-		$action = 'promoted';
+	/** Set the admin level of a user */
+	public function addToLists(string $who, int $intlevel, string $sender): RankChange {
+		$action = RankChange::Promotion;
 		$alMod = $this->accessManager->getAccessLevels()['mod'];
 		if (isset($this->admins[$who])) {
 			$this->db->table(Admin::getTable())
 				->where('name', $who)
 				->update(['adminlevel' => $intlevel]);
 			if ($this->admins[$who]['level'] > $intlevel) {
-				$action = 'demoted';
+				$action = RankChange::Demotion;
 			}
 			$audit = new Audit(
 				actor: $sender,

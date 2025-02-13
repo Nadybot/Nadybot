@@ -238,8 +238,8 @@ class AdminController extends ModuleInstance {
 
 		$action = $this->adminManager->addToLists($who, $intlevel, $sender);
 
-		$sendto->reply("<highlight>{$who}<end> has been {$action} to {$rank}.");
-		$this->chatBot->sendTell("You have been {$action} to {$rank} by <highlight>{$sender}<end>.", $who);
+		$sendto->reply("<highlight>{$who}<end> has been {$action->value} to {$rank}.");
+		$this->chatBot->sendTell("You have been {$action->value} to {$rank} by <highlight>{$sender}<end>.", $who);
 		return true;
 	}
 

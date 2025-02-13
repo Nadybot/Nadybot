@@ -86,7 +86,7 @@ class LegacyLogger {
 		if (count(static::$config) > 0 && !$noCache) {
 			return static::$config;
 		}
-		$configFile = BotRunner::$arguments['log-config'] ?? './conf/logging.json';
+		$configFile = BotRunner::getArguments()->logConfig ?? './conf/logging.json';
 		$json = self::$fs->read($configFile);
 		try {
 			$logStruct = json_decode($json, true, 512);
@@ -107,10 +107,10 @@ class LegacyLogger {
 			}
 		);
 		static::$logLevels = [];
-		$verbose = BotRunner::$arguments['v'] ?? true;
-		if ($verbose === false) {
+		$verbosity = BotRunner::getArguments()->verbosity;
+		if ($verbosity === 1) {
 			static::$logLevels []= ['*', 'info'];
-		} elseif (is_array($verbose) && count($verbose) > 1) {
+		} elseif ($verbosity > 1) {
 			static::$logLevels []= ['*', 'debug'];
 		}
 		foreach ($channels as $channel => $logLevel) {

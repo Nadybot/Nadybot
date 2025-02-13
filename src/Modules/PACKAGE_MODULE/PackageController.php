@@ -20,7 +20,6 @@ use Nadybot\Core\{
 	Filesystem,
 	Hydrator,
 	ModuleInstance,
-	Nadybot,
 	Safe,
 	SemanticVersion,
 	Text,
@@ -64,7 +63,7 @@ class PackageController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
+	private ClassLoader $classLoader;
 
 	#[NCA\Inject]
 	private BotConfig $config;
@@ -82,7 +81,7 @@ class PackageController extends ModuleInstance {
 
 	/** Return if a module id extra (2) built-in (1) or not installed (0) */
 	public function getInstalledModuleType(string $module): int {
-		$path = $this->chatBot->runner->classLoader->registeredModules[$module] ?? null;
+		$path = $this->classLoader->registeredModules[$module] ?? null;
 		if (!isset($path)) {
 			return static::UNINST;
 		}
@@ -449,7 +448,7 @@ class PackageController extends ModuleInstance {
 			);
 			return;
 		}
-		$modulePath = $this->chatBot->runner->classLoader->registeredModules[$module];
+		$modulePath = $this->classLoader->registeredModules[$module];
 		try {
 			$path = $this->fs->realPath($modulePath);
 		} catch (FilesystemException $e) {
@@ -537,7 +536,7 @@ class PackageController extends ModuleInstance {
 			"<highlight>{$package}<end> uninstalled. Restart the bot ".
 			'for the changes to take effect.'
 		);
-		unset($this->chatBot->runner->classLoader->registeredModules[$module]);
+		unset($this->classLoader->registeredModules[$module]);
 	}
 
 	/**
@@ -980,7 +979,7 @@ class PackageController extends ModuleInstance {
 			->delete();
 		$this->installAndRegisterZip($zip, $cmd, $targetDir);
 
-		$this->chatBot->runner->classLoader->registeredModules[$cmd->package] = $targetDir . '/' . $cmd->package;
+		$this->classLoader->registeredModules[$cmd->package] = $targetDir . '/' . $cmd->package;
 		if ($cmd->action === $cmd::INSTALL) {
 			return "<highlight>{$cmd->package} {$cmd->version}<end> installed successfully. ".
 				'Restart the bot for the changes to take effect.';

@@ -17,10 +17,12 @@ use Amp\Http\Tunnel\Http1TunnelConnector;
 use Amp\Process\Process;
 use ErrorException;
 use Exception;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\DBSchema\CmdCfg;
-use Nadybot\Core\Modules\SETUP\Setup;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	DBSchema\CmdCfg,
+	Modules\SETUP\Setup,
+};
 use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
 use ReflectionObject;
@@ -33,14 +35,10 @@ class BotRunner {
 	public const VERSION = '7.0.0.alpha';
 	public const COMMIT = '';
 
-	/**
-	 * The parsed command line arguments
-	 *
-	 * @var array<string,mixed>
-	 */
-	public static array $arguments = [];
+	/** The parsed command line arguments */
+	private static Options $arguments;
 
-	public ClassLoader $classLoader;
+	private ClassLoader $classLoader;
 
 	private static ?string $latestTag = null;
 
@@ -68,6 +66,11 @@ class BotRunner {
 	 */
 	public function __construct(array $argv) {
 		$this->argv = $argv;
+		self::$arguments = new Options();
+	}
+
+	public static function getArguments(): Options {
+		return self::$arguments;
 	}
 
 	public static function getCommit(): string {
@@ -298,6 +301,7 @@ class BotRunner {
 
 		$this->classLoader = new ClassLoader($config->paths->modules);
 		Registry::injectDependencies($this->classLoader);
+		Registry::setInstance(Registry::formatName(ClassLoader::class), $this->classLoader);
 		$this->classLoader->loadInstances();
 		$msgHub = Registry::getInstance(MessageHub::class);
 		LegacyLogger::registerMessageEmitters($msgHub);
@@ -324,7 +328,7 @@ class BotRunner {
 
 		$this->runUpgradeScripts();
 		EventLoop::run();
-		if ((self::$arguments['migrate-only']??true) === false) {
+		if (self::$arguments->migrateOnly) {
 			exit(0);
 		}
 
@@ -340,7 +344,7 @@ class BotRunner {
 		}
 		$chatBot->init($this);
 
-		if ((self::$arguments['setup-only']??true) === false) {
+		if (self::$arguments->setupOnly) {
 			exit(0);
 		}
 
@@ -387,7 +391,7 @@ class BotRunner {
 		if (isset($this->configFile)) {
 			return $this->configFile;
 		}
-		$configFilePath = self::$arguments['c'] ?? null;
+		$configFilePath = self::$arguments->configFile;
 		if (!isset($configFilePath) && self::getFS()->exists('conf/config.toml')) {
 			$configFilePath = 'conf/config.toml';
 		} elseif (!isset($configFilePath) && self::getFS()->exists('conf/config.php')) {
@@ -536,11 +540,11 @@ class BotRunner {
 			exit(1);
 		}
 		$argv = array_slice($this->argv, $restPos);
-		self::$arguments = $options;
 		if (count($argv) > 0) {
-			self::$arguments['c'] = array_shift($argv);
+			$options['c'] = array_shift($argv);
 		}
-		if (isset(self::$arguments['help'])) {
+		self::$arguments = Hydrator::hydrate(Options::class, $options);
+		if (self::$arguments->help) {
 			$this->showSyntaxHelp();
 			exit(0);
 		}

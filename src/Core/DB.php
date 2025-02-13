@@ -868,7 +868,7 @@ class DB {
 				return $value === '*' ? $value : '`' . str_replace('`', '``', $value) . '`';
 			}
 		};
-		if (isset(BotRunner::$arguments['strict'])) {
+		if (BotRunner::getArguments()->strict) {
 			if (version_compare($sqliteVersion, '3.37.0', '>=')) {
 				$this->capsule->getConnection()->setSchemaGrammar($strictGrammar);
 			}
@@ -1052,7 +1052,7 @@ class DB {
 			]);
 			$obj->migrate($this->logger, $this);
 		} catch (Throwable $e) {
-			if (isset(BotRunner::$arguments['migration-errors-fatal'])) {
+			if (BotRunner::getArguments()->migrationErrorsFatal) {
 				throw $e;
 			}
 			$this->logger->error('Error executing {class}::migrate(): {error}', [

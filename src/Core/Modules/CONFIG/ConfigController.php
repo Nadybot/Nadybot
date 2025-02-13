@@ -16,6 +16,7 @@ use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	ClassLoader,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
@@ -23,7 +24,6 @@ use Nadybot\Core\{
 	EventManager,
 	HelpManager,
 	ModuleInstance,
-	Nadybot,
 	Registry,
 	Safe,
 	SettingHandlers\SettingHandler,
@@ -73,7 +73,7 @@ class ConfigController extends ModuleInstance {
 	private AccessManager $accessManager;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
+	private ClassLoader $classLoader;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -587,7 +587,7 @@ class ConfigController extends ModuleInstance {
 
 	public function getModuleDescription(string $module): ?string {
 		$module = strtoupper($module);
-		$path = $this->chatBot->runner->classLoader->registeredModules[$module] ?? null;
+		$path = $this->classLoader->registeredModules[$module] ?? null;
 		if (!isset($path)) {
 			return null;
 		}

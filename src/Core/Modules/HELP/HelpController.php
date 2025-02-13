@@ -2,19 +2,19 @@
 
 namespace Nadybot\Core\Modules\HELP;
 
-use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
+	ClassLoader,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
 	DB,
+	Filesystem,
 	HelpManager,
 	ModuleInstance,
 	Modules\CONFIG\ConfigController,
 	Modules\PREFERENCES\Preferences,
-	Nadybot,
 	Safe,
 	Text,
 	Types\Status,
@@ -57,7 +57,7 @@ class HelpController extends ModuleInstance {
 	private Preferences $preferences;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
+	private ClassLoader $classLoader;
 
 	#[NCA\Inject]
 	private ConfigController $configController;
@@ -150,7 +150,7 @@ class HelpController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str('modules')] string $action
 	): void {
-		$modules = $this->chatBot->runner->classLoader->registeredModules;
+		$modules = $this->classLoader->registeredModules;
 
 		/** @var array<string,string> */
 		$data = [];
