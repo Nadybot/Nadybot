@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	Hydrator,
 	MessageHub,
 	ModuleInstance,
+	MyOrg,
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -65,6 +66,9 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private MyOrg $myOrg;
 
 	public function getChannelName(): string {
 		return Source::SYSTEM . '(gsp)';
@@ -148,7 +152,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		$sender = $eventObj->sender;
 		if (
 			!$this->chatBot->isReady()
-			|| !$this->chatBot->isOrgMember($sender)
+			|| !$this->myOrg->isMember($sender)
 			|| !$this->gspShowLogon
 			|| !$this->showRunning
 			|| $eventObj->wasOnline !== false

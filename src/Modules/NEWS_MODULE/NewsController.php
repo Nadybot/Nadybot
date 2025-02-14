@@ -9,7 +9,6 @@ use Amp\Http\Server\{Request, Response};
 use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -20,7 +19,9 @@ use Nadybot\Core\{
 	Hydrator,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
+	MyOrg,
 	Nadybot,
+	ParamClass\PUuid,
 	Text,
 	Util,
 };
@@ -84,6 +85,9 @@ class NewsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private MyOrg $myOrg;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -182,7 +186,7 @@ class NewsController extends ModuleInstance {
 		$sender = $eventObj->sender;
 
 		if (!$this->chatBot->isReady()
-			|| !$this->chatBot->isOrgMember($sender)
+			|| !$this->myOrg->isMember($sender)
 			|| $eventObj->wasOnline !== false
 			|| !$this->hasRecentNews($sender)
 		) {

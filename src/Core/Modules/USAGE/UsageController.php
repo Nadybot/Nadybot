@@ -15,7 +15,7 @@ use Nadybot\Core\{
 	EventManager,
 	Exceptions\SQLException,
 	ModuleInstance,
-	Nadybot,
+	MyOrg,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
 	SettingManager,
@@ -65,7 +65,7 @@ class UsageController extends ModuleInstance {
 	private BotConfig $config;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
+	private MyOrg $myOrg;
 
 	/** Show usage stats for the past 7 days or &lt;duration&gt; for a given character */
 	#[NCA\HandlesCommand('usage')]
@@ -295,7 +295,7 @@ class UsageController extends ModuleInstance {
 		$settings = new SettingsUsageStats(
 			dimension              : $this->config->main->dimension,
 			is_guild_bot           : strlen($this->config->general->orgName) > 0,
-			guildsize              : $this->getGuildSizeClass(count($this->chatBot->getOrgMembers())),
+			guildsize              : $this->getGuildSizeClass(count($this->myOrg->getMembers())),
 			num_workers            : 1 + count($this->config->worker),
 			db_type                : $this->db->getType()->value,
 			fs_type                : $fsClass,

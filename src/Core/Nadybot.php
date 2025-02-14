@@ -124,14 +124,6 @@ class Nadybot {
 	protected int $numSpamMsgsSent = 0;
 
 	/**
-	 * The rank for each member of this bot's guild/org
-	 * [(string)name => (int)rank]
-	 *
-	 * @var array<string,int>
-	 */
-	private array $orgMembers = [];
-
-	/**
 	 * Names of private channels we're in
 	 *
 	 * @var array<string,bool>
@@ -163,18 +155,6 @@ class Nadybot {
 
 	private bool $ready = false;
 
-	/** @var array<string,bool> */
-	private array $configuredSettings = [];
-
-	/** @var array<string,bool> */
-	private array $configuredHelp = [];
-
-	/** @var array<string,bool> */
-	private array $configuredSubcmds = [];
-
-	/** @var array<string,array<string,bool>> */
-	private array $configuredEvents = [];
-
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
@@ -195,6 +175,9 @@ class Nadybot {
 
 	#[NCA\Inject]
 	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private HelpManager $helpManager;
 
 	#[NCA\Inject]
 	private SettingManager $settingManager;
@@ -237,36 +220,10 @@ class Nadybot {
 
 		$this->logger->info('Initializing bot');
 
-		// Prepare command/event settings table
-		$this->db->table(CmdCfg::getTable())->update(['verify' => 0]);
-		$this->db->table(EventCfg::getTable())->update(['verify' => 0]);
-		$this->db->table(Setting::getTable())->update(['verify' => 0]);
-		$this->db->table(HlpCfg::getTable())->update(['verify' => 0]);
-		$this->db->table(EventCfg::getTable())->where('type', 'setup')->update(['verify' => 1]);
-
-		// To reduce queries load core items into memory
-		$this->db->table(CmdCfg::getTable())
-			->where('cmdevent', 'subcmd')
-			->asObj(CmdCfg::class)
-			->each(function (CmdCfg $row): void {
-				$this->configuredSubcmds[$row->cmd] = true;
-			});
-
-		$this->db->table(EventCfg::getTable())->asObj(EventCfg::class)
-			->each(function (EventCfg $row): void {
-				$this->configuredEvents[$row->type??''][$row->file??''] = true;
-			});
-
-		$this->db->table(HlpCfg::getTable())->asObj(HlpCfg::class)
-			->each(function (HlpCfg $row): void {
-				$this->configuredHelp[$row->name] = true;
-			});
-
-		$this->configuredSettings = [];
-		$this->db->table(Setting::getTable())->asObj(Setting::class)
-			->each(function (Setting $row): void {
-				$this->configuredSettings[$row->name] = true;
-			});
+		$this->subcommandManager->init();
+		$this->eventManager->init();
+		$this->helpManager->init();
+		$this->settingManager->init();
 
 		$this->db->beginTransaction();
 		$allClasses = get_declared_classes();
@@ -1720,23 +1677,7 @@ class Nadybot {
 		]);
 	}
 
-	public function wasEventConfiguredOnStartup(string $type, string $filename): bool {
-		return $this->configuredEvents[$type][$filename] ?? false;
-	}
-
-	public function wasSubcommandConfiguredOnStartup(string $command): bool {
-		return $this->configuredSubcmds[$command] ?? false;
-	}
-
-	public function wasHelpConfiguredOnStartup(string $command): bool {
-		return $this->configuredHelp[$command] ?? false;
-	}
-
-	public function wasSettingConfiguredOnStartup(string $setting): bool {
-		return $this->configuredSettings[$setting] ?? false;
-	}
-
-	public function setReady(bool $ready): void {
+	public function setReady(bool $ready=true): void {
 		$this->ready = $ready;
 	}
 
@@ -1744,35 +1685,6 @@ class Nadybot {
 	public function inChatlist(string $character): bool {
 		$character = Utils::normalizeCharacter($character);
 		return isset($this->chatlist[$character]);
-	}
-
-	public function isOrgMember(string $character): bool {
-		$character = Utils::normalizeCharacter($character);
-		return isset($this->orgMembers[$character]);
-	}
-
-	public function setOrgMember(string $character, int $value): int {
-		$character = Utils::normalizeCharacter($character);
-		return $this->orgMembers[$character] = $value;
-	}
-
-	public function getOrgMember(string $character): ?int {
-		$character = Utils::normalizeCharacter($character);
-		return $this->orgMembers[$character] ?? null;
-	}
-
-	/** @return array<string,int> */
-	public function getOrgMembers(): array {
-		return $this->orgMembers;
-	}
-
-	public function delOrgMember(string $character): void {
-		$character = Utils::normalizeCharacter($character);
-		unset($this->orgMembers[$character]);
-	}
-
-	public function clearOrgMembers(): void {
-		$this->orgMembers = [];
 	}
 
 	public function isInPrivateChannel(string $channel): bool {
@@ -1963,7 +1875,7 @@ class Nadybot {
 				help: $attribute->help,
 				confidential: $attribute->confidential,
 			);
-			$this->updateTypedProperty($obj, $property, $this->settingManager->settings[$attribute->name]->value);
+			$this->updateTypedProperty($obj, $property, $this->settingManager->getValue($attribute->name));
 			$this->eventManager->subscribe(
 				"setting({$attribute->name})",
 				function (SettingEvent $e) use ($obj, $property): void {

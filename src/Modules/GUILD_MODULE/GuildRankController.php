@@ -13,7 +13,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
-	Nadybot,
+	MyOrg,
 	Text,
 	Types\AccessLevelProvider,
 	Types\CommandReply,
@@ -45,9 +45,6 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	private DB $db;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	#[NCA\Inject]
@@ -59,19 +56,23 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	#[NCA\Inject]
 	private GuildManager $guildManager;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
 	}
 
 	public function getSingleAccessLevel(string $sender): ?string {
-		if (!$this->chatBot->isOrgMember($sender)) {
+		$level = $this->myOrg->getMemberLevel($sender);
+		if (!isset($level)) {
 			return null;
 		}
 		if (!$this->mapOrgRanksToBotRanks) {
 			return 'guild';
 		}
-		return $this->getEffectiveAccessLevel($this->chatBot->getOrgMember($sender) ?? 0);
+		return $this->getEffectiveAccessLevel($level);
 	}
 
 	/**

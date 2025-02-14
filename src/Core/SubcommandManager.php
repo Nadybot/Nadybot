@@ -26,13 +26,24 @@ class SubcommandManager {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	/** @var array<string,CmdPermission> */
 	private array $cmdDefaultPermissions = [];
+
+	/** @var array<string,bool> */
+	private array $configuredSubcmds = [];
+
+	public function init(): void {
+		$this->db->table(CmdCfg::getTable())
+			->update(['verify' => 0]);
+		$this->db->table(CmdCfg::getTable())
+			->where('cmdevent', 'subcmd')
+			->asObj(CmdCfg::class)
+			->each(function (CmdCfg $row): void {
+				$this->configuredSubcmds[$row->cmd] = true;
+			});
+	}
 
 	/** Register a subcommand */
 	public function register(
@@ -80,7 +91,7 @@ class SubcommandManager {
 			dependson: $parentCommand,
 			cmdevent: 'subcmd',
 		));
-		if ($this->chatBot->wasSubcommandConfiguredOnStartup($command)) {
+		if (isset($this->configuredSubcmds[$command])) {
 			return;
 		}
 		$permSets = $this->db->table(CmdPermissionSet::getTable())

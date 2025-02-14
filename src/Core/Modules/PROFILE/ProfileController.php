@@ -210,7 +210,7 @@ class ProfileController extends ModuleInstance {
 		$contents .= "!permissions {$setData}\n";
 
 		$contents .= "\n# Settings\n";
-		foreach ($this->settingManager->settings as $name => $value) {
+		foreach ($this->settingManager->getSettings() as $name => $value) {
 			if ($name !== 'botid' && $name !== 'version' && !str_ends_with($name, '_db_version')) {
 				$contents .= "!settings save {$name} {$value->value}\n";
 			}

@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	MyOrg,
 	Nadybot,
 	Text,
 	Types\ExporterInterface,
@@ -69,6 +70,9 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	#[NCA\Inject]
 	private AltsController $altsController;
+
+	#[NCA\Inject]
+	private MyOrg $myOrg;
 
 	/** Show the five closest past and upcoming events */
 	#[NCA\HandlesCommand('events')]
@@ -335,7 +339,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 	public function logonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
-			|| !$this->chatBot->isOrgMember($sender)
+			|| !$this->myOrg->isMember($sender)
 			|| $eventObj->wasOnline !== false
 			|| !$this->hasRecentEvents()
 		) {

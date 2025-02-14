@@ -19,6 +19,7 @@ use Nadybot\Core\{
 	Events\LogonEvent,
 	ModuleInstance,
 	Modules\BAN\BanController,
+	MyOrg,
 	Nadybot,
 	Registry,
 	Safe,
@@ -27,10 +28,13 @@ use Nadybot\Core\{
 	Types\CommandReply,
 	Types\SettingMode,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\{ApiResponse, WebChatConverter, WebserverController};
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	ApiResponse,
+	WebChatConverter,
+	WebserverController
+};
 use ReflectionClass;
 use ReflectionMethod;
-
 use Safe\DateTimeImmutable;
 use Throwable;
 
@@ -82,6 +86,9 @@ class StartpageController extends ModuleInstance {
 	#[NCA\Inject]
 	private WebChatConverter $webChatConverter;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$instances = Registry::getAllInstances();
@@ -104,7 +111,7 @@ class StartpageController extends ModuleInstance {
 		) {
 			return;
 		}
-		if ($this->chatBot->isOrgMember($sender)) {
+		if ($this->myOrg->isMember($sender)) {
 			$this->showStartpage($sender, $this->getMassTell($sender));
 			return;
 		}
@@ -130,7 +137,7 @@ class StartpageController extends ModuleInstance {
 	)]
 	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!$this->chatBot->isReady() || $this->chatBot->isOrgMember($sender)) {
+		if (!$this->chatBot->isReady() || $this->myOrg->isMember($sender)) {
 			return;
 		}
 		if ($this->startpageShowMembers !== 2) {

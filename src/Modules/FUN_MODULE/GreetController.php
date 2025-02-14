@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	DB,
 	Events\LogonEvent,
 	ModuleInstance,
+	MyOrg,
 	Nadybot,
 	Text,
 };
@@ -134,6 +135,9 @@ class GreetController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	/** @var array<string,int> */
 	private static array $greetCount = [];
 
@@ -170,7 +174,7 @@ class GreetController extends ModuleInstance {
 	)]
 	public function sendRandomLogonGreeting(LogonEvent $event): void {
 		$sender = $event->sender;
-		if (!$this->chatBot->isOrgMember($sender)
+		if (!$this->myOrg->isMember($sender)
 			|| !$this->chatBot->isReady()
 			|| $event->wasOnline !== false) {
 			return;

@@ -28,6 +28,7 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Modules\BAN\BanController,
+	MyOrg,
 	Nadybot,
 	ParamClass\PCharacter,
 	PrivateMessageCommandReply,
@@ -173,6 +174,9 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->helpManager->register($this->moduleName, 'budatime', 'budatime.txt', 'all', 'Format for budatime');
@@ -301,7 +305,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			buddy_list_size: $this->buddylistManager->countConfirmedBuddies(),
 			max_buddy_list_size: $this->chatBot->getBuddyListSize(),
 			priv_channel_size: count($this->chatBot->getChatlist()),
-			org_size: count($this->chatBot->getOrgMembers()),
+			org_size: count($this->myOrg->getMembers()),
 			chatqueue_length: 0,
 		);
 

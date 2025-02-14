@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	Hydrator,
 	MessageHub,
 	ModuleInstance,
+	MyOrg,
 	Nadybot,
 	ParamClass\PDuration,
 	Routing\RoutableMessage,
@@ -148,6 +149,9 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	private StatsController $statsController;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	private int $apiRetriesLeft = 3;
 
 	public function getChannelName(): string {
@@ -272,7 +276,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public function gaubufflogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
-			|| !$this->chatBot->isOrgMember($sender)
+			|| !$this->myOrg->isMember($sender)
 			|| !$this->gaubuffLogon
 			|| $eventObj->wasOnline !== false
 		) {

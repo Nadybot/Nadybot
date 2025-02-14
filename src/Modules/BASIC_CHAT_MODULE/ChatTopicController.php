@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	Events\JoinMyPrivEvent,
 	Events\LogonEvent,
 	ModuleInstance,
+	MyOrg,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -66,6 +67,9 @@ class ChatTopicController extends ModuleInstance {
 	#[NCA\Inject]
 	private EventManager $eventManager;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	/** Show the current topic */
 	#[NCA\HandlesCommand('topic')]
 	public function topicCommand(CmdContext $context): void {
@@ -120,7 +124,7 @@ class ChatTopicController extends ModuleInstance {
 	)]
 	public function logonEvent(LogonEvent $eventObj): void {
 		if ($this->topic === ''
-			|| !$this->chatBot->isOrgMember($eventObj->sender)
+			|| !$this->myOrg->isMember($eventObj->sender)
 			|| !$this->chatBot->isReady()
 			|| $eventObj->wasOnline !== false
 		) {

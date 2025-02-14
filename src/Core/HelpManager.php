@@ -29,10 +29,20 @@ class HelpManager {
 	private ConfigController $configController;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
-
-	#[NCA\Inject]
 	private Util $util;
+
+	/** @var array<string,bool> */
+	private array $configuredHelp = [];
+
+	public function init(): void {
+		$this->db->table(HlpCfg::getTable())
+			->update(['verify' => 0]);
+		$this->db->table(HlpCfg::getTable())
+			->asObj(HlpCfg::class)
+			->each(function (HlpCfg $row): void {
+				$this->configuredHelp[$row->name] = true;
+			});
+	}
 
 	/** Register a help command */
 	public function register(string $module, string $command, string $filename, string $admin, string $description): void {
@@ -60,7 +70,7 @@ class HelpManager {
 			return;
 		}
 
-		if ($this->chatBot->wasHelpConfiguredOnStartup($command)) {
+		if (isset($this->configuredHelp[$command])) {
 			$this->db->table(HlpCfg::getTable())->where('name', $command)
 				->update([
 					'verify' => 1,

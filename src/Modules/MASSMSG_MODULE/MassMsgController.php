@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,
+	MyOrg,
 	Nadybot,
 	Registry,
 	Routing\RoutableMessage,
@@ -96,6 +97,9 @@ class MassMsgController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private BotConfig $config;
+
+	#[NCA\Inject]
+	private MyOrg $myOrg;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -238,7 +242,7 @@ class MassMsgController extends ModuleInstance {
 				$result[$name] = static::IN_CHAT;
 				continue;
 			}
-			if ($this->chatBot->isOrgMember($name)) {
+			if ($this->myOrg->isMember($name)) {
 				$result[$name] = static::IN_ORG;
 				continue;
 			}

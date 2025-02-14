@@ -20,19 +20,16 @@ use Psr\Log\LoggerInterface;
 	NCA\ProvidesEvent(SettingEvent::class)
 ]
 class SettingManager {
-	/** @var array<string,SettingValue> */
-	public array $settings = [];
-
 	public static bool $isInitialized = false;
+
+	/** @var array<string,SettingValue> */
+	private array $settings = [];
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
 	#[NCA\Inject]
 	private DB $db;
-
-	#[NCA\Inject]
-	private Nadybot $chatBot;
 
 	#[NCA\Inject]
 	private HelpManager $helpManager;
@@ -51,6 +48,19 @@ class SettingManager {
 
 	/** @var array<string,string> */
 	private array $settingHandlers = [];
+
+	/** @var array<string,bool> */
+	private array $configuredSettings = [];
+
+	public function init(): void {
+		$this->db->table(Setting::getTable())
+			->update(['verify' => 0]);
+		$this->db->table(Setting::getTable())
+			->asObj(Setting::class)
+			->each(function (Setting $row): void {
+				$this->configuredSettings[$row->name] = true;
+			});
+	}
 
 	/** Return the hard-coded value for a setting or a given default */
 	public function getHardcoded(string $setting, null|bool|int|string $default=null): ?string {
@@ -166,7 +176,7 @@ class SettingManager {
 				value: (string)$value,
 				confidential: $confidential,
 			);
-			if ($this->chatBot->wasSettingConfiguredOnStartup($name) || $this->exists($name)) {
+			if (isset($this->configuredSettings[$name]) || $this->exists($name)) {
 				$this->db->table(Setting::getTable())
 					->where('name', $name)
 					->update([
@@ -213,6 +223,11 @@ class SettingManager {
 		}
 	}
 
+	/** @return array<string,SettingValue> */
+	public function getSettings(): array {
+		return $this->settings;
+	}
+
 	/**
 	 * Determine if a setting with a given name exists
 	 *
@@ -222,6 +237,17 @@ class SettingManager {
 	 */
 	public function exists(string $name): bool {
 		return array_key_exists($name, $this->settings);
+	}
+
+	/**
+	 * Gets the stringified value of a setting - nothing else
+	 *
+	 * @param string $name name of the setting to read
+	 *
+	 * @return null|string the value of the setting, or false if a setting with that name does not exist
+	 */
+	public function getValue(string $name): null|string {
+		return ($this->settings[strtolower($name)]??null)?->value;
 	}
 
 	/**

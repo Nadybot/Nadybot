@@ -69,6 +69,9 @@ class EventManager {
 
 	private bool $areConnectEventsFired = false;
 
+	/** @var array<string,array<string,bool>> */
+	private array $configuredEvents = [];
+
 	public function __construct() {
 		foreach ([
 			'msg', 'priv', 'extpriv', 'guild', 'joinpriv', 'leavepriv',
@@ -78,6 +81,19 @@ class EventManager {
 		] as $event) {
 			$this->eventTypes[$event] = new EventType(name: $event);
 		}
+	}
+
+	public function init(): void {
+		$this->db->table(EventCfg::getTable())
+			->update(['verify' => 0]);
+		$this->db->table(EventCfg::getTable())
+			->where('type', 'setup')
+			->update(['verify' => 1]);
+		$this->db->table(EventCfg::getTable())
+			->asObj(EventCfg::class)
+			->each(function (EventCfg $row): void {
+				$this->configuredEvents[$row->type??''][$row->file??''] = true;
+			});
 	}
 
 	/** Registers an event on the bot so it can be configured */
@@ -111,7 +127,7 @@ class EventManager {
 		}
 
 		try {
-			if ($this->chatBot->wasEventConfiguredOnStartup($type, $filename)) {
+			if (isset($this->configuredEvents[$type][$filename])) {
 				$this->db->table(EventCfg::getTable())
 					->where('type', $type)
 					->where('file', $filename)

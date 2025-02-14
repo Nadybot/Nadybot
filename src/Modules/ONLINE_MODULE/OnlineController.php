@@ -6,7 +6,6 @@ use function Safe\preg_match;
 
 use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -26,7 +25,9 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\ALTS\NickController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	MyOrg,
 	Nadybot,
+	ParamClass\PUuid,
 	QueryBuilder,
 	Registry,
 	Safe,
@@ -241,6 +242,9 @@ class OnlineController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private MyOrg $myOrg;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -462,7 +466,7 @@ class OnlineController extends ModuleInstance {
 	)]
 	public function recordLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!$this->chatBot->isOrgMember($sender)) {
+		if (!$this->myOrg->isMember($sender)) {
 			return;
 		}
 		$player = $this->addPlayerToOnlineList($sender, $this->config->general->orgName, 'guild');
@@ -479,7 +483,7 @@ class OnlineController extends ModuleInstance {
 	)]
 	public function recordLogoffEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!$this->chatBot->isOrgMember($sender)) {
+		if (!$this->myOrg->isMember($sender)) {
 			return;
 		}
 		$this->removePlayerFromOnlineList($sender, 'guild');
@@ -496,7 +500,7 @@ class OnlineController extends ModuleInstance {
 	)]
 	public function showOnlineOnLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!$this->chatBot->isOrgMember($sender)
+		if (!$this->myOrg->isMember($sender)
 			|| !$this->chatBot->isReady()
 			|| $eventObj->wasOnline !== false
 		) {
@@ -538,7 +542,7 @@ class OnlineController extends ModuleInstance {
 
 		$time = time();
 
-		foreach ($this->chatBot->getOrgMembers() as $name => $rank) {
+		foreach ($this->myOrg->getMembers() as $name => $rank) {
 			if ($this->buddylistManager->isOnline($name)) {
 				if (in_array($name, $guildArray, true)) {
 					$this->buildOnlineQuery($name, 'guild')

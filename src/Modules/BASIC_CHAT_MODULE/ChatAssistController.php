@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	EventManager,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	MyOrg,
 	Nadybot,
 	ParamClass\PCharacter,
 	Text,
@@ -89,6 +90,9 @@ class ChatAssistController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private BotConfig $config;
+
+	#[NCA\Inject]
+	private MyOrg $myOrg;
 
 	#[NCA\SettingChangeHandler('never_auto_callers')]
 	public function validateNeverAutoCallers(string $setting, string $old, string $new): void {
@@ -347,7 +351,7 @@ class ChatAssistController extends ModuleInstance {
 			if (!isset($uid)) {
 				$errors []= "Character <highlight>{$name}<end> does not exist.";
 			} elseif (
-				!$this->chatBot->isOrgMember($name)
+				!$this->myOrg->isMember($name)
 				&& !$this->buddylistManager->isUidOnline($uid)
 				&& !$this->chatBot->inChatlist($name)
 			) {
@@ -418,7 +422,7 @@ class ChatAssistController extends ModuleInstance {
 			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;
 		} elseif (
-			!$this->chatBot->isOrgMember($name)
+			!$this->myOrg->isMember($name)
 			&& !$this->buddylistManager->isUidOnline($uid)
 			&& !$this->chatBot->inChatlist($name)
 		) {

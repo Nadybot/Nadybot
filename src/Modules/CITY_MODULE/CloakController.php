@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
+	MyOrg,
 	Nadybot,
 	Registry,
 	Routing\RoutableMessage,
@@ -73,6 +74,9 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	private StatsController $statsController;
+
+	#[NCA\Inject]
+	private MyOrg $myOrg;
 
 	private ?int $lastReminderSent = null;
 
@@ -270,7 +274,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	)]
 	public function cityGuildLogonEvent(LogonEvent $eventObj): void {
 		if (!$this->chatBot->isReady()
-			|| !$this->chatBot->isOrgMember($eventObj->sender)
+			|| !$this->myOrg->isMember($eventObj->sender)
 			|| $eventObj->wasOnline !== false
 		) {
 			return;
