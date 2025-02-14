@@ -8,7 +8,6 @@ use function Safe\preg_match;
 
 use Closure;
 use Exception;
-use Nadybot\Core\Types\Status;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	Exceptions\SQLException,
 	Exceptions\StopExecutionException,
 	Modules\MESSAGES\MessageHubController,
+	Types\Status,
 };
 use Psr\Log\LoggerInterface;
 use ReflectionClass;

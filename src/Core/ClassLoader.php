@@ -7,15 +7,16 @@ use function Safe\{parse_ini_string, preg_split};
 use Amp\File\FilesystemException;
 use Amp\Parallel\Worker\TaskFailureError;
 use Amp\TimeoutCancellation;
-use Directory;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Exceptions\{
 	IntegratedIntoBaseException,
 	InvalidCodeException,
 	InvalidVersionException
 };
-use Nadybot\Core\Types\ModuleInstanceInterface;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	Types\ModuleInstanceInterface,
+};
 use Psr\Log\LoggerInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -252,8 +253,14 @@ class ClassLoader {
 			'PLAYER_LOOKUP', 'BUDDYLIST', 'ALTS', 'USAGE', 'PREFERENCES', 'PROFILE',
 			'COLORS', 'DISCORD', 'CONSOLE', 'SECURITY',
 		];
+		$foundModules = array_flip($this->fs->listFiles(__DIR__ . '/Modules'));
+		unset($foundModules['SETUP']);
 		foreach ($coreModules as $moduleName) {
 			$this->registerModule(__DIR__ . '/Modules', $moduleName);
+			unset($foundModules[$moduleName]);
+		}
+		if (count($foundModules)) {
+			throw new \Error('Found unexpected modules: '.implode(', ', array_keys($foundModules)));
 		}
 	}
 
@@ -261,19 +268,24 @@ class ClassLoader {
 	private function loadUserModules(): void {
 		$this->logger->notice('Loading USER modules...');
 		foreach ($this->moduleLoadPaths as $path) {
-			$this->logger->info("Loading modules in path '{path}'", ['path' => $path]);
-			if (!$this->fs->exists($path) || !(($d = dir($path)) instanceof Directory)) {
+			$this->loadModulesInPath($path);
+		}
+	}
+
+	private function loadModulesInPath(string $path): void {
+		$this->logger->info("Loading modules in path '{path}'", ['path' => $path]);
+		try {
+			$files = $this->fs->listFiles($path);
+		} catch (FilesystemException) {
+			return;
+		}
+		foreach ($files as $moduleName) {
+			if (in_array($moduleName, ['BIGBOSS_MODULE', 'GAUNTLET_MODULE'], true)) {
 				continue;
 			}
-			while (false !== ($moduleName = $d->read())) {
-				if (in_array($moduleName, ['BIGBOSS_MODULE', 'GAUNTLET_MODULE'], true)) {
-					continue;
-				}
-				if ($this->isModuleDir($path, $moduleName)) {
-					$this->registerModule($path, $moduleName);
-				}
+			if ($this->isModuleDir($path, $moduleName)) {
+				$this->registerModule($path, $moduleName);
 			}
-			$d->close();
 		}
 	}
 

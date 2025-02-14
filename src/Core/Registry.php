@@ -5,9 +5,11 @@ namespace Nadybot\Core;
 use Amp\File\KeyedFileMutex;
 use Error;
 use Exception;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Types\LogWrapInterface;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	Types\LogWrapInterface,
+};
 use Psr\SimpleCache\CacheInterface;
 use ReflectionClass;
 use ReflectionNamedType;

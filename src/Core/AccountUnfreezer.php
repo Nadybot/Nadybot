@@ -10,9 +10,13 @@ use Amp\Http\Tunnel\Http1TunnelConnector;
 use Amp\{CancelledException, TimeoutCancellation};
 use AO\FrozenAccount;
 use Exception;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\{BotConfig, Credentials};
-use Nadybot\Core\Exceptions\{UnfreezeFatalException, UnfreezeTmpException};
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	Config\Credentials,
+	Exceptions\UnfreezeFatalException,
+	Exceptions\UnfreezeTmpException
+};
 use Safe\Exceptions\JsonException;
 use Throwable;
 

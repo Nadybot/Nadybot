@@ -4,12 +4,12 @@ namespace Nadybot\Core;
 
 use Closure;
 use Exception;
-use Nadybot\Core\Exceptions\SQLException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\Setting,
 	Events\SettingEvent,
+	Exceptions\SQLException,
 	SettingHandlers\SettingHandler,
 	Types\SettingMode,
 };

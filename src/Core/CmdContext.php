@@ -3,9 +3,11 @@
 namespace Nadybot\Core;
 
 use Closure;
-use Nadybot\Core\DBSchema\CmdPermSetMapping;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Types\CommandReply;
+use Nadybot\Core\{
+	DBSchema\CmdPermSetMapping,
+	Routing\Character,
+	Types\CommandReply,
+};
 
 class CmdContext implements CommandReply {
 	/**

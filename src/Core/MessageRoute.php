@@ -2,10 +2,12 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Types\EventModifier;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\Route,
+	Routing\RoutableEvent,
+	Types\EventModifier,
+};
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\UuidInterface;
 use Throwable;

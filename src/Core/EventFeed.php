@@ -4,17 +4,24 @@ namespace Nadybot\Core;
 
 use function Amp\delay;
 use function Safe\json_decode;
-use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Interceptor\RemoveRequestHeader;
+use Amp\Http\Client\{
+	Connection\DefaultConnectionFactory,
+	Connection\UnlimitedConnectionPool,
+	HttpClientBuilder,
+	Interceptor\RemoveRequestHeader,
+};
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455ConnectionFactory, Rfc6455Connector, WebsocketConnectException, WebsocketHandshake};
 use Amp\Websocket\{PeriodicHeartbeatQueue, WebsocketCloseCode, WebsocketClosedException};
 use AssertionError;
 use Closure;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Events\{EventFeedConnect, EventFeedReconnect, LowLevelEventFeedEvent};
-use Nadybot\Core\Types\EventFeedHandler;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Events\EventFeedConnect,
+	Events\EventFeedReconnect,
+	Events\LowLevelEventFeedEvent,
+	Types\EventFeedHandler,
+};
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Revolt\EventLoop;

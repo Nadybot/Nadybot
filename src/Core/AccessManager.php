@@ -3,13 +3,13 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Nadybot\Core\Types\AccessLevelProvider;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\Audit,
 	Modules\ALTS\AltsController,
 	Modules\SECURITY\AuditController,
+	Types\AccessLevelProvider,
 };
 use Psr\Log\LoggerInterface;
 use SplObjectStorage;

@@ -4,13 +4,13 @@ namespace Nadybot\Core;
 
 use function Amp\async;
 
-use Nadybot\Core\Types\RankChange;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\Admin,
 	DBSchema\Audit,
 	Types\AccessLevelProvider,
+	Types\RankChange,
 };
 
 /**

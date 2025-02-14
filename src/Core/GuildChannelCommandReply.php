@@ -2,8 +2,11 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\Types\{CommandReply, MessageEmitter};
+use Nadybot\Core\{
+	Routing\Source,
+	Types\CommandReply,
+	Types\MessageEmitter
+};
 
 class GuildChannelCommandReply implements CommandReply, MessageEmitter {
 	public function __construct(

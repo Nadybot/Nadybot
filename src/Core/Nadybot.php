@@ -118,10 +118,10 @@ class Nadybot {
 	#[NCA\Setting\Boolean]
 	public bool $pagingOnSameWorker = true;
 
-	/** Time the bot was started */
-	protected int $started = 0;
-
 	protected int $numSpamMsgsSent = 0;
+
+	/** Time the bot was started */
+	private int $started = 0;
 
 	/**
 	 * Names of private channels we're in
@@ -241,19 +241,7 @@ class Nadybot {
 		$this->db->beginTransaction();
 		$start = \Amp\now();
 		foreach (Registry::getAllInstances() as $name => $instance) {
-			if ($instance instanceof ModuleInstanceInterface && $instance->getModuleName() !== '') {
-				$this->registerInstance($name, $instance);
-			} else {
-				$refClass = new ReflectionClass($instance);
-				$fileName = $refClass->getFileName();
-				if (is_string($fileName) && str_starts_with($fileName, __DIR__ . \DIRECTORY_SEPARATOR)) {
-					$this->parseInstanceSettings('SYSTEM', $instance);
-				}
-				$this->callSetupMethod($name, $instance);
-			}
-			if (!$this->db->inTransaction()) {
-				$this->db->beginTransaction();
-			}
+			$this->initializeInstance($name, $instance);
 		}
 		if ($this->db->inTransaction()) {
 			$this->db->commit();
@@ -262,24 +250,7 @@ class Nadybot {
 		$this->logger->notice('Setups done in {duration}s', [
 			'duration' => number_format($duration, 3),
 		]);
-		$reaper = EventLoop::delay(6, function (string $delayIdentifier): void {
-			if ($this->db->inTransaction()) {
-				$this->logger->warning('Open transaction detected!');
-			}
-			$this->logger->critical('Hanging jobs detected, exiting.');
-
-			$this->logger->warning('Killing hanging jobs');
-			foreach (EventLoop::getIdentifiers() as $identifier) {
-				if (EventLoop::isEnabled($identifier) && EventLoop::isReferenced($identifier)) {
-					$this->logger->error('Hanging: {id}={data}', [
-						'id' => $identifier,
-						'data' => EventLoop::getDriver()->__debugInfo()[$identifier]['type'],
-					]);
-					// EventLoop::cancel($identifier);
-				}
-			}
-			exit(1);
-		});
+		$reaper = EventLoop::delay(6, $this->setupReaper(...));
 		EventLoop::unreference($reaper);
 		EventLoop::run();
 		EventLoop::cancel($reaper);
@@ -287,7 +258,8 @@ class Nadybot {
 		$this->settingManager::$isInitialized = true;
 
 		// Delete old entries in the DB
-		$this->db->table(CmdCfg::getTable())->where('verify', 0)
+		$this->db->table(CmdCfg::getTable())
+			->where('verify', 0)
 			->asObj(CmdCfg::class)
 			->each(function (CmdCfg $row): void {
 				$this->logger->notice(
@@ -316,7 +288,7 @@ class Nadybot {
 
 		$this->commandManager->loadCommands();
 		$this->subcommandManager->loadSubcommands();
-		$this->commandAlias->load();
+		$this->commandAlias->loadAliases();
 		$this->eventManager->loadEvents();
 	}
 
@@ -1695,6 +1667,41 @@ class Nadybot {
 	/** @return array<string,bool> */
 	public function getChatlist(): array {
 		return $this->chatlist;
+	}
+
+	private function initializeInstance(string $name, object $instance): void {
+		if ($instance instanceof ModuleInstanceInterface && $instance->getModuleName() !== '') {
+			$this->registerInstance($name, $instance);
+		} else {
+			$refClass = new ReflectionClass($instance);
+			$fileName = $refClass->getFileName();
+			if (is_string($fileName) && str_starts_with($fileName, __DIR__ . \DIRECTORY_SEPARATOR)) {
+				$this->parseInstanceSettings('SYSTEM', $instance);
+			}
+			$this->callSetupMethod($name, $instance);
+		}
+		if (!$this->db->inTransaction()) {
+			$this->db->beginTransaction();
+		}
+	}
+
+	private function setupReaper(string $delayIdentifier): void {
+		if ($this->db->inTransaction()) {
+			$this->logger->warning('Open transaction detected!');
+		}
+		$this->logger->critical('Hanging jobs detected, exiting.');
+
+		$this->logger->warning('Killing hanging jobs');
+		foreach (EventLoop::getIdentifiers() as $identifier) {
+			if (EventLoop::isEnabled($identifier) && EventLoop::isReferenced($identifier)) {
+				$this->logger->error('Hanging: {id}={data}', [
+					'id' => $identifier,
+					'data' => EventLoop::getDriver()->__debugInfo()[$identifier]['type'],
+				]);
+				// EventLoop::cancel($identifier);
+			}
+		}
+		exit(1);
 	}
 
 	private function aoPackageLoop(): void {

@@ -447,15 +447,7 @@ class CommandManager implements MessageEmitter {
 	public function loadCommands(): void {
 		$this->logger->info('Loading enabled commands');
 
-		$this->getAll()
-			->each(function (CmdCfg $row): void {
-				foreach ($row->permissions as $permSet => $permission) {
-					if (!$permission->enabled) {
-						continue;
-					}
-					$this->activate($permission->permission_set, $row->file, $row->cmd, $permission->access_level);
-				}
-			});
+		$this->getAll()->each($this->activateCmdCfg(...));
 	}
 
 	/** Get command config for a command */
@@ -1509,6 +1501,15 @@ class CommandManager implements MessageEmitter {
 		}
 		$this->processCmd($context);
 		return true;
+	}
+
+	private function activateCmdCfg(CmdCfg $command): void {
+		foreach ($command->permissions as $permSet => $permission) {
+			if (!$permission->enabled) {
+				continue;
+			}
+			$this->activate($permission->permission_set, $command->file, $command->cmd, $permission->access_level);
+		}
 	}
 
 	/**

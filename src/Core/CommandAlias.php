@@ -4,9 +4,11 @@ namespace Nadybot\Core;
 
 use function Safe\preg_match;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\CmdAlias;
-use Nadybot\Core\Types\Status;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\CmdAlias,
+	Types\Status,
+};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Instance]
@@ -23,7 +25,7 @@ class CommandAlias {
 	private CommandManager $commandManager;
 
 	/** Loads active aliases into memory to activate them */
-	public function load(): void {
+	public function loadAliases(): void {
 		$this->logger->info('Loading enabled command aliases');
 
 		$this->db->table(CmdAlias::getTable())

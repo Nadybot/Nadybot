@@ -3,13 +3,13 @@
 namespace Nadybot\Core;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\DBSchema\CmdPermissionSet;
-use Nadybot\Core\Types\Status;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\CmdCfg,
 	DBSchema\CmdPermission,
+	DBSchema\CmdPermissionSet,
+	Types\Status,
 };
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;

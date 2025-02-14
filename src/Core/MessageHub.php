@@ -9,20 +9,21 @@ use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
 use Monolog\Logger;
-use Nadybot\Core\DBSchema\{RouteModifier, RouteModifierArgument};
-use Nadybot\Core\Types\HopColorType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\Route,
 	DBSchema\RouteHopColor,
 	DBSchema\RouteHopFormat,
+	DBSchema\RouteModifier,
+	DBSchema\RouteModifierArgument,
 	Modules\ALTS\AltsController,
 	Modules\ALTS\NickController,
 	Modules\MESSAGES\MessageHubController,
 	Routing\RoutableEvent,
 	Routing\Source,
 	Types\EventModifier,
+	Types\HopColorType,
 	Types\MessageEmitter,
 	Types\MessageReceiver,
 };

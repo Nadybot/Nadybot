@@ -2,9 +2,11 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Types\CommandReply;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	Types\CommandReply,
+};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Instance]

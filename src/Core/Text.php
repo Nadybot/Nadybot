@@ -3,10 +3,12 @@
 namespace Nadybot\Core;
 
 use function Safe\preg_match;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Modules\COLORS\ColorsController;
-use Nadybot\Core\Modules\SYSTEM\SystemController;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	Modules\COLORS\ColorsController,
+	Modules\SYSTEM\SystemController,
+};
 
 #[NCA\Instance]
 class Text {

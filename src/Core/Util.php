@@ -8,11 +8,12 @@ use BackedEnum;
 use Exception;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Types\MinMax;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	Types\MinMax,
+};
 use RangeException;
-
 use ReflectionClass;
 use UnhandledMatchError;
 

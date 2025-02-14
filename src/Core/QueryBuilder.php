@@ -5,11 +5,12 @@ namespace Nadybot\Core;
 use Exception;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\{Arr, Collection};
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Attributes\DB\ColName;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\DB\DBType;
-use Nadybot\Core\Exceptions\SQLException;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	DB\DBType,
+	Exceptions\SQLException,
+};
 use PDOException;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\{Uuid, UuidInterface};
@@ -314,7 +315,7 @@ class QueryBuilder extends Builder {
 		$colMappings = [];
 		$refClass = new ReflectionClass($className);
 		foreach ($refClass->getProperties() as $refProperty) {
-			$colMapping = $refProperty->getAttributes(ColName::class);
+			$colMapping = $refProperty->getAttributes(NCA\DB\ColName::class);
 			if (count($colMapping)) {
 				// $colMappings[$colMapping[0]->newInstance()->col] = $refProperty->getName();
 				$colMappings[$refProperty->getName()] = $colMapping[0]->newInstance()->col;

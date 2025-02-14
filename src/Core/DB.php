@@ -11,10 +11,10 @@ use BackedEnum;
 use Closure;
 use DateTimeInterface;
 use Exception;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Database\{
 	Capsule\Manager as Capsule,
 	Connection,
+	Query\Builder,
 	Schema\Blueprint,
 };
 use Illuminate\Support\Collection;
