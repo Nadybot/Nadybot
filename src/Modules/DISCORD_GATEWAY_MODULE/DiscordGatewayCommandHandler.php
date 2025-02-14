@@ -7,6 +7,7 @@ use function Safe\preg_match;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	CmdContext,
 	CommandManager,
 	DB,
@@ -90,7 +91,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 
 	/** Accept to be linked with a Discord account */
 	#[NCA\HandlesCommand('extauth')]
-	public function extAuthAccept(CmdContext $context, #[NCA\Str('accept')] string $action, string $uid): void {
+	public function extAuthAccept(CmdContext $context, #[Str('accept')] string $action, string $uid): void {
 		if (!$context->isDM()) {
 			return;
 		}
@@ -133,7 +134,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 
 	/** Reject to be linked with a Discord account */
 	#[NCA\HandlesCommand('extauth')]
-	public function extAuthRejectCommand(CmdContext $context, #[NCA\Str('reject')] string $action, string $uid): void {
+	public function extAuthRejectCommand(CmdContext $context, #[Str('reject')] string $action, string $uid): void {
 		if (!$context->isDM()) {
 			return;
 		}
@@ -159,7 +160,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	)]
 	public function extAuthCommand(
 		CmdContext $context,
-		#[NCA\Str('request')] string $action,
+		#[Str('request')] string $action,
 		PCharacter $char
 	): void {
 		$discordUserId = $context->char->name;

@@ -381,7 +381,7 @@ class GuildController extends ModuleInstance {
 	#[NCA\HandlesCommand('notify')]
 	public function notifyAddCommand(
 		CmdContext $context,
-		#[NCA\Str('on', 'add')] string $action,
+		#[NCA\Parameter\Str('on', 'add')] string $action,
 		PCharacter $char
 	): void {
 		$name = $char();
@@ -428,7 +428,7 @@ class GuildController extends ModuleInstance {
 	#[NCA\HandlesCommand('notify')]
 	public function notifyRemoveCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[NCA\Parameter\Remove] string $action,
 		PCharacter $char
 	): void {
 		$name = $char();
@@ -503,7 +503,7 @@ class GuildController extends ModuleInstance {
 	#[NCA\HandlesCommand('orgstats')]
 	public function orgstatsCommand(
 		CmdContext $context,
-		#[NCA\Str('online')] ?string $onlineOnly,
+		#[NCA\Parameter\Str('online')] ?string $onlineOnly,
 	): void {
 		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
 			$context->reply('The bot must be in an org.');

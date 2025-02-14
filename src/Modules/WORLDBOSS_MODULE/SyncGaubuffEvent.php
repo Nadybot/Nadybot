@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
-use Nadybot\Core\Attributes\{StrFuncIn, StrFuncOut};
+use Nadybot\Core\Attributes\Hydrator\{StrFuncIn, StrFuncOut};
 use Nadybot\Core\Events\SyncEvent;
 use Nadybot\Core\Types\Faction;
 use Nadybot\Core\Util;

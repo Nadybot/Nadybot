@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	CmdContext,
 	CommandAlias,
 	Config\BotConfig,
@@ -23,7 +24,6 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 use Revolt\EventLoop;
-
 use Safe\DateTimeImmutable;
 
 /**
@@ -186,7 +186,7 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	public function bidStartCommand(
 		CmdContext $context,
-		#[NCA\Str('start')] string $action,
+		#[Str('start')] string $action,
 		string $item
 	): void {
 		if ($this->auctionsOnlyForRaid && !isset($this->raidController->raid)) {
@@ -210,7 +210,7 @@ class AuctionController extends ModuleInstance {
 	#[NCA\Help\Group('auction')]
 	public function bidCancelCommand(
 		CmdContext $context,
-		#[NCA\Str('cancel')] string $action
+		#[Str('cancel')] string $action
 	): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
@@ -229,7 +229,7 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	public function bidEndCommand(
 		CmdContext $context,
-		#[NCA\Str('end')] string $action
+		#[Str('end')] string $action
 	): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
@@ -253,7 +253,7 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_BID_REIMBURSE)]
 	public function bidReimburseCommand(
 		CmdContext $context,
-		#[NCA\Str('reimburse', 'payback', 'refund')] string $action,
+		#[Str('reimburse', 'payback', 'refund')] string $action,
 		PCharacter $winner
 	): void {
 		$winner = $winner();
@@ -410,7 +410,7 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand('bid')]
 	public function bidHistoryCommand(
 		CmdContext $context,
-		#[NCA\Str('history')] string $action
+		#[Str('history')] string $action
 	): void {
 		$items = $this->db->table(DBAuction::getTable())
 			->orderByDesc('id')
@@ -432,7 +432,7 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand('bid')]
 	public function bidHistorySearchCommand(
 		CmdContext $context,
-		#[NCA\Str('history')] string $action,
+		#[Str('history')] string $action,
 		string $search
 	): void {
 		$shortcuts = [

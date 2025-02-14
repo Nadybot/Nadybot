@@ -14,8 +14,6 @@ use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, Websocket
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException, WebsocketCount};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Illuminate\Support\ItemNotFoundException;
-use Nadybot\Core\Events\ConnectEvent;
-use Nadybot\Core\Filesystem;
 use Nadybot\Core\Modules\DISCORD\{
 	Activity,
 	DiscordAPIClient,
@@ -34,12 +32,15 @@ use Nadybot\Core\Modules\DISCORD\{
 };
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	Channels\DiscordChannel as RoutedChannel,
 	Channels\DiscordMsg,
 	CmdContext,
 	CommandManager,
 	DB,
 	EventManager,
+	Events\ConnectEvent,
+	Filesystem,
 	Hydrator,
 	MessageHub,
 	ModuleInstance,
@@ -1091,7 +1092,7 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord connect/disconnect')]
 	public function connectCommand(
 		CmdContext $context,
-		#[NCA\Str('connect')] string $action,
+		#[Str('connect')] string $action,
 	): void {
 		$botToken = $this->discordController->discordBotToken;
 		if ($botToken === '' || $botToken === 'off') {
@@ -1110,7 +1111,7 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord connect/disconnect')]
 	public function disconnectCommand(
 		CmdContext $context,
-		#[NCA\Str('disconnect')] string $action,
+		#[Str('disconnect')] string $action,
 	): void {
 		if (!$this->isConnected() || !isset($this->client)) {
 			$context->reply('The bot is already disconnected from Discord.');
@@ -1126,7 +1127,7 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord create invite for yourself')]
 	public function requestDiscordInvite(
 		CmdContext $context,
-		#[NCA\Str('join')] string $action,
+		#[Str('join')] string $action,
 		?string $discordServer,
 	): void {
 		$aoChar = $this->altsController->getMainOf($context->char->name);
@@ -1253,7 +1254,7 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord see invites')]
 	public function listDiscordInvites(
 		CmdContext $context,
-		#[NCA\Str('invites', 'invitations')] string $action
+		#[Str('invites', 'invitations')] string $action
 	): void {
 		if ($this->discordController->discordBotToken === 'off') {
 			$context->reply("This bot isn't configured to connect to Discord yet.");
@@ -1278,7 +1279,7 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord leave server')]
 	public function leaveDiscordServer(
 		CmdContext $context,
-		#[NCA\Str('leave')] string $action,
+		#[Str('leave')] string $action,
 		string $guildId,
 	): void {
 		if ($this->discordController->discordBotToken === 'off') {
@@ -1334,7 +1335,7 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord show events')]
 	public function listDiscordEvents(
 		CmdContext $context,
-		#[NCA\Str('events')] string $action,
+		#[Str('events')] string $action,
 		?string $guildId,
 	): void {
 		if ($this->discordController->discordBotToken === 'off') {

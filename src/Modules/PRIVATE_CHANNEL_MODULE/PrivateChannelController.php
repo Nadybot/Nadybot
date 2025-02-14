@@ -7,10 +7,12 @@ use Amp\File\FilesystemException;
 use AO\Package;
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Routing\Events\Base;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Regexp,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -39,6 +41,7 @@ use Nadybot\Core\{
 	ParamClass\PDuration,
 	Registry,
 	Routing\Character,
+	Routing\Events\Base,
 	Routing\Events\Online,
 	Routing\RoutableEvent,
 	Routing\RoutableMessage,
@@ -51,13 +54,13 @@ use Nadybot\Core\{
 	Types\SettingMode,
 	Util,
 };
-use Nadybot\Modules\RAID_MODULE\RaidController;
 use Nadybot\Modules\{
 	GUILD_MODULE\GuildController,
 	ONLINE_MODULE\OfflineEvent,
 	ONLINE_MODULE\OnlineController,
 	ONLINE_MODULE\OnlineEvent,
 	ONLINE_MODULE\OnlinePlayer,
+	RAID_MODULE\RaidController,
 	RAID_MODULE\RaidRankController,
 	WEBSERVER_MODULE\StatsController,
 };
@@ -395,7 +398,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Help\Group('private-channel')]
 	public function inactiveMembersCommand(
 		CmdContext $context,
-		#[NCA\Str('inactive')] string $action,
+		#[Str('inactive')] string $action,
 		?PDuration $duration
 	): void {
 		$duration ??= new PDuration('1y');
@@ -485,7 +488,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Help\Group('private-channel')]
 	public function addUserCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter $char
 	): void {
 		try {
@@ -502,7 +505,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Help\Group('private-channel')]
 	public function remUserCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[Remove] string $action,
 		PCharacter $member
 	): void {
 		$msg = $this->removeUser($member(), $context->char->name);
@@ -515,7 +518,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Help\Group('private-channel')]
 	public function remallUserCommand(
 		CmdContext $context,
-		#[NCA\Str('remall', 'delall')] string $action,
+		#[Str('remall', 'delall')] string $action,
 		PCharacter $member
 	): void {
 		$main = $this->altsController->getMainOf($member());
@@ -657,8 +660,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand('count')]
 	public function countLevelCommand(
 		CmdContext $context,
-		#[NCA\Str('raid')] ?string $raidOnly,
-		#[NCA\Regexp('levels?|lvls?', example: 'lvl')] string $action
+		#[Str('raid')] ?string $raidOnly,
+		#[Regexp('levels?|lvls?', example: 'lvl')] string $action
 	): void {
 		$tl1 = 0;
 		$tl2 = 0;
@@ -713,8 +716,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand('count')]
 	public function countProfessionCommand(
 		CmdContext $context,
-		#[NCA\Str('raid')] ?string $raidOnly,
-		#[NCA\Regexp('all|profs?', example: 'profs')] string $action
+		#[Str('raid')] ?string $raidOnly,
+		#[Regexp('all|profs?', example: 'profs')] string $action
 	): void {
 		$chars = $this->onlineController->getPlayers('priv', $this->config->main->character);
 		if (isset($raidOnly)) {
@@ -752,8 +755,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand('count')]
 	public function countOrganizationCommand(
 		CmdContext $context,
-		#[NCA\Str('raid')] ?string $raidOnly,
-		#[NCA\Regexp('orgs?', example: 'orgs')] string $action
+		#[Str('raid')] ?string $raidOnly,
+		#[Regexp('orgs?', example: 'orgs')] string $action
 	): void {
 		$online = $this->onlineController->getPlayers('priv', $this->config->main->character);
 		if (isset($raidOnly)) {
@@ -806,7 +809,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand('count')]
 	public function countCommand(
 		CmdContext $context,
-		#[NCA\Str('raid')] ?string $raidOnly,
+		#[Str('raid')] ?string $raidOnly,
 		string $profession
 	): void {
 		try {
@@ -849,7 +852,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	/** Immediately kick everyone off the bot's private channel */
 	#[NCA\HandlesCommand('kickall')]
-	public function kickallNowCommand(CmdContext $context, #[NCA\Str('now')] string $action): void {
+	public function kickallNowCommand(CmdContext $context, #[Str('now')] string $action): void {
 		$this->chatBot->sendPackage(
 			package: new Package\Out\PrivateChannelKickAll()
 		);

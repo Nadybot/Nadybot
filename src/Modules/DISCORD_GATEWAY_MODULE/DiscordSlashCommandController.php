@@ -8,6 +8,9 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\DISCORD\{ApplicationCommand, ApplicationCommandOption, DiscordException};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	CommandManager,
 	DB,
@@ -135,8 +138,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord slash-commands')]
 	public function listDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str('slash')] string $action,
-		#[NCA\Str('list')] ?string $subAction
+		#[Str('slash')] string $action,
+		#[Str('list')] ?string $subAction
 	): void {
 		$cmds = $this->db->table(DiscordSlashCommand::getTable())
 			->orderBy('cmd')
@@ -164,9 +167,9 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord slash-commands')]
 	public function addDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str('slash')] string $action,
-		#[NCA\Str('add')] string $subAction,
-		#[NCA\WordStr] string ...$commands,
+		#[Str('slash')] string $action,
+		#[Str('add')] string $subAction,
+		#[WordStr] string ...$commands,
 	): void {
 		$cmds = $this->db->table(DiscordSlashCommand::getTable())
 			->orderBy('cmd')
@@ -238,9 +241,9 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord slash-commands')]
 	public function remDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str('slash')] string $action,
-		#[NCA\Remove] string $subAction,
-		#[NCA\WordStr] string ...$commands,
+		#[Str('slash')] string $action,
+		#[Remove] string $subAction,
+		#[WordStr] string ...$commands,
 	): void {
 		$cmds = $this->db->table(DiscordSlashCommand::getTable())
 			->orderBy('cmd')
@@ -287,8 +290,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord slash-commands')]
 	public function pickDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str('slash')] string $action,
-		#[NCA\Str('pick')] string $subAction,
+		#[Str('slash')] string $action,
+		#[Str('pick')] string $subAction,
 	): void {
 		$exposedCmds = $this->db->table(DiscordSlashCommand::getTable())
 			->orderBy('cmd')

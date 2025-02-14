@@ -3,17 +3,20 @@
 namespace Nadybot\Modules\VOTE_MODULE;
 
 use function Safe\{json_decode, json_encode};
-use Nadybot\Core\Events\TimerEvent;
-use Nadybot\Core\ParamClass\PUuid;
+
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	CmdContext,
 	DB,
 	EventManager,
+	Events\TimerEvent,
 	MessageHub,
 	ModuleInstance,
 	ParamClass\PDuration,
+	ParamClass\PUuid,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
@@ -222,7 +225,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Group('voting')]
 	public function pollKillCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[Remove] string $action,
 		PUuid $pollId
 	): void {
 		$pollId = $pollId();
@@ -252,7 +255,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Group('voting')]
 	public function voteRemoveCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[Remove] string $action,
 		PUuid $pollId
 	): void {
 		$pollId = $pollId();
@@ -285,7 +288,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Group('voting')]
 	public function pollEndCommand(
 		CmdContext $context,
-		#[NCA\Str('end')] string $action,
+		#[Str('end')] string $action,
 		PUuid $pollId
 	): void {
 		$pollId = $pollId();
@@ -318,7 +321,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Group('voting')]
 	public function voteShowCommand(
 		CmdContext $context,
-		#[NCA\Str('show', 'view')] ?string $action,
+		#[Str('show', 'view')] ?string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -426,7 +429,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Example('<symbol>poll create 4d3h2m1s WHAT... Is your favorite color?!?|Blue|Yellow')]
 	public function pollCreateCommand(
 		CmdContext $context,
-		#[NCA\Str('add', 'create', 'new')] string $action,
+		#[Str('add', 'create', 'new')] string $action,
 		PDuration $duration,
 		string $definition
 	): void {

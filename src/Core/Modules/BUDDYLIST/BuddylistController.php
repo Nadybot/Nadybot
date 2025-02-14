@@ -6,6 +6,8 @@ use function Safe\preg_match;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	BuddylistEntry,
 	BuddylistManager,
 	CmdContext,
@@ -86,7 +88,7 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistClearCommand(
 		CmdContext $context,
-		#[NCA\Str('clear', 'clean')] string $action
+		#[Str('clear', 'clean')] string $action
 	): void {
 		$orphanCount = 0;
 		if (count($this->buddylistManager->buddyList) === 0) {
@@ -130,9 +132,9 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter $who,
-		#[NCA\WordStr] string $type
+		#[NCA\Parameter\WordStr] string $type
 	): void {
 		$name = $who();
 
@@ -149,8 +151,8 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistRemAllCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $rem,
-		#[NCA\Str('all')] string $all
+		#[Remove] string $rem,
+		#[Str('all')] string $all
 	): void {
 		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
 			$this->chatBot->aoClient->buddyRemove($uid);
@@ -168,9 +170,9 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistRemCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[Remove] string $action,
 		PCharacter $who,
-		#[NCA\WordStr] string $type
+		#[NCA\Parameter\WordStr] string $type
 	): void {
 		$name = $who();
 
@@ -204,7 +206,7 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistSearchCommand(
 		CmdContext $context,
-		#[NCA\Str('search')] string $action,
+		#[Str('search')] string $action,
 		string $search
 	): void {
 		if (count($this->buddylistManager->buddyList) === 0) {
@@ -233,7 +235,7 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistRebalanceCommand(
 		CmdContext $context,
-		#[NCA\Str('rebalance')] string $action,
+		#[Str('rebalance')] string $action,
 	): void {
 		if (count($this->buddylistManager->buddyList) === 0) {
 			$context->reply('There are no characters on the buddy list.');

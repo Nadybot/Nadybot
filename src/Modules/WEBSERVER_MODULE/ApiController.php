@@ -9,6 +9,8 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	CmdContext,
 	CommandHandler,
 	CommandManager,
@@ -86,7 +88,7 @@ class ApiController extends ModuleInstance {
 	#[NCA\HandlesCommand('apiauth')]
 	public function apiauthListCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] ?string $action
+		#[Str('list')] ?string $action
 	): void {
 		$keys = $this->db->table(ApiKey::getTable())
 			->orderBy('created')
@@ -127,7 +129,7 @@ class ApiController extends ModuleInstance {
 	)]
 	public function apiauthCreateCommand(
 		CmdContext $context,
-		#[NCA\Str('create', 'new')] string $action
+		#[Str('create', 'new')] string $action
 	): void {
 		// @phpstan-ignore-next-line
 		$key = openssl_pkey_new(['private_key_type' => \OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
@@ -183,7 +185,7 @@ class ApiController extends ModuleInstance {
 	#[NCA\HandlesCommand('apiauth')]
 	public function apiauthDeleteCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[Remove] string $action,
 		string $token
 	): void {
 		$key = $this->db->table(ApiKey::getTable())
@@ -209,7 +211,7 @@ class ApiController extends ModuleInstance {
 	#[NCA\HandlesCommand('apiauth')]
 	public function apiauthResetCommand(
 		CmdContext $context,
-		#[NCA\Str('reset')] string $action,
+		#[Str('reset')] string $action,
 		string $token
 	): void {
 		$key = $this->db->table(ApiKey::getTable())

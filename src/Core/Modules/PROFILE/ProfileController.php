@@ -16,9 +16,11 @@ use Nadybot\Core\DBSchema\{
 	RouteHopColor,
 	RouteHopFormat,
 };
-use Nadybot\Core\Types\Status;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\FilenameStr,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	CmdContext,
 	CommandManager,
 	Config\BotConfig,
@@ -32,6 +34,7 @@ use Nadybot\Core\{
 	SubcommandManager,
 	Text,
 	Types\CommandReply,
+	Types\Status,
 };
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Psr\Log\LoggerInterface;
@@ -159,8 +162,8 @@ class ProfileController extends ModuleInstance {
 	#[NCA\HandlesCommand('profile')]
 	public function profileViewCommand(
 		CmdContext $context,
-		#[NCA\Str('view')] string $action,
-		#[NCA\FilenameStr] string $profileName
+		#[Str('view')] string $action,
+		#[FilenameStr] string $profileName
 	): void {
 		$filename = $this->getFilename($profileName);
 		if (!$this->fs->exists($filename)) {
@@ -181,8 +184,8 @@ class ProfileController extends ModuleInstance {
 	#[NCA\HandlesCommand('profile')]
 	public function profileSaveCommand(
 		CmdContext $context,
-		#[NCA\Str('save')] string $action,
-		#[NCA\FilenameStr] string $profileName
+		#[Str('save')] string $action,
+		#[FilenameStr] string $profileName
 	): void {
 		try {
 			$this->saveProfile($profileName);
@@ -300,8 +303,8 @@ class ProfileController extends ModuleInstance {
 	#[NCA\HandlesCommand('profile')]
 	public function profileRemCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
-		#[NCA\FilenameStr] string $profileName
+		#[Remove] string $action,
+		#[FilenameStr] string $profileName
 	): void {
 		$filename = $this->getFilename($profileName);
 		if (!$this->fs->exists($filename)) {
@@ -323,8 +326,8 @@ class ProfileController extends ModuleInstance {
 	#[NCA\HandlesCommand('profile')]
 	public function profileLoadCommand(
 		CmdContext $context,
-		#[NCA\Str('load')] string $action,
-		#[NCA\FilenameStr] string $profileName
+		#[Str('load')] string $action,
+		#[FilenameStr] string $profileName
 	): void {
 		$filename = $this->getFilename($profileName);
 

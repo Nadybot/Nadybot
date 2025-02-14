@@ -80,7 +80,7 @@ class GauntletInventoryController extends ModuleInstance {
 	#[NCA\Help\Hide()]
 	public function gaulistAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[NCA\Parameter\Str('add')] string $action,
 		PCharacter $name,
 		int $pos
 	): void {
@@ -108,7 +108,7 @@ class GauntletInventoryController extends ModuleInstance {
 	#[NCA\Help\Hide()]
 	public function gaulistDelCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[NCA\Parameter\Remove] string $action,
 		PCharacter $name,
 		int $pos
 	): void {

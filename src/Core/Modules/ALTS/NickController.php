@@ -7,6 +7,7 @@ use Nadybot\Core\Attributes\HandlesCommand;
 use Nadybot\Core\DBSchema\Nickname;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter as Param,
 	CmdContext,
 	DB,
 	Exceptions\UserException,
@@ -164,7 +165,7 @@ class NickController extends ModuleInstance {
 	#[HandlesCommand('nick')]
 	public function setNickCommand(
 		CmdContext $context,
-		#[NCA\Str('set')] string $action,
+		#[Param\Str('set')] string $action,
 		string $nick
 	): void {
 		if (!strlen($nick)) {
@@ -191,7 +192,7 @@ class NickController extends ModuleInstance {
 	#[HandlesCommand('nick')]
 	public function clearNickCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[Param\Remove] string $action,
 	): void {
 		if (!$this->clearNickname($context->char->name)) {
 			$context->reply("You don't have a nickname set.");

@@ -3,8 +3,12 @@
 namespace Nadybot\Modules\TIMERS_MODULE;
 
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
-use Nadybot\Core\Attributes\Exporter\Min;
-use Nadybot\Core\{Attributes\CastListToEnums, ExportChannel, ExportCharacter};
+use Nadybot\Core\{
+	Attributes\Hydrator\CastListToEnums,
+	Attributes\Hydrator\Min,
+	ExportChannel,
+	ExportCharacter
+};
 
 class ExportTimer {
 	/**

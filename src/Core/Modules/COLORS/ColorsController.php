@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	Attributes\Setting\Color,
 	CmdContext,
 	DB,
@@ -118,7 +119,7 @@ class ColorsController extends ModuleInstance {
 	#[NCA\HandlesCommand('theme')]
 	public function cmdThemePreview(
 		CmdContext $context,
-		#[NCA\Str('preview')] string $action,
+		#[Str('preview')] string $action,
 	): void {
 		$themes = $this->getThemeList();
 		$blobs = [];
@@ -140,8 +141,8 @@ class ColorsController extends ModuleInstance {
 	#[NCA\HandlesCommand('theme change')]
 	public function cmdApplyTheme(
 		CmdContext $context,
-		#[NCA\Str('apply')] string $action,
-		#[NCA\FilenameStr] string $themeName
+		#[Str('apply')] string $action,
+		#[NCA\Parameter\FilenameStr] string $themeName
 	): void {
 		$paths = explode(':', $this->themePath);
 

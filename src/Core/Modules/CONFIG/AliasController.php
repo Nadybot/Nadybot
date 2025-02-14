@@ -4,6 +4,10 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Regexp,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
@@ -33,8 +37,8 @@ class AliasController extends ModuleInstance {
 	#[NCA\HandlesCommand('alias')]
 	public function aliasAddCommand1(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
-		#[NCA\Regexp('"[a-z 0-9]+"', example: '&lt;"alias with spaces"&gt;')] string $alias,
+		#[Str('add')] string $action,
+		#[Regexp('"[a-z 0-9]+"', example: '&lt;"alias with spaces"&gt;')] string $alias,
 		string $command
 	): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
@@ -47,8 +51,8 @@ class AliasController extends ModuleInstance {
 	)]
 	public function aliasAddCommand2(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
-		#[NCA\Regexp("'[a-z 0-9]+'", example: "&lt;'alias with spaces'&gt;")] string $alias,
+		#[Str('add')] string $action,
+		#[Regexp("'[a-z 0-9]+'", example: "&lt;'alias with spaces'&gt;")] string $alias,
 		string $command
 	): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
@@ -85,8 +89,8 @@ class AliasController extends ModuleInstance {
 	)]
 	public function aliasAddCommand3(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
-		#[NCA\WordStr] string $alias,
+		#[Str('add')] string $action,
+		#[WordStr] string $alias,
 		string $command
 	): void {
 		$this->aliasAddCommand($context, $alias, $command);
@@ -131,7 +135,7 @@ class AliasController extends ModuleInstance {
 
 	/** List all currently defined aliases */
 	#[NCA\HandlesCommand('alias')]
-	public function aliasListCommand(CmdContext $context, #[NCA\Str('list')] string $action): void {
+	public function aliasListCommand(CmdContext $context, #[Str('list')] string $action): void {
 		$blob = '';
 
 		/** @var array<string,list<CmdAlias>> */
@@ -163,7 +167,7 @@ class AliasController extends ModuleInstance {
 
 	/** Remove a command alias */
 	#[NCA\HandlesCommand('alias')]
-	public function aliasRemCommand(CmdContext $context, #[NCA\Remove] string $rem, string $alias): void {
+	public function aliasRemCommand(CmdContext $context, #[Remove] string $rem, string $alias): void {
 		$alias = strtolower($alias);
 
 		$row = $this->commandAlias->get($alias);

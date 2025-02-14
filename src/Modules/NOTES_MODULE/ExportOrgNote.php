@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\NOTES_MODULE;
 
-use Nadybot\Core\Attributes\Exporter\StrFormat;
+use Nadybot\Core\Attributes\Hydrator\StrFormat;
 use Nadybot\Core\ExportCharacter;
 
 class ExportOrgNote {

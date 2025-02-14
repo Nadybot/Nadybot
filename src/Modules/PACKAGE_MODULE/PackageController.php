@@ -11,6 +11,8 @@ use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	BotRunner,
 	ClassLoader,
 	CmdContext,
@@ -98,7 +100,7 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand('package')]
 	public function listPackagesCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action
+		#[Str('list')] string $action
 	): void {
 		$packages = $this->getPackages();
 		$msg = $this->renderPackageList($packages);
@@ -196,7 +198,7 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand('package')]
 	public function packageInfoCommand(
 		CmdContext $context,
-		#[NCA\Str('info')] string $action,
+		#[Str('info')] string $action,
 		string $package
 	): void {
 		$packages = $this->getPackage($package);
@@ -356,8 +358,8 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand('package')]
 	public function packageInstallCommand(
 		CmdContext $context,
-		#[NCA\Str('install')] string $action,
-		#[NCA\WordStr] string $package,
+		#[Str('install')] string $action,
+		#[WordStr] string $package,
 		?string $version
 	): void {
 		if (!$this->config->general->enablePackageModule) {
@@ -390,8 +392,8 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand('package')]
 	public function packageUpdateCommand(
 		CmdContext $context,
-		#[NCA\Str('update')] string $action,
-		#[NCA\WordStr] string $package,
+		#[Str('update')] string $action,
+		#[WordStr] string $package,
 		?string $version
 	): void {
 		if (!$this->config->general->enablePackageModule) {
@@ -424,7 +426,7 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand('package')]
 	public function packageUninstallCommand(
 		CmdContext $context,
-		#[NCA\Str('uninstall', 'delete', 'remove', 'erase', 'del', 'rm')] string $action,
+		#[Str('uninstall', 'delete', 'remove', 'erase', 'del', 'rm')] string $action,
 		string $package
 	): void {
 		if (!$this->config->general->enablePackageModule) {

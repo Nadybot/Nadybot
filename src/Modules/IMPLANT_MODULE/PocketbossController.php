@@ -195,9 +195,9 @@ class PocketbossController extends ModuleInstance {
 	)]
 	public function symbiantCommand(
 		CmdContext $context,
-		#[NCA\WordStr] string $arg1,
-		#[NCA\WordStr] ?string $arg2,
-		#[NCA\WordStr] ?string $arg3
+		#[NCA\Parameter\WordStr] string $arg1,
+		#[NCA\Parameter\WordStr] ?string $arg2,
+		#[NCA\Parameter\WordStr] ?string $arg3
 	): void {
 		$args = $context->args;
 

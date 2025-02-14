@@ -128,7 +128,7 @@ class BuffPerksController extends ModuleInstance {
 	#[NCA\HandlesCommand('perks')]
 	public function showPerkCommand(
 		CmdContext $context,
-		#[NCA\Str('show')] string $action,
+		#[NCA\Parameter\Str('show')] string $action,
 		string $perkName
 	): void {
 		$perk = $this->perks->first(static function (Perk $perk) use ($perkName): bool {

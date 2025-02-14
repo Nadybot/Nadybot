@@ -127,7 +127,7 @@ class RandomController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>roll 2x Andy Tim Agnes Burkhard Zara Sam')]
 	public function rollMultipleNamesCommand(
 		CmdContext $context,
-		#[NCA\Regexp("(?:\d+)[x*]", example: '&lt;amount&gt;x')] string $amount,
+		#[NCA\Parameter\Regexp("(?:\d+)[x*]", example: '&lt;amount&gt;x')] string $amount,
 		string $listOfNames
 	): void {
 		$amount = (int)$amount;

@@ -132,7 +132,7 @@ class LogsController extends ModuleInstance {
 	#[NCA\HandlesCommand('logs')]
 	public function logsFileCommand(
 		CmdContext $context,
-		#[NCA\FilenameStr] string $file,
+		#[NCA\Parameter\FilenameStr] string $file,
 		?string $search
 	): void {
 		$logger = $this->logger;
@@ -240,7 +240,7 @@ class LogsController extends ModuleInstance {
 	#[NCA\HandlesCommand('loglevel')]
 	public function loglevelResetCommand(
 		CmdContext $context,
-		#[NCA\Str('reset')] string $action
+		#[NCA\Parameter\Str('reset')] string $action
 	): void {
 		$loggers = LegacyLogger::getLoggers();
 		LegacyLogger::getConfig(true);
@@ -276,8 +276,8 @@ class LogsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>loglevel Core/Nadybot info')]
 	public function loglevelFileCommand(
 		CmdContext $context,
-		#[NCA\WordStr] string $mask,
-		#[NCA\StrChoice('debug', 'info', 'notice', 'warning', 'error', 'emergency', 'alert')] string $logLevel
+		#[NCA\Parameter\WordStr] string $mask,
+		#[NCA\Parameter\StrChoice('debug', 'info', 'notice', 'warning', 'error', 'emergency', 'alert')] string $logLevel
 	): void {
 		$logLevel = strtoupper($logLevel);
 		$loggers = LegacyLogger::getLoggers();

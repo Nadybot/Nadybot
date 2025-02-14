@@ -123,7 +123,10 @@ class WhatBuffsController extends ModuleInstance {
 		NCA\HandlesCommand('whatbuffs'),
 		NCA\HandlesCommand('whatbuffsfroob')
 	]
-	public function whatbuffsOneWordCommand(CmdContext $context, #[NCA\WordStr] string $search): void {
+	public function whatbuffsOneWordCommand(
+		CmdContext $context,
+		#[NCA\Parameter\WordStr] string $search
+	): void {
 		$command = explode(' ', $context->message)[0];
 		$froobFriendly = strtolower($command) === 'whatbuffsfroob';
 		$type = ucfirst(strtolower($this->resolveLocationAlias($search)));

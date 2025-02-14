@@ -8,10 +8,10 @@ use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\ParamClass\{PDuration, PTowerSite};
-use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\StrChoice,
 	CmdContext,
 	Config\BotConfig,
 	DB,
@@ -20,6 +20,10 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
+	ParamClass\PDuration,
+	ParamClass\PTowerSite,
+	Routing\RoutableMessage,
+	Routing\Source,
 	Safe,
 	Text,
 	Types\Faction,
@@ -878,7 +882,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw timer')]
 	public function plantTimerCommand(
 		CmdContext $context,
-		#[NCA\Str('timer')] string $action,
+		#[Str('timer')] string $action,
 		PTowerSite $site,
 		int $timestamp,
 	): void {
@@ -910,7 +914,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw free')]
 	public function unplantedSitesCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('unplanted', 'free')] string $action,
+		#[StrChoice('unplanted', 'free')] string $action,
 	): void {
 		$unplantedSites = $this->getUnplantedSites();
 		if (!count($unplantedSites)) {
@@ -928,7 +932,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw')]
 	public function highContractsCommand(
 		CmdContext $context,
-		#[NCA\Str('top', 'highcontracts', 'highcontract')] string $action,
+		#[Str('top', 'highcontracts', 'highcontract')] string $action,
 	): void {
 		$orgQls = [];
 
@@ -982,7 +986,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>nw hot penalty')]
 	public function hotSitesCommand(
 		CmdContext $context,
-		#[NCA\Str('hot')] string $action,
+		#[Str('hot')] string $action,
 		?string $search
 	): void {
 		$search ??= '';
@@ -1109,7 +1113,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw sites')]
 	public function listMyOrgsSitesCommand(
 		CmdContext $context,
-		#[NCA\Str('sites')] string $action,
+		#[Str('sites')] string $action,
 	): void {
 		$player = $this->playerManager->byName($context->char->name);
 		if (!isset($player) || !isset($player->guild_id)) {
@@ -1134,7 +1138,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw sites')]
 	public function listOrgSitesByIDCommand(
 		CmdContext $context,
-		#[NCA\Str('sites')] string $action,
+		#[Str('sites')] string $action,
 		int $orgID
 	): void {
 		$matches = $this->getEnabledSites()->whereStrict('org_id', $orgID);
@@ -1163,8 +1167,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>nw sites nady')]
 	public function listOrgSitesCommand(
 		CmdContext $context,
-		#[NCA\Str('sites')] string $action,
-		#[NCA\Str('org')] ?string $forceOrg,
+		#[Str('sites')] string $action,
+		#[Str('org')] ?string $forceOrg,
 		string $search
 	): void {
 		$searchTerm = $search;
@@ -1204,8 +1208,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw towerqty')]
 	public function towerQtyCommand(
 		CmdContext $context,
-		#[NCA\Str('towerqty')] string $action,
-		#[NCA\Str('all')] ?string $all,
+		#[Str('towerqty')] string $action,
+		#[Str('all')] ?string $all,
 	): void {
 		if (isset($all)) {
 			$msg = Text::makeBlob('Allowed number of towers', $this->getAllTowerQuantitiesBlob());
@@ -1239,7 +1243,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw types')]
 	public function towerTypeCommand(
 		CmdContext $context,
-		#[NCA\Str('types', 'towertype', 'towertypes', 'towers')] string $action,
+		#[Str('types', 'towertype', 'towertypes', 'towers')] string $action,
 	): void {
 		$blob = '<header2>Tower types by QL<end>';
 		$minQL = 1;
@@ -1263,7 +1267,7 @@ class NotumWarsController extends ModuleInstance {
 		#[NCA\HandlesCommand("nw test")]
 		public function towerTestCommand(
 			CmdContext $context,
-			#[NCA\Str("test", "tests")] string $action,
+			#[Str("test", "tests")] string $action,
 		): void {
 			$blobs = [];
 			$site = new FeedMessage\SiteUpdate(

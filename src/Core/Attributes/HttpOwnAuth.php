@@ -4,6 +4,7 @@ namespace Nadybot\Core\Attributes;
 
 use Attribute;
 
+/** This method handles authentication itself */
 #[Attribute(Attribute::TARGET_METHOD)]
 class HttpOwnAuth {
 	public function __construct() {

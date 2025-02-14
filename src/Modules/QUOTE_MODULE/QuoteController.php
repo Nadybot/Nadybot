@@ -47,7 +47,7 @@ class QuoteController extends ModuleInstance {
 	#[NCA\HandlesCommand('quote')]
 	public function quoteAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[NCA\Parameter\Str('add')] string $action,
 		string $quote
 	): void {
 		$quoteMsg = trim($quote);
@@ -79,7 +79,7 @@ class QuoteController extends ModuleInstance {
 	#[NCA\HandlesCommand('quote')]
 	public function quoteRemoveCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[NCA\Parameter\Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -111,7 +111,7 @@ class QuoteController extends ModuleInstance {
 	#[NCA\HandlesCommand('quote')]
 	public function quoteSearchCommand(
 		CmdContext $context,
-		#[NCA\Str('search')] string $action,
+		#[NCA\Parameter\Str('search')] string $action,
 		string $search
 	): void {
 		$searchParam = "%{$search}%";
@@ -159,7 +159,7 @@ class QuoteController extends ModuleInstance {
 	#[NCA\HandlesCommand('quote')]
 	public function quoteShowCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('org', 'priv')] ?string $channel,
+		#[NCA\Parameter\StrChoice('org', 'priv')] ?string $channel,
 		PUuid $id
 	): void {
 		$id = $id();

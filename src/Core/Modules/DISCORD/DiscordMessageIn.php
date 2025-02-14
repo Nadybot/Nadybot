@@ -4,7 +4,7 @@ namespace Nadybot\Core\Modules\DISCORD;
 
 use DateTimeImmutable;
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
-use Nadybot\Core\Attributes\CastToStdClass;
+use Nadybot\Core\Attributes\Hydrator\CastToStdClass;
 use stdClass;
 use Stringable;
 

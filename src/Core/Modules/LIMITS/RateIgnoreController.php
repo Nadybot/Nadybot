@@ -58,13 +58,21 @@ class RateIgnoreController extends ModuleInstance {
 
 	/** Add a character to the rate ignore list */
 	#[NCA\HandlesCommand('rateignore')]
-	public function rateignoreAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, PCharacter $who): void {
+	public function rateignoreAddCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('add')] string $action,
+		PCharacter $who
+	): void {
 		$context->reply($this->add($who(), $context->char->name));
 	}
 
 	/** Remove a character from the rate ignore list */
 	#[NCA\HandlesCommand('rateignore')]
-	public function rateignoreRemoveCommand(CmdContext $context, #[NCA\Remove] string $rem, PCharacter $who): void {
+	public function rateignoreRemoveCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Remove] string $rem,
+		PCharacter $who
+	): void {
 		$context->reply($this->remove($who()));
 	}
 

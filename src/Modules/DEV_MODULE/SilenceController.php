@@ -68,7 +68,7 @@ class SilenceController extends ModuleInstance {
 	public function silenceAddCommand(
 		CmdContext $context,
 		string $command,
-		#[NCA\WordStr] string $permissionSet
+		#[NCA\Parameter\WordStr] string $permissionSet
 	): void {
 		$command = strtolower($command);
 		$permissionSet = strtolower($permissionSet);
@@ -90,7 +90,7 @@ class SilenceController extends ModuleInstance {
 	public function unsilenceAddCommand(
 		CmdContext $context,
 		string $command,
-		#[NCA\WordStr] string $permissionSet
+		#[NCA\Parameter\WordStr] string $permissionSet
 	): void {
 		$command = strtolower($command);
 		$permissionSet = strtolower($permissionSet);

@@ -61,7 +61,7 @@ class ChatSayController extends ModuleInstance {
 
 	/** Have the bot say something in the org channel */
 	#[NCA\HandlesCommand('say')]
-	public function sayOrgCommand(CmdContext $context, #[NCA\Str('org')] string $channel, string $message): void {
+	public function sayOrgCommand(CmdContext $context, #[NCA\Parameter\Str('org')] string $channel, string $message): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply('You can only use this command on a bot in a guild.');
 			return;
@@ -85,7 +85,7 @@ class ChatSayController extends ModuleInstance {
 
 	/** Have the bot say something in the private channel */
 	#[NCA\HandlesCommand('say')]
-	public function sayPrivCommand(CmdContext $context, #[NCA\Str('priv')] string $channel, string $message): void {
+	public function sayPrivCommand(CmdContext $context, #[NCA\Parameter\Str('priv')] string $channel, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;

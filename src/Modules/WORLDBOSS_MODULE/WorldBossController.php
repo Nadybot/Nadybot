@@ -675,7 +675,10 @@ class WorldBossController extends ModuleInstance {
 		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
 		NCA\Help\Group('worldboss')
 	]
-	public function bossKillCommand(CmdContext $context, #[NCA\Str('kill')] string $action): void {
+	public function bossKillCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('kill')] string $action
+	): void {
 		$boss = $this->getMobFromContext($context);
 		$this->worldBossUpdate($context->char, $boss, 0);
 		$msg = "The timer for <highlight>{$boss}<end> has been updated.";
@@ -696,7 +699,7 @@ class WorldBossController extends ModuleInstance {
 	]
 	public function bossUpdateCommand(
 		CmdContext $context,
-		#[NCA\Str('update')] string $action,
+		#[NCA\Parameter\Str('update')] string $action,
 		PDuration $durationUntilVulnerable
 	): void {
 		$boss = $this->getMobFromContext($context);
@@ -714,7 +717,10 @@ class WorldBossController extends ModuleInstance {
 		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
 		NCA\Help\Group('worldboss')
 	]
-	public function bossDeleteCommand(CmdContext $context, #[NCA\Remove] string $action): void {
+	public function bossDeleteCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Remove] string $action
+	): void {
 		$boss = $this->getMobFromContext($context);
 		$msg = $this->worldBossDeleteCommand($context->char, $boss);
 		$context->reply($msg);

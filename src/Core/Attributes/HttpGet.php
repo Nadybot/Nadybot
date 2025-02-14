@@ -4,7 +4,10 @@ namespace Nadybot\Core\Attributes;
 
 use Attribute;
 
+/** Accept GET API requests for a given path */
 #[Attribute(Attribute::TARGET_METHOD)]
 class HttpGet extends HttpVerb {
-	public string $type = 'get';
+	public function __construct(string $path) {
+		parent::__construct(type: 'get', path: $path);
+	}
 }

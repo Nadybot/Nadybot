@@ -109,7 +109,7 @@ class BestQLController extends ModuleInstance {
 	)]
 	public function bestqlCommand(
 		CmdContext $context,
-		#[NCA\Regexp('[0-9 ]+')] string $specs,
+		#[NCA\Parameter\Regexp('[0-9 ]+')] string $specs,
 		?PItem $pastedItem
 	): void {
 		/** @var array<int,int> */

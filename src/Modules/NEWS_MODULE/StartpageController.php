@@ -13,6 +13,9 @@ use DateTimeZone;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\StrChoice,
 	Blob,
 	CmdContext,
 	Events\JoinMyPrivEvent,
@@ -273,7 +276,7 @@ class StartpageController extends ModuleInstance {
 	/** Pick an entry for the startpage at position &lt;pos&gt; (0 being the top) */
 	#[NCA\HandlesCommand('startpage')]
 	#[NCA\Help\Group('start')]
-	public function startpagePickCommand(CmdContext $context, #[NCA\Str('pick')] string $action, int $pos): void {
+	public function startpagePickCommand(CmdContext $context, #[Str('pick')] string $action, int $pos): void {
 		$tiles = $this->getActiveLayout();
 		$unusedTiles = $this->getTiles();
 		foreach ($tiles as $name => $tile) {
@@ -302,7 +305,7 @@ class StartpageController extends ModuleInstance {
 	/** Show the description of a tile */
 	#[NCA\HandlesCommand('startpage')]
 	#[NCA\Help\Group('start')]
-	public function startpageDescribeTileCommand(CmdContext $context, #[NCA\Str('describe')] string $action, string $tileName): void {
+	public function startpageDescribeTileCommand(CmdContext $context, #[Str('describe')] string $action, string $tileName): void {
 		$allTiles = $this->getTiles();
 		$tile = $allTiles[$tileName] ?? null;
 		if (!isset($tile)) {
@@ -318,7 +321,7 @@ class StartpageController extends ModuleInstance {
 	#[NCA\Help\Group('start')]
 	public function startpagePickTileCommand(
 		CmdContext $context,
-		#[NCA\Str('pick')] string $action,
+		#[Str('pick')] string $action,
 		int $pos,
 		string $tileName
 	): void {
@@ -343,9 +346,9 @@ class StartpageController extends ModuleInstance {
 	#[NCA\Help\Group('start')]
 	public function startpageMoveTileCommand(
 		CmdContext $context,
-		#[NCA\Str('move')] string $action,
+		#[Str('move')] string $action,
 		string $tileName,
-		#[NCA\StrChoice('up', 'down')] string $direction
+		#[StrChoice('up', 'down')] string $direction
 	): void {
 		$currentTiles = $this->getActiveLayout();
 		if (!isset($currentTiles[$tileName])) {
@@ -375,7 +378,11 @@ class StartpageController extends ModuleInstance {
 	/** Remove a tile from the startpage */
 	#[NCA\HandlesCommand('startpage')]
 	#[NCA\Help\Group('start')]
-	public function startpageRemTileCommand(CmdContext $context, #[NCA\Remove] string $action, string $tileName): void {
+	public function startpageRemTileCommand(
+		CmdContext $context,
+		#[Remove] string $action,
+		string $tileName
+	): void {
 		$currentTiles = $this->getActiveLayout();
 		if (!isset($currentTiles[$tileName])) {
 			$context->reply("<highlight>{$tileName}<end> is currently not used.");

@@ -1095,7 +1095,7 @@ class CommandManager implements MessageEmitter {
 						$twos = array_fill(0, substr_count($parMask, '%d'), 2);
 						$niceParam = sprintf($parMask, ...$ones) . ' ' . sprintf($parMask, ...$twos) . ' ...';
 					}
-					if (count($params[$i]->getAttributes(NCA\NoSpace::class))) {
+					if (count($params[$i]->getAttributes(NCA\Parameter\NoSpace::class))) {
 						$niceParam = "\x08{$niceParam}";
 					}
 					$paramText []= $niceParam;
@@ -1708,9 +1708,9 @@ class CommandManager implements MessageEmitter {
 		if (!isset($new)) {
 			return null;
 		}
-		if (count($param->getAttributes(NCA\SpaceOptional::class))) {
+		if (count($param->getAttributes(NCA\Parameter\SpaceOptional::class))) {
 			$regexp = new CommandRegexp("\\s*{$new}");
-		} elseif (count($param->getAttributes(NCA\NoSpace::class))) {
+		} elseif (count($param->getAttributes(NCA\Parameter\NoSpace::class))) {
 			$regexp = new CommandRegexp($new);
 		} else {
 			$regexp = new CommandRegexp("\\s+{$new}");

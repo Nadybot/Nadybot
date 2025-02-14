@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model;
 
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
-use Nadybot\Core\Attributes\CastToStdClass;
+use Nadybot\Core\Attributes\Hydrator\CastToStdClass;
 use Nadybot\Core\Modules\DISCORD\{ReducedStringableTrait, SelectOptionValue};
 use stdClass;
 use Stringable;

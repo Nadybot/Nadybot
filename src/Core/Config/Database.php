@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Config;
 
-use Nadybot\Core\Attributes\Confidential;
+use Nadybot\Core\Attributes\Hydrator\Confidential;
 use Nadybot\Core\DB\DBType;
 
 /** The database configuration */

@@ -4,10 +4,12 @@ namespace Nadybot\Core\Attributes;
 
 use Attribute;
 
+/** Accept API requests for a given HTTP verb and path */
 #[Attribute(Attribute::TARGET_METHOD)]
 class HttpVerb {
-	public string $type = 'none';
-
-	public function __construct(public string $path) {
+	public function __construct(
+		public readonly string $type,
+		public readonly string $path
+	) {
 	}
 }

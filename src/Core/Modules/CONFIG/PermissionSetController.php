@@ -6,6 +6,9 @@ use Closure;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	CommandManager,
 	DBSchema\ExtCmdPermissionSet,
@@ -43,8 +46,8 @@ class PermissionSetController extends ModuleInstance {
 	)]
 	public function permsetNewCommand(
 		CmdContext $context,
-		#[NCA\Str('new', 'create')] string $action,
-		#[NCA\WordStr] string $name,
+		#[Str('new', 'create')] string $action,
+		#[WordStr] string $name,
 		?string $letter
 	): void {
 		try {
@@ -60,10 +63,10 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand('permset')]
 	public function permsetCloneCommand(
 		CmdContext $context,
-		#[NCA\Str('clone')] string $action,
-		#[NCA\WordStr] string $toClone,
-		#[NCA\Str('into')] ?string $into,
-		#[NCA\WordStr] string $name,
+		#[Str('clone')] string $action,
+		#[WordStr] string $toClone,
+		#[Str('into')] ?string $into,
+		#[WordStr] string $name,
 		string $letter
 	): void {
 		try {
@@ -79,8 +82,8 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand('permset')]
 	public function permsetRemoveCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
-		#[NCA\WordStr] string $name,
+		#[Remove] string $action,
+		#[WordStr] string $name,
 	): void {
 		try {
 			$this->cmdManager->deletePermissionSet($name);
@@ -95,10 +98,10 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand('permset')]
 	public function permsetRenameCommand(
 		CmdContext $context,
-		#[NCA\Str('rename')] string $action,
-		#[NCA\WordStr] string $oldName,
-		#[NCA\Str('to')] ?string $to,
-		#[NCA\WordStr] string $newName
+		#[Str('rename')] string $action,
+		#[WordStr] string $oldName,
+		#[Str('to')] ?string $to,
+		#[WordStr] string $newName
 	): void {
 		$old = $this->cmdManager->getPermissionSet($oldName);
 		if (!isset($old)) {
@@ -121,9 +124,9 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand('permset')]
 	public function permsetChangeLetterCommand(
 		CmdContext $context,
-		#[NCA\Str('letter')] string $action,
-		#[NCA\WordStr] string $name,
-		#[NCA\WordStr] string $newLetter
+		#[Str('letter')] string $action,
+		#[WordStr] string $name,
+		#[WordStr] string $newLetter
 	): void {
 		$old = $this->cmdManager->getPermissionSet($name);
 		if (!isset($old)) {

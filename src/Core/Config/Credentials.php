@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Config;
 
-use Nadybot\Core\Attributes\Confidential;
-use Nadybot\Core\Attributes\Exporter\{Max, Min, StrLength};
+use Nadybot\Core\Attributes\Hydrator\Confidential;
+use Nadybot\Core\Attributes\Hydrator\{Max, Min, StrLength};
 
 /** Credentials for a single character */
 class Credentials {

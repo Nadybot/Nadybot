@@ -79,7 +79,10 @@ class ArulSabaController extends ModuleInstance {
 	/** See the different types of a specific Arul Saba bracelet */
 	#[NCA\HandlesCommand('arulsaba')]
 	#[NCA\Help\Example('<symbol>arulsaba desert')]
-	public function arulSabaChooseQLCommand(CmdContext $context, #[NCA\WordStr] string $name): void {
+	public function arulSabaChooseQLCommand(
+		CmdContext $context,
+		#[NCA\Parameter\WordStr] string $name
+	): void {
 		$aruls = $this->db->table(ArulSabaBuffs::getTable())
 			->where('name', ucfirst(strtolower($name)))
 			->orderBy('min_level')
@@ -145,9 +148,9 @@ class ArulSabaController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>arulsaba desert 5 left')]
 	public function arulSabaRecipeCommand(
 		CmdContext $context,
-		#[NCA\WordStr] string $type,
+		#[NCA\Parameter\WordStr] string $type,
 		int $numGems,
-		#[NCA\StrChoice('left', 'right')] string $side
+		#[NCA\Parameter\StrChoice('left', 'right')] string $side
 	): void {
 		$type = ucfirst(strtolower($type));
 

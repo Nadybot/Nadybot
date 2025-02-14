@@ -70,7 +70,7 @@ class ChatRallyController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RALLY_SET)]
 	public function rallyClearCommand(
 		CmdContext $context,
-		#[NCA\Str('clear')] string $action
+		#[NCA\Parameter\Str('clear')] string $action
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
@@ -94,9 +94,9 @@ class ChatRallyController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>rally 10.9, 30, 560')]
 	public function rallySet2Command(
 		CmdContext $context,
-		#[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $x,
-		#[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $y,
-		#[NCA\WordStr] string $playfield
+		#[NCA\Parameter\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $x,
+		#[NCA\Parameter\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $y,
+		#[NCA\Parameter\WordStr] string $playfield
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');

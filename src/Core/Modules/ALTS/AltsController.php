@@ -9,6 +9,8 @@ use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	BuddylistManager,
 	CmdContext,
 	DB,
@@ -161,7 +163,7 @@ class AltsController extends ModuleInstance {
 	public function addAltadminCommand(
 		CmdContext $context,
 		PCharacter $main,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter ...$names
 	): void {
 		$result = $this->addAltsToMain($context->char->name, $main(), ...$names);
@@ -183,7 +185,7 @@ class AltsController extends ModuleInstance {
 	)]
 	public function addAltCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter ...$names
 	): void {
 		$result = $this->addAltsToMain($context->char->name, $context->char->name, ...$names);
@@ -204,7 +206,7 @@ class AltsController extends ModuleInstance {
 	)]
 	public function addMainCommand(
 		CmdContext $context,
-		#[NCA\Str('main')] string $action,
+		#[Str('main')] string $action,
 		PCharacter $main
 	): void {
 		$newMain = $main();
@@ -285,7 +287,7 @@ class AltsController extends ModuleInstance {
 	public function removeSomeonesAltCommand(
 		CmdContext $context,
 		PCharacter $main,
-		#[NCA\Remove] string $action,
+		#[Remove] string $action,
 		PCharacter $alt
 	): void {
 		$main = $main();
@@ -323,7 +325,11 @@ class AltsController extends ModuleInstance {
 	/** Remove one of your alts */
 	#[NCA\HandlesCommand('alts')]
 	#[NCA\Help\Group('alts')]
-	public function removeAltCommand(CmdContext $context, #[NCA\Remove] string $rem, PCharacter $name): void {
+	public function removeAltCommand(
+		CmdContext $context,
+		#[Remove] string $rem,
+		PCharacter $name
+	): void {
 		$name = $name();
 
 		$altInfo = $this->getAltInfo($context->char->name, true);
@@ -355,7 +361,7 @@ class AltsController extends ModuleInstance {
 	public function setSomeonesMainCommand(
 		CmdContext $context,
 		PCharacter $newMain,
-		#[NCA\Str('setmain')] string $action
+		#[Str('setmain')] string $action
 	): void {
 		$msg = $this->makeAltNewMain($context->char->name, $newMain());
 		$context->reply($msg);
@@ -366,7 +372,7 @@ class AltsController extends ModuleInstance {
 	#[NCA\Help\Group('alts')]
 	public function setMainCommand(
 		CmdContext $context,
-		#[NCA\Str('setmain')] string $action
+		#[Str('setmain')] string $action
 	): void {
 		$msg = $this->makeAltNewMain($context->char->name, $context->char->name);
 		$context->reply($msg);

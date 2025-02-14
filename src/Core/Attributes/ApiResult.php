@@ -4,6 +4,7 @@ namespace Nadybot\Core\Attributes;
 
 use Attribute;
 
+/** Describe the result of this API call */
 #[Attribute(Attribute::TARGET_METHOD|Attribute::IS_REPEATABLE)]
 class ApiResult {
 	public function __construct(

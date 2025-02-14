@@ -5,6 +5,8 @@ namespace Nadybot\Modules\LOOT_MODULE;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\StrChoice,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
@@ -316,7 +318,7 @@ class LootListsController extends ModuleInstance {
 	#[NCA\Help\Group('loot-apf')]
 	public function apf42Command(
 		CmdContext $context,
-		#[NCA\StrChoice('west', 'north', 'east', 'boss')] string $side,
+		#[StrChoice('west', 'north', 'east', 'boss')] string $side,
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
@@ -343,14 +345,14 @@ class LootListsController extends ModuleInstance {
 	/** Show the loot list for Sector 7 */
 	#[NCA\HandlesCommand('apf')]
 	#[NCA\Help\Group('loot-apf')]
-	public function apfSevenCommand(CmdContext $context, #[NCA\Str('7')] string $sector): void {
+	public function apfSevenCommand(CmdContext $context, #[Str('7')] string $sector): void {
 		$this->apf7Command($context);
 	}
 
 	/** Show the loot list for Sector 13 */
 	#[NCA\HandlesCommand('apf')]
 	#[NCA\Help\Group('loot-apf')]
-	public function apfThirteenCommand(CmdContext $context, #[NCA\Str('13')] string $sector): void {
+	public function apfThirteenCommand(CmdContext $context, #[Str('13')] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
 		// CRU
@@ -410,7 +412,7 @@ class LootListsController extends ModuleInstance {
 	/** Show the loot list for Sector 28 */
 	#[NCA\HandlesCommand('apf')]
 	#[NCA\Help\Group('loot-apf')]
-	public function apfTwentyEightCommand(CmdContext $context, #[NCA\Str('28')] string $sector): void {
+	public function apfTwentyEightCommand(CmdContext $context, #[Str('28')] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
 		// CRU
@@ -463,7 +465,7 @@ class LootListsController extends ModuleInstance {
 	/** Show the loot list for Sector 35 */
 	#[NCA\HandlesCommand('apf')]
 	#[NCA\Help\Group('loot-apf')]
-	public function apfThirtyFiveCommand(CmdContext $context, #[NCA\Str('35')] string $sector): void {
+	public function apfThirtyFiveCommand(CmdContext $context, #[Str('35')] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
 
@@ -519,8 +521,8 @@ class LootListsController extends ModuleInstance {
 	#[NCA\Help\Group('loot-apf')]
 	public function apfFortyTwoCommand(
 		CmdContext $context,
-		#[NCA\Str('42')] string $sector,
-		#[NCA\StrChoice('west', 'north', 'east', 'boss')] string $side,
+		#[Str('42')] string $sector,
+		#[StrChoice('west', 'north', 'east', 'boss')] string $side,
 	): void {
 		$key = 'Sector 42 ' . ucfirst(strtolower($side));
 		$blob = $this->findRaidLoot('APF', $key, $context);

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Config;
 
-use Nadybot\Core\Attributes\ConvertToBool;
+use Nadybot\Core\Attributes\Hydrator\ConvertToBool;
 
 /** Settings for the auto-unfreezer */
 class AutoUnfreeze {

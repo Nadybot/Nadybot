@@ -150,7 +150,7 @@ class OrgNotesController extends ModuleInstance {
 	#[NCA\HandlesCommand('orgnotes')]
 	public function cmdAddOrgNote(
 		CmdContext $context,
-		#[NCA\Str('add', 'new', 'create')] string $action,
+		#[NCA\Parameter\Str('add', 'new', 'create')] string $action,
 		string $text
 	): void {
 		$note = $this->createOrgNote($context->char->name, $text, $context->forceSync);
@@ -161,7 +161,7 @@ class OrgNotesController extends ModuleInstance {
 	#[NCA\HandlesCommand('orgnotes')]
 	public function cmdRemOrgNote(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[NCA\Parameter\Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();

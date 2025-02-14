@@ -319,7 +319,11 @@ class TradebotController extends ModuleInstance {
 
 	/** Remove a custom defined color */
 	#[NCA\HandlesCommand('tradecolor')]
-	public function remTradecolorCommand(CmdContext $context, #[NCA\Remove] string $action, PUuid $id): void {
+	public function remTradecolorCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Remove] string $action,
+		PUuid $id
+	): void {
 		$id = $id();
 		if (!$this->db->table(TradebotColors::getTable())->delete($id)) {
 			$context->reply("Tradebot color <highlight>{$id}<end> doesn't exist.");
@@ -346,7 +350,7 @@ class TradebotController extends ModuleInstance {
 	)]
 	public function addTradecolorCommand(
 		CmdContext $context,
-		#[NCA\Str('set', 'add')] string $action,
+		#[NCA\Parameter\Str('set', 'add')] string $action,
 		PCharacter $tradeBot,
 		string $tag,
 		PColor $color
@@ -383,7 +387,7 @@ class TradebotController extends ModuleInstance {
 	#[NCA\HandlesCommand('tradecolor')]
 	public function pickTradecolorCommand(
 		CmdContext $context,
-		#[NCA\Str('pick')] string $action,
+		#[NCA\Parameter\Str('pick')] string $action,
 		PCharacter $tradeBot,
 		string $tag
 	): void {

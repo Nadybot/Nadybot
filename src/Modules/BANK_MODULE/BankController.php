@@ -10,6 +10,8 @@ use Amp\Http\Client\{HttpClientBuilder, Request};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Regexp,
+	Attributes\Parameter\Str,
 	CmdContext,
 	DB,
 	Exceptions\UserException,
@@ -64,7 +66,7 @@ class BankController extends ModuleInstance {
 
 	/** List the bank characters in the database: */
 	#[NCA\HandlesCommand('bank')]
-	public function bankBrowseCommand(CmdContext $context, #[NCA\Str('browse')] string $action): void {
+	public function bankBrowseCommand(CmdContext $context, #[Str('browse')] string $action): void {
 		$characters = $this->db->table(Bank::getTable())
 			->orderBy('player')
 			->select('player')->distinct()
@@ -87,7 +89,7 @@ class BankController extends ModuleInstance {
 	#[NCA\HandlesCommand('bank')]
 	public function bankBrowsePlayerCommand(
 		CmdContext $context,
-		#[NCA\Str('browse')] string $action,
+		#[Str('browse')] string $action,
 		PCharacter $char
 	): void {
 		$name = $char();
@@ -116,7 +118,12 @@ class BankController extends ModuleInstance {
 
 	/** See the contents of a container on a bank character */
 	#[NCA\HandlesCommand('bank')]
-	public function bankBrowseContainerCommand(CmdContext $context, #[NCA\Str('browse')] string $action, PCharacter $char, int $containerId): void {
+	public function bankBrowseContainerCommand(
+		CmdContext $context,
+		#[Str('browse')] string $action,
+		PCharacter $char,
+		int $containerId
+	): void {
 		$name = $char();
 		$limit = $this->maxBankItems;
 
@@ -155,8 +162,8 @@ class BankController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>bank search 10-200 symbiant')]
 	public function bankSearchCommand(
 		CmdContext $context,
-		#[NCA\Str('search')] string $action,
-		#[NCA\Regexp("\d+(?:(?:\s*-\s*|\s+)\d+)?", '&lt;ql range&gt;')] ?string $ql,
+		#[Str('search')] string $action,
+		#[Regexp("\d+(?:(?:\s*-\s*|\s+)\d+)?", '&lt;ql range&gt;')] ?string $ql,
 		string $search
 	): void {
 		$search = htmlspecialchars_decode($search);
@@ -201,7 +208,7 @@ class BankController extends ModuleInstance {
 
 	/** Reload the bank database from the file specified with the <a href='chatcmd:///tell <myname> settings change bank_file_location'>bank_file_location</a> setting */
 	#[NCA\HandlesCommand('bank update')]
-	public function bankUpdateCommand(CmdContext $context, #[NCA\Str('update')] string $action): void {
+	public function bankUpdateCommand(CmdContext $context, #[Str('update')] string $action): void {
 		$procs = [];
 		foreach ($this->bankFileLocation as $location) {
 			$procs []= async($this->loadLocation(...), $location);

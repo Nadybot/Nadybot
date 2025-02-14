@@ -3,8 +3,8 @@
 namespace Nadybot\Core\Config;
 
 use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
-use Nadybot\Core\Attributes\ConvertToBool;
-use Nadybot\Core\Attributes\Exporter\{Filter, Max, Min};
+use Nadybot\Core\Attributes\Hydrator\ConvertToBool;
+use Nadybot\Core\Attributes\Hydrator\{Filter, Max, Min};
 
 /** Proxy settings (obsolete) */
 class Proxy {

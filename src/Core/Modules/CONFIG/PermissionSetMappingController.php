@@ -6,6 +6,9 @@ use Closure;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	CommandManager,
 	DB,
@@ -84,9 +87,9 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapNewCommand(
 		CmdContext $context,
-		#[NCA\Str('new', 'create')] string $action,
+		#[Str('new', 'create')] string $action,
 		string $source,
-		#[NCA\WordStr] string $permissionSet
+		#[WordStr] string $permissionSet
 	): void {
 		$source = strtolower($source);
 		if ($this->cmdManager->getPermSetMappings()->where('source', $source)->isNotEmpty()) {
@@ -135,8 +138,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapListSourcesCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action,
-		#[NCA\Str('src', 'source', 'sources')] string $subAction,
+		#[Str('list')] string $action,
+		#[Str('src', 'source', 'sources')] string $subAction,
 	): void {
 		$sources = collect($this->cmdManager->getSources())->sort();
 		$blob = "<header2>Registered sources<end>\n".
@@ -153,7 +156,7 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapDeleteCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[Remove] string $action,
 		string $source,
 	): void {
 		$source = strtolower($source);
@@ -185,8 +188,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapPickPermsetCommand(
 		CmdContext $context,
-		#[NCA\Str('permset')] string $action,
-		#[NCA\Str('pick')] string $subAction,
+		#[Str('permset')] string $action,
+		#[Str('pick')] string $subAction,
 		string $source
 	): void {
 		$source = strtolower($source);
@@ -213,8 +216,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapPickSymbolCommand(
 		CmdContext $context,
-		#[NCA\Str('prefix', 'symbol')] string $action,
-		#[NCA\Str('pick')] string $subAction,
+		#[Str('prefix', 'symbol')] string $action,
+		#[Str('pick')] string $subAction,
 		string $source
 	): void {
 		$source = strtolower($source);
@@ -249,10 +252,10 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapSetPermsetCommand(
 		CmdContext $context,
-		#[NCA\Str('permset')] string $action,
-		#[NCA\Str('set')] string $subAction,
+		#[Str('permset')] string $action,
+		#[Str('set')] string $subAction,
 		string $source,
-		#[NCA\WordStr] string $permissionSet
+		#[WordStr] string $permissionSet
 	): void {
 		$permissionSet = strtolower($permissionSet);
 		if ($this->cmdManager->getPermissionSets()->where('name', $permissionSet)->isEmpty()) {
@@ -268,8 +271,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapSetSymbolCommand(
 		CmdContext $context,
-		#[NCA\Str('prefix', 'symbol')] string $action,
-		#[NCA\Str('set')] string $subAction,
+		#[Str('prefix', 'symbol')] string $action,
+		#[Str('set')] string $subAction,
 		string $source,
 		string $symbol
 	): void {
@@ -282,8 +285,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapChangeSymbolOptionalCommand(
 		CmdContext $context,
-		#[NCA\Str('prefixopt', 'symbolopt')] string $action,
-		#[NCA\Str('set')] string $subAction,
+		#[Str('prefixopt', 'symbolopt')] string $action,
+		#[Str('set')] string $subAction,
 		string $source,
 		bool $optional
 	): void {
@@ -296,8 +299,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapChangeFeedbackCommand(
 		CmdContext $context,
-		#[NCA\Str('feedback')] string $action,
-		#[NCA\Str('set')] string $subAction,
+		#[Str('feedback')] string $action,
+		#[Str('set')] string $subAction,
 		string $source,
 		bool $feedback
 	): void {

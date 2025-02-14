@@ -160,8 +160,8 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	public function maprankCommand(
 		CmdContext $context,
 		int $rankId,
-		#[NCA\Str('to')] ?string $to,
-		#[NCA\WordStr] string $accessLevel
+		#[NCA\Parameter\Str('to')] ?string $to,
+		#[NCA\Parameter\WordStr] string $accessLevel
 	): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply('The bot must be in an org.');
@@ -237,7 +237,11 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	/** Remove the special rights for an org rank */
 	#[NCA\HandlesCommand('maprank')]
 	#[NCA\Help\Group('org-ranks')]
-	public function maprankDelCommand(CmdContext $context, #[NCA\Remove] string $action, int $rankId): void {
+	public function maprankDelCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Remove] string $action,
+		int $rankId
+	): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply('The bot must be in an org.');
 			return;

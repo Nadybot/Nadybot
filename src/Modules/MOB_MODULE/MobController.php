@@ -257,7 +257,7 @@ class MobController extends ModuleInstance {
 	/** Show which Biodome hag is up or down */
 	public function showHagsCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('clan', 'omni')] ?string $type
+		#[NCA\Parameter\StrChoice('clan', 'omni')] ?string $type
 	): void {
 		/** @var Collection<string,Collection<int,Mob>> */
 		$factions = (new Collection(array_values($this->mobs[Mob::T_HAG]??[])))
@@ -296,7 +296,7 @@ class MobController extends ModuleInstance {
 	/** Show which Dreadloch mob is up or down */
 	public function showDreadsCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('clan', 'omni')] ?string $type
+		#[NCA\Parameter\StrChoice('clan', 'omni')] ?string $type
 	): void {
 		$sides = [
 			'pthunder' => 'omni',

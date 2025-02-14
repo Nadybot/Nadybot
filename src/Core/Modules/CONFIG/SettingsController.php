@@ -6,6 +6,8 @@ use Exception;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	DB,
 	DBSchema\Setting,
@@ -90,8 +92,8 @@ class SettingsController extends ModuleInstance {
 	#[NCA\HandlesCommand('settings')]
 	public function changeCommand(
 		CmdContext $context,
-		#[NCA\Str('change')] string $action,
-		#[NCA\WordStr] string $setting,
+		#[Str('change')] string $action,
+		#[WordStr] string $setting,
 	): void {
 		$settingName = strtolower($setting);
 
@@ -139,8 +141,8 @@ class SettingsController extends ModuleInstance {
 	#[NCA\HandlesCommand('settings')]
 	public function saveCommand(
 		CmdContext $context,
-		#[NCA\Str('save')] string $action,
-		#[NCA\WordStr] string $setting,
+		#[Str('save')] string $action,
+		#[WordStr] string $setting,
 		string $newValue
 	): void {
 		$name = strtolower($setting);

@@ -142,7 +142,10 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 
 	/** Manually set the cloak status to on (in case the bot was offline when it was raised) */
 	#[NCA\HandlesCommand('cloak')]
-	public function cloakRaiseCommand(CmdContext $context, #[NCA\Str('raise', 'on')] string $action): void {
+	public function cloakRaiseCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('raise', 'on')] string $action
+	): void {
 		/** @var ?OrgCity */
 		$row = $this->getLastOrgEntry(true);
 

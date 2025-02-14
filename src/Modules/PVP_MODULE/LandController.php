@@ -3,7 +3,14 @@
 namespace Nadybot\Modules\PVP_MODULE;
 
 use Nadybot\Core\ParamClass\PTowerSite;
-use Nadybot\Core\{Attributes as NCA, CmdContext, ModuleInstance, Text, Types\Playfield};
+use Nadybot\Core\{
+	Attributes as NCA,
+	Attributes\Parameter\Str,
+	CmdContext,
+	ModuleInstance,
+	Text,
+	Types\Playfield
+};
 
 #[
 	NCA\Instance,
@@ -24,7 +31,7 @@ class LandController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::LC_CMD)]
 	public function listNWPlayfields(
 		CmdContext $context,
-		#[NCA\Str('lc')] string $action,
+		#[Str('lc')] string $action,
 	): void {
 		if (!count($this->nwCtrl->state)) {
 			$context->reply('The Tower-API is still initializing.');
@@ -50,7 +57,7 @@ class LandController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::LC_CMD)]
 	public function listTowerSites(
 		CmdContext $context,
-		#[NCA\Str('lc')] string $action,
+		#[Str('lc')] string $action,
 		Playfield $playfield,
 	): void {
 		if (!count($this->nwCtrl->state)) {
@@ -80,7 +87,7 @@ class LandController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::LC_CMD)]
 	public function showTowerSite(
 		CmdContext $context,
-		#[NCA\Str('lc')] string $action,
+		#[Str('lc')] string $action,
 		PTowerSite $site,
 	): void {
 		if (!count($this->nwCtrl->state)) {

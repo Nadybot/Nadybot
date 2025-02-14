@@ -11,6 +11,8 @@ use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	CmdContext,
 	DB,
 	EventManager,
@@ -232,7 +234,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand('news')]
 	public function newsconfirmCommand(
 		CmdContext $context,
-		#[NCA\Str('confirm')] string $action,
+		#[Str('confirm')] string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -269,7 +271,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		string $news
 	): void {
 		$entry = new News(
@@ -298,7 +300,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsRemCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -324,7 +326,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsPinCommand(
 		CmdContext $context,
-		#[NCA\Str('pin')] string $action,
+		#[Str('pin')] string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -356,7 +358,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsUnpinCommand(
 		CmdContext $context,
-		#[NCA\Str('unpin')] string $action,
+		#[Str('unpin')] string $action,
 		PUuid $id
 	): void {
 		$id = $id();

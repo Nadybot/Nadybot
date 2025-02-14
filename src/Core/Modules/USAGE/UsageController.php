@@ -71,7 +71,7 @@ class UsageController extends ModuleInstance {
 	#[NCA\HandlesCommand('usage')]
 	public function usageCharacterCommand(
 		CmdContext $context,
-		#[NCA\Str('char', 'character', 'player')] string $action,
+		#[NCA\Parameter\Str('char', 'character', 'player')] string $action,
 		PCharacter $character,
 		?PDuration $duration
 	): void {
@@ -115,8 +115,8 @@ class UsageController extends ModuleInstance {
 	#[NCA\HandlesCommand('usage')]
 	public function usageCmdCommand(
 		CmdContext $context,
-		#[NCA\Str('cmd')] string $action,
-		#[NCA\WordStr] string $cmd,
+		#[NCA\Parameter\Str('cmd')] string $action,
+		#[NCA\Parameter\WordStr] string $cmd,
 		?PDuration $duration
 	): void {
 		$time = 604_800;
@@ -158,7 +158,10 @@ class UsageController extends ModuleInstance {
 
 	/** Show the internal usage data that used to be sent to the Budabot stats server */
 	#[NCA\HandlesCommand('usage')]
-	public function usageInfoCommand(CmdContext $context, #[NCA\Str('info')] string $action): void {
+	public function usageInfoCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('info')] string $action
+	): void {
 		$info = $this->getUsageInfo(time() - 7*24*3_600, time());
 		$blob = json_encode(
 			$info,

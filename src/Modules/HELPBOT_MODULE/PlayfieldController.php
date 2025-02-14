@@ -86,7 +86,11 @@ class PlayfieldController extends ModuleInstance {
 	/** Create a waypoint link in the chat */
 	#[NCA\HandlesCommand('waypoint')]
 	#[NCA\Help\Example('<symbol>waypoint Pos: 17.5, 28.1, 100.2, Area: Perpetual Wastelands')]
-	public function waypoint1Command(CmdContext $context, #[NCA\Str('Pos:')] string $action, string $posString): void {
+	public function waypoint1Command(
+		CmdContext $context,
+		#[NCA\Parameter\Str('Pos:')] string $action,
+		string $posString
+	): void {
 		if (!count($args = Safe::pregMatch('/^([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: ([a-zA-Z ]+)$/i', $posString))) {
 			$context->reply('Wrong waypoint format.');
 			return;

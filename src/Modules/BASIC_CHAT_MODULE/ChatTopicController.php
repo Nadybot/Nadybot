@@ -84,7 +84,7 @@ class ChatTopicController extends ModuleInstance {
 
 	/** Clear the topic */
 	#[NCA\HandlesCommand(self::CMD_TOPIC_SET)]
-	public function topicClearCommand(CmdContext $context, #[NCA\Str('clear')] string $action): void {
+	public function topicClearCommand(CmdContext $context, #[NCA\Parameter\Str('clear')] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;

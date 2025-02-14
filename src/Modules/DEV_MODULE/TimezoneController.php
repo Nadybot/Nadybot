@@ -48,7 +48,10 @@ class TimezoneController extends ModuleInstance {
 
 	/** See a list of time zones for an area */
 	#[NCA\HandlesCommand('timezone')]
-	public function timezoneAreaCommand(CmdContext $context, #[NCA\WordStr] string $area): void {
+	public function timezoneAreaCommand(
+		CmdContext $context,
+		#[NCA\Parameter\WordStr] string $area
+	): void {
 		$timezoneAreas = $this->getTimezoneAreas();
 		$code = $timezoneAreas[$area] ?? null;
 		if (!isset($code) || $code === 0) {
@@ -78,8 +81,8 @@ class TimezoneController extends ModuleInstance {
 	#[NCA\HandlesCommand('timezone')]
 	public function timezoneSetCommand(
 		CmdContext $context,
-		#[NCA\Str('set')] string $action,
-		#[NCA\WordStr] string $timezone
+		#[NCA\Parameter\Str('set')] string $action,
+		#[NCA\Parameter\WordStr] string $timezone
 	): void {
 		try {
 			Safe::exceptionWrapper(date_default_timezone_set(...), $timezone);

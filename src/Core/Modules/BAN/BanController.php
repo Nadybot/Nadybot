@@ -10,6 +10,7 @@ use InvalidArgumentException;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	CmdContext,
 	Config\BotConfig,
 	DB,
@@ -143,7 +144,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		CmdContext $context,
 		PCharacter $who,
 		PDuration $duration,
-		#[NCA\Str('for', 'reason')] string $for,
+		#[Str('for', 'reason')] string $for,
 		string $reason
 	): void {
 		$who = $who();
@@ -207,7 +208,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	public function banPlayerWithReasonCommand(
 		CmdContext $context,
 		PCharacter $who,
-		#[NCA\Str('for', 'reason')] string $for,
+		#[Str('for', 'reason')] string $for,
 		string $reason
 	): void {
 		$who = $who();
@@ -318,7 +319,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	#[NCA\Help\Group('ban')]
 	public function unbanAllCommand(
 		CmdContext $context,
-		#[NCA\Str('all')] string $all,
+		#[Str('all')] string $all,
 		PCharacter $who
 	): void {
 		$who = $who();
@@ -594,10 +595,10 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	)]
 	public function orgbanAddByIdCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $add,
+		#[Str('add')] string $add,
 		int $orgId,
 		?PDuration $duration,
-		#[NCA\Str('for', 'reason', 'because')] string $for,
+		#[Str('for', 'reason', 'because')] string $for,
 		string $reason
 	): void {
 		try {
@@ -618,7 +619,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	)]
 	public function orgbanAddByIdWithoutReasonCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $add,
+		#[Str('add')] string $add,
 		int $orgId,
 		?PDuration $duration,
 	): void {
@@ -673,7 +674,11 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	/** Remove an organization from the ban list, given their org id */
 	#[NCA\HandlesCommand('orgban')]
 	#[NCA\Help\Group('ban')]
-	public function orgbanRemCommand(CmdContext $context, #[NCA\Remove] string $rem, int $orgId): void {
+	public function orgbanRemCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Remove] string $rem,
+		int $orgId
+	): void {
 		if (!$this->orgIsBanned($orgId)) {
 			$guild = $this->guildManager->byId($orgId);
 			if (!isset($guild)) {

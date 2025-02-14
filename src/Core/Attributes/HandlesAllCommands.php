@@ -4,6 +4,7 @@ namespace Nadybot\Core\Attributes;
 
 use Attribute;
 
+/** This method should handle and process all given commands */
 #[Attribute(Attribute::TARGET_METHOD|Attribute::IS_REPEATABLE)]
 class HandlesAllCommands extends HandlesCommand {
 	public string $command = '';

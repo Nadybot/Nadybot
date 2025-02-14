@@ -8,9 +8,9 @@ use function Safe\preg_split;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	CmdContext,
 	CommandAlias,
 	DB,
@@ -329,7 +329,7 @@ class NanoController extends ModuleInstance {
 	#[NCA\Help\Group('nano')]
 	public function bestNanosCommand(
 		CmdContext $context,
-		#[NCA\Str('long')] ?string $long
+		#[Str('long')] ?string $long
 	): void {
 		$whois = $this->playerManager->byName($context->char->name);
 		if (!isset($whois) || !isset($whois->profession) || !isset($whois->level)) {
@@ -352,7 +352,7 @@ class NanoController extends ModuleInstance {
 	#[NCA\Help\Group('nano')]
 	public function bestNanos2Command(
 		CmdContext $context,
-		#[NCA\Str('long')] ?string $long,
+		#[Str('long')] ?string $long,
 		Profession $profession,
 		int $level,
 	): void {
@@ -371,7 +371,7 @@ class NanoController extends ModuleInstance {
 	#[NCA\Help\Group('nano')]
 	public function bestNanos3Command(
 		CmdContext $context,
-		#[NCA\Str('long')] ?string $long,
+		#[Str('long')] ?string $long,
 		int $level,
 		Profession $profession,
 	): void {

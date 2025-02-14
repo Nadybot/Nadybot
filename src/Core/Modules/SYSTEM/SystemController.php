@@ -5,7 +5,7 @@ namespace Nadybot\Core\Modules\SYSTEM;
 use function Safe\{ini_get, json_encode, unpack};
 
 use Amp\Http\Server\{Request, Response};
-use Nadybot\Core\Attributes\Confidential;
+use Nadybot\Core\Attributes\Hydrator\Confidential;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\Filesystem;

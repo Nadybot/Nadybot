@@ -5,6 +5,7 @@ namespace Nadybot\Core\Attributes;
 use Attribute;
 use Nadybot\Core\Types\Status;
 
+/** This class defines the given command */
 #[Attribute(Attribute::TARGET_CLASS|Attribute::IS_REPEATABLE)]
 class DefineCommand {
 	/** @param null|string|list<string> $alias */

@@ -5,16 +5,17 @@ namespace Nadybot\Modules\RAID_MODULE;
 use function Amp\async;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
 	DB,
 	DBSchema\Audit,
+	Events\ConnectEvent,
 	ModuleInstance,
 	Modules\ADMIN\AdminController,
 	Modules\ALTS\AltsController,
@@ -300,7 +301,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Help\Group('raid-ranks')]
 	public function raidAdminAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add', 'promote')] string $action,
+		#[Str('add', 'promote')] string $action,
 		PCharacter $char,
 		?int $rank
 	): void {
@@ -319,7 +320,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Help\Group('raid-ranks')]
 	public function raidAdminRemoveCommand(
 		CmdContext $context,
-		#[NCA\Str('remove', 'rem', 'del', 'rm', 'demote')] string $action,
+		#[Str('remove', 'rem', 'del', 'rm', 'demote')] string $action,
 		PCharacter $char
 	): void {
 		$rank = 'a raid admin';
@@ -332,7 +333,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Help\Group('raid-ranks')]
 	public function raidLeaderAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add', 'promote')] string $action,
+		#[Str('add', 'promote')] string $action,
 		PCharacter $char,
 		?int $rank
 	): void {
@@ -351,7 +352,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Help\Group('raid-ranks')]
 	public function raidLeaderRemoveCommand(
 		CmdContext $context,
-		#[NCA\Str('rem', 'del', 'rm', 'demote')] string $action,
+		#[Str('rem', 'del', 'rm', 'demote')] string $action,
 		PCharacter $char
 	): void {
 		$rank = 'a raid leader';
@@ -361,7 +362,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 
 	/** See the list of raid leaders/admins, 'all' to include all offline alts */
 	#[NCA\HandlesCommand('leaderlist')]
-	public function leaderlistCommand(CmdContext $context, #[NCA\Str('all')] ?string $all): void {
+	public function leaderlistCommand(CmdContext $context, #[Str('all')] ?string $all): void {
 		$showOfflineAlts = isset($all);
 		$adminLines = [];
 		if ($this->leadersIncludeAdmins) {

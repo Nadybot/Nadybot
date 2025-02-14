@@ -2,14 +2,18 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Attributes\Str;
-use Nadybot\Core\Types\{Ability, ImplantSlot, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\ClusterGradeStr,
+	Attributes\Parameter\ImplantSlotStr,
+	Attributes\Parameter\Str,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	Text,
+	Types\Ability,
+	Types\ImplantSlot,
+	Types\Skill,
 	Util,
 };
 use ValueError;
@@ -146,7 +150,7 @@ class ImplantDesignerController extends ModuleInstance {
 	/** Remove all clusters from your current implant design */
 	#[NCA\HandlesCommand('implantdesigner')]
 	#[NCA\Help\Group('implantdesigner')]
-	public function implantdesignerClearCommand(CmdContext $context, #[NCA\Str('clear')] string $action): void {
+	public function implantdesignerClearCommand(CmdContext $context, #[Str('clear')] string $action): void {
 		$this->saveDesign($context->char->name, new ImplantConfig());
 		$msg = 'Implant Designer has been cleared.';
 		$context->reply($msg);
@@ -223,7 +227,7 @@ class ImplantDesignerController extends ModuleInstance {
 	public function implantdesignerSlotAddClusterCommand(
 		CmdContext $context,
 		ImplantSlot $slot,
-		#[NCA\ClusterGradeStr] #[Str('symbiant', 'symb')] string $grade,
+		#[ClusterGradeStr] #[Str('symbiant', 'symb')] string $grade,
 		string $cluster
 	): void {
 		$design = $this->getDesign($context->char->name);
@@ -318,7 +322,7 @@ class ImplantDesignerController extends ModuleInstance {
 	#[NCA\Help\Group('implantdesigner')]
 	public function implantdesignerSlotQLCommand(
 		CmdContext $context,
-		#[NCA\ImplantSlotStr] #[NCA\Str('all')] string $slot,
+		#[ImplantSlotStr] #[Str('all')] string $slot,
 		int $ql
 	): void {
 		if ($ql < 1 || $ql > 300) {
@@ -356,7 +360,7 @@ class ImplantDesignerController extends ModuleInstance {
 	public function implantdesignerSlotClearCommand(
 		CmdContext $context,
 		ImplantSlot $slot,
-		#[NCA\Str('clear')] string $action
+		#[Str('clear')] string $action
 	): void {
 		$design = $this->getDesign($context->char->name);
 		$design->setSlot($slot, null);
@@ -378,7 +382,7 @@ class ImplantDesignerController extends ModuleInstance {
 	public function implantdesignerSlotRequireCommand(
 		CmdContext $context,
 		ImplantSlot $slot,
-		#[NCA\Str('require')] string $action
+		#[Str('require')] string $action
 	): void {
 		$design = $this->getDesign($context->char->name);
 
@@ -414,7 +418,7 @@ class ImplantDesignerController extends ModuleInstance {
 	public function implantdesignerSlotRequireAbilityCommand(
 		CmdContext $context,
 		ImplantSlot $slot,
-		#[NCA\Str('require')] string $action,
+		#[Str('require')] string $action,
 		Ability $ability
 	): void {
 		$design = $this->getDesign($context->char->name);
@@ -512,7 +516,10 @@ class ImplantDesignerController extends ModuleInstance {
 	/** Show the result of your current implant design */
 	#[NCA\HandlesCommand('implantdesigner')]
 	#[NCA\Help\Group('implantdesigner')]
-	public function implantdesignerResultCommand(CmdContext $context, #[NCA\Str('result', 'results')] string $action): void {
+	public function implantdesignerResultCommand(
+		CmdContext $context,
+		#[Str('result', 'results')] string $action
+	): void {
 		$blob = $this->getImplantDesignerResults($context->char->name);
 
 		$msg = Text::makeBlob('Implant Designer Results', $blob);

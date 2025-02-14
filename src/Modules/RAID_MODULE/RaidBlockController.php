@@ -118,7 +118,7 @@ class RaidBlockController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAIDBLOCK_EDIT)]
 	public function raidBlockAddCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('points', 'join', 'bid')] string $blockFrom,
+		#[NCA\Parameter\StrChoice('points', 'join', 'bid')] string $blockFrom,
 		PCharacter $character,
 		?PDuration $duration,
 		string $reason
@@ -208,9 +208,9 @@ class RaidBlockController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAIDBLOCK_EDIT)]
 	public function raidBlockLiftCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[NCA\Parameter\Remove] string $action,
 		PCharacter $char,
-		#[NCA\StrChoice('points', 'join', 'bid')] ?string $blockFrom
+		#[NCA\Parameter\StrChoice('points', 'join', 'bid')] ?string $blockFrom
 	): void {
 		$player = $char();
 		$player = $this->altsController->getMainOf($player);

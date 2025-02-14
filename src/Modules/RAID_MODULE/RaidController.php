@@ -9,9 +9,14 @@ use Amp\Pipeline\Pipeline;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Events\{MyPrivateChannelMsgEvent, SendPrivEvent};
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\DurationStr,
+	Attributes\Parameter\NonGreedy,
+	Attributes\Parameter\NumberStr,
+	Attributes\Parameter\Regexp,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\StrChoice,
 	CmdContext,
 	CommandManager,
 	Config\BotConfig,
@@ -24,6 +29,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
+	ParamClass\PUuid,
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -385,9 +391,9 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidStartWithLimitsCommand(
 		CmdContext $context,
-		#[NCA\Str('start', 'run', 'create')] string $action,
-		#[NCA\NonGreedy] string $description,
-		#[NCA\Str('limit')] string $subAction,
+		#[Str('start', 'run', 'create')] string $action,
+		#[NonGreedy] string $description,
+		#[Str('limit')] string $subAction,
 		int $maxMembers,
 	): void {
 		$raid = new Raid(
@@ -405,7 +411,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidStartCommand(
 		CmdContext $context,
-		#[NCA\Str('start', 'run', 'create')] string $action,
+		#[Str('start', 'run', 'create')] string $action,
 		string $description
 	): void {
 		$raid = new Raid(
@@ -422,7 +428,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidStopCommand(
 		CmdContext $context,
-		#[NCA\Str('stop', 'end')] string $action
+		#[Str('stop', 'end')] string $action
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -435,7 +441,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidChangeDescCommand(
 		CmdContext $context,
-		#[NCA\Regexp('description|descr?', example: 'description')] string $action,
+		#[Regexp('description|descr?', example: 'description')] string $action,
 		string $description
 	): void {
 		if (!isset($this->raid)) {
@@ -456,8 +462,8 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidChangeMaxMembersCommand(
 		CmdContext $context,
-		#[NCA\Str('limit')] string $action,
-		#[NCA\NumberStr] #[NCA\Str('off')] string $maxMembers
+		#[Str('limit')] string $action,
+		#[NumberStr] #[Str('off')] string $maxMembers
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -486,8 +492,8 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_TICKER)]
 	public function raidChangeSppCommand(
 		CmdContext $context,
-		#[NCA\Str('ticker', 'spp')] string $action,
-		#[NCA\DurationStr] #[NCA\StrChoice('off', 'pause', 'resume')] string $interval
+		#[Str('ticker', 'spp')] string $action,
+		#[DurationStr] #[StrChoice('off', 'pause', 'resume')] string $interval
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -523,8 +529,8 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidChangeAnnounceCommand(
 		CmdContext $context,
-		#[NCA\Str('announce', 'announcement')] string $action,
-		#[NCA\DurationStr] #[NCA\Str('off')] string $interval
+		#[Str('announce', 'announcement')] string $action,
+		#[DurationStr] #[Str('off')] string $interval
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -555,7 +561,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidLockCommand(
 		CmdContext $context,
-		#[NCA\Str('lock')] string $action
+		#[Str('lock')] string $action
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -591,7 +597,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidUnlockCommand(
 		CmdContext $context,
-		#[NCA\Str('unlock')] string $action
+		#[Str('unlock')] string $action
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -619,7 +625,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidCheckCommand(
 		CmdContext $context,
-		#[NCA\Str('check')] string $action
+		#[Str('check')] string $action
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -633,7 +639,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidListCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action
+		#[Str('list')] string $action
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -649,8 +655,8 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidNotinKickCommand(
 		CmdContext $context,
-		#[NCA\Str('notinkick')] string $action,
-		#[NCA\Str('all')] ?string $all
+		#[Str('notinkick')] string $action,
+		#[Str('all')] ?string $all
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -670,7 +676,7 @@ class RaidController extends ModuleInstance {
 
 	/** Send everyone in the private channel who's not in the raid a reminder to join */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
-	public function raidNotinCommand(CmdContext $context, #[NCA\Str('notin')] string $action): void {
+	public function raidNotinCommand(CmdContext $context, #[Str('notin')] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -692,7 +698,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidHistoryCommand(
 		CmdContext $context,
-		#[NCA\Str('history')] string $action
+		#[Str('history')] string $action
 	): void {
 		$query = $this->db->table(Raid::getTable(), 'r')
 			->join(RaidPointsLog::getTable() . ' AS p', 'r.raid_id', 'p.raid_id')
@@ -738,7 +744,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidHistoryDetailCommand(
 		CmdContext $context,
-		#[NCA\Str('history')] string $action,
+		#[Str('history')] string $action,
 		PUuid $raidId,
 	): void {
 		${$raidId} = $raidId();
@@ -795,7 +801,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidHistoryDetailRaiderCommand(
 		CmdContext $context,
-		#[NCA\Str('history')] string $action,
+		#[Str('history')] string $action,
 		PUuid $raidId,
 		PCharacter $char
 	): void {
@@ -871,7 +877,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidDualCommand(
 		CmdContext $context,
-		#[NCA\Str('dual')] string $action
+		#[Str('dual')] string $action
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -1088,7 +1094,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidCommentsCommand(
 		CmdContext $context,
-		#[NCA\Regexp('notes?|comments?', example: 'notes')] string $action
+		#[Regexp('notes?|comments?', example: 'notes')] string $action
 	): void {
 		if (!$context->isDM()) {
 			$context->reply("<red>The '<symbol>raid {$action}' command only works in tells<end>.");
@@ -1116,8 +1122,8 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidCommentAddCommand(
 		CmdContext $context,
-		#[NCA\Regexp('notes?|comments?', example: 'note')] string $action,
-		#[NCA\Str('add', 'create', 'new')] string $subAction,
+		#[Regexp('notes?|comments?', example: 'note')] string $action,
+		#[Str('add', 'create', 'new')] string $subAction,
 		PCharacter $char,
 		string $note
 	): void {
@@ -1136,8 +1142,8 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidCommentSearchCommand(
 		CmdContext $context,
-		#[NCA\Regexp('notes?|comments?', example: 'notes')] string $action,
-		#[NCA\Str('get', 'read', 'search', 'find')] string $subAction,
+		#[Regexp('notes?|comments?', example: 'notes')] string $action,
+		#[Str('get', 'read', 'search', 'find')] string $subAction,
 		PCharacter $char
 	): void {
 		/** @psalm-var non-empty-string */

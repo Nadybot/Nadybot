@@ -2,13 +2,14 @@
 
 namespace Nadybot\Modules\SPIRITS_MODULE;
 
-use Nadybot\Core\Types\ImplantSlot;
+use Nadybot\Core\Attributes\Parameter\{NoSpace, NonNumberStr, Regexp};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	Text,
+	Types\ImplantSlot,
 };
 use Nadybot\Modules\{
 	ITEMS_MODULE\AODBEntry,
@@ -43,8 +44,8 @@ class SpiritsController extends ModuleInstance {
 	public function spiritsSlotAndRangeCommand(
 		CmdContext $context,
 		ImplantSlot $slot,
-		#[NCA\Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
-		#[NCA\NoSpace, NCA\Regexp('\s*\d+', example: '')] int $highQL,
+		#[Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
+		#[NoSpace, Regexp('\s*\d+', example: '')] int $highQL,
 	): void {
 		$this->spiritsRangeAndSlotCommand($context, $lowQL, $highQL, $slot);
 	}
@@ -54,8 +55,8 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits 60-70 feet')]
 	public function spiritsRangeAndSlotCommand(
 		CmdContext $context,
-		#[NCA\Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
-		#[NCA\NoSpace, NCA\Regexp('\s*\d+', example: '')] int $highQL,
+		#[Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
+		#[NoSpace, Regexp('\s*\d+', example: '')] int $highQL,
 		ImplantSlot $slot,
 	): void {
 		$title = "{$slot->longName()} Spirits QL {$lowQL} to {$highQL}";
@@ -85,7 +86,7 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits grave feet')]
 	public function spiritsCommandTypeAndSlot(
 		CmdContext $context,
-		#[NCA\NonNumberStr] string $name,
+		#[NonNumberStr] string $name,
 		ImplantSlot $slot
 	): void {
 		$this->spiritsCommandSlotAndType($context, $slot, $name);
@@ -97,7 +98,7 @@ class SpiritsController extends ModuleInstance {
 	public function spiritsCommandSlotAndType(
 		CmdContext $context,
 		ImplantSlot $slot,
-		#[NCA\NonNumberStr] string $name
+		#[NonNumberStr] string $name
 	): void {
 		$name = ucwords(strtolower($name));
 		$title = "Spirits Database for {$name} {$slot->longName()}";
@@ -144,8 +145,8 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits 210-230')]
 	public function spiritsCommandQLRange(
 		CmdContext $context,
-		#[NCA\Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
-		#[NCA\NoSpace, NCA\Regexp('\s*\d+', example: '')] int $highQL,
+		#[Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
+		#[NoSpace, Regexp('\s*\d+', example: '')] int $highQL,
 	): void {
 		$spirits = '';
 		if ($lowQL < 1 or $highQL > 300 or $lowQL >= $highQL) {
@@ -213,7 +214,7 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits beta')]
 	public function spiritsCommandSearch(
 		CmdContext $context,
-		#[NCA\NonNumberStr] string $search
+		#[NonNumberStr()] string $search
 	): void {
 		$name = ucwords(strtolower($search));
 		$title = "Spirits Database for {$name}";

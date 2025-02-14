@@ -6,6 +6,7 @@ use Attribute;
 use Exception;
 use Nadybot\Core\Types\SettingMode;
 
+/** This attribute is a setting */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class DefineSetting {
 	/**

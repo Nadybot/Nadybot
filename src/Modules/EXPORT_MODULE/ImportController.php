@@ -114,8 +114,8 @@ class ImportController extends ModuleInstance {
 	)]
 	public function importCommand(
 		CmdContext $context,
-		#[NCA\FilenameStr] string $file,
-		#[NCA\Regexp("\w+=\w+", example: '&lt;exported al&gt;=&lt;new al&gt;')] ?string ...$mappings
+		#[NCA\Parameter\FilenameStr] string $file,
+		#[NCA\Parameter\Regexp("\w+=\w+", example: '&lt;exported al&gt;=&lt;new al&gt;')] ?string ...$mappings
 	): void {
 		$dataPath = $this->config->paths->data;
 		$fileName = "{$dataPath}/export/" . basename($file);

@@ -7,6 +7,8 @@ use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -91,7 +93,7 @@ class AdminController extends ModuleInstance {
 	#[NCA\Help\Group('ranks')]
 	public function adminAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter $who
 	): void {
 		$intlevel = 4;
@@ -106,7 +108,7 @@ class AdminController extends ModuleInstance {
 	#[NCA\Help\Group('ranks')]
 	public function modAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter $who
 	): void {
 		$intlevel = 3;
@@ -119,7 +121,7 @@ class AdminController extends ModuleInstance {
 	/** Demote &lt;who&gt; from administrator */
 	#[NCA\HandlesCommand('admin')]
 	#[NCA\Help\Group('ranks')]
-	public function adminRemoveCommand(CmdContext $context, #[NCA\Remove] string $rem, PCharacter $who): void {
+	public function adminRemoveCommand(CmdContext $context, #[Remove] string $rem, PCharacter $who): void {
 		$intlevel = 4;
 		$rankName = $this->accessManager->getDisplayName('admin');
 		$rank = $this->addArticle($rankName);
@@ -130,7 +132,7 @@ class AdminController extends ModuleInstance {
 	/** Demote &lt;who&gt; from moderator */
 	#[NCA\HandlesCommand('mod')]
 	#[NCA\Help\Group('ranks')]
-	public function modRemoveCommand(CmdContext $context, #[NCA\Remove] string $rem, PCharacter $who): void {
+	public function modRemoveCommand(CmdContext $context, #[Remove] string $rem, PCharacter $who): void {
 		$intlevel = 3;
 		$rankName = $this->accessManager->getDisplayName('mod');
 		$rank = $this->addArticle($rankName);
@@ -144,7 +146,7 @@ class AdminController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand('adminlist')]
 	#[NCA\Help\Group('ranks')]
-	public function adminlistCommand(CmdContext $context, #[NCA\Str('all')] ?string $all): void {
+	public function adminlistCommand(CmdContext $context, #[Str('all')] ?string $all): void {
 		$blobs = $this->getLeaderList(isset($all));
 
 		$link = Text::makeBlob('Bot administrators', implode("\n", $blobs));

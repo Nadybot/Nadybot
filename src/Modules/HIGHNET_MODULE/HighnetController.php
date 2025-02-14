@@ -17,6 +17,10 @@ use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\StrChoice,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	CommandManager,
 	Config\BotConfig,
@@ -415,7 +419,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand('highnet reset')]
 	public function highnetInitCommand(
 		CmdContext $context,
-		#[NCA\Str('reset', 'init')] string $action
+		#[Str('reset', 'init')] string $action
 	): void {
 		$colors = $this->msgHub::$colors;
 
@@ -510,7 +514,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::FILTERS)]
 	public function highnetListFilters(
 		CmdContext $context,
-		#[NCA\Str('filters', 'filter')] string $action
+		#[Str('filters', 'filter')] string $action
 	): void {
 		$this->cleanExpiredFilters();
 		$this->reloadFilters();
@@ -533,9 +537,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::PERM_FILTERS)]
 	public function highnetAddPermanentUserFilters(
 		CmdContext $context,
-		#[NCA\Str('filter', 'filters')] string $action,
-		#[NCA\Str('permanent')] string $permanent,
-		#[NCA\StrChoice('bot', 'sender')] string $where,
+		#[Str('filter', 'filters')] string $action,
+		#[Str('permanent')] string $permanent,
+		#[StrChoice('bot', 'sender')] string $where,
 		PCharacter $name,
 		int $dimension,
 	): void {
@@ -552,9 +556,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::TEMP_FILTERS)]
 	public function highnetAddTemporaryUserFilters(
 		CmdContext $context,
-		#[NCA\Str('filter', 'filters')] string $action,
+		#[Str('filter', 'filters')] string $action,
 		PDuration $duration,
-		#[NCA\StrChoice('bot', 'sender')] string $where,
+		#[StrChoice('bot', 'sender')] string $where,
 		PCharacter $name,
 		int $dimension,
 	): void {
@@ -571,10 +575,10 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::PERM_FILTERS)]
 	public function highnetAddPermanentChannelFilters(
 		CmdContext $context,
-		#[NCA\Str('filter', 'filters')] string $action,
-		#[NCA\Str('permanent')] string $permanent,
-		#[NCA\Str('channel')] string $where,
-		#[NCA\WordStr] string $channel,
+		#[Str('filter', 'filters')] string $action,
+		#[Str('permanent')] string $permanent,
+		#[Str('channel')] string $where,
+		#[WordStr] string $channel,
 		?int $dimension,
 	): void {
 		$this->highnetAddChannelFilter(
@@ -589,10 +593,10 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::TEMP_FILTERS)]
 	public function highnetAddTemporaryChannelFilters(
 		CmdContext $context,
-		#[NCA\Str('filter', 'filters')] string $action,
+		#[Str('filter', 'filters')] string $action,
 		PDuration $duration,
-		#[NCA\Str('channel')] string $where,
-		#[NCA\WordStr] string $channel,
+		#[Str('channel')] string $where,
+		#[WordStr] string $channel,
 		?int $dimension,
 	): void {
 		$this->highnetAddChannelFilter(
@@ -607,9 +611,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::PERM_FILTERS)]
 	public function highnetAddPermanentDimensionFilter(
 		CmdContext $context,
-		#[NCA\Str('filter', 'filters')] string $action,
-		#[NCA\Str('permanent')] string $permanent,
-		#[NCA\Str('dimension')] string $where,
+		#[Str('filter', 'filters')] string $action,
+		#[Str('permanent')] string $permanent,
+		#[Str('dimension')] string $where,
 		int $dimension,
 	): void {
 		$this->highnetAddDimensionFilter($context, null, $dimension);
@@ -619,9 +623,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::TEMP_FILTERS)]
 	public function highnetAddTemporaryDimensionFilter(
 		CmdContext $context,
-		#[NCA\Str('filter', 'filters')] string $action,
+		#[Str('filter', 'filters')] string $action,
 		PDuration $duration,
-		#[NCA\Str('dimension')] string $where,
+		#[Str('dimension')] string $where,
 		int $dimension,
 	): void {
 		$this->highnetAddDimensionFilter($context, $duration, $dimension);
@@ -631,8 +635,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\HandlesCommand(self::TEMP_FILTERS)]
 	public function highnetDeleteFilter(
 		CmdContext $context,
-		#[NCA\Str('filter')] string $filter,
-		#[NCA\Remove] string $action,
+		#[Str('filter')] string $filter,
+		#[Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();

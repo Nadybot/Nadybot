@@ -9,6 +9,9 @@ use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	Config\BotConfig,
 	DB,
@@ -211,7 +214,7 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment categories')]
 	public function listCategoriesCommand(
 		CmdContext $context,
-		#[NCA\Str('category', 'categories')] string $action,
+		#[Str('category', 'categories')] string $action,
 	): void {
 		$categories = $this->db->table(CommentCategory::getTable())
 			->asObj(CommentCategory::class);
@@ -253,8 +256,8 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment categories')]
 	public function deleteCategoryCommand(
 		CmdContext $context,
-		#[NCA\Str('category', 'categories')] string $action,
-		#[NCA\Remove] string $subAction,
+		#[Str('category', 'categories')] string $action,
+		#[Remove] string $subAction,
 		string $category
 	): void {
 		$cat = $this->getCategory($category);
@@ -298,11 +301,11 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment categories')]
 	public function addCategoryCommand(
 		CmdContext $context,
-		#[NCA\Str('category', 'categories')] string $action,
-		#[NCA\Str('add', 'create', 'new', 'edit', 'change')] string $subAction,
-		#[NCA\WordStr] string $category,
-		#[NCA\WordStr] string $alForReading,
-		#[NCA\WordStr] ?string $alForWriting
+		#[Str('category', 'categories')] string $action,
+		#[Str('add', 'create', 'new', 'edit', 'change')] string $subAction,
+		#[WordStr] string $category,
+		#[WordStr] string $alForReading,
+		#[WordStr] ?string $alForWriting
 	): void {
 		$alForWriting ??= $alForReading;
 		try {
@@ -350,9 +353,9 @@ class CommentController extends ModuleInstance {
 	)]
 	public function addCommentCommand(
 		CmdContext $context,
-		#[NCA\Str('add', 'create', 'new')] string $action,
+		#[Str('add', 'create', 'new')] string $action,
 		PCharacter $char,
-		#[NCA\WordStr] string $category,
+		#[WordStr] string $category,
 		string $commentText
 	): void {
 		$character = $char();
@@ -418,9 +421,9 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment')]
 	public function searchCommentCommand(
 		CmdContext $context,
-		#[NCA\Str('get', 'search', 'find')] string $action,
+		#[Str('get', 'search', 'find')] string $action,
 		PCharacter $char,
-		#[NCA\WordStr] ?string $category
+		#[WordStr] ?string $category
 	): void {
 		$character = $char();
 		$uid = $this->chatBot->getUid($character);
@@ -466,8 +469,8 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment')]
 	public function listCommentsCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action,
-		#[NCA\WordStr] string $categoryName
+		#[Str('list')] string $action,
+		#[WordStr] string $categoryName
 	): void {
 		$category = $this->getCategory($categoryName);
 		if ($category === null) {
@@ -584,7 +587,7 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment')]
 	public function deleteCommentCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();

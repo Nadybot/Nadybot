@@ -7,9 +7,12 @@ use MathParser\Exceptions\UnknownVariableException;
 use MathParser\Interpreting\Evaluator;
 use MathParser\Parsing\Parser;
 use MathParser\StdMathParser;
-use Nadybot\Core\Attributes\Str;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Regexp,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	DB,
 	ModuleInstance,
@@ -105,7 +108,7 @@ class FormulaController extends ModuleInstance {
 	public function formulaAddCommand(
 		CmdContext $context,
 		#[Str('add')] string $subCommand,
-		#[NCA\WordStr] string $name,
+		#[WordStr] string $name,
 		string $formula
 	): void {
 		if (strlen($name) > 20) {
@@ -147,9 +150,9 @@ class FormulaController extends ModuleInstance {
 	public function formulaRunCommand(
 		CmdContext $context,
 		#[Str('solve', 'use', 'run', 'exec')] string $subCommand,
-		#[NCA\WordStr] string $formulaName,
+		#[WordStr] string $formulaName,
 		#[Str('for')] ?string $for='for',
-		#[NCA\Regexp("\w+=\w+", example: '&lt;variable&gt;=&lt;value&gt;')] ?string ...$variables
+		#[Regexp("\w+=\w+", example: '&lt;variable&gt;=&lt;value&gt;')] ?string ...$variables
 	): void {
 		$name = $formulaName;
 		$formula = $this->db->table(Formula::getTable())
@@ -200,8 +203,8 @@ class FormulaController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>formula rem binomic')]
 	public function formulaDelCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $subAction,
-		#[NCA\WordStr] string $name,
+		#[Remove] string $subAction,
+		#[WordStr] string $name,
 	): void {
 		$numDeleted = $this->db->table(Formula::getTable())
 			->where('name', $name)

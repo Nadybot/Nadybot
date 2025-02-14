@@ -108,7 +108,10 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		'Note: the Wave Counter will start and stop automatically under normal circumstances, '.
 		'but the start and stop functions are provided just in case.'
 	)]
-	public function citywaveStartCommand(CmdContext $context, #[NCA\Str('start')] string $action): void {
+	public function citywaveStartCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('start')] string $action
+	): void {
 		$wave = $this->getWave();
 		if ($wave !== null) {
 			$context->reply('A raid is already in progress.');
@@ -119,7 +122,10 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 
 	/** Manually stop the wave timer */
 	#[NCA\HandlesCommand('citywave')]
-	public function citywaveStopCommand(CmdContext $context, #[NCA\Str('stop')] string $action): void {
+	public function citywaveStopCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('stop')] string $action
+	): void {
 		$wave = $this->getWave();
 		if ($wave === null) {
 			$msg = 'There is no raid in progress at this time.';

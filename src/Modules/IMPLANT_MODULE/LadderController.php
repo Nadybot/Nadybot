@@ -37,7 +37,7 @@ class LadderController extends ModuleInstance {
 	)]
 	public function ladderCommand(
 		CmdContext $context,
-		#[NCA\Regexp('\w+', '&lt;treatment|ability&gt;')] string $typeName,
+		#[NCA\Parameter\Regexp('\w+', '&lt;treatment|ability&gt;')] string $typeName,
 		int $startingValue
 	): void {
 		try {

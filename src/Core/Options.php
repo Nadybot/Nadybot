@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 use EventSauce\ObjectHydrator\MapFrom;
-use Nadybot\Core\Attributes\Exporter\{MapValue, OptionFlag};
+use Nadybot\Core\Attributes\Hydrator\{MapValue, OptionFlag};
 
 class Options {
 	use LoggableTrait;

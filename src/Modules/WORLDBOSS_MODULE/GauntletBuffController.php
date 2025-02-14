@@ -300,7 +300,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('gaubuff')]
 	public function gaubuffCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('clan', 'omni')] ?string $buffSide
+		#[NCA\Parameter\StrChoice('clan', 'omni')] ?string $buffSide
 	): void {
 		$sides = $this->getSidesToShowBuff($buffSide);
 		$msgs = [];
@@ -329,7 +329,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Example('<symbol>gaubuff clan 10h15m')]
 	public function gaubuffSetCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('clan', 'omni')] ?string $faction,
+		#[NCA\Parameter\StrChoice('clan', 'omni')] ?string $faction,
 		PDuration $duration
 	): void {
 		$defaultSide = $this->gaubuffDefaultSide;

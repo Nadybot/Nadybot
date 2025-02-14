@@ -4,9 +4,10 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\ParamClass\{PDuration, PTowerSite};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\NonGreedy,
+	Attributes\Parameter\Str,
 	CmdContext,
 	Config\BotConfig,
 	DB,
@@ -14,6 +15,8 @@ use Nadybot\Core\{
 	Events\OrgMsgChannelMsgEvent,
 	MessageHub,
 	ModuleInstance,
+	ParamClass\PDuration,
+	ParamClass\PTowerSite,
 	QueryBuilder,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -23,10 +26,13 @@ use Nadybot\Core\{
 	Types\Playfield,
 	Util
 };
-
-use Nadybot\Modules\LEVEL_MODULE\LevelController;
-use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfoEvent;
-use Nadybot\Modules\PVP_MODULE\FeedMessage\{SiteUpdate, TowerAttack, TowerOutcome};
+use Nadybot\Modules\{
+	LEVEL_MODULE\LevelController,
+	PVP_MODULE\Event\TowerAttackInfoEvent,
+	PVP_MODULE\FeedMessage\SiteUpdate,
+	PVP_MODULE\FeedMessage\TowerAttack,
+	PVP_MODULE\FeedMessage\TowerOutcome
+};
 use Psr\Log\LoggerInterface;
 
 use Throwable;
@@ -509,7 +515,7 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
 	public function nwAttacksAnywhereCommand(
 		CmdContext $context,
-		#[NCA\Str('attacks')] string $action,
+		#[Str('attacks')] string $action,
 		?int $page,
 	): void {
 		$query = $this->db->table(DBTowerAttack::getTable());
@@ -526,7 +532,7 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
 	public function nwAttacksForSiteCommand(
 		CmdContext $context,
-		#[NCA\Str('attacks')] string $action,
+		#[Str('attacks')] string $action,
 		PTowerSite $towerSite,
 		?int $page,
 	): void {
@@ -552,9 +558,9 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>nw attacks org Komodo')]
 	public function nwAttacksForOrgCommand(
 		CmdContext $context,
-		#[NCA\Str('attacks')] string $action,
-		#[NCA\Str('org')] string $org,
-		#[NCA\NonGreedy] string $orgName,
+		#[Str('attacks')] string $action,
+		#[Str('org')] string $org,
+		#[NonGreedy] string $orgName,
 		?int $page,
 	): void {
 		$search = str_replace('*', '%', $orgName);
@@ -582,9 +588,9 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>nw attacks char nadyita')]
 	public function nwAttacksForCharCommand(
 		CmdContext $context,
-		#[NCA\Str('attacks')] string $action,
-		#[NCA\Str('char')] string $char,
-		#[NCA\NonGreedy] string $search,
+		#[Str('attacks')] string $action,
+		#[Str('char')] string $char,
+		#[NonGreedy] string $search,
 		?int $page,
 	): void {
 		$query = $this->db->table(DBTowerAttack::getTable())
@@ -604,7 +610,7 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_STATS)]
 	public function nwSTatsCommand(
 		CmdContext $context,
-		#[NCA\Str('stats')] string $action,
+		#[Str('stats')] string $action,
 		?PDuration $duration,
 	): void {
 		$from = time() - (isset($duration) ? $duration->toSecs() : 3_600 * 24);
@@ -659,7 +665,7 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_OUTCOMES)]
 	public function nwOutcomesAnywhereCommand(
 		CmdContext $context,
-		#[NCA\Str('victory')] string $action,
+		#[Str('victory')] string $action,
 		?int $page,
 	): void {
 		$query = $this->db->table(DBOutcome::getTable());
@@ -675,7 +681,7 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_OUTCOMES)]
 	public function nwOutcomesForSiteCommand(
 		CmdContext $context,
-		#[NCA\Str('victory')] string $action,
+		#[Str('victory')] string $action,
 		PTowerSite $towerSite,
 		?int $page,
 	): void {
@@ -700,9 +706,9 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>nw victory org Komodo')]
 	public function nwOutcomesForOrgCommand(
 		CmdContext $context,
-		#[NCA\Str('victory')] string $action,
-		#[NCA\Str('org')] string $org,
-		#[NCA\NonGreedy] string $orgName,
+		#[Str('victory')] string $action,
+		#[Str('org')] string $org,
+		#[NonGreedy] string $orgName,
 		?int $page,
 	): void {
 		$search = str_replace('*', '%', $orgName);

@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use EventSauce\ObjectHydrator\DoNotSerialize;
 use InvalidArgumentException;
-use Nadybot\Core\Attributes\Exporter\{Min, StrLength};
+use Nadybot\Core\Attributes\Hydrator\{Min, StrLength};
 
 class ExportCharacter {
 	/**

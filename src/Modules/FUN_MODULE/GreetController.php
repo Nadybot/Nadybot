@@ -3,20 +3,24 @@
 namespace Nadybot\Modules\FUN_MODULE;
 
 use function Amp\delay;
-use Nadybot\Core\Events\JoinMyPrivEvent;
-use Nadybot\Core\Modules\ALTS\{AltNewMainEvent, AltsController};
 
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Modules\PREFERENCES\Preferences;
-use Nadybot\Core\ParamClass\PUuid;
+use Nadybot\Core\Modules\{
+	ALTS\AltNewMainEvent,
+	ALTS\AltsController,
+	PLAYER_LOOKUP\PlayerManager,
+	PREFERENCES\Preferences,
+};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	CmdContext,
 	DB,
+	Events\JoinMyPrivEvent,
 	Events\LogonEvent,
 	ModuleInstance,
 	MyOrg,
 	Nadybot,
+	ParamClass\PUuid,
 	Text,
 };
 use Psr\Log\LoggerInterface;
@@ -230,7 +234,7 @@ class GreetController extends ModuleInstance {
 	#[NCA\Help\Example(command: 'greeting add main=Nady You again, *name*?')]
 	public function addGreeting(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		string $greeting,
 	): void {
 		$fun = new Fun(
@@ -245,7 +249,7 @@ class GreetController extends ModuleInstance {
 	/** Remove a custom greeting */
 	public function delGreeting(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[NCA\Parameter\Remove] string $action,
 		PUuid $id,
 	): void {
 		$id = $id();
@@ -264,7 +268,7 @@ class GreetController extends ModuleInstance {
 	/** Enable greeting messages for you and your alts */
 	public function enableGreetings(
 		CmdContext $context,
-		#[NCA\Str('on')] string $action,
+		#[Str('on')] string $action,
 	): void {
 		$main = $this->altsController->getMainOf($context->char->name);
 		$this->prefs->save($main, self::PREF, self::PREF_ON);
@@ -275,7 +279,7 @@ class GreetController extends ModuleInstance {
 	/** Disable greeting messages for you and your alts */
 	public function disableGreetings(
 		CmdContext $context,
-		#[NCA\Str('off')] string $action,
+		#[Str('off')] string $action,
 	): void {
 		$main = $this->altsController->getMainOf($context->char->name);
 		$this->prefs->save($main, self::PREF, self::PREF_OFF);

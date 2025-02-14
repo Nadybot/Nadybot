@@ -4,7 +4,10 @@ namespace Nadybot\Core\Attributes;
 
 use Attribute;
 
+/** Accept DELETE API requests for a given path */
 #[Attribute(Attribute::TARGET_METHOD)]
 class HttpDelete extends HttpVerb {
-	public string $type = 'delete';
+	public function __construct(string $path) {
+		parent::__construct(type: 'delete', path: $path);
+	}
 }

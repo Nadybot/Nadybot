@@ -134,7 +134,11 @@ class AOUController extends ModuleInstance {
 	 * Note: this will search the name, category, and description as well as the guide body for matches.
 	 */
 	#[NCA\HandlesCommand('aou')]
-	public function aouAllSearch(CmdContext $context, #[NCA\Str('all')] string $action, string $search): void {
+	public function aouAllSearch(
+		CmdContext $context,
+		#[NCA\Parameter\Str('all')] string $action,
+		string $search
+	): void {
 		$msg = $this->searchAndGetAOUGuide($search, true);
 		$context->reply($msg);
 	}

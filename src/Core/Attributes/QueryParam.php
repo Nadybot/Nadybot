@@ -4,6 +4,7 @@ namespace Nadybot\Core\Attributes;
 
 use Attribute;
 
+/** This API endpoint accepts parameters */
 #[Attribute(Attribute::TARGET_METHOD|Attribute::IS_REPEATABLE)]
 class QueryParam {
 	public function __construct(

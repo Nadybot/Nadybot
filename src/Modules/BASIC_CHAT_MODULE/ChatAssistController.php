@@ -5,6 +5,10 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Regexp,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	BuddylistManager,
 	CmdContext,
 	Config\BotConfig,
@@ -196,7 +200,11 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	#[NCA\Help\Example('<symbol>assist rem Nady', 'Remove Nady from all assist lists')]
 	#[NCA\Help\Example('<symbol>assist rem FOO.Nady', 'Remove Nady from the assist lists FOO')]
-	public function assistRemCommand(CmdContext $context, #[NCA\Remove] string $action, string $toRemove): void {
+	public function assistRemCommand(
+		CmdContext $context,
+		#[Remove] string $action,
+		string $toRemove
+	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -252,8 +260,8 @@ class ChatAssistController extends ModuleInstance {
 	)]
 	public function assistClearListCommand(
 		CmdContext $context,
-		#[NCA\Str('clear')] string $action,
-		#[NCA\Regexp('.*')] string $assistList
+		#[Str('clear')] string $action,
+		#[Regexp('.*')] string $assistList
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
@@ -307,7 +315,7 @@ class ChatAssistController extends ModuleInstance {
 
 	/** Clear all assist lists */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
-	public function assistClearCommand(CmdContext $context, #[NCA\Str('clear')] string $action): void {
+	public function assistClearCommand(CmdContext $context, #[Str('clear')] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -335,7 +343,7 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistSetCommand(
 		CmdContext $context,
-		#[NCA\Str('set')] string $action,
+		#[Str('set')] string $action,
 		PCharacter ...$callers
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -403,8 +411,8 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
-		#[NCA\WordStr] ?string $assistList,
+		#[Str('add')] string $action,
+		#[WordStr] ?string $assistList,
 		PCharacter $caller
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -464,7 +472,11 @@ class ChatAssistController extends ModuleInstance {
 
 	/** Undo the last &lt;steps&gt; or 1 modification(s) of the caller list */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
-	public function assistUndoCommand(CmdContext $context, #[NCA\Str('undo')] string $action, ?int $steps): void {
+	public function assistUndoCommand(
+		CmdContext $context,
+		#[Str('undo')] string $action,
+		?int $steps
+	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -490,7 +502,7 @@ class ChatAssistController extends ModuleInstance {
 
 	/** See the most recent changes to the list of callers */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
-	public function assistHistoryCommand(CmdContext $context, #[NCA\Str('history')] string $action): void {
+	public function assistHistoryCommand(CmdContext $context, #[Str('history')] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -537,7 +549,7 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistRandomCommand(
 		CmdContext $context,
-		#[NCA\Str('random')] string $action,
+		#[Str('random')] string $action,
 		int $numCallers
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {

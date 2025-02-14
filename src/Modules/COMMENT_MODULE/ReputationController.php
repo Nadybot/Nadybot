@@ -101,7 +101,7 @@ class ReputationController extends ModuleInstance {
 	public function reputationAddCommand(
 		CmdContext $context,
 		PCharacter $char,
-		#[NCA\StrChoice('+1', '-1')] string $action,
+		#[NCA\Parameter\StrChoice('+1', '-1')] string $action,
 		string $comment
 	): void {
 		/** @psalm-var non-empty-string */
@@ -123,7 +123,7 @@ class ReputationController extends ModuleInstance {
 	public function reputationViewCommand(
 		CmdContext $context,
 		PCharacter $char,
-		#[NCA\Str('all')] ?string $all
+		#[NCA\Parameter\Str('all')] ?string $all
 	): void {
 		$name = $char();
 		$comments = $this->commentController->getComments($this->getReputationCategory(), $name);

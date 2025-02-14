@@ -10,6 +10,8 @@ use Exception;
 use Nadybot\Core\Types\Faction;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	CommandManager,
 	Config\BotConfig,
@@ -108,7 +110,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testOrgJoinCommand(
 		CmdContext $context,
-		#[NCA\Str('orgjoin')] string $action,
+		#[Str('orgjoin')] string $action,
 		PCharacter $char
 	): void {
 		$this->sendOrgMsg(
@@ -120,7 +122,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testOrgKickCommand(
 		CmdContext $context,
-		#[NCA\Str('orgkick')] string $action,
+		#[Str('orgkick')] string $action,
 		PCharacter $char
 	): void {
 		$this->sendOrgMsg(
@@ -132,7 +134,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testOrgLeaveCommand(
 		CmdContext $context,
-		#[NCA\Str('orgleave')] string $action,
+		#[Str('orgleave')] string $action,
 		PCharacter $char
 	): void {
 		$this->sendOrgMsg("{$char} just left your organization.");
@@ -142,7 +144,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testOrgAttackCommand(
 		CmdContext $context,
-		#[NCA\Str('orgattack')] string $action,
+		#[Str('orgattack')] string $action,
 		PCharacter $attacker,
 		string $orgName
 	): void {
@@ -157,7 +159,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testOrgAttackPrepCommand(
 		CmdContext $context,
-		#[NCA\Str('orgattackprep')] string $action,
+		#[Str('orgattackprep')] string $action,
 		PCharacter $attName,
 		string $orgName
 	): void {
@@ -173,7 +175,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testTowerVictoryCommand(
 		CmdContext $context,
-		#[NCA\Str('towervictory')] string $action,
+		#[Str('towervictory')] string $action,
 		Faction $attFaction,
 		string $attOrg,
 		Faction $defFaction,
@@ -191,7 +193,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testOSCommand(
 		CmdContext $context,
-		#[NCA\Str('os')] string $action,
+		#[Str('os')] string $action,
 		PCharacter $launcher
 	): void {
 		$this->sendOrgMsg(
@@ -207,7 +209,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testEventCommand(
 		CmdContext $context,
-		#[NCA\Str('event')] string $action,
+		#[Str('event')] string $action,
 		string $event
 	): void {
 		[$instanceName, $methodName] = explode('.', $event);
@@ -231,7 +233,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testCloakLowerCommand(
 		CmdContext $context,
-		#[NCA\Str('cloaklower')] string $action
+		#[Str('cloaklower')] string $action
 	): void {
 		$orgGroup = $this->chatBot->getOrgGroup();
 		if (!isset($orgGroup)) {
@@ -257,7 +259,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testCloakRaiseCommand(
 		CmdContext $context,
-		#[NCA\Str('cloakraise')] string $action
+		#[Str('cloakraise')] string $action
 	): void {
 		$orgGroup = $this->chatBot->getOrgGroup();
 		if (!isset($orgGroup)) {
@@ -297,7 +299,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testTradebotMessageCommand(
 		CmdContext $context,
-		#[NCA\Str('tradebotmsg')] string $action
+		#[Str('tradebotmsg')] string $action
 	): void {
 		$tradebot = $this->settingManager->getString('tradebot') ?? 'Darknet';
 		$eventObj = new PrivateChannelMsgEvent(
@@ -349,7 +351,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testDiscordMessageCommand(
 		CmdContext $context,
-		#[NCA\Str('discordpriv')] string $action,
+		#[Str('discordpriv')] string $action,
 		PCharacter $nick,
 		string $content
 	): void {
@@ -403,7 +405,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testLogonCommand(
 		CmdContext $context,
-		#[NCA\Str('logon')] string $action,
+		#[Str('logon')] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -428,7 +430,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testLogoffCommand(
 		CmdContext $context,
-		#[NCA\Str('logoff')] string $action,
+		#[Str('logoff')] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -454,7 +456,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testJoinCommand(
 		CmdContext $context,
-		#[NCA\Str('join')] string $action,
+		#[Str('join')] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -481,7 +483,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testLeaveCommand(
 		CmdContext $context,
-		#[NCA\Str('leave')] string $action,
+		#[Str('leave')] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -506,7 +508,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testSleepCommand(
 		CmdContext $context,
-		#[NCA\Str('sleep')] string $action,
+		#[Str('sleep')] string $action,
 		int $duration
 	): void {
 		/** @psalm-var int<0,max> $duration */
@@ -531,7 +533,7 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand('test')]
 	public function testAllCommand(
 		CmdContext $context,
-		#[NCA\Str('all')] string $action
+		#[Str('all')] string $action
 	): void {
 		$testContext = clone $context;
 
@@ -551,7 +553,7 @@ class TestController extends ModuleInstance {
 
 	/** Run all bot tests of a given file */
 	#[NCA\HandlesCommand('test')]
-	public function testModuleCommand(CmdContext $context, #[NCA\WordStr] string $file): void {
+	public function testModuleCommand(CmdContext $context, #[WordStr] string $file): void {
 		$file .= '.txt';
 
 		$testContext = clone $context;

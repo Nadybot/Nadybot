@@ -5,10 +5,11 @@ namespace Nadybot\Modules\TIMERS_MODULE;
 use function Safe\preg_match;
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	CmdContext,
 	DB,
 	EventManager,
@@ -18,6 +19,7 @@ use Nadybot\Core\{
 	Modules\DISCORD\DiscordController,
 	Nadybot,
 	ParamClass\PDuration,
+	ParamClass\PUuid,
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -266,7 +268,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	)]
 	public function rtimerCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] ?string $action,
+		#[Str('add')] ?string $action,
 		PDuration $initial,
 		PDuration $interval,
 		string $name
@@ -323,7 +325,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	/** Show a specific timer */
 	#[NCA\HandlesCommand('timers')]
 	#[NCA\Help\Group('timers')]
-	public function timersViewCommand(CmdContext $context, #[NCA\Str('view')] string $action, string $id): void {
+	public function timersViewCommand(CmdContext $context, #[Str('view')] string $action, string $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
 			if (!Uuid::isValid($id)) {
@@ -351,7 +353,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	 */
 	#[NCA\HandlesCommand('timers')]
 	#[NCA\Help\Group('timers')]
-	public function timersRemoveCommand(CmdContext $context, #[NCA\Remove] string $action, PUuid $id): void {
+	public function timersRemoveCommand(CmdContext $context, #[Remove] string $action, PUuid $id): void {
 		$id = $id();
 		$timer = $this->get($id);
 		if ($timer === null) {
@@ -372,7 +374,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Group('timers')]
 	public function timersAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] ?string $action,
+		#[Str('add')] ?string $action,
 		PDuration $duration,
 		?string $name
 	): void {

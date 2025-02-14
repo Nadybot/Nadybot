@@ -5,7 +5,7 @@ namespace Nadybot\Core\Config;
 use EventSauce\ObjectHydrator\MapFrom;
 use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
 use InvalidArgumentException;
-use Nadybot\Core\Attributes\{ConvertToBool, ForceList};
+use Nadybot\Core\Attributes\Hydrator\{ConvertToBool, ForceList};
 use Nadybot\Core\Types\Status;
 
 /** General config settings */

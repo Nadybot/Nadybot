@@ -5,11 +5,12 @@ namespace Nadybot\Modules\EVENTS_MODULE;
 use function Safe\strtotime;
 
 use InvalidArgumentException;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	CmdContext,
+	Config\BotConfig,
 	DB,
 	Events\JoinMyPrivEvent,
 	Events\LogonEvent,
@@ -19,6 +20,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	MyOrg,
 	Nadybot,
+	ParamClass\PUuid,
 	Text,
 	Types\ExporterInterface,
 	Types\ImporterInterface,
@@ -91,7 +93,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 	 * This is the ID you will use to change data regarding that event.
 	 */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, string $eventName): void {
+	public function eventsAddCommand(CmdContext $context, #[Str('add')] string $action, string $eventName): void {
 		$event = new EventModel(
 			time_submitted: time(),
 			submitter_name: $context->char->name,
@@ -105,7 +107,11 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Delete an event */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsRemoveCommand(CmdContext $context, #[NCA\Remove] string $action, PUuid $id): void {
+	public function eventsRemoveCommand(
+		CmdContext $context,
+		#[Remove] string $action,
+		PUuid $id
+	): void {
 		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
@@ -119,7 +125,12 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Change the description of an event */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str('setdesc')] string $action, PUuid $id, string $description): void {
+	public function eventsSetDescCommand(
+		CmdContext $context,
+		#[Str('setdesc')] string $action,
+		PUuid $id,
+		string $description
+	): void {
 		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
@@ -137,7 +148,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
 	public function eventsSetDateCommand(
 		CmdContext $context,
-		#[NCA\Str('setdate')] string $action,
+		#[Str('setdate')] string $action,
 		PUuid $id,
 		string $date,
 	): void {
@@ -168,7 +179,11 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Join event #id */
 	#[NCA\HandlesCommand('events')]
-	public function eventsJoinCommand(CmdContext $context, #[NCA\Str('join')] string $action, PUuid $id): void {
+	public function eventsJoinCommand(
+		CmdContext $context,
+		#[Str('join')] string $action,
+		PUuid $id
+	): void {
 		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
@@ -198,7 +213,11 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Leave event #id */
 	#[NCA\HandlesCommand('events')]
-	public function eventsLeaveCommand(CmdContext $context, #[NCA\Str('leave')] string $action, PUuid $id): void {
+	public function eventsLeaveCommand(
+		CmdContext $context,
+		#[Str('leave')] string $action,
+		PUuid $id
+	): void {
 		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
@@ -227,7 +246,11 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** List all characters marked as joining event #id */
 	#[NCA\HandlesCommand('events')]
-	public function eventsListCommand(CmdContext $context, #[NCA\Str('list')] string $action, PUuid $id): void {
+	public function eventsListCommand(
+		CmdContext $context,
+		#[Str('list')] string $action,
+		PUuid $id
+	): void {
 		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {

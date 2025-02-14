@@ -8,6 +8,7 @@ use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter as Par,
 	CmdContext,
 	DB,
 	ExportCharacter,
@@ -78,8 +79,8 @@ class LinksController extends ModuleInstance implements ImporterInterface, Expor
 	#[NCA\HandlesCommand('links')]
 	public function linksAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
-		#[NCA\WordStr] string $url,
+		#[Par\Str('add')] string $action,
+		#[Par\WordStr] string $url,
 		string $comments
 	): void {
 		$website = htmlspecialchars($url);
@@ -101,7 +102,7 @@ class LinksController extends ModuleInstance implements ImporterInterface, Expor
 
 	/** Remove a link from the list */
 	#[NCA\HandlesCommand('links')]
-	public function linksRemoveCommand(CmdContext $context, #[NCA\Remove] string $action, PUuid $id): void {
+	public function linksRemoveCommand(CmdContext $context, #[Par\Remove] string $action, PUuid $id): void {
 		$id = $id();
 
 		$obj = $this->db->table(Link::getTable())

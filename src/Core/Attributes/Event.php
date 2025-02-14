@@ -5,6 +5,7 @@ namespace Nadybot\Core\Attributes;
 use Attribute;
 use Nadybot\Core\Types\Status;
 
+/** This method should be called whenever the given event occurs */
 #[Attribute(Attribute::TARGET_METHOD|Attribute::IS_REPEATABLE)]
 class Event {
 	/** @param string|list<string> $name */

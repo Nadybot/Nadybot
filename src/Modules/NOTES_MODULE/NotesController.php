@@ -6,6 +6,7 @@ use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter as Par,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -163,7 +164,11 @@ class NotesController extends ModuleInstance {
 	/** Add a new note to your list */
 	#[NCA\HandlesCommand('notes')]
 	#[NCA\Help\Group('notes')]
-	public function notesAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, string $note): void {
+	public function notesAddCommand(
+		CmdContext $context,
+		#[Par\Str('add')] string $action,
+		string $note
+	): void {
 		$this->saveNote($note, $context->char->name);
 		$msg = 'Note added successfully.';
 
@@ -175,7 +180,7 @@ class NotesController extends ModuleInstance {
 	#[NCA\Help\Group('notes')]
 	public function reminderAddCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('add', 'addall', 'addself')] string $action,
+		#[Par\StrChoice('add', 'addall', 'addself')] string $action,
 		string $note
 	): void {
 		$reminder = Note::REMIND_ALL;
@@ -191,7 +196,11 @@ class NotesController extends ModuleInstance {
 	/** Remove a note from your list */
 	#[NCA\HandlesCommand('notes')]
 	#[NCA\Help\Group('notes')]
-	public function notesRemoveCommand(CmdContext $context, #[NCA\Remove] string $action, PUuid $id): void {
+	public function notesRemoveCommand(
+		CmdContext $context,
+		#[Par\Remove] string $action,
+		PUuid $id
+	): void {
 		$id = $id();
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
@@ -220,8 +229,8 @@ class NotesController extends ModuleInstance {
 	)]
 	public function reminderSetCommand(
 		CmdContext $context,
-		#[NCA\Str('set')] string $action,
-		#[NCA\StrChoice('all', 'self', 'off')] string $type,
+		#[Par\Str('set')] string $action,
+		#[Par\StrChoice('all', 'self', 'off')] string $type,
 		PUuid $id
 	): void {
 		$id = $id();

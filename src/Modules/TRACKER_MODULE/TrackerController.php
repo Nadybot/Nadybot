@@ -5,7 +5,7 @@ namespace Nadybot\Modules\TRACKER_MODULE;
 use function Safe\preg_split;
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Events\TimerEvent;
+use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Events\ConnectEvent,
 	Events\LogoffEvent,
 	Events\LogonEvent,
+	Events\TimerEvent,
 	MessageHub,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
@@ -512,7 +513,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackRemoveNameCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[Remove] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -528,7 +529,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackRemoveUidCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[Remove] string $action,
 		int $uid
 	): void {
 		$char = $this->chatBot->getName($uid);
@@ -592,7 +593,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	)]
 	public function trackAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -615,7 +616,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackAddOrgIdCommand(
 		CmdContext $context,
-		#[NCA\Str('addorg')] string $action,
+		#[Str('addorg')] string $action,
 		int $orgId
 	): void {
 		if (!$this->findOrgController->isReady()) {
@@ -662,8 +663,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackAddOrgNameCommand(
 		CmdContext $context,
-		#[NCA\Str('addorg')] string $action,
-		#[NCA\NonNumberStr] string $orgName,
+		#[Str('addorg')] string $action,
+		#[NonNumberStr] string $orgName,
 	): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
@@ -696,7 +697,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackRemOrgCommand(
 		CmdContext $context,
-		#[NCA\Regexp('(?:rem|del)org', example: 'remorg')] string $action,
+		#[Regexp('(?:rem|del)org', example: 'remorg')] string $action,
 		int $orgId
 	): void {
 		if (!$this->findOrgController->isReady()) {
@@ -736,8 +737,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackListOrgsCommand(
 		CmdContext $context,
-		#[NCA\Regexp('orgs?', example: 'orgs')] string $action,
-		#[NCA\Str('list')] ?string $subAction
+		#[Regexp('orgs?', example: 'orgs')] string $action,
+		#[Str('list')] ?string $subAction
 	): void {
 		$orgs = $this->db->table(TrackingOrg::getTable())
 			->asObj(TrackingOrg::class);
@@ -787,7 +788,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Example('<symbol>track all --edit')]
 	public function trackOnlineCommand(
 		CmdContext $context,
-		#[NCA\Str('online')] string $action,
+		#[Str('online')] string $action,
 		?string $filter,
 	): bool {
 		$filters = [];
@@ -1034,7 +1035,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackHideUidCommand(
 		CmdContext $context,
-		#[NCA\Str('hide')] string $action,
+		#[Str('hide')] string $action,
 		int $uid
 	): void {
 		$name = $this->chatBot->getName($uid);
@@ -1045,7 +1046,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackHideNameCommand(
 		CmdContext $context,
-		#[NCA\Str('hide')] string $action,
+		#[Str('hide')] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -1079,7 +1080,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackUnhideUidCommand(
 		CmdContext $context,
-		#[NCA\Str('unhide')] string $action,
+		#[Str('unhide')] string $action,
 		int $uid
 	): void {
 		$name = $this->chatBot->getName($uid);
@@ -1090,7 +1091,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackUnhideNameCommand(
 		CmdContext $context,
-		#[NCA\Str('unhide')] string $action,
+		#[Str('unhide')] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -1124,7 +1125,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackShowCommand(
 		CmdContext $context,
-		#[NCA\Str('show', 'view')] string $action,
+		#[Str('show', 'view')] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());

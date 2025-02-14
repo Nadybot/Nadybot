@@ -8,10 +8,8 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Events\ConnectEvent;
-use Nadybot\Core\ParamClass\PUuid;
+use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Regexp, Remove, Str, WordStr};
 use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
-use Nadybot\Core\Types\AccessLevelProvider;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ClassSpec,
@@ -21,12 +19,15 @@ use Nadybot\Core\{
 	DB,
 	EventManager,
 	EventType,
+	Events\ConnectEvent,
 	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Modules\PROFILE\ProfileCommandReply,
+	ParamClass\PUuid,
 	Registry,
 	Text,
+	Types\AccessLevelProvider,
 	Util,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
@@ -253,8 +254,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayListProtocolsCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action,
-		#[NCA\Regexp('protocols?', example: 'protocols')] string $subAction
+		#[Str('list')] string $action,
+		#[Regexp('protocols?', example: 'protocols')] string $subAction
 	): void {
 		$context->reply(
 			$this->renderClassSpecOverview(
@@ -269,8 +270,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayListProtocolDetailCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action,
-		#[NCA\Str('protocol')] string $subAction,
+		#[Str('list')] string $action,
+		#[Str('protocol')] string $subAction,
 		string $protocol
 	): void {
 		$context->reply(
@@ -286,8 +287,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayListTransportsCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action,
-		#[NCA\Regexp('transports?', example: 'transports')] string $subAction
+		#[Str('list')] string $action,
+		#[Regexp('transports?', example: 'transports')] string $subAction
 	): void {
 		$context->reply(
 			$this->renderClassSpecOverview(
@@ -302,8 +303,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayListTransportDetailCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action,
-		#[NCA\Str('transport')] string $subAction,
+		#[Str('list')] string $action,
+		#[Str('transport')] string $subAction,
 		string $transport
 	): void {
 		$context->reply(
@@ -319,8 +320,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayListStacksCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action,
-		#[NCA\Regexp('layers?', example: 'layers')] string $subAction
+		#[Str('list')] string $action,
+		#[Regexp('layers?', example: 'layers')] string $subAction
 	): void {
 		$context->reply(
 			$this->renderClassSpecOverview(
@@ -335,8 +336,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayListStackDetailCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action,
-		#[NCA\Str('layer')] string $subAction,
+		#[Str('list')] string $action,
+		#[Str('layer')] string $subAction,
 		string $layer
 	): void {
 		$context->reply(
@@ -361,8 +362,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	)]
 	public function relayAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
-		#[NCA\WordStr] string $name,
+		#[Str('add')] string $action,
+		#[WordStr] string $name,
 		string $spec
 	): void {
 		if (strlen($name) > 100) {
@@ -548,7 +549,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayDescribeIdCommand(
 		CmdContext $context,
-		#[NCA\Str('describe')] string $action,
+		#[Str('describe')] string $action,
 		string $id
 	): void {
 		if (Uuid::isValid($id)) {
@@ -566,8 +567,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayDescribeNameCommand(
 		CmdContext $context,
-		#[NCA\Str('describe')] string $action,
-		#[NCA\NonNumberStr] string $name
+		#[Str('describe')] string $action,
+		#[NonNumberStr] string $name
 	): void {
 		$this->relayDescribeCommand($context, null, $name);
 	}
@@ -604,7 +605,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayListCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] ?string $action
+		#[Str('list')] ?string $action
 	): void {
 		$relays = $this->getRelays();
 		if (!count($relays)) {
@@ -629,7 +630,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Delete a relay */
 	#[NCA\HandlesCommand('relay')]
-	public function relayRemIdCommand(CmdContext $context, #[NCA\Remove] string $action, string $id): void {
+	public function relayRemIdCommand(
+		CmdContext $context,
+		#[Remove] string $action,
+		string $id
+	): void {
 		if (Uuid::isValid($id)) {
 			$this->relayRemCommand($context, $id, null);
 		} else {
@@ -641,8 +646,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayRemNameCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
-		#[NCA\NonNumberStr] string $name
+		#[Remove] string $action,
+		#[NonNumberStr] string $name
 	): void {
 		$this->relayRemCommand($context, null, $name);
 	}
@@ -672,14 +677,14 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Delete all relays */
 	#[NCA\HandlesCommand('relay')]
-	public function relayRemAllCommand(CmdContext $context, #[NCA\Str('remall', 'delall')] string $action): void {
+	public function relayRemAllCommand(CmdContext $context, #[Str('remall', 'delall')] string $action): void {
 		$numDeleted = $this->deleteAllRelays();
 		$context->reply("<highlight>{$numDeleted}<end> relays deleted.");
 	}
 
 	/** Set if players from other relay-bots are treated as guests by this bot */
 	#[NCA\HandlesCommand('relay')]
-	public function relayGuestmodeCommand(CmdContext $context, #[NCA\Str('guestmode')] string $action, PUuid $id, bool $on): void {
+	public function relayGuestmodeCommand(CmdContext $context, #[Str('guestmode')] string $action, PUuid $id, bool $on): void {
 		$id = $id();
 		$relay = $this->getRelay($id);
 		if (!isset($relay)) {
@@ -701,15 +706,15 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayConfigNameCommand(
 		CmdContext $context,
-		#[NCA\Str('config')] string $action,
-		#[NCA\NonNumberWord] string $name
+		#[Str('config')] string $action,
+		#[NonNumberWord] string $name
 	): void {
 		$this->relayConfigCommand($context, null, $name);
 	}
 
 	/** Configure a relay. Only supported for nadynative */
 	#[NCA\HandlesCommand('relay')]
-	public function relayConfigIdCommand(CmdContext $context, #[NCA\Str('config')] string $action, #[NCA\WordStr] string $id): void {
+	public function relayConfigIdCommand(CmdContext $context, #[Str('config')] string $action, #[WordStr] string $id): void {
 		if (Uuid::isValid($id)) {
 			$this->relayConfigCommand($context, $id, null);
 		} else {
@@ -777,10 +782,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayConfigEventmodCommand(
 		CmdContext $context,
-		#[NCA\Str('config')] string $action,
-		#[NCA\WordStr] string $name,
-		#[NCA\Str('eventmod')] string $subAction,
-		#[NCA\WordStr] string $event,
+		#[Str('config')] string $action,
+		#[WordStr] string $name,
+		#[Str('eventmod')] string $subAction,
+		#[WordStr] string $event,
 		bool $enable,
 		EventDirection $direction
 	): void {
@@ -815,10 +820,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand('relay')]
 	public function relayConfigEventsetCommand(
 		CmdContext $context,
-		#[NCA\Str('config')] string $action,
-		#[NCA\WordStr] string $name,
-		#[NCA\Str('eventset')] string $subAction,
-		#[NCA\Regexp("[a-z()_-]+\s+(?:IO|O|I)", example: '&lt;event I|O|IO&gt;')] ?string ...$events
+		#[Str('config')] string $action,
+		#[WordStr] string $name,
+		#[Str('eventset')] string $subAction,
+		#[Regexp("[a-z()_-]+\s+(?:IO|O|I)", example: '&lt;event I|O|IO&gt;')] ?string ...$events
 	): void {
 		$relay = $this->getRelayByName($name);
 		if (!isset($relay)) {

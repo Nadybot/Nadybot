@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\NEWS_MODULE;
 
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
-use Nadybot\Core\Attributes\Exporter\StrFormat;
+use Nadybot\Core\Attributes\Hydrator\StrFormat;
 use Nadybot\Core\ExportCharacter;
 
 class ExportNews {

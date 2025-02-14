@@ -4,6 +4,7 @@ namespace Nadybot\Core\Attributes;
 
 use Attribute;
 
+/** This method requires the request to send data in a given format */
 #[Attribute(Attribute::TARGET_METHOD)]
 class RequestBody {
 	public function __construct(

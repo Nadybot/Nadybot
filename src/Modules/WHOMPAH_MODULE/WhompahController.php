@@ -57,8 +57,8 @@ class WhompahController extends ModuleInstance {
 	#[NCA\HandlesCommand('whompah')]
 	public function whompahTravelCommand(
 		CmdContext $context,
-		#[NCA\WordStr] string $start,
-		#[NCA\WordStr] string $end
+		#[NCA\Parameter\WordStr] string $start,
+		#[NCA\Parameter\WordStr] string $end
 	): void {
 		$startCity = $this->findCity($start);
 		$endCity   = $this->findCity($end);

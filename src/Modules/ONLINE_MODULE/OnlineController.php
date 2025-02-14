@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	BuddylistManager,
 	CmdContext,
 	Config\BotConfig,
@@ -271,7 +272,7 @@ class OnlineController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
 	public function onlineShowHiddenCommand(
 		CmdContext $context,
-		#[NCA\Str('hidden', 'hide')] string $action
+		#[Str('hidden', 'hide')] string $action
 	): void {
 		$masks = collect($this->getHiddenPlayerMasks());
 		$masks = $masks->sortBy('mask');
@@ -312,7 +313,7 @@ class OnlineController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>online hide nbt guest.*', 'Hide the whole NBT Guest channel')]
 	public function onlineAddHiddenCommand(
 		CmdContext $context,
-		#[NCA\Str('hide')] string $action,
+		#[Str('hide')] string $action,
 		string $mask
 	): void {
 		$mask = strtolower($mask);
@@ -338,7 +339,7 @@ class OnlineController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
 	public function onlineDelHiddenByIDCommand(
 		CmdContext $context,
-		#[NCA\Str('show', 'unhide')] string $action,
+		#[Str('show', 'unhide')] string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -353,7 +354,7 @@ class OnlineController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
 	public function onlineDelHiddenCommand(
 		CmdContext $context,
-		#[NCA\Str('show', 'unhide')] string $action,
+		#[Str('show', 'unhide')] string $action,
 		string $mask
 	): void {
 		$mask = strtolower($mask);
@@ -376,7 +377,7 @@ class OnlineController extends ModuleInstance {
 
 	/** Show a full list of players online, including other bots you share online list with */
 	#[NCA\HandlesCommand('online')]
-	public function onlineAllCommand(CmdContext $context, #[NCA\Str('all')] string $action): void {
+	public function onlineAllCommand(CmdContext $context, #[Str('all')] string $action): void {
 		$msg = $this->getOnlineList(1);
 		$context->reply($msg);
 	}

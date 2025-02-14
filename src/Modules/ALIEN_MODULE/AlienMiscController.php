@@ -282,7 +282,7 @@ class AlienMiscController extends ModuleInstance {
 	#[NCA\HandlesCommand('ofabweapons')]
 	public function ofabweaponsInfoCommand(
 		CmdContext $context,
-		#[NCA\WordStr] string $weapon,
+		#[NCA\Parameter\WordStr] string $weapon,
 		?int $searchQL
 	): void {
 		$weapon = ucfirst($weapon);
@@ -342,7 +342,7 @@ class AlienMiscController extends ModuleInstance {
 	#[NCA\HandlesCommand('aigen')]
 	public function aigenCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('ankari', 'ilari', 'rimah', 'jaax', 'xoch', 'cha')] string $general
+		#[NCA\Parameter\StrChoice('ankari', 'ilari', 'rimah', 'jaax', 'xoch', 'cha')] string $general
 	): void {
 		$gen = ucfirst(strtolower($general));
 

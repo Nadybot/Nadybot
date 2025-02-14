@@ -132,7 +132,7 @@ class GuideController extends ModuleInstance {
 	)]
 	public function guidesShowCommand(
 		CmdContext $context,
-		#[NCA\FilenameStr] string $guideName
+		#[NCA\Parameter\FilenameStr] string $guideName
 	): void {
 		// get the filename and read in the file
 		$fileName = strtolower($guideName);

@@ -4,6 +4,7 @@ namespace Nadybot\Core\Attributes;
 
 use Attribute;
 
+/** This is an API call under the given path */
 #[Attribute(Attribute::TARGET_METHOD)]
 class Api {
 	public function __construct(public string $path) {

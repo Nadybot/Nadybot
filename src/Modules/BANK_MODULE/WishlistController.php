@@ -7,6 +7,9 @@ use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Quantity,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	BuddylistManager,
 	CmdContext,
 	CommandManager,
@@ -172,7 +175,7 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand('wish')]
 	public function showWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str('all')] ?string $all,
+		#[Str('all')] ?string $all,
 	): void {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
@@ -292,7 +295,7 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand('wish')]
 	public function showOtherWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str('show', 'view')] string $action,
+		#[Str('show', 'view')] string $action,
 		PCharacter $char,
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -344,7 +347,7 @@ class WishlistController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>wish search infuser', 'to check who still needs infusers')]
 	public function searchWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str('search')] string $action,
+		#[Str('search')] string $action,
 		string $what,
 	): void {
 		$what = strip_tags($what);
@@ -377,7 +380,7 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand('wish')]
 	public function checkOthersWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str('check')] string $action,
+		#[Str('check')] string $action,
 	): void {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
@@ -423,9 +426,9 @@ class WishlistController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>wish from Nadya APF belt')]
 	public function addFromSomeoneToWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str('from')] string $action,
+		#[Str('from')] string $action,
 		PCharacter $character,
-		#[NCA\Quantity] ?int $amount,
+		#[Quantity] ?int $amount,
 		string $item,
 	): void {
 		$uid = $this->chatBot->getUid($character());
@@ -453,9 +456,9 @@ class WishlistController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>wish add 3x <a href='itemref://292567/292567/250'>Advanced Dust Brigade Notum Infuser</a>")]
 	public function addToWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		?PDuration $expires,
-		#[NCA\Quantity] ?int $amount,
+		#[Quantity] ?int $amount,
 		string $item,
 	): void {
 		$expireDuration = isset($expires) ? $expires->toSecs() : null;
@@ -476,8 +479,8 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand('wish')]
 	public function wipeAllWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str('wipe')] string $action,
-		#[NCA\Str('all')] ?string $all,
+		#[Str('wipe')] string $action,
+		#[Str('all')] ?string $all,
 	): void {
 		$numDeleted = $this->clearWishlist(
 			$context->char->name,
@@ -495,8 +498,8 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand('wish')]
 	public function clearAllWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str('clear')] string $action,
-		#[NCA\Str('all')] ?string $all,
+		#[Str('clear')] string $action,
+		#[Str('all')] ?string $all,
 	): void {
 		$numDeleted = $this->clearWishlist(
 			$context->char->name,
@@ -514,7 +517,7 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand('wish')]
 	public function removeFromWishlistCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
+		#[Remove] string $action,
 		PUuid $id,
 	): void {
 		$id = $id();
@@ -557,8 +560,8 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand('wish')]
 	public function removeFulfilmentCommand(
 		CmdContext $context,
-		#[NCA\Remove] string $action,
-		#[NCA\Str('fulfilment', 'fulfillment', 'fullfilment', 'fullfillment')] string $subAction,
+		#[Remove] string $action,
+		#[Str('fulfilment', 'fulfillment', 'fullfilment', 'fullfillment')] string $subAction,
 		int $fulfilmentId,
 	): void {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
@@ -618,8 +621,8 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand('wish')]
 	public function fulfillWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str('fulfil', 'fulfill', 'fullfil', 'fullfill')] string $action,
-		#[NCA\Quantity] ?int $amount,
+		#[Str('fulfil', 'fulfill', 'fullfil', 'fullfill')] string $action,
+		#[Quantity] ?int $amount,
 		PUuid $id,
 	): void {
 		$id = $id();
@@ -684,7 +687,7 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand('wish deny')]
 	public function denyWishCommand(
 		CmdContext $context,
-		#[NCA\Str('deny')] string $action,
+		#[Str('deny')] string $action,
 		PUuid $id,
 	): void {
 		$id = $id();

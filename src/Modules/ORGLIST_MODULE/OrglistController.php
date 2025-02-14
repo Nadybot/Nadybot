@@ -74,8 +74,8 @@ class OrglistController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>orglist Nadyita')]
 	public function orglistCommand(
 		CmdContext $context,
-		#[NCA\NonGreedy] string $search,
-		#[NCA\Str('all')] ?string $all,
+		#[NCA\Parameter\NonGreedy] string $search,
+		#[NCA\Parameter\Str('all')] ?string $all,
 	): void {
 		if ($this->orglistShowOffline) {
 			$all = 'all';

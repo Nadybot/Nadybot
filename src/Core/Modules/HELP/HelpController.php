@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\HELP;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	BotRunner,
 	ClassLoader,
 	CmdContext,
@@ -93,7 +94,7 @@ class HelpController extends ModuleInstance {
 	#[NCA\HandlesCommand('help')]
 	public function helpListCommand(
 		CmdContext $context,
-		#[NCA\Str('topics', 'list')] string $action
+		#[Str('topics', 'list')] string $action
 	): void {
 		$data = collect($this->helpManager->getAllHelpTopics($context));
 
@@ -137,7 +138,7 @@ class HelpController extends ModuleInstance {
 	#[NCA\HandlesCommand('help')]
 	public function helpSyntaxCommand(
 		CmdContext $context,
-		#[NCA\Str('syntax')] string $action
+		#[Str('syntax')] string $action
 	): void {
 		$data = $this->fs->read(__DIR__ . '/syntax.txt');
 		$msg = Text::makeBlob('Help', trim($data));
@@ -148,7 +149,7 @@ class HelpController extends ModuleInstance {
 	#[NCA\HandlesCommand('help')]
 	public function helpModulesCommand(
 		CmdContext $context,
-		#[NCA\Str('modules')] string $action
+		#[Str('modules')] string $action
 	): void {
 		$modules = $this->classLoader->registeredModules;
 
@@ -195,7 +196,7 @@ class HelpController extends ModuleInstance {
 	public function helpLegendSettingCommand(
 		CmdContext $context,
 		bool $enable,
-		#[NCA\Str('explanation', 'legend')] string $topic
+		#[Str('explanation', 'legend')] string $topic
 	): void {
 		$this->preferences->save(
 			$context->char->name,
