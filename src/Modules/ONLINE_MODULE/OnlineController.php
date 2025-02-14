@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Http,
 	Attributes\Parameter\Str,
 	BuddylistManager,
 	CmdContext,
@@ -1073,10 +1074,10 @@ class OnlineController extends ModuleInstance {
 
 	/** Get a list of all people online in all linked channels */
 	#[
-		NCA\Api('/online'),
-		NCA\GET,
-		NCA\AccessLevelFrom('online'),
-		NCA\ApiResult(code: 200, class: 'OnlinePlayers', desc: 'A list of online players')
+		Http\Api('/online'),
+		Http\GET,
+		Http\AccessLevelFrom('online'),
+		Http\ApiResult(code: 200, class: 'OnlinePlayers', desc: 'A list of online players')
 	]
 	public function apiOnlineEndpoint(Request $request): Response {
 		$result = new OnlinePlayers(

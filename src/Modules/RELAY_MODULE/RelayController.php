@@ -12,6 +12,7 @@ use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Regexp, Remo
 use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	ClassSpec,
 	CmdContext,
 	CommandManager,
@@ -1023,10 +1024,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** List all relay transports */
 	#[
-		NCA\Api('/relay-component/transport'),
-		NCA\GET,
-		NCA\AccessLevel('all'),
-		NCA\ApiResult(code: 200, class: 'ClassSpec[]', desc: 'The available relay transport layers')
+		Http\Api('/relay-component/transport'),
+		Http\GET,
+		Http\AccessLevel('all'),
+		Http\ApiResult(code: 200, class: 'ClassSpec[]', desc: 'The available relay transport layers')
 	]
 	public function apiGetTransportsEndpoint(Request $request): Response {
 		return ApiResponse::create(array_values($this->transports));
@@ -1034,10 +1035,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** List all relay layers */
 	#[
-		NCA\Api('/relay-component/layer'),
-		NCA\GET,
-		NCA\AccessLevel('all'),
-		NCA\ApiResult(code: 200, class: 'ClassSpec[]', desc: 'The available generic relay layers')
+		Http\Api('/relay-component/layer'),
+		Http\GET,
+		Http\AccessLevel('all'),
+		Http\ApiResult(code: 200, class: 'ClassSpec[]', desc: 'The available generic relay layers')
 	]
 	public function apiGetLayersEndpoint(Request $request): Response {
 		return ApiResponse::create(array_values($this->stackElements));
@@ -1045,10 +1046,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** List all relay protocols */
 	#[
-		NCA\Api('/relay-component/protocol'),
-		NCA\GET,
-		NCA\AccessLevel('all'),
-		NCA\ApiResult(code: 200, class: 'ClassSpec[]', desc: 'The available relay protocols')
+		Http\Api('/relay-component/protocol'),
+		Http\GET,
+		Http\AccessLevel('all'),
+		Http\ApiResult(code: 200, class: 'ClassSpec[]', desc: 'The available relay protocols')
 	]
 	public function apiGetProtocolsEndpoint(Request $request): Response {
 		return ApiResponse::create(array_values($this->relayProtocols));
@@ -1056,10 +1057,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** List all relays */
 	#[
-		NCA\Api('/relay'),
-		NCA\GET,
-		NCA\AccessLevelFrom('relay'),
-		NCA\ApiResult(code: 200, class: 'RelayConfig[]', desc: 'The configured relays')
+		Http\Api('/relay'),
+		Http\GET,
+		Http\AccessLevelFrom('relay'),
+		Http\ApiResult(code: 200, class: 'RelayConfig[]', desc: 'The configured relays')
 	]
 	public function apiGetRelaysEndpoint(Request $request): Response {
 		return ApiResponse::create($this->getRelays());
@@ -1071,11 +1072,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	 * @param string $relay The name of the relay
 	 */
 	#[
-		NCA\Api('/relay/%s'),
-		NCA\GET,
-		NCA\AccessLevelFrom('relay'),
-		NCA\ApiResult(code: 200, class: 'RelayConfig', desc: 'The configured relay'),
-		NCA\ApiResult(code: 404, desc: 'Relay not found')
+		Http\Api('/relay/%s'),
+		Http\GET,
+		Http\AccessLevelFrom('relay'),
+		Http\ApiResult(code: 200, class: 'RelayConfig', desc: 'The configured relay'),
+		Http\ApiResult(code: 404, desc: 'Relay not found')
 	]
 	public function apiGetRelayByNameEndpoint(Request $request, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
@@ -1091,11 +1092,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	 * @param string $relay The name of the relay
 	 */
 	#[
-		NCA\Api('/relay/%s/events'),
-		NCA\GET,
-		NCA\AccessLevelFrom('relay'),
-		NCA\ApiResult(code: 200, class: 'RelayEvent[]', desc: 'The configured relay events'),
-		NCA\ApiResult(code: 404, desc: 'Relay not found')
+		Http\Api('/relay/%s/events'),
+		Http\GET,
+		Http\AccessLevelFrom('relay'),
+		Http\ApiResult(code: 200, class: 'RelayEvent[]', desc: 'The configured relay events'),
+		Http\ApiResult(code: 404, desc: 'Relay not found')
 	]
 	public function apiGetRelayEventsByNameEndpoint(Request $request, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
@@ -1111,12 +1112,12 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	 * @param string $relay The name of the relay
 	 */
 	#[
-		NCA\Api('/relay/%s/events'),
-		NCA\PUT,
-		NCA\AccessLevelFrom('relay'),
-		NCA\RequestBody(class: 'RelayEvent[]', desc: 'The event configuration', required: true),
-		NCA\ApiResult(code: 204, desc: 'The event configuration was set'),
-		NCA\ApiResult(code: 404, desc: 'Relay not found')
+		Http\Api('/relay/%s/events'),
+		Http\PUT,
+		Http\AccessLevelFrom('relay'),
+		Http\RequestBody(class: 'RelayEvent[]', desc: 'The event configuration', required: true),
+		Http\ApiResult(code: 204, desc: 'The event configuration was set'),
+		Http\ApiResult(code: 404, desc: 'Relay not found')
 	]
 	public function apiPutRelayEventsByNameEndpoint(Request $request, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
@@ -1170,12 +1171,12 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	 * @param string $relay The name of the relay
 	 */
 	#[
-		NCA\Api('/relay/%s/events'),
-		NCA\PATCH,
-		NCA\AccessLevelFrom('relay'),
-		NCA\RequestBody(class: 'RelayEvent', desc: 'The changed event configuration for one event', required: true),
-		NCA\ApiResult(code: 204, desc: 'The event configuration was set'),
-		NCA\ApiResult(code: 404, desc: 'Relay not found')
+		Http\Api('/relay/%s/events'),
+		Http\PATCH,
+		Http\AccessLevelFrom('relay'),
+		Http\RequestBody(class: 'RelayEvent', desc: 'The changed event configuration for one event', required: true),
+		Http\ApiResult(code: 204, desc: 'The event configuration was set'),
+		Http\ApiResult(code: 404, desc: 'Relay not found')
 	]
 	public function apiPatchRelayEventsByNameEndpoint(Request $request, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
@@ -1215,11 +1216,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	 * @param string $relay The name of the relay
 	 */
 	#[
-		NCA\Api('/relay/%s'),
-		NCA\DELETE,
-		NCA\AccessLevelFrom('relay'),
-		NCA\ApiResult(code: 204, desc: 'The relay was deleted'),
-		NCA\ApiResult(code: 404, desc: 'Relay not found')
+		Http\Api('/relay/%s'),
+		Http\DELETE,
+		Http\AccessLevelFrom('relay'),
+		Http\ApiResult(code: 204, desc: 'The relay was deleted'),
+		Http\ApiResult(code: 404, desc: 'Relay not found')
 	]
 	public function apiDelRelayByNameEndpoint(Request $request, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
@@ -1243,11 +1244,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	 * @param string $relay The name of the relay
 	 */
 	#[
-		NCA\Api('/relay/%s/status'),
-		NCA\GET,
-		NCA\AccessLevelFrom('relay'),
-		NCA\ApiResult(code: 200, class: 'RelayStatus', desc: 'The status message of the relay'),
-		NCA\ApiResult(code: 404, desc: 'Relay not found')
+		Http\Api('/relay/%s/status'),
+		Http\GET,
+		Http\AccessLevelFrom('relay'),
+		Http\ApiResult(code: 200, class: 'RelayStatus', desc: 'The status message of the relay'),
+		Http\ApiResult(code: 404, desc: 'Relay not found')
 	]
 	public function apiGetRelayStatusByNameEndpoint(Request $request, string $relay): Response {
 		if (!isset($this->relays[$relay])) {
@@ -1258,10 +1259,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Create a new relay */
 	#[
-		NCA\Api('/relay'),
-		NCA\POST,
-		NCA\AccessLevelFrom('relay'),
-		NCA\ApiResult(code: 204, desc: 'Relay created successfully')
+		Http\Api('/relay'),
+		Http\POST,
+		Http\AccessLevelFrom('relay'),
+		Http\ApiResult(code: 204, desc: 'Relay created successfully')
 	]
 	public function apiCreateRelay(Request $request): Response {
 		$body = $request->getAttribute(WebserverController::BODY);
@@ -1286,10 +1287,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	/** List all relay layers */
 	#[
-		NCA\Api('/relay-component/event'),
-		NCA\GET,
-		NCA\AccessLevel('all'),
-		NCA\ApiResult(code: 200, class: 'EventType[]', desc: 'The available non-routable relay events')
+		Http\Api('/relay-component/event'),
+		Http\GET,
+		Http\AccessLevel('all'),
+		Http\ApiResult(code: 200, class: 'EventType[]', desc: 'The available non-routable relay events')
 	]
 	public function apiGetEventsEndpoint(Request $request): Response {
 		return ApiResponse::create($this->getRegisteredSyncEvents());

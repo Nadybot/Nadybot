@@ -13,6 +13,7 @@ use DateTimeZone;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Http,
 	Attributes\Parameter\Remove,
 	Attributes\Parameter\Str,
 	Attributes\Parameter\StrChoice,
@@ -396,10 +397,10 @@ class StartpageController extends ModuleInstance {
 
 	/** List all news tiles */
 	#[
-		NCA\Api('/startpage/tiles'),
-		NCA\GET,
-		NCA\AccessLevelFrom('startpage'),
-		NCA\ApiResult(code: 200, class: 'NewsTile[]', desc: 'List of all news items')
+		Http\Api('/startpage/tiles'),
+		Http\GET,
+		Http\AccessLevelFrom('startpage'),
+		Http\ApiResult(code: 200, class: 'NewsTile[]', desc: 'List of all news items')
 	]
 	public function apiListTilesEndpoint(Request $request): Response {
 		$tiles = array_values($this->getTiles());
@@ -416,10 +417,10 @@ class StartpageController extends ModuleInstance {
 
 	/** Get the currently configured startpage layout */
 	#[
-		NCA\Api('/startpage/layout'),
-		NCA\GET,
-		NCA\AccessLevelFrom('startpage'),
-		NCA\ApiResult(code: 200, class: 'string[]', desc: 'The order of the tiles')
+		Http\Api('/startpage/layout'),
+		Http\GET,
+		Http\AccessLevelFrom('startpage'),
+		Http\ApiResult(code: 200, class: 'string[]', desc: 'The order of the tiles')
 	]
 	public function apiGetStartpageLayoutEndpoint(Request $request): Response {
 		return ApiResponse::create(array_keys($this->getActiveLayout()));
@@ -427,11 +428,11 @@ class StartpageController extends ModuleInstance {
 
 	/** List all news tiles */
 	#[
-		NCA\Api('/startpage/layout'),
-		NCA\PUT,
-		NCA\AccessLevelFrom('startpage'),
-		NCA\RequestBody(class: 'string[]', desc: 'The new order for the tiles', required: true),
-		NCA\ApiResult(code: 204, desc: 'New layout saved')
+		Http\Api('/startpage/layout'),
+		Http\PUT,
+		Http\AccessLevelFrom('startpage'),
+		Http\RequestBody(class: 'string[]', desc: 'The new order for the tiles', required: true),
+		Http\ApiResult(code: 204, desc: 'New layout saved')
 	]
 	public function apiSetStartpageLayoutEndpoint(Request $request): Response {
 		$tiles = $request->getAttribute(WebserverController::BODY);

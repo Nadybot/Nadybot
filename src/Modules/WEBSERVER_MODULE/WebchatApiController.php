@@ -7,6 +7,7 @@ use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\Types\HopColorType;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	CmdContext,
 	CommandManager,
 	EventManager,
@@ -47,11 +48,11 @@ class WebchatApiController extends ModuleInstance {
 
 	/** Send a message to the org chat */
 	#[
-		NCA\Api('/chat/web'),
-		NCA\POST,
-		NCA\AccessLevel('member'),
-		NCA\RequestBody(class: 'string', desc: 'The text to send', required: true),
-		NCA\ApiResult(code: 204, desc: 'Message sent')
+		Http\Api('/chat/web'),
+		Http\POST,
+		Http\AccessLevel('member'),
+		Http\RequestBody(class: 'string', desc: 'The text to send', required: true),
+		Http\ApiResult(code: 204, desc: 'Message sent')
 	]
 	public function sendWebMessageEndpoint(Request $request): Response {
 		/** @var ?string */

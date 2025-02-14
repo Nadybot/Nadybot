@@ -10,6 +10,7 @@ use Amp\Websocket\{WebsocketClient, WebsocketMessage};
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	Channels\WebChannel,
 	EventManager,
 	Events\Event,
@@ -84,7 +85,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 	}
 
 	#[
-		NCA\HttpGet('/events'),
+		Http\HttpGet('/events'),
 	]
 	public function handleWebsocketStart(Request $request): ?Response {
 		if (!$this->websocket) {

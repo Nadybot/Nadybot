@@ -15,6 +15,7 @@ use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Http,
 	CmdContext,
 	Config\BotConfig,
 	DB,
@@ -300,7 +301,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			$ref = new ReflectionFunction($handlers[0][0]);
 
 			/** @psalm-suppress InvalidAttribute */
-			if (count($ref->getAttributes(NCA\HttpOwnAuth::class))) {
+			if (count($ref->getAttributes(Http\HttpOwnAuth::class))) {
 				$needAuth = false;
 			}
 		}
@@ -387,7 +388,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		foreach ($instances as $instance) {
 			$reflection = new ReflectionClass($instance);
 			foreach ($reflection->getMethods() as $method) {
-				$attrs = $method->getAttributes(NCA\HttpVerb::class, ReflectionAttribute::IS_INSTANCEOF);
+				$attrs = $method->getAttributes(Http\HttpVerb::class, ReflectionAttribute::IS_INSTANCEOF);
 				if (!count($attrs)) {
 					continue;
 				}

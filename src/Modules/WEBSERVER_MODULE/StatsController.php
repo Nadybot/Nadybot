@@ -8,6 +8,7 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	Config\BotConfig,
 	ModuleInstance,
 	Registry,
@@ -95,8 +96,8 @@ class StatsController extends ModuleInstance {
 
 	/** Query prometheus-formatted statistics */
 	#[
-		NCA\HttpGet('/metrics'),
-		NCA\HttpOwnAuth,
+		Http\HttpGet('/metrics'),
+		Http\HttpOwnAuth,
 	]
 	public function getMetricsEndpoint(Request $request): Response {
 		if (!$this->settingManager->getBool('prometheus_enabled')) {

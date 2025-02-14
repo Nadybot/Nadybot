@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	Attributes\Parameter\Remove,
 	Attributes\Parameter\Str,
 	CmdContext,
@@ -395,10 +396,10 @@ class NewsController extends ModuleInstance {
 
 	/** Get a list of all news */
 	#[
-		NCA\Api('/news'),
-		NCA\GET,
-		NCA\AccessLevelFrom('news'),
-		NCA\ApiResult(code: 200, class: 'News[]', desc: 'A list of news items')
+		Http\Api('/news'),
+		Http\GET,
+		Http\AccessLevelFrom('news'),
+		Http\ApiResult(code: 200, class: 'News[]', desc: 'A list of news items')
 	]
 	public function apiNewsEndpoint(Request $request): Response {
 		$result = $this->db->table(News::getTable())
@@ -413,11 +414,11 @@ class NewsController extends ModuleInstance {
 	 * @param string $id The UUID of the news item
 	 */
 	#[
-		NCA\Api('/news/%s'),
-		NCA\GET,
-		NCA\AccessLevelFrom('news'),
-		NCA\ApiResult(code: 200, class: 'News', desc: 'The requested news item'),
-		NCA\ApiResult(code: 404, desc: 'Given news id not found')
+		Http\Api('/news/%s'),
+		Http\GET,
+		Http\AccessLevelFrom('news'),
+		Http\ApiResult(code: 200, class: 'News', desc: 'The requested news item'),
+		Http\ApiResult(code: 404, desc: 'Given news id not found')
 	]
 	public function apiNewsIdEndpoint(Request $request, string $id): Response {
 		$result = $this->getNewsItem($id);
@@ -429,11 +430,11 @@ class NewsController extends ModuleInstance {
 
 	/** Create a new news item */
 	#[
-		NCA\Api('/news'),
-		NCA\POST,
-		NCA\AccessLevelFrom(self::CMD_NEWS_MANAGE),
-		NCA\RequestBody(class: 'News', desc: 'The item to create', required: true),
-		NCA\ApiResult(code: 204, desc: 'The news item was created successfully')
+		Http\Api('/news'),
+		Http\POST,
+		Http\AccessLevelFrom(self::CMD_NEWS_MANAGE),
+		Http\RequestBody(class: 'News', desc: 'The item to create', required: true),
+		Http\ApiResult(code: 204, desc: 'The news item was created successfully')
 	]
 	public function apiNewsCreateEndpoint(Request $request): Response {
 		$user = $request->getAttribute(WebserverController::USER) ?? '_';
@@ -476,11 +477,11 @@ class NewsController extends ModuleInstance {
 	 * @param string $id The UUID of the news item
 	 */
 	#[
-		NCA\Api('/news/%s'),
-		NCA\PATCH,
-		NCA\AccessLevelFrom(self::CMD_NEWS_MANAGE),
-		NCA\RequestBody(class: 'News', desc: 'The new data for the item', required: true),
-		NCA\ApiResult(code: 200, class: 'News', desc: 'The news item it is now')
+		Http\Api('/news/%s'),
+		Http\PATCH,
+		Http\AccessLevelFrom(self::CMD_NEWS_MANAGE),
+		Http\RequestBody(class: 'News', desc: 'The new data for the item', required: true),
+		Http\ApiResult(code: 200, class: 'News', desc: 'The news item it is now')
 	]
 	public function apiNewsModifyEndpoint(Request $request, string $id): Response {
 		$oldItem = $this->getNewsItem($id);

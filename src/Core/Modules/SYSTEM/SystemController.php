@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	Attributes as NCA,
+	Attributes\Http,
 	BotRunner,
 	BuddylistManager,
 	CmdContext,
@@ -588,10 +589,10 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	/** Get system information */
 	#[
-		NCA\Api('/sysinfo'),
-		NCA\GET,
-		NCA\AccessLevel('all'),
-		NCA\ApiResult(code: 200, class: 'SystemInformation', desc: 'Some basic system information')
+		Http\Api('/sysinfo'),
+		Http\GET,
+		Http\AccessLevel('all'),
+		Http\ApiResult(code: 200, class: 'SystemInformation', desc: 'Some basic system information')
 	]
 	public function apiSysinfoGetEndpoint(Request $request): Response {
 		return ApiResponse::create($this->getSystemInfo());
