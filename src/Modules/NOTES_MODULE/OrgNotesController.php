@@ -178,7 +178,7 @@ class OrgNotesController extends ModuleInstance {
 		$context->reply("No org note <highlight>#{$id}<end> found.");
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: SyncOrgNoteEvent::EVENT_MASK,
 		description: 'Sync externally created org notes'
 	)]
@@ -199,7 +199,7 @@ class OrgNotesController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: SyncOrgNoteDeleteEvent::EVENT_MASK,
 		description: 'Sync externally deleted org notes'
 	)]

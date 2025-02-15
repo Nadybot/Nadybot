@@ -165,7 +165,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: GuildChannelMsgEvent::EVENT_MASK,
 		description: 'Records when the cloak is raised or lowered'
 	)]
@@ -207,7 +207,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->handle($e);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1min)',
 		description: 'Checks timer to see if cloak can be raised or lowered'
 	)]
@@ -235,7 +235,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1min)',
 		description: 'Reminds the player who lowered cloak to raise it'
 	)]
@@ -271,7 +271,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Show cloak status to guild members logging in'
 	)]

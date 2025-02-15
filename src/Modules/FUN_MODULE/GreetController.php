@@ -150,7 +150,7 @@ class GreetController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/greeting.csv');
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: JoinMyPrivEvent::EVENT_MASK,
 		description: 'Greet players joining the private channel',
 	)]
@@ -172,7 +172,7 @@ class GreetController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Greet org members logging on'
 	)]
@@ -286,7 +286,7 @@ class GreetController extends ModuleInstance {
 		$context->reply('Receiving greetings is now <off>disabled<end>.');
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: AltNewMainEvent::EVENT_MASK,
 		description: 'Move greeting preferences to new main'
 	)]

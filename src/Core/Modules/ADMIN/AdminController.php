@@ -204,7 +204,7 @@ class AdminController extends ModuleInstance {
 		return $blobs;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Add administrators and moderators to the buddy list',
 		defaultStatus: Status::Enabled,
@@ -279,7 +279,7 @@ class AdminController extends ModuleInstance {
 		return $this->accessManager->compareAccessLevels($whoAccessLevel, $senderAccessLevel) < 0;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: AltNewMainEvent::EVENT_MASK,
 		description: 'Move admin rank to new main'
 	)]

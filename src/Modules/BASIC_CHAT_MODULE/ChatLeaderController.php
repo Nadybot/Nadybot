@@ -154,7 +154,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		$this->chatBot->sendPrivate('Leader echo is currently ' . $this->getEchoStatusText());
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: MyPrivateChannelMsgEvent::EVENT_MASK,
 		description: 'Repeats what the leader says in the color of leaderecho_color setting'
 	)]
@@ -168,7 +168,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LeaveMyPrivEvent::EVENT_MASK,
 		description: 'Removes leader when the leader leaves the channel'
 	)]

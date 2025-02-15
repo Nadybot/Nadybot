@@ -701,7 +701,7 @@ class AuctionController extends ModuleInstance {
 		return $msg;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: AuctionStartEvent::EVENT_MASK,
 		description: 'Announce a new auction'
 	)]
@@ -709,7 +709,7 @@ class AuctionController extends ModuleInstance {
 		$this->routeMessage('start', $this->getAuctionAnnouncement($event->auction));
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: AuctionEndEvent::EVENT_MASK,
 		description: 'Announce the winner of an auction'
 	)]
@@ -763,7 +763,7 @@ class AuctionController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: AuctionCancelEvent::EVENT_MASK,
 		description: 'Announce the cancellation of an auction'
 	)]
@@ -782,7 +782,7 @@ class AuctionController extends ModuleInstance {
 		return $msg;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: AuctionBidEvent::EVENT_MASK,
 		description: 'Announce a new bid'
 	)]

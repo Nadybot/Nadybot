@@ -137,7 +137,7 @@ class SilenceController extends ModuleInstance {
 			->delete();
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Overwrite command handlers for silenced commands'
 	)]

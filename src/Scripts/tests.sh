@@ -92,6 +92,8 @@ codespellCheck() {
   fi
 }
 
+export XDEBUG_MODE=off
+
 export CHANGED_FILES=$(git diff --cached --name-only --diff-filter=ACMRTUXB | grep -v var_dump.yml | grep -v tests.sh)
 
 if [ -n "$CHANGED_FILES" ] && grep -i -r -n -m 1 -s var_dump ${CHANGED_FILES}; then

@@ -118,7 +118,7 @@ class ChatTopicController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Shows topic on logon of members'
 	)]
@@ -134,7 +134,7 @@ class ChatTopicController extends ModuleInstance {
 		$this->chatBot->sendMassTell($msg, $eventObj->sender);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: JoinMyPrivEvent::EVENT_MASK,
 		description: 'Shows topic when someone joins the private channel'
 	)]

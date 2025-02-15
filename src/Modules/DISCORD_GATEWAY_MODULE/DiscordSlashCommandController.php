@@ -325,7 +325,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	}
 
 	/** Handle an incoming discord channel message */
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'discord(interaction_create)',
 		description: 'Handle Discord slash commands'
 	)]

@@ -43,7 +43,7 @@ class PlayerFeedHandler extends ModuleInstance implements EventFeedHandler {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'setting(lookup_feed_enabled)',
 		description: 'Subscribe/unsubscribe from event feed',
 	)]

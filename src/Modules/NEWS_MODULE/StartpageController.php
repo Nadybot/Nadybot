@@ -104,7 +104,7 @@ class StartpageController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Show startpage to (org) members logging in'
 	)]
@@ -135,7 +135,7 @@ class StartpageController extends ModuleInstance {
 		$this->showStartpage($sender, $this->getMassTell($sender));
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: JoinMyPrivEvent::EVENT_MASK,
 		description: 'Show startpage to players joining private channel'
 	)]

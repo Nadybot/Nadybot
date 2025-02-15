@@ -570,7 +570,7 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(24hrs)',
 		description: 'Download guild roster xml and update guild members'
 	)]
@@ -578,7 +578,7 @@ class GuildController extends ModuleInstance {
 		$this->updateMyOrgRoster(false);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: OrgMsgChannelMsgEvent::EVENT_MASK,
 		description: 'Automatically update guild roster as characters join and leave the guild'
 	)]
@@ -663,7 +663,7 @@ class GuildController extends ModuleInstance {
 		return $logonMessage;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Shows an org member logon in chat'
 	)]
@@ -722,7 +722,7 @@ class GuildController extends ModuleInstance {
 		return $logoffMessage;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogoffEvent::EVENT_MASK,
 		description: 'Shows an org member logoff in chat'
 	)]
@@ -753,7 +753,7 @@ class GuildController extends ModuleInstance {
 		$this->chatBot->sendGuild($msg, true);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogoffEvent::EVENT_MASK,
 		description: 'Record org member logoff for lastseen command'
 	)]
@@ -774,7 +774,7 @@ class GuildController extends ModuleInstance {
 			&& isset($this->config->orgId);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Verifies that org name is correct'
 	)]

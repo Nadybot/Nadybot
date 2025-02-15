@@ -70,7 +70,7 @@ class CustomCmdController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'setting(custom_cmd_dir)',
 		description: 'Turn on/off commands',
 	)]

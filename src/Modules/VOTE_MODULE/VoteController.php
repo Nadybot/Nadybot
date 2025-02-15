@@ -113,7 +113,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** This event handler checks for polls ending. */
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(2sec)',
 		description: 'Checks polls and periodically updates chat with time left'
 	)]

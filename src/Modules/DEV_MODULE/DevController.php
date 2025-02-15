@@ -89,7 +89,7 @@ class DevController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, 'querysql select', 'select');
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1m)',
 		description: 'Log the memory usage once per minute',
 		defaultStatus: Status::Disabled,

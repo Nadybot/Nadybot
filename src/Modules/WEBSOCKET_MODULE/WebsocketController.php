@@ -125,7 +125,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		unset($this->subscriptions[$client->getId()]);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: WebsocketSubscribeEvent::EVENT_MASK,
 		description: 'Handle Websocket event subscriptions',
 		defaultStatus: Status::Enabled
@@ -145,7 +145,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: WebsocketRequestEvent::EVENT_MASK,
 		description: 'Handle API requests'
 	)]
@@ -153,7 +153,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		// Not implemented yet
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: Event::EVENT_MASK,
 		description: 'Distribute events to Websocket clients',
 		defaultStatus: Status::Enabled

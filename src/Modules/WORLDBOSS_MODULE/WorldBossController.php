@@ -448,7 +448,7 @@ class WorldBossController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Get boss timers from timer API'
 	)]
@@ -727,7 +727,7 @@ class WorldBossController extends ModuleInstance {
 		$this->sendSyncDeleteEvent($context->char->name, $boss, $context->forceSync);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1sec)',
 		description: 'Check timer to announce big boss events'
 	)]
@@ -746,7 +746,7 @@ class WorldBossController extends ModuleInstance {
 		$this->timers = $this->addNextDates($this->timers);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: SyncWorldbossEvent::EVENT_MASK,
 		description: 'Sync external worldboss timers'
 	)]
@@ -772,7 +772,7 @@ class WorldBossController extends ModuleInstance {
 		$this->checkTimerEvent(new TimerEvent(1), 1, true);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: SyncWorldbossDeleteEvent::EVENT_MASK,
 		description: 'Sync external worldboss timer deletes'
 	)]

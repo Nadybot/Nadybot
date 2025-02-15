@@ -462,7 +462,7 @@ class OnlineController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Records an org member login in db'
 	)]
@@ -479,7 +479,7 @@ class OnlineController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogoffEvent::EVENT_MASK,
 		description: 'Records an org member logoff in db'
 	)]
@@ -496,7 +496,7 @@ class OnlineController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Sends a tell to players on logon showing who is online in org'
 	)]
@@ -512,7 +512,7 @@ class OnlineController extends ModuleInstance {
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(10mins)',
 		description: 'Online check'
 	)]
@@ -585,7 +585,7 @@ class OnlineController extends ModuleInstance {
 	}
 
 	#[
-		NCA\Event(
+		NCA\HandlesEvent(
 			name: MyPrivateChannelMsgEvent::EVENT_MASK,
 			description: 'Afk check',
 			help: 'afk'
@@ -596,7 +596,7 @@ class OnlineController extends ModuleInstance {
 	}
 
 	#[
-		NCA\Event(
+		NCA\HandlesEvent(
 			name: GuildChannelMsgEvent::EVENT_MASK,
 			description: 'Afk check',
 			help: 'afk'
@@ -609,7 +609,7 @@ class OnlineController extends ModuleInstance {
 	}
 
 	#[
-		NCA\Event(
+		NCA\HandlesEvent(
 			name: MyPrivateChannelMsgEvent::EVENT_MASK,
 			description: 'Sets a member afk',
 			help: 'afk'
@@ -620,7 +620,7 @@ class OnlineController extends ModuleInstance {
 	}
 
 	#[
-		NCA\Event(
+		NCA\HandlesEvent(
 			name: GuildChannelMsgEvent::EVENT_MASK,
 			description: 'Sets a member afk',
 			help: 'afk'

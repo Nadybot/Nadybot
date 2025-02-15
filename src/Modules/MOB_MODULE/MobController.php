@@ -7,7 +7,7 @@ use Amp\Http\Client\{HttpClientBuilder, Request};
 use Closure;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes\{Event, HandlesCommand};
+use Nadybot\Core\Attributes\{HandlesCommand, HandlesEvent};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{Attributes as NCA, CmdContext, Hydrator, MessageHub, ModuleInstance, Safe, Text, Util};
 use Nadybot\Modules\WHEREIS_MODULE\{Whereis, WhereisController};
@@ -81,7 +81,7 @@ class MobController extends ModuleInstance {
 	#[NCA\Inject]
 	private MessageHub $msgHub;
 
-	#[NCA\Event('connect', 'Load all mobs from the API')]
+	#[NCA\HandlesEvent('connect', 'Load all mobs from the API')]
 	public function initMobsFromApi(): void {
 		$client = $this->builder->build();
 
@@ -162,7 +162,7 @@ class MobController extends ModuleInstance {
 		}
 	}
 
-	#[Event(
+	#[HandlesEvent(
 		name: MobAttackedEvent::EVENT_MASK,
 		description: 'Announce when a mob gets attacked as mob(&lt;type&gt;-&lt;key&gt;-attacked)',
 	)]
@@ -183,7 +183,7 @@ class MobController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[Event(
+	#[HandlesEvent(
 		name: MobSpawnEvent::EVENT_MASK,
 		description: 'Announce when a new mob spawns as mob(&lt;type&gt;-&lt;key&gt;-spawn)',
 	)]
@@ -204,7 +204,7 @@ class MobController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[Event(
+	#[HandlesEvent(
 		name: MobDeathEvent::EVENT_MASK,
 		description: 'Announce when a mob gets killed as mob(&lt;type&gt;-&lt;key&gt;-death)',
 	)]

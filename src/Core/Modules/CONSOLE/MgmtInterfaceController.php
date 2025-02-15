@@ -66,7 +66,7 @@ class MgmtInterfaceController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(name: ConnectEvent::EVENT_MASK, description: 'Start the interface')]
+	#[NCA\HandlesEvent(name: ConnectEvent::EVENT_MASK, description: 'Start the interface')]
 	public function onConnect(): void {
 		if ($this->mgmtInterface === self::TYPE_NONE) {
 			return;

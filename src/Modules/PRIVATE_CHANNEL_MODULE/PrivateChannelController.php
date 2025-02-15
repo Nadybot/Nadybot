@@ -967,7 +967,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->accessManager->addAudit($audit);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(5m)',
 		description: 'Send reminder if the private channel is locked'
 	)]
@@ -981,7 +981,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->messageHub->handle($rMessage);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Adds all members as buddies'
 	)]
@@ -993,7 +993,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			});
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Auto-invite members on logon'
 	)]
@@ -1050,7 +1050,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->messageHub->handle($re);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: JoinMyPrivEvent::EVENT_MASK,
 		description: 'Displays a message when a character joins the private channel'
 	)]
@@ -1089,7 +1089,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: JoinMyPrivEvent::EVENT_MASK,
 		description: 'Autoban players of unwanted factions when they join the bot'
 	)]
@@ -1169,7 +1169,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		return $leaveMessage;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LeaveMyPrivEvent::EVENT_MASK,
 		description: 'Displays a message when a character leaves the private channel'
 	)]
@@ -1196,7 +1196,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->guildController->lastLogoffMsgs[$eMain] = time();
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: JoinMyPrivEvent::EVENT_MASK,
 		description: 'Updates the database when a character joins the private channel'
 	)]
@@ -1209,7 +1209,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LeaveMyPrivEvent::EVENT_MASK,
 		description: 'Updates the database when a character leaves the private channel'
 	)]
@@ -1217,7 +1217,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->onlineController->removePlayerFromOnlineList($eventObj->sender, 'priv');
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: JoinMyPrivEvent::EVENT_MASK,
 		description: 'Sends the online list to people as they join the private channel'
 	)]
@@ -1227,7 +1227,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: MemberAddEvent::EVENT_MASK,
 		description: 'Send welcome message data/welcome.txt to new members'
 	)]

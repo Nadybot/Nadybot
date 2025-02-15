@@ -26,7 +26,7 @@ class OSController extends ModuleInstance {
 	#[NCA\Inject]
 	private TimerController $timerController;
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: OrgMsgChannelMsgEvent::EVENT_MASK,
 		description: 'Sets a timer when an OS/AS is launched'
 	)]

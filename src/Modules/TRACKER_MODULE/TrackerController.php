@@ -199,7 +199,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Adds all players on the track list to the buddy list'
 	)]
@@ -216,7 +216,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			});
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(24hrs)',
 		description: 'Untrack inactive characters',
 	)]
@@ -251,7 +251,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		return Source::SYSTEM . '(tracker)';
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(24hrs)',
 		description: "Download all tracked orgs' information"
 	)]
@@ -271,7 +271,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$this->logger->notice('Finished Tracker Roster update');
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: TowerAttackEvent::EVENT_MASK,
 		description: 'Automatically track tower field attackers'
 	)]
@@ -327,7 +327,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Records a tracked user logging on'
 	)]
@@ -423,7 +423,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogoffEvent::EVENT_MASK,
 		description: 'Records a tracked user logging off'
 	)]

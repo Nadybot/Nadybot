@@ -181,7 +181,7 @@ class NewsController extends ModuleInstance {
 		return $msg;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Sends news to org members logging in'
 	)]
@@ -201,7 +201,7 @@ class NewsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: JoinMyPrivEvent::EVENT_MASK,
 		description: 'Sends news to players joining private channel'
 	)]
@@ -548,7 +548,7 @@ class NewsController extends ModuleInstance {
 		return $blob;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: SyncNewsEvent::EVENT_MASK,
 		description: 'Sync external news created or modified'
 	)]
@@ -560,7 +560,7 @@ class NewsController extends ModuleInstance {
 			->upsert($event->toData(), 'uuid', $event->toData());
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: SyncNewsDeleteEvent::EVENT_MASK,
 		description: 'Sync external news being deleted'
 	)]

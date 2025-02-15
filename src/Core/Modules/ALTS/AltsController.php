@@ -133,7 +133,7 @@ class AltsController extends ModuleInstance {
 		return $alts;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Add unvalidated alts/mains to friendlist'
 	)]
@@ -431,7 +431,7 @@ class AltsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Reminds unvalidates alts/mains to accept or deny'
 	)]

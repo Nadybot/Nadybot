@@ -387,7 +387,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Event('timer(1h)', 'Announce unplanted sites via pvp(unplanted-sites)')]
+	#[NCA\HandlesEvent('timer(1h)', 'Announce unplanted sites via pvp(unplanted-sites)')]
 	public function announceUnplantedSites(): void {
 		$unplantedSites = $this->getUnplantedSites();
 		if (!count($unplantedSites)) {
@@ -410,7 +410,7 @@ class NotumWarsController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[NCA\Event('connect', 'Load all towers from the API')]
+	#[NCA\HandlesEvent('connect', 'Load all towers from the API')]
 	public function initTowersFromApi(): void {
 		$client = $this->http->build();
 
@@ -464,7 +464,7 @@ class NotumWarsController extends ModuleInstance {
 			->toList();
 	}
 
-	#[NCA\Event('connect', 'Load all attacks from the API')]
+	#[NCA\HandlesEvent('connect', 'Load all attacks from the API')]
 	public function initAttacksFromApi(): void {
 		/** @var ?int */
 		$maxTS = $this->db->table(DBTowerAttack::getTable())->max('timestamp');
@@ -525,7 +525,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event('connect', 'Load all tower outcomes from the API')]
+	#[NCA\HandlesEvent('connect', 'Load all tower outcomes from the API')]
 	public function initOutcomesFromApi(): void {
 		/** @var ?int */
 		$maxTS = $this->db->table(DBOutcome::getTable())->max('timestamp');
@@ -607,7 +607,7 @@ class NotumWarsController extends ModuleInstance {
 			->toList();
 	}
 
-	#[NCA\Event('site-update', 'Update tower information from the API')]
+	#[NCA\HandlesEvent('site-update', 'Update tower information from the API')]
 	public function updateSiteInfoFromFeed(Event\SiteUpdateEvent $event): void {
 		$oldSite = $this->state[$event->site->playfield->value][$event->site->site_id] ?? null;
 		$this->updateSiteInfo($event->site);
@@ -622,7 +622,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event('tower-outcome', 'Update tower outcomes from the API')]
+	#[NCA\HandlesEvent('tower-outcome', 'Update tower outcomes from the API')]
 	public function updateTowerOutcomeInfoFromFeed(Event\TowerOutcomeEvent $event): void {
 		$dbOutcome = DBOutcome::fromTowerOutcome($event->outcome);
 		$this->db->insert($dbOutcome);
@@ -631,7 +631,7 @@ class NotumWarsController extends ModuleInstance {
 			->toList();
 	}
 
-	#[NCA\Event('tower-attack', 'Update tower attacks from the API')]
+	#[NCA\HandlesEvent('tower-attack', 'Update tower attacks from the API')]
 	public function updateTowerAttackInfoFromFeed(Event\TowerAttackEvent $event): void {
 		$attack = $event->attack;
 		$attacker = $attack->attacker;
@@ -669,7 +669,7 @@ class NotumWarsController extends ModuleInstance {
 		});
 	}
 
-	#[NCA\Event('gas-update', 'Update gas information from the API')]
+	#[NCA\HandlesEvent('gas-update', 'Update gas information from the API')]
 	public function updateGasInfoFromFeed(Event\GasUpdateEvent $event): void {
 		$site = $this->state[$event->gas->playfield->value][$event->gas->site_id] ?? null;
 		if (!isset($site)) {

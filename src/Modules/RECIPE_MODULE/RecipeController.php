@@ -50,7 +50,7 @@ class RecipeController extends ModuleInstance {
 	private string $path;
 
 	/** This is an Event("connect") instead of Setup since it depends on the items db being loaded */
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Initializes the recipe database',
 		defaultStatus: Status::Enabled

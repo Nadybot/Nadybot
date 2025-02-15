@@ -152,7 +152,7 @@ class LootController extends ModuleInstance {
 		$this->roll = (int)$this->db->table(LootHistory::getTable())->max('roll') + 1;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(30sec)',
 		description: 'Periodically announce running loot rolls'
 	)]

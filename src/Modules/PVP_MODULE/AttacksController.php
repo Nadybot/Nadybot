@@ -246,7 +246,7 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: OrgMsgChannelMsgEvent::EVENT_MASK,
 		description: "Notify if org's tower site defense shield is disabled via pvp(tower-shield-own)"
 	)]
@@ -323,7 +323,7 @@ class AttacksController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: OrgMsgChannelMsgEvent::EVENT_MASK,
 		description: "Notify if org's towers are attacked via pvp(tower-hit-own)"
 	)]
@@ -417,7 +417,7 @@ class AttacksController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[NCA\Event('tower-attack-info', 'Announce tower attacks')]
+	#[NCA\HandlesEvent('tower-attack-info', 'Announce tower attacks')]
 	public function announceTowerAttack(TowerAttackInfoEvent $event): void {
 		if ($event->site === null) {
 			$this->logger->error('ERROR! Could not find closest site for attack');
@@ -462,7 +462,7 @@ class AttacksController extends ModuleInstance {
 		$this->siteTracker->fireEvent(new RoutableMessage($msg), $site, 'tower-attack');
 	}
 
-	#[NCA\Event('tower-outcome', 'Announce tower victories and abandoned sites')]
+	#[NCA\HandlesEvent('tower-outcome', 'Announce tower victories and abandoned sites')]
 	public function announceTowerVictories(Event\TowerOutcomeEvent $event): void {
 		$outcome = $event->outcome;
 		$pf = $outcome->playfield;

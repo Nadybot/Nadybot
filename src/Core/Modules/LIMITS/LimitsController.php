@@ -192,7 +192,7 @@ class LimitsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: CmdEvent::EVENT_MASK,
 		description: 'Enforce rate limits'
 	)]
@@ -311,7 +311,7 @@ class LimitsController extends ModuleInstance {
 		return $ignoredUntil !== null && $ignoredUntil >= time();
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1min)',
 		description: 'Check ignores to see if they have expired',
 		defaultStatus: Status::Enabled
@@ -328,7 +328,7 @@ class LimitsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(10min)',
 		description: 'Cleanup expired command counts',
 		defaultStatus: Status::Enabled

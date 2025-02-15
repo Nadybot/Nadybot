@@ -187,7 +187,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1h)',
 		description: 'Warn if the buddylist is full',
 		defaultStatus: Status::Enabled,
@@ -479,7 +479,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1hr)',
 		description: 'This event handler is called every hour to keep MySQL connection active',
 		defaultStatus: Status::Enabled
@@ -491,7 +491,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			->firstObj(Setting::class);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Notify private channel, guild channel, and admins that bot is online',
 		defaultStatus: Status::Enabled

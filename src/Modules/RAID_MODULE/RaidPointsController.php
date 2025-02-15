@@ -130,7 +130,7 @@ class RaidPointsController extends ModuleInstance {
 	private Nadybot $chatBot;
 
 	/** Give points when the ticker is enabled */
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1s)',
 		description: 'Award points for raid participation'
 	)]
@@ -620,7 +620,7 @@ class RaidPointsController extends ModuleInstance {
 
 	/** Give points when the ticker is enabled */
 	#[
-		NCA\Event(
+		NCA\HandlesEvent(
 			name: ['alt(add)', 'alt(validate)'],
 			description: 'Merge raid points when alts merge'
 		)
@@ -792,7 +792,7 @@ class RaidPointsController extends ModuleInstance {
 		$context->reply("Reward <highlight>{$reward->name}<end> changed.");
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: AltNewMainEvent::EVENT_MASK,
 		description: 'Move raid points to new main'
 	)]

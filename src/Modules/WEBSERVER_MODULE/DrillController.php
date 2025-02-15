@@ -58,7 +58,7 @@ class DrillController extends ModuleInstance {
 	/** @var array<string,DrillHttpConnection> */
 	private array $handlers = [];
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Connect to Drill server',
 	)]
@@ -136,7 +136,7 @@ class DrillController extends ModuleInstance {
 		]);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'drill(hello)',
 		description: 'Choose Drill authentication',
 	)]
@@ -165,7 +165,7 @@ class DrillController extends ModuleInstance {
 		$event->connection->send($answer);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'drill(token-in-ao-tell)',
 		description: 'Handle Drill authentication',
 	)]
@@ -218,7 +218,7 @@ class DrillController extends ModuleInstance {
 		$event->connection->send($answer);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'drill(lets-go)',
 		description: 'Activate Drill',
 	)]
@@ -230,7 +230,7 @@ class DrillController extends ModuleInstance {
 		]);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'drill(data)',
 		description: 'Handle Drill data',
 	)]
@@ -273,7 +273,7 @@ class DrillController extends ModuleInstance {
 		$this->handlers[$packet->uuid]->handle($packet);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'drill(closed)',
 		description: 'Handle Drill disconnect',
 	)]
@@ -291,7 +291,7 @@ class DrillController extends ModuleInstance {
 		unset($this->handlers[$packet->uuid]);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'drill(disallowed-packet)',
 		description: 'Handle disallowed packets',
 	)]
@@ -299,7 +299,7 @@ class DrillController extends ModuleInstance {
 		$this->logger->warning('Drill server complains about disallowed packet');
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'drill(auth-failed)',
 		description: 'Handle failed authentication',
 	)]
@@ -307,7 +307,7 @@ class DrillController extends ModuleInstance {
 		$this->logger->notice('Failed to authenticate to the Drill server. Retrying.');
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'drill(out-of-capacity)',
 		description: 'Handle Drill-server full error',
 	)]

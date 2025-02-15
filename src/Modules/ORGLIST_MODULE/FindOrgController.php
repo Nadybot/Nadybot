@@ -198,7 +198,7 @@ class FindOrgController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(24hrs)',
 		description: 'Parses all orgs from People of Rubi Ka'
 	)]

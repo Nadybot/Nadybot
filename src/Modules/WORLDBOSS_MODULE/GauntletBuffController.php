@@ -165,7 +165,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->statsController->registerProvider(new GauntletBuffStats($this, Faction::Omni), 'states');
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Get active Gauntlet buffs from API'
 	)]
@@ -269,7 +269,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->handle($rMsg);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Sends gaubuff message on logon'
 	)]
@@ -285,7 +285,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->showGauntletBuff($sender);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: JoinMyPrivEvent::EVENT_MASK,
 		description: 'Sends gaubuff message on join'
 	)]
@@ -367,7 +367,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: SyncGaubuffEvent::EVENT_MASK,
 		description: 'Sync external gauntlet buff events'
 	)]

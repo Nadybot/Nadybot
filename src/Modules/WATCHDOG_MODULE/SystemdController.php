@@ -42,7 +42,7 @@ class SystemdController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1sec)',
 		description: 'Handle SystemD watchdog',
 		defaultStatus: Status::Disabled,

@@ -84,7 +84,7 @@ class RulesController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: JoinMyPrivEvent::EVENT_MASK,
 		description: 'If you defined rules, send them to people joining the private channel'
 	)]

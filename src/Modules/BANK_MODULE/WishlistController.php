@@ -67,7 +67,7 @@ class WishlistController extends ModuleInstance {
 	#[NCA\Inject]
 	private AltsController $altsController;
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Put characters someone wished from to the buddylist'
 	)]
@@ -78,7 +78,7 @@ class WishlistController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Inform people that someone wishes an item from them'
 	)]

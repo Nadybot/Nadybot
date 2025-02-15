@@ -60,7 +60,7 @@ class NickController extends ModuleInstance {
 		$this->cacheNicknames();
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1h)',
 		description: 'Sync nickname-cache'
 	)]
@@ -126,7 +126,7 @@ class NickController extends ModuleInstance {
 		return $nickDeleted;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: AltNewMainEvent::EVENT_MASK,
 		description: 'Move nickname to new main'
 	)]

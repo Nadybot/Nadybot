@@ -56,7 +56,7 @@ class WebUiController extends ModuleInstance {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
-	#[NCA\Event(name: ConnectEvent::EVENT_MASK, description: 'Download missing NadyUI')]
+	#[NCA\HandlesEvent(name: ConnectEvent::EVENT_MASK, description: 'Download missing NadyUI')]
 	public function onConnect(ConnectEvent $event): void {
 		$commit = BotRunner::getCommit();
 		$this->logger->debug('Current HEAD commit is {commit}', ['commit' => $commit]);

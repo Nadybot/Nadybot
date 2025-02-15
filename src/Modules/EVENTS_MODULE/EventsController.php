@@ -355,7 +355,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 		return Text::makeBlob('Events [Last updated ' . Util::date($updated).']', $link);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Show events to org members logging on'
 	)]
@@ -374,7 +374,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: JoinMyPrivEvent::EVENT_MASK,
 		description: 'Show events to characters joining the private channel'
 	)]

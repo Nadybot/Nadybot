@@ -105,7 +105,7 @@ class TradebotController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ExtJoinPrivRequest::EVENT_MASK,
 		description: 'Accept private channel join invitation from the trade bots'
 	)]
@@ -124,7 +124,7 @@ class TradebotController extends ModuleInstance {
 		$this->messageHub->registerMessageEmitter(new TradebotChannel($sender . '-*'));
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Add active tradebots to buddylist'
 	)]
@@ -196,7 +196,7 @@ class TradebotController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Join tradebot private channels'
 	)]
@@ -218,7 +218,7 @@ class TradebotController extends ModuleInstance {
 	}
 
 	/** @throws StopExecutionException */
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: PrivateChannelMsgEvent::EVENT_MASK,
 		description: 'Relay messages from the tradebot to org/private channel'
 	)]
@@ -231,7 +231,7 @@ class TradebotController extends ModuleInstance {
 		throw new StopExecutionException();
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: RecvMsgEvent::EVENT_MASK,
 		description: 'Relay incoming tells from the tradebots to org/private channel'
 	)]

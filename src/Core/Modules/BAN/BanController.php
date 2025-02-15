@@ -126,7 +126,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	 */
 	private array $orgbanlist = [];
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Upload banlist into memory',
 		defaultStatus: Status::Enabled,
@@ -389,7 +389,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		}
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1min)',
 		description: 'Check temp bans to see if they have expired',
 		defaultStatus: Status::Enabled,
@@ -696,7 +696,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		unset($this->orgbanlist[$orgId]);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: SyncBanEvent::EVENT_MASK,
 		description: 'Sync external bans'
 	)]
@@ -707,7 +707,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		$this->add($event->uid, $event->banned_by, $event->banned_until, $event->reason);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: SyncBanDeleteEvent::EVENT_MASK,
 		description: 'Sync external ban lifts'
 	)]

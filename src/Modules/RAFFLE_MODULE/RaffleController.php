@@ -572,7 +572,7 @@ class RaffleController extends ModuleInstance {
 		);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1sec)',
 		description: 'Announce and/or end raffle'
 	)]

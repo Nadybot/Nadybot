@@ -230,7 +230,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	}
 
 	/** Handle an incoming discord private message */
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'discordmsg',
 		description: 'Handle commands from Discord private messages'
 	)]
@@ -245,7 +245,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	}
 
 	/** Handle an incoming discord channel message */
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'discordpriv',
 		description: 'Handle commands from Discord channel messages'
 	)]

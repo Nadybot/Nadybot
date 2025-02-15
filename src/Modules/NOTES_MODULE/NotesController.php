@@ -254,7 +254,7 @@ class NotesController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Sends a tell to players on logon showing their reminders'
 	)]
@@ -268,7 +268,7 @@ class NotesController extends ModuleInstance {
 		$this->showReminders($sender);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: JoinMyPrivEvent::EVENT_MASK,
 		description: 'Show reminders when joining the private channel'
 	)]
@@ -290,7 +290,7 @@ class NotesController extends ModuleInstance {
 		return $reminderFormat;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: AltNewMainEvent::EVENT_MASK,
 		description: 'Move reminder format to new main'
 	)]

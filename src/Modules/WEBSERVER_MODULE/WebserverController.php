@@ -127,7 +127,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Download aoauth public key'
 	)]
@@ -169,7 +169,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		$this->scanRouteAttributes();
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(10min)',
 		description: 'Remove expired authentications',
 		defaultStatus: Status::Enabled

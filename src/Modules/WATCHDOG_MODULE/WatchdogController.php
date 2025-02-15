@@ -21,7 +21,7 @@ class WatchdogController extends ModuleInstance {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(10sec)',
 		description: 'Periodically touch an alive-file'
 	)]

@@ -79,7 +79,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1min)',
 		description: 'Check if a GSP show is running'
 	)]
@@ -144,7 +144,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->handle($r);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: LogonEvent::EVENT_MASK,
 		description: 'Announce running shows on logon'
 	)]

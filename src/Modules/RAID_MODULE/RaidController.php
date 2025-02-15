@@ -969,7 +969,7 @@ class RaidController extends ModuleInstance {
 		));
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: SendPrivEvent::EVENT_MASK,
 		description: 'Track when the bot sends messages on priv'
 	)]
@@ -980,7 +980,7 @@ class RaidController extends ModuleInstance {
 		$this->raid->we_are_most_recent_message = false;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: MyPrivateChannelMsgEvent::EVENT_MASK,
 		description: 'Track when someone sends messages on priv'
 	)]
@@ -991,7 +991,7 @@ class RaidController extends ModuleInstance {
 		$this->raid->we_are_most_recent_message = false;
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(30s)',
 		description: 'Announce the running raid'
 	)]
@@ -1020,7 +1020,7 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Announce when a raid was started */
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: RaidStartEvent::EVENT_MASK,
 		description: 'Announce when a raid was started'
 	)]
@@ -1038,7 +1038,7 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Announce when a raid was stopped. */
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: RaidStopEvent::EVENT_MASK,
 		description: 'Announce when a raid is stopped'
 	)]
@@ -1156,7 +1156,7 @@ class RaidController extends ModuleInstance {
 		);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(24h)',
 		description: 'Remove non-raiding members from bot'
 	)]

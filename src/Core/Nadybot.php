@@ -1525,7 +1525,7 @@ class Nadybot {
 					]);
 				}
 			}
-			foreach ($method->getAttributes(NCA\Event::class) as $eventAnnotation) {
+			foreach ($method->getAttributes(NCA\HandlesEvent::class) as $eventAnnotation) {
 				$event = $eventAnnotation->newInstance();
 				foreach ((array)$event->name as $eventName) {
 					$this->eventManager->register(

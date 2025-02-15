@@ -160,7 +160,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$this->reloadFilters();
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'event-feed(room-info)',
 		description: 'Register Highnet channels',
 	)]
@@ -184,7 +184,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$this->numClients = count($package->users);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ['event-feed(join)', 'event-feed(leave)'],
 		description: 'Count Highnet client',
 	)]
@@ -228,7 +228,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			->delete();
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1m)',
 		description: 'Remove expired filters',
 	)]
@@ -242,7 +242,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		// Nothing to do right now
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(10s)',
 		description: 'Clean unused rate limits'
 	)]
@@ -256,7 +256,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		);
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'event-feed(message)',
 		description: 'Handle raw Highnet-messages',
 	)]
@@ -309,7 +309,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		}
 	}
 
-	#[NCA\Event(name: HighnetEvent::EVENT_MASK, description: 'Handle Highnet messages')]
+	#[NCA\HandlesEvent(name: HighnetEvent::EVENT_MASK, description: 'Handle Highnet messages')]
 	public function handleMessage(HighnetEvent $event): void {
 		$message = $event->message;
 		$handler = $this->handlers[strtolower($message->channel)]??null;

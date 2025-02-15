@@ -87,7 +87,7 @@ class WhoisController extends ModuleInstance {
 	/** @var list<CharData> */
 	private array $nameHistoryCache = [];
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: 'timer(1min)',
 		description: 'Save cache of names and charIds to database'
 	)]
@@ -137,7 +137,7 @@ class WhoisController extends ModuleInstance {
 	}
 
 	#[
-		NCA\Event(
+		NCA\HandlesEvent(
 			name: [
 				'packet(20)',
 				'packet(21)',

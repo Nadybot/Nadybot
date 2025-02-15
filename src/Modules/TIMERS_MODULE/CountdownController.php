@@ -108,7 +108,7 @@ class CountdownController extends ModuleInstance {
 		});
 	}
 
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: SyncCdEvent::EVENT_MASK,
 		description: 'Process externally started countdowns'
 	)]

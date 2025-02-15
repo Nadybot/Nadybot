@@ -150,7 +150,7 @@ class ConsoleController extends ModuleInstance {
 	 * This is an Event("connect") instead of Setup since you cannot use the console
 	 * before the bot is fully ready anyway
 	 */
-	#[NCA\Event(
+	#[NCA\HandlesEvent(
 		name: ConnectEvent::EVENT_MASK,
 		description: 'Initializes the console',
 		defaultStatus: Status::Enabled
