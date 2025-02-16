@@ -1477,7 +1477,7 @@ class Nadybot {
 			} else {
 				$comment = null;
 			}
-			$this->eventManager->addEventType($eventObj->mask, $comment);
+			$this->eventManager->addEventType($eventObj->mask, $class, $comment);
 		}
 	}
 

@@ -596,8 +596,12 @@ class EventManager {
 		}
 	}
 
-	/** Dynamically add an event to the allowed types */
-	public function addEventType(string $eventType, ?string $description=null): bool {
+	/**
+	 * Dynamically add an event to the allowed types
+	 *
+	 * @psalm-param class-string $className
+	 */
+	public function addEventType(string $eventType, string $className, ?string $description=null): bool {
 		$eventType = strtolower($eventType);
 
 		if (isset($this->eventTypes[$eventType])) {
@@ -608,6 +612,7 @@ class EventManager {
 		}
 		$this->eventTypes[$eventType] = new EventType(
 			name: $eventType,
+			class: $className,
 			description: $description,
 		);
 		return true;
