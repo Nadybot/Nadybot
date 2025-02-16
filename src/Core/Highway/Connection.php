@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Highway;
 
-use function Safe\json_encode;
 use Amp\Websocket\Client\WebsocketConnection;
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
@@ -11,6 +10,7 @@ use Nadybot\Core\Highway\In\InPackage;
 use Nadybot\Core\Highway\Out\OutPackage;
 use Nadybot\Core\Types\LogWrapInterface;
 use Nadybot\Core\{Attributes as NCA, Hydrator, LoggerWrapper, SemanticVersion};
+use Nadylib\IMEX\JSON;
 
 class Connection implements LogWrapInterface {
 	public const SUPPORTED_VERSIONS = ['~0.1.1', '~0.2.0-alpha.1'];
@@ -99,7 +99,7 @@ class Connection implements LogWrapInterface {
 		if (!isset($json['id']) || !$serverSupportsIds) {
 			unset($json['id']);
 		}
-		$data = json_encode($json, \JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE|\JSON_INVALID_UTF8_SUBSTITUTE);
+		$data = JSON::export($json, \JSON_INVALID_UTF8_SUBSTITUTE);
 		$this->logger->debug('Sending data: {data}', ['data' => $data]);
 		$this->wsConnection->sendText($data);
 	}

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\USAGE;
 
-use function Safe\json_encode;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\Usage;
 use Nadybot\Core\Filesystem;
@@ -25,6 +24,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\RELAY_MODULE\{RelayConfig, RelayLayer};
+use Nadylib\IMEX\JSON;
 
 /**
  * @author Tyrence (RK2)
@@ -163,10 +163,7 @@ class UsageController extends ModuleInstance {
 		#[NCA\Parameter\Str('info')] string $action
 	): void {
 		$info = $this->getUsageInfo(time() - 7*24*3_600, time());
-		$blob = json_encode(
-			$info,
-			\JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES|\JSON_THROW_ON_ERROR
-		);
+		$blob = JSON::export($info, \JSON_PRETTY_PRINT);
 		$msg = Text::makeBlob('Collected usage info', $blob);
 		$context->reply($msg);
 	}

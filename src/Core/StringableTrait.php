@@ -2,10 +2,8 @@
 
 namespace Nadybot\Core;
 
-use function Safe\json_encode;
-
 use EventSauce\ObjectHydrator\DoNotSerialize;
-use Safe\Exceptions\JsonException;
+use Nadylib\IMEX\{ExportException, JSON};
 
 trait StringableTrait {
 	private static function __valueToString(mixed $value): string {
@@ -30,11 +28,8 @@ trait StringableTrait {
 		}
 		$prefix = is_object($value) ? '<' . class_basename($value) . '>' : '';
 		try {
-			$value = json_encode(
-				$value,
-				\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE|\JSON_INVALID_UTF8_SUBSTITUTE
-			);
-		} catch (JsonException $e) {
+			$value = JSON::export($value, \JSON_INVALID_UTF8_SUBSTITUTE);
+		} catch (ExportException $e) {
 			if (!is_object($value)) {
 				throw $e;
 			}

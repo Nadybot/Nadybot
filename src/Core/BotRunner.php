@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use function Amp\async;
 use function Amp\ByteStream\getStderr;
 use function Amp\File\{createDefaultDriver, filesystem};
-use function Safe\{fwrite, getopt, ini_set, json_encode, parse_url, putenv, sapi_windows_set_ctrl_handler};
+use function Safe\{fwrite, getopt, ini_set, parse_url, putenv, sapi_windows_set_ctrl_handler};
 
 use Amp\ByteStream\BufferedReader;
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
@@ -23,6 +23,7 @@ use Nadybot\Core\{
 	DBSchema\CmdCfg,
 	Modules\SETUP\Setup,
 };
+use Nadylib\IMEX\JSON;
 use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
 use ReflectionObject;
@@ -601,7 +602,7 @@ class BotRunner {
 						$this->logger->info('Setting {class}::${property} to {value}', [
 							'class' => class_basename($instance),
 							'property' => $refProp->getName(),
-							'value' => json_encode($value, \JSON_UNESCAPED_UNICODE|\JSON_UNESCAPED_SLASHES),
+							'value' => JSON::export($value),
 						]);
 						try {
 							$refProp->setValue($instance, $value);

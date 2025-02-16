@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use function Safe\{ini_get, json_encode, unpack};
+use function Safe\{ini_get, unpack};
 
 use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\Attributes\Hydrator\Confidential;
@@ -45,7 +45,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadylib\IMEX\TOML;
+use Nadylib\IMEX\{JSON, TOML};
 use Psr\Log\LoggerInterface;
 use ReflectionException;
 use ReflectionObject;
@@ -539,10 +539,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$config = Hydrator::serialize($this->config);
 		Confidential::$active = false;
 
-		$json = json_encode(
-			$config,
-			\JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE
-		);
+		$json = JSON::export($config, \JSON_PRETTY_PRINT);
 		$context->reply(
 			Text::makeBlob('Your config', $json)
 		);
