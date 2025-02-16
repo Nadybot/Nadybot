@@ -58,7 +58,7 @@ class Hydrator {
 		array $data,
 		?DefinitionProvider $definitionProvider=null
 	): object {
-		$hydratorClass = self::getHydratorClass($className);
+		$hydratorClass = self::getHydratorClass($className, $definitionProvider);
 		self::ensureHydratorExists($hydratorClass, $className, $definitionProvider);
 		if (class_exists($hydratorClass, false) && !isset(self::$badHydrators[$className])) {
 			if (is_subclass_of($hydratorClass, ObjectMapper::class)) {
@@ -113,7 +113,7 @@ class Hydrator {
 		iterable $data,
 		?DefinitionProvider $definitionProvider=null
 	): IterableList {
-		$hydratorClass = self::getHydratorClass($className);
+		$hydratorClass = self::getHydratorClass($className, $definitionProvider);
 		self::ensureHydratorExists($hydratorClass, $className, $definitionProvider);
 		if (class_exists($hydratorClass, false) && !isset(self::$badHydrators[$className])) {
 			if (is_subclass_of($hydratorClass, ObjectMapper::class)) {
@@ -162,7 +162,7 @@ class Hydrator {
 		?DefinitionProvider $definitionProvider=null
 	): mixed {
 		$className = $object::class;
-		$hydratorClass = self::getHydratorClass($className);
+		$hydratorClass = self::getHydratorClass($className, $definitionProvider);
 		self::ensureHydratorExists($hydratorClass, $className, $definitionProvider);
 		if (class_exists($hydratorClass, false) && !isset(self::$badSerializers[$className])) {
 			if (is_subclass_of($hydratorClass, ObjectMapper::class)) {
@@ -197,7 +197,7 @@ class Hydrator {
 			return new IterableList([]);
 		}
 		$className = get_class($objects[0]);
-		$hydratorClass = self::getHydratorClass($className);
+		$hydratorClass = self::getHydratorClass($className, $definitionProvider);
 		self::ensureHydratorExists($hydratorClass, $className, $definitionProvider);
 		if (class_exists($hydratorClass, false) && !isset(self::$badSerializers[$className])) {
 			if (is_subclass_of($hydratorClass, ObjectMapper::class)) {
@@ -237,11 +237,14 @@ class Hydrator {
 		$code = $dumper->dump([$className], $hydratorClass);
 		$fileName = $fs->tempnam($config->paths->cache, 'hydrator_');
 		$fs->write($fileName, $code);
-		require_once $fileName;
+		if (!class_exists($hydratorClass, false)) { // @phpstan-ignore-line
+			require_once $fileName;
+		}
 		$fs->deleteFile($fileName);
 	}
 
-	private static function getHydratorClass(string $className): string {
-		return 'Nadybot\\Cache\\Hydrator\\Hyd_' . md5($className);
+	private static function getHydratorClass(string $className, ?DefinitionProvider $definitionProvider): string {
+		$dpClass = isset($definitionProvider) ? '_with_dp' : '';
+		return 'Nadybot\\Cache\\Hydrator\\Hyd_' . md5($className) . $dpClass;
 	}
 }
