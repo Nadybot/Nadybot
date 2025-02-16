@@ -11,8 +11,8 @@ class OnlineList extends Packet {
 	 * @psalm-param list<OnlineBlock> $online
 	 */
 	public function __construct(
-		public string $type,
 		#[CastListToType(OnlineBlock::class)] public array $online,
 	) {
+		parent::__construct(type: BasePacket::ONLINE_LIST);
 	}
 }

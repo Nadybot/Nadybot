@@ -2,11 +2,13 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot;
 
+use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
+
 class OnlineBlock {
 	/** @param list<User> $users */
 	public function __construct(
 		public Source $source,
-		public array $users,
+		#[CastListToType(User::class)] public array $users,
 	) {
 	}
 }
