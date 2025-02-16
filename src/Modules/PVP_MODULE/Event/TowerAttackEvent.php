@@ -5,6 +5,7 @@ namespace Nadybot\Modules\PVP_MODULE\Event;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Modules\PVP_MODULE\FeedMessage;
 
+/** Someone attacks a tower site */
 #[Event(mask: 'tower-attack')]
 class TowerAttackEvent {
 	public function __construct(

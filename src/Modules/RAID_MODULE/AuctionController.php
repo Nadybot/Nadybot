@@ -51,11 +51,6 @@ use Safe\DateTimeImmutable;
 		description: 'Give back points for an auction',
 	),
 
-	NCA\ProvidesEvent(AuctionStartEvent::class),
-	NCA\ProvidesEvent(AuctionEndEvent::class),
-	NCA\ProvidesEvent(AuctionCancelEvent::class),
-	NCA\ProvidesEvent(AuctionBidEvent::class),
-
 	NCA\EmitsMessages('auction', 'start'),
 	NCA\EmitsMessages('auction', 'end'),
 	NCA\EmitsMessages('auction', 'cancel'),

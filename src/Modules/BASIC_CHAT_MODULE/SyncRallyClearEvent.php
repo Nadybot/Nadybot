@@ -5,6 +5,7 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when someone clears the rally point */
 #[Event(mask: 'sync(rally-clear)')]
 class SyncRallyClearEvent extends SyncEvent {
 	/** @param string $owner Character who cleared the rally */

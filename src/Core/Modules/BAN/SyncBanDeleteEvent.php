@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\BAN;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when someone's ban is lifted */
 #[Event(mask: 'sync(ban-delete)')]
 final class SyncBanDeleteEvent extends SyncEvent {
 	/**

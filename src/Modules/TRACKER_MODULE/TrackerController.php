@@ -55,8 +55,6 @@ use Throwable;
 		accessLevel: 'member',
 		description: 'Show and manage tracked players',
 	),
-	NCA\ProvidesEvent(TrackerLogonEvent::class),
-	NCA\ProvidesEvent(TrackerLogoffEvent::class)
 ]
 class TrackerController extends ModuleInstance implements MessageEmitter {
 	public const REASON_TRACKER = 'tracking';

@@ -33,12 +33,7 @@ use Throwable;
  *
  * @author Nadyita
  */
-#[
-	NCA\Instance,
-	NCA\ProvidesEvent(LowLevelEventFeedEvent::class),
-	NCA\ProvidesEvent(EventFeedConnect::class),
-	NCA\ProvidesEvent(EventFeedReconnect::class),
-]
+#[NCA\Instance]
 class EventFeed {
 	public const URI = 'wss://ws.nadybot.org';
 	public const RECONNECT_DELAY = 5;

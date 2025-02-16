@@ -5,6 +5,7 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when a rally point is set */
 #[Event(mask: 'sync(rally-set)')]
 class SyncRallySetEvent extends SyncEvent {
 	/**

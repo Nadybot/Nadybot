@@ -25,7 +25,6 @@ use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Throwable;
 
-#[NCA\ProvidesEvent(DrillPacketEvent::class)]
 #[NCA\Instance]
 class DrillController extends ModuleInstance {
 	public const OFF = 'off';

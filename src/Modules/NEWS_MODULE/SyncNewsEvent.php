@@ -5,6 +5,7 @@ namespace Nadybot\Modules\NEWS_MODULE;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered whenever someone creates or modifies a news entry */
 #[Event(mask: 'sync(news)')]
 class SyncNewsEvent extends SyncEvent {
 	/**

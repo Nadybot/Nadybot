@@ -6,7 +6,10 @@ use function Safe\{json_decode, json_encode};
 
 use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use InvalidArgumentException;
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
+use ReflectionAttribute;
+use ReflectionClass;
 
 class SyncEventFactory {
 	/**
@@ -54,7 +57,16 @@ class SyncEventFactory {
 			if (!is_a($class, SyncEvent::class, true)) {
 				continue;
 			}
-			self::$classMapping[$class::EVENT_MASK] = $class;
+			$refClass = new ReflectionClass($class);
+			if ($refClass->isAbstract()) {
+				continue;
+			}
+			$refAttr = $refClass->getAttributes(Event::class, ReflectionAttribute::IS_INSTANCEOF);
+			if (!count($refAttr)) {
+				continue;
+			}
+
+			self::$classMapping[$refAttr[0]->newInstance()->mask] = $class;
 		}
 		return self::$classMapping;
 	}

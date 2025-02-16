@@ -39,9 +39,6 @@ use Throwable;
 		accessLevel: 'rl',
 		description: 'Set, add or clear assists',
 	),
-	NCA\ProvidesEvent(AssistClearEvent::class),
-	NCA\ProvidesEvent(AssistSetEvent::class),
-	NCA\ProvidesEvent(AssistAddEvent::class)
 ]
 class ChatAssistController extends ModuleInstance {
 	public const CMD_SET_ADD_CLEAR = 'assist set/add/clear';

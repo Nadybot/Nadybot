@@ -55,11 +55,6 @@ use Nadybot\Core\{
 		description: 'Declines being the alt of someone else',
 	),
 
-	NCA\ProvidesEvent(AltAddEvent::class),
-	NCA\ProvidesEvent(AltDelEvent::class),
-	NCA\ProvidesEvent(AltValidateEvent::class),
-	NCA\ProvidesEvent(AltDeclineEvent::class),
-	NCA\ProvidesEvent(AltNewMainEvent::class),
 	NCA\HasMigrations
 ]
 class AltsController extends ModuleInstance {

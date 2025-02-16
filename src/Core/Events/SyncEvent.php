@@ -3,10 +3,14 @@
 namespace Nadybot\Core\Events;
 
 use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\{Attributes as NCA, Registry};
+use Nadybot\Core\Types\DoNotSerializePublicFunctions;
+use Nadybot\Core\{Attributes as NCA, Registry, StringableTrait};
+use Stringable;
 
 #[NCA\Event(mask: 'sync(*)')]
-abstract class SyncEvent {
+abstract class SyncEvent implements Stringable, DoNotSerializePublicFunctions {
+	use StringableTrait;
+
 	public string $sourceBot;
 	public int $sourceDimension;
 	public bool $forceSync = false;

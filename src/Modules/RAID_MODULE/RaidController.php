@@ -72,12 +72,6 @@ use Safe\DateTimeImmutable;
 		description: 'Change the raid points ticker',
 	),
 
-	NCA\ProvidesEvent(RaidStartEvent::class),
-	NCA\ProvidesEvent(RaidStopEvent::class),
-	NCA\ProvidesEvent(RaidChangeEvent::class),
-	NCA\ProvidesEvent(RaidLockEvent::class),
-	NCA\ProvidesEvent(RaidUnlockEvent::class),
-
 	NCA\EmitsMessages('raid', 'announce'),
 	NCA\EmitsMessages('raid', 'lock'),
 	NCA\EmitsMessages('raid', 'unlock'),

@@ -44,12 +44,6 @@ use Nadybot\Core\{
 		description: 'Create, view or delete polls',
 		alias: 'polls'
 	),
-	NCA\ProvidesEvent(PollStartEvent::class),
-	NCA\ProvidesEvent(PollEndEvent::class),
-	NCA\ProvidesEvent(PollDelEvent::class),
-	NCA\ProvidesEvent(VoteCastEvent::class),
-	NCA\ProvidesEvent(VoteDelEvent::class),
-	NCA\ProvidesEvent(VoteChangeEvent::class)
 ]
 class VoteController extends ModuleInstance implements MessageEmitter {
 	public const DELIMITER = '|';

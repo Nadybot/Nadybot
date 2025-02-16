@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 use Ramsey\Uuid\Uuid;
 
+/** Triggered whenever someone creates an org note */
 #[Event(mask: 'sync(orgnote)')]
 class SyncOrgNoteEvent extends SyncEvent {
 	/**

@@ -5,6 +5,7 @@ namespace Nadybot\Modules\NOTES_MODULE;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when deleting an org note */
 #[Event(mask: 'sync(orgnote-delete)')]
 class SyncOrgNoteDeleteEvent extends SyncEvent {
 	/** @param string $uuid UUID of this note */

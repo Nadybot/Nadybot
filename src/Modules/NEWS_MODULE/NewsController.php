@@ -49,15 +49,6 @@ use Throwable;
 		accessLevel: 'mod',
 		description: 'Adds, removes, pins or unpins a news entry',
 	),
-
-	NCA\ProvidesEvent(
-		event: SyncNewsEvent::class,
-		desc: 'Triggered whenever someone creates or modifies a news entry'
-	),
-	NCA\ProvidesEvent(
-		event: SyncNewsDeleteEvent::class,
-		desc: 'Triggered when deleting a news entry'
-	)
 ]
 class NewsController extends ModuleInstance {
 	public const CMD_NEWS_MANAGE = 'news add/change/delete';

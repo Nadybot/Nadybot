@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when the timer for a worldboss is deleted */
 #[Event(mask: 'sync(worldboss-delete)')]
 class SyncWorldbossDeleteEvent extends SyncEvent {
 	/**

@@ -29,9 +29,6 @@ use Nadybot\Core\{
 		accessLevel: 'rl',
 		description: 'Changes Topic',
 	),
-
-	NCA\ProvidesEvent(TopicSetEvent::class),
-	NCA\ProvidesEvent(TopicClearEvent::class)
 ]
 class ChatTopicController extends ModuleInstance {
 	public const CMD_TOPIC_SET = 'topic set/clear';

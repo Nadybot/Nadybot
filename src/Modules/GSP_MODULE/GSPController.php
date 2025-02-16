@@ -37,8 +37,6 @@ use Throwable;
 		description: 'List what is currently playing on GridStream',
 		alias: 'gsp'
 	),
-	NCA\ProvidesEvent(GSPShowStartEvent::class),
-	NCA\ProvidesEvent(GSPShowEndEvent::class)
 ]
 class GSPController extends ModuleInstance implements MessageEmitter {
 	public const GSP_URL = 'https://gsp.torontocast.stream/streaminfo/';

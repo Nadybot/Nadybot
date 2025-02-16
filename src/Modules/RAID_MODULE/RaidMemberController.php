@@ -39,9 +39,6 @@ use Nadybot\Core\{
 		description: 'Add or remove someone from/to the raid',
 	),
 
-	NCA\ProvidesEvent(RaidJoinEvent::class),
-	NCA\ProvidesEvent(RaidLeaveEvent::class),
-
 	NCA\EmitsMessages('raid', 'join'),
 	NCA\EmitsMessages('raid', 'leave'),
 	NCA\EmitsMessages('raid', 'kick'),

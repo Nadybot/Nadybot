@@ -41,7 +41,6 @@ use Throwable;
 		accessLevel: 'mod',
 		description: 'Create public/private key pairs for auth against the API',
 	),
-	NCA\ProvidesEvent(CommandReplyEvent::class)
 ]
 class ApiController extends ModuleInstance {
 	/** Enable REST API */

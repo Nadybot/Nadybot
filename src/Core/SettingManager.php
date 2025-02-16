@@ -15,10 +15,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
-#[
-	NCA\Instance,
-	NCA\ProvidesEvent(SettingEvent::class)
-]
+#[NCA\Instance]
 class SettingManager {
 	public static bool $isInitialized = false;
 

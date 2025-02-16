@@ -40,12 +40,6 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 		accessLevel: 'guest',
 		description: 'Raffle off items to players',
 	),
-
-	NCA\ProvidesEvent(RaffleStartEvent::class),
-	NCA\ProvidesEvent(RaffleCancelEvent::class),
-	NCA\ProvidesEvent(RaffleEndEvent::class),
-	NCA\ProvidesEvent(RaffleEnterEvent::class),
-	NCA\ProvidesEvent(RaffleLeaveEvent::class)
 ]
 class RaffleController extends ModuleInstance {
 	public const NO_RAFFLE_ERROR = 'There is no active raffle.';

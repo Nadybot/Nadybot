@@ -49,13 +49,6 @@ use ReflectionClass;
 		description: 'Sets and shows timers',
 		alias: 'timer'
 	),
-	NCA\ProvidesEvent(TimerStartEvent::class),
-	NCA\ProvidesEvent(TimerEndEvent::class),
-	NCA\ProvidesEvent(TimerDelEvent::class),
-	NCA\ProvidesEvent(
-		event: 'sync(timer)',
-		desc: 'Triggered when a new timer is created with the timer command',
-	)
 ]
 class TimerController extends ModuleInstance implements MessageEmitter {
 	/** Times to display timer alerts */

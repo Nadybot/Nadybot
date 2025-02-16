@@ -5,6 +5,7 @@ namespace Nadybot\Modules\PVP_MODULE\Event;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Modules\PVP_MODULE\FeedMessage;
 
+/** New  information about a tower site */
 #[Event(mask: 'site-update')]
 class SiteUpdateEvent {
 	public function __construct(

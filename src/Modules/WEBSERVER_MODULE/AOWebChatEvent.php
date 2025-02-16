@@ -7,14 +7,9 @@ use Nadybot\Core\Events\AOChatEvent;
 
 #[Event(mask: 'chat(web)')]
 class AOWebChatEvent extends AOChatEvent {
-	public const EVENT_MASK = 'chat(web)';
-
 	/**
-	 * @param string           $sender  The name of the sender of the message
-	 * @param string           $channel The name of the channel via which the message was sent
-	 * @param string           $message The message itself
+	 * @param string           $sender The name of the sender of the message
 	 * @param ?list<WebSource> $path
-	 * @param ?string          $worker  If set, this is the id of the worker via which the message was received
 	 */
 	public function __construct(
 		public string $sender,

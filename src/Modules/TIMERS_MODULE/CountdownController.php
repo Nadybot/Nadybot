@@ -23,10 +23,6 @@ use Revolt\EventLoop;
 		description: 'Start a 5-second countdown',
 		alias: 'cd'
 	),
-	NCA\ProvidesEvent(
-		event: SyncCdEvent::class,
-		desc: 'Triggered when someone starts a countdown',
-	)
 ]
 class CountdownController extends ModuleInstance {
 	public const LOC_PRIV = 1;

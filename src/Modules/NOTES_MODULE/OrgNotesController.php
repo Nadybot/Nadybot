@@ -30,14 +30,6 @@ use Ramsey\Uuid\Uuid;
 		description: 'Displays, adds, or removes a note from your list',
 		alias: 'orgnote'
 	),
-	NCA\ProvidesEvent(
-		event: SyncOrgNoteEvent::class,
-		desc: 'Triggered whenever someone creates an org note'
-	),
-	NCA\ProvidesEvent(
-		event: SyncOrgNoteDeleteEvent::class,
-		desc: 'Triggered when deleting an org note'
-	)
 ]
 class OrgNotesController extends ModuleInstance {
 	/** Rank required to delete other people's org notes */

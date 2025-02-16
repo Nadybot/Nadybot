@@ -5,6 +5,7 @@ namespace Nadybot\Modules\TIMERS_MODULE;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when a new timer is created with the timer command */
 #[Event(mask: 'sync(timer)')]
 class SyncTimerEvent extends SyncEvent {
 	/**

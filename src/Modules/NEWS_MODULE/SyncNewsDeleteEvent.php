@@ -5,6 +5,7 @@ namespace Nadybot\Modules\NEWS_MODULE;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when deleting a news entry */
 #[Event(mask: 'sync(news-delete)')]
 class SyncNewsDeleteEvent extends SyncEvent {
 	/** @param string $uuid UUID of these news */

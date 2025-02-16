@@ -8,6 +8,7 @@ use Nadybot\Core\Events\SyncEvent;
 use Nadybot\Core\Types\Faction;
 use Nadybot\Core\Util;
 
+/** Triggered when someone sets the gauntlet buff for either side */
 #[Event(mask: 'sync(gaubuff)')]
 class SyncGaubuffEvent extends SyncEvent {
 	/**

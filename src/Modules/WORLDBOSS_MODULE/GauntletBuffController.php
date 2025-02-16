@@ -55,10 +55,6 @@ use ValueError;
 		accessLevel: 'member',
 		description: 'Set/update timer for gauntlet buff',
 	),
-	NCA\ProvidesEvent(
-		event: SyncGaubuffEvent::class,
-		desc: 'Triggered when someone sets the gauntlet buff for either side',
-	)
 ]
 class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public const SIDE_NONE = 'none';

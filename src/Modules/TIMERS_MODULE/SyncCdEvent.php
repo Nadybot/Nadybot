@@ -5,6 +5,7 @@ namespace Nadybot\Modules\TIMERS_MODULE;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when someone starts a countdown */
 #[Event(mask: 'sync(cd)')]
 class SyncCdEvent extends SyncEvent {
 	/**

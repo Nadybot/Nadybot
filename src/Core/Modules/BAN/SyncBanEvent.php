@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\BAN;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered whenever someone is banned */
 #[Event(mask: 'sync(ban)')]
 final class SyncBanEvent extends SyncEvent {
 	/**

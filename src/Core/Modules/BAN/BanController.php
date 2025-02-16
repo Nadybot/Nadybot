@@ -66,15 +66,6 @@ use Throwable;
 		description: 'Ban or unban a whole org',
 		alias: 'orgbans'
 	),
-
-	NCA\ProvidesEvent(
-		event: SyncBanEvent::class,
-		desc: 'Triggered whenever someone is banned'
-	),
-	NCA\ProvidesEvent(
-		event: SyncBanDeleteEvent::class,
-		desc: "Triggered when someone's ban is lifted"
-	)
 ]
 class BanController extends ModuleInstance implements ImporterInterface {
 	/** Always ban all alts, not just 1 char */

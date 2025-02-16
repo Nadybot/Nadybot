@@ -32,14 +32,6 @@ use Nadybot\Core\{
 		accessLevel: 'rl',
 		description: 'Sets the rally waypoint',
 	),
-	NCA\ProvidesEvent(
-		event: SyncRallySetEvent::class,
-		desc: 'Triggered when a rally point is set',
-	),
-	NCA\ProvidesEvent(
-		event: SyncRallyClearEvent::class,
-		desc: 'Triggered when someone clears the rally point',
-	)
 ]
 class ChatRallyController extends ModuleInstance {
 	public const CMD_RALLY_SET = 'rally set/clear';

@@ -34,11 +34,7 @@ use TypeError;
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
  */
-#[
-	NCA\Instance,
-	NCA\ProvidesEvent(WebsocketSubscribeEvent::class),
-	NCA\ProvidesEvent(WebsocketRequestEvent::class),
-]
+#[NCA\Instance]
 class WebsocketController extends ModuleInstance implements WebsocketClientHandler {
 	/** Enable the websocket handler */
 	#[NCA\Setting\Boolean]

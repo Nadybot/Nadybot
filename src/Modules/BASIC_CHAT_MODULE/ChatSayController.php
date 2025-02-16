@@ -36,8 +36,6 @@ use Nadybot\Modules\GUILD_MODULE\GuildController;
 		accessLevel: 'rl',
 		description: 'Creates a highly visible message',
 	),
-	NCA\ProvidesEvent(SayEvent::class),
-	NCA\ProvidesEvent(CmdEvent::class)
 ]
 class ChatSayController extends ModuleInstance {
 	/** The color that !cmd wraps the message in */

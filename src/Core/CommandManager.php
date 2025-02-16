@@ -50,14 +50,7 @@ use ReflectionType;
 use Revolt\EventLoop;
 use Throwable;
 
-#[
-	NCA\Instance,
-	NCA\ProvidesEvent(ForbiddenCmdEvent::class),
-	NCA\ProvidesEvent(SuccessCmdEvent::class),
-	NCA\ProvidesEvent(UnknownCmdEvent::class),
-	NCA\ProvidesEvent(HelpCmdEvent::class),
-	NCA\ProvidesEvent(ErrorCmdEvent::class)
-]
+#[NCA\Instance]
 class CommandManager implements MessageEmitter {
 	private const DIRECT = 1;
 	private const PUBLIC = 2;

@@ -147,10 +147,6 @@ use Throwable;
 		description: 'Shows the last logon-times of a character',
 	),
 
-	NCA\ProvidesEvent('online(priv)'),
-	NCA\ProvidesEvent('offline(priv)'),
-	NCA\ProvidesEvent(MemberAddEvent::class),
-	NCA\ProvidesEvent(MemberRemoveEvent::class),
 	NCA\EmitsMessages(Source::SYSTEM, 'lock-reminder')
 ]
 class PrivateChannelController extends ModuleInstance implements AccessLevelProvider {

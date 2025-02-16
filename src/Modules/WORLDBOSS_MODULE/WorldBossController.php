@@ -104,14 +104,6 @@ use Throwable;
 		accessLevel: 'mod',
 		description: 'Show low-level information about WorldBoss-timers',
 	),
-	NCA\ProvidesEvent(
-		event: SyncWorldbossEvent::class,
-		desc: 'Triggered when the spawntime of a worldboss is set manually',
-	),
-	NCA\ProvidesEvent(
-		event: SyncWorldbossDeleteEvent::class,
-		desc: 'Triggered when the timer for a worldboss is deleted',
-	)
 ]
 class WorldBossController extends ModuleInstance {
 	public const CMD_TARA_UPDATE = 'tara set/delete';

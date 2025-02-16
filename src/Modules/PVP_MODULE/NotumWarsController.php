@@ -32,7 +32,6 @@ use Nadybot\Core\{
 	Util
 };
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
-use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfoEvent;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
 use Nadybot\Modules\TIMERS_MODULE\{Alert, Timer, TimerController};
 use Psr\Log\LoggerInterface;
@@ -65,10 +64,6 @@ use Throwable;
 	NCA\EmitsMessages('pvp', 'site-cold-neutral'),
 	NCA\EmitsMessages('pvp', 'site-cold-omni'),
 	NCA\EmitsMessages('pvp', 'unplanted-sites'),
-	NCA\ProvidesEvent(
-		event: TowerAttackInfoEvent::class,
-		desc: 'Someone attacks a tower site, includes additional information'
-	),
 	NCA\DefineCommand(
 		command: 'nw',
 		description: 'Perform Notum Wars commands',

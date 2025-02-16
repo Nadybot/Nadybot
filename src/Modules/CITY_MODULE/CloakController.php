@@ -37,9 +37,6 @@ use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 		description: 'Show the status of the city cloak',
 		alias: 'city'
 	),
-
-	NCA\ProvidesEvent(CloakRaiseEvent::class),
-	NCA\ProvidesEvent(CloakLowerEvent::class)
 ]
 class CloakController extends ModuleInstance implements MessageEmitter {
 	/** Show cloak status to players at logon */

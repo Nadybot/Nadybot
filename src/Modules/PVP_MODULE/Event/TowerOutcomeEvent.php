@@ -5,6 +5,7 @@ namespace Nadybot\Modules\PVP_MODULE\Event;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Modules\PVP_MODULE\FeedMessage;
 
+/** A tower field gets destroyed */
 #[Event(mask: 'tower-outcome')]
 class TowerOutcomeEvent {
 	public function __construct(

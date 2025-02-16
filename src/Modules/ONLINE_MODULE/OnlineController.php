@@ -69,9 +69,6 @@ use Psr\Log\LoggerInterface;
 		accessLevel: 'mod',
 		description: 'Manage hidden characters from the online list',
 	),
-
-	NCA\ProvidesEvent('online(org)'),
-	NCA\ProvidesEvent('offline(org)')
 ]
 class OnlineController extends ModuleInstance {
 	public const CMD_MANAGE_HIDDEN = 'online manage hidden users';

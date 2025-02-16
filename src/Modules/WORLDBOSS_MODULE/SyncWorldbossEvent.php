@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when the spawntime of a worldboss is set manually */
 #[Event(mask: 'sync(worldboss)')]
 class SyncWorldbossEvent extends SyncEvent {
 	/**
