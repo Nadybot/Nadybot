@@ -6,6 +6,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\Player,
+	EventManager,
 	Events\SyncEvent,
 	MessageHub,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -367,7 +368,7 @@ class Relay implements MessageReceiver {
 	}
 
 	public function allowIncSyncEvent(SyncEvent $event): bool {
-		$allow = $this->events[$event->type] ?? null;
+		$allow = $this->events[EventManager::getEventType($event)] ?? null;
 		if (!isset($allow)) {
 			return false;
 		}
@@ -375,7 +376,7 @@ class Relay implements MessageReceiver {
 	}
 
 	public function allowOutSyncEvent(SyncEvent $event): bool {
-		$allow = $this->events[$event->type] ?? null;
+		$allow = $this->events[EventManager::getEventType($event)] ?? null;
 		if (!isset($allow)) {
 			return false;
 		}

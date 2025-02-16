@@ -230,10 +230,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	}
 
 	/** Handle an incoming discord private message */
-	#[NCA\HandlesEvent(
-		name: 'discordmsg',
-		description: 'Handle commands from Discord private messages'
-	)]
+	/** Handle commands from Discord private messages */
+	#[NCA\HandlesEvent(mask: 'discordmsg')]
 	public function processDiscordDirectMessage(DiscordMessageEvent $event): void {
 		$discordUserId = $event->discord_message->author->id ?? $event->sender;
 		$context = new CmdContext(
@@ -245,10 +243,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	}
 
 	/** Handle an incoming discord channel message */
-	#[NCA\HandlesEvent(
-		name: 'discordpriv',
-		description: 'Handle commands from Discord channel messages'
-	)]
+	/** Handle commands from Discord channel messages */
+	#[NCA\HandlesEvent(mask: 'discordpriv')]
 	public function processDiscordChannelMessage(DiscordMessageEvent $event): void {
 		$discordUserId = $event->discord_message->author->id ?? $event->sender;
 		$context = new CmdContext(

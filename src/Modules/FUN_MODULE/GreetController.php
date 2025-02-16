@@ -150,10 +150,8 @@ class GreetController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/greeting.csv');
 	}
 
-	#[NCA\HandlesEvent(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Greet players joining the private channel',
-	)]
+	/** Greet players joining the private channel */
+	#[NCA\HandlesEvent]
 	public function sendRandomJoinGreeting(JoinMyPrivEvent $event): void {
 		if (!$this->needsGreeting($event->sender)) {
 			return;
@@ -172,10 +170,8 @@ class GreetController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Greet org members logging on'
-	)]
+	/** Greet org members logging on */
+	#[NCA\HandlesEvent]
 	public function sendRandomLogonGreeting(LogonEvent $event): void {
 		$sender = $event->sender;
 		if (!$this->myOrg->isMember($sender)
@@ -286,10 +282,8 @@ class GreetController extends ModuleInstance {
 		$context->reply('Receiving greetings is now <off>disabled<end>.');
 	}
 
-	#[NCA\HandlesEvent(
-		name: AltNewMainEvent::EVENT_MASK,
-		description: 'Move greeting preferences to new main'
-	)]
+	/** Move greeting preferences to new main */
+	#[NCA\HandlesEvent]
 	public function moveGreetingPrefs(AltNewMainEvent $event): void {
 		$oldSetting = $this->prefs->get($event->alt, self::PREF);
 		if ($oldSetting === null) {

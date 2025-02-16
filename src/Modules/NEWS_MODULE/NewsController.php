@@ -181,10 +181,8 @@ class NewsController extends ModuleInstance {
 		return $msg;
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Sends news to org members logging in'
-	)]
+	/** Sends news to org members logging in */
+	#[NCA\HandlesEvent]
 	public function logonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 
@@ -201,10 +199,8 @@ class NewsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Sends news to players joining private channel'
-	)]
+	/** Sends news to players joining private channel */
+	#[NCA\HandlesEvent]
 	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
 		if (!$this->hasRecentNews($eventObj->sender)) {
 			return;
@@ -548,10 +544,8 @@ class NewsController extends ModuleInstance {
 		return $blob;
 	}
 
-	#[NCA\HandlesEvent(
-		name: SyncNewsEvent::EVENT_MASK,
-		description: 'Sync external news created or modified'
-	)]
+	/** Sync external news created or modified */
+	#[NCA\HandlesEvent]
 	public function processNewsSyncEvent(SyncNewsEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -560,10 +554,8 @@ class NewsController extends ModuleInstance {
 			->upsert($event->toData(), 'uuid', $event->toData());
 	}
 
-	#[NCA\HandlesEvent(
-		name: SyncNewsDeleteEvent::EVENT_MASK,
-		description: 'Sync external news being deleted'
-	)]
+	/** Sync external news being deleted */
+	#[NCA\HandlesEvent]
 	public function processNewsDeleteSyncEvent(SyncNewsDeleteEvent $event): void {
 		if (!$event->isLocal()) {
 			$this->db->table(News::getTable())->where('uuid', $event->uuid)->update(['deleted' => 1]);

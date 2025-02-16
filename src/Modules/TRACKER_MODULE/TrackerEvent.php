@@ -2,15 +2,13 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-abstract class TrackerEvent extends Event {
-	public const EVENT_MASK = 'tracker(*)';
-
+#[Event(mask: 'tracker(*)')]
+abstract class TrackerEvent {
 	public function __construct(
 		public string $player,
 		public int $uid,
 	) {
-		$this->type = self::EVENT_MASK;
 	}
 }

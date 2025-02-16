@@ -114,8 +114,6 @@ use Throwable;
 	NCA\ProvidesEvent('discord(channel_delete)'),
 	NCA\ProvidesEvent('discord(channel_pins_update)'),
 	NCA\ProvidesEvent('discord(voice_state_update)'),
-	NCA\ProvidesEvent(DiscordVoiceJoinEvent::EVENT_MASK),
-	NCA\ProvidesEvent(DiscordVoiceLeaveEvent::EVENT_MASK),
 
 	NCA\EmitsMessages('discord', 'event-create'),
 	NCA\EmitsMessages('discord', 'event-delete'),
@@ -345,11 +343,9 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Connects to the Discord server'
-	)]
-	public function connectToDiscordgateway(): void {
+	/** Connects to the Discord server */
+	#[NCA\HandlesEvent]
+	public function connectToDiscordgateway(ConnectEvent $event): void {
 		$this->connect();
 	}
 
@@ -413,11 +409,8 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->eventManager->fireEvent($eventObj);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(10)',
-		description: 'Authorize to discord gateway',
-		defaultStatus: Status::Enabled
-	)]
+	/** Authorize to discord gateway */
+	#[NCA\HandlesEvent(mask: 'discord(10)', defaultStatus: Status::Enabled)]
 	public function processGatewayHello(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
 
@@ -435,11 +428,8 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(0)',
-		description: 'Handle discord gateway intents',
-		defaultStatus: Status::Enabled
-	)]
+	/** Handle discord gateway intents */
+	#[NCA\HandlesEvent(mask: 'discord(0)', defaultStatus: Status::Enabled)]
 	public function processGatewayEvents(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
 		if ($payload->t === null) {
@@ -454,11 +444,8 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->eventManager->fireEvent($newEvent);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(7)',
-		description: 'Reconnect to discord gateway if requested',
-		defaultStatus: Status::Enabled
-	)]
+	/** Reconnect to discord gateway if requested */
+	#[NCA\HandlesEvent(mask: 'discord(7)', defaultStatus: Status::Enabled)]
 	public function processGatewayReconnectRequest(DiscordGatewayEvent $event): void {
 		$this->logger->info('Discord Gateway requests reconnect');
 		$this->reconnectDelay = 1;
@@ -467,11 +454,8 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(9)',
-		description: 'Handle invalid session answers',
-		defaultStatus: Status::Enabled
-	)]
+	/** Handle invalid session answers */
+	#[NCA\HandlesEvent(mask: 'discord(9)', defaultStatus: Status::Enabled)]
 	public function processGatewayInvalidSession(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
 		if ($payload->d === true) {
@@ -483,11 +467,8 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->sendIdentify();
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(guild_members_chunk)',
-		description: 'Handle discord server members',
-		defaultStatus: Status::Enabled
-	)]
+	/** Handle discord server members */
+	#[NCA\HandlesEvent(mask: 'discord(guild_members_chunk)', defaultStatus: Status::Enabled)]
 	public function processDiscordMembersChunk(DiscordGatewayEvent $event): void {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
@@ -517,11 +498,8 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(message_create)',
-		description: 'Handle discord gateway messages',
-		defaultStatus: Status::Enabled
-	)]
+	/** Handle discord gateway messages */
+	#[NCA\HandlesEvent(mask: 'discord(message_create)', defaultStatus: Status::Enabled)]
 	public function processDiscordMessage(DiscordGatewayEvent $event): void {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
@@ -658,10 +636,8 @@ class DiscordGatewayController extends ModuleInstance {
 		return $message;
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'setting(discord_custom_emojis)',
-		description: '(Un)register emojis from discord',
-	)]
+	/** (Un)register emojis from discord */
+	#[NCA\HandlesEvent(mask: 'setting(discord_custom_emojis)')]
 	public function emojiSettingsChanged(): void {
 		foreach ($this->guilds as $guildName => $guild) {
 			delay(0.1);
@@ -669,16 +645,14 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 	}
 
-	#[
-		NCA\HandlesEvent(
-			name: [
-				'discord(guild_create)',
-				'discord(guild_update)',
-			],
-			description: 'Handle discord guild changes',
-			defaultStatus: Status::Enabled
-		),
-	]
+	/** Handle discord guild changes */
+	#[NCA\HandlesEvent(
+		mask: [
+			'discord(guild_create)',
+			'discord(guild_update)',
+		],
+		defaultStatus: Status::Enabled
+	)]
 	public function processDiscordGuildMessages(DiscordGatewayEvent $event): void {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
@@ -727,13 +701,8 @@ class DiscordGatewayController extends ModuleInstance {
 			->registerMessageEmitter($dm);
 	}
 
-	#[
-		NCA\HandlesEvent(
-			name: 'discord(guild_delete)',
-			description: 'Handle discord guild leave',
-			defaultStatus: Status::Enabled
-		),
-	]
+	/** Handle discord guild leave */
+	#[NCA\HandlesEvent(mask: 'discord(guild_delete)', defaultStatus: Status::Enabled)]
 	public function processDiscordGuildDeleteMessages(DiscordGatewayEvent $event): void {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
@@ -756,17 +725,15 @@ class DiscordGatewayController extends ModuleInstance {
 		unset($this->invites[$guildId]);
 	}
 
-	#[
-		NCA\HandlesEvent(
-			name: [
-				'discord(channel_create)',
-				'discord(channel_update)',
-				'discord(channel_delete)',
-			],
-			description: 'Handle discord channel changes',
-			defaultStatus: Status::Enabled
-		),
-	]
+	/** Handle discord channel changes */
+	#[NCA\HandlesEvent(
+		mask: [
+			'discord(channel_create)',
+			'discord(channel_update)',
+			'discord(channel_delete)',
+		],
+		defaultStatus: Status::Enabled
+	)]
 	public function processDiscordChannelMessages(DiscordGatewayEvent $event): void {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
@@ -841,11 +808,8 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(ready)',
-		description: 'Handle discord READY event',
-		defaultStatus: Status::Enabled
-	)]
+	/** Handle discord READY event */
+	#[NCA\HandlesEvent(mask: 'discord(ready)', defaultStatus: Status::Enabled)]
 	public function processDiscordReady(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
 		if (!isset($payload->d) || !is_array($payload->d) || !isset($payload->d['user'])) {
@@ -864,11 +828,8 @@ class DiscordGatewayController extends ModuleInstance {
 		EventLoop::queue($this->discordSlashCommandController->syncSlashCommands(...));
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(resumed)',
-		description: 'Handle discord RESUMED event',
-		defaultStatus: Status::Enabled
-	)]
+	/** Handle discord RESUMED event */
+	#[NCA\HandlesEvent(mask: 'discord(resumed)', defaultStatus: Status::Enabled)]
 	public function processDiscordResumed(DiscordGatewayEvent $event): void {
 		if (!isset($this->me)) {
 			return;
@@ -879,11 +840,8 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->mustReconnect = true;
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(voice_state_update)',
-		description: 'Keep track of people in the voice chat',
-		defaultStatus: Status::Enabled
-	)]
+	/** Keep track of people in the voice chat */
+	#[NCA\HandlesEvent(mask: 'discord(voice_state_update)', defaultStatus: Status::Enabled)]
 	public function trackVoiceStateChanges(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
 		if (!isset($payload->d) || !is_array($payload->d)) {
@@ -945,15 +903,8 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[
-		NCA\HandlesEvent(
-			name: [
-				DiscordVoiceJoinEvent::EVENT_MASK,
-				DiscordVoiceLeaveEvent::EVENT_MASK,
-			],
-			description: 'Announce if people join or leave voice chat'
-		)
-	]
+	/** Announce if people join or leave voice chat */
+	#[NCA\HandlesEvent]
 	public function announceVoiceStateChange(DiscordVoiceEvent $event): void {
 		$userId = null;
 		if (isset($event->member->user)) {
@@ -989,11 +940,8 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->messageHub->handle($rEvent);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(guild_member_add)',
-		description: 'Connect invited members to their AO account',
-		defaultStatus: Status::Enabled
-	)]
+	/** Connect invited members to their AO account */
+	#[NCA\HandlesEvent(mask: 'discord(guild_member_add)', defaultStatus: Status::Enabled)]
 	public function connectNewUsersWithAO(DiscordGatewayEvent $event): void {
 		$userId = $event->payload->d->user->id ?? null;
 		$guildId = $event->payload->d->guild_id ?? null;
@@ -1049,13 +997,8 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 	}
 
-	#[
-		NCA\HandlesEvent(
-			name: 'timer(1h)',
-			description: 'Delete expired Discord invites',
-			defaultStatus: Status::Enabled,
-		)
-	]
+	/** Delete expired Discord invites */
+	#[NCA\HandlesEvent(mask: 'timer(1h)', defaultStatus: Status::Enabled)]
 	public function deleteExpiredInvites(): void {
 		$this->db->table(DBDiscordInvite::getTable())
 			->where('expires', '<', time())
@@ -1430,10 +1373,8 @@ class DiscordGatewayController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(guild_scheduled_event_create)',
-		description: 'Announce new Discord events'
-	)]
+	/** Announce new Discord events */
+	#[NCA\HandlesEvent(mask: 'discord(guild_scheduled_event_create)')]
 	public function announceNewDiscordEvent(DiscordGatewayEvent $e): void {
 		$payload = $e->payload;
 		if (!isset($payload->d) || !is_array($payload->d)) {
@@ -1452,10 +1393,8 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->messageHub->handle($rMsg);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(guild_scheduled_event_update)',
-		description: 'Announce Discord event started'
-	)]
+	/** Announce Discord event started */
+	#[NCA\HandlesEvent(mask: 'discord(guild_scheduled_event_update)')]
 	public function announceStartedDiscordEvent(DiscordGatewayEvent $e): void {
 		$payload = $e->payload;
 		if (!isset($payload->d) || !is_array($payload->d)) {
@@ -1477,10 +1416,8 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->messageHub->handle($rMsg);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(guild_scheduled_event_delete)',
-		description: 'Announce cancelled Discord events'
-	)]
+	/** Announce cancelled Discord events */
+	#[NCA\HandlesEvent(mask: 'discord(guild_scheduled_event_delete)')]
 	public function announceRemovedDiscordEvent(DiscordGatewayEvent $e): void {
 		$payload = $e->payload;
 		if (!isset($payload->d) || !is_array($payload->d)) {
@@ -1496,10 +1433,8 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->messageHub->handle($rMsg);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'discord(guild_scheduled_event_update)',
-		description: 'Announce Discord event ended'
-	)]
+	/** Announce Discord event ended */
+	#[NCA\HandlesEvent(mask: 'discord(guild_scheduled_event_update)')]
 	public function announceEndedDiscordEvent(DiscordGatewayEvent $e): void {
 		$payload = $e->payload;
 		if (!isset($payload->d) || !is_array($payload->d)) {

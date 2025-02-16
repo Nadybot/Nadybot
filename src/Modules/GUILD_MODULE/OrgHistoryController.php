@@ -106,10 +106,8 @@ class OrgHistoryController extends ModuleInstance {
 		return "<highlight>{$row->actor}<end> {$row->action} <highlight>{$row->actee}<end>. [{$row->organization}] {$time}\n";
 	}
 
-	#[NCA\HandlesEvent(
-		name: OrgMsgChannelMsgEvent::EVENT_MASK,
-		description: 'Capture Org Invite/Kick/Leave messages for orghistory'
-	)]
+	/** Capture Org Invite/Kick/Leave messages for orghistory */
+	#[NCA\HandlesEvent]
 	public function captureOrgMessagesEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (

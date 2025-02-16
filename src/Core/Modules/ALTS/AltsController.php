@@ -133,10 +133,8 @@ class AltsController extends ModuleInstance {
 		return $alts;
 	}
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Add unvalidated alts/mains to friendlist'
-	)]
+	/** Add unvalidated alts/mains to friendlist */
+	#[NCA\HandlesEvent]
 	public function addNonValidatedAsBuddies(ConnectEvent $event): void {
 		$myName = $this->config->main->character;
 		$this->db->table(Alt::getTable())->where('validated_by_alt', false)->where('added_via', $myName)
@@ -431,10 +429,8 @@ class AltsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Reminds unvalidates alts/mains to accept or deny'
-	)]
+	/** Reminds unvalidates alts/mains to accept or deny */
+	#[NCA\HandlesEvent]
 	public function checkUnvalidatedAltsEvent(LogonEvent $eventObj): void {
 		if (!$this->chatBot->isReady()
 			|| $eventObj->wasOnline !== false

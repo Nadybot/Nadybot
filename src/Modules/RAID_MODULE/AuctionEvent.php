@@ -2,11 +2,10 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-abstract class AuctionEvent extends Event {
-	public const EVENT_MASK = 'auction(*)';
-
+#[Event(mask: 'auction(*)')]
+abstract class AuctionEvent {
 	/** @param Auction $auction The auction */
 	public function __construct(
 		public Auction $auction,

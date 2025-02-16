@@ -2,11 +2,11 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+#[Event(mask: 'sync(news-delete)')]
 class SyncNewsDeleteEvent extends SyncEvent {
-	public const EVENT_MASK = 'sync(news-delete)';
-
 	/** @param string $uuid UUID of these news */
 	public function __construct(
 		public string $uuid,
@@ -14,7 +14,6 @@ class SyncNewsDeleteEvent extends SyncEvent {
 		?int $sourceDimension=null,
 		?bool $forceSync=null,
 	) {
-		$this->type = self::EVENT_MASK;
 		parent::__construct($sourceBot, $sourceDimension, $forceSync);
 	}
 }

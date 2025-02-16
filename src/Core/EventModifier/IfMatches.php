@@ -75,7 +75,7 @@ class IfMatches implements EventModifier {
 			return $event;
 		}
 		// We only check messages, not events
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			return $event;
 		}
 		$message = $event->getData();

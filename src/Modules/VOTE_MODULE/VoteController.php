@@ -113,10 +113,8 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** This event handler checks for polls ending. */
-	#[NCA\HandlesEvent(
-		name: 'timer(2sec)',
-		description: 'Checks polls and periodically updates chat with time left'
-	)]
+	/** Checks polls and periodically updates chat with time left */
+	#[NCA\HandlesEvent(mask: 'timer(2sec)')]
 	public function checkVote(TimerEvent $eventObj): void {
 		if (count($this->polls) === 0) {
 			return;

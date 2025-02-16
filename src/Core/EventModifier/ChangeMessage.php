@@ -72,7 +72,7 @@ class ChangeMessage implements EventModifier {
 		if (!isset($event)) {
 			return $event;
 		}
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			$baseEvent = $event->data??null;
 			if (!isset($baseEvent) || !($baseEvent instanceof Base) || !isset($baseEvent->message)) {
 				return $event;

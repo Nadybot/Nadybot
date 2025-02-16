@@ -309,7 +309,7 @@ class ChatAssistController extends ModuleInstance {
 		$this->cleanupEmptyLists();
 		$this->storeBackup($backup);
 
-		$event = new AssistClearEvent(lists: []);
+		$event = new AssistClearEvent();
 		$this->eventManager->fireEvent($event);
 	}
 
@@ -335,7 +335,7 @@ class ChatAssistController extends ModuleInstance {
 			$this->storeBackup($this->backupCallers($sender, $command));
 		}
 		$this->callers = [];
-		$event = new AssistClearEvent(lists: []);
+		$event = new AssistClearEvent();
 		$this->eventManager->fireEvent($event);
 	}
 

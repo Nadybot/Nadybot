@@ -2,11 +2,10 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-class SayEvent extends Event {
-	public const EVENT_MASK = 'leadersay';
-
+#[Event(mask: 'leadersay')]
+class SayEvent {
 	/**
 	 * @param string $player  The names of the sender
 	 * @param string $message The message that was sent
@@ -15,6 +14,5 @@ class SayEvent extends Event {
 		public string $player,
 		public string $message,
 	) {
-		$this->type = self::EVENT_MASK;
 	}
 }

@@ -124,10 +124,8 @@ class ChatGroupingController extends ModuleInstance {
 		$context->reply('You left the grouping.');
 	}
 
-	#[NCA\HandlesEvent(
-		name: LeaveMyPrivEvent::EVENT_MASK,
-		description: 'Removes people from the grouping when they leave the channel'
-	)]
+	/** Removes people from the grouping when they leave the channel */
+	#[NCA\HandlesEvent]
 	public function leavePrivEvent(LeaveMyPrivEvent $eventObj): void {
 		if (!in_array($eventObj->sender, $this->joined, true)) {
 			return;

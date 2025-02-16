@@ -84,10 +84,8 @@ class RulesController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\HandlesEvent(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'If you defined rules, send them to people joining the private channel'
-	)]
+	/** If you defined rules, send them to people joining the private channel */
+	#[NCA\HandlesEvent]
 	public function joinPrivateChannelShowRulesEvent(JoinMyPrivEvent $eventObj): void {
 		$rulesPath = "{$this->config->paths->data}/rules.txt";
 		try {

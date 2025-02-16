@@ -137,10 +137,8 @@ class SilenceController extends ModuleInstance {
 			->delete();
 	}
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Overwrite command handlers for silenced commands'
-	)]
+	/** Overwrite command handlers for silenced commands */
+	#[NCA\HandlesEvent]
 	public function overwriteCommandHandlersEvent(ConnectEvent $eventObj): void {
 		$this->db->table(SilenceCmd::getTable())
 			->asObj(SilenceCmd::class)

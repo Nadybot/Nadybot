@@ -2,14 +2,14 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Attributes\Hydrator\{StrFuncIn, StrFuncOut};
 use Nadybot\Core\Events\SyncEvent;
 use Nadybot\Core\Types\Faction;
 use Nadybot\Core\Util;
 
+#[Event(mask: 'sync(gaubuff)')]
 class SyncGaubuffEvent extends SyncEvent {
-	public const EVENT_MASK = 'sync(gaubuff)';
-
 	/**
 	 * @param int     $expires UNIX timestamp when the buff expires
 	 * @param Faction $faction For which faction: neutral, clan or omni
@@ -26,7 +26,6 @@ class SyncGaubuffEvent extends SyncEvent {
 		?int $sourceDimension=null,
 		?bool $forceSync=null,
 	) {
-		$this->type = self::EVENT_MASK;
 		parent::__construct($sourceBot, $sourceDimension, $forceSync);
 	}
 }

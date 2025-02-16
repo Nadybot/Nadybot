@@ -26,7 +26,7 @@ class IfNotCommand implements EventModifier {
 
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		// We only require prefixes for messages, the rest is passed through
-		if (!isset($event) || $event->getType() !== $event::TYPE_MESSAGE) {
+		if (!isset($event) || $event->getEvent() !== $event::TYPE_MESSAGE) {
 			return $event;
 		}
 		if (isset($event->char) && ($event->char->id === $this->chatBot->char?->id)) {

@@ -2,10 +2,12 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-abstract class CityRaidEvent extends Event {
-	public const EVENT_MASK = 'cityraid(*)';
-
-	public int $wave;
+#[Event(mask: 'cityraid(*)')]
+abstract class CityRaidEvent {
+	public function __construct(
+		public int $wave,
+	) {
+	}
 }

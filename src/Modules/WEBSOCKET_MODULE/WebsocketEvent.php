@@ -2,10 +2,9 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-abstract class WebsocketEvent extends Event {
-	public const EVENT_MASK = 'websocket(*)';
-
-	public object $data;
+#[Event(mask: 'websocket(*)')]
+abstract class WebsocketEvent {
+	abstract public function getData(): object;
 }

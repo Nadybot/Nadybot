@@ -111,9 +111,9 @@ class Tell implements TransportInterface {
 	}
 
 	public function init(callable $callback): array {
-		$this->eventManager->subscribe(RecvMsgEvent::EVENT_MASK, $this->receiveMessage(...));
-		$this->eventManager->subscribe(LogonEvent::EVENT_MASK, $this->botOnline(...));
-		$this->eventManager->subscribe(LogoffEvent::EVENT_MASK, $this->botOffline(...));
+		$this->eventManager->subscribe('msg', $this->receiveMessage(...));
+		$this->eventManager->subscribe('logon', $this->botOnline(...));
+		$this->eventManager->subscribe('logoff', $this->botOffline(...));
 		if ($this->buddylistManager->isOnline($this->bot)) {
 			$callback();
 		} else {
@@ -128,9 +128,9 @@ class Tell implements TransportInterface {
 	}
 
 	public function deinit(callable $callback): array {
-		$this->eventManager->unsubscribe(RecvMsgEvent::EVENT_MASK, $this->receiveMessage(...));
-		$this->eventManager->unsubscribe(LogonEvent::EVENT_MASK, $this->botOnline(...));
-		$this->eventManager->unsubscribe(LogoffEvent::EVENT_MASK, $this->botOffline(...));
+		$this->eventManager->unsubscribe('msg', $this->receiveMessage(...));
+		$this->eventManager->unsubscribe('logon', $this->botOnline(...));
+		$this->eventManager->unsubscribe('logoff', $this->botOffline(...));
 		$this->buddylistManager->remove(
 			$this->bot,
 			$this->relay->getName() . '_relay'

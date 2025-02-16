@@ -79,10 +79,10 @@ class Tyrbot implements RelayProtocolInterface {
 	public function send(RoutableEvent $event): array {
 		$this->logger->debug('Received event {type} on relay {relay}', [
 			'relay' => $this->relay->getName(),
-			'type' => $event->getType(),
+			'type' => $event->getEvent(),
 			'event' => $event,
 		]);
-		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
+		if ($event->getEvent() === RoutableEvent::TYPE_MESSAGE) {
 			return $this->encodeMessage($event);
 		} elseif ($event->data instanceof Online) {
 			return [...$this->encodeUserStateChange($event, $event->data), ...$this->encodeMessage($event)];

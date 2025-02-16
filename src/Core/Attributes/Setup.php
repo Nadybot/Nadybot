@@ -6,7 +6,8 @@ use Attribute;
 
 /** This function should be called for setup */
 #[Attribute(Attribute::TARGET_METHOD)]
-class Setup {
+class Setup extends Event {
 	public function __construct() {
+		parent::__construct(mask: 'setup');
 	}
 }

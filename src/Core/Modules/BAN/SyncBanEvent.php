@@ -2,11 +2,11 @@
 
 namespace Nadybot\Core\Modules\BAN;
 
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
-class SyncBanEvent extends SyncEvent {
-	public const EVENT_MASK = 'sync(ban)';
-
+#[Event(mask: 'sync(ban)')]
+final class SyncBanEvent extends SyncEvent {
 	/**
 	 * @param int     $uid          uid of the banned person
 	 * @param string  $name         name of the banned person
@@ -24,8 +24,11 @@ class SyncBanEvent extends SyncEvent {
 		?int $sourceDimension=null,
 		?bool $forceSync=null,
 	) {
-		$this->type = self::EVENT_MASK;
-		parent::__construct($sourceBot, $sourceDimension, $forceSync);
+		parent::__construct(
+			sourceBot: $sourceBot,
+			sourceDimension: $sourceDimension,
+			forceSync: $forceSync,
+		);
 	}
 
 	/**

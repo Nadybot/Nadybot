@@ -2,10 +2,11 @@
 
 namespace Nadybot\Core\Events;
 
-class TimerEvent extends Event {
-	public const EVENT_MASK = 'timer(*)';
+use Nadybot\Core\Attributes as NCA;
 
+#[NCA\Event(mask: 'timer(*)')]
+class TimerEvent extends Event {
 	public function __construct(int $time) {
-		$this->type = "timer({$time})";
+		parent::__construct(type: "timer({$time})");
 	}
 }

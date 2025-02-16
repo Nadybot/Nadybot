@@ -87,10 +87,8 @@ class WhoisController extends ModuleInstance {
 	/** @var list<CharData> */
 	private array $nameHistoryCache = [];
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1min)',
-		description: 'Save cache of names and charIds to database'
-	)]
+	/** Save cache of names and charIds to database */
+	#[NCA\HandlesEvent(mask: 'timer(1min)')]
 	public function saveCharIds(Event $eventObj): void {
 		if (!count($this->nameHistoryCache) || $this->db->inTransaction()) {
 			return;
@@ -136,15 +134,8 @@ class WhoisController extends ModuleInstance {
 		$this->nameHistoryCache = [];
 	}
 
-	#[
-		NCA\HandlesEvent(
-			name: [
-				'packet(20)',
-				'packet(21)',
-			],
-			description: 'Records names and charIds'
-		)
-	]
+	/** Records names and charIds */
+	#[NCA\HandlesEvent(mask: ['packet(20)', 'packet(21)'])]
 	public function recordCharIds(PackageEvent $eventObj): void {
 		$packet = $eventObj->packet->package;
 		assert(

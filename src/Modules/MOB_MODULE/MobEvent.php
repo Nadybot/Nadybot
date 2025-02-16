@@ -2,10 +2,12 @@
 
 namespace Nadybot\Modules\MOB_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-abstract class MobEvent extends Event {
-	public const EVENT_MASK = 'mob-*';
-
-	public Mob $mob;
+#[Event(mask: 'mob-*')]
+abstract class MobEvent {
+	public function __construct(
+		public Mob $mob,
+	) {
+	}
 }

@@ -198,10 +198,8 @@ class FindOrgController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(24hrs)',
-		description: 'Parses all orgs from People of Rubi Ka'
-	)]
+	/** Parses all orgs from People of Rubi Ka */
+	#[NCA\HandlesEvent(mask: 'timer(24hrs)')]
 	public function downloadAllOrgsEvent(Event $eventObj): void {
 		$searches = [
 			'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',

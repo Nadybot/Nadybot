@@ -165,10 +165,8 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[NCA\HandlesEvent(
-		name: GuildChannelMsgEvent::EVENT_MASK,
-		description: 'Records when the cloak is raised or lowered'
-	)]
+	/** Records when the cloak is raised or lowered */
+	#[NCA\HandlesEvent]
 	public function recordCloakChangesEvent(GuildChannelMsgEvent $eventObj): void {
 		if (isset($eventObj->sender)
 			|| !count($arr = Safe::pregMatch('/^(.+) turned the cloaking device in your city (on|off).$/i', $eventObj->message))
@@ -207,10 +205,8 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->handle($e);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1min)',
-		description: 'Checks timer to see if cloak can be raised or lowered'
-	)]
+	/** Checks timer to see if cloak can be raised or lowered */
+	#[NCA\HandlesEvent(mask: 'timer(1min)')]
 	public function checkTimerEvent(Event $eventObj): void {
 		$row = $this->getLastOrgEntry();
 		if ($row === null) {
@@ -235,10 +231,8 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1min)',
-		description: 'Reminds the player who lowered cloak to raise it'
-	)]
+	/** Reminds the player who lowered cloak to raise it */
+	#[NCA\HandlesEvent(mask: 'timer(1min)')]
 	public function cloakReminderEvent(Event $eventObj): void {
 		$row = $this->getLastOrgEntry(true);
 		if ($row === null || $row->action === 'on') {
@@ -271,10 +265,8 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Show cloak status to guild members logging in'
-	)]
+	/** Show cloak status to guild members logging in */
+	#[NCA\HandlesEvent]
 	public function cityGuildLogonEvent(LogonEvent $eventObj): void {
 		if (!$this->chatBot->isReady()
 			|| !$this->myOrg->isMember($eventObj->sender)

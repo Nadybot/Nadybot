@@ -246,10 +246,8 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\HandlesEvent(
-		name: OrgMsgChannelMsgEvent::EVENT_MASK,
-		description: "Notify if org's tower site defense shield is disabled via pvp(tower-shield-own)"
-	)]
+	/** Notify if org's tower site defense shield is disabled via pvp(tower-shield-own) */
+	#[NCA\HandlesEvent]
 	public function shieldLoweredMessageEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		if (isset($eventObj->sender)) {
 			return;
@@ -323,10 +321,8 @@ class AttacksController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[NCA\HandlesEvent(
-		name: OrgMsgChannelMsgEvent::EVENT_MASK,
-		description: "Notify if org's towers are attacked via pvp(tower-hit-own)"
-	)]
+	/** Notify if org's towers are attacked via pvp(tower-hit-own) */
+	#[NCA\HandlesEvent]
 	public function attackOwnOrgMessageEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		if (isset($eventObj->sender)) {
 			return;
@@ -417,7 +413,8 @@ class AttacksController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[NCA\HandlesEvent('tower-attack-info', 'Announce tower attacks')]
+	/** Announce tower attacks */
+	#[NCA\HandlesEvent]
 	public function announceTowerAttack(TowerAttackInfoEvent $event): void {
 		if ($event->site === null) {
 			$this->logger->error('ERROR! Could not find closest site for attack');
@@ -462,7 +459,8 @@ class AttacksController extends ModuleInstance {
 		$this->siteTracker->fireEvent(new RoutableMessage($msg), $site, 'tower-attack');
 	}
 
-	#[NCA\HandlesEvent('tower-outcome', 'Announce tower victories and abandoned sites')]
+	/** Announce tower victories and abandoned sites */
+	#[NCA\HandlesEvent]
 	public function announceTowerVictories(Event\TowerOutcomeEvent $event): void {
 		$outcome = $event->outcome;
 		$pf = $outcome->playfield;

@@ -2,10 +2,12 @@
 
 namespace Nadybot\Core\Routing;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Events\{Event, SyncEvent};
 use Nadybot\Core\Routing\Events\Base;
 use stdClass;
 
+#[NCA\Event(mask: 'event')]
 class RoutableEvent extends Event {
 	public const TYPE_MESSAGE = 'message';
 	public const TYPE_EVENT = 'event';
@@ -18,16 +20,7 @@ class RoutableEvent extends Event {
 		public null|string|Base|SyncEvent|stdClass $data=null,
 		public ?Character $char=null,
 	) {
-		$this->type = $type;
-	}
-
-	public function getType(): string {
-		return $this->type;
-	}
-
-	public function setType(string $type): self {
-		$this->type = $type;
-		return $this;
+		parent::__construct($type);
 	}
 
 	public function setCharacter(Character $char): self {

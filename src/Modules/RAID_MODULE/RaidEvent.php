@@ -2,11 +2,10 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-abstract class RaidEvent extends Event {
-	public const EVENT_MASK = 'raid(*)';
-
+#[Event(mask: 'raid(*)')]
+abstract class RaidEvent {
 	public function __construct(
 		public Raid $raid,
 		public string $player

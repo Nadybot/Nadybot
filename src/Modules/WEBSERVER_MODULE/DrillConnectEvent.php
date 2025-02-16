@@ -2,14 +2,8 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Nadybot\Core\Drill\DrillConnection;
+use Nadybot\Core\Attributes\Event;
 
+#[Event(mask: 'drill(connect)')]
 class DrillConnectEvent extends DrillEvent {
-	public const EVENT_MASK = 'drill(connect)';
-
-	public function __construct(
-		public DrillConnection $connection,
-	) {
-		$this->type = self::EVENT_MASK;
-	}
 }

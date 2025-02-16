@@ -572,10 +572,8 @@ class RaffleController extends ModuleInstance {
 		);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1sec)',
-		description: 'Announce and/or end raffle'
-	)]
+	/** Announce and/or end raffle */
+	#[NCA\HandlesEvent(mask: 'timer(1sec)')]
 	public function checkRaffleEvent(Event $eventObj): void {
 		if (!isset($this->raffle)) {
 			return;

@@ -2,10 +2,11 @@
 
 namespace Nadybot\Core\Events;
 
-/** We receive a tell */
-class RecvMsgEvent extends AOChatEvent {
-	public const EVENT_MASK = 'msg';
+use Nadybot\Core\Attributes\Event;
 
+/** We receive a tell */
+#[Event(mask: 'msg')]
+class RecvMsgEvent extends AOChatEvent {
 	/**
 	 * @param string  $sender  Either the name of the sender or the numeric UID (e.g. city raid announcements)
 	 * @param string  $channel The channel (msg, priv, guild) via which the message was sent
@@ -14,10 +15,10 @@ class RecvMsgEvent extends AOChatEvent {
 	 */
 	public function __construct(
 		public string $sender,
-		public string $channel,
-		public string $message,
-		public ?string $worker=null,
+		string $channel,
+		string $message,
+		?string $worker=null,
 	) {
-		$this->type = self::EVENT_MASK;
+		parent::__construct(channel: $channel, message: $message, worker: $worker);
 	}
 }

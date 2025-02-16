@@ -426,6 +426,13 @@ class Text {
 		);
 	}
 
+	public static function cleanDocComment(string $comment): string {
+		$cleanComment = trim(Safe::pregReplace("|^/\*\*(.*)\*/|s", '$1', $comment));
+		$cleanComment = Safe::pregReplace("/^[ \t]*\*[ \t]*/m", '', $cleanComment);
+		$cleanComment = trim(Safe::pregReplace('/^@.*/m', '', $cleanComment));
+		return $cleanComment;
+	}
+
 	protected static function removeCommonLines(string $firstBlock, string $nextBlock): string {
 		$firstPageLines = explode("\n", $firstBlock);
 		$nextPageLines = explode("\n", $nextBlock);

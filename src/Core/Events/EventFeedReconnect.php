@@ -2,10 +2,8 @@
 
 namespace Nadybot\Core\Events;
 
-class EventFeedReconnect extends Event {
-	public const EVENT_MASK = 'event-feed-reconnect';
+use Nadybot\Core\Attributes\Event;
 
-	public function __construct() {
-		$this->type = self::EVENT_MASK;
-	}
+#[Event(mask: 'event-feed-reconnect')]
+class EventFeedReconnect {
 }

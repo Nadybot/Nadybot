@@ -126,11 +126,8 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	 */
 	private array $orgbanlist = [];
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Upload banlist into memory',
-		defaultStatus: Status::Enabled,
-	)]
+	/** Upload banlist into memory */
+	#[NCA\HandlesEvent(defaultStatus: Status::Enabled)]
 	public function initializeBanList(ConnectEvent $eventObj): void {
 		$this->uploadBanlist();
 		$this->uploadOrgBanlist();
@@ -389,11 +386,8 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1min)',
-		description: 'Check temp bans to see if they have expired',
-		defaultStatus: Status::Enabled,
-	)]
+	/** Check temp bans to see if they have expired */
+	#[NCA\HandlesEvent(mask: 'timer(1min)', defaultStatus: Status::Enabled)]
 	public function checkTempBan(Event $eventObj): void {
 		$numRows = $this->db->table(BanEntry::getTable())
 			->whereNotNull('banend')
@@ -696,10 +690,8 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		unset($this->orgbanlist[$orgId]);
 	}
 
-	#[NCA\HandlesEvent(
-		name: SyncBanEvent::EVENT_MASK,
-		description: 'Sync external bans'
-	)]
+	/** Sync external bans */
+	#[NCA\HandlesEvent]
 	public function processBanSyncEvent(SyncBanEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -707,10 +699,8 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		$this->add($event->uid, $event->banned_by, $event->banned_until, $event->reason);
 	}
 
-	#[NCA\HandlesEvent(
-		name: SyncBanDeleteEvent::EVENT_MASK,
-		description: 'Sync external ban lifts'
-	)]
+	/** Sync external ban lifts */
+	#[NCA\HandlesEvent]
 	public function processBanDeleteSyncEvent(SyncBanDeleteEvent $event): void {
 		if ($event->isLocal()) {
 			return;

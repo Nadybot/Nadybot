@@ -104,10 +104,8 @@ class StartpageController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Show startpage to (org) members logging in'
-	)]
+	/** Show startpage to (org) members logging in */
+	#[NCA\HandlesEvent]
 	public function logonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
@@ -135,10 +133,8 @@ class StartpageController extends ModuleInstance {
 		$this->showStartpage($sender, $this->getMassTell($sender));
 	}
 
-	#[NCA\HandlesEvent(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Show startpage to players joining private channel'
-	)]
+	/** Show startpage to players joining private channel */
+	#[NCA\HandlesEvent]
 	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady() || $this->myOrg->isMember($sender)) {

@@ -43,10 +43,8 @@ class PlayerFeedHandler extends ModuleInstance implements EventFeedHandler {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'setting(lookup_feed_enabled)',
-		description: 'Subscribe/unsubscribe from event feed',
-	)]
+	/** Subscribe/unsubscribe from event feed */
+	#[NCA\HandlesEvent(mask: 'setting(lookup_feed_enabled)')]
 	public function toggleEventFeed(SettingEvent $event): void {
 		if ($event->newValue->typed() === true) {
 			$this->eventFeed->registerEventFeedHandler(self::FEED_ROOM, $this);

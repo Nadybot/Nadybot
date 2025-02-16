@@ -30,7 +30,7 @@ class WebChannel implements MessageReceiver {
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			return false;
 		}
 		$path = $this->webChatConverter->convertPath($event->getPath());

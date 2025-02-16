@@ -2,15 +2,18 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
+use Nadybot\Core\Types\EventInterface;
 
-class OfflineEvent extends Event {
-	public const EVENT_MASK = 'offline(*)';
-
+#[Event(mask: 'offline(*)')]
+class OfflineEvent implements EventInterface {
 	public function __construct(
 		public string $player,
 		public string $channel,
 	) {
-		$this->type = "offline({$channel})";
+	}
+
+	public function getEvent(): string {
+		return "offline({$this->channel})";
 	}
 }

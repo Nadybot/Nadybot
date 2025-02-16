@@ -49,13 +49,9 @@ class RecipeController extends ModuleInstance {
 
 	private string $path;
 
-	/** This is an Event("connect") instead of Setup since it depends on the items db being loaded */
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Initializes the recipe database',
-		defaultStatus: Status::Enabled
-	)]
-	public function connectEvent(): void {
+	/** Initializes the recipe database */
+	#[NCA\HandlesEvent(defaultStatus: Status::Enabled)]
+	public function connectEvent(ConnectEvent $event): void {
 		$this->path = __DIR__ . '/recipes/';
 		try {
 			$fileNames = $this->fs->listFiles($this->path);

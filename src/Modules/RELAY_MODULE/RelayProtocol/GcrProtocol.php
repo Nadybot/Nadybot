@@ -90,10 +90,10 @@ class GcrProtocol implements RelayProtocolInterface {
 	}
 
 	public function send(RoutableEvent $event): array {
-		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
+		if ($event->getEvent() === RoutableEvent::TYPE_MESSAGE) {
 			return $this->renderMessage($event);
 		}
-		if ($event->getType() === RoutableEvent::TYPE_EVENT) {
+		if ($event->getEvent() === RoutableEvent::TYPE_EVENT) {
 			/** @var stdClass $llEvent */
 			$llEvent = $event->getData();
 			if (isset($llEvent->type) && ($llEvent->type === Online::TYPE)) {

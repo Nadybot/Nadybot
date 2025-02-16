@@ -2,15 +2,13 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-class AssistAddEvent extends Event {
-	public const EVENT_MASK = 'assist(add)';
-
+#[Event(mask: 'assist(add)')]
+class AssistAddEvent {
 	/** @param list<CallerList> $lists The names of the players added to the assist list */
 	public function __construct(
 		public array $lists=[],
 	) {
-		$this->type = self::EVENT_MASK;
 	}
 }

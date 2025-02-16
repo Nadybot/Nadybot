@@ -152,10 +152,8 @@ class LootController extends ModuleInstance {
 		$this->roll = (int)$this->db->table(LootHistory::getTable())->max('roll') + 1;
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(30sec)',
-		description: 'Periodically announce running loot rolls'
-	)]
+	/** Periodically announce running loot rolls */
+	#[NCA\HandlesEvent(mask: 'timer(30sec)')]
 	public function announceLootList(): void {
 		if (!count($this->loot)) {
 			return;

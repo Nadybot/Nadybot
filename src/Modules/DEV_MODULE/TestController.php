@@ -221,7 +221,7 @@ class TestController extends ModuleInstance {
 		} else {
 			$testEvent = new class () extends Event {
 				public function __construct() {
-					$this->type = 'dummy';
+					parent::__construct(type: 'dummy');
 				}
 			};
 			$this->eventManager->callEventHandler($testEvent, $event, []);

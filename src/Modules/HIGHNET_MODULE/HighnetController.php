@@ -160,10 +160,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$this->reloadFilters();
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'event-feed(room-info)',
-		description: 'Register Highnet channels',
-	)]
+	/** Register Highnet channels */
+	#[NCA\HandlesEvent(mask: 'event-feed(room-info)')]
 	public function roomInfoHandler(LowLevelEventFeedEvent $event): void {
 		$package = $event->highwayPackage;
 		assert($package instanceof Highway\In\RoomInfo);
@@ -184,10 +182,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$this->numClients = count($package->users);
 	}
 
-	#[NCA\HandlesEvent(
-		name: ['event-feed(join)', 'event-feed(leave)'],
-		description: 'Count Highnet client',
-	)]
+	/** Count Highnet clients */
+	#[NCA\HandlesEvent(mask: ['event-feed(join)', 'event-feed(leave)'])]
 	public function roomJoinHandler(LowLevelEventFeedEvent $event): void {
 		$package = $event->highwayPackage;
 		if (!($package instanceof Highway\In\Join) && !($package instanceof Highway\In\Leave)) {
@@ -228,10 +224,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			->delete();
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1m)',
-		description: 'Remove expired filters',
-	)]
+	/** Remove expired filters */
+	#[NCA\HandlesEvent(mask: 'timer(1m)')]
 	public function cleanExpiredFilters(): void {
 		$this->removeExpiredFilters();
 		$this->reloadFilters();
@@ -242,10 +236,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		// Nothing to do right now
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(10s)',
-		description: 'Clean unused rate limits'
-	)]
+	/** Clean unused rate limits */
+	#[NCA\HandlesEvent(mask: 'timer(10s)')]
 	public function clearUnusedBuckets(): void {
 		$this->buckets = array_filter(
 			$this->buckets,
@@ -256,10 +248,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'event-feed(message)',
-		description: 'Handle raw Highnet-messages',
-	)]
+	/** Handle raw Highnet-messages */
+	#[NCA\HandlesEvent(mask: 'event-feed(message)')]
 	public function handleLLEventFeedMessage(LowLevelEventFeedEvent $event): void {
 		if (!$this->highnetEnabled) {
 			return;
@@ -309,7 +299,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		}
 	}
 
-	#[NCA\HandlesEvent(name: HighnetEvent::EVENT_MASK, description: 'Handle Highnet messages')]
+	/** Handle Highnet messages */
+	#[NCA\HandlesEvent]
 	public function handleMessage(HighnetEvent $event): void {
 		$message = $event->message;
 		$handler = $this->handlers[strtolower($message->channel)]??null;

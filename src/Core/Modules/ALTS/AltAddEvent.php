@@ -2,14 +2,8 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
-class AltAddEvent extends AltEvent {
-	public const EVENT_MASK = 'alt(add)';
+use Nadybot\Core\Attributes\Event;
 
-	public function __construct(
-		public string $main,
-		public string $alt,
-		public ?bool $validated,
-	) {
-		$this->type = self::EVENT_MASK;
-	}
+#[Event(mask: 'alt(add)')]
+class AltAddEvent extends AltEvent {
 }

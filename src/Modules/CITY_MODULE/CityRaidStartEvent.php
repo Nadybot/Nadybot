@@ -2,11 +2,11 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-class CityRaidStartEvent extends CityRaidEvent {
-	public const EVENT_MASK = 'cityraid(start)';
+use Nadybot\Core\Attributes\Event;
 
+#[Event(mask: 'cityraid(start)')]
+class CityRaidStartEvent extends CityRaidEvent {
 	public function __construct() {
-		$this->wave = 0;
-		$this->type = self::EVENT_MASK;
+		parent::__construct(wave: 0);
 	}
 }

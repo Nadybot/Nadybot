@@ -448,10 +448,12 @@ class WorldBossController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Get boss timers from timer API'
-	)]
+	/** Get boss timers from timer API */
+	#[NCA\HandlesEvent]
+	public function loadTimersFromAPIOnConnect(ConnectEvent $event): void {
+		$this->loadTimersFromAPI();
+	}
+
 	public function loadTimersFromAPI(): int {
 		$client = $this->builder->build();
 
@@ -727,10 +729,8 @@ class WorldBossController extends ModuleInstance {
 		$this->sendSyncDeleteEvent($context->char->name, $boss, $context->forceSync);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1sec)',
-		description: 'Check timer to announce big boss events'
-	)]
+	/** Check timer to announce big boss events */
+	#[NCA\HandlesEvent(mask: 'timer(1sec)')]
 	public function checkTimerEvent(Event $eventObj, int $interval, bool $manual=false): void {
 		$lastCheck = $this->lastCheck;
 		$this->lastCheck = time();
@@ -746,10 +746,8 @@ class WorldBossController extends ModuleInstance {
 		$this->timers = $this->addNextDates($this->timers);
 	}
 
-	#[NCA\HandlesEvent(
-		name: SyncWorldbossEvent::EVENT_MASK,
-		description: 'Sync external worldboss timers'
-	)]
+	/** Sync external worldboss timers */
+	#[NCA\HandlesEvent]
 	public function syncExtWorldbossTimers(SyncWorldbossEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -772,10 +770,8 @@ class WorldBossController extends ModuleInstance {
 		$this->checkTimerEvent(new TimerEvent(1), 1, true);
 	}
 
-	#[NCA\HandlesEvent(
-		name: SyncWorldbossDeleteEvent::EVENT_MASK,
-		description: 'Sync external worldboss timer deletes'
-	)]
+	/** Sync external worldboss timer deletes */
+	#[NCA\HandlesEvent]
 	public function syncExtWorldbossDeletes(SyncWorldbossDeleteEvent $event): void {
 		if ($event->isLocal()) {
 			return;

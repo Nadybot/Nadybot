@@ -969,10 +969,8 @@ class RaidController extends ModuleInstance {
 		));
 	}
 
-	#[NCA\HandlesEvent(
-		name: SendPrivEvent::EVENT_MASK,
-		description: 'Track when the bot sends messages on priv'
-	)]
+	/** Track when the bot sends messages on priv */
+	#[NCA\HandlesEvent]
 	public function trackOurPrivChannelMessages(SendPrivEvent $event): void {
 		if (!isset($this->raid)) {
 			return;
@@ -980,10 +978,8 @@ class RaidController extends ModuleInstance {
 		$this->raid->we_are_most_recent_message = false;
 	}
 
-	#[NCA\HandlesEvent(
-		name: MyPrivateChannelMsgEvent::EVENT_MASK,
-		description: 'Track when someone sends messages on priv'
-	)]
+	/** Track when someone sends messages on priv */
+	#[NCA\HandlesEvent]
 	public function trackPrivChannelMessages(MyPrivateChannelMsgEvent $event): void {
 		if (!isset($this->raid) || $event->channel !== $this->config->main->character) {
 			return;
@@ -991,10 +987,8 @@ class RaidController extends ModuleInstance {
 		$this->raid->we_are_most_recent_message = false;
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(30s)',
-		description: 'Announce the running raid'
-	)]
+	/** Announce the running raid */
+	#[NCA\HandlesEvent(mask: 'timer(30s)')]
 	public function announceRaidRunning(): void {
 		if (!isset($this->raid) || $this->raid->announce_interval === 0) {
 			return;
@@ -1020,10 +1014,8 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Announce when a raid was started */
-	#[NCA\HandlesEvent(
-		name: RaidStartEvent::EVENT_MASK,
-		description: 'Announce when a raid was started'
-	)]
+	/** Announce when a raid was started */
+	#[NCA\HandlesEvent]
 	public function announceRaidStart(RaidStartEvent $event): void {
 		$this->routeMessage(
 			'start',
@@ -1038,10 +1030,8 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Announce when a raid was stopped. */
-	#[NCA\HandlesEvent(
-		name: RaidStopEvent::EVENT_MASK,
-		description: 'Announce when a raid is stopped'
-	)]
+	/** Announce when a raid is stopped */
+	#[NCA\HandlesEvent]
 	public function announceRaidStop(RaidStopEvent $event): void {
 		$this->routeMessage('stop', "<highlight>{$event->player}<end> has stopped the raid.");
 	}
@@ -1156,10 +1146,8 @@ class RaidController extends ModuleInstance {
 		);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(24h)',
-		description: 'Remove non-raiding members from bot'
-	)]
+	/** Remove non-raiding members from bot */
+	#[NCA\HandlesEvent(mask: 'timer(24h)')]
 	public function removeNonRaidingMembers(): void {
 		if ($this->raidDemoteMembersInterval === 0) {
 			return;

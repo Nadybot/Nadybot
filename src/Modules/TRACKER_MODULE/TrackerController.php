@@ -199,10 +199,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Adds all players on the track list to the buddy list'
-	)]
+	/** Adds all players on the track list to the buddy list */
+	#[NCA\HandlesEvent]
 	public function trackedUsersConnectEvent(ConnectEvent $eventObj): void {
 		$this->db->table(TrackedUser::getTable())
 			->asObj(TrackedUser::class)
@@ -216,10 +214,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			});
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(24hrs)',
-		description: 'Untrack inactive characters',
-	)]
+	/** Untrack inactive characters */
+	#[NCA\HandlesEvent(mask: 'timer(24hrs)')]
 	public function untrackInactiveCharacters(): void {
 		if ($this->trackerAutoUntrack === 0) {
 			return;
@@ -251,10 +247,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		return Source::SYSTEM . '(tracker)';
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(24hrs)',
-		description: "Download all tracked orgs' information"
-	)]
+	/** Download all tracked orgs' information */
+	#[NCA\HandlesEvent(mask: 'timer(24hrs)')]
 	public function downloadOrgRostersEvent(TimerEvent $eventObj): void {
 		$orgs = $this->db->table(TrackingOrg::getTable())->asObj(TrackingOrg::class);
 		try {
@@ -271,10 +265,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$this->logger->notice('Finished Tracker Roster update');
 	}
 
-	#[NCA\HandlesEvent(
-		name: TowerAttackEvent::EVENT_MASK,
-		description: 'Automatically track tower field attackers'
-	)]
+	/** Automatically track tower field attackers */
+	#[NCA\HandlesEvent]
 	public function trackTowerAttacks(TowerAttackEvent $eventObj): void {
 		$attacker = $eventObj->attack->attacker;
 		if ($this->accessManager->checkAccess($attacker->name, 'member')) {
@@ -327,10 +319,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Records a tracked user logging on'
-	)]
+	/** Records a tracked user logging on */
+	#[NCA\HandlesEvent]
 	public function trackLogonEvent(LogonEvent $eventObj): void {
 		if (!$this->chatBot->isReady()) {
 			return;
@@ -423,10 +413,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		);
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogoffEvent::EVENT_MASK,
-		description: 'Records a tracked user logging off'
-	)]
+	/** Records a tracked user logging off */
+	#[NCA\HandlesEvent]
 	public function trackLogoffEvent(LogoffEvent $eventObj): void {
 		if (!$this->chatBot->isReady()) {
 			return;

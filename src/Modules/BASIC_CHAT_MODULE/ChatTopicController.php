@@ -118,10 +118,8 @@ class ChatTopicController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Shows topic on logon of members'
-	)]
+	/** Shows topic on logon of members */
+	#[NCA\HandlesEvent]
 	public function logonEvent(LogonEvent $eventObj): void {
 		if ($this->topic === ''
 			|| !$this->myOrg->isMember($eventObj->sender)
@@ -134,10 +132,8 @@ class ChatTopicController extends ModuleInstance {
 		$this->chatBot->sendMassTell($msg, $eventObj->sender);
 	}
 
-	#[NCA\HandlesEvent(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Shows topic when someone joins the private channel'
-	)]
+	/** Shows topic when someone joins the private channel */
+	#[NCA\HandlesEvent]
 	public function joinPrivEvent(JoinMyPrivEvent $eventObj): void {
 		if ($this->topic === '') {
 			return;

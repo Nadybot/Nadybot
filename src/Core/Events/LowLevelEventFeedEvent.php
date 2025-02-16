@@ -2,15 +2,15 @@
 
 namespace Nadybot\Core\Events;
 
-use Nadybot\Core\Highway;
+use Nadybot\Core\{Attributes as NCA, Highway};
 
+#[NCA\Event(mask: 'event-feed(*)')]
 class LowLevelEventFeedEvent extends Event {
-	public const EVENT_MASK = 'event-feed(*)';
-
 	public function __construct(
-		public string $type,
+		string $type,
 		public Highway\Connection $connection,
 		public Highway\In\InPackage $highwayPackage,
 	) {
+		parent::__construct(type: $type);
 	}
 }

@@ -2,11 +2,11 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+#[Event(mask: 'sync(news)')]
 class SyncNewsEvent extends SyncEvent {
-	public const EVENT_MASK = 'sync(news)';
-
 	/**
 	 * @param int    $time   Unix timestamp when this was created
 	 * @param string $name   Name of the character who created the entry
@@ -24,7 +24,6 @@ class SyncNewsEvent extends SyncEvent {
 		?int $sourceDimension=null,
 		?bool $forceSync=null,
 	) {
-		$this->type = self::EVENT_MASK;
 		parent::__construct($sourceBot, $sourceDimension, $forceSync);
 	}
 

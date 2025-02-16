@@ -2,10 +2,9 @@
 
 namespace Nadybot\Core\Events;
 
-class ConnectEvent extends Event {
-	public const EVENT_MASK = 'connect';
+use Nadybot\Core\Attributes as NCA;
 
-	public function __construct() {
-		$this->type = self::EVENT_MASK;
-	}
+/** Fired when the bot has successfully connected */
+#[NCA\Event(mask: 'connect')]
+class ConnectEvent {
 }

@@ -165,10 +165,12 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->statsController->registerProvider(new GauntletBuffStats($this, Faction::Omni), 'states');
 	}
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Get active Gauntlet buffs from API'
-	)]
+	/** Get active Gauntlet buffs from API */
+	#[NCA\HandlesEvent]
+	public function loadGauntletBuffsFromAPIOnConnect(ConnectEvent $event): void {
+		$this->loadGauntletBuffsFromAPI();
+	}
+
 	public function loadGauntletBuffsFromAPI(): void {
 		$client = $this->builder->build();
 
@@ -269,10 +271,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->handle($rMsg);
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Sends gaubuff message on logon'
-	)]
+	/** Sends gaubuff message on logon */
+	#[NCA\HandlesEvent]
 	public function gaubufflogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
@@ -285,10 +285,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->showGauntletBuff($sender);
 	}
 
-	#[NCA\HandlesEvent(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Sends gaubuff message on join'
-	)]
+	/** Sends gaubuff message on join */
+	#[NCA\HandlesEvent]
 	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if ($this->gaubuffLogon) {
@@ -367,10 +365,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[NCA\HandlesEvent(
-		name: SyncGaubuffEvent::EVENT_MASK,
-		description: 'Sync external gauntlet buff events'
-	)]
+	/** Sync external gauntlet buff events */
+	#[NCA\HandlesEvent]
 	public function syncExtGaubuff(SyncGaubuffEvent $event): void {
 		if ($event->isLocal()) {
 			return;

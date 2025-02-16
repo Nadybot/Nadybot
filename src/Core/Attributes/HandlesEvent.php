@@ -8,10 +8,9 @@ use Nadybot\Core\Types\Status;
 /** This method should be called whenever the given event occurs */
 #[Attribute(Attribute::TARGET_METHOD|Attribute::IS_REPEATABLE)]
 class HandlesEvent {
-	/** @param string|list<string> $name */
+	/** @param null|string|list<string> $mask */
 	public function __construct(
-		public string|array $name,
-		public string $description,
+		public null|string|array $mask=null,
 		public ?string $help=null,
 		public ?Status $defaultStatus=null,
 	) {

@@ -105,10 +105,8 @@ class TradebotController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\HandlesEvent(
-		name: ExtJoinPrivRequest::EVENT_MASK,
-		description: 'Accept private channel join invitation from the trade bots'
-	)]
+	/** Accept private channel join invitation from the trade bots */
+	#[NCA\HandlesEvent]
 	public function acceptPrivJoinEvent(ExtJoinPrivRequest $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->isTradebot($sender)) {
@@ -124,10 +122,8 @@ class TradebotController extends ModuleInstance {
 		$this->messageHub->registerMessageEmitter(new TradebotChannel($sender . '-*'));
 	}
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Add active tradebots to buddylist'
-	)]
+	/** Add active tradebots to buddylist */
+	#[NCA\HandlesEvent]
 	public function addTradebotsAsBuddies(ConnectEvent $event): void {
 		$activeBots = $this->normalizeBotNames($this->tradebot);
 		foreach ($activeBots as $botName) {
@@ -196,10 +192,8 @@ class TradebotController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Join tradebot private channels'
-	)]
+	/** Join tradebot private channels */
+	#[NCA\HandlesEvent]
 	public function tradebotOnlineEvent(LogonEvent $eventObj): void {
 		if ($this->isTradebot($eventObj->sender)) {
 			$this->joinPrivateChannel($eventObj->sender);
@@ -218,10 +212,8 @@ class TradebotController extends ModuleInstance {
 	}
 
 	/** @throws StopExecutionException */
-	#[NCA\HandlesEvent(
-		name: PrivateChannelMsgEvent::EVENT_MASK,
-		description: 'Relay messages from the tradebot to org/private channel'
-	)]
+	/** Relay messages from the tradebot to org/private channel */
+	#[NCA\HandlesEvent]
 	public function receiveRelayMessageExtPrivEvent(PrivateChannelMsgEvent $eventObj): void {
 		if (!$this->isTradebot($eventObj->channel)
 			|| !$this->isTradebot($eventObj->sender)) {
@@ -231,10 +223,8 @@ class TradebotController extends ModuleInstance {
 		throw new StopExecutionException();
 	}
 
-	#[NCA\HandlesEvent(
-		name: RecvMsgEvent::EVENT_MASK,
-		description: 'Relay incoming tells from the tradebots to org/private channel'
-	)]
+	/** Relay incoming tells from the tradebots to org/private channel */
+	#[NCA\HandlesEvent]
 	public function receiveMessageEvent(RecvMsgEvent $eventObj): void {
 		if (!$this->isTradebot($eventObj->sender)) {
 			return;

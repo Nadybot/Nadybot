@@ -89,11 +89,8 @@ class DevController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, 'querysql select', 'select');
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1m)',
-		description: 'Log the memory usage once per minute',
-		defaultStatus: Status::Disabled,
-	)]
+	/** Log the memory usage once per minute */
+	#[NCA\HandlesEvent(mask: 'timer(1m)', defaultStatus: Status::Disabled)]
 	public function logMemoryUsage(): void {
 		$this->logger->notice('Current memory usage: {usage}MB / {real}MB', [
 			'usage' => number_format(memory_get_usage(false) / (1_024 * 1_024), 1),

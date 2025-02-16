@@ -3,14 +3,22 @@
 namespace Nadybot\Core\Events;
 
 use Nadybot\Core\StringableTrait;
-use Nadybot\Core\Types\DoNotSerializePublicFunctions;
+use Nadybot\Core\Types\{DoNotSerializePublicFunctions, EventInterface};
 use Stringable;
 
-abstract class Event implements Stringable, DoNotSerializePublicFunctions {
+abstract class Event implements Stringable, DoNotSerializePublicFunctions, EventInterface {
 	use StringableTrait;
 
-	/** @var string */
-	public const EVENT_MASK = '*';
+	public function __construct(
+		public string $type,
+	) {
+	}
 
-	public string $type;
+	public function getEvent(): string {
+		return $this->type;
+	}
+
+	protected function setEvent(string $type): string {
+		return $this->type = $type;
+	}
 }

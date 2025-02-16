@@ -137,10 +137,8 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1sec)',
-		description: 'Checks timers and periodically updates chat with time left'
-	)]
+	/** Checks timers and periodically updates chat with time left */
+	#[NCA\HandlesEvent(mask: 'timer(1sec)')]
 	public function checkTimers(): void {
 		$time = time();
 
@@ -593,10 +591,8 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		return $this->timers;
 	}
 
-	#[NCA\HandlesEvent(
-		name: SyncTimerEvent::EVENT_MASK,
-		description: 'Sync external timers to local timers'
-	)]
+	/** Sync external timers to local timers */
+	#[NCA\HandlesEvent]
 	public function syncExtTimers(SyncTimerEvent $event): void {
 		if ($event->isLocal()) {
 			return;

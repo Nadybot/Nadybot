@@ -2,14 +2,8 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-class RaidJoinEvent extends RaidEvent {
-	public const EVENT_MASK = 'raid(join)';
+use Nadybot\Core\Attributes\Event;
 
-	public function __construct(
-		Raid $raid,
-		string $player,
-	) {
-		parent::__construct(raid: $raid, player: $player);
-		$this->type = self::EVENT_MASK;
-	}
+#[Event(mask: 'raid(join)')]
+class RaidJoinEvent extends RaidEvent {
 }

@@ -4,6 +4,7 @@ namespace Nadybot\Core\EventModifier;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	EventManager,
 	Routing\RoutableEvent,
 	Types\EventModifier,
 };
@@ -51,7 +52,8 @@ class RemoveEvent implements EventModifier {
 		if (!is_object($event->data)) {
 			return $event;
 		}
-		if (!in_array($event->data->type, $this->filter, true)) {
+		$dataEventType = EventManager::getEventType($event->data);
+		if (!in_array($dataEventType, $this->filter, true)) {
 			return $event;
 		}
 		if (!isset($this->from) || !count($event->path)) {

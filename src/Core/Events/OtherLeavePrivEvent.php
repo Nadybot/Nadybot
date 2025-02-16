@@ -2,17 +2,8 @@
 
 namespace Nadybot\Core\Events;
 
-class OtherLeavePrivEvent extends JoinLeaveEvent {
-	public const EVENT_MASK = 'otherleavepriv';
+use Nadybot\Core\Attributes\Event;
 
-	/**
-	 * @param string $sender  Either the name of the sender or the numeric UID (e.g. city raid announcements)
-	 * @param string $channel The channel (msg, priv, guild) via which the message was sent
-	 */
-	public function __construct(
-		public string $sender,
-		public string $channel,
-	) {
-		$this->type = self::EVENT_MASK;
-	}
+#[Event(mask: 'otherleavepriv')]
+class OtherLeavePrivEvent extends JoinLeaveEvent {
 }

@@ -2,11 +2,11 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+#[Event(mask: 'sync(rally-set)')]
 class SyncRallySetEvent extends SyncEvent {
-	public const EVENT_MASK = 'sync(rally-set)';
-
 	/**
 	 * @param string $owner Character who created the rally
 	 * @param string $name  Name of this rally point
@@ -24,7 +24,6 @@ class SyncRallySetEvent extends SyncEvent {
 		?int $sourceDimension=null,
 		?bool $forceSync=null,
 	) {
-		$this->type = self::EVENT_MASK;
 		parent::__construct($sourceBot, $sourceDimension, $forceSync);
 	}
 }

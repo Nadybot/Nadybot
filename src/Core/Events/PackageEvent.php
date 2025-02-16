@@ -3,13 +3,18 @@
 namespace Nadybot\Core\Events;
 
 use AO\Client\WorkerPackage;
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Types\EventInterface;
 
-class PackageEvent extends Event {
-	public const EVENT_MASK = 'packet(*)';
-
+#[NCA\Event(mask: 'packet(*)')]
+class PackageEvent implements EventInterface {
 	public function __construct(
 		public WorkerPackage $packet
 	) {
-		$this->type = 'packet(' . $packet->package->type->value . ')';
+	}
+
+	public function getEvent(): string {
+		$value = $this->packet->package->type->value ?? '*';
+		return "packet({$value})";
 	}
 }

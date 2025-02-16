@@ -3,19 +3,23 @@
 namespace Nadybot\Core\Events;
 
 use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Registry;
+use Nadybot\Core\{Attributes as NCA, Registry};
 
-abstract class SyncEvent extends Event {
-	public const EVENT_MASK = 'sync(*)';
-
+#[NCA\Event(mask: 'sync(*)')]
+abstract class SyncEvent {
 	public string $sourceBot;
 	public int $sourceDimension;
 	public bool $forceSync = false;
 
+	/**
+	 * @param null|string $sourceBot       Name of the bot that sent the event
+	 * @param null|int    $sourceDimension Dimension where this event originaes
+	 * @param null|bool   $forceSync       Is this a forced sync?
+	 */
 	public function __construct(
-		?string $sourceBot=null,
-		?int $sourceDimension=null,
-		?bool $forceSync=null,
+		?string $sourceBot,
+		?int $sourceDimension,
+		?bool $forceSync,
 	) {
 		$config = Registry::getInstance(BotConfig::class);
 		$this->sourceBot = $sourceBot ?? $config->main->character;

@@ -69,7 +69,7 @@ class IfHasPrefix implements EventModifier {
 			return null;
 		}
 		// Events might have their default message modified
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			if (!$this->forEvents) {
 				return $event;
 			}

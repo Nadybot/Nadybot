@@ -2,10 +2,12 @@
 
 namespace Nadybot\Modules\GSP_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-abstract class GSPEvent extends Event {
-	public const EVENT_MASK = 'gsp(*)';
-
-	public Show $show;
+#[Event(mask: 'gsp(*)')]
+abstract class GSPEvent {
+	public function __construct(
+		public Show $show,
+	) {
+	}
 }

@@ -60,10 +60,8 @@ class NickController extends ModuleInstance {
 		$this->cacheNicknames();
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1h)',
-		description: 'Sync nickname-cache'
-	)]
+	/** Sync nickname-cache */
+	#[NCA\HandlesEvent(mask: 'timer(1h)')]
 	public function reCacheNicknames(): void {
 		$this->cacheNicknames();
 	}
@@ -126,10 +124,8 @@ class NickController extends ModuleInstance {
 		return $nickDeleted;
 	}
 
-	#[NCA\HandlesEvent(
-		name: AltNewMainEvent::EVENT_MASK,
-		description: 'Move nickname to new main'
-	)]
+	/** Move nickname to new main */
+	#[NCA\HandlesEvent]
 	public function moveNickname(AltNewMainEvent $event): void {
 		$this->db->table(Nickname::getTable())
 			->where('main', $event->alt)

@@ -187,11 +187,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1h)',
-		description: 'Warn if the buddylist is full',
-		defaultStatus: Status::Enabled,
-	)]
+	/** Warn if the buddylist is full */
+	#[NCA\HandlesEvent(mask: 'timer(1h)', defaultStatus: Status::Enabled)]
 	public function checkBuddylistFull(): void {
 		$numBuddies = $this->buddylistManager->getUsedBuddySlots();
 		$maxBuddies = $this->chatBot->getBuddyListSize();
@@ -479,11 +476,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1hr)',
-		description: 'This event handler is called every hour to keep MySQL connection active',
-		defaultStatus: Status::Enabled
-	)]
+	/** This event handler is called every hour to keep MySQL connection active */
+	#[NCA\HandlesEvent(mask: 'timer(1hr)', defaultStatus: Status::Enabled)]
 	public function refreshMySQLConnectionEvent(Event $eventObj): void {
 		// if the bot doesn't query the MySQL database for 8 hours the db connection is closed
 		$this->logger->info('Pinging database');
@@ -491,11 +485,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			->firstObj(Setting::class);
 	}
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Notify private channel, guild channel, and admins that bot is online',
-		defaultStatus: Status::Enabled
-	)]
+	/** Notify private channel, guild channel, and admins that bot is online */
+	#[NCA\HandlesEvent(defaultStatus: Status::Enabled)]
 	public function onConnectEvent(ConnectEvent $eventObj): void {
 		// send Admin(s) a tell that the bot is online
 		foreach ($this->adminManager->admins as $name => $info) {

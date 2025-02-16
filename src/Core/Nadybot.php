@@ -12,6 +12,7 @@ use AO\Exceptions\AccountsFrozenException;
 use AO\Group\{GroupId, GroupType};
 use AO\Package\OutPackage;
 use AO\{FrozenAccount, Group, Package, SendPriority, Utils};
+use Error;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{
@@ -66,6 +67,7 @@ use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionProperty;
+use ReflectionUnionType;
 use Revolt\EventLoop;
 use Throwable;
 
@@ -1463,10 +1465,19 @@ class Nadybot {
 	/** @phpstan-param class-string $class */
 	public function registerEvents(string $class): void {
 		$reflection = new ReflectionClass($class);
+		if ($reflection->isAbstract()) {
+			return;
+		}
 
-		foreach ($reflection->getAttributes(NCA\ProvidesEvent::class) as $eventAttr) {
+		foreach ($reflection->getAttributes(NCA\Event::class, ReflectionAttribute::IS_INSTANCEOF) as $eventAttr) {
 			$eventObj = $eventAttr->newInstance();
-			$this->eventManager->addEventType($eventObj->event, $eventObj->desc);
+			$comment = $reflection->getDocComment();
+			if (is_string($comment)) {
+				$comment = Text::cleanDocComment($comment);
+			} else {
+				$comment = null;
+			}
+			$this->eventManager->addEventType($eventObj->mask, $comment);
 		}
 	}
 
@@ -1525,14 +1536,35 @@ class Nadybot {
 					]);
 				}
 			}
-			foreach ($method->getAttributes(NCA\HandlesEvent::class) as $eventAnnotation) {
+			foreach ($method->getAttributes(NCA\HandlesEvent::class, ReflectionAttribute::IS_INSTANCEOF) as $eventAnnotation) {
 				$event = $eventAnnotation->newInstance();
-				foreach ((array)$event->name as $eventName) {
+				$eventMask = $event->mask;
+				$eventMask ??= $this->getEventMaskFromFunctionSignature($method);
+				if (is_array($eventMask) && !count($eventMask)) {
+					throw new Error(
+						$method->getDeclaringClass() . '::' . $method->getName() . '() '.
+						'needs to specify the event mask it subscribes to, because '.
+						'the function signature does not allow to derive it'
+					);
+				}
+				$comment = $method->getDocComment();
+				if (!is_string($comment)) {
+					$this->logger->warning(
+						'{class}::{method}() has no event description',
+						[
+							'class' => $method->getDeclaringClass()->getName(),
+							'method' => $method->getName(),
+						]
+					);
+					continue;
+				}
+				$comment = Text::cleanDocComment($comment);
+				foreach ((array)$eventMask as $eventName) {
 					$this->eventManager->register(
 						$moduleName,
 						$eventName,
 						$name . '.' . $method->name,
-						$event->description,
+						$comment,
 						$event->help,
 						$event->defaultStatus
 					);
@@ -1667,6 +1699,45 @@ class Nadybot {
 	/** @return array<string,bool> */
 	public function getChatlist(): array {
 		return $this->chatlist;
+	}
+
+	/** @return list<string> */
+	private function getEventMaskFromFunctionSignature(\ReflectionMethod $method): array {
+		$refParams = $method->getParameters();
+		if (count($refParams) < 1) {
+			return [];
+		}
+		$type = $refParams[0]->getType();
+		if ($type === null) {
+			return [];
+		}
+
+		$classes = [];
+		if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
+			$className = $type->getName();
+			if (class_exists($className)) {
+				$classes []= $className;
+			}
+		} elseif ($type instanceof ReflectionUnionType) {
+			foreach ($type->getTypes() as $subType) {
+				if ($subType instanceof ReflectionNamedType && !$subType->isBuiltin()) {
+					$className = $subType->getName();
+					if (class_exists($className)) {
+						$classes []= $className;
+					}
+				}
+			}
+		}
+		$result = [];
+		foreach ($classes as $class) {
+			$refClass = new ReflectionClass($class);
+			$attrs = $refClass->getAttributes(NCA\Event::class, ReflectionAttribute::IS_INSTANCEOF);
+			if (count($attrs)) {
+				$event = $attrs[0]->newInstance();
+				$result []= $event->mask;
+			}
+		}
+		return $result;
 	}
 
 	private function initializeInstance(string $name, object $instance): void {
@@ -1863,10 +1934,8 @@ class Nadybot {
 			if ($comment === false) {
 				throw new Exception("Missing description for setting {$attribute->name}");
 			}
-			$comment = trim(Safe::pregReplace("|^/\*\*(.*)\*/|s", '$1', $comment));
-			$comment = Safe::pregReplace("/^[ \t]*\*[ \t]*/m", '', $comment);
-			$description = trim(Safe::pregReplace('/^@.*/m', '', $comment));
-			$settingValue = $value = $attribute->getValue();
+			$description = Text::cleanDocComment($comment);
+			$settingValue = $attribute->getValue();
 			if (is_array($settingValue)) {
 				$settingValue = implode('|', $settingValue);
 			}

@@ -2,9 +2,10 @@
 
 namespace Nadybot\Core\Events;
 
-class ExtJoinPrivRequest extends Event {
-	public const EVENT_MASK = 'extjoinprivrequest';
+use Nadybot\Core\Attributes\Event;
 
+#[Event(mask: 'extjoinprivrequest')]
+class ExtJoinPrivRequest {
 	/**
 	 * @param string  $sender  The user inviting us to  their channel
 	 * @param string  $channel The channel which we were invited to
@@ -15,6 +16,5 @@ class ExtJoinPrivRequest extends Event {
 		public string $channel,
 		public ?string $worker=null,
 	) {
-		$this->type = self::EVENT_MASK;
 	}
 }

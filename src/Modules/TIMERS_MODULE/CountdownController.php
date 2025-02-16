@@ -108,10 +108,8 @@ class CountdownController extends ModuleInstance {
 		});
 	}
 
-	#[NCA\HandlesEvent(
-		name: SyncCdEvent::EVENT_MASK,
-		description: 'Process externally started countdowns'
-	)]
+	/** Process externally started countdowns */
+	#[NCA\HandlesEvent]
 	public function syncCountdown(SyncCdEvent $event): void {
 		if (time() - $this->lastCountdown < 7) {
 			return;

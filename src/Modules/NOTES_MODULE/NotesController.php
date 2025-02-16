@@ -254,10 +254,8 @@ class NotesController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Sends a tell to players on logon showing their reminders'
-	)]
+	/** Sends a tell to players on logon showing their reminders */
+	#[NCA\HandlesEvent]
 	public function showRemindersOnLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
@@ -268,10 +266,8 @@ class NotesController extends ModuleInstance {
 		$this->showReminders($sender);
 	}
 
-	#[NCA\HandlesEvent(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Show reminders when joining the private channel'
-	)]
+	/** Show reminders when joining the private channel */
+	#[NCA\HandlesEvent]
 	public function showRemindersOnPrivJoinEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if ($this->buddylistManager->isOnline($sender)) {
@@ -290,10 +286,8 @@ class NotesController extends ModuleInstance {
 		return $reminderFormat;
 	}
 
-	#[NCA\HandlesEvent(
-		name: AltNewMainEvent::EVENT_MASK,
-		description: 'Move reminder format to new main'
-	)]
+	/** Move reminder format to new main */
+	#[NCA\HandlesEvent]
 	public function moveReminderFormat(AltNewMainEvent $event): void {
 		$reminderFormat = $this->preferences->get($event->alt, 'reminder_format');
 		if ($reminderFormat === null || $reminderFormat === '') {

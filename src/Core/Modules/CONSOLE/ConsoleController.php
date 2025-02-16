@@ -146,16 +146,9 @@ class ConsoleController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * This is an Event("connect") instead of Setup since you cannot use the console
-	 * before the bot is fully ready anyway
-	 */
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Initializes the console',
-		defaultStatus: Status::Enabled
-	)]
-	public function setupConsole(): void {
+	/** Initializes the console */
+	#[NCA\HandlesEvent(defaultStatus: Status::Enabled)]
+	public function setupConsole(ConnectEvent $event): void {
 		if (!$this->config->general->enableConsoleClient) {
 			return;
 		}

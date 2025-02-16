@@ -462,10 +462,8 @@ class OnlineController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Records an org member login in db'
-	)]
+	/** Records an org member login in db */
+	#[NCA\HandlesEvent]
 	public function recordLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->myOrg->isMember($sender)) {
@@ -479,10 +477,8 @@ class OnlineController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogoffEvent::EVENT_MASK,
-		description: 'Records an org member logoff in db'
-	)]
+	/** Records an org member logoff in db */
+	#[NCA\HandlesEvent]
 	public function recordLogoffEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->myOrg->isMember($sender)) {
@@ -496,10 +492,8 @@ class OnlineController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Sends a tell to players on logon showing who is online in org'
-	)]
+	/** Sends a tell to players on logon showing who is online in org */
+	#[NCA\HandlesEvent]
 	public function showOnlineOnLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->myOrg->isMember($sender)
@@ -512,10 +506,8 @@ class OnlineController extends ModuleInstance {
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(10mins)',
-		description: 'Online check'
-	)]
+	/** Online check */
+	#[NCA\HandlesEvent(mask: 'timer(10mins)')]
 	public function onlineCheckEvent(Event $eventObj): void {
 		if (!$this->chatBot->isReady()) {
 			return;
@@ -584,53 +576,33 @@ class OnlineController extends ModuleInstance {
 			->delete();
 	}
 
-	#[
-		NCA\HandlesEvent(
-			name: MyPrivateChannelMsgEvent::EVENT_MASK,
-			description: 'Afk check',
-			help: 'afk'
-		),
-	]
+	/** Afk check */
+	#[NCA\HandlesEvent(help: 'afk')]
 	public function afkCheckPrivateChannelEvent(MyPrivateChannelMsgEvent $eventObj): void {
-		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
+		$this->afkCheck($eventObj->sender, $eventObj->message, 'priv');
 	}
 
-	#[
-		NCA\HandlesEvent(
-			name: GuildChannelMsgEvent::EVENT_MASK,
-			description: 'Afk check',
-			help: 'afk'
-		),
-	]
+	/** Afk check */
+	#[NCA\HandlesEvent(help: 'afk')]
 	public function afkCheckGuildChannelEvent(GuildChannelMsgEvent $eventObj): void {
 		if (isset($eventObj->sender)) {
-			$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
+			$this->afkCheck($eventObj->sender, $eventObj->message, 'guild');
 		}
 	}
 
-	#[
-		NCA\HandlesEvent(
-			name: MyPrivateChannelMsgEvent::EVENT_MASK,
-			description: 'Sets a member afk',
-			help: 'afk'
-		),
-	]
+	/** Sets a member afk */
+	#[NCA\HandlesEvent(help: 'afk')]
 	public function afkPrivateChannelEvent(MyPrivateChannelMsgEvent $eventObj): void {
-		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
+		$this->afk($eventObj->sender, $eventObj->message, 'priv');
 	}
 
-	#[
-		NCA\HandlesEvent(
-			name: GuildChannelMsgEvent::EVENT_MASK,
-			description: 'Sets a member afk',
-			help: 'afk'
-		),
-	]
+	/** Sets a member afk */
+	#[NCA\HandlesEvent(help: 'afk')]
 	public function afkGuildChannelEvent(GuildChannelMsgEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
 		}
-		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
+		$this->afk($eventObj->sender, $eventObj->message, 'guild');
 	}
 
 	/** Set someone back from afk if needed */

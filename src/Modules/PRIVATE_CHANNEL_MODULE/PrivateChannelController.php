@@ -967,10 +967,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->accessManager->addAudit($audit);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(5m)',
-		description: 'Send reminder if the private channel is locked'
-	)]
+	/** Send reminder if the private channel is locked */
+	#[NCA\HandlesEvent(mask: 'timer(5m)')]
 	public function remindOfLock(): void {
 		if (!$this->isLocked()) {
 			return;
@@ -981,10 +979,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->messageHub->handle($rMessage);
 	}
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Adds all members as buddies'
-	)]
+	/** Adds all members as buddies */
+	#[NCA\HandlesEvent]
 	public function connectEvent(ConnectEvent $eventObj): void {
 		$this->db->table(Member::getTable())
 			->asObj(Member::class)
@@ -993,10 +989,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			});
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Auto-invite members on logon'
-	)]
+	/** Auto-invite members on logon */
+	#[NCA\HandlesEvent]
 	public function logonAutoinviteEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 
@@ -1050,10 +1044,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->messageHub->handle($re);
 	}
 
-	#[NCA\HandlesEvent(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Displays a message when a character joins the private channel'
-	)]
+	/** Displays a message when a character joins the private channel */
+	#[NCA\HandlesEvent]
 	public function joinPrivateChannelMessageEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 
@@ -1089,10 +1081,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->eventManager->fireEvent($event);
 	}
 
-	#[NCA\HandlesEvent(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Autoban players of unwanted factions when they join the bot'
-	)]
+	/** Autoban players of unwanted factions when they join the bot */
+	#[NCA\HandlesEvent]
 	public function autobanOnJoin(JoinMyPrivEvent $eventObj): void {
 		$reqFaction = $this->onlyAllowFaction;
 		if ($reqFaction === 'all') {
@@ -1169,10 +1159,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		return $leaveMessage;
 	}
 
-	#[NCA\HandlesEvent(
-		name: LeaveMyPrivEvent::EVENT_MASK,
-		description: 'Displays a message when a character leaves the private channel'
-	)]
+	/** Displays a message when a character leaves the private channel */
+	#[NCA\HandlesEvent]
 	public function leavePrivateChannelMessageEvent(LeaveMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 
@@ -1196,10 +1184,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->guildController->lastLogoffMsgs[$eMain] = time();
 	}
 
-	#[NCA\HandlesEvent(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Updates the database when a character joins the private channel'
-	)]
+	/** Updates the database when a character joins the private channel */
+	#[NCA\HandlesEvent]
 	public function joinPrivateChannelRecordEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		$this->onlineController->addPlayerToOnlineList(
@@ -1209,28 +1195,22 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		);
 	}
 
-	#[NCA\HandlesEvent(
-		name: LeaveMyPrivEvent::EVENT_MASK,
-		description: 'Updates the database when a character leaves the private channel'
-	)]
+	/** Updates the database when a character leaves the private channel */
+	#[NCA\HandlesEvent]
 	public function leavePrivateChannelRecordEvent(LeaveMyPrivEvent $eventObj): void {
 		$this->onlineController->removePlayerFromOnlineList($eventObj->sender, 'priv');
 	}
 
-	#[NCA\HandlesEvent(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Sends the online list to people as they join the private channel'
-	)]
+	/** Sends the online list to people as they join the private channel */
+	#[NCA\HandlesEvent]
 	public function joinPrivateChannelShowOnlineEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		$msg = $this->onlineController->getOnlineList();
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	#[NCA\HandlesEvent(
-		name: MemberAddEvent::EVENT_MASK,
-		description: 'Send welcome message data/welcome.txt to new members'
-	)]
+	/** Send welcome message data/welcome.txt to new members */
+	#[NCA\HandlesEvent]
 	public function sendWelcomeMessage(MemberAddEvent $event): void {
 		$welcomeFile = "{$this->config->paths->data}/welcome.txt";
 		try {

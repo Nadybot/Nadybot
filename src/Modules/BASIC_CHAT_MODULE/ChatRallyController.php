@@ -172,10 +172,8 @@ class ChatRallyController extends ModuleInstance {
 		$this->eventManager->fireEvent($rEvent);
 	}
 
-	#[NCA\HandlesEvent(
-		name: SyncRallySetEvent::EVENT_MASK,
-		description: 'Handle synced rally sets'
-	)]
+	/** Handle synced rally sets */
+	#[NCA\HandlesEvent]
 	public function handleExtRallySet(SyncRallySetEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -183,10 +181,8 @@ class ChatRallyController extends ModuleInstance {
 		$this->set($event->name, $event->pf, (string)$event->x, (string)$event->y);
 	}
 
-	#[NCA\HandlesEvent(
-		name: SyncRallyClearEvent::EVENT_MASK,
-		description: 'Handle synced rally clears'
-	)]
+	/** Handle synced rally clears */
+	#[NCA\HandlesEvent]
 	public function handleExtRallyClear(SyncRallyClearEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -194,10 +190,8 @@ class ChatRallyController extends ModuleInstance {
 		$this->clear();
 	}
 
-	#[NCA\HandlesEvent(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Sends rally to players joining the private channel'
-	)]
+	/** Sends rally to players joining the private channel */
+	#[NCA\HandlesEvent]
 	public function sendRally(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 

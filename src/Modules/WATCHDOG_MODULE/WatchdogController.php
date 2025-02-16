@@ -21,10 +21,8 @@ class WatchdogController extends ModuleInstance {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
-	#[NCA\HandlesEvent(
-		name: 'timer(10sec)',
-		description: 'Periodically touch an alive-file'
-	)]
+	/** Periodically touch an alive-file */
+	#[NCA\HandlesEvent(mask: 'timer(10sec)')]
 	public function touchAliveFile(): void {
 		$this->fs->touch(sys_get_temp_dir().'/alive.'.$this->config->main->character.'.'.$this->config->main->dimension);
 	}

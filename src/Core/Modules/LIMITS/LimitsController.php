@@ -192,10 +192,8 @@ class LimitsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: CmdEvent::EVENT_MASK,
-		description: 'Enforce rate limits'
-	)]
+	/** Enforce rate limits */
+	#[NCA\HandlesEvent]
 	public function accountCommandExecution(CmdEvent $event): void {
 		if (isset($event->cmdHandler) && !$this->commandHandlerCounts($event->cmdHandler)) {
 			return;
@@ -311,11 +309,8 @@ class LimitsController extends ModuleInstance {
 		return $ignoredUntil !== null && $ignoredUntil >= time();
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1min)',
-		description: 'Check ignores to see if they have expired',
-		defaultStatus: Status::Enabled
-	)]
+	/** Check ignores to see if they have expired */
+	#[NCA\HandlesEvent(mask: 'timer(1min)', defaultStatus: Status::Enabled)]
 	public function expireIgnores(): void {
 		$now = time();
 		foreach ($this->ignoreList as $name => $expires) {
@@ -328,11 +323,8 @@ class LimitsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(10min)',
-		description: 'Cleanup expired command counts',
-		defaultStatus: Status::Enabled
-	)]
+	/** Cleanup expired command counts */
+	#[NCA\HandlesEvent(mask: 'timer(10min)', defaultStatus: Status::Enabled)]
 	public function expireBuckets(): void {
 		$now = time();
 		$timeWindow = $this->limitsWindow;

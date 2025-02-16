@@ -150,12 +150,9 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		return "raid_level_{$rank}";
 	}
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Add raid leader and admins to the buddy list',
-		defaultStatus: Status::Enabled
-	)]
-	public function checkRaidRanksEvent(): void {
+	/** Add raid leader and admins to the buddy list */
+	#[NCA\HandlesEvent(defaultStatus: Status::Enabled)]
+	public function checkRaidRanksEvent(ConnectEvent $event): void {
 		$this->db->table(RaidRank::getTable())
 			->asObj(RaidRank::class)
 			->each(function (RaidRank $row): void {
@@ -421,10 +418,8 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$context->reply($link);
 	}
 
-	#[NCA\HandlesEvent(
-		name: AltNewMainEvent::EVENT_MASK,
-		description: 'Move raid rank to new main'
-	)]
+	/** Move raid rank to new main */
+	#[NCA\HandlesEvent]
 	public function moveRaidRanks(AltNewMainEvent $event): void {
 		$oldRank = $this->ranks[$event->alt] ?? null;
 		if ($oldRank === null) {

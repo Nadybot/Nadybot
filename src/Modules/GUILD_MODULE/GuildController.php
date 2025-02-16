@@ -570,18 +570,14 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(24hrs)',
-		description: 'Download guild roster xml and update guild members'
-	)]
+	/** Download guild roster xml and update guild members */
+	#[NCA\HandlesEvent(mask: 'timer(24hrs)')]
 	public function downloadOrgRosterEvent(Event $eventObj): void {
 		$this->updateMyOrgRoster(false);
 	}
 
-	#[NCA\HandlesEvent(
-		name: OrgMsgChannelMsgEvent::EVENT_MASK,
-		description: 'Automatically update guild roster as characters join and leave the guild'
-	)]
+	/** Automatically update guild roster as characters join and leave the guild */
+	#[NCA\HandlesEvent]
 	public function autoNotifyOrgMembersEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (count($arr = Safe::pregMatch('/^(.+) invited (.+) to your organization.$/', $message))) {
@@ -663,10 +659,8 @@ class GuildController extends ModuleInstance {
 		return $logonMessage;
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Shows an org member logon in chat'
-	)]
+	/** Shows an org member logon in chat */
+	#[NCA\HandlesEvent]
 	public function orgMemberLogonMessageEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->myOrg->isMember($sender)
@@ -722,10 +716,8 @@ class GuildController extends ModuleInstance {
 		return $logoffMessage;
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogoffEvent::EVENT_MASK,
-		description: 'Shows an org member logoff in chat'
-	)]
+	/** Shows an org member logoff in chat */
+	#[NCA\HandlesEvent]
 	public function orgMemberLogoffMessageEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->myOrg->isMember($sender)
@@ -753,10 +745,8 @@ class GuildController extends ModuleInstance {
 		$this->chatBot->sendGuild($msg, true);
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogoffEvent::EVENT_MASK,
-		description: 'Record org member logoff for lastseen command'
-	)]
+	/** Record org member logoff for lastseen command */
+	#[NCA\HandlesEvent]
 	public function orgMemberLogoffRecordEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->myOrg->isMember($sender)
@@ -774,10 +764,8 @@ class GuildController extends ModuleInstance {
 			&& isset($this->config->orgId);
 	}
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Verifies that org name is correct'
-	)]
+	/** Verifies that org name is correct */
+	#[NCA\HandlesEvent]
 	public function verifyOrgNameEvent(ConnectEvent $eventObj): void {
 		if ($this->config->general->orgName === '') {
 			return;

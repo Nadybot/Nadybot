@@ -42,11 +42,8 @@ class SystemdController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(1sec)',
-		description: 'Handle SystemD watchdog',
-		defaultStatus: Status::Disabled,
-	)]
+	/** Handle SystemD watchdog */
+	#[NCA\HandlesEvent(mask: 'timer(1sec)', defaultStatus: Status::Disabled)]
 	public function watchdogPing(Event $event): void {
 		if (!$this->enabled || $this->lastPing + $this->watchdogInterval > time()) {
 			return;

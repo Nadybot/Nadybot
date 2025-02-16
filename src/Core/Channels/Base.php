@@ -12,7 +12,7 @@ abstract class Base implements MessageReceiver {
 
 	protected function getEventMessage(RoutableEvent $event, MessageHub $hub, ?string $channelName=null): ?string {
 		$renderPath = true;
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			$baseEvent = $event->data??null;
 			if (!isset($baseEvent) || !($baseEvent instanceof EventsBase) || !isset($baseEvent->message)) {
 				return null;

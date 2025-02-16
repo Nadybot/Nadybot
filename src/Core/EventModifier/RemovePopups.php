@@ -33,7 +33,7 @@ class RemovePopups implements EventModifier {
 		if (!isset($event)) {
 			return $event;
 		}
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			$message = $event->getData()->message??null;
 			if (!isset($message)) {
 				return $event;

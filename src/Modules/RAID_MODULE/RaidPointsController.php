@@ -4,14 +4,13 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use Exception;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Remove, Str, WordStr};
-use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
+use Nadybot\Core\Modules\ALTS\{AltAddEvent, AltNewMainEvent, AltValidateEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	MessageHub,
 	ModuleInstance,
-	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
@@ -130,10 +129,8 @@ class RaidPointsController extends ModuleInstance {
 	private Nadybot $chatBot;
 
 	/** Give points when the ticker is enabled */
-	#[NCA\HandlesEvent(
-		name: 'timer(1s)',
-		description: 'Award points for raid participation'
-	)]
+	/** Award points for raid participation */
+	#[NCA\HandlesEvent(mask: 'timer(1s)')]
 	public function awardParticipationPoints(): void {
 		$raid = $this->raidController->raid ?? null;
 		if (
@@ -618,14 +615,9 @@ class RaidPointsController extends ModuleInstance {
 		);
 	}
 
-	/** Give points when the ticker is enabled */
-	#[
-		NCA\HandlesEvent(
-			name: ['alt(add)', 'alt(validate)'],
-			description: 'Merge raid points when alts merge'
-		)
-	]
-	public function mergeRaidPoints(AltEvent $event): void {
+	/** Merge raid points when alts merge */
+	#[NCA\HandlesEvent]
+	public function mergeRaidPoints(AltAddEvent|AltValidateEvent $event): void {
 		if ($event->validated === false) {
 			return;
 		}
@@ -792,10 +784,8 @@ class RaidPointsController extends ModuleInstance {
 		$context->reply("Reward <highlight>{$reward->name}<end> changed.");
 	}
 
-	#[NCA\HandlesEvent(
-		name: AltNewMainEvent::EVENT_MASK,
-		description: 'Move raid points to new main'
-	)]
+	/** Move raid points to new main */
+	#[NCA\HandlesEvent]
 	public function moveRaidPoints(AltNewMainEvent $event): void {
 		$sharePoints = $this->raidSharePoints;
 		if (!$sharePoints) {

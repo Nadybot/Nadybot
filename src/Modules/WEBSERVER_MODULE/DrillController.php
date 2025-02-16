@@ -58,11 +58,9 @@ class DrillController extends ModuleInstance {
 	/** @var array<string,DrillHttpConnection> */
 	private array $handlers = [];
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Connect to Drill server',
-	)]
-	public function connectToDrill(): void {
+	/** Connect to Drill server */
+	#[NCA\HandlesEvent]
+	public function connectToDrill(ConnectEvent $event): void {
 		if ($this->drillServer === self::OFF) {
 			return;
 		}
@@ -136,10 +134,8 @@ class DrillController extends ModuleInstance {
 		]);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'drill(hello)',
-		description: 'Choose Drill authentication',
-	)]
+	/** Choose Drill authentication */
+	#[NCA\HandlesEvent(mask: 'drill(hello)')]
 	public function chooseDrillAuth(DrillPacketEvent $event): void {
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\Hello);
@@ -165,10 +161,8 @@ class DrillController extends ModuleInstance {
 		$event->connection->send($answer);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'drill(token-in-ao-tell)',
-		description: 'Handle Drill authentication',
-	)]
+	/** Handle Drill authentication */
+	#[NCA\HandlesEvent(mask: 'drill(token-in-ao-tell)')]
 	public function authenticateDrill(DrillPacketEvent $event): void {
 		/** @var DeferredFuture<string> */
 		$deferred = new DeferredFuture();
@@ -218,10 +212,8 @@ class DrillController extends ModuleInstance {
 		$event->connection->send($answer);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'drill(lets-go)',
-		description: 'Activate Drill',
-	)]
+	/** Activate Drill */
+	#[NCA\HandlesEvent(mask: 'drill(lets-go)')]
 	public function activateDrill(DrillPacketEvent $event): void {
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\LetsGo);
@@ -230,10 +222,8 @@ class DrillController extends ModuleInstance {
 		]);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'drill(data)',
-		description: 'Handle Drill data',
-	)]
+	/** Handle Drill data */
+	#[NCA\HandlesEvent(mask: 'drill(data)')]
 	public function receiveData(DrillPacketEvent $event): void {
 		$packet = $event->packet;
 		if (!($packet instanceof Drill\Packet\Data)) {
@@ -273,10 +263,8 @@ class DrillController extends ModuleInstance {
 		$this->handlers[$packet->uuid]->handle($packet);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'drill(closed)',
-		description: 'Handle Drill disconnect',
-	)]
+	/** Handle Drill disconnect */
+	#[NCA\HandlesEvent(mask: 'drill(closed)')]
 	public function clientDisconnect(DrillPacketEvent $event): void {
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\Closed);
@@ -291,26 +279,20 @@ class DrillController extends ModuleInstance {
 		unset($this->handlers[$packet->uuid]);
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'drill(disallowed-packet)',
-		description: 'Handle disallowed packets',
-	)]
+	/** Handle disallowed packets */
+	#[NCA\HandlesEvent(mask: 'drill(disallowed-packet)')]
 	public function handleDisallowedPacket(): void {
 		$this->logger->warning('Drill server complains about disallowed packet');
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'drill(auth-failed)',
-		description: 'Handle failed authentication',
-	)]
+	/** Handle failed authentication */
+	#[NCA\HandlesEvent(mask: 'drill(auth-failed)')]
 	public function handleAuthFailed(): void {
 		$this->logger->notice('Failed to authenticate to the Drill server. Retrying.');
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'drill(out-of-capacity)',
-		description: 'Handle Drill-server full error',
-	)]
+	/** Handle Drill-server full error */
+	#[NCA\HandlesEvent(mask: 'drill(out-of-capacity)')]
 	public function handleOOC(): void {
 		$this->logger->warning("Drill server currently doesn't have any capacity for this bot. Retrying.");
 	}

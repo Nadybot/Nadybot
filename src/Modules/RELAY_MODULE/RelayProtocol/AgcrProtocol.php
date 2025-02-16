@@ -83,7 +83,7 @@ class AgcrProtocol implements RelayProtocolInterface {
 			'relay' => $this->relay->getName(),
 			'event' => $event,
 		]);
-		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
+		if ($event->getEvent() === RoutableEvent::TYPE_MESSAGE) {
 			$packages = $this->renderMessage($event);
 			$this->logger->debug('Event encoded successfully on {relay}', [
 				'relay' => $this->relay->getName(),
@@ -91,7 +91,7 @@ class AgcrProtocol implements RelayProtocolInterface {
 			]);
 			return $packages;
 		}
-		if ($event->getType() === RoutableEvent::TYPE_EVENT) {
+		if ($event->getEvent() === RoutableEvent::TYPE_EVENT) {
 			if (!isset($event->data) || !($event->data instanceof Base) || !strlen($event->data->message??'')) {
 				return [];
 			}

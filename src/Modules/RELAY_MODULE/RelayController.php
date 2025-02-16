@@ -118,11 +118,9 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Inject]
 	private EventManager $eventManager;
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Load relays from database'
-	)]
-	public function loadRelays(): void {
+	/** Load relays from database */
+	#[NCA\HandlesEvent]
+	public function loadRelays(ConnectEvent $event): void {
 		$relays = $this->getRelays();
 		foreach ($relays as $relayConf) {
 			try {

@@ -150,10 +150,8 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	#[NCA\HandlesEvent(
-		name: GuildChannelMsgEvent::EVENT_MASK,
-		description: 'Starts a wave counter when cloak is lowered'
-	)]
+	/** Starts a wave counter when cloak is lowered */
+	#[NCA\HandlesEvent]
 	public function autoStartWaveCounterEvent(GuildChannelMsgEvent $eventObj): void {
 		if (preg_match('/^Your city in (.+) has been targeted by hostile forces.$/i', $eventObj->message)) {
 			$this->startWaveCounter();
@@ -171,9 +169,11 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 	public function sendAlertMessage(Timer $timer, Alert $alert): void {
 		$this->sendWaveMessage($alert->message);
 		$wave = $alert->extra[self::WAVE] ?? null;
-		if ($wave === 9) {
+		if (!isset($wave)) {
+			return;
+		}
+		if ($wave !== 9) {
 			$event = new CityRaidWaveEvent(wave: $wave);
-			$event->type = 'cityraid(end)';
 		} else {
 			$event = new CityRaidEndEvent();
 		}

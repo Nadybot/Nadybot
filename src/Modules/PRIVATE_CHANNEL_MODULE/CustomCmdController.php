@@ -70,10 +70,8 @@ class CustomCmdController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'setting(custom_cmd_dir)',
-		description: 'Turn on/off commands',
-	)]
+	/** Turn on/off commands */
+	#[NCA\HandlesEvent(mask: 'setting(custom_cmd_dir)')]
 	public function changeCustomCmdDir(SettingEvent $event): void {
 		if ($event->oldValue->value !== self::OFF) {
 			$this->db->table(CmdCfg::getTable())

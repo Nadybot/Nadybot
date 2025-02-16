@@ -325,10 +325,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 	}
 
 	/** Handle an incoming discord channel message */
-	#[NCA\HandlesEvent(
-		name: 'discord(interaction_create)',
-		description: 'Handle Discord slash commands'
-	)]
+	/** Handle Discord slash commands */
+	#[NCA\HandlesEvent(mask: 'discord(interaction_create)')]
 	public function handleSlashCommands(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
 		if (!isset($payload->d) || !is_array($payload->d)) {

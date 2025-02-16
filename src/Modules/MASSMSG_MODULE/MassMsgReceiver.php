@@ -29,7 +29,7 @@ class MassMsgReceiver implements MessageReceiver {
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			$baseEvent = $event->data??null;
 			if (!isset($baseEvent) || !($baseEvent instanceof Base) || !isset($baseEvent->message)) {
 				return false;

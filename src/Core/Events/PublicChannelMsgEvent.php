@@ -10,10 +10,11 @@ abstract class PublicChannelMsgEvent extends AOChatEvent {
 	 * @param ?string $sender  The name of the sender of the message
 	 */
 	public function __construct(
-		public string $channel,
-		public string $message,
-		public ?string $worker=null,
+		string $channel,
+		string $message,
+		?string $worker=null,
 		public ?string $sender=null,
 	) {
+		parent::__construct(channel: $channel, message: $message, worker: $worker);
 	}
 }

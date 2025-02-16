@@ -2,15 +2,13 @@
 
 namespace Nadybot\Modules\PVP_MODULE\Event;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Modules\PVP_MODULE\FeedMessage;
 
-class TowerAttackEvent extends Event {
-	public const EVENT_MASK = 'tower-attack';
-
+#[Event(mask: 'tower-attack')]
+class TowerAttackEvent {
 	public function __construct(
 		public FeedMessage\TowerAttack $attack,
 	) {
-		$this->type = self::EVENT_MASK;
 	}
 }

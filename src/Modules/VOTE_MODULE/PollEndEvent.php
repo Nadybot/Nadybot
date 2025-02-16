@@ -2,15 +2,8 @@
 
 namespace Nadybot\Modules\VOTE_MODULE;
 
-class PollEndEvent extends PollEvent {
-	public const EVENT_MASK = 'poll(end)';
+use Nadybot\Core\Attributes\Event;
 
-	/** @param list<Vote> $votes */
-	public function __construct(
-		Poll $poll,
-		array $votes,
-	) {
-		parent::__construct(poll: $poll, votes: $votes);
-		$this->type = self::EVENT_MASK;
-	}
+#[Event(mask: 'poll(end)')]
+class PollEndEvent extends PollEvent {
 }

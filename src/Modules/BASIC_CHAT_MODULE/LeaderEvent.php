@@ -2,11 +2,13 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-abstract class LeaderEvent extends Event {
-	public const EVENT_MASK = 'leader(*)';
-
-	/** The names of the new/old leader */
-	public string $player;
+#[Event(mask: 'leader(*)')]
+abstract class LeaderEvent {
+	/** @param string $player The names of the new/old leader */
+	public function __construct(
+		public string $player,
+	) {
+	}
 }

@@ -2,16 +2,14 @@
 
 namespace Nadybot\Modules\VOTE_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-class PollEvent extends Event {
-	public const EVENT_MASK = 'poll(*)';
-
+#[Event(mask: 'poll(*)')]
+abstract class PollEvent {
 	/** @param list<Vote> $votes */
 	public function __construct(
 		public Poll $poll,
-		public array $votes,
+		public array $votes=[],
 	) {
-		$this->type = self::EVENT_MASK;
 	}
 }

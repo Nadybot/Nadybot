@@ -7,6 +7,7 @@ use Amp\Http\Client\{HttpClientBuilder, Request};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -387,7 +388,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\HandlesEvent('timer(1h)', 'Announce unplanted sites via pvp(unplanted-sites)')]
+	/** Announce unplanted sites via pvp(unplanted-sites) */
+	#[NCA\HandlesEvent(mask: 'timer(1h)')]
 	public function announceUnplantedSites(): void {
 		$unplantedSites = $this->getUnplantedSites();
 		if (!count($unplantedSites)) {
@@ -410,8 +412,9 @@ class NotumWarsController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[NCA\HandlesEvent('connect', 'Load all towers from the API')]
-	public function initTowersFromApi(): void {
+	/** Load all towers from the API */
+	#[NCA\HandlesEvent]
+	public function initTowersFromApi(?ConnectEvent $event=null): void {
 		$client = $this->http->build();
 
 		$response = $client->request(new Request(self::TOWER_API));
@@ -464,8 +467,9 @@ class NotumWarsController extends ModuleInstance {
 			->toList();
 	}
 
-	#[NCA\HandlesEvent('connect', 'Load all attacks from the API')]
-	public function initAttacksFromApi(): void {
+	/** Load all attacks from the API */
+	#[NCA\HandlesEvent]
+	public function initAttacksFromApi(?ConnectEvent $event=null): void {
 		/** @var ?int */
 		$maxTS = $this->db->table(DBTowerAttack::getTable())->max('timestamp');
 		$client = $this->http->build();
@@ -525,8 +529,9 @@ class NotumWarsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent('connect', 'Load all tower outcomes from the API')]
-	public function initOutcomesFromApi(): void {
+	/** Load all tower outcomes from the API */
+	#[NCA\HandlesEvent]
+	public function initOutcomesFromApi(?ConnectEvent $event=null): void {
 		/** @var ?int */
 		$maxTS = $this->db->table(DBOutcome::getTable())->max('timestamp');
 		$client = $this->http->build();
@@ -607,7 +612,8 @@ class NotumWarsController extends ModuleInstance {
 			->toList();
 	}
 
-	#[NCA\HandlesEvent('site-update', 'Update tower information from the API')]
+	/** Update tower information from the API */
+	#[NCA\HandlesEvent]
 	public function updateSiteInfoFromFeed(Event\SiteUpdateEvent $event): void {
 		$oldSite = $this->state[$event->site->playfield->value][$event->site->site_id] ?? null;
 		$this->updateSiteInfo($event->site);
@@ -622,7 +628,8 @@ class NotumWarsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\HandlesEvent('tower-outcome', 'Update tower outcomes from the API')]
+	/** Update tower outcomes from the API */
+	#[NCA\HandlesEvent]
 	public function updateTowerOutcomeInfoFromFeed(Event\TowerOutcomeEvent $event): void {
 		$dbOutcome = DBOutcome::fromTowerOutcome($event->outcome);
 		$this->db->insert($dbOutcome);
@@ -631,7 +638,8 @@ class NotumWarsController extends ModuleInstance {
 			->toList();
 	}
 
-	#[NCA\HandlesEvent('tower-attack', 'Update tower attacks from the API')]
+	/** Update tower attacks from the API */
+	#[NCA\HandlesEvent]
 	public function updateTowerAttackInfoFromFeed(Event\TowerAttackEvent $event): void {
 		$attack = $event->attack;
 		$attacker = $attack->attacker;
@@ -669,7 +677,8 @@ class NotumWarsController extends ModuleInstance {
 		});
 	}
 
-	#[NCA\HandlesEvent('gas-update', 'Update gas information from the API')]
+	/** Update gas information from the API */
+	#[NCA\HandlesEvent]
 	public function updateGasInfoFromFeed(Event\GasUpdateEvent $event): void {
 		$site = $this->state[$event->gas->playfield->value][$event->gas->site_id] ?? null;
 		if (!isset($site)) {

@@ -45,7 +45,7 @@ class IfNotBy implements EventModifier {
 			return $event;
 		}
 		// We only require prefixes for messages, the rest is passed through
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			return $event;
 		}
 		$matches = isset($event->char) && in_array(strtolower($event->char->name), $this->senders, true);

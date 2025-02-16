@@ -8,6 +8,7 @@ use Closure;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\{HandlesCommand, HandlesEvent};
+use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{Attributes as NCA, CmdContext, Hydrator, MessageHub, ModuleInstance, Safe, Text, Util};
 use Nadybot\Modules\WHEREIS_MODULE\{Whereis, WhereisController};
@@ -81,8 +82,9 @@ class MobController extends ModuleInstance {
 	#[NCA\Inject]
 	private MessageHub $msgHub;
 
-	#[NCA\HandlesEvent('connect', 'Load all mobs from the API')]
-	public function initMobsFromApi(): void {
+	/** Load all mobs from the API */
+	#[NCA\HandlesEvent]
+	public function initMobsFromApi(?ConnectEvent $event=null): void {
 		$client = $this->builder->build();
 
 		$response = $client->request(new Request(self::MOB_API));
@@ -162,10 +164,8 @@ class MobController extends ModuleInstance {
 		}
 	}
 
-	#[HandlesEvent(
-		name: MobAttackedEvent::EVENT_MASK,
-		description: 'Announce when a mob gets attacked as mob(&lt;type&gt;-&lt;key&gt;-attacked)',
-	)]
+	/** Announce when a mob gets attacked as mob(&lt;type&gt;-&lt;key&gt;-attacked) */
+	#[HandlesEvent]
 	public function announceMobAttacked(MobAttackedEvent $event): void {
 		$mob = $event->mob;
 		$blob = Text::makeChatcmd(
@@ -183,10 +183,8 @@ class MobController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[HandlesEvent(
-		name: MobSpawnEvent::EVENT_MASK,
-		description: 'Announce when a new mob spawns as mob(&lt;type&gt;-&lt;key&gt;-spawn)',
-	)]
+	/** Announce when a new mob spawns as mob(&lt;type&gt;-&lt;key&gt;-spawn) */
+	#[HandlesEvent]
 	public function announceMobSpawn(MobSpawnEvent $event): void {
 		$mob = $event->mob;
 		$blob = Text::makeChatcmd(
@@ -204,10 +202,8 @@ class MobController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[HandlesEvent(
-		name: MobDeathEvent::EVENT_MASK,
-		description: 'Announce when a mob gets killed as mob(&lt;type&gt;-&lt;key&gt;-death)',
-	)]
+	/** Announce when a mob gets killed as mob(&lt;type&gt;-&lt;key&gt;-death) */
+	#[HandlesEvent]
 	public function announceMobDeath(MobDeathEvent $event): void {
 		$mob = $event->mob;
 		$blob = Text::makeChatcmd(

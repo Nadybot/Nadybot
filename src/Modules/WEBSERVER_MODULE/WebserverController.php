@@ -127,11 +127,9 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Download aoauth public key'
-	)]
-	public function downloadPublicKey(): void {
+	/** Download aoauth public key */
+	#[NCA\HandlesEvent]
+	public function downloadPublicKey(ConnectEvent $event): void {
 		if ($this->webserver) {
 			$this->listen();
 		}
@@ -169,11 +167,8 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		$this->scanRouteAttributes();
 	}
 
-	#[NCA\HandlesEvent(
-		name: 'timer(10min)',
-		description: 'Remove expired authentications',
-		defaultStatus: Status::Enabled
-	)]
+	/** Remove expired authentications */
+	#[NCA\HandlesEvent(mask: 'timer(10min)', defaultStatus: Status::Enabled)]
 	public function clearExpiredAuthentications(): void {
 		foreach ($this->authentications as $user => $data) {
 			if ($data[1] < time()) {
@@ -186,7 +181,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	#[NCA\SettingChangeHandler('webserver_auth')]
 	#[NCA\SettingChangeHandler('webserver_aoauth_url')]
 	public function downloadNewPublicKey(string $settingName, string $oldValue, string $newValue): void {
-		$this->downloadPublicKey();
+		$this->downloadPublicKey(new ConnectEvent());
 	}
 
 	/** Start or stop the webserver if the setting changed */

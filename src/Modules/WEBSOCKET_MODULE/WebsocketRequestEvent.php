@@ -2,20 +2,16 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
+use Nadybot\Core\Attributes\Event;
+
+#[Event(mask: 'websocket(request)')]
 class WebsocketRequestEvent extends WebsocketEvent {
-	public const EVENT_MASK = 'websocket(request)';
-
-	/**
-	 * @var NadyRequest
-	 *
-	 * @psalm-suppress NonInvariantDocblockPropertyType
-	 */
-	public object $data;
-
 	public function __construct(
-		NadyRequest $data,
+		private NadyRequest $data,
 	) {
-		$this->data = $data;
-		$this->type = self::EVENT_MASK;
+	}
+
+	public function getData(): NadyRequest {
+		return $this->data;
 	}
 }

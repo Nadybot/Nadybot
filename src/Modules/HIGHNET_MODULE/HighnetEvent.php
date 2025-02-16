@@ -2,14 +2,17 @@
 
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Types\EventInterface;
 
-class HighnetEvent extends Event {
-	public const EVENT_MASK = 'highnet(*)';
-
+#[NCA\Event(mask: 'highnet(*)')]
+class HighnetEvent implements EventInterface {
 	public function __construct(
 		public Message $message,
 	) {
-		$this->type = 'highnet(' . strtolower($message->channel) . ')';
+	}
+
+	public function getEvent(): string {
+		return 'highnet(' . strtolower($this->message->channel) . ')';
 	}
 }

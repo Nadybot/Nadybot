@@ -67,21 +67,17 @@ class WishlistController extends ModuleInstance {
 	#[NCA\Inject]
 	private AltsController $altsController;
 
-	#[NCA\HandlesEvent(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Put characters someone wished from to the buddylist'
-	)]
-	public function addPeopleOnWishlistToBuddylist(): void {
+	/** Put characters someone wished from to the buddylist */
+	#[NCA\HandlesEvent]
+	public function addPeopleOnWishlistToBuddylist(ConnectEvent $event): void {
 		$fromChars = $this->getActiveFroms();
 		foreach ($fromChars as $name) {
 			$this->buddylistManager->addName($name, 'wishlist');
 		}
 	}
 
-	#[NCA\HandlesEvent(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Inform people that someone wishes an item from them'
-	)]
+	/** Inform people that someone wishes an item from them */
+	#[NCA\HandlesEvent]
 	public function sendWishlistOnLogon(LogonEvent $event): void {
 		if (!$this->chatBot->isReady()
 			|| $event->wasOnline !== false

@@ -2,12 +2,14 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes as NCA;
 
-abstract class AltEvent extends Event {
-	public const EVENT_MASK = 'alt(*)';
-
-	public string $main;
-	public string $alt;
-	public ?bool $validated;
+#[NCA\Event(mask: 'alt(*)')]
+abstract class AltEvent {
+	public function __construct(
+		public string $main,
+		public string $alt,
+		public ?bool $validated,
+	) {
+	}
 }
