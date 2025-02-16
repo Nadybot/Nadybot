@@ -123,7 +123,8 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 
 	/** Handle Websocket event subscriptions */
 	#[NCA\HandlesEvent(defaultStatus: Status::Enabled)]
-	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketClient $client): void {
+	public function handleSubscriptions(WebsocketSubscribeEvent $event): void {
+		$client = $event->getClient();
 		try {
 			$this->subscriptions[$client->getId()] = $event->getData()->events;
 			$this->logger->info('Websocket subscribed to {subscribed_to}', [
@@ -136,7 +137,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 
 	/** Handle API requests */
 	#[NCA\HandlesEvent]
-	public function handleRequests(WebsocketRequestEvent $event, WebsocketClient $client): void {
+	public function handleRequests(WebsocketRequestEvent $event): void {
 		// Not implemented yet
 	}
 
@@ -212,15 +213,17 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		if ($command->command === $command::SUBSCRIBE) {
 			$newEvent = new WebsocketSubscribeEvent(
 				data: Hydrator::hydrate(NadySubscribe::class, $command->data),
+				client: $client,
 			);
 		} elseif ($command->command === $command::REQUEST) {
 			$newEvent = new WebsocketRequestEvent(
 				data: Hydrator::hydrate(NadyRequest::class, $command->data),
+				client: $client,
 			);
 		} else {
 			// Unknown command received is just silently ignored in case another handler deals with it
 			return;
 		}
-		$this->eventManager->fireEvent($newEvent, $client);
+		$this->eventManager->fireEvent($newEvent);
 	}
 }

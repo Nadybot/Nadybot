@@ -8,16 +8,18 @@ use Nadybot\Core\Attributes\Event;
 #[Event(mask: 'sendguild')]
 class SendGuildEvent extends AOChatEvent {
 	/**
-	 * @param string  $sender  Either the name of the sender or the numeric UID (e.g. city raid announcements)
-	 * @param string  $channel The channel (msg, priv, guild) via which the message was sent
-	 * @param string  $message The message itself
-	 * @param ?string $worker  If set, this is the id of the worker via which the message was received
+	 * @param string  $sender       Either the name of the sender or the numeric UID (e.g. city raid announcements)
+	 * @param string  $channel      The channel (msg, priv, guild) via which the message was sent
+	 * @param string  $message      The message itself
+	 * @param ?string $worker       If set, this is the id of the worker via which the message was received
+	 * @param bool    $disableRelay If set, don't route this message via rfelays
 	 */
 	public function __construct(
 		public string $sender,
 		string $channel,
 		string $message,
 		?string $worker=null,
+		public bool $disableRelay=false,
 	) {
 		parent::__construct(channel: $channel, message: $message, worker: $worker);
 	}

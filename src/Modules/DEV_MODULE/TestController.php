@@ -224,7 +224,7 @@ class TestController extends ModuleInstance {
 					parent::__construct(type: 'dummy');
 				}
 			};
-			$this->eventManager->callEventHandler($testEvent, $event, []);
+			$this->eventManager->callEventHandler($testEvent, $event);
 			$context->reply('Event has been fired.');
 		}
 	}

@@ -18,6 +18,7 @@ class SendPrivEvent extends AOChatEvent {
 		string $channel,
 		string $message,
 		?string $worker=null,
+		public bool $disableRelay=false,
 	) {
 		parent::__construct(channel: $channel, message: $message, worker: $worker);
 	}

@@ -519,8 +519,9 @@ class Nadybot {
 			channel: $group,
 			message: $message,
 			sender: $this->config->main->character,
+			disableRelay: $disableRelay,
 		);
-		$this->eventManager->fireEvent($event, $disableRelay);
+		$this->eventManager->fireEvent($event);
 		if (!$disableRelay) {
 			$rMessage = new RoutableMessage($message);
 			$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
@@ -582,9 +583,10 @@ class Nadybot {
 		$event = new SendGuildEvent(
 			channel: $this->config->general->orgName,
 			message: $origMsg,
-			sender: $this->config->main->character
+			sender: $this->config->main->character,
+			disableRelay: $disableRelay,
 		);
-		$this->eventManager->fireEvent($event, $disableRelay);
+		$this->eventManager->fireEvent($event);
 
 		if (!$disableRelay) {
 			$rMessage = new RoutableMessage($origMsg);

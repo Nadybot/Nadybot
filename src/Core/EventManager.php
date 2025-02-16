@@ -167,9 +167,9 @@ class EventManager {
 		}
 
 		if ($type === 'setup') {
-			$this->callEventHandler(new SetupEvent(), $filename, []);
+			$this->callEventHandler(new SetupEvent(), $filename);
 		} elseif ($type === 'connect' && $this->areConnectEventsFired) {
-			$this->callEventHandler(new ConnectEvent(), $filename, []);
+			$this->callEventHandler(new ConnectEvent(), $filename);
 		} elseif (fnmatch('timer(*)', $type, \FNM_CASEFOLD) && ($time = $this->getTimerEventTime($type)) > 0) {
 			$key = $this->getKeyForCronEvent($time, $filename);
 			if ($key === null) {
@@ -508,7 +508,7 @@ class EventManager {
 	 *
 	 * @return bool true if at least one event requests to stop execution
 	 */
-	public function fireEvent(object $eventObj, mixed ...$args): bool {
+	public function fireEvent(object $eventObj): bool {
 		$eventType = self::getEventType($eventObj);
 		// $this->logger->notice("Event {event} fired", ["event" => $eventObj]);
 		$futures = [];
@@ -518,7 +518,7 @@ class EventManager {
 					continue;
 				}
 				foreach ($handlers as $filename) {
-					$futures []= async($this->callEventHandler(...), $eventObj, $filename, $args);
+					$futures []= async($this->callEventHandler(...), $eventObj, $filename);
 				}
 			}
 			foreach ($this->dynamicEvents as $type => $handlers) {
@@ -531,7 +531,7 @@ class EventManager {
 					}
 
 					/** @var Closure(Event,mixed...):void $callback */
-					$futures []= async($callback, $eventObj, ...$args);
+					$futures []= async($callback, $eventObj);
 				}
 			}
 			if (!count($futures)) {
@@ -548,12 +548,8 @@ class EventManager {
 		return false;
 	}
 
-	/**
-	 * @param list<mixed> $args
-	 *
-	 * @throws StopExecutionException
-	 */
-	public function callEventHandler(object $eventObj, string $handler, array $args): void {
+	/** @throws StopExecutionException */
+	public function callEventHandler(object $eventObj, string $handler): void {
 		$eventType = self::getEventType($eventObj);
 		$logObj = new AnonObj(
 			class: 'Event',
@@ -576,7 +572,7 @@ class EventManager {
 				$refClass = new ReflectionClass($instance);
 				try {
 					$refMethod = $refClass->getMethod($method);
-					$refMethod->invoke($instance, $eventObj, ...$args);
+					$refMethod->invoke($instance, $eventObj);
 				} catch (ReflectionException) {
 					$this->logger->error('Could not find method {method} in class {class} for {event}', [
 						'method' => $method,
@@ -653,7 +649,7 @@ class EventManager {
 
 		$entry->nextevent = time() + $entry->time;
 		$this->logger->info('Initial call to {handler}', ['handler' => $entry->filename]);
-		$this->callEventHandler($eventObj, $entry->filename, [$entry->time]);
+		$this->callEventHandler($eventObj, $entry->filename);
 		$period = $entry->time;
 		$this->logger->info('Periodic call set up for {handler} every {period}s', [
 			'handler' => $entry->filename,
@@ -666,7 +662,7 @@ class EventManager {
 					'handler' => $entry->filename,
 				]);
 				$entry->nextevent = time() + $entry->time;
-				$this->callEventHandler($eventObj, $entry->filename, [$entry->time]);
+				$this->callEventHandler($eventObj, $entry->filename);
 			}
 		);
 	}
