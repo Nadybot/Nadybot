@@ -154,21 +154,23 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 			command: WebsocketCommand::EVENT,
 			data: $event,
 		);
-		$encodedPacket = ['command' => WebsocketCommand::EVENT, 'data' => $event];
 		$eventType = EventManager::getEventType($event);
+		$encodedEvent = Hydrator::literalSerialize($event);
+		$encodedEvent['type'] = $eventType;
+		$encodedPacket = ['command' => WebsocketCommand::EVENT, 'data' => $encodedEvent];
 		foreach ($this->subscriptions as $id => $subscriptions) {
 			if ($event instanceof CommandReplyEvent && $event->uuid !== (string)$id) {
 				continue;
 			}
 			foreach ($subscriptions as $subscription) {
-				if ($subscription === $eventType
-					|| fnmatch($subscription, $eventType)) {
-					$this->gateway->sendText(IMEX\JSON::export($encodedPacket), $id);
-					$this->logger->info('Sending {class} to Websocket client', [
-						'class' => $event::class,
-						'packet' => $packet,
-					]);
+				if ($subscription !== $eventType && !fnmatch($subscription, $eventType)) {
+					continue;
 				}
+				$this->gateway->sendText(IMEX\JSON::export($encodedPacket), $id);
+				$this->logger->info('Sending {class} to Websocket client', [
+					'class' => $event::class,
+					'packet' => $packet,
+				]);
 			}
 		}
 	}
