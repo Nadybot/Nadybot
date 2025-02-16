@@ -142,6 +142,7 @@ class OnlinePlayer extends Player {
 			afk: $this->afk,
 			nick: $this->nick,
 			online: $this->online,
+			source: $player->source ?? $this->source,
 		);
 	}
 }

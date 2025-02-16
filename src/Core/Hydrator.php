@@ -2,7 +2,16 @@
 
 namespace Nadybot\Core;
 
-use EventSauce\ObjectHydrator\{DefinitionProvider, IterableList, ObjectMapper, ObjectMapperCodeGenerator, ObjectMapperUsingReflection, UnableToHydrateObject, UnableToSerializeObject};
+use EventSauce\ObjectHydrator\{
+	DefinitionProvider,
+	IterableList,
+	KeyFormatterWithoutConversion,
+	ObjectMapper,
+	ObjectMapperCodeGenerator,
+	ObjectMapperUsingReflection,
+	UnableToHydrateObject,
+	UnableToSerializeObject
+};
 use Exception;
 use Nadybot\Core\Config\BotConfig;
 use Throwable;
@@ -13,6 +22,26 @@ class Hydrator {
 
 	/** @var array<string,true> */
 	private static array $badHydrators = [];
+
+	/**
+	 * @template T of object
+	 *
+	 * @param class-string<T>     $className
+	 * @param array<string,mixed> $data
+	 *
+	 * @return T
+	 *
+	 * @throws UnableToHydrateObject
+	 */
+	public static function literalHydrate(string $className, array $data): object {
+		return self::hydrate(
+			className: $className,
+			data: $data,
+			definitionProvider: new DefinitionProvider(
+				keyFormatter: new KeyFormatterWithoutConversion(),
+			),
+		);
+	}
 
 	/**
 	 * @template T of object
@@ -56,6 +85,29 @@ class Hydrator {
 	 *
 	 * @throws UnableToHydrateObject
 	 */
+	public static function literalHydrateObjects(
+		string $className,
+		iterable $data,
+	): IterableList {
+		return self::hydrateObjects(
+			className: $className,
+			data: $data,
+			definitionProvider: new DefinitionProvider(
+				keyFormatter: new KeyFormatterWithoutConversion(),
+			),
+		);
+	}
+
+	/**
+	 * @template T
+	 *
+	 * @param class-string<T>        $className
+	 * @param iterable<array<mixed>> $data
+	 *
+	 * @return IterableList<T>
+	 *
+	 * @throws UnableToHydrateObject
+	 */
 	public static function hydrateObjects(
 		string $className,
 		iterable $data,
@@ -76,6 +128,33 @@ class Hydrator {
 		}
 		$mapper = new ObjectMapperUsingReflection($definitionProvider);
 		return $mapper->hydrateObjects($className, $data);
+	}
+
+	public static function literalSerialize(object $object): mixed {
+		return self::serialize(
+			object: $object,
+			definitionProvider: new DefinitionProvider(
+				keyFormatter: new KeyFormatterWithoutConversion(),
+			),
+		);
+	}
+
+	/**
+	 * @param object[] $objects
+	 *
+	 * @psalm-param list<object> $objects
+	 *
+	 * @return IterableList<array<mixed>>
+	 *
+	 * @throws UnableToSerializeObject
+	 */
+	public static function literalSerializeObjects(array $objects): IterableList {
+		return self::serializeObjects(
+			objects: $objects,
+			definitionProvider: new DefinitionProvider(
+				keyFormatter: new KeyFormatterWithoutConversion(),
+			),
+		);
 	}
 
 	public static function serialize(

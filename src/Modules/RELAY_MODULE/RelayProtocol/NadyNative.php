@@ -4,7 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use function Safe\{json_decode, json_encode};
 
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, UnableToSerializeObject};
+use EventSauce\ObjectHydrator\UnableToSerializeObject;
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -21,13 +21,13 @@ use Nadybot\Core\{
 	SettingManager,
 	SyncEventFactory,
 };
-use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Nadybot\RelayCharacter;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	RELAY_MODULE\Relay,
 	RELAY_MODULE\RelayMessage,
 	RELAY_MODULE\RelayProtocol\Nadybot\OnlineBlock,
 	RELAY_MODULE\RelayProtocol\Nadybot\OnlineList,
+	RELAY_MODULE\RelayProtocol\Nadybot\RelayCharacter,
 };
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
@@ -92,12 +92,7 @@ class NadyNative implements RelayProtocolInterface {
 			$event->data->message = str_replace('<myname>', $this->config->main->character, $event->data->message??'');
 		}
 		try {
-			$serialized = Hydrator::serialize(
-				object: $event,
-				definitionProvider: new DefinitionProvider(
-					keyFormatter: new KeyFormatterWithoutConversion(),
-				),
-			);
+			$serialized = Hydrator::literalSerialize(object: $event);
 			if ($event->data instanceof SyncEvent) {
 				$serialized['data']['type'] = EventManager::getEventType($event->data);
 			}
@@ -145,7 +140,7 @@ class NadyNative implements RelayProtocolInterface {
 				return null;
 			case 'online_list':
 				if ($this->syncOnline) {
-					$cmd = Hydrator::hydrate(OnlineList::class, $data);
+					$cmd = Hydrator::literalHydrate(OnlineList::class, $data);
 					$this->handleOnlineList($message->sender, $cmd);
 				}
 				return null;
@@ -176,7 +171,7 @@ class NadyNative implements RelayProtocolInterface {
 			&& isset($message->sender)
 			&& $this->syncOnline
 		) {
-			$event->data = Hydrator::hydrate(Online::class, $eventData);
+			$event->data = Hydrator::literalHydrate(Online::class, $eventData);
 			$this->logger->debug('Received online event for {relay}: {event}', [
 				'relay' => $this->relay->getName(),
 				'event' => $event,
@@ -288,8 +283,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 	}
 
-	protected function handleOnlineBlock(string $sender, object $block): void {
-		/** @var OnlineBlock $block */
+	protected function handleOnlineBlock(string $sender, OnlineBlock $block): void {
 		$hops = [];
 		$lastHop = null;
 		foreach ($block->path as $hop) {

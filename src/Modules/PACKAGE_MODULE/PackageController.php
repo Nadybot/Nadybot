@@ -7,7 +7,6 @@ use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\TimeoutCancellation;
 use DateInterval;
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -741,12 +740,8 @@ class PackageController extends ModuleInstance {
 
 		/** @var list<array<mixed>> $data */
 
-		$dp = new DefinitionProvider(
-			keyFormatter: new KeyFormatterWithoutConversion(),
-		);
-
 		$packages = new Collection(
-			Hydrator::hydrateObjects(Package::class, $data, $dp)->toArray()
+			Hydrator::literalHydrateObjects(Package::class, $data)->toArray()
 		);
 		$packages = $packages->filter(static function (Package $package): bool {
 			return $package->bot_type === 'Nadybot';

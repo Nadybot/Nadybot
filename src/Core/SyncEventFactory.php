@@ -4,7 +4,6 @@ namespace Nadybot\Core;
 
 use function Safe\{json_decode, json_encode};
 
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use InvalidArgumentException;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
@@ -35,12 +34,9 @@ class SyncEventFactory {
 		if (!isset($class)) {
 			throw new InvalidArgumentException(__CLASS__  . '::create(): Argument #1 ($data) is an unknown (Sync-)Event');
 		}
-		return Hydrator::hydrate(
+		return Hydrator::literalHydrate(
 			className: $class,
 			data: $data,
-			definitionProvider: new DefinitionProvider(
-				keyFormatter: new KeyFormatterWithoutConversion(),
-			),
 		);
 	}
 

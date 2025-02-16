@@ -6,7 +6,6 @@ use function Safe\preg_split;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -440,13 +439,7 @@ class NewsController extends ModuleInstance {
 			];
 			$data = Util::mergeArraysRecursive($default, $body);
 
-			$news = Hydrator::hydrate(
-				className: News::class,
-				data: $data,
-				definitionProvider: new DefinitionProvider(
-					keyFormatter: new KeyFormatterWithoutConversion(),
-				),
-			);
+			$news = Hydrator::literalHydrate(className: News::class, data: $data);
 		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
@@ -481,20 +474,9 @@ class NewsController extends ModuleInstance {
 			if (!is_array($body)) {
 				throw new Exception('Wrong content body');
 			}
-			$oldData = Hydrator::serialize(
-				object: $oldItem,
-				definitionProvider: new DefinitionProvider(
-					keyFormatter: new KeyFormatterWithoutConversion(),
-				),
-			);
+			$oldData = Hydrator::literalSerialize(object: $oldItem);
 			$data = Util::mergeArraysRecursive($oldData, $body);
-			$news = Hydrator::hydrate(
-				className: News::class,
-				data: $data,
-				definitionProvider: new DefinitionProvider(
-					keyFormatter: new KeyFormatterWithoutConversion(),
-				),
-			);
+			$news = Hydrator::literalHydrate(className: News::class, data: $data);
 		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}

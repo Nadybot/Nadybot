@@ -11,7 +11,6 @@ use Amp\TimeoutCancellation;
 
 use DateInterval;
 use DateTimeZone;
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -121,12 +120,11 @@ class GuildManager extends ModuleInstance {
 
 		[$orgInfo, $members, $lastUpdated] = json_decode($body, true);
 
-		$dp = new DefinitionProvider(keyFormatter: new KeyFormatterWithoutConversion());
-		$orgInfo = Hydrator::hydrate(DTOGuild::class, $orgInfo, $dp);
+		$orgInfo = Hydrator::literalHydrate(DTOGuild::class, $orgInfo);
 		if ($orgInfo->NAME === null) {
 			return null;
 		}
-		$members = Hydrator::hydrateObjects(DTOGuildMember::class, $members, $dp)->toArray();
+		$members = Hydrator::literalHydrateObjects(DTOGuildMember::class, $members)->toArray();
 
 		// parsing of the member data
 		$guild = new Guild(
