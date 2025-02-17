@@ -88,13 +88,13 @@ class DrillController extends ModuleInstance {
 			$connection = $client->connect();
 			$this->connection = $connection;
 			$event = new DrillConnectEvent(connection: $connection);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 			while (null !== ($packet = $connection->receive())) {
 				$event = new DrillPacketEvent(
 					connection: $connection,
 					packet: $packet,
 				);
-				$this->eventManager->fireEvent($event);
+				$this->eventManager->dispatch($event);
 			}
 		} catch (WebsocketConnectException $e) {
 			delay($this->reconnectDelay);

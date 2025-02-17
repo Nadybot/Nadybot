@@ -74,7 +74,7 @@ class OrgNotesController extends ModuleInstance {
 
 		$event = SyncOrgNoteEvent::fromOrgNote($note);
 		$event->forceSync = $forceSync;
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		return $note;
 	}
 
@@ -88,7 +88,7 @@ class OrgNotesController extends ModuleInstance {
 			uuid: $note->id->toString(),
 			forceSync: $forceSync,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		return true;
 	}
 

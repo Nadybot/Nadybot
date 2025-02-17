@@ -94,7 +94,7 @@ class ChatTopicController extends ModuleInstance {
 		$this->setTopic($context->char->name, '');
 		$msg = 'Topic has been cleared.';
 		$context->reply($msg);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Set a new topic */
@@ -112,7 +112,7 @@ class ChatTopicController extends ModuleInstance {
 			topic: $topic,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Shows topic on logon of members */

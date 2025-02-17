@@ -217,7 +217,7 @@ class AuctionController extends ModuleInstance {
 		}
 		$event = new AuctionCancelEvent(auction: $this->auction);
 		$this->auction = null;
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** End the running auction prematurely */
@@ -572,7 +572,7 @@ class AuctionController extends ModuleInstance {
 		}
 
 		$event = new AuctionBidEvent(auction: $this->auction);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Start an auction for an item */
@@ -589,7 +589,7 @@ class AuctionController extends ModuleInstance {
 		);
 		$this->auctionEnds = $auction->end;
 		$event = new AuctionStartEvent(auction: $auction);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		return true;
 	}
 
@@ -616,7 +616,7 @@ class AuctionController extends ModuleInstance {
 				$this->raidController->raid ?? null
 			);
 		}
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	public function getBiddingInfo(): string {

@@ -90,7 +90,7 @@ class WebchatApiController extends ModuleInstance {
 				$src,
 			]
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(

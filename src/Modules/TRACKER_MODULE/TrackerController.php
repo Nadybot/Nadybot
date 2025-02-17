@@ -212,7 +212,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			});
 	}
 
-	/** Untrack inactive characters */
+	/** Stop tracking inactive characters */
 	#[NCA\HandlesEvent(mask: 'timer(24hrs)')]
 	public function untrackInactiveCharacters(): void {
 		if ($this->trackerAutoUntrack === 0) {
@@ -339,7 +339,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		));
 
 		$event = new TrackerLogonEvent(player: $eventObj->sender, uid: $uid);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$player = $this->playerManager->byName($eventObj->sender);
 
@@ -443,7 +443,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		));
 
 		$event = new TrackerLogoffEvent(player: $eventObj->sender, uid: $uid);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$player = $this->playerManager->byName($eventObj->sender);
 		$msg = $this->getLogoffMessage($player, $eventObj->sender);

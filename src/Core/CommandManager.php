@@ -609,7 +609,7 @@ class CommandManager implements MessageEmitter {
 					cmd: $cmd,
 					sender: $context->char->name,
 				);
-				$this->eventManager->fireEvent($event);
+				$this->eventManager->dispatch($event);
 				return;
 			}
 
@@ -630,7 +630,7 @@ class CommandManager implements MessageEmitter {
 					sender: $context->char->name,
 					cmdHandler: $commandHandler,
 				);
-				$this->eventManager->fireEvent($event);
+				$this->eventManager->dispatch($event);
 				return;
 			}
 
@@ -683,7 +683,7 @@ class CommandManager implements MessageEmitter {
 					cmdHandler: $commandHandler,
 				);
 			}
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 
 			try {
 				// record usage stats (in try/catch block in case there is an error)

@@ -55,7 +55,7 @@ class WebChannel implements MessageReceiver {
 			message: $this->webChatConverter->convertMessage($eventData),
 		);
 
-		$this->eventManager->fireEvent($webEvent);
+		$this->eventManager->dispatch($webEvent);
 
 		return true;
 	}

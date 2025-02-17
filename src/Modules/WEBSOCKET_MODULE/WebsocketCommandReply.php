@@ -88,7 +88,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 				path: [$path],
 				color: $color,
 			);
-			$this->eventManager->fireEvent($xmlMessage);
+			$this->eventManager->dispatch($xmlMessage);
 		}
 	}
 }

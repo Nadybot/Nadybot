@@ -46,6 +46,6 @@ class FeedHandler extends ModuleInstance implements EventFeedHandler {
 			$this->logger->info('Event is for a different dimension');
 			return;
 		}
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 }

@@ -159,7 +159,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 
 		$context->reply($msg);
 		$event = new CloakRaiseEvent(player: $context->char->name);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Records when the cloak is raised or lowered */
@@ -180,7 +180,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		} else {
 			$event = new CloakLowerEvent(player: $arr[1]);
 		}
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	public function getLastOrgEntry(bool $cloakOnly=false): ?OrgCity {

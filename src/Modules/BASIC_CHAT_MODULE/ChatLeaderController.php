@@ -91,7 +91,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 			$this->leader = null;
 			$this->chatBot->sendPrivate('Raid Leader cleared.');
 			$event = new LeaderClearEvent(player: $context->char->name);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 			return;
 		}
 
@@ -127,7 +127,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		$this->leader = $name;
 		$this->chatBot->sendPrivate($this->getLeaderStatusText());
 		$event = new LeaderSetEvent(player: $name);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		return null;
 	}
 

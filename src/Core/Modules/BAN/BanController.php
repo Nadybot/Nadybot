@@ -336,7 +336,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 				unbanned_by: $context->char->name,
 				forceSync: $context->forceSync,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		}
 
 		$context->reply("You have unbanned <highlight>{$who}<end> and all their alts from this bot.");
@@ -369,7 +369,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 			unbanned_by: $context->char->name,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$context->reply("You have unbanned <highlight>{$who}<end> from this bot.");
 		if ($this->notifyBannedPlayer) {
@@ -830,7 +830,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 					reason: $reason,
 					forceSync: $context->forceSync,
 				);
-				$this->eventManager->fireEvent($event);
+				$this->eventManager->dispatch($event);
 				async($this->playerManager->byName(...), $charName)->ignore();
 			} else {
 				$numErrors++;

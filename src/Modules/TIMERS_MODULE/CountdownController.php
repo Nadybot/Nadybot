@@ -77,7 +77,7 @@ class CountdownController extends ModuleInstance {
 			message: $message,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($sEvent);
+		$this->eventManager->dispatch($sEvent);
 	}
 
 	/** @psalm-param callable(string) $callback */

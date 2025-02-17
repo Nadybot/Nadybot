@@ -373,7 +373,7 @@ class DiscordGatewayController extends ModuleInstance {
 			message: $message,
 			payload: $payload,
 		);
-		$this->eventManager->fireEvent($eventObj);
+		$this->eventManager->dispatch($eventObj);
 	}
 
 	/** Authorize to discord gateway */
@@ -408,7 +408,7 @@ class DiscordGatewayController extends ModuleInstance {
 			message: null,
 		);
 		$this->logger->info('New event: discord({event})', ['event' => $payload->t]);
-		$this->eventManager->fireEvent($newEvent);
+		$this->eventManager->dispatch($newEvent);
 	}
 
 	/** Reconnect to discord gateway if requested */
@@ -522,7 +522,7 @@ class DiscordGatewayController extends ModuleInstance {
 			discord_message: $message,
 			channel: $message->channel_id,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$aoMessage = $this->resolveDiscordMentions($message->guild_id??null, $text);
 		$rMessage = new RoutableMessage($aoMessage);
@@ -867,7 +867,7 @@ class DiscordGatewayController extends ModuleInstance {
 			discord_channel: $channel,
 			member: $member
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Announce if people join or leave voice chat */
@@ -1586,7 +1586,7 @@ class DiscordGatewayController extends ModuleInstance {
 			discord_channel: $discordChannel,
 			member: $member,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	private function handleVoiceChannelJoin(VoiceState $voiceState): void {

@@ -282,7 +282,7 @@ class EventFeed {
 	private function announceConnect(): void {
 		$event = $this->isReconnect ? new EventFeedReconnect() : new EventFeedConnect();
 		try {
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		} catch (Throwable) {
 			// ignore
 		}
@@ -295,7 +295,7 @@ class EventFeed {
 			highwayPackage: $package
 		);
 		try {
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		} catch (AssertionError $e) {
 			$this->logger->error(
 				'Unexpected protocol inconsistency for {event}: {error} in {file}#{line}',

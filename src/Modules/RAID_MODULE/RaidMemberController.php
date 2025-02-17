@@ -174,7 +174,7 @@ class RaidMemberController extends ModuleInstance {
 			$raid->raiders[$player]->joined = time();
 			$raid->raiders[$player]->left = null;
 		}
-		$this->eventManager->fireEvent(new RaidJoinEvent(raid: $raid, player: $player));
+		$this->eventManager->dispatch(new RaidJoinEvent(raid: $raid, player: $player));
 		$this->db->insert(new RaidMember(
 			raid_id: $raid->raid_id,
 			player: $player,
@@ -252,7 +252,7 @@ class RaidMemberController extends ModuleInstance {
 		} else {
 			$this->routeMessage('leave', "<highlight>{$player}<end> has <off>left<end> the raid{$countMsg}.");
 		}
-		$this->eventManager->fireEvent(new RaidLeaveEvent(raid: $raid, player: $player));
+		$this->eventManager->dispatch(new RaidLeaveEvent(raid: $raid, player: $player));
 		if ($numRaiders === $raid->max_members && ($this->raidAnnounceFull & self::ANNOUNCE_RAID_OPEN)) {
 			$openMsg = 'The raid is <on>no longer full<end>!';
 			$routed = $this->routeMessage('leave', $openMsg);

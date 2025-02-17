@@ -723,7 +723,7 @@ class WorldBossController extends ModuleInstance {
 
 	/** Check timer to announce big boss events */
 	#[NCA\HandlesEvent(mask: 'timer(1sec)')]
-	public function checkTimerEvent(Event $eventObj, int $interval, bool $manual=false): void {
+	public function checkTimerEvent(Event $eventObj, bool $manual=false): void {
 		$lastCheck = $this->lastCheck;
 		$this->lastCheck = time();
 		$timers = $this->getWorldBossTimers();
@@ -759,7 +759,7 @@ class WorldBossController extends ModuleInstance {
 			$this->announceBigBossEvent($mobName, $msg, 3);
 		}
 		$this->worldBossUpdate(new Character($event->sender), $mobName, $event->vulnerable);
-		$this->checkTimerEvent(new TimerEvent(1), 1, true);
+		$this->checkTimerEvent(new TimerEvent(1), true);
 	}
 
 	/** Sync external worldboss timer deletes */
@@ -1036,7 +1036,7 @@ class WorldBossController extends ModuleInstance {
 			sender: $sender,
 			forceSync: $forceSync,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	protected function sendSyncDeleteEvent(string $sender, string $mobName, bool $forceSync): void {
@@ -1045,7 +1045,7 @@ class WorldBossController extends ModuleInstance {
 			sender: $sender,
 			forceSync: $forceSync,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	protected function getMobFromContext(CmdContext $context): string {

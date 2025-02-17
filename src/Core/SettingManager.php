@@ -368,7 +368,7 @@ class SettingManager {
 			oldValue: $this->settings[$name],
 			newValue: $newValue,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$this->settings[$name]->value = (string)$value;
 		$this->db->table(Setting::getTable())

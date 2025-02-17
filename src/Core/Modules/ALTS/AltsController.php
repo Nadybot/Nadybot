@@ -128,7 +128,7 @@ class AltsController extends ModuleInstance {
 		return $alts;
 	}
 
-	/** Add unvalidated alts/mains to friendlist */
+	/** Add non-validated alts/mains to friendlist */
 	#[NCA\HandlesEvent]
 	public function addNonValidatedAsBuddies(ConnectEvent $event): void {
 		$myName = $this->config->main->character;
@@ -424,7 +424,7 @@ class AltsController extends ModuleInstance {
 		}
 	}
 
-	/** Reminds unvalidates alts/mains to accept or deny */
+	/** Reminds non-validates alts/mains to accept or deny */
 	#[NCA\HandlesEvent]
 	public function checkUnvalidatedAltsEvent(LogonEvent $eventObj): void {
 		if (!$this->chatBot->isReady()
@@ -546,7 +546,7 @@ class AltsController extends ModuleInstance {
 				alt: $alt,
 				validated: $validatedByAlt && $validatedByMain,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		}
 		if ($validatedByAlt && $validatedByMain) {
 			$this->alts[$alt] = $main;
@@ -576,7 +576,7 @@ class AltsController extends ModuleInstance {
 				alt: $alt,
 				validated: isset($old) ? ($old->validated_by_alt === true && $old->validated_by_main === true) : false,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 
 			if (isset($old) && $old->validated_by_alt === true && $old->validated_by_main === true) {
 				unset($this->alts[$alt]);
@@ -713,7 +713,7 @@ class AltsController extends ModuleInstance {
 			alt: $alt,
 			validated: true,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	protected function declineAsMain(string $toDecline, AltInfo $altInfo, CommandReply $sendto): void {
@@ -764,7 +764,7 @@ class AltsController extends ModuleInstance {
 			alt: $alt,
 			validated: true,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	protected function removeMainFromBuddyListIfPossible(string $main): void {
@@ -969,7 +969,7 @@ class AltsController extends ModuleInstance {
 			alt: $altInfo->main,
 			validated: true,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		if ($selfModify) {
 			return "Your main is now <highlight>{$newMain}<end>.";

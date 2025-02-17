@@ -8,7 +8,8 @@ use function Safe\preg_match;
 
 use Closure;
 use Exception;
-use Nadybot\Core\Types\EventInterface;
+use Generator;
+use Nadybot\Core\Types\{EventInterface, LazyValue};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -471,7 +472,7 @@ class EventManager {
 		$this->logger->info('Executing connected events');
 		$this->messageHubController->loadRouting();
 
-		$this->fireEvent(new ConnectEvent());
+		$this->dispatch(new ConnectEvent());
 	}
 
 	public function isValidEventType(string $type): bool {
@@ -504,35 +505,44 @@ class EventManager {
 	}
 
 	/**
-	 * Fire an event by calling all registered event handlers
+	 * Get a list of all closures that should be called
+	 * whenever the given event is dispatched
+	 *
+	 * @return Generator<array-key,Closure>
+	 */
+	public function getListenersForEvent(object $eventObj): Generator {
+		$eventType = self::getEventType($eventObj);
+		foreach ($this->events as $type => $handlers) {
+			if ($eventType !== $type && !fnmatch($type, $eventType, \FNM_CASEFOLD)) {
+				continue;
+			}
+			foreach ($handlers as $filename) {
+				yield function (object $event) use ($filename): void {
+					$this->callEventHandler($event, $filename);
+				};
+			}
+		}
+		foreach ($this->dynamicEvents as $type => $handlers) {
+			if ($eventType !== $type && !fnmatch($type, $eventType, \FNM_CASEFOLD)) {
+				continue;
+			}
+			foreach ($handlers as $callback) {
+				yield Closure::fromCallable($callback);
+			}
+		}
+	}
+
+	/**
+	 * Dispatch an event by calling all registered event handlers
 	 *
 	 * @return bool true if at least one event requests to stop execution
 	 */
-	public function fireEvent(object $eventObj): bool {
+	public function dispatch(object $eventObj): bool {
 		$eventType = self::getEventType($eventObj);
-		// $this->logger->notice("Event {event} fired", ["event" => $eventObj]);
 		$futures = [];
 		try {
-			foreach ($this->events as $type => $handlers) {
-				if ($eventType !== $type && !fnmatch($type, $eventType, \FNM_CASEFOLD)) {
-					continue;
-				}
-				foreach ($handlers as $filename) {
-					$futures []= async($this->callEventHandler(...), $eventObj, $filename);
-				}
-			}
-			foreach ($this->dynamicEvents as $type => $handlers) {
-				if ($eventType !== $type && !fnmatch($type, $eventType, \FNM_CASEFOLD)) {
-					continue;
-				}
-				foreach ($handlers as $callback) {
-					if (!is_object($callback) || !($callback instanceof Closure)) {
-						$callback = Closure::fromCallable($callback);
-					}
-
-					/** @var Closure(Event,mixed...):void $callback */
-					$futures []= async($callback, $eventObj);
-				}
+			foreach ($this->getListenersForEvent($eventObj) as $listener) {
+				$futures []= async($listener, $eventObj);
 			}
 			if (!count($futures)) {
 				return false;
@@ -550,11 +560,10 @@ class EventManager {
 
 	/** @throws StopExecutionException */
 	public function callEventHandler(object $eventObj, string $handler): void {
-		$eventType = self::getEventType($eventObj);
 		$logObj = new AnonObj(
 			class: 'Event',
 			properties: [
-				'type' => $eventType,
+				'type' => new LazyValue(self::getEventType(...), $eventObj),
 				'handler' => $handler,
 			]
 		);

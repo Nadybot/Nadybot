@@ -521,7 +521,7 @@ class Nadybot {
 			sender: $this->config->main->character,
 			disableRelay: $disableRelay,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		if (!$disableRelay) {
 			$rMessage = new RoutableMessage($message);
 			$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
@@ -586,7 +586,7 @@ class Nadybot {
 			sender: $this->config->main->character,
 			disableRelay: $disableRelay,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		if (!$disableRelay) {
 			$rMessage = new RoutableMessage($origMsg);
@@ -694,7 +694,7 @@ class Nadybot {
 			message: $message,
 			sender: $this->config->main->character,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
 		$rMessage->prependPath(new Source(Source::TELL, $this->config->main->character));
 		EventLoop::queue($this->messageHub->handle(...), $rMessage);
@@ -873,7 +873,7 @@ class Nadybot {
 	public function processAllPackages(WorkerPackage $package): void {
 		// fire individual packets event
 		$eventObj = new PackageEvent(packet: $package);
-		$this->eventManager->fireEvent($eventObj);
+		$this->eventManager->dispatch($eventObj);
 	}
 
 	/** Handle an incoming AOChatPacket::GROUP_ANNOUNCE packet */
@@ -952,7 +952,7 @@ class Nadybot {
 				return;
 			}
 			$this->chatlist[$sender] = true;
-			$this->eventManager->fireEvent($eventObj);
+			$this->eventManager->dispatch($eventObj);
 		} elseif ($this->char?->id === $package->package->charId) {
 			$eventObj = new JoinPrivEvent(
 				channel: $channel,
@@ -967,7 +967,7 @@ class Nadybot {
 			$this->messageHub
 				->registerMessageEmitter($pc)
 				->registerMessageReceiver($pc);
-			$this->eventManager->fireEvent($eventObj);
+			$this->eventManager->dispatch($eventObj);
 		}
 	}
 
@@ -1000,7 +1000,7 @@ class Nadybot {
 			// Remove from chatlist array
 			unset($this->chatlist[$sender]);
 
-			$this->eventManager->fireEvent($eventObj);
+			$this->eventManager->dispatch($eventObj);
 			$audit = new Audit(
 				actor: $sender,
 				action: AccessManager::LEAVE,
@@ -1013,7 +1013,7 @@ class Nadybot {
 				channel: $channel,
 				sender: $sender,
 			);
-			$this->eventManager->fireEvent($eventObj);
+			$this->eventManager->dispatch($eventObj);
 		}
 	}
 
@@ -1043,7 +1043,7 @@ class Nadybot {
 			->unregisterMessageEmitter(Source::PRIV . "({$channel})")
 			->unregisterMessageReceiver(Source::PRIV . "({$channel})");
 
-		$this->eventManager->fireEvent($eventObj);
+		$this->eventManager->dispatch($eventObj);
 	}
 
 	public function updateLastOnline(int $userId, string $charName, bool $online=true): void {
@@ -1123,7 +1123,7 @@ class Nadybot {
 			);
 			$this->logger->info('{buddy} logged off', ['buddy' => $sender]);
 		}
-		$this->eventManager->fireEvent($eventObj);
+		$this->eventManager->dispatch($eventObj);
 	}
 
 	/** Handle that a friend was removed from the friendlist */
@@ -1207,7 +1207,7 @@ class Nadybot {
 		if ($this->banController->isOnBanlist($senderId)) {
 			return;
 		}
-		if ($this->eventManager->fireEvent($eventObj)) {
+		if ($this->eventManager->dispatch($eventObj)) {
 			return;
 		}
 
@@ -1273,7 +1273,7 @@ class Nadybot {
 				worker: $package->worker,
 			);
 		}
-		if ($this->eventManager->fireEvent($eventObj)) {
+		if ($this->eventManager->dispatch($eventObj)) {
 			return;
 		}
 		$rMessage = new RoutableMessage($package->package->message);
@@ -1367,7 +1367,7 @@ class Nadybot {
 				worker: $package->worker,
 			);
 
-			$this->eventManager->fireEvent($eventObj);
+			$this->eventManager->dispatch($eventObj);
 		} elseif ($channel->name === 'Org Msg') {
 			$eventObj = new OrgMsgChannelMsgEvent(
 				sender: $sender,
@@ -1376,7 +1376,7 @@ class Nadybot {
 				worker: $package->worker,
 			);
 
-			$this->eventManager->fireEvent($eventObj);
+			$this->eventManager->dispatch($eventObj);
 		} elseif ($isOrgMessage && $this->guildChannelStatus === true) {
 			$eventObj = new GuildChannelMsgEvent(
 				sender: $sender,
@@ -1385,7 +1385,7 @@ class Nadybot {
 				worker: $package->worker,
 			);
 
-			if ($this->eventManager->fireEvent($eventObj)) {
+			if ($this->eventManager->dispatch($eventObj)) {
 				return;
 			}
 			if (!isset($sender)) {
@@ -1423,7 +1423,7 @@ class Nadybot {
 
 		$this->logChat('Priv Channel Invitation', -1, "{$sender} channel invited.");
 
-		$this->eventManager->fireEvent($eventObj);
+		$this->eventManager->dispatch($eventObj);
 	}
 
 	public function processPingReply(WorkerPackage $package): void {
@@ -1431,7 +1431,7 @@ class Nadybot {
 		if ($package->package->extra === static::PING_IDENTIFIER) {
 			return;
 		}
-		$this->eventManager->fireEvent(new PongEvent(worker: $package->worker));
+		$this->eventManager->dispatch(new PongEvent(worker: $package->worker));
 	}
 
 	public function getUid(string $name, bool $cacheOnly=false): ?int {

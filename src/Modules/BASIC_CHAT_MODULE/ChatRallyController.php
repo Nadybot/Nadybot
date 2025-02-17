@@ -76,7 +76,7 @@ class ChatRallyController extends ModuleInstance {
 			owner: $context->char->name,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($rEvent);
+		$this->eventManager->dispatch($rEvent);
 	}
 
 	/** Set the rally waypoint */
@@ -124,7 +124,7 @@ class ChatRallyController extends ModuleInstance {
 			name: $playfieldName,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($rEvent);
+		$this->eventManager->dispatch($rEvent);
 	}
 
 	/** Set the rally waypoint */
@@ -161,7 +161,7 @@ class ChatRallyController extends ModuleInstance {
 			owner: $context->char->name,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($rEvent);
+		$this->eventManager->dispatch($rEvent);
 	}
 
 	/** Handle synced rally sets */

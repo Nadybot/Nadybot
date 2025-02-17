@@ -78,7 +78,7 @@ class ChatSayController extends ModuleInstance {
 			player: $context->char->name,
 			message: $message
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Have the bot say something in the private channel */
@@ -94,7 +94,7 @@ class ChatSayController extends ModuleInstance {
 			player: $context->char->name,
 			message: $message,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Show a highly visible message */
@@ -121,7 +121,7 @@ class ChatSayController extends ModuleInstance {
 			player: $context->char->name,
 			message: $message,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Repeat a message 3 times */

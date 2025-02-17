@@ -471,7 +471,7 @@ class OnlineController extends ModuleInstance {
 			channel: 'org',
 			player: $player,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Records an org member logoff in db */
@@ -486,7 +486,7 @@ class OnlineController extends ModuleInstance {
 			player: $sender,
 			channel: 'org'
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Sends a tell to players on logon showing who is online in org */

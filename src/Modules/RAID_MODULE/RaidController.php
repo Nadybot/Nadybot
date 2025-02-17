@@ -449,7 +449,7 @@ class RaidController extends ModuleInstance {
 			raid: $this->raid,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Change the raid's maximum number of members */
@@ -475,7 +475,7 @@ class RaidController extends ModuleInstance {
 			raid: $this->raid,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/**
@@ -516,7 +516,7 @@ class RaidController extends ModuleInstance {
 			raid: $this->raid,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Change the raid announcement interval. 'off' to turn it off completely */
@@ -548,7 +548,7 @@ class RaidController extends ModuleInstance {
 			raid: $this->raid,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Lock the raid, preventing raiders from joining with <symbol>raid join */
@@ -580,7 +580,7 @@ class RaidController extends ModuleInstance {
 			raid: $this->raid,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		$notInKick = $this->raidKickNotinOnLock;
 		if ($notInKick !== 0) {
 			$this->raidMemberController->kickNotInRaid($this->raid, $notInKick === 2);
@@ -612,7 +612,7 @@ class RaidController extends ModuleInstance {
 			raid: $this->raid,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Get a list of all raiders, with a link to check if everyone is in the vicinity */
@@ -1045,7 +1045,7 @@ class RaidController extends ModuleInstance {
 			raid: $raid,
 			player: $raid->started_by,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		$this->logRaidChanges($this->raid);
 	}
 
@@ -1071,7 +1071,7 @@ class RaidController extends ModuleInstance {
 			raid: $raid,
 			player: ucfirst(strtolower($sender)),
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Show the notes about all people in the current raid */

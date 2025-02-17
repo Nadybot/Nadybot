@@ -307,7 +307,7 @@ class ChatAssistController extends ModuleInstance {
 		$this->storeBackup($backup);
 
 		$event = new AssistClearEvent();
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Clear all assist lists */
@@ -333,7 +333,7 @@ class ChatAssistController extends ModuleInstance {
 		}
 		$this->callers = [];
 		$event = new AssistClearEvent();
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Create an assist macro for multiple characters */
@@ -401,7 +401,7 @@ class ChatAssistController extends ModuleInstance {
 		$event = new AssistSetEvent(
 			lists: array_values($this->callers),
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Add a new player to the global assist list, or the one given */
@@ -464,7 +464,7 @@ class ChatAssistController extends ModuleInstance {
 		$event = new AssistAddEvent(
 			lists: array_values($this->callers),
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Undo the last &lt;steps&gt; or 1 modification(s) of the caller list */
@@ -494,7 +494,7 @@ class ChatAssistController extends ModuleInstance {
 		$event = new AssistSetEvent(
 			lists: array_values($this->callers),
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** See the most recent changes to the list of callers */
@@ -604,7 +604,7 @@ class ChatAssistController extends ModuleInstance {
 		$event = new AssistSetEvent(
 			lists: array_values($this->callers),
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Store a caller backup */

@@ -341,7 +341,7 @@ class TestController extends ModuleInstance {
 		);
 
 		try {
-			$this->eventManager->fireEvent($eventObj);
+			$this->eventManager->dispatch($eventObj);
 		} catch (Exception $e) {
 			// Ignore
 		}
@@ -398,7 +398,7 @@ class TestController extends ModuleInstance {
 			discord_message: $message,
 			channel: '5361523761523761',
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Simulate &lt;char&gt; logging on */

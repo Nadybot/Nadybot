@@ -172,7 +172,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 				}
 				if (!count($timer->alerts)) {
 					$event = new TimerEndEvent(timer: $timer);
-					$this->eventManager->fireEvent($event);
+					$this->eventManager->dispatch($event);
 				}
 			}
 		}
@@ -310,7 +310,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			owner: $context->char->name,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($sTimer);
+		$this->eventManager->dispatch($sTimer);
 	}
 
 	/** Show a specific timer */
@@ -353,7 +353,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			$msg = 'You must own this timer or have moderator access in order to remove it.';
 		} else {
 			$event = new TimerDelEvent(timer: $timer);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 			$this->remove($id);
 			$msg = "Removed timer <highlight>{$timer->name}<end>.";
 		}
@@ -387,7 +387,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 				owner: $context->char->name,
 				forceSync: $context->forceSync,
 			);
-			$this->eventManager->fireEvent($sTimer);
+			$this->eventManager->dispatch($sTimer);
 		}
 	}
 
@@ -544,7 +544,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$this->db->insert($timer);
 
 		$this->timers[strtolower($name)] = $timer;
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		return $timer;
 	}
 

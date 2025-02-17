@@ -278,7 +278,7 @@ class NewsController extends ModuleInstance {
 			sticky: $entry->sticky,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$context->reply($msg);
 	}
@@ -303,7 +303,7 @@ class NewsController extends ModuleInstance {
 				uuid: $row->id->toString(),
 				forceSync: $context->forceSync,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		}
 
 		$context->reply($msg);
@@ -336,7 +336,7 @@ class NewsController extends ModuleInstance {
 				sticky: true,
 				forceSync: $context->forceSync,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		}
 		$context->reply($msg);
 	}
@@ -368,7 +368,7 @@ class NewsController extends ModuleInstance {
 				sticky: false,
 				forceSync: $context->forceSync,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		}
 		$context->reply($msg);
 	}
@@ -447,7 +447,7 @@ class NewsController extends ModuleInstance {
 		if ($this->db->insert($news) === 0) {
 			return new Response(status: HttpStatus::INTERNAL_SERVER_ERROR);
 		}
-		$this->eventManager->fireEvent(SyncNewsEvent::fromNews($news));
+		$this->eventManager->dispatch(SyncNewsEvent::fromNews($news));
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
@@ -484,7 +484,7 @@ class NewsController extends ModuleInstance {
 		if ($this->db->update($news) === 0) {
 			return new Response(status: HttpStatus::INTERNAL_SERVER_ERROR);
 		}
-		$this->eventManager->fireEvent(SyncNewsEvent::fromNews($news));
+		$this->eventManager->dispatch(SyncNewsEvent::fromNews($news));
 		return ApiResponse::create($this->getNewsItem($id));
 	}
 

@@ -261,7 +261,7 @@ class NadyNative implements RelayProtocolInterface {
 		if (!$this->relay->allowIncSyncEvent($fullEvent)) {
 			return;
 		}
-		$this->eventManager->fireEvent($fullEvent);
+		$this->eventManager->dispatch($fullEvent);
 	}
 
 	protected function sendOnlineList(): void {

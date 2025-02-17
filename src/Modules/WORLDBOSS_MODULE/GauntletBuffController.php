@@ -358,7 +358,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			sender: $context->char->name,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Sync external gauntlet buff events */

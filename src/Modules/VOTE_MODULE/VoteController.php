@@ -130,7 +130,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 						->where('poll_id', $poll->id)
 						->asObjArr(Vote::class),
 				);
-				$this->eventManager->fireEvent($event);
+				$this->eventManager->dispatch($event);
 				unset($this->polls[$id]);
 			} elseif ($poll->status === self::STATUS_CREATED) {
 				$title = "Vote: {$poll->question}";
@@ -239,7 +239,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$msg = "The poll <highlight>{$topic->question}<end> has been removed.";
 		$context->reply($msg);
 		$event = new PollDelEvent(poll: $ePoll, votes: []);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Remove your vote from a running poll */
@@ -268,7 +268,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 				poll: $ePoll,
 				player: $context->char->name,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		} else {
 			$msg = "You have not voted on <highlight>{$topic->question}<end>.";
 		}
@@ -407,7 +407,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			);
 		}
 		$context->reply($msg);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/**
@@ -461,7 +461,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 		$ePoll = clone $topic;
 		$event = new PollStartEvent(poll: $ePoll);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	public function getPollBlob(Poll $topic, ?string $sender=null): string {

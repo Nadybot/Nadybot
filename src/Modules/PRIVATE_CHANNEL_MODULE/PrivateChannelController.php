@@ -641,7 +641,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				'Use <highlight><symbol>autoinvite<end> to control '.
 				'your auto invite preference.';
 			$event = new MemberAddEvent(sender: $context->char->name);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		} else {
 			$this->db->table(Member::getTable())
 				->where('name', $context->char->name)
@@ -898,7 +898,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			'Use <highlight><symbol>autoinvite<end> to control your '.
 			'auto invite preference.';
 		$event = new MemberAddEvent(sender: $context->char->name);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		$context->reply($msg);
 	}
 
@@ -1074,10 +1074,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			player: $player,
 			channel: 'priv',
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
-	/** Autoban players of unwanted factions when they join the bot */
+	/** Automatically ban players of unwanted factions when they join the bot */
 	#[NCA\HandlesEvent]
 	public function autobanOnJoin(JoinMyPrivEvent $eventObj): void {
 		$reqFaction = $this->onlyAllowFaction;
@@ -1166,7 +1166,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			player: $sender,
 			channel: 'priv',
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$uid = $this->chatBot->getUid($sender);
 		$eMain = $this->altsController->getMainOf($sender);
@@ -1241,7 +1241,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		unset($this->members[$name]);
 		$this->buddylistManager->remove($name, 'member');
 		$event = new MemberRemoveEvent(sender: $name);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		$audit = new Audit(
 			actor: $sender,
 			actee: $name,
@@ -1483,7 +1483,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->db->insert($memberObj);
 		$this->members[$name] = $memberObj;
 		$event = new MemberAddEvent(sender: $name);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		$audit = new Audit(
 			actor: $sender,
 			actee: $name,

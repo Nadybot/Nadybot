@@ -31,6 +31,6 @@ class EventCommandReply implements CommandReply {
 			msgs: $this->webChatConverter->convertMessages($msg),
 			uuid: $this->uuid,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 }
