@@ -418,7 +418,7 @@ class EventManager {
 
 	public function getEventTypeByMethod(object $obj, string $methodName): ?string {
 		$method = new ReflectionMethod($obj, $methodName);
-		foreach ($method->getAttributes(NCA\HandlesEvent::class) as $event) {
+		foreach ($method->getAttributes(NCA\HandlesEvent::class, ReflectionAttribute::IS_INSTANCEOF) as $event) {
 			$eventObj = $event->newInstance();
 			foreach ((array)$eventObj->mask as $eventName) {
 				return strtolower($eventName);
