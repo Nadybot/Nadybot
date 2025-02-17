@@ -310,7 +310,7 @@ class LimitsController extends ModuleInstance {
 	}
 
 	/** Check ignores to see if they have expired */
-	#[NCA\HandlesEvent(mask: 'timer(1min)', defaultStatus: Status::Enabled)]
+	#[NCA\Timer(interval: '1min', defaultStatus: Status::Enabled)]
 	public function expireIgnores(): void {
 		$now = time();
 		foreach ($this->ignoreList as $name => $expires) {
@@ -324,7 +324,7 @@ class LimitsController extends ModuleInstance {
 	}
 
 	/** Cleanup expired command counts */
-	#[NCA\HandlesEvent(mask: 'timer(10min)', defaultStatus: Status::Enabled)]
+	#[NCA\Timer(interval: '10min', defaultStatus: Status::Enabled)]
 	public function expireBuckets(): void {
 		$now = time();
 		$timeWindow = $this->limitsWindow;

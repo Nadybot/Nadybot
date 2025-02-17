@@ -78,7 +78,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** Check if a GSP show is running */
-	#[NCA\HandlesEvent(mask: 'timer(1min)')]
+	#[NCA\Timer(interval: '1min')]
 	public function announceIfShowRunning(): void {
 		try {
 			$client = $this->builder->build();

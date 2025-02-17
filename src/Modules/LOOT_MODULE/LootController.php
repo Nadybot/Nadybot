@@ -153,7 +153,7 @@ class LootController extends ModuleInstance {
 	}
 
 	/** Periodically announce running loot rolls */
-	#[NCA\HandlesEvent(mask: 'timer(30sec)')]
+	#[NCA\Timer(interval: '30sec')]
 	public function announceLootList(): void {
 		if (!count($this->loot)) {
 			return;

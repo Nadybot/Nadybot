@@ -982,7 +982,7 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Announce the running raid */
-	#[NCA\HandlesEvent(mask: 'timer(30s)')]
+	#[NCA\Timer(interval: '30s')]
 	public function announceRaidRunning(): void {
 		if (!isset($this->raid) || $this->raid->announce_interval === 0) {
 			return;
@@ -1141,7 +1141,7 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Remove non-raiding members from bot */
-	#[NCA\HandlesEvent(mask: 'timer(24h)')]
+	#[NCA\Timer(interval: '24h')]
 	public function removeNonRaidingMembers(): void {
 		if ($this->raidDemoteMembersInterval === 0) {
 			return;

@@ -203,7 +203,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** Checks timer to see if cloak can be raised or lowered */
-	#[NCA\HandlesEvent(mask: 'timer(1min)')]
+	#[NCA\Timer(interval: '1min')]
 	public function checkTimerEvent(Event $eventObj): void {
 		$row = $this->getLastOrgEntry();
 		if ($row === null) {
@@ -229,7 +229,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** Reminds the player who lowered cloak to raise it */
-	#[NCA\HandlesEvent(mask: 'timer(1min)')]
+	#[NCA\Timer(interval: '1min')]
 	public function cloakReminderEvent(Event $eventObj): void {
 		$row = $this->getLastOrgEntry(true);
 		if ($row === null || $row->action === 'on') {

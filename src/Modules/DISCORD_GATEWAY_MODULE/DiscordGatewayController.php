@@ -965,7 +965,7 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	/** Delete expired Discord invites */
-	#[NCA\HandlesEvent(mask: 'timer(1h)', defaultStatus: Status::Enabled)]
+	#[NCA\Timer(interval: '1h', defaultStatus: Status::Enabled)]
 	public function deleteExpiredInvites(): void {
 		$this->db->table(DBDiscordInvite::getTable())
 			->where('expires', '<', time())

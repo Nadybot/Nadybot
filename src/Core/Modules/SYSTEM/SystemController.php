@@ -188,7 +188,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** Warn if the buddylist is full */
-	#[NCA\HandlesEvent(mask: 'timer(1h)', defaultStatus: Status::Enabled)]
+	#[NCA\Timer(interval: '1h', defaultStatus: Status::Enabled)]
 	public function checkBuddylistFull(): void {
 		$numBuddies = $this->buddylistManager->getUsedBuddySlots();
 		$maxBuddies = $this->chatBot->getBuddyListSize();
@@ -477,7 +477,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** This event handler is called every hour to keep MySQL connection active */
-	#[NCA\HandlesEvent(mask: 'timer(1hr)', defaultStatus: Status::Enabled)]
+	#[NCA\Timer(interval: '1hr', defaultStatus: Status::Enabled)]
 	public function refreshMySQLConnectionEvent(Event $eventObj): void {
 		// if the bot doesn't query the MySQL database for 8 hours the db connection is closed
 		$this->logger->info('Pinging database');

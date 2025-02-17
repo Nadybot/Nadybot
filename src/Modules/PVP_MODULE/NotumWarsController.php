@@ -384,7 +384,7 @@ class NotumWarsController extends ModuleInstance {
 	private DB $db;
 
 	/** Announce unplanted sites via pvp(unplanted-sites) */
-	#[NCA\HandlesEvent(mask: 'timer(1h)')]
+	#[NCA\Timer(interval: '1h')]
 	public function announceUnplantedSites(): void {
 		$unplantedSites = $this->getUnplantedSites();
 		if (!count($unplantedSites)) {

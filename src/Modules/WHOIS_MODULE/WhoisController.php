@@ -88,7 +88,7 @@ class WhoisController extends ModuleInstance {
 	private array $nameHistoryCache = [];
 
 	/** Save cache of names and charIds to database */
-	#[NCA\HandlesEvent(mask: 'timer(1min)')]
+	#[NCA\Timer(interval: '1min')]
 	public function saveCharIds(Event $eventObj): void {
 		if (!count($this->nameHistoryCache) || $this->db->inTransaction()) {
 			return;

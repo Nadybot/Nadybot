@@ -77,7 +77,7 @@ class PlayerManager extends ModuleInstance {
 	private CacheInterface $cache;
 
 	/** Periodically lookup missing or outdated player data */
-	#[NCA\HandlesEvent(mask: 'timer(1h)', defaultStatus: Status::Enabled)]
+	#[NCA\Timer(interval: '1h', defaultStatus: Status::Enabled)]
 	public function lookupMissingCharacterData(): void {
 		if ($this->lookupJobs === 0) {
 			return;

@@ -131,7 +131,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** Checks timers and periodically updates chat with time left */
-	#[NCA\HandlesEvent(mask: 'timer(1sec)')]
+	#[NCA\Timer(interval: '1sec')]
 	public function checkTimers(): void {
 		$time = time();
 

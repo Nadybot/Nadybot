@@ -7,6 +7,7 @@ use function Amp\async;
 use AO\Package\Out\PrivateChannelKick;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Nadybot\Core\Events\TimerEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -19,7 +20,6 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	EventManager,
 	Events\ConnectEvent,
-	Events\Event,
 	Exceptions\SQLException,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -378,8 +378,8 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	}
 
 	/** Check temp bans to see if they have expired */
-	#[NCA\HandlesEvent(mask: 'timer(1min)', defaultStatus: Status::Enabled)]
-	public function checkTempBan(Event $eventObj): void {
+	#[NCA\Timer(interval: '1min', defaultStatus: Status::Enabled)]
+	public function checkTempBan(TimerEvent $eventObj): void {
 		$numRows = $this->db->table(BanEntry::getTable())
 			->whereNotNull('banend')
 			->where('banend', '!=', 0)

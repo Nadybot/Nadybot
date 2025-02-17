@@ -61,7 +61,7 @@ class NickController extends ModuleInstance {
 	}
 
 	/** Sync nickname-cache */
-	#[NCA\HandlesEvent(mask: 'timer(1h)')]
+	#[NCA\Timer(interval: '1hr')]
 	public function reCacheNicknames(): void {
 		$this->cacheNicknames();
 	}

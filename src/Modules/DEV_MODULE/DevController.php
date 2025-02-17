@@ -90,7 +90,7 @@ class DevController extends ModuleInstance {
 	}
 
 	/** Log the memory usage once per minute */
-	#[NCA\HandlesEvent(mask: 'timer(1m)', defaultStatus: Status::Disabled)]
+	#[NCA\Timer(interval: '1m', defaultStatus: Status::Disabled)]
 	public function logMemoryUsage(): void {
 		$this->logger->notice('Current memory usage: {usage}MB / {real}MB', [
 			'usage' => number_format(memory_get_usage(false) / (1_024 * 1_024), 1),

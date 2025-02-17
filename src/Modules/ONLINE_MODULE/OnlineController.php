@@ -504,7 +504,7 @@ class OnlineController extends ModuleInstance {
 	}
 
 	/** Online check */
-	#[NCA\HandlesEvent(mask: 'timer(10mins)')]
+	#[NCA\Timer(interval: '10mins')]
 	public function onlineCheckEvent(Event $eventObj): void {
 		if (!$this->chatBot->isReady()) {
 			return;

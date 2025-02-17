@@ -224,7 +224,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	/** Remove expired filters */
-	#[NCA\HandlesEvent(mask: 'timer(1m)')]
+	#[NCA\Timer(interval: '1m')]
 	public function cleanExpiredFilters(): void {
 		$this->removeExpiredFilters();
 		$this->reloadFilters();
@@ -236,7 +236,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	/** Clean unused rate limits */
-	#[NCA\HandlesEvent(mask: 'timer(10s)')]
+	#[NCA\Timer(interval: '10s')]
 	public function clearUnusedBuckets(): void {
 		$this->buckets = array_filter(
 			$this->buckets,

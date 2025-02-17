@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Attributes;
 
 use Attribute;
+use InvalidArgumentException;
 use Nadybot\Core\Types\Status;
 
 /** This method should be called whenever the given event occurs */
@@ -14,5 +15,13 @@ class HandlesEvent {
 		public ?string $help=null,
 		public ?Status $defaultStatus=null,
 	) {
+		if (!isset($mask)) {
+			return;
+		}
+		foreach ((array)$mask as $checkMask) {
+			if (str_contains($checkMask, ' ')) {
+				throw new InvalidArgumentException('Event mask cannot contain spaces');
+			}
+		}
 	}
 }

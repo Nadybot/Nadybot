@@ -964,7 +964,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	/** Send reminder if the private channel is locked */
-	#[NCA\HandlesEvent(mask: 'timer(5m)')]
+	#[NCA\Timer(interval: '5m')]
 	public function remindOfLock(): void {
 		if (!$this->isLocked()) {
 			return;

@@ -570,8 +570,8 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** Download guild roster xml and update guild members */
-	#[NCA\HandlesEvent(mask: 'timer(24hrs)')]
+	/** Download guild roster XML and update guild members */
+	#[NCA\Timer(interval: '24hrs')]
 	public function downloadOrgRosterEvent(Event $eventObj): void {
 		$this->updateMyOrgRoster(false);
 	}
@@ -745,7 +745,7 @@ class GuildController extends ModuleInstance {
 		$this->chatBot->sendGuild($msg, true);
 	}
 
-	/** Record org member logoff for lastseen command */
+	/** Record org member logoff for the !lastseen-command */
 	#[NCA\HandlesEvent]
 	public function orgMemberLogoffRecordEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;

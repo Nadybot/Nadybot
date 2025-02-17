@@ -130,7 +130,7 @@ class RaidPointsController extends ModuleInstance {
 
 	/** Give points when the ticker is enabled */
 	/** Award points for raid participation */
-	#[NCA\HandlesEvent(mask: 'timer(1s)')]
+	#[NCA\Timer(interval: '1s')]
 	public function awardParticipationPoints(): void {
 		$raid = $this->raidController->raid ?? null;
 		if (

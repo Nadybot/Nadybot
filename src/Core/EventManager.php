@@ -171,7 +171,7 @@ class EventManager {
 			$this->callEventHandler(new SetupEvent(), $filename);
 		} elseif ($type === 'connect' && $this->areConnectEventsFired) {
 			$this->callEventHandler(new ConnectEvent(), $filename);
-		} elseif (fnmatch('timer(*)', $type, \FNM_CASEFOLD) && ($time = $this->getTimerEventTime($type)) > 0) {
+		} elseif (($time = $this->getTimerEventTime($type)) > 0) {
 			$key = $this->getKeyForCronEvent($time, $filename);
 			if ($key === null) {
 				$entry = new CronEntry(
@@ -210,20 +210,17 @@ class EventManager {
 		if ($type === 'setup') {
 			return;
 		}
-		if ($this->isValidEventType($type)) {
+		if ($this->isTimerEvent($type)) {
+			$this->logger->error('Dynamic timers are currently not supported');
+		} elseif ($this->isValidEventType($type)) {
 			$this->dynamicEvents[$type] ??= [];
 			if (!in_array($callback, $this->dynamicEvents[$type], true)) {
 				$this->dynamicEvents[$type] []= $callback;
 			}
 		} else {
-			$time = $this->getTimerEventTime($type);
-			if ($time > 0) {
-				$this->logger->error('Dynamic timers are currently not supported');
-			} else {
-				$this->logger->error('Error activating event {event}: The type is not a recognized event type!', [
-					'event' => $logObj,
-				]);
-			}
+			$this->logger->error('Error activating event {event}: The type is not a recognized event type!', [
+				'event' => $logObj,
+			]);
 		}
 	}
 
@@ -235,7 +232,13 @@ class EventManager {
 		if ($type === 'setup') {
 			return;
 		}
-		if ($this->isValidEventType($type)) {
+		if ($this->isTimerEvent($type)) {
+			$error = 'Dynamic timers are currently not supported';
+			$this->logger->error('Error unsubscribing from {event}: {error}', [
+				'event' => $logObj,
+				'error' => $error,
+			]);
+		} elseif ($this->isValidEventType($type)) {
 			if (!isset($this->dynamicEvents[$type])) {
 				return;
 			}
@@ -249,12 +252,7 @@ class EventManager {
 				)
 			);
 		} else {
-			$time = $this->getTimerEventTime($type);
-			if ($time > 0) {
-				$error = 'Dynamic timers are currently not supported';
-			} else {
-				$error = 'The type is not a recognized event type';
-			}
+			$error = 'The type is not a recognized event type';
 			$this->logger->error('Error unsubscribing from {event}: {error}', [
 				'event' => $logObj,
 				'error' => $error,
@@ -295,29 +293,26 @@ class EventManager {
 		$this->logger->info('Deactivating {event}', ['event' => $logObj]);
 
 		$found = false;
-		if ($this->isValidEventType($type)) {
+		if (($time = $this->getTimerEventTime($type)) > 0) {
+			$key = $this->getKeyForCronEvent($time, $filename);
+			if ($key !== null) {
+				$found = true;
+				EventLoop::cancel($this->cronevents[$key]->moveHandle ?? '');
+				EventLoop::cancel($this->cronevents[$key]->handle ?? '');
+				array_splice($this->cronevents, $key, 1);
+			}
+		} elseif ($this->isValidEventType($type)) {
 			if (in_array($filename, $this->events[$type]??[], true)) {
 				$found = true;
 				$temp = array_flip($this->events[$type]);
 				unset($this->events[$type][$temp[$filename]]);
 			}
 		} else {
-			$time = $this->getTimerEventTime($type);
-			if ($time > 0) {
-				$key = $this->getKeyForCronEvent($time, $filename);
-				if ($key !== null) {
-					$found = true;
-					EventLoop::cancel($this->cronevents[$key]->moveHandle ?? '');
-					EventLoop::cancel($this->cronevents[$key]->handle ?? '');
-					array_splice($this->cronevents, $key, 1);
-				}
-			} else {
-				$this->logger->error('Error deactivating {event}: {error}', [
-					'event' => $logObj,
-					'error' => 'The type is not a recognized event type!',
-				]);
-				return;
-			}
+			$this->logger->error('Error deactivating {event}: {error}', [
+				'event' => $logObj,
+				'error' => 'The type is not a recognized event type!',
+			]);
+			return;
 		}
 
 		if (!$found) {
@@ -394,32 +389,29 @@ class EventManager {
 				]);
 				return;
 			}
-			if ($this->isValidEventType($type)) {
+			if (($time = $this->getTimerEventTime($type)) > 0) {
+				if ($this->eventsReady === false) {
+					$this->dontActivateEvents[$type] ??= [];
+					$this->dontActivateEvents[$type][$call] = true;
+				} else {
+					$key = $this->getKeyForCronEvent($time, $call);
+					if ($key !== null) {
+						EventLoop::cancel($this->cronevents[$key]->moveHandle ?? '');
+						EventLoop::cancel($this->cronevents[$key]->handle ?? '');
+						array_splice($this->cronevents, $key, 1);
+					}
+				}
+			} elseif ($this->isValidEventType($type)) {
 				if (!isset($this->events[$type]) || !in_array($call, $this->events[$type], true)) {
 					// event already deactivated
 					continue;
 				}
 				$this->deactivate($type, $call);
 			} else {
-				$time = $this->getTimerEventTime($type);
-				if ($time > 0) {
-					if ($this->eventsReady === false) {
-						$this->dontActivateEvents[$type] ??= [];
-						$this->dontActivateEvents[$type][$call] = true;
-					} else {
-						$key = $this->getKeyForCronEvent($time, $call);
-						if ($key !== null) {
-							EventLoop::cancel($this->cronevents[$key]->moveHandle ?? '');
-							EventLoop::cancel($this->cronevents[$key]->handle ?? '');
-							array_splice($this->cronevents, $key, 1);
-						}
-					}
-				} else {
-					$this->logger->error('Error deactivating {event}: {error}', [
-						'event' => $logObj,
-						'error' => 'The type is not a recognized event type',
-					]);
-				}
+				$this->logger->error('Error deactivating {event}: {error}', [
+					'event' => $logObj,
+					'error' => 'The type is not a recognized event type',
+				]);
 			}
 		}
 	}
@@ -475,7 +467,14 @@ class EventManager {
 		$this->dispatch(new ConnectEvent());
 	}
 
+	public function isTimerEvent(string $type): bool {
+		return fnmatch('timer(*)', $type, \FNM_CASEFOLD);
+	}
+
 	public function isValidEventType(string $type): bool {
+		if ($this->isTimerEvent($type)) {
+			return false;
+		}
 		if (isset($this->eventTypes[$type])) {
 			return true;
 		}

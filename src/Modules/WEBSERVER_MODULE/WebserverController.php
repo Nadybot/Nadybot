@@ -168,7 +168,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	}
 
 	/** Remove expired authentications */
-	#[NCA\HandlesEvent(mask: 'timer(10min)', defaultStatus: Status::Enabled)]
+	#[NCA\Timer(interval: '10min', defaultStatus: Status::Enabled)]
 	public function clearExpiredAuthentications(): void {
 		foreach ($this->authentications as $user => $data) {
 			if ($data[1] < time()) {

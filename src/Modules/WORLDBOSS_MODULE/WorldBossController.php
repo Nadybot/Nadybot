@@ -722,7 +722,7 @@ class WorldBossController extends ModuleInstance {
 	}
 
 	/** Check timer to announce big boss events */
-	#[NCA\HandlesEvent(mask: 'timer(1sec)')]
+	#[NCA\Timer(interval: '1sec')]
 	public function checkTimerEvent(Event $eventObj, bool $manual=false): void {
 		$lastCheck = $this->lastCheck;
 		$this->lastCheck = time();

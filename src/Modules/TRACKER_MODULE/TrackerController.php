@@ -213,7 +213,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** Stop tracking inactive characters */
-	#[NCA\HandlesEvent(mask: 'timer(24hrs)')]
+	#[NCA\Timer(interval: '24hrs')]
 	public function untrackInactiveCharacters(): void {
 		if ($this->trackerAutoUntrack === 0) {
 			return;
@@ -246,7 +246,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** Download all tracked orgs' information */
-	#[NCA\HandlesEvent(mask: 'timer(24hrs)')]
+	#[NCA\Timer(interval: '24hrs')]
 	public function downloadOrgRostersEvent(TimerEvent $eventObj): void {
 		$orgs = $this->db->table(TrackingOrg::getTable())->asObj(TrackingOrg::class);
 		try {
