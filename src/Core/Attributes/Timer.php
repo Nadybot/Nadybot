@@ -17,11 +17,12 @@ class Timer extends HandlesEvent {
 		?Status $defaultStatus=null,
 	) {
 		if ($interval instanceof DateInterval) {
-			$interval = Util::unixtimeToReadable(
-				(new DateTimeImmutable('@0'))->add($interval)->getTimestamp()
-			);
-			$interval = str_replace(' ', '', $interval);
+			$seconds = (new DateTimeImmutable('@0'))->add($interval)->getTimestamp();
+		} else {
+			$seconds = Util::parseTime($interval);
 		}
-		parent::__construct("timer({$interval})", $help, $defaultStatus);
+		$cleanInterval = Util::unixtimeToReadable($seconds, true);
+		$cleanInterval = str_replace(' ', '', $cleanInterval);
+		parent::__construct("timer({$cleanInterval})", $help, $defaultStatus);
 	}
 }
