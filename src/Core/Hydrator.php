@@ -22,6 +22,7 @@ class Hydrator {
 
 	/** @var array<string,true> */
 	private static array $badHydrators = [];
+	private static ?DefinitionProvider $defaultDefinitionProvider = null;
 
 	/**
 	 * @template T of object
@@ -39,6 +40,7 @@ class Hydrator {
 			data: $data,
 			definitionProvider: new DefinitionProvider(
 				keyFormatter: new KeyFormatterWithoutConversion(),
+				serializePublicMethods: false,
 			),
 		);
 	}
@@ -58,6 +60,7 @@ class Hydrator {
 		array $data,
 		?DefinitionProvider $definitionProvider=null
 	): object {
+		$definitionProvider ??= self::getDefaultDefinitionProvider();
 		$hydratorClass = self::getHydratorClass($className, $definitionProvider);
 		self::ensureHydratorExists($hydratorClass, $className, $definitionProvider);
 		if (class_exists($hydratorClass, false) && !isset(self::$badHydrators[$className])) {
@@ -94,6 +97,7 @@ class Hydrator {
 			data: $data,
 			definitionProvider: new DefinitionProvider(
 				keyFormatter: new KeyFormatterWithoutConversion(),
+				serializePublicMethods: false,
 			),
 		);
 	}
@@ -113,6 +117,7 @@ class Hydrator {
 		iterable $data,
 		?DefinitionProvider $definitionProvider=null
 	): IterableList {
+		$definitionProvider ??= self::getDefaultDefinitionProvider();
 		$hydratorClass = self::getHydratorClass($className, $definitionProvider);
 		self::ensureHydratorExists($hydratorClass, $className, $definitionProvider);
 		if (class_exists($hydratorClass, false) && !isset(self::$badHydrators[$className])) {
@@ -135,6 +140,7 @@ class Hydrator {
 			object: $object,
 			definitionProvider: new DefinitionProvider(
 				keyFormatter: new KeyFormatterWithoutConversion(),
+				serializePublicMethods: false,
 			),
 		);
 	}
@@ -153,6 +159,7 @@ class Hydrator {
 			objects: $objects,
 			definitionProvider: new DefinitionProvider(
 				keyFormatter: new KeyFormatterWithoutConversion(),
+				serializePublicMethods: false,
 			),
 		);
 	}
@@ -161,6 +168,7 @@ class Hydrator {
 		object $object,
 		?DefinitionProvider $definitionProvider=null
 	): mixed {
+		$definitionProvider ??= self::getDefaultDefinitionProvider();
 		$className = $object::class;
 		$hydratorClass = self::getHydratorClass($className, $definitionProvider);
 		self::ensureHydratorExists($hydratorClass, $className, $definitionProvider);
@@ -196,6 +204,7 @@ class Hydrator {
 			/** @psalm-suppress TooManyArguments */
 			return new IterableList([]);
 		}
+		$definitionProvider ??= self::getDefaultDefinitionProvider();
 		$className = get_class($objects[0]);
 		$hydratorClass = self::getHydratorClass($className, $definitionProvider);
 		self::ensureHydratorExists($hydratorClass, $className, $definitionProvider);
@@ -244,7 +253,16 @@ class Hydrator {
 	}
 
 	private static function getHydratorClass(string $className, ?DefinitionProvider $definitionProvider): string {
-		$dpClass = isset($definitionProvider) ? '_with_dp' : '';
+		$dpClass = ($definitionProvider === self::$defaultDefinitionProvider) ? '_with_dp' : '';
 		return 'Nadybot\\Cache\\Hydrator\\Hyd_' . md5($className) . $dpClass;
+	}
+
+	private static function getDefaultDefinitionProvider(): DefinitionProvider {
+		if (!isset(self::$defaultDefinitionProvider)) {
+			self::$defaultDefinitionProvider = new DefinitionProvider(
+				serializePublicMethods: false,
+			);
+		}
+		return self::$defaultDefinitionProvider;
 	}
 }
