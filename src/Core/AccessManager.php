@@ -19,6 +19,28 @@ use SplObjectStorage;
  */
 #[NCA\Instance]
 class AccessManager {
+	/** @var array<string,int> */
+	private const ACCESS_LEVELS = [
+		'none'          => 0,
+		'superadmin'    => 1,
+		'admin'         => 2,
+		'mod'           => 3,
+		'guild'         => 4,
+		'raid_admin_3'  => 5,
+		'raid_admin_2'  => 6,
+		'raid_admin_1'  => 7,
+		'raid_leader_3' => 8,
+		'raid_leader_2' => 9,
+		'raid_leader_1' => 10,
+		// 'raid_level_3'  => 11,
+		// 'raid_level_2'  => 12,
+		// 'raid_level_1'  => 13,
+		'member'        => 14,
+		'rl'            => 15,
+		'guest'         => 16,
+		'all'           => 17,
+	];
+
 	/** Display name for the rank "superadmin" */
 	#[NCA\Setting\Text]
 	public string $rankNameSuperadmin = 'superadmin';
@@ -64,29 +86,6 @@ class AccessManager {
 
 	#[NCA\Inject]
 	private BotConfig $config;
-
-
-	/** @var array<string,int> */
-	private static array $ACCESS_LEVELS = [
-		'none'          => 0,
-		'superadmin'    => 1,
-		'admin'         => 2,
-		'mod'           => 3,
-		'guild'         => 4,
-		'raid_admin_3'  => 5,
-		'raid_admin_2'  => 6,
-		'raid_admin_1'  => 7,
-		'raid_leader_3' => 8,
-		'raid_leader_2' => 9,
-		'raid_leader_1' => 10,
-		// 'raid_level_3'  => 11,
-		// 'raid_level_2'  => 12,
-		// 'raid_level_1'  => 13,
-		'member'        => 14,
-		'rl'            => 15,
-		'guest'         => 16,
-		'all'           => 17,
-	];
 
 	/** @var SplObjectStorage<AccessLevelProvider,AccessLevelProvider> */
 	private SplObjectStorage $providers;
@@ -245,7 +244,7 @@ class AccessManager {
 			/** @var AccessLevelProvider $provider */
 			$rank = $provider->getSingleAccessLevel($sender);
 			if (isset($rank)) {
-				$ranks[$rank] = self::$ACCESS_LEVELS[$rank] ?? self::$ACCESS_LEVELS['all'];
+				$ranks[$rank] = self::ACCESS_LEVELS[$rank] ?? self::ACCESS_LEVELS['all'];
 			}
 		}
 		if (!count($ranks)) {
@@ -353,7 +352,7 @@ class AccessManager {
 	 * @return array<string,int> All access levels with the name as key and the number as value
 	 */
 	public function getAccessLevels(): array {
-		return self::$ACCESS_LEVELS;
+		return self::ACCESS_LEVELS;
 	}
 
 	public function addAudit(Audit $audit): void {
@@ -361,7 +360,7 @@ class AccessManager {
 			return;
 		}
 		if (isset($audit->value) && in_array($audit->action, [AuditAction::AddRank, AuditAction::DelRank], true)) {
-			$revLook = array_flip(self::$ACCESS_LEVELS);
+			$revLook = array_flip(self::ACCESS_LEVELS);
 			$audit->value = $audit->value . ' (' . $revLook[(int)$audit->value] . ')';
 		}
 		$this->db->insert($audit);

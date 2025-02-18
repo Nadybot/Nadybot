@@ -29,10 +29,6 @@ class AccountUnfreezer {
 
 	public const DEFAULT_UA = 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/110.0';
 
-	private const UNFREEZE_FAILURE = 0;
-	private const UNFREEZE_SUCCESS = 1;
-	private const UNFREEZE_TEMP_ERROR = 2;
-
 	private const PROXY_HOST = 'proxy.nadybot.org';
 	private const PROXY_PORT = 22_222;
 
@@ -61,7 +57,7 @@ class AccountUnfreezer {
 		$client = $this->getUnfreezeClient();
 
 		do {
-			$lastResult = self::UNFREEZE_TEMP_ERROR;
+			$lastResult = UnfreezeResult::TempError;
 			$proxyText = $this->config->autoUnfreeze?->useNadyproxy ? 'Proxy' : 'Unfreezing';
 			try {
 				$lastResult = $this->unfreezeWithClient($client);
@@ -84,8 +80,8 @@ class AccountUnfreezer {
 					'exception' => $e,
 				]);
 			}
-		} while ($lastResult === self::UNFREEZE_TEMP_ERROR);
-		if ($lastResult === self::UNFREEZE_SUCCESS) {
+		} while ($lastResult === UnfreezeResult::TempError);
+		if ($lastResult === UnfreezeResult::Success) {
 			$this->logger->notice('Account {account} unfrozen successfully.', [
 				'account' => $this->account->username,
 			]);
@@ -244,7 +240,7 @@ class AccountUnfreezer {
 		}
 	}
 
-	protected function unfreezeWithClient(HttpClient $client): int {
+	protected function unfreezeWithClient(HttpClient $client): UnfreezeResult {
 		try {
 			$sessionCookie = $this->getSessionCookie($client);
 			$this->loginToAccount($client, $sessionCookie);
@@ -257,21 +253,21 @@ class AccountUnfreezer {
 				$this->logger->error('Subscription {subscription} is not managed via given login.', [
 					'subscription' => $this->account->subscriptionId,
 				]);
-				return self::UNFREEZE_FAILURE;
+				return UnfreezeResult::Failure;
 			}
 			$this->switchToAccount($client, $sessionCookie, $accountId);
 			$mainBody = $this->loadAccountPage($client, $sessionCookie);
 			if (!str_contains($mainBody, 'Free Account')) {
 				$this->logger->error('Refusing to unfreeze a paid account');
-				return self::UNFREEZE_FAILURE;
+				return UnfreezeResult::Failure;
 			}
 			$this->uncancelSub($client, $sessionCookie);
 			$this->logout($client, $sessionCookie);
-			return self::UNFREEZE_SUCCESS;
+			return UnfreezeResult::Success;
 		} catch (UnfreezeTmpException) {
-			return self::UNFREEZE_TEMP_ERROR;
+			return UnfreezeResult::TempError;
 		} catch (UnfreezeFatalException) {
-			return self::UNFREEZE_FAILURE;
+			return UnfreezeResult::Failure;
 		}
 	}
 
