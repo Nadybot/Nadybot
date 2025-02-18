@@ -164,7 +164,7 @@ class OrglistController extends ModuleInstance {
 
 	/** Get the number of currently unused buddylist slots */
 	public function getFreeBuddylistSlots(): int {
-		return $this->chatBot->getBuddyListSize() - count($this->buddylistManager->buddyList);
+		return $this->chatBot->getBuddyListSize() - $this->buddylistManager->getSize();
 	}
 
 	/**

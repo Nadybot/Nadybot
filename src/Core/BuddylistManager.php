@@ -16,7 +16,7 @@ class BuddylistManager {
 	 *
 	 * @var array<int,BuddylistEntry>
 	 */
-	public array $buddyList = [];
+	private array $buddyList = [];
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -44,6 +44,19 @@ class BuddylistManager {
 	private ?CommandReply $rebalancingCallback = null;
 
 	private static ?string $lastWorker = null;
+
+	/**
+	 * List of all players on the friendlist, real or just queued up
+	 *
+	 * @return array<int,BuddylistEntry>
+	 */
+	public function getBuddylist(): array {
+		return $this->buddyList;
+	}
+
+	public function getSize(): int {
+		return count($this->buddyList);
+	}
 
 	/** Get the number of definitively used up buddy slots */
 	public function getUsedBuddySlots(): int {

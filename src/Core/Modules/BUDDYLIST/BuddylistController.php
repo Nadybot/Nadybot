@@ -41,7 +41,7 @@ class BuddylistController extends ModuleInstance {
 	public function buddylistShowCommand(CmdContext $context): void {
 		$orphanCount = 0;
 		$dupeCount = 0;
-		if (count($this->buddylistManager->buddyList) === 0) {
+		if ($this->buddylistManager->getSize() === 0) {
 			$msg = 'There are no players on the buddy list.';
 			$context->reply($msg);
 			return;
@@ -91,7 +91,7 @@ class BuddylistController extends ModuleInstance {
 		#[Str('clear', 'clean')] string $action
 	): void {
 		$orphanCount = 0;
-		if (count($this->buddylistManager->buddyList) === 0) {
+		if ($this->buddylistManager->getSize() === 0) {
 			$msg = 'There are no players on the buddy list.';
 			$context->reply($msg);
 			return;
@@ -154,7 +154,7 @@ class BuddylistController extends ModuleInstance {
 		#[Remove] string $rem,
 		#[Str('all')] string $all
 	): void {
-		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
+		foreach ($this->buddylistManager->getBuddylist() as $uid => $buddy) {
 			$this->chatBot->aoClient->buddyRemove($uid);
 		}
 
@@ -209,7 +209,7 @@ class BuddylistController extends ModuleInstance {
 		#[Str('search')] string $action,
 		string $search
 	): void {
-		if (count($this->buddylistManager->buddyList) === 0) {
+		if ($this->buddylistManager->getSize() === 0) {
 			$msg = 'There are no characters on the buddy list.';
 			$context->reply($msg);
 			return;
@@ -237,7 +237,7 @@ class BuddylistController extends ModuleInstance {
 		CmdContext $context,
 		#[Str('rebalance')] string $action,
 	): void {
-		if (count($this->buddylistManager->buddyList) === 0) {
+		if ($this->buddylistManager->getSize() === 0) {
 			$context->reply('There are no characters on the buddy list.');
 			return;
 		}
@@ -247,7 +247,7 @@ class BuddylistController extends ModuleInstance {
 		}
 		$this->buddylistManager->rebalance($context);
 		$context->reply(
-			'Rebalancing all ' . count($this->buddylistManager->buddyList) . ' buddies...'
+			"Rebalancing all {$this->buddylistManager->getSize()} buddies..."
 		);
 	}
 
@@ -257,7 +257,7 @@ class BuddylistController extends ModuleInstance {
 	 * @psalm-return list<BuddylistEntry>
 	 */
 	public function getSortedBuddyList(): array {
-		$buddylist = $this->buddylistManager->buddyList;
+		$buddylist = $this->buddylistManager->getBuddylist();
 		usort($buddylist, static function (BuddylistEntry $entry1, BuddylistEntry $entry2): int {
 			return strnatcmp($entry1->name, $entry2->name);
 		});
