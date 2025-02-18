@@ -590,7 +590,7 @@ class ConfigController extends ModuleInstance {
 
 	public function getModuleDescription(string $module): ?string {
 		$module = strtoupper($module);
-		$path = $this->classLoader->registeredModules[$module] ?? null;
+		$path = $this->classLoader->getModulePath($module);
 		if (!isset($path)) {
 			return null;
 		}

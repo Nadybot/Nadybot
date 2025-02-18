@@ -82,7 +82,7 @@ class PackageController extends ModuleInstance {
 
 	/** Return if a module id extra (2) built-in (1) or not installed (0) */
 	public function getInstalledModuleType(string $module): int {
-		$path = $this->classLoader->registeredModules[$module] ?? null;
+		$path = $this->classLoader->getModulePath($module) ?? null;
 		if (!isset($path)) {
 			return static::UNINST;
 		}
@@ -449,7 +449,8 @@ class PackageController extends ModuleInstance {
 			);
 			return;
 		}
-		$modulePath = $this->classLoader->registeredModules[$module];
+		$modulePath = $this->classLoader->getModulePath($module);
+		assert(isset($modulePath));
 		try {
 			$path = $this->fs->realPath($modulePath);
 		} catch (FilesystemException $e) {
@@ -537,7 +538,7 @@ class PackageController extends ModuleInstance {
 			"<highlight>{$package}<end> uninstalled. Restart the bot ".
 			'for the changes to take effect.'
 		);
-		unset($this->classLoader->registeredModules[$module]);
+		$this->classLoader->unregisterModule($module);
 	}
 
 	/**
@@ -976,7 +977,7 @@ class PackageController extends ModuleInstance {
 			->delete();
 		$this->installAndRegisterZip($zip, $cmd, $targetDir);
 
-		$this->classLoader->registeredModules[$cmd->package] = $targetDir . '/' . $cmd->package;
+		$this->classLoader->setModulePath($cmd->package, $targetDir . '/' . $cmd->package);
 		if ($cmd->action === $cmd::INSTALL) {
 			return "<highlight>{$cmd->package} {$cmd->version}<end> installed successfully. ".
 				'Restart the bot for the changes to take effect.';

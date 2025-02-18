@@ -4,23 +4,22 @@ namespace Nadybot\Core;
 
 use function Amp\Future\await;
 use function Amp\{async, delay};
-use function Safe\preg_match;
 
 use Closure;
 use Exception;
 use Generator;
-use Nadybot\Core\Types\{EventInterface, LazyValue};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\EventCfg,
 	Events\ConnectEvent,
-	Events\Event,
 	Events\SetupEvent,
 	Events\TimerEvent,
 	Exceptions\SQLException,
 	Exceptions\StopExecutionException,
 	Modules\MESSAGES\MessageHubController,
+	Types\EventInterface,
+	Types\LazyValue,
 	Types\Status,
 };
 use Psr\Log\LoggerInterface;
@@ -32,7 +31,6 @@ use Revolt\EventLoop;
 
 #[NCA\Instance]
 class EventManager {
-	public const PACKET_TYPE_REGEX = '/packet\(\d+\)/';
 	public const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
 
 	/** @var array<string,string[]> */
@@ -476,9 +474,6 @@ class EventManager {
 			return false;
 		}
 		if (isset($this->eventTypes[$type])) {
-			return true;
-		}
-		if (preg_match(self::PACKET_TYPE_REGEX, $type) === 1) {
 			return true;
 		}
 		foreach ($this->eventTypes as $check => $event) {

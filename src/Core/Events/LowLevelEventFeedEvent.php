@@ -2,15 +2,21 @@
 
 namespace Nadybot\Core\Events;
 
-use Nadybot\Core\{Attributes as NCA, Highway};
+use Nadybot\Core\Types\EventInterface;
+use Nadybot\Core\{Attributes as NCA, Highway, StringableTrait};
+use Stringable;
 
 #[NCA\Event(mask: 'event-feed(*)')]
-class LowLevelEventFeedEvent extends Event {
+class LowLevelEventFeedEvent implements EventInterface, Stringable {
+	use StringableTrait;
+
 	public function __construct(
-		string $type,
 		public Highway\Connection $connection,
 		public Highway\In\InPackage $highwayPackage,
 	) {
-		parent::__construct(type: $type);
+	}
+
+	public function getEvent(): string {
+		return "event-feed({$this->highwayPackage->type})";
 	}
 }

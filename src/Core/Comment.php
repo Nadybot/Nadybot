@@ -4,8 +4,8 @@ namespace Nadybot\Core;
 
 class Comment {
 	public function __construct(
-		public string $headline,
-		public ?string $description=null,
+		public readonly string $headline,
+		public readonly ?string $description=null,
 	) {
 	}
 }

@@ -151,7 +151,7 @@ class HelpController extends ModuleInstance {
 		CmdContext $context,
 		#[Str('modules')] string $action
 	): void {
-		$modules = $this->classLoader->registeredModules;
+		$modules = $this->classLoader->getRegisteredModules();
 
 		/** @var array<string,string> */
 		$data = [];

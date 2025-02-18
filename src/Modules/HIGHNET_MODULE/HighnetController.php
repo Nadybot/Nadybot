@@ -337,7 +337,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$context->reply('Highnet is disabled on this bot.');
 			return;
 		}
-		if (!isset($this->eventFeed->connection)) {
+		if (!$this->eventFeed->isConnected()) {
 			$context->reply('Not connected to a any feed at all.');
 			return;
 		}
@@ -787,7 +787,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			$this->logger->info('Highnetr disabled - dropping message');
 			return false;
 		}
-		if (!isset($this->eventFeed->connection)) {
+		if (!$this->eventFeed->isConnected()) {
 			$this->logger->info('No event feed connected - dropping Highnet message');
 			return false;
 		}
@@ -840,7 +840,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$this->logger->debug('Sending message to Highnet: {data}', [
 			'data' => $hwBody,
 		]);
-		$this->eventFeed->connection?->send($packet);
+		$this->eventFeed->getHighwayConnection()?->send($packet);
 
 		if (!$this->highnetRouteInternally) {
 			$this->logger->info('Internal Highnet routing disabled.');

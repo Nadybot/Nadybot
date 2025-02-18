@@ -39,9 +39,9 @@ class EventFeed {
 	public const RECONNECT_DELAY = 5;
 
 	/** @var array<string,list<EventFeedHandler>> */
-	public array $roomHandlers = [];
+	private array $roomHandlers = [];
 
-	public ?Highway\Connection $connection=null;
+	private ?Highway\Connection $connection=null;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -82,6 +82,14 @@ class EventFeed {
 				}
 			}
 		}
+	}
+
+	public function isConnected(): bool {
+		return isset($this->connection);
+	}
+
+	public function getHighwayConnection(): ?Highway\Connection {
+		return $this->connection;
 	}
 
 	public function registerEventFeedHandler(string $room, EventFeedHandler $handler): void {
@@ -290,17 +298,17 @@ class EventFeed {
 
 	private function handlePackage(Highway\Connection $connection, Highway\In\InPackage $package): void {
 		$event = new LowLevelEventFeedEvent(
-			type: "event-feed({$package->type})",
 			connection: $connection,
 			highwayPackage: $package
 		);
+		echo((string)$event . "\n");
 		try {
 			$this->eventManager->dispatch($event);
 		} catch (AssertionError $e) {
 			$this->logger->error(
 				'Unexpected protocol inconsistency for {event}: {error} in {file}#{line}',
 				[
-					'event' => $event->type,
+					'event' => $event->getEvent(),
 					'error' => $e->getMessage(),
 					'file' => $e->getFile(),
 					'line' => $e->getLine(),
@@ -309,7 +317,7 @@ class EventFeed {
 			);
 		} catch (Throwable $e) {
 			$this->logger->error('Error handling {event}: {error}', [
-				'event' => $event->type,
+				'event' => $event->getEvent(),
 				'error' => $e->getMessage(),
 				'exception' => $e,
 			]);

@@ -39,7 +39,7 @@ class ClassLoader {
 	 *
 	 * @var array<string,string>
 	 */
-	public array $registeredModules = [];
+	private array $registeredModules = [];
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -53,6 +53,28 @@ class ClassLoader {
 	 * @param list<string> $moduleLoadPaths Relative paths where to look for modules
 	 */
 	public function __construct(private array $moduleLoadPaths) {
+	}
+
+	public function getModulePath(string $module): ?string {
+		return $this->registeredModules[$module] ?? null;
+	}
+
+	public function unregisterModule(string $module): void {
+		unset($this->registeredModules[$module]);
+	}
+
+	public function setModulePath(string $module, string $path): string {
+		return $this->registeredModules[$module] = $path;
+	}
+
+	/**
+	 * Get a list of all registered modules
+	 * as an Array of module name => path
+	 *
+	 * @return array<string,string>
+	 */
+	public function getRegisteredModules(): array {
+		return $this->registeredModules;
 	}
 
 	/** Load all classes that provide an #[Instance] */
