@@ -24,6 +24,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\Base,
 	Registry,
+	RouteResult,
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -636,7 +637,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	 * a message ourselves and route it to the bot - if it was issued on a channel
 	 * This is just a message with the command that was given
 	 */
-	private function createAndRouteSlashCmdChannelMsg(DiscordChannel $channel, CmdContext $context, string $userId): int {
+	private function createAndRouteSlashCmdChannelMsg(DiscordChannel $channel, CmdContext $context, string $userId): RouteResult {
 		$this->logger->info('Create and route stub-message for slash-command');
 		$rMessage = new RoutableMessage('/' . substr($context->message, 1));
 		$rMessage->setCharacter(

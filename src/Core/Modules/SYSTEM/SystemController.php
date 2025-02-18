@@ -286,9 +286,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 		$configStats = new ConfigStatistics();
 		$configStats->active_aliases = $numAliases = $this->commandAlias->getEnabledAliases()->count();
-		foreach ($this->eventManager->events as $type => $events) {
-			$configStats->active_events += count($events);
-		}
+		$configStats->active_events = $this->eventManager->getNumEvents();
 		foreach ($this->commandManager->commands as $channel => $commands) {
 			$configStats->active_commands []= new ChannelCommandStats(
 				name: $channel,

@@ -121,7 +121,7 @@ class MessageHubController extends ModuleInstance {
 					]);
 				}
 			});
-		$this->messageHub->routingLoaded = true;
+		$this->messageHub->setRoutingLoaded(true);
 	}
 
 	/** Mute an existing route for a given period of time */
@@ -372,7 +372,7 @@ class MessageHubController extends ModuleInstance {
 		#[Str('list')] string $action,
 		#[Regexp('mods?|modifiers?', example: 'mods')] string $subAction
 	): void {
-		$mods = $this->messageHub->modifiers;
+		$mods = $this->messageHub->getModifiers();
 		$count = count($mods);
 		if (!$count) {
 			$context->reply('No message modifiers available.');
@@ -401,7 +401,7 @@ class MessageHubController extends ModuleInstance {
 		#[Regexp('mods?|modifiers?', example: 'mod')] string $subAction,
 		string $modifier
 	): void {
-		$mod = $this->messageHub->modifiers[$modifier]??null;
+		$mod = $this->messageHub->getModifier($modifier);
 		if (!isset($mod)) {
 			$context->reply("No message modifier <highlight>{$modifier}<end> found.");
 			return;

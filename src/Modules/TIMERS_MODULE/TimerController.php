@@ -21,6 +21,7 @@ use Nadybot\Core\{
 	ParamClass\PDuration,
 	ParamClass\PUuid,
 	Registry,
+	RouteResult,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
@@ -209,7 +210,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$rMsg->appendPath(new Source(Source::SYSTEM, 'timers'));
 		if (!isset($timer->mode) || $timer->mode === '') {
 			$delivered = false;
-			if ($this->messageHub->handle($rMsg) === MessageHub::EVENT_DELIVERED) {
+			if ($this->messageHub->handle($rMsg) === RouteResult::Delivered) {
 				$delivered = true;
 			}
 			if (isset($timer->origin) && !$this->messageHub->hasRouteFromTo($this->getChannelName(), $timer->origin)) {

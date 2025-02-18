@@ -20,6 +20,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	Registry,
+	RouteResult,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
@@ -242,7 +243,7 @@ class ConsoleController extends ModuleInstance {
 		$rMessage = new RoutableMessage($context->message);
 		$rMessage->setCharacter($context->char);
 		$rMessage->prependPath(new Source(Source::CONSOLE, 'Console'));
-		if ($this->messageHub->handle($rMessage) !== $this->messageHub::EVENT_DELIVERED) {
+		if ($this->messageHub->handle($rMessage) !== RouteResult::Delivered) {
 			$context->setIsDM(true);
 		}
 

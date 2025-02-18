@@ -32,12 +32,6 @@ use Revolt\EventLoop;
 #[NCA\Instance]
 class EventManager {
 	public const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
-
-	/** @var array<string,string[]> */
-	public array $events = [];
-
-	/** @var array<string,callable[]> */
-	public array $dynamicEvents = [];
 	protected bool $eventsReady = false;
 
 	/**
@@ -46,6 +40,12 @@ class EventManager {
 	 * @var array<string,array<string,bool>>
 	 */
 	protected array $dontActivateEvents = [];
+
+	/** @var array<string,callable[]> */
+	private array $dynamicEvents = [];
+
+	/** @var array<string,string[]> */
+	private array $events = [];
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -84,6 +84,14 @@ class EventManager {
 			->each(function (EventCfg $row): void {
 				$this->configuredEvents[$row->type??''][$row->file??''] = true;
 			});
+	}
+
+	public function getNumEvents(): int {
+		$sum = 0;
+		foreach ($this->events as $type => $events) {
+			$sum += count($events);
+		}
+		return $sum;
 	}
 
 	/** Registers an event on the bot so it can be configured */

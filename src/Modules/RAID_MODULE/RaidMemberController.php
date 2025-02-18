@@ -20,6 +20,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
+	RouteResult,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
@@ -186,7 +187,7 @@ class RaidMemberController extends ModuleInstance {
 				$this->chatBot->sendMassTell("You were <on>added<end> to the raid by {$sender}.", $player);
 			}
 			$routed = $this->routeMessage('join', "<highlight>{$player}<end> was <on>added<end> to the raid by {$sender}{$countMsg}.");
-			if ($routed !== MessageHub::EVENT_DELIVERED) {
+			if ($routed !== RouteResult::Delivered) {
 				$msg = "<highlight>{$player}<end> was <on>added<end> to the raid{$countMsg}.";
 			}
 		} else {
@@ -205,7 +206,7 @@ class RaidMemberController extends ModuleInstance {
 		if ($numRaiders === $raid->max_members && ($this->raidAnnounceFull & self::ANNOUNCE_RAID_FULL)) {
 			$fullMsg = "The raid is now <off>full<end> with {$numRaiders}/{$raid->max_members} members.";
 			$routed = $this->routeMessage('join', $fullMsg);
-			if ($routed !== MessageHub::EVENT_DELIVERED) {
+			if ($routed !== RouteResult::Delivered) {
 				if (isset($msg)) {
 					return "{$msg}\n{$fullMsg}";
 				}
@@ -246,7 +247,7 @@ class RaidMemberController extends ModuleInstance {
 			}
 			$leaveType = (isset($sender) && ($sender !== $player)) ? 'kick' : 'leave';
 			$routed = $this->routeMessage($leaveType, "<highlight>{$player}<end> was <off>removed<end> from the raid{$countMsg}.");
-			if ($routed !== MessageHub::EVENT_DELIVERED) {
+			if ($routed !== RouteResult::Delivered) {
 				$msg = "<highlight>{$player}<end> was <off>removed<end> to the raid{$countMsg}.";
 			}
 		} else {
@@ -256,7 +257,7 @@ class RaidMemberController extends ModuleInstance {
 		if ($numRaiders === $raid->max_members && ($this->raidAnnounceFull & self::ANNOUNCE_RAID_OPEN)) {
 			$openMsg = 'The raid is <on>no longer full<end>!';
 			$routed = $this->routeMessage('leave', $openMsg);
-			if ($routed !== MessageHub::EVENT_DELIVERED) {
+			if ($routed !== RouteResult::Delivered) {
 				if (isset($msg)) {
 					return "{$msg}\n{$openMsg}";
 				}
@@ -509,7 +510,7 @@ class RaidMemberController extends ModuleInstance {
 		$this->leaveRaid(null, $eventObj->sender);
 	}
 
-	protected function routeMessage(string $type, string $message): int {
+	protected function routeMessage(string $type, string $message): RouteResult {
 		$rMessage = new RoutableMessage($message);
 		$rMessage->prependPath(new Source('raid', $type));
 		return $this->messageHub->handle($rMessage);

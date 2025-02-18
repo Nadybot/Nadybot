@@ -1200,7 +1200,7 @@ class Nadybot {
 		$rMsg = new RoutableMessage($message);
 		$rMsg->appendPath(new Source(Source::TELL, $sender));
 		$rMsg->setCharacter(new Character($sender, $senderId, $this->config->main->dimension));
-		if ($this->messageHub->handle($rMsg) !== $this->messageHub::EVENT_NOT_ROUTED) {
+		if ($this->messageHub->handle($rMsg) !== RouteResult::Routed) {
 			return;
 		}
 

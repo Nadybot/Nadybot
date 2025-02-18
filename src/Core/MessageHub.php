@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use function Amp\async;
 use function Amp\Future\awaitAll;
 use function Safe\preg_match;
+
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
@@ -30,27 +31,13 @@ use Nadybot\Core\{
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
-
 use ReflectionMethod;
-
 use Throwable;
 
 #[NCA\Instance]
 class MessageHub {
-	public const EVENT_NOT_ROUTED = 0;
-	public const EVENT_DISCARDED = 1;
-	public const EVENT_DELIVERED = 2;
-
-	/** @var array<string,ClassSpec> */
-	public array $modifiers = [];
-
 	/** @var Collection<int,RouteHopColor> */
 	public static Collection $colors;
-
-	public bool $routingLoaded = false;
-
-	/** @var list<RoutableEvent> */
-	public array $eventQueue = [];
 
 	/** @var array<string,MessageReceiver> */
 	protected array $receivers = [];
@@ -60,6 +47,14 @@ class MessageHub {
 
 	/** @var array<string,array<string,list<MessageRoute>>> */
 	protected array $routes = [];
+
+	private bool $routingLoaded = false;
+
+	/** @var array<string,ClassSpec> */
+	private array $modifiers = [];
+
+	/** @var list<RoutableEvent> */
+	private array $eventQueue = [];
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -149,6 +144,23 @@ class MessageHub {
 			}
 		}
 		return null;
+	}
+
+	public function getModifier(string $name): ?ClassSpec {
+		return $this->modifiers[strtolower($name)] ?? null;
+	}
+
+	/** @return array<string,ClassSpec> */
+	public function getModifiers(): array {
+		return $this->modifiers;
+	}
+
+	public function routingLoaded(): bool {
+		return $this->routingLoaded;
+	}
+
+	public function setRoutingLoaded(bool $loaded=true): bool {
+		return $this->routingLoaded = $loaded;
 	}
 
 	/** Register an event modifier for public use */
@@ -401,12 +413,12 @@ class MessageHub {
 	}
 
 	/** Submit an event to be routed according to the configured connections */
-	public function handle(RoutableEvent $event): int {
+	public function handle(RoutableEvent $event): RouteResult {
 		$this->logger->info('Received event to route');
 		$path = $event->getPath();
 		if (!count($path)) {
 			$this->logger->info('Discarding event without path');
-			return static::EVENT_NOT_ROUTED;
+			return RouteResult::Routed;
 		}
 		$type = strtolower("{$path[0]->type}({$path[0]->name})");
 		$eventLogLevel = null;
@@ -428,12 +440,12 @@ class MessageHub {
 		}
 		if ($this->routingLoaded === false) {
 			$this->eventQueue []= $event;
-			return static::EVENT_NOT_ROUTED;
+			return RouteResult::Routed;
 		}
 		if (($queued = array_pop($this->eventQueue)) !== null) {
 			$this->handle($queued);
 		}
-		$returnStatus = static::EVENT_NOT_ROUTED;
+		$returnStatus = RouteResult::Routed;
 		$deliveries = [];
 		foreach ($this->routes as $source => $dest) {
 			if (!str_contains($source, '(')) {
@@ -452,7 +464,7 @@ class MessageHub {
 					if ($eventLogLevel < $srcLevel) {
 						continue;
 					}
-				} catch (Exception $e) {
+				} catch (Exception) {
 					continue;
 				}
 			} elseif (!fnmatch($source, $type, \FNM_CASEFOLD)) {
@@ -471,7 +483,7 @@ class MessageHub {
 						$this->logger->info('Routing to {destination} temporarily disabled', [
 							'destination' => $destName,
 						]);
-						$returnStatus = max($returnStatus, static::EVENT_NOT_ROUTED);
+						$returnStatus = max($returnStatus, RouteResult::Routed);
 						continue;
 					}
 					$modifiedEvent = $route->modifyEvent($event);
@@ -479,7 +491,7 @@ class MessageHub {
 						$this->logger->info('Event filtered away for {destination}', [
 							'destination' => $destName,
 						]);
-						$returnStatus = max($returnStatus, static::EVENT_NOT_ROUTED);
+						$returnStatus = max($returnStatus, RouteResult::Routed);
 						continue;
 					}
 					$this->logger->info('Event routed to {destination}', [
@@ -491,7 +503,7 @@ class MessageHub {
 					}
 					$deliveries []= async($receiver->receive(...), $modifiedEvent, $destination);
 					if (!$modifiedEvent->routeSilently) {
-						$returnStatus = static::EVENT_DELIVERED;
+						$returnStatus = RouteResult::Delivered;
 					}
 				}
 			}
