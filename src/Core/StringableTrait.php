@@ -49,7 +49,11 @@ trait StringableTrait {
 		$refClass = new \ReflectionClass($this);
 		$props = get_object_vars($this);
 		foreach ($props as $key => $value) {
-			$refProp = $refClass->getProperty($key);
+			try {
+				$refProp = $refClass->getProperty($key);
+			} catch (\ReflectionException) {
+				continue;
+			}
 			if ($refProp->isInitialized($this) === false) {
 				continue;
 			}

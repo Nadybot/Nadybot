@@ -202,6 +202,9 @@ class EventManager {
 
 	/** Subscribe to an event */
 	public function subscribe(string $type, callable $callback): void {
+		if (class_exists($type, false)) {
+			$type = self::getEventType($type);
+		}
 		$type = strtolower($type);
 		$logObj = new AnonObj(class: 'Event', properties: ['type' => $type, 'handler' => $callback]);
 
@@ -224,6 +227,9 @@ class EventManager {
 
 	/** Unsubscribe from an event */
 	public function unsubscribe(string $type, callable $callback): void {
+		if (class_exists($type, false)) {
+			$type = self::getEventType($type);
+		}
 		$type = strtolower($type);
 		$logObj = new AnonObj(class: 'Event', properties: ['type' => $type, 'handler' => $callback]);
 
@@ -626,9 +632,12 @@ class EventManager {
 		return $this->eventTypes;
 	}
 
-	public static function getEventType(object $eventObj): string {
+	public static function getEventType(object|string $eventObj): string {
 		if ($eventObj instanceof EventInterface) {
 			return $eventObj->getEvent();
+		}
+		if (is_string($eventObj) && !class_exists($eventObj)) {
+			throw new Exception($eventObj . ' does not exist');
 		}
 		$refClass = new ReflectionClass($eventObj);
 		$refAttr = $refClass->getAttributes(NCA\Event::class, ReflectionAttribute::IS_INSTANCEOF);

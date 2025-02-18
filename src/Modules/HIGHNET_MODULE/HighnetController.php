@@ -11,10 +11,11 @@ use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
+use Nadybot\Core\Events\EventFeed\{JoinPackageEvent, LeavePackageEvent, MessagePackageEvent, RoomInfoPackageEvent};
 use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
+
 use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
-
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -27,7 +28,6 @@ use Nadybot\Core\{
 	DB,
 	EventFeed,
 	EventManager,
-	Events\LowLevelEventFeedEvent,
 	Highway,
 	Hydrator,
 	MessageHub,
@@ -160,10 +160,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	/** Register Highnet channels */
-	#[NCA\HandlesEvent(mask: 'event-feed(room-info)')]
-	public function roomInfoHandler(LowLevelEventFeedEvent $event): void {
-		$package = $event->highwayPackage;
-		assert($package instanceof Highway\In\RoomInfo);
+	#[NCA\HandlesEvent]
+	public function roomInfoHandler(RoomInfoPackageEvent $event): void {
+		$package = $event->getPackage();
 		if ($package->room !== 'highnet') {
 			return;
 		}
@@ -182,12 +181,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	/** Count Highnet clients */
-	#[NCA\HandlesEvent(mask: ['event-feed(join)', 'event-feed(leave)'])]
-	public function roomJoinHandler(LowLevelEventFeedEvent $event): void {
-		$package = $event->highwayPackage;
-		if (!($package instanceof Highway\In\Join) && !($package instanceof Highway\In\Leave)) {
-			return;
-		}
+	#[NCA\HandlesEvent]
+	public function roomJoinHandler(JoinPackageEvent|LeavePackageEvent $event): void {
+		$package = $event->getPackage();
 		if ($package->room !== 'highnet') {
 			return;
 		}
@@ -248,20 +244,20 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	/** Handle raw Highnet-messages */
-	#[NCA\HandlesEvent(mask: 'event-feed(message)')]
-	public function handleLLEventFeedMessage(LowLevelEventFeedEvent $event): void {
+	#[NCA\HandlesEvent]
+	public function handleLLEventFeedMessage(MessagePackageEvent $event): void {
 		if (!$this->highnetEnabled) {
 			return;
 		}
-		assert($event->highwayPackage instanceof Highway\In\Message);
-		if ($event->highwayPackage->room !== 'highnet') {
+		$package = $event->getPackage();
+		if ($package->room !== 'highnet') {
 			return;
 		}
-		$senderUUID = $event->highwayPackage->user;
+		$senderUUID = $package->user;
 		// if (!isset($senderUUID)) {
 		// 	return;
 		// }
-		$body = $event->highwayPackage->body;
+		$body = $package->body;
 		if (is_string($body)) {
 			$body = json_decode($body, true);
 		}

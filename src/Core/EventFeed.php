@@ -13,13 +13,20 @@ use Amp\Http\Client\{
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455ConnectionFactory, Rfc6455Connector, WebsocketConnectException, WebsocketHandshake};
 use Amp\Websocket\{PeriodicHeartbeatQueue, WebsocketCloseCode, WebsocketClosedException};
-use AssertionError;
-use Closure;
+use Nadybot\Core\Events\EventFeed\{
+	ErrorPackageEvent,
+	HelloPackageEvent,
+	JoinPackageEvent,
+	LeavePackageEvent,
+	MessagePackageEvent,
+	ResultPackageEvent,
+	RoomInfoPackageEvent,
+	SuccessPackageEvent
+};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Events\EventFeedConnect,
 	Events\EventFeedReconnect,
-	Events\LowLevelEventFeedEvent,
 	Types\EventFeedHandler,
 };
 use Psr\Log\LoggerInterface;
@@ -65,11 +72,11 @@ class EventFeed {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->eventManager->subscribe('event-feed(hello)', Closure::fromCallable($this->handleHello(...)));
-		$this->eventManager->subscribe('event-feed(error)', Closure::fromCallable($this->handleError(...)));
-		$this->eventManager->subscribe('event-feed(success)', Closure::fromCallable($this->handleSuccess(...)));
-		$this->eventManager->subscribe('event-feed(room-info)', Closure::fromCallable($this->handleRoomInfo(...)));
-		$this->eventManager->subscribe('event-feed(message)', Closure::fromCallable($this->handleMessage(...)));
+		$this->eventManager->subscribe(HelloPackageEvent::class, $this->handleHello(...));
+		$this->eventManager->subscribe(ErrorPackageEvent::class, $this->handleError(...));
+		$this->eventManager->subscribe(SuccessPackageEvent::class, $this->handleSuccess(...));
+		$this->eventManager->subscribe(RoomInfoPackageEvent::class, $this->handleRoomInfo(...));
+		$this->eventManager->subscribe(MessagePackageEvent::class, $this->handleMessage(...));
 
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
@@ -115,18 +122,18 @@ class EventFeed {
 			return;
 		}
 		EventLoop::queue(function () use ($room): void {
-			$joinPackage = new Highway\Out\Join(room: $room);
-			$announcer = function (LowLevelEventFeedEvent $event) use ($room, &$announcer): void {
-				assert($event->highwayPackage instanceof Highway\In\RoomInfo);
-				if ($event->highwayPackage->room === $room) {
+			$announcer = function (RoomInfoPackageEvent $event) use ($room, &$announcer): void {
+				$package = $event->getPackage();
+				if ($package->room === $room) {
 					$this->logger->notice('Global event feed attached to {room}', [
 						'room' => $room,
 					]);
-					$this->eventManager->unsubscribe('event-feed(room-info)', $announcer);
+					$this->eventManager->unsubscribe(RoomInfoPackageEvent::class, $announcer);
 				}
 			};
-			$this->eventManager->subscribe('event-feed(room-info)', $announcer);
+			$this->eventManager->subscribe(RoomInfoPackageEvent::class, $announcer);
 			if (isset($this->connection)) {
+				$joinPackage = new Highway\Out\Join(room: $room);
 				$this->connection->send($joinPackage);
 			}
 		});
@@ -163,15 +170,14 @@ class EventFeed {
 		}
 		EventLoop::queue(function () use ($room): void {
 			$leavePackage = new Highway\Out\Leave(room: $room);
-			$announcer = function (LowLevelEventFeedEvent $event) use ($room, &$announcer): void {
-				assert($event->highwayPackage instanceof Highway\In\Success);
+			$announcer = function (SuccessPackageEvent $event) use ($room, &$announcer): void {
 				$this->logger->notice('Global event feed detached from {room}', [
 					'room' => $room,
 				]);
-				$this->eventManager->unsubscribe('event-feed(success)', $announcer);
+				$this->eventManager->unsubscribe(SuccessPackageEvent::class, $announcer);
 				unset($this->attachedRooms[$room]);
 			};
-			$this->eventManager->subscribe('event-feed(success)', $announcer);
+			$this->eventManager->subscribe(SuccessPackageEvent::class, $announcer);
 			if (isset($this->connection)) {
 				$this->connection->send($leavePackage);
 			}
@@ -297,55 +303,56 @@ class EventFeed {
 	}
 
 	private function handlePackage(Highway\Connection $connection, Highway\In\InPackage $package): void {
-		$event = new LowLevelEventFeedEvent(
-			connection: $connection,
-			highwayPackage: $package
-		);
-		echo((string)$event . "\n");
+		$event = match ($package::class) {
+			Highway\In\Hello::class => new HelloPackageEvent(connection: $connection, package: $package),
+			Highway\In\Join::class => new JoinPackageEvent(connection: $connection, package: $package),
+			Highway\In\Leave::class => new LeavePackageEvent(connection: $connection, package: $package),
+			Highway\In\Message::class => new MessagePackageEvent(connection: $connection, package: $package),
+			Highway\In\Success::class => new SuccessPackageEvent(connection: $connection, package: $package),
+			Highway\In\Error::class => new ErrorPackageEvent(connection: $connection, package: $package),
+			Highway\In\RoomInfo::class => new RoomInfoPackageEvent(connection: $connection, package: $package),
+			Highway\In\Result::class => new ResultPackageEvent(connection: $connection, package: $package),
+			default => null,
+		};
+		if (!isset($event)) {
+			$this->logger->error('Unknown event-feed type {event}', [
+				'event' => $package->type,
+			]);
+			return;
+		}
 		try {
 			$this->eventManager->dispatch($event);
-		} catch (AssertionError $e) {
-			$this->logger->error(
-				'Unexpected protocol inconsistency for {event}: {error} in {file}#{line}',
-				[
-					'event' => $event->getEvent(),
-					'error' => $e->getMessage(),
-					'file' => $e->getFile(),
-					'line' => $e->getLine(),
-					'exception' => $e,
-				]
-			);
 		} catch (Throwable $e) {
 			$this->logger->error('Error handling {event}: {error}', [
-				'event' => $event->getEvent(),
+				'event' => EventManager::getEventType($event),
 				'error' => $e->getMessage(),
 				'exception' => $e,
 			]);
 		}
 	}
 
-	private function handleMessage(LowLevelEventFeedEvent $event): void {
-		assert($event->highwayPackage instanceof Highway\In\Message);
+	private function handleMessage(MessagePackageEvent $event): void {
+		$package = $event->getPackage();
 		$this->logger->info('Message from global event feed for room {room}: {message}', [
-			'room' => $event->highwayPackage->room,
-			'message' => $event->highwayPackage->body,
+			'room' => $package->room,
+			'message' => $package,
 		]);
-		$body = $event->highwayPackage->body;
+		$body = $package->body;
 		if (is_string($body)) {
 			$body = json_decode($body, true);
 		}
 
 		/** @var list<EventFeedHandler> */
-		$handlers = $this->roomHandlers[$event->highwayPackage->room] ?? [];
+		$handlers = $this->roomHandlers[$package->room] ?? [];
 		foreach ($handlers as $handler) {
 			try {
 				$handler->handleEventFeedMessage(
-					$event->highwayPackage->room,
+					$package->room,
 					$body,
 				);
 			} catch (Throwable $e) {
 				$this->logger->error('Error handling global event in {room}: {error}', [
-					'room' => $event->highwayPackage->room,
+					'room' => $package->room,
 					'error' => $e->getMessage(),
 					'exception' => $e,
 				]);
@@ -353,53 +360,50 @@ class EventFeed {
 		}
 	}
 
-	private function handleError(LowLevelEventFeedEvent $event): void {
-		if (!($event->highwayPackage instanceof Highway\In\Error)) {
-			return;
-		}
-		if (isset($event->highwayPackage->room)) {
-			unset($this->attachedRooms[$event->highwayPackage->room]);
+	private function handleError(ErrorPackageEvent $event): void {
+		$package = $event->getPackage();
+		if (isset($package->room)) {
+			unset($this->attachedRooms[$package->room]);
 			$this->logger->error('Error from global event feed. Unable to join {room}: {error}', [
-				'room' => $event->highwayPackage->room,
-				'error' => $event->highwayPackage->message,
+				'room' => $package->room,
+				'error' => $package->message,
 			]);
 		}
 		$this->logger->error('Error from global event feed: {error}', [
-			'error' => $event->highwayPackage->message,
+			'error' => $package->message,
 		]);
 	}
 
-	private function handleSuccess(LowLevelEventFeedEvent $event): void {
-		assert($event->highwayPackage instanceof Highway\In\Success);
-		if (isset($event->highwayPackage->room)) {
-			$this->attachedRooms[$event->highwayPackage->room] = true;
+	private function handleSuccess(SuccessPackageEvent $event): void {
+		$package = $event->getPackage();
+		if (isset($package->room)) {
+			$this->attachedRooms[$package->room] = true;
 			$this->logger->info('Successfully joined room {room}', [
-				'room' => $event->highwayPackage->room,
+				'room' => $package->room,
 			]);
 		}
 	}
 
-	private function handleRoomInfo(LowLevelEventFeedEvent $event): void {
-		assert($event->highwayPackage instanceof Highway\In\RoomInfo);
-		$this->attachedRooms[$event->highwayPackage->room] = true;
+	private function handleRoomInfo(RoomInfoPackageEvent $event): void {
+		$this->attachedRooms[$event->getPackage()->room] = true;
 	}
 
-	private function handleHello(LowLevelEventFeedEvent $event): void {
-		assert($event->highwayPackage instanceof Highway\In\Hello, 'Function called for non-hello package');
+	private function handleHello(HelloPackageEvent $event): void {
+		$package = $event->getPackage();
 		$attachedRooms = [];
 		$this->availableRooms = [];
 		$this->logger->notice('Public rooms on highway {version} server {server}: {rooms}', [
-			'version' => $event->connection->getVersion(),
+			'version' => $event->getConnection()->getVersion(),
 			'server' => self::URI,
-			'rooms' => $event->highwayPackage->publicRooms,
+			'rooms' => $package->publicRooms,
 		]);
-		foreach ($event->highwayPackage->publicRooms as $room) {
+		foreach ($package->publicRooms as $room) {
 			$this->availableRooms[$room] = true;
 			if (!isset($this->roomHandlers[$room]) || !count($this->roomHandlers[$room])) {
 				continue;
 			}
 			$joinPackage = new Highway\Out\Join(room: $room);
-			$event->connection->send($joinPackage);
+			$event->getConnection()->send($joinPackage);
 			$attachedRooms []= $room;
 		}
 		$this->logger->notice('Global event feed attached to {rooms}', [
