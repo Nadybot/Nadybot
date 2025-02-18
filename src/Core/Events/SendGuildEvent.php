@@ -12,7 +12,7 @@ class SendGuildEvent extends AOChatEvent {
 	 * @param string  $channel      The channel (msg, priv, guild) via which the message was sent
 	 * @param string  $message      The message itself
 	 * @param ?string $worker       If set, this is the id of the worker via which the message was received
-	 * @param bool    $disableRelay If set, don't route this message via rfelays
+	 * @param bool    $disableRelay If set, don't route this message via relays
 	 */
 	public function __construct(
 		public string $sender,

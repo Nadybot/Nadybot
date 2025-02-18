@@ -19,20 +19,6 @@ use SplObjectStorage;
  */
 #[NCA\Instance]
 class AccessManager {
-	public const ADD_RANK = 'add-rank';
-	public const DEL_RANK = 'del-rank';
-	public const PERM_BAN = 'permanent-ban';
-	public const TEMP_BAN = 'temporary-ban';
-	public const LOCK = 'lock';
-	public const UNLOCK = 'unlock';
-	public const JOIN = 'join';
-	public const KICK = 'kick';
-	public const LEAVE = 'leave';
-	public const INVITE = 'invite';
-	public const ADD_ALT = 'add-alt';
-	public const DEL_ALT = 'del-alt';
-	public const SET_MAIN = 'set-main';
-
 	/** Display name for the rank "superadmin" */
 	#[NCA\Setting\Text]
 	public string $rankNameSuperadmin = 'superadmin';
@@ -374,7 +360,7 @@ class AccessManager {
 		if (!$this->auditController->auditEnabled) {
 			return;
 		}
-		if (isset($audit->value) && in_array($audit->action, [static::ADD_RANK, static::DEL_RANK], true)) {
+		if (isset($audit->value) && in_array($audit->action, [AuditAction::AddRank, AuditAction::DelRank], true)) {
 			$revLook = array_flip(self::$ACCESS_LEVELS);
 			$audit->value = $audit->value . ' (' . $revLook[(int)$audit->value] . ')';
 		}

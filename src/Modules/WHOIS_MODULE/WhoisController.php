@@ -9,8 +9,8 @@ use AO\Package;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DB\DBType;
 use Nadybot\Core\{
-	AccessManager,
 	Attributes as NCA,
+	AuditAction,
 	BuddylistManager,
 	CmdContext,
 	Config\BotConfig,
@@ -324,10 +324,10 @@ class WhoisController extends ModuleInstance {
 				if (!count($matches = Safe::pregMatch("/\((.+?)\)/", $audit->value))) {
 					continue;
 				}
-				if ($audit->action === AccessManager::ADD_RANK) {
+				if ($audit->action === AuditAction::AddRank) {
 					$rank[$matches[1]] = true;
 					$addAction = $audit;
-				} elseif ($audit->action === AccessManager::DEL_RANK) {
+				} elseif ($audit->action === AuditAction::DelRank) {
 					unset($rank[$matches[1]]);
 					$delAction = $audit;
 				}
@@ -414,8 +414,8 @@ class WhoisController extends ModuleInstance {
 			$audits = $this->db->table(Audit::getTable())
 				->where('actee', $name)
 				->whereIn('action', [
-					AccessManager::ADD_RANK,
-					AccessManager::DEL_RANK,
+					AuditAction::AddRank,
+					AuditAction::DelRank,
 				])
 				->orderBy('time')
 				->orderBy('id')
@@ -426,7 +426,7 @@ class WhoisController extends ModuleInstance {
 				$lastAction = $breakPoints->last();
 				$blob .= "\n".
 					(
-						($lastAction->action === AccessManager::ADD_RANK)
+						($lastAction->action === AuditAction::AddRank)
 						? 'Added to bot'
 						: 'Removed from bot'
 					) . ': <highlight>' . Util::date($lastAction->time->getTimestamp()).

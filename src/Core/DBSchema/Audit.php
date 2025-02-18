@@ -3,7 +3,7 @@
 namespace Nadybot\Core\DBSchema;
 
 use Nadybot\Core\Attributes\DB\Table;
-use Nadybot\Core\{Attributes as NCA, DBTable};
+use Nadybot\Core\{Attributes as NCA, AuditAction, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
 
@@ -14,7 +14,7 @@ class Audit extends DBTable {
 
 	/**
 	 * @param string            $actor  The person doing something
-	 * @param string            $action What did the actor do
+	 * @param AuditAction       $action What did the actor do
 	 * @param ?string           $actee  The person the actor is interacting with. Not set if not applicable
 	 * @param ?string           $value  Optional value for the action
 	 * @param DateTimeImmutable $time   time when it happened
@@ -22,7 +22,7 @@ class Audit extends DBTable {
 	 */
 	public function __construct(
 		public string $actor,
-		public string $action,
+		public AuditAction $action,
 		public ?string $actee=null,
 		public ?string $value=null,
 		public DateTimeImmutable $time=new DateTimeImmutable(),

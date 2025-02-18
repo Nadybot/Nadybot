@@ -88,7 +88,7 @@ class AuditController extends ModuleInstance {
 			$audit->actee = isset($audit->actee) ? " -&gt; {$audit->actee}" : '';
 			return '<tab>' . $audit->time->format('Y-m-d H:i:s e').
 				" <highlight>{$audit->actor}<end>{$audit->actee} ".
-				"<highlight>{$audit->action}<end> {$audit->value}";
+				"<highlight>{$audit->action->value}<end> {$audit->value}";
 		});
 		$blob = "<header2>Matching entries<end>\n" . $lines->join("\n");
 		if (isset($links->prev) || isset($links->next)) {

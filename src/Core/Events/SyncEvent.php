@@ -17,7 +17,7 @@ abstract class SyncEvent implements Stringable, DoNotSerializePublicFunctions {
 
 	/**
 	 * @param null|string $sourceBot       Name of the bot that sent the event
-	 * @param null|int    $sourceDimension Dimension where this event originaes
+	 * @param null|int    $sourceDimension Dimension where this event originates
 	 * @param null|bool   $forceSync       Is this a forced sync?
 	 */
 	public function __construct(

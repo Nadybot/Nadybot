@@ -4,19 +4,20 @@ namespace Nadybot\Core\Modules\ALTS;
 
 use function Amp\async;
 
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
 	Attributes\Parameter\Str,
+	AuditAction,
 	BuddylistManager,
 	CmdContext,
+	Config\BotConfig,
 	DB,
 	DBSchema\Alt,
 	DBSchema\Audit,
 	EventManager,
+	Events\ConnectEvent,
 	Events\LogonEvent,
 	Exceptions\SQLException,
 	ModuleInstance,
@@ -553,7 +554,7 @@ class AltsController extends ModuleInstance {
 			$audit = new Audit(
 				actor: $main,
 				actee: $alt,
-				action: AccessManager::ADD_ALT,
+				action: AuditAction::AddAlt,
 			);
 			$this->accessManager->addAudit($audit);
 		}
@@ -583,7 +584,7 @@ class AltsController extends ModuleInstance {
 				$audit = new Audit(
 					actor: $main,
 					actee: $alt,
-					action: AccessManager::DEL_ALT,
+					action: AuditAction::DelAlt,
 				);
 				$this->accessManager->addAudit($audit);
 			}
@@ -699,7 +700,7 @@ class AltsController extends ModuleInstance {
 		$audit = new Audit(
 			actor: $altInfo->main,
 			actee: $sender,
-			action: AccessManager::ADD_ALT,
+			action: AuditAction::AddAlt,
 		);
 		$this->accessManager->addAudit($audit);
 
@@ -959,7 +960,7 @@ class AltsController extends ModuleInstance {
 
 		$audit = new Audit(
 			actor: $newMain,
-			action: AccessManager::SET_MAIN,
+			action: AuditAction::SetMain,
 		);
 		$this->accessManager->addAudit($audit);
 

@@ -7,11 +7,11 @@ use function Amp\async;
 use AO\Package\Out\PrivateChannelKick;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Events\TimerEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	Attributes\Parameter\Str,
+	AuditAction,
 	CmdContext,
 	Config\BotConfig,
 	DB,
@@ -20,6 +20,7 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	EventManager,
 	Events\ConnectEvent,
+	Events\TimerEvent,
 	Exceptions\SQLException,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -439,7 +440,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		$audit = new Audit(
 			actor: $sender,
 			actee: $charName,
-			action: $banEnd ? AccessManager::TEMP_BAN : AccessManager::PERM_BAN,
+			action: $banEnd ? AuditAction::TempBan : AuditAction::PermBan,
 			value: $reason,
 		);
 		$this->accessManager->addAudit($audit);
@@ -816,7 +817,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 				$audit = new Audit(
 					actor: $sender,
 					actee: $charName,
-					action: AccessManager::KICK,
+					action: AuditAction::Kick,
 					value: 'banned',
 				);
 				$this->accessManager->addAudit($audit);

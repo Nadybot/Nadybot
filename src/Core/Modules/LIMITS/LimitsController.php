@@ -5,7 +5,6 @@ namespace Nadybot\Core\Modules\LIMITS;
 use function Safe\preg_match;
 
 use AO\Package;
-use Nadybot\Core\Events\SuccessCmdEvent;
 
 use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistory,
@@ -16,11 +15,13 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	AuditAction,
 	CommandHandler,
 	Config\BotConfig,
 	DBSchema\Audit,
 	DBSchema\Player,
 	Events\CmdEvent,
+	Events\SuccessCmdEvent,
 	Exceptions\UserException,
 	MessageHub,
 	ModuleInstance,
@@ -266,7 +267,7 @@ class LimitsController extends ModuleInstance {
 			}
 			$audit = new Audit(
 				actor: $event->sender,
-				action: AccessManager::KICK,
+				action: AuditAction::Kick,
 				value: 'limits exceeded',
 			);
 			$this->accessManager->addAudit($audit);

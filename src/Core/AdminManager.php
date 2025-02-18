@@ -88,7 +88,7 @@ class AdminManager implements AccessLevelProvider {
 		$audit = new Audit(
 			actor: $sender,
 			actee: $who,
-			action: AccessManager::DEL_RANK,
+			action: AuditAction::DelRank,
 			value: (string)($alMod - ($oldRank['level'] - $alMod)),
 		);
 		$this->accessManager->addAudit($audit);
@@ -108,7 +108,7 @@ class AdminManager implements AccessLevelProvider {
 			$audit = new Audit(
 				actor: $sender,
 				actee: $who,
-				action: AccessManager::DEL_RANK,
+				action: AuditAction::DelRank,
 				value: (string)($alMod - ($this->admins[$who]['level'] - $alMod)),
 			);
 			$this->accessManager->addAudit($audit);
@@ -125,7 +125,7 @@ class AdminManager implements AccessLevelProvider {
 		$audit = new Audit(
 			actor: $sender,
 			actee: $who,
-			action: AccessManager::ADD_RANK,
+			action: AuditAction::AddRank,
 			value: (string)($alMod - ($intlevel - $alMod)),
 		);
 		$this->accessManager->addAudit($audit);

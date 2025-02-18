@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	Attributes\Parameter\Str,
+	AuditAction,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -182,7 +183,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			$audit = new Audit(
 				actor: $sender,
 				actee: $who,
-				action: AccessManager::DEL_RANK,
+				action: AuditAction::DelRank,
 				value: (string)($this->accessManager->getAccessLevels()['raid_leader_1'] - ($oldRank->rank-4)),
 			);
 			$this->accessManager->addAudit($audit);
@@ -206,7 +207,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			$audit = new Audit(
 				actor: $sender,
 				actee: $who,
-				action: AccessManager::DEL_RANK,
+				action: AuditAction::DelRank,
 				value: (string)($this->accessManager->getAccessLevels()['raid_leader_1'] - ($oldRank->rank-4)),
 			);
 			$this->accessManager->addAudit($audit);
@@ -218,7 +219,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$audit = new Audit(
 			actor: $sender,
 			actee: $who,
-			action: AccessManager::ADD_RANK,
+			action: AuditAction::AddRank,
 			value: (string)($this->accessManager->getAccessLevels()['raid_leader_1'] - ($rank-4)),
 		);
 		$this->accessManager->addAudit($audit);

@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\Regexp,
 	Attributes\Parameter\Remove,
 	Attributes\Parameter\Str,
+	AuditAction,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -571,7 +572,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$audit = new Audit(
 			actor: $context->char->name,
 			actee: $name,
-			action: AccessManager::INVITE,
+			action: AuditAction::Invite,
 		);
 		$this->accessManager->addAudit($audit);
 		$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>{$context->char->name}<end>.";
@@ -606,7 +607,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				$audit = new Audit(
 					actor: $context->char->name,
 					actee: $name,
-					action: AccessManager::KICK,
+					action: AuditAction::Kick,
 					value: $reason,
 				);
 				$this->accessManager->addAudit($audit);
@@ -938,7 +939,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply("You <off>locked<end> the private channel: {$this->lockReason}");
 		$audit = new Audit(
 			actor: $context->char->name,
-			action: AccessManager::LOCK,
+			action: AuditAction::Lock,
 			value: $this->lockReason,
 		);
 		$this->accessManager->addAudit($audit);
@@ -958,7 +959,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply('You <on>unlocked<end> the private channel.');
 		$audit = new Audit(
 			actor: $context->char->name,
-			action: AccessManager::UNLOCK,
+			action: AuditAction::Unlock,
 		);
 		$this->accessManager->addAudit($audit);
 	}
@@ -1131,7 +1132,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$audit = new Audit(
 			actor: $this->config->main->character,
 			actee: $whois->name,
-			action: AccessManager::KICK,
+			action: AuditAction::Kick,
 			value: 'auto-ban',
 		);
 		$this->accessManager->addAudit($audit);
@@ -1245,7 +1246,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$audit = new Audit(
 			actor: $sender,
 			actee: $name,
-			action: AccessManager::DEL_RANK,
+			action: AuditAction::DelRank,
 			value: (string)$this->accessManager->getAccessLevels()['member'],
 		);
 		$this->accessManager->addAudit($audit);
@@ -1487,7 +1488,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$audit = new Audit(
 			actor: $sender,
 			actee: $name,
-			action: AccessManager::ADD_RANK,
+			action: AuditAction::AddRank,
 			value: (string)$this->accessManager->getAccessLevels()['member'],
 		);
 		$this->accessManager->addAudit($audit);
