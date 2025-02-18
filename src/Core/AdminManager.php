@@ -21,11 +21,9 @@ class AdminManager implements AccessLevelProvider {
 	/**
 	 * Admin access levels of our admin users, keyed by character name
 	 *
-	 * @var array<string,array<string,int>>
-	 *
-	 * @psalm-var array<string,array{"level":int}>
+	 * @var array<string,int>
 	 */
-	public array $admins = [];
+	private array $admins = [];
 
 	#[NCA\Inject]
 	private DB $db;
@@ -39,8 +37,29 @@ class AdminManager implements AccessLevelProvider {
 	#[NCA\Inject]
 	private BotConfig $config;
 
+	/**
+	 * Get admin access levels of our admin users, keyed by character name
+	 *
+	 * @return array<string,int>
+	 */
+	public function getAdmins(): array {
+		return $this->admins;
+	}
+
+	public function getAdminLevel(string $user): ?int {
+		return $this->admins[$user] ?? null;
+	}
+
+	public function setAdminLevel(string $user, int $level): void {
+		$this->admins[$user] = $level;
+	}
+
+	public function delAdmin(string $user): void {
+		unset($this->admins[$user]);
+	}
+
 	public function getSingleAccessLevel(string $sender): ?string {
-		$level = $this->admins[$sender]['level'] ?? 0;
+		$level = $this->getAdminLevel($sender) ?? 0;
 		if ($level >= 4) {
 			return 'admin';
 		} elseif ($level >= 3) {
@@ -70,15 +89,15 @@ class AdminManager implements AccessLevelProvider {
 			->asObj(Admin::class)
 			->each(function (Admin $row): void {
 				if (isset($row->adminlevel)) {
-					$this->admins[$row->name] = ['level' => $row->adminlevel];
+					$this->setAdminLevel($row->name, $row->adminlevel);
 				}
 			});
 	}
 
 	/** Demote someone from the admin position */
 	public function removeFromLists(string $who, string $sender): void {
-		$oldRank = $this->admins[$who]??null;
-		unset($this->admins[$who]);
+		$oldRank = $this->getAdminLevel($who);
+		$this->delAdmin($who);
 		$this->db->table(Admin::getTable())->where('name', $who)->delete();
 		$this->buddylistManager->remove($who, 'admin');
 		$alMod = $this->accessManager->getAccessLevels()['mod'];
@@ -89,7 +108,7 @@ class AdminManager implements AccessLevelProvider {
 			actor: $sender,
 			actee: $who,
 			action: AuditAction::DelRank,
-			value: (string)($alMod - ($oldRank['level'] - $alMod)),
+			value: (string)($alMod - ($oldRank - $alMod)),
 		);
 		$this->accessManager->addAudit($audit);
 	}
@@ -98,18 +117,19 @@ class AdminManager implements AccessLevelProvider {
 	public function addToLists(string $who, int $intlevel, string $sender): RankChange {
 		$action = RankChange::Promotion;
 		$alMod = $this->accessManager->getAccessLevels()['mod'];
-		if (isset($this->admins[$who])) {
+		$adminLevel = $this->getAdminLevel($who);
+		if (isset($adminLevel)) {
 			$this->db->table(Admin::getTable())
 				->where('name', $who)
 				->update(['adminlevel' => $intlevel]);
-			if ($this->admins[$who]['level'] > $intlevel) {
+			if ($adminLevel > $intlevel) {
 				$action = RankChange::Demotion;
 			}
 			$audit = new Audit(
 				actor: $sender,
 				actee: $who,
 				action: AuditAction::DelRank,
-				value: (string)($alMod - ($this->admins[$who]['level'] - $alMod)),
+				value: (string)($alMod - ($adminLevel - $alMod)),
 			);
 			$this->accessManager->addAudit($audit);
 		} else {
@@ -119,7 +139,7 @@ class AdminManager implements AccessLevelProvider {
 			));
 		}
 
-		$this->admins[$who]['level'] = $intlevel;
+		$this->setAdminLevel($who, $intlevel);
 		async($this->buddylistManager->addName(...), $who, 'admin')->ignore();
 
 		$audit = new Audit(
@@ -135,6 +155,6 @@ class AdminManager implements AccessLevelProvider {
 
 	/** Check if a user $who has admin level $level */
 	public function checkExisting(string $who, int $level): bool {
-		return !($this->admins[$who]['level'] !== $level);
+		return !($this->getAdminLevel($who) !== $level);
 	}
 }

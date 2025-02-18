@@ -159,7 +159,7 @@ class AdminController extends ModuleInstance {
 		$admins = [];
 		$mods = [];
 		$blobs = [];
-		foreach ($this->adminManager->admins as $who => $data) {
+		foreach ($this->adminManager->getAdmins() as $who => $adminRank) {
 			if ($who === '') {
 				continue;
 			}
@@ -177,9 +177,9 @@ class AdminController extends ModuleInstance {
 				$this->getAltAdminInfo($who, $showOfflineAlts);
 			if ($isSuperAdmin) {
 				$superadmins []= $line;
-			} elseif ($data['level'] === 4) {
+			} elseif ($adminRank === 4) {
 				$admins []= $line;
-			} elseif ($data['level'] === 3) {
+			} elseif ($adminRank === 3) {
 				$mods []= $line;
 			}
 		}
@@ -279,12 +279,12 @@ class AdminController extends ModuleInstance {
 	/** Move admin rank to new main */
 	#[NCA\HandlesEvent]
 	public function moveAdminrank(AltNewMainEvent $event): void {
-		$oldRank = $this->adminManager->admins[$event->alt]??null;
+		$oldRank = $this->adminManager->getAdminLevel($event->alt);
 		if (!isset($oldRank)) {
 			return;
 		}
 		$this->adminManager->removeFromLists($event->alt, $event->main);
-		$this->adminManager->addToLists($event->main, $oldRank['level'], $event->alt);
+		$this->adminManager->addToLists($event->main, $oldRank, $event->alt);
 		$this->logger->notice("Moved {alt}'s admin rank to {main}.", [
 			'alt' => $event->alt,
 			'main' => $event->main,

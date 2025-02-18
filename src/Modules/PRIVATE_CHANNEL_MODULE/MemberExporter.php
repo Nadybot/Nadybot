@@ -189,7 +189,7 @@ class MemberExporter extends ModuleInstance implements ExporterInterface, Import
 						name: $name,
 						adminlevel: $adminLevel,
 					));
-					$this->adminManager->admins[$name] = ['level' => $adminLevel];
+					$this->adminManager->setAdminLevel($name, $adminLevel);
 				} elseif (count($matches = Safe::pregMatch('/^raid_leader_([123])/', $newRank))) {
 					$db->insert(new Raidrank(
 						name: $name,
