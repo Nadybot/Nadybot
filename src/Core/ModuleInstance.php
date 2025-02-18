@@ -6,7 +6,7 @@ use Nadybot\Core\Types\ModuleInstanceInterface;
 
 abstract class ModuleInstance implements ModuleInstanceInterface {
 	/** Set when registering the module */
-	public string $moduleName = '';
+	protected string $moduleName = '';
 
 	public function getModuleName(): string {
 		return $this->moduleName;
