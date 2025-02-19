@@ -11,11 +11,7 @@ use Nadybot\Core\{
 };
 
 #[
-	NCA\EventModifier(
-		name: 'remove-popups',
-		description: "This modifier will remove all popups and only\n".
-			'leave the link name.'
-	),
+	NCA\EventModifier(name: 'remove-popups'),
 	NCA\Param(
 		name: 'remove-links',
 		type: 'bool',
@@ -23,6 +19,10 @@ use Nadybot\Core\{
 		required: false
 	)
 ]
+/**
+ * This modifier will remove all popups and only
+ * leave the link name.
+ */
 class RemovePopups implements EventModifier {
 	public function __construct(
 		protected bool $removeLinks=false

@@ -10,14 +10,7 @@ use Nadybot\Core\{
 };
 
 #[
-	NCA\EventModifier(
-		name: 'remove-event',
-		description: "This modifier removes events of one or more types\n".
-			"from being routed. A typical event is \"online\" which is triggered\n".
-			"whenever a character goes online or offline.\n".
-			"To stop displaying logon/logoff messages from your relay, add\n".
-			'remove-event(type=online from="relay(*)") to your stack.'
-	),
+	NCA\EventModifier(name: 'remove-event'),
 	NCA\Param(
 		name: 'type',
 		type: 'string[]',
@@ -34,6 +27,13 @@ use Nadybot\Core\{
 		required: false
 	)
 ]
+/**
+ * This modifier removes events of one or more types
+ * from being routed. A typical event is "online" which is triggered
+ * whenever a character goes online or offline.
+ * To stop displaying logon/logoff messages from your relay, add
+ * remove-event(type=online from="relay(*)") to your stack.
+ */
 class RemoveEvent implements EventModifier {
 	/** @param list<string> $filter */
 	public function __construct(

@@ -9,11 +9,7 @@ use Nadybot\Core\{
 };
 
 #[
-	NCA\EventModifier(
-		name: 'if-not-by',
-		description: "This modifier will only route messages that are\n".
-			'not sent by a given person or group of people.'
-	),
+	NCA\EventModifier(name: 'if-not-by'),
 	NCA\Param(
 		name: 'sender',
 		type: 'string[]',
@@ -28,6 +24,10 @@ use Nadybot\Core\{
 		required: false
 	)
 ]
+/**
+ * This modifier will only route messages that are
+ * not sent by a given person or group of people.
+ */
 class IfNotBy implements EventModifier {
 	/** @var list<string> */
 	protected array $senders = [];

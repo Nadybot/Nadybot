@@ -35,13 +35,7 @@ use stdClass;
 use Throwable;
 
 #[
-	NCA\RelayProtocol(
-		name: 'tyrbot',
-		description: "This is the enhanced protocol of Tyrbot. If your\n".
-			"relay consists only of Nadybots and Tyrbots, use this one.\n".
-			"It allows sharing of online users as well as fully customized\n".
-			'colors.'
-	),
+	NCA\RelayProtocol(name: 'tyrbot'),
 	NCA\Param(
 		name: 'sync-online',
 		type: 'bool',
@@ -49,6 +43,12 @@ use Throwable;
 		required: false
 	)
 ]
+/**
+ * This is the enhanced protocol of Tyrbot. If your
+ * relay consists only of Nadybots and Tyrbots, use this one.
+ * It allows sharing of online users as well as fully customized
+ * colors.
+ */
 class Tyrbot implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 

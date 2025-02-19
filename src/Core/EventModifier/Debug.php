@@ -14,11 +14,7 @@ use Nadybot\Core\{
 };
 
 #[
-	NCA\EventModifier(
-		name: 'debug',
-		description: "This modifier allows you to modify the message of an\n".
-			'event by replacing text, or adding a prefix.'
-	),
+	NCA\EventModifier(name: 'debug'),
 	NCA\Param(
 		name: 'to',
 		type: 'string',
@@ -27,6 +23,10 @@ use Nadybot\Core\{
 		required: true
 	)
 ]
+/**
+ * This modifier allows you to modify the message of an
+ * event by replacing text, or adding a prefix.
+ */
 class Debug implements EventModifier {
 	#[NCA\Inject]
 	private MessageHub $msgHub;

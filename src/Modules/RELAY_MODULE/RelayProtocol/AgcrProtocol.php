@@ -23,9 +23,6 @@ use Psr\Log\LoggerInterface;
 #[
 	NCA\RelayProtocol(
 		name: 'agcr',
-		description: "This is the protocol that is used by the alliance of Rimor.\n".
-			"It does not supports sharing online lists and can only colorize\n".
-			'org and guest chat properly.'
 	),
 	NCA\Param(
 		name: 'command',
@@ -55,6 +52,11 @@ use Psr\Log\LoggerInterface;
 		required: false
 	)
 ]
+/**
+ * This is the protocol that is used by the alliance of Rimor.
+ * It does not supports sharing online lists and can only colorize
+ * org and guest chat properly.
+ */
 class AgcrProtocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_NONE;
 

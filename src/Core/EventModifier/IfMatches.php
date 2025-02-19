@@ -15,11 +15,7 @@ use Nadybot\Core\{
 };
 
 #[
-	NCA\EventModifier(
-		name: 'if-matches',
-		description: "This modifier will only route messages if they contain\n".
-			'a certain text.'
-	),
+	NCA\EventModifier(name: 'if-matches'),
 	NCA\Param(
 		name: 'text',
 		type: 'string[]',
@@ -47,6 +43,10 @@ use Nadybot\Core\{
 		required: false
 	)
 ]
+/**
+ * This modifier will only route messages if they contain
+ * a certain text.
+ */
 class IfMatches implements EventModifier {
 	/** @param list<string> $text */
 	public function __construct(

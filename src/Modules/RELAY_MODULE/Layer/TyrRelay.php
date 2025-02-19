@@ -17,12 +17,8 @@ use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use stdClass;
 
-#[
-	NCA\RelayStackMember(
-		name: 'tyr-relay',
-		description: "This is the protocol spoken by Tyrence's websocket-server"
-	)
-]
+#[NCA\RelayStackMember(name: 'tyr-relay')]
+/** This is the protocol spoken by Tyrence's websocket-server */
 class TyrRelay implements RelayLayerInterface, StatusProvider {
 	protected Relay $relay;
 

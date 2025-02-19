@@ -114,6 +114,7 @@ extratags
 fahrenheit
 fclose
 fds
+[Ff]ernet
 first[nN]ame
 fopen
 foreach

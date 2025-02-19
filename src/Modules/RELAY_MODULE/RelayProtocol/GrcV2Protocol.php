@@ -24,11 +24,6 @@ use Nadybot\Modules\RELAY_MODULE\{
 #[
 	NCA\RelayProtocol(
 		name: 'grcv2',
-		description: "This is the old Nadybot protocol.\n".
-			"It enhances the old grc protocol by adding descriptions\n".
-			"in front of the tags and messages, so the client-side\n".
-			"can decide how to colorize them. However, it only supports\n".
-			'org, guest and raidbot chat.'
 	),
 	NCA\Param(
 		name: 'command',
@@ -43,6 +38,13 @@ use Nadybot\Modules\RELAY_MODULE\{
 		required: false
 	)
 ]
+/**
+ * This is the old Nadybot protocol.
+ * It enhances the old grc protocol by adding descriptions
+ * in front of the tags and messages, so the client-side
+ * can decide how to colorize them. However, it only supports
+ * org, guest and raidbot chat.
+ */
 class GrcV2Protocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_NONE;
 

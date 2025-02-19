@@ -7,7 +7,6 @@ use InvalidArgumentException;
 /** Class specs (name, PHP-class, description, and parameters) */
 class ClassSpec {
 	/**
-	 * @param class-string            $name
 	 * @param class-string            $class
 	 * @param list<FunctionParameter> $params
 	 */

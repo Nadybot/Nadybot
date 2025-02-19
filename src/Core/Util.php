@@ -336,8 +336,12 @@ class Util {
 		/** @var NCA\ClassSpec */
 		$attrObj = $attrs[0]->newInstance();
 
-		/** @phpstan-var class-string */
 		$name = $attrObj->name;
+		$description = $reflection->getDocComment();
+		if ($description === false) {
+			throw new \Error("Class {$class} has no description");
+		}
+		$description = Text::cleanDocComment($description);
 
 		/** @var list<FunctionParameter> */
 		$params = [];
@@ -366,7 +370,7 @@ class Util {
 			name: $name,
 			class: $class,
 			params: $params,
-			description: $attrObj->description,
+			description: $description,
 		);
 	}
 

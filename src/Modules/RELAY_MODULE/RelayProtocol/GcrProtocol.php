@@ -28,13 +28,7 @@ use Revolt\EventLoop;
 use stdClass;
 
 #[
-	NCA\RelayProtocol(
-		name: 'gcr',
-		description: "This is the protocol that BeBot speaks natively.\n".
-			"It supports sharing online lists and basic colorization.\n".
-			"Nadybot only support colorization of messages from the\n".
-			'org and guest chat and not the BeBot native encryption.'
-	),
+	NCA\RelayProtocol(name: 'gcr'),
 	NCA\Param(
 		name: 'command',
 		type: 'string',
@@ -60,6 +54,12 @@ use stdClass;
 		required: false
 	)
 ]
+/**
+ * This is the protocol that BeBot speaks natively.
+ * It supports sharing online lists and basic colorization.
+ * Nadybot only support colorization of messages from the
+ * org and guest chat and not the BeBot native encryption.
+ */
 class GcrProtocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 

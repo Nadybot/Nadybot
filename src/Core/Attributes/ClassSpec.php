@@ -13,7 +13,6 @@ use Attribute;
 class ClassSpec {
 	public function __construct(
 		public string $name,
-		public string $description
 	) {
 	}
 }

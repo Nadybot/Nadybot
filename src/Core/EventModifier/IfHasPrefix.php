@@ -11,14 +11,7 @@ use Nadybot\Core\{
 };
 
 #[
-	NCA\EventModifier(
-		name: 'if-has-prefix',
-		description: "This modifier will only route messages if they start\n".
-			"with a certain prefix. By default, this prefix will then be removed\n".
-			"if it has been found.\n".
-			"This allows you to only route messages that start with a dash or an\n".
-			'asterisk from one channel to another.'
-	),
+	NCA\EventModifier(name: 'if-has-prefix'),
 	NCA\Param(
 		name: 'prefix',
 		type: 'string',
@@ -54,6 +47,13 @@ use Nadybot\Core\{
 		required: false
 	)
 ]
+/**
+ * This modifier will only route messages if they start with a
+ * certain prefix. By default, this prefix will then be removed
+ * if it has been found.
+ * This allows you to only route messages that start with a dash or an
+ * asterisk from one channel to another.
+ */
 class IfHasPrefix implements EventModifier {
 	public function __construct(
 		protected string $prefix,

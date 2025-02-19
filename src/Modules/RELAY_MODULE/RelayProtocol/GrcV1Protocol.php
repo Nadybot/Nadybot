@@ -22,9 +22,6 @@ use Nadybot\Modules\RELAY_MODULE\{
 #[
 	NCA\RelayProtocol(
 		name: 'grc',
-		description: "This is the old BudaBot protocol.\n".
-			"It only supports relaying messages - no sharing of online lists\n".
-			'or any form of colorization beyond org or guest chat.'
 	),
 	NCA\Param(
 		name: 'command',
@@ -39,6 +36,11 @@ use Nadybot\Modules\RELAY_MODULE\{
 		required: false
 	)
 ]
+/**
+ * This is the old BudaBot protocol.
+ * It only supports relaying messages - no sharing of online lists
+ * or any form of colorization beyond org or guest chat.
+ */
 class GrcV1Protocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_NONE;
 

@@ -14,11 +14,7 @@ use Nadybot\Core\{
 };
 
 #[
-	NCA\EventModifier(
-		name: 'change-message',
-		description: "This modifier allows you to modify the message of an\n".
-			'event by replacing text, or adding a prefix.'
-	),
+	NCA\EventModifier(name: 'change-message'),
 	NCA\Param(
 		name: 'add-prefix',
 		type: 'string',
@@ -45,6 +41,10 @@ use Nadybot\Core\{
 		required: false
 	)
 ]
+/**
+ * This modifier allows you to modify the message of an
+ * event by replacing text, or adding a prefix.
+ */
 class ChangeMessage implements EventModifier {
 	public function __construct(
 		protected ?string $addPrefix=null,

@@ -39,16 +39,7 @@ use Revolt\EventLoop;
 use Throwable;
 
 #[
-	NCA\RelayTransport(
-		name: 'websocket',
-		description: "You can use websockets as a relay transport.\n".
-			"Websockets provide near-realtime communication, but since they\n".
-			"are not part of Anarchy Online, if they are down, you might have\n".
-			"a hard time debugging this.\n".
-			"Websockets require a transport protocol in order to work properly\n".
-			"and if they are public, you might also want to add an encryption\n".
-			'layer on top of that.'
-	),
+	NCA\RelayTransport(name: 'websocket'),
 	NCA\Param(
 		name: 'server',
 		type: 'string',
@@ -62,6 +53,15 @@ use Throwable;
 		required: false
 	)
 ]
+/**
+ * You can use websockets as a relay transport.
+ * Websockets provide near-realtime communication, but since they
+ * are not part of Anarchy Online, if they are down, you might have
+ * a hard time debugging this.
+ * Websockets require a transport protocol in order to work properly
+ * and if they are public, you might also want to add an encryption
+ * layer on top of that.
+ */
 class Websocket implements TransportInterface, StatusProvider, LogWrapInterface {
 	protected Relay $relay;
 

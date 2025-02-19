@@ -19,14 +19,7 @@ use Psr\Log\LoggerInterface;
  *	Encryption only works if all parties use the same password!')
  */
 #[
-	NCA\RelayStackMember(
-		name: 'aes-gcm-encryption',
-		description: "This adds 256 bit AES encryption with Galois/Counter mode to the relay-stack.\n".
-			"It guarantees that the data was not tampered with, and rotates the salt(iv)\n".
-			"on every message, so even if one was cracked, the rest is still secure.\n".
-			"This is state-of-the-art cryptography and proven secure.\n".
-			'Encryption only works if all parties use the same password!'
-	),
+	NCA\RelayStackMember(name: 'aes-gcm-encryption'),
 	NCA\Param(
 		name: 'password',
 		type: 'secret',
@@ -34,6 +27,13 @@ use Psr\Log\LoggerInterface;
 		required: true
 	)
 ]
+/**
+ * This adds 256 bit AES encryption with Galois/Counter mode to the relay-stack.
+ * It guarantees that the data was not tampered with, and rotates the salt(iv)
+ * on every message, so even if one was cracked, the rest is still secure.
+ * This is state-of-the-art cryptography and proven secure.
+ * Encryption only works if all parties use the same password!
+ */
 class AesGcmEncryption implements RelayLayerInterface {
 	public const CIPHER = 'aes-256-gcm';
 	protected string $password;

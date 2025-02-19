@@ -35,12 +35,7 @@ use Safe\Exceptions\JsonException;
 use Throwable;
 
 #[
-	NCA\RelayProtocol(
-		name: 'nadynative',
-		description: "This is the native protocol if your relay consists\n".
-			"only of Nadybots 5.2 or newer. It supports message-passing,\n".
-			'proper colorization and event-passing.'
-	),
+	NCA\RelayProtocol(name: 'nadynative'),
 	NCA\Param(
 		name: 'sync-online',
 		type: 'bool',
@@ -48,6 +43,11 @@ use Throwable;
 		required: false
 	)
 ]
+/**
+ * This is the native protocol if your relay consists
+ * only of Nadybots 5.2 or newer. It supports message-passing,
+ * proper colorization and event-passing.
+ */
 class NadyNative implements RelayProtocolInterface {
 	protected static int $supportedFeatures = 3;
 
