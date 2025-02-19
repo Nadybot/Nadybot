@@ -34,28 +34,17 @@ use Safe\Exceptions\JsonException;
 use stdClass;
 use Throwable;
 
-#[
-	NCA\RelayProtocol(name: 'tyrbot'),
-	NCA\Param(
-		name: 'sync-online',
-		type: 'bool',
-		description: 'Sync the online list with the other bots of this relay',
-		required: false
-	)
-]
 /**
  * This is the enhanced protocol of Tyrbot. If your
  * relay consists only of Nadybots and Tyrbots, use this one.
  * It allows sharing of online users as well as fully customized
  * colors.
  */
+#[NCA\RelayProtocol(name: 'tyrbot')]
 class Tyrbot implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 
 	protected Relay $relay;
-
-	/** Do we want to sync online users? */
-	protected bool $syncOnline = true;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -72,7 +61,10 @@ class Tyrbot implements RelayProtocolInterface {
 	#[NCA\Inject]
 	private SettingManager $settingManager;
 
-	public function __construct(bool $syncOnline=true) {
+	/** @param bool $syncOnline Sync the online list with the other bots of this relay */
+	public function __construct(
+		#[NCA\Param(name: 'sync-online')] protected bool $syncOnline=true
+	) {
 		$this->syncOnline = $syncOnline;
 	}
 

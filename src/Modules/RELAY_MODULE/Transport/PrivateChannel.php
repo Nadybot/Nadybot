@@ -18,15 +18,6 @@ use Nadybot\Modules\RELAY_MODULE\{
 	StatusProvider,
 };
 
-#[
-	NCA\RelayTransport(name: 'private-channel'),
-	NCA\Param(
-		name: 'channel',
-		type: 'string',
-		description: 'The private channel to join',
-		required: true
-	)
-]
 /**
  * This is the Anarchy Online private channel transport.
  * You can use this to relay messages internally inside Anarchy Online.
@@ -35,6 +26,7 @@ use Nadybot\Modules\RELAY_MODULE\{
  * The bot must be invited into the private channel before it can
  * relay anything.
  */
+#[NCA\RelayTransport(name: 'private-channel')]
 class PrivateChannel implements TransportInterface, StatusProvider {
 	protected Relay $relay;
 
@@ -51,7 +43,10 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 	#[NCA\Inject]
 	private EventManager $eventManager;
 
-	public function __construct(string $channel) {
+	/** @param string $channel The private channel to join */
+	public function __construct(
+		#[NCA\Param] string $channel,
+	) {
 		$this->channel = ucfirst(strtolower($channel));
 	}
 

@@ -378,6 +378,7 @@ class MessageHubController extends ModuleInstance {
 			$context->reply('No message modifiers available.');
 			return;
 		}
+		ksort($mods);
 		$blobs = [];
 		foreach ($mods as $mod) {
 			$description = $mod->description ?? 'Someone forgot to add a description';
@@ -425,12 +426,17 @@ class MessageHubController extends ModuleInstance {
 				$blob .= "<tab><green>{$type}<end> <highlight>{$param->name}<end>";
 				if (!$param->required) {
 					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
+						$blob .= ' (optional';
 						try {
-							$blob .= ' (optional, default='.
-								json_encode(
-									$refParams[$parNum]->getDefaultValue(),
-									\JSON_UNESCAPED_SLASHES|\JSON_THROW_ON_ERROR|\JSON_INVALID_UTF8_SUBSTITUTE
-								) . ')';
+							$defaultValue = $refParams[$parNum]->getDefaultValue();
+							if (isset($defaultValue)) {
+								$blob .= ', default='.
+									json_encode(
+										$defaultValue,
+										\JSON_UNESCAPED_SLASHES|\JSON_THROW_ON_ERROR|\JSON_INVALID_UTF8_SUBSTITUTE
+									);
+							}
+							$blob .= ')';
 						} catch (JsonException $e) {
 							$blob .= ' (optional)';
 						}

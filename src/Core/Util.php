@@ -14,7 +14,9 @@ use Nadybot\Core\{
 	Types\MinMax,
 };
 use RangeException;
+use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionNamedType;
 use UnhandledMatchError;
 
 #[NCA\Instance]
@@ -345,26 +347,11 @@ class Util {
 
 		/** @var list<FunctionParameter> */
 		$params = [];
-		$i = 1;
-		foreach ($reflection->getAttributes(NCA\Param::class) as $paramAttr) {
-			$paramObj = $paramAttr->newInstance();
-			$paramType = match ($paramObj->type) {
-				FunctionParameter::TYPE_BOOL,
-				FunctionParameter::TYPE_SECRET,
-				FunctionParameter::TYPE_STRING,
-				FunctionParameter::TYPE_INT,
-				FunctionParameter::TYPE_STRING_ARRAY => $paramObj->type,
-				'integer' => FunctionParameter::TYPE_INT,
-				'boolean' => FunctionParameter::TYPE_BOOL,
-				default => throw new Exception("Unknown parameter type {$paramObj->type} in {$class}"),
-			};
-			$params []= new FunctionParameter(
-				name: $paramObj->name,
-				description: $paramObj->description??null,
-				required: $paramObj->required,
-				type: $paramType,
-			);
-			$i++;
+		$constructor = $reflection->getConstructor();
+		if (isset($constructor)) {
+			foreach ($constructor->getParameters() as $param) {
+				$params []= self::getParamSpecFromReflection($param);
+			}
 		}
 		return new ClassSpec(
 			name: $name,
@@ -406,5 +393,65 @@ class Util {
 			}
 		}
 		return $a;
+	}
+
+	private static function getParamType(\ReflectionParameter $param, NCA\Param $attr): string {
+		$paramRef = "{$param->getDeclaringClass()?->getName()}::{$param->getDeclaringFunction()->getName()}(\${$param->getName()})";
+		if (isset($attr->type)) {
+			return match ($attr->type) {
+				FunctionParameter::TYPE_BOOL,
+				FunctionParameter::TYPE_SECRET,
+				FunctionParameter::TYPE_STRING,
+				FunctionParameter::TYPE_INT,
+				FunctionParameter::TYPE_STRING_ARRAY => $attr->type,
+				'integer' => FunctionParameter::TYPE_INT,
+				'boolean' => FunctionParameter::TYPE_BOOL,
+				default => throw new Exception("Unknown parameter type {$attr->type} in {$paramRef}"),
+			};
+		}
+		$paramType = $param->getType();
+		if (!isset($paramType)) {
+			throw new Exception("Parameter {$paramRef} has no type");
+		} elseif (!($paramType instanceof ReflectionNamedType)) {
+			throw new Exception("Parameter {$paramRef} must have exactly one single type");
+		}
+		$type = $paramType->getName();
+		return match ($type) {
+			'bool' => FunctionParameter::TYPE_BOOL,
+			'string' => FunctionParameter::TYPE_STRING,
+			'int' => FunctionParameter::TYPE_INT,
+			default => throw new Exception("Parameter type {$type} in {$paramRef} needs explicit type"),
+		};
+	}
+
+	private static function getParamSpecFromReflection(\ReflectionParameter $param): FunctionParameter {
+		$paramRef = "{$param->getDeclaringClass()?->getName()}::{$param->getDeclaringFunction()->getName()}(\${$param->getName()})";
+		$attrs = $param->getAttributes(NCA\Param::class, ReflectionAttribute::IS_INSTANCEOF);
+		if (!count($attrs)) {
+			throw new Exception("{$paramRef} has no Param attribute");
+		}
+		$paramObj = $attrs[0]->newInstance();
+		$paramType = self::getParamType($param, $paramObj);
+		$description = $param->getDeclaringFunction()->getDocComment();
+		if ($description === false) {
+			throw new \Error(
+				"{$param->getDeclaringClass()?->name}::{$param->getDeclaringFunction()->name}() ".
+				'has no description'
+			);
+		}
+		$description = trim(Safe::pregReplace("|^/\*\*(.*)\*/|s", '$1', $description));
+		$description = Safe::pregReplace("/^[ \t]*\*[ \t]*/m", '', $description);
+		$matches = Safe::pregMatch('/@param (?:.*?) \$'.$param->getName().'\s+([^@]+)/s', $description);
+		if (!count($matches)) {
+			throw new Exception("{$paramRef} has no @param description");
+		}
+		$description = Text::cleanDocComment($matches[1]);
+		$result = new FunctionParameter(
+			name: $paramObj->name ?? $param->getName(),
+			description: trim($description),
+			required: $param->isDefaultValueAvailable() === false,
+			type: $paramType,
+		);
+		return $result;
 	}
 }

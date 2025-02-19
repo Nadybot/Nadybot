@@ -4,38 +4,30 @@ namespace Nadybot\Core\EventModifier;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	FunctionParameter,
 	Routing\RoutableEvent,
 	Types\EventModifier,
 };
 
-#[
-	NCA\EventModifier(name: 'if-not-by'),
-	NCA\Param(
-		name: 'sender',
-		type: 'string[]',
-		description: 'The name of the character (case-insensitive)',
-		required: true
-	),
-	NCA\Param(
-		name: 'inverse',
-		type: 'bool',
-		description: "If set to true, this will inverse the logic\n".
-			'and drop all messages not by the given sender.',
-		required: false
-	)
-]
 /**
  * This modifier will only route messages that are
  * not sent by a given person or group of people.
  */
+#[NCA\EventModifier(name: 'if-not-by')]
 class IfNotBy implements EventModifier {
 	/** @var list<string> */
 	protected array $senders = [];
 
-	/** @param list<string> $senders */
+	/**
+	 * @param list<string> $senders The name of the character (case-insensitive)
+	 * @param bool         $inverse If set to true, this will inverse the logic
+	 *                              and drop all messages not by the given sender.
+	 */
 	public function __construct(
-		array $senders,
-		public bool $inverse=false
+		#[
+			NCA\Param(name: 'sender', type: FunctionParameter::TYPE_STRING_ARRAY)
+		] array $senders,
+		#[NCA\Param] public bool $inverse=false
 	) {
 		$this->senders = array_map('strtolower', $senders);
 	}

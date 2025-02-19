@@ -34,26 +34,16 @@ use Safe\Exceptions\JsonException;
 
 use Throwable;
 
-#[
-	NCA\RelayProtocol(name: 'nadynative'),
-	NCA\Param(
-		name: 'sync-online',
-		type: 'bool',
-		description: 'Sync the online list with the other bots of this relay',
-		required: false
-	)
-]
 /**
  * This is the native protocol if your relay consists
  * only of Nadybots 5.2 or newer. It supports message-passing,
  * proper colorization and event-passing.
  */
+#[NCA\RelayProtocol(name: 'nadynative')]
 class NadyNative implements RelayProtocolInterface {
 	protected static int $supportedFeatures = 3;
 
 	protected Relay $relay;
-
-	protected bool $syncOnline = true;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -73,8 +63,10 @@ class NadyNative implements RelayProtocolInterface {
 	#[NCA\Inject]
 	private EventManager $eventManager;
 
-	public function __construct(bool $syncOnline=true) {
-		$this->syncOnline = $syncOnline;
+	/** @param bool $syncOnline Sync the online list with the other bots of this relay */
+	public function __construct(
+		#[NCA\Param(name: 'sync-online')] protected bool $syncOnline=true
+	) {
 	}
 
 	public function send(RoutableEvent $event): array {

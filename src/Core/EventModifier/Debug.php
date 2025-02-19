@@ -13,26 +13,21 @@ use Nadybot\Core\{
 	Types\EventModifier,
 };
 
-#[
-	NCA\EventModifier(name: 'debug'),
-	NCA\Param(
-		name: 'to',
-		type: 'string',
-		description: "The routing destination where to send debug information to.\n".
-			'Can be anything from "<symbol>route list dst", e.g. aopriv or aotell(Nady)',
-		required: true
-	)
-]
 /**
  * This modifier allows you to modify the message of an
  * event by replacing text, or adding a prefix.
  */
+#[NCA\EventModifier(name: 'debug')]
 class Debug implements EventModifier {
 	#[NCA\Inject]
 	private MessageHub $msgHub;
 
+	/**
+	 * @param string $sendTo The routing destination where to send debug information to.
+	 *                       Can be anything from "<symbol>route list dst", e.g. aopriv or aotell(Nady)
+	 */
 	public function __construct(
-		protected string $sendTo,
+		#[NCA\Param(name: 'to')] protected string $sendTo,
 	) {
 	}
 

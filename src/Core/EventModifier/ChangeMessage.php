@@ -13,44 +13,24 @@ use Nadybot\Core\{
 	Types\EventModifier,
 };
 
-#[
-	NCA\EventModifier(name: 'change-message'),
-	NCA\Param(
-		name: 'add-prefix',
-		type: 'string',
-		description: "If set, prefix the message with the given string. Note that it will\n".
-			'not automatically add a space between prefix and message.',
-		required: false
-	),
-	NCA\Param(
-		name: 'search',
-		type: 'string',
-		description: 'If set, search for the given string and replace it with the "replace" parameter',
-		required: false
-	),
-	NCA\Param(
-		name: 'replace',
-		type: 'string',
-		description: 'If search is set, this is the text to replace with',
-		required: false
-	),
-	NCA\Param(
-		name: 'regexp',
-		type: 'bool',
-		description: 'If set to true, do a regular expression search and replace',
-		required: false
-	)
-]
 /**
  * This modifier allows you to modify the message of an
  * event by replacing text, or adding a prefix.
  */
+#[NCA\EventModifier(name: 'change-message')]
 class ChangeMessage implements EventModifier {
+	/**
+	 * @param string|null $addPrefix If set, prefix the message with the given string. Note that it will
+	 *                               not automatically add a space between prefix and message
+	 * @param string|null $search    If set, search for the given string and replace it with the "replace" parameter
+	 * @param string|null $replace   If search is set, this is the text to replace with
+	 * @param bool        $isRegExp  If set to true, do a regular expression search and replace
+	 */
 	public function __construct(
-		protected ?string $addPrefix=null,
-		protected ?string $search=null,
-		protected ?string $replace=null,
-		protected bool $isRegExp=false,
+		#[NCA\Param(name: 'add-prefix')] protected ?string $addPrefix=null,
+		#[NCA\Param] protected ?string $search=null,
+		#[NCA\Param] protected ?string $replace=null,
+		#[NCA\Param(name: 'regexp')] protected bool $isRegExp=false,
 	) {
 		if (isset($search) && !isset($replace)) {
 			throw new Exception("Missing parameter 'replace'");

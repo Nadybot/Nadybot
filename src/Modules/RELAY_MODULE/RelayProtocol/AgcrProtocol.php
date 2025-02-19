@@ -20,43 +20,12 @@ use Nadybot\Modules\RELAY_MODULE\{
 
 use Psr\Log\LoggerInterface;
 
-#[
-	NCA\RelayProtocol(
-		name: 'agcr',
-	),
-	NCA\Param(
-		name: 'command',
-		type: 'string',
-		description: 'The command we send with each packet',
-		required: false
-	),
-	NCA\Param(
-		name: 'prefix',
-		type: 'string',
-		description: 'The prefix we send with each packet, e.g. "!" or ""',
-		required: false
-	),
-	NCA\Param(
-		name: 'force-single-hop',
-		type: 'boolean',
-		description: "Instead of sending \"[Org] [Guest]\", force sending \"[Org Guest]\".\n".
-			"This might be needed when old bots have problems parsing your sent messages,\n".
-			'because they do not support guest chats.',
-		required: false
-	),
-	NCA\Param(
-		name: 'send-user-links',
-		type: 'boolean',
-		description: "Send a clickable username for the sender.\n".
-			'Disable when other bots cannot parse this and will render your messages wrong.',
-		required: false
-	)
-]
 /**
  * This is the protocol that is used by the alliance of Rimor.
  * It does not supports sharing online lists and can only colorize
  * org and guest chat properly.
  */
+#[NCA\RelayProtocol(name: 'agcr')]
 class AgcrProtocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_NONE;
 
@@ -73,7 +42,21 @@ class AgcrProtocol implements RelayProtocolInterface {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
 
-	public function __construct(string $command='agcr', string $prefix='!', bool $forceSingleHop=false, bool $sendUserLinks=true) {
+	/**
+	 * @param string $command        The command we send with each packet
+	 * @param string $prefix         The prefix we send with each packet, e.g. "!" or ""
+	 * @param bool   $forceSingleHop Instead of sending "[Org] [Guest]", force sending "[Org Guest]".
+	 *                               This might be needed when old bots have problems parsing your sent messages,
+	 *                               because they do not support guest chats.
+	 * @param bool   $sendUserLinks  Send a clickable username for the sender.
+	 *                               Disable when other bots cannot parse this and will render your messages wrong.
+	 */
+	public function __construct(
+		#[NCA\Param] string $command='agcr',
+		#[NCA\Param] string $prefix='!',
+		#[NCA\Param(name: 'force-single-hop')] bool $forceSingleHop=false,
+		#[NCA\Param(name: 'send-user-links')] bool $sendUserLinks=true
+	) {
 		$this->command = $command;
 		$this->prefix = $prefix;
 		$this->forceSingleHop = $forceSingleHop;

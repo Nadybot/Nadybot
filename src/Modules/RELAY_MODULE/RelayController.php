@@ -1301,6 +1301,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			return "No {$name}s available.";
 		}
 		$blobs = [];
+		ksort($specs);
 		foreach ($specs as $spec) {
 			$description = $spec->description ?? 'Someone forgot to add a description';
 			$entry = "<header2>{$spec->name}<end>\n".

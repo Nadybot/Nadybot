@@ -10,11 +10,11 @@ use Nadybot\Core\{
 	Types\EventModifier,
 };
 
-#[NCA\EventModifier(name: 'if-not-command')]
 /**
  * This modifier will only route messages that are
  * not a command or a reply to a command.
  */
+#[NCA\EventModifier(name: 'if-not-command')]
 class IfNotCommand implements EventModifier {
 	#[NCA\Inject]
 	private Nadybot $chatBot;

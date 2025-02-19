@@ -6,7 +6,7 @@ use function Safe\json_encode;
 use EventSauce\ObjectHydrator\UnableToSerializeObject;
 use Exception;
 use Nadybot\Core\Highway\{In, Out, Parser, ParserHighwayException, ParserJsonException};
-use Nadybot\Core\{Attributes as NCA, Hydrator, Safe};
+use Nadybot\Core\{Attributes as NCA, FunctionParameter, Hydrator, Safe};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -19,15 +19,6 @@ use Psr\Log\LoggerInterface;
 
 use Safe\Exceptions\JsonException;
 
-#[
-	NCA\RelayStackMember(name: 'highway'),
-	NCA\Param(
-		name: 'room',
-		type: 'string[]',
-		description: 'The room(s) to join. Must be at least 32 characters long if you want to be able to send.',
-		required: true
-	)
-]
 /**
  * This is the highway protocol, spoken by the highway websocket-server.
  * It will broadcast incoming messages to all clients in the same room.
@@ -37,6 +28,7 @@ use Safe\Exceptions\JsonException;
  * Shorter room names are system rooms and by definition read-only.
  * For further security, using an encryption layer is recommended.
  */
+#[NCA\RelayStackMember(name: 'highway')]
 class Highway implements RelayLayerInterface, StatusProvider {
 	public const TYPE_MESSAGE = 'message';
 	public const TYPE_JOIN = 'join';
@@ -63,8 +55,12 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
-	/** @param list<string> $rooms */
-	public function __construct(array $rooms) {
+	/** @param list<string> $rooms The room(s) to join. Must be at least 32 characters long if you want to be able to send. */
+	public function __construct(
+		#[
+			NCA\Param(name: 'room', type: FunctionParameter::TYPE_STRING_ARRAY)
+		] array $rooms
+	) {
 		foreach ($rooms as $room) {
 			if (strlen($room) < 32) {
 				throw new Exception('<highlight>room<end> must be at least 32 characters long.');

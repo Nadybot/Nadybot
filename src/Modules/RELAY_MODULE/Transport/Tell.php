@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use AO\Package;
 use AO\Package\PackageType;
+use AO\{Package, Utils};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -21,15 +21,6 @@ use Nadybot\Modules\RELAY_MODULE\{
 };
 use Revolt\EventLoop;
 
-#[
-	NCA\RelayTransport(name: 'tell'),
-	NCA\Param(
-		name: 'bot',
-		type: 'string',
-		description: 'The name of the other bot',
-		required: true
-	)
-]
 /**
  * This is the Anarchy Online private message (tell) protocol.
  * You can use this to relay messages internally inside Anarchy Online
@@ -38,6 +29,7 @@ use Revolt\EventLoop;
  * lag a lot. It is also not possible to setup a relay with more
  * than 2 bots this way.
  */
+#[NCA\RelayTransport(name: 'tell')]
 class Tell implements TransportInterface {
 	protected Relay $relay;
 
@@ -55,8 +47,11 @@ class Tell implements TransportInterface {
 	#[NCA\Inject]
 	private BuddylistManager $buddylistManager;
 
-	public function __construct(string $bot) {
-		$bot = ucfirst(strtolower($bot));
+	/** @param string $bot The name of the other bot */
+	public function __construct(
+		#[NCA\Param] string $bot
+	) {
+		$bot = Utils::normalizeCharacter($bot);
 		$this->bot = $bot;
 	}
 

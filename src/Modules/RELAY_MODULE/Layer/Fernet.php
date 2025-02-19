@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Fernet\Fernet as FernetProto;
-use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\{Attributes as NCA, FunctionParameter};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -11,53 +11,32 @@ use Nadybot\Modules\RELAY_MODULE\{
 };
 
 /**
- * @package Nadybot\Modules\RELAY_MODULE\Encryption
- */
-#[
-	NCA\RelayStackMember(
-		name: 'fernet-encryption',
-	),
-	NCA\Param(
-		name: 'password',
-		type: 'secret',
-		description: 'The password to derive our encryption key from',
-		required: true
-	),
-	NCA\Param(
-		name: 'salt',
-		type: 'secret',
-		description: 'The salt to add to the password',
-		required: true
-	),
-	NCA\Param(
-		name: 'hash',
-		type: 'string',
-		description: 'The hash algorithm to ensure messages are unaltered',
-		required: false
-	),
-	NCA\Param(
-		name: 'iterations',
-		type: 'integer',
-		description: 'Number of iterations',
-		required: false
-	)
-]
-/**
  * This adds fernet-based 128 bit AES encryption to the relay-stack.
  * You can configure all parameters of the encryption key generation via options.
  * Encryption layers only work if all relay-parties use the same encryption parameters!
- * Fernet guarantees that the data you send is unaltered
+ * Fernet guarantees that the data you send is unaltered.
  */
+#[NCA\RelayStackMember(name: 'fernet-encryption')]
 class Fernet implements RelayLayerInterface {
 	protected FernetProto $fernet;
 
 	protected Relay $relay;
 
 	/**
-	 * @param non-falsy-string $hashAlgo
-	 * @param positive-int     $iterations
+	 * @param string $password   The password to derive our encryption key from
+	 * @param string $salt       The salt to add to the password
+	 * @param string $hashAlgo   The hash algorithm to ensure messages are unaltered
+	 * @param int    $iterations Number of iterations
+	 *
+	 * @psalm-param non-falsy-string $hashAlgo
+	 * @psalm-param positive-int     $iterations
 	 */
-	public function __construct(string $password, string $salt, string $hashAlgo='sha256', int $iterations=10_000) {
+	public function __construct(
+		#[NCA\Param(type: FunctionParameter::TYPE_SECRET)] string $password,
+		#[NCA\Param(type: FunctionParameter::TYPE_SECRET)] string $salt,
+		#[NCA\Param(name: 'hash')] string $hashAlgo='sha256',
+		#[NCA\Param] int $iterations=10_000,
+	) {
 		$key = hash_pbkdf2($hashAlgo, $password, $salt, $iterations, 32, true);
 		$base64Key = FernetProto::base64url_encode($key);
 		$this->fernet = new FernetProto($base64Key);

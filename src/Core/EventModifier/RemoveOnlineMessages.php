@@ -8,11 +8,11 @@ use Nadybot\Core\{
 	Routing\Source,
 };
 
-#[NCA\EventModifier(name: 'remove-online-messages')]
 /**
  * This modifier removes all XXX has joined/left messages
  * coming from the relay
  */
+#[NCA\EventModifier(name: 'remove-online-messages')]
 class RemoveOnlineMessages extends RemoveEvent {
 	public function __construct() {
 		parent::__construct([Online::TYPE], Source::RELAY . '(*)');

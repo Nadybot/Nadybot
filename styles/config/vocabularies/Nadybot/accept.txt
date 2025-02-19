@@ -67,6 +67,7 @@ char[iI][dD]
 chatfilter
 chatlist
 chatproxy
+chunker
 cmd
 Codesniffer
 colortag
@@ -128,6 +129,7 @@ Funcom
 Funkman
 Gatester
 gaubuff
+gcr
 [gG]oblinz
 github|GitHub
 gmp|GMP
@@ -319,6 +321,7 @@ unicode
 unix|Unix|UNIX
 unshifting
 untyped
+uri|URI
 usec
 [uU]nregister
 [uU]psert
