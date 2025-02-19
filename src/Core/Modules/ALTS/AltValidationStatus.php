@@ -5,6 +5,9 @@ namespace Nadybot\Core\Modules\ALTS;
 use Nadybot\Core\StringableTrait;
 use Stringable;
 
+/**
+ * Dispatched every time a main character validates or rejects one of their alts.
+ */
 class AltValidationStatus implements Stringable {
 	use StringableTrait;
 

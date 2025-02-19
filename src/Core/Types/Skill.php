@@ -5,9 +5,18 @@ namespace Nadybot\Core\Types;
 use Nadybot\Core\Safe;
 use ValueError;
 
+/** This represents a valid skill in Anarchy Online */
 enum Skill: int {
 	/**
-	 * @return null|self|list<self>
+	 * Try to create an instance by its name, otherwise return null
+	 *
+	 * @param string $name           The name of the skill
+	 * @param bool   $exactMatchOnly If set, don't try to guess the skill based on the beginning
+	 *                               of the name, but only try exact matches
+	 *
+	 * @return null|self|list<self> If doing an exact match, the return value is either
+	 *                              the skill or null, wildcard matches will always
+	 *                              return an array of Skills
 	 *
 	 * @psalm-return null|self|non-empty-list<self>
 	 *
@@ -21,11 +30,23 @@ enum Skill: int {
 		}
 	}
 
+	/**
+	 * Check if a negative value for this skill would be considered good,
+	 * e.g. for the skill lock modifier, or the nano cost modifier
+	 */
 	public function negativeIsGood(): bool {
 		return in_array($this, [self::AddNanoCost, self::SkillLockModifier], true);
 	}
 
-	/** @return list<self> */
+	/**
+	 * Search for skills by skill names
+	 *
+	 * @param string $name The name of the skill to search for
+	 *
+	 * @throws ValueError on non-existing skill
+	 *
+	 * @return list<self> A list of skills that match
+	 */
 	public static function getMatching(string $name): array {
 		if (ctype_digit($name)) {
 			$matching = self::tryFrom((int)$name);
@@ -44,7 +65,15 @@ enum Skill: int {
 	}
 
 	/**
-	 * @return self|list<self>
+	 * Try to create an instance by its name
+	 *
+	 * @param string $name           The name of the skill
+	 * @param bool   $exactMatchOnly If set, don't try to guess the skill based on the beginning
+	 *                               of the name, but only try exact matches
+	 *
+	 * @return self|list<self> If doing an exact match, the return value is either
+	 *                         the skill or a ValueError, wildcard matches will always
+	 *                         return an array of Skills
 	 *
 	 * @psalm-return self|non-empty-list<self>
 	 *
@@ -408,6 +437,7 @@ enum Skill: int {
 		return count($result) === 1 ? $result[0] : $result;
 	}
 
+	/** Get the unit for this skill (% or empty string) */
 	public function unit(): string {
 		/** @psalm-suppress UnhandledMatchCondition */
 		return match ($this) {
@@ -567,6 +597,7 @@ enum Skill: int {
 		};
 	}
 
+	/** Get the full name of the skill */
 	public function fullName(): string {
 		/** @psalm-suppress UnhandledMatchCondition */
 		return match ($this) {
@@ -726,6 +757,7 @@ enum Skill: int {
 		};
 	}
 
+	/** Get the name by which the skill is shown in the game */
 	public function inGame(): string {
 		/** @psalm-suppress UnhandledMatchCondition */
 		return match ($this) {
@@ -885,7 +917,11 @@ enum Skill: int {
 		};
 	}
 
-	/** @param list<string> $search */
+	/**
+	 * Check if $term is contained in any of the strings in $search
+	 *
+	 * @param list<string> $search
+	 */
 	private static function matchesSearch(array $search, string $term): bool {
 		foreach ($search as $token) {
 			if (!str_contains($term, $token)) {

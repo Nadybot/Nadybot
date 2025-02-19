@@ -2,6 +2,11 @@
 
 namespace Nadybot\Core\Types;
 
+/**
+ * This interface allows to on-the-fly modify log messages.
+ * You can change their log level, the message being logged and/or the context.
+ * This is mainly used to prefix all log-messages from a module.
+ */
 interface LogWrapInterface {
 	/**
 	 * Wrap the logger by modifying all logging parameters

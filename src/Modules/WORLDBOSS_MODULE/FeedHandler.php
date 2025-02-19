@@ -23,7 +23,7 @@ class FeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Inject]
 	private EventManager $eventManager;
 
-	/** @param array<string,mixed> $data */
+	/** @inheritDoc */
 	public function handleEventFeedMessage(string $room, array $data): void {
 		if (!isset($data['sourceDimension']) || !isset($data['type'])) {
 			throw new Exception('Incomplete data received.');

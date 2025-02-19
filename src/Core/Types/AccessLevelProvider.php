@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Types;
 
+/** This interface allows instances to define which access levels apply to whom */
 interface AccessLevelProvider {
 	/**
 	 * Returns the access level of $sender, ignoring inherited access levels.

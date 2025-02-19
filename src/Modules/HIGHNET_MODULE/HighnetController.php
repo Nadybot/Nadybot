@@ -226,7 +226,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$this->reloadFilters();
 	}
 
-	/** @param array<string,mixed> $data */
+	/** @inheritDoc */
 	public function handleEventFeedMessage(string $room, array $data): void {
 		// Nothing to do right now
 	}

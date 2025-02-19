@@ -8,17 +8,32 @@ use Safe\Exceptions\JsonException;
 
 /**
  * This represents a value for logging that's only calculated if this log-line is
- * actually logged, in order to allow complicated debugging values
+ * actually logged, in order to allow complicated debugging values that don't slow
+ * down the bot when they're not being logged.
  */
 class LazyValue implements Loggable {
-	/** @var mixed[] */
+	/**
+	 * The arguments to pass to the closure when called
+	 *
+	 * @var mixed[]
+	 */
 	private array $args;
+
+	/**
+	 * This is the cached string representation of the logged value,
+	 * or null if not determined yet
+	 */
 	private ?string $cached = null;
 
+	/**
+	 * @param \Closure $value   The closure to call to get the value
+	 * @param mixed    ...$args The arguments to pass to the closure
+	 */
 	public function __construct(private \Closure $value, mixed ...$args) {
 		$this->args = $args;
 	}
 
+	/** Get the textual representation of this value to log */
 	public function toLog(): string {
 		if (isset($this->cached)) {
 			return $this->cached;

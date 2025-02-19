@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core\Types;
 
+/** Use this class to log a string as binary data */
 class AnonBinData implements Loggable {
+	/** @param ?string $data The data to log as binary */
 	public function __construct(
 		private ?string $data,
 	) {

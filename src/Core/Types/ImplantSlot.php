@@ -4,11 +4,14 @@ namespace Nadybot\Core\Types;
 
 use ValueError;
 
+/** This is the representation of a valid implant/symbiant slot */
 enum ImplantSlot: int implements EnumParameterInterface {
+	/** @inheritDoc */
 	public static function fromParam(string $param): self {
 		return self::fromName($param);
 	}
 
+	/** Create an instance based on one of the many variations of its name */
 	public static function fromName(string $name): self {
 		return match (strtolower($name)) {
 			'eye','eyes','ocular' => self::Eye,
@@ -28,6 +31,10 @@ enum ImplantSlot: int implements EnumParameterInterface {
 		};
 	}
 
+	/**
+	 * Try to create an instance based on one of the many variations of its name,
+	 * or return null if the name doesn't match any known slot.
+	 */
 	public static function tryFromName(string $name): ?self {
 		try {
 			return static::fromName($name);
@@ -36,22 +43,7 @@ enum ImplantSlot: int implements EnumParameterInterface {
 		}
 	}
 
-	public static function getParamRegexp(): string {
-		return 'eyes?|ocular'.
-		'|head|brain'.
-		'|ear'.
-		'|right arm|rarm'.
-		'|body|chest'.
-		'|left arm|larm'.
-		'|right wrist|rwrist'.
-		'|waist'.
-		'|left wrist|lwrist'.
-		'|right hand|rhand'.
-		'|legs|leg|thigh'.
-		'|left hand|lhand'.
-		'|foot|feet';
-	}
-
+	/** Create a new instance, purely based on the slot name of the implant designer */
 	public static function fromDesignSlotName(string $name): self {
 		return match (strtolower($name)) {
 			'eye' => self::Eye,
@@ -71,6 +63,24 @@ enum ImplantSlot: int implements EnumParameterInterface {
 		};
 	}
 
+	/** @inheritDoc */
+	public static function getParamRegexp(): string {
+		return 'eyes?|ocular'.
+		'|head|brain'.
+		'|ear'.
+		'|right arm|rarm'.
+		'|body|chest'.
+		'|left arm|larm'.
+		'|right wrist|rwrist'.
+		'|waist'.
+		'|left wrist|lwrist'.
+		'|right hand|rhand'.
+		'|legs|leg|thigh'.
+		'|left hand|lhand'.
+		'|foot|feet';
+	}
+
+	/** Create an instance based on the implant designer type id (1 to 13) */
 	public static function fromTypeID(int $type): self {
 		return match ($type) {
 			1 => self::Eye,
@@ -90,6 +100,7 @@ enum ImplantSlot: int implements EnumParameterInterface {
 		};
 	}
 
+	/** Get the implant designer type id of this slot */
 	public function typeId(): int {
 		return match ($this) {
 			self::Eye => 1,
@@ -131,6 +142,7 @@ enum ImplantSlot: int implements EnumParameterInterface {
 		};
 	}
 
+	/** Return the long name (Right Arm, Ocular, …) of the implant slot */
 	public function longName(): string {
 		return match ($this) {
 			self::Eye => 'Ocular',

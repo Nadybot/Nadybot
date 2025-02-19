@@ -2,20 +2,41 @@
 
 namespace Nadybot\Core\Types;
 
+/** This represents a single item flag */
 enum ItemFlag: int {
-	/** @return EnumBitfield<self> */
+	/**
+	 * Create a new EnumBitfield from the given integer value
+	 *
+	 * @return EnumBitfield<self>
+	 */
 	public static function fromInt(int $flags): EnumBitfield {
 		return (new EnumBitfield(self::class))->setInt($flags);
 	}
 
+	/**
+	 * Check if an item flag is set in the given value
+	 *
+	 * @param self $flag  The ItemFlag to search
+	 * @param int  $value The value in which to search
+	 */
 	public static function has(self $flag, int $value): bool {
 		return ($value & $flag->value) !== 0;
 	}
 
+	/**
+	 * Check if this item flag is set in the given value
+	 *
+	 * @param int $value The value in which to search
+	 */
 	public function in(int $value): bool {
 		return ($value & $this->value) !== 0;
 	}
 
+	/**
+	 * Check if this item flag is not set in the given value
+	 *
+	 * @param int $value The value in which to search
+	 */
 	public function notIn(int $value): bool {
 		return ($value & $this->value) === 0;
 	}

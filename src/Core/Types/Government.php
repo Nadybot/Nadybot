@@ -2,8 +2,13 @@
 
 namespace Nadybot\Core\Types;
 
+/** This represents one of the 6 types of governments in Anarchy Online */
 enum Government: string {
-	/** @return list<string> */
+	/**
+	 * Get a list of all ranks for this government, sorted by hierarchy descending
+	 *
+	 * @return list<string>
+	 */
 	public function getOrgRanks(): array {
 		return match ($this) {
 			self::Anarchism =>  ['Anarchist'],

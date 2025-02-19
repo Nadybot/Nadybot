@@ -4,6 +4,7 @@ namespace Nadybot\Core\Types;
 
 use ValueError;
 
+/** This represents one valid Anarchy Online playfield */
 enum Playfield: int implements EnumParameterInterface {
 	/** @var array<string,string|int|null> */
 	public const EXAMPLE_TOKENS = [
@@ -12,7 +13,11 @@ enum Playfield: int implements EnumParameterInterface {
 		'pf-short' => 'WW',
 	];
 
-	/** @return array<string,string|int|null> */
+	/**
+	 * Get the template tokens that can be derived from this playfield
+	 *
+	 * @return array<string,string|int|null>
+	 */
 	public function getTokens(): array {
 		return [
 			'pf-id' => $this->value,
@@ -21,14 +26,17 @@ enum Playfield: int implements EnumParameterInterface {
 		];
 	}
 
+	/** @inheritDoc */
 	public static function fromParam(string $param): self {
 		return self::fromName($param);
 	}
 
+	/** @inheritDoc */
 	public static function getParamRegexp(): string {
 		return self::getShortRegexp();
 	}
 
+	/** Get a regular expression that only matches the short names of the playfields */
 	public static function getShortRegexp(): string {
 		return implode('|', [
 			'ABAN',
@@ -161,6 +169,7 @@ enum Playfield: int implements EnumParameterInterface {
 		]);
 	}
 
+	/** Get a regular expression that matches the long and short names of the playfields */
 	public static function getLongRegexp(): string {
 		return implode('|', [
 			'4 holes',
@@ -697,6 +706,11 @@ enum Playfield: int implements EnumParameterInterface {
 		};
 	}
 
+	/**
+	 * Try to guess the Playfield by its short or long name
+	 *
+	 * @return ?self null if the name doesn't match any known playfield
+	 */
 	public static function tryFromName(string $name): ?self {
 		try {
 			return self::fromName($name);
@@ -705,6 +719,7 @@ enum Playfield: int implements EnumParameterInterface {
 		}
 	}
 
+	/** Get the long name of the playfield */
 	public function long(): string {
 		/** @psalm-suppress UnhandledMatchCondition: */
 		return match ($this) {
@@ -838,6 +853,7 @@ enum Playfield: int implements EnumParameterInterface {
 		};
 	}
 
+	/** Get the short, uppercase name of the playfield */
 	public function short(): string {
 		/** @psalm-suppress UnhandledMatchCondition: */
 		return match ($this) {

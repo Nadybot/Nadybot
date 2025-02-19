@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Types;
 
+/** This represents a combined minimum and maximum value */
 class MinMax {
 	public function __construct(
 		public int $min,

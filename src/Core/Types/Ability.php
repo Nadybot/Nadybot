@@ -4,7 +4,12 @@ namespace Nadybot\Core\Types;
 
 use ValueError;
 
+/** This is one of the 6 abilities */
 enum Ability: string implements EnumParameterInterface {
+	/**
+	 * Try to create a new instance based on the first 3 letters,
+	 * or null if not possible
+	 */
 	public static function tryFromShort(string $short): ?self {
 		return match (strtolower(substr($short, 0, 3))) {
 			'agi','agl' => static::Agility,

@@ -147,6 +147,7 @@ highcontracts?
 hlpcfg
 Hogwar
 html|HTML
+HUD|HUDs
 hydrators?
 (?i)agi
 iat
@@ -247,6 +248,8 @@ procs
 proxied
 pv
 pw|PW
+QL|ql
+QLs
 raffler
 Rageballs
 ragg

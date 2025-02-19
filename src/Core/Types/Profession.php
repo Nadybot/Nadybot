@@ -4,7 +4,9 @@ namespace Nadybot\Core\Types;
 
 use InvalidArgumentException;
 
+/** This represents a valid profession */
 enum Profession: string implements EnumParameterInterface {
+	/** @inheritDoc */
 	public static function getParamRegexp(): string {
 		return 'adv(|y|enturer)'.
 		'|age(nt)?'.
@@ -22,6 +24,7 @@ enum Profession: string implements EnumParameterInterface {
 		'|sha(de)?';
 	}
 
+	/** Get the numeric representation of this profession (1-12,14-15) */
 	public function toNumber(): int {
 		return match ($this) {
 			self::Adventurer => 6,
@@ -67,7 +70,11 @@ enum Profession: string implements EnumParameterInterface {
 		};
 	}
 
-	/** @return list<string>  */
+	/**
+	 * Get a list of all of the professions' short names
+	 *
+	 * @return list<string>
+	 */
 	public static function shortNames(): array {
 		return [
 			'Adv', 'Agent', 'Crat', 'Doc', 'Enf', 'Eng', 'Fix', 'Keep',
@@ -75,14 +82,17 @@ enum Profession: string implements EnumParameterInterface {
 		];
 	}
 
+	/** Get the colorized string for this profession */
 	public function inColor(): string {
 		return "<highlight>{$this->value}<end>";
 	}
 
+	/** Get a HTML <img> tag this displays this profession's icon */
 	public function toIcon(): string {
 		return '<img src=tdb://id:GFX_GUI_ICON_PROFESSION_'.$this->toNumber().'>';
 	}
 
+	/** Try to create an instance based on the many short or long names of the professions */
 	public static function tryFromName(string $search): ?self {
 		try {
 			return self::fromName($search);
@@ -91,6 +101,7 @@ enum Profession: string implements EnumParameterInterface {
 		}
 	}
 
+	/** Create an instance based on the many short or long names of the professions */
 	public static function fromName(string $search): self {
 		return match (strtolower($search)) {
 			'adv','advy','adventurer' => self::Adventurer,
@@ -111,10 +122,12 @@ enum Profession: string implements EnumParameterInterface {
 		};
 	}
 
+	/** @inheritDoc */
 	public static function fromParam(string $param): self {
 		return self::fromName($param);
 	}
 
+	/** Create an instance based on the numeric value */
 	public static function fromNumber(int $search): self {
 		return match ($search) {
 			0 => self::Unknown,
@@ -136,6 +149,7 @@ enum Profession: string implements EnumParameterInterface {
 		};
 	}
 
+	/** Try to create an instance based on the numeric value, return null if invalid */
 	public static function tryFromNumber(?int $search): ?self {
 		try {
 			if (!isset($search)) {
@@ -147,7 +161,13 @@ enum Profession: string implements EnumParameterInterface {
 		}
 	}
 
-	/** Check if the given string matches the profession (abbreviated or not) */
+	/**
+	 * Check if the given string matches the profession (abbreviated or not)
+	 * Only use for user input, directly check against the enum otherwise
+	 *
+	 * @example One: $this->is('engi')
+	 * @example Two: $this->is($prof)
+	 */
 	public function is(string $search): bool {
 		return self::tryFromName($search) === $this;
 	}
