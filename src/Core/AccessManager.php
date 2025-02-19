@@ -19,7 +19,11 @@ use SplObjectStorage;
  */
 #[NCA\Instance]
 class AccessManager {
-	/** @var array<string,int> */
+	/**
+	 * Map the internal name of an access level to its numerical value
+	 *
+	 * @var array<string,int>
+	 */
 	private const ACCESS_LEVELS = [
 		'none'          => 0,
 		'superadmin'    => 1,
@@ -87,13 +91,19 @@ class AccessManager {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	/** @var SplObjectStorage<AccessLevelProvider,AccessLevelProvider> */
+	/**
+	 * A list of all AccessLevelProviders that are registered with the AccessManager,
+	 * keyed by the provider object.
+	 *
+	 * @var SplObjectStorage<AccessLevelProvider,AccessLevelProvider>
+	 */
 	private SplObjectStorage $providers;
 
 	public function __construct() {
 		$this->providers = new SplObjectStorage();
 	}
 
+	/** Prevent configurable rank names to be identical */
 	#[
 		NCA\SettingChangeHandler('rank_name_superadmin'),
 		NCA\SettingChangeHandler('rank_name_admin'),
@@ -142,11 +152,13 @@ class AccessManager {
 	 * To check if a character named 'Tyrence' has moderator access,
 	 * you would do:
 	 *
+	 * ```php
 	 * if ($this->accessManager->checkAccess("Tyrence", "moderator")) {
 	 *    // Tyrence has [at least] moderator access level
 	 * } else {
 	 *    // Tyrence does not have moderator access level
 	 * }
+	 * ```
 	 *
 	 * Note that this will return true if 'Tyrence' is a moderator on your
 	 * bot, but also if he is anything higher, such as administrator, or superadmin.
@@ -308,7 +320,7 @@ class AccessManager {
 	/**
 	 * Get the short version of the access level, e.g. raidleader => rl
 	 *
-	 * @throws Exception
+	 * @throws Exception on unknown access level
 	 */
 	public function getAccessLevel(string $accessLevel): string {
 		$accessLevel = strtolower($accessLevel);
