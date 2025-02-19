@@ -7,9 +7,9 @@ use function Safe\preg_match;
 use ErrorException;
 use Exception;
 
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
-	FunctionParameter,
 	Routing\RoutableEvent,
 	Safe,
 	Types\EventModifier,
@@ -30,7 +30,7 @@ class IfMatches implements EventModifier {
 	 *                                    and drop all messages matching the given text.
 	 */
 	public function __construct(
-		#[NCA\Param(type: FunctionParameter::TYPE_STRING_ARRAY)] protected array $text,
+		#[NCA\Param(type: ParamType::StringArray)] protected array $text,
 		#[NCA\Param(name: 'case-sensitive')] protected bool $caseSensitive=false,
 		#[NCA\Param(name: 'regexp')] protected bool $isRegexp=false,
 		#[NCA\Param] protected bool $inverse=false

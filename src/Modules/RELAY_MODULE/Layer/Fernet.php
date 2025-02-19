@@ -3,7 +3,8 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Fernet\Fernet as FernetProto;
-use Nadybot\Core\{Attributes as NCA, FunctionParameter};
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -32,8 +33,8 @@ class Fernet implements RelayLayerInterface {
 	 * @psalm-param positive-int     $iterations
 	 */
 	public function __construct(
-		#[NCA\Param(type: FunctionParameter::TYPE_SECRET)] string $password,
-		#[NCA\Param(type: FunctionParameter::TYPE_SECRET)] string $salt,
+		#[NCA\Param(type: ParamType::Secret)] string $password,
+		#[NCA\Param(type: ParamType::Secret)] string $salt,
 		#[NCA\Param(name: 'hash')] string $hashAlgo='sha256',
 		#[NCA\Param] int $iterations=10_000,
 	) {

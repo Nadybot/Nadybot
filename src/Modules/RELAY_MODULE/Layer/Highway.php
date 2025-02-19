@@ -6,7 +6,8 @@ use function Safe\json_encode;
 use EventSauce\ObjectHydrator\UnableToSerializeObject;
 use Exception;
 use Nadybot\Core\Highway\{In, Out, Parser, ParserHighwayException, ParserJsonException};
-use Nadybot\Core\{Attributes as NCA, FunctionParameter, Hydrator, Safe};
+use Nadybot\Core\Types\ParamType;
+use Nadybot\Core\{Attributes as NCA, Hydrator, Safe};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -57,9 +58,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 
 	/** @param list<string> $rooms The room(s) to join. Must be at least 32 characters long if you want to be able to send. */
 	public function __construct(
-		#[
-			NCA\Param(name: 'room', type: FunctionParameter::TYPE_STRING_ARRAY)
-		] array $rooms
+		#[NCA\Param(name: 'room', type: ParamType::StringArray)] array $rooms
 	) {
 		foreach ($rooms as $room) {
 			if (strlen($room) < 32) {

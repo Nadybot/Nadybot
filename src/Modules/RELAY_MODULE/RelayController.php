@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Regexp, Remove, Str, WordStr};
 use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -954,7 +955,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			$value = $params[$parameter->name] ?? null;
 			if (isset($value)) {
 				switch ($parameter->type) {
-					case $parameter::TYPE_BOOL:
+					case ParamType::Bool:
 						if (!in_array($value, ['true', 'false'], true)) {
 							throw new Exception(
 								"Argument <highlight>{$parameter->name}<end> to ".
@@ -965,7 +966,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 						$arguments []= $value === 'true';
 						unset($params[$parameter->name]);
 						break;
-					case $parameter::TYPE_INT:
+					case ParamType::Int:
 						if (!preg_match("/^[+-]?\d+/", $value)) {
 							throw new Exception(
 								"Argument <highlight>{$parameter->name}<end> to ".
@@ -976,7 +977,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 						$arguments []= (int)$value;
 						unset($params[$parameter->name]);
 						break;
-					case $parameter::TYPE_STRING_ARRAY:
+					case ParamType::StringArray:
 						$arguments []= (array)$value;
 						unset($params[$parameter->name]);
 						break;
@@ -1337,8 +1338,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			$blob .= "\n<header2>Parameters<end>\n";
 			$parNum = 0;
 			foreach ($spec->params as $param) {
-				$type = ($param->type === $param::TYPE_SECRET) ? $param::TYPE_STRING : $param->type;
-				$blob .= "<tab><green>{$type}<end> <highlight>{$param->name}<end>";
+				$type = ($param->type === ParamType::Secret) ? ParamType::String : $param->type;
+				$blob .= "<tab><green>{$type->value}<end> <highlight>{$param->name}<end>";
 				if (!$param->required) {
 					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
 						try {

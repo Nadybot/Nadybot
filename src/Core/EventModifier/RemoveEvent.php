@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\EventModifier;
 
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventManager,
@@ -26,7 +27,7 @@ class RemoveEvent implements EventModifier {
 	 *                             Of course you can use wildcards such as relay(*) here.
 	 */
 	public function __construct(
-		#[NCA\Param(name: 'type', type: 'string[]')] protected array $filter,
+		#[NCA\Param(name: 'type', type: ParamType::StringArray)] protected array $filter,
 		#[NCA\Param] protected ?string $from=null
 	) {
 	}

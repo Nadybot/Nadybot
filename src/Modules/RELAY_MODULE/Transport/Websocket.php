@@ -22,9 +22,9 @@ use Amp\{
 };
 use Exception;
 use League\Uri\Uri;
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
-	FunctionParameter,
 	Nadybot,
 	Types\LogWrapInterface,
 };
@@ -78,7 +78,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 	 */
 	public function __construct(
 		#[NCA\Param(name: 'server')] protected string $uri,
-		#[NCA\Param(type: FunctionParameter::TYPE_SECRET)] protected ?string $authorization=null,
+		#[NCA\Param(type: ParamType::Secret)] protected ?string $authorization=null,
 	) {
 		$urlParts = Uri::new($uri);
 		$scheme = $urlParts->getScheme();

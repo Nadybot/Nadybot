@@ -8,6 +8,7 @@ use BackedEnum;
 use Exception;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -395,19 +396,10 @@ class Util {
 		return $a;
 	}
 
-	private static function getParamType(\ReflectionParameter $param, NCA\Param $attr): string {
+	private static function getParamType(\ReflectionParameter $param, NCA\Param $attr): ParamType {
 		$paramRef = "{$param->getDeclaringClass()?->getName()}::{$param->getDeclaringFunction()->getName()}(\${$param->getName()})";
 		if (isset($attr->type)) {
-			return match ($attr->type) {
-				FunctionParameter::TYPE_BOOL,
-				FunctionParameter::TYPE_SECRET,
-				FunctionParameter::TYPE_STRING,
-				FunctionParameter::TYPE_INT,
-				FunctionParameter::TYPE_STRING_ARRAY => $attr->type,
-				'integer' => FunctionParameter::TYPE_INT,
-				'boolean' => FunctionParameter::TYPE_BOOL,
-				default => throw new Exception("Unknown parameter type {$attr->type} in {$paramRef}"),
-			};
+			return $attr->type;
 		}
 		$paramType = $param->getType();
 		if (!isset($paramType)) {
@@ -417,9 +409,9 @@ class Util {
 		}
 		$type = $paramType->getName();
 		return match ($type) {
-			'bool' => FunctionParameter::TYPE_BOOL,
-			'string' => FunctionParameter::TYPE_STRING,
-			'int' => FunctionParameter::TYPE_INT,
+			'bool' => ParamType::Bool,
+			'string' => ParamType::String,
+			'int' => ParamType::Int,
 			default => throw new Exception("Parameter type {$type} in {$paramRef} needs explicit type"),
 		};
 	}

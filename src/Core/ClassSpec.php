@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use InvalidArgumentException;
+use Nadybot\Core\Types\ParamType;
 
 /** Class specs (name, PHP-class, description, and parameters) */
 class ClassSpec {
@@ -35,7 +36,7 @@ class ClassSpec {
 	public function getSecrets(): array {
 		$secrets = [];
 		foreach ($this->params as $param) {
-			if ($param->type === $param::TYPE_SECRET) {
+			if ($param->type === ParamType::Secret) {
 				$secrets []= $param->name;
 			}
 		}

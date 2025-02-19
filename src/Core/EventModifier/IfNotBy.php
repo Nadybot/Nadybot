@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core\EventModifier;
 
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
-	FunctionParameter,
 	Routing\RoutableEvent,
 	Types\EventModifier,
 };
@@ -25,7 +25,7 @@ class IfNotBy implements EventModifier {
 	 */
 	public function __construct(
 		#[
-			NCA\Param(name: 'sender', type: FunctionParameter::TYPE_STRING_ARRAY)
+			NCA\Param(name: 'sender', type: ParamType::StringArray)
 		] array $senders,
 		#[NCA\Param] public bool $inverse=false
 	) {

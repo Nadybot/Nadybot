@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
 use Monolog\Logger;
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -170,9 +171,9 @@ class MessageHub {
 			$printArgs = [];
 			foreach ($this->modifiers[$name]->params as $param) {
 				if (!$param->required) {
-					$printArgs []= "[{$param->type} {$param->name}]";
+					$printArgs []= "[{$param->type->value} {$param->name}]";
 				} else {
-					$printArgs []= "{$param->type} {$param->name}";
+					$printArgs []= "{$param->type->value} {$param->name}";
 				}
 			}
 			throw new Exception(
@@ -204,7 +205,7 @@ class MessageHub {
 			$value = $params[$parameter->name] ?? null;
 			if (isset($value)) {
 				switch ($parameter->type) {
-					case $parameter::TYPE_BOOL:
+					case ParamType::Bool:
 						if (!is_string($value) || !in_array($value, ['true', 'false'], true)) {
 							throw new Exception(
 								"Argument <highlight>{$parameter->name}<end> to ".
@@ -215,7 +216,7 @@ class MessageHub {
 						$arguments []= $value === 'true';
 						unset($params[$parameter->name]);
 						break;
-					case $parameter::TYPE_INT:
+					case ParamType::Int:
 						if (!is_string($value) || !preg_match("/^[+-]?\d+/", $value)) {
 							throw new Exception(
 								"Argument <highlight>{$parameter->name}<end> to ".
@@ -226,7 +227,7 @@ class MessageHub {
 						$arguments []= (int)$value;
 						unset($params[$parameter->name]);
 						break;
-					case $parameter::TYPE_STRING_ARRAY:
+					case ParamType::StringArray:
 						$arguments []= (array)$value;
 						unset($params[$parameter->name]);
 						break;

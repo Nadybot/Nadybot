@@ -4,7 +4,8 @@ namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use function Safe\{base64_decode, openssl_cipher_iv_length, openssl_decrypt, openssl_digest, openssl_encrypt, pack, sodium_crypto_aead_aes256gcm_decrypt};
 use Exception;
-use Nadybot\Core\{Attributes as NCA, FunctionParameter};
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -33,7 +34,7 @@ class AesGcmEncryption implements RelayLayerInterface {
 
 	/** @param string $password The password to derive our encryption key from */
 	public function __construct(
-		#[NCA\Param(type: FunctionParameter::TYPE_SECRET)] string $password
+		#[NCA\Param(type: ParamType::Secret)] string $password
 	) {
 		$this->password = openssl_digest($password, 'SHA256', true);
 		$ivLength = openssl_cipher_iv_length(static::CIPHER);
