@@ -14,7 +14,7 @@ use Nadybot\Core\{
 	Text,
 };
 
-class PrivateMessage extends Base {
+class PrivateMessage extends AbstractChannel {
 	#[NCA\Inject]
 	private AccessManager $accessManager;
 

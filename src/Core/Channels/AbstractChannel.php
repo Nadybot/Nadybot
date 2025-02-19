@@ -7,7 +7,7 @@ use Nadybot\Core\Routing\Events\Base as EventsBase;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Types\MessageReceiver;
 
-abstract class Base implements MessageReceiver {
+abstract class AbstractChannel implements MessageReceiver {
 	abstract public function getChannelName(): string;
 
 	protected function getEventMessage(RoutableEvent $event, MessageHub $hub, ?string $channelName=null): ?string {

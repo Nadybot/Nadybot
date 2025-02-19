@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	Routing\Source,
 };
 
-class OrgChannel extends Base {
+class OrgChannel extends AbstractChannel {
 	#[NCA\Inject]
 	private Nadybot $chatBot;
 

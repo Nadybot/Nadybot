@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	Routing\Source,
 };
 
-class ConsoleChannel extends Base {
+class ConsoleChannel extends AbstractChannel {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
 
