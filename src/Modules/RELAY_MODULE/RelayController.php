@@ -10,7 +10,6 @@ use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Regexp, Remove, Str, WordStr};
 use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
-use Nadybot\Core\Types\{AccessLevel, ParamType};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -29,7 +28,9 @@ use Nadybot\Core\{
 	ParamClass\PUuid,
 	Registry,
 	Text,
+	Types\AccessLevel,
 	Types\AccessLevelProvider,
+	Types\ParamType,
 	Util,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
@@ -68,12 +69,14 @@ use Throwable;
 	),
 ]
 class RelayController extends ModuleInstance implements AccessLevelProvider {
+	private const NONE = 'none';
+
 	/** @var array<string,Relay> */
 	public array $relays = [];
 
 	/** Abbreviation to use for org name */
 	#[NCA\Setting\Text(options: ['none'])]
-	public string $relayGuildAbbreviation = 'none';
+	public string $relayGuildAbbreviation = self::NONE;
 
 	/** How many messages to queue when relay is offline */
 	#[NCA\Setting\Number(options: ['10', '20', '50'])]
@@ -224,7 +227,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 	public function getGuildAbbreviation(): string {
 		$abbr = $this->relayGuildAbbreviation;
-		if ($abbr !== 'none') {
+		if ($abbr !== self::NONE) {
 			return $abbr;
 		}
 		return $this->config->general->orgName;
