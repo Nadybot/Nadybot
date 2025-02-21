@@ -99,7 +99,7 @@ class AdminController extends ModuleInstance {
 	): void {
 		$intlevel = 4;
 		$rankName = AccessLevel::Admin->displayName();
-		$rank = $this->addArticle($rankName);
+		$rank = Text::addArticle($rankName);
 
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
@@ -114,7 +114,7 @@ class AdminController extends ModuleInstance {
 	): void {
 		$intlevel = 3;
 		$rankName = AccessLevel::Mod->displayName();
-		$rank = $this->addArticle($rankName);
+		$rank = Text::addArticle($rankName);
 
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
@@ -125,7 +125,7 @@ class AdminController extends ModuleInstance {
 	public function adminRemoveCommand(CmdContext $context, #[Remove] string $rem, PCharacter $who): void {
 		$intlevel = 4;
 		$rankName = AccessLevel::Admin->displayName();
-		$rank = $this->addArticle($rankName);
+		$rank = Text::addArticle($rankName);
 
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
@@ -136,7 +136,7 @@ class AdminController extends ModuleInstance {
 	public function modRemoveCommand(CmdContext $context, #[Remove] string $rem, PCharacter $who): void {
 		$intlevel = 3;
 		$rankName = AccessLevel::Admin->displayName();
-		$rank = $this->addArticle($rankName);
+		$rank = Text::addArticle($rankName);
 
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
@@ -290,12 +290,6 @@ class AdminController extends ModuleInstance {
 			'alt' => $event->alt,
 			'main' => $event->main,
 		]);
-	}
-
-	private function addArticle(string $rank): string {
-		return in_array(substr($rank, 0, 1), ['a', 'e', 'i', 'o', 'u'], true)
-			? "an {$rank}"
-			: "a {$rank}";
 	}
 
 	/**

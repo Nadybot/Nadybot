@@ -433,6 +433,12 @@ class Text {
 		return $cleanComment;
 	}
 
+	public static function addArticle(string $word): string {
+		return in_array(substr($word, 0, 1), ['a', 'e', 'i', 'o', 'u'], true)
+			? "an {$word}"
+			: "a {$word}";
+	}
+
 	protected static function removeCommonLines(string $firstBlock, string $nextBlock): string {
 		$firstPageLines = explode("\n", $firstBlock);
 		$nextPageLines = explode("\n", $nextBlock);
