@@ -5,8 +5,6 @@ namespace Nadybot\Modules\TRADEBOT_MODULE;
 use function Safe\preg_match;
 use AO\Package;
 use Nadybot\Core\Events\{ConnectEvent, ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
-use Nadybot\Core\ParamClass\PUuid;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -20,11 +18,13 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PColor,
+	ParamClass\PUuid,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
 	SettingHandlers\ColorSettingHandler,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 use Psr\Log\LoggerInterface;

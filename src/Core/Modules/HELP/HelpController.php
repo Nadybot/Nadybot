@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\HELP;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -19,6 +18,7 @@ use Nadybot\Core\{
 	Modules\PREFERENCES\Preferences,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Status,
 };
 
@@ -76,7 +76,7 @@ class HelpController extends ModuleInstance {
 			$this->moduleName,
 			'about',
 			'about.txt',
-			'all',
+			AccessLevel::All,
 			'Info about the development of Nadybot'
 		);
 

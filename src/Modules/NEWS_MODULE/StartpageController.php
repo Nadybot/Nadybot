@@ -10,7 +10,6 @@ use Amp\Http\Server\{Request, Response};
 use Closure;
 use DateInterval;
 use DateTimeZone;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -30,6 +29,7 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
 	Types\SettingMode,
 };

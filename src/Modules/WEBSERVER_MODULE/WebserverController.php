@@ -11,8 +11,6 @@ use Amp\Http\{Client, HttpStatus};
 use Amp\TimeoutCancellation;
 use Closure;
 use Exception;
-use Nadybot\Core\Events\ConnectEvent;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -20,10 +18,12 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	DB,
+	Events\ConnectEvent,
 	Filesystem,
 	ModuleInstance,
 	Registry,
 	Safe,
+	Types\AccessLevel,
 	Types\Status,
 };
 use Psr\Log\LoggerInterface;

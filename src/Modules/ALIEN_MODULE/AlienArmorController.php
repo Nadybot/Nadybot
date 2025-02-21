@@ -2,12 +2,12 @@
 
 namespace Nadybot\Modules\ALIEN_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 

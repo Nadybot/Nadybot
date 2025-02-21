@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerHistoryManager,
 	ParamClass\PCharacter,
 	Text,
+	Types\AccessLevel,
 	Types\Faction,
 };
 

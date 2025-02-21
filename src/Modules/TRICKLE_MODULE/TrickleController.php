@@ -5,7 +5,6 @@ namespace Nadybot\Modules\TRICKLE_MODULE;
 use function Safe\preg_split;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Text,
 	Types\Ability,
+	Types\AccessLevel,
 	Types\Skill,
 };
 

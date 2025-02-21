@@ -3,18 +3,18 @@
 namespace Nadybot\Modules\NOTES_MODULE;
 
 use InvalidArgumentException;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\ParamClass\PUuid;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	Attributes\Parameter as Par,
 	CmdContext,
+	Config\BotConfig,
 	DB,
 	ExportCharacter,
 	ModuleInstance,
+	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 	Types\ExporterInterface,
 	Types\ImporterInterface,
 };

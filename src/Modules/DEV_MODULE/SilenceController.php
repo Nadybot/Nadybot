@@ -2,16 +2,16 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\Events\ConnectEvent;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	DB,
 	DBSchema\CmdCfg,
+	Events\ConnectEvent,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 

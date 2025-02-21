@@ -3,13 +3,13 @@
 namespace Nadybot\Core\Attributes\Setting;
 
 use Attribute;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes\DefineSetting,
 	Modules\ALTS\NickController,
 	Registry,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\SettingMode
 };
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;

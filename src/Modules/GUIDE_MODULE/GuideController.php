@@ -6,7 +6,6 @@ use function Amp\ByteStream\splitLines;
 
 use Amp\File\FilesystemException;
 use IteratorIterator;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
 };
 
 /**

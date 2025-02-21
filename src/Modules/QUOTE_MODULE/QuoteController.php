@@ -4,8 +4,6 @@ namespace Nadybot\Modules\QUOTE_MODULE;
 
 use function Safe\preg_split;
 
-use Nadybot\Core\ParamClass\PUuid;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -14,7 +12,9 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Nadybot,
+	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 

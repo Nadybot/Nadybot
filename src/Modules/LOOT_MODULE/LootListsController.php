@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\LOOT_MODULE;
 
 use Exception;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -16,6 +15,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Safe,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleController;
 use Nadybot\Modules\RAID_MODULE\AuctionController;

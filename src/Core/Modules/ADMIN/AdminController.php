@@ -3,7 +3,6 @@
 namespace Nadybot\Core\Modules\ADMIN;
 
 use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -23,6 +22,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
 	Types\Status,
 	Util,

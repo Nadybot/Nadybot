@@ -8,12 +8,11 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
 	CommandManager,
+	Config\BotConfig,
 	DB,
 	DBSchema\CmdPermSetMapping,
 	DBSchema\CmdPermissionSet,
@@ -26,12 +25,13 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	SettingManager,
+	Types\AccessLevel,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordRelayController,
 	WEBSERVER_MODULE\ApiResponse,
 	WEBSERVER_MODULE\WebChatConverter,
+	WEBSERVER_MODULE\WebserverController,
 };
 use Throwable;
 

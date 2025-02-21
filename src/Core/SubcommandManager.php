@@ -3,13 +3,13 @@
 namespace Nadybot\Core;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\CmdCfg,
 	DBSchema\CmdPermission,
 	DBSchema\CmdPermissionSet,
+	Types\AccessLevel,
 	Types\Status,
 };
 use Psr\Log\LoggerInterface;

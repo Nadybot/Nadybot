@@ -3,12 +3,12 @@
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use function Safe\date;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Safe\DateTimeImmutable;

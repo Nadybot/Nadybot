@@ -3,12 +3,12 @@
 namespace Nadybot\Modules\FUN_MODULE;
 
 use InvalidArgumentException;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
+	Types\AccessLevel,
 };
 
 /**

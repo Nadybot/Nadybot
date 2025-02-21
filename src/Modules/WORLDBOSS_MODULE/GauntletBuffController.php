@@ -6,7 +6,6 @@ use function Amp\delay;
 use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -24,6 +23,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 	Types\Faction,
 	Types\MessageEmitter,
 	Util,

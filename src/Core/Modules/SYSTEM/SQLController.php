@@ -4,7 +4,6 @@ namespace Nadybot\Core\Modules\SYSTEM;
 
 use function Safe\json_encode;
 use Illuminate\Database\Capsule\Manager as Capsule;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	Exceptions\SQLException,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 use ReflectionClass;
 

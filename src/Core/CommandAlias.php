@@ -4,10 +4,10 @@ namespace Nadybot\Core;
 
 use function Safe\preg_match;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\CmdAlias,
+	Types\AccessLevel,
 	Types\Status,
 };
 use Psr\Log\LoggerInterface;

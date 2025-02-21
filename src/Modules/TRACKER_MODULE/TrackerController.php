@@ -6,7 +6,6 @@ use function Safe\preg_split;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -31,6 +30,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Faction,
 	Types\MessageEmitter,
 	Types\Profession,

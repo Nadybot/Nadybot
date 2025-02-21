@@ -4,7 +4,6 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use Illuminate\Support\Collection;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Playfield as CorePlayfield,
 };
 

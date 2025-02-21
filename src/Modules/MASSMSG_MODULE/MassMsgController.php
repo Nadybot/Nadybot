@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\MASSMSG_MODULE;
 
 use AO\Package;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Safe\DateTimeImmutable;

@@ -2,13 +2,13 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	EventManager,
 	ModuleInstance,
 	Nadybot,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\GUILD_MODULE\GuildController;
 

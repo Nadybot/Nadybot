@@ -4,11 +4,11 @@ namespace Nadybot\Core;
 
 use Generator;
 use Nadybot\Core\DBSchema\{CmdCfg, CmdPermission, HlpCfg, Setting};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\HelpTopic,
 	Modules\CONFIG\ConfigController,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 
@@ -46,7 +46,7 @@ class HelpManager {
 	}
 
 	/** Register a help command */
-	public function register(string $module, string $command, string $filename, string $admin, string $description): void {
+	public function register(string $module, string $command, string $filename, AccessLevel $admin, string $description): void {
 		$logObj = new AnonObj(
 			class: 'HelpFile',
 			properties: [

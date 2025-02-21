@@ -4,7 +4,6 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Closure;
 use Exception;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\Status,
 };
 

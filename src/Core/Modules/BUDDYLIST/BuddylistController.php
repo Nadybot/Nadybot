@@ -4,7 +4,6 @@ namespace Nadybot\Core\Modules\BUDDYLIST;
 
 use function Safe\preg_match;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -16,6 +15,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	Text,
+	Types\AccessLevel,
 };
 
 /**

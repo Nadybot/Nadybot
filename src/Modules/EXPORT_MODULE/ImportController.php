@@ -6,7 +6,6 @@ use function Safe\json_decode;
 
 use Amp\File\FilesystemException;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -17,11 +16,14 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Registry,
 	Safe,
+	Types\AccessLevel,
 	Types\ImporterInterface,
 };
-use Nadybot\Modules\COMMENT_MODULE\ExportCategory;
-use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\ExportMember;
-use Nadybot\Modules\VOTE_MODULE\ExportPoll;
+use Nadybot\Modules\{
+	COMMENT_MODULE\ExportCategory,
+	PRIVATE_CHANNEL_MODULE\ExportMember,
+	VOTE_MODULE\ExportPoll,
+};
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Throwable;

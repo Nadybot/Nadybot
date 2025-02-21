@@ -6,11 +6,11 @@ use Nadybot\Core\Modules\{
 	CONFIG\SettingOption,
 };
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ModuleInstance,
 	Safe,
+	Types\AccessLevel,
 };
 
 /**

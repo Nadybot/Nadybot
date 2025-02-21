@@ -4,7 +4,6 @@ namespace Nadybot\Core\Modules\DISCORD;
 
 use function Amp\async;
 use function Safe\{preg_match, preg_split};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 

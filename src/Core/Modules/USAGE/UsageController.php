@@ -3,23 +3,23 @@
 namespace Nadybot\Core\Modules\USAGE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\DBSchema\Usage;
-use Nadybot\Core\Filesystem;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	CmdContext,
 	Config\BotConfig,
 	DB,
+	DBSchema\Usage,
 	EventManager,
 	Exceptions\SQLException,
+	Filesystem,
 	ModuleInstance,
 	MyOrg,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\SettingMode,
 	Types\Status,
 	Util,

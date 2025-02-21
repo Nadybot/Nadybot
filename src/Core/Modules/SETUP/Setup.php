@@ -8,10 +8,13 @@ use function Amp\Socket\connect;
 use Amp\ByteStream\BufferedReader;
 use Amp\TimeoutCancellation;
 use AO\Client\{SingleClient, WorkerConfig};
-use Nadybot\Core\Filesystem;
-
-use Nadybot\Core\Types\Status;
-use Nadybot\Core\{Config\BotConfig, DB\DBType, Terminal};
+use Nadybot\Core\{
+	Config\BotConfig,
+	DB\DBType,
+	Filesystem,
+	Terminal,
+	Types\Status
+};
 use Psr\Log\LoggerInterface;
 
 /**

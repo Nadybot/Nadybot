@@ -6,6 +6,7 @@ use function Safe\{json_decode, json_encode};
 
 use Amp\File\FilesystemException;
 use Exception;
+use Nadybot\Core\Attributes\Parameter\{FilenameStr,Remove,Str};
 use Nadybot\Core\DBSchema\{
 	CmdAlias,
 	CmdPermSetMapping,
@@ -16,12 +17,8 @@ use Nadybot\Core\DBSchema\{
 	RouteHopColor,
 	RouteHopFormat,
 };
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
-	Attributes\Parameter\FilenameStr,
-	Attributes\Parameter\Remove,
-	Attributes\Parameter\Str,
 	CmdContext,
 	CommandManager,
 	Config\BotConfig,
@@ -34,6 +31,7 @@ use Nadybot\Core\{
 	SettingManager,
 	SubcommandManager,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
 	Types\Status,
 };

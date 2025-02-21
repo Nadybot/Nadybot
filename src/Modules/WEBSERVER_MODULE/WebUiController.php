@@ -11,7 +11,6 @@ use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\{CancelledException, TimeoutCancellation};
 use ErrorException;
 use Exception;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -22,6 +21,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	SettingManager,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 use Throwable;

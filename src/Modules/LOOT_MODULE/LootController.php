@@ -3,16 +3,9 @@
 namespace Nadybot\Modules\LOOT_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\AccessLevel;
+use Nadybot\Core\Attributes\Parameter\{NoSpace,NumberStr,Quantity,Remove,SpaceOptional,Str,StrChoice};
 use Nadybot\Core\{
 	Attributes as NCA,
-	Attributes\Parameter\NoSpace,
-	Attributes\Parameter\NumberStr,
-	Attributes\Parameter\Quantity,
-	Attributes\Parameter\Remove,
-	Attributes\Parameter\SpaceOptional,
-	Attributes\Parameter\Str,
-	Attributes\Parameter\StrChoice,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
@@ -24,6 +17,7 @@ use Nadybot\Core\{
 	ParamClass\PItem,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Nadybot\Modules\{

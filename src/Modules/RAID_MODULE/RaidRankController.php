@@ -6,7 +6,6 @@ use function Amp\async;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -25,6 +24,7 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\AccessLevelProvider,
 	Types\CommandReply,
 	Types\Status,

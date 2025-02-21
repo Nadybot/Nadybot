@@ -5,7 +5,6 @@ namespace Nadybot\Modules\RAID_MODULE;
 use Exception;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Remove, Str, WordStr};
 use Nadybot\Core\Modules\ALTS\{AltAddEvent, AltNewMainEvent, AltValidateEvent};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -19,6 +18,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;

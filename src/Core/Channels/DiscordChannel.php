@@ -5,7 +5,6 @@ namespace Nadybot\Core\Channels;
 use function Amp\async;
 
 use Nadybot\Core\Modules\DISCORD\{DiscordAllowedMentionType, DiscordAllowedMentions};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\MessageReceiver,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;

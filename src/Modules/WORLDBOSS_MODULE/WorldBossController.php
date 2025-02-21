@@ -6,7 +6,6 @@ use function Amp\delay;
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DateTimeZone;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -26,6 +25,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Playfield,
 	Util,
 };

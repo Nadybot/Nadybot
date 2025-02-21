@@ -5,8 +5,12 @@ namespace Nadybot\Modules\DEV_MODULE;
 use function Amp\async;
 use function Safe\json_encode;
 
-use Nadybot\Core\Filesystem;
-use Nadybot\Core\{Attributes as NCA, Safe, Types\CommandReply};
+use Nadybot\Core\{
+	Attributes as NCA,
+	Filesystem,
+	Safe,
+	Types\CommandReply
+};
 use Psr\Log\LoggerInterface;
 use Throwable;
 

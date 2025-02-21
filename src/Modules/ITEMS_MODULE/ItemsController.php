@@ -7,7 +7,6 @@ use function Safe\preg_split;
 use BackedEnum;
 use Illuminate\Support\Collection;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -16,6 +15,7 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\Bitfield,
 	Types\Skill,
 };

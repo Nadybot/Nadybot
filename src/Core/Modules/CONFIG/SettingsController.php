@@ -3,7 +3,6 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Exception;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -18,6 +17,7 @@ use Nadybot\Core\{
 	SettingHandlers\TemplateSettingHandler,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\SettingMode,
 	Types\Status,
 };

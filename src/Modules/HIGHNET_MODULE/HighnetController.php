@@ -13,10 +13,8 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
 use Nadybot\Core\Events\EventFeed\{JoinPackageEvent, LeavePackageEvent, MessagePackageEvent, RoomInfoPackageEvent};
 use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
-
 use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -36,6 +34,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Registry,
 	Text,
+	Types\AccessLevel,
 	Types\EventFeedHandler,
 	Util,
 };

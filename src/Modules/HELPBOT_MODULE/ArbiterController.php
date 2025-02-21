@@ -6,13 +6,13 @@ use function Safe\strtotime;
 use DateInterval;
 use DateTimeZone;
 use Exception;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Safe\Exceptions\DatetimeException;

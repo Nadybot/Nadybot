@@ -8,8 +8,6 @@ use function Amp\Future\await;
 use Amp\Pipeline\Pipeline;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Events\{MyPrivateChannelMsgEvent, SendPrivEvent};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\DurationStr,
@@ -24,6 +22,8 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
+	Events\MyPrivateChannelMsgEvent,
+	Events\SendPrivEvent,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -35,6 +35,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;

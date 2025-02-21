@@ -3,16 +3,16 @@
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use Amp\File\FilesystemException;
-use Nadybot\Core\Events\JoinMyPrivEvent;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	Config\BotConfig,
+	Events\JoinMyPrivEvent,
 	Filesystem,
 	ModuleInstance,
 	Nadybot,
 	Text,
+	Types\AccessLevel,
 };
 
 /**

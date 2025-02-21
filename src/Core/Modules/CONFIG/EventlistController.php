@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -10,6 +9,7 @@ use Nadybot\Core\{
 	DBSchema\EventCfg,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 	Types\Status,
 };
 

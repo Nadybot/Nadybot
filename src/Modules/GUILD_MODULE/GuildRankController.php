@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\GUILD_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\GuildManager,
 	MyOrg,
 	Text,
+	Types\AccessLevel,
 	Types\AccessLevelProvider,
 	Types\CommandReply,
 };

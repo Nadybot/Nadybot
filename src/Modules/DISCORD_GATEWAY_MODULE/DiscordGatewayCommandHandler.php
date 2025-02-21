@@ -4,7 +4,6 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use function Safe\preg_match;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	Registry,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 	Types\AccessLevelProvider,
 };
 

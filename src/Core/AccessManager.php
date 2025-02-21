@@ -4,13 +4,13 @@ namespace Nadybot\Core;
 
 use AO\Utils;
 use Exception;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\Audit,
 	Modules\ALTS\AltsController,
 	Modules\SECURITY\AuditController,
+	Types\AccessLevel,
 	Types\AccessLevelProvider,
 };
 use Psr\Log\LoggerInterface;

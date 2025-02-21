@@ -11,7 +11,6 @@ use Exception;
 use Illuminate\Support\Collection;
 
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -23,6 +22,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
 	Types\Faction,
 	Types\Government,

@@ -7,8 +7,6 @@ use function Amp\Future\await;
 
 use AO\Package;
 use Illuminate\Support\Collection;
-use Nadybot\Core\DB\DBType;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	AuditAction,
@@ -18,6 +16,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Audit,
 	DBSchema\Player,
+	DB\DBType,
 	Events\Event,
 	Events\PackageEvent,
 	Events\TimerEvent,
@@ -29,6 +28,7 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Nadybot\Modules\COMMENT_MODULE\CommentController;

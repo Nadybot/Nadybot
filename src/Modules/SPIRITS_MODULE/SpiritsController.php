@@ -3,13 +3,13 @@
 namespace Nadybot\Modules\SPIRITS_MODULE;
 
 use Nadybot\Core\Attributes\Parameter\{NoSpace, NonNumberStr, Regexp};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 	Types\ImplantSlot,
 };
 use Nadybot\Modules\{

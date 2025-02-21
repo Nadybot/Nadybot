@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\PVP_MODULE;
 
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -19,6 +18,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Util
 };
 use Nadybot\Modules\PVP_MODULE\{

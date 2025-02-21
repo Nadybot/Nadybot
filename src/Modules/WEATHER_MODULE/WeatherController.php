@@ -6,7 +6,6 @@ use function Safe\{json_decode, json_encode, preg_match};
 use Amp\Cache\LocalCache;
 use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
 };
 use Safe\Exceptions\JsonException;
 

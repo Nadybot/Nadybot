@@ -6,10 +6,6 @@ use function Safe\{ini_get, unpack};
 
 use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\Attributes\Hydrator\Confidential;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Events\ConnectEvent;
-use Nadybot\Core\Filesystem;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -22,9 +18,12 @@ use Nadybot\Core\{
 	CommandManager,
 	Config\BotConfig,
 	DB,
+	DBSchema\Player,
 	DBSchema\Setting,
 	EventManager,
+	Events\ConnectEvent,
 	Events\Event,
+	Filesystem,
 	HelpManager,
 	Hydrator,
 	MessageHub,
@@ -40,6 +39,7 @@ use Nadybot\Core\{
 	SettingManager,
 	SubcommandManager,
 	Text,
+	Types\AccessLevel,
 	Types\MessageEmitter,
 	Types\SettingMode,
 	Types\Status,
@@ -181,7 +181,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->helpManager->register($this->moduleName, 'budatime', 'budatime.txt', 'all', 'Format for budatime');
+		$this->helpManager->register($this->moduleName, 'budatime', 'budatime.txt', AccessLevel::All, 'Format for budatime');
 
 		$this->settingManager->save('version', BotRunner::getVersion());
 

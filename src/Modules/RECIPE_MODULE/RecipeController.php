@@ -5,18 +5,18 @@ namespace Nadybot\Modules\RECIPE_MODULE;
 use function Safe\json_decode;
 use Amp\File\FilesystemException;
 use Exception;
-use Nadybot\Core\Events\ConnectEvent;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	Events\ConnectEvent,
 	Exceptions\UserException,
 	Filesystem,
 	ModuleInstance,
 	ParamClass\PItem,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Status,
 };
 use Nadybot\Modules\ITEMS_MODULE\{

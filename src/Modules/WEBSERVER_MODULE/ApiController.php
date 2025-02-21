@@ -6,7 +6,6 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Closure;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -24,6 +23,7 @@ use Nadybot\Core\{
 	Safe,
 	SubcommandManager,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use Psr\Log\LoggerInterface;

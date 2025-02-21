@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -10,6 +9,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Ramsey\Uuid\Uuid;

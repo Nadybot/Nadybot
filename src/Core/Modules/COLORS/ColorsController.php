@@ -5,8 +5,6 @@ namespace Nadybot\Core\Modules\COLORS;
 use function Safe\{json_decode, preg_match};
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Filesystem;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -14,12 +12,14 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	DBSchema\RouteHopColor,
+	Filesystem,
 	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Modules\MESSAGES\MessageHubController,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 };
 
 #[

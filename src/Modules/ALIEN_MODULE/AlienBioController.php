@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\ALIEN_MODULE;
 
 use Exception;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -11,6 +10,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PItem,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 

@@ -4,13 +4,13 @@ namespace Nadybot\Modules\BESTQL_MODULE;
 
 use function Safe\preg_split;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	ParamClass\PItem,
 	Text,
+	Types\AccessLevel,
 };
 
 /**

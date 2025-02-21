@@ -30,7 +30,6 @@ use Nadybot\Core\Modules\DISCORD\{
 	GuildMemberChunk,
 	VoiceState,
 };
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -55,6 +54,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Status,
 	Util,
 };

@@ -4,7 +4,6 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\NonGreedy,
@@ -23,6 +22,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Faction,
 	Types\Playfield,
 	Util

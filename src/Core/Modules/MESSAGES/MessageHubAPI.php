@@ -3,13 +3,13 @@
 namespace Nadybot\Core\Modules\MESSAGES;
 
 use Amp\Http\Server\{Request, Response};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
 	MessageHub,
 	ModuleInstance,
 	Routing\Source,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 

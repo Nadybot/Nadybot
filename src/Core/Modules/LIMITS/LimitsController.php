@@ -12,7 +12,6 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistoryManager,
 	PlayerManager,
 };
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -30,6 +29,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Types\AccessLevel,
 	Types\Status,
 	Util,
 };

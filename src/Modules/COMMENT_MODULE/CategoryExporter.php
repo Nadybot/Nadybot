@@ -3,13 +3,13 @@
 namespace Nadybot\Modules\COMMENT_MODULE;
 
 use InvalidArgumentException;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DB,
 	ExportCharacter,
 	ModuleInstance,
+	Types\AccessLevel,
 	Types\ExporterInterface,
 	Types\ImporterInterface
 };

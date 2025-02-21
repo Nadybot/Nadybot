@@ -3,12 +3,12 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Exception;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 	Types\MinMax,
 };
 

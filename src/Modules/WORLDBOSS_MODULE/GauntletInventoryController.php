@@ -4,7 +4,6 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use function Safe\{json_decode, json_encode};
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	Modules\PREFERENCES\Preferences,
 	ParamClass\PCharacter,
 	Text,
+	Types\AccessLevel,
 };
 
 /**

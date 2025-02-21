@@ -8,7 +8,6 @@ use Nadybot\Core\Modules\{
 	ALTS\AltsController,
 	PLAYER_LOOKUP\PlayerManager,
 };
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -21,6 +20,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 };
 
 /**

@@ -3,7 +3,6 @@
 namespace Nadybot\Core\Modules\LIMITS;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PCharacter,
 	Text,
+	Types\AccessLevel,
 	Types\Status,
 	Util,
 };

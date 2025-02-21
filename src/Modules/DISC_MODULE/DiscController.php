@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\DISC_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -10,6 +9,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PItem,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\NANO_MODULE\Nano;
 

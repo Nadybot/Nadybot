@@ -4,8 +4,6 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use function Safe\{preg_match_all, preg_split};
 use InvalidArgumentException;
-use Nadybot\Core\ParamClass\{PItem, PUuid};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -13,8 +11,11 @@ use Nadybot\Core\{
 	DB,
 	Exceptions\SQLException,
 	ModuleInstance,
+	ParamClass\PItem,
+	ParamClass\PUuid,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 

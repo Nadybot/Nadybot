@@ -5,7 +5,6 @@ namespace Nadybot\Modules\TIMERS_MODULE;
 use function Safe\preg_match;
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -27,6 +26,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\MessageEmitter,
 	Util,
 };

@@ -2,12 +2,12 @@
 
 namespace Nadybot\Modules\LEVEL_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
+	Types\AccessLevel,
 };
 
 /**

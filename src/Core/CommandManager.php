@@ -6,7 +6,6 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -33,6 +32,7 @@ use Nadybot\Core\{
 	ParamClass\Base,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Types\AccessLevel,
 	Types\EnumExampleInterface,
 	Types\EnumParameterInterface,
 	Types\MessageEmitter,

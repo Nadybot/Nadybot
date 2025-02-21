@@ -7,7 +7,6 @@ use function Amp\ByteStream\splitLines;
 use function Safe\{preg_match, preg_split};
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -19,6 +18,7 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
 	Types\Profession,
 	Types\SettingMode,

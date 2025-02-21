@@ -8,7 +8,6 @@ use function Safe\preg_split;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -19,6 +18,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\Profession,
 };
 

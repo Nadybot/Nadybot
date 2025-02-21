@@ -3,14 +3,14 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use AO\SendPriority;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	LoggerWrapper,
 	ModuleInstance,
 	Nadybot,
+	ParamClass\PCharacter,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 

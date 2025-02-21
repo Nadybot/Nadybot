@@ -3,16 +3,15 @@
 namespace Nadybot\Core\Modules\ALTS;
 
 use Illuminate\Database\QueryException;
-use Nadybot\Core\Attributes\HandlesCommand;
-use Nadybot\Core\DBSchema\Nickname;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter as Param,
 	CmdContext,
 	DB,
+	DBSchema\Nickname,
 	Exceptions\UserException,
 	ModuleInstance,
+	Types\AccessLevel,
 };
 
 /**
@@ -135,7 +134,7 @@ class NickController extends ModuleInstance {
 	}
 
 	/** Show your current nickname */
-	#[HandlesCommand('nick')]
+	#[NCA\HandlesCommand('nick')]
 	public function nickCommand(CmdContext $context): void {
 		$nickname = $this->getNickname($context->char->name);
 		if (!isset($nickname)) {
@@ -159,7 +158,7 @@ class NickController extends ModuleInstance {
 		"Keep in mind that nicknames can (and very likely will) collide with already\n".
 		'existing names, but nicknames themselves are unique on a bot.'
 	)]
-	#[HandlesCommand('nick')]
+	#[NCA\HandlesCommand('nick')]
 	public function setNickCommand(
 		CmdContext $context,
 		#[Param\Str('set')] string $action,
@@ -186,7 +185,7 @@ class NickController extends ModuleInstance {
 	}
 
 	/** Clear your nickname */
-	#[HandlesCommand('nick')]
+	#[NCA\HandlesCommand('nick')]
 	public function clearNickCommand(
 		CmdContext $context,
 		#[Param\Remove] string $action,

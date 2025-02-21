@@ -6,7 +6,6 @@ use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\DBSchema\{Admin, Member};
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -16,6 +15,7 @@ use Nadybot\Core\{
 	ExportCharacter,
 	ModuleInstance,
 	Nadybot,
+	Types\AccessLevel,
 	Types\ExporterInterface,
 	Types\ImporterInterface
 };
@@ -116,7 +116,7 @@ class MemberExporter extends ModuleInstance implements ExporterInterface, Import
 				$result []= new ExportMember(
 					character: new ExportCharacter(name: $superAdmin),
 					autoInvite: false,
-					rank: 'superadmin',
+					rank: AccessLevel::Superadmin->value,
 				);
 			}
 		}

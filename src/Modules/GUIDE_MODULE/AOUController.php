@@ -9,7 +9,6 @@ use DateInterval;
 use DOMDocument;
 use DOMElement;
 use Exception;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -18,6 +17,7 @@ use Nadybot\Core\{
 	Text,
 	Types\AOIcon,
 	Types\AOItemSpec,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
 	ItemsController,

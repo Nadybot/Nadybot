@@ -6,7 +6,6 @@ use function Amp\async;
 use function Amp\Future\await;
 
 use AO\Package;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -25,6 +24,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 };
 
 #[

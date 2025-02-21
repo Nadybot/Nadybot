@@ -4,12 +4,12 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
 	ModuleInstance,
 	Nadybot,
+	Types\AccessLevel,
 };
 
 #[NCA\Instance]

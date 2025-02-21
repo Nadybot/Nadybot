@@ -6,7 +6,6 @@ use function Safe\json_encode;
 
 use Amp\File\FilesystemException;
 use EventSauce\ObjectHydrator\UnableToSerializeObject;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -16,6 +15,7 @@ use Nadybot\Core\{
 	Hydrator,
 	ModuleInstance,
 	Registry,
+	Types\AccessLevel,
 	Types\ExporterInterface,
 };
 use Psr\Log\LoggerInterface;

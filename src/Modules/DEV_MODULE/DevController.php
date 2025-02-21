@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -17,6 +16,7 @@ use Nadybot\Core\{
 	Safe,
 	SubcommandManager,
 	Text,
+	Types\AccessLevel,
 	Types\Status,
 	Util,
 };

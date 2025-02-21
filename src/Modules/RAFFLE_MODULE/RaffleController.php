@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
 use AO\SendPriority;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	PrivateChannelCommandReply,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Nadybot\Modules\RAID_MODULE\RaidController;

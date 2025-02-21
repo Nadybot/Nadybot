@@ -3,12 +3,12 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use AO\MMDB\AsyncMMDBClient;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 
 /**

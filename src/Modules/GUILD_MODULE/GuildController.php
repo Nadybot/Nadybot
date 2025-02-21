@@ -4,7 +4,6 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltInfo;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -37,6 +36,7 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\SettingMode,
 	Util,
 };

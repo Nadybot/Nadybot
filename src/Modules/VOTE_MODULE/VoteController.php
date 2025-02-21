@@ -4,7 +4,6 @@ namespace Nadybot\Modules\VOTE_MODULE;
 
 use function Safe\{json_decode, json_encode};
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -22,6 +21,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\MessageEmitter,
 	Util,
 };

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 

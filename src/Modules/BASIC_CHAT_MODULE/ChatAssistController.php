@@ -3,13 +3,9 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Exception;
-use Nadybot\Core\Types\AccessLevel;
+use Nadybot\Core\Attributes\Parameter\{Regexp,Remove,Str,WordStr};
 use Nadybot\Core\{
 	Attributes as NCA,
-	Attributes\Parameter\Regexp,
-	Attributes\Parameter\Remove,
-	Attributes\Parameter\Str,
-	Attributes\Parameter\WordStr,
 	BuddylistManager,
 	CmdContext,
 	Config\BotConfig,
@@ -21,6 +17,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	Text,
+	Types\AccessLevel,
 	Types\Profession,
 	Util,
 };

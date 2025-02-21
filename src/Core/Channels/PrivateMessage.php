@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Channels;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	Routing\RoutableEvent,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 };
 
 class PrivateMessage extends AbstractChannel {

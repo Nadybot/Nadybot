@@ -3,8 +3,6 @@
 namespace Nadybot\Modules\NOTES_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\ParamClass\PUuid;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -14,7 +12,9 @@ use Nadybot\Core\{
 	Exceptions\InsufficientAccessException,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
+	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Ramsey\Uuid\Uuid;

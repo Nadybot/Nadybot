@@ -7,7 +7,6 @@ use function Safe\{preg_split, strtotime};
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -18,6 +17,7 @@ use Nadybot\Core\{
 	QueryBuilder,
 	Safe,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,

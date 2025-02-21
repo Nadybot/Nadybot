@@ -4,12 +4,12 @@ namespace Nadybot\Core;
 
 use function Amp\async;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\Admin,
 	DBSchema\Audit,
+	Types\AccessLevel,
 	Types\AccessLevelProvider,
 	Types\RankChange,
 };

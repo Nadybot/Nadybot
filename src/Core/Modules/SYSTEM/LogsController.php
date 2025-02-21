@@ -21,19 +21,19 @@ use Monolog\{
 	Processor\IntrospectionProcessor,
 	Processor\PsrLogMessageProcessor,
 };
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	CmdContext,
 	CommandManager,
+	Config\BotConfig,
 	Filesystem,
 	LegacyLogger,
 	LoggerWrapper,
 	ModuleInstance,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;

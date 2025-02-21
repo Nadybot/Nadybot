@@ -5,7 +5,6 @@ namespace Nadybot\Modules\EVENTS_MODULE;
 use function Safe\strtotime;
 
 use InvalidArgumentException;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -23,6 +22,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 	Types\ExporterInterface,
 	Types\ImporterInterface,
 	Util,

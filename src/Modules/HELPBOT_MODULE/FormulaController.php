@@ -7,7 +7,6 @@ use MathParser\Exceptions\UnknownVariableException;
 use MathParser\Interpreting\Evaluator;
 use MathParser\Parsing\Parser;
 use MathParser\StdMathParser;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Regexp,
@@ -19,6 +18,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
 };
 use Throwable;
 

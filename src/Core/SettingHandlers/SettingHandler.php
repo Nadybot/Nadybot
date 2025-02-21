@@ -2,9 +2,15 @@
 
 namespace Nadybot\Core\SettingHandlers;
 
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\Types\AccessLevel;
-use Nadybot\Core\{AccessManager, Attributes as NCA, CmdContext, Text, Types\SettingMode};
+use Nadybot\Core\{
+	AccessManager,
+	Attributes as NCA,
+	CmdContext,
+	DBSchema\Setting,
+	Text,
+	Types\AccessLevel,
+	Types\SettingMode
+};
 
 abstract class SettingHandler {
 	#[NCA\Inject]

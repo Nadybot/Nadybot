@@ -3,8 +3,6 @@
 namespace Nadybot\Modules\NOTES_MODULE;
 
 use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
-use Nadybot\Core\ParamClass\PUuid;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter as Par,
@@ -19,7 +17,9 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
+	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 

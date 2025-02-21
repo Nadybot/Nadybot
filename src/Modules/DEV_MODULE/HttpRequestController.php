@@ -5,12 +5,12 @@ namespace Nadybot\Modules\DEV_MODULE;
 use function Safe\{json_decode, json_encode, preg_split};
 use Amp\Dns\DnsException;
 use Amp\Http\Client\{HttpClientBuilder, InvalidRequestException, Request};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 use Safe\Exceptions\JsonException;
 

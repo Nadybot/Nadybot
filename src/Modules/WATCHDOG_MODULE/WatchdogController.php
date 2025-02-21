@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\WATCHDOG_MODULE;
 
-use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
+	Filesystem,
 	ModuleInstance,
 };
 

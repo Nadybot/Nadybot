@@ -50,7 +50,6 @@ use Nadybot\Core\Exceptions\{
 	StopExecutionException,
 	UserException
 };
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\PrivateChannel,
@@ -62,6 +61,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	SettingHandlers\SettingHandler,
+	Types\AccessLevel,
 	Types\ModuleInstanceInterface,
 };
 use Psr\Log\LoggerInterface;

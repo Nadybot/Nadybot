@@ -6,7 +6,6 @@ use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\CONFIG\ConfigController;
 use Nadybot\Core\Types\AccessLevel;
-use ValueError;
 
 /**
  * Class to represent a setting with an access level value for NadyBot
@@ -31,10 +30,9 @@ class AccessLevelSettingHandler extends SettingHandler {
 
 	/** @throws \Exception when the rank is invalid */
 	public function save(string $newValue): string {
-		try {
-			$accessLevel = AccessLevel::fromName($newValue);
-		} catch (ValueError $e) {
-			throw new Exception("<highlight>{$newValue}<end> is not a valid access level.", previous: $e);
+		$accessLevel = AccessLevel::tryFromName($newValue);
+		if (!isset($accessLevel)) {
+			throw new Exception("<highlight>{$newValue}<end> is not a valid access level.");
 		}
 		return $accessLevel->value;
 	}

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	Routing\Character,
+	Types\AccessLevel,
 };
 
 /**

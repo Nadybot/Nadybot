@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Regexp,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	DBSchema\CmdAlias,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 	Types\Status,
 };
 

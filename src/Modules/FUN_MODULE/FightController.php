@@ -2,13 +2,13 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	ParamClass\PCharacter,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 

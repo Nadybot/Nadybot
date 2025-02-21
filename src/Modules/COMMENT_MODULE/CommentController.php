@@ -5,8 +5,6 @@ namespace Nadybot\Modules\COMMENT_MODULE;
 use Exception;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
-use Nadybot\Core\ParamClass\PUuid;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -21,8 +19,10 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
+	ParamClass\PUuid,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\SettingMode,
 	Util,
 };

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -11,6 +10,7 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	ParamClass\PDuration,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 

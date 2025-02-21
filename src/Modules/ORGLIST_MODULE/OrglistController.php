@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Registry,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 

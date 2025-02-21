@@ -7,7 +7,6 @@ use function Amp\async;
 use AO\Package\Out\PrivateChannelKick;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -31,6 +30,7 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
 	Text,
+	Types\AccessLevel,
 	Types\ImporterInterface,
 	Types\Status,
 	Util,

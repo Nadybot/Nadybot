@@ -3,15 +3,15 @@
 namespace Nadybot\Modules\WHATLOCKS_MODULE;
 
 use DateTimeZone;
-use Nadybot\Core\Exceptions\UserException;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	Exceptions\UserException,
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Skill,
 };
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;

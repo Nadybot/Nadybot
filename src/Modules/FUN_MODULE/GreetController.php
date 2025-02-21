@@ -10,7 +10,6 @@ use Nadybot\Core\Modules\{
 	PLAYER_LOOKUP\PlayerManager,
 	PREFERENCES\Preferences,
 };
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -23,6 +22,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 

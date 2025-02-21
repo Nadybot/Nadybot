@@ -4,7 +4,6 @@ namespace Nadybot\Core\Modules\ALTS;
 
 use function Amp\async;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -28,6 +27,7 @@ use Nadybot\Core\{
 	QueryBuilder,
 	Registry,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
 };
 

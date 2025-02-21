@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -21,6 +20,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\MessageEmitter,
 	Util,
 };

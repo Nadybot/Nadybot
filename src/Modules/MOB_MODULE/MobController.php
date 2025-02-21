@@ -7,11 +7,20 @@ use Amp\Http\Client\{HttpClientBuilder, Request};
 use Closure;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes\{HandlesCommand, HandlesEvent};
-use Nadybot\Core\Events\ConnectEvent;
-use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\Types\AccessLevel;
-use Nadybot\Core\{Attributes as NCA, CmdContext, Hydrator, MessageHub, ModuleInstance, Safe, Text, Util};
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	Events\ConnectEvent,
+	Hydrator,
+	MessageHub,
+	ModuleInstance,
+	Routing\RoutableMessage,
+	Routing\Source,
+	Safe,
+	Text,
+	Types\AccessLevel,
+	Util
+};
 use Nadybot\Modules\WHEREIS_MODULE\{Whereis, WhereisController};
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
@@ -166,7 +175,7 @@ class MobController extends ModuleInstance {
 	}
 
 	/** Announce when a mob gets attacked as mob(&lt;type&gt;-&lt;key&gt;-attacked) */
-	#[HandlesEvent]
+	#[NCA\HandlesEvent]
 	public function announceMobAttacked(MobAttackedEvent $event): void {
 		$mob = $event->mob;
 		$blob = Text::makeChatcmd(
@@ -185,7 +194,7 @@ class MobController extends ModuleInstance {
 	}
 
 	/** Announce when a new mob spawns as mob(&lt;type&gt;-&lt;key&gt;-spawn) */
-	#[HandlesEvent]
+	#[NCA\HandlesEvent]
 	public function announceMobSpawn(MobSpawnEvent $event): void {
 		$mob = $event->mob;
 		$blob = Text::makeChatcmd(
@@ -204,7 +213,7 @@ class MobController extends ModuleInstance {
 	}
 
 	/** Announce when a mob gets killed as mob(&lt;type&gt;-&lt;key&gt;-death) */
-	#[HandlesEvent]
+	#[NCA\HandlesEvent]
 	public function announceMobDeath(MobDeathEvent $event): void {
 		$mob = $event->mob;
 		$blob = Text::makeChatcmd(
@@ -227,7 +236,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('prisoners'),
+		NCA\HandlesCommand('prisoners'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show which of the prisoners in Milky Way is up or down */
@@ -248,7 +257,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('hags'),
+		NCA\HandlesCommand('hags'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show which Biodome hag is up or down */
@@ -287,7 +296,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('dreads'),
+		NCA\HandlesCommand('dreads'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show which Dreadloch mob is up or down */
@@ -336,7 +345,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('jack'),
+		NCA\HandlesCommand('jack'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show which of Jack's clones is currently up */
@@ -362,7 +371,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('ljotur'),
+		NCA\HandlesCommand('ljotur'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show whether Ljotur the Lunatic, or one of his placeholders are up */
@@ -371,7 +380,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('otacustes'),
+		NCA\HandlesCommand('otacustes'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show whether Otacustes, or one of his placeholders are up */
@@ -380,7 +389,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('reck'),
+		NCA\HandlesCommand('reck'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show status of mobs in The Reck */
@@ -401,7 +410,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('hollowisland'),
+		NCA\HandlesCommand('hollowisland'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show the current status of Hollow Island */

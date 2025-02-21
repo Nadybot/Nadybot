@@ -6,7 +6,6 @@ use function Safe\preg_match;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -14,6 +13,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Registry,
 	SettingManager,
+	Types\AccessLevel,
 	Types\SettingMode,
 	Util,
 };

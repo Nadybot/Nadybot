@@ -5,7 +5,6 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 use function Safe\preg_grep;
 
 use Amp\File\FilesystemException;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Status,
 };
 use Psr\Log\LoggerInterface;

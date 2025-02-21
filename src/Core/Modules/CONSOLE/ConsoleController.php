@@ -6,9 +6,6 @@ use function Safe\{readline_add_history, readline_callback_handler_install, read
 
 use ErrorException;
 use Exception;
-use Nadybot\Core\Events\ConnectEvent;
-
-use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -16,6 +13,8 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	Config\BotConfig,
+	Events\ConnectEvent,
+	Filesystem,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,

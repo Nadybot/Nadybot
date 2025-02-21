@@ -8,7 +8,6 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -26,6 +25,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{ApiResponse, WebserverController};

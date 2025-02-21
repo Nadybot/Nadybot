@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -11,6 +10,7 @@ use Nadybot\Core\{
 	DBSchema\CmdCfg,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 	Types\Status,
 };
 

@@ -6,7 +6,6 @@ use function Safe\preg_split;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\DISCORD\{ApplicationCommand, ApplicationCommandOption, DiscordException};
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -30,6 +29,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Interaction;
 use Psr\Log\LoggerInterface;

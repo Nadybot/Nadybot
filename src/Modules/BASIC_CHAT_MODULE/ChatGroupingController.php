@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -10,6 +9,7 @@ use Nadybot\Core\{
 	Events\LeaveMyPrivEvent,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 
 /**

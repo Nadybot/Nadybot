@@ -3,18 +3,18 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\DBSchema\CmdCfg;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	DBSchema\CmdCfg,
 	DBSchema\CmdPermission,
 	DBSchema\CommandSearchResult,
 	Exceptions\SQLException,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 	Types\Status,
 };
 

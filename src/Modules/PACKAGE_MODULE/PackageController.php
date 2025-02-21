@@ -8,7 +8,6 @@ use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\TimeoutCancellation;
 use DateInterval;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -25,6 +24,7 @@ use Nadybot\Core\{
 	Safe,
 	SemanticVersion,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;

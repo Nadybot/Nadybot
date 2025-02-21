@@ -4,18 +4,18 @@ namespace Nadybot\Modules\CITY_MODULE;
 
 use function Safe\preg_match;
 use Exception;
-use Nadybot\Core\Events\GuildChannelMsgEvent;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	Config\BotConfig,
 	EventManager,
+	Events\GuildChannelMsgEvent,
 	MessageHub,
 	ModuleInstance,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Types\AccessLevel,
 	Types\MessageEmitter,
 	Util,
 };

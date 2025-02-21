@@ -11,9 +11,6 @@ use Nadybot\Core\DBSchema\{
 	EventCfg,
 	Setting,
 };
-use Nadybot\Core\Exceptions\InsufficientAccessException;
-use Nadybot\Core\Filesystem;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -26,6 +23,8 @@ use Nadybot\Core\{
 	CommandManager,
 	DB,
 	EventManager,
+	Exceptions\InsufficientAccessException,
+	Filesystem,
 	HelpManager,
 	ModuleInstance,
 	Registry,
@@ -34,6 +33,7 @@ use Nadybot\Core\{
 	SettingManager,
 	SubcommandManager,
 	Text,
+	Types\AccessLevel,
 	Types\ModuleInstanceInterface,
 	Types\Status,
 };

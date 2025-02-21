@@ -2,14 +2,14 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Nadybot\Core\ParamClass\PTowerSite;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
 	CmdContext,
 	ModuleInstance,
+	ParamClass\PTowerSite,
 	Text,
+	Types\AccessLevel,
 	Types\Playfield
 };
 

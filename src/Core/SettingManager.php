@@ -4,7 +4,6 @@ namespace Nadybot\Core;
 
 use Closure;
 use Exception;
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	Events\SettingEvent,
 	Exceptions\SQLException,
 	SettingHandlers\SettingHandler,
+	Types\AccessLevel,
 	Types\SettingMode,
 };
 use Psr\Log\LoggerInterface;

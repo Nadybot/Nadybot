@@ -2,17 +2,15 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Types\AccessLevel;
+use Nadybot\Core\Attributes\Parameter\{ClusterGradeStr,ImplantSlotStr,Str};
 use Nadybot\Core\{
 	Attributes as NCA,
-	Attributes\Parameter\ClusterGradeStr,
-	Attributes\Parameter\ImplantSlotStr,
-	Attributes\Parameter\Str,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	Text,
 	Types\Ability,
+	Types\AccessLevel,
 	Types\ImplantSlot,
 	Types\Skill,
 	Util,

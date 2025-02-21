@@ -2,10 +2,11 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\Attributes\JSON;
-
-use Nadybot\Core\DBSchema\CmdPermSetMapping;
-use Nadybot\Core\Safe;
+use Nadybot\Core\{
+	Attributes\JSON,
+	DBSchema\CmdPermSetMapping,
+	Safe
+};
 
 /** The full configuration for a single command source */
 class CmdSourceMapping {
