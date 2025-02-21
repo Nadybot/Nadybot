@@ -5,6 +5,7 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 use function Safe\{preg_match_all, preg_split};
 use InvalidArgumentException;
 use Nadybot\Core\ParamClass\{PItem, PUuid};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -25,17 +26,17 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/Roll'),
 	NCA\DefineCommand(
 		command: 'random',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Randomize a list of names/items',
 	),
 	NCA\DefineCommand(
 		command: 'roll',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Roll a random number',
 	),
 	NCA\DefineCommand(
 		command: 'verify',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Verifies a roll',
 	),
 ]

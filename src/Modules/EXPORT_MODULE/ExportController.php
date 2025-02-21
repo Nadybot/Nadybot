@@ -6,6 +6,7 @@ use function Safe\json_encode;
 
 use Amp\File\FilesystemException;
 use EventSauce\ObjectHydrator\UnableToSerializeObject;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -28,7 +29,7 @@ use Safe\Exceptions\JsonException;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'export',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Export the bot configuration and data',
 	)
 ]

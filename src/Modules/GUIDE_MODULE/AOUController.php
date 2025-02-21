@@ -9,6 +9,7 @@ use DateInterval;
 use DOMDocument;
 use DOMElement;
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -31,7 +32,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'aou',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Search for or view a guide from AO-Universe',
 	)
 ]

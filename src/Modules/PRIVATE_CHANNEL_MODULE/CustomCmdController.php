@@ -5,6 +5,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 use function Safe\preg_grep;
 
 use Amp\File\FilesystemException;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -171,7 +172,7 @@ class CustomCmdController extends ModuleInstance {
 			$this->getModuleName(),
 			'CustomCmdController.executeCustomCmd:123',
 			$cmdName,
-			'guest',
+			AccessLevel::Guest,
 			"A dynamic command based on {$cmdName}",
 			Status::Enabled,
 		);
@@ -184,7 +185,7 @@ class CustomCmdController extends ModuleInstance {
 					$set->name,
 					'CustomCmdController.executeCustomCmd:123',
 					$cmdName,
-					'guest'
+					AccessLevel::Guest,
 				);
 			});
 	}

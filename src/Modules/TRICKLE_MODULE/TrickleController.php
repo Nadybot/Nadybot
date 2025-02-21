@@ -5,6 +5,7 @@ namespace Nadybot\Modules\TRICKLE_MODULE;
 use function Safe\preg_split;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -23,7 +24,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'trickle',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows how much skills you will gain by increasing an ability',
 	)
 ]

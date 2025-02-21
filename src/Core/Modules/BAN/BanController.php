@@ -7,6 +7,7 @@ use function Amp\async;
 use AO\Package\Out\PrivateChannelKick;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -45,25 +46,25 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'ban',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Ban a character from this bot',
 		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'banlist',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Shows who is on the banlist',
 		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'unban',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Unban a character from this bot',
 		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'orgban',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Ban or unban a whole org',
 		alias: 'orgbans'
 	),

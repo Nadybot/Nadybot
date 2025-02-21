@@ -3,6 +3,7 @@
 namespace Nadybot\Core\SettingHandlers;
 
 use Nadybot\Core\DBSchema\Setting;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{AccessManager, Attributes as NCA, CmdContext, Text, Types\SettingMode};
 
 abstract class SettingHandler {
@@ -26,7 +27,7 @@ abstract class SettingHandler {
 		if (!$context->isDM()) {
 			return false;
 		}
-		$alToChange = $this->row->admin ?? 'superadmin';
+		$alToChange = $this->row->admin ?? AccessLevel::Superadmin;
 		return $this->accessManager->checkAccess($context->char->name, $alToChange);
 	}
 

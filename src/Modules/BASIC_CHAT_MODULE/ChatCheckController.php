@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -15,7 +16,7 @@ use Nadybot\Modules\ONLINE_MODULE\Online;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'check',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Checks who of the raidgroup is in the area',
 	)
 ]

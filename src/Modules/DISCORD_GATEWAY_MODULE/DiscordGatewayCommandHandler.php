@@ -4,6 +4,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use function Safe\preg_match;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -30,7 +31,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'extauth',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Link an AO account with a Discord user',
 	)
 ]
@@ -63,7 +64,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		$this->commandManager->registerSource(Source::DISCORD_PRIV . '(*)');
 	}
 
-	public function getSingleAccessLevel(string $sender): ?string {
+	public function getSingleAccessLevel(string $sender): ?AccessLevel {
 		if (!ctype_digit($sender)) {
 			return null;
 		}
@@ -74,7 +75,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 					continue;
 				}
 				if ($member->user->id === $sender) {
-					return 'guest';
+					return AccessLevel::Guest;
 				}
 			}
 		}

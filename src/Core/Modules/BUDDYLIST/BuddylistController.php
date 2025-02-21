@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\BUDDYLIST;
 
 use function Safe\preg_match;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -24,7 +25,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'buddylist',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Shows and manages buddies on the buddylist',
 		alias: 'friendlist'
 	)

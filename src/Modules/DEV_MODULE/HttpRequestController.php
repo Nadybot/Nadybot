@@ -5,6 +5,7 @@ namespace Nadybot\Modules\DEV_MODULE;
 use function Safe\{json_decode, json_encode, preg_split};
 use Amp\Dns\DnsException;
 use Amp\Http\Client\{HttpClientBuilder, InvalidRequestException, Request};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -22,7 +23,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'httprequest',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Test http/https requests'
 	)
 ]

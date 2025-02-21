@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\PVP_MODULE;
 
 use Nadybot\Core\ParamClass\PTowerSite;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -18,7 +19,7 @@ use Nadybot\Core\{
 		command: LandController::LC_CMD,
 		alias: 'lc',
 		description: 'Perform Notum Wars commands',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	)
 ]
 class LandController extends ModuleInstance {

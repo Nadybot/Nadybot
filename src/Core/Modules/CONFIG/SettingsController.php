@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -25,7 +26,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'settings',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Change settings on the bot',
 		defaultStatus: Status::Enabled
 	)
@@ -155,7 +156,7 @@ class SettingsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		if (!$this->accessManager->checkAccess($context->char->name, $setting->admin??'superadmin')) {
+		if (!$this->accessManager->checkAccess($context->char->name, $setting->admin??AccessLevel::Superadmin)) {
 			$msg = "You don't have the necessary rights to change this setting.";
 			$context->reply($msg);
 			return;

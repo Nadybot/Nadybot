@@ -6,9 +6,8 @@ use function Safe\json_decode;
 
 use Amp\File\FilesystemException;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
-use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
-	AccessManager,
 	Attributes as NCA,
 	CmdContext,
 	Config\BotConfig,
@@ -26,6 +25,7 @@ use Nadybot\Modules\VOTE_MODULE\ExportPoll;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Throwable;
+use ValueError;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -34,7 +34,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'import',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Import bot data and replace the current one',
 	)
 ]
@@ -47,9 +47,6 @@ class ImportController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private Filesystem $fs;
-
-	#[NCA\Inject]
-	private AccessManager $accessManager;
 
 	#[NCA\Inject]
 	private BotConfig $config;
@@ -133,14 +130,15 @@ class ImportController extends ModuleInstance {
 		$usedRanks = $this->getRanks($import);
 		$validMappings = Safe::removeNull(array_values($mappings));
 		$rankMapping = $this->parseRankMapping($validMappings);
+		$rankMappingResult = [];
 		foreach ($usedRanks as $rank) {
 			if (!isset($rankMapping[$rank])) {
 				$context->reply("Please define a mapping for <highlight>{$rank}<end> by appending '{$rank}=&lt;rank&gt;' to your command");
 				return;
 			}
 			try {
-				$rankMapping[$rank] = $this->accessManager->getAccessLevel($rankMapping[$rank]);
-			} catch (Exception) {
+				$rankMappingResult[$rank] = AccessLevel::fromName($rankMapping[$rank]);
+			} catch (ValueError) {
 				$context->reply("<highlight>{$rankMapping[$rank]}<end> is not a valid access level");
 				return;
 			}
@@ -148,7 +146,7 @@ class ImportController extends ModuleInstance {
 		$this->logger->notice('Starting import');
 		$context->reply('Starting import...');
 		foreach ($this->importers as $key => $importer) {
-			$importer->import($this->db, $this->logger, $import[$key], $rankMapping);
+			$importer->import($this->db, $this->logger, $import[$key], $rankMappingResult);
 		}
 		$this->logger->notice('Import done');
 		$context->reply('The import finished successfully.');

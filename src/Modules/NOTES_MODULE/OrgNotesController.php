@@ -4,6 +4,7 @@ namespace Nadybot\Modules\NOTES_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\ParamClass\PUuid;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -26,7 +27,7 @@ use Ramsey\Uuid\Uuid;
 	NCA\HasMigrations('Migrations/OrgNotes'),
 	NCA\DefineCommand(
 		command: 'orgnotes',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Displays, adds, or removes a note from your list',
 		alias: 'orgnote'
 	),
@@ -34,7 +35,7 @@ use Ramsey\Uuid\Uuid;
 class OrgNotesController extends ModuleInstance {
 	/** Rank required to delete other people's org notes */
 	#[NCA\Setting\Rank]
-	public string $orgnoteDeleteOtherRank = 'mod';
+	public AccessLevel $orgnoteDeleteOtherRank = AccessLevel::Mod;
 
 	#[NCA\Inject]
 	private DB $db;
@@ -104,7 +105,7 @@ class OrgNotesController extends ModuleInstance {
 		}
 		if (!$this->canDeleteOrgNote($note, $actor)) {
 			throw new InsufficientAccessException(
-				"Only {$this->orgnoteDeleteOtherRank} or higher can delete other ".
+				"Only {$this->orgnoteDeleteOtherRank->displayName()} or higher can delete other ".
 				"members' notes."
 			);
 		}
@@ -204,7 +205,7 @@ class OrgNotesController extends ModuleInstance {
 	protected function canDeleteOrgNote(OrgNote $note, string $actor): bool {
 		$isAdmin = $this->accessManager->checkSingleAccess(
 			$actor,
-			$this->orgnoteDeleteOtherRank
+			$this->orgnoteDeleteOtherRank,
 		);
 		if ($isAdmin) {
 			return true;

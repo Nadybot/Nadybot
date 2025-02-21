@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -19,7 +20,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'fight',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Let two people fight against each other',
 	)
 ]

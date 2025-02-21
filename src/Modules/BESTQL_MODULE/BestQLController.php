@@ -4,6 +4,7 @@ namespace Nadybot\Modules\BESTQL_MODULE;
 
 use function Safe\preg_split;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -19,7 +20,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'bestql',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find breakpoints for bonuses',
 		alias: 'breakpoints'
 	)

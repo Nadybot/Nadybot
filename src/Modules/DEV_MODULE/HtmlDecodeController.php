@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -16,7 +17,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'htmldecode',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Execute a command by first decoding html entities',
 	)
 ]

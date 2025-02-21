@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -18,12 +19,12 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'group',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Join the group selection',
 	),
 	NCA\DefineCommand(
 		command: 'group manage',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Divide people into groups',
 	),
 ]

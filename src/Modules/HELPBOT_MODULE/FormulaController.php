@@ -7,6 +7,7 @@ use MathParser\Exceptions\UnknownVariableException;
 use MathParser\Interpreting\Evaluator;
 use MathParser\Parsing\Parser;
 use MathParser\StdMathParser;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Regexp,
@@ -29,17 +30,17 @@ use Throwable;
 	NCA\HasMigrations('Migrations/Formula'),
 	NCA\DefineCommand(
 		command: 'calc',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Calculator',
 	),
 	NCA\DefineCommand(
 		command: FormulaController::FORMULA_MODIFY,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Create and delete formulas',
 	),
 	NCA\DefineCommand(
 		command: FormulaController::FORMULA,
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'List and execute formulas',
 	)
 ]

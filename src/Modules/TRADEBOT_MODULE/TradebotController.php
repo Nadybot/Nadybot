@@ -6,6 +6,7 @@ use function Safe\preg_match;
 use AO\Package;
 use Nadybot\Core\Events\{ConnectEvent, ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
 use Nadybot\Core\ParamClass\PUuid;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -37,7 +38,7 @@ use Revolt\EventLoop;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'tradecolor',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Define colors for tradebot tags',
 		alias: 'tradecolors',
 	),

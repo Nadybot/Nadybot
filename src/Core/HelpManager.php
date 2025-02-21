@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use Generator;
 use Nadybot\Core\DBSchema\{CmdCfg, CmdPermission, HlpCfg, Setting};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\HelpTopic,
@@ -116,7 +117,7 @@ class HelpManager {
 			if (!isset($row->file) || isset($shown[$row->file])) {
 				continue;
 			}
-			if ($this->checkAccessLevels($accessLevel, explode(',', $row->admin_list))) {
+			if ($this->checkAccessLevels($accessLevel, $row->admin_list)) {
 				$output .= $this->configController->getAliasInfo($row->name);
 				$content = $this->fs->read($row->file);
 				$output .= trim($content) . "\n\n";
@@ -184,7 +185,7 @@ class HelpManager {
 
 		$data = $outerQuery->asObj(HelpTopic::class);
 
-		$accessLevel = 'all';
+		$accessLevel = AccessLevel::All;
 		if (isset($context)) {
 			$accessLevel = $this->accessManager->getAccessLevelForCharacter($context->char->name);
 		}
@@ -195,7 +196,7 @@ class HelpManager {
 			if (isset($added[$key])) {
 				continue;
 			}
-			if (!isset($context) || $this->checkAccessLevels($accessLevel, explode(',', $row->admin_list))) {
+			if (!isset($context) || $this->checkAccessLevels($accessLevel, $row->admin_list)) {
 				$obj = new HelpTopic(
 					module: $row->module,
 					name: $row->name,
@@ -209,10 +210,10 @@ class HelpManager {
 		}
 	}
 
-	/** @param iterable<string> $accessLevelsArray */
-	public function checkAccessLevels(string $accessLevel1, iterable $accessLevelsArray): bool {
+	/** @param iterable<AccessLevel> $accessLevelsArray */
+	public function checkAccessLevels(AccessLevel $accessLevel1, iterable $accessLevelsArray): bool {
 		foreach ($accessLevelsArray as $accessLevel2) {
-			if ($this->accessManager->compareAccessLevels($accessLevel1, $accessLevel2) >= 0) {
+			if ($accessLevel1->atLeast($accessLevel2)) {
 				return true;
 			}
 		}

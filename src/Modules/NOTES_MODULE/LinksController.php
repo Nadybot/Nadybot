@@ -5,6 +5,7 @@ namespace Nadybot\Modules\NOTES_MODULE;
 use InvalidArgumentException;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\ParamClass\PUuid;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -30,7 +31,7 @@ use Throwable;
 	NCA\Importer('links', ExportLink::class),
 	NCA\DefineCommand(
 		command: 'links',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Displays, adds, or removes links from the org link list',
 	),
 ]

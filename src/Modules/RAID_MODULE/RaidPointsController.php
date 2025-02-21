@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 use Exception;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Remove, Str, WordStr};
 use Nadybot\Core\Modules\ALTS\{AltAddEvent, AltNewMainEvent, AltValidateEvent};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -32,38 +33,38 @@ use Throwable;
 	NCA\HasMigrations('Migrations/Points'),
 	NCA\DefineCommand(
 		command: RaidPointsController::CMD_RAID_REWARD_PUNISH,
-		accessLevel: 'raid_leader_1',
+		accessLevel: AccessLevel::RaidLeader1,
 		description: 'Add or remove points from all raiders',
 	),
 	NCA\DefineCommand(
 		command: 'points',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Check how many raid points you have',
 	),
 	NCA\DefineCommand(
 		command: RaidPointsController::CMD_POINTS_OTHER,
-		accessLevel: 'raid_admin_1',
+		accessLevel: AccessLevel::RaidAdmin1,
 		description: 'Check the raid points of another raider',
 	),
 	NCA\DefineCommand(
 		command: RaidPointsController::CMD_POINTS_MODIFY,
-		accessLevel: 'raid_admin_1',
+		accessLevel: AccessLevel::RaidAdmin1,
 		description: 'Manipulate raid points of a single raider',
 	),
 	NCA\DefineCommand(
 		command: 'points top',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Show the top raiders',
 	),
 	NCA\DefineCommand(
 		command: 'reward',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Show the raid rewards for the raids',
 		alias: 'rewards'
 	),
 	NCA\DefineCommand(
 		command: RaidPointsController::CMD_REWARD_EDIT,
-		accessLevel: 'raid_admin_1',
+		accessLevel: AccessLevel::RaidAdmin1,
 		description: 'Create, Edit and Remove raid reward entries',
 	),
 

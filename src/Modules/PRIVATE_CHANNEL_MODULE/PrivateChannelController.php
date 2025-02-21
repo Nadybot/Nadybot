@@ -7,6 +7,7 @@ use Amp\File\FilesystemException;
 use AO\Package;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -81,70 +82,70 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'members',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Member list',
 		alias: 'member',
 	),
 	NCA\DefineCommand(
 		command: 'members inactive',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: "List members who haven't logged in for some time",
 	),
 	NCA\DefineCommand(
 		command: 'members add/remove',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Adds or removes a player to/from the members list',
 	),
 	NCA\DefineCommand(
 		command: 'invite',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Invite players to the private channel',
 		alias: 'inviteuser'
 	),
 	NCA\DefineCommand(
 		command: 'kick',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Kick players from the private channel',
 		alias: 'kickuser'
 	),
 	NCA\DefineCommand(
 		command: 'autoinvite',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Enable or disable autoinvite',
 	),
 	NCA\DefineCommand(
 		command: 'count',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows how many characters are in the private channel',
 	),
 	NCA\DefineCommand(
 		command: 'kickall',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Kicks all from the private channel',
 	),
 	NCA\DefineCommand(
 		command: 'join',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Join command for characters who want to join the private channel',
 	),
 	NCA\DefineCommand(
 		command: 'leave',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Leave command for characters in private channel',
 	),
 	NCA\DefineCommand(
 		command: 'lock',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Kick everyone and lock the private channel',
 	),
 	NCA\DefineCommand(
 		command: 'unlock',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Allow people to join the private channel again',
 	),
 	NCA\DefineCommand(
 		command: 'lastonline',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Shows the last logon-times of a character',
 	),
 
@@ -211,8 +212,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public string $welcomeMsgString = '<link>Welcome to <myname></link>!';
 
 	/** Minimum rank allowed to join private channel during a lock */
-	#[NCA\Setting\Rank(accessLevel: 'superadmin')]
-	public string $lockMinrank = 'superadmin';
+	#[NCA\Setting\Rank(accessLevel: AccessLevel::Superadmin)]
+	public AccessLevel $lockMinrank = AccessLevel::Superadmin;
 
 	/** If set, the private channel is currently locked for a reason */
 	#[NCA\Setting\Text(mode: SettingMode::NoEdit)]
@@ -317,13 +318,13 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		return $this->members;
 	}
 
-	public function getSingleAccessLevel(string $sender): ?string {
+	public function getSingleAccessLevel(string $sender): ?AccessLevel {
 		$isMember = isset($this->members[$sender]);
 		if ($isMember) {
-			return 'member';
+			return AccessLevel::Member;
 		}
 		if ($this->chatBot->inChatlist($sender)) {
-			return 'guest';
+			return AccessLevel::Guest;
 		}
 		return null;
 	}
@@ -428,7 +429,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			})
 			->keyBy('main')
 			->filter(function (LastOnline $member, string $main): bool {
-				return $this->accessManager->checkSingleAccess($main, 'member');
+				return $this->accessManager->checkSingleAccess($main, AccessLevel::Member);
 			});
 
 		/** @var Collection<int,InactiveMember> */
@@ -929,10 +930,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 		$this->settingManager->save('lock_reason', trim($reason));
 		$this->chatBot->sendPrivate("The private chat has been <off>locked<end> by {$context->char->name}: <highlight>{$this->lockReason}<end>");
-		$alRequired = $this->lockMinrank;
 		foreach ($this->chatBot->getChatlist() as $char => $online) {
 			$alChar = $this->accessManager->getAccessLevelForCharacter($char);
-			if ($this->accessManager->compareAccessLevels($alChar, $alRequired) < 0) {
+			if ($alChar->lowerThan($this->lockMinrank)) {
 				$this->kickChar($char);
 			}
 		}
@@ -1247,7 +1247,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			actor: $sender,
 			actee: $name,
 			action: AuditAction::DelRank,
-			value: (string)$this->accessManager->getAccessLevels()['member'],
+			value: (string)AccessLevel::Member->toInt(),
 		);
 		$this->accessManager->addAudit($audit);
 		return "<highlight>{$name}<end> has been removed as a member of this bot.";
@@ -1264,8 +1264,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return false;
 		}
 		$alSender = $this->accessManager->getAccessLevelForCharacter($sender);
-		$alRequired = $this->lockMinrank;
-		return $this->accessManager->compareAccessLevels($alSender, $alRequired) < 0;
+		return $alSender->lowerThan($this->lockMinrank);
 	}
 
 	#[NCA\HandlesCommand('lastonline')]
@@ -1315,27 +1314,26 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			'c-admin-level' => null,
 		];
 		$alRank = $this->accessManager->getAccessLevelForCharacter($player);
-		$alName = ucfirst($this->accessManager->getDisplayName($alRank));
+		$alName = $alRank->displayNameUC();
 		$colors = $this->onlineController;
 		switch ($alRank) {
-			case 'superadmin':
+			case AccessLevel::Superadmin:
 				$tokens['admin-level'] = $alName;
 				$tokens['c-admin-level'] = "{$colors->rankColorSuperadmin}{$alName}<end>";
 				break;
-			case 'admin':
+			case AccessLevel::Admin:
 				$tokens['admin-level'] = $alName;
 				$tokens['c-admin-level'] = "{$colors->rankColorAdmin}{$alName}<end>";
 				break;
-			case 'mod':
+			case AccessLevel::Mod:
 				$tokens['admin-level'] = $alName;
 				$tokens['c-admin-level'] = "{$colors->rankColorMod}{$alName}<end>";
 				break;
 			default:
 				$raidRank = $this->raidRankController->getSingleAccessLevel($player);
 				if (isset($raidRank)) {
-					$alName = ucfirst($this->accessManager->getDisplayName($raidRank));
 					$tokens['admin-level'] = $alName;
-					$tokens['c-admin-level'] = "{$colors->rankColorRaid}{$alName}<end>";
+					$tokens['c-admin-level'] = "{$colors->rankColorRaid}{$raidRank->displayNameUC()}<end>";
 				}
 		}
 		$tokens['access-level'] = $alName;
@@ -1489,7 +1487,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			actor: $sender,
 			actee: $name,
 			action: AuditAction::AddRank,
-			value: (string)$this->accessManager->getAccessLevels()['member'],
+			value: (string)AccessLevel::Member->toInt(),
 		);
 		$this->accessManager->addAudit($audit);
 		return "<highlight>{$name}<end> has been added as a member of this bot.";

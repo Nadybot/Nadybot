@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -18,7 +19,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'implant',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Get information about the QL of an implant',
 	)
 ]

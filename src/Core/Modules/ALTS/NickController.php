@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\ALTS;
 use Illuminate\Database\QueryException;
 use Nadybot\Core\Attributes\HandlesCommand;
 use Nadybot\Core\DBSchema\Nickname;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter as Param,
@@ -21,7 +22,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'nick',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Nickname handling',
 	),
 ]

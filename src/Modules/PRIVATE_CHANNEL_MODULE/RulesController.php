@@ -4,6 +4,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use Amp\File\FilesystemException;
 use Nadybot\Core\Events\JoinMyPrivEvent;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -21,12 +22,12 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'rules',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Rules of this bot',
 	),
 	NCA\DefineCommand(
 		command: 'raidrules',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Raid rules of this bot',
 	)
 ]

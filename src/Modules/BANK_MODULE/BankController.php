@@ -8,6 +8,7 @@ use function Safe\{preg_match, preg_split};
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Regexp,
@@ -32,12 +33,12 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'bank',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Browse and search the bank characters',
 	),
 	NCA\DefineCommand(
 		command: 'bank update',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Reloads the bank database from the AO Items Assistant file',
 		alias: 'updatebank'
 	),

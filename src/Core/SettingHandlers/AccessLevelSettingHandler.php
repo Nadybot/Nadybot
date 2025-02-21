@@ -3,8 +3,10 @@
 namespace Nadybot\Core\SettingHandlers;
 
 use Exception;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\CONFIG\ConfigController;
-use Nadybot\Core\{AccessManager, Attributes as NCA};
+use Nadybot\Core\Types\AccessLevel;
+use ValueError;
 
 /**
  * Class to represent a setting with an access level value for NadyBot
@@ -13,9 +15,6 @@ use Nadybot\Core\{AccessManager, Attributes as NCA};
 class AccessLevelSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	private ConfigController $configController;
-
-	#[NCA\Inject]
-	private AccessManager $accessManager;
 
 	/** @inheritDoc */
 	public function getDescription(): string {
@@ -32,16 +31,17 @@ class AccessLevelSettingHandler extends SettingHandler {
 
 	/** @throws \Exception when the rank is invalid */
 	public function save(string $newValue): string {
-		$accessLevels = $this->accessManager->getAccessLevels();
-		if (!isset($accessLevels[$newValue])) {
-			throw new Exception("<highlight>{$newValue}<end> is not a valid access level.");
+		try {
+			$accessLevel = AccessLevel::fromName($newValue);
+		} catch (ValueError $e) {
+			throw new Exception("<highlight>{$newValue}<end> is not a valid access level.", previous: $e);
 		}
-		return $newValue;
+		return $accessLevel->value;
 	}
 
 	public function displayValue(string $sender): string {
 		$value = $this->row->value ?? 'all';
-		$rank = ucfirst(strtolower($this->accessManager->getDisplayName($value)));
-		return "<highlight>{$rank}<end>";
+		$accessLevel = AccessLevel::fromName($value);
+		return "<highlight>{$accessLevel->displayNameUC()}<end>";
 	}
 }

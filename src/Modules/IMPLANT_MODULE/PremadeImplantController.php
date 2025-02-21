@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\Skill;
+use Nadybot\Core\Types\{AccessLevel, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -24,7 +24,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/Premade'),
 	NCA\DefineCommand(
 		command: 'premade',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Searches for implants out of the premade implants booths',
 	)
 ]

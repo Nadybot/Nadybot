@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\COMMENT_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -20,7 +21,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'reputation',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Allows people to see and add reputation of other players',
 	)
 ]
@@ -41,8 +42,8 @@ class ReputationController extends ModuleInstance {
 		$repCat = new CommentCategory(
 			name: static::CAT_REPUTATION,
 			created_by: $this->config->main->character,
-			min_al_read: 'guild',
-			min_al_write: 'guild',
+			min_al_read: AccessLevel::Guild,
+			min_al_write: AccessLevel::Guild,
 			user_managed: false,
 		);
 		$this->commentController->saveCategory($repCat);

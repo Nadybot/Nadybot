@@ -6,6 +6,7 @@ use function Amp\ByteStream\splitLines;
 
 use Amp\File\FilesystemException;
 use IteratorIterator;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -24,7 +25,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'guides',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Guides for AO',
 		alias: 'guide'
 	)

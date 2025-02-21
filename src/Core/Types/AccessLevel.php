@@ -4,13 +4,32 @@ namespace Nadybot\Core\Types;
 
 use Nadybot\Core\{AccessManager, Registry};
 use Nadybot\Modules\RAID_MODULE\RaidRankController;
+use Throwable;
+use ValueError;
 
 /** This is one valid access level of the bot */
 enum AccessLevel: string {
 	public function compare(self $that): int {
-		return $this->toInt() <=> $that->toInt();
+		return $that->toInt() <=> $this->toInt();
 	}
 
+	public function higherThan(self $that): bool {
+		return $this->toInt() < $that->toInt();
+	}
+
+	public function lowerThan(self $that): bool {
+		return $this->toInt() > $that->toInt();
+	}
+
+	public function atLeast(self $that): bool {
+		return $this->toInt() <= $that->toInt();
+	}
+
+	public function atMost(self $that): bool {
+		return $this->toInt() >= $that->toInt();
+	}
+
+	/** Get the numeric height of the access level (lower is better) */
 	public function toInt(): int {
 		return match ($this) {
 			self::None => 0,
@@ -31,8 +50,79 @@ enum AccessLevel: string {
 		};
 	}
 
-	/** Create an instance by the name of the raid rank */
-	public function fromName(string $name): self {
+	/** Create an instance given the numeric access level (lower is better) */
+	public static function fromInt(int $height): self {
+		return match ($height) {
+			0 => self::None,
+			1 => self::Superadmin,
+			2 => self::Admin,
+			3 => self::Mod,
+			4 => self::Guild,
+			5 => self::RaidAdmin3,
+			6 => self::RaidAdmin2,
+			7 => self::RaidAdmin1,
+			8 => self::RaidLeader3,
+			9 => self::RaidLeader2,
+			10 => self::RaidLeader1,
+			14 => self::Member,
+			15 => self::RaidLeader,
+			16 => self::Guest,
+			17 => self::All,
+			default => throw new ValueError("Invalid access level: {$height}"),
+		};
+	}
+
+	public function isRaidAL(): bool {
+		return match ($this) {
+			self::None => false,
+			self::Superadmin => false,
+			self::Admin => false,
+			self::Mod => false,
+			self::Guild => false,
+			self::RaidAdmin3 => true,
+			self::RaidAdmin2 => true,
+			self::RaidAdmin1 => true,
+			self::RaidLeader3 => true,
+			self::RaidLeader2 => true,
+			self::RaidLeader1 => true,
+			self::Member => false,
+			self::RaidLeader => false,
+			self::Guest => false,
+			self::All => false,
+		};
+	}
+
+	/** Create an instance by the name of the rank, or null if impossible */
+	public static function tryFromName(string $name): ?self {
+		try {
+			return self::fromName($name);
+		} catch (Throwable) {
+			return null;
+		}
+	}
+
+	public function isRealRank(): bool {
+		return match ($this) {
+			self::None => false,
+			self::Superadmin => true,
+			self::Admin => true,
+			self::Mod => true,
+			self::Guild => false,
+			self::RaidAdmin3 => true,
+			self::RaidAdmin2 => true,
+			self::RaidAdmin1 => true,
+			self::RaidLeader3 => true,
+			self::RaidLeader2 => true,
+			self::RaidLeader1 => true,
+			self::Member => true,
+			self::RaidLeader => false,
+			self::Guest => false,
+			self::All => false,
+		};
+	}
+
+	/** Create an instance by the name of the rank */
+	public static function fromName(string $name): self {
 		$alManager = Registry::getInstance(AccessManager::class);
 		$rrCtrl = Registry::getInstance(RaidRankController::class);
 		$accessLevel = strtolower($name);
@@ -54,11 +144,16 @@ enum AccessLevel: string {
 		};
 	}
 
+	/** Get the name to display for this access level, first letter upper-cased */
+	public function displayNameUC(): string {
+		return ucfirst(strtolower($this->displayName()));
+	}
+
 	/** Get the name to display for this access level, always lower-cased */
 	public function displayName(): string {
 		$alManager = Registry::getInstance(AccessManager::class);
 		$rrCtrl = Registry::getInstance(RaidRankController::class);
-		return match ($this) {
+		$name = match ($this) {
 			self::None => 'none',
 			self::Superadmin => $alManager->rankNameSuperadmin,
 			self::Admin => $alManager->rankNameAdmin,
@@ -75,6 +170,7 @@ enum AccessLevel: string {
 			self::Guest => $alManager->rankNameGuest,
 			self::All => 'all',
 		};
+		return strtolower($name);
 	}
 
 	case None = 'none';

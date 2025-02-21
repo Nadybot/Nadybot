@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\SKILLS_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -27,58 +28,58 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	NCA\HasMigrations('Migrations/Weapons'),
 	NCA\DefineCommand(
 		command: 'aggdef',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Agg/Def: Calculates weapon inits for your Agg/Def bar',
 	),
 	NCA\DefineCommand(
 		command: 'aimshot',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Aim Shot: Calculates Aimed Shot',
 		alias: ['as', 'aimedshot'],
 	),
 	NCA\DefineCommand(
 		command: 'nanoinit',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Nanoinit: Calculates Nano Init',
 	),
 	NCA\DefineCommand(
 		command: 'fullauto',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Fullauto: Calculates Full Auto recharge',
 	),
 	NCA\DefineCommand(
 		command: 'burst',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Burst: Calculates Burst',
 	),
 	NCA\DefineCommand(
 		command: 'fling',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Fling: Calculates Fling',
 	),
 	NCA\DefineCommand(
 		command: 'mafist',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'MA Fist: Calculates your fist speed',
 	),
 	NCA\DefineCommand(
 		command: 'dimach',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Dimach: Calculates dimach facts',
 	),
 	NCA\DefineCommand(
 		command: 'brawl',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Brawl: Calculates brawl facts',
 	),
 	NCA\DefineCommand(
 		command: 'fastattack',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Fastattack: Calculates Fast Attack recharge',
 	),
 	NCA\DefineCommand(
 		command: 'weapon',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows weapon info (skill cap specials recycle and aggdef positions)',
 		alias: ['specials', 'inits'],
 	)

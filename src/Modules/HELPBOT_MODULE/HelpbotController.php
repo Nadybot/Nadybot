@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -21,12 +22,12 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/Dyna'),
 	NCA\DefineCommand(
 		command: 'dyna',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Search for RK Dynabosses',
 	),
 	NCA\DefineCommand(
 		command: 'oe',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Over-equipped calculation',
 	),
 ]

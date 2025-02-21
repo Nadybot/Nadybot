@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Regexp,
@@ -21,7 +22,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'alias',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Manage command aliases',
 		defaultStatus: Status::Enabled
 	)

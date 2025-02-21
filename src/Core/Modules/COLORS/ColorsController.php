@@ -6,6 +6,7 @@ use function Safe\{json_decode, preg_match};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Filesystem;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -26,7 +27,7 @@ use Nadybot\Core\{
 	NCA\DefineCommand(
 		command: 'theme',
 		description: 'View installed color theme',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		alias: 'themes',
 	),
 	NCA\DefineCommand(

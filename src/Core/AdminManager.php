@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use function Amp\async;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -58,12 +59,12 @@ class AdminManager implements AccessLevelProvider {
 		unset($this->admins[$user]);
 	}
 
-	public function getSingleAccessLevel(string $sender): ?string {
+	public function getSingleAccessLevel(string $sender): ?AccessLevel {
 		$level = $this->getAdminLevel($sender) ?? 0;
 		if ($level >= 4) {
-			return 'admin';
+			return AccessLevel::Admin;
 		} elseif ($level >= 3) {
-			return 'mod';
+			return AccessLevel::Mod;
 		}
 		return null;
 	}
@@ -100,7 +101,7 @@ class AdminManager implements AccessLevelProvider {
 		$this->delAdmin($who);
 		$this->db->table(Admin::getTable())->where('name', $who)->delete();
 		$this->buddylistManager->remove($who, 'admin');
-		$alMod = $this->accessManager->getAccessLevels()['mod'];
+		$alMod = AccessLevel::Mod->toInt();
 		if (!isset($oldRank)) {
 			return;
 		}
@@ -116,7 +117,7 @@ class AdminManager implements AccessLevelProvider {
 	/** Set the admin level of a user */
 	public function addToLists(string $who, int $intlevel, string $sender): RankChange {
 		$action = RankChange::Promotion;
-		$alMod = $this->accessManager->getAccessLevels()['mod'];
+		$alMod = AccessLevel::Mod->toInt();
 		$adminLevel = $this->getAdminLevel($who);
 		if (isset($adminLevel)) {
 			$this->db->table(Admin::getTable())

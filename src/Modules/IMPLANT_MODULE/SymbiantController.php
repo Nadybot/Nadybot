@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\{ImplantSlot, Skill};
+use Nadybot\Core\Types\{AccessLevel, ImplantSlot, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -27,17 +27,17 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'bestsymbiants',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows the best symbiants for the slots',
 	),
 	NCA\DefineCommand(
 		command: 'symbcompare',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Compare symbiants with each other',
 	),
 	NCA\DefineCommand(
 		command: 'symbbuffs',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find symbiants buffing a given skill',
 	)
 ]

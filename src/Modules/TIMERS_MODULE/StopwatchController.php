@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\Str,
 	CmdContext,
 	ModuleInstance,
+	Types\AccessLevel,
 };
 use Safe\DateTimeImmutable;
 
@@ -19,7 +20,7 @@ use Safe\DateTimeImmutable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'stopwatch',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'stop time difference(s)',
 		alias: 'sw'
 	)

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\WHEREIS_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -21,7 +22,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'whereis',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows where places and NPCs are',
 	)
 ]

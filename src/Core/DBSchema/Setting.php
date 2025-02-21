@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\DBSchema;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{Attributes as NCA, DBTable, Types\SettingMode};
 
 #[NCA\DB\Table(name: 'settings')]
@@ -13,7 +14,7 @@ class Setting extends DBTable {
 		public ?string $type=null,
 		public ?string $description=null,
 		public ?string $source=null,
-		public ?string $admin=null,
+		public ?AccessLevel $admin=null,
 		public ?string $help=null,
 		public ?string $value='0',
 		public ?string $options='0',

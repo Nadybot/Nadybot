@@ -4,6 +4,7 @@ namespace Nadybot\Modules\VOTE_MODULE;
 
 use function Safe\{json_decode, json_encode};
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -35,12 +36,12 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'vote',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Vote in polls',
 	),
 	NCA\DefineCommand(
 		command: 'poll',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Create, view or delete polls',
 		alias: 'polls'
 	),
@@ -222,7 +223,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	): void {
 		$pollId = $pollId();
 		$owner = null;
-		if (!$this->accessManager->checkAccess($context->char->name, 'moderator')) {
+		if (!$this->accessManager->checkAccess($context->char->name, AccessLevel::Mod)) {
 			$owner = $context->char->name;
 		}
 		$topic = $this->getPoll($pollId, $owner);

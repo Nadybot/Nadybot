@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\ClusterGradeStr,
@@ -27,13 +28,13 @@ use ValueError;
 	NCA\HasMigrations('Migrations/Designer'),
 	NCA\DefineCommand(
 		command: 'implantdesigner',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Implant Designer',
 		alias: 'impdesign'
 	),
 	NCA\DefineCommand(
 		command: 'implantshoppinglist',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Implant Designer Shopping List',
 		alias: ['impshop', 'implantshoplist', 'impshoplist'],
 	)

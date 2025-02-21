@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -19,7 +20,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/Research'),
 	NCA\DefineCommand(
 		command: 'research',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show info on Research',
 	)
 ]

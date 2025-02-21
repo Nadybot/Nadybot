@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Types\Skill;
+use Nadybot\Core\Types\{AccessLevel, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -18,7 +18,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'cluster',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find which clusters buff a specified skill',
 	)
 ]

@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\MESSAGES;
 
 use Amp\Http\Server\{Request, Response};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -21,7 +22,7 @@ class MessageHubAPI extends ModuleInstance {
 	#[
 		Http\Api('/hop/color'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'RouteHopColor[]', desc: 'The hop color definitions')
 	]
 	public function apiGetHopColors(Request $request): Response {
@@ -32,7 +33,7 @@ class MessageHubAPI extends ModuleInstance {
 	#[
 		Http\Api('/hop/format'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'RouteHopFormat[]', desc: 'The hop format definitions')
 	]
 	public function apiGetHopFormats(Request $request): Response {

@@ -6,6 +6,7 @@ use function Amp\delay;
 use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -47,12 +48,12 @@ use ValueError;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'gaubuff',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show timer for gauntlet buff',
 	),
 	NCA\DefineCommand(
 		command: 'gaubuff set/update',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Set/update timer for gauntlet buff',
 	),
 ]

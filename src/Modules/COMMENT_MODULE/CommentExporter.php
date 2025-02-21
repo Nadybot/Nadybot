@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\COMMENT_MODULE;
 
 use InvalidArgumentException;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -74,8 +75,8 @@ class CommentExporter extends ModuleInstance implements ExporterInterface, Impor
 						name: $entry->category,
 						created_by: $this->config->main->character,
 						created_at: time(),
-						min_al_read: 'mod',
-						min_al_write: 'admin',
+						min_al_read: AccessLevel::Mod,
+						min_al_write: AccessLevel::Admin,
 						user_managed: true,
 					);
 					$db->insert($cat);

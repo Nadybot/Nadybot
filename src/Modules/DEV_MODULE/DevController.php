@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -32,37 +33,37 @@ use ReflectionMethod;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'showcmdregex',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'View regex masks used to match commands',
 	),
 	NCA\DefineCommand(
 		command: 'intransaction',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Check if a DB transaction is open',
 	),
 	NCA\DefineCommand(
 		command: 'rollbacktransaction',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Rollback an open DB transaction',
 	),
 	NCA\DefineCommand(
 		command: 'stacktrace',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Show a stacktrace',
 	),
 	NCA\DefineCommand(
 		command: 'cmdhandlers',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Show command handlers for a command',
 	),
 	NCA\DefineCommand(
 		command: 'createblob',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Creates a blob of random characters',
 	),
 	NCA\DefineCommand(
 		command: 'makeitem',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Creates an item link',
 	)
 ]

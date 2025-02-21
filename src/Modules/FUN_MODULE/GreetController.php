@@ -10,6 +10,7 @@ use Nadybot\Core\Modules\{
 	PLAYER_LOOKUP\PlayerManager,
 	PREFERENCES\Preferences,
 };
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -33,12 +34,12 @@ use Psr\Log\LoggerInterface;
 	NCA\DefineCommand(
 		command: 'greeting',
 		description: 'Manage custom greeting messages',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 	),
 	NCA\DefineCommand(
 		command: 'greeting on/off',
 		description: 'Enable/Disable greeting messages for oneself',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 	),
 ]
 class GreetController extends ModuleInstance {

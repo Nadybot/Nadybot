@@ -9,6 +9,7 @@ use Nadybot\Core\Attributes\Hydrator\Confidential;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\Filesystem;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -59,50 +60,50 @@ use Revolt\EventLoop;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'checkaccess',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Check effective access level of a character',
 	),
 	NCA\DefineCommand(
 		command: 'clearqueue',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Clear outgoing chatqueue from all pending messages',
 	),
 	NCA\DefineCommand(
 		command: 'macro',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Execute multiple commands at once',
 	),
 	NCA\DefineCommand(
 		command: 'showcommand',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Execute a command and have output sent to another player',
 	),
 	NCA\DefineCommand(
 		command: 'system',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Show detailed information about the bot',
 	),
 	NCA\DefineCommand(
 		command: 'restart',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Restart the bot',
 		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'shutdown',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Shutdown the bot',
 		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'showconfig',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Show a cleaned up version of your current config file',
 		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'upgradeconfig',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Show a version of your current config file upgraded to latest standards',
 		defaultStatus: Status::Enabled
 	),
@@ -408,11 +409,11 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	/** Show which access level you currently have */
 	#[NCA\HandlesCommand('checkaccess')]
 	public function checkaccessSelfCommand(CmdContext $context): void {
-		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($context->char->name));
+		$accessLevel = $this->accessManager->getAccessLevelForCharacter($context->char->name);
 
 		$msg = "Access level for <highlight>{$context->char->name}<end> (".
 			(isset($context->char->id) ? "ID {$context->char->id}" : 'No ID').
-			") is <highlight>{$accessLevel}<end>.";
+			") is <highlight>{$accessLevel->displayName()}<end>.";
 		if (isset($context->char->id)) {
 			if ($this->banController->isOnBanlist($context->char->id)) {
 				if ($this->banController->isBanned($context->char->id)) {
@@ -433,8 +434,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			$context->reply("Character <highlight>{$character}<end> does not exist.");
 			return;
 		}
-		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($character()));
-		$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>{$accessLevel}<end>.";
+		$accessLevel = $this->accessManager->getAccessLevelForCharacter($character());
+		$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>{$accessLevel->displayName()}<end>.";
 		if ($this->banController->isOnBanlist($uid)) {
 			if ($this->banController->isBanned($uid)) {
 				$msg .= " {$character} is <red>banned<end> on this bot.";
@@ -577,7 +578,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	#[
 		Http\Api('/sysinfo'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'SystemInformation', desc: 'Some basic system information')
 	]
 	public function apiSysinfoGetEndpoint(Request $request): Response {

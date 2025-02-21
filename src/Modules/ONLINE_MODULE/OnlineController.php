@@ -6,6 +6,7 @@ use function Safe\preg_match;
 
 use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -60,13 +61,13 @@ use Psr\Log\LoggerInterface;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'online',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows who is online',
 		alias: ['o', 'sm'],
 	),
 	NCA\DefineCommand(
 		command: OnlineController::CMD_MANAGE_HIDDEN,
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Manage hidden characters from the online list',
 	),
 ]
@@ -866,21 +867,20 @@ class OnlineController extends ModuleInstance {
 		}
 
 		$accessLevel = $this->accessManager->getAccessLevelForCharacter($name);
-		$displayName = ucfirst($this->accessManager->getDisplayName($accessLevel));
+		$displayName = $accessLevel->displayNameUC();
 		switch ($accessLevel) {
-			case 'superadmin':
+			case AccessLevel::Superadmin:
 				return " {$fancyColon} {$this->rankColorSuperadmin}{$displayName}<end>";
-			case 'admin':
+			case AccessLevel::Admin:
 				return " {$fancyColon} {$this->rankColorAdmin}{$displayName}<end>";
-			case 'mod':
+			case AccessLevel::Mod:
 				return " {$fancyColon} {$this->rankColorMod}{$displayName}<end>";
-			case 'rl':
+			case AccessLevel::RaidLeader:
 				return " {$fancyColon} {$this->rankColorRL}{$displayName}<end>";
 		}
 		$raidRank = $this->raidRankController->getSingleAccessLevel($name);
 		if (isset($raidRank)) {
-			$displayName = ucfirst($this->accessManager->getDisplayName($raidRank));
-			return " {$fancyColon} {$this->rankColorRaid}{$displayName}<end>";
+			return " {$fancyColon} {$this->rankColorRaid}{$raidRank->displayNameUC()}<end>";
 		}
 		return '';
 	}

@@ -5,6 +5,7 @@ namespace Nadybot\Core\Channels;
 use function Amp\async;
 
 use Nadybot\Core\Modules\DISCORD\{DiscordAllowedMentionType, DiscordAllowedMentions};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -75,9 +76,11 @@ class DiscordMsg implements MessageReceiver {
 		$discordMsg = $this->discordController->formatMessage($message, $guild);
 
 		if (isset($event->char)) {
-			$minRankForMentions = $this->settingManager->getString('discord_relay_mention_rank') ?? 'superadmin';
+			$minRankForMentions = AccessLevel::tryFrom(
+				$this->settingManager->getString('discord_relay_mention_rank') ?? 'xx'
+			) ?? AccessLevel::Superadmin;
 			$sendersRank = $this->accessManager->getAccessLevelForCharacter($event->char->name);
-			if ($this->accessManager->compareAccessLevels($sendersRank, $minRankForMentions) < 0) {
+			if ($sendersRank->lowerThan($minRankForMentions)) {
 				$discordMsg->allowed_mentions = new DiscordAllowedMentions(
 					parse: [DiscordAllowedMentionType::Users],
 				);

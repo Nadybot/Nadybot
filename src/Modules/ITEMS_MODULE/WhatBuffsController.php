@@ -6,7 +6,7 @@ use function Safe\preg_match;
 use Closure;
 use Generator;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\{CarrySlot, EnumBitfield, ItemFlag, Skill, WearSlot};
+use Nadybot\Core\Types\{AccessLevel, CarrySlot, EnumBitfield, ItemFlag, Skill, WearSlot};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -31,12 +31,12 @@ use Nadybot\Modules\SKILLS_MODULE\{
 	NCA\HasMigrations('Migrations/Buff'),
 	NCA\DefineCommand(
 		command: 'whatbuffs',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find items or nanos that buff an ability or skill',
 	),
 	NCA\DefineCommand(
 		command: 'whatbuffsfroob',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find froob-friendly items or nanos that buff an ability or skill',
 		alias: 'wbf'
 	),

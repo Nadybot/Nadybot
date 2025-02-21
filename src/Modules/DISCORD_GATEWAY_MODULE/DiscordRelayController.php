@@ -6,6 +6,7 @@ use Nadybot\Core\Modules\{
 	CONFIG\SettingOption,
 };
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ModuleInstance,
@@ -19,7 +20,8 @@ use Nadybot\Core\{
 class DiscordRelayController extends ModuleInstance {
 	/** Minimum ranks allowed to use @here and @everyone */
 	#[NCA\Setting\Rank]
-	public string $discordRelayMentionRank = 'mod';
+	public AccessLevel $discordRelayMentionRank = AccessLevel::Mod;
+
 	#[NCA\Inject]
 	private DiscordGatewayController $discordGatewayController;
 

@@ -30,6 +30,7 @@ use Nadybot\Core\Modules\DISCORD\{
 	GuildMemberChunk,
 	VoiceState,
 };
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -89,32 +90,32 @@ use Throwable;
 
 	NCA\DefineCommand(
 		command: 'discord',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Check the current Discord connection',
 	),
 	NCA\DefineCommand(
 		command: 'discord connect/disconnect',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Connect or disconnect the bot from Discord',
 	),
 	NCA\DefineCommand(
 		command: 'discord create invite for yourself',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Create a Discord invite link',
 	),
 	NCA\DefineCommand(
 		command: 'discord see invites',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'See all invites on all Discord servers',
 	),
 	NCA\DefineCommand(
 		command: 'discord leave server',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Let the bot leave a Discord server',
 	),
 	NCA\DefineCommand(
 		command: 'discord show events',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Show the scheduled Discord events',
 	),
 ]

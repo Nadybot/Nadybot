@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Support\Collection;
 
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -38,7 +39,7 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'findorg',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find orgs by name',
 	)
 ]

@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use function Safe\preg_match;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\CmdAlias,
@@ -69,7 +70,7 @@ class CommandAlias {
 		$this->logger->info('Activating {alias}', ['alias' => $entry]);
 
 		foreach ($this->commandManager->getPermissionSets() as $set) {
-			$this->commandManager->activate($set->name, self::ALIAS_HANDLER, $alias, 'all');
+			$this->commandManager->activate($set->name, self::ALIAS_HANDLER, $alias, AccessLevel::All);
 		}
 	}
 

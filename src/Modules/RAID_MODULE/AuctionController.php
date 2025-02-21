@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use InvalidArgumentException;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -37,17 +38,17 @@ use Safe\DateTimeImmutable;
 	NCA\DefineCommand(
 		command: 'bid',
 		alias: 'auction',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Bid points for an auctioned item',
 	),
 	NCA\DefineCommand(
 		command: AuctionController::CMD_BID_AUCTION,
-		accessLevel: 'raid_leader_1',
+		accessLevel: AccessLevel::RaidLeader1,
 		description: 'Manage auctions',
 	),
 	NCA\DefineCommand(
 		command: AuctionController::CMD_BID_REIMBURSE,
-		accessLevel: 'raid_leader_1',
+		accessLevel: AccessLevel::RaidLeader1,
 		description: 'Give back points for an auction',
 	),
 
@@ -64,15 +65,15 @@ class AuctionController extends ModuleInstance {
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
 
 	/** Allow auctions only for people in the raid */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $auctionsOnlyForRaid = false;
 
 	/** Show the name of the top bidder during the auction */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $auctionsShowMaxBidder = true;
 
 	/** Show the names of the rival bidders */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $auctionsShowRivalBidders = false;
 
 	/** Duration for auctions */

@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RECIPE_MODULE;
 
 use Exception;
-use Nadybot\Core\Types\{ItemFlag, Skill};
+use Nadybot\Core\Types\{AccessLevel, ItemFlag, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -26,7 +26,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	NCA\HasMigrations('Migrations/ArulSaba'),
 	NCA\DefineCommand(
 		command: 'arulsaba',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Get recipe for Arul Saba bracers',
 		alias: 'aruls'
 	)

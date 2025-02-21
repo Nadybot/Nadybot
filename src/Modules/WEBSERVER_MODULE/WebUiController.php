@@ -11,6 +11,7 @@ use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\{CancelledException, TimeoutCancellation};
 use ErrorException;
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -29,7 +30,7 @@ use ZipArchive;
 #[
 	NCA\DefineCommand(
 		command: 'webui',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Install or upgrade the NadyUI',
 	),
 	NCA\Instance,

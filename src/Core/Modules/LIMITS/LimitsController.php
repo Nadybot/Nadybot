@@ -12,6 +12,7 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistoryManager,
 	PlayerManager,
 };
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -103,7 +104,8 @@ class LimitsController extends ModuleInstance {
 	public int $limitsIgnoreDuration = 300;
 
 	/** Rate limit: Ignore rate limit for everyone of this rank or higher */
-	#[NCA\Setting\Rank] public string $limitsExemptRank = 'mod';
+	#[NCA\Setting\Rank]
+	public AccessLevel $limitsExemptRank = AccessLevel::Mod;
 
 	/** @var array<string,list<int>> */
 	public array $limitBucket = [];
@@ -160,7 +162,7 @@ class LimitsController extends ModuleInstance {
 			$this->commandIgnoresLimits($message)
 			|| $this->rateIgnoreController->check($sender)
 			// if access level is at least member, skip checks
-			|| $this->accessManager->checkAccess($sender, 'member')
+			|| $this->accessManager->checkAccess($sender, AccessLevel::Member)
 		) {
 			return;
 		}
@@ -217,9 +219,8 @@ class LimitsController extends ModuleInstance {
 
 	/** Check if $sender has executed more commands per time frame than allowed */
 	public function isOverLimit(string $sender): bool {
-		$exemptRank = $this->limitsExemptRank;
 		$sendersRank = $this->accessManager->getAccessLevelForCharacter($sender);
-		if ($this->accessManager->compareAccessLevels($sendersRank, $exemptRank) >= 0) {
+		if ($sendersRank->atLeast($this->limitsExemptRank)) {
 			return false;
 		}
 		if ($this->rateIgnoreController->check($sender)) {

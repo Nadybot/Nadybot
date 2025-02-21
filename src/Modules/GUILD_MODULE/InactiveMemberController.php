@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -21,7 +22,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'inactivemem',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Check for inactive members',
 	)
 ]

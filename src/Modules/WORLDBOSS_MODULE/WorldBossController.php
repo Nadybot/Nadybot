@@ -6,6 +6,7 @@ use function Amp\delay;
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DateTimeZone;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -41,67 +42,67 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'wb',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show next spawntime(s)',
 	),
 	NCA\DefineCommand(
 		command: 'tara',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show next Tarasque spawntime(s)',
 	),
 	NCA\DefineCommand(
 		command: WorldBossController::CMD_TARA_UPDATE,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Update, set or delete Tarasque killtimer',
 	),
 	NCA\DefineCommand(
 		command: 'reaper',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show next Reaper spawntime(s)',
 	),
 	NCA\DefineCommand(
 		command: WorldBossController::CMD_REAPER_UPDATE,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Update, set or delete Reaper killtimer',
 	),
 	NCA\DefineCommand(
 		command: 'loren',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show next Loren Warr spawntime(s)',
 	),
 	NCA\DefineCommand(
 		command: WorldBossController::CMD_LOREN_UPDATE,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Update, set or delete Loren Warr killtimer',
 	),
 	NCA\DefineCommand(
 		command: 'gauntlet',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'shows timer of Gauntlet',
 	),
 	NCA\DefineCommand(
 		command: WorldBossController::CMD_GAUNTLET_UPDATE,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Update or set Gaunlet timer',
 	),
 	NCA\DefineCommand(
 		command: 'father',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'shows timer of Father Time',
 	),
 	NCA\DefineCommand(
 		command: WorldBossController::CMD_FATHER_UPDATE,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Update or set Father Time timer',
 	),
 	NCA\DefineCommand(
 		command: 'updatewb',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: '(re)-fetch current worldboss-timers from the API',
 	),
 	NCA\DefineCommand(
 		command: 'wbdebug',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Show low-level information about WorldBoss-timers',
 	),
 ]

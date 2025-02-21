@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Types\MinMax;
+use Nadybot\Core\Types\{AccessLevel, MinMax};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -20,7 +20,7 @@ use ValueError;
 	NCA\HasMigrations('Migrations/Base'),
 	NCA\DefineCommand(
 		command: 'ladder',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show sequence of laddering implants for maximum ability or treatment',
 	)
 ]

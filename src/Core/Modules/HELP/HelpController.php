@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\HELP;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -28,13 +29,13 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'help',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Show help topics',
 		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'adminhelp',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Show admin help topics',
 		defaultStatus: Status::Enabled
 	),

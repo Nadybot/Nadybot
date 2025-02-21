@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\PVP_MODULE;
 
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -34,7 +35,7 @@ use Throwable;
 		command: 'nw track',
 		alias: 'towertrack',
 		description: 'Track tower sites',
-		accessLevel: 'member'
+		accessLevel: AccessLevel::Member,
 	),
 ]
 class SiteTrackerController extends ModuleInstance {

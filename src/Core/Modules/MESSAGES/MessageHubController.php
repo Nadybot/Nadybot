@@ -8,7 +8,7 @@ use function Safe\{json_encode, preg_match};
 use Exception;
 use Illuminate\Support\Collection;
 use Monolog\Logger;
-use Nadybot\Core\Types\ParamType;
+use Nadybot\Core\Types\{AccessLevel, ParamType};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\DurationStr,
@@ -54,7 +54,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'route',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Set which message are routed from where to where',
 		defaultStatus: Status::Enabled
 	)

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\LOOT_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\NoSpace,
@@ -41,44 +42,44 @@ use Nadybot\Modules\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'loot',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show the loot list',
 		alias: 'list',
 	),
 	NCA\DefineCommand(
 		command: LootController::CMD_LOOT_MANAGE,
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Modify the loot list',
 	),
 	NCA\DefineCommand(
 		command: 'mloot',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Put multiple items on the loot list',
 	),
 	NCA\DefineCommand(
 		command: 'reroll',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Reroll the residual loot list',
 	),
 	NCA\DefineCommand(
 		command: 'flatroll',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Roll the loot list',
 		alias: ['rollloot', 'result', 'win'],
 	),
 	NCA\DefineCommand(
 		command: 'add',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Add yourself to a roll slot',
 	),
 	NCA\DefineCommand(
 		command: 'rem',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Remove yourself from a roll slot',
 	),
 	NCA\DefineCommand(
 		command: 'ffa',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Declare the remaining loot FFA',
 	),
 ]

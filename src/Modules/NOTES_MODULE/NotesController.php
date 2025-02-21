@@ -4,6 +4,7 @@ namespace Nadybot\Modules\NOTES_MODULE;
 
 use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\ParamClass\PUuid;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter as Par,
@@ -31,19 +32,19 @@ use Psr\Log\LoggerInterface;
 	NCA\HasMigrations('Migrations/Notes'),
 	NCA\DefineCommand(
 		command: 'notes',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Displays, adds, or removes a note from your list',
 		alias: 'note'
 	),
 	NCA\DefineCommand(
 		command: 'reminders',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Displays, adds, or removes a reminder from your list',
 		alias: 'reminder'
 	),
 	NCA\DefineCommand(
 		command: 'reminderformat',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Displays or changes the reminder format for oneself',
 	),
 ]

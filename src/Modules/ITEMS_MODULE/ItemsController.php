@@ -7,6 +7,7 @@ use function Safe\preg_split;
 use BackedEnum;
 use Illuminate\Support\Collection;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -25,18 +26,18 @@ use Psr\Log\LoggerInterface;
 	NCA\HasMigrations('Migrations/Items'),
 	NCA\DefineCommand(
 		command: 'items',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Searches for an item using the default items db',
 		alias: 'i'
 	),
 	NCA\DefineCommand(
 		command: 'itemid',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Searches for an item by id',
 	),
 	NCA\DefineCommand(
 		command: 'id',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Searches for an itemid by name',
 	),
 ]

@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Attributes\Http,
 	DB,
 	ModuleInstance,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
@@ -63,7 +64,7 @@ class Preferences extends ModuleInstance {
 	#[
 		Http\Api('/setting/%s'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'string', desc: 'The stored value'),
 		Http\ApiResult(code: 204, desc: 'No value stored')
 	]
@@ -84,7 +85,7 @@ class Preferences extends ModuleInstance {
 	#[
 		Http\Api('/setting/%s'),
 		Http\POST,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 201, desc: 'The new setting was stored successfully'),
 		Http\ApiResult(code: 409, desc: 'There is already a setting stored'),
 		Http\ApiResult(code: 415, desc: 'You tried to pass more than just a simple string'),
@@ -120,7 +121,7 @@ class Preferences extends ModuleInstance {
 	#[
 		Http\Api('/setting/%s'),
 		Http\PUT,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 204, desc: 'The new setting was stored successfully'),
 		Http\ApiResult(code: 415, desc: 'You tried to pass more than just a simple string'),
 		Http\RequestBody(class: 'string', desc: 'The data you want to store', required: true)
@@ -147,7 +148,7 @@ class Preferences extends ModuleInstance {
 	#[
 		Http\Api('/setting/%s'),
 		Http\DELETE,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 204, desc: 'The new setting was deleted successfully'),
 		Http\ApiResult(code: 409, desc: 'No setting found for that key')
 	]

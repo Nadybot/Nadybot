@@ -7,6 +7,7 @@ use function Safe\{preg_split, strtotime};
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -18,7 +19,6 @@ use Nadybot\Core\{
 	Safe,
 	Text,
 };
-
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
 };
@@ -29,13 +29,13 @@ use Safe\Exceptions\DatetimeException;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'audit',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'View security audit logs',
 	),
 ]
 class AuditController extends ModuleInstance {
 	/** Log all security-relevant data */
-	#[NCA\Setting\Boolean(accessLevel: 'superadmin')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::Superadmin)]
 	public bool $auditEnabled = false;
 
 	#[NCA\Inject]
@@ -112,7 +112,7 @@ class AuditController extends ModuleInstance {
 		Http\QueryParam(name: 'action', desc: 'Show only entries with this action'),
 		Http\QueryParam(name: 'before', desc: 'Show only entries from before the given timestamp', type: 'integer'),
 		Http\QueryParam(name: 'after', desc: 'Show only entries from after the given timestamp', type: 'integer'),
-		Http\AccessLevel('mod'),
+		Http\AccessLevel(AccessLevel::Mod),
 		Http\ApiTag('audit'),
 		Http\ApiResult(code: 200, class: 'Audit[]', desc: 'The audit log entries')
 	]

@@ -6,6 +6,7 @@ use function Safe\preg_split;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\DISCORD\{ApplicationCommand, ApplicationCommandOption, DiscordException};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -41,7 +42,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'discord slash-commands',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Manage the exposed Discord slash-commands',
 	),
 ]

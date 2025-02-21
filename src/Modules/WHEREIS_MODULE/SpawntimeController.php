@@ -4,6 +4,7 @@ namespace Nadybot\Modules\WHEREIS_MODULE;
 
 use DateTimeZone;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -23,7 +24,7 @@ use Safe\DateTimeImmutable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'spawntime',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show (re)spawntimers',
 		alias: 'spawn',
 	)

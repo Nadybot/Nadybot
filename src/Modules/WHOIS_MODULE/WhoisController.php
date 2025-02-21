@@ -8,6 +8,7 @@ use function Amp\Future\await;
 use AO\Package;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DB\DBType;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	AuditAction,
@@ -42,13 +43,13 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'whois',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show character info, online status, and name history',
 		alias: ['w', 'is'],
 	),
 	NCA\DefineCommand(
 		command: 'lookup',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find the charId for a character',
 	)
 ]

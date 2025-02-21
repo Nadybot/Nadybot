@@ -10,6 +10,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\{HandlesCommand, HandlesEvent};
 use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\Routing\{RoutableMessage, Source};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{Attributes as NCA, CmdContext, Hydrator, MessageHub, ModuleInstance, Safe, Text, Util};
 use Nadybot\Modules\WHEREIS_MODULE\{Whereis, WhereisController};
 use Psr\Log\LoggerInterface;
@@ -23,45 +24,45 @@ use Safe\Exceptions\JsonException;
 		command: 'prisoners',
 		alias: ['pris'],
 		description: 'Get the status of all prisoners',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'hags',
 		description: 'Get the status of all Biodome hags',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'dreads',
 		description: 'Get the status of all Dreadlochs bosses',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'ljotur',
 		description: 'Get the status of Ljotur the Lunatic',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'otacustes',
 		alias: ['ota'],
 		description: 'Get the status of Otacustes',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'jack',
 		alias: ['legchopper'],
 		description: 'Get the status of Jack "Leg-chopper" Menendez and his clones',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'reck',
 		description: 'Get the status of mobs in The Reck',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'hollowisland',
 		alias: ['hollow', 'hi'],
 		description: 'Get the status of Hollow Island',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 ]
 class MobController extends ModuleInstance {

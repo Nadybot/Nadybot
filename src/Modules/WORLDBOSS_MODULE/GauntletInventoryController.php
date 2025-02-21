@@ -4,6 +4,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use function Safe\{json_decode, json_encode};
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -22,7 +23,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'gaulist',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Manage the stuff you got and need from the Gauntlet',
 	)
 ]

@@ -6,6 +6,7 @@ use function Safe\preg_split;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -52,7 +53,7 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'track',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Show and manage tracked players',
 	),
 ]
@@ -267,7 +268,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesEvent]
 	public function trackTowerAttacks(TowerAttackEvent $eventObj): void {
 		$attacker = $eventObj->attack->attacker;
-		if ($this->accessManager->checkAccess($attacker->name, 'member')) {
+		if ($this->accessManager->checkAccess($attacker->name, AccessLevel::Member)) {
 			// Don't add members of the bot to the tracker
 			return;
 		}
@@ -289,7 +290,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				'guild',
 				$defGuild
 			)->contains(function (Player $player): bool {
-				return $this->accessManager->getAccessLevelForCharacter($player->name) !== 'all';
+				return $this->accessManager->getAccessLevelForCharacter($player->name) !== AccessLevel::All;
 			});
 
 			if (!$isOurGuild) {

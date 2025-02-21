@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -23,17 +24,17 @@ use Nadybot\Modules\GUILD_MODULE\GuildController;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'say',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Sends message to org chat or private chat',
 	),
 	NCA\DefineCommand(
 		command: 'tell',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Repeats a message 3 times',
 	),
 	NCA\DefineCommand(
 		command: 'cmd',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Creates a highly visible message',
 	),
 ]

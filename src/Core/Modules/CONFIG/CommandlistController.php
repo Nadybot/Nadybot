@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -17,7 +18,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'cmdlist',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows a list of all commands on the bot',
 		defaultStatus: Status::Enabled,
 	)
@@ -47,7 +48,7 @@ class CommandlistController extends ModuleInstance {
 			return;
 		}
 		$sets = $this->commandManager->getPermissionSets();
-		$isMod = $this->accessManager->checkAccess($context->char->name, 'moderator');
+		$isMod = $this->accessManager->checkAccess($context->char->name, AccessLevel::Mod);
 		$lines = [];
 		foreach ($cmds as $cmd) {
 			$perms = collect($cmd->permissions);

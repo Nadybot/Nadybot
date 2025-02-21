@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Channels;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -48,9 +49,13 @@ class PrivateMessage extends AbstractChannel {
 			return false;
 		}
 		$messages = (array)Blob::create($eventMessage)->render();
+		$groupAL = AccessLevel::tryFrom($group);
+		if (!isset($groupAL)) {
+			return false;
+		}
 		foreach ($messages as $message) {
 			foreach ($this->buddyListManager->getOnline() as $buddy) {
-				if (!$this->accessManager->checkAccess($buddy, $group)) {
+				if (!$this->accessManager->checkAccess($buddy, $groupAL)) {
 					continue;
 				}
 				$this->chatBot->sendRawTell(character: $buddy, message: $message);

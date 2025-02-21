@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -18,7 +19,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'findplayer',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find a player by name',
 	)
 ]

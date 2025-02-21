@@ -4,6 +4,7 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltInfo;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -54,37 +55,37 @@ use Throwable;
 	NCA\HasMigrations('Migrations/Base'),
 	NCA\DefineCommand(
 		command: 'logon',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Set logon message',
 	),
 	NCA\DefineCommand(
 		command: 'logoff',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Set logoff message',
 	),
 	NCA\DefineCommand(
 		command: 'lastseen',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows the last logoff time of a character',
 	),
 	NCA\DefineCommand(
 		command: 'recentseen',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows org members who have logged off recently',
 	),
 	NCA\DefineCommand(
 		command: 'notify',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Adds a character to the notify list manually',
 	),
 	NCA\DefineCommand(
 		command: 'updateorg',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Force an update of the org roster',
 	),
 	NCA\DefineCommand(
 		command: 'orgstats',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Get statistics about the organization',
 	),
 ]
@@ -793,18 +794,18 @@ class GuildController extends ModuleInstance {
 			'c-admin-level' => null,
 		];
 		$alRank = $this->accessManager->getAccessLevelForCharacter($player);
-		$alName = ucfirst($this->accessManager->getDisplayName($alRank));
+		$alName = $alRank->displayName();
 		$colors = $this->onlineController;
 		switch ($alRank) {
-			case 'superadmin':
+			case AccessLevel::Superadmin:
 				$tokens['admin-level'] = $alName;
 				$tokens['c-admin-level'] = "{$colors->rankColorSuperadmin}{$alName}<end>";
 				break;
-			case 'admin':
+			case AccessLevel::Admin:
 				$tokens['admin-level'] = $alName;
 				$tokens['c-admin-level'] = "{$colors->rankColorAdmin}{$alName}<end>";
 				break;
-			case 'mod':
+			case AccessLevel::Mod:
 				$tokens['admin-level'] = $alName;
 				$tokens['c-admin-level'] = "{$colors->rankColorMod}{$alName}<end>";
 				break;

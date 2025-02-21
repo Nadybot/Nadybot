@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\ADMIN;
 
 use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -32,20 +33,20 @@ use Psr\Log\LoggerInterface;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'adminlist',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Shows the list of administrators and moderators',
 		defaultStatus: Status::Enabled,
 		alias: 'admins'
 	),
 	NCA\DefineCommand(
 		command: 'admin',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Add or remove an administrator',
 		defaultStatus: Status::Enabled,
 	),
 	NCA\DefineCommand(
 		command: 'mod',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Add or remove a moderator',
 		defaultStatus: Status::Enabled,
 	)
@@ -97,7 +98,7 @@ class AdminController extends ModuleInstance {
 		PCharacter $who
 	): void {
 		$intlevel = 4;
-		$rankName = $this->accessManager->getDisplayName('admin');
+		$rankName = AccessLevel::Admin->displayName();
 		$rank = $this->addArticle($rankName);
 
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
@@ -112,7 +113,7 @@ class AdminController extends ModuleInstance {
 		PCharacter $who
 	): void {
 		$intlevel = 3;
-		$rankName = $this->accessManager->getDisplayName('mod');
+		$rankName = AccessLevel::Mod->displayName();
 		$rank = $this->addArticle($rankName);
 
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
@@ -123,7 +124,7 @@ class AdminController extends ModuleInstance {
 	#[NCA\Help\Group('ranks')]
 	public function adminRemoveCommand(CmdContext $context, #[Remove] string $rem, PCharacter $who): void {
 		$intlevel = 4;
-		$rankName = $this->accessManager->getDisplayName('admin');
+		$rankName = AccessLevel::Admin->displayName();
 		$rank = $this->addArticle($rankName);
 
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
@@ -134,7 +135,7 @@ class AdminController extends ModuleInstance {
 	#[NCA\Help\Group('ranks')]
 	public function modRemoveCommand(CmdContext $context, #[Remove] string $rem, PCharacter $who): void {
 		$intlevel = 3;
-		$rankName = $this->accessManager->getDisplayName('mod');
+		$rankName = AccessLevel::Admin->displayName();
 		$rank = $this->addArticle($rankName);
 
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
@@ -163,7 +164,7 @@ class AdminController extends ModuleInstance {
 			if ($who === '') {
 				continue;
 			}
-			$isSuperAdmin = $this->accessManager->checkAccess($who, 'superadmin');
+			$isSuperAdmin = $this->accessManager->checkAccess($who, AccessLevel::Superadmin);
 			if ($isSuperAdmin && !$showSuperAdmins) {
 				continue;
 			}
@@ -185,19 +186,19 @@ class AdminController extends ModuleInstance {
 		}
 		if (count($superadmins)) {
 			$blobs []= '<header2>'.
-				ucfirst($this->accessManager->getDisplayName('superadmin')).
+				ucfirst(AccessLevel::Superadmin->displayName()).
 				"s<end>\n".
 				implode('', $superadmins);
 		}
 		if (count($admins)) {
 			$blobs []= '<header2>'.
-				ucfirst($this->accessManager->getDisplayName('admin')).
+				ucfirst(AccessLevel::Admin->displayName()).
 				"s<end>\n".
 				implode('', $admins);
 		}
 		if (count($mods)) {
 			$blobs []= '<header2>'.
-				ucfirst($this->accessManager->getDisplayName('mod')).
+				ucfirst(AccessLevel::Mod->displayName()).
 				"s<end>\n".
 				implode('', $mods);
 		}
@@ -273,7 +274,7 @@ class AdminController extends ModuleInstance {
 	public function checkAccessLevel(string $actor, string $actee): bool {
 		$senderAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
 		$whoAccessLevel = $this->accessManager->getSingleAccessLevel($actee);
-		return $this->accessManager->compareAccessLevels($whoAccessLevel, $senderAccessLevel) < 0;
+		return $whoAccessLevel->lowerThan($senderAccessLevel);
 	}
 
 	/** Move admin rank to new main */

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -19,7 +20,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'orgmembers',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Show guild members sorted by name',
 	)
 ]

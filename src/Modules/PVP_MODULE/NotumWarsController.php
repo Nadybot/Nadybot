@@ -9,6 +9,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -67,42 +68,42 @@ use Throwable;
 	NCA\DefineCommand(
 		command: 'nw',
 		description: 'Perform Notum Wars commands',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'nw hot',
 		alias: 'hot',
 		description: 'Show sites which are hot',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'nw free',
 		alias: 'unplanted',
 		description: 'Show all unplanted sites',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'nw sites',
 		alias: 'sites',
 		description: 'Show all sites of an org',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'nw timer',
 		description: 'Start a plant timer for a site',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'nw towerqty',
 		alias: 'towerqty',
 		description: 'Show how many towers each level is allowed to plant',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'nw types',
 		alias: 'towertype',
 		description: 'Show the level ranges for tower types',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 ]
 /*#[

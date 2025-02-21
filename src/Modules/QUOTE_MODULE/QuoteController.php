@@ -5,6 +5,7 @@ namespace Nadybot\Modules\QUOTE_MODULE;
 use function Safe\preg_split;
 
 use Nadybot\Core\ParamClass\PUuid;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -26,7 +27,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'quote',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Add/Remove/View Quotes',
 	)
 ]
@@ -97,7 +98,7 @@ class QuoteController extends ModuleInstance {
 
 		// only author or admin can delete.
 		if (($poster === $context->char->name)
-			|| $this->accessManager->checkAccess($context->char->name, 'moderator')
+			|| $this->accessManager->checkAccess($context->char->name, AccessLevel::Mod)
 		) {
 			$this->db->table(Quote::getTable())->delete($id);
 			$msg = 'This quote has been deleted.';

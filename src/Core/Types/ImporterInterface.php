@@ -13,8 +13,8 @@ interface ImporterInterface {
 	/**
 	 * Import the exported data back into the system
 	 *
-	 * @param list<object>         $data    The data to import, already proper classes
-	 * @param array<string,string> $rankMap A mapping of import rank to bot rank
+	 * @param list<object>              $data    The data to import, already proper classes
+	 * @param array<string,AccessLevel> $rankMap A mapping of import rank to bot rank
 	 */
 	public function import(DB $db, LoggerInterface $logger, array $data, array $rankMap): void;
 }

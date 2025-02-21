@@ -2,12 +2,12 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Types\Status;
+use Nadybot\Core\Types\{AccessLevel, Status};
 
 class CmdDef {
 	public function __construct(
 		public string $description,
-		public string $accessLevel='mod',
+		public AccessLevel $accessLevel=AccessLevel::Mod,
 		public ?Status $defaultStatus=null,
 		public ?string $help=null,
 		/** @var list<string> */

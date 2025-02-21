@@ -7,7 +7,7 @@ use Amp\File\FilesystemException;
 use AO\Client\{SingleClient, WorkerPackage};
 use AO\Package;
 use Exception;
-use Nadybot\Core\Types\Faction;
+use Nadybot\Core\Types\{AccessLevel, Faction};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -41,12 +41,12 @@ use Psr\Log\LoggerInterface;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'test',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Test the bot commands',
 	),
 	NCA\DefineCommand(
 		command: 'msginfo',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show number of characters in response and the time it took to process',
 	),
 ]

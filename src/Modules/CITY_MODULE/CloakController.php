@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -33,7 +34,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'cloak',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Show the status of the city cloak',
 		alias: 'city'
 	),

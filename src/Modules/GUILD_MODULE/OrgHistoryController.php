@@ -5,6 +5,7 @@ namespace Nadybot\Modules\GUILD_MODULE;
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\Events\OrgMsgChannelMsgEvent;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -26,7 +27,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 	NCA\HasMigrations('Migrations/History'),
 	NCA\DefineCommand(
 		command: 'orghistory',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows the org history (invites and kicks and leaves) for a character',
 	)
 ]
@@ -137,7 +138,7 @@ class OrgHistoryController extends ModuleInstance {
 		Http\QueryParam(name: 'action', desc: 'Show only entries with this action'),
 		Http\QueryParam(name: 'before', desc: 'Show only entries from before the given timestamp', type: 'integer'),
 		Http\QueryParam(name: 'after', desc: 'Show only entries from after the given timestamp', type: 'integer'),
-		Http\AccessLevel('mod'),
+		Http\AccessLevel(AccessLevel::Mod),
 		Http\ApiTag('audit'),
 		Http\ApiResult(code: 200, class: 'OrgHistory[]', desc: 'The org history log entries')
 	]

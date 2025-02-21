@@ -4,7 +4,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
-use Nadybot\Core\Types\HopColorType;
+use Nadybot\Core\Types\{AccessLevel, HopColorType};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -50,7 +50,7 @@ class WebchatApiController extends ModuleInstance {
 	#[
 		Http\Api('/chat/web'),
 		Http\POST,
-		Http\AccessLevel('member'),
+		Http\AccessLevel(AccessLevel::Member),
 		Http\RequestBody(class: 'string', desc: 'The text to send', required: true),
 		Http\ApiResult(code: 204, desc: 'Message sent')
 	]

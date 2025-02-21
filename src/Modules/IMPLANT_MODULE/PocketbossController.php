@@ -4,6 +4,7 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -23,13 +24,13 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 	NCA\HasMigrations('Migrations/Pocketboss'),
 	NCA\DefineCommand(
 		command: 'pocketboss',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows what symbiants a pocketboss drops',
 		alias: 'pb'
 	),
 	NCA\DefineCommand(
 		command: 'symbiant',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows which pocketbosses drop a symbiant',
 		alias: 'symb'
 	)

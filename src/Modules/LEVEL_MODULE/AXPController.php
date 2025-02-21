@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\LEVEL_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -16,7 +17,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'axp',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show axp needed for specified level(s)',
 	)
 ]

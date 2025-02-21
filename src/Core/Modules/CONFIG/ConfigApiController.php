@@ -9,6 +9,7 @@ use Amp\Http\Server\{Request, Response};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -67,7 +68,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/module'),
 		Http\GET,
-		Http\AccessLevel('mod'),
+		Http\AccessLevel(AccessLevel::Mod),
 		Http\ApiResult(code: 200, class: 'ConfigModule[]', desc: 'A list of modules to configure')
 	]
 	public function moduleGetEndpoint(Request $request): Response {
@@ -85,7 +86,7 @@ class ConfigApiController extends ModuleInstance {
 		Http\Api('/module/%s/events/%s/%s'),
 		Http\PATCH,
 		Http\PUT,
-		Http\AccessLevel('mod'),
+		Http\AccessLevel(AccessLevel::Mod),
 		Http\RequestBody(class: 'Operation', desc: 'Either "enable" or "disable"', required: true),
 		Http\ApiResult(code: 204, desc: 'operation applied successfully'),
 		Http\ApiResult(code: 402, desc: 'Wrong or no operation given'),
@@ -129,7 +130,7 @@ class ConfigApiController extends ModuleInstance {
 		Http\Api('/module/%s/settings/%s'),
 		Http\PATCH,
 		Http\PUT,
-		Http\AccessLevel('mod'),
+		Http\AccessLevel(AccessLevel::Mod),
 		Http\RequestBody(class: 'string|bool|int', desc: 'New value for the setting', required: true),
 		Http\ApiResult(code: 204, desc: 'operation applied successfully'),
 		Http\ApiResult(code: 404, desc: 'Wrong module or setting'),
@@ -216,7 +217,7 @@ class ConfigApiController extends ModuleInstance {
 		Http\Api('/module/%s/commands/%s/%s'),
 		Http\PATCH,
 		Http\PUT,
-		Http\AccessLevel('mod'),
+		Http\AccessLevel(AccessLevel::Mod),
 		Http\RequestBody(class: 'ModuleSubcommandChannel', desc: 'Parameters to change', required: true),
 		Http\ApiResult(code: 200, class: 'ModuleCommand', desc: 'operation applied successfully'),
 		Http\ApiResult(code: 422, desc: 'Wrong or no operation given')
@@ -232,9 +233,9 @@ class ConfigApiController extends ModuleInstance {
 			$parsed++;
 			try {
 				if ($subCmd) {
-					$result += (int)($this->configController->changeSubcommandAL($user??'_', $command, $channel, $body->access_level) === 1);
+					$result += (int)($this->configController->changeSubcommandAL($user??'_', $command, $channel, AccessLevel::fromName($body->access_level)) === 1);
 				} else {
-					$result += (int)($this->configController->changeCommandAL($user??'_', $command, $channel, $body->access_level) === 1);
+					$result += (int)($this->configController->changeCommandAL($user??'_', $command, $channel, AccessLevel::fromName($body->access_level)) === 1);
 				}
 			} catch (Exception $e) {
 				$exception = $e;
@@ -276,7 +277,7 @@ class ConfigApiController extends ModuleInstance {
 		Http\Api('/module/%s/commands/%s'),
 		Http\PATCH,
 		Http\PUT,
-		Http\AccessLevel('mod'),
+		Http\AccessLevel(AccessLevel::Mod),
 		Http\RequestBody(class: 'Operation', desc: 'Either "enable" or "disable"', required: true),
 		Http\ApiResult(code: 200, desc: 'operation applied successfully'),
 		Http\ApiResult(code: 402, desc: 'Wrong or no operation given')
@@ -318,7 +319,7 @@ class ConfigApiController extends ModuleInstance {
 		Http\Api('/module/%s'),
 		Http\PATCH,
 		Http\PUT,
-		Http\AccessLevel('mod'),
+		Http\AccessLevel(AccessLevel::Mod),
 		Http\RequestBody(class: 'Operation', desc: 'Either "enable" or "disable"', required: true),
 		Http\QueryParam(name: 'channel', desc: 'Either "msg", "priv", "guild" or "all"'),
 		Http\ApiResult(code: 204, desc: 'operation applied successfully'),
@@ -353,7 +354,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/module/%s/description'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'string', desc: 'A description of the module'),
 		Http\ApiResult(code: 204, desc: 'No description set')
 	]
@@ -373,7 +374,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/module/%s/settings'),
 		Http\GET,
-		Http\AccessLevel('mod'),
+		Http\AccessLevel(AccessLevel::Mod),
 		Http\ApiResult(code: 200, class: 'ModuleSetting[]', desc: 'A list of all settings for this module')
 	]
 	public function apiConfigSettingsGetEndpoint(Request $request, string $module): Response {
@@ -413,7 +414,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/module/%s/events'),
 		Http\GET,
-		Http\AccessLevel('mod'),
+		Http\AccessLevel(AccessLevel::Mod),
 		Http\ApiResult(code: 200, class: 'ModuleEventConfig[]', desc: 'A list of all events and their status for this module')
 	]
 	public function apiConfigEventsGetEndpoint(Request $request, string $module): Response {
@@ -435,7 +436,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/module/%s/commands'),
 		Http\GET,
-		Http\AccessLevel('mod'),
+		Http\AccessLevel(AccessLevel::Mod),
 		Http\ApiResult(code: 200, class: 'ModuleCommand[]', desc: 'A list of all command and possible subcommands this module provides')
 	]
 	public function apiConfigCommandsGetEndpoint(Request $request, string $module): Response {
@@ -457,7 +458,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/access_levels'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'ModuleAccessLevel[]', desc: 'A list of all access levels')
 	]
 	public function apiConfigAccessLevelsGetEndpoint(Request $request): Response {
@@ -468,7 +469,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/permission_set'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'ExtCmdPermissionSet[]', desc: 'A list of permission sets')
 	]
 	public function apiConfigPermissionSetGetEndpoint(Request $request): Response {
@@ -483,7 +484,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/permission_set/%s'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'ExtCmdPermissionSet', desc: 'A permission set')
 	]
 	public function apiConfigPermissionSetGetByNameEndpoint(Request $request, string $name): Response {
@@ -499,7 +500,7 @@ class ConfigApiController extends ModuleInstance {
 		Http\Api('/permission_set'),
 		Http\POST,
 		Http\RequestBody(class: 'CmdPermissionSet', desc: 'The new permission set', required: true),
-		Http\AccessLevel('superadmin'),
+		Http\AccessLevel(AccessLevel::Superadmin),
 		Http\ApiResult(code: 204, desc: 'Permission Set created successfully')
 	]
 	public function apiConfigPermissionSetCreateEndpoint(Request $request): Response {
@@ -535,7 +536,7 @@ class ConfigApiController extends ModuleInstance {
 		Http\Api('/permission_set/%s'),
 		Http\PATCH,
 		Http\RequestBody(class: 'CmdPermissionSet', desc: 'The new permission set data', required: true),
-		Http\AccessLevel('superadmin'),
+		Http\AccessLevel(AccessLevel::Superadmin),
 		Http\ApiResult(code: 204, class: 'ExtCmdPermissionSet', desc: 'Permission Set changed successfully')
 	]
 	public function apiConfigPermissionSetPatchEndpoint(Request $request, string $name): Response {
@@ -571,7 +572,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/cmd_source'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'CmdSource[]', desc: 'A list of command sources and their mappings')
 	]
 	public function apiConfigCmdSrcGetEndpoint(Request $request): Response {
@@ -594,7 +595,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/cmd_source/%s'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'CmdSource', desc: 'The command source and its mappings')
 	]
 	public function apiConfigCmdSrcDetailGetEndpoint(Request $request, string $source): Response {
@@ -614,7 +615,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/cmd_source/%s/mappings'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'CmdSourceMapping[]', desc: "The command source's mappings")
 	]
 	public function apiConfigCmdSrcMappingsGetEndpoint(Request $request, string $source): Response {
@@ -634,7 +635,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/cmd_source/%s/mappings/%s'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'CmdSourceMapping', desc: "The command's sub-source mapping")
 	]
 	public function apiConfigCmdSrcSubMappingGetEndpoint(Request $request, string $source, string $subSource): Response {
@@ -659,7 +660,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/cmd_source/%s/mappings/%s'),
 		Http\DELETE,
-		Http\AccessLevel('superadmin'),
+		Http\AccessLevel(AccessLevel::Superadmin),
 		Http\ApiResult(code: 204, desc: 'The sub-source mapping was deleted successfully')
 	]
 	public function apiConfigCmdSrcSubMappingDeleteEndpoint(Request $request, string $source, string $subSource): Response {
@@ -686,7 +687,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/cmd_source/%s/mappings'),
 		Http\DELETE,
-		Http\AccessLevel('superadmin'),
+		Http\AccessLevel(AccessLevel::Superadmin),
 		Http\ApiResult(code: 204, desc: 'The source mapping was deleted successfully')
 	]
 	public function apiConfigCmdSrcMappingDeleteEndpoint(Request $request, string $source): Response {
@@ -712,7 +713,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/cmd_source/%s/mappings'),
 		Http\POST,
-		Http\AccessLevel('superadmin'),
+		Http\AccessLevel(AccessLevel::Superadmin),
 		Http\RequestBody(class: 'CmdSourceMapping', desc: 'The new mapping', required: true),
 		Http\ApiResult(code: 204, desc: 'A new command mapping was created')
 	]
@@ -744,7 +745,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/cmd_source/%s/mappings'),
 		Http\PUT,
-		Http\AccessLevel('superadmin'),
+		Http\AccessLevel(AccessLevel::Superadmin),
 		Http\ApiResult(code: 200, class: 'CmdSourceMapping', desc: 'The new, modified source mapping')
 	]
 	public function apiConfigCmdSrcMappingPutEndpoint(Request $request, string $source): Response {
@@ -777,7 +778,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/cmd_source/%s/mappings/%s'),
 		Http\PUT,
-		Http\AccessLevel('superadmin'),
+		Http\AccessLevel(AccessLevel::Superadmin),
 		Http\ApiResult(code: 200, class: 'CmdSourceMapping', desc: 'The new, modified source mapping')
 	]
 	public function apiConfigCmdSubSrcMappingPutEndpoint(Request $request, string $source, string $subSource): Response {
@@ -805,7 +806,7 @@ class ConfigApiController extends ModuleInstance {
 	#[
 		Http\Api('/config'),
 		Http\GET,
-		Http\AccessLevel('superadmin'),
+		Http\AccessLevel(AccessLevel::Superadmin),
 		Http\ApiResult(code: 200, class: 'BotConfig', desc: 'The full bot configuration')
 	]
 	public function apiSonfigGetEndpoint(Request $request): Response {

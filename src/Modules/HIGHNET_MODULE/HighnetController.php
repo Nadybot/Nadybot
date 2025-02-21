@@ -16,6 +16,7 @@ use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
 
 use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -51,27 +52,27 @@ use Revolt\EventLoop;
 	NCA\DefineCommand(
 		command: 'highnet',
 		description: 'Show Highnet information',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'highnet reset',
 		description: 'Reset the Highnet configuration',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 	),
 	NCA\DefineCommand(
 		command: HighnetController::FILTERS,
 		description: 'Show current filters',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 	),
 	NCA\DefineCommand(
 		command: HighnetController::PERM_FILTERS,
 		description: 'Manage Highnet permanent filters',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 	),
 	NCA\DefineCommand(
 		command: HighnetController::TEMP_FILTERS,
 		description: 'Manage Highnet temporary filters',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 	),
 ]
 class HighnetController extends ModuleInstance implements EventFeedHandler {

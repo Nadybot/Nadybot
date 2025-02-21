@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WHOMPAH_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -19,7 +20,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'whompah',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows the whompah route from one city to another',
 		alias: ['whompahs', 'whompa', 'whompas'],
 	)

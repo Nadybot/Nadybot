@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -26,12 +27,12 @@ use Psr\Log\LoggerInterface;
 	NCA\HasMigrations('Migrations/Boss'),
 	NCA\DefineCommand(
 		command: 'boss',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows bosses and their loot',
 	),
 	NCA\DefineCommand(
 		command: 'bossloot',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Finds which boss drops certain loot',
 	)
 ]

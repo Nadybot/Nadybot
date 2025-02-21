@@ -6,6 +6,7 @@ use function Amp\async;
 use function Amp\Future\await;
 
 use AO\Package;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -31,12 +32,12 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/Member'),
 	NCA\DefineCommand(
 		command: RaidMemberController::CMD_RAID_JOIN_LEAVE,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Join or leave the raid',
 	),
 	NCA\DefineCommand(
 		command: RaidMemberController::CMD_RAID_KICK_ADD,
-		accessLevel: 'raid_leader_1',
+		accessLevel: AccessLevel::RaidLeader1,
 		description: 'Add or remove someone from/to the raid',
 	),
 
@@ -67,7 +68,7 @@ class RaidMemberController extends ModuleInstance {
 			'When raid is full' => self::ANNOUNCE_RAID_FULL,
 			'When raid is full and has space again' => self::ANNOUNCE_RAID_FULL|self::ANNOUNCE_RAID_OPEN,
 		],
-		accessLevel: 'raid_admin_2',
+		accessLevel: AccessLevel::RaidAdmin2,
 	)]
 	public int $raidAnnounceFull = 0;
 

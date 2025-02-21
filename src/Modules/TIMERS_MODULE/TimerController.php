@@ -5,6 +5,7 @@ namespace Nadybot\Modules\TIMERS_MODULE;
 use function Safe\preg_match;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -41,12 +42,12 @@ use ReflectionClass;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'rtimer',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Adds a repeating timer',
 	),
 	NCA\DefineCommand(
 		command: 'timers',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Sets and shows timers',
 		alias: 'timer'
 	),
@@ -350,7 +351,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$timer = $this->get($id);
 		if ($timer === null) {
 			$msg = "Could not find timer <highlight>#{$id}<end>.";
-		} elseif ($timer->owner !== $context->char->name && !$this->accessManager->checkAccess($context->char->name, 'mod')) {
+		} elseif ($timer->owner !== $context->char->name && !$this->accessManager->checkAccess($context->char->name, AccessLevel::Mod)) {
 			$msg = 'You must own this timer or have moderator access in order to remove it.';
 		} else {
 			$event = new TimerDelEvent(timer: $timer);

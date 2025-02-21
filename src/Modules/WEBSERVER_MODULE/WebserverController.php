@@ -12,6 +12,7 @@ use Amp\TimeoutCancellation;
 use Closure;
 use Exception;
 use Nadybot\Core\Events\ConnectEvent;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -38,7 +39,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'webauth',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Pre-authorize Websocket connections',
 	),
 ]
@@ -50,31 +51,31 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	public const BODY = __NAMESPACE__ . '::body';
 
 	/** Enable webserver */
-	#[NCA\Setting\Boolean(accessLevel: 'superadmin')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::Superadmin)]
 	public bool $webserver = true;
 
 	/** On which port does the HTTP server listen */
-	#[NCA\Setting\Number(accessLevel: 'superadmin')]
+	#[NCA\Setting\Number(accessLevel: AccessLevel::Superadmin)]
 	public int $webserverPort = 8_080;
 
 	/** Where to listen for HTTP requests */
 	#[NCA\Setting\Text(
 		options: ['127.0.0.1', '0.0.0.0'],
-		accessLevel: 'superadmin'
+		accessLevel: AccessLevel::Superadmin,
 	)]
 	public string $webserverAddr = '127.0.0.1';
 
 	/** How to authenticate against the webserver */
 	#[NCA\Setting\Options(
 		options: [self::AUTH_BASIC, self::AUTH_AOAUTH],
-		accessLevel: 'superadmin'
+		accessLevel: AccessLevel::Superadmin,
 	)]
 	public string $webserverAuth = self::AUTH_BASIC;
 
 	/** Which is the base URL for the webserver? This is where aoauth redirects to */
 	#[NCA\Setting\Text(
 		options: ['default'],
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		help: 'webserver_base_url.txt',
 	)]
 	public string $webserverBaseUrl = 'default';
@@ -82,13 +83,13 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	/** If you are using aoauth to authenticate: URL of the server */
 	#[NCA\Setting\Text(
 		options: ['https://aoauth.org'],
-		accessLevel: 'superadmin'
+		accessLevel: AccessLevel::Superadmin,
 	)]
 	public string $webserverAoauthUrl = 'https://aoauth.org';
 
 	/** Minimum access level for the bot API and web UI */
 	#[NCA\Setting\Rank]
-	public string $webserverMinAL = 'mod';
+	public AccessLevel $webserverMinAL = AccessLevel::Mod;
 
 	/** @var array<string,array<string,list<callable>>> */
 	protected array $routes = [
@@ -331,7 +332,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		/** @var ?string $user */
 		$hasMinAL = !$needAuth || $this->accessManager->checkAccess(
 			$user ?? 'Xxx',
-			$this->webserverMinAL
+			$this->webserverMinAL,
 		);
 		if (!$hasMinAL) {
 			return new Response(

@@ -5,6 +5,7 @@ namespace Nadybot\Modules\EVENTS_MODULE;
 use function Safe\strtotime;
 
 use InvalidArgumentException;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -41,13 +42,13 @@ use Throwable;
 	NCA\Importer('events', ExportEvent::class),
 	NCA\DefineCommand(
 		command: 'events',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'View/Join/Leave events',
 		alias: 'event',
 	),
 	NCA\DefineCommand(
 		command: EventsController::CMD_EVENT_MANAGE,
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Add/change or delete an event',
 	),
 ]

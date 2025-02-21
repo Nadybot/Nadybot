@@ -6,6 +6,7 @@ use function Amp\async;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -35,17 +36,17 @@ use Psr\Log\LoggerInterface;
 	NCA\HasMigrations('Migrations/Ranks'),
 	NCA\DefineCommand(
 		command: 'raidadmin',
-		accessLevel: 'raid_admin_2',
+		accessLevel: AccessLevel::RaidAdmin2,
 		description: 'Promote/demote someone to/from raid admin',
 	),
 	NCA\DefineCommand(
 		command: 'raidleader',
-		accessLevel: 'raid_admin_1',
+		accessLevel: AccessLevel::RaidAdmin1,
 		description: 'Promote/demote someone to/from raid leader',
 	),
 	NCA\DefineCommand(
 		command: 'leaderlist',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Shows the list of raid leaders and admins',
 		defaultStatus: Status::Enabled,
 		alias: 'leaders'
@@ -137,18 +138,20 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$this->commandAlias->register($this->moduleName, 'raidleader', 'raid leader');
 	}
 
-	public function getSingleAccessLevel(string $sender): ?string {
+	public function getSingleAccessLevel(string $sender): ?AccessLevel {
 		if (!isset($this->ranks[$sender])) {
 			return null;
 		}
 		$rank = $this->ranks[$sender]->rank;
-		if ($rank >= 7) {
-			return 'raid_admin_' . ($rank-6);
-		}
-		if ($rank >= 4) {
-			return 'raid_leader_' . ($rank-3);
-		}
-		return "raid_level_{$rank}";
+		return match ($rank) {
+			9 => AccessLevel::RaidAdmin3,
+			8 => AccessLevel::RaidAdmin2,
+			7 => AccessLevel::RaidAdmin2,
+			6 => AccessLevel::RaidLeader3,
+			5 => AccessLevel::RaidLeader2,
+			4 => AccessLevel::RaidLeader1,
+			default => throw new \Error("Invalid rank: {$rank}"),
+		};
 	}
 
 	/** Add raid leader and admins to the buddy list */
@@ -184,7 +187,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 				actor: $sender,
 				actee: $who,
 				action: AuditAction::DelRank,
-				value: (string)($this->accessManager->getAccessLevels()['raid_leader_1'] - ($oldRank->rank-4)),
+				value: (string)(AccessLevel::RaidLeader1->toInt() - ($oldRank->rank-4)),
 			);
 			$this->accessManager->addAudit($audit);
 		}
@@ -208,7 +211,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 				actor: $sender,
 				actee: $who,
 				action: AuditAction::DelRank,
-				value: (string)($this->accessManager->getAccessLevels()['raid_leader_1'] - ($oldRank->rank-4)),
+				value: (string)(AccessLevel::RaidLeader1->toInt() - ($oldRank->rank-4)),
 			);
 			$this->accessManager->addAudit($audit);
 		}
@@ -220,7 +223,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			actor: $sender,
 			actee: $who,
 			action: AuditAction::AddRank,
-			value: (string)($this->accessManager->getAccessLevels()['raid_leader_1'] - ($rank-4)),
+			value: (string)(AccessLevel::RaidLeader1->toInt() - ($rank-4)),
 		);
 		$this->accessManager->addAudit($audit);
 
@@ -234,9 +237,9 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 
 	/** Check if $actor's access level is higher than $actee's */
 	public function checkAccessLevel(string $actor, string $actee): bool {
-		$senderAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
-		$whoAccessLevel = $this->accessManager->getSingleAccessLevel($actee);
-		return $this->accessManager->compareAccessLevels($whoAccessLevel, $senderAccessLevel) < 0;
+		$actorAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
+		$acteeAccessLevel = $this->accessManager->getSingleAccessLevel($actee);
+		return $actorAccessLevel->higherThan($acteeAccessLevel);
 	}
 
 	/** Check if $sender can change $who's raid rank (to $newRank or in general) */
@@ -246,25 +249,16 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			return false;
 		}
 		$reqDistance = $this->raidRankPromotionDistance;
-		$accessLevels = $this->accessManager->getAccessLevels();
-		$senderAccessLevel = $this->accessManager->getAccessLevel(
-			$this->accessManager->getAccessLevelForCharacter($sender)
-		);
-		$oldAccessLevel = $this->accessManager->getAccessLevel(
-			$this->accessManager->getAccessLevelForCharacter($who)
-		);
+		$senderAccessLevel = $this->accessManager->getAccessLevelForCharacter($sender);
+		$oldAccessLevel = $this->accessManager->getAccessLevelForCharacter($who);
 		$newAccessLevel = $oldAccessLevel;
-		if (isset($newRank)) {
-			$newAccessLevel = $this->accessManager->getAccessLevel($newRank);
-		}
-		$numSenderAccessLevel = $accessLevels[$senderAccessLevel];
-		$numOldAccessLevel = $accessLevels[$oldAccessLevel];
+		$numSenderAccessLevel = $senderAccessLevel->toInt();
+		$numOldAccessLevel = $oldAccessLevel->toInt();
 		$numSettableAL = $numSenderAccessLevel + $reqDistance;
-		$numNewAccessLevel = $accessLevels[$newAccessLevel];
+		$numNewAccessLevel = $newAccessLevel->toInt();
 		if ($numNewAccessLevel < $numSettableAL || $numOldAccessLevel < $numSettableAL) {
-			$reverseALs = array_flip($accessLevels);
-			$nameSettableAL = $this->accessManager->getDisplayName($reverseALs[$numSettableAL]);
-			$sendto->reply("You can only change raid ranks up to and including {$nameSettableAL}.");
+			$maxSettableAL = AccessLevel::fromInt($numSettableAL);
+			$sendto->reply("You can only change raid ranks up to and including {$maxSettableAL->displayName()}.");
 			return false;
 		}
 		return true;
@@ -394,7 +388,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		if (count($admins)) {
 			$blob .= "<header2>Raid admins<end>\n".
 				$this->renderLeaders(
-					$this->accessManager->checkSingleAccess($context->char->name, 'raid_leader_2'),
+					$this->accessManager->checkSingleAccess($context->char->name, AccessLevel::RaidLeader2),
 					$showOfflineAlts,
 					$raidStats,
 					...array_keys($admins)
@@ -404,7 +398,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		if (count($leaders)) {
 			$blob .= "<header2>Raid leaders<end>\n".
 				$this->renderLeaders(
-					$this->accessManager->checkSingleAccess($context->char->name, 'raid_admin_2'),
+					$this->accessManager->checkSingleAccess($context->char->name, AccessLevel::RaidAdmin2),
 					$showOfflineAlts,
 					$raidStats,
 					...array_keys($leaders)

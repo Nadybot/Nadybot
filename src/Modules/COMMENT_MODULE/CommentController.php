@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 use Nadybot\Core\ParamClass\PUuid;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -26,6 +27,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Psr\Log\LoggerInterface;
+use ValueError;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -35,13 +37,13 @@ use Psr\Log\LoggerInterface;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'comment',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'read/write comments about players',
 		alias: 'comments',
 	),
 	NCA\DefineCommand(
 		command: 'comment categories',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Manage comment categories',
 	),
 ]
@@ -227,12 +229,8 @@ class CommentController extends ModuleInstance {
 			$blob .= "<pagebreak><header2>{$category->name}<end>\n".
 				'<tab>Created: <highlight>' . Util::date($category->created_at) . "<end>\n".
 				"<tab>Creator: <highlight>{$category->created_by}<end>\n".
-				'<tab>Read Access: <highlight>'.
-				$this->accessManager->getDisplayName($category->min_al_read).
-				"<end>\n".
-				'<tab>Write Access: <highlight>'.
-				$this->accessManager->getDisplayName($category->min_al_write).
-				"<end>\n".
+				"<tab>Read Access: <highlight>{$category->min_al_read->displayName()}<end>\n".
+				"<tab>Write Access: <highlight>{$category->min_al_write->displayName()}<end>\n".
 				'<tab>Action: ';
 			if ($category->user_managed) {
 				$blob .= Text::makeChatcmd(
@@ -267,8 +265,7 @@ class CommentController extends ModuleInstance {
 				return;
 			}
 			$senderAl = $this->accessManager->getAccessLevelForCharacter($context->char->name);
-			if ($this->accessManager->compareAccessLevels($senderAl, $cat->min_al_read) <0
-				|| $this->accessManager->compareAccessLevels($senderAl, $cat->min_al_write) <0) {
+			if ($senderAl->lowerThan($cat->min_al_read) || $senderAl->lowerThan($cat->min_al_write)) {
 				$context->reply(
 					'You can only delete categories to which you have read and write access.'
 				);
@@ -309,10 +306,10 @@ class CommentController extends ModuleInstance {
 	): void {
 		$alForWriting ??= $alForReading;
 		try {
-			$alForReading = $this->accessManager->getAccessLevel($alForReading);
-			$alForWriting = $this->accessManager->getAccessLevel($alForWriting);
-		} catch (Exception $e) {
-			$context->reply($e->getMessage());
+			$alForReading = AccessLevel::fromName($alForReading);
+			$alForWriting = AccessLevel::fromName($alForWriting);
+		} catch (ValueError $e) {
+			$context->reply('Invalid access level  provided');
 			return;
 		}
 		$cat = $this->getCategory($category);
@@ -328,8 +325,7 @@ class CommentController extends ModuleInstance {
 			return;
 		}
 		$alOfSender = $this->accessManager->getAccessLevelForCharacter($context->char->name);
-		if ($this->accessManager->compareAccessLevels($alOfSender, $cat->min_al_read) <0
-			|| $this->accessManager->compareAccessLevels($alOfSender, $cat->min_al_write) <0) {
+		if ($alOfSender->lowerThan($cat->min_al_read) || $alOfSender->lowerThan($cat->min_al_write)) {
 			$context->reply(
 				'You can only change the required access levels of categories '.
 				'to which you have read and write access.'
@@ -521,7 +517,7 @@ class CommentController extends ModuleInstance {
 			$cat = $this->getCategory($comment->category);
 			$canRead = false;
 			if (isset($cat)) {
-				$canRead = $this->accessManager->compareAccessLevels($senderAL, $cat->min_al_read) >= 0;
+				$canRead = $senderAL->atLeast($cat->min_al_read);
 			}
 			return $accessCache[$comment->category] = $canRead;
 		})

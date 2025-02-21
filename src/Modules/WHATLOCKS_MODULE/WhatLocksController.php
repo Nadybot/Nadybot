@@ -4,6 +4,7 @@ namespace Nadybot\Modules\WHATLOCKS_MODULE;
 
 use DateTimeZone;
 use Nadybot\Core\Exceptions\UserException;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -25,7 +26,7 @@ use Safe\DateTimeImmutable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'whatlocks',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'List skills locked by using items',
 	)
 ]

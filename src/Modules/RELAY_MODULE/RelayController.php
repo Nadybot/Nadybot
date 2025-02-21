@@ -10,7 +10,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Regexp, Remove, Str, WordStr};
 use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
-use Nadybot\Core\Types\ParamType;
+use Nadybot\Core\Types\{AccessLevel, ParamType};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -58,12 +58,12 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'relay',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Setup and modify relays between bots',
 	),
 	NCA\DefineCommand(
 		command: 'sync',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Force syncing of next command if relay sync exists',
 	),
 ]
@@ -159,7 +159,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		}
 	}
 
-	public function getSingleAccessLevel(string $sender): ?string {
+	public function getSingleAccessLevel(string $sender): ?AccessLevel {
 		foreach ($this->relays as $relayName => $relay) {
 			if ($relay->treatOnlineAsGuest === false) {
 				continue;
@@ -171,7 +171,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 						|| $player->dimension === $this->config->main->dimension
 						|| $player->online === true
 					) {
-						return 'guest';
+						return AccessLevel::Guest;
 					}
 				}
 			}
@@ -1025,7 +1025,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[
 		Http\Api('/relay-component/transport'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'ClassSpec[]', desc: 'The available relay transport layers')
 	]
 	public function apiGetTransportsEndpoint(Request $request): Response {
@@ -1036,7 +1036,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[
 		Http\Api('/relay-component/layer'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'ClassSpec[]', desc: 'The available generic relay layers')
 	]
 	public function apiGetLayersEndpoint(Request $request): Response {
@@ -1047,7 +1047,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[
 		Http\Api('/relay-component/protocol'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'ClassSpec[]', desc: 'The available relay protocols')
 	]
 	public function apiGetProtocolsEndpoint(Request $request): Response {
@@ -1288,7 +1288,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	#[
 		Http\Api('/relay-component/event'),
 		Http\GET,
-		Http\AccessLevel('all'),
+		Http\AccessLevel(AccessLevel::All),
 		Http\ApiResult(code: 200, class: 'EventType[]', desc: 'The available non-routable relay events')
 	]
 	public function apiGetEventsEndpoint(Request $request): Response {

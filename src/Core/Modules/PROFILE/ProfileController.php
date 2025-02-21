@@ -16,6 +16,7 @@ use Nadybot\Core\DBSchema\{
 	RouteHopColor,
 	RouteHopFormat,
 };
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\FilenameStr,
@@ -47,7 +48,7 @@ use Ramsey\Uuid\Uuid;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'profile',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'View, add, remove, and load profiles',
 		alias: 'profiles'
 	)
@@ -235,7 +236,7 @@ class ProfileController extends ModuleInstance {
 			foreach ($row->permissions as $channel => $permissions) {
 				$status = $permissions->enabled ? 'enable' : 'disable';
 				$contents .= "!config {$row->cmdevent} {$row->cmd} {$status} {$channel}\n";
-				$contents .= "!config {$row->cmdevent} {$row->cmd} admin {$channel} {$permissions->access_level}\n";
+				$contents .= "!config {$row->cmdevent} {$row->cmd} admin {$channel} {$permissions->access_level->value}\n";
 			}
 		}
 		$contents .= "\n# Aliases\n";

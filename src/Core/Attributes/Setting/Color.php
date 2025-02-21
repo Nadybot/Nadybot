@@ -7,7 +7,7 @@ use Exception;
 
 use Nadybot\Core\Attributes\DefineSetting;
 use Nadybot\Core\Safe;
-use Nadybot\Core\Types\SettingMode;
+use Nadybot\Core\Types\{AccessLevel, SettingMode};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Color extends DefineSetting {
@@ -24,7 +24,7 @@ class Color extends DefineSetting {
 		null|int|float|string|bool|array $defaultValue=null,
 		SettingMode $mode=SettingMode::Edit,
 		array $options=[],
-		string $accessLevel='mod',
+		AccessLevel $accessLevel=AccessLevel::Mod,
 		?string $help=null,
 		?bool $confidential=false,
 	) {

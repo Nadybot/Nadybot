@@ -10,6 +10,7 @@ use Amp\Http\Server\{Request, Response};
 use Closure;
 use DateInterval;
 use DateTimeZone;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -46,12 +47,12 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'startpage',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'configures the personal startpage',
 	),
 	NCA\DefineCommand(
 		command: 'start',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Shows your personal startpage',
 	),
 ]
@@ -124,7 +125,7 @@ class StartpageController extends ModuleInstance {
 		if ($this->startpageShowMembers !== 1) {
 			return;
 		}
-		if ($this->accessManager->getAccessLevelForCharacter($sender) === 'all') {
+		if ($this->accessManager->getAccessLevelForCharacter($sender) === AccessLevel::All) {
 			return;
 		}
 		if ($this->banController->isOnBanlist($uid)) {

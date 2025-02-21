@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\SPIRITS_MODULE;
 
 use Nadybot\Core\Attributes\Parameter\{NoSpace, NonNumberStr, Regexp};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -25,7 +26,7 @@ use Nadybot\Modules\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'spirits',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Search for spirits',
 	)
 ]

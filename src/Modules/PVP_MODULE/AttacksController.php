@@ -4,6 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\NonGreedy,
@@ -49,19 +50,19 @@ use Throwable;
 		command: AttacksController::CMD_ATTACKS,
 		alias: 'attacks',
 		description: 'Show the last Tower Attack messages',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: AttacksController::CMD_OUTCOMES,
 		alias: 'outcomes',
 		description: 'Show the last tower outcomes',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: AttacksController::CMD_STATS,
 		alias: 'towerstats',
 		description: 'Show how many towers each faction has lost',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 ]
 class AttacksController extends ModuleInstance {

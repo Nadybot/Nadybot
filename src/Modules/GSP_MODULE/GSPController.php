@@ -6,6 +6,7 @@ use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use DateTimeZone;
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -33,7 +34,7 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'radio',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'List what is currently playing on GridStream',
 		alias: 'gsp'
 	),

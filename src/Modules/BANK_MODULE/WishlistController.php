@@ -5,6 +5,7 @@ namespace Nadybot\Modules\BANK_MODULE;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Quantity,
@@ -33,17 +34,17 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'wish',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Manage your wishlist',
 	),
 	NCA\DefineCommand(
 		command: 'wishes',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Look at a global wishlist',
 	),
 	NCA\DefineCommand(
 		command: 'wish deny',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: "Deny someone's wish",
 	),
 ]

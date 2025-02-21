@@ -6,6 +6,7 @@ use function Safe\strtotime;
 use DateInterval;
 use DateTimeZone;
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -25,13 +26,13 @@ use Safe\{DateTime, DateTimeImmutable};
 	NCA\HasMigrations('Migrations/Arbiter'),
 	NCA\DefineCommand(
 		command: 'arbiter',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show current arbiter mission',
 		alias: 'icc',
 	),
 	NCA\DefineCommand(
 		command: 'arbiter change',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Change current arbiter mission',
 	)
 ]

@@ -6,6 +6,7 @@ use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{AccessManager, Attributes as NCA};
 
 /**
@@ -51,7 +52,7 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 		if ($newValue === 'off') {
 			return "<highlight>{$newValue}<end>";
 		}
-		if (!$this->accessManager->checkAccess($sender, $this->row->admin??'all')) {
+		if (!$this->accessManager->checkAccess($sender, $this->row->admin??AccessLevel::All)) {
 			return '<highlight>*********<end>';
 		}
 		return "<highlight>{$newValue}<end>";

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use AO\MMDB\AsyncMMDBClient;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -18,7 +19,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'mdb',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Search for values in the MDB file',
 	)
 ]

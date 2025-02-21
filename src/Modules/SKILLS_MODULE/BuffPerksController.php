@@ -7,6 +7,7 @@ use function Amp\ByteStream\splitLines;
 use function Safe\{preg_match, preg_split};
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -41,7 +42,7 @@ use Throwable;
 	NCA\HasMigrations('Migrations/Perks'),
 	NCA\DefineCommand(
 		command: 'perks',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show buff perks',
 	)
 ]

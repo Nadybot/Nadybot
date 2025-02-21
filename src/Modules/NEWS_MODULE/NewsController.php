@@ -8,6 +8,7 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -40,12 +41,12 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'news',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Shows news',
 	),
 	NCA\DefineCommand(
 		command: NewsController::CMD_NEWS_MANAGE,
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Adds, removes, pins or unpins a news entry',
 	),
 ]

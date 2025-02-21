@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Regexp,
@@ -30,13 +31,13 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'assist',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows the assist macro',
 		alias: 'callers'
 	),
 	NCA\DefineCommand(
 		command: ChatAssistController::CMD_SET_ADD_CLEAR,
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Set, add or clear assists',
 	),
 ]

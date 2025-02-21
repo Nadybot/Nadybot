@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\ALTS;
 
 use function Amp\async;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -37,22 +38,22 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'alts',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Alt character handling',
 	),
 	NCA\DefineCommand(
 		command: 'altsadmin',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: "Manage someone else's alts",
 	),
 	NCA\DefineCommand(
 		command: 'altvalidate',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Validate alts for admin privileges',
 	),
 	NCA\DefineCommand(
 		command: 'altdecline',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Declines being the alt of someone else',
 	),
 

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ALIEN_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -21,7 +22,7 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'aiarmor',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows tradeskill process for Alien Armor',
 	)
 ]

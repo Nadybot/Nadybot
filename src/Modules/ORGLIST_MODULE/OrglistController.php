@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -26,7 +27,7 @@ use Psr\Log\LoggerInterface;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'orglist',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Check an org roster',
 	)
 ]

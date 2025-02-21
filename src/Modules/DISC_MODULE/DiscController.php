@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DISC_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -20,7 +21,7 @@ use Nadybot\Modules\NANO_MODULE\Nano;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'disc',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show which nano a disc will turn into',
 	)
 ]

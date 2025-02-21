@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
-use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -27,12 +27,12 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/RankMapping'),
 	NCA\DefineCommand(
 		command: 'ranks',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show a list of all available org ranks',
 	),
 	NCA\DefineCommand(
 		command: 'maprank',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Define how org ranks map to bot ranks',
 	),
 ]
@@ -64,13 +64,13 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		$this->accessManager->registerProvider($this);
 	}
 
-	public function getSingleAccessLevel(string $sender): ?string {
+	public function getSingleAccessLevel(string $sender): ?AccessLevel {
 		$level = $this->myOrg->getMemberLevel($sender);
 		if (!isset($level)) {
 			return null;
 		}
 		if (!$this->mapOrgRanksToBotRanks) {
-			return 'guild';
+			return AccessLevel::Guild;
 		}
 		return $this->getEffectiveAccessLevel($level);
 	}
@@ -86,12 +86,12 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			->asObj(OrgRankMapping::class);
 	}
 
-	public function getEffectiveAccessLevel(int $rank): string {
+	public function getEffectiveAccessLevel(int $rank): AccessLevel {
 		$rank = $this->db->table(OrgRankMapping::getTable())
 			->where('min_rank', '>=', $rank)
 			->orderBy('min_rank')
 			->firstObj(OrgRankMapping::class);
-		return $rank->access_level ?? 'guild';
+		return $rank->access_level ?? AccessLevel::Guild;
 	}
 
 	/** Get a list of all your defined mappings of org rank to bot access level */
@@ -130,10 +130,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		foreach ($ranks as $rank => $rankName) {
 			$accessLevel = $this->getEffectiveAccessLevel($rank);
 			$blob .= '<tab>'.
-				"{$rank} - {$rankName}: ".
-				'<highlight>'.
-				$this->accessManager->getDisplayName($accessLevel).
-				'<end>';
+				"{$rank} - {$rankName}: <highlight>{$accessLevel->displayName()}<end>";
 			if (isset($mapKeys[$rank])) {
 				$blob .= ' [' . Text::makeChatcmd('remove', "/tell <myname> maprank del {$rank}") . ']';
 			}
@@ -177,13 +174,8 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			return;
 		}
 		$ranks = $guild->governing_form->getOrgRanks();
-		$accessLevels = $this->accessManager->getAccessLevels();
-		try {
-			$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
-		} catch (Exception) {
-			// Catch system error about invalid access level
-		}
-		if (!isset($accessLevels[$accessLevel])) {
+		$accessLevel = AccessLevel::tryFromName($accessLevel);
+		if (!isset($accessLevel)) {
 			$sendto->reply(
 				"<highlight>{$accessLevel}<end> is not a valid access level. ".
 				"Please use the short form like 'admin', 'mod' or 'rl'."
@@ -191,8 +183,8 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			return;
 		}
 		$senderAL = $this->accessManager->getAccessLevelForCharacter($sender);
-		$senderHasHigherAL = $this->accessManager->compareAccessLevels($senderAL, $accessLevel) > 0;
-		if ($senderAL !== 'superadmin' && !$senderHasHigherAL) {
+		$senderHasHigherAL = $senderAL->higherThan($accessLevel);
+		if ($senderAL !== AccessLevel::Superadmin && !$senderHasHigherAL) {
 			$sendto->reply('You can only manage access levels below your own.');
 			return;
 		}
@@ -201,11 +193,11 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			return;
 		}
 		$currentEAL = $this->getEffectiveAccessLevel($rank);
-		if ($this->accessManager->compareAccessLevels($accessLevel, $currentEAL) < 0) {
+		if ($accessLevel->lowerThan($currentEAL)) {
 			$sendto->reply('You cannot assign declining access levels.');
 			return;
 		}
-		$alName = $this->accessManager->getDisplayName($accessLevel);
+		$alName = $accessLevel->displayName();
 		$rankName = $ranks[$rank];
 
 		$rankMapping = new OrgRankMapping(
@@ -269,8 +261,8 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			return;
 		}
 		$senderAL = $this->accessManager->getAccessLevelForCharacter($sender);
-		$senderHasHigherAL = $this->accessManager->compareAccessLevels($senderAL, $oldEntry->access_level) > 0;
-		if ($senderAL !== 'superadmin' && !$senderHasHigherAL) {
+		$senderHasHigherAL = $senderAL->higherThan($oldEntry->access_level);
+		if ($senderAL !== AccessLevel::Superadmin && !$senderHasHigherAL) {
 			$context->reply('You can only manage access levels below your own.');
 			return;
 		}
@@ -279,7 +271,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			->delete();
 		$context->reply(
 			"The access level mapping <highlight>{$ranks[$rank]}<end> to ".
-			'<highlight>' . $this->accessManager->getDisplayName($oldEntry->access_level) . '<end> '.
+			"<highlight>{$oldEntry->access_level->displayName()}<end> ".
 			'was deleted successfully.'
 		);
 	}

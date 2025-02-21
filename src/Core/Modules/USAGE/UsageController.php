@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\USAGE;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\Usage;
 use Nadybot\Core\Filesystem;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -35,7 +36,7 @@ use Nadylib\IMEX\JSON;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'usage',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows usage stats',
 		defaultStatus: Status::Enabled
 	),

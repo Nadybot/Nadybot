@@ -5,7 +5,7 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
-use Nadybot\Core\Types\ItemFlag;
+use Nadybot\Core\Types\{AccessLevel, ItemFlag};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -25,7 +25,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'gmi',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Search GMI for an item',
 	),
 ]

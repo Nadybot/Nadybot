@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -25,12 +26,12 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/Block'),
 	NCA\DefineCommand(
 		command: 'raidblock',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Check your raid blocks',
 	),
 	NCA\DefineCommand(
 		command: RaidBlockController::CMD_RAIDBLOCK_EDIT,
-		accessLevel: 'raid_leader_1',
+		accessLevel: AccessLevel::RaidLeader1,
 		description: 'Temporarily block raiders',
 	)
 ]

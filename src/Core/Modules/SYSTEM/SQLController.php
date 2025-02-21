@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\SYSTEM;
 
 use function Safe\json_encode;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -12,7 +13,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Text,
 };
-
 use ReflectionClass;
 
 /**
@@ -22,12 +22,12 @@ use ReflectionClass;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'querysql',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Run an SQL query and see the results'
 	),
 	NCA\DefineCommand(
 		command: 'executesql',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Execute an SQL statement'
 	)
 ]

@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\DISCORD;
 
 use function Amp\async;
 use function Safe\{preg_match, preg_split};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -23,13 +24,13 @@ class DiscordController extends ModuleInstance {
 	#[NCA\DefineSetting(
 		type: 'discord_bot_token',
 		options: ['off'],
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		confidential: true,
 	)]
 	public string $discordBotToken = 'off';
 
 	/** Discord channel to send notifications to */
-	#[NCA\DefineSetting(type: 'discord_channel', accessLevel: 'admin')]
+	#[NCA\DefineSetting(type: 'discord_channel', accessLevel: AccessLevel::Admin)]
 	public string $discordNotifyChannel = 'off';
 
 	/** Use custom Emojis */

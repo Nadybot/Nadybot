@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -50,7 +51,7 @@ class SubcommandManager {
 		string $module,
 		string $filename,
 		string $command,
-		string $accessLevel,
+		AccessLevel $accessLevel,
 		string $parentCommand,
 		string $description='none',
 		?Status $defaultStatus=null

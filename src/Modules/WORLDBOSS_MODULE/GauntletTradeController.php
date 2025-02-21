@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use Nadybot\Core\Filesystem;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -18,7 +19,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'gautrade',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Gauntlet tradeskills',
 	)
 ]

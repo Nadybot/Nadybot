@@ -2,11 +2,11 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use function Safe\preg_match;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\DBSchema\{Admin, Member};
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	ExportCharacter,
 	ModuleInstance,
 	Nadybot,
-	Safe,
 	Types\ExporterInterface,
 	Types\ImporterInterface
 };
@@ -123,7 +122,7 @@ class MemberExporter extends ModuleInstance implements ExporterInterface, Import
 		}
 		foreach ($result as &$datum) {
 			assert(isset($datum->character->name), 'Every member of the bot must have a name');
-			$datum->rank = $this->accessManager->getSingleAccessLevel($datum->character->name);
+			$datum->rank = $this->accessManager->getSingleAccessLevel($datum->character->name)->value;
 			$logonMessage = $this->preferences->get($datum->character->name, 'logon_msg');
 			$logoffMessage = $this->preferences->get($datum->character->name, 'logoff_msg');
 			$massMessages = $this->preferences->get($datum->character->name, MassMsgController::PREF_MSGS);
@@ -174,34 +173,25 @@ class MemberExporter extends ModuleInstance implements ExporterInterface, Import
 					throw new Exception("Cannot find rank {$member->rank} in the mapping");
 				}
 				$numImported++;
-				if (in_array($newRank, ['member', 'mod', 'admin', 'superadmin'], true)
-					|| preg_match('/^raid_(leader|admin)_[123]$/', $newRank)
-				) {
+				if ($newRank->isRealRank()) {
 					$db->insert(new Member(
 						name: $name,
 						autoinv: (int)($member->autoInvite ?? false),
 						joined: $member->joinedTime ?? time(),
 					));
 				}
-				if (in_array($newRank, ['mod', 'admin', 'superadmin'], true)) {
-					$adminLevel = ($newRank === 'mod') ? 3 : 4;
+				if ($newRank->atLeast(AccessLevel::Mod)) {
+					$adminLevel = ($newRank === AccessLevel::Mod) ? 3 : 4;
 					$db->insert(new Admin(
 						name: $name,
 						adminlevel: $adminLevel,
 					));
 					$this->adminManager->setAdminLevel($name, $adminLevel);
-				} elseif (count($matches = Safe::pregMatch('/^raid_leader_([123])/', $newRank))) {
+				} elseif (($raidRank = $this->getRaidRank($newRank)) !== 0) {
 					$db->insert(new Raidrank(
 						name: $name,
-						rank: (int)$matches[1] + 3,
+						rank: $raidRank,
 					));
-				} elseif (count($matches = Safe::pregMatch('/^raid_admin_([123])/', $newRank))) {
-					$db->insert(new Raidrank(
-						name: $name,
-						rank: (int)$matches[1] + 6,
-					));
-				} elseif (in_array($newRank, ['rl', 'all'], true)) {
-					// Nothing, we just ignore that
 				}
 				if (isset($member->logonMessage)) {
 					$this->preferences->save($name, 'logon_msg', $member->logonMessage);
@@ -229,5 +219,24 @@ class MemberExporter extends ModuleInstance implements ExporterInterface, Import
 		$logger->notice('{num_imported} members successfully imported', [
 			'num_imported' => $numImported,
 		]);
+	}
+
+	private function getRaidRank(AccessLevel $al): int {
+		switch ($al) {
+			case AccessLevel::RaidLeader1:
+				return 4;
+			case AccessLevel::RaidLeader2:
+				return 5;
+			case AccessLevel::RaidLeader3:
+				return 6;
+			case AccessLevel::RaidAdmin1:
+				return 7;
+			case AccessLevel::RaidAdmin2:
+				return 8;
+			case AccessLevel::RaidAdmin3:
+				return 9;
+			default:
+				return 0;
+		}
 	}
 }

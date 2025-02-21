@@ -3,8 +3,8 @@
 namespace Nadybot\Core\Attributes\Setting;
 
 use Attribute;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
-	AccessManager,
 	Attributes\DefineSetting,
 	Modules\ALTS\NickController,
 	Registry,
@@ -30,7 +30,7 @@ class Template extends DefineSetting {
 		null|int|float|string|bool|array $defaultValue=null,
 		SettingMode $mode=SettingMode::Edit,
 		array $options=[],
-		string $accessLevel='mod',
+		AccessLevel $accessLevel=AccessLevel::Mod,
 		?string $help=null,
 		?bool $confidential=false,
 		public ?array $exampleValues=null,
@@ -102,8 +102,7 @@ class Template extends DefineSetting {
 			]
 		);
 
-		$accessManager = Registry::getInstance(AccessManager::class);
-		$alName = ucfirst($accessManager->getDisplayName('admin'));
+		$alName = ucfirst(AccessLevel::Admin->displayName());
 		$this->exampleValues['admin-level'] = $alName;
 
 		$onlineController = Registry::getInstance(OnlineController::class);

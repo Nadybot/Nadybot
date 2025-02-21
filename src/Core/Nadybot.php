@@ -12,6 +12,7 @@ use AO\Exceptions\AccountsFrozenException;
 use AO\Group\{GroupId, GroupType};
 use AO\Package\OutPackage;
 use AO\{FrozenAccount, Group, Package, SendPriority, Utils};
+use BackedEnum;
 use Error;
 use Exception;
 use Illuminate\Support\Collection;
@@ -49,6 +50,7 @@ use Nadybot\Core\Exceptions\{
 	StopExecutionException,
 	UserException
 };
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\PrivateChannel,
@@ -1873,7 +1875,7 @@ class Nadybot {
 			$command = $attribute->command;
 			$definition = new CmdDef(
 				defaultStatus: $attribute->defaultStatus,
-				accessLevel: $attribute->accessLevel??'mod',
+				accessLevel: $attribute->accessLevel??AccessLevel::Mod,
 				description: $attribute->description,
 				help: $attribute->help,
 			);
@@ -1931,7 +1933,11 @@ class Nadybot {
 					'::$' . $property->getName()
 				);
 			}
-			$attribute->defaultValue = $property->getValue($obj);
+			$defaultValue = $property->getValue($obj);
+			if ($defaultValue instanceof BackedEnum) {
+				$defaultValue = $defaultValue->value;
+			}
+			$attribute->defaultValue = $defaultValue;
 			$comment = $property->getDocComment();
 			if ($comment === false) {
 				throw new Exception("Missing description for setting {$attribute->name}");
@@ -1976,7 +1982,16 @@ class Nadybot {
 			return;
 		}
 
-		switch ($type->getName()) {
+		$typeName = $type->getName();
+		if (is_a($typeName, BackedEnum::class, true)) {
+			if (is_int($typeName::cases()[0]->value)) {
+				$property->setValue($obj, $typeName::from((int)$value));
+			} else {
+				$property->setValue($obj, $typeName::from($value));
+			}
+			return;
+		}
+		switch ($typeName) {
 			case 'int':
 				$property->setValue($obj, (int)$value);
 				return;

@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\LIMITS;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -24,7 +25,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'rateignore',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Add players to the rate limit ignore list to bypass limits check',
 		defaultStatus: Status::Enabled
 	)

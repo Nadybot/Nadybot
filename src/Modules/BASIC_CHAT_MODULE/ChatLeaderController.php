@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Nadybot\Core\Events\{LeaveMyPrivEvent, MyPrivateChannelMsgEvent};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -22,17 +23,17 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'leader',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Become the Leader of the raid',
 	),
 	NCA\DefineCommand(
 		command: ChatLeaderController::CMD_LEADER_SET,
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Sets a specific Leader',
 	),
 	NCA\DefineCommand(
 		command: 'leaderecho',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Set if the text of the leader will be repeated',
 	),
 ]
@@ -77,9 +78,9 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		$this->accessManager->registerProvider($this);
 	}
 
-	public function getSingleAccessLevel(string $sender): ?string {
+	public function getSingleAccessLevel(string $sender): ?AccessLevel {
 		if ($this->getLeader() === $sender) {
-			return 'rl';
+			return AccessLevel::RaidLeader;
 		}
 		return null;
 	}
@@ -185,7 +186,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		} elseif ($this->leader === $sender) {
 			return true;
 		}
-		return $this->accessManager->checkAccess($sender, 'moderator');
+		return $this->accessManager->checkAccess($sender, AccessLevel::Mod);
 	}
 
 	/** Returns echo's status message based on 'leaderecho' setting. */

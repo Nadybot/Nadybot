@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Closure;
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -26,7 +27,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'cmdmap',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Manages command to permission mappings',
 		defaultStatus: Status::Enabled
 	)

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -16,7 +17,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'eventlist',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows a list of all events on the bot',
 		defaultStatus: Status::Enabled
 	)

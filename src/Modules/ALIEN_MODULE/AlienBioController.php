@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\ALIEN_MODULE;
 
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -25,12 +26,12 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 	NCA\HasMigrations('Migrations/Weapons'),
 	NCA\DefineCommand(
 		command: 'bio',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: "Identifies Solid Clump of Kyr'Ozch Bio-Material",
 	),
 	NCA\DefineCommand(
 		command: 'bioinfo',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows info about a particular bio type',
 	)
 ]

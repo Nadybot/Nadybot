@@ -8,6 +8,7 @@ use Nadybot\Core\Modules\{
 	ALTS\AltsController,
 	PLAYER_LOOKUP\PlayerManager,
 };
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -29,17 +30,17 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'death',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Manage your personal death counter',
 	),
 	NCA\DefineCommand(
 		command: 'death restart',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Reset/Wipe death counters',
 	),
 	NCA\DefineCommand(
 		command: 'deathmsg',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Manage custom death messages',
 	),
 ]

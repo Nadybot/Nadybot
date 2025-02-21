@@ -13,6 +13,7 @@ use Nadybot\Core\DBSchema\{
 };
 use Nadybot\Core\Exceptions\InsufficientAccessException;
 use Nadybot\Core\Filesystem;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -37,11 +38,12 @@ use Nadybot\Core\{
 	Types\Status,
 };
 use ReflectionClass;
+use ValueError;
 
 #[
 	NCA\DefineCommand(
 		command: 'config',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Configure bot settings',
 		defaultStatus: Status::Enabled
 	),
@@ -92,7 +94,7 @@ class ConfigController extends ModuleInstance {
 		$filename = implode(',', $filename);
 
 		foreach ($this->commandManager->getPermissionSets() as $set) {
-			$this->commandManager->activate($set->name, $filename, 'config', 'mod');
+			$this->commandManager->activate($set->name, $filename, 'config', AccessLevel::Mod);
 		}
 	}
 
@@ -439,6 +441,12 @@ class ConfigController extends ModuleInstance {
 		#[WordStr] #[Str('all')] string $permissionSet,
 		string $accessLevel
 	): void {
+		try {
+			$alEnum = AccessLevel::fromName($accessLevel);
+		} catch (ValueError) {
+			$context->reply("Invalid access level '<highlight>{$accessLevel}<end>'.");
+			return;
+		}
 		$category = strtolower($category);
 		$command = strtolower($cmd);
 		$permissionSet = strtolower($permissionSet);
@@ -450,10 +458,10 @@ class ConfigController extends ModuleInstance {
 		$type = 'command';
 		try {
 			if ($category === 'cmd') {
-				$result = $this->changeCommandAL($context->char->name, $command, $permissionSet, $accessLevel);
+				$result = $this->changeCommandAL($context->char->name, $command, $permissionSet, $alEnum);
 			} else {
 				$type = 'subcommand';
-				$result = $this->changeSubcommandAL($context->char->name, $command, $permissionSet, $accessLevel);
+				$result = $this->changeSubcommandAL($context->char->name, $command, $permissionSet, $alEnum);
 			}
 		} catch (InsufficientAccessException $e) {
 			$msg = "You do not have the required access level to change this {$type}.";
@@ -479,15 +487,14 @@ class ConfigController extends ModuleInstance {
 			return;
 		}
 		if ($permissionSet === 'all') {
-			$msg = "Updated access of {$type} <highlight>{$command}<end> to <highlight>{$accessLevel}<end>.";
+			$msg = "Updated access of {$type} <highlight>{$command}<end> to <highlight>{$alEnum->displayNameUC()}<end>.";
 		} else {
-			$msg = "Updated access of {$type} <highlight>{$command}<end> in permission set <highlight>{$permissionSet}<end> to <highlight>{$accessLevel}<end>.";
+			$msg = "Updated access of {$type} <highlight>{$command}<end> in permission set <highlight>{$permissionSet}<end> to <highlight>{$alEnum->displayNameUC()}<end>.";
 		}
 		$context->reply($msg);
 	}
 
-	public function changeCommandAL(string $sender, string $command, string $permSet, string $accessLevel): int {
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
+	public function changeCommandAL(string $sender, string $command, string $permSet, AccessLevel $accessLevel): int {
 
 		$cfg = $this->commandManager->get($command, ($permSet === 'all') ? null : $permSet);
 
@@ -502,9 +509,8 @@ class ConfigController extends ModuleInstance {
 		return 1;
 	}
 
-	public function changeSubcommandAL(string $sender, string $command, string $permSet, string $accessLevel): int {
+	public function changeSubcommandAL(string $sender, string $command, string $permSet, AccessLevel $accessLevel): int {
 		$cfg = $this->commandManager->get($command, $permSet);
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 		if (!isset($cfg)) {
 			return 0;
 		} elseif (!$this->checkCommandAccessLevels($cfg, $sender)) {
@@ -635,7 +641,7 @@ class ConfigController extends ModuleInstance {
 		foreach ($data as $row) {
 			$blob .= '<tab>' . implode("\n<tab>", explode("\n", $row->getData()->description ?? ''));
 
-			$alToChange = $row->getData()->admin ?? 'superadmin';
+			$alToChange = $row->getData()->admin ?? AccessLevel::Superadmin;
 			$canChangeSetting = $this->accessManager->checkAccess($context->char->name, $alToChange);
 			if ($row->isEditable() && $canChangeSetting) {
 				$blob .= ' [' . $row->getModifyLink() . ']';
@@ -757,7 +763,7 @@ class ConfigController extends ModuleInstance {
 		}
 		$context->reply(
 			"The current access level to change the setting <highlight>{$setting}<end> ".
-			"is <highlight>{$row->admin}<end>."
+			"is <highlight>{$row->admin?->displayNameUC()}<end>."
 		);
 	}
 
@@ -774,9 +780,12 @@ class ConfigController extends ModuleInstance {
 		$setting = strtolower($setting);
 
 		try {
-			$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
-			$result = $this->changeSettingAL($context->char->name, $setting, $accessLevel);
-		} catch (InsufficientAccessException $e) {
+			$enumAL = AccessLevel::fromName($accessLevel);
+			$result = $this->changeSettingAL($context->char->name, $setting, $enumAL);
+		} catch (ValueError) {
+			$context->reply("<highlight>{$accessLevel}<end> is not a valid access level.");
+			return;
+		} catch (InsufficientAccessException) {
 			$msg = "You do not have the required access level to change this setting's access level.";
 			$context->reply($msg);
 			return;
@@ -790,13 +799,11 @@ class ConfigController extends ModuleInstance {
 		}
 		$context->reply(
 			"Required access level to change setting <highlight>{$setting}<end> ".
-			"changed to <highlight>{$accessLevel}<end>."
+			"changed to <highlight>{$enumAL->displayNameUC()}<end>."
 		);
 	}
 
-	public function changeSettingAL(string $sender, string $setting, string $accessLevel): int {
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
-
+	public function changeSettingAL(string $sender, string $setting, AccessLevel $accessLevel): int {
 		$row = $this->db->table(Setting::getTable())
 			->where('name', $setting)
 			->firstObj(Setting::class);
@@ -804,11 +811,11 @@ class ConfigController extends ModuleInstance {
 			return 0;
 		}
 		$charAL = $this->accessManager->getAccessLevelForCharacter($sender);
-		if ($this->accessManager->compareAccessLevels($charAL, $accessLevel) < 0) {
+		if ($charAL->lowerThan($accessLevel)) {
 			throw new Exception('You cannot change the required access level above your own.');
 		}
 
-		if (!$this->accessManager->checkAccess($sender, $row->admin??'superadmin')) {
+		if (!$this->accessManager->checkAccess($sender, $row->admin??AccessLevel::Superadmin)) {
 			throw new InsufficientAccessException("You do not have the required access level to change this setting's access level.");
 		}
 		return $this->db->table(Setting::getTable())
@@ -911,18 +918,18 @@ class ConfigController extends ModuleInstance {
 	public function getValidAccessLevels(): array {
 		$result = [];
 		$showRaidAL = $this->showRaidAL();
-		foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
-			if ($accessLevel === 'none') {
+		foreach (AccessLevel::cases() as $accessLevel) {
+			if ($accessLevel === AccessLevel::None) {
 				continue;
 			}
 			$enabled = true;
-			if (substr($accessLevel, 0, 5) === 'raid_' && !$showRaidAL) {
+			if ($accessLevel->isRaidAL() && !$showRaidAL) {
 				$enabled = false;
 			}
 			$result []= new ModuleAccessLevel(
-				name: $this->getAdminDescription($accessLevel),
-				value: $accessLevel,
-				numeric_value: $level,
+				name: $accessLevel->displayNameUC(),
+				value: $accessLevel->value,
+				numeric_value: $accessLevel->toInt(),
 				enabled: $enabled,
 			);
 		}
@@ -970,12 +977,6 @@ class ConfigController extends ModuleInstance {
 			->exists();
 	}
 
-	/** This helper method converts given short access level name to long name. */
-	private function getAdminDescription(string $admin): string {
-		$desc = $this->accessManager->getDisplayName($admin);
-		return ucfirst(strtolower($desc));
-	}
-
 	/** This helper method builds information and controls for given command. */
 	private function getCommandInfo(string $cmd, string $permSet): string {
 		$msg = '';
@@ -985,15 +986,13 @@ class ConfigController extends ModuleInstance {
 		} else {
 			$perm = $cfg->permissions[$permSet];
 
-			$perm->access_level = $this->getAdminDescription($perm->access_level);
-
 			if ($perm->enabled) {
 				$status = '<on>Enabled<end>';
 			} else {
 				$status = '<off>Disabled<end>';
 			}
 
-			$msg .= "{$status} (Access: {$perm->access_level})\n";
+			$msg .= "{$status} (Access: {$perm->access_level->displayNameUC()})\n";
 		}
 		$msg .= 'Set status: [';
 		$msg .= Text::makeChatcmd('enabled', "/tell <myname> config cmd {$cmd} enable {$permSet}") . '] [';
@@ -1001,15 +1000,14 @@ class ConfigController extends ModuleInstance {
 
 		$msg .= 'Set access level: ';
 		$showRaidAL = $this->showRaidAL();
-		foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
-			if ($accessLevel === 'none') {
+		foreach (AccessLevel::cases() as $accessLevel) {
+			if ($accessLevel === AccessLevel::None) {
 				continue;
 			}
-			if (substr($accessLevel, 0, 5) === 'raid_' && !$showRaidAL) {
+			if ($accessLevel->isRaidAL() && !$showRaidAL) {
 				continue;
 			}
-			$alName = $this->getAdminDescription($accessLevel);
-			$msg .= Text::makeChatcmd("{$alName}", "/tell <myname> config cmd {$cmd} admin {$permSet} {$accessLevel}") . '  ';
+			$msg .= Text::makeChatcmd("{$accessLevel->displayNameUC()}", "/tell <myname> config cmd {$cmd} admin {$permSet} {$accessLevel->value}") . '  ';
 		}
 		$msg .= "\n";
 		return $msg;
@@ -1044,29 +1042,26 @@ class ConfigController extends ModuleInstance {
 				$subcmdList .= "<tab>Description: <highlight>{$command->description}<end>\n";
 			}
 
-			$perms->access_level = $this->getAdminDescription($perms->access_level);
-
 			if ($perms->enabled) {
 				$status = '<on>Enabled<end>';
 			} else {
 				$status = '<off>Disabled<end>';
 			}
 
-			$subcmdList .= "<tab>Current Status: {$status} (Access: {$perms->access_level}) \n";
+			$subcmdList .= "<tab>Current Status: {$status} (Access: {$perms->access_level->displayNameUC()}) \n";
 			$subcmdList .= '<tab>Set status: [';
 			$subcmdList .= Text::makeChatcmd('enabled', "/tell <myname> config subcmd {$command->cmd} enable {$permSet}") . '] [';
 			$subcmdList .= Text::makeChatcmd('disabled', "/tell <myname> config subcmd {$command->cmd} disable {$permSet}") . "]\n";
 
 			$subcmdList .= '<tab>Set access level: ';
-			foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
-				if ($accessLevel === 'none') {
+			foreach (AccessLevel::cases() as $accessLevel) {
+				if ($accessLevel === AccessLevel::None) {
 					continue;
 				}
-				if (substr($accessLevel, 0, 5) === 'raid_' && !$showRaidAL) {
+				if ($accessLevel->isRaidAL() && !$showRaidAL) {
 					continue;
 				}
-				$alName = $this->getAdminDescription($accessLevel);
-				$subcmdList .= Text::makeChatcmd($alName, "/tell <myname> config subcmd {$command->cmd} admin {$permSet} {$accessLevel}") . '  ';
+				$subcmdList .= Text::makeChatcmd($accessLevel->displayNameUC(), "/tell <myname> config subcmd {$command->cmd} admin {$permSet} {$accessLevel->value}") . '  ';
 			}
 			$subcmdList .= "\n\n";
 		}

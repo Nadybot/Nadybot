@@ -6,6 +6,7 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -168,20 +169,17 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Registers a command
 	 *
-	 * @param string      $module         The module that wants to register a new command
-	 * @param string      $filename       A comma-separated list of "classname.method" handling $command
-	 * @param string      $command        The command to be registered
-	 * @param string      $accessLevelStr The required access level to call this command. Valid values are:
-	 *                                    "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
-	 *                                    "mod", "guild", "member", "rl", "guest", "all"
-	 * @param string      $description    A short description what this command is for
-	 * @param Status|null $defaultStatus  The default state of this command:
-	 *                                    Enabled, Disabled or null (use default value as configured)
+	 * @param string      $module        The module that wants to register a new command
+	 * @param string      $filename      A comma-separated list of "classname.method" handling $command
+	 * @param string      $command       The command to be registered
+	 * @param AccessLevel $accessLevel   The required access level to call this command.
+	 * @param string      $description   A short description what this command is for
+	 * @param Status|null $defaultStatus The default state of this command:
+	 *                                   Enabled, Disabled or null (use default value as configured)
 	 */
-	public function register(string $module, string $filename, string $command, string $accessLevelStr, string $description, ?Status $defaultStatus=null): void {
+	public function register(string $module, string $filename, string $command, AccessLevel $accessLevel, string $description, ?Status $defaultStatus=null): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevelStr);
 
 		if ($filename === '') {
 			$this->logger->error('Error registering {module}:command({command}). Handler is blank.', [
@@ -255,17 +253,14 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Activates a command
 	 *
-	 * @param string $permissionSet The name of the channel  where this command should be activated:
-	 *                              "msg", "priv" or "guild"
-	 * @param string $filename      A comma-separated list of class.method which will handle the command
-	 * @param string $command       The name of the command
-	 * @param string $accessLevel   The required access level to use this command:
-	 *                              "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
-	 *                              "mod", "guild", "member", "rl", "all"
+	 * @param string      $permissionSet The name of the channel  where this command should be activated:
+	 *                                   "msg", "priv" or "guild"
+	 * @param string      $filename      A comma-separated list of class.method which will handle the command
+	 * @param string      $command       The name of the command
+	 * @param AccessLevel $accessLevel   The required access level to use this command
 	 */
-	public function activate(string $permissionSet, string $filename, string $command, string $accessLevel='all'): void {
+	public function activate(string $permissionSet, string $filename, string $command, AccessLevel $accessLevel=AccessLevel::All): void {
 		$command = strtolower($command);
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 		$permissionSet = strtolower($permissionSet);
 
 		$this->logger->info('Activate Command {command} (Access Level {access_level}, File {file}, PermissionSet {permission_set})', [
@@ -316,15 +311,15 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * update the active/inactive status of a command
 	 *
-	 * @param ?string $permissionSet The name of the permission set for which this
-	 *                               command's status should be changed:
-	 *                               "msg", "priv", "guild" or any other custom one
-	 * @param ?string $cmd           The name of the command
-	 * @param ?string $module        The name of the module of the command
-	 * @param int     $status        The new status: 0=off 1=on
-	 * @param ?string $admin         The access level for which to update the status
+	 * @param ?string      $permissionSet The name of the permission set for which this
+	 *                                    command's status should be changed:
+	 *                                    "msg", "priv", "guild" or any other custom one
+	 * @param ?string      $cmd           The name of the command
+	 * @param ?string      $module        The name of the module of the command
+	 * @param int          $status        The new status: 0=off 1=on
+	 * @param ?AccessLevel $admin         The access level for which to update the status
 	 */
-	public function updateStatus(?string $permissionSet, ?string $cmd, ?string $module, int $status, ?string $admin): int {
+	public function updateStatus(?string $permissionSet, ?string $cmd, ?string $module, int $status, ?AccessLevel $admin): int {
 		$query = $this->db->table(CmdCfg::getTable())
 			->where('cmdevent', 'cmd');
 		if ($module !== '' && $module !== null) {
@@ -352,14 +347,14 @@ class CommandManager implements MessageEmitter {
 		});
 
 		$update = ['enabled' => (bool)$status];
-		if ($admin !== '' && $admin !== null) {
+		if (isset($admin)) {
 			$update['access_level'] = $admin;
 		}
 
 		foreach ($data as $row) {
 			foreach ($row->permissions as $permission) {
 				if ($permission->enabled) {
-					$this->activate($permission->permission_set, $row->file, $row->cmd, $admin??'all');
+					$this->activate($permission->permission_set, $row->file, $row->cmd, $admin??AccessLevel::All);
 				} else {
 					$this->deactivate($permission->permission_set, $row->file, $row->cmd);
 				}
@@ -724,7 +719,7 @@ class CommandManager implements MessageEmitter {
 		}
 
 		$charAL = $this->accessManager->getAccessLevelForCharacter($context->char->name);
-		if ($charAL === 'all') {
+		if ($charAL === AccessLevel::All) {
 			$context->reply($this->noMemberErrorMsg);
 		} else {
 			$context->reply($this->accessDeniedErrorMsg);
@@ -985,7 +980,7 @@ class CommandManager implements MessageEmitter {
 		$grouped = $this->groupRefMethods($methods->filter());
 		$groupedByCmd = $this->groupBySubcmd($grouped);
 		$showRights = $this->helpController->helpShowAL
-			&& $this->accessManager->checkSingleAccess($context->char->name, 'mod');
+			&& $this->accessManager->checkSingleAccess($context->char->name, AccessLevel::Mod);
 
 		foreach ($groupedByCmd as $cmdName => $refGroups) {
 			/** @var Collection<int,list<ReflectionMethod>> $refGroups */
@@ -995,8 +990,7 @@ class CommandManager implements MessageEmitter {
 				$cmdCfg = $this->get((string)$cmdName); // @phpstan-ignore-line
 				if (isset($cmdCfg, $cmdCfg->permissions[$context->permissionSet])) {
 					$al = $cmdCfg->permissions[$context->permissionSet]->access_level;
-					$al = $this->accessManager->getDisplayName($al);
-					$header .= " ({$al})";
+					$header .= " ({$al->displayName()})";
 				}
 			}
 			$header .= '<end>';

@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Closure;
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -21,7 +22,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'permset',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Manages permission sets',
 		defaultStatus: Status::Enabled
 	),

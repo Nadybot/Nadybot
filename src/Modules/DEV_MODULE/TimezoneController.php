@@ -5,6 +5,7 @@ namespace Nadybot\Modules\DEV_MODULE;
 use DateTimeZone;
 use ErrorException;
 use Nadybot\Core\Filesystem;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -21,7 +22,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'timezone',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Set the timezone',
 		alias: 'timezones'
 	)

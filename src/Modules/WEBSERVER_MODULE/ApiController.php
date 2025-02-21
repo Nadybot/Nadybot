@@ -6,6 +6,7 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Closure;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -38,7 +39,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'apiauth',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Create public/private key pairs for auth against the API',
 	),
 ]
@@ -283,7 +284,7 @@ class ApiController extends ModuleInstance {
 	 * @param list<string>                       $methods
 	 * @param Closure(Request,mixed...):Response $callback
 	 */
-	public function addApiRoute(iterable $paths, array $methods, Closure $callback, ?string $alf, ?string $al, ReflectionMethod $refMet): void {
+	public function addApiRoute(iterable $paths, array $methods, Closure $callback, ?string $alf, ?AccessLevel $al, ReflectionMethod $refMet): void {
 		foreach ($paths as $path) {
 			$route = $this->webserverController->routeToRegExp($path);
 			$this->logger->info('Adding route to {path}', ['path' => $path]);
@@ -328,7 +329,7 @@ class ApiController extends ModuleInstance {
 				return new ApiHandler(
 					allowedMethods: array_keys($data),
 					accessLevelFrom: 'all',
-					accessLevel: 'all',
+					accessLevel: AccessLevel::All,
 					path: $path,
 					route: '',
 					reflectionMethod: new ReflectionMethod($this, __FUNCTION__),
@@ -442,7 +443,7 @@ class ApiController extends ModuleInstance {
 	#[
 		Http\Api('/execute/%s'),
 		Http\POST,
-		Http\AccessLevel('member'),
+		Http\AccessLevel(AccessLevel::Member),
 		Http\RequestBody(class: 'string', desc: 'The command to execute as typed in', required: true),
 		Http\ApiResult(code: 204, desc: 'operation applied successfully'),
 		Http\ApiResult(code: 404, desc: 'Invalid UUID provided'),

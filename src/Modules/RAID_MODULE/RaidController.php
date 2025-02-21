@@ -9,6 +9,7 @@ use Amp\Pipeline\Pipeline;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Events\{MyPrivateChannelMsgEvent, SendPrivEvent};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\DurationStr,
@@ -58,17 +59,17 @@ use Safe\DateTimeImmutable;
 	NCA\HasMigrations('Migrations/Raid'),
 	NCA\DefineCommand(
 		command: 'raid',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Check if the raid is running',
 	),
 	NCA\DefineCommand(
 		command: RaidController::CMD_RAID_MANAGE,
-		accessLevel: 'raid_leader_1',
+		accessLevel: AccessLevel::RaidLeader1,
 		description: 'Everything to run a points raid',
 	),
 	NCA\DefineCommand(
 		command: RaidController::CMD_RAID_TICKER,
-		accessLevel: 'raid_leader_2',
+		accessLevel: AccessLevel::RaidLeader2,
 		description: 'Change the raid points ticker',
 	),
 
@@ -86,34 +87,34 @@ class RaidController extends ModuleInstance {
 	public const CAT_RAID = 'raid';
 
 	/** Announce the raid periodically */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $raidAnnouncement = true;
 
 	/** Announcement interval */
 	#[NCA\Setting\Time(
 		options: ['30s', '60s', '90s', '120s', '150s', '180s'],
-		accessLevel: 'raid_admin_2',
+		accessLevel: AccessLevel::RaidAdmin2,
 	)]
 	public int $raidAnnouncementInterval = 90;
 
 	/** Give raid points based on duration of participation */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $raidPointsForTime = false;
 
 	/** Start ticker-based raids with the ticker paused */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $raidTickerStartPaused = false;
 
 	/** Point rate, in seconds */
-	#[NCA\Setting\Time(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Time(accessLevel: AccessLevel::RaidAdmin2)]
 	public int $raidPointsInterval = 5 * 60; // 5 minutes
 
 	/** Add raid initiator to the raid */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $raidAutoAddCreator = true;
 
 	/** Stopping the raid clears the callers */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $raidStopClearsCallers = false;
 
 	/** Locking the raid kicks players not in the raid */
@@ -123,14 +124,14 @@ class RaidController extends ModuleInstance {
 			"Kick all, except those who've been in the raid before" => 1,
 			"Don't kick on raid lock" => 0,
 		],
-		accessLevel: 'raid_admin_2',
+		accessLevel: AccessLevel::RaidAdmin2,
 	)]
 	public int $raidKickNotinOnLock = 0;
 
 	/** Time after which non-raiding bot-members are removed from the bot */
 	#[NCA\Setting\TimeOrOff(
 		options: ['off', '30d', '90d', '1y'],
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 	)]
 	public int $raidDemoteMembersInterval = 0;
 
@@ -204,8 +205,8 @@ class RaidController extends ModuleInstance {
 		$raidCat = new CommentCategory(
 			name: static::CAT_RAID,
 			created_by: $this->config->main->character,
-			min_al_read: 'raid_leader_1',
-			min_al_write: 'raid_leader_2',
+			min_al_read: AccessLevel::RaidLeader1,
+			min_al_write: AccessLevel::RaidLeader2,
 			user_managed: false,
 		);
 		$this->commentController->saveCategory($raidCat);

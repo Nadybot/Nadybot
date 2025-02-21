@@ -4,6 +4,7 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use Illuminate\Support\Collection;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -22,13 +23,13 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/Playfields'),
 	NCA\DefineCommand(
 		command: 'playfields',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show playfield ids, long names, and short names',
 		alias: 'playfield'
 	),
 	NCA\DefineCommand(
 		command: 'waypoint',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Create a waypoint link',
 	)
 ]

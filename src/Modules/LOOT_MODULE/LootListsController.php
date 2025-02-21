@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\LOOT_MODULE;
 
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -39,103 +40,103 @@ use Nadybot\Modules\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'alb',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible Albtraum loots',
 	),
 	NCA\DefineCommand(
 		command: 'db1',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible DB1 Armor/NCUs/Programs',
 	),
 	NCA\DefineCommand(
 		command: 'db2',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible DB2 Armor',
 	),
 	NCA\DefineCommand(
 		command: 'db3',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible DB3 Loot',
 	),
 	NCA\DefineCommand(
 		command: '7',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows the Sector 7 loot list',
 	),
 	NCA\DefineCommand(
 		command: '13',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Adds APF 13 loot to the loot list',
 	),
 	NCA\DefineCommand(
 		command: '28',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Adds APF 28 loot to the loot list',
 	),
 	NCA\DefineCommand(
 		command: '35',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Adds APF 35 loot to the loot list',
 	),
 	NCA\DefineCommand(
 		command: '42',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Adds APF 42 loot to the loot list',
 	),
 	NCA\DefineCommand(
 		command: 'apf',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows what drops off APF Bosses',
 	),
 	NCA\DefineCommand(
 		command: 'beast',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows Beast loot',
 	),
 	NCA\DefineCommand(
 		command: 'pande',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows Pandemonium bosses and loot categories',
 	),
 	NCA\DefineCommand(
 		command: 'vortexx',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible Vortexx Loot',
 	),
 	NCA\DefineCommand(
 		command: 'mitaar',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible Mitaar Hero Loot',
 	),
 	NCA\DefineCommand(
 		command: '12m',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible 12 man Loot',
 		alias: ['12man', '12-man'],
 	),
 	NCA\DefineCommand(
 		command: 'poh',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible Pyramid of Home loot',
 	),
 	NCA\DefineCommand(
 		command: 'totw',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible TOTW 201+ loot',
 	),
 	NCA\DefineCommand(
 		command: 'halloween',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible Halloween loot',
 	),
 	NCA\DefineCommand(
 		command: 'subway',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible Subway 201+ loot',
 	),
 	NCA\DefineCommand(
 		command: 'lox',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows Legacy of the Xan loot categories',
 		alias: 'xan',
 	),

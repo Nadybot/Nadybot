@@ -22,6 +22,7 @@ use Monolog\{
 	Processor\PsrLogMessageProcessor,
 };
 use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -45,17 +46,17 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'logs',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'View bot logs',
 	),
 	NCA\DefineCommand(
 		command: 'loglevel',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Change loglevel for debugging',
 	),
 	NCA\DefineCommand(
 		command: 'debug',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Create debug logs for a command',
 	)
 ]

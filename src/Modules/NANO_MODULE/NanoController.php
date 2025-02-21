@@ -8,6 +8,7 @@ use function Safe\preg_split;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -32,35 +33,35 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'nano',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Searches for a nano and tells you were to get it',
 	),
 	NCA\DefineCommand(
 		command: 'nanolines',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows nanos based on nanoline',
 		alias: 'nl'
 	),
 	NCA\DefineCommand(
 		command: 'nanolinesfroob',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows nanos for froobs based on nanoline ',
 		alias: 'nlf'
 	),
 	NCA\DefineCommand(
 		command: 'nanoloc',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Browse nanos by location',
 	),
 	NCA\DefineCommand(
 		command: 'bestnanos',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show the best nanos for your level and their requirements',
 		alias: 'bn'
 	),
 	NCA\DefineCommand(
 		command: 'bestnanosfroob',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show the best froob-nanos for your level and their requirements',
 		alias: 'bnf'
 	),

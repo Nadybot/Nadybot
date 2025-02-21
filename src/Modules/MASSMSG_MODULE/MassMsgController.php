@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\MASSMSG_MODULE;
 
 use AO\Package;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -33,23 +34,23 @@ use Safe\DateTimeImmutable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'massmsg',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Send messages to all bot members online',
 		alias: 'massmessage'
 	),
 	NCA\DefineCommand(
 		command: 'massmsgs',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Control if you want to receive mass messages',
 	),
 	NCA\DefineCommand(
 		command: 'massinvites',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Control if you want to receive mass invites',
 	),
 	NCA\DefineCommand(
 		command: 'massinv',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Send invites with a message to all bot members online',
 		alias: 'massinvite'
 	),
@@ -235,7 +236,7 @@ class MassMsgController extends ModuleInstance {
 				continue;
 			}
 			if ($name === $this->config->main->character
-				|| !$this->accessManager->checkAccess($name, 'member')) {
+				|| !$this->accessManager->checkAccess($name, AccessLevel::Member)) {
 				continue;
 			}
 			if ($this->chatBot->inChatlist($name)) {

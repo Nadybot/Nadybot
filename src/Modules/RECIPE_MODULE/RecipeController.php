@@ -6,6 +6,7 @@ use function Safe\json_decode;
 use Amp\File\FilesystemException;
 use Exception;
 use Nadybot\Core\Events\ConnectEvent;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -33,7 +34,7 @@ use Safe\Exceptions\JsonException;
 	NCA\HasMigrations('Migrations/Recipes'),
 	NCA\DefineCommand(
 		command: 'recipe',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Search for a recipe',
 	)
 ]

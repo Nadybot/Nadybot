@@ -5,6 +5,7 @@ namespace Nadybot\Modules\CITY_MODULE;
 use function Safe\preg_match;
 use Exception;
 use Nadybot\Core\Events\GuildChannelMsgEvent;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -33,7 +34,7 @@ use Nadybot\Modules\TIMERS_MODULE\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'citywave',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows/Starts/Stops the current city wave',
 	),
 ]

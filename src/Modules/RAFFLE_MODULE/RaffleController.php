@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
 use AO\SendPriority;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -21,7 +22,6 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-
 use Nadybot\Modules\RAID_MODULE\RaidController;
 
 /**
@@ -32,12 +32,12 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'raffle',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Join or leave raffles',
 	),
 	NCA\DefineCommand(
 		command: RaffleController::CMD_RAFFLE_MANAGE,
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Raffle off items to players',
 	),
 ]
@@ -84,7 +84,7 @@ class RaffleController extends ModuleInstance {
 
 	/** Rank required to cancel other people's raffle */
 	#[NCA\Setting\Rank]
-	public string $raffleCancelotherRank = 'mod';
+	public AccessLevel $raffleCancelotherRank = AccessLevel::Mod;
 
 	/** Players are allowed to join for multiple items */
 	#[NCA\Setting\Boolean]
@@ -323,8 +323,7 @@ class RaffleController extends ModuleInstance {
 
 		$cancelMinRank = $this->raffleCancelotherRank;
 		if (($this->raffle->raffler !== $context->char->name) && !$this->accessManager->checkAccess($context->char->name, $cancelMinRank)) {
-			$requiredRank = $this->accessManager->getDisplayName($cancelMinRank);
-			$msg = "Only the owner or a {$requiredRank} may cancel the raffle.";
+			$msg = "Only the owner or a {$cancelMinRank->displayName()} may cancel the raffle.";
 			$context->reply($msg);
 			return;
 		}
@@ -346,7 +345,10 @@ class RaffleController extends ModuleInstance {
 			return;
 		}
 
-		if (($this->raffle->raffler !== $context->char->name) && !$this->accessManager->checkAccess($context->char->name, 'mod')) {
+		if (
+			($this->raffle->raffler !== $context->char->name)
+			&& !$this->accessManager->checkAccess($context->char->name, AccessLevel::Mod)
+		) {
 			$msg = 'Only the owner or a moderator may end the raffle.';
 			$context->reply($msg);
 			return;
@@ -371,7 +373,10 @@ class RaffleController extends ModuleInstance {
 			return;
 		}
 
-		if (($this->raffle->raffler !== $context->char->name) && !$this->accessManager->checkAccess($context->char->name, 'mod')) {
+		if (
+			($this->raffle->raffler !== $context->char->name)
+			&& !$this->accessManager->checkAccess($context->char->name, AccessLevel::Mod)
+		) {
 			$msg = 'Only the owner or a moderator may set or change the raffle timer.';
 			$context->reply($msg);
 			return;
@@ -402,7 +407,10 @@ class RaffleController extends ModuleInstance {
 			return;
 		}
 
-		if (($this->raffle->raffler !== $context->char->name) && !$this->accessManager->checkAccess($context->char->name, 'mod')) {
+		if (
+			($this->raffle->raffler !== $context->char->name)
+			&& !$this->accessManager->checkAccess($context->char->name, AccessLevel::Mod)
+		) {
 			$msg = 'Only the owner or a moderator may announce the raffle.';
 			$context->reply($msg);
 			return;

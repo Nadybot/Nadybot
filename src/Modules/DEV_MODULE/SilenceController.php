@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use Nadybot\Core\Events\ConnectEvent;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -22,12 +23,12 @@ use Psr\Log\LoggerInterface;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'silence',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Silence commands in a particular permission set',
 	),
 	NCA\DefineCommand(
 		command: 'unsilence',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Unsilence commands in a particular permission set',
 	)
 ]
@@ -115,7 +116,7 @@ class SilenceController extends ModuleInstance {
 	}
 
 	public function addSilencedCommand(CmdCfg $row, string $channel): void {
-		$this->commandManager->activate($channel, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
+		$this->commandManager->activate($channel, self::NULL_COMMAND_HANDLER, $row->cmd, AccessLevel::All);
 		$this->db->insert(new SilenceCmd(
 			cmd: $row->cmd,
 			channel: $channel,
@@ -143,7 +144,7 @@ class SilenceController extends ModuleInstance {
 		$this->db->table(SilenceCmd::getTable())
 			->asObj(SilenceCmd::class)
 			->each(function (SilenceCmd $row): void {
-				$this->commandManager->activate($row->channel, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
+				$this->commandManager->activate($row->channel, self::NULL_COMMAND_HANDLER, $row->cmd, AccessLevel::All);
 			});
 	}
 }

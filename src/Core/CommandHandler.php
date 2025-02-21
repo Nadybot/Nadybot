@@ -2,12 +2,14 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Types\AccessLevel;
+
 class CommandHandler {
 	/** @var list<string> */
 	public array $files;
 
 	public function __construct(
-		public string $access_level,
+		public AccessLevel $access_level,
 		string ...$fileName
 	) {
 		$this->files = array_values($fileName);

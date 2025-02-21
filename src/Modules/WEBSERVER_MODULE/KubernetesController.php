@@ -4,6 +4,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -14,7 +15,7 @@ use Nadybot\Core\{
 #[NCA\Instance]
 class KubernetesController extends ModuleInstance {
 	/** Enable Kubernetes endpoints at /livez and /readyz */
-	#[NCA\Setting\Boolean(accessLevel: 'admin')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::Admin)]
 	public bool $kubernetesEndpoints = true;
 
 	#[NCA\Inject]

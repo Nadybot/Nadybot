@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -21,7 +22,7 @@ use Ramsey\Uuid\Uuid;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'quickrelay',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Print commands to easily setup relays',
 	)
 ]
