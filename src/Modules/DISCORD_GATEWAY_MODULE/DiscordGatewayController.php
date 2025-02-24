@@ -221,7 +221,11 @@ class DiscordGatewayController extends ModuleInstance {
 		return $this->guilds;
 	}
 
-	/** Check if the bot is connected and authenticated to the Discord gateway */
+	/**
+	 * Check if the bot is connected and authenticated to the Discord gateway
+	 *
+	 * @psalm-assert-if-true non-empty-string $this->sessionId
+	 */
 	public function isConnected(): bool {
 		return isset($this->sessionId) && strlen($this->sessionId) > 0;
 	}

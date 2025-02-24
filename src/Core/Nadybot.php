@@ -447,6 +447,7 @@ class Nadybot {
 		$this->logger->notice('Graceful shutdown.');
 	}
 
+	/** @psalm-assert-if-true true $this->shuttingDown */
 	public function isShuttingDown(): bool {
 		return $this->shuttingDown;
 	}
@@ -1644,7 +1645,11 @@ class Nadybot {
 		return $this->buddyListSize;
 	}
 
-	/** Tells when the bot is logged on and all the start up events have finished */
+	/**
+	 * Tells when the bot is logged on and all the start up events have finished
+	 *
+	 * @psalm-assert-if-true true $this->ready
+	 */
 	public function isReady(): bool {
 		return $this->ready;
 	}

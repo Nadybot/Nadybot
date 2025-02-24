@@ -39,6 +39,11 @@ class Blob implements \Stringable {
 		);
 	}
 
+	/**
+	 * Check, whether the blob is an empty string
+	 *
+	 * @psalm-assert-if-true '' $this->text
+	 */
 	public function isEmpty(): bool {
 		return strlen($this->text) === 0;
 	}

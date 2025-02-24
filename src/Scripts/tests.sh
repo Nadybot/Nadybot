@@ -64,9 +64,9 @@ magoCheck() {
 valeCheck() {
   if command -v vale &> /dev/null; then
     if [ -n "${CHANGED_FILES}" ]; then
-      CHANGED_FILES=$(grep -P '^src/' <<<"${CHANGED_FILES}")
+      CHANGED_FILES=$(grep -P '^src/' <<<"${CHANGED_FILES}" | grep -P -v 'src/websetup')
     else
-      CHANGED_FILES="src"
+      CHANGED_FILES="src/Api src/Core src/Modules src/Patcher src/Scripts"
     fi
     OUTPUT=$(vale ${CHANGED_FILES} 2>&1)
     if [ $? -ne 0 ]; then

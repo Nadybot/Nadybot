@@ -91,6 +91,7 @@ class EventFeed {
 		}
 	}
 
+	/** @psalm-assert-if-true Highway\Connection $this->connection */
 	public function isConnected(): bool {
 		return isset($this->connection);
 	}

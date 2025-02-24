@@ -504,7 +504,11 @@ class BanController extends ModuleInstance implements ImporterInterface {
 			});
 	}
 
-	/** Check if $charId is banned */
+	/**
+	 * Check if $charId is banned
+	 *
+	 * @psalm-assert-if-true non-empty-array<int,BanEntry> $this->banlist
+	 */
 	public function isBanned(int $charId): bool {
 		return isset($this->banlist[$charId]);
 	}
