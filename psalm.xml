@@ -17,6 +17,7 @@
         <ignoreFiles>
             <directory name="vendor" />
             <directory name="Stubs" />
+            <directory name="src/websetup" />
         </ignoreFiles>
     </projectFiles>
     <stubs>

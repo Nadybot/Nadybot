@@ -3,7 +3,8 @@ php_version = "8.1"
 [source]
 paths = ["src"]
 excludes = [
-  "src/Core/QueryBuilder.php"
+  "src/Core/QueryBuilder.php",
+  "src/websetup"
 ]
 includes = ["vendor", "src/Core"]
 extensions = ["php"]
