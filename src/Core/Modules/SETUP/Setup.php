@@ -8,6 +8,7 @@ use function Amp\Socket\connect;
 use Amp\ByteStream\BufferedReader;
 use Amp\TimeoutCancellation;
 use AO\Client\{SingleClient, WorkerConfig};
+use AO\Utils;
 use Nadybot\Core\{
 	Config\BotConfig,
 	DB\DBType,
@@ -172,7 +173,7 @@ class Setup {
 		if (in_array($choice, ['b', 'B'], true)) {
 			$this->queryAccountUsername();
 		}
-		$this->configFile->main->character = ucfirst(strtolower($choice));
+		$this->configFile->main->character = Utils::normalizeCharacter($choice);
 		$this->queryOrgname();
 	}
 
@@ -201,7 +202,7 @@ class Setup {
 		do {
 			$superAdmin = $this->readInput($msg);
 		} while ($superAdmin === '');
-		$this->configFile->general->superAdmins = [ucfirst(strtolower($superAdmin))];
+		$this->configFile->general->superAdmins = [Utils::normalizeCharacter($superAdmin)];
 		$this->queryDatabaseInstallation();
 	}
 

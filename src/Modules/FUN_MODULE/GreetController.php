@@ -4,6 +4,7 @@ namespace Nadybot\Modules\FUN_MODULE;
 
 use function Amp\delay;
 
+use AO\Utils;
 use Nadybot\Core\Modules\{
 	ALTS\AltNewMainEvent,
 	ALTS\AltsController,
@@ -309,12 +310,12 @@ class GreetController extends ModuleInstance {
 	protected function matchesGreetingCheck(string $token, string $value, string $target): bool {
 		switch ($token) {
 			case 'main':
-				return $this->altsController->getMainOf($target) === ucfirst(strtolower($value));
+				return $this->altsController->getMainOf($target) === Utils::normalizeCharacter($value);
 			case 'name':
 			case 'char':
 			case 'charname':
 			case 'character':
-				return $target === ucfirst(strtolower($value));
+				return $target === Utils::normalizeCharacter($value);
 		}
 
 		$player = $this->playerManager->byName($target);

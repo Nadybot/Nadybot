@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use AO\Utils;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -133,7 +134,7 @@ class OrglistController extends ModuleInstance {
 			return $orgs;
 		}
 		// check if search is a character and add character's org to org list if it's not already in the list
-		$name = ucfirst(strtolower($search));
+		$name = Utils::normalizeCharacter($search);
 		$whois = $this->playerManager->byName($name);
 		if ($whois === null || $whois->guild_id === 0 || $whois->guild_id === null) {
 			return $orgs;

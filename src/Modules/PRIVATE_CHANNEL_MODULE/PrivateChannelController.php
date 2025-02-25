@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use function Safe\preg_match;
 use Amp\File\FilesystemException;
-use AO\Package;
+use AO\{Package, Utils};
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -1234,7 +1234,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	public function removeUser(string $name, string $sender): string {
-		$name = ucfirst(strtolower($name));
+		$name = Utils::normalizeCharacter($name);
 
 		if (!$this->db->table(Member::getTable())->where('name', $name)->delete()) {
 			return "<highlight>{$name}<end> is not a member of this bot.";
@@ -1452,7 +1452,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	private function addUser(string $name, string $sender): string {
 		$autoInvite = $this->autoinviteDefault;
-		$name = ucfirst(strtolower($name));
+		$name = Utils::normalizeCharacter($name);
 		$uid = $this->chatBot->getUid($name);
 		if ($this->config->main->character === $name) {
 			throw new Exception('You cannot add the bot as a member of itself.');

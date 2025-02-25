@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use AO\Utils;
 use Exception;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Remove, Str, WordStr};
 use Nadybot\Core\Modules\ALTS\{AltAddEvent, AltNewMainEvent, AltValidateEvent};
@@ -161,7 +162,7 @@ class RaidPointsController extends ModuleInstance {
 
 	/** Give $player a point for participation in raid $raid */
 	public function giveTickPoint(string $player, Raid $raid): string {
-		$pointsChar = ucfirst(strtolower($player));
+		$pointsChar = Utils::normalizeCharacter($player);
 		$sharePoints = $this->raidSharePoints;
 		if ($sharePoints) {
 			$pointsChar = $this->altsController->getMainOf($pointsChar);
@@ -199,7 +200,7 @@ class RaidPointsController extends ModuleInstance {
 	 * @throws Exception on error
 	 */
 	public function modifyRaidPoints(string $player, int $delta, bool $individual, string $reason, string $changedBy, ?Raid $raid): string {
-		$pointsChar = ucfirst(strtolower($player));
+		$pointsChar = Utils::normalizeCharacter($player);
 		$sharePoints = $this->raidSharePoints;
 		if ($sharePoints) {
 			$pointsChar = $this->altsController->getMainOf($pointsChar);
@@ -217,7 +218,7 @@ class RaidPointsController extends ModuleInstance {
 			}
 		}
 		$inserted = $this->db->insert(new RaidPointsLog(
-			username: ucfirst(strtolower($player)),
+			username: Utils::normalizeCharacter($player),
 			delta: $delta,
 			time: time(),
 			changed_by: $changedBy,
@@ -270,7 +271,7 @@ class RaidPointsController extends ModuleInstance {
 
 	/** Get this player's raid points, taking into consideration alts */
 	public function getRaidPoints(string $player): ?int {
-		$pointsChar = ucfirst(strtolower($player));
+		$pointsChar = Utils::normalizeCharacter($player);
 		$sharePoints = $this->raidSharePoints;
 		if ($sharePoints) {
 			$pointsChar = $this->altsController->getMainOf($pointsChar);

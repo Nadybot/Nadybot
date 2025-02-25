@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use AO\Utils;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -113,7 +114,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	}
 
 	public function setLeader(string $name, string $sender): ?string {
-		$name = ucfirst(strtolower($name));
+		$name = Utils::normalizeCharacter($name);
 		$uid = $this->chatBot->getUid($name);
 		if (!isset($uid)) {
 			return "Character <highlight>{$name}<end> does not exist.";

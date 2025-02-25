@@ -4,6 +4,7 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
+use AO\Utils;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -191,12 +192,12 @@ class OrgHistoryController extends ModuleInstance {
 
 		$actor = $request->getQueryParameter('actor');
 		if (isset($actor)) {
-			$query->where('actor', ucfirst(strtolower($actor)));
+			$query->where('actor', Utils::normalizeCharacter($actor));
 		}
 
 		$actee = $request->getQueryParameter('actee');
 		if (isset($actee)) {
-			$query->where('actee', ucfirst(strtolower($actee)));
+			$query->where('actee', Utils::normalizeCharacter($actee));
 		}
 
 		$action = $request->getQueryParameter('action');

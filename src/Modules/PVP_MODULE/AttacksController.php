@@ -281,11 +281,11 @@ class AttacksController extends ModuleInstance {
 				name: $matches['att_name'],
 				charid: 0,
 				dimension: $this->config->main->dimension,
-				faction: Faction::from(ucfirst(strtolower($matches['att_faction']))),
+				faction: Faction::fromName($matches['att_faction']),
 				guild: $matches['att_org'],
 			);
 		} else {
-			$whois->faction = Faction::from(ucfirst(strtolower($matches['att_faction'])));
+			$whois->faction = Faction::fromName($matches['att_faction']);
 			$whois->guild = $matches['att_org'];
 		}
 		$siteName = $pf->short();

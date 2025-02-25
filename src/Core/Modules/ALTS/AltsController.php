@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\ALTS;
 
 use function Amp\async;
 
+use AO\Utils;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -498,7 +499,7 @@ class AltsController extends ModuleInstance {
 	 * @return AltInfo Information about the main and the alts
 	 */
 	public function getAltInfo(string $player, bool $includePending=false): AltInfo {
-		$player = ucfirst(strtolower($player));
+		$player = Utils::normalizeCharacter($player);
 
 		$ai = new AltInfo(main: $player);
 		Registry::injectDependencies($ai);
@@ -532,8 +533,8 @@ class AltsController extends ModuleInstance {
 
 	/** This method adds given $alt as $main's alt character. */
 	public function addAlt(string $main, string $alt, bool $validatedByMain, bool $validatedByAlt, bool $sendEvent=true): int {
-		$main = ucfirst(strtolower($main));
-		$alt = ucfirst(strtolower($alt));
+		$main = Utils::normalizeCharacter($main);
+		$alt = Utils::normalizeCharacter($alt);
 
 		$added = $this->db->insert(new Alt(
 			alt: $alt,

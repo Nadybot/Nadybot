@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use AO\Utils;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -88,7 +89,7 @@ class BuddylistManager {
 			return true;
 		}
 		$workerNames = array_column($this->config->worker, 'character');
-		if (in_array(ucfirst(strtolower($name)), $workerNames, true)) {
+		if (in_array(Utils::normalizeCharacter($name), $workerNames, true)) {
 			return true;
 		}
 		$buddy = $this->getBuddy($name);

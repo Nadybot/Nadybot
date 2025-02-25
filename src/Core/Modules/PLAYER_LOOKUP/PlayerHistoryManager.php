@@ -6,6 +6,7 @@ use function Amp\async;
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\TimeoutCancellation;
+use AO\Utils;
 use DateInterval;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -25,7 +26,7 @@ class PlayerHistoryManager extends ModuleInstance {
 	private CacheInterface $cache;
 
 	public function lookup(string $name, int $dimension): ?PlayerHistory {
-		$name = ucfirst(strtolower($name));
+		$name = Utils::normalizeCharacter($name);
 		$urls = [
 			"https://history.aobots.org/?server={$dimension}&name={$name}",
 			$mainUrl = "https://pork.jkbff.com/pork/history.php?server={$dimension}&name={$name}",

@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\FUN_MODULE;
 
 use function Safe\preg_split;
+
+use AO\Utils;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\{
 	ALTS\AltsController,
@@ -444,12 +446,12 @@ class DeathController extends ModuleInstance {
 		};
 		switch ($token) {
 			case 'main':
-				return $comparison($this->altsController->getMainOf($death->character), ucfirst(strtolower($value)));
+				return $comparison($this->altsController->getMainOf($death->character), Utils::normalizeCharacter($value));
 			case 'name':
 			case 'char':
 			case 'charname':
 			case 'character':
-				return $comparison($death->character, ucfirst(strtolower($value)));
+				return $comparison($death->character, Utils::normalizeCharacter($value));
 			case 'count':
 			case 'counter':
 				return $comparison($death->counter, (int)$value);

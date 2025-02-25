@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Migrations;
 
+use AO\Utils;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\{
@@ -32,7 +33,7 @@ class ConvertBroadcastsToRoutes implements SchemaMigration {
 	}
 
 	public function convertBroadcastToRoute(DB $db, string $broadcast, bool $org, bool $priv): void {
-		$name = ucfirst(strtolower($broadcast));
+		$name = Utils::normalizeCharacter($broadcast);
 		$botName = $db->getMyname();
 		if ($org) {
 			$route = [

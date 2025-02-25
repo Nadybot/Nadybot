@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use AO\Package;
+use AO\{Package, Utils};
 use Nadybot\Core\Events\{ExtJoinPrivRequest, JoinPrivEvent, LeavePrivEvent, OtherLeavePrivEvent, PrivateChannelMsgEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -47,7 +47,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 	public function __construct(
 		#[NCA\Param] string $channel,
 	) {
-		$this->channel = ucfirst(strtolower($channel));
+		$this->channel = Utils::normalizeCharacter($channel);
 	}
 
 	public function setRelay(Relay $relay): void {

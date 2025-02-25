@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use AO\Utils;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -97,7 +98,7 @@ class RaidBlockController extends ModuleInstance {
 	public function isBlocked(string $player, string $activity): bool {
 		$player = $this->altsController->getMainOf($player);
 		$this->expireBans();
-		return isset($this->blocks[ucfirst(strtolower($player))][$activity]);
+		return isset($this->blocks[Utils::normalizeCharacter($player)][$activity]);
 	}
 
 	/** Get a descriptive noun for a raid block key */

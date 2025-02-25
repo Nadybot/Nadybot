@@ -6,6 +6,7 @@ use function Safe\{preg_split, strtotime};
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
+use AO\Utils;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -165,12 +166,12 @@ class AuditController extends ModuleInstance {
 
 		$actor = $request->getQueryParameter('actor');
 		if (isset($actor)) {
-			$query->where('actor', ucfirst(strtolower($actor)));
+			$query->where('actor', Utils::normalizeCharacter($actor));
 		}
 
 		$actee = $request->getQueryParameter('actee');
 		if (isset($actee)) {
-			$query->where('actee', ucfirst(strtolower($actee)));
+			$query->where('actee', Utils::normalizeCharacter($actee));
 		}
 
 		$action = $request->getQueryParameter('action');
@@ -226,12 +227,12 @@ class AuditController extends ModuleInstance {
 
 		$actor = $params['actor']??null;
 		if (isset($actor) && is_string($actor)) {
-			$query->where('actor', ucfirst(strtolower($actor)));
+			$query->where('actor', Utils::normalizeCharacter($actor));
 		}
 
 		$actee = $params['actee']??null;
 		if (isset($actee) && is_string($actee)) {
-			$query->where('actee', ucfirst(strtolower($actee)));
+			$query->where('actee', Utils::normalizeCharacter($actee));
 		}
 
 		$action = $params['action']??null;

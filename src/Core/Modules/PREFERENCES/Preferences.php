@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\PREFERENCES;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
+use AO\Utils;
 use Nadybot\Core\DBSchema\Preferences as DBSchemaPreferences;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -30,14 +31,14 @@ class Preferences extends ModuleInstance {
 
 	public function save(string $sender, string $name, string $value): void {
 		$this->db->upsert(new DBSchemaPreferences(
-			sender: ucfirst(strtolower($sender)),
+			sender: Utils::normalizeCharacter($sender),
 			name: strtolower($name),
 			value: $value
 		));
 	}
 
 	public function get(string $sender, string $name): ?string {
-		$sender = ucfirst(strtolower($sender));
+		$sender = Utils::normalizeCharacter($sender);
 		$name = strtolower($name);
 		return $this->db->table(DBSchemaPreferences::getTable())
 			->where('sender', $sender)
@@ -48,7 +49,7 @@ class Preferences extends ModuleInstance {
 	}
 
 	public function delete(string $sender, string $name): bool {
-		$sender = ucfirst(strtolower($sender));
+		$sender = Utils::normalizeCharacter($sender);
 		$name = strtolower($name);
 		return $this->db->table(DBSchemaPreferences::getTable())
 			->where('sender', $sender)

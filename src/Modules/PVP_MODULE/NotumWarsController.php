@@ -1044,16 +1044,13 @@ class NotumWarsController extends ModuleInstance {
 				return $gas->inPenalty();
 			});
 		}
-		if (count($matches = Safe::pregMatch("/\s+(neutral|omni|clan|neut)\b/i", $search)) === 2) {
+		if (count($matches = Safe::pregMatch("/\s+(" . Faction::getParamRegexp() . ")\b/i", $search)) === 2) {
 			$this->logger->info('Found <{side}> keyword', [
 				'side' => $matches[1],
 			]);
-			$faction = strtolower($matches[1]);
-			$search = Safe::pregReplace("/\s+(neutral|omni|clan|neut)\b/i", '', $search);
-			if ($faction === 'neut') {
-				$faction = 'neutral';
-			}
-			$hotSites = $hotSites->where('org_faction', ucfirst($faction));
+			$faction = Faction::fromName($matches[1]);
+			$search = Safe::pregReplace("/\s+(" . Faction::getParamRegexp() . ")\b/i", '', $search);
+			$hotSites = $hotSites->where('org_faction', $faction->value);
 		}
 		if (count($matches = Safe::pregMatch("/\s+(\d+)\s*-\s*(\d+)\b/", $search)) === 3) {
 			$this->logger->info('Found level range <{from}>-<{to}>', [
@@ -1103,10 +1100,10 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$blob = $this->renderHotSites($time, ...$hotSites->toArray());
 		if ($soon > 0) {
-			$sitesLabel = isset($faction) ? ucfirst(strtolower($faction)) . ' sites' : 'Sites';
+			$sitesLabel = isset($faction) ? $faction->value . ' sites' : 'Sites';
 			$msg = Text::makeBlob("{$sitesLabel} going hot soon ({$hotSites->count()})", $blob);
 		} else {
-			$faction = isset($faction) ? ' ' . strtolower($faction) : '';
+			$faction = isset($faction) ? ' ' . strtolower($faction->value) : '';
 			$inPenalty = ($penalty > 0) ? ' in penalty' : '';
 			$msg = Text::makeBlob("Hot{$faction} sites{$inPenalty} ({$hotSites->count()})", $blob);
 		}

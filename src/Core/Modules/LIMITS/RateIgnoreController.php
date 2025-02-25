@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\LIMITS;
 
+use AO\Utils;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -88,8 +89,8 @@ class RateIgnoreController extends ModuleInstance {
 	 * @throws SQLException
 	 */
 	public function add(string $user, string $sender): string {
-		$user = ucfirst(strtolower($user));
-		$sender = ucfirst(strtolower($sender));
+		$user = Utils::normalizeCharacter($user);
+		$sender = Utils::normalizeCharacter($sender);
 
 		if ($user === '' || $sender === '') {
 			return 'User or sender is blank';
@@ -116,7 +117,7 @@ class RateIgnoreController extends ModuleInstance {
 	 * @throws SQLException
 	 */
 	public function remove(string $user): string {
-		$user = ucfirst(strtolower($user));
+		$user = Utils::normalizeCharacter($user);
 
 		if ($user === '') {
 			return 'User is blank';
@@ -131,7 +132,7 @@ class RateIgnoreController extends ModuleInstance {
 
 	public function check(string $user): bool {
 		return $this->db->table(RateIgnoreList::getTable())
-			->where('name', ucfirst(strtolower($user)))
+			->where('name', Utils::normalizeCharacter($user))
 			->exists();
 	}
 

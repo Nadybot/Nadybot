@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Types;
 
+use AO\Utils;
 use Nadybot\Core\{AccessManager, Registry};
 use Nadybot\Modules\RAID_MODULE\RaidRankController;
 use Throwable;
@@ -146,7 +147,7 @@ enum AccessLevel: string {
 
 	/** Get the name to display for this access level, first letter upper-cased */
 	public function displayNameUC(): string {
-		return ucfirst(strtolower($this->displayName()));
+		return Utils::normalizeCharacter($this->displayName());
 	}
 
 	/** Get the name to display for this access level, always lower-cased */

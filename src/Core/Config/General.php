@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Config;
 
+use AO\Utils;
 use EventSauce\ObjectHydrator\MapFrom;
 use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
 use InvalidArgumentException;
@@ -27,7 +28,7 @@ class General {
 		public ?string $timezone=null,
 	) {
 		$this->superAdmins = array_map(static function (string $char): string {
-			$normalized = ucfirst(strtolower($char));
+			$normalized = Utils::normalizeCharacter($char);
 			if ((strlen($normalized) < 4) || (strlen($normalized) > 12)) {
 				throw new InvalidArgumentException("\"{$normalized}\" is an invalid character name for a Superadmin.");
 			}

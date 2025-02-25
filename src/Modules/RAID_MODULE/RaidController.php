@@ -6,6 +6,7 @@ use function Amp\async;
 use function Amp\Future\await;
 
 use Amp\Pipeline\Pipeline;
+use AO\Utils;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -1071,7 +1072,7 @@ class RaidController extends ModuleInstance {
 		}
 		$event = new RaidStopEvent(
 			raid: $raid,
-			player: ucfirst(strtolower($sender)),
+			player: Utils::normalizeCharacter($sender),
 		);
 		$this->eventManager->dispatch($event);
 	}

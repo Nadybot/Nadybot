@@ -180,7 +180,7 @@ class AccessManager {
 	 * This is the same checkAccess() but doesn't check alt
 	 */
 	public function checkSingleAccess(string $sender, AccessLevel $accessLevel): bool {
-		$sender = ucfirst(strtolower($sender));
+		$sender = Utils::normalizeCharacter($sender);
 
 		$charAccessLevel = $this->getSingleAccessLevel($sender);
 		return $charAccessLevel->atLeast($accessLevel);

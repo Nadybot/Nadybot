@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use AO\Utils;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltInfo;
 use Nadybot\Core\{
@@ -582,7 +583,7 @@ class GuildController extends ModuleInstance {
 	public function autoNotifyOrgMembersEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (count($arr = Safe::pregMatch('/^(.+) invited (.+) to your organization.$/', $message))) {
-			$name = ucfirst(strtolower($arr[2]));
+			$name = Utils::normalizeCharacter($arr[2]);
 
 			if (
 				$this->buddylistManager->isOnline($name) === true
@@ -613,7 +614,7 @@ class GuildController extends ModuleInstance {
 			|| count($arr = Safe::pregMatch('/^(?<char>.+) just left your organization.$/', $message))
 			|| count($arr = Safe::pregMatch('/^(?<char>.+) kicked from organization \\(alignment changed\\).$/', $message))
 		) {
-			$name = ucfirst(strtolower($arr['char']));
+			$name = Utils::normalizeCharacter($arr['char']);
 
 			$this->db->table(OrgMember::getTable())
 				->where('name', $name)

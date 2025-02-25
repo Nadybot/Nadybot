@@ -2,12 +2,14 @@
 
 namespace Nadybot\Core\ParamClass;
 
+use AO\Utils;
+
 class PCharacter extends Base {
 	protected static string $regExp = '[a-zA-Z][a-zA-Z0-9-]{3,11}';
 	protected string $value;
 
 	public function __construct(string $value) {
-		$this->value = ucfirst(strtolower($value));
+		$this->value = Utils::normalizeCharacter($value);
 	}
 
 	public function __invoke(): string {

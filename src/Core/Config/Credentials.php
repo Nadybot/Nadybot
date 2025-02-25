@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Config;
 
+use AO\Utils;
 use Nadybot\Core\Attributes\Hydrator\Confidential;
 use Nadybot\Core\Attributes\Hydrator\{Max, Min, StrLength};
 
@@ -15,7 +16,7 @@ class Credentials {
 		#[Confidential] public ?string $webLogin=null,
 		#[Confidential] public ?string $webPassword=null,
 	) {
-		$this->character = ucfirst(strtolower($this->character));
+		$this->character = Utils::normalizeCharacter($this->character);
 		if ($this->webLogin === '') {
 			$this->webLogin = null;
 		}

@@ -481,7 +481,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		if ($side === static::SIDE_NONE) {
 			return [Faction::Clan, Faction::Omni];
 		}
-		return [Faction::from(ucfirst(strtolower($side)))];
+		return [Faction::fromName($side)];
 	}
 
 	/** Parse the Gauntlet buff timer API result and handle each running buff */

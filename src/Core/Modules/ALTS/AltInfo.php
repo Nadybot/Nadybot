@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
+use AO\Utils;
 use Nadybot\Core\DBSchema\Alt;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -51,7 +52,7 @@ class AltInfo {
 
 	/** Check if $sender is a validated alt or main */
 	public function isValidated(string $sender): bool {
-		$sender = ucfirst(strtolower($sender));
+		$sender = Utils::normalizeCharacter($sender);
 		if ($sender === $this->main) {
 			return true;
 		}

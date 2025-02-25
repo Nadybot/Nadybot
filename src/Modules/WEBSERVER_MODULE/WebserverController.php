@@ -9,6 +9,7 @@ use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Server\{DefaultErrorHandler, HttpServer, Request, RequestHandler, Response, SocketHttpServer};
 use Amp\Http\{Client, HttpStatus};
 use Amp\TimeoutCancellation;
+use AO\Utils;
 use Closure;
 use Exception;
 use Nadybot\Core\{
@@ -604,7 +605,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	 * @return null|string null if password is wrong, the username that was sent if correct
 	 */
 	private function checkAuthentication(string $user, string $password): ?string {
-		$user = ucfirst(strtolower($user));
+		$user = Utils::normalizeCharacter($user);
 		if (!isset($this->authentications[$user])) {
 			return null;
 		}

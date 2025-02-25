@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use AO\Utils;
 use Exception;
 use Nadybot\Core\Attributes\Parameter\{Regexp,Remove,Str,WordStr};
 use Nadybot\Core\{
@@ -207,10 +208,10 @@ class ChatAssistController extends ModuleInstance {
 		$parts = explode('.', $toRemove, 2);
 		$group = null;
 		if (count($parts) === 2) {
-			$toRemove = ucfirst(strtolower($parts[1]));
+			$toRemove = Utils::normalizeCharacter($parts[1]);
 			$group = strtolower($parts[0]);
 		} else {
-			$toRemove = ucfirst(strtolower($toRemove));
+			$toRemove = Utils::normalizeCharacter($toRemove);
 		}
 		$removed = false;
 		$backup = $this->backupCallers($context->char->name, $context->message);
@@ -419,7 +420,7 @@ class ChatAssistController extends ModuleInstance {
 		$name = $caller();
 		$groupKey = strtolower($assistList);
 
-		$name = ucfirst(strtolower($name));
+		$name = Utils::normalizeCharacter($name);
 		$uid = $this->chatBot->getUid($name);
 		if (!isset($uid)) {
 			$context->reply("Character <highlight>{$name}<end> does not exist.");

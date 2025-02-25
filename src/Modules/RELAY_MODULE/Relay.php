@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use AO\Utils;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -117,7 +118,7 @@ class Relay implements MessageReceiver {
 			'dimension' => $dimension,
 			'uid' => $uid,
 		]);
-		$character = ucfirst(strtolower($character));
+		$character = Utils::normalizeCharacter($character);
 		$this->onlineChars[$where] ??= [];
 		$player = OnlinePlayer::fromPlayer(new Player(
 			name: $character,
@@ -140,7 +141,7 @@ class Relay implements MessageReceiver {
 	}
 
 	public function setOffline(string $sender, string $where, string $character, ?int $uid=null, ?int $dimension=null, ?string $main=null): void {
-		$character = ucfirst(strtolower($character));
+		$character = Utils::normalizeCharacter($character);
 		$this->logger->info('Marking {name} offline on {relay}.{where}', [
 			'name' => $character,
 			'where' => $where,
