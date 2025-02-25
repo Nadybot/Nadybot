@@ -6,8 +6,19 @@ use Nadybot\Core\Attributes\DB\{MapRead, MapWrite};
 use Nadybot\Core\DBRow;
 use Nadybot\Core\Types\AccessLevel;
 
+/** This represents a help-topic search result */
 class HelpTopic extends DBRow {
-	/** @param list<AccessLevel> $admin_list */
+	/**
+	 * @param list<AccessLevel> $admin_list  A list of access levels required to execute the
+	 *                                       command. If you are not allowed to execute the
+	 *                                       command in any of the permission sets, you won't
+	 *                                       be able to see its help.
+	 * @param string            $module      Name of the module that defines the command
+	 * @param string            $name        Name of the help topic/command
+	 * @param string            $description Description to display
+	 * @param null|int          $sort        Sort order
+	 * @param null|string       $file        The file that defines the help/command
+	 */
 	public function __construct(
 		#[
 			MapRead([self::class, 'dbToAdminList']),

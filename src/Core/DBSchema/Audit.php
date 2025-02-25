@@ -7,8 +7,8 @@ use Nadybot\Core\{Attributes as NCA, AuditAction, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
 
-#[Table(name: 'audit')]
 /** A single audited action */
+#[Table(name: 'audit')]
 class Audit extends DBTable {
 	#[NCA\DB\PK] public UuidInterface $id;
 

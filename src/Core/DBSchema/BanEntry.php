@@ -4,12 +4,13 @@ namespace Nadybot\Core\DBSchema;
 
 use Nadybot\Core\{Attributes as NCA, DBTable};
 
+/** A banned character */
 #[NCA\DB\Table(name: 'banlist')]
 class BanEntry extends DBTable {
 	#[NCA\DB\Ignore] public ?string $name=null;
 
 	/**
-	 * @param int     $charid uid of the banned person
+	 * @param int     $charid UID of the banned person
 	 * @param ?string $admin  Name of the person who banned $charid
 	 * @param ?int    $time   Unix time stamp when $charid was banned
 	 * @param ?string $reason Reason why $charid was banned

@@ -12,7 +12,21 @@ use Nadybot\Core\Types\Status;
 /** General config settings */
 class General {
 	/**
-	 * @param string[] $superAdmins
+	 * @param string      $orgName             Set to a non-empty string, if this is an org bot for
+	 *                                         the given org
+	 * @param string[]    $superAdmins         A list of character names that will get superadmin rank
+	 * @param bool        $showAomlMarkup      Log the raw data that's send to Funcom, instead of
+	 *                                         removing popups and simplifying links
+	 * @param Status      $defaultModuleStatus Should all modules (and new ones) be enabled
+	 *                                         or disabled by default?
+	 * @param bool        $enableConsoleClient Set to enable managing the bot via the console.
+	 *                                         Doesn't work under Windows
+	 * @param bool        $enablePackageModule Enable the !package-command that allows installing
+	 *                                         additional modules from within the bot
+	 * @param bool        $enableHydratorCache Speed up parsing of network data at the expense
+	 *                                         of needing some more RAM
+	 * @param bool        $autoOrgName         Automatically pick up the org's name from the org channel name
+	 * @param null|string $timezone            Timezone to use when displaying date and time in the bot
 	 *
 	 * @psalm-param list<string> $superAdmins
 	 */

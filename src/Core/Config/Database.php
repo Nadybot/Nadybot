@@ -9,8 +9,8 @@ use Nadybot\Core\DB\DBType;
 class Database {
 	/**
 	 * @param DBType      $type     What type of database should be used? ('sqlite', 'postgresql', or 'mysql')
-	 * @param string      $name     Name of the database
-	 * @param string      $host     Hostname or sqlite file location
+	 * @param string      $name     Name of the database, or the database file for SQLite
+	 * @param string      $host     Hostname or SQLite file path
 	 * @param null|string $username MySQL or PostgreSQL username
 	 * @param null|string $password MySQL or PostgreSQL password
 	 */

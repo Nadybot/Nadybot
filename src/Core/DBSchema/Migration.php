@@ -7,10 +7,19 @@ use Nadybot\Core\{Attributes as NCA, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
 
+/** A migration that the bot has already successfully applied */
 #[NCA\DB\Table(name: 'migrations', shared: Shared::Both)]
 class Migration extends DBTable {
+	/** Unique identifier of this migration */
 	#[NCA\DB\PK] public UuidInterface $id;
 
+	/**
+	 * @param string             $module     Name of the module providing the migration
+	 * @param string             $migration  Name of the migration itself
+	 * @param DateTimeImmutable  $applied_at When was the migration applied?
+	 * @param null|UuidInterface $id         Unique identifier or `null` for automatic
+	 *                                       creation of a UUID
+	 */
 	public function __construct(
 		public string $module,
 		public string $migration,

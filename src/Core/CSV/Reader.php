@@ -8,7 +8,13 @@ use Generator;
 use IteratorIterator;
 use Nadybot\Core\{Filesystem, Safe};
 
+/**
+ * This is a low memory class that allows reading CSV files line by line
+ * by converting each line into an associative array and treating
+ * a `,,` as a null value, forcing `,"",` to get an empty string
+ */
 class Reader {
+	/** @param string $file The full filename of the CSV file */
 	public function __construct(
 		private string $file,
 		private Filesystem $filesystem,
@@ -16,7 +22,7 @@ class Reader {
 	}
 
 	/**
-	 * Get a line from the CSV as hash
+	 * Get a line from the CSV as an associative array
 	 *
 	 * @return Generator<int,array<string,?string>>
 	 *

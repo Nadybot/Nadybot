@@ -6,8 +6,8 @@ use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{Attributes as NCA, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
-#[NCA\DB\Table(name: 'cmd_permission')]
 /** The permission required to execute a command via a specific command-channel */
+#[NCA\DB\Table(name: 'cmd_permission')]
 class CmdPermission extends DBTable {
 	#[NCA\JSON\Ignore] #[NCA\DB\PK] public UuidInterface $id;
 

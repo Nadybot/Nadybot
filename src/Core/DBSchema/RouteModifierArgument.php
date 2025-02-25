@@ -6,6 +6,7 @@ use function Safe\{json_encode, preg_match};
 use Nadybot\Core\{Attributes as NCA, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
+/** This table holds the parameters for each route modifier */
 #[NCA\DB\Table(name: 'route_modifier_argument')]
 class RouteModifierArgument extends DBTable {
 	#[NCA\DB\PK] public UuidInterface $id;

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\DB;
 
+/** This represents a supported database type of Nadybot */
 enum DBType: string {
 	case SQLite = 'sqlite';
 	case MySQL = 'mysql';

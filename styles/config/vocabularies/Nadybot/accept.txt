@@ -27,6 +27,7 @@ args?
 arti
 async
 autoincrement
+autoinv
 backtraces?
 badplayer
 ban[eE]nd
@@ -85,6 +86,7 @@ DBType
 [dD]owntimes?
 deduplicator
 delall
+dependson
 Derroylo
 dimach
 dio|DIO

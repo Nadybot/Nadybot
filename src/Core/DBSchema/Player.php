@@ -15,14 +15,14 @@ use Nadybot\Core\{
 
 /**
  * This represents the data the bot stores about a player in the cache and database
- *
- * @package Nadybot\Core\DBSchema
  */
 #[Table(name: 'players', shared: Shared::Yes)]
 class Player extends DBTable {
 	/**
 	 * In which dimension (RK server) is this character?
-	 * 4 for test, 5 for RK5, 6 for RK19
+	 * * 4: test live
+	 * * 5: Runi-Ka
+	 * * 6: RK19
 	 */
 	#[PK] public int $dimension;
 
@@ -35,8 +35,8 @@ class Player extends DBTable {
 	 * @param ?int        $level         What level (1-220) is the character or null if unknown
 	 * @param string      $breed         Any of Nano, Solitus, Atrox or Opifex. Also empty string if unknown
 	 * @param string      $gender        Male, Female, Neuter or an empty string if unknown
-	 * @param Faction     $faction       Omni, Clan, Neutral or an empty string if unknown
-	 * @param ?Profession $profession    The long profession name (e.g. "Enforcer", not "enf" or "enfo") or an empty string if unknown
+	 * @param Faction     $faction       Omni, Clan, or Neutral
+	 * @param ?Profession $profession    The profession of this character, or `null` if unknown
 	 * @param string      $prof_title    The title-level title for the profession of this player For example "The man", "Don" or empty if unknown.
 	 * @param string      $ai_rank       The name of the ai_level as a rank or empty string if unknown
 	 * @param ?int        $ai_level      AI level of this player or null if unknown
@@ -77,6 +77,7 @@ class Player extends DBTable {
 		$this->dimension = $dimension ?? Registry::getInstance(BotConfig::class)->main->dimension;
 	}
 
+	/** Get the pronoun (he/she/they) */
 	public function getPronoun(): string {
 		if (strtolower($this->gender) === 'female') {
 			return 'she';
@@ -87,6 +88,7 @@ class Player extends DBTable {
 		return 'they';
 	}
 
+	/** Get the is/are for he/she/they */
 	public function getIsAre(): string {
 		if (strtolower($this->gender) === 'female') {
 			return 'is';
@@ -216,6 +218,7 @@ class Player extends DBTable {
 		return $tokens;
 	}
 
+	/** Get a one-liner with information about this character */
 	public function getInfo(bool $showFirstAndLastName=true): string {
 		$msg = '';
 

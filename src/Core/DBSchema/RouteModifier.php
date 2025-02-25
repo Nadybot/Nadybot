@@ -5,6 +5,7 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\{Attributes as NCA, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
+/** This table defines which route modifiers should be applied to which route */
 #[NCA\DB\Table(name: 'route_modifier')]
 class RouteModifier extends DBTable {
 	/** The id of the route modifier. Lower id means higher priority */

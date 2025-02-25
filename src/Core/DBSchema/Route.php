@@ -5,6 +5,11 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\{Attributes as NCA, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
+/**
+ * A route represents from where to where the bot
+ * should forward messages, i.e. forward all messages
+ * from the private channel to the org channel, etc.
+ */
 #[NCA\DB\Table(name: 'route')]
 class Route extends DBTable {
 	/** The unique ID of this route */
