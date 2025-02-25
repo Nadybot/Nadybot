@@ -4,6 +4,10 @@ namespace Nadybot\Core\Attributes\DB;
 
 use Attribute;
 
+/**
+ * After reading a value from the database,
+ * modify it with the given function before assigning it to the property
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class MapRead {
 	/** @var callable[] */

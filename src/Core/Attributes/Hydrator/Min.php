@@ -8,6 +8,7 @@ use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster, PropertySerializer};
 use InvalidArgumentException;
 
+/** Specify the minimum number of a value */
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final class Min implements PropertyCaster, PropertySerializer {
 	public function __construct(

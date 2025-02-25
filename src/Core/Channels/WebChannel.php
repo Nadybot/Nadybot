@@ -15,6 +15,7 @@ use Nadybot\Core\{
 
 use Nadybot\Modules\WEBSERVER_MODULE\{AOWebChatEvent, WebChatConverter};
 
+/** This is the routing endpoint for messages sent to the web chat */
 class WebChannel implements MessageReceiver {
 	#[NCA\Inject]
 	private WebChatConverter $webChatConverter;

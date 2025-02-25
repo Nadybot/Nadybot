@@ -5,6 +5,7 @@ namespace Nadybot\Core\Attributes\Hydrator;
 use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster, PropertySerializer};
 
+/** Convert a value to boolean */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::IS_REPEATABLE)]
 final class ConvertToBool implements PropertyCaster, PropertySerializer {
 	public function cast(mixed $value, ObjectMapper $hydrator): mixed {

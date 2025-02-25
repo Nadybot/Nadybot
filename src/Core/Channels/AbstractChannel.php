@@ -7,9 +7,15 @@ use Nadybot\Core\Routing\Events\Base as EventsBase;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Types\MessageReceiver;
 
+/**
+ * This is the abstract base class of all "channels"
+ * (endpoints where you can route messages to)
+ */
 abstract class AbstractChannel implements MessageReceiver {
+	/** The name of this channel */
 	abstract public function getChannelName(): string;
 
+	/** Get the rendered message */
 	protected function getEventMessage(RoutableEvent $event, MessageHub $hub, ?string $channelName=null): ?string {
 		$renderPath = true;
 		if ($event->getEvent() !== $event::TYPE_MESSAGE) {

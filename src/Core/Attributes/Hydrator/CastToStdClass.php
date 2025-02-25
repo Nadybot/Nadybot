@@ -10,6 +10,7 @@ use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster};
 use stdClass;
 
+/** Cast the associative array to a stdClass() object */
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final class CastToStdClass implements PropertyCaster {
 	public function cast(mixed $value, ObjectMapper $hydrator): stdClass {

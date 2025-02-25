@@ -24,6 +24,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
+/** This is the routing endpoint for a discord channel */
 class DiscordChannel implements MessageReceiver {
 	#[NCA\Inject]
 	private DiscordAPIClient $discordAPIClient;

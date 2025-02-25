@@ -6,6 +6,7 @@ use Attribute;
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster};
 
+/** Before assigning values to this property, run them through one or more functions */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::IS_REPEATABLE)]
 final class StrFuncIn implements PropertyCaster {
 	/** @var list<Closure> */

@@ -6,6 +6,7 @@ use Attribute;
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertySerializer};
 
+/** Before serializing values to this property, run them through one or more functions */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::IS_REPEATABLE)]
 final class StrFuncOut implements PropertySerializer {
 	/** @var Closure[] */

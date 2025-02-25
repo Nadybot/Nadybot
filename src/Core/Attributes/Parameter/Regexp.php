@@ -14,6 +14,7 @@ class Regexp extends AbstractParamAttribute {
 		parent::__construct($example);
 	}
 
+	/** @inheritDoc */
 	public function getRegexp(): string {
 		return $this->value;
 	}

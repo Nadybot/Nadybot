@@ -9,6 +9,7 @@ use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster, PropertySerializer}
 
 use InvalidArgumentException;
 
+/** Cast the given value to a list of int/string-backed enums of the given enum */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 final class CastListToEnums implements PropertyCaster, PropertySerializer {
 	/** @param class-string<BackedEnum> $enumClass */

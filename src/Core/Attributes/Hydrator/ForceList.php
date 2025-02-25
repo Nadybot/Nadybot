@@ -5,6 +5,7 @@ namespace Nadybot\Core\Attributes\Hydrator;
 use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster, PropertySerializer};
 
+/** Force a scalar value into an array of this value */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::IS_REPEATABLE)]
 final class ForceList implements PropertyCaster, PropertySerializer {
 	public function cast(mixed $value, ObjectMapper $hydrator): mixed {

@@ -8,8 +8,19 @@ use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster, PropertySerializer};
 use InvalidArgumentException;
 
+/** Use a `filter_var()` call on the value to validate it */
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final class Filter implements PropertyCaster, PropertySerializer {
+	/**
+	 * Example:
+	 * ```
+	 * #[Filter(filter: \FILTER_VALIDATE_IP, options: \FILTER_FLAG_IPV4, type: 'IP address'))]
+	 * ```
+	 *
+	 * @param int    $filter  The `filter_var` filter to run
+	 * @param int    $options The `filter_var` filter option
+	 * @param string $type    A descriptive name, what this validates
+	 */
 	public function __construct(
 		private int $filter,
 		private int $options=0,

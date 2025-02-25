@@ -11,6 +11,7 @@ use ReflectionParameter;
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
 class StrChoice extends Str {
+	/** @inheritDoc */
 	public function renderParameter(ReflectionParameter $param): string {
 		return implode('|', $this->values);
 	}

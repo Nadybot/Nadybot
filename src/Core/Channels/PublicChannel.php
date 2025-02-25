@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Routing\Source,
 };
 
+/** This is the routing endpoint for a public channel in Anarchy Online */
 class PublicChannel extends AbstractChannel {
 	#[NCA\Inject]
 	private Nadybot $chatBot;
@@ -17,6 +18,7 @@ class PublicChannel extends AbstractChannel {
 	#[NCA\Inject]
 	private MessageHub $messageHub;
 
+	/** @param string $channel The name of the public channel */
 	public function __construct(protected string $channel) {
 	}
 

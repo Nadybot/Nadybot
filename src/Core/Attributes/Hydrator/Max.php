@@ -8,6 +8,7 @@ use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster, PropertySerializer};
 use InvalidArgumentException;
 
+/** Specify the maximum value of a number */
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final class Max implements PropertyCaster, PropertySerializer {
 	public function __construct(

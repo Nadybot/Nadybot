@@ -9,6 +9,7 @@ use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster, PropertySerializer}
 use InvalidArgumentException;
 use Nadybot\Core\Safe;
 
+/** Specify a regular expression this string must match */
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final class StrFormat implements PropertyCaster, PropertySerializer {
 	public function __construct(

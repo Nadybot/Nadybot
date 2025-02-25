@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	Routing\Source,
 };
 
+/** This represents the console channel. Messages routed here will be shown on the console */
 class ConsoleChannel extends AbstractChannel {
 	#[NCA\Inject]
 	private MessageHub $messageHub;

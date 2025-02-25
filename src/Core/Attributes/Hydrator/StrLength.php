@@ -8,6 +8,7 @@ use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster, PropertySerializer};
 use InvalidArgumentException;
 
+/** Specify that a string must be between $min and $max characters long */
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final class StrLength implements PropertyCaster, PropertySerializer {
 	public function __construct(
