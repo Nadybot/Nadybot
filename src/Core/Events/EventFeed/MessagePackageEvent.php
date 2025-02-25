@@ -5,6 +5,7 @@ namespace Nadybot\Core\Events\EventFeed;
 use Nadybot\Core\Events\EventFeedPackageEvent;
 use Nadybot\Core\{Attributes as NCA, Highway};
 
+/** This event is fired when receive a highway message from the event feed */
 #[NCA\Event(mask: 'event-feed(message)')]
 class MessagePackageEvent extends EventFeedPackageEvent {
 	public function __construct(

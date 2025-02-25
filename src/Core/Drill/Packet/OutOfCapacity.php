@@ -4,6 +4,7 @@ namespace Nadybot\Core\Drill\Packet;
 
 use Nadybot\Core\Drill\{AbstractDrillPacket, PacketType};
 
+/** This packet is received when the server doesn't have capacity to tunnel us */
 final class OutOfCapacity extends AbstractDrillPacket {
 	public static function fromString(string $message): self {
 		return new self();

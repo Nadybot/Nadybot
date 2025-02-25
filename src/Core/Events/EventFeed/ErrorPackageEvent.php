@@ -5,6 +5,7 @@ namespace Nadybot\Core\Events\EventFeed;
 use Nadybot\Core\Events\EventFeedPackageEvent;
 use Nadybot\Core\{Attributes as NCA, Highway};
 
+/** An error from the highway server */
 #[NCA\Event(mask: 'event-feed(error)')]
 class ErrorPackageEvent extends EventFeedPackageEvent {
 	public function __construct(

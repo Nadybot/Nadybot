@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Events;
 
+/** Someone joins or leaves a private channel */
 abstract class JoinLeaveEvent {
 	/**
 	 * @param string $sender  The name of the person joning/leaving

@@ -4,6 +4,7 @@ namespace Nadybot\Core\Events;
 
 use Nadybot\Core\Attributes\Event;
 
+/** We received an answer to out ping packet */
 #[Event(mask: 'pong')]
 class PongEvent {
 	/** @param string $worker Which worker received the pong */

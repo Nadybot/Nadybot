@@ -4,6 +4,7 @@ namespace Nadybot\Core\Events;
 
 use Nadybot\Core\Attributes\Event;
 
+/** Fired when we are invited to another bot's private channel */
 #[Event(mask: 'extjoinprivrequest')]
 class ExtJoinPrivRequest {
 	/**

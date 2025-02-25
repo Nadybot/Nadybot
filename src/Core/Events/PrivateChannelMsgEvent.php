@@ -4,7 +4,7 @@ namespace Nadybot\Core\Events;
 
 use Nadybot\Core\Attributes\Event;
 
-/** We receive a message on a private channel */
+/** We receive a message on another bot's private channel */
 #[Event(mask: 'extpriv')]
 class PrivateChannelMsgEvent extends AOChatEvent {
 	/**

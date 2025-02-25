@@ -4,6 +4,7 @@ namespace Nadybot\Core\Drill;
 
 use function Safe\pack;
 
+/** This is an enum for all valid drill packet types */
 enum PacketType: int {
 	public function toBin(): string {
 		return pack('C', $this->value);

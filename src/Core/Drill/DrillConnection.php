@@ -8,6 +8,7 @@ use Amp\Websocket\WebsocketClosedException;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 
+/** This is an active drill connection */
 class DrillConnection {
 	public function __construct(
 		private WebsocketConnection $connection,
@@ -16,10 +17,18 @@ class DrillConnection {
 	) {
 	}
 
+	/** Close the connection */
 	public function close(): void {
 		$this->connection->close();
 	}
 
+	/**
+	 * Receive a single drill packet
+	 *
+	 * @param Cancellation|null $cancellation An optional cancellation token (timeout?)
+	 *
+	 * @return AbstractDrillPacket|null The received packet or `null` if the connection was closed
+	 */
 	public function receive(?Cancellation $cancellation=null): ?AbstractDrillPacket {
 		if (null !== ($message = $this->connection->receive($cancellation))) {
 			$payload = $message->buffer($cancellation);
@@ -36,6 +45,7 @@ class DrillConnection {
 		return null;
 	}
 
+	/** Send a drill packet */
 	public function send(AbstractDrillPacket $packet): void {
 		$this->logger->debug('Sending Drill packet to {url}: {packet}', [
 			'url' => $this->uri,
@@ -44,6 +54,13 @@ class DrillConnection {
 		$this->connection->sendBinary($packet->toString());
 	}
 
+	/**
+	 * Parse a binary drill packet into a proper PHP packet
+	 *
+	 * @param string $payload The binary data to parse
+	 *
+	 * @throws UnsupportedPacketException if the packet type is unknown
+	 */
 	private function parseDrillMessage(string $payload): AbstractDrillPacket {
 		try {
 			$packet = PacketFactory::parse($payload);

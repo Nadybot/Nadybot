@@ -2,6 +2,9 @@
 
 namespace Nadybot\Core\Events;
 
+/**
+ * This abstract class is used for events where someone sends a message on AO
+ */
 abstract class AOChatEvent {
 	/**
 	 * @param string  $channel The name of the channel via which the message was sent

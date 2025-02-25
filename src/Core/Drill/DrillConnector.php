@@ -12,9 +12,15 @@ use League\Uri;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 
+/** This is a connector used to create a connection to a drill server */
 class DrillConnector {
 	private UriInterface $uri;
 
+	/**
+	 * @param UriInterface|string   $uri       The URL of the drill server
+	 * @param LoggerInterface       $logger    A logger to use for logging
+	 * @param Rfc6455Connector|null $connector A Websocket connector, or `null` for the default one
+	 */
 	public function __construct(
 		UriInterface|string $uri,
 		private LoggerInterface $logger,
@@ -30,6 +36,7 @@ class DrillConnector {
 		$this->uri = $uri;
 	}
 
+	/** Connect to the drill server */
 	public function connect(?Cancellation $cancellation=null): DrillConnection {
 		$handshake = new WebsocketHandshake($this->uri);
 		if (!isset($this->connector)) {

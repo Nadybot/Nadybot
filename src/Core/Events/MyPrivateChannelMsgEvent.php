@@ -4,7 +4,7 @@ namespace Nadybot\Core\Events;
 
 use Nadybot\Core\Attributes\Event;
 
-/** We receive a message on our channel */
+/** We receive a message on our private channel */
 #[Event(mask: 'priv')]
 class MyPrivateChannelMsgEvent extends PrivateChannelMsgEvent {
 }

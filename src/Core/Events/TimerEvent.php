@@ -4,6 +4,7 @@ namespace Nadybot\Core\Events;
 
 use Nadybot\Core\Attributes as NCA;
 
+/** An event that's periodically executed on a timer */
 #[NCA\Event(mask: 'timer(*)')]
 class TimerEvent extends Event {
 	public function __construct(int $time) {

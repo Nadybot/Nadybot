@@ -4,5 +4,6 @@ namespace Nadybot\Core\Exceptions;
 
 use Exception;
 
+/** The account is frozen */
 class AccountFrozenException extends Exception {
 }

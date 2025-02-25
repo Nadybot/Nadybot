@@ -4,7 +4,9 @@ namespace Nadybot\Core\Drill\Packet;
 
 use Nadybot\Core\Drill\{AbstractDrillPacket, PacketType};
 
+/** This packet is received after successfully authenticating to the server */
 final class LetsGo extends AbstractDrillPacket {
+	/** @param string $publicUrl The full URL that can now be used to reach this bot */
 	public function __construct(
 		public readonly string $publicUrl,
 	) {

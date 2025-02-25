@@ -4,5 +4,6 @@ namespace Nadybot\Core\Highway;
 
 use Exception;
 
+/** Parse error of a highway package */
 class ParserHighwayException extends Exception {
 }

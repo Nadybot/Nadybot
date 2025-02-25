@@ -4,7 +4,12 @@ namespace Nadybot\Core\Drill\Packet;
 
 use Nadybot\Core\Drill\{AbstractDrillPacket, PacketType};
 
+/** This packet is sent when authenticating via AO-Auth to send back the received token */
 final class PresentToken extends AbstractDrillPacket {
+	/**
+	 * @param string $token           The token we received
+	 * @param string $desiredSudomain The subdomain we want (bot's name)
+	 */
 	public function __construct(
 		public string $token,
 		public string $desiredSudomain='',

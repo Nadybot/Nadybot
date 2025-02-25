@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Events;
 
+/** A message was received on a public channel */
 abstract class PublicChannelMsgEvent extends AOChatEvent {
 	/**
 	 * @param string  $channel The name of the public channel via which the message was sent

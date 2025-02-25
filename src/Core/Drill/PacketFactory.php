@@ -4,7 +4,17 @@ namespace Nadybot\Core\Drill;
 
 use ValueError;
 
+/** This is a purely static class to parse a binary packet into a drill packet */
 class PacketFactory {
+	/**
+	 * Parse binary data into a packet
+	 *
+	 * @param string $message The binary data to parse
+	 *
+	 * @return AbstractDrillPacket The packet that was parsed
+	 *
+	 * @throws UnsupportedPacketException on unsupported packages
+	 */
 	public static function parse(string $message): AbstractDrillPacket {
 		$packetNum = ord(substr($message, 0, 1));
 		try {

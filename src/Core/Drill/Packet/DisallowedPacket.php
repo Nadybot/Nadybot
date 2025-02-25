@@ -4,6 +4,7 @@ namespace Nadybot\Core\Drill\Packet;
 
 use Nadybot\Core\Drill\{AbstractDrillPacket, PacketType};
 
+/** This packet is received when we sent an unknown or forbidden packet */
 final class DisallowedPacket extends AbstractDrillPacket {
 	public static function fromString(string $message): self {
 		return new self();

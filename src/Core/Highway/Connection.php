@@ -12,6 +12,7 @@ use Nadybot\Core\Types\LogWrapInterface;
 use Nadybot\Core\{Attributes as NCA, Hydrator, LoggerWrapper, SemanticVersion};
 use Nadylib\IMEX\JSON;
 
+/** A connection to a highway server */
 class Connection implements LogWrapInterface {
 	public const SUPPORTED_VERSIONS = ['~0.1.1', '~0.2.0-alpha.1'];
 
@@ -45,10 +46,12 @@ class Connection implements LogWrapInterface {
 		return [$logLevel, $message, $context];
 	}
 
+	/** Get the highway protocol version of the highway server */
 	public function getVersion(): string {
 		return $this->wsConnection->getHandshakeResponse()->getHeader('x-highway-version') ?? '0.1.1';
 	}
 
+	/** Check if the highway version of the server is a supported version by this bot */
 	public function isSupportedVersion(): bool {
 		$version = $this->getVersion();
 		foreach (self::SUPPORTED_VERSIONS as $supported) {
@@ -59,6 +62,7 @@ class Connection implements LogWrapInterface {
 		return false;
 	}
 
+	/** Close the connection to the highway server */
 	public function close(int $code=WebsocketCloseCode::NORMAL_CLOSE, string $reason=''): void {
 		$this->logger->info('Closing connection');
 

@@ -5,6 +5,7 @@ namespace Nadybot\Core\Events\EventFeed;
 use Nadybot\Core\Events\EventFeedPackageEvent;
 use Nadybot\Core\{Attributes as NCA, Highway};
 
+/** This event is an abstract representation of success or failure of a command */
 #[NCA\Event(mask: 'event-feed(result)')]
 class ResultPackageEvent extends EventFeedPackageEvent {
 	public function __construct(

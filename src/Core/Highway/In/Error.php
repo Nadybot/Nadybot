@@ -2,5 +2,6 @@
 
 namespace Nadybot\Core\Highway\In;
 
+/** Highway server had an error */
 class Error extends Result {
 }

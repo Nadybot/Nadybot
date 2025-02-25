@@ -4,7 +4,9 @@ namespace Nadybot\Core\Drill\Packet;
 
 use Nadybot\Core\Drill\{AbstractDrillPacket, PacketType};
 
+/** This packet is sent by us to choose AO-Auth authentication */
 final class AoAuth extends AbstractDrillPacket {
+	/** @param string $characterName Name of the character to authenticate es */
 	public function __construct(
 		public string $characterName,
 	) {

@@ -5,7 +5,13 @@ namespace Nadybot\Core\Drill\Packet;
 use function Safe\{pack, unpack};
 use Nadybot\Core\Drill\{AbstractDrillPacket, DrillAuthMode, PacketType};
 
+/** This packet is received when successfully connecting to the server */
 final class Hello extends AbstractDrillPacket {
+	/**
+	 * @param int           $protoVersion Protocol version the server supports
+	 * @param DrillAuthMode $authMode     Auth mode the server runs with
+	 * @param string        $description  A short description about the server
+	 */
 	public function __construct(
 		public readonly int $protoVersion,
 		public readonly DrillAuthMode $authMode,

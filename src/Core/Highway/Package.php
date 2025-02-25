@@ -5,6 +5,7 @@ namespace Nadybot\Core\Highway;
 use Nadybot\Core\StringableTrait;
 use Stringable;
 
+/** The base class of all highway packages */
 abstract class Package implements Stringable {
 	use StringableTrait;
 
@@ -16,6 +17,7 @@ abstract class Package implements Stringable {
 	public const ERROR = 'error';
 	public const SUCCESS = 'success';
 
+	/** @param string $type The type of the package */
 	public function __construct(
 		public string $type,
 	) {

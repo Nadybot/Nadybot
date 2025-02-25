@@ -6,11 +6,18 @@ use EventSauce\ObjectHydrator\MapFrom;
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 
 class RoomInfo extends InPackage {
+	/** Is this a read-only room? */
 	public bool $readOnly;
 
 	/**
-	 * @param string[]                                $users
-	 * @param null|string|int|bool|float|array<mixed> $extraInfo
+	 * @param string                                  $type             The package type
+	 * @param string                                  $room             The ID/name of the room
+	 * @param null|bool                               $readOnlyOld      Is this a read-only room (highway 1.0)
+	 * @param null|bool                               $readOnlyNew      Is this a read-only room (highway 1.1)
+	 * @param string[]                                $users            A list of all the user UUIDs in this room
+	 * @param null|string|int|bool|float|array<mixed> $extraInfo        Extra info for this room
+	 * @param null|RateLimit                          $msgFreqRatelimit An optional message frequency limit for this room
+	 * @param null|RateLimit                          $msgSizeRatelimit An optional message size limit for this room
 	 *
 	 * @psalm-param list<string> $users
 	 */

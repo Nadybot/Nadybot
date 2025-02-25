@@ -4,14 +4,14 @@ namespace Nadybot\Core\Events;
 
 use Nadybot\Core\Attributes\Event;
 
-/** We send a message to a private channel */
+/** We send a message to a private channel (ours, or another bot's) */
 #[Event(mask: 'sendpriv')]
 class SendPrivEvent extends AOChatEvent {
 	/**
-	 * @param string      $sender  Either the name of the sender or the numeric UID (e.g. city raid announcements)
-	 * @param string      $channel The channel (msg, priv, guild) via which the message was sent
-	 * @param string      $message The message itself
-	 * @param null|string $worker  If set, this is the id of the worker via which the message was received
+	 * @param string $sender       Our bot's name
+	 * @param string $channel      The name of the private channel on which the message was sent
+	 * @param string $message      The message itself
+	 * @param bool   $disableRelay Set to true if no further message forwarding should happen
 	 */
 	public function __construct(
 		public string $sender,

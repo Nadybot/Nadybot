@@ -4,7 +4,12 @@ namespace Nadybot\Core\Drill\Packet;
 
 use Nadybot\Core\Drill\{AbstractDrillPacket, PacketType};
 
+/** This packet is sent/received when a connection by a client sends/receives data */
 final class Data extends AbstractDrillPacket {
+	/**
+	 * @param string $uuid UUID of the connection
+	 * @param string $data The data that was received
+	 */
 	public function __construct(
 		public readonly string $uuid,
 		public readonly string $data,

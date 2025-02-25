@@ -6,6 +6,7 @@ use AO\Client\WorkerPackage;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Types\EventInterface;
 
+/** Fired on receiving an AO packet */
 #[NCA\Event(mask: 'packet(*)')]
 class PackageEvent implements EventInterface {
 	public function __construct(
