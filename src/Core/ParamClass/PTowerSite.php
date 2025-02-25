@@ -8,8 +8,15 @@ use Nadybot\Core\Safe;
 use Nadybot\Core\Types\Playfield;
 use ValueError;
 
+/**
+ * This represents a tower field (site) in the game.
+ * The value is always the short playfield name, space, the site ID
+ */
 class PTowerSite extends Base {
+	/** The playfield of this tower site */
 	public readonly Playfield $pf;
+
+	/** The site id of this tower site */
 	public readonly int $site;
 	protected static string $regExp = "[0-9A-Za-z]+[A-Za-z]{1,3}\s*\d+";
 	protected readonly string $value;

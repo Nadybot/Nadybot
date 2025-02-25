@@ -6,6 +6,9 @@ use function Safe\preg_match;
 
 use Nadybot\Core\Exceptions\UserException;
 
+/**
+ * This class matches a possible UUID and throws a user-shown exception when it's invalid.
+ */
 class PUuid extends Base {
 	protected static string $regExp = '[0-9a-fA-F-]+';
 	protected string $value;
