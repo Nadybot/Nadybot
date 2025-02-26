@@ -37,6 +37,7 @@ class AccessLevelSettingHandler extends SettingHandler {
 		return $accessLevel->value;
 	}
 
+	/** @inheritDoc */
 	public function displayValue(string $sender): string {
 		$value = $this->row->value ?? 'all';
 		$accessLevel = AccessLevel::fromName($value);

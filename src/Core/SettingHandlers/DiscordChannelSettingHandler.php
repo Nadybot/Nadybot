@@ -39,6 +39,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 		return $msg;
 	}
 
+	/** @inheritDoc */
 	public function save(string $newValue): string {
 		if ($newValue === 'off') {
 			return $newValue;
@@ -77,6 +78,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 		throw new Exception("<highlight>{$newValue}<end>: Unknown error getting channel info.");
 	}
 
+	/** @inheritDoc */
 	public function displayValue(string $sender): string {
 		$newValue = $this->row->value;
 		if ($newValue === 'off' || !isset($newValue)) {

@@ -6,7 +6,7 @@ use Exception;
 use Nadybot\Core\{Attributes as NCA, Util};
 
 /**
- * Class to represent a time setting for NadyBot
+ * Class to represent a time setting for Nadybot
  */
 #[NCA\SettingHandler('time')]
 class TimeSettingHandler extends SettingHandler {
@@ -24,7 +24,7 @@ class TimeSettingHandler extends SettingHandler {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 *
 	 * @throws \Exception when the time is invalid
 	 */

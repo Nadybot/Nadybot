@@ -30,7 +30,7 @@ class ColorSettingHandler extends SettingHandler {
 		return $msg;
 	}
 
-	/** @return array<string,string> */
+	/** @return array<string,string> ['#CODE' => 'Name'] */
 	public static function getExampleColors(): array {
 		$examples = [
 			'#FF0000' => 'Red',

@@ -6,6 +6,7 @@ use Stringable;
 
 /** A bit field represent a set of flags in a single integer value */
 class Bitfield implements Stringable {
+	/** The internal integer value of all the bits combined */
 	private int $value = 0;
 
 	public function __toString(): string {

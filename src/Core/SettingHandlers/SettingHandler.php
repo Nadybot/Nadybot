@@ -12,6 +12,11 @@ use Nadybot\Core\{
 	Types\SettingMode
 };
 
+/**
+ * This is the abstract base class for all setting handlers.
+ * It provides everything needed to validate saved values,
+ * display current value(s), display possible values, etc.
+ */
 abstract class SettingHandler {
 	#[NCA\Inject]
 	private AccessManager $accessManager;
@@ -22,10 +27,12 @@ abstract class SettingHandler {
 	) {
 	}
 
+	/** Check if this setting can be changed by the user */
 	public function isEditable(): bool {
 		return $this->row->mode === SettingMode::Edit;
 	}
 
+	/** Can the user of the given command context see the clear text value of this setting? */
 	public function canViewValue(CmdContext $context): bool {
 		if ($this->row->confidential !== true) {
 			return true;
@@ -37,10 +44,12 @@ abstract class SettingHandler {
 		return $this->accessManager->checkAccess($context->char->name, $alToChange);
 	}
 
+	/** Get the low level data setting object */
 	public function getData(): Setting {
 		return $this->row;
 	}
 
+	/** Get a link to change this setting's value */
 	public function getModifyLink(): string {
 		return Text::makeChatcmd('modify', '/tell <myname> settings change ' . $this->row->name);
 	}
@@ -87,7 +96,7 @@ abstract class SettingHandler {
 	}
 
 	/**
-	 * Change this setting
+	 * Change this setting to $newValue
 	 *
 	 * @throws \Exception if $newValue is not accepted
 	 */

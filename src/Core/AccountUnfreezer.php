@@ -20,6 +20,7 @@ use Nadybot\Core\{
 use Safe\Exceptions\JsonException;
 use Throwable;
 
+/** This class handles unfreezing a frozen account */
 class AccountUnfreezer {
 	public const LOGIN_URL = 'https://account.anarchy-online.com/';
 	public const ACCOUNT_URL = 'https://account.anarchy-online.com/account/';
@@ -48,6 +49,11 @@ class AccountUnfreezer {
 	) {
 	}
 
+	/**
+	 * Try to unfreeze the configured account and return the result
+	 *
+	 * @return bool `true` on success, `false` if unfreezing failed
+	 */
 	public function unfreeze(): bool {
 		$result = false;
 		$this->logger->warning('Account {account} frozen, trying to unfreeze', [
@@ -90,6 +96,7 @@ class AccountUnfreezer {
 		return $result;
 	}
 
+	/** Get the session cookie to use to communicate with the Funcom servers */
 	protected function getSessionCookie(HttpClient $client): string {
 		$request = new Request(self::LOGIN_URL, 'GET');
 		$request->setTcpConnectTimeout(5);
@@ -113,6 +120,11 @@ class AccountUnfreezer {
 		return implode('; ', $cookieValues);
 	}
 
+	/**
+	 * Login to the configured Funcom account with the given client and cookie
+	 *
+	 * @throws UnfreezeTmpException on error
+	 */
 	protected function loginToAccount(HttpClient $client, string $cookie): void {
 		$creds = [$this->config->main, ...$this->config->worker];
 		$accountCreds = array_filter(
@@ -156,6 +168,11 @@ class AccountUnfreezer {
 		}
 	}
 
+	/**
+	 * Switch the HTTP client context to the given Funcom account ID
+	 *
+	 * @throws UnfreezeTmpException on error
+	 */
 	protected function switchToAccount(HttpClient $client, string $cookie, int $accountId): void {
 		$request = new Request(sprintf(self::SUBSCRIPTION_URL, $accountId), 'GET');
 		$request->addHeader('Cookie', $cookie);
@@ -174,6 +191,11 @@ class AccountUnfreezer {
 		}
 	}
 
+	/**
+	 * Load the account overview page and return it
+	 *
+	 * @throws UnfreezeTmpException on error
+	 */
 	protected function loadAccountPage(HttpClient $client, string $cookie): string {
 		$request = new Request(self::ACCOUNT_URL, 'GET');
 		$request->addHeader('Cookie', $cookie);
@@ -211,6 +233,11 @@ class AccountUnfreezer {
 		}
 	}
 
+	/**
+	 * Get the subscription ID from the account overview page
+	 *
+	 * @throws UnfreezeFatalException if the configured account is not managed by this login
+	 */
 	protected function getSubscriptionId(HttpClient $client, string $cookie): int {
 		$body = $this->loadAccountPage($client, $cookie);
 		$login = strtolower($this->config->main->login);
@@ -223,6 +250,7 @@ class AccountUnfreezer {
 		return (int)$matches[1];
 	}
 
+	/** Log the HTTP client and cookie out of the session */
 	protected function logout(HttpClient $client, string $cookie): void {
 		$request = new Request(self::LOGOUT_URL, 'GET');
 		$request->addHeader('Cookie', $cookie);
@@ -240,6 +268,7 @@ class AccountUnfreezer {
 		}
 	}
 
+	/** Unfreeze the configured account with the given HTTP client */
 	protected function unfreezeWithClient(HttpClient $client): UnfreezeResult {
 		try {
 			$sessionCookie = $this->getSessionCookie($client);
@@ -271,6 +300,11 @@ class AccountUnfreezer {
 		}
 	}
 
+	/**
+	 * Get a user agent string to use for communicating with Funcom servers
+	 *
+	 * @return ?string `null` if not able to come up with a proper one
+	 */
 	protected function getUserAgent(): ?string {
 		$this->logger->info('Getting most popular user agent');
 		$client = $this->http->build();

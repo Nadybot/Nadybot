@@ -47,6 +47,11 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 		return $newValue;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Redact the token value for people without write access to it
+	 */
 	public function displayValue(string $sender): string {
 		$newValue = $this->row->value;
 		if ($newValue === 'off') {

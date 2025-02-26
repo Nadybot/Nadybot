@@ -5,6 +5,7 @@ namespace Nadybot\Core\SettingHandlers;
 use Exception;
 use Nadybot\Core\{Attributes as NCA, Util};
 
+/** This setting represents a Unix time stamp integer value */
 #[NCA\SettingHandler('timestamp')]
 class TimestampSettingHandler extends SettingHandler {
 	/** @inheritDoc */
@@ -16,7 +17,7 @@ class TimestampSettingHandler extends SettingHandler {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 *
 	 * @throws Exception when not a number
 	 */
@@ -27,7 +28,7 @@ class TimestampSettingHandler extends SettingHandler {
 		throw new Exception('You must enter a positive integer for this setting.');
 	}
 
-	/** Get a displayable representation of the setting */
+	/** @inheritDoc */
 	public function displayValue(string $sender): string {
 		$unixTime = (int)($this->getData()->value??'0');
 		if ($unixTime === 0) {

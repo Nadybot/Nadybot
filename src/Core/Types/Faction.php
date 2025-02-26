@@ -4,7 +4,7 @@ namespace Nadybot\Core\Types;
 
 use ValueError;
 
-/** This represents one of the 3 factions in the game, as well es "Unknown" */
+/** This represents one of the 3 factions in the game, as well es `'Unknown'` */
 enum Faction: string implements EnumParameterInterface {
 	/** Get the lower-cased name of this faction */
 	public function lower(): string {

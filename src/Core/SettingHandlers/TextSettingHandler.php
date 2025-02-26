@@ -19,7 +19,7 @@ class TextSettingHandler extends SettingHandler {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 *
 	 * @throws \Exception when the string is too long
 	 */
@@ -30,7 +30,7 @@ class TextSettingHandler extends SettingHandler {
 		return $newValue;
 	}
 
-	/** Get a displayable representation of the setting */
+	/** @inheritDoc */
 	public function displayValue(string $sender): string {
 		$displayValue = parent::displayValue($sender);
 		if ($displayValue === '<highlight><end>') {

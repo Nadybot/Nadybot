@@ -5,6 +5,7 @@ namespace Nadybot\Core\SettingHandlers;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 
+/** This represents a positive integer setting */
 #[NCA\SettingHandler('number')]
 class NumberSettingHandler extends SettingHandler {
 	/** @inheritDoc */

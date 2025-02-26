@@ -4,9 +4,7 @@ namespace Nadybot\Core\SettingHandlers;
 
 use Nadybot\Core\{Attributes as NCA, Text};
 
-/**
- * Class to represent a setting with a text value for NadyBot
- */
+/** Class to represent a setting with a text value for NadyBot */
 #[NCA\SettingHandler('text[]')]
 class ArrayOfTextSettingHandler extends SettingHandler {
 	/** @inheritDoc */

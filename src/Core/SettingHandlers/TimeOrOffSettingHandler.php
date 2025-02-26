@@ -6,7 +6,8 @@ use Exception;
 use Nadybot\Core\{Attributes as NCA, Util};
 
 /**
- * Class to represent a time-or-off setting for NadyBot
+ * Class to represent a time-or-off setting for Nadybot.
+ * This is basically any date time string, or the literal value `'off'`
  */
 #[NCA\SettingHandler('time_or_off')]
 class TimeOrOffSettingHandler extends SettingHandler {
@@ -29,7 +30,7 @@ class TimeOrOffSettingHandler extends SettingHandler {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 *
 	 * @throws \Exception when the time is invalid
 	 */

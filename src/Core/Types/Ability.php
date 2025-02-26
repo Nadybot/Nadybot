@@ -37,14 +37,17 @@ enum Ability: string implements EnumParameterInterface {
 		return $long;
 	}
 
+	/** @inheritDoc */
 	public static function fromParam(string $param): self {
 		return self::fromShort($param);
 	}
 
+	/** @inheritDoc */
 	public static function getParamRegexp(): string {
 		return '(agi|agl|int|psy|sta|stm|str|sen|sns)\w*';
 	}
 
+	/** Get the skill ID of this ability */
 	public function getID(): int {
 		return match ($this) {
 			self::Strength => 16,
@@ -56,6 +59,7 @@ enum Ability: string implements EnumParameterInterface {
 		};
 	}
 
+	/** Create a new instance based on a skill ID */
 	public static function fromID(int $id): self {
 		return match ($id) {
 			16 => self::Strength,

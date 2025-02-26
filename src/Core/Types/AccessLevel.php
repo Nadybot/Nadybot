@@ -10,22 +10,33 @@ use ValueError;
 
 /** This is one valid access level of the bot */
 enum AccessLevel: string {
+	/**
+	 * Compare if our access level has more rights than $that
+	 *
+	 * @return int * `1` if our access level is better
+	 *             * `0` if they are the same
+	 *             * `-1` if `$that`'s access level is better
+	 */
 	public function compare(self $that): int {
 		return $that->toInt() <=> $this->toInt();
 	}
 
+	/** Check if our access level is higher than the given one */
 	public function higherThan(self $that): bool {
 		return $this->toInt() < $that->toInt();
 	}
 
+	/** Check if our access level is lower than the given one */
 	public function lowerThan(self $that): bool {
 		return $this->toInt() > $that->toInt();
 	}
 
+	/** Check if our access level is higher than or equal to the given one */
 	public function atLeast(self $that): bool {
 		return $this->toInt() <= $that->toInt();
 	}
 
+	/** Check if our access level is lower than or equal to the given one */
 	public function atMost(self $that): bool {
 		return $this->toInt() >= $that->toInt();
 	}
@@ -73,6 +84,7 @@ enum AccessLevel: string {
 		};
 	}
 
+	/** Check if we are a raid-rank access level */
 	public function isRaidAL(): bool {
 		return match ($this) {
 			self::None => false,
@@ -102,6 +114,11 @@ enum AccessLevel: string {
 		}
 	}
 
+	/**
+	 * Check if we have an explicit, real rank,
+	 * or just a temporary one like
+	 * guest, guild, raidleader and none
+	 */
 	public function isRealRank(): bool {
 		return match ($this) {
 			self::None => false,

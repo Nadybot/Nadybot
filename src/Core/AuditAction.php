@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+/** All possible audit actions */
 enum AuditAction: string {
 	case AddRank = 'add-rank';
 	case DelRank = 'del-rank';

@@ -5,6 +5,7 @@ namespace Nadybot\Core\SettingHandlers;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 
+/** This setting represents a value out of a list of allowed values */
 #[NCA\SettingHandler('options')]
 class OptionsSettingHandler extends SettingHandler {
 	/** @inheritDoc */
@@ -14,7 +15,7 @@ class OptionsSettingHandler extends SettingHandler {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 *
 	 * @throws \Exception if the option is invalid
 	 */

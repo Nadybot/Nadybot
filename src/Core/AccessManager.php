@@ -175,9 +175,9 @@ class AccessManager {
 	}
 
 	/**
-	 * This method checks if given $sender has at least $accessLevel rights.
+	 * This method checks if given `$sender` has at least `$accessLevel` rights.
 	 *
-	 * This is the same checkAccess() but doesn't check alt
+	 * This is the same `checkAccess()` but doesn't check alts
 	 */
 	public function checkSingleAccess(string $sender, AccessLevel $accessLevel): bool {
 		$sender = Utils::normalizeCharacter($sender);
@@ -186,7 +186,7 @@ class AccessManager {
 		return $charAccessLevel->atLeast($accessLevel);
 	}
 
-	/** Returns the access level of $sender, ignoring guild admin and inheriting access level from main */
+	/** Returns the access level of `$sender`, ignoring guild admin and inheriting access level from main */
 	public function getSingleAccessLevel(string $sender): AccessLevel {
 		if (in_array($sender, $this->config->general->superAdmins, true)) {
 			return AccessLevel::Superadmin;
@@ -210,7 +210,10 @@ class AccessManager {
 		return array_shift($ranks);
 	}
 
-	/** Returns the access level of $sender, accounting for guild admin and inheriting access level from main */
+	/**
+	 * Returns the access level of `$sender`,
+	 * accounting for guild admin and inheriting access level from main
+	 */
 	public function getAccessLevelForCharacter(string $sender): AccessLevel {
 		$sender = Utils::normalizeCharacter($sender);
 
@@ -241,6 +244,7 @@ class AccessManager {
 		return $char1AccessLevel->compare($char2AccessLevel);
 	}
 
+	/** Log the given audit entry, if auditing is allowed */
 	public function addAudit(Audit $audit): void {
 		if (!$this->auditController->auditEnabled) {
 			return;

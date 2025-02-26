@@ -47,18 +47,22 @@ class AdminManager implements AccessLevelProvider {
 		return $this->admins;
 	}
 
+	/** Get the admin access level of the given user, or `null` if not an admin/mod */
 	public function getAdminLevel(string $user): ?int {
 		return $this->admins[$user] ?? null;
 	}
 
+	/** Set the admin access level of the given user */
 	public function setAdminLevel(string $user, int $level): void {
 		$this->admins[$user] = $level;
 	}
 
+	/** Remove the given user from any mod/admin rank, except superadmin */
 	public function delAdmin(string $user): void {
 		unset($this->admins[$user]);
 	}
 
+	/** @inheritDoc */
 	public function getSingleAccessLevel(string $sender): ?AccessLevel {
 		$level = $this->getAdminLevel($sender) ?? 0;
 		if ($level >= 4) {
@@ -74,7 +78,7 @@ class AdminManager implements AccessLevelProvider {
 		$this->accessManager->registerProvider($this);
 	}
 
-	/** Load the bot admins from database into $admins */
+	/** Load the bot admins from the database into `$this->admins` */
 	public function uploadAdmins(): void {
 		foreach ($this->config->general->superAdmins as $superAdmin) {
 			$this->db->table(Admin::getTable())->upsert(
@@ -95,7 +99,12 @@ class AdminManager implements AccessLevelProvider {
 			});
 	}
 
-	/** Demote someone from the admin position */
+	/**
+	 * Demote someone from the admin position
+	 *
+	 * @param string $who    Who to demote
+	 * @param string $sender Who requests demotion
+	 */
 	public function removeFromLists(string $who, string $sender): void {
 		$oldRank = $this->getAdminLevel($who);
 		$this->delAdmin($who);
@@ -114,7 +123,15 @@ class AdminManager implements AccessLevelProvider {
 		$this->accessManager->addAudit($audit);
 	}
 
-	/** Set the admin level of a user */
+	/**
+	 * Set the admin level of a user
+	 *
+	 * @param string $who      Whose admin level to change
+	 * @param int    $intlevel Which admin level to set
+	 * @param string $sender   Who requests to set the new level
+	 *
+	 * @return RankChange Either demotion or promotion
+	 */
 	public function addToLists(string $who, int $intlevel, string $sender): RankChange {
 		$action = RankChange::Promotion;
 		$alMod = AccessLevel::Mod->toInt();
@@ -154,7 +171,7 @@ class AdminManager implements AccessLevelProvider {
 		return $action;
 	}
 
-	/** Check if a user $who has admin level $level */
+	/** Check if a user `$who` has admin level `$level` */
 	public function checkExisting(string $who, int $level): bool {
 		return !($this->getAdminLevel($who) !== $level);
 	}
