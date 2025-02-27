@@ -62,7 +62,7 @@ class AdminManager implements AccessLevelProvider {
 		unset($this->admins[$user]);
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getSingleAccessLevel(string $sender): ?AccessLevel {
 		$level = $this->getAdminLevel($sender) ?? 0;
 		if ($level >= 4) {

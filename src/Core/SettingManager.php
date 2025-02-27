@@ -265,7 +265,7 @@ class SettingManager {
 		return false;
 	}
 
-	/** @return int|bool|string|list<mixed>|null */
+	/** @return null|int|bool|string|list<mixed> */
 	public function getTyped(string $name): null|int|bool|string|array {
 		$name = strtolower($name);
 		if ($this->exists($name)) {

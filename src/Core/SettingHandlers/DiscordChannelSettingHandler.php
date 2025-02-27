@@ -25,7 +25,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	private DiscordGatewayController $discordGatewayController;
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getDescription(): string {
 		$msg = "For this setting you need to enter a Discord channel ID (number up to 20 digits).\n".
 			'You can get the ID of a channel by turning on Developer mode in Discord, '.
@@ -39,7 +39,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 		return $msg;
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function save(string $newValue): string {
 		if ($newValue === 'off') {
 			return $newValue;
@@ -78,7 +78,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 		throw new Exception("<highlight>{$newValue}<end>: Unknown error getting channel info.");
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function displayValue(string $sender): string {
 		$newValue = $this->row->value;
 		if ($newValue === 'off' || !isset($newValue)) {

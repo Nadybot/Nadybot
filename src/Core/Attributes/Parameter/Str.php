@@ -19,12 +19,12 @@ class Str implements ParamAttribute {
 		$this->values = array_values(array_unique(array_merge([$value], array_values($values))));
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function renderParameter(ReflectionParameter $param): string {
 		return $this->values[0];
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getRegexp(): string {
 		return implode('|', array_map('preg_quote', $this->values));
 	}

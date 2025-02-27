@@ -6,7 +6,7 @@ use ValueError;
 
 /** This represents one valid Anarchy Online playfield */
 enum Playfield: int implements EnumParameterInterface {
-	/** @var array<string,string|int|null> */
+	/** @var array<string,null|string|int> */
 	public const EXAMPLE_TOKENS = [
 		'pf-id' => 551,
 		'pf-long' => 'Wailing Wastes',
@@ -16,7 +16,7 @@ enum Playfield: int implements EnumParameterInterface {
 	/**
 	 * Get the template tokens that can be derived from this playfield
 	 *
-	 * @return array<string,string|int|null>
+	 * @return array<string,null|string|int>
 	 */
 	public function getTokens(): array {
 		return [
@@ -26,12 +26,12 @@ enum Playfield: int implements EnumParameterInterface {
 		];
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public static function fromParam(string $param): self {
 		return self::fromName($param);
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public static function getParamRegexp(): string {
 		return self::getShortRegexp();
 	}

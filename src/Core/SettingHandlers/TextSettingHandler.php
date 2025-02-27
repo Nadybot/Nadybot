@@ -10,7 +10,7 @@ use Nadybot\Core\Attributes as NCA;
  */
 #[NCA\SettingHandler('text')]
 class TextSettingHandler extends SettingHandler {
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getDescription(): string {
 		$msg = "For this setting you can enter any text you want (max. 255 characters).\n";
 		$msg .= "To change this setting:\n\n";
@@ -30,7 +30,7 @@ class TextSettingHandler extends SettingHandler {
 		return $newValue;
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function displayValue(string $sender): string {
 		$displayValue = parent::displayValue($sender);
 		if ($displayValue === '<highlight><end>') {

@@ -15,7 +15,7 @@ class AccessLevelSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	private ConfigController $configController;
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getDescription(): string {
 		$msg = 'For this setting you need to choose one of the available '.
 			"access levels:\n\n";
@@ -37,7 +37,7 @@ class AccessLevelSettingHandler extends SettingHandler {
 		return $accessLevel->value;
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function displayValue(string $sender): string {
 		$value = $this->row->value ?? 'all';
 		$accessLevel = AccessLevel::fromName($value);

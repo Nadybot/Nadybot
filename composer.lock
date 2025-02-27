@@ -5111,16 +5111,16 @@
     "packages-dev": [
         {
             "name": "composer-phar/php-cs-fixer",
-            "version": "v3.65.0",
+            "version": "v3.68.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer-phar/php-cs-fixer.git",
-                "reference": "6172a6a393dd16a07f85947e9910b292ab812a6d"
+                "reference": "99e74fe3978f822a177f50fd22d9da9c14cef2bc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer-phar/php-cs-fixer/zipball/6172a6a393dd16a07f85947e9910b292ab812a6d",
-                "reference": "6172a6a393dd16a07f85947e9910b292ab812a6d",
+                "url": "https://api.github.com/repos/composer-phar/php-cs-fixer/zipball/99e74fe3978f822a177f50fd22d9da9c14cef2bc",
+                "reference": "99e74fe3978f822a177f50fd22d9da9c14cef2bc",
                 "shasum": ""
             },
             "bin": [
@@ -5134,9 +5134,9 @@
             "description": "PHP-CS-Fixer/PHP-CS-Fixer",
             "support": {
                 "issues": "https://github.com/composer-phar/php-cs-fixer/issues",
-                "source": "https://github.com/composer-phar/php-cs-fixer/tree/v3.65.0"
+                "source": "https://github.com/composer-phar/php-cs-fixer/tree/v3.68.1"
             },
-            "time": "2024-12-12T11:10:46+00:00"
+            "time": "2025-01-23T11:55:04+00:00"
         },
         {
             "name": "composer/ca-bundle",
@@ -5843,16 +5843,16 @@
         },
         {
             "name": "nadybot/nadystyle",
-            "version": "1.0.1",
+            "version": "1.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Nadybot/Nadystyle.git",
-                "reference": "89c4c23ca6405ece7c6a3bddbc2cc5fbf644077f"
+                "reference": "6a62d4f33c9396222d21d651485ffa3e94866c64"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Nadybot/Nadystyle/zipball/89c4c23ca6405ece7c6a3bddbc2cc5fbf644077f",
-                "reference": "89c4c23ca6405ece7c6a3bddbc2cc5fbf644077f",
+                "url": "https://api.github.com/repos/Nadybot/Nadystyle/zipball/6a62d4f33c9396222d21d651485ffa3e94866c64",
+                "reference": "6a62d4f33c9396222d21d651485ffa3e94866c64",
                 "shasum": ""
             },
             "require": {
@@ -5883,9 +5883,9 @@
             "description": "Code style configuration for all Nadybot PHP projects",
             "support": {
                 "issues": "https://github.com/Nadybot/Nadystyle/issues",
-                "source": "https://github.com/Nadybot/Nadystyle/tree/1.0.1"
+                "source": "https://github.com/Nadybot/Nadystyle/tree/1.0.3"
             },
-            "time": "2024-04-28T14:54:49+00:00"
+            "time": "2025-02-27T09:23:42+00:00"
         },
         {
             "name": "nadyita/phpstan-amp-file-rule",

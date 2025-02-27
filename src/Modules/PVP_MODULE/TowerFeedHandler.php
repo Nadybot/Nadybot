@@ -35,7 +35,7 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 		$this->nwCtrl->initOutcomesFromApi();
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function handleEventFeedMessage(string $room, array $data): void {
 		/** @var array<string,array{class-string,class-string}> */
 		$mapping = [

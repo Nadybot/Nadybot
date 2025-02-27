@@ -20,10 +20,10 @@ use Nadybot\Core\{
 #[NCA\EventModifier(name: 'change-message')]
 class ChangeMessage implements EventModifier {
 	/**
-	 * @param string|null $addPrefix If set, prefix the message with the given string. Note that it will
+	 * @param null|string $addPrefix If set, prefix the message with the given string. Note that it will
 	 *                               not automatically add a space between prefix and message
-	 * @param string|null $search    If set, search for the given string and replace it with the "replace" parameter
-	 * @param string|null $replace   If search is set, this is the text to replace with
+	 * @param null|string $search    If set, search for the given string and replace it with the "replace" parameter
+	 * @param null|string $replace   If search is set, this is the text to replace with
 	 * @param bool        $isRegExp  If set to true, do a regular expression search and replace
 	 */
 	public function __construct(

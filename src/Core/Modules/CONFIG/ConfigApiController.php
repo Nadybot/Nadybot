@@ -35,9 +35,6 @@ use Nadybot\Modules\{
 };
 use Throwable;
 
-/**
- * @package Nadybot\Core\Modules\CONFIG
- */
 #[NCA\Instance]
 class ConfigApiController extends ModuleInstance {
 	#[NCA\Inject]

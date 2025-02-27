@@ -174,7 +174,7 @@ class CommandManager implements MessageEmitter {
 	 * @param string      $command       The command to be registered
 	 * @param AccessLevel $accessLevel   The required access level to call this command.
 	 * @param string      $description   A short description what this command is for
-	 * @param Status|null $defaultStatus The default state of this command:
+	 * @param null|Status $defaultStatus The default state of this command:
 	 *                                   Enabled, Disabled or null (use default value as configured)
 	 */
 	public function register(string $module, string $filename, string $command, AccessLevel $accessLevel, string $description, ?Status $defaultStatus=null): void {

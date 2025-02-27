@@ -181,7 +181,7 @@ class Player extends DBTable {
 		return $text;
 	}
 
-	/** @return array<string,int|string|null> */
+	/** @return array<string,null|int|string> */
 	public function getTokens(string $prefix=''): array {
 		$tokens = [
 			"{$prefix}name" => $this->name,

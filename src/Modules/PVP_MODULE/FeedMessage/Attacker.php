@@ -7,7 +7,7 @@ use Nadybot\Core\{StringableTrait, Types\Faction, Types\Profession};
 class Attacker {
 	use StringableTrait;
 
-	/** @var array<string,string|int|null> */
+	/** @var array<string,null|string|int> */
 	public const EXAMPLE_TOKENS = [
 		...AttackerOrg::EXAMPLE_TOKENS,
 
@@ -45,7 +45,7 @@ class Attacker {
 	) {
 	}
 
-	/** @return array<string,string|int|null> */
+	/** @return array<string,null|string|int> */
 	public function getTokens(): array {
 		$tokens = [
 			'att-name' => $this->name,

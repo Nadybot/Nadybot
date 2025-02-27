@@ -20,7 +20,7 @@ abstract class Event implements Stringable, DoNotSerializePublicFunctions, Event
 	) {
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getEvent(): string {
 		return $this->type;
 	}

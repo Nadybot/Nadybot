@@ -1340,7 +1340,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		return $tokens;
 	}
 
-	/** @return array<string, string|int|null> */
+	/** @return array<string, null|string|int> */
 	protected function getTokensForJoinLeave(string $player, ?Player $whois, ?AltInfo $altInfo): array {
 		$altInfo ??= $this->altsController->getAltInfo($player);
 		$tokens = [

@@ -11,7 +11,7 @@ enum Faction: string implements EnumParameterInterface {
 		return strtolower($this->value);
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public static function getParamRegexp(): string {
 		return 'neut|neutral|omni|clan';
 	}
@@ -32,7 +32,7 @@ enum Faction: string implements EnumParameterInterface {
 		};
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public static function fromParam(string $param): self {
 		return self::fromName($param);
 	}

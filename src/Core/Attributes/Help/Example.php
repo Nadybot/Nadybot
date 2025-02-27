@@ -9,7 +9,7 @@ use Attribute;
 class Example {
 	/**
 	 * @param string      $command     How the command is called, including <symbol>
-	 * @param string|null $description What is this command invocation doing?
+	 * @param null|string $description What is this command invocation doing?
 	 */
 	public function __construct(
 		public string $command,

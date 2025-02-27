@@ -9,10 +9,10 @@ class Result extends InPackage {
 
 	/**
 	 * @param string          $type    Type of the package
-	 * @param string|null     $room    Room in which or for which the message is
+	 * @param null|string     $room    Room in which or for which the message is
 	 * @param null|string|int $id      ID of the message we're referring to
-	 * @param string|null     $message The actual message (highway 0.1)
-	 * @param string|null     $body    The actual message (highway 0.2)
+	 * @param null|string     $message The actual message (highway 0.1)
+	 * @param null|string     $body    The actual message (highway 0.2)
 	 */
 	public function __construct(
 		string $type,

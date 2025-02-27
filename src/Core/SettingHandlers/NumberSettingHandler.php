@@ -8,7 +8,7 @@ use Nadybot\Core\Attributes as NCA;
 /** This represents a positive integer setting */
 #[NCA\SettingHandler('number')]
 class NumberSettingHandler extends SettingHandler {
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getDescription(): string {
 		$msg = "For this setting you can set any positive integer.\n";
 		$msg .= "To change this setting: \n\n";
@@ -17,7 +17,7 @@ class NumberSettingHandler extends SettingHandler {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 *
 	 * @throws Exception when not a number
 	 */

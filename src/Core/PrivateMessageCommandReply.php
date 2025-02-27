@@ -17,7 +17,7 @@ class PrivateMessageCommandReply implements CommandReply, MessageEmitter {
 		return Source::TELL . "({$this->sender})";
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function reply(string|array $msg): void {
 		if (isset($this->worker)) {
 			$this->chatBot->sendMassTell(

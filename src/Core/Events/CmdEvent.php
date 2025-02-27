@@ -12,7 +12,7 @@ abstract class CmdEvent {
 	 * @param string              $sender     The character trying to execute a command
 	 * @param string              $channel    The channel on which the command was received
 	 * @param string              $cmd        The actual command
-	 * @param CommandHandler|null $cmdHandler The command handler responsible for the command,
+	 * @param null|CommandHandler $cmdHandler The command handler responsible for the command,
 	 *                                        or `null` if none was found.
 	 */
 	public function __construct(

@@ -10,7 +10,7 @@ class Instance {
 	/**
 	 * This class is an instance that can be injected
 	 *
-	 * @param string|null $name      The object class name to inject
+	 * @param null|string $name      The object class name to inject
 	 * @param bool        $overwrite Whether to overwrite an existing instance
 	 */
 	public function __construct(

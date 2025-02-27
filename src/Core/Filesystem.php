@@ -489,8 +489,8 @@ final class Filesystem {
 	/**
 	 * Change ownership of a file or directory.
 	 *
-	 * @param int|null $uid null to ignore
-	 * @param int|null $gid null to ignore
+	 * @param null|int $uid null to ignore
+	 * @param null|int $gid null to ignore
 	 */
 	public function changeOwner(string $path, ?int $uid, ?int $gid=null): void {
 		$callNum = self::$callNum++;
@@ -514,8 +514,8 @@ final class Filesystem {
 	 *
 	 * If the file does not exist it will be created automatically.
 	 *
-	 * @param int|null $modificationTime The touch time. If $time is not supplied, the current system time is used.
-	 * @param int|null $accessTime       The access time. If not supplied, the modification time is used.
+	 * @param null|int $modificationTime The touch time. If $time is not supplied, the current system time is used.
+	 * @param null|int $accessTime       The access time. If not supplied, the modification time is used.
 	 */
 	public function touch(string $path, ?int $modificationTime=null, ?int $accessTime=null): void {
 		$callNum = self::$callNum++;

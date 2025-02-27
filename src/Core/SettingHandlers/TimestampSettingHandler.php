@@ -8,7 +8,7 @@ use Nadybot\Core\{Attributes as NCA, Util};
 /** This setting represents a Unix time stamp integer value */
 #[NCA\SettingHandler('timestamp')]
 class TimestampSettingHandler extends SettingHandler {
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getDescription(): string {
 		$msg = "For this setting you can set any positive integer.\n";
 		$msg .= "To change this setting: \n\n";
@@ -28,7 +28,7 @@ class TimestampSettingHandler extends SettingHandler {
 		throw new Exception('You must enter a positive integer for this setting.');
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function displayValue(string $sender): string {
 		$unixTime = (int)($this->getData()->value??'0');
 		if ($unixTime === 0) {

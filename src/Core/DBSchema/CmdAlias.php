@@ -14,7 +14,7 @@ class CmdAlias extends DBTable {
 	/**
 	 * @param string      $cmd    The command to execute when $alias is typed
 	 * @param string      $alias  The alias for $cmd
-	 * @param string|null $module The name of the module that set up the alias,
+	 * @param null|string $module The name of the module that set up the alias,
 	 *                            or null if it was a player
 	 * @param Status      $status The state of this alias (enabled or disabled)
 	 */

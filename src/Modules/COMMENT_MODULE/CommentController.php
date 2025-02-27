@@ -200,7 +200,7 @@ class CommentController extends ModuleInstance {
 	/**
 	 * Delete a single category by its name
 	 *
-	 * @return int|null Number of deleted comments or null if the category didn't exist
+	 * @return null|int Number of deleted comments or null if the category didn't exist
 	 */
 	public function deleteCategory(string $category): ?int {
 		$deletedComments = $this->db->table(Comment::getTable())

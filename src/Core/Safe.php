@@ -153,7 +153,7 @@ class Safe {
 	 *
 	 * @param string   $pattern The pattern to search for, as a string.
 	 * @param string   $subject The input string.
-	 * @param int|null $limit   If specified, then only substrings up to limit
+	 * @param null|int $limit   If specified, then only substrings up to limit
 	 *                          are returned with the rest of the string being placed in the last
 	 *                          substring.  A limit of -1 or 0 means "no limit".
 	 *                          into subject at offset 1.
@@ -181,7 +181,7 @@ class Safe {
 	 * @template TKey as array-key
 	 * @template TValue
 	 *
-	 * @param array<TKey, TValue|null> $values
+	 * @param array<TKey, null|TValue> $values
 	 *
 	 * @return array<TKey, TValue>
 	 */

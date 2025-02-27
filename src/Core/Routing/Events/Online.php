@@ -15,12 +15,12 @@ class Online extends Base {
 	public const TYPE = 'online';
 
 	/**
-	 * @param Character|null $char       The character
-	 * @param string|null    $main       The main of the character, or `null` if unknown
+	 * @param null|Character $char       The character
+	 * @param null|string    $main       The main of the character, or `null` if unknown
 	 * @param bool           $online     Is the character coming online/joining (`true`),
 	 *                                   or going offline/leaving (`false`)
 	 * @param bool           $renderPath Shell we render the path of this event?
-	 * @param string|null    $message    The optional message that comes with the event
+	 * @param null|string    $message    The optional message that comes with the event
 	 *                                   ("XXX has left the private channel"), or  `null` if none
 	 */
 	public function __construct(

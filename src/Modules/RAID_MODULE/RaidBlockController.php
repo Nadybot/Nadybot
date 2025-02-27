@@ -19,8 +19,6 @@ use Nadybot\Core\{
 
 /**
  * This class contains all functions necessary to deal with temporary raid blocks
- *
- * @package Nadybot\Modules\RAID_MODULE
  */
 #[
 	NCA\Instance,

@@ -10,7 +10,7 @@ class AnonBinData implements Loggable {
 	) {
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function toLog(): string {
 		if ($this->data === null) {
 			return 'null';

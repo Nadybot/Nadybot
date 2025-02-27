@@ -33,7 +33,7 @@ final class SyncBanEvent extends SyncEvent {
 	}
 
 	/**
-	 * @return array<string,int|string|null>
+	 * @return array<string,null|int|string>
 	 *
 	 * @phpstan-return array{"uid":int, "name":string, "banned_by":?string, "banned_until":?int, "reason":?string}
 	 */

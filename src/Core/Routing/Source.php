@@ -34,8 +34,8 @@ class Source {
 	 * @param string      $type      The type of hop (aoorg, aopriv, web, etc.)
 	 * @param string      $name      The full name of the hop (e.g. the name of the
 	 *                               org or the discord channel)
-	 * @param string|null $label     The label to show instead of the name, or `null` if identical
-	 * @param int|null    $dimension The dimension for this hop, or `null` to use the bot's
+	 * @param null|string $label     The label to show instead of the name, or `null` if identical
+	 * @param null|int    $dimension The dimension for this hop, or `null` to use the bot's
 	 */
 	public function __construct(
 		public string $type,

@@ -8,7 +8,7 @@ use Nadybot\Core\Attributes as NCA;
 /** This setting represents a value out of a list of allowed values */
 #[NCA\SettingHandler('options')]
 class OptionsSettingHandler extends SettingHandler {
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getDescription(): string {
 		$msg = "For this setting you must choose one of the options from the list below.\n\n";
 		return $msg;

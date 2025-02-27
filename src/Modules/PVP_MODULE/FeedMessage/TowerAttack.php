@@ -9,7 +9,7 @@ use Nadybot\Core\{StringableTrait, Types\Playfield};
 class TowerAttack {
 	use StringableTrait;
 
-	/** @var array<string,string|int|null> */
+	/** @var array<string,null|string|int> */
 	public const EXAMPLE_TOKENS = [
 		...Attacker::EXAMPLE_TOKENS,
 		...DefenderOrg::EXAMPLE_TOKENS,
@@ -46,7 +46,7 @@ class TowerAttack {
 		$this->attacker->profession ??= $player?->profession;
 	}
 
-	/** @return array<string,string|int|null> */
+	/** @return array<string,null|string|int> */
 	public function getTokens(): array {
 		$tokens = [
 			'pf-id' => $this->playfield->value,

@@ -120,7 +120,7 @@ class Terminal {
 	/**
 	 * Runs and parses mode CON if it's available, suppressing any error output.
 	 *
-	 * @return int[]|null An array composed of the width and the height or null if it could not be parsed
+	 * @return null|int[] An array composed of the width and the height or null if it could not be parsed
 	 *
 	 * @psalm-return null|array{0:int,1:int}
 	 */

@@ -16,8 +16,8 @@ class Blob implements \Stringable {
 	 * @param string               $text           The full text as it would appear
 	 *                                             as a single page
 	 * @param bool                 $paginate       Shall the result be paginated if possible?
-	 * @param LoggerInterface|null $logger         The logger to use
-	 * @param SettingManager|null  $settingManager An instance of the setting manager,
+	 * @param null|LoggerInterface $logger         The logger to use
+	 * @param null|SettingManager  $settingManager An instance of the setting manager,
 	 *                                             or `null` to get one from the Registry
 	 */
 	final public function __construct(
@@ -40,8 +40,8 @@ class Blob implements \Stringable {
 	 * @param string               $text           The full text as it would appear
 	 *                                             as a single page
 	 * @param bool                 $paginate       Shall the result be paginated if possible?
-	 * @param LoggerInterface|null $logger         The logger to use
-	 * @param SettingManager|null  $settingManager An instance of the setting manager,
+	 * @param null|LoggerInterface $logger         The logger to use
+	 * @param null|SettingManager  $settingManager An instance of the setting manager,
 	 */
 	public static function create(
 		string $text='',

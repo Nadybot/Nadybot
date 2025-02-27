@@ -8,8 +8,6 @@ use Nadybot\Core\Types\{Faction, Profession};
 
 /**
  * This represents a single player in the online list
- *
- * @package Nadybot\Modules\ONLINE_MODULE
  */
 class OnlinePlayer extends Player {
 	/**

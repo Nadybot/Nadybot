@@ -53,8 +53,6 @@ use Safe\DateTimeImmutable;
 
 /**
  * This class contains all functions necessary to start, stop and resume a raid
- *
- * @package Nadybot\Modules\POINT_RAID_MODULE
  */
 #[
 	NCA\Instance,

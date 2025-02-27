@@ -13,13 +13,13 @@ use ReflectionParameter;
  * `getRegexp()` function.
  */
 abstract class AbstractParamAttribute implements ParamAttribute {
-	/** @param string|null $example If set, don't use <paramName> as name, but this string */
+	/** @param null|string $example If set, don't use <paramName> as name, but this string */
 	public function __construct(
 		protected readonly ?string $example=null
 	) {
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function renderParameter(ReflectionParameter $param): string {
 		if (isset($this->example)) {
 			return $this->example;
@@ -33,6 +33,6 @@ abstract class AbstractParamAttribute implements ParamAttribute {
 		) . '&gt;';
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	abstract public function getRegexp(): string;
 }

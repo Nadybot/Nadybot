@@ -63,7 +63,7 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 		return Source::DISCORD_PRIV . "({$this->channelId})";
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function reply(string|array $msg): void {
 		if (!is_array($msg)) {
 			$msg = [$msg];

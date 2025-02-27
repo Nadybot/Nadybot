@@ -82,7 +82,7 @@ class BuddylistManager {
 	/**
 	 * Check if a friend is online
 	 *
-	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline
+	 * @return null|bool null when online status is unknown, true when buddy is online, false when buddy is offline
 	 */
 	public function isOnline(string $name): ?bool {
 		if (strtolower($this->config->main->character) === strtolower($name)) {
@@ -129,7 +129,7 @@ class BuddylistManager {
 	/**
 	 * Check if a friend is online
 	 *
-	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline
+	 * @return null|bool null when online status is unknown, true when buddy is online, false when buddy is offline
 	 */
 	public function isUidOnline(int $uid): ?bool {
 		if ($this->chatBot->aoClient->isOnline(uid: $uid, cacheOnly: true)) {

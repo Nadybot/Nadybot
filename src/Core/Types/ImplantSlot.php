@@ -6,7 +6,7 @@ use ValueError;
 
 /** This is the representation of a valid implant/symbiant slot */
 enum ImplantSlot: int implements EnumParameterInterface {
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public static function fromParam(string $param): self {
 		return self::fromName($param);
 	}
@@ -63,7 +63,7 @@ enum ImplantSlot: int implements EnumParameterInterface {
 		};
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public static function getParamRegexp(): string {
 		return 'eyes?|ocular'.
 		'|head|brain'.

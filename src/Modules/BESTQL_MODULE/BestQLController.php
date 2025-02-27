@@ -32,7 +32,7 @@ class BestQLController extends ModuleInstance {
 	 * @param array<int,int> $itemSpecs  An associative array [QLX => bonus X, QLY => bonus Y]
 	 * @param int            $searchedQL The QL we want to interpolate to
 	 *
-	 * @return float|null The interpolated bonus at the given QL or null if out of range
+	 * @return null|float The interpolated bonus at the given QL or null if out of range
 	 */
 	public function calcStatFromQL(array $itemSpecs, int $searchedQL): ?float {
 		$lastSpec = null;

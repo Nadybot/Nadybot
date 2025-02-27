@@ -436,7 +436,7 @@ class AttacksController extends ModuleInstance {
 			"Attack on {$shortSite}",
 		);
 
-		/** @var array<string,int|string|null> */
+		/** @var array<string,null|int|string> */
 		$tokens = array_merge(
 			$event->attack->getTokens(),
 			$site->playfield->getTokens(),
@@ -480,7 +480,7 @@ class AttacksController extends ModuleInstance {
 		$site->ql = null;
 		*/
 
-		/** @var array<string,string|int|null> */
+		/** @var array<string,null|string|int> */
 		$tokens = array_merge(
 			$outcome->getTokens(),
 			$site->getTokens(),

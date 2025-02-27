@@ -484,7 +484,7 @@ class StartpageController extends ModuleInstance {
 			public Nadybot $chatBot;
 			public string $receiver;
 
-			/** @inheritDoc */
+			/** {@inheritDoc} */
 			public function reply(string|array $msg): void {
 				$msg = Blob::renderMulti(text: $msg, formatMessage: false);
 				$this->chatBot->sendMassTell($msg, $this->receiver);

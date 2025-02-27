@@ -14,8 +14,6 @@ use Revolt\EventLoop;
 
 /**
  * This class accepts incoming messages and sends them out as mass messages
- *
- * @package Nadybot\Modules\MASSMSG_MODULE
  */
 class MassMsgReceiver implements MessageReceiver {
 	#[NCA\Inject]

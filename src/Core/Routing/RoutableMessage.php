@@ -14,7 +14,7 @@ class RoutableMessage extends RoutableEvent {
 	 * @param list<Source>   $path          The hops this message has travelled so far
 	 * @param bool           $routeSilently Whether to route the event
 	 *                                      without displaying anything
-	 * @param Character|null $char          The character who triggered the event,
+	 * @param null|Character $char          The character who triggered the event,
 	 *                                      or `null` for system events
 	 */
 	public function __construct(

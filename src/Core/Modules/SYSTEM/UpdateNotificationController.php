@@ -24,7 +24,7 @@ class UpdateNotificationController extends ModuleInstance implements EventFeedHa
 	#[NCA\Inject]
 	private MessageHub $msgHub;
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function handleEventFeedMessage(string $room, array $data): void {
 		$package = Hydrator::hydrate(UpdateNotification::class, $data);
 		$myVersion = new SemanticVersion(BotRunner::getVersion(false));

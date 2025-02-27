@@ -16,9 +16,6 @@ use Nadybot\Core\{
 	SettingManager,
 };
 
-/**
- * @package Nadybot\Modules\WEBSERVER_MODULE
- */
 #[NCA\Instance]
 class WebChatConverter extends ModuleInstance {
 	#[NCA\Inject]

@@ -6,7 +6,7 @@ use InvalidArgumentException;
 
 /** This represents a valid profession */
 enum Profession: string implements EnumParameterInterface {
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public static function getParamRegexp(): string {
 		return 'adv(|y|enturer)'.
 		'|age(nt)?'.
@@ -122,7 +122,7 @@ enum Profession: string implements EnumParameterInterface {
 		};
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public static function fromParam(string $param): self {
 		return self::fromName($param);
 	}

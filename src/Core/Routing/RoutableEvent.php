@@ -19,8 +19,8 @@ class RoutableEvent extends Event {
 	 *                                                           travelled
 	 * @param bool                                $routeSilently Whether to route the event
 	 *                                                           without displaying anything
-	 * @param string|Base|SyncEvent|stdClass|null $data          The actual event data
-	 * @param Character|null                      $char          The character who triggered
+	 * @param null|string|Base|SyncEvent|stdClass $data          The actual event data
+	 * @param null|Character                      $char          The character who triggered
 	 *                                                           the event, or `null` for
 	 *                                                           system events
 	 */

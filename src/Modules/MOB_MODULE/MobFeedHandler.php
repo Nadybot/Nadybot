@@ -37,7 +37,7 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 		$this->mobCtrl->initMobsFromApi();
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function handleEventFeedMessage(string $room, array $data): void {
 		if (!count($this->mobCtrl->mobs)) {
 			return;

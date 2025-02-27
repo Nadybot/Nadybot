@@ -15,8 +15,6 @@ use Revolt\EventLoop;
 
 /**
  * This class accepts incoming messages and sends them out as mass invites
- *
- * @package Nadybot\Modules\MASSMSG_MODULE
  */
 class MassInviteReceiver implements MessageReceiver {
 	#[NCA\Inject]

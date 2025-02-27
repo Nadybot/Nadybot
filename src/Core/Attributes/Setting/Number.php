@@ -9,7 +9,7 @@ use Nadybot\Core\Types\{AccessLevel, SettingMode};
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Number extends DefineSetting {
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 *
 	 * @param null|int|float|string|bool|list<mixed> $defaultValue
 	 * @param array<string|int,int|string>           $options      An optional list of values that the setting can be, semi-colon delimited.

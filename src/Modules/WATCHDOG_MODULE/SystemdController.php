@@ -55,7 +55,7 @@ class SystemdController extends ModuleInstance {
 	/**
 	 * sd_notify PHP implementation
 	 *
-	 * @link https://www.freedesktop.org/software/systemd/man/sd_notify.html
+	 * @see https://www.freedesktop.org/software/systemd/man/sd_notify.html
 	 */
 	public function notify(bool $unsetEnvironment, string $state): int {
 		return $this->notifyWithFDs(0, $unsetEnvironment, $state, []);
@@ -64,7 +64,7 @@ class SystemdController extends ModuleInstance {
 	/**
 	 * sd_pid_notify_with_fds PHP implementation
 	 *
-	 * @link https://github.com/systemd/systemd/blob/master/src/libsystemd/sd-daemon/sd-daemon.c
+	 * @see https://github.com/systemd/systemd/blob/master/src/libsystemd/sd-daemon/sd-daemon.c
 	 *
 	 * @param list<int> $fds
 	 */
@@ -173,7 +173,7 @@ class SystemdController extends ModuleInstance {
 	 *
 	 * @param-out int $usec
 	 *
-	 * @link https://github.com/systemd/systemd/blob/master/src/libsystemd/sd-daemon/sd-daemon.c
+	 * @see https://github.com/systemd/systemd/blob/master/src/libsystemd/sd-daemon/sd-daemon.c
 	 */
 	public function isSystemdWatchdogEnabled(bool $unsetEnvironment, int &$usec): int {
 		$result = $this->systemdWatchdogEnabled($usec);

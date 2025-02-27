@@ -23,7 +23,7 @@ use Psr\Log\LoggerInterface;
  *
  * @author Derroylo (RK2)
  *
- * @link http://sourceforge.net/projects/budabot
+ * @see http://sourceforge.net/projects/budabot
  *
  * Date(created): 15.01.2006
  * Date(last modified): 22.07.2006

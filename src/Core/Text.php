@@ -26,7 +26,7 @@ class Text {
 	 *
 	 * @param string      $name    The text part of the clickable link
 	 * @param string      $content The content of the info window
-	 * @param string|null $header  If set, use $header as header, otherwise $name
+	 * @param null|string $header  If set, use $header as header, otherwise $name
 	 *
 	 * @return string The string with link and reference
 	 */
@@ -375,7 +375,7 @@ class Text {
 	 * Render {token}, {?token:} and {!token} placeholder-based text
 	 *
 	 * @param string                        $text   The text containing placeholders
-	 * @param array<string,string|int|null> $tokens All possibly usable tokens
+	 * @param array<string,null|string|int> $tokens All possibly usable tokens
 	 *
 	 * @return string The rendered text
 	 */

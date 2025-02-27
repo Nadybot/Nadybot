@@ -28,7 +28,7 @@ class BoolSettingHandler extends OptionsSettingHandler {
 		return Text::makeChatcmd('enable', "/tell <myname> settings save {$this->row->name} 1");
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getDescription(): string {
 		$msg = "This option can only be turned on and off.\n\n";
 		return $msg;

@@ -41,7 +41,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		return Source::CONSOLE;
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function reply(string|array $msg): void {
 		// $msg = Text::unbreakPopups((array)$msg);
 		$msg = (array)$msg;

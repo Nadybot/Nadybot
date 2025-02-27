@@ -19,7 +19,7 @@ class DrillConnector {
 	/**
 	 * @param UriInterface|string   $uri       The URL of the drill server
 	 * @param LoggerInterface       $logger    A logger to use for logging
-	 * @param Rfc6455Connector|null $connector A Websocket connector, or `null` for the default one
+	 * @param null|Rfc6455Connector $connector A Websocket connector, or `null` for the default one
 	 */
 	public function __construct(
 		UriInterface|string $uri,

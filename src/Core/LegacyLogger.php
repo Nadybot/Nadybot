@@ -129,7 +129,7 @@ class LegacyLogger {
 	 * Re-calculate the log level for $logger, assign it and return old
 	 * and new log level for that logger, or null if unchanged.
 	 *
-	 * @return array<int,string>|null
+	 * @return null|array<int,string>
 	 *
 	 * @psalm-return null|array{0:string,1:string}
 	 */

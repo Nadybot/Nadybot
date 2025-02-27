@@ -37,12 +37,12 @@ enum Ability: string implements EnumParameterInterface {
 		return $long;
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public static function fromParam(string $param): self {
 		return self::fromShort($param);
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public static function getParamRegexp(): string {
 		return '(agi|agl|int|psy|sta|stm|str|sen|sns)\w*';
 	}

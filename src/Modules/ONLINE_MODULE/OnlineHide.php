@@ -9,8 +9,6 @@ use Safe\DateTimeImmutable;
 
 /**
  * This represents a single player in the online list
- *
- * @package Nadybot\Modules\ONLINE_MODULE
  */
 #[NCA\DB\Table(name: 'online_hide')]
 class OnlineHide extends DBTable {

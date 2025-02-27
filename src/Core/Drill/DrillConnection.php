@@ -25,9 +25,9 @@ class DrillConnection {
 	/**
 	 * Receive a single drill packet
 	 *
-	 * @param Cancellation|null $cancellation An optional cancellation token (timeout?)
+	 * @param null|Cancellation $cancellation An optional cancellation token (timeout?)
 	 *
-	 * @return AbstractDrillPacket|null The received packet or `null` if the connection was closed
+	 * @return null|AbstractDrillPacket The received packet or `null` if the connection was closed
 	 */
 	public function receive(?Cancellation $cancellation=null): ?AbstractDrillPacket {
 		if (null !== ($message = $this->connection->receive($cancellation))) {

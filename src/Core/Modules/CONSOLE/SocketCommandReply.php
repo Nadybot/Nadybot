@@ -20,7 +20,7 @@ class SocketCommandReply implements CommandReply {
 	public function __construct(private ResourceSocket $socket) {
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function reply(string|array $msg): void {
 		foreach ((array)$msg as $text) {
 			$text = $this->formatMsg(Blob::create($text)->getText());

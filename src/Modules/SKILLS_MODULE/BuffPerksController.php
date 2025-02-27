@@ -260,7 +260,7 @@ class BuffPerksController extends ModuleInstance {
 	 *
 	 * @param Profession   $profession Name of the profession
 	 * @param int          $level      Level of the character
-	 * @param string|null  $search     Name of the skill to search for
+	 * @param null|string  $search     Name of the skill to search for
 	 * @param CommandReply $sendto     Where to send the output to
 	 */
 	protected function showPerks(Profession $profession, int $level, ?string $breed, ?string $search, CommandReply $sendto): void {

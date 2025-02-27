@@ -280,7 +280,7 @@ class PlayerManager extends ModuleInstance {
 	 * Search for players in the database
 	 *
 	 * @param string   $search    Search term
-	 * @param int|null $dimension Dimension to limit search to
+	 * @param null|int $dimension Dimension to limit search to
 	 *
 	 * @return Collection<int,Player>
 	 *

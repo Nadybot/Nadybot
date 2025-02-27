@@ -4,8 +4,6 @@ namespace Nadybot\Modules\ONLINE_MODULE;
 
 /**
  * This is the list of all players considered to be online by the bot
- *
- * @package Nadybot\Modules\ONLINE_MODULE
  */
 class OnlinePlayers {
 	/**

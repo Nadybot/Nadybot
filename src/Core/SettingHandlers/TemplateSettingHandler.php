@@ -16,7 +16,7 @@ class TemplateSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	private Text $text;
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function displayValue(string $sender): string {
 		$examples = [];
 		$attr = $this->getAttribute();
@@ -26,7 +26,7 @@ class TemplateSettingHandler extends SettingHandler {
 		return Text::renderPlaceholders($this->row->value??'', $examples);
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getOptions(): ?string {
 		$examples = [];
 		$attr = $this->getAttribute();

@@ -53,7 +53,7 @@ class PlayerFeedHandler extends ModuleInstance implements EventFeedHandler {
 		}
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function handleEventFeedMessage(string $room, array $data): void {
 		try {
 			$playerInfo = Hydrator::hydrate(PlayerInfo::class, $data);

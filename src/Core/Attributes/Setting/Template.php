@@ -17,12 +17,12 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Template extends DefineSetting {
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 *
 	 * @param null|int|float|string|bool|list<mixed> $defaultValue
 	 * @param array<string|int,int|string>           $options       An optional list of values that the setting can be, semi-colon delimited.
 	 *                                                              Alternatively, use an associative array [label => value], where label is optional.
-	 * @param ?array<string,string|int|null>         $exampleValues An optional list of example values to calculate the current display value
+	 * @param ?array<string,null|string|int>         $exampleValues An optional list of example values to calculate the current display value
 	 */
 	public function __construct(
 		string $type='template',

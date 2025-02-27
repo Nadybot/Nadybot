@@ -26,8 +26,6 @@ use Safe\DateTimeImmutable;
 
 /**
  * This class contains all functions necessary for mass messaging
- *
- * @package Nadybot\Modules\MASSMSG_MODULE
  */
 #[
 	NCA\Instance,

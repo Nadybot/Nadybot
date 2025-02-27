@@ -7,7 +7,7 @@ abstract class UserStateEvent {
 	/**
 	 * @param string    $sender    Name of the character
 	 * @param int       $uid       UID of the character
-	 * @param bool|null $wasOnline Was that character online before,
+	 * @param null|bool $wasOnline Was that character online before,
 	 *                             and we received a second online-event?
 	 *                             `null` if not applicable/unknown
 	 */

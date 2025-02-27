@@ -29,8 +29,6 @@ use Safe\DateTimeImmutable;
 
 /**
  * This class contains all functions necessary to deal with points in a raid
- *
- * @package Nadybot\Modules\RAID_MODULE
  */
 #[
 	NCA\Instance,

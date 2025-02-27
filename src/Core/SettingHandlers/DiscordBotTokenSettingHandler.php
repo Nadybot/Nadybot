@@ -20,7 +20,7 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	private AccessManager $accessManager;
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getDescription(): string {
 		$msg = "For this setting you need to enter a Discord token (59 characters).\n".
 			"You can get the ID for your bot on the Discord developer portal.\n".

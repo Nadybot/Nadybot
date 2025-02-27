@@ -11,8 +11,8 @@ class Character {
 
 	/**
 	 * @param string   $name      Name of the character
-	 * @param int|null $id        UID of the character of `null` if unknown/not applicable
-	 * @param int|null $dimension The dimension of this character or `null` if unknown
+	 * @param null|int $id        UID of the character of `null` if unknown/not applicable
+	 * @param null|int $dimension The dimension of this character or `null` if unknown
 	 */
 	public function __construct(
 		public string $name,
