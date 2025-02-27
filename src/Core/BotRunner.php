@@ -31,6 +31,7 @@ use Revolt\EventLoop;
 use Safe\Exceptions\InfoException;
 use Throwable;
 
+/** This class sets up the bot before passing execution to it */
 class BotRunner {
 	/** Nadybot's current version */
 	public const VERSION = '7.0.0.alpha';
@@ -70,10 +71,12 @@ class BotRunner {
 		self::$arguments = new Options();
 	}
 
+	/** Get the arguments with which the bot was started */
 	public static function getArguments(): Options {
 		return self::$arguments;
 	}
 
+	/** Get the latest Git commit ID (if running via Git) */
 	public static function getCommit(): string {
 		$baseDir = self::getBasedir();
 
@@ -168,6 +171,7 @@ class BotRunner {
 		}
 	}
 
+	/** Get a git tag plus commit, plus hash all in one string */
 	public static function getGitDescribe(): ?string {
 		$baseDir = self::getBasedir();
 		$process = Process::start('git describe --tags', $baseDir);
@@ -215,7 +219,7 @@ class BotRunner {
 		try {
 			LegacyLogger::$fs = self::getFS();
 			LoggerWrapper::$fs = self::getFS();
-			$this->parseOptions();
+			self::$arguments = $this->parseOptions();
 			// set default timezone
 			date_default_timezone_set('UTC');
 
@@ -366,6 +370,7 @@ class BotRunner {
 		return \PHP_OS_FAMILY === 'Linux';
 	}
 
+	/** Get the filesystem class that is configured */
 	private static function getFS(): Filesystem {
 		if (isset(self::$fs)) {
 			return self::$fs;
@@ -388,6 +393,7 @@ class BotRunner {
 		return self::$fs;
 	}
 
+	/** Get the bot configuration from the configured config file */
 	private function getConfigFile(): BotConfig {
 		if (isset($this->configFile)) {
 			return $this->configFile;
@@ -402,6 +408,7 @@ class BotRunner {
 		return $this->configFile = BotConfig::loadFromFile($configFilePath, self::getFS());
 	}
 
+	/** Create the directories given in the config file, if they don't exist */
 	private function createMissingDirs(): void {
 		$path = $this->getConfigFile()->paths;
 		foreach (get_object_vars($path) as $name => $dir) {
@@ -416,6 +423,7 @@ class BotRunner {
 		}
 	}
 
+	/** Check if some required key composer packages are installed properly */
 	private function checkRequiredPackages(): void {
 		if (
 			!class_exists('Revolt\\EventLoop')
@@ -437,6 +445,7 @@ class BotRunner {
 		}
 	}
 
+	/** Ensure that all external programs required to run the bot, are present */
 	private function checkRequiredPrograms(): void {
 		if (!self::isWindows()) {
 			return;
@@ -461,6 +470,7 @@ class BotRunner {
 		}
 	}
 
+	/** Check if all the modules that the bot needs, are installed */
 	private function checkRequiredModules(): void {
 		if (version_compare(\PHP_VERSION, '8.1.17', '<')) {
 			// @phpstan-ignore-next-line
@@ -516,7 +526,8 @@ class BotRunner {
 		exit(1);
 	}
 
-	private function parseOptions(): void {
+	/** Parse all command line options and return them */
+	private function parseOptions(): Options {
 		try {
 			/** @var array<string,mixed> $options */
 			$options = getopt(
@@ -544,13 +555,15 @@ class BotRunner {
 		if (count($argv) > 0) {
 			$options['c'] = array_shift($argv);
 		}
-		self::$arguments = Hydrator::hydrate(Options::class, $options);
+		$arguments = Hydrator::hydrate(Options::class, $options);
 		if (self::$arguments->help) {
 			$this->showSyntaxHelp();
 			exit(0);
 		}
+		return $arguments;
 	}
 
+	/** Show a help page how to run the bot */
 	private function showSyntaxHelp(): void {
 		echo(
 			'Usage: ' . \PHP_BINARY . ' ' . ($_SERVER['argv'][0] ?? 'main.php').

@@ -29,6 +29,7 @@ use ReflectionException;
 use ReflectionMethod;
 use Revolt\EventLoop;
 
+/** The central event manager for Nadybot */
 #[NCA\Instance]
 class EventManager {
 	public const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
@@ -73,6 +74,7 @@ class EventManager {
 	/** @var array<string,array<string,bool>> */
 	private array $configuredEvents = [];
 
+	/** Initialize the module before the bot's setup event */
 	public function init(): void {
 		$this->db->table(EventCfg::getTable())
 			->update(['verify' => 0]);
@@ -86,6 +88,7 @@ class EventManager {
 			});
 	}
 
+	/** Get the number of registered events */
 	public function getNumEvents(): int {
 		$sum = 0;
 		foreach ($this->events as $type => $events) {
@@ -181,7 +184,7 @@ class EventManager {
 			$key = $this->getKeyForCronEvent($time, $filename);
 			if ($key === null) {
 				$entry = new CronEntry(
-					nextevent: 0,
+					nextEvent: 0,
 					filename: $filename,
 					time: $time,
 				);
@@ -359,7 +362,7 @@ class EventManager {
 				$key = $this->getKeyForCronEvent($time, $call);
 				if ($key === null) {
 					$entry = new CronEntry(
-						nextevent: 0,
+						nextEvent: 0,
 						filename: $call,
 						time: $time,
 					);
@@ -428,6 +431,7 @@ class EventManager {
 		}
 	}
 
+	/** The the event mask of a given object's method */
 	public function getEventTypeByMethod(object $obj, string $methodName): ?string {
 		$method = new ReflectionMethod($obj, $methodName);
 		foreach ($method->getAttributes(NCA\HandlesEvent::class, ReflectionAttribute::IS_INSTANCEOF) as $event) {
@@ -439,6 +443,7 @@ class EventManager {
 		return null;
 	}
 
+	/** Get the internal key for `$this->cronevents` for the given cron event */
 	public function getKeyForCronEvent(int $time, string $filename): ?int {
 		foreach ($this->cronevents as $key => $event) {
 			if ($time === $event->time && $event->filename === $filename) {
@@ -479,10 +484,12 @@ class EventManager {
 		$this->dispatch(new ConnectEvent());
 	}
 
+	/** Check if the given event mask is for a timer event */
 	public function isTimerEvent(string $type): bool {
 		return fnmatch('timer(*)', $type, \FNM_CASEFOLD);
 	}
 
+	/** Check if the given event mask has a registered handler */
 	public function isValidEventType(string $type): bool {
 		if ($this->isTimerEvent($type)) {
 			return false;
@@ -501,6 +508,7 @@ class EventManager {
 		return false;
 	}
 
+	/** Extract the timer time from a timer event mask */
 	public function getTimerEventTime(string $type): int {
 		if (!count($arr = Safe::pregMatch(self::TIMER_EVENT_REGEX, $type))) {
 			return 0;
@@ -566,7 +574,15 @@ class EventManager {
 		return false;
 	}
 
-	/** @throws StopExecutionException */
+	/**
+	 * Call the given event handler for the given object
+	 *
+	 * @param object $eventObj The event that was dispatched and needs handling
+	 * @param string $handler  The event handler in the format
+	 *                         `<class name>.<method name>`
+	 *
+	 * @throws StopExecutionException
+	 */
 	public function callEventHandler(object $eventObj, string $handler): void {
 		$logObj = new AnonObj(
 			class: 'Event',
@@ -640,6 +656,11 @@ class EventManager {
 		return $this->eventTypes;
 	}
 
+	/**
+	 * Get the event mask for a given class or class name
+	 *
+	 * @throws Exception if the given class or class name doesn't define an event
+	 */
 	public static function getEventType(object|string $eventObj): string {
 		if ($eventObj instanceof EventInterface) {
 			return $eventObj->getEvent();
@@ -655,19 +676,21 @@ class EventManager {
 		return $refAttr[0]->newInstance()->mask;
 	}
 
+	/** Start calling a given cron entry periodically */
 	private function startCron(CronEntry $entry): void {
 		$entry->handle = EventLoop::defer(function () use ($entry): void {
 			$this->startCronRun($entry);
 		});
 	}
 
+	/** Start a single cron iteration for a given cron entry */
 	private function startCronRun(CronEntry $entry): void {
 		while (!$this->chatBot->isReady()) {
 			delay(0.1);
 		}
 		$eventObj = new TimerEvent($entry->time);
 
-		$entry->nextevent = time() + $entry->time;
+		$entry->nextEvent = time() + $entry->time;
 		$this->logger->info('Initial call to {handler}', ['handler' => $entry->filename]);
 		$this->callEventHandler($eventObj, $entry->filename);
 		$period = $entry->time;
@@ -681,7 +704,7 @@ class EventManager {
 				$this->logger->info('Periodic call to {handler}', [
 					'handler' => $entry->filename,
 				]);
-				$entry->nextevent = time() + $entry->time;
+				$entry->nextEvent = time() + $entry->time;
 				$this->callEventHandler($eventObj, $entry->filename);
 			}
 		);

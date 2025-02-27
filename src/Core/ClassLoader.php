@@ -24,7 +24,13 @@ use RecursiveRegexIterator;
 use ReflectionClass;
 use RegexIterator;
 
+/** The class loader keeps track of and loads all modules and their classes */
 class ClassLoader {
+	/**
+	 * A list of old modules that are now part of Nadybot
+	 *
+	 * @var list<string>
+	 */
 	public const INTEGRATED_MODULES = [
 		'ALLIANCE_RELAY_MODULE',
 		'SPAWNTIME_MODULE',
@@ -55,14 +61,26 @@ class ClassLoader {
 	public function __construct(private array $moduleLoadPaths) {
 	}
 
+	/**
+	 * Get the path for a given module, relative to the bot's base dir
+	 *
+	 * @return ?string `null` if that module isn't registered, otherwise the path
+	 */
 	public function getModulePath(string $module): ?string {
 		return $this->registeredModules[$module] ?? null;
 	}
 
+	/** Remove a module from our registry */
 	public function unregisterModule(string $module): void {
 		unset($this->registeredModules[$module]);
 	}
 
+	/**
+	 * Set the path of a given module in our registry to a given value
+	 *
+	 * @param string $module Name of the module for which to change the path
+	 * @param string $path   the relative path of the module
+	 */
 	public function setModulePath(string $module, string $path): string {
 		return $this->registeredModules[$module] = $path;
 	}
@@ -77,7 +95,7 @@ class ClassLoader {
 		return $this->registeredModules;
 	}
 
-	/** Load all classes that provide an #[Instance] */
+	/** Load all classes that provide an #[Instance] and inject their dependencies */
 	public function loadInstances(): void {
 		$newInstances = static::getInstancesOfClasses(...get_declared_classes());
 		unset($newInstances['logger']);
@@ -266,7 +284,7 @@ class ClassLoader {
 		return $newInstances;
 	}
 
-	/** Parse and load all core modules */
+	/** Parse and load all core modules in the correct order */
 	private function loadCoreModules(): void {
 		// load the core modules, hard-code to ensure they are loaded in the correct order
 		$this->logger->notice('Loading CORE modules...');
@@ -294,6 +312,7 @@ class ClassLoader {
 		}
 	}
 
+	/** Parse and load all modules in a given path */
 	private function loadModulesInPath(string $path): void {
 		$this->logger->info("Loading modules in path '{path}'", ['path' => $path]);
 		try {
@@ -311,17 +330,23 @@ class ClassLoader {
 		}
 	}
 
-	/** Test if $moduleName is a module in $path */
+	/** Test if `$moduleName` is a module in `$path` */
 	private function isModuleDir(string $path, string $moduleName): bool {
 		return $this->isValidModuleName($moduleName)
 			&& $this->fs->isDirectory("{$path}/{$moduleName}");
 	}
 
-	/** Check if $name is a valid module name */
+	/** Check if `$name` is a valid module name */
 	private function isValidModuleName(string $name): bool {
 		return $name !== '.' && $name !== '..';
 	}
 
+	/**
+	 * Check if a given version requirement spec matches this bot's version
+	 *
+	 * @param string $spec The version spec to check.
+	 *                     Must be in the format `^6.0.0` or `6.0.0-6.1.0`
+	 */
 	private function versionRangeCompatible(string $spec): bool {
 		$parts = preg_split("/\s*,\s*/", $spec);
 		foreach ($parts as $part) {
@@ -335,7 +360,7 @@ class ClassLoader {
 		return true;
 	}
 
-	/** Check if the module in $path is compatible with this Nadybot version */
+	/** Check if the module in `$path` is compatible with this Nadybot version */
 	private function isModuleCompatible(string $path): bool {
 		if (!$this->fs->exists("{$path}/aopkg.toml")) {
 			return true;
@@ -351,7 +376,15 @@ class ClassLoader {
 		return $this->versionRangeCompatible($matches[2]);
 	}
 
-	/** Check if $fileName contains no parsing errors and a require would work */
+	/**
+	 * Check if `$fileName` contains no parsing errors and a require would work
+	 *
+	 * @param string $fileName The filename of the PHP file to load.
+	 *                         Either relative to this bot's base directory,
+	 *                         or an absolute path.
+	 *
+	 * @return bool `true` if the file can be loaded, `false` on any compile or linter errors
+	 */
 	private function checkFileLoads(string $fileName): bool {
 		$task = new LintTask($fileName);
 		$worker = \Amp\Parallel\Worker\getWorker();

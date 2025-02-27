@@ -12,6 +12,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
+/** The class managing everything related to help */
 #[NCA\Instance]
 class HelpManager {
 	#[NCA\Logger]
@@ -35,6 +36,7 @@ class HelpManager {
 	/** @var array<string,bool> */
 	private array $configuredHelp = [];
 
+	/** Initialize the database before the setup event */
 	public function init(): void {
 		$this->db->table(HlpCfg::getTable())
 			->update(['verify' => 0]);
@@ -45,15 +47,23 @@ class HelpManager {
 			});
 	}
 
-	/** Register a help command */
-	public function register(string $module, string $command, string $filename, AccessLevel $admin, string $description): void {
+	/**
+	 * Register help from a given file
+	 *
+	 * @param string      $module      Name of the module this belongs to
+	 * @param string      $command     The command for which we're registering help
+	 * @param string      $filename    A file location that contains the text to display
+	 * @param AccessLevel $accessLevel The minimum access level required to see the help
+	 * @param string      $description A short description of the help
+	 */
+	public function register(string $module, string $command, string $filename, AccessLevel $accessLevel, string $description): void {
 		$logObj = new AnonObj(
 			class: 'HelpFile',
 			properties: [
 				'module' => $module,
 				'command' => $command,
 				'helpfile' => $filename,
-				'admin' => $admin,
+				'admin' => $accessLevel,
 				'description' => $description,
 			]
 		);
@@ -82,7 +92,7 @@ class HelpManager {
 		} else {
 			$this->db->insert(new HlpCfg(
 				name: $command,
-				admin: $admin,
+				admin: $accessLevel,
 				verify: 1,
 				file: $actualFilename,
 				module: $module,
@@ -91,7 +101,14 @@ class HelpManager {
 		}
 	}
 
-	/** Find a help topic by name if it exists and if the user has permissions to see it */
+	/**
+	 * Find a help topic by name if it exists and if the user has permissions to see it
+	 *
+	 * @param string $helpcmd The command for which we're searching help
+	 * @param string $char    The character name who is doing the search
+	 *
+	 * @return ?string `null` if not found or no access, otherwise the full help page
+	 */
 	public function find(string $helpcmd, string $char): ?string {
 		$helpcmd = strtolower($helpcmd);
 		$settingsHelp = $this->db->table(Setting::getTable())
@@ -128,15 +145,16 @@ class HelpManager {
 		return ($output === '') ? null : $output;
 	}
 
-	public function update(string $helpTopic, string $admin): void {
+	/** Change the required access level for a help topic */
+	public function update(string $helpTopic, AccessLevel $accessLevel): void {
 		$helpTopic = strtolower($helpTopic);
-		$admin = strtolower($admin);
 
 		$this->db->table(HlpCfg::getTable())
 			->where('name', $helpTopic)
-			->update(['admin' => $admin]);
+			->update(['admin' => $accessLevel]);
 	}
 
+	/** Try to register a help file for a given module */
 	public function checkForHelpFile(string $module, string $file): string {
 		$actualFilename = $this->util->verifyFilename($module . \DIRECTORY_SEPARATOR . $file);
 		$baseDir = rtrim(BotRunner::getBasedir(), \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR;
@@ -210,7 +228,11 @@ class HelpManager {
 		}
 	}
 
-	/** @param iterable<AccessLevel> $accessLevelsArray */
+	/**
+	 * Check if `$accessLevel1` meets the requirements of any of the given access levels
+	 *
+	 * @param iterable<AccessLevel> $accessLevelsArray
+	 */
 	public function checkAccessLevels(AccessLevel $accessLevel1, iterable $accessLevelsArray): bool {
 		foreach ($accessLevelsArray as $accessLevel2) {
 			if ($accessLevel1->atLeast($accessLevel2)) {

@@ -6,6 +6,7 @@ use EventSauce\ObjectHydrator\DoNotSerialize;
 use InvalidArgumentException;
 use Nadybot\Core\Attributes\Hydrator\{Min, StrLength};
 
+/** A character, as used by the importer/exporter module */
 class ExportCharacter {
 	/**
 	 * @param ?string $name The name of this character
@@ -23,6 +24,7 @@ class ExportCharacter {
 		}
 	}
 
+	/** Try to get this character's name, return `null` if not possible */
 	#[DoNotSerialize]
 	public function tryGetName(): ?string {
 		if (isset($this->name)) {
@@ -35,6 +37,7 @@ class ExportCharacter {
 		return $chatBot->getName($this->id);
 	}
 
+	/** Try to get this character's UID, return `null` if not possible */
 	#[DoNotSerialize]
 	public function tryGetID(): ?int {
 		if (isset($this->id)) {

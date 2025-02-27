@@ -28,6 +28,11 @@ final class FileCache implements CacheInterface {
 
 	private ?string $gcWatcher = null;
 
+	/**
+	 * @param string          $directory  The directory where to keep the cached data
+	 * @param KeyedMutex      $mutex      The mutex to use for locking
+	 * @param null|Filesystem $filesystem The file system instance to use
+	 */
 	public function __construct(
 		string $directory,
 		private readonly KeyedMutex $mutex,
@@ -87,12 +92,14 @@ final class FileCache implements CacheInterface {
 		EventLoop::unreference($this->gcWatcher);
 	}
 
+	/** Turn of the garbage collection */
 	public function __destruct() {
 		if ($this->gcWatcher !== null) {
 			EventLoop::cancel($this->gcWatcher);
 		}
 	}
 
+	/** {@inheritDoc} */
 	public function clear(): bool {
 		foreach ($this->filesystem->listFiles($this->directory) as $file) {
 			if (Safe::pregMatch('/^[a-f0-9]{64}\.cache$/', $file)) {
@@ -102,6 +109,7 @@ final class FileCache implements CacheInterface {
 		return true;
 	}
 
+	/** {@inheritDoc} */
 	public function get(string $key, mixed $default=null): mixed {
 		$filename = self::getFilename($key);
 		if (!$this->has($key)) {
@@ -134,14 +142,22 @@ final class FileCache implements CacheInterface {
 		}
 	}
 
-	/** @return Generator<string, mixed> */
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @return Generator<string, mixed>
+	 */
 	public function getMultiple(iterable $keys, mixed $default=null): Generator {
 		foreach ($keys as $key) {
 			yield $key => $this->get($key, $default);
 		}
 	}
 
-	/** @param iterable<mixed> $values */
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param iterable<mixed> $values
+	 */
 	public function setMultiple(iterable $values, null|int|\DateInterval $ttl=null): bool {
 		$result = true;
 		foreach ($values as $key => $value) {
@@ -153,6 +169,7 @@ final class FileCache implements CacheInterface {
 		return $result;
 	}
 
+	/** {@inheritDoc} */
 	public function set(string $key, mixed $value, null|int|\DateInterval $ttl=null): bool {
 		if (is_int($ttl)) {
 			$ttl = time() + $ttl;
@@ -181,7 +198,11 @@ final class FileCache implements CacheInterface {
 		return true;
 	}
 
-	/** @param iterable<string> $keys */
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param iterable<string> $keys
+	 */
 	public function deleteMultiple(iterable $keys): bool {
 		$result = true;
 		foreach ($keys as $key) {
@@ -190,6 +211,7 @@ final class FileCache implements CacheInterface {
 		return $result;
 	}
 
+	/** {@inheritDoc} */
 	public function delete(string $key): bool {
 		$filename = self::getFilename($key);
 
@@ -206,14 +228,17 @@ final class FileCache implements CacheInterface {
 		return true;
 	}
 
+	/** {@inheritDoc} */
 	public function has(string $key): bool {
 		return $this->filesystem->exists($this->directory . '/' . self::getFilename($key));
 	}
 
+	/** Get the file name to store the cache data for a given key */
 	private static function getFilename(string $key): string {
 		return \hash('sha256', $key) . '.cache';
 	}
 
+	/** Acquire a lock for the given cache key */
 	private function lock(string $key): Lock {
 		try {
 			return $this->mutex->acquire($key);

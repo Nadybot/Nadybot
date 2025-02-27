@@ -130,7 +130,7 @@ class DevController extends ModuleInstance {
 			[]
 		);
 
-		$this->commandManager->sortCalls($calls);
+		$calls = $this->commandManager->sortCalls($calls);
 
 		// get regular expressions for calls
 		$regexes = [];

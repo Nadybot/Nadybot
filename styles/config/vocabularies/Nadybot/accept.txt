@@ -210,6 +210,7 @@ Mindrila
 [mM]sg
 multiadd
 multiboxer
+mutex
 MySQL|mysql
 namedetails
 namespace
@@ -330,6 +331,7 @@ uri|URI
 usec
 [uU]nregister
 [uU]psert
+variadic
 Vincenzo
 Vizaresh
 [vV]ortexx

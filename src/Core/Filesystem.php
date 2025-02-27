@@ -6,8 +6,12 @@ use Amp\File\{File, Filesystem as AmpFilesystem, FilesystemException};
 use Nadybot\Core\Types\LazyValue;
 use Psr\Log\LoggerInterface;
 
+/**
+ * An abstract class wrapping filesystem calls that allows better logging
+ * and additional functionality to the Amp filesystem class
+ */
 final class Filesystem {
-	/** Internal counter to track the nth function call reliably */
+	/** Internal counter to track the n-th function call reliably */
 	private static int $callNum = 1;
 
 	public function __construct(
@@ -16,10 +20,12 @@ final class Filesystem {
 	) {
 	}
 
+	/** Get the underlying filesystem instance */
 	public function getFilesystem(): AmpFilesystem {
 		return $this->fs;
 	}
 
+	/** Set a logger to use */
 	public function setLogger(LoggerInterface $logger): void {
 		$this->logger = $logger;
 	}

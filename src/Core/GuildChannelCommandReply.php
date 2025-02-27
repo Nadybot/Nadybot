@@ -8,12 +8,14 @@ use Nadybot\Core\{
 	Types\MessageEmitter
 };
 
+/** A CommandReply for sending messages to the org's channel */
 class GuildChannelCommandReply implements CommandReply, MessageEmitter {
 	public function __construct(
 		private Nadybot $chatBot
 	) {
 	}
 
+	/** {@inheritDoc} */
 	public function getChannelName(): string {
 		return Source::ORG;
 	}

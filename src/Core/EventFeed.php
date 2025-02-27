@@ -45,7 +45,11 @@ class EventFeed {
 	public const URI = 'wss://ws.nadybot.org';
 	public const RECONNECT_DELAY = 5;
 
-	/** @var array<string,list<EventFeedHandler>> */
+	/**
+	 * The event feed handlers for each Highway room
+	 *
+	 * @var array<string,list<EventFeedHandler>>
+	 */
 	private array $roomHandlers = [];
 
 	private ?Highway\Connection $connection=null;
@@ -64,10 +68,18 @@ class EventFeed {
 
 	private bool $isReconnect = false;
 
-	/** @var array<string,bool> */
+	/**
+	 * Rooms that we successfully joined
+	 *
+	 * @var array<string,true>
+	 */
 	private array $attachedRooms = [];
 
-	/** @var array<string,bool> */
+	/**
+	 * Rooms provided by the Highway server
+	 *
+	 * @var array<string,true>
+	 */
 	private array $availableRooms = [];
 
 	#[NCA\Setup]
@@ -91,15 +103,21 @@ class EventFeed {
 		}
 	}
 
-	/** @psalm-assert-if-true Highway\Connection $this->connection */
+	/**
+	 * Are we connected to the Highway server?
+	 *
+	 * @psalm-assert-if-true Highway\Connection $this->connection
+	 */
 	public function isConnected(): bool {
 		return isset($this->connection);
 	}
 
+	/** Get the highway connection or `null` if we're not connected */
 	public function getHighwayConnection(): ?Highway\Connection {
 		return $this->connection;
 	}
 
+	/** Register an `EventFeedHandler` for a Highway room */
 	public function registerEventFeedHandler(string $room, EventFeedHandler $handler): void {
 		$this->roomHandlers[$room] ??= [];
 		$this->roomHandlers[$room] []= $handler;
@@ -140,6 +158,7 @@ class EventFeed {
 		});
 	}
 
+	/** Remove a registered `EventFeedHandler` from a Highway room */
 	public function unregisterEventFeedHandler(string $room, EventFeedHandler $handler): void {
 		if (!isset($this->roomHandlers[$room])) {
 			return;
@@ -185,6 +204,7 @@ class EventFeed {
 		});
 	}
 
+	/** Start connecting and processing packages in an endless loop */
 	public function mainLoop(): void {
 		EventLoop::queue(function (): void {
 			while ($this->singleLoop()) {
@@ -193,6 +213,7 @@ class EventFeed {
 		});
 	}
 
+	/** Connect to the Highway server */
 	protected function connect(): ?Highway\Connection {
 		$connectionFactory = new Rfc6455ConnectionFactory(
 			heartbeatQueue: new PeriodicHeartbeatQueue(
@@ -256,6 +277,12 @@ class EventFeed {
 		}
 	}
 
+	/**
+	 * Connect to the Highway server and read/process all messages.
+	 * Return if there are no more packages, or the server disconnects.
+	 *
+	 * @return bool `true` if the bot can reconnect, `false` otherwise
+	 */
 	private function singleLoop(): bool {
 		try {
 			$this->connection = $this->connect();
@@ -294,6 +321,7 @@ class EventFeed {
 		return true;
 	}
 
+	/** Dispatch a connect/reconnect event */
 	private function announceConnect(): void {
 		$event = $this->isReconnect ? new EventFeedReconnect() : new EventFeedConnect();
 		try {
@@ -303,6 +331,7 @@ class EventFeed {
 		}
 	}
 
+	/** Send the right `EventFeedPackageEvent` for the given package */
 	private function handlePackage(Highway\Connection $connection, Highway\In\InPackage $package): void {
 		$event = match ($package::class) {
 			Highway\In\Hello::class => new HelloPackageEvent(connection: $connection, package: $package),
@@ -332,6 +361,7 @@ class EventFeed {
 		}
 	}
 
+	/** Call the handlers for the Highway room the given message originated from. */
 	private function handleMessage(MessagePackageEvent $event): void {
 		$package = $event->getPackage();
 		$this->logger->info('Message from global event feed for room {room}: {message}', [
@@ -361,6 +391,7 @@ class EventFeed {
 		}
 	}
 
+	/** Handle Highway error events */
 	private function handleError(ErrorPackageEvent $event): void {
 		$package = $event->getPackage();
 		if (isset($package->room)) {
@@ -375,6 +406,7 @@ class EventFeed {
 		]);
 	}
 
+	/** Handle Highway success events */
 	private function handleSuccess(SuccessPackageEvent $event): void {
 		$package = $event->getPackage();
 		if (isset($package->room)) {
@@ -385,10 +417,12 @@ class EventFeed {
 		}
 	}
 
+	/** Handle Highway room-info events. Register them. */
 	private function handleRoomInfo(RoomInfoPackageEvent $event): void {
 		$this->attachedRooms[$event->getPackage()->room] = true;
 	}
 
+	/** Handle Highway hello events. Join all rooms for which we have handlers. */
 	private function handleHello(HelloPackageEvent $event): void {
 		$package = $event->getPackage();
 		$attachedRooms = [];

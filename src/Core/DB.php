@@ -40,28 +40,57 @@ use Revolt\EventLoop;
 use Safe\DateTimeImmutable;
 use Throwable;
 
-#[NCA\Instance]
-#[NCA\HasMigrations(module: 'Core')]
+/** This is the class that manages everything related to database access */
+#[
+	NCA\Instance,
+	NCA\HasMigrations(module: 'Core')
+]
 class DB {
+	/** The minimum SQLite version required when using SQLite as database backend */
 	public const SQLITE_MIN_VERSION = '3.24.0';
 
+	/**
+	 * The maximum amount of placeholders (`?`) to use in a single database
+	 * call. More will then be split into multiple statements. Used for
+	 * `chunkInsert()`
+	 */
 	public int $maxPlaceholders = 9_000;
 
 	/** The database name */
 	protected string $dbName;
 
-	/** @var array<string,string> */
+	/**
+	 * SQL terms that will need to be replaced due to the chosen DB driver
+	 *
+	 * @var array<string,string>
+	 */
 	protected array $sqlReplacements = [];
 
-	/** @var array<string,string> */
+	/**
+	 * SQL terms as regular expression that will need to be replaced
+	 * due to the chosen DB driver
+	 *
+	 * @var array<string,string>
+	 */
 	protected array $sqlRegexpReplacements = [];
 
-	/** @var array<string,string> */
+	/**
+	 * SQL terms that will need to be replaced for `CREATE TABLE`s
+	 * due to the chosen DB driver
+	 *
+	 * @var array<string,string>
+	 */
 	protected array $sqlCreateReplacements = [];
 
-	/** @var array<string,string> */
+	/**
+	 * A cache of the compiled names for each table in the database.
+	 * Some contain `<myname>`, which will have been replaced here
+	 *
+	 * @var array<string,string>
+	 */
 	protected array $tableNames = [];
 
+	/** The location (file and line) where the currently open transaction was started */
 	private ?string $transactionOpened = null;
 
 	#[NCA\Logger]
@@ -105,6 +134,7 @@ class DB {
 		return $this->config->main->dimension;
 	}
 
+	/** A string of type and version of the database the bot is run on */
 	public function getVersion(): string {
 		if (!isset($this->sql)) {
 			throw new Exception('You are not connected to any database.');
@@ -116,7 +146,11 @@ class DB {
 		return $this->config->database->type->name . " {$version}";
 	}
 
-	/** @return list<DBType> */
+	/**
+	 * Get a list of all the databases that the bot and the system's PHP support
+	 *
+	 * @return list<DBType>
+	 */
 	public static function getSupportedDBs(): array {
 		$result = [];
 		if (!extension_loaded('PDO')) {
@@ -208,7 +242,7 @@ class DB {
 		$this->sql?->beginTransaction();
 	}
 
-	/** Start a transaction */
+	/** Start a transaction. If one's currently open, wait until a new one can be started */
 	public function awaitBeginTransaction(): void {
 		$start = microtime(true);
 		$notified = false;
@@ -268,7 +302,7 @@ class DB {
 	}
 
 	/**
-	 * Insert a DBRow $row into the database
+	 * Insert a `DBRow $row` into the database
 	 *
 	 * @param DBTable|iterable<array-key,DBTable> $row
 	 */
@@ -326,6 +360,7 @@ class DB {
 		return $this->table($table)->insertGetId($data, $sequence);
 	}
 
+	/** Insert or update a given row in database, automatically determining what's necessary */
 	public function upsert(DBTable $row, ?string $table=null): int {
 		$table ??= $row::tryGetTable();
 		if (!isset($table)) {
@@ -440,7 +475,19 @@ class DB {
 		return $builder;
 	}
 
-	/** @return array<int,UuidInterface> */
+	/**
+	 * Migrate a table from a monotonous primary key to UUIDs
+	 *
+	 * @param string   $table      The name of the table to convert
+	 * @param \Closure $callback   The closure to call for creating the new table in the
+	 *                             database
+	 * @param string   $column     The name of the current primary key column with a
+	 *                             monotonous increasing number
+	 * @param ?string  $timeColumn An optional name of a column with a UNIX timestamp
+	 *                             when each record was inserted
+	 *
+	 * @return array<int,UuidInterface>
+	 */
 	public function migrateIdToUuid(string $table, \Closure $callback, string $column='id', ?string $timeColumn=null): array {
 		$entries = $this->table($table)->orderBy($column)->get();
 		$this->schema()->drop($table);
@@ -481,6 +528,7 @@ class DB {
 		return QueryBuilder::fromBuilder($query);
 	}
 
+	/** Create this bot's database schema */
 	public function createDatabaseSchema(): void {
 		$instances = Registry::getAllInstances();
 
@@ -492,6 +540,7 @@ class DB {
 		$this->runMigrations(...$migrations->toArray());
 	}
 
+	/** Create the migration tables needed for running migrations */
 	public function createMigrationTables(): void {
 		foreach (['migrations', 'migrations_<myname>'] as $table) {
 			$newSchema = static function (Blueprint $table): void {
@@ -526,6 +575,7 @@ class DB {
 				->exists();
 	}
 
+	/** Run one or more migrations in the given order */
 	public function runMigrations(CoreMigration ...$migrations): void {
 		$toRun = collect($migrations);
 		$this->createMigrationTables();
@@ -731,6 +781,11 @@ class DB {
 			->orderBy('migration')->asObj(Migration::class);
 	}
 
+	/**
+	 * Set up everything needed for MySQL and connect
+	 *
+	 * @param bool $errorShown Set if the user was already presented with a connection error
+	 */
 	private function initMySQL(bool $errorShown): bool {
 		$config = $this->config->database;
 		do {
@@ -771,6 +826,11 @@ class DB {
 		return $errorShown;
 	}
 
+	/**
+	 * Set up everything needed for SQLite and connect
+	 *
+	 * @param bool $errorShown Set if the user was already presented with a connection error
+	 */
 	private function initSQLite(bool $errorShown): bool {
 		$config = $this->config->database;
 		if ($config->host === '' || $config->host === 'localhost') {
@@ -877,6 +937,11 @@ class DB {
 		return $errorShown;
 	}
 
+	/**
+	 * Set up everything needed for PostgreSQL and connect
+	 *
+	 * @param bool $errorShown Set if the user was already presented with a connection error
+	 */
 	private function initPostgreSQL(bool $errorShown): bool {
 		$config = $this->config->database;
 		do {
@@ -916,6 +981,11 @@ class DB {
 		return $errorShown;
 	}
 
+	/**
+	 * Set up everything needed for MSSQL server and connect
+	 *
+	 * @param bool $errorShown Set if the user was already presented with a connection error
+	 */
 	private function initMSSQL(bool $errorShown): bool {
 		$config = $this->config->database;
 		do {
@@ -956,6 +1026,7 @@ class DB {
 		return $errorShown;
 	}
 
+	/** Internal log function to log and add file and line number of the logging */
 	private function logCaller(string $logLine): void {
 		$bt = debug_backtrace(\DEBUG_BACKTRACE_IGNORE_ARGS);
 		foreach ($bt as $trace) {
@@ -971,7 +1042,11 @@ class DB {
 		}
 	}
 
-	/** @return Collection<int,CoreMigration> */
+	/**
+	 * Get a list of all the defined migrations of an object
+	 *
+	 * @return Collection<int,CoreMigration>
+	 */
 	private function getMigrationFiles(object $instance): Collection {
 		/** @var Collection<int,CoreMigration> */
 		$migrations = new Collection();
@@ -1027,7 +1102,10 @@ class DB {
 	}
 
 	/**
-	 * @param Collection<int,CoreMigration> $migrations
+	 * Remove all already applied migrations from a list of migrations of a module
+	 *
+	 * @param string                        $module     The name of the module
+	 * @param Collection<int,CoreMigration> $migrations A list of migrations to check
 	 *
 	 * @return Collection<int,CoreMigration>
 	 */
@@ -1038,6 +1116,7 @@ class DB {
 		})->flatten();
 	}
 
+	/** Apply, run, and record a single migration */
 	private function applyMigration(CoreMigration $mig): void {
 		$table = $this->formatSql($mig->shared ? 'migrations' : 'migrations_<myname>');
 		$class = $mig->className;

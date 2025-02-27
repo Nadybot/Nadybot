@@ -505,7 +505,7 @@ class ConfigController extends ModuleInstance {
 		} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
 			return -1;
 		}
-		$this->commandManager->updateStatus($permSet, $command, null, 1, $accessLevel);
+		$this->commandManager->updateStatus($permSet, $command, null, Status::Enabled, $accessLevel);
 		return 1;
 	}
 

@@ -4,7 +4,9 @@ namespace Nadybot\Core;
 
 use ValueError;
 
+/** A channel type that's supported by the exporter/importer */
 enum ExportChannel: string {
+	/** Get the Nadybot channel name */
 	public function toNadybot(): string {
 		return match ($this) {
 			self::Org => 'guild',
@@ -15,6 +17,7 @@ enum ExportChannel: string {
 		};
 	}
 
+	/** Create a new instance based on the Nadybot channel name */
 	public static function fromNadybot(string $channel): self {
 		return match (strtolower($channel)) {
 			'guild' => self::Org,
