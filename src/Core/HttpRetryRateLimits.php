@@ -6,10 +6,15 @@ use function Amp\delay;
 use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, Request, Response};
 use Amp\{Cancellation, ForbidCloning as AmpForbidCloning, ForbidSerialization as AmpForbidSerialization};
 
+/**
+ * Automatically retry HTTP requests on HTTP code 429
+ * Parses Discord's `X-Ratelimit-Reset-After`-header
+ */
 class HttpRetryRateLimits implements ApplicationInterceptor {
 	use AmpForbidCloning;
 	use AmpForbidSerialization;
 
+	/** {@inheritDoc} */
 	public function request(
 		Request $request,
 		Cancellation $cancellation,

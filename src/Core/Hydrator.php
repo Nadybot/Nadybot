@@ -16,19 +16,30 @@ use Exception;
 use Nadybot\Core\Config\BotConfig;
 use Throwable;
 
+/** This is a purely static class to serialize or hydrate objects */
 class Hydrator {
-	/** @var array<string,true> */
+	/**
+	 * Serializers that throw exceptions, and can't be cached
+	 *
+	 * @var array<string,true>
+	 */
 	private static array $badSerializers = [];
 
-	/** @var array<string,true> */
+	/**
+	 * Hydrators that throw exceptions, and can't be cached
+	 *
+	 * @var array<string,true>
+	 */
 	private static array $badHydrators = [];
 	private static ?DefinitionProvider $defaultDefinitionProvider = null;
 
 	/**
+	 * Hydrate an object literally, meaning not changing the keys
+	 *
 	 * @template T of object
 	 *
-	 * @param class-string<T>     $className
-	 * @param array<string,mixed> $data
+	 * @param class-string<T>     $className The class to hydrate to
+	 * @param array<string,mixed> $data      an associative array with the data to use
 	 *
 	 * @return T
 	 *
@@ -46,10 +57,12 @@ class Hydrator {
 	}
 
 	/**
+	 * Hydrate an object (associative array to object)
+	 *
 	 * @template T of object
 	 *
-	 * @param class-string<T>     $className
-	 * @param array<string,mixed> $data
+	 * @param class-string<T>     $className The class to hydrate to
+	 * @param array<string,mixed> $data      an associative array with the data to use
 	 *
 	 * @return T
 	 *
@@ -79,10 +92,12 @@ class Hydrator {
 	}
 
 	/**
+	 * Hydrate an array of objects literally, meaning not changing the keys
+	 *
 	 * @template T
 	 *
-	 * @param class-string<T>        $className
-	 * @param iterable<array<mixed>> $data
+	 * @param class-string<T>        $className The class to hydrate to
+	 * @param iterable<array<mixed>> $data      an associative array with the data to use
 	 *
 	 * @return IterableList<T>
 	 *
@@ -103,10 +118,12 @@ class Hydrator {
 	}
 
 	/**
+	 * Hydrate an array of objects (list of associative arrays to list of objects)
+	 *
 	 * @template T
 	 *
-	 * @param class-string<T>        $className
-	 * @param iterable<array<mixed>> $data
+	 * @param class-string<T>        $className The class to hydrate to
+	 * @param iterable<array<mixed>> $data      an associative array with the data to use
 	 *
 	 * @return IterableList<T>
 	 *
@@ -135,6 +152,13 @@ class Hydrator {
 		return $mapper->hydrateObjects($className, $data);
 	}
 
+	/**
+	 * Serialize the object literally, not changing the keys
+	 *
+	 * @param object $object The object to serialize
+	 *
+	 * @return mixed An associative array, or a list thereof
+	 */
 	public static function literalSerialize(object $object): mixed {
 		return self::serialize(
 			object: $object,
@@ -146,11 +170,13 @@ class Hydrator {
 	}
 
 	/**
-	 * @param object[] $objects
+	 * Serialize a list of objects literally, not changing the keys
+	 *
+	 * @param object[] $objects A list of objects to serialize
 	 *
 	 * @psalm-param list<object> $objects
 	 *
-	 * @return IterableList<array<mixed>>
+	 * @return IterableList<array<mixed>> An iterable list with an associative array as data
 	 *
 	 * @throws UnableToSerializeObject
 	 */
@@ -164,6 +190,13 @@ class Hydrator {
 		);
 	}
 
+	/**
+	 * Serialize an object
+	 *
+	 * @param object $object The object to serialize
+	 *
+	 * @return mixed An associative array with the serialized data
+	 */
 	public static function serialize(
 		object $object,
 		?DefinitionProvider $definitionProvider=null
@@ -188,11 +221,13 @@ class Hydrator {
 	}
 
 	/**
-	 * @param object[] $objects
+	 * Serialize a list of objects
+	 *
+	 * @param object[] $objects A list of objects to serialize
 	 *
 	 * @psalm-param list<object> $objects
 	 *
-	 * @return IterableList<array<mixed>>
+	 * @return IterableList<array<mixed>> An iterable list of associative arrays with the data
 	 *
 	 * @throws UnableToSerializeObject
 	 */
@@ -223,7 +258,12 @@ class Hydrator {
 		return $mapper->serializeObjects($objects);
 	}
 
-	/** @param class-string $className */
+	/**
+	 * Compile a hydrator for the given class, unless it's already cached
+	 *
+	 * @param string       $hydratorClass The class name of the compiled hydrator
+	 * @param class-string $className     The name of the class for which to compile a hydrator
+	 */
 	private static function ensureHydratorExists(
 		string $hydratorClass,
 		string $className,
@@ -252,11 +292,17 @@ class Hydrator {
 		$fs->deleteFile($fileName);
 	}
 
+	/**
+	 * Get the name of the hydrator class to hydrate objects of class `$classname`
+	 *
+	 * @param string $className Name of the class for which we need a hydrator
+	 */
 	private static function getHydratorClass(string $className, ?DefinitionProvider $definitionProvider): string {
 		$dpClass = ($definitionProvider === self::$defaultDefinitionProvider) ? '_with_dp' : '';
 		return 'Nadybot\\Cache\\Hydrator\\Hyd_' . md5($className) . $dpClass;
 	}
 
+	/** Get the default definition provider to use if no other is given */
 	private static function getDefaultDefinitionProvider(): DefinitionProvider {
 		if (!isset(self::$defaultDefinitionProvider)) {
 			self::$defaultDefinitionProvider = new DefinitionProvider(

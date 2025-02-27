@@ -49,7 +49,11 @@ class LegacyLogger {
 	/** @var SplObjectStorage<AbstractHandler,null> */
 	public static SplObjectStorage $dynamicHandlers;
 
-	/** @return array<string,Logger> */
+	/**
+	 * Get all the loggers that match a given search mask (e.g. `webserver/*`)
+	 *
+	 * @return array<string,Logger>
+	 */
 	public static function getLoggers(?string $mask=null): array {
 		if (!isset($mask)) {
 			return static::$loggers;
@@ -78,7 +82,11 @@ class LegacyLogger {
 		};
 	}
 
-	/** @return array<string,mixed> */
+	/**
+	 * Get the logging configuration of Nadybot as an associative array
+	 *
+	 * @return array<string,mixed>
+	 */
 	public static function getConfig(bool $noCache=false): array {
 		if (!isset(static::$dynamicHandlers)) {
 			/** @var SplObjectStorage<AbstractHandler,null> */
@@ -121,6 +129,12 @@ class LegacyLogger {
 		return static::$config;
 	}
 
+	/**
+	 * Temporary override the log level for the given mask with the given log level
+	 *
+	 * @param string $mask     The mask to change the log level for
+	 * @param string $logLevel The new log level for the matching loggers
+	 */
 	public static function tempLogLevelOrderride(string $mask, string $logLevel): void {
 		array_unshift(static::$logLevels, [$mask, $logLevel]);
 	}
@@ -165,6 +179,7 @@ class LegacyLogger {
 		return null;
 	}
 
+	/** Create a new Monolog logger for a given channel */
 	public static function fromConfig(string $channel): Logger {
 		if (isset(static::$loggers[$channel])) {
 			return static::$loggers[$channel];
@@ -251,6 +266,7 @@ class LegacyLogger {
 		return $result;
 	}
 
+	/** Register the message emitters for all of our loglevels */
 	public static function registerMessageEmitters(MessageHub $hub): void {
 		$refClass = new \ReflectionClass(self::class);
 		foreach ($refClass->getAttributes(NCA\EmitsMessages::class) as $attr) {
@@ -259,6 +275,13 @@ class LegacyLogger {
 		}
 	}
 
+	/**
+	 * Convert snake_case to PascalCase
+	 *
+	 * @param string $name The class name in snake case
+	 *
+	 * @return string The class name in pascal case
+	 */
 	protected static function toClass(string $name): string {
 		return implode('', array_map('ucfirst', explode('_', $name)));
 	}
