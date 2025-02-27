@@ -40,7 +40,7 @@ abstract class SettingHandler {
 		if (!$context->isDM()) {
 			return false;
 		}
-		$alToChange = $this->row->admin ?? AccessLevel::Superadmin;
+		$alToChange = $this->row->access_level ?? AccessLevel::Superadmin;
 		return $this->accessManager->checkAccess($context->char->name, $alToChange);
 	}
 

@@ -152,7 +152,7 @@ class SettingManager {
 
 		try {
 			$setting = new Setting(
-				admin: $accessLevel,
+				access_level: $accessLevel,
 				description: $description,
 				help: $help,
 				intoptions: $intoptions,
@@ -196,7 +196,7 @@ class SettingManager {
 					intoptions: $intoptions,
 					description: $description,
 					source: 'db',
-					admin: $accessLevel,
+					access_level: $accessLevel,
 					verify: 1,
 					help: $help,
 					confidential: $confidential,

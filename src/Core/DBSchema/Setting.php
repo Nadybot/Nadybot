@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\DBSchema;
 
+use Nadybot\Core\Attributes\DB\ColName;
 use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{Attributes as NCA, DBTable, Types\SettingMode};
 
@@ -15,7 +16,7 @@ class Setting extends DBTable {
 	 * @param null|string      $type         The type of setting (text, number, option list, …)
 	 * @param null|string      $description  A short text describing what this setting does
 	 * @param null|string      $source       Where does this setting come from (usually `'db'`)
-	 * @param null|AccessLevel $admin        Access level required to change this setting
+	 * @param null|AccessLevel $access_level Access level required to change this setting
 	 * @param null|string      $help         A filename with a long help for this setting, or `null` if not needed
 	 * @param null|string      $value        The current value for this setting
 	 * @param null|string      $options      A semicolon-separated list of pre-defined values
@@ -32,7 +33,7 @@ class Setting extends DBTable {
 		public ?string $type=null,
 		public ?string $description=null,
 		public ?string $source=null,
-		public ?AccessLevel $admin=null,
+		#[ColName('admin')] public ?AccessLevel $access_level=null,
 		public ?string $help=null,
 		public ?string $value='0',
 		public ?string $options='0',

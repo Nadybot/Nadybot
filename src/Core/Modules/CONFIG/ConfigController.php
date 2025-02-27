@@ -641,7 +641,7 @@ class ConfigController extends ModuleInstance {
 		foreach ($data as $row) {
 			$blob .= '<tab>' . implode("\n<tab>", explode("\n", $row->getData()->description ?? ''));
 
-			$alToChange = $row->getData()->admin ?? AccessLevel::Superadmin;
+			$alToChange = $row->getData()->access_level ?? AccessLevel::Superadmin;
 			$canChangeSetting = $this->accessManager->checkAccess($context->char->name, $alToChange);
 			if ($row->isEditable() && $canChangeSetting) {
 				$blob .= ' [' . $row->getModifyLink() . ']';
@@ -763,7 +763,7 @@ class ConfigController extends ModuleInstance {
 		}
 		$context->reply(
 			"The current access level to change the setting <highlight>{$setting}<end> ".
-			"is <highlight>{$row->admin?->displayNameUC()}<end>."
+			"is <highlight>{$row->access_level?->displayNameUC()}<end>."
 		);
 	}
 
@@ -815,7 +815,7 @@ class ConfigController extends ModuleInstance {
 			throw new Exception('You cannot change the required access level above your own.');
 		}
 
-		if (!$this->accessManager->checkAccess($sender, $row->admin??AccessLevel::Superadmin)) {
+		if (!$this->accessManager->checkAccess($sender, $row->access_level??AccessLevel::Superadmin)) {
 			throw new InsufficientAccessException("You do not have the required access level to change this setting's access level.");
 		}
 		return $this->db->table(Setting::getTable())

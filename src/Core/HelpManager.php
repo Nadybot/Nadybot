@@ -92,7 +92,7 @@ class HelpManager {
 		} else {
 			$this->db->insert(new HlpCfg(
 				name: $command,
-				admin: $accessLevel,
+				access_level: $accessLevel,
 				verify: 1,
 				file: $actualFilename,
 				module: $module,

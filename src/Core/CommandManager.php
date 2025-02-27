@@ -336,9 +336,15 @@ class CommandManager implements MessageEmitter {
 	 * @param ?string      $cmd           The name of the command
 	 * @param ?string      $module        The name of the module of the command
 	 * @param Status       $status        The new status: enabled or disabled
-	 * @param ?AccessLevel $admin         The access level for which to update the status
+	 * @param ?AccessLevel $accessLevel   The access level for which to update the status
 	 */
-	public function updateStatus(?string $permissionSet, ?string $cmd, ?string $module, Status $status, ?AccessLevel $admin): int {
+	public function updateStatus(
+		?string $permissionSet,
+		?string $cmd,
+		?string $module,
+		Status $status,
+		?AccessLevel $accessLevel
+	): int {
 		$query = $this->db->table(CmdCfg::getTable())
 			->where('cmdevent', 'cmd');
 		if ($module !== '' && $module !== null) {
@@ -366,14 +372,14 @@ class CommandManager implements MessageEmitter {
 		});
 
 		$update = ['enabled' => (bool)$status->value];
-		if (isset($admin)) {
-			$update['access_level'] = $admin;
+		if (isset($accessLevel)) {
+			$update['access_level'] = $accessLevel;
 		}
 
 		foreach ($data as $row) {
 			foreach ($row->permissions as $permission) {
 				if ($permission->enabled) {
-					$this->activate($permission->permission_set, $row->file, $row->cmd, $admin??AccessLevel::All);
+					$this->activate($permission->permission_set, $row->file, $row->cmd, $accessLevel??AccessLevel::All);
 				} else {
 					$this->deactivate($permission->permission_set, $row->file, $row->cmd);
 				}

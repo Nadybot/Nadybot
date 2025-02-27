@@ -57,7 +57,7 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 		if ($newValue === 'off') {
 			return "<highlight>{$newValue}<end>";
 		}
-		if (!$this->accessManager->checkAccess($sender, $this->row->admin??AccessLevel::All)) {
+		if (!$this->accessManager->checkAccess($sender, $this->row->access_level??AccessLevel::All)) {
 			return '<highlight>*********<end>';
 		}
 		return "<highlight>{$newValue}<end>";

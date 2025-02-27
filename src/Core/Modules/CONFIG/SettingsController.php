@@ -156,7 +156,7 @@ class SettingsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		if (!$this->accessManager->checkAccess($context->char->name, $setting->admin??AccessLevel::Superadmin)) {
+		if (!$this->accessManager->checkAccess($context->char->name, $setting->access_level??AccessLevel::Superadmin)) {
 			$msg = "You don't have the necessary rights to change this setting.";
 			$context->reply($msg);
 			return;
