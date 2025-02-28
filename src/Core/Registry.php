@@ -16,12 +16,26 @@ use ReflectionNamedType;
 use ReflectionProperty;
 use RuntimeException;
 
+/**
+ * This is the central repository that keeps instances of all classes that are instances,
+ * so they can later be inject the into other objects.
+ */
 class Registry {
-	/** @var array<string,object> */
+	/**
+	 * An associative array of all instances keyed by their simplified class name
+	 *
+	 * @var array<string,object>
+	 */
 	protected static array $repo = [];
 
 	protected static ?LoggerWrapper $logger = null;
 
+	/**
+	 * Register a class instance
+	 *
+	 * @param string $name Simplified name of the class, without path
+	 * @param object $obj  The object instance to register
+	 */
 	public static function setInstance(string $name, object $obj): void {
 		$name = strtolower($name);
 		static::getLogger()->info("Adding instance '{class}' as '{instance}'", [
@@ -31,29 +45,22 @@ class Registry {
 		static::$repo[$name] = $obj;
 	}
 
-	/** Return the name of the class without the namespace */
+	/** Get the key in the registry for a given class name */
 	public static function formatName(string $class): string {
 		$class = strtolower($class);
 		$array = explode('\\', $class);
 		return array_pop($array);
 	}
 
-	/** Check if there is already a registered instance with name $name */
-	public static function instanceExists(string $name): bool {
-		$name = strtolower($name);
-
-		return isset(Registry::$repo[$name]);
-	}
-
-	/** Check if an instance for $name is registered */
+	/** Check if there is already a registered instance with name `$name` */
 	public static function hasInstance(string $name): bool {
 		$name = static::formatName($name);
 
 		return isset(Registry::$repo[$name]);
 	}
 
-	/** Get the instance for the name $name or null if  none registered yet */
-	public static function tryGetInstance(string $name, bool $reload=false): ?object {
+	/** Get the instance for the name `$name` or `null` if none registered yet */
+	public static function tryGetInstance(string $name): ?object {
 		$name = static::formatName($name);
 
 		$instance = Registry::$repo[$name]??null;
@@ -67,11 +74,13 @@ class Registry {
 	}
 
 	/**
+	 * Get the instance for the given class
+	 *
 	 * @template T of object
 	 *
-	 * @param class-string<T> $class
+	 * @param class-string<T> $class The class to search
 	 *
-	 * @return T
+	 * @return T The instance for the class
 	 *
 	 * @throws Exception if no instance is found
 	 */
@@ -89,7 +98,7 @@ class Registry {
 	/**
 	 * Inject all fields marked with #[Inject] in an object with the corresponding object instances
 	 *
-	 * @psalm-param class-string|object $instance
+	 * @psalm-param class-string|object $instance Where to inject the properties
 	 */
 	public static function injectDependencies(string|object $instance): void {
 		$reflection = new ReflectionClass($instance);
@@ -109,7 +118,8 @@ class Registry {
 	/**
 	 * Get all registered instance objects
 	 *
-	 * @return array<string,object>
+	 * @return array<string,object> An associative array of all the instances,
+	 *                              keyed by the class's short name
 	 */
 	public static function getAllInstances(): array {
 		return self::$repo;
@@ -118,7 +128,7 @@ class Registry {
 	/**
 	 * Inject all fields marked with #[Inject] in an object with the corresponding object instances
 	 *
-	 * @psalm-param class-string|object $instance
+	 * @psalm-param class-string|object $instance Where to inject the values
 	 */
 	protected static function handleInjectAttrs(string|object $instance, ReflectionProperty $property): void {
 		$injectAttrs = $property->getAttributes(NCA\Inject::class);
@@ -151,7 +161,7 @@ class Registry {
 	/**
 	 * Inject all fields marked with #[Logger] in an object with an instance of the current logger class
 	 *
-	 * @psalm-param class-string|object $instance
+	 * @psalm-param class-string|object $instance Where to inject the values
 	 */
 	protected static function handleLoggerAttrs(string|object $instance, ReflectionProperty $property): void {
 		$loggerAttrs = $property->getAttributes(NCA\Logger::class);
@@ -185,7 +195,7 @@ class Registry {
 	/**
 	 * Inject all fields marked with #[Cache] in an object with an instance of the current CacheInterface
 	 *
-	 * @psalm-param class-string|object $instance
+	 * @psalm-param class-string|object $instance Where to inject the values
 	 */
 	protected static function handleCacheAttrs(string|object $instance, ReflectionProperty $property): void {
 		$cacheAttrs = $property->getAttributes(NCA\Cache::class);
@@ -217,6 +227,7 @@ class Registry {
 		static::injectDependency($property, $instance, $cache);
 	}
 
+	/** Get the logger for this static class */
 	protected static function getLogger(): LoggerWrapper {
 		if (isset(static::$logger)) {
 			return static::$logger;
@@ -226,7 +237,19 @@ class Registry {
 		return static::$logger;
 	}
 
-	protected static function injectDependency(ReflectionProperty $property, object|string $instance, object $dependency): void {
+	/**
+	 * Inject the value for a dependency into a given property
+	 *
+	 * @param ReflectionProperty $property   The property that needs value injection
+	 * @param object|string      $instance   The instance or class name (for static properties)
+	 *                                       the property is in
+	 * @param object             $dependency The value to inject
+	 */
+	protected static function injectDependency(
+		ReflectionProperty $property,
+		object|string $instance,
+		object $dependency
+	): void {
 		$property->setAccessible(true);
 		if ($property->isStatic()) {
 			$property->setValue(null, $dependency);

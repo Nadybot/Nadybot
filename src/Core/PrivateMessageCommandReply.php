@@ -5,7 +5,12 @@ namespace Nadybot\Core;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Types\{CommandReply, MessageEmitter};
 
+/** A message emitter and receiver for tell messages */
 class PrivateMessageCommandReply implements CommandReply, MessageEmitter {
+	/**
+	 * @param string   $sender Who to send to, or receive messages from
+	 * @param null|int $worker Via which worker to send tells, or `null` for the main account
+	 */
 	public function __construct(
 		private Nadybot $chatBot,
 		private string $sender,
@@ -13,6 +18,7 @@ class PrivateMessageCommandReply implements CommandReply, MessageEmitter {
 	) {
 	}
 
+	/** {@inheritDoc} */
 	public function getChannelName(): string {
 		return Source::TELL . "({$this->sender})";
 	}

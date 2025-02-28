@@ -7,6 +7,7 @@ use Nadybot\Core\Types\Loggable;
 use Nadylib\IMEX\{ExportException, JSON};
 use ReflectionClass;
 
+/** This trait implements the `Loggable` interface */
 trait LoggableTrait {
 	/** Get a human-readable dump of the object and its values */
 	#[DoNotSerialize]

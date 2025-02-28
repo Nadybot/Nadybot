@@ -16,11 +16,20 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
+/**
+ * The central setting manager of the bot, responsible for registering setting
+ * types, values, and retrieving them
+ */
 #[NCA\Instance]
 class SettingManager {
+	/** Is the setting manager initialized (i.e. all settings loaded) */
 	public static bool $isInitialized = false;
 
-	/** @var array<string,SettingValue> */
+	/**
+	 * All the current settings of the bot, keyed by the setting's name
+	 *
+	 * @var array<string,SettingValue>
+	 */
 	private array $settings = [];
 
 	#[NCA\Logger]
@@ -41,12 +50,13 @@ class SettingManager {
 	/** @var array<string,list<ChangeListener>> */
 	private array $changeListeners = [];
 
-	/** @var array<string,string> */
+	/** @var array<string,class-string> */
 	private array $settingHandlers = [];
 
 	/** @var array<string,bool> */
 	private array $configuredSettings = [];
 
+	/** Initialize the settings database before setup is called */
 	public function init(): void {
 		$this->db->table(Setting::getTable())
 			->update(['verify' => 0]);
@@ -57,7 +67,11 @@ class SettingManager {
 			});
 	}
 
-	/** Return the hard-coded value for a setting or a given default */
+	/**
+	 * Return the hard-coded value for a setting or a given default
+	 *
+	 * @return ?string The value as a string, or `null` if not set
+	 */
 	public function getHardcoded(string $setting, null|bool|int|string $default=null): ?string {
 		$value = $this->config->settings[$setting]??$default;
 		if (is_bool($value)) {
@@ -76,8 +90,8 @@ class SettingManager {
 	 * @param string                       $module      The module name
 	 * @param string                       $name        The name of the setting
 	 * @param string                       $description A description for the setting (will appear in the config)
-	 * @param SettingMode                  $mode        'edit' or 'noedit'
-	 * @param string                       $type        'color', 'number', 'text', 'options', or 'time'
+	 * @param SettingMode                  $mode        Is the setting user editable or not
+	 * @param string                       $type        `'color'`, `'number'`, `'text'`, …
 	 * @param array<string|int,int|string> $options     An optional list of values that the setting can be, semi-colon delimited.
 	 *                                                  Alternatively, use an associative array [label => value], where label is optional.
 	 * @param AccessLevel                  $accessLevel The permission level needed to change this setting (default: mod) (optional)
@@ -213,7 +227,11 @@ class SettingManager {
 		}
 	}
 
-	/** @return array<string,SettingValue> */
+	/**
+	 * Get all the bot's settings as an associative array, keyed by the setting names
+	 *
+	 * @return array<string,SettingValue>
+	 */
 	public function getSettings(): array {
 		return $this->settings;
 	}
@@ -234,7 +252,8 @@ class SettingManager {
 	 *
 	 * @param string $name name of the setting to read
 	 *
-	 * @return null|string the value of the setting, or false if a setting with that name does not exist
+	 * @return null|string the value of the setting, or `null` if a setting
+	 *                     with that name does not exist
 	 */
 	public function getValue(string $name): null|string {
 		return ($this->settings[strtolower($name)]??null)?->value;
@@ -245,7 +264,8 @@ class SettingManager {
 	 *
 	 * @param string $name name of the setting to read
 	 *
-	 * @return null|string|int|false the value of the setting, or false if a setting with that name does not exist
+	 * @return null|string|int|false the value of the setting,
+	 *                               or `false` if a setting with that name does not exist
 	 */
 	public function get(string $name): null|string|int|false {
 		$name = strtolower($name);
@@ -265,7 +285,11 @@ class SettingManager {
 		return false;
 	}
 
-	/** @return null|int|bool|string|list<mixed> */
+	/**
+	 * Get the typed value of a setting
+	 *
+	 * @return null|int|bool|string|list<mixed> `null` if the setting doesn't exist
+	 */
 	public function getTyped(string $name): null|int|bool|string|array {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
@@ -286,6 +310,13 @@ class SettingManager {
 		return null;
 	}
 
+	/**
+	 * Get the integer value of a setting
+	 *
+	 * @param string $name The name of the setting
+	 *
+	 * @return null|int `null` if the setting doesn't exist, or is not an integer setting
+	 */
 	public function getInt(string $name): ?int {
 		$value = $this->getTyped($name);
 		if (is_int($value) || is_bool($value)) {
@@ -299,6 +330,13 @@ class SettingManager {
 		return null;
 	}
 
+	/**
+	 * Get the bool value of a setting
+	 *
+	 * @param string $name The name of the setting
+	 *
+	 * @return null|bool `null` if the setting doesn't exist, or is not a boolean setting
+	 */
 	public function getBool(string $name): ?bool {
 		$value = $this->getTyped($name);
 		if (is_bool($value)) {
@@ -312,6 +350,13 @@ class SettingManager {
 		return null;
 	}
 
+	/**
+	 * Get the string value of a setting
+	 *
+	 * @param string $name The name of the setting
+	 *
+	 * @return null|string `null` if the setting doesn't exist, or is not a string setting
+	 */
 	public function getString(string $name): ?string {
 		$value = $this->getTyped($name);
 		if (is_string($value)) {
@@ -373,7 +418,7 @@ class SettingManager {
 		return true;
 	}
 
-	/** Load settings from the database */
+	/** Load all the settings from the database and cache them */
 	public function upload(): void {
 		$this->settings = [];
 
@@ -388,21 +433,20 @@ class SettingManager {
 	/**
 	 * Adds listener callback which will be called if given $settingName changes.
 	 *
-	 * The callback has following signature:
-	 * <code>function callback($value, $data)</code>
-	 * $value: new value of the setting
-	 * $data:  optional data variable given on register
-	 *
 	 * Example usage:
-	 * <code>
-	 *	registerChangeListener("some_setting_name", function($settingName, $oldValue, $newValue, $data) {
+	 * ```php
+	 *	registerChangeListener("some_setting_name", function($settingName, $oldValue, $newValue), $data) {
 	 *		// ...
 	 *	} );
-	 * </code>
+	 * ```
 	 *
 	 * @param string  $settingName changed setting's name
-	 * @param Closure $callback    the callback function to call
+	 * @param Closure $callback    The callback function to call
+	 *                             The callback has following signature:
+	 *                             `function callback(string $settingName, string $oldValue, string $newValue)`
 	 * @param mixed   $data        any data which will be passed to the callback (optional)
+	 *
+	 * @psalm-param Closure(string,string,string) $callback
 	 */
 	public function registerChangeListener(string $settingName, Closure $callback, mixed $data=null): void {
 		$settingName = strtolower($settingName);
@@ -417,7 +461,11 @@ class SettingManager {
 		$this->changeListeners[$settingName] []= $listener;
 	}
 
-	/** Registers a new setting type $name that's implemented by $class */
+	/**
+	 * Registers a new setting type `$name` that's implemented by `$class`
+	 *
+	 * @param class-string $class
+	 */
 	public function registerSettingHandler(string $name, string $class): void {
 		$this->settingHandlers[$name] = $class;
 	}
@@ -431,10 +479,12 @@ class SettingManager {
 			]);
 			return null;
 		}
-		$handlerObj = new $handler($row);
-		if (!is_subclass_of($handlerObj, SettingHandler::class)) {
+		if (!is_subclass_of($handler, SettingHandler::class, true)) {
 			throw new Exception("Invalid SettingHandler {$handler}.");
 		}
+
+		/** @psalm-suppress UnsafeInstantiation */
+		$handlerObj = new $handler($row);
 		Registry::injectDependencies($handlerObj);
 		return $handlerObj;
 	}

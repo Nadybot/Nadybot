@@ -210,7 +210,7 @@ class CommandManager implements MessageEmitter {
 
 		foreach (explode(',', $filename) as $handler) {
 			$name = explode('.', $handler)[0];
-			if (!Registry::instanceExists($name)) {
+			if (!Registry::hasInstance($name)) {
 				$this->logger->error("Error registering method '{method}' for command '{command}'.  Could not find instance '{instance}'.", [
 					'method' => $handler,
 					'command' => $command,
@@ -291,7 +291,7 @@ class CommandManager implements MessageEmitter {
 
 		foreach (explode(',', $filename) as $handler) {
 			[$name, $method] = explode('.', $handler);
-			if (!Registry::instanceExists($name)) {
+			if (!Registry::hasInstance($name)) {
 				$this->logger->error("Error activating method {method} for command {command}.  Could not find instance '{instance}'.", [
 					'method' => $handler,
 					'command' => $command,

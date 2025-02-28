@@ -186,7 +186,7 @@ class ClassLoader {
 			}
 			$obj = new $className();
 			$obj->setModuleName($moduleName);
-			if (Registry::instanceExists($name) && !$class->overwrite) {
+			if (Registry::hasInstance($name) && !$class->overwrite) {
 				$this->logger->warning("Instance with name '{instance}' already registered--replaced with new instance", [
 					'instance' => $name,
 				]);

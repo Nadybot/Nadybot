@@ -20,25 +20,37 @@ use Stringable;
 use Throwable;
 
 /**
- * A wrapper class to monolog
+ * A wrapper class to `\Monolog\Logger`
  */
 #[NCA\Instance('logger')]
 class LoggerWrapper implements LoggerInterface {
 	public static Filesystem $fs;
+
+	/** Route errors to the message hub */
 	protected static bool $routeErrors = true;
 
 	protected static PsrLogMessageProcessor $logProcessor;
 
+	/**
+	 * A closure that can modify the log level, the message and the context on the fly
+	 *
+	 * @var null|Closure(int,string|Stringable,array<string,mixed>):array{int,string|Stringable,array<string,mixed>}
+	 */
 	protected ?Closure $wrapper = null;
 
 	/**
 	 * @var array<array>
 	 *
-	 * @phpstan-var array<array{100|200|250|300|400|500|550|600,string,array<string,mixed>}>
+	 * @phpstan-var array<array{100|200|250|300|400|500|550|600,Stringable|string,array<string,mixed>}>
 	 */
 	protected static array $routingQueue = [];
 
+	/**
+	 * Set to `true` if we are logging an error during logging.
+	 * Avoids endless loops.
+	 */
 	protected static bool $errorGiven = false;
+
 	#[NCA\Inject]
 	private BotConfig $config;
 
@@ -48,6 +60,11 @@ class LoggerWrapper implements LoggerInterface {
 	/** The actual Monolog logger for tag CHAT */
 	private ?Logger $chatLogger = null;
 
+	/**
+	 * @param string $tag The tag to use when logging. Nadybot usually uses
+	 *                    the class name relative to `\Nadybot`, so
+	 *                    `\Nadybot\Core\Nadybot` becomes `Core/Nadybot`
+	 */
 	public function __construct(string $tag) {
 		$this->logger = LegacyLogger::fromConfig($tag);
 		if (!isset(self::$logProcessor)) {
@@ -56,7 +73,7 @@ class LoggerWrapper implements LoggerInterface {
 	}
 
 	/**
-	 * Detailed debug information, including data like traces
+	 * Log detailed debug information, including data like traces
 	 *
 	 * @param array<array-key,mixed> $context
 	 */
@@ -65,7 +82,7 @@ class LoggerWrapper implements LoggerInterface {
 	}
 
 	/**
-	 * Information that describes what's generally been done right now
+	 * Log information that describes what's generally been done right now
 	 *
 	 * @param array<array-key,mixed> $context
 	 */
@@ -159,7 +176,7 @@ class LoggerWrapper implements LoggerInterface {
 	}
 
 	/**
-	 * Log a chat message, stripping potential HTML code from it
+	 * Log a chat message, stripping potential HTML code from it, if configured
 	 *
 	 * @param string     $channel Either "Buddy" or an org or private-channel name
 	 * @param string|int $sender  The name of the sender, or a number representing the channel
@@ -232,14 +249,25 @@ class LoggerWrapper implements LoggerInterface {
 		return $this->logger->isHandling($level);
 	}
 
+	/**
+	 * Add a wrapper closure that can modify log level, log message, and context for every
+	 * logging done via this instance.
+	 *
+	 * @param Closure(int,string|Stringable,array<string,mixed>):array{int,string|Stringable,array<string,mixed>} $caller The closure to call
+	 */
 	public function wrap(Closure $caller): void {
 		$this->wrapper = $caller;
 	}
 
 	/**
-	 * @phpstan-param 100|200|250|300|400|500|550|600 $logLevel
+	 * Do the actual logging, and also route errors to the message hub, if configured
 	 *
-	 * @param array<string,mixed> $context
+	 * @param int                 $logLevel The numeric log level
+	 * @param string|Stringable   $message  The message to log
+	 * @param array<string,mixed> $context  Additional context to log as an
+	 *                                      associative array
+	 *
+	 * @phpstan-param 100|200|250|300|400|500|550|600 $logLevel
 	 */
 	private function passthru(int $logLevel, string|Stringable $message, array $context): void {
 		$message = (string)$message;
@@ -247,14 +275,7 @@ class LoggerWrapper implements LoggerInterface {
 			if (isset($this->wrapper)) {
 				[$logLevel, $message, $context] = call_user_func($this->wrapper, $logLevel, $message, $context);
 
-				assert(is_int($logLevel), null);
-
 				/** @phpstan-var 100|200|250|300|400|500|550|600 $logLevel */
-				assert(is_string($message), null);
-
-				assert(is_array($context), null);
-
-				/** @phpstan-var array<string,mixed> $context */
 			}
 			$this->logger->log($logLevel, $message, $context);
 		} catch (Exception $e) {
@@ -289,7 +310,7 @@ class LoggerWrapper implements LoggerInterface {
 			try {
 				$loggingCategory = Logger::getLevelName($logLevel);
 				$renderedMessage = (self::$logProcessor)([
-					'message' => $message,
+					'message' => (string)$message,
 					'context' => $context,
 					'level' => $logLevel,
 					'level_name' => $loggingCategory,

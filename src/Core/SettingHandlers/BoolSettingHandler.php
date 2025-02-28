@@ -12,7 +12,7 @@ class BoolSettingHandler extends OptionsSettingHandler {
 	public function __construct(Setting $row) {
 		$row->options = 'true;false';
 		$row->intoptions = '1;0';
-		$this->row = $row;
+		parent::__construct($row);
 	}
 
 	/**

@@ -60,7 +60,7 @@ class SubcommandManager {
 		$module = strtoupper($module);
 
 		$name = explode('.', $filename)[0];
-		if (!Registry::instanceExists($name)) {
+		if (!Registry::hasInstance($name)) {
 			$this->logger->error("Error registering handler {handler} for subcommand {command}.  Could not find instance '{instance}'.", [
 				'handler' => $filename,
 				'command' => $command,

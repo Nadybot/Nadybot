@@ -118,7 +118,7 @@ class EventManager {
 		}
 
 		[$name, $method] = explode('.', $filename);
-		if (!Registry::instanceExists($name)) {
+		if (!Registry::hasInstance($name)) {
 			$this->logger->error("Error registering handler {handler} for event type {type}: Could not find instance '{instance}'.", [
 				'type' => $type,
 				'handler' => $filename,
@@ -168,7 +168,7 @@ class EventManager {
 		$this->logger->info('Activating event {event}', ['event' => $logObj]);
 
 		[$name, $method] = explode('.', $filename);
-		if (!Registry::instanceExists($name)) {
+		if (!Registry::hasInstance($name)) {
 			$this->logger->error("Error activating {event}: Could not find instance '{instance}'.", [
 				'event' => $logObj,
 				'instance' => $name,

@@ -847,7 +847,7 @@ class PackageController extends ModuleInstance {
 		if (isset($cmd->version)) {
 			$packages = $packages->filter(
 				static function (Package $package) use ($cmd): bool {
-					return $cmd->version->cmpStr($package->version) === 0;
+					return $cmd->version->cmp($package->version) === 0;
 				}
 			)->values();
 

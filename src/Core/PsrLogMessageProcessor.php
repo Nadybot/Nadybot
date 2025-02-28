@@ -17,17 +17,14 @@ use Nadybot\Core\Types\Loggable;
 class PsrLogMessageProcessor implements ProcessorInterface {
 	public const SIMPLE_DATE = "Y-m-d\TH:i:s";
 
-	private ?string $dateFormat;
-
-	private bool $removeUsedContextFields;
-
 	/**
 	 * @param null|string $dateFormat              The format of the timestamp: one supported by DateTime::format
 	 * @param bool        $removeUsedContextFields If set to true the fields interpolated into message gets unset
 	 */
-	public function __construct(?string $dateFormat=null, bool $removeUsedContextFields=false) {
-		$this->dateFormat = $dateFormat;
-		$this->removeUsedContextFields = $removeUsedContextFields;
+	public function __construct(
+		private ?string $dateFormat=null,
+		private bool $removeUsedContextFields=false
+	) {
 	}
 
 	/** {@inheritDoc} */
@@ -54,11 +51,12 @@ class PsrLogMessageProcessor implements ProcessorInterface {
 		return $record;
 	}
 
-	private function toReplacement(mixed $val): mixed {
+	/** Get the replacement to show for a given value */
+	private function toReplacement(mixed $val): string {
 		if (is_null($val)) {
 			return '<null>';
 		} elseif (is_scalar($val)) {
-			return $val;
+			return (string)$val;
 		} elseif (is_object($val) && method_exists($val, '__toString')) {
 			return (string)$val;
 		} elseif ($val instanceof \DateTimeInterface) {
@@ -69,7 +67,7 @@ class PsrLogMessageProcessor implements ProcessorInterface {
 			}
 			return $val->format($this->dateFormat ?? static::SIMPLE_DATE);
 		} elseif ($val instanceof \UnitEnum) {
-			return $val instanceof \BackedEnum ? $val->value : $val->name;
+			return $val instanceof \BackedEnum ? (string)$val->value : $val->name;
 		} elseif (is_object($val)) {
 			if ($val instanceof Loggable) {
 				return $val->toLog();
