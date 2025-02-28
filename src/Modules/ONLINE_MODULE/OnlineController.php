@@ -861,7 +861,17 @@ class OnlineController extends ModuleInstance {
 		}
 	}
 
-	public function getAdminInfo(string $name, string $fancyColon): string {
+	/**
+	 * Get a colourful representation of the given character's access level,
+	 * if the bot is configured to do so.
+	 *
+	 * Something like `" :: <red>Superadmin<end>"`
+	 *
+	 * @param string $name       Character name to get info on
+	 * @param string $fancyColon Separator to display in front of the rank color
+	 *                           if ranks shall be shown
+	 */
+	public function getRankInfo(string $name, string $fancyColon): string {
 		if (!$this->onlineAdmin) {
 			return '';
 		}
@@ -926,6 +936,7 @@ class OnlineController extends ModuleInstance {
 
 	/** @param iterable<array-key,OnlinePlayer> $players */
 	public function formatData(iterable $players, int $showOrgInfo, ?int $groupBy=null): OnlineList {
+		/** @var Collection<array-key,OnlinePlayer> */
 		$players = collect($players);
 		$currentGroup = '';
 		$separator = '-';
@@ -983,12 +994,12 @@ class OnlineController extends ModuleInstance {
 				$list->countMains++;
 			}
 
-			$admin = $this->getAdminInfo($player->name, $separator);
+			$rankInfo = $this->getRankInfo($player->name, $separator);
 			$raidInfo = $this->getRaidInfo($player->name, $separator);
 			$afk = $this->getAfkInfo($player->afk??'', $separator);
 
 			if ($player->profession === null) {
-				$list->blob .= "<tab>? {$raidInfo->pre}{$player->name}{$admin}{$raidInfo->post}{$afk}\n";
+				$list->blob .= "<tab>? {$raidInfo->pre}{$player->name}{$rankInfo}{$raidInfo->post}{$afk}\n";
 			} else {
 				$prof = $player->profession->short();
 				$orgRank = '';
@@ -999,7 +1010,7 @@ class OnlineController extends ModuleInstance {
 				if ($groupBy !== static::GROUP_BY_PROFESSION) {
 					$profIcon = $player->profession->toIcon() . ' ';
 				}
-				$list->blob.= "<tab>{$profIcon}{$raidInfo->pre}{$player->name} - {$player->level}/<green>{$player->ai_level}<end> {$prof}{$orgRank}{$admin}{$raidInfo->post}{$afk}\n";
+				$list->blob.= "<tab>{$profIcon}{$raidInfo->pre}{$player->name} - {$player->level}/<green>{$player->ai_level}<end> {$prof}{$orgRank}{$rankInfo}{$raidInfo->post}{$afk}\n";
 			}
 		}
 
