@@ -259,6 +259,9 @@ class QueryBuilder extends Builder {
 		if (!array_is_list($values)) {
 			return $this->insert($values);
 		}
+		if (!count($values)) {
+			return true;
+		}
 		$chunkSize = (int)floor($this->nadyDB->maxPlaceholders / count($values[0]));
 		$result = true;
 		while (count($values)) {
@@ -281,6 +284,9 @@ class QueryBuilder extends Builder {
 	public function chunkUpsert(array $values, array|string $uniqueBy, ?array $update=null): int {
 		if (!array_is_list($values)) {
 			return $this->upsert($values, $uniqueBy, $update);
+		}
+		if (!count($values)) {
+			return 0;
 		}
 		$chunkSize = (int)floor($this->nadyDB->maxPlaceholders / count($values[0]));
 		$result = 0;
