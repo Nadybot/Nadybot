@@ -122,7 +122,7 @@ class HelpManager {
 		$outerQuery = $this->db->fromSub(
 			$settingsHelp->union($hlpHelp),
 			'foo'
-		)->select('foo.module', 'foo.file', 'foo.name', 'foo.admin AS admin_list', 'foo.description');
+		)->select('foo.module', 'foo.file', 'foo.name', 'foo.admin AS access_level', 'foo.description');
 
 		$data = $outerQuery->asObj(HelpTopic::class);
 
@@ -134,7 +134,7 @@ class HelpManager {
 			if (!isset($row->file) || isset($shown[$row->file])) {
 				continue;
 			}
-			if ($this->checkAccessLevels($accessLevel, $row->admin_list)) {
+			if ($accessLevel->atLeast($row->access_level)) {
 				$output .= $this->configController->getAliasInfo($row->name);
 				$content = $this->fs->read($row->file);
 				$output .= trim($content) . "\n\n";
@@ -195,7 +195,7 @@ class HelpManager {
 		$outerQuery = $this->db->fromSub(
 			$cmdHelp->union($settingsHelp)->union($hlpHelp),
 			'foo'
-		)->select('foo.module', 'foo.file', 'foo.name', 'foo.description', 'foo.admin AS admin_list', 'foo.sort')
+		)->select('foo.module', 'foo.file', 'foo.name', 'foo.description', 'foo.admin AS access_level', 'foo.sort')
 		->orderBy('module')
 		->orderBy('name')
 		->orderByDesc('sort')
@@ -214,31 +214,17 @@ class HelpManager {
 			if (isset($added[$key])) {
 				continue;
 			}
-			if (!isset($context) || $this->checkAccessLevels($accessLevel, $row->admin_list)) {
+			if (!isset($context) || $accessLevel->atLeast($row->access_level)) {
 				$obj = new HelpTopic(
 					module: $row->module,
 					name: $row->name,
 					description: $row->description,
-					admin_list: $row->admin_list,
+					access_level: $row->access_level,
 					sort: $row->sort,
 				);
 				yield $obj;
 				$added[$key] = true;
 			}
 		}
-	}
-
-	/**
-	 * Check if `$accessLevel1` meets the requirements of any of the given access levels
-	 *
-	 * @param iterable<AccessLevel> $accessLevelsArray
-	 */
-	public function checkAccessLevels(AccessLevel $accessLevel1, iterable $accessLevelsArray): bool {
-		foreach ($accessLevelsArray as $accessLevel2) {
-			if ($accessLevel1->atLeast($accessLevel2)) {
-				return true;
-			}
-		}
-		return false;
 	}
 }
