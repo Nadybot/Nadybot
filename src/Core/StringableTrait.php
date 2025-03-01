@@ -2,12 +2,12 @@
 
 namespace Nadybot\Core;
 
-use function Safe\json_encode;
-
 use EventSauce\ObjectHydrator\DoNotSerialize;
-use Safe\Exceptions\JsonException;
+use Nadylib\IMEX\{ExportException, JSON};
 
+/** This trait implements a __toString() method for every class so logging it gets simple */
 trait StringableTrait {
+	/** Convert a single property value into a string representation */
 	private static function __valueToString(mixed $value): string {
 		if ($value === null) {
 			return 'null';
@@ -30,11 +30,8 @@ trait StringableTrait {
 		}
 		$prefix = is_object($value) ? '<' . class_basename($value) . '>' : '';
 		try {
-			$value = json_encode(
-				$value,
-				\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE|\JSON_INVALID_UTF8_SUBSTITUTE
-			);
-		} catch (JsonException $e) {
+			$value = JSON::export($value, \JSON_INVALID_UTF8_SUBSTITUTE);
+		} catch (ExportException $e) {
 			if (!is_object($value)) {
 				throw $e;
 			}
@@ -48,13 +45,18 @@ trait StringableTrait {
 		return $value;
 	}
 
+	/** {@inheritDoc} */
 	#[DoNotSerialize]
 	public function __toString(): string {
 		$values = [];
 		$refClass = new \ReflectionClass($this);
 		$props = get_object_vars($this);
 		foreach ($props as $key => $value) {
-			$refProp = $refClass->getProperty($key);
+			try {
+				$refProp = $refClass->getProperty($key);
+			} catch (\ReflectionException) {
+				continue;
+			}
 			if ($refProp->isInitialized($this) === false) {
 				continue;
 			}

@@ -5,10 +5,11 @@ namespace Nadybot\Modules\TIMERS_MODULE;
 use function Safe\preg_match;
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	CmdContext,
 	DB,
 	EventManager,
@@ -18,12 +19,14 @@ use Nadybot\Core\{
 	Modules\DISCORD\DiscordController,
 	Nadybot,
 	ParamClass\PDuration,
-	ParamClass\PRemove,
+	ParamClass\PUuid,
 	Registry,
+	RouteResult,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\MessageEmitter,
 	Util,
 };
@@ -39,22 +42,15 @@ use ReflectionClass;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'rtimer',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Adds a repeating timer',
 	),
 	NCA\DefineCommand(
 		command: 'timers',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Sets and shows timers',
 		alias: 'timer'
 	),
-	NCA\ProvidesEvent(TimerStartEvent::class),
-	NCA\ProvidesEvent(TimerEndEvent::class),
-	NCA\ProvidesEvent(TimerDelEvent::class),
-	NCA\ProvidesEvent(
-		event: 'sync(timer)',
-		desc: 'Triggered when a new timer is created with the timer command',
-	)
 ]
 class TimerController extends ModuleInstance implements MessageEmitter {
 	/** Times to display timer alerts */
@@ -136,10 +132,8 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	#[NCA\Event(
-		name: 'timer(1sec)',
-		description: 'Checks timers and periodically updates chat with time left'
-	)]
+	/** Checks timers and periodically updates chat with time left */
+	#[NCA\Timer(interval: '1sec')]
 	public function checkTimers(): void {
 		$time = time();
 
@@ -180,7 +174,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 				}
 				if (!count($timer->alerts)) {
 					$event = new TimerEndEvent(timer: $timer);
-					$this->eventManager->fireEvent($event);
+					$this->eventManager->dispatch($event);
 				}
 			}
 		}
@@ -217,7 +211,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$rMsg->appendPath(new Source(Source::SYSTEM, 'timers'));
 		if (!isset($timer->mode) || $timer->mode === '') {
 			$delivered = false;
-			if ($this->messageHub->handle($rMsg) === MessageHub::EVENT_DELIVERED) {
+			if ($this->messageHub->handle($rMsg) === RouteResult::Delivered) {
 				$delivered = true;
 			}
 			if (isset($timer->origin) && !$this->messageHub->hasRouteFromTo($this->getChannelName(), $timer->origin)) {
@@ -267,7 +261,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	)]
 	public function rtimerCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] ?string $action,
+		#[Str('add')] ?string $action,
 		PDuration $initial,
 		PDuration $interval,
 		string $name
@@ -318,13 +312,13 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			owner: $context->char->name,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($sTimer);
+		$this->eventManager->dispatch($sTimer);
 	}
 
 	/** Show a specific timer */
 	#[NCA\HandlesCommand('timers')]
 	#[NCA\Help\Group('timers')]
-	public function timersViewCommand(CmdContext $context, #[NCA\Str('view')] string $action, string $id): void {
+	public function timersViewCommand(CmdContext $context, #[Str('view')] string $action, string $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
 			if (!Uuid::isValid($id)) {
@@ -352,16 +346,16 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	 */
 	#[NCA\HandlesCommand('timers')]
 	#[NCA\Help\Group('timers')]
-	public function timersRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function timersRemoveCommand(CmdContext $context, #[Remove] string $action, PUuid $id): void {
 		$id = $id();
 		$timer = $this->get($id);
 		if ($timer === null) {
 			$msg = "Could not find timer <highlight>#{$id}<end>.";
-		} elseif ($timer->owner !== $context->char->name && !$this->accessManager->checkAccess($context->char->name, 'mod')) {
+		} elseif ($timer->owner !== $context->char->name && !$this->accessManager->checkAccess($context->char->name, AccessLevel::Mod)) {
 			$msg = 'You must own this timer or have moderator access in order to remove it.';
 		} else {
 			$event = new TimerDelEvent(timer: $timer);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 			$this->remove($id);
 			$msg = "Removed timer <highlight>{$timer->name}<end>.";
 		}
@@ -373,7 +367,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Group('timers')]
 	public function timersAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] ?string $action,
+		#[Str('add')] ?string $action,
 		PDuration $duration,
 		?string $name
 	): void {
@@ -395,7 +389,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 				owner: $context->char->name,
 				forceSync: $context->forceSync,
 			);
-			$this->eventManager->fireEvent($sTimer);
+			$this->eventManager->dispatch($sTimer);
 		}
 	}
 
@@ -552,7 +546,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$this->db->insert($timer);
 
 		$this->timers[strtolower($name)] = $timer;
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		return $timer;
 	}
 
@@ -592,10 +586,8 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		return $this->timers;
 	}
 
-	#[NCA\Event(
-		name: SyncTimerEvent::EVENT_MASK,
-		description: 'Sync external timers to local timers'
-	)]
+	/** Sync external timers to local timers */
+	#[NCA\HandlesEvent]
 	public function syncExtTimers(SyncTimerEvent $event): void {
 		if ($event->isLocal()) {
 			return;

@@ -2,11 +2,15 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBRow,
+	Types\Skill,
+};
 
 class SkillBuffItemCount extends DBRow {
 	public function __construct(
-		public string $skill,
+		#[NCA\DB\MapRead([Skill::class, 'tryFrom'])] public ?Skill $skill,
 		public int $num,
 	) {
 	}

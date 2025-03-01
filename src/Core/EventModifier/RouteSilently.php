@@ -8,15 +8,14 @@ use Nadybot\Core\{
 	Types\EventModifier,
 };
 
-#[
-	NCA\EventModifier(
-		name: 'route-silently',
-		description: "This modifier allows you to treat messages routed with it\n".
-			"as if they had't been routed at all, so all standard actions will\n".
-			'still apply to them.'
-	),
-]
+/**
+ * This modifier allows you to treat messages routed with it
+ * as if they hadn't been routed at all, so all standard actions will
+ * still apply to them.
+ */
+#[NCA\EventModifier(name: 'route-silently')]
 class RouteSilently implements EventModifier {
+	/** {@inheritDoc} */
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		if (!isset($event)) {
 			return $event;

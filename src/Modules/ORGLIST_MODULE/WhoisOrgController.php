@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	ParamClass\PCharacter,
 	Text,
+	Types\AccessLevel,
 	Types\Profession,
 };
 
@@ -22,7 +23,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'whoisorg',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Display org info',
 	)
 ]

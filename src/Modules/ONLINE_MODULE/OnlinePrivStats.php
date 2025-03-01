@@ -10,7 +10,7 @@ class OnlinePrivStats implements GaugeProvider {
 	private Nadybot $chatBot;
 
 	public function getValue(): float {
-		return count($this->chatBot->chatlist);
+		return count($this->chatBot->getChatlist());
 	}
 
 	public function getTags(): array {

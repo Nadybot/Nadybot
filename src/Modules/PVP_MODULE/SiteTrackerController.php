@@ -2,23 +2,23 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-// pf, site
-
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	CmdContext,
 	Config\BotConfig,
 	DB,
 	Exceptions\UserException,
 	MessageHub,
 	ModuleInstance,
-	ParamClass\PRemove,
+	ParamClass\PUuid,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Util
 };
 use Nadybot\Modules\PVP_MODULE\{
@@ -27,7 +27,6 @@ use Nadybot\Modules\PVP_MODULE\{
 	Handlers\Base,
 };
 use ReflectionClass;
-
 use Throwable;
 
 #[
@@ -36,7 +35,7 @@ use Throwable;
 		command: 'nw track',
 		alias: 'towertrack',
 		description: 'Track tower sites',
-		accessLevel: 'member'
+		accessLevel: AccessLevel::Member,
 	),
 ]
 class SiteTrackerController extends ModuleInstance {
@@ -166,8 +165,8 @@ class SiteTrackerController extends ModuleInstance {
 	)]
 	public function addTowerTracker(
 		CmdContext $context,
-		#[NCA\Str('track', 'tracker')] string $action,
-		#[NCA\Str('add')] string $subAction,
+		#[Str('track', 'tracker')] string $action,
+		#[Str('add')] string $subAction,
 		string $expression
 	): void {
 		$entry = $this->parseExpression($expression);
@@ -211,8 +210,8 @@ class SiteTrackerController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw track')]
 	public function delTowerTracker(
 		CmdContext $context,
-		#[NCA\Str('track', 'tracker')] string $action,
-		PRemove $subAction,
+		#[Str('track', 'tracker')] string $action,
+		#[Remove] string $subAction,
 		PUuid $id,
 	): void {
 		$id = $id();
@@ -237,8 +236,8 @@ class SiteTrackerController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw track')]
 	public function listTowerTracker(
 		CmdContext $context,
-		#[NCA\Str('track', 'tracker')] string $action,
-		#[NCA\Str('list')] ?string $subAction,
+		#[Str('track', 'tracker')] string $action,
+		#[Str('list')] ?string $subAction,
 	): void {
 		if (!count($this->trackers)) {
 			$context->reply('No registered trackers.');
@@ -259,8 +258,8 @@ class SiteTrackerController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw track')]
 	public function showTowerTrackerMatches(
 		CmdContext $context,
-		#[NCA\Str('track', 'tracker')] string $action,
-		#[NCA\Str('show', 'view')] string $subAction,
+		#[Str('track', 'tracker')] string $action,
+		#[Str('show', 'view')] string $subAction,
 		PUuid $id,
 	): void {
 		$id = $id();
@@ -287,8 +286,8 @@ class SiteTrackerController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw track')]
 	public function showTowerTrackerPatterns(
 		CmdContext $context,
-		#[NCA\Str('track', 'tracker')] string $action,
-		#[NCA\Str('pattern', 'patterns')] string $subAction,
+		#[Str('track', 'tracker')] string $action,
+		#[Str('pattern', 'patterns')] string $subAction,
 	): void {
 		/** @psalm-var list<class-string> */
 		$classes = array_unique(array_values($this->handlers));
@@ -335,8 +334,8 @@ class SiteTrackerController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw track')]
 	public function showTowerTrackerEvents(
 		CmdContext $context,
-		#[NCA\Str('track', 'tracker')] string $action,
-		#[NCA\Str('event', 'events')] string $subAction,
+		#[Str('track', 'tracker')] string $action,
+		#[Str('event', 'events')] string $subAction,
 	): void {
 		$blocks = [];
 		foreach (self::EVENTS as $event) {
@@ -418,7 +417,6 @@ class SiteTrackerController extends ModuleInstance {
 			}
 			if (is_subclass_of($className, Base::class)) {
 				try {
-					/** @psalm-suppress UnsafeInstantiation */
 					$handlers []= new $className($argument->value);
 				} catch (UserException $e) {
 					throw $e;

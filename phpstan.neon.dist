@@ -3,6 +3,8 @@ parameters:
   level: 7
   paths:
     - src
+  excludePaths:
+    - src/websetup/
   phpVersion: 80200
   ignoreErrors:
     - '#Property [a-zA-Z0-9\\_]+::\$.* is never written, only read.#'

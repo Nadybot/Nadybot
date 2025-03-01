@@ -2,6 +2,10 @@
 
 namespace Nadybot\Core\Types;
 
+/**
+ * This interface is used to query the channel for which this object
+ * wants to send or receive messages.
+ */
 interface MessageEmitter {
 	/**
 	 * Get the name of the channel for which this object

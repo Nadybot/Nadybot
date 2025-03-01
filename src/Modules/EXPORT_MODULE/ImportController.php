@@ -5,10 +5,8 @@ namespace Nadybot\Modules\EXPORT_MODULE;
 use function Safe\json_decode;
 
 use Amp\File\FilesystemException;
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, UnableToHydrateObject};
-use Exception;
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\{
-	AccessManager,
 	Attributes as NCA,
 	CmdContext,
 	Config\BotConfig,
@@ -16,17 +14,20 @@ use Nadybot\Core\{
 	Filesystem,
 	Hydrator,
 	ModuleInstance,
-	ParamClass\PFilename,
 	Registry,
 	Safe,
+	Types\AccessLevel,
 	Types\ImporterInterface,
 };
-use Nadybot\Modules\COMMENT_MODULE\ExportCategory;
-use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\ExportMember;
-use Nadybot\Modules\VOTE_MODULE\ExportPoll;
+use Nadybot\Modules\{
+	COMMENT_MODULE\ExportCategory,
+	PRIVATE_CHANNEL_MODULE\ExportMember,
+	VOTE_MODULE\ExportPoll,
+};
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Throwable;
+use ValueError;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -35,7 +36,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'import',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Import bot data and replace the current one',
 	)
 ]
@@ -48,9 +49,6 @@ class ImportController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private Filesystem $fs;
-
-	#[NCA\Inject]
-	private AccessManager $accessManager;
 
 	#[NCA\Inject]
 	private BotConfig $config;
@@ -115,11 +113,11 @@ class ImportController extends ModuleInstance {
 	)]
 	public function importCommand(
 		CmdContext $context,
-		PFilename $file,
-		#[NCA\Regexp("\w+=\w+", example: '&lt;exported al&gt;=&lt;new al&gt;')] ?string ...$mappings
+		#[NCA\Parameter\FilenameStr] string $file,
+		#[NCA\Parameter\Regexp("\w+=\w+", example: '&lt;exported al&gt;=&lt;new al&gt;')] ?string ...$mappings
 	): void {
 		$dataPath = $this->config->paths->data;
-		$fileName = "{$dataPath}/export/" . basename($file());
+		$fileName = "{$dataPath}/export/" . basename($file);
 		if ((pathinfo($fileName)['extension'] ?? '') !== 'json') {
 			$fileName .= '.json';
 		}
@@ -134,14 +132,15 @@ class ImportController extends ModuleInstance {
 		$usedRanks = $this->getRanks($import);
 		$validMappings = Safe::removeNull(array_values($mappings));
 		$rankMapping = $this->parseRankMapping($validMappings);
+		$rankMappingResult = [];
 		foreach ($usedRanks as $rank) {
 			if (!isset($rankMapping[$rank])) {
 				$context->reply("Please define a mapping for <highlight>{$rank}<end> by appending '{$rank}=&lt;rank&gt;' to your command");
 				return;
 			}
 			try {
-				$rankMapping[$rank] = $this->accessManager->getAccessLevel($rankMapping[$rank]);
-			} catch (Exception) {
+				$rankMappingResult[$rank] = AccessLevel::fromName($rankMapping[$rank]);
+			} catch (ValueError) {
 				$context->reply("<highlight>{$rankMapping[$rank]}<end> is not a valid access level");
 				return;
 			}
@@ -149,7 +148,7 @@ class ImportController extends ModuleInstance {
 		$this->logger->notice('Starting import');
 		$context->reply('Starting import...');
 		foreach ($this->importers as $key => $importer) {
-			$importer->import($this->db, $this->logger, $import[$key], $rankMapping);
+			$importer->import($this->db, $this->logger, $import[$key], $rankMappingResult);
 		}
 		$this->logger->notice('Import done');
 		$context->reply('The import finished successfully.');
@@ -232,16 +231,12 @@ class ImportController extends ModuleInstance {
 		}
 		$this->logger->notice('Loading schema data');
 		$sendto->reply('Validating the import data. This could take a while.');
-		$defProv = new DefinitionProvider(
-			keyFormatter: new KeyFormatterWithoutConversion(),
-		);
 		$result = [];
 		try {
 			foreach ($import as $key => $importData) {
-				$result[$key] = Hydrator::hydrateObjects(
+				$result[$key] = Hydrator::literalHydrateObjects(
 					className: $this->keyToClass[$key],
 					data: $importData,
-					definitionProvider: $defProv,
 				)->toArray();
 			}
 		} catch (UnableToHydrateObject $e) {

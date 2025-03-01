@@ -6,12 +6,13 @@ use function Safe\preg_split;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	CmdContext,
 	DB,
 	EventManager,
@@ -20,9 +21,11 @@ use Nadybot\Core\{
 	Hydrator,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
+	MyOrg,
 	Nadybot,
-	ParamClass\PRemove,
+	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{ApiResponse, WebserverController};
@@ -38,23 +41,14 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'news',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Shows news',
 	),
 	NCA\DefineCommand(
 		command: NewsController::CMD_NEWS_MANAGE,
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Adds, removes, pins or unpins a news entry',
 	),
-
-	NCA\ProvidesEvent(
-		event: SyncNewsEvent::class,
-		desc: 'Triggered whenever someone creates or modifies a news entry'
-	),
-	NCA\ProvidesEvent(
-		event: SyncNewsDeleteEvent::class,
-		desc: 'Triggered when deleting a news entry'
-	)
 ]
 class NewsController extends ModuleInstance {
 	public const CMD_NEWS_MANAGE = 'news add/change/delete';
@@ -85,6 +79,9 @@ class NewsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private MyOrg $myOrg;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -175,15 +172,13 @@ class NewsController extends ModuleInstance {
 		return $msg;
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Sends news to org members logging in'
-	)]
+	/** Sends news to org members logging in */
+	#[NCA\HandlesEvent]
 	public function logonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 
 		if (!$this->chatBot->isReady()
-			|| !isset($this->chatBot->guildmembers[$sender])
+			|| !$this->myOrg->isMember($sender)
 			|| $eventObj->wasOnline !== false
 			|| !$this->hasRecentNews($sender)
 		) {
@@ -195,10 +190,8 @@ class NewsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Sends news to players joining private channel'
-	)]
+	/** Sends news to players joining private channel */
+	#[NCA\HandlesEvent]
 	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
 		if (!$this->hasRecentNews($eventObj->sender)) {
 			return;
@@ -229,7 +222,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand('news')]
 	public function newsconfirmCommand(
 		CmdContext $context,
-		#[NCA\Str('confirm')] string $action,
+		#[Str('confirm')] string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -266,7 +259,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		string $news
 	): void {
 		$entry = new News(
@@ -286,7 +279,7 @@ class NewsController extends ModuleInstance {
 			sticky: $entry->sticky,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$context->reply($msg);
 	}
@@ -295,7 +288,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsRemCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -311,7 +304,7 @@ class NewsController extends ModuleInstance {
 				uuid: $row->id->toString(),
 				forceSync: $context->forceSync,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		}
 
 		$context->reply($msg);
@@ -321,7 +314,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsPinCommand(
 		CmdContext $context,
-		#[NCA\Str('pin')] string $action,
+		#[Str('pin')] string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -344,7 +337,7 @@ class NewsController extends ModuleInstance {
 				sticky: true,
 				forceSync: $context->forceSync,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		}
 		$context->reply($msg);
 	}
@@ -353,7 +346,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsUnpinCommand(
 		CmdContext $context,
-		#[NCA\Str('unpin')] string $action,
+		#[Str('unpin')] string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -376,7 +369,7 @@ class NewsController extends ModuleInstance {
 				sticky: false,
 				forceSync: $context->forceSync,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		}
 		$context->reply($msg);
 	}
@@ -390,10 +383,10 @@ class NewsController extends ModuleInstance {
 
 	/** Get a list of all news */
 	#[
-		NCA\Api('/news'),
-		NCA\GET,
-		NCA\AccessLevelFrom('news'),
-		NCA\ApiResult(code: 200, class: 'News[]', desc: 'A list of news items')
+		Http\Api('/news'),
+		Http\GET,
+		Http\AccessLevelFrom('news'),
+		Http\ApiResult(code: 200, class: 'News[]', desc: 'A list of news items')
 	]
 	public function apiNewsEndpoint(Request $request): Response {
 		$result = $this->db->table(News::getTable())
@@ -408,11 +401,11 @@ class NewsController extends ModuleInstance {
 	 * @param string $id The UUID of the news item
 	 */
 	#[
-		NCA\Api('/news/%s'),
-		NCA\GET,
-		NCA\AccessLevelFrom('news'),
-		NCA\ApiResult(code: 200, class: 'News', desc: 'The requested news item'),
-		NCA\ApiResult(code: 404, desc: 'Given news id not found')
+		Http\Api('/news/%s'),
+		Http\GET,
+		Http\AccessLevelFrom('news'),
+		Http\ApiResult(code: 200, class: 'News', desc: 'The requested news item'),
+		Http\ApiResult(code: 404, desc: 'Given news id not found')
 	]
 	public function apiNewsIdEndpoint(Request $request, string $id): Response {
 		$result = $this->getNewsItem($id);
@@ -424,11 +417,11 @@ class NewsController extends ModuleInstance {
 
 	/** Create a new news item */
 	#[
-		NCA\Api('/news'),
-		NCA\POST,
-		NCA\AccessLevelFrom(self::CMD_NEWS_MANAGE),
-		NCA\RequestBody(class: 'News', desc: 'The item to create', required: true),
-		NCA\ApiResult(code: 204, desc: 'The news item was created successfully')
+		Http\Api('/news'),
+		Http\POST,
+		Http\AccessLevelFrom(self::CMD_NEWS_MANAGE),
+		Http\RequestBody(class: 'News', desc: 'The item to create', required: true),
+		Http\ApiResult(code: 204, desc: 'The news item was created successfully')
 	]
 	public function apiNewsCreateEndpoint(Request $request): Response {
 		$user = $request->getAttribute(WebserverController::USER) ?? '_';
@@ -447,13 +440,7 @@ class NewsController extends ModuleInstance {
 			];
 			$data = Util::mergeArraysRecursive($default, $body);
 
-			$news = Hydrator::hydrate(
-				className: News::class,
-				data: $data,
-				definitionProvider: new DefinitionProvider(
-					keyFormatter: new KeyFormatterWithoutConversion(),
-				),
-			);
+			$news = Hydrator::literalHydrate(className: News::class, data: $data);
 		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
@@ -461,7 +448,7 @@ class NewsController extends ModuleInstance {
 		if ($this->db->insert($news) === 0) {
 			return new Response(status: HttpStatus::INTERNAL_SERVER_ERROR);
 		}
-		$this->eventManager->fireEvent(SyncNewsEvent::fromNews($news));
+		$this->eventManager->dispatch(SyncNewsEvent::fromNews($news));
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
 
@@ -471,11 +458,11 @@ class NewsController extends ModuleInstance {
 	 * @param string $id The UUID of the news item
 	 */
 	#[
-		NCA\Api('/news/%s'),
-		NCA\PATCH,
-		NCA\AccessLevelFrom(self::CMD_NEWS_MANAGE),
-		NCA\RequestBody(class: 'News', desc: 'The new data for the item', required: true),
-		NCA\ApiResult(code: 200, class: 'News', desc: 'The news item it is now')
+		Http\Api('/news/%s'),
+		Http\PATCH,
+		Http\AccessLevelFrom(self::CMD_NEWS_MANAGE),
+		Http\RequestBody(class: 'News', desc: 'The new data for the item', required: true),
+		Http\ApiResult(code: 200, class: 'News', desc: 'The news item it is now')
 	]
 	public function apiNewsModifyEndpoint(Request $request, string $id): Response {
 		$oldItem = $this->getNewsItem($id);
@@ -488,20 +475,9 @@ class NewsController extends ModuleInstance {
 			if (!is_array($body)) {
 				throw new Exception('Wrong content body');
 			}
-			$oldData = Hydrator::serialize(
-				object: $oldItem,
-				definitionProvider: new DefinitionProvider(
-					keyFormatter: new KeyFormatterWithoutConversion(),
-				),
-			);
+			$oldData = Hydrator::literalSerialize(object: $oldItem);
 			$data = Util::mergeArraysRecursive($oldData, $body);
-			$news = Hydrator::hydrate(
-				className: News::class,
-				data: $data,
-				definitionProvider: new DefinitionProvider(
-					keyFormatter: new KeyFormatterWithoutConversion(),
-				),
-			);
+			$news = Hydrator::literalHydrate(className: News::class, data: $data);
 		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
@@ -509,7 +485,7 @@ class NewsController extends ModuleInstance {
 		if ($this->db->update($news) === 0) {
 			return new Response(status: HttpStatus::INTERNAL_SERVER_ERROR);
 		}
-		$this->eventManager->fireEvent(SyncNewsEvent::fromNews($news));
+		$this->eventManager->dispatch(SyncNewsEvent::fromNews($news));
 		return ApiResponse::create($this->getNewsItem($id));
 	}
 
@@ -542,10 +518,8 @@ class NewsController extends ModuleInstance {
 		return $blob;
 	}
 
-	#[NCA\Event(
-		name: SyncNewsEvent::EVENT_MASK,
-		description: 'Sync external news created or modified'
-	)]
+	/** Sync external news created or modified */
+	#[NCA\HandlesEvent]
 	public function processNewsSyncEvent(SyncNewsEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -554,10 +528,8 @@ class NewsController extends ModuleInstance {
 			->upsert($event->toData(), 'uuid', $event->toData());
 	}
 
-	#[NCA\Event(
-		name: SyncNewsDeleteEvent::EVENT_MASK,
-		description: 'Sync external news being deleted'
-	)]
+	/** Sync external news being deleted */
+	#[NCA\HandlesEvent]
 	public function processNewsDeleteSyncEvent(SyncNewsDeleteEvent $event): void {
 		if (!$event->isLocal()) {
 			$this->db->table(News::getTable())->where('uuid', $event->uuid)->update(['deleted' => 1]);

@@ -6,6 +6,7 @@ use function Safe\json_encode;
 use EventSauce\ObjectHydrator\UnableToSerializeObject;
 use Exception;
 use Nadybot\Core\Highway\{In, Out, Parser, ParserHighwayException, ParserJsonException};
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{Attributes as NCA, Hydrator, Safe};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
@@ -19,24 +20,16 @@ use Psr\Log\LoggerInterface;
 
 use Safe\Exceptions\JsonException;
 
-#[
-	NCA\RelayStackMember(
-		name: 'highway',
-		description: "This is the highway protocol, spoken by the highway websocket-server.\n".
-			"It will broadcast incoming messages to all clients in the same room.\n".
-			"Room names can be picked freely as long as they are at least 32 characters\n".
-			"long. They should be as random as possible to prevent unauthorized\n".
-			"access to messages.\n".
-			"Shorter room names are system rooms and by definition read-only.\n".
-			'For further security, using an encryption layer is recommended.'
-	),
-	NCA\Param(
-		name: 'room',
-		type: 'string[]',
-		description: 'The room(s) to join. Must be at least 32 characters long if you want to be able to send.',
-		required: true
-	)
-]
+/**
+ * This is the highway protocol, spoken by the highway websocket-server.
+ * It will broadcast incoming messages to all clients in the same room.
+ * Room names can be picked freely as long as they are at least 32 characters
+ * long. They should be as random as possible to prevent unauthorized
+ * access to messages.
+ * Shorter room names are system rooms and by definition read-only.
+ * For further security, using an encryption layer is recommended.
+ */
+#[NCA\RelayStackMember(name: 'highway')]
 class Highway implements RelayLayerInterface, StatusProvider {
 	public const TYPE_MESSAGE = 'message';
 	public const TYPE_JOIN = 'join';
@@ -63,8 +56,10 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
-	/** @param list<string> $rooms */
-	public function __construct(array $rooms) {
+	/** @param list<string> $rooms The room(s) to join. Must be at least 32 characters long if you want to be able to send. */
+	public function __construct(
+		#[NCA\Param(name: 'room', type: ParamType::StringArray)] array $rooms
+	) {
 		foreach ($rooms as $room) {
 			if (strlen($room) < 32) {
 				throw new Exception('<highlight>room<end> must be at least 32 characters long.');

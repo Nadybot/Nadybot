@@ -13,25 +13,33 @@ use DateTimeZone;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Http,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\StrChoice,
 	Blob,
 	CmdContext,
 	Events\JoinMyPrivEvent,
 	Events\LogonEvent,
 	ModuleInstance,
 	Modules\BAN\BanController,
+	MyOrg,
 	Nadybot,
-	ParamClass\PRemove,
 	Registry,
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
 	Types\SettingMode,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\{ApiResponse, WebChatConverter, WebserverController};
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	ApiResponse,
+	WebChatConverter,
+	WebserverController
+};
 use ReflectionClass;
 use ReflectionMethod;
-
 use Safe\DateTimeImmutable;
 use Throwable;
 
@@ -39,12 +47,12 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'startpage',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'configures the personal startpage',
 	),
 	NCA\DefineCommand(
 		command: 'start',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Shows your personal startpage',
 	),
 ]
@@ -83,6 +91,9 @@ class StartpageController extends ModuleInstance {
 	#[NCA\Inject]
 	private WebChatConverter $webChatConverter;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$instances = Registry::getAllInstances();
@@ -94,10 +105,8 @@ class StartpageController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Show startpage to (org) members logging in'
-	)]
+	/** Show startpage to (org) members logging in */
+	#[NCA\HandlesEvent]
 	public function logonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
@@ -105,7 +114,7 @@ class StartpageController extends ModuleInstance {
 		) {
 			return;
 		}
-		if (isset($this->chatBot->guildmembers[$sender])) {
+		if ($this->myOrg->isMember($sender)) {
 			$this->showStartpage($sender, $this->getMassTell($sender));
 			return;
 		}
@@ -116,7 +125,7 @@ class StartpageController extends ModuleInstance {
 		if ($this->startpageShowMembers !== 1) {
 			return;
 		}
-		if ($this->accessManager->getAccessLevelForCharacter($sender) === 'all') {
+		if ($this->accessManager->getAccessLevelForCharacter($sender) === AccessLevel::All) {
 			return;
 		}
 		if ($this->banController->isOnBanlist($uid)) {
@@ -125,13 +134,11 @@ class StartpageController extends ModuleInstance {
 		$this->showStartpage($sender, $this->getMassTell($sender));
 	}
 
-	#[NCA\Event(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Show startpage to players joining private channel'
-	)]
+	/** Show startpage to players joining private channel */
+	#[NCA\HandlesEvent]
 	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!$this->chatBot->isReady() || isset($this->chatBot->guildmembers[$sender])) {
+		if (!$this->chatBot->isReady() || $this->myOrg->isMember($sender)) {
 			return;
 		}
 		if ($this->startpageShowMembers !== 2) {
@@ -267,7 +274,7 @@ class StartpageController extends ModuleInstance {
 	/** Pick an entry for the startpage at position &lt;pos&gt; (0 being the top) */
 	#[NCA\HandlesCommand('startpage')]
 	#[NCA\Help\Group('start')]
-	public function startpagePickCommand(CmdContext $context, #[NCA\Str('pick')] string $action, int $pos): void {
+	public function startpagePickCommand(CmdContext $context, #[Str('pick')] string $action, int $pos): void {
 		$tiles = $this->getActiveLayout();
 		$unusedTiles = $this->getTiles();
 		foreach ($tiles as $name => $tile) {
@@ -296,7 +303,7 @@ class StartpageController extends ModuleInstance {
 	/** Show the description of a tile */
 	#[NCA\HandlesCommand('startpage')]
 	#[NCA\Help\Group('start')]
-	public function startpageDescribeTileCommand(CmdContext $context, #[NCA\Str('describe')] string $action, string $tileName): void {
+	public function startpageDescribeTileCommand(CmdContext $context, #[Str('describe')] string $action, string $tileName): void {
 		$allTiles = $this->getTiles();
 		$tile = $allTiles[$tileName] ?? null;
 		if (!isset($tile)) {
@@ -312,7 +319,7 @@ class StartpageController extends ModuleInstance {
 	#[NCA\Help\Group('start')]
 	public function startpagePickTileCommand(
 		CmdContext $context,
-		#[NCA\Str('pick')] string $action,
+		#[Str('pick')] string $action,
 		int $pos,
 		string $tileName
 	): void {
@@ -337,9 +344,9 @@ class StartpageController extends ModuleInstance {
 	#[NCA\Help\Group('start')]
 	public function startpageMoveTileCommand(
 		CmdContext $context,
-		#[NCA\Str('move')] string $action,
+		#[Str('move')] string $action,
 		string $tileName,
-		#[NCA\StrChoice('up', 'down')] string $direction
+		#[StrChoice('up', 'down')] string $direction
 	): void {
 		$currentTiles = $this->getActiveLayout();
 		if (!isset($currentTiles[$tileName])) {
@@ -369,7 +376,11 @@ class StartpageController extends ModuleInstance {
 	/** Remove a tile from the startpage */
 	#[NCA\HandlesCommand('startpage')]
 	#[NCA\Help\Group('start')]
-	public function startpageRemTileCommand(CmdContext $context, PRemove $action, string $tileName): void {
+	public function startpageRemTileCommand(
+		CmdContext $context,
+		#[Remove] string $action,
+		string $tileName
+	): void {
 		$currentTiles = $this->getActiveLayout();
 		if (!isset($currentTiles[$tileName])) {
 			$context->reply("<highlight>{$tileName}<end> is currently not used.");
@@ -383,10 +394,10 @@ class StartpageController extends ModuleInstance {
 
 	/** List all news tiles */
 	#[
-		NCA\Api('/startpage/tiles'),
-		NCA\GET,
-		NCA\AccessLevelFrom('startpage'),
-		NCA\ApiResult(code: 200, class: 'NewsTile[]', desc: 'List of all news items')
+		Http\Api('/startpage/tiles'),
+		Http\GET,
+		Http\AccessLevelFrom('startpage'),
+		Http\ApiResult(code: 200, class: 'NewsTile[]', desc: 'List of all news items')
 	]
 	public function apiListTilesEndpoint(Request $request): Response {
 		$tiles = array_values($this->getTiles());
@@ -403,10 +414,10 @@ class StartpageController extends ModuleInstance {
 
 	/** Get the currently configured startpage layout */
 	#[
-		NCA\Api('/startpage/layout'),
-		NCA\GET,
-		NCA\AccessLevelFrom('startpage'),
-		NCA\ApiResult(code: 200, class: 'string[]', desc: 'The order of the tiles')
+		Http\Api('/startpage/layout'),
+		Http\GET,
+		Http\AccessLevelFrom('startpage'),
+		Http\ApiResult(code: 200, class: 'string[]', desc: 'The order of the tiles')
 	]
 	public function apiGetStartpageLayoutEndpoint(Request $request): Response {
 		return ApiResponse::create(array_keys($this->getActiveLayout()));
@@ -414,11 +425,11 @@ class StartpageController extends ModuleInstance {
 
 	/** List all news tiles */
 	#[
-		NCA\Api('/startpage/layout'),
-		NCA\PUT,
-		NCA\AccessLevelFrom('startpage'),
-		NCA\RequestBody(class: 'string[]', desc: 'The new order for the tiles', required: true),
-		NCA\ApiResult(code: 204, desc: 'New layout saved')
+		Http\Api('/startpage/layout'),
+		Http\PUT,
+		Http\AccessLevelFrom('startpage'),
+		Http\RequestBody(class: 'string[]', desc: 'The new order for the tiles', required: true),
+		Http\ApiResult(code: 204, desc: 'New layout saved')
 	]
 	public function apiSetStartpageLayoutEndpoint(Request $request): Response {
 		$tiles = $request->getAttribute(WebserverController::BODY);
@@ -473,7 +484,7 @@ class StartpageController extends ModuleInstance {
 			public Nadybot $chatBot;
 			public string $receiver;
 
-			/** @inheritDoc */
+			/** {@inheritDoc} */
 			public function reply(string|array $msg): void {
 				$msg = Blob::renderMulti(text: $msg, formatMessage: false);
 				$this->chatBot->sendMassTell($msg, $this->receiver);

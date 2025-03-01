@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	CmdContext,
 	CommandAlias,
 	Config\BotConfig,
@@ -18,18 +19,16 @@ use Nadybot\Core\{
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
 	Util,
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 use Revolt\EventLoop;
-
 use Safe\DateTimeImmutable;
 
 /**
  * This class contains all functions necessary to deal with points in a raid
- *
- * @package Nadybot\Modules\RAID_MODULE
  */
 #[
 	NCA\Instance,
@@ -37,24 +36,19 @@ use Safe\DateTimeImmutable;
 	NCA\DefineCommand(
 		command: 'bid',
 		alias: 'auction',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Bid points for an auctioned item',
 	),
 	NCA\DefineCommand(
 		command: AuctionController::CMD_BID_AUCTION,
-		accessLevel: 'raid_leader_1',
+		accessLevel: AccessLevel::RaidLeader1,
 		description: 'Manage auctions',
 	),
 	NCA\DefineCommand(
 		command: AuctionController::CMD_BID_REIMBURSE,
-		accessLevel: 'raid_leader_1',
+		accessLevel: AccessLevel::RaidLeader1,
 		description: 'Give back points for an auction',
 	),
-
-	NCA\ProvidesEvent(AuctionStartEvent::class),
-	NCA\ProvidesEvent(AuctionEndEvent::class),
-	NCA\ProvidesEvent(AuctionCancelEvent::class),
-	NCA\ProvidesEvent(AuctionBidEvent::class),
 
 	NCA\EmitsMessages('auction', 'start'),
 	NCA\EmitsMessages('auction', 'end'),
@@ -69,15 +63,15 @@ class AuctionController extends ModuleInstance {
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
 
 	/** Allow auctions only for people in the raid */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $auctionsOnlyForRaid = false;
 
 	/** Show the name of the top bidder during the auction */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $auctionsShowMaxBidder = true;
 
 	/** Show the names of the rival bidders */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $auctionsShowRivalBidders = false;
 
 	/** Duration for auctions */
@@ -186,7 +180,7 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	public function bidStartCommand(
 		CmdContext $context,
-		#[NCA\Str('start')] string $action,
+		#[Str('start')] string $action,
 		string $item
 	): void {
 		if ($this->auctionsOnlyForRaid && !isset($this->raidController->raid)) {
@@ -210,7 +204,7 @@ class AuctionController extends ModuleInstance {
 	#[NCA\Help\Group('auction')]
 	public function bidCancelCommand(
 		CmdContext $context,
-		#[NCA\Str('cancel')] string $action
+		#[Str('cancel')] string $action
 	): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
@@ -222,14 +216,14 @@ class AuctionController extends ModuleInstance {
 		}
 		$event = new AuctionCancelEvent(auction: $this->auction);
 		$this->auction = null;
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** End the running auction prematurely */
 	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	public function bidEndCommand(
 		CmdContext $context,
-		#[NCA\Str('end')] string $action
+		#[Str('end')] string $action
 	): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
@@ -253,7 +247,7 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_BID_REIMBURSE)]
 	public function bidReimburseCommand(
 		CmdContext $context,
-		#[NCA\Str('reimburse', 'payback', 'refund')] string $action,
+		#[Str('reimburse', 'payback', 'refund')] string $action,
 		PCharacter $winner
 	): void {
 		$winner = $winner();
@@ -410,7 +404,7 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand('bid')]
 	public function bidHistoryCommand(
 		CmdContext $context,
-		#[NCA\Str('history')] string $action
+		#[Str('history')] string $action
 	): void {
 		$items = $this->db->table(DBAuction::getTable())
 			->orderByDesc('id')
@@ -432,7 +426,7 @@ class AuctionController extends ModuleInstance {
 	#[NCA\HandlesCommand('bid')]
 	public function bidHistorySearchCommand(
 		CmdContext $context,
-		#[NCA\Str('history')] string $action,
+		#[Str('history')] string $action,
 		string $search
 	): void {
 		$shortcuts = [
@@ -577,7 +571,7 @@ class AuctionController extends ModuleInstance {
 		}
 
 		$event = new AuctionBidEvent(auction: $this->auction);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Start an auction for an item */
@@ -594,7 +588,7 @@ class AuctionController extends ModuleInstance {
 		);
 		$this->auctionEnds = $auction->end;
 		$event = new AuctionStartEvent(auction: $auction);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		return true;
 	}
 
@@ -621,7 +615,7 @@ class AuctionController extends ModuleInstance {
 				$this->raidController->raid ?? null
 			);
 		}
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	public function getBiddingInfo(): string {
@@ -701,18 +695,14 @@ class AuctionController extends ModuleInstance {
 		return $msg;
 	}
 
-	#[NCA\Event(
-		name: AuctionStartEvent::EVENT_MASK,
-		description: 'Announce a new auction'
-	)]
+	/** Announce a new auction */
+	#[NCA\HandlesEvent]
 	public function announceAuction(AuctionStartEvent $event): void {
 		$this->routeMessage('start', $this->getAuctionAnnouncement($event->auction));
 	}
 
-	#[NCA\Event(
-		name: AuctionEndEvent::EVENT_MASK,
-		description: 'Announce the winner of an auction'
-	)]
+	/** Announce the winner of an auction */
+	#[NCA\HandlesEvent]
 	public function announceAuctionWinner(AuctionEndEvent $event): void {
 		if ($event->auction->top_bidder === null) {
 			$msg = Text::renderPlaceholders(
@@ -763,10 +753,8 @@ class AuctionController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
-		name: AuctionCancelEvent::EVENT_MASK,
-		description: 'Announce the cancellation of an auction'
-	)]
+	/** Announce the cancellation of an auction */
+	#[NCA\HandlesEvent]
 	public function announceAuctionCancellation(AuctionCancelEvent $event): void {
 		$this->routeMessage('cancel', 'The auction was cancelled.');
 	}
@@ -782,10 +770,8 @@ class AuctionController extends ModuleInstance {
 		return $msg;
 	}
 
-	#[NCA\Event(
-		name: AuctionBidEvent::EVENT_MASK,
-		description: 'Announce a new bid'
-	)]
+	/** Announce a new bid */
+	#[NCA\HandlesEvent]
 	public function announceAuctionBid(AuctionBidEvent $event): void {
 		$this->routeMessage('bid', $this->getRunningAuctionInfo($event->auction));
 	}

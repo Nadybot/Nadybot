@@ -19,8 +19,9 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
+	Types\Status,
 };
-
 use Psr\Log\LoggerInterface;
 
 /**
@@ -70,10 +71,8 @@ class CustomCmdController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
-		name: 'setting(custom_cmd_dir)',
-		description: 'Turn on/off commands',
-	)]
+	/** Turn on/off commands */
+	#[NCA\HandlesEvent(mask: 'setting(custom_cmd_dir)')]
 	public function changeCustomCmdDir(SettingEvent $event): void {
 		if ($event->oldValue->value !== self::OFF) {
 			$this->db->table(CmdCfg::getTable())
@@ -173,9 +172,9 @@ class CustomCmdController extends ModuleInstance {
 			$this->getModuleName(),
 			'CustomCmdController.executeCustomCmd:123',
 			$cmdName,
-			'guest',
+			AccessLevel::Guest,
 			"A dynamic command based on {$cmdName}",
-			1
+			Status::Enabled,
 		);
 		if (!$activate) {
 			return;
@@ -186,7 +185,7 @@ class CustomCmdController extends ModuleInstance {
 					$set->name,
 					'CustomCmdController.executeCustomCmd:123',
 					$cmdName,
-					'guest'
+					AccessLevel::Guest,
 				);
 			});
 	}

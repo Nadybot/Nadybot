@@ -2,10 +2,9 @@
 
 namespace Nadybot\Core\Events;
 
-class EventFeedConnect extends Event {
-	public const EVENT_MASK = 'event-feed-connect';
+use Nadybot\Core\Attributes\Event;
 
-	public function __construct() {
-		$this->type = self::EVENT_MASK;
-	}
+/** Fired when the event feed connected successfully */
+#[Event(mask: 'event-feed-connect')]
+class EventFeedConnect {
 }

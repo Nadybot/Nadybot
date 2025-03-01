@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PCharacter,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 
@@ -19,7 +20,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'fight',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Let two people fight against each other',
 	)
 ]
@@ -33,7 +34,7 @@ class FightController extends ModuleInstance {
 	public function fightCommand(
 		CmdContext $context,
 		PCharacter $player1,
-		#[NCA\Str('vs')] ?string $vs,
+		#[NCA\Parameter\Str('vs')] ?string $vs,
 		PCharacter $player2
 	): void {
 		$player1 = $player1();

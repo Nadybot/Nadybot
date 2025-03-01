@@ -2,14 +2,16 @@
 
 namespace Nadybot\Core;
 
+use AO\Utils;
 use Exception;
-use Nadybot\Core\Types\AccessLevelProvider;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\Audit,
 	Modules\ALTS\AltsController,
 	Modules\SECURITY\AuditController,
+	Types\AccessLevel,
+	Types\AccessLevelProvider,
 };
 use Psr\Log\LoggerInterface;
 use SplObjectStorage;
@@ -19,20 +21,6 @@ use SplObjectStorage;
  */
 #[NCA\Instance]
 class AccessManager {
-	public const ADD_RANK = 'add-rank';
-	public const DEL_RANK = 'del-rank';
-	public const PERM_BAN = 'permanent-ban';
-	public const TEMP_BAN = 'temporary-ban';
-	public const LOCK = 'lock';
-	public const UNLOCK = 'unlock';
-	public const JOIN = 'join';
-	public const KICK = 'kick';
-	public const LEAVE = 'leave';
-	public const INVITE = 'invite';
-	public const ADD_ALT = 'add-alt';
-	public const DEL_ALT = 'del-alt';
-	public const SET_MAIN = 'set-main';
-
 	/** Display name for the rank "superadmin" */
 	#[NCA\Setting\Text]
 	public string $rankNameSuperadmin = 'superadmin';
@@ -71,44 +59,24 @@ class AccessManager {
 	private AuditController $auditController;
 
 	#[NCA\Inject]
-	private SettingManager $settingManager;
-
-	#[NCA\Inject]
 	private AltsController $altsController;
 
 	#[NCA\Inject]
 	private BotConfig $config;
 
-
-	/** @var array<string,int> */
-	private static array $ACCESS_LEVELS = [
-		'none'          => 0,
-		'superadmin'    => 1,
-		'admin'         => 2,
-		'mod'           => 3,
-		'guild'         => 4,
-		'raid_admin_3'  => 5,
-		'raid_admin_2'  => 6,
-		'raid_admin_1'  => 7,
-		'raid_leader_3' => 8,
-		'raid_leader_2' => 9,
-		'raid_leader_1' => 10,
-		// 'raid_level_3'  => 11,
-		// 'raid_level_2'  => 12,
-		// 'raid_level_1'  => 13,
-		'member'        => 14,
-		'rl'            => 15,
-		'guest'         => 16,
-		'all'           => 17,
-	];
-
-	/** @var SplObjectStorage<AccessLevelProvider,AccessLevelProvider> */
+	/**
+	 * A list of all AccessLevelProviders that are registered with the AccessManager,
+	 * keyed by the provider object.
+	 *
+	 * @var SplObjectStorage<AccessLevelProvider,AccessLevelProvider>
+	 */
 	private SplObjectStorage $providers;
 
 	public function __construct() {
 		$this->providers = new SplObjectStorage();
 	}
 
+	/** Prevent configurable rank names to be identical */
 	#[
 		NCA\SettingChangeHandler('rank_name_superadmin'),
 		NCA\SettingChangeHandler('rank_name_admin'),
@@ -157,11 +125,13 @@ class AccessManager {
 	 * To check if a character named 'Tyrence' has moderator access,
 	 * you would do:
 	 *
+	 * ```php
 	 * if ($this->accessManager->checkAccess("Tyrence", "moderator")) {
 	 *    // Tyrence has [at least] moderator access level
 	 * } else {
 	 *    // Tyrence does not have moderator access level
 	 * }
+	 * ```
 	 *
 	 * Note that this will return true if 'Tyrence' is a moderator on your
 	 * bot, but also if he is anything higher, such as administrator, or superadmin.
@@ -170,7 +140,7 @@ class AccessManager {
 	 * the higher of it's own access level and that of it's main, if it has a main
 	 * and if it has been validated as an alt.
 	 */
-	public function checkAccess(string $sender, string $accessLevel): bool {
+	public function checkAccess(string $sender, AccessLevel $accessLevel): bool {
 		$this->logger->info(
 			"Checking access level '{checkLevel}' against character '{sender}'",
 			[
@@ -205,102 +175,59 @@ class AccessManager {
 	}
 
 	/**
-	 * This method checks if given $sender has at least $accessLevel rights.
+	 * This method checks if given `$sender` has at least `$accessLevel` rights.
 	 *
-	 * This is the same checkAccess() but doesn't check alt
+	 * This is the same `checkAccess()` but doesn't check alts
 	 */
-	public function checkSingleAccess(string $sender, string $accessLevel): bool {
-		$sender = ucfirst(strtolower($sender));
+	public function checkSingleAccess(string $sender, AccessLevel $accessLevel): bool {
+		$sender = Utils::normalizeCharacter($sender);
 
 		$charAccessLevel = $this->getSingleAccessLevel($sender);
-		return $this->compareAccessLevels($charAccessLevel, $accessLevel) >= 0;
+		return $charAccessLevel->atLeast($accessLevel);
 	}
 
-	/** Turn the short access level (rl, mod, admin) into the long version */
-	public function getDisplayName(string $accessLevel): string {
-		$displayName = $this->getAccessLevel($accessLevel);
-		switch ($displayName) {
-			case 'rl':
-				return $this->rankNameRL;
-			case 'guest':
-				return $this->rankNameGuest;
-			case 'member':
-				return $this->rankNameMember;
-			case 'guild':
-				return $this->rankNameGuild;
-			case 'mod':
-				return $this->rankNameMod;
-			case 'admin':
-				return $this->rankNameAdmin;
-			case 'superadmin':
-				return $this->rankNameSuperadmin;
-		}
-		if (substr($displayName, 0, 5) === 'raid_') {
-			$setName = $this->settingManager->getString("name_{$displayName}");
-			if ($setName !== null) {
-				return $setName;
-			}
-		}
-
-		return $displayName;
-	}
-
-	/** Returns the access level of $sender, ignoring guild admin and inheriting access level from main */
-	public function getSingleAccessLevel(string $sender): string {
+	/** Returns the access level of `$sender`, ignoring guild admin and inheriting access level from main */
+	public function getSingleAccessLevel(string $sender): AccessLevel {
 		if (in_array($sender, $this->config->general->superAdmins, true)) {
-			return 'superadmin';
+			return AccessLevel::Superadmin;
 		} elseif (!count($this->config->general->superAdmins) && $sender === '<no superadmin set>') {
-			return 'superadmin';
+			return AccessLevel::Superadmin;
 		}
 
-		/** @var array<string,int> */
+		/** @var array<int,AccessLevel> */
 		$ranks = [];
 		foreach ($this->providers as $provider) {
-			/** @var AccessLevelProvider $provider */
 			$rank = $provider->getSingleAccessLevel($sender);
 			if (isset($rank)) {
-				$ranks[$rank] = self::$ACCESS_LEVELS[$rank] ?? self::$ACCESS_LEVELS['all'];
+				$ranks[$rank->toInt()] = $rank;
 			}
 		}
 		if (!count($ranks)) {
-			return 'all';
+			return AccessLevel::All;
 		}
-		asort($ranks);
+		ksort($ranks);
 
-		return array_keys($ranks)[0];
+		return array_shift($ranks);
 	}
 
-	/** Returns the access level of $sender, accounting for guild admin and inheriting access level from main */
-	public function getAccessLevelForCharacter(string $sender): string {
-		$sender = ucfirst(strtolower($sender));
+	/**
+	 * Returns the access level of `$sender`,
+	 * accounting for guild admin and inheriting access level from main
+	 */
+	public function getAccessLevelForCharacter(string $sender): AccessLevel {
+		$sender = Utils::normalizeCharacter($sender);
 
 		$accessLevel = $this->getSingleAccessLevel($sender);
 
 		$altInfo = $this->altsController->getAltInfo($sender);
 		if ($sender !== $altInfo->main && $altInfo->isValidated($sender)) {
 			$mainAccessLevel = $this->getSingleAccessLevel($altInfo->main);
-			if ($this->compareAccessLevels($mainAccessLevel, $accessLevel) > 0) {
+			if ($mainAccessLevel->higherThan($accessLevel)) {
 				$accessLevel = $mainAccessLevel;
 			}
 		}
 
 		return $accessLevel;
-	}
-
-	/**
-	 * Compare 2 access levels
-	 *
-	 * @return int 1 if $accessLevel1 is a greater access level than $accessLevel2,
-	 *             -1 if $accessLevel1 is a lesser access level than $accessLevel2,
-	 *             0 if the access levels are equal.
-	 */
-	public function compareAccessLevels(string $accessLevel1, string $accessLevel2): int {
-		$accessLevel1 = $this->getAccessLevel($accessLevel1);
-		$accessLevel2 = $this->getAccessLevel($accessLevel2);
-
-		$accessLevels = $this->getAccessLevels();
-
-		return $accessLevels[$accessLevel2] <=> $accessLevels[$accessLevel1];
 	}
 
 	/**
@@ -311,72 +238,20 @@ class AccessManager {
 	 *             0 if the access levels of $char1 and $char2 are equal.
 	 */
 	public function compareCharacterAccessLevels(string $char1, string $char2): int {
-		$char1 = ucfirst(strtolower($char1));
-		$char2 = ucfirst(strtolower($char2));
-
 		$char1AccessLevel = $this->getAccessLevelForCharacter($char1);
 		$char2AccessLevel = $this->getAccessLevelForCharacter($char2);
 
-		return $this->compareAccessLevels($char1AccessLevel, $char2AccessLevel);
+		return $char1AccessLevel->compare($char2AccessLevel);
 	}
 
-	/**
-	 * Get the short version of the access level, e.g. raidleader => rl
-	 *
-	 * @throws Exception
-	 */
-	public function getAccessLevel(string $accessLevel): string {
-		$accessLevel = strtolower($accessLevel);
-		switch ($accessLevel) {
-			case $this->rankNameRL:
-			case 'raidleader':
-				$accessLevel = 'rl';
-				break;
-			case $this->rankNameMod:
-			case 'moderator':
-				$accessLevel = 'mod';
-				break;
-			case $this->rankNameAdmin:
-			case 'administrator':
-				$accessLevel = 'admin';
-				break;
-			case $this->rankNameSuperadmin:
-				$accessLevel = 'superadmin';
-				break;
-			case $this->rankNameMember:
-				$accessLevel = 'member';
-				break;
-			case $this->rankNameGuest:
-				$accessLevel = 'guest';
-				break;
-			case $this->rankNameGuild:
-				$accessLevel = 'guild';
-				break;
-		}
-
-		$accessLevels = $this->getAccessLevels();
-		if (isset($accessLevels[$accessLevel])) {
-			return $accessLevel;
-		}
-		throw new Exception("Invalid access level '{$accessLevel}'.");
-	}
-
-	/**
-	 * Return all allowed and known access levels
-	 *
-	 * @return array<string,int> All access levels with the name as key and the number as value
-	 */
-	public function getAccessLevels(): array {
-		return self::$ACCESS_LEVELS;
-	}
-
+	/** Log the given audit entry, if auditing is allowed */
 	public function addAudit(Audit $audit): void {
 		if (!$this->auditController->auditEnabled) {
 			return;
 		}
-		if (isset($audit->value) && in_array($audit->action, [static::ADD_RANK, static::DEL_RANK], true)) {
-			$revLook = array_flip(self::$ACCESS_LEVELS);
-			$audit->value = $audit->value . ' (' . $revLook[(int)$audit->value] . ')';
+		if (isset($audit->value) && in_array($audit->action, [AuditAction::AddRank, AuditAction::DelRank], true)) {
+			$toLevel = AccessLevel::fromInt((int)$audit->value);
+			$audit->value = $audit->value . " ({$toLevel->displayName()})";
 		}
 		$this->db->insert($audit);
 	}

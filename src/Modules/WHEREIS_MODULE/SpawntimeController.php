@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Playfield,
 };
 use Safe\DateTimeImmutable;
@@ -23,7 +24,7 @@ use Safe\DateTimeImmutable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'spawntime',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show (re)spawntimers',
 		alias: 'spawn',
 	)

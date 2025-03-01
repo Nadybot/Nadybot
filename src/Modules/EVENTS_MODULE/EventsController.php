@@ -5,11 +5,12 @@ namespace Nadybot\Modules\EVENTS_MODULE;
 use function Safe\strtotime;
 
 use InvalidArgumentException;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	CmdContext,
+	Config\BotConfig,
 	DB,
 	Events\JoinMyPrivEvent,
 	Events\LogonEvent,
@@ -17,9 +18,11 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	MyOrg,
 	Nadybot,
-	ParamClass\PRemove,
+	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 	Types\ExporterInterface,
 	Types\ImporterInterface,
 	Util,
@@ -39,13 +42,13 @@ use Throwable;
 	NCA\Importer('events', ExportEvent::class),
 	NCA\DefineCommand(
 		command: 'events',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'View/Join/Leave events',
 		alias: 'event',
 	),
 	NCA\DefineCommand(
 		command: EventsController::CMD_EVENT_MANAGE,
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Add/change or delete an event',
 	),
 ]
@@ -71,6 +74,9 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 	#[NCA\Inject]
 	private AltsController $altsController;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	/** Show the five closest past and upcoming events */
 	#[NCA\HandlesCommand('events')]
 	public function eventsCommand(CmdContext $context): void {
@@ -88,7 +94,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 	 * This is the ID you will use to change data regarding that event.
 	 */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, string $eventName): void {
+	public function eventsAddCommand(CmdContext $context, #[Str('add')] string $action, string $eventName): void {
 		$event = new EventModel(
 			time_submitted: time(),
 			submitter_name: $context->char->name,
@@ -102,7 +108,11 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Delete an event */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function eventsRemoveCommand(
+		CmdContext $context,
+		#[Remove] string $action,
+		PUuid $id
+	): void {
 		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
@@ -116,7 +126,12 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Change the description of an event */
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
-	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str('setdesc')] string $action, PUuid $id, string $description): void {
+	public function eventsSetDescCommand(
+		CmdContext $context,
+		#[Str('setdesc')] string $action,
+		PUuid $id,
+		string $description
+	): void {
 		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
@@ -134,7 +149,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
 	public function eventsSetDateCommand(
 		CmdContext $context,
-		#[NCA\Str('setdate')] string $action,
+		#[Str('setdate')] string $action,
 		PUuid $id,
 		string $date,
 	): void {
@@ -165,7 +180,11 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Join event #id */
 	#[NCA\HandlesCommand('events')]
-	public function eventsJoinCommand(CmdContext $context, #[NCA\Str('join')] string $action, PUuid $id): void {
+	public function eventsJoinCommand(
+		CmdContext $context,
+		#[Str('join')] string $action,
+		PUuid $id
+	): void {
 		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
@@ -195,7 +214,11 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** Leave event #id */
 	#[NCA\HandlesCommand('events')]
-	public function eventsLeaveCommand(CmdContext $context, #[NCA\Str('leave')] string $action, PUuid $id): void {
+	public function eventsLeaveCommand(
+		CmdContext $context,
+		#[Str('leave')] string $action,
+		PUuid $id
+	): void {
 		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
@@ -224,7 +247,11 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 
 	/** List all characters marked as joining event #id */
 	#[NCA\HandlesCommand('events')]
-	public function eventsListCommand(CmdContext $context, #[NCA\Str('list')] string $action, PUuid $id): void {
+	public function eventsListCommand(
+		CmdContext $context,
+		#[Str('list')] string $action,
+		PUuid $id
+	): void {
 		$id = $id();
 		$row = $this->getEvent($id);
 		if ($row === null) {
@@ -329,14 +356,12 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 		return Text::makeBlob('Events [Last updated ' . Util::date($updated).']', $link);
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Show events to org members logging on'
-	)]
+	/** Show events to org members logging on */
+	#[NCA\HandlesEvent]
 	public function logonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
-			|| !isset($this->chatBot->guildmembers[$sender])
+			|| !$this->myOrg->isMember($sender)
 			|| $eventObj->wasOnline !== false
 			|| !$this->hasRecentEvents()
 		) {
@@ -348,10 +373,8 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 		}
 	}
 
-	#[NCA\Event(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Show events to characters joining the private channel'
-	)]
+	/** Show events to characters joining the private channel */
+	#[NCA\HandlesEvent]
 	public function joinPrivEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->hasRecentEvents()) {

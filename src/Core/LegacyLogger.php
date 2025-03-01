@@ -9,8 +9,10 @@ use Monolog\{
 	Handler\AbstractProcessingHandler,
 	Logger,
 };
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Routing\Source;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Routing\Source,
+};
 use RuntimeException;
 use Safe\Exceptions\JsonException;
 use SplObjectStorage;
@@ -47,7 +49,11 @@ class LegacyLogger {
 	/** @var SplObjectStorage<AbstractHandler,null> */
 	public static SplObjectStorage $dynamicHandlers;
 
-	/** @return array<string,Logger> */
+	/**
+	 * Get all the loggers that match a given search mask (e.g. `webserver/*`)
+	 *
+	 * @return array<string,Logger>
+	 */
 	public static function getLoggers(?string $mask=null): array {
 		if (!isset($mask)) {
 			return static::$loggers;
@@ -76,7 +82,11 @@ class LegacyLogger {
 		};
 	}
 
-	/** @return array<string,mixed> */
+	/**
+	 * Get the logging configuration of Nadybot as an associative array
+	 *
+	 * @return array<string,mixed>
+	 */
 	public static function getConfig(bool $noCache=false): array {
 		if (!isset(static::$dynamicHandlers)) {
 			/** @var SplObjectStorage<AbstractHandler,null> */
@@ -86,7 +96,7 @@ class LegacyLogger {
 		if (count(static::$config) > 0 && !$noCache) {
 			return static::$config;
 		}
-		$configFile = BotRunner::$arguments['log-config'] ?? './conf/logging.json';
+		$configFile = BotRunner::getArguments()->logConfig ?? './conf/logging.json';
 		$json = self::$fs->read($configFile);
 		try {
 			$logStruct = json_decode($json, true, 512);
@@ -107,10 +117,10 @@ class LegacyLogger {
 			}
 		);
 		static::$logLevels = [];
-		$verbose = BotRunner::$arguments['v'] ?? true;
-		if ($verbose === false) {
+		$verbosity = BotRunner::getArguments()->verbosity;
+		if ($verbosity === 1) {
 			static::$logLevels []= ['*', 'info'];
-		} elseif (is_array($verbose) && count($verbose) > 1) {
+		} elseif ($verbosity > 1) {
 			static::$logLevels []= ['*', 'debug'];
 		}
 		foreach ($channels as $channel => $logLevel) {
@@ -119,6 +129,12 @@ class LegacyLogger {
 		return static::$config;
 	}
 
+	/**
+	 * Temporary override the log level for the given mask with the given log level
+	 *
+	 * @param string $mask     The mask to change the log level for
+	 * @param string $logLevel The new log level for the matching loggers
+	 */
 	public static function tempLogLevelOrderride(string $mask, string $logLevel): void {
 		array_unshift(static::$logLevels, [$mask, $logLevel]);
 	}
@@ -127,7 +143,7 @@ class LegacyLogger {
 	 * Re-calculate the log level for $logger, assign it and return old
 	 * and new log level for that logger, or null if unchanged.
 	 *
-	 * @return array<int,string>|null
+	 * @return null|array<int,string>
 	 *
 	 * @psalm-return null|array{0:string,1:string}
 	 */
@@ -163,6 +179,7 @@ class LegacyLogger {
 		return null;
 	}
 
+	/** Create a new Monolog logger for a given channel */
 	public static function fromConfig(string $channel): Logger {
 		if (isset(static::$loggers[$channel])) {
 			return static::$loggers[$channel];
@@ -202,7 +219,12 @@ class LegacyLogger {
 				static::$dynamicHandlers->attach($obj);
 			}
 			foreach ($config['calls']??[] as $func => $params) {
-				$obj->{$func}(...array_values($params));
+				$callable = [$obj, $func];
+				if (is_callable($callable)) {
+					call_user_func_array($callable, array_values($params));
+				} else {
+					throw new \Error('Call to undefined method ' . $obj::class . "::{$func}()");
+				}
 			}
 			if (isset($config['formatter'])) {
 				if (!isset($formatters[$config['formatter']])) {
@@ -232,13 +254,19 @@ class LegacyLogger {
 			/** @var FormatterInterface */
 			$obj = new $class(...array_values($config['options']));
 			foreach ($config['calls']??[] as $func => $params) {
-				$obj->{$func}(...array_values($params));
+				$callable = [$obj, $func];
+				if (is_callable($callable)) {
+					call_user_func_array($callable, array_values($params));
+				} else {
+					throw new \Error('Call to undefined method ' . $obj::class . "::{$func}()");
+				}
 			}
 			$result[$name] = $obj;
 		}
 		return $result;
 	}
 
+	/** Register the message emitters for all of our loglevels */
 	public static function registerMessageEmitters(MessageHub $hub): void {
 		$refClass = new \ReflectionClass(self::class);
 		foreach ($refClass->getAttributes(NCA\EmitsMessages::class) as $attr) {
@@ -247,6 +275,13 @@ class LegacyLogger {
 		}
 	}
 
+	/**
+	 * Convert snake_case to PascalCase
+	 *
+	 * @param string $name The class name in snake case
+	 *
+	 * @return string The class name in pascal case
+	 */
 	protected static function toClass(string $name): string {
 		return implode('', array_map('ucfirst', explode('_', $name)));
 	}

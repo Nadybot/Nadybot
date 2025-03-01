@@ -4,10 +4,9 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use function Amp\delay;
 
-use Amp\File\FileCache;
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
 use Amp\Pipeline\Pipeline;
-use Amp\Sync\LocalKeyedMutex;
+use DateInterval;
 use Exception;
 use Illuminate\Support\Collection;
 
@@ -20,15 +19,16 @@ use Nadybot\Core\{
 	Events\Event,
 	Exceptions\SQLException,
 	Exceptions\UserException,
-	Filesystem,
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
 	Types\Faction,
 	Types\Government,
 };
 use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\CacheInterface;
 use Throwable;
 
 /**
@@ -39,7 +39,7 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'findorg',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find orgs by name',
 	)
 ]
@@ -71,14 +71,11 @@ class FindOrgController extends ModuleInstance {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	#[NCA\Inject]
-	private Filesystem $fs;
+	#[NCA\Cache(prefix: 'orglist')]
+	private CacheInterface $cache;
 
 	#[NCA\Setup]
 	public function setup(): void {
-		if (!$this->fs->exists($this->config->paths->cache . '/orglist')) {
-			$this->fs->createDirectory($this->config->paths->cache . '/orglist', 0o700);
-		}
 		$this->ready = $this->db->table(Organization::getTable())
 			->where('index', 'others')
 			->exists();
@@ -202,21 +199,14 @@ class FindOrgController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
-		name: 'timer(24hrs)',
-		description: 'Parses all orgs from People of Rubi Ka'
-	)]
+	/** Parses all orgs from People of Rubi-Ka */
+	#[NCA\Timer(interval: '24hrs')]
 	public function downloadAllOrgsEvent(Event $eventObj): void {
 		$searches = [
 			'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
 			'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 			'others',
 		];
-
-		$cacheFolder = $this->config->paths->cache . '/orglist';
-		if (!$this->fs->exists($cacheFolder)) {
-			$this->fs->createDirectory($cacheFolder, 0o700);
-		}
 
 		$this->ready = $this->db->table(Organization::getTable())
 			->where('index', 'others')
@@ -258,12 +248,7 @@ class FindOrgController extends ModuleInstance {
 
 	private function downloadOrglistLetter(string $letter): void {
 		$this->logger->info('Downloading orglist for letter {letter}', ['letter' => $letter]);
-		$cache = new FileCache(
-			$this->config->paths->cache . '/orglist',
-			new LocalKeyedMutex(),
-			$this->fs->getFilesystem(),
-		);
-		$body = $cache->get($letter);
+		$body = $this->cache->get($letter);
 
 		if ($body !== null) {
 			if (!$this->isReady()) {
@@ -330,7 +315,7 @@ class FindOrgController extends ModuleInstance {
 
 		/** @psalm-var non-falsy-string $body */
 
-		$cache->set($letter, $body, 23 * 3_600);
+		$this->cache->set($letter, $body, new DateInterval('PT23H'));
 
 		$this->handleOrglistResponse($body, $letter);
 	}

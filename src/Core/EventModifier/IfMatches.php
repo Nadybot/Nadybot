@@ -7,6 +7,7 @@ use function Safe\preg_match;
 use ErrorException;
 use Exception;
 
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Routing\RoutableEvent,
@@ -14,46 +15,25 @@ use Nadybot\Core\{
 	Types\EventModifier,
 };
 
-#[
-	NCA\EventModifier(
-		name: 'if-matches',
-		description: "This modifier will only route messages if they contain\n".
-			'a certain text.'
-	),
-	NCA\Param(
-		name: 'text',
-		type: 'string[]',
-		description: "The text that needs to be in the message.\n".
-			'If more than one is given, any of the texts must match, not all.',
-		required: true
-	),
-	NCA\Param(
-		name: 'case-sensitive',
-		type: 'bool',
-		description: 'Determines if the comparison is done case sensitive or not',
-		required: false
-	),
-	NCA\Param(
-		name: 'regexp',
-		type: 'bool',
-		description: 'If set to true, text is a regular expression to match egainst.',
-		required: false
-	),
-	NCA\Param(
-		name: 'inverse',
-		type: 'bool',
-		description: "If set to true, this will inverse the logic\n".
-			'and drop all messages matching the given text.',
-		required: false
-	)
-]
+/**
+ * This modifier will only route messages if they contain
+ * a certain text.
+ */
+#[NCA\EventModifier(name: 'if-matches')]
 class IfMatches implements EventModifier {
-	/** @param list<string> $text */
+	/**
+	 * @param list<string> $text          The text that needs to be in the message.
+	 *                                    If more than one is given, any of the texts must match, not all.
+	 * @param bool         $caseSensitive Determines if the comparison is done case sensitive or not
+	 * @param bool         $isRegexp      If set to true, text is a regular expression to match against.
+	 * @param bool         $inverse       If set to true, this will inverse the logic
+	 *                                    and drop all messages matching the given text.
+	 */
 	public function __construct(
-		protected array $text,
-		protected bool $caseSensitive=false,
-		protected bool $isRegexp=false,
-		protected bool $inverse=false
+		#[NCA\Param(type: ParamType::StringArray)] protected array $text,
+		#[NCA\Param(name: 'case-sensitive')] protected bool $caseSensitive=false,
+		#[NCA\Param(name: 'regexp')] protected bool $isRegexp=false,
+		#[NCA\Param] protected bool $inverse=false
 	) {
 		foreach ($text as $match) {
 			try {
@@ -70,12 +50,13 @@ class IfMatches implements EventModifier {
 		}
 	}
 
+	/** {@inheritDoc} */
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		if (!isset($event)) {
 			return $event;
 		}
 		// We only check messages, not events
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			return $event;
 		}
 		$message = $event->getData();
@@ -86,6 +67,7 @@ class IfMatches implements EventModifier {
 		return $event;
 	}
 
+	/** Check if a given message matches the configured criteria */
 	protected function matches(string $message): bool {
 		foreach ($this->text as $text) {
 			if ($this->isRegexp) {

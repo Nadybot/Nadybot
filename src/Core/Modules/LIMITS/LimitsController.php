@@ -5,7 +5,6 @@ namespace Nadybot\Core\Modules\LIMITS;
 use function Safe\preg_match;
 
 use AO\Package;
-use Nadybot\Core\Events\SuccessCmdEvent;
 
 use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistory,
@@ -16,11 +15,13 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	AuditAction,
 	CommandHandler,
 	Config\BotConfig,
 	DBSchema\Audit,
 	DBSchema\Player,
 	Events\CmdEvent,
+	Events\SuccessCmdEvent,
 	Exceptions\UserException,
 	MessageHub,
 	ModuleInstance,
@@ -28,6 +29,8 @@ use Nadybot\Core\{
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Types\AccessLevel,
+	Types\Status,
 	Util,
 };
 use Psr\Log\LoggerInterface;
@@ -101,7 +104,8 @@ class LimitsController extends ModuleInstance {
 	public int $limitsIgnoreDuration = 300;
 
 	/** Rate limit: Ignore rate limit for everyone of this rank or higher */
-	#[NCA\Setting\Rank] public string $limitsExemptRank = 'mod';
+	#[NCA\Setting\Rank]
+	public AccessLevel $limitsExemptRank = AccessLevel::Mod;
 
 	/** @var array<string,list<int>> */
 	public array $limitBucket = [];
@@ -158,7 +162,7 @@ class LimitsController extends ModuleInstance {
 			$this->commandIgnoresLimits($message)
 			|| $this->rateIgnoreController->check($sender)
 			// if access level is at least member, skip checks
-			|| $this->accessManager->checkAccess($sender, 'member')
+			|| $this->accessManager->checkAccess($sender, AccessLevel::Member)
 		) {
 			return;
 		}
@@ -191,10 +195,8 @@ class LimitsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
-		name: CmdEvent::EVENT_MASK,
-		description: 'Enforce rate limits'
-	)]
+	/** Enforce rate limits */
+	#[NCA\HandlesEvent]
 	public function accountCommandExecution(CmdEvent $event): void {
 		if (isset($event->cmdHandler) && !$this->commandHandlerCounts($event->cmdHandler)) {
 			return;
@@ -217,9 +219,8 @@ class LimitsController extends ModuleInstance {
 
 	/** Check if $sender has executed more commands per time frame than allowed */
 	public function isOverLimit(string $sender): bool {
-		$exemptRank = $this->limitsExemptRank;
 		$sendersRank = $this->accessManager->getAccessLevelForCharacter($sender);
-		if ($this->accessManager->compareAccessLevels($sendersRank, $exemptRank) >= 0) {
+		if ($sendersRank->atLeast($this->limitsExemptRank)) {
 			return false;
 		}
 		if ($this->rateIgnoreController->check($sender)) {
@@ -254,25 +255,23 @@ class LimitsController extends ModuleInstance {
 	public function executeOverrateAction(CmdEvent $event): void {
 		$action = $this->limitsOverrateAction;
 		$blockadeLength = $this->limitsIgnoreDuration;
-		if ($action & 1) {
-			if (isset($this->chatBot->chatlist[$event->sender])) {
-				$this->chatBot->sendPrivate("Slow it down with the commands, <highlight>{$event->sender}<end>.");
-				$this->logger->notice('Kicking {character} from private channel.', [
-					'character' => $event->sender,
-				]);
-				$sender = $this->chatBot->getUid($event->sender);
-				if (isset($sender)) {
-					$this->chatBot->sendPackage(
-						package: new Package\Out\PrivateChannelKick(charId: $sender)
-					);
-				}
-				$audit = new Audit(
-					actor: $event->sender,
-					action: AccessManager::KICK,
-					value: 'limits exceeded',
+		if (($action & 1) && $this->chatBot->inChatlist($event->sender)) {
+			$this->chatBot->sendPrivate("Slow it down with the commands, <highlight>{$event->sender}<end>.");
+			$this->logger->notice('Kicking {character} from private channel.', [
+				'character' => $event->sender,
+			]);
+			$sender = $this->chatBot->getUid($event->sender);
+			if (isset($sender)) {
+				$this->chatBot->sendPackage(
+					package: new Package\Out\PrivateChannelKick(charId: $sender)
 				);
-				$this->accessManager->addAudit($audit);
 			}
+			$audit = new Audit(
+				actor: $event->sender,
+				action: AuditAction::Kick,
+				value: 'limits exceeded',
+			);
+			$this->accessManager->addAudit($audit);
 		}
 		if ($action & 2) {
 			$uid = $this->chatBot->getUid($event->sender);
@@ -312,11 +311,8 @@ class LimitsController extends ModuleInstance {
 		return $ignoredUntil !== null && $ignoredUntil >= time();
 	}
 
-	#[NCA\Event(
-		name: 'timer(1min)',
-		description: 'Check ignores to see if they have expired',
-		defaultStatus: 1
-	)]
+	/** Check ignores to see if they have expired */
+	#[NCA\Timer(interval: '1min', defaultStatus: Status::Enabled)]
 	public function expireIgnores(): void {
 		$now = time();
 		foreach ($this->ignoreList as $name => $expires) {
@@ -329,11 +325,8 @@ class LimitsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
-		name: 'timer(10min)',
-		description: 'Cleanup expired command counts',
-		defaultStatus: 1
-	)]
+	/** Cleanup expired command counts */
+	#[NCA\Timer(interval: '10min', defaultStatus: Status::Enabled)]
 	public function expireBuckets(): void {
 		$now = time();
 		$timeWindow = $this->limitsWindow;

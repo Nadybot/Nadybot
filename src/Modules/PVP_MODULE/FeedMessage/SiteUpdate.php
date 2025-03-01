@@ -12,7 +12,7 @@ use Nadybot\Modules\PVP_MODULE\Timing;
 class SiteUpdate {
 	use StringableTrait;
 
-	/** @var array<string,string|int|null> */
+	/** @var array<string,null|string|int> */
 	public const EXAMPLE_TOKENS = [
 		'site-pf-id' => 660,
 		'site-id' => 6,
@@ -57,7 +57,7 @@ class SiteUpdate {
 	) {
 	}
 
-	/** @return array<string,string|int|null> */
+	/** @return array<string,null|string|int> */
 	public function getTokens(): array {
 		$tokens = [
 			'site-pf-id' => $this->playfield->value,

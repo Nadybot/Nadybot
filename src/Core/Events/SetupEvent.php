@@ -2,10 +2,9 @@
 
 namespace Nadybot\Core\Events;
 
-class SetupEvent extends Event {
-	public const EVENT_MASK = 'setup';
+use Nadybot\Core\Attributes\Event;
 
-	public function __construct() {
-		$this->type = self::EVENT_MASK;
-	}
+/** Initialize and set up instances */
+#[Event(mask: 'setup')]
+class SetupEvent {
 }

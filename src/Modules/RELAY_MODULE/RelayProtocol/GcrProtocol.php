@@ -27,48 +27,17 @@ use Nadybot\Modules\{
 use Revolt\EventLoop;
 use stdClass;
 
-#[
-	NCA\RelayProtocol(
-		name: 'gcr',
-		description: "This is the protocol that BeBot speaks natively.\n".
-			"It supports sharing online lists and basic colorization.\n".
-			"Nadybot only support colorization of messages from the\n".
-			'org and guest chat and not the BeBot native encryption.'
-	),
-	NCA\Param(
-		name: 'command',
-		type: 'string',
-		description: 'The command we send with each packet',
-		required: false
-	),
-	NCA\Param(
-		name: 'prefix',
-		type: 'string',
-		description: 'The prefix we send with each packet, e.g. "!" or ""',
-		required: false
-	),
-	NCA\Param(
-		name: 'sync-online',
-		type: 'bool',
-		description: 'Sync the online list with the other bots of this relay',
-		required: false
-	),
-	NCA\Param(
-		name: 'send-logon',
-		type: 'bool',
-		description: 'Send messages that people in your org go online or offline',
-		required: false
-	)
-]
+/**
+ * This is the protocol that BeBot speaks natively.
+ * It supports sharing online lists and basic colorization.
+ * Nadybot only support colorization of messages from the
+ * org and guest chat and not the BeBot native encryption.
+ */
+#[NCA\RelayProtocol(name: 'gcr')]
 class GcrProtocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 
 	protected Relay $relay;
-
-	protected string $command = 'gcr';
-	protected string $prefix = '';
-	protected bool $syncOnline = true;
-	protected bool $spamOnline = true;
 
 	#[NCA\Inject]
 	private SettingManager $settingManager;
@@ -82,18 +51,25 @@ class GcrProtocol implements RelayProtocolInterface {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	public function __construct(string $command='gcr', string $prefix='', bool $syncOnline=true, bool $spamOnline=false) {
-		$this->command = $command;
-		$this->prefix = $prefix;
-		$this->syncOnline = $syncOnline;
-		$this->spamOnline = $spamOnline;
+	/**
+	 * @param string $command    The command we send with each packet
+	 * @param string $prefix     The prefix we send with each packet, e.g. "!" or ""
+	 * @param bool   $syncOnline Sync the online list with the other bots of this relay
+	 * @param bool   $spamOnline Send messages that people in your org go online or offline
+	 */
+	public function __construct(
+		#[NCA\Param] protected string $command='gcr',
+		#[NCA\Param] protected string $prefix='',
+		#[NCA\Param(name: 'sync-online')] protected bool $syncOnline=true,
+		#[NCA\Param(name: 'send-logon')] protected bool $spamOnline=false
+	) {
 	}
 
 	public function send(RoutableEvent $event): array {
-		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
+		if ($event->getEvent() === RoutableEvent::TYPE_MESSAGE) {
 			return $this->renderMessage($event);
 		}
-		if ($event->getType() === RoutableEvent::TYPE_EVENT) {
+		if ($event->getEvent() === RoutableEvent::TYPE_EVENT) {
 			/** @var stdClass $llEvent */
 			$llEvent = $event->getData();
 			if (isset($llEvent->type) && ($llEvent->type === Online::TYPE)) {

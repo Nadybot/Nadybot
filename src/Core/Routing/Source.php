@@ -8,6 +8,7 @@ use Nadybot\Core\DBSchema\RouteHopFormat;
 
 use Nadybot\Core\{Config\BotConfig, Registry, Safe};
 
+/** This represents a hop where messages pass by, can be created at, or forwarded to */
 class Source {
 	public const RELAY = 'relay';
 	public const ORG = 'aoorg';
@@ -23,11 +24,19 @@ class Source {
 	public const SYSTEM = 'system';
 	public const CONSOLE = 'console';
 
+	/** The AO dimension this source belongs to */
 	public int $server;
 
 	/** @var Collection<int,RouteHopFormat> */
 	public static Collection $format;
 
+	/**
+	 * @param string      $type      The type of hop (aoorg, aopriv, web, etc.)
+	 * @param string      $name      The full name of the hop (e.g. the name of the
+	 *                               org or the discord channel)
+	 * @param null|string $label     The label to show instead of the name, or `null` if identical
+	 * @param null|int    $dimension The dimension for this hop, or `null` to use the bot's
+	 */
 	public function __construct(
 		public string $type,
 		public string $name,
@@ -42,6 +51,16 @@ class Source {
 		}
 	}
 
+	/**
+	 * Create an instance based on a channel's name
+	 *
+	 * @param string $channel The full name of the channel in `type(name)` format
+	 *
+	 * Example:
+	 * ```php
+	 * Source::fromChannel('aopriv(Nadybot)')
+	 * ```
+	 */
 	public static function fromChannel(string $channel): self {
 		if (count($matches = Safe::pregMatch("/^(.+?)\((.+?)\)$/", $channel))) {
 			return new self($matches[1], $matches[2]);
@@ -49,6 +68,7 @@ class Source {
 		throw new InvalidArgumentException("\$channel ({$channel}) is not a valid channel name.");
 	}
 
+	/** Get the format that's defined for this hop */
 	public function getFormat(): ?RouteHopFormat {
 		$exactMatch = static::$format->first(
 			function (RouteHopFormat $format): bool {
@@ -64,6 +84,15 @@ class Source {
 		return $exactMatch;
 	}
 
+	/**
+	 * Render this hop as a string
+	 *
+	 * @param ?Source $lastHop The hop that was just passed by. This is used to distinguish
+	 *                         between rendering the private channel of a bot
+	 *                         as the bot's name, or as `Guest`.
+	 *
+	 * @return ?string `null` if this hop should not be rendered at all
+	 */
 	public function render(?Source $lastHop): ?string {
 		$name = $this->label ?? $this->name;
 		if (isset($lastHop) && $this->type === static::PRIV && $lastHop->type === static::ORG) {

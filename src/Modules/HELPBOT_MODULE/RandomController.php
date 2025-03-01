@@ -4,7 +4,6 @@ namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use function Safe\{preg_match_all, preg_split};
 use InvalidArgumentException;
-use Nadybot\Core\ParamClass\{PItem, PUuid};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -12,8 +11,11 @@ use Nadybot\Core\{
 	DB,
 	Exceptions\SQLException,
 	ModuleInstance,
+	ParamClass\PItem,
+	ParamClass\PUuid,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 
@@ -25,17 +27,17 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/Roll'),
 	NCA\DefineCommand(
 		command: 'random',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Randomize a list of names/items',
 	),
 	NCA\DefineCommand(
 		command: 'roll',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Roll a random number',
 	),
 	NCA\DefineCommand(
 		command: 'verify',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Verifies a roll',
 	),
 ]
@@ -127,7 +129,7 @@ class RandomController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>roll 2x Andy Tim Agnes Burkhard Zara Sam')]
 	public function rollMultipleNamesCommand(
 		CmdContext $context,
-		#[NCA\Regexp("(?:\d+)[x*]", example: '&lt;amount&gt;x')] string $amount,
+		#[NCA\Parameter\Regexp("(?:\d+)[x*]", example: '&lt;amount&gt;x')] string $amount,
 		string $listOfNames
 	): void {
 		$amount = (int)$amount;

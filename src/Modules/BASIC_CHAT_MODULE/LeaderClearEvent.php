@@ -2,13 +2,8 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-class LeaderClearEvent extends LeaderEvent {
-	public const EVENT_MASK = 'leader(clear)';
+use Nadybot\Core\Attributes\Event;
 
-	/** @param string $player The names of the old leader */
-	public function __construct(
-		public string $player,
-	) {
-		$this->type = self::EVENT_MASK;
-	}
+#[Event(mask: 'leader(clear)')]
+class LeaderClearEvent extends LeaderEvent {
 }

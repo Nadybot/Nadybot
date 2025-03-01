@@ -6,9 +6,12 @@ use function Safe\preg_match;
 
 use Stringable;
 
+/** An object representation of a semantic version */
 class SemanticVersion implements Stringable {
+	/** The normalized version as a string */
 	protected string $version;
 
+	/** @param string $origVersion The original, unmodified version */
 	public function __construct(protected string $origVersion) {
 		$this->version = static::normalizeVersion($origVersion);
 	}
@@ -17,18 +20,23 @@ class SemanticVersion implements Stringable {
 		return $this->version;
 	}
 
+	/** get the unmodified, un-parsed version string */
 	public function getOrigVersion(): string {
 		return $this->origVersion;
 	}
 
-	public function cmp(SemanticVersion $version2): int {
+	/**
+	 * Compare this version against another version
+	 *
+	 * @return int * `1`: this version is ranked higher
+	 *             * `0`: the two versions are identical
+	 *             * `-1`: this version is ranked lower
+	 */
+	public function cmp(SemanticVersion|string $version2): int {
 		return static::compare($this->version, (string)$version2);
 	}
 
-	public function cmpStr(string $version2): int {
-		return static::compare($this->version, $version2);
-	}
-
+	/** Normalize a version string to 3 tuples */
 	public static function normalizeVersion(string $version): string {
 		$version = Safe::pregReplace('/@.+$/', '', strtolower($version));
 		if (preg_match("/[^\d]$/", $version)) {
@@ -40,6 +48,13 @@ class SemanticVersion implements Stringable {
 		return $version;
 	}
 
+	/**
+	 * Compare 2 version strings
+	 *
+	 * @return int * `1`: `$version1` is ranked higher than `$version2`
+	 *             * `0`: the two versions are identical
+	 *             * `-1`: `$version1` is ranked lower than `$version2`
+	 */
 	public static function compare(string $version1, string $version2): int {
 		$v1 = explode('.', static::normalizeVersion($version1));
 		$v2 = explode('.', static::normalizeVersion($version2));
@@ -70,7 +85,7 @@ class SemanticVersion implements Stringable {
 		return 0;
 	}
 
-	/** Check if $version is in range of $range */
+	/** Check if `$version` is in range of `$range` */
 	public static function inMask(string $range, string $version): bool {
 		$version = strtolower($version);
 		$range = strtolower($range);
@@ -80,6 +95,15 @@ class SemanticVersion implements Stringable {
 		return static::compareUsing($version, $range, '=');
 	}
 
+	/**
+	 * Compare two version strings with a given operator
+	 *
+	 * @param string $version1 The first version string
+	 * @param string $version2 The second version string
+	 * @param string $operator The operator to use (`<`, `=`, etc.)
+	 *
+	 * @return bool The result of the comparison
+	 */
 	public static function compareUsing(string $version1, string $version2, string $operator): bool {
 		$cmp = static::compare($version1, $version2);
 		switch ($operator) {

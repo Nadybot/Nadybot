@@ -7,6 +7,7 @@ use function Safe\preg_match;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	CmdContext,
 	CommandManager,
 	DB,
@@ -18,6 +19,7 @@ use Nadybot\Core\{
 	Registry,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 	Types\AccessLevelProvider,
 };
 
@@ -29,7 +31,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'extauth',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Link an AO account with a Discord user',
 	)
 ]
@@ -62,7 +64,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		$this->commandManager->registerSource(Source::DISCORD_PRIV . '(*)');
 	}
 
-	public function getSingleAccessLevel(string $sender): ?string {
+	public function getSingleAccessLevel(string $sender): ?AccessLevel {
 		if (!ctype_digit($sender)) {
 			return null;
 		}
@@ -73,7 +75,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 					continue;
 				}
 				if ($member->user->id === $sender) {
-					return 'guest';
+					return AccessLevel::Guest;
 				}
 			}
 		}
@@ -90,7 +92,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 
 	/** Accept to be linked with a Discord account */
 	#[NCA\HandlesCommand('extauth')]
-	public function extAuthAccept(CmdContext $context, #[NCA\Str('accept')] string $action, string $uid): void {
+	public function extAuthAccept(CmdContext $context, #[Str('accept')] string $action, string $uid): void {
 		if (!$context->isDM()) {
 			return;
 		}
@@ -133,7 +135,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 
 	/** Reject to be linked with a Discord account */
 	#[NCA\HandlesCommand('extauth')]
-	public function extAuthRejectCommand(CmdContext $context, #[NCA\Str('reject')] string $action, string $uid): void {
+	public function extAuthRejectCommand(CmdContext $context, #[Str('reject')] string $action, string $uid): void {
 		if (!$context->isDM()) {
 			return;
 		}
@@ -159,7 +161,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	)]
 	public function extAuthCommand(
 		CmdContext $context,
-		#[NCA\Str('request')] string $action,
+		#[Str('request')] string $action,
 		PCharacter $char
 	): void {
 		$discordUserId = $context->char->name;
@@ -229,10 +231,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	}
 
 	/** Handle an incoming discord private message */
-	#[NCA\Event(
-		name: 'discordmsg',
-		description: 'Handle commands from Discord private messages'
-	)]
+	/** Handle commands from Discord private messages */
+	#[NCA\HandlesEvent(mask: 'discordmsg')]
 	public function processDiscordDirectMessage(DiscordMessageEvent $event): void {
 		$discordUserId = $event->discord_message->author->id ?? $event->sender;
 		$context = new CmdContext(
@@ -244,10 +244,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	}
 
 	/** Handle an incoming discord channel message */
-	#[NCA\Event(
-		name: 'discordpriv',
-		description: 'Handle commands from Discord channel messages'
-	)]
+	/** Handle commands from Discord channel messages */
+	#[NCA\HandlesEvent(mask: 'discordpriv')]
 	public function processDiscordChannelMessage(DiscordMessageEvent $event): void {
 		$discordUserId = $event->discord_message->author->id ?? $event->sender;
 		$context = new CmdContext(

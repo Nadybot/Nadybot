@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use function Amp\async;
 use function Amp\ByteStream\getStderr;
 use function Amp\File\{createDefaultDriver, filesystem};
-use function Safe\{fwrite, getopt, ini_set, json_encode, parse_url, putenv, sapi_windows_set_ctrl_handler};
+use function Safe\{fwrite, getopt, ini_set, parse_url, putenv, sapi_windows_set_ctrl_handler};
 
 use Amp\ByteStream\BufferedReader;
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
@@ -17,10 +17,13 @@ use Amp\Http\Tunnel\Http1TunnelConnector;
 use Amp\Process\Process;
 use ErrorException;
 use Exception;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\DBSchema\CmdCfg;
-use Nadybot\Core\Modules\SETUP\Setup;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	DBSchema\CmdCfg,
+	Modules\SETUP\Setup,
+};
+use Nadylib\IMEX\JSON;
 use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
 use ReflectionObject;
@@ -28,19 +31,16 @@ use Revolt\EventLoop;
 use Safe\Exceptions\InfoException;
 use Throwable;
 
+/** This class sets up the bot before passing execution to it */
 class BotRunner {
 	/** Nadybot's current version */
 	public const VERSION = '7.0.0.alpha';
 	public const COMMIT = '';
 
-	/**
-	 * The parsed command line arguments
-	 *
-	 * @var array<string,mixed>
-	 */
-	public static array $arguments = [];
+	/** The parsed command line arguments */
+	private static Options $arguments;
 
-	public ClassLoader $classLoader;
+	private ClassLoader $classLoader;
 
 	private static ?string $latestTag = null;
 
@@ -68,8 +68,15 @@ class BotRunner {
 	 */
 	public function __construct(array $argv) {
 		$this->argv = $argv;
+		self::$arguments = new Options();
 	}
 
+	/** Get the arguments with which the bot was started */
+	public static function getArguments(): Options {
+		return self::$arguments;
+	}
+
+	/** Get the latest Git commit ID (if running via Git) */
 	public static function getCommit(): string {
 		$baseDir = self::getBasedir();
 
@@ -164,6 +171,7 @@ class BotRunner {
 		}
 	}
 
+	/** Get a git tag plus commit, plus hash all in one string */
 	public static function getGitDescribe(): ?string {
 		$baseDir = self::getBasedir();
 		$process = Process::start('git describe --tags', $baseDir);
@@ -211,7 +219,7 @@ class BotRunner {
 		try {
 			LegacyLogger::$fs = self::getFS();
 			LoggerWrapper::$fs = self::getFS();
-			$this->parseOptions();
+			self::$arguments = $this->parseOptions();
 			// set default timezone
 			date_default_timezone_set('UTC');
 
@@ -298,6 +306,7 @@ class BotRunner {
 
 		$this->classLoader = new ClassLoader($config->paths->modules);
 		Registry::injectDependencies($this->classLoader);
+		Registry::setInstance(Registry::formatName(ClassLoader::class), $this->classLoader);
 		$this->classLoader->loadInstances();
 		$msgHub = Registry::getInstance(MessageHub::class);
 		LegacyLogger::registerMessageEmitters($msgHub);
@@ -324,7 +333,7 @@ class BotRunner {
 
 		$this->runUpgradeScripts();
 		EventLoop::run();
-		if ((self::$arguments['migrate-only']??true) === false) {
+		if (self::$arguments->migrateOnly) {
 			exit(0);
 		}
 
@@ -338,9 +347,9 @@ class BotRunner {
 		} else {
 			$this->logger->notice('Initializing modules and db tables...');
 		}
-		$chatBot->init($this);
+		$chatBot->init();
 
-		if ((self::$arguments['setup-only']??true) === false) {
+		if (self::$arguments->setupOnly) {
 			exit(0);
 		}
 
@@ -361,6 +370,7 @@ class BotRunner {
 		return \PHP_OS_FAMILY === 'Linux';
 	}
 
+	/** Get the filesystem class that is configured */
 	private static function getFS(): Filesystem {
 		if (isset(self::$fs)) {
 			return self::$fs;
@@ -383,11 +393,12 @@ class BotRunner {
 		return self::$fs;
 	}
 
+	/** Get the bot configuration from the configured config file */
 	private function getConfigFile(): BotConfig {
 		if (isset($this->configFile)) {
 			return $this->configFile;
 		}
-		$configFilePath = self::$arguments['c'] ?? null;
+		$configFilePath = self::$arguments->configFile;
 		if (!isset($configFilePath) && self::getFS()->exists('conf/config.toml')) {
 			$configFilePath = 'conf/config.toml';
 		} elseif (!isset($configFilePath) && self::getFS()->exists('conf/config.php')) {
@@ -397,6 +408,7 @@ class BotRunner {
 		return $this->configFile = BotConfig::loadFromFile($configFilePath, self::getFS());
 	}
 
+	/** Create the directories given in the config file, if they don't exist */
 	private function createMissingDirs(): void {
 		$path = $this->getConfigFile()->paths;
 		foreach (get_object_vars($path) as $name => $dir) {
@@ -411,6 +423,7 @@ class BotRunner {
 		}
 	}
 
+	/** Check if some required key composer packages are installed properly */
 	private function checkRequiredPackages(): void {
 		if (
 			!class_exists('Revolt\\EventLoop')
@@ -432,6 +445,7 @@ class BotRunner {
 		}
 	}
 
+	/** Ensure that all external programs required to run the bot, are present */
 	private function checkRequiredPrograms(): void {
 		if (!self::isWindows()) {
 			return;
@@ -456,6 +470,7 @@ class BotRunner {
 		}
 	}
 
+	/** Check if all the modules that the bot needs, are installed */
 	private function checkRequiredModules(): void {
 		if (version_compare(\PHP_VERSION, '8.1.17', '<')) {
 			// @phpstan-ignore-next-line
@@ -511,7 +526,8 @@ class BotRunner {
 		exit(1);
 	}
 
-	private function parseOptions(): void {
+	/** Parse all command line options and return them */
+	private function parseOptions(): Options {
 		try {
 			/** @var array<string,mixed> $options */
 			$options = getopt(
@@ -520,6 +536,7 @@ class BotRunner {
 					'help',
 					'migrate-only',
 					'setup-only',
+					'vue-dev',
 					'strict',
 					'log-config:',
 					'migration-errors-fatal',
@@ -536,16 +553,18 @@ class BotRunner {
 			exit(1);
 		}
 		$argv = array_slice($this->argv, $restPos);
-		self::$arguments = $options;
 		if (count($argv) > 0) {
-			self::$arguments['c'] = array_shift($argv);
+			$options['c'] = array_shift($argv);
 		}
-		if (isset(self::$arguments['help'])) {
+		$arguments = Hydrator::hydrate(Options::class, $options);
+		if ($arguments->help) {
 			$this->showSyntaxHelp();
 			exit(0);
 		}
+		return $arguments;
 	}
 
+	/** Show a help page how to run the bot */
 	private function showSyntaxHelp(): void {
 		echo(
 			'Usage: ' . \PHP_BINARY . ' ' . ($_SERVER['argv'][0] ?? 'main.php').
@@ -557,6 +576,8 @@ class BotRunner {
 			"  --help                Show this help message and exit\n".
 			"  --migrate-only        Only run the database migration and then exit\n".
 			"  --setup-only          Stop the bot after the setup handlers have been called\n".
+			"  --vue-dev             Don't serve web-files locally, connect to the\n".
+			"                        vite development server for hot reloading.\n".
 			"  --log-config=<file>   Use an alternative config file for the logger. The default\n".
 			"                        configuration is in conf/logging.json\n".
 			"  --migration-errors-fatal\n".
@@ -597,7 +618,7 @@ class BotRunner {
 						$this->logger->info('Setting {class}::${property} to {value}', [
 							'class' => class_basename($instance),
 							'property' => $refProp->getName(),
-							'value' => json_encode($value, \JSON_UNESCAPED_UNICODE|\JSON_UNESCAPED_SLASHES),
+							'value' => JSON::export($value),
 						]);
 						try {
 							$refProp->setValue($instance, $value);
@@ -613,11 +634,10 @@ class BotRunner {
 	private function sendBotBanner(): void {
 		$this->logger->notice(
 			'{eol}'.
-			' _   _  __     {eol}'.
-			"| \ | |/ /_    Nadybot version: {version}{eol}".
-			"|  \| | '_ \   Project Site:    {project_url}{eol}".
-			"| |\  | (_) |  In-Game Contact: {in_game_contact}{eol}".
-			"|_| \_|\___/   Discord:         {discord_link}{eol}{eol}",
+			' _  _ ____   Nadybot version: {version}{eol}'.
+			'| \| |__  |  Project Site:    {project_url}{eol}'.
+			'| .` | / /   In-Game Contact: {in_game_contact}{eol}'.
+			'|_|\_|/_/    Discord:         {discord_link}{eol}{eol}',
 			[
 				'eol' => \PHP_EOL,
 				'version' => self::getVersion(),
@@ -630,7 +650,7 @@ class BotRunner {
 
 	/** Setup proper error-reporting, -handling and -logging */
 	private function setErrorHandling(string $logFolderName): void {
-		error_reporting(\E_ALL & ~\E_STRICT & ~\E_WARNING & ~\E_NOTICE);
+		error_reporting(\E_ALL & ~\E_WARNING & ~\E_NOTICE);
 		ini_set('log_errors', '1');
 		ini_set('display_errors', '1');
 		ini_set('error_log', "{$logFolderName}/php_errors.log");
@@ -641,8 +661,13 @@ class BotRunner {
 		if (!$this->shouldShowSetup($config)) {
 			return false;
 		}
-		$setup = new Setup($this->getConfigFile(), self::getFS());
-		$setup->showIntro();
+		$setup = new Setup(
+			configFile: $this->getConfigFile(),
+			fs: self::getFS(),
+			options: self::$arguments,
+			logger: $this->logger
+		);
+		$this->configFile = $setup->showIntro();
 		$this->logger->notice('Reloading configuration and testing your settings.');
 		return true;
 	}

@@ -19,10 +19,12 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\MessageReceiver,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
+/** This is the routing endpoint for a discord channel */
 class DiscordChannel implements MessageReceiver {
 	#[NCA\Inject]
 	private DiscordAPIClient $discordAPIClient;
@@ -58,7 +60,7 @@ class DiscordChannel implements MessageReceiver {
 
 	public function receive(RoutableEvent $event, string $destination): bool {
 		$renderPath = true;
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			$baseEvent = $event->data??null;
 			if (!isset($baseEvent) || !($baseEvent instanceof Base) || !isset($baseEvent->message)) {
 				return false;
@@ -85,9 +87,11 @@ class DiscordChannel implements MessageReceiver {
 		$discordMsg = $this->discordController->formatMessage($message, $guild);
 
 		if (isset($event->char)) {
-			$minRankForMentions = $this->settingManager->getString('discord_relay_mention_rank') ?? 'superadmin';
+			$minRankForMentions = AccessLevel::tryFrom(
+				$this->settingManager->getString('discord_relay_mention_rank') ?? 'xx'
+			) ?? AccessLevel::Superadmin;
 			$sendersRank = $this->accessManager->getAccessLevelForCharacter($event->char->name);
-			if ($this->accessManager->compareAccessLevels($sendersRank, $minRankForMentions) < 0) {
+			if ($sendersRank->atLeast($minRankForMentions)) {
 				$discordMsg->allowed_mentions = new DiscordAllowedMentions(
 					parse: [
 						DiscordAllowedMentionType::Users,

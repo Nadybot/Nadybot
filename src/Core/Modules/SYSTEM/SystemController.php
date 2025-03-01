@@ -2,31 +2,34 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use function Safe\{ini_get, json_encode, unpack};
+use function Safe\{ini_get, unpack};
 
 use Amp\Http\Server\{Request, Response};
-use Nadybot\Core\Attributes\Confidential;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Events\ConnectEvent;
-use Nadybot\Core\Filesystem;
+use Nadybot\Core\Attributes\Hydrator\Confidential;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	Attributes as NCA,
+	Attributes\Http,
+	BotRunner,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
 	Config\BotConfig,
 	DB,
+	DBSchema\Player,
 	DBSchema\Setting,
 	EventManager,
+	Events\ConnectEvent,
 	Events\Event,
+	Filesystem,
 	HelpManager,
 	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Modules\BAN\BanController,
+	MyOrg,
 	Nadybot,
 	ParamClass\PCharacter,
 	PrivateMessageCommandReply,
@@ -36,12 +39,14 @@ use Nadybot\Core\{
 	SettingManager,
 	SubcommandManager,
 	Text,
+	Types\AccessLevel,
 	Types\MessageEmitter,
 	Types\SettingMode,
+	Types\Status,
 	Util,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadylib\IMEX\TOML;
+use Nadylib\IMEX\{JSON, TOML};
 use Psr\Log\LoggerInterface;
 use ReflectionException;
 use ReflectionObject;
@@ -55,52 +60,52 @@ use Revolt\EventLoop;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'checkaccess',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Check effective access level of a character',
 	),
 	NCA\DefineCommand(
 		command: 'clearqueue',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Clear outgoing chatqueue from all pending messages',
 	),
 	NCA\DefineCommand(
 		command: 'macro',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Execute multiple commands at once',
 	),
 	NCA\DefineCommand(
 		command: 'showcommand',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Execute a command and have output sent to another player',
 	),
 	NCA\DefineCommand(
 		command: 'system',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Show detailed information about the bot',
 	),
 	NCA\DefineCommand(
 		command: 'restart',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Restart the bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'shutdown',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Shutdown the bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'showconfig',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Show a cleaned up version of your current config file',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'upgradeconfig',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Show a version of your current config file upgraded to latest standards',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 ]
 class SystemController extends ModuleInstance implements MessageEmitter {
@@ -171,20 +176,20 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->helpManager->register($this->moduleName, 'budatime', 'budatime.txt', 'all', 'Format for budatime');
+		$this->helpManager->register($this->moduleName, 'budatime', 'budatime.txt', AccessLevel::All, 'Format for budatime');
 
-		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
+		$this->settingManager->save('version', BotRunner::getVersion());
 
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	#[NCA\Event(
-		name: 'timer(1h)',
-		description: 'Warn if the buddylist is full',
-		defaultStatus: 1,
-	)]
+	/** Warn if the buddylist is full */
+	#[NCA\Timer(interval: '1h', defaultStatus: Status::Enabled)]
 	public function checkBuddylistFull(): void {
 		$numBuddies = $this->buddylistManager->getUsedBuddySlots();
 		$maxBuddies = $this->chatBot->getBuddyListSize();
@@ -243,7 +248,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$basicInfo = new BasicSystemInformation(
 			bot_name: $this->config->main->character,
 			workers: array_column($this->config->worker, 'character'),
-			bot_version: $this->chatBot->runner::getVersion(),
+			bot_version: BotRunner::getVersion(),
 			db_type: $this->db->getType(),
 			org: strlen($this->config->general->orgName) ? $this->config->general->orgName : null,
 			org_id: $this->config->orgId,
@@ -276,15 +281,13 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		);
 
 		$miscInfo = new MiscSystemInformation(
-			uptime: time() - $this->chatBot->startup,
+			uptime: time() - $this->chatBot->getStarted(),
 			using_chat_proxy: $this->config->proxy?->enabled === true,
 		);
 
 		$configStats = new ConfigStatistics();
 		$configStats->active_aliases = $numAliases = $this->commandAlias->getEnabledAliases()->count();
-		foreach ($this->eventManager->events as $type => $events) {
-			$configStats->active_events += count($events);
-		}
+		$configStats->active_events = $this->eventManager->getNumEvents();
 		foreach ($this->commandManager->commands as $channel => $commands) {
 			$configStats->active_commands []= new ChannelCommandStats(
 				name: $channel,
@@ -298,8 +301,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			charinfo_cache_size: $this->db->table(Player::getTable())->count(),
 			buddy_list_size: $this->buddylistManager->countConfirmedBuddies(),
 			max_buddy_list_size: $this->chatBot->getBuddyListSize(),
-			priv_channel_size: count($this->chatBot->chatlist),
-			org_size: count($this->chatBot->guildmembers),
+			priv_channel_size: count($this->chatBot->getChatlist()),
+			org_size: count($this->myOrg->getMembers()),
 			chatqueue_length: 0,
 		);
 
@@ -406,11 +409,11 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	/** Show which access level you currently have */
 	#[NCA\HandlesCommand('checkaccess')]
 	public function checkaccessSelfCommand(CmdContext $context): void {
-		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($context->char->name));
+		$accessLevel = $this->accessManager->getAccessLevelForCharacter($context->char->name);
 
 		$msg = "Access level for <highlight>{$context->char->name}<end> (".
 			(isset($context->char->id) ? "ID {$context->char->id}" : 'No ID').
-			") is <highlight>{$accessLevel}<end>.";
+			") is <highlight>{$accessLevel->displayName()}<end>.";
 		if (isset($context->char->id)) {
 			if ($this->banController->isOnBanlist($context->char->id)) {
 				if ($this->banController->isBanned($context->char->id)) {
@@ -431,8 +434,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			$context->reply("Character <highlight>{$character}<end> does not exist.");
 			return;
 		}
-		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($character()));
-		$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>{$accessLevel}<end>.";
+		$accessLevel = $this->accessManager->getAccessLevelForCharacter($character());
+		$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>{$accessLevel->displayName()}<end>.";
 		if ($this->banController->isOnBanlist($uid)) {
 			if ($this->banController->isBanned($uid)) {
 				$msg .= " {$character} is <red>banned<end> on this bot.";
@@ -472,11 +475,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	#[NCA\Event(
-		name: 'timer(1hr)',
-		description: 'This event handler is called every hour to keep MySQL connection active',
-		defaultStatus: 1
-	)]
+	/** This event handler is called every hour to keep MySQL connection active */
+	#[NCA\Timer(interval: '1hr', defaultStatus: Status::Enabled)]
 	public function refreshMySQLConnectionEvent(Event $eventObj): void {
 		// if the bot doesn't query the MySQL database for 8 hours the db connection is closed
 		$this->logger->info('Pinging database');
@@ -484,20 +484,17 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			->firstObj(Setting::class);
 	}
 
-	#[NCA\Event(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Notify private channel, guild channel, and admins that bot is online',
-		defaultStatus: 1
-	)]
+	/** Notify private channel, guild channel, and admins that bot is online */
+	#[NCA\HandlesEvent(defaultStatus: Status::Enabled)]
 	public function onConnectEvent(ConnectEvent $eventObj): void {
 		// send Admin(s) a tell that the bot is online
-		foreach ($this->adminManager->admins as $name => $info) {
-			if ($info['level'] === 4 && $this->buddylistManager->isOnline($name) === true) {
+		foreach ($this->adminManager->getAdmins() as $name => $adminLevel) {
+			if ($adminLevel === 4 && $this->buddylistManager->isOnline($name) === true) {
 				$this->chatBot->sendTell('<myname> is now <on>online<end>.', $name);
 			}
 		}
 
-		$version = $this->chatBot->runner::getVersion();
+		$version = BotRunner::getVersion();
 		$msg = "Nadybot <highlight>{$version}<end> is now <on>online<end>.";
 
 		// send a message to guild channel
@@ -541,10 +538,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$config = Hydrator::serialize($this->config);
 		Confidential::$active = false;
 
-		$json = json_encode(
-			$config,
-			\JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE
-		);
+		$json = JSON::export($config, \JSON_PRETTY_PRINT);
 		$context->reply(
 			Text::makeBlob('Your config', $json)
 		);
@@ -582,10 +576,10 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	/** Get system information */
 	#[
-		NCA\Api('/sysinfo'),
-		NCA\GET,
-		NCA\AccessLevel('all'),
-		NCA\ApiResult(code: 200, class: 'SystemInformation', desc: 'Some basic system information')
+		Http\Api('/sysinfo'),
+		Http\GET,
+		Http\AccessLevel(AccessLevel::All),
+		Http\ApiResult(code: 200, class: 'SystemInformation', desc: 'Some basic system information')
 	]
 	public function apiSysinfoGetEndpoint(Request $request): Response {
 		return ApiResponse::create($this->getSystemInfo());

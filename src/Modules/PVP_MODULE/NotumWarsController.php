@@ -8,26 +8,31 @@ use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\ParamClass\{PDuration, PTowerSite};
-use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\StrChoice,
 	CmdContext,
 	Config\BotConfig,
 	DB,
 	EventManager,
+	Events\ConnectEvent,
 	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
+	ParamClass\PDuration,
+	ParamClass\PTowerSite,
+	Routing\RoutableMessage,
+	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Faction,
 	Types\Playfield,
 	Util
 };
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
-use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfoEvent;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
 use Nadybot\Modules\TIMERS_MODULE\{Alert, Timer, TimerController};
 use Psr\Log\LoggerInterface;
@@ -60,49 +65,45 @@ use Throwable;
 	NCA\EmitsMessages('pvp', 'site-cold-neutral'),
 	NCA\EmitsMessages('pvp', 'site-cold-omni'),
 	NCA\EmitsMessages('pvp', 'unplanted-sites'),
-	NCA\ProvidesEvent(
-		event: TowerAttackInfoEvent::class,
-		desc: 'Someone attacks a tower site, includes additional information'
-	),
 	NCA\DefineCommand(
 		command: 'nw',
 		description: 'Perform Notum Wars commands',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'nw hot',
 		alias: 'hot',
 		description: 'Show sites which are hot',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'nw free',
 		alias: 'unplanted',
 		description: 'Show all unplanted sites',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'nw sites',
 		alias: 'sites',
 		description: 'Show all sites of an org',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'nw timer',
 		description: 'Start a plant timer for a site',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'nw towerqty',
 		alias: 'towerqty',
 		description: 'Show how many towers each level is allowed to plant',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'nw types',
 		alias: 'towertype',
 		description: 'Show the level ranges for tower types',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 ]
 /*#[
@@ -383,7 +384,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Event('timer(1h)', 'Announce unplanted sites via pvp(unplanted-sites)')]
+	/** Announce unplanted sites via pvp(unplanted-sites) */
+	#[NCA\Timer(interval: '1h')]
 	public function announceUnplantedSites(): void {
 		$unplantedSites = $this->getUnplantedSites();
 		if (!count($unplantedSites)) {
@@ -406,8 +408,9 @@ class NotumWarsController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[NCA\Event('connect', 'Load all towers from the API')]
-	public function initTowersFromApi(): void {
+	/** Load all towers from the API */
+	#[NCA\HandlesEvent]
+	public function initTowersFromApi(?ConnectEvent $event=null): void {
 		$client = $this->http->build();
 
 		$response = $client->request(new Request(self::TOWER_API));
@@ -460,8 +463,9 @@ class NotumWarsController extends ModuleInstance {
 			->toList();
 	}
 
-	#[NCA\Event('connect', 'Load all attacks from the API')]
-	public function initAttacksFromApi(): void {
+	/** Load all attacks from the API */
+	#[NCA\HandlesEvent]
+	public function initAttacksFromApi(?ConnectEvent $event=null): void {
 		/** @var ?int */
 		$maxTS = $this->db->table(DBTowerAttack::getTable())->max('timestamp');
 		$client = $this->http->build();
@@ -521,8 +525,9 @@ class NotumWarsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event('connect', 'Load all tower outcomes from the API')]
-	public function initOutcomesFromApi(): void {
+	/** Load all tower outcomes from the API */
+	#[NCA\HandlesEvent]
+	public function initOutcomesFromApi(?ConnectEvent $event=null): void {
 		/** @var ?int */
 		$maxTS = $this->db->table(DBOutcome::getTable())->max('timestamp');
 		$client = $this->http->build();
@@ -603,7 +608,8 @@ class NotumWarsController extends ModuleInstance {
 			->toList();
 	}
 
-	#[NCA\Event('site-update', 'Update tower information from the API')]
+	/** Update tower information from the API */
+	#[NCA\HandlesEvent]
 	public function updateSiteInfoFromFeed(Event\SiteUpdateEvent $event): void {
 		$oldSite = $this->state[$event->site->playfield->value][$event->site->site_id] ?? null;
 		$this->updateSiteInfo($event->site);
@@ -618,7 +624,8 @@ class NotumWarsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event('tower-outcome', 'Update tower outcomes from the API')]
+	/** Update tower outcomes from the API */
+	#[NCA\HandlesEvent]
 	public function updateTowerOutcomeInfoFromFeed(Event\TowerOutcomeEvent $event): void {
 		$dbOutcome = DBOutcome::fromTowerOutcome($event->outcome);
 		$this->db->insert($dbOutcome);
@@ -627,7 +634,8 @@ class NotumWarsController extends ModuleInstance {
 			->toList();
 	}
 
-	#[NCA\Event('tower-attack', 'Update tower attacks from the API')]
+	/** Update tower attacks from the API */
+	#[NCA\HandlesEvent]
 	public function updateTowerAttackInfoFromFeed(Event\TowerAttackEvent $event): void {
 		$attack = $event->attack;
 		$attacker = $attack->attacker;
@@ -648,7 +656,7 @@ class NotumWarsController extends ModuleInstance {
 		$attInfo = DBTowerAttack::fromTowerAttack($attack);
 		$this->db->insert($attInfo);
 		$infoEvent = new Event\TowerAttackInfoEvent($attack, $site);
-		$this->eventManager->fireEvent($infoEvent);
+		$this->eventManager->dispatch($infoEvent);
 		if (isset($player)) {
 			return;
 		}
@@ -665,7 +673,8 @@ class NotumWarsController extends ModuleInstance {
 		});
 	}
 
-	#[NCA\Event('gas-update', 'Update gas information from the API')]
+	/** Update gas information from the API */
+	#[NCA\HandlesEvent]
 	public function updateGasInfoFromFeed(Event\GasUpdateEvent $event): void {
 		$site = $this->state[$event->gas->playfield->value][$event->gas->site_id] ?? null;
 		if (!isset($site)) {
@@ -878,23 +887,17 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw timer')]
 	public function plantTimerCommand(
 		CmdContext $context,
-		#[NCA\Str('timer')] string $action,
+		#[Str('timer')] string $action,
 		PTowerSite $site,
 		int $timestamp,
 	): void {
-		try {
-			$pf = Playfield::byName($site->pf);
-		} catch (Throwable) {
-			$context->reply("Unknown playfield {$site->pf}.");
-			return;
-		}
-		$towerSite = $this->state[$pf->value][$site->site] ?? null;
+		$towerSite = $this->state[$site->pf->value][$site->site] ?? null;
 		if (!isset($towerSite)) {
-			$context->reply("No tower field {$pf->short()} {$site->site} found.");
+			$context->reply("No tower field {$site->pf->short()} {$site->site} found.");
 			return;
 		}
 		if ($timestamp <= time()) {
-			$context->reply("Plant {$pf->short()} {$site->site} <highlight>NOW<end>!");
+			$context->reply("Plant {$site->pf->short()} {$site->site} <highlight>NOW<end>!");
 			return;
 		}
 		$timer = $this->getPlantTimer($towerSite, $timestamp);
@@ -916,7 +919,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw free')]
 	public function unplantedSitesCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('unplanted', 'free')] string $action,
+		#[StrChoice('unplanted', 'free')] string $action,
 	): void {
 		$unplantedSites = $this->getUnplantedSites();
 		if (!count($unplantedSites)) {
@@ -934,7 +937,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw')]
 	public function highContractsCommand(
 		CmdContext $context,
-		#[NCA\Str('top', 'highcontracts', 'highcontract')] string $action,
+		#[Str('top', 'highcontracts', 'highcontract')] string $action,
 	): void {
 		$orgQls = [];
 
@@ -988,7 +991,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>nw hot penalty')]
 	public function hotSitesCommand(
 		CmdContext $context,
-		#[NCA\Str('hot')] string $action,
+		#[Str('hot')] string $action,
 		?string $search
 	): void {
 		$search ??= '';
@@ -1041,16 +1044,13 @@ class NotumWarsController extends ModuleInstance {
 				return $gas->inPenalty();
 			});
 		}
-		if (count($matches = Safe::pregMatch("/\s+(neutral|omni|clan|neut)\b/i", $search)) === 2) {
+		if (count($matches = Safe::pregMatch("/\s+(" . Faction::getParamRegexp() . ")\b/i", $search)) === 2) {
 			$this->logger->info('Found <{side}> keyword', [
 				'side' => $matches[1],
 			]);
-			$faction = strtolower($matches[1]);
-			$search = Safe::pregReplace("/\s+(neutral|omni|clan|neut)\b/i", '', $search);
-			if ($faction === 'neut') {
-				$faction = 'neutral';
-			}
-			$hotSites = $hotSites->where('org_faction', ucfirst($faction));
+			$faction = Faction::fromName($matches[1]);
+			$search = Safe::pregReplace("/\s+(" . Faction::getParamRegexp() . ")\b/i", '', $search);
+			$hotSites = $hotSites->where('org_faction', $faction->value);
 		}
 		if (count($matches = Safe::pregMatch("/\s+(\d+)\s*-\s*(\d+)\b/", $search)) === 3) {
 			$this->logger->info('Found level range <{from}>-<{to}>', [
@@ -1079,7 +1079,7 @@ class NotumWarsController extends ModuleInstance {
 				'pf' => $matches[1],
 			]);
 			try {
-				$pf = Playfield::byName($matches[1]);
+				$pf = Playfield::fromName($matches[1]);
 			} catch (Throwable) {
 				$context->reply("Unable to find playfield <highlight>{$matches[1]}<end>.");
 				return;
@@ -1100,10 +1100,10 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$blob = $this->renderHotSites($time, ...$hotSites->toArray());
 		if ($soon > 0) {
-			$sitesLabel = isset($faction) ? ucfirst(strtolower($faction)) . ' sites' : 'Sites';
+			$sitesLabel = isset($faction) ? $faction->value . ' sites' : 'Sites';
 			$msg = Text::makeBlob("{$sitesLabel} going hot soon ({$hotSites->count()})", $blob);
 		} else {
-			$faction = isset($faction) ? ' ' . strtolower($faction) : '';
+			$faction = isset($faction) ? ' ' . strtolower($faction->value) : '';
 			$inPenalty = ($penalty > 0) ? ' in penalty' : '';
 			$msg = Text::makeBlob("Hot{$faction} sites{$inPenalty} ({$hotSites->count()})", $blob);
 		}
@@ -1115,7 +1115,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw sites')]
 	public function listMyOrgsSitesCommand(
 		CmdContext $context,
-		#[NCA\Str('sites')] string $action,
+		#[Str('sites')] string $action,
 	): void {
 		$player = $this->playerManager->byName($context->char->name);
 		if (!isset($player) || !isset($player->guild_id)) {
@@ -1140,7 +1140,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw sites')]
 	public function listOrgSitesByIDCommand(
 		CmdContext $context,
-		#[NCA\Str('sites')] string $action,
+		#[Str('sites')] string $action,
 		int $orgID
 	): void {
 		$matches = $this->getEnabledSites()->whereStrict('org_id', $orgID);
@@ -1169,8 +1169,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>nw sites nady')]
 	public function listOrgSitesCommand(
 		CmdContext $context,
-		#[NCA\Str('sites')] string $action,
-		#[NCA\Str('org')] ?string $forceOrg,
+		#[Str('sites')] string $action,
+		#[Str('org')] ?string $forceOrg,
 		string $search
 	): void {
 		$searchTerm = $search;
@@ -1210,8 +1210,8 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw towerqty')]
 	public function towerQtyCommand(
 		CmdContext $context,
-		#[NCA\Str('towerqty')] string $action,
-		#[NCA\Str('all')] ?string $all,
+		#[Str('towerqty')] string $action,
+		#[Str('all')] ?string $all,
 	): void {
 		if (isset($all)) {
 			$msg = Text::makeBlob('Allowed number of towers', $this->getAllTowerQuantitiesBlob());
@@ -1245,7 +1245,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand('nw types')]
 	public function towerTypeCommand(
 		CmdContext $context,
-		#[NCA\Str('types', 'towertype', 'towertypes', 'towers')] string $action,
+		#[Str('types', 'towertype', 'towertypes', 'towers')] string $action,
 	): void {
 		$blob = '<header2>Tower types by QL<end>';
 		$minQL = 1;
@@ -1269,7 +1269,7 @@ class NotumWarsController extends ModuleInstance {
 		#[NCA\HandlesCommand("nw test")]
 		public function towerTestCommand(
 			CmdContext $context,
-			#[NCA\Str("test", "tests")] string $action,
+			#[Str("test", "tests")] string $action,
 		): void {
 			$blobs = [];
 			$site = new FeedMessage\SiteUpdate(

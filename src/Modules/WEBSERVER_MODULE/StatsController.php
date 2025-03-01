@@ -8,10 +8,12 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	Config\BotConfig,
 	ModuleInstance,
 	Registry,
 	SettingManager,
+	Types\AccessLevel,
 	Types\SettingMode,
 	Util,
 };
@@ -33,12 +35,17 @@ use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\ValueProvider;
 #[NCA\Instance]
 class StatsController extends ModuleInstance {
 	/** Enable Prometheus endpoint at /metrics */
-	#[NCA\Setting\Boolean(accessLevel: 'admin')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::Admin)]
 	public bool $prometheusEnabled = true;
 
 	/** Auth token for Prometheus endpoint */
-	#[NCA\Setting\Text(accessLevel: 'admin', mode: SettingMode::NoEdit)]
+	#[NCA\Setting\Text(
+		accessLevel: AccessLevel::Admin,
+		mode: SettingMode::NoEdit,
+		confidential: true
+	)]
 	public string $prometheusAuthToken = '';
+
 	#[NCA\Inject]
 	private SettingManager $settingManager;
 
@@ -95,8 +102,8 @@ class StatsController extends ModuleInstance {
 
 	/** Query prometheus-formatted statistics */
 	#[
-		NCA\HttpGet('/metrics'),
-		NCA\HttpOwnAuth,
+		Http\HttpGet('/metrics'),
+		Http\HttpOwnAuth,
 	]
 	public function getMetricsEndpoint(Request $request): Response {
 		if (!$this->settingManager->getBool('prometheus_enabled')) {

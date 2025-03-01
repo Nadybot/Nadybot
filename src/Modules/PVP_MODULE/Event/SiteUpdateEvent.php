@@ -2,15 +2,14 @@
 
 namespace Nadybot\Modules\PVP_MODULE\Event;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Modules\PVP_MODULE\FeedMessage;
 
-class SiteUpdateEvent extends Event {
-	public const EVENT_MASK = 'site-update';
-
+/** New  information about a tower site */
+#[Event(mask: 'site-update')]
+class SiteUpdateEvent {
 	public function __construct(
 		public FeedMessage\SiteUpdate $site
 	) {
-		$this->type = self::EVENT_MASK;
 	}
 }

@@ -4,14 +4,11 @@ namespace Nadybot\Core\Attributes;
 
 use Attribute;
 
-#[Attribute(Attribute::TARGET_METHOD|Attribute::IS_REPEATABLE)]
+/** This class can be used as an event */
+#[Attribute(Attribute::TARGET_CLASS)]
 class Event {
-	/** @param string|list<string> $name */
 	public function __construct(
-		public string|array $name,
-		public string $description,
-		public ?string $help=null,
-		public ?int $defaultStatus=null,
+		public readonly string $mask,
 	) {
 	}
 }

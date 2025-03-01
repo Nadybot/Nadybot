@@ -3,19 +3,27 @@
 namespace Nadybot\Core;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\DBSchema\CmdPermissionSet;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\CmdCfg,
 	DBSchema\CmdPermission,
+	DBSchema\CmdPermissionSet,
+	Types\AccessLevel,
+	Types\Status,
 };
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 
+/** This class manages all commands which are actually subcommands of other commands */
 #[NCA\Instance]
 class SubcommandManager {
-	/** @var array<string,CmdCfg[]> */
+	/**
+	 * All registered subcommands as an associative array, keyed
+	 * by the subcommand names
+	 *
+	 * @var array<string,CmdCfg[]>
+	 */
 	public array $subcommands = [];
 
 	#[NCA\Logger]
@@ -25,29 +33,56 @@ class SubcommandManager {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	/** @var array<string,CmdPermission> */
 	private array $cmdDefaultPermissions = [];
 
-	/** Register a subcommand */
+	/**
+	 * List of all configured sub-commands
+	 *
+	 * @var array<string,true>
+	 */
+	private array $configuredSubcmds = [];
+
+	/** Initialize the database before setup is called */
+	public function init(): void {
+		$this->db->table(CmdCfg::getTable())
+			->update(['verify' => 0]);
+		$this->db->table(CmdCfg::getTable())
+			->where('cmdevent', 'subcmd')
+			->asObj(CmdCfg::class)
+			->each(function (CmdCfg $row): void {
+				$this->configuredSubcmds[$row->cmd] = true;
+			});
+	}
+
+	/**
+	 * Register a subcommand
+	 *
+	 * @param string      $module        The module that defines the subcommand
+	 * @param string      $filename      The handler of the subcommand in the
+	 *                                   format `<class name>.<method name>`
+	 * @param string      $command       The actual command
+	 * @param AccessLevel $accessLevel   Access level required to run the subcommand
+	 * @param string      $parentCommand The parent command of this subcommand
+	 * @param string      $description   A short description of the command
+	 * @param null|Status $defaultStatus The default status (enabled or disabled)
+	 */
 	public function register(
 		string $module,
 		string $filename,
 		string $command,
-		string $accessLevel,
+		AccessLevel $accessLevel,
 		string $parentCommand,
 		string $description='none',
-		?int $defaultStatus=null
+		?Status $defaultStatus=null
 	): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
 
 		$name = explode('.', $filename)[0];
-		if (!Registry::instanceExists($name)) {
+		if (!Registry::hasInstance($name)) {
 			$this->logger->error("Error registering handler {handler} for subcommand {command}.  Could not find instance '{instance}'.", [
 				'handler' => $filename,
 				'command' => $command,
@@ -56,19 +91,11 @@ class SubcommandManager {
 			return;
 		}
 
-		if ($defaultStatus === null) {
-			if ($this->config->general->defaultModuleStatus === 1) {
-				$status = 1;
-			} else {
-				$status = 0;
-			}
-		} else {
-			$status = $defaultStatus;
-		}
+		$status = $defaultStatus ?? $this->config->general->defaultModuleStatus;
 
 		$defaultPerms = new CmdPermission(
 			access_level: $accessLevel,
-			enabled: (bool)$status,
+			enabled: $status === Status::Enabled,
 			cmd: $command,
 			permission_set: 'default',
 		);
@@ -87,7 +114,7 @@ class SubcommandManager {
 			dependson: $parentCommand,
 			cmdevent: 'subcmd',
 		));
-		if (isset($this->chatBot->existing_subcmds[$command])) {
+		if (isset($this->configuredSubcmds[$command])) {
 			return;
 		}
 		$permSets = $this->db->table(CmdPermissionSet::getTable())
@@ -99,14 +126,14 @@ class SubcommandManager {
 						'permission_set' => $permSet,
 						'access_level' => $accessLevel,
 						'cmd' => $command,
-						'enabled' => (bool)$status,
+						'enabled' => $status === Status::Enabled,
 						'id' => Uuid::uuid7(),
 					],
 				);
 		}
 	}
 
-	/** Load the active subcommands into memory and activates them */
+	/** Load the active subcommands into memory and activate them */
 	public function loadSubcommands(): void {
 		$this->logger->info('Loading enabled subcommands');
 
@@ -142,6 +169,7 @@ class SubcommandManager {
 			});
 	}
 
+	/** Get the default permissions of a subcommand */
 	public function getDefaultPermissions(string $cmd): ?CmdPermission {
 		return $this->cmdDefaultPermissions[$cmd] ?? null;
 	}

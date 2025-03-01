@@ -6,8 +6,12 @@ use Amp\File\{File, Filesystem as AmpFilesystem, FilesystemException};
 use Nadybot\Core\Types\LazyValue;
 use Psr\Log\LoggerInterface;
 
+/**
+ * An abstract class wrapping filesystem calls that allows better logging
+ * and additional functionality to the Amp filesystem class
+ */
 final class Filesystem {
-	/** Internal counter to track the nth function call reliably */
+	/** Internal counter to track the n-th function call reliably */
 	private static int $callNum = 1;
 
 	public function __construct(
@@ -16,10 +20,12 @@ final class Filesystem {
 	) {
 	}
 
+	/** Get the underlying filesystem instance */
 	public function getFilesystem(): AmpFilesystem {
 		return $this->fs;
 	}
 
+	/** Set a logger to use */
 	public function setLogger(LoggerInterface $logger): void {
 		$this->logger = $logger;
 	}
@@ -489,8 +495,8 @@ final class Filesystem {
 	/**
 	 * Change ownership of a file or directory.
 	 *
-	 * @param int|null $uid null to ignore
-	 * @param int|null $gid null to ignore
+	 * @param null|int $uid null to ignore
+	 * @param null|int $gid null to ignore
 	 */
 	public function changeOwner(string $path, ?int $uid, ?int $gid=null): void {
 		$callNum = self::$callNum++;
@@ -514,8 +520,8 @@ final class Filesystem {
 	 *
 	 * If the file does not exist it will be created automatically.
 	 *
-	 * @param int|null $modificationTime The touch time. If $time is not supplied, the current system time is used.
-	 * @param int|null $accessTime       The access time. If not supplied, the modification time is used.
+	 * @param null|int $modificationTime The touch time. If $time is not supplied, the current system time is used.
+	 * @param null|int $accessTime       The access time. If not supplied, the modification time is used.
 	 */
 	public function touch(string $path, ?int $modificationTime=null, ?int $accessTime=null): void {
 		$callNum = self::$callNum++;

@@ -2,14 +2,9 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
-class AltDelEvent extends AltEvent {
-	public const EVENT_MASK = 'alt(del)';
+use Nadybot\Core\Attributes\Event;
 
-	public function __construct(
-		public string $main,
-		public string $alt,
-		public ?bool $validated,
-	) {
-		$this->type = self::EVENT_MASK;
-	}
+/** Dispatched every time a main deletes one of their alt characters */
+#[Event(mask: 'alt(del)')]
+class AltDelEvent extends AltEvent {
 }

@@ -6,6 +6,7 @@ use AO\SendPriority;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	CmdContext,
 	Config\BotConfig,
 	DB,
@@ -18,9 +19,9 @@ use Nadybot\Core\{
 	PrivateChannelCommandReply,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
-
 use Nadybot\Modules\RAID_MODULE\RaidController;
 
 /**
@@ -31,20 +32,14 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'raffle',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Join or leave raffles',
 	),
 	NCA\DefineCommand(
 		command: RaffleController::CMD_RAFFLE_MANAGE,
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Raffle off items to players',
 	),
-
-	NCA\ProvidesEvent(RaffleStartEvent::class),
-	NCA\ProvidesEvent(RaffleCancelEvent::class),
-	NCA\ProvidesEvent(RaffleEndEvent::class),
-	NCA\ProvidesEvent(RaffleEnterEvent::class),
-	NCA\ProvidesEvent(RaffleLeaveEvent::class)
 ]
 class RaffleController extends ModuleInstance {
 	public const NO_RAFFLE_ERROR = 'There is no active raffle.';
@@ -89,7 +84,7 @@ class RaffleController extends ModuleInstance {
 
 	/** Rank required to cancel other people's raffle */
 	#[NCA\Setting\Rank]
-	public string $raffleCancelotherRank = 'mod';
+	public AccessLevel $raffleCancelotherRank = AccessLevel::Mod;
 
 	/** Players are allowed to join for multiple items */
 	#[NCA\Setting\Boolean]
@@ -156,7 +151,7 @@ class RaffleController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>raffle start 30s ACDC')]
 	public function raffleStartCommand(
 		CmdContext $context,
-		#[NCA\Str('start')] string $action,
+		#[Str('start')] string $action,
 		string $raffleString
 	): void {
 		if (isset($this->raffle)) {
@@ -191,7 +186,7 @@ class RaffleController extends ModuleInstance {
 			);
 		}
 		$event = new RaffleStartEvent(raffle: $this->raffle);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$this->announceRaffleStart();
 		$adminMsg = 'You can control the raffle via the '.
@@ -220,7 +215,7 @@ class RaffleController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>raffle add 30s ACDC')]
 	public function raffleAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		string $raffleString
 	): void {
 		$newRaffle = !isset($this->raffle);
@@ -264,7 +259,7 @@ class RaffleController extends ModuleInstance {
 			}
 			$event = new RaffleAddEvent(raffle: $raffle);
 		}
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		if ($newRaffle) {
 			$this->announceRaffleStart();
@@ -319,7 +314,7 @@ class RaffleController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
 	public function raffleCancelCommand(
 		CmdContext $context,
-		#[NCA\Str('cancel', 'stop')] string $action
+		#[Str('cancel', 'stop')] string $action
 	): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
@@ -328,15 +323,14 @@ class RaffleController extends ModuleInstance {
 
 		$cancelMinRank = $this->raffleCancelotherRank;
 		if (($this->raffle->raffler !== $context->char->name) && !$this->accessManager->checkAccess($context->char->name, $cancelMinRank)) {
-			$requiredRank = $this->accessManager->getDisplayName($cancelMinRank);
-			$msg = "Only the owner or a {$requiredRank} may cancel the raffle.";
+			$msg = "Only the owner or a {$cancelMinRank->displayName()} may cancel the raffle.";
 			$context->reply($msg);
 			return;
 		}
 		$msg = "The raffle was <off>cancelled<end> by <highlight>{$context->char->name}<end>.";
 		$this->raffle->sendto->reply($msg);
 		$event = new RaffleCancelEvent(raffle: $this->raffle);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		$this->raffle = null;
 	}
 
@@ -344,14 +338,17 @@ class RaffleController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
 	public function raffleEndCommand(
 		CmdContext $context,
-		#[NCA\Str('end')] string $action
+		#[Str('end')] string $action
 	): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
 			return;
 		}
 
-		if (($this->raffle->raffler !== $context->char->name) && !$this->accessManager->checkAccess($context->char->name, 'mod')) {
+		if (
+			($this->raffle->raffler !== $context->char->name)
+			&& !$this->accessManager->checkAccess($context->char->name, AccessLevel::Mod)
+		) {
 			$msg = 'Only the owner or a moderator may end the raffle.';
 			$context->reply($msg);
 			return;
@@ -368,7 +365,7 @@ class RaffleController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
 	public function raffleTimerCommand(
 		CmdContext $context,
-		#[NCA\Str('timer')] string $action,
+		#[Str('timer')] string $action,
 		PDuration $duration
 	): void {
 		if (!isset($this->raffle)) {
@@ -376,7 +373,10 @@ class RaffleController extends ModuleInstance {
 			return;
 		}
 
-		if (($this->raffle->raffler !== $context->char->name) && !$this->accessManager->checkAccess($context->char->name, 'mod')) {
+		if (
+			($this->raffle->raffler !== $context->char->name)
+			&& !$this->accessManager->checkAccess($context->char->name, AccessLevel::Mod)
+		) {
 			$msg = 'Only the owner or a moderator may set or change the raffle timer.';
 			$context->reply($msg);
 			return;
@@ -399,7 +399,7 @@ class RaffleController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
 	public function raffleAnnounceCommand(
 		CmdContext $context,
-		#[NCA\Str('announce')] string $action,
+		#[Str('announce')] string $action,
 		?string $message
 	): void {
 		if (!isset($this->raffle)) {
@@ -407,7 +407,10 @@ class RaffleController extends ModuleInstance {
 			return;
 		}
 
-		if (($this->raffle->raffler !== $context->char->name) && !$this->accessManager->checkAccess($context->char->name, 'mod')) {
+		if (
+			($this->raffle->raffler !== $context->char->name)
+			&& !$this->accessManager->checkAccess($context->char->name, AccessLevel::Mod)
+		) {
 			$msg = 'Only the owner or a moderator may announce the raffle.';
 			$context->reply($msg);
 			return;
@@ -422,7 +425,7 @@ class RaffleController extends ModuleInstance {
 	#[NCA\HandlesCommand('raffle')]
 	public function raffleJoinCommand(
 		CmdContext $context,
-		#[NCA\Str('join', 'enter')] string $action,
+		#[Str('join', 'enter')] string $action,
 		?int $slot
 	): void {
 		if (!isset($this->raffle)) {
@@ -488,7 +491,7 @@ class RaffleController extends ModuleInstance {
 		}
 		$this->raffle->slots[$slot]->participants []= $context->char->name;
 		$event = new RaffleEnterEvent(raffle: $this->raffle, player: $context->char->name);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		if ($this->raffleAnnounceParticipants) {
 			$msg = "<highlight>{$context->char->name}<end> <on>joined<end> the raffle";
@@ -510,7 +513,7 @@ class RaffleController extends ModuleInstance {
 	#[NCA\HandlesCommand('raffle')]
 	public function raffleLeaveCommand(
 		CmdContext $context,
-		#[NCA\Str('leave')] string $action,
+		#[Str('leave')] string $action,
 		?int $slot
 	): void {
 		if (!isset($this->raffle)) {
@@ -528,7 +531,7 @@ class RaffleController extends ModuleInstance {
 				$raffleSlot->removeParticipant($context->char->name);
 			}
 			$event = new RaffleLeaveEvent(raffle: $this->raffle, player: $context->char->name);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 			if ($this->raffleAnnounceParticipants) {
 				$this->raffle->sendto->reply(
 					"<highlight>{$context->char->name}<end> left the raffle."
@@ -554,7 +557,7 @@ class RaffleController extends ModuleInstance {
 		}
 
 		$event = new RaffleLeaveEvent(raffle: $this->raffle, player: $context->char->name);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		if ($this->raffleAnnounceParticipants) {
 			$msg = "<highlight>{$context->char->name}<end> <off>left<end> the raffle";
 			if (count($this->raffle->slots) > 1) {
@@ -571,10 +574,8 @@ class RaffleController extends ModuleInstance {
 		);
 	}
 
-	#[NCA\Event(
-		name: 'timer(1sec)',
-		description: 'Announce and/or end raffle'
-	)]
+	/** Announce and/or end raffle */
+	#[NCA\Timer(interval: '1sec')]
 	public function checkRaffleEvent(Event $eventObj): void {
 		if (!isset($this->raffle)) {
 			return;
@@ -598,7 +599,7 @@ class RaffleController extends ModuleInstance {
 			$slot->result = $this->getSlotResult($slot);
 		}
 		$event = new RaffleEndEvent(raffle: $raffle);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		$this->announceRaffleResults($raffle);
 		$this->adjustBonusPoints($raffle);
 	}

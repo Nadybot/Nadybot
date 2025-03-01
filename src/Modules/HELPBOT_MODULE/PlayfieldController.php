@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Playfield as CorePlayfield,
 };
 
@@ -22,13 +23,13 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/Playfields'),
 	NCA\DefineCommand(
 		command: 'playfields',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show playfield ids, long names, and short names',
 		alias: 'playfield'
 	),
 	NCA\DefineCommand(
 		command: 'waypoint',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Create a waypoint link',
 	)
 ]
@@ -86,7 +87,11 @@ class PlayfieldController extends ModuleInstance {
 	/** Create a waypoint link in the chat */
 	#[NCA\HandlesCommand('waypoint')]
 	#[NCA\Help\Example('<symbol>waypoint Pos: 17.5, 28.1, 100.2, Area: Perpetual Wastelands')]
-	public function waypoint1Command(CmdContext $context, #[NCA\Str('Pos:')] string $action, string $posString): void {
+	public function waypoint1Command(
+		CmdContext $context,
+		#[NCA\Parameter\Str('Pos:')] string $action,
+		string $posString
+	): void {
 		if (!count($args = Safe::pregMatch('/^([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: ([a-zA-Z ]+)$/i', $posString))) {
 			$context->reply('Wrong waypoint format.');
 			return;
@@ -97,7 +102,7 @@ class PlayfieldController extends ModuleInstance {
 
 		$playfieldName = $args[4];
 
-		$playfield = CorePlayfield::tryByName($playfieldName);
+		$playfield = CorePlayfield::tryFromName($playfieldName);
 		if ($playfield === null) {
 			$context->reply("Could not find playfield '{$playfieldName}'.");
 			return;
@@ -134,7 +139,7 @@ class PlayfieldController extends ModuleInstance {
 				$playfieldName = $playfield->short();
 			}
 		} elseif (isset($playfieldName)) {
-			$playfield = CorePlayfield::tryByName($playfieldName);
+			$playfield = CorePlayfield::tryFromName($playfieldName);
 			if (!isset($playfield)) {
 				$context->reply("Unknown playfield {$playfieldName}");
 				return;

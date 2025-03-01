@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	EventManager,
 	ModuleInstance,
 	Nadybot,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\GUILD_MODULE\GuildController;
 
@@ -23,21 +24,19 @@ use Nadybot\Modules\GUILD_MODULE\GuildController;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'say',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Sends message to org chat or private chat',
 	),
 	NCA\DefineCommand(
 		command: 'tell',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Repeats a message 3 times',
 	),
 	NCA\DefineCommand(
 		command: 'cmd',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Creates a highly visible message',
 	),
-	NCA\ProvidesEvent(SayEvent::class),
-	NCA\ProvidesEvent(CmdEvent::class)
 ]
 class ChatSayController extends ModuleInstance {
 	/** The color that !cmd wraps the message in */
@@ -61,7 +60,7 @@ class ChatSayController extends ModuleInstance {
 
 	/** Have the bot say something in the org channel */
 	#[NCA\HandlesCommand('say')]
-	public function sayOrgCommand(CmdContext $context, #[NCA\Str('org')] string $channel, string $message): void {
+	public function sayOrgCommand(CmdContext $context, #[NCA\Parameter\Str('org')] string $channel, string $message): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply('You can only use this command on a bot in a guild.');
 			return;
@@ -80,12 +79,12 @@ class ChatSayController extends ModuleInstance {
 			player: $context->char->name,
 			message: $message
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Have the bot say something in the private channel */
 	#[NCA\HandlesCommand('say')]
-	public function sayPrivCommand(CmdContext $context, #[NCA\Str('priv')] string $channel, string $message): void {
+	public function sayPrivCommand(CmdContext $context, #[NCA\Parameter\Str('priv')] string $channel, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -96,7 +95,7 @@ class ChatSayController extends ModuleInstance {
 			player: $context->char->name,
 			message: $message,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Show a highly visible message */
@@ -123,7 +122,7 @@ class ChatSayController extends ModuleInstance {
 			player: $context->char->name,
 			message: $message,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Repeat a message 3 times */

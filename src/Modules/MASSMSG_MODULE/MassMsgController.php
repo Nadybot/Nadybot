@@ -13,42 +13,42 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,
+	MyOrg,
 	Nadybot,
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Safe\DateTimeImmutable;
 
 /**
  * This class contains all functions necessary for mass messaging
- *
- * @package Nadybot\Modules\MASSMSG_MODULE
  */
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'massmsg',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Send messages to all bot members online',
 		alias: 'massmessage'
 	),
 	NCA\DefineCommand(
 		command: 'massmsgs',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Control if you want to receive mass messages',
 	),
 	NCA\DefineCommand(
 		command: 'massinvites',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Control if you want to receive mass invites',
 	),
 	NCA\DefineCommand(
 		command: 'massinv',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Send invites with a message to all bot members online',
 		alias: 'massinvite'
 	),
@@ -96,6 +96,9 @@ class MassMsgController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private BotConfig $config;
+
+	#[NCA\Inject]
+	private MyOrg $myOrg;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -231,14 +234,14 @@ class MassMsgController extends ModuleInstance {
 				continue;
 			}
 			if ($name === $this->config->main->character
-				|| !$this->accessManager->checkAccess($name, 'member')) {
+				|| !$this->accessManager->checkAccess($name, AccessLevel::Member)) {
 				continue;
 			}
-			if (isset($this->chatBot->chatlist[$name])) {
+			if ($this->chatBot->inChatlist($name)) {
 				$result[$name] = static::IN_CHAT;
 				continue;
 			}
-			if (isset($this->chatBot->guildmembers[$name])) {
+			if ($this->myOrg->isMember($name)) {
 				$result[$name] = static::IN_ORG;
 				continue;
 			}

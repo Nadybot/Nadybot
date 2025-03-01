@@ -13,7 +13,7 @@ use Stringable;
  * sending messages or responding to a slash command or other interaction.
  * The top-level components field is an array of Action Row components.
  *
- * @link https://discord.com/developers/docs/interactions/message-components#action-rows for the full documentation
+ * @see https://discord.com/developers/docs/interactions/message-components#action-rows for the full documentation
  */
 class DiscordComponent implements Stringable {
 	use ReducedStringableTrait;

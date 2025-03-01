@@ -5,16 +5,11 @@ namespace Nadybot\Modules\PVP_MODULE;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{EventManager, Events\Event as CoreEvent, Hydrator, ModuleInstance, Types\EventFeedHandler};
-use Nadybot\Modules\PVP_MODULE\Event\{GasUpdateEvent, SiteUpdateEvent, TowerAttackEvent, TowerOutcomeEvent};
 use Psr\Log\LoggerInterface;
 
 #[
 	NCA\Instance,
 	NCA\HandlesEventFeed('tower_events'),
-	NCA\ProvidesEvent(GasUpdateEvent::class, 'Gas on a tower field changes'),
-	NCA\ProvidesEvent(SiteUpdateEvent::class, 'New  information about a tower site'),
-	NCA\ProvidesEvent(TowerAttackEvent::class, 'Someone attacks a tower site'),
-	NCA\ProvidesEvent(TowerOutcomeEvent::class, 'A tower field gets destroyed'),
 ]
 class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Logger]
@@ -40,7 +35,7 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 		$this->nwCtrl->initOutcomesFromApi();
 	}
 
-	/** @param array<string,mixed> $data */
+	/** {@inheritDoc} */
 	public function handleEventFeedMessage(string $room, array $data): void {
 		/** @var array<string,array{class-string,class-string}> */
 		$mapping = [
@@ -74,7 +69,7 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 			$event = new ($specs[1])($info);
 			$this->logger->info('Received tower-feed event {event}', ['event' => $event]);
 			if ($event instanceof CoreEvent) {
-				$this->eventManager->fireEvent($event);
+				$this->eventManager->dispatch($event);
 			}
 		} catch (UnableToHydrateObject $e) {
 			return;

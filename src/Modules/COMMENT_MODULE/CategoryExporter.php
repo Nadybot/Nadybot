@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	DB,
 	ExportCharacter,
 	ModuleInstance,
+	Types\AccessLevel,
 	Types\ExporterInterface,
 	Types\ImporterInterface
 };
@@ -39,8 +40,8 @@ class CategoryExporter extends ModuleInstance implements ExporterInterface, Impo
 					name: $category->name,
 					createdBy: new ExportCharacter(name: $category->created_by),
 					createdAt: $category->created_at,
-					minRankToRead: $category->min_al_read,
-					minRankToWrite: $category->min_al_write,
+					minRankToRead: $category->min_al_read->value,
+					minRankToWrite: $category->min_al_write->value,
 					systemEntry: !$category->user_managed,
 				);
 			})->toList();
@@ -66,8 +67,8 @@ class CategoryExporter extends ModuleInstance implements ExporterInterface, Impo
 					name: $category->name,
 					created_by: $createdBy ?? $this->config->main->character,
 					created_at: $category->createdAt ?? time(),
-					min_al_read: $rankMap[$category->minRankToRead] ?? 'mod',
-					min_al_write: $rankMap[$category->minRankToWrite] ?? 'admin',
+					min_al_read: AccessLevel::tryFromName($category->minRankToRead ?? 'mod') ?? AccessLevel::Mod,
+					min_al_write: AccessLevel::tryFromName($category->minRankToWrite ?? 'admin') ?? AccessLevel::Admin,
 				);
 
 				$entry->user_managed = isset($oldEntry) ? $oldEntry->user_managed : !($category->systemEntry ?? false);

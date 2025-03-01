@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use Stringable;
 
+/** This is an abstract class for a row that an SQL query can return */
 abstract class DBRow implements Stringable {
 	use StringableTrait;
 

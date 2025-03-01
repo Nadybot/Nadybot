@@ -6,16 +6,16 @@ use Exception;
 use Nadybot\Core\{Attributes as NCA, Util};
 
 /**
- * Class to represent a time setting for NadyBot
+ * Class to represent a time setting for Nadybot
  */
 #[NCA\SettingHandler('time')]
 class TimeSettingHandler extends SettingHandler {
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function displayValue(string $sender): string {
 		return '<highlight>' . Util::unixtimeToReadable((int)$this->row->value) . '<end>';
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getDescription(): string {
 		$msg = "For this setting you must enter a time value. See <a href='chatcmd:///tell <myname> help budatime'>budatime</a> for info on the format of the 'time' parameter.\n\n";
 		$msg .= "To change this setting:\n\n";
@@ -24,7 +24,7 @@ class TimeSettingHandler extends SettingHandler {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 *
 	 * @throws \Exception when the time is invalid
 	 */

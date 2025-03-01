@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\LOOT_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Attributes\Parameter\{NoSpace,NumberStr,Quantity,Remove,SpaceOptional,Str,StrChoice};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -14,13 +15,11 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PItem,
-	ParamClass\PQuantity,
-	ParamClass\PRemove,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
-
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
 	ITEMS_MODULE\AODBEntry,
@@ -37,44 +36,44 @@ use Nadybot\Modules\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'loot',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show the loot list',
 		alias: 'list',
 	),
 	NCA\DefineCommand(
 		command: LootController::CMD_LOOT_MANAGE,
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Modify the loot list',
 	),
 	NCA\DefineCommand(
 		command: 'mloot',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Put multiple items on the loot list',
 	),
 	NCA\DefineCommand(
 		command: 'reroll',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Reroll the residual loot list',
 	),
 	NCA\DefineCommand(
 		command: 'flatroll',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Roll the loot list',
 		alias: ['rollloot', 'result', 'win'],
 	),
 	NCA\DefineCommand(
 		command: 'add',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Add yourself to a roll slot',
 	),
 	NCA\DefineCommand(
 		command: 'rem',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Remove yourself from a roll slot',
 	),
 	NCA\DefineCommand(
 		command: 'ffa',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Declare the remaining loot FFA',
 	),
 ]
@@ -148,10 +147,8 @@ class LootController extends ModuleInstance {
 		$this->roll = (int)$this->db->table(LootHistory::getTable())->max('roll') + 1;
 	}
 
-	#[NCA\Event(
-		name: 'timer(30sec)',
-		description: 'Periodically announce running loot rolls'
-	)]
+	/** Periodically announce running loot rolls */
+	#[NCA\Timer(interval: '30sec')]
 	public function announceLootList(): void {
 		if (!count($this->loot)) {
 			return;
@@ -178,7 +175,7 @@ class LootController extends ModuleInstance {
 	#[NCA\Help\Group('loot')]
 	public function lootHistoryCommand(
 		CmdContext $context,
-		#[NCA\Str('history')] string $action,
+		#[Str('history')] string $action,
 	): void {
 		$items = $this->db->table(LootHistory::getTable())
 			->orderByDesc('dt')
@@ -215,8 +212,8 @@ class LootController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>loot history 17')]
 	public function lootShowNumberCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('show', 'history')] string $action,
-		#[NCA\PNumber] #[NCA\Str('last')] string $number,
+		#[StrChoice('show', 'history')] string $action,
+		#[NumberStr] #[Str('last')] string $number,
 	): void {
 		if (strtolower($number) === 'last') {
 			$number = $this->db->table(LootHistory::getTable())->max('roll');
@@ -267,10 +264,10 @@ class LootController extends ModuleInstance {
 	#[NCA\Help\Group('loot')]
 	public function lootSearchWinnerCommand(
 		CmdContext $context,
-		#[NCA\Str('search')] string $action,
-		#[NCA\Str('last')] ?string $lastOnly,
-		#[NCA\Str('winner=')] string $subAction,
-		#[NCA\NoSpace] PCharacter $winner,
+		#[Str('search')] string $action,
+		#[Str('last')] ?string $lastOnly,
+		#[Str('winner=')] string $subAction,
+		#[NoSpace] PCharacter $winner,
 	): void {
 		$items = $this->db->table(LootHistory::getTable())
 			->where('winner', $winner())
@@ -313,10 +310,10 @@ class LootController extends ModuleInstance {
 	#[NCA\Help\Group('loot')]
 	public function lootSearchNameCommand(
 		CmdContext $context,
-		#[NCA\Str('search')] string $action,
-		#[NCA\Str('last')] ?string $lastOnly,
-		#[NCA\Str('item=')] string $subAction,
-		#[NCA\NoSpace] string $search,
+		#[Str('search')] string $action,
+		#[Str('last')] ?string $lastOnly,
+		#[Str('item=')] string $subAction,
+		#[NoSpace] string $search,
 	): void {
 		$search = trim($search);
 		if (strlen($search) < 1) {
@@ -371,7 +368,7 @@ class LootController extends ModuleInstance {
 	/** Clear the current loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group('loot')]
-	public function lootClearCommand(CmdContext $context, #[NCA\Str('clear')] string $action): void {
+	public function lootClearCommand(CmdContext $context, #[Str('clear')] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -390,7 +387,7 @@ class LootController extends ModuleInstance {
 	/** Add an item from a loot list to the loot roll */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group('loot')]
-	public function lootAddByIdCommand(CmdContext $context, #[NCA\Str('add')] string $action, int $id): void {
+	public function lootAddByIdCommand(CmdContext $context, #[Str('add')] string $action, int $id): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -432,7 +429,7 @@ class LootController extends ModuleInstance {
 	/** Auction off an item from a loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group('loot')]
-	public function lootAuctionByIdCommand(CmdContext $context, #[NCA\Str('auction')] string $action, int $id): void {
+	public function lootAuctionByIdCommand(CmdContext $context, #[Str('auction')] string $action, int $id): void {
 		$loot = $this->getLootEntryID($id);
 
 		if ($loot === null) {
@@ -455,7 +452,7 @@ class LootController extends ModuleInstance {
 	#[NCA\Help\Group('loot')]
 	public function lootRaffleByIdCommand(
 		CmdContext $context,
-		#[NCA\Str('raffle')] string $action,
+		#[Str('raffle')] string $action,
 		int $id
 	): void {
 		$loot = $this->getLootEntryID($id);
@@ -478,7 +475,7 @@ class LootController extends ModuleInstance {
 	/** Add an item to the loot roll by name or by pasting it */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group('loot')]
-	public function lootAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, string $item): void {
+	public function lootAddCommand(CmdContext $context, #[Str('add')] string $action, string $item): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -493,8 +490,8 @@ class LootController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>loot addmulti 3 Lockpick')]
 	public function multilootCommand(
 		CmdContext $context,
-		#[NCA\Str('addmulti', 'multiadd')] string $action,
-		PQuantity $amount,
+		#[Str('addmulti', 'multiadd')] string $action,
+		#[Quantity] int $amount,
 		string $items
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -502,7 +499,7 @@ class LootController extends ModuleInstance {
 			return;
 		}
 
-		$this->addLootItem($items, $amount(), $context->char->name);
+		$this->addLootItem($items, $amount, $context->char->name);
 	}
 
 	/** Add one item to the loot roll */
@@ -574,7 +571,7 @@ class LootController extends ModuleInstance {
 	/** Remove a single item from the loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group('loot')]
-	public function lootRemCommand(CmdContext $context, PRemove $action, int $key): void {
+	public function lootRemCommand(CmdContext $context, #[Remove] string $action, int $key): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -979,7 +976,7 @@ class LootController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand('mloot')]
 	#[NCA\Help\Group('loot')]
-	public function mlootCommand(CmdContext $context, #[NCA\SpaceOptional] PItem ...$items): void {
+	public function mlootCommand(CmdContext $context, #[SpaceOptional] PItem ...$items): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;

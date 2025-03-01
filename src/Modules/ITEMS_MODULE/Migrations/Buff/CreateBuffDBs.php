@@ -5,7 +5,7 @@ namespace Nadybot\Modules\ITEMS_MODULE\Migrations\Buff;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, Types\SchemaMigration};
-use Nadybot\Modules\ITEMS_MODULE\{Buff, ItemBuff, Skill, SkillAlias};
+use Nadybot\Modules\ITEMS_MODULE\{Buff, ItemBuff};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_26_16_47_51, shared: true)]
@@ -16,19 +16,6 @@ class CreateBuffDBs implements SchemaMigration {
 			$table->integer('item_id')->index();
 			$table->integer('attribute_id')->index();
 			$table->integer('amount');
-		});
-
-		$db->schema()->dropIfExists(Skill::getTable());
-		$db->schema()->create(Skill::getTable(), static function (Blueprint $table): void {
-			$table->integer('id')->primary();
-			$table->string('name', 50);
-			$table->string('unit', 10);
-		});
-
-		$db->schema()->dropIfExists(SkillAlias::getTable());
-		$db->schema()->create(SkillAlias::getTable(), static function (Blueprint $table): void {
-			$table->integer('id');
-			$table->string('name', 50);
 		});
 
 		$db->schema()->dropIfExists(Buff::getTable());

@@ -2,8 +2,13 @@
 
 namespace Nadybot\Core\ParamClass;
 
+use AO\Utils;
 use Nadybot\Core\Safe;
 
+/**
+ * This is a normalized list of valid Anarchy Online character names.
+ * Will return them as an array of strings.
+ */
 class PCharacterList extends Base {
 	/** @var list<string> */
 	public array $chars = [];
@@ -12,8 +17,7 @@ class PCharacterList extends Base {
 
 	public function __construct(string $value) {
 		$this->chars = Safe::pregSplit("/\s+/", $value);
-		$this->chars = array_map('strtolower', $this->chars);
-		$this->chars = array_map('ucfirst', $this->chars);
+		$this->chars = array_map(Utils::normalizeCharacter(...), $this->chars);
 		$this->value = implode(', ', $this->chars);
 	}
 

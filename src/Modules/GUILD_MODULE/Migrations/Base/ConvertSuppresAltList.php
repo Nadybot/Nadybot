@@ -32,7 +32,7 @@ class ConvertSuppresAltList implements SchemaMigration {
 				'intoptions' => '',
 				'description' => 'Dummy',
 				'source' => $oldValue->source,
-				'admin' => $oldValue->admin,
+				'admin' => $oldValue->access_level,
 				'verify' => '0',
 			],
 		);

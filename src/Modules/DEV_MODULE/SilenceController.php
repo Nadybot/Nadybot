@@ -2,16 +2,16 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	DB,
 	DBSchema\CmdCfg,
+	Events\ConnectEvent,
 	ModuleInstance,
-	ParamClass\PWord,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 
@@ -23,12 +23,12 @@ use Psr\Log\LoggerInterface;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'silence',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Silence commands in a particular permission set',
 	),
 	NCA\DefineCommand(
 		command: 'unsilence',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Unsilence commands in a particular permission set',
 	)
 ]
@@ -66,9 +66,13 @@ class SilenceController extends ModuleInstance {
 
 	/** Silence a command for a specific permission set */
 	#[NCA\HandlesCommand('silence')]
-	public function silenceAddCommand(CmdContext $context, string $command, PWord $permissionSet): void {
+	public function silenceAddCommand(
+		CmdContext $context,
+		string $command,
+		#[NCA\Parameter\WordStr] string $permissionSet
+	): void {
 		$command = strtolower($command);
-		$permissionSet = strtolower($permissionSet());
+		$permissionSet = strtolower($permissionSet);
 
 		$cmdCfg = $this->commandManager->get($command);
 		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$permissionSet]) || !$cmdCfg->permissions[$permissionSet]->enabled) {
@@ -84,9 +88,13 @@ class SilenceController extends ModuleInstance {
 
 	/** Un-silence a command for a specific permission set */
 	#[NCA\HandlesCommand('unsilence')]
-	public function unsilenceAddCommand(CmdContext $context, string $command, PWord $permissionSet): void {
+	public function unsilenceAddCommand(
+		CmdContext $context,
+		string $command,
+		#[NCA\Parameter\WordStr] string $permissionSet
+	): void {
 		$command = strtolower($command);
-		$permissionSet = strtolower($permissionSet());
+		$permissionSet = strtolower($permissionSet);
 
 		$cmdCfg = $this->commandManager->get($command);
 		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$permissionSet]) || !$cmdCfg->permissions[$permissionSet]->enabled) {
@@ -108,7 +116,7 @@ class SilenceController extends ModuleInstance {
 	}
 
 	public function addSilencedCommand(CmdCfg $row, string $channel): void {
-		$this->commandManager->activate($channel, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
+		$this->commandManager->activate($channel, self::NULL_COMMAND_HANDLER, $row->cmd, AccessLevel::All);
 		$this->db->insert(new SilenceCmd(
 			cmd: $row->cmd,
 			channel: $channel,
@@ -130,15 +138,13 @@ class SilenceController extends ModuleInstance {
 			->delete();
 	}
 
-	#[NCA\Event(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Overwrite command handlers for silenced commands'
-	)]
+	/** Overwrite command handlers for silenced commands */
+	#[NCA\HandlesEvent]
 	public function overwriteCommandHandlersEvent(ConnectEvent $eventObj): void {
 		$this->db->table(SilenceCmd::getTable())
 			->asObj(SilenceCmd::class)
 			->each(function (SilenceCmd $row): void {
-				$this->commandManager->activate($row->channel, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
+				$this->commandManager->activate($row->channel, self::NULL_COMMAND_HANDLER, $row->cmd, AccessLevel::All);
 			});
 	}
 }

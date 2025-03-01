@@ -2,12 +2,8 @@
 
 namespace Nadybot\Modules\GSP_MODULE;
 
-class GSPShowStartEvent extends GSPEvent {
-	public const EVENT_MASK = 'gsp(show_start)';
+use Nadybot\Core\Attributes\Event;
 
-	public function __construct(
-		public Show $show,
-	) {
-		$this->type = self::EVENT_MASK;
-	}
+#[Event(mask: 'gsp(show_start)')]
+class GSPShowStartEvent extends GSPEvent {
 }

@@ -5,17 +5,19 @@ namespace Nadybot\Modules\RECIPE_MODULE;
 use function Safe\json_decode;
 use Amp\File\FilesystemException;
 use Exception;
-use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	Events\ConnectEvent,
 	Exceptions\UserException,
 	Filesystem,
 	ModuleInstance,
 	ParamClass\PItem,
 	Safe,
 	Text,
+	Types\AccessLevel,
+	Types\Status,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
 	AODBItem,
@@ -32,7 +34,7 @@ use Safe\Exceptions\JsonException;
 	NCA\HasMigrations('Migrations/Recipes'),
 	NCA\DefineCommand(
 		command: 'recipe',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Search for a recipe',
 	)
 ]
@@ -48,13 +50,9 @@ class RecipeController extends ModuleInstance {
 
 	private string $path;
 
-	/** This is an Event("connect") instead of Setup since it depends on the items db being loaded */
-	#[NCA\Event(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Initializes the recipe database',
-		defaultStatus: 1
-	)]
-	public function connectEvent(): void {
+	/** Initializes the recipe database */
+	#[NCA\HandlesEvent(defaultStatus: Status::Enabled)]
+	public function connectEvent(ConnectEvent $event): void {
 		$this->path = __DIR__ . '/recipes/';
 		try {
 			$fileNames = $this->fs->listFiles($this->path);

@@ -6,11 +6,20 @@ use Exception;
 use Nadybot\Core\Config\BotConfig;
 use Psr\Log\LoggerInterface;
 
+/** A blob represents a blob of AO markup */
 class Blob implements \Stringable {
 	public const LITERAL = "\x00lit\x00";
 	private LoggerInterface $logger;
 	private SettingManager $settingManager;
 
+	/**
+	 * @param string               $text           The full text as it would appear
+	 *                                             as a single page
+	 * @param bool                 $paginate       Shall the result be paginated if possible?
+	 * @param null|LoggerInterface $logger         The logger to use
+	 * @param null|SettingManager  $settingManager An instance of the setting manager,
+	 *                                             or `null` to get one from the Registry
+	 */
 	final public function __construct(
 		public string $text='',
 		public bool $paginate=true,
@@ -25,6 +34,15 @@ class Blob implements \Stringable {
 		return $this->text;
 	}
 
+	/**
+	 * Create a new instance
+	 *
+	 * @param string               $text           The full text as it would appear
+	 *                                             as a single page
+	 * @param bool                 $paginate       Shall the result be paginated if possible?
+	 * @param null|LoggerInterface $logger         The logger to use
+	 * @param null|SettingManager  $settingManager An instance of the setting manager,
+	 */
 	public static function create(
 		string $text='',
 		bool $paginate=true,
@@ -39,10 +57,16 @@ class Blob implements \Stringable {
 		);
 	}
 
+	/**
+	 * Check, whether the blob is an empty string
+	 *
+	 * @psalm-assert-if-true '' $this->text
+	 */
 	public function isEmpty(): bool {
 		return strlen($this->text) === 0;
 	}
 
+	/** Get the text of the blob, but remove any control statements like `<pagebreak>` */
 	public function getText(): string {
 		$text = str_replace(static::LITERAL, '', $this->text);
 		$text = Safe::pregReplace('/<permheader>(.*?)<\/permheader>/s', '$1', $text);
@@ -51,11 +75,18 @@ class Blob implements \Stringable {
 	}
 
 	/**
-	 * @param string|string[] $text
+	 * Render the given text as multiple pages of text
+	 *
+	 * @param string|string[] $text          The text to render
+	 * @param ?int            $pageSize      The maximum size of each page, or `null`
+	 *                                       to use the bot's default.
+	 * @param bool            $formatMessage Format the message
+	 * @param bool            $renderColors  If `$formatMessage` is `true`, set this to `false`,
+	 *                                       if you want to remove all colors from the output
 	 *
 	 * @psalm-param string|list<string> $text
 	 *
-	 * @return string|string[]
+	 * @return string|string[] either a single page, or multiple pages
 	 *
 	 * @psalm-return string|list<string>
 	 */
@@ -77,6 +108,15 @@ class Blob implements \Stringable {
 	}
 
 	/**
+	 * Render this blob as a single, or multiple pages
+	 *
+	 * @param ?int $pageSize      The maximum size of one page to return, or `null`
+	 *                            to get the currently configure bot setting
+	 * @param bool $formatMessage Whether to actually format the message,
+	 *                            by replacing placeholder strings with values.
+	 * @param bool $renderColors  If `$formatMessage` is true, setting this to `false`
+	 *                            will remove all colors from the resulting text
+	 *
 	 * @return string|string[]
 	 *
 	 * @psalm-return string|list<string>
@@ -173,6 +213,8 @@ class Blob implements \Stringable {
 	}
 
 	/**
+	 * No idea any more, what it does internally
+	 *
 	 * @return string|string[]
 	 *
 	 * @psalm-return string|list<string>
@@ -217,7 +259,11 @@ class Blob implements \Stringable {
 		return $pages;
 	}
 
-	/** @return array<string,string> */
+	/**
+	 * Get a list of all color definitions as an associative array
+	 *
+	 * @return array<string,string>
+	 */
 	private function getColors(): array {
 		return [
 			'<header>' => str_replace("'", '', $this->settingManager->getString('default_header_color')??''),
@@ -243,6 +289,13 @@ class Blob implements \Stringable {
 		];
 	}
 
+	/**
+	 * Format a message by replacing placeholders with actual values
+	 *
+	 * @param string $message      The message to format
+	 * @param bool   $renderColors Set to `false` to remove all colors from the
+	 *                             message, set to `true` to properly render them
+	 */
 	private function formatMessage(string $message, bool $renderColors): string {
 		if ($renderColors === false) {
 			return $this->stripColors($message);

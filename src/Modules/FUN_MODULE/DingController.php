@@ -6,6 +6,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
+	Types\AccessLevel,
 	Util,
 };
 
@@ -18,7 +19,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'ding',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows a random ding gratz message',
 	)
 ]
@@ -39,7 +40,10 @@ class DingController extends ModuleInstance {
 	/** Show a cheesy ding reply */
 	#[NCA\HandlesCommand('ding')]
 	#[NCA\Help\Hide()]
-	public function dingDongCommand(CmdContext $context, #[NCA\Str('dong')] string $action): void {
+	public function dingDongCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('dong')] string $action
+	): void {
 		$msg =	'Ditch, Bitch!';
 		$context->reply($msg);
 	}

@@ -4,8 +4,15 @@ namespace Nadybot\Core\Types;
 
 use ValueError;
 
-enum ImplantSlot: int {
-	public static function byName(string $name): self {
+/** This is the representation of a valid implant/symbiant slot */
+enum ImplantSlot: int implements EnumParameterInterface {
+	/** {@inheritDoc} */
+	public static function fromParam(string $param): self {
+		return self::fromName($param);
+	}
+
+	/** Create an instance based on one of the many variations of its name */
+	public static function fromName(string $name): self {
 		return match (strtolower($name)) {
 			'eye','eyes','ocular' => self::Eye,
 			'head','brain' => self::Head,
@@ -24,31 +31,20 @@ enum ImplantSlot: int {
 		};
 	}
 
-	public static function tryByName(string $name): ?self {
+	/**
+	 * Try to create an instance based on one of the many variations of its name,
+	 * or return null if the name doesn't match any known slot.
+	 */
+	public static function tryFromName(string $name): ?self {
 		try {
-			return static::byName($name);
+			return static::fromName($name);
 		} catch (ValueError) {
 			return null;
 		}
 	}
 
-	public static function getNameRegexp(): string {
-		return 'eyes?|ocular'.
-		'|head|brain'.
-		'|ear'.
-		'|right arm|rarm'.
-		'|body|chest'.
-		'|left arm|larm'.
-		'|right wrist|rwrist'.
-		'|waist'.
-		'|left wrist|lwrist'.
-		'|right hand|rhand'.
-		'|legs|leg|thigh'.
-		'|left hand|lhand'.
-		'|foot|feet';
-	}
-
-	public static function byDesignSlotName(string $name): self {
+	/** Create a new instance, purely based on the slot name of the implant designer */
+	public static function fromDesignSlotName(string $name): self {
 		return match (strtolower($name)) {
 			'eye' => self::Eye,
 			'head' => self::Head,
@@ -64,6 +60,62 @@ enum ImplantSlot: int {
 			'lhand' => self::LeftHand,
 			'feet' => self::Feet,
 			default => throw new ValueError("Unknown implant slot name '{$name}'"),
+		};
+	}
+
+	/** {@inheritDoc} */
+	public static function getParamRegexp(): string {
+		return 'eyes?|ocular'.
+		'|head|brain'.
+		'|ear'.
+		'|right arm|rarm'.
+		'|body|chest'.
+		'|left arm|larm'.
+		'|right wrist|rwrist'.
+		'|waist'.
+		'|left wrist|lwrist'.
+		'|right hand|rhand'.
+		'|legs|leg|thigh'.
+		'|left hand|lhand'.
+		'|foot|feet';
+	}
+
+	/** Create an instance based on the implant designer type id (1 to 13) */
+	public static function fromTypeID(int $type): self {
+		return match ($type) {
+			1 => self::Eye,
+			2 => self::Head,
+			3 => self::Ear,
+			4 => self::Chest,
+			5 => self::Waist,
+			6 => self::Leg,
+			7 => self::Feet,
+			8 => self::LeftArm,
+			9 => self::LeftWrist,
+			10 => self::LeftHand,
+			11 => self::RightArm,
+			12 => self::RightWrist,
+			13 => self::RightHand,
+			default => throw new ValueError("Unknown implant type id '{$type}'"),
+		};
+	}
+
+	/** Get the implant designer type id of this slot */
+	public function typeId(): int {
+		return match ($this) {
+			self::Eye => 1,
+			self::Head => 2,
+			self::Ear => 3,
+			self::Chest => 4,
+			self::Waist => 5,
+			self::Leg => 6,
+			self::Feet => 7,
+			self::LeftArm => 8,
+			self::LeftWrist => 9,
+			self::LeftHand => 10,
+			self::RightArm => 11,
+			self::RightWrist => 12,
+			self::RightHand => 13,
 		};
 	}
 
@@ -90,6 +142,7 @@ enum ImplantSlot: int {
 		};
 	}
 
+	/** Return the long name (Right Arm, Ocular, …) of the implant slot */
 	public function longName(): string {
 		return match ($this) {
 			self::Eye => 'Ocular',

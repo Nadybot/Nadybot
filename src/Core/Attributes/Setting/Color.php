@@ -7,26 +7,37 @@ use Exception;
 
 use Nadybot\Core\Attributes\DefineSetting;
 use Nadybot\Core\Safe;
-use Nadybot\Core\Types\SettingMode;
+use Nadybot\Core\Types\{AccessLevel, SettingMode};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Color extends DefineSetting {
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 *
 	 * @param null|int|float|string|bool|list<mixed> $defaultValue
 	 * @param array<string|int,int|string>           $options      An optional list of values that the setting can be, semi-colon delimited.
 	 *                                                             Alternatively, use an associative array [label => value], where label is optional.
 	 */
 	public function __construct(
-		public string $type='color',
-		public ?string $name=null,
-		public null|int|float|string|bool|array $defaultValue=null,
-		public SettingMode $mode=SettingMode::Edit,
-		public array $options=[],
-		public string $accessLevel='mod',
-		public ?string $help=null,
+		string $type='color',
+		?string $name=null,
+		null|int|float|string|bool|array $defaultValue=null,
+		SettingMode $mode=SettingMode::Edit,
+		array $options=[],
+		AccessLevel $accessLevel=AccessLevel::Mod,
+		?string $help=null,
+		?bool $confidential=false,
 	) {
+		parent::__construct(
+			type: $type,
+			name: $name,
+			defaultValue: $defaultValue,
+			mode: $mode,
+			options: $options,
+			accessLevel: $accessLevel,
+			help: $help,
+			confidential: $confidential,
+		);
 		$this->type = 'color';
 	}
 

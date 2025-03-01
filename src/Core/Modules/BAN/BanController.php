@@ -7,18 +7,20 @@ use function Amp\async;
 use AO\Package\Out\PrivateChannelKick;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Str,
+	AuditAction,
 	CmdContext,
+	Config\BotConfig,
 	DB,
 	DBSchema\Audit,
 	DBSchema\BanEntry,
 	DBSchema\Player,
 	EventManager,
-	Events\Event,
+	Events\ConnectEvent,
+	Events\TimerEvent,
 	Exceptions\SQLException,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -27,9 +29,10 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
-	ParamClass\PRemove,
 	Text,
+	Types\AccessLevel,
 	Types\ImporterInterface,
+	Types\Status,
 	Util,
 };
 use Nadybot\Modules\ORGLIST_MODULE\Organization;
@@ -43,37 +46,28 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'ban',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Ban a character from this bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'banlist',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Shows who is on the banlist',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'unban',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Unban a character from this bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'orgban',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Ban or unban a whole org',
 		alias: 'orgbans'
 	),
-
-	NCA\ProvidesEvent(
-		event: SyncBanEvent::class,
-		desc: 'Triggered whenever someone is banned'
-	),
-	NCA\ProvidesEvent(
-		event: SyncBanDeleteEvent::class,
-		desc: "Triggered when someone's ban is lifted"
-	)
 ]
 class BanController extends ModuleInstance implements ImporterInterface {
 	/** Always ban all alts, not just 1 char */
@@ -125,11 +119,8 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	 */
 	private array $orgbanlist = [];
 
-	#[NCA\Event(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Upload banlist into memory',
-		defaultStatus: 1
-	)]
+	/** Upload banlist into memory */
+	#[NCA\HandlesEvent(defaultStatus: Status::Enabled)]
 	public function initializeBanList(ConnectEvent $eventObj): void {
 		$this->uploadBanlist();
 		$this->uploadOrgBanlist();
@@ -143,7 +134,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		CmdContext $context,
 		PCharacter $who,
 		PDuration $duration,
-		#[NCA\Str('for', 'reason')] string $for,
+		#[Str('for', 'reason')] string $for,
 		string $reason
 	): void {
 		$who = $who();
@@ -207,7 +198,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	public function banPlayerWithReasonCommand(
 		CmdContext $context,
 		PCharacter $who,
-		#[NCA\Str('for', 'reason')] string $for,
+		#[Str('for', 'reason')] string $for,
 		string $reason
 	): void {
 		$who = $who();
@@ -318,7 +309,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	#[NCA\Help\Group('ban')]
 	public function unbanAllCommand(
 		CmdContext $context,
-		#[NCA\Str('all')] string $all,
+		#[Str('all')] string $all,
 		PCharacter $who
 	): void {
 		$who = $who();
@@ -347,7 +338,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 				unbanned_by: $context->char->name,
 				forceSync: $context->forceSync,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		}
 
 		$context->reply("You have unbanned <highlight>{$who}<end> and all their alts from this bot.");
@@ -380,7 +371,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 			unbanned_by: $context->char->name,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$context->reply("You have unbanned <highlight>{$who}<end> from this bot.");
 		if ($this->notifyBannedPlayer) {
@@ -388,12 +379,9 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		}
 	}
 
-	#[NCA\Event(
-		name: 'timer(1min)',
-		description: 'Check temp bans to see if they have expired',
-		defaultStatus: 1
-	)]
-	public function checkTempBan(Event $eventObj): void {
+	/** Check temp bans to see if they have expired */
+	#[NCA\Timer(interval: '1min', defaultStatus: Status::Enabled)]
+	public function checkTempBan(TimerEvent $eventObj): void {
 		$numRows = $this->db->table(BanEntry::getTable())
 			->whereNotNull('banend')
 			->where('banend', '!=', 0)
@@ -453,7 +441,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		$audit = new Audit(
 			actor: $sender,
 			actee: $charName,
-			action: $banEnd ? AccessManager::TEMP_BAN : AccessManager::PERM_BAN,
+			action: $banEnd ? AuditAction::TempBan : AuditAction::PermBan,
 			value: $reason,
 		);
 		$this->accessManager->addAudit($audit);
@@ -516,7 +504,11 @@ class BanController extends ModuleInstance implements ImporterInterface {
 			});
 	}
 
-	/** Check if $charId is banned */
+	/**
+	 * Check if $charId is banned
+	 *
+	 * @psalm-assert-if-true non-empty-array<int,BanEntry> $this->banlist
+	 */
 	public function isBanned(int $charId): bool {
 		return isset($this->banlist[$charId]);
 	}
@@ -594,10 +586,10 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	)]
 	public function orgbanAddByIdCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $add,
+		#[Str('add')] string $add,
 		int $orgId,
 		?PDuration $duration,
-		#[NCA\Str('for', 'reason', 'because')] string $for,
+		#[Str('for', 'reason', 'because')] string $for,
 		string $reason
 	): void {
 		try {
@@ -618,7 +610,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	)]
 	public function orgbanAddByIdWithoutReasonCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $add,
+		#[Str('add')] string $add,
 		int $orgId,
 		?PDuration $duration,
 	): void {
@@ -673,7 +665,11 @@ class BanController extends ModuleInstance implements ImporterInterface {
 	/** Remove an organization from the ban list, given their org id */
 	#[NCA\HandlesCommand('orgban')]
 	#[NCA\Help\Group('ban')]
-	public function orgbanRemCommand(CmdContext $context, PRemove $rem, int $orgId): void {
+	public function orgbanRemCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Remove] string $rem,
+		int $orgId
+	): void {
 		if (!$this->orgIsBanned($orgId)) {
 			$guild = $this->guildManager->byId($orgId);
 			if (!isset($guild)) {
@@ -691,10 +687,8 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		unset($this->orgbanlist[$orgId]);
 	}
 
-	#[NCA\Event(
-		name: SyncBanEvent::EVENT_MASK,
-		description: 'Sync external bans'
-	)]
+	/** Sync external bans */
+	#[NCA\HandlesEvent]
 	public function processBanSyncEvent(SyncBanEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -702,10 +696,8 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		$this->add($event->uid, $event->banned_by, $event->banned_until, $event->reason);
 	}
 
-	#[NCA\Event(
-		name: SyncBanDeleteEvent::EVENT_MASK,
-		description: 'Sync external ban lifts'
-	)]
+	/** Sync external ban lifts */
+	#[NCA\HandlesEvent]
 	public function processBanDeleteSyncEvent(SyncBanDeleteEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -759,7 +751,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 
 	protected function addOrgToBanlist(BannedOrg $ban): ?string {
 		$this->orgbanlist[$ban->org_id] = $ban;
-		if (!$this->chatBot->ready) {
+		if (!$this->chatBot->isReady()) {
 			return null;
 		}
 
@@ -777,7 +769,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		// Kick all org members from our private chat
 		if (isset($guild)) {
 			foreach ($guild->members as $name => $char) {
-				if ($this->chatBot->chatlist[$char->name]) {
+				if ($this->chatBot->inChatlist($char->name)) {
 					$this->logger->notice('Kicking banned char {name} from private channel', [
 						'name' => $char->name,
 					]);
@@ -830,7 +822,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 				$audit = new Audit(
 					actor: $sender,
 					actee: $charName,
-					action: AccessManager::KICK,
+					action: AuditAction::Kick,
 					value: 'banned',
 				);
 				$this->accessManager->addAudit($audit);
@@ -844,7 +836,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 					reason: $reason,
 					forceSync: $context->forceSync,
 				);
-				$this->eventManager->fireEvent($event);
+				$this->eventManager->dispatch($event);
 				async($this->playerManager->byName(...), $charName)->ignore();
 			} else {
 				$numErrors++;

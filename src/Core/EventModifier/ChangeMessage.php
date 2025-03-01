@@ -13,44 +13,24 @@ use Nadybot\Core\{
 	Types\EventModifier,
 };
 
-#[
-	NCA\EventModifier(
-		name: 'change-message',
-		description: "This modifier allows you to modify the message of an\n".
-			'event by replacing text, or adding a prefix.'
-	),
-	NCA\Param(
-		name: 'add-prefix',
-		type: 'string',
-		description: "If set, prefix the message with the given string. Note that it will\n".
-			'not automatically add a space between prefix and message.',
-		required: false
-	),
-	NCA\Param(
-		name: 'search',
-		type: 'string',
-		description: 'If set, search for the given string and replace it with the "replace" parameter',
-		required: false
-	),
-	NCA\Param(
-		name: 'replace',
-		type: 'string',
-		description: 'If search is set, this is the text to replace with',
-		required: false
-	),
-	NCA\Param(
-		name: 'regexp',
-		type: 'bool',
-		description: 'If set to true, do a regular expression search and replace',
-		required: false
-	)
-]
+/**
+ * This modifier allows you to modify the message of an
+ * event by replacing text, or adding a prefix.
+ */
+#[NCA\EventModifier(name: 'change-message')]
 class ChangeMessage implements EventModifier {
+	/**
+	 * @param null|string $addPrefix If set, prefix the message with the given string. Note that it will
+	 *                               not automatically add a space between prefix and message
+	 * @param null|string $search    If set, search for the given string and replace it with the "replace" parameter
+	 * @param null|string $replace   If search is set, this is the text to replace with
+	 * @param bool        $isRegExp  If set to true, do a regular expression search and replace
+	 */
 	public function __construct(
-		protected ?string $addPrefix=null,
-		protected ?string $search=null,
-		protected ?string $replace=null,
-		protected bool $isRegExp=false,
+		#[NCA\Param(name: 'add-prefix')] protected ?string $addPrefix=null,
+		#[NCA\Param] protected ?string $search=null,
+		#[NCA\Param] protected ?string $replace=null,
+		#[NCA\Param(name: 'regexp')] protected bool $isRegExp=false,
 	) {
 		if (isset($search) && !isset($replace)) {
 			throw new Exception("Missing parameter 'replace'");
@@ -68,11 +48,12 @@ class ChangeMessage implements EventModifier {
 		}
 	}
 
+	/** {@inheritDoc} */
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		if (!isset($event)) {
 			return $event;
 		}
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			$baseEvent = $event->data??null;
 			if (!isset($baseEvent) || !($baseEvent instanceof Base) || !isset($baseEvent->message)) {
 				return $event;
@@ -98,6 +79,7 @@ class ChangeMessage implements EventModifier {
 		return $modifiedEvent;
 	}
 
+	/** Change the given message as configured */
 	protected function alterMessage(string $message): string {
 		if (isset($this->search, $this->replace)) {
 			if ($this->isRegExp) {

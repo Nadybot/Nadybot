@@ -3,7 +3,8 @@ php_version = "8.1"
 [source]
 paths = ["src"]
 excludes = [
-  "src/Core/QueryBuilder.php"
+  "src/Core/QueryBuilder.php",
+  "src/websetup"
 ]
 includes = ["vendor", "src/Core"]
 extensions = ["php"]
@@ -32,23 +33,11 @@ name = "strictness/no-assignment-in-condition"
 level = "Off"
 
 [[linter.rules]]
-name = "strictness/require-constant-type"
-level = "Off"
-
-[[linter.rules]]
 name = "strictness/missing-assert-description"
 level = "Off"
 
 [[linter.rules]]
 name = "safety/no-suppressed-expression"
-level = "Off"
-
-[[linter.rules]]
-name = "comment/docblock-syntax"
-level = "Note"
-
-[[linter.rules]]
-name = "deprecation/optional-parameter-before-required"
 level = "Off"
 
 [[linter.rules]]
@@ -77,4 +66,12 @@ level = "Off"
 
 [[linter.rules]]
 name = "maintainability/cyclomatic-complexity"
+level = "Off"
+
+[[linter.rules]]
+name = "security/no-insecure-comparison"
+level = "Off"
+
+[[linter.rules]]
+name = "security/no-literal-password"
 level = "Off"

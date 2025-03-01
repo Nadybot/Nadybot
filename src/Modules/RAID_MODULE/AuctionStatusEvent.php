@@ -2,16 +2,14 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-abstract class AuctionStatusEvent extends AuctionEvent {
-	public const EVENT_MASK = 'auction(*)';
+use Nadybot\Core\Attributes\Event;
 
-	/**
-	 * @param Auction $auction The auction
-	 * @param ?string $sender  If set, this is the person ending or cancelling an auction
-	 */
+#[Event(mask: 'auction(*)')]
+abstract class AuctionStatusEvent extends AuctionEvent {
+	/** @param ?string $sender  If set, this is the person ending or cancelling an auction */
 	public function __construct(
 		Auction $auction,
-		public ?string $sender,
+		public ?string $sender=null,
 	) {
 		parent::__construct(auction: $auction);
 	}

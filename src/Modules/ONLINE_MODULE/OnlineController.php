@@ -6,10 +6,11 @@ use function Safe\preg_match;
 
 use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Http,
+	Attributes\Parameter\Str,
 	BuddylistManager,
 	CmdContext,
 	Config\BotConfig,
@@ -26,12 +27,15 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\ALTS\NickController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	MyOrg,
 	Nadybot,
+	ParamClass\PUuid,
 	QueryBuilder,
 	Registry,
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\Profession,
 	Util,
 };
@@ -57,18 +61,15 @@ use Psr\Log\LoggerInterface;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'online',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows who is online',
 		alias: ['o', 'sm'],
 	),
 	NCA\DefineCommand(
 		command: OnlineController::CMD_MANAGE_HIDDEN,
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Manage hidden characters from the online list',
 	),
-
-	NCA\ProvidesEvent('online(org)'),
-	NCA\ProvidesEvent('offline(org)')
 ]
 class OnlineController extends ModuleInstance {
 	public const CMD_MANAGE_HIDDEN = 'online manage hidden users';
@@ -242,6 +243,9 @@ class OnlineController extends ModuleInstance {
 	#[NCA\Inject]
 	private PlayerManager $playerManager;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->table(Online::getTable())
@@ -267,7 +271,7 @@ class OnlineController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
 	public function onlineShowHiddenCommand(
 		CmdContext $context,
-		#[NCA\Str('hidden', 'hide')] string $action
+		#[Str('hidden', 'hide')] string $action
 	): void {
 		$masks = collect($this->getHiddenPlayerMasks());
 		$masks = $masks->sortBy('mask');
@@ -308,7 +312,7 @@ class OnlineController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>online hide nbt guest.*', 'Hide the whole NBT Guest channel')]
 	public function onlineAddHiddenCommand(
 		CmdContext $context,
-		#[NCA\Str('hide')] string $action,
+		#[Str('hide')] string $action,
 		string $mask
 	): void {
 		$mask = strtolower($mask);
@@ -334,7 +338,7 @@ class OnlineController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
 	public function onlineDelHiddenByIDCommand(
 		CmdContext $context,
-		#[NCA\Str('show', 'unhide')] string $action,
+		#[Str('show', 'unhide')] string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -349,7 +353,7 @@ class OnlineController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
 	public function onlineDelHiddenCommand(
 		CmdContext $context,
-		#[NCA\Str('show', 'unhide')] string $action,
+		#[Str('show', 'unhide')] string $action,
 		string $mask
 	): void {
 		$mask = strtolower($mask);
@@ -372,7 +376,7 @@ class OnlineController extends ModuleInstance {
 
 	/** Show a full list of players online, including other bots you share online list with */
 	#[NCA\HandlesCommand('online')]
-	public function onlineAllCommand(CmdContext $context, #[NCA\Str('all')] string $action): void {
+	public function onlineAllCommand(CmdContext $context, #[Str('all')] string $action): void {
 		$msg = $this->getOnlineList(1);
 		$context->reply($msg);
 	}
@@ -380,7 +384,7 @@ class OnlineController extends ModuleInstance {
 	/** Show a list of players that have the specified profession as an alt */
 	#[NCA\HandlesCommand('online')]
 	public function onlineProfCommand(CmdContext $context, string $profName): void {
-		$profession = Profession::tryByName($profName);
+		$profession = Profession::tryFromName($profName);
 		if (!isset($profession)) {
 			$msg = "<highlight>{$profName}<end> is not a recognized profession.";
 			$context->reply($msg);
@@ -456,13 +460,11 @@ class OnlineController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Records an org member login in db'
-	)]
+	/** Records an org member login in db */
+	#[NCA\HandlesEvent]
 	public function recordLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])) {
+		if (!$this->myOrg->isMember($sender)) {
 			return;
 		}
 		$player = $this->addPlayerToOnlineList($sender, $this->config->general->orgName, 'guild');
@@ -470,16 +472,14 @@ class OnlineController extends ModuleInstance {
 			channel: 'org',
 			player: $player,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
-	#[NCA\Event(
-		name: LogoffEvent::EVENT_MASK,
-		description: 'Records an org member logoff in db'
-	)]
+	/** Records an org member logoff in db */
+	#[NCA\HandlesEvent]
 	public function recordLogoffEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])) {
+		if (!$this->myOrg->isMember($sender)) {
 			return;
 		}
 		$this->removePlayerFromOnlineList($sender, 'guild');
@@ -487,16 +487,14 @@ class OnlineController extends ModuleInstance {
 			player: $sender,
 			channel: 'org'
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Sends a tell to players on logon showing who is online in org'
-	)]
+	/** Sends a tell to players on logon showing who is online in org */
+	#[NCA\HandlesEvent]
 	public function showOnlineOnLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])
+		if (!$this->myOrg->isMember($sender)
 			|| !$this->chatBot->isReady()
 			|| $eventObj->wasOnline !== false
 		) {
@@ -506,10 +504,8 @@ class OnlineController extends ModuleInstance {
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	#[NCA\Event(
-		name: 'timer(10mins)',
-		description: 'Online check'
-	)]
+	/** Online check */
+	#[NCA\Timer(interval: '10mins')]
 	public function onlineCheckEvent(Event $eventObj): void {
 		if (!$this->chatBot->isReady()) {
 			return;
@@ -538,7 +534,7 @@ class OnlineController extends ModuleInstance {
 
 		$time = time();
 
-		foreach ($this->chatBot->guildmembers as $name => $rank) {
+		foreach ($this->myOrg->getMembers() as $name => $rank) {
 			if ($this->buddylistManager->isOnline($name)) {
 				if (in_array($name, $guildArray, true)) {
 					$this->buildOnlineQuery($name, 'guild')
@@ -555,7 +551,7 @@ class OnlineController extends ModuleInstance {
 			}
 		}
 
-		foreach ($this->chatBot->chatlist as $name => $value) {
+		foreach ($this->chatBot->getChatlist() as $name => $value) {
 			if (in_array($name, $privArray, true)) {
 				$this->buildOnlineQuery($name, 'priv')
 						->update(['dt' => $time]);
@@ -578,53 +574,33 @@ class OnlineController extends ModuleInstance {
 			->delete();
 	}
 
-	#[
-		NCA\Event(
-			name: MyPrivateChannelMsgEvent::EVENT_MASK,
-			description: 'Afk check',
-			help: 'afk'
-		),
-	]
+	/** Afk check */
+	#[NCA\HandlesEvent(help: 'afk')]
 	public function afkCheckPrivateChannelEvent(MyPrivateChannelMsgEvent $eventObj): void {
-		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
+		$this->afkCheck($eventObj->sender, $eventObj->message, 'priv');
 	}
 
-	#[
-		NCA\Event(
-			name: GuildChannelMsgEvent::EVENT_MASK,
-			description: 'Afk check',
-			help: 'afk'
-		),
-	]
+	/** Afk check */
+	#[NCA\HandlesEvent(help: 'afk')]
 	public function afkCheckGuildChannelEvent(GuildChannelMsgEvent $eventObj): void {
 		if (isset($eventObj->sender)) {
-			$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
+			$this->afkCheck($eventObj->sender, $eventObj->message, 'guild');
 		}
 	}
 
-	#[
-		NCA\Event(
-			name: MyPrivateChannelMsgEvent::EVENT_MASK,
-			description: 'Sets a member afk',
-			help: 'afk'
-		),
-	]
+	/** Sets a member afk */
+	#[NCA\HandlesEvent(help: 'afk')]
 	public function afkPrivateChannelEvent(MyPrivateChannelMsgEvent $eventObj): void {
-		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
+		$this->afk($eventObj->sender, $eventObj->message, 'priv');
 	}
 
-	#[
-		NCA\Event(
-			name: GuildChannelMsgEvent::EVENT_MASK,
-			description: 'Sets a member afk',
-			help: 'afk'
-		),
-	]
+	/** Sets a member afk */
+	#[NCA\HandlesEvent(help: 'afk')]
 	public function afkGuildChannelEvent(GuildChannelMsgEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
 		}
-		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
+		$this->afk($eventObj->sender, $eventObj->message, 'guild');
 	}
 
 	/** Set someone back from afk if needed */
@@ -885,27 +861,36 @@ class OnlineController extends ModuleInstance {
 		}
 	}
 
-	public function getAdminInfo(string $name, string $fancyColon): string {
+	/**
+	 * Get a colourful representation of the given character's access level,
+	 * if the bot is configured to do so.
+	 *
+	 * Something like `" :: <red>Superadmin<end>"`
+	 *
+	 * @param string $name       Character name to get info on
+	 * @param string $fancyColon Separator to display in front of the rank color
+	 *                           if ranks shall be shown
+	 */
+	public function getRankInfo(string $name, string $fancyColon): string {
 		if (!$this->onlineAdmin) {
 			return '';
 		}
 
 		$accessLevel = $this->accessManager->getAccessLevelForCharacter($name);
-		$displayName = ucfirst($this->accessManager->getDisplayName($accessLevel));
+		$displayName = $accessLevel->displayNameUC();
 		switch ($accessLevel) {
-			case 'superadmin':
+			case AccessLevel::Superadmin:
 				return " {$fancyColon} {$this->rankColorSuperadmin}{$displayName}<end>";
-			case 'admin':
+			case AccessLevel::Admin:
 				return " {$fancyColon} {$this->rankColorAdmin}{$displayName}<end>";
-			case 'mod':
+			case AccessLevel::Mod:
 				return " {$fancyColon} {$this->rankColorMod}{$displayName}<end>";
-			case 'rl':
+			case AccessLevel::RaidLeader:
 				return " {$fancyColon} {$this->rankColorRL}{$displayName}<end>";
 		}
 		$raidRank = $this->raidRankController->getSingleAccessLevel($name);
 		if (isset($raidRank)) {
-			$displayName = ucfirst($this->accessManager->getDisplayName($raidRank));
-			return " {$fancyColon} {$this->rankColorRaid}{$displayName}<end>";
+			return " {$fancyColon} {$this->rankColorRaid}{$raidRank->displayNameUC()}<end>";
 		}
 		return '';
 	}
@@ -951,6 +936,7 @@ class OnlineController extends ModuleInstance {
 
 	/** @param iterable<array-key,OnlinePlayer> $players */
 	public function formatData(iterable $players, int $showOrgInfo, ?int $groupBy=null): OnlineList {
+		/** @var Collection<array-key,OnlinePlayer> */
 		$players = collect($players);
 		$currentGroup = '';
 		$separator = '-';
@@ -1008,12 +994,12 @@ class OnlineController extends ModuleInstance {
 				$list->countMains++;
 			}
 
-			$admin = $this->getAdminInfo($player->name, $separator);
+			$rankInfo = $this->getRankInfo($player->name, $separator);
 			$raidInfo = $this->getRaidInfo($player->name, $separator);
 			$afk = $this->getAfkInfo($player->afk??'', $separator);
 
 			if ($player->profession === null) {
-				$list->blob .= "<tab>? {$raidInfo->pre}{$player->name}{$admin}{$raidInfo->post}{$afk}\n";
+				$list->blob .= "<tab>? {$raidInfo->pre}{$player->name}{$rankInfo}{$raidInfo->post}{$afk}\n";
 			} else {
 				$prof = $player->profession->short();
 				$orgRank = '';
@@ -1024,7 +1010,7 @@ class OnlineController extends ModuleInstance {
 				if ($groupBy !== static::GROUP_BY_PROFESSION) {
 					$profIcon = $player->profession->toIcon() . ' ';
 				}
-				$list->blob.= "<tab>{$profIcon}{$raidInfo->pre}{$player->name} - {$player->level}/<green>{$player->ai_level}<end> {$prof}{$orgRank}{$admin}{$raidInfo->post}{$afk}\n";
+				$list->blob.= "<tab>{$profIcon}{$raidInfo->pre}{$player->name} - {$player->level}/<green>{$player->ai_level}<end> {$prof}{$orgRank}{$rankInfo}{$raidInfo->post}{$afk}\n";
 			}
 		}
 
@@ -1068,10 +1054,10 @@ class OnlineController extends ModuleInstance {
 
 	/** Get a list of all people online in all linked channels */
 	#[
-		NCA\Api('/online'),
-		NCA\GET,
-		NCA\AccessLevelFrom('online'),
-		NCA\ApiResult(code: 200, class: 'OnlinePlayers', desc: 'A list of online players')
+		Http\Api('/online'),
+		Http\GET,
+		Http\AccessLevelFrom('online'),
+		Http\ApiResult(code: 200, class: 'OnlinePlayers', desc: 'A list of online players')
 	]
 	public function apiOnlineEndpoint(Request $request): Response {
 		$result = new OnlinePlayers(

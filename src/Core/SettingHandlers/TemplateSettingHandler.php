@@ -9,11 +9,14 @@ use ReflectionAttribute;
 use ReflectionObject;
 
 /**
- * Class to represent a setting with a template value for NadyBot
+ * Class to represent a setting with a template value for Nadybot
  */
 #[NCA\SettingHandler('template')]
 class TemplateSettingHandler extends SettingHandler {
-	/** Get a displayable representation of the setting */
+	#[NCA\Inject]
+	private Text $text;
+
+	/** {@inheritDoc} */
 	public function displayValue(string $sender): string {
 		$examples = [];
 		$attr = $this->getAttribute();
@@ -23,7 +26,7 @@ class TemplateSettingHandler extends SettingHandler {
 		return Text::renderPlaceholders($this->row->value??'', $examples);
 	}
 
-	/** Get all options for this setting or null if no options are available */
+	/** {@inheritDoc} */
 	public function getOptions(): ?string {
 		$examples = [];
 		$attr = $this->getAttribute();
@@ -76,7 +79,7 @@ class TemplateSettingHandler extends SettingHandler {
 	/**
 	 * Change this setting
 	 *
-	 * @throws \Exception when the string is not a valid HTML color
+	 * @throws \Exception if the string is longer than 255 characters
 	 */
 	public function save(string $newValue): string {
 		if (strlen($newValue) > 255) {

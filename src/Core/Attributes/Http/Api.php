@@ -1,0 +1,12 @@
+<?php declare(strict_types=1);
+
+namespace Nadybot\Core\Attributes\Http;
+
+use Attribute;
+
+/** This is an API call under the given path */
+#[Attribute(Attribute::TARGET_METHOD)]
+class Api {
+	public function __construct(public string $path) {
+	}
+}

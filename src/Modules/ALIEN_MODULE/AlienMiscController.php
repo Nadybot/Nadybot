@@ -7,12 +7,11 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
-	ParamClass\PWord,
 	Text,
+	Types\AccessLevel,
 	Types\Profession,
 };
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Throwable;
 
 /**
  * @author Blackruby (RK2)
@@ -26,23 +25,23 @@ use Throwable;
 	NCA\HasMigrations('Migrations/Misc'),
 	NCA\DefineCommand(
 		command: 'leprocs',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: "Shows each profession's LE procs",
 		alias: 'leproc'
 	),
 	NCA\DefineCommand(
 		command: 'ofabarmor',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows ofab armors available to a given profession and their VP cost',
 	),
 	NCA\DefineCommand(
 		command: 'ofabweapons',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows Ofab weapons, their marks, and VP cost',
 	),
 	NCA\DefineCommand(
 		command: 'aigen',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows info about Alien City Generals',
 	)
 ]
@@ -87,15 +86,10 @@ class AlienMiscController extends ModuleInstance {
 
 	/** Shows the LE procs for a specific profession */
 	#[NCA\HandlesCommand('leprocs')]
-	public function leprocsInfoCommand(CmdContext $context, string $prof): void {
-		try {
-			$profession = Profession::byName($prof);
-		} catch (Throwable) {
-			$msg = "<highlight>{$prof}<end> is not a valid profession.";
-			$context->reply($msg);
-			return;
-		}
-
+	public function leprocsInfoCommand(
+		CmdContext $context,
+		Profession $profession
+	): void {
 		$data = $this->db->table(LEProc::getTable())
 			->whereIlike('profession', $profession->value)
 			->orderBy('proc_type')
@@ -160,22 +154,22 @@ class AlienMiscController extends ModuleInstance {
 
 	/** Show Ofab armor for a specific profession at a certain ql */
 	#[NCA\HandlesCommand('ofabarmor')]
-	public function ofabarmorInfoCommand2(CmdContext $context, string $prof, int $ql): void {
-		$this->ofabarmorInfoCommand($context, $ql, $prof);
+	public function ofabarmorInfoCommand2(
+		CmdContext $context,
+		Profession $profession,
+		int $ql
+	): void {
+		$this->ofabarmorInfoCommand($context, $ql, $profession);
 	}
 
 	/** Show Ofab armor for a specific profession at a certain ql */
 	#[NCA\HandlesCommand('ofabarmor')]
-	public function ofabarmorInfoCommand(CmdContext $context, ?int $ql, string $prof): void {
+	public function ofabarmorInfoCommand(
+		CmdContext $context,
+		?int $ql,
+		Profession $profession,
+	): void {
 		$ql ??= 300;
-
-		try {
-			$profession = Profession::byName($prof);
-		} catch (Throwable) {
-			$msg = 'Please choose one of these professions: ' . Text::enumerateOr(...Profession::shortNames());
-			$context->reply($msg);
-			return;
-		}
 
 		$type = $this->db->table(OfabArmorType::getTable())
 			->where('profession', $profession->value)
@@ -287,8 +281,12 @@ class AlienMiscController extends ModuleInstance {
 
 	/** Show all 6 marks for a particular Ofab weapon at ql 300, or &lt;search ql&gt; */
 	#[NCA\HandlesCommand('ofabweapons')]
-	public function ofabweaponsInfoCommand(CmdContext $context, PWord $weapon, ?int $searchQL): void {
-		$weapon = ucfirst($weapon());
+	public function ofabweaponsInfoCommand(
+		CmdContext $context,
+		#[NCA\Parameter\WordStr] string $weapon,
+		?int $searchQL
+	): void {
+		$weapon = ucfirst($weapon);
 		$searchQL ??= 300;
 
 		$row = $this->db->table(OfabWeapon::getTable(), 'w')
@@ -345,7 +343,7 @@ class AlienMiscController extends ModuleInstance {
 	#[NCA\HandlesCommand('aigen')]
 	public function aigenCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('ankari', 'ilari', 'rimah', 'jaax', 'xoch', 'cha')] string $general
+		#[NCA\Parameter\StrChoice('ankari', 'ilari', 'rimah', 'jaax', 'xoch', 'cha')] string $general
 	): void {
 		$gen = ucfirst(strtolower($general));
 

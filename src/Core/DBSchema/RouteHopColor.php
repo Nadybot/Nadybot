@@ -2,11 +2,12 @@
 
 namespace Nadybot\Core\DBSchema;
 
+use Nadybot\Core\Types\HopColorType;
 use Nadybot\Core\{Attributes as NCA, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
-#[NCA\DB\Table(name: 'route_hop_color')]
 /** Which colors to use for displaying a hop of a routed message */
+#[NCA\DB\Table(name: 'route_hop_color')]
 class RouteHopColor extends DBTable {
 	#[NCA\JSON\Ignore] #[NCA\DB\PK] public UuidInterface $id;
 
@@ -27,5 +28,19 @@ class RouteHopColor extends DBTable {
 		?UuidInterface $id=null,
 	) {
 		$this->id = $id  ?? Uuid::uuid7();
+	}
+
+	public function getColor(HopColorType $type): ?string {
+		return match ($type) {
+			HopColorType::TagColor => $this->tag_color,
+			HopColorType::TextColor => $this->text_color,
+		};
+	}
+
+	public function setColor(HopColorType $type, ?string $color): ?string {
+		return match ($type) {
+			HopColorType::TagColor => $this->tag_color = $color,
+			HopColorType::TextColor => $this->text_color = $color,
+		};
 	}
 }

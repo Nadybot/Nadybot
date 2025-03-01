@@ -2,23 +2,30 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Amp\Websocket\Client\WebsocketConnection;
+use Nadybot\Core\Attributes\Event;
+use Nadybot\Core\Drill\{AbstractDrillPacket, DrillConnection};
 use Nadybot\Core\Safe;
-use Nadybot\Modules\WEBSERVER_MODULE\Drill\Packet;
+use Nadybot\Core\Types\EventInterface;
 
-class DrillPacketEvent extends DrillEvent {
-	public const EVENT_MASK = 'drill(*)';
+#[Event(mask: 'drill(*)')]
+class DrillPacketEvent extends DrillEvent implements EventInterface {
+	private string $kebabCase;
 
 	public function __construct(
-		WebsocketConnection $client,
-		public Packet\Base $packet,
+		DrillConnection $connection,
+		public AbstractDrillPacket $packet,
 	) {
-		parent::__construct(client: $client);
-		$kebabCase = Safe::pregReplace(
-			'/([a-z])([A-Z])/',
-			'$1-$2',
-			class_basename($packet)
+		parent::__construct(connection: $connection);
+		$this->kebabCase = strtolower(
+			Safe::pregReplace(
+				'/([a-z])([A-Z])/',
+				'$1-$2',
+				class_basename($packet)
+			)
 		);
-		$this->type = 'drill(' . strtolower($kebabCase) . ')';
+	}
+
+	public function getEvent(): string {
+		return "drill({$this->kebabCase})";
 	}
 }

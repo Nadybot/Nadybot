@@ -2,20 +2,22 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
+use Amp\Websocket\WebsocketClient;
+use Nadybot\Core\Attributes\Event;
+
+#[Event(mask: 'websocket(subscribe)')]
 class WebsocketSubscribeEvent extends WebsocketEvent {
-	public const EVENT_MASK = 'websocket(subscribe)';
-
-	/**
-	 * @var NadySubscribe
-	 *
-	 * @psalm-suppress NonInvariantDocblockPropertyType
-	 */
-	public object $data;
-
 	public function __construct(
-		NadySubscribe $data,
+		private NadySubscribe $data,
+		private WebsocketClient $client,
 	) {
-		$this->data = $data;
-		$this->type = self::EVENT_MASK;
+	}
+
+	public function getData(): NadySubscribe {
+		return $this->data;
+	}
+
+	public function getClient(): WebsocketClient {
+		return $this->client;
 	}
 }

@@ -21,43 +21,31 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayMessage,
 };
 
-#[
-	NCA\RelayProtocol(
-		name: 'grcv2',
-		description: "This is the old Nadybot protocol.\n".
-			"It enhances the old grc protocol by adding descriptions\n".
-			"in front of the tags and messages, so the client-side\n".
-			"can decide how to colorize them. However, it only supports\n".
-			'org, guest and raidbot chat.'
-	),
-	NCA\Param(
-		name: 'command',
-		type: 'string',
-		description: 'The command we send with each packet',
-		required: false
-	),
-	NCA\Param(
-		name: 'prefix',
-		type: 'string',
-		description: 'The prefix we send with each packet, e.g. "!" or ""',
-		required: false
-	)
-]
+/**
+ * This is the old Nadybot protocol.
+ * It enhances the old grc protocol by adding descriptions
+ * in front of the tags and messages, so the client-side
+ * can decide how to colorize them. However, it only supports
+ * org, guest and raidbot chat.
+ */
+#[NCA\RelayProtocol(name: 'grcv2')]
 class GrcV2Protocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_NONE;
 
 	protected Relay $relay;
 
-	protected string $command = 'grc';
-	protected string $prefix = '';
-
-	public function __construct(string $command='grc', string $prefix='') {
-		$this->command = $command;
-		$this->prefix = $prefix;
+	/**
+	 * @param string $command The command we send with each packet
+	 * @param string $prefix  The prefix we send with each packet, e.g. "!" or ""
+	 */
+	public function __construct(
+		#[NCA\Param] protected string $command='grc',
+		#[NCA\Param] protected string $prefix=''
+	) {
 	}
 
 	public function send(RoutableEvent $event): array {
-		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
+		if ($event->getEvent() !== RoutableEvent::TYPE_MESSAGE) {
 			if (!isset($event->data) || !($event->data instanceof Base) || !strlen($event->data->message??'')) {
 				return [];
 			}

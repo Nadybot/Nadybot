@@ -12,9 +12,9 @@ use Nadybot\Core\{
 	CommandAlias,
 	Filesystem,
 	ModuleInstance,
-	ParamClass\PFilename,
 	Safe,
 	Text,
+	Types\AccessLevel,
 };
 
 /**
@@ -25,7 +25,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'guides',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Guides for AO',
 		alias: 'guide'
 	)
@@ -131,9 +131,12 @@ class GuideController extends ModuleInstance {
 		"<highlight><tab><symbol>guides title<end>\n".
 		"<highlight><tab><symbol>title<end>\n"
 	)]
-	public function guidesShowCommand(CmdContext $context, PFilename $guideName): void {
+	public function guidesShowCommand(
+		CmdContext $context,
+		#[NCA\Parameter\FilenameStr] string $guideName
+	): void {
 		// get the filename and read in the file
-		$fileName = strtolower($guideName());
+		$fileName = strtolower($guideName);
 		$file = $this->path . $fileName . self::FILE_EXT;
 		try {
 			$info = $this->fs->read($file);

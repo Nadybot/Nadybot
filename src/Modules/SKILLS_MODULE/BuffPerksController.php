@@ -6,29 +6,27 @@ use function Amp\async;
 use function Amp\ByteStream\splitLines;
 use function Safe\{preg_match, preg_split};
 
-use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	Filesystem,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
-	ParamClass\PNonNumberWord,
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
 	Types\Profession,
 	Types\SettingMode,
+	Types\Skill,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
 	ExtBuff,
 	ItemsController,
-	Skill,
-	WhatBuffsController,
 };
 use Nadybot\Modules\NANO_MODULE\NanoController;
 use Psr\Log\LoggerInterface;
@@ -44,7 +42,7 @@ use Throwable;
 	NCA\HasMigrations('Migrations/Perks'),
 	NCA\DefineCommand(
 		command: 'perks',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show buff perks',
 	)
 ]
@@ -67,9 +65,6 @@ class BuffPerksController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private Filesystem $fs;
-
-	#[NCA\Inject]
-	private WhatBuffsController $whatBuffsController;
 
 	#[NCA\Inject]
 	private PlayerManager $playerManager;
@@ -106,8 +101,13 @@ class BuffPerksController extends ModuleInstance {
 	 * If you give a search string, it will search for perks buffing this skill/attribute
 	 */
 	#[NCA\HandlesCommand('perks')]
-	public function buffPerksLevelFirstCommand(CmdContext $context, int $level, PNonNumberWord $prof, ?string $search): void {
-		$this->buffPerksProfFirstCommand($context, $prof, $level, $search);
+	public function buffPerksLevelFirstCommand(
+		CmdContext $context,
+		int $level,
+		Profession $prof,
+		?string $search
+	): void {
+		$this->showPerks($prof, $level, null, $search, $context);
 	}
 
 	/**
@@ -116,22 +116,20 @@ class BuffPerksController extends ModuleInstance {
 	 * If you give a search string, it will search for perks buffing this skill/attribute
 	 */
 	#[NCA\HandlesCommand('perks')]
-	public function buffPerksProfFirstCommand(CmdContext $context, PNonNumberWord $prof, int $level, ?string $search): void {
-		try {
-			$profession = Profession::byName($prof());
-		} catch (Exception) {
-			$msg = "Could not find profession <highlight>{$prof}<end>.";
-			$context->reply($msg);
-			return;
-		}
-		$this->showPerks($profession, $level, null, $search, $context);
+	public function buffPerksProfFirstCommand(
+		CmdContext $context,
+		Profession $prof,
+		int $level,
+		?string $search
+	): void {
+		$this->showPerks($prof, $level, null, $search, $context);
 	}
 
 	/** Show detailed information for all of a perk's levels */
 	#[NCA\HandlesCommand('perks')]
 	public function showPerkCommand(
 		CmdContext $context,
-		#[NCA\Str('show')] string $action,
+		#[NCA\Parameter\Str('show')] string $action,
 		string $perkName
 	): void {
 		$perk = $this->perks->first(static function (Perk $perk) use ($perkName): bool {
@@ -175,9 +173,9 @@ class BuffPerksController extends ModuleInstance {
 			foreach ($buffs as $buff) {
 				$blob .= sprintf(
 					"<tab>%s <highlight>%+d%s<end>\n",
-					$buff->skill->name,
+					$buff->skill->fullName(),
 					$buff->amount,
-					$buff->skill->unit
+					$buff->skill->unit(),
 				);
 			}
 			$resistances = $this->resistanceHashToCollection($level->resistances);
@@ -237,8 +235,8 @@ class BuffPerksController extends ModuleInstance {
 					$level = clone $level;
 					$level->resistances = [];
 					$level->action = null;
-					if (($level->buffs[$skill->id]??0) > 0) {
-						$level->buffs = [$skill->id => $level->buffs[$skill->id]];
+					if (($level->buffs[$skill->value]??0) > 0) {
+						$level->buffs = [$skill->value => $level->buffs[$skill->value]];
 					} else {
 						$level->buffs = [];
 					}
@@ -262,13 +260,14 @@ class BuffPerksController extends ModuleInstance {
 	 *
 	 * @param Profession   $profession Name of the profession
 	 * @param int          $level      Level of the character
-	 * @param string|null  $search     Name of the skill to search for
+	 * @param null|string  $search     Name of the skill to search for
 	 * @param CommandReply $sendto     Where to send the output to
 	 */
 	protected function showPerks(Profession $profession, int $level, ?string $breed, ?string $search, CommandReply $sendto): void {
 		$skill = null;
 		if ($search !== null) {
-			$skills = $this->whatBuffsController->searchForSkill($search);
+			$skills = collect(Skill::getMatching($search))
+				->sortBy(static fn (Skill $s): string => $s->fullName());
 			$count = count($skills);
 			if ($count === 0) {
 				$sendto->reply("No skill <highlight>{$search}<end> found.");
@@ -279,8 +278,8 @@ class BuffPerksController extends ModuleInstance {
 				foreach ($skills as $skill2) {
 					$blob .= '<tab>'.
 						Text::makeChatcmd(
-							$skill2->name,
-							"/tell <myname> perks {$level} {$profession->value} {$skill2->name}"
+							$skill2->fullName(),
+							"/tell <myname> perks {$level} {$profession->value} {$skill2->fullName()}"
 						).
 						"\n";
 				}
@@ -349,7 +348,7 @@ class BuffPerksController extends ModuleInstance {
 				$blobs []= $this->renderPerkAggGroup($name, ...$perks2);
 			}
 		}
-		$buffText = isset($skill) ? " buffing {$skill->name}" : '';
+		$buffText = isset($skill) ? " buffing {$skill->fullName()}" : '';
 		$count = count($perks);
 		$msg = Text::makeBlob(
 			"Perks for a level {$level} {$profession->value}{$buffText} ({$count})",
@@ -383,9 +382,9 @@ class BuffPerksController extends ModuleInstance {
 			foreach ($buffs as $buff) {
 				$blob .= sprintf(
 					"<tab><tab>%s <highlight>%+d%s<end>\n",
-					$buff->skill->name,
+					$buff->skill->fullName(),
 					$buff->amount,
-					$buff->skill->unit,
+					$buff->skill->unit(),
 				);
 			}
 			$resistances = $this->resistanceHashToCollection($perk->resistances);
@@ -654,7 +653,7 @@ class BuffPerksController extends ModuleInstance {
 
 			$professions = explode(',', $profs);
 			foreach ($professions as $prof) {
-				$profession = Profession::tryByName(trim($prof));
+				$profession = Profession::tryFromName(trim($prof));
 				if (!isset($profession)) {
 					$this->logger->info("Error parsing profession: '{prof}'", [
 						'prof' => $prof,
@@ -677,14 +676,14 @@ class BuffPerksController extends ModuleInstance {
 				$skills = $this->expandSkill($skillName);
 				foreach ($skills as $skill) {
 					$skillSearch = $skillCache[$skill]
-						?? $this->whatBuffsController->searchForSkill($skill);
+						?? Skill::getMatching($skill);
 					$skillCache[$skill] = $skillSearch;
 					if (count($skillSearch) !== 1) {
 						$this->logger->info("Error parsing skill: '{skill}'", [
 							'skill' => $skill,
 						]);
 					} else {
-						$level->buffs[$skillSearch[0]->id] = (int)$amount;
+						$level->buffs[$skillSearch[0]->value] = (int)$amount;
 					}
 				}
 			}
@@ -720,7 +719,7 @@ class BuffPerksController extends ModuleInstance {
 		/** @var Collection<int,ExtBuff> */
 		$result = new Collection();
 		foreach ($buffs as $skillId => $amount) {
-			$skill = $this->itemsController->getSkillByID($skillId);
+			$skill = Skill::tryFrom($skillId);
 			if (!isset($skill)) {
 				continue;
 			}
@@ -729,9 +728,7 @@ class BuffPerksController extends ModuleInstance {
 				amount: $amount,
 			);
 		}
-		return $result->sort(static function (ExtBuff $b1, ExtBuff $b2): int {
-			return strnatcmp($b1->skill->name, $b2->skill->name);
-		});
+		return $result->sortBy(static fn (ExtBuff $b1): string => $b1->skill->fullName());
 	}
 
 	/**

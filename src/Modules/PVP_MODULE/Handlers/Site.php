@@ -16,8 +16,8 @@ use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 	examples: ['AEG3', '"GOF 6"'],
 )]
 class Site extends Base {
-	private ?Playfield $pf=null;
-	private ?int $siteId=null;
+	private ?Playfield $pf = null;
+	private ?int $siteId = null;
 
 	public function matches(SiteUpdate $site): bool {
 		if (!isset($this->pf) || !isset($this->siteId)) {
@@ -32,10 +32,7 @@ class Site extends Base {
 		}
 		$site = new PTowerSite($this->value);
 
-		$this->pf = Playfield::tryByName($site->pf);
-		if (!isset($this->pf)) {
-			throw new UserException("'<highlight>{$this->value}<end>' is not a known playfield.");
-		}
+		$this->pf = $site->pf;
 		$this->siteId = $site->site;
 	}
 }

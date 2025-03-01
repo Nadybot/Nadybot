@@ -6,7 +6,6 @@ use function Safe\{json_decode, json_encode, preg_match};
 use Amp\Cache\LocalCache;
 use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
 };
 use Safe\Exceptions\JsonException;
 
@@ -25,7 +25,7 @@ use Safe\Exceptions\JsonException;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'weather',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'View Weather',
 	)
 ]
@@ -342,10 +342,7 @@ class WeatherController extends ModuleInstance {
 				'<highlight>' . json_encode($data) . '<end>.'
 			);
 		}
-		$dp =  new DefinitionProvider(
-			keyFormatter: new KeyFormatterWithoutConversion(),
-		);
-		$weather = Hydrator::hydrate(Weather::class, $data, $dp);
+		$weather = Hydrator::literalHydrate(Weather::class, $data);
 		return $weather;
 	}
 }

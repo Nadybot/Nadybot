@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8b17beb2927ac71c4eb720fb8662a720",
+    "content-hash": "9d1a881a1efad4c48b8b3afe90533883",
     "packages": [
         {
             "name": "amphp/amp",
@@ -730,6 +730,169 @@
                 }
             ],
             "time": "2024-12-31T16:35:28+00:00"
+        },
+        {
+            "name": "amphp/http-server-router",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/amphp/http-server-router.git",
+                "reference": "8a166efa10bc3fc887a7a42b8a55c7b16bc9fc61"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/amphp/http-server-router/zipball/8a166efa10bc3fc887a7a42b8a55c7b16bc9fc61",
+                "reference": "8a166efa10bc3fc887a7a42b8a55c7b16bc9fc61",
+                "shasum": ""
+            },
+            "require": {
+                "amphp/amp": "^3",
+                "amphp/cache": "^2",
+                "amphp/http": "^2",
+                "amphp/http-server": "^3",
+                "amphp/socket": "^2",
+                "nikic/fast-route": "^1",
+                "php": ">=8.1",
+                "psr/log": "^1|^2|^3"
+            },
+            "require-dev": {
+                "amphp/log": "^2",
+                "amphp/php-cs-fixer-config": "^2",
+                "amphp/phpunit-util": "^3",
+                "colinodell/psr-testlogger": "^1.2",
+                "league/uri": "^6",
+                "phpunit/phpunit": "^9",
+                "psalm/phar": "^5.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Amp\\Http\\Server\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Daniel Lowrey",
+                    "email": "rdlowrey@php.net"
+                },
+                {
+                    "name": "Bob Weinand"
+                },
+                {
+                    "name": "Niklas Keller",
+                    "email": "me@kelunik.com"
+                },
+                {
+                    "name": "Aaron Piotrowski",
+                    "email": "aaron@trowski.com"
+                }
+            ],
+            "description": "Routes to request handlers based on HTTP method and path for amphp/http-server.",
+            "homepage": "https://github.com/amphp/http-server-router",
+            "keywords": [
+                "http",
+                "router",
+                "server"
+            ],
+            "support": {
+                "issues": "https://github.com/amphp/http-server-router/issues",
+                "source": "https://github.com/amphp/http-server-router/tree/v2.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/amphp",
+                    "type": "github"
+                }
+            ],
+            "time": "2023-08-05T19:16:57+00:00"
+        },
+        {
+            "name": "amphp/http-server-static-content",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/amphp/http-server-static-content.git",
+                "reference": "fcd0e41cbf27bf6727129697ac8aa536f22c2495"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/amphp/http-server-static-content/zipball/fcd0e41cbf27bf6727129697ac8aa536f22c2495",
+                "reference": "fcd0e41cbf27bf6727129697ac8aa536f22c2495",
+                "shasum": ""
+            },
+            "require": {
+                "amphp/amp": "^3",
+                "amphp/byte-stream": "^2",
+                "amphp/cache": "^2",
+                "amphp/file": "^3",
+                "amphp/http": "^2",
+                "amphp/http-server": "^3",
+                "amphp/pipeline": "^1",
+                "php": ">=8.1",
+                "revolt/event-loop": "^1"
+            },
+            "require-dev": {
+                "amphp/http-server-router": "^2",
+                "amphp/log": "^2",
+                "amphp/php-cs-fixer-config": "^2",
+                "amphp/phpunit-util": "^3",
+                "danielmiessler/sec-lists": "2022.4",
+                "phpunit/phpunit": "^9",
+                "psalm/phar": "^5.6"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/functions.php"
+                ],
+                "psr-4": {
+                    "Amp\\Http\\Server\\StaticContent\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Daniel Lowrey",
+                    "email": "rdlowrey@php.net"
+                },
+                {
+                    "name": "Bob Weinand"
+                },
+                {
+                    "name": "Niklas Keller",
+                    "email": "me@kelunik.com"
+                },
+                {
+                    "name": "Aaron Piotrowski",
+                    "email": "aaron@trowski.com"
+                }
+            ],
+            "description": "Static content request handler for Amp's HTTP server.",
+            "homepage": "https://github.com/amphp/http-server-static-content",
+            "keywords": [
+                "file",
+                "http",
+                "server",
+                "static"
+            ],
+            "support": {
+                "issues": "https://github.com/amphp/http-server-static-content/issues",
+                "source": "https://github.com/amphp/http-server-static-content/tree/v2.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/amphp",
+                    "type": "github"
+                }
+            ],
+            "time": "2023-08-20T14:58:16+00:00"
         },
         {
             "name": "amphp/http-tunnel",
@@ -3173,16 +3336,16 @@
         },
         {
             "name": "nadybot/aolib",
-            "version": "0.1.8",
+            "version": "0.1.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Nadybot/aolib.git",
-                "reference": "3e4d2fb9d611701060ac6f8793dcfe39c471bb0e"
+                "reference": "0c47932d9e9aade806b7bb77be1916d1d7a6eebb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Nadybot/aolib/zipball/3e4d2fb9d611701060ac6f8793dcfe39c471bb0e",
-                "reference": "3e4d2fb9d611701060ac6f8793dcfe39c471bb0e",
+                "url": "https://api.github.com/repos/Nadybot/aolib/zipball/0c47932d9e9aade806b7bb77be1916d1d7a6eebb",
+                "reference": "0c47932d9e9aade806b7bb77be1916d1d7a6eebb",
                 "shasum": ""
             },
             "require": {
@@ -3225,9 +3388,9 @@
             "description": "An amphp3-based client library for the Anarchy Online chat server",
             "support": {
                 "issues": "https://github.com/Nadybot/aolib/issues",
-                "source": "https://github.com/Nadybot/aolib/tree/0.1.8"
+                "source": "https://github.com/Nadybot/aolib/tree/0.1.10"
             },
-            "time": "2025-01-14T14:26:36+00:00"
+            "time": "2025-02-28T19:50:08+00:00"
         },
         {
             "name": "nadybot/math-parser",
@@ -3502,6 +3665,56 @@
                 }
             ],
             "time": "2024-12-27T09:28:11+00:00"
+        },
+        {
+            "name": "nikic/fast-route",
+            "version": "v1.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nikic/FastRoute.git",
+                "reference": "181d480e08d9476e61381e04a71b34dc0432e812"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nikic/FastRoute/zipball/181d480e08d9476e61381e04a71b34dc0432e812",
+                "reference": "181d480e08d9476e61381e04a71b34dc0432e812",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.8.35|~5.7"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/functions.php"
+                ],
+                "psr-4": {
+                    "FastRoute\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Nikita Popov",
+                    "email": "nikic@php.net"
+                }
+            ],
+            "description": "Fast request router for PHP",
+            "keywords": [
+                "router",
+                "routing"
+            ],
+            "support": {
+                "issues": "https://github.com/nikic/FastRoute/issues",
+                "source": "https://github.com/nikic/FastRoute/tree/master"
+            },
+            "time": "2018-02-13T20:26:39+00:00"
         },
         {
             "name": "nikic/php-parser",
@@ -4898,16 +5111,16 @@
     "packages-dev": [
         {
             "name": "composer-phar/php-cs-fixer",
-            "version": "v3.65.0",
+            "version": "v3.68.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer-phar/php-cs-fixer.git",
-                "reference": "6172a6a393dd16a07f85947e9910b292ab812a6d"
+                "reference": "99e74fe3978f822a177f50fd22d9da9c14cef2bc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer-phar/php-cs-fixer/zipball/6172a6a393dd16a07f85947e9910b292ab812a6d",
-                "reference": "6172a6a393dd16a07f85947e9910b292ab812a6d",
+                "url": "https://api.github.com/repos/composer-phar/php-cs-fixer/zipball/99e74fe3978f822a177f50fd22d9da9c14cef2bc",
+                "reference": "99e74fe3978f822a177f50fd22d9da9c14cef2bc",
                 "shasum": ""
             },
             "bin": [
@@ -4921,9 +5134,9 @@
             "description": "PHP-CS-Fixer/PHP-CS-Fixer",
             "support": {
                 "issues": "https://github.com/composer-phar/php-cs-fixer/issues",
-                "source": "https://github.com/composer-phar/php-cs-fixer/tree/v3.65.0"
+                "source": "https://github.com/composer-phar/php-cs-fixer/tree/v3.68.1"
             },
-            "time": "2024-12-12T11:10:46+00:00"
+            "time": "2025-01-23T11:55:04+00:00"
         },
         {
             "name": "composer/ca-bundle",
@@ -5630,16 +5843,16 @@
         },
         {
             "name": "nadybot/nadystyle",
-            "version": "1.0.1",
+            "version": "1.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Nadybot/Nadystyle.git",
-                "reference": "89c4c23ca6405ece7c6a3bddbc2cc5fbf644077f"
+                "reference": "6a62d4f33c9396222d21d651485ffa3e94866c64"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Nadybot/Nadystyle/zipball/89c4c23ca6405ece7c6a3bddbc2cc5fbf644077f",
-                "reference": "89c4c23ca6405ece7c6a3bddbc2cc5fbf644077f",
+                "url": "https://api.github.com/repos/Nadybot/Nadystyle/zipball/6a62d4f33c9396222d21d651485ffa3e94866c64",
+                "reference": "6a62d4f33c9396222d21d651485ffa3e94866c64",
                 "shasum": ""
             },
             "require": {
@@ -5670,9 +5883,9 @@
             "description": "Code style configuration for all Nadybot PHP projects",
             "support": {
                 "issues": "https://github.com/Nadybot/Nadystyle/issues",
-                "source": "https://github.com/Nadybot/Nadystyle/tree/1.0.1"
+                "source": "https://github.com/Nadybot/Nadystyle/tree/1.0.3"
             },
-            "time": "2024-04-28T14:54:49+00:00"
+            "time": "2025-02-27T09:23:42+00:00"
         },
         {
             "name": "nadyita/phpstan-amp-file-rule",
@@ -7348,6 +7561,6 @@
         "ext-reflection": "*",
         "ext-dom": "*"
     },
-    "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
 }

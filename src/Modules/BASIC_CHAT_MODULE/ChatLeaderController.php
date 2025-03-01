@@ -2,17 +2,20 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Events\{LeaveMyPrivEvent, MyPrivateChannelMsgEvent};
+use AO\Utils;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
 	EventManager,
+	Events\LeaveMyPrivEvent,
+	Events\MyPrivateChannelMsgEvent,
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PCharacter,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\AccessLevelProvider,
 	Types\SettingMode,
 };
@@ -22,21 +25,19 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'leader',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Become the Leader of the raid',
 	),
 	NCA\DefineCommand(
 		command: ChatLeaderController::CMD_LEADER_SET,
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Sets a specific Leader',
 	),
 	NCA\DefineCommand(
 		command: 'leaderecho',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Set if the text of the leader will be repeated',
 	),
-	NCA\ProvidesEvent(LeaderClearEvent::class),
-	NCA\ProvidesEvent(LeaderSetEvent::class)
 ]
 class ChatLeaderController extends ModuleInstance implements AccessLevelProvider {
 	public const CMD_LEADER_SET = 'leader set leader';
@@ -79,9 +80,9 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		$this->accessManager->registerProvider($this);
 	}
 
-	public function getSingleAccessLevel(string $sender): ?string {
+	public function getSingleAccessLevel(string $sender): ?AccessLevel {
 		if ($this->getLeader() === $sender) {
-			return 'rl';
+			return AccessLevel::RaidLeader;
 		}
 		return null;
 	}
@@ -93,7 +94,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 			$this->leader = null;
 			$this->chatBot->sendPrivate('Raid Leader cleared.');
 			$event = new LeaderClearEvent(player: $context->char->name);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 			return;
 		}
 
@@ -113,12 +114,12 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	}
 
 	public function setLeader(string $name, string $sender): ?string {
-		$name = ucfirst(strtolower($name));
+		$name = Utils::normalizeCharacter($name);
 		$uid = $this->chatBot->getUid($name);
 		if (!isset($uid)) {
 			return "Character <highlight>{$name}<end> does not exist.";
 		}
-		if (!isset($this->chatBot->chatlist[$name])) {
+		if (!$this->chatBot->inChatlist($name)) {
 			return "Character <highlight>{$name}<end> is not in the private channel.";
 		}
 		if (isset($this->leader)
@@ -129,7 +130,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		$this->leader = $name;
 		$this->chatBot->sendPrivate($this->getLeaderStatusText());
 		$event = new LeaderSetEvent(player: $name);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		return null;
 	}
 
@@ -154,10 +155,8 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		$this->chatBot->sendPrivate('Leader echo is currently ' . $this->getEchoStatusText());
 	}
 
-	#[NCA\Event(
-		name: MyPrivateChannelMsgEvent::EVENT_MASK,
-		description: 'Repeats what the leader says in the color of leaderecho_color setting'
-	)]
+	/** Repeats what the leader says in the color of leaderecho_color setting */
+	#[NCA\HandlesEvent]
 	public function privEvent(MyPrivateChannelMsgEvent $eventObj): void {
 		if (!$this->leaderecho
 			|| $this->leader !== $eventObj->sender
@@ -168,10 +167,8 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	#[NCA\Event(
-		name: LeaveMyPrivEvent::EVENT_MASK,
-		description: 'Removes leader when the leader leaves the channel'
-	)]
+	/** Removes leader when the leader leaves the channel */
+	#[NCA\HandlesEvent]
 	public function leavePrivEvent(LeaveMyPrivEvent $eventObj): void {
 		if ($this->leader !== $eventObj->sender) {
 			return;
@@ -191,7 +188,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		} elseif ($this->leader === $sender) {
 			return true;
 		}
-		return $this->accessManager->checkAccess($sender, 'moderator');
+		return $this->accessManager->checkAccess($sender, AccessLevel::Mod);
 	}
 
 	/** Returns echo's status message based on 'leaderecho' setting. */

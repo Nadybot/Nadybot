@@ -53,7 +53,7 @@ class OfabArmor extends DBTable implements AOItemSpec {
 			highql: $this->getHighQL(),
 			name: $this->getName(),
 			icon: 0,
-			slot: WearSlot::byName($this->slot)->toInt(),
+			slot: WearSlot::fromName($this->slot)->toInt(),
 			flags: 0,
 			in_game: true,
 			type: AodbType::Armor,

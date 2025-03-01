@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
+	Types\AccessLevel,
 };
 
 /**
@@ -19,19 +20,19 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'level',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show level ranges',
 		alias: ['pvp', 'lvl'],
 	),
 	NCA\DefineCommand(
 		command: 'missions',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows what ql missions a character can roll',
 		alias: 'mission'
 	),
 	NCA\DefineCommand(
 		command: 'xp',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show xp/sk needed for specified level(s)',
 		alias: 'sk'
 	)

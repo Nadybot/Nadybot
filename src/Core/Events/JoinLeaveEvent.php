@@ -2,7 +2,8 @@
 
 namespace Nadybot\Core\Events;
 
-abstract class JoinLeaveEvent extends Event {
+/** Someone joins or leaves a private channel */
+abstract class JoinLeaveEvent {
 	/**
 	 * @param string $sender  The name of the person joning/leaving
 	 * @param string $channel The name of the channel via which the message was sent

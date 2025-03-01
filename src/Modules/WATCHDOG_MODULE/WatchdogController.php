@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\WATCHDOG_MODULE;
 
-use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
+	Filesystem,
 	ModuleInstance,
 };
 
@@ -21,10 +21,8 @@ class WatchdogController extends ModuleInstance {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
-	#[NCA\Event(
-		name: 'timer(10sec)',
-		description: 'Periodically touch an alive-file'
-	)]
+	/** Periodically touch an alive-file */
+	#[NCA\Timer(interval: '10sec')]
 	public function touchAliveFile(): void {
 		$this->fs->touch(sys_get_temp_dir().'/alive.'.$this->config->main->character.'.'.$this->config->main->dimension);
 	}

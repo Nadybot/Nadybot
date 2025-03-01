@@ -2,10 +2,21 @@
 
 namespace Nadybot\Core\Routing;
 
-class RoutableMessage extends RoutableEvent {
-	public const EVENT_MASK = self::TYPE_MESSAGE;
+use Nadybot\Core\Attributes\Event;
 
-	/** @param list<Source> $path */
+/**
+ * A routable message is a message that can be routed via the message hub
+ */
+#[Event(mask: 'message')]
+class RoutableMessage extends RoutableEvent {
+	/**
+	 * @param string         $message       The message in text form
+	 * @param list<Source>   $path          The hops this message has travelled so far
+	 * @param bool           $routeSilently Whether to route the event
+	 *                                      without displaying anything
+	 * @param null|Character $char          The character who triggered the event,
+	 *                                      or `null` for system events
+	 */
 	public function __construct(
 		string $message,
 		array $path=[],
@@ -21,6 +32,7 @@ class RoutableMessage extends RoutableEvent {
 		);
 	}
 
+	/** Get the routed message string */
 	public function getData(): string {
 		return (string)parent::getData();
 	}

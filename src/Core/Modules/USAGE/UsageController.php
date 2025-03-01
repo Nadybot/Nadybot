@@ -2,31 +2,30 @@
 
 namespace Nadybot\Core\Modules\USAGE;
 
-use function Safe\json_encode;
 use Illuminate\Support\Collection;
-use Nadybot\Core\DBSchema\Usage;
-use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	CmdContext,
 	Config\BotConfig,
 	DB,
+	DBSchema\Usage,
 	EventManager,
 	Exceptions\SQLException,
+	Filesystem,
 	ModuleInstance,
-	Nadybot,
+	MyOrg,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
-	ParamClass\PWord,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\SettingMode,
+	Types\Status,
 	Util,
 };
 use Nadybot\Modules\RELAY_MODULE\{RelayConfig, RelayLayer};
-
-use stdClass;
+use Nadylib\IMEX\JSON;
 
 /**
  * @author Tyrence (RK2)
@@ -37,9 +36,9 @@ use stdClass;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'usage',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows usage stats',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 ]
 class UsageController extends ModuleInstance {
@@ -64,22 +63,16 @@ class UsageController extends ModuleInstance {
 	private Filesystem $fs;
 
 	#[NCA\Inject]
-	private Util $util;
-
-	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private BotConfig $config;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
+	private MyOrg $myOrg;
 
 	/** Show usage stats for the past 7 days or &lt;duration&gt; for a given character */
 	#[NCA\HandlesCommand('usage')]
 	public function usageCharacterCommand(
 		CmdContext $context,
-		#[NCA\Str('char', 'character', 'player')] string $action,
+		#[NCA\Parameter\Str('char', 'character', 'player')] string $action,
 		PCharacter $character,
 		?PDuration $duration
 	): void {
@@ -123,8 +116,8 @@ class UsageController extends ModuleInstance {
 	#[NCA\HandlesCommand('usage')]
 	public function usageCmdCommand(
 		CmdContext $context,
-		#[NCA\Str('cmd')] string $action,
-		PWord $cmd,
+		#[NCA\Parameter\Str('cmd')] string $action,
+		#[NCA\Parameter\WordStr] string $cmd,
 		?PDuration $duration
 	): void {
 		$time = 604_800;
@@ -140,7 +133,7 @@ class UsageController extends ModuleInstance {
 		$timeString = Util::unixtimeToReadable($time);
 		$time = time() - $time;
 
-		$cmd = strtolower($cmd());
+		$cmd = strtolower($cmd);
 
 		$query = $this->db->table(Usage::getTable())
 			->where('command', $cmd)
@@ -166,12 +159,12 @@ class UsageController extends ModuleInstance {
 
 	/** Show the internal usage data that used to be sent to the Budabot stats server */
 	#[NCA\HandlesCommand('usage')]
-	public function usageInfoCommand(CmdContext $context, #[NCA\Str('info')] string $action): void {
+	public function usageInfoCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('info')] string $action
+	): void {
 		$info = $this->getUsageInfo(time() - 7*24*3_600, time());
-		$blob = json_encode(
-			$info,
-			\JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES|\JSON_THROW_ON_ERROR
-		);
+		$blob = JSON::export($info, \JSON_PRETTY_PRINT);
 		$msg = Text::makeBlob('Collected usage info', $blob);
 		$context->reply($msg);
 	}
@@ -281,10 +274,15 @@ class UsageController extends ModuleInstance {
 			->select('command');
 		$query->selectRaw($query->rawFunc('COUNT', '*', 'count'));
 		$commands = $query->asObj(CommandUsageStats::class)
-			->reduce(static function (stdClass $carry, CommandUsageStats $entry): stdClass {
-				$carry->{$entry->command} = $entry->count;
+			/**
+			 * @param array<string,int> $carry
+			 *
+			 * @return array<string,int>
+			 */
+			->reduce(static function (array $carry, CommandUsageStats $entry): array {
+				$carry[$entry->command] = $entry->count;
 				return $carry;
-			}, new stdClass());
+			}, []);
 
 		$fsObj = $this->fs->getFilesystem();
 		$fs = new \ReflectionObject($fsObj);
@@ -298,13 +296,13 @@ class UsageController extends ModuleInstance {
 		$settings = new SettingsUsageStats(
 			dimension              : $this->config->main->dimension,
 			is_guild_bot           : strlen($this->config->general->orgName) > 0,
-			guildsize              : $this->getGuildSizeClass(count($this->chatBot->guildmembers)),
+			guildsize              : $this->getGuildSizeClass(count($this->myOrg->getMembers())),
 			num_workers            : 1 + count($this->config->worker),
 			db_type                : $this->db->getType()->value,
 			fs_type                : $fsClass,
 			bot_version            : BotRunner::getVersion(),
 			using_git              : $this->fs->exists(BotRunner::getBasedir() . '/.git'),
-			os                     : BotRunner::isWindows() ? 'Windows' : php_uname('s'),
+			os                     : \PHP_OS_FAMILY,
 			symbol                 : $this->settingManager->getString('symbol')??'!',
 			num_relays             : $this->db->table(RelayConfig::getTable())->count(),
 			relay_protocols        : $this->db->table(RelayLayer::getTable())
@@ -319,6 +317,7 @@ class UsageController extends ModuleInstance {
 			online_show_org_priv   : $this->settingManager->getInt('online_show_org_priv')??-1,
 			online_admin           : $this->settingManager->getBool('online_admin')??false,
 			http_server_enable     : $this->eventManager->getKeyForCronEvent(60, 'httpservercontroller.startHTTPServer') !== null,
+			drill_server           : $this->settingManager->getString('drill_server') ?? 'off',
 		);
 
 		return new UsageStats(
@@ -331,25 +330,16 @@ class UsageController extends ModuleInstance {
 	}
 
 	public function getGuildSizeClass(int $size): string {
-		$guildClass = 'class7';
-		if ($size === 0) {
-			$guildClass = 'class0';
-		} elseif ($size < 10) {
-			$guildClass = 'class1';
-		} elseif ($size < 30) {
-			$guildClass = 'class2';
-		} elseif ($size < 150) {
-			$guildClass = 'class3';
-		} elseif ($size < 300) {
-			$guildClass = 'class4';
-		} elseif ($size < 650) {
-			$guildClass = 'class5';
-		} elseif ($size < 1_000) {
-			$guildClass = 'class6';
-		} else {
-			$guildClass = 'class7';
-		}
-		return $guildClass;
+		return match (true) {
+			$size === 0   => 'class0',
+			$size < 10    => 'class1',
+			$size < 30    => 'class2',
+			$size < 150   => 'class3',
+			$size < 300   => 'class4',
+			$size < 650   => 'class5',
+			$size < 1_000 => 'class6',
+			default => 'class7',
+		};
 	}
 
 	#[

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
 use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\Types\HopColorType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventManager,
@@ -16,7 +17,6 @@ use Nadybot\Core\{
 	Types\CommandReply,
 	Types\MessageEmitter,
 };
-
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	AOWebChatEvent,
 	WebChatConverter,
@@ -47,7 +47,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 		return Source::WEB;
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function reply(string|array $msg): void {
 		$msg = (array)$msg;
 		if (!count($msg)) {
@@ -71,7 +71,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 		foreach ($xmlMsgs as $xmlMsg) {
 			$path = new WebSource(type: Source::WEB, name: 'Web', color: '');
 			$path->renderAs = $path->render(null);
-			$hopColor = $this->messageHub->getHopColor($rMessage->path, Source::WEB, new Source(Source::WEB, 'Web'), 'tag_color');
+			$hopColor = $this->messageHub->getHopColor($rMessage->path, Source::WEB, new Source(Source::WEB, 'Web'), HopColorType::TagColor);
 			if (isset($color, $hopColor->tag_color)) {
 				$path->color = $hopColor->tag_color;
 			} else {
@@ -88,7 +88,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 				path: [$path],
 				color: $color,
 			);
-			$this->eventManager->fireEvent($xmlMessage);
+			$this->eventManager->dispatch($xmlMessage);
 		}
 	}
 }

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\TRACKER_MODULE;
 use function Safe\preg_split;
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Events\TimerEvent;
+use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Events\ConnectEvent,
 	Events\LogoffEvent,
 	Events\LogonEvent,
+	Events\TimerEvent,
 	MessageHub,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
@@ -25,12 +26,11 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PNonNumber,
-	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Faction,
 	Types\MessageEmitter,
 	Types\Profession,
@@ -53,11 +53,9 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'track',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Show and manage tracked players',
 	),
-	NCA\ProvidesEvent(TrackerLogonEvent::class),
-	NCA\ProvidesEvent(TrackerLogoffEvent::class)
 ]
 class TrackerController extends ModuleInstance implements MessageEmitter {
 	public const REASON_TRACKER = 'tracking';
@@ -200,10 +198,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	#[NCA\Event(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Adds all players on the track list to the buddy list'
-	)]
+	/** Adds all players on the track list to the buddy list */
+	#[NCA\HandlesEvent]
 	public function trackedUsersConnectEvent(ConnectEvent $eventObj): void {
 		$this->db->table(TrackedUser::getTable())
 			->asObj(TrackedUser::class)
@@ -217,10 +213,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			});
 	}
 
-	#[NCA\Event(
-		name: 'timer(24hrs)',
-		description: 'Untrack inactive characters',
-	)]
+	/** Stop tracking inactive characters */
+	#[NCA\Timer(interval: '24hrs')]
 	public function untrackInactiveCharacters(): void {
 		if ($this->trackerAutoUntrack === 0) {
 			return;
@@ -252,10 +246,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		return Source::SYSTEM . '(tracker)';
 	}
 
-	#[NCA\Event(
-		name: 'timer(24hrs)',
-		description: "Download all tracked orgs' information"
-	)]
+	/** Download all tracked orgs' information */
+	#[NCA\Timer(interval: '24hrs')]
 	public function downloadOrgRostersEvent(TimerEvent $eventObj): void {
 		$orgs = $this->db->table(TrackingOrg::getTable())->asObj(TrackingOrg::class);
 		try {
@@ -272,13 +264,11 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$this->logger->notice('Finished Tracker Roster update');
 	}
 
-	#[NCA\Event(
-		name: TowerAttackEvent::EVENT_MASK,
-		description: 'Automatically track tower field attackers'
-	)]
+	/** Automatically track tower field attackers */
+	#[NCA\HandlesEvent]
 	public function trackTowerAttacks(TowerAttackEvent $eventObj): void {
 		$attacker = $eventObj->attack->attacker;
-		if ($this->accessManager->checkAccess($attacker->name, 'member')) {
+		if ($this->accessManager->checkAccess($attacker->name, AccessLevel::Member)) {
 			// Don't add members of the bot to the tracker
 			return;
 		}
@@ -300,7 +290,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				'guild',
 				$defGuild
 			)->contains(function (Player $player): bool {
-				return $this->accessManager->getAccessLevelForCharacter($player->name) !== 'all';
+				return $this->accessManager->getAccessLevelForCharacter($player->name) !== AccessLevel::All;
 			});
 
 			if (!$isOurGuild) {
@@ -328,10 +318,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Records a tracked user logging on'
-	)]
+	/** Records a tracked user logging on */
+	#[NCA\HandlesEvent]
 	public function trackLogonEvent(LogonEvent $eventObj): void {
 		if (!$this->chatBot->isReady()) {
 			return;
@@ -352,7 +340,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		));
 
 		$event = new TrackerLogonEvent(player: $eventObj->sender, uid: $uid);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$player = $this->playerManager->byName($eventObj->sender);
 
@@ -424,10 +412,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		);
 	}
 
-	#[NCA\Event(
-		name: LogoffEvent::EVENT_MASK,
-		description: 'Records a tracked user logging off'
-	)]
+	/** Records a tracked user logging off */
+	#[NCA\HandlesEvent]
 	public function trackLogoffEvent(LogoffEvent $eventObj): void {
 		if (!$this->chatBot->isReady()) {
 			return;
@@ -458,7 +444,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		));
 
 		$event = new TrackerLogoffEvent(player: $eventObj->sender, uid: $uid);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$player = $this->playerManager->byName($eventObj->sender);
 		$msg = $this->getLogoffMessage($player, $eventObj->sender);
@@ -514,7 +500,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackRemoveNameCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[Remove] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -530,7 +516,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackRemoveUidCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[Remove] string $action,
 		int $uid
 	): void {
 		$char = $this->chatBot->getName($uid);
@@ -594,7 +580,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	)]
 	public function trackAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -617,7 +603,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackAddOrgIdCommand(
 		CmdContext $context,
-		#[NCA\Str('addorg')] string $action,
+		#[Str('addorg')] string $action,
 		int $orgId
 	): void {
 		if (!$this->findOrgController->isReady()) {
@@ -664,14 +650,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackAddOrgNameCommand(
 		CmdContext $context,
-		#[NCA\Str('addorg')] string $action,
-		PNonNumber $orgName
+		#[Str('addorg')] string $action,
+		#[NonNumberStr] string $orgName,
 	): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
 		}
-		$orgs = collect($this->findOrgController->lookupOrg($orgName()));
+		$orgs = collect($this->findOrgController->lookupOrg($orgName));
 		$count = $orgs->count();
 		if ($count === 0) {
 			$context->reply('No matches found.');
@@ -698,7 +684,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackRemOrgCommand(
 		CmdContext $context,
-		#[NCA\Regexp('(?:rem|del)org', example: 'remorg')] string $action,
+		#[Regexp('(?:rem|del)org', example: 'remorg')] string $action,
 		int $orgId
 	): void {
 		if (!$this->findOrgController->isReady()) {
@@ -738,8 +724,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackListOrgsCommand(
 		CmdContext $context,
-		#[NCA\Regexp('orgs?', example: 'orgs')] string $action,
-		#[NCA\Str('list')] ?string $subAction
+		#[Regexp('orgs?', example: 'orgs')] string $action,
+		#[Str('list')] ?string $subAction
 	): void {
 		$orgs = $this->db->table(TrackingOrg::getTable())
 			->asObj(TrackingOrg::class);
@@ -789,7 +775,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Example('<symbol>track all --edit')]
 	public function trackOnlineCommand(
 		CmdContext $context,
-		#[NCA\Str('online')] string $action,
+		#[Str('online')] string $action,
 		?string $filter,
 	): bool {
 		$filters = [];
@@ -1036,7 +1022,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackHideUidCommand(
 		CmdContext $context,
-		#[NCA\Str('hide')] string $action,
+		#[Str('hide')] string $action,
 		int $uid
 	): void {
 		$name = $this->chatBot->getName($uid);
@@ -1047,7 +1033,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackHideNameCommand(
 		CmdContext $context,
-		#[NCA\Str('hide')] string $action,
+		#[Str('hide')] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -1081,7 +1067,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackUnhideUidCommand(
 		CmdContext $context,
-		#[NCA\Str('unhide')] string $action,
+		#[Str('unhide')] string $action,
 		int $uid
 	): void {
 		$name = $this->chatBot->getName($uid);
@@ -1092,7 +1078,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackUnhideNameCommand(
 		CmdContext $context,
-		#[NCA\Str('unhide')] string $action,
+		#[Str('unhide')] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -1126,7 +1112,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('track')]
 	public function trackShowCommand(
 		CmdContext $context,
-		#[NCA\Str('show', 'view')] string $action,
+		#[Str('show', 'view')] string $action,
 		PCharacter $char
 	): void {
 		$uid = $this->chatBot->getUid($char());
@@ -1343,14 +1329,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (isset($filters['profession'])) {
 			$professions = [];
 			foreach ($filters['profession'] as $prof) {
-				$professions []= Profession::byName($prof)->value;
+				$professions []= Profession::fromName($prof)->value;
 			}
 			$data = $data->whereIn('profession', $professions);
 		}
 		if (isset($filters['faction'])) {
 			$factions = [];
 			foreach ($filters['faction'] as $faction) {
-				$factions []= Faction::byName($faction)->value;
+				$factions []= Faction::fromName($faction)->value;
 			}
 			$data = $data->whereIn('faction', $factions);
 		}

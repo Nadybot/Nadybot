@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 
 /**
@@ -19,7 +20,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/Research'),
 	NCA\DefineCommand(
 		command: 'research',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show info on Research',
 	)
 ]

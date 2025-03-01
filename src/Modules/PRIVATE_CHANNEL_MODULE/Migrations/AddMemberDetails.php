@@ -5,7 +5,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\{Audit, Member};
-use Nadybot\Core\{AccessManager, DB, Types\SchemaMigration};
+use Nadybot\Core\{AuditAction, DB, Types\SchemaMigration};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2022_08_02_08_26_20)]
@@ -28,7 +28,7 @@ class AddMemberDetails implements SchemaMigration {
 			/** @var ?Audit */
 			$audit = $db->table(Audit::getTable())
 				->where('actee', $member)
-				->where('action', AccessManager::ADD_RANK)
+				->where('action', AuditAction::AddRank)
 				->orderBy('time')
 				->orderBy('id')
 				->firstObj(Audit::class);

@@ -4,8 +4,10 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
+use Nadybot\Core\Types\{AccessLevel, HopColorType};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	CmdContext,
 	CommandManager,
 	EventManager,
@@ -17,7 +19,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
-
 use Nadybot\Modules\{
 	WEBSOCKET_MODULE\WebsocketCommandReply,
 };
@@ -47,11 +48,11 @@ class WebchatApiController extends ModuleInstance {
 
 	/** Send a message to the org chat */
 	#[
-		NCA\Api('/chat/web'),
-		NCA\POST,
-		NCA\AccessLevel('member'),
-		NCA\RequestBody(class: 'string', desc: 'The text to send', required: true),
-		NCA\ApiResult(code: 204, desc: 'Message sent')
+		Http\Api('/chat/web'),
+		Http\POST,
+		Http\AccessLevel(AccessLevel::Member),
+		Http\RequestBody(class: 'string', desc: 'The text to send', required: true),
+		Http\ApiResult(code: 204, desc: 'Message sent')
 	]
 	public function sendWebMessageEndpoint(Request $request): Response {
 		/** @var ?string */
@@ -68,14 +69,14 @@ class WebchatApiController extends ModuleInstance {
 			color: '',
 		);
 		$src->renderAs = $src->render(null);
-		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, 'Web'), 'tag_color');
+		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, 'Web'), HopColorType::TagColor);
 		if (isset($color, $color->tag_color)) {
 			$src->color = $color->tag_color;
 		} else {
 			$src->color = '';
 		}
 		$eventColor = '';
-		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, 'Web'), 'text_color');
+		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, 'Web'), HopColorType::TextColor);
 		if (isset($color, $color->text_color)) {
 			$eventColor = $color->text_color;
 		}
@@ -89,7 +90,7 @@ class WebchatApiController extends ModuleInstance {
 				$src,
 			]
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(

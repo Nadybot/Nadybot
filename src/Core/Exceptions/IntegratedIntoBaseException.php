@@ -4,5 +4,6 @@ namespace Nadybot\Core\Exceptions;
 
 use Exception;
 
+/** A module was integrated into the base bot */
 class IntegratedIntoBaseException extends Exception {
 }

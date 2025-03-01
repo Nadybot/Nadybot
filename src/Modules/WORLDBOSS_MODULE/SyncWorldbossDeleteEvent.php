@@ -2,11 +2,12 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when the timer for a worldboss is deleted */
+#[Event(mask: 'sync(worldboss-delete)')]
 class SyncWorldbossDeleteEvent extends SyncEvent {
-	public const EVENT_MASK = 'sync(worldboss-delete)';
-
 	/**
 	 * @param string $boss   For which worldboss: tara, reaper, loren, gauntlet
 	 * @param string $sender Name of the person reporting the deletion
@@ -18,7 +19,6 @@ class SyncWorldbossDeleteEvent extends SyncEvent {
 		?int $sourceDimension=null,
 		?bool $forceSync=null,
 	) {
-		$this->type = self::EVENT_MASK;
 		parent::__construct($sourceBot, $sourceDimension, $forceSync);
 	}
 }

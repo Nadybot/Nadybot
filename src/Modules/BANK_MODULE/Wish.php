@@ -42,6 +42,7 @@ class Wish extends DBTable {
 		return max(0, $this->amount - $numFulfilled);
 	}
 
+	/** @psalm-assert-if-true int $this->expires_on */
 	public function isExpired(): bool {
 		return isset($this->expires_on) && $this->expires_on < time();
 	}

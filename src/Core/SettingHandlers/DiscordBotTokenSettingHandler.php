@@ -6,6 +6,7 @@ use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
+use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{AccessManager, Attributes as NCA};
 
 /**
@@ -19,7 +20,7 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	private AccessManager $accessManager;
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getDescription(): string {
 		$msg = "For this setting you need to enter a Discord token (59 characters).\n".
 			"You can get the ID for your bot on the Discord developer portal.\n".
@@ -46,12 +47,17 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 		return $newValue;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Redact the token value for people without write access to it
+	 */
 	public function displayValue(string $sender): string {
 		$newValue = $this->row->value;
 		if ($newValue === 'off') {
 			return "<highlight>{$newValue}<end>";
 		}
-		if (!$this->accessManager->checkAccess($sender, $this->row->admin??'all')) {
+		if (!$this->accessManager->checkAccess($sender, $this->row->access_level??AccessLevel::All)) {
 			return '<highlight>*********<end>';
 		}
 		return "<highlight>{$newValue}<end>";

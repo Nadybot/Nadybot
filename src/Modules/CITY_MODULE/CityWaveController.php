@@ -4,17 +4,18 @@ namespace Nadybot\Modules\CITY_MODULE;
 
 use function Safe\preg_match;
 use Exception;
-use Nadybot\Core\Events\GuildChannelMsgEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	Config\BotConfig,
 	EventManager,
+	Events\GuildChannelMsgEvent,
 	MessageHub,
 	ModuleInstance,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Types\AccessLevel,
 	Types\MessageEmitter,
 	Util,
 };
@@ -33,15 +34,13 @@ use Nadybot\Modules\TIMERS_MODULE\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'citywave',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows/Starts/Stops the current city wave',
 	),
-	NCA\ProvidesEvent(CityRaidStartEvent::class),
-	NCA\ProvidesEvent(CityRaidWaveEvent::class),
-	NCA\ProvidesEvent(CityRaidEndEvent::class)
 ]
 class CityWaveController extends ModuleInstance implements MessageEmitter {
 	public const TIMER_NAME = 'City Raid';
+	public const WAVE = 'wave';
 
 	/** Times to display timer alerts */
 	#[NCA\Setting\Text(
@@ -107,7 +106,10 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		'Note: the Wave Counter will start and stop automatically under normal circumstances, '.
 		'but the start and stop functions are provided just in case.'
 	)]
-	public function citywaveStartCommand(CmdContext $context, #[NCA\Str('start')] string $action): void {
+	public function citywaveStartCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('start')] string $action
+	): void {
 		$wave = $this->getWave();
 		if ($wave !== null) {
 			$context->reply('A raid is already in progress.');
@@ -118,7 +120,10 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 
 	/** Manually stop the wave timer */
 	#[NCA\HandlesCommand('citywave')]
-	public function citywaveStopCommand(CmdContext $context, #[NCA\Str('stop')] string $action): void {
+	public function citywaveStopCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('stop')] string $action
+	): void {
 		$wave = $this->getWave();
 		if ($wave === null) {
 			$msg = 'There is no raid in progress at this time.';
@@ -143,10 +148,8 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	#[NCA\Event(
-		name: GuildChannelMsgEvent::EVENT_MASK,
-		description: 'Starts a wave counter when cloak is lowered'
-	)]
+	/** Starts a wave counter when cloak is lowered */
+	#[NCA\HandlesEvent]
 	public function autoStartWaveCounterEvent(GuildChannelMsgEvent $eventObj): void {
 		if (preg_match('/^Your city in (.+) has been targeted by hostile forces.$/i', $eventObj->message)) {
 			$this->startWaveCounter();
@@ -155,26 +158,29 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 
 	public function getWave(): ?int {
 		$timer = $this->timerController->get(self::TIMER_NAME);
-		if ($timer === null || !isset($timer->alerts[0]->wave)) {
+		if ($timer === null || !isset($timer->alerts[0]->extra[self::WAVE])) {
 			return null;
 		}
-		return $timer->alerts[0]->wave;
+		return (int)$timer->alerts[0]->extra[self::WAVE];
 	}
 
-	public function sendAlertMessage(Timer $timer, WaveAlert $alert): void {
+	public function sendAlertMessage(Timer $timer, Alert $alert): void {
 		$this->sendWaveMessage($alert->message);
-		if ($alert->wave === 9) {
-			$event = new CityRaidWaveEvent(wave: $alert->wave);
-			$event->type = 'cityraid(end)';
+		$wave = $alert->extra[self::WAVE] ?? null;
+		if (!isset($wave)) {
+			return;
+		}
+		if ($wave !== 9) {
+			$event = new CityRaidWaveEvent(wave: $wave);
 		} else {
 			$event = new CityRaidEndEvent();
 		}
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	public function startWaveCounter(?string $name=null): void {
 		$event = new CityRaidStartEvent();
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		if ($name === null) {
 			$this->sendWaveMessage('Wave counter started.');
@@ -189,12 +195,12 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 			$time = Util::parseTime($alertTime);
 			$lastTime += $time;
 
-			$alerts []= new WaveAlert(
+			$alerts []= new Alert(
 				message: ($wave === 9)
 					? 'General Incoming.'
 					: "Wave {$wave} incoming.",
 				time: $lastTime,
-				wave: $wave,
+				extra: [self::WAVE => $wave],
 			);
 
 			$wave++;

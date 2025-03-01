@@ -2,11 +2,12 @@
 
 namespace Nadybot\Core\Modules\BAN;
 
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
-class SyncBanDeleteEvent extends SyncEvent {
-	public const EVENT_MASK = 'sync(ban-delete)';
-
+/** Triggered when someone's ban is lifted */
+#[Event(mask: 'sync(ban-delete)')]
+final class SyncBanDeleteEvent extends SyncEvent {
 	/**
 	 * @param int    $uid         uid of the banned person
 	 * @param string $name        name of the banned person
@@ -20,12 +21,15 @@ class SyncBanDeleteEvent extends SyncEvent {
 		?int $sourceDimension=null,
 		?bool $forceSync=null,
 	) {
-		$this->type = self::EVENT_MASK;
-		parent::__construct($sourceBot, $sourceDimension, $forceSync);
+		parent::__construct(
+			sourceBot: $sourceBot,
+			sourceDimension: $sourceDimension,
+			forceSync: $forceSync,
+		);
 	}
 
 	/**
-	 * @return array<string,int|string|null>
+	 * @return array<string,null|int|string>
 	 *
 	 * @phpstan-return array{"uid":int, "name":string, "unbanned_by":?string}
 	 */

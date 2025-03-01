@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use AO\Utils;
+
 class CallerList {
 	/**
 	 * @param string       $name    Name of this list of callers, e.g. "RI1", "east", or empty string if default
@@ -41,7 +43,7 @@ class CallerList {
 	 */
 	public function removeCallersAddedBy(string $search, bool $partialMatch, bool $invert): array {
 		if (!$partialMatch) {
-			$search = ucfirst(strtolower($search));
+			$search = Utils::normalizeCharacter($search);
 		}
 		$removed = [];
 		$this->callers = array_values(

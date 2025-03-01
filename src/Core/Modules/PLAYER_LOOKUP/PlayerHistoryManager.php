@@ -4,17 +4,16 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use function Amp\async;
 use function Safe\json_decode;
-use Amp\File\FileCache;
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;
-use Nadybot\Core\Config\BotConfig;
+use AO\Utils;
+use DateInterval;
 use Nadybot\Core\{
 	Attributes as NCA,
-	Filesystem,
 	Hydrator,
 	ModuleInstance,
 };
+use Psr\SimpleCache\CacheInterface;
 use Safe\Exceptions\JsonException;
 use Throwable;
 
@@ -23,33 +22,17 @@ class PlayerHistoryManager extends ModuleInstance {
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 
-	#[NCA\Inject]
-	private BotConfig $config;
-
-	#[NCA\Inject]
-	private Filesystem $fs;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$path = $this->getCacheDir();
-		if (!$this->fs->exists($path)) {
-			$this->fs->createDirectory($path, 0o700);
-		}
-	}
+	#[NCA\Cache(prefix: 'player_history')]
+	private CacheInterface $cache;
 
 	public function lookup(string $name, int $dimension): ?PlayerHistory {
-		$name = ucfirst(strtolower($name));
+		$name = Utils::normalizeCharacter($name);
 		$urls = [
 			"https://history.aobots.org/?server={$dimension}&name={$name}",
 			$mainUrl = "https://pork.jkbff.com/pork/history.php?server={$dimension}&name={$name}",
 		];
 		$cacheKey = "{$name}.{$dimension}.history";
-		$cache = new FileCache(
-			$this->getCacheDir(),
-			new LocalKeyedMutex(),
-			$this->fs->getFilesystem()
-		);
-		if (null !== ($body = $cache->get($cacheKey))) {
+		if (null !== ($body = $this->cache->get($cacheKey))) {
 			return $this->parsePlayerHistory($body, $name);
 		}
 		$client = $this->builder->build();
@@ -79,12 +62,8 @@ class PlayerHistoryManager extends ModuleInstance {
 		if (!isset($body) || $body === '' || $body === '[]') {
 			return null;
 		}
-		$cache->set($cacheKey, $body, 12 * 3_600);
+		$this->cache->set($cacheKey, $body, new DateInterval('PT12H'));
 		return $this->parsePlayerHistory($body, $name);
-	}
-
-	private function getCacheDir(): string {
-		return $this->config->paths->cache . '/player_history';
 	}
 
 	/** @psalm-param callable(?PlayerHistory, mixed...) $callback */

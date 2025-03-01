@@ -2,10 +2,12 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use AO\Utils;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\Player,
+	EventManager,
 	Events\SyncEvent,
 	MessageHub,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -116,7 +118,7 @@ class Relay implements MessageReceiver {
 			'dimension' => $dimension,
 			'uid' => $uid,
 		]);
-		$character = ucfirst(strtolower($character));
+		$character = Utils::normalizeCharacter($character);
 		$this->onlineChars[$where] ??= [];
 		$player = OnlinePlayer::fromPlayer(new Player(
 			name: $character,
@@ -134,14 +136,12 @@ class Relay implements MessageReceiver {
 				return;
 			}
 			$player->source = $clientId;
-			foreach (get_object_vars($player) as $key => $value) {
-				$this->onlineChars[$where][$character]->{$key} = $value;
-			}
+			$this->onlineChars[$where][$character] = $this->onlineChars[$where][$character]->updateWith($player);
 		});
 	}
 
 	public function setOffline(string $sender, string $where, string $character, ?int $uid=null, ?int $dimension=null, ?string $main=null): void {
-		$character = ucfirst(strtolower($character));
+		$character = Utils::normalizeCharacter($character);
 		$this->logger->info('Marking {name} offline on {relay}.{where}', [
 			'name' => $character,
 			'where' => $where,
@@ -369,7 +369,7 @@ class Relay implements MessageReceiver {
 	}
 
 	public function allowIncSyncEvent(SyncEvent $event): bool {
-		$allow = $this->events[$event->type] ?? null;
+		$allow = $this->events[EventManager::getEventType($event)] ?? null;
 		if (!isset($allow)) {
 			return false;
 		}
@@ -377,7 +377,7 @@ class Relay implements MessageReceiver {
 	}
 
 	public function allowOutSyncEvent(SyncEvent $event): bool {
-		$allow = $this->events[$event->type] ?? null;
+		$allow = $this->events[EventManager::getEventType($event)] ?? null;
 		if (!isset($allow)) {
 			return false;
 		}

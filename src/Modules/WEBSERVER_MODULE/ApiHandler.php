@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use Amp\Http\Server\{Request, Response};
 use Closure;
 use Exception;
+use Nadybot\Core\Types\AccessLevel;
 use ReflectionMethod;
 use Throwable;
 
@@ -16,7 +17,7 @@ class ApiHandler {
 	 */
 	public function __construct(
 		public ?string $accessLevelFrom,
-		public ?string $accessLevel,
+		public ?AccessLevel $accessLevel,
 		public string $path,
 		public string $route,
 		public ReflectionMethod $reflectionMethod,

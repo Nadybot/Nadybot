@@ -8,8 +8,8 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	ModuleInstance,
 	ParamClass\PCharacter,
-	ParamClass\PWord,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 
@@ -21,7 +21,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'reputation',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Allows people to see and add reputation of other players',
 	)
 ]
@@ -42,8 +42,8 @@ class ReputationController extends ModuleInstance {
 		$repCat = new CommentCategory(
 			name: static::CAT_REPUTATION,
 			created_by: $this->config->main->character,
-			min_al_read: 'guild',
-			min_al_write: 'guild',
+			min_al_read: AccessLevel::Guild,
+			min_al_write: AccessLevel::Guild,
 			user_managed: false,
 		);
 		$this->commentController->saveCategory($repCat);
@@ -102,7 +102,7 @@ class ReputationController extends ModuleInstance {
 	public function reputationAddCommand(
 		CmdContext $context,
 		PCharacter $char,
-		#[NCA\StrChoice('+1', '-1')] string $action,
+		#[NCA\Parameter\StrChoice('+1', '-1')] string $action,
 		string $comment
 	): void {
 		/** @psalm-var non-empty-string */
@@ -111,7 +111,7 @@ class ReputationController extends ModuleInstance {
 			$context,
 			'add',
 			$char,
-			new PWord($catName),
+			$catName,
 			"{$action} {$comment}"
 		);
 	}
@@ -124,7 +124,7 @@ class ReputationController extends ModuleInstance {
 	public function reputationViewCommand(
 		CmdContext $context,
 		PCharacter $char,
-		#[NCA\Str('all')] ?string $all
+		#[NCA\Parameter\Str('all')] ?string $all
 	): void {
 		$name = $char();
 		$comments = $this->commentController->getComments($this->getReputationCategory(), $name);

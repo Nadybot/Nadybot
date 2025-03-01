@@ -8,13 +8,14 @@ use Nadybot\Core\{
 	CommandManager,
 	Config\BotConfig,
 	ModuleInstance,
+	Types\AccessLevel,
 };
 
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'demo',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Execute a command so that links will execute in the same channel',
 	)
 ]

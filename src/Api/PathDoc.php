@@ -2,7 +2,7 @@
 
 namespace Nadybot\Api;
 
-use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Attributes\Http;
 
 class PathDoc {
 	/** @var list<string> */
@@ -11,9 +11,9 @@ class PathDoc {
 	/** @var list<string> */
 	public array $methods = [];
 
-	/** @var array<int,NCA\ApiResult> */
+	/** @var array<int,Http\ApiResult> */
 	public array $responses = [];
-	public ?NCA\RequestBody $requestBody = null;
+	public ?Http\RequestBody $requestBody = null;
 
 	public function __construct(
 		public string $description,

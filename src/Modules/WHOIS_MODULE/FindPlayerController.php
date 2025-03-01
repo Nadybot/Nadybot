@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Text,
+	Types\AccessLevel,
 };
 
 /**
@@ -18,7 +19,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'findplayer',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find a player by name',
 	)
 ]

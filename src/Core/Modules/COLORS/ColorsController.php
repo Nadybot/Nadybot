@@ -5,20 +5,21 @@ namespace Nadybot\Core\Modules\COLORS;
 use function Safe\{json_decode, preg_match};
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	Attributes\Setting\Color,
 	CmdContext,
 	DB,
 	DBSchema\RouteHopColor,
+	Filesystem,
 	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Modules\MESSAGES\MessageHubController,
-	ParamClass\PFilename,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 };
 
 #[
@@ -26,7 +27,7 @@ use Nadybot\Core\{
 	NCA\DefineCommand(
 		command: 'theme',
 		description: 'View installed color theme',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		alias: 'themes',
 	),
 	NCA\DefineCommand(
@@ -83,9 +84,6 @@ class ColorsController extends ModuleInstance {
 	private SettingManager $settingManager;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private DB $db;
 
 	#[NCA\Inject]
@@ -122,7 +120,7 @@ class ColorsController extends ModuleInstance {
 	#[NCA\HandlesCommand('theme')]
 	public function cmdThemePreview(
 		CmdContext $context,
-		#[NCA\Str('preview')] string $action,
+		#[Str('preview')] string $action,
 	): void {
 		$themes = $this->getThemeList();
 		$blobs = [];
@@ -144,8 +142,8 @@ class ColorsController extends ModuleInstance {
 	#[NCA\HandlesCommand('theme change')]
 	public function cmdApplyTheme(
 		CmdContext $context,
-		#[NCA\Str('apply')] string $action,
-		PFilename $themeName
+		#[Str('apply')] string $action,
+		#[NCA\Parameter\FilenameStr] string $themeName
 	): void {
 		$paths = explode(':', $this->themePath);
 
@@ -160,7 +158,7 @@ class ColorsController extends ModuleInstance {
 				$files->push(__DIR__ . "/{$path}/{$fileName}");
 			}
 		}
-		$files = $files->filter(static fn (string $path): bool => basename($path, '.json') === $themeName());
+		$files = $files->filter(static fn (string $path): bool => basename($path, '.json') === $themeName);
 		try {
 			$theme = $this->loadTheme($files->firstOrFail());
 			if (!isset($theme)) {
@@ -212,9 +210,7 @@ class ColorsController extends ModuleInstance {
 
 	/** Activate all colors of the given theme */
 	public function applyTheme(Theme $theme): void {
-		$attributes = $this->getColorAttributes();
-		foreach ($attributes as $attr) {
-			$value = $theme->{$attr};
+		foreach ($theme->getColors() as $attr => $value) {
 			if (!isset($value)) {
 				continue;
 			}
@@ -256,25 +252,6 @@ class ColorsController extends ModuleInstance {
 		return $blob;
 	}
 
-	/** @return list<string> */
-	private function getColorAttributes(): array {
-		$attributes = [
-			'window_color',
-			'priv_color',
-			'tell_color',
-			'guild_color',
-			'routed_sys_color',
-			'header_color',
-			'header2_color',
-			'highlight_color',
-			'clan_color',
-			'omni_color',
-			'neut_color',
-			'unknown_color',
-		];
-		return $attributes;
-	}
-
 	private function setRoutedSysColor(string $color): bool {
 		$colorDef = $this->msgHubCtrl->getHopColor('system', null, null);
 		$update = isset($colorDef);
@@ -297,17 +274,14 @@ class ColorsController extends ModuleInstance {
 
 	/** Check if the given theme is the same that's currently in use */
 	private function isThemeActive(Theme $theme): bool {
-		$attributes = $this->getColorAttributes();
-		foreach ($attributes as $attr) {
-			$value = $theme->{$attr};
+		foreach ($theme->getColors() as $attr => $value) {
 			if (!isset($value)) {
 				continue;
 			}
 			if (preg_match('/^#([0-9a-f]{6})$/i', $value)) {
 				$value = "<font color='{$value}'>";
 			}
-			$setting = 'default' . implode('', array_map('ucfirst', explode('_', $attr)));
-			$currValue = $this->{$setting} ?? null;
+			$currValue = $this->settingManager->getString("default_{$attr}");
 			if ($currValue !== $value) {
 				return false;
 			}

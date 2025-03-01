@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CmdContext,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 use Safe\Exceptions\JsonException;
 
@@ -22,7 +23,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'httprequest',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Test http/https requests'
 	)
 ]

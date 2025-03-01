@@ -13,4 +13,4 @@ jobs:
           uses: codespell-project/actions-codespell@v2.1
           with:
             skip: .vscode,debian,data,cache,logs,vendor,html,*.git*,tags,*.sql,50.txt,*.csv,*.temp,*.stub,*.neon,./styles/config/vocabularies/Nadybot/accept.txt,./nadyui/package-lock.json,./nadyui/node_modules/*,./nadyui/dist/*,package-lock.json,./src/Modules/DEV_MODULE/tests/*
-            ignore_words_list: ot,ether,vektor,keep-alives,ist,fulfilment,fulfil,fullfil,fulfill,fullfill,hastable,ore,counsil,offen,thar,spacial,pris,crystalised,crystalized,notin,notIn,newLetter
+            ignore_words_list: ot,ether,vektor,keep-alives,ist,fulfilment,fulfil,fullfil,fulfill,fullfill,hastable,ore,counsil,offen,thar,spacial,pris,crystalised,crystalized,notin,notIn,newLetter,atLeast,atMost

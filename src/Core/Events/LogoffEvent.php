@@ -2,15 +2,9 @@
 
 namespace Nadybot\Core\Events;
 
-/** A character on our buddylist logs off */
-class LogoffEvent extends UserStateEvent {
-	public const EVENT_MASK = 'logoff';
+use Nadybot\Core\Attributes\Event;
 
-	public function __construct(
-		public string $sender,
-		public int $uid,
-		public ?bool $wasOnline=null,
-	) {
-		$this->type = self::EVENT_MASK;
-	}
+/** A character on our buddylist logs off */
+#[Event(mask: 'logoff')]
+class LogoffEvent extends UserStateEvent {
 }

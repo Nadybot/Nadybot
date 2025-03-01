@@ -10,15 +10,17 @@ use Nadybot\Core\{
 	DBSchema\CmdCfg,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
+	Types\Status,
 };
 
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'cmdlist',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows a list of all commands on the bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled,
 	)
 ]
 class CommandlistController extends ModuleInstance {
@@ -46,7 +48,7 @@ class CommandlistController extends ModuleInstance {
 			return;
 		}
 		$sets = $this->commandManager->getPermissionSets();
-		$isMod = $this->accessManager->checkAccess($context->char->name, 'moderator');
+		$isMod = $this->accessManager->checkAccess($context->char->name, AccessLevel::Mod);
 		$lines = [];
 		foreach ($cmds as $cmd) {
 			$perms = collect($cmd->permissions);

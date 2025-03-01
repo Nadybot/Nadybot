@@ -3,15 +3,15 @@
 namespace Nadybot\Core\Modules\ALTS;
 
 use Illuminate\Database\QueryException;
-use Nadybot\Core\Attributes\HandlesCommand;
-use Nadybot\Core\DBSchema\Nickname;
-use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter as Param,
 	CmdContext,
 	DB,
+	DBSchema\Nickname,
 	Exceptions\UserException,
 	ModuleInstance,
+	Types\AccessLevel,
 };
 
 /**
@@ -21,7 +21,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'nick',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Nickname handling',
 	),
 ]
@@ -60,10 +60,8 @@ class NickController extends ModuleInstance {
 		$this->cacheNicknames();
 	}
 
-	#[NCA\Event(
-		name: 'timer(1h)',
-		description: 'Sync nickname-cache'
-	)]
+	/** Sync nickname-cache */
+	#[NCA\Timer(interval: '1hr')]
 	public function reCacheNicknames(): void {
 		$this->cacheNicknames();
 	}
@@ -126,10 +124,8 @@ class NickController extends ModuleInstance {
 		return $nickDeleted;
 	}
 
-	#[NCA\Event(
-		name: AltNewMainEvent::EVENT_MASK,
-		description: 'Move nickname to new main'
-	)]
+	/** Move nickname to new main */
+	#[NCA\HandlesEvent]
 	public function moveNickname(AltNewMainEvent $event): void {
 		$this->db->table(Nickname::getTable())
 			->where('main', $event->alt)
@@ -138,7 +134,7 @@ class NickController extends ModuleInstance {
 	}
 
 	/** Show your current nickname */
-	#[HandlesCommand('nick')]
+	#[NCA\HandlesCommand('nick')]
 	public function nickCommand(CmdContext $context): void {
 		$nickname = $this->getNickname($context->char->name);
 		if (!isset($nickname)) {
@@ -162,10 +158,10 @@ class NickController extends ModuleInstance {
 		"Keep in mind that nicknames can (and very likely will) collide with already\n".
 		'existing names, but nicknames themselves are unique on a bot.'
 	)]
-	#[HandlesCommand('nick')]
+	#[NCA\HandlesCommand('nick')]
 	public function setNickCommand(
 		CmdContext $context,
-		#[NCA\Str('set')] string $action,
+		#[Param\Str('set')] string $action,
 		string $nick
 	): void {
 		if (!strlen($nick)) {
@@ -189,10 +185,10 @@ class NickController extends ModuleInstance {
 	}
 
 	/** Clear your nickname */
-	#[HandlesCommand('nick')]
+	#[NCA\HandlesCommand('nick')]
 	public function clearNickCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[Param\Remove] string $action,
 	): void {
 		if (!$this->clearNickname($context->char->name)) {
 			$context->reply("You don't have a nickname set.");

@@ -10,13 +10,11 @@ use Nadybot\Core\{
 	Types\EventModifier,
 };
 
-#[
-	NCA\EventModifier(
-		name: 'if-not-command',
-		description: "This modifier will only route messages that are\n".
-			'not a command or a reply to a command.'
-	)
-]
+/**
+ * This modifier will only route messages that are
+ * not a command or a reply to a command.
+ */
+#[NCA\EventModifier(name: 'if-not-command')]
 class IfNotCommand implements EventModifier {
 	#[NCA\Inject]
 	private Nadybot $chatBot;
@@ -24,9 +22,10 @@ class IfNotCommand implements EventModifier {
 	#[NCA\Inject]
 	private SettingManager $settingManager;
 
+	/** {@inheritDoc} */
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		// We only require prefixes for messages, the rest is passed through
-		if (!isset($event) || $event->getType() !== $event::TYPE_MESSAGE) {
+		if (!isset($event) || $event->getEvent() !== $event::TYPE_MESSAGE) {
 			return $event;
 		}
 		if (isset($event->char) && ($event->char->id === $this->chatBot->char?->id)) {

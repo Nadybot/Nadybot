@@ -22,6 +22,7 @@ use Amp\{
 };
 use Exception;
 use League\Uri\Uri;
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Nadybot,
@@ -38,37 +39,20 @@ use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Throwable;
 
-#[
-	NCA\RelayTransport(
-		name: 'websocket',
-		description: "You can use websockets as a relay transport.\n".
-			"Websockets provide near-realtime communication, but since they\n".
-			"are not part of Anarchy Online, if they are down, you might have\n".
-			"a hard time debugging this.\n".
-			"Websockets require a transport protocol in order to work properly\n".
-			"and if they are public, you might also want to add an encryption\n".
-			'layer on top of that.'
-	),
-	NCA\Param(
-		name: 'server',
-		type: 'string',
-		description: 'The URI of the websocket to connect to',
-		required: true
-	),
-	NCA\Param(
-		name: 'authorization',
-		type: 'secret',
-		description: 'If set, authorize against the Websocket server with a password',
-		required: false
-	)
-]
+/**
+ * You can use websockets as a relay transport.
+ * Websockets provide near-realtime communication, but since they
+ * are not part of Anarchy Online, if they are down, you might have
+ * a hard time debugging this.
+ * Websockets require a transport protocol in order to work properly
+ * and if they are public, you might also want to add an encryption
+ * layer on top of that.
+ */
+#[NCA\RelayTransport(name: 'websocket')]
 class Websocket implements TransportInterface, StatusProvider, LogWrapInterface {
 	protected Relay $relay;
 
 	protected ?RelayStatus $status = null;
-
-	protected string $uri;
-	protected ?string $authorization;
 
 	/** @var ?callable */
 	protected mixed $initCallback;
@@ -88,8 +72,14 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 
 	private ?string $retryHandler = null;
 
-	public function __construct(string $uri, ?string $authorization=null) {
-		$this->uri = $uri;
+	/**
+	 * @param string      $uri           The URI of the websocket to connect to
+	 * @param null|string $authorization If set, authorize against the Websocket server with a password
+	 */
+	public function __construct(
+		#[NCA\Param(name: 'server')] protected string $uri,
+		#[NCA\Param(type: ParamType::Secret)] protected ?string $authorization=null,
+	) {
 		$urlParts = Uri::new($uri);
 		$scheme = $urlParts->getScheme();
 		if ($scheme === null || $urlParts->getHost() === null) {

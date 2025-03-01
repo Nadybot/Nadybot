@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PItem,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\NANO_MODULE\Nano;
 
@@ -20,7 +21,7 @@ use Nadybot\Modules\NANO_MODULE\Nano;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'disc',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show which nano a disc will turn into',
 	)
 ]

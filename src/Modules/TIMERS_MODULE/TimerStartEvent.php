@@ -2,13 +2,8 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-class TimerStartEvent extends TimerEvent {
-	public const EVENT_MASK = 'timer(start)';
+use Nadybot\Core\Attributes\Event;
 
-	public function __construct(
-		Timer $timer,
-	) {
-		parent::__construct(timer: $timer);
-		$this->type = self::EVENT_MASK;
-	}
+#[Event(mask: 'timer(start)')]
+class TimerStartEvent extends TimerEvent {
 }

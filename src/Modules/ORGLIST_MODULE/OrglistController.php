@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use AO\Utils;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -12,9 +13,9 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
-	ParamClass\PNonGreedy,
 	Registry,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 
@@ -27,7 +28,7 @@ use Psr\Log\LoggerInterface;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'orglist',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Check an org roster',
 	)
 ]
@@ -75,13 +76,12 @@ class OrglistController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>orglist Nadyita')]
 	public function orglistCommand(
 		CmdContext $context,
-		PNonGreedy $search,
-		#[NCA\Str('all')] ?string $all,
+		#[NCA\Parameter\NonGreedy] string $search,
+		#[NCA\Parameter\Str('all')] ?string $all,
 	): void {
 		if ($this->orglistShowOffline) {
 			$all = 'all';
 		}
-		$search = $search();
 		if (ctype_digit($search)) {
 			$orgId = (int)$search;
 		} else {
@@ -134,7 +134,7 @@ class OrglistController extends ModuleInstance {
 			return $orgs;
 		}
 		// check if search is a character and add character's org to org list if it's not already in the list
-		$name = ucfirst(strtolower($search));
+		$name = Utils::normalizeCharacter($search);
 		$whois = $this->playerManager->byName($name);
 		if ($whois === null || $whois->guild_id === 0 || $whois->guild_id === null) {
 			return $orgs;
@@ -166,7 +166,7 @@ class OrglistController extends ModuleInstance {
 
 	/** Get the number of currently unused buddylist slots */
 	public function getFreeBuddylistSlots(): int {
-		return $this->chatBot->getBuddyListSize() - count($this->buddylistManager->buddyList);
+		return $this->chatBot->getBuddyListSize() - $this->buddylistManager->getSize();
 	}
 
 	/**

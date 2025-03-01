@@ -5,6 +5,11 @@ namespace Nadybot\Core\ParamClass;
 use InvalidArgumentException;
 use Nadybot\Core\Safe;
 
+/**
+ * This is a representation of a color name. Either as hex code, or a <font> tag
+ *
+ * Will always return the pure, upper-cased value in hex, without #
+ */
 class PColor extends Base {
 	protected static string $regExp = "(?:<font\s+color\s*=\s*['\"]?)?#?[a-fA-F0-9]{6}(?:['\"]?[^>]*>)?";
 	protected string $value;

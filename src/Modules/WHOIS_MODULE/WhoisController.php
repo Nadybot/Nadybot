@@ -7,16 +7,16 @@ use function Amp\Future\await;
 
 use AO\Package;
 use Illuminate\Support\Collection;
-use Nadybot\Core\DB\DBType;
 use Nadybot\Core\{
-	AccessManager,
 	Attributes as NCA,
+	AuditAction,
 	BuddylistManager,
 	CmdContext,
 	Config\BotConfig,
 	DB,
 	DBSchema\Audit,
 	DBSchema\Player,
+	DB\DBType,
 	Events\Event,
 	Events\PackageEvent,
 	Events\TimerEvent,
@@ -28,6 +28,7 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
@@ -42,13 +43,13 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'whois',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show character info, online status, and name history',
 		alias: ['w', 'is'],
 	),
 	NCA\DefineCommand(
 		command: 'lookup',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find the charId for a character',
 	)
 ]
@@ -87,10 +88,8 @@ class WhoisController extends ModuleInstance {
 	/** @var list<CharData> */
 	private array $nameHistoryCache = [];
 
-	#[NCA\Event(
-		name: 'timer(1min)',
-		description: 'Save cache of names and charIds to database'
-	)]
+	/** Save cache of names and charIds to database */
+	#[NCA\Timer(interval: '1min')]
 	public function saveCharIds(Event $eventObj): void {
 		if (!count($this->nameHistoryCache) || $this->db->inTransaction()) {
 			return;
@@ -136,15 +135,8 @@ class WhoisController extends ModuleInstance {
 		$this->nameHistoryCache = [];
 	}
 
-	#[
-		NCA\Event(
-			name: [
-				'packet(20)',
-				'packet(21)',
-			],
-			description: 'Records names and charIds'
-		)
-	]
+	/** Records names and charIds */
+	#[NCA\HandlesEvent(mask: ['packet(20)', 'packet(21)'])]
 	public function recordCharIds(PackageEvent $eventObj): void {
 		$packet = $eventObj->packet->package;
 		assert(
@@ -333,10 +325,10 @@ class WhoisController extends ModuleInstance {
 				if (!count($matches = Safe::pregMatch("/\((.+?)\)/", $audit->value))) {
 					continue;
 				}
-				if ($audit->action === AccessManager::ADD_RANK) {
+				if ($audit->action === AuditAction::AddRank) {
 					$rank[$matches[1]] = true;
 					$addAction = $audit;
-				} elseif ($audit->action === AccessManager::DEL_RANK) {
+				} elseif ($audit->action === AuditAction::DelRank) {
 					unset($rank[$matches[1]]);
 					$delAction = $audit;
 				}
@@ -423,8 +415,8 @@ class WhoisController extends ModuleInstance {
 			$audits = $this->db->table(Audit::getTable())
 				->where('actee', $name)
 				->whereIn('action', [
-					AccessManager::ADD_RANK,
-					AccessManager::DEL_RANK,
+					AuditAction::AddRank,
+					AuditAction::DelRank,
 				])
 				->orderBy('time')
 				->orderBy('id')
@@ -435,7 +427,7 @@ class WhoisController extends ModuleInstance {
 				$lastAction = $breakPoints->last();
 				$blob .= "\n".
 					(
-						($lastAction->action === AccessManager::ADD_RANK)
+						($lastAction->action === AuditAction::AddRank)
 						? 'Added to bot'
 						: 'Removed from bot'
 					) . ': <highlight>' . Util::date($lastAction->time->getTimestamp()).

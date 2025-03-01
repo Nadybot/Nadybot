@@ -5,59 +5,74 @@ namespace Nadybot\Core;
 use function Amp\async;
 use function Amp\Future\awaitAll;
 use function Safe\preg_match;
+
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
 use Monolog\Logger;
-use Nadybot\Core\DBSchema\{RouteModifier, RouteModifierArgument};
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	DBSchema\Route,
 	DBSchema\RouteHopColor,
 	DBSchema\RouteHopFormat,
+	DBSchema\RouteModifier,
+	DBSchema\RouteModifierArgument,
 	Modules\ALTS\AltsController,
 	Modules\ALTS\NickController,
 	Modules\MESSAGES\MessageHubController,
 	Routing\RoutableEvent,
 	Routing\Source,
 	Types\EventModifier,
+	Types\HopColorType,
 	Types\MessageEmitter,
 	Types\MessageReceiver,
 };
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
-
 use ReflectionMethod;
-
 use Throwable;
 
+/**
+ * The message hub is the central point to route messages back and forth
+ * between various configured endpoints.
+ */
 #[NCA\Instance]
 class MessageHub {
-	public const EVENT_NOT_ROUTED = 0;
-	public const EVENT_DISCARDED = 1;
-	public const EVENT_DELIVERED = 2;
-
-	/** @var array<string,ClassSpec> */
-	public array $modifiers = [];
-
 	/** @var Collection<int,RouteHopColor> */
 	public static Collection $colors;
 
-	public bool $routingLoaded = false;
-
-	/** @var list<RoutableEvent> */
-	public array $eventQueue = [];
-
-	/** @var array<string,MessageReceiver> */
+	/**
+	 * An associative array that stores a `MessageReciver` for a destination identifier
+	 *
+	 * @var array<string,MessageReceiver>
+	 */
 	protected array $receivers = [];
 
-	/** @var array<string,MessageEmitter> */
+	/**
+	 * An associative array that stores a `MessageEmitter` for a source identifier
+	 *
+	 * @var array<string,MessageEmitter>
+	 */
 	protected array $emitters = [];
 
 	/** @var array<string,array<string,list<MessageRoute>>> */
 	protected array $routes = [];
+
+	/** Is loading of the routing complete */
+	private bool $routingLoaded = false;
+
+	/**
+	 * An associative array of all parsed event modifiers
+	 *
+	 * @var array<string,ClassSpec>
+	 */
+	private array $modifiers = [];
+
+	/** @var list<RoutableEvent> */
+	private array $eventQueue = [];
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -102,6 +117,10 @@ class MessageHub {
 		$this->loadTagColor();
 	}
 
+	/**
+	 * Parse all classes for `NCA\EmitsMessages` attributes, and
+	 * register them in this message hub.
+	 */
 	public function parseMessageEmitters(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
@@ -113,6 +132,7 @@ class MessageHub {
 		}
 	}
 
+	/** Load all route format settings from the database and cache them */
 	public function loadTagFormat(): void {
 		$query = $this->db->table(RouteHopFormat::getTable());
 		Source::$format = $query
@@ -120,6 +140,7 @@ class MessageHub {
 			->asObj(RouteHopFormat::class);
 	}
 
+	/** Load all tag color settings from the database and cache them */
 	public function loadTagColor(): void {
 		$query = $this->db->table(RouteHopColor::getTable());
 		static::$colors = $query
@@ -149,16 +170,44 @@ class MessageHub {
 		return null;
 	}
 
-	/** Register an event modifier for public use */
+	/** Get an event modifier by its name */
+	public function getModifier(string $name): ?ClassSpec {
+		return $this->modifiers[strtolower($name)] ?? null;
+	}
+
+	/**
+	 * Get all event modifiers, keyed by their name
+	 *
+	 * @return array<string,ClassSpec>
+	 */
+	public function getModifiers(): array {
+		return $this->modifiers;
+	}
+
+	/** Check if the routing has been fully loaded and is ready */
+	public function routingLoaded(): bool {
+		return $this->routingLoaded;
+	}
+
+	/** Set if the routing has been fully loaded and is ready */
+	public function setRoutingLoaded(bool $loaded=true): bool {
+		return $this->routingLoaded = $loaded;
+	}
+
+	/**
+	 * Register an event modifier for public use
+	 *
+	 * @throws Exception if the event modifier already exists
+	 */
 	public function registerEventModifier(ClassSpec $spec): void {
 		$name = strtolower($spec->name);
 		if (isset($this->modifiers[$name])) {
 			$printArgs = [];
 			foreach ($this->modifiers[$name]->params as $param) {
 				if (!$param->required) {
-					$printArgs []= "[{$param->type} {$param->name}]";
+					$printArgs []= "[{$param->type->value} {$param->name}]";
 				} else {
-					$printArgs []= "{$param->type} {$param->name}";
+					$printArgs []= "{$param->type->value} {$param->name}";
 				}
 			}
 			throw new Exception(
@@ -171,10 +220,12 @@ class MessageHub {
 	}
 
 	/**
-	 * Get a fully configured event modifier or null if not possible
+	 * Get a fully configured event modifier or `null` if not possible
 	 *
 	 * @param string                        $name   Name of the modifier
 	 * @param array<string,string|string[]> $params The parameters of the modifier
+	 *
+	 * @throws Exception on errors creating the class instance
 	 */
 	public function getEventModifier(string $name, array $params): ?EventModifier {
 		$name = strtolower($name);
@@ -190,7 +241,7 @@ class MessageHub {
 			$value = $params[$parameter->name] ?? null;
 			if (isset($value)) {
 				switch ($parameter->type) {
-					case $parameter::TYPE_BOOL:
+					case ParamType::Bool:
 						if (!is_string($value) || !in_array($value, ['true', 'false'], true)) {
 							throw new Exception(
 								"Argument <highlight>{$parameter->name}<end> to ".
@@ -201,7 +252,7 @@ class MessageHub {
 						$arguments []= $value === 'true';
 						unset($params[$parameter->name]);
 						break;
-					case $parameter::TYPE_INT:
+					case ParamType::Int:
 						if (!is_string($value) || !preg_match("/^[+-]?\d+/", $value)) {
 							throw new Exception(
 								"Argument <highlight>{$parameter->name}<end> to ".
@@ -212,7 +263,7 @@ class MessageHub {
 						$arguments []= (int)$value;
 						unset($params[$parameter->name]);
 						break;
-					case $parameter::TYPE_STRING_ARRAY:
+					case ParamType::StringArray:
 						$arguments []= (array)$value;
 						unset($params[$parameter->name]);
 						break;
@@ -265,7 +316,11 @@ class MessageHub {
 		}
 	}
 
-	/** Register an object for handling messages for a channel */
+	/**
+	 * Register an object for handling messages for a channel
+	 *
+	 * @return $this The same instance
+	 */
 	public function registerMessageReceiver(MessageReceiver $messageReceiver): self {
 		$channel = $messageReceiver->getChannelName();
 		$this->receivers[strtolower($channel)] = $messageReceiver;
@@ -275,7 +330,11 @@ class MessageHub {
 		return $this;
 	}
 
-	/** Register an object as an emitter for a channel */
+	/**
+	 * Register an object as an emitter for a channel
+	 *
+	 * @return $this The same instance
+	 */
 	public function registerMessageEmitter(MessageEmitter $messageEmitter): self {
 		$channel = $messageEmitter->getChannelName();
 		$this->emitters[strtolower($channel)] = $messageEmitter;
@@ -285,7 +344,11 @@ class MessageHub {
 		return $this;
 	}
 
-	/** Unregister an object for handling messages for a channel */
+	/**
+	 * Unregister an object for handling messages for a channel
+	 *
+	 * @return $this The same instance
+	 */
 	public function unregisterMessageReceiver(string $channel): self {
 		unset($this->receivers[strtolower($channel)]);
 		$this->logger->info('Removed event receiver for {channel}', [
@@ -294,7 +357,11 @@ class MessageHub {
 		return $this;
 	}
 
-	/** Unregister an object as an emitter for a channel */
+	/**
+	 * Unregister an object as an emitter for a channel
+	 *
+	 * @return $this The same instance
+	 */
 	public function unregisterMessageEmitter(string $channel): self {
 		unset($this->emitters[strtolower($channel)]);
 		$this->logger->info('Removed event emitter for {channel}', [
@@ -303,7 +370,11 @@ class MessageHub {
 		return $this;
 	}
 
-	/** Determine the most specific receiver for a channel */
+	/**
+	 * Determine the most specific receiver for a channel
+	 *
+	 * @return ?MessageReceiver `null` if none matches
+	 */
 	public function getReceiver(string $channel): ?MessageReceiver {
 		$channel = strtolower($channel);
 		if (isset($this->receivers[$channel])) {
@@ -318,7 +389,7 @@ class MessageHub {
 	}
 
 	/**
-	 * Get a list of all message receivers
+	 * Get a list of all message receivers as an associative array
 	 *
 	 * @return array<string,MessageReceiver>
 	 */
@@ -326,7 +397,7 @@ class MessageHub {
 		return $this->receivers;
 	}
 
-	/** Check if there is a route defined for a MessageSender */
+	/** Check if there is a route defined for a message sender name */
 	public function hasRouteFor(string $sender): bool {
 		$sender = strtolower($sender);
 		foreach ($this->routes as $source => $dest) {
@@ -363,7 +434,7 @@ class MessageHub {
 		return $receivers;
 	}
 
-	/** Check if there is a route defined for a MessageSender to a receiver */
+	/** Check if there is a route defined for a message sender to a receiver */
 	public function hasRouteFromTo(string $sender, string $destination): bool {
 		$sender = strtolower($sender);
 		foreach ($this->routes as $source => $dest) {
@@ -390,7 +461,7 @@ class MessageHub {
 	}
 
 	/**
-	 * Get a list of all message emitters
+	 * Get a list of all message emitters as an associative array
 	 *
 	 * @return array<string,MessageEmitter>
 	 */
@@ -398,13 +469,13 @@ class MessageHub {
 		return $this->emitters;
 	}
 
-	/** Submit an event to be routed according to the configured connections */
-	public function handle(RoutableEvent $event): int {
+	/** Dispatch a routable event to be routed according to the configured connections */
+	public function handle(RoutableEvent $event): RouteResult {
 		$this->logger->info('Received event to route');
 		$path = $event->getPath();
 		if (!count($path)) {
 			$this->logger->info('Discarding event without path');
-			return static::EVENT_NOT_ROUTED;
+			return RouteResult::Routed;
 		}
 		$type = strtolower("{$path[0]->type}({$path[0]->name})");
 		$eventLogLevel = null;
@@ -426,12 +497,12 @@ class MessageHub {
 		}
 		if ($this->routingLoaded === false) {
 			$this->eventQueue []= $event;
-			return static::EVENT_NOT_ROUTED;
+			return RouteResult::Routed;
 		}
 		if (($queued = array_pop($this->eventQueue)) !== null) {
 			$this->handle($queued);
 		}
-		$returnStatus = static::EVENT_NOT_ROUTED;
+		$returnStatus = RouteResult::Routed;
 		$deliveries = [];
 		foreach ($this->routes as $source => $dest) {
 			if (!str_contains($source, '(')) {
@@ -450,7 +521,7 @@ class MessageHub {
 					if ($eventLogLevel < $srcLevel) {
 						continue;
 					}
-				} catch (Exception $e) {
+				} catch (Exception) {
 					continue;
 				}
 			} elseif (!fnmatch($source, $type, \FNM_CASEFOLD)) {
@@ -469,7 +540,7 @@ class MessageHub {
 						$this->logger->info('Routing to {destination} temporarily disabled', [
 							'destination' => $destName,
 						]);
-						$returnStatus = max($returnStatus, static::EVENT_NOT_ROUTED);
+						$returnStatus = max($returnStatus, RouteResult::Routed);
 						continue;
 					}
 					$modifiedEvent = $route->modifyEvent($event);
@@ -477,7 +548,7 @@ class MessageHub {
 						$this->logger->info('Event filtered away for {destination}', [
 							'destination' => $destName,
 						]);
-						$returnStatus = max($returnStatus, static::EVENT_NOT_ROUTED);
+						$returnStatus = max($returnStatus, RouteResult::Routed);
 						continue;
 					}
 					$this->logger->info('Event routed to {destination}', [
@@ -489,7 +560,7 @@ class MessageHub {
 					}
 					$deliveries []= async($receiver->receive(...), $modifiedEvent, $destination);
 					if (!$modifiedEvent->routeSilently) {
-						$returnStatus = static::EVENT_DELIVERED;
+						$returnStatus = RouteResult::Delivered;
 					}
 				}
 			}
@@ -498,7 +569,14 @@ class MessageHub {
 		return $returnStatus;
 	}
 
-	/** Get the text to prepend to a message to denote its source path */
+	/**
+	 * Get the text to prepend to a message to denote its source path
+	 *
+	 * @param RoutableEvent $event        The event to which the path shall be rendered
+	 * @param string        $where        Name of the channel where to render to his to
+	 * @param bool          $withColor    Use color for the rendering
+	 * @param bool          $withUserLink Turn character names into clickable links
+	 */
 	public function renderPath(RoutableEvent $event, string $where, bool $withColor=true, bool $withUserLink=true): string {
 		$hops = [];
 		$lastHop = null;
@@ -545,6 +623,16 @@ class MessageHub {
 		return $hopText.$charLink;
 	}
 
+	/**
+	 * Render a single hop of a route
+	 *
+	 * @param Source        $source    The hop to render
+	 * @param RoutableEvent $event     The full routed event
+	 * @param string        $where     The channel to which this is rendered
+	 * @param bool          $withColor Render with colors
+	 *
+	 * @return null|string A rendered hop, or `null` if the hop is not in the event's path
+	 */
 	public function renderSource(Source $source, RoutableEvent $event, string $where, bool $withColor): ?string {
 		$lastHop = null;
 		$hops = $event->getPath();
@@ -560,13 +648,14 @@ class MessageHub {
 		if (!$withColor) {
 			return "[{$name}]";
 		}
-		$color = $this->getHopColor($hops, $where, $source, 'tag_color');
+		$color = $this->getHopColor($hops, $where, $source, HopColorType::TagColor);
 		if (!isset($color)) {
 			return "[{$name}]";
 		}
 		return "<font color=#{$color->tag_color}>[{$name}]<end>";
 	}
 
+	/** Get the character name of a tell source/destination, or `null` if not such */
 	public function getCharacter(string $dest): ?string {
 		$regExp = '/' . preg_quote(Source::TELL, '/') . "\((.+)\)$/";
 		if (!count($matches = Safe::pregMatch($regExp, $dest))) {
@@ -599,7 +688,11 @@ class MessageHub {
 		}
 	}
 
-	/** @return list<MessageRoute> */
+	/**
+	 * Get all configured message routes
+	 *
+	 * @return list<MessageRoute>
+	 */
 	public function getRoutes(): array {
 		$allRoutes = [];
 		foreach ($this->routes as $source => $destData) {
@@ -615,7 +708,10 @@ class MessageHub {
 	/**
 	 * Get a list of commands to re-create all routes
 	 *
-	 * @return list<string>
+	 * @param bool $useForce Use `addforce` instead of `add`, so using the generated
+	 *                       commands won't give any errors.
+	 *
+	 * @return list<string> A list of commands to execute to create the current routes
 	 */
 	public function getRouteDump(bool $useForce=false): array {
 		$routes = $this->getRoutes();
@@ -636,6 +732,11 @@ class MessageHub {
 		}, $routes);
 	}
 
+	/**
+	 * Delete a message route by its ID
+	 *
+	 * @return ?MessageRoute The deleted route, or `null` if nothing was deleted
+	 */
 	public function deleteRouteID(\Stringable|string $id): ?MessageRoute {
 		$id = (string)$id;
 		$result = null;
@@ -668,7 +769,11 @@ class MessageHub {
 		return $result;
 	}
 
-	/** Remove all routes from the routing table and return how many were removed */
+	/**
+	 * Remove all routes from the routing table
+	 *
+	 * @return int Number of removed routes
+	 */
 	public function deleteAllRoutes(): int {
 		$routes = $this->getRoutes();
 		$needTransaction = $this->db->inTransaction() === false;
@@ -717,8 +822,18 @@ class MessageHub {
 		return $msgRoute;
 	}
 
-	/** @param list<Source> $path */
-	public function getHopColor(array $path, string $where, Source $source, string $color): ?RouteHopColor {
+	/**
+	 * Get the hop color definition for a hop in route
+	 *
+	 * @param list<Source> $path   The full hop-path that needs to be rendered
+	 * @param string       $where  The name of the channel where this is to be rendered
+	 * @param Source       $source The hop to render
+	 * @param HopColorType $color  Which color to return (text or tag)
+	 *
+	 * @return null|RouteHopColor The matching hop color definition,
+	 *                            or `null` if nothing matches
+	 */
+	public function getHopColor(array $path, string $where, Source $source, HopColorType $color): ?RouteHopColor {
 		$colorDefs = static::$colors;
 		if (isset($source->name)) {
 			$fullDefs = $colorDefs->filter(static function (RouteHopColor $color): bool {
@@ -736,7 +851,7 @@ class MessageHub {
 				if (isset($colorDef->via) && !$this->isSentVia($colorDef->via, $path)) {
 					continue;
 				}
-				if (isset($colorDef->{$color})) {
+				if ($colorDef->getColor($color) !== null) {
 					return $colorDef;
 				}
 			}
@@ -751,7 +866,7 @@ class MessageHub {
 				continue;
 			}
 			if (fnmatch($colorDef->hop, $source->type, \FNM_CASEFOLD)
-				&& isset($colorDef->{$color})
+				&& $colorDef->getColor($color) !== null
 			) {
 				return $colorDef;
 			}
@@ -759,7 +874,14 @@ class MessageHub {
 		return null;
 	}
 
-	/** Get a font tag for the text of a routable message */
+	/**
+	 * Get a font tag for the text of a routable message
+	 *
+	 * @param RoutableEvent $event The event to render
+	 * @param string        $where The name of the hop to render this on
+	 *
+	 * @return string A font tag like `<font color=#123456>`
+	 */
 	public function getTextColor(RoutableEvent $event, string $where): string {
 		$path = $event->path;
 		if (!count($path)) {
@@ -777,7 +899,7 @@ class MessageHub {
 		if (!isset($hop)) {
 			return '';
 		}
-		$color = $this->getHopColor($path, $where, $hop, 'text_color');
+		$color = $this->getHopColor($path, $where, $hop, HopColorType::TextColor);
 		if (!isset($color) || !isset($color->text_color)) {
 			return '';
 		}
@@ -803,6 +925,10 @@ class MessageHub {
 		return false;
 	}
 
+	/**
+	 * Return a suffix for each character when relaying messages cross-dimension.
+	 * This is based on the dimension they are on.
+	 */
 	private function dimensionToSuffix(int $dimension): string {
 		return match ($dimension) {
 			4 => 'Test',

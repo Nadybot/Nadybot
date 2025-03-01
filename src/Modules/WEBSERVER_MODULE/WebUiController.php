@@ -5,32 +5,32 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use function Amp\ByteStream\pipe;
 use function Amp\File\openFile;
 use function Safe\tempnam;
+
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\{CancelledException, TimeoutCancellation};
 use ErrorException;
 use Exception;
-use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	CmdContext,
 	Config\BotConfig,
+	Events\ConnectEvent,
 	Filesystem,
 	ModuleInstance,
 	Safe,
 	SettingManager,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
-
 use Throwable;
-
 use ZipArchive;
 
 #[
 	NCA\DefineCommand(
 		command: 'webui',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Install or upgrade the NadyUI',
 	),
 	NCA\Instance,
@@ -57,7 +57,8 @@ class WebUiController extends ModuleInstance {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
-	#[NCA\Event(name: ConnectEvent::EVENT_MASK, description: 'Download missing NadyUI')]
+	/** Download missing NadyUI */
+	#[NCA\HandlesEvent]
 	public function onConnect(ConnectEvent $event): void {
 		$commit = BotRunner::getCommit();
 		$this->logger->debug('Current HEAD commit is {commit}', ['commit' => $commit]);
@@ -157,7 +158,7 @@ class WebUiController extends ModuleInstance {
 	)]
 	public function webUiInstallCommand(
 		CmdContext $context,
-		#[NCA\Str('install')] string $action
+		#[NCA\Parameter\Str('install')] string $action
 	): void {
 		try {
 			$commit = BotRunner::getCommit();
@@ -172,7 +173,10 @@ class WebUiController extends ModuleInstance {
 
 	/** Completely remove the WebUI installation */
 	#[NCA\HandlesCommand('webui')]
-	public function webUiUninstallCommand(CmdContext $context, #[NCA\Str('uninstall')] string $action): void {
+	public function webUiUninstallCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('uninstall')] string $action
+	): void {
 		$msg = 'There was an error removing the old files from NadyUI, please clean up manually.';
 		if ($this->uninstallNadyUi()) {
 			$msg = 'NadyUI successfully uninstalled.';

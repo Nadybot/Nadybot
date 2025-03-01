@@ -3,14 +3,15 @@
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
 use function Safe\{json_decode, preg_match, preg_split};
-use Amp\File\{FileCache, FilesystemException};
+use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
+use DateInterval;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	BotRunner,
 	ClassLoader,
 	CmdContext,
@@ -20,13 +21,13 @@ use Nadybot\Core\{
 	Filesystem,
 	Hydrator,
 	ModuleInstance,
-	Nadybot,
-	ParamClass\PWord,
 	Safe,
 	SemanticVersion,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\CacheInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Safe\Exceptions\{DirException, JsonException};
@@ -43,7 +44,7 @@ use ZipArchive;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'package',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Install or update external packages',
 		alias: ['packages', 'module'],
 	)
@@ -64,7 +65,7 @@ class PackageController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
+	private ClassLoader $classLoader;
 
 	#[NCA\Inject]
 	private BotConfig $config;
@@ -72,17 +73,17 @@ class PackageController extends ModuleInstance {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
+	#[NCA\Cache(prefix: 'PACKAGE_MODULE')]
+	private CacheInterface $cache;
+
 	#[NCA\Setup]
 	public function setup(): void {
-		if (!$this->fs->exists($this->config->paths->cache . '/PACKAGE_MODULE')) {
-			$this->fs->createDirectory($this->config->paths->cache . '/PACKAGE_MODULE', 0o700);
-		}
 		$this->scanForUnregisteredExtraModules();
 	}
 
 	/** Return if a module id extra (2) built-in (1) or not installed (0) */
 	public function getInstalledModuleType(string $module): int {
-		$path = $this->chatBot->runner->classLoader->registeredModules[$module] ?? null;
+		$path = $this->classLoader->getModulePath($module) ?? null;
 		if (!isset($path)) {
 			return static::UNINST;
 		}
@@ -99,7 +100,7 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand('package')]
 	public function listPackagesCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action
+		#[Str('list')] string $action
 	): void {
 		$packages = $this->getPackages();
 		$msg = $this->renderPackageList($packages);
@@ -197,7 +198,7 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand('package')]
 	public function packageInfoCommand(
 		CmdContext $context,
-		#[NCA\Str('info')] string $action,
+		#[Str('info')] string $action,
 		string $package
 	): void {
 		$packages = $this->getPackage($package);
@@ -357,8 +358,8 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand('package')]
 	public function packageInstallCommand(
 		CmdContext $context,
-		#[NCA\Str('install')] string $action,
-		PWord $package,
+		#[Str('install')] string $action,
+		#[WordStr] string $package,
 		?string $version
 	): void {
 		if (!$this->config->general->enablePackageModule) {
@@ -370,13 +371,13 @@ class PackageController extends ModuleInstance {
 			return;
 		}
 		$cmd = new PackageAction(
-			package: $package(),
+			package: $package,
 			action: PackageAction::INSTALL,
 			version: isset($version) ? new SemanticVersion($version) : null,
 			sender: $context->char->name,
 			sendto: $context,
 		);
-		$packages = $this->getPackage($package());
+		$packages = $this->getPackage($package);
 		if (!count($packages)) {
 			$context->reply("{$package} is not compatible with Nadybot.");
 			return;
@@ -391,8 +392,8 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand('package')]
 	public function packageUpdateCommand(
 		CmdContext $context,
-		#[NCA\Str('update')] string $action,
-		PWord $package,
+		#[Str('update')] string $action,
+		#[WordStr] string $package,
 		?string $version
 	): void {
 		if (!$this->config->general->enablePackageModule) {
@@ -404,13 +405,13 @@ class PackageController extends ModuleInstance {
 			return;
 		}
 		$cmd = new PackageAction(
-			package: $package(),
+			package: $package,
 			action: PackageAction::UPGRADE,
 			version: isset($version) ? new SemanticVersion($version) : null,
 			sender: $context->char->name,
 			sendto: $context,
 		);
-		$packages = $this->getPackage($package());
+		$packages = $this->getPackage($package);
 		if (!count($packages)) {
 			$context->reply("{$package} is not compatible with Nadybot.");
 			return;
@@ -425,7 +426,7 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand('package')]
 	public function packageUninstallCommand(
 		CmdContext $context,
-		#[NCA\Str('uninstall', 'delete', 'remove', 'erase', 'del', 'rm')] string $action,
+		#[Str('uninstall', 'delete', 'remove', 'erase', 'del', 'rm')] string $action,
 		string $package
 	): void {
 		if (!$this->config->general->enablePackageModule) {
@@ -449,7 +450,8 @@ class PackageController extends ModuleInstance {
 			);
 			return;
 		}
-		$modulePath = $this->chatBot->runner->classLoader->registeredModules[$module];
+		$modulePath = $this->classLoader->getModulePath($module);
+		assert(isset($modulePath));
 		try {
 			$path = $this->fs->realPath($modulePath);
 		} catch (FilesystemException $e) {
@@ -537,7 +539,7 @@ class PackageController extends ModuleInstance {
 			"<highlight>{$package}<end> uninstalled. Restart the bot ".
 			'for the changes to take effect.'
 		);
-		unset($this->chatBot->runner->classLoader->registeredModules[$module]);
+		$this->classLoader->unregisterModule($module);
 	}
 
 	/**
@@ -683,12 +685,7 @@ class PackageController extends ModuleInstance {
 	 * @return list<Package>
 	 */
 	private function getPackages(): array {
-		$cache = new FileCache(
-			$this->config->paths->cache . '/PACKAGE_MODULE',
-			new LocalKeyedMutex(),
-			$this->fs->getFilesystem(),
-		);
-		if (null !== ($body = $cache->get('packages'))) {
+		if (null !== ($body = $this->cache->get('packages'))) {
 			return $this->parsePackages($body);
 		}
 		$client = $this->builder->build();
@@ -702,7 +699,7 @@ class PackageController extends ModuleInstance {
 			throw new UserException('Empty response while retrieving the list of available packages.');
 		}
 		$packages = $this->parsePackages($body);
-		$cache->set('packages', $body, 3_600);
+		$this->cache->set('packages', $body, new DateInterval('PT1H'));
 		return $packages;
 	}
 
@@ -712,12 +709,7 @@ class PackageController extends ModuleInstance {
 	 * @return list<Package>
 	 */
 	private function getPackage(string $package): array {
-		$cache = new FileCache(
-			$this->config->paths->cache . '/PACKAGE_MODULE',
-			new LocalKeyedMutex(),
-			$this->fs->getFilesystem(),
-		);
-		if (null !== ($body = $cache->get($package))) {
+		if (null !== ($body = $this->cache->get($package))) {
 			return $this->parsePackages($body);
 		}
 		$client = $this->builder->build();
@@ -733,7 +725,7 @@ class PackageController extends ModuleInstance {
 			throw new UserException('Empty response received from HTTP server.');
 		}
 		$packages = $this->parsePackages($body);
-		$cache->set($package, $body, 3_600);
+		$this->cache->set($package, $body, new DateInterval('PT1H'));
 		return $packages;
 	}
 
@@ -750,12 +742,8 @@ class PackageController extends ModuleInstance {
 
 		/** @var list<array<mixed>> $data */
 
-		$dp = new DefinitionProvider(
-			keyFormatter: new KeyFormatterWithoutConversion(),
-		);
-
 		$packages = new Collection(
-			Hydrator::hydrateObjects(Package::class, $data, $dp)->toArray()
+			Hydrator::literalHydrateObjects(Package::class, $data)->toArray()
 		);
 		$packages = $packages->filter(static function (Package $package): bool {
 			return $package->bot_type === 'Nadybot';
@@ -859,7 +847,7 @@ class PackageController extends ModuleInstance {
 		if (isset($cmd->version)) {
 			$packages = $packages->filter(
 				static function (Package $package) use ($cmd): bool {
-					return $cmd->version->cmpStr($package->version) === 0;
+					return $cmd->version->cmp($package->version) === 0;
 				}
 			)->values();
 
@@ -990,7 +978,7 @@ class PackageController extends ModuleInstance {
 			->delete();
 		$this->installAndRegisterZip($zip, $cmd, $targetDir);
 
-		$this->chatBot->runner->classLoader->registeredModules[$cmd->package] = $targetDir . '/' . $cmd->package;
+		$this->classLoader->setModulePath($cmd->package, $targetDir . '/' . $cmd->package);
 		if ($cmd->action === $cmd::INSTALL) {
 			return "<highlight>{$cmd->package} {$cmd->version}<end> installed successfully. ".
 				'Restart the bot for the changes to take effect.';

@@ -2,26 +2,24 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use AO\Utils;
 use Exception;
-use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
-use Nadybot\Core\ParamClass\PUuid;
+use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Remove, Str, WordStr};
+use Nadybot\Core\Modules\ALTS\{AltAddEvent, AltNewMainEvent, AltValidateEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	MessageHub,
 	ModuleInstance,
-	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PNonNumber,
-	ParamClass\PNonNumberWord,
-	ParamClass\PRemove,
-	ParamClass\PWord,
+	ParamClass\PUuid,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
@@ -36,38 +34,38 @@ use Throwable;
 	NCA\HasMigrations('Migrations/Points'),
 	NCA\DefineCommand(
 		command: RaidPointsController::CMD_RAID_REWARD_PUNISH,
-		accessLevel: 'raid_leader_1',
+		accessLevel: AccessLevel::RaidLeader1,
 		description: 'Add or remove points from all raiders',
 	),
 	NCA\DefineCommand(
 		command: 'points',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Check how many raid points you have',
 	),
 	NCA\DefineCommand(
 		command: RaidPointsController::CMD_POINTS_OTHER,
-		accessLevel: 'raid_admin_1',
+		accessLevel: AccessLevel::RaidAdmin1,
 		description: 'Check the raid points of another raider',
 	),
 	NCA\DefineCommand(
 		command: RaidPointsController::CMD_POINTS_MODIFY,
-		accessLevel: 'raid_admin_1',
+		accessLevel: AccessLevel::RaidAdmin1,
 		description: 'Manipulate raid points of a single raider',
 	),
 	NCA\DefineCommand(
 		command: 'points top',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Show the top raiders',
 	),
 	NCA\DefineCommand(
 		command: 'reward',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Show the raid rewards for the raids',
 		alias: 'rewards'
 	),
 	NCA\DefineCommand(
 		command: RaidPointsController::CMD_REWARD_EDIT,
-		accessLevel: 'raid_admin_1',
+		accessLevel: AccessLevel::RaidAdmin1,
 		description: 'Create, Edit and Remove raid reward entries',
 	),
 
@@ -133,10 +131,8 @@ class RaidPointsController extends ModuleInstance {
 	private Nadybot $chatBot;
 
 	/** Give points when the ticker is enabled */
-	#[NCA\Event(
-		name: 'timer(1s)',
-		description: 'Award points for raid participation'
-	)]
+	/** Award points for raid participation */
+	#[NCA\Timer(interval: '1s')]
 	public function awardParticipationPoints(): void {
 		$raid = $this->raidController->raid ?? null;
 		if (
@@ -166,7 +162,7 @@ class RaidPointsController extends ModuleInstance {
 
 	/** Give $player a point for participation in raid $raid */
 	public function giveTickPoint(string $player, Raid $raid): string {
-		$pointsChar = ucfirst(strtolower($player));
+		$pointsChar = Utils::normalizeCharacter($player);
 		$sharePoints = $this->raidSharePoints;
 		if ($sharePoints) {
 			$pointsChar = $this->altsController->getMainOf($pointsChar);
@@ -204,7 +200,7 @@ class RaidPointsController extends ModuleInstance {
 	 * @throws Exception on error
 	 */
 	public function modifyRaidPoints(string $player, int $delta, bool $individual, string $reason, string $changedBy, ?Raid $raid): string {
-		$pointsChar = ucfirst(strtolower($player));
+		$pointsChar = Utils::normalizeCharacter($player);
 		$sharePoints = $this->raidSharePoints;
 		if ($sharePoints) {
 			$pointsChar = $this->altsController->getMainOf($pointsChar);
@@ -222,7 +218,7 @@ class RaidPointsController extends ModuleInstance {
 			}
 		}
 		$inserted = $this->db->insert(new RaidPointsLog(
-			username: ucfirst(strtolower($player)),
+			username: Utils::normalizeCharacter($player),
 			delta: $delta,
 			time: time(),
 			changed_by: $changedBy,
@@ -275,7 +271,7 @@ class RaidPointsController extends ModuleInstance {
 
 	/** Get this player's raid points, taking into consideration alts */
 	public function getRaidPoints(string $player): ?int {
-		$pointsChar = ucfirst(strtolower($player));
+		$pointsChar = Utils::normalizeCharacter($player);
 		$sharePoints = $this->raidSharePoints;
 		if ($sharePoints) {
 			$pointsChar = $this->altsController->getMainOf($pointsChar);
@@ -297,7 +293,7 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function raidRewardCommand(
 		CmdContext $context,
-		#[NCA\Str('reward')] string $action,
+		#[Str('reward')] string $action,
 		int $points,
 		?string $reason
 	): void {
@@ -317,10 +313,10 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function raidRewardPredefCommand(
 		CmdContext $context,
-		#[NCA\Str('reward')] string $action,
-		PNonNumber $mob
+		#[Str('reward')] string $action,
+		#[NonNumberStr()] string $mob
 	): void {
-		$reward = $this->getRaidReward($mob());
+		$reward = $this->getRaidReward($mob);
 		if (!isset($reward)) {
 			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
 			return;
@@ -333,7 +329,7 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function raidPunishCommand(
 		CmdContext $context,
-		#[NCA\Str('punish')] string $action,
+		#[Str('punish')] string $action,
 		int $points,
 		?string $reason
 	): void {
@@ -353,10 +349,10 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function raidPunishPredefCommand(
 		CmdContext $context,
-		#[NCA\Str('punish')] string $action,
-		PNonNumber $mob
+		#[Str('punish')] string $action,
+		#[NonNumberStr] string $mob
 	): void {
-		$reward = $this->getRaidReward($mob());
+		$reward = $this->getRaidReward($mob);
 		if (!isset($reward)) {
 			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
 			return;
@@ -385,7 +381,7 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function pointsTopCommand(
 		CmdContext $context,
-		#[NCA\Str('top')] string $action
+		#[Str('top')] string $action
 	): void {
 		$topRaiders = $this->db->table(RaidPoints::getTable())
 			->orderByDesc('points')
@@ -410,8 +406,8 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function pointsLogCommand(
 		CmdContext $context,
-		#[NCA\Str('log')] string $action,
-		#[NCA\Str('all')] ?string $all
+		#[Str('log')] string $action,
+		#[Str('all')] ?string $all
 	): void {
 		$this->showraidPoints($context, isset($all), ...$this->getRaidpointLogsForChar($context->char->name));
 	}
@@ -442,8 +438,8 @@ class RaidPointsController extends ModuleInstance {
 	public function pointsOtherLogCommand(
 		CmdContext $context,
 		PCharacter $char,
-		#[NCA\Str('log')] string $action,
-		#[NCA\Str('all')] ?string $all
+		#[Str('log')] string $action,
+		#[Str('all')] ?string $all
 	): void {
 		$this->pointsLogOtherCommand($context, $action, $char, $all);
 	}
@@ -453,9 +449,9 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function pointsLogOtherCommand(
 		CmdContext $context,
-		#[NCA\Str('log')] string $action,
+		#[Str('log')] string $action,
 		PCharacter $char,
-		#[NCA\Str('all')] ?string $all
+		#[Str('all')] ?string $all
 	): void {
 		if (!$context->isDM()) {
 			$context->reply('<red>The <symbol>points log command only works in tells<end>.');
@@ -534,7 +530,7 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function pointsAdd2Command(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		int $points,
 		PCharacter $char,
 		string $reason
@@ -547,7 +543,7 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function pointsAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter $char,
 		int $points,
 		string $reason
@@ -584,7 +580,7 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function pointsRem2Command(
 		CmdContext $context,
-		PRemove $action,
+		#[Remove] string $action,
 		int $points,
 		PCharacter $char,
 		string $reason
@@ -597,7 +593,7 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Group('raid-points')]
 	public function pointsRemCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[Remove] string $action,
 		PCharacter $char,
 		int $points,
 		string $reason
@@ -621,14 +617,9 @@ class RaidPointsController extends ModuleInstance {
 		);
 	}
 
-	/** Give points when the ticker is enabled */
-	#[
-		NCA\Event(
-			name: ['alt(add)', 'alt(validate)'],
-			description: 'Merge raid points when alts merge'
-		)
-	]
-	public function mergeRaidPoints(AltEvent $event): void {
+	/** Merge raid points when alts merge */
+	#[NCA\HandlesEvent]
+	public function mergeRaidPoints(AltAddEvent|AltValidateEvent $event): void {
 		if ($event->validated === false) {
 			return;
 		}
@@ -708,17 +699,17 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>reward add capri 25 Capricorn')]
 	public function rewardAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
-		PWord $name,
+		#[Str('add')] string $action,
+		#[WordStr] string $name,
 		int $points,
 		string $reason
 	): void {
-		if ($this->getRaidReward($name())) {
+		if ($this->getRaidReward($name)) {
 			$context->reply("The raid reward <highlight>{$name}<end> is already defined.");
 			return;
 		}
 		$reward = new RaidReward(
-			name: $name(),
+			name: $name,
 			points: $points,
 			reason: $reason,
 		);
@@ -738,10 +729,9 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_REWARD_EDIT)]
 	public function rewardRemCommand(
 		CmdContext $context,
-		PRemove $action,
-		PNonNumberWord $name
+		#[Remove] string $action,
+		#[NonNumberWord] string $name
 	): void {
-		$name = $name();
 		if (Uuid::isValid($name) || ctype_digit($name)) {
 			$this->rewardRemIdCommand($context, $action, new PUuid($name));
 			return;
@@ -756,7 +746,7 @@ class RaidPointsController extends ModuleInstance {
 
 	/** Remove a pre-defined raid reward */
 	#[NCA\HandlesCommand(self::CMD_REWARD_EDIT)]
-	public function rewardRemIdCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function rewardRemIdCommand(CmdContext $context, #[Remove] string $action, PUuid $id): void {
 		$id = $id();
 		$deleted = $this->db->table(RaidReward::getTable())->delete($id);
 		if ($deleted) {
@@ -771,17 +761,17 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>reward change beast 120 Beast kill')]
 	public function rewardChangeCommand(
 		CmdContext $context,
-		#[NCA\Str('change', 'edit', 'alter', 'mod', 'modify')] string $action,
-		PWord $name,
+		#[Str('change', 'edit', 'alter', 'mod', 'modify')] string $action,
+		#[WordStr] string $name,
 		int $points,
 		?string $reason
 	): void {
-		$reward = $this->getRaidReward($name());
+		$reward = $this->getRaidReward($name);
 		if (!isset($reward)) {
 			$context->reply("The raid reward <highlight>{$name}<end> is not yet defined.");
 			return;
 		}
-		$reward->name = $name();
+		$reward->name = $name;
 		$reward->points = $points;
 		$reward->reason = $reason ?? $reward->reason;
 		if (strlen($reward->name) > 20) {
@@ -796,10 +786,8 @@ class RaidPointsController extends ModuleInstance {
 		$context->reply("Reward <highlight>{$reward->name}<end> changed.");
 	}
 
-	#[NCA\Event(
-		name: AltNewMainEvent::EVENT_MASK,
-		description: 'Move raid points to new main'
-	)]
+	/** Move raid points to new main */
+	#[NCA\HandlesEvent]
 	public function moveRaidPoints(AltNewMainEvent $event): void {
 		$sharePoints = $this->raidSharePoints;
 		if (!$sharePoints) {

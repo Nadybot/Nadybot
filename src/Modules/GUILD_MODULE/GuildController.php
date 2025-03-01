@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use AO\Utils;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltInfo;
 use Nadybot\Core\{
@@ -24,10 +25,10 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\PREFERENCES\Preferences,
+	MyOrg,
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
-	ParamClass\PRemove,
 	Routing\Character,
 	Routing\Events\Base,
 	Routing\Events\Online,
@@ -36,6 +37,7 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\SettingMode,
 	Util,
 };
@@ -54,37 +56,37 @@ use Throwable;
 	NCA\HasMigrations('Migrations/Base'),
 	NCA\DefineCommand(
 		command: 'logon',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Set logon message',
 	),
 	NCA\DefineCommand(
 		command: 'logoff',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Set logoff message',
 	),
 	NCA\DefineCommand(
 		command: 'lastseen',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows the last logoff time of a character',
 	),
 	NCA\DefineCommand(
 		command: 'recentseen',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows org members who have logged off recently',
 	),
 	NCA\DefineCommand(
 		command: 'notify',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Adds a character to the notify list manually',
 	),
 	NCA\DefineCommand(
 		command: 'updateorg',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Force an update of the org roster',
 	),
 	NCA\DefineCommand(
 		command: 'orgstats',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Get statistics about the organization',
 	),
 ]
@@ -181,6 +183,9 @@ class GuildController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private Preferences $preferences;
+
+	#[NCA\Inject]
+	private MyOrg $myOrg;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -378,7 +383,7 @@ class GuildController extends ModuleInstance {
 	#[NCA\HandlesCommand('notify')]
 	public function notifyAddCommand(
 		CmdContext $context,
-		#[NCA\Str('on', 'add')] string $action,
+		#[NCA\Parameter\Str('on', 'add')] string $action,
 		PCharacter $char
 	): void {
 		$name = $char();
@@ -415,7 +420,7 @@ class GuildController extends ModuleInstance {
 			));
 		}
 		$this->buddylistManager->addName($name, 'org');
-		$this->chatBot->guildmembers[$name] = 6;
+		$this->myOrg->setMemberLevel($name, 6);
 		$msg = "<highlight>{$name}<end> has been added to the Notify list.";
 
 		$context->reply($msg);
@@ -425,7 +430,7 @@ class GuildController extends ModuleInstance {
 	#[NCA\HandlesCommand('notify')]
 	public function notifyRemoveCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Parameter\Remove] string $action,
 		PCharacter $char
 	): void {
 		$name = $char();
@@ -452,7 +457,7 @@ class GuildController extends ModuleInstance {
 				->update(['mode' => 'del']);
 			$this->delMemberFromOnline($name);
 			$this->buddylistManager->remove($name, 'org');
-			unset($this->chatBot->guildmembers[$name]);
+			$this->myOrg->delMember($name);
 			$msg = "Removed <highlight>{$name}<end> from the Notify list.";
 		}
 
@@ -500,7 +505,7 @@ class GuildController extends ModuleInstance {
 	#[NCA\HandlesCommand('orgstats')]
 	public function orgstatsCommand(
 		CmdContext $context,
-		#[NCA\Str('online')] ?string $onlineOnly,
+		#[NCA\Parameter\Str('online')] ?string $onlineOnly,
 	): void {
 		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
 			$context->reply('The bot must be in an org.');
@@ -567,22 +572,18 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\Event(
-		name: 'timer(24hrs)',
-		description: 'Download guild roster xml and update guild members'
-	)]
+	/** Download guild roster XML and update guild members */
+	#[NCA\Timer(interval: '24hrs')]
 	public function downloadOrgRosterEvent(Event $eventObj): void {
 		$this->updateMyOrgRoster(false);
 	}
 
-	#[NCA\Event(
-		name: OrgMsgChannelMsgEvent::EVENT_MASK,
-		description: 'Automatically update guild roster as characters join and leave the guild'
-	)]
+	/** Automatically update guild roster as characters join and leave the guild */
+	#[NCA\HandlesEvent]
 	public function autoNotifyOrgMembersEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (count($arr = Safe::pregMatch('/^(.+) invited (.+) to your organization.$/', $message))) {
-			$name = ucfirst(strtolower($arr[2]));
+			$name = Utils::normalizeCharacter($arr[2]);
 
 			if (
 				$this->buddylistManager->isOnline($name) === true
@@ -603,7 +604,7 @@ class GuildController extends ModuleInstance {
 			$this->db->table(OrgMember::getTable())
 				->upsert(['mode' => 'add', 'name' => $name], 'name');
 			$this->buddylistManager->addName($name, 'org');
-			$this->chatBot->guildmembers[$name] = 6;
+			$this->myOrg->setMemberLevel($name, 6);
 
 			// update character info
 			$this->playerManager->byName($name);
@@ -613,14 +614,14 @@ class GuildController extends ModuleInstance {
 			|| count($arr = Safe::pregMatch('/^(?<char>.+) just left your organization.$/', $message))
 			|| count($arr = Safe::pregMatch('/^(?<char>.+) kicked from organization \\(alignment changed\\).$/', $message))
 		) {
-			$name = ucfirst(strtolower($arr['char']));
+			$name = Utils::normalizeCharacter($arr['char']);
 
 			$this->db->table(OrgMember::getTable())
 				->where('name', $name)
 				->update(['mode' => 'del']);
 			$this->delMemberFromOnline($name);
 
-			unset($this->chatBot->guildmembers[$name]);
+			$this->myOrg->delMember($name);
 			$this->buddylistManager->remove($name, 'org');
 		}
 	}
@@ -660,13 +661,11 @@ class GuildController extends ModuleInstance {
 		return $logonMessage;
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Shows an org member logon in chat'
-	)]
+	/** Shows an org member logon in chat */
+	#[NCA\HandlesEvent]
 	public function orgMemberLogonMessageEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])
+		if (!$this->myOrg->isMember($sender)
 			|| !$this->chatBot->isReady()
 			|| $eventObj->wasOnline !== false) {
 			return;
@@ -719,13 +718,11 @@ class GuildController extends ModuleInstance {
 		return $logoffMessage;
 	}
 
-	#[NCA\Event(
-		name: LogoffEvent::EVENT_MASK,
-		description: 'Shows an org member logoff in chat'
-	)]
+	/** Shows an org member logoff in chat */
+	#[NCA\HandlesEvent]
 	public function orgMemberLogoffMessageEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])
+		if (!$this->myOrg->isMember($sender)
 			|| !$this->chatBot->isReady()
 			|| $eventObj->wasOnline !== true) {
 			return;
@@ -750,13 +747,11 @@ class GuildController extends ModuleInstance {
 		$this->chatBot->sendGuild($msg, true);
 	}
 
-	#[NCA\Event(
-		name: LogoffEvent::EVENT_MASK,
-		description: 'Record org member logoff for lastseen command'
-	)]
+	/** Record org member logoff for the !lastseen-command */
+	#[NCA\HandlesEvent]
 	public function orgMemberLogoffRecordEvent(LogoffEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])
+		if (!$this->myOrg->isMember($sender)
 			|| !$this->chatBot->isReady()
 		) {
 			return;
@@ -771,10 +766,8 @@ class GuildController extends ModuleInstance {
 			&& isset($this->config->orgId);
 	}
 
-	#[NCA\Event(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Verifies that org name is correct'
-	)]
+	/** Verifies that org name is correct */
+	#[NCA\HandlesEvent]
 	public function verifyOrgNameEvent(ConnectEvent $eventObj): void {
 		if ($this->config->general->orgName === '') {
 			return;
@@ -802,18 +795,18 @@ class GuildController extends ModuleInstance {
 			'c-admin-level' => null,
 		];
 		$alRank = $this->accessManager->getAccessLevelForCharacter($player);
-		$alName = ucfirst($this->accessManager->getDisplayName($alRank));
+		$alName = $alRank->displayName();
 		$colors = $this->onlineController;
 		switch ($alRank) {
-			case 'superadmin':
+			case AccessLevel::Superadmin:
 				$tokens['admin-level'] = $alName;
 				$tokens['c-admin-level'] = "{$colors->rankColorSuperadmin}{$alName}<end>";
 				break;
-			case 'admin':
+			case AccessLevel::Admin:
 				$tokens['admin-level'] = $alName;
 				$tokens['c-admin-level'] = "{$colors->rankColorAdmin}{$alName}<end>";
 				break;
-			case 'mod':
+			case AccessLevel::Mod:
 				$tokens['admin-level'] = $alName;
 				$tokens['c-admin-level'] = "{$colors->rankColorMod}{$alName}<end>";
 				break;
@@ -822,7 +815,7 @@ class GuildController extends ModuleInstance {
 		return $tokens;
 	}
 
-	/** @return array<string,string|int|null> */
+	/** @return array<string,null|string|int> */
 	protected function getTokensForLogonLogoff(string $player, ?Player $whois, ?AltInfo $altInfo): array {
 		$altInfo ??= $this->altsController->getAltInfo($player);
 		$tokens = [
@@ -917,9 +910,7 @@ class GuildController extends ModuleInstance {
 		$altsInChat = array_values(
 			array_filter(
 				$altInfo->getAllValidatedAlts(),
-				function (string $alt): bool {
-					return isset($this->chatBot->chatlist[$alt]);
-				}
+				$this->chatBot->inChatlist(...),
 			)
 		);
 
@@ -929,9 +920,7 @@ class GuildController extends ModuleInstance {
 			$altsInOrgOnline = array_values(
 				array_filter(
 					$altInfo->getOnlineAlts(),
-					function (string $char): bool {
-						return isset($this->chatBot->guildmembers[$char]);
-					}
+					$this->myOrg->isMember(...),
 				)
 			);
 		}
@@ -940,7 +929,7 @@ class GuildController extends ModuleInstance {
 	}
 
 	private function loadGuildMembers(): void {
-		$this->chatBot->guildmembers = [];
+		$this->myOrg->clearMembers();
 		$members = $this->db->table(OrgMember::getTable())
 			->where('mode', '!=', 'del')
 			->orderBy('name')
@@ -948,7 +937,7 @@ class GuildController extends ModuleInstance {
 		$players = $this->playerManager
 			->searchByNames($this->db->getDim(), ...$members->pluck('name')->toArray());
 		$players->each(function (Player $player): void {
-			$this->chatBot->guildmembers[$player->name] = $player->guild_rank_id ?? 6;
+			$this->myOrg->setMemberLevel($player->name, $player->guild_rank_id ?? 6);
 		});
 	}
 
@@ -1002,62 +991,66 @@ class GuildController extends ModuleInstance {
 
 		$this->db->awaitBeginTransaction();
 
-		$this->chatBot->ready = false;
-
-		// Going through each member of the org and add or update his/her
-		foreach ($org->members as $member) {
-			// don't do anything if $member is the bot itself
-			if (strtolower($member->name) === strtolower($this->config->main->character)) {
-				continue;
-			}
-
-			// If there exists already data about the character just update him/her
-			if (isset($dbEntries[$member->name])) {
-				if ($dbEntries[$member->name]['mode'] === 'del') {
-					// members who are not on notify should not be on the buddy list but should remain in the database
-					$this->buddylistManager->remove($member->name, 'org');
-					unset($this->chatBot->guildmembers[$member->name]);
-				} else {
-					// add org members who are on notify to buddy list
-					EventLoop::queue($this->buddylistManager->addName(...), $member->name, 'org');
-					$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
-
-					// if member was added to notify list manually, switch mode to org and let guild roster update from now on
-					if ($dbEntries[$member->name]['mode'] === 'add') {
-						$this->db->table(OrgMember::getTable())
-							->where('name', $member->name)
-							->update(['mode' => 'org']);
-					}
+		$this->chatBot->setReady(false);
+		try {
+			// Going through each member of the org and add or update his/her
+			foreach ($org->members as $member) {
+				// don't do anything if $member is the bot itself
+				if (strtolower($member->name) === strtolower($this->config->main->character)) {
+					continue;
 				}
-				// else insert his/her data
-			} else {
-				// add new org members to buddy list
-				EventLoop::queue($this->buddylistManager->addName(...), $member->name, 'org');
-				$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
 
-				$this->db->insert(new OrgMember(
-					name: $member->name,
-					mode: 'org',
-				));
+				// If there exists already data about the character just update him/her
+				if (isset($dbEntries[$member->name])) {
+					if ($dbEntries[$member->name]['mode'] === 'del') {
+						// members who are not on notify should not be on the buddy list but should remain in the database
+						$this->buddylistManager->remove($member->name, 'org');
+						$this->myOrg->delMember($member->name);
+					} else {
+						// add org members who are on notify to buddy list
+						EventLoop::queue($this->buddylistManager->addName(...), $member->name, 'org');
+						$this->myOrg->setMemberLevel($member->name, $member->guild_rank_id ?? 0);
+
+						// if member was added to notify list manually, switch mode to org and let guild roster update from now on
+						if ($dbEntries[$member->name]['mode'] === 'add') {
+							$this->db->table(OrgMember::getTable())
+								->where('name', $member->name)
+								->update(['mode' => 'org']);
+						}
+					}
+					// else insert his/her data
+				} else {
+					// add new org members to buddy list
+					EventLoop::queue($this->buddylistManager->addName(...), $member->name, 'org');
+					$this->myOrg->setMemberLevel($member->name, $member->guild_rank_id ?? 0);
+
+					$this->db->insert(new OrgMember(
+						name: $member->name,
+						mode: 'org',
+					));
+				}
+				unset($dbEntries[$member->name]);
 			}
-			unset($dbEntries[$member->name]);
-		}
 
-		$this->db->commit();
+			$this->db->commit();
 
-		// remove buddies who are no longer org members
-		foreach ($dbEntries as $buddy) {
-			if ($buddy['mode'] !== 'add') {
-				$this->delMemberFromOnline($buddy['name']);
-				$this->db->table(OrgMember::getTable())
-					->where('name', $buddy['name'])
-					->delete();
-				$this->buddylistManager->remove($buddy['name'], 'org');
-				unset($this->chatBot->guildmembers[$buddy['name']]);
+			// remove buddies who are no longer org members
+			foreach ($dbEntries as $buddy) {
+				if ($buddy['mode'] !== 'add') {
+					$this->delMemberFromOnline($buddy['name']);
+					$this->db->table(OrgMember::getTable())
+						->where('name', $buddy['name'])
+						->delete();
+					$this->buddylistManager->remove($buddy['name'], 'org');
+					$this->myOrg->delMember($buddy['name']);
+				}
 			}
+		} catch (Throwable $e) {
+			$this->db->rollback();
+			throw $e;
+		} finally {
+			$this->chatBot->setReady(true);
 		}
-
-		$this->chatBot->ready = true;
 		$this->logger->notice('Finished Roster update');
 	}
 }

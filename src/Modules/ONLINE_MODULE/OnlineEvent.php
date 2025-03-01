@@ -2,15 +2,18 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
+use Nadybot\Core\Types\EventInterface;
 
-class OnlineEvent extends Event {
-	public const EVENT_MASK = 'online(*)';
-
+#[Event(mask: 'online(*)')]
+class OnlineEvent implements EventInterface {
 	public function __construct(
 		public OnlinePlayer $player,
 		public string $channel,
 	) {
-		$this->type = "online({$channel})";
+	}
+
+	public function getEvent(): string {
+		return "online({$this->channel})";
 	}
 }

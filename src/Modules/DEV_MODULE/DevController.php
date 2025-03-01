@@ -16,6 +16,8 @@ use Nadybot\Core\{
 	Safe,
 	SubcommandManager,
 	Text,
+	Types\AccessLevel,
+	Types\Status,
 	Util,
 };
 use Psr\Log\LoggerInterface;
@@ -31,37 +33,37 @@ use ReflectionMethod;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'showcmdregex',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'View regex masks used to match commands',
 	),
 	NCA\DefineCommand(
 		command: 'intransaction',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Check if a DB transaction is open',
 	),
 	NCA\DefineCommand(
 		command: 'rollbacktransaction',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Rollback an open DB transaction',
 	),
 	NCA\DefineCommand(
 		command: 'stacktrace',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Show a stacktrace',
 	),
 	NCA\DefineCommand(
 		command: 'cmdhandlers',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Show command handlers for a command',
 	),
 	NCA\DefineCommand(
 		command: 'createblob',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Creates a blob of random characters',
 	),
 	NCA\DefineCommand(
 		command: 'makeitem',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Creates an item link',
 	)
 ]
@@ -88,11 +90,8 @@ class DevController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, 'querysql select', 'select');
 	}
 
-	#[NCA\Event(
-		name: 'timer(1m)',
-		description: 'Log the memory usage once per minute',
-		defaultStatus: 0,
-	)]
+	/** Log the memory usage once per minute */
+	#[NCA\Timer(interval: '1m', defaultStatus: Status::Disabled)]
 	public function logMemoryUsage(): void {
 		$this->logger->notice('Current memory usage: {usage}MB / {real}MB', [
 			'usage' => number_format(memory_get_usage(false) / (1_024 * 1_024), 1),
@@ -131,7 +130,7 @@ class DevController extends ModuleInstance {
 			[]
 		);
 
-		$this->commandManager->sortCalls($calls);
+		$calls = $this->commandManager->sortCalls($calls);
 
 		// get regular expressions for calls
 		$regexes = [];

@@ -3,11 +3,14 @@
 namespace Nadybot\Core;
 
 use function Safe\preg_match;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Modules\COLORS\ColorsController;
-use Nadybot\Core\Modules\SYSTEM\SystemController;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	Modules\COLORS\ColorsController,
+	Modules\SYSTEM\SystemController,
+};
 
+/** Helper functions to deal with text */
 #[NCA\Instance]
 class Text {
 	#[NCA\Inject]
@@ -24,7 +27,7 @@ class Text {
 	 *
 	 * @param string      $name    The text part of the clickable link
 	 * @param string      $content The content of the info window
-	 * @param string|null $header  If set, use $header as header, otherwise $name
+	 * @param null|string $header  If set, use $header as header, otherwise $name
 	 *
 	 * @return string The string with link and reference
 	 */
@@ -52,7 +55,7 @@ class Text {
 	}
 
 	/**
-	 * Creates a chatcmd link
+	 * Creates a clickable link that sends a chat command
 	 *
 	 * @param string  $name    The name the link will show
 	 * @param string  $content The chatcmd to execute
@@ -114,7 +117,12 @@ class Text {
 		return "<img src='{$db}://{$imageId}'>";
 	}
 
-	/** @return array<string,string> */
+	/**
+	 * Get an associative array of all supported color tags and their HTML font tag
+	 * e.g. `['<header>' => '<font color=#123456>']`
+	 *
+	 * @return array<string,string>
+	 */
 	public function getColors(): array {
 		return [
 			'<header>' => str_replace("'", '', $this->colors->defaultHeaderColor),
@@ -228,7 +236,7 @@ class Text {
 	}
 
 	/**
-	 * Convert a list of string into a 1, 2, 3, 4 and 5 enumeration
+	 * Convert a list of string into a "1, 2, 3, 4 and 5" enumeration
 	 *
 	 * @param string $words The words to enumerate
 	 *
@@ -244,7 +252,7 @@ class Text {
 	}
 
 	/**
-	 * Convert a list of string into a 1, 2, 3, 4 or 5 enumeration
+	 * Convert a list of string into a "1, 2, 3, 4 or 5" enumeration
 	 *
 	 * @param string $words The words to enumerate
 	 *
@@ -276,6 +284,14 @@ class Text {
 		);
 	}
 
+	/**
+	 * Remove all popups from a given message
+	 *
+	 * @param string $message     The message that contains popups
+	 * @param bool   $removeLinks Completely remove the popup-links and their text
+	 *
+	 * @return string The message without popups
+	 */
 	public static function removePopups(string $message, bool $removeLinks=false): string {
 		$message = Safe::pregReplaceCallback(
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
@@ -295,7 +311,11 @@ class Text {
 		return $message;
 	}
 
-	/** @return list<string> */
+	/**
+	 * Extract all the popups from a message
+	 *
+	 * @return list<string> A list of all the popup contents
+	 */
 	public static function getPopups(string $message): array {
 		$popups = [];
 		$message = Safe::pregReplaceCallback(
@@ -307,39 +327,6 @@ class Text {
 			$message
 		);
 		return $popups;
-	}
-
-	/**
-	 * @param list<string> $msgs
-	 *
-	 * @return list<string>
-	 */
-	public static function unbreakPopups(array $msgs): array {
-		if (count($msgs) < 2) {
-			return $msgs;
-		}
-		if (count($matches = Safe::pregMatch("/<a\s+href\s*=\s*([\"'])text:\/\/(<font.*?>)?<header>[^\n]*<end>\n\n(.+?)\\1\s*>(.*?)<\/a> \(Page <highlight>1 \/ (\d+)<end>\)/is", $msgs[0])) < 4) {
-			return $msgs;
-		}
-		$blocks = [
-			$matches[2] . "<header>{$matches[4]}<end>\n\n" . rtrim($matches[3]),
-		];
-		for ($i = 1; $i < count($msgs); $i++) {
-			if (count($matches2 = Safe::pregMatch(
-				"/<a\s+href\s*=\s*([\"'])text:\/\/(?:<font.*?>)?<header>[^\n]*<end>\n\n(.*?)\\1\s*>(.*?)<\/a> \(Page <highlight>" . ($i+1) . " \/ " . $matches[5] . '<end>\)/is',
-				$msgs[$i]
-			))) {
-				$expand = Safe::pregReplace("/^<header>[^\n]*<end>\n{0,2}/", '', $matches2[2]);
-				$block = static::removeCommonLines($matches[3], trim($expand));
-				if (str_starts_with($block, '<header2>')) {
-					$block = "\n{$block}";
-				}
-				$blocks []= $block;
-			}
-		}
-		$popup = implode("\n", $blocks);
-		$result = str_replace($matches[0], "<a href={$matches[1]}text://{$popup}{$matches[1]}>{$matches[4]}</a>", $msgs[0]);
-		return (array)$result;
 	}
 
 	/** Return the pluralized version of $word if $amount is not 1 */
@@ -406,7 +393,7 @@ class Text {
 	 * Render {token}, {?token:} and {!token} placeholder-based text
 	 *
 	 * @param string                        $text   The text containing placeholders
-	 * @param array<string,string|int|null> $tokens All possibly usable tokens
+	 * @param array<string,null|string|int> $tokens All possibly usable tokens
 	 *
 	 * @return string The rendered text
 	 */
@@ -439,6 +426,7 @@ class Text {
 		return $text;
 	}
 
+	/** Convert a camel case name to snake case */
 	public static function toSnakeCase(string $name): string {
 		return strtolower(
 			Safe::pregReplace(
@@ -457,16 +445,18 @@ class Text {
 		);
 	}
 
-	protected static function removeCommonLines(string $firstBlock, string $nextBlock): string {
-		$firstPageLines = explode("\n", $firstBlock);
-		$nextPageLines = explode("\n", $nextBlock);
-		$i = 0;
-		while ($i < count($firstPageLines) && $i < count($nextPageLines)) {
-			if ($nextPageLines[$i] !== $firstPageLines[$i]) {
-				break;
-			}
-			$i++;
-		}
-		return implode("\n", array_slice($nextPageLines, $i));
+	/** Extract the human-readable text from a doc block comment */
+	public static function cleanDocComment(string $comment): string {
+		$cleanComment = trim(Safe::pregReplace("|^/\*\*(.*)\*/|s", '$1', $comment));
+		$cleanComment = Safe::pregReplace("/^[ \t]*\*[ \t]*/m", '', $cleanComment);
+		$cleanComment = trim(Safe::pregReplace('/^@.*/m', '', $cleanComment));
+		return $cleanComment;
+	}
+
+	/** Ann "a" or "an" to a given word */
+	public static function addArticle(string $word): string {
+		return in_array(substr($word, 0, 1), ['a', 'e', 'i', 'o', 'u'], true)
+			? "an {$word}"
+			: "a {$word}";
 	}
 }

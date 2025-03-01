@@ -5,7 +5,7 @@ namespace Nadybot\Modules\EXPORT_MODULE;
 use function Safe\json_encode;
 
 use Amp\File\FilesystemException;
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion, UnableToSerializeObject};
+use EventSauce\ObjectHydrator\UnableToSerializeObject;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	Hydrator,
 	ModuleInstance,
 	Registry,
+	Types\AccessLevel,
 	Types\ExporterInterface,
 };
 use Psr\Log\LoggerInterface;
@@ -28,7 +29,7 @@ use Safe\Exceptions\JsonException;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'export',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Export the bot configuration and data',
 	)
 ]
@@ -98,13 +99,10 @@ class ExportController extends ModuleInstance {
 		foreach ($this->exporters as $key => $exporter) {
 			$exports[$key] = $exporter->export($this->db, $this->logger);
 		}
-		$dp = new DefinitionProvider(
-			keyFormatter: new KeyFormatterWithoutConversion(),
-		);
 		try {
 			$serialized = [];
 			foreach ($exports as $key => $data) {
-				$serialized[$key] = Hydrator::serializeObjects($data, $dp)->toArray();
+				$serialized[$key] = Hydrator::literalSerializeObjects($data)->toArray();
 			}
 			$cleaned = self::stripNull($serialized);
 			$output = json_encode($cleaned, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES);

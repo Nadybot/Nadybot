@@ -6,22 +6,25 @@ use function Amp\async;
 use function Amp\Future\await;
 
 use AO\Package;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Events\LeaveMyPrivEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	CmdContext,
 	DB,
+	DBSchema\Player,
 	EventManager,
+	Events\LeaveMyPrivEvent,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
+	RouteResult,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 };
 
 #[
@@ -29,17 +32,14 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/Member'),
 	NCA\DefineCommand(
 		command: RaidMemberController::CMD_RAID_JOIN_LEAVE,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Join or leave the raid',
 	),
 	NCA\DefineCommand(
 		command: RaidMemberController::CMD_RAID_KICK_ADD,
-		accessLevel: 'raid_leader_1',
+		accessLevel: AccessLevel::RaidLeader1,
 		description: 'Add or remove someone from/to the raid',
 	),
-
-	NCA\ProvidesEvent(RaidJoinEvent::class),
-	NCA\ProvidesEvent(RaidLeaveEvent::class),
 
 	NCA\EmitsMessages('raid', 'join'),
 	NCA\EmitsMessages('raid', 'leave'),
@@ -68,7 +68,7 @@ class RaidMemberController extends ModuleInstance {
 			'When raid is full' => self::ANNOUNCE_RAID_FULL,
 			'When raid is full and has space again' => self::ANNOUNCE_RAID_FULL|self::ANNOUNCE_RAID_OPEN,
 		],
-		accessLevel: 'raid_admin_2',
+		accessLevel: AccessLevel::RaidAdmin2,
 	)]
 	public int $raidAnnounceFull = 0;
 
@@ -121,7 +121,7 @@ class RaidMemberController extends ModuleInstance {
 			}
 			return 'You are already in the raid.';
 		}
-		if (!isset($this->chatBot->chatlist[$player])) {
+		if (!$this->chatBot->inChatlist($player)) {
 			if ($sender !== $player) {
 				return "{$player} is not in the private group.";
 			}
@@ -176,7 +176,7 @@ class RaidMemberController extends ModuleInstance {
 			$raid->raiders[$player]->joined = time();
 			$raid->raiders[$player]->left = null;
 		}
-		$this->eventManager->fireEvent(new RaidJoinEvent(raid: $raid, player: $player));
+		$this->eventManager->dispatch(new RaidJoinEvent(raid: $raid, player: $player));
 		$this->db->insert(new RaidMember(
 			raid_id: $raid->raid_id,
 			player: $player,
@@ -188,7 +188,7 @@ class RaidMemberController extends ModuleInstance {
 				$this->chatBot->sendMassTell("You were <on>added<end> to the raid by {$sender}.", $player);
 			}
 			$routed = $this->routeMessage('join', "<highlight>{$player}<end> was <on>added<end> to the raid by {$sender}{$countMsg}.");
-			if ($routed !== MessageHub::EVENT_DELIVERED) {
+			if ($routed !== RouteResult::Delivered) {
 				$msg = "<highlight>{$player}<end> was <on>added<end> to the raid{$countMsg}.";
 			}
 		} else {
@@ -207,7 +207,7 @@ class RaidMemberController extends ModuleInstance {
 		if ($numRaiders === $raid->max_members && ($this->raidAnnounceFull & self::ANNOUNCE_RAID_FULL)) {
 			$fullMsg = "The raid is now <off>full<end> with {$numRaiders}/{$raid->max_members} members.";
 			$routed = $this->routeMessage('join', $fullMsg);
-			if ($routed !== MessageHub::EVENT_DELIVERED) {
+			if ($routed !== RouteResult::Delivered) {
 				if (isset($msg)) {
 					return "{$msg}\n{$fullMsg}";
 				}
@@ -248,17 +248,17 @@ class RaidMemberController extends ModuleInstance {
 			}
 			$leaveType = (isset($sender) && ($sender !== $player)) ? 'kick' : 'leave';
 			$routed = $this->routeMessage($leaveType, "<highlight>{$player}<end> was <off>removed<end> from the raid{$countMsg}.");
-			if ($routed !== MessageHub::EVENT_DELIVERED) {
+			if ($routed !== RouteResult::Delivered) {
 				$msg = "<highlight>{$player}<end> was <off>removed<end> to the raid{$countMsg}.";
 			}
 		} else {
 			$this->routeMessage('leave', "<highlight>{$player}<end> has <off>left<end> the raid{$countMsg}.");
 		}
-		$this->eventManager->fireEvent(new RaidLeaveEvent(raid: $raid, player: $player));
+		$this->eventManager->dispatch(new RaidLeaveEvent(raid: $raid, player: $player));
 		if ($numRaiders === $raid->max_members && ($this->raidAnnounceFull & self::ANNOUNCE_RAID_OPEN)) {
 			$openMsg = 'The raid is <on>no longer full<end>!';
 			$routed = $this->routeMessage('leave', $openMsg);
-			if ($routed !== MessageHub::EVENT_DELIVERED) {
+			if ($routed !== RouteResult::Delivered) {
 				if (isset($msg)) {
 					return "{$msg}\n{$openMsg}";
 				}
@@ -273,7 +273,7 @@ class RaidMemberController extends ModuleInstance {
 	#[NCA\Help\Group('raid-members')]
 	public function raidJoinCommand(
 		CmdContext $context,
-		#[NCA\Str('join')] string $action
+		#[Str('join')] string $action
 	): void {
 		$reply = $this->joinRaid($context->char->name, $context->char->name, $context->source, false);
 		if ($reply !== null) {
@@ -290,7 +290,7 @@ class RaidMemberController extends ModuleInstance {
 	#[NCA\Help\Group('raid-members')]
 	public function raidLeaveCommand(
 		CmdContext $context,
-		#[NCA\Str('leave')] string $action
+		#[Str('leave')] string $action
 	): void {
 		$reply = $this->leaveRaid($context->char->name, $context->char->name);
 		if ($reply !== null) {
@@ -307,7 +307,7 @@ class RaidMemberController extends ModuleInstance {
 	#[NCA\Help\Group('raid-members')]
 	public function raidAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter ...$char
 	): void {
 		$messages = [];
@@ -334,7 +334,7 @@ class RaidMemberController extends ModuleInstance {
 	#[NCA\Help\Group('raid-members')]
 	public function raidKickCommand(
 		CmdContext $context,
-		#[NCA\Str('kick', 'rem', 'del')] string $action,
+		#[Str('kick', 'rem', 'del')] string $action,
 		PCharacter $char
 	): void {
 		$reply = $this->leaveRaid($context->char->name, $char());
@@ -352,7 +352,7 @@ class RaidMemberController extends ModuleInstance {
 		/** @var list<string> */
 		$notInRaid = [];
 		$allowMultilog = $this->raidAllowMultiJoining;
-		foreach ($this->chatBot->chatlist as $player => $online) {
+		foreach ($this->chatBot->getChatlist() as $player => $online) {
 			$alts = [$player];
 			if (!$allowMultilog) {
 				$alts = $this->altsController->getAltInfo($player)->getAllValidated($player);
@@ -393,7 +393,7 @@ class RaidMemberController extends ModuleInstance {
 	public function kickNotInRaid(Raid $raid, bool $all): array {
 		/** @var list<string> */
 		$notInRaid = [];
-		foreach ($this->chatBot->chatlist as $player => $online) {
+		foreach ($this->chatBot->getChatlist() as $player => $online) {
 			if (isset($raid->raiders[$player])) {
 				// Is or was in the running raid. Could still rejoin
 				if (!$all || !isset($raid->raiders[$player]->left)) {
@@ -505,15 +505,13 @@ class RaidMemberController extends ModuleInstance {
 		return $msg;
 	}
 
-	#[NCA\Event(
-		name: LeaveMyPrivEvent::EVENT_MASK,
-		description: 'Remove players from the raid when they leave the channel'
-	)]
+	/** Remove players from the raid when they leave the channel */
+	#[NCA\HandlesEvent]
 	public function leavePrivateChannelMessageEvent(LeaveMyPrivEvent $eventObj): void {
 		$this->leaveRaid(null, $eventObj->sender);
 	}
 
-	protected function routeMessage(string $type, string $message): int {
+	protected function routeMessage(string $type, string $message): RouteResult {
 		$rMessage = new RoutableMessage($message);
 		$rMessage->prependPath(new Source('raid', $type));
 		return $this->messageHub->handle($rMessage);

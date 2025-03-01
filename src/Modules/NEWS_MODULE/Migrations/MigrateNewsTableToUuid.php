@@ -33,7 +33,7 @@ class MigrateNewsTableToUuid implements SchemaMigration {
 
 		/** @return array<string,mixed> */
 		$entries = $entries->map(static function (\stdClass $entry) use (&$idToUuid): array {
-			$time = $entry->{'time'} ?? null;
+			$time = $entry->time ?? null;
 			if (isset($time)) {
 				$time = (new DateTimeImmutable())->setTimestamp($time);
 			}

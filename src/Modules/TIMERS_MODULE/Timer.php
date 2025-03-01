@@ -51,17 +51,22 @@ class Timer extends DBTable {
 		if (!isset($alerts)) {
 			return [];
 		}
-		$alertsData = json_decode($alerts);
+		$alertsData = json_decode($alerts, true);
 		return array_values(array_map(
-			static function (\stdClass $alertData): Alert {
-				$alert = new Alert(
-					message: $alertData->message,
-					time: $alertData->time,
-				);
-				foreach (get_object_vars($alertData) as $key => $value) {
-					$alert->{$key} = $value;
+			/** @param array<array-key,mixed> $alertData */
+			static function (array $alertData): Alert {
+				$extra = $alertData['extra']??[];
+				foreach ($alertData as $key => $value) {
+					if (in_array($key, ['message', 'time', 'extra'], true)) {
+						continue;
+					}
+					$extra[$key] = $value;
 				}
-				return $alert;
+				return new Alert(
+					message: $alertData['message'] ?? 'Message',
+					time: $alertData['time'] ?? 0,
+					extra: $extra,
+				);
 			},
 			$alertsData
 		));

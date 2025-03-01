@@ -3,15 +3,16 @@
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use Amp\File\FilesystemException;
-use Nadybot\Core\Events\JoinMyPrivEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	Config\BotConfig,
+	Events\JoinMyPrivEvent,
 	Filesystem,
 	ModuleInstance,
 	Nadybot,
 	Text,
+	Types\AccessLevel,
 };
 
 /**
@@ -21,12 +22,12 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'rules',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Rules of this bot',
 	),
 	NCA\DefineCommand(
 		command: 'raidrules',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Raid rules of this bot',
 	)
 ]
@@ -84,10 +85,8 @@ class RulesController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\Event(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'If you defined rules, send them to people joining the private channel'
-	)]
+	/** If you defined rules, send them to people joining the private channel */
+	#[NCA\HandlesEvent]
 	public function joinPrivateChannelShowRulesEvent(JoinMyPrivEvent $eventObj): void {
 		$rulesPath = "{$this->config->paths->data}/rules.txt";
 		try {

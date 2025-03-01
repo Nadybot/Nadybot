@@ -2,9 +2,16 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Nadybot\Core\ParamClass\{PPlayfield, PTowerSite};
-use Nadybot\Core\{Attributes as NCA, CmdContext, ModuleInstance, Text, Types\Playfield};
-use Throwable;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Attributes\Parameter\Str,
+	CmdContext,
+	ModuleInstance,
+	ParamClass\PTowerSite,
+	Text,
+	Types\AccessLevel,
+	Types\Playfield
+};
 
 #[
 	NCA\Instance,
@@ -12,7 +19,7 @@ use Throwable;
 		command: LandController::LC_CMD,
 		alias: 'lc',
 		description: 'Perform Notum Wars commands',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	)
 ]
 class LandController extends ModuleInstance {
@@ -25,7 +32,7 @@ class LandController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::LC_CMD)]
 	public function listNWPlayfields(
 		CmdContext $context,
-		#[NCA\Str('lc')] string $action,
+		#[Str('lc')] string $action,
 	): void {
 		if (!count($this->nwCtrl->state)) {
 			$context->reply('The Tower-API is still initializing.');
@@ -51,24 +58,16 @@ class LandController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::LC_CMD)]
 	public function listTowerSites(
 		CmdContext $context,
-		#[NCA\Str('lc')] string $action,
-		PPlayfield $pf
+		#[Str('lc')] string $action,
+		Playfield $playfield,
 	): void {
 		if (!count($this->nwCtrl->state)) {
 			$context->reply('The Tower-API is still initializing.');
 			return;
 		}
-		$playfieldName = $pf();
-		try {
-			$playfield = Playfield::byName($playfieldName);
-		} catch (Throwable) {
-			$msg = "Playfield <highlight>{$playfieldName}<end> could not be found.";
-			$context->reply($msg);
-			return;
-		}
 		$sites = $this->nwCtrl->state[$playfield->value] ?? null;
 		if (!isset($sites)) {
-			$msg = "No tower sites found on <highlight>{$playfieldName}<end>.";
+			$msg = "No tower sites found on <highlight>{$playfield->long()}<end>.";
 			$context->reply($msg);
 			return;
 		}
@@ -89,29 +88,22 @@ class LandController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::LC_CMD)]
 	public function showTowerSite(
 		CmdContext $context,
-		#[NCA\Str('lc')] string $action,
+		#[Str('lc')] string $action,
 		PTowerSite $site,
 	): void {
 		if (!count($this->nwCtrl->state)) {
 			$context->reply('The Tower-API is still initializing.');
 			return;
 		}
-		try {
-			$playfield = Playfield::byName($site->pf);
-		} catch (Throwable) {
-			$msg = "Playfield <highlight>{$site->pf}<end> could not be found.";
-			$context->reply($msg);
-			return;
-		}
-		$siteInfo = $this->nwCtrl->state[$playfield->value][$site->site] ?? null;
+		$siteInfo = $this->nwCtrl->state[$site->pf->value][$site->site] ?? null;
 		if (!isset($siteInfo)) {
-			$msg = "No tower sites <highlight>{$playfield->short()} {$site->site}<end> found.";
+			$msg = "No tower sites <highlight>{$site->pf->short()} {$site->site}<end> found.";
 			$context->reply($msg);
 			return;
 		}
 		$blob = $this->nwCtrl->renderSite($siteInfo);
 		$msg = Text::makeBlob(
-			"{$playfield->short()} {$site->site} ({$siteInfo->name})",
+			"{$site->pf->short()} {$site->site} ({$siteInfo->name})",
 			$blob,
 		);
 		$context->reply($msg);

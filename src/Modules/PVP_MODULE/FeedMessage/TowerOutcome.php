@@ -9,7 +9,7 @@ use Nadybot\Core\{StringableTrait, Types\Faction, Types\Playfield, Util};
 class TowerOutcome {
 	use StringableTrait;
 
-	/** @var array<string,int|string|null> */
+	/** @var array<string,null|int|string> */
 	public const EXAMPLE_TOKENS = [
 			'pf-id' => 551,
 			'site-id' => 6,
@@ -24,7 +24,7 @@ class TowerOutcome {
 			'c-losing-org' => '<clan>Team Rainbow<end>',
 		];
 
-	/** @var array<string,int|string|null> */
+	/** @var array<string,null|int|string> */
 	public const EXAMPLE_ABANDON_TOKENS = [
 			'pf-id' => 551,
 			'site-id' => 6,
@@ -50,7 +50,7 @@ class TowerOutcome {
 	) {
 	}
 
-	/** @return array<string,string|int|null> */
+	/** @return array<string,null|string|int> */
 	public function getTokens(): array {
 		return [
 			'pf-id' => $this->playfield->value,

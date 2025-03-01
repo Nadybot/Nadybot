@@ -8,9 +8,11 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\HelpTopic,
 	Modules\CONFIG\ConfigController,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 
+/** The class managing everything related to help */
 #[NCA\Instance]
 class HelpManager {
 	#[NCA\Logger]
@@ -29,20 +31,39 @@ class HelpManager {
 	private ConfigController $configController;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
-
-	#[NCA\Inject]
 	private Util $util;
 
-	/** Register a help command */
-	public function register(string $module, string $command, string $filename, string $admin, string $description): void {
+	/** @var array<string,bool> */
+	private array $configuredHelp = [];
+
+	/** Initialize the database before the setup event */
+	public function init(): void {
+		$this->db->table(HlpCfg::getTable())
+			->update(['verify' => 0]);
+		$this->db->table(HlpCfg::getTable())
+			->asObj(HlpCfg::class)
+			->each(function (HlpCfg $row): void {
+				$this->configuredHelp[$row->name] = true;
+			});
+	}
+
+	/**
+	 * Register help from a given file
+	 *
+	 * @param string      $module      Name of the module this belongs to
+	 * @param string      $command     The command for which we're registering help
+	 * @param string      $filename    A file location that contains the text to display
+	 * @param AccessLevel $accessLevel The minimum access level required to see the help
+	 * @param string      $description A short description of the help
+	 */
+	public function register(string $module, string $command, string $filename, AccessLevel $accessLevel, string $description): void {
 		$logObj = new AnonObj(
 			class: 'HelpFile',
 			properties: [
 				'module' => $module,
 				'command' => $command,
 				'helpfile' => $filename,
-				'admin' => $admin,
+				'admin' => $accessLevel,
 				'description' => $description,
 			]
 		);
@@ -60,7 +81,7 @@ class HelpManager {
 			return;
 		}
 
-		if (isset($this->chatBot->existing_helps[$command])) {
+		if (isset($this->configuredHelp[$command])) {
 			$this->db->table(HlpCfg::getTable())->where('name', $command)
 				->update([
 					'verify' => 1,
@@ -71,7 +92,7 @@ class HelpManager {
 		} else {
 			$this->db->insert(new HlpCfg(
 				name: $command,
-				admin: $admin,
+				access_level: $accessLevel,
 				verify: 1,
 				file: $actualFilename,
 				module: $module,
@@ -80,7 +101,14 @@ class HelpManager {
 		}
 	}
 
-	/** Find a help topic by name if it exists and if the user has permissions to see it */
+	/**
+	 * Find a help topic by name if it exists and if the user has permissions to see it
+	 *
+	 * @param string $helpcmd The command for which we're searching help
+	 * @param string $char    The character name who is doing the search
+	 *
+	 * @return ?string `null` if not found or no access, otherwise the full help page
+	 */
 	public function find(string $helpcmd, string $char): ?string {
 		$helpcmd = strtolower($helpcmd);
 		$settingsHelp = $this->db->table(Setting::getTable())
@@ -94,7 +122,7 @@ class HelpManager {
 		$outerQuery = $this->db->fromSub(
 			$settingsHelp->union($hlpHelp),
 			'foo'
-		)->select('foo.module', 'foo.file', 'foo.name', 'foo.admin AS admin_list', 'foo.description');
+		)->select('foo.module', 'foo.file', 'foo.name', 'foo.admin AS access_level', 'foo.description');
 
 		$data = $outerQuery->asObj(HelpTopic::class);
 
@@ -106,7 +134,7 @@ class HelpManager {
 			if (!isset($row->file) || isset($shown[$row->file])) {
 				continue;
 			}
-			if ($this->checkAccessLevels($accessLevel, explode(',', $row->admin_list))) {
+			if ($accessLevel->atLeast($row->access_level)) {
 				$output .= $this->configController->getAliasInfo($row->name);
 				$content = $this->fs->read($row->file);
 				$output .= trim($content) . "\n\n";
@@ -117,15 +145,16 @@ class HelpManager {
 		return ($output === '') ? null : $output;
 	}
 
-	public function update(string $helpTopic, string $admin): void {
+	/** Change the required access level for a help topic */
+	public function update(string $helpTopic, AccessLevel $accessLevel): void {
 		$helpTopic = strtolower($helpTopic);
-		$admin = strtolower($admin);
 
 		$this->db->table(HlpCfg::getTable())
 			->where('name', $helpTopic)
-			->update(['admin' => $admin]);
+			->update(['admin' => $accessLevel]);
 	}
 
+	/** Try to register a help file for a given module */
 	public function checkForHelpFile(string $module, string $file): string {
 		$actualFilename = $this->util->verifyFilename($module . \DIRECTORY_SEPARATOR . $file);
 		$baseDir = rtrim(BotRunner::getBasedir(), \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR;
@@ -166,7 +195,7 @@ class HelpManager {
 		$outerQuery = $this->db->fromSub(
 			$cmdHelp->union($settingsHelp)->union($hlpHelp),
 			'foo'
-		)->select('foo.module', 'foo.file', 'foo.name', 'foo.description', 'foo.admin AS admin_list', 'foo.sort')
+		)->select('foo.module', 'foo.file', 'foo.name', 'foo.description', 'foo.admin AS access_level', 'foo.sort')
 		->orderBy('module')
 		->orderBy('name')
 		->orderByDesc('sort')
@@ -174,7 +203,7 @@ class HelpManager {
 
 		$data = $outerQuery->asObj(HelpTopic::class);
 
-		$accessLevel = 'all';
+		$accessLevel = AccessLevel::All;
 		if (isset($context)) {
 			$accessLevel = $this->accessManager->getAccessLevelForCharacter($context->char->name);
 		}
@@ -185,27 +214,17 @@ class HelpManager {
 			if (isset($added[$key])) {
 				continue;
 			}
-			if (!isset($context) || $this->checkAccessLevels($accessLevel, explode(',', $row->admin_list))) {
+			if (!isset($context) || $accessLevel->atLeast($row->access_level)) {
 				$obj = new HelpTopic(
 					module: $row->module,
 					name: $row->name,
 					description: $row->description,
-					admin_list: $row->admin_list,
+					access_level: $row->access_level,
 					sort: $row->sort,
 				);
 				yield $obj;
 				$added[$key] = true;
 			}
 		}
-	}
-
-	/** @param iterable<string> $accessLevelsArray */
-	public function checkAccessLevels(string $accessLevel1, iterable $accessLevelsArray): bool {
-		foreach ($accessLevelsArray as $accessLevel2) {
-			if ($this->accessManager->compareAccessLevels($accessLevel1, $accessLevel2) >= 0) {
-				return true;
-			}
-		}
-		return false;
 	}
 }

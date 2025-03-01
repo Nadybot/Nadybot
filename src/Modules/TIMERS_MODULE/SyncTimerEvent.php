@@ -2,11 +2,12 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when a new timer is created with the timer command */
+#[Event(mask: 'sync(timer)')]
 class SyncTimerEvent extends SyncEvent {
-	public const EVENT_MASK = 'sync(timer)';
-
 	/**
 	 * @param string $name     Name of the timer
 	 * @param string $owner    Character who created the timer
@@ -24,7 +25,10 @@ class SyncTimerEvent extends SyncEvent {
 		?int $sourceDimension=null,
 		?bool $forceSync=null,
 	) {
-		$this->type = self::EVENT_MASK;
-		parent::__construct($sourceBot, $sourceDimension, $forceSync);
+		parent::__construct(
+			sourceBot: $sourceBot,
+			sourceDimension: $sourceDimension,
+			forceSync: $forceSync,
+		);
 	}
 }

@@ -2,13 +2,12 @@
 
 namespace Nadybot\Core;
 
-use function Safe\json_encode;
 use EventSauce\ObjectHydrator\DoNotSerialize;
 use Nadybot\Core\Types\Loggable;
+use Nadylib\IMEX\{ExportException, JSON};
 use ReflectionClass;
 
-use Safe\Exceptions\JsonException;
-
+/** This trait implements the `Loggable` interface */
 trait LoggableTrait {
 	/** Get a human-readable dump of the object and its values */
 	#[DoNotSerialize]
@@ -51,11 +50,8 @@ trait LoggableTrait {
 				$value = '<Closure>';
 			} else {
 				try {
-					$value = json_encode(
-						$value,
-						\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE|\JSON_INVALID_UTF8_SUBSTITUTE
-					);
-				} catch (JsonException) {
+					$value = JSON::export($value, \JSON_INVALID_UTF8_SUBSTITUTE);
+				} catch (ExportException) {
 					continue;
 				}
 			}

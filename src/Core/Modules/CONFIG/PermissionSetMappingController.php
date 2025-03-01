@@ -6,6 +6,9 @@ use Closure;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	CommandManager,
 	DB,
@@ -14,19 +17,19 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	Exceptions\SQLException,
 	ModuleInstance,
-	ParamClass\PRemove,
-	ParamClass\PWord,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
+	Types\Status,
 };
 
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'cmdmap',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Manages command to permission mappings',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)
 ]
 class PermissionSetMappingController extends ModuleInstance {
@@ -85,16 +88,16 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapNewCommand(
 		CmdContext $context,
-		#[NCA\Str('new', 'create')] string $action,
+		#[Str('new', 'create')] string $action,
 		string $source,
-		PWord $permissionSet
+		#[WordStr] string $permissionSet
 	): void {
 		$source = strtolower($source);
 		if ($this->cmdManager->getPermSetMappings()->where('source', $source)->isNotEmpty()) {
 			$context->reply("There is already a permission set map for <highlight>{$source}<end>.");
 			return;
 		}
-		$permissionSet = strtolower($permissionSet());
+		$permissionSet = strtolower($permissionSet);
 		if (!$this->cmdManager->hasPermissionSet($permissionSet)) {
 			$context->reply("There is no permission set <highlight>{$permissionSet}<end>.");
 			return;
@@ -136,8 +139,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapListSourcesCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action,
-		#[NCA\Str('src', 'source', 'sources')] string $subAction,
+		#[Str('list')] string $action,
+		#[Str('src', 'source', 'sources')] string $subAction,
 	): void {
 		$sources = collect($this->cmdManager->getSources())->sort();
 		$blob = "<header2>Registered sources<end>\n".
@@ -154,7 +157,7 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapDeleteCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[Remove] string $action,
 		string $source,
 	): void {
 		$source = strtolower($source);
@@ -186,8 +189,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapPickPermsetCommand(
 		CmdContext $context,
-		#[NCA\Str('permset')] string $action,
-		#[NCA\Str('pick')] string $subAction,
+		#[Str('permset')] string $action,
+		#[Str('pick')] string $subAction,
 		string $source
 	): void {
 		$source = strtolower($source);
@@ -214,8 +217,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapPickSymbolCommand(
 		CmdContext $context,
-		#[NCA\Str('prefix', 'symbol')] string $action,
-		#[NCA\Str('pick')] string $subAction,
+		#[Str('prefix', 'symbol')] string $action,
+		#[Str('pick')] string $subAction,
 		string $source
 	): void {
 		$source = strtolower($source);
@@ -250,12 +253,12 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapSetPermsetCommand(
 		CmdContext $context,
-		#[NCA\Str('permset')] string $action,
-		#[NCA\Str('set')] string $subAction,
+		#[Str('permset')] string $action,
+		#[Str('set')] string $subAction,
 		string $source,
-		PWord $permissionSet
+		#[WordStr] string $permissionSet
 	): void {
-		$permissionSet = strtolower($permissionSet());
+		$permissionSet = strtolower($permissionSet);
 		if ($this->cmdManager->getPermissionSets()->where('name', $permissionSet)->isEmpty()) {
 			$context->reply("The permission set <highlight>{$permissionSet}<end> doesn't exist.");
 			return;
@@ -269,8 +272,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapSetSymbolCommand(
 		CmdContext $context,
-		#[NCA\Str('prefix', 'symbol')] string $action,
-		#[NCA\Str('set')] string $subAction,
+		#[Str('prefix', 'symbol')] string $action,
+		#[Str('set')] string $subAction,
 		string $source,
 		string $symbol
 	): void {
@@ -283,8 +286,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapChangeSymbolOptionalCommand(
 		CmdContext $context,
-		#[NCA\Str('prefixopt', 'symbolopt')] string $action,
-		#[NCA\Str('set')] string $subAction,
+		#[Str('prefixopt', 'symbolopt')] string $action,
+		#[Str('set')] string $subAction,
 		string $source,
 		bool $optional
 	): void {
@@ -297,8 +300,8 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\HandlesCommand('cmdmap')]
 	public function cmdmapChangeFeedbackCommand(
 		CmdContext $context,
-		#[NCA\Str('feedback')] string $action,
-		#[NCA\Str('set')] string $subAction,
+		#[Str('feedback')] string $action,
+		#[Str('set')] string $subAction,
 		string $source,
 		bool $feedback
 	): void {

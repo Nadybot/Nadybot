@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerHistoryManager,
 	ParamClass\PCharacter,
 	Text,
+	Types\AccessLevel,
 	Types\Faction,
 };
 
@@ -21,7 +22,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'history',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show history of a player',
 	)
 ]

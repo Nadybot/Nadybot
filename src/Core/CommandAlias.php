@@ -4,13 +4,22 @@ namespace Nadybot\Core;
 
 use function Safe\preg_match;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\CmdAlias;
-
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\CmdAlias,
+	Types\AccessLevel,
+	Types\Status,
+};
 use Psr\Log\LoggerInterface;
 
+/** This is the class that manages and runs aliases of commands */
 #[NCA\Instance]
 class CommandAlias {
+	/**
+	 * The handler to register at the command manager for executing aliases
+	 *
+	 * @var string
+	 */
 	public const ALIAS_HANDLER = 'CommandAlias.process';
 
 	#[NCA\Logger]
@@ -23,7 +32,7 @@ class CommandAlias {
 	private CommandManager $commandManager;
 
 	/** Loads active aliases into memory to activate them */
-	public function load(): void {
+	public function loadAliases(): void {
 		$this->logger->info('Loading enabled command aliases');
 
 		$this->db->table(CmdAlias::getTable())
@@ -34,8 +43,15 @@ class CommandAlias {
 			});
 	}
 
-	/** Registers a command alias */
-	public function register(string $module, string $command, string $alias, int $status=1): void {
+	/**
+	 * Registers a command alias
+	 *
+	 * @param string $module  Name of the module that defined the alias
+	 * @param string $command The command for which we want to register an alias
+	 * @param string $alias   The actual alias
+	 * @param Status $status  Whether the alias should be enabled or disabled
+	 */
+	public function register(string $module, string $command, string $alias, Status $status=Status::Enabled): void {
 		$entry = new CmdAlias(
 			alias: strtolower($alias),
 			module: strtoupper($module),
@@ -44,6 +60,9 @@ class CommandAlias {
 		);
 
 		$row = $this->get($alias);
+		if (isset($row) && $row->sameAS($entry)) {
+			return;
+		}
 		if ($row !== null) {
 			$this->logger->info('Updating {alias}', ['alias' => $entry]);
 			// do not update an alias that a user created
@@ -56,7 +75,7 @@ class CommandAlias {
 		}
 	}
 
-	/** Activates a command alias */
+	/** Activates a command alias for all permission sets */
 	public function activate(string $command, string $alias): void {
 		$alias = strtolower($alias);
 		$entry = new AnonObj(class: 'CmdAlias', properties: ['alias' => $alias, 'cmd' => $command]);
@@ -64,11 +83,11 @@ class CommandAlias {
 		$this->logger->info('Activating {alias}', ['alias' => $entry]);
 
 		foreach ($this->commandManager->getPermissionSets() as $set) {
-			$this->commandManager->activate($set->name, self::ALIAS_HANDLER, $alias, 'all');
+			$this->commandManager->activate($set->name, self::ALIAS_HANDLER, $alias, AccessLevel::All);
 		}
 	}
 
-	/** Deactivates a command alias */
+	/** Deactivates a command alias for all permission sets */
 	public function deactivate(string $alias): void {
 		$alias = strtolower($alias);
 
@@ -79,7 +98,11 @@ class CommandAlias {
 		}
 	}
 
-	/** Check incoming commands if they are aliases for commands and execute them */
+	/**
+	 * Check incoming commands if they are aliases for commands and execute them
+	 *
+	 * @return bool `true` if this was an alias and we executed it, `false` otherwise
+	 */
 	public function process(CmdContext $context): bool {
 		$params = explode(' ', $context->message);
 		while (count($params) && !isset($row)) {
@@ -143,7 +166,11 @@ class CommandAlias {
 		return true;
 	}
 
-	/** Adds a command alias to the db */
+	/**
+	 * Adds a command alias to the db
+	 *
+	 * @return int `0` on error, otherwise a positive integer
+	 */
 	public function add(CmdAlias $row): int {
 		$this->logger->info("Adding alias: '{alias}' for command: '{command}'", [
 			'alias' => $row->alias,
@@ -152,13 +179,17 @@ class CommandAlias {
 		return $this->db->insert($row);
 	}
 
-	/** Updates a command alias in the db */
-	public function update(CmdAlias $row): int {
+	/**
+	 * Updates a command alias in the db
+	 *
+	 * @return bool success or not
+	 */
+	public function update(CmdAlias $row): bool {
 		$this->logger->info('Updating alias ({alias})', ['alias' => $row]);
-		return $this->db->update($row, 'alias');
+		return $this->db->update($row, 'alias') > 0;
 	}
 
-	/** Read the database entry for an alias */
+	/** Get the database entry for an alias */
 	public function get(string $alias): ?CmdAlias {
 		$alias = strtolower($alias);
 
@@ -167,12 +198,15 @@ class CommandAlias {
 			->firstObj(CmdAlias::class);
 	}
 
-	/** Get the command for which an alias actually is an alias */
+	/**
+	 * Get the command name (excluding parameters),
+	 * for which an alias actually is an alias
+	 */
 	public function getBaseCommandForAlias(string $alias): ?string {
 		$row = $this->get($alias);
 
 		// if alias doesn't exist or is disabled
-		if ($row === null || $row->status !== 1) {
+		if ($row === null || $row->status !== Status::Enabled) {
 			return null;
 		}
 		[$cmd] = explode(' ', $row->cmd, 2);

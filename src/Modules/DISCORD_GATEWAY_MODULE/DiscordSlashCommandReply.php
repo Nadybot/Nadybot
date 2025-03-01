@@ -78,7 +78,7 @@ class DiscordSlashCommandReply implements CommandReply {
 		);
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function reply(string|array $msg): void {
 		if (!is_array($msg)) {
 			$msg = [$msg];

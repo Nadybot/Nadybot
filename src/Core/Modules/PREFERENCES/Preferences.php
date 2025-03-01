@@ -4,11 +4,14 @@ namespace Nadybot\Core\Modules\PREFERENCES;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
+use AO\Utils;
 use Nadybot\Core\DBSchema\Preferences as DBSchemaPreferences;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	DB,
 	ModuleInstance,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
@@ -28,14 +31,14 @@ class Preferences extends ModuleInstance {
 
 	public function save(string $sender, string $name, string $value): void {
 		$this->db->upsert(new DBSchemaPreferences(
-			sender: ucfirst(strtolower($sender)),
+			sender: Utils::normalizeCharacter($sender),
 			name: strtolower($name),
 			value: $value
 		));
 	}
 
 	public function get(string $sender, string $name): ?string {
-		$sender = ucfirst(strtolower($sender));
+		$sender = Utils::normalizeCharacter($sender);
 		$name = strtolower($name);
 		return $this->db->table(DBSchemaPreferences::getTable())
 			->where('sender', $sender)
@@ -46,7 +49,7 @@ class Preferences extends ModuleInstance {
 	}
 
 	public function delete(string $sender, string $name): bool {
-		$sender = ucfirst(strtolower($sender));
+		$sender = Utils::normalizeCharacter($sender);
 		$name = strtolower($name);
 		return $this->db->table(DBSchemaPreferences::getTable())
 			->where('sender', $sender)
@@ -60,11 +63,11 @@ class Preferences extends ModuleInstance {
 	 * @param string $key The name of the setting
 	 */
 	#[
-		NCA\Api('/setting/%s'),
-		NCA\GET,
-		NCA\AccessLevel('all'),
-		NCA\ApiResult(code: 200, class: 'string', desc: 'The stored value'),
-		NCA\ApiResult(code: 204, desc: 'No value stored')
+		Http\Api('/setting/%s'),
+		Http\GET,
+		Http\AccessLevel(AccessLevel::All),
+		Http\ApiResult(code: 200, class: 'string', desc: 'The stored value'),
+		Http\ApiResult(code: 204, desc: 'No value stored')
 	]
 	public function apiSettingGetEndpoint(Request $request, string $key): Response {
 		$user = $request->getAttribute(WebserverController::USER) ?? '_';
@@ -81,13 +84,13 @@ class Preferences extends ModuleInstance {
 	 * @param string $key The name of the setting
 	 */
 	#[
-		NCA\Api('/setting/%s'),
-		NCA\POST,
-		NCA\AccessLevel('all'),
-		NCA\ApiResult(code: 201, desc: 'The new setting was stored successfully'),
-		NCA\ApiResult(code: 409, desc: 'There is already a setting stored'),
-		NCA\ApiResult(code: 415, desc: 'You tried to pass more than just a simple string'),
-		NCA\RequestBody(class: 'string', desc: 'The data you want to store', required: true)
+		Http\Api('/setting/%s'),
+		Http\POST,
+		Http\AccessLevel(AccessLevel::All),
+		Http\ApiResult(code: 201, desc: 'The new setting was stored successfully'),
+		Http\ApiResult(code: 409, desc: 'There is already a setting stored'),
+		Http\ApiResult(code: 415, desc: 'You tried to pass more than just a simple string'),
+		Http\RequestBody(class: 'string', desc: 'The data you want to store', required: true)
 	]
 	public function apiSettingPostEndpoint(Request $request, string $key): Response {
 		$user = $request->getAttribute(WebserverController::USER) ?? '_';
@@ -117,12 +120,12 @@ class Preferences extends ModuleInstance {
 	 * @param string $key The name of the setting
 	 */
 	#[
-		NCA\Api('/setting/%s'),
-		NCA\PUT,
-		NCA\AccessLevel('all'),
-		NCA\ApiResult(code: 204, desc: 'The new setting was stored successfully'),
-		NCA\ApiResult(code: 415, desc: 'You tried to pass more than just a simple string'),
-		NCA\RequestBody(class: 'string', desc: 'The data you want to store', required: true)
+		Http\Api('/setting/%s'),
+		Http\PUT,
+		Http\AccessLevel(AccessLevel::All),
+		Http\ApiResult(code: 204, desc: 'The new setting was stored successfully'),
+		Http\ApiResult(code: 415, desc: 'You tried to pass more than just a simple string'),
+		Http\RequestBody(class: 'string', desc: 'The data you want to store', required: true)
 	]
 	public function apiSettingPutEndpoint(Request $request, string $key): Response {
 		$body = $request->getAttribute(WebserverController::BODY);
@@ -144,11 +147,11 @@ class Preferences extends ModuleInstance {
 	 * @param string $key The name of the setting
 	 */
 	#[
-		NCA\Api('/setting/%s'),
-		NCA\DELETE,
-		NCA\AccessLevel('all'),
-		NCA\ApiResult(code: 204, desc: 'The new setting was deleted successfully'),
-		NCA\ApiResult(code: 409, desc: 'No setting found for that key')
+		Http\Api('/setting/%s'),
+		Http\DELETE,
+		Http\AccessLevel(AccessLevel::All),
+		Http\ApiResult(code: 204, desc: 'The new setting was deleted successfully'),
+		Http\ApiResult(code: 409, desc: 'No setting found for that key')
 	]
 	public function apiSettingDeleteEndpoint(Request $request, string $key): Response {
 		$user = $request->getAttribute(WebserverController::USER) ?? '_';

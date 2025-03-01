@@ -21,20 +21,19 @@ use Monolog\{
 	Processor\IntrospectionProcessor,
 	Processor\PsrLogMessageProcessor,
 };
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	CmdContext,
 	CommandManager,
+	Config\BotConfig,
 	Filesystem,
 	LegacyLogger,
 	LoggerWrapper,
 	ModuleInstance,
-	ParamClass\PFilename,
-	ParamClass\PWord,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
@@ -47,17 +46,17 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'logs',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'View bot logs',
 	),
 	NCA\DefineCommand(
 		command: 'loglevel',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Change loglevel for debugging',
 	),
 	NCA\DefineCommand(
 		command: 'debug',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Create debug logs for a command',
 	)
 ]
@@ -132,13 +131,17 @@ class LogsController extends ModuleInstance {
 	 * &lt;search&gt; is a regular expression (without delimiters) and case-insensitive
 	 */
 	#[NCA\HandlesCommand('logs')]
-	public function logsFileCommand(CmdContext $context, PFilename $file, ?string $search): void {
+	public function logsFileCommand(
+		CmdContext $context,
+		#[NCA\Parameter\FilenameStr] string $file,
+		?string $search
+	): void {
 		$logger = $this->logger;
 		if (!($logger instanceof LoggerWrapper)) {
 			$context->reply('Your current logging driver does not support this command');
 			return;
 		}
-		$filename = $logger::getLoggingDirectory() . \DIRECTORY_SEPARATOR . $file();
+		$filename = $logger::getLoggingDirectory() . \DIRECTORY_SEPARATOR . $file;
 		$readsize = ($this->settingManager->getInt('max_blob_size')??10_000) - 500;
 
 		try {
@@ -198,7 +201,7 @@ class LogsController extends ModuleInstance {
 				if (isset($search)) {
 					$contents = "Search: <highlight>{$search}<end>\n\n" . $contents;
 				}
-				$msg = Text::makeBlob($file(), $contents);
+				$msg = Text::makeBlob($file, $contents);
 			}
 		} catch (Exception $e) {
 			$msg = 'Error: ' . $e->getMessage();
@@ -238,7 +241,7 @@ class LogsController extends ModuleInstance {
 	#[NCA\HandlesCommand('loglevel')]
 	public function loglevelResetCommand(
 		CmdContext $context,
-		#[NCA\Str('reset')] string $action
+		#[NCA\Parameter\Str('reset')] string $action
 	): void {
 		$loggers = LegacyLogger::getLoggers();
 		LegacyLogger::getConfig(true);
@@ -274,12 +277,12 @@ class LogsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>loglevel Core/Nadybot info')]
 	public function loglevelFileCommand(
 		CmdContext $context,
-		PWord $mask,
-		#[NCA\StrChoice('debug', 'info', 'notice', 'warning', 'error', 'emergency', 'alert')] string $logLevel
+		#[NCA\Parameter\WordStr] string $mask,
+		#[NCA\Parameter\StrChoice('debug', 'info', 'notice', 'warning', 'error', 'emergency', 'alert')] string $logLevel
 	): void {
 		$logLevel = strtoupper($logLevel);
 		$loggers = LegacyLogger::getLoggers();
-		LegacyLogger::tempLogLevelOrderride($mask(), $logLevel);
+		LegacyLogger::tempLogLevelOrderride($mask, $logLevel);
 		$names = [];
 		foreach ($loggers as $logger) {
 			$changes = LegacyLogger::assignLogLevel($logger);
@@ -302,7 +305,7 @@ class LogsController extends ModuleInstance {
 			$blob
 		);
 		$msg = 'Changed ' . $msg .
-			(($mask() !== '*') ? " matching <highlight>'{$mask}'<end>." : '');
+			(($mask !== '*') ? " matching <highlight>'{$mask}'<end>." : '');
 		$context->reply($msg);
 	}
 

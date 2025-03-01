@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `!upgradeconfig` to upgrade any config (format) to new TOML.
 - Add the `!death`- and `!deathmsg`-commands
 - Option to turn off 'Unknown command'-messages or suggestions for direct and/or public messages.
+- Add a WebUI for setting up the bot
 
 ### Changed
 
@@ -42,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No uninitialized properties anymore. All non-injected properties without default are now part of the constructor
 - Switched from auto incrementing columns to UUID7 IDs
 - Get all table names from the models, don't hard-code them.
+- Drill is now part of Core
 
 ### Fixed
 

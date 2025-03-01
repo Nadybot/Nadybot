@@ -5,6 +5,8 @@ namespace Nadybot\Modules\LOOT_MODULE;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\StrChoice,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
@@ -13,6 +15,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Safe,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleController;
 use Nadybot\Modules\RAID_MODULE\AuctionController;
@@ -37,103 +40,103 @@ use Nadybot\Modules\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'alb',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible Albtraum loots',
 	),
 	NCA\DefineCommand(
 		command: 'db1',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible DB1 Armor/NCUs/Programs',
 	),
 	NCA\DefineCommand(
 		command: 'db2',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible DB2 Armor',
 	),
 	NCA\DefineCommand(
 		command: 'db3',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible DB3 Loot',
 	),
 	NCA\DefineCommand(
 		command: '7',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows the Sector 7 loot list',
 	),
 	NCA\DefineCommand(
 		command: '13',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Adds APF 13 loot to the loot list',
 	),
 	NCA\DefineCommand(
 		command: '28',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Adds APF 28 loot to the loot list',
 	),
 	NCA\DefineCommand(
 		command: '35',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Adds APF 35 loot to the loot list',
 	),
 	NCA\DefineCommand(
 		command: '42',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Adds APF 42 loot to the loot list',
 	),
 	NCA\DefineCommand(
 		command: 'apf',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows what drops off APF Bosses',
 	),
 	NCA\DefineCommand(
 		command: 'beast',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows Beast loot',
 	),
 	NCA\DefineCommand(
 		command: 'pande',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows Pandemonium bosses and loot categories',
 	),
 	NCA\DefineCommand(
 		command: 'vortexx',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible Vortexx Loot',
 	),
 	NCA\DefineCommand(
 		command: 'mitaar',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible Mitaar Hero Loot',
 	),
 	NCA\DefineCommand(
 		command: '12m',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible 12 man Loot',
 		alias: ['12man', '12-man'],
 	),
 	NCA\DefineCommand(
 		command: 'poh',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible Pyramid of Home loot',
 	),
 	NCA\DefineCommand(
 		command: 'totw',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible TOTW 201+ loot',
 	),
 	NCA\DefineCommand(
 		command: 'halloween',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible Halloween loot',
 	),
 	NCA\DefineCommand(
 		command: 'subway',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows possible Subway 201+ loot',
 	),
 	NCA\DefineCommand(
 		command: 'lox',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows Legacy of the Xan loot categories',
 		alias: 'xan',
 	),
@@ -316,7 +319,7 @@ class LootListsController extends ModuleInstance {
 	#[NCA\Help\Group('loot-apf')]
 	public function apf42Command(
 		CmdContext $context,
-		#[NCA\StrChoice('west', 'north', 'east', 'boss')] string $side,
+		#[StrChoice('west', 'north', 'east', 'boss')] string $side,
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
@@ -343,14 +346,14 @@ class LootListsController extends ModuleInstance {
 	/** Show the loot list for Sector 7 */
 	#[NCA\HandlesCommand('apf')]
 	#[NCA\Help\Group('loot-apf')]
-	public function apfSevenCommand(CmdContext $context, #[NCA\Str('7')] string $sector): void {
+	public function apfSevenCommand(CmdContext $context, #[Str('7')] string $sector): void {
 		$this->apf7Command($context);
 	}
 
 	/** Show the loot list for Sector 13 */
 	#[NCA\HandlesCommand('apf')]
 	#[NCA\Help\Group('loot-apf')]
-	public function apfThirteenCommand(CmdContext $context, #[NCA\Str('13')] string $sector): void {
+	public function apfThirteenCommand(CmdContext $context, #[Str('13')] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
 		// CRU
@@ -410,7 +413,7 @@ class LootListsController extends ModuleInstance {
 	/** Show the loot list for Sector 28 */
 	#[NCA\HandlesCommand('apf')]
 	#[NCA\Help\Group('loot-apf')]
-	public function apfTwentyEightCommand(CmdContext $context, #[NCA\Str('28')] string $sector): void {
+	public function apfTwentyEightCommand(CmdContext $context, #[Str('28')] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
 		// CRU
@@ -463,7 +466,7 @@ class LootListsController extends ModuleInstance {
 	/** Show the loot list for Sector 35 */
 	#[NCA\HandlesCommand('apf')]
 	#[NCA\Help\Group('loot-apf')]
-	public function apfThirtyFiveCommand(CmdContext $context, #[NCA\Str('35')] string $sector): void {
+	public function apfThirtyFiveCommand(CmdContext $context, #[Str('35')] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
 
@@ -519,8 +522,8 @@ class LootListsController extends ModuleInstance {
 	#[NCA\Help\Group('loot-apf')]
 	public function apfFortyTwoCommand(
 		CmdContext $context,
-		#[NCA\Str('42')] string $sector,
-		#[NCA\StrChoice('west', 'north', 'east', 'boss')] string $side,
+		#[Str('42')] string $sector,
+		#[StrChoice('west', 'north', 'east', 'boss')] string $side,
 	): void {
 		$key = 'Sector 42 ' . ucfirst(strtolower($side));
 		$blob = $this->findRaidLoot('APF', $key, $context);

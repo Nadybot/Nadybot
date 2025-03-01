@@ -8,16 +8,18 @@ use Amp\Http\Server\{Request, Response};
 use Amp\Websocket\Server\{AllowOriginAcceptor, Websocket, WebsocketClientGateway, WebsocketClientHandler, WebsocketGateway};
 use Amp\Websocket\{WebsocketClient, WebsocketMessage};
 use Exception;
+use Nadybot\Core\Events\RecvMsgEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	Channels\WebChannel,
 	EventManager,
-	Events\Event,
 	Events\PackageEvent,
 	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Registry,
+	Types\Status,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	CommandReplyEvent,
@@ -32,11 +34,7 @@ use TypeError;
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
  */
-#[
-	NCA\Instance,
-	NCA\ProvidesEvent(WebsocketSubscribeEvent::class),
-	NCA\ProvidesEvent(WebsocketRequestEvent::class),
-]
+#[NCA\Instance]
 class WebsocketController extends ModuleInstance implements WebsocketClientHandler {
 	/** Enable the websocket handler */
 	#[NCA\Setting\Boolean]
@@ -83,7 +81,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 	}
 
 	#[
-		NCA\HttpGet('/events'),
+		Http\HttpGet('/events'),
 	]
 	public function handleWebsocketStart(Request $request): ?Response {
 		if (!$this->websocket) {
@@ -123,41 +121,30 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		unset($this->subscriptions[$client->getId()]);
 	}
 
-	#[NCA\Event(
-		name: WebsocketSubscribeEvent::EVENT_MASK,
-		description: 'Handle Websocket event subscriptions',
-		defaultStatus: 1
-	)]
-	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketClient $client): void {
+	/** Handle Websocket event subscriptions */
+	#[NCA\HandlesEvent(defaultStatus: Status::Enabled)]
+	public function handleSubscriptions(WebsocketSubscribeEvent $event): void {
+		$client = $event->getClient();
 		try {
-			// @phpstan-ignore-next-line
-			if (!isset($event->data->events) || !is_array($event->data->events)) {
-				return;
-			}
-			$this->subscriptions[$client->getId()] = $event->data->events;
+			$this->subscriptions[$client->getId()] = $event->getData()->events;
 			$this->logger->info('Websocket subscribed to {subscribed_to}', [
-				'subscribed_to' => implode(',', $event->data->events),
+				'subscribed_to' => implode(',', $event->getData()->events),
 			]);
 		} catch (TypeError) {
 			$client->close(4_002);
 		}
 	}
 
-	#[NCA\Event(
-		name: WebsocketRequestEvent::EVENT_MASK,
-		description: 'Handle API requests'
-	)]
-	public function handleRequests(WebsocketRequestEvent $event, WebsocketClient $client): void {
+	/** Handle API requests */
+	#[NCA\HandlesEvent]
+	public function handleRequests(WebsocketRequestEvent $event): void {
 		// Not implemented yet
 	}
 
-	#[NCA\Event(
-		name: Event::EVENT_MASK,
-		description: 'Distribute events to Websocket clients',
-		defaultStatus: 1
-	)]
-	public function displayEvent(Event $event): void {
-		$isPrivatPacket = $event->type === 'msg'
+	/** Distribute events to Websocket clients */
+	#[NCA\HandlesEvent(mask: '*', defaultStatus: Status::Enabled)]
+	public function displayEvent(object $event): void {
+		$isPrivatPacket = $event instanceof RecvMsgEvent
 			|| $event instanceof PackageEvent
 			|| $event instanceof WebsocketEvent;
 		// Packages that might contain secret or private information must never be relayed
@@ -168,20 +155,23 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 			command: WebsocketCommand::EVENT,
 			data: $event,
 		);
-		$encodedPacket = ['command' => WebsocketCommand::EVENT, 'data' => $event];
+		$eventType = EventManager::getEventType($event);
+		$encodedEvent = Hydrator::literalSerialize($event);
+		$encodedEvent['type'] = $eventType;
+		$encodedPacket = ['command' => WebsocketCommand::EVENT, 'data' => $encodedEvent];
 		foreach ($this->subscriptions as $id => $subscriptions) {
 			if ($event instanceof CommandReplyEvent && $event->uuid !== (string)$id) {
 				continue;
 			}
 			foreach ($subscriptions as $subscription) {
-				if ($subscription === $event->type
-					|| fnmatch($subscription, $event->type)) {
-					$this->gateway->sendText(IMEX\JSON::export($encodedPacket), $id);
-					$this->logger->info('Sending {class} to Websocket client', [
-						'class' => $event::class,
-						'packet' => $packet,
-					]);
+				if ($subscription !== $eventType && !fnmatch($subscription, $eventType)) {
+					continue;
 				}
+				$this->gateway->sendText(IMEX\JSON::export($encodedPacket), $id);
+				$this->logger->info('Sending {class} to Websocket client', [
+					'class' => $event::class,
+					'packet' => $packet,
+				]);
 			}
 		}
 	}
@@ -223,15 +213,17 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		if ($command->command === $command::SUBSCRIBE) {
 			$newEvent = new WebsocketSubscribeEvent(
 				data: Hydrator::hydrate(NadySubscribe::class, $command->data),
+				client: $client,
 			);
 		} elseif ($command->command === $command::REQUEST) {
 			$newEvent = new WebsocketRequestEvent(
 				data: Hydrator::hydrate(NadyRequest::class, $command->data),
+				client: $client,
 			);
 		} else {
 			// Unknown command received is just silently ignored in case another handler deals with it
 			return;
 		}
-		$this->eventManager->fireEvent($newEvent, $client);
+		$this->eventManager->dispatch($newEvent);
 	}
 }

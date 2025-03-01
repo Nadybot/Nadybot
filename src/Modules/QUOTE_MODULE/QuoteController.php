@@ -4,7 +4,6 @@ namespace Nadybot\Modules\QUOTE_MODULE;
 
 use function Safe\preg_split;
 
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -13,8 +12,9 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Nadybot,
-	ParamClass\PRemove,
+	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 
@@ -27,7 +27,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'quote',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Add/Remove/View Quotes',
 	)
 ]
@@ -48,7 +48,7 @@ class QuoteController extends ModuleInstance {
 	#[NCA\HandlesCommand('quote')]
 	public function quoteAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[NCA\Parameter\Str('add')] string $action,
 		string $quote
 	): void {
 		$quoteMsg = trim($quote);
@@ -80,7 +80,7 @@ class QuoteController extends ModuleInstance {
 	#[NCA\HandlesCommand('quote')]
 	public function quoteRemoveCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Parameter\Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -98,7 +98,7 @@ class QuoteController extends ModuleInstance {
 
 		// only author or admin can delete.
 		if (($poster === $context->char->name)
-			|| $this->accessManager->checkAccess($context->char->name, 'moderator')
+			|| $this->accessManager->checkAccess($context->char->name, AccessLevel::Mod)
 		) {
 			$this->db->table(Quote::getTable())->delete($id);
 			$msg = 'This quote has been deleted.';
@@ -112,7 +112,7 @@ class QuoteController extends ModuleInstance {
 	#[NCA\HandlesCommand('quote')]
 	public function quoteSearchCommand(
 		CmdContext $context,
-		#[NCA\Str('search')] string $action,
+		#[NCA\Parameter\Str('search')] string $action,
 		string $search
 	): void {
 		$searchParam = "%{$search}%";
@@ -160,7 +160,7 @@ class QuoteController extends ModuleInstance {
 	#[NCA\HandlesCommand('quote')]
 	public function quoteShowCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('org', 'priv')] ?string $channel,
+		#[NCA\Parameter\StrChoice('org', 'priv')] ?string $channel,
 		PUuid $id
 	): void {
 		$id = $id();

@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\ONLINE_MODULE\Online;
 
@@ -15,7 +16,7 @@ use Nadybot\Modules\ONLINE_MODULE\Online;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'check',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Checks who of the raidgroup is in the area',
 	)
 ]

@@ -6,26 +6,29 @@ use Exception;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	DB,
 	DBSchema\Setting,
 	HelpManager,
 	ModuleInstance,
-	ParamClass\PWord,
 	SettingHandlers\SettingHandler,
 	SettingHandlers\TemplateSettingHandler,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\SettingMode,
+	Types\Status,
 };
 
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'settings',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Change settings on the bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)
 ]
 class SettingsController extends ModuleInstance {
@@ -73,7 +76,11 @@ class SettingsController extends ModuleInstance {
 
 			$settingHandler = $this->settingManager->getSettingHandler($row);
 			if ($settingHandler instanceof SettingHandler) {
-				$blob .= ': ' . $settingHandler->displayValue($context->char->name);
+				if ($settingHandler->canViewValue($context)) {
+					$blob .= ': ' . $settingHandler->displayValue($context->char->name);
+				} else {
+					$blob .= ': <highlight>********<end>';
+				}
 			}
 			$blob .= "\n";
 		}
@@ -84,8 +91,12 @@ class SettingsController extends ModuleInstance {
 
 	/** See info about a setting and its allowed values */
 	#[NCA\HandlesCommand('settings')]
-	public function changeCommand(CmdContext $context, #[NCA\Str('change')] string $action, PWord $setting): void {
-		$settingName = strtolower($setting());
+	public function changeCommand(
+		CmdContext $context,
+		#[Str('change')] string $action,
+		#[WordStr] string $setting,
+	): void {
+		$settingName = strtolower($setting);
 
 		$row = $this->db->table(Setting::getTable())
 			->where('name', $settingName)
@@ -104,7 +115,11 @@ class SettingsController extends ModuleInstance {
 		$blob .= "<tab>Name: <highlight>{$row->name}<end>\n";
 		$blob .= "<tab>Module: <highlight>{$row->module}<end>\n";
 		$blob .= "<tab>Description: <highlight>{$row->description}<end>\n";
-		$blob .= '<tab>Current Value: ' . $settingHandler->displayValue($context->char->name) . "\n";
+		$currentValue = '<highlight>********<end>';
+		if ($settingHandler->canViewValue($context)) {
+			$currentValue = $settingHandler->displayValue($context->char->name);
+		}
+		$blob .= "<tab>Current Value: {$currentValue}\n";
 		if ($settingHandler instanceof TemplateSettingHandler) {
 			$blob .= '<tab>Raw value: <highlight>' . htmlentities($settingHandler->getData()->value ?? '<empty>') . "<end>\n";
 		}
@@ -127,11 +142,11 @@ class SettingsController extends ModuleInstance {
 	#[NCA\HandlesCommand('settings')]
 	public function saveCommand(
 		CmdContext $context,
-		#[NCA\Str('save')] string $action,
-		PWord $setting,
+		#[Str('save')] string $action,
+		#[WordStr] string $setting,
 		string $newValue
 	): void {
-		$name = strtolower($setting());
+		$name = strtolower($setting);
 
 		$setting = $this->db->table(Setting::getTable())
 			->where('name', $name)
@@ -141,7 +156,7 @@ class SettingsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		if (!$this->accessManager->checkAccess($context->char->name, $setting->admin??'superadmin')) {
+		if (!$this->accessManager->checkAccess($context->char->name, $setting->access_level??AccessLevel::Superadmin)) {
 			$msg = "You don't have the necessary rights to change this setting.";
 			$context->reply($msg);
 			return;

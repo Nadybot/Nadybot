@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	Routing\Character,
+	Types\AccessLevel,
 };
 
 /**
@@ -20,7 +21,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'runas',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Execute a command as another character',
 	)
 ]
@@ -43,7 +44,7 @@ class RunAsController extends ModuleInstance {
 			$context->reply("Character <highlight>{$character}<end> does not exist.");
 			return;
 		}
-		if (!$this->accessManager->checkAccess($context->char->name, 'superadmin')
+		if (!$this->accessManager->checkAccess($context->char->name, AccessLevel::Superadmin)
 			&& $this->accessManager->compareCharacterAccessLevels($context->char->name, $character()) <= 0
 		) {
 			$context->reply("Error! Access level not sufficient to run commands as <highlight>{$character}<end>.");

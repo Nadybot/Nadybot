@@ -4,27 +4,31 @@ namespace Nadybot\Core\Modules\ALTS;
 
 use function Amp\async;
 
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Events\ConnectEvent;
+use AO\Utils;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	AuditAction,
 	BuddylistManager,
 	CmdContext,
+	Config\BotConfig,
 	DB,
 	DBSchema\Alt,
 	DBSchema\Audit,
 	EventManager,
+	Events\ConnectEvent,
 	Events\LogonEvent,
 	Exceptions\SQLException,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
 	QueryBuilder,
 	Registry,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
 };
 
@@ -35,30 +39,25 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'alts',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Alt character handling',
 	),
 	NCA\DefineCommand(
 		command: 'altsadmin',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: "Manage someone else's alts",
 	),
 	NCA\DefineCommand(
 		command: 'altvalidate',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Validate alts for admin privileges',
 	),
 	NCA\DefineCommand(
 		command: 'altdecline',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Declines being the alt of someone else',
 	),
 
-	NCA\ProvidesEvent(AltAddEvent::class),
-	NCA\ProvidesEvent(AltDelEvent::class),
-	NCA\ProvidesEvent(AltValidateEvent::class),
-	NCA\ProvidesEvent(AltDeclineEvent::class),
-	NCA\ProvidesEvent(AltNewMainEvent::class),
 	NCA\HasMigrations
 ]
 class AltsController extends ModuleInstance {
@@ -109,7 +108,12 @@ class AltsController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	/** @var array<string,string> */
+	/**
+	 * A cached list of all characters and their main in the format
+	 * `[<alt> => <main>]`
+	 *
+	 * @var array<string,string>
+	 */
 	private array $alts = [];
 
 	#[NCA\Setup]
@@ -132,10 +136,8 @@ class AltsController extends ModuleInstance {
 		return $alts;
 	}
 
-	#[NCA\Event(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Add unvalidated alts/mains to friendlist'
-	)]
+	/** Add non-validated alts/mains to friendlist */
+	#[NCA\HandlesEvent]
 	public function addNonValidatedAsBuddies(ConnectEvent $event): void {
 		$myName = $this->config->main->character;
 		$this->db->table(Alt::getTable())->where('validated_by_alt', false)->where('added_via', $myName)
@@ -162,7 +164,7 @@ class AltsController extends ModuleInstance {
 	public function addAltadminCommand(
 		CmdContext $context,
 		PCharacter $main,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter ...$names
 	): void {
 		$result = $this->addAltsToMain($context->char->name, $main(), ...$names);
@@ -184,7 +186,7 @@ class AltsController extends ModuleInstance {
 	)]
 	public function addAltCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter ...$names
 	): void {
 		$result = $this->addAltsToMain($context->char->name, $context->char->name, ...$names);
@@ -205,7 +207,7 @@ class AltsController extends ModuleInstance {
 	)]
 	public function addMainCommand(
 		CmdContext $context,
-		#[NCA\Str('main')] string $action,
+		#[Str('main')] string $action,
 		PCharacter $main
 	): void {
 		$newMain = $main();
@@ -286,7 +288,7 @@ class AltsController extends ModuleInstance {
 	public function removeSomeonesAltCommand(
 		CmdContext $context,
 		PCharacter $main,
-		PRemove $action,
+		#[Remove] string $action,
 		PCharacter $alt
 	): void {
 		$main = $main();
@@ -324,7 +326,11 @@ class AltsController extends ModuleInstance {
 	/** Remove one of your alts */
 	#[NCA\HandlesCommand('alts')]
 	#[NCA\Help\Group('alts')]
-	public function removeAltCommand(CmdContext $context, PRemove $rem, PCharacter $name): void {
+	public function removeAltCommand(
+		CmdContext $context,
+		#[Remove] string $rem,
+		PCharacter $name
+	): void {
 		$name = $name();
 
 		$altInfo = $this->getAltInfo($context->char->name, true);
@@ -356,7 +362,7 @@ class AltsController extends ModuleInstance {
 	public function setSomeonesMainCommand(
 		CmdContext $context,
 		PCharacter $newMain,
-		#[NCA\Str('setmain')] string $action
+		#[Str('setmain')] string $action
 	): void {
 		$msg = $this->makeAltNewMain($context->char->name, $newMain());
 		$context->reply($msg);
@@ -367,7 +373,7 @@ class AltsController extends ModuleInstance {
 	#[NCA\Help\Group('alts')]
 	public function setMainCommand(
 		CmdContext $context,
-		#[NCA\Str('setmain')] string $action
+		#[Str('setmain')] string $action
 	): void {
 		$msg = $this->makeAltNewMain($context->char->name, $context->char->name);
 		$context->reply($msg);
@@ -426,10 +432,8 @@ class AltsController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Reminds unvalidates alts/mains to accept or deny'
-	)]
+	/** Reminds non-validates alts/mains to accept or deny */
+	#[NCA\HandlesEvent]
 	public function checkUnvalidatedAltsEvent(LogonEvent $eventObj): void {
 		if (!$this->chatBot->isReady()
 			|| $eventObj->wasOnline !== false
@@ -500,7 +504,7 @@ class AltsController extends ModuleInstance {
 	 * @return AltInfo Information about the main and the alts
 	 */
 	public function getAltInfo(string $player, bool $includePending=false): AltInfo {
-		$player = ucfirst(strtolower($player));
+		$player = Utils::normalizeCharacter($player);
 
 		$ai = new AltInfo(main: $player);
 		Registry::injectDependencies($ai);
@@ -534,8 +538,8 @@ class AltsController extends ModuleInstance {
 
 	/** This method adds given $alt as $main's alt character. */
 	public function addAlt(string $main, string $alt, bool $validatedByMain, bool $validatedByAlt, bool $sendEvent=true): int {
-		$main = ucfirst(strtolower($main));
-		$alt = ucfirst(strtolower($alt));
+		$main = Utils::normalizeCharacter($main);
+		$alt = Utils::normalizeCharacter($alt);
 
 		$added = $this->db->insert(new Alt(
 			alt: $alt,
@@ -550,14 +554,14 @@ class AltsController extends ModuleInstance {
 				alt: $alt,
 				validated: $validatedByAlt && $validatedByMain,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 		}
 		if ($validatedByAlt && $validatedByMain) {
 			$this->alts[$alt] = $main;
 			$audit = new Audit(
 				actor: $main,
 				actee: $alt,
-				action: AccessManager::ADD_ALT,
+				action: AuditAction::AddAlt,
 			);
 			$this->accessManager->addAudit($audit);
 		}
@@ -580,14 +584,14 @@ class AltsController extends ModuleInstance {
 				alt: $alt,
 				validated: isset($old) ? ($old->validated_by_alt === true && $old->validated_by_main === true) : false,
 			);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 
 			if (isset($old) && $old->validated_by_alt === true && $old->validated_by_main === true) {
 				unset($this->alts[$alt]);
 				$audit = new Audit(
 					actor: $main,
 					actee: $alt,
-					action: AccessManager::DEL_ALT,
+					action: AuditAction::DelAlt,
 				);
 				$this->accessManager->addAudit($audit);
 			}
@@ -703,7 +707,7 @@ class AltsController extends ModuleInstance {
 		$audit = new Audit(
 			actor: $altInfo->main,
 			actee: $sender,
-			action: AccessManager::ADD_ALT,
+			action: AuditAction::AddAlt,
 		);
 		$this->accessManager->addAudit($audit);
 
@@ -717,7 +721,7 @@ class AltsController extends ModuleInstance {
 			alt: $alt,
 			validated: true,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	protected function declineAsMain(string $toDecline, AltInfo $altInfo, CommandReply $sendto): void {
@@ -768,7 +772,7 @@ class AltsController extends ModuleInstance {
 			alt: $alt,
 			validated: true,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	protected function removeMainFromBuddyListIfPossible(string $main): void {
@@ -963,7 +967,7 @@ class AltsController extends ModuleInstance {
 
 		$audit = new Audit(
 			actor: $newMain,
-			action: AccessManager::SET_MAIN,
+			action: AuditAction::SetMain,
 		);
 		$this->accessManager->addAudit($audit);
 
@@ -973,7 +977,7 @@ class AltsController extends ModuleInstance {
 			alt: $altInfo->main,
 			validated: true,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 
 		if ($selfModify) {
 			return "Your main is now <highlight>{$newMain}<end>.";

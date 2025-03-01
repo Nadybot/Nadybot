@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	EventManager,
 	ModuleInstance,
 	Nadybot,
+	Types\AccessLevel,
 };
 use Revolt\EventLoop;
 
@@ -19,14 +20,10 @@ use Revolt\EventLoop;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'countdown',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Start a 5-second countdown',
 		alias: 'cd'
 	),
-	NCA\ProvidesEvent(
-		event: SyncCdEvent::class,
-		desc: 'Triggered when someone starts a countdown',
-	)
 ]
 class CountdownController extends ModuleInstance {
 	public const LOC_PRIV = 1;
@@ -81,7 +78,7 @@ class CountdownController extends ModuleInstance {
 			message: $message,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($sEvent);
+		$this->eventManager->dispatch($sEvent);
 	}
 
 	/** @psalm-param callable(string) $callback */
@@ -108,10 +105,8 @@ class CountdownController extends ModuleInstance {
 		});
 	}
 
-	#[NCA\Event(
-		name: SyncCdEvent::EVENT_MASK,
-		description: 'Process externally started countdowns'
-	)]
+	/** Process externally started countdowns */
+	#[NCA\HandlesEvent]
 	public function syncCountdown(SyncCdEvent $event): void {
 		if (time() - $this->lastCountdown < 7) {
 			return;

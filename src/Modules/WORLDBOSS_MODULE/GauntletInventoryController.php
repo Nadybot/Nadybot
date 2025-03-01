@@ -11,8 +11,8 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
 	Text,
+	Types\AccessLevel,
 };
 
 /**
@@ -23,7 +23,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'gaulist',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Manage the stuff you got and need from the Gauntlet',
 	)
 ]
@@ -81,7 +81,7 @@ class GauntletInventoryController extends ModuleInstance {
 	#[NCA\Help\Hide()]
 	public function gaulistAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[NCA\Parameter\Str('add')] string $action,
 		PCharacter $name,
 		int $pos
 	): void {
@@ -109,7 +109,7 @@ class GauntletInventoryController extends ModuleInstance {
 	#[NCA\Help\Hide()]
 	public function gaulistDelCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Parameter\Remove] string $action,
 		PCharacter $name,
 		int $pos
 	): void {

@@ -7,9 +7,20 @@ use Amp\Http\Client\{HttpClientBuilder, Request};
 use Closure;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes\{Event, HandlesCommand};
-use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, Hydrator, MessageHub, ModuleInstance, Safe, Text, Util};
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	Events\ConnectEvent,
+	Hydrator,
+	MessageHub,
+	ModuleInstance,
+	Routing\RoutableMessage,
+	Routing\Source,
+	Safe,
+	Text,
+	Types\AccessLevel,
+	Util
+};
 use Nadybot\Modules\WHEREIS_MODULE\{Whereis, WhereisController};
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
@@ -22,45 +33,45 @@ use Safe\Exceptions\JsonException;
 		command: 'prisoners',
 		alias: ['pris'],
 		description: 'Get the status of all prisoners',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'hags',
 		description: 'Get the status of all Biodome hags',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'dreads',
 		description: 'Get the status of all Dreadlochs bosses',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'ljotur',
 		description: 'Get the status of Ljotur the Lunatic',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'otacustes',
 		alias: ['ota'],
 		description: 'Get the status of Otacustes',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'jack',
 		alias: ['legchopper'],
 		description: 'Get the status of Jack "Leg-chopper" Menendez and his clones',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'reck',
 		description: 'Get the status of mobs in The Reck',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: 'hollowisland',
 		alias: ['hollow', 'hi'],
 		description: 'Get the status of Hollow Island',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 ]
 class MobController extends ModuleInstance {
@@ -81,8 +92,9 @@ class MobController extends ModuleInstance {
 	#[NCA\Inject]
 	private MessageHub $msgHub;
 
-	#[NCA\Event('connect', 'Load all mobs from the API')]
-	public function initMobsFromApi(): void {
+	/** Load all mobs from the API */
+	#[NCA\HandlesEvent]
+	public function initMobsFromApi(?ConnectEvent $event=null): void {
 		$client = $this->builder->build();
 
 		$response = $client->request(new Request(self::MOB_API));
@@ -162,10 +174,8 @@ class MobController extends ModuleInstance {
 		}
 	}
 
-	#[Event(
-		name: MobAttackedEvent::EVENT_MASK,
-		description: 'Announce when a mob gets attacked as mob(&lt;type&gt;-&lt;key&gt;-attacked)',
-	)]
+	/** Announce when a mob gets attacked as mob(&lt;type&gt;-&lt;key&gt;-attacked) */
+	#[NCA\HandlesEvent]
 	public function announceMobAttacked(MobAttackedEvent $event): void {
 		$mob = $event->mob;
 		$blob = Text::makeChatcmd(
@@ -183,10 +193,8 @@ class MobController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[Event(
-		name: MobSpawnEvent::EVENT_MASK,
-		description: 'Announce when a new mob spawns as mob(&lt;type&gt;-&lt;key&gt;-spawn)',
-	)]
+	/** Announce when a new mob spawns as mob(&lt;type&gt;-&lt;key&gt;-spawn) */
+	#[NCA\HandlesEvent]
 	public function announceMobSpawn(MobSpawnEvent $event): void {
 		$mob = $event->mob;
 		$blob = Text::makeChatcmd(
@@ -204,10 +212,8 @@ class MobController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[Event(
-		name: MobDeathEvent::EVENT_MASK,
-		description: 'Announce when a mob gets killed as mob(&lt;type&gt;-&lt;key&gt;-death)',
-	)]
+	/** Announce when a mob gets killed as mob(&lt;type&gt;-&lt;key&gt;-death) */
+	#[NCA\HandlesEvent]
 	public function announceMobDeath(MobDeathEvent $event): void {
 		$mob = $event->mob;
 		$blob = Text::makeChatcmd(
@@ -230,7 +236,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('prisoners'),
+		NCA\HandlesCommand('prisoners'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show which of the prisoners in Milky Way is up or down */
@@ -251,13 +257,13 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('hags'),
+		NCA\HandlesCommand('hags'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show which Biodome hag is up or down */
 	public function showHagsCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('clan', 'omni')] ?string $type
+		#[NCA\Parameter\StrChoice('clan', 'omni')] ?string $type
 	): void {
 		/** @var Collection<string,Collection<int,Mob>> */
 		$factions = (new Collection(array_values($this->mobs[Mob::T_HAG]??[])))
@@ -290,13 +296,13 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('dreads'),
+		NCA\HandlesCommand('dreads'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show which Dreadloch mob is up or down */
 	public function showDreadsCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('clan', 'omni')] ?string $type
+		#[NCA\Parameter\StrChoice('clan', 'omni')] ?string $type
 	): void {
 		$sides = [
 			'pthunder' => 'omni',
@@ -339,7 +345,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('jack'),
+		NCA\HandlesCommand('jack'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show which of Jack's clones is currently up */
@@ -365,7 +371,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('ljotur'),
+		NCA\HandlesCommand('ljotur'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show whether Ljotur the Lunatic, or one of his placeholders are up */
@@ -374,7 +380,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('otacustes'),
+		NCA\HandlesCommand('otacustes'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show whether Otacustes, or one of his placeholders are up */
@@ -383,7 +389,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('reck'),
+		NCA\HandlesCommand('reck'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show status of mobs in The Reck */
@@ -404,7 +410,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand('hollowisland'),
+		NCA\HandlesCommand('hollowisland'),
 		NCA\Help\Group('mobs'),
 	]
 	/** Show the current status of Hollow Island */

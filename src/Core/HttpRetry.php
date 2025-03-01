@@ -7,6 +7,7 @@ use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, HttpException, 
 use Amp\{Cancellation, ForbidCloning as AmpForbidCloning, ForbidSerialization as AmpForbidSerialization};
 use Nadybot\Core\Attributes as NCA;
 
+/** This will automatically retry HTTP-requests on HTTP exceptions */
 final class HttpRetry implements ApplicationInterceptor {
 	use AmpForbidCloning;
 	use AmpForbidSerialization;
@@ -14,11 +15,13 @@ final class HttpRetry implements ApplicationInterceptor {
 	#[NCA\Logger]
 	private LoggerWrapper $logger;
 
+	/** @param int $retryLimit How often shall we retry the requests? */
 	public function __construct(
 		private int $retryLimit
 	) {
 	}
 
+	/** {@inheritDoc} */
 	public function request(
 		Request $request,
 		Cancellation $cancellation,

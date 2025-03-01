@@ -2,9 +2,8 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use function Safe\json_encode;
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
-
+use Nadybot\Core\Hydrator;
 use Stringable;
 
 class ApplicationCommand implements Stringable {
@@ -65,15 +64,13 @@ class ApplicationCommand implements Stringable {
 	}
 
 	public function isSameAs(self $cmd): bool {
-		foreach (get_object_vars($this) as $key => $myValue) {
+		$myValues = Hydrator::serialize($this);
+		$theirValues = Hydrator::serialize($cmd);
+		foreach ($myValues as $key => $myValue) {
 			if (in_array($key, ['id', 'application_id', 'version'], true)) {
 				continue;
 			}
-			if (is_array($myValue)) {
-				if (json_encode($cmd->{$key}) !== json_encode($myValue)) {
-					return false;
-				}
-			} elseif ($cmd->{$key} !== $myValue) {
+			if ($theirValues[$key] !== $myValue) {
 				return false;
 			}
 		}

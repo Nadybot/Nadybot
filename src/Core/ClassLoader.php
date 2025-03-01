@@ -7,15 +7,16 @@ use function Safe\{parse_ini_string, preg_split};
 use Amp\File\FilesystemException;
 use Amp\Parallel\Worker\TaskFailureError;
 use Amp\TimeoutCancellation;
-use Directory;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Exceptions\{
 	IntegratedIntoBaseException,
 	InvalidCodeException,
 	InvalidVersionException
 };
-use Nadybot\Core\Types\ModuleInstanceInterface;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	Types\ModuleInstanceInterface,
+};
 use Psr\Log\LoggerInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -23,7 +24,13 @@ use RecursiveRegexIterator;
 use ReflectionClass;
 use RegexIterator;
 
+/** The class loader keeps track of and loads all modules and their classes */
 class ClassLoader {
+	/**
+	 * A list of old modules that are now part of Nadybot
+	 *
+	 * @var list<string>
+	 */
 	public const INTEGRATED_MODULES = [
 		'ALLIANCE_RELAY_MODULE',
 		'SPAWNTIME_MODULE',
@@ -38,7 +45,7 @@ class ClassLoader {
 	 *
 	 * @var array<string,string>
 	 */
-	public array $registeredModules = [];
+	private array $registeredModules = [];
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -54,7 +61,41 @@ class ClassLoader {
 	public function __construct(private array $moduleLoadPaths) {
 	}
 
-	/** Load all classes that provide an #[Instance] */
+	/**
+	 * Get the path for a given module, relative to the bot's base dir
+	 *
+	 * @return ?string `null` if that module isn't registered, otherwise the path
+	 */
+	public function getModulePath(string $module): ?string {
+		return $this->registeredModules[$module] ?? null;
+	}
+
+	/** Remove a module from our registry */
+	public function unregisterModule(string $module): void {
+		unset($this->registeredModules[$module]);
+	}
+
+	/**
+	 * Set the path of a given module in our registry to a given value
+	 *
+	 * @param string $module Name of the module for which to change the path
+	 * @param string $path   the relative path of the module
+	 */
+	public function setModulePath(string $module, string $path): string {
+		return $this->registeredModules[$module] = $path;
+	}
+
+	/**
+	 * Get a list of all registered modules
+	 * as an Array of module name => path
+	 *
+	 * @return array<string,string>
+	 */
+	public function getRegisteredModules(): array {
+		return $this->registeredModules;
+	}
+
+	/** Load all classes that provide an #[Instance] and inject their dependencies */
 	public function loadInstances(): void {
 		$newInstances = static::getInstancesOfClasses(...get_declared_classes());
 		unset($newInstances['logger']);
@@ -145,7 +186,7 @@ class ClassLoader {
 			}
 			$obj = new $className();
 			$obj->setModuleName($moduleName);
-			if (Registry::instanceExists($name) && !$class->overwrite) {
+			if (Registry::hasInstance($name) && !$class->overwrite) {
 				$this->logger->warning("Instance with name '{instance}' already registered--replaced with new instance", [
 					'instance' => $name,
 				]);
@@ -243,7 +284,7 @@ class ClassLoader {
 		return $newInstances;
 	}
 
-	/** Parse and load all core modules */
+	/** Parse and load all core modules in the correct order */
 	private function loadCoreModules(): void {
 		// load the core modules, hard-code to ensure they are loaded in the correct order
 		$this->logger->notice('Loading CORE modules...');
@@ -252,8 +293,14 @@ class ClassLoader {
 			'PLAYER_LOOKUP', 'BUDDYLIST', 'ALTS', 'USAGE', 'PREFERENCES', 'PROFILE',
 			'COLORS', 'DISCORD', 'CONSOLE', 'SECURITY',
 		];
+		$foundModules = array_flip($this->fs->listFiles(__DIR__ . '/Modules'));
+		unset($foundModules['SETUP']);
 		foreach ($coreModules as $moduleName) {
 			$this->registerModule(__DIR__ . '/Modules', $moduleName);
+			unset($foundModules[$moduleName]);
+		}
+		if (count($foundModules)) {
+			throw new \Error('Found unexpected modules: '.implode(', ', array_keys($foundModules)));
 		}
 	}
 
@@ -261,33 +308,45 @@ class ClassLoader {
 	private function loadUserModules(): void {
 		$this->logger->notice('Loading USER modules...');
 		foreach ($this->moduleLoadPaths as $path) {
-			$this->logger->info("Loading modules in path '{path}'", ['path' => $path]);
-			if (!$this->fs->exists($path) || !(($d = dir($path)) instanceof Directory)) {
-				continue;
-			}
-			while (false !== ($moduleName = $d->read())) {
-				if (in_array($moduleName, ['BIGBOSS_MODULE', 'GAUNTLET_MODULE'], true)) {
-					continue;
-				}
-				if ($this->isModuleDir($path, $moduleName)) {
-					$this->registerModule($path, $moduleName);
-				}
-			}
-			$d->close();
+			$this->loadModulesInPath($path);
 		}
 	}
 
-	/** Test if $moduleName is a module in $path */
+	/** Parse and load all modules in a given path */
+	private function loadModulesInPath(string $path): void {
+		$this->logger->info("Loading modules in path '{path}'", ['path' => $path]);
+		try {
+			$files = $this->fs->listFiles($path);
+		} catch (FilesystemException) {
+			return;
+		}
+		foreach ($files as $moduleName) {
+			if (in_array($moduleName, ['BIGBOSS_MODULE', 'GAUNTLET_MODULE'], true)) {
+				continue;
+			}
+			if ($this->isModuleDir($path, $moduleName)) {
+				$this->registerModule($path, $moduleName);
+			}
+		}
+	}
+
+	/** Test if `$moduleName` is a module in `$path` */
 	private function isModuleDir(string $path, string $moduleName): bool {
 		return $this->isValidModuleName($moduleName)
 			&& $this->fs->isDirectory("{$path}/{$moduleName}");
 	}
 
-	/** Check if $name is a valid module name */
+	/** Check if `$name` is a valid module name */
 	private function isValidModuleName(string $name): bool {
 		return $name !== '.' && $name !== '..';
 	}
 
+	/**
+	 * Check if a given version requirement spec matches this bot's version
+	 *
+	 * @param string $spec The version spec to check.
+	 *                     Must be in the format `^6.0.0` or `6.0.0-6.1.0`
+	 */
 	private function versionRangeCompatible(string $spec): bool {
 		$parts = preg_split("/\s*,\s*/", $spec);
 		foreach ($parts as $part) {
@@ -301,7 +360,7 @@ class ClassLoader {
 		return true;
 	}
 
-	/** Check if the module in $path is compatible with this Nadybot version */
+	/** Check if the module in `$path` is compatible with this Nadybot version */
 	private function isModuleCompatible(string $path): bool {
 		if (!$this->fs->exists("{$path}/aopkg.toml")) {
 			return true;
@@ -317,7 +376,15 @@ class ClassLoader {
 		return $this->versionRangeCompatible($matches[2]);
 	}
 
-	/** Check if $fileName contains no parsing errors and a require would work */
+	/**
+	 * Check if `$fileName` contains no parsing errors and a require would work
+	 *
+	 * @param string $fileName The filename of the PHP file to load.
+	 *                         Either relative to this bot's base directory,
+	 *                         or an absolute path.
+	 *
+	 * @return bool `true` if the file can be loaded, `false` on any compile or linter errors
+	 */
 	private function checkFileLoads(string $fileName): bool {
 		$task = new LintTask($fileName);
 		$worker = \Amp\Parallel\Worker\getWorker();

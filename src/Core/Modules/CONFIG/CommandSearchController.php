@@ -3,26 +3,28 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\DBSchema\CmdCfg;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	DBSchema\CmdCfg,
 	DBSchema\CmdPermission,
 	DBSchema\CommandSearchResult,
 	Exceptions\SQLException,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
+	Types\Status,
 };
 
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'cmdsearch',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Finds commands based on key words',
-		defaultStatus: 1,
+		defaultStatus: Status::Enabled,
 		alias: 'searchcmd'
 	)
 ]
@@ -39,7 +41,7 @@ class CommandSearchController extends ModuleInstance {
 		$commands = $this->getAllCmds();
 		$access = true;
 		// if a mod or higher, show all commands, not just enabled commands
-		if (!$this->accessManager->checkAccess($context->char->name, 'mod')) {
+		if (!$this->accessManager->checkAccess($context->char->name, AccessLevel::Mod)) {
 			$commands = $this->filterDisabled($commands);
 			$access = false;
 		}
@@ -72,9 +74,9 @@ class CommandSearchController extends ModuleInstance {
 	 */
 	public function filterResultsByAccessLevel(string $sender, Collection $data): Collection {
 		$charAccessLevel = $this->accessManager->getSingleAccessLevel($sender);
-		return $data->filter(function (CommandSearchResult $cmd) use ($charAccessLevel): bool {
-			$cmd->permissions = array_filter($cmd->permissions, function (CmdPermission $perm) use ($charAccessLevel): bool {
-				return $this->accessManager->compareAccessLevels($charAccessLevel, $perm->access_level) >= 0;
+		return $data->filter(static function (CommandSearchResult $cmd) use ($charAccessLevel): bool {
+			$cmd->permissions = array_filter($cmd->permissions, static function (CmdPermission $perm) use ($charAccessLevel): bool {
+				return $charAccessLevel->atLeast($perm->access_level);
 			});
 			return count($cmd->permissions) > 0;
 		});

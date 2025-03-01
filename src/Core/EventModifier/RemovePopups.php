@@ -10,30 +10,24 @@ use Nadybot\Core\{
 	Types\EventModifier,
 };
 
-#[
-	NCA\EventModifier(
-		name: 'remove-popups',
-		description: "This modifier will remove all popups and only\n".
-			'leave the link name.'
-	),
-	NCA\Param(
-		name: 'remove-links',
-		type: 'bool',
-		description: 'Also try to remove the text of the link to the popup',
-		required: false
-	)
-]
+/**
+ * This modifier will remove all popups and only
+ * leave the link name.
+ */
+#[NCA\EventModifier(name: 'remove-popups')]
 class RemovePopups implements EventModifier {
+	/** @param bool $removeLinks Also try to remove the text of the link to the popup */
 	public function __construct(
-		protected bool $removeLinks=false
+		#[NCA\Param(name: 'remove-links')] protected bool $removeLinks=false
 	) {
 	}
 
+	/** {@inheritDoc} */
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		if (!isset($event)) {
 			return $event;
 		}
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			$message = $event->getData()->message??null;
 			if (!isset($message)) {
 				return $event;

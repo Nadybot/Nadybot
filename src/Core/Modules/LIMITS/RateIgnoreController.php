@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\LIMITS;
 
+use AO\Utils;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -11,8 +12,9 @@ use Nadybot\Core\{
 	Exceptions\SQLException,
 	ModuleInstance,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
 	Text,
+	Types\AccessLevel,
+	Types\Status,
 	Util,
 };
 
@@ -24,9 +26,9 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'rateignore',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Add players to the rate limit ignore list to bypass limits check',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)
 ]
 class RateIgnoreController extends ModuleInstance {
@@ -58,13 +60,21 @@ class RateIgnoreController extends ModuleInstance {
 
 	/** Add a character to the rate ignore list */
 	#[NCA\HandlesCommand('rateignore')]
-	public function rateignoreAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, PCharacter $who): void {
+	public function rateignoreAddCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('add')] string $action,
+		PCharacter $who
+	): void {
 		$context->reply($this->add($who(), $context->char->name));
 	}
 
 	/** Remove a character from the rate ignore list */
 	#[NCA\HandlesCommand('rateignore')]
-	public function rateignoreRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
+	public function rateignoreRemoveCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Remove] string $rem,
+		PCharacter $who
+	): void {
 		$context->reply($this->remove($who()));
 	}
 
@@ -79,8 +89,8 @@ class RateIgnoreController extends ModuleInstance {
 	 * @throws SQLException
 	 */
 	public function add(string $user, string $sender): string {
-		$user = ucfirst(strtolower($user));
-		$sender = ucfirst(strtolower($sender));
+		$user = Utils::normalizeCharacter($user);
+		$sender = Utils::normalizeCharacter($sender);
 
 		if ($user === '' || $sender === '') {
 			return 'User or sender is blank';
@@ -107,7 +117,7 @@ class RateIgnoreController extends ModuleInstance {
 	 * @throws SQLException
 	 */
 	public function remove(string $user): string {
-		$user = ucfirst(strtolower($user));
+		$user = Utils::normalizeCharacter($user);
 
 		if ($user === '') {
 			return 'User is blank';
@@ -122,7 +132,7 @@ class RateIgnoreController extends ModuleInstance {
 
 	public function check(string $user): bool {
 		return $this->db->table(RateIgnoreList::getTable())
-			->where('name', ucfirst(strtolower($user)))
+			->where('name', Utils::normalizeCharacter($user))
 			->exists();
 	}
 

@@ -2,9 +2,14 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol\Nadybot;
 
+use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
+
 class OnlineList {
 	public string $type = 'online_list';
 
-	/** @var list<OnlineBlock> */
-	public array $online = [];
+	/** @param list<OnlineBlock> $online */
+	public function __construct(
+		#[CastListToType(OnlineBlock::class)] public array $online=[],
+	) {
+	}
 }

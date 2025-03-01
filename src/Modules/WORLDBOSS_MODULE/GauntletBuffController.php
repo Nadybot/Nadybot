@@ -17,11 +17,13 @@ use Nadybot\Core\{
 	Hydrator,
 	MessageHub,
 	ModuleInstance,
+	MyOrg,
 	Nadybot,
 	ParamClass\PDuration,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 	Types\Faction,
 	Types\MessageEmitter,
 	Util,
@@ -46,18 +48,14 @@ use ValueError;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'gaubuff',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show timer for gauntlet buff',
 	),
 	NCA\DefineCommand(
 		command: 'gaubuff set/update',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Set/update timer for gauntlet buff',
 	),
-	NCA\ProvidesEvent(
-		event: SyncGaubuffEvent::class,
-		desc: 'Triggered when someone sets the gauntlet buff for either side',
-	)
 ]
 class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public const SIDE_NONE = 'none';
@@ -148,6 +146,9 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	private StatsController $statsController;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	private int $apiRetriesLeft = 3;
 
 	public function getChannelName(): string {
@@ -161,10 +162,12 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->statsController->registerProvider(new GauntletBuffStats($this, Faction::Omni), 'states');
 	}
 
-	#[NCA\Event(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Get active Gauntlet buffs from API'
-	)]
+	/** Get active Gauntlet buffs from API */
+	#[NCA\HandlesEvent]
+	public function loadGauntletBuffsFromAPIOnConnect(ConnectEvent $event): void {
+		$this->loadGauntletBuffsFromAPI();
+	}
+
 	public function loadGauntletBuffsFromAPI(): void {
 		$client = $this->builder->build();
 
@@ -265,14 +268,12 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->handle($rMsg);
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Sends gaubuff message on logon'
-	)]
+	/** Sends gaubuff message on logon */
+	#[NCA\HandlesEvent]
 	public function gaubufflogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
-			|| (!isset($this->chatBot->guildmembers[$sender]))
+			|| !$this->myOrg->isMember($sender)
 			|| !$this->gaubuffLogon
 			|| $eventObj->wasOnline !== false
 		) {
@@ -281,10 +282,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->showGauntletBuff($sender);
 	}
 
-	#[NCA\Event(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Sends gaubuff message on join'
-	)]
+	/** Sends gaubuff message on join */
+	#[NCA\HandlesEvent]
 	public function privateChannelJoinEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if ($this->gaubuffLogon) {
@@ -296,7 +295,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand('gaubuff')]
 	public function gaubuffCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('clan', 'omni')] ?string $buffSide
+		#[NCA\Parameter\StrChoice('clan', 'omni')] ?string $buffSide
 	): void {
 		$sides = $this->getSidesToShowBuff($buffSide);
 		$msgs = [];
@@ -325,7 +324,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Help\Example('<symbol>gaubuff clan 10h15m')]
 	public function gaubuffSetCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('clan', 'omni')] ?string $faction,
+		#[NCA\Parameter\StrChoice('clan', 'omni')] ?string $faction,
 		PDuration $duration
 	): void {
 		$defaultSide = $this->gaubuffDefaultSide;
@@ -360,13 +359,11 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			sender: $context->char->name,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
-	#[NCA\Event(
-		name: SyncGaubuffEvent::EVENT_MASK,
-		description: 'Sync external gauntlet buff events'
-	)]
+	/** Sync external gauntlet buff events */
+	#[NCA\HandlesEvent]
 	public function syncExtGaubuff(SyncGaubuffEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -484,7 +481,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		if ($side === static::SIDE_NONE) {
 			return [Faction::Clan, Faction::Omni];
 		}
-		return [Faction::from(ucfirst(strtolower($side)))];
+		return [Faction::fromName($side)];
 	}
 
 	/** Parse the Gauntlet buff timer API result and handle each running buff */

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use AO\Utils;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -11,27 +12,25 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
-	ParamClass\PRemove,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 
 /**
  * This class contains all functions necessary to deal with temporary raid blocks
- *
- * @package Nadybot\Modules\RAID_MODULE
  */
 #[
 	NCA\Instance,
 	NCA\HasMigrations('Migrations/Block'),
 	NCA\DefineCommand(
 		command: 'raidblock',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Check your raid blocks',
 	),
 	NCA\DefineCommand(
 		command: RaidBlockController::CMD_RAIDBLOCK_EDIT,
-		accessLevel: 'raid_leader_1',
+		accessLevel: AccessLevel::RaidLeader1,
 		description: 'Temporarily block raiders',
 	)
 ]
@@ -97,7 +96,7 @@ class RaidBlockController extends ModuleInstance {
 	public function isBlocked(string $player, string $activity): bool {
 		$player = $this->altsController->getMainOf($player);
 		$this->expireBans();
-		return isset($this->blocks[ucfirst(strtolower($player))][$activity]);
+		return isset($this->blocks[Utils::normalizeCharacter($player)][$activity]);
 	}
 
 	/** Get a descriptive noun for a raid block key */
@@ -119,7 +118,7 @@ class RaidBlockController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAIDBLOCK_EDIT)]
 	public function raidBlockAddCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('points', 'join', 'bid')] string $blockFrom,
+		#[NCA\Parameter\StrChoice('points', 'join', 'bid')] string $blockFrom,
 		PCharacter $character,
 		?PDuration $duration,
 		string $reason
@@ -209,9 +208,9 @@ class RaidBlockController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAIDBLOCK_EDIT)]
 	public function raidBlockLiftCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Parameter\Remove] string $action,
 		PCharacter $char,
-		#[NCA\StrChoice('points', 'join', 'bid')] ?string $blockFrom
+		#[NCA\Parameter\StrChoice('points', 'join', 'bid')] ?string $blockFrom
 	): void {
 		$player = $char();
 		$player = $this->altsController->getMainOf($player);

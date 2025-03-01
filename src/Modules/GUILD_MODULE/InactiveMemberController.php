@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	ParamClass\PDuration,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 
@@ -21,7 +22,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'inactivemem',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Check for inactive members',
 	)
 ]

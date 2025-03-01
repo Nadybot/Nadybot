@@ -27,6 +27,7 @@ args?
 arti
 async
 autoincrement
+autoinv
 backtraces?
 badplayer
 ban[eE]nd
@@ -67,6 +68,7 @@ char[iI][dD]
 chatfilter
 chatlist
 chatproxy
+chunker
 cmd
 Codesniffer
 colortag
@@ -84,10 +86,12 @@ DBType
 [dD]owntimes?
 deduplicator
 delall
+dependson
 Derroylo
 dimach
 dio|DIO
 dirs?
+discordpriv
 DMs?
 dnd|DND
 Dnet
@@ -104,10 +108,16 @@ enf(o|orcer)?
 Equi
 errno
 eventcfg
+extjoinpriv
+extjoinprivrequest
+extleavepriv
+extpriv
 extratags
+[fF]abien
 fahrenheit
 fclose
 fds
+[Ff]ernet
 first[nN]ame
 fopen
 foreach
@@ -121,6 +131,7 @@ Funcom
 Funkman
 Gatester
 gaubuff
+gcr
 [gG]oblinz
 github|GitHub
 gmp|GMP
@@ -138,11 +149,13 @@ highcontracts?
 hlpcfg
 Hogwar
 html|HTML
+HUD|HUDs
 hydrators?
 (?i)agi
 iat
 (?i)int
 ilari
+ilike
 Illork
 Imoutochan
 (?i)psy
@@ -157,6 +170,7 @@ iut
 jaax
 Jaqueme
 [jJ]obe
+joinpriv
 Jordi
 june
 jwt|JWT
@@ -167,6 +181,8 @@ kv
 Kyr'Ozch
 last[nN]ame
 leaderecho
+leadersay
+leavepriv
 Legchopper
 Legendadv
 Ljotur
@@ -195,6 +211,7 @@ Mindrila
 [mM]sg
 multiadd
 multiboxer
+mutex
 MySQL|mysql
 namedetails
 namespace
@@ -225,6 +242,7 @@ perf
 Plugsz
 pmain
 PostgreSQL|postgresql
+Potencier
 [pP]ande(monium)?
 [pP]arsable
 [pP]layfield
@@ -234,6 +252,8 @@ procs
 proxied
 pv
 pw|PW
+QL|ql
+QLs
 raffler
 Rageballs
 ragg
@@ -255,6 +275,7 @@ Saavick
 Saba
 saturday
 Sebuda
+[Ss]erializers?
 settime
 sms
 SourceOf
@@ -271,10 +292,12 @@ src
 [sS]pawntime
 [sS]uper[aA]dmin
 stdin
+stty
 subcommands?
 symb
 symbiants?
 symbolopt
+[sS]ymfony
 syncable
 Taylorka
 Technomaster
@@ -306,9 +329,11 @@ unicode
 unix|Unix|UNIX
 unshifting
 untyped
+uri|URI
 usec
 [uU]nregister
 [uU]psert
+variadic
 Vincenzo
 Vizaresh
 [vV]ortexx
@@ -321,6 +346,7 @@ Woah
 wtb|WTB
 [wW]estminster
 [wW]hereis
+[wW]x[hH]
 Wyziddyj
 Xan
 xoch

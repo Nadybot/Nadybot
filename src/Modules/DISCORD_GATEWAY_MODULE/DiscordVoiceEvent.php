@@ -2,17 +2,14 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Modules\DISCORD\{DiscordChannel, GuildMember};
 
-abstract class DiscordVoiceEvent extends Event {
-	public const EVENT_MASK = '*';
-
+#[Event(mask: 'discord_voice_*')]
+abstract class DiscordVoiceEvent {
 	public function __construct(
 		public DiscordChannel $discord_channel,
 		public GuildMember $member,
-		string $type,
 	) {
-		$this->type = $type;
 	}
 }

@@ -6,9 +6,6 @@ use function Safe\{readline_add_history, readline_callback_handler_install, read
 
 use ErrorException;
 use Exception;
-use Nadybot\Core\Events\ConnectEvent;
-
-use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -16,13 +13,17 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	Config\BotConfig,
+	Events\ConnectEvent,
+	Filesystem,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
 	Registry,
+	RouteResult,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
+	Types\Status,
 };
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
@@ -145,16 +146,9 @@ class ConsoleController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * This is an Event("connect") instead of Setup since you cannot use the console
-	 * before the bot is fully ready anyway
-	 */
-	#[NCA\Event(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Initializes the console',
-		defaultStatus: 1
-	)]
-	public function setupConsole(): void {
+	/** Initializes the console */
+	#[NCA\HandlesEvent(defaultStatus: Status::Enabled)]
+	public function setupConsole(ConnectEvent $event): void {
 		if (!$this->config->general->enableConsoleClient) {
 			return;
 		}
@@ -248,7 +242,7 @@ class ConsoleController extends ModuleInstance {
 		$rMessage = new RoutableMessage($context->message);
 		$rMessage->setCharacter($context->char);
 		$rMessage->prependPath(new Source(Source::CONSOLE, 'Console'));
-		if ($this->messageHub->handle($rMessage) !== $this->messageHub::EVENT_DELIVERED) {
+		if ($this->messageHub->handle($rMessage) !== RouteResult::Delivered) {
 			$context->setIsDM(true);
 		}
 

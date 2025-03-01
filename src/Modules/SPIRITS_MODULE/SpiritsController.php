@@ -2,15 +2,15 @@
 
 namespace Nadybot\Modules\SPIRITS_MODULE;
 
-use Nadybot\Core\Types\ImplantSlot;
+use Nadybot\Core\Attributes\Parameter\{NoSpace, NonNumberStr, Regexp};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
-	ParamClass\PNonNumber,
-	ParamClass\PNumRange,
 	Text,
+	Types\AccessLevel,
+	Types\ImplantSlot,
 };
 use Nadybot\Modules\{
 	ITEMS_MODULE\AODBEntry,
@@ -26,7 +26,7 @@ use Nadybot\Modules\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'spirits',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Search for spirits',
 	)
 ]
@@ -44,10 +44,11 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits head 60-70')]
 	public function spiritsSlotAndRangeCommand(
 		CmdContext $context,
-		#[NCA\ImplantSlotStr] string $slot,
-		PNumRange $qlRange,
+		ImplantSlot $slot,
+		#[Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
+		#[NoSpace, Regexp('\s*\d+', example: '')] int $highQL,
 	): void {
-		$this->spiritsRangeAndSlotCommand($context, $qlRange, $slot);
+		$this->spiritsRangeAndSlotCommand($context, $lowQL, $highQL, $slot);
 	}
 
 	/** Search for spirits by a variety of attributes */
@@ -55,12 +56,10 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits 60-70 feet')]
 	public function spiritsRangeAndSlotCommand(
 		CmdContext $context,
-		PNumRange $qlRange,
-		#[NCA\ImplantSlotStr] string $slot,
+		#[Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
+		#[NoSpace, Regexp('\s*\d+', example: '')] int $highQL,
+		ImplantSlot $slot,
 	): void {
-		$lowQL = $qlRange->low;
-		$highQL = $qlRange->high;
-		$slot = ImplantSlot::byName($slot);
 		$title = "{$slot->longName()} Spirits QL {$lowQL} to {$highQL}";
 		if ($lowQL < 1 or $highQL > 300 or $lowQL >= $highQL) {
 			$msg = 'Invalid Ql range specified.';
@@ -88,8 +87,8 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits grave feet')]
 	public function spiritsCommandTypeAndSlot(
 		CmdContext $context,
-		PNonNumber $name,
-		#[NCA\ImplantSlotStr] string $slot
+		#[NonNumberStr] string $name,
+		ImplantSlot $slot
 	): void {
 		$this->spiritsCommandSlotAndType($context, $slot, $name);
 	}
@@ -99,11 +98,10 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits feet grave')]
 	public function spiritsCommandSlotAndType(
 		CmdContext $context,
-		#[NCA\ImplantSlotStr] string $slot,
-		PNonNumber $name
+		ImplantSlot $slot,
+		#[NonNumberStr] string $name
 	): void {
-		$name = ucwords(strtolower($name()));
-		$slot = ImplantSlot::byName($slot);
+		$name = ucwords(strtolower($name));
 		$title = "Spirits Database for {$name} {$slot->longName()}";
 
 		$data = $this->db->table(Spirit::getTable())
@@ -146,10 +144,12 @@ class SpiritsController extends ModuleInstance {
 	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand('spirits')]
 	#[NCA\Help\Example('<symbol>spirits 210-230')]
-	public function spiritsCommandQLRange(CmdContext $context, PNumRange $qlRange): void {
+	public function spiritsCommandQLRange(
+		CmdContext $context,
+		#[Regexp('\d+)(?:\s*-', example: '&lt;ql range&gt;')] int $lowQL,
+		#[NoSpace, Regexp('\s*\d+', example: '')] int $highQL,
+	): void {
 		$spirits = '';
-		$lowQL = $qlRange->low;
-		$highQL = $qlRange->high;
 		if ($lowQL < 1 or $highQL > 300 or $lowQL >= $highQL) {
 			$msg = 'Invalid Ql range specified.';
 			$context->reply($msg);
@@ -176,7 +176,7 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>spirits chest 210')]
 	public function spiritsTypeAndQlCommand(
 		CmdContext $context,
-		#[NCA\ImplantSlotStr] string $slot,
+		ImplantSlot $slot,
 		int $ql,
 	): void {
 		$this->spiritsQlAndTypeCommand($context, $ql, $slot);
@@ -188,9 +188,8 @@ class SpiritsController extends ModuleInstance {
 	public function spiritsQlAndTypeCommand(
 		CmdContext $context,
 		int $ql,
-		#[NCA\ImplantSlotStr] string $slot,
+		ImplantSlot $slot,
 	): void {
-		$slot = ImplantSlot::byName($slot);
 		$title = "{$slot->longName()} Spirits QL {$ql}";
 		if ($ql < 1 or $ql > 300) {
 			$msg = 'Invalid Ql specified.';
@@ -214,10 +213,13 @@ class SpiritsController extends ModuleInstance {
 	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand('spirits')]
 	#[NCA\Help\Example('<symbol>spirits beta')]
-	public function spiritsCommandSearch(CmdContext $context, PNonNumber $search): void {
-		$name = ucwords(strtolower($search()));
+	public function spiritsCommandSearch(
+		CmdContext $context,
+		#[NonNumberStr()] string $search
+	): void {
+		$name = ucwords(strtolower($search));
 		$title = "Spirits Database for {$name}";
-		$name = ImplantSlot::tryByName($name)?->designSlotName() ?? $name;
+		$name = ImplantSlot::tryFromName($name)?->designSlotName() ?? $name;
 
 		$data = $this->db->table(Spirit::getTable())
 			->whereIlike('name', "%{$name}%")

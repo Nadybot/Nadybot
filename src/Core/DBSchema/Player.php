@@ -15,14 +15,14 @@ use Nadybot\Core\{
 
 /**
  * This represents the data the bot stores about a player in the cache and database
- *
- * @package Nadybot\Core\DBSchema
  */
 #[Table(name: 'players', shared: Shared::Yes)]
 class Player extends DBTable {
 	/**
 	 * In which dimension (RK server) is this character?
-	 * 4 for test, 5 for RK5, 6 for RK19
+	 * * 4: test live
+	 * * 5: Runi-Ka
+	 * * 6: RK19
 	 */
 	#[PK] public int $dimension;
 
@@ -35,8 +35,8 @@ class Player extends DBTable {
 	 * @param ?int        $level         What level (1-220) is the character or null if unknown
 	 * @param string      $breed         Any of Nano, Solitus, Atrox or Opifex. Also empty string if unknown
 	 * @param string      $gender        Male, Female, Neuter or an empty string if unknown
-	 * @param Faction     $faction       Omni, Clan, Neutral or an empty string if unknown
-	 * @param ?Profession $profession    The long profession name (e.g. "Enforcer", not "enf" or "enfo") or an empty string if unknown
+	 * @param Faction     $faction       Omni, Clan, or Neutral
+	 * @param ?Profession $profession    The profession of this character, or `null` if unknown
 	 * @param string      $prof_title    The title-level title for the profession of this player For example "The man", "Don" or empty if unknown.
 	 * @param string      $ai_rank       The name of the ai_level as a rank or empty string if unknown
 	 * @param ?int        $ai_level      AI level of this player or null if unknown
@@ -77,6 +77,7 @@ class Player extends DBTable {
 		$this->dimension = $dimension ?? Registry::getInstance(BotConfig::class)->main->dimension;
 	}
 
+	/** Get the pronoun (he/she/they) */
 	public function getPronoun(): string {
 		if (strtolower($this->gender) === 'female') {
 			return 'she';
@@ -87,6 +88,7 @@ class Player extends DBTable {
 		return 'they';
 	}
 
+	/** Get the is/are for he/she/they */
 	public function getIsAre(): string {
 		if (strtolower($this->gender) === 'female') {
 			return 'is';
@@ -140,11 +142,32 @@ class Player extends DBTable {
 				}
 				$lc = strtolower($pronoun);
 				if (!isset($pronouns[$gender][$lc])) {
-					if (property_exists($this, $lc)) {
-						$result = lcfirst((string)($this->{$lc} ?? ''));
-					} else {
-						return $pronoun;
-					}
+					$result = match ($lc) {
+						'charid' => (string)$this->charid,
+						'name' => $this->name,
+						'dimension' => (string)$this->dimension,
+						'firstname' => $this->firstname,
+						'lastname' => $this->lastname,
+						'level' => (string)$this->level,
+						'breed' => $this->breed,
+						'gender' => $this->gender,
+						'faction' => $this->faction->value,
+						'profession' => $this->profession?->value,
+						'prof_title' => $this->prof_title,
+						'ai_rank' => $this->ai_rank,
+						'ai_level' => isset($this->ai_level) ? (string)$this->ai_level : null,
+						'guild_id' => isset($this->guild_id) ? (string)$this->guild_id : null,
+						'guild' => $this->guild,
+						'guild_rank' => $this->guild_rank,
+						'guild_rank_id' => isset($this->guild_rank_id) ? (string)$this->guild_rank_id : null,
+						'head_id' => isset($this->head_id) ? (string)$this->head_id : null,
+						'pvp_rating' => isset($this->pvp_rating) ? (string)$this->pvp_rating : null,
+						'pvp_title' => $this->pvp_title,
+						'source' => $this->source,
+						'last_update' => isset($this->last_update) ? (string)$this->last_update : null,
+						default => $pronoun,
+					};
+					$result = lcfirst($result ?? '');
 				} else {
 					$result = $pronouns[$gender][$lc];
 				}
@@ -158,7 +181,7 @@ class Player extends DBTable {
 		return $text;
 	}
 
-	/** @return array<string,int|string|null> */
+	/** @return array<string,null|int|string> */
 	public function getTokens(string $prefix=''): array {
 		$tokens = [
 			"{$prefix}name" => $this->name,
@@ -195,6 +218,7 @@ class Player extends DBTable {
 		return $tokens;
 	}
 
+	/** Get a one-liner with information about this character */
 	public function getInfo(bool $showFirstAndLastName=true): string {
 		$msg = '';
 

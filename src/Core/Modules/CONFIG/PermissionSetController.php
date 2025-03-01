@@ -6,22 +6,25 @@ use Closure;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	CommandManager,
 	DBSchema\ExtCmdPermissionSet,
 	ModuleInstance,
-	ParamClass\PRemove,
-	ParamClass\PWord,
 	Text,
+	Types\AccessLevel,
+	Types\Status,
 };
 
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'permset',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Manages permission sets',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 ]
 class PermissionSetController extends ModuleInstance {
@@ -44,12 +47,12 @@ class PermissionSetController extends ModuleInstance {
 	)]
 	public function permsetNewCommand(
 		CmdContext $context,
-		#[NCA\Str('new', 'create')] string $action,
-		PWord $name,
+		#[Str('new', 'create')] string $action,
+		#[WordStr] string $name,
 		?string $letter
 	): void {
 		try {
-			$this->cmdManager->createPermissionSet($name(), $letter ?? substr($name(), 0, 1));
+			$this->cmdManager->createPermissionSet($name, $letter ?? substr($name, 0, 1));
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -61,14 +64,14 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand('permset')]
 	public function permsetCloneCommand(
 		CmdContext $context,
-		#[NCA\Str('clone')] string $action,
-		PWord $toClone,
-		#[NCA\Str('into')] ?string $into,
-		PWord $name,
+		#[Str('clone')] string $action,
+		#[WordStr] string $toClone,
+		#[Str('into')] ?string $into,
+		#[WordStr] string $name,
 		string $letter
 	): void {
 		try {
-			$this->cmdManager->clonePermissionSet($toClone(), $name(), $letter);
+			$this->cmdManager->clonePermissionSet($toClone, $name, $letter);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -80,11 +83,11 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand('permset')]
 	public function permsetRemoveCommand(
 		CmdContext $context,
-		PRemove $action,
-		PWord $name
+		#[Remove] string $action,
+		#[WordStr] string $name,
 	): void {
 		try {
-			$this->cmdManager->deletePermissionSet($name());
+			$this->cmdManager->deletePermissionSet($name);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -96,19 +99,19 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand('permset')]
 	public function permsetRenameCommand(
 		CmdContext $context,
-		#[NCA\Str('rename')] string $action,
-		PWord $oldName,
-		#[NCA\Str('to')] ?string $to,
-		PWord $newName
+		#[Str('rename')] string $action,
+		#[WordStr] string $oldName,
+		#[Str('to')] ?string $to,
+		#[WordStr] string $newName
 	): void {
-		$old = $this->cmdManager->getPermissionSet($oldName());
+		$old = $this->cmdManager->getPermissionSet($oldName);
 		if (!isset($old)) {
 			$context->reply("The permission set <highlight>{$oldName}<end> doesn't exist.");
 			return;
 		}
-		$old->name = $newName();
+		$old->name = $newName;
 		try {
-			$this->cmdManager->changePermissionSet($oldName(), $old);
+			$this->cmdManager->changePermissionSet($oldName, $old);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -122,19 +125,19 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand('permset')]
 	public function permsetChangeLetterCommand(
 		CmdContext $context,
-		#[NCA\Str('letter')] string $action,
-		PWord $name,
-		PWord $newLetter
+		#[Str('letter')] string $action,
+		#[WordStr] string $name,
+		#[WordStr] string $newLetter
 	): void {
-		$old = $this->cmdManager->getPermissionSet($name());
+		$old = $this->cmdManager->getPermissionSet($name);
 		if (!isset($old)) {
 			$context->reply("The permission set <highlight>{$name}<end> doesn't exist.");
 			return;
 		}
 		$oldLetter = $old->letter;
-		$old->letter = strtoupper($newLetter());
+		$old->letter = strtoupper($newLetter);
 		try {
-			$this->cmdManager->changePermissionSet($name(), $old);
+			$this->cmdManager->changePermissionSet($name, $old);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;

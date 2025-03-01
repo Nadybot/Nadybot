@@ -4,12 +4,13 @@ namespace Nadybot\Core;
 
 use Exception;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Attributes\DB\ColName;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\DB\DBType;
-use Nadybot\Core\Exceptions\SQLException;
+use Illuminate\Support\{Arr, Collection};
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	DB\DBType,
+	Exceptions\SQLException,
+};
 use PDOException;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\{Uuid, UuidInterface};
@@ -19,25 +20,28 @@ use ReflectionParameter;
 use Safe\{DateTime, DateTimeImmutable};
 use Throwable;
 
+/** This is an extended SQL query builder */
 class QueryBuilder extends Builder {
 	private const CLASS_SEP = '⚡️';
 
 	#[NCA\Inject]
-	public BotConfig $config;
+	private BotConfig $config;
 
 	#[NCA\Inject]
-	public DB $nadyDB;
+	private DB $nadyDB;
 
 	#[NCA\Inject]
-	public Filesystem $fs;
+	private Filesystem $fs;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
 	/**
+	 * Return the result of the query as a collection of objects of the given class
+	 *
 	 * @template T of object
 	 *
-	 * @param class-string<T> $class
+	 * @param class-string<T> $class The class to parse the rows into
 	 *
 	 * @return Collection<int,T>
 	 */
@@ -62,21 +66,39 @@ class QueryBuilder extends Builder {
 		}
 	}
 
+	/** Create a new instance based on the base illuminate builder */
+	public static function fromBuilder(Builder $builder): self {
+		$instance = new self(
+			$builder->getConnection(),
+			$builder->getGrammar(),
+			$builder->getProcessor()
+		);
+		foreach (get_object_vars($builder) as $attr => $value) {
+			$instance->{$attr} = $value;
+		}
+		Registry::injectDependencies($instance);
+		return $instance;
+	}
+
 	/**
+	 * Return the first result row as an object of the given class
+	 *
 	 * @template T of object
 	 *
-	 * @param class-string<T> $class
+	 * @param class-string<T> $class The class to parse the row into
 	 *
-	 * @return ?T
+	 * @return ?T `null` if the result is empty
 	 */
 	public function firstObj(string $class): ?object {
 		return $this->limit(1)->asObj($class)->first();
 	}
 
 	/**
+	 * Return the result of the query as a list of objects of the given class
+	 *
 	 * @template T of object
 	 *
-	 * @param class-string<T> $class
+	 * @param class-string<T> $class The class to parse the rows into
 	 *
 	 * @return T[]
 	 *
@@ -89,7 +111,9 @@ class QueryBuilder extends Builder {
 	}
 
 	/**
-	 * Pluck values as strings
+	 * Pluck values of a given column as strings
+	 *
+	 * @param string $column Name of the column
 	 *
 	 * @return Collection<int,string>
 	 */
@@ -101,7 +125,9 @@ class QueryBuilder extends Builder {
 	}
 
 	/**
-	 * Pluck values as integers
+	 * Pluck values of a given column as integers
+	 *
+	 * @param string $column Name of the column
 	 *
 	 * @return Collection<int,int>
 	 */
@@ -112,10 +138,22 @@ class QueryBuilder extends Builder {
 			});
 	}
 
+	/**
+	 * Escape and use a table name as `as` and prepend this
+	 *
+	 * @param string $as The name to cast to
+	 */
 	public function as(string $as): string {
 		return ' as ' . $this->grammar->wrap($as);
 	}
 
+	/**
+	 * Order by a function (`LENGTH`, etc.)
+	 *
+	 * @param string $function  Name of the SQL function
+	 * @param mixed  $param     The parameter to the function, for example the column name
+	 * @param string $direction The sort direction (`'asc'`, `'desc'`)
+	 */
 	public function orderByFunc(string $function, mixed $param, string $direction='asc'): self {
 		$function = $this->dbFunc($function);
 		return $this->orderByRaw(
@@ -123,6 +161,13 @@ class QueryBuilder extends Builder {
 		);
 	}
 
+	/**
+	 * Order the results by calling a function on the column of each row
+	 *
+	 * @param string $function  The name of the function to call (e.g. `LENGTH`)
+	 * @param mixed  $column    The column to sort on
+	 * @param string $direction The sort direction (`'asc'`, `'desc'`)
+	 */
 	public function orderByColFunc(string $function, mixed $column, string $direction='asc'): self {
 		$function = $this->dbFunc($function);
 		if (!is_array($column)) {
@@ -135,6 +180,15 @@ class QueryBuilder extends Builder {
 		);
 	}
 
+	/**
+	 * Return the SQL code for a call to a function
+	 *
+	 * @param string      $function Name of the function to call
+	 * @param mixed       $column   The column name to pass as argument to the function
+	 * @param null|string $as       If set, cast the function result into a name
+	 *
+	 * @return string The SQL string
+	 */
 	public function colFunc(string $function, mixed $column, ?string $as=null): string {
 		$function = $this->dbFunc($function);
 		if (!is_array($column)) {
@@ -146,6 +200,15 @@ class QueryBuilder extends Builder {
 			(isset($as) ? ' AS ' . $this->grammar->wrap($as) : '');
 	}
 
+	/**
+	 * Return the SQL code for a call to a function with arbitrary parameter
+	 *
+	 * @param string      $function Name of the function to call
+	 * @param mixed       $param    The already escaped argument to the function
+	 * @param null|string $as       If set, cast the function result into a name
+	 *
+	 * @return string The SQL string
+	 */
 	public function rawFunc(string $function, mixed $param, ?string $as=null): string {
 		$function = $this->dbFunc($function);
 		return
@@ -153,14 +216,17 @@ class QueryBuilder extends Builder {
 			(isset($as) ? ' AS ' . $this->grammar->wrap($as) : '');
 	}
 
+	/** Add an "or where ilike" clause to the query. */
 	public function orWhereIlike(string $column, string $value): self {
 		return $this->orWhere($this->raw($this->colFunc('LOWER', $column)), 'like', strtolower($value));
 	}
 
+	/** Add an "where ilike" clause to the query. */
 	public function whereIlike(string $column, string $value, string $boolean='and'): self {
 		return $this->where($this->raw($this->colFunc('LOWER', $column)), 'like', strtolower($value), $boolean);
 	}
 
+	/** {@inheritDoc} */
 	public function join($table, $first, $operator=null, $second=null, $type='inner', $where=false): self {
 		if (is_string($table)) {
 			$table = $this->nadyDB->formatSql($table);
@@ -168,11 +234,13 @@ class QueryBuilder extends Builder {
 		return parent::join($table, $first, $operator, $second, $type);
 	}
 
+	/** {@inheritDoc} */
 	public function crossJoin($table, $first=null, $operator=null, $second=null): self {
 		assert(is_string($table));
 		return parent::crossJoin($this->nadyDB->formatSql($table), $first, $operator, $second);
 	}
 
+	/** {@inheritDoc} */
 	public function newQuery(): self {
 		$instance = new self($this->connection, $this->grammar, $this->processor);
 		$instance->nadyDB = $this->nadyDB;
@@ -185,11 +253,14 @@ class QueryBuilder extends Builder {
 	 * Depending on the DB system, there is a limit of maximum
 	 * rows or placeholders that we can insert.
 	 *
-	 * @param array<string,mixed>|array<array<string,mixed>> $values
+	 * @param array<string,mixed>|list<array<string,mixed>> $values
 	 */
 	public function chunkInsert(array $values): bool {
-		if (!isset($values[0])) {
+		if (!array_is_list($values)) {
 			return $this->insert($values);
+		}
+		if (!count($values)) {
+			return true;
 		}
 		$chunkSize = (int)floor($this->nadyDB->maxPlaceholders / count($values[0]));
 		$result = true;
@@ -201,18 +272,21 @@ class QueryBuilder extends Builder {
 	}
 
 	/**
-	 * {}	 * Upsert more than 1 entry into the database
+	 * Upsert more than 1 entry into the database
 	 *
 	 * Depending on the DB system, there is a limit of maximum
 	 * rows or placeholders that we can insert.
 	 *
-	 * @param array<string,mixed>|array<array<string,mixed>> $values
-	 * @param string|list<string>                            $uniqueBy
-	 * @param ?list<string>                                  $update
+	 * @param array<string,mixed>|list<array<string,mixed>> $values
+	 * @param string|list<string>                           $uniqueBy
+	 * @param ?list<string>                                 $update
 	 */
 	public function chunkUpsert(array $values, array|string $uniqueBy, ?array $update=null): int {
-		if (!isset($values[0])) {
+		if (!array_is_list($values)) {
 			return $this->upsert($values, $uniqueBy, $update);
+		}
+		if (!count($values)) {
+			return 0;
 		}
 		$chunkSize = (int)floor($this->nadyDB->maxPlaceholders / count($values[0]));
 		$result = 0;
@@ -223,6 +297,57 @@ class QueryBuilder extends Builder {
 		return $result;
 	}
 
+	/**
+	 * Get the raw SQL representation of the update query with embedded bindings.
+	 *
+	 * @param array<string,scalar> $values
+	 */
+	public function toUpdateSql(array $values): string {
+		$this->applyBeforeQueryCallbacks();
+		return $this->grammar->compileUpdate($this, $values);
+	}
+
+	/**
+	 * Get the raw SQL representation of the insert query with embedded bindings.
+	 *
+	 * @param array<string,scalar> $values
+	 */
+	public function toInsertSql(array $values): string {
+		$this->applyBeforeQueryCallbacks();
+		return $this->grammar->compileInsert($this, $values);
+	}
+
+	/**
+	 * Get the raw SQL representation of the update query with substituted bindings.
+	 *
+	 * @param array<string,scalar> $values
+	 */
+	public function toRawUpdateSql(array $values): string {
+		$sql = $this->toUpdateSql($values);
+
+		return $this->grammar->substituteBindingsIntoRawSql(
+			$sql,
+			$this->cleanBindings(
+				$this->grammar->prepareBindingsForUpdate($this->bindings, $values)
+			),
+		);
+	}
+
+	/**
+	 * Get the raw SQL representation of the insert query with substituted bindings.
+	 *
+	 * @param array<string,scalar> $values
+	 */
+	public function toRawInsertSql(array $values): string {
+		$sql = $this->toInsertSql($values);
+
+		return $this->grammar->substituteBindingsIntoRawSql(
+			$sql,
+			$this->cleanBindings(Arr::flatten($values, 1))
+		);
+	}
+
+	/** get the name of the variable type, or `null` if none, or more than one */
 	protected function guessVarTypeFromReflection(ReflectionParameter $refParam): ?string {
 		$refType = $refParam->getType();
 		if ($refType instanceof ReflectionNamedType) {
@@ -231,6 +356,7 @@ class QueryBuilder extends Builder {
 		return null;
 	}
 
+	/** Return the escaped name of a DB function */
 	protected function dbFunc(string $function): string {
 		$type = $this->nadyDB->getType();
 		switch (strtolower($function)) {
@@ -245,13 +371,17 @@ class QueryBuilder extends Builder {
 		return $function;
 	}
 
-	/** @param class-string $className */
+	/**
+	 * Compile a hydrator that creates instances of a given class from a DB result row
+	 *
+	 * @param class-string $className Name of the class for which to compile the hydrator
+	 */
 	private function compileForClass(string $className): void {
 		$cacheLines = [];
 		$colMappings = [];
 		$refClass = new ReflectionClass($className);
 		foreach ($refClass->getProperties() as $refProperty) {
-			$colMapping = $refProperty->getAttributes(ColName::class);
+			$colMapping = $refProperty->getAttributes(NCA\DB\ColName::class);
 			if (count($colMapping)) {
 				// $colMappings[$colMapping[0]->newInstance()->col] = $refProperty->getName();
 				$colMappings[$refProperty->getName()] = $colMapping[0]->newInstance()->col;
@@ -315,9 +445,10 @@ class QueryBuilder extends Builder {
 	}
 
 	/**
-	 * Compile and save the cache
+	 * Create and save the hydrator for a given class into a file and load it
 	 *
-	 * @param string[] $cacheLines
+	 * @param class-string $className  Full name of the class this is a hydrator for
+	 * @param list<string> $cacheLines The individual lines that make up the constructor call
 	 */
 	private function compileCache(string $className, array $cacheLines): void {
 		$nsParts = explode('\\', $className);

@@ -53,7 +53,7 @@ phpCsCheck() {
 
 magoCheck() {
   if command -v mago &> /dev/null; then
-    OUTPUT=$(mago self-update --no-confirm 2>&1 && mago lint 2>&1)
+    OUTPUT=$(mago self-update --no-confirm 2>&1 && mago lint --reporting-format=short 2>&1)
     if [ $? -ne 0 ]; then
       echo "$OUTPUT"
       exit 1
@@ -64,9 +64,9 @@ magoCheck() {
 valeCheck() {
   if command -v vale &> /dev/null; then
     if [ -n "${CHANGED_FILES}" ]; then
-      CHANGED_FILES=$(grep -P '^src/' <<<"${CHANGED_FILES}")
+      CHANGED_FILES=$(grep -P '^src/' <<<"${CHANGED_FILES}" | grep -P -v 'src/websetup')
     else
-      CHANGED_FILES="src"
+      CHANGED_FILES="src/Api src/Core src/Modules src/Patcher src/Scripts"
     fi
     OUTPUT=$(vale ${CHANGED_FILES} 2>&1)
     if [ $? -ne 0 ]; then
@@ -78,7 +78,7 @@ valeCheck() {
 
 spectralCheck() {
   if command -v spectral &> /dev/null; then
-    OUTPUT=$(spectral lint -F hint html/api.json)
+    OUTPUT=$(spectral lint -F hint src/Core/Modules/SETUP/html/api.json html/api.json)
     if [ $? -ne 0 ]; then
       echo "$OUTPUT"
       exit 1
@@ -91,6 +91,8 @@ codespellCheck() {
     codespell ${CHANGED_FILES}
   fi
 }
+
+export XDEBUG_MODE=off
 
 export CHANGED_FILES=$(git diff --cached --name-only --diff-filter=ACMRTUXB | grep -v var_dump.yml | grep -v tests.sh)
 

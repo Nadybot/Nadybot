@@ -7,15 +7,18 @@ use MathParser\Exceptions\UnknownVariableException;
 use MathParser\Interpreting\Evaluator;
 use MathParser\Parsing\Parser;
 use MathParser\StdMathParser;
-use Nadybot\Core\Attributes\Str;
-use Nadybot\Core\ParamClass\{PRemove, PWord};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Regexp,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	Safe,
 	Text,
+	Types\AccessLevel,
 };
 use Throwable;
 
@@ -27,17 +30,17 @@ use Throwable;
 	NCA\HasMigrations('Migrations/Formula'),
 	NCA\DefineCommand(
 		command: 'calc',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Calculator',
 	),
 	NCA\DefineCommand(
 		command: FormulaController::FORMULA_MODIFY,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Create and delete formulas',
 	),
 	NCA\DefineCommand(
 		command: FormulaController::FORMULA,
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'List and execute formulas',
 	)
 ]
@@ -57,7 +60,7 @@ class FormulaController extends ModuleInstance {
 	)]
 	public string $divisionSign = '/';
 
-	/** How to show divisions in calculations */
+	/** Simplify math formulas */
 	#[NCA\Setting\Boolean]
 	public bool $simplifyFormula = true;
 
@@ -106,10 +109,9 @@ class FormulaController extends ModuleInstance {
 	public function formulaAddCommand(
 		CmdContext $context,
 		#[Str('add')] string $subCommand,
-		PWord $name,
+		#[WordStr] string $name,
 		string $formula
 	): void {
-		$name = $name();
 		if (strlen($name) > 20) {
 			$context->reply('The maximum length of a formula\'s length is 20 characters.');
 			return;
@@ -149,11 +151,11 @@ class FormulaController extends ModuleInstance {
 	public function formulaRunCommand(
 		CmdContext $context,
 		#[Str('solve', 'use', 'run', 'exec')] string $subCommand,
-		PWord $formulaName,
+		#[WordStr] string $formulaName,
 		#[Str('for')] ?string $for='for',
-		#[NCA\Regexp("\w+=\w+", example: '&lt;variable&gt;=&lt;value&gt;')] ?string ...$variables
+		#[Regexp("\w+=\w+", example: '&lt;variable&gt;=&lt;value&gt;')] ?string ...$variables
 	): void {
-		$name = $formulaName();
+		$name = $formulaName;
 		$formula = $this->db->table(Formula::getTable())
 			->where('name', $name)
 			->firstObj(Formula::class);
@@ -202,10 +204,9 @@ class FormulaController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>formula rem binomic')]
 	public function formulaDelCommand(
 		CmdContext $context,
-		PRemove $subAction,
-		PWord $name,
+		#[Remove] string $subAction,
+		#[WordStr] string $name,
 	): void {
-		$name = $name();
 		$numDeleted = $this->db->table(Formula::getTable())
 			->where('name', $name)
 			->delete();

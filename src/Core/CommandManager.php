@@ -6,7 +6,6 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Types\ParamAttribute;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -33,7 +32,12 @@ use Nadybot\Core\{
 	ParamClass\Base,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Types\AccessLevel,
+	Types\EnumExampleInterface,
+	Types\EnumParameterInterface,
 	Types\MessageEmitter,
+	Types\ParamAttribute,
+	Types\Status,
 };
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
@@ -43,17 +47,12 @@ use ReflectionException;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
+use ReflectionType;
 use Revolt\EventLoop;
 use Throwable;
 
-#[
-	NCA\Instance,
-	NCA\ProvidesEvent(ForbiddenCmdEvent::class),
-	NCA\ProvidesEvent(SuccessCmdEvent::class),
-	NCA\ProvidesEvent(UnknownCmdEvent::class),
-	NCA\ProvidesEvent(HelpCmdEvent::class),
-	NCA\ProvidesEvent(ErrorCmdEvent::class)
-]
+/** The management class for handling commands, adding and removing them */
+#[NCA\Instance]
 class CommandManager implements MessageEmitter {
 	private const DIRECT = 1;
 	private const PUBLIC = 2;
@@ -128,7 +127,12 @@ class CommandManager implements MessageEmitter {
 	/** @var list<CmdPermSetMapping> */
 	private array $permSetMappings = [];
 
-	/** @var array<string,bool> */
+	/**
+	 * List of Source-types allowed as command sources (`'aoorg'`, `'discordpriv'`, etc.)
+	 * Stored as `name => true` for quicker access.
+	 *
+	 * @var array<string,true>
+	 */
 	private array $sources = [];
 
 	#[NCA\Setup]
@@ -137,13 +141,18 @@ class CommandManager implements MessageEmitter {
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
+	/** Load all permission set mappings into our cache */
 	public function loadPermsetMappings(): void {
 		$query = $this->db->table(CmdPermSetMapping::getTable());
 		$this->permSetMappings = $query->orderByDesc($query->raw($query->colFunc('LENGTH', 'source')))
 			->asObjArr(CmdPermSetMapping::class);
 	}
 
-	/** Register a source mask to be used as command source */
+	/**
+	 * Register a source mask to be used as command source
+	 *
+	 * @return bool `true` if added, `false` if already registered
+	 */
 	public function registerSource(string $source): bool {
 		$source = strtolower($source);
 		if (isset($this->sources[$source])) {
@@ -153,7 +162,11 @@ class CommandManager implements MessageEmitter {
 		return true;
 	}
 
-	/** Unregister a source mask to be used as command source */
+	/**
+	 * Unregister a source mask to be used as command source
+	 *
+	 * @return bool `true` if removed, `false` if already removed
+	 */
 	public function unregisterSource(string $source): bool {
 		$source = strtolower($source);
 		if (!isset($this->sources[$source])) {
@@ -163,7 +176,11 @@ class CommandManager implements MessageEmitter {
 		return true;
 	}
 
-	/** @return list<string> */
+	/**
+	 * Get a list of all allowed command source masks
+	 *
+	 * @return list<string>
+	 */
 	public function getSources(): array {
 		return array_keys($this->sources);
 	}
@@ -171,20 +188,17 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Registers a command
 	 *
-	 * @param string   $module         The module that wants to register a new command
-	 * @param string   $filename       A comma-separated list of "classname.method" handling $command
-	 * @param string   $command        The command to be registered
-	 * @param string   $accessLevelStr The required access level to call this command. Valid values are:
-	 *                                 "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
-	 *                                 "mod", "guild", "member", "rl", "guest", "all"
-	 * @param string   $description    A short description what this command is for
-	 * @param int|null $defaultStatus  The default state of this command:
-	 *                                 1 (enabled), 0 (disabled) or null (use default value as configured)
+	 * @param string      $module        The module that wants to register a new command
+	 * @param string      $filename      A comma-separated list of "classname.method" handling $command
+	 * @param string      $command       The command to be registered
+	 * @param AccessLevel $accessLevel   The minimum required access level to call this command.
+	 * @param string      $description   A short description what this command is for
+	 * @param null|Status $defaultStatus The default state of this command:
+	 *                                   Enabled, Disabled or null (use default value as configured)
 	 */
-	public function register(string $module, string $filename, string $command, string $accessLevelStr, string $description, ?int $defaultStatus=null): void {
+	public function register(string $module, string $filename, string $command, AccessLevel $accessLevel, string $description, ?Status $defaultStatus=null): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevelStr);
 
 		if ($filename === '') {
 			$this->logger->error('Error registering {module}:command({command}). Handler is blank.', [
@@ -196,7 +210,7 @@ class CommandManager implements MessageEmitter {
 
 		foreach (explode(',', $filename) as $handler) {
 			$name = explode('.', $handler)[0];
-			if (!Registry::instanceExists($name)) {
+			if (!Registry::hasInstance($name)) {
 				$this->logger->error("Error registering method '{method}' for command '{command}'.  Could not find instance '{instance}'.", [
 					'method' => $handler,
 					'command' => $command,
@@ -206,15 +220,7 @@ class CommandManager implements MessageEmitter {
 			}
 		}
 
-		if ($defaultStatus === null) {
-			if ($this->config->general->defaultModuleStatus) {
-				$status = 1;
-			} else {
-				$status = 0;
-			}
-		} else {
-			$status = $defaultStatus;
-		}
+		$status = $defaultStatus ?? $this->config->general->defaultModuleStatus;
 
 		$this->logger->info('Adding Command to list:({command}) File:({file})', [
 			'command' => $command,
@@ -222,7 +228,7 @@ class CommandManager implements MessageEmitter {
 		]);
 		$defaultPerms = new CmdPermission(
 			access_level: $accessLevel,
-			enabled: (bool)$status,
+			enabled: $status === Status::Enabled,
 			cmd: $command,
 			permission_set: 'default',
 		);
@@ -256,7 +262,7 @@ class CommandManager implements MessageEmitter {
 						'permission_set' => $permSet,
 						'access_level' => $accessLevel,
 						'cmd' => $command,
-						'enabled' => (bool)$status,
+						'enabled' => $status === Status::Enabled,
 						'id' => Uuid::uuid7(),
 					]
 				);
@@ -266,17 +272,14 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Activates a command
 	 *
-	 * @param string $permissionSet The name of the channel  where this command should be activated:
-	 *                              "msg", "priv" or "guild"
-	 * @param string $filename      A comma-separated list of class.method which will handle the command
-	 * @param string $command       The name of the command
-	 * @param string $accessLevel   The required access level to use this command:
-	 *                              "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
-	 *                              "mod", "guild", "member", "rl", "all"
+	 * @param string      $permissionSet The name of the channel  where this command should be activated:
+	 *                                   "msg", "priv" or "guild"
+	 * @param string      $filename      A comma-separated list of class.method which will handle the command
+	 * @param string      $command       The name of the command
+	 * @param AccessLevel $accessLevel   The required access level to use this command
 	 */
-	public function activate(string $permissionSet, string $filename, string $command, string $accessLevel='all'): void {
+	public function activate(string $permissionSet, string $filename, string $command, AccessLevel $accessLevel=AccessLevel::All): void {
 		$command = strtolower($command);
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 		$permissionSet = strtolower($permissionSet);
 
 		$this->logger->info('Activate Command {command} (Access Level {access_level}, File {file}, PermissionSet {permission_set})', [
@@ -288,7 +291,7 @@ class CommandManager implements MessageEmitter {
 
 		foreach (explode(',', $filename) as $handler) {
 			[$name, $method] = explode('.', $handler);
-			if (!Registry::instanceExists($name)) {
+			if (!Registry::hasInstance($name)) {
 				$this->logger->error("Error activating method {method} for command {command}.  Could not find instance '{instance}'.", [
 					'method' => $handler,
 					'command' => $command,
@@ -327,15 +330,21 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * update the active/inactive status of a command
 	 *
-	 * @param ?string $permissionSet The name of the permission set for which this
-	 *                               command's status should be changed:
-	 *                               "msg", "priv", "guild" or any other custom one
-	 * @param ?string $cmd           The name of the command
-	 * @param ?string $module        The name of the module of the command
-	 * @param int     $status        The new status: 0=off 1=on
-	 * @param ?string $admin         The access level for which to update the status
+	 * @param ?string      $permissionSet The name of the permission set for which this
+	 *                                    command's status should be changed:
+	 *                                    "msg", "priv", "guild" or any other custom one
+	 * @param ?string      $cmd           The name of the command
+	 * @param ?string      $module        The name of the module of the command
+	 * @param Status       $status        The new status: enabled or disabled
+	 * @param ?AccessLevel $accessLevel   The access level for which to update the status
 	 */
-	public function updateStatus(?string $permissionSet, ?string $cmd, ?string $module, int $status, ?string $admin): int {
+	public function updateStatus(
+		?string $permissionSet,
+		?string $cmd,
+		?string $module,
+		Status $status,
+		?AccessLevel $accessLevel
+	): int {
 		$query = $this->db->table(CmdCfg::getTable())
 			->where('cmdevent', 'cmd');
 		if ($module !== '' && $module !== null) {
@@ -362,15 +371,15 @@ class CommandManager implements MessageEmitter {
 				->keyBy('permission_set')->toArray();
 		});
 
-		$update = ['enabled' => (bool)$status];
-		if ($admin !== '' && $admin !== null) {
-			$update['access_level'] = $admin;
+		$update = ['enabled' => (bool)$status->value];
+		if (isset($accessLevel)) {
+			$update['access_level'] = $accessLevel;
 		}
 
 		foreach ($data as $row) {
 			foreach ($row->permissions as $permission) {
 				if ($permission->enabled) {
-					$this->activate($permission->permission_set, $row->file, $row->cmd, $admin??'all');
+					$this->activate($permission->permission_set, $row->file, $row->cmd, $accessLevel??AccessLevel::All);
 				} else {
 					$this->deactivate($permission->permission_set, $row->file, $row->cmd);
 				}
@@ -380,6 +389,7 @@ class CommandManager implements MessageEmitter {
 		return $permissionQuery->update($update);
 	}
 
+	/** Check if a permission set with the given name exists */
 	public function hasPermissionSet(string $name): bool {
 		return $this->db->table(CmdPermissionSet::getTable())
 			->where('name', $name)
@@ -412,7 +422,13 @@ class CommandManager implements MessageEmitter {
 		return $result;
 	}
 
-	/** @return Collection<int,CmdCfg> */
+	/**
+	 * Get all defined commands
+	 *
+	 * @param bool $includeSubcommands Also include sub-commands
+	 *
+	 * @return Collection<int,CmdCfg>
+	 */
 	public function getAll(bool $includeSubcommands=false): Collection {
 		/** @var Collection<string,Collection<int,CmdPermission>> */
 		$permissions = $this->db->table(CmdPermission::getTable())
@@ -429,7 +445,14 @@ class CommandManager implements MessageEmitter {
 		return $data;
 	}
 
-	/** @return Collection<int,CmdCfg> */
+	/**
+	 * Get all defined commands for a single module
+	 *
+	 * @param string $module             The name of the module
+	 * @param bool   $includeSubcommands Also include sub-commands
+	 *
+	 * @return Collection<int,CmdCfg>
+	 */
 	public function getAllForModule(string $module, bool $includeSubcommands=false): Collection {
 		/** @var Collection<string,Collection<int,CmdPermission>> */
 		$permissions = $this->db->table(CmdPermission::getTable())
@@ -451,15 +474,7 @@ class CommandManager implements MessageEmitter {
 	public function loadCommands(): void {
 		$this->logger->info('Loading enabled commands');
 
-		$this->getAll()
-			->each(function (CmdCfg $row): void {
-				foreach ($row->permissions as $permSet => $permission) {
-					if (!$permission->enabled) {
-						continue;
-					}
-					$this->activate($permission->permission_set, $row->file, $row->cmd, $permission->access_level);
-				}
-			});
+		$this->getAll()->each($this->activateCmdCfg(...));
 	}
 
 	/** Get command config for a command */
@@ -488,6 +503,7 @@ class CommandManager implements MessageEmitter {
 		return $cmd;
 	}
 
+	/** Check if a given command is enabled */
 	public function cmdEnabled(string $command): bool {
 		return $this->db->table(CmdPermission::getTable())
 			->where('cmd', $command)
@@ -495,6 +511,13 @@ class CommandManager implements MessageEmitter {
 			->exists();
 	}
 
+	/**
+	 * Check if a given command can be executed by the given character
+	 *
+	 * @param string      $command       Name of the command
+	 * @param string      $sender        The character to get the access level from
+	 * @param null|string $permissionSet The permission set to check
+	 */
 	public function cmdExecutable(string $command, string $sender, ?string $permissionSet=null): bool {
 		$permissionQuery = $this->db->table(CmdPermission::getTable())
 			->where('cmd', $command)
@@ -512,6 +535,13 @@ class CommandManager implements MessageEmitter {
 		return false;
 	}
 
+	/**
+	 * Check if a character in the given command context is allowed to call a command handler
+	 *
+	 * @param CmdContext $context The command context which to check
+	 * @param string     $handler The command handler in the format
+	 *                            `<class name>`.`<method name>`
+	 */
 	public function canCallHandler(CmdContext $context, string $handler): bool {
 		if ($handler === CommandAlias::ALIAS_HANDLER) {
 			return true;
@@ -584,6 +614,11 @@ class CommandManager implements MessageEmitter {
 		return count($commandHandler->files) > 0;
 	}
 
+	/**
+	 * Execute the command represented by the given command context
+	 *
+	 * @throws StopExecutionException if no further processing is allowed
+	 */
 	public function processCmd(CmdContext $context): void {
 		EventLoop::queue(function () use ($context): void {
 			$cmd = explode(' ', $context->message, 2)[0];
@@ -628,7 +663,7 @@ class CommandManager implements MessageEmitter {
 					cmd: $cmd,
 					sender: $context->char->name,
 				);
-				$this->eventManager->fireEvent($event);
+				$this->eventManager->dispatch($event);
 				return;
 			}
 
@@ -649,7 +684,7 @@ class CommandManager implements MessageEmitter {
 					sender: $context->char->name,
 					cmdHandler: $commandHandler,
 				);
-				$this->eventManager->fireEvent($event);
+				$this->eventManager->dispatch($event);
 				return;
 			}
 
@@ -702,7 +737,7 @@ class CommandManager implements MessageEmitter {
 					cmdHandler: $commandHandler,
 				);
 			}
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 
 			try {
 				// record usage stats (in try/catch block in case there is an error)
@@ -719,13 +754,13 @@ class CommandManager implements MessageEmitter {
 	}
 
 	/**
-	 * Check if the person sending a command has the right to
+	 * Check if the person sending a command has the right to execute it
 	 *
 	 * @param CmdContext     $context        The full command context
 	 * @param string         $cmd            The name of the command that was requested
 	 * @param CommandHandler $commandHandler The command handler for this command
 	 *
-	 * @return bool true if allowed to execute, otherwise false
+	 * @return bool `true` if allowed to execute, otherwise `false`
 	 */
 	public function checkAccessLevel(CmdContext $context, string $cmd, CommandHandler $commandHandler): bool {
 		if ($this->accessManager->checkAccess($context->char->name, $commandHandler->access_level) === true) {
@@ -743,7 +778,7 @@ class CommandManager implements MessageEmitter {
 		}
 
 		$charAL = $this->accessManager->getAccessLevelForCharacter($context->char->name);
-		if ($charAL === 'all') {
+		if ($charAL === AccessLevel::All) {
 			$context->reply($this->noMemberErrorMsg);
 		} else {
 			$context->reply($this->accessDeniedErrorMsg);
@@ -751,6 +786,12 @@ class CommandManager implements MessageEmitter {
 		return false;
 	}
 
+	/**
+	 * Find the first matching command handler from the given list,
+	 * and execute it in the given command context
+	 *
+	 * @return ?string The name of the command handler that matched, or `null` if none matched
+	 */
 	public function executeCommandHandler(CommandHandler $commandHandler, CmdContext $context): ?string {
 		$successfulHandler = null;
 
@@ -783,60 +824,62 @@ class CommandManager implements MessageEmitter {
 				continue;
 			}
 			$args = [];
-			for ($i = 1; $i < count($params); $i++) {
-				$var = $params[$i]->getName();
-				if (!$params[$i]->hasType() || !isset($context->args[$var]) || ($context->args[$var] === '' && $params[$i]->allowsNull())) {
-					if (!$params[$i]->isVariadic()) {
-						$args []= null;
-					}
-					continue;
-				}
-				$type = $params[$i]->getType();
-				if (!($type instanceof ReflectionNamedType) || (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class))) {
-					$args []= null;
-					continue;
-				}
-
-				/** @var ReflectionNamedType $type */
-				if (is_array($context->args[$var]) && !$params[$i]->isVariadic()) {
-					$context->args[$var] = $context->args[$var][0];
-				}
-				switch ($type->getName()) {
-					case 'int':
-						foreach ((array)$context->args[$var] as $val) {
-							$args []= (int)$val;
-						}
-						break;
-					case 'bool':
-						foreach ((array)$context->args[$var] as $val) {
-							$args []= in_array(strtolower($val), ['yes', 'true', '1', 'on', 'enable', 'enabled'], true);
-						}
-						break;
-					case 'float':
-						foreach ((array)$context->args[$var] as $val) {
-							$args []= (float)$val;
-						}
-						break;
-					default:
-						if (is_subclass_of($type->getName(), Base::class)) {
-							$class = $type->getName();
-							foreach ((array)$context->args[$var] as $val) {
-								/** @psalm-suppress UnsafeInstantiation */
-								$args []= new $class($val);
-							}
-						} else {
-							foreach ((array)$context->args[$var] as $val) {
-								$args []= $val;
-							}
-						}
-						break;
-				}
-			}
-			// methods will return false to indicate a syntax error, so when a false is returned,
-			// we set $syntaxError = true, otherwise we set it to false
 			try {
+				for ($i = 1; $i < count($params); $i++) {
+					$var = $params[$i]->getName();
+					if (!$params[$i]->hasType() || !isset($context->args[$var]) || ($context->args[$var] === '' && $params[$i]->allowsNull())) {
+						if (!$params[$i]->isVariadic()) {
+							$args []= null;
+						}
+						continue;
+					}
+					$type = $params[$i]->getType();
+					if (!$this->isValidParamType($type)) {
+						$args []= null;
+						continue;
+					}
+
+					/** @var ReflectionNamedType $type */
+					if (is_array($context->args[$var]) && !$params[$i]->isVariadic()) {
+						$context->args[$var] = $context->args[$var][0];
+					}
+					$className = $type->getName();
+					switch ($className) {
+						case 'int':
+							foreach ((array)$context->args[$var] as $val) {
+								$args []= (int)$val;
+							}
+							break;
+						case 'bool':
+							foreach ((array)$context->args[$var] as $val) {
+								$args []= in_array(strtolower($val), ['yes', 'true', '1', 'on', 'enable', 'enabled'], true);
+							}
+							break;
+						case 'float':
+							foreach ((array)$context->args[$var] as $val) {
+								$args []= (float)$val;
+							}
+							break;
+						default:
+							if (is_subclass_of($className, Base::class)) {
+								foreach ((array)$context->args[$var] as $val) {
+									/** @psalm-suppress UnsafeInstantiation */
+									$args []= new $className($val);
+								}
+							} elseif (is_subclass_of($className, EnumParameterInterface::class)) {
+								foreach ((array)$context->args[$var] as $val) {
+									$args []= $className::fromParam($val);
+								}
+							} else {
+								foreach ((array)$context->args[$var] as $val) {
+									$args []= $val;
+								}
+							}
+							break;
+					}
+				}
 				$methodResult = $refMethod->invoke($instance, $context, ...$args);
-			} catch (UserException $e) { // @phpstan-ignore-line
+			} catch (UserException $e) {
 				$context->reply($e->getMessage());
 				$successfulHandler = $handler;
 				break;
@@ -877,29 +920,30 @@ class CommandManager implements MessageEmitter {
 				}
 			}
 		}
-		$this->sortCalls($handler->files);
+		$handler->files = $this->sortCalls($handler->files);
 		return $handler;
 	}
 
-	/** @param list<string> $calls */
-	public function sortCalls(array &$calls): void {
+	/**
+	 * Sort the given calls by order of definition
+	 *
+	 * @param list<string> $calls A list of handlers
+	 *
+	 * @return list<string> The sorted list
+	 */
+	public function sortCalls(array $calls): array {
 		if (count($calls) < 2) {
-			return;
+			return $calls;
 		}
-		usort($calls, static function (string $call1, string $call2): int {
-			/** @phpstan-var array{array{string,int}, array{string,int}} */
-			$refs = [];
-			foreach ([$call1, $call2] as $call) {
-				[$class, $method] = explode('.', $call);
-				[$method, $line] = explode(':', $method);
-				$refs []= [$class, (int)$line];
-			}
-			assert(count($refs) === 2);
-			$firstCmp = strcmp($refs[0][0], $refs[1][0]);
-			return ($firstCmp !== 0) ? $firstCmp : $refs[0][1] <=> $refs[1][1];
+		$objs = array_map(CmdCallHandler::fromString(...), $calls);
+		usort($objs, static function (CmdCallHandler $call1, CmdCallHandler $call2): int {
+			return $call1->compare($call2);
 		});
+		$result = array_map(static fn (CmdCallHandler $call): string => (string)$call, $objs);
+		return $result;
 	}
 
+	/** Check if a given command is active for the given permission set */
 	public function isCommandActive(string $cmd, string $permissionSet): bool {
 		$parts = explode(' ', $cmd, 2);
 		if (count($parts) === 1) {
@@ -924,7 +968,7 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Get the help text for a command
 	 *
-	 * @return string The help text
+	 * @return string The help text or `"Unknown command '$cmd'"` if none found
 	 */
 	public function getHelpForCommand(string $cmd, CmdContext $context): string {
 		$result = $this->get($cmd);
@@ -936,34 +980,9 @@ class CommandManager implements MessageEmitter {
 	}
 
 	/**
-	 * @param Collection<int,ReflectionMethod> $methods
-	 *
-	 * @return Collection<int,list<ReflectionMethod>>
-	 */
-	public function groupRefMethods(Collection $methods): Collection {
-		/** @var array<string,list<ReflectionMethod>> */
-		$lookup = [];
-		$empty = [];
-		foreach ($methods as $m) {
-			$comment = $m->getDocComment();
-			if ($comment === false) {
-				$empty []= [$m];
-				continue;
-			}
-			$headline = $this->cleanComment($comment)->headline;
-			$lookup[$headline] ??= [];
-			$lookup[$headline] []= $m;
-		}
-
-		/** @var Collection<int,list<ReflectionMethod>> */
-		$result = collect(array_merge(array_values($lookup), $empty));
-		return $result;
-	}
-
-	/**
 	 * Get the help text for a command, purely from the code
 	 *
-	 * @return string The help text
+	 * @return string The help text or `"No help for $cmd"` if none found
 	 */
 	public function getCmdHelpFromCode(string $cmd, CmdContext $context): string {
 		$cmds = $this->db->table(CmdCfg::getTable())
@@ -982,7 +1001,7 @@ class CommandManager implements MessageEmitter {
 		/** @var Collection<int,ReflectionMethod> */
 		$methods = new Collection();
 		foreach (explode(',', $cmds) as $handler) {
-			if (null !== ($method = $this->getRefMethodForHandler($handler))) {
+			if (null !== ($method = $this->getRefMethodForHandler(CmdCallHandler::fromString($handler)))) {
 				$methods->push($method);
 			}
 		}
@@ -1002,7 +1021,7 @@ class CommandManager implements MessageEmitter {
 		$grouped = $this->groupRefMethods($methods->filter());
 		$groupedByCmd = $this->groupBySubcmd($grouped);
 		$showRights = $this->helpController->helpShowAL
-			&& $this->accessManager->checkSingleAccess($context->char->name, 'mod');
+			&& $this->accessManager->checkSingleAccess($context->char->name, AccessLevel::Mod);
 
 		foreach ($groupedByCmd as $cmdName => $refGroups) {
 			/** @var Collection<int,list<ReflectionMethod>> $refGroups */
@@ -1012,14 +1031,13 @@ class CommandManager implements MessageEmitter {
 				$cmdCfg = $this->get((string)$cmdName); // @phpstan-ignore-line
 				if (isset($cmdCfg, $cmdCfg->permissions[$context->permissionSet])) {
 					$al = $cmdCfg->permissions[$context->permissionSet]->access_level;
-					$al = $this->accessManager->getDisplayName($al);
-					$header .= " ({$al})";
+					$header .= " ({$al->displayName()})";
 				}
 			}
 			$header .= '<end>';
 			$parts []= $header;
 			foreach ($refGroups as $refMethods) {
-				$parts []= $this->getHelpText($refMethods, $cmd);
+				$parts []= $this->getHelpText($refMethods);
 				if (count($prologue = $refMethods[0]->getAttributes(NCA\Help\Prologue::class)) > 0) {
 					$prologue = $prologue[0]->newInstance();
 					$prologues []= $prologue->text;
@@ -1043,6 +1061,10 @@ class CommandManager implements MessageEmitter {
 		return Text::makeBlob("Help ({$cmd})", $blob . $this->getSyntaxExplanation($context));
 	}
 
+	/**
+	 * Get a footer to display at the bottom of every help page that links to an
+	 * explanation, how to read the syntax definition.
+	 */
 	public function getSyntaxExplanation(CmdContext $context, bool $ignorePrefs=false): string {
 		$showSyntax = $this->preferences->get($context->char->name, HelpController::LEGEND_PREF) ?? '1';
 		if ($showSyntax === '0' && !$ignorePrefs) {
@@ -1052,93 +1074,24 @@ class CommandManager implements MessageEmitter {
 			' for an explanation of the command syntax</i>';
 	}
 
-	/** @param iterable<array-key,ReflectionMethod> $ms */
-	public function getHelpText(iterable $ms, string $command): string {
-		$first = null;
-		foreach ($ms as $m) {
-			$first ??= $m;
-			$params = $m->getParameters();
-			if (count($params) === 0
-				|| !$params[0]->hasType()) {
-				throw new Exception('Wrong command function signature');
-			}
-			$type = $params[0]->getType();
-			if (!($type instanceof ReflectionNamedType)
-				|| ($type->getName() !== CmdContext::class)) {
-				throw new Exception('Wrong command function signature');
-			}
-			$cmds = $m->getAttributes(NCA\HandlesCommand::class);
-			if (count($cmds) === 0) {
-				throw new Exception('Wrong command function signature');
-			}
-		}
-		$lines = [];
-		$extra = [];
-		$comment = $first?->getDocComment() ?? false;
-		if ($comment !== false) {
-			$cleanComment = $this->cleanComment($comment);
-			$lines []= trim($cleanComment->headline);
-			if (isset($cleanComment->description)) {
-				$extra []= '<i>' . trim($cleanComment->description) . '</i>';
-			}
-		}
-		$j = -1;
-		foreach ($ms as $m) {
-			$j++;
-			$params = $m->getParameters();
-			$commandAttrs = $m->getAttributes(NCA\HandlesCommand::class);
-			for ($k = 0; $k < count($commandAttrs); $k++) {
-				$commandObj = $commandAttrs[$k]->newInstance();
-				$commandName = explode(' ', $commandObj->command)[0];
-				$paramText = ["<symbol>{$commandName}"];
-				for ($i = 1; $i < count($params); $i++) {
-					$niceParam = $this->getParamText($params[$i], count($params));
-					if (!isset($niceParam)) {
-						throw new Exception('Wrong command function signature');
-					}
-					if ($params[$i]->allowsNull()) {
-						$niceParam = "[{$niceParam}]";
-					}
-					if ($params[$i]->isVariadic()) {
-						$parMask = str_replace('&gt;', '%d&gt;', Safe::pregReplace("/s\b/", '', Safe::pregReplace("/ies\b/", 'y', $niceParam)));
-						$ones = array_fill(0, substr_count($parMask, '%d'), 1);
-						$twos = array_fill(0, substr_count($parMask, '%d'), 2);
-						$niceParam = sprintf($parMask, ...$ones) . ' ' . sprintf($parMask, ...$twos) . ' ...';
-					}
-					if (count($params[$i]->getAttributes(NCA\NoSpace::class))) {
-						$niceParam = "\x08{$niceParam}";
-					}
-					$paramText []= $niceParam;
-				}
-				if ($j > 0 && $k === 0) {
-					$lines []= 'or';
-				}
-				$lines []= '<tab><highlight>' . str_replace(" \x08", '', implode(' ', $paramText)) . '<end>';
-			}
-			$examples = $m->getAttributes(NCA\Help\Example::class);
-			foreach ($examples as $exAttr) {
-				$example = $exAttr->newInstance();
-				$lines []= "<tab>-&gt; <highlight>{$example->command}<end>".
-					(isset($example->description) ? " - {$example->description}" : '');
-			}
-		}
-		if (count($extra) > 0) {
-			$lines = array_merge($lines, $extra);
-		}
-		return implode("\n", $lines);
-	}
-
+	/**
+	 * Get the help text for a single parameter to a command
+	 *
+	 * @param ReflectionParameter $param      The parameter of the command function
+	 * @param int                 $paramCount The absolute position of this parameter in the parameter list
+	 *
+	 * @return ?string `null` if we're unable to infer a text, otherwise the text
+	 */
 	public function getParamText(ReflectionParameter $param, int $paramCount): ?string {
 		if (!$param->hasType()) {
 			return null;
 		}
 		$type = $param->getType();
-		if (!($type instanceof ReflectionNamedType)) {
+		if (!$this->isValidParamType($type)) {
 			return null;
 		}
-		if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
-			return null;
-		}
+
+		/** @var ReflectionNamedType $type */
 		$niceName = Safe::pregReplaceCallback(
 			'/([A-Z]+)/',
 			static function (array $matches): string {
@@ -1147,6 +1100,7 @@ class CommandManager implements MessageEmitter {
 			$param->getName(),
 		);
 		$niceName = "&lt;{$niceName}&gt;";
+		$class = $type->getName();
 		if ($type->isBuiltin()) {
 			$attrs = $param->getAttributes(ParamAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
 			if (count($attrs) > 0) {
@@ -1168,12 +1122,13 @@ class CommandManager implements MessageEmitter {
 				default:
 					return $niceName;
 			}
-		} elseif (is_subclass_of($type->getName(), Base::class)) {
-			$class = $type->getName();
+		} elseif (is_subclass_of($class, Base::class)) {
 			$example = $class::getExample();
 			if (isset($example)) {
 				$niceName = $example;
 			}
+		} elseif (is_subclass_of($class, EnumExampleInterface::class)) {
+			$niceName = $class::getExample();
 		}
 		return $niceName;
 	}
@@ -1221,7 +1176,12 @@ class CommandManager implements MessageEmitter {
 		return [];
 	}
 
-	/** @return list<CommandRegexp> */
+	/**
+	 * Get the regular expressions that a command must match to fulfill the given
+	 * `ReflectionMethod`'s parameters.
+	 *
+	 * @return list<CommandRegexp>
+	 */
 	public function getRegexpFromCharClass(ReflectionMethod $method): array {
 		$params = $method->getParameters();
 		if (count($params) === 0
@@ -1253,7 +1213,7 @@ class CommandManager implements MessageEmitter {
 		}
 		$variadic = null;
 		for ($i = 1; $i < count($params); $i++) {
-			$regex = $this->getParamRegexp($params[$i], $comment);
+			$regex = $this->getParamRegexp($params[$i]);
 			if ($regex === null) {
 				return [];
 			}
@@ -1271,10 +1231,12 @@ class CommandManager implements MessageEmitter {
 		return $result;
 	}
 
+	/** {@inheritDoc} */
 	public function getChannelName(): string {
 		return Source::SYSTEM . '(access-denied)';
 	}
 
+	/** Get a permission set by its name */
 	public function getPermissionSet(string $name): ?CmdPermissionSet {
 		$permSet = $this->db->table(CmdPermissionSet::getTable())
 			->where('name', $name)
@@ -1282,6 +1244,7 @@ class CommandManager implements MessageEmitter {
 		return $permSet;
 	}
 
+	/** Get a permission set and all its mappings by the permission set's name */
 	public function getExtPermissionSet(string $name): ?ExtCmdPermissionSet {
 		$permSet = $this->db->table(CmdPermissionSet::getTable())
 			->where('name', $name)
@@ -1295,6 +1258,7 @@ class CommandManager implements MessageEmitter {
 		return $permSet;
 	}
 
+	/** Get the default permissions for a given command */
 	public function getDefaultPermissions(string $cmd): ?CmdPermission {
 		return $this->cmdDefaultPermissions[$cmd] ?? null;
 	}
@@ -1321,7 +1285,7 @@ class CommandManager implements MessageEmitter {
 	}
 
 	/**
-	 * Change a permission set
+	 * Change a permission set to the data given
 	 *
 	 * @throws InvalidArgumentException when one of the parameters is invalid
 	 */
@@ -1387,9 +1351,10 @@ class CommandManager implements MessageEmitter {
 	}
 
 	/**
-	 * Delete a permission set
+	 * Delete a permission set by its name
 	 *
 	 * @throws InvalidArgumentException when one of the parameters is invalid
+	 * @throws SQLException             on database errors
 	 */
 	public function deletePermissionSet(string $name): void {
 		$name = strtolower($name);
@@ -1414,7 +1379,7 @@ class CommandManager implements MessageEmitter {
 				->delete();
 		} catch (Exception $e) {
 			$this->db->rollback();
-			throw new Exception('There was an unknown error deleting that permission set.', 0, $e);
+			throw new SQLException('There was an unknown error deleting that permission set.', 0, $e);
 		}
 		$this->db->commit();
 		unset($this->commands[$name]);
@@ -1512,29 +1477,169 @@ class CommandManager implements MessageEmitter {
 		return true;
 	}
 
-	private function getRefMethodForHandler(string $handler): ?ReflectionMethod {
-		[$name, $method] = explode('.', $handler);
-		[$method, $line] = explode(':', $method);
-		$instance = Registry::tryGetInstance($name);
+	/**
+	 * Get the help text for a list of `ReflectionMethod`s,
+	 * assuming they all have the same help text, and are just
+	 * grouped, because of different ways to call the command.
+	 *
+	 * @param iterable<array-key,ReflectionMethod> $ms A list of `ReflectionMethod`s
+	 *
+	 * @throws Exception on wrong function signature
+	 */
+	private function getHelpText(iterable $ms): string {
+		$first = null;
+		foreach ($ms as $m) {
+			$first ??= $m;
+			$params = $m->getParameters();
+			if (count($params) === 0
+				|| !$params[0]->hasType()) {
+				throw new Exception('Wrong command function signature');
+			}
+			$type = $params[0]->getType();
+			if (!($type instanceof ReflectionNamedType)
+				|| ($type->getName() !== CmdContext::class)) {
+				throw new Exception('Wrong command function signature');
+			}
+			$cmds = $m->getAttributes(NCA\HandlesCommand::class);
+			if (count($cmds) === 0) {
+				throw new Exception('Wrong command function signature');
+			}
+		}
+		$lines = [];
+		$extra = [];
+		$comment = $first?->getDocComment() ?? false;
+		if ($comment !== false) {
+			$cleanComment = $this->cleanComment($comment);
+			$lines []= trim($cleanComment->headline);
+			if (isset($cleanComment->description)) {
+				$extra []= '<i>' . trim($cleanComment->description) . '</i>';
+			}
+		}
+		$j = -1;
+		foreach ($ms as $m) {
+			$j++;
+			$params = $m->getParameters();
+			$commandAttrs = $m->getAttributes(NCA\HandlesCommand::class);
+			for ($k = 0; $k < count($commandAttrs); $k++) {
+				$commandObj = $commandAttrs[$k]->newInstance();
+				$commandName = explode(' ', $commandObj->command)[0];
+				$paramText = ["<symbol>{$commandName}"];
+				for ($i = 1; $i < count($params); $i++) {
+					$niceParam = $this->getParamText($params[$i], count($params));
+					if (!isset($niceParam)) {
+						throw new Exception('Wrong command function signature');
+					}
+					if ($params[$i]->allowsNull()) {
+						$niceParam = "[{$niceParam}]";
+					}
+					if ($params[$i]->isVariadic()) {
+						$parMask = str_replace('&gt;', '%d&gt;', Safe::pregReplace("/s\b/", '', Safe::pregReplace("/ies\b/", 'y', $niceParam)));
+						$ones = array_fill(0, substr_count($parMask, '%d'), 1);
+						$twos = array_fill(0, substr_count($parMask, '%d'), 2);
+						$niceParam = sprintf($parMask, ...$ones) . ' ' . sprintf($parMask, ...$twos) . ' ...';
+					}
+					if (count($params[$i]->getAttributes(NCA\Parameter\NoSpace::class))) {
+						$niceParam = "\x08{$niceParam}";
+					}
+					$paramText []= $niceParam;
+				}
+				if ($j > 0 && $k === 0) {
+					$lines []= 'or';
+				}
+				$lines []= '<tab><highlight>' . str_replace(" \x08", '', implode(' ', $paramText)) . '<end>';
+			}
+			$examples = $m->getAttributes(NCA\Help\Example::class);
+			foreach ($examples as $exAttr) {
+				$example = $exAttr->newInstance();
+				$lines []= "<tab>-&gt; <highlight>{$example->command}<end>".
+					(isset($example->description) ? " - {$example->description}" : '');
+			}
+		}
+		if (count($extra) > 0) {
+			$lines = array_merge($lines, $extra);
+		}
+		return implode("\n", $lines);
+	}
+
+	/**
+	 * Group a collection of `ReflectionMethod`s by the doc block comment
+	 *
+	 * @param Collection<int,ReflectionMethod> $methods
+	 *
+	 * @return Collection<int,list<ReflectionMethod>>
+	 */
+	private function groupRefMethods(Collection $methods): Collection {
+		/** @var array<string,list<ReflectionMethod>> */
+		$lookup = [];
+		$empty = [];
+		foreach ($methods as $m) {
+			$comment = $m->getDocComment();
+			if ($comment === false) {
+				$empty []= [$m];
+				continue;
+			}
+			$headline = $this->cleanComment($comment)->headline;
+			$lookup[$headline] ??= [];
+			$lookup[$headline] []= $m;
+		}
+
+		/** @var Collection<int,list<ReflectionMethod>> */
+		$result = collect(array_merge(array_values($lookup), $empty));
+		return $result;
+	}
+
+	/** Activate a given command config in all its permission sets */
+	private function activateCmdCfg(CmdCfg $command): void {
+		foreach ($command->permissions as $permSet => $permission) {
+			if (!$permission->enabled) {
+				continue;
+			}
+			$this->activate($permission->permission_set, $command->file, $command->cmd, $permission->access_level);
+		}
+	}
+
+	/**
+	 * Check if a Command parameter has a valid type
+	 *
+	 * @psalm-assert-if-true ReflectionNamedType $type
+	 */
+	private function isValidParamType(ReflectionType $type): bool {
+		if (!($type instanceof ReflectionNamedType)) {
+			return false;
+		}
+		if ($type->isBuiltin()) {
+			return true;
+		}
+
+		if (is_subclass_of($type->getName(), Base::class)) {
+			return true;
+		}
+		return is_subclass_of($type->getName(), EnumParameterInterface::class);
+	}
+
+	/** Get the `ReflectionMethod` for a command call handler */
+	private function getRefMethodForHandler(CmdCallHandler $handler): ?ReflectionMethod {
+		$instance = Registry::tryGetInstance($handler->className);
 		if ($instance === null) {
 			$this->logger->error("Could not find instance for name '{instance}'", [
-				'instance' => $name,
+				'instance' => $handler->className,
 			]);
 			return null;
 		}
 		$refClass = new ReflectionClass($instance);
 		try {
-			$refMethod = $refClass->getMethod($method);
+			$refMethod = $refClass->getMethod($handler->method);
 		} catch (ReflectionException) {
 			$this->logger->error('Could not find method {class}::{method}()', [
-				'class' => $name,
-				'method' => $method,
+				'class' => $handler->className,
+				'method' => $handler->method,
 			]);
 			return null;
 		}
 		return $refMethod;
 	}
 
+	/** Clean doc block comments so they can be shown to a user */
 	private function cleanComment(string $comment): Comment {
 		$comment = trim(Safe::pregReplace("|^/\*\*(.*)\*/|s", '$1', $comment));
 		$comment = Safe::pregReplace("/^[ \t]*\*[ \t]*/m", '', $comment);
@@ -1547,7 +1652,11 @@ class CommandManager implements MessageEmitter {
 		);
 	}
 
-	/** @return Collection<int,ReflectionMethod> */
+	/**
+	 * Find all methods that have the same NCA\\Help\\Group set
+	 *
+	 * @return Collection<int,ReflectionMethod>
+	 */
 	private function findGroupMembers(string $groupName): Collection {
 		$objs = Registry::getAllInstances();
 
@@ -1567,11 +1676,15 @@ class CommandManager implements MessageEmitter {
 		return $ms;
 	}
 
-	private function canViewHelp(CmdContext $context, ReflectionMethod $m): bool {
-		if (count($m->getAttributes(NCA\Help\Hide::class)) > 0) {
+	/**
+	 * Is the character in the given command context allowed to see
+	 * the `ReflectionMethod $method`'s help?
+	 */
+	private function canViewHelp(CmdContext $context, ReflectionMethod $method): bool {
+		if (count($method->getAttributes(NCA\Help\Hide::class)) > 0) {
 			return false;
 		}
-		$cmdAttrs = $m->getAttributes(NCA\HandlesCommand::class);
+		$cmdAttrs = $method->getAttributes(NCA\HandlesCommand::class);
 		foreach ($cmdAttrs as $cmdAttr) {
 			$handlesCommand = $cmdAttr->newInstance();
 			$cmd = explode(' ', $handlesCommand->command)[0];
@@ -1600,6 +1713,8 @@ class CommandManager implements MessageEmitter {
 	}
 
 	/**
+	 * Group a list of `ReflectionMethod`s for commands by their subcommand
+	 *
 	 * @param Collection<int,list<ReflectionMethod>> $list
 	 *
 	 * @return Collection<string,Collection<int, list<ReflectionMethod>>>
@@ -1636,17 +1751,20 @@ class CommandManager implements MessageEmitter {
 		return $grouped;
 	}
 
-	private function getParamRegexp(ReflectionParameter $param, string $comment): ?CommandRegexp {
+	/**
+	 * Get the regular expression needed to match a single parameter to a command
+	 *
+	 * @return ?CommandRegexp `null` if not a valid parameter, otherwise a regexp object
+	 */
+	private function getParamRegexp(ReflectionParameter $param): ?CommandRegexp {
 		if (!$param->hasType()) {
 			return null;
 		}
 		$type = $param->getType();
-		if (!($type instanceof ReflectionNamedType)) {
+		if (!$this->isValidParamType($type)) {
 			return null;
 		}
-		if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
-			return null;
-		}
+
 		$varName = $param->getName();
 		if ($type->isBuiltin()) {
 			$mask = null;
@@ -1678,6 +1796,9 @@ class CommandManager implements MessageEmitter {
 					$new  = "(?<{$varName}>{$mask})";
 					break;
 			}
+		} elseif (is_subclass_of($type->getName(), EnumParameterInterface::class)) {
+			$class = $type->getName();
+			$new = "(?<{$varName}>" . $class::getParamRegexp() . ')';
 		} else {
 			$c1 = [$type->getName(), 'getPreRegExp'];
 			$c2 = [$type->getName(), 'getRegexp'];
@@ -1688,9 +1809,9 @@ class CommandManager implements MessageEmitter {
 		if (!isset($new)) {
 			return null;
 		}
-		if (count($param->getAttributes(NCA\SpaceOptional::class))) {
+		if (count($param->getAttributes(NCA\Parameter\SpaceOptional::class))) {
 			$regexp = new CommandRegexp("\\s*{$new}");
-		} elseif (count($param->getAttributes(NCA\NoSpace::class))) {
+		} elseif (count($param->getAttributes(NCA\Parameter\NoSpace::class))) {
 			$regexp = new CommandRegexp($new);
 		} else {
 			$regexp = new CommandRegexp("\\s+{$new}");
@@ -1709,6 +1830,7 @@ class CommandManager implements MessageEmitter {
 		return $regexp;
 	}
 
+	/** Insert new permission set(s) into the  database */
 	private function insertPermissionSet(string $name, string $letter, CmdPermission ...$perms): void {
 		$letter = strtoupper($letter);
 		$name = strtolower($name);

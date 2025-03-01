@@ -4,8 +4,9 @@ namespace Nadybot\Core\Attributes;
 
 use Attribute;
 use Exception;
-use Nadybot\Core\Types\SettingMode;
+use Nadybot\Core\Types\{AccessLevel, SettingMode};
 
+/** This attribute is a setting */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class DefineSetting {
 	/**
@@ -17,8 +18,9 @@ class DefineSetting {
 	 * @param SettingMode                            $mode         'edit' or 'noedit'
 	 * @param array<string|int,int|string>           $options      An optional list of values that the setting can be, semi-colon delimited.
 	 *                                                             Alternatively, use an associative array [label => value], where label is optional.
-	 * @param string                                 $accessLevel  The permission level needed to change this setting (default: mod) (optional)
+	 * @param AccessLevel                            $accessLevel  The permission level needed to change this setting (default: mod) (optional)
 	 * @param ?string                                $help         A help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
+	 * @param ?bool                                  $confidential Is this setting confidential and shouldn't show up outside of PMs?
 	 */
 	public function __construct(
 		public string $type,
@@ -26,8 +28,9 @@ class DefineSetting {
 		public null|int|float|string|bool|array $defaultValue=null,
 		public SettingMode $mode=SettingMode::Edit,
 		public array $options=[],
-		public string $accessLevel='mod',
+		public AccessLevel $accessLevel=AccessLevel::Mod,
 		public ?string $help=null,
+		public ?bool $confidential=false,
 	) {
 	}
 

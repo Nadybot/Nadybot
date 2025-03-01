@@ -6,30 +6,37 @@ use function Amp\async;
 use function Amp\Future\await;
 
 use Amp\Pipeline\Pipeline;
+use AO\Utils;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Events\{MyPrivateChannelMsgEvent, SendPrivEvent};
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\DurationStr,
+	Attributes\Parameter\NonGreedy,
+	Attributes\Parameter\NumberStr,
+	Attributes\Parameter\Regexp,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\StrChoice,
 	CmdContext,
 	CommandManager,
 	Config\BotConfig,
 	DB,
 	DBSchema\Player,
 	EventManager,
+	Events\MyPrivateChannelMsgEvent,
+	Events\SendPrivEvent,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PNonGreedy,
-	ParamClass\PWord,
+	ParamClass\PUuid,
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
@@ -46,33 +53,25 @@ use Safe\DateTimeImmutable;
 
 /**
  * This class contains all functions necessary to start, stop and resume a raid
- *
- * @package Nadybot\Modules\POINT_RAID_MODULE
  */
 #[
 	NCA\Instance,
 	NCA\HasMigrations('Migrations/Raid'),
 	NCA\DefineCommand(
 		command: 'raid',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Check if the raid is running',
 	),
 	NCA\DefineCommand(
 		command: RaidController::CMD_RAID_MANAGE,
-		accessLevel: 'raid_leader_1',
+		accessLevel: AccessLevel::RaidLeader1,
 		description: 'Everything to run a points raid',
 	),
 	NCA\DefineCommand(
 		command: RaidController::CMD_RAID_TICKER,
-		accessLevel: 'raid_leader_2',
+		accessLevel: AccessLevel::RaidLeader2,
 		description: 'Change the raid points ticker',
 	),
-
-	NCA\ProvidesEvent(RaidStartEvent::class),
-	NCA\ProvidesEvent(RaidStopEvent::class),
-	NCA\ProvidesEvent(RaidChangeEvent::class),
-	NCA\ProvidesEvent(RaidLockEvent::class),
-	NCA\ProvidesEvent(RaidUnlockEvent::class),
 
 	NCA\EmitsMessages('raid', 'announce'),
 	NCA\EmitsMessages('raid', 'lock'),
@@ -88,34 +87,34 @@ class RaidController extends ModuleInstance {
 	public const CAT_RAID = 'raid';
 
 	/** Announce the raid periodically */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $raidAnnouncement = true;
 
 	/** Announcement interval */
 	#[NCA\Setting\Time(
 		options: ['30s', '60s', '90s', '120s', '150s', '180s'],
-		accessLevel: 'raid_admin_2',
+		accessLevel: AccessLevel::RaidAdmin2,
 	)]
 	public int $raidAnnouncementInterval = 90;
 
 	/** Give raid points based on duration of participation */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $raidPointsForTime = false;
 
 	/** Start ticker-based raids with the ticker paused */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $raidTickerStartPaused = false;
 
 	/** Point rate, in seconds */
-	#[NCA\Setting\Time(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Time(accessLevel: AccessLevel::RaidAdmin2)]
 	public int $raidPointsInterval = 5 * 60; // 5 minutes
 
 	/** Add raid initiator to the raid */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $raidAutoAddCreator = true;
 
 	/** Stopping the raid clears the callers */
-	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
 	public bool $raidStopClearsCallers = false;
 
 	/** Locking the raid kicks players not in the raid */
@@ -125,14 +124,14 @@ class RaidController extends ModuleInstance {
 			"Kick all, except those who've been in the raid before" => 1,
 			"Don't kick on raid lock" => 0,
 		],
-		accessLevel: 'raid_admin_2',
+		accessLevel: AccessLevel::RaidAdmin2,
 	)]
 	public int $raidKickNotinOnLock = 0;
 
 	/** Time after which non-raiding bot-members are removed from the bot */
 	#[NCA\Setting\TimeOrOff(
 		options: ['off', '30d', '90d', '1y'],
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 	)]
 	public int $raidDemoteMembersInterval = 0;
 
@@ -144,9 +143,6 @@ class RaidController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;
-
-	#[NCA\Inject]
-	private Text $text;
 
 	#[NCA\Inject]
 	private DB $db;
@@ -209,8 +205,8 @@ class RaidController extends ModuleInstance {
 		$raidCat = new CommentCategory(
 			name: static::CAT_RAID,
 			created_by: $this->config->main->character,
-			min_al_read: 'raid_leader_1',
-			min_al_write: 'raid_leader_2',
+			min_al_read: AccessLevel::RaidLeader1,
+			min_al_write: AccessLevel::RaidLeader2,
 			user_managed: false,
 		);
 		$this->commentController->saveCategory($raidCat);
@@ -380,11 +376,7 @@ class RaidController extends ModuleInstance {
 			->orderByDesc('time')
 			->firstObj(RaidLog::class);
 		if ($lastRaidLog) {
-			foreach (get_object_vars($lastRaidLog) as $key => $value) {
-				if (property_exists($lastRaid, $key)) {
-					$lastRaid->{$key} = $value;
-				}
-			}
+			$lastRaid = $lastRaid->updateByLog($lastRaidLog);
 		}
 		$this->startRaid($lastRaid);
 		$this->raidMemberController->resumeRaid($lastRaid);
@@ -394,15 +386,15 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidStartWithLimitsCommand(
 		CmdContext $context,
-		#[NCA\Str('start', 'run', 'create')] string $action,
-		PNonGreedy $description,
-		#[NCA\Str('limit')] string $subAction,
+		#[Str('start', 'run', 'create')] string $action,
+		#[NonGreedy] string $description,
+		#[Str('limit')] string $subAction,
 		int $maxMembers,
 	): void {
 		$raid = new Raid(
 			started_by: $context->char->name,
 			max_members: $maxMembers,
-			description: $description(),
+			description: $description,
 			announce_interval: $this->raidAnnouncement ? $this->raidAnnouncementInterval : 0,
 			seconds_per_point: ($this->raidPointsForTime) ? $this->raidPointsInterval : 0,
 			ticker_paused: $this->raidTickerStartPaused,
@@ -414,7 +406,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidStartCommand(
 		CmdContext $context,
-		#[NCA\Str('start', 'run', 'create')] string $action,
+		#[Str('start', 'run', 'create')] string $action,
 		string $description
 	): void {
 		$raid = new Raid(
@@ -431,7 +423,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidStopCommand(
 		CmdContext $context,
-		#[NCA\Str('stop', 'end')] string $action
+		#[Str('stop', 'end')] string $action
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -444,7 +436,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidChangeDescCommand(
 		CmdContext $context,
-		#[NCA\Regexp('description|descr?', example: 'description')] string $action,
+		#[Regexp('description|descr?', example: 'description')] string $action,
 		string $description
 	): void {
 		if (!isset($this->raid)) {
@@ -458,15 +450,15 @@ class RaidController extends ModuleInstance {
 			raid: $this->raid,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Change the raid's maximum number of members */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidChangeMaxMembersCommand(
 		CmdContext $context,
-		#[NCA\Str('limit')] string $action,
-		#[NCA\PNumber] #[NCA\Str('off')] string $maxMembers
+		#[Str('limit')] string $action,
+		#[NumberStr] #[Str('off')] string $maxMembers
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -484,7 +476,7 @@ class RaidController extends ModuleInstance {
 			raid: $this->raid,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/**
@@ -495,8 +487,8 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_TICKER)]
 	public function raidChangeSppCommand(
 		CmdContext $context,
-		#[NCA\Str('ticker', 'spp')] string $action,
-		#[NCA\PDuration] #[NCA\StrChoice('off', 'pause', 'resume')] string $interval
+		#[Str('ticker', 'spp')] string $action,
+		#[DurationStr] #[StrChoice('off', 'pause', 'resume')] string $interval
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -525,15 +517,15 @@ class RaidController extends ModuleInstance {
 			raid: $this->raid,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Change the raid announcement interval. 'off' to turn it off completely */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidChangeAnnounceCommand(
 		CmdContext $context,
-		#[NCA\Str('announce', 'announcement')] string $action,
-		#[NCA\PDuration] #[NCA\Str('off')] string $interval
+		#[Str('announce', 'announcement')] string $action,
+		#[DurationStr] #[Str('off')] string $interval
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -557,14 +549,14 @@ class RaidController extends ModuleInstance {
 			raid: $this->raid,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Lock the raid, preventing raiders from joining with <symbol>raid join */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidLockCommand(
 		CmdContext $context,
-		#[NCA\Str('lock')] string $action
+		#[Str('lock')] string $action
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -589,7 +581,7 @@ class RaidController extends ModuleInstance {
 			raid: $this->raid,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		$notInKick = $this->raidKickNotinOnLock;
 		if ($notInKick !== 0) {
 			$this->raidMemberController->kickNotInRaid($this->raid, $notInKick === 2);
@@ -600,7 +592,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidUnlockCommand(
 		CmdContext $context,
-		#[NCA\Str('unlock')] string $action
+		#[Str('unlock')] string $action
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -621,14 +613,14 @@ class RaidController extends ModuleInstance {
 			raid: $this->raid,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Get a list of all raiders, with a link to check if everyone is in the vicinity */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidCheckCommand(
 		CmdContext $context,
-		#[NCA\Str('check')] string $action
+		#[Str('check')] string $action
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -642,7 +634,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidListCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action
+		#[Str('list')] string $action
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -658,8 +650,8 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidNotinKickCommand(
 		CmdContext $context,
-		#[NCA\Str('notinkick')] string $action,
-		#[NCA\Str('all')] ?string $all
+		#[Str('notinkick')] string $action,
+		#[Str('all')] ?string $all
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -679,7 +671,7 @@ class RaidController extends ModuleInstance {
 
 	/** Send everyone in the private channel who's not in the raid a reminder to join */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
-	public function raidNotinCommand(CmdContext $context, #[NCA\Str('notin')] string $action): void {
+	public function raidNotinCommand(CmdContext $context, #[Str('notin')] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -701,7 +693,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidHistoryCommand(
 		CmdContext $context,
-		#[NCA\Str('history')] string $action
+		#[Str('history')] string $action
 	): void {
 		$query = $this->db->table(Raid::getTable(), 'r')
 			->join(RaidPointsLog::getTable() . ' AS p', 'r.raid_id', 'p.raid_id')
@@ -747,7 +739,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidHistoryDetailCommand(
 		CmdContext $context,
-		#[NCA\Str('history')] string $action,
+		#[Str('history')] string $action,
 		PUuid $raidId,
 	): void {
 		${$raidId} = $raidId();
@@ -804,7 +796,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidHistoryDetailRaiderCommand(
 		CmdContext $context,
-		#[NCA\Str('history')] string $action,
+		#[Str('history')] string $action,
 		PUuid $raidId,
 		PCharacter $char
 	): void {
@@ -880,7 +872,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidDualCommand(
 		CmdContext $context,
-		#[NCA\Str('dual')] string $action
+		#[Str('dual')] string $action
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -905,7 +897,7 @@ class RaidController extends ModuleInstance {
 				if ($alt === $name) {
 					continue;
 				}
-				if (!isset($this->chatBot->chatlist[$alt])) {
+				if (!$this->chatBot->inChatlist($alt)) {
 					continue;
 				}
 				$duals[$name] ??= [];
@@ -972,10 +964,8 @@ class RaidController extends ModuleInstance {
 		));
 	}
 
-	#[NCA\Event(
-		name: SendPrivEvent::EVENT_MASK,
-		description: 'Track when the bot sends messages on priv'
-	)]
+	/** Track when the bot sends messages on priv */
+	#[NCA\HandlesEvent]
 	public function trackOurPrivChannelMessages(SendPrivEvent $event): void {
 		if (!isset($this->raid)) {
 			return;
@@ -983,10 +973,8 @@ class RaidController extends ModuleInstance {
 		$this->raid->we_are_most_recent_message = false;
 	}
 
-	#[NCA\Event(
-		name: MyPrivateChannelMsgEvent::EVENT_MASK,
-		description: 'Track when someone sends messages on priv'
-	)]
+	/** Track when someone sends messages on priv */
+	#[NCA\HandlesEvent]
 	public function trackPrivChannelMessages(MyPrivateChannelMsgEvent $event): void {
 		if (!isset($this->raid) || $event->channel !== $this->config->main->character) {
 			return;
@@ -994,10 +982,8 @@ class RaidController extends ModuleInstance {
 		$this->raid->we_are_most_recent_message = false;
 	}
 
-	#[NCA\Event(
-		name: 'timer(30s)',
-		description: 'Announce the running raid'
-	)]
+	/** Announce the running raid */
+	#[NCA\Timer(interval: '30s')]
 	public function announceRaidRunning(): void {
 		if (!isset($this->raid) || $this->raid->announce_interval === 0) {
 			return;
@@ -1023,10 +1009,8 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Announce when a raid was started */
-	#[NCA\Event(
-		name: RaidStartEvent::EVENT_MASK,
-		description: 'Announce when a raid was started'
-	)]
+	/** Announce when a raid was started */
+	#[NCA\HandlesEvent]
 	public function announceRaidStart(RaidStartEvent $event): void {
 		$this->routeMessage(
 			'start',
@@ -1041,10 +1025,8 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Announce when a raid was stopped. */
-	#[NCA\Event(
-		name: RaidStopEvent::EVENT_MASK,
-		description: 'Announce when a raid is stopped'
-	)]
+	/** Announce when a raid is stopped */
+	#[NCA\HandlesEvent]
 	public function announceRaidStop(RaidStopEvent $event): void {
 		$this->routeMessage('stop', "<highlight>{$event->player}<end> has stopped the raid.");
 	}
@@ -1064,7 +1046,7 @@ class RaidController extends ModuleInstance {
 			raid: $raid,
 			player: $raid->started_by,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		$this->logRaidChanges($this->raid);
 	}
 
@@ -1088,16 +1070,16 @@ class RaidController extends ModuleInstance {
 		}
 		$event = new RaidStopEvent(
 			raid: $raid,
-			player: ucfirst(strtolower($sender)),
+			player: Utils::normalizeCharacter($sender),
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Show the notes about all people in the current raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidCommentsCommand(
 		CmdContext $context,
-		#[NCA\Regexp('notes?|comments?', example: 'notes')] string $action
+		#[Regexp('notes?|comments?', example: 'notes')] string $action
 	): void {
 		if (!$context->isDM()) {
 			$context->reply("<red>The '<symbol>raid {$action}' command only works in tells<end>.");
@@ -1125,8 +1107,8 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidCommentAddCommand(
 		CmdContext $context,
-		#[NCA\Regexp('notes?|comments?', example: 'note')] string $action,
-		#[NCA\Str('add', 'create', 'new')] string $subAction,
+		#[Regexp('notes?|comments?', example: 'note')] string $action,
+		#[Str('add', 'create', 'new')] string $subAction,
 		PCharacter $char,
 		string $note
 	): void {
@@ -1136,7 +1118,7 @@ class RaidController extends ModuleInstance {
 			$context,
 			'new',
 			$char,
-			new PWord($catName),
+			$catName,
 			$note
 		);
 	}
@@ -1145,8 +1127,8 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidCommentSearchCommand(
 		CmdContext $context,
-		#[NCA\Regexp('notes?|comments?', example: 'notes')] string $action,
-		#[NCA\Str('get', 'read', 'search', 'find')] string $subAction,
+		#[Regexp('notes?|comments?', example: 'notes')] string $action,
+		#[Str('get', 'read', 'search', 'find')] string $subAction,
 		PCharacter $char
 	): void {
 		/** @psalm-var non-empty-string */
@@ -1155,14 +1137,12 @@ class RaidController extends ModuleInstance {
 			$context,
 			'get',
 			$char,
-			new PWord($catName),
+			$catName,
 		);
 	}
 
-	#[NCA\Event(
-		name: 'timer(24h)',
-		description: 'Remove non-raiding members from bot'
-	)]
+	/** Remove non-raiding members from bot */
+	#[NCA\Timer(interval: '24h')]
 	public function removeNonRaidingMembers(): void {
 		if ($this->raidDemoteMembersInterval === 0) {
 			return;

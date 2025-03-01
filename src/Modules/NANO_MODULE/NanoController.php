@@ -8,17 +8,17 @@ use function Safe\preg_split;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	CmdContext,
 	CommandAlias,
 	DB,
 	Exceptions\UserException,
 	ModuleInstance,
-	ParamClass\PProfession,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\Profession,
 };
 
@@ -33,35 +33,35 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'nano',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Searches for a nano and tells you were to get it',
 	),
 	NCA\DefineCommand(
 		command: 'nanolines',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows nanos based on nanoline',
 		alias: 'nl'
 	),
 	NCA\DefineCommand(
 		command: 'nanolinesfroob',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows nanos for froobs based on nanoline ',
 		alias: 'nlf'
 	),
 	NCA\DefineCommand(
 		command: 'nanoloc',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Browse nanos by location',
 	),
 	NCA\DefineCommand(
 		command: 'bestnanos',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show the best nanos for your level and their requirements',
 		alias: 'bn'
 	),
 	NCA\DefineCommand(
 		command: 'bestnanosfroob',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show the best froob-nanos for your level and their requirements',
 		alias: 'bnf'
 	),
@@ -234,7 +234,7 @@ class NanoController extends ModuleInstance {
 		$arg = html_entity_decode($arg);
 		$nanoArgs = explode(' > ', $arg);
 		$profArg = array_shift($nanoArgs);
-		$profession = Profession::tryByName($profArg)?->value;
+		$profession = Profession::tryFromName($profArg)?->value;
 		if (in_array($profArg, ['general', 'General'], true)) {
 			$profession = 'General';
 		}
@@ -330,7 +330,7 @@ class NanoController extends ModuleInstance {
 	#[NCA\Help\Group('nano')]
 	public function bestNanosCommand(
 		CmdContext $context,
-		#[NCA\Str('long')] ?string $long
+		#[Str('long')] ?string $long
 	): void {
 		$whois = $this->playerManager->byName($context->char->name);
 		if (!isset($whois) || !isset($whois->profession) || !isset($whois->level)) {
@@ -353,13 +353,13 @@ class NanoController extends ModuleInstance {
 	#[NCA\Help\Group('nano')]
 	public function bestNanos2Command(
 		CmdContext $context,
-		#[NCA\Str('long')] ?string $long,
-		PProfession $profession,
+		#[Str('long')] ?string $long,
+		Profession $profession,
 		int $level,
 	): void {
 		$this->showBestNanosCommand(
 			$context,
-			$profession(),
+			$profession,
 			$level,
 			$context->getCommand() === 'bestnanosfroob',
 			!isset($long)
@@ -372,13 +372,13 @@ class NanoController extends ModuleInstance {
 	#[NCA\Help\Group('nano')]
 	public function bestNanos3Command(
 		CmdContext $context,
-		#[NCA\Str('long')] ?string $long,
+		#[Str('long')] ?string $long,
 		int $level,
-		PProfession $profession,
+		Profession $profession,
 	): void {
 		$this->showBestNanosCommand(
 			$context,
-			$profession(),
+			$profession,
 			$level,
 			$context->getCommand() === 'bestnanosfroob',
 			!isset($long)
@@ -545,9 +545,10 @@ class NanoController extends ModuleInstance {
 				$info = 'QL' . Text::alignNumber($row->ql, 3) . $gmiLink . " [{$crystalLink}] {$nanoLink} ({$row->location})";
 				$blob .= "<tab>{$info}\n";
 				$reqs = [];
-				foreach (['mm', 'bm', 'pm', 'si', 'ts', 'mc'] as $skill) {
-					if (isset($row->{$skill})) {
-						$reqs []= strtoupper($skill) . ": {$row->{$skill}}";
+				foreach (NanoSkill::cases() as $skill) {
+					$requirement = $row->getRequirement($skill);
+					if (isset($requirement)) {
+						$reqs []= "{$skill->name}: {$requirement}";
 					}
 				}
 				if (isset($row->min_level)) {

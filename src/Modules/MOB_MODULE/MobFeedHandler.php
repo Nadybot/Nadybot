@@ -13,9 +13,6 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HandlesEventFeed('mob_events'),
-	NCA\ProvidesEvent(MobSpawnEvent::class),
-	NCA\ProvidesEvent(MobDeathEvent::class),
-	NCA\ProvidesEvent(MobAttackedEvent::class),
 ]
 class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Logger]
@@ -40,7 +37,7 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 		$this->mobCtrl->initMobsFromApi();
 	}
 
-	/** @param array<string,mixed> $data */
+	/** {@inheritDoc} */
 	public function handleEventFeedMessage(string $room, array $data): void {
 		if (!count($this->mobCtrl->mobs)) {
 			return;
@@ -92,13 +89,13 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 			}
 			if ($update->event === $update::SPAWN) {
 				$event = new MobSpawnEvent(mob: $newMob);
-				$this->eventManager->fireEvent($event);
+				$this->eventManager->dispatch($event);
 			} elseif ($update->event === $update::DEATH) {
 				$event = new MobDeathEvent(mob: $newMob);
-				$this->eventManager->fireEvent($event);
+				$this->eventManager->dispatch($event);
 			} elseif (!($update instanceof FeedMessage\HP) || ($update->hp_percent < 100.00 && ($mob->hp_percent??0) >= 100.00)) {
 				$event = new MobAttackedEvent(mob: $newMob);
-				$this->eventManager->fireEvent($event);
+				$this->eventManager->dispatch($event);
 			}
 		} catch (UnableToHydrateObject $e) {
 			$this->logger->error('Format of mob-API has changed: {error}', [

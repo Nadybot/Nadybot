@@ -8,7 +8,7 @@ use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\TRICKLE_MODULE\Trickle;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 2021_04_28_08_24_41, shared: true)]
+#[NCA\Migration(order: 2025_02_08_17_46_12, shared: true)]
 class CreateTrickleTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = Trickle::getTable();
@@ -17,7 +17,6 @@ class CreateTrickleTable implements SchemaMigration {
 			$table->integer('id')->primary();
 			$table->integer('skill_id');
 			$table->string('groupName', 20);
-			$table->string('name', 30);
 			$table->decimal('amountAgi', 3, 1);
 			$table->decimal('amountInt', 3, 1);
 			$table->decimal('amountPsy', 3, 1);

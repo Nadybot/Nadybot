@@ -8,6 +8,9 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\DISCORD\{ApplicationCommand, ApplicationCommandOption, DiscordException};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	CommandManager,
 	DB,
@@ -20,12 +23,13 @@ use Nadybot\Core\{
 	Modules\DISCORD\DiscordChannel,
 	Nadybot,
 	ParamClass\Base,
-	ParamClass\PRemove,
 	Registry,
+	RouteResult,
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Interaction;
 use Psr\Log\LoggerInterface;
@@ -38,7 +42,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'discord slash-commands',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Manage the exposed Discord slash-commands',
 	),
 ]
@@ -136,8 +140,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord slash-commands')]
 	public function listDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str('slash')] string $action,
-		#[NCA\Str('list')] ?string $subAction
+		#[Str('slash')] string $action,
+		#[Str('list')] ?string $subAction
 	): void {
 		$cmds = $this->db->table(DiscordSlashCommand::getTable())
 			->orderBy('cmd')
@@ -165,9 +169,9 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord slash-commands')]
 	public function addDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str('slash')] string $action,
-		#[NCA\Str('add')] string $subAction,
-		#[NCA\PWord] string ...$commands,
+		#[Str('slash')] string $action,
+		#[Str('add')] string $subAction,
+		#[WordStr] string ...$commands,
 	): void {
 		$cmds = $this->db->table(DiscordSlashCommand::getTable())
 			->orderBy('cmd')
@@ -239,9 +243,9 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord slash-commands')]
 	public function remDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str('slash')] string $action,
-		PRemove $subAction,
-		#[NCA\PWord] string ...$commands,
+		#[Str('slash')] string $action,
+		#[Remove] string $subAction,
+		#[WordStr] string ...$commands,
 	): void {
 		$cmds = $this->db->table(DiscordSlashCommand::getTable())
 			->orderBy('cmd')
@@ -288,8 +292,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 	#[NCA\HandlesCommand('discord slash-commands')]
 	public function pickDiscordSlashCommands(
 		CmdContext $context,
-		#[NCA\Str('slash')] string $action,
-		#[NCA\Str('pick')] string $subAction,
+		#[Str('slash')] string $action,
+		#[Str('pick')] string $subAction,
 	): void {
 		$exposedCmds = $this->db->table(DiscordSlashCommand::getTable())
 			->orderBy('cmd')
@@ -323,10 +327,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 	}
 
 	/** Handle an incoming discord channel message */
-	#[NCA\Event(
-		name: 'discord(interaction_create)',
-		description: 'Handle Discord slash commands'
-	)]
+	/** Handle Discord slash commands */
+	#[NCA\HandlesEvent(mask: 'discord(interaction_create)')]
 	public function handleSlashCommands(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
 		if (!isset($payload->d) || !is_array($payload->d)) {
@@ -636,7 +638,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	 * a message ourselves and route it to the bot - if it was issued on a channel
 	 * This is just a message with the command that was given
 	 */
-	private function createAndRouteSlashCmdChannelMsg(DiscordChannel $channel, CmdContext $context, string $userId): int {
+	private function createAndRouteSlashCmdChannelMsg(DiscordChannel $channel, CmdContext $context, string $userId): RouteResult {
 		$this->logger->info('Create and route stub-message for slash-command');
 		$rMessage = new RoutableMessage('/' . substr($context->message, 1));
 		$rMessage->setCharacter(

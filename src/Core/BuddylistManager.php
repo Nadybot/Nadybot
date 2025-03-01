@@ -2,19 +2,23 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Types\CommandReply;
+use AO\Utils;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	Types\CommandReply,
+};
 use Psr\Log\LoggerInterface;
 
+/** This provides an interface to the bot's buddylist */
 #[NCA\Instance]
 class BuddylistManager {
 	/**
-	 * List of all players on the friendlist, real or just queued up
+	 * List of all players on the friendlist, real or just queued up, keyed by their UID
 	 *
 	 * @var array<int,BuddylistEntry>
 	 */
-	public array $buddyList = [];
+	private array $buddyList = [];
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -41,7 +45,22 @@ class BuddylistManager {
 
 	private ?CommandReply $rebalancingCallback = null;
 
+	/** Name of the last worker used for a buddy operation or `null` if none yet */
 	private static ?string $lastWorker = null;
+
+	/**
+	 * List of all players on the friendlist, real or just queued up
+	 *
+	 * @return array<int,BuddylistEntry>
+	 */
+	public function getBuddylist(): array {
+		return $this->buddyList;
+	}
+
+	/** Get the number of characters on our buddylist */
+	public function getSize(): int {
+		return count($this->buddyList);
+	}
 
 	/** Get the number of definitively used up buddy slots */
 	public function getUsedBuddySlots(): int {
@@ -55,7 +74,11 @@ class BuddylistManager {
 		);
 	}
 
-	/** Check if we are currently re-balancing (the given uid) */
+	/**
+	 * Check if we are currently re-balancing (the given uid)
+	 *
+	 * @param ?int $uid Check explicitly for the given UID if it's being rebalanced
+	 */
 	public function isRebalancing(?int $uid=null): bool {
 		if (isset($uid)) {
 			return isset($this->pendingRebalance[$uid]);
@@ -66,14 +89,14 @@ class BuddylistManager {
 	/**
 	 * Check if a friend is online
 	 *
-	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline
+	 * @return null|bool null when online status is unknown, true when buddy is online, false when buddy is offline
 	 */
 	public function isOnline(string $name): ?bool {
 		if (strtolower($this->config->main->character) === strtolower($name)) {
 			return true;
 		}
 		$workerNames = array_column($this->config->worker, 'character');
-		if (in_array(ucfirst(strtolower($name)), $workerNames, true)) {
+		if (in_array(Utils::normalizeCharacter($name), $workerNames, true)) {
 			return true;
 		}
 		$buddy = $this->getBuddy($name);
@@ -113,7 +136,7 @@ class BuddylistManager {
 	/**
 	 * Check if a friend is online
 	 *
-	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline
+	 * @return null|bool null when online status is unknown, true when buddy is online, false when buddy is offline
 	 */
 	public function isUidOnline(int $uid): ?bool {
 		if ($this->chatBot->aoClient->isOnline(uid: $uid, cacheOnly: true)) {
@@ -161,6 +184,18 @@ class BuddylistManager {
 		}
 	}
 
+	/**
+	 * Add a character to the buddylist for a given reason
+	 *
+	 * @param string $name The character name to add
+	 * @param string $type The reason for adding that character.
+	 *                     A character can be added to the buddylist multiple
+	 *                     times for different reasons, but if the
+	 *                     last reason to be on the buddylist is removed,
+	 *                     so is the buddy as a whole.
+	 *
+	 * @return bool `false` if the character is unknown, or the reason is empty
+	 */
 	public function addName(string $name, string $type): bool {
 		if ($type === '') {
 			return false;
@@ -338,6 +373,12 @@ class BuddylistManager {
 		$this->chatBot->aoClient->buddyAdd($uid);
 	}
 
+	/**
+	 * Start a rebalance of the buddylist
+	 *
+	 * @param CommandReply $callback Object to send all messages, especially success,
+	 *                               or error messages to.
+	 */
 	public function rebalance(CommandReply $callback): void {
 		foreach ($this->buddyList as $uid => $buddy) {
 			if ($buddy->known) {
@@ -370,6 +411,7 @@ class BuddylistManager {
 		return isset($buddy) && $buddy->hasType($type);
 	}
 
+	/** Get the next worker to use for a buddy operation. Chosen by round-robin */
 	private function getNextWorker(): string {
 		$names = [
 			$this->config->main->character,

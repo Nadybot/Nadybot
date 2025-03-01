@@ -7,7 +7,7 @@ use Nadybot\Core\DBTable;
 
 #[Table(name: 'playfields', shared: Shared::Yes)]
 class Playfield extends DBTable {
-	/** @var array<string,string|int|null> */
+	/** @var array<string,null|string|int> */
 	public const EXAMPLE_TOKENS = [
 		'pf-id' => 551,
 		'pf-long' => 'Wailing Wastes',
@@ -21,7 +21,7 @@ class Playfield extends DBTable {
 	) {
 	}
 
-	/** @return array<string,string|int|null> */
+	/** @return array<string,null|string|int> */
 	public function getTokens(): array {
 		return [
 			'pf-id' => $this->id,

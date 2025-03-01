@@ -29,7 +29,7 @@ class MigrateToLeaderEchoFormat implements SchemaMigration {
 					'intoptions' => '',
 					'description' => 'Dummy',
 					'source' => $setting->source,
-					'admin' => $setting->admin,
+					'admin' => $setting->access_level,
 					'verify' => '0',
 				],
 			);

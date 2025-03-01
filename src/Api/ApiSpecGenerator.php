@@ -6,8 +6,10 @@ use function Safe\{glob, preg_match};
 
 use BackedEnum;
 use Exception;
+use Nadybot\Core\Config\{AutoUnfreeze, Proxy};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	BotRunner,
 	DBRow,
 	DBTable,
@@ -22,7 +24,8 @@ use ReflectionProperty;
 use ReflectionUnionType;
 
 /**
- * @psalm-type SpecDef = array{"type"?: string, "$ref"?: string, "format"?: string, "pattern"?: string, "minLength"?: int, "maxLength"?: int}
+ * @psalm-type BaseSpecDef = array{"type"?: string, "$ref"?: string, "format"?: string, "pattern"?: string, "minLength"?: int, "maxLength"?: int}
+ * @psalm-type SpecDef = BaseSpecDef|array{"oneOf": list<BaseSpecDef>}
  */
 class ApiSpecGenerator {
 	/** @var array<string,string> */
@@ -38,6 +41,10 @@ class ApiSpecGenerator {
 		}
 		// @phpstan-ignore-next-line
 		foreach (glob(__DIR__ . '/../Core/Modules/*/*.php') ?: [] as $file) {
+			require_once $file;
+		}
+		// @phpstan-ignore-next-line
+		foreach (glob(__DIR__ . '/../Core/Config/*.php') ?: [] as $file) {
 			require_once $file;
 		}
 		// @phpstan-ignore-next-line
@@ -82,7 +89,7 @@ class ApiSpecGenerator {
 			$reflection = new ReflectionClass($className);
 			$methods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
 			foreach ($methods as $method) {
-				$apiAttrs = $method->getAttributes(NCA\Api::class);
+				$apiAttrs = $method->getAttributes(Http\Api::class);
 				if (!count($apiAttrs)) {
 					continue;
 				}
@@ -193,7 +200,9 @@ class ApiSpecGenerator {
 			}
 			$refType = $refProp->getType();
 			if (!$refType || $refType->allowsNull()) {
-				$newResult['properties'][$nameAndType[0]]['nullable'] = true;
+				if (!($refType instanceof ReflectionNamedType) || !in_array($refType->getName(), [Proxy::class, AutoUnfreeze::class], true)) {
+					$newResult['properties'][$nameAndType[0]]['nullable'] = true;
+				}
 			}
 			if ($refType instanceof ReflectionNamedType && is_a($refType->getName(), BackedEnum::class, true)) {
 				$enum = $refType->getName();
@@ -406,7 +415,7 @@ class ApiSpecGenerator {
 				$result []= $paramResult;
 			}
 		}
-		$qParamAttrs = $method->getAttributes(NCA\QueryParam::class);
+		$qParamAttrs = $method->getAttributes(Http\QueryParam::class);
 		foreach ($qParamAttrs as $qParamAttr) {
 			$qParam = $qParamAttr->newInstance();
 			$result []= [
@@ -436,7 +445,7 @@ class ApiSpecGenerator {
 			description: is_string($comment) ? $this->getDescriptionFromComment($comment) : 'No documentation provided',
 		);
 
-		$apiResultAttrs = $method->getAttributes(NCA\ApiResult::class);
+		$apiResultAttrs = $method->getAttributes(Http\ApiResult::class);
 		if (!count($apiResultAttrs)) {
 			throw new Exception('Method ' . $method->getDeclaringClass()->getName() . '::' . $method->getName() . '() has no #[ApiResult] defined');
 		}
@@ -451,16 +460,16 @@ class ApiSpecGenerator {
 		}
 		foreach ($method->getAttributes() as $attr) {
 			$attr = $attr->newInstance();
-			if ($attr instanceof NCA\ApiResult) {
+			if ($attr instanceof Http\ApiResult) {
 				$doc->responses[$attr->code] = $attr;
-			} elseif ($attr instanceof NCA\ApiTag) {
+			} elseif ($attr instanceof Http\ApiTag) {
 				$doc->tags []= $attr->tag;
 				if (!isset($this->tags[$attr->tag])) {
 					$this->tags[$attr->tag] = "Functions for {$attr->tag}";
 				}
-			} elseif ($attr instanceof NCA\RequestBody) {
+			} elseif ($attr instanceof Http\RequestBody) {
 				$doc->requestBody = $attr;
-			} elseif ($attr instanceof NCA\VERB) {
+			} elseif ($attr instanceof Http\VERB) {
 				$doc->methods []= strtolower(class_basename($attr));
 			}
 		}
@@ -474,7 +483,7 @@ class ApiSpecGenerator {
 	 *
 	 * @psalm-return array{"description"?: string, "required"?: bool, "content": array{"application/json": array{"schema": string|array<mixed>}}}
 	 */
-	public function getRequestBodyDefinition(NCA\RequestBody $requestBody): array {
+	public function getRequestBodyDefinition(Http\RequestBody $requestBody): array {
 		$result = [];
 		if (isset($requestBody->desc)) {
 			$result['description'] = $requestBody->desc;
@@ -625,6 +634,13 @@ class ApiSpecGenerator {
 	 */
 	protected function getSimpleClassRef(string $class, ?ReflectionProperty $refProp=null): array {
 		$class = Safe::pregReplace('/^\?/', '', $class);
+		if ($class === 'scalar') {
+			return ['oneOf' => [
+				['type' => 'string'],
+				['type' => 'integer'],
+				['type' => 'boolean'],
+			]];
+		}
 		if (in_array($class, ['boolean', 'integer', 'string', 'float'], true)) {
 			return ['type' => $class];
 		}

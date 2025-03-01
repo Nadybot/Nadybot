@@ -5,10 +5,12 @@ namespace Nadybot\Modules\COMMENT_MODULE;
 use Exception;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\WordStr,
 	CmdContext,
 	Config\BotConfig,
 	DB,
@@ -17,14 +19,15 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
-	ParamClass\PWord,
+	ParamClass\PUuid,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\SettingMode,
 	Util,
 };
 use Psr\Log\LoggerInterface;
+use ValueError;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -34,13 +37,13 @@ use Psr\Log\LoggerInterface;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'comment',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'read/write comments about players',
 		alias: 'comments',
 	),
 	NCA\DefineCommand(
 		command: 'comment categories',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Manage comment categories',
 	),
 ]
@@ -197,7 +200,7 @@ class CommentController extends ModuleInstance {
 	/**
 	 * Delete a single category by its name
 	 *
-	 * @return int|null Number of deleted comments or null if the category didn't exist
+	 * @return null|int Number of deleted comments or null if the category didn't exist
 	 */
 	public function deleteCategory(string $category): ?int {
 		$deletedComments = $this->db->table(Comment::getTable())
@@ -213,7 +216,7 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment categories')]
 	public function listCategoriesCommand(
 		CmdContext $context,
-		#[NCA\Str('category', 'categories')] string $action,
+		#[Str('category', 'categories')] string $action,
 	): void {
 		$categories = $this->db->table(CommentCategory::getTable())
 			->asObj(CommentCategory::class);
@@ -226,12 +229,8 @@ class CommentController extends ModuleInstance {
 			$blob .= "<pagebreak><header2>{$category->name}<end>\n".
 				'<tab>Created: <highlight>' . Util::date($category->created_at) . "<end>\n".
 				"<tab>Creator: <highlight>{$category->created_by}<end>\n".
-				'<tab>Read Access: <highlight>'.
-				$this->accessManager->getDisplayName($category->min_al_read).
-				"<end>\n".
-				'<tab>Write Access: <highlight>'.
-				$this->accessManager->getDisplayName($category->min_al_write).
-				"<end>\n".
+				"<tab>Read Access: <highlight>{$category->min_al_read->displayName()}<end>\n".
+				"<tab>Write Access: <highlight>{$category->min_al_write->displayName()}<end>\n".
 				'<tab>Action: ';
 			if ($category->user_managed) {
 				$blob .= Text::makeChatcmd(
@@ -255,8 +254,8 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment categories')]
 	public function deleteCategoryCommand(
 		CmdContext $context,
-		#[NCA\Str('category', 'categories')] string $action,
-		PRemove $subAction,
+		#[Str('category', 'categories')] string $action,
+		#[Remove] string $subAction,
 		string $category
 	): void {
 		$cat = $this->getCategory($category);
@@ -266,8 +265,7 @@ class CommentController extends ModuleInstance {
 				return;
 			}
 			$senderAl = $this->accessManager->getAccessLevelForCharacter($context->char->name);
-			if ($this->accessManager->compareAccessLevels($senderAl, $cat->min_al_read) <0
-				|| $this->accessManager->compareAccessLevels($senderAl, $cat->min_al_write) <0) {
+			if ($senderAl->lowerThan($cat->min_al_read) || $senderAl->lowerThan($cat->min_al_write)) {
 				$context->reply(
 					'You can only delete categories to which you have read and write access.'
 				);
@@ -300,25 +298,25 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment categories')]
 	public function addCategoryCommand(
 		CmdContext $context,
-		#[NCA\Str('category', 'categories')] string $action,
-		#[NCA\Str('add', 'create', 'new', 'edit', 'change')] string $subAction,
-		PWord $category,
-		PWord $alForReading,
-		?PWord $alForWriting
+		#[Str('category', 'categories')] string $action,
+		#[Str('add', 'create', 'new', 'edit', 'change')] string $subAction,
+		#[WordStr] string $category,
+		#[WordStr] string $alForReading,
+		#[WordStr] ?string $alForWriting
 	): void {
 		$alForWriting ??= $alForReading;
 		try {
-			$alForReading = $this->accessManager->getAccessLevel($alForReading());
-			$alForWriting = $this->accessManager->getAccessLevel($alForWriting());
-		} catch (Exception $e) {
-			$context->reply($e->getMessage());
+			$alForReading = AccessLevel::fromName($alForReading);
+			$alForWriting = AccessLevel::fromName($alForWriting);
+		} catch (ValueError $e) {
+			$context->reply('Invalid access level  provided');
 			return;
 		}
-		$cat = $this->getCategory($category());
+		$cat = $this->getCategory($category);
 		if ($cat === null) {
 			$cat = new CommentCategory(
 				created_by: $context->char->name,
-				name: $category(),
+				name: $category,
 				min_al_read: $alForReading,
 				min_al_write: $alForWriting,
 			);
@@ -327,8 +325,7 @@ class CommentController extends ModuleInstance {
 			return;
 		}
 		$alOfSender = $this->accessManager->getAccessLevelForCharacter($context->char->name);
-		if ($this->accessManager->compareAccessLevels($alOfSender, $cat->min_al_read) <0
-			|| $this->accessManager->compareAccessLevels($alOfSender, $cat->min_al_write) <0) {
+		if ($alOfSender->lowerThan($cat->min_al_read) || $alOfSender->lowerThan($cat->min_al_write)) {
 			$context->reply(
 				'You can only change the required access levels of categories '.
 				'to which you have read and write access.'
@@ -352,13 +349,13 @@ class CommentController extends ModuleInstance {
 	)]
 	public function addCommentCommand(
 		CmdContext $context,
-		#[NCA\Str('add', 'create', 'new')] string $action,
+		#[Str('add', 'create', 'new')] string $action,
 		PCharacter $char,
-		PWord $category,
+		#[WordStr] string $category,
 		string $commentText
 	): void {
 		$character = $char();
-		$category = $category();
+		$category = $category;
 
 		$cat = $this->getCategory($category);
 		if ($cat === null) {
@@ -420,9 +417,9 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment')]
 	public function searchCommentCommand(
 		CmdContext $context,
-		#[NCA\Str('get', 'search', 'find')] string $action,
+		#[Str('get', 'search', 'find')] string $action,
 		PCharacter $char,
-		?PWord $category
+		#[WordStr] ?string $category
 	): void {
 		$character = $char();
 		$uid = $this->chatBot->getUid($character);
@@ -432,7 +429,7 @@ class CommentController extends ModuleInstance {
 		}
 
 		if (isset($category)) {
-			$categoryName = $category();
+			$categoryName = $category;
 			$category = $this->getCategory($categoryName);
 			if ($category === null) {
 				$context->reply("The category <highlight>{$categoryName}<end> does not exist.");
@@ -468,10 +465,10 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment')]
 	public function listCommentsCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] string $action,
-		PWord $categoryName
+		#[Str('list')] string $action,
+		#[WordStr] string $categoryName
 	): void {
-		$category = $this->getCategory($categoryName());
+		$category = $this->getCategory($categoryName);
 		if ($category === null) {
 			$context->reply("The category <highlight>{$categoryName}<end> does not exist.");
 			return;
@@ -520,7 +517,7 @@ class CommentController extends ModuleInstance {
 			$cat = $this->getCategory($comment->category);
 			$canRead = false;
 			if (isset($cat)) {
-				$canRead = $this->accessManager->compareAccessLevels($senderAL, $cat->min_al_read) >= 0;
+				$canRead = $senderAL->atLeast($cat->min_al_read);
 			}
 			return $accessCache[$comment->category] = $canRead;
 		})
@@ -586,7 +583,7 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand('comment')]
 	public function deleteCommentCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();

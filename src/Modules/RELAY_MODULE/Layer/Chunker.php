@@ -20,32 +20,14 @@ use Ramsey\Uuid\Uuid;
 use Revolt\EventLoop;
 use Throwable;
 
-#[
-	NCA\RelayStackMember(
-		name: 'chunker',
-		description: "This adds the ability to chunk and re-assemble\n".
-			"long messages on the fly, so we can send large payloads\n".
-			"over a medium that only has a limited package size.\n".
-			'Of course this only works if all Bots use this chunker.'
-	),
-	NCA\Param(
-		name: 'length',
-		type: 'int',
-		description: 'The maximum supported chunk size',
-		required: true
-	),
-	NCA\Param(
-		name: 'timeout',
-		type: 'int',
-		description: 'How many seconds to wait for all packets to arrive',
-		required: false
-	)
-]
+/**
+ * This adds the ability to chunk and re-assemble
+ * long messages on the fly, so we can send large payloads
+ * over a medium that only has a limited package size.
+ * Of course this only works if all Bots use this extra layer.
+ */
+#[NCA\RelayStackMember(name: 'chunker')]
 class Chunker implements RelayLayerInterface {
-	/** @psalm-var positive-int */
-	protected int $chunkSize = 50_000;
-	protected int $timeout = 60;
-
 	protected Relay $relay;
 
 	/** @var array<string,array<int,Chunk>> */
@@ -56,12 +38,24 @@ class Chunker implements RelayLayerInterface {
 
 	private LoggerInterface $logger;
 
-	public function __construct(int $chunkSize, int $timeout=60) {
+	/**
+	 * @param int $chunkSize The maximum supported chunk size
+	 * @param int $timeout   How many seconds to wait for all packets to arrive
+	 *
+	 * @psalm-param positive-int $chunkSize
+	 */
+	public function __construct(
+		#[NCA\Param(name: 'length')] protected int $chunkSize,
+		#[NCA\Param] protected int $timeout=60,
+	) {
+		/**
+		 * @psalm-suppress DocblockTypeContradiction
+		 *
+		 * @phpstan-ignore-next-line
+		 */
 		if ($chunkSize < 1) {
 			throw new InvalidArgumentException('length cannot be less than 1');
 		}
-		$this->chunkSize = $chunkSize;
-		$this->timeout = $timeout;
 	}
 
 	public function setRelay(Relay $relay): void {

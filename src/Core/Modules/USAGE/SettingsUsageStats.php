@@ -27,6 +27,7 @@ class SettingsUsageStats {
 		public int $online_show_org_priv,
 		public bool $online_admin,
 		public bool $http_server_enable,
+		public string $drill_server,
 	) {
 	}
 }

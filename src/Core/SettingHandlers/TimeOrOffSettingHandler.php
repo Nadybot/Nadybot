@@ -6,11 +6,12 @@ use Exception;
 use Nadybot\Core\{Attributes as NCA, Util};
 
 /**
- * Class to represent a time-or-off setting for NadyBot
+ * Class to represent a time-or-off setting for Nadybot.
+ * This is basically any date time string, or the literal value `'off'`
  */
 #[NCA\SettingHandler('time_or_off')]
 class TimeOrOffSettingHandler extends SettingHandler {
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function displayValue(string $sender): string {
 		if ($this->row->value === '0' || $this->row->value === '0s') {
 			return '<highlight>off<end>';
@@ -18,7 +19,7 @@ class TimeOrOffSettingHandler extends SettingHandler {
 		return '<highlight>' . Util::unixtimeToReadable((int)$this->row->value) . '<end>';
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getDescription(): string {
 		$msg = 'For this setting you must enter a time value or "off". '.
 			"See <a href='chatcmd:///tell <myname> help budatime'>budatime</a> ".
@@ -29,7 +30,7 @@ class TimeOrOffSettingHandler extends SettingHandler {
 	}
 
 	/**
-	 * @inheritDoc
+	 * {@inheritDoc}
 	 *
 	 * @throws \Exception when the time is invalid
 	 */

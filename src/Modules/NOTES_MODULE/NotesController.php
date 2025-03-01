@@ -3,9 +3,9 @@
 namespace Nadybot\Modules\NOTES_MODULE;
 
 use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter as Par,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -17,8 +17,9 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
-	ParamClass\PRemove,
+	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 
@@ -31,19 +32,19 @@ use Psr\Log\LoggerInterface;
 	NCA\HasMigrations('Migrations/Notes'),
 	NCA\DefineCommand(
 		command: 'notes',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Displays, adds, or removes a note from your list',
 		alias: 'note'
 	),
 	NCA\DefineCommand(
 		command: 'reminders',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Displays, adds, or removes a reminder from your list',
 		alias: 'reminder'
 	),
 	NCA\DefineCommand(
 		command: 'reminderformat',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Displays or changes the reminder format for oneself',
 	),
 ]
@@ -164,7 +165,11 @@ class NotesController extends ModuleInstance {
 	/** Add a new note to your list */
 	#[NCA\HandlesCommand('notes')]
 	#[NCA\Help\Group('notes')]
-	public function notesAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, string $note): void {
+	public function notesAddCommand(
+		CmdContext $context,
+		#[Par\Str('add')] string $action,
+		string $note
+	): void {
 		$this->saveNote($note, $context->char->name);
 		$msg = 'Note added successfully.';
 
@@ -176,7 +181,7 @@ class NotesController extends ModuleInstance {
 	#[NCA\Help\Group('notes')]
 	public function reminderAddCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('add', 'addall', 'addself')] string $action,
+		#[Par\StrChoice('add', 'addall', 'addself')] string $action,
 		string $note
 	): void {
 		$reminder = Note::REMIND_ALL;
@@ -192,7 +197,11 @@ class NotesController extends ModuleInstance {
 	/** Remove a note from your list */
 	#[NCA\HandlesCommand('notes')]
 	#[NCA\Help\Group('notes')]
-	public function notesRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function notesRemoveCommand(
+		CmdContext $context,
+		#[Par\Remove] string $action,
+		PUuid $id
+	): void {
 		$id = $id();
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
@@ -221,8 +230,8 @@ class NotesController extends ModuleInstance {
 	)]
 	public function reminderSetCommand(
 		CmdContext $context,
-		#[NCA\Str('set')] string $action,
-		#[NCA\StrChoice('all', 'self', 'off')] string $type,
+		#[Par\Str('set')] string $action,
+		#[Par\StrChoice('all', 'self', 'off')] string $type,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -246,10 +255,8 @@ class NotesController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Sends a tell to players on logon showing their reminders'
-	)]
+	/** Sends a tell to players on logon showing their reminders */
+	#[NCA\HandlesEvent]
 	public function showRemindersOnLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
@@ -260,10 +267,8 @@ class NotesController extends ModuleInstance {
 		$this->showReminders($sender);
 	}
 
-	#[NCA\Event(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Show reminders when joining the private channel'
-	)]
+	/** Show reminders when joining the private channel */
+	#[NCA\HandlesEvent]
 	public function showRemindersOnPrivJoinEvent(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if ($this->buddylistManager->isOnline($sender)) {
@@ -282,10 +287,8 @@ class NotesController extends ModuleInstance {
 		return $reminderFormat;
 	}
 
-	#[NCA\Event(
-		name: AltNewMainEvent::EVENT_MASK,
-		description: 'Move reminder format to new main'
-	)]
+	/** Move reminder format to new main */
+	#[NCA\HandlesEvent]
 	public function moveReminderFormat(AltNewMainEvent $event): void {
 		$reminderFormat = $this->preferences->get($event->alt, 'reminder_format');
 		if ($reminderFormat === null || $reminderFormat === '') {

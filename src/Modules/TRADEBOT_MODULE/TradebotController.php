@@ -5,7 +5,6 @@ namespace Nadybot\Modules\TRADEBOT_MODULE;
 use function Safe\preg_match;
 use AO\Package;
 use Nadybot\Core\Events\{ConnectEvent, ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -19,12 +18,13 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PColor,
-	ParamClass\PRemove,
+	ParamClass\PUuid,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
 	SettingHandlers\ColorSettingHandler,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 use Psr\Log\LoggerInterface;
@@ -38,7 +38,7 @@ use Revolt\EventLoop;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'tradecolor',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Define colors for tradebot tags',
 		alias: 'tradecolors',
 	),
@@ -106,10 +106,8 @@ class TradebotController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Event(
-		name: ExtJoinPrivRequest::EVENT_MASK,
-		description: 'Accept private channel join invitation from the trade bots'
-	)]
+	/** Accept private channel join invitation from the trade bots */
+	#[NCA\HandlesEvent]
 	public function acceptPrivJoinEvent(ExtJoinPrivRequest $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->isTradebot($sender)) {
@@ -125,10 +123,8 @@ class TradebotController extends ModuleInstance {
 		$this->messageHub->registerMessageEmitter(new TradebotChannel($sender . '-*'));
 	}
 
-	#[NCA\Event(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Add active tradebots to buddylist'
-	)]
+	/** Add active tradebots to buddylist */
+	#[NCA\HandlesEvent]
 	public function addTradebotsAsBuddies(ConnectEvent $event): void {
 		$activeBots = $this->normalizeBotNames($this->tradebot);
 		foreach ($activeBots as $botName) {
@@ -197,10 +193,8 @@ class TradebotController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Join tradebot private channels'
-	)]
+	/** Join tradebot private channels */
+	#[NCA\HandlesEvent]
 	public function tradebotOnlineEvent(LogonEvent $eventObj): void {
 		if ($this->isTradebot($eventObj->sender)) {
 			$this->joinPrivateChannel($eventObj->sender);
@@ -219,10 +213,8 @@ class TradebotController extends ModuleInstance {
 	}
 
 	/** @throws StopExecutionException */
-	#[NCA\Event(
-		name: PrivateChannelMsgEvent::EVENT_MASK,
-		description: 'Relay messages from the tradebot to org/private channel'
-	)]
+	/** Relay messages from the tradebot to org/private channel */
+	#[NCA\HandlesEvent]
 	public function receiveRelayMessageExtPrivEvent(PrivateChannelMsgEvent $eventObj): void {
 		if (!$this->isTradebot($eventObj->channel)
 			|| !$this->isTradebot($eventObj->sender)) {
@@ -232,10 +224,8 @@ class TradebotController extends ModuleInstance {
 		throw new StopExecutionException();
 	}
 
-	#[NCA\Event(
-		name: RecvMsgEvent::EVENT_MASK,
-		description: 'Relay incoming tells from the tradebots to org/private channel'
-	)]
+	/** Relay incoming tells from the tradebots to org/private channel */
+	#[NCA\HandlesEvent]
 	public function receiveMessageEvent(RecvMsgEvent $eventObj): void {
 		if (!$this->isTradebot($eventObj->sender)) {
 			return;
@@ -320,7 +310,11 @@ class TradebotController extends ModuleInstance {
 
 	/** Remove a custom defined color */
 	#[NCA\HandlesCommand('tradecolor')]
-	public function remTradecolorCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function remTradecolorCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Remove] string $action,
+		PUuid $id
+	): void {
 		$id = $id();
 		if (!$this->db->table(TradebotColors::getTable())->delete($id)) {
 			$context->reply("Tradebot color <highlight>{$id}<end> doesn't exist.");
@@ -347,7 +341,7 @@ class TradebotController extends ModuleInstance {
 	)]
 	public function addTradecolorCommand(
 		CmdContext $context,
-		#[NCA\Str('set', 'add')] string $action,
+		#[NCA\Parameter\Str('set', 'add')] string $action,
 		PCharacter $tradeBot,
 		string $tag,
 		PColor $color
@@ -384,7 +378,7 @@ class TradebotController extends ModuleInstance {
 	#[NCA\HandlesCommand('tradecolor')]
 	public function pickTradecolorCommand(
 		CmdContext $context,
-		#[NCA\Str('pick')] string $action,
+		#[NCA\Parameter\Str('pick')] string $action,
 		PCharacter $tradeBot,
 		string $tag
 	): void {

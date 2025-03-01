@@ -14,7 +14,7 @@ class ApiGauntletBuff implements Stringable {
 
 	public function __construct(
 		#[
-			NCA\StrFuncIn('strtolower', 'ucfirst')
+			NCA\Hydrator\StrFuncIn('strtolower', 'ucfirst')
 		] public Faction $faction,
 		public int $expires,
 		public int $dimension,

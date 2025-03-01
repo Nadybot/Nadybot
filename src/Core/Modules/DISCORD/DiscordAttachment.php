@@ -7,7 +7,7 @@ use Stringable;
 /**
  * For the attachments array in Message Create/Edit requests, only the id is required.
  *
- * @link https://discord.com/developers/docs/resources/channel#attachment-object
+ * @see https://discord.com/developers/docs/resources/channel#attachment-object
  */
 class DiscordAttachment implements Stringable {
 	use ReducedStringableTrait;

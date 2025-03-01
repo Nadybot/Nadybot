@@ -9,15 +9,17 @@ use Nadybot\Core\{
 	DBSchema\EventCfg,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
+	Types\Status,
 };
 
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'eventlist',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows a list of all events on the bot',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	)
 ]
 class EventlistController extends ModuleInstance {
@@ -49,7 +51,7 @@ class EventlistController extends ModuleInstance {
 			$on = Text::makeChatcmd('ON', "/tell <myname> config event {$row->type} {$row->file} enable all");
 			$off = Text::makeChatcmd('OFF', "/tell <myname> config event {$row->type} {$row->file} disable all");
 
-			if ($row->status === 1) {
+			if ($row->status === Status::Enabled) {
 				$status = '<on>Enabled<end>';
 			} else {
 				$status = '<off>Disabled<end>';

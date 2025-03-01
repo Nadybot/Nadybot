@@ -5,23 +5,28 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use function Safe\{base64_decode, json_decode, mime_content_type, openssl_verify, preg_split};
 
 use Amp\File\FilesystemException;
-use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\{HttpClientBuilder, Request as ClientRequest};
 use Amp\Http\Server\{DefaultErrorHandler, HttpServer, Request, RequestHandler, Response, SocketHttpServer};
 use Amp\Http\{Client, HttpStatus};
 use Amp\TimeoutCancellation;
+use AO\Utils;
 use Closure;
 use Exception;
-use Nadybot\Core\Events\ConnectEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Http,
+	BotRunner,
 	CmdContext,
 	Config\BotConfig,
 	DB,
+	Events\ConnectEvent,
 	Filesystem,
 	ModuleInstance,
 	Registry,
 	Safe,
+	Types\AccessLevel,
+	Types\Status,
 };
 use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
@@ -36,7 +41,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'webauth',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Pre-authorize Websocket connections',
 	),
 ]
@@ -48,31 +53,31 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	public const BODY = __NAMESPACE__ . '::body';
 
 	/** Enable webserver */
-	#[NCA\Setting\Boolean(accessLevel: 'superadmin')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::Superadmin)]
 	public bool $webserver = true;
 
 	/** On which port does the HTTP server listen */
-	#[NCA\Setting\Number(accessLevel: 'superadmin')]
+	#[NCA\Setting\Number(accessLevel: AccessLevel::Superadmin)]
 	public int $webserverPort = 8_080;
 
 	/** Where to listen for HTTP requests */
 	#[NCA\Setting\Text(
 		options: ['127.0.0.1', '0.0.0.0'],
-		accessLevel: 'superadmin'
+		accessLevel: AccessLevel::Superadmin,
 	)]
 	public string $webserverAddr = '127.0.0.1';
 
 	/** How to authenticate against the webserver */
 	#[NCA\Setting\Options(
 		options: [self::AUTH_BASIC, self::AUTH_AOAUTH],
-		accessLevel: 'superadmin'
+		accessLevel: AccessLevel::Superadmin,
 	)]
 	public string $webserverAuth = self::AUTH_BASIC;
 
 	/** Which is the base URL for the webserver? This is where aoauth redirects to */
 	#[NCA\Setting\Text(
 		options: ['default'],
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		help: 'webserver_base_url.txt',
 	)]
 	public string $webserverBaseUrl = 'default';
@@ -80,13 +85,13 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	/** If you are using aoauth to authenticate: URL of the server */
 	#[NCA\Setting\Text(
 		options: ['https://aoauth.org'],
-		accessLevel: 'superadmin'
+		accessLevel: AccessLevel::Superadmin,
 	)]
 	public string $webserverAoauthUrl = 'https://aoauth.org';
 
 	/** Minimum access level for the bot API and web UI */
 	#[NCA\Setting\Rank]
-	public string $webserverMinAL = 'mod';
+	public AccessLevel $webserverMinAL = AccessLevel::Mod;
 
 	/** @var array<string,array<string,list<callable>>> */
 	protected array $routes = [
@@ -125,11 +130,9 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
-	#[NCA\Event(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Download aoauth public key'
-	)]
-	public function downloadPublicKey(): void {
+	/** Download aoauth public key */
+	#[NCA\HandlesEvent]
+	public function downloadPublicKey(ConnectEvent $event): void {
 		if ($this->webserver) {
 			$this->listen();
 		}
@@ -167,11 +170,8 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		$this->scanRouteAttributes();
 	}
 
-	#[NCA\Event(
-		name: 'timer(10min)',
-		description: 'Remove expired authentications',
-		defaultStatus: 1
-	)]
+	/** Remove expired authentications */
+	#[NCA\Timer(interval: '10min', defaultStatus: Status::Enabled)]
 	public function clearExpiredAuthentications(): void {
 		foreach ($this->authentications as $user => $data) {
 			if ($data[1] < time()) {
@@ -184,7 +184,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	#[NCA\SettingChangeHandler('webserver_auth')]
 	#[NCA\SettingChangeHandler('webserver_aoauth_url')]
 	public function downloadNewPublicKey(string $settingName, string $oldValue, string $newValue): void {
-		$this->downloadPublicKey();
+		$this->downloadPublicKey(new ConnectEvent());
 	}
 
 	/** Start or stop the webserver if the setting changed */
@@ -299,7 +299,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			$ref = new ReflectionFunction($handlers[0][0]);
 
 			/** @psalm-suppress InvalidAttribute */
-			if (count($ref->getAttributes(NCA\HttpOwnAuth::class))) {
+			if (count($ref->getAttributes(Http\HttpOwnAuth::class))) {
 				$needAuth = false;
 			}
 		}
@@ -334,7 +334,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		/** @var ?string $user */
 		$hasMinAL = !$needAuth || $this->accessManager->checkAccess(
 			$user ?? 'Xxx',
-			$this->webserverMinAL
+			$this->webserverMinAL,
 		);
 		if (!$hasMinAL) {
 			return new Response(
@@ -352,6 +352,21 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			return new Response(status: HttpStatus::METHOD_NOT_ALLOWED);
 		}
 
+		if (BotRunner::getArguments()->vueDevMode) {
+			$builder = new \Amp\Http\Client\HttpClientBuilder();
+			$client = $builder->build();
+			$response = $client->request(new ClientRequest(
+				$request->getUri()->withPort(8_081),
+				$request->getMethod(),
+				$request->getBody()->buffer(),
+			));
+			return new \Amp\Http\Server\Response(
+				status: $response->getStatus(),
+				headers: $response->getHeaders(),
+				body: $response->getBody(),
+				trailers: null,
+			);
+		}
 		return $this->serveStaticFile($request);
 	}
 
@@ -386,7 +401,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		foreach ($instances as $instance) {
 			$reflection = new ReflectionClass($instance);
 			foreach ($reflection->getMethods() as $method) {
-				$attrs = $method->getAttributes(NCA\HttpVerb::class, ReflectionAttribute::IS_INSTANCEOF);
+				$attrs = $method->getAttributes(Http\HttpVerb::class, ReflectionAttribute::IS_INSTANCEOF);
 				if (!count($attrs)) {
 					continue;
 				}
@@ -606,7 +621,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	 * @return null|string null if password is wrong, the username that was sent if correct
 	 */
 	private function checkAuthentication(string $user, string $password): ?string {
-		$user = ucfirst(strtolower($user));
+		$user = Utils::normalizeCharacter($user);
 		if (!isset($this->authentications[$user])) {
 			return null;
 		}

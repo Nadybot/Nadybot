@@ -6,6 +6,7 @@ use function Safe\{json_decode, json_encode};
 
 use Amp\File\FilesystemException;
 use Exception;
+use Nadybot\Core\Attributes\Parameter\{FilenameStr,Remove,Str};
 use Nadybot\Core\DBSchema\{
 	CmdAlias,
 	CmdPermSetMapping,
@@ -26,13 +27,13 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
-	ParamClass\PFilename,
-	ParamClass\PRemove,
 	Safe,
 	SettingManager,
 	SubcommandManager,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
+	Types\Status,
 };
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Psr\Log\LoggerInterface;
@@ -45,7 +46,7 @@ use Ramsey\Uuid\Uuid;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'profile',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'View, add, remove, and load profiles',
 		alias: 'profiles'
 	)
@@ -160,10 +161,9 @@ class ProfileController extends ModuleInstance {
 	#[NCA\HandlesCommand('profile')]
 	public function profileViewCommand(
 		CmdContext $context,
-		#[NCA\Str('view')] string $action,
-		PFilename $profileName
+		#[Str('view')] string $action,
+		#[FilenameStr] string $profileName
 	): void {
-		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!$this->fs->exists($filename)) {
 			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
@@ -181,8 +181,11 @@ class ProfileController extends ModuleInstance {
 
 	/** Save the current configuration as a profile */
 	#[NCA\HandlesCommand('profile')]
-	public function profileSaveCommand(CmdContext $context, #[NCA\Str('save')] string $action, PFilename $profileName): void {
-		$profileName = $profileName();
+	public function profileSaveCommand(
+		CmdContext $context,
+		#[Str('save')] string $action,
+		#[FilenameStr] string $profileName
+	): void {
 		try {
 			$this->saveProfile($profileName);
 		} catch (Exception $e) {
@@ -209,7 +212,7 @@ class ProfileController extends ModuleInstance {
 		$contents .= "!permissions {$setData}\n";
 
 		$contents .= "\n# Settings\n";
-		foreach ($this->settingManager->settings as $name => $value) {
+		foreach ($this->settingManager->getSettings() as $name => $value) {
 			if ($name !== 'botid' && $name !== 'version' && !str_ends_with($name, '_db_version')) {
 				$contents .= "!settings save {$name} {$value->value}\n";
 			}
@@ -219,7 +222,7 @@ class ProfileController extends ModuleInstance {
 		$data = $this->db->table(EventCfg::getTable())->asObj(EventCfg::class);
 		foreach ($data as $row) {
 			$status = 'disable';
-			if ($row->status === 1) {
+			if ($row->status === Status::Enabled) {
 				$status = 'enable';
 			}
 			$contents .= "!config event {$row->type} {$row->file} {$status} all\n";
@@ -231,7 +234,7 @@ class ProfileController extends ModuleInstance {
 			foreach ($row->permissions as $channel => $permissions) {
 				$status = $permissions->enabled ? 'enable' : 'disable';
 				$contents .= "!config {$row->cmdevent} {$row->cmd} {$status} {$channel}\n";
-				$contents .= "!config {$row->cmdevent} {$row->cmd} admin {$channel} {$permissions->access_level}\n";
+				$contents .= "!config {$row->cmdevent} {$row->cmd} admin {$channel} {$permissions->access_level->value}\n";
 			}
 		}
 		$contents .= "\n# Aliases\n";
@@ -259,14 +262,19 @@ class ProfileController extends ModuleInstance {
 		$data = $this->db->table(RouteHopColor::getTable())
 			->asObj(RouteHopColor::class);
 		foreach ($data as $row) {
-			foreach (['text', 'tag'] as $color) {
-				if (isset($row->{"{$color}_color"})) {
-					$contents .= "!route color {$color} set {$row->hop} ";
-					if (isset($row->where)) {
-						$contents .= "-> {$row->where} ";
-					}
-					$contents .= $row->{"{$color}_color"} . "\n";
+			if (isset($row->text_color)) {
+				$contents .= "!route color text set {$row->hop} ";
+				if (isset($row->where)) {
+					$contents .= "-> {$row->where} ";
 				}
+				$contents .= $row->text_color . "\n";
+			}
+			if (isset($row->tag_color)) {
+				$contents .= "!route color tag set {$row->hop} ";
+				if (isset($row->where)) {
+					$contents .= "-> {$row->where} ";
+				}
+				$contents .= $row->tag_color . "\n";
 			}
 		}
 
@@ -294,10 +302,9 @@ class ProfileController extends ModuleInstance {
 	#[NCA\HandlesCommand('profile')]
 	public function profileRemCommand(
 		CmdContext $context,
-		PRemove $action,
-		PFilename $profileName
+		#[Remove] string $action,
+		#[FilenameStr] string $profileName
 	): void {
-		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!$this->fs->exists($filename)) {
 			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
@@ -318,10 +325,9 @@ class ProfileController extends ModuleInstance {
 	#[NCA\HandlesCommand('profile')]
 	public function profileLoadCommand(
 		CmdContext $context,
-		#[NCA\Str('load')] string $action,
-		PFilename $profileName
+		#[Str('load')] string $action,
+		#[FilenameStr] string $profileName
 	): void {
-		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 
 		if (false === $this->fs->exists($filename)) {

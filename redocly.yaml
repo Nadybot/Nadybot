@@ -1,0 +1,3 @@
+rules:
+  operation-4xx-response:
+    severity: off

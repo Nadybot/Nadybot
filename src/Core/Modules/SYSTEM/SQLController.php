@@ -11,8 +11,8 @@ use Nadybot\Core\{
 	Exceptions\SQLException,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
-
 use ReflectionClass;
 
 /**
@@ -22,12 +22,12 @@ use ReflectionClass;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'querysql',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Run an SQL query and see the results'
 	),
 	NCA\DefineCommand(
 		command: 'executesql',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Execute an SQL statement'
 	)
 ]

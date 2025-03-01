@@ -15,6 +15,7 @@ use Nadybot\Core\{
 
 use Nadybot\Modules\WEBSERVER_MODULE\{AOWebChatEvent, WebChatConverter};
 
+/** This is the routing endpoint for messages sent to the web chat */
 class WebChannel implements MessageReceiver {
 	#[NCA\Inject]
 	private WebChatConverter $webChatConverter;
@@ -30,7 +31,7 @@ class WebChannel implements MessageReceiver {
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			return false;
 		}
 		$path = $this->webChatConverter->convertPath($event->getPath());
@@ -55,7 +56,7 @@ class WebChannel implements MessageReceiver {
 			message: $this->webChatConverter->convertMessage($eventData),
 		);
 
-		$this->eventManager->fireEvent($webEvent);
+		$this->eventManager->dispatch($webEvent);
 
 		return true;
 	}

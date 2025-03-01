@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	CmdContext,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 
 /**
@@ -16,7 +17,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'gameicons',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'List all game icons with their name'
 	)
 ]

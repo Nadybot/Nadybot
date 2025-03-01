@@ -7,8 +7,8 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
-	ParamClass\PWord,
 	Text,
+	Types\AccessLevel,
 	Types\Faction,
 };
 
@@ -20,7 +20,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'whompah',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows the whompah route from one city to another',
 		alias: ['whompahs', 'whompa', 'whompas'],
 	)
@@ -56,9 +56,13 @@ class WhompahController extends ModuleInstance {
 
 	/** Searches a whompah-route from one location to another */
 	#[NCA\HandlesCommand('whompah')]
-	public function whompahTravelCommand(CmdContext $context, PWord $start, PWord $end): void {
-		$startCity = $this->findCity($start());
-		$endCity   = $this->findCity($end());
+	public function whompahTravelCommand(
+		CmdContext $context,
+		#[NCA\Parameter\WordStr] string $start,
+		#[NCA\Parameter\WordStr] string $end
+	): void {
+		$startCity = $this->findCity($start);
+		$endCity   = $this->findCity($end);
 
 		if ($startCity === null) {
 			$msg = "Error! Could not find city <highlight>{$start}<end>.";

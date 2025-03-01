@@ -10,13 +10,15 @@ use Nadybot\Core\{
 	Routing\Source,
 };
 
-class PrivateChannel extends Base {
+/** This is the routing endpoint for a private channel */
+class PrivateChannel extends AbstractChannel {
 	#[NCA\Inject]
 	private Nadybot $chatBot;
 
 	#[NCA\Inject]
 	private MessageHub $messageHub;
 
+	/** @param string $channel Which channel does this represent? */
 	public function __construct(protected string $channel) {
 	}
 

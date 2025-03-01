@@ -6,14 +6,16 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	ModuleInstance,
 	Nadybot,
+	Types\AccessLevel,
 };
 
 #[NCA\Instance]
 class KubernetesController extends ModuleInstance {
 	/** Enable Kubernetes endpoints at /livez and /readyz */
-	#[NCA\Setting\Boolean(accessLevel: 'admin')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::Admin)]
 	public bool $kubernetesEndpoints = true;
 
 	#[NCA\Inject]
@@ -21,8 +23,8 @@ class KubernetesController extends ModuleInstance {
 
 	/** Query if the bot is running as it is supposed to */
 	#[
-		NCA\HttpGet('/livez'),
-		NCA\HttpOwnAuth,
+		Http\HttpGet('/livez'),
+		Http\HttpOwnAuth,
 	]
 	public function getLivezEndpoint(Request $request): Response {
 		if (!$this->kubernetesEndpoints) {
@@ -37,8 +39,8 @@ class KubernetesController extends ModuleInstance {
 
 	/** Query if the bot is ready to accept traffic */
 	#[
-		NCA\HttpGet('/readyz'),
-		NCA\HttpOwnAuth,
+		Http\HttpGet('/readyz'),
+		Http\HttpOwnAuth,
 	]
 	public function getReadyzEndpoint(Request $request): Response {
 		if (!$this->kubernetesEndpoints) {

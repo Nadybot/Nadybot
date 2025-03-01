@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Types\ImplantSlot;
 use Nadybot\Core\{Attributes as NCA, DBTable, Types\AOItem};
 
 #[NCA\DB\Table(name: 'symbiant', shared: NCA\DB\Shared::Yes)]
@@ -10,12 +11,13 @@ class Symbiant extends DBTable implements AOItem {
 		#[NCA\DB\PK] public int $id,
 		public string $name,
 		public int $ql,
-		public int $slot_id,
+		#[
+			NCA\DB\ColName('slot_id'),
+			NCA\DB\MapRead([ImplantSlot::class, 'fromTypeID'])
+		] public ImplantSlot $slot,
 		public int $treatment_req,
 		public int $level_req,
 		public string $unit,
-		#[NCA\DB\Ignore] public string $slot_name,
-		#[NCA\DB\Ignore] public string $slot_long_name,
 	) {
 	}
 

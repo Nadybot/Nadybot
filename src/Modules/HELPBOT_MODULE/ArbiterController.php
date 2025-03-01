@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Safe\Exceptions\DatetimeException;
@@ -25,13 +26,13 @@ use Safe\{DateTime, DateTimeImmutable};
 	NCA\HasMigrations('Migrations/Arbiter'),
 	NCA\DefineCommand(
 		command: 'arbiter',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show current arbiter mission',
 		alias: 'icc',
 	),
 	NCA\DefineCommand(
 		command: 'arbiter change',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Change current arbiter mission',
 	)
 ]
@@ -123,9 +124,9 @@ class ArbiterController extends ModuleInstance {
 	#[NCA\HandlesCommand('arbiter change')]
 	public function arbiterSetCommand(
 		CmdContext $context,
-		#[NCA\Str('set')] string $action,
-		#[NCA\StrChoice('ai', 'bs', 'dio')] string $setWeek,
-		#[NCA\StrChoice('ends', 'next')] ?string $ends
+		#[NCA\Parameter\Str('set')] string $action,
+		#[NCA\Parameter\StrChoice('ai', 'bs', 'dio')] string $setWeek,
+		#[NCA\Parameter\StrChoice('ends', 'next')] ?string $ends
 	): void {
 		$setWeek = strtolower($setWeek);
 		$validTypes = [static::AI, static::BS, static::DIO];

@@ -9,8 +9,9 @@ use Nadybot\Core\{
 	DB,
 	ExportCharacter,
 	ModuleInstance,
+	Types\AccessLevel,
 	Types\ExporterInterface,
-	Types\ImporterInterface
+	Types\ImporterInterface,
 };
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -74,8 +75,8 @@ class CommentExporter extends ModuleInstance implements ExporterInterface, Impor
 						name: $entry->category,
 						created_by: $this->config->main->character,
 						created_at: time(),
-						min_al_read: 'mod',
-						min_al_write: 'admin',
+						min_al_read: AccessLevel::Mod,
+						min_al_write: AccessLevel::Admin,
 						user_managed: true,
 					);
 					$db->insert($cat);

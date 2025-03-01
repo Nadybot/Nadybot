@@ -4,15 +4,10 @@ namespace Nadybot\Core\SettingHandlers;
 
 use Nadybot\Core\{Attributes as NCA, Text};
 
-/**
- * Class to represent a setting with a text value for NadyBot
- */
+/** Class to represent a setting with a text value for NadyBot */
 #[NCA\SettingHandler('text[]')]
 class ArrayOfTextSettingHandler extends SettingHandler {
-	#[NCA\Inject]
-	protected Text $text;
-
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function getDescription(): string {
 		$msg = "For this setting you can enter any amount of text values you want, separated by a pipe (|)\n";
 		$msg .= "To change this setting:\n\n";
@@ -24,7 +19,7 @@ class ArrayOfTextSettingHandler extends SettingHandler {
 		return $msg;
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function save(string $newValue): string {
 		if ($newValue === '---') {
 			$newValue = '';

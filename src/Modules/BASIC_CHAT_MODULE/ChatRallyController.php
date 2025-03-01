@@ -9,10 +9,10 @@ use Nadybot\Core\{
 	Events\JoinMyPrivEvent,
 	ModuleInstance,
 	Nadybot,
-	ParamClass\PWord,
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\CommandReply,
 	Types\Playfield,
 	Types\SettingMode,
@@ -25,22 +25,14 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'rally',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows the rally waypoint',
 	),
 	NCA\DefineCommand(
 		command: ChatRallyController::CMD_RALLY_SET,
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Sets the rally waypoint',
 	),
-	NCA\ProvidesEvent(
-		event: SyncRallySetEvent::class,
-		desc: 'Triggered when a rally point is set',
-	),
-	NCA\ProvidesEvent(
-		event: SyncRallyClearEvent::class,
-		desc: 'Triggered when someone clears the rally point',
-	)
 ]
 class ChatRallyController extends ModuleInstance {
 	public const CMD_RALLY_SET = 'rally set/clear';
@@ -71,7 +63,7 @@ class ChatRallyController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RALLY_SET)]
 	public function rallyClearCommand(
 		CmdContext $context,
-		#[NCA\Str('clear')] string $action
+		#[NCA\Parameter\Str('clear')] string $action
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
@@ -85,7 +77,7 @@ class ChatRallyController extends ModuleInstance {
 			owner: $context->char->name,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($rEvent);
+		$this->eventManager->dispatch($rEvent);
 	}
 
 	/** Set the rally waypoint */
@@ -95,9 +87,9 @@ class ChatRallyController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>rally 10.9, 30, 560')]
 	public function rallySet2Command(
 		CmdContext $context,
-		#[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $x,
-		#[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $y,
-		PWord $playfield
+		#[NCA\Parameter\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $x,
+		#[NCA\Parameter\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $y,
+		#[NCA\Parameter\WordStr] string $playfield
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
@@ -106,9 +98,9 @@ class ChatRallyController extends ModuleInstance {
 		$xCoords = (float)$x;
 		$yCoords = (float)$y;
 
-		$playfieldName = $playfield();
-		if (is_numeric($playfield())) {
-			$playfieldId = (int)$playfield();
+		$playfieldName = $playfield;
+		if (is_numeric($playfield)) {
+			$playfieldId = (int)$playfield;
 			$playfieldName = (string)$playfieldId;
 
 			$pfObj = Playfield::tryFrom($playfieldId);
@@ -116,8 +108,7 @@ class ChatRallyController extends ModuleInstance {
 				$playfieldName = $pfObj->short();
 			}
 		} else {
-			$playfieldName = $playfield();
-			$pfObj = Playfield::tryByName($playfieldName);
+			$pfObj = Playfield::tryFromName($playfieldName);
 			if ($pfObj === null) {
 				$context->reply("Could not find playfield '{$playfieldName}'");
 				return;
@@ -134,7 +125,7 @@ class ChatRallyController extends ModuleInstance {
 			name: $playfieldName,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($rEvent);
+		$this->eventManager->dispatch($rEvent);
 	}
 
 	/** Set the rally waypoint */
@@ -171,13 +162,11 @@ class ChatRallyController extends ModuleInstance {
 			owner: $context->char->name,
 			forceSync: $context->forceSync,
 		);
-		$this->eventManager->fireEvent($rEvent);
+		$this->eventManager->dispatch($rEvent);
 	}
 
-	#[NCA\Event(
-		name: SyncRallySetEvent::EVENT_MASK,
-		description: 'Handle synced rally sets'
-	)]
+	/** Handle synced rally sets */
+	#[NCA\HandlesEvent]
 	public function handleExtRallySet(SyncRallySetEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -185,10 +174,8 @@ class ChatRallyController extends ModuleInstance {
 		$this->set($event->name, $event->pf, (string)$event->x, (string)$event->y);
 	}
 
-	#[NCA\Event(
-		name: SyncRallyClearEvent::EVENT_MASK,
-		description: 'Handle synced rally clears'
-	)]
+	/** Handle synced rally clears */
+	#[NCA\HandlesEvent]
 	public function handleExtRallyClear(SyncRallyClearEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -196,10 +183,8 @@ class ChatRallyController extends ModuleInstance {
 		$this->clear();
 	}
 
-	#[NCA\Event(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Sends rally to players joining the private channel'
-	)]
+	/** Sends rally to players joining the private channel */
+	#[NCA\HandlesEvent]
 	public function sendRally(JoinMyPrivEvent $eventObj): void {
 		$sender = $eventObj->sender;
 

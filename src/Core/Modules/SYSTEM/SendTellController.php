@@ -3,13 +3,14 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use AO\SendPriority;
-use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	LoggerWrapper,
 	ModuleInstance,
 	Nadybot,
+	ParamClass\PCharacter,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 
@@ -20,7 +21,7 @@ use Psr\Log\LoggerInterface;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'sendtell',
-		accessLevel: 'superadmin',
+		accessLevel: AccessLevel::Superadmin,
 		description: 'Send a tell to another character from the bot',
 	)
 ]

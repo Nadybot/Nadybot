@@ -14,11 +14,13 @@ use Nadybot\Core\{
 	Hydrator,
 	MessageHub,
 	ModuleInstance,
+	MyOrg,
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\MessageEmitter,
 };
 use Safe\DateTimeImmutable;
@@ -32,12 +34,10 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'radio',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'List what is currently playing on GridStream',
 		alias: 'gsp'
 	),
-	NCA\ProvidesEvent(GSPShowStartEvent::class),
-	NCA\ProvidesEvent(GSPShowEndEvent::class)
 ]
 class GSPController extends ModuleInstance implements MessageEmitter {
 	public const GSP_URL = 'https://gsp.torontocast.stream/streaminfo/';
@@ -66,6 +66,9 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	private EventManager $eventManager;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	public function getChannelName(): string {
 		return Source::SYSTEM . '(gsp)';
 	}
@@ -75,10 +78,8 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	#[NCA\Event(
-		name: 'timer(1min)',
-		description: 'Check if a GSP show is running'
-	)]
+	/** Check if a GSP show is running */
+	#[NCA\Timer(interval: '1min')]
 	public function announceIfShowRunning(): void {
 		try {
 			$client = $this->builder->build();
@@ -125,11 +126,11 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		$this->showLocation = $show->info;
 		if (!$show->live) {
 			$event = new GSPShowEndEvent(show: $show);
-			$this->eventManager->fireEvent($event);
+			$this->eventManager->dispatch($event);
 			return;
 		}
 		$event = new GSPShowStartEvent(show: $show);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		$specialDelimiter = '<yellow>-----------------------------<end>';
 		$msg = "\n".
 			$specialDelimiter . "\n".
@@ -140,15 +141,13 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->handle($r);
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Announce running shows on logon'
-	)]
+	/** Announce running shows on logon */
+	#[NCA\HandlesEvent]
 	public function gspShowLogonEvent(LogonEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (
 			!$this->chatBot->isReady()
-			|| !isset($this->chatBot->guildmembers[$sender])
+			|| !$this->myOrg->isMember($sender)
 			|| !$this->gspShowLogon
 			|| !$this->showRunning
 			|| $eventObj->wasOnline !== false

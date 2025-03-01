@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\NOTES_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -13,8 +12,9 @@ use Nadybot\Core\{
 	Exceptions\InsufficientAccessException,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
-	ParamClass\PRemove,
+	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Ramsey\Uuid\Uuid;
@@ -27,23 +27,15 @@ use Ramsey\Uuid\Uuid;
 	NCA\HasMigrations('Migrations/OrgNotes'),
 	NCA\DefineCommand(
 		command: 'orgnotes',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Displays, adds, or removes a note from your list',
 		alias: 'orgnote'
 	),
-	NCA\ProvidesEvent(
-		event: SyncOrgNoteEvent::class,
-		desc: 'Triggered whenever someone creates an org note'
-	),
-	NCA\ProvidesEvent(
-		event: SyncOrgNoteDeleteEvent::class,
-		desc: 'Triggered when deleting an org note'
-	)
 ]
 class OrgNotesController extends ModuleInstance {
 	/** Rank required to delete other people's org notes */
 	#[NCA\Setting\Rank]
-	public string $orgnoteDeleteOtherRank = 'mod';
+	public AccessLevel $orgnoteDeleteOtherRank = AccessLevel::Mod;
 
 	#[NCA\Inject]
 	private DB $db;
@@ -83,7 +75,7 @@ class OrgNotesController extends ModuleInstance {
 
 		$event = SyncOrgNoteEvent::fromOrgNote($note);
 		$event->forceSync = $forceSync;
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		return $note;
 	}
 
@@ -97,7 +89,7 @@ class OrgNotesController extends ModuleInstance {
 			uuid: $note->id->toString(),
 			forceSync: $forceSync,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 		return true;
 	}
 
@@ -113,7 +105,7 @@ class OrgNotesController extends ModuleInstance {
 		}
 		if (!$this->canDeleteOrgNote($note, $actor)) {
 			throw new InsufficientAccessException(
-				"Only {$this->orgnoteDeleteOtherRank} or higher can delete other ".
+				"Only {$this->orgnoteDeleteOtherRank->displayName()} or higher can delete other ".
 				"members' notes."
 			);
 		}
@@ -151,7 +143,7 @@ class OrgNotesController extends ModuleInstance {
 	#[NCA\HandlesCommand('orgnotes')]
 	public function cmdAddOrgNote(
 		CmdContext $context,
-		#[NCA\Str('add', 'new', 'create')] string $action,
+		#[NCA\Parameter\Str('add', 'new', 'create')] string $action,
 		string $text
 	): void {
 		$note = $this->createOrgNote($context->char->name, $text, $context->forceSync);
@@ -162,7 +154,7 @@ class OrgNotesController extends ModuleInstance {
 	#[NCA\HandlesCommand('orgnotes')]
 	public function cmdRemOrgNote(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Parameter\Remove] string $action,
 		PUuid $id
 	): void {
 		$id = $id();
@@ -179,10 +171,8 @@ class OrgNotesController extends ModuleInstance {
 		$context->reply("No org note <highlight>#{$id}<end> found.");
 	}
 
-	#[NCA\Event(
-		name: SyncOrgNoteEvent::EVENT_MASK,
-		description: 'Sync externally created org notes'
-	)]
+	/** Sync externally created org notes */
+	#[NCA\HandlesEvent]
 	public function processOrgNoteSyncEvent(SyncOrgNoteEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -200,10 +190,8 @@ class OrgNotesController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
-		name: SyncOrgNoteDeleteEvent::EVENT_MASK,
-		description: 'Sync externally deleted org notes'
-	)]
+	/** Sync externally deleted org notes */
+	#[NCA\HandlesEvent]
 	public function processNewsDeleteSyncEvent(SyncOrgNoteDeleteEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -217,7 +205,7 @@ class OrgNotesController extends ModuleInstance {
 	protected function canDeleteOrgNote(OrgNote $note, string $actor): bool {
 		$isAdmin = $this->accessManager->checkSingleAccess(
 			$actor,
-			$this->orgnoteDeleteOtherRank
+			$this->orgnoteDeleteOtherRank,
 		);
 		if ($isAdmin) {
 			return true;

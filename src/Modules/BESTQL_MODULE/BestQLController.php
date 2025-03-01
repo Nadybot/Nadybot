@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PItem,
 	Text,
+	Types\AccessLevel,
 };
 
 /**
@@ -19,7 +20,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'bestql',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find breakpoints for bonuses',
 		alias: 'breakpoints'
 	)
@@ -31,7 +32,7 @@ class BestQLController extends ModuleInstance {
 	 * @param array<int,int> $itemSpecs  An associative array [QLX => bonus X, QLY => bonus Y]
 	 * @param int            $searchedQL The QL we want to interpolate to
 	 *
-	 * @return float|null The interpolated bonus at the given QL or null if out of range
+	 * @return null|float The interpolated bonus at the given QL or null if out of range
 	 */
 	public function calcStatFromQL(array $itemSpecs, int $searchedQL): ?float {
 		$lastSpec = null;
@@ -109,7 +110,7 @@ class BestQLController extends ModuleInstance {
 	)]
 	public function bestqlCommand(
 		CmdContext $context,
-		#[NCA\Regexp('[0-9 ]+')] string $specs,
+		#[NCA\Parameter\Regexp('[0-9 ]+')] string $specs,
 		?PItem $pastedItem
 	): void {
 		/** @var array<int,int> */

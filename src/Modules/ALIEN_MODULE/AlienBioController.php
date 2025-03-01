@@ -9,8 +9,8 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	ParamClass\PItem,
-	ParamClass\PWord,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
@@ -26,12 +26,12 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 	NCA\HasMigrations('Migrations/Weapons'),
 	NCA\DefineCommand(
 		command: 'bio',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: "Identifies Solid Clump of Kyr'Ozch Bio-Material",
 	),
 	NCA\DefineCommand(
 		command: 'bioinfo',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows info about a particular bio type',
 	)
 ]
@@ -57,7 +57,10 @@ class AlienBioController extends ModuleInstance {
 	/** Identify a "Solid Clump of Kyr'Ozch Bio-Material" */
 	#[NCA\HandlesCommand('bio')]
 	#[NCA\Help\Epilogue('Just drag and drop biomaterials into the chat as parameters.')]
-	public function bioCommand(CmdContext $context, #[NCA\SpaceOptional] PItem ...$clumps): void {
+	public function bioCommand(
+		CmdContext $context,
+		#[NCA\Parameter\SpaceOptional] PItem ...$clumps
+	): void {
 		$blob = '';
 		$bioinfo = '';
 		$name = 'Unknown Bio-Material';
@@ -168,7 +171,7 @@ class AlienBioController extends ModuleInstance {
 				$this->bioinfoIDCommand($context, (int)$bioinfo, $clumps[0]->ql);
 			} elseif (strlen($bioinfo) > 0) {
 				/** @psalm-var non-empty-string $bioinfo */
-				$this->bioinfoCommand($context, new PWord($bioinfo), $clumps[0]->ql);
+				$this->bioinfoCommand($context, $bioinfo, $clumps[0]->ql);
 			}
 		} else {
 			$msg = Text::makeBlob('Identified Bio-Materials', $blob);
@@ -224,8 +227,12 @@ class AlienBioController extends ModuleInstance {
 
 	/** This command handler shows info about a particular bio type. */
 	#[NCA\HandlesCommand('bioinfo')]
-	public function bioinfoCommand(CmdContext $context, PWord $bio, ?int $ql): void {
-		$bio = strtolower($bio());
+	public function bioinfoCommand(
+		CmdContext $context,
+		#[NCA\Parameter\WordStr] string $bio,
+		?int $ql
+	): void {
+		$bio = strtolower($bio);
 		$ql ??= 300;
 		$ql = min(300, max(1, $ql));
 

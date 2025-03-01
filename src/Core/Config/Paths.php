@@ -4,6 +4,7 @@ namespace Nadybot\Core\Config;
 
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 
+/** Settings for the paths the bot uses */
 class Paths {
 	/**
 	 * @param string   $cache   Path to store cache files

@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
@@ -23,12 +24,13 @@ class DiscordController extends ModuleInstance {
 	#[NCA\DefineSetting(
 		type: 'discord_bot_token',
 		options: ['off'],
-		accessLevel: 'superadmin'
+		accessLevel: AccessLevel::Superadmin,
+		confidential: true,
 	)]
 	public string $discordBotToken = 'off';
 
 	/** Discord channel to send notifications to */
-	#[NCA\DefineSetting(type: 'discord_channel', accessLevel: 'admin')]
+	#[NCA\DefineSetting(type: 'discord_channel', accessLevel: AccessLevel::Admin)]
 	public string $discordNotifyChannel = 'off';
 
 	/** Use custom Emojis */

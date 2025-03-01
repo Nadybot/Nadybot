@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Exception;
-use Nadybot\Core\ParamClass\PProfession;
+use Nadybot\Core\Types\Profession;
 use ParserGenerator\Parser;
 use ParserGenerator\SyntaxTreeNode\Branch;
 
@@ -33,7 +33,7 @@ class TrackerOnlineParser {
 			faction :=> ("omni"|"clan"|"neutral"|"neut").
 			all :=> "all".
 			edit :=> "--edit".
-			profession :=> /' . PProfession::getRegexp() . '/.
+			profession :=> /' . Profession::getParamRegexp() . '/.
 		';
 	}
 

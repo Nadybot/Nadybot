@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Types\Skill;
 use Nadybot\Core\{DBRow, Util};
 
 class ImplantInfo extends DBRow {
@@ -20,7 +21,7 @@ class ImplantInfo extends DBRow {
 		public readonly int $shiny_effect_type_id,
 		public readonly int $bright_effect_type_id,
 		public readonly int $faded_effect_type_id,
-		public readonly string $ability_name,
+		public readonly Skill $skill,
 	) {
 	}
 

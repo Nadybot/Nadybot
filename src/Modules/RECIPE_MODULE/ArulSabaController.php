@@ -3,13 +3,12 @@
 namespace Nadybot\Modules\RECIPE_MODULE;
 
 use Exception;
-use Nadybot\Core\Types\ItemFlag;
+use Nadybot\Core\Types\{AccessLevel, ItemFlag, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
-	ParamClass\PWord,
 	Safe,
 	Text,
 };
@@ -17,7 +16,6 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	AODBItem,
 	ItemWithBuffs,
 	ItemsController,
-	Skill,
 };
 
 /**
@@ -28,7 +26,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	NCA\HasMigrations('Migrations/ArulSaba'),
 	NCA\DefineCommand(
 		command: 'arulsaba',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Get recipe for Arul Saba bracers',
 		alias: 'aruls'
 	)
@@ -81,9 +79,12 @@ class ArulSabaController extends ModuleInstance {
 	/** See the different types of a specific Arul Saba bracelet */
 	#[NCA\HandlesCommand('arulsaba')]
 	#[NCA\Help\Example('<symbol>arulsaba desert')]
-	public function arulSabaChooseQLCommand(CmdContext $context, PWord $name): void {
+	public function arulSabaChooseQLCommand(
+		CmdContext $context,
+		#[NCA\Parameter\WordStr] string $name
+	): void {
 		$aruls = $this->db->table(ArulSabaBuffs::getTable())
-			->where('name', ucfirst(strtolower($name())))
+			->where('name', ucfirst(strtolower($name)))
 			->orderBy('min_level')
 			->asObj(ArulSabaBuffs::class);
 		if ($aruls->isEmpty()) {
@@ -105,7 +106,7 @@ class ArulSabaController extends ModuleInstance {
 			$blob .= "<header2>{$shortName}<end>\n".
 				"<tab>Min level: <highlight>{$arul->min_level}<end>\n";
 			foreach ($item->buffs as $buff) {
-				$blob .= "<tab>{$buff->skill->name}: <highlight>+{$buff->amount}{$buff->skill->unit}<end>\n";
+				$blob .= "<tab>{$buff->skill->fullName()}: <highlight>+{$buff->amount}{$buff->skill->unit()}<end>\n";
 			}
 			$leftLink = Text::makeChatcmd('Left', "/tell <myname> arulsaba {$arul->name} {$gems} left");
 			$rightLink = Text::makeChatcmd('Right', "/tell <myname> arulsaba {$arul->name} {$gems} right");
@@ -147,11 +148,11 @@ class ArulSabaController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>arulsaba desert 5 left')]
 	public function arulSabaRecipeCommand(
 		CmdContext $context,
-		PWord $type,
+		#[NCA\Parameter\WordStr] string $type,
 		int $numGems,
-		#[NCA\StrChoice('left', 'right')] string $side
+		#[NCA\Parameter\StrChoice('left', 'right')] string $side
 	): void {
-		$type = ucfirst(strtolower($type()));
+		$type = ucfirst(strtolower($type));
 
 		/** @var int<1,max> */
 		$reqGems = max(1, $numGems);
@@ -517,16 +518,16 @@ class ArulSabaController extends ModuleInstance {
 		$requirements = [];
 		foreach ($skillReqs as $skillID => $amount) {
 			$amount = (string)$amount;
-			$skill = $this->readSkill($skillID);
+			$skill = Skill::tryFrom($skillID);
 			if (!isset($skill)) {
 				throw new Exception("Unable to find skill {$skillID}");
 			}
 			if (substr($amount, 0, 1) === '*') {
 				$exAmount = (int)ceil((float)substr($amount, 1) * $dest->ql);
-				$requirements []= "<yellow>{$skill->name}: {$exAmount}<end> (" . substr($amount, 1) . 'x)';
+				$requirements []= "<yellow>{$skill->fullName()}: {$exAmount}<end> (" . substr($amount, 1) . 'x)';
 			} else {
 				$exAmount = (int)$amount;
-				$requirements []= "<yellow>{$skill->name}: {$exAmount}<end>";
+				$requirements []= "<yellow>{$skill->fullName()}: {$exAmount}<end>";
 			}
 		}
 		$line .= '<tab>' . implode(', ', $requirements) . "\n\n";
@@ -534,11 +535,5 @@ class ArulSabaController extends ModuleInstance {
 			$line .= "\n";
 		}
 		return $line;
-	}
-
-	protected function readSkill(int $id): ?Skill {
-		return $this->db->table(Skill::getTable())
-			->where('id', $id)
-			->firstObj(Skill::class);
 	}
 }

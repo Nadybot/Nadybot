@@ -29,6 +29,20 @@ class RelayEvent extends DBTable {
 		$this->id = $id ?? Uuid::uuid7();
 	}
 
+	public function getEnabled(EventDirection $direction): bool {
+		return match ($direction) {
+			EventDirection::Incoming => $this->incoming,
+			EventDirection::Outgoing => $this->outgoing,
+		};
+	}
+
+	public function setEnabled(EventDirection $direction, bool $status): bool {
+		return match ($direction) {
+			EventDirection::Incoming => $this->incoming = $status,
+			EventDirection::Outgoing => $this->outgoing = $status,
+		};
+	}
+
 	public function toString(): string {
 		return "{$this->event} ".
 			($this->incoming ? 'I' : '').

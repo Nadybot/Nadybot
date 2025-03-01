@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 	Types\Playfield,
 };
 use Nadybot\Modules\WHEREIS_MODULE\{
@@ -26,12 +27,12 @@ use Psr\Log\LoggerInterface;
 	NCA\HasMigrations('Migrations/Boss'),
 	NCA\DefineCommand(
 		command: 'boss',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows bosses and their loot',
 	),
 	NCA\DefineCommand(
 		command: 'bossloot',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Finds which boss drops certain loot',
 	)
 ]

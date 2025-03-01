@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Text,
+	Types\AccessLevel,
 };
 
 /**
@@ -19,7 +20,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'orgmembers',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Show guild members sorted by name',
 	)
 ]

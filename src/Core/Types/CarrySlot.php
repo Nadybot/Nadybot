@@ -4,17 +4,24 @@ namespace Nadybot\Core\Types;
 
 use ValueError;
 
+/** This represents one of the slots where you can equip weapons, HUDs, belt items … */
 enum CarrySlot: int {
+	/** Check if this carry slot is in the given bit field of slots */
 	public function in(int $value): bool {
 		return ($value & $this->value) !== 0;
 	}
 
+	/** Check if this carry slot is not in the given bit field of slots */
 	public function notIn(int $value): bool {
 		return ($value & $this->value) === 0;
 	}
 
-	/** @return EnumBitfield<CarrySlot> */
-	public static function byName(string $name): EnumBitfield {
+	/**
+	 * Create a bit field of CarrySlot from a string representation like 'hud', or 'lhand'
+	 *
+	 * @return EnumBitfield<CarrySlot>
+	 */
+	public static function fromName(string $name): EnumBitfield {
 		$result = new EnumBitfield(self::class);
 		return match (strtolower($name)) {
 			'hud1' => $result->set(self::HUD1),

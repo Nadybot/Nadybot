@@ -2,20 +2,9 @@
 
 namespace Nadybot\Core\Events;
 
-class UnknownCmdEvent extends CmdEvent {
-	public const EVENT_MASK = 'command(unknown)';
+use Nadybot\Core\Attributes\Event;
 
-	/**
-	 * @param string $sender  Either the name of the sender or the numeric UID (e.g. city raid announcements)
-	 * @param string $channel Where was the command received
-	 * @param string $cmd     The actual command
-	 */
-	public function __construct(
-		public string $sender,
-		public string $channel,
-		public string $cmd,
-	) {
-		$this->cmdHandler = null;
-		$this->type = self::EVENT_MASK;
-	}
+/** A command that was answered with "did you mean …?" */
+#[Event(mask: 'command(unknown)')]
+class UnknownCmdEvent extends CmdEvent {
 }

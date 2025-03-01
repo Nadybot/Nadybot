@@ -2,18 +2,22 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use EventSauce\ObjectHydrator\DoNotSerialize;
+use Nadybot\Core\Types\Skill;
+
 class SlotConfig {
 	/** @psalm-param ?int<1,300> $ql */
 	public function __construct(
-		public ?string $shiny=null,
-		public ?string $bright=null,
-		public ?string $faded=null,
+		public ?Skill $shiny=null,
+		public ?Skill $bright=null,
+		public ?Skill $faded=null,
 		public ?SymbiantSlot $symb=null,
 		public ?int $ql=null,
 	) {
 	}
 
 	/** Check if we have any cluster or symbiant set */
+	#[DoNotSerialize]
 	public function isEmpty(): bool {
 		return !isset($this->shiny)
 			&& !isset($this->bright)
@@ -22,12 +26,14 @@ class SlotConfig {
 	}
 
 	/** Check if the slot has a given cluster grade set */
+	#[DoNotSerialize]
 	public function has(ClusterGrade $grade): bool {
 		return $this->get($grade) !== null;
 	}
 
 	/** Check if the slot has a given cluster grade set */
-	public function get(ClusterGrade $grade): ?string {
+	#[DoNotSerialize]
+	public function get(ClusterGrade $grade): ?Skill {
 		return match ($grade) {
 			ClusterGrade::Shiny => $this->shiny,
 			ClusterGrade::Bright => $this->bright,
@@ -36,11 +42,12 @@ class SlotConfig {
 	}
 
 	/** Set a cluster slot to a given value */
-	public function set(ClusterGrade $grade, ?string $value): ?string {
+	#[DoNotSerialize]
+	public function set(ClusterGrade $grade, ?Skill $skill): ?Skill {
 		return match ($grade) {
-			ClusterGrade::Shiny => $this->shiny = $value,
-			ClusterGrade::Bright => $this->bright = $value,
-			ClusterGrade::Faded => $this->faded = $value,
+			ClusterGrade::Shiny => $this->shiny = $skill,
+			ClusterGrade::Bright => $this->bright = $skill,
+			ClusterGrade::Faded => $this->faded = $skill,
 		};
 	}
 }

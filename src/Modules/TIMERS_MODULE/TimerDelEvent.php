@@ -2,13 +2,8 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-class TimerDelEvent extends TimerEvent {
-	public const EVENT_MASK = 'timer(del)';
+use Nadybot\Core\Attributes\Event;
 
-	public function __construct(
-		Timer $timer,
-	) {
-		parent::__construct(timer: $timer);
-		$this->type = self::EVENT_MASK;
-	}
+#[Event(mask: 'timer(del)')]
+final class TimerDelEvent extends TimerEvent {
 }

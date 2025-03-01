@@ -3,17 +3,26 @@
 namespace Nadybot\Modules\FUN_MODULE;
 
 use function Safe\preg_split;
+
+use AO\Utils;
 use Illuminate\Support\Collection;
-use Nadybot\Core\DBSchema\{Alt, Player};
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\ParamClass\{PRemove, PUuid};
+use Nadybot\Core\Modules\{
+	ALTS\AltsController,
+	PLAYER_LOOKUP\PlayerManager,
+};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\SpaceOptional,
+	Attributes\Parameter\Str,
+	Attributes\Parameter\StrChoice,
 	CmdContext,
 	DB,
+	DBSchema\Alt,
 	ModuleInstance,
+	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 };
 
 /**
@@ -23,17 +32,17 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'death',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Manage your personal death counter',
 	),
 	NCA\DefineCommand(
 		command: 'death restart',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Reset/Wipe death counters',
 	),
 	NCA\DefineCommand(
 		command: 'deathmsg',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Manage custom death messages',
 	),
 ]
@@ -111,8 +120,8 @@ class DeathController extends ModuleInstance {
 	#[NCA\HandlesCommand('death')]
 	public function deathModifyCommand(
 		CmdContext $context,
-		#[NCA\StrChoice('+', '-')] string $action,
-		#[NCA\SpaceOptional] int $delta
+		#[StrChoice('+', '-')] string $action,
+		#[SpaceOptional] int $delta
 	): void {
 		$death = $this->getDeath($context->char->name);
 		if (!isset($death)) {
@@ -159,7 +168,7 @@ class DeathController extends ModuleInstance {
 	#[NCA\HandlesCommand('death')]
 	public function deathRegisterCommand(
 		CmdContext $context,
-		#[NCA\Str('register')] string $action,
+		#[Str('register')] string $action,
 	): void {
 		$death = $this->getDeath($context->char->name);
 		if (isset($death)) {
@@ -174,8 +183,8 @@ class DeathController extends ModuleInstance {
 	#[NCA\HandlesCommand('death')]
 	public function deathTopCommand(
 		CmdContext $context,
-		#[NCA\Str('top')] string $action,
-		#[NCA\SpaceOptional] ?int $num,
+		#[Str('top')] string $action,
+		#[SpaceOptional] ?int $num,
 	): void {
 		$num ??= 10;
 		$topDeaths = $this->db->table(Death::getTable())
@@ -189,8 +198,8 @@ class DeathController extends ModuleInstance {
 	#[NCA\HandlesCommand('death')]
 	public function deathTopAllCommand(
 		CmdContext $context,
-		#[NCA\Str('top')] string $action,
-		#[NCA\Str('all')] string $subAction,
+		#[Str('top')] string $action,
+		#[Str('all')] string $subAction,
 	): void {
 		$topDeaths = $this->db->table(Death::getTable())
 			->orderByDesc('counter')
@@ -202,7 +211,7 @@ class DeathController extends ModuleInstance {
 	#[NCA\HandlesCommand('death')]
 	public function deathResetCommand(
 		CmdContext $context,
-		#[NCA\Str('reset')] string $action,
+		#[Str('reset')] string $action,
 	): void {
 		$death = $this->getDeath($context->char->name);
 		if (!isset($death)) {
@@ -218,7 +227,7 @@ class DeathController extends ModuleInstance {
 	#[NCA\HandlesCommand('death')]
 	public function deathUnregisterCommand(
 		CmdContext $context,
-		#[NCA\Str('unregister')] string $action,
+		#[Str('unregister')] string $action,
 	): void {
 		$death = $this->getDeath($context->char->name);
 		if (!isset($death)) {
@@ -235,7 +244,7 @@ class DeathController extends ModuleInstance {
 	#[NCA\HandlesCommand('death restart')]
 	public function deathWipeCommand(
 		CmdContext $context,
-		#[NCA\Str('restart')] string $action,
+		#[Str('restart')] string $action,
 	): void {
 		$this->db->table(Death::getTable())->truncate();
 		$context->reply('Death list completely wiped and everyone unregistered.');
@@ -245,7 +254,7 @@ class DeathController extends ModuleInstance {
 	#[NCA\HandlesCommand('death restart')]
 	public function deathRestartCommand(
 		CmdContext $context,
-		#[NCA\Str('wipe')] string $action,
+		#[Str('wipe')] string $action,
 	): void {
 		$this->db->table(Death::getTable())->update(['counter' => 0]);
 		$context->reply('Death list wiped and everyone set to 0 deaths.');
@@ -258,9 +267,9 @@ class DeathController extends ModuleInstance {
 	#[NCA\HandlesCommand('death')]
 	public function deathTopPlayersCommand(
 		CmdContext $context,
-		#[NCA\Str('players')] string $subAction,
-		#[NCA\Str('top')] string $action,
-		#[NCA\SpaceOptional] ?int $num,
+		#[Str('players')] string $subAction,
+		#[Str('top')] string $action,
+		#[SpaceOptional] ?int $num,
 	): void {
 		$num ??= 10;
 		$query = $this->db->table(Death::getTable(), 'd')
@@ -280,9 +289,9 @@ class DeathController extends ModuleInstance {
 	#[NCA\HandlesCommand('death')]
 	public function deathTopAllPlayersCommand(
 		CmdContext $context,
-		#[NCA\Str('players')] string $subAction,
-		#[NCA\Str('top')] string $action,
-		#[NCA\Str('all')] string $all,
+		#[Str('players')] string $subAction,
+		#[Str('top')] string $action,
+		#[Str('all')] string $all,
 	): void {
 		$query = $this->db->table(Death::getTable(), 'd')
 			->leftJoin(Alt::getTable(as: 'a'), 'd.character', 'a.alt');
@@ -336,7 +345,7 @@ class DeathController extends ModuleInstance {
 	#[NCA\Help\Example(command: 'deathmsg add main=Nady Again, Nady?')]
 	public function addDeathMessage(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		string $deathMessage,
 	): void {
 		$fun = new Fun(
@@ -351,7 +360,7 @@ class DeathController extends ModuleInstance {
 	/** Remove a custom death message */
 	public function delDeathMessage(
 		CmdContext $context,
-		PRemove $action,
+		#[Remove] string $action,
 		PUuid $id,
 	): void {
 		$id = $id();
@@ -437,12 +446,12 @@ class DeathController extends ModuleInstance {
 		};
 		switch ($token) {
 			case 'main':
-				return $comparison($this->altsController->getMainOf($death->character), ucfirst(strtolower($value)));
+				return $comparison($this->altsController->getMainOf($death->character), Utils::normalizeCharacter($value));
 			case 'name':
 			case 'char':
 			case 'charname':
 			case 'character':
-				return $comparison($death->character, ucfirst(strtolower($value)));
+				return $comparison($death->character, Utils::normalizeCharacter($value));
 			case 'count':
 			case 'counter':
 				return $comparison($death->counter, (int)$value);

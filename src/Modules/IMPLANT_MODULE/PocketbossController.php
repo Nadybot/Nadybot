@@ -9,9 +9,9 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
-	ParamClass\PWord,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\ImplantSlot,
 };
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
@@ -24,13 +24,13 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 	NCA\HasMigrations('Migrations/Pocketboss'),
 	NCA\DefineCommand(
 		command: 'pocketboss',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows what symbiants a pocketboss drops',
 		alias: 'pb'
 	),
 	NCA\DefineCommand(
 		command: 'symbiant',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows which pocketbosses drop a symbiant',
 		alias: 'symb'
 	)
@@ -196,9 +196,9 @@ class PocketbossController extends ModuleInstance {
 	)]
 	public function symbiantCommand(
 		CmdContext $context,
-		PWord $arg1,
-		?PWord $arg2,
-		?PWord $arg3
+		#[NCA\Parameter\WordStr] string $arg1,
+		#[NCA\Parameter\WordStr] ?string $arg2,
+		#[NCA\Parameter\WordStr] ?string $arg3
 	): void {
 		$args = $context->args;
 
@@ -216,7 +216,7 @@ class PocketbossController extends ModuleInstance {
 		$impDesignSlot = null;
 		for ($i = 0; $i < $paramCount; $i++) {
 			try {
-				$impSlot = ImplantSlot::byName($args[$i]);
+				$impSlot = ImplantSlot::fromName($args[$i]);
 				$impDesignSlot = $impSlot->designSlotName();
 				$slot = $impSlot->longName();
 				continue;
@@ -231,7 +231,7 @@ class PocketbossController extends ModuleInstance {
 			}
 
 			try {
-				$symbtype = SymbiantType::byName($args[$i])->name;
+				$symbtype = SymbiantType::fromName($args[$i])->name;
 				continue;
 			} catch (\Throwable) {
 			}

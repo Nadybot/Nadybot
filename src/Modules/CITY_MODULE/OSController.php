@@ -26,10 +26,8 @@ class OSController extends ModuleInstance {
 	#[NCA\Inject]
 	private TimerController $timerController;
 
-	#[NCA\Event(
-		name: OrgMsgChannelMsgEvent::EVENT_MASK,
-		description: 'Sets a timer when an OS/AS is launched'
-	)]
+	/** Sets a timer when an OS/AS is launched */
+	#[NCA\HandlesEvent]
 	public function osTimerEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		// create a timer for 15m when an OS/AS is launched (so org knows when they can launch again)
 		// [Org Msg] Blammo! Player has launched an orbital attack!

@@ -2,12 +2,24 @@
 
 namespace Nadybot\Core\SettingHandlers;
 
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\{Attributes as NCA, Text, Types\SettingMode};
+use Nadybot\Core\{
+	AccessManager,
+	Attributes as NCA,
+	CmdContext,
+	DBSchema\Setting,
+	Text,
+	Types\AccessLevel,
+	Types\SettingMode
+};
 
+/**
+ * This is the abstract base class for all setting handlers.
+ * It provides everything needed to validate saved values,
+ * display current value(s), display possible values, etc.
+ */
 abstract class SettingHandler {
 	#[NCA\Inject]
-	protected Text $text;
+	private AccessManager $accessManager;
 
 	/** Construct a new handler out of a given database row */
 	public function __construct(
@@ -15,14 +27,29 @@ abstract class SettingHandler {
 	) {
 	}
 
+	/** Check if this setting can be changed by the user */
 	public function isEditable(): bool {
 		return $this->row->mode === SettingMode::Edit;
 	}
 
+	/** Can the user of the given command context see the clear text value of this setting? */
+	public function canViewValue(CmdContext $context): bool {
+		if ($this->row->confidential !== true) {
+			return true;
+		}
+		if (!$context->isDM()) {
+			return false;
+		}
+		$alToChange = $this->row->access_level ?? AccessLevel::Superadmin;
+		return $this->accessManager->checkAccess($context->char->name, $alToChange);
+	}
+
+	/** Get the low level data setting object */
 	public function getData(): Setting {
 		return $this->row;
 	}
 
+	/** Get a link to change this setting's value */
 	public function getModifyLink(): string {
 		return Text::makeChatcmd('modify', '/tell <myname> settings change ' . $this->row->name);
 	}
@@ -69,7 +96,7 @@ abstract class SettingHandler {
 	}
 
 	/**
-	 * Change this setting
+	 * Change this setting to $newValue
 	 *
 	 * @throws \Exception if $newValue is not accepted
 	 */

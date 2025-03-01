@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use AO\Package;
+use AO\{Package, Utils};
 use Nadybot\Core\Events\{ExtJoinPrivRequest, JoinPrivEvent, LeavePrivEvent, OtherLeavePrivEvent, PrivateChannelMsgEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -18,23 +18,15 @@ use Nadybot\Modules\RELAY_MODULE\{
 	StatusProvider,
 };
 
-#[
-	NCA\RelayTransport(
-		name: 'private-channel',
-		description: "This is the Anarchy Online private channel transport.\n".
-			"You can use this to relay messages internally inside Anarchy Online.\n".
-			"Be aware though, that the delay is based on the size of the message\n".
-			"being sent.\n".
-			"The bot must be invited into the private channel before it can\n".
-			'relay anything.'
-	),
-	NCA\Param(
-		name: 'channel',
-		type: 'string',
-		description: 'The private channel to join',
-		required: true
-	)
-]
+/**
+ * This is the Anarchy Online private channel transport.
+ * You can use this to relay messages internally inside Anarchy Online.
+ * Be aware though, that the delay is based on the size of the message
+ * being sent.
+ * The bot must be invited into the private channel before it can
+ * relay anything.
+ */
+#[NCA\RelayTransport(name: 'private-channel')]
 class PrivateChannel implements TransportInterface, StatusProvider {
 	protected Relay $relay;
 
@@ -51,8 +43,11 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 	#[NCA\Inject]
 	private EventManager $eventManager;
 
-	public function __construct(string $channel) {
-		$this->channel = ucfirst(strtolower($channel));
+	/** @param string $channel The private channel to join */
+	public function __construct(
+		#[NCA\Param] string $channel,
+	) {
+		$this->channel = Utils::normalizeCharacter($channel);
 	}
 
 	public function setRelay(Relay $relay): void {
@@ -78,7 +73,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 
 	public function deinit(callable $callback): array {
 		$this->eventManager->unsubscribe('extpriv', $this->receiveMessage(...));
-		$this->eventManager->unsubscribe(ExtJoinPrivRequest::EVENT_MASK, $this->receiveInvite(...));
+		$this->eventManager->unsubscribe('extjoinpriv', $this->receiveInvite(...));
 		$this->eventManager->unsubscribe('extJoinPriv', $this->joinedPrivateChannel(...));
 		$this->eventManager->unsubscribe('otherLeavePriv', $this->receiveLeave(...));
 		$this->eventManager->unsubscribe('extLeavePriv', $this->leftPrivateChannel(...));
@@ -143,7 +138,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		$this->eventManager->subscribe('extJoinPrivRequest', $this->receiveInvite(...));
 		$this->eventManager->subscribe('otherLeavePriv', $this->receiveLeave(...));
 		$this->eventManager->subscribe('extLeavePriv', $this->leftPrivateChannel(...));
-		if (!isset($this->chatBot->privateChats[$this->channel])) {
+		if (!$this->chatBot->isInPrivateChannel($this->channel)) {
 			$this->status = new RelayStatus(
 				RelayStatusType::INIT,
 				"Waiting for invite to {$this->channel}"

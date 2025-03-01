@@ -2,10 +2,11 @@
 
 namespace Nadybot\Core\Events;
 
-/** We receive a message on a private channel */
-class PrivateChannelMsgEvent extends AOChatEvent {
-	public const EVENT_MASK = 'extpriv';
+use Nadybot\Core\Attributes\Event;
 
+/** We receive a message on another bot's private channel */
+#[Event(mask: 'extpriv')]
+class PrivateChannelMsgEvent extends AOChatEvent {
 	/**
 	 * @param string  $sender  The name of the sender of the message
 	 * @param string  $channel The name of the private channel via which the message was sent
@@ -14,10 +15,14 @@ class PrivateChannelMsgEvent extends AOChatEvent {
 	 */
 	public function __construct(
 		public string $sender,
-		public string $channel,
-		public string $message,
-		public ?string $worker=null,
+		string $channel,
+		string $message,
+		?string $worker=null,
 	) {
-		$this->type = self::EVENT_MASK;
+		parent::__construct(
+			channel: $channel,
+			message: $message,
+			worker: $worker
+		);
 	}
 }

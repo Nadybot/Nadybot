@@ -9,6 +9,9 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Http,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	CmdContext,
 	CommandHandler,
 	CommandManager,
@@ -16,11 +19,11 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\SYSTEM\SystemController,
 	Nadybot,
-	ParamClass\PRemove,
 	Registry,
 	Safe,
 	SubcommandManager,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use Psr\Log\LoggerInterface;
@@ -36,10 +39,9 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'apiauth',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Create public/private key pairs for auth against the API',
 	),
-	NCA\ProvidesEvent(CommandReplyEvent::class)
 ]
 class ApiController extends ModuleInstance {
 	/** Enable REST API */
@@ -87,7 +89,7 @@ class ApiController extends ModuleInstance {
 	#[NCA\HandlesCommand('apiauth')]
 	public function apiauthListCommand(
 		CmdContext $context,
-		#[NCA\Str('list')] ?string $action
+		#[Str('list')] ?string $action
 	): void {
 		$keys = $this->db->table(ApiKey::getTable())
 			->orderBy('created')
@@ -128,7 +130,7 @@ class ApiController extends ModuleInstance {
 	)]
 	public function apiauthCreateCommand(
 		CmdContext $context,
-		#[NCA\Str('create', 'new')] string $action
+		#[Str('create', 'new')] string $action
 	): void {
 		// @phpstan-ignore-next-line
 		$key = openssl_pkey_new(['private_key_type' => \OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
@@ -184,7 +186,7 @@ class ApiController extends ModuleInstance {
 	#[NCA\HandlesCommand('apiauth')]
 	public function apiauthDeleteCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[Remove] string $action,
 		string $token
 	): void {
 		$key = $this->db->table(ApiKey::getTable())
@@ -210,7 +212,7 @@ class ApiController extends ModuleInstance {
 	#[NCA\HandlesCommand('apiauth')]
 	public function apiauthResetCommand(
 		CmdContext $context,
-		#[NCA\Str('reset')] string $action,
+		#[Str('reset')] string $action,
 		string $token
 	): void {
 		$key = $this->db->table(ApiKey::getTable())
@@ -239,7 +241,7 @@ class ApiController extends ModuleInstance {
 		foreach ($instances as $instance) {
 			$reflection = new ReflectionClass($instance);
 			foreach ($reflection->getMethods() as $method) {
-				$apiAttrs = $method->getAttributes(NCA\Api::class);
+				$apiAttrs = $method->getAttributes(Http\Api::class);
 				if (!count($apiAttrs)) {
 					continue;
 				}
@@ -252,8 +254,8 @@ class ApiController extends ModuleInstance {
 				}
 				$accessLevelFrom = null;
 				$accessLevel = null;
-				$alFromAttribs = $method->getAttributes(NCA\AccessLevelFrom::class);
-				$alAttribs = $method->getAttributes(NCA\AccessLevel::class);
+				$alFromAttribs = $method->getAttributes(Http\AccessLevelFrom::class);
+				$alAttribs = $method->getAttributes(Http\AccessLevel::class);
 				if (count($alFromAttribs)) {
 					$alFromObj = $alFromAttribs[0]->newInstance();
 					$accessLevelFrom = $alFromObj->value;
@@ -261,7 +263,7 @@ class ApiController extends ModuleInstance {
 					$alObj = $alAttribs[0]->newInstance();
 					$accessLevel = $alObj->value;
 				}
-				$verbAttrs = $method->getAttributes(NCA\VERB::class, ReflectionAttribute::IS_INSTANCEOF);
+				$verbAttrs = $method->getAttributes(Http\VERB::class, ReflectionAttribute::IS_INSTANCEOF);
 				if (!count($verbAttrs)) {
 					continue;
 				}
@@ -282,7 +284,7 @@ class ApiController extends ModuleInstance {
 	 * @param list<string>                       $methods
 	 * @param Closure(Request,mixed...):Response $callback
 	 */
-	public function addApiRoute(iterable $paths, array $methods, Closure $callback, ?string $alf, ?string $al, ReflectionMethod $refMet): void {
+	public function addApiRoute(iterable $paths, array $methods, Closure $callback, ?string $alf, ?AccessLevel $al, ReflectionMethod $refMet): void {
 		foreach ($paths as $path) {
 			$route = $this->webserverController->routeToRegExp($path);
 			$this->logger->info('Adding route to {path}', ['path' => $path]);
@@ -327,7 +329,7 @@ class ApiController extends ModuleInstance {
 				return new ApiHandler(
 					allowedMethods: array_keys($data),
 					accessLevelFrom: 'all',
-					accessLevel: 'all',
+					accessLevel: AccessLevel::All,
 					path: $path,
 					route: '',
 					reflectionMethod: new ReflectionMethod($this, __FUNCTION__),
@@ -362,11 +364,11 @@ class ApiController extends ModuleInstance {
 	}
 
 	#[
-		NCA\HttpGet('/api/%s'),
-		NCA\HttpPost('/api/%s'),
-		NCA\HttpPut('/api/%s'),
-		NCA\HttpDelete('/api/%s'),
-		NCA\HttpPatch('/api/%s'),
+		Http\HttpGet('/api/%s'),
+		Http\HttpPost('/api/%s'),
+		Http\HttpPut('/api/%s'),
+		Http\HttpDelete('/api/%s'),
+		Http\HttpPatch('/api/%s'),
 	]
 	public function apiRequest(Request $request, string $path): ?Response {
 		if (!$this->api) {
@@ -439,13 +441,13 @@ class ApiController extends ModuleInstance {
 	 * @param string $uuid The UUID of the websocket connection where to send the reply to
 	 */
 	#[
-		NCA\Api('/execute/%s'),
-		NCA\POST,
-		NCA\AccessLevel('member'),
-		NCA\RequestBody(class: 'string', desc: 'The command to execute as typed in', required: true),
-		NCA\ApiResult(code: 204, desc: 'operation applied successfully'),
-		NCA\ApiResult(code: 404, desc: 'Invalid UUID provided'),
-		NCA\ApiResult(code: 422, desc: 'Unparsable data received')
+		Http\Api('/execute/%s'),
+		Http\POST,
+		Http\AccessLevel(AccessLevel::Member),
+		Http\RequestBody(class: 'string', desc: 'The command to execute as typed in', required: true),
+		Http\ApiResult(code: 204, desc: 'operation applied successfully'),
+		Http\ApiResult(code: 404, desc: 'Invalid UUID provided'),
+		Http\ApiResult(code: 422, desc: 'Unparsable data received')
 	]
 	public function apiExecuteCommand(Request $request, string $uuid): Response {
 		$msg = $request->getAttribute(WebserverController::BODY);
@@ -516,7 +518,7 @@ class ApiController extends ModuleInstance {
 		if (in_array($request->getMethod(), ['GET', 'HEAD', 'DELETE'], true)) {
 			return true;
 		}
-		$rqBodyAttrs = $apiHandler->reflectionMethod->getAttributes(NCA\RequestBody::class);
+		$rqBodyAttrs = $apiHandler->reflectionMethod->getAttributes(Http\RequestBody::class);
 		if (!count($rqBodyAttrs)) {
 			return true;
 		}

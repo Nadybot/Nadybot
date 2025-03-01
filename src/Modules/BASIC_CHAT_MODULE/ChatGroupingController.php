@@ -2,12 +2,14 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Events\LeaveMyPrivEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	CmdContext,
+	Events\LeaveMyPrivEvent,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 
 /**
@@ -17,12 +19,12 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'group',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Join the group selection',
 	),
 	NCA\DefineCommand(
 		command: 'group manage',
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Divide people into groups',
 	),
 ]
@@ -37,7 +39,7 @@ class ChatGroupingController extends ModuleInstance {
 	#[NCA\HandlesCommand('group manage')]
 	public function groupClearCommand(
 		CmdContext $context,
-		#[NCA\Str('clear')] string $action,
+		#[Str('clear')] string $action,
 	): void {
 		$this->joined = [];
 		$this->grouped = [];
@@ -71,7 +73,7 @@ class ChatGroupingController extends ModuleInstance {
 	#[NCA\HandlesCommand('group manage')]
 	public function groupDivideCommand(
 		CmdContext $context,
-		#[NCA\Str('divide')] string $action,
+		#[Str('divide')] string $action,
 		int $numGroups,
 	): void {
 		if (!count($this->joined)) {
@@ -99,7 +101,7 @@ class ChatGroupingController extends ModuleInstance {
 	#[NCA\HandlesCommand('group')]
 	public function groupJoinCommand(
 		CmdContext $context,
-		#[NCA\Str('join')] string $action,
+		#[Str('join')] string $action,
 	): void {
 		if (in_array($context->char->name, $this->joined, true)) {
 			$context->reply("You've already joined.");
@@ -113,7 +115,7 @@ class ChatGroupingController extends ModuleInstance {
 	#[NCA\HandlesCommand('group')]
 	public function groupLeaveCommand(
 		CmdContext $context,
-		#[NCA\Str('leave')] string $action,
+		#[Str('leave')] string $action,
 	): void {
 		if (!in_array($context->char->name, $this->joined, true)) {
 			$context->reply("You're not in the grouping.");
@@ -123,10 +125,8 @@ class ChatGroupingController extends ModuleInstance {
 		$context->reply('You left the grouping.');
 	}
 
-	#[NCA\Event(
-		name: LeaveMyPrivEvent::EVENT_MASK,
-		description: 'Removes people from the grouping when they leave the channel'
-	)]
+	/** Removes people from the grouping when they leave the channel */
+	#[NCA\HandlesEvent]
 	public function leavePrivEvent(LeaveMyPrivEvent $eventObj): void {
 		if (!in_array($eventObj->sender, $this->joined, true)) {
 			return;

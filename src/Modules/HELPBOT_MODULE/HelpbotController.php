@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 
 /**
@@ -21,12 +22,12 @@ use Nadybot\Core\{
 	NCA\HasMigrations('Migrations/Dyna'),
 	NCA\DefineCommand(
 		command: 'dyna',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Search for RK Dynabosses',
 	),
 	NCA\DefineCommand(
 		command: 'oe',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Over-equipped calculation',
 	),
 ]

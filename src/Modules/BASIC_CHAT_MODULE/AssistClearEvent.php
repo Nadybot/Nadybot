@@ -2,15 +2,8 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-class AssistClearEvent extends Event {
-	public const EVENT_MASK = 'assist(clear)';
-
-	/** @param list<CallerList> $lists An empty list */
-	public function __construct(
-		public array $lists=[],
-	) {
-		$this->type = self::EVENT_MASK;
-	}
+#[Event(mask: 'assist(clear)')]
+class AssistClearEvent {
 }

@@ -2,21 +2,24 @@
 
 namespace Nadybot\Core\Modules\HELP;
 
-use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	BotRunner,
+	ClassLoader,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
 	DB,
+	Filesystem,
 	HelpManager,
 	ModuleInstance,
 	Modules\CONFIG\ConfigController,
 	Modules\PREFERENCES\Preferences,
-	Nadybot,
 	Safe,
 	Text,
+	Types\AccessLevel,
+	Types\Status,
 };
 
 /**
@@ -26,15 +29,15 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'help',
-		accessLevel: 'all',
+		accessLevel: AccessLevel::All,
 		description: 'Show help topics',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 	NCA\DefineCommand(
 		command: 'adminhelp',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Show admin help topics',
-		defaultStatus: 1
+		defaultStatus: Status::Enabled
 	),
 ]
 class HelpController extends ModuleInstance {
@@ -56,7 +59,7 @@ class HelpController extends ModuleInstance {
 	private Preferences $preferences;
 
 	#[NCA\Inject]
-	private Nadybot $chatBot;
+	private ClassLoader $classLoader;
 
 	#[NCA\Inject]
 	private ConfigController $configController;
@@ -73,7 +76,7 @@ class HelpController extends ModuleInstance {
 			$this->moduleName,
 			'about',
 			'about.txt',
-			'all',
+			AccessLevel::All,
 			'Info about the development of Nadybot'
 		);
 
@@ -92,7 +95,7 @@ class HelpController extends ModuleInstance {
 	#[NCA\HandlesCommand('help')]
 	public function helpListCommand(
 		CmdContext $context,
-		#[NCA\Str('topics', 'list')] string $action
+		#[Str('topics', 'list')] string $action
 	): void {
 		$data = collect($this->helpManager->getAllHelpTopics($context));
 
@@ -136,7 +139,7 @@ class HelpController extends ModuleInstance {
 	#[NCA\HandlesCommand('help')]
 	public function helpSyntaxCommand(
 		CmdContext $context,
-		#[NCA\Str('syntax')] string $action
+		#[Str('syntax')] string $action
 	): void {
 		$data = $this->fs->read(__DIR__ . '/syntax.txt');
 		$msg = Text::makeBlob('Help', trim($data));
@@ -147,9 +150,9 @@ class HelpController extends ModuleInstance {
 	#[NCA\HandlesCommand('help')]
 	public function helpModulesCommand(
 		CmdContext $context,
-		#[NCA\Str('modules')] string $action
+		#[Str('modules')] string $action
 	): void {
-		$modules = $this->chatBot->runner->classLoader->registeredModules;
+		$modules = $this->classLoader->getRegisteredModules();
 
 		/** @var array<string,string> */
 		$data = [];
@@ -194,7 +197,7 @@ class HelpController extends ModuleInstance {
 	public function helpLegendSettingCommand(
 		CmdContext $context,
 		bool $enable,
-		#[NCA\Str('explanation', 'legend')] string $topic
+		#[Str('explanation', 'legend')] string $topic
 	): void {
 		$this->preferences->save(
 			$context->char->name,
@@ -225,7 +228,7 @@ class HelpController extends ModuleInstance {
 
 		// check for alias
 		$row = $this->commandAlias->get($topic);
-		if ($row !== null && $row->status === 1) {
+		if ($row !== null && $row->status === Status::Enabled) {
 			$topic = explode(' ', $row->cmd)[0];
 		}
 

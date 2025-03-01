@@ -4,9 +4,10 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\NonGreedy,
+	Attributes\Parameter\Str,
 	CmdContext,
 	Config\BotConfig,
 	DB,
@@ -14,19 +15,25 @@ use Nadybot\Core\{
 	Events\OrgMsgChannelMsgEvent,
 	MessageHub,
 	ModuleInstance,
+	ParamClass\PDuration,
+	ParamClass\PTowerSite,
 	QueryBuilder,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Faction,
 	Types\Playfield,
 	Util
 };
-
-use Nadybot\Modules\LEVEL_MODULE\LevelController;
-use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfoEvent;
-use Nadybot\Modules\PVP_MODULE\FeedMessage\{SiteUpdate, TowerAttack, TowerOutcome};
+use Nadybot\Modules\{
+	LEVEL_MODULE\LevelController,
+	PVP_MODULE\Event\TowerAttackInfoEvent,
+	PVP_MODULE\FeedMessage\SiteUpdate,
+	PVP_MODULE\FeedMessage\TowerAttack,
+	PVP_MODULE\FeedMessage\TowerOutcome
+};
 use Psr\Log\LoggerInterface;
 
 use Throwable;
@@ -43,19 +50,19 @@ use Throwable;
 		command: AttacksController::CMD_ATTACKS,
 		alias: 'attacks',
 		description: 'Show the last Tower Attack messages',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: AttacksController::CMD_OUTCOMES,
 		alias: 'outcomes',
 		description: 'Show the last tower outcomes',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(
 		command: AttacksController::CMD_STATS,
 		alias: 'towerstats',
 		description: 'Show how many towers each faction has lost',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 	),
 ]
 class AttacksController extends ModuleInstance {
@@ -240,10 +247,8 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	#[NCA\Event(
-		name: OrgMsgChannelMsgEvent::EVENT_MASK,
-		description: "Notify if org's tower site defense shield is disabled via pvp(tower-shield-own)"
-	)]
+	/** Notify if org's tower site defense shield is disabled via pvp(tower-shield-own) */
+	#[NCA\HandlesEvent]
 	public function shieldLoweredMessageEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		if (isset($eventObj->sender)) {
 			return;
@@ -259,7 +264,7 @@ class AttacksController extends ModuleInstance {
 			return;
 		}
 		try {
-			$pf = Playfield::byName($matches['playfield']);
+			$pf = Playfield::fromName($matches['playfield']);
 		} catch (Throwable) {
 			return;
 		}
@@ -276,11 +281,11 @@ class AttacksController extends ModuleInstance {
 				name: $matches['att_name'],
 				charid: 0,
 				dimension: $this->config->main->dimension,
-				faction: Faction::from(ucfirst(strtolower($matches['att_faction']))),
+				faction: Faction::fromName($matches['att_faction']),
 				guild: $matches['att_org'],
 			);
 		} else {
-			$whois->faction = Faction::from(ucfirst(strtolower($matches['att_faction'])));
+			$whois->faction = Faction::fromName($matches['att_faction']);
 			$whois->guild = $matches['att_org'];
 		}
 		$siteName = $pf->short();
@@ -317,10 +322,8 @@ class AttacksController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[NCA\Event(
-		name: OrgMsgChannelMsgEvent::EVENT_MASK,
-		description: "Notify if org's towers are attacked via pvp(tower-hit-own)"
-	)]
+	/** Notify if org's towers are attacked via pvp(tower-hit-own) */
+	#[NCA\HandlesEvent]
 	public function attackOwnOrgMessageEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		if (isset($eventObj->sender)) {
 			return;
@@ -340,7 +343,7 @@ class AttacksController extends ModuleInstance {
 		}
 
 		try {
-			$pf = Playfield::byName($matches['playfield']);
+			$pf = Playfield::fromName($matches['playfield']);
 		} catch (Throwable) {
 			return;
 		}
@@ -411,7 +414,8 @@ class AttacksController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[NCA\Event('tower-attack-info', 'Announce tower attacks')]
+	/** Announce tower attacks */
+	#[NCA\HandlesEvent]
 	public function announceTowerAttack(TowerAttackInfoEvent $event): void {
 		if ($event->site === null) {
 			$this->logger->error('ERROR! Could not find closest site for attack');
@@ -432,7 +436,7 @@ class AttacksController extends ModuleInstance {
 			"Attack on {$shortSite}",
 		);
 
-		/** @var array<string,int|string|null> */
+		/** @var array<string,null|int|string> */
 		$tokens = array_merge(
 			$event->attack->getTokens(),
 			$site->playfield->getTokens(),
@@ -456,7 +460,8 @@ class AttacksController extends ModuleInstance {
 		$this->siteTracker->fireEvent(new RoutableMessage($msg), $site, 'tower-attack');
 	}
 
-	#[NCA\Event('tower-outcome', 'Announce tower victories and abandoned sites')]
+	/** Announce tower victories and abandoned sites */
+	#[NCA\HandlesEvent]
 	public function announceTowerVictories(Event\TowerOutcomeEvent $event): void {
 		$outcome = $event->outcome;
 		$pf = $outcome->playfield;
@@ -475,7 +480,7 @@ class AttacksController extends ModuleInstance {
 		$site->ql = null;
 		*/
 
-		/** @var array<string,string|int|null> */
+		/** @var array<string,null|string|int> */
 		$tokens = array_merge(
 			$outcome->getTokens(),
 			$site->getTokens(),
@@ -509,7 +514,7 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
 	public function nwAttacksAnywhereCommand(
 		CmdContext $context,
-		#[NCA\Str('attacks')] string $action,
+		#[Str('attacks')] string $action,
 		?int $page,
 	): void {
 		$query = $this->db->table(DBTowerAttack::getTable());
@@ -526,23 +531,16 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
 	public function nwAttacksForSiteCommand(
 		CmdContext $context,
-		#[NCA\Str('attacks')] string $action,
+		#[Str('attacks')] string $action,
 		PTowerSite $towerSite,
 		?int $page,
 	): void {
-		try {
-			$pf = Playfield::byName($towerSite->pf);
-		} catch (Throwable) {
-			$msg = "Playfield <highlight>{$towerSite->pf}<end> could not be found.";
-			$context->reply($msg);
-			return;
-		}
 		$query = $this->db->table(DBTowerAttack::getTable())
-			->where('playfield_id', $pf->value)
+			->where('playfield_id', $towerSite->pf->value)
 			->where('site_id', $towerSite->site);
 		$context->reply($this->nwAttacksCmd(
 			$query,
-			"Tower Attacks on {$pf->short()} {$towerSite->site}",
+			"Tower Attacks on {$towerSite->pf->short()} {$towerSite->site}",
 			'nw attacks',
 			$page??1,
 			false,
@@ -559,12 +557,12 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>nw attacks org Komodo')]
 	public function nwAttacksForOrgCommand(
 		CmdContext $context,
-		#[NCA\Str('attacks')] string $action,
-		#[NCA\Str('org')] string $org,
-		PNonGreedy $orgName,
+		#[Str('attacks')] string $action,
+		#[Str('org')] string $org,
+		#[NonGreedy] string $orgName,
 		?int $page,
 	): void {
-		$search = str_replace('*', '%', $orgName());
+		$search = str_replace('*', '%', $orgName);
 		$query = $this->db->table(DBTowerAttack::getTable())
 			->whereIlike('att_org', $search)
 			->orWhereIlike('def_org', $search);
@@ -589,13 +587,13 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>nw attacks char nadyita')]
 	public function nwAttacksForCharCommand(
 		CmdContext $context,
-		#[NCA\Str('attacks')] string $action,
-		#[NCA\Str('char')] string $char,
-		PNonGreedy $search,
+		#[Str('attacks')] string $action,
+		#[Str('char')] string $char,
+		#[NonGreedy] string $search,
 		?int $page,
 	): void {
 		$query = $this->db->table(DBTowerAttack::getTable())
-			->whereIlike('att_name', str_replace('*', '%', $search()));
+			->whereIlike('att_name', str_replace('*', '%', $search));
 		$context->reply(
 			$this->nwAttacksCmd(
 				$query,
@@ -611,7 +609,7 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_STATS)]
 	public function nwSTatsCommand(
 		CmdContext $context,
-		#[NCA\Str('stats')] string $action,
+		#[Str('stats')] string $action,
 		?PDuration $duration,
 	): void {
 		$from = time() - (isset($duration) ? $duration->toSecs() : 3_600 * 24);
@@ -666,7 +664,7 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_OUTCOMES)]
 	public function nwOutcomesAnywhereCommand(
 		CmdContext $context,
-		#[NCA\Str('victory')] string $action,
+		#[Str('victory')] string $action,
 		?int $page,
 	): void {
 		$query = $this->db->table(DBOutcome::getTable());
@@ -682,23 +680,16 @@ class AttacksController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_OUTCOMES)]
 	public function nwOutcomesForSiteCommand(
 		CmdContext $context,
-		#[NCA\Str('victory')] string $action,
+		#[Str('victory')] string $action,
 		PTowerSite $towerSite,
 		?int $page,
 	): void {
-		try {
-			$pf = Playfield::byName($towerSite->pf);
-		} catch (Throwable) {
-			$msg = "Playfield <highlight>{$towerSite->pf}<end> could not be found.";
-			$context->reply($msg);
-			return;
-		}
 		$query = $this->db->table(DBOutcome::getTable())
-			->where('playfield_id', $pf->value)
+			->where('playfield_id', $towerSite->pf->value)
 			->where('site_id', $towerSite->site);
 		$context->reply($this->nwOutcomesCmd(
 			$query,
-			"Tower Victories on {$pf->short()} {$towerSite->site}",
+			"Tower Victories on {$towerSite->pf->short()} {$towerSite->site}",
 			'nw victory',
 			$page??1,
 		));
@@ -714,12 +705,12 @@ class AttacksController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>nw victory org Komodo')]
 	public function nwOutcomesForOrgCommand(
 		CmdContext $context,
-		#[NCA\Str('victory')] string $action,
-		#[NCA\Str('org')] string $org,
-		PNonGreedy $orgName,
+		#[Str('victory')] string $action,
+		#[Str('org')] string $org,
+		#[NonGreedy] string $orgName,
 		?int $page,
 	): void {
-		$search = str_replace('*', '%', $orgName());
+		$search = str_replace('*', '%', $orgName);
 		$query = $this->db->table(DBOutcome::getTable())
 			->whereIlike('attacker_org', $search)
 			->orWhereIlike('losing_org', $search);

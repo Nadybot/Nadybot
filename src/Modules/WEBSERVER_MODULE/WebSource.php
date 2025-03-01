@@ -20,4 +20,15 @@ class WebSource extends Source {
 			dimension: $dimension,
 		);
 	}
+
+	public function updateWith(Source $source): self {
+		return new self(
+			type: $source->type,
+			name: $source->name,
+			color: $this->color,
+			renderAs: $this->renderAs,
+			label: $source->label,
+			dimension: $source->server ?? $this->server,
+		);
+	}
 }

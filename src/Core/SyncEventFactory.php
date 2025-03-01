@@ -4,19 +4,31 @@ namespace Nadybot\Core;
 
 use function Safe\{json_decode, json_encode};
 
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use InvalidArgumentException;
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
+use ReflectionAttribute;
+use ReflectionClass;
 
+/**
+ * Convert generic sync events and a given type into actual specific sync events
+ * the bot knows and can handle.
+ */
 class SyncEventFactory {
 	/**
+	 * A mapping event type to class name
+	 *
 	 * @var array<string,string>
 	 *
 	 * @psalm-var array<string,class-string<SyncEvent>>
 	 */
 	private static array $classMapping = [];
 
-	/** @param array<string,mixed>|object $data */
+	/**
+	 * Create a real sync event from an arbitrary object, or associative array
+	 *
+	 * @param array<string,mixed>|object $data
+	 */
 	public static function create(array|object $data): SyncEvent {
 		if (is_object($data)) {
 			$data = json_decode(json_encode($data), true);
@@ -32,16 +44,16 @@ class SyncEventFactory {
 		if (!isset($class)) {
 			throw new InvalidArgumentException(__CLASS__  . '::create(): Argument #1 ($data) is an unknown (Sync-)Event');
 		}
-		return Hydrator::hydrate(
+		return Hydrator::literalHydrate(
 			className: $class,
 			data: $data,
-			definitionProvider: new DefinitionProvider(
-				keyFormatter: new KeyFormatterWithoutConversion(),
-			),
 		);
 	}
 
 	/**
+	 * Parse all known classes if they define a sync event and return a mapping
+	 * of sync event type to class name
+	 *
 	 * @return array<string,string>
 	 *
 	 * @psalm-return array<string,class-string<SyncEvent>>
@@ -54,7 +66,16 @@ class SyncEventFactory {
 			if (!is_a($class, SyncEvent::class, true)) {
 				continue;
 			}
-			self::$classMapping[$class::EVENT_MASK] = $class;
+			$refClass = new ReflectionClass($class);
+			if ($refClass->isAbstract()) {
+				continue;
+			}
+			$refAttr = $refClass->getAttributes(Event::class, ReflectionAttribute::IS_INSTANCEOF);
+			if (!count($refAttr)) {
+				continue;
+			}
+
+			self::$classMapping[$refAttr[0]->newInstance()->mask] = $class;
 		}
 		return self::$classMapping;
 	}

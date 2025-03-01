@@ -5,7 +5,7 @@ namespace Nadybot\Modules\PVP_MODULE\Handlers;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 
 abstract class Base {
-	public function __construct(
+	final public function __construct(
 		protected string $value
 	) {
 		$this->validateValue();

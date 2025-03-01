@@ -3,20 +3,27 @@
 namespace Nadybot\Modules\FUN_MODULE;
 
 use function Amp\delay;
-use Nadybot\Core\Events\JoinMyPrivEvent;
-use Nadybot\Core\Modules\ALTS\{AltNewMainEvent, AltsController};
 
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Modules\PREFERENCES\Preferences;
-use Nadybot\Core\ParamClass\{PRemove, PUuid};
+use AO\Utils;
+use Nadybot\Core\Modules\{
+	ALTS\AltNewMainEvent,
+	ALTS\AltsController,
+	PLAYER_LOOKUP\PlayerManager,
+	PREFERENCES\Preferences,
+};
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Str,
 	CmdContext,
 	DB,
+	Events\JoinMyPrivEvent,
 	Events\LogonEvent,
 	ModuleInstance,
+	MyOrg,
 	Nadybot,
+	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 };
 use Psr\Log\LoggerInterface;
 
@@ -28,12 +35,12 @@ use Psr\Log\LoggerInterface;
 	NCA\DefineCommand(
 		command: 'greeting',
 		description: 'Manage custom greeting messages',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 	),
 	NCA\DefineCommand(
 		command: 'greeting on/off',
 		description: 'Enable/Disable greeting messages for oneself',
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 	),
 ]
 class GreetController extends ModuleInstance {
@@ -134,6 +141,9 @@ class GreetController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	/** @var array<string,int> */
 	private static array $greetCount = [];
 
@@ -142,10 +152,8 @@ class GreetController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/greeting.csv');
 	}
 
-	#[NCA\Event(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Greet players joining the private channel',
-	)]
+	/** Greet players joining the private channel */
+	#[NCA\HandlesEvent]
 	public function sendRandomJoinGreeting(JoinMyPrivEvent $event): void {
 		if (!$this->needsGreeting($event->sender)) {
 			return;
@@ -164,13 +172,11 @@ class GreetController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Greet org members logging on'
-	)]
+	/** Greet org members logging on */
+	#[NCA\HandlesEvent]
 	public function sendRandomLogonGreeting(LogonEvent $event): void {
 		$sender = $event->sender;
-		if (!isset($this->chatBot->guildmembers[$sender])
+		if (!$this->myOrg->isMember($sender)
 			|| !$this->chatBot->isReady()
 			|| $event->wasOnline !== false) {
 			return;
@@ -226,7 +232,7 @@ class GreetController extends ModuleInstance {
 	#[NCA\Help\Example(command: 'greeting add main=Nady You again, *name*?')]
 	public function addGreeting(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		string $greeting,
 	): void {
 		$fun = new Fun(
@@ -241,7 +247,7 @@ class GreetController extends ModuleInstance {
 	/** Remove a custom greeting */
 	public function delGreeting(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Parameter\Remove] string $action,
 		PUuid $id,
 	): void {
 		$id = $id();
@@ -260,7 +266,7 @@ class GreetController extends ModuleInstance {
 	/** Enable greeting messages for you and your alts */
 	public function enableGreetings(
 		CmdContext $context,
-		#[NCA\Str('on')] string $action,
+		#[Str('on')] string $action,
 	): void {
 		$main = $this->altsController->getMainOf($context->char->name);
 		$this->prefs->save($main, self::PREF, self::PREF_ON);
@@ -271,17 +277,15 @@ class GreetController extends ModuleInstance {
 	/** Disable greeting messages for you and your alts */
 	public function disableGreetings(
 		CmdContext $context,
-		#[NCA\Str('off')] string $action,
+		#[Str('off')] string $action,
 	): void {
 		$main = $this->altsController->getMainOf($context->char->name);
 		$this->prefs->save($main, self::PREF, self::PREF_OFF);
 		$context->reply('Receiving greetings is now <off>disabled<end>.');
 	}
 
-	#[NCA\Event(
-		name: AltNewMainEvent::EVENT_MASK,
-		description: 'Move greeting preferences to new main'
-	)]
+	/** Move greeting preferences to new main */
+	#[NCA\HandlesEvent]
 	public function moveGreetingPrefs(AltNewMainEvent $event): void {
 		$oldSetting = $this->prefs->get($event->alt, self::PREF);
 		if ($oldSetting === null) {
@@ -306,12 +310,12 @@ class GreetController extends ModuleInstance {
 	protected function matchesGreetingCheck(string $token, string $value, string $target): bool {
 		switch ($token) {
 			case 'main':
-				return $this->altsController->getMainOf($target) === ucfirst(strtolower($value));
+				return $this->altsController->getMainOf($target) === Utils::normalizeCharacter($value);
 			case 'name':
 			case 'char':
 			case 'charname':
 			case 'character':
-				return $target === ucfirst(strtolower($value));
+				return $target === Utils::normalizeCharacter($value);
 		}
 
 		$player = $this->playerManager->byName($target);

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\IMPLANT_MODULE;
 use ValueError;
 
 enum SymbiantType: string {
-	public static function byName(string $name): self {
+	public static function fromName(string $name): self {
 		return match (strtolower(substr($name, 0, 3))) {
 			'art' => self::Artillery,
 			'sup' => self::Support,

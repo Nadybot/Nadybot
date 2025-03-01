@@ -6,14 +6,11 @@ use function Amp\Future\await;
 use function Amp\{async, delay};
 use function Safe\json_decode;
 
-use Amp\File\FileCache;
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
-use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;
 
 use DateInterval;
 use DateTimeZone;
-use EventSauce\ObjectHydrator\{DefinitionProvider, KeyFormatterWithoutConversion};
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -21,7 +18,6 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
-	Filesystem,
 	Hydrator,
 	ModuleInstance,
 	Nadybot,
@@ -30,6 +26,7 @@ use Nadybot\Core\{
 	Types\Profession,
 };
 use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\CacheInterface;
 use Safe\DateTimeImmutable;
 
 /**
@@ -58,16 +55,8 @@ class GuildManager extends ModuleInstance {
 	#[NCA\Inject]
 	private PlayerManager $playerManager;
 
-	#[NCA\Inject]
-	private Filesystem $fs;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$filePath = $this->config->paths->cache . '/guild_roster';
-		if (!$this->fs->exists($filePath)) {
-			$this->fs->createDirectory($filePath, 0o700);
-		}
-	}
+	#[NCA\Cache(prefix: 'guild_roster')]
+	private CacheInterface $cache;
 
 	public function byId(int $guildID, ?int $dimension=null, bool $forceUpdate=false): ?Guild {
 		// if no server number is specified use the one on which the bot is logged in
@@ -75,20 +64,15 @@ class GuildManager extends ModuleInstance {
 		$body = null;
 
 		$baseUrl = $this->playerManager->porkUrl;
-		$maxCacheAge = 86_400;
+		$maxCacheAge = new DateInterval('PT24H');
 		if ($this->isMyGuild($guildID)) {
-			$maxCacheAge = 21_600;
+			$maxCacheAge = new DateInterval('PT6H');
 		}
 
-		$cache = new FileCache(
-			$this->config->paths->cache . '/guild_roster',
-			new LocalKeyedMutex(),
-			$this->fs->getFilesystem()
-		);
 		$cacheKey = "{$guildID}.{$dimension}";
 		$fromCache = true;
 		if (!$forceUpdate) {
-			$body = $cache->get($cacheKey);
+			$body = $this->cache->get($cacheKey);
 		}
 
 		$try = 0;
@@ -110,7 +94,7 @@ class GuildManager extends ModuleInstance {
 					'url' => $url,
 					'duration' => $end - $start,
 				]);
-				$cache->set($cacheKey, $body, $maxCacheAge);
+				$this->cache->set($cacheKey, $body, $maxCacheAge);
 				$fromCache = false;
 			} catch (\Amp\TimeoutException | \Amp\CancelledException) {
 				$baseUrl = $this->playerManager::PORK_URL;
@@ -136,12 +120,11 @@ class GuildManager extends ModuleInstance {
 
 		[$orgInfo, $members, $lastUpdated] = json_decode($body, true);
 
-		$dp = new DefinitionProvider(keyFormatter: new KeyFormatterWithoutConversion());
-		$orgInfo = Hydrator::hydrate(DTOGuild::class, $orgInfo, $dp);
+		$orgInfo = Hydrator::literalHydrate(DTOGuild::class, $orgInfo);
 		if ($orgInfo->NAME === null) {
 			return null;
 		}
-		$members = Hydrator::hydrateObjects(DTOGuildMember::class, $members, $dp)->toArray();
+		$members = Hydrator::literalHydrateObjects(DTOGuildMember::class, $members)->toArray();
 
 		// parsing of the member data
 		$guild = new Guild(
@@ -155,7 +138,7 @@ class GuildManager extends ModuleInstance {
 		// Try to reduce the cache time to the last updated time + 24h
 		if (isset($luDateTime)) {
 			$newCacheDuration = max(60, 86_400 - (time() - $luDateTime->getTimestamp()));
-			$cache->set($cacheKey, $body, $newCacheDuration);
+			$this->cache->set($cacheKey, $body, $newCacheDuration);
 		}
 		if (isset($luDateTime) && $this->isMyGuild($guild->guild_id)) {
 			// Try to time the next roster update to occur 1 day and 10m after the last export

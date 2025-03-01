@@ -6,15 +6,16 @@ use function Safe\preg_match;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Parameter\Remove,
+	Attributes\Parameter\Str,
 	BuddylistEntry,
 	BuddylistManager,
 	CmdContext,
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
-	ParamClass\PWord,
 	Text,
+	Types\AccessLevel,
 };
 
 /**
@@ -24,7 +25,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'buddylist',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'Shows and manages buddies on the buddylist',
 		alias: 'friendlist'
 	)
@@ -41,7 +42,7 @@ class BuddylistController extends ModuleInstance {
 	public function buddylistShowCommand(CmdContext $context): void {
 		$orphanCount = 0;
 		$dupeCount = 0;
-		if (count($this->buddylistManager->buddyList) === 0) {
+		if ($this->buddylistManager->getSize() === 0) {
 			$msg = 'There are no players on the buddy list.';
 			$context->reply($msg);
 			return;
@@ -88,10 +89,10 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistClearCommand(
 		CmdContext $context,
-		#[NCA\Str('clear', 'clean')] string $action
+		#[Str('clear', 'clean')] string $action
 	): void {
 		$orphanCount = 0;
-		if (count($this->buddylistManager->buddyList) === 0) {
+		if ($this->buddylistManager->getSize() === 0) {
 			$msg = 'There are no players on the buddy list.';
 			$context->reply($msg);
 			return;
@@ -132,13 +133,13 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
+		#[Str('add')] string $action,
 		PCharacter $who,
-		PWord $type
+		#[NCA\Parameter\WordStr] string $type
 	): void {
 		$name = $who();
 
-		if (true === $this->buddylistManager->addName($name, $type())) {
+		if (true === $this->buddylistManager->addName($name, $type)) {
 			$msg = "<highlight>{$name}<end> added to the buddy list successfully.";
 		} else {
 			$msg = "Could not add <highlight>{$name}<end> to the buddy list.";
@@ -151,10 +152,10 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistRemAllCommand(
 		CmdContext $context,
-		PRemove $rem,
-		#[NCA\Str('all')] string $all
+		#[Remove] string $rem,
+		#[Str('all')] string $all
 	): void {
-		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
+		foreach ($this->buddylistManager->getBuddylist() as $uid => $buddy) {
 			$this->chatBot->aoClient->buddyRemove($uid);
 		}
 
@@ -170,13 +171,13 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistRemCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[Remove] string $action,
 		PCharacter $who,
-		PWord $type
+		#[NCA\Parameter\WordStr] string $type
 	): void {
 		$name = $who();
 
-		if ($this->buddylistManager->remove($name, $type())) {
+		if ($this->buddylistManager->remove($name, $type)) {
 			$msg = "<highlight>{$name}<end> removed from the buddy list successfully.";
 		} else {
 			$msg = "Could not remove <highlight>{$name}<end> from the buddy list.";
@@ -206,10 +207,10 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistSearchCommand(
 		CmdContext $context,
-		#[NCA\Str('search')] string $action,
+		#[Str('search')] string $action,
 		string $search
 	): void {
-		if (count($this->buddylistManager->buddyList) === 0) {
+		if ($this->buddylistManager->getSize() === 0) {
 			$msg = 'There are no characters on the buddy list.';
 			$context->reply($msg);
 			return;
@@ -235,9 +236,9 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\HandlesCommand('buddylist')]
 	public function buddylistRebalanceCommand(
 		CmdContext $context,
-		#[NCA\Str('rebalance')] string $action,
+		#[Str('rebalance')] string $action,
 	): void {
-		if (count($this->buddylistManager->buddyList) === 0) {
+		if ($this->buddylistManager->getSize() === 0) {
 			$context->reply('There are no characters on the buddy list.');
 			return;
 		}
@@ -247,7 +248,7 @@ class BuddylistController extends ModuleInstance {
 		}
 		$this->buddylistManager->rebalance($context);
 		$context->reply(
-			'Rebalancing all ' . count($this->buddylistManager->buddyList) . ' buddies...'
+			"Rebalancing all {$this->buddylistManager->getSize()} buddies..."
 		);
 	}
 
@@ -257,7 +258,7 @@ class BuddylistController extends ModuleInstance {
 	 * @psalm-return list<BuddylistEntry>
 	 */
 	public function getSortedBuddyList(): array {
-		$buddylist = $this->buddylistManager->buddyList;
+		$buddylist = $this->buddylistManager->getBuddylist();
 		usort($buddylist, static function (BuddylistEntry $entry1, BuddylistEntry $entry2): int {
 			return strnatcmp($entry1->name, $entry2->name);
 		});

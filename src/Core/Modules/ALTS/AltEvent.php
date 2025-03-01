@@ -2,12 +2,22 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\{Attributes as NCA, StringableTrait};
+use Stringable;
 
-abstract class AltEvent extends Event {
-	public const EVENT_MASK = 'alt(*)';
+#[NCA\Event(mask: 'alt(*)')]
+abstract class AltEvent implements Stringable {
+	use StringableTrait;
 
-	public string $main;
-	public string $alt;
-	public ?bool $validated;
+	/**
+	 * @param string    $main      Name of the main character
+	 * @param string    $alt       Name of the alt
+	 * @param null|bool $validated Validated or `null` if unknown
+	 */
+	public function __construct(
+		public string $main,
+		public string $alt,
+		public ?bool $validated,
+	) {
+	}
 }

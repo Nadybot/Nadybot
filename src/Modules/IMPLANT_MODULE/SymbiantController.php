@@ -3,24 +3,21 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\{AccessLevel, ImplantSlot, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
-	ParamClass\PWord,
 	Safe,
 	Text,
 	Types\Profession,
-	Util,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
 	ExtBuff,
 	ItemWithBuffs,
 	ItemsController,
-	Skill,
-	WhatBuffsController,
 };
 
 /**
@@ -30,17 +27,17 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'bestsymbiants',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows the best symbiants for the slots',
 	),
 	NCA\DefineCommand(
 		command: 'symbcompare',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Compare symbiants with each other',
 	),
 	NCA\DefineCommand(
 		command: 'symbbuffs',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find symbiants buffing a given skill',
 	)
 ]
@@ -52,21 +49,16 @@ class SymbiantController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private Text $text;
-
-	#[NCA\Inject]
 	private ItemsController $itemsController;
-
-	#[NCA\Inject]
-	private WhatBuffsController $wbCtrl;
-
-	#[NCA\Inject]
-	private Util $util;
 
 	/** Show the 3 best symbiants for a profession at a given level */
 	#[NCA\HandlesCommand('bestsymbiants')]
 	#[NCA\Help\Example('<symbol>bestsymbiants 120 enf')]
-	public function findBestSymbiantsLvlProf(CmdContext $context, int $level, PWord $prof): void {
+	public function findBestSymbiantsLvlProf(
+		CmdContext $context,
+		int $level,
+		Profession $prof
+	): void {
 		$context->reply(
 			$this->findBestSymbiants($context, $prof, $level)
 		);
@@ -75,7 +67,11 @@ class SymbiantController extends ModuleInstance {
 	/** Show the 3 best symbiants for a profession at a given level */
 	#[NCA\HandlesCommand('bestsymbiants')]
 	#[NCA\Help\Example('<symbol>bestsymbiants 15 trader')]
-	public function findBestSymbiantsProfLvl(CmdContext $context, PWord $prof, int $level): void {
+	public function findBestSymbiantsProfLvl(
+		CmdContext $context,
+		Profession $prof,
+		int $level
+	): void {
 		$context->reply(
 			$this->findBestSymbiants($context, $prof, $level)
 		);
@@ -130,8 +126,8 @@ class SymbiantController extends ModuleInstance {
 					$colorStart = '<font color=#90FF90>';
 					$colorEnd = '</font>';
 				}
-				$blob .= "<tab>{$colorStart}" . $buff->skill->name;
-				$blob .= ': ' . sprintf('%+d', $buff->amount) . $buff->skill->unit;
+				$blob .= "<tab>{$colorStart}{$buff->skill->fullName()}";
+				$blob .= ': ' . sprintf('%+d', $buff->amount) . $buff->skill->unit();
 				$blob .= "{$colorEnd}\n";
 			}
 			return $blob;
@@ -143,7 +139,7 @@ class SymbiantController extends ModuleInstance {
 	/** Find symbiants  buffing a given skill */
 	#[NCA\HandlesCommand('symbbuffs')]
 	public function findSymbiants(CmdContext $context, string $skillName): void {
-		$skills = $this->wbCtrl->searchForSkill($skillName);
+		$skills = Skill::getMatching($skillName);
 		if (count($skills) === 0) {
 			$context->reply("No skill matching '<highlight>{$skillName}<end>' found.");
 			return;
@@ -154,7 +150,7 @@ class SymbiantController extends ModuleInstance {
 			if (count($symbs) === 0) {
 				continue;
 			}
-			$skillBlocks []= "<header2>{$skill->name}<end>\n" . $this->renderSymbiantBuffs(...$symbs);
+			$skillBlocks []= "<header2>{$skill->inGame()}<end>\n" . $this->renderSymbiantBuffs(...$symbs);
 		}
 		if (count($skillBlocks) === 0) {
 			$context->reply("No symbiants buffing '<highlight>{$skillName}<end>' found.");
@@ -167,36 +163,29 @@ class SymbiantController extends ModuleInstance {
 
 	/** @param iterable<string,SymbiantConfig> $configs */
 	protected function configsToBlob(iterable $configs): string {
-		$types = $this->db->table(ImplantType::getTable())
-			->asObjArr(ImplantType::class);
-
-		/** @var array<string,string> */
-		$typeMap = array_column($types, 'name', 'short_name');
 		$blob = '';
-		$slots = get_class_vars(SymbiantConfig::class);
-		foreach ($slots as $slot => $defaultValue) {
-			if (!isset($typeMap[$slot])) {
-				continue;
-			}
-			$blob .= "\n<pagebreak><header2>" . $typeMap[$slot];
+		foreach (ImplantSlot::cases() as $slot) {
+			$blob .= "\n<pagebreak><header2>{$slot->longName()}";
 			$aoids = [];
 			foreach ($configs as $unit => $config) {
-				if (!count($config->{$slot})) {
+				$symbs = $config->get($slot);
+				if (!count($symbs)) {
 					continue;
 				}
-				$aoids []= $config->{$slot}[0]->id;
+				$aoids []= $symbs[0]->id;
 			}
 			$blob .= ' [' . Text::makeChatcmd(
 				'compare',
 				'/tell <myname> symbcompare ' . implode(' ', $aoids)
 			) . "]<end>\n";
 			foreach ($configs as $unit => $config) {
-				if (!count($config->{$slot})) {
+				$symbs = $config->get($slot);
+				if (!count($symbs)) {
 					continue;
 				}
 
 				/** @var list<Symbiant> */
-				$symbs = array_slice($config->{$slot}, 0, 3);
+				$symbs = array_slice($symbs, 0, 3);
 
 				/** @var list<string> */
 				$links = array_map(
@@ -223,7 +212,7 @@ class SymbiantController extends ModuleInstance {
 		$symbs = collect($symbiants);
 
 		/** @var Collection<string,Collection<int,Symbiant>> */
-		$bySlot = $symbs->groupBy('slot_long_name');
+		$bySlot = $symbs->groupBy(static fn (Symbiant $s): string => $s->slot->longName());
 		foreach ($bySlot as $slotName => $slotSymbs) {
 			$lines = ["<tab><highlight>{$slotName}<end>"];
 
@@ -284,25 +273,19 @@ class SymbiantController extends ModuleInstance {
 		return $this->db->table(Symbiant::getTable(), 'sym')
 			->join(SymbiantClusterMatrix::getTable(as: 'scm'), 'scm.symbiant_id', '=', 'sym.id')
 			->join(Cluster::getTable() . ' AS c', 'c.cluster_id', '=', 'scm.cluster_id')
-			->join(ImplantType::getTable(as: 'it'), 'it.implant_type_id', 'sym.slot_id')
-			->select(['sym.*', 'it.short_name AS slot_name', 'it.name AS slot_long_name'])
-			->where('c.skill_id', $skill->id)
+			->select(['sym.*'])
+			->where('c.skill_id', $skill->value)
 			->asObjArr(Symbiant::class);
 	}
 
 	/** @return list<string> */
-	private function findBestSymbiants(CmdContext $context, ?PWord $prof, ?int $level): array {
-		if (!isset($level) || !isset($prof)) {
+	private function findBestSymbiants(CmdContext $context, ?Profession $profession, ?int $level): array {
+		if (!isset($level) || !isset($profession)) {
 			$whois = $this->playerManager->byName($context->char->name);
 			if (!isset($whois) || !isset($whois->profession) || !isset($whois->level)) {
 				return ['Could not retrieve whois info for you.'];
 			}
 			return $this->getAndRenderBestSymbiants($whois->profession, $whois->level);
-		}
-		try {
-			$profession = Profession::byName($prof());
-		} catch (\Exception) {
-			return ["Could not find profession <highlight>{$prof}<end>."];
 		}
 		return $this->getAndRenderBestSymbiants($profession, $level);
 	}
@@ -311,11 +294,10 @@ class SymbiantController extends ModuleInstance {
 	private function getAndRenderBestSymbiants(Profession $prof, int $level): array {
 		$query = $this->db->table(Symbiant::getTable(), 's')
 			->join(SymbiantProfessionMatrix::getTable('spm'), 'spm.symbiant_id', 's.id')
-			->join(ImplantType::getTable(as: 'it'), 'it.implant_type_id', 's.slot_id')
 			->where('spm.profession_id', $prof->toNumber())
 			->where('s.level_req', '<=', $level)
 			->where('s.name', 'NOT LIKE', 'Prototype%')
-			->select(['s.*', 'it.short_name AS slot_name', 'it.name AS slot_long_name']);
+			->select(['s.*']);
 		$query->orderByRaw($query->grammar->wrap('s.name') . ' like ? desc', ['%Alpha']);
 		$query->orderByRaw($query->grammar->wrap('s.name') . ' like ? desc', ['%Beta']);
 		$query->orderByDesc('s.ql');
@@ -329,7 +311,7 @@ class SymbiantController extends ModuleInstance {
 				$symbiant->unit = 'Special';
 			}
 			$configs[$symbiant->unit] ??= new SymbiantConfig();
-			$configs[$symbiant->unit]->{$symbiant->slot_name} []= $symbiant;
+			$configs[$symbiant->unit]->set($symbiant);
 		}
 		$blob = $this->configsToBlob($configs);
 		$msg = Text::makeBlob(

@@ -2,14 +2,8 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-class RaffleEndEvent extends Event {
-	public const EVENT_MASK = 'raffle(end)';
-
-	public function __construct(
-		public Raffle $raffle,
-	) {
-		$this->type = self::EVENT_MASK;
-	}
+#[Event(mask: 'raffle(end)')]
+class RaffleEndEvent extends RaffleEvent {
 }

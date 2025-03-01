@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use AO\Package;
 use AO\Package\PackageType;
+use AO\{Package, Utils};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -21,23 +21,15 @@ use Nadybot\Modules\RELAY_MODULE\{
 };
 use Revolt\EventLoop;
 
-#[
-	NCA\RelayTransport(
-		name: 'tell',
-		description: "This is the Anarchy Online private message (tell) protocol.\n".
-			"You can use this to relay messages internally inside Anarchy Online\n".
-			"via sending tells. This is the simplest form of relaying messages.\n".
-			"Be aware though, that tells are rate-limited and will very likely\n".
-			"lag a lot. It is also not possible to setup a relay with more\n".
-			'then 2 bots this way.'
-	),
-	NCA\Param(
-		name: 'bot',
-		type: 'string',
-		description: 'The name of the other bot',
-		required: true
-	)
-]
+/**
+ * This is the Anarchy Online private message (tell) protocol.
+ * You can use this to relay messages internally inside Anarchy Online
+ * via sending tells. This is the simplest form of relaying messages.
+ * Be aware though, that tells are rate-limited and will very likely
+ * lag a lot. It is also not possible to setup a relay with more
+ * than 2 bots this way.
+ */
+#[NCA\RelayTransport(name: 'tell')]
 class Tell implements TransportInterface {
 	protected Relay $relay;
 
@@ -55,8 +47,11 @@ class Tell implements TransportInterface {
 	#[NCA\Inject]
 	private BuddylistManager $buddylistManager;
 
-	public function __construct(string $bot) {
-		$bot = ucfirst(strtolower($bot));
+	/** @param string $bot The name of the other bot */
+	public function __construct(
+		#[NCA\Param] string $bot
+	) {
+		$bot = Utils::normalizeCharacter($bot);
 		$this->bot = $bot;
 	}
 
@@ -111,9 +106,9 @@ class Tell implements TransportInterface {
 	}
 
 	public function init(callable $callback): array {
-		$this->eventManager->subscribe(RecvMsgEvent::EVENT_MASK, $this->receiveMessage(...));
-		$this->eventManager->subscribe(LogonEvent::EVENT_MASK, $this->botOnline(...));
-		$this->eventManager->subscribe(LogoffEvent::EVENT_MASK, $this->botOffline(...));
+		$this->eventManager->subscribe('msg', $this->receiveMessage(...));
+		$this->eventManager->subscribe('logon', $this->botOnline(...));
+		$this->eventManager->subscribe('logoff', $this->botOffline(...));
 		if ($this->buddylistManager->isOnline($this->bot)) {
 			$callback();
 		} else {
@@ -128,9 +123,9 @@ class Tell implements TransportInterface {
 	}
 
 	public function deinit(callable $callback): array {
-		$this->eventManager->unsubscribe(RecvMsgEvent::EVENT_MASK, $this->receiveMessage(...));
-		$this->eventManager->unsubscribe(LogonEvent::EVENT_MASK, $this->botOnline(...));
-		$this->eventManager->unsubscribe(LogoffEvent::EVENT_MASK, $this->botOffline(...));
+		$this->eventManager->unsubscribe('msg', $this->receiveMessage(...));
+		$this->eventManager->unsubscribe('logon', $this->botOnline(...));
+		$this->eventManager->unsubscribe('logoff', $this->botOffline(...));
 		$this->buddylistManager->remove(
 			$this->bot,
 			$this->relay->getName() . '_relay'

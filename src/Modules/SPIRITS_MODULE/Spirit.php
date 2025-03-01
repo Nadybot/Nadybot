@@ -13,7 +13,7 @@ class Spirit extends DBTable {
 		public string $name,
 		public int $ql,
 		#[
-			MapRead([ImplantSlot::class, 'byDesignSlotName'])
+			MapRead([ImplantSlot::class, 'fromDesignSlotName'])
 		] public ImplantSlot $spot,
 		public int $level,
 		public int $agility,

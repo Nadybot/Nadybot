@@ -2,9 +2,10 @@
 
 namespace Nadybot\Modules\VOTE_MODULE;
 
-class VoteChangeEvent extends VoteEvent {
-	public const EVENT_MASK = 'vote(change)';
+use Nadybot\Core\Attributes\Event;
 
+#[Event(mask: 'vote(change)')]
+class VoteChangeEvent extends VoteEvent {
 	public function __construct(
 		Poll $poll,
 		string $player,
@@ -12,6 +13,5 @@ class VoteChangeEvent extends VoteEvent {
 		public string $oldVote,
 	) {
 		parent::__construct(poll: $poll, player: $player);
-		$this->type = self::EVENT_MASK;
 	}
 }

@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Safe\DateTimeImmutable;
@@ -19,7 +20,7 @@ use Safe\DateTimeImmutable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'time',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show the time in the different timezones',
 	)
 ]

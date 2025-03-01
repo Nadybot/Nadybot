@@ -6,6 +6,11 @@ use function Safe\{preg_match, preg_match_all, preg_replace, preg_split};
 
 use Safe\Exceptions\PcreException;
 
+/**
+ * This is a wrapper class for some functions with signatures that make it impossible
+ * for static analysis to know the result. These functions will have a well-defined value
+ * and throw exceptions instead of logging errors.
+ */
 class Safe {
 	/**
 	 * Searches subject for matches to
@@ -16,15 +21,7 @@ class Safe {
 	 *
 	 * Several PCRE modifiers
 	 * are also available.
-	 * @param string $replacement The string to replace. If this parameter is a
-	 *                            string and the pattern parameter is an array,
-	 *                            all patterns will be replaced by that string. If both
-	 *                            pattern and replacement
-	 *                            parameters are arrays, each pattern will be
-	 *                            replaced by the replacement counterpart. If
-	 *                            there are fewer elements in the replacement
-	 *                            array than in the pattern array, any extra
-	 *                            patterns will be replaced by an empty string.
+	 * @param string $replacement The string to replace.
 	 *
 	 * replacement may contain references of the form
 	 * \\n or
@@ -59,16 +56,12 @@ class Safe {
 	 * 'strlen(\'$1\')+strlen("$2")'). Make sure you are
 	 * aware of PHP's string
 	 * syntax to know exactly how the interpreted string will look.
-	 * @param string $subject The string or an array with strings to search and replace.
-	 *
-	 * If subject is an array, then the search and
-	 * replace is performed on every entry of subject,
-	 * and the return value is an array as well.
-	 * @param int  $limit The maximum possible replacements for each pattern in each
-	 *                    subject string. Defaults to
-	 *                    -1 (no limit).
-	 * @param ?int $count If specified, this variable will be filled with the number of
-	 *                    replacements done.
+	 * @param string $subject The string to search and replace.
+	 * @param int    $limit   The maximum possible replacements for each pattern in each
+	 *                        subject string. Defaults to
+	 *                        -1 (no limit).
+	 * @param ?int   $count   If specified, this variable will be filled with the number of
+	 *                        replacements done.
 	 *
 	 * @param-out int $count
 	 *
@@ -89,7 +82,18 @@ class Safe {
 		return preg_replace($pattern, $replacement, $subject, $limit, $count);
 	}
 
-	/** @return array<array-key,string> */
+	/**
+	 * Get matches for a given regular expression on a string
+	 *
+	 * @param string $pattern The regular expression to search for
+	 * @param string $subject The string to search in
+	 * @param int    $flags   Additional PCRE-flags
+	 * @param int    $offset  Start searching for at the given position of `$subject`
+	 *
+	 * @return array<array-key,string> The matched strings as an associative array with
+	 *                                 the match number and named match as key, and the
+	 *                                 matching string as value
+	 */
 	public static function pregMatch(string $pattern, string $subject, int $flags=0, int $offset=0): array {
 		$matches = [];
 		if (preg_match($pattern, $subject, $matches, $flags, $offset) === 0 || !is_array($matches)) {
@@ -98,13 +102,30 @@ class Safe {
 		return $matches;
 	}
 
+	/**
+	 * Check if a string matches a given regular expression
+	 *
+	 * @param string $pattern The regular expression to search for
+	 * @param string $subject The string to search in
+	 * @param int    $flags   Additional PCRE-flags
+	 * @param int    $offset  Start searching for at the given position of `$subject`
+	 */
 	public static function pregMatches(string $pattern, string $subject, int $flags=0, int $offset=0): bool {
 		$ignore = [];
 		return preg_match($pattern, $subject, $ignore, $flags, $offset) > 0;
 	}
 
 	/**
-	 * @return array<string|int,list<string>>
+	 * Get all matches for a given regular expression on a string
+	 *
+	 * @param string $pattern The regular expression to search for
+	 * @param string $subject The string to search in
+	 * @param int    $flags   Additional PCRE-flags
+	 * @param int    $offset  Start searching for at the given position of `$subject`
+	 *
+	 * @return array<string|int,list<string>> The matched strings as an associative array with
+	 *                                        the match number and named match as key, and the
+	 *                                        matching strings as values
 	 *
 	 * @phpstan-return array<array-key,list<string>>
 	 */
@@ -118,9 +139,20 @@ class Safe {
 	}
 
 	/**
-	 * @return array<string|int,list<array{0:string,1:int}>>
+	 * Get all matches for a given regular expression on a string
 	 *
-	 * @phpstan-return array<array-key,non-empty-list<list{string,int}>>
+	 * @param string $pattern The regular expression to search for
+	 * @param string $subject The string to search in
+	 * @param int    $flags   Additional PCRE-flags
+	 * @param int    $offset  Start searching for at the given position of `$subject`
+	 *
+	 * @return array<string|int,list<array<int,int|string>>> The matched strings as an associative array with
+	 *                                                       the match number and named match as key, and a
+	 *                                                       list of arrays with the matching string at
+	 *                                                       position `0` and the offset of
+	 *                                                       the match in `1` as values
+	 *
+	 * @psalm-return array<array-key,non-empty-list<array{0:string,1:int}>>
 	 */
 	public static function pregMatchOffsetAll(string $pattern, string $subject, int $flags=0, int $offset=0): array {
 		$matches = [];
@@ -132,6 +164,13 @@ class Safe {
 	}
 
 	/**
+	 * Get all matches for a given regular expression on a string
+	 *
+	 * @param string $pattern The regular expression to search for
+	 * @param string $subject The string to search in
+	 * @param int    $flags   Additional PCRE-flags
+	 * @param int    $offset  Start searching for at the given position of `$subject`
+	 *
 	 * @return array<string|int,string>[]
 	 *
 	 * @phpstan-return list<array<array-key,string>>
@@ -153,7 +192,7 @@ class Safe {
 	 *
 	 * @param string   $pattern The pattern to search for, as a string.
 	 * @param string   $subject The input string.
-	 * @param int|null $limit   If specified, then only substrings up to limit
+	 * @param null|int $limit   If specified, then only substrings up to limit
 	 *                          are returned with the rest of the string being placed in the last
 	 *                          substring.  A limit of -1 or 0 means "no limit".
 	 *                          into subject at offset 1.
@@ -181,7 +220,7 @@ class Safe {
 	 * @template TKey as array-key
 	 * @template TValue
 	 *
-	 * @param array<TKey, TValue|null> $values
+	 * @param array<TKey, null|TValue> $values
 	 *
 	 * @return array<TKey, TValue>
 	 */

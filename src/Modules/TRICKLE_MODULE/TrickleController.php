@@ -5,13 +5,15 @@ namespace Nadybot\Modules\TRICKLE_MODULE;
 use function Safe\preg_split;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\Ability;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	Text,
+	Types\Ability,
+	Types\AccessLevel,
+	Types\Skill,
 };
 
 /**
@@ -22,7 +24,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'trickle',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows how much skills you will gain by increasing an ability',
 	)
 ]
@@ -40,7 +42,7 @@ class TrickleController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>trickle all 12')]
 	public function trickleAllSkillsCommand(
 		CmdContext $context,
-		#[NCA\Str('all')] string $attributes,
+		#[NCA\Parameter\Str('all')] string $attributes,
 		int $amount,
 	): void {
 		$this->trickle1Command(
@@ -63,7 +65,7 @@ class TrickleController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>trickle agi 4 str 4')]
 	public function trickle1Command(
 		CmdContext $context,
-		#[NCA\Regexp("\w+\s+\d+", example: '&lt;ability&gt; &lt;amount&gt;')] string ...$pairs
+		#[NCA\Parameter\Regexp("\w+\s+\d+", example: '&lt;ability&gt; &lt;amount&gt;')] string ...$pairs
 	): bool {
 		if (str_starts_with($pairs[0], 'all')) {
 			return false;
@@ -71,15 +73,15 @@ class TrickleController extends ModuleInstance {
 		$abilities = new AbilityConfig();
 
 		foreach ($pairs as $pair) {
-			[$ability, $amount] = preg_split("/\s+/", $pair);
-			$shortAbility = Ability::tryFromShort($ability)?->value;
-			if ($shortAbility === null) {
-				$msg = "Unknown ability <highlight>{$ability}<end>.";
+			[$abilityName, $amount] = preg_split("/\s+/", $pair);
+			$ability = Ability::tryFromShort($abilityName);
+			if ($ability === null) {
+				$msg = "Unknown ability <highlight>{$abilityName}<end>.";
 				$context->reply($msg);
 				return true;
 			}
 
-			$abilities->{$shortAbility} += $amount;
+			$abilities->add($ability, (int)$amount);
 		}
 
 		$msg = $this->processAbilities($abilities);
@@ -96,20 +98,20 @@ class TrickleController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>trickle 5 str 10 sen')]
 	public function trickle2Command(
 		CmdContext $context,
-		#[NCA\Regexp("\d+\s+\w+", '&lt;amount&gt; &lt;ability&gt;')] string ...$pairs
+		#[NCA\Parameter\Regexp("\d+\s+\w+", '&lt;amount&gt; &lt;ability&gt;')] string ...$pairs
 	): void {
 		$abilities = new AbilityConfig();
 
 		foreach ($pairs as $pair) {
-			[$amount, $ability] = preg_split("/\s+/", $pair);
-			$shortAbility = Ability::tryFromShort($ability)?->value;
-			if ($shortAbility === null) {
-				$msg = "Unknown ability <highlight>{$ability}<end>.";
+			[$amount, $abilityName] = preg_split("/\s+/", $pair);
+			$ability = Ability::tryFromShort($abilityName);
+			if ($ability === null) {
+				$msg = "Unknown ability <highlight>{$abilityName}<end>.";
 				$context->reply($msg);
 				return;
 			}
 
-			$abilities->{$shortAbility} += $amount;
+			$abilities->add($ability, (int)$amount);
 		}
 
 		$msg = $this->processAbilities($abilities);
@@ -120,19 +122,20 @@ class TrickleController extends ModuleInstance {
 	#[NCA\HandlesCommand('trickle')]
 	#[NCA\Help\Example('<symbol>trickle treatment')]
 	public function trickleSkillCommand(CmdContext $context, string $skill): void {
+		$skills = Skill::getMatching($skill);
 		$data = $this->db->table(Trickle::getTable())
-			->whereIlike('name', '%' . str_replace(' ', '%', $skill) . '%')
+			->whereIn('skill_id', array_column($skills, 'value'))
 			->asObj(Trickle::class);
 		$count = $data->count();
 		if ($count === 0) {
 			$msg = "Could not find any skills for search '{$skill}'";
 		} elseif ($count === 1) {
-			$msg = "To trickle 1 skill point into <highlight>{$data[0]->name}<end>, ".
+			$msg = "To trickle 1 skill point into <highlight>{$data[0]->skill->fullName()}<end>, ".
 				'you need ' . $this->getTrickleAmounts($data[0]);
 		} else {
 			$blob = "<header2>Required to increase skill by 1<end>\n";
 			foreach ($data as $row) {
-				$blob .= "<tab><highlight>{$row->name}<end>: ".
+				$blob .= "<tab><highlight>{$row->skill->fullName()}<end>: ".
 					$this->getTrickleAmounts($row) . "\n";
 			}
 			$msg = Text::makeBlob("Trickle Info: {$skill}", $blob);
@@ -142,15 +145,14 @@ class TrickleController extends ModuleInstance {
 	}
 
 	public function getTrickleAmounts(Trickle $row): string {
-		$arr = ['amountAgi', 'amountInt', 'amountPsy', 'amountSta', 'amountStr', 'amountSen'];
 		$reqs = [];
-		foreach ($arr as $ability) {
-			if (is_float($row->{$ability}) && $row->{$ability} > 0) {
-				$amount = $row->{$ability};
-				$abilityName = Ability::tryFromShort(substr($ability, 6))->name ?? $ability;
-				$value = round(4 / $amount, 2);
-				$reqs []= "{$value} {$abilityName}";
+		foreach (Ability::cases() as $ability) {
+			$amount = $row->get($ability);
+			if ($amount <= 0) {
+				continue;
 			}
+			$value = round(4 / $amount, 2);
+			$reqs []= "{$value} {$ability->name}";
 		}
 		$msg = collect($reqs)->join(', ', ' or ');
 		return $msg;
@@ -187,7 +189,7 @@ class TrickleController extends ModuleInstance {
 			$amountInt = (int)floor($amount);
 			$msg .= '<tab>' . Text::alignNumber($amountInt, 3, 'highlight').
 				'.<highlight>' . substr(number_format($amount-$amountInt, 2), 2) . '<end> '.
-				"<a href=skillid://{$result->skill_id}>{$result->name}</a>\n";
+				"<a href=skillid://{$result->skill->value}>{$result->skill->inGame()}</a>\n";
 		}
 
 		return $msg;

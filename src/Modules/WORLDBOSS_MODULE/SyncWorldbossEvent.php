@@ -2,11 +2,12 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when the spawntime of a worldboss is set manually */
+#[Event(mask: 'sync(worldboss)')]
 class SyncWorldbossEvent extends SyncEvent {
-	public const EVENT_MASK = 'sync(worldboss)';
-
 	/**
 	 * @param int    $vulnerable UNIX timestamp when the world boss will be vulnerable
 	 * @param string $boss       For which worldboss: tara, reaper, loren, gauntlet
@@ -20,7 +21,6 @@ class SyncWorldbossEvent extends SyncEvent {
 		?int $sourceDimension=null,
 		?bool $forceSync=null,
 	) {
-		$this->type = self::EVENT_MASK;
 		parent::__construct($sourceBot, $sourceDimension, $forceSync);
 	}
 }

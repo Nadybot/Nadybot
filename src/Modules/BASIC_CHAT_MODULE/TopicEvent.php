@@ -2,14 +2,17 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Events\Event;
+use Nadybot\Core\Attributes\Event;
 
-abstract class TopicEvent extends Event {
-	public const EVENT_MASK = 'topic(*)';
-
-	/** The names of the sender */
-	public string $player;
-
-	/** The topic that was set or unset if cleared */
-	public string $topic;
+#[Event(mask: 'topic(*)')]
+abstract class TopicEvent {
+	/**
+	 * @param string $player The names of the sender
+	 * @param string $topic  The topic that was set or unset if cleared
+	 */
+	public function __construct(
+		public string $player,
+		public string $topic,
+	) {
+	}
 }

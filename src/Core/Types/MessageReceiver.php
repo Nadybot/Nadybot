@@ -4,6 +4,9 @@ namespace Nadybot\Core\Types;
 
 use Nadybot\Core\Routing\RoutableEvent;
 
+/**
+ * This interface is used to handle RoutableEvent messages sent to this object.
+ */
 interface MessageReceiver extends MessageEmitter {
 	/**
 	 * Dispatch an event to the name $destination

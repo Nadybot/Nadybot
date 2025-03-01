@@ -14,8 +14,6 @@ use Revolt\EventLoop;
 
 /**
  * This class accepts incoming messages and sends them out as mass messages
- *
- * @package Nadybot\Modules\MASSMSG_MODULE
  */
 class MassMsgReceiver implements MessageReceiver {
 	#[NCA\Inject]
@@ -29,7 +27,7 @@ class MassMsgReceiver implements MessageReceiver {
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			$baseEvent = $event->data??null;
 			if (!isset($baseEvent) || !($baseEvent instanceof Base) || !isset($baseEvent->message)) {
 				return false;

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Types\{AccessLevel, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -12,10 +13,6 @@ use Nadybot\Core\{
 	Text,
 	Types\ImplantSlot,
 	Types\Profession,
-};
-use Nadybot\Modules\ITEMS_MODULE\{
-	Skill,
-	WhatBuffsController,
 };
 
 /**
@@ -27,16 +24,13 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	NCA\HasMigrations('Migrations/Premade'),
 	NCA\DefineCommand(
 		command: 'premade',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Searches for implants out of the premade implants booths',
 	)
 ]
 class PremadeImplantController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
-
-	#[NCA\Inject]
-	private WhatBuffsController $whatBuffsController;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -52,11 +46,11 @@ class PremadeImplantController extends ModuleInstance {
 		$searchTerms = strtolower($search);
 		$results = null;
 
-		$profession = Profession::tryByName($searchTerms);
+		$profession = Profession::tryFromName($searchTerms);
 		if (isset($profession)) {
 			$searchTerms = $profession->value;
 			$results = $this->searchByProfession($profession);
-		} elseif (null !== ($slot = ImplantSlot::tryByName($searchTerms))) {
+		} elseif (null !== ($slot = ImplantSlot::tryFromName($searchTerms))) {
 			$results = $this->searchBySlot($slot);
 		} else {
 			$results = $this->searchByModifier($searchTerms);
@@ -80,24 +74,22 @@ class PremadeImplantController extends ModuleInstance {
 
 	/** @return Collection<int,PremadeSearchResult> */
 	public function searchBySlot(ImplantSlot $slot): Collection {
-		return $this->getBaseQuery()->where('i.short_name', $slot->designSlotName())
+		return $this->getBaseQuery()->where('p.implant_type_id', $slot->typeId())
 			->asObj(PremadeSearchResult::class);
 	}
 
 	/** @return Collection<int,PremadeSearchResult> */
 	public function searchByModifier(string $modifier): Collection {
-		$skills = $this->whatBuffsController->searchForSkill($modifier);
-		if (!count($skills)) {
+		$skills = Skill::tryFromName($modifier, false);
+		if (!isset($skills)) {
 			/** @var Collection<int,PremadeSearchResult> */
 			$empty = new Collection();
 			return $empty;
+		} elseif (!is_array($skills)) {
+			$skills = [$skills];
 		}
-		$skillIds = array_map(
-			static function (Skill $s): int {
-				return $s->id;
-			},
-			$skills
-		);
+
+		$skillIds = array_map(static fn (Skill $s): int => $s->value, $skills);
 		$query = $this->getBaseQuery()
 			->whereIn('cs.skill_id', $skillIds)
 			->orWhereIn('cb.skill_id', $skillIds)
@@ -113,8 +105,8 @@ class PremadeImplantController extends ModuleInstance {
 		/** @var array<string,list<PremadeSearchResult>> */
 		$slotMap = [];
 		foreach ($implants as $implant) {
-			$slotMap[$implant->slot] ??= [];
-			$slotMap[$implant->slot] []= $implant;
+			$slotMap[$implant->slot->longName()] ??= [];
+			$slotMap[$implant->slot->longName()] []= $implant;
 		}
 		foreach ($slotMap as $slot => $slotImplants) {
 			$blob .= "<header2>{$slot}<end>\n";
@@ -127,7 +119,7 @@ class PremadeImplantController extends ModuleInstance {
 	}
 
 	public function getFormattedLine(PremadeSearchResult $implant): string {
-		return "<tab><highlight>{$implant->profession->name}<end> ({$implant->ability})\n".
+		return "<tab><highlight>{$implant->profession->name}<end> ({$implant->ability->name})\n".
 			"<tab>S: {$implant->shiny}\n".
 			"<tab>B: {$implant->bright}\n".
 			"<tab>F: {$implant->faded}\n\n";
@@ -135,13 +127,11 @@ class PremadeImplantController extends ModuleInstance {
 
 	protected function getBaseQuery(): QueryBuilder {
 		$query = $this->db->table(PremadeImplant::getTable(), 'p')
-			->join(ImplantType::getTable(as: 'i'), 'p.implant_type_id', 'i.implant_type_id')
-			->join(Ability::getTable(as: 'a'), 'p.ability_id', 'a.ability_id')
 			->join(Cluster::getTable(as: 'cs'), 'p.shiny_cluster_id', 'cs.cluster_id')
 			->join(Cluster::getTable(as: 'cb'), 'p.bright_cluster_id', 'cb.cluster_id')
 			->join(Cluster::getTable(as: 'cf'), 'p.faded_cluster_id', 'cf.cluster_id')
 			->orderBy('slot')
-			->select(['i.name AS slot', 'p.profession_id', 'a.name as ability']);
+			->select(['p.implant_type_id AS slot', 'p.profession_id', 'p.ability_id']);
 		$query->selectRaw(
 			'CASE WHEN ' . $query->grammar->wrap('cs.cluster_id') . ' = 0 '.
 			'THEN ? '.

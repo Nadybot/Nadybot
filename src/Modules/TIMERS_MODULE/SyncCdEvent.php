@@ -2,11 +2,12 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 
+/** Triggered when someone starts a countdown */
+#[Event(mask: 'sync(cd)')]
 class SyncCdEvent extends SyncEvent {
-	public const EVENT_MASK = 'sync(cd)';
-
 	/**
 	 * @param string $owner   Character who started the countdown
 	 * @param string $message Message to display at the end of the countdown
@@ -18,7 +19,10 @@ class SyncCdEvent extends SyncEvent {
 		?int $sourceDimension=null,
 		?bool $forceSync=null,
 	) {
-		$this->type = self::EVENT_MASK;
-		parent::__construct($sourceBot, $sourceDimension, $forceSync);
+		parent::__construct(
+			sourceBot: $sourceBot,
+			sourceDimension: $sourceDimension,
+			forceSync: $forceSync,
+		);
 	}
 }

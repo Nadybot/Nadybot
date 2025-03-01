@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use AO\Utils;
 use Exception;
+use Nadybot\Core\Attributes\Parameter\{Regexp,Remove,Str,WordStr};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -12,11 +14,11 @@ use Nadybot\Core\{
 	EventManager,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	MyOrg,
 	Nadybot,
 	ParamClass\PCharacter,
-	ParamClass\PRemove,
-	ParamClass\PWord,
 	Text,
+	Types\AccessLevel,
 	Types\Profession,
 	Util,
 };
@@ -27,18 +29,15 @@ use Throwable;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'assist',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows the assist macro',
 		alias: 'callers'
 	),
 	NCA\DefineCommand(
 		command: ChatAssistController::CMD_SET_ADD_CLEAR,
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Set, add or clear assists',
 	),
-	NCA\ProvidesEvent(AssistClearEvent::class),
-	NCA\ProvidesEvent(AssistSetEvent::class),
-	NCA\ProvidesEvent(AssistAddEvent::class)
 ]
 class ChatAssistController extends ModuleInstance {
 	public const CMD_SET_ADD_CLEAR = 'assist set/add/clear';
@@ -92,12 +91,15 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\Inject]
 	private BotConfig $config;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	#[NCA\SettingChangeHandler('never_auto_callers')]
 	public function validateNeverAutoCallers(string $setting, string $old, string $new): void {
 		$profs = explode(':', $new);
 		foreach ($profs as $prof) {
 			try {
-				Profession::byName($prof);
+				Profession::fromName($prof);
 			} catch (Throwable $e) {
 				throw new Exception("<highlight>{$prof}<end> is not a recognized profession", 0, $e);
 			}
@@ -194,7 +196,11 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	#[NCA\Help\Example('<symbol>assist rem Nady', 'Remove Nady from all assist lists')]
 	#[NCA\Help\Example('<symbol>assist rem FOO.Nady', 'Remove Nady from the assist lists FOO')]
-	public function assistRemCommand(CmdContext $context, PRemove $action, string $toRemove): void {
+	public function assistRemCommand(
+		CmdContext $context,
+		#[Remove] string $action,
+		string $toRemove
+	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -202,10 +208,10 @@ class ChatAssistController extends ModuleInstance {
 		$parts = explode('.', $toRemove, 2);
 		$group = null;
 		if (count($parts) === 2) {
-			$toRemove = ucfirst(strtolower($parts[1]));
+			$toRemove = Utils::normalizeCharacter($parts[1]);
 			$group = strtolower($parts[0]);
 		} else {
-			$toRemove = ucfirst(strtolower($toRemove));
+			$toRemove = Utils::normalizeCharacter($toRemove);
 		}
 		$removed = false;
 		$backup = $this->backupCallers($context->char->name, $context->message);
@@ -250,8 +256,8 @@ class ChatAssistController extends ModuleInstance {
 	)]
 	public function assistClearListCommand(
 		CmdContext $context,
-		#[NCA\Str('clear')] string $action,
-		#[NCA\Regexp('.*')] string $assistList
+		#[Str('clear')] string $action,
+		#[Regexp('.*')] string $assistList
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
@@ -299,13 +305,13 @@ class ChatAssistController extends ModuleInstance {
 		$this->cleanupEmptyLists();
 		$this->storeBackup($backup);
 
-		$event = new AssistClearEvent(lists: []);
-		$this->eventManager->fireEvent($event);
+		$event = new AssistClearEvent();
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Clear all assist lists */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
-	public function assistClearCommand(CmdContext $context, #[NCA\Str('clear')] string $action): void {
+	public function assistClearCommand(CmdContext $context, #[Str('clear')] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -325,15 +331,15 @@ class ChatAssistController extends ModuleInstance {
 			$this->storeBackup($this->backupCallers($sender, $command));
 		}
 		$this->callers = [];
-		$event = new AssistClearEvent(lists: []);
-		$this->eventManager->fireEvent($event);
+		$event = new AssistClearEvent();
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Create an assist macro for multiple characters */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistSetCommand(
 		CmdContext $context,
-		#[NCA\Str('set')] string $action,
+		#[Str('set')] string $action,
 		PCharacter ...$callers
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -349,9 +355,9 @@ class ChatAssistController extends ModuleInstance {
 			if (!isset($uid)) {
 				$errors []= "Character <highlight>{$name}<end> does not exist.";
 			} elseif (
-				!isset($this->chatBot->guildmembers[$name])
+				!$this->myOrg->isMember($name)
 				&& !$this->buddylistManager->isUidOnline($uid)
-				&& !isset($this->chatBot->chatlist[$name])
+				&& !$this->chatBot->inChatlist($name)
 			) {
 				$errors []= "Character <highlight>{$name}<end> is not in this bot.";
 			} else {
@@ -394,15 +400,15 @@ class ChatAssistController extends ModuleInstance {
 		$event = new AssistSetEvent(
 			lists: array_values($this->callers),
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Add a new player to the global assist list, or the one given */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistAddCommand(
 		CmdContext $context,
-		#[NCA\Str('add')] string $action,
-		?PWord $assistList,
+		#[Str('add')] string $action,
+		#[WordStr] ?string $assistList,
 		PCharacter $caller
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -410,19 +416,19 @@ class ChatAssistController extends ModuleInstance {
 			return;
 		}
 
-		$assistList = isset($assistList) ? $assistList() : '';
+		$assistList ??= '';
 		$name = $caller();
 		$groupKey = strtolower($assistList);
 
-		$name = ucfirst(strtolower($name));
+		$name = Utils::normalizeCharacter($name);
 		$uid = $this->chatBot->getUid($name);
 		if (!isset($uid)) {
 			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;
 		} elseif (
-			!isset($this->chatBot->guildmembers[$name])
+			!$this->myOrg->isMember($name)
 			&& !$this->buddylistManager->isUidOnline($uid)
-			&& !isset($this->chatBot->chatlist[$name])
+			&& !$this->chatBot->inChatlist($name)
 		) {
 			$context->reply("Character <highlight>{$name}<end> is not in this bot.");
 			return;
@@ -457,12 +463,16 @@ class ChatAssistController extends ModuleInstance {
 		$event = new AssistAddEvent(
 			lists: array_values($this->callers),
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Undo the last &lt;steps&gt; or 1 modification(s) of the caller list */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
-	public function assistUndoCommand(CmdContext $context, #[NCA\Str('undo')] string $action, ?int $steps): void {
+	public function assistUndoCommand(
+		CmdContext $context,
+		#[Str('undo')] string $action,
+		?int $steps
+	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -483,12 +493,12 @@ class ChatAssistController extends ModuleInstance {
 		$event = new AssistSetEvent(
 			lists: array_values($this->callers),
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** See the most recent changes to the list of callers */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
-	public function assistHistoryCommand(CmdContext $context, #[NCA\Str('history')] string $action): void {
+	public function assistHistoryCommand(CmdContext $context, #[Str('history')] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -535,7 +545,7 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistRandomCommand(
 		CmdContext $context,
-		#[NCA\Str('random')] string $action,
+		#[Str('random')] string $action,
 		int $numCallers
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -593,7 +603,7 @@ class ChatAssistController extends ModuleInstance {
 		$event = new AssistSetEvent(
 			lists: array_values($this->callers),
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Store a caller backup */
@@ -613,7 +623,7 @@ class ChatAssistController extends ModuleInstance {
 	 */
 	protected function removeNeverCallers(string ...$members): array {
 		$forbiddenProfs = array_map(
-			Profession::byName(...),
+			Profession::fromName(...),
 			explode(':', $this->neverAutoCallers)
 		);
 		$players = $this->playerManager->searchByNames(

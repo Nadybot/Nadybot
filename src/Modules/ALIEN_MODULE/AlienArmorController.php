@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	CmdContext,
 	ModuleInstance,
 	Text,
+	Types\AccessLevel,
 };
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
@@ -21,7 +22,7 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'aiarmor',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows tradeskill process for Alien Armor',
 	)
 ]
@@ -216,7 +217,7 @@ class AlienArmorController extends ModuleInstance {
 	#[NCA\HandlesCommand('aiarmor')]
 	public function aiarmorCombinedCommand2(
 		CmdContext $context,
-		#[NCA\Regexp('c[cmops]|c?ss', example: 'cc|cm|co|cp|cs|css|ss')] string $type,
+		#[NCA\Parameter\Regexp('c[cmops]|c?ss', example: 'cc|cm|co|cp|cs|css|ss')] string $type,
 		int $ql
 	): void {
 		$this->aiarmorCombinedCommand($context, $ql, $type);
@@ -227,7 +228,7 @@ class AlienArmorController extends ModuleInstance {
 	public function aiarmorCombinedCommand(
 		CmdContext $context,
 		?int $ql,
-		#[NCA\Regexp('c[cmops]|c?ss', example: 'cc|cm|co|cp|cs|css|ss')] string $type,
+		#[NCA\Parameter\Regexp('c[cmops]|c?ss', example: 'cc|cm|co|cp|cs|css|ss')] string $type,
 	): void {
 		$ql ??= 300;
 		$armortype = strtolower($type);

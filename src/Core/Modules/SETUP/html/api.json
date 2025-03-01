@@ -1,0 +1,712 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Nadybot setup API",
+        "description": "This API provides access to Nadybot's setup functions in a REST API",
+        "license": {
+            "name": "GPL3",
+            "url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+        },
+        "contact": {
+            "name": "Support",
+            "url": "https://discord.gg/aDR9UBxRfg"
+        },
+        "version": "7.0.0.alpha"
+    },
+    "servers": [
+        {
+            "url": "/"
+        }
+    ],
+    "components": {
+        "schemas": {
+            "MemorySpecs": {
+                "description": "Basic memory specs",
+                "required": ["current_usage", "current_usage_real", "peak_usage", "peak_usage_real", "available"],
+                "type": "object",
+                "properties": {
+                    "current_usage": {
+                        "description": "Current memory usage in bytes",
+                        "type": "integer",
+                        "minimum": 1,
+                        "example": 3128928
+                    },
+                    "current_usage_real": {
+                        "description": "Current real memory usage in bytes",
+                        "type": "integer",
+                        "minimum": 1,
+                        "example": 4194304
+                    },
+                    "peak_usage": {
+                        "description": "Peak memory usage in bytes",
+                        "minimum": 1,
+                        "type": "integer",
+                        "example": 3623516
+                    },
+                    "peak_usage_real": {
+                        "description": "Peak real memory usage in bytes",
+                        "minimum": 1,
+                        "type": "integer",
+                        "example": 6291456
+                    },
+                    "available": {
+                        "description": "Available memory for PHP in bytes",
+                        "minimum": 1,
+                        "type": "integer",
+                        "example": 134217728
+                    }
+                }
+            },
+            "Specs": {
+                "type": "object",
+                "summary": "Basic system specs",
+                "description": "These are basic systems specs that might be useful to show in the WebUI when asking data from the user.",
+                "required": ["bot_version", "php_version", "os", "databases", "memory"],
+                "properties": {
+                    "bot_version": {
+                        "description": "The full bot version",
+                        "type": "string",
+                        "minLength": 5,
+                        "example": "7.0.0.alpha"
+                    },
+                    "php_version": {
+                        "description": "The full PHP version",
+                        "type": "string",
+                        "minLength": 5,
+                        "pattern": "^\\d+\\.\\d+\\.\\d+$",
+                        "example": "8.1.17"
+                    },
+                    "os": {
+                        "description": "The operating system type (Windows, Linux, Darwin, BSD, Solaris, Unknown, ...)",
+                        "type": "string",
+                        "example": "Linux"
+                    },
+                    "databases": {
+                        "description": "The databases supported on this server",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DatabaseType"
+                        },
+                        "example": ["sqlite", "mysql"]
+                    },
+                    "memory": {
+                        "$ref": "#/components/schemas/MemorySpecs"
+                    }
+                }
+            },
+            "CharacterName": {
+                "description": "A valid Anarchy Online character name",
+                "examples": ["Nady", "Nadyita", "Nadyuschka", "Nadyaki", "Nadya"],
+                "type": "string",
+                "pattern": "^[A-Z][a-z0-9]{3,}(-?\\d)?$",
+                "minLength": 4,
+                "maxLength": 12
+            },
+            "Password": {
+                "description": "A valid password for Anarchy Online",
+                "example": "6Qybnc-t8qHu10PX",
+                "type": "string",
+                "format": "password",
+                "minLength": 6,
+                "maxLength": 20,
+                "pattern": "^[a-zA-Z0-9-]{6,20}$"
+            },
+            "DatabaseType": {
+                "description": "A list of allowed databases",
+                "example": "sqlite",
+                "type": "string",
+                "enum": [
+                    "sqlite",
+                    "mysql",
+                    "postgresql",
+                    "mssql"
+                ]
+            },
+            "Dimension": {
+                "type": "integer",
+                "description": "Which dimension to login:\n* `4`: Test,\n* `5`: Rubi-Ka,\n* `6`: RK19",
+                "minimum": 4,
+                "maximum": 6,
+                "example": 5
+            },
+            "Timezones": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "minItems": 1,
+                "description": "An array with time zones in that region"
+            },
+            "Character": {
+                "type": "object",
+                "required": ["uid", "name", "online", "level"],
+                "examples": [
+                    {
+                        "uid": 1082663656,
+                        "name": "Nady",
+                        "online": false,
+                        "level": 220
+                    },
+                    {
+                        "uid": 1082663654,
+                        "name": "Nadya",
+                        "online": true,
+                        "level": 154
+                    }
+                ],
+                "properties": {
+                    "uid": {
+                        "description": "The user id of this character",
+                        "type": "integer",
+                        "minimum": 1,
+                        "example": 1082663656
+                    },
+                    "name": {
+                        "description": "The character name",
+                        "$ref": "#/components/schemas/CharacterName"
+                    },
+                    "online": {
+                        "description": "Is this character already logged in?",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "level": {
+                        "description": "The level of this character",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 220
+                    }
+                },
+                "description": "A single character from the login character list"
+            },
+            "AutoUnfreeze": {
+                "type": "object",
+                "required": ["enabled", "use_nadyproxy"],
+                "properties": {
+                    "enabled": {
+                        "description": "Automatically try to unfreeze frozen accounts",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "use_nadyproxy": {
+                        "description": "If enabled, try to unfreeze a frozen account via a proxy to work around the limit of maximum of 3 unfreezings per IP address",
+                        "default": true,
+                        "type": "boolean"
+                    }
+                },
+                "description": "Settings for the auto-unfreezer"
+            },
+            "BotConfig": {
+                "type": "object",
+                "required": ["database", "general", "main", "paths"],
+                "properties": {
+                    "auto-unfreeze": {
+                        "$ref": "#/components/schemas/AutoUnfreeze"
+                    },
+                    "database": {
+                        "$ref": "#/components/schemas/Database"
+                    },
+                    "general": {
+                        "$ref": "#/components/schemas/General"
+                    },
+                    "main": {
+                        "$ref": "#/components/schemas/Credentials"
+                    },
+                    "paths": {
+                        "$ref": "#/components/schemas/Paths"
+                    },
+                    "proxy": {
+                        "$ref": "#/components/schemas/Proxy"
+                    },
+                    "settings": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": [
+                                "string",
+                                "integer",
+                                "boolean"
+                            ]
+                        },
+                        "example": {
+                            "console_color": true,
+                            "webserver_addr": "0.0.0.0",
+                            "webserver_auth": "aoauth"
+                        },
+                        "description": "Define settings values which will be immutable"
+                    },
+                    "worker": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Credentials"
+                        },
+                        "example": [
+                            {
+                                "character": "Nadya",
+                                "dimension": 5,
+                                "login": "nadylogin2",
+                                "password": "vK-rvnwGKhFGs1S5"
+                            },
+                            {
+                                "character": "Nadyaki",
+                                "dimension": 5,
+                                "login": "nadylogin2",
+                                "password": "vK-rvnwGKhFGs1S5"
+                            }
+                        ],
+                        "uniqueItems": true,
+                        "description": "Credentials of the worker characters"
+                    }
+                },
+                "description": "The BotConfig class provides convenient interface for reading and saving config files located in conf-subdirectory."
+            },
+            "Credentials": {
+                "type": "object",
+                "required": ["character", "dimension", "login", "password"],
+                "properties": {
+                    "character": {
+                        "$ref": "#/components/schemas/CharacterName"
+                    },
+                    "dimension": {
+                        "$ref": "#/components/schemas/Dimension"
+                    },
+                    "login": {
+                        "type": "string",
+                        "minLength": 6,
+                        "maxLength": 15
+                    },
+                    "password": {
+                        "$ref": "#/components/schemas/Password"
+                    },
+                    "web_login": {
+                        "description": "The login credentials to use when unfreezing this character. Only set if different to the login",
+                        "default": null,
+                        "type": [ "string", "null" ],
+                        "minLength": 6,
+                        "maxLength": 15
+                    },
+                    "web_password": {
+                        "description": "The password credentials to use when unfreezing this character. Only set if different to the password",
+                        "default": null,
+                        "oneOf": [
+                            { "$ref": "#/components/schemas/Password" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "description": "Credentials for a single character"
+            },
+            "Database": {
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                    "host": {
+                        "type": "string",
+                        "default": "./data/",
+                        "description": "Hostname or sqlite file location"
+                    },
+                    "name": {
+                        "type": "string",
+                        "default": "nadybot.db",
+                        "description": "Name of the database"
+                    },
+                    "password": {
+                        "type": [ "string", "null"],
+                        "format": "password",
+                        "description": "MySQL or PostgreSQL password, otherwise null",
+                        "default": null
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/DatabaseType",
+                        "description": "What type of database should be used? ('sqlite', 'postgresql', or 'mysql')"
+                    },
+                    "username": {
+                        "type": [ "string", "null" ],
+                        "default": null,
+                        "description": "MySQL or PostgreSQL username, otherwise null"
+                    }
+                },
+                "description": "The database configuration"
+            },
+            "General": {
+                "type": "object",
+                "required": ["super_admins", "org_name"],
+                "properties": {
+                    "auto_org_name": {
+                        "type": "boolean",
+                        "description": "Automatically rename the bot's org if it changed in-game",
+                        "default": false
+                    },
+                    "default_module_status": {
+                        "type": "integer",
+                        "description": "Enable all current and upcoming modules (1) or only the bare minimum (0)",
+                        "enum": [0, 1],
+                        "example": 1,
+                        "default": 1
+                    },
+                    "enable_console_client": {
+                        "type": "boolean",
+                        "description": "Enable controlling the bot via the Linux console. Does not work on Windows.",
+                        "default": true
+                    },
+                    "enable_hydrator_cache": {
+                        "type": "boolean",
+                        "description": "Speed up JSON parsing by compiling the schema. Uses more memory",
+                        "default": true
+                    },
+                    "enable_package_module": {
+                        "type": "boolean",
+                        "description": "Enable the `!package`-command",
+                        "default": true
+                    },
+                    "org_name": {
+                        "type": "string",
+                        "description": "Name of the org the bot is a member of. Empty if none",
+                        "example": "Nadybot Testers"
+                    },
+                    "show_aoml_markup": {
+                        "type": "boolean",
+                        "description": "Show raw AO-HTML data in logfiles, instead of converting it to ASCII",
+                        "default": false
+                    },
+                    "super_admins": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CharacterName"
+                        },
+                        "minItems": 1,
+                        "uniqueItems": true
+                    },
+                    "timezone": {
+                        "type": [ "string", "null" ],
+                        "description": "The timezone to use when displaying date and time.",
+                        "example": "Europe/Amsterdam"
+                    }
+                },
+                "description": "General config settings"
+            },
+            "Paths": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                    "cache": {
+                        "type": "string",
+                        "default": "./cache/",
+                        "description": "Path to store cache files"
+                    },
+                    "data": {
+                        "type": "string",
+                        "default": "./data/",
+                        "description": "Path to store data"
+                    },
+                    "html": {
+                        "type": "string",
+                        "default": "./html/",
+                        "description": "Path to store HTML files"
+                    },
+                    "logs": {
+                        "type": "string",
+                        "default": "./logs/",
+                        "description": "Path for the logs"
+                    },
+                    "modules": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": ["./src/Modules", "./extras"],
+                        "uniqueItems": true,
+                        "description": "A list of paths where modules are"
+                    }
+                },
+                "description": "Settings for the paths the bot uses. All relative to the bot's base directory, unless starting with a `/`"
+            },
+            "Proxy": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Whether to enable (true) proxy usage or not"
+                    },
+                    "port": {
+                        "type": "integer",
+                        "minimum": 1024,
+                        "maximum": 65535,
+                        "default": 9993,
+                        "description": "Port of the proxy server"
+                    },
+                    "server": {
+                        "type": "string",
+                        "format": "idn-hostname",
+                        "default": "127.0.0.1",
+                        "description": "hostname or IP address of the proxy server"
+                    }
+                },
+                "description": "Proxy settings (obsolete)"
+            }
+        }
+    },
+    "paths": {
+        "/characters": {
+            "get": {
+                "operationId": "getCharacters",
+                "security": [ ],
+                "summary": "Get character list",
+                "description": "Get a list of all characters on a given account",
+                "parameters": [
+                    {
+                        "name": "dimension",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "$ref": "#/components/schemas/Dimension"
+                        },
+                        "example": 5,
+                        "description": "The dimension to login to"
+                    },
+                    {
+                        "name": "login",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "minLength": 6,
+                            "maxLength": 15,
+                            "example": "nadylogin"
+                        },
+                        "description": "The username to use for login"
+                    },
+                    {
+                        "name": "password",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "$ref": "#/components/schemas/Password"
+                        },
+                        "description": "The password to use for login"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of characters on the given account",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Character"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unknown dimension given",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "408": {
+                        "description": "Timeout getting list of characters",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error getting list of characters",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Login or password invalid",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or missing parameter `dimension`, `login`, or `password`",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/specs": {
+            "get": {
+                "operationId": "getSpecs",
+                "security": [ ],
+                "summary": "Basic system specs",
+                "description": "Get some basic specs of the server we're running on",
+                "parameters": [ ],
+                "responses": {
+                    "200": {
+                        "description": "Basic system specs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Specs"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/timezones": {
+            "get": {
+                "operationId": "getTimezones",
+                "security": [ ],
+                "summary": "Timezones",
+                "description": "Get all system supported time zones",
+                "parameters": [ ],
+                "responses": {
+                    "200": {
+                        "description": "All system supported time zones",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [ "Other" ],
+                                    "properties": {
+                                        "Other": {
+                                            "$ref": "#/components/schemas/Timezones"
+                                        }
+                                    },
+                                    "description": "An object with regions and the time zones in these regions",
+                                    "additionalProperties": {
+                                        "$ref": "#/components/schemas/Timezones"
+                                    },
+                                    "example": {
+                                        "Africa": ["Africa/Luanda"],
+                                        "America": [
+                                            "America/Anchorage",
+                                            "America/Argentina/Buenos_Aires"
+                                        ],
+                                        "Asia": [
+                                            "Asia/Jakarta",
+                                            "Asia/Tehran"
+                                        ],
+                                        "Europe": [
+                                            "Europe/Amsterdam",
+                                            "Europe/Berlin",
+                                            "Europe/London"
+                                        ],
+                                        "Other": ["UTC"]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/config": {
+            "post": {
+                "operationId": "saveConfig",
+                "security": [ ],
+                "summary": "Save the given system configuration",
+                "description": "This saves the given configuration at the location that was given when starting the bot in setup mode.",
+                "requestBody": {
+                    "description": "The system configuration to save",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BotConfig"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "Config saved successfully"
+                    },
+                    "413": {
+                        "description": "Payload too large. Too much data sent",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "Invalid content-type set for the data",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Not a valid JSON string, or config invalid",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": []
+        }
+    }
+}

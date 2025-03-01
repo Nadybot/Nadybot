@@ -2,8 +2,19 @@
 
 namespace Nadybot\Core\Events;
 
-abstract class UserStateEvent extends Event {
-	public string $sender;
-	public int $uid;
-	public ?bool $wasOnline;
+/** A character on our buddylist logs on or off */
+abstract class UserStateEvent {
+	/**
+	 * @param string    $sender    Name of the character
+	 * @param int       $uid       UID of the character
+	 * @param null|bool $wasOnline Was that character online before,
+	 *                             and we received a second online-event?
+	 *                             `null` if not applicable/unknown
+	 */
+	public function __construct(
+		public string $sender,
+		public int $uid,
+		public ?bool $wasOnline=null,
+	) {
+	}
 }

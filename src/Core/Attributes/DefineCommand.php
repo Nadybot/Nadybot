@@ -3,16 +3,18 @@
 namespace Nadybot\Core\Attributes;
 
 use Attribute;
+use Nadybot\Core\Types\{AccessLevel, Status};
 
+/** This class defines the given command */
 #[Attribute(Attribute::TARGET_CLASS|Attribute::IS_REPEATABLE)]
 class DefineCommand {
 	/** @param null|string|list<string> $alias */
 	public function __construct(
 		public string $command,
 		public string $description,
-		public ?string $accessLevel=null,
+		public ?AccessLevel $accessLevel=null,
 		public ?string $help=null,
-		public ?int $defaultStatus=null,
+		public ?Status $defaultStatus=null,
 		public null|string|array $alias=null
 	) {
 	}

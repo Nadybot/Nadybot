@@ -20,12 +20,12 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	ParamClass\PDuration,
-	ParamClass\PRemove,
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Types\Playfield,
 	Util,
 };
@@ -42,77 +42,69 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'wb',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show next spawntime(s)',
 	),
 	NCA\DefineCommand(
 		command: 'tara',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show next Tarasque spawntime(s)',
 	),
 	NCA\DefineCommand(
 		command: WorldBossController::CMD_TARA_UPDATE,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Update, set or delete Tarasque killtimer',
 	),
 	NCA\DefineCommand(
 		command: 'reaper',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show next Reaper spawntime(s)',
 	),
 	NCA\DefineCommand(
 		command: WorldBossController::CMD_REAPER_UPDATE,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Update, set or delete Reaper killtimer',
 	),
 	NCA\DefineCommand(
 		command: 'loren',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Show next Loren Warr spawntime(s)',
 	),
 	NCA\DefineCommand(
 		command: WorldBossController::CMD_LOREN_UPDATE,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Update, set or delete Loren Warr killtimer',
 	),
 	NCA\DefineCommand(
 		command: 'gauntlet',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'shows timer of Gauntlet',
 	),
 	NCA\DefineCommand(
 		command: WorldBossController::CMD_GAUNTLET_UPDATE,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Update or set Gaunlet timer',
 	),
 	NCA\DefineCommand(
 		command: 'father',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'shows timer of Father Time',
 	),
 	NCA\DefineCommand(
 		command: WorldBossController::CMD_FATHER_UPDATE,
-		accessLevel: 'member',
+		accessLevel: AccessLevel::Member,
 		description: 'Update or set Father Time timer',
 	),
 	NCA\DefineCommand(
 		command: 'updatewb',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: '(re)-fetch current worldboss-timers from the API',
 	),
 	NCA\DefineCommand(
 		command: 'wbdebug',
-		accessLevel: 'mod',
+		accessLevel: AccessLevel::Mod,
 		description: 'Show low-level information about WorldBoss-timers',
 	),
-	NCA\ProvidesEvent(
-		event: SyncWorldbossEvent::class,
-		desc: 'Triggered when the spawntime of a worldboss is set manually',
-	),
-	NCA\ProvidesEvent(
-		event: SyncWorldbossDeleteEvent::class,
-		desc: 'Triggered when the timer for a worldboss is deleted',
-	)
 ]
 class WorldBossController extends ModuleInstance {
 	public const CMD_TARA_UPDATE = 'tara set/delete';
@@ -449,10 +441,12 @@ class WorldBossController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(
-		name: ConnectEvent::EVENT_MASK,
-		description: 'Get boss timers from timer API'
-	)]
+	/** Get boss timers from timer API */
+	#[NCA\HandlesEvent]
+	public function loadTimersFromAPIOnConnect(ConnectEvent $event): void {
+		$this->loadTimersFromAPI();
+	}
+
 	public function loadTimersFromAPI(): int {
 		$client = $this->builder->build();
 
@@ -676,7 +670,10 @@ class WorldBossController extends ModuleInstance {
 		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
 		NCA\Help\Group('worldboss')
 	]
-	public function bossKillCommand(CmdContext $context, #[NCA\Str('kill')] string $action): void {
+	public function bossKillCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Str('kill')] string $action
+	): void {
 		$boss = $this->getMobFromContext($context);
 		$this->worldBossUpdate($context->char, $boss, 0);
 		$msg = "The timer for <highlight>{$boss}<end> has been updated.";
@@ -697,7 +694,7 @@ class WorldBossController extends ModuleInstance {
 	]
 	public function bossUpdateCommand(
 		CmdContext $context,
-		#[NCA\Str('update')] string $action,
+		#[NCA\Parameter\Str('update')] string $action,
 		PDuration $durationUntilVulnerable
 	): void {
 		$boss = $this->getMobFromContext($context);
@@ -715,18 +712,19 @@ class WorldBossController extends ModuleInstance {
 		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
 		NCA\Help\Group('worldboss')
 	]
-	public function bossDeleteCommand(CmdContext $context, PRemove $action): void {
+	public function bossDeleteCommand(
+		CmdContext $context,
+		#[NCA\Parameter\Remove] string $action
+	): void {
 		$boss = $this->getMobFromContext($context);
 		$msg = $this->worldBossDeleteCommand($context->char, $boss);
 		$context->reply($msg);
 		$this->sendSyncDeleteEvent($context->char->name, $boss, $context->forceSync);
 	}
 
-	#[NCA\Event(
-		name: 'timer(1sec)',
-		description: 'Check timer to announce big boss events'
-	)]
-	public function checkTimerEvent(Event $eventObj, int $interval, bool $manual=false): void {
+	/** Check timer to announce big boss events */
+	#[NCA\Timer(interval: '1sec')]
+	public function checkTimerEvent(Event $eventObj, bool $manual=false): void {
 		$lastCheck = $this->lastCheck;
 		$this->lastCheck = time();
 		$timers = $this->getWorldBossTimers();
@@ -741,10 +739,8 @@ class WorldBossController extends ModuleInstance {
 		$this->timers = $this->addNextDates($this->timers);
 	}
 
-	#[NCA\Event(
-		name: SyncWorldbossEvent::EVENT_MASK,
-		description: 'Sync external worldboss timers'
-	)]
+	/** Sync external worldboss timers */
+	#[NCA\HandlesEvent]
 	public function syncExtWorldbossTimers(SyncWorldbossEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -764,13 +760,11 @@ class WorldBossController extends ModuleInstance {
 			$this->announceBigBossEvent($mobName, $msg, 3);
 		}
 		$this->worldBossUpdate(new Character($event->sender), $mobName, $event->vulnerable);
-		$this->checkTimerEvent(new TimerEvent(1), 1, true);
+		$this->checkTimerEvent(new TimerEvent(1), true);
 	}
 
-	#[NCA\Event(
-		name: SyncWorldbossDeleteEvent::EVENT_MASK,
-		description: 'Sync external worldboss timer deletes'
-	)]
+	/** Sync external worldboss timer deletes */
+	#[NCA\HandlesEvent]
 	public function syncExtWorldbossDeletes(SyncWorldbossDeleteEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -1043,7 +1037,7 @@ class WorldBossController extends ModuleInstance {
 			sender: $sender,
 			forceSync: $forceSync,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	protected function sendSyncDeleteEvent(string $sender, string $mobName, bool $forceSync): void {
@@ -1052,7 +1046,7 @@ class WorldBossController extends ModuleInstance {
 			sender: $sender,
 			forceSync: $forceSync,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	protected function getMobFromContext(CmdContext $context): string {

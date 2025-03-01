@@ -15,14 +15,14 @@ use Amp\{
 	Socket\ServerSocket,
 };
 use Exception;
-use Nadybot\Core\Events\ConnectEvent;
-use Nadybot\Core\Filesystem;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	Config\BotConfig,
+	Events\ConnectEvent,
 	Exceptions\UserException,
+	Filesystem,
 	ModuleInstance,
 	Nadybot,
 	Registry,
@@ -66,8 +66,9 @@ class MgmtInterfaceController extends ModuleInstance {
 		}
 	}
 
-	#[NCA\Event(name: ConnectEvent::EVENT_MASK, description: 'Start the interface')]
-	public function onConnect(): void {
+	/** Start the interface */
+	#[NCA\HandlesEvent]
+	public function onConnect(ConnectEvent $event): void {
 		if ($this->mgmtInterface === self::TYPE_NONE) {
 			return;
 		}

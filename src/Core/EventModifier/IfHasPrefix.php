@@ -10,66 +10,43 @@ use Nadybot\Core\{
 	Types\EventModifier,
 };
 
-#[
-	NCA\EventModifier(
-		name: 'if-has-prefix',
-		description: "This modifier will only route messages if they start\n".
-			"with a certain prefix. By default, this prefix will then be removed\n".
-			"if it has been found.\n".
-			"This allows you to only route messages that start with a dash or an\n".
-			'asterisk from one channel to another.'
-	),
-	NCA\Param(
-		name: 'prefix',
-		type: 'string',
-		description: 'The prefix string. If the message starts with this, it will be routed.',
-		required: true
-	),
-	NCA\Param(
-		name: 'for-relays',
-		type: 'bool',
-		description: 'If set to true, also require messages from the relay to have this prefix',
-		required: false
-	),
-	NCA\Param(
-		name: 'for-events',
-		type: 'bool',
-		description: "Determines if the optional message that an event can have is cleared unless\n".
-			"it starts with the prefix. This does not alter the event itself, it will still\n".
-			"be routed, but it will not generate a message.\n".
-			"Common use case is not routing the online/offline messages via relays, but\n".
-			'keeping the event itself to share online lists.',
-		required: false
-	),
-	NCA\Param(
-		name: 'trim',
-		type: 'bool',
-		description: 'Shall we trim the prefix? By default we do.',
-		required: false
-	),
-	NCA\Param(
-		name: 'inverse',
-		type: 'bool',
-		description: 'If set, filter out all messages starting with the prefix',
-		required: false
-	)
-]
+/**
+ * This modifier will only route messages if they start with a
+ * certain prefix. By default, this prefix will then be removed
+ * if it has been found.
+ * This allows you to only route messages that start with a dash or an
+ * asterisk from one channel to another.
+ */
+#[NCA\EventModifier(name: 'if-has-prefix')]
 class IfHasPrefix implements EventModifier {
+	/**
+	 * @param string $prefix    The prefix string. If the message starts with this, it will be routed.
+	 * @param bool   $forRelays If set to true, also require messages from the relay to have this prefix
+	 * @param bool   $forEvents Determines if the optional message that an event can have is cleared unless
+	 *                          it starts with the prefix.
+	 *                          This does not alter the event itself, it will still be routed,
+	 *                          but it will not generate a message.
+	 *                          Common use case is not routing the online/offline messages via relays, but
+	 *                          keeping the event itself to share online lists.
+	 * @param bool   $trim      Shall we trim the prefix? By default we do.
+	 * @param bool   $inverse   If set, filter out all messages starting with the prefix
+	 */
 	public function __construct(
-		protected string $prefix,
-		protected bool $forRelays=false,
-		protected bool $forEvents=true,
-		protected bool $trim=true,
-		protected bool $inverse=false
+		#[NCA\Param] protected string $prefix,
+		#[NCA\Param(name: 'for-relays')] protected bool $forRelays=false,
+		#[NCA\Param(name: 'for-events')] protected bool $forEvents=true,
+		#[NCA\Param] protected bool $trim=true,
+		#[NCA\Param] protected bool $inverse=false
 	) {
 	}
 
+	/** {@inheritDoc} */
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		if (!isset($event)) {
 			return null;
 		}
 		// Events might have their default message modified
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
+		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			if (!$this->forEvents) {
 				return $event;
 			}

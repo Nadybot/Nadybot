@@ -9,9 +9,11 @@ use Nadybot\Core\{
 	Events\JoinMyPrivEvent,
 	Events\LogonEvent,
 	ModuleInstance,
+	MyOrg,
 	Nadybot,
 	SettingManager,
 	Text,
+	Types\AccessLevel,
 	Types\SettingMode,
 	Util,
 };
@@ -20,17 +22,14 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'topic',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Shows Topic',
 	),
 	NCA\DefineCommand(
 		command: ChatTopicController::CMD_TOPIC_SET,
-		accessLevel: 'rl',
+		accessLevel: AccessLevel::RaidLeader,
 		description: 'Changes Topic',
 	),
-
-	NCA\ProvidesEvent(TopicSetEvent::class),
-	NCA\ProvidesEvent(TopicClearEvent::class)
 ]
 class ChatTopicController extends ModuleInstance {
 	public const CMD_TOPIC_SET = 'topic set/clear';
@@ -66,6 +65,9 @@ class ChatTopicController extends ModuleInstance {
 	#[NCA\Inject]
 	private EventManager $eventManager;
 
+	#[NCA\Inject]
+	private MyOrg $myOrg;
+
 	/** Show the current topic */
 	#[NCA\HandlesCommand('topic')]
 	public function topicCommand(CmdContext $context): void {
@@ -80,7 +82,7 @@ class ChatTopicController extends ModuleInstance {
 
 	/** Clear the topic */
 	#[NCA\HandlesCommand(self::CMD_TOPIC_SET)]
-	public function topicClearCommand(CmdContext $context, #[NCA\Str('clear')] string $action): void {
+	public function topicClearCommand(CmdContext $context, #[NCA\Parameter\Str('clear')] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
@@ -93,7 +95,7 @@ class ChatTopicController extends ModuleInstance {
 		$this->setTopic($context->char->name, '');
 		$msg = 'Topic has been cleared.';
 		$context->reply($msg);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
 	/** Set a new topic */
@@ -111,16 +113,14 @@ class ChatTopicController extends ModuleInstance {
 			topic: $topic,
 			player: $context->char->name,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 
-	#[NCA\Event(
-		name: LogonEvent::EVENT_MASK,
-		description: 'Shows topic on logon of members'
-	)]
+	/** Shows topic on logon of members */
+	#[NCA\HandlesEvent]
 	public function logonEvent(LogonEvent $eventObj): void {
 		if ($this->topic === ''
-			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
+			|| !$this->myOrg->isMember($eventObj->sender)
 			|| !$this->chatBot->isReady()
 			|| $eventObj->wasOnline !== false
 		) {
@@ -130,10 +130,8 @@ class ChatTopicController extends ModuleInstance {
 		$this->chatBot->sendMassTell($msg, $eventObj->sender);
 	}
 
-	#[NCA\Event(
-		name: JoinMyPrivEvent::EVENT_MASK,
-		description: 'Shows topic when someone joins the private channel'
-	)]
+	/** Shows topic when someone joins the private channel */
+	#[NCA\HandlesEvent]
 	public function joinPrivEvent(JoinMyPrivEvent $eventObj): void {
 		if ($this->topic === '') {
 			return;

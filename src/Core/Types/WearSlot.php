@@ -4,9 +4,14 @@ namespace Nadybot\Core\Types;
 
 use ValueError;
 
+/** This is a valid slot in which to wear armor */
 enum WearSlot: int {
-	/** @return EnumBitfield<WearSlot> */
-	public static function byName(string $name): EnumBitfield {
+	/**
+	 * Create a new bit field of wear slots, based on the given name
+	 *
+	 * @return EnumBitfield<WearSlot>
+	 */
+	public static function fromName(string $name): EnumBitfield {
 		$result = new EnumBitfield(self::class);
 		return match (strtolower($name)) {
 			'neck' => $result->set(self::Neck),

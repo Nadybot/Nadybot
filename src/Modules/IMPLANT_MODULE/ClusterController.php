@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Types\{AccessLevel, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -9,7 +10,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Text,
 };
-use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
 
 /**
  * @author Tyrence (RK2)
@@ -18,16 +18,13 @@ use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'cluster',
-		accessLevel: 'guest',
+		accessLevel: AccessLevel::Guest,
 		description: 'Find which clusters buff a specified skill',
 	)
 ]
 class ClusterController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
-
-	#[NCA\Inject]
-	private WhatBuffsController $wbCtrl;
 
 	/** Get a list of skills/attributes you can get clusters for */
 	#[NCA\HandlesCommand('cluster')]
@@ -58,14 +55,14 @@ class ClusterController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>cluster comp lit')]
 	#[NCA\Help\Example('<symbol>cluster agility')]
 	public function clusterCommand(CmdContext $context, string $search): void {
-		$skills = $this->wbCtrl->searchForSkill($search);
+		$skills = Skill::getMatching($search);
 		if (count($skills) === 0) {
 			$msg = "No skills found that match <highlight>{$search}<end>.";
 			$context->reply($msg);
 			return;
 		}
 		$data = $this->db->table(Cluster::getTable())
-			->whereIn('skill_id', array_column($skills, 'id'))
+			->whereIn('skill_id', array_column($skills, 'value'))
 			->asObj(Cluster::class);
 		$count = $data->count();
 
@@ -78,21 +75,18 @@ class ClusterController extends ModuleInstance {
 		$blob = "Click 'Add' to add cluster to {$implantDesignerLink}.\n\n";
 		foreach ($data as $cluster) {
 			$results = $this->db->table(ClusterImplantMap::getTable(), 'cim')
-				->join(ClusterType::getTable(as: 'ct'), 'cim.cluster_type_id', 'ct.cluster_type_id')
-				->join(ImplantType::getTable(as: 'i'), 'cim.implant_type_id', 'i.implant_type_id')
 				->where('cim.cluster_id', $cluster->cluster_id)
-				->orderByDesc('ct.cluster_type_id')
-				->select(['i.short_name as slot', 'ct.name AS cluster_type'])
+				->orderByDesc('cim.cluster_type_id')
+				->select(['cim.implant_type_id as slot', 'cim.cluster_type_id AS grade'])
 				->asObj(SlotClusterType::class);
 			$blob .= "<pagebreak><header2>{$cluster->long_name}<end>:\n";
 
 			foreach ($results as $row) {
 				$impDesignerLink = Text::makeChatcmd(
 					'add',
-					"/tell <myname> implantdesigner {$row->slot} {$row->cluster_type} {$cluster->long_name}"
+					"/tell <myname> implantdesigner {$row->slot->designSlotName()} {$row->grade->name} {$cluster->long_name}"
 				);
-				$clusterType = ucfirst($row->cluster_type);
-				$blob .= "<tab><highlight>{$clusterType}<end>: {$row->slot} [{$impDesignerLink}]";
+				$blob .= "<tab><highlight>{$row->grade->name}<end>: {$row->slot->longName()} [{$impDesignerLink}]";
 			}
 			$blob .= "\n\n";
 		}

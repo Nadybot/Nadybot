@@ -4,15 +4,18 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
-use Nadybot\Core\Events\OrgMsgChannelMsgEvent;
+use AO\Utils;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	CmdContext,
 	DB,
+	Events\OrgMsgChannelMsgEvent,
 	ModuleInstance,
 	ParamClass\PCharacter,
 	Safe,
 	Text,
+	Types\AccessLevel,
 	Util,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
@@ -25,7 +28,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 	NCA\HasMigrations('Migrations/History'),
 	NCA\DefineCommand(
 		command: 'orghistory',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Shows the org history (invites and kicks and leaves) for a character',
 	)
 ]
@@ -105,10 +108,8 @@ class OrgHistoryController extends ModuleInstance {
 		return "<highlight>{$row->actor}<end> {$row->action} <highlight>{$row->actee}<end>. [{$row->organization}] {$time}\n";
 	}
 
-	#[NCA\Event(
-		name: OrgMsgChannelMsgEvent::EVENT_MASK,
-		description: 'Capture Org Invite/Kick/Leave messages for orghistory'
-	)]
+	/** Capture Org Invite/Kick/Leave messages for orghistory */
+	#[NCA\HandlesEvent]
 	public function captureOrgMessagesEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (
@@ -129,18 +130,18 @@ class OrgHistoryController extends ModuleInstance {
 
 	/** Query entries from the org history log */
 	#[
-		NCA\Api('/org/history'),
-		NCA\GET,
-		NCA\QueryParam(name: 'limit', desc: 'No more than this amount of entries will be returned. Default is 50', type: 'integer'),
-		NCA\QueryParam(name: 'offset', desc: 'How many entries to skip before beginning to return entries', type: 'integer'),
-		NCA\QueryParam(name: 'actor', desc: 'Show only entries of this actor'),
-		NCA\QueryParam(name: 'actee', desc: 'Show only entries with this actee'),
-		NCA\QueryParam(name: 'action', desc: 'Show only entries with this action'),
-		NCA\QueryParam(name: 'before', desc: 'Show only entries from before the given timestamp', type: 'integer'),
-		NCA\QueryParam(name: 'after', desc: 'Show only entries from after the given timestamp', type: 'integer'),
-		NCA\AccessLevel('mod'),
-		NCA\ApiTag('audit'),
-		NCA\ApiResult(code: 200, class: 'OrgHistory[]', desc: 'The org history log entries')
+		Http\Api('/org/history'),
+		Http\GET,
+		Http\QueryParam(name: 'limit', desc: 'No more than this amount of entries will be returned. Default is 50', type: 'integer'),
+		Http\QueryParam(name: 'offset', desc: 'How many entries to skip before beginning to return entries', type: 'integer'),
+		Http\QueryParam(name: 'actor', desc: 'Show only entries of this actor'),
+		Http\QueryParam(name: 'actee', desc: 'Show only entries with this actee'),
+		Http\QueryParam(name: 'action', desc: 'Show only entries with this action'),
+		Http\QueryParam(name: 'before', desc: 'Show only entries from before the given timestamp', type: 'integer'),
+		Http\QueryParam(name: 'after', desc: 'Show only entries from after the given timestamp', type: 'integer'),
+		Http\AccessLevel(AccessLevel::Mod),
+		Http\ApiTag('audit'),
+		Http\ApiResult(code: 200, class: 'OrgHistory[]', desc: 'The org history log entries')
 	]
 	public function historyGetListEndpoint(Request $request): Response {
 		$query = $this->db->table(OrgHistory::getTable())
@@ -191,12 +192,12 @@ class OrgHistoryController extends ModuleInstance {
 
 		$actor = $request->getQueryParameter('actor');
 		if (isset($actor)) {
-			$query->where('actor', ucfirst(strtolower($actor)));
+			$query->where('actor', Utils::normalizeCharacter($actor));
 		}
 
 		$actee = $request->getQueryParameter('actee');
 		if (isset($actee)) {
-			$query->where('actee', ucfirst(strtolower($actee)));
+			$query->where('actee', Utils::normalizeCharacter($actee));
 		}
 
 		$action = $request->getQueryParameter('action');

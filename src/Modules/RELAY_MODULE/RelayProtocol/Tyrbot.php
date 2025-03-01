@@ -34,28 +34,17 @@ use Safe\Exceptions\JsonException;
 use stdClass;
 use Throwable;
 
-#[
-	NCA\RelayProtocol(
-		name: 'tyrbot',
-		description: "This is the enhanced protocol of Tyrbot. If your\n".
-			"relay consists only of Nadybots and Tyrbots, use this one.\n".
-			"It allows sharing of online users as well as fully customized\n".
-			'colors.'
-	),
-	NCA\Param(
-		name: 'sync-online',
-		type: 'bool',
-		description: 'Sync the online list with the other bots of this relay',
-		required: false
-	)
-]
+/**
+ * This is the enhanced protocol of Tyrbot. If your
+ * relay consists only of Nadybots and Tyrbots, use this one.
+ * It allows sharing of online users as well as fully customized
+ * colors.
+ */
+#[NCA\RelayProtocol(name: 'tyrbot')]
 class Tyrbot implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 
 	protected Relay $relay;
-
-	/** Do we want to sync online users? */
-	protected bool $syncOnline = true;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -72,17 +61,20 @@ class Tyrbot implements RelayProtocolInterface {
 	#[NCA\Inject]
 	private SettingManager $settingManager;
 
-	public function __construct(bool $syncOnline=true) {
+	/** @param bool $syncOnline Sync the online list with the other bots of this relay */
+	public function __construct(
+		#[NCA\Param(name: 'sync-online')] protected bool $syncOnline=true
+	) {
 		$this->syncOnline = $syncOnline;
 	}
 
 	public function send(RoutableEvent $event): array {
 		$this->logger->debug('Received event {type} on relay {relay}', [
 			'relay' => $this->relay->getName(),
-			'type' => $event->getType(),
+			'type' => $event->getEvent(),
 			'event' => $event,
 		]);
-		if ($event->getType() === RoutableEvent::TYPE_MESSAGE) {
+		if ($event->getEvent() === RoutableEvent::TYPE_MESSAGE) {
 			return $this->encodeMessage($event);
 		} elseif ($event->data instanceof Online) {
 			return [...$this->encodeUserStateChange($event, $event->data), ...$this->encodeMessage($event)];

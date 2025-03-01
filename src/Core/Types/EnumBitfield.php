@@ -6,7 +6,11 @@ use BackedEnum;
 use InvalidArgumentException;
 use Stringable;
 
-/** @template T of BackedEnum */
+/**
+ * This is a bit field that consists of a set of flags from an enum
+ *
+ * @template T of BackedEnum
+ */
 class EnumBitfield extends Bitfield implements Stringable {
 	/** @var list<BackedEnum> */
 	private array $flags = [];
@@ -20,11 +24,13 @@ class EnumBitfield extends Bitfield implements Stringable {
 		return implode('|', array_map(static fn (BackedEnum $e): string => $e->name, $this->flags));
 	}
 
+	/** Check if this bit field has the given flag(s) all set */
 	public function has(int|BackedEnum $flag): bool {
 		$intFlag = is_int($flag) ? $flag : (int)$flag->value;
 		return ($this->value & $intFlag) === $intFlag;
 	}
 
+	/** Check if this bit field has the given flag(s) all set */
 	public function hasAll(int|BackedEnum ...$flags): bool {
 		foreach ($flags as $flag) {
 			$flag = is_int($flag) ? $flag : (int)$flag->value;
@@ -35,6 +41,7 @@ class EnumBitfield extends Bitfield implements Stringable {
 		return true;
 	}
 
+	/** Check if this bit field has any of the given flag(s) set */
 	public function hasAny(int|BackedEnum ...$flags): bool {
 		foreach ($flags as $flag) {
 			$flag = is_int($flag) ? $flag : (int)$flag->value;
@@ -45,7 +52,11 @@ class EnumBitfield extends Bitfield implements Stringable {
 		return false;
 	}
 
-	/** @return self<T> */
+	/**
+	 * Set some bits by integer value if they exist as enum
+	 *
+	 * @return self<T>
+	 */
 	public function setInt(int $value): self {
 		$class = $this->class;
 		foreach ($class::cases() as $case) {
@@ -56,7 +67,11 @@ class EnumBitfield extends Bitfield implements Stringable {
 		return $this;
 	}
 
-	/** @return self<T> */
+	/**
+	 * Set some bits by integer or enum value (if the integers exist as enum)
+	 *
+	 * @return self<T>
+	 */
 	public function set(BackedEnum|int ...$flags): self {
 		$class = $this->class;
 		for ($i = 0; $i < count($flags); $i++) {
@@ -79,6 +94,7 @@ class EnumBitfield extends Bitfield implements Stringable {
 		return $this;
 	}
 
+	/** Get a numeric representation of this bit field */
 	public function toInt(): int {
 		return $this->value;
 	}

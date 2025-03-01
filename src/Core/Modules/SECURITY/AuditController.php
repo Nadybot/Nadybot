@@ -6,9 +6,11 @@ use function Safe\{preg_split, strtotime};
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
+use AO\Utils;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Http,
 	CmdContext,
 	DB,
 	DBSchema\Audit,
@@ -16,8 +18,8 @@ use Nadybot\Core\{
 	QueryBuilder,
 	Safe,
 	Text,
+	Types\AccessLevel,
 };
-
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
 };
@@ -28,13 +30,13 @@ use Safe\Exceptions\DatetimeException;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'audit',
-		accessLevel: 'admin',
+		accessLevel: AccessLevel::Admin,
 		description: 'View security audit logs',
 	),
 ]
 class AuditController extends ModuleInstance {
 	/** Log all security-relevant data */
-	#[NCA\Setting\Boolean(accessLevel: 'superadmin')]
+	#[NCA\Setting\Boolean(accessLevel: AccessLevel::Superadmin)]
 	public bool $auditEnabled = false;
 
 	#[NCA\Inject]
@@ -87,7 +89,7 @@ class AuditController extends ModuleInstance {
 			$audit->actee = isset($audit->actee) ? " -&gt; {$audit->actee}" : '';
 			return '<tab>' . $audit->time->format('Y-m-d H:i:s e').
 				" <highlight>{$audit->actor}<end>{$audit->actee} ".
-				"<highlight>{$audit->action}<end> {$audit->value}";
+				"<highlight>{$audit->action->value}<end> {$audit->value}";
 		});
 		$blob = "<header2>Matching entries<end>\n" . $lines->join("\n");
 		if (isset($links->prev) || isset($links->next)) {
@@ -102,18 +104,18 @@ class AuditController extends ModuleInstance {
 
 	/** Query entries from the audit log */
 	#[
-		NCA\Api('/audit'),
-		NCA\GET,
-		NCA\QueryParam(name: 'limit', desc: 'No more than this amount of entries will be returned. Default is 50', type: 'integer'),
-		NCA\QueryParam(name: 'offset', desc: 'How many entries to skip before beginning to return entries', type: 'integer'),
-		NCA\QueryParam(name: 'actor', desc: 'Show only entries of this actor'),
-		NCA\QueryParam(name: 'actee', desc: 'Show only entries with this actee'),
-		NCA\QueryParam(name: 'action', desc: 'Show only entries with this action'),
-		NCA\QueryParam(name: 'before', desc: 'Show only entries from before the given timestamp', type: 'integer'),
-		NCA\QueryParam(name: 'after', desc: 'Show only entries from after the given timestamp', type: 'integer'),
-		NCA\AccessLevel('mod'),
-		NCA\ApiTag('audit'),
-		NCA\ApiResult(code: 200, class: 'Audit[]', desc: 'The audit log entries')
+		Http\Api('/audit'),
+		Http\GET,
+		Http\QueryParam(name: 'limit', desc: 'No more than this amount of entries will be returned. Default is 50', type: 'integer'),
+		Http\QueryParam(name: 'offset', desc: 'How many entries to skip before beginning to return entries', type: 'integer'),
+		Http\QueryParam(name: 'actor', desc: 'Show only entries of this actor'),
+		Http\QueryParam(name: 'actee', desc: 'Show only entries with this actee'),
+		Http\QueryParam(name: 'action', desc: 'Show only entries with this action'),
+		Http\QueryParam(name: 'before', desc: 'Show only entries from before the given timestamp', type: 'integer'),
+		Http\QueryParam(name: 'after', desc: 'Show only entries from after the given timestamp', type: 'integer'),
+		Http\AccessLevel(AccessLevel::Mod),
+		Http\ApiTag('audit'),
+		Http\ApiResult(code: 200, class: 'Audit[]', desc: 'The audit log entries')
 	]
 	public function auditGetListEndpoint(Request $request): Response {
 		$query = $this->db->table(Audit::getTable())
@@ -164,12 +166,12 @@ class AuditController extends ModuleInstance {
 
 		$actor = $request->getQueryParameter('actor');
 		if (isset($actor)) {
-			$query->where('actor', ucfirst(strtolower($actor)));
+			$query->where('actor', Utils::normalizeCharacter($actor));
 		}
 
 		$actee = $request->getQueryParameter('actee');
 		if (isset($actee)) {
-			$query->where('actee', ucfirst(strtolower($actee)));
+			$query->where('actee', Utils::normalizeCharacter($actee));
 		}
 
 		$action = $request->getQueryParameter('action');
@@ -225,12 +227,12 @@ class AuditController extends ModuleInstance {
 
 		$actor = $params['actor']??null;
 		if (isset($actor) && is_string($actor)) {
-			$query->where('actor', ucfirst(strtolower($actor)));
+			$query->where('actor', Utils::normalizeCharacter($actor));
 		}
 
 		$actee = $params['actee']??null;
 		if (isset($actee) && is_string($actee)) {
-			$query->where('actee', ucfirst(strtolower($actee)));
+			$query->where('actee', Utils::normalizeCharacter($actee));
 		}
 
 		$action = $params['action']??null;

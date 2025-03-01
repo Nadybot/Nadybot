@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use Stringable;
 
+/** This represents a single entry in our buddylist */
 class BuddylistEntry implements Stringable {
 	use StringableTrait;
 

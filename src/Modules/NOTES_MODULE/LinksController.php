@@ -3,18 +3,18 @@
 namespace Nadybot\Modules\NOTES_MODULE;
 
 use InvalidArgumentException;
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\ParamClass\PUuid;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
+	Attributes\Parameter as Par,
 	CmdContext,
+	Config\BotConfig,
 	DB,
 	ExportCharacter,
 	ModuleInstance,
-	ParamClass\PRemove,
-	ParamClass\PWord,
+	ParamClass\PUuid,
 	Text,
+	Types\AccessLevel,
 	Types\ExporterInterface,
 	Types\ImporterInterface,
 };
@@ -31,7 +31,7 @@ use Throwable;
 	NCA\Importer('links', ExportLink::class),
 	NCA\DefineCommand(
 		command: 'links',
-		accessLevel: 'guild',
+		accessLevel: AccessLevel::Guild,
 		description: 'Displays, adds, or removes links from the org link list',
 	),
 ]
@@ -78,8 +78,13 @@ class LinksController extends ModuleInstance implements ImporterInterface, Expor
 
 	/** Add a link to the list */
 	#[NCA\HandlesCommand('links')]
-	public function linksAddCommand(CmdContext $context, #[NCA\Str('add')] string $action, PWord $url, string $comments): void {
-		$website = htmlspecialchars($url());
+	public function linksAddCommand(
+		CmdContext $context,
+		#[Par\Str('add')] string $action,
+		#[Par\WordStr] string $url,
+		string $comments
+	): void {
+		$website = htmlspecialchars($url);
 		if (filter_var($website, \FILTER_VALIDATE_URL) === false) {
 			$msg = "<highlight>{$website}<end> is not a valid URL.";
 			$context->reply($msg);
@@ -98,7 +103,7 @@ class LinksController extends ModuleInstance implements ImporterInterface, Expor
 
 	/** Remove a link from the list */
 	#[NCA\HandlesCommand('links')]
-	public function linksRemoveCommand(CmdContext $context, PRemove $action, PUuid $id): void {
+	public function linksRemoveCommand(CmdContext $context, #[Par\Remove] string $action, PUuid $id): void {
 		$id = $id();
 
 		$obj = $this->db->table(Link::getTable())

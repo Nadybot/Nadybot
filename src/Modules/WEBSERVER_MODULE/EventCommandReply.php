@@ -21,7 +21,7 @@ class EventCommandReply implements CommandReply {
 		$this->uuid = $uuid;
 	}
 
-	/** @inheritDoc */
+	/** {@inheritDoc} */
 	public function reply(string|array $msg): void {
 		$msg = array_map(
 			static fn (string $text): string => Blob::create($text)->getText(),
@@ -31,6 +31,6 @@ class EventCommandReply implements CommandReply {
 			msgs: $this->webChatConverter->convertMessages($msg),
 			uuid: $this->uuid,
 		);
-		$this->eventManager->fireEvent($event);
+		$this->eventManager->dispatch($event);
 	}
 }
