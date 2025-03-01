@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@mdi/font": "^7.4.47",
+    "@mdi/js": "^7.4.47",
     "@tsconfig/node22": "^22.0.0",
     "@types/node": "^22.10.7",
     "@vitejs/plugin-vue": "^5.2.1",
@@ -33,7 +34,6 @@
     "prettier": "^3.4.2",
     "typescript": "~5.7.3",
     "vite": "^6.0.11",
-    "vite-plugin-vue-devtools": "^7.7.0",
     "vue-tsc": "^2.2.0"
   }
 }
