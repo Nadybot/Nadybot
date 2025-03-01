@@ -283,6 +283,7 @@ class BotRunner {
 
 		if ($this->showSetupDialog($config)) {
 			$config = $this->getConfigFile();
+			Registry::setInstance(Registry::formatName(BotConfig::class), $config);
 		}
 		$this->setWindowTitle($config);
 
