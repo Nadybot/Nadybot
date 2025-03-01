@@ -10,15 +10,25 @@ use Nadybot\Core\Events\SyncEvent;
 use ReflectionAttribute;
 use ReflectionClass;
 
+/**
+ * Convert generic sync events and a given type into actual specific sync events
+ * the bot knows and can handle.
+ */
 class SyncEventFactory {
 	/**
+	 * A mapping event type to class name
+	 *
 	 * @var array<string,string>
 	 *
 	 * @psalm-var array<string,class-string<SyncEvent>>
 	 */
 	private static array $classMapping = [];
 
-	/** @param array<string,mixed>|object $data */
+	/**
+	 * Create a real sync event from an arbitrary object, or associative array
+	 *
+	 * @param array<string,mixed>|object $data
+	 */
 	public static function create(array|object $data): SyncEvent {
 		if (is_object($data)) {
 			$data = json_decode(json_encode($data), true);
@@ -41,6 +51,9 @@ class SyncEventFactory {
 	}
 
 	/**
+	 * Parse all known classes if they define a sync event and return a mapping
+	 * of sync event type to class name
+	 *
 	 * @return array<string,string>
 	 *
 	 * @psalm-return array<string,class-string<SyncEvent>>

@@ -5,7 +5,9 @@ namespace Nadybot\Core;
 use EventSauce\ObjectHydrator\DoNotSerialize;
 use Nadylib\IMEX\{ExportException, JSON};
 
+/** This trait implements a __toString() method for every class so logging it gets simple */
 trait StringableTrait {
+	/** Convert a single property value into a string representation */
 	private static function __valueToString(mixed $value): string {
 		if ($value === null) {
 			return 'null';
@@ -43,6 +45,7 @@ trait StringableTrait {
 		return $value;
 	}
 
+	/** {@inheritDoc} */
 	#[DoNotSerialize]
 	public function __toString(): string {
 		$values = [];

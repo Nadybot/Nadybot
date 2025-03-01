@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Modules\SYSTEM\SystemController,
 };
 
+/** Helper functions to deal with text */
 #[NCA\Instance]
 class Text {
 	#[NCA\Inject]
@@ -54,7 +55,7 @@ class Text {
 	}
 
 	/**
-	 * Creates a chatcmd link
+	 * Creates a clickable link that sends a chat command
 	 *
 	 * @param string  $name    The name the link will show
 	 * @param string  $content The chatcmd to execute
@@ -116,7 +117,12 @@ class Text {
 		return "<img src='{$db}://{$imageId}'>";
 	}
 
-	/** @return array<string,string> */
+	/**
+	 * Get an associative array of all supported color tags and their HTML font tag
+	 * e.g. `['<header>' => '<font color=#123456>']`
+	 *
+	 * @return array<string,string>
+	 */
 	public function getColors(): array {
 		return [
 			'<header>' => str_replace("'", '', $this->colors->defaultHeaderColor),
@@ -230,7 +236,7 @@ class Text {
 	}
 
 	/**
-	 * Convert a list of string into a 1, 2, 3, 4 and 5 enumeration
+	 * Convert a list of string into a "1, 2, 3, 4 and 5" enumeration
 	 *
 	 * @param string $words The words to enumerate
 	 *
@@ -246,7 +252,7 @@ class Text {
 	}
 
 	/**
-	 * Convert a list of string into a 1, 2, 3, 4 or 5 enumeration
+	 * Convert a list of string into a "1, 2, 3, 4 or 5" enumeration
 	 *
 	 * @param string $words The words to enumerate
 	 *
@@ -278,6 +284,14 @@ class Text {
 		);
 	}
 
+	/**
+	 * Remove all popups from a given message
+	 *
+	 * @param string $message     The message that contains popups
+	 * @param bool   $removeLinks Completely remove the popup-links and their text
+	 *
+	 * @return string The message without popups
+	 */
 	public static function removePopups(string $message, bool $removeLinks=false): string {
 		$message = Safe::pregReplaceCallback(
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
@@ -297,7 +311,11 @@ class Text {
 		return $message;
 	}
 
-	/** @return list<string> */
+	/**
+	 * Extract all the popups from a message
+	 *
+	 * @return list<string> A list of all the popup contents
+	 */
 	public static function getPopups(string $message): array {
 		$popups = [];
 		$message = Safe::pregReplaceCallback(
@@ -408,6 +426,7 @@ class Text {
 		return $text;
 	}
 
+	/** Convert a camel case name to snake case */
 	public static function toSnakeCase(string $name): string {
 		return strtolower(
 			Safe::pregReplace(
@@ -426,6 +445,7 @@ class Text {
 		);
 	}
 
+	/** Extract the human-readable text from a doc block comment */
 	public static function cleanDocComment(string $comment): string {
 		$cleanComment = trim(Safe::pregReplace("|^/\*\*(.*)\*/|s", '$1', $comment));
 		$cleanComment = Safe::pregReplace("/^[ \t]*\*[ \t]*/m", '', $cleanComment);
@@ -433,22 +453,10 @@ class Text {
 		return $cleanComment;
 	}
 
+	/** Ann "a" or "an" to a given word */
 	public static function addArticle(string $word): string {
 		return in_array(substr($word, 0, 1), ['a', 'e', 'i', 'o', 'u'], true)
 			? "an {$word}"
 			: "a {$word}";
-	}
-
-	protected static function removeCommonLines(string $firstBlock, string $nextBlock): string {
-		$firstPageLines = explode("\n", $firstBlock);
-		$nextPageLines = explode("\n", $nextBlock);
-		$i = 0;
-		while ($i < count($firstPageLines) && $i < count($nextPageLines)) {
-			if ($nextPageLines[$i] !== $firstPageLines[$i]) {
-				break;
-			}
-			$i++;
-		}
-		return implode("\n", array_slice($nextPageLines, $i));
 	}
 }

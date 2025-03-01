@@ -10,14 +10,20 @@ use Throwable;
 /*
  * This file is based on a Symfony package
  * by Fabien Potencier <fabien@symfony.com>
+ * It provides functions to determine some terminal capabilities
+ * and properties.
  */
-
 class Terminal {
+	/** The cached terminal width in characters */
 	private static ?int $width = null;
+
+	/** The cached terminal height in characters */
 	private static ?int $height = null;
+
+	/** cached value, whether this terminal supports stty */
 	private static ?bool $stty = null;
 
-	/** Gets the terminal width. */
+	/** Gets the terminal width in characters */
 	public static function getWidth(): int {
 		$width = getenv('COLUMNS');
 		if (is_string($width)) {
@@ -34,7 +40,7 @@ class Terminal {
 		return self::$width ??= 80;
 	}
 
-	/** Gets the terminal height. */
+	/** Gets the terminal height in characters */
 	public static function getHeight(): int {
 		$height = getenv('LINES');
 		if (is_string($height)) {
@@ -56,6 +62,7 @@ class Terminal {
 		return strtoupper(substr(\PHP_OS_FAMILY, 0, 3)) === 'WIN';
 	}
 
+	/** Check whether the terminal has the `stty` command available */
 	private static function hasSttyAvailable(): bool {
 		if (isset(self::$stty)) {
 			return self::$stty;
@@ -70,6 +77,7 @@ class Terminal {
 		return self::$stty = (bool)shell_exec("stty 2> {$devNull}");
 	}
 
+	/** Initialize the dimensions of the terminal and cache them */
 	private static function initDimensions(): void {
 		if (self::isWindows() === false) {
 			self::initDimensionsUsingStty();
@@ -137,12 +145,16 @@ class Terminal {
 		return [(int)$matches[2], (int)$matches[1]];
 	}
 
-	/** Runs and parses stty -a if it's available, suppressing any error output. */
+	/** Runs and parses `stty -a` if it's available, suppressing any error output. */
 	private static function getSttyColumns(): ?string {
 		return self::readFromProcess(['stty', '-a']);
 	}
 
-	/** @param string|list<string> $command */
+	/**
+	 * Read the output from a given command
+	 *
+	 * @param string|list<string> $command
+	 */
 	private static function readFromProcess(string|array $command): ?string {
 		if (!\function_exists('proc_open')) {
 			return null;

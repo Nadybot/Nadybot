@@ -8,11 +8,11 @@ use BackedEnum;
 use Exception;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	Types\MinMax,
+	Types\ParamType,
 };
 use RangeException;
 use ReflectionAttribute;
@@ -20,12 +20,25 @@ use ReflectionClass;
 use ReflectionNamedType;
 use UnhandledMatchError;
 
+/** Some utility functions in a static helper class */
 #[NCA\Instance]
 class Util {
-	/** @var string */
+	/**
+	 * The date/time format to use when displaying date and time in the bot
+	 *
+	 * Looks like `07-Mar-2024 23:11:00`
+	 *
+	 * @var string
+	 */
 	public const DATETIME = 'd-M-Y H:i T';
 
-	/** @var string */
+	/**
+	 * The date/time format to use when displaying a date in the bot
+	 *
+	 * Looks like `07-Mar-2024`
+	 *
+	 * @var string
+	 */
 	public const DATE = 'd-M-Y';
 
 	#[NCA\Inject]
@@ -92,7 +105,7 @@ class Util {
 	 *
 	 * @param string $budatime A human readable duration
 	 *
-	 * @return int The duration in seconds
+	 * @return int The duration in seconds, or `0` on error
 	 */
 	public static function parseTime(string $budatime): int {
 		$unixtime = 0;
@@ -176,7 +189,11 @@ class Util {
 	/**
 	 * Randomly get a value from an array
 	 *
-	 * @param array<mixed> $array
+	 * @template T
+	 *
+	 * @param array<array-key,T> $array
+	 *
+	 * @return T
 	 */
 	public static function randomArrayValue(array $array): mixed {
 		return $array[array_rand($array)];
@@ -197,9 +214,12 @@ class Util {
 	}
 
 	/**
-	 * Create a random string of $length characters
+	 * Create a random string of `$length` characters
 	 *
-	 * @see http://www.lost-in-code.com/programming/php-code/php-random-string-with-numbers-and-letters/
+	 * @param int    $length     The number of characters for the result
+	 * @param string $characters A string containing all allowed characters
+	 *
+	 * @return string A random string with `$length` characters
 	 */
 	public static function genRandomString(int $length=10, string $characters='0123456789abcdefghijklmnopqrstuvwxyz'): string {
 		$string = '';
@@ -246,6 +266,12 @@ class Util {
 
 	/**
 	 * Try to interpolate bonus/requirement of an item at an arbitrary QL
+	 *
+	 * @param int $minQL  The minimum QL
+	 * @param int $maxQL  The maximum QL
+	 * @param int $minVal The bonus/requirement at `$minQL`
+	 * @param int $maxVal The bonus/requirement at `$maxQL`
+	 * @param int $ql     The QL for which to calculate the bonus
 	 *
 	 * @return int The interpolated bonus/requirement at QL $ql
 	 */
@@ -325,9 +351,18 @@ class Util {
 		};
 	}
 
-	/** @phpstan-param class-string $class */
+	/**
+	 * Check if `$class`'s attribute `$attrName` is a ClassSpec annotation.
+	 * If so, extract a `Nadybot\Core\ClassSpec` specification from it.
+	 *
+	 * @return ?ClassSpec A proper class spec, or `null` if not possible
+	 *
+	 * @phpstan-param class-string $class
+	 *
+	 * @throws InvalidArgumentException if `$attrName` is not an `NCA\ClassSpec`
+	 */
 	public static function getClassSpecFromClass(string $class, string $attrName): ?ClassSpec {
-		if (!is_subclass_of($attrName, NCA\ClassSpec::class)) {
+		if (!is_subclass_of($attrName, NCA\ClassSpec::class, true)) {
 			throw new InvalidArgumentException("{$attrName} is not a class spec");
 		}
 		$reflection = new ReflectionClass($class);
@@ -371,11 +406,17 @@ class Util {
 		return substr(rtrim($password, '='), 0, $length);
 	}
 
+	/** Get the value of a given enum */
 	public static function enumToValue(BackedEnum $enum): int|string {
 		return $enum->value;
 	}
 
 	/**
+	 * Merge all the keys and values of `$b` into `$a`.
+	 * Every value from `$b` overwrite the corresponding value in `$a`, unless
+	 * it's an associative array, in which case the keys and values are
+	 * merged recursively.
+	 *
 	 * @param array<string,mixed> $a
 	 * @param array<string,mixed> $b
 	 *
@@ -396,6 +437,7 @@ class Util {
 		return $a;
 	}
 
+	/** Get the ParamType for a single parameter to a class spec constructor */
 	private static function getParamType(\ReflectionParameter $param, NCA\Param $attr): ParamType {
 		$paramRef = "{$param->getDeclaringClass()?->getName()}::{$param->getDeclaringFunction()->getName()}(\${$param->getName()})";
 		if (isset($attr->type)) {
@@ -416,6 +458,7 @@ class Util {
 		};
 	}
 
+	/** Extract a `FunctionParameter` instance from a given method parameter */
 	private static function getParamSpecFromReflection(\ReflectionParameter $param): FunctionParameter {
 		$paramRef = "{$param->getDeclaringClass()?->getName()}::{$param->getDeclaringFunction()->getName()}(\${$param->getName()})";
 		$attrs = $param->getAttributes(NCA\Param::class, ReflectionAttribute::IS_INSTANCEOF);

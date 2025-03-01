@@ -15,9 +15,15 @@ use Nadybot\Core\{
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 
+/** This class manages all commands which are actually subcommands of other commands */
 #[NCA\Instance]
 class SubcommandManager {
-	/** @var array<string,CmdCfg[]> */
+	/**
+	 * All registered subcommands as an associative array, keyed
+	 * by the subcommand names
+	 *
+	 * @var array<string,CmdCfg[]>
+	 */
 	public array $subcommands = [];
 
 	#[NCA\Logger]
@@ -32,9 +38,14 @@ class SubcommandManager {
 	/** @var array<string,CmdPermission> */
 	private array $cmdDefaultPermissions = [];
 
-	/** @var array<string,bool> */
+	/**
+	 * List of all configured sub-commands
+	 *
+	 * @var array<string,true>
+	 */
 	private array $configuredSubcmds = [];
 
+	/** Initialize the database before setup is called */
 	public function init(): void {
 		$this->db->table(CmdCfg::getTable())
 			->update(['verify' => 0]);
@@ -46,7 +57,18 @@ class SubcommandManager {
 			});
 	}
 
-	/** Register a subcommand */
+	/**
+	 * Register a subcommand
+	 *
+	 * @param string      $module        The module that defines the subcommand
+	 * @param string      $filename      The handler of the subcommand in the
+	 *                                   format `<class name>.<method name>`
+	 * @param string      $command       The actual command
+	 * @param AccessLevel $accessLevel   Access level required to run the subcommand
+	 * @param string      $parentCommand The parent command of this subcommand
+	 * @param string      $description   A short description of the command
+	 * @param null|Status $defaultStatus The default status (enabled or disabled)
+	 */
 	public function register(
 		string $module,
 		string $filename,
@@ -111,7 +133,7 @@ class SubcommandManager {
 		}
 	}
 
-	/** Load the active subcommands into memory and activates them */
+	/** Load the active subcommands into memory and activate them */
 	public function loadSubcommands(): void {
 		$this->logger->info('Loading enabled subcommands');
 
@@ -147,6 +169,7 @@ class SubcommandManager {
 			});
 	}
 
+	/** Get the default permissions of a subcommand */
 	public function getDefaultPermissions(string $cmd): ?CmdPermission {
 		return $this->cmdDefaultPermissions[$cmd] ?? null;
 	}
