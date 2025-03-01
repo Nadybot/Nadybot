@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\ALTS;
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 use Nadybot\Core\ExportCharacter;
 
+/** Information about a player's main and alt characters */
 class AltMain {
 	/**
 	 * @param ExportCharacter $main The main character.

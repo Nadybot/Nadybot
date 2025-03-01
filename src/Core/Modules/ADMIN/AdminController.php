@@ -29,6 +29,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 
+/** This is the main controller with commands to modify player's admin/mod ranks */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
@@ -154,7 +155,23 @@ class AdminController extends ModuleInstance {
 		$context->reply($link);
 	}
 
-	/** @return list<string> */
+	/**
+	 * Get a list of rendered blobs for
+	 * * Superadmins
+	 * * Admins
+	 * * Mods
+	 *
+	 * @param bool $showOfflineAlts Show a complete list of all of each admin's alts,
+	 *                              even if they are offline.
+	 * @param bool $showSuperAdmins Include Superadmins in the lists.
+	 *                              Technically, they are admins, but very
+	 *                              often, they don't act as such and only
+	 *                              focus on technical administration.
+	 *
+	 * @return list<string> A list of rendered blobs. If one of the admin
+	 *                      access levels is empty, then it
+	 *                      will be omitted from the list.
+	 */
 	public function getLeaderList(bool $showOfflineAlts, bool $showSuperAdmins=true): array {
 		$superadmins = [];
 		$admins = [];
@@ -214,7 +231,88 @@ class AdminController extends ModuleInstance {
 			});
 	}
 
-	public function add(string $who, string $sender, CommandReply $sendto, int $intlevel, string $rank): bool {
+	/** Check if the given character is the main of the player */
+	public function checkAltsInheritAdmin(string $who): bool {
+		$ai = $this->altsController->getAltInfo($who);
+		return $ai->main === $who;
+	}
+
+	/** Check if `$actor`'s access level is higher than `$actee`'s */
+	public function checkAccessLevel(string $actor, string $actee): bool {
+		$actorAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
+		$acteeAccessLevel = $this->accessManager->getSingleAccessLevel($actee);
+		return $acteeAccessLevel->lowerThan($actorAccessLevel);
+	}
+
+	/** Move admin rank to new main */
+	#[NCA\HandlesEvent]
+	public function moveAdminrank(AltNewMainEvent $event): void {
+		$oldRank = $this->adminManager->getAdminLevel($event->alt);
+		if (!isset($oldRank)) {
+			return;
+		}
+		$this->adminManager->removeFromLists($event->alt, $event->main);
+		$this->adminManager->addToLists($event->main, $oldRank, $event->alt);
+		$this->logger->notice("Moved {alt}'s admin rank to {main}.", [
+			'alt' => $event->alt,
+			'main' => $event->main,
+		]);
+	}
+
+	/**
+	 * Remove the admin rank for `$who`
+	 *
+	 * @param string       $who      Whose admin level to chance
+	 * @param string       $sender   Who is changing `$who`se admin level
+	 * @param CommandReply $sendto   Where to send the result of the operation to
+	 * @param int          $intlevel The admin level that `$who` is expected to have:
+	 *                               * `3`: admin
+	 *                               * `4`: mod
+	 * @param string       $rank     The name of the rank of `$intlevel`:
+	 *                               * `'mod'`
+	 *                               * `'admin'`
+	 *
+	 * @return bool Success or not
+	 */
+	private function remove(string $who, string $sender, CommandReply $sendto, int $intlevel, string $rank): bool {
+		if (!$this->adminManager->checkExisting($who, $intlevel)) {
+			$sendto->reply("<highlight>{$who}<end> is not {$rank}.");
+			return false;
+		}
+
+		if (!$this->checkAccessLevel($sender, $who)) {
+			$sendto->reply("You must have a higher access level than <highlight>{$who}<end> in order to change his access level.");
+			return false;
+		}
+
+		$this->adminManager->removeFromLists($who, $sender);
+
+		if (!$this->checkAltsInheritAdmin($who)) {
+			$msg = "<red>WARNING<end>: {$who} is not a main.  This command did NOT affect {$who}'s access level.";
+			$sendto->reply($msg);
+		}
+
+		$sendto->reply("<highlight>{$who}<end> has been removed as {$rank}.");
+		$this->chatBot->sendTell("You have been removed as {$rank} by <highlight>{$sender}<end>.", $who);
+		return true;
+	}
+
+	/**
+	 * Promote or demote someone to mod/admin
+	 *
+	 * @param string       $who      Whose admin level to change
+	 * @param string       $sender   Who is chancing `$who`se admin level
+	 * @param CommandReply $sendto   Where to send the result of the operation to
+	 * @param int          $intlevel The new admin level to set
+	 *                               * `3`: admin
+	 *                               * `4`: mod
+	 * @param string       $rank     The name of the rank of `$intlevel`:
+	 *                               * `'mod'`
+	 *                               * `'admin'`
+	 *
+	 * @return bool Success or not
+	 */
+	private function add(string $who, string $sender, CommandReply $sendto, int $intlevel, string $rank): bool {
 		if ($this->chatBot->getUid($who) === null) {
 			$sendto->reply("Character <highlight>{$who}<end> does not exist.");
 			return false;
@@ -243,61 +341,13 @@ class AdminController extends ModuleInstance {
 		return true;
 	}
 
-	public function remove(string $who, string $sender, CommandReply $sendto, int $intlevel, string $rank): bool {
-		if (!$this->adminManager->checkExisting($who, $intlevel)) {
-			$sendto->reply("<highlight>{$who}<end> is not {$rank}.");
-			return false;
-		}
-
-		if (!$this->checkAccessLevel($sender, $who)) {
-			$sendto->reply("You must have a higher access level than <highlight>{$who}<end> in order to change his access level.");
-			return false;
-		}
-
-		$this->adminManager->removeFromLists($who, $sender);
-
-		if (!$this->checkAltsInheritAdmin($who)) {
-			$msg = "<red>WARNING<end>: {$who} is not a main.  This command did NOT affect {$who}'s access level.";
-			$sendto->reply($msg);
-		}
-
-		$sendto->reply("<highlight>{$who}<end> has been removed as {$rank}.");
-		$this->chatBot->sendTell("You have been removed as {$rank} by <highlight>{$sender}<end>.", $who);
-		return true;
-	}
-
-	public function checkAltsInheritAdmin(string $who): bool {
-		$ai = $this->altsController->getAltInfo($who);
-		return $ai->main === $who;
-	}
-
-	public function checkAccessLevel(string $actor, string $actee): bool {
-		$senderAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
-		$whoAccessLevel = $this->accessManager->getSingleAccessLevel($actee);
-		return $whoAccessLevel->lowerThan($senderAccessLevel);
-	}
-
-	/** Move admin rank to new main */
-	#[NCA\HandlesEvent]
-	public function moveAdminrank(AltNewMainEvent $event): void {
-		$oldRank = $this->adminManager->getAdminLevel($event->alt);
-		if (!isset($oldRank)) {
-			return;
-		}
-		$this->adminManager->removeFromLists($event->alt, $event->main);
-		$this->adminManager->addToLists($event->main, $oldRank, $event->alt);
-		$this->logger->notice("Moved {alt}'s admin rank to {main}.", [
-			'alt' => $event->alt,
-			'main' => $event->main,
-		]);
-	}
-
 	/**
 	 * Get the string of the online status
 	 *
-	 * @param string $who name of the character
+	 * @param string $who          name of the character
+	 * @param bool   $showLastSeen If `$who` is offline, add when they were last seen
 	 *
-	 * @return string " (<on>online<end>)" and so on
+	 * @return string `' (<on>online<end>)'` and so on
 	 */
 	private function getOnlineStatus(string $who, bool $showLastSeen=false): string {
 		if ($this->buddylistManager->isOnline($who) === true && $this->chatBot->inChatlist($who)) {
@@ -322,6 +372,15 @@ class AdminController extends ModuleInstance {
 			" on {$lastSeen->name})";
 	}
 
+	/**
+	 * Get all lines as a blob for a character in the admin list display,
+	 * including all their currently online alts.
+	 *
+	 * @param string $who             Name of the admin character
+	 * @param bool   $showOfflineAlts Include the offline alts as well
+	 *
+	 * @return string The rendered blob
+	 */
 	private function getAltAdminInfo(string $who, bool $showOfflineAlts): string {
 		$blob = '';
 		$altInfo = $this->altsController->getAltInfo($who);

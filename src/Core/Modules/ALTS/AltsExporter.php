@@ -16,6 +16,8 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
+ * The exporter for the bot's alts
+ *
  * @author Nadyita (RK5)
  */
 #[
@@ -24,7 +26,11 @@ use Throwable;
 	NCA\Importer(key: 'alts', class: AltMain::class),
 ]
 class AltsExporter extends ModuleInstance implements ExporterInterface, ImporterInterface {
-	/** @return list<AltMain> */
+	/**
+	 * Export all the alts of all the players
+	 *
+	 * @return list<AltMain>
+	 */
 	public function export(DB $db, LoggerInterface $logger): array {
 		$alts = $db->table(Alt::getTable())->asObj(Alt::class);
 

@@ -15,6 +15,10 @@ use Nadybot\Core\{
 	Text,
 };
 
+/**
+ * This is a utility class that gets instantiated, when requesting information
+ * about a character's alts or main.
+ */
 class AltInfo {
 	#[NCA\Inject]
 	private Nadybot $chatBot;
@@ -35,12 +39,15 @@ class AltInfo {
 	private DB $db;
 
 	/**
-	 * @param string                            $main The nickname of this character
-	 * @param array<string,AltValidationStatus> $alts The list of alts for this character
-	 *                                                Format is [
-	 *                                                name => validated (true) or false
-	 *                                                ]
-	 * @param ?string                           $nick The main char of this character
+	 * @param string                            $main       The nickname of this character
+	 * @param array<string,AltValidationStatus> $alts       The list of alts for this character
+	 *                                                      Format is [
+	 *                                                      name => validated (true) or false
+	 *                                                      ]
+	 * @param ?string                           $nick       The main char of this character
+	 * @param bool                              $nickFilled Internal state tracker whether
+	 *                                                      `$nick` being `null` means
+	 *                                                      unknown (`false`) or none (`true`)
 	 */
 	public function __construct(
 		public string $main,
@@ -50,7 +57,7 @@ class AltInfo {
 	) {
 	}
 
-	/** Check if $sender is a validated alt or main */
+	/** Check if `$sender` is a validated alt or main */
 	public function isValidated(string $sender): bool {
 		$sender = Utils::normalizeCharacter($sender);
 		if ($sender === $this->main) {
@@ -64,7 +71,9 @@ class AltInfo {
 	}
 
 	/**
-	 * Get a list of all validated alts and the main of $sender
+	 * Get a list of all validated alts, and the main of `$sender`.
+	 * If `$sender` is not a validated alt of this player, then
+	 * only `$sender` is returned.
 	 *
 	 * @return list<string>
 	 */
@@ -82,11 +91,9 @@ class AltInfo {
 	}
 
 	/**
-	 * Get a list of all validated alts
+	 * Get a list of all validated alts of this character.
 	 *
 	 * @return list<string>
-	 *
-	 * @psalm-return list<string>
 	 */
 	public function getAllValidatedAlts(): array {
 		$alts = [];
@@ -99,7 +106,9 @@ class AltInfo {
 	}
 
 	/**
-	 * Get a list of all alts requiring validation from main
+	 * Get a list of all alts requiring validation from this player's main
+	 *
+	 * @param bool $onlyMine Only include alts added via this bot
 	 *
 	 * @return list<string>
 	 */
@@ -116,6 +125,12 @@ class AltInfo {
 		return $alts;
 	}
 
+	/**
+	 * Get a blob with all the alts of this player
+	 *
+	 * @param bool $firstPageOnly Make sure to return a blob that will
+	 *                            fit to a single page
+	 */
 	public function getAltsBlob(bool $firstPageOnly=false): string {
 		if (count($this->alts) === 0) {
 			return 'No registered alts.';
@@ -147,7 +162,7 @@ class AltInfo {
 	}
 
 	/**
-	 * Get a list of the names of all alts
+	 * Get a list of the names of all our alts
 	 *
 	 * @return list<string>
 	 */
@@ -157,6 +172,7 @@ class AltInfo {
 		return $onlineList;
 	}
 
+	/** Check if this player has any alts waiting for validation */
 	public function hasUnvalidatedAlts(): bool {
 		foreach ($this->getAllAlts() as $alt) {
 			if (!$this->isValidated($alt)) {
@@ -166,6 +182,10 @@ class AltInfo {
 		return false;
 	}
 
+	/**
+	 * Get the validated main for `$sender`. If `$sender` is an  unvalidated alt,
+	 * they will be considered their main.
+	 */
 	public function getValidatedMain(string $sender): string {
 		if ($this->isValidated($sender)) {
 			return $this->main;
@@ -173,6 +193,12 @@ class AltInfo {
 		return $sender;
 	}
 
+	/**
+	 * Add a `/tell` chat-command link if `$name` in online
+	 *
+	 * @param string $name   The name of the character
+	 * @param ?bool  $online Whether `$name` is currently online
+	 */
 	public function formatCharName(string $name, ?bool $online): string {
 		if ($online) {
 			return Text::makeChatcmd($name, "/tell {$name}");
@@ -180,6 +206,11 @@ class AltInfo {
 		return $name;
 	}
 
+	/**
+	 * Format the online status as `' - <on>Online<end>'`
+	 *
+	 * @param ?bool $online Is the character online
+	 */
 	public function formatOnlineStatus(?bool $online): string {
 		if ($online) {
 			return ' - <on>Online<end>';
@@ -187,6 +218,7 @@ class AltInfo {
 		return '';
 	}
 
+	/** Get the nick name of the player, or `null` if none set */
 	public function getNick(): ?string {
 		if ($this->nickFilled === false) {
 			$this->nick = $this->nickController->getNickname($this->main);
@@ -195,6 +227,7 @@ class AltInfo {
 		return $this->nick;
 	}
 
+	/** Get the rendered nick name of the player, or `null` if none set */
 	public function getDisplayNick(): ?string {
 		$nick = $this->getNick();
 		if (!isset($nick)) {
@@ -207,6 +240,12 @@ class AltInfo {
 		return $text;
 	}
 
+	/**
+	 * Get the blob with the full list of all the alts
+	 *
+	 * @param null|Player $player        The player object
+	 * @param bool        $firstPageOnly Only return entries that would fit on a single page
+	 */
 	protected function getAltsBlobForPlayer(?Player $player, bool $firstPageOnly): string {
 		if (!isset($player)) {
 			return 'Main character not found.';

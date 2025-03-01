@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\ALTS;
 
 use Nadybot\Core\ExportCharacter;
 
+/** An alt character and their validation status */
 class AltChar {
 	/**
 	 * @param ExportCharacter $alt             The alt character.

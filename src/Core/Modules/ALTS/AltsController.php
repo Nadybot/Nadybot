@@ -108,7 +108,12 @@ class AltsController extends ModuleInstance {
 	#[NCA\Inject]
 	private DB $db;
 
-	/** @var array<string,string> */
+	/**
+	 * A cached list of all characters and their main in the format
+	 * `[<alt> => <main>]`
+	 *
+	 * @var array<string,string>
+	 */
 	private array $alts = [];
 
 	#[NCA\Setup]
