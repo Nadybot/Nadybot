@@ -5,7 +5,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use function Safe\{base64_decode, json_decode, mime_content_type, openssl_verify, preg_split};
 
 use Amp\File\FilesystemException;
-use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\{HttpClientBuilder, Request as ClientRequest};
 use Amp\Http\Server\{DefaultErrorHandler, HttpServer, Request, RequestHandler, Response, SocketHttpServer};
 use Amp\Http\{Client, HttpStatus};
 use Amp\TimeoutCancellation;
@@ -351,6 +351,21 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			return new Response(status: HttpStatus::METHOD_NOT_ALLOWED);
 		}
 
+/*
+		$builder = new \Amp\Http\Client\HttpClientBuilder();
+		$client = $builder->build();
+		$response = $client->request(new ClientRequest(
+			$request->getUri()->withPort(8_081),
+			$request->getMethod(),
+			$request->getBody()->buffer(),
+		));
+		return new \Amp\Http\Server\Response(
+			status: $response->getStatus(),
+			headers: $response->getHeaders(),
+			body: $response->getBody(),
+			trailers: null,
+		);
+*/
 		return $this->serveStaticFile($request);
 	}
 

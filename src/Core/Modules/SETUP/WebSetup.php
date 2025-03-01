@@ -56,8 +56,10 @@ class WebSetup {
 			root: __DIR__ . '/html',
 			filesystem: $this->fs->getFilesystem()
 		);
+		$passthrough = new DebugToVue(port: 5_173);
 		$router = new Router($server, $this->logger, $errorHandler);
-		$router->setFallback($documentRoot);
+		// $router->setFallback($documentRoot);
+		$router->setFallback($passthrough);
 		$router->addRoute('GET', '/characters', new ClosureRequestHandler($this->getAccountCharacters(...)));
 		$router->addRoute('GET', '/specs', new ClosureRequestHandler($this->getSystemSpecs(...)));
 		$router->addRoute('GET', '/timezones', new ClosureRequestHandler($this->getTimezones(...)));
