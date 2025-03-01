@@ -11,7 +11,6 @@ use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
-	Types\MinMax,
 	Types\ParamType,
 };
 use RangeException;
@@ -323,32 +322,6 @@ class Util {
 			fn (string $f): bool => $f !== '.' && $f !== '..' && $this->fs->isDirectory($path . \DIRECTORY_SEPARATOR . $f)
 		));
 		return $result;
-	}
-
-	/** Calculate the title level from the player's level */
-	public static function levelToTL(int $level): int {
-		return match (true) {
-			$level < 15 => 1,
-			$level < 50 => 2,
-			$level < 100 => 3,
-			$level < 150 => 4,
-			$level < 190 => 5,
-			$level < 205 => 6,
-			default => 7,
-		};
-	}
-
-	/** Calculate the level range from the player's title level */
-	public static function tlToLevelRange(int $tl): MinMax {
-		return match ($tl) {
-			1 => new MinMax(min: 1, max: 14),
-			2 => new MinMax(min: 15, max: 49),
-			3 => new MinMax(min: 50, max: 99),
-			4 => new MinMax(min: 100, max: 149),
-			5 => new MinMax(min: 150, max: 189),
-			6 => new MinMax(min: 190, max: 204),
-			default => new MinMax(min: 205, max: 220),
-		};
 	}
 
 	/**

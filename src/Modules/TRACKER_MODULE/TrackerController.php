@@ -6,6 +6,7 @@ use function Safe\preg_split;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
+use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -389,7 +390,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$replacements['breed'] = $player->breed;
 			if (isset($player->level)) {
 				$replacements['level'] = "<highlight>{$player->level}<end>/<green>{$player->ai_level}<end>";
-				$replacements['tl'] = Util::levelToTL($player->level ?? 1);
+				$replacements['tl'] = TitleLevel::fromLevel($player->level ?? 1)->value;
 			}
 		}
 		$replacements['Gender'] = ucfirst($replacements['gender']);
@@ -881,7 +882,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$groups = [];
 		if ($groupBy === static::GROUP_TL) {
 			foreach ($players as $player) {
-				$tl = Util::levelToTL($player->level??1);
+				$tl = TitleLevel::fromLevel($player->level ?? 1)->value;
 				$groups[$tl] ??= (object)[
 					'title' => 'TL'.$tl,
 					'members' => [],
@@ -1343,15 +1344,15 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (isset($filters['titleLevelRange'])) {
 			$filters['levelRange'] ??= [];
 			foreach ($filters['titleLevelRange'] as $range) {
-				$from = Util::tlToLevelRange((int)substr($range, 2, 1));
-				$to = Util::tlToLevelRange((int)substr($range, 4, 1));
+				$from = TitleLevel::from((int)substr($range, 2, 1))->toLevelRange();
+				$to = TitleLevel::from((int)substr($range, 4, 1))->toLevelRange();
 				$filters['levelRange'] []= "{$from->min}-{$to->max}";
 			}
 		}
 		if (isset($filters['titleLevel'])) {
 			$filters['levelRange'] ??= [];
 			foreach ($filters['titleLevel'] as $tl) {
-				$range = Util::tlToLevelRange((int)substr($tl, 2));
+				$range = TitleLevel::from((int)substr($tl, 2))->toLevelRange();
 				$filters['levelRange'] []= "{$range->min}-{$range->max}";
 			}
 		}

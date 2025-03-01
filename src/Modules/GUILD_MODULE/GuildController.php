@@ -5,6 +5,7 @@ namespace Nadybot\Modules\GUILD_MODULE;
 use AO\Utils;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltInfo;
+use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -544,7 +545,7 @@ class GuildController extends ModuleInstance {
 				$players->max('level');
 		};
 		$tlFunc = static function (Player $p): string {
-			return 'TL ' . Util::levelToTL($p->level ?? 1);
+			return 'TL ' . TitleLevel::fromLevel($p->level ?? 1)->value;
 		};
 
 		$blob = '<header2>' . ($org->orgname ?? $this->config->general->orgName) . "<end>\n";

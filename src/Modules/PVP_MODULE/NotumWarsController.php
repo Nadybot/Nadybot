@@ -8,6 +8,7 @@ use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -1403,7 +1404,7 @@ class NotumWarsController extends ModuleInstance {
 		} elseif ($grouping === 2) {
 			$hotSites = $hotSites->sortBy('ql');
 			$grouped = $hotSites->groupBy(static function (FeedMessage\SiteUpdate $site): string {
-				return 'TL' . Util::levelToTL($site->ql??1);
+				return 'TL' . TitleLevel::fromLevel($site->ql??1)->value;
 			});
 		} elseif ($grouping === 3) {
 			$hotSites = $hotSites->sortBy('ql');
