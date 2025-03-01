@@ -7,10 +7,12 @@ use function Safe\ini_get;
 
 use Amp\ByteStream\BufferException;
 use Amp\Http\HttpStatus;
+use Amp\Http\Server\Driver\{ConnectionLimitingClientFactory, ConnectionLimitingServerSocketFactory, SocketClientFactory};
 use Amp\Http\Server\RequestHandler\ClosureRequestHandler;
 use Amp\Http\Server\StaticContent\DocumentRoot;
 use Amp\Http\Server\{DefaultErrorHandler, HttpServer, Request, Response, Router, SocketHttpServer};
 use Amp\Socket\InternetAddress;
+use Amp\Sync\LocalSemaphore;
 use Amp\{CancelledException, TimeoutCancellation, TimeoutException};
 use AO\Client\{SingleClient, WorkerConfig};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
@@ -19,7 +21,7 @@ use InvalidArgumentException;
 use Nadybot\Core\Config\{AutoUnfreeze, BotConfig};
 use Nadybot\Core\Drill;
 use Nadybot\Core\Drill\{AbstractDrillPacket, DrillAuthMode, DrillConnection, DrillConnector, DrillHttpConnection};
-use Nadybot\Core\{BotRunner, DB, Filesystem, Hydrator, Safe};
+use Nadybot\Core\{BotRunner, DB, Filesystem, Hydrator, Options, Safe};
 use Nadylib\IMEX;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
@@ -39,6 +41,7 @@ class WebSetup {
 	public function __construct(
 		private Setup $setup,
 		private BotConfig $configFile,
+		private Options $options,
 		private Filesystem $fs,
 		private LoggerInterface $logger,
 	) {
@@ -47,19 +50,31 @@ class WebSetup {
 	public function serve(): BotConfig {
 		$errorHandler = new DefaultErrorHandler();
 
-		$server = SocketHttpServer::createForDirectAccess($this->logger);
+		$server = new SocketHttpServer(
+			logger: $this->logger,
+			serverSocketFactory: new ConnectionLimitingServerSocketFactory(new LocalSemaphore(100)),
+			clientFactory: new ConnectionLimitingClientFactory(
+				new SocketClientFactory($this->logger),
+				$this->logger,
+				10,
+			),
+			middleware: [new PreGzipMiddleware()],
+		);
 		$server->expose(new InternetAddress('127.0.0.1', 8_080));
 		$server->expose(new InternetAddress('[::1]', 8_080));
-		$documentRoot = new DocumentRoot(
-			httpServer: $server,
-			errorHandler: $errorHandler,
-			root: __DIR__ . '/html',
-			filesystem: $this->fs->getFilesystem()
-		);
-		$passthrough = new DebugToVue(port: 5_173);
 		$router = new Router($server, $this->logger, $errorHandler);
-		// $router->setFallback($documentRoot);
-		$router->setFallback($passthrough);
+		if ($this->options->vueDevMode) {
+			$fallbackHandler = new DebugToVue(port: 5_173);
+		} else {
+			$fallbackHandler = new DocumentRoot(
+				httpServer: $server,
+				errorHandler: $errorHandler,
+				root: __DIR__ . '/html',
+				filesystem: $this->fs->getFilesystem()
+			);
+		}
+
+		$router->setFallback($fallbackHandler);
 		$router->addRoute('GET', '/characters', new ClosureRequestHandler($this->getAccountCharacters(...)));
 		$router->addRoute('GET', '/specs', new ClosureRequestHandler($this->getSystemSpecs(...)));
 		$router->addRoute('GET', '/timezones', new ClosureRequestHandler($this->getTimezones(...)));

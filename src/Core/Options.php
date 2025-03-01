@@ -30,6 +30,7 @@ class Options {
 		#[OptionFlag] public readonly bool $help=false,
 		#[OptionFlag, MapFrom('migrate-only')] public readonly bool $migrateOnly=false,
 		#[OptionFlag, MapFrom('setup-only')] public readonly bool $setupOnly=false,
+		#[OptionFlag, MapFrom('vue-dev')] public readonly bool $vueDevMode=false,
 		#[OptionFlag] public readonly bool $strict=false,
 		#[MapFrom('log-config')] public readonly ?string $logConfig=null,
 		#[OptionFlag, MapFrom('migration-errors-fatal')] public readonly bool $migrationErrorsFatal=false,

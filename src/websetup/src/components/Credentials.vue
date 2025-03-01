@@ -19,7 +19,7 @@
 
     <v-text-field
       v-model="password.value.value"
-      :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+      :append-icon="showPassword ? '$eye' : '$eyeOff'"
       :type="showPassword ? 'text' : 'password'"
       class="mb-4"
       label="Password"

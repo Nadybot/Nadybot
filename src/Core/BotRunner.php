@@ -536,6 +536,7 @@ class BotRunner {
 					'help',
 					'migrate-only',
 					'setup-only',
+					'vue-dev',
 					'strict',
 					'log-config:',
 					'migration-errors-fatal',
@@ -556,7 +557,7 @@ class BotRunner {
 			$options['c'] = array_shift($argv);
 		}
 		$arguments = Hydrator::hydrate(Options::class, $options);
-		if (self::$arguments->help) {
+		if ($arguments->help) {
 			$this->showSyntaxHelp();
 			exit(0);
 		}
@@ -575,6 +576,8 @@ class BotRunner {
 			"  --help                Show this help message and exit\n".
 			"  --migrate-only        Only run the database migration and then exit\n".
 			"  --setup-only          Stop the bot after the setup handlers have been called\n".
+			"  --vue-dev             Don't serve web-files locally, connect to the\n".
+			"                        vite development server for hot reloading.\n".
 			"  --log-config=<file>   Use an alternative config file for the logger. The default\n".
 			"                        configuration is in conf/logging.json\n".
 			"  --migration-errors-fatal\n".
@@ -647,7 +650,7 @@ class BotRunner {
 
 	/** Setup proper error-reporting, -handling and -logging */
 	private function setErrorHandling(string $logFolderName): void {
-		error_reporting(\E_ALL & ~\E_STRICT & ~\E_WARNING & ~\E_NOTICE);
+		error_reporting(\E_ALL & ~\E_WARNING & ~\E_NOTICE);
 		ini_set('log_errors', '1');
 		ini_set('display_errors', '1');
 		ini_set('error_log', "{$logFolderName}/php_errors.log");
@@ -658,7 +661,12 @@ class BotRunner {
 		if (!$this->shouldShowSetup($config)) {
 			return false;
 		}
-		$setup = new Setup($this->getConfigFile(), self::getFS(), $this->logger);
+		$setup = new Setup(
+			configFile: $this->getConfigFile(),
+			fs: self::getFS(),
+			options: self::$arguments,
+			logger: $this->logger
+		);
 		$this->configFile = $setup->showIntro();
 		$this->logger->notice('Reloading configuration and testing your settings.');
 		return true;

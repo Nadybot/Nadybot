@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB\DBType,
 	Filesystem,
+	Options,
 	Terminal,
 	Types\Status
 };
@@ -37,6 +38,7 @@ class Setup {
 	public function __construct(
 		private BotConfig $configFile,
 		private Filesystem $fs,
+		private Options $options,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -62,16 +64,22 @@ class Setup {
 		$this->showStep(
 			"You will need to provide some information\n".
 			"regarding the basic configuration of the bot.\n".
-			"Do you want to configure the boto via\n".
-			"\t[1] Basic text mode questions\n".
-			"\t[2] A proper WebUI"
+			"Do you want to configure the bot\n".
+			"\t[1] by answering basic questions (legacy)\n".
+			"\t[2] with your browser (recommended)"
 		);
 		$msg = 'Choose [1] or [2]: ';
 		do {
 			$result = $this->readInput($msg);
 		} while (!in_array($result, ['1', '2'], true));
 		if ($result === '2') {
-			$webUI = new WebSetup($this, $this->configFile, $this->fs, $this->logger);
+			$webUI = new WebSetup(
+				setup: $this,
+				configFile: $this->configFile,
+				options: $this->options,
+				fs: $this->fs,
+				logger: $this->logger,
+			);
 			return $webUI->serve();
 		}
 		$this->queryAccountUsername();

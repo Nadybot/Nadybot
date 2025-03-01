@@ -4,7 +4,7 @@ import App from './App.vue'
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
-import { mdiDownload } from '@mdi/js'
+import { mdiDownload, mdiEye, mdiEyeOff } from '@mdi/js'
 
 const vuetify = createVuetify({
   icons: {
@@ -12,6 +12,8 @@ const vuetify = createVuetify({
     aliases: {
       ...aliases,
       download: mdiDownload,
+      eye: mdiEye,
+      eyeOff: mdiEyeOff
     },
     sets: {
       mdi,

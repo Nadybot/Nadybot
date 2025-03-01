@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	Attributes\Http,
+	BotRunner,
 	CmdContext,
 	Config\BotConfig,
 	DB,
@@ -351,21 +352,21 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			return new Response(status: HttpStatus::METHOD_NOT_ALLOWED);
 		}
 
-/*
-		$builder = new \Amp\Http\Client\HttpClientBuilder();
-		$client = $builder->build();
-		$response = $client->request(new ClientRequest(
-			$request->getUri()->withPort(8_081),
-			$request->getMethod(),
-			$request->getBody()->buffer(),
-		));
-		return new \Amp\Http\Server\Response(
-			status: $response->getStatus(),
-			headers: $response->getHeaders(),
-			body: $response->getBody(),
-			trailers: null,
-		);
-*/
+		if (BotRunner::getArguments()->vueDevMode) {
+			$builder = new \Amp\Http\Client\HttpClientBuilder();
+			$client = $builder->build();
+			$response = $client->request(new ClientRequest(
+				$request->getUri()->withPort(8_081),
+				$request->getMethod(),
+				$request->getBody()->buffer(),
+			));
+			return new \Amp\Http\Server\Response(
+				status: $response->getStatus(),
+				headers: $response->getHeaders(),
+				body: $response->getBody(),
+				trailers: null,
+			);
+		}
 		return $this->serveStaticFile($request);
 	}
 
