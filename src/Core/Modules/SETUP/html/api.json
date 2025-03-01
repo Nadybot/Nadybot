@@ -181,14 +181,14 @@
             },
             "AutoUnfreeze": {
                 "type": "object",
-                "required": ["enabled", "useNadyproxy"],
+                "required": ["enabled", "use_nadyproxy"],
                 "properties": {
                     "enabled": {
                         "description": "Automatically try to unfreeze frozen accounts",
                         "type": "boolean",
                         "default": false
                     },
-                    "useNadyproxy": {
+                    "use_nadyproxy": {
                         "description": "If enabled, try to unfreeze a frozen account via a proxy to work around the limit of maximum of 3 unfreezings per IP address",
                         "default": true,
                         "type": "boolean"
@@ -200,7 +200,7 @@
                 "type": "object",
                 "required": ["database", "general", "main", "paths"],
                 "properties": {
-                    "autoUnfreeze": {
+                    "auto-unfreeze": {
                         "$ref": "#/components/schemas/AutoUnfreeze"
                     },
                     "database": {
@@ -277,14 +277,14 @@
                     "password": {
                         "$ref": "#/components/schemas/Password"
                     },
-                    "webLogin": {
+                    "web_login": {
                         "description": "The login credentials to use when unfreezing this character. Only set if different to the login",
                         "default": null,
                         "type": [ "string", "null" ],
                         "minLength": 6,
                         "maxLength": 15
                     },
-                    "webPassword": {
+                    "web_password": {
                         "description": "The password credentials to use when unfreezing this character. Only set if different to the password",
                         "default": null,
                         "oneOf": [
@@ -329,46 +329,46 @@
             },
             "General": {
                 "type": "object",
-                "required": ["superAdmins", "orgName"],
+                "required": ["super_admins", "org_name"],
                 "properties": {
-                    "autoOrgName": {
+                    "auto_org_name": {
                         "type": "boolean",
                         "description": "Automatically rename the bot's org if it changed in-game",
                         "default": false
                     },
-                    "defaultModuleStatus": {
+                    "default_module_status": {
                         "type": "integer",
                         "description": "Enable all current and upcoming modules (1) or only the bare minimum (0)",
                         "enum": [0, 1],
                         "example": 1,
                         "default": 1
                     },
-                    "enableConsoleClient": {
+                    "enable_console_client": {
                         "type": "boolean",
                         "description": "Enable controlling the bot via the Linux console. Does not work on Windows.",
                         "default": true
                     },
-                    "enableHydratorCache": {
+                    "enable_hydrator_cache": {
                         "type": "boolean",
                         "description": "Speed up JSON parsing by compiling the schema. Uses more memory",
                         "default": true
                     },
-                    "enablePackageModule": {
+                    "enable_package_module": {
                         "type": "boolean",
                         "description": "Enable the `!package`-command",
                         "default": true
                     },
-                    "orgName": {
+                    "org_name": {
                         "type": "string",
                         "description": "Name of the org the bot is a member of. Empty if none",
                         "example": "Nadybot Testers"
                     },
-                    "showAomlMarkup": {
+                    "show_aoml_markup": {
                         "type": "boolean",
                         "description": "Show raw AO-HTML data in logfiles, instead of converting it to ASCII",
                         "default": false
                     },
-                    "superAdmins": {
+                    "super_admins": {
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/CharacterName"
