@@ -14,8 +14,7 @@ use Nadybot\Core\{
 };
 
 /**
- * This modifier allows you to modify the message of an
- * event by replacing text, or adding a prefix.
+ * This allows you to forward events passing this modifier to any destination
  */
 #[NCA\EventModifier(name: 'debug')]
 class Debug implements EventModifier {
@@ -31,6 +30,7 @@ class Debug implements EventModifier {
 	) {
 	}
 
+	/** {@inheritDoc} */
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		if (!isset($event)) {
 			return $event;

@@ -40,6 +40,7 @@ class IfHasPrefix implements EventModifier {
 	) {
 	}
 
+	/** {@inheritDoc} */
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		if (!isset($event)) {
 			return null;

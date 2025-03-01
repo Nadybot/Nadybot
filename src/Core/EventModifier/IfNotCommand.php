@@ -22,6 +22,7 @@ class IfNotCommand implements EventModifier {
 	#[NCA\Inject]
 	private SettingManager $settingManager;
 
+	/** {@inheritDoc} */
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		// We only require prefixes for messages, the rest is passed through
 		if (!isset($event) || $event->getEvent() !== $event::TYPE_MESSAGE) {

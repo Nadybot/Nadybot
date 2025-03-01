@@ -50,6 +50,7 @@ class IfMatches implements EventModifier {
 		}
 	}
 
+	/** {@inheritDoc} */
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		if (!isset($event)) {
 			return $event;
@@ -66,6 +67,7 @@ class IfMatches implements EventModifier {
 		return $event;
 	}
 
+	/** Check if a given message matches the configured criteria */
 	protected function matches(string $message): bool {
 		foreach ($this->text as $text) {
 			if ($this->isRegexp) {

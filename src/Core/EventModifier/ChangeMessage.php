@@ -48,6 +48,7 @@ class ChangeMessage implements EventModifier {
 		}
 	}
 
+	/** {@inheritDoc} */
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		if (!isset($event)) {
 			return $event;
@@ -78,6 +79,7 @@ class ChangeMessage implements EventModifier {
 		return $modifiedEvent;
 	}
 
+	/** Change the given message as configured */
 	protected function alterMessage(string $message): string {
 		if (isset($this->search, $this->replace)) {
 			if ($this->isRegExp) {

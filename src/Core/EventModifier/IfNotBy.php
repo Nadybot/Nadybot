@@ -32,6 +32,7 @@ class IfNotBy implements EventModifier {
 		$this->senders = array_map('strtolower', $senders);
 	}
 
+	/** {@inheritDoc} */
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		if (!isset($event)) {
 			return $event;
