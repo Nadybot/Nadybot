@@ -23,6 +23,17 @@
         :error-messages="name.errorMessage.value"
         label="Database file name"
       ></v-text-field>
+
+      <v-alert icon="$info" color="blue-lighten-5">
+        <p>
+          SQLite is a file-based database that needs a directory where to store the file, and a file
+          name (preferably with the ending <code>.db</code>). Because it's file-based, you cannot
+          share an SQLite database between multiple bots.
+        </p>
+        <p>
+          Due to the simplicity of the database, it's the recommended database system for Nadybot.
+        </p>
+      </v-alert>
     </template>
     <template v-else-if="type.value.value != undefined">
       <v-text-field
@@ -48,6 +59,18 @@
         :error-messages="password.errorMessage.value"
         label="Database password"
       ></v-text-field>
+
+      <v-alert icon="$info" color="blue-lighten-5">
+        <p>
+          Use a {{ type.value }} database, if you already have a dedicated database server, or you
+          want to share the database between multiple bots.
+        </p>
+        <p>Sharing the database between bots allows sharing alts.</p>
+        <p>
+          A dedicated database is usually not as fast as an SQLite database, but uses less memory in
+          the PHP process.
+        </p>
+      </v-alert>
     </template>
   </form>
 </template>

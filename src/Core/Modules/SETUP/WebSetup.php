@@ -63,8 +63,11 @@ class WebSetup {
 		$server->expose(new InternetAddress('127.0.0.1', 8_080));
 		$server->expose(new InternetAddress('[::1]', 8_080));
 		$router = new Router($server, $this->logger, $errorHandler);
+		$footNote = '';
 		if ($this->options->vueDevMode) {
 			$fallbackHandler = new DebugToVue(port: 5_173);
+			$footNote = "\n\nDon't forget to start the vite development server with\n".
+				'"npm run dev -- --host"';
 		} else {
 			$fallbackHandler = new DocumentRoot(
 				httpServer: $server,
@@ -80,11 +83,14 @@ class WebSetup {
 		$router->addRoute('GET', '/timezones', new ClosureRequestHandler($this->getTimezones(...)));
 		$router->addRoute('POST', '/config', new ClosureRequestHandler(fn (Request $request): Response => $this->saveConfig($server, $request)));
 		$server->start($router, $errorHandler);
-		EventLoop::queue($this->setupDrill(...));
+		if (!$this->options->vueDevMode) {
+			EventLoop::queue($this->setupDrill(...));
+		}
 		$this->setup->showStep(
 			"You can now connect to\n\n".
 			"    http://127.0.0.1:8080\n\n".
-			"to configure your bot.\n"
+			"to configure your bot.\n".
+			$footNote
 		);
 		EventLoop::run();
 		return $this->configFile;

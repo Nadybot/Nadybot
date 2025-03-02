@@ -96,6 +96,7 @@
               ref="extrasettings"
               :orgName="orgName"
               :timezones="timezones"
+              :botName="character!.values.character"
             ></ExtraSettings>
 
             <v-stepper-actions

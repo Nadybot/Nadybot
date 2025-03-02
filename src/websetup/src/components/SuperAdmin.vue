@@ -7,6 +7,13 @@
       :error-messages="superadmin.errorMessage.value"
       label="Superadmin"
     ></v-text-field>
+    <v-alert icon="$info" color="blue-lighten-5">
+      <p>
+        A superadmin is a user with unlimited permissions, identical to the root user on UNIX
+        systems, and the Administrator on Windows systems.
+      </p>
+      <p>Every bot must have at least one Superadmin.</p>
+    </v-alert>
   </form>
 </template>
 

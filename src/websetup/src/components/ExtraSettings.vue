@@ -9,12 +9,31 @@
       v-model="webui.value.value"
     ></v-switch>
 
+    <v-alert icon="$info" color="blue-lighten-5" class="mb-5">
+      <p class="mb-2">
+        The WebUI allows you to configure the bot comfortably from your browser, without the
+        limitations of Anarchy Online. The speed is much faster, and you will generally have a
+        better time with your bot.
+      </p>
+      <p>
+        You will also get a web chat to talk with people currently in the game, without having to
+        log into the game yourself.
+      </p>
+    </v-alert>
+
     <template v-if="webui.value.value">
       <v-text-field
         v-model="host.value.value"
         :error-messages="host.errorMessage.value"
         label="Listen address"
       ></v-text-field>
+
+      <v-alert icon="$info" color="blue-lighten-5" class="mb-5">
+        <p>
+          Use <code>127.0.0.1</code> if you run the bot locally, or through a reverse proxy, like
+          Nginx or Drill. Otherwise choose <code>0.0.0.0</code> to make it publicly available.
+        </p>
+      </v-alert>
 
       <v-text-field
         v-model="port.value.value"
@@ -31,6 +50,22 @@
         v-model="authMethod.value.value"
       ></v-select>
 
+      <v-alert icon="$info" color="blue-lighten-5" class="mb-5">
+        <p class="mb-3">This controls how users will login and authenticate to the WebUI.</p>
+        <ul>
+          <li class="mb-3">
+            <strong>Token</strong>: You get a one-time token when starting the bot, or running a
+            bot-command, that will allow you to use the WebUI for 1 hour. Not recommended.
+          </li>
+          <li>
+            <strong>AoAuth</strong>: Use Nadybot's central authentication provider that allows you
+            to register your character and their alts via tells in the game, to authenticate as any
+            of your characters for 1 month. This doesn't require you to be in-game to use the WebUI
+            after you've set up your AoAuth account. This is the recommended way to use the WebUI.
+          </li>
+        </ul>
+      </v-alert>
+
       <v-select
         :error-messages="drill.errorMessage.value"
         label="Drill server"
@@ -39,6 +74,20 @@
         item-value="value"
         v-model="drill.value.value"
       ></v-select>
+      <v-alert icon="$info" color="blue-lighten-5" class="mb-5">
+        <p class="mb-3">
+          If you don't run a reverse proxy, or don't want to configure anything complicated, and you
+          just want to be able to connect to your WebUI from everywhere in a secure manner, choose
+          either a EU- or US-based service.
+        </p>
+        <p class="mb-1">This will make your bot available as either</p>
+        <p>
+          <code>https://{{ props.botName.toLowerCase() }}.nadybotter.org</code> (US-based)
+        </p>
+        <p>
+          <code>https://{{ props.botName.toLowerCase() }}.nadybotter.eu</code> (EU-based).
+        </p>
+      </v-alert>
     </template>
 
     <v-switch
@@ -55,13 +104,30 @@
       v-model="enablePackageManager.value.value"
     ></v-switch>
 
-    <v-switch
-      color="primary"
-      v-if="props.orgName != ''"
-      :error-messages="orgbot.errorMessage.value"
-      :label="'Enable org-bot functionality (' + props.orgName + ')'"
-      v-model="orgbot.value.value"
-    ></v-switch>
+    <v-alert icon="$info" color="blue-lighten-5" class="mb-5">
+      <p>
+        Enable the installation of packages from
+        <a href="https://pkg.aobots.org">https://pkg.aobots.org</a> by any bot administrator with
+        the <code class="text-no-wrap">!package</code>-command.
+      </p>
+      <p>You can always limit access to the command to only a specific access level.</p>
+    </v-alert>
+
+    <template v-if="props.orgName != ''">
+      <v-switch
+        color="primary"
+        :error-messages="orgbot.errorMessage.value"
+        :label="'Enable org-bot functionality (' + props.orgName + ')'"
+        v-model="orgbot.value.value"
+      ></v-switch>
+
+      <v-alert icon="$info" color="blue-lighten-5" class="mb-5">
+        <p>
+          Enable this, if you want to use this bot as an org bot, and support bot-ranks based on
+          org-ranks
+        </p>
+      </v-alert>
+    </template>
 
     <v-autocomplete
       label="Default timezone"
@@ -69,6 +135,11 @@
       v-model="timezone.value.value"
       :items="props.timezones"
     ></v-autocomplete>
+
+    <v-alert icon="$info" color="blue-lighten-5" class="mb-5">
+      <p>This changes the timezone that's used by the bot to display date and time.</p>
+      <p>If you want to keep this identical to the Anarchy Online time, choose <code>UTC</code>.</p>
+    </v-alert>
   </form>
 </template>
 
@@ -122,6 +193,7 @@ const drillTypes = ref([
 
 const props = defineProps({
   orgName: { type: String, required: true },
+  botName: { type: String, required: true },
   timezones: { type: Array<string>, required: true },
 })
 const webui: FieldContext<boolean> = useField('webui', {}, { initialValue: true })
