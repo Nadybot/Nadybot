@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 use function Amp\async;
 use function Amp\Future\await;
 
+use Amp\Sync\KeyedMutex;
 use AO\Package;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -95,6 +96,9 @@ class RaidMemberController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private KeyedMutex $mutex;
 
 	/** Resume an old raid after a bot restart */
 	public function resumeRaid(Raid $raid): void {
@@ -197,7 +201,7 @@ class RaidMemberController extends ModuleInstance {
 				"<highlight>{$player}<end> has <on>joined<end> the raid{$countMsg} :: ".
 				Text::makeBlob(
 					'click to join',
-					$this->raidController->getRaidJoinLink(),
+					$this->raidController->getRaidJoinLink($raid),
 					'Raid information'
 				)
 			);
@@ -269,7 +273,7 @@ class RaidMemberController extends ModuleInstance {
 	}
 
 	/** Join the currently running raid */
-	#[NCA\HandlesCommand(self::CMD_RAID_JOIN_LEAVE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_JOIN_LEAVE, RaidController::MUTEX)]
 	#[NCA\Help\Group('raid-members')]
 	public function raidJoinCommand(
 		CmdContext $context,
@@ -286,7 +290,7 @@ class RaidMemberController extends ModuleInstance {
 	}
 
 	/** Leave the currently running raid */
-	#[NCA\HandlesCommand(self::CMD_RAID_JOIN_LEAVE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_JOIN_LEAVE, RaidController::MUTEX)]
 	#[NCA\Help\Group('raid-members')]
 	public function raidLeaveCommand(
 		CmdContext $context,
@@ -303,7 +307,7 @@ class RaidMemberController extends ModuleInstance {
 	}
 
 	/** Add someone to the raid, even if they currently cannot join, because it is locked */
-	#[NCA\HandlesCommand(self::CMD_RAID_KICK_ADD)]
+	#[NCA\HandlesCommand(self::CMD_RAID_KICK_ADD, RaidController::MUTEX)]
 	#[NCA\Help\Group('raid-members')]
 	public function raidAddCommand(
 		CmdContext $context,
@@ -330,7 +334,7 @@ class RaidMemberController extends ModuleInstance {
 	}
 
 	/** Kick someone from the raid */
-	#[NCA\HandlesCommand(self::CMD_RAID_KICK_ADD)]
+	#[NCA\HandlesCommand(self::CMD_RAID_KICK_ADD, RaidController::MUTEX)]
 	#[NCA\Help\Group('raid-members')]
 	public function raidKickCommand(
 		CmdContext $context,
@@ -376,7 +380,7 @@ class RaidMemberController extends ModuleInstance {
 				'::: <red>Attention<end> ::: <highlight>You are not in the running raid!<end> :: '.
 				Text::makeBlob(
 					'click to join',
-					$this->raidController->getRaidJoinLink(),
+					$this->raidController->getRaidJoinLink($raid),
 					'Raid information'
 				),
 				$player
@@ -508,7 +512,12 @@ class RaidMemberController extends ModuleInstance {
 	/** Remove players from the raid when they leave the channel */
 	#[NCA\HandlesEvent]
 	public function leavePrivateChannelMessageEvent(LeaveMyPrivEvent $eventObj): void {
-		$this->leaveRaid(null, $eventObj->sender);
+		$lock = $this->mutex->acquire(RaidController::MUTEX);
+		try {
+			$this->leaveRaid(null, $eventObj->sender);
+		} finally {
+			$lock->release();
+		}
 	}
 
 	protected function routeMessage(string $type, string $message): RouteResult {

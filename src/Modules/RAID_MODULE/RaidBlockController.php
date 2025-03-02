@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use AO\Utils;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -124,12 +125,12 @@ class RaidBlockController extends ModuleInstance {
 		string $reason
 	): void {
 		$character = $character();
+		if (null === $this->chatBot->getUid($character)) {
+			$context->reply("<highlight>{$character}<end> doesn't exist.");
+		}
 		if ($this->isBlocked($character, $blockFrom)) {
 			$context->reply("<highlight>{$character}<end> is already blocked on <highlight>{$blockFrom}<end>.");
 			return;
-		}
-		if (null === $this->chatBot->getUid($character)) {
-			$context->reply("<highlight>{$character}<end> doesn't exist.");
 		}
 		$character = $this->altsController->getMainOf($character);
 		if (isset($duration)) {
@@ -145,8 +146,19 @@ class RaidBlockController extends ModuleInstance {
 			time: time(),
 		);
 		$this->blocks[$character] ??= [];
+		try {
+			$this->db->awaitBeginTransaction();
+			$this->db->insert($block);
+		} catch (UniqueConstraintViolationException) {
+			$this->db->rollback();
+			$context->reply("<highlight>{$character}<end> is already blocked on <highlight>{$blockFrom}<end>.");
+			return;
+		} catch (\Throwable $e) {
+			$this->db->rollback();
+			throw $e;
+		}
 		$this->blocks[$character][$blockFrom] = $block;
-		$this->db->insert($block);
+		$this->db->commit();
 		$msg = "<highlight>{$character}<end> is now blocked from <highlight>".
 			$this->blockToString($blockFrom) . '<end> ';
 		if (is_int($duration) && $duration > 0) {

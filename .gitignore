@@ -25,3 +25,6 @@
 /src/Core/Modules/SETUP/html/assets
 /src/Core/Modules/SETUP/html/favicon.ico
 /src/Core/Modules/SETUP/html/index.html
+/tags
+/tags.lock
+/tags.temp

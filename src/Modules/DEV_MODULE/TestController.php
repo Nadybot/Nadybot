@@ -560,6 +560,10 @@ class TestController extends ModuleInstance {
 		$testContext->permissionSet = 'msg';
 
 		try {
+			if (!$this->fs->exists($this->path . $file)) {
+				$context->reply("Could not find test <highlight>{$file}<end> to run.");
+				return;
+			}
 			$lines = explode("\n", $this->fs->read($this->path . $file));
 		} catch (FilesystemException) {
 			$context->reply("Could not find test <highlight>{$file}<end> to run.");

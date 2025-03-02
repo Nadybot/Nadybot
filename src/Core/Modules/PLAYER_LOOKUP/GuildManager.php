@@ -11,6 +11,7 @@ use Amp\TimeoutCancellation;
 
 use DateInterval;
 use DateTimeZone;
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -120,11 +121,19 @@ class GuildManager extends ModuleInstance {
 
 		[$orgInfo, $members, $lastUpdated] = json_decode($body, true);
 
-		$orgInfo = Hydrator::literalHydrate(DTOGuild::class, $orgInfo);
+		try {
+			$orgInfo = Hydrator::literalHydrate(DTOGuild::class, $orgInfo);
+		} catch (UnableToHydrateObject) {
+			return null;
+		}
 		if ($orgInfo->NAME === null) {
 			return null;
 		}
-		$members = Hydrator::literalHydrateObjects(DTOGuildMember::class, $members)->toArray();
+		try {
+			$members = Hydrator::literalHydrateObjects(DTOGuildMember::class, $members)->toArray();
+		} catch (UnableToHydrateObject) {
+			return null;
+		}
 
 		// parsing of the member data
 		$guild = new Guild(

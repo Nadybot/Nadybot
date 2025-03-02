@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Amp\Sync\KeyedMutex;
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
@@ -120,6 +121,9 @@ class CommandManager implements MessageEmitter {
 
 	#[NCA\Inject]
 	private BanController $banController;
+
+	#[NCA\Inject]
+	private KeyedMutex $mutex;
 
 	/** @var array<string,CmdPermission> */
 	private array $cmdDefaultPermissions = [];
@@ -878,7 +882,22 @@ class CommandManager implements MessageEmitter {
 							break;
 					}
 				}
-				$methodResult = $refMethod->invoke($instance, $context, ...$args);
+				$refAttr = $refMethod->getAttributes(NCA\HandlesCommand::class);
+				$lock = null;
+				if (count($refAttr)) {
+					$attr = $refAttr[0]->newInstance();
+					$mutexKey = $attr->mutex;
+					if (isset($mutexKey)) {
+						$lock = $this->mutex->acquire($mutexKey);
+					}
+				}
+				try {
+					$methodResult = $refMethod->invoke($instance, $context, ...$args);
+				} finally {
+					if (isset($lock)) {
+						$lock->release();
+					}
+				}
 			} catch (UserException $e) {
 				$context->reply($e->getMessage());
 				$successfulHandler = $handler;

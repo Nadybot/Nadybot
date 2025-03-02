@@ -80,6 +80,7 @@ use Safe\DateTimeImmutable;
 	NCA\EmitsMessages('raid', 'stop'),
 ]
 class RaidController extends ModuleInstance {
+	public const MUTEX = 'raid';
 	public const CMD_RAID_MANAGE = 'raid manage';
 	public const CMD_RAID_TICKER = 'raid change ticker';
 
@@ -214,39 +215,36 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Get the content of the popup that shows you how to join the raid */
-	public function getRaidJoinLink(): string {
-		if (!isset($this->raid)) {
-			return '';
-		}
-		$numRaiders = $this->raid->numActiveRaiders();
-		if ($this->raid->locked) {
+	public function getRaidJoinLink(Raid $raid): string {
+		$numRaiders = $raid->numActiveRaiders();
+		if ($raid->locked) {
 			$status = '<off>locked<end>';
-		} elseif (isset($this->raid->max_members) && $this->raid->max_members > 0 && $this->raid->max_members <= $numRaiders) {
+		} elseif (isset($raid->max_members) && $raid->max_members > 0 && $raid->max_members <= $numRaiders) {
 			$status = '<off>full<end>';
 		} else {
 			$status = '<on>open<end>';
 		}
 		$blob = "<header2>Current raid<end>\n".
-			"<tab>Description: <highlight>{$this->raid->description}<end>\n".
+			"<tab>Description: <highlight>{$raid->description}<end>\n".
 			'<tab>Duration: running for <highlight>'.
-			Util::unixtimeToReadable(time() - $this->raid->started) . "<end>.\n".
+			Util::unixtimeToReadable(time() - $raid->started) . "<end>.\n".
 			"<tab>Raiders: <highlight>{$numRaiders}<end>".
-			((isset($this->raid->max_members) && $this->raid->max_members > 0) ? "/<highlight>{$this->raid->max_members}<end>" : '').
+			((isset($raid->max_members) && $raid->max_members > 0) ? "/<highlight>{$raid->max_members}<end>" : '').
 			"\n".
 			"<tab>Status: {$status}\n";
-		if ($this->raid->seconds_per_point > 0) {
+		if ($raid->seconds_per_point > 0) {
 			$blob .= '<tab>Points: <highlight>1 raid point every '.
-				Util::unixtimeToReadable($this->raid->seconds_per_point);
-			if ($this->raid->ticker_paused) {
+				Util::unixtimeToReadable($raid->seconds_per_point);
+			if ($raid->ticker_paused) {
 				$blob .= ' (<red>paused<end>)';
 			} else {
 				$blob .= ' (<green>ticking<end>)';
 			}
-			if ($this->raidPointsController->raidTickerRequiresLock && !$this->raid->locked) {
+			if ($this->raidPointsController->raidTickerRequiresLock && !$raid->locked) {
 				$blob .= ' (<red>not locked<end>)';
 			}
 			$sppCmd = Text::makeChatcmd('pause', '/tell <myname> raid spp pause');
-			if ($this->raid->ticker_paused) {
+			if ($raid->ticker_paused) {
 				$sppCmd = Text::makeChatcmd('resume', '/tell <myname> raid spp resume');
 			}
 			$blob .= " [{$sppCmd}]\n";
@@ -264,18 +262,15 @@ class RaidController extends ModuleInstance {
 		return $blob;
 	}
 
-	public function getControlInterface(): string {
-		if (!isset($this->raid)) {
-			return '';
-		}
+	public function getControlInterface(Raid $raid): string {
 		$blob = "<header2>Raid Control Interface<end>\n".
 			'<tab>Raid Status: Running for <highlight>'.
-			Util::unixtimeToReadable(time() - $this->raid->started) . '<end>'.
+			Util::unixtimeToReadable(time() - $raid->started) . '<end>'.
 			' [' . Text::makeChatcmd('stop', '/tell <myname> raid stop') . "]\n".
 			'<tab>Points Status: ';
-		if ($this->raid->seconds_per_point > 0) {
+		if ($raid->seconds_per_point > 0) {
 			$blob .= '<highlight>1 point every '.
-				Util::unixtimeToReadable($this->raid->seconds_per_point).
+				Util::unixtimeToReadable($raid->seconds_per_point).
 				"<end>\n";
 		} else {
 			$sppDefault = $this->raidPointsInterval;
@@ -290,10 +285,10 @@ class RaidController extends ModuleInstance {
 			}
 			$blob .= "\n";
 		}
-		$numRaiders = $this->raid->numActiveRaiders();
+		$numRaiders = $raid->numActiveRaiders();
 		$blob .=  "<tab>Raiders: <highlight>{$numRaiders}<end>";
-		if (isset($this->raid->max_members) && $this->raid->max_members > 0) {
-			$blob .= "/<highlight>{$this->raid->max_members}<end>";
+		if (isset($raid->max_members) && $raid->max_members > 0) {
+			$blob .= "/<highlight>{$raid->max_members}<end>";
 			$blob .= ' [' . Text::makeChatcmd(
 				'remove limit',
 				'/tell <myname> raid limit off'
@@ -308,11 +303,11 @@ class RaidController extends ModuleInstance {
 		}
 		$blob .= "\n";
 		$blob .= '<tab>Raid State: <highlight>';
-		if ($this->raid->locked) {
+		if ($raid->locked) {
 			$blob .= 'locked<end> ['.
 				Text::makeChatcmd('Unlock', '/tell <myname> raid unlock').
 				"]\n";
-		} elseif (isset($this->raid->max_members) && $this->raid->max_members > 0 && $numRaiders >= $this->raid->max_members) {
+		} elseif (isset($raid->max_members) && $raid->max_members > 0 && $numRaiders >= $raid->max_members) {
 			$blob .= 'full<end> ['.
 				Text::makeChatcmd('remove limit', '/tell <myname> raid limit off').
 				"]\n";
@@ -321,9 +316,9 @@ class RaidController extends ModuleInstance {
 				Text::makeChatcmd('lock', '/tell <myname> raid lock').
 				"]\n";
 		}
-		$blob .= "<tab>Description: <highlight>{$this->raid->description}<end>\n";
+		$blob .= "<tab>Description: <highlight>{$raid->description}<end>\n";
 		$blob .= '<tab>Raid announcement: <highlight>';
-		if ($this->raid->announce_interval === 0) {
+		if ($raid->announce_interval === 0) {
 			$blob .= 'off<end> ['.
 				Text::makeChatcmd(
 					'enable',
@@ -332,7 +327,7 @@ class RaidController extends ModuleInstance {
 				).
 				"]\n";
 		} else {
-			$interval = Util::unixtimeToReadable($this->raid->announce_interval);
+			$interval = Util::unixtimeToReadable($raid->announce_interval);
 			$blob .= "every {$interval}<end> [".
 				Text::makeChatcmd(
 					'disable',
@@ -344,21 +339,22 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Show if a raid is currently running, with a link to join */
-	#[NCA\HandlesCommand('raid')]
+	#[NCA\HandlesCommand('raid', self::MUTEX)]
 	public function raidCommand(CmdContext $context): void {
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
 		$canAdminRaid = $this->commandManager->couldRunCommand($context, 'raid start test');
 		if ($canAdminRaid) {
 			$this->chatBot->sendTell(
-				Text::makeBlob('Raid Control', $this->getControlInterface()),
+				Text::makeBlob('Raid Control', $this->getControlInterface($raid)),
 				$context->char->name
 			);
 		}
-		$msg = Text::makeBlob('click to join', $this->getRaidJoinLink(), 'Raid information');
-		$announceMsg = $this->raid->getAnnounceMessage($msg);
+		$msg = Text::makeBlob('click to join', $this->getRaidJoinLink($raid), 'Raid information');
+		$announceMsg = $raid->getAnnounceMessage($msg);
 		$context->reply($announceMsg);
 	}
 
@@ -383,7 +379,7 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Start a raid with a given description */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidStartWithLimitsCommand(
 		CmdContext $context,
 		#[Str('start', 'run', 'create')] string $action,
@@ -403,7 +399,7 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Start a raid with a given description */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidStartCommand(
 		CmdContext $context,
 		#[Str('start', 'run', 'create')] string $action,
@@ -420,7 +416,7 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Stop the currently running raid */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidStopCommand(
 		CmdContext $context,
 		#[Str('stop', 'end')] string $action
@@ -433,47 +429,49 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Change the raid's description */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidChangeDescCommand(
 		CmdContext $context,
 		#[Regexp('description|descr?', example: 'description')] string $action,
 		string $description
 	): void {
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$this->raid->description = $description;
-		$this->logRaidChanges($this->raid);
+		$raid->description = $description;
+		$this->logRaidChanges($raid);
 		$context->reply('Raid description changed.');
 		$event = new RaidChangeEvent(
-			raid: $this->raid,
+			raid: $raid,
 			player: $context->char->name,
 		);
 		$this->eventManager->dispatch($event);
 	}
 
 	/** Change the raid's maximum number of members */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidChangeMaxMembersCommand(
 		CmdContext $context,
 		#[Str('limit')] string $action,
 		#[NumberStr] #[Str('off')] string $maxMembers
 	): void {
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
 		$noLimit = in_array(strtolower($maxMembers), ['0', 'off'], true);
-		$this->raid->max_members = $noLimit ? null : (int)$maxMembers;
-		$this->logRaidChanges($this->raid);
+		$raid->max_members = $noLimit ? null : (int)$maxMembers;
+		$this->logRaidChanges($raid);
 		if ($noLimit) {
 			$context->reply('Raid member limit removed.');
 		} else {
 			$context->reply("Maximum raid members set to <highlight>{$maxMembers}<end>.");
 		}
 		$event = new RaidChangeEvent(
-			raid: $this->raid,
+			raid: $raid,
 			player: $context->char->name,
 		);
 		$this->eventManager->dispatch($event);
@@ -484,24 +482,25 @@ class RaidController extends ModuleInstance {
 	 * 'off' to switch to manual rewarding,
 	 * 'pause' to pause and 'resume' to resume the ticker
 	 */
-	#[NCA\HandlesCommand(self::CMD_RAID_TICKER)]
+	#[NCA\HandlesCommand(self::CMD_RAID_TICKER, self::MUTEX)]
 	public function raidChangeSppCommand(
 		CmdContext $context,
 		#[Str('ticker', 'spp')] string $action,
 		#[DurationStr] #[StrChoice('off', 'pause', 'resume')] string $interval
 	): void {
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
 		if ($interval === 'off') {
-			$this->raid->seconds_per_point = 0;
+			$raid->seconds_per_point = 0;
 			$context->reply('Raid ticker turned off. Points are now given via rewards by the raid leader(s).');
 		} elseif ($interval === 'pause') {
-			$this->raid->ticker_paused = true;
+			$raid->ticker_paused = true;
 			$context->reply('Raid ticker paused.');
 		} elseif ($interval === 'resume') {
-			$this->raid->ticker_paused = false;
+			$raid->ticker_paused = false;
 			$context->reply('Raid ticker resumed.');
 		} else {
 			$spp = Util::parseTime($interval);
@@ -509,30 +508,31 @@ class RaidController extends ModuleInstance {
 				$context->reply("Invalid interval: {$interval}.");
 				return;
 			}
-			$this->raid->seconds_per_point = $spp;
+			$raid->seconds_per_point = $spp;
 			$context->reply('Raid seconds per point changed.');
 		}
-		$this->logRaidChanges($this->raid);
+		$this->logRaidChanges($raid);
 		$event = new RaidChangeEvent(
-			raid: $this->raid,
+			raid: $raid,
 			player: $context->char->name,
 		);
 		$this->eventManager->dispatch($event);
 	}
 
 	/** Change the raid announcement interval. 'off' to turn it off completely */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidChangeAnnounceCommand(
 		CmdContext $context,
 		#[Str('announce', 'announcement')] string $action,
 		#[DurationStr] #[Str('off')] string $interval
 	): void {
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
 		if (strtolower($interval) === 'off') {
-			$this->raid->announce_interval = 0;
+			$raid->announce_interval = 0;
 			$context->reply('Raid announcement turned off.');
 		} else {
 			$newInterval = Util::parseTime($interval);
@@ -540,37 +540,38 @@ class RaidController extends ModuleInstance {
 				$context->reply("<highlight>{$interval}<end> is not a valid interval.");
 				return;
 			}
-			$this->raid->announce_interval = $newInterval;
+			$raid->announce_interval = $newInterval;
 			$context->reply("Raid announcement interval changed to <highlight>{$interval}<end>.");
 		}
 
-		$this->logRaidChanges($this->raid);
+		$this->logRaidChanges($raid);
 		$event = new RaidChangeEvent(
-			raid: $this->raid,
+			raid: $raid,
 			player: $context->char->name,
 		);
 		$this->eventManager->dispatch($event);
 	}
 
 	/** Lock the raid, preventing raiders from joining with <symbol>raid join */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidLockCommand(
 		CmdContext $context,
 		#[Str('lock')] string $action
 	): void {
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		if ($this->raid->locked) {
+		if ($raid->locked) {
 			$context->reply('The raid is already locked.');
 			return;
 		}
-		$this->raid->locked = true;
-		$this->logRaidChanges($this->raid);
+		$raid->locked = true;
+		$this->logRaidChanges($raid);
 		$lockMessage = "{$context->char->name} <off>locked<end> the raid.";
 		if ($this->raidPointsController->raidTickerRequiresLock) {
-			if ($this->raid->ticker_paused) {
+			if ($raid->ticker_paused) {
 				$lockMessage .= ' Raid point ticker is still <highlight>paused<end>.';
 			} else {
 				$lockMessage .= ' Raid point ticker is now <highlight>running<end>.';
@@ -578,86 +579,90 @@ class RaidController extends ModuleInstance {
 		}
 		$this->routeMessage('lock', $lockMessage);
 		$event = new RaidLockEvent(
-			raid: $this->raid,
+			raid: $raid,
 			player: $context->char->name,
 		);
 		$this->eventManager->dispatch($event);
 		$notInKick = $this->raidKickNotinOnLock;
 		if ($notInKick !== 0) {
-			$this->raidMemberController->kickNotInRaid($this->raid, $notInKick === 2);
+			$this->raidMemberController->kickNotInRaid($raid, $notInKick === 2);
 		}
 	}
 
 	/** Unlock the raid, allowing raiders to join with <symbol>raid join */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidUnlockCommand(
 		CmdContext $context,
 		#[Str('unlock')] string $action
 	): void {
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		if ($this->raid->locked === false) {
+		if ($raid->locked === false) {
 			$context->reply('The raid is already unlocked.');
 			return;
 		}
-		$this->raid->locked = false;
-		$this->logRaidChanges($this->raid);
+		$raid->locked = false;
+		$this->logRaidChanges($raid);
 		$unlockMessage = "{$context->char->name} <on>unlocked<end> the raid.";
 		if ($this->raidPointsController->raidTickerRequiresLock) {
 			$unlockMessage .= ' Raid point ticker is <highlight>not running while unlocked<end>.';
 		}
 		$this->routeMessage('unlock', $unlockMessage);
 		$event = new RaidUnlockEvent(
-			raid: $this->raid,
+			raid: $raid,
 			player: $context->char->name,
 		);
 		$this->eventManager->dispatch($event);
 	}
 
 	/** Get a list of all raiders, with a link to check if everyone is in the vicinity */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidCheckCommand(
 		CmdContext $context,
 		#[Str('check')] string $action
 	): void {
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$msg = $this->raidMemberController->getRaidCheckBlob($this->raid);
+		$msg = $this->raidMemberController->getRaidCheckBlob($raid);
 		$context->reply($msg);
 	}
 
 	/** Get a list of all raiders */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidListCommand(
 		CmdContext $context,
 		#[Str('list')] string $action
 	): void {
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$context->reply($this->raidMemberController->getRaidListBlob($this->raid));
+		$context->reply($this->raidMemberController->getRaidListBlob($raid));
 	}
 
 	/**
 	 * Kick everyone in the private channel who's not in the raid.
 	 * If the additional 'all' is given, it will also kick raiders' alts not in the raid.
 	 */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidNotinKickCommand(
 		CmdContext $context,
 		#[Str('notinkick')] string $action,
 		#[Str('all')] ?string $all
 	): void {
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$notInRaid = $this->raidMemberController->kickNotInRaid($this->raid, isset($all));
+		$notInRaid = $this->raidMemberController->kickNotInRaid($raid, isset($all));
 		$numKicked = count($notInRaid);
 		if ($numKicked === 0) {
 			$context->reply('Everyone is in the raid.');
@@ -670,13 +675,14 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Send everyone in the private channel who's not in the raid a reminder to join */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidNotinCommand(CmdContext $context, #[Str('notin')] string $action): void {
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$notInRaid = $this->raidMemberController->sendNotInRaidWarning($this->raid);
+		$notInRaid = $this->raidMemberController->sendNotInRaidWarning($raid);
 		if (!count($notInRaid)) {
 			$context->reply('Everyone is in the raid.');
 			return;
@@ -742,7 +748,7 @@ class RaidController extends ModuleInstance {
 		#[Str('history')] string $action,
 		PUuid $raidId,
 	): void {
-		${$raidId} = $raidId();
+		$raidId = $raidId();
 
 		$raid = $this->db->table(Raid::getTable())
 			->where('raid_id', $raidId)
@@ -869,12 +875,13 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Check if anyone in the current raid is dual-logged */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidDualCommand(
 		CmdContext $context,
 		#[Str('dual')] string $action
 	): void {
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
@@ -884,7 +891,7 @@ class RaidController extends ModuleInstance {
 
 		/** @var array<string,array<string,bool>> */
 		$duals = [];
-		foreach ($this->raid->raiders as $name => $raider) {
+		foreach ($raid->raiders as $name => $raider) {
 			if ($raider->left !== null) {
 				continue;
 			}
@@ -901,8 +908,8 @@ class RaidController extends ModuleInstance {
 					continue;
 				}
 				$duals[$name] ??= [];
-				$duals[$name][$alt] = isset($this->raid->raiders[$alt])
-					&& !isset($this->raid->raiders[$alt]->left);
+				$duals[$name][$alt] = isset($raid->raiders[$alt])
+					&& !isset($raid->raiders[$alt]->left);
 			}
 		}
 		if (!count($duals)) {
@@ -985,27 +992,28 @@ class RaidController extends ModuleInstance {
 	/** Announce the running raid */
 	#[NCA\Timer(interval: '30s')]
 	public function announceRaidRunning(): void {
-		if (!isset($this->raid) || $this->raid->announce_interval === 0) {
+		$raid = $this->raid;
+		if (!isset($raid) || $raid->announce_interval === 0) {
 			return;
 		}
-		if (time() - $this->raid->last_announcement < $this->raid->announce_interval) {
+		if (time() - $raid->last_announcement < $raid->announce_interval) {
 			return;
 		}
-		if ($this->raid->we_are_most_recent_message) {
+		if ($raid->we_are_most_recent_message) {
 			return;
 		}
 		$this->routeMessage(
 			'announce',
-			$this->raid->getAnnounceMessage(
+			$raid->getAnnounceMessage(
 				Text::makeBlob(
 					'click to join',
-					$this->getRaidJoinLink(),
+					$this->getRaidJoinLink($raid),
 					'Raid information'
 				)
 			)
 		);
-		$this->raid->last_announcement = time();
-		$this->raid->we_are_most_recent_message = true;
+		$raid->last_announcement = time();
+		$raid->we_are_most_recent_message = true;
 	}
 
 	/** Announce when a raid was started */
@@ -1018,7 +1026,7 @@ class RaidController extends ModuleInstance {
 			"<highlight>{$event->raid->description}<end> :: ".
 			Text::makeBlob(
 				'click to join',
-				$this->getRaidJoinLink(),
+				$this->getRaidJoinLink($event->raid),
 				'Raid information'
 			)
 		);
@@ -1047,7 +1055,7 @@ class RaidController extends ModuleInstance {
 			player: $raid->started_by,
 		);
 		$this->eventManager->dispatch($event);
-		$this->logRaidChanges($this->raid);
+		$this->logRaidChanges($raid);
 	}
 
 	/** Stop the current raid */
@@ -1076,7 +1084,7 @@ class RaidController extends ModuleInstance {
 	}
 
 	/** Show the notes about all people in the current raid */
-	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE, self::MUTEX)]
 	public function raidCommentsCommand(
 		CmdContext $context,
 		#[Regexp('notes?|comments?', example: 'notes')] string $action
@@ -1085,11 +1093,12 @@ class RaidController extends ModuleInstance {
 			$context->reply("<red>The '<symbol>raid {$action}' command only works in tells<end>.");
 			return;
 		}
-		if (!isset($this->raid)) {
+		$raid = $this->raid;
+		if (!isset($raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$raiderNames = array_keys($this->raid->raiders);
+		$raiderNames = array_keys($raid->raiders);
 		$category = $this->getRaidCategory();
 		$comments = $this->commentController->getComments($category, ...$raiderNames);
 		$comments = $this->commentController->filterInaccessibleComments($comments, $context->char->name);
@@ -1201,7 +1210,7 @@ class RaidController extends ModuleInstance {
 			$this->raidMemberController->joinRaid($context->char->name, $context->char->name, $context->source, false);
 		}
 		$this->chatBot->sendTell(
-			Text::makeBlob('Raid Control', $this->getControlInterface()),
+			Text::makeBlob('Raid Control', $this->getControlInterface($raid)),
 			$context->char->name
 		);
 	}

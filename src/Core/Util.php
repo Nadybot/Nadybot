@@ -17,7 +17,6 @@ use RangeException;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionNamedType;
-use UnhandledMatchError;
 
 /** Some utility functions in a static helper class */
 #[NCA\Instance]
@@ -115,21 +114,21 @@ class Util {
 		/** @var list<list{string,numeric-string,string}> */
 		$matches = Safe::pregMatchOrderedAll($pattern, $budatime);
 
-		try {
-			foreach ($matches as $match) {
-				$quantifier = match ($match[2]) {
-					'y','yr','year','years' => 31_536_000,
-					'mo','month','months' => 2_592_000,
-					'weeks','week','w' => 604_800,
-					'days','day','d' => 86_400,
-					'hours','hour','hrs','hr','h' => 3_600,
-					'mins','min','m' => 60,
-					'secs','sec','s' => 1,
-				};
-				$unixtime += (int)$match[1] * $quantifier;
+		foreach ($matches as $match) {
+			$quantifier = match ($match[2]) {
+				'y','yr','year','years' => 31_536_000,
+				'mo','month','months' => 2_592_000,
+				'weeks','week','w' => 604_800,
+				'days','day','d' => 86_400,
+				'hours','hour','hrs','hr','h' => 3_600,
+				'mins','min','m' => 60,
+				'secs','sec','s' => 1,
+				default => 0,
+			};
+			if ($quantifier === 0) {
+				return 0;
 			}
-		} catch (UnhandledMatchError) {
-			return 0;
+			$unixtime += (int)$match[1] * $quantifier;
 		}
 
 		return $unixtime;

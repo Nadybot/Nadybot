@@ -15,6 +15,7 @@ use Nadybot\Core\{
 };
 use Psr\Log\LoggerInterface;
 use SplObjectStorage;
+use Throwable;
 
 /**
  * The AccessLevel class provides functionality for checking a player's access level.
@@ -253,6 +254,17 @@ class AccessManager {
 			$toLevel = AccessLevel::fromInt((int)$audit->value);
 			$audit->value = $audit->value . " ({$toLevel->displayName()})";
 		}
-		$this->db->insert($audit);
+		try {
+			$this->db->awaitBeginTransaction();
+			$this->db->insert($audit);
+		} catch (Throwable $e) {
+			$this->logger->error('Error saving audit: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
+			]);
+			$this->db->rollback();
+			return;
+		}
+		$this->db->commit();
 	}
 }

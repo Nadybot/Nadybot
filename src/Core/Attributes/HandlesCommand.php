@@ -7,6 +7,9 @@ use Attribute;
 /** This method handles the given command */
 #[Attribute(Attribute::TARGET_METHOD|Attribute::IS_REPEATABLE)]
 class HandlesCommand {
-	public function __construct(public string $command) {
+	public function __construct(
+		public string $command,
+		readonly public ?string $mutex=null,
+	) {
 	}
 }

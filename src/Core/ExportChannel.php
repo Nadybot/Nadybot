@@ -14,6 +14,7 @@ enum ExportChannel: string {
 			self::Priv => 'priv',
 			self::Discord => 'discord',
 			self::IRC => 'irc',
+			self::None => throw new ValueError('"none" is not a valid channel for Nadybot'),
 		};
 	}
 
@@ -25,6 +26,7 @@ enum ExportChannel: string {
 			'priv' => self::Priv,
 			'discord' => self::Discord,
 			'irc' => self::IRC,
+			'none' => self::None,
 			default => throw new ValueError("{$channel} is not a valid channel"),
 		};
 	}
@@ -34,4 +36,5 @@ enum ExportChannel: string {
 	case Priv = 'priv';
 	case Discord = 'discord';
 	case IRC = 'irc';
+	case None = 'none';
 }

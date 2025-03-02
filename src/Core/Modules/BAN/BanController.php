@@ -425,13 +425,20 @@ class BanController extends ModuleInstance implements ImporterInterface {
 			$banEnd = time() + $length;
 		}
 
-		$inserted = $this->db->insert(new BanEntry(
-			charid: $charId,
-			admin: $sender,
-			time: time(),
-			reason: $reason,
-			banend: $banEnd,
-		));
+		try {
+			$this->db->awaitBeginTransaction();
+			$inserted = $this->db->insert(new BanEntry(
+				charid: $charId,
+				admin: $sender,
+				time: time(),
+				reason: $reason,
+				banend: $banEnd,
+			));
+		} catch (Throwable) {
+			$this->db->rollback();
+			return false;
+		}
+		$this->db->commit();
 		$this->uploadBanlist();
 
 		$charName = $this->chatBot->getName($charId);

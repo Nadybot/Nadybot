@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use Exception;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\{Arr, Collection};
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -489,7 +490,11 @@ class QueryBuilder extends Builder {
 	private function fetchAll(string $className): Collection {
 		$cacheClass = "{$className}" . self::CLASS_SEP . 'compiler';
 
-		$data = $this->get();
+		try {
+			$data = $this->get();
+		} catch (QueryException $e) {
+			throw new SQLException(message: $e->getMessage(), previous: $e);
+		}
 		if ($data->isEmpty()) {
 			return $data;
 		}

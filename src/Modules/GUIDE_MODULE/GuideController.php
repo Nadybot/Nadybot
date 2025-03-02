@@ -139,6 +139,9 @@ class GuideController extends ModuleInstance {
 		$fileName = strtolower($guideName);
 		$file = $this->path . $fileName . self::FILE_EXT;
 		try {
+			if (!$this->fs->exists($file)) {
+				throw new FilesystemException("{$file} does not exist.");
+			}
 			$info = $this->fs->read($file);
 			$lines = explode("\n", $info);
 			$firstLine = Safe::pregReplace('/<header>(.+)<end>/', '$1', array_shift($lines));

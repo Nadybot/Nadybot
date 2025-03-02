@@ -15,6 +15,7 @@ use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\Http\Tunnel\Http1TunnelConnector;
 use Amp\Process\Process;
+use Amp\Sync\{KeyedMutex, LocalKeyedMutex};
 use ErrorException;
 use Exception;
 use Nadybot\Core\{
@@ -229,6 +230,7 @@ class BotRunner {
 
 			$config = $this->getConfigFile();
 			Registry::setInstance(Registry::formatName(BotConfig::class), $config);
+			Registry::setInstance(Registry::formatName(KeyedMutex::class), new LocalKeyedMutex());
 			$retryHandler = new HttpRetry(8);
 			Registry::injectDependencies($retryHandler);
 			$rateLimitRetryHandler = new HttpRetryRateLimits();
