@@ -22,3 +22,6 @@
 .php-cs-fixer.cache
 /nadyui/dist/
 /nadyui/node_modules/
+/src/Core/Modules/SETUP/html/assets
+/src/Core/Modules/SETUP/html/favicon.ico
+/src/Core/Modules/SETUP/html/index.html
