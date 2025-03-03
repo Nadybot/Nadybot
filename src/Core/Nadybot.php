@@ -10,6 +10,7 @@ use Amp\Pipeline\Pipeline;
 use AO\Client\{MultiClient, WorkerConfig, WorkerPackage};
 use AO\Exceptions\AccountsFrozenException;
 use AO\Group\{GroupId, GroupType};
+use AO\Package\Out\PrivateChannelMessage;
 use AO\Package\OutPackage;
 use AO\{FrozenAccount, Group, Package, SendPriority, Utils};
 use BackedEnum;
@@ -358,6 +359,11 @@ class Nadybot {
 		?string $worker=null,
 		SendPriority $priority=SendPriority::Medium,
 	): void {
+		if (BotRunner::getArguments()->testRun) {
+			if ($package instanceof PrivateChannelMessage) {
+				return;
+			}
+		}
 		try {
 			$this->aoClient->write(package: $package, worker: $worker, priority: $priority);
 		} catch (StreamException $e) {

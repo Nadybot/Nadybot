@@ -1,0 +1,96 @@
+---
+name: Basic Chat Module
+groups:
+
+  - name: Assist
+    tests:
+      - command: assist efhwkefhwkjefhwjkehfjkwfeherror
+        expect: Help \(assist\)
+      - command: assist Nadyita
+        expect: Quick assist macro for Nadyita
+      - command: assist
+        expect: No callers have been set yet
+      - command: assist clear
+        expect: Callers .* cleared
+      - command: assist set west Nadyita Lerible Pigtail Leri
+        expect: is not in this bot
+      - command: assist add west Nadyo
+        expect: is not in this bot
+      - command: assist clear west
+        expect: No callers found
+      - command: assist history
+        expect: No last caller configuration found
+      - command: assist undo 1
+        expect: No last caller configuration found
+      - command: assist clear west
+        expect: No callers found
+
+  - name: Leader commands
+    tests:
+      - command: check
+        expect: no one to check
+      - command: leader Nadyitaerror
+        expect: does not exist
+      - command: leader Nadyita
+        expect: is not in the private channel
+      - command: leader
+        expect: is not in the private channel
+      - command: leaderecho
+        expect: "^$"
+      - command: leaderecho on
+        expect: "^$"
+      - command: leaderecho
+        expect: "^$"
+      - command: leaderecho off
+        expect: "^$"
+
+  - name: Rally
+    tests:
+      - command: rally some stupid error
+        expect: This does not look like full coordinates
+      - command: rally 10.9 x 30 x 505
+        expect: "Rally: 10.9x30 AV"
+      - command: rally 1 2 3
+        expect: "Rally: 1x2 3"
+      - command: rally
+        expect: "Rally: 1x2 3"
+      - command: rally clear
+        expect: has been cleared.
+      - command: rally 2091.6, 3803.3, 49.6 (2091.6 3803.3 y 49.6 505)
+        expect: /waypoint 2091.6 3803.3 505
+      - command: rally (2091.6 3803.3 y 49.6 505)
+        expect: /waypoint 2091.6 3803.3 505
+      - command: rally
+        expect: "Rally: 2091.6x3803.3 AV"
+      - command: rally clear
+        expect: has been cleared
+
+  - name: Saying things
+    tests:
+      - command: say org some stuff
+        expect: You can only use this command
+      - command: say priv some more stuff
+        expect: "^$"
+      - command: say error some other stuff
+        expect: Help \(say\)
+      - command: cmd This is a big raid command
+        expect: "^$"
+      - command: cmd
+        expect: Help \(cmd\)
+      - command: tell This is a big raid command
+        expect: "^$"
+      - command: tell
+        expect: Help \(tell\)
+
+  - name: Topic
+    tests:
+      - command: topic This is a super stupid topic
+        expect: Topic has been updated
+      - command: topic This is a another super stupid topic
+        expect: Topic has been updated
+      - command: topic
+        expect: This is a another super stupid topic
+      - command: topic clear
+        expect: Topic has been cleared
+      - command: topic
+        expect: No topic set

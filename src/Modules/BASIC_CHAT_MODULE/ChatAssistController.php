@@ -27,6 +27,7 @@ use Throwable;
 
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'assist',
 		accessLevel: AccessLevel::Guest,
