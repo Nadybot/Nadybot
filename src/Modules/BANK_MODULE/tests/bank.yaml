@@ -1,0 +1,30 @@
+---
+name: Bank Module
+groups:
+
+  - name: Browsing
+    tests:
+      - command: settings save bank_file_location src/Modules/BANK_MODULE/tests/empty_bank.csv
+        expect: saved
+      - command: bank update
+        expect: has been updated
+      - command: bank browse
+        expect: No bank characters found
+      - command: settings save bank_file_location src/Modules/BANK_MODULE/tests/bank.csv
+        expect: saved
+      - command: bank update
+        expect: has been updated
+      - command: bank browse
+        expect: bank browse Xbank1
+      - command: bank browse xbank1
+        expect: Containers for Xbank1
+      - command: bank browse xbank1 1
+        expect: Could not find container with id
+      - command: bank browse xbank1 135551661
+        expect: "Items in #024 - Medium Backpack - Spirits"
+      - command: bank browse xbank1 a
+        expect: Help \(bank\)
+      - command: bank search breathing
+        expect: Breathing Right Hand Symbiant
+      - command: bank search ammunition
+        expect: Could not find 

@@ -9,6 +9,8 @@ class MockCommandReply implements CommandReply {
 	/** @var list<string> */
 	private array $output = [];
 
+	private bool $returned = false;
+
 	/** @param Suspension<string> $suspension */
 	public function __construct(
 		private Suspension $suspension,
@@ -16,6 +18,15 @@ class MockCommandReply implements CommandReply {
 	}
 
 	public function __destruct() {
+		$this->sendResult();
+	}
+
+	public function sendResult(): void {
+		if ($this->returned) {
+			return;
+		}
+		$this->returned = true;
+
 		/** @param Suspension<string> $suspension */
 		\Amp\async(static function (Suspension $suspension, string $output): void {
 			$suspension->resume($output);

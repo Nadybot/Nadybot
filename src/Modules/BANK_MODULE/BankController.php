@@ -31,6 +31,7 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'bank',
 		accessLevel: AccessLevel::Guild,

@@ -7,6 +7,7 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Nadybot\Core\Testing\MockCommandReply;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -624,7 +625,7 @@ class CommandManager implements MessageEmitter {
 	 * @throws StopExecutionException if no further processing is allowed
 	 */
 	public function processCmd(CmdContext $context): void {
-		EventLoop::queue(function () use ($context): void {
+		EventLoop::queue(function (CmdContext $context): void {
 			$cmd = explode(' ', $context->message, 2)[0];
 			$cmd = strtolower($cmd);
 
@@ -754,7 +755,7 @@ class CommandManager implements MessageEmitter {
 					'exception' => $e,
 				]);
 			}
-		});
+		}, $context);
 	}
 
 	/**
@@ -900,13 +901,14 @@ class CommandManager implements MessageEmitter {
 				}
 			} catch (UserException $e) {
 				$context->reply($e->getMessage());
-				$successfulHandler = $handler;
-				break;
+				if ($context->sendto instanceof MockCommandReply) {
+					$context->sendto->sendResult();
+				}
+				return $handler;
 			}
 			if ($methodResult !== false) {
 				// we can stop looking, command was handled successfully
-				$successfulHandler = $handler;
-				break;
+				return $handler;
 			}
 		}
 
