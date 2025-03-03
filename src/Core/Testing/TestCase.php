@@ -1,0 +1,21 @@
+<?php declare(strict_types=1);
+
+namespace Nadybot\Core\Testing;
+
+use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
+use Nadybot\Core\Attributes\Hydrator\ForceList;
+
+/** This is the test case for a single command and its output */
+class TestCase {
+	/**
+	 * @param string       $command The command to execute (without !)
+	 * @param list<string> $expect  The regular expression to expect in the output
+	 * @param null|string  $name    An optional name of the test
+	 */
+	public function __construct(
+		public readonly string $command,
+		#[ForceList, CastListToType('string')] public readonly array $expect,
+		public readonly ?string $name=null,
+	) {
+	}
+}

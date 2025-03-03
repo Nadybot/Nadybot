@@ -205,13 +205,14 @@ Mansikka
 Marebone
 Marinerecon
 Mausser
+middleware
 Mindrila
 [mM]itaar
 [mM]onolog
 [mM]sg
 multiadd
 multiboxer
-mutex
+mutex|MUTEX
 MySQL|mysql
 namedetails
 namespace

@@ -596,6 +596,7 @@ class EventManager {
 		try {
 			[$name, $method] = explode('.', $handler);
 			$instance = Registry::tryGetInstance($name);
+			$start = \Amp\now();
 			if ($instance === null) {
 				$this->logger->error('Could not find instance for class {class} of {event}', [
 					'event' => $logObj,
@@ -613,6 +614,13 @@ class EventManager {
 						'class' => $name,
 					]);
 				}
+			}
+			$end = \Amp\now();
+			if ($end - $start > 2) {
+				$this->logger->info('Event handler {handler} took {duration}s', [
+					'handler' => $handler,
+					'duration' => number_format($end-$start, 3),
+				]);
 			}
 		} catch (StopExecutionException $e) {
 			throw $e;

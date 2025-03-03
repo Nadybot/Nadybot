@@ -15,6 +15,10 @@ class Options {
 	 * @param bool        $help                 Whether to show the bot's help
 	 * @param bool        $migrateOnly          Only run migrations, don't run the bot
 	 * @param bool        $setupOnly            Only run setup procedures, don't run the bot
+	 * @param bool        $vueDevMode           Expect hot-loading vale instances to serve
+	 *                                          the web interfaces
+	 * @param bool        $testRun              After becoming ready, only run tests
+	 *                                          and exit again
 	 * @param bool        $strict               Be strict about SQLite types,and use the
 	 *                                          strict grammar
 	 * @param null|string $logConfig            The logger configuration or `null` for default
@@ -31,6 +35,7 @@ class Options {
 		#[OptionFlag, MapFrom('migrate-only')] public readonly bool $migrateOnly=false,
 		#[OptionFlag, MapFrom('setup-only')] public readonly bool $setupOnly=false,
 		#[OptionFlag, MapFrom('vue-dev')] public readonly bool $vueDevMode=false,
+		#[OptionFlag, MapFrom('test-run')] public readonly bool $testRun=false,
 		#[OptionFlag] public readonly bool $strict=false,
 		#[MapFrom('log-config')] public readonly ?string $logConfig=null,
 		#[OptionFlag, MapFrom('migration-errors-fatal')] public readonly bool $migrationErrorsFatal=false,

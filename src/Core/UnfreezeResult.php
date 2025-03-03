@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-/** The resultg of an account unfreeze action */
+/** The result of an account unfreeze action */
 enum UnfreezeResult {
 	case Failure;
 	case Success;

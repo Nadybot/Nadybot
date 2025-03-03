@@ -1955,6 +1955,23 @@ class Nadybot {
 	private function onReady(): void {
 		$this->ready = true;
 		$this->eventManager->executeConnectEvents();
+		if (!BotRunner::getArguments()->testRun) {
+			return;
+		}
+		$this->logger->notice('Entering testing mode.');
+		if (!Testing::canRun()) {
+			/** @phpstan-ignore-next-line */
+			\fwrite(\STDOUT, "Testing mode selected, but missing requirements!\n");
+			exit(1);
+		}
+		$testing = new Testing(
+			logger: $this->logger,
+			fs: Registry::getInstance(Filesystem::class),
+			config: $this->config,
+			chatBot: $this,
+			commandManager: $this->commandManager,
+		);
+		$testing->run();
 	}
 
 	/** Process a system message */

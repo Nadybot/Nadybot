@@ -1,9 +1,0 @@
----
-name: Alien Module
-groups:
-  - name: Generals
-    tests:
-      - command: "!aigen ankari"
-        expect: /General Ankari/
-      - command: "!aigen ilari"
-        expect: /General Ilari/

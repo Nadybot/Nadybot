@@ -183,7 +183,7 @@ class AltInfo {
 	}
 
 	/**
-	 * Get the validated main for `$sender`. If `$sender` is an  unvalidated alt,
+	 * Get the validated main for `$sender`. If `$sender` is a non-validated alt,
 	 * they will be considered their main.
 	 */
 	public function getValidatedMain(string $sender): string {

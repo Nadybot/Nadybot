@@ -20,6 +20,7 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'aiarmor',
 		accessLevel: AccessLevel::Guest,
