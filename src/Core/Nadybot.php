@@ -10,7 +10,6 @@ use Amp\Pipeline\Pipeline;
 use AO\Client\{MultiClient, WorkerConfig, WorkerPackage};
 use AO\Exceptions\AccountsFrozenException;
 use AO\Group\{GroupId, GroupType};
-use AO\Package\Out\{GroupMessage, PrivateChannelMessage};
 use AO\Package\OutPackage;
 use AO\{FrozenAccount, Group, Package, SendPriority, Utils};
 use BackedEnum;
@@ -360,10 +359,10 @@ class Nadybot {
 		SendPriority $priority=SendPriority::Medium,
 	): void {
 		if (BotRunner::getArguments()->testRun) {
-			if ($package instanceof PrivateChannelMessage) {
+			if ($package instanceof Package\Out\PrivateChannelMessage) {
 				return;
 			}
-			if ($package instanceof GroupMessage) {
+			if ($package instanceof Package\Out\GroupMessage) {
 				return;
 			}
 		}
@@ -1910,6 +1909,17 @@ class Nadybot {
 	private function aoPackageLoop(): void {
 		foreach ($this->aoClient->getPackages() as $package) {
 			// $this->logger->notice('Read {package}', ['package' => $package]);
+			if (BotRunner::getArguments()->testRun) {
+				if ($package->package instanceof Package\In\GroupMessage) {
+					continue;
+				}
+				if ($package->package instanceof Package\In\PrivateChannelMessage) {
+					continue;
+				}
+				if ($package->package instanceof Package\In\Tell) {
+					continue;
+				}
+			}
 			$this->processPackage($package);
 		}
 		$this->logger->error('Connection closed, shutting down.');
