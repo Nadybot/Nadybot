@@ -1,0 +1,73 @@
+---
+name: System Module
+groups:
+
+  - name: Access checking
+    tests:
+      - command: checkaccess
+        name: We should be superadmin
+        expect: superadmin
+      - command: checkaccess rikoltanto
+        name: Unknown chars should be all
+        expect: is .*all
+      - command: checkaccess K1wehfweum
+        name: Non-existing chars should give an error
+        expect: Character.*does not exist
+  - name: System command
+    tests:
+      - command: system
+        name: Check system info has good information
+        expect:
+          - System Info
+          - "Nadybot:"
+          - Event loop
+          - Database
+  - name: Macro-command
+    tests:
+      - command: macro member add rikoltanto|checkaccess rikoltanto|member del rikoltanto|checkaccess rikoltanto
+        name: Run multiple commands in a row
+        expect:
+          - has been added as a member of this bot
+          - is.*member
+          - has been removed as a member of this bot
+          - is.*all
+
+
+  - name: Configuration-commands
+    tests:
+      - command: showconfig
+        name: Get a redacted version of our configuration
+        expect:
+          - <superadmin>
+          - <Myname>
+          - '&quot;username&quot;: &quot;\*{6}&quot;'
+          - '&quot;password&quot;: &quot;\*{6}&quot;'
+      - command: upgradeconfig
+        name: Get a TOML version of our config
+        expect:
+          - <superadmin>
+          - <Myname>
+          - \[main\]
+
+  - name: SQL-commands
+    tests:
+      - command: querysql SELECT COUNT(*) AS amount FROM aodb
+        name: Get the total number if items in out database
+        expect:
+          - Results \(1\)
+          - amount.*\d+
+
+  - name: LOG-commands
+    tests:
+      - command: logs
+        name: List log files in our system
+        expect: Log Files \(\d+\)
+
+  - name: Showcommand
+    tests:
+      - command: showcommand rikoltanto checkaccess rikoltanto
+        name: Show a command output to a known character
+        expect: has been sent to
+      - command: showcommand B1aerbel checkaccess rikoltanto
+        name: Show a command output to a non-existing character
+        expect: does not exist

@@ -1,0 +1,96 @@
+---
+name: Alts Module
+groups:
+
+  - name: Alts management with confirmation
+    tests:
+      - name: Clear alts list
+        command: executesql DELETE FROM alts
+        expect: Query run successfully
+      - name: Force alts to require confirmation
+        command: settings save alts_require_confirmation 1
+        expect: saved with new value
+      - command: alts
+        name: List my alts
+        expect: No alts are registered
+      - command: alts add Nukeat5
+        name: Add one char as my alt
+        expect: Alt added.*requires confirmation
+      - command: alts
+        name: List my alts again, new alt should require confirmation
+        expect: Nukeat5.*not validated
+      - command: alts Nukeat5
+        name: List alts of the added alt
+        expect: Nukeat5.*not validated
+      - command: checkaccess Nukeat5
+        name: Unvalidated alt should not inherit our access level
+        expect: Access level.*is.*all
+      - command: runas nukeat5 altvalidate <superadmin>
+        name: Let the alt validate us as their main
+        expect: has been validated as your main
+      - command: checkaccess Nukeat5
+        name: Validated alt should now inherit our access level
+        expect: Access level.*is.*superadmin
+      - command: alts rem Nukeat5
+        name: Remove alt
+        expect: has been removed as your alt
+      - command: alts
+        name: Alt list should be empty again
+        expect: No alts are registered
+
+      - command: member add Nukeat5
+        name: Make our alt a bot-member
+        expect: has been added as a member
+      - command: runas Nukeat5 alts main <superadmin>
+        name: Add me as their alt
+        expect: Successfully requested.*Make sure to confirm the request
+      - command: alts
+        name: List my alts again, new alt should require confirmation
+        expect: Nukeat5.*not validated
+      - command: alts Nukeat5
+        name: List alts of the added alt
+        expect: Nukeat5.*not validated
+      - command: checkaccess Nukeat5
+        name: Unvalidated alt should not inherit our access level
+        expect: Access level.*is.*member
+      - command: altvalidate nukeat5
+        name: Validate them as our alt
+        expect: has been validated as your alt
+      - command: checkaccess Nukeat5
+        name: Validated alt should now inherit our access level
+        expect: Access level.*is.*superadmin
+      - command: alts rem Nukeat5
+        name: Remove alt
+        expect: has been removed as your alt
+      - command: alts
+        name: Alt list should be empty again
+        expect: No alts are registered
+      - command: member rem Nukeat5
+        name: Demote our alt from bot member
+        expect: has been removed as a member
+
+  - name: Alts management without confirmation
+    tests:
+      - name: Force alts to not require confirmation
+        command: settings save alts_require_confirmation 0
+        expect: saved with new value
+      - command: alts add Nukeat5
+        name: Add one char as my alt
+        expect: Alt added successfully
+      - command: alts
+        name: List my alts again, new alt should not require confirmation
+        expect: Nukeat5
+        unexpected: not validated
+      - command: alts Nukeat5
+        name: List alts of the added alt
+        expect: Nukeat5
+        unexpected: not validated
+      - command: checkaccess Nukeat5
+        name: Validated alt should immediately inherit our access level
+        expect: Access level.*is.*superadmin
+      - command: alts rem Nukeat5
+        name: Remove alt
+        expect: has been removed as your alt
+      - command: alts
+        name: Alt list should be empty again
+        expect: No alts are registered

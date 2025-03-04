@@ -365,6 +365,9 @@ class Nadybot {
 			if ($package instanceof Package\Out\GroupMessage) {
 				return;
 			}
+			if ($package instanceof Package\Out\Tell) {
+				return;
+			}
 		}
 		try {
 			$this->aoClient->write(package: $package, worker: $worker, priority: $priority);
@@ -733,8 +736,10 @@ class Nadybot {
 			$tellColor = $this->settingManager->getString('default_tell_color')??'';
 		}
 
-		foreach ($pages as $page) {
-			$this->logChat('Out. Msg.', $character, $page);
+		if (!BotRunner::getArguments()->testRun) {
+			foreach ($pages as $page) {
+				$this->logChat('Out. Msg.', $character, $page);
+			}
 		}
 		$sender = async(function () use ($character, $tellColor, $pages, $priority): void {
 			foreach ($pages as $page) {
@@ -813,7 +818,9 @@ class Nadybot {
 					$worker = random_int(0, $numWorkers -1);
 					$worker = $this->config->worker[$worker]->character;
 				}
-				$this->logChat('Out. Msg. via ' . $worker, $character, $page);
+				if (!BotRunner::getArguments()->testRun) {
+					$this->logChat('Out. Msg. via ' . $worker, $character, $page);
+				}
 				$this->sendRawTell(
 					character: $character,
 					message: $tellColor.$page,

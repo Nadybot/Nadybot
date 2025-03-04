@@ -58,6 +58,7 @@ use Revolt\EventLoop;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'checkaccess',
 		accessLevel: AccessLevel::All,
@@ -471,7 +472,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$commands = explode('|', $command);
 		foreach ($commands as $commandString) {
 			$context->message = $commandString;
-			$this->commandManager->processCmd($context);
+			$this->commandManager->syncProcessCmd($context);
 		}
 	}
 
@@ -526,7 +527,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			source: $context->source,
 			permissionSet: $context->permissionSet,
 		);
-		$this->commandManager->processCmd($newContext);
+		$this->commandManager->syncProcessCmd($newContext);
 
 		$context->reply("Command <highlight>{$cmd}<end> has been sent to <highlight>{$name}<end>.");
 	}

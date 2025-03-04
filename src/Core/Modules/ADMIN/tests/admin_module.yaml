@@ -1,0 +1,45 @@
+---
+name: Admin Module
+groups:
+
+  - name: Adding and remove admins
+    tests:
+      - command: checkaccess Rikoltanto
+        name: Check current access level is correct
+        expect: Access level.*is.*all
+      - command: admin add Rikoltanto
+        name: Promote to admin
+        expect: has been promoted to an administrator
+      - command: checkaccess Rikoltanto
+        name: Check access level after promotion
+        expect: Access level.*is.*administrator
+      - command: adminlist
+        name: Check the admin list shows the new admin
+        expect:
+          - Rikoltanto
+          - Administrators
+      - command: mod add Rikoltanto
+        name: Demote to mod
+        expect: has been demoted to a moderator
+      - command: adminlist
+        name: Check the admin list shows the new mod
+        expect:
+          - Rikoltanto
+          - Moderators
+      - command: adminlist all
+        name: Check the admin list shows the new mod and their offline alts on demand
+        expect:
+          - Rikoltanto
+          - Moderators
+      - command: adminlist foo
+        name: Check the admin list doesn't allow stupid parameters
+        expect: Help \(adminlist\)
+      - command: admin rem Rikoltanto
+        name: Try deleting admin-rank
+        expect: is not an administrator
+      - command: mod rem Rikoltanto
+        name: Delete mod-rank
+        expect: has been removed as a moderator
+      - command: checkaccess Rikoltanto
+        name: Check new access level is correct again
+        expect: Access level.*is.*all

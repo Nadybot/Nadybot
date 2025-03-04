@@ -34,6 +34,6 @@ class HtmlDecodeController extends ModuleInstance {
 	#[NCA\HandlesCommand('htmldecode')]
 	public function htmldecodeCommand(CmdContext $context, string $command): void {
 		$context->message = html_entity_decode($command, \ENT_QUOTES);
-		$this->commandManager->processCmd($context);
+		$this->commandManager->syncProcessCmd($context);
 	}
 }

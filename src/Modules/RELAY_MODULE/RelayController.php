@@ -870,7 +870,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	public function syncCommand(CmdContext $context, string $command): void {
 		$context->message = $command;
 		$context->forceSync = true;
-		$this->commandManager->processCmd($context);
+		$this->commandManager->syncProcessCmd($context);
 	}
 
 	/**

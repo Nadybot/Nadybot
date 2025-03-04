@@ -162,7 +162,7 @@ class CommandAlias {
 			return false;
 		}
 		$context->message = $cmd;
-		$this->commandManager->processCmd($context);
+		$this->commandManager->syncProcessCmd($context);
 		return true;
 	}
 

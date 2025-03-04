@@ -51,6 +51,6 @@ class RunAsController extends ModuleInstance {
 			return;
 		}
 		$context->char = new Character($character(), $uid);
-		$this->commandManager->processCmd($context);
+		$this->commandManager->syncProcessCmd($context);
 	}
 }

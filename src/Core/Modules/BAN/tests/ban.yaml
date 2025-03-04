@@ -1,0 +1,62 @@
+---
+name: Ban Module
+groups:
+
+  - name: Adding and removing bans
+    tests:
+
+      - command: ban Rikoltanto
+        name: Permanently ban someone
+        expect: You have permanently banned
+
+      - command: runas rikoltanto checkaccess
+        name: Check that we are indeed banned
+        expect: You are.*banned.*on this bot
+
+      - command: banlist
+        name: Check that only 1 person is on the banlist
+        expect:
+          - Banlist \(1\)
+          - Rikoltanto
+          - Never
+
+      - command: unban Rikoltanto
+        name: Lift the ban
+        expect: You have unbanned
+
+      - command: orgban add 874502 for being here to be banned
+        name: Ban a whole org
+        expect: Added.*to the banlist
+
+      - command: banlist
+        name: This should not appear on the regular banlist
+        expect: No one is currently banned from this bot
+      - command: orgban
+        name: Check the org-banlist
+        expect: Banned orgs \(1\)
+      - command: checkaccess Phrosthax
+        name: Check that their leader is indeed banned
+        expect: Phrosthax's org is.*banned.*on this bot
+
+      - command: orgban rem 874502
+        name: Lift the org's ban again
+        expect: Removed.*from the banlist
+      - command: orgban
+        name: Check that the org-banlist is empty again
+        expect: No orgs are banned at the moment
+
+      - command: ban Rikoltanto 1d
+        name: Temporarily ban someone
+        expect: You have banned.*for 1 day
+      - command: banlist error
+        name: Search for a non-existing person on the banlist
+        expect: No one matching
+      - command: banlist Rikoltanto
+        name: Search for an existing person on the banlist and make sure it's temporary
+        expect:
+          - Banlist matches.*\(1\)
+          - Rikoltanto
+        unexpected: Never
+      - command: unban Rikoltanto
+        name: Finally lift ban again
+        expect: You have unbanned

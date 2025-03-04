@@ -93,10 +93,12 @@ class Testing {
 		if (!isset($uid)) {
 			throw new Exception('Superuser does not exist.');
 		}
+		$superAdmin = $this->config->general->superAdmins[0];
 		$command = Safe::pregReplace('/^!/', '', $command);
-		$command = str_replace('<myname>', strtolower($this->config->main->character), $command);
+		$command = $this->replacePlaceholders($command);
+		$command = str_replace('<superadmin>', $superAdmin, $command);
 		return new CmdContext(
-			charName: $this->config->general->superAdmins[0],
+			charName: $superAdmin,
 			sendto: $reply,
 			charId: $uid,
 			message: $command,
@@ -106,6 +108,15 @@ class Testing {
 			forceSync: false,
 			isDM: true,
 		);
+	}
+
+	/** Replace useful placeholders like <myname> and <superadmin> */
+	private function replacePlaceholders(string $text): string {
+		$superAdmin = $this->config->general->superAdmins[0];
+		$text = str_replace('<myname>', strtolower($this->config->main->character), $text);
+		$text = str_replace('<Myname>', $this->config->main->character, $text);
+		$text = str_replace('<superadmin>', $superAdmin, $text);
+		return $text;
 	}
 
 	/** Evaluates a condition string and checks if it evaluates to `true` or `false` */
@@ -134,6 +145,7 @@ class Testing {
 		$this->commandManager->syncProcessCmd($cmdContext);
 		$output = $reply->getOutput();
 		foreach ($test->expect as $expect) {
+			$expect = $this->replacePlaceholders($expect);
 			$expectResult = Safe::pregMatches(chr(1) . $expect . chr(1) . 's', $output);
 			if ($expectResult === false) {
 				$this->logger->notice(
@@ -143,6 +155,23 @@ class Testing {
 					[
 						'test' => $test->getName(),
 						'expected' => $expect,
+						'output' => implode("\n         ", explode("\n", $output)),
+					]
+				);
+				return TestResult::Failure;
+			}
+		}
+		foreach ($test->unexpected as $unexpected) {
+			$unexpected = $this->replacePlaceholders($unexpected);
+			$unexpectResult = Safe::pregMatches(chr(1) . $unexpected . chr(1) . 's', $output);
+			if ($unexpectResult === true) {
+				$this->logger->notice(
+					"  [✖] {test}\n".
+					"         Did find \"{unexpected}\" in output:\n".
+					'         {output}',
+					[
+						'test' => $test->getName(),
+						'unexpected' => $unexpected,
 						'output' => implode("\n         ", explode("\n", $output)),
 					]
 				);

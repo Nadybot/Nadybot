@@ -1,0 +1,29 @@
+---
+name: Security Module
+groups:
+
+  - name: Audit command
+    tests:
+      - command: audit
+        name: Check auditing is disabled
+        expect: Security auditing is currently disabled
+      - command: settings save audit_enabled 1
+        name: Enable auditing
+        expect: has been saved with new value
+
+      - command: audit
+        name: Check the audit list is clear
+        expect: No audit data found
+      - command: admin add rikoltanto
+        name: Make a test character administrator
+        expect: has been promoted
+      - command: audit
+        name: Check the access level change is logged
+        expect: Rikoltanto.*add-rank.*2
+      - command: admin rem rikoltanto
+        name: Demote the test character again
+        expect: has been removed
+
+      - command: settings save audit_enabled 0
+        name: Disable auditing again
+        expect: has been saved with new value

@@ -32,6 +32,7 @@ use Psr\Log\LoggerInterface;
 /** This is the main controller with commands to modify player's admin/mod ranks */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'adminlist',
 		accessLevel: AccessLevel::All,
@@ -136,7 +137,7 @@ class AdminController extends ModuleInstance {
 	#[NCA\Help\Group('ranks')]
 	public function modRemoveCommand(CmdContext $context, #[Remove] string $rem, PCharacter $who): void {
 		$intlevel = 3;
-		$rankName = AccessLevel::Admin->displayName();
+		$rankName = AccessLevel::Mod->displayName();
 		$rank = Text::addArticle($rankName);
 
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);

@@ -27,6 +27,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'help',
 		accessLevel: AccessLevel::All,

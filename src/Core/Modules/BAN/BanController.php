@@ -44,6 +44,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\Importer(key: 'banlist', class: ExportedBan::class),
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'ban',
 		accessLevel: AccessLevel::Mod,

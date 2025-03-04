@@ -444,7 +444,7 @@ class LootController extends ModuleInstance {
 		}
 		// We want this command to always use the same rights as the bid start
 		$context->message = "bid start {$loot->multiloot}x {$item}";
-		$this->commandManager->processCmd($context);
+		$this->commandManager->syncProcessCmd($context);
 	}
 
 	/** Raffle an item from a loot list */
@@ -469,7 +469,7 @@ class LootController extends ModuleInstance {
 		}
 		// We want this command to always use the same rights as the bid start
 		$context->message = "raffle add {$loot->multiloot}x {$item}";
-		$this->commandManager->processCmd($context);
+		$this->commandManager->syncProcessCmd($context);
 	}
 
 	/** Add an item to the loot roll by name or by pasting it */

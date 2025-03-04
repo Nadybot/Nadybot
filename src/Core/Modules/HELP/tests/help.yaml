@@ -1,0 +1,40 @@
+---
+name: Help Module
+groups:
+
+  - name: Help commands
+    tests:
+      - command: help
+        name: Get a basic help page
+        expect: Welcome to Nadybot
+      - command: help about
+        name: Get a page explaining who helped with the bot
+        expect:
+          - About Nadybot
+          - Tyrence
+          - Patate
+          - Lucier
+      - command: ban Rikoltanto
+        name: Ban a test character from the bot
+        expect: permanently banned
+      - command: runas rikoltanto help about
+        name: Even banned characters must always be able to see the about-page
+        expect:
+          - About Nadybot
+          - Tyrence
+          - Patate
+          - Lucier
+      - command: unban Rikoltanto
+        name: Lift ban of the test character
+        expect: unbanned
+
+      - command: help max_blob_size
+        name: Special help pages must work
+        expect: maximum characters in a window
+
+      - command: help topics
+        name: Check the full list of help topics
+        expect:
+          - Help \(main\)
+          - ADMIN
+          - SYSTEM

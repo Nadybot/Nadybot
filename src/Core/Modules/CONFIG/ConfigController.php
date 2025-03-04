@@ -41,6 +41,7 @@ use ReflectionClass;
 use ValueError;
 
 #[
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'config',
 		accessLevel: AccessLevel::Mod,

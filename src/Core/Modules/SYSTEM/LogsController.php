@@ -343,7 +343,7 @@ class LogsController extends ModuleInstance {
 			EventLoop::queue($this->uploadDebugLog(...), $context, $debugFile);
 		});
 
-		$this->commandManager->processCmd($newContext);
+		$this->commandManager->syncProcessCmd($newContext);
 	}
 
 	public function uploadDebugLog(CmdContext $context, string $filename): void {
