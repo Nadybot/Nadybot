@@ -1,0 +1,71 @@
+---
+name: Dev Module
+groups:
+
+  - name: Commands
+    tests:
+      - command: silence
+        name: Check there are no silenced commands
+        expect: No commands have been silenced
+      - command: unsilence
+        name: Call "unsilence" with no parameters
+        expect: Help \(unsilence\)
+      - command: silence raid msg
+        name: Silence "!raid"-command
+        expect: has been silenced
+      - command: raid
+        name: Test silenced "!raid"-command
+        expect: Help \(raid\)
+      - command: unsilence raid msg
+        name: Unsilence "!raid"-command
+        expect: has been unsilenced.
+
+      - command: showcmdregex
+        expect: Regexes for commands
+      - command: showcmdregex bio
+        expect: Regexes for bio
+      - command: showcmdregex raid
+        expect: Regexes for raid
+      - command: showcmdregex errrror
+        expect: No regexes found
+
+      - command: intransaction
+        expect: no active transaction.
+      - command: stacktrace
+        expect: Current Stacktrace
+      - command: cmdhandlers
+        name: Get cmdhandlers help page
+        expect: Help \(cmdhandlers\)
+      - command: cmdhandlers raid
+        name: Get cmdhandlers for "!raid"
+        expect: raidcontroller\.
+      - command: cmdhandlers fwegfw
+        expect: Command Handlers for
+
+      - command: makeitem 1 2 3 Test name
+        name: Create an item with "!makeitem"
+        expect: itemref://1/2/3.*Test name
+      - command: createblob error
+        name: Call "!createblob" with invalid argument
+        expect: Help \(createblob\)
+      - command: createblob 200
+        name: Create a single large blob
+        expect: Blob 0
+      - command: createblob 200 2
+        name: Create a two pages large blob
+        expect:
+          - Blob 0
+          - Blob 1
+      - command: createblob 200 error
+        name: Call "!createblob" with invalid arguments
+        expect: Help \(createblob\)
+
+      - command: gameicons
+        expect: GFX_GUI_WINDOW_
+      - command: gameicons error
+        expect: Help \(gameicons\)
+      - command: htmldecode
+        expect: Help \(htmldecode\)
+      - command: htmldecode bio &lt;a href="itemref://247764/247764/1"&gt;Solid Clump of Kyr'Ozch Bio-Material&lt;/a&gt;
+        name: HTML-decode encoded clump into "!bio"-command 
+        expect: Kyr'Ozch Viral Serum \(QL 1\)

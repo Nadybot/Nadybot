@@ -39,6 +39,7 @@ use Psr\Log\LoggerInterface;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'test',
 		accessLevel: AccessLevel::Admin,
