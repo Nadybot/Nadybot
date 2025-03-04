@@ -27,3 +27,6 @@ groups:
       - command: settings save audit_enabled 0
         name: Disable auditing again
         expect: has been saved with new value
+      - name: Cleanup audit list
+        command: executesql DELETE FROM audit_<myname>
+        expect: Query run successfully

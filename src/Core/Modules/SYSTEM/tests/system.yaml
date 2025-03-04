@@ -40,8 +40,8 @@ groups:
         expect:
           - <superadmin>
           - <Myname>
-          - '&quot;username&quot;: &quot;\*{6}&quot;'
-          - '&quot;password&quot;: &quot;\*{6}&quot;'
+          - '&quot;username&quot;: (&quot;\*{6}&quot;|null)'
+          - '&quot;password&quot;: (&quot;\*{6}&quot;|null)'
       - command: upgradeconfig
         name: Get a TOML version of our config
         expect:

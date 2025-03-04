@@ -43,6 +43,7 @@ use Ramsey\Uuid\Uuid;
  * @author Tyrence (RK2)
  */
 #[
+	NCA\HasTests,
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'profile',
