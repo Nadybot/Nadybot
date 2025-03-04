@@ -96,11 +96,13 @@ class Testing {
 		if (!isset($uid)) {
 			throw new Exception('Superuser does not exist.');
 		}
+		$command = Safe::pregReplace('/^!/', '', $command);
+		$command = str_replace('<myname>', strtolower($this->config->main->character), $command);
 		return new CmdContext(
 			charName: $this->config->general->superAdmins[0],
 			sendto: $reply,
 			charId: $uid,
-			message: Safe::pregReplace('/^!/', '', $command),
+			message: $command,
 			permissionSet: 'msg',
 			source: 'console',
 			args: [],

@@ -35,24 +35,28 @@ class ApiSpecGenerator {
 	private array $classes = [];
 
 	public function loadClasses(): void {
-		// @phpstan-ignore-next-line
-		foreach (glob(__DIR__ . '/../Core/DBSchema/*.php') ?: [] as $file) {
+		/** @phpstan-ignore-next-line */
+		foreach (glob(__DIR__ . '/../Core/DBSchema/*.php') as $file) {
 			require_once $file;
 		}
-		// @phpstan-ignore-next-line
-		foreach (glob(__DIR__ . '/../Core/Modules/*/*.php') ?: [] as $file) {
+
+		/** @phpstan-ignore-next-line */
+		foreach (glob(__DIR__ . '/../Core/Modules/*/*.php') as $file) {
 			require_once $file;
 		}
-		// @phpstan-ignore-next-line
-		foreach (glob(__DIR__ . '/../Core/Config/*.php') ?: [] as $file) {
+
+		/** @phpstan-ignore-next-line */
+		foreach (glob(__DIR__ . '/../Core/Config/*.php') as $file) {
 			require_once $file;
 		}
-		// @phpstan-ignore-next-line
-		foreach (glob(__DIR__ . '/../Core/*.php') ?: [] as $file) {
+
+		/** @phpstan-ignore-next-line */
+		foreach (glob(__DIR__ . '/../Core/*.php') as $file) {
 			require_once $file;
 		}
-		// @phpstan-ignore-next-line
-		foreach (glob(__DIR__ . '/../Modules/*/*.php') ?: [] as $file) {
+
+		/** @phpstan-ignore-next-line */
+		foreach (glob(__DIR__ . '/../Modules/*/*.php') as $file) {
 			require_once $file;
 		}
 	}

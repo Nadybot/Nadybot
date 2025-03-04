@@ -31,6 +31,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'cloak',

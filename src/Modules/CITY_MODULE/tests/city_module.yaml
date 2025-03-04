@@ -1,0 +1,56 @@
+---
+name: City Module
+groups:
+
+  - name: Cloak
+    tests:
+      - command: executesql DELETE FROM org_city_<myname>
+        name: Clear cloak status
+        expect: Query run successfully
+      - command: cloak
+        name: Get unknown cloak status
+        expect: Unknown status
+      - command: cloak on
+        name: Force cloak to on
+        expect: has been manually enabled
+      - command: cloak
+        name: Get known cloak status
+        expect: cloaking device is <on>enabled<end>
+      - command: test cloaklower
+        name: Parse "cloak lowered" org message
+        condition: "!orgbot"
+        expect: bot must be in an org
+      - command: test cloakraise
+        name: Parse "cloak raised" org message
+        condition: "!orgbot"
+        expect: bot must be in an org
+
+  - name: Waves
+    tests:
+      - command: citywave start
+        name: Start wave counter
+        expect: "^$"
+      - command: citywave
+        name: Query wave counter when running
+        expect: Waiting for wave 1
+      - command: citywave stop
+        name: Stop wave counter
+        expect: Wave counter stopped
+      - command: citywave
+        name: Query wave counter when not running
+        expect: no raid in progress
+
+  - name: Orbital Strikes
+    tests:
+      - command: test os Regolus
+        condition: "!orgbot"
+        expect: Your bot cannot read
+      - command: test os Pigtail
+        condition: "!orgbot"
+        expect: Your bot cannot read
+      - command: test os Nady
+        condition: "!orgbot"
+        expect: Your bot cannot read
+      - command: test os Nadyita
+        condition: "!orgbot"
+        expect: Your bot cannot read
