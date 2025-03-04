@@ -82,6 +82,7 @@ use Throwable;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 
 	NCA\EmitsMessages('discord', 'event-create'),
 	NCA\EmitsMessages('discord', 'event-delete'),

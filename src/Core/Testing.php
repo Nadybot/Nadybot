@@ -148,7 +148,7 @@ class Testing {
 			$expect = $this->replacePlaceholders($expect);
 			$expectResult = Safe::pregMatches(chr(1) . $expect . chr(1) . 's', $output);
 			if ($expectResult === false) {
-				$this->logger->notice(
+				$this->logger->error(
 					"  [✖] {test}\n".
 					"         Cannot find \"{expected}\" in output:\n".
 					'         {output}',
@@ -165,7 +165,7 @@ class Testing {
 			$unexpected = $this->replacePlaceholders($unexpected);
 			$unexpectResult = Safe::pregMatches(chr(1) . $unexpected . chr(1) . 's', $output);
 			if ($unexpectResult === true) {
-				$this->logger->notice(
+				$this->logger->error(
 					"  [✖] {test}\n".
 					"         Did find \"{unexpected}\" in output:\n".
 					'         {output}',

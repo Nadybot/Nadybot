@@ -731,11 +731,13 @@ class CommandManager implements MessageEmitter {
 				cmdHandler: $commandHandler,
 			);
 		} catch (Throwable $e) {
-			$this->logger->error("Error executing '{command}': {error}", [
-				'command' => $context->message,
-				'error' => $e->getMessage(),
-				'exception' => $e,
-			]);
+			if (!BotRunner::getArguments()->testRun) {
+				$this->logger->error("Error executing '{command}': {error}", [
+					'command' => $context->message,
+					'error' => $e->getMessage(),
+					'exception' => $e,
+				]);
+			}
 			$context->reply('There was an error executing your command: ' . $e->getMessage());
 			$event = new ErrorCmdEvent(
 				channel: $context->permissionSet,
