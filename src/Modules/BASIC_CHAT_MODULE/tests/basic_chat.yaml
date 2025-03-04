@@ -68,6 +68,12 @@ groups:
   - name: Saying things
     tests:
       - command: say org some stuff
+        name: "!say org for org bots"
+        condition: orgbot
+        expect: "^$"
+      - command: say org some stuff
+        name: "!say org for raid bots"
+        condition: "!orgbot"
         expect: You can only use this command
       - command: say priv some more stuff
         expect: "^$"

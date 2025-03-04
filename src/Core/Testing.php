@@ -109,8 +109,27 @@ class Testing {
 		);
 	}
 
+	/** Evaluates a condition string and checks if it evaluates to `true` or `false` */
+	private function evaluateCondition(?string $condition): bool {
+		if (!isset($condition)) {
+			return true;
+		}
+		if ($condition === 'orgbot') {
+			return strlen($this->config->general->orgName) > 0;
+		}
+		if ($condition === '!orgbot') {
+			return strlen($this->config->general->orgName) === 0;
+		}
+		return false;
+	}
+
 	/** Run a single test case and return whether the output matches */
 	private function runTest(TestCase $test): TestResult {
+		if (!$this->evaluateCondition($test->condition)) {
+			$this->logger->notice('  [S] {test}', ['test' => $test->getName()]);
+			return TestResult::Skipped;
+		}
+
 		/** @var Suspension<string> */
 		$suspension = EventLoop::getSuspension();
 		$cmdContext = $this->getContext($test->command, $suspension);
@@ -121,11 +140,11 @@ class Testing {
 			$expectResult = Safe::pregMatches(chr(1) . $expect . chr(1) . 's', $output);
 			if ($expectResult === false) {
 				$this->logger->notice(
-					"  ✖ {test}\n".
+					"  [✖] {test}\n".
 					"         Cannot find \"{expected}\" in output:\n".
 					'         {output}',
 					[
-						'test' => '!' . Safe::pregReplace('/^!/', '', $test->command),
+						'test' => $test->getName(),
 						'expected' => $expect,
 						'output' => implode("\n         ", explode("\n", $output)),
 					]
@@ -133,13 +152,14 @@ class Testing {
 				return TestResult::Failure;
 			}
 		}
-		$this->logger->notice('  ✔ {test}', [
-			'test' => '!' . Safe::pregReplace('/^!/', '', $test->command),
-		]);
+		$this->logger->notice('  [✔] {test}', ['test' => $test->getName()]);
 		return TestResult::Success;
 	}
 
 	private function runTestCollection(TestCollection $collection): TestResult {
+		if (!$this->evaluateCondition($collection->condition)) {
+			return TestResult::Skipped;
+		}
 		$this->logger->notice('Starting tests for {collection}', [
 			'collection' => $collection->name,
 		]);
@@ -151,6 +171,9 @@ class Testing {
 	}
 
 	private function runTestGroup(TestGroup $group): TestResult {
+		if (!$this->evaluateCondition($group->condition)) {
+			return TestResult::Skipped;
+		}
 		$this->logger->notice('Starting test group for {group}', [
 			'group' => $group->name,
 		]);
