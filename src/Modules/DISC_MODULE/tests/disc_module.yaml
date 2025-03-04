@@ -1,0 +1,24 @@
+---
+name: Disc Module
+groups:
+
+  - name: Discs
+    tests:
+      - command: disc
+        name: Without arguments, must show help
+        expect: Help \(disc\)
+      - command: disc Gnat's Wing
+        name: "\"Gnat's Wing\" must turn into \"Steady Nerves\""
+        expect: Steady Nerves
+      - command: disc errornotfound
+        name: Invalid disc name must give error
+        expect: cannot be turned into a nano
+      - command: disc freedom
+        name: Unclear disc name with multiple matches must present choice
+        expect: matches matching your search
+      - command: disc <a href='itemref://160855/160855/169'>Instruction Disc (Gnat's Wing)</a>
+        name: "dropped disc \"Gnat's Wing\" must turn into \"Steady Nerves\""
+        expect: Steady Nerves
+      - command: disc <a href='itemref://270339/270338/300'>Instruction Disc (not existing)</a>
+        name: Dropped unknown disc must give error
+        expect: not an instruction disc
