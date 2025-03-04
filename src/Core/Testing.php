@@ -10,10 +10,9 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Exceptions\{NonExistingTestException, ParseTestException};
 use Nadybot\Core\Testing\{MockCommandReply, TestCase, TestCollection, TestGroup, TestResult};
+use Nadybot\Core\Types\CommandReply;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
-use Revolt\EventLoop;
-use Revolt\EventLoop\Suspension;
 use Safe\Exceptions\YamlException;
 
 class Testing {
@@ -87,11 +86,9 @@ class Testing {
 	/**
 	 * get the context to execute a single command
 	 *
-	 * @param string             $command    The command to execute
-	 * @param Suspension<string> $suspension The fiber to awaken once we're done
+	 * @param string $command The command to execute
 	 */
-	private function getContext(string $command, Suspension $suspension): CmdContext {
-		$reply = new MockCommandReply($suspension);
+	private function getContext(string $command, CommandReply $reply): CmdContext {
 		$uid = $this->chatBot->getUid($this->config->general->superAdmins[0], true);
 		if (!isset($uid)) {
 			throw new Exception('Superuser does not exist.');
@@ -132,12 +129,10 @@ class Testing {
 			return TestResult::Skipped;
 		}
 
-		/** @var Suspension<string> */
-		$suspension = EventLoop::getSuspension();
-		$cmdContext = $this->getContext($test->command, $suspension);
-		$this->commandManager->processCmd($cmdContext);
-		unset($cmdContext);
-		$output = $suspension->suspend();
+		$reply = new MockCommandReply();
+		$cmdContext = $this->getContext($test->command, $reply);
+		$this->commandManager->syncProcessCmd($cmdContext);
+		$output = $reply->getOutput();
 		foreach ($test->expect as $expect) {
 			$expectResult = Safe::pregMatches(chr(1) . $expect . chr(1) . 's', $output);
 			if ($expectResult === false) {

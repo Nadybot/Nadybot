@@ -120,5 +120,5 @@ groups:
         name: Cleanup comments
         expect: Query run successfully
       - command: executesql DROP TABLE comment_categories
-        name: Cleanup commenta vategories
+        name: Cleanup comment categories
         expect: Query run successfully

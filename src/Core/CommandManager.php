@@ -7,7 +7,6 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\Testing\MockCommandReply;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -903,15 +902,7 @@ class CommandManager implements MessageEmitter {
 				}
 			} catch (UserException $e) {
 				$context->reply($e->getMessage());
-				if ($context->sendto instanceof MockCommandReply) {
-					$context->sendto->sendResult();
-				}
 				return $handler;
-			} catch (\Throwable $e) {
-				if ($context->sendto instanceof MockCommandReply) {
-					$context->sendto->sendResult();
-				}
-				throw $e;
 			}
 			if ($methodResult !== false) {
 				// we can stop looking, command was handled successfully
