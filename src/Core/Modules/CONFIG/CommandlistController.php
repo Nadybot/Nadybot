@@ -35,8 +35,13 @@ class CommandlistController extends ModuleInstance {
 	public function cmdlistCommand(CmdContext $context, ?string $accessLevel): void {
 		$cmds = $this->commandManager->getAll(true);
 		if (isset($accessLevel)) {
-			$cmds = $cmds->filter(static function (CmdCfg $cmd) use ($accessLevel): bool {
-				$cmd->permissions = (collect($cmd->permissions))->where('access_level', $accessLevel)
+			$alEnum = AccessLevel::tryFromName($accessLevel);
+			if (!isset($alEnum)) {
+				$context->reply("Unknown access level <highlight>{$accessLevel}<end>.");
+				return;
+			}
+			$cmds = $cmds->filter(static function (CmdCfg $cmd) use ($alEnum): bool {
+				$cmd->permissions = (collect($cmd->permissions))->where('access_level', $alEnum)
 					->toArray();
 				return count($cmd->permissions) > 0;
 			});
