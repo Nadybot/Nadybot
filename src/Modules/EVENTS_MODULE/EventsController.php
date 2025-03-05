@@ -37,6 +37,7 @@ use Throwable;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\HasMigrations,
 	NCA\Exporter('events'),
 	NCA\Importer('events', ExportEvent::class),

@@ -24,6 +24,7 @@ use Psr\Log\LoggerInterface;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\HasMigrations('Migrations/Boss'),
 	NCA\DefineCommand(
 		command: 'boss',

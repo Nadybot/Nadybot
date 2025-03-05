@@ -95,8 +95,6 @@ class Testing {
 		}
 		$superAdmin = $this->config->general->superAdmins[0];
 		$command = Safe::pregReplace('/^!/', '', $command);
-		$command = $this->replacePlaceholders($command);
-		$command = str_replace('<superadmin>', $superAdmin, $command);
 		return new CmdContext(
 			charName: $superAdmin,
 			sendto: $reply,
@@ -110,12 +108,19 @@ class Testing {
 		);
 	}
 
-	/** Replace useful placeholders like <myname> and <superadmin> */
-	private function replacePlaceholders(string $text): string {
+	/**
+	 * Replace useful placeholders like <myname> and <superadmin>
+	 *
+	 * @param array<string,string> $placeholders Placeholders to replace
+	 */
+	private function replacePlaceholders(string $text, array $placeholders): string {
 		$superAdmin = $this->config->general->superAdmins[0];
 		$text = str_replace('<myname>', strtolower($this->config->main->character), $text);
 		$text = str_replace('<Myname>', $this->config->main->character, $text);
 		$text = str_replace('<superadmin>', $superAdmin, $text);
+		foreach ($placeholders as $key => $value) {
+			$text = str_replace('{' . $key . '}', $value, $text);
+		}
 		return $text;
 	}
 
@@ -133,53 +138,67 @@ class Testing {
 		return false;
 	}
 
-	/** Run a single test case and return whether the output matches */
-	private function runTest(TestCase $test): TestResult {
+	/**
+	 * Run a single test case and return whether the output matches
+	 *
+	 * @param array<string,string> $placeholders
+	 *
+	 * @return array{TestResult,array<string,string>}
+	 */
+	private function runTest(TestCase $test, array $placeholders): array {
 		if (!$this->evaluateCondition($test->condition)) {
 			$this->logger->notice('  [S] {test}', ['test' => $test->getName()]);
-			return TestResult::Skipped;
+			return [TestResult::Skipped, $placeholders];
 		}
 
 		$reply = new MockCommandReply();
-		$cmdContext = $this->getContext($test->command, $reply);
+		$command = $this->replacePlaceholders($test->command, $placeholders);
+		$cmdContext = $this->getContext($command, $reply);
 		$this->commandManager->syncProcessCmd($cmdContext);
 		$output = $reply->getOutput();
+		$errorIndent = '               ';
 		foreach ($test->expect as $expect) {
-			$expect = $this->replacePlaceholders($expect);
-			$expectResult = Safe::pregMatches(chr(1) . $expect . chr(1) . 's', $output);
-			if ($expectResult === false) {
+			$expect = $this->replacePlaceholders($expect, $placeholders);
+			$matches = Safe::pregMatch(chr(1) . $expect . chr(1) . 's', $output);
+			if (!count($matches)) {
 				$this->logger->error(
-					"  [✖] {test}\n".
-					"         Cannot find \"{expected}\" in output:\n".
-					'         {output}',
+					"   [✖] {test}\n".
+					"{$errorIndent}Cannot find \"{expected}\" in output:\n".
+					"{$errorIndent}{output}",
 					[
 						'test' => $test->getName(),
 						'expected' => $expect,
-						'output' => implode("\n         ", explode("\n", $output)),
+						'output' => implode("\n{$errorIndent}", explode("\n", $output)),
 					]
 				);
-				return TestResult::Failure;
+				return [TestResult::Failure, $placeholders];
+			}
+			if (count($matches) > 1) {
+				$keys = array_filter(array_keys($matches), is_string(...));
+				foreach ($keys as $key) {
+					$placeholders[$key] = $matches[$key];
+				}
 			}
 		}
 		foreach ($test->unexpected as $unexpected) {
-			$unexpected = $this->replacePlaceholders($unexpected);
+			$unexpected = $this->replacePlaceholders($unexpected, $placeholders);
 			$unexpectResult = Safe::pregMatches(chr(1) . $unexpected . chr(1) . 's', $output);
 			if ($unexpectResult === true) {
 				$this->logger->error(
-					"  [✖] {test}\n".
-					"         Did find \"{unexpected}\" in output:\n".
-					'         {output}',
+					"   [✖] {test}\n".
+					"{$errorIndent}Did find \"{unexpected}\" in output:\n".
+					"{$errorIndent}{output}",
 					[
 						'test' => $test->getName(),
 						'unexpected' => $unexpected,
-						'output' => implode("\n         ", explode("\n", $output)),
+						'output' => implode("\n{$errorIndent}", explode("\n", $output)),
 					]
 				);
-				return TestResult::Failure;
+				return [TestResult::Failure, $placeholders];
 			}
 		}
 		$this->logger->notice('  [✔] {test}', ['test' => $test->getName()]);
-		return TestResult::Success;
+		return [TestResult::Success, $placeholders];
 	}
 
 	private function runTestCollection(TestCollection $collection): TestResult {
@@ -204,8 +223,10 @@ class Testing {
 			'group' => $group->name,
 		]);
 		$result = TestResult::Success;
+		$placeholders = [];
 		foreach ($group->tests as $test) {
-			$result = $result->add($this->runTest($test));
+			[$testResult, $placeholders] = $this->runTest($test, $placeholders);
+			$result = $result->add($testResult);
 		}
 		return $result;
 	}
