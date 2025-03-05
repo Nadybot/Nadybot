@@ -1,0 +1,24 @@
+---
+name: Whompah Module
+groups:
+
+  - name: Whompah-Command
+    tests:
+      - command: whompah
+        name: Get a list of all whom-pahs
+        expect: All known cities
+      - command: whompah bor
+        name: Get connections from Borealis
+        expect:
+          - Borealis
+          - Newland City
+          - Stret West Bank
+      - command: whompah error
+        name: Unknown cities give errors
+        expect: Could not find
+      - command: whompah oa rome
+        name: Fine the connection from OA to ROme
+        expect: Old Athen.*Tir.*ICC.*Omni Trade.*Omni Entertainment.*Rome
+      - command: whompah oa error
+        name: Unknown target gives error
+        expect: Could not find city
