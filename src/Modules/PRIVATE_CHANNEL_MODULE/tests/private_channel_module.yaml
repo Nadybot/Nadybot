@@ -1,0 +1,130 @@
+---
+name: Private Channel Module
+groups:
+
+  - name: members-Command
+    tests:
+      - command: executesql DELETE FROM members_<myname>
+        name: Clear the members_<myname> table
+        expect: Query run successfully
+      - command: members
+        name: We should have no members
+        expect: This bot has no members
+      - command: members add -1
+        name: We cannot add negative UIDs
+        expect: Help \(members\)
+      - command: members add 0
+        name: We cannot add any UIDs
+        expect: Help \(members\)
+      - command: members add 1
+        name: Not even positive UIDs
+        expect: Help \(members\)
+      - command: members add Nadyita
+        name: But we can add characters by their name
+        expect: has been added
+      - command: members
+        name: The new members should now be listed
+        expect:
+          - Members of
+          - Members \(1\)
+      - command: members del Nadyita
+        name: And we can also remove members
+        expect: has been removed
+      - command: invite Nadyita
+        name: We can invite characters to our private channel by their name
+        expect: Invited.*Nadyita.*to this channel
+      - command: kick nadyita
+        name: We can kick people, but only if they are in our private channel
+        expect: is not in the private channel
+      - command: test join nadyita
+        name: Let a dummy join our private channel
+        expect: ^$
+      - command: kick nadyita
+        name: Now we can kick that dummy
+        expect: has been kicked
+      - command: test leave nadyita
+        name: Let a dummy leave our private channel, kicking doesn't work for testing
+        expect: ^$
+
+      - command: members add Nadyita
+        name: Make a dummy a bot member
+        expect: has been added
+      - command: runas Nadyita autoinvite off
+        name: Have that dummy turn off auto invite
+        expect: auto invite preference has been updated.
+      - command: runas Nadyita autoinvite on
+        name: Have that dummy turn on auto invite
+        expect: auto invite preference has been updated.
+      - command: members rem Nadyita
+        name: Remove the dummy from the memberlist
+        expect: has been removed
+      - command: count levels
+        name: Since the bot's private channel is empty, level counts should all be 0
+        expect: 0.*in total
+      - command: test join nadyita
+        name: Let a dummy join our private channel
+        expect: ^$
+      - command: count levels
+        name: Now the dummy should show up in counts
+        expect: 1.*in total.*TL7.*1
+      - command: count all
+        name: Also in counts of all professions
+        expect: 1.*Sol,.*0.*Trad
+      - command: count org
+        name: And counting by orgs should also work
+        expect:
+          - Org statistics
+          - '100%.*Team Rainbow.*'
+      - command: count 0
+        name: Using an invalid profession name should give a list of allowed professions to group by
+        expect: Please choose one
+      - command: count adv
+        name: Counting a class that is not online should give 0
+        expect: '0.*Adventurers'
+      - command: count sol
+        name: Counting the class that is online should give 1
+        expect: '1.*Soldier.*Nadyita'
+
+      - command: kickall
+        name: We can kick everyone on our channel in 10s
+        expect: ^$
+      - command: kickall now
+        name: We can kick everyone on our channel immediately
+        expect: ^$
+      - command: test leave nadyita
+        name: Because it doesn't work when testing let them leave
+        expect: ^$
+      - command: settings save add_member_on_join 1
+        name: Enable to add characters to members on joining
+        expect: has been saved
+      - command: join
+        name: Let's join the private channel
+        expect: You have been added as a member of this bot
+      - command: members
+        name: We should now be a member
+        expect: <superadmin>
+      - command: members rem <superadmin>
+        name: Remove us from the members list
+        expect: has been removed
+
+      - command: lock Maintenance work
+        name: Lock the private channel
+        expect: You.*locked.*the private channel
+      - command: lock Fixing typos
+        name: Change the reason for locking
+        expect: Lock reason changed
+      - command: members add Nadyita
+        name: Make a dummy a bot member
+        expect: has been added
+      - command: runas nadyita join
+        name: Joining should now be prohibited
+        expect: 'currently.*locked.*Fixing typos'
+      - command: unlock
+        name: We can unlock the private channel
+        expect: You.*unlocked.*the private channel
+      - command: runas nadyita join
+        name: Joining should now work again
+        expect: ^$
+      - command: members del Nadyita
+        name: Remove the dummy from the member list
+        expect: has been removed

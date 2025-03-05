@@ -26,6 +26,7 @@ use Psr\Log\LoggerInterface;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'orglist',
 		accessLevel: AccessLevel::Member,

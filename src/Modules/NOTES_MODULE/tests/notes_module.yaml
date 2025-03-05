@@ -85,13 +85,10 @@ groups:
         name: Show reminders, first one should be missing now
         expect: Be respectful
         unexpected: Do good stuff
-      - command: settings save alts_require_confirmation 0
-        name: Don't require confirmation to add alts
-        expect: saved with new value
       - command: members add Regolus
         name: Add a new member to the bot
         expect: added as a member
-      - command: alts add Regolus
+      - command: altsadmin <superadmin> add Regolus
         name: Make them our alt
         expect: added successfully
       - command: runas regolus reminders
@@ -99,6 +96,9 @@ groups:
         expect: Be respectful
       - command: alts rem regolus
         name: Remove the dummy from the alt list
+        expect: has been removed
+      - command: members rem Regolus
+        name: Remove the added member from the bot
         expect: has been removed
       - command: executesql delete from notes
         name: Clear notes table

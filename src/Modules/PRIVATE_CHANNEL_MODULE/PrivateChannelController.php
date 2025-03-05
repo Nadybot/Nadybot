@@ -80,6 +80,7 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'members',
 		accessLevel: AccessLevel::Member,
@@ -729,7 +730,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$chars = collect($chars);
 
 		/** @var array<string,int> */
-		$online = $chars->countBy('profession')->toArray();
+		$online = $chars->countBy(
+			static function (OnlinePlayer $player): string {
+				return $player->profession->value ?? '';
+			}
+		)->toArray();
 		$numOnline = $chars->count();
 		if (!$this->countEmptyProfs && !$numOnline) {
 			$context->reply('<highlight>0<end> in total.');
@@ -819,7 +824,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 
 		$data = collect($this->onlineController->getPlayers('priv', $this->config->main->character))
-			->where('profession', $prof->value);
+			->where('profession', $prof);
 		if (isset($raidOnly)) {
 			try {
 				$data = $this->filterRaid($data->toArray());

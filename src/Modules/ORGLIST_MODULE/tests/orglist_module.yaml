@@ -1,0 +1,74 @@
+---
+name: Orglist Module
+groups:
+
+  - name: findorg-Command
+    tests:
+      - command: findorg Athen Paladin
+        name: Search for a well-known, big org
+        expect:
+          - Matching orgs
+          - '4736'
+      - command: findorg
+        name: Without arguments, we should get the help
+        expect: Help \(findorg\)
+      - command: findorg idonotexistKJhjhh
+        name: Search for a non-existing org
+        expect: No matches found
+
+  - name: orglist-Command
+    tests:
+      - command: buddylist clear
+        name: Clear the buddylist
+        expect: characters from the buddy list
+      - command: orglist Team Rainbow
+        name: Show who is online in a rather small org
+        expect: Orglist for 'Team Rainbow'
+      - command: orglist Nadyita
+        name: Get the orglist for the org of a given character
+        expect: Orglist for 'Team Rainbow'
+      - command: orglist xx
+        name: If there is no clear match, display a list of possible orgs
+        expect: Matching orgs
+
+  - name: orgmembers-Command
+    tests:
+      - command: orgmembers
+        name: Without arguments, display the help
+        expect: Help \(orgmembers\)
+      - command: orgmembers Nadyita
+        name: Cannot be called with a non-meric parameter
+        expect: Help \(orgmembers\)
+      - command: orgmembers 1329153
+        name: List the members of a given org, without checking online status
+        expect: Org members for 'Team Rainbow' \(\d+\)
+      - command: orgmembers -1
+        name: Cannot be called with a negative org IDs
+        expect: Help \(orgmembers\)
+      - command: orgmembers 0
+        name: Doesn't work for non-existing org IDs
+        expect: org does not exist
+
+  - name: whoisorg-Command
+    tests:
+      - command: whoisorg
+        name: Without any parameter, we should see the help page
+        expect: Help \(whoisorg\)
+      - command: whoisorg Nadyita
+        name: Get the org information by the name of an org member
+        expect: Org Info for Team Rainbow
+      - command: whoisorg 1329153
+        name: Get the org information by the ID of the org
+        expect: Org Info for Team Rainbow
+      - command: whoisorg Avue 5
+        name: Get the org info for Mjolnir in RK5
+        expect: Org Info for Mjolnir
+      - command: whoisorg Avue 6
+        name: Get the org info for Mjolnir in RK19
+        expect: Org Info for Mjolnir
+      - command: whoisorg -1
+        name: Negative org IDs don't work
+        expect: Help \(whoisorg\)
+      - command: whoisorg 0
+        name: For non-existing org IDs, we get an error
+        expect: org does not exist

@@ -59,6 +59,7 @@ use Psr\Log\LoggerInterface;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'online',
 		accessLevel: AccessLevel::Guest,
@@ -404,7 +405,7 @@ class OnlineController extends ModuleInstance {
 		foreach ($mains as $main) {
 			$alts = $this->altsController->getAltsOf($main);
 			$chars = $this->playerManager->searchByNames($this->db->getDim(), ...$alts)
-				->where('profession', $profession->value);
+				->where('profession', $profession);
 			if ($chars->isEmpty()) {
 				continue;
 			}
