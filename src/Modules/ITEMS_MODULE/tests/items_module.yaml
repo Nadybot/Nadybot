@@ -1,0 +1,240 @@
+---
+name: Items Module
+groups:
+
+  - name: Bossloot
+    tests:
+      - command: boss immortal
+        name: Multiple matches
+        expect:
+          - Hezak The Immortal
+          - Aztur The Immortal
+          - The Immortal Summoner
+          - "Location: Inner Sanctum"
+          - "Location: Temple Of The Three Winds"
+      - command: boss hezak
+        name: Single match with items
+        expect:
+          - Hezak The Immortal
+          - Inner Sanctum
+          - Permafrost
+        unexpected:
+          - Aztur The Immortal
+
+      - command: boss xxxerror
+        name: Information about non-existing boss
+        expect: no matches for your search
+      - command: bossloot xxxerror
+        name: Boss for non-existing item
+        expect: no matches for your search
+      - command: bossloot stygian
+        name: Search boss that drops an item
+        expect:
+          - Bosses that drop
+          - Aztur The Immortal
+      - command: bossloot Touch of the Gripper
+        name: Search multiple bosses that drops an item
+        expect:
+          - The Curator
+          - Nematet The Custodian Of Time
+
+  - name: Items
+    tests:
+      - command: items
+        name: Calling without arguments gives help
+        expect: Help \(items\)
+      - command: items fjhfjkwef
+        name: Searching for non-existing item
+        expect:  No items found matching
+      - command: items chiroptera
+        name: Search for Chiroptera
+        expect: \(Crispy\).*Chiroptera.*100.*102.*103.*104.*105
+      - command: items 300 chiroptera
+        name: Search for non-existing QL300 chiroptera
+        expect: No QL.*300.*items found matching.*chiroptera
+      - command: items 0 chiroptera
+        name: Search for non-existing QL0 item
+        expect: QL must be between 1 and 500
+      - command: items 600 chiroptera
+        name: Search for non-existing QL600 item
+        expect: QL must be between 1 and 500
+      - command: items 400 fwefkwe
+        name: Search for a non-existing item in QL 400
+        expect: No QL.*400.*matching
+      - command: itemid 21601
+        name: Get information about an item by its ID
+        expect:
+          - Flamethrower Ammunition
+          - lowid.*21601
+          - highid.*21601
+          - in game.*yes
+      - command: itemid -1
+        name: Get information about an item by ID -1
+        expect: Help \(itemid\)
+      - command: itemid 0
+        name: Get information about an item by ID 0
+        expect: No item found with id
+      - command: itemid 53534658736457838745
+        name: Get information about an item by really high ID
+        expect: No item found with
+
+  - name: Whatbuffs
+    tests:
+      - command: whatbuffs
+        name: See what can be buffed
+        expect:
+          - Choose Skill
+          - 1 Handed Blunt Weapons
+      - command: whatbuffs agility
+        name: See what buffs Agility
+        expect:
+          - Choose Type
+          - Arms
+          - Nanoprogram
+      - command: whatbuffs sta
+        name: See what buffs Stamina, using STA as key
+        expect:
+          - Choose Type
+          - Arms
+          - Nanoprogram
+      - command: whatbuffs legs
+        name: See what you can buff in your legs
+        expect:
+          - Choose Skill
+          - 1 Handed Edged Weapons
+          - Time and Space
+      - command: whatbuffs sta legs
+        name: See what buffs stamina in your legs (using shortcuts)
+        expect:
+          - WhatBuffs - Legs Stamina
+          - "25.*The Reaper's Legwear"
+      - command: whatbuffs stamina legs
+        name: See what buffs stamina in your legs (using long names)
+        expect:
+          - WhatBuffs - Legs Stamina
+          - "25.*The Reaper's Legwear"
+      - command: whatbuffs legs sta
+        name: See what in our legs buffs stamina
+        expect:
+          - WhatBuffs - Legs Stamina
+          - "25.*The Reaper's Legwear"
+      - command: whatbuffs foo bar
+        name: Search buffing for foo bat
+        expect: Could not find skill.*foo bar
+      - command: whatbuffs legs bar
+        name: Search items buffing "bar" in out legs
+        expect: Could not find any skills matching
+      - command: whatbuffs foo sta
+        name: Search for buffing stamina in foo
+        expect: Could not find skill
+      - command: whatbuffs perks sta
+        name: Show perks buffing Stamina
+        expect:
+          - WhatBuffs - Perk Stamina
+          - Atrox Primary Genome
+          - Mountaineer.*Keeper
+      - command: whatbuffs nanoprogram
+        name: Show what nano programs can buff
+        expect:
+          - WhatBuffs Nanoprogram - Choose Skill
+          - Add Max NCU
+      - command: whatbuffs perks
+        name: Show what perks can buff
+        expect:
+          - WhatBuffs Perk - Choose Skill
+          - Cold Damage Shield
+          - Nano Initiative
+      - command: whatbuffs nanoprogram sta
+        name: See which nanoprogram(s) buff stamina
+        expect:
+          - WhatBuffs - Nanoprogram Stamina
+          - Improved Guardian of Might
+          - 27.*Essence of Behemoth
+
+  - name: Whatbuffs froobs
+    tests:
+      - command: whatbuffsfroob
+        name: Show which skills froobs can buff
+        expect: WhatBuffsFroob - Choose Skill
+      - command: whatbuffsfroob agility
+        name: Show which types can buff a froob's Agility
+        expect:
+          - WhatBuffsFroob Agility - Choose Type
+          - Nanoprogram
+        unexpected:
+          - Perk
+          - Util
+      - command: whatbuffsfroob sta
+        name: Show which types can buff a froob's Stamina
+        expect:
+          - WhatBuffsFroob Stamina - Choose Type
+          - Nanoprogram
+        unexpected:
+          - Perk
+          - Util
+      - command: whatbuffsfroob legs
+        name: See what a froob can buff in their legs
+        expect:
+          - WhatBuffsFroob Legs - Choose Skill
+          - 1 Handed Edged Weapons
+        unexpected:
+          - 1 Handed Blunt Weapons
+          - Skill Lock
+      - command: whatbuffsfroob sta legs
+        name: Show what froobs can use in their legs to buff Stamina
+        expect:
+          - WhatBuffsFroob - Legs Stamina
+          - 25.*The Reaper's Legwear
+        unexpected:
+          - Dustbrigade Operative Legwear
+          - Enhanced Dustbrigade Covering
+      - command: whatbuffsfroob legs sta
+        name: Show how froobs can buff their Stamine in their legs
+        expect:
+          - WhatBuffsFroob - Legs Stamina
+          - 25.*The Reaper's Legwear
+        unexpected:
+          - Dustbrigade Operative Legwear
+          - Enhanced Dustbrigade Covering
+      - command: whatbuffsfroob foo bar
+        name: Give nonsensical slot and type
+        expect: Could not find skill
+      - command: whatbuffsfroob legs bar
+        name: Give nonsensical skill
+        expect: Could not find any skills
+      - command: whatbuffsfroob foo sta
+        name: Give nonsensical location
+        expect: Could not find skill
+      - command: whatbuffsfroob perks sta
+        name: Froobs don't have perks that buff Stamina, do they?
+        expect: Froobs don't have perks
+      - command: whatbuffsfroob nanoprogram
+        name: See what froobs can buff with nano programs
+        expect:
+          - WhatBuffsFroob Nanoprogram - Choose Skill
+          - 1 Handed Blunt Weapons
+      - command: whatbuffsfroob perks
+        name: Froobs don't have perks at all
+        expect: Froobs don't have perks
+      - command: whatbuffsfroob nanoprogram sta
+        name: Which nanoprogram buffs Stamina for froobs
+        expect:
+          - WhatBuffsFroob - Nanoprogram Stamina
+          - 27.*Essence of Behemoth
+          - Hercules' Booster.*Olympic Pills
+
+  - name: ID command
+    tests:
+      - command: id chirop
+        name: Search for the IDs of items matching 'chirop'
+        expect:
+          - Items matching
+          - Chiroptera
+          - Chirop Exoskeleton
+      - command: id crispy chirop
+        name: Search for the IDs of the Crispy Chiroptera
+        expect:
+          - Items matching
+          - '246714'
+          - '105'
+          - 'Crispy Chiroptera'
