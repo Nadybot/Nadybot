@@ -1,0 +1,51 @@
+---
+name: Fun Module
+groups:
+
+  - name: Ding
+    tests:
+
+      - command: ding
+        expect: 'Yeah yeah gratz,|Hmmm, I really|When are you|Gratz!'
+      - command: ding dong
+        expect: Ditch, Bitch
+      - command: ding 0
+        expect: '.'
+        unexpected: Help \(ding\)
+      - command: ding 1
+        expect: '.'
+        unexpected: Help \(ding\)
+      - command: ding 200
+        expect: '.'
+        unexpected: Help \(ding\)
+      - command: ding 220
+        expect: '.'
+        unexpected: Help \(ding\)
+      - command: ding 221
+        expect: '.'
+        unexpected: Help \(ding\)
+      - command: ding and
+        expect: Help \(ding\)
+      - command: fight
+        expect: Help \(fight\)
+      - command: fight abc
+        expect: Help \(fight\)
+      - command: fight abc def
+        expect: Help \(fight\)
+      - command: fight abc def ghi
+        expect: Help \(fight\)
+      - command: fight abcd efgh
+        expect: And the winner is
+      - command: beer
+        expect: '.'
+        unexpected: Help \(beer\)
+      - command: beer a
+        expect: Help \(beer\)
+      - command: beer -1
+        expect: Help \(beer\)
+      - command: beer 0
+        expect: are you buyin
+      - command: beer 1
+        expect: get this party
+      - command: beer 99999
+        expect: There is no item with that id

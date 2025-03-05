@@ -19,6 +19,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\HasMigrations('Migrations/Dyna'),
 	NCA\DefineCommand(
 		command: 'dyna',

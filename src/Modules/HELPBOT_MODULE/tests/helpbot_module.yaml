@@ -1,0 +1,230 @@
+---
+name: Helpbot Module
+groups:
+
+  - name: Arbiter
+    tests:
+      - command: arbiter
+        name: Check the current arbiter
+        expect: Next arbiter event
+      - command: arbiter set ai
+        name: Set arbiter to be in AI week
+        expect: New times saved.*AI
+      - command: arbiter set dio
+        name: Set arbiter to be in DIO week
+        expect: New times saved.*DIO
+      - command: arbiter set error
+        name: Set arbiter to non-existing week
+        expect: Unable to parse
+      - command: arbiter next monday
+        expect: the arbiter is not here
+
+  - name: Dyna camps
+    tests:
+      - command: dyna 200
+        name: List dyna camps with level range around 200
+        expect: Results of Dynacamps
+      - command: dyna -1
+        name: List dyna camps with invalid level of -1
+        expect: No dyna names or locations matched
+      - command: dyna 1000
+        name: List dyna camps with to high level
+        expect: No dynacamps found
+      - command: dyna error
+        name: Pass completely wrong parameter
+        expect: No dyna names or locations matched
+      - command: dyna a
+        name: Search for names of dynas containing the letter "a"
+        expect: Results of Dynacamp Search
+      - command: dyna hammer
+        name: Search for names of dynas containing the word "hammer"
+        expect:
+          - Andromeda
+          - Wailing Wastes
+
+  - name: Over equip
+    tests:
+      - command: oe -10
+        name: Negative skill requirements give error
+        expect: Help \(oe\)
+      - command: oe 0
+        name: OE of 0 makes no sense, but is valid
+        expect:
+          - Over-equipped Calculation
+          - 'Out of OE:.*0.*or higher'
+      - command: oe 200
+        name: Get over-euipped values for skill 200
+        expect:
+          - 'Out of OE:.*160.*or higher'
+          - '159'
+          - '119'
+          - '80'
+      - command: oe 10000
+        name: Get over-euipped values for skill 10000
+        expect: Over-equipped Calculation
+
+  - name: Calculator
+    tests:
+      - command: calc 1+1
+        expect: '2'
+      - command: calc (1+1)*(1+2)
+        expect: '6'
+      - command: calc 2^(2^2)
+        expect: '16'
+      - command: calc 2^(2^2)
+        expect: '16'
+      - command: calc lg(1000)
+        expect: '3'
+      - command: calc kfwkjfwe
+        name: Use nonsensival string
+        expect: Variables are not supported
+      - command: calc log 10
+        name: Forget to use braces for function calls
+        expect: Syntax error
+      - command: formula add binomic x^2 + 2xy + y^2
+        expect: New formula.*added
+      - command: formula
+        expect: Stored Formulas
+      - command: formula solve binomic
+        expect: Missing variable
+      - command: formula solve binomic x=5 y=10
+        expect: '225'
+      - command: formula rem binomic
+        expect: Formula.*deleted
+      - command: formula rem binomic
+        name: Deleting non-existing formula gives error
+        expect: No formula.*found
+
+  - name: Calculator
+    tests:
+      - command: playfields
+        name: Get a list of playfields
+        expect:
+          - Playfields
+          - Broken Shores
+      - command: playfields pw
+        name: Lookup a specific playfield by short name
+        expect: Perpetual Wastelands
+      - command: playfields error
+        name: Lookup a specific playfield by non-existing short name
+        expect: There were no matches
+
+  - name: Waypoints
+    tests:
+      - command: waypoint 200.2 400.3 y 400.5 760
+        expect:
+          - Click here to use waypoint
+          - '4HO'
+      - command: waypoint 200.2x400.3 760
+        expect:
+          - Click here to use waypoint
+          - '4HO'
+      - command: waypoint 200.400 760
+        expect:
+          - Click here to use waypoint
+          - '4HO'
+      - command: waypoint 200.2x400.3 pw
+        expect:
+          - Click here to use waypoint
+          - PW
+
+  - name: Random/Roll commands
+    tests:
+      - command: executesql DELETE FROM roll
+        name: Clear the roll table
+        expect: Query run success
+      - command: config cmd roll admin all all
+        name: Allow access from everyone to the roll commands to work around rate-limit
+        expect: Updated access
+      - command: random 1 2 3 4 5
+        name: Get a randomized order of given strings
+        expect: Randomized order:.*5
+      - command: random 1
+        name: Get a randomized order of given string. Pretty useless
+        expect: Randomized order:.*1
+      - command: roll -10
+        name: Roll a number between -10 and 0
+        expect:
+          - The roll is.*-10.*out of the possible options
+          - tell .* verify
+      - command: roll 0
+        name: Roll a number between 0 and 0. Should not work
+        expect: The first number cannot be higher
+      - command: runas Nady roll 5
+        name: Roll a number up to 5
+        expect:
+          - The roll is.*[1-5].*between.*1.*and.*5
+          - tell .* verify
+      - command: runas Nady roll 5
+        name: Check if re-rolling to soon is handled
+        expect: You can only roll once
+      - command: runas Nadya roll 5 10
+        name: Roll a number between 5 and 10
+        expect:
+          - The roll is.*\d+.*between.*5.*and.*10
+          - tell .* verify
+      - command: runas Nadya roll 10 5
+        name: Roll a number between 10 and 5. Should not work
+        expect: The first number cannot be higher
+      - command: runas Nadyo roll Nady Pigtail Orana Regolus
+        name: Pick a name out of a given list and store the result
+        expect:
+          - The roll is.*(Nady|Pigtail|Orana|Regolus).*out of the possible options
+          - tell .* verify
+      - command: runas Tinkeridoo roll 2x Nady Pigtail Orana Regolus
+        name: Pick 2 names out of a given list and store the result
+        expect:
+          - The winners are.*(Nady|Pigtail|Orana|Regolus).*and.*(Nady|Pigtail|Orana|Regolus).*out of the possible options
+          - tell .* verify
+      - command: runas Orana roll 3* Nady Pigtail Orana Regolus Leri Yume
+        name: Pick 3 names out of a given list and store the result
+        expect:
+          - The winners are.*out of the possible options
+          - tell .* verify
+      - command: runas Regolus roll heads tails
+        name: Flip a coin and store the result
+        expect:
+          - The roll is.*(?<roll_result>heads|tails)
+          - /tell.*verify (?<verify_code>[0-9a-f-]+)
+
+      - command: verify -1
+        expect: not a valid UUID
+      - command: verify 0
+        expect: not a valid UUID
+      - command: 'verify {verify_code}'
+        name: Verify the coin flip to be correctly stored
+        expect: '{roll_result}.*rolled by.*Regolus'
+
+  - name: Research
+    tests:
+      - command: research -1
+        expect: Help \(research\)
+      - command: research 0
+        expect: Valid values are
+      - command: research 5
+        expect: Research Level 5
+      - command: research 10
+        expect: Research Level 10
+      - command: research 20
+        expect: Valid values are
+      - command: research -1 10
+        expect: Help \(research\)
+      - command: research 0 10
+        expect: Valid values are
+      - command: research 5 8
+        expect: Research Levels 5 - 8
+      - command: research 10 10
+        expect: No research is needed
+      - command: research 20 30
+        expect: Valid values are
+      - command: research 8 5
+        expect: Research Levels 5 - 8
+
+  - name: Timezones
+    tests:
+      - command: time
+        expect: Unix time
+      - command: time est
+        expect: Eastern Standard Time
+      - command: time error
+        expect: Unknown timezone

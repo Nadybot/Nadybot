@@ -38,3 +38,6 @@ groups:
           - Help \(main\)
           - ADMIN
           - SYSTEM
+      - command: adminhelp
+        name: Introduction about bot administration
+        expect: Nadybot WIKI
