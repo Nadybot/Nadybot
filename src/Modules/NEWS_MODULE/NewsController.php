@@ -39,6 +39,7 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'news',
 		accessLevel: AccessLevel::Member,

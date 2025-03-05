@@ -1,0 +1,24 @@
+---
+name: Mass-message Module
+groups:
+
+  - name: Commands
+    tests:
+      - command: massmsgs
+        name: Check my mass message preferences
+        expect: Your current mass message preferences
+      - command: massmsgs off
+        name: Turn off mass messages
+        expect: no longer receive
+      - command: massmsgs on
+        name: Turn mass messages back on
+        expect: again receive
+      - command: massinvites
+        name: Check my mass invite preferences
+        expect: Your current mass message preferences
+      - command: massinvites off
+        name: Turn off mass invites
+        expect: no longer receive
+      - command: massinvites on
+        name: Turn mass invites back on
+        expect: again receive

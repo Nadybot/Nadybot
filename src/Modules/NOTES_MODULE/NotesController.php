@@ -29,6 +29,7 @@ use Psr\Log\LoggerInterface;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\HasMigrations('Migrations/Notes'),
 	NCA\DefineCommand(
 		command: 'notes',

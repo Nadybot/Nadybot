@@ -1,0 +1,56 @@
+---
+name: Nano Module
+groups:
+
+  - name: Commands
+    tests:
+      - command: nano errorerror
+        name: Search for a non-existing nano
+        expect: No nanos found
+      - command: nano gridspace freedom team
+        name: Search for a nano with only 1 match
+        expect: QL156 ID 162595.*details
+        unexpected: Nano Search Results
+      - command: nano gridspace
+        name: Search for a nano with multiple matches
+        expect:
+          - Nano Search Results \(2\)
+          - Gridspace Freedom
+          - Mission Reward
+          - RK Dyna
+      - command: nanolines
+        name: Run !nanolines without giving a profession
+        expect: Choose a profession
+      - command: nanolines adv
+        name: Get all the nanolines for Adventurers
+        expect:
+          - First Aid And Treatment Buffs
+          - Complete Healing Line
+          - Nemesis
+      - command: nanolines 10
+        name: Search for nanolines by a number
+        expect: No nanoline named
+      - command: nanolines error
+        name: Search for a nanoline by a non-existing name
+        expect: No nanoline named
+
+      - command: nanolinesfroob
+        name: Run !nanolinesfroob without giving a profession
+        expect: Choose a profession
+      - command: nanolinesfroob adv
+        name: Get all the nanolines for froob Adventurers
+        expect:
+          - First Aid And Treatment Buffs
+          - Complete Healing Line
+        unexpected: Nemesis
+      - command: nanoloc
+        name: List all nano locations
+        expect:
+          - All nano locations
+          - APF Tradeskill
+      - command: nanoloc Biodome
+        name: Get all nanos that drop in the Biodome
+        expect: Carlo Pinnetti
+      - command: nanoloc error
+        name: Get all nanos that drop in a non-existing location
+        expect: No nanos found

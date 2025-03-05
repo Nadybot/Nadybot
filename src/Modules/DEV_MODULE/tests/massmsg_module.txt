@@ -1,6 +1,0 @@
-!massmsgs
-!massmsgs off
-!massmsgs on
-!massinvites
-!massinvites off
-!massinvites on

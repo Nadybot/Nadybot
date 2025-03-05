@@ -1,0 +1,105 @@
+---
+name: Notes Module
+groups:
+
+  - name: Notes-Command
+    tests:
+      - command: executesql delete from notes
+        name: Clear notes table
+        expect: Query run successfully
+      - command: notes
+        name: Show the currently empty notes
+        expect: No notes
+      - command: notes add test1
+        name: Add a dummy note
+        expect: Note added
+      - command: notes
+        name: Check the note shows up
+        expect:
+          - test.*(reminders)
+          - (?<note_id>[a-f0-9-]{36})
+      - command: notes rem 0
+        name: Delete an invalid note id
+        expect: not a valid UUID
+      - command: notes rem {note_id}
+        name: Delete our created note
+        expect: Note deleted successfully
+      - command: notes
+        name: Notes table should be empty again
+        expect: No notes for
+
+  - name: Notes-Command
+    tests:
+      - command: executesql delete from links
+        name: Clear links table
+        expect: Query run successfully
+      - command: links
+        name: Show empty links table
+        expect: No links found
+      - command: links add github.com Github Website
+        name: Add a link to Github, without giving a proper URL
+        expect: not a valid URL
+      - command: links add https://github.com Github Website
+        name: Add a link to Github with a proper URL
+        expect: Link added successfully
+      - command: links
+        name: Check the links overview now
+        expect:
+          - All my links
+          - Github Website
+          - github.com
+          - (?<link_id>[a-f0-9-]{36})
+      - command: links rem 0
+        name: Delete a non-existing link
+        expect: not a valid UUID
+      - command: links rem {link_id}
+        name: Delete our created link
+        expect: deleted successfully
+      - command: links
+        name: Check links table is empty again
+        expect: No links found
+
+  - name: Reminder-Command
+    tests:
+      - command: reminders
+        name: Show empty reminders table
+        expect: No reminders
+      - command: reminders add Do good stuff
+        name: Add a dummy reminder
+        expect: Reminder added successfully
+      - command: reminders
+        name: Show non-empty reminders table
+        expect:
+          - Do good stuff
+          - (?<first_reminder>[a-f0-9-]{36})
+      - command: reminders addself Be respectful
+        name: Add a dummy self-reminder
+        expect: Reminder added successfully
+      - command: reminders set self {first_reminder}
+        name: Turn the first reminder into a self-reminder
+        expect: changed successfully
+      - command: reminders set off {first_reminder}
+        name: Turn off the first reminder, turning it into a note
+        expect: changed successfully.
+      - command: reminders
+        name: Show reminders, first one should be missing now
+        expect: Be respectful
+        unexpected: Do good stuff
+      - command: settings save alts_require_confirmation 0
+        name: Don't require confirmation to add alts
+        expect: saved with new value
+      - command: members add Regolus
+        name: Add a new member to the bot
+        expect: added as a member
+      - command: alts add Regolus
+        name: Make them our alt
+        expect: added successfully
+      - command: runas regolus reminders
+        name: Our alt should see the reminder
+        expect: Be respectful
+      - command: alts rem regolus
+        name: Remove the dummy from the alt list
+        expect: has been removed
+      - command: executesql delete from notes
+        name: Clear notes table
+        expect: Query run successfully

@@ -1,0 +1,100 @@
+---
+name: News Module
+groups:
+
+  - name: News-Command
+    tests:
+      - command: executesql delete from news
+        name: Clear news table
+        expect: Query run successfully
+      - command: news
+        name: Check the empty news
+        expect: No News recorded
+      - command: news add test1
+        name: Add a news-item "test1"
+        expect: News has been added
+      - command: news
+        name: Check the news again
+        expect:
+          - test1
+          - (?<news_id>[a-f0-9-]{36})
+      - command: news unpin {news_id}
+        name: Try to unpin unpinned news
+        expect: is not pinned
+      - command: news pin {news_id}
+        name: Pin our news
+        expect: successfully pinned
+      - command: news pin {news_id}
+        name: Pin it again!
+        expect: already pinned
+      - command: news unpin {news_id}
+        name: Now unpin it
+        expect: successfully unpinned
+      - command: news confirm {news_id}
+        name: Confirm the news, marking it read
+        expect: News confirmed
+      - command: news confirm {news_id}
+        name: Confirm the news again, expecting an error
+        expect: already confirmed
+      - command: news rem {news_id}
+        name: Delete our news
+        expect: deleted successfully
+      - command: news rem {news_id}
+        name: And now delete it again, expecting an error
+        expect: No news entry found
+      - command: news confirm {news_id}
+        name: And now confirm it again, expecting an error, because it's been deleted
+        expect: No news entry found
+      - command: news
+        name: Check the news, should be none now
+        expect: No News recorded
+
+  - name: News-Command
+    tests:
+      - command: start
+        name: Check our empty start page
+        expect: empty
+      - command: startpage
+        name: Start configuring our start page
+        expect: The current startpage is empty.*startpage pick 0
+      - command: startpage pick 0
+        name: 'Show possible tiles for slot #0'
+        expect:
+          - news
+          - polls
+          - popular-commands
+      - command: startpage pick 0 time
+        name: 'Put a time-tile on slot #0'
+        expect:
+          - New startpage layout
+          - time.*details.*delete
+      - command: startpage pick 0 gsp
+        name: 'Now put a GSP-tile on slot #0, moving all others down by 1'
+        expect:
+          - New startpage layout
+          - gsp
+          - time
+      - command: startpage pick 0 news
+        name: 'Now put a News-tile on slot #0, moving all others down by 1'
+        expect:
+          - New startpage layout
+          - news.*gsp.*time
+      - command: startpage move gsp down
+        name: Move the GSP tile 1 position down
+        expect: news.*time.*gsp
+      - command: startpage describe time
+        name: Get information about the "time" tile
+        expect: Shows the current date and time in UTC
+      - command: start
+        name: Look at our welcome-page now
+        expect: Time.*see more.*GSP.*Currently playing
+        unexpected: '[nN]ews'
+      - command: startpage rem gsp
+        name: Remove the GSP tile
+        expect: news.*time
+      - command: startpage rem time
+        name: Remove the Time tile
+        expect: news
+      - command: startpage rem news
+        name: Remove the News tile
+        expect: The current startpage is empty

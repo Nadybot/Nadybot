@@ -30,6 +30,7 @@ use Safe\DateTimeImmutable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'massmsg',
 		accessLevel: AccessLevel::Mod,

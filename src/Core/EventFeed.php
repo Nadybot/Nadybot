@@ -206,6 +206,10 @@ class EventFeed {
 
 	/** Start connecting and processing packages in an endless loop */
 	public function mainLoop(): void {
+		if (BotRunner::getArguments()->testRun) {
+			$this->logger->warning('Disabling event feed during test runs');
+			return;
+		}
 		EventLoop::queue(function (): void {
 			while ($this->singleLoop()) {
 				delay(self::RECONNECT_DELAY);
