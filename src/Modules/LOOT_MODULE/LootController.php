@@ -34,6 +34,7 @@ use Nadybot\Modules\{
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'loot',
 		accessLevel: AccessLevel::Guest,

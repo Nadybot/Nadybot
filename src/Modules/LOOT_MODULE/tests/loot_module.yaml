@@ -1,0 +1,243 @@
+---
+name: Loot Module
+groups:
+
+  - name: loot commands
+    tests:
+      - command: loot
+        name: Check the loot list
+        expect:  No loot list
+      - command: loot clear
+        name: Clear the loot list
+        expect: Loot has been cleared
+      - command: loot 1
+        name: Call "! with wrong parameter
+        expect: Help \(loot\)
+      - command: loot add 1
+        name: Add loot item ID#1 to the loot list
+        expect: ^$
+      - command: loot
+        name: Check that the item is on the loot list
+        expect: Base NCU
+      - command: loot clear
+        name: Clear the loot list
+        expect: Loot has been cleared
+      - command: loot auction 1
+        name: Auction of item ID#1
+        expect: ^$
+      - command: bid cancel
+        name: Cancel the auction
+        expect: ^$
+      - command: loot add 1234567890
+        name: Add a non-existing item ID to the loot list
+        expect: Could not find item
+      - command: loot addmulti
+        name: Call multiloot-command without arguments
+        expect: Help \(loot\)
+      - command: loot addmulti 9x test1
+        name: Add 9x "test1" to the loot list
+        expect: ^$
+      - command: loot addmulti 5 test2
+        name: Add 5 "test2" to the loot list
+        expect: ^$
+      - command: loot
+        name: Check the loot list
+        expect: 9x.*test1.*5x.*test2
+      - command: add 2
+        name: 'Add ourselves to slot #2'
+        expect: ^$
+      - command: loot
+        name: Check loot list
+        expect: Slot.*#2.*Players added.*<superadmin>
+      - command: add 1
+        name: 'Change to item in slot #1'
+        expect: ^$
+      - command: loot
+        name: Check loot list
+        expect: Slot.*#1.*Players added.*<superadmin>.*Slot.*#2
+      - command: loot rem
+        name: Call "loot" rem without arguments
+        expect: Help \(loot\)
+      - command: loot rem 1234567890
+        name: Remove item from a ridiculously high item slot
+        expect: There is no item at slot
+      - command: loot rem 1
+        name: 'Remove item from loot slot #1'
+        expect: ^$
+      - command: loot
+        name: Check the loot list
+        expect: Slot.*#1.*5x.*test2
+        unexpected: <superadmin>
+      - command: add 1
+        name: 'Add ourselves to loot slot #1 again'
+        expect: ^$
+      - command: loot
+        name: Get the loot list
+        expect: Slot.*#1.*5x.*test2.*<superadmin>
+      - command: flatroll
+        name: Roll the loot
+        expect:
+          - Winner List
+          - item.*left to be rolled
+          - Winner:.*<superadmin>
+      - command: reroll
+        name: Reroll remaining items
+        expect: All remaining items have been re-added
+      - command: rem
+        name: Remove ourselves from all slots
+        expect: ^$
+      - command: add 1
+        name: 'Add ourselves to slot #1 yet again'
+        expect: ^$
+      - command: loot
+        name: Check loot list
+        expect: Slot.*#1.*4x.*test2.*<superadmin>
+      - command: rem
+        name: Remove ourselves from all the slots again
+        expect: ^$
+      - command: loot
+        name: Check the loot list again
+        expect: Slot.*#1.*4x.*test2
+        unexpected: <superadmin>
+      - command: loot clear
+        name: Clear the loot
+        expect: Loot has been cleared
+
+      - command: '13'
+        name: Add Sector 13 loot to the loot table
+        expect: ^$
+      - command: loot
+        name: Check the loot list
+        expect: Dynamic Gas Redistribution Valves
+      - command: '28'
+        name: Add Sector 28 loot to the loot table
+        expect: ^$
+      - command: loot
+        name: Check the loot list
+        expect: Inertial Adjustment Processing Unit
+      - command: '35'
+        name: Add Sector 35 loot to the loot table
+        expect: ^$
+      - command: loot
+        name: Check the loot list
+        expect: Visible Light Remodulation Device
+      - command: loot clear
+        name: Clear the loot list
+        expect: Loot has been cleared
+      - command: apf
+        name: Call the !apf-command without parameters
+        expect: Help \(apf\)
+      - command: apf 13
+        name: Show the loot of Sector 13
+        expect: Action Probability Estimator
+      - command: apf 28
+        name: Show the loot of Sector 28
+        expect: Inertial Adjustment Processing Unit
+      - command: apf 35
+        name: Show the loot of Sector 35
+        expect: Visible Light Remodulation Device
+      - command: db1
+        name: Show the DB1 loot
+        expect:
+          - Enhanced Dustbrigade Spirit-tech Chestpiece
+          - Enhanced Safeguarded NCU Memory Unit
+      - command: db2
+        name: Show the DB2 loot
+        expect:
+          - Enhanced Dustbrigade Combat Chestpiece
+          - Dust Brigade Notum Infuser
+      - command: db3
+        name: Show the DB3 loot
+        expect:
+          - Advanced Dust Brigade Notum Infuser
+          - Dust Brigade Protector Module
+      - command: pande
+        name: Get an overview of Pandemonium bosses
+        expect: Zodiacs
+      - command: pande beast armor
+        name: Get a list of armor "The Beast" drops
+        expect: Shoulderplates of Sabotage
+      - command: pande beast weapons
+        name: Get a list of weapons "The Beast" drops
+        expect: Lord of Wisdom
+      - command: pande stars
+        name: Get a list of all profession-specific stars "The Beast" drops
+        expect: Star of Stealth.*\(Agent\)
+      - command: pande the night heart
+        name: Show the loot dropped by "The Night Heart"
+        expect: Blue Belt of Double Prudence
+      - command: pande shadowbreeds
+        name: Show all the shadow breeds that can drop from "The Beast" or in Inferno
+        expect: The Lighter Side
+      - command: pande aries
+        name: Show the loot of the Zodiac "Aries"
+        expect: Dynamic Sleeve of Aries
+      - command: pande leo
+        name: Show the loot of the Zodiac "Leo"
+        expect: Enthusiastic Spirit Helper of the Leo
+      - command: pande virgo
+        name: Show the loot of the Zodiac "Virgo"
+        expect: Virgo's Analytical Spirit Helper
+      - command: pande aquarius
+        name: Show the loot of the Zodiac "Aquarius"
+        expect: Aquarius's Multitask Calculator
+      - command: pande cancer
+        name: Show the loot of the Zodiac "Cancer"
+        expect: Cancer's Time-Saving Memory
+      - command: pande gemini
+        name: Show the loot of the Zodiac "Gemini"
+        expect: Gemini's Double Band of Linked Information
+      - command: pande libra
+        name: Show the loot of the Zodiac "Libra"
+        expect: Well Balanced Spirit Helper of Libra
+      - command: pande pisces
+        name: Show the loot of the Zodiac "Pisces"
+        expect: Soul Mark of Pisces
+      - command: pande taurus
+        name: Show the loot of the Zodiac "Taurus"
+        expect: Taurus' Spirit of Patience
+      - command: pande capricorn
+        name: Show the loot of the Zodiac "Capricorn"
+        expect: Capricorn's Reliable Memory
+      - command: pande sagittarius
+        name: Show the loot of the Zodiac "Sagittarius"
+        expect: Sagittarius's Hearty Spirit Helper
+      - command: pande scorpio
+        name: Show the loot of the Zodiac "Scorpio"
+        expect: Scorpio's Aim of Anger
+      - command: alb
+        name: Get the loot list for the Albtraum instance
+        expect: Ring of Gruesome Misery
+      - command: lox
+        name: Get a list of all the Xan-instances in the LoX-hub
+        expect:
+          - Vortexx
+          - The Xan
+          - The Alien Threat
+          - Mitaar
+      - command: vortexx
+        name: Get the loot list of Ground Chief Vortexx
+        expect:
+          - Multi Colored Xan Belt Tuning Device
+          - Green Xan Belt Tuning Device
+      - command: mitaar
+        name: Get the loot list of Technomaster Sinuh (Mitaar)
+        expect:
+          - Multi Colored Xan Belt Tuning Device
+          - Green Xan Belt Tuning Device
+          - Xan Essence Brain Spirit - Beta
+      - command: 12m
+        name: Get the loot list of The Xan (12-man)
+        expect: Worshipper's Gem
+
+      - command: mloot <a href="itemref://280727/280727/300">Sloth of the Xan</a> <a href='itemref://150930/150930/10'>Personal Furnace</a>
+        name: Add loot to the loot list by dropping two items into the chat
+        expect: ^$
+      - command: loot
+        name: Check the loot list
+        expect:
+          - Sloth of the Xan
+          - Personal Furnace
+      - command: loot clear
+        name: Clear the loot again
+        expect: Loot has been cleared

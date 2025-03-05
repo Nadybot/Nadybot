@@ -1,0 +1,88 @@
+---
+name: Level Module
+groups:
+
+  - name: XP commands
+    tests:
+      - command: axp
+        name: Get an overview how much AXP is required for which ai level
+        expect:
+          - Alien Experience
+          - 1,055,112.*Talented.*1,297,787
+      - command: axp -1
+        name: Call with negative ai level
+        expect: Help \(axp\)
+      - command: axp 10
+        name: Get AXP needed for AI level 10
+        expect: '346,500'
+      - command: axp 31
+        name: Get AXP needed for AI level 31
+        expect: AI level must be between
+      - command: axp 1 10
+        name: Get AXP needed from ai level 1 to 10
+        expect: '1,071,000'
+      - command: axp 10 1
+        name: Get AXP needed from ai level 10 to 1
+        expect: cannot be higher
+      - command: axp -1 31
+        name: Get AXP needed from ai level -1 to 31
+        expect: Help \(axp\)
+
+      - command: xp
+        name: Call !xp without arguments
+        expect: Help \(xp\)
+      - command: xp -1
+        name: XP required for level -1
+        expect: Help \(xp\)
+      - command: xp 10
+        name: XP required to level up at level 10
+        expect: '7,000'
+      - command: xp 221
+        name: XP required to level up at level 221
+        expect: Level must be between
+      - command: xp 1 10
+        name: XP required to level from level 1 to 10
+        expect: '38,650'
+      - command: xp 10 1
+        name: XP required to level from level 10 to 1
+        expect: must be lower
+      - command: xp -1 221
+        name: XP required to level from level -1 to 221
+        expect: Help \(xp\)
+
+  - name: Level commands
+    tests:
+      - command: level 1
+        name: Stats for a level 1 character
+        expect: Team 1-7.*PvP 1-5
+      - command: level 0
+        name: Stats for a level 0 character
+        expect: must be between
+      - command: level -1
+        name: Stats for a level -1 character
+        expect: Help \(level\)
+      - command: level 220
+        name: Stats for a level 220 character
+        expect: Team.*159-220.*PvP.*175-220.*Missions.*154,165,176,187,198,220,242,250,250,250,250
+      - command: level 221
+        name: Stats for a level 221 character
+        expect: must be between
+
+      - command: missions 1
+        name: Which character levels can roll QL1 missions
+        expect: 'levels:.*1.*2'
+      - command: missions 200
+        name: Which character levels can roll QL200 missions
+        expect: 112.*154.*167.*182.*200
+      - command: missions 250
+        name: Which character levels can roll QL250 missions
+        expect: missions can be rolled from these levels.*140.*220
+      - command: missions 251
+        name: Which character levels can roll QL251 missions
+        expect: are only available between
+      - command: missions 0
+        name: Which character levels can roll QL0 missions
+        expect: are only available between
+      - command: missions -1
+        name: Which character levels can roll QL-1 missions
+        expect: Help \(missions\)
