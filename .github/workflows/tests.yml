@@ -1,0 +1,88 @@
+name: Build images
+
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        # We run all combinations for these targets
+        db: [sqlite, mariadb, postgresql]
+        libuv: ['', 'uv']
+        os: [windows-latest, macos-latest, ubuntu-latest] #, alpine-latest, freebsd-latest]
+
+    name: "Run tests on ${{ matrix.os }} (db: ${{ matrix.db }}, uv: ${{ matrix.libuv }})"
+    runs-on: ${{ matrix.os }}
+
+    services:
+      mysql:
+        # There are no conditional services (yet), this hacks around it
+        image: ${{ (matrix.db == 'mariadb') && 'mariadb:latest' || '' }}
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
+          MYSQL_USER: nadybot
+          MYSQL_DATABASE: nadybot
+          MYSQL_PASSWORD: '123456'
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 3306:3306
+
+      postgres:
+        image: ${{ (matrix.db == 'postgrseql') && 'postgres:alpine' || '' }}
+        env:
+          POSTGRES_PASSWORD: 123456
+          POSTGRES_USER: nadybot
+          POSTGRES_DB: nadybot
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          # TODO: Do we really want 8.1?
+          php-version: '8.1'
+          coverage: none
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, openssl, fileinfo, yaml ${{ (matrix.libuv == 'uv') && ', uv' || '' }}
+
+      - name: Print PHP version
+        run: |
+          php --version
+
+      - name: Install dependencies with composer
+        run: |
+          composer install -q --no-dev
+
+      - name: Fetch config
+        run: |
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://nadyci.nadybot.org/config&db=${{ matrix.db }}" -o conf/config.toml
+
+      - name: Run tests
+        run: |
+          php main.php --test-run conf/config.toml
+
+      - name: Return config
+        if: always()
+        run: |
+          USERNAME=$(toml -j -t conf/config.toml -g main | jq -r .main.login.value)
+          PASSWORD=$(toml -j -t conf/config.toml -g main | jq -r .main.password.value)
+          CHARACTER=$(toml -j -t conf/config.toml -g main | jq -r .main.character.value)
+          curl \
+            -X POST \
+            --user "github:${{ secrets.CONFIG_PASSWORD }}" \
+            "https://nadyci.nadybot.org/return" \
+            -H "Content-Type: application/json" \
+            -d "{\"username\": \"$USERNAME\", \"password\": \"$PASSWORD\", \"character\": \"$CHARACTER\"}"
