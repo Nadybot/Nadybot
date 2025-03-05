@@ -1,0 +1,124 @@
+---
+name: Messages Module
+groups:
+
+  - name: route-Command
+    tests:
+      - command: route
+        name: The bare !route-command should give us an overview of the non-system routes
+        expect: Message routes \(\d+ / (?<num_routes>\d+)\)
+      - command: route list
+        name: '"!route list" should flat list all routes'
+        expect: Message Routes \({num_routes}\)
+      - command: route all
+        name: '"!route all" should list all routes groupes'
+        expect:
+          - Message routes \({num_routes}\)
+          - aopriv\(<myname>\)
+      - command: route list src
+        name: We can get a list of all routing sources
+        expect:
+          - system
+          - Message sources
+      - command: route list dst
+        name: We can get a list of all routing destinations
+        expect:
+          - system
+          - Message targets
+      - command: route list mods
+        name: We can get a list of all routing modifiers
+        expect:
+          - Message modifiers
+          - if-matches
+          - remove-popups
+      - command: route list mod remove-popups
+        name: We can get detailed information about a routing modifier
+        expect:
+          - remove-popups
+          - remove all popups
+          - try to remove the text of the link
+
+      - command: route add aopruv -> aotell(Nady)
+        name: aopruv is an invalid routing source
+        expect: No message source
+      - command: route add aopriv -> aotoll(Nady)
+        name: aotoll is an invalid routing target
+        expect: Unknown target
+      - command: route add aopriv -> aotell(Nady) if-matches(text="wejhfgwejf") remove-online-messages() if-not-command() remove-popups(remove-links=true)
+        name: Add a really fancy and complex rule with lots of modifiers
+        expect: Route added from.*using
+      - command: route del 999
+        name: We cannot delete routes by numbers
+        expect: not a valid UUID
+      - command: route del a
+        name: We cannot delete routes by names
+        expect: not a valid UUID
+      - command: route list
+        name: Grab the route UUID from the list
+        expect: "(?<route_id>[a-f0-9-]{36})[a-zA-Z0-9<>[\\]/:()=&; '-]+wejhfgwejf"
+      - command: route del {route_id}
+        name: We can delete routes by UUIDs
+        expect: Route.*{route_id}.*deleted
+
+  - name: Route Color Command
+    tests:
+      - command: route color
+        name: We can get an overview of the colors assigned to routing hops
+        expect:
+          - Color definitions
+          - aopriv\(<Myname>\)|aopriv\(<myname>\)
+      - command: route color text pick aopriv
+        name: We can get an interactive color picker for a routing hop
+        expect:
+          - Pick a text color for aopriv
+          - Theme Default Color
+      - command: route color text pick aopriv -> aotell(Nady)
+        name: Pick a text color for a route from our private channel to a specific char
+        expect:
+          - Pick a text color for aopriv -&gt; aotell
+          - Theme Default Color
+      - command: 'route color text set aopriv #223344'
+        name: 'Set the text color for messages routed into our private channel to #223344'
+        expect: 'Text color for.*aopriv.* set to.*#223344'
+      - command: 'route color text set aopriv -> aotell(Nady) #112233'
+        name: Set the text color for messages routed from our private channel to a specific char
+        expect: 'Text color for.*aopriv.*-&gt;.*aotell\(nady\).*set to.*#112233'
+      - command: route color text set aopriv -> aotell(Nady) <font color=#992233>
+        name: Same, but with a different syntax for the color
+        expect: 'Text color for.*aopriv.*-&gt;.*aotell\(nady\).*set to.*#992233'
+      - command: route color text set aopriv -> aotell(Nady) via relay(xxx) <font color=#992233>
+        name: Set the color from our private channel to a char via a relay
+        expect: 'Text color for.*aopriv.*-&gt;.*aotell\(nady\).*via.*relay\(xxx\).*set to.*#992233'
+      - command: route color text del aopriv -> aotell(Nady) via relay(xxx)
+        name: Delete the latter
+        expect: Color definition for.*aopriv.*-&gt;.*aotell\(nady\).*via.*relay\(xxx\).*deleted
+      - command: route color text del aopriv -> aotell(Nady)
+        name: And also the direct message color we added before
+        expect: Color definition for.*aopriv.*-&gt;.*aotell\(nady\).*deleted
+      - command: route color text del aopriv
+        name: And now delete the first changed color
+        expect: Color definition for.*aopriv.*deleted
+
+  - name: Route Format Command
+    tests:
+      - command: route format render aopriv false
+        name: Disable rendering the aopriv hop
+        expect: Format saved
+      - command: route format
+        name: Check format
+        expect: "<highlight>aopriv<end> \\[<a href='chatcmd:///tell [<]myname[>] route format rem aopriv'>clear</a>\\]\\s*<tab><tab>Render: <highlight>false<end>"
+      - command: route format render aopriv true
+        name: Re-enable rendering of aoriv hop
+        expect: Format saved
+      - command: route format
+        name: Check format
+        expect: "<highlight>aopriv<end> \\[<a href='chatcmd:///tell [<]myname[>] route format rem aopriv'>clear</a>\\]\\s*<tab><tab>Render: <highlight>true<end>"
+      - command: route format display aopriv PRIV:%s
+        name: Change the display format of our private channel
+        expect: Display format saved
+      - command: route format
+        name: Check format
+        expect: PRIV:%s
+      - command: route format display aopriv %s
+        name: Undo that stupid setting
+        expect: Display format saved

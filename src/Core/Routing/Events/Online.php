@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Routing\Events;
 
+use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\StringableTrait;
 
@@ -9,6 +10,7 @@ use Nadybot\Core\StringableTrait;
  * This is a routable online event for a character coming online/offline,
  * or joining/leaving a private channel.
  */
+#[Event('online')]
 class Online extends Base {
 	use StringableTrait;
 

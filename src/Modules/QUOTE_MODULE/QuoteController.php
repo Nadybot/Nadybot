@@ -25,6 +25,7 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'quote',
 		accessLevel: AccessLevel::Guest,

@@ -28,8 +28,11 @@ groups:
       - command: online error
         name: Filtering online list by non-existent profession should give an error
         expect: is not a recognized profession
+      - command: whois regolus
+        name: Preload a character
+        expect: Agent
       - command: altsadmin pigtail add regolus
-        name: Add an alt of another profession to that dummt
+        name: Add an alt of another profession to that dummy
         expect: Alt added successfully
       - command: online agent
         name: Check that we can search for this alt's profession
@@ -65,5 +68,5 @@ groups:
         name: Let the alt leave the private channel
         expect: ^$
       - command: test leave pigtail
-        name: Let the other dummt leave as well
+        name: Let the other dummy leave as well
         expect: ^$

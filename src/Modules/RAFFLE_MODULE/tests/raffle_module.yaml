@@ -1,0 +1,127 @@
+---
+name: Raffle Module
+groups:
+
+  - name: raffle-Command
+    tests:
+      - command: executesql DELETE FROM raffle_bonus_<myname>
+        name: Clear the raffle bonus table
+        expect: Query run successfully
+      - command: raffle
+        name: Raffle without arguments shows the help page
+        expect: Help \(raffle\)
+      - command: raffle show
+        name: There shouldn't be an active raffle
+        expect: There is no active raffle
+      - command: raffle join
+        name: You cannot join a raffle if none is running
+        expect: no active raffle
+      - command: raffle leave
+        name: You cannot leave a raffle if none is running
+        expect: no active raffle
+      - command: raffle start test1
+        name: Let's raffle off a single test item
+        expect: ^$
+      - command: raffle show
+        name: It should show in the raffle list
+        expect: test1
+      - command: raffle start error
+        name: We cannot raffle off items while a raffle is already running
+        expect: already a raffle in progress
+      - command: raffle cancel
+        name: We can cancel the raffle
+        expect: ^$
+      - command: raffle show
+        name: There shouldn't be an active raffle anymore
+        expect: There is no active raffle
+      - command: raffle start 10 test1
+        name: We can raffle off multiple counts of 1 item
+        expect: ^$
+      - command: raffle show
+        name: This item should show in the raffle
+        expect: '10×.*test1'
+      - command: raffle cancel
+        name: Let's cancel that raffle again
+        expect: ^$
+      - command: raffle start test1
+        name: Start another simple example raffle
+        expect: ^$
+      - command: raffle join
+        name: And join that raffle
+        expect: ^$
+      - command: raffle show
+        name: We should now see one person in the raffle
+        expect: 1.*person is in the raffle
+      - command: raffle leave
+        name: Let's leave again
+        expect: ^$
+      - command: raffle show
+        name: We should now see 0 people in the raffle
+        expect: 0.*people are in the raffle
+      - command: raffle join
+        name: Join the raffle once again
+        expect: ^$
+      - command: members add Nady
+        name: Add a dummy to the bot as member
+        expect: has been added as a member
+      - command: settings save raffle_bonus_per_loss 5
+        name: Change settings that raffle losers will now get a bonus of 5 points
+        expect: has been saved with new value
+      - command: raffle show
+        name: The raffle info should show this
+        expect: Losers will get their bonus points increased by.*5.*points
+      - command: runas Nady raffle join
+        name: Let our dummy join the raffle
+        expect: ^$
+      - command: raffle end
+        name: Let's end the raffle
+        expect: ^$
+      - command: querysql select * from raffle_bonus_<myname>
+        name: One person should have received that 5 point bonus
+        expect: 'bonus:.*5'
+
+      - command: raffle start A+B+C
+        name: We can raffle off several items in the same slot
+        expect: ^$
+      - command: raffle show
+        name: We should only see one slot
+        expect: A, B, C
+      - command: raffle end
+        name: End this raffle
+        expect: ^$
+      - command: raffle start A+B+C,D+E+F
+        name: We can also raffle off multiple items in multiple slots
+        expect: ^$
+      - command: raffle show
+        name: We should only see two slots with 3 items each
+        expect:
+          - A, B, C
+          - D, E, F
+      - command: raffle end
+        name: Let's end this raffle as well
+        expect: ^$
+      - command: raffle start 2xA+B+C,D+E+F
+        name: We can even raffle off multiple counts of bundles in different slots
+        expect: ^$
+      - command: raffle show
+        name: We should only see the raffle parsewr dealing with this correctly
+        expect:
+          - 2×.*A, B, C
+          - D, E, F
+      - command: raffle end
+        name: End this raffle as well
+        expect: ^$
+      - command: raffle start 2x2xA+B+C,2xD+E+F
+        name: Get even more sophisticated by having one slot have 2x 2 items
+        expect: ^$
+      - command: raffle show
+        name: And the raffle parser should handle this as well
+        expect:
+          - 2×.*2x A, B, C
+          - 2×.*D, E, F
+      - command: raffle end
+        name: End this raffle and call it a success
+        expect: ^$
+      - command: executesql DELETE FROM raffle_bonus_<myname>
+        name: Clear the raffle bonus table
+        expect: Query run successfully

@@ -8,7 +8,6 @@ use function Safe\{json_encode, preg_match};
 use Exception;
 use Illuminate\Support\Collection;
 use Monolog\Logger;
-use Nadybot\Core\Types\{AccessLevel, ParamType};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\DurationStr,
@@ -33,8 +32,10 @@ use Nadybot\Core\{
 	Safe,
 	SettingHandlers\ColorSettingHandler,
 	Text,
+	Types\AccessLevel,
 	Types\HopColorType,
 	Types\MessageEmitter,
+	Types\ParamType,
 	Types\Status,
 	Util,
 };
@@ -52,6 +53,7 @@ use Throwable;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'route',
 		accessLevel: AccessLevel::Mod,
