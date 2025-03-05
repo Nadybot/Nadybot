@@ -1,0 +1,234 @@
+---
+name: Implant Module
+groups:
+
+  - name: Implant requirements
+    tests:
+      - command: implant 0
+        name: No info about implant QL 0
+        expect: Implants only exist
+      - command: implant 200
+        name: Get info about QL 200 implants
+        expect:
+          - QL 200 Implant Details
+          - QL 200 Jobe Implant Details
+          - 951.*Treatment
+          - 404.*Ability
+          - 414.*Ability
+      - command: implant 301
+        name: No info about implant QL 301
+        expect: Implants only exist
+      - command: implant 200 400
+        name: Implant information given ability and treatment
+        expect: Treatment, the highest possible.*83
+      - command: implant 5 200
+        name: Implant information for too low abilities
+        expect: pathetic stats
+      - command: implant 200 10
+        name: Implant information for too low treatment
+        expect: pathetic stats
+
+  - name: Premade implants
+    tests:
+      - command: premade adv
+        name: Get a list of all pre-made implants for Adventurers
+        expect:
+          - Implant Search Results
+          - Adventurer
+          - Left Arm
+      - command: premade rwrist
+        name: Get a list of all pre-made right wrists
+        expect:
+          - Implant Search Results
+          - Right Wrist
+        unexpected:
+          - Left Wrist
+          - Right Arm
+      - command: premade comp lit
+        name: Get a list of all pre-made implants, buffing Comp. Lit.
+        expect:
+          - Ocular
+          - Right Hand
+          - Nano-Technician
+          - Agent
+        unexpected:
+          - Left Wrist
+          - Right Arm
+      - command: premade error
+        name: Get a non-existing pre-made type
+        expect: No results found
+      - command: premade brain
+        name: Get a list of all pre-made brains
+        expect:
+          - Brain
+          - Adventurer
+          - Biological Metamorphosis
+
+  - name: Cluster command
+    tests:
+      - command: cluster
+        name: Get a list of all possible clusters
+        expect: Cluster List \(112\)
+      - command: cluster comp lit
+        name: Get the locations for cluster buffing Comp. Lit.
+        expect: Shiny.*Brain.*Bright.*Ocular.*Faded.*Right Hand
+      - command: cluster agl
+        name: Get the locations for cluster for a skill-shortcut
+        expect:
+          - Agility
+          - Shiny.*Thigh.*Bright.*Feet.*Faded.*Waist
+      - command: cluster a
+        name: Get the locations for clusters matching the search string "a"
+        expect: Cluster search results \(\d{2,}\)
+      - command: cluster error
+        name: Get information about a cluster for a non-existing skill
+        expect: No skills found that match
+
+  - name: Bestsymbiants command
+    tests:
+      - command: bestsymbiants
+        name: Get the best symbiants for the Superadmin
+        expect: Best 3 symbiants in each slot
+      - command: bestsymbiants adv 1
+        name: Get the best symbiants for a level 1 Adventurer
+        expect: est 3 symbiants in each slot for a level 1 Adventurer
+      - command: bestsymbiants adv 100
+        name: Get the best symbiants for a level 100 Adventurer
+        expect: 'Thigh.*Artillery:.*QL110.*QL80.*QL25'
+      - command: bestsymbiants adv 200
+        name: Get the best symbiants for a level 200 Adventurer
+        expect: 'Thigh.*Artillery:.*QL270.*QL250.*QL230'
+      - command: bestsymbiants xxx 200
+        expect: Help \(bestsymbiants\)
+      - command: bestsymbiants 200
+        expect: Help \(bestsymbiants\)
+      - command: bestsymbiants xxx
+        expect: Help \(bestsymbiants\)
+
+  - name: Compare symbiants
+    tests:
+      - command: symbcompare
+        expect: Help \(symbcompare\)
+      - command: symbcompare error
+        expect: Help \(symbcompare\)
+      - command: symbcompare a b c
+        expect: Help \(symbcompare\)
+      - command: symbcompare 1
+        expect: You have to give at least 2 symbiants
+      - command: symbcompare 1 2
+        expect: You have to give at least 2 symbiants
+      - command: symbcompare 1 2 3
+        expect: You have to give at least 2 symbiants
+      - command: symbcompare 278957
+        expect: You have to give at least 2 symbiants
+      - command: symbcompare 278957 278996
+        expect: Item comparison
+      - command: symbcompare 278957 278996 278983
+        expect: Item comparison
+      - command: symbcompare 278957 278996 278983 278970
+        expect: Item comparison
+
+  - name: Implant Designer
+    tests:
+      - command: executesql DELETE FROM implant_design
+        name: Clear all implant designs
+        expect: Query run successfully
+      - command: implantdesigner clear
+        name: Start with an empty setup
+        expect:
+          - Implant Designer
+          - Ocular.*-Empty-
+      - command: implantdesigner head
+        name: Show what we can put into the head
+        expect:
+          - Implant Designer \(Brain\)
+          - Biological Metamorphosis.*\+141
+      - command: implantdesigner head shiny Treatment
+        name: Put treatment shiny in our brain
+        expect:
+          - Implant Designer
+          - Brain.*QL300
+          - Treatment.*141
+      - command: implantdesigner eye symb Active Ocular Symbiant, Artillery Unit Aban
+        name: Put a symbiant into our eye
+        expect:
+          - Implant Designer
+          - Brain.*QL300
+          - Treatment.*141
+          - Sharp Objects.*35
+      - command: implantdesigner eye require
+        name: We should not be able to change requirements for that symbiant
+        expect: You cannot require an ability for a symbiant
+      - command: implantdesigner head require
+        name: But for the head we should be able to choose
+        expect:
+          - Brain.*QL300.*Treatment.*2051.*Agility.*1095
+          - Which ability do you want to require
+      - command: implantdesigner head require Agility
+        name: Choose to require agility
+        expect:
+          - Combinations for.*Brain.*that will require Agility
+          - Faded.*Trap Disarming
+          - Bright.*Ranged Initiative
+      - command: implantdesigner head 200
+        name: Set the QL of the head to 200
+        expect:
+          - Implant Designer
+          - Brain.*QL200
+          - Treatment.*105
+      - command: implantdesigner clear
+        name: Throw away our design
+        expect: Implant Designer
+
+  - name: Implant laddering
+    tests:
+      - command: ladder treat 200
+        expect: Laddering from 200 to 258 Skill
+      - command: ladder ability 200
+        expect: Laddering from 200 to 269 Ability
+      - command: ladder int 200
+        expect: Laddering from 200 to 269 Ability
+
+      - command: pocketboss
+        expect: Help \(pocketboss\)
+      - command: pocketboss xark
+        name: See what Xark drops
+        expect:
+          - Xark the Battletoad
+          - Alert Left Wrist Symbiant
+          - Alert Waist Symbiant
+      - command: pocketboss error
+        name: See what a non-existing pocketboss drops
+        expect: Could not find any pocket bosses
+      - command: pocketboss Xark the Battletoad
+        name: See what Xark drops, but  use their full name
+        expect:
+          - Xark the Battletoad
+          - Alert Left Wrist Symbiant
+          - Alert Waist Symbiant
+
+  - name: Symbiant information
+    tests:
+      - command: symbiant eye
+        name: See all symbiants one can put into their eye
+        expect:
+          - Nematet's Inner Eye
+          - Nematet's Third Eye
+          - Vision of the Heretic
+          - Silver Fang
+          - Xan Ocular Symbiant, Artillery Unit Alpha
+      - command: symbiant error
+        name: Errors should be causing errors
+        expect: I cannot find any symbiant
+      - command: symbiant eye inf
+        name: Get all infantry eyes
+        expect: Infantry Unit Aban
+        unexpected: Control Unit Aban
+      - command: symbiant eye error
+        name: Search for unknown symbiant line or location
+        expect: I cannot find any symbiant
+      - command: symbiant head art alpha
+        name: Show Artillery Alpha head
+        expect:
+          - Xan Brain Symbiant, Artillery Unit Alpha
+          - Intelligent.*Beta.*combine

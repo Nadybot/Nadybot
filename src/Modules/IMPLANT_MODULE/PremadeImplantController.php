@@ -119,7 +119,7 @@ class PremadeImplantController extends ModuleInstance {
 	}
 
 	public function getFormattedLine(PremadeSearchResult $implant): string {
-		return "<tab><highlight>{$implant->profession->name}<end> ({$implant->ability->name})\n".
+		return "<tab><highlight>{$implant->profession->value}<end> ({$implant->ability->name})\n".
 			"<tab>S: {$implant->shiny}\n".
 			"<tab>B: {$implant->bright}\n".
 			"<tab>F: {$implant->faded}\n\n";
