@@ -148,6 +148,9 @@ class RaidBlockController extends ModuleInstance {
 		$this->blocks[$character] ??= [];
 		try {
 			$this->db->awaitBeginTransaction();
+			$this->db->table(RaidBlock::getTable())
+				->orWhere('expiration', '<=', time())
+				->delete();
 			$this->db->insert($block);
 		} catch (UniqueConstraintViolationException) {
 			$this->db->rollback();

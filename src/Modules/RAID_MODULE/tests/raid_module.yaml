@@ -1,0 +1,381 @@
+---
+name: Raid Module
+groups:
+
+  - name: Cleaning up tables
+    tests:
+      - command: executesql DELETE FROM raid_reward_<myname>
+        name: Clear raid reward table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_block_<myname>
+        name: Clear raid block table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_log_<myname>
+        name: Clear raid log table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_member_<myname>
+        name: Clear raid member table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_<myname>
+        name: Clear raid table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_points_log_<myname>
+        name: Clear raid points log table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_points_<myname>
+        name: Clear raid points table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_rank_<myname>
+        name: Clear raid points table
+        expect: Query run successfully
+
+  - name: Reward-Command
+    tests:
+      - command: reward
+        name: The current reward tables should be empty
+        expect: no raid rewards defined
+      - command: reward add zod 25 Zodiac
+        name: Add a 25-point-reward for zodiacs
+        expect: New reward.*created
+      - command: reward
+        name: Check the reward shows up
+        expect:
+          - Zodiac
+          - '25'
+          - (?<reward_id>[0-9a-f-]{36})
+      - command: reward change zod 40 Zodiac
+        name: Change the amount of points given
+        expect: Reward.*changed
+      - command: reward
+        name: Check the changed reward shows up
+        expect:
+          - Zodiac
+          - '40'
+          - '{reward_id}'
+      - command: reward rem {reward_id}
+        name: Deleting by UUID works
+        expect: reward.*succesfully deleted
+      - command: reward rem {reward_id}
+        name: Deleting non-existing UUIDs gives an error
+        expect: reward.*was not found
+      - command: reward add zod 25 Zodiac
+        name: Add the same reward again
+        expect: New reward.*created
+      - command: reward rem zod
+        name: Deleting by reward name also works
+        expect: reward.*succesfully deleted
+      - command: reward rem zod
+        name: Deleting by no longer existing reward name gives an error
+        expect: raid reward.*does not exist
+      - command: reward
+        name: The current reward tables should be empty again
+        expect: no raid rewards defined
+      - command: reward add beast 80 The Beast
+        name: Add a reward for "The Beast"
+        expect: New reward.*created
+
+  - name: Joining and leaving the raid
+    tests:
+      - command: members add regolus
+        name: Add a dummy as member ofthe bot
+        expect: has been added as a member
+      - command: raid
+        name: Check no raid is currently running
+        expect: crrently no raid running
+      - command: raid start test
+        name: Start a new raid "test"
+        expect: ^$
+      - command: raid
+        name: Check it's there
+        expect: Current raid.*Description.*test.*Raiders.*0.*Status.*open
+      - command: raid lock
+        name: Locking the raid
+        expect: ^$
+      - command: raid
+        name: Check it's locked
+        expect: Raid is running.*test.*raid is locked
+      - command: test join regolus
+        name: Let the dummy join our private channel
+        expect: ^$
+      - command: runas regolus raid join
+        name: Let the dummy join our locked raid
+        expect: ^$
+      - command: raid unlock
+        name: Unlock again
+        expect: ^$
+      - command: raid
+        name: Check it's unlocked and empty
+        expect: Current raid.*Description.*test.*Raiders.*0.*Status.*open
+      - command: runas regolus raid join
+        name: Let the dummy join our unlocked raid
+        expect: ^$
+      - command: raid
+        name: Check we have 1 raider now
+        expect: Current raid.*Description.*test.*Raiders.*1.*Status.*open
+      - command: runas regolus raid leave
+        name: Let the dummy leave the raid again
+        expect: ^$
+      - command: raid
+        name: Check we have 0 raiders again
+        expect: Current raid.*Description.*test.*Raiders.*0.*Status.*open
+      - command: raid stop
+        name: Stop the raid
+        expect: ^$
+      - command: raid
+        name: Check no raid is currently running
+        expect: crrently no raid running
+
+  - name: Rewarding points and auctions
+    tests:
+      - command: raid start test2
+        name: Start a new raid
+        expect: ^$
+      - command: runas regolus raid join
+        name: Join the raid with our dummy
+        expect: ^$
+      - command: raid reward 101
+        name: Reward everyone 101 points
+        expect: ^$
+      - command: raid reward beast
+        name: Reward everyone our pre-defined "The Beast" reward
+        expect: ^$
+      - command: raid points regolus
+        name: Check the dummy got points for it
+        expect: '181.*raid points'
+      - command: raid punish 101
+        name: Punish everyone in the raid for the 101 points we've given before
+        expect: ^$
+      - command: raid punish 80
+        name: Punish everyone in the raid for the beast-points we've given before
+        expect: ^$
+      - command: raid points regolus
+        name: Check the dummy got no points anymore
+        expect: '0.*raid points'
+      - command: bid start piece of junk
+        name: Auction off an item
+        expect: ^$
+      - command: runas regolus bid 1
+        name: Our dummy wants to bid 1 point, which they don't have
+        expect: You only have.*0.*raid points
+      - command: bid cancel
+        name: Cancel the auction
+        expect: ^$
+      - command: runas regolus bid 1
+        name: Our dummy wants to bid 1 point, but no auction is running
+        expect: nothing being auctioned
+      - command: raid reward 1
+        name: Give everyone 1 point again
+        expect: ^$
+      - command: bid start piece of junk
+        name: Auction off the same item again
+        expect: ^$
+      - command: runas regolus bid 1
+        name: Have the dummy bid their single point again
+        expect: now the top bidder
+      - command: bid end
+        name: End the auction
+        expect: ^$
+      - command: bid history
+        name: Check both auctions are recorded properly
+        expect:
+          - '1.*Regolus.*won piece of junk'
+          - '-.*nobody.*won piece of junk'
+      - command: raid points regolus
+        name: Check the dummy got no points anymore
+        expect: '0.*raid points'
+      - command: settings save auction_refund_tax 0
+        name: Set the refund tax to 0%
+        expect: has been saved
+      - command: bid reimburse regolus
+        name: Reimburse the dummy for the item
+        expect: ^$
+      - command: raid points regolus
+        name: Check the dummy got back their point
+        expect: '1.*raid points'
+      - command: raid stop
+        name: Stop the raid
+        expect: ^$
+
+  - name: Misc
+    tests:
+      - command: bid history junk
+        name: Searching through the bid history by name
+        expect:
+          - Auction history results
+          - Most expensive result
+          - Regolus.*paid.*1,*raid point
+      - command: bid history ewfjwelfi
+        name: Searching for a non-existing name
+        expect: Nothing matched
+      - command: raid start senior
+        name: Start another dummy raid
+        expect: ^$
+      - command: raid notin
+        name: Send warnings to all players in the private channel who are not in the raid
+        expect:
+          - Sent not in raid warning to.*1 player
+          - Players the were warned
+          - Regolus
+      - command: raid check
+        name: Get a list of players in the raid with link to check everyone is in the zone
+        expect: No.*players in the raid
+      - command: runas regolus raid join
+        name: Have the dummy join the raid
+        expect: ^$
+      - command: raid check
+        name: Get that list again
+        expect:
+          - Check all raid members
+          - Regolus
+      - command: raid notinkick
+        name: Kick everyone from our private channel who's not in the raid
+        expect: Everyone is in the raid
+      - command: test join nady
+        name: Have yet another dummy join our private channel
+        expect: ^$
+      - command: raid notinkick
+        name: Again, kick everyone from our private channel who's not in the raid
+        expect: 1 player.*kicked
+      - command: test leave nady
+        name: Have the other dummy leave our private channel
+        expect: ^$
+      - command: raid desc Changing things
+        name: Change the raid's description
+        expect: Raid description changed
+      - command: raid spp 1s
+        name: Change the interval at which to give raid points to 1s
+        expect: Raid seconds per point changed
+      - command: test sleep 2
+        name: Sleep for 2 seconds
+        expect: ^$
+      - command: points regolus
+        name: Check our dummy's points
+        expect: has.*\d.*raid point
+        unexpected: has.*1.*raid point
+      - command: raid stop
+        name: Stop the raid again
+        expect: ^$
+      - command: points log regolus
+        name: Check our dummy's raid point history if everything is there
+        expect:
+          - raid participation
+          - Refund for piece of junk
+          - reward
+          - penalty
+          - The Beast
+          - \+.*100
+          - \+.*80
+      - command: points add regolus 100 Nice dummy
+        name: Manually add points to our dummy
+        expect: ^$
+      - command: points rem regolus 100 Just testing
+        name: Manually remove points
+        expect: ^$
+      - command: points log regolus
+        name: Check our dummy's raid point history again
+        expect:
+          - '-.*100.*Just testing'
+          - '\+.*100.*nice dummy'
+      - command: points top
+        name: Look at the top points
+        expect:
+          - Top raiders
+          - Regolus
+
+  - name: Raid comments
+    tests:
+      - command: raid comments
+        name: There should be no raid comments if there is no raid running
+        expect: no raid running
+      - command: raid start dummy
+        name: Start a dummy raid again
+        expect: ^$
+      - command: runas regolus raid join
+        name: Have our dummy join
+        expect: ^$
+      - command: raid comments
+        name: There should be no raid comments on any raiders
+        expect: no notes about any raider
+      - command: raid comments add Regolus testing
+        name: Add a dummy raid comment about our dummy raider
+        expect: Comment.*successfully
+      - command: raid comments
+        name: This raid comment should now show up
+        expect:
+          - Regolus
+          - testing.*<superadmin>
+      - command: runas regolus raid leave
+        name: Let the dumy leave the raid again
+        expect: ^$
+
+  - name: Raid blocks
+    tests:
+      - command: runas regolus raidblock
+        name: Our dummy shouldn't have any raid blocks
+        expect: not blocked from any part
+      - command: raidblock join Regolus 1w Unit testing
+        name: Block our dummy from joining raids for 1 week
+        expect: Regolus.*blocked from.*joining raids
+      - command: runas regolus raid join
+        name: Try joining the raid with  our dummy
+        expext: ^$
+      - command: raid
+        name: Check the dummy hasn't joined
+        expect: Current raid.*Description.*dummy.*Raiders.*0.*Status.*open
+      - command: raidblock rem Regolus join
+        name: Lift the dummy's join block
+        expect: Raidblock removed
+        # FIXME
+      - command: raidblock points Regolus 1w Unit testing
+        name: Block our dummy from gaining points for 1 week
+        expect: Regolus.*blocked from.*joining raids
+      - command: raidblock rem Masertimer
+        name: xxx
+        expect: foo
+
+      - command: raid history
+        name: xxx
+        expect: foo
+      - command: raid history 1
+        name: xxx
+        expect: foo
+      - command: raid history 1 xxx
+        name: xxx
+        expect: foo
+
+      - command: member add Nanyta
+        name: xxx
+        expect: foo
+      - command: member add Nady
+        name: xxx
+        expect: foo
+      - command: raidleader add Nady 3
+        name: xxx
+        expect: foo
+      - command: points add Nanyta 5 Just for the lulz
+        name: xxx
+        expect: foo
+      - command: runas Nady alts add Nanyta
+        name: xxx
+        expect: foo
+      - command: runas Nanyta altvalidate Nady
+        name: xxx
+        expect: foo
+      - command: runas Nanyta alts setmain
+        name: xxx
+        expect: foo
+      - command: runas Nady alts setmain
+        name: xxx
+        expect: foo
+      - command: member rem Nanyta
+        name: xxx
+        expect: foo
+      - command: raidleader rem Nady
+        name: xxx
+        expect: foo
+      - command: member del Nady
+        name: xxx
+        expect: foo
+      - command: raid stop
+        name: xxx
+        expect: foo
