@@ -1,0 +1,111 @@
+---
+name: PVP Module
+groups:
+
+  - name: Land controls
+    tests:
+      - command: nw lc
+        name: Just !lc gives a list of all playfields with tower fields on them
+        expect: Playfields with notum fields
+      - command: nw lc 4ho
+        name: Get a list of all fields in 4 Holes
+        expect:
+          - Jall Mountain
+          - 4HO
+          - All bases in 4 Holes
+      - command: nw lc 4ho 2
+        name: Get details about a single tower field
+        expect:
+          - Mountain of Fourtyone
+          - 4HO 2
+          - 'Level range: <highlight>35<end>-<highlight>50<end>'
+        unexpected: Jall Mountain
+      - command: nw lc 4hp
+        name: Non-existing playfields show the help page
+        expect: Help \(nw\)
+        unexpected: Jall Mountain
+      - command: nw lc 4ho 10
+        name: Non-existing tower fields Give an error
+        expect: No tower sites.*found
+
+  - name: Attacks
+    tests:
+      - command: nw attacks
+        name: Get a list of recent attacks
+        expect:
+          - Tower Attacks
+          - Page 1
+          - <header2>(?<field>[A-Z0-9]+ \d)<end> \(QL
+      - command: nw attacks 2
+        name: Get the second page of recent attacks
+        expect:
+          - Tower Attacks
+          - Page 2
+      - command: nw attacks 4ho
+        name: We cannot search for attacks in a playfield
+        expect: Help \(nw\)
+      - command: nw attacks {field}
+        name: We can search for attacks on a tower field
+        expect:
+          - Tower Attacks on {field}
+          - 'Attacker: .*? of <(omni|clan|neutral)>(?<att_org>[^<]+)<end>\)'
+      - command: nw attacks org {att_org}
+        name: We can search for attacks by/on a given org
+        expect:
+          - Tower Attacks on/by '{att_org}'
+          - 'Attacker: <(omni|clan|neutral)>(?<attacker>[^<]+)<end>'
+      - command: nw attacks org *a*
+        name: We can search for attacks by/on a given org using wildcards
+        expect:
+          - Tower Attacks on/by '*a*'
+          - Page 1
+      - command: nw attacks char {attacker}
+        name: We can search for attacks by a given character
+        expect: Tower Attacks by '{attacker}'
+      - command: nw attacks char *a*
+        name: We can search for attacks by a given character using wildcards
+        expect:
+          - Tower Attacks by '*a*'
+          - Page 1
+
+      - command: nw victory
+        name: We can get a list of last victories
+        expect:
+          - Page 1
+          - 'Time:'
+          - 'Winner:'
+          - 'Loser:'
+          - 'Site:'
+      - command: nw victory 2
+        name: We can page this
+        expect:
+          - Page 2
+          - 'Time:'
+          - 'Winner:'
+          - 'Loser:'
+          - 'Site:'
+      - command: nw victory {field}
+        name: We can search for victories by tower fields
+        expect: Tower Victories on {field}|No tower victories found
+
+  - name: Small helper commands
+    tests:
+      - command: nw types
+        name: List all tower types by QL
+        expect:
+          - Tower types by QL
+          - Type I\b
+          - Type II\b
+          - Type III\b
+          - Type IV\b
+          - Type V\b
+          - Type VI\b
+          - Type VII\b
+      - command: nw towerqty
+        name: List numbers of towers you can plant by level
+        expect:
+          - <highlight>0<end>
+          - <highlight>1<end>
+          - <highlight>2<end>
+          - <highlight>3<end>
+          - <highlight>4<end>

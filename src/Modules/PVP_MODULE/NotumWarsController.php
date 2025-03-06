@@ -44,6 +44,7 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\EmitsMessages('pvp', 'gas-change-clan'),
 	NCA\EmitsMessages('pvp', 'gas-change-neutral'),
 	NCA\EmitsMessages('pvp', 'gas-change-omni'),
