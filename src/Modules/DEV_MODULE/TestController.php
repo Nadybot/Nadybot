@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use function Amp\delay;
 use function Safe\date;
 use Amp\File\FilesystemException;
 use AO\Client\{SingleClient, WorkerPackage};
@@ -513,7 +514,7 @@ class TestController extends ModuleInstance {
 		int $duration
 	): void {
 		/** @psalm-var int<0,max> $duration */
-		sleep($duration);
+		delay($duration);
 	}
 
 	/** Get a list of all tests the bot has */

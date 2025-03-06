@@ -17,7 +17,7 @@ groups:
         name: Unknown cities give errors
         expect: Could not find
       - command: whompah oa rome
-        name: Fine the connection from OA to ROme
+        name: Fine the connection from OA to Rome
         expect: Old Athen.*Tir.*ICC.*Omni Trade.*Omni Entertainment.*Rome
       - command: whompah oa error
         name: Unknown target gives error

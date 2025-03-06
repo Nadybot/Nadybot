@@ -54,7 +54,7 @@ groups:
           - '{reward_id}'
       - command: reward rem {reward_id}
         name: Deleting by UUID works
-        expect: reward.*succesfully deleted
+        expect: reward.*successfully deleted
       - command: reward rem {reward_id}
         name: Deleting non-existing UUIDs gives an error
         expect: reward.*was not found
@@ -63,7 +63,7 @@ groups:
         expect: New reward.*created
       - command: reward rem zod
         name: Deleting by reward name also works
-        expect: reward.*succesfully deleted
+        expect: reward.*successfully deleted
       - command: reward rem zod
         name: Deleting by no longer existing reward name gives an error
         expect: raid reward.*does not exist
@@ -77,11 +77,11 @@ groups:
   - name: Joining and leaving the raid
     tests:
       - command: members add regolus
-        name: Add a dummy as member ofthe bot
+        name: Add a dummy as member of the bot
         expect: has been added as a member
       - command: raid
         name: Check no raid is currently running
-        expect: crrently no raid running
+        expect: currently no raid running
       - command: raid start test
         name: Start a new raid "test"
         expect: ^$
@@ -123,7 +123,7 @@ groups:
         expect: ^$
       - command: raid
         name: Check no raid is currently running
-        expect: crrently no raid running
+        expect: currently no raid running
 
   - name: Rewarding points and auctions
     tests:
@@ -139,7 +139,7 @@ groups:
       - command: raid reward beast
         name: Reward everyone our pre-defined "The Beast" reward
         expect: ^$
-      - command: raid points regolus
+      - command: points regolus
         name: Check the dummy got points for it
         expect: '181.*raid points'
       - command: raid punish 101
@@ -148,7 +148,7 @@ groups:
       - command: raid punish 80
         name: Punish everyone in the raid for the beast-points we've given before
         expect: ^$
-      - command: raid points regolus
+      - command: points regolus
         name: Check the dummy got no points anymore
         expect: '0.*raid points'
       - command: bid start piece of junk
@@ -157,8 +157,8 @@ groups:
       - command: runas regolus bid 1
         name: Our dummy wants to bid 1 point, which they don't have
         expect: You only have.*0.*raid points
-      - command: bid cancel
-        name: Cancel the auction
+      - command: bid end
+        name: End the auction, no one wins anything
         expect: ^$
       - command: runas regolus bid 1
         name: Our dummy wants to bid 1 point, but no auction is running
@@ -180,7 +180,7 @@ groups:
         expect:
           - '1.*Regolus.*won piece of junk'
           - '-.*nobody.*won piece of junk'
-      - command: raid points regolus
+      - command: points regolus
         name: Check the dummy got no points anymore
         expect: '0.*raid points'
       - command: settings save auction_refund_tax 0
@@ -203,10 +203,16 @@ groups:
         expect:
           - Auction history results
           - Most expensive result
-          - Regolus.*paid.*1,*raid point
+          - Regolus.*paid.*1.*raid point
       - command: bid history ewfjwelfi
         name: Searching for a non-existing name
         expect: Nothing matched
+      - command: points regolus
+        name: Get the dummy's current raid points
+        expect: <highlight>(?<points>\d+)<end>
+      - command: points rem Regolus {points} purely for testing purpose
+        name: Remove all their points
+        expect: ^$
       - command: raid start senior
         name: Start another dummy raid
         expect: ^$
@@ -214,7 +220,7 @@ groups:
         name: Send warnings to all players in the private channel who are not in the raid
         expect:
           - Sent not in raid warning to.*1 player
-          - Players the were warned
+          - Players that were warned
           - Regolus
       - command: raid check
         name: Get a list of players in the raid with link to check everyone is in the zone
@@ -242,6 +248,9 @@ groups:
       - command: raid desc Changing things
         name: Change the raid's description
         expect: Raid description changed
+      - command: raid reward 1 For testing
+        name: Give a single raid point to everyone
+        expect: ^$
       - command: raid spp 1s
         name: Change the interval at which to give raid points to 1s
         expect: Raid seconds per point changed
@@ -275,7 +284,7 @@ groups:
         name: Check our dummy's raid point history again
         expect:
           - '-.*100.*Just testing'
-          - '\+.*100.*nice dummy'
+          - '\+.*100.*Nice dummy'
       - command: points top
         name: Look at the top points
         expect:
@@ -317,65 +326,144 @@ groups:
         name: Block our dummy from joining raids for 1 week
         expect: Regolus.*blocked from.*joining raids
       - command: runas regolus raid join
-        name: Try joining the raid with  our dummy
-        expext: ^$
+        name: Try joining the raid with our dummy
+        expect: ^$
       - command: raid
         name: Check the dummy hasn't joined
         expect: Current raid.*Description.*dummy.*Raiders.*0.*Status.*open
       - command: raidblock rem Regolus join
         name: Lift the dummy's join block
         expect: Raidblock removed
-        # FIXME
+      - command: runas regolus raidblock
+        name: Check the dummy really isn't blocked anymore
+        expect: currently not blocked
       - command: raidblock points Regolus 1w Unit testing
         name: Block our dummy from gaining points for 1 week
-        expect: Regolus.*blocked from.*joining raids
-      - command: raidblock rem Masertimer
-        name: xxx
-        expect: foo
+        expect: Regolus.*blocked from.*gaining raid points
+      - command: executesql DELETE FROM raid_points_log_<myname>
+        name: Clear raid points log table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_points_<myname>
+        name: Clear raid points table
+        expect: Query run successfully
+      - command: runas regolus raid join
+        name: Have the dummy join the raid
+        expect: ^$
+      - command: raid
+        name: Check we have 1 raider now
+        expect: Current raid.*Raiders.*1.*Status.*open
+      - command: raid reward 100
+        name: Give a reward of 100 points
+        expect: ^$
+      - command: points regolus
+        name: Our dummy shouldn't have received any points
+        expect: never raided with this bot.
+      - command: raidblock rem Regolus points
+        name: Remove the points block
+        expect: Raidblock removed
+      - command: raid reward 99
+        name: Give a reward of 99 points
+        expect: ^$
+      - command: points regolus
+        name: Our dummy should now get points again
+        expect: Regolus.*has.*99.*points
 
       - command: raid history
-        name: xxx
-        expect: foo
-      - command: raid history 1
-        name: xxx
-        expect: foo
-      - command: raid history 1 xxx
-        name: xxx
-        expect: foo
+        name: Check our raid is properly recorded with an average of 99 points per raiders
+        expect:
+          - 1 raider with
+          - '99.*points'
+          - raid history (?<raid_id>[^ '"]+)
+      - command: raid history {raid_id}
+        name: Get details of that last raid
+        expect:
+          - Raiders and points
+          - '99.*Regolus'
+      - command: raid history {raid_id} Regolus
+        name: Get details of that last raid for our dummy
+        expect: Raid started.*99.*reward.*Raid left.*Raid joined
+      - command: raid history {raid_id} Nady
+        name: Get details of that last raid for a non-existent character
+        expect: didn't get any points
 
-      - command: member add Nanyta
-        name: xxx
-        expect: foo
-      - command: member add Nady
-        name: xxx
-        expect: foo
-      - command: raidleader add Nady 3
-        name: xxx
-        expect: foo
-      - command: points add Nanyta 5 Just for the lulz
-        name: xxx
-        expect: foo
-      - command: runas Nady alts add Nanyta
-        name: xxx
-        expect: foo
-      - command: runas Nanyta altvalidate Nady
-        name: xxx
-        expect: foo
-      - command: runas Nanyta alts setmain
-        name: xxx
-        expect: foo
-      - command: runas Nady alts setmain
-        name: xxx
-        expect: foo
-      - command: member rem Nanyta
-        name: xxx
-        expect: foo
-      - command: raidleader rem Nady
-        name: xxx
-        expect: foo
-      - command: member del Nady
-        name: xxx
-        expect: foo
+  - name: Raid ranks
+    tests:
+      - command: raidleader add Regolus 3
+        name: Make our dummy a veteran leader
+        expect: Regolus.*has been.*promoted.*to Veteran Leader
+      - command: checkaccess regolus
+        name: Check the new access level
+        expect: Access level.*veteran leader
+      - command: raidleader add Regolus 2
+        name: Demote to leader
+        expect: Regolus.*has been.*demoted.*to Leader
+      - command: checkaccess regolus
+        name: Check the new access level
+        expect: Access level.*leader
+        unexpected: veteran
+      - command: raidleader rem Regolus
+        name: Demote from all raid leading ranks
+        expect: Regolus.*has been removed
+      - command: checkaccess regolus
+        name: Check the new access level
+        expect: Access level.*member
+        unexpected: leader
+
+  - name: Moving points if main changes/merges
+    tests:
+      - command: members add nadyo
+        name: Add a new dummy member to the bot
+        expect: has been added as a member
+      - command: points add nadyo 10 tax refund
+        name: Add 10 points to that new dummy
+        expect: ^$
+      - command: altsadmin regolus add nadyo
+        name: Add an alt to our dummy
+        expect: Alt added successfully
+      - command: points regolus
+        name: Expect to have the alt's points merged with ours
+        expect: '109'
+      - command: runas nadyo alts setmain
+        name: Make the new dummy our main
+        expect: Your main is now.*Nadyo
+      - command: points nadyo
+        name: Expect to have the alt's points merged with ours
+        expect: '109'
+
+
       - command: raid stop
-        name: xxx
-        expect: foo
+        name: Stop the current test raid
+        expect: ^$
+      - command: members rem nadyo
+        name: Demote the second dummy
+        expect: has been removed
+      - command: members rem regolus
+        name: Demote the second dummy
+        expect: has been removed
+      - command: altsadmin nadyo rem regolus
+        name: Remove the alt-binding again
+        expect: is no longer
+      - command: executesql DELETE FROM raid_reward_<myname>
+        name: Clear raid reward table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_block_<myname>
+        name: Clear raid block table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_log_<myname>
+        name: Clear raid log table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_member_<myname>
+        name: Clear raid member table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_<myname>
+        name: Clear raid table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_points_log_<myname>
+        name: Clear raid points log table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_points_<myname>
+        name: Clear raid points table
+        expect: Query run successfully
+      - command: executesql DELETE FROM raid_rank_<myname>
+        name: Clear raid points table
+        expect: Query run successfully

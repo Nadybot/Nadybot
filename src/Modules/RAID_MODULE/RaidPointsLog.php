@@ -14,7 +14,7 @@ class RaidPointsLog extends DBTable {
 	 * @param int            $time       When did this happen
 	 * @param string         $changed_by Who gave or took points?
 	 * @param bool           $individual Was this change for this player only?
-	 * @param string         $reason     Why were points given  or taken?
+	 * @param string         $reason     Why were points given or taken?
 	 * @param bool           $ticker     Are these points for simple raid participation?
 	 * @param ?UuidInterface $raid_id    If points were given during a raid, which raid was it?
 	 */

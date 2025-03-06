@@ -57,6 +57,7 @@ use Safe\DateTimeImmutable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations('Migrations/Raid'),
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'raid',
 		accessLevel: AccessLevel::All,
@@ -777,7 +778,7 @@ class RaidController extends ModuleInstance {
 
 		$raiders = $this->db->fromSub($query->union($noPoints), 'points')
 			->orderBy('username')
-			->asObj(RaidPointsLog::class);
+			->asObj(BasicRaidPointsLog::class);
 
 		$blob = $this->getRaidSummary($raid);
 		$blob .= "\n<header2>Raiders and points<end>\n";

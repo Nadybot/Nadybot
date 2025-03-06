@@ -122,6 +122,9 @@ groups:
       - command: raffle end
         name: End this raffle and call it a success
         expect: ^$
+      - command: members rem Nady
+        name: Remove the dummy from the bot as member
+        expect: has been removed
       - command: executesql DELETE FROM raffle_bonus_<myname>
         name: Clear the raffle bonus table
         expect: Query run successfully
