@@ -1,0 +1,71 @@
+---
+name: Recipe Module
+groups:
+
+  - name: Recipe command
+    tests:
+      - command: recipe
+        name: Without any arguments, show the help
+        expect: Help \(recipe\)
+      - command: recipe aaaaa
+        name: Searching for a non-existing recipe
+        expect: Could not find
+      - command: recipe comp
+        name: Searching for entries with multiple matches
+        expect: Recipes matching
+      - command: recipe Biotech Rod Ring
+        name: If there is only 1 match, the recipe is shown
+        expect:
+          - Recipe for Biotech Rod Ring
+          - Small Gold Ingot
+      - command: recipe 781
+        name: Recipes can be accessed by their ID
+        expect: Windguaerd's Peruvian Ceviche
+      - command: recipe <a href='itemref://150930/150930/10'>Personal Furnace</a>
+        name: We can also search by dropping items
+        expect:
+          - Recipes containing
+          - Jewels
+
+  - name: Arulsaba command
+    tests:
+      - command: arulsaba
+        name: Without any arguments, show an overview of the types
+        expect: Choose the type
+      - command: arulsaba glory
+        name: Show the different QLs for the "Arul Saba Glory bracelet"
+        expect: Types of a Arul Saba Glory bracelet
+      - command: arulsaba glory 0
+        name: Not specifying if making left or right will give help
+        expect: Help \(arulsaba\)
+      - command: arulsaba glory 0 left
+        name: Getting the recipe for a "Decayed Glory" Arul Saba bracelet for left
+        expect:
+          - Decayed Glory
+          - 1/1
+          - Arbiter Gem of Decayed Glory
+          - Balance Adjuster - Left
+          - Balancing the blueprint
+      - command: arulsaba glory 1 left
+        name: Getting the recipe for a "Corroded Glory" Arul Saba bracelet for left
+        expect:
+          - Corroded Glory
+          - 1/1
+          - Arbiter Gem of Corroded Glory
+          - Balance Adjuster - Left
+          - Balancing the blueprint
+      - command: arulsaba glory 5 right
+        name: Getting the recipe for a "Corroded Glory" 6/6 Arul Saba bracelet for right
+        expect:
+          - Corroded Glory
+          - 5/5
+          - Arbiter Gem of Corroded Glory
+          - Monarch Gem of Corroded Glory
+          - Emperor Gem of Corroded Glory
+          - Stellar Jewel of Corroded Glory
+          - Galactic Jewel of Corroded Glory
+          - Balance Adjuster - Right
+          - Balancing the blueprint
+      - command: arulsaba glory 6 right
+        name: There is no 6/6
+        expect: No Bracelet.*found

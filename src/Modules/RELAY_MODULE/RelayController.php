@@ -57,6 +57,7 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'relay',
 		accessLevel: AccessLevel::Mod,

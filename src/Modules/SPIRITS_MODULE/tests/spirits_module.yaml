@@ -1,0 +1,78 @@
+---
+name: Spirits Module
+groups:
+
+  - name: Spirits-command
+    tests:
+      - command: spirits
+        name: Without arguments, the !spirits-command show the help
+        expect: Help \(spirits\)
+      - command: spirits error
+        name: Search for unknown spirit slot, or type
+        expect: no matches found
+      - command: spirits feet
+        name: Show all spirits for the feet
+        expect:
+          - Xan Spirit of Feet Defense - Alpha
+          - Xan Spirit of Feet Strength - Alpha
+          - Prototype Spirit of Feet Defense
+          - Minimum Level=\d+
+          - Slot=Feet
+      - command: spirits Bitter Spirit of Feet Strength
+        name: Search for a specific spirit
+        expect:
+          - Bitter Spirit of Feet Strength
+          - Minimum Level=1\s+Slot=Feet\s+Agility/Sense Needed=3
+      - command: spirits error bitter
+        name: Search for a different non-existing spirit type
+        expect: no matches found
+      - command: spirits feet error
+        name: Search for a different non-existing spirit for feet
+        expect: No Feet implants found matching
+      - command: spirits feet bitter
+        name: Search for word parts
+        expect:
+          - Bitter Spirit of Feet Strength
+          - Bitter Spirit of Feet Defense
+      - command: spirits 301
+        name: Get all spirits QL 301
+        expect: Invalid QL
+      - command: spirits 0
+        name: Get all spirits QL 0
+        expect: Invalid QL
+      - command: spirits 150
+        name: Get all spirits QL 150
+        expect:
+          - Spirits QL 150
+          - Oppressed Spirit of Essence
+          - Minimum Level=110
+      - command: spirits 0-219
+        name: Get all spirits QL 0-219
+        expect: Invalid QL range specified.
+      - command: spirits 1-221
+        name: Get all spirits QL 1-221
+        expect: Spirits QL 1 to 221
+      - command: spirits 110-125
+        name: Get all spirits QL 110-125
+        expect:
+          - Spirits QL 110 to 125
+          - Melancholic Spirit of True Seeing
+      - command: spirits 110 feet
+        name: Get all QL 110 spirits for feet
+        expect: No Feet spirits found in ql 110
+      - command: spirits 0-219 feet
+        name: Get all QL 0-219 spirits for feet
+        expect: Invalid QL range specified.
+      - command: spirits 1-221 feet
+        name: Get all QL 1-221 spirits for feet
+        expect:
+          - Feet Spirits QL 1 to 221
+          - Bitter Spirit of Feet Strength
+          - Dispirited Spirit of Feet Defense
+      - command: spirits 110-125 head
+        name: Get all QL 110-125 spirits for head
+        expect:
+          - Brain Spirits QL 110 to 125
+          - Melancholic Brain Spirit of Offence
+          - Miserable Spirit of Clear Thought
+          - Miserable Essence Brain Spirit

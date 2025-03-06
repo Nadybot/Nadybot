@@ -381,7 +381,11 @@ groups:
           - '99.*Regolus'
       - command: raid history {raid_id} Regolus
         name: Get details of that last raid for our dummy
-        expect: Raid started.*99.*reward.*Raid left.*Raid joined
+        expect:
+          - Raid started
+          - <green>99<end> - reward
+          - Raid left
+          - Raid joined
       - command: raid history {raid_id} Nady
         name: Get details of that last raid for a non-existent character
         expect: didn't get any points

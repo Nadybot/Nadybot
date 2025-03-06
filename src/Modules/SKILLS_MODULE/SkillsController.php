@@ -26,6 +26,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 #[
 	NCA\Instance,
 	NCA\HasMigrations('Migrations/Weapons'),
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'aggdef',
 		accessLevel: AccessLevel::Guest,

@@ -31,6 +31,7 @@ use Safe\Exceptions\JsonException;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\HasMigrations('Migrations/Recipes'),
 	NCA\DefineCommand(
 		command: 'recipe',

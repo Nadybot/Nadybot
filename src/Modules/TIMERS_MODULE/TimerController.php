@@ -40,6 +40,7 @@ use ReflectionClass;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'rtimer',
 		accessLevel: AccessLevel::Guild,

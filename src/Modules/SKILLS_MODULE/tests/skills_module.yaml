@@ -1,0 +1,191 @@
+---
+name: Skills Module
+groups:
+
+  - name: Specials-commands
+    tests:
+      - command: aggdef
+        name: Without arguments, !aggdef should show the help
+        expect: Help \(aggdef\)
+      - command: aggdef 2.2 2.4 1000
+        name: Get specific aggdef-sliders for 2.2 attack, 2.4 recharge at 1000 init
+        expect: 64%.*Full Agg.*570.*Neutral.*720.*Full Def.*2910
+      - command: aggdef 2.2 2.4 2000
+        name: Get specific aggdef-sliders for 2.2 attack, 2.4 recharge at 2000 init
+        expect: 25%.*Full Agg.*570.*Neutral.*720.*Full Def.*2910
+
+      - command: aimshot
+        name: Aimed shot without arguments  gives help
+        expect: Help \(aimshot\)
+      - command: aimshot 2.2 2.4 1000
+        name: Get aimed shot for 2.2 attack, 2.4 recharge and 1000 AS
+        expect: Multiplier.*1-11x.*68.*12.*2841
+      - command: aimshot 2.2 2.4 2000
+        name: Get aimed shot for 2.2 attack, 2.4 recharge and 2000 AS
+        expect: Multiplier.*1-21x.*38.*12.*2841
+
+      - command: brawl
+        name: Without arguments, !brawl shows a help page
+        expect: Help \(brawl\)
+      - command: brawl 100
+        name: Get stats for brawl 100
+        expect: .*15.*11.*-.*51.*52.*10.*%.*3.*s
+      - command: brawl 1100
+        name: Get stats for brawl 1100
+        expect: .*15.*108.*-.*536.*511.*20.*%.*3.*s
+      - command: brawl 2100
+        name: Get stats for brawl 2100
+        expect: .*15.*177.*-.*880.*613.*20.*%.*4.*s
+
+      - command: burst
+        name: Without arguments, !burst shows a help page
+        expect: Help \(burst\)
+      - command: burst 2.2 2.4 2000 550
+        name: Get burst recharge for 2.2s attack, 2.4s recharge, a burst delay of 2000 and 550 burst skill
+        expect:
+          - <highlight>48<end>s
+          - <highlight>1481<end>
+          - <highlight>10<end>s
+
+      - command: dimach
+        name: Without arguments, !dimach shows a help page
+        expect: Help \(dimach\)
+      - command: dimach 100
+        name: Get stats at dimach 100
+        expect:
+          - <highlight>199<end>
+          - <highlight>298<end>
+          - <highlight>92<end>
+      - command: dimach 1100
+        name: Get stats at dimach 1100
+        expect:
+          - <highlight>2035<end>
+          - 18 mins 50 secs
+          - <highlight>3744<end>
+          - <highlight>1015<end>
+          - <highlight>2050<end>
+      - command: dimach 2100
+        name: Get stats at dimach 2100
+        expect:
+          - <highlight>2362<end>
+          - 9 mins 30 secs
+          - <highlight>10947<end>
+          - <highlight>1960<end>
+          - <highlight>2536<end>
+
+      - command: fullauto
+        name: Without arguments, !fullauto shows a help page
+        expect: Help \(fullauto\)
+      - command: fullauto 2.2 2.4 2000 550
+        name: Show fullauto stats for 2.2s attack, 2.4s recharge, 2000 FA recharge and 550 FA skill
+        expect:
+          - <highlight>96<end>s
+          - <highlight>10<end> bullets
+          - <highlight>2631<end>
+      - command: fullauto 2.2 2.4 2000 2000
+        name: Show fullauto stats for 2.2s attack, 2.4s recharge, 2000 FA recharge and 2000 FA skill
+        expect:
+          - <highlight>38<end>s
+          - <highlight>25<end> bullets
+          - <highlight>2631<end>
+
+      - command: fastattack
+        name: Without arguments, !fastattack shows a help page
+        expect: Help \(fastattack\)
+      - command: fastattack 1.2 900
+        name: Get fastattack stats for 1.2s attack time and fast attack skill of 900
+        expect:
+          - <highlight>10<end>s
+          - <highlight>1221<end>
+          - <highlight>6<end>s
+
+      - command: fling
+        name: Without arguments, !fling shows a help page
+        expect: Help \(fling\)
+      - command: fling 1.2 900
+        name: Get the fling recharge for 1.2s attack speed at 900 fling shot skill
+        expect:
+          - <highlight>10<end>s
+          - <highlight>1221<end>
+          - <highlight>6<end>s
+
+      - command: mafist
+        name: Without arguments, !mafist shows a help page
+        expect: Help \(mafist\)
+      - command: mafist 100
+        name: Get the damage for MA attacks at a skill of 100
+        expect:
+          - <highlight>1.17<end>s
+          - <highlight>24<end>-<highlight>41<end> \(<highlight>26<end>\)
+          - <highlight>1.25<end>s
+          - <highlight>14<end>-<highlight>32<end> \(<highlight>26<end>\)
+      - command: mafist 1100
+        name: Get the damage for MA attacks at a skill of 1100
+        expect:
+          - <highlight>1.3<end>s
+          - <highlight>139<end>-<highlight>447<end> \(<highlight>507<end>\)
+          - <highlight>1.47<end>s
+          - <highlight>63<end>-<highlight>301<end> \(<highlight>253<end>\)
+          - <highlight>73<end>-<highlight>324<end> \(<highlight>511<end>\)
+      - command: mafist 2100
+        name: Get the damage for MA attacks at a skill of 2100
+        expect:
+          - <highlight>1.45<end>s
+          - <highlight>247<end>-<highlight>877<end> \(<highlight>585<end>\)
+          - <highlight>1.67<end>s
+          - <highlight>146<end>-<highlight>704<end> \(<highlight>278<end>\)
+          - <highlight>214<end>-<highlight>847<end> \(<highlight>607<end>\)
+
+      - command: nanoinit
+        name: Without arguments, !nanoinit shows a help page
+        expect: Help \(nanoinit\)
+      - command: nanoinit 1.2 1200
+        name: Get the real casting time for a 1.2s nano at 1200 nano init
+        expect:
+          - 0%
+          - <highlight>40<end> inits
+          - <highlight>240<end> inits
+          - <highlight>440<end> inits
+
+      - command: weapon
+        name: Without arguments, !weapon shows a help page
+        expect: Help \(weapon\)
+      - command: weapon <a href="itemref://280727/280727/300">Sloth of the Xan</a>
+        name: Get information a dropped item
+        expect:
+          - <highlight>1221<end> Fling Shot.*<highlight>6<end>s
+          - AGG <highlight>1170<end>
+
+      - command: perks
+        name: Without arguments, !perks shows all the perks of the caller
+        expect: Perks for a level \d+
+      - command: perks enf 220
+        name: Get the perks for a level 220 enforcer
+        expect:
+          - Training Seminar 4
+          - Solitus Secondary Genome 10
+          - Reaver 10
+      - command: perks enf 220 str
+        name: Show all perks of a level 220 enforcer buffing Strength
+        expect:
+          - Mountaineer 5
+          - Primary Genome 10
+          - Secondary Genome 10
+          - Enhance DNA 10
+          - Freak Strength 3
+      - command: perks enf 220 strfew
+        name: Look for unknown skills to buff
+        expect: No skill.*found
+      - command: perks enf 330 strfew
+        name: A level highier than 220 is considered 220
+        expect: No skill.*found
+      - command: perks fgh 330 strfew
+        name: An unknown profession shows the help page
+        expect: Help \(perks\)
+      - command: perks show Acrobat
+        name: We can also see all the levels of a given perk
+        expect:
+          - Acrobat 1
+          - Acrobat 4
+          - Dodge Ranged Attacks <highlight>\+80<end>
+          - 'Add Action:.*Dance of Fools'
