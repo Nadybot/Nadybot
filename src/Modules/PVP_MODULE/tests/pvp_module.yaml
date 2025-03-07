@@ -142,7 +142,7 @@ groups:
       - command: nw sites {org_id}
         name: Get a list of all the sites of an org by their org id
         expect:
-          - All tower sites of '{org}'
+          - All tower sites of {org}
           - PW \d+
 
   - name: Hot sites
@@ -152,7 +152,7 @@ groups:
         expect: Hot sites \(\d+\)|No sites are currently hot
       - command: nw hot soon
         name: Get all sites going hot soon
-        expect: Sites going hot soons \(\d+\)|No sites are going hot soon
+        expect: Sites going hot soon \(\d+\)|No sites are going hot soon
       - command: nw hot penalty
         name: Get all sites currently in penalty
         expect: Hot sites in penalty \(\d+\)|No sites are currently in penalty
