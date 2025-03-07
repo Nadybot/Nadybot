@@ -1,0 +1,32 @@
+---
+name: Weather Module
+groups:
+
+  - name: Basic commands
+    tests:
+      - command: weather Cologne Dome
+        name: Get the current weather for the Collogne Cathedral
+        expect:
+          - current weather for
+          - Germany
+          - Currently:.*[0-9.]+°C
+          - Forecast
+          - OpenStreetMap
+          - Meteorologisk institutt
+      - command: weather Norway
+        name: Get the weather for Norway
+        expect:
+          - The current weather for Norway
+          - Currently:.*[0-9.]+°C
+          - Forecast
+          - OpenStreetMap
+          - Meteorologisk institutt
+      - command: weather 35043,de
+        name: Get the weather for a zip code, and a country
+        expect:
+          - current weather for
+          - Germany
+          - Currently:.*[0-9.]+°C
+          - Forecast
+          - OpenStreetMap
+          - Meteorologisk institutt

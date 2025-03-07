@@ -24,6 +24,7 @@ use Safe\DateTimeImmutable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'whatlocks',
 		accessLevel: AccessLevel::Guest,

@@ -1,0 +1,27 @@
+---
+name: Whatlocks Module
+groups:
+
+  - name: Basic commands
+    tests:
+      - command: whatlocks
+        name: Get a list of skills that can be locked to choose from
+        expect:
+          - \d+ skills that can be locked by items
+          - Choose a skill
+          - Strength
+      - command: whatlocks 0
+        name: We cannot search for skill numbers/IDs
+        expect: Could not find any skills
+      - command: whatlocks str
+        name: Looking what locks str
+        expect:
+          - The following \d+ items lock Strength
+          - Barrow Strength
+          - ^(?<str_result>.*)$
+      - command: whatlocks strength
+        name: Str and Strength produce the same result
+        expect: '{str_result}'
+      - command: whatlocks error
+        name: Unknown skills yield errors
+        expect: Could not find any skills

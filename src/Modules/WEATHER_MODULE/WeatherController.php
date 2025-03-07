@@ -23,6 +23,7 @@ use Safe\Exceptions\JsonException;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'weather',
 		accessLevel: AccessLevel::Guest,
