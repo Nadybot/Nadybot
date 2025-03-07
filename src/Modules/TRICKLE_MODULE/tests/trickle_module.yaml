@@ -1,0 +1,28 @@
+---
+name: Trickle Module
+groups:
+
+  - name: Commands
+    tests:
+      - command: trickle
+        name: Without arguments, `!trickle` displays the help page
+        expect: Help \(trickle\)
+      - command: trickle error
+        name: Searching trickle for an unknown skill gives an error
+        expect: Could not find any skills
+      - command: trickle agi 20
+        name: 20 Agility trickle a lot
+        expect:
+          - <highlight>3<end>.<highlight>00<end> <a href=skillid://101>
+          - ^(?<output>.*)$
+      - command: trickle agi 20
+        name: Agility 20 trickles the same
+        expect: '{output}'
+      - command: trickle 1 agi 2 str 3 sta 4 int 5 psyc 6 sen
+        name: We can do lots of different combinations
+        expect:
+          - <highlight>0<end>.<highlight>73<end> <a href=skillid://126>
+          - ^(?<output>.*)$
+      - command: trickle agi 1 str 2 sta 3 int 4 psyc 5 sen 6
+        name: And the order doesn't matter
+        expect: '{output}'

@@ -1,0 +1,104 @@
+---
+name: Trickle Module
+groups:
+
+  - name: Commands
+    tests:
+      - command: executesql DELETE FROM polls_<myname>
+        name: Clear polls table
+        expect: Query run successfully
+      - command: executesql DELETE FROM votes_<myname>
+        name: Clear votes table
+        expect: Query run successfully
+
+      - command: poll
+        name: The polls table should be empty
+        expect: There are currently no polls.
+      - command: poll kill error
+        name: Nonsensical commands show help page
+        expect: Help \(poll\)
+      - command: poll create 1d WHAT... Is your favorite color?|Blue|Yellow
+        name: Create a dummy poll
+        expect: Poll .*(?<poll_id>[a-f0-9-]{36}).* has been created
+      - command: poll
+        name: The poll overview now shows the poll
+        expect:
+          - Running polls
+          - WHAT\.\.\.
+          - '{poll_id}'
+      - command: poll view {poll_id}
+        name: Look at the poll details
+        expect:
+          - Is your favorite color
+          - till this poll closes
+          - 'Blue.*Votes: 0.*Yellow.*Votes: 0'
+          - Don't like these choices
+      - command: vote {poll_id} Yellow
+        name: Vote for one of the options
+        expect: You have voted.*Yellow
+      - command: poll view {poll_id}
+        name: Look at the poll details now
+        expect:
+          - Is your favorite color
+          - till this poll closes
+          - 'Blue.*Votes: 0.*100%.*Yellow.*Votes: 1'
+      - command: vote {poll_id} Pink
+        name: Vote for an option that's not on the list
+        expect: You have changed your vote to.*Pink
+      - command: poll view {poll_id}
+        name: Look at the poll details now
+        expect:
+          - Is your favorite color
+          - till this poll closes
+          - 'Blue.*Votes: 0.*0%.*Yellow.*Votes: 0.*100%.*Pink.*Votes: 1'
+      - command: poll end {poll_id}
+        name: Let's end the poll
+        expect: Vote duration reduced
+      - command: poll rem {poll_id}
+        name: But we're not waiting the 60s, so let's remove it
+        expect: The poll.*has been removed
+
+      - command: poll create 3s Why are we here?|Cake|Sleep|Glory
+        name: Create another dummy poll, but with only 5s time
+        expect: Poll .*(?<poll2_id>[a-f0-9-]{36}).* has been created
+      - command: poll end {poll2_id}
+        name: Let's try to end this poll
+        expect: There is only.*left
+      - command: vote {poll2_id} Cake
+        name: Quickly cast our vote
+        expect: You have voted.*Cake
+      - command: test sleep 5
+        name: Wait for the poll to finish
+        expect: ^$
+      - command: poll
+        name: Look at the list of polls
+        expect: Finished polls.*Why are we here
+      - command: poll view {poll2_id}
+        name: Look at details of the poll
+        expect:
+          - '{poll2_id}'
+          - This poll has ended
+          - '100% <highlight>Cake<end> \(Votes: 1\)'
+
+      - command: poll create 1d Why can't I pick my own options?|Missing rights|Stupidity||
+        name: Create a new poll that doesn't allow custom answers
+        expect: Poll .*(?<poll3_id>[a-f0-9-]{36}).* has been created
+      - command: vote {poll3_id} Power
+        name: Voting with a custom answer is forbidden
+        expect: Custom answers are not allowed
+      - command: poll show {poll3_id}
+        name: The poll details also don't show how to give custom answers
+        expect:
+          - '{poll3_id}'
+          - Answers
+          - Missing rights
+          - Stupidity
+        unexpected: Don't like these choices
+      - command: poll rem {poll3_id}
+        name: Remove that poll
+        expect: The poll.*has been removed
+      - command: poll rem {poll2_id}
+        name: And the one before
+        expect: The poll.*has been removed
+
+

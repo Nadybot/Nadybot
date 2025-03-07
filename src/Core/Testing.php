@@ -117,12 +117,15 @@ class Testing {
 	 *
 	 * @param array<string,string> $placeholders Placeholders to replace
 	 */
-	private function replacePlaceholders(string $text, array $placeholders): string {
+	private function replacePlaceholders(string $text, array $placeholders, bool $forRegexp=true): string {
 		$superAdmin = $this->config->general->superAdmins[0];
 		$text = str_replace('<myname>', strtolower($this->config->main->character), $text);
 		$text = str_replace('<Myname>', $this->config->main->character, $text);
 		$text = str_replace('<superadmin>', $superAdmin, $text);
 		foreach ($placeholders as $key => $value) {
+			if ($forRegexp) {
+				$value = preg_quote($value);
+			}
 			$text = str_replace('{' . $key . '}', $value, $text);
 		}
 		return $text;
@@ -156,7 +159,7 @@ class Testing {
 		}
 
 		$reply = new MockCommandReply();
-		$command = $this->replacePlaceholders($test->command, $placeholders);
+		$command = $this->replacePlaceholders($test->command, $placeholders, false);
 		$cmdContext = $this->getContext($command, $reply);
 		if (isset($test->capture)) {
 			$msgReceiver = new class ($this->messageHub) extends AbstractChannel {

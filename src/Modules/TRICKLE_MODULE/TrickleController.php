@@ -22,6 +22,7 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'trickle',
 		accessLevel: AccessLevel::Guest,
