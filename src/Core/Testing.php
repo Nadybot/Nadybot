@@ -159,7 +159,14 @@ class Testing {
 		$errorIndent = '               ';
 		foreach ($test->expect as $expect) {
 			$expect = $this->replacePlaceholders($expect, $placeholders);
-			$matches = Safe::pregMatch(chr(1) . $expect . chr(1) . 's', $output);
+			try {
+				$matches = Safe::pregMatch(chr(1) . $expect . chr(1) . 's', $output);
+			} catch (\Throwable) {
+				$this->logger->error('The regular expression »{expect}« is invalid', [
+					'expect' => $expect,
+				]);
+				$matches = [];
+			}
 			if (!count($matches)) {
 				$this->logger->error(
 					"   [✖] {test}\n".

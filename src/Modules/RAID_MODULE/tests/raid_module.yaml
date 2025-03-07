@@ -272,7 +272,7 @@ groups:
           - reward
           - penalty
           - The Beast
-          - \+.*100
+          - \+.*101
           - \+.*80
       - command: points add regolus 100 Nice dummy
         name: Manually add points to our dummy

@@ -39,7 +39,6 @@ use Nadybot\Modules\TIMERS_MODULE\{Alert, Timer, TimerController};
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Safe\Exceptions\JsonException;
-use Throwable;
 
 #[
 	NCA\Instance,
@@ -1052,7 +1051,7 @@ class NotumWarsController extends ModuleInstance {
 			]);
 			$faction = Faction::fromName($matches[1]);
 			$search = Safe::pregReplace("/\s+(" . Faction::getParamRegexp() . ")\b/i", '', $search);
-			$hotSites = $hotSites->where('org_faction', $faction->value);
+			$hotSites = $hotSites->where('org_faction', $faction);
 		}
 		if (count($matches = Safe::pregMatch("/\s+(\d+)\s*-\s*(\d+)\b/", $search)) === 3) {
 			$this->logger->info('Found level range <{from}>-<{to}>', [
@@ -1080,13 +1079,12 @@ class NotumWarsController extends ModuleInstance {
 			$this->logger->info('Found playfield search for <{pf}>', [
 				'pf' => $matches[1],
 			]);
-			try {
-				$pf = Playfield::fromName($matches[1]);
-			} catch (Throwable) {
+			$pf = Playfield::tryFromName($matches[1]);
+			if (!isset($pf)) {
 				$context->reply("Unable to find playfield <highlight>{$matches[1]}<end>.");
 				return;
 			}
-			$hotSites = $hotSites->where('playfield_id', $pf->value);
+			$hotSites = $hotSites->where('playfield', $pf);
 			$search = Safe::pregReplace("/\s+([a-z]{2,}|\d[a-z]{2,})\b/i", '', $search);
 		}
 		$search = trim($search);

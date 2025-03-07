@@ -631,27 +631,27 @@ class AttacksController extends ModuleInstance {
 
 		$blob = "<header2>Attacks<end>\n".
 			'<tab><clan>Clans<end> have attacked '.
-			$this->times($attacks->where('att_faction', 'Clan')->count()) . ".\n".
+			$this->times($attacks->where('att_faction', Faction::Clan)->count()) . ".\n".
 			'<tab><neutral>Neutrals<end> have attacked '.
-			$this->times($attacks->where('att_faction', 'Neutral')->count()) . ".\n".
+			$this->times($attacks->where('att_faction', Faction::Neutral)->count()) . ".\n".
 			'<tab><omni>Omnis<end> have attacked '.
-			$this->times($attacks->where('att_faction', 'Omni')->count()) . '.'.
+			$this->times($attacks->where('att_faction', Faction::Omni)->count()) . '.'.
 			"\n\n".
 			"<header2>Victories<end>\n".
 			'<tab><clan>Clans<end> have lost '.
-			$this->sites($victories->where('losing_faction', 'Clan')->count()) . ".\n".
+			$this->sites($victories->where('losing_faction', Faction::Clan)->count()) . ".\n".
 			'<tab><neutral>Neutrals<end> have lost '.
-			$this->sites($victories->where('losing_faction', 'Neutral')->count()) . ".\n".
+			$this->sites($victories->where('losing_faction', Faction::Neutral)->count()) . ".\n".
 			'<tab><omni>Omnis<end> have lost '.
-			$this->sites($victories->where('losing_faction', 'Omni')->count()) . '.'.
+			$this->sites($victories->where('losing_faction', Faction::Omni)->count()) . '.'.
 			"\n\n" .
 			"<header2>Abandonments<end>\n".
 			'<tab><clan>Clans<end> have abandoned '.
-			$this->sites($abandonments->where('losing_faction', 'Clan')->count()) . ".\n".
+			$this->sites($abandonments->where('losing_faction', Faction::Clan)->count()) . ".\n".
 			'<tab><neutral>Neutrals<end> have abandoned '.
-			$this->sites($abandonments->where('losing_faction', 'Neutral')->count()) . ".\n".
+			$this->sites($abandonments->where('losing_faction', Faction::Neutral)->count()) . ".\n".
 			'<tab><omni>Omnis<end> have abandoned '.
-			$this->sites($abandonments->where('losing_faction', 'Omni')->count()) . '.';
+			$this->sites($abandonments->where('losing_faction', Faction::Omni)->count()) . '.';
 
 		$msg = Text::makeBlob(
 			'Tower stats for the last ' . Util::unixtimeToReadable(time() - $from),

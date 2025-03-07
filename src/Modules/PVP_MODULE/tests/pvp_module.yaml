@@ -109,3 +109,80 @@ groups:
           - <highlight>2<end>
           - <highlight>3<end>
           - <highlight>4<end>
+      - command: nw stats
+        name: Get statistics about attacks, victories, and abandonments of towers
+        expect:
+          - Tower stats for the last
+          - have attacked
+          - tower sites
+      - command: nw stats 1y
+        name: Get statistics for the last year
+        expect:
+          - Tower stats for the last 1 year
+          - have attacked <highlight>\d+ times<end>
+      - command: nw free
+        name: Check if there are any unplanted sites
+        expect: No unplanted sites|Unplanted sites \(\d+\)
+      - command: nw sites
+        name: Show all my org's tower fields
+        expect: currently don't have any tower fields|All tower sites of
+      - command: nw lc pw
+        name: Get a list of all sites in PW and grab the first org owning one
+        expect:
+          - '<(omni|clan|neutral)>(?<org>.*?)<end>'
+          - 'nw sites (?<org_id>\d+)'
+      - command: nw sites {org}
+        name: Get a list of all the sites of an org by their name
+        expect:
+          - All tower sites of '{org}'
+          - PW \d+
+      - command: nw sites 0
+        name: Get a list of all the sites of a non-existing org by their id
+        expect: No tower sites match your search criteria
+      - command: nw sites {org_id}
+        name: Get a list of all the sites of an org by their org id
+        expect:
+          - All tower sites of '{org}'
+          - PW \d+
+
+  - name: Hot sites
+    tests:
+      - command: nw hot
+        name: Get all currently hot sites
+        expect: Hot sites \(\d+\)|No sites are currently hot
+      - command: nw hot soon
+        name: Get all sites going hot soon
+        expect: Sites going hot soons \(\d+\)|No sites are going hot soon
+      - command: nw hot penalty
+        name: Get all sites currently in penalty
+        expect: Hot sites in penalty \(\d+\)|No sites are currently in penalty
+      - command: nw hot clan
+        name: Get all clan sites currently hot
+        expect: Hot clan sites \(\d+\)|No sites are currently hot
+      - command: nw hot omni
+        name: Get all omni sites currently hot
+        expect: Hot omni sites \(\d+\)|No sites are currently hot
+      - command: nw hot neutral
+        name: Get all neutral sites currently hot
+        expect: Hot neutral sites \(\d+\)|No sites are currently hot
+      - command: nw hot ww
+        name: Get all hot sites in Wailing Wastes
+        expect: Hot sites \(\d+\)|No sites are currently hot
+      - command: nw hot 12h
+        name: Get all sites that will be hot in 12 hours
+        expect: Hot sites \(\d+\)|No sites are currently hot
+      - command: nw hot ww clan
+        name: Get all clan sites in Wailing Wastes that are hot
+        expect: Hot clan sites \(\d+\)|No sites are currently hot
+      - command: nw hot ww clan 12h
+        name: Get all clan sites in Wailing Wastes that are hot in 12h
+        expect: Hot clan sites \(\d+\)|No sites are currently hot
+      - command: nw hot 10-30
+        name: Get all sites in QL 10-30 currently hot
+        expect: Hot sites \(\d+\)|No sites are currently hot
+      - command: nw hot 30
+        name: Get all hot sites that a level 30 character could attack
+        expect: Hot sites \(\d+\)|No sites are currently hot
+      - command: nw hot omni 200
+        name: Get all hot omni sites that a level 200 character could attack
+        expect: Hot omni sites \(\d+\)|No sites are currently hot
