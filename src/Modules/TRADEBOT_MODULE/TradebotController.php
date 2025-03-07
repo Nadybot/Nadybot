@@ -36,6 +36,7 @@ use Revolt\EventLoop;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'tradecolor',
 		accessLevel: AccessLevel::Mod,
@@ -212,8 +213,11 @@ class TradebotController extends ModuleInstance {
 		return false;
 	}
 
-	/** @throws StopExecutionException */
-	/** Relay messages from the tradebot to org/private channel */
+	/**
+	 * Relay messages from the tradebot to org/private channel
+	 *
+	 * @throws StopExecutionException
+	 */
 	#[NCA\HandlesEvent]
 	public function receiveRelayMessageExtPrivEvent(PrivateChannelMsgEvent $eventObj): void {
 		if (!$this->isTradebot($eventObj->channel)
@@ -300,6 +304,14 @@ class TradebotController extends ModuleInstance {
 					) . "]\n";
 			}
 			$blob .= "\n";
+		}
+		if (!$this->tradebotCustomColors) {
+			$blob .= "\nWarning: The bot will currently not use these colors!\n".
+				'You have to activate the '.
+				Text::makeChatcmd(
+					'tradebot_custom_colors',
+					'/tell <myname> settings change tradebot_custom_colors'
+				) . "-setting to actually use them.\n";
 		}
 		$msg = Text::makeBlob(
 			'Tradebot colors (' . count($allColors) . ')',

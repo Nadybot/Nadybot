@@ -1996,6 +1996,7 @@ class Nadybot {
 			config: $this->config,
 			chatBot: $this,
 			commandManager: $this->commandManager,
+			messageHub: $this->messageHub,
 		);
 		$testing->run();
 	}

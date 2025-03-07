@@ -1,0 +1,48 @@
+---
+name: Tracker Module
+groups:
+
+  - name: Basic functions
+    tests:
+      - command: executesql DELETE FROM tradebot_colors_<myname>
+        name: Clear table tradebot_colors_<myname>
+        expect: Query run successfully
+      - command: settings save tradebot Darknet
+        name: Use Darknet as tradebot
+        expect: saved with new value
+      - command: test sleep 3
+        name: Sleep 3s
+        expect: ^$
+      - command: settings save tradebot_custom_colors 1
+        name: Activate custom colors
+        expect: saved with new value
+
+      - command: tradecolor
+        name: We don't have any colors defined
+        expect: No colors have been defined yet
+      - command: 'tradecolor set Darknet * #DEADFF'
+        name: Set colour for all Darknet tags to yellow
+        expect: Color.*set to
+      - command: tradecolor
+        name: Check tradebot color overviews
+        expect:
+          - DEADFF
+          - '(?<id>[a-f0-9-]{36})'
+      - command: test tradebotmsg
+        name: Receive a test message
+        expect: ^$
+        capture: tradebot(*)
+        expect-captured: '#DEADFF'
+      - command: tradecolor rem {id}
+        name: We can delete color definitions
+        expect: Tradebot color.*deleted
+      - command: tradecolor rem {id}
+        name: But only if they exist
+        expect: Tradebot color.*doesn't exist
+
+      - command: settings save tradebot none
+        name: Use no tradebot
+        expect: saved with new value
+      - command: test sleep 3
+        name: Sleep 3s
+        expect: ^$

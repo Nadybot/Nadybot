@@ -7,8 +7,11 @@ use function Safe\yaml_parse;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Channels\AbstractChannel;
 use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\Exceptions\{NonExistingTestException, ParseTestException};
+use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Testing\{MockCommandReply, TestCase, TestCollection, TestGroup, TestResult};
 use Nadybot\Core\Types\CommandReply;
 use Psr\Log\LoggerInterface;
@@ -22,6 +25,7 @@ class Testing {
 		private BotConfig $config,
 		private Nadybot $chatBot,
 		private CommandManager $commandManager,
+		private MessageHub $messageHub,
 	) {
 		if (!self::canRun()) {
 			// @phpstan-ignore-next-line
@@ -154,7 +158,45 @@ class Testing {
 		$reply = new MockCommandReply();
 		$command = $this->replacePlaceholders($test->command, $placeholders);
 		$cmdContext = $this->getContext($command, $reply);
+		if (isset($test->capture)) {
+			$msgReceiver = new class ($this->messageHub) extends AbstractChannel {
+				public string $msg = '';
+
+				public function __construct(private MessageHub $messageHub) {
+				}
+
+				public function getChannelName(): string {
+					return 'test-capture';
+				}
+
+				public function receive(RoutableEvent $event, string $destination): bool {
+					$message = $this->getEventMessage($event, $this->messageHub);
+					if (!isset($message)) {
+						return false;
+					}
+					$this->msg .= $message;
+					return true;
+				}
+			};
+			$this->messageHub->registerMessageReceiver($msgReceiver);
+			$dbRoute = new Route(
+				source: $test->capture,
+				destination: 'test-capture',
+				two_way: false,
+			);
+			$msgRoute = new MessageRoute($dbRoute);
+			Registry::injectDependencies($msgRoute);
+			$this->messageHub->addRoute($msgRoute);
+		}
 		$this->commandManager->syncProcessCmd($cmdContext);
+		if (isset($dbRoute)) {
+			$this->messageHub->deleteRouteID($dbRoute->id);
+		}
+		$capturedMessage = '';
+		if (isset($msgReceiver)) {
+			$capturedMessage = $msgReceiver->msg;
+			$this->messageHub->unregisterMessageReceiver('test-capture');
+		}
 		$output = $reply->getOutput();
 		$errorIndent = '               ';
 		foreach ($test->expect as $expect) {
@@ -202,6 +244,36 @@ class Testing {
 					]
 				);
 				return [TestResult::Failure, $placeholders];
+			}
+		}
+		foreach ($test->captured as $expect) {
+			$expect = $this->replacePlaceholders($expect, $placeholders);
+			try {
+				$matches = Safe::pregMatch(chr(1) . $expect . chr(1) . 's', $capturedMessage);
+			} catch (\Throwable) {
+				$this->logger->error('The regular expression »{expect}« is invalid', [
+					'expect' => $expect,
+				]);
+				$matches = [];
+			}
+			if (!count($matches)) {
+				$this->logger->error(
+					"   [✖] {test}\n".
+					"{$errorIndent}Cannot find \"{expected}\" in captured output:\n".
+					"{$errorIndent}{output}",
+					[
+						'test' => $test->getName(),
+						'expected' => $expect,
+						'output' => implode("\n{$errorIndent}", explode("\n", $capturedMessage)),
+					]
+				);
+				return [TestResult::Failure, $placeholders];
+			}
+			if (count($matches) > 1) {
+				$keys = array_filter(array_keys($matches), is_string(...));
+				foreach ($keys as $key) {
+					$placeholders[$key] = $matches[$key];
+				}
 			}
 		}
 		$this->logger->notice('  [✔] {test}', ['test' => $test->getName()]);
