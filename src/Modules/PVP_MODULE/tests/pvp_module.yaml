@@ -186,3 +186,67 @@ groups:
       - command: nw hot omni 200
         name: Get all hot omni sites that a level 200 character could attack
         expect: Hot omni sites \(\d+\)|No sites are currently hot
+
+  - name: Site tracker
+    tests:
+      - command: nw track patterns
+        name: Get a list of patterns to use for tracking sites
+        expect:
+          - org
+          - ql
+          - site
+          - max_towers
+          - faction
+      - command: nw track events
+        name: Get a list of events to use for tracking sites
+        expect:
+          - gas-change
+          - tower-planted
+      - command: nw track
+        name: We shouldn't have any trackers set up right now
+        expect: No registered trackers
+      - command: nw track add faction=omni
+        name: Create a new tracker for tracking all omni sites
+        expect: Tracker.*(?<tracker_id>[0-9a-f-]{36}) installed successfully
+      - command: nw track
+        name: Check if the tracker is now on our list
+        expect:
+          - '{tracker_id}'
+          - 'Created:'
+          - 'Matches:.*\d+.*site'
+      - command: nw track show {tracker_id}
+        name: Show all sites matching out tracker
+        expect:
+          - Sites matching tracker 'faction=omni' \(\d+\)
+          - <omni>
+      - command: route list src
+        name: Our new tracker should appear as a routing source
+        expect: site-tracker\({tracker_id}\)
+      - command: nw track rem {tracker_id}
+        name: Delete our tracker
+        expect: successfully removed
+      - command: nw track rem {tracker_id}
+        name: Delete our tracker again gives an error
+        expect: No tracker.*found
+
+      - command: nw track add pf=PW
+        name: Create a new tracker for tracking all sites in Perpetual Wastelands
+        expect: Tracker.*(?<tracker2_id>[0-9a-f-]{36}) installed successfully
+      - command: nw track show {tracker2_id}
+        name: Show if we get exactly 12 matches now
+        expect:
+          - '>PW 1<'
+          - '>PW 2<'
+          - '>PW 3<'
+          - '>PW 4<'
+          - '>PW 5<'
+          - '>PW 6<'
+          - '>PW 7<'
+          - '>PW 8<'
+          - '>PW 9<'
+          - '>PW 10<'
+          - '>PW 11<'
+          - '>PW 12<'
+      - command: nw track rem {tracker2_id}
+        name: Delete our tracker again
+        expect: successfully removed
