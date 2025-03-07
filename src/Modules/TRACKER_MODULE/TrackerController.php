@@ -6,7 +6,6 @@ use function Safe\preg_split;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
-use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -35,6 +34,7 @@ use Nadybot\Core\{
 	Types\Faction,
 	Types\MessageEmitter,
 	Types\Profession,
+	Types\TitleLevel,
 	Util,
 };
 use Nadybot\Modules\{
@@ -43,7 +43,6 @@ use Nadybot\Modules\{
 	PVP_MODULE\Event\TowerAttackEvent,
 };
 use Psr\Log\LoggerInterface;
-
 use Throwable;
 
 /**
@@ -52,6 +51,7 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'track',
 		accessLevel: AccessLevel::Member,
@@ -471,7 +471,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		foreach ($users as $user) {
 			$lastState = $this->db->table(Tracking::getTable())
 				->where('uid', $user->uid)
-				->orderByDesc('dt')
+				->orderByDesc('id')
 				->firstObj(Tracking::class);
 			$lastAction = '';
 			if ($lastState !== null) {
@@ -1145,7 +1145,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 		$events = $this->db->table(Tracking::getTable())
 			->where('uid', $uid)
-			->orderByDesc('dt')
+			->orderByDesc('id')
 			->select(['event', 'dt'])
 			->asObj(Tracking::class);
 		$hideLink = Text::makeChatcmd(

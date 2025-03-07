@@ -1,0 +1,77 @@
+---
+name: Tracker Module
+groups:
+
+  - name: Basic functions
+    tests:
+      - command: executesql DELETE FROM tracked_users_<myname>
+        name: Clear table tracked_users_<myname>
+        expect: Query run successfully
+      - command: executesql DELETE FROM tracking_<myname>
+        name: Clear table tracking_<myname>
+        expect: Query run successfully
+      - command: executesql DELETE FROM tracking_org_member_<myname>
+        name: Clear table tracking_org_member_<myname>
+        expect: Query run successfully
+      - command: executesql DELETE FROM tracking_org_<myname>
+        name: Clear table tracking_org_<myname>
+        expect: Query run successfully
+
+      - command: track
+        name: Our current tracking list is empty
+        expect: No characters are on the track list
+      - command: track add b4erbel
+        name: Cannot track non-existing characters
+        expect: Character.*does not exist
+      - command: track add b4erbel
+        name: Cannot remove non-existing characters from tracking list
+        expect: Character.*does not exist
+      - command: track add regolus
+        name: Start tracking a dummy user
+        expect: has been added
+      - command: track
+        name: Tracking list should now show the dummy
+        expect: Regolus
+      - command: test logon Regolus
+        name: Let the dummy logon
+        expect: ^$
+      - command: track
+        name: Tracking list should now show the dummy as online
+        expect: Regolus.*logon
+      - command: track online
+        name: Tracking online list should now show the dummy as online as well
+        expect: Regolus
+      - command: track hide Regolus
+        name: We can hide the dummy from the tracking onlne list
+        expect: is no longer shown
+      - command: track online
+        name: Tracking online list should now be empty
+        expect: No tracked players are currently online
+      - command: track unhide Regolus
+        name: Stop hiding the dummy
+        expect: is now shown
+      - command: track online
+        name: Tracking online list should now show the dummy as online again
+        expect: Regolus
+      - command: test logoff regolus
+        name: Let the dummy logoff
+        expect: ^$
+      - command: track
+        name: Tracking list should now show the dummy as offline
+        expect: Regolus.*logoff
+      - command: track online
+        name: Tracking online list should now be empty
+        expect: No tracked players are currently online
+      - command: track show Regolus
+        name: Check the track history for our dummy for having recorded the logon/logoff events
+        expect:
+          - logoff
+          - logon
+          - All events for Regolus
+          - 'Added:'
+      - command: track rem Regolus
+        name: Remove the dummy from out tracking list
+        expect: has been removed
+      - command: track rem Regolus
+        name: Removing the dummy a second time gives an error
+        expect: is not on the track list
