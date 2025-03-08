@@ -1,0 +1,176 @@
+---
+name: Guild Module
+condition: orgbot
+groups:
+
+  - name: Basic functionality
+    tests:
+      - command: executesql UPDATE org_members_<myname> SET logged_off=0
+        name: Initialize tables
+        expect: Query run successfully
+      - command: lastseen
+        name: Without arguments, !lasteen just displays the help
+        expect: Help \(lastseen\)
+      - command: buddylist
+        name: Search the buddylist for an org member
+        expect: (?<org_member>[A-Z][a-z0-9]{3,11}) \[[^\]]*org
+      - command: lastseen {org_member}
+        name: Because we start with no data, that person has never logged in
+        expect: has never logged on
+      - command: lastseen Nadybot
+        name: Querying a person who isn't in the org will give this as an error
+        expect: is not a member of the org
+
+      - command: whois Regolus
+        name: Cache whois-information for a dummy character
+        expect: Detailed Info for Regolus
+      - command: test orgjoin Regolus
+        name: Have that dummy join the org
+        expect: ^$
+      - command: test sleep 3
+        name: Sleep 3s so that dummy can make it to our buddy list
+        expect: ^$
+      - command: buddylist
+        name: This dummy should now be on our buddylist
+        expect: Regolus \[[^\]]*org[^\]]*\]
+      - command: lastseen regolus
+        name: Since they just joined the org, the bot now knows when they were last seen
+        expect: last seen at
+      - command: test orgkick Regolus
+        name: Kick the dummy from our org
+        expect: ^$
+      - command: buddylist
+        name: This dummy should no longer be on our buddylist
+        unexpected: Regolus \[[^\]]*org[^\]]*\]
+      - command: orghistory
+        name: Kicking and inviting should both show in !orghistory
+        expect:
+          - kicked <highlight>Regolus<end>
+          - invited <highlight>Regolus<end>
+      - command: orghistory Regolus
+        name: We can even limit the history to that char
+        expect:
+          - Org History for Regolus
+          - kicked <highlight>Regolus<end>
+          - invited <highlight>Regolus<end>
+      - command: orghistory 999999
+        name: '!orghistory has paging'
+        expect: No org history has been recorded
+      - command: inactivemem 1d
+        name: The list of inactive org members should show someone
+        expect: Never seen
+        unexpected: Regolus
+
+      - command: whois {org_member}
+        name: Cache whois-information for one of our org members
+        expect: Detailed Info for {org_member}
+      - command: test logon {org_member}
+        name: Pretend they are logging in
+        capture: aoorg
+        expect-captured: '{org_member}'
+      - command: lastseen {org_member}
+        name: Check if !lastseen lists them as online
+        expect: is currently online
+      - command: test logoff {org_member}
+        name: Pretend they are logging off
+        capture: aoorg
+        expect-captured: '{org_member}'
+      - command: lastseen {org_member}
+        name: And now they should be listed as offline again
+        expect: last seen at
+
+      - command: runas {org_member} logon DEADBEEF
+        name: Change this org member's logon-message
+        expect: logon message has been set
+      - command: runas {org_member} logon
+        name: Check if the system says it's now our logon-message
+        expect: DEADBEEF
+      - command: test logon {org_member}
+        name: Pretend they are now logging in and check the logon-message
+        capture: aoorg
+        expect-captured:
+          - '{org_member}'
+          - DEADBEEF
+
+      - command: runas {org_member} logoff POSITIVITY
+        name: Change this org member's logoff-message
+        expect: logoff message has been set
+      - command: runas {org_member} logoff
+        name: Check if the system says it's now our logoff-message
+        expect: POSITIVITY
+      - command: test logoff {org_member}
+        name: Pretend they are now logging off again
+        capture: aoorg
+        expect-captured:
+          - '{org_member}'
+          - POSITIVITY
+
+      - command: runas {org_member} logon clear
+        name: Clear this org member's logon-message
+        expect: logon message has been cleared
+      - command: runas {org_member} logon
+        name: Check if the system says that we don't have a logon-message
+        expect: has not been set
+      - command: runas {org_member} logoff clear
+        name: Clear this org member's logoff-message
+        expect: logoff message has been cleared
+      - command: runas {org_member} logoff
+        name: Check if the system says that we don't have a logoff-message
+        expect: has not been set
+      - command: recentseen 1d
+        name: This org member should be shown in the !recentseen list'
+        expect: '{org_member}'
+
+  - name: Manual org member fiddling
+    tests:
+      - command: checkaccess Regolus
+        name: Check our dummy has no access on this bot
+        expect: <highlight>all<end>
+      - command: notify rem Regolus
+        name: Try to remove them from the org member list, which shouldn't work
+        expect: has already been removed
+      - command: notify add Regolus
+        name: Try to add them to the org member list
+        expect: has been added
+      - command: notify add Regolus
+        name: Try to add them a second time
+        expect: is already on the Notify list
+      - command: checkaccess Regolus
+        name: Check our dummy now has "guild" access
+        expect: <highlight>guild<end>
+      - command: notify rem Regolus
+        name: Remove them from temporary member
+        expect: Removed.*from the Notify list.
+      - command: checkaccess Regolus
+        name: Finally, check our dummy has no access on this bot anymore
+        expect: <highlight>all<end>
+
+  - name: Org ranks
+    tests:
+      - command: ranks
+        name: '!ranks will show a list of all org ranks'
+        expect: Org ranks of
+      - command: maprank
+        name: We can get a list of org ranks mapped to access level. Empty now
+        expect: no org rank to bot rank mappings defined
+      - command: maprank 1 to admin
+        name: Let's map rank 1 or higher to admin
+        expect: Every.*or higher.*administrator
+      - command: maprank 1 to member
+        name: We cannot change this, we will have to remove first
+        expect: You cannot assign declining access levels
+      - command: maprank 1 to memberxx
+        name: If the access level doesn't exist, we get an error
+        expect: is not a valid access level
+      - command: maprank
+        name: Theoverview should now have rank 0 and 1 mapped to administrator
+        expect: 0.*administrator.*1.*administrator.*remove
+      - command: maprank rem 1
+        name: Let's remove the mapping
+        expect: access level mapping.*was deleted
+      - command: maprank rem 1
+        name: Removing it a second time gives an error
+        expect: You haven't defined any access level
+      - command: maprank rem 11
+        name: Deleting a non-existing tank gives an error
+        expect: "doesn't have a rank #11"

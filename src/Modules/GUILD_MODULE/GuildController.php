@@ -54,6 +54,7 @@ use Throwable;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\HasMigrations('Migrations/Base'),
 	NCA\DefineCommand(
 		command: 'logon',

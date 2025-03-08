@@ -1364,6 +1364,7 @@ class Nadybot {
 	/** Handle a message on a public channel */
 	public function processPublicChannelMessage(WorkerPackage $package): void {
 		assert($package->package instanceof Package\In\GroupMessage);
+		$sender = null;
 		$senderId = $package->package->charId;
 		$channel = $this->getGroupById($package->package->groupId);
 		if (!isset($channel)) {
@@ -1372,14 +1373,16 @@ class Nadybot {
 			]);
 			return;
 		}
-		$sender = $this->getName($senderId);
-		if ($senderId !== 0 && !is_string($sender)) {
-			$this->logger->info('Invalid sender ID in {package}', [
-				'package' => $package,
-			]);
-			return;
-		} elseif (isset($sender)) {
-			$this->updateLastOnline($senderId, $sender, true);
+		if (Util::isValidSender($senderId)) {
+			$sender = $this->getName($senderId);
+			if ($senderId !== 0 && !is_string($sender)) {
+				$this->logger->info('Invalid sender ID in {package}', [
+					'package' => $package,
+				]);
+				return;
+			} elseif (isset($sender)) {
+				$this->updateLastOnline($senderId, $sender, true);
+			}
 		}
 
 
@@ -1388,7 +1391,7 @@ class Nadybot {
 		$isOrgMessage = $channel->id->type === GroupType::Org;
 
 		// Route public messages not from the bot itself
-		if ($sender !== $this->config->main->character) {
+		if (Util::isValidSender($senderId) && $sender !== $this->config->main->character) {
 			if (!$isOrgMessage || $this->guildChannelStatus === true) {
 				$rMessage = new RoutableMessage($package->package->message);
 				if (isset($sender)) {
@@ -1413,7 +1416,7 @@ class Nadybot {
 
 		// don't log tower messages with rest of chat messages
 		if ($channel->name !== 'All Towers' && $channel->name !== 'Tower Battle Outcome' && (!$isOrgMessage || $this->guildChannelStatus === true)) {
-			$this->logChat($channel->name, $sender ?? 'System', $package->package->message);
+			$this->logChat($channel->name, $sender ?? $senderId, $package->package->message);
 		} else {
 			$this->logger->info('[{channel}]: {message}', [
 				'channel' => $channel->name,
