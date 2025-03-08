@@ -36,13 +36,20 @@ groups:
       - command: leader
         expect: is not in the private channel
       - command: leaderecho
-        expect: "^$"
+        capture: aopriv
+        expect-captured: Leader echo is currently.*Enabled
       - command: leaderecho on
-        expect: "^$"
+        capture: aopriv
+        expect-captured: Leader echo has been.*Enabled
       - command: leaderecho
-        expect: "^$"
+        capture: aopriv
+        expect-captured: Leader echo is currently.*Enabled
       - command: leaderecho off
-        expect: "^$"
+        capture: aopriv
+        expect-captured: Leader echo has been.*Disabled
+      - command: leaderecho
+        capture: aopriv
+        expect-captured: Leader echo is currently.*Disabled
 
   - name: Rally
     tests:
@@ -76,15 +83,16 @@ groups:
         condition: "!orgbot"
         expect: You can only use this command
       - command: say priv some more stuff
-        expect: "^$"
+        capture: aopriv
+        expect-captured: some more stuff
       - command: say error some other stuff
         expect: Help \(say\)
       - command: cmd This is a big raid command
-        expect: "^$"
+        unexpected: must be Raid Leader
       - command: cmd
         expect: Help \(cmd\)
       - command: tell This is a big raid command
-        expect: "^$"
+        unexpected: must be Raid Leader
       - command: tell
         expect: Help \(tell\)
 

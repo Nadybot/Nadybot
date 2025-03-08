@@ -4,13 +4,13 @@ groups:
 
   - name: Browsing
     tests:
-      - command: settings save bank_file_location src/Modules/BANK_MODULE/tests/empty_bank.csv
+      - command: settings save bank_file_location src/Modules/BANK_MODULE/Tests/empty_bank.csv
         expect: saved
       - command: bank update
         expect: has been updated
       - command: bank browse
         expect: No bank characters found
-      - command: settings save bank_file_location src/Modules/BANK_MODULE/tests/bank.csv
+      - command: settings save bank_file_location src/Modules/BANK_MODULE/Tests/bank.csv
         expect: saved
       - command: bank update
         expect: has been updated
@@ -27,4 +27,4 @@ groups:
       - command: bank search breathing
         expect: Breathing Right Hand Symbiant
       - command: bank search ammunition
-        expect: Could not find 
+        expect: Could not find

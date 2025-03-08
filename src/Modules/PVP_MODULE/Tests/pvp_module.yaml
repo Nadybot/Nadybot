@@ -48,11 +48,11 @@ groups:
         name: We can search for attacks on a tower field
         expect:
           - Tower Attacks on {field}
-          - 'Attacker: .*? of <(omni|clan|neutral)>(?<att_org>[^<]+)<end>\)'
-      - command: nw attacks org {att_org}
+          - 'Defender: <(omni|clan|neutral)>(?<def_org>[^<]+)<end>'
+      - command: nw attacks org {def_org}
         name: We can search for attacks by/on a given org
         expect:
-          - Tower Attacks on/by '{att_org}'
+          - Tower Attacks on/by '{def_org}'
           - 'Attacker: <(omni|clan|neutral)>(?<attacker>[^<]+)<end>'
       - command: nw attacks org *a*
         name: We can search for attacks by/on a given org using wildcards

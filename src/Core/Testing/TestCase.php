@@ -4,6 +4,7 @@ namespace Nadybot\Core\Testing;
 
 use EventSauce\ObjectHydrator\MapFrom;
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
+use InvalidArgumentException;
 use Nadybot\Core\Attributes\Hydrator\ForceList;
 use Nadybot\Core\Safe;
 
@@ -21,7 +22,7 @@ class TestCase {
 	 */
 	public function __construct(
 		public readonly string $command,
-		#[ForceList, CastListToType('string')] public readonly array $expect,
+		#[ForceList, CastListToType('string')] public readonly array $expect=[],
 		public readonly ?string $name=null,
 		public readonly ?string $condition=null,
 		#[ForceList, CastListToType('string')] public readonly array $unexpected=[],
@@ -32,6 +33,13 @@ class TestCase {
 			CastListToType('string')
 		] public readonly array $captured=[],
 	) {
+		if (
+			!count($this->expect)
+			&& !count($this->unexpected)
+			&& !count($this->captured)
+		) {
+			throw new InvalidArgumentException('You have to expect something.');
+		}
 	}
 
 	public function getName(): string {

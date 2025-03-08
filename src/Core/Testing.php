@@ -12,7 +12,7 @@ use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\Exceptions\{NonExistingTestException, ParseTestException};
 use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Testing\{MockCommandReply, TestCase, TestCollection, TestGroup, TestResult};
+use Nadybot\Core\Testing\{MockCommandReply, TestCase, TestCollection, TestGroup, TestResult, TestResults};
 use Nadybot\Core\Types\CommandReply;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
@@ -70,18 +70,29 @@ class Testing {
 
 	/** Run all tests */
 	public function run(): void {
-		$result = TestResult::Success;
+		$results = new TestResults();
 		try {
 			$dirs = $this->getTestDirectories();
 			$tests = $this->getTestsFromDirectories($dirs);
 			foreach ($tests as $test) {
-				$result = $result->add($this->runTestCollection($test));
+				$results->addResults($this->runTestCollection($test));
 			}
 		} catch (\Throwable $e) {
 			$this->logger->critical('{error}', ['error' => $e->getMessage(), 'exception' => $e]);
 			exit(1);
 		}
-		if ($result === TestResult::Failure) {
+		$this->logger->notice(
+			"Test results:\n".
+			"         Success: {num_success}\n".
+			"         Skipped: {num_skipped}\n".
+			'         Failure: {num_failure}',
+			[
+				'num_success' => $results->numSuccesses,
+				'num_skipped' => $results->numSkipped,
+				'num_failure' => $results->numFailures,
+			]
+		);
+		if ($results->numFailures > 0) {
 			exit(1);
 		}
 		exit(0);
@@ -160,16 +171,22 @@ class Testing {
 
 		$reply = new MockCommandReply();
 		$command = $this->replacePlaceholders($test->command, $placeholders, false);
+		$channel = 'test-capture('.
+			Util::genRandomString(10, 'ancdefghijklmnopqrstuvwxyz').
+			')';
 		$cmdContext = $this->getContext($command, $reply);
 		if (isset($test->capture)) {
-			$msgReceiver = new class ($this->messageHub) extends AbstractChannel {
+			$msgReceiver = new class ($this->messageHub, $channel) extends AbstractChannel {
 				public string $msg = '';
 
-				public function __construct(private MessageHub $messageHub) {
+				public function __construct(
+					private MessageHub $messageHub,
+					private string $channel,
+				) {
 				}
 
 				public function getChannelName(): string {
-					return 'test-capture';
+					return $this->channel;
 				}
 
 				public function receive(RoutableEvent $event, string $destination): bool {
@@ -184,7 +201,7 @@ class Testing {
 			$this->messageHub->registerMessageReceiver($msgReceiver);
 			$dbRoute = new Route(
 				source: $test->capture,
-				destination: 'test-capture',
+				destination: $channel,
 				two_way: false,
 			);
 			$msgRoute = new MessageRoute($dbRoute);
@@ -198,7 +215,7 @@ class Testing {
 		$capturedMessage = '';
 		if (isset($msgReceiver)) {
 			$capturedMessage = $msgReceiver->msg;
-			$this->messageHub->unregisterMessageReceiver('test-capture');
+			$this->messageHub->unregisterMessageReceiver($channel);
 		}
 		$output = $reply->getOutput();
 		$errorIndent = '               ';
@@ -283,34 +300,34 @@ class Testing {
 		return [TestResult::Success, $placeholders];
 	}
 
-	private function runTestCollection(TestCollection $collection): TestResult {
+	private function runTestCollection(TestCollection $collection): TestResults {
+		$results = new TestResults();
 		if (!$this->evaluateCondition($collection->condition)) {
-			return TestResult::Skipped;
+			return $results->addTest(TestResult::Skipped);
 		}
 		$this->logger->notice('Starting tests for {collection}', [
 			'collection' => $collection->name,
 		]);
-		$result = TestResult::Success;
 		foreach ($collection->groups as $testGroup) {
-			$result = $result->add($this->runTestGroup($testGroup));
+			$results->addResults($this->runTestGroup($testGroup));
 		}
-		return $result;
+		return $results;
 	}
 
-	private function runTestGroup(TestGroup $group): TestResult {
+	private function runTestGroup(TestGroup $group): TestResults {
+		$results = new TestResults();
 		if (!$this->evaluateCondition($group->condition)) {
-			return TestResult::Skipped;
+			return $results->addTest(TestResult::Skipped);
 		}
 		$this->logger->notice('Starting test group for {group}', [
 			'group' => $group->name,
 		]);
-		$result = TestResult::Success;
 		$placeholders = [];
 		foreach ($group->tests as $test) {
 			[$testResult, $placeholders] = $this->runTest($test, $placeholders);
-			$result = $result->add($testResult);
+			$results->addTest($testResult);
 		}
-		return $result;
+		return $results;
 	}
 
 	/**

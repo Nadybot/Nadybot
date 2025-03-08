@@ -8,7 +8,7 @@ use Attribute;
 #[Attribute(Attribute::TARGET_CLASS)]
 class HasTests {
 	public function __construct(
-		public string $dir='tests',
+		public string $dir='Tests',
 		public ?string $module=null,
 	) {
 	}

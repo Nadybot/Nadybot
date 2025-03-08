@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use function Amp\Future\await;
 use function Amp\{async, delay};
 use function Safe\{preg_match, sapi_windows_set_ctrl_handler};
 
@@ -554,7 +555,7 @@ class Nadybot {
 			$privColor = $this->settingManager->getString('default_priv_color') ?? '';
 		}
 
-		$sender = async(function () use ($privColor, $pages, $uid): void {
+		$sender = [async(function () use ($privColor, $pages, $uid): void {
 			foreach ($pages as $page) {
 				$this->sendPackage(
 					new Package\Out\PrivateChannelMessage(
@@ -563,7 +564,7 @@ class Nadybot {
 					)
 				);
 			}
-		});
+		})];
 		$event = new SendPrivEvent(
 			channel: $group,
 			message: $message,
@@ -579,9 +580,9 @@ class Nadybot {
 				$label = 'Guest';
 			}
 			$rMessage->prependPath(new Source(Source::PRIV, $this->config->main->character, $label));
-			EventLoop::queue($this->messageHub->handle(...), $rMessage);
+			$sender []= async($this->messageHub->handle(...), $rMessage);
 		}
-		$sender->await();
+		await($sender);
 	}
 
 	/**
