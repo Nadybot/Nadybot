@@ -19,6 +19,9 @@ groups:
       - command: members add 1
         name: Not even positive UIDs
         expect: Help \(members\)
+      - command: whois Nadyita
+        name: Cache a dummy information
+        expect: Detailed Info for Nadyita
       - command: members add Nadyita
         name: But we can add characters by their name
         expect: has been added
@@ -38,7 +41,8 @@ groups:
         expect: is not in the private channel
       - command: test join nadyita
         name: Let a dummy join our private channel
-        expect: ^$
+        capture: aopriv
+        expect-captured: Nadyita.*joined
       - command: kick nadyita
         name: Now we can kick that dummy
         expect: has been kicked
@@ -64,7 +68,8 @@ groups:
         expect: 0.*in total
       - command: test join nadyita
         name: Let a dummy join our private channel
-        expect: ^$
+        capture: aopriv
+        expect-captured: Nadyita.*joined
       - command: count levels
         name: Now the dummy should show up in counts
         expect: 1.*in total.*TL7.*1

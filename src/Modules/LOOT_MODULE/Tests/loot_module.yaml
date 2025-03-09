@@ -15,7 +15,8 @@ groups:
         expect: Help \(loot\)
       - command: loot add 1
         name: Add loot item ID#1 to the loot list
-        expect: ^$
+        capture: aopriv
+        expect-captured: added.*Base NCU - Type 00
       - command: loot
         name: Check that the item is on the loot list
         expect: Base NCU
@@ -36,22 +37,26 @@ groups:
         expect: Help \(loot\)
       - command: loot addmulti 9x test1
         name: Add 9x "test1" to the loot list
-        expect: ^$
+        capture: aopriv
+        expect-captured: added.*test1.*x9.*Slot.*1
       - command: loot addmulti 5 test2
         name: Add 5 "test2" to the loot list
-        expect: ^$
+        capture: aopriv
+        expect-captured: added.*test2.*x5.*Slot.*2
       - command: loot
         name: Check the loot list
         expect: 9x.*test1.*5x.*test2
       - command: add 2
         name: 'Add ourselves to slot #2'
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*added to.*test2
       - command: loot
         name: Check loot list
         expect: Slot.*#2.*Players added.*<superadmin>
       - command: add 1
         name: 'Change to item in slot #1'
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*changed to.*test1
       - command: loot
         name: Check loot list
         expect: Slot.*#1.*Players added.*<superadmin>.*Slot.*#2
@@ -63,14 +68,16 @@ groups:
         expect: There is no item at slot
       - command: loot rem 1
         name: 'Remove item from loot slot #1'
-        expect: ^$
+        capture: aopriv
+        expect-captured: Removing item in slot.*1
       - command: loot
         name: Check the loot list
         expect: Slot.*#1.*5x.*test2
         unexpected: <superadmin>
       - command: add 1
         name: 'Add ourselves to loot slot #1 again'
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*added to.*test2
       - command: loot
         name: Get the loot list
         expect: Slot.*#1.*5x.*test2.*<superadmin>
@@ -80,21 +87,26 @@ groups:
           - Winner List
           - item.*left to be rolled
           - Winner:.*<superadmin>
+        capture: aopriv
+        expect-captured: Winner List
       - command: reroll
         name: Reroll remaining items
         expect: All remaining items have been re-added
       - command: rem
         name: Remove ourselves from all slots
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*removed.*from all rolls
       - command: add 1
         name: 'Add ourselves to slot #1 yet again'
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*added to.*test2
       - command: loot
         name: Check loot list
         expect: Slot.*#1.*4x.*test2.*<superadmin>
       - command: rem
         name: Remove ourselves from all the slots again
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*removed.*from all rolls
       - command: loot
         name: Check the loot list again
         expect: Slot.*#1.*4x.*test2
@@ -105,19 +117,31 @@ groups:
 
       - command: '13'
         name: Add Sector 13 loot to the loot table
-        expect: ^$
+        capture: aopriv
+        expect-captured:
+          - Sector Sector 13 loot table was added
+          - Loot List
+          - Dynamic Gas Redistribution Valves
       - command: loot
         name: Check the loot list
         expect: Dynamic Gas Redistribution Valves
       - command: '28'
         name: Add Sector 28 loot to the loot table
-        expect: ^$
+        capture: aopriv
+        expect-captured:
+          - Sector Sector 28 loot table was added
+          - Loot List
+          - Inertial Adjustment Processing Unit
       - command: loot
         name: Check the loot list
         expect: Inertial Adjustment Processing Unit
       - command: '35'
         name: Add Sector 35 loot to the loot table
-        expect: ^$
+        capture: aopriv
+        expect-captured:
+          - Sector Sector 35 loot table was added
+          - Loot List
+          - Visible Light Remodulation Device
       - command: loot
         name: Check the loot list
         expect: Visible Light Remodulation Device
@@ -232,7 +256,11 @@ groups:
 
       - command: mloot <a href="itemref://280727/280727/300">Sloth of the Xan</a> <a href='itemref://150930/150930/10'>Personal Furnace</a>
         name: Add loot to the loot list by dropping two items into the chat
-        expect: ^$
+        capture: aopriv
+        expect-captured:
+          - <superadmin>.*added.*2.*items to the.*Loot List
+          - Sloth of the Xan
+          - Personal Furnace
       - command: loot
         name: Check the loot list
         expect:

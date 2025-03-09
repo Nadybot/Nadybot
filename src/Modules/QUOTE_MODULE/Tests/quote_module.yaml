@@ -20,11 +20,14 @@ groups:
         name: We can add a new quote
         expect: Quote.*(?<quote>[0-9a-f-]{36}).*has been added
       - command: quote org {quote}
+        condition: orgbot
         name: We can send the quote to the org chat
-        expect: ^$
+        capture: aoorg
+        expect-captured: TESTING
       - command: quote priv {quote}
         name: We can send the quote to the private channel
-        expect: ^$
+        capture: aopriv
+        expect-captured: TESTING
       - command: quote {quote}
         name: We can get details about the quote
         expect:

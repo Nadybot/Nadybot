@@ -50,6 +50,9 @@ groups:
       - command: leaderecho
         capture: aopriv
         expect-captured: Leader echo is currently.*Disabled
+      - command: leaderecho on
+        capture: aopriv
+        expect-captured: Leader echo has been.*Enabled
 
   - name: Rally
     tests:
@@ -77,7 +80,8 @@ groups:
       - command: say org some stuff
         name: "!say org for org bots"
         condition: orgbot
-        expect: "^$"
+        capture: aoorg
+        expect-captured: some stuff
       - command: say org some stuff
         name: "!say org for raid bots"
         condition: "!orgbot"
