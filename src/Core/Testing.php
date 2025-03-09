@@ -18,14 +18,31 @@ use Safe\Exceptions\YamlException;
 class Testing {
 	private const ERROR_INDENT = '               ';
 
-	public function __construct(
-		private LoggerInterface $logger,
-		private Filesystem $fs,
-		private BotConfig $config,
-		private Nadybot $chatBot,
-		private CommandManager $commandManager,
-		private EventManager $eventManager,
-	) {
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
+	#[NCA\Inject]
+	private Filesystem $fs;
+
+	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private SubcommandManager $subcommandManager;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
+
+	#[NCA\Inject]
+	private AccessManager $accessManager;
+
+	public function __construct() {
 		if (!self::canRun()) {
 			// @phpstan-ignore-next-line
 			\fwrite(\STDERR, "Nadybot needs the a required PHP-extensions to run tests.\n");
@@ -91,10 +108,156 @@ class Testing {
 				'num_failure' => $results->numFailures,
 			]
 		);
+		$untestedHandlers = $this->getUntestedFunctionHandlers($tests);
+		if (count($untestedHandlers)) {
+			$this->logger->warning(
+				"Found {num_untested} untested function handlers:\n".
+				'{indent}{handlers}',
+				[
+					'num_untested' => count($untestedHandlers),
+					'handlers' => implode("\n" . self::ERROR_INDENT, $untestedHandlers),
+					'indent' => self::ERROR_INDENT,
+				]
+			);
+		}
 		if ($results->numFailures > 0) {
 			exit(1);
 		}
 		exit(0);
+	}
+
+	/** @return list<CommandHandler> */
+	private function getAllCommandHandlers(string $channel): array {
+		$handlers = [];
+		$cmds = array_keys($this->commandManager->commands[$channel]);
+		foreach ($cmds as $cmd) {
+			if (isset($this->subcommandManager->subcommands[$cmd])) {
+				foreach ($this->subcommandManager->subcommands[$cmd] as $handler) {
+					if (isset($handler->permissions[$channel])) {
+						$handlers []= new CommandHandler($handler->permissions[$channel]->access_level, ...explode(',', $handler->file));
+					}
+				}
+			}
+			if (isset($this->commandManager->commands[$channel][$cmd])) {
+				$handlers []= $this->commandManager->commands[$channel][$cmd];
+			}
+		}
+		return $handlers;
+	}
+
+	/**
+	 * Get a list of all function handlers that the given tests would not call directly
+	 *
+	 * @param list<TestCollection> $collections List of all test collections
+	 *
+	 * @return list<string> A list of uncalled function handlers
+	 */
+	private function getUntestedFunctionHandlers(array $collections): array {
+		$handlers = $this->getFunctionHandlerRegexes();
+		$unfound = [];
+		foreach ($handlers as $handler => $regexps) {
+			foreach ($regexps as $regexp) {
+				if ($this->isRegexpHandled($regexp, $collections)) {
+					continue 2;
+				}
+			}
+			$unfound []= $handler;
+		}
+		return $unfound;
+	}
+
+	/**
+	 * Check if a given regexp is handled by the list of `TestCollection`s
+	 *
+	 * @param list<TestCollection> $collections List of all test collections
+	 */
+	private function isRegexpHandled(CommandRegexp $regexp, array $collections): bool {
+		foreach ($collections as $collection) {
+			foreach ($collection->groups as $group) {
+				foreach ($group->tests as $test) {
+					$command = Safe::pregReplace('/^!/', '', $test->command);
+					$command = $this->replacePlaceholders($command, [], true);
+					$command = Safe::pregReplace('/\{[a-z0-9_]+_id\}/', '07067c15-3a1f-4a3f-9e96-3fdb7d500903', $command);
+					$command = str_replace('{org_member}', 'Regolus', $command);
+					$command = str_replace(['{id}', '{quote}'], '07067c15-3a1f-4a3f-9e96-3fdb7d500903', $command);
+					$command = str_replace(['{uid}', '{points}'], '12345', $command);
+					$command = str_replace('{field}', 'AEG 1', $command);
+					$command = str_replace(['{def_org}', '{org}'], 'Team Rainbow', $command);
+					$command = str_replace('{attacker}', 'Regolus', $command);
+					if (Safe::pregMatches($regexp->match, $command)) {
+						return true;
+					}
+					$command = Safe::pregReplace('/^runas [a-z]{4,12} /is', '', $command);
+					if (Safe::pregMatches($regexp->match, $command)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Get a alist of all function handlers and their regexes
+	 *
+	 * @return array<string,list<CommandRegexp>> Regexes as `["<class>.<method>:line" => 'Regexp']`
+	 */
+	private function getFunctionHandlerRegexes(): array {
+		// get all command handlers
+		$handlers = $this->getAllCommandHandlers('msg');
+
+		// filter command handlers by access level
+		$handlers = array_filter($handlers, function (CommandHandler $handler): bool {
+			return $this->accessManager->checkAccess($this->config->general->superAdmins[0], $handler->access_level);
+		});
+
+		// get calls for handlers
+		/** @var list<string> */
+		$calls = array_reduce(
+			$handlers,
+			static function (array $handlers, CommandHandler $handler): array {
+				return array_merge($handlers, $handler->files);
+			},
+			[]
+		);
+
+		$calls = $this->commandManager->sortCalls($calls);
+
+		// get regular expressions for calls
+		$regexes = [];
+		foreach ($calls as $call) {
+			[$name, $method, $line] = explode('.', $call);
+			$instance = Registry::tryGetInstance($name);
+			if (!isset($instance)) {
+				continue;
+			}
+			try {
+				$reflectedMethod = new \ReflectionMethod($instance, $method);
+				if (str_starts_with($reflectedMethod->getDeclaringClass()->getNamespaceName(), 'Nadybot\\User\\Modules')) {
+					continue;
+				}
+				$commands = $reflectedMethod->getAttributes(NCA\HandlesCommand::class);
+				if (!count($commands)) {
+					continue;
+				}
+
+				$commandObj = $commands[0]->newInstance();
+				$command = $commandObj->command;
+				$command = explode(' ', $command)[0];
+				$key = $reflectedMethod->getDeclaringClass()->getFileName();
+				if ($key === false) {
+					$key = "{$name}.{$method}";
+				} else {
+					$key = substr($key, strlen(BotRunner::getBasedir()) + 1);
+				}
+				$key .= "#{$line} ({$reflectedMethod->getName()})";
+				$regexes[$key] = $this->commandManager->retrieveRegexes($reflectedMethod);
+			} catch (\ReflectionException $e) {
+				continue;
+			}
+		}
+		ksort($regexes);
+		return $regexes;
 	}
 
 	/**

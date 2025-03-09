@@ -185,13 +185,13 @@ groups:
         name: Flip a coin and store the result
         expect:
           - The roll is.*(?<roll_result>heads|tails)
-          - /tell.*verify (?<verify_code>[0-9a-f-]+)
+          - /tell.*verify (?<verify_id>[0-9a-f-]+)
 
       - command: verify -1
         expect: not a valid UUID
       - command: verify 0
         expect: not a valid UUID
-      - command: 'verify {verify_code}'
+      - command: 'verify {verify_id}'
         name: Verify the coin flip to be correctly stored
         expect: '{roll_result}.*rolled by.*Regolus'
 

@@ -71,14 +71,14 @@ groups:
         name: Show non-empty reminders table
         expect:
           - Do good stuff
-          - (?<first_reminder>[a-f0-9-]{36})
+          - (?<first_reminder_id>[a-f0-9-]{36})
       - command: reminders addself Be respectful
         name: Add a dummy self-reminder
         expect: Reminder added successfully
-      - command: reminders set self {first_reminder}
+      - command: reminders set self {first_reminder_id}
         name: Turn the first reminder into a self-reminder
         expect: changed successfully
-      - command: reminders set off {first_reminder}
+      - command: reminders set off {first_reminder_id}
         name: Turn off the first reminder, turning it into a note
         expect: changed successfully.
       - command: reminders

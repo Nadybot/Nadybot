@@ -1995,14 +1995,8 @@ class Nadybot {
 			\fwrite(\STDOUT, "Testing mode selected, but missing requirements!\n");
 			exit(1);
 		}
-		$testing = new Testing(
-			logger: $this->logger,
-			fs: Registry::getInstance(Filesystem::class),
-			config: $this->config,
-			chatBot: $this,
-			commandManager: $this->commandManager,
-			eventManager: $this->eventManager,
-		);
+		$testing = new Testing();
+		Registry::injectDependencies($testing);
 		$testing->run();
 	}
 
