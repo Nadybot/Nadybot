@@ -3,13 +3,17 @@
 namespace Nadybot\Core\Testing;
 
 use AO\Utils;
-use InvalidArgumentException;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{Registry, Safe};
 
 /** A static class to create capturers */
 class CapturerFactory {
+	/**
+	 * Get a capturer for a given route source, like `'aoorg'`, or `'aopriv'`
+	 *
+	 * @throws UnhandledPatternException
+	 */
 	public static function fromPattern(string $pattern): CapturerInterface {
 		if ($pattern === Source::PRIV) {
 			$config = Registry::getInstance(BotConfig::class);
@@ -26,6 +30,6 @@ class CapturerFactory {
 			$target = Utils::normalizeCharacter($target['target']);
 			return new TradebotCapturer($target);
 		}
-		throw new InvalidArgumentException("Unknown pattern \"{$pattern}\"");
+		throw new UnhandledPatternException("Unknown pattern \"{$pattern}\"");
 	}
 }

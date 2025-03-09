@@ -16,6 +16,8 @@ use ReflectionClass;
 use Safe\Exceptions\YamlException;
 
 class Testing {
+	private const ERROR_INDENT = '               ';
+
 	public function __construct(
 		private LoggerInterface $logger,
 		private Filesystem $fs,
@@ -153,6 +155,77 @@ class Testing {
 		return false;
 	}
 
+	/** @return TestResult::Failure */
+	private function logUnfoundExpectation(TestCase $test, string $expect, string $output): TestResult {
+		$this->logger->error(
+			"   [✖] {test}\n".
+			"{indent}Cannot find \"{expected}\" in output:\n".
+			'{indent}{output}',
+			[
+				'indent' => self::ERROR_INDENT,
+				'test' => $test->getName(),
+				'expected' => $expect,
+				'output' => implode("\n" . self::ERROR_INDENT, explode("\n", $output)),
+			]
+		);
+		return TestResult::Failure;
+	}
+
+	/** @return TestResult::Failure */
+	private function logUnexpectedFind(TestCase $test, string $unexpected, string $output): TestResult {
+		$this->logger->error(
+			"   [✖] {test}\n".
+			"{indent}Did find \"{unexpected}\" in output:\n".
+			'{indent}{output}',
+			[
+				'indent' => self::ERROR_INDENT,
+				'test' => $test->getName(),
+				'unexpected' => $unexpected,
+				'output' => implode("\n" . self::ERROR_INDENT, explode("\n", $output)),
+			]
+		);
+		return TestResult::Failure;
+	}
+
+	/**
+	 * Get the matching string from a given regular exprfession for a given text
+	 *
+	 * @param string $expect The regular expression to use
+	 * @param string $output The text to run it on
+	 *
+	 * @return string[] A non-empty array with matches, or an empty one if no matches
+	 */
+	private function getExpectMatches(string $expect, string $output): array {
+		try {
+			$matches = Safe::pregMatch(chr(1) . $expect . chr(1) . 's', $output);
+		} catch (\Throwable) {
+			$this->logger->error('The regular expression »{expect}« is invalid', [
+				'expect' => $expect,
+			]);
+			$matches = [];
+		}
+		return $matches;
+	}
+
+	/**
+	 * If `$matches` contains any named matches, add them to `$placeholders` and return them
+	 *
+	 * @param string[]             $matches
+	 * @param array<string,string> $placeholders
+	 *
+	 * @return array<string,string>
+	 */
+	private function addNamedMatchesToPlaceholders(array $matches, array $placeholders): array {
+		if (count($matches) <= 1) {
+			return $placeholders;
+		}
+		$keys = array_filter(array_keys($matches), is_string(...));
+		foreach ($keys as $key) {
+			$placeholders[$key] = $matches[$key];
+		}
+		return $placeholders;
+	}
+
 	/**
 	 * Run a single test case and return whether the output matches
 	 *
@@ -180,83 +253,32 @@ class Testing {
 			$capturer->unregister($this->eventManager);
 		}
 		$output = $reply->getOutput();
-		$errorIndent = '               ';
+
+		// Handle expected output
 		foreach ($test->expect as $expect) {
 			$expect = $this->replacePlaceholders($expect, $placeholders);
-			try {
-				$matches = Safe::pregMatch(chr(1) . $expect . chr(1) . 's', $output);
-			} catch (\Throwable) {
-				$this->logger->error('The regular expression »{expect}« is invalid', [
-					'expect' => $expect,
-				]);
-				$matches = [];
-			}
+			$matches = $this->getExpectMatches($expect, $output);
 			if (!count($matches)) {
-				$this->logger->error(
-					"   [✖] {test}\n".
-					"{$errorIndent}Cannot find \"{expected}\" in output:\n".
-					"{$errorIndent}{output}",
-					[
-						'test' => $test->getName(),
-						'expected' => $expect,
-						'output' => implode("\n{$errorIndent}", explode("\n", $output)),
-					]
-				);
-				return [TestResult::Failure, $placeholders];
+				return [$this->logUnfoundExpectation($test, $expect, $output), $placeholders];
 			}
-			if (count($matches) > 1) {
-				$keys = array_filter(array_keys($matches), is_string(...));
-				foreach ($keys as $key) {
-					$placeholders[$key] = $matches[$key];
-				}
-			}
+			$placeholders = $this->addNamedMatchesToPlaceholders($matches, $placeholders);
 		}
+		// Handle unexpected output
 		foreach ($test->unexpected as $unexpected) {
 			$unexpected = $this->replacePlaceholders($unexpected, $placeholders);
-			$unexpectResult = Safe::pregMatches(chr(1) . $unexpected . chr(1) . 's', $output);
+			$unexpectResult = count($this->getExpectMatches($unexpected, $output)) > 0;
 			if ($unexpectResult === true) {
-				$this->logger->error(
-					"   [✖] {test}\n".
-					"{$errorIndent}Did find \"{unexpected}\" in output:\n".
-					"{$errorIndent}{output}",
-					[
-						'test' => $test->getName(),
-						'unexpected' => $unexpected,
-						'output' => implode("\n{$errorIndent}", explode("\n", $output)),
-					]
-				);
-				return [TestResult::Failure, $placeholders];
+				return [$this->logUnexpectedFind($test, $unexpected, $output), $placeholders];
 			}
 		}
+		// Handle expected captured output
 		foreach ($test->captured as $expect) {
 			$expect = $this->replacePlaceholders($expect, $placeholders);
-			try {
-				$matches = Safe::pregMatch(chr(1) . $expect . chr(1) . 's', $capturedOutput);
-			} catch (\Throwable) {
-				$this->logger->error('The regular expression »{expect}« is invalid', [
-					'expect' => $expect,
-				]);
-				$matches = [];
-			}
+			$matches = $this->getExpectMatches($expect, $capturedOutput);
 			if (!count($matches)) {
-				$this->logger->error(
-					"   [✖] {test}\n".
-					"{$errorIndent}Cannot find \"{expected}\" in captured output:\n".
-					"{$errorIndent}{output}",
-					[
-						'test' => $test->getName(),
-						'expected' => $expect,
-						'output' => implode("\n{$errorIndent}", explode("\n", $capturedOutput)),
-					]
-				);
-				return [TestResult::Failure, $placeholders];
+				return [$this->logUnfoundExpectation($test, $expect, $capturedOutput), $placeholders];
 			}
-			if (count($matches) > 1) {
-				$keys = array_filter(array_keys($matches), is_string(...));
-				foreach ($keys as $key) {
-					$placeholders[$key] = $matches[$key];
-				}
-			}
+			$placeholders = $this->addNamedMatchesToPlaceholders($matches, $placeholders);
 		}
 		$this->logger->notice('  [✔] {test}', ['test' => $test->getName()]);
 		return [TestResult::Success, $placeholders];
