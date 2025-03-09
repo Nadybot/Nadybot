@@ -7,12 +7,9 @@ use function Safe\yaml_parse;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Channels\AbstractChannel;
 use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\Exceptions\{NonExistingTestException, ParseTestException};
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Testing\{MockCommandReply, TestCase, TestCollection, TestGroup, TestResult, TestResults};
+use Nadybot\Core\Testing\{CapturerFactory, MockCommandReply, TestCase, TestCollection, TestGroup, TestResult, TestResults};
 use Nadybot\Core\Types\CommandReply;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
@@ -25,7 +22,7 @@ class Testing {
 		private BotConfig $config,
 		private Nadybot $chatBot,
 		private CommandManager $commandManager,
-		private MessageHub $messageHub,
+		private EventManager $eventManager,
 	) {
 		if (!self::canRun()) {
 			// @phpstan-ignore-next-line
@@ -171,51 +168,16 @@ class Testing {
 
 		$reply = new MockCommandReply();
 		$command = $this->replacePlaceholders($test->command, $placeholders, false);
-		$channel = 'test-capture('.
-			Util::genRandomString(10, 'ancdefghijklmnopqrstuvwxyz').
-			')';
 		$cmdContext = $this->getContext($command, $reply);
+		$capturedOutput = '';
 		if (isset($test->capture)) {
-			$msgReceiver = new class ($this->messageHub, $channel) extends AbstractChannel {
-				public string $msg = '';
-
-				public function __construct(
-					private MessageHub $messageHub,
-					private string $channel,
-				) {
-				}
-
-				public function getChannelName(): string {
-					return $this->channel;
-				}
-
-				public function receive(RoutableEvent $event, string $destination): bool {
-					$message = $this->getEventMessage($event, $this->messageHub);
-					if (!isset($message)) {
-						return false;
-					}
-					$this->msg .= $message;
-					return true;
-				}
-			};
-			$this->messageHub->registerMessageReceiver($msgReceiver);
-			$dbRoute = new Route(
-				source: $test->capture,
-				destination: $channel,
-				two_way: false,
-			);
-			$msgRoute = new MessageRoute($dbRoute);
-			Registry::injectDependencies($msgRoute);
-			$this->messageHub->addRoute($msgRoute);
+			$capturer = CapturerFactory::fromPattern($test->capture);
+			$capturer->register($this->eventManager);
 		}
 		$this->commandManager->syncProcessCmd($cmdContext);
-		if (isset($dbRoute)) {
-			$this->messageHub->deleteRouteID($dbRoute->id);
-		}
-		$capturedMessage = '';
-		if (isset($msgReceiver)) {
-			$capturedMessage = $msgReceiver->msg;
-			$this->messageHub->unregisterMessageReceiver($channel);
+		if (isset($capturer)) {
+			$capturedOutput = $capturer->getOutput();
+			$capturer->unregister($this->eventManager);
 		}
 		$output = $reply->getOutput();
 		$errorIndent = '               ';
@@ -269,7 +231,7 @@ class Testing {
 		foreach ($test->captured as $expect) {
 			$expect = $this->replacePlaceholders($expect, $placeholders);
 			try {
-				$matches = Safe::pregMatch(chr(1) . $expect . chr(1) . 's', $capturedMessage);
+				$matches = Safe::pregMatch(chr(1) . $expect . chr(1) . 's', $capturedOutput);
 			} catch (\Throwable) {
 				$this->logger->error('The regular expression »{expect}« is invalid', [
 					'expect' => $expect,
@@ -284,7 +246,7 @@ class Testing {
 					[
 						'test' => $test->getName(),
 						'expected' => $expect,
-						'output' => implode("\n{$errorIndent}", explode("\n", $capturedMessage)),
+						'output' => implode("\n{$errorIndent}", explode("\n", $capturedOutput)),
 					]
 				);
 				return [TestResult::Failure, $placeholders];

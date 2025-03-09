@@ -31,7 +31,7 @@ groups:
       - command: test tradebotmsg
         name: Receive a test message
         expect: ^$
-        capture: tradebot(*)
+        capture: tradebot(Darknet)
         expect-captured: '#DEADFF'
       - command: tradecolor rem {id}
         name: We can delete color definitions

@@ -25,10 +25,12 @@ groups:
         expect: Loot has been cleared
       - command: loot auction 1
         name: Auction of item ID#1
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*started an auction for.*itemref://277436/277436/300.*Base NCU
       - command: bid cancel
         name: Cancel the auction
-        expect: ^$
+        capture: aopriv
+        expect-captured: The auction was cancelled
       - command: loot add 1234567890
         name: Add a non-existing item ID to the loot list
         expect: Could not find item

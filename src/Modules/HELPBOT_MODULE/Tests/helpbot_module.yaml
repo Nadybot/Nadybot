@@ -10,7 +10,7 @@ groups:
       - command: arbiter set ai
         name: Set arbiter to be in AI week
         expect: New times saved.*AI
-      - command: arbiter set dio
+      - command: arbiter set dio ends
         name: Set arbiter to be in DIO week
         expect: New times saved.*DIO
       - command: arbiter set error

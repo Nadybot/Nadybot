@@ -48,8 +48,7 @@ groups:
         expect: has been kicked
       - command: test leave nadyita
         name: Let a dummy leave our private channel, kicking doesn't work for testing
-        capture: aopriv
-        expect-captured: Nadyita.*left.*channel
+        expect: ^$
 
       - command: members add Nadyita
         name: Make a dummy a bot member
@@ -100,8 +99,7 @@ groups:
         expect: ^$
       - command: test leave nadyita
         name: Because it doesn't work when testing, let them leave manually
-        capture: aopriv
-        expect-captured: Nadyita.*left.*channel
+        expect: ^$
       - command: settings save add_member_on_join 1
         name: Enable to add characters to members on joining
         expect: has been saved

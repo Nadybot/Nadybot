@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	DB,
+	EventManager,
 	Events\LogonEvent,
 	Exceptions\StopExecutionException,
 	MessageHub,
@@ -103,6 +104,9 @@ class TradebotController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private CommentController $commentController;
+
+	#[NCA\Inject]
+	private EventManager $eventManager;
 
 	#[NCA\Inject]
 	private DB $db;
@@ -249,6 +253,16 @@ class TradebotController extends ModuleInstance {
 			}
 		}
 		$message = "Received message from Tradebot <highlight>{$sender}<end>: {$message}";
+		$event = new TradebotMsgEvent(
+			tradebot: $sender,
+			tag: null,
+			message: $message,
+		);
+		$this->eventManager->dispatch($event);
+		$rMessage = new RoutableMessage($message);
+		$source = new Source(Source::TRADEBOT, $sender . '-msgs');
+		$rMessage->prependPath($source);
+		$this->messageHub->handle($rMessage);
 	}
 
 	/**
@@ -269,6 +283,12 @@ class TradebotController extends ModuleInstance {
 			$message = $this->addCommentsToMessage($message);
 		}
 		$rMessage = new RoutableMessage($message);
+		$event = new TradebotMsgEvent(
+			tradebot: $sender,
+			tag: $matches[1],
+			message: $message,
+		);
+		$this->eventManager->dispatch($event);
 		$source = new Source(Source::TRADEBOT, $sender . "-{$matches[1]}");
 		$rMessage->prependPath($source);
 		$this->messageHub->handle($rMessage);

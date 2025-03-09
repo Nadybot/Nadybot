@@ -742,7 +742,8 @@ class Nadybot {
 				$this->logChat('Out. Msg.', $character, $page);
 			}
 		}
-		$sender = async(function () use ($character, $tellColor, $pages, $priority): void {
+		$sender = [];
+		$sender []= async(function () use ($character, $tellColor, $pages, $priority): void {
 			foreach ($pages as $page) {
 				$this->sendRawTell(
 					character: $character,
@@ -759,8 +760,8 @@ class Nadybot {
 		$this->eventManager->dispatch($event);
 		$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
 		$rMessage->prependPath(new Source(Source::TELL, $this->config->main->character));
-		EventLoop::queue($this->messageHub->handle(...), $rMessage);
-		$sender->await();
+		$sender []= async($this->messageHub->handle(...), $rMessage);
+		await($sender);
 	}
 
 	/**
@@ -2000,7 +2001,7 @@ class Nadybot {
 			config: $this->config,
 			chatBot: $this,
 			commandManager: $this->commandManager,
-			messageHub: $this->messageHub,
+			eventManager: $this->eventManager,
 		);
 		$testing->run();
 	}

@@ -34,7 +34,8 @@ groups:
         expect: Regolus
       - command: test logon Regolus
         name: Let the dummy logon
-        expect: ^$
+        capture: aopriv
+        expect-captured: TRACK.*Regolus.*logged.*on
       - command: track
         name: Tracking list should now show the dummy as online
         expect: Regolus.*logon
@@ -55,7 +56,8 @@ groups:
         expect: Regolus
       - command: test logoff regolus
         name: Let the dummy logoff
-        expect: ^$
+        capture: aopriv
+        expect-captured: TRACK.*Regolus.*logged.*off
       - command: track
         name: Tracking list should now show the dummy as offline
         expect: Regolus.*logoff

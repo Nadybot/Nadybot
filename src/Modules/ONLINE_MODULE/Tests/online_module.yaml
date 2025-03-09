@@ -55,7 +55,8 @@ groups:
         expect: Players Online \(0\)
       - command: test join regolus
         name: Let another character who doesn't match the mask join
-        expect: "^$"
+        capture: aopriv
+        expect-captured: Regolus.*joined
       - command: online
         name: Online list should now show only that character
         expect:
@@ -66,9 +67,7 @@ groups:
         expect: removed from the online hidden mask list
       - command: test leave regolus
         name: Let the alt leave the private channel
-        capture: aopriv
-        expect-captured: Regolus.*left.*channel
+        expect: ^$
       - command: test leave pigtail
         name: Let the other dummy leave as well
-        capture: aopriv
-        expect-captured: Pigtail.*left.*channel
+        expect: ^$

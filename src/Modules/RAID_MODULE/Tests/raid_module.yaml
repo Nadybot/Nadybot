@@ -28,6 +28,9 @@ groups:
       - command: executesql DELETE FROM raid_rank_<myname>
         name: Clear raid points table
         expect: Query run successfully
+      - command: executesql DELETE FROM comments_<myname> WHERE category='raid'
+        name: Clear comments table
+        expect: Query run successfully
 
   - name: Reward-Command
     tests:
@@ -84,43 +87,51 @@ groups:
         expect: currently no raid running
       - command: raid start test
         name: Start a new raid "test"
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*started a raid.*test
       - command: raid
         name: Check it's there
         expect: Current raid.*Description.*test.*Raiders.*0.*Status.*open
       - command: raid lock
         name: Locking the raid
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*locked.*the raid
       - command: raid
         name: Check it's locked
         expect: Raid is running.*test.*raid is locked
       - command: test join regolus
         name: Let the dummy join our private channel
-        expect: ^$
+        capture: aopriv
+        expect-captured: Regolus.*joined
       - command: runas regolus raid join
         name: Let the dummy join our locked raid
-        expect: ^$
+        capture: aotell(Regolus)
+        expect-captured: The raid is.*locked
       - command: raid unlock
         name: Unlock again
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*unlocked.*the raid
       - command: raid
         name: Check it's unlocked and empty
         expect: Current raid.*Description.*test.*Raiders.*0.*Status.*open
       - command: runas regolus raid join
         name: Let the dummy join our unlocked raid
-        expect: ^$
+        capture: aopriv
+        expect-captured: Regolus.*joined.*the raid
       - command: raid
         name: Check we have 1 raider now
         expect: Current raid.*Description.*test.*Raiders.*1.*Status.*open
       - command: runas regolus raid leave
         name: Let the dummy leave the raid again
-        expect: ^$
+        capture: aopriv
+        expect-captured: Regolus.*left.*the raid
       - command: raid
         name: Check we have 0 raiders again
         expect: Current raid.*Description.*test.*Raiders.*0.*Status.*open
       - command: raid stop
         name: Stop the raid
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*stopped.*the raid
       - command: raid
         name: Check no raid is currently running
         expect: currently no raid running
@@ -129,52 +140,63 @@ groups:
     tests:
       - command: raid start test2
         name: Start a new raid
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*started a raid.*test2
       - command: runas regolus raid join
         name: Join the raid with our dummy
-        expect: ^$
+        capture: aopriv
+        expect-captured: Regolus.*joined.*the raid
       - command: raid reward 101
         name: Reward everyone 101 points
-        expect: ^$
+        capture: aopriv
+        expect-captured: <highlight>101<end> points were given to all raiders
       - command: raid reward beast
         name: Reward everyone our pre-defined "The Beast" reward
-        expect: ^$
+        capture: aopriv
+        expect-captured: <highlight>80<end> points were given to all raiders
       - command: points regolus
         name: Check the dummy got points for it
         expect: '181.*raid points'
       - command: raid punish 101
         name: Punish everyone in the raid for the 101 points we've given before
-        expect: ^$
-      - command: raid punish 80
+        capture: aopriv
+        expect-captured: <highlight>101 points<end> were removed from all raiders
+      - command: raid punish beast
         name: Punish everyone in the raid for the beast-points we've given before
-        expect: ^$
+        capture: aopriv
+        expect-captured: <highlight>80 points<end> were removed from all raiders
       - command: points regolus
         name: Check the dummy got no points anymore
         expect: '0.*raid points'
       - command: bid start piece of junk
         name: Auction off an item
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*started an auction for <highlight>piece of junk<end>
       - command: runas regolus bid 1
         name: Our dummy wants to bid 1 point, which they don't have
         expect: You only have.*0.*raid points
       - command: bid end
         name: End the auction, no one wins anything
-        expect: ^$
+        capture: aopriv
+        expect-captured: Auction is over.*No one placed any bids
       - command: runas regolus bid 1
         name: Our dummy wants to bid 1 point, but no auction is running
         expect: nothing being auctioned
       - command: raid reward 1
         name: Give everyone 1 point again
-        expect: ^$
+        capture: aopriv
+        expect-captured: <highlight>1<end> point was given to all raiders
       - command: bid start piece of junk
         name: Auction off the same item again
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*started an auction for <highlight>piece of junk<end>
       - command: runas regolus bid 1
         name: Have the dummy bid their single point again
         expect: now the top bidder
       - command: bid end
         name: End the auction
-        expect: ^$
+        capture: aopriv
+        expect-captured: <highlight>Regolus<end> won <highlight>piece of junk<end> for <highlight>1<end> point
       - command: bid history
         name: Check both auctions are recorded properly
         expect:
@@ -188,13 +210,15 @@ groups:
         expect: has been saved
       - command: bid reimburse regolus
         name: Reimburse the dummy for the item
-        expect: ^$
+        capture: aopriv
+        expect-captured: <highlight>Regolus<end> was reimbursed <highlight>1<end> point
       - command: raid points regolus
         name: Check the dummy got back their point
         expect: '1.*raid points'
       - command: raid stop
         name: Stop the raid
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*stopped.*the raid
 
   - name: Misc
     tests:
@@ -212,10 +236,12 @@ groups:
         expect: <highlight>(?<points>\d+)<end>
       - command: points rem Regolus {points} purely for testing purpose
         name: Remove all their points
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*removed.*<highlight>1<end> point.*from.*Regolus.*purely for testing purpose
       - command: raid start senior
         name: Start another dummy raid
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*started a raid.*senior
       - command: raid notin
         name: Send warnings to all players in the private channel who are not in the raid
         expect:
@@ -227,7 +253,8 @@ groups:
         expect: No.*players in the raid
       - command: runas regolus raid join
         name: Have the dummy join the raid
-        expect: ^$
+        capture: aopriv
+        expect-captured: Regolus.*joined.*the raid
       - command: raid check
         name: Get that list again
         expect:
@@ -238,7 +265,8 @@ groups:
         expect: Everyone is in the raid
       - command: test join nady
         name: Have yet another dummy join our private channel
-        expect: ^$
+        capture: aopriv
+        expect-captured: Nady.*joined
       - command: raid notinkick
         name: Again, kick everyone from our private channel who's not in the raid
         expect: 1 player.*kicked
@@ -250,7 +278,8 @@ groups:
         expect: Raid description changed
       - command: raid reward 1 For testing
         name: Give a single raid point to everyone
-        expect: ^$
+        capture: aopriv
+        expect-captured: <highlight>1<end> point was given to all raiders
       - command: raid spp 1s
         name: Change the interval at which to give raid points to 1s
         expect: Raid seconds per point changed
@@ -263,7 +292,8 @@ groups:
         unexpected: has.*1.*raid point
       - command: raid stop
         name: Stop the raid again
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*has stopped the raid
       - command: points log regolus
         name: Check our dummy's raid point history if everything is there
         expect:
@@ -276,10 +306,12 @@ groups:
           - \+.*80
       - command: points add regolus 100 Nice dummy
         name: Manually add points to our dummy
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*added <highlight>100<end> points to.*Regolus.*Nice dummy
       - command: points rem regolus 100 Just testing
         name: Manually remove points
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*removed <highlight>100<end> points from.*Regolus.*Just testing
       - command: points log regolus
         name: Check our dummy's raid point history again
         expect:
@@ -298,10 +330,12 @@ groups:
         expect: no raid running
       - command: raid start dummy
         name: Start a dummy raid again
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*started a raid.*dummy
       - command: runas regolus raid join
         name: Have our dummy join
-        expect: ^$
+        capture: aopriv
+        expect-captured: Regolus.*has.*joined.*the raid
       - command: raid comments
         name: There should be no raid comments on any raiders
         expect: no notes about any raider
@@ -315,7 +349,8 @@ groups:
           - testing.*<superadmin>
       - command: runas regolus raid leave
         name: Let the dumy leave the raid again
-        expect: ^$
+        capture: aopriv
+        expect-captured: Regolus.*has.*left.*the raid
 
   - name: Raid blocks
     tests:
@@ -327,7 +362,8 @@ groups:
         expect: Regolus.*blocked from.*joining raids
       - command: runas regolus raid join
         name: Try joining the raid with our dummy
-        expect: ^$
+        capture: aotell(Regolus)
+        expect-captured: You are currently blocked from joining raids
       - command: raid
         name: Check the dummy hasn't joined
         expect: Current raid.*Description.*dummy.*Raiders.*0.*Status.*open
@@ -347,14 +383,15 @@ groups:
         name: Clear raid points table
         expect: Query run successfully
       - command: runas regolus raid join
-        name: Have the dummy join the raid
-        expect: ^$
+        capture: aopriv
+        expect-captured: Regolus.*has.*joined.*the raid
       - command: raid
         name: Check we have 1 raider now
         expect: Current raid.*Raiders.*1.*Status.*open
       - command: raid reward 100
         name: Give a reward of 100 points
-        expect: ^$
+        capture: aopriv
+        expect-captured: <highlight>100<end> points were given to all raiders \(<highlight>0<end>\)
       - command: points regolus
         name: Our dummy shouldn't have received any points
         expect: never raided with this bot.
@@ -363,7 +400,8 @@ groups:
         expect: Raidblock removed
       - command: raid reward 99
         name: Give a reward of 99 points
-        expect: ^$
+        capture: aopriv
+        expect-captured: <highlight>99<end> points were given to all raiders \(<highlight>1<end>\)
       - command: points regolus
         name: Our dummy should now get points again
         expect: Regolus.*has.*99.*points
@@ -420,7 +458,8 @@ groups:
         expect: has been added as a member
       - command: points add nadyo 10 tax refund
         name: Add 10 points to that new dummy
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*added <highlight>10<end> points to.*Nadyo.*tax refund
       - command: altsadmin regolus add nadyo
         name: Add an alt to our dummy
         expect: Alt added successfully
@@ -437,7 +476,8 @@ groups:
 
       - command: raid stop
         name: Stop the current test raid
-        expect: ^$
+        capture: aopriv
+        expect-captured: <superadmin>.*has stopped the raid
       - command: members rem nadyo
         name: Demote the second dummy
         expect: has been removed
