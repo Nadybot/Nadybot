@@ -540,6 +540,7 @@ class BotRunner {
 					'migrate-only',
 					'setup-only',
 					'test-run',
+					'test-file:',
 					'vue-dev',
 					'strict',
 					'log-config:',

@@ -338,20 +338,36 @@ class Testing {
 	 * @return list<TestCollection>
 	 */
 	private function getTestsFromDirectories(array $dirs): array {
+		$exclusiveTests = $this->getExclusiveTests();
 		$result = [];
 		foreach ($dirs as $dir) {
-			$tests = $this->getTestsFromDirectory($dir);
+			$tests = $this->getTestsFromDirectory($dir, $exclusiveTests);
 			$result = array_merge($result, $tests);
 		}
 		return $result;
 	}
 
+	/** @return ?list<string> */
+	private function getExclusiveTests(): ?array {
+		$onlyTests = BotRunner::getArguments()->testFiles;
+		if (!isset($onlyTests)) {
+			return null;
+		}
+		$limitTo = [];
+		foreach ($onlyTests as $onlyTest) {
+			$limitTo []= $this->fs->realPath($onlyTest);
+		}
+		return $limitTo;
+	}
+
 	/**
 	 * Parse the given directory for tests and parse and return them
 	 *
+	 * @param ?list<string> $exclusive If set, only return these tests
+	 *
 	 * @return list<TestCollection>
 	 */
-	private function getTestsFromDirectory(string $dir): array {
+	private function getTestsFromDirectory(string $dir, ?array $exclusive): array {
 		/** @var list<TestCollection> */
 		$tests = [];
 		$files = $this->fs->listFiles($dir);
@@ -360,6 +376,9 @@ class Testing {
 				continue;
 			}
 			if (!$this->fs->isFile("{$dir}/{$file}")) {
+				continue;
+			}
+			if (isset($exclusive) && !in_array("{$dir}/{$file}", $exclusive, true)) {
 				continue;
 			}
 			$tests []= $this->parseTestFile("{$dir}/{$file}");
