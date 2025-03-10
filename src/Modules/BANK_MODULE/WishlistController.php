@@ -559,8 +559,9 @@ class WishlistController extends ModuleInstance {
 		CmdContext $context,
 		#[Remove] string $action,
 		#[Str('fulfilment', 'fulfillment', 'fullfilment', 'fullfillment')] string $subAction,
-		int $fulfilmentId,
+		PUuid $fulfilmentId,
 	): void {
+		$fulfilmentId = $fulfilmentId();
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
 		$allChars = [$mainChar, ...$alts];
@@ -713,7 +714,8 @@ class WishlistController extends ModuleInstance {
 		}
 		$this->db->commit();
 		$context->reply(
-			'from your wishlist.'
+			"Denied <highlight>{$entry->amount}x {$entry->item}<end> ".
+			"from {$entry->created_by}'s wishlist."
 		);
 		$newFrom = $this->getActiveFroms();
 		$toDelete = array_diff($oldFrom, $newFrom);
