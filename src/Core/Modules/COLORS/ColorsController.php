@@ -24,6 +24,7 @@ use Nadybot\Core\{
 
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'theme',
 		description: 'View installed color theme',
