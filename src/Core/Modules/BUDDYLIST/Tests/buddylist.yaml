@@ -1,0 +1,43 @@
+---
+name: Buddylist Module
+groups:
+
+  - name: Manipulating the buddy list
+    tests:
+      - command: buddylist
+        name: Get the current buddylist
+        expect: <superadmin>
+      - command: buddylist clear
+        name: Clear the buddylist
+        expect: 'Removed: \(\d+\)'
+      - command: buddylist add Nadybot testing
+        name: Add a dummy bot to our buddylist with a test-reason
+        expect: Nadybot.*added to the buddy list
+      - command: test sleep 3
+        name: Sleep 3 seconds
+        expect: ^$
+      - command: buddylist
+        name: Check that dummy is now on our list
+        expect:
+          - <superadmin>
+          - Nadybot \[testing\]
+      - command: buddylist rem Nadybot testing2
+        name: Remove the dummy bot from our buddylist with a non-existing reason
+        expect: Nadybot.*removed from the buddy list
+      - command: buddylist
+        name: Check that dummy is still on our list
+        expect:
+          - <superadmin>
+          - Nadybot \[testing\]
+      - command: buddylist search ady
+        name: We can even search our buddy list
+        expect:
+          - Buddy list Search
+          - Nadybot \[testing\]
+      - command: buddylist rem Nadybot testing
+        name: Remove the dummy bot from our buddylist with the test reason
+        expect: Nadybot.*removed from the buddy list
+      - command: buddylist
+        name: Check that dummy is no longer on our list
+        expect: <superadmin>
+        unexpected: Nadybot \[testing\]

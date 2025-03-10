@@ -322,6 +322,9 @@ class Testing {
 				if (!count($commands)) {
 					continue;
 				}
+				if (count($reflectedMethod->getAttributes(NCA\Untestable::class)) > 0) {
+					continue;
+				}
 
 				$commandObj = $commands[0]->newInstance();
 				$command = $commandObj->command;

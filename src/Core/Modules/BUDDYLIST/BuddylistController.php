@@ -23,6 +23,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'buddylist',
 		accessLevel: AccessLevel::Admin,
@@ -149,7 +150,10 @@ class BuddylistController extends ModuleInstance {
 	}
 
 	/** Remove all characters from the buddylist. Use with caution. */
-	#[NCA\HandlesCommand('buddylist')]
+	#[
+		NCA\HandlesCommand('buddylist'),
+		NCA\Untestable,
+	]
 	public function buddylistRemAllCommand(
 		CmdContext $context,
 		#[Remove] string $rem,
@@ -233,7 +237,10 @@ class BuddylistController extends ModuleInstance {
 	}
 
 	/** Re-balance the buddies on the workers by removing and re-adding all of them */
-	#[NCA\HandlesCommand('buddylist')]
+	#[
+		NCA\HandlesCommand('buddylist'),
+		NCA\Untestable
+	]
 	public function buddylistRebalanceCommand(
 		CmdContext $context,
 		#[Str('rebalance')] string $action,
