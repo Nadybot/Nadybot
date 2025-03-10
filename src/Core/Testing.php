@@ -341,7 +341,7 @@ class Testing {
 				continue;
 			}
 		}
-		ksort($regexes);
+		ksort($regexes, \SORT_NATURAL);
 		return $regexes;
 	}
 
