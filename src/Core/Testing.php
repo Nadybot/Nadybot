@@ -146,6 +146,24 @@ class Testing {
 	}
 
 	/**
+	 * Check whether a given command handler is in the given list of paths
+	 *
+	 * @param string            $handler The handler as `<relative file>#<line number>`
+	 * @param null|list<string> $paths   The paths to limit to
+	 */
+	private function isHandlerInPaths(string $handler, ?array $paths): bool {
+		if (!isset($paths)) {
+			return true;
+		}
+		foreach ($paths as $path) {
+			if (str_starts_with($handler, $path . '/')) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Get a list of all function handlers that the given tests would not call directly
 	 *
 	 * @param list<TestCollection> $collections List of all test collections
@@ -155,9 +173,26 @@ class Testing {
 	private function getUntestedFunctionHandlers(array $collections): array {
 		$handlers = $this->getFunctionHandlerRegexes();
 		$unfound = [];
+		$testCommands = $this->getSimplifiedTestCommands($collections);
+		$limitingPaths = $this->getUntestedFunctionsLimitingPaths();
 		foreach ($handlers as $handler => $regexps) {
-			foreach ($regexps as $regexp) {
-				if ($this->isRegexpHandled($regexp, $collections)) {
+			if (!$this->isHandlerInPaths($handler, $limitingPaths)) {
+				continue;
+			}
+			foreach ($regexps as $regex) {
+				if (count($matches = Safe::pregMatch('/^(.)(.+?)\\1([a-z]*)$/', $regex->match)) === 0) {
+					continue;
+				}
+				$mask = $matches[2];
+				if (count($matches = Safe::pregMatch('/^\^?([a-z0-9_-]+)/', $mask)) === 0) {
+					$cmdList = array_merge(...array_values($testCommands));
+				} else {
+					$cmdList = $testCommands[$matches[1]] ?? null;
+				}
+				if (!isset($cmdList)) {
+					continue;
+				}
+				if ($this->isRegexpHandled($regex, $cmdList)) {
 					continue 2;
 				}
 			}
@@ -167,11 +202,59 @@ class Testing {
 	}
 
 	/**
+	 * Get a list of paths to modules for which we limit testing to
+	 *
+	 * @return null|list<string>
+	 */
+	private function getUntestedFunctionsLimitingPaths(): ?array {
+		$files = BotRunner::getArguments()->testFiles;
+		if (!isset($files)) {
+			return null;
+		}
+		$baseDir = BotRunner::getBasedir();
+		$result = [];
+		foreach ($files as $file) {
+			$fullPath = $this->fs->realPath($file);
+			$fullPath = substr($fullPath, strlen($baseDir) + 1);
+			$modulePaths = [...$this->config->paths->modules, 'src/Core/Modules'];
+			foreach ($modulePaths as $modulePath) {
+				$fullModulePath = $this->fs->realPath($modulePath);
+				if (!$this->fs->exists($fullModulePath)) {
+					continue;
+				}
+				$fullModulePath = substr($fullModulePath, strlen($baseDir) + 1);
+				if (str_starts_with($fullPath, $fullModulePath)) {
+					$relPath = substr($fullPath, strlen($fullModulePath) + 1);
+					$result []= $fullModulePath . '/' . explode('/', $relPath)[0];
+				}
+			}
+		}
+		return $result;
+	}
+
+	/**
 	 * Check if a given regexp is handled by the list of `TestCollection`s
 	 *
-	 * @param list<TestCollection> $collections List of all test collections
+	 * @param list<string> $testCommands All ran commands grouped by main command
 	 */
-	private function isRegexpHandled(CommandRegexp $regexp, array $collections): bool {
+	private function isRegexpHandled(CommandRegexp $regexp, array $testCommands): bool {
+		foreach ($testCommands as $testCommand) {
+			if (Safe::pregMatches($regexp->match, $testCommand)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Render the placeholders of the test-commands, and group them by command
+	 *
+	 * @param list<TestCollection> $collections
+	 *
+	 * @return array<string,list<string>>
+	 */
+	private function getSimplifiedTestCommands(array $collections): array {
+		$result = [];
 		foreach ($collections as $collection) {
 			foreach ($collection->groups as $group) {
 				foreach ($group->tests as $test) {
@@ -184,23 +267,23 @@ class Testing {
 					$command = str_replace('{field}', 'AEG 1', $command);
 					$command = str_replace(['{def_org}', '{org}'], 'Team Rainbow', $command);
 					$command = str_replace('{attacker}', 'Regolus', $command);
-					if (Safe::pregMatches($regexp->match, $command)) {
-						return true;
-					}
-					$command = Safe::pregReplace('/^runas [a-z]{4,12} /is', '', $command);
-					if (Safe::pregMatches($regexp->match, $command)) {
-						return true;
-					}
+					$mainCommand = explode(' ', $command)[0];
+					$result[$mainCommand] ??= [];
+					$result[$mainCommand] []= $command;
+					$command = Safe::pregReplace('/^runas [a-z0-9-]{4,12} /is', '', $command);
+					$mainCommand = explode(' ', $command)[0];
+					$result[$mainCommand] ??= [];
+					$result[$mainCommand] []= $command;
 				}
 			}
 		}
-		return false;
+		return $result;
 	}
 
 	/**
-	 * Get a alist of all function handlers and their regexes
+	 * Get a list of all function handlers and their regexps
 	 *
-	 * @return array<string,list<CommandRegexp>> Regexes as `["<class>.<method>:line" => 'Regexp']`
+	 * @return array<string,list<CommandRegexp>> Regexps as `["<class>.<method>:line" => 'Regexp']`
 	 */
 	private function getFunctionHandlerRegexes(): array {
 		// get all command handlers
@@ -351,7 +434,7 @@ class Testing {
 	}
 
 	/**
-	 * Get the matching string from a given regular exprfession for a given text
+	 * Get the matching string from a given regular expression for a given text
 	 *
 	 * @param string $expect The regular expression to use
 	 * @param string $output The text to run it on

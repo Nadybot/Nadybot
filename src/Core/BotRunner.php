@@ -583,6 +583,8 @@ class BotRunner {
 			"  --setup-only          Stop the bot after the setup handlers have been called\n".
 			"  --test-run            Don't run the bot normally. Instead, run a series of tests,\n".
 			"                        and terminate with an appropriate exit code.\n".
+			"  --test-file=<file>    Only run the given test file. Can be given more than once.\n".
+			"                        and terminate with an appropriate exit code.\n".
 			"  --vue-dev             Don't serve web-files locally, connect to the\n".
 			"                        vite development server for hot reloading.\n".
 			"  --log-config=<file>   Use an alternative config file for the logger. The default\n".

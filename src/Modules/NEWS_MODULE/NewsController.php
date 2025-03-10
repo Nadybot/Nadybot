@@ -207,6 +207,7 @@ class NewsController extends ModuleInstance {
 	public function hasRecentNews(string $player): bool {
 		$thirtyDays = time() - (86_400 * 30);
 		$news = $this->getNewsItems($player);
+
 		return $news->where('confirmed', false)
 			->contains('time', '>', $thirtyDays);
 	}

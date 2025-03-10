@@ -17,6 +17,9 @@ groups:
         name: Clear table tracking_org_<myname>
         expect: Query run successfully
 
+      - command: whois Regolus
+        name: Cache dummy whois information
+        expect: Detailed Info for Regolus
       - command: track
         name: Our current tracking list is empty
         expect: No characters are on the track list
