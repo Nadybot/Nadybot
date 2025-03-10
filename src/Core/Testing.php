@@ -260,6 +260,7 @@ class Testing {
 				foreach ($group->tests as $test) {
 					$command = Safe::pregReplace('/^!/', '', $test->command);
 					$command = $this->replacePlaceholders($command, [], true);
+					$command = str_replace(['{filename}'], 'test.log', $command);
 					$command = str_replace(['{org_member}', '{attacker}'], 'Abcde', $command);
 					$command = str_replace(['{id}', '{quote}'], '07067c15-3a1f-4a3f-9e96-3fdb7d500903', $command);
 					$command = str_replace(['{org_id}', '{uid}', '{points}'], '12345', $command);

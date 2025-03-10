@@ -7,7 +7,7 @@ groups:
       - command: "settings save default_tell_color #000000"
         name: Change a setting
         expect: has been saved
-      - command: Profile save xxx_test
+      - command: profile save xxx_test
         name: Save current settings as profile
         expect: has been saved
       - command: profile

@@ -26,7 +26,7 @@ class Blob implements \Stringable {
 		?LoggerInterface $logger=null,
 		?SettingManager $settingManager=null,
 	) {
-		$this->logger = $logger ??= new LoggerWrapper('Core\\Blob');
+		$this->logger = $logger ??= new LoggerWrapper('Core/Blob');
 		$this->settingManager = $settingManager ??= Registry::getInstance(SettingManager::class);
 	}
 

@@ -117,7 +117,7 @@ class LogsController extends ModuleInstance {
 		foreach ($files as $file) {
 			$fileLink  = Text::makeChatcmd($file, "/tell <myname> logs {$file}");
 			$errorLink = Text::makeChatcmd('ERROR', "/tell <myname> logs {$file} ERROR");
-			$chatLink  = Text::makeChatcmd('CHAT', "/tell <myname> logs {$file} CHAT");
+			$chatLink  = Text::makeChatcmd('CHAT', "/tell <myname> logs {$file} NOTICE");
 			$blob .= "{$fileLink} [{$errorLink}] [{$chatLink}]\n";
 		}
 
@@ -260,7 +260,7 @@ class LogsController extends ModuleInstance {
 		$numChanged = count($names);
 		$blob = '<header2>Loggers changed<end>';
 		foreach ($names as $name => $changes) {
-			$blob .= "\n<tab>- {$name}: <highlight>{$changes[0]} -> {$changes[1]}<end>";
+			$blob .= "\n<tab>- {$name}: <highlight>{$changes[0]} -&gt; {$changes[1]}<end>";
 		}
 		$msg = 'Changed ' . Text::makeBlob(
 			"{$numChanged} " . Text::pluralize('logger', $numChanged),
@@ -298,7 +298,7 @@ class LogsController extends ModuleInstance {
 		$numChanged = count($names);
 		$blob = '<header2>Loggers changed<end>';
 		foreach ($names as $name => $changes) {
-			$blob .= "\n<tab>- {$name}: <highlight>{$changes[0]} -> {$changes[1]}<end>";
+			$blob .= "\n<tab>- {$name}: <highlight>{$changes[0]} -&gt; {$changes[1]}<end>";
 		}
 		$msg = Text::makeBlob(
 			"{$numChanged} " . Text::pluralize('logger', $numChanged),
@@ -312,6 +312,7 @@ class LogsController extends ModuleInstance {
 	/** Debug a single command execution and upload the logs for inspection */
 	#[NCA\HandlesCommand('debug')]
 	#[NCA\Help\Example('<symbol>debug whois nady')]
+	#[NCA\Untestable]
 	public function debugCommand(
 		CmdContext $context,
 		string $command

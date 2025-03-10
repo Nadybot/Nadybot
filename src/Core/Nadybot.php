@@ -682,6 +682,15 @@ class Nadybot {
 			worker: $worker,
 			priority: $priority,
 		);
+		$charName = $this->getName($character, true);
+		if (isset($charName)) {
+			$event = new SendMsgEvent(
+				channel: $charName,
+				message: $message,
+				sender: $this->config->main->character,
+			);
+			$this->eventManager->dispatch($event);
+		}
 		return true;
 	}
 
@@ -752,12 +761,6 @@ class Nadybot {
 				);
 			}
 		});
-		$event = new SendMsgEvent(
-			channel: $character,
-			message: $message,
-			sender: $this->config->main->character,
-		);
-		$this->eventManager->dispatch($event);
 		$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
 		$rMessage->prependPath(new Source(Source::TELL, $this->config->main->character));
 		$sender []= async($this->messageHub->handle(...), $rMessage);

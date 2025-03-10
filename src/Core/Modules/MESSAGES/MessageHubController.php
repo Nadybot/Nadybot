@@ -752,6 +752,7 @@ class MessageHubController extends ModuleInstance {
 
 	/** Remove all color definitions for tags and texts */
 	#[NCA\HandlesCommand('route')]
+	#[NCA\Untestable]
 	public function routeTagColorRemAllCommand(
 		CmdContext $context,
 		#[Str('color')] string $action,
@@ -950,6 +951,7 @@ class MessageHubController extends ModuleInstance {
 
 	/** Reset the rendering of all hops to their default */
 	#[NCA\HandlesCommand('route')]
+	#[NCA\Untestable]
 	public function routeFormatRemAllCommand(
 		CmdContext $context,
 		#[Str('format')] string $action,
@@ -1006,7 +1008,10 @@ class MessageHubController extends ModuleInstance {
 	}
 
 	/** Remove all routes. Do not use unless you know what you are doing */
-	#[NCA\HandlesCommand('route')]
+	#[
+		NCA\HandlesCommand('route'),
+		NCA\Untestable,
+	]
 	public function routeRemAllCommand(
 		CmdContext $context,
 		#[Str('remall')] string $action

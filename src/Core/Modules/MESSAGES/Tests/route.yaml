@@ -122,3 +122,39 @@ groups:
       - command: route format display aopriv %s
         name: Undo that stupid setting
         expect: Display format saved
+      - command: route format display aopriv PRIV:%s
+        name: Do the stupid change again
+        expect: Display format saved
+      - command: route format
+        name: Check format
+        expect: PRIV:%s
+      - command: route format rem aopriv
+        name: Remove any custom format from the hop
+        expect: Format cleared
+      - command: route format rem aopriv
+        name: Clearing a second time won't work
+        expect: No format defined
+      - command: route format
+        name: Check the format is gone
+        unexpected: PRIV:%s
+
+  - name: Route Mute Command
+    tests:
+      - command: route list
+        name: Get a list of all routes
+        expect: route mute (?<route_id>[a-f0-9-]{36})
+      - command: route mute {route_id}
+        name: Choose a mute duration
+        expect: Choose how long to mute
+      - command: route mute {route_id} 2s
+        name: Mute the route for 2s
+        expect: Route.*muted.*for.*2s
+      - command: route list
+        name: Get a list of all routes
+        expect: route mute {route_id} off.*muted for
+      - command: test sleep 4
+        name: Sleep for 4s
+        expect: ^$
+      - command: route list
+        name: Get a list of all routes
+        unexpected: route mute {route_id} off.*muted for

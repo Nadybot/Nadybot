@@ -61,9 +61,30 @@ groups:
     tests:
       - command: logs
         name: List log files in our system
-        expect: Log Files \(\d+\)
+        expect:
+          - Log Files \(\d+\)
+          - logs (?<filename>[^ ]+) NOTICE
+      - command: logs {filename} NOTICE
+        name: Look at one of the log files
+        expect: 'File is empty or nothing matched your search criteria|Search:'
 
-  - name: Showcommand
+  - name: Loglevels
+    tests:
+      - command: loglevel
+        name: Show all currently configured loggers
+        expect: SYSTEM/SystemController
+      - command: loglevel SYSTEM/SystemController WARNING
+        name: Change the log level of one of the loggers
+        expect:
+          - Changed.*1 logger.*matching
+          - NOTICE -&gt; WARNING
+      - command: loglevel reset
+        name: Change the log level back again
+        expect:
+          - Changed.*1 logger
+          - WARNING -&gt; NOTICE
+
+  - name: Misc
     tests:
       - command: showcommand rikoltanto checkaccess rikoltanto
         name: Show a command output to a known character
@@ -71,3 +92,29 @@ groups:
       - command: showcommand B1aerbel checkaccess rikoltanto
         name: Show a command output to a non-existing character
         expect: does not exist
+
+      - command: runas rikoltanto checkaccess
+        name: Run a command as another user
+        expect: Access level.*is .*all
+      - command: whois Rikoltanto
+        name: Cache someone's user data
+        expect: Detailed Info for Rikoltanto
+        unexpected: "Level: <highlight>999<end>"
+      - command: executesql UPDATE players SET level=999 WHERE name='Rikoltanto'
+        name: Change the dummy's level to 999
+        expect: Query run successfully
+      - command: whois Rikoltanto
+        name: Check broken user data
+        expect: "Level: <highlight>999<end>"
+      - command: executesql DELETE FROM players WHERE name='Rikoltanto'
+        name: Delete the broken cache
+        expect: Query run successfully
+      - command: whois Rikoltanto
+        name: Check the information is good again
+        expect: Detailed Info for Rikoltanto
+        unexpected: "Level: <highlight>999<end>"
+
+      - command: sendtell Rikoltanto Howdyyy
+        name: Let the bot send a tell to someone
+        capture: aotell(Rikoltanto)
+        expect-captured: Howdyyy

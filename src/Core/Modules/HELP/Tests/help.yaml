@@ -41,3 +41,29 @@ groups:
       - command: adminhelp
         name: Introduction about bot administration
         expect: Nadybot WIKI
+
+      - command: help syntax
+        name: Get an explanation, how to read the help pages
+        expect:
+          - Syntax explanation
+          - one\|two\|three
+          - \[lorem\]
+          - "&lt;arg&gt;"
+
+      - command: help modules
+        name: Get a list of all modules with their short description
+        expect:
+          - <header2>HELP<end>
+          -  The help module provides the generic
+
+      - command: help disable legend
+        name: Disable the footnote in every help page with a like to !help syntax
+        expect: Showing the syntax explanation is now.*off
+
+      - command: help help
+        name: Check the footnote is gone
+        unexpected: See.*help syntax.*for an explanation of the command syntax
+
+      - command: help enable legend
+        name: Re-enable the footnote in every help page with a like to !help syntax
+        expect: Showing the syntax explanation is now.*on
