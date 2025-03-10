@@ -40,6 +40,7 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'wb',
 		accessLevel: AccessLevel::Guest,
