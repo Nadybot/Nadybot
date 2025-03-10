@@ -24,6 +24,27 @@ groups:
         name: Lift the ban
         expect: You have unbanned
 
+      - command: ban Rikoltanto for being a dummy
+        name: Permanently ban someone with a reason
+        expect: You have permanently banned <highlight>Rikoltanto<end> from this bot
+        capture: aotell(Rikoltanto)
+        expect-captured: You have been permanently banned from this bot.*being a dummy
+      - command: runas rikoltanto checkaccess
+        name: Check that we are indeed banned
+        expect: You are.*banned.*on this bot
+      - command: unban Rikoltanto
+        name: Lift the ban
+        expect: You have unbanned
+      - command: ban Rikoltanto 1d For being superdummy
+        name: Temporarily ban someone with a reason
+        expect: You have banned <highlight>Rikoltanto<end> from this bot for 1 day
+      - command: runas rikoltanto checkaccess
+        name: Check that we are indeed banned
+        expect: You are.*banned.*on this bot
+      - command: unban Rikoltanto
+        name: Lift the ban
+        expect: You have unbanned
+
       - command: orgban add 874502 for being here to be banned
         name: Ban a whole org
         expect: Added.*to the banlist
@@ -38,6 +59,19 @@ groups:
         name: Check that their leader is indeed banned
         expect: Phrosthax's org is.*banned.*on this bot
 
+      - command: orgban rem 874502
+        name: Lift the org's ban again
+        expect: Removed.*from the banlist
+      - command: orgban
+        name: Check that the org-banlist is empty again
+        expect: No orgs are banned at the moment
+
+      - command: orgban add 874502
+        name: Ban a whole org without reason
+        expect: Added.*to the banlist
+      - command: orgban
+        name: Check the org-banlist
+        expect: Banned orgs \(1\)
       - command: orgban rem 874502
         name: Lift the org's ban again
         expect: Removed.*from the banlist
@@ -60,3 +94,25 @@ groups:
       - command: unban Rikoltanto
         name: Finally lift ban again
         expect: You have unbanned
+
+      - command: altsadmin Rikoltanto add Nukeat5
+        name: Alt-couple 2 dummies
+        expect: Alt added successfully
+      - command: ban Rikoltanto
+        name: Permanently ban dummy 1
+        expect: You have permanently banned
+      - command: ban Nukeat5
+        name: And dummy 2
+        expect: You have permanently banned
+      - command: unban all Rikoltanto
+        name: Unban the coupled characters
+        expect: You have unbanned.*and all their alts
+      - command: runas rikoltanto checkaccess
+        name: Check that dummy 1 is not banned
+        unexpected: You are.*banned.*on this bot
+      - command: runas nukeat5 checkaccess
+        name: Check that dummy 2 is not banned
+        unexpected: You are.*banned.*on this bot
+      - command: altsadmin Rikoltanto rem Nukeat5
+        name: Uncouple the 2 dummies
+        expect: Nukeat5.*is no longer.*Rikoltanto.*alt

@@ -19,7 +19,9 @@ groups:
 
       - command: whois Regolus
         name: Cache dummy whois information
-        expect: Detailed Info for Regolus
+        expect:
+          - Detailed Info for Regolus
+          - 'Character ID: <highlight>(?<uid>\d+)<end>'
       - command: track
         name: Our current tracking list is empty
         expect: No characters are on the track list
@@ -46,13 +48,19 @@ groups:
         name: Tracking online list should now show the dummy as online as well
         expect: Regolus
       - command: track hide Regolus
-        name: We can hide the dummy from the tracking onlne list
+        name: We can hide the dummy from the tracking online list
+        expect: is no longer shown
+      - command: track hide {uid}
+        name: This also works with UIDs instead of names
         expect: is no longer shown
       - command: track online
         name: Tracking online list should now be empty
         expect: No tracked players are currently online
       - command: track unhide Regolus
         name: Stop hiding the dummy
+        expect: is now shown
+      - command: track unhide {uid}
+        name: Stop hiding the dummy's UID should do the same
         expect: is now shown
       - command: track online
         name: Tracking online list should now show the dummy as online again
@@ -80,3 +88,30 @@ groups:
       - command: track rem Regolus
         name: Removing the dummy a second time gives an error
         expect: is not on the track list
+      - command: track rem {uid}
+        name: Stop tracking a dummy user by their UID will now also give errors
+        expect: is not on the track list
+        
+  - name: Org tracking functions
+    tests:
+      - command: track orgs
+        name: There are currently no orgs being tracked
+        expect: There are currently no orgs being tracked
+      - command: track addorg Team Rainbow
+        name: Add an org to our org-tracker list
+        expect:
+          - Org Search Results
+          - Team Rainbow \(<clan>Clan<end>\), ID (?<org_id>\d+)
+      - command: track addorg {org_id}
+        name: Add them by their org ID
+        expect:
+          - Adding.*Team Rainbow.* to the tracker
+          - Added all members of.*Team Rainbow.*to the roster
+      - command: track orgs
+        name: The tracked org should now show up in our list
+        expect:
+          - Orgs being tracked
+          - Team Rainbow
+      - command: track remorg {org_id}
+        name: Remove the tracked org again
+        expect: The org.*Team Rainbow.*is no longer being tracked

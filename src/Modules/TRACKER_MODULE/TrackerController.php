@@ -43,6 +43,7 @@ use Nadybot\Modules\{
 	PVP_MODULE\Event\TowerAttackEvent,
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use Throwable;
 
 /**
@@ -1261,6 +1262,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 						'name' => $member->name,
 					];
 					$toInit []= [
+						'id' => Uuid::uuid7(),
 						'uid' => $member->charid,
 						'dt' => time(),
 						'event' => 'logoff',
