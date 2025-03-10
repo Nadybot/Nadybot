@@ -8,7 +8,7 @@ groups:
         name: Get whois-information about us
         expect: Detailed Info for
       - command: whois b4erbel
-        name: Non-exoistent characters give errors
+        name: Non-existent characters give errors
         expect: Character.*does not exist
       - command: whois nady 5
         name: We can get information about chars on RK5
