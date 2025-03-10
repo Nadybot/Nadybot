@@ -61,6 +61,9 @@ groups:
         expect-captured: Regolus.*was.*removed.*from the raid.
       - command: members rem regolus
         expect: has been removed
+      - command: raid stop
+        capture: aopriv
+        expect-captured: <superadmin>.*has stopped the raid
 
   - name: Leader commands
     tests:
