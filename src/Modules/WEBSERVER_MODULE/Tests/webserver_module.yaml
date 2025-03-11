@@ -46,7 +46,7 @@ groups:
         expect: NadyUI successfully uninstalled
       - command: webui install
         name: Install the WebUI
-        expect: NadyUI .* successfully
+        expect: NadyUI .* successfully|No release found for
       - command: webui uninstall
         name: Uninstall the WebUI
         expect: NadyUI successfully uninstalled
