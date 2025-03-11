@@ -68,7 +68,7 @@ jobs:
 
       - name: Fetch config
         run: |
-          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://nadyci.nadybot.org/config&db=${{ matrix.db }}" -o conf/config.toml
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://nadyci.nadybot.org/config?db=${{ matrix.db }}" -o conf/config.toml
 
       - name: Run tests
         run: |
