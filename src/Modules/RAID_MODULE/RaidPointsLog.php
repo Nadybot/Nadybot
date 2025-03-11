@@ -2,12 +2,14 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes\DB\Table;
-use Nadybot\Core\DBTable;
-use Ramsey\Uuid\UuidInterface;
+use Nadybot\Core\{Attributes as NCA, DBTable};
+use Ramsey\Uuid\{Uuid, UuidInterface};
 
-#[Table(name: 'raid_points_log')]
+#[NCA\DB\Table(name: 'raid_points_log')]
 class RaidPointsLog extends DBTable {
+	/** The internal ID of this entry */
+	#[NCA\DB\PK] public UuidInterface $id;
+
 	/**
 	 * @param string         $username   Name of the main character for this log entry
 	 * @param int            $delta      How many points were given or taken
@@ -17,6 +19,7 @@ class RaidPointsLog extends DBTable {
 	 * @param string         $reason     Why were points given or taken?
 	 * @param bool           $ticker     Are these points for simple raid participation?
 	 * @param ?UuidInterface $raid_id    If points were given during a raid, which raid was it?
+	 * @param ?UuidInterface $id         The internal ID of this entry, or `null` for auto generation
 	 */
 	public function __construct(
 		public string $username,
@@ -27,6 +30,8 @@ class RaidPointsLog extends DBTable {
 		public string $reason,
 		public bool $ticker,
 		public ?UuidInterface $raid_id,
+		?UuidInterface $id=null,
 	) {
+		$this->id = $id ?? Uuid::uuid7();
 	}
 }

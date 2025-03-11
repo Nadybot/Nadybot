@@ -76,3 +76,15 @@ groups:
           - Melancholic Brain Spirit of Offence
           - Miserable Spirit of Clear Thought
           - Miserable Essence Brain Spirit
+          - ^(?<content>.+)$
+      - command: spirits head 110-125
+        name: Use the other syntax
+        expect: '{content}'
+      - command: spirits head 200
+        name: Get all QL 200 spirits for the head
+        expect:
+          - Rejected Spirit of Clear Thought
+          - ^(?<content>.+)$
+      - command: spirits 200 head
+        name: And now with the other syntax
+        expect: '{content}'

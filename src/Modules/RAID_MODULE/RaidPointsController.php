@@ -867,7 +867,7 @@ class RaidPointsController extends ModuleInstance {
 		$alts = $this->altsController->getAltsOf($main);
 		return $this->db->table(RaidPointsLog::getTable())
 			->whereIn('username', array_merge([$sender], $alts))
-			->orderByDesc('time')
+			->orderByDesc('id')
 			->limit(50)
 			->asObjArr(RaidPointsLog::class);
 	}
@@ -881,7 +881,7 @@ class RaidPointsController extends ModuleInstance {
 	protected function getRaidpointLogsForChar(string $sender): array {
 		return $this->db->table(RaidPointsLog::getTable())
 			->where('username', $sender)
-			->orderByDesc('time')
+			->orderByDesc('id')
 			->limit(50)
 			->asObjArr(RaidPointsLog::class);
 	}

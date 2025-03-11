@@ -25,6 +25,9 @@ groups:
           - Timers \(\d+\)
           - <superadmin>
           - (?<timer_id>[0-9a-f-]{36})
+      - command: timers view <superadmin>
+        name: We can also get timer details by using the timer's name
+        expect: Timer <highlight><superadmin><end> has .* left
       - command: test sleep 5
         name: Wait for 5s
         expect: ^$
@@ -99,6 +102,13 @@ groups:
       - command: stopwatch lap yummy
         name: Add a lap with name
         expect: Lap.*added
+      - command: stopwatch show
+        name: Look at the stopwatch
+        expect:
+          - Your stopwatch times
+          - Start
+          - Lap
+          - yummy
       - command: test sleep 2
         name: Wait for 2s
         expect: ^$

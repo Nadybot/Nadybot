@@ -51,6 +51,16 @@ groups:
           - Is your favorite color
           - till this poll closes
           - 'Blue.*Votes: 0.*0%.*Yellow.*Votes: 0.*100%.*Pink.*Votes: 1'
+      - command: vote rem {poll_id}
+        name: We can also remove our own vote
+        expect: Your vote .* has been removed
+      - command: poll view {poll_id}
+        name: The poll should no longer show out custom answer
+        expect:
+          - Is your favorite color
+          - till this poll closes
+          - 'Blue.*Votes: 0.*0%.*Yellow.*Votes: 0'
+        unexpected: Pink.*Votes
       - command: poll end {poll_id}
         name: Let's end the poll
         expect: Vote duration reduced

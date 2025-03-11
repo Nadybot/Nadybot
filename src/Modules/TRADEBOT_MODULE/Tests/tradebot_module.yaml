@@ -20,6 +20,11 @@ groups:
       - command: tradecolor
         name: We don't have any colors defined
         expect: No colors have been defined yet
+      - command: 'tradecolor pick Darknet *'
+        name: Get a list of pre-defined colours to assign to the given tag
+        expect:
+          - Pick a color for Darknet
+          - tradecolor set .*Pick this one
       - command: 'tradecolor set Darknet * #DEADFF'
         name: Set colour for all Darknet tags to yellow
         expect: Color.*set to

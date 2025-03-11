@@ -114,6 +114,19 @@ groups:
       - command: relay config test eventset sync(cd) O
         name: Only turn on outbound countdown-sync
         expect: Relay events set
+      - command: relay
+        name: Look at our list of relays
+        expect:
+          - test
+          - relay guestmode (?<relay_id>[0-9a-f-]{36}) on
+      - command: relay guestmode {relay_id} on
+        name: Turn on the relay's guest mode, giving everyone in the alliance guest access
+        expect: Treating online players from relay .*test.* as guests is now .*on
+      - command: relay
+        name: Look at our list of relays again, and see it's enabled
+        expect:
+          - test
+          - relay guestmode (?<relay_id>[0-9a-f-]{36}) off
       - command: relay del error
         name: We cannot delete a non-existing relay
         expect: Relay.*not found

@@ -157,6 +157,9 @@ groups:
       - command: points regolus
         name: Check the dummy got points for it
         expect: '181.*raid points'
+      - command: runas regolus points
+        name: Check from the dummy POV
+        expect: '181.*raid points'
       - command: raid punish 101
         name: Punish everyone in the raid for the 101 points we've given before
         capture: aopriv
@@ -168,6 +171,12 @@ groups:
       - command: points regolus
         name: Check the dummy got no points anymore
         expect: '0.*raid points'
+      - command: runas Regolus points log
+        name: Look at the Dummy's points log
+        expect: <red>80<end>.*The Beast.*<red>101<end>.*penalty.*<green>80<end>.*The Beast.*<green>101<end>.*reward
+      - command: points Regolus log
+        name: Look at the Dummy's points log from an admin perspective
+        expect: <red>80<end>.*The Beast.*<red>101<end>.*penalty.*<green>80<end>.*The Beast.*<green>101<end>.*reward
       - command: bid start piece of junk
         name: Auction off an item
         capture: aopriv
@@ -215,6 +224,14 @@ groups:
       - command: raid points regolus
         name: Check the dummy got back their point
         expect: '1.*raid points'
+      - command: bid start Deadbeef
+        name: Auction off a dummy item
+        capture: aopriv
+        expect-captured: <superadmin>.*started an auction for <highlight>Deadbeef<end>
+      - command: bid cancel 
+        name: Cancel that auction
+        capture: aopriv
+        expect-captured: The auction was cancelled
       - command: raid stop
         name: Stop the raid
         capture: aopriv
@@ -308,7 +325,7 @@ groups:
         name: Manually add points to our dummy
         capture: aopriv
         expect-captured: <superadmin>.*added <highlight>100<end> points to.*Regolus.*Nice dummy
-      - command: points rem regolus 100 Just testing
+      - command: points rem 100 regolus Just testing
         name: Manually remove points
         capture: aopriv
         expect-captured: <superadmin>.*removed <highlight>100<end> points from.*Regolus.*Just testing
@@ -347,6 +364,9 @@ groups:
         expect:
           - Regolus
           - testing.*<superadmin>
+      - command: raid comment search Regolus
+        name: This raid comment should show up when explicitly searched
+        expect: testing.*<superadmin>
       - command: runas regolus raid leave
         name: Let the dumy leave the raid again
         capture: aopriv
@@ -364,6 +384,11 @@ groups:
         name: Try joining the raid with our dummy
         capture: aotell(Regolus)
         expect-captured: You are currently blocked from joining raids
+      - command: raidblock Regolus
+        name: Mods can check someone's raid block
+        expect:
+          - Active blocks for Regolus
+          - '<highlight>joining raids<end>: until.*Unit testing'
       - command: raid
         name: Check the dummy hasn't joined
         expect: Current raid.*Description.*dummy.*Raiders.*0.*Status.*open
@@ -450,13 +475,38 @@ groups:
         name: Check the new access level
         expect: Access level.*member
         unexpected: leader
+      - command: raidadmin add Regolus 3
+        name: Make our dummy a veteran raid admin
+        expect: Regolus.*has been.*promoted.*to Veteran Raid Admin
+      - command: checkaccess regolus
+        name: Check the new access level
+        expect: Access level.*veteran raid admin
+      - command: raidadmin add Regolus 2
+        name: Demote to Raid Admin
+        expect: Regolus.*has been.*demoted.*to Raid Admin
+      - command: checkaccess regolus
+        name: Check the new access level
+        expect: Access level.*raid admin
+        unexpected: veteran
+      - command: leaderlist
+        name: Check the list of raid leaders
+        expect:
+          - 'Regolus .*Raids started: 0 / 0'
+          - Raid leaders/admins
+      - command: raidadmin rem Regolus
+        name: Demote from all raid admin ranks
+        expect: Regolus.*has been removed
+      - command: checkaccess regolus
+        name: Check the new access level
+        expect: Access level.*member
+        unexpected: leader
 
   - name: Moving points if main changes/merges
     tests:
       - command: members add nadyo
         name: Add a new dummy member to the bot
         expect: has been added as a member
-      - command: points add nadyo 10 tax refund
+      - command: points add 10 nadyo tax refund
         name: Add 10 points to that new dummy
         capture: aopriv
         expect-captured: <superadmin>.*added <highlight>10<end> points to.*Nadyo.*tax refund
@@ -511,3 +561,68 @@ groups:
       - command: executesql DELETE FROM raid_rank_<myname>
         name: Clear raid points table
         expect: Query run successfully
+
+  - name: Manipulating raids
+    tests:
+      - command: raid start Maxi limit 1
+        name: Start a raid with a maximum of 1 allowed participant
+        capture: aopriv
+        expect-captured: <superadmin>.*started a raid.*Maxi
+      - command: members add regolus
+        name: Add Dummy 1 as member of the bot
+        expect: has been added as a member
+      - command: test join regolus
+        name: Let Dummy 1 join our private channel
+        capture: aopriv
+        expect-captured: Regolus.*joined
+      - command: runas regolus raid join
+        name: Let Dummy 1 join our raid
+        capture: aopriv
+        expect-captured: Regolus.* has .*joined.* the raid \(1/1 slots\)
+      - command: members add rikoltanto
+        name: Add Dummy 2 as member of the bot
+        expect: has been added as a member
+      - command: test join rikoltanto
+        name: Let Dummy 2 join our private channel
+        capture: aopriv
+        expect-captured: Rikoltanto.*joined
+      - command: runas rikoltanto raid join
+        name: Try with Dummy 2 to join our raid
+        capture: aotell(Rikoltanto)
+        expect-captured: The raid is currently .*full.* with 1/1 players
+      - command: raid limit 2
+        name: Increase the participant limit to 2
+        expect: Maximum raid members set.*2
+      - command: runas rikoltanto raid join
+        name: Try joining again with Dummy 2
+        capture: aotell(Rikoltanto)
+        expect-captured: You have .*joined.* the raid
+      - command: raid list
+        name: Get a list of all raid members
+        expect:
+          - Regolus
+          - Rikoltanto
+      - command: raid rem Rikoltanto
+        name: Forcefully remove Dummy 2 from the Raid
+        capture: aopriv
+        expect-captured: Rikoltanto.* was .*removed.* from the raid \(1/2 slots\)
+      - command: raid limit 1
+        name: Decrease the participant limit to 1 again
+        expect: Maximum raid members set.*1
+      - command: raid add Rikoltanto
+        name: Forcefully add Dummy 2 from the Raid
+        capture: aopriv
+        expect-captured: Rikoltanto.* was .*added.* to the raid.*\(2/1 slots\)
+      - command: raid announce 1h
+        name: Reduce the raid announcement interval to 1h
+        expect: Raid announcement interval changed to <highlight>1h<end>
+      - command: raid dual
+        name: Check if anyone is dual-logged
+        expect: No one is currently dual-logged
+      - command: raid stop
+        name: Stop the current test raid
+        capture: aopriv
+        expect-captured: <superadmin>.*has stopped the raid
+      - command: members rem regolus
+        name: Demote Dummy 1
+        expect: has been removed

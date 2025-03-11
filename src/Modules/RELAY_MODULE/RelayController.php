@@ -868,6 +868,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	 * the other relays allow receiving this event.
 	 */
 	#[NCA\HandlesCommand('sync')]
+	#[NCA\Untestable]
 	public function syncCommand(CmdContext $context, string $command): void {
 		$context->message = $command;
 		$context->forceSync = true;

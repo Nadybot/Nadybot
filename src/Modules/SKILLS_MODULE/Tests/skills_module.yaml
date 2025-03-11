@@ -155,6 +155,10 @@ groups:
         expect:
           - <highlight>1221<end> Fling Shot.*<highlight>6<end>s
           - AGG <highlight>1170<end>
+          - ^(?<content>.+)$
+      - command: weapon 280727 300
+        name: This also works giving high id and QL
+        expect: '{content}'
 
       - command: perks
         name: Without arguments, !perks shows all the perks of the caller
@@ -173,6 +177,10 @@ groups:
           - Secondary Genome 10
           - Enhance DNA 10
           - Freak Strength 3
+          - ^(?<content>.+)$
+      - command: perks 220 enf str
+        name: This also wrks with level and profession reversed
+        expect: '{content}'
       - command: perks enf 220 strfew
         name: Look for unknown skills to buff
         expect: No skill.*found
