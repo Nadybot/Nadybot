@@ -49,3 +49,159 @@ groups:
         expect: get this party
       - command: beer 99999
         expect: There is no item with that id
+
+  - name: Death
+    tests:
+      - command: death
+        name: Unregistered characters won't see death counts
+        expect: character isn't registered
+      - command: death register
+        name: Let's register our character
+        expect: Thank you for registering
+      - command: death
+        name: Now our count should be 0
+        expect: <highlight>0<end>
+      - command: death +1
+        name: Register one death
+        expect: <highlight>1<end>
+      - command: death -2
+        name: Try to remove two deaths...
+        expect: <highlight>0<end>
+      - command: death +10
+        name: Register 10 deaths
+        expect: <highlight>10<end>
+      - command: death reset
+        name: Reset the counter
+        expect: Death counter reset
+      - command: death +20
+        name: Register 20 deaths
+        expect: <highlight>20<end>
+      - command: death top
+        name: We even have a top list
+        expect: 20<tab><superadmin>
+      - command: death top all
+        name: We even have a top list without limits
+        expect: 20<tab><superadmin>
+      - command: settings save alts_require_confirmation 0
+        name: Alts don't require confirmation
+        expect: has been saved with new value
+      - command: altsadmin <superadmin> add Regolus
+        name: Make a dummy an alt of mine
+        expect: Alt added successfully
+      - command: runas Regolus death
+        name: This dummy isn't registered for death counter yet
+        expect: character isn't registered
+      - command: runas Regolus death register
+        name: Make them register
+        expect: Thank you for registering
+      - command: runas regolus death
+        name: Now their count should be 0
+        expect: <highlight>0<end>
+      - command: runas Regolus death +5
+        name: Now let them die 5x
+        expect: <highlight>5<end>
+      - command: death top
+        name: The regular top list is for characters
+        expect:
+          - 20<tab><superadmin>
+          - 5<tab>Regolus
+      - command: death players top
+        name: But there is one for players with the alts summed up
+        expect:
+          - 25<tab><superadmin>
+      - command: death players top all
+        name: Also available without limit
+        expect:
+          - 25<tab><superadmin>
+      - command: runas Regolus death unregister
+        name: Let the dummy unregister
+        expect: Character removed from counting
+      - command: death top
+        name: The regular top list Doesn't show the dummy anymore
+        expect: 20<tab><superadmin>
+        unexpected: 5<tab>Regolus
+      - command: death players top all
+        name: And the players top list doesn't add them anymore
+        expect:
+          - 20<tab><superadmin>
+      - command: altsadmin <superadmin> rem Regolus
+        name: Remove the dummy from our alt list
+        expect: Regolus is no longer
+      - command: death wipe
+        name: We can reset every one's death count to 0
+        expect: Death list wiped
+      - command: death
+        name: Now our count should be back to 0
+        expect: <highlight>0<end>
+      - command: death restart
+        name: We can also unregister everyone
+        expect: Death list completely wiped
+      - command: death
+        name: We shouldn't see any death count anymore
+        expect: character isn't registered
+
+      - command: deathmsg
+        name: There are currently no custom death messages
+        expect: No custom death messages defined
+      - command: deathmsg add Going down
+        name: Let's create one
+        expect: New death message added as <highlight>(?<msg_id>[0-9a-f-]{36})<end>
+      - command: deathmsg
+        name: Now it should show ip
+        expect:
+          - Going down
+          - '{msg_id}'
+      - command: deathmsg rem {msg_id}
+        name: Delete it
+        expect: Death message.*deleted successfully
+      - command: deathmsg
+        name: There are no more custom messages
+        expect: No custom death messages defined
+
+  - name: Greeting
+    tests:
+      - command: greeting
+        name: We don't have any custom greetings
+        expect: No custom greeting defined
+      - command: greeting add You again, *name*?
+        name: Add a custom greeting
+        expect: New greeting added as <highlight>(?<greeting_id>[0-9a-f-]{36})<end>
+      - command: greeting on
+        name: Enable greeting messages for ourself and our alts
+        expect: Receiving greetings is now.*enabled
+      - command: settings save greet_propability 100
+        name: Let's turn on greetings for every time we join
+        expect: has been saved with new value
+      - command: test join <superadmin>
+        name: Now let's join the private channel
+        capture: aopriv
+        expect-captured: has joined the private channel\. .+
+      - command: test leave <superadmin>
+        name: Leave again...
+        expect: ^$
+      - command: settings save greet_source greeting-custom
+        name: Let's allow only custom greeting messages
+        expect: has been saved with new value
+      - command: test join <superadmin>
+        name: Now let's join the private channel and expect our custom greeting
+        capture: aopriv
+        expect-captured: has joined the private channel\. You again, <superadmin>\?
+      - command: test leave <superadmin>
+        name: Leave again...
+        expect: ^$
+      - command: greeting off
+        name: Disable greeting messages
+        expect: Receiving greetings is now.*disabled
+      - command: test join <superadmin>
+        name: Now let's join the private channel and don't expect our custom greeting
+        capture: aopriv
+        expect-captured: has joined the private channel\.\s*$
+      - command: test leave <superadmin>
+        name: Leave again...
+        expect: ^$
+      - command: greeting rem {greeting_id}
+        name: Delete our custom greeting
+        expect: Greeting .* deleted successfully.
+      - command: greeting
+        name: No more custom greeting messages
+        expect: No custom greeting defined
