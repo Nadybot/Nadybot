@@ -54,3 +54,32 @@ groups:
       - command: nanoloc error
         name: Get all nanos that drop in a non-existing location
         expect: No nanos found
+
+      - command: bestnanos
+        name: Show the best nanos for me
+        expect:
+          - Best available nanos for
+          - Required Nanoskills
+          - Best nanos in each line
+      - command: bestnanos long
+        name: Show the best nanos for me in a long version
+        expect:
+          - Best available nanos for
+          - Required Nanoskills
+          - itemid://\d+/\d+
+      - command: bestnanos fixer 100
+        name: Show the best nanos for a level 100 Fixer
+        expect:
+          - Best available nanos for a level 100 Fixer \(35\)
+          - Required Nanoskills
+          - Best nanos in each line
+      - command: bestnanosfroob fixer 100
+        name: Show the best nanos for a level 100 froob-Fixer
+        expect:
+          - Best available nanos for a level 100 froob-Fixer \(30\)
+          - Required Nanoskills
+          - Best nanos in each line
+          - ^(?<output>.+)$
+      - command: bestnanosfroob 100 fixer
+        name: Argument order doesn't matter
+        expect: '{output}'

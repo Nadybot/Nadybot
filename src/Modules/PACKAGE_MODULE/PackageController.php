@@ -42,6 +42,7 @@ use ZipArchive;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'package',
 		accessLevel: AccessLevel::Admin,
@@ -356,6 +357,7 @@ class PackageController extends ModuleInstance {
 
 	/** Install a package */
 	#[NCA\HandlesCommand('package')]
+	#[NCA\Untestable]
 	public function packageInstallCommand(
 		CmdContext $context,
 		#[Str('install')] string $action,
@@ -390,6 +392,7 @@ class PackageController extends ModuleInstance {
 
 	/** Update an already installed package, optionally to a specific version */
 	#[NCA\HandlesCommand('package')]
+	#[NCA\Untestable]
 	public function packageUpdateCommand(
 		CmdContext $context,
 		#[Str('update')] string $action,
@@ -424,6 +427,7 @@ class PackageController extends ModuleInstance {
 
 	/** Uninstall a package */
 	#[NCA\HandlesCommand('package')]
+	#[NCA\Untestable]
 	public function packageUninstallCommand(
 		CmdContext $context,
 		#[Str('uninstall', 'delete', 'remove', 'erase', 'del', 'rm')] string $action,

@@ -5,7 +5,7 @@ groups:
   - name: Basic commands
     tests:
       - command: weather Cologne Dome
-        name: Get the current weather for the Collogne Cathedral
+        name: Get the current weather for the Cologne Cathedral
         expect:
           - current weather for
           - Germany

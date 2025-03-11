@@ -7,6 +7,9 @@ groups:
       - command: executesql delete from notes
         name: Clear notes table
         expect: Query run successfully
+      - command: settings save alts_require_confirmation 0
+        name: Turn off alt confirmation
+        expect: has been saved with new value
       - command: notes
         name: Show the currently empty notes
         expect: No notes
@@ -28,7 +31,7 @@ groups:
         name: Notes table should be empty again
         expect: No notes for
 
-  - name: Notes-Command
+  - name: Links-Command
     tests:
       - command: executesql delete from links
         name: Clear links table
@@ -91,6 +94,7 @@ groups:
       - command: altsadmin <superadmin> add Regolus
         name: Make them our alt
         expect: added successfully
+        unexpected: Make sure to confirm
       - command: runas regolus reminders
         name: Our alt should see the reminder
         expect: Be respectful
@@ -103,3 +107,29 @@ groups:
       - command: executesql delete from notes
         name: Clear notes table
         expect: Query run successfully
+      - command: reminderformat
+        name: Show the current reminder format
+        expect: <header2>grouped.* reminderformat grouped
+      - command: reminderformat grouped
+        name: Change to the grouped format
+        expect: Your reminder format has been set to <highlight>grouped<end>
+
+  - name: Org Notes
+    tests:
+      - command: orgnotes
+        name: We currently don't have org notes
+        expect: Org notes \(0\)
+      - command: orgnotes add HEUREKA
+        name: Add an org note
+        expect: Note .*(?<note_id>[0-9a-f-]{36}).*created
+      - command: orgnotes
+        name: Show the org notes again
+        expect:
+          - Org notes \(1\)
+          - HEUREKA
+      - command: orgnotes rem {note_id}
+        name: Remove the note
+        expect: Org note .* deleted
+      - command: orgnotes
+        name: All org notes are gone now
+        expect: Org notes \(0\)

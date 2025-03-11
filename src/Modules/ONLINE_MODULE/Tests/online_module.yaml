@@ -31,6 +31,9 @@ groups:
       - command: whois regolus
         name: Preload a character
         expect: Agent
+      - command: settings save alts_require_confirmation 0
+        name: Disable alts confirmation
+        expect: has been saved with new value
       - command: altsadmin pigtail add regolus
         name: Add an alt of another profession to that dummy
         expect: Alt added successfully
@@ -64,6 +67,15 @@ groups:
           - Regolus
       - command: online show pig*
         name: Remove the hidden character from the list
+        expect: removed from the online hidden mask list
+      - command: online hide Pigtail
+        name: Hide a dummy character
+        expect: added to the online hidden mask list
+      - command: online hidden
+        name: Check the list of hidden characters
+        expect: pigtail.*online hide del (?<hidden_id>[0-9a-f-]{36})
+      - command: online show {hidden_id}
+        name: Remove the hidden mask by its ID
         expect: removed from the online hidden mask list
       - command: test leave regolus
         name: Let the alt leave the private channel

@@ -31,6 +31,17 @@ groups:
       - command: raffle start error
         name: We cannot raffle off items while a raffle is already running
         expect: already a raffle in progress
+      - command: raffle add test2
+        name:  Add another item to the raffle
+        capture: aopriv
+        expect-captured:
+          - <superadmin> has added 1 item to the raffle
+          - Item 1.*test1.*Item 2.*test2
+      - command: raffle show
+        name: Both should show in the raffle list
+        expect:
+          - test1
+          - test2
       - command: raffle cancel
         name: We can cancel the raffle
         capture: aopriv
@@ -109,8 +120,16 @@ groups:
       - command: raffle show
         name: We should only see one slot
         expect: A, B, C
-      - command: raffle end
-        name: End this raffle
+      - command: raffle announce HEUREKA
+        name: Accounce the raffle manually
+        capture: aopriv
+        expect-captured: HEUREKA
+      - command: raffle timer 1s
+        name: Set a raffle timer for 1s
+        capture: aopriv
+        expect-captured: <superadmin>.* has started a raffle timer for .*1 s
+      - command: test sleep 2
+        name: Wait for this raffle to end
         capture: aopriv
         expect-captured: No one joined the raffle
       - command: raffle start A+B+C,D+E+F

@@ -313,14 +313,7 @@ groups:
         expect-captured: <superadmin>.*has stopped the raid
       - command: points log regolus
         name: Check our dummy's raid point history if everything is there
-        expect:
-          - raid participation
-          - Refund for piece of junk
-          - reward
-          - penalty
-          - The Beast
-          - \+.*101
-          - \+.*80
+        expect: <green>1<end>.*For testing.*<red>1<end>.*purely for testing purpose.*<green>1<end>.*Refund for piece of junk.*<red>1<end>.*piece of junk
       - command: points add regolus 100 Nice dummy
         name: Manually add points to our dummy
         capture: aopriv
@@ -625,4 +618,7 @@ groups:
         expect-captured: <superadmin>.*has stopped the raid
       - command: members rem regolus
         name: Demote Dummy 1
+        expect: has been removed
+      - command: members rem rikoltanto
+        name: Demote Dummy 2
         expect: has been removed

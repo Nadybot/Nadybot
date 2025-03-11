@@ -131,6 +131,54 @@ groups:
       - command: runas nadyita join
         name: Joining should now work again
         expect: ^$
+      - command: test sleep 2
+        name: Sleep 2 seconds
+        expect: ^$
+      - command: members inactive 1s
+        name: List members who are inactive for iver 1s
+        expect: Nadyita
       - command: members del Nadyita
         name: Remove the dummy from the member list
         expect: has been removed
+
+      - command: members add Nadyita
+        name: Add Dummy 1 as bot member
+        expect: has been added
+      - command: members add Regolus
+        name: Add Dummy 2 as bot member
+        expect: has been added
+      - command: settings save alts_require_confirmation 0
+        name: Disable alt confirmation
+        expect: has been saved with new value
+      - command: altsadmin Nadyita add Regolus
+        name: Add Dummy 2 as an alt of Dummy 1
+        expect: Alt added successfully
+      - command: members remall Nadyita
+        name: Remove Dummy 1 and all their alts as member
+        expect:
+          - Removed alts of Nadyita \(2\)
+          - Nadyita.* has been removed.*Regolus.* has been removed
+      - command: checkaccess Nadyita
+        name: Check access level of Dummy 1
+        expect: <highlight>all<end>
+      - command: checkaccess Regolus
+        name: Check access level of Dummy 2
+        expect: <highlight>all<end>
+
+      - command: test join <superadmin>
+        name: Let's join the private channel outself
+        capture: aopriv
+        expect-captured: has joined the private channel
+      - command: leave
+        name: Leave via the !leave-command
+        expect: ^$
+      - command: test leave <superadmin>
+        name: Really leave
+        expect: ^$
+
+      - command: lastonline <superadmin>
+        name: Check when we were last online
+        expect: Last Logon Info for <superadmin>
+      - command: altsadmin Nadyita rem Regolus
+        name: Remove alt coupling
+        expect: Regolus is no longer

@@ -116,6 +116,10 @@ groups:
       - command: loot clear
         name: Clear the loot
         expect: Loot has been cleared
+      - command: ffa
+        name: Announce all items to be FFA
+        capture: aopriv
+        expect: There are no remaining items to mark ffa
 
       - command: '13'
         name: Add Sector 13 loot to the loot table
@@ -150,9 +154,23 @@ groups:
       - command: loot clear
         name: Clear the loot list
         expect: Loot has been cleared
+      - command: 42 north
+        name: Add Sector 42 north loot to the loot table
+        capture: aopriv
+        expect-captured: Action Probability Estimator
+      - command: loot clear
+        name: Clear the loot list
+        expect: Loot has been cleared
+
       - command: apf
         name: Call the !apf-command without parameters
         expect: Help \(apf\)
+      - command: apf 7
+        name: Show the loot of Sector 7
+        expect: Special Edition Kyr'Ozch
+      - command: '7'
+        name: Show sector 7 loot via a different command
+        expect: Special Edition Kyr'Ozch
       - command: apf 13
         name: Show the loot of Sector 13
         expect: Action Probability Estimator
@@ -162,6 +180,15 @@ groups:
       - command: apf 35
         name: Show the loot of Sector 35
         expect: Visible Light Remodulation Device
+      - command: apf 42 north
+        name: Show the loot of Sector 42 north
+        expect: Action Probability Estimator
+      - command: apf 42 boss
+        name: Show the loot of Sector 42 north
+        expect:
+          - itemref://262656/262656/1
+          - Kyr'Ozch Invasion Plan
+          - loot raffle 561
       - command: db1
         name: Show the DB1 loot
         expect:
@@ -177,6 +204,11 @@ groups:
         expect:
           - Advanced Dust Brigade Notum Infuser
           - Dust Brigade Protector Module
+      - command: beast
+        name: Get an overview of all the beast loot
+        expect:
+          - Beast Armor
+          - Beast Weapons
       - command: pande
         name: Get an overview of Pandemonium bosses
         expect: Zodiacs
@@ -255,6 +287,18 @@ groups:
       - command: 12m
         name: Get the loot list of The Xan (12-man)
         expect: Worshipper's Gem
+      - command: poh
+        name: Get the loot for the Pyramid of Home
+        expect: Inert Sigil of Machiavelli
+      - command: totw
+        name: Get the loot for the TOTW Raid instance
+        expect: Grasp of the Immortal
+      - command: subway
+        name: Get the loot for the Subway Raid instance
+        expect: Condemned Bulwark
+      - command: halloween
+        name: Get the Halloween loot
+        expect: Scythe of the Harvester
 
       - command: mloot <a href="itemref://280727/280727/300">Sloth of the Xan</a> <a href='itemref://150930/150930/10'>Personal Furnace</a>
         name: Add loot to the loot list by dropping two items into the chat
@@ -271,3 +315,33 @@ groups:
       - command: loot clear
         name: Clear the loot again
         expect: Loot has been cleared
+
+      - command: loot history
+        name: Show the last loot rolls
+        expect:
+          - Last loot rolls \(1\)
+          - loot history 1'>1 item</a>
+      - command: loot history 1
+        name: Show the history of the last loot roll
+        expect: '<header2>Slot #1:<end> 5x <highlight>test2<end>'
+      - command: loot search last winner=<superadmin>
+        name: Search for winners by name
+        expect:
+          - Last items won by <superadmin>
+          - test2
+      - command: loot search last item=test2
+        name: Search for items by name
+        expect:
+          - Last rolled items matching
+          - test2
+          - <superadmin>
+      - command: loot raffle 1
+        name: Raffle of item ID#1
+        capture: aopriv
+        expect-captured:
+        - <superadmin> has started a raffle
+        - itemref://277436/277436/300.*Base NCU
+      - command: raffle end
+        name: End that raffle
+        capture: aopriv
+        expect-captured: No one joined the raffle

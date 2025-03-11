@@ -87,9 +87,15 @@ groups:
       - command: nw victory {field}
         name: We can search for victories by tower fields
         expect: Tower Victories on {field}|No tower victories found
+      - command: nw victory org *a*
+        name: We can search for victories by org name masks
+        expect: 'Winner: |No tower victories found'
 
   - name: Small helper commands
     tests:
+      - command: nw
+        name: Without any arguments, !nw explains how to get help
+        expect: help nw
       - command: nw types
         name: List all tower types by QL
         expect:
@@ -144,6 +150,14 @@ groups:
         expect:
           - All tower sites of {org}
           - PW \d+
+      - command: nw timer aeg1 1
+        name: Start a plant timer
+        expect: NOW
+      - command: nw top
+        name: Show a list of orgs with the highest allowed contracts
+        expect:
+          - Top contract points
+          - nw sites
 
   - name: Hot sites
     tests:

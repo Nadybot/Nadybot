@@ -22,3 +22,44 @@ groups:
       - command: massinvites on
         name: Turn mass invites back on
         expect: again receive
+      - command: members add Regolus
+        name: Add a dummy as member
+        expect: has been added as a member
+      - command: test sleep 1
+        name: Sleep 1 second
+        expect: ^$
+      - command: massmsg HEUREKA
+        name: Send a mass message
+        capture: aotell(Regolus)
+        expect: Your message was sent to <highlight>0<end> people
+        expect-captured: ^$
+      - command: test logon Regolus
+        name: Let our dummy logon
+        expect: ^$
+      - command: test sleep 1
+        name: Sleep 1 second
+        expect: ^$
+      - command: massmsg HEUREKA
+        name: Send the mass message again
+        capture: aotell(Regolus)
+        expect: Your message was sent to <highlight>1<end> person
+        expect-captured:
+          - Message from <superadmin>
+          - massmsgs on
+          - massinvites on
+          - HEUREKA
+      - command: test sleep 1
+        name: Sleep 1 second
+        expect: ^$
+      - command: massinv CATANIA
+        name: Send the a mass invite
+        capture: aotell(Regolus)
+        expect: Your message was sent to <highlight>1<end> person
+        expect-captured:
+          - Invite from <superadmin>
+          - massmsgs on
+          - massinvites on
+          - CATANIA
+      - command: members rem Regolus
+        name: Remove the dummy as member
+        expect: has been removed as a member

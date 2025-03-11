@@ -37,6 +37,9 @@ groups:
       - command: track
         name: Tracking list should now show the dummy
         expect: Regolus
+      - command: test sleep 1
+        name: Sleep 12s before logging in the dummy
+        expect: ^$
       - command: test logon Regolus
         name: Let the dummy logon
         capture: aopriv

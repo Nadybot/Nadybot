@@ -1,0 +1,35 @@
+---
+name: Mob Module
+groups:
+
+  - name: Commands
+    tests:
+      - command: prisoners
+        name: Show the state of the prisoners in Milky Way
+        expect: Poisonous
+      - command: hags
+        name: Show the state of the Biodome hags
+        expect:
+          - Clan hags
+          - Omni hags
+      - command: jack
+        name: Show the state of Jack Legchopper and his placeholders
+        expect: Status of Jack and his clones \(6\)
+      - command: ljotur
+        name: Show the state of Ljotur and his placeholders
+        expect:
+          - Polymorphed Lunatic|Ljotur
+      - command: otacustes
+        name: Show the state of Otacustes, the one who spawns the Merceenaries
+        expect: Primus|Otacustes
+      - command: reck
+        name: Show the state of all interesting Reck mobs
+        expect: Status of mobs in The Reck \(6\)
+      - command: hollowisland
+        name: Show the state of Hollow Island
+        expect: A sapling|Wave \d|Weed
+      - command: dreads
+        name: Show the state of all Dreadloch camps
+        expect:
+          - Omni Dreadloch camps
+          - Clan Dreadloch camps

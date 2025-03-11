@@ -8,6 +8,7 @@ use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\DBSchema\{Alt, Member};
 use Nadybot\Core\Exceptions\{NonExistingTestException, ParseTestException};
 use Nadybot\Core\Testing\{CapturerFactory, MockCommandReply, TestCase, TestCollection, TestGroup, TestResult, TestResults};
 use Nadybot\Core\Types\CommandReply;
@@ -41,6 +42,9 @@ class Testing {
 
 	#[NCA\Inject]
 	private AccessManager $accessManager;
+
+	#[NCA\Inject]
+	private DB $db;
 
 	public function __construct() {
 		if (!self::canRun()) {
@@ -92,6 +96,14 @@ class Testing {
 			$tests = $this->getTestsFromDirectories($dirs);
 			foreach ($tests as $test) {
 				$results->addResults($this->runTestCollection($test));
+				if ($this->db->table(Member::getTable())->count() > 0) {
+					$this->logger->critical('Members left behind in database');
+					exit(1);
+				}
+				if ($this->db->table(Alt::getTable())->count() > 0) {
+					$this->logger->critical('Alts left behind in database');
+					exit(1);
+				}
 			}
 		} catch (\Throwable $e) {
 			$this->logger->critical('{error}', ['error' => $e->getMessage(), 'exception' => $e]);
