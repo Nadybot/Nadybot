@@ -39,6 +39,7 @@ use Throwable;
 
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'webauth',
 		accessLevel: AccessLevel::Mod,

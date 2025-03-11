@@ -22,3 +22,16 @@ groups:
       - command: whereis error123
         name: Searching non-existing locations gives an error
         expect: no matches for your search
+
+  - name: Spawntime
+    tests:
+      - command: spawntime
+        name: Get a list of spawn times
+        expect: Trash King
+      - command: spawntime trash
+        name: We can search for names in that list
+        expect:
+          - <header2>Trash King<end>
+          - <header2>Trash King Lackey<end>
+          - 1600x940 AS
+

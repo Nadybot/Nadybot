@@ -16,6 +16,9 @@ groups:
       - command: whois Deylaw 6
         name: Also on RK19
         expect: '377050696'
+      - command: whois 960756792
+        name: We can get information about a UID
+        expect: Nadybot
 
   - name: History command
     tests:

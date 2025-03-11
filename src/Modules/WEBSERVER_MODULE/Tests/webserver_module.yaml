@@ -1,0 +1,52 @@
+---
+name: Webserver Module
+groups:
+
+  - name: Auth commands
+    tests:
+      - command: apiauth
+        name: There are no API tokens
+        expect: There are currently no active API tokens
+      - command: apiauth create
+        name: Let's create one for us
+        expect:
+          - BEGIN PRIVATE KEY
+          - END PRIVATE KEY
+          - <header2>Your API token<end>\s*(<tab>)+(?<token>[0-9a-f]{8})
+      - command: apiauth list
+        name: Our token should now show up
+        expect:
+          - '{token}'
+          - sequence 0
+      - command: executesql UPDATE api_key_<myname> SET last_sequence_nr=10
+        name: Manually set the sequence counter
+        expect: Query run successfully.
+      - command: apiauth list
+        name: The counter should now have increased
+        expect:
+          - '{token}'
+          - sequence 10
+      - command: apiauth reset {token}
+        name: Reset the counter
+        expect: API token .* reset
+      - command: apiauth list
+        name: Our token should now have a sequence number of 0
+        expect:
+          - '{token}'
+          - sequence 0
+      - command: apiauth rem {token}
+        name: And delete the token
+        expect: API token .* deleted
+
+      - command: webauth
+        name: Create a new webauth token
+        expect: You can now authenticate to the Webserver for 1h with the credentials
+      - command: webui uninstall
+        name: Uninstall the WebUI
+        expect: NadyUI successfully uninstalled
+      - command: webui install
+        name: Install the WebUI
+        expect: NadyUI .* successfully
+      - command: webui uninstall
+        name: Uninstall the WebUI
+        expect: NadyUI successfully uninstalled
