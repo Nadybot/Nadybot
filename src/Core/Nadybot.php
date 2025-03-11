@@ -17,6 +17,7 @@ use BackedEnum;
 use Error;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Channels\OrgChannel;
 use Nadybot\Core\DBSchema\{
 	Audit,
 	CmdCfg,
@@ -968,6 +969,11 @@ class Nadybot {
 				$this->settingManager->save('last_org_name', $groupName);
 			}
 		}
+		$oc = new OrgChannel();
+		Registry::injectDependencies($oc);
+		$this->messageHub
+			->registerMessageReceiver($oc)
+			->registerMessageEmitter($oc);
 	}
 
 	/** Handle a player joining a private group */

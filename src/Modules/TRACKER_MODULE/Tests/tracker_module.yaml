@@ -37,12 +37,15 @@ groups:
       - command: track
         name: Tracking list should now show the dummy
         expect: Regolus
-      - command: test sleep 1
-        name: Sleep 12s before logging in the dummy
-        expect: ^$
       - command: test logon Regolus
         name: Let the dummy logon
+        condition: '!orgbot'
         capture: aopriv
+        expect-captured: TRACK.*Regolus.*logged.*on
+      - command: test logon Regolus
+        name: Let the dummy logon
+        condition: orgbot
+        capture: aoorg
         expect-captured: TRACK.*Regolus.*logged.*on
       - command: track
         name: Tracking list should now show the dummy as online
@@ -71,6 +74,12 @@ groups:
       - command: test logoff regolus
         name: Let the dummy logoff
         capture: aopriv
+        condition: '!orgbot'
+        expect-captured: TRACK.*Regolus.*logged.*off
+      - command: test logoff regolus
+        name: Let the dummy logoff
+        capture: aoorg
+        condition: orgbot
         expect-captured: TRACK.*Regolus.*logged.*off
       - command: track
         name: Tracking list should now show the dummy as offline
@@ -94,7 +103,7 @@ groups:
       - command: track rem {uid}
         name: Stop tracking a dummy user by their UID will now also give errors
         expect: is not on the track list
-        
+
   - name: Org tracking functions
     tests:
       - command: track orgs

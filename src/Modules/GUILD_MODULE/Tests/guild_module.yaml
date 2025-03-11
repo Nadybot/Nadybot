@@ -27,14 +27,23 @@ groups:
       - command: test orgjoin Regolus
         name: Have that dummy join the org
         expect: ^$
-      - command: test sleep 3
-        name: Sleep 3s so that dummy can make it to our buddy list
+      - command: test logon Regolus
+        name: Have the bot believe the dummy just logged on
         expect: ^$
+      # - command: test sleep 3
+      #   name: Sleep 3s so that dummy can make it to our buddy list
+      #   expect: ^$
       - command: buddylist
         name: This dummy should now be on our buddylist
         expect: Regolus \[[^\]]*org[^\]]*\]
       - command: lastseen regolus
-        name: Since they just joined the org, the bot now knows when they were last seen
+        name: Since they just logged on, the bot should know that
+        expect: is currently online
+      - command: test logoff Regolus
+        name: Have the bot believe the dummy just logged off
+        expect: ^$
+      - command: lastseen regolus
+        name: Since they just logged off, the bot should know that
         expect: last seen at
       - command: test orgkick Regolus
         name: Kick the dummy from our org
@@ -120,6 +129,12 @@ groups:
       - command: recentseen 1d
         name: This org member should be shown in the !recentseen list'
         expect: '{org_member}'
+      - command: orgstats
+        name: Get statistrics about our org
+        expect:
+          - '<highlight>Faction<end>: <(omni|clan|neutral)>'
+          - Numbers by breed
+          - Numbers by profession
 
   - name: Manual org member fiddling
     tests:

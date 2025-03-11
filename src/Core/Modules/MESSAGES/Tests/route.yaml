@@ -108,7 +108,7 @@ groups:
         name: Check format
         expect: "<highlight>aopriv<end> \\[<a href='chatcmd:///tell [<]myname[>] route format rem aopriv'>clear</a>\\]\\s*<tab><tab>Render: <highlight>false<end>"
       - command: route format render aopriv true
-        name: Re-enable rendering of aoriv hop
+        name: Re-enable rendering of aopriv hop
         expect: Format saved
       - command: route format
         name: Check format

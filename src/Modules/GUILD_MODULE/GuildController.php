@@ -775,7 +775,7 @@ class GuildController extends ModuleInstance {
 		if ($this->config->general->orgName === '') {
 			return;
 		}
-		if (isset($this->config->orgId)) {
+		if (!isset($this->config->orgId)) {
 			$this->logger->warning("Org name '{org_name}' specified, but bot does not appear to belong to an org", [
 				'org_name' => $this->config->general->orgName,
 			]);
