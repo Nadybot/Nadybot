@@ -283,6 +283,36 @@ class TestController extends ModuleInstance {
 		);
 	}
 
+	/** Pretend the bot received a message in the private channel */
+	#[NCA\HandlesCommand('test')]
+	public function testPrivMsgCommand(
+		CmdContext $context,
+		#[Str('privmsg')] string $action,
+		string $message,
+	): void {
+		if (!isset($context->char->id)) {
+			$context->reply('This command can only be used from within the game.');
+			return;
+		}
+		$botId = $this->chatBot->char?->id;
+		if (!isset($botId)) {
+			$context->reply('This command cannot be used while the  bot is not onlne.');
+			return;
+		}
+		$this->chatBot->processPackage(
+			new WorkerPackage(
+				worker: $this->config->main->character,
+				package: new Package\In\PrivateChannelMessage(
+					channelId: $botId,
+					charId: $context->char->id,
+					message: $message,
+					extra: "\0",
+				),
+				client: $this->getWorker(),
+			)
+		);
+	}
+
 	/**
 	 * See how many characters are contained in a command response
 	 * and how long it took to process the command

@@ -529,6 +529,14 @@ class Testing {
 			}
 			$placeholders = $this->addNamedMatchesToPlaceholders($matches, $placeholders);
 		}
+		// Handle unexpected captured output
+		foreach ($test->unexpectedCaptured as $unexpected) {
+			$unexpected = $this->replacePlaceholders($unexpected, $placeholders);
+			$unexpectResult = count($this->getExpectMatches($unexpected, $capturedOutput)) > 0;
+			if ($unexpectResult === true) {
+				return [$this->logUnexpectedFind($test, $unexpected, $capturedOutput), $placeholders];
+			}
+		}
 		$this->logger->notice('  [✔] {test}', ['test' => $test->getName()]);
 		return [TestResult::Success, $placeholders];
 	}

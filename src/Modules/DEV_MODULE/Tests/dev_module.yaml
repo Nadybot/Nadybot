@@ -67,5 +67,49 @@ groups:
       - command: htmldecode
         expect: Help \(htmldecode\)
       - command: htmldecode bio &lt;a href="itemref://247764/247764/1"&gt;Solid Clump of Kyr'Ozch Bio-Material&lt;/a&gt;
-        name: HTML-decode encoded clump into "!bio"-command 
+        name: HTML-decode encoded clump into "!bio"-command
         expect: Kyr'Ozch Viral Serum \(QL 1\)
+      - command: httprequest https://aoauth.org/
+        name: Get the content of a web page
+        expect: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEO3LC4ykl2mx
+
+      - command: mdb
+        name: Get a list of all MDB categories
+        expect:
+          - '100'
+          - '5000'
+          - '20000'
+          - '4294967295'
+      - command: mdb 20000
+        name: Get a list of instances in the MDB category 20000
+        expect:
+          - MDB Instances for Category 20000
+          - '201379664'
+          - '226911017'
+          - '18838393'
+          - '1952522356'
+      - command: mdb 20000 18838393
+        name: Get a specific message by category and instance
+        expect: 'Removing %d #1\{ 1:buddy \| buddies \}\.'
+
+      - command: demo mdb
+        name: The !demo doesn't change anything via msg
+        expect:
+          - '20000'
+          - '/tell'
+        unexpected: '/g <Myname>'
+
+      - command: test privmsg !demo mdb
+        name: Force links of a command to open in the channel they were sent
+        expect: ^$
+      - command: test sleep 1
+        name: Check output
+        capture: aopriv
+        expect-captured:
+          - '20000'
+          - '/g <Myname>'
+        unexpected-captured: /tell
+
+      - command: unixtime 0
+        name: Translate a UNIX timestamp into a readable time
+        expect: 0 is <highlight>01-Jan-1970
