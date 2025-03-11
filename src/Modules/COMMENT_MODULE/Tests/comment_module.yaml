@@ -112,6 +112,16 @@ groups:
           - Comments about Nadyita \(2\)
           - Another whopper
           - Stupid comment
+          - comment del (?<comment1_id>[0-9a-f-]{36}).* comment del (?<comment2_id>[0-9a-f-]{36}).*
+      - command: comment rem {comment1_id}
+        name: Delete the first comment
+        expect: Comment deleted
+      - command: comment rem {comment2_id}
+        name: Delete the second comment
+        expect: Comment deleted
+      - command: comment rem {comment2_id}
+        name: Delete already deleted comment
+        expect: The comment .* does not exist
       - command: comment categories rem test
         name: Delete the test category
         expect: deleted the comment category

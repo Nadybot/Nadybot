@@ -979,6 +979,7 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	/** See statistics about the current Discord connection */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('discord')]
 	public function seeDiscordStats(CmdContext $context): void {
 		if ($this->discordController->discordBotToken === 'off') {
@@ -1005,6 +1006,7 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	/** Let the bot connect to Discord. Only needed in case of errors. */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('discord connect/disconnect')]
 	public function connectCommand(
 		CmdContext $context,
@@ -1024,6 +1026,7 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	/** Let the bot disconnect from Discord. */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('discord connect/disconnect')]
 	public function disconnectCommand(
 		CmdContext $context,
@@ -1040,6 +1043,7 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	/** Request an invite to the org's Discord server that links to this character */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('discord create invite for yourself')]
 	public function requestDiscordInvite(
 		CmdContext $context,
@@ -1167,6 +1171,7 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	/** List all currently available invites */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('discord see invites')]
 	public function listDiscordInvites(
 		CmdContext $context,
@@ -1192,6 +1197,7 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	/** Let the bot leave a Discord server */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('discord leave server')]
 	public function leaveDiscordServer(
 		CmdContext $context,
@@ -1248,6 +1254,7 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	/** Show scheduled events on the Discord server */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('discord show events')]
 	public function listDiscordEvents(
 		CmdContext $context,

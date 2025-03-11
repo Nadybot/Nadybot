@@ -76,6 +76,7 @@ class ExportController extends ModuleInstance {
 
 	/** Export all of this bot's data into a portable JSON-file */
 	#[NCA\HandlesCommand('export')]
+	#[NCA\Untestable]
 	#[NCA\Help\Example(
 		command: '<symbol>export 2021-01-31',
 		description: "Export everything into 'data/export/2021-01-31.json'"

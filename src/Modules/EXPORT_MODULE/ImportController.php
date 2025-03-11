@@ -91,6 +91,7 @@ class ImportController extends ModuleInstance {
 
 	/** Import data from a file, mapping the exported access levels to your own ones */
 	#[NCA\HandlesCommand('import')]
+	#[NCA\Untestable]
 	#[NCA\Help\Example('<symbol>import 2021-01-31 superadmin=admin admin=mod leader=member member=member')]
 	#[NCA\Help\Prologue(
 		"In order to import data from an old export, you should first think about\n".

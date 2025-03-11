@@ -468,6 +468,7 @@ class GuildController extends ModuleInstance {
 
 	/** Force an update of the org roster */
 	#[NCA\HandlesCommand('updateorg')]
+	#[NCA\Untestable]
 	public function updateorgCommand(CmdContext $context): void {
 		$context->reply('Starting Roster update');
 		try {

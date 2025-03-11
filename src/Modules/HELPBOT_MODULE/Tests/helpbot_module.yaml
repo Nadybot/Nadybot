@@ -127,6 +127,10 @@ groups:
         expect:
           - Click here to use waypoint
           - PW
+      - command: 'waypoint Pos: 17.5, 28.1, 100.2, Area: Perpetual Wastelands'
+        expect:
+          - Click here to use waypoint
+          - PW
 
   - name: Random/Roll commands
     tests:

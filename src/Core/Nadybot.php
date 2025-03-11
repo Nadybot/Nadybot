@@ -1920,20 +1920,30 @@ class Nadybot {
 		exit(1);
 	}
 
+	private function shouldDropPackage(WorkerPackage $package): bool {
+		if (!BotRunner::getArguments()->testRun) {
+			return false;
+		}
+		if ($package->package instanceof Package\In\GroupMessage) {
+			return true;
+		}
+		if ($package->package instanceof Package\In\PrivateChannelMessage) {
+			return true;
+		}
+
+		if ($package->package instanceof Package\In\BuddyState) {
+			$buddy = $this->buddylistManager->getBuddyForUID($package->package->charId);
+			return !(!isset($buddy) || !$buddy->known);
+		}
+		return $package->package instanceof Package\In\Tell;
+	}
+
 	/** Read and parse all the packages of all clients in a loop */
 	private function aoPackageLoop(): void {
 		foreach ($this->aoClient->getPackages() as $package) {
 			// $this->logger->notice('Read {package}', ['package' => $package]);
-			if (BotRunner::getArguments()->testRun) {
-				if ($package->package instanceof Package\In\GroupMessage) {
-					continue;
-				}
-				if ($package->package instanceof Package\In\PrivateChannelMessage) {
-					continue;
-				}
-				if ($package->package instanceof Package\In\Tell) {
-					continue;
-				}
+			if ($this->shouldDropPackage($package)) {
+				continue;
 			}
 			$this->processPackage($package);
 		}

@@ -47,6 +47,7 @@ use Revolt\EventLoop;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\HandlesEventFeed('highnet'),
 	NCA\DefineCommand(
 		command: 'highnet',

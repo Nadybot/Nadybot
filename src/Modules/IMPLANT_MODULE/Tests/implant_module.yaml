@@ -95,7 +95,7 @@ groups:
       - command: bestsymbiants adv 100
         name: Get the best symbiants for a level 100 Adventurer
         expect: 'Thigh.*Artillery:.*QL110.*QL80.*QL25'
-      - command: bestsymbiants adv 200
+      - command: bestsymbiants 200 adv
         name: Get the best symbiants for a level 200 Adventurer
         expect: 'Thigh.*Artillery:.*QL270.*QL250.*QL230'
       - command: bestsymbiants xxx 200
@@ -104,6 +104,11 @@ groups:
         expect: Help \(bestsymbiants\)
       - command: bestsymbiants xxx
         expect: Help \(bestsymbiants\)
+      - command: symbbuffs vehicle air
+        name: Search for symbiants buffing "Vehicle Air"
+        expect:
+          - Symbiants buffing 'vehicle air'
+          - Control \(regular, beta and alpha\)
 
   - name: Compare symbiants
     tests:
@@ -176,6 +181,26 @@ groups:
           - Implant Designer
           - Brain.*QL200
           - Treatment.*105
+      - command: implantshoppinglist
+        name: Show what we need to buy to make these implants
+        expect:
+          - Basic Brain Implant \(QL 200\)
+          - Treatment Cluster \(QL 172\+\)
+      - command: implantdesigner
+        name: Get an overview of what our implants look like
+        expect:
+          - 'Brain.* QL200 - Treatment: 951 Agility: 404'
+          - Active Ocular Symbiant, Artillery Unit Aban
+      - command: implantdesigner eye clear
+        name: Get rid of the eye
+        expect: <highlight>Ocular<end> has been cleared
+      - command: implantdesigner result
+        name: Show the final result
+        expect:
+          - Requirements to Equip
+          - Skills Gained
+          - Basic Implants Needed
+          - Clusters Needed
       - command: implantdesigner clear
         name: Throw away our design
         expect: Implant Designer

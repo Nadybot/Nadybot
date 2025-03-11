@@ -238,3 +238,15 @@ groups:
           - '246714'
           - '105'
           - 'Crispy Chiroptera'
+
+  - name: GMI command
+    tests:
+      - command: gmi 301560
+        name: Search the GMI by AOID
+        expect: GMI orders for GRACE \(\d+ buy, \d+ sell\)
+      - command: gmi GRACE
+        name: Search the GMI by item name
+        expect: GMI orders for GRACE \(\d+ buy, \d+ sell\)
+      - command: gmi <a href='itemref://301560/301560/30'>GRACE</a>
+        name: Search the GMI by item
+        expect: GMI orders for GRACE \(\d+ buy, \d+ sell\)

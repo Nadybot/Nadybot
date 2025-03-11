@@ -228,7 +228,7 @@ groups:
         name: Auction off a dummy item
         capture: aopriv
         expect-captured: <superadmin>.*started an auction for <highlight>Deadbeef<end>
-      - command: bid cancel 
+      - command: bid cancel
         name: Cancel that auction
         capture: aopriv
         expect-captured: The auction was cancelled
