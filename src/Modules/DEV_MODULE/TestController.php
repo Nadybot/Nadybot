@@ -3,8 +3,6 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use function Amp\delay;
-use function Safe\date;
-use Amp\File\FilesystemException;
 use AO\Client\{SingleClient, WorkerPackage};
 use AO\Package;
 use Exception;
@@ -12,7 +10,7 @@ use Nadybot\Core\Types\{AccessLevel, Faction};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
-	Attributes\Parameter\WordStr,
+	BotRunner,
 	CmdContext,
 	CommandManager,
 	Config\BotConfig,
@@ -20,7 +18,6 @@ use Nadybot\Core\{
 	Events\Event,
 	Events\PrivateChannelMsgEvent,
 	Exceptions\UserException,
-	Filesystem,
 	Hydrator,
 	ModuleInstance,
 	Modules\DISCORD\DiscordMessageIn,
@@ -28,12 +25,9 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	Registry,
 	SettingManager,
-	Text,
 	Types\Playfield,
-	Util,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
-use Psr\Log\LoggerInterface;
 
 /**
  * @author Tyrence (RK2)
@@ -53,27 +47,8 @@ use Psr\Log\LoggerInterface;
 	),
 ]
 class TestController extends ModuleInstance {
-	/** Show test commands as they are executed */
-	#[NCA\Setting\Boolean]
-	public bool $showTestCommands = false;
-
-	/** Show test results from test commands */
-	#[NCA\Setting\Boolean]
-	public bool $showTestResults = false;
-
-	public string $path = __DIR__ . '/tests/';
-
-	#[NCA\Logger]
-	private LoggerInterface $logger;
-
 	#[NCA\Inject]
 	private SettingManager $settingManager;
-
-	#[NCA\Inject]
-	private Util $util;
-
-	#[NCA\Inject]
-	private Filesystem $fs;
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;
@@ -86,27 +61,6 @@ class TestController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private EventManager $eventManager;
-
-	/** @param string[] $commands */
-	public function runTests(array $commands, CmdContext $context, string $logFile): void {
-		foreach ($commands as $line) {
-			if ($line[0] !== '!') {
-				continue;
-			}
-			$testContext = clone $context;
-			if ($this->showTestCommands) {
-				$this->chatBot->sendTell($line, $context->char->name);
-			} else {
-				$this->logger->notice('{line}', ['line' => $line]);
-				if (!$this->showTestResults) {
-					$testContext->sendto = new MockCommandReply($line, $logFile);
-					Registry::injectDependencies($testContext->sendto);
-				}
-			}
-			$testContext->message = substr($line, 1);
-			$this->commandManager->processCmd($testContext);
-		}
-	}
 
 	/** Pretend that &lt;char&gt; joins your org */
 	#[NCA\HandlesCommand('test')]
@@ -324,7 +278,7 @@ class TestController extends ModuleInstance {
 		}
 		$context->message = $cmd;
 		$context->sendto = new MessageInfoCommandReply($context->sendto);
-		$this->commandManager->processCmd($context);
+		$this->commandManager->syncProcessCmd($context);
 	}
 
 	/** Receive a dummy message from a tradebot */
@@ -381,6 +335,7 @@ class TestController extends ModuleInstance {
 
 	/** Receive a discord message from &lt;nick&gt; */
 	#[NCA\HandlesCommand('test')]
+	#[NCA\Untestable]
 	public function testDiscordMessageCommand(
 		CmdContext $context,
 		#[Str('discordpriv')] string $action,
@@ -536,7 +491,7 @@ class TestController extends ModuleInstance {
 		);
 	}
 
-	/** Sleep for &lt;duration&gt; seconds. This can lead to lots of timeouts */
+	/** Sleep for &lt;duration&gt; seconds */
 	#[NCA\HandlesCommand('test')]
 	public function testSleepCommand(
 		CmdContext $context,
@@ -547,67 +502,15 @@ class TestController extends ModuleInstance {
 		delay($duration);
 	}
 
-	/** Get a list of all tests the bot has */
-	#[NCA\HandlesCommand('test')]
-	public function testListCommand(CmdContext $context): void {
-		$files = collect($this->util->getFilesInDirectory($this->path));
-		$count = $files->count();
-		$blob = Text::makeChatcmd('All Tests', '/tell <myname> test all') . "\n";
-		foreach ($files as $file) {
-			$name = str_replace('.txt', '', $file);
-			$blob .= Text::makeChatcmd($name, "/tell <myname> test {$name}") . "\n";
-		}
-		$msg = Text::makeBlob("Tests Available ({$count})", $blob);
-		$context->reply($msg);
-	}
-
-	/** Run absolutely all bot tests */
-	#[NCA\HandlesCommand('test')]
-	public function testAllCommand(
-		CmdContext $context,
-		#[Str('all')] string $action
-	): void {
-		$testContext = clone $context;
-
-		$files = $this->fs->listFiles($this->path);
-		$context->reply('Starting tests...');
-		$logFile = $this->config->paths->data.
-			'/tests-' . date('YmdHis', time()) . '.json';
-		$testLines = [];
-		foreach ($files as $file) {
-			$data = $this->fs->read($this->path . $file);
-			$lines = explode("\n", $data);
-			$testLines = array_merge($testLines, $lines);
-		}
-		$this->runTests($testLines, $testContext, $logFile);
-		$context->reply('Tests queued.');
-	}
-
-	/** Run all bot tests of a given file */
-	#[NCA\HandlesCommand('test')]
-	public function testModuleCommand(CmdContext $context, #[WordStr] string $file): void {
-		$file .= '.txt';
-
-		$testContext = clone $context;
-		$testContext->permissionSet = 'msg';
-
-		try {
-			if (!$this->fs->exists($this->path . $file)) {
-				$context->reply("Could not find test <highlight>{$file}<end> to run.");
-				return;
-			}
-			$lines = explode("\n", $this->fs->read($this->path . $file));
-		} catch (FilesystemException) {
-			$context->reply("Could not find test <highlight>{$file}<end> to run.");
+	#[NCA\Setup]
+	public function setup(): void {
+		if (!BotRunner::getArguments()->testRun) {
 			return;
 		}
-		$starttime = time();
-		$logFile = $this->config->paths->data.
-			'/tests-' . date('YmdHis', $starttime) . '.json';
-		$context->reply("Starting test {$file}...");
-		$this->runTests($lines, $testContext, $logFile);
-		$time = Util::unixtimeToReadable(time() - $starttime);
-		$context->reply("Finished test {$file}. Time: {$time}");
+		if (!$this->chatBot->isReady()) {
+			return;
+		}
+		$this->chatBot->sendPrivate('DEV_MODULE', true);
 	}
 
 	protected function sendGroupMsg(string $groupName, int $uid, string $message): void {

@@ -113,3 +113,127 @@ groups:
       - command: unixtime 0
         name: Translate a UNIX timestamp into a readable time
         expect: 0 is <highlight>01-Jan-1970
+
+      - command: test orgjoin Darknet
+        condition: orgbot
+        expect: xxx
+      - command: test orgjoin Darknet
+        condition: '!orgbot'
+        expect: Your bot cannot read
+
+      - command: test orgleave Darknet
+        condition: orgbot
+        expect: xxx
+      - command: test orgleave Darknet
+        condition: '!orgbot'
+        expect: Your bot cannot read
+
+      - command: test orgkick Darknet
+        condition: orgbot
+        expect: xxx
+      - command: test orgkick Darknet
+        condition: '!orgbot'
+        expect: Your bot cannot read
+
+      - command: test orgattack Nukeat5 Troet
+        name: Simulate an attack on our org towers
+        condition: '!orgbot'
+        expect: Your bot cannot read
+
+      - command: test orgattackprep Nukeat5 Troet
+        name: Simulate someone disabling your towers' defense shield
+        condition: '!orgbot'
+        expect: Your bot cannot read
+
+      - command: test towervictory neutral Troet clan Team Rainbow AEG
+        name: Simulate a tower win
+        condition: '!orgbot'
+        expect: Your bot cannot read
+
+      - command: test os Regolus
+        name: Test an orbital strike
+        condition: '!orgbot'
+        expect: Your bot cannot read
+
+      - command: test cloaklower
+        name: Test lowering the cloak
+        condition: '!orgbot'
+        expect: Your bot must be in an org
+      - command: test cloakraise
+        name: Test raising the cloak
+        condition: '!orgbot'
+        expect: Your bot must be in an org
+
+      - command: test event testcontroller.setup
+        name: Test executing events
+        capture: aopriv
+        expect-captured: DEV_MODULE
+
+      - command: msginfo mdb
+        name: Measure output size and speed of commands
+        expect:
+          - '20000'
+          - 'Size: \d+ characters\s*Time: [0-9.]+ ms'
+
+      - command: test tradebotmsg
+        name: Receive a tradebot message
+        expect: ^$
+        capture: tradebot(Darknet)
+        expect-captured: ^$
+
+  - name: Timezones
+    tests:
+      - command: timezone
+        name: Show all timezone areas
+        expect:
+          - Africa
+          - America
+          - Europe
+          - UTC
+      - command: timezone Europe
+        name: Show all timezones in Europe
+        expect:
+          - Europe/Berlin
+          - Europe/Madrid
+          - Europe/Sofia
+          - Europe/Zagreb
+      - command: timezone set XXX
+        name: Setting an invalid time zone gives an error
+        expect: not a valid timezone
+      - command: timezone set Europe/Berlin
+        name: Setting an valid time zone
+        expect: Timezone has been set to <highlight>Europe/Berlin<end>
+      - command: unixtime 0
+        name: Check the timezone is active
+        expect: 01-Jan-1970 01:00 CET
+      - command: timezone set UTC
+        name: Set the time zone back to UTC
+        expect: Timezone has been set to <highlight>UTC<end>
+
+  - name: Presence commands
+    tests:
+      - command: whois Regolus
+        name: Cache dummy data
+        expect: Detailed Info for Regolus
+      - command: test join Regolus
+        name: Let that dummy join our private channel
+        capture: aopriv
+        expect-captured: Regolus.*has joined the private channel
+      - command: test leave Regolus
+        name: Let that dummy leave our private channel again
+        capture: aopriv
+        expect-captured: ^$
+      - command: test logon <superadmin>
+        name: Pretend we're online now
+        expect: ^$
+      - command: buddylist
+        name: Check our online-status on the buddy list
+        expect: <superadmin> \[[^\]]+\] <on>Online<end>
+      - command: test logoff <superadmin>
+        name: Pretend we're offline now
+        expect: ^$
+      - command: buddylist
+        name: Check our offline-status on the buddy list
+        expect: <superadmin> \[[^\]]+\]
+        unexpected: <superadmin> \[[^\]]+\] <on>Online<end>
+
