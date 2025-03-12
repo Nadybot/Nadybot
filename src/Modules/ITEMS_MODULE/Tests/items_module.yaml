@@ -243,10 +243,10 @@ groups:
     tests:
       - command: gmi 301560
         name: Search the GMI by AOID
-        expect: GMI orders for GRACE \(\d+ buy, \d+ sell\)
+        expect: GMI orders for GRACE \(\d+ buy, \d+ sell\)|Unknown error occurred contacting the GMI API|The GMI API returned invalid data|The GMI API timed out
       - command: gmi GRACE
         name: Search the GMI by item name
-        expect: GMI orders for GRACE \(\d+ buy, \d+ sell\)
+        expect: GMI orders for GRACE \(\d+ buy, \d+ sell\)|Unknown error occurred contacting the GMI API|The GMI API returned invalid data|The GMI API timed out
       - command: gmi <a href='itemref://301560/301560/30'>GRACE</a>
         name: Search the GMI by item
-        expect: GMI orders for GRACE \(\d+ buy, \d+ sell\)
+        expect: GMI orders for GRACE \(\d+ buy, \d+ sell\)|Unknown error occurred contacting the GMI API|The GMI API returned invalid data|The GMI API timed out
