@@ -8,7 +8,7 @@ jobs:
       fail-fast: false
       matrix:
         # We run all combinations for these targets
-        db: [sqlite, mariadb, postgresql]
+        db: [sqlite, mariadb, postgres]
         libuv: ['', 'uv']
         os: [windows-latest, macos-latest, ubuntu-latest] #, alpine-latest, freebsd-latest]
 
