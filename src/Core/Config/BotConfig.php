@@ -101,7 +101,7 @@ class BotConfig {
 				\STDERR,
 				"Your configuration file {$filePath} is invalid:\n\n".
 				implode("\n", $errorMessages) . "\n\n".
-				json_encode($vars, \JSON_PRETTY_PRINT).
+				json_encode($vars, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE).
 				"\n\n"
 			);
 			exit(1);

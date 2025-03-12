@@ -810,6 +810,7 @@ class DB {
 					'password' => $config->password,
 					'charset' => 'utf8',
 					'collation' => 'utf8_unicode_ci',
+					'options' => [\PDO::MYSQL_ATTR_FOUND_ROWS => true],
 					'prefix' => '',
 				]);
 				$this->sql = $this->capsule->getConnection()->getPdo();
