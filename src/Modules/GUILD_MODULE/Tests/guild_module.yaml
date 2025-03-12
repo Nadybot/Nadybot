@@ -29,9 +29,6 @@ groups:
         name: Querying a person who isn't in the org will give this as an error
         expect: is not a member of the org
 
-      - command: whois Regolus
-        name: Cache whois-information for a dummy character
-        expect: Detailed Info for Regolus
       - command: test orgjoin Regolus
         name: Have that dummy join the org
         capture: orgmsg
@@ -39,9 +36,6 @@ groups:
       - command: test logon Regolus
         name: Have the bot believe the dummy just logged on
         expect: ^$
-      # - command: test sleep 3
-      #   name: Sleep 3s so that dummy can make it to our buddy list
-      #   expect: ^$
       - command: buddylist
         name: This dummy should now be on our buddylist
         expect: Regolus \[[^\]]*org[^\]]*\]

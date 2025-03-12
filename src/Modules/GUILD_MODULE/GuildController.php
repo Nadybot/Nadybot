@@ -586,46 +586,17 @@ class GuildController extends ModuleInstance {
 	public function autoNotifyOrgMembersEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (count($arr = Safe::pregMatch('/^(.+) invited (.+) to your organization.$/', $message))) {
-			$name = Utils::normalizeCharacter($arr[2]);
-
-			if (
-				$this->buddylistManager->isOnline($name) === true
-				&& $this->db->table(DBOnline::getTable())
-					->where('name', $name)
-					->where('channel_type', 'guild')
-					->where('added_by', $this->db->getBotname())
-					->doesntExist()
-			) {
-				$this->db->insert(new DBOnline(
-					name: $name,
-					channel: $this->db->getMyguild(),
-					channel_type: 'guild',
-					added_by: $this->db->getBotname(),
-					dt: time(),
-				));
-			}
-			$this->db->table(OrgMember::getTable())
-				->upsert(['mode' => 'add', 'name' => $name], 'name');
-			$this->buddylistManager->addName($name, 'org');
-			$this->myOrg->setMemberLevel($name, 6);
-
-			// update character info
-			$this->playerManager->byName($name);
-		} elseif (
+			$this->handleInvitation($arr[2]);
+			return;
+		}
+		if (
 			count($arr = Safe::pregMatch('/^(.+) kicked (?<char>.+) from your organization.$/', $message))
 			|| count($arr = Safe::pregMatch('/^(.+) removed inactive character (?<char>.+) from your organization.$/', $message))
 			|| count($arr = Safe::pregMatch('/^(?<char>.+) just left your organization.$/', $message))
 			|| count($arr = Safe::pregMatch('/^(?<char>.+) kicked from organization \\(alignment changed\\).$/', $message))
 		) {
-			$name = Utils::normalizeCharacter($arr['char']);
-
-			$this->db->table(OrgMember::getTable())
-				->where('name', $name)
-				->update(['mode' => 'del']);
-			$this->delMemberFromOnline($name);
-
-			$this->myOrg->delMember($name);
-			$this->buddylistManager->remove($name, 'org');
+			$this->handleOrgMemberRemoved($arr['char']);
+			return;
 		}
 	}
 
@@ -892,6 +863,48 @@ class GuildController extends ModuleInstance {
 			->where('channel_type', 'guild')
 			->where('added_by', $this->db->getBotname())
 			->delete();
+	}
+
+	/** Someone was kicked from/has left our org */
+	private function handleOrgMemberRemoved(string $name): void {
+		$name = Utils::normalizeCharacter($name);
+
+		$this->db->table(OrgMember::getTable())
+			->where('name', $name)
+			->update(['mode' => 'del']);
+		$this->delMemberFromOnline($name);
+
+		$this->myOrg->delMember($name);
+		$this->buddylistManager->remove($name, 'org');
+	}
+
+	/** Someone was invited to our org */
+	private function handleInvitation(string $name): void {
+		$name = Utils::normalizeCharacter($name);
+
+		if (
+			$this->buddylistManager->isOnline($name) === true
+			&& $this->db->table(DBOnline::getTable())
+				->where('name', $name)
+				->where('channel_type', 'guild')
+				->where('added_by', $this->db->getBotname())
+				->doesntExist()
+		) {
+			$this->db->insert(new DBOnline(
+				name: $name,
+				channel: $this->db->getMyguild(),
+				channel_type: 'guild',
+				added_by: $this->db->getBotname(),
+				dt: time(),
+			));
+		}
+		$this->db->table(OrgMember::getTable())
+			->upsert(['mode' => 'add', 'name' => $name], 'name');
+		$this->buddylistManager->addName($name, 'org');
+		$this->myOrg->setMemberLevel($name, 6);
+
+		// update character info
+		$this->playerManager->byName($name);
 	}
 
 	/**
