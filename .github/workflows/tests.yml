@@ -25,7 +25,7 @@ jobs:
           MYSQL_DATABASE: nadybot
           MYSQL_PASSWORD: '123456'
         options: >-
-          --health-cmd "mysqladmin ping -h localhost"
+          --health-cmd "mysqladmin ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
