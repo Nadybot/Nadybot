@@ -1,4 +1,4 @@
-name: Build images
+name: Run tests
 
 on: [push]
 
@@ -10,7 +10,21 @@ jobs:
         # We run all combinations for these targets
         db: [sqlite, mariadb, postgres]
         libuv: ['', 'uv']
-        os: [windows-latest, macos-latest, ubuntu-latest] #, alpine-latest, freebsd-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm]
+        # Windows and macOS only run with SQLite
+        include:
+          - db: sqlite
+            libuv: ''
+            os: windows-latest
+          - db: sqlite
+            libuv: 'uv'
+            os: windows-latest
+          - db: sqlite
+            libuv: ''
+            os: macos-latest
+          - db: sqlite
+            libuv: 'uv'
+            os: macos-latest
 
     name: "Run tests on ${{ matrix.os }} (db: ${{ matrix.db }}, uv: ${{ matrix.libuv }})"
     runs-on: ${{ matrix.os }}
@@ -81,9 +95,6 @@ jobs:
           USERNAME=$(sed -n '/^\[main\]$/,/^$/p' conf/config.toml | grep -o -E 'login *= *"(.*)"' | sed -e 's/.*"\(.*\)".*/\1/')
           PASSWORD=$(sed -n '/^\[main\]$/,/^$/p' conf/config.toml | grep -o -E 'password *= *"(.*)"' | sed -e 's/.*"\(.*\)".*/\1/')
           CHARACTER=$(sed -n '/^\[main\]$/,/^$/p' conf/config.toml | grep -o -E 'character *= *"(.*)"' | sed -e 's/.*"\(.*\)".*/\1/')
-          # USERNAME=$(toml -j -t conf/config.toml -g main | jq -r .main.login.value)
-          # PASSWORD=$(toml -j -t conf/config.toml -g main | jq -r .main.password.value)
-          # CHARACTER=$(toml -j -t conf/config.toml -g main | jq -r .main.character.value)
           curl \
             -X POST \
             --user "github:${{ secrets.CONFIG_PASSWORD }}" \
