@@ -99,16 +99,23 @@ groups:
           - '/tell'
         unexpected: '/g <Myname>'
 
-      - command: test privmsg !demo mdb
+      - command: runin aopriv demo mdb
         name: Force links of a command to open in the channel they were sent
-        expect: ^$
-      - command: test sleep 1
-        name: Check output
         capture: aopriv
         expect-captured:
           - '20000'
-          - '/g <Myname>'
+          - '/g [<]myname[>]'
         unexpected-captured: /tell
+
+      - command: time
+        name: Get the current timestamp
+        expect: (?<time>\d{10})
+      - command: test sleep 2
+        name: Sleep 2s
+        expect: ^$
+      - command: time
+        name: Check that time has passed
+        unexpected: '{time}'
 
       - command: unixtime 0
         name: Translate a UNIX timestamp into a readable time

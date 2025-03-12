@@ -6,7 +6,9 @@ use function Amp\delay;
 use AO\Client\{SingleClient, WorkerPackage};
 use AO\Package;
 use Exception;
-use Nadybot\Core\Types\{AccessLevel, Faction};
+use Nadybot\Core\Modules\MESSAGES\PSource;
+use Nadybot\Core\Routing\Source;
+use Nadybot\Core\Types\{AccessLevel, CommandReply, Faction};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -18,12 +20,15 @@ use Nadybot\Core\{
 	Events\Event,
 	Events\PrivateChannelMsgEvent,
 	Exceptions\UserException,
+	GuildChannelCommandReply,
 	Hydrator,
 	ModuleInstance,
 	Modules\DISCORD\DiscordMessageIn,
 	Nadybot,
 	ParamClass\PCharacter,
+	PrivateChannelCommandReply,
 	Registry,
+	Safe,
 	SettingManager,
 	Types\Playfield,
 };
@@ -39,6 +44,11 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
 		command: 'test',
 		accessLevel: AccessLevel::Admin,
 		description: 'Test the bot commands',
+	),
+	NCA\DefineCommand(
+		command: 'runin',
+		accessLevel: AccessLevel::Admin,
+		description: 'Run a command as if sent from a different source',
 	),
 	NCA\DefineCommand(
 		command: 'msginfo',
@@ -61,6 +71,22 @@ class TestController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private EventManager $eventManager;
+
+	/** Run a command as if sent from another source */
+	#[NCA\HandlesCommand('runin')]
+	public function runinCommand(CmdContext $context, PSource $source, string $command): void {
+		$newContext = clone $context;
+		$newContext->message = $command;
+		$source = $source();
+		$newContext->source = $source;
+		$newSendto = $this->getRuninSendto($source);
+		if (!isset($newSendto)) {
+			$context->reply("Cannot handle source <highlight>{$source}<end> yet.");
+			return;
+		}
+		$newContext->sendto = $newSendto;
+		$this->commandManager->syncProcessCmd($newContext);
+	}
 
 	/** Pretend that &lt;char&gt; joins your org */
 	#[NCA\HandlesCommand('test')]
@@ -230,36 +256,6 @@ class TestController extends ModuleInstance {
 					groupId: $orgGroup->id,
 					charId: 0xFF_FF_FF_FF,
 					message: "{$context->char->name} turned the cloaking device in your city on.",
-					extra: "\0",
-				),
-				client: $this->getWorker(),
-			)
-		);
-	}
-
-	/** Pretend the bot received a message in the private channel */
-	#[NCA\HandlesCommand('test')]
-	public function testPrivMsgCommand(
-		CmdContext $context,
-		#[Str('privmsg')] string $action,
-		string $message,
-	): void {
-		if (!isset($context->char->id)) {
-			$context->reply('This command can only be used from within the game.');
-			return;
-		}
-		$botId = $this->chatBot->char?->id;
-		if (!isset($botId)) {
-			$context->reply('This command cannot be used while the  bot is not onlne.');
-			return;
-		}
-		$this->chatBot->processPackage(
-			new WorkerPackage(
-				worker: $this->config->main->character,
-				package: new Package\In\PrivateChannelMessage(
-					channelId: $botId,
-					charId: $context->char->id,
-					message: $message,
 					extra: "\0",
 				),
 				client: $this->getWorker(),
@@ -538,6 +534,19 @@ class TestController extends ModuleInstance {
 
 	protected function sendTowerMsg(string $message): void {
 		$this->sendGroupMsg('All Towers', 0, $message);
+	}
+
+	private function getRuninSendto(string $source): ?CommandReply {
+		if (count($matches = Safe::pregMatch(chr(1) . Source::PRIV . '\((.+?)\)' . chr(1) . 'is', $source)) > 0) {
+			return new PrivateChannelCommandReply($this->chatBot, $matches[1]);
+		}
+		if ($source === Source::PRIV) {
+			return new PrivateChannelCommandReply($this->chatBot, $this->config->main->character);
+		}
+		if ($source === Source::ORG) {
+			return new GuildChannelCommandReply($this->chatBot);
+		}
+		return null;
 	}
 
 	private function getWorker(): SingleClient {
