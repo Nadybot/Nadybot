@@ -76,6 +76,7 @@ jobs:
 
       - name: Return config
         if: always()
+        shell: bash
         run: |
           USERNAME=$(toml -j -t conf/config.toml -g main | jq -r .main.login.value)
           PASSWORD=$(toml -j -t conf/config.toml -g main | jq -r .main.password.value)
