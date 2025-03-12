@@ -3,11 +3,19 @@ name: Guild Module
 condition: orgbot
 groups:
 
-  - name: Basic functionality
+  - name: Initialize
     tests:
+      - command: buddylist clear
+        name: Clear buddylist
+        expect: Buddy list \(\d+\)
       - command: executesql UPDATE org_members_<myname> SET logged_off=0
         name: Initialize tables
         expect: Query run successfully
+      - command: test sleep 3
+        name: Sleep 3s
+        expect: ^$
+  - name: Basic functionality
+    tests:
       - command: lastseen
         name: Without arguments, !lasteen just displays the help
         expect: Help \(lastseen\)

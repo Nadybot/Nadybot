@@ -3,8 +3,10 @@
 namespace Nadybot\Core\Testing;
 
 use AO\Utils;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\Events\SendPrivEvent;
+use Nadybot\Core\{
+	EventManager,
+	Events\SendPrivEvent,
+};
 
 /** An interface used to capture private channel messages sent by the bot */
 class PrivateChannelCapturer implements CapturerInterface {

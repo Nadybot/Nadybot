@@ -496,7 +496,10 @@ class Testing {
 	 */
 	private function runTest(TestCase $test, array $placeholders): array {
 		if (!$this->evaluateCondition($test->condition)) {
-			$this->logger->notice('  [S] {test}', ['test' => $test->getName()]);
+			$this->logger->notice('  [S] ({condition}) {test}', [
+				'test' => $test->getName(),
+				'condition' => $test->condition,
+			]);
 			return [TestResult::Skipped, $placeholders];
 		}
 

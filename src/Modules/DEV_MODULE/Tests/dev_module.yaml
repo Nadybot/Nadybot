@@ -116,21 +116,24 @@ groups:
 
       - command: test orgjoin Darknet
         condition: orgbot
-        expect: xxx
+        capture: orgmsg
+        expect-captured: ^<superadmin> invited Darknet to your organization\.$
       - command: test orgjoin Darknet
         condition: '!orgbot'
         expect: Your bot cannot read
 
       - command: test orgleave Darknet
         condition: orgbot
-        expect: xxx
+        capture: orgmsg
+        expect-captured: ^Darknet just left your organization\.$
       - command: test orgleave Darknet
         condition: '!orgbot'
         expect: Your bot cannot read
 
       - command: test orgkick Darknet
         condition: orgbot
-        expect: xxx
+        capture: orgmsg
+        expect-captured: ^<superadmin> kicked Darknet from your organization\.$
       - command: test orgkick Darknet
         condition: '!orgbot'
         expect: Your bot cannot read
@@ -139,30 +142,59 @@ groups:
         name: Simulate an attack on our org towers
         condition: '!orgbot'
         expect: Your bot cannot read
+      - command: test orgattack Nukeat5 Troet
+        name: Simulate an attack on our org towers
+        condition: 'orgbot'
+        capture: orgmsg
+        expect-captured: ^The tower Control Tower - Neutral in Broken Shores was just reduced to 75 % health by Nukeat5 from the Troet organization!$
 
       - command: test orgattackprep Nukeat5 Troet
         name: Simulate someone disabling your towers' defense shield
         condition: '!orgbot'
         expect: Your bot cannot read
+      - command: test orgattackprep Nukeat5 Troet
+        name: Simulate someone disabling your towers' defense shield
+        condition: 'orgbot'
+        capture: orgmsg
+        expect-captured: ^Your controller tower in Southern Forest of Xzawkaz in Deep Artery Valley has had its defense shield disabled by Nukeat5 \(clan\)\.The attacker is a member of the organization Troet\.$
 
       - command: test towervictory neutral Troet clan Team Rainbow AEG
         name: Simulate a tower win
         condition: '!orgbot'
         expect: Your bot cannot read
+      - command: test towervictory neutral Troet clan Team Rainbow AEG
+        name: Simulate a tower win
+        condition: 'orgbot'
+        expect: ^$
 
       - command: test os Regolus
         name: Test an orbital strike
         condition: '!orgbot'
         expect: Your bot cannot read
+      - command: test os Regolus
+        name: Test an orbital strike
+        condition: orgbot
+        capture: orgmsg
+        expect-captured: ^Blammo! Regolus has launched an orbital attack!$
 
       - command: test cloaklower
         name: Test lowering the cloak
         condition: '!orgbot'
         expect: Your bot must be in an org
+      - command: test cloaklower
+        name: Test lowering the cloak
+        condition: orgbot
+        capture: aoorg
+        expect-captured: ^<superadmin> turned the cloaking device in your city off\.$
       - command: test cloakraise
         name: Test raising the cloak
         condition: '!orgbot'
         expect: Your bot must be in an org
+      - command: test cloakraise
+        name: Test raising the cloak
+        condition: orgbot
+        capture: aoorg
+        expect-captured: ^<superadmin> turned the cloaking device in your city on\.$
 
       - command: test event testcontroller.setup
         name: Test executing events

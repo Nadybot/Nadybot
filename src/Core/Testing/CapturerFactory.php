@@ -22,6 +22,9 @@ class CapturerFactory {
 		if ($pattern === Source::ORG) {
 			return new OrgChannelCapturer();
 		}
+		if (strtolower($pattern) === 'orgmsg') {
+			return new OrgMsgCapturer();
+		}
 		if (count($target = Safe::pregMatch(chr(1) . Source::TELL . '\((?<target>.+)\)' . chr(1), $pattern)) > 1) {
 			$target = Utils::normalizeCharacter($target['target']);
 			return new TellCapturer($target);

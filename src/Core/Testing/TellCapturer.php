@@ -3,8 +3,10 @@
 namespace Nadybot\Core\Testing;
 
 use AO\Utils;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\Events\SendMsgEvent;
+use Nadybot\Core\{
+	EventManager,
+	Events\SendMsgEvent,
+};
 
 /** An interface used to capture tell messages sent by the bot */
 class TellCapturer implements CapturerInterface {
