@@ -34,7 +34,8 @@ groups:
         expect: Detailed Info for Regolus
       - command: test orgjoin Regolus
         name: Have that dummy join the org
-        expect: ^$
+        capture: orgmsg
+        expect-captured: ^<superadmin> invited Regolus to your organization\.$
       - command: test logon Regolus
         name: Have the bot believe the dummy just logged on
         expect: ^$
