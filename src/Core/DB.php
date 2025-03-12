@@ -814,6 +814,9 @@ class DB {
 				]);
 				$this->sql = $this->capsule->getConnection()->getPdo();
 			} catch (PDOException $e) {
+				if (BotRunner::getArguments()->testRun) {
+					throw $e;
+				}
 				if (!$errorShown) {
 					$e->errorInfo ??= [$e->getCode(), $e->getCode(), $e->getMessage()];
 					$this->logger->error('Cannot connect to the MySQL db at {db_host}: {error}', [
@@ -970,6 +973,9 @@ class DB {
 				]);
 				$this->sql = $this->capsule->getConnection()->getPdo();
 			} catch (PDOException $e) {
+				if (BotRunner::getArguments()->testRun) {
+					throw $e;
+				}
 				if (!$errorShown) {
 					$this->logger->error(
 						'Cannot connect to the PostgreSQL DB at {db_host}: {error}',
@@ -1014,6 +1020,9 @@ class DB {
 				]);
 				$this->sql = $this->capsule->getConnection()->getPdo();
 			} catch (PDOException $e) {
+				if (BotRunner::getArguments()->testRun) {
+					throw $e;
+				}
 				if (!$errorShown) {
 					$e->errorInfo ??= [$e->getCode(), $e->getCode(), $e->getMessage()];
 					$this->logger->error(

@@ -2,12 +2,11 @@
 
 namespace Nadybot\Core\Config;
 
-use function Safe\json_decode;
-
+use function Safe\{json_decode, json_encode};
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
-use EventSauce\ObjectHydrator\{MapFrom, MapperSettings};
+use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, UnableToHydrateObject};
 use Nadybot\Core\Attributes\{Instance, JSON\Ignore};
-use Nadybot\Core\{Filesystem, Hydrator, Safe};
+use Nadybot\Core\{BotRunner, Filesystem, Hydrator, Safe};
 use Nadylib\IMEX;
 use Nadylib\IMEX\ImportException;
 
@@ -86,8 +85,27 @@ class BotConfig {
 			$vars['worker'][$i]['password']  ??= $vars['main']['password'] ?? null;
 		}
 
-		$config = Hydrator::hydrate(self::class, $vars);
-		$config->autoUnfreeze ??= new AutoUnfreeze();
+		try {
+			$config = Hydrator::hydrate(self::class, $vars);
+			$config->autoUnfreeze ??= new AutoUnfreeze();
+		} catch (UnableToHydrateObject $e) {
+			if (!BotRunner::getArguments()->testRun) {
+				throw $e;
+			}
+			$errorMessages = [$e->getMessage()];
+			while (($e = $e->getPrevious()) !== null) {
+				$errorMessages []= $e->getMessage();
+			}
+			// @phpstan-ignore-next-line
+			fwrite(
+				\STDERR,
+				"Your configuration file {$filePath} is invalid:\n\n".
+				implode("\n", $errorMessages) . "\n\n".
+				json_encode($vars, \JSON_PRETTY_PRINT).
+				"\n\n"
+			);
+			exit(1);
+		}
 		return $config;
 	}
 
