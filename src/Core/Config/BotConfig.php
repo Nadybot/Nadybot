@@ -7,8 +7,9 @@ use function Safe\json_decode;
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 use EventSauce\ObjectHydrator\{MapFrom, MapperSettings};
 use Nadybot\Core\Attributes\{Instance, JSON\Ignore};
-use Nadybot\Core\{Filesystem, Hydrator};
+use Nadybot\Core\{Filesystem, Hydrator, Safe};
 use Nadylib\IMEX;
+use Nadylib\IMEX\ImportException;
 
 /**
  * The BotConfig class provides convenient interface for reading and saving
@@ -52,7 +53,24 @@ class BotConfig {
 		$vars = [];
 		if (str_ends_with($filePath, '.toml')) {
 			$toml = $fs->read($filePath);
-			$vars = IMEX\TOML::import($toml);
+			try {
+				$vars = IMEX\TOML::import($toml);
+			} catch (ImportException $e) {
+				$errorMessages = [$e->getMessage()];
+				while (($e = $e->getPrevious()) !== null) {
+					$errorMessages []= $e->getMessage();
+				}
+				$cleanToml = Safe::pregReplace('/password\s*=\s*[\'"].*/m', 'password = "***REDACTED***"', $toml);
+				// @phpstan-ignore-next-line
+				fwrite(
+					\STDERR,
+					"Your configuration file {$filePath} is invalid TOML:\n\n".
+					implode("\n", $errorMessages) . "\n\n".
+					$cleanToml.
+					"\n\n"
+				);
+				exit(1);
+			}
 		} elseif (str_ends_with($filePath, '.json')) {
 			$json = $fs->read($filePath);
 			$vars = json_decode($json, true);

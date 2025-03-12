@@ -20,7 +20,7 @@ jobs:
         # There are no conditional services (yet), this hacks around it
         image: ${{ (matrix.db == 'mariadb') && 'mariadb:latest' || '' }}
         env:
-          MYSQL_ROOT_PASSWORD: 123456
+          MYSQL_ROOT_PASSWORD: '123456'
           MYSQL_USER: nadybot
           MYSQL_DATABASE: nadybot
           MYSQL_PASSWORD: '123456'
@@ -28,14 +28,14 @@ jobs:
           --health-cmd "mysqladmin ping"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 6
         ports:
           - 3306:3306
 
       postgres:
         image: ${{ (matrix.db == 'postgrseql') && 'postgres:alpine' || '' }}
         env:
-          POSTGRES_PASSWORD: 123456
+          POSTGRES_PASSWORD: '123456'
           POSTGRES_USER: nadybot
           POSTGRES_DB: nadybot
         options: >-
