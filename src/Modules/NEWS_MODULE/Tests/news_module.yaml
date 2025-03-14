@@ -87,7 +87,7 @@ groups:
         expect: Shows the current date and time in UTC
       - command: start
         name: Look at our welcome-page now
-        expect: Time.*see more.*GSP.*Currently playing
+        expect: Time.*see more.*GSP.*(Currently playing|currently not playing any music)
         unexpected: '[nN]ews'
       - command: startpage rem gsp
         name: Remove the GSP tile
