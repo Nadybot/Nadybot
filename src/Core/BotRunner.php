@@ -501,7 +501,7 @@ class BotRunner {
 			'fileinfo',
 			'tokenizer',
 		];
-		if (self::isLinux()) {
+		if (!self::isWindows()) {
 			$requiredModules []= 'pcntl';
 			$requiredModules []= 'posix';
 		}
