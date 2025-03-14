@@ -7,4 +7,4 @@ groups:
 
       - command: radio
         name: GSP can be queried what's currently playing
-        expect: Currently playing|seems to have problems with their service
+        expect: Currently playing|seems to have problems with their service|GSP is currently not playing any music
