@@ -43,7 +43,12 @@ class Reader {
 		$line = $iter->current();
 
 		/** @var list<string> */
-		$headers = str_getcsv($line);
+		$headers = str_getcsv(
+			string: $line,
+			separator: ',',
+			enclosure: '"',
+			escape: '\\'
+		);
 		while ((count($headers) === 1) && $headers[0][0] === '#') {
 			$iter->next();
 			if (!$iter->valid()) {
