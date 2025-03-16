@@ -67,7 +67,12 @@ class Reader {
 			$line = Safe::pregReplace('/^,/', "\x00,", $line);
 			$line = Safe::pregReplace('/,$/', ",\x00", rtrim($line));
 			$line = Safe::pregReplace('/,(?=,)/', ",\x00", $line);
-			$row = str_getcsv($line);
+			$row = str_getcsv(
+				string: $line,
+				separator: ',',
+				enclosure: '"',
+				escape: '\\'
+			);
 			if ($row === [null]) { // Skip blank lines
 				$iter->next();
 				continue;
