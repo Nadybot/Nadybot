@@ -27,7 +27,10 @@ jobs:
             os: macos-latest
           - db: sqlite
             libuv: ''
-            os: freebsd
+            os: ['freebsd', 'libuv']
+          - db: sqlite
+            libuv: ''
+            os: ['freebsd', 'nouv']
 
     name: "Run tests on ${{ matrix.os }} (db: ${{ matrix.db }}, uv: ${{ matrix.libuv }})"
     runs-on: ${{ matrix.os }}
