@@ -27,7 +27,7 @@ groups:
         expect: Status of mobs in The Reck \(6\)
       - command: hollowisland
         name: Show the state of Hollow Island
-        expect: A sapling|Wave \d|Weed
+        expect: A sapling|Wave \d|Weed|COOLDOWN
       - command: dreads
         name: Show the state of all Dreadloch camps
         expect:
