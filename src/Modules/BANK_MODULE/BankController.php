@@ -276,7 +276,12 @@ class BankController extends ModuleInstance {
 		foreach ($lines as $line) {
 			// this is the order of columns in the CSV file (AOIA v1.1.3.0):
 			// Item Name,QL,Character,Backpack,Location,LowID,HighID,ContainerID,Link
-			[$name, $ql, $player, $container, $location, $lowId, $highId, $containerId] = str_getcsv($line);
+			[$name, $ql, $player, $container, $location, $lowId, $highId, $containerId] = str_getcsv(
+				string: $line,
+				separator: ',',
+				enclosure: '"',
+				escape: '\\'
+			);
 			if ($location !== 'Bank' && $location !== 'Inventory') {
 				continue;
 			}
