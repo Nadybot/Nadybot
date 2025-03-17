@@ -59,6 +59,7 @@ calc
 canonicalized
 capri
 Captainzero
+[Cc]apturer
 Carsten
 [cC]lan
 [cC]ron

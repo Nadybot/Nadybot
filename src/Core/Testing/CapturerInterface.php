@@ -12,6 +12,6 @@ interface CapturerInterface {
 	/** Register this capturer to listen to the events that we want to capture */
 	public function register(EventManager $eventManager): void;
 
-	/** Unregister tjhis capturer from listening to events */
+	/** Unregister this capturer from listening to events */
 	public function unregister(EventManager $eventManager): void;
 }
