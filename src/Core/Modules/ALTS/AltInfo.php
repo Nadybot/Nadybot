@@ -285,7 +285,7 @@ class AltInfo {
 			->where('a.main', $this->main)
 			->asObj(AltPlayer::class)
 			->filter(static fn (AltPlayer $alt): bool => $alt->alt !== $alt->main);
-		$altNames = array_values(array_unique($alts->pluck('alt')->toArray()));
+		$altNames = array_values(array_unique($alts->pluckStrings('alt')->toArray()));
 		$playerDataByAlt = $this->playerManager
 			->searchByNames($this->db->getDim(), ...$altNames)
 			->keyBy('name');

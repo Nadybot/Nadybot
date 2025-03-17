@@ -39,6 +39,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\UuidInterface;
 use Revolt\EventLoop;
 
 /**
@@ -410,12 +411,12 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	): void {
 		$colors = $this->msgHub::$colors;
 
-		/** @var list<int> */
+		/** @var list<UuidInterface> */
 		$colorIds = $colors->filter(static function (RouteHopColor $color): bool {
 			return strncasecmp($color->hop, 'highnet', 7) === 0;
 		})->pluck('id')->toList();
 
-		/** @var list<int> */
+		/** @var list<UuidInterface> */
 		$formatIds = Source::$format->filter(static function (RouteHopFormat $format): bool {
 			return strncasecmp($format->hop, 'highnet', 7) === 0;
 		})->pluck('id')->toList();

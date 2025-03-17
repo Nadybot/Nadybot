@@ -1728,7 +1728,7 @@ class NotumWarsController extends ModuleInstance {
 			$faction = strtolower($sites->first()->org_faction->value ?? 'unknown');
 
 			/** @var int */
-			$ctPts = $sites->pluck('ql')->sum();
+			$ctPts = $sites->pluckInts('ql')->sum();
 			$ctPts *= 2;
 			return "<{$faction}>{$orgName}<end> (QL {$ctPts} contracts)\n\n".
 				$sites->map(function (FeedMessage\SiteUpdate $site): string {

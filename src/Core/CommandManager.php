@@ -363,7 +363,7 @@ class CommandManager implements MessageEmitter {
 			return 0;
 		}
 		$permissionQuery = $this->db->table(CmdPermission::getTable())
-			->whereIn('cmd', $data->pluck('cmd')->toArray());
+			->whereIn('cmd', $data->pluckStrings('cmd')->toList());
 
 		if ($permissionSet !== 'all' && $permissionSet !== '' && $permissionSet !== null) {
 			$permissionQuery->where('permission_set', $permissionSet);
@@ -652,7 +652,7 @@ class CommandManager implements MessageEmitter {
 					->filter(static function (CommandSearchResult $row) use ($context): bool {
 						return $row->permissions[$context->permissionSet]->enabled ?? false;
 					})->slice(0, 5)
-					->pluck('cmd');
+					->pluckStrings('cmd');
 			}
 
 			$msg = "Unknown command '{$cmd}'.";
@@ -1010,7 +1010,7 @@ class CommandManager implements MessageEmitter {
 			->where('dependson', $cmd)
 			->orWhere('cmd', $cmd)
 			->asObj(CmdCfg::class)
-			->pluck('file')
+			->pluckStrings('file')
 			->join(',');
 		if ($cmds === '' ||  !isset($context->permissionSet)) {
 			return "No help for {$cmd}.";

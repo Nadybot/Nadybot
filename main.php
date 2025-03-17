@@ -44,6 +44,48 @@ $lastOrFail = function (): mixed {
 };
 Collection::macro('lastOrFail', $lastOrFail);
 
+/**
+ * Get the int values of a given key.
+ *
+ * @param string|int|array<array-key, string> $value
+ * @param null|string                         $key
+ *
+ * @return static<array-key, int>
+ */
+$pluckInts = function ($value, $key=null): mixed {
+	return $this->pluck($value, $key);
+};
+Collection::macro('pluckInts', $pluckInts);
+
+/**
+ * Get the string values of a given key.
+ *
+ * @param string|int|array<array-key, string> $value
+ * @param null|string                         $key
+ *
+ * @return static<array-key, string>
+ */
+$pluckStrings = function ($value, $key=null): mixed {
+	return $this->pluck($value, $key);
+};
+Collection::macro('pluckStrings', $pluckString);
+
+/**
+ * Get the object values of a given key.
+ *
+ * @template T of object
+ *
+ * @param string|int|array<array-key, string> $value
+ * @param null|string                         $key
+ * @param class-string<T>                     $class
+ *
+ * @return static<array-key, T>
+ */
+$pluckObjects = function (string $className, string|int|array $value, ?string $key=null): mixed {
+	return $this->pluck($value, $key);
+};
+Collection::macro('pluckObjects', $pluckObjects);
+
 $runner = new Nadybot\Core\BotRunner($argv);
 $runner->run();
 /*

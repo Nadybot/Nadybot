@@ -1028,7 +1028,7 @@ class OnlineController extends ModuleInstance {
 		$online = $query->asObj(Online::class);
 		$playersByName = $this->playerManager->searchByNames(
 			$this->config->main->dimension,
-			...$online->pluck('name')->toArray()
+			...$online->pluckStrings('name')->toList()
 		)->keyBy('name');
 		$op = $online->map(function (Online $o) use ($playersByName): OnlinePlayer {
 			$p = $playersByName->get($o->name);

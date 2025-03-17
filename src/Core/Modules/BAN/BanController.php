@@ -479,7 +479,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 			->orderBy('time')
 			->asObj(BanEntry::class);
 
-		$bannedUids = $bans->pluck('charid')->toArray();
+		$bannedUids = $bans->pluckInts('charid')->toList();
 
 		/** @var Collection<int,NameHistory> */
 		$names = $this->db->table(BanEntry::getTable(), 'bl')

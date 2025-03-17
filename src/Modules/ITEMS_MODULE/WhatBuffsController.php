@@ -462,7 +462,7 @@ class WhatBuffsController extends ModuleInstance {
 
 			$data = $query->asObj(ItemBuffSearchResult::class);
 			$specialsById = $this->skillsController->getWeaponAttributes(
-				aoid: $data->pluck('highid')->toList()
+				aoid: $data->pluckInts('highid')->toList()
 			)->keyBy('id');
 			$data->each(static function (ItemBuffSearchResult $item) use ($specialsById): void {
 				if (($specials = $specialsById->get($item->highid)) === null) {

@@ -731,7 +731,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	): void {
 		$orgs = $this->db->table(TrackingOrg::getTable())
 			->asObj(TrackingOrg::class);
-		$orgIds = $orgs->pluck('org_id')->filter()->toArray();
+		$orgIds = $orgs->whereNotNull('org_id')->pluckInts('org_id')->toList();
 		$orgsByID = $this->findOrgController->getOrgsById(...$orgIds)
 			->keyBy('id');
 		$orgs = $orgs->each(static function (TrackingOrg $o) use ($orgsByID): void {

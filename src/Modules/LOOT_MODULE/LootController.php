@@ -930,7 +930,7 @@ class LootController extends ModuleInstance {
 			return false;
 		}
 
-		$itemsByBame =$this->itemsController->getByNames(...$data->pluck('name')->toArray())
+		$itemsByBame =$this->itemsController->getByNames(...$data->pluckStrings('name')->toArray())
 			->groupBy('name');
 		$data->each(static function (RaidLoot $loot) use ($itemsByBame): void {
 			$loot->item = $itemsByBame->get($loot->name)

@@ -951,7 +951,7 @@ class GuildController extends ModuleInstance {
 			->orderBy('name')
 			->asObj(OrgMember::class);
 		$players = $this->playerManager
-			->searchByNames($this->db->getDim(), ...$members->pluck('name')->toArray());
+			->searchByNames($this->db->getDim(), ...$members->pluckStrings('name')->toList());
 		$players->each(function (Player $player): void {
 			$this->myOrg->setMemberLevel($player->name, $player->guild_rank_id ?? 6);
 		});

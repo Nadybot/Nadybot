@@ -25,6 +25,7 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util,
 };
+use Ramsey\Uuid\UuidInterface;
 use Throwable;
 
 /**
@@ -404,6 +405,8 @@ class WishlistController extends ModuleInstance {
 	 */
 	public function addFulfilments(Collection $wishes): Collection {
 		$enriched = clone $wishes;
+
+		/** @var Collection<array-key,UuidInterface> */
 		$ids = $wishes->pluck('id');
 		$this->db->table(WishFulfilment::getTable())
 			->whereIn('wish_id', $ids->toArray())

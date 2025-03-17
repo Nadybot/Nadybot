@@ -634,7 +634,7 @@ class ChatAssistController extends ModuleInstance {
 		return $players->filter(static function (Player $member) use ($forbiddenProfs): bool {
 			return !isset($member->profession)
 				|| !in_array($member->profession, $forbiddenProfs, true);
-		})->pluck('name')
+		})->pluckStrings('name')
 		->values()
 		->toList();
 	}
