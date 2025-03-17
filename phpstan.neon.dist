@@ -29,9 +29,9 @@ parameters:
     reportContextExceptionLogLevel: 'info'
     contextKeyOriginalPattern: '#\A[A-Za-z0-9-_]+\z#'
   shipmonkRules:
-      allowComparingOnlyComparableTypes:
+      forbidUnsafeArrayKey:
           enabled: false
-      allowNamedArgumentOnlyInAttributes:
+      allowComparingOnlyComparableTypes:
           enabled: false
       backedEnumGenerics:
           enabled: true
@@ -54,37 +54,11 @@ parameters:
       forbidArithmeticOperationOnNonNumber:
           enabled: true
           allowNumericString: true
-      forbidAssignmentNotMatchingVarDoc:
-          enabled: true
-          allowNarrowing: true
       forbidCast:
           enabled: false
           blacklist: ['(array)', '(object)', '(unset)']
       forbidCheckedExceptionInCallable:
           enabled: false
-          immediatelyCalledCallables:
-              array_reduce: 1
-              array_intersect_ukey: 2
-              array_uintersect: 2
-              array_uintersect_assoc: 2
-              array_intersect_uassoc: 2
-              array_uintersect_uassoc: [2, 3]
-              array_diff_ukey: 2
-              array_udiff: 2
-              array_udiff_assoc: 2
-              array_diff_uassoc: 2
-              array_udiff_uassoc: [2, 3]
-              array_filter: 1
-              array_map: 0
-              array_walk_recursive: 1
-              array_walk: 1
-              call_user_func: 0
-              call_user_func_array: 0
-              forward_static_call: 0
-              forward_static_call_array: 0
-              uasort: 1
-              uksort: 1
-              usort: 1
           allowedCheckedExceptionCallables: []
       forbidCheckedExceptionInYieldingMethod:
           enabled: false

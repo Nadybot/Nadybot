@@ -88,7 +88,7 @@
 		"thecodingmachine/phpstan-safe-rule": "^1.2",
 		"struggle-for-php/sfp-phpstan-psr-log": "^0.21.0",
 		"phpstan/phpstan-strict-rules": "^1.5",
-		"shipmonk/phpstan-rules": "^2.12"
+		"shipmonk/phpstan-rules": "^2|^3|^4"
 	},
 	"scripts": {
 		"post-package-install": [
