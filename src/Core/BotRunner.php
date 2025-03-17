@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use function Amp\async;
 use function Amp\ByteStream\getStderr;
 use function Amp\File\{createDefaultDriver, filesystem};
-use function Safe\{fwrite, getopt, ini_set, parse_url, putenv, sapi_windows_set_ctrl_handler};
+use function Safe\{fwrite, getopt, ini_set, parse_url, putenv, sapi_windows_set_ctrl_handler, sleep};
 
 use Amp\ByteStream\BufferedReader;
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};

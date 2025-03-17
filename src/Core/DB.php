@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use function Amp\ByteStream\splitLines;
 use function Amp\delay;
-use function Safe\{class_implements, preg_match};
+use function Safe\{class_implements, preg_match, sleep};
 
 use Amp\File\FilesystemException;
 use BackedEnum;

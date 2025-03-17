@@ -3,6 +3,7 @@
 namespace Nadybot\Core\CSV;
 
 use function Amp\ByteStream\splitLines;
+use function Safe\array_combine;
 
 use Generator;
 use IteratorIterator;

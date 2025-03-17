@@ -4,6 +4,7 @@ namespace Nadybot\Core\SettingHandlers;
 
 use Exception;
 use Nadybot\Core\{Attributes as NCA, ModuleInstance, Registry, Safe, Text};
+
 use ReflectionAttribute;
 
 use ReflectionObject;

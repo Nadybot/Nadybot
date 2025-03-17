@@ -102,7 +102,11 @@ class WhatBuffsController extends ModuleInstance {
 		$suffix = $froobFriendly ? 'Froob' : '';
 		$blob = "<header2>Choose a skill<end>\n";
 
-		/** @var Collection<int,Skill> */
+		/**
+		 * @var Collection<int,Skill>
+		 *
+		 * @phpstan-ignore varTag.type
+		 */
 		$skills = $this->db->table(ItemBuff::getTable())
 			->select('attribute_id')
 			->distinct()

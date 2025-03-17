@@ -7,12 +7,12 @@ use Illuminate\Contracts\Support\CanBeEscapedWhenCastToString;
 
 /**
  * @template TKey of array-key
- *
- * @template-covariant TValue
+ * @template TValue
  *
  * @implements \ArrayAccess<TKey, TValue>
  * @implements \Illuminate\Support\Enumerable<TKey, TValue>
  *
+ * @method static<TKey,TValue>      notNull()
  * @method list<TValue>             toList()
  * @method TValue                   lastOrFail()
  * @method static<array-key,int>    pluckInts(string|int|array<array-key,string> $value, ?string $key=null)
@@ -65,5 +65,26 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
 	 * @return static<array-key, string>
 	 */
 	public function pluckStrings(string|int|array $value, ?string $key=null): static {
+	}
+
+	/**
+	 * Remove all null value
+	 *
+	 * @psalm-assert !null TValue
+	 *
+	 * @return static<TKey, TValue>
+	 */
+	public function notNull(): static {
+	}
+
+	/**
+	 * Group an associative array by a field or using a callback.
+	 *
+	 * @param (callable(TValue, TKey): array-key)|string[]|string $groupBy
+	 * @param bool                                                $preserveKeys
+	 *
+	 * @return static<array-key, static<int, TValue>>
+	 */
+	public function groupBy($groupBy, $preserveKeys=false): static {
 	}
 }

@@ -5,10 +5,14 @@ parameters:
     - src
   excludePaths:
     - src/websetup/
-  phpVersion: 80200
+    - Stubs/
+  phpVersion: 80100
   ignoreErrors:
     - '#Property [a-zA-Z0-9\\_]+::\$.* is never written, only read.#'
     - '#Static property [a-zA-Z0-9\\_]+::\$.* is never written, only read.#'
+    - '#Function array_combine is unsafe to use#'
+    - '#Function openssl_pkey_get_details is unsafe to use#'
+  reportUnmatchedIgnoredErrors: false
   stubFiles:
     - Stubs/EventSauce.ObjectHydrator.IterableList.php
     - Stubs/Illuminate.Contracts.Support.Arrayable.stub

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\SettingHandlers;
 
+use function Safe\array_flip;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,

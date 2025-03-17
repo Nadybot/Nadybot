@@ -4,7 +4,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use function Amp\Future\await;
 use function Amp\{async, delay};
-use function Safe\{json_decode, json_encode, preg_match};
+use function Safe\{array_flip, json_decode, json_encode, preg_match};
 
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
