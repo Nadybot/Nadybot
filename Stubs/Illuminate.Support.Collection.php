@@ -80,10 +80,12 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
 	/**
 	 * Group an associative array by a field or using a callback.
 	 *
-	 * @param (callable(TValue, TKey): array-key)|string[]|string $groupBy
-	 * @param bool                                                $preserveKeys
+	 * @template TNewKey of array-key
 	 *
-	 * @return static<array-key, static<int, TValue>>
+	 * @param (callable(TValue, TKey): TNewKey)|string[]|string $groupBy
+	 * @param bool                                              $preserveKeys
+	 *
+	 * @return ($groupBy is callable ? static<TNewKey,static<int,TValue>> : static<array-key,static<int,TValue>>)
 	 */
 	public function groupBy($groupBy, $preserveKeys=false): static {
 	}
