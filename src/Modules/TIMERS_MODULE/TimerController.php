@@ -192,18 +192,16 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 		$endTime = (int)$timer->data + $alert->time;
+		while ($endTime <= time()) {
+			$endTime += (int)$timer->data;
+		}
 		$alerts = $this->generateAlerts($timer->owner, $timer->name, $endTime, explode(' ', $this->timerAlertTimes));
-		$this->remove($timer->id);
-		$this->add(
-			name: $timer->name,
-			owner: $timer->owner,
-			mode: $timer->mode,
-			alerts: $alerts,
-			callback: $timer->callback,
-			data: $timer->data,
-			origin: $timer->origin,
-			id: $timer->id
-		);
+		$timer->endtime = $endTime;
+		$timer->alerts = $alerts;
+		$this->db->update($timer);
+
+		$event = new TimerRepeatEvent(timer: $timer);
+		$this->eventManager->dispatch($event);
 	}
 
 	public function sendAlertMessage(Timer $timer, Alert $alert): void {
