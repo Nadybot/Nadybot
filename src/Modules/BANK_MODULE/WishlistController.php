@@ -406,7 +406,11 @@ class WishlistController extends ModuleInstance {
 	public function addFulfilments(Collection $wishes): Collection {
 		$enriched = clone $wishes;
 
-		/** @var Collection<array-key,UuidInterface> */
+		/**
+		 * @var Collection<array-key,UuidInterface>
+		 *
+		 * @phpstan-ignore-next-line
+		 */
 		$ids = $wishes->pluck('id');
 		$this->db->table(WishFulfilment::getTable())
 			->whereIn('wish_id', $ids->toArray())

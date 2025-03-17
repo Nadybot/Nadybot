@@ -594,13 +594,17 @@ class DB {
 		/** @var Collection<string,Collection<int,CoreMigration>> */
 		$groupedMigs = $toRun->groupBy('module');
 
-		/** @var Collection<int,CoreMigration> */
+		/**
+		 * @var Collection<int,CoreMigration>
+		 *
+		 * @phpstan-ignore-next-line
+		 */
 		$missingMigs = $groupedMigs->map(function (Collection $migs, string $module): Collection {
 			return $this->filterAppliedMigrations($module, $migs);
 		})->flatten()
-			->sort(static function (CoreMigration $f1, CoreMigration $f2): int {
-				return $f1->order <=> $f2->order;
-			});
+		->sort(static function (CoreMigration $f1, CoreMigration $f2): int {
+			return $f1->order <=> $f2->order;
+		});
 		if ($missingMigs->isEmpty()) {
 			return;
 		}

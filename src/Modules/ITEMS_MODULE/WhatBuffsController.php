@@ -222,6 +222,7 @@ class WhatBuffsController extends ModuleInstance {
 			$data = $query->asObj(SkillBuffItemCount::class);
 		}
 
+		/** @var Collection<array-key,SkillBuffItemCount> */
 		$sorted = $data->sortBy(static fn (SkillBuffItemCount $b): ?string => $b->skill?->fullName());
 
 		$blob = "<header2>Choose the skill to buff<end>\n";

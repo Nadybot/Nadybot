@@ -729,7 +729,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 		$chars = collect($chars);
 
-		/** @var array<string,int> */
+		/**
+		 * @var array<string,int>
+		 *
+		 * @phpstan-ignore-next-line
+		 */
 		$online = $chars->countBy(
 			static function (OnlinePlayer $player): string {
 				return $player->profession->value ?? '';
@@ -784,7 +788,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		/** @var Collection<string,Collection<int,OnlinePlayer>> */
 		$byOrg = $online->groupBy('guild');
 
-		/** @var Collection<int,OrgCount> */
+		/**
+		 * @var Collection<int,OrgCount>
+		 *
+		 * @phpstan-ignore-next-line
+		 */
 		$orgStats = $byOrg->map(static function (Collection $chars, string $orgName): OrgCount {
 			return new OrgCount(
 				avgLevel: $chars->avg('level') ?? 0,
