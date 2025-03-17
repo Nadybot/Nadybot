@@ -130,7 +130,7 @@ class Safe {
 	public static function pregMatchAll(string $pattern, string $subject, int $flags=0, int $offset=0): array {
 		$matches = [];
 		$result = preg_match_all($pattern, $subject, $matches, $flags, $offset);
-		if (!isset($matches)) {
+		if ($result === 0 || !is_array($matches)) {
 			return [];
 		}
 		return $matches;
@@ -155,7 +155,7 @@ class Safe {
 	public static function pregMatchOffsetAll(string $pattern, string $subject, int $flags=0, int $offset=0): array {
 		$matches = [];
 		$result = preg_match_all($pattern, $subject, $matches, $flags | \PREG_OFFSET_CAPTURE, $offset);
-		if (!isset($matches)) {
+		if ($result === 0 || !is_array($matches)) {
 			return [];
 		}
 		return $matches;
@@ -176,6 +176,9 @@ class Safe {
 	public static function pregMatchOrderedAll(string $pattern, string $subject, int $flags=0, int $offset=0): array {
 		$matches = [];
 		$result = preg_match_all($pattern, $subject, $matches, $flags | \PREG_SET_ORDER, $offset);
+		if ($result === 0 || !is_array($matches)) {
+			return [];
+		}
 
 		/** @psalm-var list<string[]> $matches */
 
@@ -252,7 +255,8 @@ class Safe {
 		int $flags=0
 	): array|string {
 		error_clear_last();
-		// @phpstan-ignore-next-line
+
+		/** @phpstan-ignore theCodingMachineSafe.function */
 		$result = preg_replace_callback($pattern, $callback, $subject, $limit, $count, $flags);
 		if (!isset($result)) {
 			throw PcreException::createFromPhpError();

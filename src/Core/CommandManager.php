@@ -1739,6 +1739,8 @@ class CommandManager implements MessageEmitter {
 	 * @param Collection<int,list<ReflectionMethod>> $list
 	 *
 	 * @return Collection<string,Collection<int, list<ReflectionMethod>>>
+	 *
+	 * @psalm-suppress InvalidReturnType
 	 */
 	private function groupBySubcmd(Collection $list): Collection {
 		/**
@@ -1769,6 +1771,8 @@ class CommandManager implements MessageEmitter {
 			$handlesCmd = $attrs[0]->newInstance();
 			return $handlesCmd->command;
 		});
+
+		/** @psalm-suppress InvalidReturnStatement */
 		return $grouped;
 	}
 

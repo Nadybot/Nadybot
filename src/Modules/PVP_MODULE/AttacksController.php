@@ -906,6 +906,8 @@ class AttacksController extends ModuleInstance {
 	 * Group a given list of attacks into attack-phases divided
 	 * by victories and 75% phases
 	 *
+	 * @psalm-suppress InvalidReturnType
+	 *
 	 * @return Collection<string,Collection<int,DBTowerAttack>>
 	 */
 	private function groupAttackList(DBTowerAttack ...$towerAttacks): Collection {
@@ -967,6 +969,8 @@ class AttacksController extends ModuleInstance {
 				return $key . ':' . $lookup["{$key}:{$attack->timestamp}"];
 			}
 		);
+
+		/** @psalm-suppress InvalidReturnStatement */
 		return $grouped;
 	}
 

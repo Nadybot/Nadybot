@@ -90,6 +90,7 @@ class WishlistController extends ModuleInstance {
 		if ($wishlistGrouped->isEmpty()) {
 			return;
 		}
+
 		$render = $this->renderCheckWishlist($wishlistGrouped, $event->sender);
 		$msg = Text::makeBlob(
 			"People are wishing items from you ({$render->numItems})",
@@ -332,6 +333,8 @@ class WishlistController extends ModuleInstance {
 			$context->reply("{$char}'s wishlist is empty.");
 			return;
 		}
+
+		/** @psalm-suppress InvalidArgument */
 		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
 		$msg = Text::makeBlob(
 			"{$char}'s wishlists ({$render->numItems})",
@@ -366,6 +369,8 @@ class WishlistController extends ModuleInstance {
 			$context->reply("No one is wishing for {$what}.");
 			return;
 		}
+
+		/** @psalm-suppress PossiblyInvalidArgument */
 		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
 		$msg = Text::makeBlob(
 			"Others' wishlists with '{$what}' ({$render->numItems})",
