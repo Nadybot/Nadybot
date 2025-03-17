@@ -48,7 +48,7 @@
 		"amphp/websocket-client": "^2.0.0",
 		"eventsauce/object-hydrator": "^1.1.0",
 		"amphp/http-tunnel": "^2.0.0-beta.2",
-		"nadylib/imex": "^1.0.3",
+		"nadylib/imex": "^1.0.4",
 		"nadybot/aolib": "^0.1.7",
 		"nadylib/leaky-bucket": "^0.1.0",
 		"amphp/pipeline": "^1.2",

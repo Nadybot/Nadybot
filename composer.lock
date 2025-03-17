@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "63c53be8d6058ee0c74492e1aef3e7a0",
+    "content-hash": "1500597e4d1edc64691f3c5fe1701014",
     "packages": [
         {
             "name": "amphp/amp",
@@ -3456,16 +3456,16 @@
         },
         {
             "name": "nadylib/imex",
-            "version": "1.0.3",
+            "version": "1.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Nadybot/IMEX.git",
-                "reference": "8411c4b885b194fd9995d0852b62abf0a3976e41"
+                "reference": "b50bab56a124d498cefcb585b8374b59929cb381"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Nadybot/IMEX/zipball/8411c4b885b194fd9995d0852b62abf0a3976e41",
-                "reference": "8411c4b885b194fd9995d0852b62abf0a3976e41",
+                "url": "https://api.github.com/repos/Nadybot/IMEX/zipball/b50bab56a124d498cefcb585b8374b59929cb381",
+                "reference": "b50bab56a124d498cefcb585b8374b59929cb381",
                 "shasum": ""
             },
             "require": {
@@ -3503,9 +3503,9 @@
             "description": "A library that abstracts away common file formats for easier importing and exporting",
             "support": {
                 "issues": "https://github.com/Nadybot/IMEX/issues",
-                "source": "https://github.com/Nadybot/IMEX/tree/1.0.3"
+                "source": "https://github.com/Nadybot/IMEX/tree/1.0.4"
             },
-            "time": "2025-03-17T10:00:12+00:00"
+            "time": "2025-03-17T17:00:24+00:00"
         },
         {
             "name": "nadylib/leaky-bucket",
