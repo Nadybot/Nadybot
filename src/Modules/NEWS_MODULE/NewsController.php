@@ -208,8 +208,11 @@ class NewsController extends ModuleInstance {
 		$thirtyDays = time() - (86_400 * 30);
 		$news = $this->getNewsItems($player);
 
-		return $news->where('confirmed', false)
-			->contains('time', '>', $thirtyDays);
+		/**
+		 * @psalm-suppress InvalidArgument
+		 * @psalm-suppress UnusedPsalmSuppress
+		 */
+		return $news->where('confirmed', false)->contains('time', '>', $thirtyDays);
 	}
 
 	/** Show the latest news entries */
