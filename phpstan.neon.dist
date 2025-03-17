@@ -111,20 +111,16 @@ parameters:
           reportEvenIfExceptionIsNotAcceptableByRethrownOne: true
       uselessPrivatePropertyDefaultValue:
           enabled: false
-      uselessPrivatePropertyNullability:
-          enabled: true
   strictRules:
     allRules: false
     disallowedLooseComparison: true
     booleansInConditions: false
     uselessCast: true
     requireParentConstructorCall: false
-    disallowedConstructs: true
     overwriteVariablesWithLoop: true
     closureUsesThis: true
     matchingInheritedMethodNames: true
     numericOperandsInArithmeticOperators: true
-    strictCalls: true
     switchConditionsMatchingType: true
     noVariableVariables: false
     strictArrayFilter: true

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
-use function Safe\preg_split;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
@@ -404,7 +403,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 		$subst = [];
 		foreach ($replacements as $key => $value) {
-			$subst ['{' . $key . '}'] = $value;
+			$subst['{' . $key . '}'] = (string)$value;
 		}
 
 		return str_replace(
@@ -1367,7 +1366,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (isset($filters['levelRange'])) {
 			$ranges = [];
 			foreach ($filters['levelRange'] as $range) {
-				[$min, $max] = preg_split("/\s*-\s*/", $range);
+				[$min, $max] = Safe::pregSplit("/\s*-\s*/", $range);
 				$ranges []= [strlen($min) ? (int)$min : 1, strlen($max) ? (int)$max : 220];
 			}
 			$data = $data->filter(static function (OnlineTrackedUser $user) use ($ranges): bool {

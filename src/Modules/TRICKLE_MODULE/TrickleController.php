@@ -2,14 +2,13 @@
 
 namespace Nadybot\Modules\TRICKLE_MODULE;
 
-use function Safe\preg_split;
-
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
+	Safe,
 	Text,
 	Types\Ability,
 	Types\AccessLevel,
@@ -74,7 +73,7 @@ class TrickleController extends ModuleInstance {
 		$abilities = new AbilityConfig();
 
 		foreach ($pairs as $pair) {
-			[$abilityName, $amount] = preg_split("/\s+/", $pair);
+			[$abilityName, $amount] = Safe::pregSplit("/\s+/", $pair);
 			$ability = Ability::tryFromShort($abilityName);
 			if ($ability === null) {
 				$msg = "Unknown ability <highlight>{$abilityName}<end>.";
@@ -104,7 +103,7 @@ class TrickleController extends ModuleInstance {
 		$abilities = new AbilityConfig();
 
 		foreach ($pairs as $pair) {
-			[$amount, $abilityName] = preg_split("/\s+/", $pair);
+			[$amount, $abilityName] = Safe::pregSplit("/\s+/", $pair);
 			$ability = Ability::tryFromShort($abilityName);
 			if ($ability === null) {
 				$msg = "Unknown ability <highlight>{$abilityName}<end>.";

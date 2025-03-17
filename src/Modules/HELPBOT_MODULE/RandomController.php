@@ -73,7 +73,6 @@ class RandomController extends ModuleInstance {
 		$list = [];
 		while (count($items)) {
 			// Pick a random item from $items and remove it
-			// @phpstan-ignore-next-line
 			$elem = array_splice($items, array_rand($items, 1), 1)[0];
 			$list []= $elem;
 		}

@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Safe\preg_split;
-
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\DISCORD\{ApplicationCommand, ApplicationCommandOption, DiscordException};
 use Nadybot\Core\{
@@ -28,6 +26,7 @@ use Nadybot\Core\{
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Text,
 	Types\AccessLevel,
 };
@@ -491,7 +490,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		$types = [];
 		$methods = explode(',', $cmdCfg->file);
 		foreach ($methods as $methodDef) {
-			[$class, $method, $line] = preg_split('/[.:]/', $methodDef);
+			[$class, $method, $line] = Safe::pregSplit('/[.:]/', $methodDef);
 			$obj = Registry::tryGetInstance($class);
 			if (!isset($obj)) {
 				continue;

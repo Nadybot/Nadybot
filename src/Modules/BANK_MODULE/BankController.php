@@ -4,7 +4,7 @@ namespace Nadybot\Modules\BANK_MODULE;
 
 use function Amp\async;
 use function Amp\Future\await;
-use function Safe\{preg_match, preg_split};
+use function Safe\preg_match;
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Illuminate\Support\Collection;
@@ -176,7 +176,8 @@ class BankController extends ModuleInstance {
 			->orderBy('ql')
 			->limit($limit);
 		if (isset($ql)) {
-			[$low, $high] = preg_split("/(\s*-\s*|\s+)/", $ql);
+			[$low, $high] = Safe::pregSplit("/(\s*-\s*|\s+)/", $ql);
+			// @phpstan-ignore isset.variable
 			if (isset($high)) {
 				$query->where('ql', '>=', min((int)$low, (int)$high));
 				$query->where('ql', '<=', max((int)$low, (int)$high));

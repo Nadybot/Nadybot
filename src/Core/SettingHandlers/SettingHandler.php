@@ -95,11 +95,7 @@ abstract class SettingHandler {
 		return $msg;
 	}
 
-	/**
-	 * Change this setting to $newValue
-	 *
-	 * @throws \Exception if $newValue is not accepted
-	 */
+	/** Change this setting to $newValue */
 	public function save(string $newValue): string {
 		return $newValue;
 	}

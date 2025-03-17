@@ -475,6 +475,7 @@ class BotRunner {
 
 	/** Check if all the modules that the bot needs, are installed */
 	private function checkRequiredModules(): void {
+		// @phpstan-ignore if.alwaysFalse
 		if (version_compare(\PHP_VERSION, '8.1.17', '<')) {
 			// @phpstan-ignore-next-line
 			fwrite(\STDERR, 'Nadybot 7 needs at least PHP version 8 to run, you have ' . \PHP_VERSION . "\n");
