@@ -68,7 +68,7 @@ Collection::macro('pluckInts', $pluckInts);
 $pluckStrings = function ($value, $key=null): mixed {
 	return $this->pluck($value, $key);
 };
-Collection::macro('pluckStrings', $pluckString);
+Collection::macro('pluckStrings', $pluckStrings);
 
 /**
  * Get the object values of a given key.
