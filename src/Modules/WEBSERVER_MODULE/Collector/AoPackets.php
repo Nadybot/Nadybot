@@ -17,11 +17,11 @@ class AoPackets extends Dataset {
 		$lines = ['# TYPE ao_packets counter'];
 		foreach ($this->chatBot->aoClient->getStatistics()->packagesRead as $type => $count) {
 			$lines []= 'ao_packets{direction="in",type="'.
-				(PackageType::tryFrom($type)->name ?? $type) . "\"} {$count}";
+				(PackageType::tryFrom($type)->name ?? (string)$type) . "\"} {$count}";
 		}
 		foreach ($this->chatBot->aoClient->getStatistics()->packagesWritten as $type => $count) {
 			$lines []= 'ao_packets{direction="out",type="'.
-				(PackageType::tryFrom($type)->name ?? $type) . "\"} {$count}";
+				(PackageType::tryFrom($type)->name ?? (string)$type) . "\"} {$count}";
 		}
 		return $lines;
 	}

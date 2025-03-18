@@ -168,6 +168,9 @@ class RecipeController extends ModuleInstance {
 	private function parseTextFile(int $id, string $fileName): Recipe {
 		$lines = explode("\n", $this->fs->read($this->path . $fileName));
 		$nameLine = trim(array_shift($lines));
+		if (!count($lines)) {
+			throw new UserException('Broken recipe data');
+		}
 		$authorLine = trim(array_shift($lines));
 		$recipe = new Recipe(
 			id: $id,

@@ -195,10 +195,12 @@ class JWT {
 		} elseif ($success === 0) {
 			return false;
 		}
+		$errorMsg = openssl_error_string();
 		// returns 1 on success, 0 on failure, -1 on error.
-		throw new DomainException(
-			'OpenSSL error: ' . openssl_error_string()
-		);
+		if (is_string($errorMsg)) {
+			throw new DomainException('OpenSSL error: ' . $errorMsg);
+		}
+		return false;
 	}
 
 	/**

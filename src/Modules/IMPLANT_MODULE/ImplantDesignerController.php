@@ -681,7 +681,12 @@ class ImplantDesignerController extends ModuleInstance {
 		return $row->atQL($ql);
 	}
 
-	/** @return list<Skill> */
+	/**
+	 * @return list<Skill>
+	 *
+	 * @psalm-suppress InvalidReturnStatement
+	 * @psalm-suppress InvalidReturnType
+	 */
 	public function getClustersForSlot(ImplantSlot $implantType, ClusterGrade $clusterType): array {
 		return $this->db
 			->table(Cluster::getTable(), 'c')

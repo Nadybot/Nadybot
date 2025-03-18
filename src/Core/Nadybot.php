@@ -1655,7 +1655,7 @@ class Nadybot {
 				$eventMask ??= $this->getEventMaskFromFunctionSignature($method);
 				if (is_array($eventMask) && !count($eventMask)) {
 					throw new Error(
-						$method->getDeclaringClass() . '::' . $method->getName() . '() '.
+						$method->getDeclaringClass()->getName() . '::' . $method->getName() . '() '.
 						'needs to specify the event mask it subscribes to, because '.
 						'the function signature does not allow to derive it'
 					);

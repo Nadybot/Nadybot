@@ -231,6 +231,7 @@ nodrop
 noedit|NoEdit
 nsfw
 n'th
+nullable
 num
 ofab|OFAB
 [oO]mni

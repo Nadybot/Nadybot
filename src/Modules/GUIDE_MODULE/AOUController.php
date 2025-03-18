@@ -9,6 +9,7 @@ use DateInterval;
 use DOMDocument;
 use DOMElement;
 use Exception;
+use Nadybot\Core\Exceptions\UserException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -103,7 +104,7 @@ class AOUController extends ModuleInstance {
 
 		if ($dom->getElementsByTagName('error')->length > 0) {
 			throw new Exception(
-				$dom->getElementsByTagName('text')->item(0)->nodeValue
+				$dom->getElementsByTagName('text')->item(0)->nodeValue ?? 'Unknown error'
 			);
 		}
 
@@ -111,7 +112,7 @@ class AOUController extends ModuleInstance {
 		if (!isset($content) || !($content instanceof DOMElement)) { // @phpstan-ignore-line
 			throw new Exception('Invalid XML structure');
 		}
-		$title = $content->getElementsByTagName('name')->item(0)->nodeValue;
+		$title = $content->getElementsByTagName('name')->item(0)->nodeValue ?? 'No Title';
 
 		$blob = Text::makeChatcmd('Guide on AO-Universe', "/start https://www.ao-universe.com/main.php?site=knowledge&id={$guideId}") . "\n\n";
 
@@ -119,9 +120,9 @@ class AOUController extends ModuleInstance {
 		$blob .= 'Profession: <highlight>' . ($content->getElementsByTagName('class')->item(0)->nodeValue ?? '-') . "<end>\n";
 		$blob .= 'Faction: <highlight>' . ($content->getElementsByTagName('faction')->item(0)->nodeValue ?? '-') . "<end>\n";
 		$blob .= 'Level: <highlight>' . ($content->getElementsByTagName('level')->item(0)->nodeValue ?? '-') . "<end>\n";
-		$blob .= 'Author: <highlight>' . $this->processInput($content->getElementsByTagName('author')->item(0)->nodeValue) . "<end>\n\n";
+		$blob .= 'Author: <highlight>' . $this->processInput($content->getElementsByTagName('author')->item(0)->nodeValue ?? '-') . "<end>\n\n";
 
-		$blob .= $this->processInput($content->getElementsByTagName('text')->item(0)->nodeValue);
+		$blob .= $this->processInput($content->getElementsByTagName('text')->item(0)->nodeValue ?? 'No content');
 
 		$blob .= "\n\n<i>Powered by " . Text::makeChatcmd('AO-Universe', '/start https://www.ao-universe.com') . '</i>';
 
@@ -246,17 +247,19 @@ class AOUController extends ModuleInstance {
 			if (!($folder instanceof DOMElement)) { // @phpstan-ignore-line
 				continue;
 			}
-			$output []= $folder->getElementsByTagName('name')->item(0)->nodeValue;
+			$output []= $folder->getElementsByTagName('name')->item(0)->nodeValue ?? '-';
 		}
 		return implode(' - ', array_reverse($output));
 	}
 
 	private function getGuideObject(DOMElement $guide): AOUGuide {
-		return new AOUGuide(
-			id: (int)$guide->getElementsByTagName('id')->item(0)->nodeValue,
-			name: $guide->getElementsByTagName('name')->item(0)->nodeValue,
-			description: $guide->getElementsByTagName('desc')->item(0)->nodeValue,
-		);
+		$id = $guide->getElementsByTagName('id')->item(0)?->nodeValue;
+		$name = $guide->getElementsByTagName('name')->item(0)?->nodeValue;
+		$description = $guide->getElementsByTagName('desc')->item(0)?->nodeValue;
+		if (isset($id, $name, $description)) {
+			return new AOUGuide(id: (int)$id, name: $name, description: $description);
+		}
+		throw new UserException('Unable to parse AOU page');
 	}
 
 	/**

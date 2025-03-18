@@ -55,7 +55,9 @@ class Patcher {
 			"#[\\AllowDynamicProperties]\nabstract class Base",
 			$oldContent
 		);
-		file_put_contents($file, $newContent); // @phpstan-ignore-line
+		if (is_string($newContent)) {
+			file_put_contents($file, $newContent); // @phpstan-ignore-line
+		}
 
 		$file = $vendorDir . '/' . $package->getName() . '/src/GrammarNode/BaseNode.php';
 		$oldContent = file_get_contents($file); // @phpstan-ignore-line
@@ -68,7 +70,9 @@ class Patcher {
 			"#[\\AllowDynamicProperties]\nabstract class BaseNode",
 			$oldContent
 		);
-		file_put_contents($file, $newContent); // @phpstan-ignore-line
+		if (is_string($newContent)) {
+			file_put_contents($file, $newContent); // @phpstan-ignore-line
+		}
 	}
 
 	/**

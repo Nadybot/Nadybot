@@ -514,12 +514,12 @@ class MessageHubController extends ModuleInstance {
 			return strcmp($route1->getSource(), $route2->getSource());
 		});
 		foreach ($routes as $route) {
-			$delLink = Text::makeChatcmd('delete', '/tell <myname> route del ' . $route->getID());
+			$delLink = Text::makeChatcmd('delete', '/tell <myname> route del ' . (string)$route->getID());
 			$disabledUntil = $route->getDisabled();
 			$isDisabled = isset($disabledUntil) && $disabledUntil > time();
-			$disableLink = Text::makeChatcmd('mute', '/tell <myname> route mute ' . $route->getID());
+			$disableLink = Text::makeChatcmd('mute', '/tell <myname> route mute ' . (string)$route->getID());
 			if ($isDisabled) {
-				$disableLink = Text::makeChatcmd('unmute', '/tell <myname> route mute ' . $route->getID() . ' off');
+				$disableLink = Text::makeChatcmd('unmute', '/tell <myname> route mute ' . (string)$route->getID() . ' off');
 			}
 			$list []="[{$delLink}] [{$disableLink}] " . $this->renderRoute($route);
 		}
@@ -570,7 +570,7 @@ class MessageHubController extends ModuleInstance {
 		foreach ($grouped as $receiver => $recRoutes) {
 			$result[$receiver] = [];
 			foreach ($recRoutes as $route) {
-				$delLink = Text::makeChatcmd('delete', '/tell <myname> route del ' . $route->getID());
+				$delLink = Text::makeChatcmd('delete', '/tell <myname> route del ' . (string)$route->getID());
 				$arrow = '&lt;-';
 				if ($route->getTwoWay() && $this->messageHub->getReceiver($route->getSource()) !== null) {
 					$arrow .= '&gt;';
@@ -583,9 +583,9 @@ class MessageHubController extends ModuleInstance {
 				}
 				$disabledUntil = $route->getDisabled();
 				$isDisabled = isset($disabledUntil) && $disabledUntil > time();
-				$disableLink = Text::makeChatcmd('mute', '/tell <myname> route mute ' . $route->getID());
+				$disableLink = Text::makeChatcmd('mute', '/tell <myname> route mute ' . (string)$route->getID());
 				if ($isDisabled) {
-					$disableLink = Text::makeChatcmd('unmute', '/tell <myname> route mute ' . $route->getID() . ' off');
+					$disableLink = Text::makeChatcmd('unmute', '/tell <myname> route mute ' . (string)$route->getID() . ' off');
 				}
 				$result[$receiver][$routeName] ??= [];
 				$result[$receiver][$routeName] []= "<tab>{$arrow} [{$delLink}] [{$disableLink}] <highlight>{$routeName}<end> ".

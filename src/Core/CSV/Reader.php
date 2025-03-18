@@ -41,6 +41,8 @@ class Reader {
 			$file->close();
 			return [];
 		}
+
+		/** @var string */
 		$line = $iter->current();
 
 		/** @var list<string> */
@@ -56,6 +58,8 @@ class Reader {
 				$file->close();
 				return [];
 			}
+
+			/** @var string */
 			$line = $iter->current();
 
 			/** @var list<string> */
@@ -69,7 +73,9 @@ class Reader {
 		$numCols = count($headers);
 		$iter->next();
 		while ($iter->valid()) {
+			/** @var string */
 			$line = $iter->current();
+
 			$line = Safe::pregReplace('/^,/', "\x00,", $line);
 			$line = Safe::pregReplace('/,$/', ",\x00", rtrim($line));
 			$line = Safe::pregReplace('/,(?=,)/', ",\x00", $line);

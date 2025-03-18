@@ -232,7 +232,7 @@ class DB {
 				continue;
 			}
 			$this->transactionOpened = ($trace['file'] ?? '{closure}').
-				'#' . ($trace['line'] ?? '0');
+				'#' . (string)($trace['line'] ?? 0);
 			$this->logger->info('Starting transaction from {file}#{line}', [
 				'file' => $trace['file']??null,
 				'line' => $trace['line']??null,

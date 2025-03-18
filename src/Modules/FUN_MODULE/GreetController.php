@@ -202,7 +202,7 @@ class GreetController extends ModuleInstance {
 			->map(static function (Fun $entry) use ($context): string {
 				$delLink = Text::makeChatcmd(
 					'remove',
-					'/tell <myname> ' . $context->getCommand() . ' rem ' . $entry->id
+					'/tell <myname> ' . $context->getCommand() . ' rem ' . (string)$entry->id
 				);
 				return "<tab>- [{$delLink}] {$entry->content}";
 			});
@@ -368,6 +368,7 @@ class GreetController extends ModuleInstance {
 			->whereIn('type', explode(',', $this->greetSource))
 			->asObjArr(Fun::class);
 		while (count($data) > 0) {
+			/** @psalm-suppress ArgumentTypeCoercion */
 			$key = array_rand($data, 1);
 
 			$greeting = $this->greetingFits($target, $data[$key]);

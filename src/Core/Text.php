@@ -3,6 +3,8 @@
 namespace Nadybot\Core;
 
 use function Safe\preg_match;
+
+use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -241,8 +243,13 @@ class Text {
 	 * @param string $words The words to enumerate
 	 *
 	 * @return string The enumerated string
+	 *
+	 * @throws InvalidArgumentException if called without arguments
 	 */
 	public static function enumerate(string ...$words): string {
+		if (!count($words)) {
+			throw new InvalidArgumentException(__CLASS__ . '::' . __FUNCTION__ . '() called without arguments');
+		}
 		$last = array_pop($words);
 		if (count($words) === 0) {
 			return $last;
@@ -257,8 +264,13 @@ class Text {
 	 * @param string $words The words to enumerate
 	 *
 	 * @return string The enumerated string
+	 *
+	 * @throws InvalidArgumentException if called without arguments
 	 */
 	public static function enumerateOr(string ...$words): string {
+		if (!count($words)) {
+			throw new InvalidArgumentException(__CLASS__ . '::' . __FUNCTION__ . '() called without arguments');
+		}
 		$last = array_pop($words);
 		if (count($words) === 0) {
 			return $last;

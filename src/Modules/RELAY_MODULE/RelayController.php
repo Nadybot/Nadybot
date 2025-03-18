@@ -1503,6 +1503,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		}
 
 		$proto = array_pop($conf->layers);
+		assert(isset($proto));
 		$spec = $this->relayProtocols[strtolower($proto->layer)] ?? null;
 		if (!isset($spec)) {
 			throw new Exception(

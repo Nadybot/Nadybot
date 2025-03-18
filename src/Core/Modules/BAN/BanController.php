@@ -571,7 +571,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 
 	public function renderBannedOrg(BannedOrg $ban): string {
 		$unbanLink = Text::makeChatcmd('remove', "/tell <myname> orgban rem {$ban->org_id}");
-		$blob = '<header2>' . ($ban->org_name ?? $ban->org_id) . "<end>\n".
+		$blob = '<header2>' . ($ban->org_name ?? (string)$ban->org_id) . "<end>\n".
 			"<tab>Banned by: <highlight>{$ban->banned_by}<end> [{$unbanLink}]\n".
 			'<tab>Ban starts: <highlight>' . Util::date($ban->start) . "<end>\n";
 		if (isset($ban->end)) {

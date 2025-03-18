@@ -41,8 +41,12 @@ class Ingredients extends IteratorIterator {
 
 	/** Get the highest amount required of any ingredient */
 	public function getMaxAmount(): int {
+		$innerOper = $this->getInnerIterator();
+		if (!isset($innerOper)) { // @phpstan-ignore-line
+			return 0;
+		}
 		return array_reduce(
-			iterator_to_array($this->getInnerIterator(), true),
+			iterator_to_array($innerOper, true),
 			static function (int $max, Ingredient $ing): int {
 				return max($max, $ing->amount);
 			},

@@ -245,6 +245,8 @@ class Safe {
 	 *
 	 * @psalm-suppress ReferenceConstraintViolation
 	 * @psalm-suppress ArgumentTypeCoercion
+	 * @psalm-suppress MoreSpecificReturnType
+	 * @psalm-suppress LessSpecificReturnStatement
 	 */
 	public static function pregReplaceCallback(
 		array|string $pattern,

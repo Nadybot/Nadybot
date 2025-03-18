@@ -80,6 +80,8 @@ class GuideController extends ModuleInstance {
 					$handle->close();
 					continue;
 				}
+
+				/** @psalm-var string */
 				$firstLine = $iter->current();
 				$firstLine = strip_tags(trim($firstLine));
 				$topicList[$firstLine] = basename($fileName, self::FILE_EXT);

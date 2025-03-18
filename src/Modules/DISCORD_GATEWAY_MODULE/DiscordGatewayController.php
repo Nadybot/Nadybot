@@ -22,6 +22,7 @@ use Nadybot\Core\Modules\DISCORD\{
 	DiscordController,
 	DiscordEmbed,
 	DiscordException,
+	DiscordGateway,
 	DiscordMessageIn,
 	DiscordScheduledEvent,
 	DiscordUser,
@@ -1946,6 +1947,8 @@ class DiscordGatewayController extends ModuleInstance {
 						continue;
 					}
 				} while (!isset($gateway));
+
+				/** @var DiscordGateway $gateway */
 				$this->logger->info('{remaining} Discord connections out of {total} remaining', [
 					'remaining' => $gateway->session_start_limit->remaining,
 					'total' => $gateway->session_start_limit->total,
