@@ -32,6 +32,9 @@ class Patcher {
 		if ($package->getName() === 'farafiri/php-parsing-tool') {
 			static::patchParsingTool($vendorDir, $package);
 		}
+		if ($package->getName() === 'yosymfony/toml') {
+			static::patchTomlParser($vendorDir, $package);
+		}
 	}
 
 	/**
@@ -63,6 +66,38 @@ class Patcher {
 		$newContent = \preg_replace(
 			'/abstract class BaseNode/s',
 			"#[\\AllowDynamicProperties]\nabstract class BaseNode",
+			$oldContent
+		);
+		file_put_contents($file, $newContent); // @phpstan-ignore-line
+	}
+
+	/**
+	 * Patch TOML Parser to use explicit nullable types
+	 *
+	 * @param string                    $vendorDir The installation base path
+	 * @param \Composer\Package\Package $package   The package being installed
+	 */
+	public static function patchTomlParser(string $vendorDir, Package $package): void {
+		$file = $vendorDir . '/' . $package->getName() . '/src/Exception/ParseException.php';
+		$oldContent = file_get_contents($file); // @phpstan-ignore-line
+		if ($oldContent === false) {
+			return;
+		}
+		$newContent = str_replace(
+			', string $snippet = null, string $parsedFile = null, \\Exception $previous = null',
+			', ?string $snippet = null, ?string $parsedFile = null, ?\\Exception $previous = null',
+			$oldContent
+		);
+		file_put_contents($file, $newContent); // @phpstan-ignore-line
+
+		$file = $vendorDir . '/' . $package->getName() . '/src/Parser.php';
+		$oldContent = file_get_contents($file); // @phpstan-ignore-line
+		if ($oldContent === false) {
+			return;
+		}
+		$newContent = \str_replace(
+			'private function syntaxError($msg, Token $token = null) : void',
+			'private function syntaxError($msg, ?Token $token = null) : void',
 			$oldContent
 		);
 		file_put_contents($file, $newContent); // @phpstan-ignore-line
