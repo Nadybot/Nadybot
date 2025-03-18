@@ -37,6 +37,9 @@ jobs:
           - db: sqlite
             libuv: ''
             os: ['freebsd', 'nouv', 'php84']
+          - db: sqlite
+            libuv: 'ev'
+            os: ['freebsd', 'libev', 'php84']
 
     name: "Run tests on ${{ join(matrix.os, '+') }} (db: ${{ matrix.db }}, uv: ${{ matrix.libuv }})"
     runs-on: ${{ matrix.os }}
