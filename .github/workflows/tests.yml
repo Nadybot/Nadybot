@@ -41,7 +41,7 @@ jobs:
             libuv: 'ev'
             os: ['freebsd', 'libev', 'php84']
 
-    name: "Run tests on ${{ join(matrix.os, '+') }} (db: ${{ matrix.db }}, uv: ${{ matrix.libuv }})"
+    name: "Run tests on ${{ join(matrix.os, '+') }} (db: ${{ matrix.db }}, event loop: ${{ (matrix.libuv == '') && 'none' || matrix.libuv }})"
     runs-on: ${{ matrix.os }}
 
     services:
