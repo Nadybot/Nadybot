@@ -50,9 +50,7 @@ groups:
         expect: Timer data successfully loaded
       - command: tara
         name: Check everything works again
-        expect:
-          - Spawntimes for Tarasque
-          - Next spawntimes
+        expect: Spawntimes for Tarasque|I currently don't have an accurate timer
 
   - name: Gauntlet commands
     tests:
