@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove all redundant libraries and only keep a single one for each type
 - Profession, Faction, Playfield, and a lot more are now enums. A new enum interface allows the usage of enums as command arguments.
 - No uninitialized properties anymore. All non-injected properties without default are now part of the constructor
+- Because we can now `#[Inject]` into private properties, all injected dependencies are now private, making the API of each object a lot less cluttered.
 - Switched from auto incrementing columns to UUID7 IDs
 - Get all table names from the models, don't hard-code them.
 - Drill is now part of Core
