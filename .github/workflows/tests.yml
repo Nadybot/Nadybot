@@ -40,6 +40,9 @@ jobs:
           - db: sqlite
             libuv: 'ev'
             os: ['freebsd', 'libev', 'php84']
+          - db: sqlite
+            libuv: ''
+            os: ['linux', 'nouv', 'ppc64', 'php83']
 
     name: "Run tests on ${{ join(matrix.os, '+') }} (db: ${{ matrix.db }}, event loop: ${{ (matrix.libuv == '') && 'none' || matrix.libuv }})"
     runs-on: ${{ matrix.os }}
