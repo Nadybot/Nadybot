@@ -45,7 +45,7 @@ groups:
         name: Lift the ban
         expect: You have unbanned
 
-      - command: orgban add 874502 for being here to be banned
+      - command: orgban add 1968129 for being here to be banned
         name: Ban a whole org
         expect: Added.*to the banlist
 
@@ -55,24 +55,24 @@ groups:
       - command: orgban
         name: Check the org-banlist
         expect: Banned orgs \(1\)
-      - command: checkaccess Phrosthax
+      - command: checkaccess Pixenfo
         name: Check that their leader is indeed banned
-        expect: Phrosthax's org is.*banned.*on this bot
+        expect: Pixenfo's org is.*banned.*on this bot
 
-      - command: orgban rem 874502
+      - command: orgban rem 1968129
         name: Lift the org's ban again
         expect: Removed.*from the banlist
       - command: orgban
         name: Check that the org-banlist is empty again
         expect: No orgs are banned at the moment
 
-      - command: orgban add 874502
+      - command: orgban add 1968129
         name: Ban a whole org without reason
         expect: Added.*to the banlist
       - command: orgban
         name: Check the org-banlist
         expect: Banned orgs \(1\)
-      - command: orgban rem 874502
+      - command: orgban rem 1968129
         name: Lift the org's ban again
         expect: Removed.*from the banlist
       - command: orgban
