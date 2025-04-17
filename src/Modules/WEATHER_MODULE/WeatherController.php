@@ -189,8 +189,8 @@ class WeatherController extends ModuleInstance {
 	 */
 	public function getOSMLink(Nominatim $nominatim): string {
 		$zoom = 12; // Zoom is 1 to 20 (full in)
-		$lat = number_format((float)$nominatim->lat, 4);
-		$lon = number_format((float)$nominatim->lon, 4);
+		$lat = number_format($nominatim->lat, 4);
+		$lon = number_format($nominatim->lon, 4);
 
 		return "https://www.openstreetmap.org/#map={$zoom}/{$lat}/{$lon}";
 	}
