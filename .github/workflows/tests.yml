@@ -53,6 +53,10 @@ jobs:
             libuv: ''
             os: ['linux', 'nouv', 'ppc64', 'php83']
             php: system
+          - db: sqlite
+            libuv: ''
+            os: ['linux', 'nouv', 'ppc64le', 'php84']
+            php: system
 
     name: "Run tests on ${{ join(matrix.os, '+') }} (db: ${{ matrix.db }}, event loop: ${{ (matrix.libuv == '') && 'none' || matrix.libuv }})"
     runs-on: ${{ matrix.os }}
