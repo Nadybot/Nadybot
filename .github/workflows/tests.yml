@@ -16,33 +16,43 @@ jobs:
           - db: sqlite
             libuv: ''
             os: windows-latest
+            php: auto
           - db: sqlite
             libuv: 'uv'
             os: windows-latest
+            php: auto
           - db: sqlite
             libuv: ''
             os: macos-latest
+            php: auto
           - db: sqlite
             libuv: 'uv'
             os: macos-latest
+            php: auto
           - db: sqlite
             libuv: 'uv'
             os: ['freebsd', 'libuv', 'php81']
+            php: system
           - db: sqlite
             libuv: ''
             os: ['freebsd', 'nouv', 'php81']
+            php: system
           - db: sqlite
             libuv: 'uv'
             os: ['freebsd', 'libuv', 'php84']
+            php: system
           - db: sqlite
             libuv: ''
             os: ['freebsd', 'nouv', 'php84']
+            php: system
           - db: sqlite
             libuv: 'ev'
             os: ['freebsd', 'libev', 'php84']
+            php: system
           - db: sqlite
             libuv: ''
             os: ['linux', 'nouv', 'ppc64', 'php83']
+            php: system
 
     name: "Run tests on ${{ join(matrix.os, '+') }} (db: ${{ matrix.db }}, event loop: ${{ (matrix.libuv == '') && 'none' || matrix.libuv }})"
     runs-on: ${{ matrix.os }}
@@ -84,6 +94,7 @@ jobs:
 
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
+        if: ${{ matrix.php == 'auto' }}
         with:
           # TODO: Do we really want 8.1?
           php-version: '8.1'
