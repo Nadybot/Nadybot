@@ -2180,7 +2180,7 @@ class Nadybot {
 		}
 
 		$typeName = $type->getName();
-		if (is_a($typeName, BackedEnum::class, true)) {
+		if (!$type->isBuiltin() && is_a($typeName, BackedEnum::class, true)) {
 			if (is_int($typeName::cases()[0]->value)) {
 				$property->setValue($obj, $typeName::from((int)$value));
 			} else {
