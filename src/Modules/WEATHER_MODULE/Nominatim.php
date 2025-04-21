@@ -16,8 +16,8 @@ class Nominatim {
 	 * @psalm-param list<string>  $boundingbox
 	 */
 	public function __construct(
-		public float $lat,
-		public float $lon,
+		public float|string $lat,
+		public float|string $lon,
 		public string $display_name,
 		#[CastListToType('string')] public array $boundingbox,
 		public int $place_id,
