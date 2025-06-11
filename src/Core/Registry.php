@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use Amp\File\KeyedFileMutex;
+use Amp\Sync\LocalKeyedMutex;
 use Error;
 use Exception;
 use Nadybot\Core\{
@@ -209,11 +209,7 @@ class Registry {
 		}
 		$cache = new FileCache(
 			directory: $baseDir,
-			// Or LocalKeyedMutex()?
-			mutex: new KeyedFileMutex(
-				directory: $baseDir,
-				filesystem: self::getInstance(Filesystem::class)->getFilesystem(),
-			),
+			mutex: new LocalKeyedMutex(),
 			filesystem: self::getInstance(Filesystem::class)->getFilesystem(),
 		);
 		$type = $property->getType();

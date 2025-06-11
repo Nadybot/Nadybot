@@ -1,0 +1,229 @@
+---
+name: Basic Chat Module
+groups:
+
+  - name: Assist
+    tests:
+      - command: whois Regolus
+        name: Cache some whois information
+        expect: Detailed Info for Regolus
+      - command: whois <superadmin>
+        name: Cache some more information
+        expect: Detailed Info for <superadmin>
+      - command: assist efhwkefhwkjefhwjkehfjkwfeherror
+        expect: Help \(assist\)
+      - command: assist Nadyita
+        expect: Quick assist macro for Nadyita
+      - command: assist
+        expect: No callers have been set yet
+      - command: assist clear
+        expect: Callers .* cleared
+      - command: assist set west Nadyita Lerible Pigtail Leri
+        expect: is not in this bot
+      - command: assist add west Nadyo
+        expect: is not in this bot
+      - command: assist clear west
+        expect: No callers found
+      - command: assist history
+        expect: No last caller configuration found
+      - command: assist undo 1
+        expect: No last caller configuration found
+      - command: assist clear west
+        expect: No callers found
+      - command: test join <superadmin>
+        capture: aopriv
+        expect-captured: <superadmin>.*has joined
+      - command: assist add <superadmin>
+        expect: Added.*to the new list of callers
+      - command: assist rem <superadmin>
+        expect: Removed.*from the list of callers
+      - command: members add regolus
+        expect: has been added as a member
+      - command: test join Regolus
+        capture: aopriv
+        expect-captured: Regolus.*has joined
+      - command: raid start assisters
+        capture: aopriv
+        expect-captured: <superadmin>.*started a raid.*assisters
+      - command: raid join
+        capture: aopriv
+        expect-captured: ^$
+      - command: runas Regolus raid join
+        capture: aopriv
+        expect-captured: Regolus.*has.*joined.*the raid
+      - command: assist random 1
+        expect: Set <highlight>(Regolus|<superadmin>)<end> to be the new caller
+      - command: test leave <superadmin>
+        capture: aopriv
+        expect-captured: <superadmin>.*was.*removed.*from the raid.
+      - command: test leave Regolus
+        capture: aopriv
+        expect-captured: Regolus.*was.*removed.*from the raid.
+      - command: members rem regolus
+        expect: has been removed
+      - command: raid stop
+        capture: aopriv
+        expect-captured: <superadmin>.*has stopped the raid
+
+  - name: Leader commands
+    tests:
+      - command: check
+        expect: no one to check
+      - command: leader Nadyitaerror
+        expect: does not exist
+      - command: leader Nadyita
+        expect: is not in the private channel
+      - command: leader
+        expect: is not in the private channel
+      - command: leaderecho
+        capture: aopriv
+        expect-captured: Leader echo is currently.*Enabled
+      - command: leaderecho on
+        capture: aopriv
+        expect-captured: Leader echo has been.*Enabled
+      - command: leaderecho
+        capture: aopriv
+        expect-captured: Leader echo is currently.*Enabled
+      - command: leaderecho off
+        capture: aopriv
+        expect-captured: Leader echo has been.*Disabled
+      - command: leaderecho
+        capture: aopriv
+        expect-captured: Leader echo is currently.*Disabled
+      - command: leaderecho on
+        capture: aopriv
+        expect-captured: Leader echo has been.*Enabled
+
+  - name: Rally
+    tests:
+      - command: rally some stupid error
+        expect: This does not look like full coordinates
+      - command: rally 10.9 x 30 x 505
+        expect: "Rally: 10.9x30 AV"
+      - command: rally 1 2 3
+        expect: "Rally: 1x2 3"
+      - command: rally
+        expect: "Rally: 1x2 3"
+      - command: rally clear
+        expect: has been cleared.
+      - command: rally 2091.6, 3803.3, 49.6 (2091.6 3803.3 y 49.6 505)
+        expect: /waypoint 2091.6 3803.3 505
+      - command: rally (2091.6 3803.3 y 49.6 505)
+        expect: /waypoint 2091.6 3803.3 505
+      - command: rally
+        expect: "Rally: 2091.6x3803.3 AV"
+      - command: rally clear
+        expect: has been cleared
+
+  - name: Saying things
+    tests:
+      - command: say org some stuff
+        name: "!say org for org bots"
+        condition: orgbot
+        capture: aoorg
+        expect-captured: some stuff
+      - command: say org some stuff
+        name: "!say org for raid bots"
+        condition: "!orgbot"
+        expect: You can only use this command
+      - command: say priv some more stuff
+        capture: aopriv
+        expect-captured: some more stuff
+      - command: say error some other stuff
+        expect: Help \(say\)
+      - command: cmd This is a big raid command
+        unexpected: must be Raid Leader
+      - command: cmd
+        expect: Help \(cmd\)
+      - command: tell This is a big raid command
+        unexpected: must be Raid Leader
+      - command: tell
+        expect: Help \(tell\)
+
+  - name: Topic
+    tests:
+      - command: topic This is a super stupid topic
+        expect: Topic has been updated
+      - command: topic This is a another super stupid topic
+        expect: Topic has been updated
+      - command: topic
+        expect: This is a another super stupid topic
+      - command: topic clear
+        expect: Topic has been cleared
+      - command: topic
+        expect: No topic set
+
+  - name: Grouping
+    tests:
+      - command: members add Regolus
+        name: Add Dummy 1 as member
+        expect: has been added as a member
+      - command: members add Rikoltanto
+        name: Add Dummy 2 as member
+        expect: has been added as a member
+      - command: members add Nady
+        name: Add Dummy 3 as member
+        expect: has been added as a member
+      - command: members add Nadya
+        name: Add Dummy 4 as member
+        expect: has been added as a member
+
+      - command: group
+        name: There are currently no groups
+        expect: No current groups, no players joined
+
+      - command: runas Regolus group join
+        name: Have Dummy 1 join the grouping
+        expect: You joined the grouping
+      - command: runas Rikoltanto group join
+        name: Have Dummy 2 join the grouping
+        expect: You joined the grouping
+      - command: runas Nady group join
+        name: Have Dummy 3 join the grouping
+        expect: You joined the grouping
+      - command: runas Nadya group join
+        name: Have Dummy 4 join the grouping
+        expect: You joined the grouping
+      - command: group join
+        name: Join ourself
+        expect: You joined the grouping
+
+      - command: group
+        name: Show the players who joined the groups
+        expect: 5 players joined
+
+      - command: group leave
+        name: Leave again
+        expect: You left the grouping
+      - command: group
+        name: Should be 4 people in for grouping
+        expect: 4 players joined
+
+      - command: group divide 2
+        name: Divide into 2 groups
+        expect:
+          - <header2>Group 1<end>
+          - Regolus
+          - Rikoltanto
+          - Nadya
+          - Nady
+          - <header2>Group 2<end>
+      - command: group clear
+        name: Clear the groups
+        expect: All grouping cleared
+      - command: group
+        name: There are no groups anymore
+        expect: No current groups, no players joined
+
+      - command: members rem Nadya
+        name: Remove Dummy 4 as member
+        expect: has been removed
+      - command: members rem Nady
+        name: Remove Dummy 3 as member
+        expect: has been removed
+      - command: members rem Rikoltanto
+        name: Remove Dummy 2 as member
+        expect: has been removed
+      - command: members rem Regolus
+        name: Remove Dummy 1 as member
+        expect: has been removed

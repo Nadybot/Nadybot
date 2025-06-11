@@ -19,6 +19,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\HasMigrations('Migrations/Dyna'),
 	NCA\DefineCommand(
 		command: 'dyna',
@@ -80,7 +81,7 @@ class HelpbotController extends ModuleInstance {
 		$dbSearch = str_replace(' ', '%', $search);
 		$playfields = $this->pfController->searchPlayfieldsByName("%{$dbSearch}%");
 		$data = $this->db->table(DynaDB::getTable(), 'd')
-			->whereIn('playfield_id', $playfields->pluck('id')->toArray())
+			->whereIn('playfield_id', $playfields->pluckInts('id')->toList())
 			->orWhereIlike('mob', "%{$dbSearch}%")
 			->asObj(DynaDB::class);
 		$count = count($data);

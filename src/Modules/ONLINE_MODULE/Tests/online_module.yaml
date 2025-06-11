@@ -1,0 +1,85 @@
+---
+name: Online Module
+groups:
+
+  - name: Online-Command
+    tests:
+      - command: executesql delete from online
+        name: Clear online table
+        expect: Query run successfully
+      - command: executesql delete from online_hide_<myname>
+        name: Clear online_hide_<myname> table
+        expect: Query run successfully
+      - command: online
+        name: No one online should give us an empty list
+        expect: Players Online \(0\)
+      - command: online all
+        name: We don't have a relay, so "!online all" should also be empty
+        expect: Players Online \(0\)
+      - command: test join Pigtail
+        name: Let a dummy join the private channel
+        expect: ^$
+      - command: online
+        name: Now this dummy should appear online
+        expect: Players Online \(1\).*Pigtail
+      - command: online enf
+        name: Filtering online list by profession of that dummy should work
+        expect: Enforcer Search Results \(1\)
+      - command: online error
+        name: Filtering online list by non-existent profession should give an error
+        expect: is not a recognized profession
+      - command: whois regolus
+        name: Preload a character
+        expect: Agent
+      - command: settings save alts_require_confirmation 0
+        name: Disable alts confirmation
+        expect: has been saved with new value
+      - command: altsadmin pigtail add regolus
+        name: Add an alt of another profession to that dummy
+        expect: Alt added successfully
+      - command: online agent
+        name: Check that we can search for this alt's profession
+        expect: Pigtail.*has.*Regolus
+      - command: altsadmin pigtail rem regolus
+        name: Remove that alt again
+        expect: is no longer
+
+      - command: online hide pig*
+        name: Hide characters starting with a string from the online list
+        expect: added to the online hidden mask
+      - command: online hidden
+        name: Show the online hidden list
+        expect:
+          - Hidden characters \(1\)
+          - pig\*
+          - added by <superadmin>
+      - command: online
+        name: Online list should now be empty
+        expect: Players Online \(0\)
+      - command: test join regolus
+        name: Let another character who doesn't match the mask join
+        capture: aopriv
+        expect-captured: Regolus.*joined
+      - command: online
+        name: Online list should now show only that character
+        expect:
+          - Players Online \(1\)
+          - Regolus
+      - command: online show pig*
+        name: Remove the hidden character from the list
+        expect: removed from the online hidden mask list
+      - command: online hide Pigtail
+        name: Hide a dummy character
+        expect: added to the online hidden mask list
+      - command: online hidden
+        name: Check the list of hidden characters
+        expect: pigtail.*online hide del (?<hidden_id>[0-9a-f-]{36})
+      - command: online show {hidden_id}
+        name: Remove the hidden mask by its ID
+        expect: removed from the online hidden mask list
+      - command: test leave regolus
+        name: Let the alt leave the private channel
+        expect: ^$
+      - command: test leave pigtail
+        name: Let the other dummy leave as well
+        expect: ^$

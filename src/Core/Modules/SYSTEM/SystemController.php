@@ -58,6 +58,7 @@ use Revolt\EventLoop;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'checkaccess',
 		accessLevel: AccessLevel::All,
@@ -212,6 +213,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	/** Restart the bot */
 	#[NCA\HandlesCommand('restart')]
 	#[NCA\Help\Group('restart')]
+	#[NCA\Untestable]
 	public function restartCommand(CmdContext $context): void {
 		$msg = 'Bot is restarting.';
 		$this->chatBot->sendTell($msg, $context->char->name);
@@ -225,6 +227,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	/** Shutdown the bot. Configured properly, it won't start again */
 	#[NCA\HandlesCommand('shutdown')]
 	#[NCA\Help\Group('restart')]
+	#[NCA\Untestable]
 	public function shutdownCommand(CmdContext $context): void {
 		$msg = 'The Bot is shutting down.';
 		$this->chatBot->sendTell($msg, $context->char->name);
@@ -448,6 +451,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	/** Clears the outgoing chat queue from all pending messages */
 	#[NCA\HandlesCommand('clearqueue')]
+	#[NCA\Untestable]
 	public function clearqueueCommand(CmdContext $context): void {
 		/*
 		if (!isset($this->chatBot->chatqueue)) {
@@ -471,7 +475,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$commands = explode('|', $command);
 		foreach ($commands as $commandString) {
 			$context->message = $commandString;
-			$this->commandManager->processCmd($context);
+			$this->commandManager->syncProcessCmd($context);
 		}
 	}
 
@@ -526,7 +530,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			source: $context->source,
 			permissionSet: $context->permissionSet,
 		);
-		$this->commandManager->processCmd($newContext);
+		$this->commandManager->syncProcessCmd($newContext);
 
 		$context->reply("Command <highlight>{$cmd}<end> has been sent to <highlight>{$name}<end>.");
 	}

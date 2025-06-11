@@ -1,0 +1,69 @@
+---
+name: Help Module
+groups:
+
+  - name: Help commands
+    tests:
+      - command: help
+        name: Get a basic help page
+        expect: Welcome to Nadybot
+      - command: help about
+        name: Get a page explaining who helped with the bot
+        expect:
+          - About Nadybot
+          - Tyrence
+          - Patate
+          - Lucier
+      - command: ban Rikoltanto
+        name: Ban a test character from the bot
+        expect: permanently banned
+      - command: runas rikoltanto help about
+        name: Even banned characters must always be able to see the about-page
+        expect:
+          - About Nadybot
+          - Tyrence
+          - Patate
+          - Lucier
+      - command: unban Rikoltanto
+        name: Lift ban of the test character
+        expect: unbanned
+
+      - command: help max_blob_size
+        name: Special help pages must work
+        expect: maximum characters in a window
+
+      - command: help topics
+        name: Check the full list of help topics
+        expect:
+          - Help \(main\)
+          - ADMIN
+          - SYSTEM
+      - command: adminhelp
+        name: Introduction about bot administration
+        expect: Nadybot WIKI
+
+      - command: help syntax
+        name: Get an explanation, how to read the help pages
+        expect:
+          - Syntax explanation
+          - one\|two\|three
+          - \[lorem\]
+          - "&lt;arg&gt;"
+
+      - command: help modules
+        name: Get a list of all modules with their short description
+        expect:
+          - <header2>HELP<end>
+          -  The help module provides the generic
+
+      - command: help disable legend
+        name: Disable the footnote in every help page with a like to !help syntax
+        expect: Showing the syntax explanation is now.*off
+
+      - command: help help
+        name: Check the footnote is gone
+        unexpected: See.*help syntax.*for an explanation of the command syntax
+
+      - command: help enable legend
+        name: Re-enable the footnote in every help page with a like to !help syntax
+        expect: Showing the syntax explanation is now.*on

@@ -282,7 +282,7 @@ class SiteTrackerController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** Show all sites matched by a site tracker */
+	/** Show all available site tracker patterns */
 	#[NCA\HandlesCommand('nw track')]
 	public function showTowerTrackerPatterns(
 		CmdContext $context,

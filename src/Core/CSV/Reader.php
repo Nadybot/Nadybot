@@ -3,6 +3,7 @@
 namespace Nadybot\Core\CSV;
 
 use function Amp\ByteStream\splitLines;
+use function Safe\array_combine;
 
 use Generator;
 use IteratorIterator;
@@ -40,29 +41,50 @@ class Reader {
 			$file->close();
 			return [];
 		}
+
+		/** @var string */
 		$line = $iter->current();
 
 		/** @var list<string> */
-		$headers = str_getcsv($line);
+		$headers = str_getcsv(
+			string: $line,
+			separator: ',',
+			enclosure: '"',
+			escape: '\\'
+		);
 		while ((count($headers) === 1) && $headers[0][0] === '#') {
 			$iter->next();
 			if (!$iter->valid()) {
 				$file->close();
 				return [];
 			}
+
+			/** @var string */
 			$line = $iter->current();
 
 			/** @var list<string> */
-			$headers = str_getcsv($line);
+			$headers = str_getcsv(
+				string: $line,
+				separator: ',',
+				enclosure: '"',
+				escape: '\\'
+			);
 		}
 		$numCols = count($headers);
 		$iter->next();
 		while ($iter->valid()) {
+			/** @var string */
 			$line = $iter->current();
+
 			$line = Safe::pregReplace('/^,/', "\x00,", $line);
 			$line = Safe::pregReplace('/,$/', ",\x00", rtrim($line));
 			$line = Safe::pregReplace('/,(?=,)/', ",\x00", $line);
-			$row = str_getcsv($line);
+			$row = str_getcsv(
+				string: $line,
+				separator: ',',
+				enclosure: '"',
+				escape: '\\'
+			);
 			if ($row === [null]) { // Skip blank lines
 				$iter->next();
 				continue;

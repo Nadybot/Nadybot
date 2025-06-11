@@ -24,6 +24,7 @@ use Nadybot\Modules\{
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'spirits',
 		accessLevel: AccessLevel::Guest,
@@ -62,7 +63,7 @@ class SpiritsController extends ModuleInstance {
 	): void {
 		$title = "{$slot->longName()} Spirits QL {$lowQL} to {$highQL}";
 		if ($lowQL < 1 or $highQL > 300 or $lowQL >= $highQL) {
-			$msg = 'Invalid Ql range specified.';
+			$msg = 'Invalid QL range specified.';
 			$context->reply($msg);
 			return;
 		}
@@ -151,7 +152,7 @@ class SpiritsController extends ModuleInstance {
 	): void {
 		$spirits = '';
 		if ($lowQL < 1 or $highQL > 300 or $lowQL >= $highQL) {
-			$msg = 'Invalid Ql range specified.';
+			$msg = 'Invalid QL range specified.';
 			$context->reply($msg);
 			return;
 		}

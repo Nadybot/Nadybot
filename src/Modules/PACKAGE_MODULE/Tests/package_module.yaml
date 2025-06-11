@@ -1,0 +1,12 @@
+---
+name: Package Module
+groups:
+
+  - name: package-Command
+    tests:
+      - command: package list
+        name: Get a list of installable packages
+        expect: Available Packages \(\d+\)|The operation was cancelled
+      - command: package info SPAWNTIME_MODULE
+        name: Get package details
+        expect: <header2>SPAWNTIME_MODULE<end>\s*A Nadybot module to query respawn-timers for mobs|The operation was cancelled

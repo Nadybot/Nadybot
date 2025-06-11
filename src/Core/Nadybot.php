@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use function Amp\Future\await;
 use function Amp\{async, delay};
 use function Safe\{preg_match, sapi_windows_set_ctrl_handler};
 
@@ -16,6 +17,7 @@ use BackedEnum;
 use Error;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Channels\OrgChannel;
 use Nadybot\Core\DBSchema\{
 	Audit,
 	CmdCfg,
@@ -358,6 +360,17 @@ class Nadybot {
 		?string $worker=null,
 		SendPriority $priority=SendPriority::Medium,
 	): void {
+		if (BotRunner::getArguments()->testRun) {
+			if ($package instanceof Package\Out\PrivateChannelMessage) {
+				return;
+			}
+			if ($package instanceof Package\Out\GroupMessage) {
+				return;
+			}
+			if ($package instanceof Package\Out\Tell) {
+				return;
+			}
+		}
 		try {
 			$this->aoClient->write(package: $package, worker: $worker, priority: $priority);
 		} catch (StreamException $e) {
@@ -543,7 +556,7 @@ class Nadybot {
 			$privColor = $this->settingManager->getString('default_priv_color') ?? '';
 		}
 
-		$sender = async(function () use ($privColor, $pages, $uid): void {
+		$sender = [async(function () use ($privColor, $pages, $uid): void {
 			foreach ($pages as $page) {
 				$this->sendPackage(
 					new Package\Out\PrivateChannelMessage(
@@ -552,7 +565,7 @@ class Nadybot {
 					)
 				);
 			}
-		});
+		})];
 		$event = new SendPrivEvent(
 			channel: $group,
 			message: $message,
@@ -568,9 +581,9 @@ class Nadybot {
 				$label = 'Guest';
 			}
 			$rMessage->prependPath(new Source(Source::PRIV, $this->config->main->character, $label));
-			EventLoop::queue($this->messageHub->handle(...), $rMessage);
+			$sender []= async($this->messageHub->handle(...), $rMessage);
 		}
-		$sender->await();
+		await($sender);
 	}
 
 	/**
@@ -670,6 +683,15 @@ class Nadybot {
 			worker: $worker,
 			priority: $priority,
 		);
+		$charName = $this->getName($character, true);
+		if (isset($charName)) {
+			$event = new SendMsgEvent(
+				channel: $charName,
+				message: $message,
+				sender: $this->config->main->character,
+			);
+			$this->eventManager->dispatch($event);
+		}
 		return true;
 	}
 
@@ -725,10 +747,13 @@ class Nadybot {
 			$tellColor = $this->settingManager->getString('default_tell_color')??'';
 		}
 
-		foreach ($pages as $page) {
-			$this->logChat('Out. Msg.', $character, $page);
+		if (!BotRunner::getArguments()->testRun) {
+			foreach ($pages as $page) {
+				$this->logChat('Out. Msg.', $character, $page);
+			}
 		}
-		$sender = async(function () use ($character, $tellColor, $pages, $priority): void {
+		$sender = [];
+		$sender []= async(function () use ($character, $tellColor, $pages, $priority): void {
 			foreach ($pages as $page) {
 				$this->sendRawTell(
 					character: $character,
@@ -737,16 +762,10 @@ class Nadybot {
 				);
 			}
 		});
-		$event = new SendMsgEvent(
-			channel: $character,
-			message: $message,
-			sender: $this->config->main->character,
-		);
-		$this->eventManager->dispatch($event);
 		$rMessage->setCharacter(new Character($this->config->main->character, $this->char?->id));
 		$rMessage->prependPath(new Source(Source::TELL, $this->config->main->character));
-		EventLoop::queue($this->messageHub->handle(...), $rMessage);
-		$sender->await();
+		$sender []= async($this->messageHub->handle(...), $rMessage);
+		await($sender);
 	}
 
 	/**
@@ -805,7 +824,9 @@ class Nadybot {
 					$worker = random_int(0, $numWorkers -1);
 					$worker = $this->config->worker[$worker]->character;
 				}
-				$this->logChat('Out. Msg. via ' . $worker, $character, $page);
+				if (!BotRunner::getArguments()->testRun) {
+					$this->logChat('Out. Msg. via ' . $worker, $character, $page);
+				}
 				$this->sendRawTell(
 					character: $character,
 					message: $tellColor.$page,
@@ -948,6 +969,11 @@ class Nadybot {
 				$this->settingManager->save('last_org_name', $groupName);
 			}
 		}
+		$oc = new OrgChannel();
+		Registry::injectDependencies($oc);
+		$this->messageHub
+			->registerMessageReceiver($oc)
+			->registerMessageEmitter($oc);
 	}
 
 	/** Handle a player joining a private group */
@@ -1348,6 +1374,7 @@ class Nadybot {
 	/** Handle a message on a public channel */
 	public function processPublicChannelMessage(WorkerPackage $package): void {
 		assert($package->package instanceof Package\In\GroupMessage);
+		$sender = null;
 		$senderId = $package->package->charId;
 		$channel = $this->getGroupById($package->package->groupId);
 		if (!isset($channel)) {
@@ -1356,14 +1383,16 @@ class Nadybot {
 			]);
 			return;
 		}
-		$sender = $this->getName($senderId);
-		if ($senderId !== 0 && !is_string($sender)) {
-			$this->logger->info('Invalid sender ID in {package}', [
-				'package' => $package,
-			]);
-			return;
-		} elseif (isset($sender)) {
-			$this->updateLastOnline($senderId, $sender, true);
+		if (Util::isValidSender($senderId)) {
+			$sender = $this->getName($senderId);
+			if ($senderId !== 0 && !is_string($sender)) {
+				$this->logger->info('Invalid sender ID in {package}', [
+					'package' => $package,
+				]);
+				return;
+			} elseif (isset($sender)) {
+				$this->updateLastOnline($senderId, $sender, true);
+			}
 		}
 
 
@@ -1372,7 +1401,7 @@ class Nadybot {
 		$isOrgMessage = $channel->id->type === GroupType::Org;
 
 		// Route public messages not from the bot itself
-		if ($sender !== $this->config->main->character) {
+		if (Util::isValidSender($senderId) && $sender !== $this->config->main->character) {
 			if (!$isOrgMessage || $this->guildChannelStatus === true) {
 				$rMessage = new RoutableMessage($package->package->message);
 				if (isset($sender)) {
@@ -1397,7 +1426,7 @@ class Nadybot {
 
 		// don't log tower messages with rest of chat messages
 		if ($channel->name !== 'All Towers' && $channel->name !== 'Tower Battle Outcome' && (!$isOrgMessage || $this->guildChannelStatus === true)) {
-			$this->logChat($channel->name, $sender ?? 'System', $package->package->message);
+			$this->logChat($channel->name, $sender ?? $senderId, $package->package->message);
 		} else {
 			$this->logger->info('[{channel}]: {message}', [
 				'channel' => $channel->name,
@@ -1626,7 +1655,7 @@ class Nadybot {
 				$eventMask ??= $this->getEventMaskFromFunctionSignature($method);
 				if (is_array($eventMask) && !count($eventMask)) {
 					throw new Error(
-						$method->getDeclaringClass() . '::' . $method->getName() . '() '.
+						$method->getDeclaringClass()->getName() . '::' . $method->getName() . '() '.
 						'needs to specify the event mask it subscribes to, because '.
 						'the function signature does not allow to derive it'
 					);
@@ -1897,10 +1926,31 @@ class Nadybot {
 		exit(1);
 	}
 
+	private function shouldDropPackage(WorkerPackage $package): bool {
+		if (!BotRunner::getArguments()->testRun) {
+			return false;
+		}
+		if ($package->package instanceof Package\In\GroupMessage) {
+			return true;
+		}
+		if ($package->package instanceof Package\In\PrivateChannelMessage) {
+			return true;
+		}
+
+		if ($package->package instanceof Package\In\BuddyState) {
+			$buddy = $this->buddylistManager->getBuddyForUID($package->package->charId);
+			return !(!isset($buddy) || !$buddy->known);
+		}
+		return $package->package instanceof Package\In\Tell;
+	}
+
 	/** Read and parse all the packages of all clients in a loop */
 	private function aoPackageLoop(): void {
 		foreach ($this->aoClient->getPackages() as $package) {
 			// $this->logger->notice('Read {package}', ['package' => $package]);
+			if ($this->shouldDropPackage($package)) {
+				continue;
+			}
 			$this->processPackage($package);
 		}
 		$this->logger->error('Connection closed, shutting down.');
@@ -1955,6 +2005,18 @@ class Nadybot {
 	private function onReady(): void {
 		$this->ready = true;
 		$this->eventManager->executeConnectEvents();
+		if (!BotRunner::getArguments()->testRun) {
+			return;
+		}
+		$this->logger->notice('Entering testing mode.');
+		if (!Testing::canRun()) {
+			/** @phpstan-ignore-next-line */
+			\fwrite(\STDOUT, "Testing mode selected, but missing requirements!\n");
+			exit(1);
+		}
+		$testing = new Testing();
+		Registry::injectDependencies($testing);
+		$testing->run();
 	}
 
 	/** Process a system message */
@@ -2118,7 +2180,7 @@ class Nadybot {
 		}
 
 		$typeName = $type->getName();
-		if (is_a($typeName, BackedEnum::class, true)) {
+		if (!$type->isBuiltin() && is_a($typeName, BackedEnum::class, true)) {
 			if (is_int($typeName::cases()[0]->value)) {
 				$property->setValue($obj, $typeName::from((int)$value));
 			} else {

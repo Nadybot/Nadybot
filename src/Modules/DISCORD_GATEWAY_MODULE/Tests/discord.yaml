@@ -1,0 +1,8 @@
+---
+name: Discord Gateway Module
+groups:
+  - name: Forbidden tests
+    tests:
+      - command: extauth request Nady
+        name: Without credentials, we have to get errors
+        expect: "401: Unauthorized"

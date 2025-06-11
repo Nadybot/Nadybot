@@ -1,0 +1,69 @@
+---
+name: Events Module
+groups:
+
+  - name: Event manipulation
+    tests:
+
+      - command: executesql DELETE FROM events
+        expect: Query run successfully
+        name: Initialize events table
+      - command: events
+        name: Expect no events
+        expect: No events
+      - command: events add foo bar
+        name: Add a dummy event
+        expect: Event.*was added.*Event ID (?<event_id>[a-zA-Z0-9-]+)
+      - command: events
+        name: New event shows in event list
+        expect:
+          - Last updated
+          - foo bar
+          - '{event_id}'
+      - command: events list {event_id}
+        name: Attendee list is empty
+        expect: No one has signed up
+      - command: events leave {event_id}
+        name: I cannot leave an event I haven't signed up to
+        expect: You are not on the event list
+      - command: events join {event_id}
+        name: I can join the event
+        expect: You have been added
+      - command: events list {event_id}
+        name: I am now on the list of attendeed
+        expect:
+          - Players Attending
+          - <superadmin>
+      - command: events leave {event_id}
+        name: I can leave an event I have signed up to
+        expect: You have been removed
+      - command: events list 178246378462
+        name: Listing Nonsensical event IDs gives an error
+        expect: is not a valid UUID
+      - command: events leave 178246378462
+        name: Leaving Nonsensical event IDs gives an error
+        expect: is not a valid UUID
+      - command: events join 178246378462
+        name: Joining Nonsensical event IDs gives an error
+        expect: is not a valid UUID
+      - command: events setdesc {event_id} A really concise description
+        name: I can change my event's description
+        expect: Description for event.*has been updated
+      - command: events
+        name: The new description shows in the event list
+        expect: A really concise description
+      - command: events setdate {event_id} 2020-05-05
+        name: Setting a new date for an event works
+        expect: Date/Time for event.*has been updated
+      - command: events
+        name: The new date and time shows in the event list
+        expect: '-May-2020'
+      - command: events setdate {event_id} 2020-05-05 13:00
+        name: Setting a new date and time for an event works
+        expect: Date/Time for event.*has been updated
+      - command: events rem {event_id}
+        name: The event can be deleted
+        expect: Event.*has been deleted
+      - command: events rem {event_id}
+        name: Deleting the event a second time gives an error
+        expect: Could not find an event

@@ -43,6 +43,7 @@ use Ramsey\Uuid\Uuid;
  * @author Tyrence (RK2)
  */
 #[
+	NCA\HasTests,
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'profile',
@@ -428,7 +429,7 @@ class ProfileController extends ModuleInstance {
 					$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
 					$line = substr($line, 1);
 					$context->message = $line;
-					$this->commandManager->processCmd($context);
+					$this->commandManager->syncProcessCmd($context);
 					$profileSendTo->reply('');
 				} else {
 					$numSkipped++;

@@ -19,8 +19,6 @@ enum Skill: int {
 	 *                              return an array of Skills
 	 *
 	 * @psalm-return null|self|non-empty-list<self>
-	 *
-	 * @throws ValueError on non-existing skill
 	 */
 	public static function tryFromName(string $name, bool $exactMatchOnly=true): null|self|array {
 		try {

@@ -1,0 +1,35 @@
+---
+name: Profile Module
+groups:
+
+  - name: Profile command
+    tests:
+      - command: "settings save default_tell_color #000000"
+        name: Change a setting
+        expect: has been saved
+      - command: profile save xxx_test
+        name: Save current settings as profile
+        expect: has been saved
+      - command: profile
+        name: Check if our profile can be found
+        expect: Xxx_test
+      - command: profile view xxx_test
+        name: Check if the profile contains our data
+        expect:
+          - '!route format remall'
+          - "!settings save default_tell_color.*000000"
+      - command: "settings save default_tell_color #FFFFFF"
+        name: Change a setting
+        expect: has been saved
+      - command: profile load xxx_test
+        name: Check if the profile can be loaded
+        expect: Ignored.*unchanged settings
+      - command: "settings change default_tell_color"
+        name: Check our changed setting got restored
+        expect: .*000000
+      - command: profile rem xxx_test
+        name: Check if the profile can be deleted
+        expect: has been deleted
+      - command: "settings save default_tell_color #89D2E8"
+        name: Change a setting back to its default
+        expect: has been saved

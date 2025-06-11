@@ -135,7 +135,7 @@ class JWT {
 		if (!isset($input)) {
 			throw new DomainException('Invalid JSON data received');
 		}
-		if (version_compare(\PHP_VERSION, '5.4.0', '>=') && !(defined('JSON_C_VERSION') && \PHP_INT_SIZE > 4)) {
+		if (!(defined('JSON_C_VERSION') && \PHP_INT_SIZE > 4)) {
 			$obj = json_decode($input, false, 512, \JSON_BIGINT_AS_STRING);
 		} else {
 			$maxIntLength = strlen((string)\PHP_INT_MAX) - 1;
@@ -195,10 +195,12 @@ class JWT {
 		} elseif ($success === 0) {
 			return false;
 		}
+		$errorMsg = openssl_error_string();
 		// returns 1 on success, 0 on failure, -1 on error.
-		throw new DomainException(
-			'OpenSSL error: ' . openssl_error_string()
-		);
+		if (is_string($errorMsg)) {
+			throw new DomainException('OpenSSL error: ' . $errorMsg);
+		}
+		return false;
 	}
 
 	/**

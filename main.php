@@ -44,19 +44,45 @@ $lastOrFail = function (): mixed {
 };
 Collection::macro('lastOrFail', $lastOrFail);
 
+/**
+ * Get the int values of a given key.
+ *
+ * @param string|int|array<array-key, string> $value
+ * @param null|string                         $key
+ *
+ * @return static<array-key, int>
+ */
+$pluckInts = function ($value, $key=null): mixed {
+	return $this->pluck($value, $key);
+};
+Collection::macro('pluckInts', $pluckInts);
+
+/**
+ * Get the string values of a given key.
+ *
+ * @param string|int|array<array-key, string> $value
+ * @param null|string                         $key
+ *
+ * @return static<array-key, string>
+ */
+$pluckStrings = function ($value, $key=null): mixed {
+	return $this->pluck($value, $key);
+};
+Collection::macro('pluckStrings', $pluckStrings);
+
 $runner = new Nadybot\Core\BotRunner($argv);
 $runner->run();
 /*
 $coverage = xdebug_get_code_coverage();
 unlink("/tmp/called2.txt");
 ksort($coverage);
-$fh = fopen("/tmp/called2.txt", "w");
+$fileHandle = fopen("/tmp/called2.txt", "w");
 foreach ($coverage as $file => $lines) {
 	foreach ($lines as $line => $covered) {
 		if ($covered !== -1) {
-			fputs($fh, "{$file}:{$line}\n");
+			fputs($fileHandle, "{$file}:{$line}\n");
 		}
 	}
 }
-fclose($fh);
+fclose($fileHandle);
 */

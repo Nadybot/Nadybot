@@ -59,7 +59,11 @@ class PlayfieldState implements ArrayAccess, Iterator {
 	}
 
 	public function key(): int {
-		return key($this->sites);
+		$key = key($this->sites);
+		if (!is_int($key)) {
+			throw new Exception('Cannot get current key of an empty array');
+		}
+		return $key;
 	}
 
 	public function next(): void {

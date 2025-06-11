@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{fclose, sapi_windows_cp_set, sapi_windows_vt100_support, shell_exec, stream_get_contents};
+use function Safe\{fclose, proc_close, sapi_windows_cp_set, sapi_windows_vt100_support, shell_exec, stream_get_contents};
 
 use Safe\Exceptions\MiscException;
 use Throwable;
@@ -167,6 +167,7 @@ class Terminal {
 
 		$codepage = \function_exists('sapi_windows_cp_set') ? sapi_windows_cp_get() : 0;
 
+		// @phpstan-ignore theCodingMachineSafe.function
 		if (!$process = @proc_open($command, $descriptorspec, $pipes, null, null, ['suppress_errors' => true])) {
 			return null;
 		}

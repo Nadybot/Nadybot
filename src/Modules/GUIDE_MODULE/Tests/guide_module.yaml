@@ -1,0 +1,79 @@
+---
+name: Guide Module
+groups:
+
+  - name: Guide
+    tests:
+
+      - command: guides
+        name: Overview of all guides
+        expect: Available guides
+      - command: guides doja
+        name: Ask where DOJA chips drop
+        expect:
+          - Adonis
+          - Penumbra
+          - Inferno
+          - Special DOJA Chips
+      - command: guides light
+        name: Get a clickable list of light settings
+        expect:
+          - Light Settings
+          - RKLight
+      - command: guides healdelta
+        name: Get a list of heal tick for given stamina value
+        expect:
+          - Tick by Stamina
+          - Standing
+          - Sitting
+      - command: guides lag
+        name: What to do when you experience lag?
+        expect: Lag Tweaks
+      - command: guides nanodelta
+        name: Get a list of nano tick for given psychic value
+        expect: Tick by Psychic
+      - command: guides stats
+        name: List to links with a lot of internal stats
+        expect:
+          - Stats
+          - Critical Strike
+          - Nano execution cost
+      - command: aou 11
+        name: List of profession ranks and title levels
+        expect: Profession Ranks and Title Levels
+      - command: guides breed
+        name: A guide to breeds
+        expect: Solitus
+      - command: guides gos
+        name: Guardian of Shadow requirements (gos-command)
+        expect: Guardian of Shadow faction requirements for using different SL portals
+      - command: guides 6
+        name: Non-existing guide gives error
+        expect: No guide.*was found
+
+  - name: AO-Universe
+    tests:
+      - command: aou totw
+        name: Search guides by search term
+        expect: Classic AO - Encounter Guides
+      - command: aou fljhwref
+        name: Search for non-existing guide by search term
+        expect: not find any guides containing
+      - command: aou
+        name: Get the syntax
+        expect: Help \(aou\)
+      - command: aou all totw
+        name: Do a full text search for a search term
+        expect: Classic AO
+      - command: aou all fljhwref
+        name: Do a full text search for a non-existing search term
+        expect: not find any guides containing
+      - command: aou -1
+        name: Searching for guides by negative IDs doesn't work
+        expect: not find any guides containing
+      - command: aou 0
+        name: Searching for guide ID 0
+        expect: no id specified
+      - command: aou 1
+        name: Search for an existing guide by ID
+        expect: Rubi-Ka Apartments

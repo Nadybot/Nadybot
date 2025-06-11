@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\SettingHandlers;
 
+use function Safe\array_flip;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -95,11 +96,7 @@ abstract class SettingHandler {
 		return $msg;
 	}
 
-	/**
-	 * Change this setting to $newValue
-	 *
-	 * @throws \Exception if $newValue is not accepted
-	 */
+	/** Change this setting to $newValue */
 	public function save(string $newValue): string {
 		return $newValue;
 	}

@@ -85,10 +85,10 @@ class RaidBlockController extends ModuleInstance {
 			foreach ($blocks as $from => $block) {
 				if ($block->expiration !== null && $block->expiration <= time()) {
 					unset($this->blocks[$player][$from]);
-					if (!count($this->blocks[$player])) {
-						unset($this->blocks[$player]);
-					}
 				}
+			}
+			if (!count($this->blocks[$player])) {
+				unset($this->blocks[$player]);
 			}
 		}
 	}
@@ -148,6 +148,9 @@ class RaidBlockController extends ModuleInstance {
 		$this->blocks[$character] ??= [];
 		try {
 			$this->db->awaitBeginTransaction();
+			$this->db->table(RaidBlock::getTable())
+				->orWhere('expiration', '<=', time())
+				->delete();
 			$this->db->insert($block);
 		} catch (UniqueConstraintViolationException) {
 			$this->db->rollback();
@@ -241,11 +244,12 @@ class RaidBlockController extends ModuleInstance {
 			->where('player', $player);
 		if (isset($blockFrom)) {
 			$query->where('blocked_from', $blockFrom);
-			$this->blocks[$player][$blockFrom]->expiration = time();
-		} else {
-			foreach ($this->blocks[$player] as $name => $oldBlockFrom) {
-				$oldBlockFrom->expiration = time();
+			unset($this->blocks[$player][$blockFrom]);
+			if (!count($this->blocks[$player])) {
+				unset($this->blocks[$player]);
 			}
+		} else {
+			unset($this->blocks[$player]);
 		}
 		$query->update(['expiration' => time()]);
 		$context->reply("Raidblock removed from <highlight>{$player}<end>.");

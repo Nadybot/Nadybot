@@ -1,0 +1,38 @@
+---
+name: Colors Module
+groups:
+
+  - name: Themes
+    tests:
+      - command: theme apply budabot
+        name: Apply the Budabot theme
+        expect: Theme changed to.*budabot
+      - command: theme
+        name: Get a list of available themes
+        expect:
+          - amber
+          - bebot
+          - budabot
+          - classic
+          - tyrbot
+      - command: theme preview
+        name: Get a list of available themes with a preview what they look like
+        expect:
+          - amber.*<font color=#FFFF00>Page header<end>
+          - pinkie.*<font color=#FF6289>Page header<end>
+          - zenburn.*<font color=#85AF81>Page header<end>
+      - command: settings change default_header2_color
+        name: Grab the current header2 color
+        expect: "Current Value: <font color='#FCA712'>"
+      - command: theme apply amber
+        name: Apply the Amber theme
+        expect: Theme changed to.*amber
+      - command: settings change default_header2_color
+        name: Check if the colors were changed
+        expect: "Current Value: <font color='#FFFF00'>"
+      - command: theme apply budabot
+        name: Apply the Budabot theme again
+        expect: Theme changed to.*budabot
+      - command: settings change default_header2_color
+        name: Validate the colors are back to default
+        expect: "Current Value: <font color='#FCA712'>"

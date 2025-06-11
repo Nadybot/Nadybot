@@ -44,6 +44,7 @@ use Throwable;
 	NCA\Instance,
 	NCA\Importer(key: 'banlist', class: ExportedBan::class),
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'ban',
 		accessLevel: AccessLevel::Mod,
@@ -478,7 +479,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 			->orderBy('time')
 			->asObj(BanEntry::class);
 
-		$bannedUids = $bans->pluck('charid')->toArray();
+		$bannedUids = $bans->pluckInts('charid')->toList();
 
 		/** @var Collection<int,NameHistory> */
 		$names = $this->db->table(BanEntry::getTable(), 'bl')
@@ -570,7 +571,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 
 	public function renderBannedOrg(BannedOrg $ban): string {
 		$unbanLink = Text::makeChatcmd('remove', "/tell <myname> orgban rem {$ban->org_id}");
-		$blob = '<header2>' . ($ban->org_name ?? $ban->org_id) . "<end>\n".
+		$blob = '<header2>' . ($ban->org_name ?? (string)$ban->org_id) . "<end>\n".
 			"<tab>Banned by: <highlight>{$ban->banned_by}<end> [{$unbanLink}]\n".
 			'<tab>Ban starts: <highlight>' . Util::date($ban->start) . "<end>\n";
 		if (isset($ban->end)) {

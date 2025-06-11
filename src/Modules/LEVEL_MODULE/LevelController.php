@@ -18,6 +18,7 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'level',
 		accessLevel: AccessLevel::Guest,

@@ -25,6 +25,7 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util,
 };
+use Ramsey\Uuid\UuidInterface;
 use Throwable;
 
 /**
@@ -89,6 +90,7 @@ class WishlistController extends ModuleInstance {
 		if ($wishlistGrouped->isEmpty()) {
 			return;
 		}
+
 		$render = $this->renderCheckWishlist($wishlistGrouped, $event->sender);
 		$msg = Text::makeBlob(
 			"People are wishing items from you ({$render->numItems})",
@@ -331,6 +333,8 @@ class WishlistController extends ModuleInstance {
 			$context->reply("{$char}'s wishlist is empty.");
 			return;
 		}
+
+		/** @psalm-suppress InvalidArgument */
 		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
 		$msg = Text::makeBlob(
 			"{$char}'s wishlists ({$render->numItems})",
@@ -365,6 +369,8 @@ class WishlistController extends ModuleInstance {
 			$context->reply("No one is wishing for {$what}.");
 			return;
 		}
+
+		/** @psalm-suppress PossiblyInvalidArgument */
 		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
 		$msg = Text::makeBlob(
 			"Others' wishlists with '{$what}' ({$render->numItems})",
@@ -404,6 +410,12 @@ class WishlistController extends ModuleInstance {
 	 */
 	public function addFulfilments(Collection $wishes): Collection {
 		$enriched = clone $wishes;
+
+		/**
+		 * @var Collection<array-key,UuidInterface>
+		 *
+		 * @phpstan-ignore-next-line
+		 */
 		$ids = $wishes->pluck('id');
 		$this->db->table(WishFulfilment::getTable())
 			->whereIn('wish_id', $ids->toArray())
@@ -559,8 +571,9 @@ class WishlistController extends ModuleInstance {
 		CmdContext $context,
 		#[Remove] string $action,
 		#[Str('fulfilment', 'fulfillment', 'fullfilment', 'fullfillment')] string $subAction,
-		int $fulfilmentId,
+		PUuid $fulfilmentId,
 	): void {
+		$fulfilmentId = $fulfilmentId();
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
 		$allChars = [$mainChar, ...$alts];
@@ -713,7 +726,8 @@ class WishlistController extends ModuleInstance {
 		}
 		$this->db->commit();
 		$context->reply(
-			'from your wishlist.'
+			"Denied <highlight>{$entry->amount}x {$entry->item}<end> ".
+			"from {$entry->created_by}'s wishlist."
 		);
 		$newFrom = $this->getActiveFroms();
 		$toDelete = array_diff($oldFrom, $newFrom);

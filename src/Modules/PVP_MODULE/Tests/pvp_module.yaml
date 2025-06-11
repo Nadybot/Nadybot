@@ -1,0 +1,266 @@
+---
+name: PVP Module
+groups:
+
+  - name: Land controls
+    tests:
+      - command: nw lc
+        name: Just !lc gives a list of all playfields with tower fields on them
+        expect: Playfields with notum fields
+      - command: nw lc 4ho
+        name: Get a list of all fields in 4 Holes
+        expect:
+          - Jall Mountain
+          - 4HO
+          - All bases in 4 Holes
+      - command: nw lc 4ho 2
+        name: Get details about a single tower field
+        expect:
+          - Mountain of Fourtyone
+          - 4HO 2
+          - 'Level range: <highlight>35<end>-<highlight>50<end>'
+        unexpected: Jall Mountain
+      - command: nw lc 4hp
+        name: Non-existing playfields show the help page
+        expect: Help \(nw\)
+        unexpected: Jall Mountain
+      - command: nw lc 4ho 10
+        name: Non-existing tower fields Give an error
+        expect: No tower sites.*found
+
+  - name: Attacks
+    tests:
+      - command: nw attacks
+        name: Get a list of recent attacks
+        expect:
+          - Tower Attacks
+          - Page 1
+          - <header2>(?<field>[A-Z0-9]+ \d)<end> \(QL
+      - command: nw attacks 2
+        name: Get the second page of recent attacks
+        expect:
+          - Tower Attacks
+          - Page 2
+      - command: nw attacks 4ho
+        name: We cannot search for attacks in a playfield
+        expect: Help \(nw\)
+      - command: nw attacks {field}
+        name: We can search for attacks on a tower field
+        expect:
+          - Tower Attacks on {field}
+          - 'Defender: <(omni|clan|neutral)>(?<def_org>[^<]+)<end>'
+      - command: nw attacks org {def_org}
+        name: We can search for attacks by/on a given org
+        expect:
+          - Tower Attacks on/by '{def_org}'
+          - 'Attacker: <(omni|clan|neutral)>(?<attacker>[^<]+)<end>'
+      - command: nw attacks org *a*
+        name: We can search for attacks by/on a given org using wildcards
+        expect:
+          - Tower Attacks on/by '*a*'
+          - Page 1
+      - command: nw attacks char {attacker}
+        name: We can search for attacks by a given character
+        expect: Tower Attacks by '{attacker}'
+      - command: nw attacks char *a*
+        name: We can search for attacks by a given character using wildcards
+        expect:
+          - Tower Attacks by '*a*'
+          - Page 1
+
+      - command: nw victory
+        name: We can get a list of last victories
+        expect:
+          - Page 1
+          - 'Time:'
+          - 'Winner:'
+          - 'Loser:'
+          - 'Site:'
+      - command: nw victory 2
+        name: We can page this
+        expect:
+          - Page 2
+          - 'Time:'
+          - 'Winner:'
+          - 'Loser:'
+          - 'Site:'
+      - command: nw victory {field}
+        name: We can search for victories by tower fields
+        expect: Tower Victories on {field}|No tower victories found
+      - command: nw victory org *a*
+        name: We can search for victories by org name masks
+        expect: 'Winner: |No tower victories found'
+
+  - name: Small helper commands
+    tests:
+      - command: nw
+        name: Without any arguments, !nw explains how to get help
+        expect: help nw
+      - command: nw types
+        name: List all tower types by QL
+        expect:
+          - Tower types by QL
+          - Type I\b
+          - Type II\b
+          - Type III\b
+          - Type IV\b
+          - Type V\b
+          - Type VI\b
+          - Type VII\b
+      - command: nw towerqty
+        name: List numbers of towers you can plant by level
+        expect:
+          - <highlight>0<end>
+          - <highlight>1<end>
+          - <highlight>2<end>
+          - <highlight>3<end>
+          - <highlight>4<end>
+      - command: nw stats
+        name: Get statistics about attacks, victories, and abandonments of towers
+        expect:
+          - Tower stats for the last
+          - have attacked
+          - tower sites
+      - command: nw stats 1y
+        name: Get statistics for the last year
+        expect:
+          - Tower stats for the last 1 year
+          - have attacked <highlight>\d+ times<end>
+      - command: nw free
+        name: Check if there are any unplanted sites
+        expect: No unplanted sites|Unplanted sites \(\d+\)
+      - command: nw sites
+        name: Show all my org's tower fields
+        expect: currently don't have any tower fields|All tower sites of
+      - command: nw lc pw
+        name: Get a list of all sites in PW and grab the first org owning one
+        expect:
+          - '<(omni|clan|neutral)>(?<org>.*?)<end>'
+          - 'nw sites (?<org_id>\d+)'
+      - command: nw sites {org}
+        name: Get a list of all the sites of an org by their name
+        expect:
+          - All tower sites of '{org}'
+          - PW \d+
+      - command: nw sites 0
+        name: Get a list of all the sites of a non-existing org by their id
+        expect: No tower sites match your search criteria
+      - command: nw sites {org_id}
+        name: Get a list of all the sites of an org by their org id
+        expect:
+          - All tower sites of {org}
+          - PW \d+
+      - command: nw timer aeg1 1
+        name: Start a plant timer
+        expect: NOW
+      - command: nw top
+        name: Show a list of orgs with the highest allowed contracts
+        expect:
+          - Top contract points
+          - nw sites
+
+  - name: Hot sites
+    tests:
+      - command: nw hot
+        name: Get all currently hot sites
+        expect: Hot sites \(\d+\)|No sites are currently hot
+      - command: nw hot soon
+        name: Get all sites going hot soon
+        expect: Sites going hot soon \(\d+\)|No sites are going hot soon
+      - command: nw hot penalty
+        name: Get all sites currently in penalty
+        expect: Hot sites in penalty \(\d+\)|No sites are currently in penalty
+      - command: nw hot clan
+        name: Get all clan sites currently hot
+        expect: Hot clan sites \(\d+\)|No sites are currently hot
+      - command: nw hot omni
+        name: Get all omni sites currently hot
+        expect: Hot omni sites \(\d+\)|No sites are currently hot
+      - command: nw hot neutral
+        name: Get all neutral sites currently hot
+        expect: Hot neutral sites \(\d+\)|No sites are currently hot
+      - command: nw hot ww
+        name: Get all hot sites in Wailing Wastes
+        expect: Hot sites \(\d+\)|No sites are currently hot
+      - command: nw hot 12h
+        name: Get all sites that will be hot in 12 hours
+        expect: Hot sites \(\d+\)|No sites are currently hot
+      - command: nw hot ww clan
+        name: Get all clan sites in Wailing Wastes that are hot
+        expect: Hot clan sites \(\d+\)|No sites are currently hot
+      - command: nw hot ww clan 12h
+        name: Get all clan sites in Wailing Wastes that are hot in 12h
+        expect: Hot clan sites \(\d+\)|No sites are currently hot
+      - command: nw hot 10-30
+        name: Get all sites in QL 10-30 currently hot
+        expect: Hot sites \(\d+\)|No sites are currently hot
+      - command: nw hot 30
+        name: Get all hot sites that a level 30 character could attack
+        expect: Hot sites \(\d+\)|No sites are currently hot
+      - command: nw hot omni 200
+        name: Get all hot omni sites that a level 200 character could attack
+        expect: Hot omni sites \(\d+\)|No sites are currently hot
+
+  - name: Site tracker
+    tests:
+      - command: nw track patterns
+        name: Get a list of patterns to use for tracking sites
+        expect:
+          - org
+          - ql
+          - site
+          - max_towers
+          - faction
+      - command: nw track events
+        name: Get a list of events to use for tracking sites
+        expect:
+          - gas-change
+          - tower-planted
+      - command: nw track
+        name: We shouldn't have any trackers set up right now
+        expect: No registered trackers
+      - command: nw track add faction=omni
+        name: Create a new tracker for tracking all omni sites
+        expect: Tracker.*(?<tracker_id>[0-9a-f-]{36}) installed successfully
+      - command: nw track
+        name: Check if the tracker is now on our list
+        expect:
+          - '{tracker_id}'
+          - 'Created:'
+          - 'Matches:.*\d+.*site'
+      - command: nw track show {tracker_id}
+        name: Show all sites matching out tracker
+        expect:
+          - Sites matching tracker 'faction=omni' \(\d+\)
+          - <omni>
+      - command: route list src
+        name: Our new tracker should appear as a routing source
+        expect: site-tracker\({tracker_id}\)
+      - command: nw track rem {tracker_id}
+        name: Delete our tracker
+        expect: successfully removed
+      - command: nw track rem {tracker_id}
+        name: Delete our tracker again gives an error
+        expect: No tracker.*found
+
+      - command: nw track add pf=PW
+        name: Create a new tracker for tracking all sites in Perpetual Wastelands
+        expect: Tracker.*(?<tracker2_id>[0-9a-f-]{36}) installed successfully
+      - command: nw track show {tracker2_id}
+        name: Show if we get exactly 12 matches now
+        expect:
+          - '>PW 1<'
+          - '>PW 2<'
+          - '>PW 3<'
+          - '>PW 4<'
+          - '>PW 5<'
+          - '>PW 6<'
+          - '>PW 7<'
+          - '>PW 8<'
+          - '>PW 9<'
+          - '>PW 10<'
+          - '>PW 11<'
+          - '>PW 12<'
+      - command: nw track rem {tracker2_id}
+        name: Delete our tracker again
+        expect: successfully removed

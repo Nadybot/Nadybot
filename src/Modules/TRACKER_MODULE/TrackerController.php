@@ -2,11 +2,9 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
-use function Safe\preg_split;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
-use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -35,6 +33,7 @@ use Nadybot\Core\{
 	Types\Faction,
 	Types\MessageEmitter,
 	Types\Profession,
+	Types\TitleLevel,
 	Util,
 };
 use Nadybot\Modules\{
@@ -43,7 +42,7 @@ use Nadybot\Modules\{
 	PVP_MODULE\Event\TowerAttackEvent,
 };
 use Psr\Log\LoggerInterface;
-
+use Ramsey\Uuid\Uuid;
 use Throwable;
 
 /**
@@ -52,6 +51,7 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'track',
 		accessLevel: AccessLevel::Member,
@@ -403,7 +403,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 		$subst = [];
 		foreach ($replacements as $key => $value) {
-			$subst ['{' . $key . '}'] = $value;
+			$subst['{' . $key . '}'] = (string)$value;
 		}
 
 		return str_replace(
@@ -471,7 +471,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		foreach ($users as $user) {
 			$lastState = $this->db->table(Tracking::getTable())
 				->where('uid', $user->uid)
-				->orderByDesc('dt')
+				->orderByDesc('id')
 				->firstObj(Tracking::class);
 			$lastAction = '';
 			if ($lastState !== null) {
@@ -730,7 +730,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	): void {
 		$orgs = $this->db->table(TrackingOrg::getTable())
 			->asObj(TrackingOrg::class);
-		$orgIds = $orgs->pluck('org_id')->filter()->toArray();
+		$orgIds = $orgs->whereNotNull('org_id')->pluckInts('org_id')->toList();
 		$orgsByID = $this->findOrgController->getOrgsById(...$orgIds)
 			->keyBy('id');
 		$orgs = $orgs->each(static function (TrackingOrg $o) use ($orgsByID): void {
@@ -1145,7 +1145,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 		$events = $this->db->table(Tracking::getTable())
 			->where('uid', $uid)
-			->orderByDesc('dt')
+			->orderByDesc('id')
 			->select(['event', 'dt'])
 			->asObj(Tracking::class);
 		$hideLink = Text::makeChatcmd(
@@ -1261,6 +1261,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 						'name' => $member->name,
 					];
 					$toInit []= [
+						'id' => Uuid::uuid7(),
 						'uid' => $member->charid,
 						'dt' => time(),
 						'event' => 'logoff',
@@ -1365,7 +1366,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (isset($filters['levelRange'])) {
 			$ranges = [];
 			foreach ($filters['levelRange'] as $range) {
-				[$min, $max] = preg_split("/\s*-\s*/", $range);
+				[$min, $max] = Safe::pregSplit("/\s*-\s*/", $range);
 				$ranges []= [strlen($min) ? (int)$min : 1, strlen($max) ? (int)$max : 220];
 			}
 			$data = $data->filter(static function (OnlineTrackedUser $user) use ($ranges): bool {

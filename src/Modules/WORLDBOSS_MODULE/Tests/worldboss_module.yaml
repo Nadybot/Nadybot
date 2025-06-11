@@ -1,0 +1,105 @@
+---
+name: Worldboss Module
+groups:
+
+  - name: Boss timer commands
+    tests:
+      - command: wbdebug
+        name: Get a debug view of the current boss timers
+        expect:
+          - Worldboss timings
+          - Vizaresh
+          - Tarasque
+      - command: wb
+        name: Get a concise view of all current worldboss timers
+        expect:
+          - Vizaresh
+          - Tarasque
+          - spawn
+      - command: tara
+        name: Get detailed timers for Tara
+        expect:
+          - Spawntimes for Tarasque
+          - Next spawntimes
+      - command: tara kill
+        name: Manually record a tara kill
+        expect: The timer.*has been updated
+      - command: tara
+        name: Check the new timer
+        expect:
+          - Spawntimes for Tarasque
+          - Next spawntimes
+          - spawns in <highlight>(8 hrs 59 mins 59 secs|9 hrs)<end>
+      - command: tara update 1h
+        name: Manually set the Tara spawn timer
+        expect: The timer.*has been updated
+      - command: tara
+        name: Check the new timer
+        expect:
+          - Spawntimes for Tarasque
+          - Next spawntimes
+          - spawns in <highlight>(29 mins 59 secs|30 mins)<end>
+      - command: tara rem
+        name: Manually remove the Tara spawn timer
+        expect: The timer.*has been deleted
+      - command: tara
+        name: Check the new timer
+        expect: I currently don't have an accurate timer
+      - command: updatewb
+        name: Force an update from the timer API
+        expect: Timer data successfully loaded
+      - command: tara
+        name: Check everything works again
+        expect: Spawntimes for Tarasque|I currently don't have an accurate timer
+
+  - name: Gauntlet commands
+    tests:
+      - command: gaubuff omni 10h
+        name: Manually set a gauntlet timer
+        expect: Gauntletbuff timer for <omni>Omni<end> has been set and expires
+      - command: gaubuff omni
+        name: Check the timer
+        expect: <omni>Omni Gauntlet buff<end> runs out in
+      - command: gaubuff omni 1s
+        name: Let the gauntlet buff expire in 1 s
+        expect: Gauntletbuff timer.*has been set and expires
+      - command: test sleep 2
+        name: Expiration is propagated to the private channel
+        capture: aopriv
+        expect-captured: <omni>Omni<end> Gauntlet buff <highlight>expired<end>
+
+      - command: gaulist
+        name: Look at our current Gauntlet inventory
+        expect:
+          - Bastion inventory for <superadmin>
+          - <green>0<end>
+        unexpected: <green>[1-9]<end>
+      - command: gaulist add <superadmin> 3
+        name: 'Increase slot #3 by 1'
+        expect: Item increased
+      - command: gaulist
+        name: Look at our current Gauntlet inventory
+        expect:
+          - Bastion inventory for <superadmin>
+          - <green>0<end>
+          - <green>1<end>
+        unexpected: <green>[2-9]<end>
+      - command: gaulist rem <superadmin> 3
+        name: 'Decrease slot #3 by 1'
+        expect: Item decreased
+      - command: gaulist rem <superadmin> 3
+        name: Try removing one more
+        expect: You cannot decrease any further
+      - command: gaulist
+        name: Look at our current Gauntlet inventory
+        expect:
+          - Bastion inventory for <superadmin>
+          - <green>0<end>
+        unexpected: <green>[1-9]<end>
+      - command: gautrade
+        name: Show the tradeskills needed to make the armor
+        expect:
+          - Gauntlet Tradeskills
+          - Bacteriophage M73
+          - Bacteriophage Phi X 3957
+          - Bacteriophage F9

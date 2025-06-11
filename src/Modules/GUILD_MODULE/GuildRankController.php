@@ -174,16 +174,16 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			return;
 		}
 		$ranks = $guild->governing_form->getOrgRanks();
-		$accessLevel = AccessLevel::tryFromName($accessLevel);
-		if (!isset($accessLevel)) {
+		$alEnum = AccessLevel::tryFromName($accessLevel);
+		if (!isset($alEnum)) {
 			$sendto->reply(
-				"<highlight>{$accessLevel}<end> is not a valid access level. ".
+				"<highlight>{$alEnum}<end> is not a valid access level. ".
 				"Please use the short form like 'admin', 'mod' or 'rl'."
 			);
 			return;
 		}
 		$senderAL = $this->accessManager->getAccessLevelForCharacter($sender);
-		$senderHasHigherAL = $senderAL->higherThan($accessLevel);
+		$senderHasHigherAL = $senderAL->higherThan($alEnum);
 		if ($senderAL !== AccessLevel::Superadmin && !$senderHasHigherAL) {
 			$sendto->reply('You can only manage access levels below your own.');
 			return;
@@ -193,15 +193,15 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			return;
 		}
 		$currentEAL = $this->getEffectiveAccessLevel($rank);
-		if ($accessLevel->lowerThan($currentEAL)) {
+		if ($alEnum->lowerThan($currentEAL)) {
 			$sendto->reply('You cannot assign declining access levels.');
 			return;
 		}
-		$alName = $accessLevel->displayName();
+		$alName = $alEnum->displayName();
 		$rankName = $ranks[$rank];
 
 		$rankMapping = new OrgRankMapping(
-			access_level: $accessLevel,
+			access_level: $alEnum,
 			min_rank: $rank,
 		);
 

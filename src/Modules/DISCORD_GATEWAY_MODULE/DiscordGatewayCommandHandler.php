@@ -91,6 +91,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	}
 
 	/** Accept to be linked with a Discord account */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('extauth')]
 	public function extAuthAccept(CmdContext $context, #[Str('accept')] string $action, string $uid): void {
 		if (!$context->isDM()) {
@@ -134,6 +135,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	}
 
 	/** Reject to be linked with a Discord account */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('extauth')]
 	public function extAuthRejectCommand(CmdContext $context, #[Str('reject')] string $action, string $uid): void {
 		if (!$context->isDM()) {

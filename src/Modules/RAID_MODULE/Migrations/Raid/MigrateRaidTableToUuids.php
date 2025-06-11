@@ -117,6 +117,7 @@ class MigrateRaidTableToUuids implements SchemaMigration {
 	/** @param array<int,UuidInterface> $idToUuid */
 	private function migrateRaidPointLogs(LoggerInterface $logger, DB $db, array $idToUuid): void {
 		$createTable =  static function (Blueprint $table): void {
+			$table->uuid('id')->primary();
 			$table->string('username', 20)->index();
 			$table->integer('delta');
 			$table->integer('time')->index();
@@ -136,6 +137,8 @@ class MigrateRaidTableToUuids implements SchemaMigration {
 			if (isset($entry->raid_raid)) {
 				$entry->raid_id = $idToUuid[$entry->raid_id] ?? null;
 			}
+			$dt = (new DateTimeImmutable())->setTimestamp((int)$entry->time);
+			$entry->id = Uuid::uuid7($dt);
 			return (array)$entry;
 		})->toList();
 		$db->table(RaidPointsLog::getTable())->chunkInsert($logs);

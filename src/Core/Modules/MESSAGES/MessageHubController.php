@@ -8,7 +8,6 @@ use function Safe\{json_encode, preg_match};
 use Exception;
 use Illuminate\Support\Collection;
 use Monolog\Logger;
-use Nadybot\Core\Types\{AccessLevel, ParamType};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\DurationStr,
@@ -33,8 +32,10 @@ use Nadybot\Core\{
 	Safe,
 	SettingHandlers\ColorSettingHandler,
 	Text,
+	Types\AccessLevel,
 	Types\HopColorType,
 	Types\MessageEmitter,
+	Types\ParamType,
 	Types\Status,
 	Util,
 };
@@ -52,6 +53,7 @@ use Throwable;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'route',
 		accessLevel: AccessLevel::Mod,
@@ -341,7 +343,8 @@ class MessageHubController extends ModuleInstance {
 		$count = count($emitters);
 		ksort($emitters);
 		$emitters = collect($emitters);
-		$blob = $emitters->groupBy($this->getEmitterType(...))
+		$blob = $emitters
+			->groupBy($this->getEmitterType(...))
 			->map($this->renderEmitterGroup(...))
 			->join("\n\n");
 		$msg = Text::makeBlob("Message sources ({$count})", $blob);
@@ -359,8 +362,11 @@ class MessageHubController extends ModuleInstance {
 		$count = count($receivers);
 		ksort($receivers);
 		$receivers = collect($receivers);
-		$blob = $receivers->groupBy($this->getEmitterType(...))
-			->map($this->renderEmitterGroup(...))
+
+		/** @psalm-suppress InvalidArgument */
+		$blob = $receivers
+			->groupBy($this->getEmitterType(...))
+			->map($this->renderEmitterGroup(...)) // @phpstan-ignore-line
 			->join("\n\n");
 		$msg = Text::makeBlob("Message targets ({$count})", $blob);
 		$context->reply($msg);
@@ -508,12 +514,12 @@ class MessageHubController extends ModuleInstance {
 			return strcmp($route1->getSource(), $route2->getSource());
 		});
 		foreach ($routes as $route) {
-			$delLink = Text::makeChatcmd('delete', '/tell <myname> route del ' . $route->getID());
+			$delLink = Text::makeChatcmd('delete', '/tell <myname> route del ' . (string)$route->getID());
 			$disabledUntil = $route->getDisabled();
 			$isDisabled = isset($disabledUntil) && $disabledUntil > time();
-			$disableLink = Text::makeChatcmd('mute', '/tell <myname> route mute ' . $route->getID());
+			$disableLink = Text::makeChatcmd('mute', '/tell <myname> route mute ' . (string)$route->getID());
 			if ($isDisabled) {
-				$disableLink = Text::makeChatcmd('unmute', '/tell <myname> route mute ' . $route->getID() . ' off');
+				$disableLink = Text::makeChatcmd('unmute', '/tell <myname> route mute ' . (string)$route->getID() . ' off');
 			}
 			$list []="[{$delLink}] [{$disableLink}] " . $this->renderRoute($route);
 		}
@@ -564,7 +570,7 @@ class MessageHubController extends ModuleInstance {
 		foreach ($grouped as $receiver => $recRoutes) {
 			$result[$receiver] = [];
 			foreach ($recRoutes as $route) {
-				$delLink = Text::makeChatcmd('delete', '/tell <myname> route del ' . $route->getID());
+				$delLink = Text::makeChatcmd('delete', '/tell <myname> route del ' . (string)$route->getID());
 				$arrow = '&lt;-';
 				if ($route->getTwoWay() && $this->messageHub->getReceiver($route->getSource()) !== null) {
 					$arrow .= '&gt;';
@@ -577,9 +583,9 @@ class MessageHubController extends ModuleInstance {
 				}
 				$disabledUntil = $route->getDisabled();
 				$isDisabled = isset($disabledUntil) && $disabledUntil > time();
-				$disableLink = Text::makeChatcmd('mute', '/tell <myname> route mute ' . $route->getID());
+				$disableLink = Text::makeChatcmd('mute', '/tell <myname> route mute ' . (string)$route->getID());
 				if ($isDisabled) {
-					$disableLink = Text::makeChatcmd('unmute', '/tell <myname> route mute ' . $route->getID() . ' off');
+					$disableLink = Text::makeChatcmd('unmute', '/tell <myname> route mute ' . (string)$route->getID() . ' off');
 				}
 				$result[$receiver][$routeName] ??= [];
 				$result[$receiver][$routeName] []= "<tab>{$arrow} [{$delLink}] [{$disableLink}] <highlight>{$routeName}<end> ".
@@ -750,6 +756,7 @@ class MessageHubController extends ModuleInstance {
 
 	/** Remove all color definitions for tags and texts */
 	#[NCA\HandlesCommand('route')]
+	#[NCA\Untestable]
 	public function routeTagColorRemAllCommand(
 		CmdContext $context,
 		#[Str('color')] string $action,
@@ -948,6 +955,7 @@ class MessageHubController extends ModuleInstance {
 
 	/** Reset the rendering of all hops to their default */
 	#[NCA\HandlesCommand('route')]
+	#[NCA\Untestable]
 	public function routeFormatRemAllCommand(
 		CmdContext $context,
 		#[Str('format')] string $action,
@@ -1004,7 +1012,10 @@ class MessageHubController extends ModuleInstance {
 	}
 
 	/** Remove all routes. Do not use unless you know what you are doing */
-	#[NCA\HandlesCommand('route')]
+	#[
+		NCA\HandlesCommand('route'),
+		NCA\Untestable,
+	]
 	public function routeRemAllCommand(
 		CmdContext $context,
 		#[Str('remall')] string $action
@@ -1138,7 +1149,7 @@ class MessageHubController extends ModuleInstance {
 	/**
 	 * Render a blob for an emitter group
 	 *
-	 * @param Collection<array-key,MessageEmitter> $values
+	 * @param Collection<int,MessageEmitter> $values
 	 */
 	public function renderEmitterGroup(Collection $values, string $group): string {
 		if ($group === Source::LOG) {

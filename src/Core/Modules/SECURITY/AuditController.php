@@ -27,6 +27,7 @@ use Safe\DateTimeImmutable;
 use Safe\Exceptions\DatetimeException;
 
 #[
+	NCA\HasTests,
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'audit',
@@ -62,7 +63,7 @@ class AuditController extends ModuleInstance {
 		if (!$this->auditEnabled) {
 			$context->reply(
 				'Security auditing is currently disabled. In order to enable it, use '.
-				"'<highlight><symbol>setting save audit_enabled 1<end>'."
+				"'<highlight><symbol>settings save audit_enabled 1<end>'."
 			);
 			return;
 		}

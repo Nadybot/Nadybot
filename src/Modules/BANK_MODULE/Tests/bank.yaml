@@ -1,0 +1,158 @@
+---
+name: Bank Module
+groups:
+
+  - name: Browsing
+    tests:
+      - command: settings save bank_file_location src/Modules/BANK_MODULE/Tests/empty_bank.csv
+        expect: saved
+      - command: bank update
+        expect: has been updated
+      - command: bank browse
+        expect: No bank characters found
+      - command: settings save bank_file_location src/Modules/BANK_MODULE/Tests/bank.csv
+        expect: saved
+      - command: bank update
+        expect: has been updated
+      - command: bank browse
+        expect: bank browse Xbank1
+      - command: bank browse xbank1
+        expect: Containers for Xbank1
+      - command: bank browse xbank1 1
+        expect: Could not find container with id
+      - command: bank browse xbank1 135551661
+        expect: "Items in #024 - Medium Backpack - Spirits"
+      - command: bank browse xbank1 a
+        expect: Help \(bank\)
+      - command: bank search breathing
+        expect: Breathing Right Hand Symbiant
+      - command: bank search ammunition
+        expect: Could not find
+
+  - name: Wishlist
+    tests:
+      - command: executesql DELETE FROM wishlist
+        name: Clean wishlist table
+        expect: Query run successfully
+      - command: executesql DELETE FROM wishlist_fulfilment
+        name: Clean wishlist_fulfilment table
+        expect: Query run successfully
+      - command: wishes
+        name: Show what people are wishing
+        expect: No one wishes for anything
+      - command: wish
+        name: Our own wishlist is empty as well
+        expect: Your wishlist is empty
+      - command: wish add S35
+        name: Add an item to our wishlist
+        expect: added to your wishlist as (?<wish_id>[a-f0-9-]{36})
+      - command: wish
+        name: Check it's really on our wishlist
+        expect: <highlight>S35<end>.*wish rem {wish_id}
+      - command: mod add Regolus
+        name: Add a dummy to the bot
+        expect: has been promoted
+      - command: runas Regolus wish search S35
+        name: Have the dummy search for our wish
+        expect:
+          - <header2><superadmin><end>
+          - <highlight>S35<end>
+      - command: wish add 1s S28
+        name: Add an item to our wishlist for only 1 second
+        expect: added to your wishlist as (?<wish2_id>[a-f0-9-]{36})
+      - command: wish
+        name: Check it's really on our wishlist
+        expect: <highlight>S28<end>.*wish rem {wish2_id}
+      - command: test sleep 2
+        name: Wait 2s
+        expect: ^$
+      - command: wish
+        name: Check it's no longer on our wishlist
+        unexpected: <highlight>S28<end>.*wish rem {wish2_id}
+      - command: wish rem {wish2_id}
+        name: We can still delete it, so the history is gone
+        expect: Removed.*from your wishlist.
+      - command: wish rem {wish2_id}
+        name: But only once
+        expect: No item.*{wish2_id}.*on your wishlist
+      - command: runas Regolus wish show <superadmin>
+        name: We can explicitly look at someone else's wishlist
+        expect: S35
+      - command: runas Regolus wish from <superadmin> APF belt
+        name: We can also explicitly wish something from someone
+        expect: added to your wishlist as (?<wish3_id>[a-f0-9-]{36})
+      - command: wish check
+        name: And we can then check if someone wished something from us
+        expect: APF belt
+      - command: wish deny {wish3_id}
+        name: We're free to deny someone else's wish
+        expect: Denied.*APF belt.*from Regolus
+      - command: runas Regolus wish from <superadmin> APF belt
+        name: Let's create that wish again
+        expect: added to your wishlist as (?<wish4_id>[a-f0-9-]{36})
+      - command: wish fulfill {wish4_id}
+        name: Let's fulfill their wish this time
+        expect: Marked.*APF belt.*as fulfilled on Regolus
+      - command: runas regolus wish
+        name: Check their wishlist now
+        expect: Your wishlist is empty
+      - command: wish add 3x Infuser
+        name: Wish for some thing more than once
+        expect: added to your wishlist as (?<wish5_id>[a-f0-9-]{36})
+      - command: wish
+        name: Check our wishlist that all counts are recorded
+        expect: 3 <highlight>Infuser<end>
+      - command: wish fulfil 1 {wish5_id}
+        name: Mark 1 fulfilled
+        expect: Marked.*1x Infuser.*as fulfilled
+      - command: wish
+        name: Check our updated wishlist that all counts are recorded
+        expect:
+          - 2 of 3 <highlight>Infuser<end>
+          - 1 given by
+      - command: wish fulfil 2 {wish5_id}
+        name: Mark the other 2 fulfilled
+        expect: Marked.*2x Infuser.*as fulfilled
+      - command: wish rem {wish_id}
+        name: Also remove our very first wish
+        expect: Removed.*S35.*from your wishlist
+      - command: wish
+        name: Check our wishlist is now empty
+        expect: Your wishlist is empty
+      - command: wish all
+        name: Check that our fulfilled wishes show up on !wish all
+        expect:
+          - 0 of 3 Infuser
+          - 1 given by <superadmin>
+          - 2 given by <superadmin>
+      - command: wish clear
+        name: Clear fulfilled wishes
+        expect: Remove.*1 fulfilled wish.*from your wishlist
+      - command: wish all
+        name: Check our wishlist is now really empty
+        expect: Your wishlist is empty
+      - command: wish add 2x S35
+        name: Add 2x for S35
+        expect: added to your wishlist as (?<wish6_id>[a-f0-9-]{36})
+      - command: wish fulfil 1x {wish6_id}
+        name: have it fulfilled 1x
+        expect: Marked.*1x S35.*as fulfilled
+      - command: wish
+        name: Check our wishlist
+        expect: wish rem fulfilment (?<fulfilment_id>[a-f0-9-]{36})
+      - command: wish rem fulfilment {fulfilment_id}
+        name: Delete the fulfilment
+        expect: Removed the fulfilment of <highlight>1x S35<end>
+      - command: wish
+        name: Check our wishlist
+        expect: S35
+        unexpected: wish rem fulfilment
+      - command: wish wipe
+        name: Wipe our wishlist
+        expect: Removed <highlight>1 wish<end> from your wishlist
+      - command: wish
+        name: Our own wishlist is now empty
+        expect: Your wishlist is empty
+      - command: mod rem Regolus
+        name: Remove the dummy from the bot
+        expect: has been removed

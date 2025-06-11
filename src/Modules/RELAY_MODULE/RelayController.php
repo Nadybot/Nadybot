@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use function Safe\{json_decode, json_encode, preg_match, preg_split};
+use function Safe\{json_decode, json_encode, preg_match};
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
@@ -27,6 +27,7 @@ use Nadybot\Core\{
 	Modules\PROFILE\ProfileCommandReply,
 	ParamClass\PUuid,
 	Registry,
+	Safe,
 	Text,
 	Types\AccessLevel,
 	Types\AccessLevelProvider,
@@ -57,6 +58,7 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'relay',
 		accessLevel: AccessLevel::Mod,
@@ -839,7 +841,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		}
 		$eventConfigs = [];
 		foreach ($events as $eventConfig) {
-			[$eventName, $dir] = preg_split("/\s+/", $eventConfig??'');
+			[$eventName, $dir] = Safe::pregSplit("/\s+/", $eventConfig??'');
 			$eventConfigs[$eventName] = $dir;
 		}
 		$this->db->table(RelayEvent::getTable())
@@ -849,7 +851,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		foreach ($eventConfigs as $eventName => $dir) {
 			$event = new RelayEvent(
 				relay_id: $relay->id,
-				event: (string)$eventName,
+				event: (string)$eventName, // @phpstan-ignore-line
 				incoming: stripos($dir, 'I') !== false,
 				outgoing: stripos($dir, 'O') !== false,
 			);
@@ -867,10 +869,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	 * the other relays allow receiving this event.
 	 */
 	#[NCA\HandlesCommand('sync')]
+	#[NCA\Untestable]
 	public function syncCommand(CmdContext $context, string $command): void {
 		$context->message = $command;
 		$context->forceSync = true;
-		$this->commandManager->processCmd($context);
+		$this->commandManager->syncProcessCmd($context);
 	}
 
 	/**
@@ -1500,6 +1503,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		}
 
 		$proto = array_pop($conf->layers);
+		assert(isset($proto));
 		$spec = $this->relayProtocols[strtolower($proto->layer)] ?? null;
 		if (!isset($spec)) {
 			throw new Exception(

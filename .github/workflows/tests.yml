@@ -1,0 +1,136 @@
+name: Run tests
+
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        # We run all combinations for these targets
+        db: [sqlite, mariadb, postgres]
+        libuv: ['', 'uv']
+        os: [ubuntu-latest, ubuntu-24.04-arm]
+        # Windows and macOS only run with SQLite
+        include:
+          - db: sqlite
+            libuv: ''
+            os: windows-latest
+            php: auto
+          - db: sqlite
+            libuv: 'uv'
+            os: windows-latest
+            php: auto
+          - db: sqlite
+            libuv: ''
+            os: macos-latest
+            php: auto
+          - db: sqlite
+            libuv: 'uv'
+            os: macos-latest
+            php: auto
+          - db: sqlite
+            libuv: 'uv'
+            os: ['freebsd', 'libuv', 'php81']
+            php: system
+          - db: sqlite
+            libuv: ''
+            os: ['freebsd', 'nouv', 'php81']
+            php: system
+          - db: sqlite
+            libuv: 'uv'
+            os: ['freebsd', 'libuv', 'php84']
+            php: system
+          - db: sqlite
+            libuv: ''
+            os: ['freebsd', 'nouv', 'php84']
+            php: system
+          - db: sqlite
+            libuv: 'ev'
+            os: ['freebsd', 'libev', 'php84']
+            php: system
+          - db: sqlite
+            libuv: ''
+            os: ['linux', 'nouv', 'ppc64', 'php83']
+            php: system
+          - db: sqlite
+            libuv: ''
+            os: ['linux', 'nouv', 'ppc64le', 'php84']
+            php: system
+
+    name: "Run tests on ${{ join(matrix.os, '+') }} (db: ${{ matrix.db }}, event loop: ${{ (matrix.libuv == '') && 'none' || matrix.libuv }})"
+    runs-on: ${{ matrix.os }}
+
+    services:
+      mysql:
+        # There are no conditional services (yet), this hacks around it
+        image: ${{ (matrix.db == 'mariadb') && 'mariadb:10.5' || '' }}
+        env:
+          MYSQL_ROOT_PASSWORD: '123456'
+          MYSQL_USER: nadybot
+          MYSQL_DATABASE: nadybot
+          MYSQL_PASSWORD: '123456'
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 6
+        ports:
+          - 3306:3306
+
+      postgres:
+        image: ${{ (matrix.db == 'postgres') && 'ghcr.io/rblaine95/postgres:9' || '' }}
+        env:
+          POSTGRES_PASSWORD: '123456'
+          POSTGRES_USER: nadybot
+          POSTGRES_DB: nadybot
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        if: ${{ matrix.php == 'auto' }}
+        with:
+          # TODO: Do we really want 8.1?
+          php-version: '8.1'
+          coverage: none
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, openssl, fileinfo, yaml ${{ (matrix.libuv == 'uv') && ', uv' || '' }}
+
+      - name: Print PHP version
+        run: |
+          php --version
+
+      - name: Install dependencies with composer
+        run: |
+          composer install -q --no-dev
+
+      - name: Fetch config
+        run: |
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://nadyci.nadybot.org/config?db=${{ matrix.db }}" -o conf/config.toml
+
+      - name: Run tests
+        run: |
+          php main.php --test-run conf/config.toml
+
+      - name: Return config
+        if: always()
+        shell: bash
+        run: |
+          USERNAME=$(sed -n '/^\[main\]$/,/^$/p' conf/config.toml | grep -o -E 'login *= *"(.*)"' | sed -e 's/.*"\(.*\)".*/\1/')
+          PASSWORD=$(sed -n '/^\[main\]$/,/^$/p' conf/config.toml | grep -o -E 'password *= *"(.*)"' | sed -e 's/.*"\(.*\)".*/\1/')
+          CHARACTER=$(sed -n '/^\[main\]$/,/^$/p' conf/config.toml | grep -o -E 'character *= *"(.*)"' | sed -e 's/.*"\(.*\)".*/\1/')
+          curl \
+            -X POST \
+            --user "github:${{ secrets.CONFIG_PASSWORD }}" \
+            "https://nadyci.nadybot.org/return" \
+            -H "Content-Type: application/json" \
+            -d "{\"username\": \"$USERNAME\", \"password\": \"$PASSWORD\", \"character\": \"$CHARACTER\"}"

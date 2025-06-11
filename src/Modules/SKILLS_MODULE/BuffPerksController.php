@@ -4,7 +4,7 @@ namespace Nadybot\Modules\SKILLS_MODULE;
 
 use function Amp\async;
 use function Amp\ByteStream\splitLines;
-use function Safe\{preg_match, preg_split};
+use function Safe\preg_match;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -689,9 +689,9 @@ class BuffPerksController extends ModuleInstance {
 			}
 
 			if (strlen($resistances??'')) {
-				$resistances = preg_split("/\s*,\s*/", $resistances??'');
+				$resistances = Safe::pregSplit("/\s*,\s*/", $resistances??'');
 				foreach ($resistances as $resistance) {
-					[$strainId, $amount] = preg_split("/\s*:\s*/", $resistance);
+					[$strainId, $amount] = Safe::pregSplit("/\s*:\s*/", $resistance);
 					$level->resistances[(int)$strainId] = (int)$amount;
 				}
 			}

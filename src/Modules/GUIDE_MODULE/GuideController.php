@@ -23,6 +23,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'guides',
 		accessLevel: AccessLevel::Guest,
@@ -79,6 +80,8 @@ class GuideController extends ModuleInstance {
 					$handle->close();
 					continue;
 				}
+
+				/** @psalm-var string */
 				$firstLine = $iter->current();
 				$firstLine = strip_tags(trim($firstLine));
 				$topicList[$firstLine] = basename($fileName, self::FILE_EXT);
@@ -138,9 +141,11 @@ class GuideController extends ModuleInstance {
 		// get the filename and read in the file
 		$fileName = strtolower($guideName);
 		$file = $this->path . $fileName . self::FILE_EXT;
+		$msg = "No guide named <highlight>{$fileName}<end> was found.";
 		try {
 			if (!$this->fs->exists($file)) {
-				throw new FilesystemException("{$file} does not exist.");
+				$context->reply($msg);
+				return;
 			}
 			$info = $this->fs->read($file);
 			$lines = explode("\n", $info);
@@ -148,7 +153,6 @@ class GuideController extends ModuleInstance {
 			$info = trim(implode("\n", $lines));
 			$msg = Text::makeBlob('Guide for "' . $firstLine . '"', $info, $firstLine);
 		} catch (FilesystemException) {
-			$msg = "No guide named <highlight>{$fileName}<end> was found.";
 		}
 		$context->reply($msg);
 	}

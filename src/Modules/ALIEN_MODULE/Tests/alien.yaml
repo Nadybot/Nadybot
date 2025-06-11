@@ -1,0 +1,186 @@
+---
+name: Alien Module
+groups:
+
+  - name: Generals
+    tests:
+      - command: "!aigen ankari"
+        expect: General Ankari
+      - command: "!aigen ilari"
+        expect: General Ilari
+      - command: "!aigen rimah"
+        expect: General Rimah
+      - command: "!aigen jaax"
+        expect: General Jaax
+      - command: "!aigen xoch"
+        expect: General Xoch
+      - command: "!aigen cha"
+        expect: General Cha
+      - command: "!aigen unknown"
+        expect: Help \(aigen\)
+
+  - name: AI Armor
+    tests:
+      - command: "!aiarmor strong"
+        expect: You need the following items to build Strong Armor
+      - command: "!aiarmor supple"
+        expect: You need the following items to build Supple Armor
+      - command: "!aiarmor enduring"
+        expect: You need the following items to build Enduring Armor
+      - command: "!aiarmor observant"
+        expect: You need the following items to build Observant Armor
+      - command: "!aiarmor arithmetic"
+        expect: You need the following items to build Arithmetic Armor
+      - command: "!aiarmor spiritual"
+        expect: You need the following items to build Spiritual Armor
+      - command: "!aiarmor 200 spiritual"
+        expect:
+          - Building process for 200 Spiritual
+          - Kyr'Ozch Viralbots \(QL160\+\)
+      - command: "!aiarmor spiritual 200"
+        expect:
+          - Building process for 200 Spiritual
+          - Kyr'Ozch Viralbots \(QL160\+\)
+      - command: "!aiarmor spiritual error"
+        expect: Help \(aiarmor\)
+      - command: "!aiarmor error"
+        expect: Help \(aiarmor\)
+      - command: "!aiarmor"
+        expect: Please choose from the following 
+
+      - command: "!aiarmor cc"
+        expect: Combined Commando
+      - command: "!aiarmor cm"
+        expect: Combined Mercenary
+      - command: "!aiarmor co"
+        expect: Combined Officer
+      - command: "!aiarmor cp"
+        expect: Combined Paramedic
+      - command: "!aiarmor cs"
+        expect: Combined Scout
+      - command: "!aiarmor css"
+        expect: Combined Sharpshooter
+      - command: "!aiarmor ss"
+        expect: Combined Sharpshooter
+      - command: "!aiarmor ss 200"
+        expect: "200 Combined Sharpshooter"
+      - command: "!aiarmor 200 ss"
+        expect: "200 Combined Sharpshooter"
+      - command: "!aiarmor error"
+        expect: Help \(aiarmor\)
+      - command: "!aiarmor error ss"
+        expect: Help \(aiarmor\)
+
+  - name: LE Procs
+    tests:
+      - command: leprocs
+        expect: Choose a profession<
+      - command: leprocs adv
+        expect:
+          - Offensive procs have a
+          - Adventurer
+      - command: leprocs error
+        expect: Help \(leprocs\)
+
+  - name: OFAB Armor
+    tests:
+      - command: "!ofabarmor"
+        expect: Ofab Armor Bio-Material Types
+      - command: "!ofabarmor adv"
+        expect:
+          - Kyr'Ozch Bio-Material - Type 295
+          - minimum QL 240
+      - command: "!ofabarmor adv 200"
+        expect:
+          - Kyr'Ozch Bio-Material - Type 295
+          - minimum QL 160
+      - command: "!ofabarmor 200 adv"
+        expect:
+          - Kyr'Ozch Bio-Material - Type 295
+          - minimum QL 160
+      - command: "!ofabarmor error"
+        expect: Help \(ofabarmor\)
+      - command: "!ofabarmor error 200"
+        expect: Help \(ofabarmor\)
+      - command: "!ofabarmor 200 error"
+        expect: Help \(ofabarmor\)
+
+  - name: OFAB Weapons
+    tests:
+      - command: ofabweapons
+        expect: Ofab Weapons
+      - command: ofabweapons bear
+        expect: Kyr'Ozch Bio-Material - Type 34
+      - command: ofabweapons bear 200
+        expect:
+          - Kyr'Ozch Bio-Material - Type 34
+          - minimum QL 160
+      - command: ofabweapons error
+        expect: Could not find any OFAB weapon
+      - command: ofabweapons error 200
+        expect: Could not find any OFAB weapon
+
+  - name: Bio Material
+    tests:
+    - command: "bioinfo"
+      expect:
+        - OFAB Armor Types
+        - OFAB Weapon Types
+    - command: "bioinfo 64"
+      expect: Upgrades Ofab armor for
+    - command: "bioinfo 295"
+      expect: Upgrades Ofab armor for
+    - command: "bioinfo 468"
+      expect: Upgrades Ofab armor for
+    - command: "bioinfo 935"
+      expect: Upgrades Ofab armor for
+    - command: "bioinfo 18"
+      expect: Upgrades Ofab weapons
+    - command: "bioinfo 34"
+      expect: Upgrades Ofab weapons
+    - command: "bioinfo 687"
+      expect: Upgrades Ofab weapons
+    - command: "bioinfo 812"
+      expect: Upgrades Ofab weapons
+    - command: "bioinfo mutated"
+      expect: Mutated Kyr'Ozch Bio-Material
+    - command: "bioinfo pristine"
+      expect: Pristine Kyr'Ozch Bio-Material
+    - command: "bioinfo 1"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo 2"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo 3"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo 4"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo 5"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo 12"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo 13"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo 48"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo 76"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo 112"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo 240"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo 880"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo 992"
+      expect: Adds [a-zA-Z, ]+ to
+    - command: "bioinfo error"
+      expect: Unknown Bio-Material
+    - command: "bioinfo 992 200"
+      expect: itemref://247681/247682/200
+    - command: "bioinfo 992 error"
+      expect: Help \(bioinfo\)
+    - command: bio <a href="itemref://247707/247707/1">Solid Clump of Kyr'Ozch Bio-Material</a>
+      expect: Kyr'Ozch Bio-Material - Type 1 \(QL 1\)
+    - command: bio <a href="itemref://247708/247708/300">Solid Clump of Kyr'Ozch Bio-Material</a>
+      expect: Kyr'Ozch Bio-Material - Type 1 \(QL 300\)
+    - command: bio error
+      expect: Help \(bio\)

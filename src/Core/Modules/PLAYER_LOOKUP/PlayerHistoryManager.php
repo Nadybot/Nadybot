@@ -63,6 +63,8 @@ class PlayerHistoryManager extends ModuleInstance {
 			return null;
 		}
 		$this->cache->set($cacheKey, $body, new DateInterval('PT12H'));
+
+		/** @psalm-suppress NoValue */
 		return $this->parsePlayerHistory($body, $name);
 	}
 

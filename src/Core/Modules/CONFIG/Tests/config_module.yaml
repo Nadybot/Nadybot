@@ -1,0 +1,302 @@
+---
+name: Config Module
+groups:
+
+  - name: Configuration
+    tests:
+      - command: config
+        name: List of modules
+        expect:
+          - Module Config \(\d+\)
+          - Quick config
+      - command: config mod
+        name: Configure unknown module
+        expect: Could not find module
+      - command: config RAID_MODULE
+        name: Configure the RAID_MODULE
+        expect:
+          - RAID_MODULE Configuration
+          - entire module
+          - auctions only for people in the raid
+      - command: config mod SYSTEM disable all
+        name: Disable the SYSTEM module
+        expect: Updated status of module.*SYSTEM.*to.*disabled
+      - command: config mod SYSTEM disable msg
+        name: Disable only commands via the msg-channel in module SYSTEM
+        expect: Updated status of module.*SYSTEM.*in permission set.*msg.*to.*disabled
+      - command: config mod SYSTEM enable priv
+        name: Enable only commands via the priv-channel in module SYSTEM
+        expect: Updated status of module.*SYSTEM.*in permission set.*priv.*to.*enabled.
+      - command: config mod SYSTEM enable all
+        name: Re-enable the SYSTEM module
+        expect: Updated status of module.*SYSTEM.*to.*enabled
+      - command: help config
+        name: Get help for the !config-command
+        expect: Help \(config\)
+      - command: config cmd disable guild
+        name: Disable all guild-commands
+        expect: Successfully.*disabled.*all guild commands
+      - command: config cmd enable guild
+        name: Re-enable all guild-commands
+        expect: Successfully.*enabled.*all guild commands
+      - command: config cmd raid disable all
+        name: Disable the !raid-command
+        expect: to.*disabled
+      - command: raid
+        name: Calling the disabled command gives error
+        expect: Unknown command
+      - command: config cmd raid enable all
+        name: Re-enable the !raid-command
+        expect: Updated status.*to.*enabled
+      - command: config subcmd raid join/leave disable guild
+        name: Disable the "!raid join/leave" sub-command for guild
+        expect: Updated status of subcommand.*raid join/leave.*to.*disabled.*in permission set.*guild
+      - command: config subcmd raid join/leave enable guild
+        name: Re-enable the "!raid join/leave" sub-command for guild
+        expect: Updated status of subcommand.*raid join/leave.*to.*enabled.*in permission set.*guild
+
+      - command: config event joinpriv privatechannelcontroller.joinPrivateChannelRecordEvent enable all
+        name: Enable a specific event
+        expect: Updated status.*enabled
+
+      - command: config cmd raid
+        name: Manage access levels of a command and its sub-commands
+        expect:
+          - Available Subcommands in msg
+          - Set access level
+      - command: config cmd raid admin msg member
+        name: Change access level of "!raid"-command for channel"msg" to member
+        expect: Updated access.*raid.*permission set.*msg.*Member
+      - command: config cmd raid admin all member
+        name: Change access level of "!raid"-command for all channels to member
+        expect: Updated access.*raid.*to.*Member
+      - command: config cmd raid admin msg all
+        name: Change access level of "!raid"-command for channel "msg" to all
+        expect: Updated access.*raid.*permission set.*msg.*All
+      - command: config cmd raid admin all all
+        name: Change access level of "!raid"-command for all channels to all
+        expect: Updated access.*raid.*to.*All
+
+      - command: config subcmd news add/change/delete admin msg mod
+        name: Change the access level for the sub-command "!news add/change/delete" via channel msg to Moderators
+        expect: Updated access of subcommand.*news add/change/delete.*in permission set.*msg.*to.*Moderator
+      - command: config subcmd news add/change/delete admin all mod
+        name: Change the access level for the sub-command "!news add/change/delete" to Moderators
+        expect: Updated access of subcommand.*news add/change/delete.*to.*Moderator
+
+  - name: Settings
+    tests:
+      - command: settings
+        name: List all settings
+        expect:
+          - Bot Settings
+          - ALTS
+          - BAN
+      - command: settings change alts_require_confirmation
+        name: See possible values for a setting
+        expect: Predefined Options
+      - command: settings save alts_require_confirmation 1
+        name: Change a bool setting
+        expect: has been saved with new value
+      - command: config setting alts_require_confirmation
+        name: Check the access level required to change that setting
+        expect: The current access level to change the setting <highlight>alts_require_confirmation<end> is <highlight>Moderator<end>
+      - command: config setting alts_require_confirmation admin admin
+        name: Alter the access level required to change that setting
+        expect: Required access level to change setting <highlight>alts_require_confirmation<end> changed to <highlight>Administrator<end>
+      - command: config setting alts_require_confirmation
+        name: Check the changes apply
+        expect: The current access level to change the setting <highlight>alts_require_confirmation<end> is <highlight>Administrator<end>
+      - command: config setting alts_require_confirmation admin mod
+        name: Reset the access level required to change that setting
+        expect: Required access level to change setting <highlight>alts_require_confirmation<end> changed to <highlight>Moderator<end>
+
+  - name: Aliases
+    tests:
+      - command: alias list
+        name: List all aliases
+        expect: whompahs
+      - command: alias add xxx do secret stuff
+        name: Add an alias
+        expect: Alias.*added successfully
+      - command: alias add xxx do other secret stuff
+        name: Try to add an already existing alias
+        expect: name already exists
+      - command: alias rem xxx
+        name: Remove an alias
+        expect: removed successfully
+      - command: alias add "check access" checkaccess
+        name: We can also create aliases with spaces
+        expect: Alias.*added successfully
+      - command: alias rem check access
+        name: Remove that alias again
+        expect: removed successfully
+      - command: alias add 'check access' checkaccess
+        name: We can also create aliases with spaces using single quotes
+        expect: Alias.*added successfully
+      - command: alias rem check access
+        name: Remove that alias again
+        expect: removed successfully
+
+  - name: Eventlist
+    tests:
+      - command: eventlist to
+        name: Search existing word-part in eventlist
+        expect: raid\(stop\)
+      - command: eventlist tower
+        name: Search existing word in eventlist
+        expect: tower-attack-info
+      - command: eventlist rfwefwefji
+        name: Search for non-existing event type
+        expect: No events of type
+
+  - name: Command list
+    tests:
+      - command: cmdlist
+        name: List all known commands
+        expect: whatbuffsfroob
+      - command: cmdlist superadmin
+        name: List commands only available to Superadmins
+        expect: upgradeconfig
+      - command: cmdlist xyz
+        name: List commands available to non-existing access level
+        expect: Unknown access level
+
+  - name: Command search
+    tests:
+      - command: cmdsearch member
+        name: We can search for commands
+        expect:
+          - Command Search Results \(\d+\)
+          - members
+          - orgmembers
+      - command: members add Regolus
+        name: Add a dummy member to the bot
+        expect: has been added as a member
+      - command: runas regolus cmdsearch admin
+        name: Only commands that the searcher has access to will be shown
+        expect: <header2>adminlist<end>
+        unexpected: <header2>admin<end>
+      - command: members rem Regolus
+        name: Remove the dummy member from the bot
+        expect: has been removed as a member
+      - command: cmdsearch ayzkefhwek
+        name: Searching for a non-existing command shows no results
+        expect: No results found
+
+  - name: Permission sets
+    tests:
+      - command: permset
+        name: List all permission sets
+        expect:
+          - Permission sets \(\d+\)
+          - <header2>msg<end>
+          - <header2>priv<end>
+          - <header2>guild<end>
+      - command: permset new test x
+        name: Create a new permission sets
+        expect: Permission set.*test.*successfully created
+      - command: permset
+        name: See that it shows up
+        expect:
+          - Permission sets \(\d+\)
+          - <header2>msg<end>
+          - <header2>priv<end>
+          - <header2>guild<end>
+          - <header2>test<end>
+          - permset rem test
+      - command: permset rename test joan
+        name: Rename the new permission set
+        expect: Permission set.*test.*successfully renamed
+      - command: permset letter joan j
+        name: Change the permission set's letter
+        expect: Changed the letter of Permission set.*joan.*from.*X.*to.*J
+      - command: permset
+        name: See the changes are there
+        expect:
+          - Permission sets \(\d+\)
+          - '<header2>joan<end>\s*<tab>\s*Letter:\s*<highlight>J<end>'
+          - permset rem joan
+      - command: config cmd settings
+        name: Check that the permission set appears in the access levels
+        expect: <header2>Joan<end> <on>Enabled<end>
+      - command: permset rem test
+        name: Remove the new permission set by its old name and get an error
+        expect: permission set.*does not exist
+      - command: permset rem joan
+        name: Remove the new permission set
+        expect: Permission set.*joan.*successfully deleted
+
+      - command: config cmd arbiter disable guild
+        name: Disable a command in the guild permission set
+        expect: Updated status of command.*arbiter.*to.*disabled.*in permission set.*guild
+      - command: permset clone guild into terra x
+        name: Create a new permission set based on the guild permission set
+        expect: Permission set.*terra.*successfully created
+      - command: config cmd arbiter
+        name: See that our cloned permission set has this command disabled as well
+        expect:
+          - <header2>Guild<end> <off>Disabled<end>
+          - <header2>Terra<end> <off>Disabled<end>
+      - command: permset rem terra
+        name: Remove the new permission set
+        expect: Permission set.*terra.*successfully deleted
+
+  - name: Permission set mappings
+    tests:
+      - command: cmdmap
+        name: We start with 7 permission set mappings
+        expect: Permission set mappings \(\d+\)
+      - command: cmdmap list src
+        name: Show the registered command sources
+        expect:
+          - Registered cmd sources \(\d+\)
+          - aoorg
+          - aopriv
+          - api
+      - command: cmdmap rem api
+        name: Disable executing commands from the api
+        expect: Commands from.*api.*will no longer be accepted
+      - command: cmdmap create api msg
+        name: Create a new mapping for api
+        expect:
+          - Mapping from api to msg created
+          - 'Symbol optional: <highlight>no<end>'
+      - command: cmdmap permset pick api
+        name: Get a list of permission sets to pick from
+        expect:
+          - Choose a permission set for api
+          - '>msg<'
+          - '>priv<'
+          - '>guild<'
+      - command: cmdmap prefixopt set api yes
+        name: Make the symbol optional
+        expect: Setting changed
+      - command: cmdmap feedback set api no
+        name: Don't give errors on unknown commands
+        expect: Setting changed
+      - command: cmdmap prefix pick api
+        name: Get a list of prefixes to pick from
+        expect:
+          - <highlight>#<end>
+          - <highlight>!<end>
+          - <highlight>\*<end>
+          - <highlight>\+<end>
+      - command: 'cmdmap prefix set api #'
+        name: Change the prefix
+        expect: Setting changed
+      - command: cmdmap
+        name: Check the applied setting
+        expect: <header2>api<end>.*Permission set.*msg.*Symbol.*#.*Symbol optional.*yes.*Feedback.*no
+      - command: cmdmap permset set api guild
+        name: Set a different permission set to be used
+        expect: Setting changed
+      - command: cmdmap
+        name: Check the applied setting
+        expect: <header2>api<end>.*Permission set.*guild.*Symbol.*#.*Symbol optional.*yes.*Feedback.*no
+      - command: cmdmap permset set api msg
+        name: Set the correct permission set to be used
+        expect: Setting changed
+      - command: cmdmap
+        name: Check the settings are all good now
+        expect: <header2>api<end>.*Permission set.*msg.*Symbol.*#.*Symbol optional.*yes.*Feedback.*no

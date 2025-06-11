@@ -225,6 +225,7 @@ class DevController extends ModuleInstance {
 
 	/** Rollback the currently open database transaction (if any) */
 	#[NCA\HandlesCommand('rollbacktransaction')]
+	#[NCA\Untestable]
 	public function rollbackTransactionCommand(CmdContext $context): void {
 		$this->db->rollback();
 

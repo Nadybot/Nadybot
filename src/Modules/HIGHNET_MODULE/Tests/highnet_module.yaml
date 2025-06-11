@@ -1,0 +1,59 @@
+---
+name: Highnet Module
+groups:
+
+  - name: Commands
+    tests:
+      - command: highnet
+        name: Get an overview of the current Highnet-connection
+        expect: Not connected to a any feed at all
+      - command: highnet init
+        name: Initialize the settings
+        expect: Routing for Highnet initialized
+      - command: highnet filter
+        name: List the current filters
+        expect: No Highnet filters are currently active
+
+      - command: highnet filter permanent bot Nadybot 5
+        name: Permanently block that annoying Nadybot bot on RK5
+        expect: Filter Bot=Nadybot \(UID \d+\) AND Dimension=Rubi-Ka \(5\) added
+      - command: highnet filter 1d sender Nadybot 6
+        name: Temporarily block that bot from RK19
+        expect: Filter Character=Nadybot AND Dimension=RK19 \(6\) added
+      - command: highnet filter
+        name: List the new filters
+        expect:
+          - Currently active filters
+          - highnet filter del (?<filter1_id>[0-9a-f-]{36}).* highnet filter del (?<filter2_id>[0-9a-f-]{36})
+      - command: highnet filter rem {filter1_id}
+        name: Delete the first filter
+        expect: Filter .* successfully deleted
+      - command: highnet filter rem {filter2_id}
+        name: Delete the second filter
+        expect: Filter .* successfully deleted
+
+      - command: highnet filter permanent channel pvp
+        name: Permanently block that annoying PvP-channel
+        expect: The channel pvp does not exist
+      - command: highnet filter 1h channel pvm
+        name: Permanently block that annoying PvM-channel
+        expect: The channel pvm does not exist
+
+      - command: highnet filter 1d dimension 6
+        name: Let's block RK19 for 1 day
+        expect: Filter Dimension=RK19 \(6\) added.
+      - command: highnet filter permanent dimension 6
+        name: No, a PERMANENT block is needed
+        expect: Filter Dimension=RK19 \(6\) added.
+
+      - command: highnet filter
+        name: List the new filters
+        expect:
+          - Currently active filters
+          - highnet filter del (?<filter1_id>[0-9a-f-]{36}).* highnet filter del (?<filter2_id>[0-9a-f-]{36})
+      - command: highnet filter rem {filter1_id}
+        name: Delete the first filter
+        expect: Filter .* successfully deleted
+      - command: highnet filter rem {filter2_id}
+        name: Delete the second filter
+        expect: Filter .* successfully deleted

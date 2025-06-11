@@ -1,0 +1,130 @@
+---
+name: Timers Module
+groups:
+
+  - name: Timers
+    tests:
+      - command: executesql DELETE FROM timers_<myname>
+        name: Delete all timers
+        expect: Query run successfully
+      - command: test event timercontroller.setup
+        name: Reload all timers
+        expect: Event has been fired
+      - command: timers
+        name: Look at our empty timers table
+        expect: No timers currently running
+      - command: timers rem error
+        name: We cannot delete timers by their name
+        expect: Help \(timers\)
+      - command: timers add 2
+        name: Add a 2s timer
+        expect: has been set for
+      - command: timers
+        name: We should now see the timer
+        expect:
+          - Timers \(\d+\)
+          - <superadmin>
+          - (?<timer_id>[0-9a-f-]{36})
+      - command: timers view <superadmin>
+        name: We can also get timer details by using the timer's name
+        expect: Timer <highlight><superadmin><end> has .* left
+      - command: test sleep 5
+        name: Wait for 5s
+        expect: ^$
+      - command: timers
+        name: We should no longer see the timer
+        expect: '.'
+        unexpected: '{timer_id}'
+
+      - command: timers add 10 astonishing
+        name: Add a 10s timer with a name
+        expect: has been set for
+      - command: timers
+        name: We should now see the timer
+        expect:
+          - Timers \(\d+\)
+          - <superadmin>
+          - astonishing
+          - (?<timer2_id>[0-9a-f-]{36})
+      - command: timers rem {timer2_id}
+        name: We can remove the timer by its ID
+        expect: Removed timer.*astonishing
+      - command: timers rem {timer2_id}
+        name: But not a second time
+        expect: Could not find timer
+
+  - name: Repeating timers
+    tests:
+      - command: rtimer add 2
+        name: Repeating timers need 2 times
+        expect: Help \(rtimer\)
+      - command: rtimer add 1s 1s yummy
+        name: Setup a repeating timer that repeats every second
+        expect: Repeating timer.*will go off in 1 sec and repeat every 1 sec
+      - command: timers
+        name: We should see the timer in our list
+        expect:
+          - Timers \(\d+\)
+          - <superadmin>
+          - yummy
+          - Repeats every 1 sec
+          - (?<timer_id>[0-9a-f-]{36})
+      - command: test sleep 3
+        name: Wait for 3s
+        expect: ^$
+      - command: timers
+        name: We should still see the timer in our list
+        expect: '{timer_id}'
+      - command: timers rem {timer_id}
+        name: We can remove a repeating timer by its ID as well
+        expect: Removed timer.*yummy
+
+  - name: Stopwatch
+    tests:
+      - command: stopwatch stop
+        name: Stop the non-running stopwatch
+        expect: You don't have a stopwatch running
+      - command: stopwatch start
+        name: Start a stopwatch
+        expect: Stopwatch started
+      - command: stopwatch start
+        name: Try starting it again
+        expect: You already have a stopwatch running
+      - command: test sleep 2
+        name: Wait for 2s
+        expect: ^$
+      - command: stopwatch lap
+        name: Measure a lap
+        expect: Lap added
+      - command: test sleep 2
+        name: Wait for 2s
+        expect: ^$
+      - command: stopwatch lap yummy
+        name: Add a lap with name
+        expect: Lap.*added
+      - command: stopwatch show
+        name: Look at the stopwatch
+        expect:
+          - Your stopwatch times
+          - Start
+          - Lap
+          - yummy
+      - command: test sleep 2
+        name: Wait for 2s
+        expect: ^$
+      - command: stopwatch stop
+        name: Stop the stopwatch
+        expect:
+          - Your stopwatch times
+          - Start
+          - Lap
+          - yummy
+
+  - name: Countdown
+    tests:
+      - command: countdown
+        name: Start a countdown
+        expect: ^$
+      - command: countdown MESSAGE!
+        name: Test rate limit
+        expect: You can only start a countdown once every

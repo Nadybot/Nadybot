@@ -1,0 +1,37 @@
+---
+name: Whereis Module
+groups:
+
+  - name: Basic commands
+    tests:
+      - command: whereis ofoz
+        name: Search for Ofoz
+        expect:
+          - Matches for "ofoz" \(\d+\)
+          - Newland city
+      - command: whereis com
+        name: Search for 'com'
+        expect:
+          - Matches for "com" \(\d+\)
+          - Commander
+          - Comatosed
+          - Commando
+      - command: whereis 12m
+        name: Get the entrance to 12-man
+        expect: LOXHUB
+      - command: whereis error123
+        name: Searching non-existing locations gives an error
+        expect: no matches for your search
+
+  - name: Spawntime
+    tests:
+      - command: spawntime
+        name: Get a list of spawn times
+        expect: Trash King
+      - command: spawntime trash
+        name: We can search for names in that list
+        expect:
+          - <header2>Trash King<end>
+          - <header2>Trash King Lackey<end>
+          - 1600x940 AS
+

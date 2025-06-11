@@ -1,0 +1,50 @@
+---
+name: Quotes Module
+groups:
+
+  - name: quote-Command
+    tests:
+      - command: executesql DELETE FROM quote
+        name: Clear the quote table
+        expect: Query run successfully
+      - command: quote
+        name: No quotes should be in sight
+        expect: no quotes
+      - command: quote rem 0
+        name: We cannot delete quote by numbers
+        expect: not a valid UUID
+      - command: quote 0
+        name: We cannot show quotes by numbers
+        expect: not a valid UUID
+      - command: quote add TESTING!
+        name: We can add a new quote
+        expect: Quote.*(?<quote>[0-9a-f-]{36}).*has been added
+      - command: quote org {quote}
+        condition: orgbot
+        name: We can send the quote to the org chat
+        capture: aoorg
+        expect-captured: TESTING
+      - command: quote priv {quote}
+        name: We can send the quote to the private channel
+        capture: aopriv
+        expect-captured: TESTING
+      - command: quote {quote}
+        name: We can get details about the quote
+        expect:
+          - TESTING!
+          - <superadmin>
+      - command: quote search error
+        name: We can search for quotes that don't exist
+        expect: Could not find
+      - command: quote search test
+        name: And we can search for quotes that match
+        expect: Results for
+      - command: quote
+        name: Now we can get a random quote
+        expect: TESTING
+      - command: quote rem {quote}
+        name: We can also delete that quote
+        expect: has been deleted
+      - command: quote
+        name: No quotes should be left
+        expect: no quotes

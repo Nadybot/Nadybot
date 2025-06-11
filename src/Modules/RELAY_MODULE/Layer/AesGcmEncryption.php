@@ -94,8 +94,11 @@ class AesGcmEncryption implements RelayLayerInterface {
 			$tag = substr($enc, -16);
 			$encrypted = sodium_bin2base64($iv . $tag . $ciphertextRaw, \SODIUM_BASE64_VARIANT_ORIGINAL);
 		} else {
-			$tag='';
+			$tag = '';
 			$ciphertextRaw = openssl_encrypt($text, static::CIPHER, $this->password, \OPENSSL_RAW_DATA, $iv, $tag);
+			if (!isset($tag)) {
+				$tag = '';
+			}
 			$encrypted = base64_encode($iv . $tag . $ciphertextRaw);
 		}
 		$this->logger->debug('Successfully encoded message for relay {relay} with AES-GCM', [

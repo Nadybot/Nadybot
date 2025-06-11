@@ -39,6 +39,7 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'news',
 		accessLevel: AccessLevel::Member,
@@ -206,8 +207,12 @@ class NewsController extends ModuleInstance {
 	public function hasRecentNews(string $player): bool {
 		$thirtyDays = time() - (86_400 * 30);
 		$news = $this->getNewsItems($player);
-		return $news->where('confirmed', false)
-			->contains('time', '>', $thirtyDays);
+
+		/**
+		 * @psalm-suppress InvalidArgument
+		 * @psalm-suppress UnusedPsalmSuppress
+		 */
+		return $news->where('confirmed', false)->contains('time', '>', $thirtyDays);
 	}
 
 	/** Show the latest news entries */

@@ -20,6 +20,7 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'whereis',
 		accessLevel: AccessLevel::Guest,

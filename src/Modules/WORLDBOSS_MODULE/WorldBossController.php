@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use function Amp\delay;
-use function Safe\json_decode;
+use function Safe\{array_flip, json_decode};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DateTimeZone;
 use Nadybot\Core\{
@@ -40,6 +40,7 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'wb',
 		accessLevel: AccessLevel::Guest,

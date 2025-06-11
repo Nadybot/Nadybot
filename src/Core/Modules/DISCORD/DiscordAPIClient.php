@@ -448,15 +448,12 @@ class DiscordAPIClient extends ModuleInstance {
 				throw new DiscordException(
 					'Error received while sending message to Discord. '.
 					'Status-Code: ' . $response->getStatus().
-					", Content: {$body}, URL: ".$request->getUri(),
+					", Content: {$body}, URL: " . (string)$request->getUri(),
 					$response->getStatus()
 				);
 			}
 		} while ($retry && $retries > 0);
 
-		/**
-		 * @psalm-suppress TypeDoesNotContainNull
-		 */
 		if (!isset($response) || !isset($body)) {
 			throw new DiscordException("Unable to send message with {$maxTries} tries");
 		}

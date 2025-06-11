@@ -1,6 +1,0 @@
-#gsp_module
-/text Start GSP_MODULE
-
-!gsp
-
-/text End GSP_MODULE

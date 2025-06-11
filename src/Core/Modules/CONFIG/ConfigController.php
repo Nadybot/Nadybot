@@ -41,6 +41,7 @@ use ReflectionClass;
 use ValueError;
 
 #[
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'config',
 		accessLevel: AccessLevel::Mod,
@@ -168,7 +169,7 @@ class ConfigController extends ModuleInstance {
 		}
 
 		$data = $query->asObj(CmdCfg::class);
-		$permissions = $permQuery->whereIn('cmd', $data->pluck('cmd')->toArray())
+		$permissions = $permQuery->whereIn('cmd', $data->pluckStrings('cmd')->toList())
 			->asObj(CmdPermission::class)
 			->groupBy('cmd');
 		$updated = [];
@@ -587,7 +588,7 @@ class ConfigController extends ModuleInstance {
 	public function getAliasInfo(string $cmd): string {
 		$aliases = $this->commandAlias->findAliasesByCommand($cmd)
 			->where('status', 1)
-			->pluck('alias');
+			->pluckStrings('alias');
 		if ($aliases->isEmpty()) {
 			return '';
 		}
@@ -1023,7 +1024,7 @@ class ConfigController extends ModuleInstance {
 			->asObj(CmdCfg::class);
 		$permissions = $this->db->table(CmdPermission::getTable())
 			->where('permission_set', $permSet)
-			->whereIn('cmd', $commands->pluck('cmd')->toArray())
+			->whereIn('cmd', $commands->pluckStrings('cmd')->toList())
 			->asObj(CmdPermission::class)
 			->groupBy('cmd');
 		$commands->each(static function (CmdCfg $row) use ($permissions): void {

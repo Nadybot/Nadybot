@@ -171,6 +171,11 @@ class BuddylistManager {
 		return $this->buddyList[$uid];
 	}
 
+	/** Get information for a UID stored about a friend */
+	public function getBuddyForUID(int $uid): ?BuddylistEntry {
+		return $this->buddyList[$uid] ?? null;
+	}
+
 	/**
 	 * Get the names of all people in the friendlist who are online
 	 *

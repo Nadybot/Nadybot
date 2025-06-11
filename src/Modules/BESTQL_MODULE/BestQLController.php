@@ -18,6 +18,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'bestql',
 		accessLevel: AccessLevel::Guest,

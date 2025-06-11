@@ -1,0 +1,44 @@
+---
+name: BestQL Module
+groups:
+
+  - name: BestQL examples
+    tests:
+      - command: bestql 1
+        name: 1 instead of 4 arguments
+        expect: at least 2 bonuses at 2 different QLs
+      - command: bestql 1 2
+        name: 2 instead of 4 arguments
+        expect: at least 2 bonuses at 2 different QLs
+      - command: bestql 1 2 3
+        name: 3 instead of 4 arguments
+        expect: at least 2 bonuses at 2 different QLs
+      - command: bestql 1 2 3 4
+        name: Basic breakpoint calculation
+        expect: Calculated breakpoints for your item
+      - command: bestql 1 2 3 4 5
+        name: Basic highest equippable QL calculation
+        expect: highest QL is <highlight>3<end>
+      - command: bestql afwef
+        name: Invalid syntax 1
+        expect: Help \(bestql\)
+      - command: bestql aw dwef
+        name: Invalid syntax 2
+        expect: Help \(bestql\)
+      - command: bestql 1 1 300 10
+        name: Breakpoint calculation for real stats
+        expect: QL <highlight>284<end> has stat <highlight>10<end>
+      - command: bestql 1 1 300 10 70
+        name: Highest equippable QL
+        expect: highest QL is <highlight>300<end>
+      - command: bestql 1 10 300 20 5
+        name: Stats too low for requirements
+        expect: stats are too low
+      - command: bestql 1 5 300 765 600 <a href='itemref://270339/270338/77'>Miy's Melee Armor Cloak</a>
+        name: Highest equippable QL of Miy's Melee Armor Cloak
+        expect: The highest QL is <highlight>235<end>
+      - command: bestql 1 1 300 10 <a href='itemref://270339/270338/77'>Miy's Melee Armor Cloak</a>
+        name: Breakpoints for Miy's Melee Armor Cloak
+        expect:
+          - Miy's Melee Armor Cloak
+          - <highlight>51<end> has stat <highlight>3<end>

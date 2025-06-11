@@ -87,6 +87,9 @@ class ConsoleController extends ModuleInstance {
 		if (!$this->config->general->enableConsoleClient || BotRunner::isWindows()) {
 			return;
 		}
+		if (BotRunner::getArguments()->testRun) {
+			return;
+		}
 		$this->commandManager->registerSource('console');
 		$handler = new ConsoleCommandReply($this->chatBot);
 		Registry::injectDependencies($handler);
@@ -150,6 +153,10 @@ class ConsoleController extends ModuleInstance {
 	#[NCA\HandlesEvent(defaultStatus: Status::Enabled)]
 	public function setupConsole(ConnectEvent $event): void {
 		if (!$this->config->general->enableConsoleClient) {
+			return;
+		}
+		if (BotRunner::getArguments()->testRun) {
+			$this->logger->warning('Console disabled during testing');
 			return;
 		}
 		if (BotRunner::isWindows()) {

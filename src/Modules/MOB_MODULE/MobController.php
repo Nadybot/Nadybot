@@ -28,6 +28,7 @@ use Safe\Exceptions\JsonException;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\EmitsMessages('mobs', '*'),
 	NCA\DefineCommand(
 		command: 'prisoners',

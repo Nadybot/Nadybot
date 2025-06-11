@@ -1,0 +1,134 @@
+---
+name: Comment Module
+groups:
+
+  - name: Reputation
+    tests:
+      - command: executesql DELETE FROM comments_<myname>
+        name: Initialize comments
+        expect: Query run successfully
+      - command: settings save comment_cooldown 1h
+        name: Initialize comment cooldown
+        expect: has been saved
+      - command: reputation
+        expect: no characters on the reputation list
+      - command: reputation Nadyitaerror +1 Nice guy overall, cannot recommend enough
+        expect: No player named
+      - command: reputation Nadyitaerror -1 Nice guy overall, cannot recommend enough
+        expect: No player named
+      - command: reputation -1 +1 Nice guy overall, cannot recommend enough
+        expect: Help \(reputation\)
+      - command: reputation 0 +1 Nice guy overall, cannot recommend enough
+        expect: Help \(reputation\)
+      - command: reputation 1 +1 Nice guy overall, cannot recommend enough
+        expect: Help \(reputation\)
+      - command: reputation Nadyita +1 Nice guy overall, cannot recommend enough
+        expect: Comment about <highlight>Nadyita<end> successfully saved
+      - command: reputation Nadyita -1 This guy sucks, don't go near him
+        name: Test rate limit
+        expect: You have to wait
+      - command: reputation 1
+        expect: Help \(reputation\)
+      - command: reputation 1 all
+        expect: Help \(reputation\)
+      - command: reputation 0
+        expect: Help \(reputation\)
+      - command: reputation 0 all
+        expect: Help \(reputation\)
+      - command: reputation Nadyita
+        expect:
+          - Positive reputation
+          - Negative reputation
+      - command: reputation Nadyita all
+        expect:
+          - Positive reputation
+          - Negative reputation
+      - command: reputation
+        expect: <header2>Nadyita<end>
+
+  - name: Comments
+    tests:
+      - command: executesql DELETE FROM comments_<myname>
+        name: Initialize categories
+        expect: Query run successfully
+      - command: settings save comment_cooldown 1h
+        name: Initialize comment cooldown
+        expect: has been saved
+      - command: comment categories
+        name: List categories
+        expect: <header2>reputation<end>
+      - command: comment categories add test member
+        name: Create new test-category
+        expect: successfully created
+      - command: comment list test
+        name: List new test-category
+        expect: No comments found in category
+      - command: comment categories rem test
+        name: Delete new test-category
+        expect: Successfully deleted
+
+      - command: comment categories add test member member
+        name: Create new test-category with explicit rights
+        expect: successfully created
+      - command: comment add Nadyita test Stupid comment
+        name: Add comment
+        expect: successfully saved
+      - command: comment add Nadyita test Xxx Yyy
+        name: Test rate limit
+        expect: have to wait
+      - command: settings save comment_cooldown off
+        name: Turn off comment cooldown
+        expect: saved with new value
+      - command: comment add Nadyita test Another whopper
+        name: Test adding comment
+        expect: successfully saved
+      - command: comment get Nadyita
+        name: Check if all comments are listed
+        expect:
+          - Comments about Nadyita \(2\)
+          - Stupid comment
+          - Another whopper
+      - command: comment get Nadyita test
+        name: Check added comments are in the right categories
+        expect:
+          - Comments about Nadyita in category test \(2\)
+          - Stupid comment
+          - Another whopper
+      - command: settings save share_comments 1
+        name: Turn on shared comments
+        expect: has been saved
+      - command: comment get Nadyita
+        name: Check if all comments were moved
+        expect:
+          - Comments about Nadyita \(2\)
+          - Another whopper
+          - Stupid comment
+      - command: settings save share_comments 0
+        name: Turn off shared comments
+        expect: has been saved
+      - command: comment get Nadyita
+        name: Check if all comments were moved
+        expect:
+          - Comments about Nadyita \(2\)
+          - Another whopper
+          - Stupid comment
+          - comment del (?<comment1_id>[0-9a-f-]{36}).* comment del (?<comment2_id>[0-9a-f-]{36}).*
+      - command: comment rem {comment1_id}
+        name: Delete the first comment
+        expect: Comment deleted
+      - command: comment rem {comment2_id}
+        name: Delete the second comment
+        expect: Comment deleted
+      - command: comment rem {comment2_id}
+        name: Delete already deleted comment
+        expect: The comment .* does not exist
+      - command: comment categories rem test
+        name: Delete the test category
+        expect: deleted the comment category
+
+      - command: executesql DROP TABLE comments
+        name: Cleanup comments
+        expect: Query run successfully
+      - command: executesql DROP TABLE comment_categories
+        name: Cleanup comment categories
+        expect: Query run successfully

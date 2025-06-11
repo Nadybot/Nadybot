@@ -14,6 +14,8 @@ use Nadybot\Core\{
 	Types\ImporterInterface,
 };
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
+use Safe\DateTimeImmutable;
 use Throwable;
 
 /**
@@ -87,6 +89,7 @@ class TrackedCharactersExporter extends ModuleInstance implements ExporterInterf
 				));
 				foreach ($trackedUser->events??[] as $event) {
 					$db->insert(new Tracking(
+						id: Uuid::uuid7((new DateTimeImmutable())->setTimestamp($event->time)),
 						uid: $id,
 						dt: $event->time,
 						event: $event->event,

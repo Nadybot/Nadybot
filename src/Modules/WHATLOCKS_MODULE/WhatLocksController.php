@@ -24,6 +24,7 @@ use Safe\DateTimeImmutable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'whatlocks',
 		accessLevel: AccessLevel::Guest,
@@ -118,7 +119,7 @@ class WhatLocksController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$itemIds = $items->pluck('item_id')->filter()->toArray();
+		$itemIds = $items->whereNotNull('item_id')->pluckInts('item_id')->toList();
 		$itemsById = $this->itemsController->getByIDs(...$itemIds)
 			->keyBy('lowid');
 		$items->each(static function (WhatLocks $item) use ($itemsById): void {

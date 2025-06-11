@@ -25,6 +25,7 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'quote',
 		accessLevel: AccessLevel::Guest,
@@ -177,9 +178,9 @@ class QuoteController extends ModuleInstance {
 			return;
 		}
 		if ($channel === 'priv') {
-			$this->chatBot->sendPrivate($msg, true);
+			$this->chatBot->sendPrivate($msg);
 		} else {
-			$this->chatBot->sendGuild($msg, true);
+			$this->chatBot->sendGuild($msg);
 		}
 	}
 

@@ -75,10 +75,8 @@ class Safe {
 	 *
 	 * @psalm-suppress InvalidReturnStatement
 	 * @psalm-suppress InvalidReturnType
-	 * @psalm-suppress ReferenceConstraintViolation
 	 */
 	public static function pregReplace(string $pattern, string $replacement, string $subject, int $limit=-1, ?int &$count=null): string {
-		/** @phpstan-ignore-next-line */
 		return preg_replace($pattern, $replacement, $subject, $limit, $count);
 	}
 
@@ -132,7 +130,7 @@ class Safe {
 	public static function pregMatchAll(string $pattern, string $subject, int $flags=0, int $offset=0): array {
 		$matches = [];
 		$result = preg_match_all($pattern, $subject, $matches, $flags, $offset);
-		if ($result === 0 || $result === null || !is_array($matches)) {
+		if ($result === 0 || !is_array($matches)) {
 			return [];
 		}
 		return $matches;
@@ -157,7 +155,7 @@ class Safe {
 	public static function pregMatchOffsetAll(string $pattern, string $subject, int $flags=0, int $offset=0): array {
 		$matches = [];
 		$result = preg_match_all($pattern, $subject, $matches, $flags | \PREG_OFFSET_CAPTURE, $offset);
-		if ($result === 0 || $result === null || !is_array($matches)) {
+		if ($result === 0 || !is_array($matches)) {
 			return [];
 		}
 		return $matches;
@@ -178,7 +176,7 @@ class Safe {
 	public static function pregMatchOrderedAll(string $pattern, string $subject, int $flags=0, int $offset=0): array {
 		$matches = [];
 		$result = preg_match_all($pattern, $subject, $matches, $flags | \PREG_SET_ORDER, $offset);
-		if ($result === 0 || $result === null || !is_array($matches)) {
+		if ($result === 0 || !is_array($matches)) {
 			return [];
 		}
 
@@ -247,6 +245,8 @@ class Safe {
 	 *
 	 * @psalm-suppress ReferenceConstraintViolation
 	 * @psalm-suppress ArgumentTypeCoercion
+	 * @psalm-suppress MoreSpecificReturnType
+	 * @psalm-suppress LessSpecificReturnStatement
 	 */
 	public static function pregReplaceCallback(
 		array|string $pattern,
@@ -257,6 +257,8 @@ class Safe {
 		int $flags=0
 	): array|string {
 		error_clear_last();
+
+		/** @phpstan-ignore theCodingMachineSafe.function */
 		$result = preg_replace_callback($pattern, $callback, $subject, $limit, $count, $flags);
 		if (!isset($result)) {
 			throw PcreException::createFromPhpError();

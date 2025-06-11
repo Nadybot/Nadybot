@@ -34,6 +34,7 @@ use Nadybot\Modules\{
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'loot',
 		accessLevel: AccessLevel::Guest,
@@ -444,7 +445,7 @@ class LootController extends ModuleInstance {
 		}
 		// We want this command to always use the same rights as the bid start
 		$context->message = "bid start {$loot->multiloot}x {$item}";
-		$this->commandManager->processCmd($context);
+		$this->commandManager->syncProcessCmd($context);
 	}
 
 	/** Raffle an item from a loot list */
@@ -469,7 +470,7 @@ class LootController extends ModuleInstance {
 		}
 		// We want this command to always use the same rights as the bid start
 		$context->message = "raffle add {$loot->multiloot}x {$item}";
-		$this->commandManager->processCmd($context);
+		$this->commandManager->syncProcessCmd($context);
 	}
 
 	/** Add an item to the loot roll by name or by pasting it */
@@ -929,7 +930,7 @@ class LootController extends ModuleInstance {
 			return false;
 		}
 
-		$itemsByBame =$this->itemsController->getByNames(...$data->pluck('name')->toArray())
+		$itemsByBame =$this->itemsController->getByNames(...$data->pluckStrings('name')->toArray())
 			->groupBy('name');
 		$data->each(static function (RaidLoot $loot) use ($itemsByBame): void {
 			$loot->item = $itemsByBame->get($loot->name)

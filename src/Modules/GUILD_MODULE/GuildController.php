@@ -54,6 +54,7 @@ use Throwable;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\HasMigrations('Migrations/Base'),
 	NCA\DefineCommand(
 		command: 'logon',
@@ -467,6 +468,7 @@ class GuildController extends ModuleInstance {
 
 	/** Force an update of the org roster */
 	#[NCA\HandlesCommand('updateorg')]
+	#[NCA\Untestable]
 	public function updateorgCommand(CmdContext $context): void {
 		$context->reply('Starting Roster update');
 		try {
@@ -584,46 +586,17 @@ class GuildController extends ModuleInstance {
 	public function autoNotifyOrgMembersEvent(OrgMsgChannelMsgEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (count($arr = Safe::pregMatch('/^(.+) invited (.+) to your organization.$/', $message))) {
-			$name = Utils::normalizeCharacter($arr[2]);
-
-			if (
-				$this->buddylistManager->isOnline($name) === true
-				&& $this->db->table(DBOnline::getTable())
-					->where('name', $name)
-					->where('channel_type', 'guild')
-					->where('added_by', $this->db->getBotname())
-					->doesntExist()
-			) {
-				$this->db->insert(new DBOnline(
-					name: $name,
-					channel: $this->db->getMyguild(),
-					channel_type: 'guild',
-					added_by: $this->db->getBotname(),
-					dt: time(),
-				));
-			}
-			$this->db->table(OrgMember::getTable())
-				->upsert(['mode' => 'add', 'name' => $name], 'name');
-			$this->buddylistManager->addName($name, 'org');
-			$this->myOrg->setMemberLevel($name, 6);
-
-			// update character info
-			$this->playerManager->byName($name);
-		} elseif (
+			$this->handleInvitation($arr[2]);
+			return;
+		}
+		if (
 			count($arr = Safe::pregMatch('/^(.+) kicked (?<char>.+) from your organization.$/', $message))
 			|| count($arr = Safe::pregMatch('/^(.+) removed inactive character (?<char>.+) from your organization.$/', $message))
 			|| count($arr = Safe::pregMatch('/^(?<char>.+) just left your organization.$/', $message))
 			|| count($arr = Safe::pregMatch('/^(?<char>.+) kicked from organization \\(alignment changed\\).$/', $message))
 		) {
-			$name = Utils::normalizeCharacter($arr['char']);
-
-			$this->db->table(OrgMember::getTable())
-				->where('name', $name)
-				->update(['mode' => 'del']);
-			$this->delMemberFromOnline($name);
-
-			$this->myOrg->delMember($name);
-			$this->buddylistManager->remove($name, 'org');
+			$this->handleOrgMemberRemoved($arr['char']);
+			return;
 		}
 	}
 
@@ -773,7 +746,7 @@ class GuildController extends ModuleInstance {
 		if ($this->config->general->orgName === '') {
 			return;
 		}
-		if (isset($this->config->orgId)) {
+		if (!isset($this->config->orgId)) {
 			$this->logger->warning("Org name '{org_name}' specified, but bot does not appear to belong to an org", [
 				'org_name' => $this->config->general->orgName,
 			]);
@@ -892,6 +865,48 @@ class GuildController extends ModuleInstance {
 			->delete();
 	}
 
+	/** Someone was kicked from/has left our org */
+	private function handleOrgMemberRemoved(string $name): void {
+		$name = Utils::normalizeCharacter($name);
+
+		$this->db->table(OrgMember::getTable())
+			->where('name', $name)
+			->update(['mode' => 'del']);
+		$this->delMemberFromOnline($name);
+
+		$this->myOrg->delMember($name);
+		$this->buddylistManager->remove($name, 'org');
+	}
+
+	/** Someone was invited to our org */
+	private function handleInvitation(string $name): void {
+		$name = Utils::normalizeCharacter($name);
+
+		if (
+			$this->buddylistManager->isOnline($name) === true
+			&& $this->db->table(DBOnline::getTable())
+				->where('name', $name)
+				->where('channel_type', 'guild')
+				->where('added_by', $this->db->getBotname())
+				->doesntExist()
+		) {
+			$this->db->insert(new DBOnline(
+				name: $name,
+				channel: $this->db->getMyguild(),
+				channel_type: 'guild',
+				added_by: $this->db->getBotname(),
+				dt: time(),
+			));
+		}
+		$this->db->table(OrgMember::getTable())
+			->upsert(['mode' => 'add', 'name' => $name], 'name');
+		$this->buddylistManager->addName($name, 'org');
+		$this->myOrg->setMemberLevel($name, 6);
+
+		// update character info
+		$this->playerManager->byName($name);
+	}
+
 	/**
 	 * Count the number of alts of 1 player that are in the private chat or
 	 * in this bot's org and online
@@ -936,7 +951,7 @@ class GuildController extends ModuleInstance {
 			->orderBy('name')
 			->asObj(OrgMember::class);
 		$players = $this->playerManager
-			->searchByNames($this->db->getDim(), ...$members->pluck('name')->toArray());
+			->searchByNames($this->db->getDim(), ...$members->pluckStrings('name')->toList());
 		$players->each(function (Player $player): void {
 			$this->myOrg->setMemberLevel($player->name, $player->guild_rank_id ?? 6);
 		});

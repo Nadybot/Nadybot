@@ -16,6 +16,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'beer',

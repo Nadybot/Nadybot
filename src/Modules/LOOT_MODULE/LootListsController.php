@@ -739,9 +739,9 @@ class LootListsController extends ModuleInstance {
 					->whereIlike('r.raid', $raid)
 					->whereIlike('r.category', $category)
 					->asObj(RaidLoot::class);
-		$aoids = $loot->whereNotNull('aoid')->pluck('aoid')->toArray();
+		$aoids = $loot->whereNotNull('aoid')->pluckInts('aoid')->toList();
 		$itemsByID = $this->itemsController->getByIDs(...$aoids)->keyBy('highid');
-		$names = $loot->whereNull('aoid')->pluck('name')->toArray();
+		$names = $loot->whereNull('aoid')->pluckStrings('name')->toList();
 		$itemsByName = $this->itemsController->getByNames(...$names)->keyBy('name');
 		foreach ($loot as $item) {
 			if (isset($item->aoid)) {

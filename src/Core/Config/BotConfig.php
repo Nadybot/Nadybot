@@ -2,13 +2,13 @@
 
 namespace Nadybot\Core\Config;
 
-use function Safe\json_decode;
-
+use function Safe\{json_decode, json_encode};
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
-use EventSauce\ObjectHydrator\{MapFrom, MapperSettings};
+use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, UnableToHydrateObject};
 use Nadybot\Core\Attributes\{Instance, JSON\Ignore};
-use Nadybot\Core\{Filesystem, Hydrator};
+use Nadybot\Core\{BotRunner, Filesystem, Hydrator, Safe};
 use Nadylib\IMEX;
+use Nadylib\IMEX\ImportException;
 
 /**
  * The BotConfig class provides convenient interface for reading and saving
@@ -52,7 +52,24 @@ class BotConfig {
 		$vars = [];
 		if (str_ends_with($filePath, '.toml')) {
 			$toml = $fs->read($filePath);
-			$vars = IMEX\TOML::import($toml);
+			try {
+				$vars = IMEX\TOML::import($toml);
+			} catch (ImportException $e) {
+				$errorMessages = [$e->getMessage()];
+				while (($e = $e->getPrevious()) !== null) {
+					$errorMessages []= $e->getMessage();
+				}
+				$cleanToml = Safe::pregReplace('/password\s*=\s*[\'"].*/m', 'password = "***REDACTED***"', $toml);
+				// @phpstan-ignore-next-line
+				fwrite(
+					\STDERR,
+					"Your configuration file {$filePath} is invalid TOML:\n\n".
+					implode("\n", $errorMessages) . "\n\n".
+					$cleanToml.
+					"\n\n"
+				);
+				exit(1);
+			}
 		} elseif (str_ends_with($filePath, '.json')) {
 			$json = $fs->read($filePath);
 			$vars = json_decode($json, true);
@@ -68,8 +85,27 @@ class BotConfig {
 			$vars['worker'][$i]['password']  ??= $vars['main']['password'] ?? null;
 		}
 
-		$config = Hydrator::hydrate(self::class, $vars);
-		$config->autoUnfreeze ??= new AutoUnfreeze();
+		try {
+			$config = Hydrator::hydrate(self::class, $vars);
+			$config->autoUnfreeze ??= new AutoUnfreeze();
+		} catch (UnableToHydrateObject $e) {
+			if (!BotRunner::getArguments()->testRun) {
+				throw $e;
+			}
+			$errorMessages = [$e->getMessage()];
+			while (($e = $e->getPrevious()) !== null) {
+				$errorMessages []= $e->getMessage();
+			}
+			// @phpstan-ignore-next-line
+			fwrite(
+				\STDERR,
+				"Your configuration file {$filePath} is invalid:\n\n".
+				implode("\n", $errorMessages) . "\n\n".
+				json_encode($vars, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE).
+				"\n\n"
+			);
+			exit(1);
+		}
 		return $config;
 	}
 

@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Safe\preg_split;
-
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\DISCORD\{ApplicationCommand, ApplicationCommandOption, DiscordException};
 use Nadybot\Core\{
@@ -28,6 +26,7 @@ use Nadybot\Core\{
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Text,
 	Types\AccessLevel,
 };
@@ -137,6 +136,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	}
 
 	/** Show all currently exposed Discord slash-commands */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('discord slash-commands')]
 	public function listDiscordSlashCommands(
 		CmdContext $context,
@@ -166,6 +166,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	}
 
 	/** Add one or more commands to the list of Discord slash-commands */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('discord slash-commands')]
 	public function addDiscordSlashCommands(
 		CmdContext $context,
@@ -240,6 +241,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	}
 
 	/** Remove one or more commands from the list of Discord slash-commands */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('discord slash-commands')]
 	public function remDiscordSlashCommands(
 		CmdContext $context,
@@ -289,6 +291,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	}
 
 	/** Pick commands to add to the list of Discord slash-commands */
+	#[NCA\Untestable]
 	#[NCA\HandlesCommand('discord slash-commands')]
 	public function pickDiscordSlashCommands(
 		CmdContext $context,
@@ -487,7 +490,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		$types = [];
 		$methods = explode(',', $cmdCfg->file);
 		foreach ($methods as $methodDef) {
-			[$class, $method, $line] = preg_split('/[.:]/', $methodDef);
+			[$class, $method, $line] = Safe::pregSplit('/[.:]/', $methodDef);
 			$obj = Registry::tryGetInstance($class);
 			if (!isset($obj)) {
 				continue;

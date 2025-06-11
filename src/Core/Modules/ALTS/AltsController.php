@@ -36,6 +36,7 @@ use Nadybot\Core\{
  * @author Tyrence (RK2)
  */
 #[
+	NCA\HasTests,
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: 'alts',
@@ -949,6 +950,7 @@ class AltsController extends ModuleInstance {
 		try {
 			// remove all the old alt information
 			$this->db->table(Alt::getTable())->where('main', $altInfo->main)->delete();
+			unset($this->alts[$newMain]);
 
 			// add current main to new main as an alt
 			$this->addAlt($newMain, $altInfo->main, true, true, false);

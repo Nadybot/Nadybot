@@ -24,6 +24,7 @@ use Psr\Log\LoggerInterface;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\HasMigrations('Migrations/Boss'),
 	NCA\DefineCommand(
 		command: 'boss',
@@ -166,10 +167,10 @@ class BosslootController extends ModuleInstance {
 	/** @param Collection<int,BossLootdb> $data */
 	private function addItemsToLoot(Collection $data): void {
 		$itemsByName = $this->itemsController
-			->getByNames(...$data->whereNull('aoid')->pluck('itemname')->toArray())
+			->getByNames(...$data->whereNull('aoid')->pluckStrings('itemname')->toList())
 			->keyBy('name');
 		$itemsByAoid = $this->itemsController
-			->getByIDs(...$data->whereNotNull('aoid')->pluck('aoid')->toArray())
+			->getByIDs(...$data->whereNotNull('aoid')->pluckInts('aoid')->toList())
 			->keyBy('aoid');
 		$data->each(static function (BossLootdb $loot) use ($itemsByName, $itemsByAoid): void {
 			if (isset($loot->aoid)) {

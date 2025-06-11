@@ -31,6 +31,7 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'raffle',
 		accessLevel: AccessLevel::Guest,
@@ -401,6 +402,15 @@ class RaffleController extends ModuleInstance {
 		$this->announceRaffle();
 	}
 
+	/** See what's being raffled */
+	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE, self::MUTEX)]
+	public function raffleShowCommand(
+		CmdContext $context,
+		#[Str('show')] string $action,
+	): void {
+		$context->reply($this->getRaffleAnnouncement());
+	}
+
 	/** Announce the raffle, optionally with an extra message */
 	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE, self::MUTEX)]
 	public function raffleAnnounceCommand(
@@ -769,9 +779,9 @@ class RaffleController extends ModuleInstance {
 		return $blob;
 	}
 
-	protected function announceRaffle(?string $extra=null): void {
+	protected function getRaffleAnnouncement(?string $extra=null): string {
 		if (!isset($this->raffle)) {
-			return;
+			return static::NO_RAFFLE_ERROR;
 		}
 		$this->raffle->lastAnnounce = time();
 
@@ -793,7 +803,14 @@ class RaffleController extends ModuleInstance {
 		$msg .= $participantsString . ' :: [';
 		$blob = $this->getJoinLeaveBlob();
 		$msg .= Text::makeBlob('Join', $blob, 'Raffle actions') . ']';
-		$this->raffle->sendto->reply($msg);
+		return $msg;
+	}
+
+	protected function announceRaffle(?string $extra=null): void {
+		if (!isset($this->raffle)) {
+			return;
+		}
+		$this->raffle->sendto->reply($this->getRaffleAnnouncement($extra));
 	}
 
 	protected function getBonusPoints(string $player): int {

@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use function Amp\ByteStream\splitLines;
 use function Amp\delay;
-use function Safe\{class_implements, preg_match};
+use function Safe\{class_implements, preg_match, sleep};
 
 use Amp\File\FilesystemException;
 use BackedEnum;
@@ -232,7 +232,7 @@ class DB {
 				continue;
 			}
 			$this->transactionOpened = ($trace['file'] ?? '{closure}').
-				'#' . ($trace['line'] ?? '0');
+				'#' . (string)($trace['line'] ?? 0);
 			$this->logger->info('Starting transaction from {file}#{line}', [
 				'file' => $trace['file']??null,
 				'line' => $trace['line']??null,
@@ -550,6 +550,17 @@ class DB {
 				$table->integer('applied_at');
 			};
 			if ($this->schema()->hasTable($table)) {
+				if (BotRunner::getArguments()->testRun) {
+					// @phpstan-ignore-next-line
+					\fwrite(
+						\STDOUT,
+						"The testing mode only works on vanilla databases.\n".
+						"Running tests on an already existing database would\n".
+						"ruin your database, and lead to unpredictable results\n".
+						"of the test commands.\n"
+					);
+					// exit(1);
+				}
 				$colType = strtolower($this->schema()->getColumnType($table, 'id'));
 				if (str_starts_with($colType, 'int')
 					|| str_ends_with($colType, 'int')
@@ -583,13 +594,17 @@ class DB {
 		/** @var Collection<string,Collection<int,CoreMigration>> */
 		$groupedMigs = $toRun->groupBy('module');
 
-		/** @var Collection<int,CoreMigration> */
+		/**
+		 * @var Collection<int,CoreMigration>
+		 *
+		 * @phpstan-ignore-next-line
+		 */
 		$missingMigs = $groupedMigs->map(function (Collection $migs, string $module): Collection {
 			return $this->filterAppliedMigrations($module, $migs);
 		})->flatten()
-			->sort(static function (CoreMigration $f1, CoreMigration $f2): int {
-				return $f1->order <=> $f2->order;
-			});
+		->sort(static function (CoreMigration $f1, CoreMigration $f2): int {
+			return $f1->order <=> $f2->order;
+		});
 		if ($missingMigs->isEmpty()) {
 			return;
 		}
@@ -799,10 +814,14 @@ class DB {
 					'password' => $config->password,
 					'charset' => 'utf8',
 					'collation' => 'utf8_unicode_ci',
+					'options' => [\PDO::MYSQL_ATTR_FOUND_ROWS => true],
 					'prefix' => '',
 				]);
 				$this->sql = $this->capsule->getConnection()->getPdo();
 			} catch (PDOException $e) {
+				if (BotRunner::getArguments()->testRun) {
+					throw $e;
+				}
 				if (!$errorShown) {
 					$e->errorInfo ??= [$e->getCode(), $e->getCode(), $e->getMessage()];
 					$this->logger->error('Cannot connect to the MySQL db at {db_host}: {error}', [
@@ -959,6 +978,9 @@ class DB {
 				]);
 				$this->sql = $this->capsule->getConnection()->getPdo();
 			} catch (PDOException $e) {
+				if (BotRunner::getArguments()->testRun) {
+					throw $e;
+				}
 				if (!$errorShown) {
 					$this->logger->error(
 						'Cannot connect to the PostgreSQL DB at {db_host}: {error}',
@@ -1003,6 +1025,9 @@ class DB {
 				]);
 				$this->sql = $this->capsule->getConnection()->getPdo();
 			} catch (PDOException $e) {
+				if (BotRunner::getArguments()->testRun) {
+					throw $e;
+				}
 				if (!$errorShown) {
 					$e->errorInfo ??= [$e->getCode(), $e->getCode(), $e->getMessage()];
 					$this->logger->error(

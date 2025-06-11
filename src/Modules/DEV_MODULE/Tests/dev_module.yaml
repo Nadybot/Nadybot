@@ -1,0 +1,278 @@
+---
+name: Dev Module
+groups:
+
+  - name: Commands
+    tests:
+      - command: silence
+        name: Check there are no silenced commands
+        expect: No commands have been silenced
+      - command: unsilence
+        name: Call "unsilence" with no parameters
+        expect: Help \(unsilence\)
+      - command: silence raid msg
+        name: Silence "!raid"-command
+        expect: has been silenced
+      - command: raid
+        name: Test silenced "!raid"-command
+        expect: Help \(raid\)
+      - command: unsilence raid msg
+        name: Unsilence "!raid"-command
+        expect: has been unsilenced.
+
+      - command: showcmdregex
+        expect: Regexes for commands
+      - command: showcmdregex bio
+        expect: Regexes for bio
+      - command: showcmdregex raid
+        expect: Regexes for raid
+      - command: showcmdregex errrror
+        expect: No regexes found
+
+      - command: intransaction
+        expect: no active transaction.
+      - command: stacktrace
+        expect: Current Stacktrace
+      - command: cmdhandlers
+        name: Get cmdhandlers help page
+        expect: Help \(cmdhandlers\)
+      - command: cmdhandlers raid
+        name: Get cmdhandlers for "!raid"
+        expect: raidcontroller\.
+      - command: cmdhandlers fwegfw
+        expect: Command Handlers for
+
+      - command: makeitem 1 2 3 Test name
+        name: Create an item with "!makeitem"
+        expect: itemref://1/2/3.*Test name
+      - command: createblob error
+        name: Call "!createblob" with invalid argument
+        expect: Help \(createblob\)
+      - command: createblob 200
+        name: Create a single large blob
+        expect: Blob 0
+      - command: createblob 200 2
+        name: Create a two pages large blob
+        expect:
+          - Blob 0
+          - Blob 1
+      - command: createblob 200 error
+        name: Call "!createblob" with invalid arguments
+        expect: Help \(createblob\)
+
+      - command: gameicons
+        expect: GFX_GUI_WINDOW_
+      - command: gameicons error
+        expect: Help \(gameicons\)
+      - command: htmldecode
+        expect: Help \(htmldecode\)
+      - command: htmldecode bio &lt;a href="itemref://247764/247764/1"&gt;Solid Clump of Kyr'Ozch Bio-Material&lt;/a&gt;
+        name: HTML-decode encoded clump into "!bio"-command
+        expect: Kyr'Ozch Viral Serum \(QL 1\)
+      - command: httprequest https://aoauth.org/
+        name: Get the content of a web page
+        expect: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEO3LC4ykl2mx
+
+      - command: mdb
+        name: Get a list of all MDB categories
+        expect:
+          - '100'
+          - '5000'
+          - '20000'
+          - '4294967295'
+      - command: mdb 20000
+        name: Get a list of instances in the MDB category 20000
+        expect:
+          - MDB Instances for Category 20000
+          - '201379664'
+          - '226911017'
+          - '18838393'
+          - '1952522356'
+      - command: mdb 20000 18838393
+        name: Get a specific message by category and instance
+        expect: 'Removing %d #1\{ 1:buddy \| buddies \}\.'
+
+      - command: demo mdb
+        name: The !demo doesn't change anything via msg
+        expect:
+          - '20000'
+          - '/tell'
+        unexpected: '/g <Myname>'
+
+      - command: runin aopriv demo mdb
+        name: Force links of a command to open in the channel they were sent
+        capture: aopriv
+        expect-captured:
+          - '20000'
+          - '/g [<]myname[>]'
+        unexpected-captured: /tell
+
+      - command: time
+        name: Get the current timestamp
+        expect: (?<time>\d{10})
+      - command: test sleep 2
+        name: Sleep 2s
+        expect: ^$
+      - command: time
+        name: Check that time has passed
+        unexpected: '{time}'
+
+      - command: unixtime 0
+        name: Translate a UNIX timestamp into a readable time
+        expect: 0 is <highlight>01-Jan-1970
+
+      - command: test orgjoin Darknet
+        condition: orgbot
+        capture: orgmsg
+        expect-captured: ^<superadmin> invited Darknet to your organization\.$
+      - command: test orgjoin Darknet
+        condition: '!orgbot'
+        expect: Your bot cannot read
+
+      - command: test orgleave Darknet
+        condition: orgbot
+        capture: orgmsg
+        expect-captured: ^Darknet just left your organization\.$
+      - command: test orgleave Darknet
+        condition: '!orgbot'
+        expect: Your bot cannot read
+
+      - command: test orgkick Darknet
+        condition: orgbot
+        capture: orgmsg
+        expect-captured: ^<superadmin> kicked Darknet from your organization\.$
+      - command: test orgkick Darknet
+        condition: '!orgbot'
+        expect: Your bot cannot read
+
+      - command: test orgattack Nukeat5 Troet
+        name: Simulate an attack on our org towers
+        condition: '!orgbot'
+        expect: Your bot cannot read
+      - command: test orgattack Nukeat5 Troet
+        name: Simulate an attack on our org towers
+        condition: 'orgbot'
+        capture: orgmsg
+        expect-captured: ^The tower Control Tower - Neutral in Broken Shores was just reduced to 75 % health by Nukeat5 from the Troet organization!$
+
+      - command: test orgattackprep Nukeat5 Troet
+        name: Simulate someone disabling your towers' defense shield
+        condition: '!orgbot'
+        expect: Your bot cannot read
+      - command: test orgattackprep Nukeat5 Troet
+        name: Simulate someone disabling your towers' defense shield
+        condition: 'orgbot'
+        capture: orgmsg
+        expect-captured: ^Your controller tower in Southern Forest of Xzawkaz in Deep Artery Valley has had its defense shield disabled by Nukeat5 \(clan\)\.The attacker is a member of the organization Troet\.$
+
+      - command: test towervictory neutral Troet clan Team Rainbow AEG
+        name: Simulate a tower win
+        condition: '!orgbot'
+        expect: Your bot cannot read
+      - command: test towervictory neutral Troet clan Team Rainbow AEG
+        name: Simulate a tower win
+        condition: 'orgbot'
+        expect: ^$
+
+      - command: test os Regolus
+        name: Test an orbital strike
+        condition: '!orgbot'
+        expect: Your bot cannot read
+      - command: test os Regolus
+        name: Test an orbital strike
+        condition: orgbot
+        capture: orgmsg
+        expect-captured: ^Blammo! Regolus has launched an orbital attack!$
+
+      - command: test cloaklower
+        name: Test lowering the cloak
+        condition: '!orgbot'
+        expect: Your bot must be in an org
+      - command: test cloaklower
+        name: Test lowering the cloak
+        condition: orgbot
+        capture: aoorg
+        expect-captured: ^<superadmin> turned the cloaking device in your city off\.$
+      - command: test cloakraise
+        name: Test raising the cloak
+        condition: '!orgbot'
+        expect: Your bot must be in an org
+      - command: test cloakraise
+        name: Test raising the cloak
+        condition: orgbot
+        capture: aoorg
+        expect-captured: ^<superadmin> turned the cloaking device in your city on\.$
+
+      - command: test event testcontroller.setup
+        name: Test executing events
+        capture: aopriv
+        expect-captured: DEV_MODULE
+
+      - command: msginfo mdb
+        name: Measure output size and speed of commands
+        expect:
+          - '20000'
+          - 'Size: \d+ characters\s*Time: [0-9.]+ ms'
+
+      - command: test tradebotmsg
+        name: Receive a tradebot message
+        expect: ^$
+        capture: tradebot(Darknet)
+        expect-captured: ^$
+
+  - name: Timezones
+    tests:
+      - command: timezone
+        name: Show all timezone areas
+        expect:
+          - Africa
+          - America
+          - Europe
+          - UTC
+      - command: timezone Europe
+        name: Show all timezones in Europe
+        expect:
+          - Europe/Berlin
+          - Europe/Madrid
+          - Europe/Sofia
+          - Europe/Zagreb
+      - command: timezone set XXX
+        name: Setting an invalid time zone gives an error
+        expect: not a valid timezone
+      - command: timezone set Europe/Berlin
+        name: Setting an valid time zone
+        expect: Timezone has been set to <highlight>Europe/Berlin<end>
+      - command: unixtime 0
+        name: Check the timezone is active
+        expect: 01-Jan-1970 01:00 CET
+      - command: timezone set UTC
+        name: Set the time zone back to UTC
+        expect: Timezone has been set to <highlight>UTC<end>
+
+  - name: Presence commands
+    tests:
+      - command: whois Regolus
+        name: Cache dummy data
+        expect: Detailed Info for Regolus
+      - command: test join Regolus
+        name: Let that dummy join our private channel
+        capture: aopriv
+        expect-captured: Regolus.*has joined the private channel
+      - command: test leave Regolus
+        name: Let that dummy leave our private channel again
+        capture: aopriv
+        expect-captured: ^$
+      - command: test logon <superadmin>
+        name: Pretend we're online now
+        expect: ^$
+      - command: buddylist
+        name: Check our online-status on the buddy list
+        expect: <superadmin> \[[^\]]+\] <on>Online<end>
+      - command: test logoff <superadmin>
+        name: Pretend we're offline now
+        expect: ^$
+      - command: buddylist
+        name: Check our offline-status on the buddy list
+        expect: <superadmin> \[[^\]]+\]
+        unexpected: <superadmin> \[[^\]]+\] <on>Online<end>
+

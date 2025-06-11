@@ -1,0 +1,39 @@
+---
+name: Usage Module
+groups:
+
+  - name: Usage command
+    tests:
+      - command: usage
+        name: Show the basic usage statistics
+        expect:
+          - Usage Statistics
+          - Most Used Commands
+      - command: usage 1d
+        name: Show the basic usage statistics for a given interval
+        expect: Usage Statistics - 1 day
+      - command: usage info
+        name: Get machine-readable usage statistics that used to be collected
+        expect:
+          - Collected usage info
+          - db_type
+          - settings
+        unexpected:
+          - <Myname>
+          - <myname>
+          - <superadmin>
+      - command: usage player <superadmin>
+        name: Get usage statistics for an existing character
+        expect: Usage for <superadmin>
+      - command: usage player <superadmin> 1d
+        name: Get usage statistics for an existing character and a give interval
+        expect: Usage for <superadmin> - 1 day
+      - command: usage player B4erbel
+        name: Get usage statistics for an unknown character
+        expect: No usage statistics found for
+      - command: usage cmd usage
+        name: Get usage counts gor a given command
+        expect: Usage for usage
+      - command: usage cmd usage 1d
+        name: Get usage counts gor a given command and interval
+        expect: Usage for usage - 1 day

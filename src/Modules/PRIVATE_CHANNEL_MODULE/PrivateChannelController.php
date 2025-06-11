@@ -80,6 +80,7 @@ use Throwable;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'members',
 		accessLevel: AccessLevel::Member,
@@ -728,8 +729,16 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 		$chars = collect($chars);
 
-		/** @var array<string,int> */
-		$online = $chars->countBy('profession')->toArray();
+		/**
+		 * @var array<string,int>
+		 *
+		 * @phpstan-ignore-next-line
+		 */
+		$online = $chars->countBy(
+			static function (OnlinePlayer $player): string {
+				return $player->profession->value ?? '';
+			}
+		)->toArray();
 		$numOnline = $chars->count();
 		if (!$this->countEmptyProfs && !$numOnline) {
 			$context->reply('<highlight>0<end> in total.');
@@ -779,7 +788,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		/** @var Collection<string,Collection<int,OnlinePlayer>> */
 		$byOrg = $online->groupBy('guild');
 
-		/** @var Collection<int,OrgCount> */
+		/**
+		 * @var Collection<int,OrgCount>
+		 *
+		 * @phpstan-ignore-next-line
+		 */
 		$orgStats = $byOrg->map(static function (Collection $chars, string $orgName): OrgCount {
 			return new OrgCount(
 				avgLevel: $chars->avg('level') ?? 0,
@@ -819,7 +832,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 
 		$data = collect($this->onlineController->getPlayers('priv', $this->config->main->character))
-			->where('profession', $prof->value);
+			->where('profession', $prof);
 		if (isset($raidOnly)) {
 			try {
 				$data = $this->filterRaid($data->toArray());

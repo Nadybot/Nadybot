@@ -102,7 +102,11 @@ class WhatBuffsController extends ModuleInstance {
 		$suffix = $froobFriendly ? 'Froob' : '';
 		$blob = "<header2>Choose a skill<end>\n";
 
-		/** @var Collection<int,Skill> */
+		/**
+		 * @var Collection<int,Skill>
+		 *
+		 * @phpstan-ignore varTag.type
+		 */
 		$skills = $this->db->table(ItemBuff::getTable())
 			->select('attribute_id')
 			->distinct()
@@ -222,6 +226,7 @@ class WhatBuffsController extends ModuleInstance {
 			$data = $query->asObj(SkillBuffItemCount::class);
 		}
 
+		/** @var Collection<array-key,SkillBuffItemCount> */
 		$sorted = $data->sortBy(static fn (SkillBuffItemCount $b): ?string => $b->skill?->fullName());
 
 		$blob = "<header2>Choose the skill to buff<end>\n";
@@ -462,7 +467,7 @@ class WhatBuffsController extends ModuleInstance {
 
 			$data = $query->asObj(ItemBuffSearchResult::class);
 			$specialsById = $this->skillsController->getWeaponAttributes(
-				aoid: $data->pluck('highid')->toList()
+				aoid: $data->pluckInts('highid')->toList()
 			)->keyBy('id');
 			$data->each(static function (ItemBuffSearchResult $item) use ($specialsById): void {
 				if (($specials = $specialsById->get($item->highid)) === null) {

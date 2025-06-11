@@ -43,6 +43,7 @@ class RulesController extends ModuleInstance {
 
 	/** See the rules for this bot */
 	#[NCA\HandlesCommand('rules')]
+	#[NCA\Untestable]
 	#[NCA\Help\Epilogue(
 		"To set up rules for this bot, put a file into\n".
 		'<tab><highlight>data/rules.txt<end>'
@@ -65,6 +66,7 @@ class RulesController extends ModuleInstance {
 
 	/** See the raid rules for this bot */
 	#[NCA\HandlesCommand('raidrules')]
+	#[NCA\Untestable]
 	#[NCA\Help\Epilogue(
 		"To set up raid rules for this bot, put a file into\n".
 		'<tab><highlight>data/raidrules.txt<end>'

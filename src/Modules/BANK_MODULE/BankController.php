@@ -4,7 +4,7 @@ namespace Nadybot\Modules\BANK_MODULE;
 
 use function Amp\async;
 use function Amp\Future\await;
-use function Safe\{preg_match, preg_split};
+use function Safe\preg_match;
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Illuminate\Support\Collection;
@@ -31,6 +31,7 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'bank',
 		accessLevel: AccessLevel::Guild,
@@ -175,7 +176,8 @@ class BankController extends ModuleInstance {
 			->orderBy('ql')
 			->limit($limit);
 		if (isset($ql)) {
-			[$low, $high] = preg_split("/(\s*-\s*|\s+)/", $ql);
+			[$low, $high] = Safe::pregSplit("/(\s*-\s*|\s+)/", $ql);
+			// @phpstan-ignore isset.variable
 			if (isset($high)) {
 				$query->where('ql', '>=', min((int)$low, (int)$high));
 				$query->where('ql', '<=', max((int)$low, (int)$high));
@@ -274,7 +276,12 @@ class BankController extends ModuleInstance {
 		foreach ($lines as $line) {
 			// this is the order of columns in the CSV file (AOIA v1.1.3.0):
 			// Item Name,QL,Character,Backpack,Location,LowID,HighID,ContainerID,Link
-			[$name, $ql, $player, $container, $location, $lowId, $highId, $containerId] = str_getcsv($line);
+			[$name, $ql, $player, $container, $location, $lowId, $highId, $containerId] = str_getcsv(
+				string: $line,
+				separator: ',',
+				enclosure: '"',
+				escape: '\\'
+			);
 			if ($location !== 'Bank' && $location !== 'Inventory') {
 				continue;
 			}

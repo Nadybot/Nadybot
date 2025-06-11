@@ -1,0 +1,138 @@
+---
+name: Relay Module
+groups:
+
+  - name: Quickrelay command
+    tests:
+      - command: quickrelay
+        name: Without any arguments, show a list of possible quick relays
+        expect:
+          - Nady
+          - Alliance
+          - Tyr
+          - Old
+      - command: quickrelay nady
+        name: Get instructions how to quickly create a nadynative relay
+        expect:
+          - relay add nady websocket\(server=&quot;wss://ws.nadybot.org&quot;\) highway\(room=&quot;[a-f0-9-]+&quot;\) aes-gcm-encryption\(password=&quot;.+?&quot;\) nadynative\(\)
+          - route add relay\(nady\) &lt;-&gt; aopriv
+          - route add relay\(nady\) &lt;-&gt; aopriv if-has-prefix\(prefix=&quot;-&quot;\)
+      - command: quickrelay tyr
+        name: Get instructions how to quickly create a Tyrbot relay
+        expect:
+          - relay add tyr websocket\(server=&quot;ws://127.0.0.1:8000/subscribe/relay&quot;\) tyr-relay\(\) tyr-encryption\(password=&quot;.+?&quot;\) tyrbot\(\)
+          - route add relay\(tyr\) &lt;-&gt; aopriv
+          - route add relay\(tyr\) &lt;-&gt; aopriv if-has-prefix\(prefix=&quot;-&quot;\)
+      - command: quickrelay old
+        name: Get instructions how to quickly create a Budabot relay
+        expect:
+          - relay add compat private-channel\(channel=&quot;Privchannel&quot;\) grcv2\(\)
+          - route add relay\(compat\) &lt;-&gt; aopriv
+          - route add relay\(compat\) &lt;-&gt; aopriv if-has-prefix\(prefix=&quot;-&quot;\)
+      - command: quickrelay alliance
+        name: Get instructions how to quickly create a relay for Alliance
+        expect:
+          - relay add alliance private-channel\(channel=&quot;Privchannel&quot;\) agcr\(\)
+          - route add relay\(alliance\) &lt;-&gt; aopriv
+          - route add relay\(alliance\) &lt;-&gt; aopriv if-has-prefix\(prefix=&quot;-&quot;\)
+
+  - name: Relay command
+    tests:
+      - command: relay
+        name: Without arguments, it should list our relays. We currently don't have any
+        expect: no relays defined
+      - command: relay list protocol
+        name: Get a list of all relay protocols
+        expect:
+          - nadynative
+          - tyrbot
+          - grcv2
+          - agcr
+      - command: relay list protocol agcr
+        name: Get details about the agcr relay protocol
+        expect:
+          - Detailed description for agcr
+          - Parameters
+          - send-user-links.*optional
+      - command: relay list protocol error
+        name: Get detailed information about a non-existing protocol
+        expect: No relay protocol.*found
+      - command: relay list transport
+        name: Get a list of all relay transports
+        expect:
+          - private-channel
+          - tell
+          - websocket
+      - command: relay list transport websocket
+        name: Get information about the websocket transport
+        expect: Parameters.*string.*server.*string.*authorization.*optional
+      - command: relay list transport error
+        name: Get information about a non-existing transport
+        expect: No relay transport.*found
+      - command: relay list layer
+        name: Get a list of all relay layers
+        expect:
+          - fernet-encryption
+          - tyr-relay
+          - chunker
+          - highway
+          - aes-gcm-encryption
+      - command: relay list layer highway
+        name: Get details about the highway layer
+        expect: string\[\].*room.*at least 32 characters
+      - command: relay list layer error
+        name: Get details about a non-exsting layer
+        expect: No relay layer.*found
+
+      - command: relay add test websocket(server="wss://ws.nadybot.org") highway(room="deadbeed-dead-beef-dead-beefdeadbeef") aes-gcm-encryption(password="deadBeefd34db33f") nadynative()
+        name: Create a new dummy relay
+        expect: Relay.*test.*added. Make sure to.*setup your routing.*route add relay\(test\) &lt;-&gt; aopriv
+      - command: relay describe test
+        name: Get the definition of the relay as a command
+        expect: relay add test websocket\(server="wss://ws.nadybot.org"\) highway\(room="deadbeed-dead-beef-dead-beefdeadbeef"\) aes-gcm-encryption\(password="deadBeefd34db33f"\) nadynative\(\)
+      - command: relay describe error
+        name: Get the definition of a non-existing relay
+        expect: Relay.*not found
+      - command: relay config test
+        name: Look at the configurable properties of the relay
+        expect: Triggered when someone starts a countdown
+      - command: relay config error
+        name: We cannot modify a non-existing relay
+        expect: Relay.*not found
+      - command: relay config test eventmod sync(cd) enable incoming
+        name: Enable incoming countdown-syncs
+        expect: Successfully.*enabled.*sync\(cd\)
+      - command: relay config test eventmod sync(cd) enable outgoing
+        name: Enable outgoing countdown-syncs
+        expect: Successfully.*enabled.*sync\(cd\)
+      - command: relay config test eventset
+        name: Reset the relay config
+        expect: Relay events set
+      - command: relay config test eventset sync(cd) I sync(timer) O
+        name: Enable inbound countdown, and outound timer-sync with a single command
+        expect: Relay events set
+      - command: relay config test eventset sync(cd) O
+        name: Only turn on outbound countdown-sync
+        expect: Relay events set
+      - command: relay
+        name: Look at our list of relays
+        expect:
+          - test
+          - relay guestmode (?<relay_id>[0-9a-f-]{36}) on
+      - command: relay guestmode {relay_id} on
+        name: Turn on the relay's guest mode, giving everyone in the alliance guest access
+        expect: Treating online players from relay .*test.* as guests is now .*on
+      - command: relay
+        name: Look at our list of relays again, and see it's enabled
+        expect:
+          - test
+          - relay guestmode (?<relay_id>[0-9a-f-]{36}) off
+      - command: relay del error
+        name: We cannot delete a non-existing relay
+        expect: Relay.*not found
+      - command: relay del test
+        name: Delete our test relay
+        expect: Relay.*test.*deleted
+      - command: relay remall
+        name: Remove absolutely all relays
+        expect: 0.*relays deleted

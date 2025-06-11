@@ -17,6 +17,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'implant',
 		accessLevel: AccessLevel::Guest,
@@ -86,7 +87,7 @@ class ImplantController extends ModuleInstance {
 	#[NCA\HandlesCommand('implant')]
 	public function impQlCommand(CmdContext $context, int $ql): void {
 		if ($ql < 1 || $ql > 300) {
-			$msg = 'Implants only exist is QLs between 1 and 300.';
+			$msg = 'Implants only exist in QLs between 1 and 300.';
 			$context->reply($msg);
 			return;
 		}

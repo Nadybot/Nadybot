@@ -37,6 +37,6 @@ class SameChannelResponseController extends ModuleInstance {
 		}
 		$context->sendto = new DemoResponseCommandReply($context->source, $context->sendto, $this->config->main->character);
 		$context->message = $commandString;
-		$this->commandManager->processCmd($context);
+		$this->commandManager->syncProcessCmd($context);
 	}
 }

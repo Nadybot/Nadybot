@@ -1,0 +1,23 @@
+---
+name: Limits Module
+groups:
+
+  - name: Rateignore command
+    tests:
+      - command: rateignore
+        name: Rate ignore list should be empty by default
+        expect: No entries
+      - command: rateignore add xxxx
+        name: Add someone to the rate ignore list
+        expect: has been added
+      - command: rateignore
+        name: That person should now be on the list
+        expect:
+          - Rate limit ignore list
+          - added by <superadmin>
+      - command: rateignore rem xxxx
+        name: Remove them from the rate ignore list again
+        expect: has been removed
+      - command: rateignore
+        name: Rate ignore list should be empty again
+        expect: No entries

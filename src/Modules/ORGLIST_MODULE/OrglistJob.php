@@ -4,7 +4,7 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use function Amp\delay;
 use Amp\DeferredFuture;
-use Amp\Pipeline\{ConcurrentIterator, Pipeline};
+use Amp\Pipeline\Pipeline;
 use AO\Package\In\{BuddyRemoved, BuddyState, Ping};
 use AO\Package\Out\{BuddyAdd, BuddyRemove, Pong};
 use Exception;
@@ -52,8 +52,11 @@ class OrglistJob {
 	/** @var array<string,int> */
 	private array $slotsFree = [];
 
-	/** @var ConcurrentIterator<Player> */
-	private ConcurrentIterator $iter;
+	/** Which character are we currently processing */
+	private int $queuePosition = 0;
+
+	/** How many online-requests have been answered */
+	private int $numAnswersReceived = 0;
 
 	public function __construct(
 		private Guild $org,
@@ -61,11 +64,13 @@ class OrglistJob {
 		?string $uuid=null,
 	) {
 		$this->uuid = $uuid ?? Uuid::uuid7()->toString();
-		$pipeline = Pipeline::fromIterable($this->org->members)->unordered();
-		$this->iter = $pipeline->getIterator();
 	}
 
-	/** @return array<string,bool> */
+	/**
+	 * Get the online-state of all the org-members of `$this->org`
+	 *
+	 * @return array<string,bool>
+	 */
 	public function run(): array {
 		$numThreads = min($this->orglistController->getFreeBuddylistSlots() - 5, count($this->org->members));
 		if (count($this->org->members) > 100 && $numThreads < 10) {
@@ -89,11 +94,13 @@ class OrglistJob {
 			}
 		}
 
+		$stateId = EventLoop::repeat(1, $this->showStateInfo(...));
+
 		$this->eventManager->subscribe('packet(40)', $this->onBuddyAdded(...));
 		$this->eventManager->subscribe('packet(41)', $this->onBuddyRemoved(...));
 		$this->eventManager->subscribe('packet(100)', $this->onPingReceived(...));
 
-		$result = Pipeline::fromIterable($this->iter)
+		$result = Pipeline::fromIterable($this->org->members)
 			->unordered()
 			->concurrent($numThreads)
 			->map($this->processPlayer(...))
@@ -107,12 +114,55 @@ class OrglistJob {
 		foreach ($result as $character) {
 			$onlineList[$character->name] = $character->online;
 		}
+		$this->showStateInfo();
+		EventLoop::cancel($stateId);
 		return $onlineList;
 	}
 
+	private function showStateInfo(): void {
+		$state = [];
+		foreach ($this->workers as $worker) {
+			$workerObj = $this->chatBot->aoClient->getBestWorker($worker);
+			if (!isset($workerObj)) {
+				continue;
+			}
+			$state[$worker] = [
+				'waiting' => count($this->procQueue[$worker]),
+				'queue' => $workerObj->getQueueSize(),
+				'buddylist' => count($workerObj->getBuddylist()),
+			];
+		}
+		$this->logger->info(
+			"Orglist stats:\n".
+			"    Position: {current}/{max}\n".
+			"    Answers:  {answers}/{max}\n".
+			'    Worker queue: {state}',
+			[
+				'current' => $this->queuePosition,
+				'answers' => $this->numAnswersReceived,
+				'max' => count($this->org->members),
+				'state' => $state,
+			]
+		);
+	}
+
+	private function sendFinalPing(): void {
+		if ($this->queuePosition === count($this->org->members)) {
+			foreach ($this->workers as $sendVia) {
+				$this->chatBot->sendPackage(new Pong($this->uuid), $sendVia);
+			}
+		}
+	}
+
+	/**
+	 * Get the name and online status for a single player, and sent
+	 * a final pong if done
+	 */
 	private function processPlayer(Player $player): OrglistItem {
+		$this->queuePosition++;
 		$cachedOnline = $this->buddylistManager->isOnline($player->name);
 		if (is_bool($cachedOnline)) {
+			$this->sendFinalPing();
 			return new OrglistItem(name: $player->name, online: $cachedOnline);
 		}
 		$first = null;
@@ -127,6 +177,7 @@ class OrglistJob {
 		} while ($this->slotsFree[$worker] - count($this->procQueue[$worker] ?? []) <= 0);
 		$uid = $player->charid;
 		if ($uid === 0) {
+			$this->sendFinalPing();
 			return new OrglistItem(name: $player->name, online: false);
 		}
 		if (isset($this->addQueue[$uid])) {
@@ -138,13 +189,10 @@ class OrglistJob {
 		// $this->logger->notice('Adding {uid} on {worker}', ['uid' => $uid, 'worker' => $worker]);
 		$this->chatBot->sendPackage(new BuddyAdd(charId: $uid), $worker);
 		$this->procQueue[$worker] []= $uid;
-		if ($this->iter->isComplete()) {
-			foreach ($this->workers as $sendVia) {
-				$this->chatBot->sendPackage(new Pong($this->uuid), $sendVia);
-			}
-		}
+		$this->sendFinalPing();
 		// $this->logger->notice('Awaiting adding of {uid} on {worker}', ['uid' => $uid, 'worker' => $worker]);
 		$isOnline = $this->addQueue[$uid]->getFuture()->await();
+		$this->numAnswersReceived++;
 
 		// $this->logger->notice('Awaiting adding of {uid} on {worker}: {online}', ['uid' => $uid, 'worker' => $worker, 'online' => json_encode($isOnline)]);
 		/** @phpstan-ignore-next-line */
@@ -163,6 +211,12 @@ class OrglistJob {
 		return new OrglistItem(name: $player->name, online: $isOnline);
 	}
 
+	/**
+	 * Callback handling buddy states
+	 *
+	 * If we get the online-result for a buddy, all other non-answered requests
+	 * on the same worker can be considered invalid.
+	 */
 	private function onBuddyAdded(PackageEvent $event): void {
 		$package = $event->packet->package;
 		if (!($package instanceof BuddyState) || !isset($this->addQueue[$package->charId])) {
@@ -178,6 +232,7 @@ class OrglistJob {
 		$this->addQueue[$package->charId]->complete($package->online);
 	}
 
+	/** Callback handling buddy removal. Wakeup the fiber waiting for it */
 	private function onBuddyRemoved(PackageEvent $event): void {
 		$package = $event->packet->package;
 		if (!($package instanceof BuddyRemoved)) {
@@ -188,6 +243,12 @@ class OrglistJob {
 		}
 	}
 
+	/**
+	 * Callback handling pings
+	 *
+	 * If the pong is answered, all non-answered buddy-add requests
+	 * on the same worker can be considered invalid.
+	 */
 	private function onPingReceived(PackageEvent $event): void {
 		$package = $event->packet->package;
 		if (!($package instanceof Ping) || $package->extra !== $this->uuid) {

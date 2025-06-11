@@ -34,6 +34,7 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'vote',
 		accessLevel: AccessLevel::Member,

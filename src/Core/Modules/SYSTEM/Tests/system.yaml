@@ -1,0 +1,120 @@
+---
+name: System Module
+groups:
+
+  - name: Access checking
+    tests:
+      - command: checkaccess
+        name: We should be superadmin
+        expect: superadmin
+      - command: checkaccess rikoltanto
+        name: Unknown chars should be all
+        expect: is .*all
+      - command: checkaccess K1wehfweum
+        name: Non-existing chars should give an error
+        expect: Character.*does not exist
+  - name: System command
+    tests:
+      - command: system
+        name: Check system info has good information
+        expect:
+          - System Info
+          - "Nadybot:"
+          - Event loop
+          - Database
+  - name: Macro-command
+    tests:
+      - command: macro member add rikoltanto|checkaccess rikoltanto|member del rikoltanto|checkaccess rikoltanto
+        name: Run multiple commands in a row
+        expect:
+          - has been added as a member of this bot
+          - is.*member
+          - has been removed as a member of this bot
+          - is.*all
+
+
+  - name: Configuration-commands
+    tests:
+      - command: showconfig
+        name: Get a redacted version of our configuration
+        expect:
+          - <superadmin>
+          - <Myname>
+          - '&quot;username&quot;: (&quot;\*{6}&quot;|null)'
+          - '&quot;password&quot;: (&quot;\*{6}&quot;|null)'
+      - command: upgradeconfig
+        name: Get a TOML version of our config
+        expect:
+          - <superadmin>
+          - <Myname>
+          - \[main\]
+
+  - name: SQL-commands
+    tests:
+      - command: querysql SELECT COUNT(*) AS amount FROM aodb
+        name: Get the total number if items in out database
+        expect:
+          - Results \(1\)
+          - amount.*\d+
+
+  - name: LOG-commands
+    tests:
+      - command: logs
+        name: List log files in our system
+        expect:
+          - Log Files \(\d+\)
+          - logs (?<filename>[^ ]+) NOTICE
+      - command: logs {filename} NOTICE
+        name: Look at one of the log files
+        expect: 'File is empty or nothing matched your search criteria|Search:'
+
+  - name: Loglevels
+    tests:
+      - command: loglevel
+        name: Show all currently configured loggers
+        expect: SYSTEM/SystemController
+      - command: loglevel SYSTEM/SystemController WARNING
+        name: Change the log level of one of the loggers
+        expect:
+          - Changed.*1 logger.*matching
+          - NOTICE -&gt; WARNING
+      - command: loglevel reset
+        name: Change the log level back again
+        expect:
+          - Changed.*1 logger
+          - WARNING -&gt; NOTICE
+
+  - name: Misc
+    tests:
+      - command: showcommand rikoltanto checkaccess rikoltanto
+        name: Show a command output to a known character
+        expect: has been sent to
+      - command: showcommand B1aerbel checkaccess rikoltanto
+        name: Show a command output to a non-existing character
+        expect: does not exist
+
+      - command: runas rikoltanto checkaccess
+        name: Run a command as another user
+        expect: Access level.*is .*all
+      - command: whois Rikoltanto
+        name: Cache someone's user data
+        expect: Detailed Info for Rikoltanto
+        unexpected: "Level: <highlight>999<end>"
+      - command: executesql UPDATE players SET level=999 WHERE name='Rikoltanto'
+        name: Change the dummy's level to 999
+        expect: Query run successfully
+      - command: whois Rikoltanto
+        name: Check broken user data
+        expect: "Level: <highlight>999<end>"
+      - command: executesql DELETE FROM players WHERE name='Rikoltanto'
+        name: Delete the broken cache
+        expect: Query run successfully
+      - command: whois Rikoltanto
+        name: Check the information is good again
+        expect: Detailed Info for Rikoltanto
+        unexpected: "Level: <highlight>999<end>"
+
+      - command: sendtell Rikoltanto Howdyyy
+        name: Let the bot send a tell to someone
+        capture: aotell(Rikoltanto)
+        expect-captured: Howdyyy

@@ -1,0 +1,185 @@
+---
+name: Alts Module
+groups:
+
+  - name: Alts management with confirmation
+    tests:
+      - name: Clear alts list
+        command: executesql DELETE FROM alts
+        expect: Query run successfully
+      - name: Force alts to require confirmation
+        command: settings save alts_require_confirmation 1
+        expect: saved with new value
+      - command: alts
+        name: List my alts
+        expect: No alts are registered
+      - command: alts add Nukeat5
+        name: Add one char as my alt
+        expect: Alt added.*requires confirmation
+      - command: alts
+        name: List my alts again, new alt should require confirmation
+        expect: Nukeat5.*not validated
+      - command: alts Nukeat5
+        name: List alts of the added alt
+        expect: Nukeat5.*not validated
+      - command: checkaccess Nukeat5
+        name: Unvalidated alt should not inherit our access level
+        expect: Access level.*is.*all
+      - command: runas nukeat5 altvalidate <superadmin>
+        name: Let the alt validate us as their main
+        expect: has been validated as your main
+      - command: checkaccess Nukeat5
+        name: Validated alt should now inherit our access level
+        expect: Access level.*is.*superadmin
+      - command: alts rem Nukeat5
+        name: Remove alt
+        expect: has been removed as your alt
+      - command: alts
+        name: Alt list should be empty again
+        expect: No alts are registered
+
+      - command: member add Nukeat5
+        name: Make our alt a bot-member
+        expect: has been added as a member
+      - command: runas Nukeat5 alts main <superadmin>
+        name: Add me as their alt
+        expect: Successfully requested.*Make sure to confirm the request
+      - command: alts
+        name: List my alts again, new alt should require confirmation
+        expect: Nukeat5.*not validated
+      - command: alts Nukeat5
+        name: List alts of the added alt
+        expect: Nukeat5.*not validated
+      - command: checkaccess Nukeat5
+        name: Unvalidated alt should not inherit our access level
+        expect: Access level.*is.*member
+      - command: altvalidate nukeat5
+        name: Validate them as our alt
+        expect: has been validated as your alt
+      - command: checkaccess Nukeat5
+        name: Validated alt should now inherit our access level
+        expect: Access level.*is.*superadmin
+      - command: alts rem Nukeat5
+        name: Remove alt
+        expect: has been removed as your alt
+      - command: alts
+        name: Alt list should be empty again
+        expect: No alts are registered
+      - command: member rem Nukeat5
+        name: Demote our alt from bot member
+        expect: has been removed as a member
+
+  - name: Alts management without confirmation
+    tests:
+      - name: Force alts to not require confirmation
+        command: settings save alts_require_confirmation 0
+        expect: saved with new value
+      - command: alts add Nukeat5
+        name: Add one char as my alt
+        expect: Alt added successfully
+      - command: alts
+        name: List my alts again, new alt should not require confirmation
+        expect: Nukeat5
+        unexpected: not validated
+      - command: alts Nukeat5
+        name: List alts of the added alt
+        expect: Nukeat5
+        unexpected: not validated
+      - command: checkaccess Nukeat5
+        name: Validated alt should immediately inherit our access level
+        expect: Access level.*is.*superadmin
+      - command: alts rem Nukeat5
+        name: Remove alt
+        expect: has been removed as your alt
+      - command: alts
+        name: Alt list should be empty again
+        expect: No alts are registered
+
+  - name: Alts management with !altsadmin
+    tests:
+      - command: members add Nukeat5
+        name: Add a dummy member to the bot
+        expect: has been added as a member
+      - command: admin add Regolus
+        name: Add a dummy admin to the bot
+        expect: has been promoted to an administrator
+        capture: aotell(Regolus)
+        expect-captured: You have been promoted to an administrator
+      - command: altsadmin regolus add Nukeat5
+        name: Set another dummy as their alt
+        expect: Alt added successfully
+      - command: checkaccess Nukeat5
+        name: Their access level will be admin immediately
+        expect: administrator
+      - command: altsadmin Nukeat5 setmain
+        name: Make the other dummy the main
+        expect: <highlight>Nukeat5<end> is now the new main character
+      - command: checkaccess Nukeat5
+        name: The admin level will have been transferred
+        expect: administrator
+      - command: admin rem Regolus
+        name: Which means we won't be able to remove it from the dummy
+        expect: <highlight>Regolus<end> is not an administrator
+      - command: runas Regolus alts setmain
+        name: Swap alts again, not using !altsadmin
+        expect: Your main is now <highlight>Regolus<end>
+      - command: altsadmin Regolus rem Nukeat5
+        name: Remove alt-coupling
+        expect: Nukeat5 is no longer.*Regolus.*alt
+
+      - command: members rem Nukeat5
+        name: Remove first dummy as member of the bot
+        expect: has been removed as a member
+      - command: admin rem Regolus
+        name: Remove dummy admin from the bot
+        expect: has been removed as an administrator
+        capture: aotell(Regolus)
+        expect-captured: You have been removed as an administrator
+
+  - name: Alts declining
+    tests:
+      - command: members add Regolus
+        name: Add a dummy member to the bot
+        expect: has been added as a member
+      - command: members add Nukeat5
+        name: Add another dummy member to the bot
+        expect: has been added as a member
+      - command: runas Nukeat5 alts main Regolus
+        name: Request to be added as the alt of the first dummy
+        expect: Successfully requested.*Make sure to confirm the request
+      - command: runas Regolus altdecline Nukeat5
+        name: Decline the request
+        expect: You declined.*Nukeat5.*request to become your alt
+      - command: runas Regolus alts
+        name: That second dummy should no longer show in my alts list
+        unexpected: Nukeat5
+      - command: members rem Nukeat5
+        name: Remove second dummy as member of the bot
+        expect: has been removed as a member
+      - command: members rem Regolus
+        name: Remove first dummy as member of the bot
+        expect: has been removed as a member
+
+  - name: Nick command
+    tests:
+      - command: nick
+        name: Currently, we don't have a nick defined
+        expect: You haven't set a nickname yet
+      - command: nick set Ben
+        name: Give ourself a nickt that is only 3 letters long
+        expect: Your nickname was set to <highlight>Ben<end>
+      - command: nick
+        name: Check if it was set
+        expect: Your nickname is <highlight>Ben<end>
+      - command: whois <superadmin>
+        name: Our nick name should show in the whois
+        expect: 'Nickname: <highlight>Ben<end>'
+      - command: nick rem
+        name: Clear our nick name
+        expect: Nickname cleared
+      - command: nick rem
+        name: Gives an error the second time
+        expect: You don't have a nickname set
+      - command: whois <superadmin>
+        name: Our nick name should no longer show in the whois
+        unexpected: 'Nickname: <highlight>Ben<end>'

@@ -31,6 +31,7 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'nano',
 		accessLevel: AccessLevel::Guest,

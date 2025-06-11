@@ -3,7 +3,9 @@
 namespace Nadybot\Modules\ITEMS_MODULE;
 
 use function Safe\json_decode;
+
 use Amp\Http\Client\{HttpClientBuilder, Request};
+use Amp\{CancelledException, TimeoutCancellation};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\Types\{AccessLevel, ItemFlag};
 use Nadybot\Core\{
@@ -53,7 +55,8 @@ class GmiController extends ModuleInstance {
 			$httpClient = $this->builder->build();
 
 			$response = $httpClient->request(
-				new Request(rtrim($this->gmiApi, '/') . "/aoid/{$item->getLowID()}")
+				new Request(rtrim($this->gmiApi, '/') . "/aoid/{$item->getLowID()}"),
+				new TimeoutCancellation(10),
 			);
 			if ($response->getStatus() === 404) {
 				throw new UserException("{$item->getName()} is not tradeable on GMI.");
@@ -64,7 +67,7 @@ class GmiController extends ModuleInstance {
 					'Please try again later.'
 				);
 			}
-			$body = $response->getBody()->buffer();
+			$body = $response->getBody()->buffer(new TimeoutCancellation(10));
 			$json = json_decode($body, true);
 
 			$gmiResult = Hydrator::hydrate(GmiResult::class, $json);
@@ -74,6 +77,8 @@ class GmiController extends ModuleInstance {
 			throw new UserException('The GMI API returned invalid data.', 0, $e);
 		} catch (UnableToHydrateObject $e) {
 			throw new UserException('The GMI API returned invalid data.', 0, $e);
+		} catch (CancelledException $e) {
+			throw new UserException('The GMI API timed out', 0, $e);
 		} catch (Throwable $e) {
 			throw new UserException('Unknown error occurred contacting the GMI API.', 0, $e);
 		}

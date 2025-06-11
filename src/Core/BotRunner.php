@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use function Amp\async;
 use function Amp\ByteStream\getStderr;
 use function Amp\File\{createDefaultDriver, filesystem};
-use function Safe\{fwrite, getopt, ini_set, parse_url, putenv, sapi_windows_set_ctrl_handler};
+use function Safe\{fwrite, getopt, ini_set, parse_url, putenv, sapi_windows_set_ctrl_handler, sleep};
 
 use Amp\ByteStream\BufferedReader;
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
@@ -475,6 +475,7 @@ class BotRunner {
 
 	/** Check if all the modules that the bot needs, are installed */
 	private function checkRequiredModules(): void {
+		// @phpstan-ignore if.alwaysFalse
 		if (version_compare(\PHP_VERSION, '8.1.17', '<')) {
 			// @phpstan-ignore-next-line
 			fwrite(\STDERR, 'Nadybot 7 needs at least PHP version 8 to run, you have ' . \PHP_VERSION . "\n");
@@ -501,7 +502,7 @@ class BotRunner {
 			'fileinfo',
 			'tokenizer',
 		];
-		if (self::isLinux()) {
+		if (!self::isWindows()) {
 			$requiredModules []= 'pcntl';
 			$requiredModules []= 'posix';
 		}
@@ -539,6 +540,8 @@ class BotRunner {
 					'help',
 					'migrate-only',
 					'setup-only',
+					'test-run',
+					'test-file:',
 					'vue-dev',
 					'strict',
 					'log-config:',
@@ -579,6 +582,10 @@ class BotRunner {
 			"  --help                Show this help message and exit\n".
 			"  --migrate-only        Only run the database migration and then exit\n".
 			"  --setup-only          Stop the bot after the setup handlers have been called\n".
+			"  --test-run            Don't run the bot normally. Instead, run a series of tests,\n".
+			"                        and terminate with an appropriate exit code.\n".
+			"  --test-file=<file>    Only run the given test file. Can be given more than once.\n".
+			"                        and terminate with an appropriate exit code.\n".
 			"  --vue-dev             Don't serve web-files locally, connect to the\n".
 			"                        vite development server for hot reloading.\n".
 			"  --log-config=<file>   Use an alternative config file for the logger. The default\n".

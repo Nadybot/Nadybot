@@ -35,6 +35,7 @@ use ValueError;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'comment',
 		accessLevel: AccessLevel::Member,
@@ -51,7 +52,7 @@ class CommentController extends ModuleInstance {
 	public const ADMIN = 'admin';
 
 	/** How long is the cool-down between leaving 2 comments for the same character */
-	#[NCA\Setting\Time(options: ['1s', '1h', '6h', '24h'])]
+	#[NCA\Setting\TimeOrOff(options: ['off', '1h', '6h', '24h'])]
 	public int $commentCooldown = 6 * 3_600;
 
 	/** Share comments between bots on same database */

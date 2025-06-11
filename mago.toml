@@ -75,3 +75,27 @@ level = "Off"
 [[linter.rules]]
 name = "security/no-literal-password"
 level = "Off"
+
+[[linter.rules]]
+name = "best-practices/no-empty-catch-clause"
+level = "Off"
+
+[[linter.rules]]
+name = "best-practices/no-else-clause"
+level = "Off"
+
+[[linter.rules]]
+name = "best-practices/no-boolean-literal-comparison"
+level = "Off"
+
+[[linter.rules]]
+name = "redundancy/redundant-mathematical-operation"
+level = "Off"
+
+[[linter.rules]]
+name = "best-practices/no-boolean-flag-parameter"
+level = "Off"
+
+[[linter.rules]]
+name = "best-practices/dont-catch-error"
+level = "Off"

@@ -1,9 +1,0 @@
-#weather_module
-/text Start WEATHER_MODULE
-!weather Cologne Dome
-/delay %1
-!weather Norway
-/delay %1
-!weather 35043,de
-/delay %1
-/text End WEATHER_MODULE

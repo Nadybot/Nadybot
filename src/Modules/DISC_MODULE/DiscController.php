@@ -18,6 +18,7 @@ use Nadybot\Modules\NANO_MODULE\Nano;
  */
 #[
 	NCA\Instance,
+	NCA\HasTests,
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: 'disc',

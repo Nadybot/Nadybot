@@ -34,6 +34,7 @@ use Nadylib\IMEX\JSON;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\HasTests,
 	NCA\DefineCommand(
 		command: 'usage',
 		accessLevel: AccessLevel::Guild,
