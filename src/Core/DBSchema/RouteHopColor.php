@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\Types\HopColorType;
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Nadybot\Core\Types\HopColorType;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
 /** Which colors to use for displaying a hop of a routed message */

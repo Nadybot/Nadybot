@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\Attributes\DB\{PK, Shared, Table};
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes\JSON,
 	DBTable,
@@ -12,6 +10,8 @@ use Nadybot\Core\{
 	Types\Faction,
 	Types\Profession,
 };
+use Nadybot\Core\Attributes\DB\{PK, Shared, Table};
+use Nadybot\Core\Config\BotConfig;
 
 /**
  * This represents the data the bot stores about a player in the cache and database
@@ -202,7 +202,7 @@ class Player extends DBTable {
 				: null,
 			"{$prefix}org-rank" => $this->guild_rank,
 			"{$prefix}breed" => $this->breed,
-			"c-{$prefix}breed" => isset($this->breed) ? "<highlight>{$this->breed}<end>" : null,
+			"c-{$prefix}breed" => "<highlight>{$this->breed}<end>",
 			"{$prefix}faction" => $this->faction->value,
 			"c-{$prefix}faction" => $this->faction->inColor(),
 			"{$prefix}gender" => $this->gender,
@@ -222,13 +222,13 @@ class Player extends DBTable {
 	public function getInfo(bool $showFirstAndLastName=true): string {
 		$msg = '';
 
-		if ($showFirstAndLastName && strlen($this->firstname??'')) {
+		if ($showFirstAndLastName && strlen($this->firstname)) {
 			$msg = $this->firstname . ' ';
 		}
 
 		$msg .= "<highlight>\"{$this->name}\"<end> ";
 
-		if ($showFirstAndLastName && strlen($this->lastname??'')) {
+		if ($showFirstAndLastName && strlen($this->lastname)) {
 			$msg .= $this->lastname . ' ';
 		}
 

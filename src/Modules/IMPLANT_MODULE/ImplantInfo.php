@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Types\Skill;
 use Nadybot\Core\{DBRow, Util};
+use Nadybot\Core\Types\Skill;
 
 class ImplantInfo extends DBRow {
 	public int $ability = 0;

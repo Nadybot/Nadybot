@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
-use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\{Attributes as NCA, Blob, Safe, Types\MessageReceiver};
+use Nadybot\Core\Routing\RoutableEvent;
 
 use Psr\Log\LoggerInterface;
 

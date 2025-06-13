@@ -8,12 +8,12 @@ use Amp\Pipeline\Pipeline;
 use AO\Package\In\{BuddyRemoved, BuddyState, Ping};
 use AO\Package\Out\{BuddyAdd, BuddyRemove, Pong};
 use Exception;
+use Nadybot\Core\{Attributes as NCA, BuddylistManager, EventManager, Nadybot};
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Events\PackageEvent;
 use Nadybot\Core\Exceptions\UserException;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
-use Nadybot\Core\{Attributes as NCA, BuddylistManager, EventManager, Nadybot};
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 
@@ -232,7 +232,7 @@ class OrglistJob {
 		$this->addQueue[$package->charId]->complete($package->online);
 	}
 
-	/** Callback handling buddy removal. Wakeup the fiber waiting for it */
+	/** Callback handling buddy removal. Wake up the fiber waiting for it */
 	private function onBuddyRemoved(PackageEvent $event): void {
 		$package = $event->packet->package;
 		if (!($package instanceof BuddyRemoved)) {

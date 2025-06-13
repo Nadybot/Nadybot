@@ -6,10 +6,6 @@ use function Safe\preg_split;
 
 use AO\Utils;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Modules\{
-	ALTS\AltsController,
-	PLAYER_LOOKUP\PlayerManager,
-};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -23,6 +19,10 @@ use Nadybot\Core\{
 	ParamClass\PUuid,
 	Text,
 	Types\AccessLevel,
+};
+use Nadybot\Core\Modules\{
+	ALTS\AltsController,
+	PLAYER_LOOKUP\PlayerManager,
 };
 
 /**

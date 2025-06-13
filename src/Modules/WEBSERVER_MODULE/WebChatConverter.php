@@ -5,7 +5,6 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use ErrorException;
 use Exception;
 
-use Nadybot\Core\Types\{HopColorType, Profession};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	Safe,
 	SettingManager,
 };
+use Nadybot\Core\Types\{HopColorType, Profession};
 
 #[NCA\Instance]
 class WebChatConverter extends ModuleInstance {

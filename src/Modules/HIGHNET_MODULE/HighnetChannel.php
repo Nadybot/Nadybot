@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\HIGHNET_MODULE;
 
-use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\{Attributes as NCA, Blob, Types\MessageEmitter, Types\MessageReceiver};
+use Nadybot\Core\Routing\RoutableEvent;
 
 class HighnetChannel implements MessageEmitter, MessageReceiver {
 	#[NCA\Inject]

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\SPIRITS_MODULE;
 
-use Nadybot\Core\Attributes\Parameter\{NoSpace, NonNumberStr, Regexp};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\ImplantSlot,
 };
+use Nadybot\Core\Attributes\Parameter\{NoSpace, NonNumberStr, Regexp};
 use Nadybot\Modules\{
 	ITEMS_MODULE\AODBEntry,
 };

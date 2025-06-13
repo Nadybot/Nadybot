@@ -4,8 +4,8 @@ namespace Nadybot\Core\Modules\ALTS\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\Alt;
 use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\Alt;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_23_10_26_50, shared: true)]

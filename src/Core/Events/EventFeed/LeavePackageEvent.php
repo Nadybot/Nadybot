@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Events\EventFeed;
 
-use Nadybot\Core\Events\EventFeedPackageEvent;
 use Nadybot\Core\{Attributes as NCA, Highway};
+use Nadybot\Core\Events\EventFeedPackageEvent;
 
 /** The leave package is received when leaving a room */
 #[NCA\Event(mask: 'event-feed(leave)')]

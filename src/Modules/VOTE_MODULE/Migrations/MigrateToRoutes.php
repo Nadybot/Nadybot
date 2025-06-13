@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\VOTE_MODULE\Migrations;
 
-use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -11,6 +10,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	Types\SchemaMigration,
 };
+use Nadybot\Core\DBSchema\Route;
 use Nadybot\Modules\VOTE_MODULE\VoteController;
 use Psr\Log\LoggerInterface;
 

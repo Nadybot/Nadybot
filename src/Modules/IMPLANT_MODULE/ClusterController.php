@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Types\{AccessLevel, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -10,6 +9,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Text,
 };
+use Nadybot\Core\Types\{AccessLevel, Skill};
 
 /**
  * @author Tyrence (RK2)

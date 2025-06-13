@@ -3,8 +3,6 @@
 namespace Nadybot\Modules\BANK_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Quantity,
@@ -25,6 +23,8 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util,
 };
+use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Ramsey\Uuid\UuidInterface;
 use Throwable;
 

@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\EVENTS_MODULE;
 
-use Nadybot\Core\Attributes\DB\{Shared, Table};
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Nadybot\Core\Attributes\DB\{Shared, Table};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[Table(name: 'events', shared: Shared::Yes)]

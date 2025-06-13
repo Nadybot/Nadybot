@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\Attributes\DB\Shared;
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Nadybot\Core\Attributes\DB\Shared;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
 

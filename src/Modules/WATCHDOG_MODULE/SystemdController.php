@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	EventManager,
 	Events\Event,
 	ModuleInstance,
-	Safe,
 	Types\Status,
 };
 use Socket;
@@ -147,7 +146,7 @@ class SystemdController extends ModuleInstance {
 
 		// First try with fake ucred data, as requested
 		try {
-			Safe::exceptionWrapper(socket_sendmsg(...), $fd, $messageHeader, \MSG_NOSIGNAL);
+			\Safe\socket_sendmsg($fd, $messageHeader, \MSG_NOSIGNAL);
 			return new NotifyResult(fd: $fd, result: -1);
 		} catch (ErrorException) {
 		}
@@ -157,7 +156,7 @@ class SystemdController extends ModuleInstance {
 			$messageHeader['control'] = [];
 
 			try {
-				Safe::exceptionWrapper(socket_sendmsg(...), $fd, $messageHeader, \MSG_NOSIGNAL);
+				\Safe\socket_sendmsg($fd, $messageHeader, \MSG_NOSIGNAL);
 				return new NotifyResult(fd: $fd, result: 1);
 			} catch (ErrorException) {
 			}

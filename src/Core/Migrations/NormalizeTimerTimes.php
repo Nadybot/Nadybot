@@ -3,8 +3,8 @@
 namespace Nadybot\Core\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\EventCfg;
 use Nadybot\Core\{DB, EventManager, Safe, Types\SchemaMigration, Util};
+use Nadybot\Core\DBSchema\EventCfg;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2024_02_17_10_57_31)]

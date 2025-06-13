@@ -3,8 +3,8 @@
 namespace Nadybot\Core\SettingHandlers;
 
 use function Safe\{json_decode, preg_match};
-use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, Request};
+use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Exception;
 use Nadybot\Core\{Attributes as NCA, SettingManager};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;

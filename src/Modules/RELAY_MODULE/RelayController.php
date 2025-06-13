@@ -8,8 +8,6 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Regexp, Remove, Str, WordStr};
-use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -34,13 +32,15 @@ use Nadybot\Core\{
 	Types\ParamType,
 	Util,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
+use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Regexp, Remove, Str, WordStr};
+use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
 use Nadybot\Modules\{
 	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
 	RELAY_MODULE\Transport\TransportInterface,
 	WEBSERVER_MODULE\ApiResponse,
 	WEBSERVER_MODULE\StatsController,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use ReflectionClass;

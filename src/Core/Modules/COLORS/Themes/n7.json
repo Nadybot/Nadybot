@@ -1,0 +1,11 @@
+{
+	"description": "The new Nadybot 7 theme - a fresh new start",
+	"window_color": "#B7BCC9",
+	"priv_color": "#B7BCC9",
+	"tell_color": "#FFDB5C",
+	"guild_color": "#D27CFF",
+	"routed_sys_color": "#B7BCC9",
+	"header_color": "#21F3A7",
+	"header2_color": "#5AC8FA",
+	"highlight_color": "#FFD166"
+}

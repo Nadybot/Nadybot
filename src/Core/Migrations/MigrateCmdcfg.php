@@ -5,8 +5,8 @@ namespace Nadybot\Core\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\{CmdCfg, CmdPermission, CmdPermissionSet};
 use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\{CmdCfg, CmdPermission, CmdPermissionSet};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2022_01_15_13_22_57)]

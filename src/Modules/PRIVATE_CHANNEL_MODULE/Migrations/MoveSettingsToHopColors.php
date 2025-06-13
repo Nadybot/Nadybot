@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
-use Nadybot\Core\DBSchema\RouteHopColor;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	Safe,
 	Types\SchemaMigration,
 };
+use Nadybot\Core\DBSchema\RouteHopColor;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_08_12_17_36_58)]

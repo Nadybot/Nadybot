@@ -4,6 +4,9 @@ namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
 use function Amp\delay;
 
+use Amp\{
+	Socket\ConnectContext,
+};
 use Amp\Http\Client\{
 	Connection\DefaultConnectionFactory,
 	Connection\UnlimitedConnectionPool,
@@ -17,17 +20,14 @@ use Amp\Websocket\{
 	Client\WebsocketConnection,
 	Client\WebsocketHandshake,
 };
-use Amp\{
-	Socket\ConnectContext,
-};
 use Exception;
 use League\Uri\Uri;
-use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Nadybot,
 	Types\LogWrapInterface,
 };
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayMessage,

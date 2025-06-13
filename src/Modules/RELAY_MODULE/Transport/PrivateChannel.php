@@ -3,13 +3,13 @@
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
 use AO\{Package, Utils};
-use Nadybot\Core\Events\{ExtJoinPrivRequest, JoinPrivEvent, LeavePrivEvent, OtherLeavePrivEvent, PrivateChannelMsgEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventManager,
 	Exceptions\StopExecutionException,
 	Nadybot,
 };
+use Nadybot\Core\Events\{ExtJoinPrivRequest, JoinPrivEvent, LeavePrivEvent, OtherLeavePrivEvent, PrivateChannelMsgEvent};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayMessage,

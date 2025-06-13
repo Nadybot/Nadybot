@@ -6,10 +6,10 @@ use Amp\Websocket\Client\WebsocketConnection;
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
+use Nadybot\Core\{Attributes as NCA, Hydrator, LoggerWrapper, SemanticVersion};
 use Nadybot\Core\Highway\In\InPackage;
 use Nadybot\Core\Highway\Out\OutPackage;
 use Nadybot\Core\Types\LogWrapInterface;
-use Nadybot\Core\{Attributes as NCA, Hydrator, LoggerWrapper, SemanticVersion};
 use Nadylib\IMEX\JSON;
 
 /** A connection to a highway server */

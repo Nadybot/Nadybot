@@ -3,13 +3,13 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\{
 	DB,
 	Routing\Source,
 	Types\SchemaMigration,
 };
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\DBSchema\Route;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_07_22_07_29_16)]

@@ -4,8 +4,8 @@ namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\{RouteHopColor, RouteHopFormat};
 use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\{RouteHopColor, RouteHopFormat};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_10_06_14_15_48)]

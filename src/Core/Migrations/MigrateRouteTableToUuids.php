@@ -4,8 +4,8 @@ namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\{Route, RouteModifier, RouteModifierArgument};
 use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\{Route, RouteModifier, RouteModifierArgument};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2024_08_01_11_05_00)]

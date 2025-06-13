@@ -3,13 +3,13 @@
 namespace Nadybot\Core;
 
 use Generator;
-use Nadybot\Core\DBSchema\{CmdCfg, CmdPermission, HlpCfg, Setting};
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\HelpTopic,
 	Modules\CONFIG\ConfigController,
 	Types\AccessLevel,
 };
+use Nadybot\Core\DBSchema\{CmdCfg, CmdPermission, HlpCfg, Setting};
 use Psr\Log\LoggerInterface;
 
 /** The class managing everything related to help */

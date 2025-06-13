@@ -4,9 +4,9 @@ namespace Nadybot\Core\Routing;
 
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use Nadybot\Core\DBSchema\RouteHopFormat;
-
 use Nadybot\Core\{Config\BotConfig, Registry, Safe};
+
+use Nadybot\Core\DBSchema\RouteHopFormat;
 
 /** This represents a hop where messages pass by, can be created at, or forwarded to */
 class Source {

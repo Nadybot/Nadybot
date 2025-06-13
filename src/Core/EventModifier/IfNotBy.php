@@ -2,12 +2,12 @@
 
 namespace Nadybot\Core\EventModifier;
 
-use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Routing\RoutableEvent,
 	Types\EventModifier,
 };
+use Nadybot\Core\Types\ParamType;
 
 /**
  * This modifier will only route messages that are

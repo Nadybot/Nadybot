@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
-use Nadybot\Core\Types\Skill;
 use Nadybot\Core\{Attributes\DB, DBTable};
+use Nadybot\Core\Types\Skill;
 use Ramsey\Uuid\UuidInterface;
 
 #[DB\Table(name: 'perk_level_buffs', shared: DB\Shared::Yes)]

@@ -4,8 +4,8 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\{Audit, Member};
 use Nadybot\Core\{AuditAction, DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\{Audit, Member};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2022_08_02_08_26_20)]

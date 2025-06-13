@@ -4,8 +4,6 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use AO\Utils;
 use Exception;
-use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Remove, Str, WordStr};
-use Nadybot\Core\Modules\ALTS\{AltAddEvent, AltNewMainEvent, AltValidateEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -21,6 +19,8 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 };
+use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Remove, Str, WordStr};
+use Nadybot\Core\Modules\ALTS\{AltAddEvent, AltNewMainEvent, AltValidateEvent};
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use Safe\DateTimeImmutable;

@@ -3,8 +3,6 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
 use Exception;
-use Nadybot\Core\DBSchema\RouteHopColor;
-use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -18,6 +16,8 @@ use Nadybot\Core\{
 	Safe,
 	Types\SchemaMigration,
 };
+use Nadybot\Core\DBSchema\RouteHopColor;
+use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Psr\Log\LoggerInterface;
 use Throwable;
 

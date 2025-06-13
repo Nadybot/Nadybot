@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
-use Nadybot\Core\DBSchema\CmdCfg;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Types\SchemaMigration,
 };
+use Nadybot\Core\DBSchema\CmdCfg;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_08_21_21_33_38)]

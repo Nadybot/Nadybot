@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\{AccessLevel, ImplantSlot, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -14,6 +13,7 @@ use Nadybot\Core\{
 	Text,
 	Types\Profession,
 };
+use Nadybot\Core\Types\{AccessLevel, ImplantSlot, Skill};
 use Nadybot\Modules\ITEMS_MODULE\{
 	ExtBuff,
 	ItemWithBuffs,

@@ -6,9 +6,6 @@ use function Amp\delay;
 use AO\Client\{SingleClient, WorkerPackage};
 use AO\Package;
 use Exception;
-use Nadybot\Core\Modules\MESSAGES\PSource;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\Types\{AccessLevel, CommandReply, Faction};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -32,6 +29,9 @@ use Nadybot\Core\{
 	SettingManager,
 	Types\Playfield,
 };
+use Nadybot\Core\Modules\MESSAGES\PSource;
+use Nadybot\Core\Routing\Source;
+use Nadybot\Core\Types\{AccessLevel, CommandReply, Faction};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
 
 /**

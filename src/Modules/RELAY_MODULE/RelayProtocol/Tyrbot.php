@@ -17,6 +17,10 @@ use Nadybot\Core\{
 	SettingManager,
 };
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayMessage,
+};
 use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	BasePacket,
 	Logoff,
@@ -24,10 +28,6 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	Message,
 	OnlineList,
 	OnlineListRequest,
-};
-use Nadybot\Modules\RELAY_MODULE\{
-	Relay,
-	RelayMessage,
 };
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;

@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Events\EventFeed;
 
-use Nadybot\Core\Events\EventFeedPackageEvent;
 use Nadybot\Core\{Attributes as NCA, Highway};
+use Nadybot\Core\Events\EventFeedPackageEvent;
 
 /** The join package is received when joining a room */
 #[NCA\Event(mask: 'event-feed(join)')]

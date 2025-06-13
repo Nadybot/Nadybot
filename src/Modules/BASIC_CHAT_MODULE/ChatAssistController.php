@@ -4,7 +4,6 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use AO\Utils;
 use Exception;
-use Nadybot\Core\Attributes\Parameter\{Regexp,Remove,Str,WordStr};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -22,6 +21,7 @@ use Nadybot\Core\{
 	Types\Profession,
 	Util,
 };
+use Nadybot\Core\Attributes\Parameter\{Regexp,Remove,Str,WordStr};
 use Nadybot\Modules\RAID_MODULE\RaidController;
 use Throwable;
 

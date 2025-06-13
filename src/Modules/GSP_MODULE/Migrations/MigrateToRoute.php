@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\GSP_MODULE\Migrations;
 
-use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -11,6 +10,7 @@ use Nadybot\Core\{
 	Types\SchemaMigration,
 	Types\SettingMode,
 };
+use Nadybot\Core\DBSchema\Route;
 use Nadybot\Modules\GSP_MODULE\GSPController;
 use Psr\Log\LoggerInterface;
 

@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Events\EventFeed;
 
-use Nadybot\Core\Events\EventFeedPackageEvent;
 use Nadybot\Core\{Attributes as NCA, Highway};
+use Nadybot\Core\Events\EventFeedPackageEvent;
 
 /** The welcome package is received directly after connecting to the feed */
 #[NCA\Event(mask: 'event-feed(hello)')]

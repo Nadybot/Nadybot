@@ -7,10 +7,10 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
 use Nadybot\Core\{Attributes as NCA, Attributes\Http, Filesystem, ModuleInstance};
-use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
 use Nadybot\Modules\{
 	WEBSERVER_MODULE\ApiResponse,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
 use Throwable;
 
 #[NCA\Instance]

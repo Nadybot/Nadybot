@@ -4,7 +4,6 @@ namespace Nadybot\Modules\TRADEBOT_MODULE;
 
 use function Safe\preg_match;
 use AO\Package;
-use Nadybot\Core\Events\{ConnectEvent, ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -27,6 +26,7 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 };
+use Nadybot\Core\Events\{ConnectEvent, ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;

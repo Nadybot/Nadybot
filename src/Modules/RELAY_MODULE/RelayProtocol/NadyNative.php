@@ -5,7 +5,6 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 use function Safe\{json_decode, json_encode};
 
 use EventSauce\ObjectHydrator\UnableToSerializeObject;
-use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -21,6 +20,7 @@ use Nadybot\Core\{
 	SettingManager,
 	SyncEventFactory,
 };
+use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	RELAY_MODULE\Relay,

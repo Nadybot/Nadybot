@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\Attributes\DB\PK;
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Nadybot\Core\Attributes\DB\PK;
 use Ramsey\Uuid\UuidInterface;
 
 #[NCA\DB\Table(name: 'relay_property')]

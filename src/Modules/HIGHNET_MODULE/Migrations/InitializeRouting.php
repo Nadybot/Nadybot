@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\HIGHNET_MODULE\Migrations;
 
-use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
 use Nadybot\Core\{Attributes as NCA, Config\BotConfig, DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2023_05_31_12_53_12)]

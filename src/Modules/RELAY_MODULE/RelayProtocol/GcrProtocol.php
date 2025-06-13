@@ -4,7 +4,6 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use function Safe\preg_match;
 use Closure;
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Blob,
@@ -19,6 +18,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Util,
 };
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	RELAY_MODULE\Relay,

@@ -3,7 +3,6 @@
 namespace Nadybot\Core\Modules\ALTS;
 
 use InvalidArgumentException;
-use Nadybot\Core\DBSchema\Alt;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	Types\ExporterInterface,
 	Types\ImporterInterface
 };
+use Nadybot\Core\DBSchema\Alt;
 use Psr\Log\LoggerInterface;
 use Throwable;
 

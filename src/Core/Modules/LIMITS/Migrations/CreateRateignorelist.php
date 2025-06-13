@@ -4,8 +4,8 @@ namespace Nadybot\Core\Modules\LIMITS\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\RateIgnoreList;
 use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\RateIgnoreList;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_24_21_17_50, shared: true)]

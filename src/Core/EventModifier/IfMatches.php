@@ -7,13 +7,13 @@ use function Safe\preg_match;
 use ErrorException;
 use Exception;
 
-use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Routing\RoutableEvent,
 	Safe,
 	Types\EventModifier,
 };
+use Nadybot\Core\Types\ParamType;
 
 /**
  * This modifier will only route messages if they contain

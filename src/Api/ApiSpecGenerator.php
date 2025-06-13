@@ -6,7 +6,6 @@ use function Safe\{glob, preg_match};
 
 use BackedEnum;
 use Exception;
-use Nadybot\Core\Config\{AutoUnfreeze, Proxy};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -16,6 +15,7 @@ use Nadybot\Core\{
 	Registry,
 	Safe,
 };
+use Nadybot\Core\Config\{AutoUnfreeze, Proxy};
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -625,7 +625,7 @@ class ApiSpecGenerator {
 			|| preg_match('/^array<(.+)>$/', $class, $matches)
 			|| preg_match('/^list<(.+)>$/', $class, $matches)
 		) {
-			/** @var array{0:string,1:string} $matches */
+			/** @var array{0:non-falsy-string,1:non-empty-string} $matches */
 			return ['type' => 'array', 'items' => $this->getSimpleClassRef($matches[1], $refProp)];
 		}
 		return $this->getSimpleClassRef($class, $refProp);

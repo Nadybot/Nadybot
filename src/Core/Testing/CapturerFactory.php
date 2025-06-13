@@ -4,8 +4,8 @@ namespace Nadybot\Core\Testing;
 
 use AO\Utils;
 use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Core\{Registry, Safe};
+use Nadybot\Core\Routing\Source;
 
 /** A static class to create capturers */
 class CapturerFactory {

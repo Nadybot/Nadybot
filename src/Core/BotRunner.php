@@ -660,7 +660,11 @@ class BotRunner {
 
 	/** Setup proper error-reporting, -handling and -logging */
 	private function setErrorHandling(string $logFolderName): void {
-		error_reporting(\E_ALL & ~\E_WARNING & ~\E_NOTICE);
+		$errorLevel = \E_ALL & ~\E_WARNING & ~\E_NOTICE;
+		if (defined('\\E_USER_DEPRECATED')) {
+			$errorLevel = $errorLevel & ~\E_USER_DEPRECATED;
+		}
+		error_reporting($errorLevel);
 		ini_set('log_errors', '1');
 		ini_set('display_errors', '1');
 		ini_set('error_log', "{$logFolderName}/php_errors.log");

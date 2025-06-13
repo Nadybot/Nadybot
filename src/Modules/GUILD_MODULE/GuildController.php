@@ -4,8 +4,6 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use AO\Utils;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Modules\ALTS\AltInfo;
-use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -42,6 +40,8 @@ use Nadybot\Core\{
 	Types\SettingMode,
 	Util,
 };
+use Nadybot\Core\Modules\ALTS\AltInfo;
+use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Modules\ONLINE_MODULE\{Online as DBOnline, OnlineController};
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;

@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core;
 
-use function Amp\Future\await;
 use function Amp\{async, delay};
+use function Amp\Future\await;
 use function Safe\array_flip;
 
 use Closure;

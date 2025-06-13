@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Types\ImplantSlot;
 use Nadybot\Core\{Attributes as NCA, DBTable, Types\AOItem};
+use Nadybot\Core\Types\ImplantSlot;
 
 #[NCA\DB\Table(name: 'symbiant', shared: NCA\DB\Shared::Yes)]
 class Symbiant extends DBTable implements AOItem {

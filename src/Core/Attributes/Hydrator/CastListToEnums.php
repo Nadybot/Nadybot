@@ -16,6 +16,7 @@ final class CastListToEnums implements PropertyCaster, PropertySerializer {
 	public function __construct(
 		private string $enumClass,
 	) {
+		// @phpstan-ignore function.alreadyNarrowedType
 		if (!is_a($enumClass, BackedEnum::class, true)) {
 			throw new InvalidArgumentException(__CLASS__ . '() Argument #1 must be a BackedEnum');
 		}

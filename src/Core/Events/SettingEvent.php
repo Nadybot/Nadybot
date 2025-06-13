@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Events;
 
-use Nadybot\Core\Types\EventInterface;
 use Nadybot\Core\{Attributes as NCA, SettingValue};
+use Nadybot\Core\Types\EventInterface;
 
 /** Fired whenever a setting was changed */
 #[NCA\Event(mask: 'setting(*)')]

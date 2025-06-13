@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Nadybot\Core\Attributes\DB\{ColName, MapRead};
-use Nadybot\Core\Types\{Ability, ImplantSlot};
 use Nadybot\Core\{DBRow, Types\Profession};
+use Nadybot\Core\Types\{Ability, ImplantSlot};
 
 class PremadeSearchResult extends DBRow {
 	public function __construct(

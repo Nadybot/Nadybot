@@ -2,15 +2,15 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Nadybot\Core\Modules\{
-	CONFIG\SettingOption,
-};
-
 use Nadybot\Core\{
 	Attributes as NCA,
 	ModuleInstance,
 	Safe,
 	Types\AccessLevel,
+};
+
+use Nadybot\Core\Modules\{
+	CONFIG\SettingOption,
 };
 
 /**

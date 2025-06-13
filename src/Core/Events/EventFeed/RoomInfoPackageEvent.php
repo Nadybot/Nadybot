@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Events\EventFeed;
 
-use Nadybot\Core\Events\EventFeedPackageEvent;
 use Nadybot\Core\{Attributes as NCA, Highway};
+use Nadybot\Core\Events\EventFeedPackageEvent;
 
 /** This event is fired upon entering a room, giving information about it */
 #[NCA\Event(mask: 'event-feed(room-info)')]

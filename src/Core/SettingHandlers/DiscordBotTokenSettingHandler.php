@@ -2,12 +2,12 @@
 
 namespace Nadybot\Core\SettingHandlers;
 
-use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, Request};
+use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Exception;
+use Nadybot\Core\{AccessManager, Attributes as NCA};
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\Types\AccessLevel;
-use Nadybot\Core\{AccessManager, Attributes as NCA};
 
 /**
  * Class to represent a discord bot token setting

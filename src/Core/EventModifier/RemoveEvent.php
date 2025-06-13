@@ -2,13 +2,13 @@
 
 namespace Nadybot\Core\EventModifier;
 
-use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventManager,
 	Routing\RoutableEvent,
 	Types\EventModifier,
 };
+use Nadybot\Core\Types\ParamType;
 
 /**
  * This modifier removes events of one or more types

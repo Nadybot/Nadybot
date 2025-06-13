@@ -3,7 +3,6 @@
 namespace Nadybot\Core\Modules\ALTS;
 
 use AO\Utils;
-use Nadybot\Core\DBSchema\Alt;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -14,6 +13,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+use Nadybot\Core\DBSchema\Alt;
 
 /**
  * This is a utility class that gets instantiated, when requesting information

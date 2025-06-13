@@ -4,13 +4,11 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\delay;
 use function Safe\preg_match;
+use Amp\{CancelledException, DeferredFuture, TimeoutCancellation};
 use Amp\Http\Client\HttpException;
 use Amp\Websocket\Client\WebsocketConnectException;
 use Amp\Websocket\WebsocketClosedException;
-use Amp\{CancelledException, DeferredFuture, TimeoutCancellation};
 
-use Nadybot\Core\Drill\{DrillAuthMode, DrillConnection, DrillConnector, DrillHttpConnection};
-use Nadybot\Core\Events\{ConnectEvent, RecvMsgEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -21,6 +19,8 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 };
+use Nadybot\Core\Drill\{DrillAuthMode, DrillConnection, DrillConnector, DrillHttpConnection};
+use Nadybot\Core\Events\{ConnectEvent, RecvMsgEvent};
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Throwable;

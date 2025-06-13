@@ -5,9 +5,9 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\{EventFeed, Hydrator, ModuleInstance, Nadybot};
 use Nadybot\Core\Events\SettingEvent;
 use Nadybot\Core\Types\EventFeedHandler;
-use Nadybot\Core\{EventFeed, Hydrator, ModuleInstance, Nadybot};
 use Psr\Log\LoggerInterface;
 use Throwable;
 

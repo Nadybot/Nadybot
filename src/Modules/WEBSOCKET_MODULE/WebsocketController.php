@@ -8,7 +8,6 @@ use Amp\Http\Server\{Request, Response};
 use Amp\Websocket\Server\{AllowOriginAcceptor, Websocket, WebsocketClientGateway, WebsocketClientHandler, WebsocketGateway};
 use Amp\Websocket\{WebsocketClient, WebsocketMessage};
 use Exception;
-use Nadybot\Core\Events\RecvMsgEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -21,6 +20,7 @@ use Nadybot\Core\{
 	Registry,
 	Types\Status,
 };
+use Nadybot\Core\Events\RecvMsgEvent;
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	CommandReplyEvent,
 	WebserverController,

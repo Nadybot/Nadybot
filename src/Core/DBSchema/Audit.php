@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\Attributes\DB\Table;
 use Nadybot\Core\{Attributes as NCA, AuditAction, DBTable};
+use Nadybot\Core\Attributes\DB\Table;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
 

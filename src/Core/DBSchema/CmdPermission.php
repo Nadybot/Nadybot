@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Nadybot\Core\Types\AccessLevel;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
 /** The permission required to execute a command via a specific command-channel */

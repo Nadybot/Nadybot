@@ -3,8 +3,8 @@
 namespace Nadybot\Core;
 
 use function Amp\delay;
-use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, HttpException, Request, Response};
 use Amp\{Cancellation, ForbidCloning as AmpForbidCloning, ForbidSerialization as AmpForbidSerialization};
+use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, HttpException, Request, Response};
 use Nadybot\Core\Attributes as NCA;
 
 /** This will automatically retry HTTP-requests on HTTP exceptions */

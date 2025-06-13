@@ -6,17 +6,6 @@ use function Safe\{json_decode, json_encode};
 
 use Amp\File\FilesystemException;
 use Exception;
-use Nadybot\Core\Attributes\Parameter\{FilenameStr,Remove,Str};
-use Nadybot\Core\DBSchema\{
-	CmdAlias,
-	CmdPermSetMapping,
-	CmdPermission,
-	CmdPermissionSet,
-	EventCfg,
-	ExtCmdPermissionSet,
-	RouteHopColor,
-	RouteHopFormat,
-};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -34,6 +23,17 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\CommandReply,
 	Types\Status,
+};
+use Nadybot\Core\Attributes\Parameter\{FilenameStr,Remove,Str};
+use Nadybot\Core\DBSchema\{
+	CmdAlias,
+	CmdPermSetMapping,
+	CmdPermission,
+	CmdPermissionSet,
+	EventCfg,
+	ExtCmdPermissionSet,
+	RouteHopColor,
+	RouteHopFormat,
 };
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Psr\Log\LoggerInterface;

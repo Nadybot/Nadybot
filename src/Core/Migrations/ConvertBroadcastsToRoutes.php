@@ -3,14 +3,14 @@
 namespace Nadybot\Core\Migrations;
 
 use AO\Utils;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\{
 	DB,
 	DBSchema\Setting,
 	Routing\Source,
 	Types\SchemaMigration,
 };
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\DBSchema\Route;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_08_28_05_11_50)]

@@ -7,8 +7,8 @@ use function Safe\ini_get;
 use Amp\File\FilesystemException;
 use Closure;
 use Exception;
-use Monolog\Processor\PsrLogMessageProcessor;
 use Monolog\{DateTimeImmutable, Logger};
+use Monolog\Processor\PsrLogMessageProcessor;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,

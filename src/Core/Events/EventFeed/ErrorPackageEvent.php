@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Events\EventFeed;
 
-use Nadybot\Core\Events\EventFeedPackageEvent;
 use Nadybot\Core\{Attributes as NCA, Highway};
+use Nadybot\Core\Events\EventFeedPackageEvent;
 
 /** An error from the highway server */
 #[NCA\Event(mask: 'event-feed(error)')]

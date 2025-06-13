@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
-use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\{Attributes as NCA, DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 use Psr\Log\LoggerInterface;
 

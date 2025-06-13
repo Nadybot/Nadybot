@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\LOOT_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes\Parameter\{NoSpace,NumberStr,Quantity,Remove,SpaceOptional,Str,StrChoice};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util,
 };
+use Nadybot\Core\Attributes\Parameter\{NoSpace,NumberStr,Quantity,Remove,SpaceOptional,Str,StrChoice};
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
 	ITEMS_MODULE\AODBEntry,

@@ -4,8 +4,6 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use Exception;
 use InvalidArgumentException;
-use Nadybot\Core\DBSchema\{Admin, Member};
-use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -19,6 +17,8 @@ use Nadybot\Core\{
 	Types\ExporterInterface,
 	Types\ImporterInterface
 };
+use Nadybot\Core\DBSchema\{Admin, Member};
+use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Modules\GUILD_MODULE\OrgMember;
 use Nadybot\Modules\MASSMSG_MODULE\MassMsgController;
 use Nadybot\Modules\RAID_MODULE\{RaidRank, RaidRankController};

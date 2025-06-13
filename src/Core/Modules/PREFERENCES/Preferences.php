@@ -5,7 +5,6 @@ namespace Nadybot\Core\Modules\PREFERENCES;
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use AO\Utils;
-use Nadybot\Core\DBSchema\Preferences as DBSchemaPreferences;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Types\AccessLevel,
 };
+use Nadybot\Core\DBSchema\Preferences as DBSchemaPreferences;
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
 	WebserverController,

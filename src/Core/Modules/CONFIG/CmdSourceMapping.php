@@ -52,7 +52,7 @@ class CmdSourceMapping {
 			source: $source,
 			permission_set: $this->permission_set,
 			feedback: $this->unknown_cmd_feedback,
-			symbol: $this->cmd_prefix ?? '!',
+			symbol: $this->cmd_prefix,
 			symbol_optional: $this->cmd_prefix_optional,
 		);
 	}

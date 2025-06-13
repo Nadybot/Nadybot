@@ -2,14 +2,14 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\{
 	DB,
 	DBSchema\Setting,
 	Routing\Source,
 	Types\SchemaMigration,
 };
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\DBSchema\Route;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2022_04_03_07_27_12)]

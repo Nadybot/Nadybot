@@ -3,8 +3,6 @@
 namespace Nadybot\Modules\NEWS_MODULE;
 
 use InvalidArgumentException;
-use Nadybot\Core\Attributes\Inject;
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -13,6 +11,8 @@ use Nadybot\Core\{
 	Types\ExporterInterface,
 	Types\ImporterInterface
 };
+use Nadybot\Core\Attributes\Inject;
+use Nadybot\Core\Config\BotConfig;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use Throwable;

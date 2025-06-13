@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Nadybot\Core\Modules\DISCORD\DiscordMessageReference;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Blob,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	Types\CommandReply,
 	Types\MessageEmitter,
 };
+use Nadybot\Core\Modules\DISCORD\DiscordMessageReference;
 use Revolt\EventLoop;
 
 class DiscordMessageCommandReply implements CommandReply, MessageEmitter {

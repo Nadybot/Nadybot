@@ -4,8 +4,8 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use Exception;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Types\EventFeedHandler;
 use Nadybot\Core\{Config\BotConfig, EventManager, ModuleInstance, SyncEventFactory};
+use Nadybot\Core\Types\EventFeedHandler;
 use Psr\Log\LoggerInterface;
 use Throwable;
 

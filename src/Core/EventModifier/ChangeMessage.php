@@ -37,6 +37,7 @@ class ChangeMessage implements EventModifier {
 		}
 		try {
 			if (isset($search) && $isRegExp) {
+				// @phpstan-ignore-next-line
 				Safe::exceptionWrapper(preg_match(...), chr(1) . $search . chr(1) . 'si', '');
 			}
 		} catch (ErrorException $e) {

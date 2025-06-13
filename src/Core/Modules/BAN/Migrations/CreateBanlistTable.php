@@ -4,8 +4,8 @@ namespace Nadybot\Core\Modules\BAN\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\BanEntry;
 use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\BanEntry;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_23_12_10_37)]

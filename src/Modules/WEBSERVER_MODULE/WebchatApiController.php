@@ -4,7 +4,6 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
-use Nadybot\Core\Types\{AccessLevel, HopColorType};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -19,6 +18,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use Nadybot\Core\Types\{AccessLevel, HopColorType};
 use Nadybot\Modules\{
 	WEBSOCKET_MODULE\WebsocketCommandReply,
 };

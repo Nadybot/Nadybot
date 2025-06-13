@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\{CmdCfg, CmdPermission};
 use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\{CmdCfg, CmdPermission};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2022_05_04_02_14_36)]

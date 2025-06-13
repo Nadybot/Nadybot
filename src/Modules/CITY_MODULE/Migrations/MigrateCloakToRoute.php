@@ -2,13 +2,13 @@
 
 namespace Nadybot\Modules\CITY_MODULE\Migrations;
 
-use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
 	Routing\Source,
 	Types\SchemaMigration,
 };
+use Nadybot\Core\DBSchema\Route;
 use Nadybot\Modules\CITY_MODULE\CloakController;
 use Psr\Log\LoggerInterface;
 

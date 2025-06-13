@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\Setting;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2023_12_22_10_28_53)]

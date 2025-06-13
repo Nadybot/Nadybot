@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\PVP_MODULE\Migrations;
 
-use Nadybot\Core\DBSchema\{RouteHopColor, RouteHopFormat};
 use Nadybot\Core\{Attributes as NCA, DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\{RouteHopColor, RouteHopFormat};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2023_03_08_16_39_57)]

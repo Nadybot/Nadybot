@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\Attributes\DB\Shared;
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Nadybot\Core\Attributes\DB\Shared;
 
 /** This table tracks who was last online when */
 #[NCA\DB\Table(name: 'last_online', shared: Shared::Yes)]

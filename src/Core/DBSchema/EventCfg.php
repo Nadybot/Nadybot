@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\Types\Status;
 use Nadybot\Core\{Attributes as NCA, DBTable};
+use Nadybot\Core\Types\Status;
 
 /** A single, user-configurable event */
 #[NCA\DB\Table(name: 'eventcfg')]

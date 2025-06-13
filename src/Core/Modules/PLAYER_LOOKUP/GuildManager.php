@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\Future\await;
 use function Amp\{async, delay};
+use function Amp\Future\await;
 use function Safe\json_decode;
 
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};

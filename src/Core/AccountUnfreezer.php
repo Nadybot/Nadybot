@@ -3,11 +3,11 @@
 namespace Nadybot\Core;
 
 use function Safe\json_decode;
-use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
-use Amp\Http\Client\Interceptor\SetRequestHeader;
-use Amp\Http\Client\{HttpClient, HttpClientBuilder, Request, SocketException, TimeoutException};
-use Amp\Http\Tunnel\Http1TunnelConnector;
 use Amp\{CancelledException, TimeoutCancellation};
+use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
+use Amp\Http\Client\{HttpClient, HttpClientBuilder, Request, SocketException, TimeoutException};
+use Amp\Http\Client\Interceptor\SetRequestHeader;
+use Amp\Http\Tunnel\Http1TunnelConnector;
 use AO\FrozenAccount;
 use Exception;
 use Nadybot\Core\{

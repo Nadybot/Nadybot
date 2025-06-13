@@ -6,7 +6,6 @@ use function Safe\preg_match;
 use Closure;
 use Generator;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Types\{AccessLevel, CarrySlot, EnumBitfield, ItemFlag, Skill, WearSlot};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	Types\Profession,
 	Util,
 };
+use Nadybot\Core\Types\{AccessLevel, CarrySlot, EnumBitfield, ItemFlag, Skill, WearSlot};
 use Nadybot\Modules\SKILLS_MODULE\{
 	BuffPerksController,
 	Perk,

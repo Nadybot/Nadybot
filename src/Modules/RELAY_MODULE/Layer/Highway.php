@@ -5,9 +5,9 @@ namespace Nadybot\Modules\RELAY_MODULE\Layer;
 use function Safe\json_encode;
 use EventSauce\ObjectHydrator\UnableToSerializeObject;
 use Exception;
+use Nadybot\Core\{Attributes as NCA, Hydrator, Safe};
 use Nadybot\Core\Highway\{In, Out, Parser, ParserHighwayException, ParserJsonException};
 use Nadybot\Core\Types\ParamType;
-use Nadybot\Core\{Attributes as NCA, Hydrator, Safe};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,

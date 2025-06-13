@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
+use Nadybot\Core\{Attributes as NCA, Text};
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\SettingHandlers\SettingHandler;
 use Nadybot\Core\Types\{Faction, Profession};
-use Nadybot\Core\{Attributes as NCA, Text};
 
 /**
  * Class to represent a setting with a tracker format value for NadyBot

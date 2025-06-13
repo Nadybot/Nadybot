@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core\Modules\BAN;
 
-use Nadybot\Core\Attributes\Inject;
-use Nadybot\Core\DBSchema\BanEntry;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -12,6 +10,8 @@ use Nadybot\Core\{
 	Nadybot,
 	Types\ExporterInterface
 };
+use Nadybot\Core\Attributes\Inject;
+use Nadybot\Core\DBSchema\BanEntry;
 use Psr\Log\LoggerInterface;
 
 /**

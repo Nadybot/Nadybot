@@ -10,7 +10,6 @@ use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
 use Monolog\Logger;
-use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -29,6 +28,7 @@ use Nadybot\Core\{
 	Types\MessageEmitter,
 	Types\MessageReceiver,
 };
+use Nadybot\Core\Types\ParamType;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;

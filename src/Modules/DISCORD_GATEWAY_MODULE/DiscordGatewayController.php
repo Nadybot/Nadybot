@@ -2,35 +2,18 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Amp\Future\await;
 use function Amp\{async, delay};
+use function Amp\Future\await;
 use function Safe\{array_flip, json_decode, json_encode, preg_match};
 
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
-use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, HttpException};
+use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, WebsocketConnection, WebsocketHandshake};
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException, WebsocketCount};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Illuminate\Support\ItemNotFoundException;
-use Nadybot\Core\Modules\DISCORD\{
-	Activity,
-	DiscordAPIClient,
-	DiscordChannel,
-	DiscordChannelInvite,
-	DiscordController,
-	DiscordEmbed,
-	DiscordException,
-	DiscordGateway,
-	DiscordMessageIn,
-	DiscordScheduledEvent,
-	DiscordUser,
-	Emoji,
-	Guild,
-	GuildMemberChunk,
-	VoiceState,
-};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -58,6 +41,23 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\Status,
 	Util,
+};
+use Nadybot\Core\Modules\DISCORD\{
+	Activity,
+	DiscordAPIClient,
+	DiscordChannel,
+	DiscordChannelInvite,
+	DiscordController,
+	DiscordEmbed,
+	DiscordException,
+	DiscordGateway,
+	DiscordMessageIn,
+	DiscordScheduledEvent,
+	DiscordUser,
+	Emoji,
+	Guild,
+	GuildMemberChunk,
+	VoiceState,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	CloseEvents,

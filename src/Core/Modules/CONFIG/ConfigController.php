@@ -4,13 +4,6 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\DBSchema\{
-	CmdCfg,
-	CmdPermission,
-	CmdPermissionSet,
-	EventCfg,
-	Setting,
-};
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -36,6 +29,13 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\ModuleInstanceInterface,
 	Types\Status,
+};
+use Nadybot\Core\DBSchema\{
+	CmdCfg,
+	CmdPermission,
+	CmdPermissionSet,
+	EventCfg,
+	Setting,
 };
 use ReflectionClass;
 use ValueError;

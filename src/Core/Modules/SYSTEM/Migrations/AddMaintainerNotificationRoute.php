@@ -2,13 +2,13 @@
 
 namespace Nadybot\Core\Modules\SYSTEM\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\{
 	DB,
 	Routing\Source,
 	Types\SchemaMigration,
 };
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\DBSchema\Route;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2023_01_15_11_26_47)]

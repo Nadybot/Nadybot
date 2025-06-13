@@ -3,9 +3,6 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\Attributes as NCA;
-
-use Nadybot\Core\DBSchema\RouteHopColor;
 use Nadybot\Core\{
 	DB,
 	DBSchema\Setting,
@@ -13,6 +10,9 @@ use Nadybot\Core\{
 	Safe,
 	Types\SchemaMigration,
 };
+
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\DBSchema\RouteHopColor;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_08_11_12_55_55)]

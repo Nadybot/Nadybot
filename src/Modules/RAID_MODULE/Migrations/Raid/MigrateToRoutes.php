@@ -2,14 +2,14 @@
 
 namespace Nadybot\Modules\RAID_MODULE\Migrations\Raid;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\{Route, RouteHopFormat};
 use Nadybot\Core\{
 	DB,
 	DBSchema\Setting,
 	Routing\Source,
 	Types\SchemaMigration,
 };
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\DBSchema\{Route, RouteHopFormat};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2022_03_29_16_01_22)]

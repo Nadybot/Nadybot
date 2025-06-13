@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use MathParser\Exceptions\UnknownOperatorException;
-use MathParser\Parsing\Nodes\Factories\NodeFactory;
 use MathParser\Parsing\Nodes\{ExpressionNode, Node};
+use MathParser\Parsing\Nodes\Factories\NodeFactory;
 
 class AONodeFactory extends NodeFactory {
 	/**

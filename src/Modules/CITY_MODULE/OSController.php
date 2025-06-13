@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-use Nadybot\Core\Events\OrgMsgChannelMsgEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -10,6 +9,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Safe,
 };
+use Nadybot\Core\Events\OrgMsgChannelMsgEvent;
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
 
 /**

@@ -4,8 +4,6 @@ namespace Nadybot\Modules\VOTE_MODULE;
 
 use function Safe\{json_decode, json_encode};
 use InvalidArgumentException;
-use Nadybot\Core\Attributes\Inject;
-use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -14,6 +12,8 @@ use Nadybot\Core\{
 	Types\ExporterInterface,
 	Types\ImporterInterface
 };
+use Nadybot\Core\Attributes\Inject;
+use Nadybot\Core\Config\BotConfig;
 
 use Psr\Log\LoggerInterface;
 use Throwable;

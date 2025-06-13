@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\ADMIN;
 
-use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -27,6 +26,7 @@ use Nadybot\Core\{
 	Types\Status,
 	Util,
 };
+use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Psr\Log\LoggerInterface;
 
 /** This is the main controller with commands to modify player's admin/mod ranks */

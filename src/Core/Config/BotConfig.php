@@ -3,8 +3,8 @@
 namespace Nadybot\Core\Config;
 
 use function Safe\{json_decode, json_encode};
-use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, UnableToHydrateObject};
+use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 use Nadybot\Core\Attributes\{Instance, JSON\Ignore};
 use Nadybot\Core\{BotRunner, Filesystem, Hydrator, Safe};
 use Nadylib\IMEX;

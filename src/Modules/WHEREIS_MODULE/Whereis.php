@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\WHEREIS_MODULE;
 
-use Nadybot\Core\Types\Playfield;
 use Nadybot\Core\{Attributes as NCA, DBTable, Text};
+use Nadybot\Core\Types\Playfield;
 
 #[NCA\DB\Table(name: 'whereis', shared: NCA\DB\Shared::Yes)]
 class Whereis extends DBTable {

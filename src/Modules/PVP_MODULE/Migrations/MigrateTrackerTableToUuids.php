@@ -4,8 +4,8 @@ namespace Nadybot\Modules\PVP_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\Route;
 use Nadybot\Modules\PVP_MODULE\TrackerEntry;
 use Psr\Log\LoggerInterface;
 

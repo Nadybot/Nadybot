@@ -13,6 +13,12 @@ use Amp\Http\Client\{
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455ConnectionFactory, Rfc6455Connector, WebsocketConnectException, WebsocketHandshake};
 use Amp\Websocket\{PeriodicHeartbeatQueue, WebsocketCloseCode, WebsocketClosedException};
+use Nadybot\Core\{
+	Attributes as NCA,
+	Events\EventFeedConnect,
+	Events\EventFeedReconnect,
+	Types\EventFeedHandler,
+};
 use Nadybot\Core\Events\EventFeed\{
 	ErrorPackageEvent,
 	HelloPackageEvent,
@@ -22,12 +28,6 @@ use Nadybot\Core\Events\EventFeed\{
 	ResultPackageEvent,
 	RoomInfoPackageEvent,
 	SuccessPackageEvent
-};
-use Nadybot\Core\{
-	Attributes as NCA,
-	Events\EventFeedConnect,
-	Events\EventFeedReconnect,
-	Types\EventFeedHandler,
 };
 use Psr\Log\LoggerInterface;
 use ReflectionClass;

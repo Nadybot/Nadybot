@@ -3,11 +3,11 @@
 namespace Nadybot\Modules\HELPBOT_MODULE\Migrations\Arbiter;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	DB,
 	Types\SchemaMigration,
 };
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Modules\HELPBOT_MODULE\{ArbiterController, ICCArbiter};
 use Psr\Log\LoggerInterface;
 

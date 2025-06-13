@@ -2,13 +2,13 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Types\{AccessLevel, MinMax};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	Text,
 };
+use Nadybot\Core\Types\{AccessLevel, MinMax};
 use ValueError;
 
 /**

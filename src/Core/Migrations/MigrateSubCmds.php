@@ -2,12 +2,12 @@
 
 namespace Nadybot\Core\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\{CmdAlias, CmdCfg, CmdPermission};
 use Nadybot\Core\{
 	DB,
 	Types\SchemaMigration,
 };
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\DBSchema\{CmdAlias, CmdCfg, CmdPermission};
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatAssistController,
 	BASIC_CHAT_MODULE\ChatLeaderController,

@@ -4,8 +4,8 @@ namespace Nadybot\Core\SettingHandlers;
 
 use function Safe\preg_match;
 use Exception;
-use Nadybot\Core\Modules\COLORS\ColorsController;
 use Nadybot\Core\{Attributes as NCA, Registry, Safe};
+use Nadybot\Core\Modules\COLORS\ColorsController;
 
 /**
  * Class to represent a setting with a color value for NadyBot

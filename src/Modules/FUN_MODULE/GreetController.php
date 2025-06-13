@@ -5,12 +5,6 @@ namespace Nadybot\Modules\FUN_MODULE;
 use function Amp\delay;
 
 use AO\Utils;
-use Nadybot\Core\Modules\{
-	ALTS\AltNewMainEvent,
-	ALTS\AltsController,
-	PLAYER_LOOKUP\PlayerManager,
-	PREFERENCES\Preferences,
-};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -24,6 +18,12 @@ use Nadybot\Core\{
 	ParamClass\PUuid,
 	Text,
 	Types\AccessLevel,
+};
+use Nadybot\Core\Modules\{
+	ALTS\AltNewMainEvent,
+	ALTS\AltsController,
+	PLAYER_LOOKUP\PlayerManager,
+	PREFERENCES\Preferences,
 };
 use Psr\Log\LoggerInterface;
 

@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\SettingHandlers;
 
-use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\{Attributes as NCA, Text};
+use Nadybot\Core\DBSchema\Setting;
 
 /** Class to represent a setting with a bool value for NadyBot */
 #[NCA\SettingHandler('bool')]

@@ -17,13 +17,13 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 };
-use Nadybot\Modules\RAFFLE_MODULE\RaffleController;
-use Nadybot\Modules\RAID_MODULE\AuctionController;
-
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
 	ITEMS_MODULE\ItemsController,
 };
+use Nadybot\Modules\RAFFLE_MODULE\RaffleController;
+
+use Nadybot\Modules\RAID_MODULE\AuctionController;
 
 /**
  * @author Marinerecon (RK2)

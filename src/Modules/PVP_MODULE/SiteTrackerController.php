@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -21,6 +20,7 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util
 };
+use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use Nadybot\Modules\PVP_MODULE\{
 	Attributes\Argument,
 	FeedMessage\SiteUpdate,

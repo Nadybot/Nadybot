@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\RECIPE_MODULE;
 
 use Exception;
-use Nadybot\Core\Types\{AccessLevel, ItemFlag, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	Safe,
 	Text,
 };
+use Nadybot\Core\Types\{AccessLevel, ItemFlag, Skill};
 use Nadybot\Modules\ITEMS_MODULE\{
 	AODBItem,
 	ItemWithBuffs,

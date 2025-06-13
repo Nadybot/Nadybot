@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Attributes\Parameter\{ClusterGradeStr,ImplantSlotStr,Str};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	Types\Skill,
 	Util,
 };
+use Nadybot\Core\Attributes\Parameter\{ClusterGradeStr,ImplantSlotStr,Str};
 use ValueError;
 
 /**

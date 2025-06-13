@@ -3,8 +3,8 @@
 namespace Nadybot\Core;
 
 use function Amp\delay;
-use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, Request, Response};
 use Amp\{Cancellation, ForbidCloning as AmpForbidCloning, ForbidSerialization as AmpForbidSerialization};
+use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, Request, Response};
 
 /**
  * Automatically retry HTTP requests on HTTP code 429

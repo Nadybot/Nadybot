@@ -4,8 +4,8 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\Player;
 use Psr\Log\LoggerInterface;
 use Throwable;
 

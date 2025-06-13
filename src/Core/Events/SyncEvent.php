@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core\Events;
 
+use Nadybot\Core\{Attributes as NCA, Registry, StringableTrait};
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Types\DoNotSerializePublicFunctions;
-use Nadybot\Core\{Attributes as NCA, Registry, StringableTrait};
 use Stringable;
 
 /**
@@ -42,10 +42,6 @@ abstract class SyncEvent implements Stringable, DoNotSerializePublicFunctions {
 
 	/** Is this an event our bot triggered? */
 	public function isLocal(): bool {
-		if (!isset($this->sourceBot) || !isset($this->sourceDimension)) {
-			return true;
-		}
-
 		$config = Registry::getInstance(BotConfig::class);
 		$myName = $config->main->character;
 		$myDim = $config->main->dimension;

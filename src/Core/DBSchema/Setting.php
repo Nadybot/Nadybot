@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core\DBSchema;
 
+use Nadybot\Core\{Attributes as NCA, DBTable, Types\SettingMode};
 use Nadybot\Core\Attributes\DB\ColName;
 use Nadybot\Core\Types\AccessLevel;
-use Nadybot\Core\{Attributes as NCA, DBTable, Types\SettingMode};
 
 /** This table stores all the settings and there current values in the bot */
 #[NCA\DB\Table(name: 'settings')]

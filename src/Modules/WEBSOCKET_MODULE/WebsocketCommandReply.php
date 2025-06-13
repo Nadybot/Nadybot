@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
-use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Types\HopColorType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventManager,
@@ -17,6 +15,8 @@ use Nadybot\Core\{
 	Types\CommandReply,
 	Types\MessageEmitter,
 };
+use Nadybot\Core\Config\BotConfig;
+use Nadybot\Core\Types\HopColorType;
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	AOWebChatEvent,
 	WebChatConverter,

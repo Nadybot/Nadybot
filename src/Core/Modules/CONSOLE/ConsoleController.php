@@ -205,6 +205,7 @@ class ConsoleController extends ModuleInstance {
 		if (feof($this->socket)) {
 			echo("EOF received, closing console.\n");
 			try {
+				// @phpstan-ignore-next-line
 				Safe::exceptionWrapper(fclose(...), $this->socket);
 			} catch (ErrorException) {
 			}
