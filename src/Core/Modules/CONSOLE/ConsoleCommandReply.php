@@ -19,6 +19,13 @@ use Nadybot\Core\{
 };
 use Revolt\EventLoop;
 
+/**
+ * Console command reply handler that formats and outputs messages to the console
+ *
+ * This class implements both CommandReply and MessageEmitter interfaces to handle
+ * command responses and message routing for console output. It provides formatting
+ * capabilities including color conversion, link handling, and ANSI escape sequences.
+ */
 class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	#[NCA\Inject]
 	private ConsoleController $consoleController;
@@ -37,11 +44,23 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	) {
 	}
 
+	/**
+	 * Get the channel name for this reply handler
+	 *
+	 * @return string Always returns Source::CONSOLE
+	 */
 	public function getChannelName(): string {
 		return Source::CONSOLE;
 	}
 
-	/** {@inheritDoc} */
+	/**
+	 * Reply with a message, routing it through the message hub and outputting to console
+	 *
+	 * This method processes the message through the routing system and formats it
+	 * for console output with proper character name prefix.
+	 *
+	 * @param string|string[] $msg The message or array of messages to reply with
+	 */
 	public function reply(string|array $msg): void {
 		// $msg = Text::unbreakPopups((array)$msg);
 		$msg = (array)$msg;
@@ -55,7 +74,11 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		}
 	}
 
-	/** @param string|list<string> $msg */
+	/**
+	 * Reply with a message directly to console without routing through message hub
+	 *
+	 * @param string|string[] $msg The message or array of messages to reply with
+	 */
 	public function replyOnly(string|array $msg): void {
 		$msg = (array)$msg;
 		foreach ($msg as $text) {
@@ -64,7 +87,16 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		}
 	}
 
-	/** Replace color names with hex codes */
+	/**
+	 * Replace color names with hex codes in HTML font tags
+	 *
+	 * Converts named colors (like 'red', 'blue', etc.) to their hex equivalents
+	 * in font color attributes for consistent color handling.
+	 *
+	 * @param string $text The text containing color names to replace
+	 *
+	 * @return string The text with color names replaced by hex codes
+	 */
 	public function replaceColorNamesWithCodes(string $text): string {
 		$namesToHex = [
 			'aliceblue' => '#f0f8ff',
@@ -231,6 +263,20 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		);
 	}
 
+	/**
+	 * Format a message for console output
+	 *
+	 * This method handles comprehensive message formatting including:
+	 * - Replacing bot placeholders with actual values
+	 * - Converting HTML-like tags to console equivalents
+	 * - Processing links and item references
+	 * - Handling color formatting
+	 * - Processing embedded popups and text blocks
+	 *
+	 * @param string $message The raw message to format
+	 *
+	 * @return string The formatted message ready for console output
+	 */
 	public function formatMsg(string $message): string {
 		$array = [
 			'<myname>' => $this->config->main->character,
@@ -325,6 +371,17 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		return $message;
 	}
 
+	/**
+	 * Handle color formatting for console output
+	 *
+	 * Processes color tags and converts them to appropriate ANSI escape sequences
+	 * or removes them based on console color settings.
+	 *
+	 * @param string $text     The text containing color tags
+	 * @param bool   $clearEOL Whether to add clear-to-end-of-line sequences
+	 *
+	 * @return string The text with color formatting applied
+	 */
 	public function handleColors(string $text, bool $clearEOL): string {
 		if (!$this->consoleController->consoleColor) {
 			return $this->parseBasicAnsi($text);
@@ -364,6 +421,16 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		return $text;
 	}
 
+	/**
+	 * Parse basic ANSI formatting without full color support
+	 *
+	 * Used when console color support is disabled. Converts basic formatting
+	 * tags to simple ANSI escape sequences for underlining and bold text.
+	 *
+	 * @param string $text The text to parse
+	 *
+	 * @return string The text with basic ANSI formatting
+	 */
 	protected function parseBasicAnsi(string $text): string {
 		$array = [
 			'<header>' => "\e[1;4m",
@@ -396,6 +463,16 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		return $text;
 	}
 
+	/**
+	 * Parse full ANSI color formatting
+	 *
+	 * Converts color tags to full ANSI color escape sequences when console
+	 * color support is enabled. Handles both named colors and hex colors.
+	 *
+	 * @param string $text The text to parse
+	 *
+	 * @return string The text with full ANSI color formatting
+	 */
 	protected function parseAnsiColors(string $text): string {
 		$text = $this->replaceColorNamesWithCodes($text);
 		$array = [
@@ -429,16 +506,41 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		return $text;
 	}
 
+	/**
+	 * Convert a hex color code to ANSI foreground color escape sequence
+	 *
+	 * @param string $hexColor The hex color code (6 characters, without #)
+	 *
+	 * @return string The ANSI escape sequence for the foreground color
+	 */
 	protected function fgHexToAnsi(string $hexColor): string {
 		$codes = array_map('hexdec', str_split($hexColor, 2));
 		return "\e[38;2;" . implode(';', $codes) . 'm';
 	}
 
+	/**
+	 * Convert a hex color code to ANSI background color escape sequence
+	 *
+	 * @param string $hexColor The hex color code (6 characters, without #)
+	 *
+	 * @return string The ANSI escape sequence for the background color
+	 */
 	protected function bgHexToAnsi(string $hexColor): string {
 		$codes = array_map('hexdec', str_split($hexColor, 2));
 		return "\e[48;2;" . implode(';', $codes) . 'm';
 	}
 
+	/**
+	 * Create a clickable hyperlink for console output
+	 *
+	 * Uses ANSI escape sequences to create terminal hyperlinks that can be
+	 * clicked in supported terminals.
+	 *
+	 * @param string $url  The URL to link to
+	 * @param string $text The display text for the link
+	 *
+	 * @return string The formatted hyperlink with ANSI escape sequences
+	 */
 	private function createLink(string $url, string $text): string {
 		return "<link>\e]8;;{$url}\e\\{$text}\e]8;;\e\\</link>";
 	}

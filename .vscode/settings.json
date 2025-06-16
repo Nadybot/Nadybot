@@ -100,4 +100,7 @@
     ],
     "phpstan.checkValidity": true,
     "vale.enableSpellcheck": true,
+    "cSpell.words": [
+        "Nadybot"
+    ],
 }
