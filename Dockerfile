@@ -13,6 +13,7 @@ RUN apk --no-cache add \
     php82-cli \
     php82-sqlite3 \
     php82-phar \
+    php82-iconv \
     php82-curl \
     php82-sockets \
     php82-pdo \
@@ -45,6 +46,7 @@ RUN apk --no-cache add \
         gcc \
         libuv-dev \
     && \
+    pecl82 channel-update pecl.php.net && \
     pecl82 install channel://pecl.php.net/uv-0.3.0 && \
     strip /usr/lib/php82/modules/uv.so && \
     rm -rf /tmp/pear && \
