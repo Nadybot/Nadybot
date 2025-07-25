@@ -137,7 +137,7 @@ groups:
         expect:
           - '<(omni|clan|neutral)>(?<org>.*?)<end>'
           - 'nw sites (?<org_id>\d+)'
-      - command: nw sites {org}
+      - command: nw sites org {org}
         name: Get a list of all the sites of an org by their name
         expect:
           - All tower sites of '{org}'
