@@ -99,3 +99,7 @@ level = "Off"
 [[linter.rules]]
 name = "best-practices/dont-catch-error"
 level = "Off"
+
+[[linter.rules]]
+name = "best-practices/literal-named-argument"
+level = "Off"

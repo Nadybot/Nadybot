@@ -66,7 +66,11 @@ class ReputationController extends ModuleInstance {
 
 		$blob = '';
 
-		/** @var array<string,\stdClass> */
+		/**
+		 * @var array<string,\stdClass>
+		 *
+		 * @psalm-var array<string,object{total:int,comments:list<Comment>}&\stdClass>
+		 */
 		$charReputation = [];
 		foreach ($comments as $comment) {
 			if (!array_key_exists($comment->character, $charReputation)) {
@@ -79,7 +83,7 @@ class ReputationController extends ModuleInstance {
 		$blobs = [];
 		foreach ($charReputation as $char => $charData) {
 			$count++;
-			$blob = "<pagebreak><header2>{$char}<end>" . ' (' . sprintf('%+d', $charData->total) . ')';
+			$blob = sprintf('<pagebreak><header2>%s<end> (%+d)', $char, $charData->total);
 			$comments = array_slice($charData->comments, 0, 3);
 			foreach ($comments as $comment) {
 				$color = str_starts_with($comment->comment, '+1') ? 'green' : 'red';

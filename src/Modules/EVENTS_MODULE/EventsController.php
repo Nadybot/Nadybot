@@ -395,7 +395,7 @@ class EventsController extends ModuleInstance implements ImporterInterface, Expo
 			->exists();
 	}
 
-	/** @psalm-param callable(?string) $callback */
+	/** @param string $sender Name of the character seeing the tile */
 	#[
 		NCA\NewsTile(
 			name: 'events',

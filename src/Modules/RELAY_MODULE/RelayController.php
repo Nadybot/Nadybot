@@ -1646,7 +1646,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	/**
 	 * @param list<Source> $source
 	 *
-	 * @psalm-param list<Source>&non-empty-array<int,Source> $source
+	 * @psalm-param non-empty-list<Source> $source
 	 */
 	private function getExampleMessage(RelayConfig $relay, array $source): string {
 		$rEvent = new RoutableMessage('xxx');

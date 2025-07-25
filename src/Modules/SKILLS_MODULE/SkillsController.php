@@ -607,8 +607,8 @@ class SkillsController extends ModuleInstance {
 		$blob =
 			"<header2>Stats<end>\n".
 			"<tab>Item:       {$itemLink}\n".
-			'<tab>Attack:    <highlight>' . sprintf('%.2f', $attackTime) . "<end>s\n".
-			'<tab>Recharge: <highlight>' . sprintf('%.2f', $rechargeTime) . "<end>s\n".
+			'<tab>Attack:    <highlight>' . number_format($attackTime, 2) . "<end>s\n".
+			'<tab>Recharge: <highlight>' . number_format($rechargeTime, 2) . "<end>s\n".
 			"\n".
 			"<header2>Agg/Def<end>\n".
 			'<tab>' . $this->getInitDisplay($attackTime, $rechargeTime) . "\n";

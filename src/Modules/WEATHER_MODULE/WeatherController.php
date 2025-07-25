@@ -70,7 +70,7 @@ class WeatherController extends ModuleInstance {
 	/**
 	 * Lookup the coordinates of a location
 	 *
-	 * @psalm-param callable(HttpResponse, CmdContext, mixed...) $callback
+	 * @param string $location The location to look up
 	 */
 	public function lookupLocation(string $location): Nominatim {
 		$apiEndpoint = 'https://nominatim.openstreetmap.org/search?';

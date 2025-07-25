@@ -127,7 +127,7 @@ class SymbiantController extends ModuleInstance {
 					$colorEnd = '</font>';
 				}
 				$blob .= "<tab>{$colorStart}{$buff->skill->fullName()}";
-				$blob .= ': ' . sprintf('%+d', $buff->amount) . $buff->skill->unit();
+				$blob .= sprintf(': %+d%s', $buff->amount, $buff->skill->unit());
 				$blob .= "{$colorEnd}\n";
 			}
 			return $blob;

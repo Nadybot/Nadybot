@@ -151,31 +151,33 @@ class GauntletInventoryController extends ModuleInstance {
 		// Do blob box
 		$gauTradeCmd = Text::makeChatcmd('<symbol>gautrade', '/tell <myname> gautrade');
 		$gauListMask = Text::makeChatcmd('%d Armor', "/tell <myname> gaulist {$name} %d");
-		$list = "Tradeskill: [{$gauTradeCmd}]\n" .
-			'Needed items for: ['.
-			sprintf($gauListMask, 1, 1) . '|' .
-			sprintf($gauListMask, 2, 2) . '|' .
-			sprintf($gauListMask, 3, 3) . "]\n\n";
+		$list = sprintf(
+			"Tradeskill: [%s]\n".
+			"Needed items for: [{$gauListMask}|{$gauListMask}|{$gauListMask}]\n\n",
+			$gauTradeCmd,
+			1,
+			1,
+			2,
+			2,
+			3,
+			3
+		);
 		$list .= "<header2>Items needed for {$numArmors} Bastion armor parts<end>\n".
 			"<tab>[ + increase amount | <green>Amount you have<end> | <red>Amount you still need<end> | - decrease amount ]\n\n";
 
-		$incLink = Text::makeChatcmd(' + ', "/tell <myname> gaulist add {$name} %d");
-		$decLink = Text::makeChatcmd(' - ', "/tell <myname> gaulist del {$name} %d");
+		$incMask = Text::makeChatcmd(' + ', "/tell <myname> gaulist add {$name} %d");
+		$decMask = Text::makeChatcmd(' - ', "/tell <myname> gaulist del {$name} %d");
 		$headerLine = '<tab>';
 		$line = '<tab>';
 		for ($i = 0; $i <= 16; $i++) {
 			$data = $this->gaulisttab[$i];
 			$itemLink = Text::makeItem($data[0], $data[0], 1, Text::makeImage($data[1]));
 			$headerLine .= "    {$itemLink}    ";
-			$line .= '['.
-				sprintf($incLink, $i).
-				'|'.
-				'<green>' . ($inventory[$i]??0) . '<end>'.
-				'|'.
-				'<red>'.max(0, ($numArmors*$data[2])-$inventory[$i]).'<end>'.
-				'|'.
-				sprintf($decLink, $i).
-				'] ';
+			$incLink = sprintf($incMask, $i);
+			$decLink = sprintf($decMask, $i);
+			$weHave = ($inventory[$i]??0);
+			$weNeed = max(0, ($numArmors*$data[2])-$weHave);
+			$line .= "[{$incLink}|<green>{$weHave}<end>|<red>{$weNeed}<end>|{$decLink}] ";
 			if ((($i+1) % 4) === 0 || $i === 16) {
 				$list .= $headerLine . "\n" . $line . "\n\n";
 				$headerLine = '<tab>';
