@@ -2,13 +2,14 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use function Safe\{json_decode, json_encode, preg_split};
+use function Safe\{json_decode, json_encode};
 use Amp\Dns\DnsException;
 use Amp\Http\Client\{HttpClientBuilder, InvalidRequestException, Request};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
+	Safe,
 	Text,
 	Types\AccessLevel,
 };
@@ -62,7 +63,7 @@ class HttpRequestController extends ModuleInstance {
 				$body = json_encode($decoded, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES);
 			} catch (JsonException $e) {
 			}
-			$lines = preg_split("/\r?\n/", htmlspecialchars($body));
+			$lines = Safe::pregSplit("/\r?\n/", htmlspecialchars($body));
 			foreach ($lines as $line) {
 				if (strlen($line) > 500) {
 					$blob .= "\n<pagebreak><tab>" . wordwrap($line, 75, "\n<tab>", true);

@@ -4,7 +4,13 @@ php_version = "8.1"
 paths = ["src"]
 excludes = [
   "src/Core/QueryBuilder.php",
-  "src/websetup"
+  "src/websetup",
+   "vendor/squizlabs/php_codesniffer/tests/Core/Ruleset/Fixtures/DirectoryExpansion/.hiddenAbove/src/MyStandard/Sniffs/.hidden/HiddenDirShouldBeIgnoredSniff.php",
+  "vendor/nikic/fast-route/test/HackTypechecker/fixtures/all_options.php",
+  "vendor/squizlabs/php_codesniffer/tests/Core/Ruleset/Fixtures/DirectoryExpansion/.hiddenAbove/src/MyStandard/Sniffs/CategoryA/.hidden/HiddenDirShouldBeIgnoredSniff.php",
+  "vendor/nikic/fast-route/test/HackTypechecker/fixtures/no_options.php",
+  "vendor/nikic/fast-route/test/HackTypechecker/fixtures/empty_options.php",
+  "vendor/squizlabs/php_codesniffer/tests/Core/Ruleset/Fixtures/DirectoryExpansion/.hiddenAbove/src/MyStandard/.hidden/HiddenDirShouldBeIgnoredSniff.php",
 ]
 includes = ["vendor", "src/Core"]
 extensions = ["php"]
