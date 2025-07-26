@@ -136,7 +136,7 @@ class ApiSpecGenerator {
 			if (is_subclass_of($class, \Attribute::class)) {
 				continue;
 			}
-			if ($class === $className || preg_match("/^Nadybot\\\\.*?\\\\\Q{$className}\E$/", $class)) {
+			if ($class === $className || Safe::pregMatches("/^Nadybot\\\\.*?\\\\\Q{$className}\E$/", $class)) {
 				return $class;
 			}
 		}

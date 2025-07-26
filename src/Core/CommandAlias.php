@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use function Safe\preg_match;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -158,7 +157,7 @@ class CommandAlias {
 			$cmd
 		);
 		// if parameter placeholders still exist, then they did not pass enough parameters
-		if (preg_match("/\{\\d+(:.*?)?\}/", $cmd)) {
+		if (Safe::pregMatches("/\{\\d+(:.*?)?\}/", $cmd)) {
 			return false;
 		}
 		$context->message = $cmd;

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
-use function Safe\preg_match;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -14,6 +13,7 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	Modules\CONFIG\ConfigController,
 	Routing\Source,
+	Safe,
 	SettingManager,
 	Types\SchemaMigration,
 };
@@ -45,7 +45,7 @@ class MigrateToRelayTable implements SchemaMigration {
 	}
 
 	protected function getSetting(DB $db, string $name): ?Setting {
-		if (preg_match('/^(bot|relay)/', $name)) {
+		if (Safe::pregMatches('/^(bot|relay)/', $name)) {
 			$name = "{$this->prefix}{$name}";
 		}
 		return $db->table(Setting::getTable())

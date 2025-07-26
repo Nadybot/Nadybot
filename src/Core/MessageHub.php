@@ -4,7 +4,6 @@ namespace Nadybot\Core;
 
 use function Amp\async;
 use function Amp\Future\awaitAll;
-use function Safe\preg_match;
 
 use Exception;
 use Illuminate\Support\Collection;
@@ -253,7 +252,7 @@ class MessageHub {
 						unset($params[$parameter->name]);
 						break;
 					case ParamType::Int:
-						if (!is_string($value) || !preg_match("/^[+-]?\d+/", $value)) {
+						if (!is_string($value) || !Safe::pregMatches("/^[+-]?\d+/", $value)) {
 							throw new Exception(
 								"Argument <highlight>{$parameter->name}<end> to ".
 								"<highlight>{$name}<end> must be a number, ".

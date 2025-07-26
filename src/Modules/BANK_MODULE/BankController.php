@@ -4,7 +4,6 @@ namespace Nadybot\Modules\BANK_MODULE;
 
 use function Amp\async;
 use function Amp\Future\await;
-use function Safe\preg_match;
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Illuminate\Support\Collection;
@@ -241,7 +240,7 @@ class BankController extends ModuleInstance {
 	 * @throws UserException On error
 	 */
 	private function loadLocation(string $location): string {
-		if (preg_match('|^https?://|', $location)) {
+		if (Safe::pregMatches('|^https?://|', $location)) {
 			$client = $this->builder->build();
 
 			$response = $client->request(new Request($location));

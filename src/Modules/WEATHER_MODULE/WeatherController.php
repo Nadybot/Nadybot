@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEATHER_MODULE;
 
-use function Safe\{json_decode, json_encode, preg_match};
+use function Safe\{json_decode, json_encode};
 use Amp\Cache\LocalCache;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\Http\Client\Interceptor\AddRequestHeader;
@@ -270,7 +270,7 @@ class WeatherController extends ModuleInstance {
 		$placeParts = explode(', ', $nominatim->display_name);
 		$locationName = $placeParts[0];
 		// If we're being shown just a ZIP code or house number, add one more layer of info
-		if (preg_match("/^\d+/", $locationName)) {
+		if (Safe::pregMatches("/^\d+/", $locationName)) {
 			$locationName = "{$placeParts[1]} {$locationName}";
 		}
 		$header = "The current weather for <highlight>{$locationName}<end>";

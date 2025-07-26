@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
-use function Safe\preg_match;
 use AO\Package;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -210,7 +209,7 @@ class TradebotController extends ModuleInstance {
 	public function isTradebot(string $botName): bool {
 		$tradebotNames = $this->normalizeBotNames($this->tradebot);
 		foreach ($tradebotNames as $tradebotName) {
-			if (preg_match("/^\Q{$tradebotName}\E\d*$/", $botName)) {
+			if (Safe::pregMatches("/^\Q{$tradebotName}\E\d*$/", $botName)) {
 				return true;
 			}
 		}
@@ -248,7 +247,7 @@ class TradebotController extends ModuleInstance {
 		$ignorePattern = self::BOT_DATA[$baseSender]['ignore'] ?? [];
 		$strippedMessage = strip_tags($message);
 		foreach ($ignorePattern as $ignore) {
-			if (preg_match($ignore, $strippedMessage)) {
+			if (Safe::pregMatches($ignore, $strippedMessage)) {
 				return;
 			}
 		}

@@ -1250,27 +1250,27 @@ class Nadybot {
 		$this->logChat('Inc. Msg.', $sender, $message);
 
 		// AFK/bot check
-		if (preg_match("|{$sender} is AFK|si", $message)) {
+		if (Safe::pregMatches("|{$sender} is AFK|si", $message)) {
 			return;
-		} elseif (preg_match('|I am away from my keyboard right now|si', $message)) {
+		} elseif (Safe::pregMatches('|I am away from my keyboard right now|si', $message)) {
 			return;
-		} elseif (preg_match('|Unknown command or access denied!|si', $message)) {
+		} elseif (Safe::pregMatches('|Unknown command or access denied!|si', $message)) {
 			return;
 		} elseif (preg_match('|Command not found, try|si', $message)) {
 			return;
-		} elseif (preg_match("|Unknown command '|si", $message)) {
+		} elseif (Safe::pregMatches("|Unknown command '|si", $message)) {
 			return;
-		} elseif (preg_match('|Use .autoinvite to control your auto|si', $message)) {
+		} elseif (Safe::pregMatches('|Use .autoinvite to control your auto|si', $message)) {
 			return;
-		} elseif (preg_match('|I am responding|si', $message)) {
+		} elseif (Safe::pregMatches('|I am responding|si', $message)) {
 			return;
-		} elseif (preg_match('|I only listen|si', $message)) {
+		} elseif (Safe::pregMatches('|I only listen|si', $message)) {
 			return;
-		} elseif (preg_match('|Error!|si', $message)) {
+		} elseif (Safe::pregMatches('|Error!|si', $message)) {
 			return;
-		} elseif (preg_match('|Unknown command input|si', $message)) {
+		} elseif (Safe::pregMatches('|Unknown command input|si', $message)) {
 			return;
-		} elseif (preg_match("|/tell {$sender} !help|i", $message)) {
+		} elseif (Safe::pregMatches("|/tell {$sender} !help|i", $message)) {
 			return;
 		}
 

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\COLORS;
 
-use function Safe\{json_decode, preg_match};
+use function Safe\json_decode;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Modules\MESSAGES\MessageHubController,
+	Safe,
 	SettingManager,
 	Text,
 	Types\AccessLevel,
@@ -216,14 +217,14 @@ class ColorsController extends ModuleInstance {
 				continue;
 			}
 			$setting = "default_{$attr}";
-			if (preg_match('/^#([0-9a-f]{6})$/i', $value)) {
+			if (Safe::pregMatches('/^#([0-9a-f]{6})$/i', $value)) {
 				$value = strtoupper($value);
 				$value = "<font color='{$value}'>";
 			}
 			$this->settingManager->save($setting, $value);
 		}
 		$sysColor = $theme->routed_sys_color ?? null;
-		if (isset($sysColor) && preg_match('/^#([0-9a-f]{6})$/i', $sysColor)) {
+		if (isset($sysColor) && Safe::pregMatches('/^#([0-9a-f]{6})$/i', $sysColor)) {
 			$this->setRoutedSysColor(substr(strtoupper($sysColor), 1));
 		}
 	}
@@ -279,7 +280,7 @@ class ColorsController extends ModuleInstance {
 			if (!isset($value)) {
 				continue;
 			}
-			if (preg_match('/^#([0-9a-f]{6})$/i', $value)) {
+			if (Safe::pregMatches('/^#([0-9a-f]{6})$/i', $value)) {
 				$value = "<font color='{$value}'>";
 			}
 			$currValue = $this->settingManager->getString("default_{$attr}");

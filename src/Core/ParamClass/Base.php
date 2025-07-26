@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\ParamClass;
 
-use function Safe\preg_match;
+use Nadybot\Core\Safe;
 
 /**
  * This is the abstract base class for all classes that can be used as a
@@ -34,7 +34,7 @@ abstract class Base {
 
 	/** Check if a given string would match this class */
 	public static function matches(string $string): bool {
-		return preg_match(chr(1) . '^(?' . static::$preRegExp . ')(' . static::$regExp . ')$' . chr(1) . 'is', $string) > 0;
+		return Safe::pregMatches(chr(1) . '^(?' . static::$preRegExp . ')(' . static::$regExp . ')$' . chr(1) . 'is', $string);
 	}
 
 	/**

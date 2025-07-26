@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core\Modules\LIMITS;
 
-use function Safe\preg_match;
-
 use AO\Package;
 
 use Nadybot\Core\{
@@ -23,6 +21,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Types\AccessLevel,
 	Types\Status,
 	Util,
@@ -153,7 +152,7 @@ class LimitsController extends ModuleInstance {
 		if (strcasecmp($message, 'about') === 0) {
 			return true;
 		}
-		return (bool)(preg_match("/^alt(decline|validate)\s+([a-z0-9-]+)$/i", $message));
+		return Safe::pregMatches("/^alt(decline|validate)\s+([a-z0-9-]+)$/i", $message);
 	}
 
 	/** Check if $sender is allowed to send $message */

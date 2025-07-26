@@ -4,6 +4,9 @@ groups:
 
   - name: loot commands
     tests:
+      - name: Clear old loot rolls
+        command: executesql DELETE FROM loot_history_<myname>
+        expect: Query run successfully
       - command: loot
         name: Check the loot list
         expect:  No loot list
@@ -320,8 +323,8 @@ groups:
         name: Show the last loot rolls
         expect:
           - Last loot rolls \(1\)
-          - loot history 1'>1 item</a>
-      - command: loot history 1
+          - loot history (?<loot_roll>\d+)'>1 item</a>
+      - command: loot history {loot_roll}
         name: Show the history of the last loot roll
         expect: '<header2>Slot #1:<end> 5x <highlight>test2<end>'
       - command: loot search last winner=<superadmin>

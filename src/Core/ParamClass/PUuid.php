@@ -2,9 +2,8 @@
 
 namespace Nadybot\Core\ParamClass;
 
-use function Safe\preg_match;
-
 use Nadybot\Core\Exceptions\UserException;
+use Nadybot\Core\Safe;
 
 /**
  * This class matches a possible UUID and throws a user-shown exception when it's invalid.
@@ -22,7 +21,7 @@ class PUuid extends Base {
 	}
 
 	public function __toString(): string {
-		if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $this->value)) {
+		if (!Safe::pregMatches('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $this->value)) {
 			throw new UserException("<highlight>{$this->value}<end> is not a valid UUID.");
 		}
 		return $this->value;

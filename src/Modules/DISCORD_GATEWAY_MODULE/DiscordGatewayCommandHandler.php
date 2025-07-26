@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Safe\preg_match;
-
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -18,6 +16,7 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	Registry,
 	Routing\Source,
+	Safe,
 	Text,
 	Types\AccessLevel,
 	Types\AccessLevelProvider,
@@ -267,7 +266,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		);
 		$context->sendto = $sendto;
 		Registry::injectDependencies($sendto);
-		if (!preg_match("/^.?extauth\s+request/si", $event->message)) {
+		if (!Safe::pregMatches("/^.?extauth\s+request/si", $event->message)) {
 			$userId = $this->getNameForDiscordId($discordUserId);
 		}
 		$execCmd = function () use ($context, $sendto): void {

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use function Safe\preg_match;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -241,7 +240,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		if ($sent) {
 			return;
 		}
-		if (isset($timer->origin) && preg_match('/^(discordmsg|console)/', $timer->origin)) {
+		if (isset($timer->origin) && Safe::pregMatches('/^(discordmsg|console)/', $timer->origin)) {
 			$receiver = $this->messageHub->getReceiver($timer->origin);
 			if (isset($receiver) && $receiver->receive($rMsg, Safe::pregReplace("/^.*\((.+)\)$/", '$1', $timer->origin))) {
 				return;
@@ -379,7 +378,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
 		$msg = $this->addTimer($context->char->name, $name, $runTime, $alertChannel, null, $origin);
 		$sendto?->reply($msg);
-		if (preg_match('/has been set for/', $msg)) {
+		if (Safe::pregMatches('/has been set for/', $msg)) {
 			$sTimer = new SyncTimerEvent(
 				name: $name,
 				endtime: time() + $runTime,

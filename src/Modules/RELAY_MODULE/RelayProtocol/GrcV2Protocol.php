@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use function Safe\preg_match;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Blob,
@@ -118,7 +117,7 @@ class GrcV2Protocol implements RelayProtocolInterface {
 			$message->setCharacter(new Character($matches[1]));
 			$data = $matches[2];
 		}
-		if (preg_match('/^<relay_bot_color>/s', $data)) {
+		if (Safe::pregMatches('/^<relay_bot_color>/s', $data)) {
 			$message->char = null;
 		}
 

@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core;
 
-use function Safe\preg_match;
-
 use Nadybot\Core\DBSchema\Setting;
 
 class SettingValue {
@@ -18,7 +16,7 @@ class SettingValue {
 		$this->value = $setting->value;
 		if (isset($setting->intoptions) && strlen($setting->intoptions)) {
 			$this->type = 'string';
-			if (preg_match('/^[\d;]+$/', $setting->intoptions)) {
+			if (Safe::pregMatches('/^[\d;]+$/', $setting->intoptions)) {
 				$this->type = 'number';
 			}
 			if ($setting->options === 'true;false') {

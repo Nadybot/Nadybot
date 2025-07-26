@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core\EventModifier;
 
-use function Safe\preg_match;
-
 use ErrorException;
 use Exception;
 
@@ -38,7 +36,7 @@ class IfMatches implements EventModifier {
 		foreach ($text as $match) {
 			try {
 				if ($isRegexp) {
-					preg_match(chr(1) . $match . chr(1) . 'si', '');
+					Safe::pregMatches(chr(1) . $match . chr(1) . 'si', '');
 				}
 			} catch (ErrorException $e) {
 				$error = Safe::pregReplace("/^preg_match\(\): (Compilation failed: )?/", '', $e->getMessage());
@@ -75,7 +73,7 @@ class IfMatches implements EventModifier {
 				if ($this->caseSensitive) {
 					$modifier .= 'i';
 				}
-				if (preg_match(chr(1) . $text . chr(1) . "{$modifier}", $message) === 1) {
+				if (Safe::pregMatches(chr(1) . $text . chr(1) . "{$modifier}", $message)) {
 					return true;
 				}
 			} elseif ($this->caseSensitive) {

@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use function Amp\ByteStream\splitLines;
 use function Amp\delay;
-use function Safe\{class_implements, preg_match, sleep};
+use function Safe\{class_implements, sleep};
 
 use Amp\File\FilesystemException;
 use BackedEnum;
@@ -702,7 +702,7 @@ class DB {
 			name: $settingName,
 			description: "DB version of {$fileBase}",
 			mode: SettingMode::NoEdit,
-			type: (is_int($version) || preg_match('/^\d+$/', $version)) ? 'timestamp' : 'text',
+			type: (is_int($version) || Safe::pregMatches('/^\d+$/', $version)) ? 'timestamp' : 'text',
 			value: '0'
 		);
 

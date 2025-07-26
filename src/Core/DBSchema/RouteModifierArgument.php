@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use function Safe\{json_encode, preg_match};
-use Nadybot\Core\{Attributes as NCA, DBTable};
+use function Safe\json_encode;
+use Nadybot\Core\{Attributes as NCA, DBTable, Safe};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
 /** This table holds the parameters for each route modifier */
@@ -27,7 +27,7 @@ class RouteModifierArgument extends DBTable {
 	}
 
 	public function toString(): string {
-		if (preg_match("/^(true|false|\d+)$/", $this->value)) {
+		if (Safe::pregMatches("/^(true|false|\d+)$/", $this->value)) {
 			return "{$this->name}={$this->value}";
 		}
 		return "{$this->name}=" . json_encode($this->value, \JSON_UNESCAPED_SLASHES);

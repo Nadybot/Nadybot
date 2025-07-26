@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core;
 
-use function Safe\preg_match;
-
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -380,10 +378,10 @@ class Text {
 			return substr($word, 0, 1) . substr($plural, 1);
 		}
 		$plural = 's';
-		if (preg_match('/[^aeiou]y$/', $word)) {
+		if (Safe::pregMatches('/[^aeiou]y$/', $word)) {
 			$word = substr($word, 0, strlen($word) -1);
 			$plural = 'ies';
-		} elseif (preg_match('/[ei]x$/', $word)) {
+		} elseif (Safe::pregMatches('/[ei]x$/', $word)) {
 			$word = substr($word, 0, strlen($word) -2);
 			$plural = 'ices';
 		} elseif (str_ends_with($word, 'is')) {
@@ -395,7 +393,7 @@ class Text {
 		} elseif (str_ends_with($word, 'fe')) {
 			$word = substr($word, 0, strlen($word) -1);
 			$plural = 'ves';
-		} elseif (preg_match('/([cs]h|[sxz])$/', $word)) {
+		} elseif (Safe::pregMatches('/([cs]h|[sxz])$/', $word)) {
 			$plural = 'es';
 		}
 		return $word . $plural;

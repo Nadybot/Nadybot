@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nadybot\Core\Modules\MESSAGES;
 
-use function Safe\{json_encode, preg_match};
+use function Safe\json_encode;
 use Exception;
 use Illuminate\Support\Collection;
 use Monolog\Logger;
@@ -547,8 +547,8 @@ class MessageHubController extends ModuleInstance {
 		$numTotal = count($routes);
 		$numShown = 0;
 		foreach ($routes as $route) {
-			$isSystemRoute = preg_match('/^system/', $route->getDest())
-				|| preg_match('/^system/', $route->getSource());
+			$isSystemRoute = Safe::pregMatches('/^system/', $route->getDest())
+				|| Safe::pregMatches('/^system/', $route->getSource());
 			if (!isset($all) && $isSystemRoute) {
 				continue;
 			}
@@ -1046,7 +1046,7 @@ class MessageHubController extends ModuleInstance {
 
 	/** Define how to render a specific hop */
 	public function setHopDisplay(string $hop, string $format): void {
-		if (preg_match('/%[^%]/', $format)) {
+		if (Safe::pregMatches('/%[^%]/', $format)) {
 			$_ignore = sprintf($format, 'text');
 		}
 		$spec = Source::$format->first(static fn (RouteHopFormat $x): bool => $x->hop === $hop);
@@ -1186,7 +1186,7 @@ class MessageHubController extends ModuleInstance {
 			$values->map(static function (MessageEmitter $emitter): string {
 				$name = htmlentities($emitter->getChannelName());
 				if ($emitter instanceof DiscordChannel) {
-					if (!preg_match('/^[[:graph:]]+$/s', $name)) {
+					if (!Safe::pregMatches('/^[[:graph:]]+$/s', $name)) {
 						$name .= ' or discordpriv(' . $emitter->getChannelID() . ')';
 					}
 				}

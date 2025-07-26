@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core\Modules\BUDDYLIST;
 
-use function Safe\preg_match;
-
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -14,6 +12,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PCharacter,
+	Safe,
 	Text,
 	Types\AccessLevel,
 };
@@ -222,7 +221,7 @@ class BuddylistController extends ModuleInstance {
 		$count = 0;
 		$blob = "Buddy list Search: '{$search}'\n\n";
 		foreach ($this->getSortedBuddyList() as $value) {
-			if (preg_match("/{$search}/i", $value->name)) {
+			if (Safe::pregMatches("/{$search}/i", $value->name)) {
 				$count++;
 				$blob .= $this->renderBuddyLine($value);
 			}

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Safe\preg_match;
 use Exception;
 use Nadybot\Core\Safe;
 
@@ -48,7 +47,7 @@ class JsonImporter {
 			if (self::hasIntervalType($checkType, $value)) {
 				return true;
 			}
-			if (preg_match('/^[a-zA-Z_0-9]+$/', $checkType) && is_object($value)) {
+			if (Safe::pregMatches('/^[a-zA-Z_0-9]+$/', $checkType) && is_object($value)) {
 				return true;
 			}
 			if (count($matches = Safe::pregMatch('/^array<([a-z]+),(.+)>$/', $checkType))) {

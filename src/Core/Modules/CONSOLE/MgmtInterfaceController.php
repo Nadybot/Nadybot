@@ -6,7 +6,6 @@ use function Amp\{
 	ByteStream\splitLines,
 	delay,
 };
-use function Safe\preg_match;
 
 use Amp\{
 	File\FilesystemException,
@@ -27,6 +26,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Registry,
 	Routing\Source,
+	Safe,
 };
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
@@ -81,7 +81,7 @@ class MgmtInterfaceController extends ModuleInstance {
 			$this->stop();
 			return;
 		}
-		if (!preg_match('#^(unix|tcp)://.#', $new)) {
+		if (!Safe::pregMatches('#^(unix|tcp)://.#', $new)) {
 			throw new UserException(
 				"<highlight>{$new}<end> is neither a UNIX domain socket ".
 				'(format: unix://&lt;file&gt;), nor a tcp-socket '.

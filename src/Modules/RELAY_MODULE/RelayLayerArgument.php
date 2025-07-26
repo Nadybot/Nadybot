@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use function Safe\{json_encode, preg_match};
+use function Safe\json_encode;
 
 use Nadybot\Core\Attributes\{DB, JSON};
-use Nadybot\Core\DBTable;
+use Nadybot\Core\{DBTable, Safe};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 
 #[DB\Table(name: 'relay_layer_argument')]
@@ -33,7 +33,7 @@ class RelayLayerArgument extends DBTable {
 		if ($isSecret) {
 			return "{$this->name}=&lt;hidden&gt;";
 		}
-		if (preg_match("/^(true|false|\d+)$/", $this->value)) {
+		if (Safe::pregMatches("/^(true|false|\d+)$/", $this->value)) {
 			return "{$this->name}={$this->value}";
 		}
 		return "{$this->name}=" . json_encode($this->value, \JSON_UNESCAPED_SLASHES);

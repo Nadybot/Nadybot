@@ -4,7 +4,6 @@ namespace Nadybot\Modules\SKILLS_MODULE;
 
 use function Amp\async;
 use function Amp\ByteStream\splitLines;
-use function Safe\preg_match;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -207,8 +206,8 @@ class BuffPerksController extends ModuleInstance {
 		$result = [];
 		foreach ($perks as $perk) {
 			if (
-				preg_match('/(Primary|Secondary) Genome/', $perk->name)
-				&& !preg_match("/^{$breed}/", $perk->name)
+				Safe::pregMatches('/(Primary|Secondary) Genome/', $perk->name)
+				&& !Safe::pregMatches("/^{$breed}/", $perk->name)
 			) {
 				continue;
 			}

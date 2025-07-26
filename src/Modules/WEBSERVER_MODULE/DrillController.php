@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\delay;
-use function Safe\preg_match;
 use Amp\{CancelledException, DeferredFuture, TimeoutCancellation};
 use Amp\Http\Client\HttpException;
 use Amp\Websocket\Client\WebsocketConnectException;
@@ -68,7 +67,7 @@ class DrillController extends ModuleInstance {
 
 	#[NCA\SettingChangeHandler('drill_server')]
 	public function switchDrill(string $setting, string $old, string $new): void {
-		if ($new !== self::OFF && !preg_match("/^wss?:\/\//", $new)) {
+		if ($new !== self::OFF && !Safe::pregMatches("/^wss?:\/\//", $new)) {
 			throw new UserException("<highlight>{$new}<end> is not a valid Drill-server");
 		}
 		if (isset($this->connection)) {

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-use function Safe\preg_match;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Types\AccessLevel,
 	Types\MessageEmitter,
 	Util,
@@ -151,7 +151,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 	/** Starts a wave counter when cloak is lowered */
 	#[NCA\HandlesEvent]
 	public function autoStartWaveCounterEvent(GuildChannelMsgEvent $eventObj): void {
-		if (preg_match('/^Your city in (.+) has been targeted by hostile forces.$/i', $eventObj->message)) {
+		if (Safe::pregMatches('/^Your city in (.+) has been targeted by hostile forces.$/i', $eventObj->message)) {
 			$this->startWaveCounter();
 		}
 	}

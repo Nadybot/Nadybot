@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\SettingHandlers;
 
-use function Safe\preg_match;
 use Exception;
 use Nadybot\Core\{Attributes as NCA, Registry, Safe};
 use Nadybot\Core\Modules\COLORS\ColorsController;
@@ -84,9 +83,9 @@ class ColorSettingHandler extends SettingHandler {
 	 * @throws \Exception when the string is not a valid HTML color
 	 */
 	public function save(string $newValue): string {
-		if (preg_match('/^#([0-9a-f]{6})$/i', $newValue)) {
+		if (Safe::pregMatches('/^#([0-9a-f]{6})$/i', $newValue)) {
 			return "<font color='{$newValue}'>";
-		} elseif (preg_match("/^<font color='#[0-9a-f]{6}'>$/i", $newValue)) {
+		} elseif (Safe::pregMatches("/^<font color='#[0-9a-f]{6}'>$/i", $newValue)) {
 			return $newValue;
 		}
 		throw new Exception("<highlight>{$newValue}<end> is not a valid HTML-Color (example: <i>#FF33DD</i>).");

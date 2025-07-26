@@ -2,6 +2,8 @@
 
 namespace Nadybot;
 
+use Nadybot\Core\Safe;
+
 class CreateMigration {
 	public function showSyntax(string $me): string {
 		echo "Syntax: {$me} <path to migrations> <name of migration class>\n";
@@ -12,21 +14,21 @@ class CreateMigration {
 		if (!file_exists($path)) {
 			mkdir($path);
 		}
-		$className = basename($migration, ".shared");
-		$namespace = "Unknown";
+		$className = basename($migration, '.shared');
+		$namespace = 'Unknown';
 		if (count($matches = Safe::pregMatch("/Core\/Modules\/(.+)$/", $path))) {
-			$namespace = "Nadybot\\Core\\Modules\\" . rtrim(str_replace("/", "\\", $matches[1]), "\\");
-		} elseif (preg_match("/Core\/Migrations/", $path)) {
-			$namespace = "Nadybot\\Core\\Migrations";
+			$namespace = 'Nadybot\\Core\\Modules\\' . rtrim(str_replace('/', '\\', $matches[1]), '\\');
+		} elseif (Safe::pregMatches("/Core\/Migrations/", $path)) {
+			$namespace = 'Nadybot\\Core\\Migrations';
 		} elseif (count($matches = Safe::pregMatch("/src\/Modules\/(.+)$/", $path))) {
-			$namespace = "Nadybot\\Modules\\" . rtrim(str_replace("/", "\\", $matches[1]), "\\");
+			$namespace = 'Nadybot\\Modules\\' . rtrim(str_replace('/', '\\', $matches[1]), '\\');
 		} elseif (count($matches = Safe::pregMatch("/extras\/(.+)$/", $path))) {
-			$namespace = "Nadybot\\User\\Modules\\" . rtrim(str_replace("/", "\\", $matches[1]), "\\");
+			$namespace = 'Nadybot\\User\\Modules\\' . rtrim(str_replace('/', '\\', $matches[1]), '\\');
 		}
 		$fileName = sprintf(
-			"%s/%d_%s.php",
+			'%s/%d_%s.php',
 			$path,
-			date("YmdHis"),
+			date('YmdHis'),
 			$migration
 		);
 		$data =

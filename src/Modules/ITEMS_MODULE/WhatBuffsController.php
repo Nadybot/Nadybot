@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-use function Safe\preg_match;
 use Closure;
 use Generator;
 use Illuminate\Support\Collection;
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	QueryBuilder,
+	Safe,
 	Text,
 	Types\AOItemSpec,
 	Types\CommandReply,
@@ -284,7 +284,7 @@ class WhatBuffsController extends ModuleInstance {
 		$firstType = ucfirst(strtolower($this->resolveLocationAlias($tokens[0])));
 		$lastType = ucfirst(strtolower($this->resolveLocationAlias($tokens[count($tokens) - 1])));
 
-		if ($this->verifySlot($firstType) && !preg_match("/^smt\.?$/i", $tokens[1]??'')) {
+		if ($this->verifySlot($firstType) && !Safe::pregMatches("/^smt\.?$/i", $tokens[1]??'')) {
 			array_shift($tokens);
 			$msg = $this->showSearchResults($firstType, implode(' ', $tokens), $froobFriendly);
 			$context->reply($msg);
@@ -618,7 +618,7 @@ class WhatBuffsController extends ModuleInstance {
 		foreach ($items as $item) {
 			$skip = false;
 			foreach ($groups as $group) {
-				if (preg_match($group, $item->name)) {
+				if (Safe::pregMatches($group, $item->name)) {
 					if (array_key_exists($group, $highestOfGroup)) {
 						$highestOfGroup[$group]->low_ncu = $item->ncu;
 						$highestOfGroup[$group]->low_amount = $item->amount;
@@ -668,7 +668,7 @@ class WhatBuffsController extends ModuleInstance {
 	public function formatBuffs(iterable $items, Skill $skill): RenderedList {
 		$items = collect($items)->filter(
 			static function (NanoBuffSearchResult $nano): bool {
-				return !preg_match("/^Composite .+ Expertise \(\d hours\)$/", $nano->name);
+				return !Safe::pregMatches("/^Composite .+ Expertise \(\d hours\)$/", $nano->name);
 			}
 		)->values();
 		$blob = "<header2>Nanoprograms that buff {$skill->fullName()}<end>\n";

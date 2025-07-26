@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use function Safe\preg_match;
 use Amp\File\FilesystemException;
 use AO\{Package, Utils};
 use Exception;
@@ -332,14 +331,14 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\SettingChangeHandler('welcome_msg_string')]
 	public function validateWelcomeMsg(string $setting, string $old, string $new): void {
-		if (preg_match('|&lt;link&gt;.+?&lt;/link&gt;|', $new)) {
+		if (Safe::pregMatches('|&lt;link&gt;.+?&lt;/link&gt;|', $new)) {
 			throw new Exception(
 				'You have to use <highlight><symbol>htmldecode settings save ...<end> if your settings contain '.
 				'tags like &lt;link&gt;, because the AO client escapes the tags. '.
 				'This command is part of the DEV_MODULE.'
 			);
 		}
-		if (!preg_match('|<link>.+?</link>|', $new)) {
+		if (!Safe::pregMatches('|<link>.+?</link>|', $new)) {
 			throw new Exception(
 				'Your message must contain a block of <highlight>&lt;link&gt;&lt;/link&gt;<end> which will '.
 				'then be a popup with the actual welcome message. The link text sits between '.
@@ -355,7 +354,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			throw new Exception('Your text seems to be invalid HTML.');
 		}
 		$stripped = strip_tags($new);
-		if (preg_match('/[<>]/', $stripped)) {
+		if (Safe::pregMatches('/[<>]/', $stripped)) {
 			throw new Exception('Your text seems to generate invalid HTML.');
 		}
 	}

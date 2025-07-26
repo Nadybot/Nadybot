@@ -38,7 +38,7 @@ class ChangeMessage implements EventModifier {
 		try {
 			if (isset($search) && $isRegExp) {
 				// @phpstan-ignore-next-line
-				Safe::exceptionWrapper(preg_match(...), chr(1) . $search . chr(1) . 'si', '');
+				Safe::exceptionWrapper(Safe::pregMatches(...), chr(1) . $search . chr(1) . 'si', '');
 			}
 		} catch (ErrorException $e) {
 			$error = Safe::pregReplace("/^preg_match\(\): (Compilation failed: )?/", '', $e->getMessage());

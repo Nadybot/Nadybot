@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
-use function Safe\preg_match;
-
 use Amp\Http\Server\{Request, Response};
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -612,7 +610,7 @@ class OnlineController extends ModuleInstance {
 		}
 
 		$symbol = $this->settingManager->getString('symbol');
-		if (preg_match("/^\Q{$symbol}\E?afk(.*)$/i", $message)) {
+		if (Safe::pregMatches("/^\Q{$symbol}\E?afk(.*)$/i", $message)) {
 			return;
 		}
 
@@ -645,7 +643,7 @@ class OnlineController extends ModuleInstance {
 		if ($this->afkBrbWithoutSymbol) {
 			$symbolModifier = '?';
 		}
-		if (preg_match("/^\Q{$symbol}\E{$symbolModifier}afk$/i", $message)) {
+		if (Safe::pregMatches("/^\Q{$symbol}\E{$symbolModifier}afk$/i", $message)) {
 			$reason = (string)time();
 			$this->buildOnlineQuery($sender, $type)->update(['afk' => $reason]);
 			$msg = "<highlight>{$sender}<end> is now AFK.";

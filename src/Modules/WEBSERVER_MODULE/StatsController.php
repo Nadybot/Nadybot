@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Safe\preg_match;
-
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Nadybot\Core\{
@@ -12,6 +10,7 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	ModuleInstance,
 	Registry,
+	Safe,
 	SettingManager,
 	Types\AccessLevel,
 	Types\SettingMode,
@@ -112,7 +111,7 @@ class StatsController extends ModuleInstance {
 		$authHeader = $request->getHeader('authorization');
 		if (
 			!isset($authHeader)
-			|| !preg_match('/^([bB]earer +)?' . preg_quote($this->prometheusAuthToken, '/') . '$/', $authHeader)
+			|| !Safe::pregMatches('/^([bB]earer +)?' . preg_quote($this->prometheusAuthToken, '/') . '$/', $authHeader)
 		) {
 			return new Response(
 				status: HttpStatus::UNAUTHORIZED,

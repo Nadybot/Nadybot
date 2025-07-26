@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use function Safe\preg_match;
 use Closure;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -141,13 +140,13 @@ class GcrProtocol implements RelayProtocolInterface {
 			}
 			return null;
 		}
-		if (preg_match('/##logon_log(on|off)_spam##/s', $data)) {
+		if (Safe::pregMatches('/##logon_log(on|off)_spam##/s', $data)) {
 			return $this->handleLogonSpam($message->sender, $data);
 		}
 		$data = $matches[1];
 		$r = new RoutableMessage(Blob::LITERAL . $data);
 		while (count($matches = Safe::pregMatch("/^\s*\[##relay_channel##(.*?)##end##\]\s*/s", $data))) {
-			if (preg_match('/ Guest$/', $matches[1])) {
+			if (Safe::pregMatches('/ Guest$/', $matches[1])) {
 				$source = new Source(
 					Source::ORG,
 					substr($matches[1], 0, -6)
@@ -171,7 +170,7 @@ class GcrProtocol implements RelayProtocolInterface {
 			$data = Safe::pregReplace("/^\s*\[##relay_channel##(.*?)##end##\]\s*/s", '', $data);
 		}
 		while (count($matches = Safe::pregMatch("/^\s*##relay_channel##\[(.*?)\]##end##\s*/s", $data))) {
-			if (preg_match('/ Guest$/', $matches[1])) {
+			if (Safe::pregMatches('/ Guest$/', $matches[1])) {
 				$source = new Source(
 					Source::ORG,
 					substr($matches[1], 0, -6)

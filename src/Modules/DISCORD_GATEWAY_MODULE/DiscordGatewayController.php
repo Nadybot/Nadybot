@@ -4,7 +4,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use function Amp\{async, delay};
 use function Amp\Future\await;
-use function Safe\{array_flip, json_decode, json_encode, preg_match};
+use function Safe\{array_flip, json_decode, json_encode};
 
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\{HttpClientBuilder, HttpException};
@@ -1083,7 +1083,7 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 		if (isset($discordServer)) {
-			if (!preg_match("/^\d+$/", $discordServer)) {
+			if (!Safe::pregMatches("/^\d+$/", $discordServer)) {
 				foreach ($this->guilds as $guildId => $guild) {
 					if (strcasecmp($guild->name, $discordServer) === 0) {
 						$discordServer = $guild->id;

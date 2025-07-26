@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use function Safe\preg_match;
-
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
@@ -222,7 +220,7 @@ class ConfigApiController extends ModuleInstance {
 	public function toggleCommandChannelSettingsEndpoint(Request $request, string $module, string $command, string $channel): Response {
 		$user = $request->getAttribute(WebserverController::USER);
 		$body = $request->getAttribute(WebserverController::BODY);
-		$subCmd = (bool)preg_match("/\s/", $command);
+		$subCmd = Safe::pregMatches("/\s/", $command);
 		$result = 0;
 		$parsed = 0;
 		$exception = null;
@@ -290,7 +288,7 @@ class ConfigApiController extends ModuleInstance {
 		if (!in_array($op, ['enable', 'disable'], true)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
-		$subCmd = (bool)preg_match("/\s/", $command);
+		$subCmd = Safe::pregMatches("/\s/", $command);
 		try {
 			if ($this->configController->toggleCmd($user, $subCmd, $command, 'all', $op === 'enable') === true) {
 				$cmd = $this->commandManager->get($command);

@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core;
 
-use function Safe\preg_match;
-
 use Stringable;
 
 /** An object representation of a semantic version */
@@ -39,7 +37,7 @@ class SemanticVersion implements Stringable {
 	/** Normalize a version string to 3 tuples */
 	public static function normalizeVersion(string $version): string {
 		$version = Safe::pregReplace('/@.+$/', '', strtolower($version));
-		if (preg_match("/[^\d]$/", $version)) {
+		if (Safe::pregMatches("/[^\d]$/", $version)) {
 			$version .= '1';
 		}
 		$version = Safe::pregReplace('/[^a-z0-9.]+/i', '.', $version);

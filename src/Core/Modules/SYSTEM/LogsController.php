@@ -3,7 +3,6 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use function Amp\ByteStream\splitLines;
-use function Safe\preg_match;
 
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{
@@ -31,6 +30,7 @@ use Nadybot\Core\{
 	LegacyLogger,
 	LoggerWrapper,
 	ModuleInstance,
+	Safe,
 	SettingManager,
 	Text,
 	Types\AccessLevel,
@@ -163,13 +163,13 @@ class LogsController extends ModuleInstance {
 			$searchFunc = static function (string $line): bool {
 				return true;
 			};
-			if (isset($search) && preg_match('/^[a-zA-Z0-9_-]+$/', $search)) {
+			if (isset($search) && Safe::pregMatches('/^[a-zA-Z0-9_-]+$/', $search)) {
 				$searchFunc = static function (string $line) use ($search): bool {
 					return stripos($line, $search) !== false;
 				};
 			} elseif (isset($search)) {
 				$searchFunc = static function (string $line) use ($search): bool {
-					return preg_match(chr(1) . $search . chr(1) .'i', $line) === 1;
+					return Safe::pregMatches(chr(1) . $search . chr(1) .'i', $line);
 				};
 			}
 			$lines = array_reverse($lines);
@@ -177,7 +177,7 @@ class LogsController extends ModuleInstance {
 			$trace = [];
 			foreach ($lines as $line) {
 				if (isset($search) && !$searchFunc($line)) {
-					if (preg_match("/^(#\d+\s|\[stacktrace\])/", $line)) {
+					if (Safe::pregMatches("/^(#\d+\s|\[stacktrace\])/", $line)) {
 						array_unshift($trace, "<tab>{$line}");
 					} else {
 						$trace = [];

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use function Safe\{json_decode, json_encode, preg_match};
+use function Safe\{json_decode, json_encode};
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
@@ -969,7 +969,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 						unset($params[$parameter->name]);
 						break;
 					case ParamType::Int:
-						if (!preg_match("/^[+-]?\d+/", $value)) {
+						if (!Safe::pregMatches("/^[+-]?\d+/", $value)) {
 							throw new Exception(
 								"Argument <highlight>{$parameter->name}<end> to ".
 								"<highlight>{$name}<end> must be a number, ".

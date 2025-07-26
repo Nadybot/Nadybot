@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
-use function Safe\{json_decode, preg_match};
+use function Safe\json_decode;
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\TimeoutCancellation;
@@ -342,7 +342,7 @@ class PackageController extends ModuleInstance {
 		$ourVersion = BotRunner::getVersion();
 
 		foreach ($parts as $part) {
-			if (preg_match("/^<\d+\.0\.0$/", $part)) {
+			if (Safe::pregMatches("/^<\d+\.0\.0$/", $part)) {
 				$part .= '-0';
 			}
 			if (!count($matches = Safe::pregMatch('/^([!=<>^]+)(.+)$/', $part))) {

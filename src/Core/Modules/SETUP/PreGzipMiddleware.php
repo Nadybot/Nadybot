@@ -2,9 +2,8 @@
 
 namespace Nadybot\Core\Modules\SETUP;
 
-use function Safe\preg_match;
-
 use Amp\Http\Server\{Middleware, Request, RequestHandler, Response};
+use Nadybot\Core\Safe;
 
 class PreGzipMiddleware implements Middleware {
 	public function handleRequest(Request $request, RequestHandler $requestHandler): Response {
@@ -13,7 +12,7 @@ class PreGzipMiddleware implements Middleware {
 		if (isset($contentEncoding)) {
 			return $response; // Another request handler or middleware has already encoded the response.
 		}
-		if (preg_match('/^(application\/javascript|text\/css)/', $response->getHeader('content-type') ?? 'none')) {
+		if (Safe::pregMatches('/^(application\/javascript|text\/css)/', $response->getHeader('content-type') ?? 'none')) {
 			$response->addHeader('content-encoding', 'gzip');
 		}
 		return $response;
