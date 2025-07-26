@@ -19,6 +19,7 @@ class Options {
 	 *                                            the web interfaces
 	 * @param bool          $testRun              After becoming ready, only run tests
 	 *                                            and exit again
+	 * @param bool          $testShowErrorsOnly   During --test-run only display errors
 	 * @param ?list<string> $testFiles            If set, only run these given tests
 	 *                                            strict grammar
 	 * @param bool          $strict               Be strict about SQLite types,and use the
@@ -37,6 +38,7 @@ class Options {
 		#[OptionFlag, MapFrom('setup-only')] public readonly bool $setupOnly=false,
 		#[OptionFlag, MapFrom('vue-dev')] public readonly bool $vueDevMode=false,
 		#[OptionFlag, MapFrom('test-run')] public readonly bool $testRun=false,
+		#[OptionFlag, MapFrom('test-show-errors-only')] public readonly bool $testShowErrorsOnly=false,
 		#[
 			MapValue(read: [self::class, 'fromMultiString'], write: [self::class, 'toMultiString']),
 			MapFrom('test-file')

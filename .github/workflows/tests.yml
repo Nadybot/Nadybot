@@ -119,7 +119,7 @@ jobs:
 
       - name: Run tests
         run: |
-          php main.php --test-run conf/config.toml
+          php main.php --test-run --test-show-errors-only conf/config.toml
 
       - name: Return config
         if: always()

@@ -77,12 +77,12 @@ groups:
         name: Change the log level of one of the loggers
         expect:
           - Changed.*1 logger.*matching
-          - NOTICE -&gt; WARNING
+          - (NOTICE|ERROR) -&gt; WARNING
       - command: loglevel reset
         name: Change the log level back again
         expect:
           - Changed.*1 logger
-          - WARNING -&gt; NOTICE
+          - WARNING -&gt; (NOTICE|ERROR)
 
   - name: Misc
     tests:

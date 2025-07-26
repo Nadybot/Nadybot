@@ -188,12 +188,13 @@ class Safe {
 	/**
 	 * Split the given string by a regular expression.
 	 *
-	 * @param string   $pattern The pattern to search for, as a string.
-	 * @param string   $subject The input string.
-	 * @param null|int $limit   If specified, then only substrings up to limit
-	 *                          are returned with the rest of the string being placed in the last
-	 *                          substring.  A limit of -1 or 0 means "no limit".
-	 *                          into subject at offset 1.
+	 * @param string   $pattern          The pattern to search for, as a string.
+	 * @param string   $subject          The input string.
+	 * @param null|int $limit            If specified, then only substrings up to limit
+	 *                                   are returned with the rest of the string being placed in the last
+	 *                                   substring.  A limit of -1 or 0 means "no limit".
+	 *                                   into subject at offset 1.
+	 * @param bool     $captureDelimiter Whether to also return split delimiters in brackets
 	 *
 	 * @return string[] Returns an array containing substrings of subject
 	 *                  split along boundaries matched by pattern.
@@ -202,13 +203,48 @@ class Safe {
 	 *
 	 * @throws PcreException
 	 */
-	public static function pregSplit(string $pattern, string $subject, ?int $limit=-1): array {
+	public static function pregSplit(string $pattern, string $subject, ?int $limit=-1, bool $captureDelimiter=false): array {
+		$flags = $captureDelimiter ? \PREG_SPLIT_DELIM_CAPTURE : 0;
+
 		/**
 		 * @var string[]
 		 *
 		 * @psalm-var non-empty-list<string>
 		 */
-		$result = preg_split($pattern, $subject, $limit);
+		$result = preg_split($pattern, $subject, $limit, $flags);
+		return $result;
+	}
+
+	/**
+	 * Split the given string by a regular expression and capture the delimiter as well.
+	 *
+	 * @param string   $pattern          The pattern to search for, as a string.
+	 * @param string   $subject          The input string.
+	 * @param null|int $limit            If specified, then only substrings up to limit
+	 *                                   are returned with the rest of the string being placed in the last
+	 *                                   substring.  A limit of -1 or 0 means "no limit".
+	 *                                   into subject at offset 1.
+	 * @param bool     $captureDelimiter Whether to also return split delimiters in brackets
+	 *
+	 * @return string[] Returns an array containing substrings of subject
+	 *                  split along boundaries matched by pattern.
+	 *
+	 * @psalm-return list<non-empty-string>
+	 *
+	 * @throws PcreException
+	 */
+	public static function pregSplitNonEmpty(string $pattern, string $subject, ?int $limit=-1, bool $captureDelimiter=false): array {
+		$flags = \PREG_SPLIT_NO_EMPTY;
+		if ($captureDelimiter) {
+			$flags |= \PREG_SPLIT_DELIM_CAPTURE;
+		}
+
+		/**
+		 * @var string[]
+		 *
+		 * @psalm-var list<non-empty-string>
+		 */
+		$result = preg_split($pattern, $subject, $limit, $flags);
 		return $result;
 	}
 

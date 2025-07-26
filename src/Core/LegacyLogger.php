@@ -139,6 +139,13 @@ class LegacyLogger {
 		array_unshift(static::$logLevels, [$mask, $logLevel]);
 	}
 
+	/** Restore the last stored log level config */
+	public static function tempLogLevelRemove(): void {
+		if (count(static::$logLevels) > 1) {
+			array_shift(static::$logLevels);
+		}
+	}
+
 	/**
 	 * Re-calculate the log level for $logger, assign it and return old
 	 * and new log level for that logger, or null if unchanged.

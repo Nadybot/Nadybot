@@ -90,6 +90,13 @@ class Testing {
 
 	/** Run all tests */
 	public function run(): void {
+		if (BotRunner::getArguments()->testShowErrorsOnly) {
+			$loggers = LegacyLogger::getLoggers();
+			LegacyLogger::tempLogLevelOrderride('*', 'error');
+			foreach ($loggers as $logger) {
+				LegacyLogger::assignLogLevel($logger);
+			}
+		}
 		$results = new TestResults();
 		try {
 			$dirs = $this->getTestDirectories();
@@ -108,6 +115,13 @@ class Testing {
 		} catch (\Throwable $e) {
 			$this->logger->critical('{error}', ['error' => $e->getMessage(), 'exception' => $e]);
 			exit(1);
+		}
+		if (BotRunner::getArguments()->testShowErrorsOnly) {
+			$loggers = LegacyLogger::getLoggers();
+			LegacyLogger::tempLogLevelRemove();
+			foreach ($loggers as $logger) {
+				LegacyLogger::assignLogLevel($logger);
+			}
 		}
 		$this->logger->notice(
 			"Test results:\n".

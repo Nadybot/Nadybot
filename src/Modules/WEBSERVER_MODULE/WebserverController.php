@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use function Safe\{base64_decode, json_decode, mime_content_type, openssl_verify, preg_split};
+use function Safe\{base64_decode, json_decode, mime_content_type, openssl_verify};
 
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request as ClientRequest};
@@ -442,7 +442,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 
 	/** Convert the route notation /foo/%s/bar into a regexp */
 	public function routeToRegExp(string $route): string {
-		$match = preg_split('/(%[sd])/', $route, 0, \PREG_SPLIT_DELIM_CAPTURE|\PREG_SPLIT_NO_EMPTY);
+		$match = Safe::pregSplitNonEmpty('/(%[sd])/', $route, 0, true);
 		$newMask = array_reduce(
 			$match,
 			static function (string $carry, string $part): string {

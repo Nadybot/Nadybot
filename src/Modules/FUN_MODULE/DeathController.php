@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use function Safe\preg_split;
-
 use AO\Utils;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -17,6 +15,7 @@ use Nadybot\Core\{
 	DBSchema\Alt,
 	ModuleInstance,
 	ParamClass\PUuid,
+	Safe,
 	Text,
 	Types\AccessLevel,
 };
@@ -417,7 +416,7 @@ class DeathController extends ModuleInstance {
 		if (count($parts) < 2) {
 			return $fun->content;
 		}
-		$tokens = preg_split('/(!=|[=<>])/', $parts[0], 2, \PREG_SPLIT_DELIM_CAPTURE);
+		$tokens = Safe::pregSplit('/(!=|[=<>])/', $parts[0], 2, true);
 		if (count($tokens) < 3) {
 			return $fun->content;
 		}

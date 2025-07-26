@@ -244,7 +244,8 @@ class LogsController extends ModuleInstance {
 		#[NCA\Parameter\Str('reset')] string $action
 	): void {
 		$loggers = LegacyLogger::getLoggers();
-		LegacyLogger::getConfig(true);
+		LegacyLogger::tempLogLevelRemove();
+		// LegacyLogger::getConfig(true);
 		$names = [];
 		foreach ($loggers as $logger) {
 			$changes = LegacyLogger::assignLogLevel($logger);

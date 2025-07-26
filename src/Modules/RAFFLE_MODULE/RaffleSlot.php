@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use function Safe\preg_match;
-
 use Nadybot\Core\Safe;
 
 class RaffleSlot {
@@ -22,7 +20,7 @@ class RaffleSlot {
 		if (count($matches = Safe::pregMatch("/^(?<count>\d+)x?\s*[^\d]|\btop\s*(?<count>\d+)\b/J", $text))) {
 			$this->amount = (int)$matches['count'];
 			$text = Safe::pregReplace("/^(\d+)x?\s*/", '', $text);
-		} elseif (preg_match("/loot\s*order/i", $text)) {
+		} elseif (Safe::pregMatches("/loot\s*order/i", $text)) {
 			$this->amount = 0;
 		}
 		$items = Safe::pregSplit("/\s*\+\s*/", $text);

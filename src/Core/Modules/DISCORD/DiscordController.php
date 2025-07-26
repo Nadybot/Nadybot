@@ -3,7 +3,6 @@
 namespace Nadybot\Core\Modules\DISCORD;
 
 use function Amp\async;
-use function Safe\{preg_match, preg_split};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -87,9 +86,8 @@ class DiscordController extends ModuleInstance {
 			"/(?:<font[^>]*#000000[^>]*>|<black>)(.+?)(?:<end>|<\/font>)/s",
 			/** @param list{string,string} $matches */
 			static function (array $matches): string {
-				if (preg_match('/^0+$/', $matches[1])) {
+				if (Safe::pregMatches('/^0+$/', $matches[1])) {
 					return '_ _' . str_repeat(' ', strlen($matches[1]));
-					// return "_ _" . str_repeat(" ", strlen($matches[1]));
 				}
 				return '_ _' . str_repeat(' ', strlen(str_replace('\\', '', $matches[1])));
 			},
@@ -265,7 +263,7 @@ class DiscordController extends ModuleInstance {
 			$matches[1] = Safe::pregReplace("/^(<font.*?>)<header>(.+?)<end>\n/s", '$1', $matches[1]);
 		}
 		$matches[1] = Safe::pregReplace('/<font+?>(.*?)<\/font>/s', '*$1*', $matches[1]);
-		$fields = preg_split("/\n(<font color=#FCA712>.+?\n|<header2>[^>]+?<end>|<header2>.+?\n)/", $matches[1], -1, \PREG_SPLIT_DELIM_CAPTURE);
+		$fields = Safe::pregSplit("/\n(<font color=#FCA712>.+?\n|<header2>[^>]+?<end>|<header2>.+?\n)/", $matches[1], -1, true);
 		for ($i = 1; $i < count($fields); $i+=2) {
 			$embed->fields ??= [];
 			$field = new DiscordEmbedField(
@@ -275,7 +273,7 @@ class DiscordController extends ModuleInstance {
 
 			$field->name = Safe::pregReplace("/\[(.+?)\]\(.*?\)/", '$1', $field->name);
 			if (strlen($field->value) > 1_024) {
-				$parts = preg_split("/(.{1,1024})\n/s", $field->value, -1, \PREG_SPLIT_DELIM_CAPTURE);
+				$parts = Safe::pregSplit("/(.{1,1024})\n/s", $field->value, -1, true);
 				$field->value = $parts[1];
 				$embed->fields []= $field;
 				$field = clone $field;

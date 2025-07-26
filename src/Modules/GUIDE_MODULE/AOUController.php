@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\GUIDE_MODULE;
 
-use function Safe\preg_split;
-
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DateInterval;
 use DOMDocument;
@@ -329,7 +327,7 @@ class AOUController extends ModuleInstance {
 		$input = str_replace(['[b]', '[/b]'], ['<highlight>', '<end>'], $input);
 
 		$pattern = "/(\[.+?\])/";
-		$matches =preg_split($pattern, $input, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY);
+		$matches = Safe::pregSplitNonEmpty($pattern, $input, -1, true);
 
 		$output = '';
 		foreach ($matches as $match) {
