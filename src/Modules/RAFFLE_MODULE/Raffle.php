@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use function Safe\preg_split;
 use Nadybot\Core\{Safe, Types\CommandReply};
 
 class Raffle {
@@ -52,7 +51,7 @@ class Raffle {
 			},
 			$text
 		);
-		$parts = preg_split("/\s*,\s*/", $text);
+		$parts = Safe::pregSplit("/\s*,\s*/", $text);
 		foreach ($parts as $part) {
 			$slot = new RaffleSlot();
 			$slot->fromString($part);

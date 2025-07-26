@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{array_flip, parse_ini_string, preg_split};
+use function Safe\{array_flip, parse_ini_string};
 
 use Amp\File\FilesystemException;
 use Amp\Parallel\Worker\TaskFailureError;
@@ -348,7 +348,7 @@ class ClassLoader {
 	 *                     Must be in the format `^6.0.0` or `6.0.0-6.1.0`
 	 */
 	private function versionRangeCompatible(string $spec): bool {
-		$parts = preg_split("/\s*,\s*/", $spec);
+		$parts = Safe::pregSplit("/\s*,\s*/", $spec);
 		foreach ($parts as $part) {
 			if (!count($matches = Safe::pregMatch('/^([!=<>^]+)(.+)$/', $part))) {
 				return false;

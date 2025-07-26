@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nadybot\Modules\NANO_MODULE;
 
-use function Safe\preg_split;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	DB,
 	Exceptions\UserException,
 	ModuleInstance,
+	Safe,
 	SettingManager,
 	Text,
 	Types\AccessLevel,
@@ -261,7 +261,7 @@ class NanoController extends ModuleInstance {
 		$data = $query->asObj(LocationCount::class);
 		$nanoCount = [];
 		foreach ($data as $row) {
-			$locations = preg_split("/\s*\/\s*/", $row->location);
+			$locations = Safe::pregSplit("/\s*\/\s*/", $row->location);
 			foreach ($locations as $loc) {
 				$nanoCount[$loc] = ($nanoCount[$loc]??0) + $row->count;
 			}

@@ -2,13 +2,12 @@
 
 namespace Nadybot\Modules\BESTQL_MODULE;
 
-use function Safe\preg_split;
-
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	ParamClass\PItem,
+	Safe,
 	Text,
 	Types\AccessLevel,
 };
@@ -116,7 +115,7 @@ class BestQLController extends ModuleInstance {
 	): void {
 		/** @var array<int,int> */
 		$itemSpecs = [];
-		$specPairs = preg_split('/\s+/', $specs);
+		$specPairs = Safe::pregSplit('/\s+/', $specs);
 
 		if (count($specPairs) < 4) {
 			$msg = 'You have to provide at least 2 bonuses at 2 different QLs.';

@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-use function Safe\preg_split;
-
 use BackedEnum;
 use Illuminate\Support\Collection;
 
@@ -500,7 +498,7 @@ class ItemsController extends ModuleInstance {
 		if (!isset($search)) {
 			return false;
 		}
-		$tokens = preg_split("/\s+/", $search);
+		$tokens = Safe::pregSplit("/\s+/", $search);
 		foreach ($tokens as $token) {
 			if (substr($token, 0, 1) === '-'
 				&& stripos($itemName, substr($token, 1)) !== false) {

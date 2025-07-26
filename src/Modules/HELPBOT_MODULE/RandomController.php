@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use function Safe\{array_flip, preg_match_all, preg_split};
+use function Safe\{array_flip, preg_match_all};
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -69,7 +69,7 @@ class RandomController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>random one,two,three')]
 	#[NCA\Help\Example('<symbol>random one, two, three')]
 	public function randomCommand(CmdContext $context, string $elements): void {
-		$items = preg_split("/(,\s+|\s+|,)/", trim($elements));
+		$items = Safe::pregSplit("/(,\s+|\s+|,)/", trim($elements));
 		$list = [];
 		while (count($items)) {
 			// Pick a random item from $items and remove it
@@ -186,8 +186,8 @@ class RandomController extends ModuleInstance {
 		}
 		$itemRegexp = PItem::getRegexp();
 		$options = [];
-		preg_match_all(chr(1) . $itemRegexp . chr(1), $listOfNames, $matches);
-		if (is_array($matches) && count($matches) > 0) {
+		$matches = Safe::pregMatchAll(chr(1) . $itemRegexp . chr(1), $listOfNames);
+		if (count($matches) > 0) {
 			$options = $matches[0];
 			$listOfNames = Safe::pregReplace(chr(1) . $itemRegexp . chr(1), '', $listOfNames);
 		}
@@ -195,7 +195,7 @@ class RandomController extends ModuleInstance {
 		/** @var list<string> */
 		$options = array_merge(
 			$options,
-			preg_split("/(,\s+|\s+|,)/", $listOfNames)
+			Safe::pregSplit("/(,\s+|\s+|,)/", $listOfNames)
 		);
 		$roll = $this->roll($context->char->name, $options);
 		assert(isset($roll->result));

@@ -490,7 +490,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 		if (!isset($contentType)) {
 			return new Response(status: HttpStatus::UNSUPPORTED_MEDIA_TYPE);
 		}
-		if (preg_split("/;\s*/", $contentType)[0] === 'application/json') {
+		if (Safe::pregSplit("/;\s*/", $contentType)[0] === 'application/json') {
 			try {
 				$request->setAttribute(self::BODY, json_decode($body, true));
 				return null;
@@ -501,7 +501,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 				);
 			}
 		}
-		if (preg_split("/;\s*/", $contentType)[0] === 'application/x-www-form-urlencoded') {
+		if (Safe::pregSplit("/;\s*/", $contentType)[0] === 'application/x-www-form-urlencoded') {
 			$parts = explode('&', $body);
 			$result = [];
 			foreach ($parts as $part) {
@@ -601,7 +601,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			return null;
 		}
 		try {
-			$parts = preg_split("/\s+/", $authorization);
+			$parts = Safe::pregSplit("/\s+/", $authorization);
 			if (count($parts) !== 2 || strtolower($parts[0]) !== 'basic') {
 				return null;
 			}

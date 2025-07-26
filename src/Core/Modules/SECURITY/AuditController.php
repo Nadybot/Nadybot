@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\SECURITY;
 
-use function Safe\{preg_split, strtotime};
+use function Safe\strtotime;
 
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
@@ -238,7 +238,7 @@ class AuditController extends ModuleInstance {
 
 		$action = $params['action']??null;
 		if (isset($action) && is_string($action)) {
-			$query->whereIn('action', preg_split("/\s*,\s*/", strtolower($action)));
+			$query->whereIn('action', Safe::pregSplit("/\s*,\s*/", strtolower($action)));
 		}
 
 		return null;

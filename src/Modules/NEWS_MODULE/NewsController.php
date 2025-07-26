@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
-use function Safe\preg_split;
-
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
@@ -24,6 +22,7 @@ use Nadybot\Core\{
 	MyOrg,
 	Nadybot,
 	ParamClass\PUuid,
+	Safe,
 	Text,
 	Types\AccessLevel,
 	Util,
@@ -515,7 +514,7 @@ class NewsController extends ModuleInstance {
 		$blobLines = [];
 		foreach ($unreadNews as $news) {
 			$firstLine = explode("\n", $news->news)[0];
-			$firstWords = array_slice(preg_split("/\s+/", $firstLine), 0, 5);
+			$firstWords = array_slice(Safe::pregSplit("/\s+/", $firstLine), 0, 5);
 			$blobLines []= '<tab><highlight>' . Util::date($news->time).
 				'<end>: ' . implode(' ', $firstWords) . '...';
 		}

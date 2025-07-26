@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
-use function Safe\{json_decode, preg_match, preg_split};
+use function Safe\{json_decode, preg_match};
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\TimeoutCancellation;
@@ -338,7 +338,7 @@ class PackageController extends ModuleInstance {
 	 * @return bool true if we match, false if not
 	 */
 	public function isVersionCompatible(string $version): bool {
-		$parts = preg_split("/\s*,\s*/", $version);
+		$parts = Safe::pregSplit("/\s*,\s*/", $version);
 		$ourVersion = BotRunner::getVersion();
 
 		foreach ($parts as $part) {

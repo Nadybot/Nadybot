@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\QUOTE_MODULE;
 
-use function Safe\preg_split;
-
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -13,6 +11,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PUuid,
+	Safe,
 	Text,
 	Types\AccessLevel,
 	Util,
@@ -268,7 +267,7 @@ class QuoteController extends ModuleInstance {
 			return null;
 		}
 		$result = [];
-		$lines = preg_split("/ (?=(?:\(\d{2}:\d{2}\) )?\[[a-zA-Z 0-9-]+\])/", $row->msg);
+		$lines = Safe::pregSplit("/ (?=(?:\(\d{2}:\d{2}\) )?\[[a-zA-Z 0-9-]+\])/", $row->msg);
 		foreach ($lines as $line) {
 			$result = [...$result, ...explode("\n", $line)];
 		}
