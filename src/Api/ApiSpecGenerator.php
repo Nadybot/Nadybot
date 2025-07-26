@@ -625,7 +625,7 @@ class ApiSpecGenerator {
 			|| preg_match('/^array<(.+)>$/', $class, $matches)
 			|| preg_match('/^list<(.+)>$/', $class, $matches)
 		) {
-			/** @var array{0:non-falsy-string,1:non-empty-string} $matches */
+			/** @var array{0:truthy-string,1:non-empty-string} $matches */
 			return ['type' => 'array', 'items' => $this->getSimpleClassRef($matches[1], $refProp)];
 		}
 		return $this->getSimpleClassRef($class, $refProp);

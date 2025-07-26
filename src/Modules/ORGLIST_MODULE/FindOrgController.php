@@ -313,7 +313,7 @@ class FindOrgController extends ModuleInstance {
 			throw new Exception("Invalid data received from orglist for {$letter}");
 		}
 
-		/** @psalm-var non-falsy-string $body */
+		/** @var truthy-string $body */
 
 		$this->cache->set($letter, $body, new DateInterval('PT23H'));
 

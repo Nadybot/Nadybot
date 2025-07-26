@@ -29,7 +29,7 @@ class Fernet implements RelayLayerInterface {
 	 * @param string $hashAlgo   The hash algorithm to ensure messages are unaltered
 	 * @param int    $iterations Number of iterations
 	 *
-	 * @psalm-param non-falsy-string $hashAlgo
+	 * @psalm-param truthy-string $hashAlgo
 	 * @psalm-param positive-int     $iterations
 	 */
 	public function __construct(
