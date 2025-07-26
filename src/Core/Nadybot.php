@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use function Amp\{async, delay};
 use function Amp\Future\await;
-use function Safe\{preg_match, sapi_windows_set_ctrl_handler};
+use function Safe\sapi_windows_set_ctrl_handler;
 
 use Amp\ByteStream\StreamException;
 use Amp\Pipeline\Pipeline;
@@ -1256,7 +1256,7 @@ class Nadybot {
 			return;
 		} elseif (Safe::pregMatches('|Unknown command or access denied!|si', $message)) {
 			return;
-		} elseif (preg_match('|Command not found, try|si', $message)) {
+		} elseif (Safe::pregMatches('|Command not found, try|si', $message)) {
 			return;
 		} elseif (Safe::pregMatches("|Unknown command '|si", $message)) {
 			return;

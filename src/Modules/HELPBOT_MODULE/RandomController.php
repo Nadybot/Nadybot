@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use function Safe\{array_flip, preg_match_all};
+use function Safe\array_flip;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -141,8 +141,8 @@ class RandomController extends ModuleInstance {
 
 		$options = [];
 		$itemRegexp = PItem::getRegexp();
-		preg_match_all(chr(1) . $itemRegexp . chr(1), $listOfNames, $matches);
-		if (is_array($matches) && count($matches) > 0) {
+		$matches = Safe::pregMatchAll(chr(1) . $itemRegexp . chr(1), $listOfNames);
+		if (count($matches) > 0) {
 			$options = $matches[0];
 			$listOfNames = Safe::pregReplace(chr(1) . $itemRegexp . chr(1), '', $listOfNames);
 		}

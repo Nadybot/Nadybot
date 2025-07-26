@@ -2,11 +2,11 @@
 
 namespace Nadybot\Core\SettingHandlers;
 
-use function Safe\{json_decode, preg_match};
+use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Exception;
-use Nadybot\Core\{Attributes as NCA, SettingManager};
+use Nadybot\Core\{Attributes as NCA, Safe, SettingManager};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 use Safe\Exceptions\JsonException;
@@ -44,7 +44,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 		if ($newValue === 'off') {
 			return $newValue;
 		}
-		if (!preg_match("/^\d{1,20}$/", $newValue)) {
+		if (!Safe::pregMatches("/^\d{1,20}$/", $newValue)) {
 			throw new Exception("<highlight>{$newValue}<end> is not a valid Channel ID.");
 		}
 		$discordBotToken = $this->settingManager->getString('discord_bot_token');

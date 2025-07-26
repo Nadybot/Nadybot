@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use function Amp\delay;
-use function Safe\{json_decode, parse_url, preg_match};
+use function Safe\{json_decode, parse_url};
 
 use Amp\Http\Client\{
 	HttpClientBuilder,
@@ -23,6 +23,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	Registry,
+	Safe,
 	Types\Faction,
 	Types\Profession,
 	Types\Status,
@@ -101,7 +102,7 @@ class PlayerManager extends ModuleInstance {
 
 		$name = Utils::normalizeCharacter($name);
 
-		if (!preg_match('/^[A-Z][a-z0-9-]{3,11}$/', $name)) {
+		if (!Safe::pregMatches('/^[A-Z][a-z0-9-]{3,11}$/', $name)) {
 			return null;
 		}
 		$charid = null;
