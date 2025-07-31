@@ -99,6 +99,7 @@ class NanoController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/nanos.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/nano_lines.csv');
 
+		/** @psalm-suppress MixedPropertyTypeCoercion */
 		$this->nanolines = $this->db->table(Nanoline::getTable())
 			->asObj(Nanoline::class)
 			->keyBy('strain_id')
@@ -167,7 +168,10 @@ class NanoController extends ModuleInstance {
 
 			$popup = Text::makeBlob('details', $blob);
 
-			/** @psalm-suppress PossiblyInvalidOperand */
+			/**
+			 * @psalm-suppress PossiblyInvalidOperand
+			 * @psalm-suppress MixedArgument
+			 */
 			$msg = str_replace($gmiLink, '', $info) . " [{$popup}]";
 		}
 

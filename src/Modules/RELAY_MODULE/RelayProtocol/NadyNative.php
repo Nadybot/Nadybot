@@ -81,9 +81,11 @@ class NadyNative implements RelayProtocolInterface {
 		if (is_string($event->data)) {
 			$event->data = str_replace('<myname>', $this->config->main->character, $event->data);
 		} elseif (is_object($event->data) && !($event->data instanceof SyncEvent) && is_string($event->data->message??null)) {
+			/** @psalm-suppress MixedArgument */
 			$event->data->message = str_replace('<myname>', $this->config->main->character, $event->data->message??'');
 		}
 		try {
+			/** @var array{data:array<string,mixed>} */
 			$serialized = Hydrator::literalSerialize(object: $event);
 			if ($event->data instanceof SyncEvent) {
 				$serialized['data']['type'] = EventManager::getEventType($event->data);
@@ -123,7 +125,9 @@ class NadyNative implements RelayProtocolInterface {
 		if (!is_array($data)) {
 			return null;
 		}
+
 		$data['type'] ??= RoutableEvent::TYPE_MESSAGE;
+		assert(is_string($data['type']));
 		switch ($data['type']) {
 			case 'online_list_request':
 				if ($this->syncOnline) {
@@ -132,6 +136,7 @@ class NadyNative implements RelayProtocolInterface {
 				return null;
 			case 'online_list':
 				if ($this->syncOnline) {
+					/** @var array<string,mixed> $data */
 					$cmd = Hydrator::literalHydrate(OnlineList::class, $data);
 					$this->handleOnlineList($message->sender, $cmd);
 				}
@@ -139,23 +144,16 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		$event = new RoutableEvent(type: $data['type']);
 		foreach (($data['path']??[]) as $hop) {
-			$source = new Source(
-				$hop['type'],
-				$hop['name'],
-				$hop['label']??null,
-				$hop['dimension']??null
-			);
+			/** @var array<string,mixed> $hop */
+			$source = Hydrator::literalHydrate(Source::class, $hop);
 			$event->appendPath($source);
 		}
+
+		/** @var ?array{type?:string} */
 		$eventData = $data['data']??null;
 		if (isset($data['char']) && is_array($data['char']) && isset($data['char']['name'])) {
-			$event->setCharacter(
-				new Character(
-					$data['char']['name'],
-					$data['char']['id']??null,
-					$data['char']['dimension']??null
-				)
-			);
+			/** @var array<string,mixed> $data['char'] */
+			$event->setCharacter(Hydrator::literalHydrate(Character::class, $data['char']));
 		}
 		if ($event->type === RoutableEvent::TYPE_EVENT
 			&& is_array($eventData)
@@ -238,7 +236,7 @@ class NadyNative implements RelayProtocolInterface {
 		return (static::$supportedFeatures & $feature) === $feature;
 	}
 
-	/** @param array<mixed> $event */
+	/** @param array<string,mixed> $event */
 	protected function handleExtSyncEvent(array $event): void {
 		try {
 			$fullEvent = SyncEventFactory::create($event);
@@ -355,6 +353,8 @@ class NadyNative implements RelayProtocolInterface {
 		$privLabel = null;
 		if (isset($block)) {
 			$privLabel = 'Guest';
+
+			/** @psalm-suppress MixedPropertyFetch */
 			$privBlock->path = $block->path;
 		}
 		$privBlock->path []= new Source(

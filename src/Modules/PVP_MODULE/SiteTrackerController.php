@@ -130,6 +130,11 @@ class SiteTrackerController extends ModuleInstance {
 		$this->trackers = $this->db->table(TrackerEntry::getTable())
 			->asObj(TrackerEntry::class)
 			->reduce(
+				/**
+				 * @param array<string,TrackerEntry> $result
+				 *
+				 * @return array<string,TrackerEntry>
+				 */
 				function (array $result, TrackerEntry $entry): array {
 					try {
 						$parsed = $this->parseExpression($entry->expression);
@@ -141,7 +146,7 @@ class SiteTrackerController extends ModuleInstance {
 					$this->msgHub->registerMessageEmitter($entry);
 					return $result;
 				},
-				[]
+				[],
 			);
 	}
 

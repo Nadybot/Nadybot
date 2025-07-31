@@ -52,7 +52,9 @@ class TrackerArgumentParser {
 
 			$posData = $this->parser::getLineAndCharacterFromOffset($input, $error['index']);
 
-			$expected = implode('<end> or <highlight>', $this->parser->generalizeErrors($error['expected']));
+			/** @var string[] */
+			$errorMsgs = $this->parser->generalizeErrors($error['expected']);
+			$expected = implode('<end> or <highlight>', $errorMsgs);
 			$foundLength = 20;
 			$found = substr($input, $error['index']);
 			if (strlen($found) > $foundLength) {
@@ -88,6 +90,7 @@ class TrackerArgumentParser {
 			throw new Exception('Invalid tracker argument structure');
 		}
 		if ($value->getDetailType() === 'string') {
+			/** @var string */
 			$rValue = json_decode($value->toString());
 		} else {
 			$rValue = $value->toString();

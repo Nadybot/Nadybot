@@ -17,6 +17,8 @@ class MigrateFromV1 implements SchemaMigration {
 			return;
 		}
 		$logger->info('Converting old vote format into poll format');
+
+		/** @var \stdClass[] */
 		$oldPolls = $db->table(self::DB_OLD_VOTE)
 			->whereNotNull('duration')
 			->get()
@@ -30,6 +32,8 @@ class MigrateFromV1 implements SchemaMigration {
 				'duration' => (int)$oldPoll->duration,
 				'status' => (int)$oldPoll->status,
 			]);
+
+			/** @var \stdClass[] */
 			$oldVotes = $db->table(self::DB_OLD_VOTE)
 				->where('question', (string)$oldPoll->question)
 				->whereNull('duration')

@@ -46,6 +46,7 @@ class Raffle {
 		// Items with "," in their name get this escaped
 		$text = Safe::pregReplaceCallback(
 			"/(['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?>)(.+?)(<\/a>)/",
+			/** @param string[] $matches */
 			static function (array $matches): string {
 				return $matches[1] .  str_replace(',', '&#44;', $matches[2]) . $matches[3];
 			},
@@ -70,13 +71,15 @@ class Raffle {
 
 	/** @return list<string> */
 	public function getParticipantNames(): array {
-		return array_values(array_reduce(
+		/** @var list<string> */
+		$result = array_values(array_reduce(
 			$this->slots,
 			static function (array $carry, RaffleSlot $slot): array {
 				return array_unique([...$carry, ...$slot->participants]);
 			},
 			[]
 		));
+		return $result;
 	}
 
 	public function isInRaffle(string $player, ?int $slot=null): ?bool {

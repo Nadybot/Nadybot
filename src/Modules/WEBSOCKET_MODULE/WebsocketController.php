@@ -156,6 +156,8 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 			data: $event,
 		);
 		$eventType = EventManager::getEventType($event);
+
+		/** @var array<string,mixed> */
 		$encodedEvent = Hydrator::literalSerialize($event);
 		$encodedEvent['type'] = $eventType;
 		$encodedPacket = ['command' => WebsocketCommand::EVENT, 'data' => $encodedEvent];
@@ -201,23 +203,27 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		$body = $message->buffer();
 		$this->logger->info('[Data inc.] {data}', ['data' => $body]);
 		try {
+			/** @var array<string,mixed> */
 			$data = json_decode($body, true);
 			$command = Hydrator::hydrate(WebsocketCommand::class, $data);
-			if (!in_array($command->command, $command::ALLOWED_COMMANDS, true)) {
+			if (!in_array($command->command, WebsocketCommand::ALLOWED_COMMANDS, true)) {
 				throw new Exception();
 			}
 		} catch (Throwable) {
 			$client->close(4_002);
 			return;
 		}
+
+		/** @var array<string,mixed> */
+		$cmdData = $command->data;
 		if ($command->command === $command::SUBSCRIBE) {
 			$newEvent = new WebsocketSubscribeEvent(
-				data: Hydrator::hydrate(NadySubscribe::class, $command->data),
+				data: Hydrator::hydrate(NadySubscribe::class, $cmdData),
 				client: $client,
 			);
 		} elseif ($command->command === $command::REQUEST) {
 			$newEvent = new WebsocketRequestEvent(
-				data: Hydrator::hydrate(NadyRequest::class, $command->data),
+				data: Hydrator::hydrate(NadyRequest::class, $cmdData),
 				client: $client,
 			);
 		} else {

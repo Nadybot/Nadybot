@@ -53,7 +53,13 @@ class GauntletInventoryController extends ModuleInstance {
 	public function getData(string $name): array {
 		$data = $this->preferences->get($name, 'gauntlet');
 		if (isset($data)) {
-			return json_decode($data);
+			$array = json_decode($data, true);
+			if (!is_array($array) || !array_is_list($array) || count($array) !== 17) {
+				return array_fill(0, 17, 0);
+			}
+
+			/** @var array<int<0,16>,int> $array */
+			return $array;
 		}
 		return array_fill(0, 17, 0);
 	}

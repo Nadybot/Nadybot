@@ -303,7 +303,8 @@ class WebUiController extends ModuleInstance {
 			}
 			if (isset($extractor)) {
 				try {
-					Safe::exceptionWrapper($extractor->close(...));
+					/** @var bool */
+					$result = Safe::exceptionWrapper($extractor->close(...));
 				} catch (ErrorException) {
 				}
 			}

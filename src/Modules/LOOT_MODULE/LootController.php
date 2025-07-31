@@ -129,14 +129,14 @@ class LootController extends ModuleInstance {
 	/**
 	 * The currently rolled items
 	 *
-	 * @var LootItem[]
+	 * @var array<int,LootItem>
 	 */
 	private array $loot = [];
 
 	/**
 	 * The leftovers from the last loot roll
 	 *
-	 * @var LootItem[]
+	 * @var array<int,LootItem>
 	 */
 	private array $residual = [];
 
@@ -188,9 +188,12 @@ class LootController extends ModuleInstance {
 			return;
 		}
 		$compressedList = $this->compressLootHistory($items);
+
+		/** @var Collection<int,Collection<int,LootHistory>> */
 		$rolls = $compressedList->groupBy('roll');
+
+		/** @param Collection<int,LootHistory> $items */
 		$lines = $rolls->map(static function (Collection $items, int $roll): string {
-			/** @var LootHistory */
 			$firstItem = $items->firstOrFail();
 			$showLink = Text::makeChatcmd(
 				$items->count() . ' ' . Text::pluralize('item', $items->count()),
@@ -550,6 +553,7 @@ class LootController extends ModuleInstance {
 				$key = 1;
 			}
 
+			/** @psalm-suppress MixedArgument */
 			$this->loot[$key] = $item = new LootItem(
 				name: $itemName,
 				icon: $looticon??null,

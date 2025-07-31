@@ -184,8 +184,9 @@ class OrglistJob {
 			throw new Exception('Broken queue, restart the bot!');
 		}
 
-		/** @phpstan-ignore-next-line */
-		$this->addQueue[$uid] = new DeferredFuture();
+		/** @var DeferredFuture<?bool> */
+		$addFuture = new DeferredFuture();
+		$this->addQueue[$uid] = $addFuture; // @phpstan-ignore-line
 		// $this->logger->notice('Adding {uid} on {worker}', ['uid' => $uid, 'worker' => $worker]);
 		$this->chatBot->sendPackage(new BuddyAdd(charId: $uid), $worker);
 		$this->procQueue[$worker] []= $uid;
@@ -201,7 +202,10 @@ class OrglistJob {
 			// Character UID is inactive
 			return new OrglistItem(name: $player->name, online: false);
 		}
-		$this->removeQueue[$uid] = new DeferredFuture();
+
+		/** @var DeferredFuture<void> */
+		$remFuture = new DeferredFuture();
+		$this->removeQueue[$uid] = $remFuture;
 		// $this->logger->notice('Removing {uid}', ['uid' => $uid]);
 		$this->chatBot->sendPackage(new BuddyRemove(charId: $uid), $worker);
 		// $this->logger->notice('Awaiting removed of {uid}', ['uid' => $uid]);

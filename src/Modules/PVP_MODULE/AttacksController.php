@@ -939,9 +939,12 @@ class AttacksController extends ModuleInstance {
 		 * @var array<string,list<DBTowerAttack>>
 		 */
 		$groups = $attacks
+			/** @param array<string,list<DBTowerAttack>> $groups */
 			->reduce(static function (array $groups, DBTowerAttack $attack): array {
 				$key = "{$attack->def_org}:{$attack->playfield->value}:{$attack->site_id}";
 				$groups[$key] ??= [];
+
+				/** @psalm-suppress MixedArrayAssignment */
 				$groups[$key] []= $attack;
 				return $groups;
 			}, []);

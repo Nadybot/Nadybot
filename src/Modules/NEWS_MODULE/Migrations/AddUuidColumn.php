@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\NEWS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -11,7 +12,6 @@ use Nadybot\Core\{
 use Nadybot\Modules\NEWS_MODULE\News;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
-use stdClass;
 
 #[NCA\Migration(order: 2022_01_26_10_34_56, shared: true)]
 class AddUuidColumn implements SchemaMigration {
@@ -20,8 +20,13 @@ class AddUuidColumn implements SchemaMigration {
 		$db->schema()->table($table, static function (Blueprint $table): void {
 			$table->string('uuid', 36)->nullable(true);
 		});
-		$db->table($table)->get()->each(static function (stdClass $data) use ($db, $table): void {
-			$db->table($table)->where('id', (int)$data->id)->update([
+
+		/** @var Collection<int,object{id:int}&\stdClass> */
+		$data = $db->table($table)->get();
+
+		/** @param object{id:int}&\stdClass */
+		$data->each(static function (object $data) use ($db, $table): void {
+			$db->table($table)->where('id', $data->id)->update([
 				'uuid' => Uuid::uuid7()->toString(),
 			]);
 		});

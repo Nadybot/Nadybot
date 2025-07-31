@@ -117,6 +117,7 @@ class WebChatConverter extends ModuleInstance {
 		$message = Safe::pregReplace("/<\/font>/", '<end>', $message);
 		$message = Safe::pregReplaceCallback(
 			'/<(end|' . implode('|', array_keys($colors)) . "|font\s+color\s*=\s*[\"']?(#.{6})[\"']?)>/i",
+			/** @param string[] $matches */
 			static function (array $matches) use (&$stack, $colors): string {
 				if ($matches[1] === 'end') {
 					if (!count($stack)) {
@@ -148,6 +149,7 @@ class WebChatConverter extends ModuleInstance {
 		}
 		$message = Safe::pregReplaceCallback(
 			"/(\r?\n[-*][^\r\n]+){2,}/s",
+			/** @param string[] $matches */
 			static function (array $matches): string {
 				$text = Safe::pregReplace("/(\r?\n)[-*]\s+([^\r\n]+)/s", '<li>$2</li>', $matches[0]);
 				return "\n<ul>{$text}</ul>";
@@ -156,6 +158,7 @@ class WebChatConverter extends ModuleInstance {
 		);
 		$message = Safe::pregReplaceCallback(
 			'/^((?:    )+)/m',
+			/** @param string[] $matches */
 			static function (array $matches): string {
 				return str_repeat('<indent />', (int)(strlen($matches[1])/4));
 			},
@@ -168,6 +171,7 @@ class WebChatConverter extends ModuleInstance {
 		$message = Safe::pregReplace("/<a\s+href\s*=\s*['\"]?user:\/\/(.+?)['\"]?>(.*?)<\/a>/s", '<ao:user name="$1">$2</ao:user>', $message);
 		$message = Safe::pregReplaceCallback(
 			"/<a\s+href\s*=\s*(['\"])chatcmd:\/\/\/tell\s+<myname>\s+(.*?)\\1>(.*?)<\/a>/s",
+			/** @param string[] $matches */
 			static function (array $matches): string {
 				return '<ao:command cmd="' . htmlentities($matches[2]) . "\">{$matches[3]}</ao:command>";
 			},
@@ -212,6 +216,7 @@ class WebChatConverter extends ModuleInstance {
 		$id = 0;
 		$message = Safe::pregReplaceCallback(
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1>(.*?)<\/a>/s",
+			/** @param string[] $matches */
 			function (array $matches) use (&$parts, &$id): string {
 				assert(is_string($matches[2]));
 				$parts['ao-' . ++$id] = $this->formatMsg(
@@ -242,7 +247,9 @@ class WebChatConverter extends ModuleInstance {
 		if (count(get_object_vars($msg->popups))) {
 			$data .= '<data>';
 			foreach (get_object_vars($msg->popups) as $key => $value) {
-				$data .= "<section id=\"{$key}\">" . $this->fixUnclosedTags($value) . '</section>';
+				if (is_string($value)) {
+					$data .= "<section id=\"{$key}\">" . $this->fixUnclosedTags($value) . '</section>';
+				}
 			}
 			$data .= '</data>';
 		}

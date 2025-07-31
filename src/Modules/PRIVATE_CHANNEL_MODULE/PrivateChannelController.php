@@ -307,6 +307,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	public function cacheMembers(): void {
+		/** @psalm-suppress MixedPropertyTypeCoercion */
 		$this->members = $this->db->table(Member::getTable())
 			->asObj(Member::class)
 			->keyBy('name')
@@ -427,20 +428,25 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			->each(function (LastOnline $member): void {
 				$member->main = $this->altsController->getMainOf($member->name);
 			})
-			->keyBy('main')
-			->filter(function (LastOnline $member, string $main): bool {
-				return $this->accessManager->checkSingleAccess($main, AccessLevel::Member);
-			});
+			->keyBy('main');
+		$lastOnline = $lastOnline->filter(function (LastOnline $member, string $main): bool {
+			return $this->accessManager->checkSingleAccess($main, AccessLevel::Member);
+		});
+
+		/** @var Collection<string,Member> */
+		$groupedMembers = $members->keyBy(function (Member $member): string {
+			return $this->altsController->getMainOf($member->name);
+		});
 
 		/** @var Collection<int,InactiveMember> */
-		$inactiveMembers = $members->keyBy(function (Member $member): string {
-			return $this->altsController->getMainOf($member->name);
-		})->map(static function (Member $member, string $main) use ($lastOnline): InactiveMember {
-			return new InactiveMember(
-				name: $member->name,
-				last_online: $lastOnline->get($main, null),
-			);
-		})->filter(static function (InactiveMember $member) use ($time): bool {
+		$inactiveMembers = $groupedMembers->map(
+			static function (Member $member, string $main) use ($lastOnline): InactiveMember {
+				return new InactiveMember(
+					name: $member->name,
+					last_online: $lastOnline->get($main, null),
+				);
+			}
+		)->filter(static function (InactiveMember $member) use ($time): bool {
 			return (int)$member->last_online?->dt < $time;
 		})->sortKeys()
 		->values();
@@ -1520,6 +1526,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		} elseif (null === ($uid = $this->chatBot->getUid($name))) {
 			return;
 		}
+
+		/** @psalm-suppress MixedArgument */
 		$this->chatBot->sendPackage(
 			package: new Package\Out\PrivateChannelInvite(charId: $uid)
 		);

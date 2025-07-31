@@ -435,6 +435,8 @@ class NewsController extends ModuleInstance {
 			if (!is_array($body)) {
 				throw new Exception('Wrong content body');
 			}
+
+			/** @var array<string,mixed> $body */
 			$default = [
 				'time' => time(),
 				'name' => $user,
@@ -479,7 +481,11 @@ class NewsController extends ModuleInstance {
 			if (!is_array($body)) {
 				throw new Exception('Wrong content body');
 			}
+
+			/** @var array<string,mixed> */
 			$oldData = Hydrator::literalSerialize(object: $oldItem);
+
+			/** @var array<string,mixed> $body */
 			$data = Util::mergeArraysRecursive($oldData, $body);
 			$news = Hydrator::literalHydrate(className: News::class, data: $data);
 		} catch (Throwable) {

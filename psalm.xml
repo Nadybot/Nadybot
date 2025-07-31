@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <psalm
     phpVersion="8.2"
-    errorLevel="8"
+    errorLevel="1"
     findUnusedPsalmSuppress="true"
     findUnusedCode="false"
     findUnusedBaselineEntry="false"
@@ -35,8 +35,10 @@
       <file name="Stubs/ParserGenerator.SyntaxTreeNode.Branch.php" />
       <file name="Stubs/ParserGenerator.SyntaxTreeNode.Leaf.php" />
       <file name="Stubs/ParserGenerator.SyntaxTreeNode.Root.php" />
+      <file name="Stubs/ZipArchive.php" />
     </stubs>
     <issueHandlers>
+        <MixedArrayAccess errorLevel="suppress" />
         <InvalidClassConstantType errorLevel="suppress" />
         <PropertyNotSetInConstructor errorLevel="suppress" />
         <TooManyTemplateParams errorLevel="suppress" />
@@ -50,5 +52,6 @@
         <DeprecatedMethod errorLevel="suppress" />
         <ClassMustBeFinal errorLevel="suppress" />
         <InvalidOperand errorLevel="suppress" />
+        <MixedAssignment errorLevel="suppress" />
     </issueHandlers>
 </psalm>

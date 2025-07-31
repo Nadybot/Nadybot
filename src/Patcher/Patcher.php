@@ -17,6 +17,7 @@ use Exception;
 class Patcher {
 	/** Callback for composer install and update events */
 	public static function patch(PackageEvent $event): void {
+		/** @var string */
 		$vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
 		$operation = $event->getOperation();
 		if ($operation instanceof InstallOperation) {

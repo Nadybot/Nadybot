@@ -389,6 +389,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		foreach ($relayConf->layers as $layer) {
 			$layers []= $layer->toString();
 		}
+
+		/** @psalm-suppress MixedPropertyFetch */
 		$blob = $this->quickRelayController->getRouteInformation(
 			$name,
 			isset($layer) && in_array($layer->layer, ['tyrbot', 'nadynative'], true)
@@ -1015,6 +1017,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		}
 		$class = $spec->class;
 		try {
+			/** @psalm-suppress MixedMethodCall */
 			$result = new $class(...$arguments);
 			Registry::injectDependencies($result);
 			return $result;
@@ -1134,7 +1137,9 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 		foreach ($body as &$item) {
-			$item['relay_id'] ??= $relay->id;
+			if (is_array($item)) {
+				$item['relay_id'] ??= $relay->id;
+			}
 		}
 
 		try {
@@ -1192,7 +1197,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		if (!is_array($body)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
+
+		/** @var array<string,mixed> $body */
 		try {
+			/** @var array<string,mixed> */
 			$oldData = Hydrator::serialize($relay);
 			$update = Util::mergeArraysRecursive($oldData, $body);
 			$event = Hydrator::hydrate(RelayEvent::class, $update);
@@ -1270,6 +1278,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		if (!is_array($body)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
+
+		/** @var array<string,mixed> $body */
 		try {
 			$relay = Hydrator::hydrate(RelayConfig::class, $body);
 		} catch (Throwable $e) {
@@ -1582,14 +1592,20 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			return $blob . '<tab>- empty -';
 		}
 		if (isset($this->transports[$relay->layers[0]->layer])) {
+			/** @psalm-suppress MixedMethodCall */
 			$secrets = $this->transports[$relay->layers[0]->layer]->getSecrets();
+
+			/** @psalm-suppress MixedArgument */
 			$blob .= '<tab>Transport: <highlight>' . $relay->layers[0]->toString('transport', $secrets) . "<end>\n";
 		} else {
 			$blob .= "<tab>Transport: <highlight>{$relay->layers[0]->layer}(<red>error<end>)<end>\n";
 		}
 		for ($i = 1; $i < count($relay->layers)-1; $i++) {
 			if (isset($this->stackElements[$relay->layers[$i]->layer])) {
+				/** @psalm-suppress MixedMethodCall */
 				$secrets = $this->stackElements[$relay->layers[$i]->layer]->getSecrets();
+
+				/** @psalm-suppress MixedArgument */
 				$blob .= '<tab>Layer: <highlight>' . $relay->layers[$i]->toString('layer', $secrets) . "<end>\n";
 			} else {
 				$blob .= "<tab>Layer: <highlight>{$relay->layers[$i]->layer}(<red>error<end>)<end>\n";

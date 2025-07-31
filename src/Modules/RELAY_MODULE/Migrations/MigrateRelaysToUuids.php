@@ -59,12 +59,19 @@ class MigrateRelaysToUuids implements SchemaMigration {
 
 		$result = [];
 
-		/** @return array<string,mixed> */
+		/**
+		 * @param object{relay_id:int|string,id?:string}&\stdClass $entry
+		 *
+		 * @return array<string,mixed>
+		 */
 		$entries = $entries->map(static function (\stdClass $entry) use (&$result, $relayIdToUuid): array {
 			$uuid = Uuid::uuid7();
 			$result[(int)$entry->id] = $uuid;
 			$entry->id = $uuid->toString();
-			$entry->relay_id = $relayIdToUuid[$entry->relay_id]->toString();
+			$relayId = $entry->relay_id;
+			if (is_int($relayId) && array_key_exists($relayId, $relayIdToUuid)) {
+				$entry->relay_id = $relayIdToUuid[$relayId]->toString();
+			}
 			return (array)$entry;
 		})->toList();
 		$db->table($table)->chunkInsert($entries);
@@ -90,12 +97,19 @@ class MigrateRelaysToUuids implements SchemaMigration {
 
 		$result = [];
 
-		/** @return array<string,mixed> */
+		/**
+		 * @param object{layer_id:int|string,id?:string}&\stdClass $entry
+		 *
+		 * @return array<string,mixed>
+		 */
 		$entries = $entries->map(static function (\stdClass $entry) use (&$result, $relayLayerIdToUuid): array {
 			$uuid = Uuid::uuid7();
 			$result[(int)$entry->id] = $uuid;
 			$entry->id = $uuid->toString();
-			$entry->layer_id = $relayLayerIdToUuid[$entry->layer_id]->toString();
+			$layerId = $entry->layer_id;
+			if (is_int($layerId) && array_key_exists($layerId, $relayLayerIdToUuid)) {
+				$entry->layer_id = $relayLayerIdToUuid[$layerId]->toString();
+			}
 			return (array)$entry;
 		})->toList();
 		$db->table($table)->chunkInsert($entries);
@@ -120,11 +134,18 @@ class MigrateRelaysToUuids implements SchemaMigration {
 		$db->schema()->drop($table);
 		$db->schema()->create($table, $createTable);
 
-		/** @return array<string,mixed> */
+		/**
+		 * @param object{relay_id:int|string,id?:string}&\stdClass $entry
+		 *
+		 * @return array<string,mixed>
+		 */
 		$entries = $entries->map(static function (\stdClass $entry) use ($relayIdToUuid): array {
 			$uuid = Uuid::uuid7();
 			$entry->id = $uuid->toString();
-			$entry->relay_id = $relayIdToUuid[$entry->relay_id]->toString();
+			$relayId = $entry->relay_id;
+			if (is_int($relayId) && array_key_exists($relayId, $relayIdToUuid)) {
+				$entry->relay_id = $relayIdToUuid[$relayId]->toString();
+			}
 			return (array)$entry;
 		})->toList();
 		$db->table($table)->chunkInsert($entries);
@@ -147,9 +168,16 @@ class MigrateRelaysToUuids implements SchemaMigration {
 		$db->schema()->drop($table);
 		$db->schema()->create($table, $createTable);
 
-		/** @return array<string,mixed> */
+		/**
+		 * @param object{relay_id:int|string}&\stdClass $entry
+		 *
+		 * @return array<string,mixed>
+		 */
 		$entries = $entries->map(static function (\stdClass $entry) use ($relayIdToUuid): array {
-			$entry->relay_id = $relayIdToUuid[$entry->relay_id]->toString();
+			$id = $entry->relay_id;
+			if (is_int($id) && array_key_exists($id, $relayIdToUuid)) {
+				$entry->relay_id = $relayIdToUuid[$id]->toString();
+			}
 			return (array)$entry;
 		})->toList();
 		$db->table($table)->chunkInsert($entries);

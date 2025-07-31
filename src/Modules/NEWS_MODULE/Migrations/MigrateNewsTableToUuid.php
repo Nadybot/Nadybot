@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\NEWS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\NEWS_MODULE\{News, NewsConfirmed};
 use Psr\Log\LoggerInterface;
-use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
 
 #[NCA\Migration(order: 2024_08_02_14_08_00, shared: true)]
@@ -15,6 +16,8 @@ class MigrateNewsTableToUuid implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$column = 'id';
 		$table = News::getTable();
+
+		/** @var Collection<int,object{id:int,time?:int,uuid?:string}&\stdClass> */
 		$entries = $db->table($table)->orderBy($column)->get();
 		$db->schema()->drop($table);
 		$db->schema()->create(
@@ -29,16 +32,21 @@ class MigrateNewsTableToUuid implements SchemaMigration {
 			},
 		);
 
+		/** @var array<int,UuidInterface> */
 		$idToUuid = [];
 
-		/** @return array<string,mixed> */
-		$entries = $entries->map(static function (\stdClass $entry) use (&$idToUuid): array {
+		/**
+		 * @param object{id:int,time?:int,uuid?:string}&\stdClass $entry
+		 *
+		 * @return array<string,mixed>
+		 */
+		$entries = $entries->map(static function (object $entry) use (&$idToUuid): array {
 			$time = $entry->time ?? null;
 			if (isset($time)) {
 				$time = (new DateTimeImmutable())->setTimestamp($time);
 			}
 			$uuid = isset($entry->uuid) ? Uuid::fromString($entry->uuid) : Uuid::uuid7($time);
-			$idToUuid[(int)$entry->id] = $uuid;
+			$idToUuid[$entry->id] = $uuid;
 			$entry->id = $uuid->toString();
 			$array = (array)$entry;
 			unset($array['uuid']);
@@ -47,6 +55,8 @@ class MigrateNewsTableToUuid implements SchemaMigration {
 		$db->table($table)->chunkInsert($entries);
 
 		$table = NewsConfirmed::getTable();
+
+		/** @var Collection<int,object{id:int}&\stdClass> */
 		$confirmed = $db->table($table)->get();
 		$db->schema()->drop($table);
 		$db->schema()->create(
@@ -59,7 +69,12 @@ class MigrateNewsTableToUuid implements SchemaMigration {
 			}
 		);
 
-		$entries = $confirmed->map(static function (\stdClass $entry) use ($idToUuid): array {
+		/**
+		 * @param object{id:int}&\stdClass $entry
+		 *
+		 * @return array<string,mixed>
+		 */
+		$entries = $confirmed->map(static function (object $entry) use ($idToUuid): array {
 			$entry->id = $idToUuid[$entry->id];
 			return (array)$entry;
 		})->toList();

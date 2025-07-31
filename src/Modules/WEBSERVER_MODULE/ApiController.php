@@ -48,7 +48,7 @@ class ApiController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $api = true;
 
-	/** @var array<array<string,ApiHandler>> */
+	/** @var array<string,array<string,ApiHandler>> */
 	protected array $routes = [];
 
 	#[NCA\Logger]
@@ -98,7 +98,10 @@ class ApiController extends ModuleInstance {
 			$context->reply('There are currently no active API tokens');
 			return;
 		}
-		$blocks = $keys->groupBy('character')
+
+		/** @var Collection<string,Collection<int,ApiKey>> */
+		$grouped = $keys->groupBy('character');
+		$blocks = $grouped
 			->map(static function (Collection $keys, string $character): string {
 				return "<header2>{$character}<end>\n".
 					$keys->map(static function (ApiKey $key): string {
@@ -138,6 +141,8 @@ class ApiController extends ModuleInstance {
 			$context->reply("Your PHP installation doesn't support the required cryptographic algorithms.");
 			return;
 		}
+
+		/** @var array{bits:int,key:string,type:int}|false */
 		$keyDetails = openssl_pkey_get_details($key);
 		if ($keyDetails === false) {
 			$context->reply('There was an error creating the public/private key pair');
@@ -271,6 +276,8 @@ class ApiController extends ModuleInstance {
 				foreach ($verbAttrs as $verbAttr) {
 					$methods []= strtolower(class_basename($verbAttr->getName()));
 				}
+
+				/** @var Closure(Request, mixed...):Response */
 				$closure = $method->getClosure($instance);
 				$this->addApiRoute($routes, $methods, $closure, $accessLevelFrom, $accessLevel, $method);
 			}
@@ -450,11 +457,12 @@ class ApiController extends ModuleInstance {
 		Http\ApiResult(code: 422, desc: 'Unparsable data received')
 	]
 	public function apiExecuteCommand(Request $request, string $uuid): Response {
+		/** @var ?string */
 		$msg = $request->getAttribute(WebserverController::BODY);
 
 		/** @var ?string */
 		$user = $request->getAttribute(WebserverController::USER);
-		if (substr($msg, 0, 1) === $this->systemController->symbol) {
+		if (isset($msg) && substr($msg, 0, 1) === $this->systemController->symbol) {
 			$msg = substr($msg, 1);
 		}
 		if ($this->websocketController->clientExists($uuid) === false) {

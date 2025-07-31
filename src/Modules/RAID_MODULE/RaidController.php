@@ -85,7 +85,10 @@ class RaidController extends ModuleInstance {
 	public const CMD_RAID_MANAGE = 'raid manage';
 	public const CMD_RAID_TICKER = 'raid change ticker';
 
+	/** @var string */
 	public const ERR_NO_RAID = "There's currently no raid running.";
+
+	/** @var string */
 	public const CAT_RAID = 'raid';
 
 	/** Announce the raid periodically */

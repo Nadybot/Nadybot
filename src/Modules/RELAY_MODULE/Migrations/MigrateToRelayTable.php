@@ -223,7 +223,8 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 
 		$relayFilterInPriv = $this->getSetting($db, 'relay_filter_in_priv');
-		if (isset($routeInPriv, $relayFilterInPriv)   && strlen($relayFilterInPriv->value??'')) {
+		if (isset($routeInPriv, $relayFilterInPriv) && strlen($relayFilterInPriv->value??'')) {
+			/** @psalm-suppress MixedArgument */
 			$modId = $this->addMod($db, $routeInPriv, 'if-matches');
 			$this->addArgs($db, $modId, [
 				'text' => $relayFilterInPriv->value,

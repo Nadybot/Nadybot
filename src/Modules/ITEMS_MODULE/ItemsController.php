@@ -107,7 +107,7 @@ class ItemsController extends ModuleInstance {
 			} elseif ($key === 'icon' && is_int($value) && $value > 0) {
 				$blob .= "{$key}: <highlight>{$value}<end> ({$row->getIcon()})\n";
 			} else {
-				$blob .= "{$key}: <highlight>" . (is_bool($value) ? ($value ? 'yes' : 'no') : ($value??'<empty>')) . "<end>\n";
+				$blob .= "{$key}: <highlight>" . (is_bool($value) ? ($value ? 'yes' : 'no') : (string)($value??'<empty>')) . "<end>\n";
 			}
 		}
 		$ql = $row->highql;
@@ -299,6 +299,7 @@ class ItemsController extends ModuleInstance {
 			->selectRaw($query->colFunc('COALESCE', ['a1.highql', 'a2.highql', 'foo.highql'], 'highql'));
 		$data = $query->asObj(ItemSearchResult::class);
 		$data = $data->filter(static function (ItemSearchResult $item): bool {
+			/** @var array<string,true> */
 			static $found = [];
 			if (isset($found[$item->lowid . '-' . $item->highid . ':' . $item->ql])) {
 				return false;
@@ -316,7 +317,10 @@ class ItemsController extends ModuleInstance {
 			$nextItem = $data->shift(1);
 			if (!isset($nextItem->group_id) || !isset($groupsProcessed[$nextItem->group_id])) {
 				if (isset($nextItem->group_id)) {
-					/** @psalm-suppress PossiblyNullReference */
+					/**
+					 * @psalm-suppress PossiblyNullReference
+					 * @psalm-suppress MixedArgument
+					 */
 					$result->push(...$groups->get($nextItem->group_id)->toArray());
 					$groupsProcessed[$nextItem->group_id] = true;
 				} else {
@@ -329,6 +333,7 @@ class ItemsController extends ModuleInstance {
 
 	/** @param iterable<array-key,ItemSearchResult> $data */
 	public function createItemsBlob(iterable $data, string $search, ?int $ql, string $version, string $footer, mixed $elapsed=null): string {
+		/** @var Collection<int,ItemSearchResult> */
 		$data = collect($data);
 		$numItems = count($data);
 		$groups = $data->map(static fn (ItemSearchResult $row): ?int => $row->group_id)
@@ -352,7 +357,7 @@ class ItemsController extends ModuleInstance {
 		} else {
 			$blob .= "Search: <highlight>{$search}<end>\n";
 		}
-		if ($elapsed) {
+		if ($elapsed && (is_int($elapsed) || is_float($elapsed))) {
 			$blob .= 'Time: <highlight>' . round($elapsed, 2) . "s<end>\n";
 		}
 		$blob .= "\n";
@@ -483,6 +488,7 @@ class ItemsController extends ModuleInstance {
 		}
 		$list = Safe::pregReplaceCallback(
 			"/^([^<]+?)<red>\[<end>(.+)<red>\]<end>$/m",
+			/** @param string[] $matches */
 			static function (array $matches): string {
 				if (str_contains($matches[2], '<red>')) {
 					return $matches[0];
@@ -640,19 +646,25 @@ class ItemsController extends ModuleInstance {
 			->whereIn('item_id', array_unique([...array_column($items, 'highid'), ...array_column($items, 'lowid')]))
 			->asObj(ItemBuff::class);
 
-		/** @param Collection<ItemBuff> $buffs */
-		$buffs = $buffs->groupBy('item_id')
-			->map(static function (Collection $iBuffs, int $itemId): array {
-				return $iBuffs->map(static function (ItemBuff $buff): ExtBuff {
-					if (null === ($skill = Skill::tryFrom($buff->attribute_id))) {
-						throw new \Exception("Unknown skill {$buff->attribute_id} encountered");
-					}
-					return new ExtBuff(
-						skill: $skill,
-						amount: $buff->amount,
-					);
-				})->toArray();
-			});
+		/** @param Collection<int,Collection<int,ItemBuff>> $buffs */
+		$groupedBuffs = $buffs->groupBy('item_id');
+
+		/**
+		 * @param Collection<int,ItemBuff> $iBuffs
+		 *
+		 * @return array<int,ExtBuff>
+		 */
+		$buffs = $groupedBuffs->map(static function (Collection $iBuffs): array {
+			return $iBuffs->map(static function (ItemBuff $buff): ExtBuff {
+				if (null === ($skill = Skill::tryFrom($buff->attribute_id))) {
+					throw new \Exception("Unknown skill {$buff->attribute_id} encountered");
+				}
+				return new ExtBuff(
+					skill: $skill,
+					amount: $buff->amount,
+				);
+			})->toArray();
+		});
 
 		/** @var Collection<int,ItemWithBuffs> */
 		$result = new Collection();

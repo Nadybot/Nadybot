@@ -110,6 +110,8 @@ class OnlinePlayer extends Player {
 			$op['afk'] = $online->afk ?? '';
 		}
 		$op['pmain'] = $op['name'];
+
+		/** @psalm-suppress MixedArgument */
 		return new static(...$op);
 	}
 

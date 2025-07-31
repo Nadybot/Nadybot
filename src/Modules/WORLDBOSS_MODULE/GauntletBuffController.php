@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 use function Amp\delay;
 use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\{HttpClientBuilder, Request};
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -59,6 +60,8 @@ use ValueError;
 ]
 class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public const SIDE_NONE = 'none';
+
+	/** @var string */
 	public const GAUNTLET_API = 'https://timers.aobots.org/api/v1.1/gaubuffs';
 
 	/** Times to display gaubuff timer alerts */
@@ -494,14 +497,10 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		/** @var list<ApiGauntletBuff> */
 		$buffs = [];
 		try {
+			/** @var array<array-key,array<string,mixed>> */
 			$data = json_decode($body, true);
-			if (!is_array($data)) {
-				throw new JsonException();
-			}
-			foreach ($data as $gauntletData) {
-				$buffs []= Hydrator::hydrate(ApiGauntletBuff::class, $gauntletData);
-			}
-		} catch (JsonException) {
+			$buffs = Hydrator::hydrateObjects(ApiGauntletBuff::class, $data)->toArray();
+		} catch (JsonException | UnableToHydrateObject) {
 			$this->logger->error('Gauntlet buff API sent invalid json.');
 			return;
 		} catch (ValueError) {

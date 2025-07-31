@@ -118,6 +118,7 @@ class CountdownController extends ModuleInstance {
 		$this->startCountdown($callback, $event->message);
 	}
 
+	/** @return Closure(string):void */
 	protected function getDmCallback(): Closure {
 		return function (string $text): void {
 			if ($this->cdTellLocation & self::LOC_PRIV) {

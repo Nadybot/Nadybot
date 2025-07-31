@@ -101,7 +101,7 @@ class AgcrProtocol implements RelayProtocolInterface {
 		if ($this->forceSingleHop) {
 			$path = implode(' ', explode('] [', $path));
 		}
-		$pages = (array)Blob::create($event->getData())->render(formatMessage: true);
+		$pages = (array)Blob::create((string)$event->getData())->render(formatMessage: true);
 		return array_map(
 			fn (string $page): string => $this->prefix.$this->command . " {$path}{$page}",
 			$pages

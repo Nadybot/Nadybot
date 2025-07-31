@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RAID_MODULE\Migrations\Points;
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidPointsLog;
@@ -20,7 +21,10 @@ class CreateRaidPointsLogTable implements SchemaMigration {
 			$db->schema()->table($table, static function (Blueprint $table): void {
 				$table->boolean('individual')->default(true)->index()->change();
 			});
-			$db->table($table)->get()->each(static function (stdClass $log) use ($db, $table): void {
+
+			/** @var Collection<int,stdClass> */
+			$data = $db->table($table)->get();
+			$data->each(static function (stdClass $log) use ($db, $table): void {
 				$db->table($table)
 					->where('time', (int)$log->time)
 					->where('username', (string)$log->username)

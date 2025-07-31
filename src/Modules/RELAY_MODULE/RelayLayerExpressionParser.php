@@ -52,7 +52,9 @@ class RelayLayerExpressionParser {
 			$error = $parser->getError();
 			$posData = $parser::getLineAndCharacterFromOffset($input, $error['index']);
 
-			$expected = implode('<end> or <highlight>', $parser->generalizeErrors($error['expected']));
+			/** @var string[] */
+			$errorMessages = $parser->generalizeErrors($error['expected']);
+			$expected = implode('<end> or <highlight>', $errorMessages);
 			$foundLength = 20;
 			$found = substr($input, $error['index']);
 			if (strlen($found) > $foundLength) {
@@ -108,7 +110,7 @@ class RelayLayerExpressionParser {
 		$result = new RelayLayerArgument(
 			layer_id: $layer->id,
 			name: $name,
-			value: $value
+			value: (string)$value
 		);
 		return $result;
 	}

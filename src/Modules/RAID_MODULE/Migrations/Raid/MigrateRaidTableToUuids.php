@@ -61,7 +61,9 @@ class MigrateRaidTableToUuids implements SchemaMigration {
 
 		/** @return array<string,mixed> */
 		$raidLogs = $raidLogs->map(static function (\stdClass $entry) use ($idToUuid): array {
-			$entry->raid_id = $idToUuid[$entry->raid_id];
+			if (is_int($entry->raid_id)) {
+				$entry->raid_id = $idToUuid[$entry->raid_id];
+			}
 			return (array)$entry;
 		})->toList();
 		$db->table(RaidLog::getTable())->chunkInsert($raidLogs);
@@ -86,8 +88,10 @@ class MigrateRaidTableToUuids implements SchemaMigration {
 
 		/** @return array<string,mixed> */
 		$auctions = $auctions->map(static function (\stdClass $entry) use ($idToUuid): array {
-			$entry->raid_id = $idToUuid[$entry->raid_id];
-			$entry->id = Uuid::uuid7((new DateTimeImmutable())->setTimestamp($entry->end));
+			if (is_int($entry->raid_id)) {
+				$entry->raid_id = $idToUuid[$entry->raid_id];
+			}
+			$entry->id = Uuid::uuid7((new DateTimeImmutable())->setTimestamp((int)$entry->end));
 			return (array)$entry;
 		})->toList();
 		$db->table(DBAuction::getTable())->chunkInsert($auctions);
@@ -108,7 +112,9 @@ class MigrateRaidTableToUuids implements SchemaMigration {
 
 		/** @return array<string,mixed> */
 		$members = $members->map(static function (\stdClass $entry) use ($idToUuid): array {
-			$entry->raid_id = $idToUuid[$entry->raid_id];
+			if (is_int($entry->raid_id)) {
+				$entry->raid_id = $idToUuid[$entry->raid_id];
+			}
 			return (array)$entry;
 		})->toList();
 		$db->table(RaidMember::getTable())->chunkInsert($members);
@@ -135,7 +141,10 @@ class MigrateRaidTableToUuids implements SchemaMigration {
 		/** @return array<string,mixed> */
 		$logs = $logs->map(static function (\stdClass $entry) use ($idToUuid): array {
 			if (isset($entry->raid_raid)) {
-				$entry->raid_id = $idToUuid[$entry->raid_id] ?? null;
+				$raidId = $entry->raid_id;
+				if (is_int($raidId)) {
+					$entry->raid_id = $idToUuid[$raidId] ?? null;
+				}
 			}
 			$dt = (new DateTimeImmutable())->setTimestamp((int)$entry->time);
 			$entry->id = Uuid::uuid7($dt);

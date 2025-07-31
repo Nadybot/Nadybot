@@ -51,9 +51,16 @@ use ZipArchive;
 	)
 ]
 class PackageController extends ModuleInstance {
+	/** @var int */
 	public const EXTRA = 2;
+
+	/** @var int */
 	public const BUILT_INT = 1;
+
+	/** @var int */
 	public const UNINST = 0;
+
+	/** @var string */
 	public const API = 'https://pkg.aobots.org/api';
 
 	#[NCA\Logger]
@@ -231,6 +238,7 @@ class PackageController extends ModuleInstance {
 		if ($firstPackage->state === static::BUILT_INT) {
 			$blob .= "<tab>Status: <highlight>Included in Nadybot now<end>\n";
 		} elseif (isset($installedVersion)) {
+			/** @psalm-suppress MixedOperand */
 			$blob .= '<tab>Installed: <highlight>'.
 				($installedVersion !== '' ? $installedVersion : 'yes, unknown version').
 				'<end> ['.
@@ -319,6 +327,7 @@ class PackageController extends ModuleInstance {
 		);
 		$html = Safe::pregReplaceCallback(
 			"/<ul.*?>(.*?)<\/ul>/is",
+			/** @param string[] $matches */
 			static function (array $matches): string {
 				return Safe::pregReplace(
 					"/<li>(.*?)<\/li>/is",
@@ -689,7 +698,7 @@ class PackageController extends ModuleInstance {
 	 * @return list<Package>
 	 */
 	private function getPackages(): array {
-		if (null !== ($body = $this->cache->get('packages'))) {
+		if (null !== ($body = $this->cache->get('packages')) && is_string($body)) {
 			return $this->parsePackages($body);
 		}
 		$client = $this->builder->build();
@@ -713,7 +722,7 @@ class PackageController extends ModuleInstance {
 	 * @return list<Package>
 	 */
 	private function getPackage(string $package): array {
-		if (null !== ($body = $this->cache->get($package))) {
+		if (null !== ($body = $this->cache->get($package)) && is_string($body)) {
 			return $this->parsePackages($body);
 		}
 		$client = $this->builder->build();
@@ -778,6 +787,7 @@ class PackageController extends ModuleInstance {
 		if ($firstPackage->state === static::BUILT_INT) {
 			$blob .= "<tab>Status: <highlight>Included in Nadybot now<end>\n";
 		} elseif (isset($installedVersion)) {
+			/** @psalm-suppress MixedOperand */
 			$blob .= '<tab>Installed: <highlight>'.
 				($installedVersion !== '' ? $installedVersion : 'yes, unknown version').
 				'<end> ['.

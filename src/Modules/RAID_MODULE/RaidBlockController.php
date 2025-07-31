@@ -36,8 +36,13 @@ use Nadybot\Core\{
 	)
 ]
 class RaidBlockController extends ModuleInstance {
+	/** @var string */
 	public const POINTS_GAIN = 'points';
+
+	/** @var string */
 	public const JOIN_RAIDS = 'join';
+
+	/** @var string */
 	public const AUCTION_BIDS = 'bid';
 
 	public const CMD_RAIDBLOCK_EDIT = 'raidblock add/remove';
@@ -137,6 +142,8 @@ class RaidBlockController extends ModuleInstance {
 			$duration = $duration->toSecs();
 			$expiration = time() + $duration;
 		}
+
+		/** @psalm-suppress MixedArgument */
 		$block = new RaidBlock(
 			blocked_by: $context->char->name,
 			blocked_from: $blockFrom,

@@ -345,7 +345,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 
 		foreach ($handlers as $handler) {
 			$reply = $handler[0]($request, ...$handler[1]);
-			if (isset($reply)) {
+			if (isset($reply) && $reply instanceof Response) {
 				return $reply;
 			}
 		}
@@ -562,6 +562,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			return null;
 		}
 		try {
+			/** @var object{"exp"?:int,"sub"?:object{"name"?:string}}&\stdClass */
 			$payload = JWT::decode($token, trim($aoAuthPubKey));
 		} catch (Exception $e) {
 			$this->logger->error('JWT: {error}', [

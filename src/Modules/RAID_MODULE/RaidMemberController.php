@@ -106,6 +106,8 @@ class RaidMemberController extends ModuleInstance {
 			->where('raid_id', $raid->raid_id)
 			->whereNull('left')
 			->update(['left' => time()]);
+
+		/** @psalm-suppress MixedPropertyTypeCoercion */
 		$raid->raiders = $this->db->table(RaidMember::getTable())
 			->where('raid_id', $raid->raid_id)
 			->asObj(RaidMember::class)

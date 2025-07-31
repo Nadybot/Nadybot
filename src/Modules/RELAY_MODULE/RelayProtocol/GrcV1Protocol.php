@@ -52,11 +52,11 @@ class GrcV1Protocol implements RelayProtocolInterface {
 			$event2->setData($event->data->message);
 			$event = $event2;
 		}
-		// return [
-		// 	"{$this->prefix}{$this->command} " . $this->messageHub->renderPath($event, '*', false).
-		// 	$this->text->formatMessage($event->getData()),
-		// ];
-		$pages = (array)Blob::create($event->getData())->render(formatMessage: true);
+		$data = $event->getData();
+		if (!is_string($data)) {
+			return [];
+		}
+		$pages = (array)Blob::create($data)->render(formatMessage: true);
 		return array_map(
 			fn (string $page): string => "{$this->prefix}{$this->command} ".
 				$this->messageHub->renderPath($event, '*', false).$page,

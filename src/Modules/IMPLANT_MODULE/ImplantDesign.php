@@ -27,13 +27,18 @@ class ImplantDesign extends DBTable {
 		if (!isset($design) || $design === 'null') {
 			return null;
 		}
-		return Hydrator::hydrate(ImplantConfig::class, json_decode($design, true));
+
+		/** @var array<string,mixed> */
+		$json = json_decode($design, true);
+		return Hydrator::hydrate(ImplantConfig::class, $json);
 	}
 
 	public static function encodeDesign(?ImplantConfig $design): ?string {
 		if (!isset($design)) {
 			return null;
 		}
+
+		/** @var array<string,mixed> */
 		$mapped = Hydrator::serialize($design);
 		foreach ($mapped as $key => $value) {
 			if ($value === null) {

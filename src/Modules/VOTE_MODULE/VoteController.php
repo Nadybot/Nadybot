@@ -340,6 +340,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 
 		$msg = Text::makeBlob("Poll Nr. {$topic->id}", $blob);
 		if (isset($privmsg)) {
+			/** @var non-falsy-string $privmsg */
 			$context->reply($privmsg);
 		}
 
