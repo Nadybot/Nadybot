@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\DISCORD\{ApplicationCommand, ApplicationCommandOption, DiscordException};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -29,7 +30,6 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 };
-use Nadybot\Core\Modules\DISCORD\{ApplicationCommand, ApplicationCommandOption, DiscordException};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Interaction;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
@@ -306,22 +306,24 @@ class DiscordSlashCommandController extends ModuleInstance {
 		/** @var Collection<int,CmdCfg> */
 		$cmds = new Collection($this->cmdManager->getAll(false));
 
-		$parts = $cmds
-			->sortBy('module')
+		/** @var Collection<string,Collection<int,CmdCfg>> */
+		$groupedCmds = $cmds->sortBy('module')
 			->filter(static function (CmdCfg $cmd) use ($exposedCmds): bool {
 				return !in_array($cmd->cmd, $exposedCmds, true);
-			})->groupBy('module')
-			->map(static function (Collection $cmds, string $module): string {
-				$lines = $cmds->sortBy('cmd')->map(static function (CmdCfg $cmd): string {
-					$addLink = Text::makeChatcmd(
-						'add',
-						"/tell <myname> discord slash add {$cmd->cmd}"
-					);
-					return "<tab>[{$addLink}] <highlight>{$cmd->cmd}<end>: {$cmd->description}";
-				});
-				return "<pagebreak><header2>{$module}<end>\n".
-					$lines->join("\n");
+			})->groupBy('module');
+
+		/** @param Collection<int,CmdCfg> $cmds */
+		$parts = $groupedCmds->map(static function (Collection $cmds, string $module): string {
+			$lines = $cmds->sortBy('cmd')->map(static function (CmdCfg $cmd): string {
+				$addLink = Text::makeChatcmd(
+					'add',
+					"/tell <myname> discord slash add {$cmd->cmd}"
+				);
+				return "<tab>[{$addLink}] <highlight>{$cmd->cmd}<end>: {$cmd->description}";
 			});
+			return "<pagebreak><header2>{$module}<end>\n".
+				$lines->join("\n");
+		});
 		$blob = $parts->join("\n\n");
 		$context->reply(Text::makeBlob(
 			'Pick from available commands (' . $cmds->count() . ')',
@@ -338,7 +340,10 @@ class DiscordSlashCommandController extends ModuleInstance {
 			return;
 		}
 		$this->logger->info('Received interaction on Discord');
-		$interaction = Hydrator::hydrate(Interaction::class, $payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $payload->d;
+		$interaction = Hydrator::hydrate(Interaction::class, $data);
 		$this->logger->debug('Interaction decoded', [
 			'interaction' => $interaction,
 		]);
@@ -406,6 +411,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	 * @param iterable<array-key,ApplicationCommand> $registeredCmds
 	 */
 	private function updateSlashCommands(iterable $registeredCmds): void {
+		/** @var Collection<int,ApplicationCommand> */
 		$registeredCmds = collect($registeredCmds);
 		$this->logger->info('{count} Slash-commands already registered', [
 			'count' => $registeredCmds->count(),

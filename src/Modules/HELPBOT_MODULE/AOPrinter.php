@@ -193,6 +193,7 @@ class AOPrinter implements VisitorInterface {
 	}
 
 	public function parenthesize(Node $node, ExpressionNode $cutoff, string $prepend='', bool $conservative=false): string {
+		/** @var string */
 		$text = $node->accept($this);
 
 		if ($node instanceof ExpressionNode) {

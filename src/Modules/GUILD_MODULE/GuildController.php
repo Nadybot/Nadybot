@@ -4,6 +4,8 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use AO\Utils;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\ALTS\AltInfo;
+use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -40,8 +42,6 @@ use Nadybot\Core\{
 	Types\SettingMode,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltInfo;
-use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Modules\ONLINE_MODULE\{Online as DBOnline, OnlineController};
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
@@ -542,9 +542,9 @@ class GuildController extends ModuleInstance {
 			);
 			return "\n<tab>{$percentage} % <highlight>{$key}<end>: {$count} ".
 				Text::pluralize('member', $count).
-				', level ' . $players->min('level') . ' / <highlight>'.
+				', level ' . (int)$players->min('level') . ' / <highlight>'.
 				round($players->avg('level') ?? 0, 0) . '<end> / '.
-				$players->max('level');
+				(int)$players->max('level');
 		};
 		$tlFunc = static function (Player $p): string {
 			return 'TL ' . TitleLevel::fromLevel($p->level ?? 1)->value;
@@ -555,6 +555,11 @@ class GuildController extends ModuleInstance {
 			$blob .= '<tab><highlight>Faction<end>: ' . $org->orgside->inColor() . "\n".
 			"<tab><highlight>Government<end>: {$org->governing_form->value}\n";
 		}
+
+		/**
+		 * @psalm-suppress MixedArgumentTypeCoercion
+		 * @psalm-suppress MixedOperand
+		 */
 		$blob .= '<tab><highlight>Members<end>: ' . $members->count() . "\n".
 			'<tab><highlight>Min level<end>: ' . $members->min('level') . "\n".
 			'<tab><highlight>Avg level<end>: ' . round($members->avg('level') ?? 0, 0) . "\n".

@@ -230,15 +230,27 @@ class ImportController extends ModuleInstance {
 			$sendto->reply("The file <highlight>{$fileName}<end> is not a valid export file.");
 			return null;
 		}
+
+		/** @var array<string,mixed> $import */
 		$this->logger->notice('Loading schema data');
 		$sendto->reply('Validating the import data. This could take a while.');
+
+		/** @var array<string,list<object>> */
 		$result = [];
 		try {
 			foreach ($import as $key => $importData) {
-				$result[$key] = Hydrator::literalHydrateObjects(
+				if (!is_array($importData)) {
+					continue;
+				}
+
+				/** @var array<array<string,mixed>> $importData */
+				$objects = Hydrator::literalHydrateObjects(
 					className: $this->keyToClass[$key],
 					data: $importData,
 				)->toArray();
+
+				/** @var list<object> $objects */
+				$result[$key] = $objects;
 			}
 		} catch (UnableToHydrateObject $e) {
 			$sendto->reply('The import data is not valid: <highlight>' . $e->getMessage() . '<end>.');

@@ -108,7 +108,9 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 		try {
-			$show = Hydrator::hydrate(Show::class, json_decode($body, true));
+			/** @var array<string,mixed> */
+			$json = json_decode($body, true);
+			$show = Hydrator::hydrate(Show::class, $json);
 		} catch (\Throwable) {
 			return;
 		}
@@ -227,7 +229,9 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 			return 'GSP seems to have problems with their service. Please try again later.';
 		}
 		try {
-			$show = Hydrator::hydrate(Show::class, json_decode($body, true));
+			/** @var array<string,mixed> */
+			$json = json_decode($body, true);
+			$show = Hydrator::hydrate(Show::class, $json);
 		} catch (\Throwable $e) {
 			return 'GSP seems to have problems with their service. Please try again later.';
 		}
@@ -297,7 +301,9 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 			throw new Exception('Recdeiced a ' . $response->getStatus() . '.');
 		}
 		try {
-			$show = Hydrator::hydrate(Show::class, json_decode($body, true));
+			/** @var array<string,mixed> */
+			$json = json_decode($body, true);
+			$show = Hydrator::hydrate(Show::class, $json);
 		} catch (\Throwable) {
 			return 'GSP seems to have problems with their service. Please try again later.';
 		}

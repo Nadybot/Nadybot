@@ -2,18 +2,35 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Amp\{async, delay};
 use function Amp\Future\await;
+use function Amp\{async, delay};
 use function Safe\{array_flip, json_decode, json_encode};
 
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
-use Amp\Http\Client\{HttpClientBuilder, HttpException};
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
+use Amp\Http\Client\{HttpClientBuilder, HttpException};
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, WebsocketConnection, WebsocketHandshake};
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException, WebsocketCount};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Illuminate\Support\ItemNotFoundException;
+use Nadybot\Core\Modules\DISCORD\{
+	Activity,
+	DiscordAPIClient,
+	DiscordChannel,
+	DiscordChannelInvite,
+	DiscordController,
+	DiscordEmbed,
+	DiscordException,
+	DiscordGateway,
+	DiscordMessageIn,
+	DiscordScheduledEvent,
+	DiscordUser,
+	Emoji,
+	Guild,
+	GuildMemberChunk,
+	VoiceState,
+};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -41,23 +58,6 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\Status,
 	Util,
-};
-use Nadybot\Core\Modules\DISCORD\{
-	Activity,
-	DiscordAPIClient,
-	DiscordChannel,
-	DiscordChannelInvite,
-	DiscordController,
-	DiscordEmbed,
-	DiscordException,
-	DiscordGateway,
-	DiscordMessageIn,
-	DiscordScheduledEvent,
-	DiscordUser,
-	Emoji,
-	Guild,
-	GuildMemberChunk,
-	VoiceState,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	CloseEvents,
@@ -1361,7 +1361,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $payload->d;
+		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -1381,7 +1384,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $payload->d;
+		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -1404,7 +1410,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $payload->d;
+		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -1421,7 +1430,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $payload->d;
+		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -2093,14 +2105,19 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($this->client)) {
 			return;
 		}
-		$serialized = self::stripNull(Hydrator::serialize($login));
-		$this->client->sendText(json_encode($serialized));
+
+		/** @var array<string,mixed> */
+		$serialized = Hydrator::serialize($login);
+		$stripped = self::stripNull($serialized);
+		$this->client->sendText(json_encode($stripped));
 	}
 
 	/**
-	 * @param array<string,mixed> $data
+	 * @param array<T,mixed> $data
 	 *
-	 * @return array<string,mixed>
+	 * @return array<T,mixed>
+	 *
+	 * @template T
 	 */
 	private static function stripNull(array $data): array {
 		foreach ($data as $key => $value) {
