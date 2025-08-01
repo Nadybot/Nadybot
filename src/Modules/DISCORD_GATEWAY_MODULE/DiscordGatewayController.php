@@ -821,7 +821,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$voiceState = Hydrator::hydrate(VoiceState::class, $payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $payload->d;
+		$voiceState = Hydrator::hydrate(VoiceState::class, $data);
 		$this->logger->info('Received {event}: {voice_state}', [
 			'event' => 'voice_state_update',
 			'voice_state' => $voiceState,
@@ -917,9 +920,14 @@ class DiscordGatewayController extends ModuleInstance {
 	/** Connect invited members to their AO account */
 	#[NCA\HandlesEvent(mask: 'discord(guild_member_add)', defaultStatus: Status::Enabled)]
 	public function connectNewUsersWithAO(DiscordGatewayEvent $event): void {
-		$userId = $event->payload->d->user->id ?? null;
-		$guildId = $event->payload->d->guild_id ?? null;
-		if (!isset($userId) || !isset($guildId) || isset($this->noManageInviteRights[$guildId])) {
+		/** @var object{user:\stdClass}&\stdClass */
+		$data = $event->payload->d;
+		$userId = $data->user->id ?? null;
+		$guildId = $data->guild_id ?? null;
+
+		if (!isset($userId) || !isset($guildId)
+			|| !is_string($userId) || !is_string($guildId)
+			|| isset($this->noManageInviteRights[$guildId])) {
 			return;
 		}
 		try {
@@ -1222,7 +1230,9 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 		$informDelete = function (DiscordGatewayEvent $event) use ($context, $guild, &$informDelete): void {
-			$guildId = $event->payload->d->id ?? null;
+			/** @var \stdClass */
+			$data = $event->payload->d;
+			$guildId = $data->id ?? null;
 			if ($guildId !== $guild->id) {
 				return;
 			}
