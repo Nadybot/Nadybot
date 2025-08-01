@@ -53,6 +53,7 @@ use Ramsey\Uuid\Uuid;
 	)
 ]
 class ProfileController extends ModuleInstance {
+	/** @var string */
 	public const FILE_EXT = '.txt';
 
 	#[NCA\Logger]

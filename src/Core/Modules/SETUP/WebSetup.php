@@ -320,6 +320,8 @@ class WebSetup {
 		}
 		try {
 			$body = $request->getBody()->buffer(new TimeoutCancellation(10), 1*1_024*1_024);
+
+			/** @var array<string,mixed> */
 			$data = IMEX\JSON::import($body);
 			$data['file_path'] = $this->configFile->getFilePath();
 			$config = Hydrator::hydrate(BotConfig::class, $data);

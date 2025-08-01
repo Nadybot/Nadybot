@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	)
 ]
 class ReputationController extends ModuleInstance {
+	/** @var string */
 	public const CAT_REPUTATION = 'reputation';
 
 	#[NCA\Inject]
@@ -67,14 +68,18 @@ class ReputationController extends ModuleInstance {
 		$blob = '';
 
 		/**
-		 * @var array<string,\stdClass>
-		 *
-		 * @psalm-var array<string,object{total:int,comments:list<Comment>}&\stdClass>
+		 * @var array<string,object{total:int,comments:list<Comment>}&\stdClass>
 		 */
 		$charReputation = [];
 		foreach ($comments as $comment) {
 			if (!array_key_exists($comment->character, $charReputation)) {
-				$charReputation[$comment->character] = (object)['total' => 0, 'comments' => []];
+				/**
+				 * @var object{total:int,comments:list<Comment>}&\stdClass
+				 *
+				 * @phpstan-ignore varTag.nativeType
+				 */
+				$empty = (object)['total' => 0, 'comments' => []];
+				$charReputation[$comment->character] = $empty;
 			}
 			$charReputation[$comment->character]->comments []= $comment;
 			$charReputation[$comment->character]->total += str_starts_with($comment->comment, '+1') ? 1 : -1;

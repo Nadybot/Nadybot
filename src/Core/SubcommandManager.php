@@ -148,8 +148,9 @@ class SubcommandManager {
 			->where('cmdevent', 'subcmd')
 			->asObj(CmdCfg::class)
 			->each(static function (CmdCfg $row) use ($permissions): void {
-				$row->permissions = $permissions->get($row->cmd, new Collection())
-					->keyBy('permission_set')->toArray();
+				/** @var Collection<string,CmdPermission> */
+				$keyed = $permissions->get($row->cmd, new Collection())->keyBy('permission_set');
+				$row->permissions = $keyed->toArray();
 			})
 			->filter(static function (CmdCfg $cfg): bool {
 				return count($cfg->permissions) > 0;

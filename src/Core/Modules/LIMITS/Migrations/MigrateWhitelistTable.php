@@ -2,11 +2,11 @@
 
 namespace Nadybot\Core\Modules\LIMITS\Migrations;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Core\DBSchema\RateIgnoreList;
 use Psr\Log\LoggerInterface;
-use stdClass;
 
 #[NCA\Migration(order: 2021_04_24_21_20_23, shared: true)]
 class MigrateWhitelistTable implements SchemaMigration {
@@ -14,18 +14,24 @@ class MigrateWhitelistTable implements SchemaMigration {
 		if (!$db->schema()->hasTable('whitelist')) {
 			return;
 		}
-		$db->table('whitelist')
+
+		/** @var Collection<int,object{name:string,added_by:string,added_dt:int}&\stdClass> */
+		$data = $db->table('whitelist')
 			->select('name', 'added_by', 'added_dt')
 			->orderBy('added_dt')
-			->get()
-			->each(static function (stdClass $data) use ($db): void {
+			->get();
+
+		/** @param object{name:string,added_by:string,added_dt:int}&\stdClass $data*/
+		$data->each(
+			static function (object $data) use ($db): void {
 				$db->table(RateIgnoreList::getTable())
 					->insert([
-						'name' => (string)$data->name,
-						'added_by' => (string)$data->added_by,
-						'added_dt' => (int)$data->added_dt,
+						'name' => $data->name,
+						'added_by' => $data->added_by,
+						'added_dt' => $data->added_dt,
 					]);
-			});
+			}
+		);
 		$db->schema()->drop('whitelist');
 	}
 }

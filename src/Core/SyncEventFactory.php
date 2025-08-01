@@ -39,15 +39,16 @@ class SyncEventFactory {
 		if (!isset($data['type'])) {
 			throw new InvalidArgumentException(__CLASS__  . '::create(): Argument #1 ($data) must be a SyncEvent');
 		}
+
+		/** @var array<string,mixed> $data */
+
 		$mapping = self::getClassMapping();
-		$class = $mapping[$data['type']] ?? null;
+		$type = (string)$data['type'];
+		$class = $mapping[$type] ?? null;
 		if (!isset($class)) {
 			throw new InvalidArgumentException(__CLASS__  . '::create(): Argument #1 ($data) is an unknown (Sync-)Event');
 		}
-		return Hydrator::literalHydrate(
-			className: $class,
-			data: $data,
-		);
+		return Hydrator::literalHydrate(className: $class, data: $data);
 	}
 
 	/**

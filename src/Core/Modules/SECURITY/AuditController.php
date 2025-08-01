@@ -70,8 +70,12 @@ class AuditController extends ModuleInstance {
 		$query = $this->db->table(Audit::getTable())
 			->orderByDesc('time')
 			->orderByDesc('id');
+
+		/** @var array<string,mixed> */
 		$params = [];
 		$error = $this->parseParams($query, $filter??'', $params);
+
+		/** @var array<string,mixed> $params */
 		if (isset($error)) {
 			$context->reply($error);
 			return;
@@ -262,6 +266,8 @@ class AuditController extends ModuleInstance {
 		}
 		if ($data->count() > (int)$params['limit']) {
 			$nextParams = $params;
+			assert(isset($nextParams['offset']));
+			assert(is_int($nextParams['offset']));
 			$nextParams['offset'] += (int)$nextParams['limit'];
 			$cmdArgs = implode(' ', array_map(
 				static fn (string $k, int|string $v): string => "{$k}={$v}",

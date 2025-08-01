@@ -206,6 +206,11 @@ class ColorsController extends ModuleInstance {
 		} catch (Exception) {
 			return null;
 		}
+		if (!is_array($data)) {
+			return null;
+		}
+
+		/** @var array<string,mixed> $data */
 		$data['name'] = basename($filename, '.json');
 		return Hydrator::hydrate(Theme::class, $data);
 	}

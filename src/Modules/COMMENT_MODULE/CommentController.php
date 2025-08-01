@@ -509,7 +509,11 @@ class CommentController extends ModuleInstance {
 		$senderAL = $this->accessManager->getAccessLevelForCharacter($sender);
 		$accessCache = [];
 
-		/** @var Collection<int,Comment> */
+		/**
+		 * @var Collection<int,Comment>
+		 *
+		 * @psalm-suppress MixedArgumentTypeCoercion
+		 */
 		$com = new Collection($comments);
 		return $com->filter(function (Comment $comment) use (&$accessCache, $senderAL): bool {
 			if (isset($accessCache[$comment->category])) {

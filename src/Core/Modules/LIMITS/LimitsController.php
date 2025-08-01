@@ -39,8 +39,13 @@ use Psr\Log\LoggerInterface;
  */
 #[NCA\Instance]
 class LimitsController extends ModuleInstance {
+	/** @var 3 */
 	public const ALL = 3;
+
+	/** @var 2 */
 	public const FAILURE = 2;
+
+	/** @var 1 */
 	public const SUCCESS = 1;
 
 	/** Minimum level required to send tell to bot */

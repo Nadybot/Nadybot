@@ -423,6 +423,7 @@ class Nadybot {
 					$e->getAccounts(),
 				);
 				try {
+					/** @psalm-suppress MixedArgumentTypeCoercion */
 					Pipeline::fromIterable($unfreezers)
 						->concurrent(5)
 						->forEach(static function (AccountUnfreezer $unfreezer): void {
@@ -712,7 +713,11 @@ class Nadybot {
 		$numWorkers = count($this->config->worker);
 		if (($numWorkers > 0) && $this->forceMassTells && $this->allowMassTells) {
 			if (is_iterable($message)) {
-				/** @var Collection<int,string> */
+				/**
+				 * @psalm-suppress MixedArgumentTypeCoercion
+				 *
+				 * @var Collection<int,string>
+				 */
 				$message = new Collection($message);
 			}
 			$this->sendMassTell(
@@ -1685,6 +1690,8 @@ class Nadybot {
 			}
 			foreach ($method->getAttributes(NCA\SettingChangeHandler::class) as $changeAnnotation) {
 				$change = $changeAnnotation->newInstance();
+
+				/** @var \Closure(string,string,string) */
 				$closure = $method->getClosure($obj);
 
 				$this->settingManager->registerChangeListener($change->setting, $closure);
@@ -1723,7 +1730,7 @@ class Nadybot {
 			$this->subcommandManager->register(
 				$moduleName,
 				implode(',', $definition->handlers),
-				$subcommand,
+				(string)$subcommand,
 				$definition->accessLevel,
 				$definition->parentCommand,
 				$definition->description,
@@ -2142,7 +2149,9 @@ class Nadybot {
 			$description = Text::cleanDocComment($comment);
 			$settingValue = $attribute->getValue();
 			if (is_array($settingValue)) {
-				$settingValue = implode('|', $settingValue);
+				/** @var string[] $settingValue */
+				$newValue = implode('|', $settingValue);
+				$settingValue = $newValue;
 			}
 			$this->settingManager->add(
 				module: $moduleName,

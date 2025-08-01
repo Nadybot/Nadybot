@@ -2,15 +2,15 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Nadybot\Core\Modules\{
-	CONFIG\SettingOption,
-};
-
 use Nadybot\Core\{
 	Attributes as NCA,
 	ModuleInstance,
 	Safe,
 	Types\AccessLevel,
+};
+
+use Nadybot\Core\Modules\{
+	CONFIG\SettingOption,
 };
 
 /**
@@ -148,8 +148,12 @@ class DiscordRelayController extends ModuleInstance {
 				"/([\x{0450}-\x{2018}\x{2020}-\x{fffff}])/u",
 				/** @param string[] $matches */
 				static function (array $matches): string {
+					/**
+					 * @var ?string
+					 *
+					 * @phpstan-ignore-next-line
+					 */
 					$char = \IntlChar::charName($matches[1]);
-					// @phpstan-ignore-next-line
 					if (!isset($char)) {
 						return $matches[1];
 					}

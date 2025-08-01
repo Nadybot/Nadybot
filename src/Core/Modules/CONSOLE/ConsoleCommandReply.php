@@ -387,15 +387,17 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			return $this->parseBasicAnsi($text);
 		}
 		$text = $this->parseAnsiColors($text);
+
+		/** @var array<int,string> */
 		$stack = [];
 		$text = Safe::pregReplaceCallback(
 			"/<(\/?font.*?)>/",
+			/** @param string[] $matches */
 			function (array $matches) use (&$stack): string {
 				$matches[1] = strtolower($matches[1]);
 				if (substr($matches[1], 0, 1) === '/') {
 					array_pop($stack);
 
-					/** @psalm-suppress InvalidArrayOffset */
 					$currentTag = $stack[count($stack)-1] ?? null;
 					if ($currentTag === null) {
 						return '';

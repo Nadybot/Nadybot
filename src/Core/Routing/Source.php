@@ -10,18 +10,43 @@ use Nadybot\Core\DBSchema\RouteHopFormat;
 
 /** This represents a hop where messages pass by, can be created at, or forwarded to */
 class Source {
+	/** @var string */
 	public const RELAY = 'relay';
+
+	/** @var string */
 	public const ORG = 'aoorg';
+
+	/** @var string */
 	public const PUB = 'aopub';
+
+	/** @var string */
 	public const PRIV = 'aopriv';
+
+	/** @var string */
 	public const TELL = 'aotell';
+
+	/** @var string */
 	public const WEB = 'web';
+
+	/** @var string */
 	public const DISCORD_PRIV = 'discordpriv';
+
+	/** @var string */
 	public const DISCORD_MSG = 'discordmsg';
+
+	/** @var string */
 	public const TRADEBOT = 'tradebot';
+
+	/** @var string */
 	public const IRC = 'irc';
+
+	/** @var string */
 	public const LOG = 'log';
+
+	/** @var string */
 	public const SYSTEM = 'system';
+
+	/** @var string */
 	public const CONSOLE = 'console';
 
 	/** The AO dimension this source belongs to */

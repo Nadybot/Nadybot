@@ -186,6 +186,8 @@ class Registry {
 		$logger = new LoggerWrapper($tag);
 		if ($instance instanceof LogWrapInterface) {
 			$closure = $reflection->getMethod('wrapLogs')->getClosure($instance);
+
+			/** @psalm-suppress MixedArgumentTypeCoercion */
 			$logger->wrap($closure);
 		}
 		static::injectDependency($property, $instance, $logger);

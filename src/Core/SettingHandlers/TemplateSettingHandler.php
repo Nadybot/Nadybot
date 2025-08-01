@@ -39,6 +39,7 @@ class TemplateSettingHandler extends SettingHandler {
 			return null;
 		}
 		$options = explode(';', $this->row->options??'');
+		$optionsMap = null;
 		if (strlen($this->row->intoptions??'')) {
 			$intOptions = explode(';', $this->row->intoptions??'');
 			$optionsMap = array_combine($intOptions, $options);

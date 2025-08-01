@@ -32,7 +32,7 @@ class PlayerHistoryManager extends ModuleInstance {
 			$mainUrl = "https://pork.jkbff.com/pork/history.php?server={$dimension}&name={$name}",
 		];
 		$cacheKey = "{$name}.{$dimension}.history";
-		if (null !== ($body = $this->cache->get($cacheKey))) {
+		if (null !== ($body = $this->cache->get($cacheKey)) && is_string($body)) {
 			return $this->parsePlayerHistory($body, $name);
 		}
 		$client = $this->builder->build();
@@ -64,7 +64,7 @@ class PlayerHistoryManager extends ModuleInstance {
 		}
 		$this->cache->set($cacheKey, $body, new DateInterval('PT12H'));
 
-		/** @psalm-suppress NoValue */
+		/** @psalm-suppress MixedArgument */
 		return $this->parsePlayerHistory($body, $name);
 	}
 
@@ -75,6 +75,11 @@ class PlayerHistoryManager extends ModuleInstance {
 		} catch (JsonException) {
 			return null;
 		}
+		if (!is_array($history)) {
+			return null;
+		}
+
+		/** @var array<array<string,mixed>> $history */
 
 		$entries = Hydrator::hydrateObjects(PlayerHistoryData::class, $history)->toArray();
 		return new PlayerHistory(name: $name, data: $entries);

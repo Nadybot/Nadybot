@@ -195,6 +195,7 @@ class ChatRallyController extends ModuleInstance {
 	}
 
 	public function set(string $name, int $playfieldId, string $xCoords, string $yCoords): string {
+		/** @psalm-suppress MixedArgument */
 		$this->settingManager->save('rally', implode(':', array_map('strval', func_get_args())));
 
 		return $this->get();

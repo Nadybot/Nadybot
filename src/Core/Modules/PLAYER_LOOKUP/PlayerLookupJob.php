@@ -82,6 +82,8 @@ class PlayerLookupJob {
 		$this->logger->info('{num_outdated}  missing / outdated characters found.', [
 			'num_outdated' => $toUpdate->count(),
 		]);
+
+		/** @psalm-suppress MixedArgumentTypeCoercion */
 		Pipeline::fromIterable($toUpdate)
 			->concurrent($numJobs)
 			->forEach($this->lookupInfo(...));

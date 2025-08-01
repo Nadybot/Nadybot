@@ -305,6 +305,7 @@ class Text {
 	public static function removePopups(string $message, bool $removeLinks=false): string {
 		$message = Safe::pregReplaceCallback(
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
+			/** @param string[] $matches */
 			static function (array $matches) use ($removeLinks): string {
 				if ($removeLinks) {
 					return chr(1);
@@ -327,9 +328,11 @@ class Text {
 	 * @return list<string> A list of all the popup contents
 	 */
 	public static function getPopups(string $message): array {
+		/** @var list<string> */
 		$popups = [];
 		$message = Safe::pregReplaceCallback(
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
+			/** @param string[] $matches */
 			static function (array $matches) use (&$popups): string {
 				$popups []= $matches[2];
 				return '';
@@ -415,6 +418,7 @@ class Text {
 			$lastText = $text;
 			$text = Safe::pregReplaceCallback(
 				'/\{(?<tag>[a-zA-Z-]+|[!?][a-zA-Z-]+:((?:[^{}]|(?R)))+)\}/',
+				/** @param string[] $matches */
 				static function (array $matches) use ($tokens): string {
 					$action = substr($matches['tag'], 0, 1);
 					if ($action !== '?' && $action !== '!') {

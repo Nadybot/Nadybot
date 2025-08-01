@@ -31,6 +31,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\WebChatConverter,
 	WEBSERVER_MODULE\WebserverController,
 };
+use stdClass;
 use Throwable;
 
 #[NCA\Instance]
@@ -218,8 +219,11 @@ class ConfigApiController extends ModuleInstance {
 		Http\ApiResult(code: 422, desc: 'Wrong or no operation given')
 	]
 	public function toggleCommandChannelSettingsEndpoint(Request $request, string $module, string $command, string $channel): Response {
-		$user = $request->getAttribute(WebserverController::USER);
+		$user = (string)($request->getAttribute(WebserverController::USER) ?? '_');
 		$body = $request->getAttribute(WebserverController::BODY);
+		if (!($body instanceof stdClass)) {
+			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
+		}
 		$subCmd = Safe::pregMatches("/\s/", $command);
 		$result = 0;
 		$parsed = 0;
@@ -228,9 +232,9 @@ class ConfigApiController extends ModuleInstance {
 			$parsed++;
 			try {
 				if ($subCmd) {
-					$result += (int)($this->configController->changeSubcommandAL($user??'_', $command, $channel, AccessLevel::fromName($body->access_level)) === 1);
+					$result += (int)($this->configController->changeSubcommandAL($user, $command, $channel, AccessLevel::fromName($body->access_level)) === 1);
 				} else {
-					$result += (int)($this->configController->changeCommandAL($user??'_', $command, $channel, AccessLevel::fromName($body->access_level)) === 1);
+					$result += (int)($this->configController->changeCommandAL($user, $command, $channel, AccessLevel::fromName($body->access_level)) === 1);
 				}
 			} catch (Exception $e) {
 				$exception = $e;
@@ -238,7 +242,7 @@ class ConfigApiController extends ModuleInstance {
 		}
 		if (isset($body->enabled) && is_bool($body->enabled)) {
 			$parsed++;
-			$result += (int)$this->configController->toggleCmd($user??'_', $subCmd, $command, $channel, $body->enabled);
+			$result += (int)$this->configController->toggleCmd($user, $subCmd, $command, $channel, $body->enabled);
 		}
 		if ($parsed === 0) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
@@ -278,7 +282,7 @@ class ConfigApiController extends ModuleInstance {
 		Http\ApiResult(code: 402, desc: 'Wrong or no operation given')
 	]
 	public function toggleCommandStatusEndpoint(Request $request, string $module, string $command): Response {
-		$user = $request->getAttribute(WebserverController::USER) ?? '_';
+		$user = (string)($request->getAttribute(WebserverController::USER) ?? '_');
 		$body = $request->getAttribute(WebserverController::BODY);
 		if (!is_array($body) || !isset($body['op'])) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
@@ -373,7 +377,7 @@ class ConfigApiController extends ModuleInstance {
 		Http\ApiResult(code: 200, class: 'ModuleSetting[]', desc: 'A list of all settings for this module')
 	]
 	public function apiConfigSettingsGetEndpoint(Request $request, string $module): Response {
-		$user = $request->getAttribute(WebserverController::USER) ?? '_';
+		$user = (string)($request->getAttribute(WebserverController::USER) ?? '_');
 		$settings = $this->configController->getModuleSettings($module);
 		$result = [];
 		foreach ($settings as $setting) {
@@ -505,6 +509,8 @@ class ConfigApiController extends ModuleInstance {
 				throw new Exception('Wrong content body');
 			}
 
+			/** @var array<string,mixed> $set */
+
 			$permSet = Hydrator::hydrate(CmdPermissionSet::class, $set);
 		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
@@ -540,10 +546,14 @@ class ConfigApiController extends ModuleInstance {
 			if (!is_array($set)) {
 				throw new Exception('Wrong content body');
 			}
+
+			/** @var array<string,mixed> $set */
 			$old = $this->commandManager->getPermissionSet($name);
 			if (!isset($old)) {
 				return new Response(HttpStatus::NOT_FOUND);
 			}
+
+			/** @var array<string,mixed> */
 			$oldData = Hydrator::serialize($old);
 			$newData = array_merge($oldData, $set);
 
@@ -722,6 +732,8 @@ class ConfigApiController extends ModuleInstance {
 			if (!is_array($body)) {
 				throw new Exception('Wrong content body');
 			}
+
+			/** @var array<string,mixed> $body */
 			$body['source'] = $source;
 
 			$mapping = Hydrator::hydrate(CmdSourceMapping::class, $body);
@@ -753,6 +765,8 @@ class ConfigApiController extends ModuleInstance {
 			if (!is_array($body)) {
 				throw new Exception('Wrong content body');
 			}
+
+			/** @var array<string,mixed> $body */
 
 			$body['source'] = strtolower($source);
 			$body['sub_source'] = null;
@@ -786,6 +800,8 @@ class ConfigApiController extends ModuleInstance {
 			if (!is_array($body)) {
 				throw new Exception('Wrong content body');
 			}
+
+			/** @var array<string,mixed> $body */
 
 			$body['source'] = strtolower($source);
 			$body['sub_source'] = strtolower($subSource);

@@ -284,7 +284,7 @@ class PackageController extends ModuleInstance {
 	public function renderHTML(string $html): string {
 		$html = Safe::pregReplaceCallback(
 			"/<code.*?>(.+?)<\/code>/is",
-			/** @param list{string,string} $matches */
+			/** @param string[] $matches */
 			static function (array $matches): string {
 				return '<highlight>' . str_replace("\n", '<br />', $matches[1]) . '<end>';
 			},
@@ -311,9 +311,9 @@ class PackageController extends ModuleInstance {
 		$html = str_replace('&nbsp;', ' ', $html);
 		$html = Safe::pregReplaceCallback(
 			"/<ol.*?>(.*?)<\/ol>/is",
+			/** @param string[] $matches */
 			static function (array $matches): string {
 				$num = 0;
-				assert(is_string($matches[1]));
 				return Safe::pregReplaceCallback(
 					"/<li>(.*?)<\/li>/is",
 					static function (array $matches) use (&$num): string {

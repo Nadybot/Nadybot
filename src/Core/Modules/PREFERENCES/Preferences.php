@@ -70,7 +70,7 @@ class Preferences extends ModuleInstance {
 		Http\ApiResult(code: 204, desc: 'No value stored')
 	]
 	public function apiSettingGetEndpoint(Request $request, string $key): Response {
-		$user = $request->getAttribute(WebserverController::USER) ?? '_';
+		$user = (string)($request->getAttribute(WebserverController::USER) ?? '_');
 		$result = $this->get($user, $key);
 		if ($result === null) {
 			return new Response(status: HttpStatus::NO_CONTENT);
@@ -93,7 +93,7 @@ class Preferences extends ModuleInstance {
 		Http\RequestBody(class: 'string', desc: 'The data you want to store', required: true)
 	]
 	public function apiSettingPostEndpoint(Request $request, string $key): Response {
-		$user = $request->getAttribute(WebserverController::USER) ?? '_';
+		$user = (string)($request->getAttribute(WebserverController::USER) ?? '_');
 		$result = $this->get($user, $key);
 		if ($result !== null) {
 			return new Response(
@@ -136,7 +136,7 @@ class Preferences extends ModuleInstance {
 				body: 'Only plain strings supported'
 			);
 		}
-		$user = $request->getAttribute(WebserverController::USER) ?? '_';
+		$user = (string)($request->getAttribute(WebserverController::USER) ?? '_');
 		$this->save($user, $key, $body);
 		return new Response(status: HttpStatus::NO_CONTENT);
 	}
@@ -154,7 +154,7 @@ class Preferences extends ModuleInstance {
 		Http\ApiResult(code: 409, desc: 'No setting found for that key')
 	]
 	public function apiSettingDeleteEndpoint(Request $request, string $key): Response {
-		$user = $request->getAttribute(WebserverController::USER) ?? '_';
+		$user = (string)($request->getAttribute(WebserverController::USER) ?? '_');
 		$result = $this->delete($user, $key);
 		if (!$result) {
 			return new Response(

@@ -104,7 +104,10 @@ class SchemaBuilder {
 	 */
 	public function getColumnListing(string $table): array {
 		$table = $this->nadyDB->formatSql($table);
-		return array_values($this->builder->getColumnListing($table));
+
+		/** @var string[] */
+		$columns = $this->builder->getColumnListing($table);
+		return array_values($columns);
 	}
 
 	/** Get the data type for the given column name. */

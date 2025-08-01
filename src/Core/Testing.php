@@ -76,6 +76,11 @@ class Testing {
 		try {
 			$this->logger->info('Parsing {file} into PHP', ['file' => $fileName]);
 			$data = yaml_parse($content);
+			if (!is_array($data)) {
+				throw new ParseTestException(message: "Invalid test file format of {$fileName}.");
+			}
+
+			/** @var array<string,mixed> $data */
 			$collection = Hydrator::literalHydrate(TestCollection::class, $data);
 		} catch (YamlException | UnableToHydrateObject $e) {
 			$this->logger->error('Error parsing {file}: {error} into PHP', [
@@ -494,6 +499,8 @@ class Testing {
 		if (count($matches) <= 1) {
 			return $placeholders;
 		}
+
+		/** @var array<int,string> */
 		$keys = array_filter(array_keys($matches), is_string(...));
 		foreach ($keys as $key) {
 			$placeholders[$key] = $matches[$key];
@@ -521,6 +528,7 @@ class Testing {
 		$command = $this->replacePlaceholders($test->command, $placeholders, false);
 		$cmdContext = $this->getContext($command, $reply);
 		$capturedOutput = '';
+		$capturer = null;
 		if (isset($test->capture)) {
 			$capturer = CapturerFactory::fromPattern($test->capture);
 			$capturer->register($this->eventManager);

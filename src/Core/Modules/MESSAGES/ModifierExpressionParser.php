@@ -55,7 +55,9 @@ class ModifierExpressionParser {
 			/** @var array{"line":int,"char":int} */
 			$posData = $parser::getLineAndCharacterFromOffset($input, $error['index']);
 
-			$expected = implode('<end> or <highlight>', $parser->generalizeErrors($error['expected']));
+			/** @var string[] */
+			$parserErrors = $parser->generalizeErrors($error['expected']);
+			$expected = implode('<end> or <highlight>', $parserErrors);
 			$foundLength = 20;
 			$found = substr($input, $error['index']);
 			if (strlen($found) > $foundLength) {
@@ -104,7 +106,7 @@ class ModifierExpressionParser {
 			throw new \Exception('Invalid modifier expression');
 		}
 		if ($value->getDetailType() === 'string') {
-			$value = json_decode($value->toString());
+			$value = (string)json_decode($value->toString());
 		} else {
 			$value = $value->toString();
 		}

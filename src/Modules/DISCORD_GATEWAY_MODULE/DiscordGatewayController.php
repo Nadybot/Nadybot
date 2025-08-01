@@ -2,35 +2,18 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Amp\Future\await;
 use function Amp\{async, delay};
+use function Amp\Future\await;
 use function Safe\{array_flip, json_decode, json_encode};
 
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
-use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, HttpException};
+use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, WebsocketConnection, WebsocketHandshake};
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException, WebsocketCount};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Illuminate\Support\ItemNotFoundException;
-use Nadybot\Core\Modules\DISCORD\{
-	Activity,
-	DiscordAPIClient,
-	DiscordChannel,
-	DiscordChannelInvite,
-	DiscordController,
-	DiscordEmbed,
-	DiscordException,
-	DiscordGateway,
-	DiscordMessageIn,
-	DiscordScheduledEvent,
-	DiscordUser,
-	Emoji,
-	Guild,
-	GuildMemberChunk,
-	VoiceState,
-};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -58,6 +41,23 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\Status,
 	Util,
+};
+use Nadybot\Core\Modules\DISCORD\{
+	Activity,
+	DiscordAPIClient,
+	DiscordChannel,
+	DiscordChannelInvite,
+	DiscordController,
+	DiscordEmbed,
+	DiscordException,
+	DiscordGateway,
+	DiscordMessageIn,
+	DiscordScheduledEvent,
+	DiscordUser,
+	Emoji,
+	Guild,
+	GuildMemberChunk,
+	VoiceState,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	CloseEvents,
@@ -291,17 +291,18 @@ class DiscordGatewayController extends ModuleInstance {
 			});
 			return;
 		}
-		$packet = new Payload(
-			op: Opcode::PRESENCE_UPDATE,
-			d: new UpdateStatus(),
-		);
+		$status = new UpdateStatus();
 		$activity = new Activity();
 		$activity->name = $newValue;
 		if (strlen($newValue)) {
-			$packet->d->activities = [$activity];
+			$status->activities = [$activity];
 		} else {
-			$packet->d->activities = [];
+			$status->activities = [];
 		}
+		$packet = new Payload(
+			op: Opcode::PRESENCE_UPDATE,
+			d: $status,
+		);
 		EventLoop::queue($this->client->sendText(...), json_encode($packet));
 	}
 
@@ -341,7 +342,10 @@ class DiscordGatewayController extends ModuleInstance {
 			if ($message === '') {
 				throw new JsonException('null message received.');
 			}
-			$payload = Hydrator::hydrate(Payload::class, json_decode($message, true));
+
+			/** @var array<string,mixed> */
+			$json = json_decode($message, true);
+			$payload = Hydrator::hydrate(Payload::class, $json);
 		} catch (JsonException | UnableToHydrateObject $e) {
 			$this->logger->error('Invalid JSON data received from Discord: {error}', [
 				'error' => $e->getMessage(),
@@ -387,8 +391,11 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesEvent(mask: 'discord(10)', defaultStatus: Status::Enabled)]
 	public function processGatewayHello(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
+		if (!isset($payload->d) || !is_array($payload->d) || array_is_list($payload->d)) {
+			return;
+		}
 
-		$this->heartbeatInterval = intdiv($payload->d['heartbeat_interval']??30_000, 1_000);
+		$this->heartbeatInterval = intdiv((int)($payload->d['heartbeat_interval']??30_000), 1_000);
 		EventLoop::repeat($this->heartbeatInterval, $this->sendWebsocketHeartbeat(...));
 		$this->logger->info('Setting Discord heartbeat interval to {interval} seconds', [
 			'interval' => $this->heartbeatInterval,
@@ -447,7 +454,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
 		}
-		$chunk = Hydrator::hydrate(GuildMemberChunk::class, $event->payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $event->payload->d;
+		$chunk = Hydrator::hydrate(GuildMemberChunk::class, $data);
 		$this->logger->debug('Processing incoming discord members chunk {chunk}', [
 			'chunk' => $chunk,
 		]);
@@ -478,7 +488,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
 		}
-		$message = Hydrator::hydrate(DiscordMessageIn::class, $event->payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $event->payload->d;
+		$message = Hydrator::hydrate(DiscordMessageIn::class, $data);
 
 		$this->logger->info('Processing incoming discord message {message}', [
 			'message' => $message,
@@ -631,7 +644,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
 		}
-		$guild = Hydrator::hydrate(Guild::class, $event->payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $event->payload->d;
+		$guild = Hydrator::hydrate(Guild::class, $data);
 
 		$this->logger->info('Received {event} for {guild}', [
 			'event' => $event->payload->t,
@@ -712,7 +728,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
 		}
-		$channel = Hydrator::hydrate(DiscordChannel::class, $event->payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $event->payload->d;
+		$channel = Hydrator::hydrate(DiscordChannel::class, $data);
 
 		$this->logger->info('Received {event} for {channel}', [
 			'event' => $event->payload->t,
@@ -758,6 +777,7 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 		if ($event->payload->t === 'CHANNEL_UPDATE') {
+			$oldChannel = null;
 			for ($i = 0; $i < count($channels); $i++) {
 				if ($channels[$i]->id === $channel->id) {
 					$oldChannel = $channels[$i];
@@ -786,10 +806,13 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesEvent(mask: 'discord(ready)', defaultStatus: Status::Enabled)]
 	public function processDiscordReady(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
-		if (!isset($payload->d) || !is_array($payload->d) || !isset($payload->d['user'])) {
+		if (!isset($payload->d) || !is_array($payload->d) || !isset($payload->d['user']) || !is_array($payload->d['user'])) {
 			return;
 		}
-		$user = Hydrator::hydrate(DiscordUser::class, $payload->d['user']);
+
+		/** @var array<string,mixed> */
+		$userData = $payload->d['user'];
+		$user = Hydrator::hydrate(DiscordUser::class, $userData);
 
 		$this->sessionId = $payload->d['session_id'] ?? null;
 		$this->me = $user;

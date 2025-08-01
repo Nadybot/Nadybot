@@ -243,7 +243,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$fs = new ReflectionObject($fsObj);
 		try {
 			$driverProp = $fs->getProperty('driver');
-			$fsClass = $driverProp->getValue($fsObj);
+			$fsClass = (string)$driverProp->getValue($fsObj);
 		} catch (ReflectionException) {
 			$fsClass = 'Unknown';
 		}

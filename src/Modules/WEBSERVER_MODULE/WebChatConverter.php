@@ -218,7 +218,6 @@ class WebChatConverter extends ModuleInstance {
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1>(.*?)<\/a>/s",
 			/** @param string[] $matches */
 			function (array $matches) use (&$parts, &$id): string {
-				assert(is_string($matches[2]));
 				$parts['ao-' . ++$id] = $this->formatMsg(
 					Safe::pregReplace(
 						"/^<font.*?>(<\/font>|<end>)?/",

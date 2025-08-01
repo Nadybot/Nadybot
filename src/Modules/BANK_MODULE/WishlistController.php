@@ -127,6 +127,11 @@ class WishlistController extends ModuleInstance {
 			// Because we group by main, we need to reduce duplicated wishes to a
 			// single one with a higher amount
 			$wishlist = $wishes->reduce(
+				/**
+				 * @param Collection<string,Wish> $items
+				 *
+				 * @return Collection<string,Wish>
+				 */
 				static function (Collection $items, Wish $wish): Collection {
 					/** @var ?Wish */
 					$exists = $items->get($wish->item, null);
@@ -315,6 +320,8 @@ class WishlistController extends ModuleInstance {
 					->orWhere('expires_on', '>=', time());
 			})
 			->asObj(Wish::class);
+
+		/** @var Collection<string,Collection<int,Wish>> */
 		$wishlistGrouped = $this->addFulfilments($wishlist)
 			->map(static function (Wish $w): Wish {
 				$w->amount = $w->getRemaining();
@@ -322,19 +329,20 @@ class WishlistController extends ModuleInstance {
 				return $w;
 			})
 			->filter(static fn (Wish $w): bool => $w->amount > 0)
-			->groupBy('created_by')
-			->sortBy(static function (Collection $wishes, string $name) use ($char): string {
+			->groupBy('created_by');
+		$wishlistGrouped = $wishlistGrouped->sortBy(
+			static function (Collection $wishes, string $name) use ($char): string {
 				if ($char() === $name) {
 					return " {$name}";
 				}
 				return $name;
-			});
+			}
+		);
 		if ($wishlistGrouped->isEmpty()) {
 			$context->reply("{$char}'s wishlist is empty.");
 			return;
 		}
 
-		/** @psalm-suppress InvalidArgument */
 		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
 		$msg = Text::makeBlob(
 			"{$char}'s wishlists ({$render->numItems})",
