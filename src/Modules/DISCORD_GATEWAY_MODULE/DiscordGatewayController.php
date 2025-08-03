@@ -291,9 +291,9 @@ class DiscordGatewayController extends ModuleInstance {
 			});
 			return;
 		}
-		$status = new UpdateStatus();
 		$activity = new Activity();
 		$activity->name = $newValue;
+		$status = new UpdateStatus();
 		if (strlen($newValue)) {
 			$status->activities = [$activity];
 		} else {
@@ -343,9 +343,13 @@ class DiscordGatewayController extends ModuleInstance {
 				throw new JsonException('null message received.');
 			}
 
-			/** @var array<string,mixed> */
-			$json = json_decode($message, true);
-			$payload = Hydrator::hydrate(Payload::class, $json);
+			$data = json_decode($message, true);
+			if (!is_array($data)) {
+				throw new JsonException('Wrong format');
+			}
+
+			/** @var array<string,mixed> $data */
+			$payload = Hydrator::hydrate(Payload::class, $data);
 		} catch (JsonException | UnableToHydrateObject $e) {
 			$this->logger->error('Invalid JSON data received from Discord: {error}', [
 				'error' => $e->getMessage(),
@@ -785,7 +789,7 @@ class DiscordGatewayController extends ModuleInstance {
 					break;
 				}
 			}
-			if (!isset($oldChannel)) {
+			if (!isset($oldChannel) || !isset($oldChannel->name)) {
 				return;
 			}
 			$fullName = Source::DISCORD_PRIV . "({$oldChannel->name})";

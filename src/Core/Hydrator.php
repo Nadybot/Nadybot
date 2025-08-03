@@ -236,8 +236,13 @@ class Hydrator {
 		?DefinitionProvider $definitionProvider=null
 	): IterableList {
 		if (count($objects) === 0) {
-			/** @psalm-suppress TooManyArguments */
-			return new IterableList([]);
+			/**
+			 * @var IterableList<array<mixed>>
+			 *
+			 * @psalm-suppress TooManyArguments
+			 */
+			$empty = new IterableList([]);
+			return $empty;
 		}
 		$definitionProvider ??= self::getDefaultDefinitionProvider();
 		$className = get_class($objects[0]);

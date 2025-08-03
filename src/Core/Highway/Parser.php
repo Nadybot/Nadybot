@@ -39,6 +39,8 @@ class Parser {
 		} catch (JsonException $e) {
 			throw new ParserJsonException($e->getMessage(), $e->getCode(), $e);
 		}
+
+		/** @var array<string,mixed> $json */
 		try {
 			$baseInfo = Hydrator::hydrate(In\InPackage::class, $json);
 		} catch (UnableToHydrateObject $e) {

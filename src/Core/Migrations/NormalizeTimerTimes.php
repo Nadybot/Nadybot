@@ -2,21 +2,24 @@
 
 namespace Nadybot\Core\Migrations;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, EventManager, Safe, Types\SchemaMigration, Util};
 use Nadybot\Core\DBSchema\EventCfg;
+use Nadybot\Core\{DB, EventManager, Safe, Types\SchemaMigration, Util};
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2024_02_17_10_57_31)]
 class NormalizeTimerTimes implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = EventCfg::getTable();
-		$db->table($table)
+
+		/** @var Collection<int,\stdClass> */
+		$data = $db->table($table)
 			->whereIlike('type', 'timer(%')
-			->get()
-			->each(function (\stdClass $event) use ($db, $table): void {
-				$this->updateType($event, $db, $table);
-			});
+			->get();
+		$data->each(function (\stdClass $event) use ($db, $table): void {
+			$this->updateType($event, $db, $table);
+		});
 	}
 
 	private function updateType(\stdClass $event, DB $db, string $table): void {
