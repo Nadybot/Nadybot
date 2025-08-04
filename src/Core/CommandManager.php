@@ -371,8 +371,10 @@ class CommandManager implements MessageEmitter {
 		$permissions = $permissionQuery->asObj(CmdPermission::class)
 			->groupBy('cmd');
 		$data->each(static function (CmdCfg $row) use ($permissions): void {
-			$row->permissions = $permissions->get($row->cmd, new Collection())
-				->keyBy('permission_set')->toArray();
+			/** @var Collection<string,CmdPermission> */
+			$keyed = $permissions->get($row->cmd, new Collection())
+				->keyBy('permission_set');
+			$row->permissions = $keyed->toArray();
 		});
 
 		$update = ['enabled' => (bool)$status->value];
@@ -443,8 +445,10 @@ class CommandManager implements MessageEmitter {
 			->whereIn('cmdevent', $includeSubcommands ? ['cmd', 'subcmd'] : ['cmd'])
 			->asObj(CmdCfg::class)
 			->each(static function (CmdCfg $row) use ($permissions): void {
-				$row->permissions = $permissions->get($row->cmd, new Collection())
-					->keyBy('permission_set')->toArray();
+				/** @var Collection<string,CmdPermission> */
+				$keyed = $permissions->get($row->cmd, new Collection())
+					->keyBy('permission_set');
+				$row->permissions = $keyed->toArray();
 			});
 		return $data;
 	}
@@ -468,8 +472,10 @@ class CommandManager implements MessageEmitter {
 			->where('module', $module)
 			->asObj(CmdCfg::class)
 			->each(static function (CmdCfg $row) use ($permissions): void {
-				$row->permissions = $permissions->get($row->cmd, new Collection())
-					->keyBy('permission_set')->toArray();
+				/** @var Collection<string,CmdPermission> */
+				$keyed = $permissions->get($row->cmd, new Collection())
+					->keyBy('permission_set');
+				$row->permissions = $keyed->toArray();
 			});
 		return $data;
 	}
@@ -500,9 +506,11 @@ class CommandManager implements MessageEmitter {
 		if (isset($permissionSet)) {
 			$permQuery->where('permission_set', $permissionSet);
 		}
-		$cmd->permissions = $permQuery->asObj(CmdPermission::class)
-			->keyBy('permission_set')
-			->toArray();
+
+		/** @var Collection<string,CmdPermission> */
+		$keyed = $permQuery->asObj(CmdPermission::class)
+			->keyBy('permission_set');
+		$cmd->permissions = $keyed->toArray();
 
 		return $cmd;
 	}
@@ -1763,11 +1771,18 @@ class CommandManager implements MessageEmitter {
 			if (!count($refMethods)) {
 				return '';
 			}
+
+			/**
+			 * @var \ReflectionAttribute<\Nadybot\Core\Attributes\HandlesCommand>[]
+			 *
+			 * @psalm-suppress MixedMethodCall
+			 */
 			$attrs = $refMethods[0]->getAttributes(NCA\HandlesCommand::class);
 			if (!count($attrs)) {
 				return '';
 			}
 
+			/** @var NCA\HandlesCommand */
 			$handlesCmd = $attrs[0]->newInstance();
 			return $handlesCmd->command;
 		});
@@ -1791,6 +1806,7 @@ class CommandManager implements MessageEmitter {
 		}
 
 		$varName = $param->getName();
+		$new = null;
 		if ($type->isBuiltin()) {
 			$mask = null;
 			$attrs = $param->getAttributes(ParamAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
@@ -1828,7 +1844,7 @@ class CommandManager implements MessageEmitter {
 			$c1 = [$type->getName(), 'getPreRegExp'];
 			$c2 = [$type->getName(), 'getRegexp'];
 			if (is_callable($c1) && is_callable($c2)) {
-				$new = '(?:' . $c1() . "(?<{$varName}>" . $c2() . '))';
+				$new = '(?:' . (string)$c1() . "(?<{$varName}>" . (string)$c2() . '))';
 			}
 		}
 		if (!isset($new)) {

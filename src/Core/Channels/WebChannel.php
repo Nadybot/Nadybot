@@ -47,7 +47,7 @@ class WebChannel implements MessageReceiver {
 		if (!is_string($eventData)) {
 			return false;
 		}
-		$eventData = Blob::create($event->getData())->getText();
+		$eventData = Blob::create($eventData)->getText();
 		$webEvent = new AOWebChatEvent(
 			channel: 'web',
 			path: $path,

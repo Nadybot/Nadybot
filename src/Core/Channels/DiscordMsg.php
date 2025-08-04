@@ -4,6 +4,7 @@ namespace Nadybot\Core\Channels;
 
 use function Amp\async;
 
+use Nadybot\Core\Modules\DISCORD\{DiscordAllowedMentionType, DiscordAllowedMentions};
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -21,7 +22,6 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\MessageReceiver,
 };
-use Nadybot\Core\Modules\DISCORD\{DiscordAllowedMentionType, DiscordAllowedMentions};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 /** This is the routing endpoint for a discord personal message */
@@ -50,6 +50,7 @@ class DiscordMsg implements MessageReceiver {
 
 	public function receive(RoutableEvent $event, string $destination): bool {
 		$renderPath = true;
+		$msg = null;
 		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
 			$baseEvent = $event->data??null;
 			if (!isset($baseEvent) || !($baseEvent instanceof Base) || !isset($baseEvent->message)) {
@@ -61,6 +62,7 @@ class DiscordMsg implements MessageReceiver {
 				$msg = Text::removePopups($msg);
 			}
 		} else {
+			/** @var string */
 			$msg = $event->getData();
 		}
 		$msg = Blob::create($msg)->getText();

@@ -7,15 +7,15 @@ use function Safe\{array_flip, parse_ini_string};
 use Amp\File\FilesystemException;
 use Amp\Parallel\Worker\TaskFailureError;
 use Amp\TimeoutCancellation;
-use Nadybot\Core\{
-	Attributes as NCA,
-	Config\BotConfig,
-	Types\ModuleInstanceInterface,
-};
 use Nadybot\Core\Exceptions\{
 	IntegratedIntoBaseException,
 	InvalidCodeException,
 	InvalidVersionException
+};
+use Nadybot\Core\{
+	Attributes as NCA,
+	Config\BotConfig,
+	Types\ModuleInstanceInterface,
 };
 use Psr\Log\LoggerInterface;
 use RecursiveDirectoryIterator;
@@ -100,8 +100,11 @@ class ClassLoader {
 		$newInstances = static::getInstancesOfClasses(...get_declared_classes());
 		unset($newInstances['logger']);
 		unset($newInstances[strtolower(Registry::formatName(BotConfig::class))]);
+
+		/** @var array<string,ClassInstance> */
 		$newInstances = array_merge($newInstances, $this->getNewInstancesInDir(__DIR__));
 		foreach ($newInstances as $name => $class) {
+			/** @psalm-suppress MixedMethodCall */
 			Registry::setInstance($name, new $class->className());
 		}
 
@@ -136,7 +139,7 @@ class ClassLoader {
 			// check that current PHP version is greater or equal than module's
 			// minimum required PHP version
 			if (isset($entries['minimum_php_version'])) {
-				$minimum = $entries['minimum_php_version'];
+				$minimum = (string)$entries['minimum_php_version'];
 				$current = \PHP_VERSION;
 				if (strnatcmp($minimum, $current) > 0) {
 					$this->logger->warning(

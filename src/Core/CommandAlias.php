@@ -104,6 +104,7 @@ class CommandAlias {
 	 */
 	public function process(CmdContext $context): bool {
 		$params = explode(' ', $context->message);
+		$row = null;
 		while (count($params) && !isset($row)) {
 			$row = $this->get(strtolower(implode(' ', $params)));
 			if (!isset($row)) {

@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 use function Amp\delay;
-use function Safe\json_decode;
+use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\{
 	Connection\DefaultConnectionFactory,
 	Connection\UnlimitedConnectionPool,
@@ -13,12 +13,6 @@ use Amp\Http\Client\{
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455ConnectionFactory, Rfc6455Connector, WebsocketConnectException, WebsocketHandshake};
 use Amp\Websocket\{PeriodicHeartbeatQueue, WebsocketCloseCode, WebsocketClosedException};
-use Nadybot\Core\{
-	Attributes as NCA,
-	Events\EventFeedConnect,
-	Events\EventFeedReconnect,
-	Types\EventFeedHandler,
-};
 use Nadybot\Core\Events\EventFeed\{
 	ErrorPackageEvent,
 	HelloPackageEvent,
@@ -28,6 +22,12 @@ use Nadybot\Core\Events\EventFeed\{
 	ResultPackageEvent,
 	RoomInfoPackageEvent,
 	SuccessPackageEvent
+};
+use Nadybot\Core\{
+	Attributes as NCA,
+	Events\EventFeedConnect,
+	Events\EventFeedReconnect,
+	Types\EventFeedHandler,
 };
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
@@ -373,11 +373,17 @@ class EventFeed {
 			'message' => $package,
 		]);
 		$body = $package->body;
+		if (is_object($body)) {
+			$body = json_encode($body);
+		}
 		if (is_string($body)) {
 			$body = json_decode($body, true);
 		}
+		if (!is_array($body)) {
+			return;
+		}
 
-		/** @var list<EventFeedHandler> */
+		/** @var array<string,mixed> $body */
 		$handlers = $this->roomHandlers[$package->room] ?? [];
 		foreach ($handlers as $handler) {
 			try {

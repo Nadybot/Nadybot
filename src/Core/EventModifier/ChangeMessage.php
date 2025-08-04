@@ -71,7 +71,7 @@ class ChangeMessage implements EventModifier {
 			return $modifiedEvent;
 		}
 		$message = $event->getData();
-		if (!isset($message)) {
+		if (!isset($message) || !is_string($message)) {
 			return null;
 		}
 		$message = $this->alterMessage($message);

@@ -10,7 +10,10 @@ use stdClass;
 /** A routable event is an event that can be routed via the message hub */
 #[NCA\Event(mask: 'event')]
 class RoutableEvent extends Event {
+	/** @var 'message' */
 	public const TYPE_MESSAGE = 'message';
+
+	/** @var 'event' */
 	public const TYPE_EVENT = 'event';
 
 	/**

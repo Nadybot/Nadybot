@@ -238,8 +238,6 @@ class LegacyLogger {
 				if (!isset($formatters[$config->formatter])) {
 					throw new RuntimeException("The log handler {$name} uses an undeclared formatter '{$config->formatter}'");
 				}
-
-				/** @psalm-suppress MixedArrayOffset */
 				$obj->setFormatter($formatters[$config->formatter]);
 			}
 			$removeUsedVariables = $config->removeUsedVariables;
@@ -261,16 +259,11 @@ class LegacyLogger {
 		foreach ($formatters as $name => $config) {
 			$class = 'Monolog\\Formatter\\' . static::toClass($config->type) . 'Formatter';
 
-			/**
-			 * @var FormatterInterface
-			 *
-			 * @psalm-suppress MixedArgument
-			 */
+			/** @var FormatterInterface */
 			$obj = new $class(...array_values($config->options));
 			foreach ($config->calls as $func => $params) {
 				$callable = [$obj, $func];
 				if (is_callable($callable)) {
-					/** @psalm-suppress MixedArgument */
 					call_user_func_array($callable, array_values($params));
 				} else {
 					throw new \Error('Call to undefined method ' . $obj::class . "::{$func}()");

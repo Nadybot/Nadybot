@@ -66,6 +66,8 @@ class DrillHttpConnection {
 			delay(0.1);
 		}
 		$this->logger->info('Sending data to Webserver');
+
+		/** @psalm-suppress MixedMethodCall */
 		$this->webClient->write($packet->data);
 	}
 

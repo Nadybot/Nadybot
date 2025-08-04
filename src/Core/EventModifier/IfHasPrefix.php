@@ -50,8 +50,15 @@ class IfHasPrefix implements EventModifier {
 			if (!$this->forEvents) {
 				return $event;
 			}
-			$message = $event->getData()->message ?? null;
-			$hasPrefix = isset($message) && (strncmp($message, $this->prefix, strlen($this->prefix)) === 0);
+			$data = $event->getData();
+			if (!is_object($data) || !property_exists($data, 'message')) {
+				return $event;
+			}
+			$message = $data->message;
+			if (null === $message || !is_string($message)) {
+				return $event;
+			}
+			$hasPrefix = strncmp($message, $this->prefix, strlen($this->prefix)) === 0;
 			if ($hasPrefix === $this->inverse) {
 				$event = clone $event;
 				if (isset($event->data) && ($event->data instanceof Base)) {
@@ -73,7 +80,10 @@ class IfHasPrefix implements EventModifier {
 			return $event;
 		}
 		$message = $event->getData();
-		$hasPrefix = isset($message) && (strncmp($message, $this->prefix, strlen($this->prefix)) === 0);
+		if (!isset($message) || !is_string($message)) {
+			return $event;
+		}
+		$hasPrefix = strncmp($message, $this->prefix, strlen($this->prefix)) === 0;
 		if ($hasPrefix === $this->inverse) {
 			return null;
 		}

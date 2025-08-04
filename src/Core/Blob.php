@@ -8,6 +8,7 @@ use Psr\Log\LoggerInterface;
 
 /** A blob represents a blob of AO markup */
 class Blob implements \Stringable {
+	/** @var string */
 	public const LITERAL = "\x00lit\x00";
 	private LoggerInterface $logger;
 	private SettingManager $settingManager;
@@ -220,16 +221,18 @@ class Blob implements \Stringable {
 	 * @psalm-return string|list<string>
 	 */
 	private function processPopup(int $pageSize, string $link, string $popup, bool $formatMessage, bool $renderColors): string|array {
+		/** @var array{0?:string,header?:string,permheader?:string} */
 		$headers = Safe::pregMatch(
 			"/^(?:<font color=['\"]?#[A-F0-9a-f]{6}['\"]?>)?<header>(?<header>.+?)<end>\n\n(?:<permheader>(?<permheader>.*?)<\/permheader>)?/s",
 			$popup
 		);
 		$header = '';
 		$permheader = '';
+		$formattedHeader = null;
 		if (count($headers)) {
 			$header = $headers['header'] ?? '';
 			$permheader = $headers['permheader'] ?? '';
-			$popup = substr($popup, strlen($headers[0]));
+			$popup = substr($popup, strlen($headers[0] ?? ''));
 		}
 		if ($formatMessage) {
 			$popup = $this->formatMessage($popup, $renderColors);

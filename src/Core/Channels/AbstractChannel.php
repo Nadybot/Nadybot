@@ -26,6 +26,7 @@ abstract class AbstractChannel implements MessageReceiver {
 			$msg = $baseEvent->message;
 			$renderPath = $baseEvent->renderPath;
 		} else {
+			/** @var string */
 			$msg = $event->getData();
 		}
 		$channelName ??= $this->getChannelName();

@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core;
 
-use function Amp\{async, delay};
 use function Amp\Future\await;
+use function Amp\{async, delay};
 use function Safe\array_flip;
 
 use Closure;
@@ -320,6 +320,8 @@ class EventManager {
 		} elseif ($this->isValidEventType($type)) {
 			if (in_array($filename, $this->events[$type]??[], true)) {
 				$found = true;
+
+				/** @var array<string,int> */
 				$temp = array_flip($this->events[$type]);
 				unset($this->events[$type][$temp[$filename]]);
 			}
@@ -559,6 +561,7 @@ class EventManager {
 		$futures = [];
 		try {
 			foreach ($this->getListenersForEvent($eventObj) as $listener) {
+				/** @psalm-var Closure(mixed...):mixed $listener */
 				$futures []= async($listener, $eventObj);
 			}
 			if (!count($futures)) {
