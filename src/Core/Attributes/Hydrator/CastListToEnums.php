@@ -6,7 +6,7 @@ use function is_array;
 use Attribute;
 use BackedEnum;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster, PropertySerializer};
-
+use Exception;
 use InvalidArgumentException;
 
 /** Cast the given value to a list of int/string-backed enums of the given enum */
@@ -26,6 +26,9 @@ final class CastListToEnums implements PropertyCaster, PropertySerializer {
 		assert(is_array($value), 'value is expected to be an array');
 		$class = $this->enumClass;
 		foreach ($value as $i => $item) {
+			if (!is_int($item) && !is_string($item)) {
+				throw new Exception('CastListToEnums works only on strings and integers');
+			}
 			$value[$i] = $class::from($item);
 		}
 

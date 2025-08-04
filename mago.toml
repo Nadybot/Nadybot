@@ -3,7 +3,6 @@ php_version = "8.1"
 [source]
 paths = ["src"]
 excludes = [
-  "src/Core/QueryBuilder.php",
   "src/websetup",
    "vendor/squizlabs/php_codesniffer/tests/Core/Ruleset/Fixtures/DirectoryExpansion/.hiddenAbove/src/MyStandard/Sniffs/.hidden/HiddenDirShouldBeIgnoredSniff.php",
   "vendor/nikic/fast-route/test/HackTypechecker/fixtures/all_options.php",
@@ -108,4 +107,8 @@ level = "Off"
 
 [[linter.rules]]
 name = "best-practices/literal-named-argument"
+level = "Off"
+
+[[linter.rules]]
+name = "mixed-assignment"
 level = "Off"
