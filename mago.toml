@@ -11,7 +11,7 @@ excludes = [
   "vendor/nikic/fast-route/test/HackTypechecker/fixtures/empty_options.php",
   "vendor/squizlabs/php_codesniffer/tests/Core/Ruleset/Fixtures/DirectoryExpansion/.hiddenAbove/src/MyStandard/.hidden/HiddenDirShouldBeIgnoredSniff.php",
 ]
-includes = ["vendor", "src/Core"]
+includes = ["vendor", "src/Core", "Stubs"]
 extensions = ["php"]
 
 [linter]

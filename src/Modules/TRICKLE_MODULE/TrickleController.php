@@ -198,7 +198,10 @@ class TrickleController extends ModuleInstance {
 	private function processAbilities(AbilityConfig $abilities): string {
 		$headerParts = [];
 		$msgParts = [];
-		foreach (get_object_vars($abilities) as $short => $bonus) {
+
+		/** @var array<string,mixed> */
+		$vars = get_object_vars($abilities);
+		foreach ($vars as $short => $bonus) {
 			if ($bonus > 0) {
 				$abiLong = Ability::tryFromShort($short)->name ?? 'Unknown ability';
 				$msgParts []= "{$abiLong}: {$bonus}";

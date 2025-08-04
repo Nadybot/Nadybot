@@ -130,6 +130,7 @@ class RaidBlockController extends ModuleInstance {
 		string $reason
 	): void {
 		$character = $character();
+		$expiration = null;
 		if (null === $this->chatBot->getUid($character)) {
 			$context->reply("<highlight>{$character}<end> doesn't exist.");
 		}
@@ -143,7 +144,6 @@ class RaidBlockController extends ModuleInstance {
 			$expiration = time() + $duration;
 		}
 
-		/** @psalm-suppress MixedArgument */
 		$block = new RaidBlock(
 			blocked_by: $context->char->name,
 			blocked_from: $blockFrom,

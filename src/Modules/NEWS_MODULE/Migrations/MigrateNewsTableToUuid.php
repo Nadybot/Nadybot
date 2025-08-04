@@ -73,6 +73,8 @@ class MigrateNewsTableToUuid implements SchemaMigration {
 		 * @param object{id:int}&\stdClass $entry
 		 *
 		 * @return array<string,mixed>
+		 *
+		 * @var list<array<string,mixed>>
 		 */
 		$entries = $confirmed->map(static function (object $entry) use ($idToUuid): array {
 			$entry->id = $idToUuid[$entry->id];

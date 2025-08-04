@@ -501,7 +501,7 @@ class CommentController extends ModuleInstance {
 	/**
 	 * Remove all comments from $comments that $sender does not have permission to read
 	 *
-	 * @param iterable<Comment> $comments
+	 * @param iterable<int,Comment> $comments
 	 *
 	 * @return list<Comment>
 	 */
@@ -509,11 +509,7 @@ class CommentController extends ModuleInstance {
 		$senderAL = $this->accessManager->getAccessLevelForCharacter($sender);
 		$accessCache = [];
 
-		/**
-		 * @var Collection<int,Comment>
-		 *
-		 * @psalm-suppress MixedArgumentTypeCoercion
-		 */
+		/** @var Collection<int,Comment> */
 		$com = new Collection($comments);
 		return $com->filter(function (Comment $comment) use (&$accessCache, $senderAL): bool {
 			if (isset($accessCache[$comment->category])) {

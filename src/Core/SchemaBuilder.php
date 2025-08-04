@@ -4,7 +4,7 @@ namespace Nadybot\Core;
 
 use Closure;
 use Error;
-use Illuminate\Database\Schema\Builder;
+use Illuminate\Database\Schema\{Blueprint, Builder};
 
 /**
  * This is a wrapper class for the Illuminate Schema Builder
@@ -41,7 +41,11 @@ class SchemaBuilder {
 		return call_user_func_array($proxy, $arguments);
 	}
 
-	/** Create a database in the schema.  */
+	/**
+	 * Create a database in the schema.
+	 *
+	 * @param \Closure(Blueprint):void $callback
+	 */
 	public function create(string $table, Closure $callback): void {
 		$table = $this->nadyDB->formatSql($table);
 		$this->builder->create($table, $callback);

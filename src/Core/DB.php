@@ -482,13 +482,13 @@ class DB {
 	/**
 	 * Migrate a table from a monotonous primary key to UUIDs
 	 *
-	 * @param string   $table      The name of the table to convert
-	 * @param \Closure $callback   The closure to call for creating the new table in the
-	 *                             database
-	 * @param string   $column     The name of the current primary key column with a
-	 *                             monotonous increasing number
-	 * @param ?string  $timeColumn An optional name of a column with a UNIX timestamp
-	 *                             when each record was inserted
+	 * @param string                   $table      The name of the table to convert
+	 * @param \Closure(Blueprint):void $callback   The closure to call for creating the new table in the
+	 *                                             database
+	 * @param string                   $column     The name of the current primary key column with a
+	 *                                             monotonous increasing number
+	 * @param ?string                  $timeColumn An optional name of a column with a UNIX timestamp
+	 *                                             when each record was inserted
 	 *
 	 * @return array<int,UuidInterface>
 	 */
