@@ -316,6 +316,7 @@ class RaidMemberController extends ModuleInstance {
 		#[Str('add')] string $action,
 		PCharacter ...$char
 	): void {
+		/** @var list<string> */
 		$messages = [];
 		foreach ($char as $character) {
 			$reply = $this->joinRaid($context->char->name, $character(), $context->source, true);

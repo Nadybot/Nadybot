@@ -439,10 +439,10 @@ class DeathController extends ModuleInstance {
 	 */
 	private function matchesDeathCheck(string $token, string $operator, string $value, Death $death): bool {
 		$comparison = match ($operator) {
-			'>' => static fn (mixed $a, mixed $b): bool => $a > $b,
-			'<' => static fn (mixed $a, mixed $b): bool => $a < $b,
-			'!=' => static fn (mixed $a, mixed $b): bool => $a !== $b,
-			default => static fn (mixed $a, mixed $b): bool => $a === $b,
+			'>' => static fn (string|int|bool $a, string|int|bool $b): bool => $a > $b,
+			'<' => static fn (string|int|bool $a, string|int|bool $b): bool => $a < $b,
+			'!=' => static fn (string|int|bool $a, string|int|bool $b): bool => $a !== $b,
+			default => static fn (string|int|bool $a, string|int|bool $b): bool => $a === $b,
 		};
 		switch ($token) {
 			case 'main':
@@ -466,7 +466,7 @@ class DeathController extends ModuleInstance {
 			'faction','side' => $comparison(strtolower($player->faction->value), strtolower($value)),
 			'gender','sex' => $comparison(strtolower($player->gender), strtolower($value)),
 			'race','breed' => $comparison(strtolower($player->breed), strtolower($value)),
-			'level','lvl' => $comparison($player->level, (int)$value),
+			'level','lvl' => $comparison((int)$player->level, (int)$value),
 			default => true,
 		};
 	}

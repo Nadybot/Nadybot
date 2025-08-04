@@ -36,7 +36,10 @@ class MigrateWishlistsToUuids implements SchemaMigration {
 		/** @return array<string,mixed> */
 		$entries = $entries->map(static function (\stdClass $entry) use ($idMapping): array {
 			$entry->wish_id = $idMapping[(int)$entry->wish_id];
-			return (array)$entry;
+
+			/** @var array<string,mixed> */
+			$result = (array)$entry;
+			return $result;
 		})->toList();
 		$db->table($table)->chunkInsert($entries);
 
