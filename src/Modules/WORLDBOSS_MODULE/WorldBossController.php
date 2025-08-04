@@ -3,10 +3,11 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use function Amp\delay;
-use function Safe\{array_flip, json_decode};
+use function Safe\array_flip;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DateTimeZone;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
+use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -185,6 +186,7 @@ class WorldBossController extends ModuleInstance {
 		self::ABMOUTH => 'abmouth',
 	];
 
+	/** @var array<string,array{interval?:int,usual_interval?:int,immortal:int,coordinates?:list{int,int,int},aou_link?:int,spawn_chance?:int}> */
 	public const BOSS_DATA = [
 		self::TARA => [
 			self::INTERVAL => 9*3_600,
@@ -973,10 +975,13 @@ class WorldBossController extends ModuleInstance {
 
 	/** Convert timer information from the API into an actual timer with correct information */
 	protected function apiTimerToWorldbossTimer(ApiSpawnData $timer, string $mobName): WorldBossTimer {
-		/** @var ?int */
-		$interval = static::BOSS_DATA[$mobName][static::INTERVAL] ?? null;
+		if (!isset(self::BOSS_DATA[$mobName])) {
+			throw new Exception('Unknown boss encountered');
+		}
 
-		$killable = $timer->last_spawn + (int)static::BOSS_DATA[$mobName][static::IMMORTAL];
+		$interval = self::BOSS_DATA[$mobName][self::INTERVAL] ?? null;
+
+		$killable = $timer->last_spawn + self::BOSS_DATA[$mobName][self::IMMORTAL];
 		$newTimer = new WorldBossTimer(
 			spawn: $timer->last_spawn,
 			killable: $killable,
@@ -1178,12 +1183,9 @@ class WorldBossController extends ModuleInstance {
 			'c-mob-name' => "<highlight>{$timer->mob_name}<end>",
 		];
 
-		/** @var ?int */
 		$invulnDuration = static::BOSS_DATA[$timer->mob_name][static::IMMORTAL];
-		if (isset($invulnDuration)) {
-			$tokens['immortal'] = Util::unixtimeToReadable($invulnDuration);
-			$tokens['c-immortal'] = '<highlight>' . $tokens['immortal'] . '<end>';
-		}
+		$tokens['immortal'] = Util::unixtimeToReadable($invulnDuration);
+		$tokens['c-immortal'] = '<highlight>' . $tokens['immortal'] . '<end>';
 		if ($this->isPrespawn($timer, $lastCheck, $manual)) {
 			assert(isset($timer->next_spawn), 'A pre-spawn timer must know the next spawn');
 			$this->logger->notice('{boss} pre-spawn check success', ['boss' => $timer->mob_name]);
@@ -1292,12 +1294,7 @@ class WorldBossController extends ModuleInstance {
 		/** @var list<ApiSpawnData> */
 		$timers = [];
 		try {
-			$data = json_decode($body, true);
-			if (!is_array($data)) {
-				throw new JsonException();
-			}
-
-			/** @var array<array-key,array<array-key,mixed>> $data */
+			$data = Safe::jsonDecodeList($body);
 			$timers = Hydrator::literalHydrateObjects(ApiSpawnData::class, $data)->toArray();
 		} catch (JsonException | UnableToHydrateObject) {
 			$this->logger->error('Worldboss API sent invalid json.', [

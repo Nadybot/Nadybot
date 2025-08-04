@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{preg_match, preg_match_all, preg_replace, preg_split};
+use function Safe\{json_decode, preg_match, preg_match_all, preg_replace, preg_split};
 
-use Safe\Exceptions\PcreException;
+use Safe\Exceptions\{JsonException, PcreException};
 
 /**
  * This is a wrapper class for some functions with signatures that make it impossible
@@ -325,5 +325,61 @@ class Safe {
 		} finally {
 			restore_error_handler();
 		}
+	}
+
+	/**
+	 * @param string     $json  The JSON string to decode
+	 * @param int<1,max> $depth How many levels to decode
+	 *
+	 * @return array<string,mixed>
+	 *
+	 * @throws JsonException on wrong format
+	 */
+	public static function jsonDecodeArr(string $json, int $depth=512, int $flags=0): array {
+		$obj = json_decode($json, true, $depth, $flags);
+		if (!is_array($obj)) {
+			throw new JsonException('Expected a JSON object, found ' . gettype($obj));
+		}
+		if (count(array_filter(array_keys($obj), 'is_int')) > 0) {
+			throw new JsonException('Expected a JSON object with string keys, but also found numeric keys');
+		}
+
+		/** @var array<string,mixed> $obj */
+		return $obj;
+	}
+
+	/**
+	 * @param string     $json  The JSON string to decode
+	 * @param int<1,max> $depth How many levels to decode
+	 *
+	 * @return list<array<string,mixed>>
+	 *
+	 * @throws JsonException on wrong format
+	 */
+	public static function jsonDecodeList(string $json, int $depth=512, int $flags=0): array {
+		$obj = json_decode($json, true, $depth, $flags);
+		if (!is_array($obj) || !array_is_list($obj)) {
+			throw new JsonException('Expected a list of objects, found ' . gettype($obj));
+		}
+		foreach ($obj as $key => $value) {
+			if (!is_array($value)) {
+				throw new JsonException('Expected an array of JSON objects, found a ' . gettype($obj));
+			}
+			if (!static::isSerializedObj($value)) {
+				throw new JsonException('Expected an array of JSON object with string keys, but also found numeric keys');
+			}
+		}
+
+		/** @var list<array<string,mixed>> $obj */
+		return $obj;
+	}
+
+	/**
+	 * @param array<mixed> $obj
+	 *
+	 * @psalm-assert-if-true array<string,mixed> $obj
+	 */
+	public static function isSerializedObj(array $obj): bool {
+		return !(count(array_filter(array_keys($obj), 'is_int')) > 0);
 	}
 }

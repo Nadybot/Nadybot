@@ -2,13 +2,14 @@
 
 namespace Nadybot\Core;
 
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 
 use InvalidArgumentException;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
 use ReflectionAttribute;
 use ReflectionClass;
+use Safe\Exceptions\JsonException;
 
 /**
  * Convert generic sync events and a given type into actual specific sync events
@@ -31,16 +32,15 @@ class SyncEventFactory {
 	 */
 	public static function create(array|object $data): SyncEvent {
 		if (is_object($data)) {
-			$data = json_decode(json_encode($data), true);
-		}
-		if (!is_array($data)) {
-			throw new InvalidArgumentException(__CLASS__  . '::create(): Argument #1 ($data) must be an object or an array');
+			try {
+				$data = Safe::jsonDecodeArr(json_encode($data));
+			} catch (JsonException $e) {
+				throw new InvalidArgumentException(message: __CLASS__  . '::create(): Argument #1 ($data) must be an object or an array', previous: $e);
+			}
 		}
 		if (!isset($data['type'])) {
 			throw new InvalidArgumentException(__CLASS__  . '::create(): Argument #1 ($data) must be a SyncEvent');
 		}
-
-		/** @var array<string,mixed> $data */
 
 		$mapping = self::getClassMapping();
 		$type = (string)$data['type'];

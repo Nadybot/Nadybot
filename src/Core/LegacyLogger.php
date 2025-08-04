@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use function Safe\json_decode;
 use Monolog\{
 	Formatter\FormatterInterface,
 	Handler\AbstractHandler,
@@ -94,10 +93,7 @@ class LegacyLogger {
 		$configFile = BotRunner::getArguments()->logConfig ?? './conf/logging.json';
 		$json = self::$fs->read($configFile);
 		try {
-			$jsonStruct = json_decode($json, true, 512);
-			if (!is_array($jsonStruct)) {
-				throw new JsonException('Nope');
-			}
+			$jsonStruct = Safe::jsonDecodeArr($json, 512);
 			if (!isset($jsonStruct['monolog'])) {
 				throw new RuntimeException('Invalid logging config, missing "monolog" key');
 			}
@@ -105,7 +101,6 @@ class LegacyLogger {
 			throw new RuntimeException('Unable to parse logging config', 0, $e);
 		}
 
-		/** @var array<string,mixed> $jsonStruct */
 		$logStruct = Hydrator::literalHydrate(Logging::class, $jsonStruct);
 		static::$config = $logStruct->monolog;
 

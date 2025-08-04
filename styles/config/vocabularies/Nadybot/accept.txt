@@ -173,6 +173,7 @@ Jaqueme
 [jJ]obe
 joinpriv
 Jordi
+json|JSON
 june
 jwt|JWT
 Keltias
