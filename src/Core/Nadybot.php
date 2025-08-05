@@ -2,21 +2,35 @@
 
 namespace Nadybot\Core;
 
-use function Amp\Future\await;
 use function Amp\{async, delay};
+use function Amp\Future\await;
 use function Safe\sapi_windows_set_ctrl_handler;
 
 use Amp\ByteStream\StreamException;
 use Amp\Pipeline\Pipeline;
 use AO\Client\{MultiClient, WorkerConfig, WorkerPackage};
 use AO\Exceptions\AccountsFrozenException;
+use AO\{FrozenAccount, Group, Package, SendPriority, Utils};
 use AO\Group\{GroupId, GroupType};
 use AO\Package\OutPackage;
-use AO\{FrozenAccount, Group, Package, SendPriority, Utils};
 use BackedEnum;
 use Error;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Channels\PrivateChannel,
+	Channels\PrivateMessage,
+	Config\BotConfig,
+	Modules\BAN\BanController,
+	Modules\LIMITS\LimitsController,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
+	SettingHandlers\SettingHandler,
+	Types\AccessLevel,
+	Types\ModuleInstanceInterface,
+};
 use Nadybot\Core\Channels\OrgChannel;
 use Nadybot\Core\DBSchema\{
 	Audit,
@@ -51,20 +65,6 @@ use Nadybot\Core\Events\{
 use Nadybot\Core\Exceptions\{
 	StopExecutionException,
 	UserException
-};
-use Nadybot\Core\{
-	Attributes as NCA,
-	Channels\PrivateChannel,
-	Channels\PrivateMessage,
-	Config\BotConfig,
-	Modules\BAN\BanController,
-	Modules\LIMITS\LimitsController,
-	Routing\Character,
-	Routing\RoutableMessage,
-	Routing\Source,
-	SettingHandlers\SettingHandler,
-	Types\AccessLevel,
-	Types\ModuleInstanceInterface,
 };
 use Psr\Log\LoggerInterface;
 use ReflectionAttribute;

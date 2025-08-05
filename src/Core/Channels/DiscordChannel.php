@@ -4,13 +4,14 @@ namespace Nadybot\Core\Channels;
 
 use function Amp\async;
 
-use Nadybot\Core\Modules\DISCORD\{DiscordAllowedMentionType, DiscordAllowedMentions};
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	Blob,
 	MessageHub,
 	Modules\DISCORD\DiscordAPIClient,
+	Modules\DISCORD\DiscordAllowedMentionType,
+	Modules\DISCORD\DiscordAllowedMentions,
 	Modules\DISCORD\DiscordController,
 	Routing\Events\Base,
 	Routing\Events\Online,

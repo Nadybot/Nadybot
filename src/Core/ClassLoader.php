@@ -7,15 +7,15 @@ use function Safe\{array_flip, parse_ini_string};
 use Amp\File\FilesystemException;
 use Amp\Parallel\Worker\TaskFailureError;
 use Amp\TimeoutCancellation;
-use Nadybot\Core\Exceptions\{
-	IntegratedIntoBaseException,
-	InvalidCodeException,
-	InvalidVersionException
-};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
 	Types\ModuleInstanceInterface,
+};
+use Nadybot\Core\Exceptions\{
+	IntegratedIntoBaseException,
+	InvalidCodeException,
+	InvalidVersionException
 };
 use Psr\Log\LoggerInterface;
 use RecursiveDirectoryIterator;

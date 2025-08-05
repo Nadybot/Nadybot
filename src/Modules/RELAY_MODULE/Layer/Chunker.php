@@ -176,7 +176,7 @@ class Chunker implements RelayLayerInterface {
 			return [$packet];
 		}
 
-		/** @var list<string> */
+		/** @var non-empty-list<non-empty-string> */
 		$chunks = str_split($packet, $this->chunkSize);
 		$result = [];
 		$uuid = Uuid::uuid7()->toString();

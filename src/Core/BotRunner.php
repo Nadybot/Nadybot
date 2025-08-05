@@ -326,7 +326,7 @@ class BotRunner {
 			$handlers []= EventLoop::onSignal(\SIGTERM, $signalHandler);
 		}
 		$this->connectToDatabase();
-		if (function_exists('sapi_windows_set_ctrl_handler')) {
+		if (function_exists('sapi_windows_set_ctrl_handler')) { // @phpstan-ignore-line
 			sapi_windows_set_ctrl_handler($signalHandler, false);
 		}
 		foreach ($handlers as $handler) {

@@ -9,7 +9,7 @@ use Attribute;
 class HandlesCommand {
 	public function __construct(
 		public string $command,
-		readonly public ?string $mutex=null,
+		public readonly ?string $mutex=null,
 	) {
 	}
 }

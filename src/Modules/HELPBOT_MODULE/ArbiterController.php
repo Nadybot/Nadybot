@@ -15,8 +15,8 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util,
 };
-use Safe\Exceptions\DatetimeException;
 use Safe\{DateTime, DateTimeImmutable};
+use Safe\Exceptions\DatetimeException;
 
 /**
  * @author Nadyita (RK5)

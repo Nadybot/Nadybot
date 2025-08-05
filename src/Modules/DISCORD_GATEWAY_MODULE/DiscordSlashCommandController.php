@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Modules\DISCORD\{ApplicationCommand, ApplicationCommandOption, DiscordException};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -17,8 +16,6 @@ use Nadybot\Core\{
 	Hydrator,
 	MessageHub,
 	ModuleInstance,
-	Modules\DISCORD\DiscordAPIClient,
-	Modules\DISCORD\DiscordChannel,
 	Nadybot,
 	ParamClass\Base,
 	Registry,
@@ -29,6 +26,13 @@ use Nadybot\Core\{
 	Safe,
 	Text,
 	Types\AccessLevel,
+};
+use Nadybot\Core\Modules\DISCORD\{
+	ApplicationCommand,
+	ApplicationCommandOption,
+	DiscordAPIClient,
+	DiscordChannel,
+	DiscordException
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Interaction;
 use Psr\Log\LoggerInterface;

@@ -5,12 +5,12 @@ namespace Nadybot\Core\EventModifier;
 use ErrorException;
 use Exception;
 
-use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Routing\RoutableEvent,
 	Safe,
 	Types\EventModifier,
+	Types\ParamType,
 };
 
 /**
