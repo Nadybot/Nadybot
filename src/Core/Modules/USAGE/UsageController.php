@@ -291,7 +291,10 @@ class UsageController extends ModuleInstance {
 		$fs = new \ReflectionObject($fsObj);
 		try {
 			$driverProp = $fs->getProperty('driver');
-			$fsClass = class_basename((string)$driverProp->getValue($fsObj));
+
+			/** @var object */
+			$driverClass = $driverProp->getValue($fsObj);
+			$fsClass = class_basename($driverClass);
 		} catch (\ReflectionException) {
 			$fsClass = 'Unknown';
 		}
