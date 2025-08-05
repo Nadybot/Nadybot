@@ -205,7 +205,8 @@ class LegacyLogger {
 	 */
 	public static function parseHandlersConfig(array $handlers, array $formatters): array {
 		$result = [];
-		foreach ($handlers as $name => $config) {
+		foreach ($handlers as $name => $origConfig) {
+			$config = clone $origConfig;
 			$class = 'Monolog\\Handler\\'.static::toClass($config->type) . 'Handler';
 			if (isset($config->options['fileName'])) {
 				$config->options['fileName'] = LoggerWrapper::getLoggingDirectory() . '/' . (string)$config->options['fileName'];

@@ -577,23 +577,23 @@ class BotRunner {
 			'Usage: ' . \PHP_BINARY . ' ' . ($_SERVER['argv'][0] ?? 'main.php').
 			" [options] [-c] <config file>\n\n".
 			"positional arguments:\n".
-			"  <config file>         A Nadybot configuration file, usually conf/config.toml\n".
+			"  <config file>            A Nadybot configuration file, usually conf/config.toml\n".
 			"\n".
 			"options:\n".
-			"  --help                Show this help message and exit\n".
-			"  --migrate-only        Only run the database migration and then exit\n".
-			"  --setup-only          Stop the bot after the setup handlers have been called\n".
-			"  --test-run            Don't run the bot normally. Instead, run a series of tests,\n".
-			"                        and terminate with an appropriate exit code.\n".
-			"  --test-file=<file>    Only run the given test file. Can be given more than once.\n".
-			"                        and terminate with an appropriate exit code.\n".
-			"  --vue-dev             Don't serve web-files locally, connect to the\n".
-			"                        vite development server for hot reloading.\n".
-			"  --log-config=<file>   Use an alternative config file for the logger. The default\n".
-			"                        configuration is in conf/logging.json\n".
-			"  --migration-errors-fatal\n".
-			"                        Stop the bot startup if any of the database migrations fails\n".
-			"  -v                    Enable logging INFO. Use -v -v to also log DEBUG\n"
+			"  --help                   Show this help message and exit\n".
+			"  --migrate-only           Only run the database migration and then exit\n".
+			"  --setup-only             Stop the bot after the setup handlers have been called\n".
+			"  --test-run               Don't run the bot normally. Instead, run a series of tests,\n".
+			"                           and terminate with an appropriate exit code\n".
+			"  --test-show-errors-only  Show only errors, not notices or warnings, during testing\n".
+			"  --test-file=<file>       Only run the given test file. Can be given more than once\n".
+			"                           and terminate with an appropriate exit code.\n".
+			"  --vue-dev                Don't serve web-files locally, connect to the\n".
+			"                           vite development server for hot reloading\n".
+			"  --log-config=<file>      Use an alternative config file for the logger. The default\n".
+			"                           configuration is in conf/logging.json\n".
+			"  --migration-errors-fatal Stop the bot startup if any of the database migrations fail\n".
+			"  -v                       Enable logging INFO. Use -v -v to also log DEBUG\n"
 		);
 	}
 
