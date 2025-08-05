@@ -527,9 +527,9 @@ class SkillsController extends ModuleInstance {
 
 		$blob = "Attack:    <highlight>{$castingTime}<end> second(s)\n";
 		$blob .= "Init Skill:  <highlight>{$initSkill}<end>\n";
-		$blob .= 'Def/Agg:  <highlight>' . round($barSetting, 0) . "%<end>\n";
-		$blob .= 'You must set your AGG bar at <highlight>' . round($barSetting, 0) .'% ('. round($barSetting * 8 / 100, 2) .") <end>to instacast your nano.\n\n";
-		$blob .= '(<a href=skillid://51>Agg/def-Slider</a> should read <highlight>' . round($barSetting*2-100, 0) . "<end>).\n\n";
+		$blob .= 'Def/Agg:  <highlight>' . (int)round($barSetting, 0) . "%<end>\n";
+		$blob .= 'You must set your AGG bar at <highlight>' . (int)round($barSetting, 0) .'% ('. number_format(round($barSetting * 8 / 100, 2), 2) .") <end>to instacast your nano.\n\n";
+		$blob .= '(<a href=skillid://51>Agg/def-Slider</a> should read <highlight>' . (int)round($barSetting*2-100, 0) . "<end>).\n\n";
 		$blob .= "Init needed to instacast at:\n";
 		$blob .= "  Full Agg (100%): <highlight>{$fullAggInits}<end> inits\n";
 		$blob .= "  Neutral (87.5%): <highlight>{$neutralInits}<end> inits\n";
@@ -543,9 +543,9 @@ class SkillsController extends ModuleInstance {
 		$blob .= "                         You: <highlight>{$initSkill}<end>\n";
 		$blob .= "\n";
 		$blob .= "Current casting times:\n";
-		$blob .= '  Full Agg (100%): <highlight>' . round(max(0, $effectiveCastingTime-1), 1) . "s<end>\n";
-		$blob .= '  Neutral (87.5%): <highlight>' . round(max(0, $effectiveCastingTime), 1) . "s<end>\n";
-		$blob .= '  Full Def (0%):     <highlight>' . round(max(0, $effectiveCastingTime+1), 1) . "s<end>\n";
+		$blob .= '  Full Agg (100%): <highlight>' . number_format(round(max(0, $effectiveCastingTime-1), 1), 1) . "s<end>\n";
+		$blob .= '  Neutral (87.5%): <highlight>' . number_format(round(max(0, $effectiveCastingTime), 1), 1) . "s<end>\n";
+		$blob .= '  Full Def (0%):     <highlight>' . number_format(round(max(0, $effectiveCastingTime+1), 1), 1) . "s<end>\n";
 
 		$msg = Text::makeBlob('Nano Init Results', $blob);
 		$context->reply($msg);
