@@ -4,8 +4,6 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use AO\Utils;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Modules\ALTS\AltInfo;
-use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -21,6 +19,7 @@ use Nadybot\Core\{
 	Events\OrgMsgChannelMsgEvent,
 	MessageHub,
 	ModuleInstance,
+	Modules\ALTS\AltInfo,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
@@ -40,6 +39,7 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 	Types\SettingMode,
+	Types\TitleLevel,
 	Util,
 };
 use Nadybot\Modules\ONLINE_MODULE\{Online as DBOnline, OnlineController};
