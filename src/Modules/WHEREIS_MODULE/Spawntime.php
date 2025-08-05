@@ -20,6 +20,8 @@ class Spawntime extends DBTable {
 		public ?int $spawntime=null,
 		?Collection $coordinates=null,
 	) {
-		$this->coordinates = $coordinates ?? new Collection();
+		/** @var Collection<int,Whereis> */
+		$empty = new Collection();
+		$this->coordinates = $coordinates ?? $empty;
 	}
 }

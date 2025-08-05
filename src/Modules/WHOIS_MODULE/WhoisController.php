@@ -285,13 +285,13 @@ class WhoisController extends ModuleInstance {
 	public function getFullName(Player $whois): string {
 		$msg = '';
 
-		if (isset($whois->firstname) && strlen($whois->firstname)) {
+		if (strlen($whois->firstname)) {
 			$msg .= $whois->firstname . ' ';
 		}
 
 		$msg .= "\"{$whois->name}\"";
 
-		if (isset($whois->lastname) && strlen($whois->lastname)) {
+		if (strlen($whois->lastname)) {
 			$msg .= ' ' . $whois->lastname;
 		}
 

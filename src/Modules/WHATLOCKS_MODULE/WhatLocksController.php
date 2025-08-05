@@ -118,6 +118,7 @@ class WhatLocksController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
+
 		$itemIds = $items->whereNotNull('item_id')->pluckInts('item_id')->toList();
 		$itemsById = $this->itemsController->getByIDs(...$itemIds)
 			->keyBy('lowid');
