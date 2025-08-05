@@ -274,6 +274,8 @@ class UsageController extends ModuleInstance {
 			->groupBy('command')
 			->select('command');
 		$query->selectRaw($query->rawFunc('COUNT', '*', 'count'));
+
+		/** @var array<string,int> */
 		$commands = $query->asObj(CommandUsageStats::class)
 			/**
 			 * @param array<string,int> $carry
@@ -289,11 +291,28 @@ class UsageController extends ModuleInstance {
 		$fs = new \ReflectionObject($fsObj);
 		try {
 			$driverProp = $fs->getProperty('driver');
-			$fsClass = class_basename($driverProp->getValue($fsObj));
+
+			/** @var object */
+			$driverClass = $driverProp->getValue($fsObj);
+			$fsClass = class_basename($driverClass);
 		} catch (\ReflectionException) {
 			$fsClass = 'Unknown';
 		}
 
+		/** @var Collection<string,Collection<int,RelayLayer>> */
+		$groupedProtocols = $this->db->table(RelayLayer::getTable())
+			->orderBy('relay_id')->orderByDesc('id')->asObj(RelayLayer::class)
+			->groupBy('relay_id');
+
+		/** @param Collection<string,RelayLayer> $group */
+		$protocols = $groupedProtocols->map(static function (Collection $group): string {
+			return $group->firstOrFail()->layer;
+		});
+
+		/** @var Collection<int,string> */
+		$protocols = $protocols->flatten(); // @phpstan-ignore-line
+
+		$protocols = $protocols->unique()->toList();
 		$settings = new SettingsUsageStats(
 			dimension              : $this->config->main->dimension,
 			is_guild_bot           : strlen($this->config->general->orgName) > 0,
@@ -306,12 +325,7 @@ class UsageController extends ModuleInstance {
 			os                     : \PHP_OS_FAMILY,
 			symbol                 : $this->settingManager->getString('symbol')??'!',
 			num_relays             : $this->db->table(RelayConfig::getTable())->count(),
-			relay_protocols        : $this->db->table(RelayLayer::getTable())
-				->orderBy('relay_id')->orderByDesc('id')->asObj(RelayLayer::class)
-				->groupBy('relay_id')
-				->map(static function (Collection $group): string {
-					return $group->firstOrFail()->layer;
-				})->flatten()->unique()->toList(),
+			relay_protocols        : $protocols,
 			aodb_db_version        : $this->settingManager->getString('aodb_db_version')??'unknown',
 			max_blob_size          : $this->settingManager->getInt('max_blob_size')??0,
 			online_show_org_guild  : $this->settingManager->getInt('online_show_org_guild')??-1,

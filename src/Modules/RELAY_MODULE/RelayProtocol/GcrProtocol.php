@@ -94,7 +94,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		if (isset($character) && Util::isValidSender($character->name)) {
 			$senderLink = "##relay_name##{$character->name}:##end##";
 		}
-		$pages = (array)Blob::create($event->getData())->render(formatMessage: true);
+		$pages = (array)Blob::create((string)$event->getData())->render(formatMessage: true);
 		return array_map(
 			fn (string $page): string => $this->prefix.$this->command . ' '.
 				implode(' ', $hops) . " {$senderLink} ". '##relay_message##'.
@@ -105,7 +105,16 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	/** @return list<string> */
 	public function renderUserState(RoutableEvent $event): array {
-		$character = $event->getData()->char ?? null;
+		$data = $event->getData();
+		if (!isset($data) || !is_object($data)) {
+			return [];
+		}
+		$character = null;
+		if (property_exists($data, 'char')) {
+			$character = $data->char;
+		}
+
+		/** @var ?Character $character */
 		if (!isset($character) || !Util::isValidSender($character->name??-1)) {
 			return [];
 		}
@@ -401,6 +410,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		];
 		$colorizedText = Safe::pregReplaceCallback(
 			'/##([a-zA-Z_]+)##/',
+			/** @param string[] $matches */
 			static function (array $matches) use ($colorAliases, $colors): string {
 				$color = strtolower($matches[1]);
 				if (isset($colorAliases[$color])) {
@@ -450,9 +460,13 @@ class GcrProtocol implements RelayProtocolInterface {
 		if (!count($path)) {
 			return null;
 		}
+		$data = $event->getData();
+		if (!isset($data) || !($data instanceof \stdClass) || !isset($data->online)) {
+			return null;
+		}
 		$lastHop = $path[count($path)-1];
 		$onlineUpdate = $this->prefix.$this->command . 'c buddy '.
-			(int)$event->getData()->online . " {$player->name} ";
+			(int)$data->online . " {$player->name} ";
 		if ($lastHop->type === Source::ORG) {
 			return $onlineUpdate . "gc {$player->guild_rank_id}";
 		} elseif ($lastHop->type === Source::PRIV) {
@@ -473,7 +487,11 @@ class GcrProtocol implements RelayProtocolInterface {
 		if (!isset($lastHop) || $lastHop->type !== Source::ORG) {
 			return null;
 		}
-		if (!$event->getData()->online) {
+		$data = $event->getData();
+		if (!($data instanceof \stdClass) || !isset($data->online)) {
+			return null;
+		}
+		if (!$data->online) {
 			return $this->prefix.$this->command . ' '.
 				"##logon_logoff_spam##{$player->name} logged off##end##";
 		}

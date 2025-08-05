@@ -422,6 +422,8 @@ class MobController extends ModuleInstance {
 			$context->reply('There is currently no data for Hollow Island. Maybe the API is down.');
 			return;
 		}
+
+		/** @var array<string,Mob> */
 		$mobs = $mobs->keyBy(static fn (Mob $mob): string => $mob->key)->toArray();
 
 		$state = $this->getHiStatus($mobs);

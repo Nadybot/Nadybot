@@ -134,11 +134,14 @@ class PlayfieldController extends ModuleInstance {
 
 		if (isset($playfieldId)) {
 			$playfieldName = (string)$playfieldId;
+
+			/** @psalm-suppress MixedArgument */
 			$playfield = CorePlayfield::tryFrom($playfieldId);
 			if (isset($playfield)) {
 				$playfieldName = $playfield->short();
 			}
 		} elseif (isset($playfieldName)) {
+			/** @psalm-suppress MixedArgument */
 			$playfield = CorePlayfield::tryFromName($playfieldName);
 			if (!isset($playfield)) {
 				$context->reply("Unknown playfield {$playfieldName}");

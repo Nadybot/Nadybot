@@ -38,26 +38,26 @@ class FilterEntry extends DBTable {
 			return false;
 		}
 		if (
-			isset($this->bot_uid, $message->bot_uid)
+			isset($this->bot_uid)
 			&& $message->bot_uid !== $this->bot_uid
 		) {
 			return false;
 		}
 		if (
-			(!isset($this->bot_uid) || !isset($message->bot_uid))
+			!isset($this->bot_uid)
 			&& isset($this->bot_name, $message->bot_name)
 			&& $message->bot_name !== $this->bot_name
 		) {
 			return false;
 		}
 		if (
-			isset($this->dimension, $message->dimension)
+			isset($this->dimension)
 			&& $message->dimension !== $this->dimension
 		) {
 			return false;
 		}
 		if (
-			isset($this->channel, $message->channel)
+			isset($this->channel)
 			&& strtolower($message->channel) !== strtolower($this->channel)
 		) {
 			return false;

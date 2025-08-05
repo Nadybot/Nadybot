@@ -28,8 +28,12 @@ class FeedHandler extends ModuleInstance implements EventFeedHandler {
 		if (!isset($data['sourceDimension']) || !isset($data['type'])) {
 			throw new Exception('Incomplete data received.');
 		}
-		$data['sourceBot'] ??= '_Nadybot';
-		$data['forceSync'] ??= false;
+		if (!isset($data['sourceBot']) || !is_string($data['sourceBot'])) {
+			$data['sourceBot'] = '_Nadybot';
+		}
+		if (!isset($data['forceSync']) || !is_bool($data['forceSync'])) {
+			$data['forceSync'] = false;
+		}
 
 		try {
 			$event = SyncEventFactory::create($data);

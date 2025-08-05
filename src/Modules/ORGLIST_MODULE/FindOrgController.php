@@ -213,6 +213,7 @@ class FindOrgController extends ModuleInstance {
 			->exists();
 		$this->logger->info('Downloading list of all orgs');
 		try {
+			/** @psalm-suppress MixedArgumentTypeCoercion */
 			Pipeline::fromIterable($searches)
 				->concurrent($this->numOrglistDlJobs)
 				->forEach($this->downloadOrglistLetter(...));
@@ -248,6 +249,8 @@ class FindOrgController extends ModuleInstance {
 
 	private function downloadOrglistLetter(string $letter): void {
 		$this->logger->info('Downloading orglist for letter {letter}', ['letter' => $letter]);
+
+		/** @var ?string */
 		$body = $this->cache->get($letter);
 
 		if ($body !== null) {

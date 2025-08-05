@@ -58,12 +58,22 @@ use Safe\DateTimeImmutable;
 	NCA\EmitsMessages('system', 'mass-invite'),
 ]
 class MassMsgController extends ModuleInstance {
+	/** @var string */
 	public const BLOCKED = 'blocked';
+
+	/** @var string */
 	public const IN_CHAT = 'in chat';
+
+	/** @var string */
 	public const IN_ORG  = 'in org';
+
+	/** @var string */
 	public const SENT    = 'sent';
 
+	/** @var string */
 	public const PREF_MSGS = 'massmsgs';
+
+	/** @var string */
 	public const PREF_INVITES = 'massinvites';
 
 	/** Color for mass messages/invites */

@@ -62,6 +62,8 @@ abstract class SettingHandler {
 		}
 		$options = explode(';', $this->row->options ?? '');
 		$intoptions = explode(';', $this->row->intoptions);
+
+		/** @var array<string,int> */
 		$intoptions2 = array_flip($intoptions);
 		if (!isset($this->row->value)) {
 			return '<highlight>&lt;empty&gt;<end>';
@@ -76,6 +78,7 @@ abstract class SettingHandler {
 			return null;
 		}
 		$options = explode(';', $this->row->options??'');
+		$optionsMap = null;
 		if (strlen($this->row->intoptions??'')) {
 			$intoptions = explode(';', $this->row->intoptions??'');
 			$optionsMap = array_combine($intoptions, $options);

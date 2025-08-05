@@ -177,7 +177,10 @@ class WhatBuffsController extends ModuleInstance {
 				$sendto->reply("Froobs don't have perks.");
 				return;
 			}
+
+			/** @var Collection<int,int> */
 			$perkBuffs = $this->buffPerksController->perks->reduce(
+				/** @param Collection<int,int> $result */
 				static function (Collection $result, Perk $perk): Collection {
 					$skills = [];
 					foreach ($perk->levels as $perkLevel) {
@@ -258,6 +261,7 @@ class WhatBuffsController extends ModuleInstance {
 		$this->handleOtherComandline($froobFriendly, $context, $search);
 	}
 
+	/** @return Closure(Perk,string):bool */
 	public function createPerkFilter(Skill $skill): Closure {
 		return static function (Perk $perk, string $perkName) use ($skill): bool {
 			foreach ($perk->levels as $level => $perkLevel) {

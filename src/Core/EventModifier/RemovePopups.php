@@ -28,8 +28,12 @@ class RemovePopups implements EventModifier {
 			return $event;
 		}
 		if ($event->getEvent() !== $event::TYPE_MESSAGE) {
-			$message = $event->getData()->message??null;
-			if (!isset($message)) {
+			$data = $event->getData();
+			if (!is_object($data) || !property_exists($data, 'message')) {
+				return $event;
+			}
+			$message = $data->message;
+			if (!isset($message) || !is_string($message)) {
 				return $event;
 			}
 			$message = Text::removePopups($message, $this->removeLinks);
@@ -40,7 +44,7 @@ class RemovePopups implements EventModifier {
 			return $modifiedEvent;
 		}
 		$message = $event->getData();
-		if (!isset($message)) {
+		if (!isset($message) || !is_string($message)) {
 			return null;
 		}
 		$message = Text::removePopups($message, $this->removeLinks);

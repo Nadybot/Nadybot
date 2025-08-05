@@ -436,6 +436,8 @@ class StartpageController extends ModuleInstance {
 		if (!is_array($tiles)) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
+
+		/** @var list<string> $tiles */
 		try {
 			$this->setTiles(...$tiles);
 		} catch (Throwable $e) {

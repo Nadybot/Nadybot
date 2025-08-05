@@ -111,7 +111,7 @@ class RaidExporter extends ModuleInstance implements ExporterInterface, Importer
 		usort(
 			$history,
 			static function (ExportRaidState $o1, ExportRaidState $o2): int {
-				return $o1->time <=> $o2->time; // @phpstan-ignore-line
+				return (int)$o1->time <=> (int)$o2->time;
 			}
 		);
 		$lastEntry = null;

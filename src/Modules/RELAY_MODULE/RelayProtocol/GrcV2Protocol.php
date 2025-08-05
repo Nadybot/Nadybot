@@ -84,7 +84,11 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		} else {
 			$msgColor = '<relay_bot_color>';
 		}
-		$pages = (array)Blob::create($event->getData())->render(formatMessage: true);
+		$data = $event->getData();
+		if (!is_string($data)) {
+			return [];
+		}
+		$pages = (array)Blob::create($data)->render(formatMessage: true);
 		return array_map(
 			fn (string $page): string => "{$this->prefix}{$this->command} <v2>".
 				implode(' ', $hops) . " {$senderLink}{$msgColor}{$page}</end>",

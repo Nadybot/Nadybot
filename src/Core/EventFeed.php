@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 use function Amp\delay;
-use function Safe\json_decode;
+use function Safe\json_encode;
 use Amp\Http\Client\{
 	Connection\DefaultConnectionFactory,
 	Connection\UnlimitedConnectionPool,
@@ -373,11 +373,13 @@ class EventFeed {
 			'message' => $package,
 		]);
 		$body = $package->body;
+		if (is_object($body)) {
+			$body = json_encode($body);
+		}
 		if (is_string($body)) {
-			$body = json_decode($body, true);
+			$body = Safe::jsonDecodeArr($body);
 		}
 
-		/** @var list<EventFeedHandler> */
 		$handlers = $this->roomHandlers[$package->room] ?? [];
 		foreach ($handlers as $handler) {
 			try {

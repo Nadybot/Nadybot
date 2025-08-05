@@ -20,6 +20,7 @@ final class Hello extends AbstractDrillPacket {
 	}
 
 	public static function fromString(string $message): self {
+		/** @var array{type:string,proto_version:int,auth_mode:int,description:string} */
 		$data = unpack('Ctype/nproto_version/Cauth_mode/Z*description', $message);
 		return new self(
 			protoVersion: $data['proto_version'],

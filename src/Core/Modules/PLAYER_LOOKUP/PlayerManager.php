@@ -197,7 +197,7 @@ class PlayerManager extends ModuleInstance {
 					$cacheKey = "{$name}.{$dimension}";
 					$body = $this->cache->get($cacheKey);
 
-					if (isset($body)) {
+					if (isset($body) && is_string($body)) {
 						$player = $this->parsePlayerFromBody($body);
 						break;
 					}
@@ -309,7 +309,34 @@ class PlayerManager extends ModuleInstance {
 			return null;
 		}
 
-		$luDateTime = DateTimeImmutable::createFromFormat('Y/m/d H:i:s', $lastUpdated, new DateTimeZone('UTC'));
+		/**
+		 * @var object{
+		 *   FIRSTNAME:string,
+		 *   NAME:string,
+		 *   LASTNAME:string,
+		 *   LEVELX:?int,
+		 *   BREED?:string,
+		 *   SEX?:string,
+		 *   SIDE:string,
+		 *   PROF:string,
+		 *   PROFNAME?:string,
+		 *   RANK_name?:string,
+		 *   ALIENLEVEL:?int,
+		 *   HEADID:?int,
+		 *   PVPRATING:?int,
+		 *   PVPTITLE:?string,
+		 *   CHAR_INSTANCE:int,
+		 *   CHAR_DIMENSION:?int
+		 * }&\stdClass $char
+		 * @var object{
+		 *   ORG_INSTANCE:?int,
+		 *   NAME?:string,
+		 *   RANK_TITLE?:string,
+		 *   RANK:?int
+		 * }&\stdClass $org
+		 */
+
+		$luDateTime = DateTimeImmutable::createFromFormat('Y/m/d H:i:s', (string)$lastUpdated, new DateTimeZone('UTC'));
 		$obj = new Player(
 			firstname: trim($char->FIRSTNAME),
 			name: $char->NAME,

@@ -44,9 +44,12 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 	),
 ]
 class RaffleController extends ModuleInstance {
+	/** @var string */
 	public const NO_RAFFLE_ERROR = 'There is no active raffle.';
 
 	public const CMD_RAFFLE_MANAGE = 'raffle manage';
+
+	/** @var string */
 	private const MUTEX = 'raffle';
 
 	/** Raffles automatically end after some time */

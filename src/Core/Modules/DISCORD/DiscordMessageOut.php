@@ -52,11 +52,14 @@ class DiscordMessageOut {
 				$totalLength += strlen($field->value ?? '');
 				if ($totalLength >= 6_000) {
 					$msg2 = clone $this;
+
+					/** @var list<DiscordEmbedField> */
 					$fields = array_splice($embed->fields, $i);
 					$danglingEmbed = clone $embed;
 
-					/** @phpstan-ignore-next-line */
 					$danglingEmbed->fields = $fields;
+
+					/** @var list<DiscordEmbed> */
 					$embeds = array_values(array_splice($this->embeds, $e + 1));
 					$msg2->embeds = [$danglingEmbed, ...$embeds];
 					return [$this, $msg2];

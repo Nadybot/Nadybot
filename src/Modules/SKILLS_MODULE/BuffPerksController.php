@@ -485,7 +485,7 @@ class BuffPerksController extends ModuleInstance {
 			name: $perk->name,
 			description: $perk->description,
 			professions: $perk->levels[$minLevel]->professions,
-			max_level: collect($perk->levels)->keys()->max(),
+			max_level: (int)collect($perk->levels)->keys()->max(),
 		);
 
 		/** @var array<int,int> */

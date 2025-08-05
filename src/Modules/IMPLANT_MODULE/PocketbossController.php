@@ -79,6 +79,9 @@ class PocketbossController extends ModuleInstance {
 			return '';
 		}
 		$symbs = '';
+
+		/** @var ?Pocketboss */
+		$lastSymb = null;
 		foreach ($data as $symb) {
 			if ($symb->type === 'Special') {
 				$name = $this->itemsController->findById($symb->itemid)?->getName() ?? 'Unknown';
@@ -92,15 +95,16 @@ class PocketbossController extends ModuleInstance {
 				$symbs .= " ({$symb->ql})";
 			}
 			$symbs .= "\n";
+			$lastSymb = $symb;
 		}
-		assert(isset($symb));
+		assert(isset($lastSymb));
 
 		$blob = "<header2>Basic info<end>\n";
-		$blob .= "<tab>Location: <highlight>{$symb->pb_location}<end>";
-		if ($symb->bp_location !== $symb->pb_location) {
-			$blob .= ", <highlight>{$symb->bp_location}<end>";
+		$blob .= "<tab>Location: <highlight>{$lastSymb->pb_location}<end>";
+		if ($lastSymb->bp_location !== $lastSymb->pb_location) {
+			$blob .= ", <highlight>{$lastSymb->bp_location}<end>";
 		}
-		$blob .= "\n<tab>Found on: <highlight>{$symb->bp_mob}<end>, Level <highlight>{$symb->bp_lvl}<end>\n\n";
+		$blob .= "\n<tab>Found on: <highlight>{$lastSymb->bp_mob}<end>, Level <highlight>{$lastSymb->bp_lvl}<end>\n\n";
 		$blob .= "<header2>Symbiants<end>\n".
 			$symbs;
 
@@ -273,32 +277,34 @@ class PocketbossController extends ModuleInstance {
 		$implantDesignerLink = Text::makeChatcmd('implant designer', '/tell <myname> implantdesigner');
 		$blob = "Click '[add]' to add symbiant to {$implantDesignerLink}.\n\n";
 
+		/** @var Collection<int,Collection<int,Pocketboss>> */
+		$groupedData = $data->groupBy('itemid');
+
 		/** @param Collection<int,Pocketboss> $rows */
-		$blob = $data->groupBy('itemid')
-			->map(function (Collection $rows, int $itemid) use (&$impDesignSlot): string {
-				$symbiant = $rows->firstOrFail();
-				if ($symbiant->type === 'Special') {
-					$name = $this->itemsController->findById($symbiant->itemid)?->getName() ?? 'Unknown';
-				} elseif (in_array($symbiant->line, ['Alpha', 'Beta'], true)) {
-					$name = "Xan {$symbiant->slot} Symbiant, {$symbiant->type} Unit {$symbiant->line}";
-				} else {
-					$name = "{$symbiant->line} {$symbiant->slot} Symbiant, {$symbiant->type} Unit Aban";
-				}
-				$blob = '<pagebreak>' . Text::makeItem($symbiant->itemid, $symbiant->itemid, $symbiant->ql, $name);
-				if ($symbiant->ql !== 1) {
-					$blob .= " ({$symbiant->ql})";
-				}
-				if (isset($impDesignSlot)) {
-					$impDesignerAddLink = Text::makeChatcmd('add', "/tell <myname> implantdesigner {$impDesignSlot} symb {$name}");
-					$blob .= " [{$impDesignerAddLink}]";
-				}
-				$blob .= "\n";
-				$blob .= 'Found on '.
-					$rows->map(static function (Pocketboss $boss): string {
-						return Text::makeChatcmd($boss->pb, "/tell <myname> pb {$boss->pb}");
-					})->join(', ', ', and ');
-				return $blob;
-			})->join("\n\n");
+		$blob = $groupedData->map(function (Collection $rows, int $itemid) use (&$impDesignSlot): string {
+			$symbiant = $rows->firstOrFail();
+			if ($symbiant->type === 'Special') {
+				$name = $this->itemsController->findById($symbiant->itemid)?->getName() ?? 'Unknown';
+			} elseif (in_array($symbiant->line, ['Alpha', 'Beta'], true)) {
+				$name = "Xan {$symbiant->slot} Symbiant, {$symbiant->type} Unit {$symbiant->line}";
+			} else {
+				$name = "{$symbiant->line} {$symbiant->slot} Symbiant, {$symbiant->type} Unit Aban";
+			}
+			$blob = '<pagebreak>' . Text::makeItem($symbiant->itemid, $symbiant->itemid, $symbiant->ql, $name);
+			if ($symbiant->ql !== 1) {
+				$blob .= " ({$symbiant->ql})";
+			}
+			if (isset($impDesignSlot)) {
+				$impDesignerAddLink = Text::makeChatcmd('add', "/tell <myname> implantdesigner {$impDesignSlot} symb {$name}");
+				$blob .= " [{$impDesignerAddLink}]";
+			}
+			$blob .= "\n";
+			$blob .= 'Found on '.
+				$rows->map(static function (Pocketboss $boss): string {
+					return Text::makeChatcmd($boss->pb, "/tell <myname> pb {$boss->pb}");
+				})->join(', ', ', and ');
+			return $blob;
+		})->join("\n\n");
 		$msg = Text::makeBlob("Symbiant Search Results ({$numrows})", $blob);
 		$context->reply($msg);
 	}

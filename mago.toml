@@ -3,7 +3,6 @@ php_version = "8.1"
 [source]
 paths = ["src"]
 excludes = [
-  "src/Core/QueryBuilder.php",
   "src/websetup",
    "vendor/squizlabs/php_codesniffer/tests/Core/Ruleset/Fixtures/DirectoryExpansion/.hiddenAbove/src/MyStandard/Sniffs/.hidden/HiddenDirShouldBeIgnoredSniff.php",
   "vendor/nikic/fast-route/test/HackTypechecker/fixtures/all_options.php",
@@ -12,7 +11,7 @@ excludes = [
   "vendor/nikic/fast-route/test/HackTypechecker/fixtures/empty_options.php",
   "vendor/squizlabs/php_codesniffer/tests/Core/Ruleset/Fixtures/DirectoryExpansion/.hiddenAbove/src/MyStandard/.hidden/HiddenDirShouldBeIgnoredSniff.php",
 ]
-includes = ["vendor", "src/Core"]
+includes = ["vendor", "src/Core", "Stubs"]
 extensions = ["php"]
 
 [linter]
@@ -108,4 +107,8 @@ level = "Off"
 
 [[linter.rules]]
 name = "best-practices/literal-named-argument"
+level = "Off"
+
+[[linter.rules]]
+name = "mixed-assignment"
 level = "Off"

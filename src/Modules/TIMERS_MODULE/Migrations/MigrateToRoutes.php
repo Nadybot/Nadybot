@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\TIMERS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -71,35 +72,40 @@ class MigrateToRoutes implements SchemaMigration {
 	/** @param list<string> $defaultMode */
 	private function rewriteTimerMode(DB $db, string $table, array $defaultMode, ?string $discord=null): void {
 		sort($defaultMode);
-		$db->table($table)
-			->get()
-			->each(static function (stdClass $timer) use ($defaultMode, $table, $db, $discord): void {
-				if (!isset($timer->mode) || !str_starts_with($timer->callback, 'timercontroller')) {
-					return;
+
+		/** @var Collection<int,object{mode?:string,callback:string,id:int}&stdClass> */
+		$data = $db->table($table)->get();
+
+		/** @param object{mode?:string,callback:string,id:int} $timer */
+		$data->each(static function (object $timer) use ($defaultMode, $table, $db, $discord): void {
+			if (!isset($timer->mode) || !str_starts_with($timer->callback, 'timercontroller')) {
+				return;
+			}
+			if ($timer->mode === 'msg') {
+				return;
+			}
+
+			/** @psalm-suppress InvalidScalarArgument */
+			$timerMode = explode(',', $timer->mode);
+			sort($timerMode);
+			$modeDiff = array_values(array_diff($timerMode, $defaultMode));
+			if (count($modeDiff) > 1) {
+				return;
+			}
+			$update = ['mode' => null];
+			if (count($modeDiff) === 1) {
+				if ($modeDiff[0] === 'priv') {
+					$update['origin'] = Source::PRIV . '(' . $db->getMyname() . ')';
+				} elseif ($modeDiff[0] === 'org' || $modeDiff[0] === 'guild') {
+					$update['origin'] = Source::ORG;
+				} elseif ($modeDiff[0] === 'discord') {
+					$update['origin'] = $discord;
 				}
-				if ($timer->mode === 'msg') {
-					return;
-				}
-				$timerMode = explode(',', $timer->mode);
-				sort($timerMode);
-				$modeDiff = array_values(array_diff($timerMode, $defaultMode));
-				if (count($modeDiff) > 1) {
-					return;
-				}
-				$update = ['mode' => null];
-				if (count($modeDiff) === 1) {
-					if ($modeDiff[0] === 'priv') {
-						$update['origin'] = Source::PRIV . '(' . $db->getMyname() . ')';
-					} elseif ($modeDiff[0] === 'org' || $modeDiff[0] === 'guild') {
-						$update['origin'] = Source::ORG;
-					} elseif ($modeDiff[0] === 'discord') {
-						$update['origin'] = $discord;
-					}
-				}
-				$db->table($table)
-					->where('id', $timer->id)
-					->update($update);
-			});
+			}
+			$db->table($table)
+				->where('id', $timer->id)
+				->update($update);
+		});
 	}
 
 	/** @param list<string> $defaultMode */

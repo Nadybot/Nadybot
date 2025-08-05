@@ -423,6 +423,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$body = $response->getBody()->buffer();
 		try {
+			/** @var list<array<string,mixed>> */
 			$json = json_decode($body, true);
 
 			$sites = Hydrator::hydrateObjects(FeedMessage\SiteUpdate::class, $json)->getIterator();
@@ -484,6 +485,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$body = $response->getBody()->buffer();
 		try {
+			/** @var list<array<string,mixed>> */
 			$json = json_decode($body, true);
 
 			$attacks = Hydrator::hydrateObjects(FeedMessage\TowerAttack::class, $json);
@@ -546,6 +548,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$body = $response->getBody()->buffer();
 		try {
+			/** @var list<array<string,mixed>> */
 			$json = json_decode($body, true);
 
 			$outcomes = Hydrator::hydrateObjects(FeedMessage\TowerOutcome::class, $json);
@@ -1100,9 +1103,17 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$blob = $this->renderHotSites($time, ...$hotSites->toArray());
 		if ($soon > 0) {
+			/**
+			 * @psalm-suppress MixedPropertyFetch
+			 * @psalm-suppress MixedOperand
+			 */
 			$sitesLabel = isset($faction) ? $faction->value . ' sites' : 'Sites';
 			$msg = Text::makeBlob("{$sitesLabel} going hot soon ({$hotSites->count()})", $blob);
 		} else {
+			/**
+			 * @psalm-suppress MixedPropertyFetch
+			 * @psalm-suppress MixedArgument
+			 */
 			$faction = isset($faction) ? ' ' . strtolower($faction->value) : '';
 			$inPenalty = ($penalty > 0) ? ' in penalty' : '';
 			$msg = Text::makeBlob("Hot{$faction} sites{$inPenalty} ({$hotSites->count()})", $blob);

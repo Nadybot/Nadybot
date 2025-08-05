@@ -60,6 +60,8 @@ use Safe\DateTimeImmutable;
 class AuctionController extends ModuleInstance {
 	public const CMD_BID_AUCTION = 'bid auction';
 	public const CMD_BID_REIMBURSE = 'bid reimburse';
+
+	/** @var string */
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
 
 	/** Allow auctions only for people in the raid */

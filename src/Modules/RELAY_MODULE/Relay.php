@@ -342,7 +342,12 @@ class Relay implements MessageReceiver {
 		$this->prependMainHop($event);
 		$data = $this->relayProtocol->send($event);
 		for ($i = count($this->stack); $i--;) {
-			/** @psalm-suppress InvalidArrayOffset */
+			/**
+			 * @psalm-suppress InvalidArrayOffset
+			 * @psalm-suppress MixedMethodCall
+			 *
+			 * @var list<string>
+			 */
 			$data = $this->stack[$i]->send($data);
 		}
 		$this->outboundPackets->inc(count($data));
@@ -361,7 +366,12 @@ class Relay implements MessageReceiver {
 			}
 		}
 		for ($j = $i; $j--;) {
-			/** @psalm-suppress InvalidArrayOffset */
+			/**
+			 * @psalm-suppress InvalidArrayOffset
+			 * @psalm-suppress MixedMethodCall
+			 *
+			 * @var list<string>
+			 */
 			$data = $this->stack[$j]->send($data);
 		}
 		$this->outboundPackets->inc(count($data));

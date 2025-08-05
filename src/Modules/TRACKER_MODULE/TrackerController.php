@@ -59,7 +59,10 @@ use Throwable;
 	),
 ]
 class TrackerController extends ModuleInstance implements MessageEmitter {
+	/** @var 'tracking' */
 	public const REASON_TRACKER = 'tracking';
+
+	/** @var 'tracking_org' */
 	public const REASON_ORG_TRACKER = 'tracking_org';
 
 	/** No grouping, just sorting */

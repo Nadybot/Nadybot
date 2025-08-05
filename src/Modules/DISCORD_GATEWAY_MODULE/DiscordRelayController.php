@@ -146,9 +146,14 @@ class DiscordRelayController extends ModuleInstance {
 		if (class_exists('IntlChar')) {
 			$text = Safe::pregReplaceCallback(
 				"/([\x{0450}-\x{2018}\x{2020}-\x{fffff}])/u",
+				/** @param string[] $matches */
 				static function (array $matches): string {
+					/**
+					 * @var ?string
+					 *
+					 * @phpstan-ignore-next-line
+					 */
 					$char = \IntlChar::charName($matches[1]);
-					// @phpstan-ignore-next-line
 					if (!isset($char)) {
 						return $matches[1];
 					}

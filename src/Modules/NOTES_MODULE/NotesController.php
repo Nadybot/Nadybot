@@ -50,12 +50,19 @@ use Psr\Log\LoggerInterface;
 	),
 ]
 class NotesController extends ModuleInstance {
+	/** @var string */
 	public const FORMAT_GROUPED = 'grouped';
+
+	/** @var string */
 	public const FORMAT_INDIVIDUAL = 'individual';
+
+	/** @var string */
 	public const FORMAT_INDIVIDUAL2 = 'individual2';
 
+	/** @var string */
 	public const DEFAULT_REMINDER_FORMAT = self::FORMAT_INDIVIDUAL;
 
+	/** @var list<string> */
 	public const VALID_FORMATS = [
 		self::FORMAT_GROUPED,
 		self::FORMAT_INDIVIDUAL,

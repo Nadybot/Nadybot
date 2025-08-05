@@ -9,9 +9,7 @@ interface CommandReply {
 	/**
 	 * Send a reply to the channel (tell, guild, priv) where the command was received
 	 *
-	 * @param string|string[] $msg
-	 *
-	 * @psalm-param string|list<string> $msg
+	 * @param string|list<string> $msg
 	 */
 	public function reply(string|array $msg): void;
 }

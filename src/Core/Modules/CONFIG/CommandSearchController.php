@@ -138,8 +138,10 @@ class CommandSearchController extends ModuleInstance {
 			->where('cmdevent', 'cmd')
 			->asObj(CommandSearchResult::class)
 			->each(static function (CommandSearchResult $cmd) use ($permissions): void {
-				$cmd->permissions = $permissions->get($cmd->cmd, new Collection())
-					->keyBy('permission_set')->toArray();
+				/** @var Collection<string,CmdPermission> */
+				$keyed = $permissions->get($cmd->cmd, new Collection())
+					->keyBy('permission_set');
+				$cmd->permissions = $keyed->toArray();
 			});
 	}
 

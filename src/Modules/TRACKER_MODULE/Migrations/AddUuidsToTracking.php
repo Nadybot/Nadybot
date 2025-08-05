@@ -31,7 +31,7 @@ class AddUuidsToTracking implements SchemaMigration {
 
 		/** @return array<string,mixed> */
 		$converter = static function (\stdClass $entry): array {
-			$time = (new DateTimeImmutable())->setTimestamp($entry->dt);
+			$time = (new DateTimeImmutable())->setTimestamp((int)$entry->dt);
 			$uuid = Uuid::uuid7($time);
 			$entry->id = $uuid->toString();
 			return (array)$entry;

@@ -185,7 +185,9 @@ class Registry {
 		$property->setAccessible(true);
 		$logger = new LoggerWrapper($tag);
 		if ($instance instanceof LogWrapInterface) {
+			/** @var \Closure(int,string|\Stringable,array<array-key,mixed>):array{int,string|\Stringable,array<array-key,mixed>} */
 			$closure = $reflection->getMethod('wrapLogs')->getClosure($instance);
+
 			$logger->wrap($closure);
 		}
 		static::injectDependency($property, $instance, $logger);

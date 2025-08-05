@@ -266,6 +266,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		);
 		$context->sendto = $sendto;
 		Registry::injectDependencies($sendto);
+		$userId = null;
 		if (!Safe::pregMatches("/^.?extauth\s+request/si", $event->message)) {
 			$userId = $this->getNameForDiscordId($discordUserId);
 		}

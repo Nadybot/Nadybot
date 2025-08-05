@@ -15,8 +15,8 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util,
 };
-use Safe\{DateTime, DateTimeImmutable};
 use Safe\Exceptions\DatetimeException;
+use Safe\{DateTime, DateTimeImmutable};
 
 /**
  * @author Nadyita (RK5)
@@ -37,8 +37,13 @@ use Safe\Exceptions\DatetimeException;
 	)
 ]
 class ArbiterController extends ModuleInstance {
+	/** @var string */
 	public const DIO = 'dio';
+
+	/** @var string */
 	public const AI = 'ai';
+
+	/** @var string */
 	public const BS = 'bs';
 
 	/** @var int */
@@ -153,6 +158,7 @@ class ArbiterController extends ModuleInstance {
 				$days = 14 * $i;
 				$arbStart->add(new DateInterval("P{$days}D"));
 				$arbEnd->add(new DateInterval("P{$days}D"));
+
 				$arb = new ICCArbiter(
 					type: $validTypes[($pos + $i) % 3],
 					start: $arbStart,

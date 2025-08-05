@@ -68,8 +68,14 @@ class NickController extends ModuleInstance {
 
 	/** Reload the nickname-cache from the database */
 	public function cacheNicknames(): void {
+		/** @psalm-suppress MixedPropertyTypeCoercion */
 		$this->nickNames = $this->db->table(Nickname::getTable())
 			->asObj(Nickname::class)
+			/**
+			 * @param array<string,string> $result
+			 *
+			 * @return array<string,string>
+			 */
 			->reduce(static function (array $result, Nickname $data): array {
 				$result[$data->main] = $data->nick;
 				return $result;

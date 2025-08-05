@@ -247,7 +247,10 @@ class ArulSabaController extends ModuleInstance {
 		$ingredients = new Ingredients();
 
 		for ($i = 0; $i < $reqGems; $i++) {
-			/** @psalm-suppress InvalidArrayOffset */
+			/**
+			 * @psalm-suppress InvalidArrayOffset
+			 * @psalm-suppress MixedOperand
+			 */
 			$name = $gemGrades[$i][0] . " {$prefix} {$arul->name}";
 			$ingredient = $this->readIngredientByName($name);
 			if (!isset($ingredient->item)) {
@@ -400,7 +403,10 @@ class ArulSabaController extends ModuleInstance {
 			}
 			$result = $result->atQL($result->getLowQL());
 
-			/** @psalm-suppress InvalidArrayOffset */
+			/**
+			 * @psalm-suppress InvalidArrayOffset
+			 * @psalm-suppress MixedArgumentTypeCoercion
+			 */
 			$blob .= $this->renderStep($gem, $target, $result, [self::ME => $gemGrades[$i][2], self::EE => $gemGrades[$i][3]]);
 			$target = $result;
 		}

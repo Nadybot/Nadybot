@@ -16,7 +16,7 @@ enum ImplantBuff {
 			return self::Ability;
 		}
 
-		Ability::fromShort($name)->name;
+		$_ = Ability::fromShort($name)->name;
 		return self::Ability;
 	}
 

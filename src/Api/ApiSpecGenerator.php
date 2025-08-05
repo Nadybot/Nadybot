@@ -393,6 +393,8 @@ class ApiSpecGenerator {
 						continue;
 					}
 				}
+
+				/** @var ?\ReflectionParameter $refParam */
 				if (!isset($refParam)) {
 					continue;
 				}

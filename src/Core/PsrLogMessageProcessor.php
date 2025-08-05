@@ -15,6 +15,7 @@ use Nadybot\Core\Types\Loggable;
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
 class PsrLogMessageProcessor implements ProcessorInterface {
+	/** @var string */
 	public const SIMPLE_DATE = "Y-m-d\TH:i:s";
 
 	/**

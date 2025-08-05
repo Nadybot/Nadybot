@@ -31,7 +31,10 @@ class Wish extends DBTable {
 		if (isset($created_on) && !isset($id)) {
 			$dt = (new DateTimeImmutable())->setTimestamp($created_on);
 		}
-		$this->fulfilments = new Collection();
+
+		/** @var Collection<int,WishFulfilment> */
+		$fulfilments = new Collection();
+		$this->fulfilments = $fulfilments;
 		$this->id = $id ?? Uuid::uuid7($dt);
 	}
 

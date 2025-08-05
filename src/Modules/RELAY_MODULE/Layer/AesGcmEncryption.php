@@ -23,6 +23,7 @@ use Psr\Log\LoggerInterface;
  */
 #[NCA\RelayStackMember(name: 'aes-gcm-encryption')]
 class AesGcmEncryption implements RelayLayerInterface {
+	/** @var string */
 	public const CIPHER = 'aes-256-gcm';
 	protected string $password;
 	protected int $ivLength;
@@ -90,9 +91,12 @@ class AesGcmEncryption implements RelayLayerInterface {
 			&& defined('SODIUM_BASE64_VARIANT_ORIGINAL')
 		) {
 			$enc = sodium_crypto_aead_aes256gcm_encrypt($text, '', $iv, $this->password);
+
+			/** @psalm-suppress MixedArgument */
 			$ciphertextRaw = substr($enc, 0, -16);
 			$tag = substr($enc, -16);
-			$encrypted = sodium_bin2base64($iv . $tag . $ciphertextRaw, SODIUM_BASE64_VARIANT_ORIGINAL);
+
+			$encrypted = sodium_bin2base64($iv . $tag . $ciphertextRaw, \SODIUM_BASE64_VARIANT_ORIGINAL);
 		} else {
 			$tag = '';
 			$ciphertextRaw = openssl_encrypt($text, static::CIPHER, $this->password, \OPENSSL_RAW_DATA, $iv, $tag);
@@ -119,7 +123,7 @@ class AesGcmEncryption implements RelayLayerInterface {
 			&& sodium_crypto_aead_aes256gcm_is_available()
 			&& defined('SODIUM_BASE64_VARIANT_ORIGINAL')
 		) {
-			$rawString = sodium_base642bin($text, SODIUM_BASE64_VARIANT_ORIGINAL);
+			$rawString = sodium_base642bin($text, \SODIUM_BASE64_VARIANT_ORIGINAL);
 		} else {
 			$rawString = base64_decode($text);
 		}

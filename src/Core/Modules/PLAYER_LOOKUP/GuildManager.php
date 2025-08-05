@@ -11,7 +11,6 @@ use Amp\TimeoutCancellation;
 
 use DateInterval;
 use DateTimeZone;
-use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -29,6 +28,7 @@ use Nadybot\Core\{
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Safe\DateTimeImmutable;
+use Throwable;
 
 /**
  * @author Tyrence (RK2)
@@ -73,13 +73,13 @@ class GuildManager extends ModuleInstance {
 		$cacheKey = "{$guildID}.{$dimension}";
 		$fromCache = true;
 		if (!$forceUpdate) {
-			$body = $this->cache->get($cacheKey);
+			$body = (string)$this->cache->get($cacheKey);
 		}
 
 		$try = 0;
 		while ((!isset($body) || $body === '') && $try < 3) {
 			try {
-				$url = $baseUrl . "/org/stats/d/{$dimension}/name/{$guildID}/basicstats.xml?data_type=json";
+				$url = "{$baseUrl}/org/stats/d/{$dimension}/name/{$guildID}/basicstats.xml?data_type=json";
 				$start = microtime(true);
 				$try++;
 				$client = $this->builder->build();
@@ -121,9 +121,14 @@ class GuildManager extends ModuleInstance {
 
 		[$orgInfo, $members, $lastUpdated] = json_decode($body, true);
 
+		/**
+		 * @var array<string,mixed>       $orgInfo
+		 * @var list<array<string,mixed>> $members
+		 */
+
 		try {
 			$orgInfo = Hydrator::literalHydrate(DTOGuild::class, $orgInfo);
-		} catch (UnableToHydrateObject) {
+		} catch (Throwable) {
 			return null;
 		}
 		if ($orgInfo->NAME === null) {
@@ -131,7 +136,7 @@ class GuildManager extends ModuleInstance {
 		}
 		try {
 			$members = Hydrator::literalHydrateObjects(DTOGuildMember::class, $members)->toArray();
-		} catch (UnableToHydrateObject) {
+		} catch (Throwable) {
 			return null;
 		}
 
@@ -141,7 +146,7 @@ class GuildManager extends ModuleInstance {
 			governing_form: Government::from($orgInfo->GOVERNINGNAME),
 			orgname: $orgInfo->NAME,
 			orgside: Faction::tryFrom($orgInfo->SIDE_NAME) ?? Faction::Unknown,
-			last_update: DateTimeImmutable::createFromFormat('!Y/m/d H:i:s', $lastUpdated, new DateTimeZone('UTC')),
+			last_update: DateTimeImmutable::createFromFormat('!Y/m/d H:i:s', (string)$lastUpdated, new DateTimeZone('UTC')),
 		);
 		$luDateTime = $guild->last_update;
 		// Try to reduce the cache time to the last updated time + 24h

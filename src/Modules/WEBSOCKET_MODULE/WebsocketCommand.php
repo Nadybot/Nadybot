@@ -7,6 +7,8 @@ class WebsocketCommand {
 	public const SUBSCRIBE = 'subscribe';
 	public const REQUEST = 'request';
 	public const RESPONSE = 'response';
+
+	/** @var string[] */
 	public const ALLOWED_COMMANDS = [
 		self::EVENT,
 		self::SUBSCRIBE,

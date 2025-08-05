@@ -49,16 +49,22 @@ class GauntletInventoryController extends ModuleInstance {
 		[292_517, 292_762, 3],
 	];
 
-	/** @return array<int<0,16>,int> */
+	/** @return non-empty-list<int> */
 	public function getData(string $name): array {
 		$data = $this->preferences->get($name, 'gauntlet');
 		if (isset($data)) {
-			return json_decode($data);
+			$array = json_decode($data, true);
+			if (!is_array($array) || !array_is_list($array) || count($array) !== 17) {
+				return array_fill(0, 17, 0);
+			}
+
+			/** @var non-empty-list<int> $array */
+			return $array;
 		}
 		return array_fill(0, 17, 0);
 	}
 
-	/** @param array<int<0,16>,int> $inv */
+	/** @param non-empty-list<int> $inv */
 	public function saveData(string $sender, array $inv): void {
 		$this->preferences->save($sender, 'gauntlet', json_encode($inv));
 	}

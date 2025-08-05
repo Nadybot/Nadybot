@@ -39,7 +39,10 @@ use Nadybot\Modules\TIMERS_MODULE\{
 	),
 ]
 class CityWaveController extends ModuleInstance implements MessageEmitter {
+	/** @var string */
 	public const TIMER_NAME = 'City Raid';
+
+	/** @var string */
 	public const WAVE = 'wave';
 
 	/** Times to display timer alerts */
@@ -170,7 +173,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		if (!isset($wave)) {
 			return;
 		}
-		if ($wave !== 9) {
+		if (is_int($wave) && $wave !== 9) {
 			$event = new CityRaidWaveEvent(wave: $wave);
 		} else {
 			$event = new CityRaidEndEvent();

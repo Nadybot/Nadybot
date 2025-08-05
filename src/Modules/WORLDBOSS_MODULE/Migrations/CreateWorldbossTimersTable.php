@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{DB, Types\SchemaMigration};
 use Nadybot\Core\DBSchema\{CmdCfg, EventCfg};
@@ -29,18 +30,18 @@ class CreateWorldbossTimersTable implements SchemaMigration {
 	}
 
 	protected function migrateBigbossData(LoggerInterface $logger, DB $db): void {
-		$db->table('bigboss_timers')
-			->get()
-			->each(static function (stdClass $timer) use ($db): void {
-				$db->insert(new WorldBossTimer(
-					mob_name: (string)$timer->mob_name,
-					timer: (int)$timer->timer,
-					spawn: (int)$timer->spawn,
-					killable: (int)$timer->killable,
-					time_submitted: (int)$timer->time_submitted,
-					submitter_name: (string)$timer->submitter_name,
-				));
-			});
+		/** @var Collection<int,\stdClass> */
+		$data = $db->table('bigboss_timers')->get();
+		$data->each(static function (stdClass $timer) use ($db): void {
+			$db->insert(new WorldBossTimer(
+				mob_name: (string)$timer->mob_name,
+				timer: (int)$timer->timer,
+				spawn: (int)$timer->spawn,
+				killable: (int)$timer->killable,
+				time_submitted: (int)$timer->time_submitted,
+				submitter_name: (string)$timer->submitter_name,
+			));
+		});
 		$db->table(CmdCfg::getTable())
 			->where('module', 'BIGBOSS_MODULE')
 			->update(['status' => 0]);

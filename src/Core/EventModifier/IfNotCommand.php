@@ -32,7 +32,7 @@ class IfNotCommand implements EventModifier {
 			return null;
 		}
 		$message = $event->getData();
-		if (!isset($message)) {
+		if (!isset($message) || !is_string($message)) {
 			return null;
 		}
 		if ($message[0] === $this->settingManager->get('symbol') && strlen($message) > 1) {

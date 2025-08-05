@@ -7,16 +7,17 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Exceptions\UserException,
 	ModuleInstance,
 	Safe,
 	Text,
 	Types\AccessLevel,
 	Types\Skill,
 };
+use Nadybot\Core\Exceptions\UserException;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 use Safe\DateTimeImmutable;
+use Throwable;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -47,23 +48,21 @@ class WhatLocksController extends ModuleInstance {
 	#[NCA\HandlesCommand('whatlocks')]
 	public function whatLocksCommand(CmdContext $context): void {
 		$query = $this->db->table(WhatLocks::getTable())->groupBy('skill_id');
-		$skills = $query->select(['skill_id', $query->raw($query->rawFunc('COUNT', '*', 'amount'))])
-			->get();
-		$lines = $skills->map(static function (\stdClass $item): SkillCount {
-			$skill = Skill::tryFrom($item->skill_id);
-			if (!isset($skill)) {
-				throw new UserException('Unknown skill encountered');
-			}
-			return new SkillCount(
-				skill: $skill,
-				amount: $item->amount,
-			);
-		})->sortBy(static fn (SkillCount $s): string => $s->skill->fullName())
-		->map(static function (SkillCount $row): string {
-			return Text::alignNumber($row->amount, 4).
-				' - '.
-				Text::makeChatcmd($row->skill->fullName(), "/tell <myname> whatlocks {$row->skill->fullName()}");
-		});
+
+		try {
+			$lines = $query->select(
+				['skill_id AS skill', $query->raw($query->rawFunc('COUNT', '*', 'amount'))]
+			)->whereNotNull('skill_id')
+			->asObj(SkillCount::class)
+			->sortBy(static fn (SkillCount $s): string => $s->skill->fullName())
+			->map(static function (SkillCount $row): string {
+				return Text::alignNumber($row->amount, 4).
+					' - '.
+					Text::makeChatcmd($row->skill->fullName(), "/tell <myname> whatlocks {$row->skill->fullName()}");
+			});
+		} catch (Throwable $e) {
+			throw new UserException(message: 'Unknown skill found', previous: $e);
+		}
 		$blob = "<header2>Choose a skill to see which items lock it<end>\n<tab>".
 			$lines->join("\n<pagebreak><tab>");
 		$pages = Text::makeBlob(
@@ -119,6 +118,7 @@ class WhatLocksController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
+
 		$itemIds = $items->whereNotNull('item_id')->pluckInts('item_id')->toList();
 		$itemsById = $this->itemsController->getByIDs(...$itemIds)
 			->keyBy('lowid');

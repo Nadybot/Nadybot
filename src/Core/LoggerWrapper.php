@@ -34,14 +34,14 @@ class LoggerWrapper implements LoggerInterface {
 	/**
 	 * A closure that can modify the log level, the message and the context on the fly
 	 *
-	 * @var null|Closure(int,string|Stringable,array<string,mixed>):array{int,string|Stringable,array<string,mixed>}
+	 * @var null|Closure(int,string|Stringable,array<array-key,mixed>):array{int,string|Stringable,array<array-key,mixed>}
 	 */
 	protected ?Closure $wrapper = null;
 
 	/**
 	 * @var array<array>
 	 *
-	 * @phpstan-var array<array{100|200|250|300|400|500|550|600,Stringable|string,array<string,mixed>}>
+	 * @phpstan-var array<array{100|200|250|300|400|500|550|600,Stringable|string,array<array-key,mixed>}>
 	 */
 	protected static array $routingQueue = [];
 
@@ -253,7 +253,7 @@ class LoggerWrapper implements LoggerInterface {
 	 * Add a wrapper closure that can modify log level, log message, and context for every
 	 * logging done via this instance.
 	 *
-	 * @param Closure(int,string|Stringable,array<string,mixed>):array{int,string|Stringable,array<string,mixed>} $caller The closure to call
+	 * @param Closure(int,string|Stringable,array<array-key,mixed>):array{int,string|Stringable,array<array-key,mixed>} $caller
 	 */
 	public function wrap(Closure $caller): void {
 		$this->wrapper = $caller;
@@ -262,10 +262,10 @@ class LoggerWrapper implements LoggerInterface {
 	/**
 	 * Do the actual logging, and also route errors to the message hub, if configured
 	 *
-	 * @param int                 $logLevel The numeric log level
-	 * @param string|Stringable   $message  The message to log
-	 * @param array<string,mixed> $context  Additional context to log as an
-	 *                                      associative array
+	 * @param int                    $logLevel The numeric log level
+	 * @param string|Stringable      $message  The message to log
+	 * @param array<array-key,mixed> $context  Additional context to log as an
+	 *                                         associative array
 	 *
 	 * @phpstan-param 100|200|250|300|400|500|550|600 $logLevel
 	 */

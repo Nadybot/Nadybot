@@ -81,6 +81,8 @@ class EnumBitfield extends Bitfield implements Stringable {
 					__CLASS__ . '::' . __FUNCTION__ . "(): Argument #{$i} must be a {$this->class}"
 				);
 			}
+
+			/** @psalm-suppress MixedPropertyFetch */
 			$value = is_int($flags[$i]) ? $flags[$i] : (int)$flags[$i]->value;
 			if (($this->value & $value) !== $value) {
 				$this->value |= $value;

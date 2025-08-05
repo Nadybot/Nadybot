@@ -73,21 +73,46 @@ use Psr\Log\LoggerInterface;
 class OnlineController extends ModuleInstance {
 	public const CMD_MANAGE_HIDDEN = 'online manage hidden users';
 
+	/** @var int */
 	protected const GROUP_OFF = 0;
+
+	/** @var int */
 	protected const GROUP_BY_PLAYER = 1;
+
+	/** @var int */
 	protected const GROUP_BY_ORG = 1;
+
+	/** @var int */
 	protected const GROUP_BY_PROFESSION = 2;
+
+	/** @var int */
 	protected const GROUP_BY_FACTION = 3;
+
+	/** @var int */
 	protected const GROUP_BY_MAIN = 4;
+
+	/** @var int */
 	protected const GROUP_BY_ORG_THEN_MAIN = 5;
 
+	/** @var int */
 	protected const RELAY_OFF = 0;
+
+	/** @var int */
 	protected const RELAY_YES = 1;
+
+	/** @var int */
 	protected const RELAY_SEPARATE = 2;
 
+	/** @var int */
 	protected const RAID_OFF = 0;
+
+	/** @var int */
 	protected const RAID_IN = 1;
+
+	/** @var int */
 	protected const RAID_NOT_IN = 2;
+
+	/** @var int */
 	protected const RAID_COMPACT = 4;
 
 	/** How long to wait before clearing online list */

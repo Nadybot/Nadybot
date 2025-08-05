@@ -291,17 +291,18 @@ class DiscordGatewayController extends ModuleInstance {
 			});
 			return;
 		}
-		$packet = new Payload(
-			op: Opcode::PRESENCE_UPDATE,
-			d: new UpdateStatus(),
-		);
 		$activity = new Activity();
 		$activity->name = $newValue;
+		$status = new UpdateStatus();
 		if (strlen($newValue)) {
-			$packet->d->activities = [$activity];
+			$status->activities = [$activity];
 		} else {
-			$packet->d->activities = [];
+			$status->activities = [];
 		}
+		$packet = new Payload(
+			op: Opcode::PRESENCE_UPDATE,
+			d: $status,
+		);
 		EventLoop::queue($this->client->sendText(...), json_encode($packet));
 	}
 
@@ -341,7 +342,14 @@ class DiscordGatewayController extends ModuleInstance {
 			if ($message === '') {
 				throw new JsonException('null message received.');
 			}
-			$payload = Hydrator::hydrate(Payload::class, json_decode($message, true));
+
+			$data = json_decode($message, true);
+			if (!is_array($data)) {
+				throw new JsonException('Wrong format');
+			}
+
+			/** @var array<string,mixed> $data */
+			$payload = Hydrator::hydrate(Payload::class, $data);
 		} catch (JsonException | UnableToHydrateObject $e) {
 			$this->logger->error('Invalid JSON data received from Discord: {error}', [
 				'error' => $e->getMessage(),
@@ -387,8 +395,11 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesEvent(mask: 'discord(10)', defaultStatus: Status::Enabled)]
 	public function processGatewayHello(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
+		if (!isset($payload->d) || !is_array($payload->d) || array_is_list($payload->d)) {
+			return;
+		}
 
-		$this->heartbeatInterval = intdiv($payload->d['heartbeat_interval']??30_000, 1_000);
+		$this->heartbeatInterval = intdiv((int)($payload->d['heartbeat_interval']??30_000), 1_000);
 		EventLoop::repeat($this->heartbeatInterval, $this->sendWebsocketHeartbeat(...));
 		$this->logger->info('Setting Discord heartbeat interval to {interval} seconds', [
 			'interval' => $this->heartbeatInterval,
@@ -447,7 +458,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
 		}
-		$chunk = Hydrator::hydrate(GuildMemberChunk::class, $event->payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $event->payload->d;
+		$chunk = Hydrator::hydrate(GuildMemberChunk::class, $data);
 		$this->logger->debug('Processing incoming discord members chunk {chunk}', [
 			'chunk' => $chunk,
 		]);
@@ -478,7 +492,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
 		}
-		$message = Hydrator::hydrate(DiscordMessageIn::class, $event->payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $event->payload->d;
+		$message = Hydrator::hydrate(DiscordMessageIn::class, $data);
 
 		$this->logger->info('Processing incoming discord message {message}', [
 			'message' => $message,
@@ -631,7 +648,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
 		}
-		$guild = Hydrator::hydrate(Guild::class, $event->payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $event->payload->d;
+		$guild = Hydrator::hydrate(Guild::class, $data);
 
 		$this->logger->info('Received {event} for {guild}', [
 			'event' => $event->payload->t,
@@ -712,7 +732,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($event->payload->d) || !is_array($event->payload->d)) {
 			return;
 		}
-		$channel = Hydrator::hydrate(DiscordChannel::class, $event->payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $event->payload->d;
+		$channel = Hydrator::hydrate(DiscordChannel::class, $data);
 
 		$this->logger->info('Received {event} for {channel}', [
 			'event' => $event->payload->t,
@@ -758,6 +781,7 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 		if ($event->payload->t === 'CHANNEL_UPDATE') {
+			$oldChannel = null;
 			for ($i = 0; $i < count($channels); $i++) {
 				if ($channels[$i]->id === $channel->id) {
 					$oldChannel = $channels[$i];
@@ -765,7 +789,7 @@ class DiscordGatewayController extends ModuleInstance {
 					break;
 				}
 			}
-			if (!isset($oldChannel)) {
+			if (!isset($oldChannel) || !isset($oldChannel->name)) {
 				return;
 			}
 			$fullName = Source::DISCORD_PRIV . "({$oldChannel->name})";
@@ -786,10 +810,13 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\HandlesEvent(mask: 'discord(ready)', defaultStatus: Status::Enabled)]
 	public function processDiscordReady(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
-		if (!isset($payload->d) || !is_array($payload->d) || !isset($payload->d['user'])) {
+		if (!isset($payload->d) || !is_array($payload->d) || !isset($payload->d['user']) || !is_array($payload->d['user'])) {
 			return;
 		}
-		$user = Hydrator::hydrate(DiscordUser::class, $payload->d['user']);
+
+		/** @var array<string,mixed> */
+		$userData = $payload->d['user'];
+		$user = Hydrator::hydrate(DiscordUser::class, $userData);
 
 		$this->sessionId = $payload->d['session_id'] ?? null;
 		$this->me = $user;
@@ -821,7 +848,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$voiceState = Hydrator::hydrate(VoiceState::class, $payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $payload->d;
+		$voiceState = Hydrator::hydrate(VoiceState::class, $data);
 		$this->logger->info('Received {event}: {voice_state}', [
 			'event' => 'voice_state_update',
 			'voice_state' => $voiceState,
@@ -917,9 +947,14 @@ class DiscordGatewayController extends ModuleInstance {
 	/** Connect invited members to their AO account */
 	#[NCA\HandlesEvent(mask: 'discord(guild_member_add)', defaultStatus: Status::Enabled)]
 	public function connectNewUsersWithAO(DiscordGatewayEvent $event): void {
-		$userId = $event->payload->d->user->id ?? null;
-		$guildId = $event->payload->d->guild_id ?? null;
-		if (!isset($userId) || !isset($guildId) || isset($this->noManageInviteRights[$guildId])) {
+		/** @var object{user:\stdClass}&\stdClass */
+		$data = $event->payload->d;
+		$userId = $data->user->id ?? null;
+		$guildId = $data->guild_id ?? null;
+
+		if (!isset($userId) || !isset($guildId)
+			|| !is_string($userId) || !is_string($guildId)
+			|| isset($this->noManageInviteRights[$guildId])) {
 			return;
 		}
 		try {
@@ -1222,7 +1257,9 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 		$informDelete = function (DiscordGatewayEvent $event) use ($context, $guild, &$informDelete): void {
-			$guildId = $event->payload->d->id ?? null;
+			/** @var \stdClass */
+			$data = $event->payload->d;
+			$guildId = $data->id ?? null;
 			if ($guildId !== $guild->id) {
 				return;
 			}
@@ -1361,7 +1398,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $payload->d;
+		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -1381,7 +1421,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $payload->d;
+		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -1404,7 +1447,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $payload->d;
+		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -1421,7 +1467,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($payload->d) || !is_array($payload->d)) {
 			return;
 		}
-		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $payload->d);
+
+		/** @var array<string,mixed> */
+		$data = $payload->d;
+		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -2093,14 +2142,19 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($this->client)) {
 			return;
 		}
-		$serialized = self::stripNull(Hydrator::serialize($login));
-		$this->client->sendText(json_encode($serialized));
+
+		/** @var array<string,mixed> */
+		$serialized = Hydrator::serialize($login);
+		$stripped = self::stripNull($serialized);
+		$this->client->sendText(json_encode($stripped));
 	}
 
 	/**
-	 * @param array<string,mixed> $data
+	 * @param array<T,mixed> $data
 	 *
-	 * @return array<string,mixed>
+	 * @return array<T,mixed>
+	 *
+	 * @template T
 	 */
 	private static function stripNull(array $data): array {
 		foreach ($data as $key => $value) {

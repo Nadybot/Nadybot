@@ -368,6 +368,7 @@ class ConfigController extends ModuleInstance {
 		$commands = $this->commandManager->getAllForModule($module, true)
 			->where('cmd', '!=', 'config');
 		$events = new Collection();
+		$eventQuery = null;
 		if ($permissionSet === 'all') {
 			$eventQuery = $this->db->table(EventCfg::getTable())
 				->where('module', $module);
@@ -1028,8 +1029,10 @@ class ConfigController extends ModuleInstance {
 			->asObj(CmdPermission::class)
 			->groupBy('cmd');
 		$commands->each(static function (CmdCfg $row) use ($permissions): void {
-			$row->permissions = $permissions->get($row->cmd, new Collection())
-				->keyBy('permission_set')->toArray();
+			/** @var Collection<string,CmdPermission> */
+			$tmp = $permissions->get($row->cmd, new Collection())
+				->keyBy('permission_set');
+			$row->permissions = $tmp->toArray();
 		});
 
 		$showRaidAL = $this->showRaidAL();

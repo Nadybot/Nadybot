@@ -83,6 +83,7 @@ class Chunker implements RelayLayerInterface {
 	public function receive(RelayMessage $msg): RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
+				/** @var array<string,mixed> */
 				$json = json_decode($data, true);
 
 				$chunk = Hydrator::hydrate(Chunk::class, $json);

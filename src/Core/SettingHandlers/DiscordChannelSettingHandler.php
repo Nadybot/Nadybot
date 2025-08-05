@@ -72,8 +72,11 @@ class DiscordChannelSettingHandler extends SettingHandler {
 		} catch (JsonException $e) {
 			throw new Exception("Cannot use <highlight>{$newValue}<end> as value.", 0, $e);
 		}
-		if (isset($reply->message)) {
-			throw new Exception("<highlight>{$newValue}<end>: {$reply->message}.");
+		if (is_object($reply)) {
+			/** @var object{message?:string}&\stdClass $reply */
+			if (isset($reply->message)) {
+				throw new Exception("<highlight>{$newValue}<end>: {$reply->message}.");
+			}
 		}
 		throw new Exception("<highlight>{$newValue}<end>: Unknown error getting channel info.");
 	}

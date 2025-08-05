@@ -3,8 +3,8 @@
 namespace Nadybot\Core\Config;
 
 use function Safe\{json_decode, json_encode};
-use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, UnableToHydrateObject};
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
+use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, UnableToHydrateObject};
 use Nadybot\Core\Attributes\{Instance, JSON\Ignore};
 use Nadybot\Core\{BotRunner, Filesystem, Hydrator, Safe};
 use Nadylib\IMEX;
@@ -77,16 +77,32 @@ class BotConfig {
 			$php = $fs->read($filePath);
 			$vars = IMEX\PHP::import($php);
 		}
-		$vars = self::convertOldSettings($vars);
-		$vars['file_path'] = $filePath;
-		for ($i = 0; $i < count($vars['worker']??[]); $i++) {
-			$vars['worker'][$i]['dimension'] ??= $vars['main']['dimension'] ?? null;
-			$vars['worker'][$i]['login']     ??= $vars['main']['login'] ?? null;
-			$vars['worker'][$i]['password']  ??= $vars['main']['password'] ?? null;
+		if (!is_array($vars)) {
+			// @phpstan-ignore-next-line
+			fwrite(
+				\STDERR,
+				"Your configuration file {$filePath} is not in the right format\n"
+			);
+			exit(1);
+		}
+
+		/** @var array<string,mixed> $vars */
+		$settings = self::convertOldSettings($vars);
+		$settings['file_path'] = $filePath;
+
+		if (isset($settings['worker']) && is_array($settings['worker'])) {
+			for ($i = 0; $i < count($settings['worker']); $i++) {
+				if (!is_array($settings['worker'][$i])) {
+					continue;
+				}
+				$settings['worker'][$i]['dimension'] ??= $settings['main']['dimension'] ?? null;
+				$settings['worker'][$i]['login']     ??= $settings['main']['login'] ?? null;
+				$settings['worker'][$i]['password']  ??= $settings['main']['password'] ?? null;
+			}
 		}
 
 		try {
-			$config = Hydrator::hydrate(self::class, $vars);
+			$config = Hydrator::hydrate(self::class, $settings);
 			$config->autoUnfreeze ??= new AutoUnfreeze();
 		} catch (UnableToHydrateObject $e) {
 			if (!BotRunner::getArguments()->testRun) {
@@ -101,7 +117,7 @@ class BotConfig {
 				\STDERR,
 				"Your configuration file {$filePath} is invalid:\n\n".
 				implode("\n", $errorMessages) . "\n\n".
-				json_encode($vars, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE).
+				json_encode($settings, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE).
 				"\n\n"
 			);
 			exit(1);
@@ -116,6 +132,7 @@ class BotConfig {
 
 	/** Saves the config file, creating the file if it doesn't exist yet. */
 	public function save(Filesystem $fs): void {
+		/** @var array<string,mixed> */
 		$vars = Hydrator::serialize($this);
 		unset($vars['file_path']);
 		unset($vars['org_id']);

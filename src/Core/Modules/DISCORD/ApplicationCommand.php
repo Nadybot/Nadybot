@@ -64,7 +64,10 @@ class ApplicationCommand implements Stringable {
 	}
 
 	public function isSameAs(self $cmd): bool {
+		/** @var array<string,mixed> */
 		$myValues = Hydrator::serialize($this);
+
+		/** @var array<string,mixed> */
 		$theirValues = Hydrator::serialize($cmd);
 		foreach ($myValues as $key => $myValue) {
 			if (in_array($key, ['id', 'application_id', 'version'], true)) {

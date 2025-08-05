@@ -68,6 +68,8 @@ class GmiController extends ModuleInstance {
 				);
 			}
 			$body = $response->getBody()->buffer(new TimeoutCancellation(10));
+
+			/** @var array<string,mixed> */
 			$json = json_decode($body, true);
 
 			$gmiResult = Hydrator::hydrate(GmiResult::class, $json);
@@ -186,8 +188,8 @@ class GmiController extends ModuleInstance {
 			$gmi->sellOrders = array_slice($gmi->sellOrders, 0, 10);
 		}
 		$orders = collect([...$gmi->buyOrders, ...$gmi->sellOrders]);
-		$highestAmount = $orders->max(static fn (GmiBuyOrder|GmiSellOrder $item): int => $item->count);
-		$highestPrice = $orders->max('price');
+		$highestAmount = (int)$orders->max(static fn (GmiBuyOrder|GmiSellOrder $item): int => $item->count);
+		$highestPrice = (int)$orders->max('price');
 		$buyers = "<header2>Buy orders{$buyCutString}<end>";
 		if (count($gmi->buyOrders)) {
 			foreach ($gmi->buyOrders as $buyOrder) {

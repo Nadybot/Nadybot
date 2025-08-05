@@ -403,6 +403,7 @@ class Util {
 			} elseif (!is_array($a[$key]) || array_is_list($a[$key])) {
 				$a[$key] = $value;
 			} else {
+				/** @psalm-suppress MixedArgumentTypeCoercion */
 				$a[$key] = self::mergeArraysRecursive($a[$key], $value);
 			}
 		}

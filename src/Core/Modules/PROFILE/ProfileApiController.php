@@ -111,7 +111,7 @@ class ProfileApiController extends ModuleInstance {
 		Http\ApiResult(code: 404, desc: 'Profile not found')
 	]
 	public function loadProfileEndpoint(Request $request, string $profile): Response {
-		$user = $request->getAttribute(WebserverController::USER) ?? '_';
+		$user = (string)($request->getAttribute(WebserverController::USER) ?? '_');
 		$body = $request->getAttribute(WebserverController::BODY);
 		if (!is_array($body) || !isset($body['op'])) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);

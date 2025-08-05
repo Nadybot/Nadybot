@@ -102,6 +102,8 @@ final class Filesystem {
 			'call' => sprintf('%6d', $callNum),
 			'path' => $path,
 		]);
+
+		/** @var null|array{0:int,1:int,2:int,3:int,4:int,5:int,6:int,7:int,8:int,9:int,10:int,11:int,12:int,"dev":int,"ino":int,"mode":int,"nlink":int,"uid":int,"gid":int,"rdev":int,"size":int,"atime":int,"mtime":int,"ctime":int,"blksize":int,"blocks":int} */
 		$result = $this->fs->getStatus($path);
 		$this->logger?->debug('[{call}] <- getStatus({path})', [
 			'call' => sprintf('%6d', $callNum),
@@ -125,6 +127,8 @@ final class Filesystem {
 			'call' => sprintf('%6d', $callNum),
 			'path' => $path,
 		]);
+
+		/** @var null|array{0:int,1:int,2:int,3:int,4:int,5:int,6:int,7:int,8:int,9:int,10:int,11:int,12:int,"dev":int,"ino":int,"mode":int,"nlink":int,"uid":int,"gid":int,"rdev":int,"size":int,"atime":int,"mtime":int,"ctime":int,"blksize":int,"blocks":int} */
 		$result = $this->fs->getLinkStatus($path);
 		$this->logger?->debug('[{call}] <- getLinkStatus({path})', [
 			'call' => sprintf('%6d', $callNum),

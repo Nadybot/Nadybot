@@ -766,7 +766,7 @@ class ImplantDesignerController extends ModuleInstance {
 		foreach (ImplantSlot::cases() as $slot) {
 			$blob .= Text::makeChatcmd($slot->longName(), "/tell <myname> implantdesigner {$slot->designSlotName()}");
 			$slotConfig = $design->getSlot($slot);
-			if (isset($slotConfig)) {
+			if (null !== $slotConfig) {
 				$blob .= $this->getImplantSummary($slotConfig);
 			} else {
 				$blob .= " -Empty-\n";

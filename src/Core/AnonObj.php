@@ -57,17 +57,23 @@ class AnonObj implements Stringable {
 	 * the value for the key `two` in it.
 	 */
 	public function setProperty(string $property, mixed $value): void {
+		/** @var non-empty-list<string> */
 		$keys = explode('.', $property);
+
+		/** @var string */
 		$property = array_pop($keys);
 
 		/** @psalm-suppress UnsupportedPropertyReferenceUsage */
 		$props = &$this->properties;
 		foreach ($keys as $key) {
 			if (!isset($props[$key])) {
+				/** @psalm-suppress MixedArrayAssignment */
 				$props[$key] = [];
 			}
 			$props = &$props[$key];
 		}
+
+		/** @psalm-suppress MixedArrayAssignment */
 		$props[$property] = $value;
 	}
 }

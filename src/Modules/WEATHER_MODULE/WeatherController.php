@@ -38,7 +38,9 @@ class WeatherController extends ModuleInstance {
 	private LocalCache $cache;
 
 	public function __construct() {
-		$this->cache = new LocalCache(60_000, 100);
+		/** @var LocalCache<string> */
+		$cache = new LocalCache(60_000, 100);
+		$this->cache = $cache;
 	}
 
 	/**
@@ -229,6 +231,7 @@ class WeatherController extends ModuleInstance {
 		$windStrength = $this->getWindStrength($currentWeather->wind_speed);
 		$osmLicence = Safe::pregReplaceCallback(
 			'/(http[^ ]+)/',
+			/** @param string[] $matched */
 			static function (array $matched): string {
 				return Text::makeChatcmd($matched[1], '/start '.$matched[1]);
 			},
@@ -322,6 +325,8 @@ class WeatherController extends ModuleInstance {
 		if (!count($data)) {
 			throw new UserException('Location not found');
 		}
+
+		/** @var array{0:array<string,mixed>} $data */
 		$nominatim = Hydrator::hydrate(Nominatim::class, $data[0]);
 		return $nominatim;
 	}
@@ -343,6 +348,8 @@ class WeatherController extends ModuleInstance {
 				'<highlight>' . json_encode($data) . '<end>.'
 			);
 		}
+
+		/** @var array<string,mixed> $data */
 		$weather = Hydrator::literalHydrate(Weather::class, $data);
 		return $weather;
 	}

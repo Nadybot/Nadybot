@@ -106,6 +106,8 @@ class RaidMemberController extends ModuleInstance {
 			->where('raid_id', $raid->raid_id)
 			->whereNull('left')
 			->update(['left' => time()]);
+
+		/** @psalm-suppress MixedPropertyTypeCoercion */
 		$raid->raiders = $this->db->table(RaidMember::getTable())
 			->where('raid_id', $raid->raid_id)
 			->asObj(RaidMember::class)
@@ -314,6 +316,7 @@ class RaidMemberController extends ModuleInstance {
 		#[Str('add')] string $action,
 		PCharacter ...$char
 	): void {
+		/** @var list<string> */
 		$messages = [];
 		foreach ($char as $character) {
 			$reply = $this->joinRaid($context->char->name, $character(), $context->source, true);

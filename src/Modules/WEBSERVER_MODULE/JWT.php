@@ -75,6 +75,9 @@ class JWT {
 		if (!isset($header->alg)) {
 			throw new UnexpectedValueException('Empty algorithm');
 		}
+		if (!is_string($header->alg)) {
+			throw new UnexpectedValueException('Wrong algorithm format');
+		}
 		if (!isset(static::$supported_algs[$header->alg])) {
 			throw new UnexpectedValueException('Algorithm not supported');
 		}
@@ -93,9 +96,9 @@ class JWT {
 
 		// Check the nbf if it is defined. This is the time that the
 		// token can actually be used. If it's not yet that time, abort.
-		if (isset($payload->nbf) && $payload->nbf > ($timestamp + static::$leeway)) {
+		if (isset($payload->nbf) && (int)$payload->nbf > ($timestamp + static::$leeway)) {
 			try {
-				$date = date(DateTime::ATOM, $payload->nbf);
+				$date = date(DateTime::ATOM, (int)$payload->nbf);
 			} catch (DatetimeException) {
 				$date = '<unknown>';
 			}
@@ -105,7 +108,7 @@ class JWT {
 		// Check that this token has been created before 'now'. This prevents
 		// using tokens that have been created for later use (and haven't
 		// correctly used the nbf claim).
-		if (isset($payload->iat) && $payload->iat > ($timestamp + static::$leeway)) {
+		if (isset($payload->iat) && is_int($payload->iat) && $payload->iat > ($timestamp + static::$leeway)) {
 			try {
 				$date = date(DateTime::ATOM, $payload->iat);
 			} catch (DatetimeException) {
@@ -147,8 +150,10 @@ class JWT {
 			self::handleJsonError($errno);
 		} elseif ($obj === null && $input !== 'null') {
 			throw new DomainException('Null result with non-null input');
+		} elseif ($obj instanceof stdClass) {
+			return $obj;
 		}
-		return $obj;
+		throw new DomainException('Invalid JSON data received');
 	}
 
 	/**

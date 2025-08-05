@@ -3,9 +3,11 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use function Amp\delay;
-use function Safe\{array_flip, json_decode};
+use function Safe\array_flip;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use DateTimeZone;
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
+use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -17,6 +19,7 @@ use Nadybot\Core\{
 	Events\Event,
 	Events\TimerEvent,
 	Exceptions\UserException,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	ParamClass\PDuration,
@@ -114,27 +117,61 @@ class WorldBossController extends ModuleInstance {
 	public const CMD_LOREN_UPDATE = 'loren set/delete';
 	public const CMD_REAPER_UPDATE = 'reaper set/delete';
 
+	/** @var string */
 	public const WORLDBOSS_API = 'https://timers.aobots.org/api/v1.1/bosses';
 
+	/** @var "interval" */
 	public const INTERVAL = 'interval';
+
+	/** @var "immortal" */
 	public const IMMORTAL = 'immortal';
+
+	/** @var "coordinates" */
 	public const COORDS = 'coordinates';
+
+	/** @var "usual_interval" */
 	public const INTERVAL2 = 'usual_interval';
+
+	/** @var "spawn_chance" */
 	public const CHANCE = 'spawn_chance';
+
+	/** @var "aou_link" */
 	public const AOU = 'aou_link';
 
+	/** @var string */
 	public const TARA = 'Tarasque';
+
+	/** @var string */
 	public const REAPER = 'The Hollow Reaper';
+
+	/** @var string */
 	public const LOREN = 'Loren Warr';
+
+	/** @var string */
 	public const VIZARESH = 'Vizaresh';
+
+	/** @var string */
 	public const FATHER_TIME = 'Father Time';
+
+	/** @var string */
 	public const DESERT_RIDER = 'The Desert Rider';
+
+	/** @var string */
 	public const ZAAL = 'Zaal The Immortal';
+
+	/** @var string */
 	public const CERUBIN = 'Cerubin The Reborn';
+
+	/** @var string */
 	public const TAM = 'T.A.M.';
+
+	/** @var string */
 	public const ATMA = 'Atma';
+
+	/** @var string */
 	public const ABMOUTH = 'Abmouth Indomitus';
 
+	/** @psalm-var array<string,string> */
 	public const BOSS_MAP = [
 		self::TARA => 'tara',
 		self::REAPER => 'reaper',
@@ -149,6 +186,7 @@ class WorldBossController extends ModuleInstance {
 		self::ABMOUTH => 'abmouth',
 	];
 
+	/** @var array<string,array{interval?:int,usual_interval?:int,immortal:int,coordinates?:list{int,int,int},aou_link?:int,spawn_chance?:int}> */
 	public const BOSS_DATA = [
 		self::TARA => [
 			self::INTERVAL => 9*3_600,
@@ -600,7 +638,7 @@ class WorldBossController extends ModuleInstance {
 	}
 
 	public function worldBossUpdate(Character $sender, string $mobName, int $vulnerable): bool {
-		/** @phpstan-var null|array{"interval":int, "immortal":int} */
+		/** @psalm-var null|array{"interval":int, "immortal":int} */
 		$mobData = static::BOSS_DATA[$mobName] ?? null;
 		if (!isset($mobData)) {
 			return false;
@@ -611,7 +649,7 @@ class WorldBossController extends ModuleInstance {
 		$vulnerable += time();
 		$data = new WorldBossTimer(
 			mob_name: $mobName,
-			timer: $mobData[static::INTERVAL] ?? null,
+			timer: $mobData[static::INTERVAL],
 			spawn: $vulnerable - $mobData[static::IMMORTAL],
 			killable: $vulnerable,
 			time_submitted: time(),
@@ -746,6 +784,8 @@ class WorldBossController extends ModuleInstance {
 		if ($event->isLocal()) {
 			return;
 		}
+
+		/** @var array<string,string> */
 		$map = array_flip(static::BOSS_MAP);
 		$map['gauntlet'] = $map['vizaresh'];
 		$mobName = $map[$event->boss] ?? null;
@@ -770,6 +810,8 @@ class WorldBossController extends ModuleInstance {
 		if ($event->isLocal()) {
 			return;
 		}
+
+		/** @var array<string,string> */
 		$map = array_flip(static::BOSS_MAP);
 		$map['gauntlet'] = $map['vizaresh'];
 		$mobName = $map[$event->boss] ?? null;
@@ -902,10 +944,12 @@ class WorldBossController extends ModuleInstance {
 		if ($timer->dimension !== $this->config->main->dimension) {
 			return false;
 		}
+
+		/** @var array<string,string> */
 		$map = array_flip(static::BOSS_MAP);
 		$map['gauntlet'] = $map['vizaresh'];
 		$mobName = $map[$timer->name] ?? null;
-		if (!isset($mobName) || !is_string($mobName)) {
+		if (!isset($mobName)) {
 			$this->logger->warning('Received timer information for unknown boss {boss}.', [
 				'boss' => $timer->name,
 			]);
@@ -931,10 +975,13 @@ class WorldBossController extends ModuleInstance {
 
 	/** Convert timer information from the API into an actual timer with correct information */
 	protected function apiTimerToWorldbossTimer(ApiSpawnData $timer, string $mobName): WorldBossTimer {
-		/** @var ?int */
-		$interval = static::BOSS_DATA[$mobName][static::INTERVAL] ?? null;
-		// @phpstan-ignore-next-line
-		$killable = $timer->last_spawn + static::BOSS_DATA[$mobName][static::IMMORTAL];
+		if (!isset(self::BOSS_DATA[$mobName])) {
+			throw new Exception('Unknown boss encountered');
+		}
+
+		$interval = self::BOSS_DATA[$mobName][self::INTERVAL] ?? null;
+
+		$killable = $timer->last_spawn + self::BOSS_DATA[$mobName][self::IMMORTAL];
 		$newTimer = new WorldBossTimer(
 			spawn: $timer->last_spawn,
 			killable: $killable,
@@ -1051,6 +1098,7 @@ class WorldBossController extends ModuleInstance {
 	}
 
 	protected function getMobFromContext(CmdContext $context): string {
+		/** @var array<string,string> */
 		$mobs = array_flip(static::BOSS_MAP);
 		$mobs['gauntlet'] = $mobs['vizaresh'];
 		$mobs['father'] = $mobs['father-time'];
@@ -1082,10 +1130,13 @@ class WorldBossController extends ModuleInstance {
 			return;
 		}
 		$rMsg = new RoutableMessage($msg);
+
+		/** @var string */
+		$bossName = static::BOSS_MAP[$boss];
 		$rMsg->appendPath(new Source(
 			'spawn',
 			"{$bossName}-{$event}",
-			implode('-', array_map('ucfirst', explode('-', static::BOSS_MAP[$boss])))
+			implode('-', array_map('ucfirst', explode('-', $bossName)))
 		));
 		$this->messageHub->handle($rMsg);
 	}
@@ -1131,11 +1182,10 @@ class WorldBossController extends ModuleInstance {
 			'mob-name' => $timer->mob_name,
 			'c-mob-name' => "<highlight>{$timer->mob_name}<end>",
 		];
+
 		$invulnDuration = static::BOSS_DATA[$timer->mob_name][static::IMMORTAL];
-		if (isset($invulnDuration)) {
-			$tokens['immortal'] = Util::unixtimeToReadable($invulnDuration);
-			$tokens['c-immortal'] = '<highlight>' . $tokens['immortal'] . '<end>';
-		}
+		$tokens['immortal'] = Util::unixtimeToReadable($invulnDuration);
+		$tokens['c-immortal'] = '<highlight>' . $tokens['immortal'] . '<end>';
 		if ($this->isPrespawn($timer, $lastCheck, $manual)) {
 			assert(isset($timer->next_spawn), 'A pre-spawn timer must know the next spawn');
 			$this->logger->notice('{boss} pre-spawn check success', ['boss' => $timer->mob_name]);
@@ -1197,7 +1247,7 @@ class WorldBossController extends ModuleInstance {
 	}
 
 	private function getBossWP(WorldBossTimer $timer): string {
-		/** @phpstan-var null|array{int,int,int} */
+		/** @var null|array{int,int,int} */
 		$coords = static::BOSS_DATA[$timer->mob_name][static::COORDS] ?? null;
 		if (!isset($coords)) {
 			return '.';
@@ -1244,14 +1294,9 @@ class WorldBossController extends ModuleInstance {
 		/** @var list<ApiSpawnData> */
 		$timers = [];
 		try {
-			$data = json_decode($body, true);
-			if (!is_array($data)) {
-				throw new JsonException();
-			}
-			foreach ($data as $timerData) {
-				$timers []= new ApiSpawnData(...$timerData);
-			}
-		} catch (JsonException) {
+			$data = Safe::jsonDecodeList($body);
+			$timers = Hydrator::literalHydrateObjects(ApiSpawnData::class, $data)->toArray();
+		} catch (JsonException | UnableToHydrateObject) {
 			$this->logger->error('Worldboss API sent invalid json.', [
 				'json' => $body,
 			]);

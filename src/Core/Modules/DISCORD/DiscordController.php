@@ -84,7 +84,7 @@ class DiscordController extends ModuleInstance {
 		$text = Safe::pregReplace("/\n<img src=['\"]?rdb:\/\/[^>]+?['\"]?>\n/s", "\n", $text);
 		$text = Safe::pregReplaceCallback(
 			"/(?:<font[^>]*#000000[^>]*>|<black>)(.+?)(?:<end>|<\/font>)/s",
-			/** @param list{string,string} $matches */
+			/** @param string[] $matches */
 			static function (array $matches): string {
 				if (Safe::pregMatches('/^0+$/', $matches[1])) {
 					return '_ _' . str_repeat(' ', strlen($matches[1]));

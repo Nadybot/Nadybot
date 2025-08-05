@@ -44,6 +44,9 @@ class PollsExporter extends ModuleInstance implements ExporterInterface, Importe
 				);
 				$answers = [];
 				foreach (json_decode($poll->possible_answers, false) as $answer) {
+					if (!is_string($answer)) {
+						continue;
+					}
 					$answers[$answer] ??= new ExportAnswer(
 						answer: $answer,
 						votes: [],

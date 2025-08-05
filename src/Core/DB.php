@@ -46,7 +46,11 @@ use Throwable;
 	NCA\HasMigrations(module: 'Core')
 ]
 class DB {
-	/** The minimum SQLite version required when using SQLite as database backend */
+	/**
+	 * The minimum SQLite version required when using SQLite as database backend
+	 *
+	 * @var string
+	 */
 	public const SQLITE_MIN_VERSION = '3.24.0';
 
 	/**
@@ -336,7 +340,7 @@ class DB {
 					$sequence = $colName;
 					continue;
 				}
-				$successId = $prop->getValue($row);
+				$successId = (int)$prop->getValue($row);
 			}
 			if (!$prop->isInitialized($row)) {
 				continue;
@@ -478,13 +482,13 @@ class DB {
 	/**
 	 * Migrate a table from a monotonous primary key to UUIDs
 	 *
-	 * @param string   $table      The name of the table to convert
-	 * @param \Closure $callback   The closure to call for creating the new table in the
-	 *                             database
-	 * @param string   $column     The name of the current primary key column with a
-	 *                             monotonous increasing number
-	 * @param ?string  $timeColumn An optional name of a column with a UNIX timestamp
-	 *                             when each record was inserted
+	 * @param string                   $table      The name of the table to convert
+	 * @param \Closure(Blueprint):void $callback   The closure to call for creating the new table in the
+	 *                                             database
+	 * @param string                   $column     The name of the current primary key column with a
+	 *                                             monotonous increasing number
+	 * @param ?string                  $timeColumn An optional name of a column with a UNIX timestamp
+	 *                                             when each record was inserted
 	 *
 	 * @return array<int,UuidInterface>
 	 */
@@ -502,7 +506,7 @@ class DB {
 				$time = $entry->{$timeColumn} ?? null;
 			}
 			if (isset($time)) {
-				$time = (new DateTimeImmutable())->setTimestamp($time);
+				$time = (new DateTimeImmutable())->setTimestamp((int)$time);
 			}
 			$uuid = Uuid::uuid7($time);
 			$result[(int)$entry->{$column}] = $uuid;
@@ -601,8 +605,8 @@ class DB {
 		 */
 		$missingMigs = $groupedMigs->map(function (Collection $migs, string $module): Collection {
 			return $this->filterAppliedMigrations($module, $migs);
-		})->flatten()
-		->sort(static function (CoreMigration $f1, CoreMigration $f2): int {
+		})->flatten();
+		$missingMigs = $missingMigs->sort(static function (CoreMigration $f1, CoreMigration $f2): int {
 			return $f1->order <=> $f2->order;
 		});
 		if ($missingMigs->isEmpty()) {
@@ -658,6 +662,7 @@ class DB {
 		$version = $this->fs->getModificationTime($file);
 		$handle = $this->fs->openFile($file, 'r');
 		$uuidCol = null;
+		$where = null;
 		foreach (splitLines($handle) as $line) {
 			if (substr($line, 0, 1) !== '#') {
 				break;
@@ -986,7 +991,7 @@ class DB {
 						'Cannot connect to the PostgreSQL DB at {db_host}: {error}',
 						[
 							'db_host' => $config->host,
-							'error' => trim($e->errorInfo[2] ?? $e->getMessage()),
+							'error' => trim((string)($e->errorInfo[2] ?? $e->getMessage())),
 							'exception' => $e,
 						]
 					);
@@ -1034,7 +1039,7 @@ class DB {
 						'Cannot connect to the MSSQL DB at {db_host}: {error}',
 						[
 							'db_host' => $config->host,
-							'error' => trim($e->errorInfo[2]),
+							'error' => trim((string)$e->errorInfo[2]),
 							'exception' => $e,
 						]
 					);
@@ -1136,19 +1141,28 @@ class DB {
 	 */
 	private function filterAppliedMigrations(string $module, Collection $migrations): Collection {
 		$applied = $this->getAppliedMigrations($module);
-		return $migrations->filter(static function (CoreMigration $m) use ($applied): bool {
+
+		/**
+		 * @var Collection<int,CoreMigration>
+		 *
+		 * @phpstan-ignore-next-line
+		 */
+		$result = $migrations->filter(static function (CoreMigration $m) use ($applied): bool {
 			return !$applied->contains('migration', $m->baseName);
 		})->flatten();
+		return $result;
 	}
 
 	/** Apply, run, and record a single migration */
 	private function applyMigration(CoreMigration $mig): void {
 		$table = $this->formatSql($mig->shared ? 'migrations' : 'migrations_<myname>');
 		$class = $mig->className;
-		$obj = new $class();
-		if (!($obj instanceof SchemaMigration)) {
+		if (!class_exists($class) || !is_subclass_of($class, SchemaMigration::class)) {
 			return;
 		}
+
+		/** @var SchemaMigration */
+		$obj = new $class();
 		Registry::injectDependencies($obj);
 		try {
 			$this->logger->info('Running migration {migration}', [

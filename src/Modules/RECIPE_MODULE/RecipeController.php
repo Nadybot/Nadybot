@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RECIPE_MODULE;
 
 use function Safe\json_decode;
 use Amp\File\FilesystemException;
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -12,6 +13,7 @@ use Nadybot\Core\{
 	Events\ConnectEvent,
 	Exceptions\UserException,
 	Filesystem,
+	Hydrator,
 	ModuleInstance,
 	ParamClass\PItem,
 	Safe,
@@ -185,9 +187,14 @@ class RecipeController extends ModuleInstance {
 
 	private function parseJSONFile(int $id, string $fileName): Recipe {
 		try {
-			$data = json_decode($this->fs->read($this->path . $fileName), false);
+			/** @var array<string,mixed> */
+			$json = json_decode($this->fs->read($this->path . $fileName), true);
+
+			$data = Hydrator::literalHydrate(RecipeData::class, $json);
 		} catch (JsonException $e) {
 			throw new UserException("Could not read '{$fileName}': invalid JSON", 0, $e);
+		} catch (UnableToHydrateObject $e) {
+			throw new UserException("Invalid recipe data in '{$fileName}': unsupported format", 0, $e);
 		}
 
 		/** @var array<string,AODBItem> */
@@ -233,7 +240,7 @@ class RecipeController extends ModuleInstance {
 			$recipe .= "<tab>{$source->name} ".
 				"<highlight>+<end> {$target->name} <highlight>=<end> ".
 				$result->getLink() . "\n";
-			if ($step->skills) {
+			if (isset($step->skills) && strlen($step->skills)) {
 				$recipe .= "<tab><yellow>Skills: {$step->skills}<end>\n";
 			}
 			$recipe .= "\n\n";

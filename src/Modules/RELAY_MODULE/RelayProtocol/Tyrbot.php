@@ -92,6 +92,7 @@ class Tyrbot implements RelayProtocolInterface {
 		]);
 		$serialized = array_shift($message->packages);
 		try {
+			/** @var array<string,mixed> */
 			$data = json_decode($serialized, true, 10, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
 
 			$identify = Hydrator::hydrate(BasePacket::class, $data);
@@ -186,6 +187,7 @@ class Tyrbot implements RelayProtocolInterface {
 		if (is_string($event->data)) {
 			$event->data = str_replace('<myname>', $this->config->main->character, $event->data);
 		} elseif (is_object($event->data) && ($event->data instanceof stdClass) && is_string($event->data->message??null)) {
+			/** @psalm-suppress MixedArgument */
 			$event->data = str_replace('<myname>', $this->config->main->character, $event->data->message??'');
 		} else {
 			return [];
@@ -225,7 +227,7 @@ class Tyrbot implements RelayProtocolInterface {
 		return $pages;
 	}
 
-	/** @param array<mixed> $data */
+	/** @param array<string,mixed> $data */
 	protected function decodeAndHandlePacket(?string $sender, BasePacket $identify, array $data): ?RoutableEvent {
 		switch ($identify->type) {
 			case $identify::MESSAGE:
@@ -417,6 +419,7 @@ class Tyrbot implements RelayProtocolInterface {
 	protected function convertFromTyrColors(string $text): string {
 		return Safe::pregReplaceCallback(
 			"/<\/(.*?)>/s",
+			/** @param string[] $matches */
 			static function (array $matches): string {
 				$keep = ['font', 'a', 'img', 'u', 'i'];
 				if (in_array($matches[1], $keep, true)) {

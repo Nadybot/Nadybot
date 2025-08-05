@@ -10,6 +10,11 @@ use Closure;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
+use Nadybot\Core\Events\EventFeed\{JoinPackageEvent, LeavePackageEvent, MessagePackageEvent, RoomInfoPackageEvent};
+use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
+use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
+use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -33,11 +38,6 @@ use Nadybot\Core\{
 	Types\EventFeedHandler,
 	Util,
 };
-use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
-use Nadybot\Core\Events\EventFeed\{JoinPackageEvent, LeavePackageEvent, MessagePackageEvent, RoomInfoPackageEvent};
-use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
-use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
-use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\UuidInterface;
 use Revolt\EventLoop;
@@ -173,6 +173,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			&& isset($package->extraInfo['channels'])
 			&& is_array($package->extraInfo['channels'])
 		) {
+			/** @psalm-suppress MixedPropertyTypeCoercion */
 			$this->channels = array_values($package->extraInfo['channels']);
 		}
 		$this->feedSupportsHighnet = true;
@@ -263,6 +264,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		if (is_string($body)) {
 			$body = json_decode($body, true);
 		}
+
+		/** @var array<string,mixed> $body */
 
 		try {
 			$message = Hydrator::hydrate(Message::class, $body);
@@ -842,6 +845,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			]);
 			return;
 		}
+
+		/** @var array<string,mixed> $hwBody */
 		$packet = new Highway\Out\Message(room: 'highnet', body: $hwBody);
 		$this->logger->debug('Sending message to Highnet: {data}', [
 			'data' => $hwBody,

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use function Safe\json_decode;
 use Monolog\{
 	Formatter\FormatterInterface,
 	Handler\AbstractHandler,
@@ -32,8 +31,7 @@ class LegacyLogger {
 	/** @var array<string,Logger> */
 	public static array $loggers = [];
 
-	/** @var array<string,mixed> */
-	public static array $config = [];
+	public static ?MonologConfig $config = null;
 
 	public static Filesystem $fs;
 
@@ -82,34 +80,32 @@ class LegacyLogger {
 		};
 	}
 
-	/**
-	 * Get the logging configuration of Nadybot as an associative array
-	 *
-	 * @return array<string,mixed>
-	 */
-	public static function getConfig(bool $noCache=false): array {
+	/** Get the logging configuration of Nadybot as an object */
+	public static function getConfig(bool $noCache=false): MonologConfig {
 		if (!isset(static::$dynamicHandlers)) {
 			/** @var SplObjectStorage<AbstractHandler,null> */
 			$dynamicHandlers = new SplObjectStorage();
 			static::$dynamicHandlers = $dynamicHandlers;
 		}
-		if (count(static::$config) > 0 && !$noCache) {
+		if (isset(static::$config) && !$noCache) {
 			return static::$config;
 		}
 		$configFile = BotRunner::getArguments()->logConfig ?? './conf/logging.json';
 		$json = self::$fs->read($configFile);
 		try {
-			$logStruct = json_decode($json, true, 512);
+			$jsonStruct = Safe::jsonDecodeArr($json, 512);
+			if (!isset($jsonStruct['monolog'])) {
+				throw new RuntimeException('Invalid logging config, missing "monolog" key');
+			}
 		} catch (JsonException $e) {
 			throw new RuntimeException('Unable to parse logging config', 0, $e);
 		}
-		if (!isset($logStruct['monolog'])) {
-			throw new RuntimeException('Invalid logging config, missing "monolog" key');
-		}
-		static::$config = $logStruct['monolog'];
+
+		$logStruct = Hydrator::literalHydrate(Logging::class, $jsonStruct);
+		static::$config = $logStruct->monolog;
 
 		// Convert the log level configuration into an ordered format
-		$channels = static::$config['channels'] ?? [];
+		$channels = static::$config->channels ?? [];
 		uksort(
 			$channels,
 			static function (string $s1, string $s2): int {
@@ -124,7 +120,7 @@ class LegacyLogger {
 			static::$logLevels []= ['*', 'debug'];
 		}
 		foreach ($channels as $channel => $logLevel) {
-			static::$logLevels []= [(string)$channel, (string)$logLevel];
+			static::$logLevels []= [$channel, $logLevel];
 		}
 		return static::$config;
 	}
@@ -192,8 +188,8 @@ class LegacyLogger {
 			return static::$loggers[$channel];
 		}
 		$logStruct = static::getConfig();
-		$formatters = static::parseFormattersConfig($logStruct['formatters']??[]);
-		$handlers = static::parseHandlersConfig($logStruct['handlers']??[], $formatters);
+		$formatters = static::parseFormattersConfig($logStruct->formatters);
+		$handlers = static::parseHandlersConfig($logStruct->handlers, $formatters);
 		$logger = new Logger($channel, [...array_values($handlers)]);
 		static::assignLogLevel($logger);
 		return static::$loggers[$channel] = $logger;
@@ -202,30 +198,31 @@ class LegacyLogger {
 	/**
 	 * Parse the defined handlers into objects
 	 *
-	 * @param iterable<string,mixed>           $handlers
+	 * @param array<string,MonologHandler>     $handlers
 	 * @param array<string,FormatterInterface> $formatters
 	 *
 	 * @return array<string,AbstractProcessingHandler>
 	 */
-	public static function parseHandlersConfig(iterable $handlers, array $formatters): array {
+	public static function parseHandlersConfig(array $handlers, array $formatters): array {
 		$result = [];
-		foreach ($handlers as $name => $config) {
-			$class = 'Monolog\\Handler\\'.static::toClass($config['type']) . 'Handler';
-			if (isset($config['options']['fileName'])) {
-				$config['options']['fileName'] = LoggerWrapper::getLoggingDirectory() . '/' . $config['options']['fileName'];
+		foreach ($handlers as $name => $origConfig) {
+			$config = clone $origConfig;
+			$class = 'Monolog\\Handler\\'.static::toClass($config->type) . 'Handler';
+			if (isset($config->options['fileName'])) {
+				$config->options['fileName'] = LoggerWrapper::getLoggingDirectory() . '/' . (string)$config->options['fileName'];
 			}
 			$dynamic = false;
-			if (isset($config['options']['level']) && $config['options']['level'] === 'default') {
-				$config['options']['level'] = 'notice';
+			if (isset($config->options['level']) && $config->options['level'] === 'default') {
+				$config->options['level'] = 'notice';
 				$dynamic = true;
 			}
 
 			/** @var AbstractProcessingHandler */
-			$obj = new $class(...array_values($config['options']));
+			$obj = new $class(...array_values($config->options));
 			if ($dynamic) {
 				static::$dynamicHandlers->attach($obj);
 			}
-			foreach ($config['calls']??[] as $func => $params) {
+			foreach ($config->calls as $func => $params) {
 				$callable = [$obj, $func];
 				if (is_callable($callable)) {
 					call_user_func_array($callable, array_values($params));
@@ -233,13 +230,13 @@ class LegacyLogger {
 					throw new \Error('Call to undefined method ' . $obj::class . "::{$func}()");
 				}
 			}
-			if (isset($config['formatter'])) {
-				if (!isset($formatters[$config['formatter']])) {
-					throw new RuntimeException("The log handler {$name} uses an undeclared formatter '{$config['formatter']}'");
+			if (isset($config->formatter)) {
+				if (!isset($formatters[$config->formatter])) {
+					throw new RuntimeException("The log handler {$name} uses an undeclared formatter '{$config->formatter}'");
 				}
-				$obj->setFormatter($formatters[$config['formatter']]);
+				$obj->setFormatter($formatters[$config->formatter]);
 			}
-			$removeUsedVariables = $config['removeUsedVariables'] ?? true;
+			$removeUsedVariables = $config->removeUsedVariables;
 			$obj->pushProcessor(new PsrLogMessageProcessor(null, $removeUsedVariables));
 			$result[$name] = $obj;
 		}
@@ -249,18 +246,18 @@ class LegacyLogger {
 	/**
 	 * Parse the defined formatters and return them as objects
 	 *
-	 * @param iterable<string,array<mixed>> $formatters
+	 * @param array<string,MonologFormatter> $formatters
 	 *
 	 * @return array<string,FormatterInterface>
 	 */
-	public static function parseFormattersConfig(iterable $formatters): array {
+	public static function parseFormattersConfig(array $formatters): array {
 		$result = [];
 		foreach ($formatters as $name => $config) {
-			$class = 'Monolog\\Formatter\\' . static::toClass($config['type']) . 'Formatter';
+			$class = 'Monolog\\Formatter\\' . static::toClass($config->type) . 'Formatter';
 
 			/** @var FormatterInterface */
-			$obj = new $class(...array_values($config['options']));
-			foreach ($config['calls']??[] as $func => $params) {
+			$obj = new $class(...array_values($config->options));
+			foreach ($config->calls as $func => $params) {
 				$callable = [$obj, $func];
 				if (is_callable($callable)) {
 					call_user_func_array($callable, array_values($params));

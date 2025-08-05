@@ -62,7 +62,10 @@ use Nadybot\Core\{
 	NCA\HasMigrations
 ]
 class AltsController extends ModuleInstance {
+	/** @var string */
 	public const ALT_VALIDATE = 'altvalidate';
+
+	/** @var string */
 	public const MAIN_VALIDATE = 'mainvalidate';
 
 	/** Adding alt requires confirmation from alt */

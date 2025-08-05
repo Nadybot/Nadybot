@@ -501,7 +501,7 @@ class CommentController extends ModuleInstance {
 	/**
 	 * Remove all comments from $comments that $sender does not have permission to read
 	 *
-	 * @param iterable<Comment> $comments
+	 * @param iterable<int,Comment> $comments
 	 *
 	 * @return list<Comment>
 	 */

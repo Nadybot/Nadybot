@@ -5,13 +5,13 @@ namespace Nadybot\Core\EventModifier;
 use ErrorException;
 use Exception;
 
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Routing\RoutableEvent,
 	Safe,
 	Types\EventModifier,
 };
-use Nadybot\Core\Types\ParamType;
 
 /**
  * This modifier will only route messages if they contain
@@ -58,6 +58,9 @@ class IfMatches implements EventModifier {
 			return $event;
 		}
 		$message = $event->getData();
+		if (!isset($message) || !is_string($message)) {
+			return $event;
+		}
 		$matches = $this->matches($message);
 		if ($matches === $this->inverse) {
 			return null;

@@ -119,10 +119,11 @@ class QueryBuilder extends Builder {
 	 * @return Collection<int,string>
 	 */
 	public function pluckStrings(string $column): Collection {
-		return $this->pluck($column)
-			->map(static function (mixed $value, int $key): string {
-				return (string)$value;
-			});
+		/** @var Collection<int,mixed> */
+		$colValues = $this->pluck($column);
+		return $colValues->map(static function (mixed $value, int $key): string {
+			return (string)$value;
+		});
 	}
 
 	/**
@@ -133,10 +134,11 @@ class QueryBuilder extends Builder {
 	 * @return Collection<int,int>
 	 */
 	public function pluckInts(string $column): Collection {
-		return $this->pluck($column)
-			->map(static function (mixed $value, int $key): int {
-				return (int)$value;
-			});
+		/** @var Collection<int,mixed> */
+		$colValues = $this->pluck($column);
+		return $colValues->map(static function (mixed $value, int $key): int {
+			return (int)$value;
+		});
 	}
 
 	/**
@@ -174,7 +176,9 @@ class QueryBuilder extends Builder {
 		if (!is_array($column)) {
 			$column = [$column];
 		}
-		$column = array_map([$this->grammar, 'wrap'], $column);
+
+		/** @var string[] $column */
+		$column = array_map($this->grammar->wrap(...), $column);
 		$cols = implode(', ', $column);
 		return $this->orderByRaw(
 			"{$function}({$cols}) {$direction}"
@@ -195,7 +199,9 @@ class QueryBuilder extends Builder {
 		if (!is_array($column)) {
 			$column = [$column];
 		}
-		$column = array_map([$this->grammar, 'wrap'], $column);
+
+		/** @var string[] $column */
+		$column = array_map($this->grammar->wrap(...), $column);
 		$cols = implode(', ', $column);
 		return "{$function}({$cols})".
 			(isset($as) ? ' AS ' . $this->grammar->wrap($as) : '');
@@ -260,7 +266,7 @@ class QueryBuilder extends Builder {
 		if (!array_is_list($values)) {
 			return $this->insert($values);
 		}
-		if (!count($values)) {
+		if (!count($values) || !is_array($values[0])) {
 			return true;
 		}
 		$chunkSize = (int)floor($this->nadyDB->maxPlaceholders / count($values[0]));
@@ -287,6 +293,9 @@ class QueryBuilder extends Builder {
 			return $this->upsert($values, $uniqueBy, $update);
 		}
 		if (!count($values)) {
+			return 0;
+		}
+		if (!is_array($values[0])) {
 			return 0;
 		}
 		$chunkSize = (int)floor($this->nadyDB->maxPlaceholders / count($values[0]));
@@ -496,6 +505,7 @@ class QueryBuilder extends Builder {
 			throw new SQLException(message: $e->getMessage(), previous: $e);
 		}
 		if ($data->isEmpty()) {
+			/** @var Collection<int,T> $data */
 			return $data;
 		}
 
@@ -504,7 +514,14 @@ class QueryBuilder extends Builder {
 			$this->compileForClass($className);
 		}
 		if (class_exists($cacheClass, false)) {
-			return $data->map($cacheClass::fromDB(...));
+			/** @psalm-suppress MixedMethodCall */
+			$compiler = $cacheClass::fromDB(...);
+
+			/** @psalm-suppress MixedArgument */
+			$result = $data->map($compiler);
+
+			/** @var Collection<int,T> $result */
+			return $result;
 		}
 		throw new \Exception("Unable to infer a database mapper for {$className}");
 	}

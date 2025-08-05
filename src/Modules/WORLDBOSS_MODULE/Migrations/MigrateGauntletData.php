@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -38,6 +39,8 @@ class MigrateGauntletData implements SchemaMigration {
 		if (!$db->schema()->hasTable($table)) {
 			return;
 		}
+
+		/** @var ?\stdClass */
 		$timer = $db->table($table)
 			->where('name', 'Gauntlet')
 			->limit(1)->get()->first();
@@ -85,17 +88,19 @@ class MigrateGauntletData implements SchemaMigration {
 			}
 			return;
 		}
-		$db->table(self::GAUNTLET_TABLE)
-			->get()
-			->each(function (stdClass $inv): void {
-				try {
-					$items = Safe::exceptionWrapper(unserialize(...), (string)$inv->items);
-					if (is_array($items) && array_is_list($items) && count($items) === 17) {
-						$this->gauntletInventoryController->saveData((string)$inv->player, $items);
-					}
-				} catch (\ErrorException) {
+
+		/** @var Collection<int,\stdClass> */
+		$data = $db->table(self::GAUNTLET_TABLE)->get();
+		$data->each(function (stdClass $inv): void {
+			try {
+				$items = Safe::exceptionWrapper(unserialize(...), (string)$inv->items);
+				if (is_array($items) && array_is_list($items) && count($items) === 17) {
+					/** @var non-empty-list<int> $items */
+					$this->gauntletInventoryController->saveData((string)$inv->player, $items);
 				}
-			});
+			} catch (\ErrorException) {
+			}
+		});
 		$db->schema()->dropIfExists(self::GAUNTLET_TABLE);
 		$db->schema()->dropIfExists(self::BIGBOSS_TABLE);
 	}
