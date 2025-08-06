@@ -108,8 +108,8 @@ class AlienArmorController extends ModuleInstance {
 		$list .= "<tab><tab>=\n";
 		$list .= '<tab>' . $this->itemsController->getItemAndIcon("Formatted Kyr'Ozch Viralbots", $miscQL) . "\n";
 		$list .= "<highlight>Required Skills:<end>\n";
-		$list .= '- '.ceil($miscQL * 4.5)." Computer Literacy\n";
-		$list .= '- '.ceil($miscQL * 6)." Nano Programming\n\n";
+		$list .= '- '.(int)ceil($miscQL * 4.5)." Computer Literacy\n";
+		$list .= '- '.(int)ceil($miscQL * 6)." Nano Programming\n\n";
 
 		$list .= "<header2>Step 3<end>\n";
 		$list .= '<tab>' . $this->itemsController->getItemAndIcon("Kyr'Ozch Structural Analyzer", 100) . "\n";
@@ -120,7 +120,7 @@ class AlienArmorController extends ModuleInstance {
 		$list .= '<tab>' . $this->itemsController->getItemAndIcon("Mutated Kyr'Ozch Bio-Material", $ql) . " QL{$ql}";
 		$list .= "\n\nor\n\n<tab>" . $this->itemsController->getItemAndIcon("Pristine Kyr'Ozch Bio-Material", $ql) . " QL{$ql}\n";
 		$list .= "<highlight>Required Skills:<end>\n";
-		$list .= '- '.ceil($ql * 4.5)." Chemistry (Both require the same amount)\n\n";
+		$list .= '- '.(int)ceil($ql * 4.5)." Chemistry (Both require the same amount)\n\n";
 
 		$list .= "<header2>Step 4<end>\n";
 		$list .= '<tab>' . $this->itemsController->getItemAndIcon("Mutated Kyr'Ozch Bio-Material", $ql) . " QL{$ql}";
@@ -131,8 +131,8 @@ class AlienArmorController extends ModuleInstance {
 		$list .= "<tab><tab>=\n";
 		$list .= '<tab>' . $this->itemsController->getItemAndIcon("Generic Kyr'Ozch DNA-Soup", $ql) . "\n";
 		$list .= "<highlight>Required Skills:<end>\n";
-		$list .= '- '.ceil($ql * 4.5)." Chemistry(for Pristine)\n";
-		$list .= '- '.ceil($ql * 7)." Chemistry(for Mutated)\n\n";
+		$list .= '- '.(int)ceil($ql * 4.5)." Chemistry(for Pristine)\n";
+		$list .= '- '.(int)ceil($ql * 7)." Chemistry(for Mutated)\n\n";
 
 		$list .= "<header2>Step 5<end>\n";
 		$list .= '<tab>' . $this->itemsController->getItemAndIcon("Generic Kyr'Ozch DNA-Soup", $ql) . "\n";
@@ -142,7 +142,7 @@ class AlienArmorController extends ModuleInstance {
 		$list .= "<tab><tab>=\n";
 		$list .= '<tab>' . $this->itemsController->getItemAndIcon('DNA Cocktail', $ql) . "\n";
 		$list .= "<highlight>Required Skills:<end>\n";
-		$list .= '- '.ceil($ql * 6)." Pharma Tech\n\n";
+		$list .= '- '.(int)ceil($ql * 6)." Pharma Tech\n\n";
 
 		$list .= "<header2>Step 6<end>\n";
 		$list .= '<tab>' . $this->itemsController->getItemAndIcon("Formatted Kyr'Ozch Viralbots", $miscQL) . "\n";
@@ -151,7 +151,7 @@ class AlienArmorController extends ModuleInstance {
 		$list .= "<tab><tab>=\n";
 		$list .= '<tab>' . $this->itemsController->getItemAndIcon("Kyr'Ozch Formatted Viralbot Solution", $ql) . "\n";
 		$list .= "<highlight>Required Skills:<end>\n";
-		$list .= '- '.ceil($ql * 6)." Pharma Tech\n\n";
+		$list .= '- '.(int)ceil($ql * 6)." Pharma Tech\n\n";
 
 		$list .= "<header2>Step 7<end>\n";
 		$list .= '<tab>' . $this->itemsController->getItemAndIcon("Kyr'Ozch Formatted Viralbot Solution", $ql) . "\n";
@@ -208,7 +208,7 @@ class AlienArmorController extends ModuleInstance {
 				break;
 		}
 		$list .= "<highlight>Required Skills:<end>\n";
-		$list .= '- '.floor($ql * 6)." Psychology\n\n";
+		$list .= '- '.(int)floor($ql * 6)." Psychology\n\n";
 
 		$msg = Text::makeBlob("Building process for {$ql} {$armortype}", $list);
 		$context->reply($msg);
