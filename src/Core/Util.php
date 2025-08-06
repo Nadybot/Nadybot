@@ -214,15 +214,15 @@ class Util {
 	/**
 	 * Create a random string of `$length` characters
 	 *
-	 * @param int    $length     The number of characters for the result
-	 * @param string $characters A string containing all allowed characters
+	 * @param int              $length     The number of characters for the result
+	 * @param non-empty-string $characters A string containing all allowed characters
 	 *
 	 * @return string A random string with `$length` characters
 	 */
 	public static function genRandomString(int $length=10, string $characters='0123456789abcdefghijklmnopqrstuvwxyz'): string {
 		$string = '';
 		for ($p = 0; $p < $length; $p++) {
-			$string .= $characters[mt_rand(0, strlen($characters)-1)];
+			$string .= $characters[random_int(0, strlen($characters)-1)];
 		}
 		return $string;
 	}
