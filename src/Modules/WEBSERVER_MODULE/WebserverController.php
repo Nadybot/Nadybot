@@ -628,7 +628,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			return null;
 		}
 		[$correctPass, $validUntil] = $this->authentications[$user];
-		if ($correctPass !== $password || $validUntil < time()) {
+		if (!hash_equals($correctPass, $password) || $validUntil < time()) {
 			return null;
 		}
 		return $user;
