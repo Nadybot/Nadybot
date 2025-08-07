@@ -134,7 +134,7 @@ final class FileCache implements CacheInterface {
 
 			$value = substr($cacheContent, 4);
 
-			return unserialize($value);
+			return unserialize($value, ['allowed_classes' => [\stdClass::class]]);
 		} catch (\Throwable) {
 			return null;
 		} finally {

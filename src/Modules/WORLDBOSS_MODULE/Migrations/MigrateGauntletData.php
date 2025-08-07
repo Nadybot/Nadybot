@@ -93,7 +93,7 @@ class MigrateGauntletData implements SchemaMigration {
 		$data = $db->table(self::GAUNTLET_TABLE)->get();
 		$data->each(function (stdClass $inv): void {
 			try {
-				$items = Safe::exceptionWrapper(unserialize(...), (string)$inv->items);
+				$items = Safe::exceptionWrapper(unserialize(...), (string)$inv->items, ['allowed_classes' => false]);
 				if (is_array($items) && array_is_list($items) && count($items) === 17) {
 					/** @var non-empty-list<int> $items */
 					$this->gauntletInventoryController->saveData((string)$inv->player, $items);

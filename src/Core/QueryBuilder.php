@@ -414,7 +414,9 @@ class QueryBuilder extends Builder {
 				$readMap = isset($refProp) ? $refProp->getAttributes(NCA\DB\MapRead::class) : [];
 				if (count($readMap)) {
 					foreach ($readMap as $mapper) {
-						$cacheLines []= "{$paramName}: unserialize(" . var_export(serialize($mapper->newInstance()), true) . ')->map($data->' . $colName . '),';
+						$cacheLines []= "{$paramName}: unserialize(".
+							var_export(serialize($mapper->newInstance()), true).
+							', ["allowed_classes" => [\\' . NCA\DB\MapRead::class . '::class]])->map($data->' . $colName . '),';
 					}
 				} else {
 					if ($type === 'bool') {
