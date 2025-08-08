@@ -2234,7 +2234,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$numInvites = 0;
 		$charInvites = $this->db->table(DBDiscordInvite::getTable())
 			->asObj(DBDiscordInvite::class)
-			->keyBy('token');
+			->keyByString('token');
 		foreach ($this->guilds as $guildId => $guild) {
 			$guildInvites = $this->invites[$guildId] ?? null;
 			$blob = "<header2>{$guild->name}<end>";
@@ -2252,7 +2252,6 @@ class DiscordGatewayController extends ModuleInstance {
 				$numInvites++;
 				$blob .= "\n<tab>";
 
-				/** @var ?DBDiscordInvite */
 				$charInvite = $charInvites->get($invite->code);
 				if (isset($charInvite)) {
 					$blob .= "for <highlight>{$charInvite->character}<end>";

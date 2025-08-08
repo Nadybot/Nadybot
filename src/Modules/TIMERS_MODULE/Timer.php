@@ -2,11 +2,10 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use function Safe\json_decode;
-
-use Nadybot\Core\{Attributes\DB, DBTable};
+use Nadybot\Core\{Attributes\DB, DBTable, Safe};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
+use Safe\Exceptions\JsonException;
 
 #[DB\Table(name: 'timers')]
 class Timer extends DBTable {
@@ -51,11 +50,12 @@ class Timer extends DBTable {
 		if (!isset($alerts)) {
 			return [];
 		}
-		$alertsData = json_decode($alerts, true);
-		if (!is_array($alertsData)) {
+		try {
+			$alertsData = Safe::jsonDecodeList($alerts);
+		} catch (JsonException) {
 			return [];
 		}
-		return array_values(array_map(
+		return array_map(
 			/** @param array<array-key,mixed> $alertData */
 			static function (array $alertData): Alert {
 				$extra = [];
@@ -77,6 +77,6 @@ class Timer extends DBTable {
 				);
 			},
 			$alertsData
-		));
+		);
 	}
 }

@@ -934,6 +934,7 @@ class LootController extends ModuleInstance {
 			return false;
 		}
 
+		/** @var Collection<string,Collection<int,AODBEntry>> */
 		$itemsByBame =$this->itemsController->getByNames(...$data->pluckStrings('name')->toArray())
 			->groupBy('name');
 		$data->each(static function (RaidLoot $loot) use ($itemsByBame): void {

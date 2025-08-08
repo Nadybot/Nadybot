@@ -115,6 +115,8 @@ class PlayfieldController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>waypoint 17 28 100 PW')]
 	#[NCA\Help\Example('<symbol>waypoint (10.9 30.0 y 20.1 550)')]
 	public function waypoint2Command(CmdContext $context, string $pasteFromF9): void {
+		$playfieldId = null;
+		$playfieldName = null;
 		if (count($args = Safe::pregMatch("/^\(?([0-9.]+) ([0-9.]+) y ([0-9.]+) ([0-9]+)\)?$/i", $pasteFromF9))) {
 			$xCoords = $args[1];
 			$yCoords = $args[2];
@@ -135,13 +137,11 @@ class PlayfieldController extends ModuleInstance {
 		if (isset($playfieldId)) {
 			$playfieldName = (string)$playfieldId;
 
-			/** @psalm-suppress MixedArgument */
 			$playfield = CorePlayfield::tryFrom($playfieldId);
 			if (isset($playfield)) {
 				$playfieldName = $playfield->short();
 			}
 		} elseif (isset($playfieldName)) {
-			/** @psalm-suppress MixedArgument */
 			$playfield = CorePlayfield::tryFromName($playfieldName);
 			if (!isset($playfield)) {
 				$context->reply("Unknown playfield {$playfieldName}");
@@ -154,7 +154,6 @@ class PlayfieldController extends ModuleInstance {
 			return;
 		}
 
-		/** @psalm-suppress PossiblyInvalidArgument */
 		$reply = $this->processWaypointCommand($xCoords, $yCoords, $playfieldName, $playfieldId);
 		$context->reply($reply);
 	}

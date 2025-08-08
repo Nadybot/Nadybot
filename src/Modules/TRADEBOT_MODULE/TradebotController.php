@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
 use AO\Package;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -305,7 +306,7 @@ class TradebotController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,iterable<TradebotColors>> */
+		/** @var array<string,Collection<int,TradebotColors>> */
 		$colorDefs = $allColors->groupBy('tradebot')->toArray();
 		$blob = '';
 		foreach ($colorDefs as $tradebot => $colors) {

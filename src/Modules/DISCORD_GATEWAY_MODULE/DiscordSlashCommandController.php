@@ -470,9 +470,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			->orWhereIn('dependson', $commands)
 			->asObj(CmdCfg::class);
 
-		/** @var Collection<string,CmdCfg> */
-		$mains = $cfgs->where('cmdevent', 'cmd')
-			->keyBy('cmd');
+		$mains = $cfgs->where('cmdevent', 'cmd')->keyByString('cmd');
 		$cfgs->where('cmdevent', 'subcmd')
 			->each(static function (CmdCfg $cfg) use ($mains): void {
 				$search = $mains->get($cfg->dependson);
@@ -590,7 +588,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	 * @param Collection<int,ApplicationCommand> $set
 	 */
 	private function getNumChangedSlashCommands(Collection $live, Collection $set): int {
-		$live = $live->keyBy('name');
+		$live = $live->keyByString('name');
 		$changedOrNewCommands = $set->filter(static function (ApplicationCommand $cmd) use ($live): bool {
 			/** @psalm-suppress PossiblyNullArgument */
 			return !$live->has($cmd->name)

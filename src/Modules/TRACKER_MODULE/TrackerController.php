@@ -224,10 +224,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 
-		/** @var Collection<int,TrackedUser> */
 		$users = $this->db->table(TrackedUser::getTable())
 			->asObj(TrackedUser::class)
-			->keyBy('uid');
+			->keyByInt('uid');
 
 		$query = $this->db->table(TrackedUser::getTable(), 't');
 		$query->join(Tracking::getTable() . ' as ev', 'ev.uid', '=', 't.uid')
@@ -735,7 +734,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->asObj(TrackingOrg::class);
 		$orgIds = $orgs->whereNotNull('org_id')->pluckInts('org_id')->toList();
 		$orgsByID = $this->findOrgController->getOrgsById(...$orgIds)
-			->keyBy('id');
+			->keyByInt('id');
 		$orgs = $orgs->each(static function (TrackingOrg $o) use ($orgsByID): void {
 			$o->org = $orgsByID->get($o->org_id);
 		})->sort(static function (TrackingOrg $o1, TrackingOrg $o2): int {
@@ -1236,17 +1235,15 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 
 		// Save the current members in a hash for easy access
-		/** @var Collection<int,TrackingOrgMember> */
 		$oldMembers = $this->db->table(TrackingOrgMember::getTable())
 			->where('org_id', $org->guild_id)
 			->asObj(TrackingOrgMember::class)
-			->keyBy('uid');
+			->keyByInt('uid');
 		$this->db->awaitBeginTransaction();
 		$toInsert = [];
 		$toInit = [];
 		try {
 			foreach ($org->members as $member) {
-				/** @var ?TrackingOrgMember */
 				$oldMember = $oldMembers->get($member->charid);
 				if (isset($oldMember) && $oldMember->name === $member->name) {
 					$oldMembers->forget((string)$oldMember->uid);

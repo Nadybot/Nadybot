@@ -665,7 +665,7 @@ class ConfigController extends ModuleInstance {
 				return strcmp($a->cmd, $b->cmd);
 			});
 		}
-		$permissionSets = $this->commandManager->getPermissionSets()->keyBy('name');
+		$permissionSets = $this->commandManager->getPermissionSets()->keyByString('name');
 		foreach ($data as $row) {
 			$cmdNameLink = '';
 			$statusLinks = [];
@@ -870,8 +870,7 @@ class ConfigController extends ModuleInstance {
 			$outerQuery->as('count_settings')
 		);
 
-		/** @var Collection<string,ModuleStats> */
-		$data = $outerQuery->asObj(ModuleStats::class)->keyBy('module');
+		$data = $outerQuery->asObj(ModuleStats::class)->keyByString('module');
 
 		/** @var Collection<string,Collection<int,CmdCfg>> */
 		$commands = $this->commandManager->getAll()
@@ -1029,9 +1028,8 @@ class ConfigController extends ModuleInstance {
 			->asObj(CmdPermission::class)
 			->groupBy('cmd');
 		$commands->each(static function (CmdCfg $row) use ($permissions): void {
-			/** @var Collection<string,CmdPermission> */
 			$tmp = $permissions->get($row->cmd, new Collection())
-				->keyBy('permission_set');
+				->keyByString('permission_set');
 			$row->permissions = $tmp->toArray();
 		});
 

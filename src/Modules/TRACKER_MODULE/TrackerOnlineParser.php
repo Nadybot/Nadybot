@@ -73,6 +73,7 @@ class TrackerOnlineParser {
 	}
 
 	protected function parseOption(Branch $option): TrackerOnlineOption {
+		/** @var ?string */
 		$type = $option->getSubnode(0)?->getType();
 		if (!isset($type)) {
 			throw new Exception('Unknown parsed value encountered');

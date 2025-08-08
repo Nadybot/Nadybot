@@ -884,10 +884,13 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	 * @return list<RelayConfig>
 	 */
 	public function getRelays(): array {
+		/** @var Collection<string,Collection<int,RelayLayerArgument>> */
 		$arguments = $this->db->table(RelayLayerArgument::getTable())
 			->orderBy('id')
 			->asObj(RelayLayerArgument::class)
 			->groupBy('layer_id');
+
+		/** @var Collection<string,Collection<int,RelayLayer>> */
 		$layers = $this->db->table(RelayLayer::getTable())
 			->orderBy('id')
 			->asObj(RelayLayer::class)
@@ -895,6 +898,8 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 				$layer->arguments = $arguments->get($layer->id->toString(), new Collection())->toList();
 			})
 			->groupBy('relay_id');
+
+		/** @var Collection<string,Collection<int,RelayEvent>> */
 		$events = $this->db->table(RelayEvent::getTable())
 			->orderBy('id')
 			->asObj(RelayEvent::class)
@@ -1540,17 +1545,15 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	protected function loadRelayProperties(RelayConfig $config, Relay $relay): Relay {
-		/** @var Collection<string,RelayProperty> */
 		$relayProps = $this->db->table(RelayProperty::getTable())
 			->where('relay_id', $config->id)
 			->asObj(RelayProperty::class)
-			->keyBy('property');
+			->keyByString('property');
 		$refClass = new ReflectionClass($relay);
 		foreach ($refClass->getProperties() as $refProp) {
 			foreach ($refProp->getAttributes(RelayProp::class) as $refAttr) {
 				$attr = $refAttr->newInstance();
 
-				/** @var ?RelayProperty */
 				$dbProp = $relayProps->get($attr->name, null);
 				if (isset($dbProp)) {
 					$this->logger->info('Setting {relay}.{property} to {value}', [

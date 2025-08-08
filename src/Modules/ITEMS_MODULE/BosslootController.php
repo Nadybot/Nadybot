@@ -168,10 +168,10 @@ class BosslootController extends ModuleInstance {
 	private function addItemsToLoot(Collection $data): void {
 		$itemsByName = $this->itemsController
 			->getByNames(...$data->whereNull('aoid')->pluckStrings('itemname')->toList())
-			->keyBy('name');
+			->keyByString('name');
 		$itemsByAoid = $this->itemsController
 			->getByIDs(...$data->whereNotNull('aoid')->pluckInts('aoid')->toList())
-			->keyBy('aoid');
+			->keyByInt('aoid');
 		$data->each(static function (BossLootdb $loot) use ($itemsByName, $itemsByAoid): void {
 			if (isset($loot->aoid)) {
 				$loot->item = $itemsByAoid->get($loot->aoid);

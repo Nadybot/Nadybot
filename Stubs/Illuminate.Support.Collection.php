@@ -17,6 +17,8 @@ use Illuminate\Contracts\Support\CanBeEscapedWhenCastToString;
  * @method TValue                   lastOrFail()
  * @method static<array-key,int>    pluckInts(string|int|array<array-key,string> $value, ?string $key=null)
  * @method static<array-key,string> pluckStrings(string|int|array<array-key,string> $value, ?string $key=null)
+ * @method static<string,TValue>    keyByString(callable|array|string $keyBy)
+ * @method static<int,TValue>       keyByInt(callable|array|string $keyBy)
  *
  * @phpstan-ignore-next-line
  */
@@ -82,11 +84,31 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
 	 *
 	 * @template TNewKey of array-key
 	 *
-	 * @param (callable(TValue, TKey): TNewKey)|string[]|string $groupBy
-	 * @param bool                                              $preserveKeys
+	 * @param (callable(TValue,TKey): TNewKey)|string[]|string $groupBy
+	 * @param bool                                             $preserveKeys
 	 *
 	 * @return ($groupBy is callable ? static<TNewKey,static<int,TValue>> : static<array-key,static<int,TValue>>)
 	 */
 	public function groupBy($groupBy, $preserveKeys=false): static {
+	}
+
+	/**
+	 * Key the items of the collection by an integer
+	 *
+	 * @param (callable(TValue,TKey): array-key)|array|string $keyBy
+	 *
+	 * @return static<int,TValue>
+	 */
+	public function keyByInt(callable|array|string $keyBy): static {
+	}
+
+	/**
+	 * Key the items of the collection by a string
+	 *
+	 * @param (callable(TValue, TKey): array-key)|array|string $keyBy
+	 *
+	 * @return static<string,TValue>
+	 */
+	public function keyByString(callable|array|string $keyBy): static {
 	}
 }

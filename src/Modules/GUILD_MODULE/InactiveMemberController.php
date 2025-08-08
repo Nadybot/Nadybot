@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -46,6 +47,7 @@ class InactiveMemberController extends ModuleInstance {
 		$timeString = Util::unixtimeToReadable($time, false);
 		$time = time() - $time;
 
+		/** @var Collection<string,Collection<int,RecentOrgMember>> */
 		$members = $this->db->table(OrgMember::getTable())
 			->where('mode', '!=', 'del')
 			->orderByDesc('logged_off')

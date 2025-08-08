@@ -307,6 +307,8 @@ class ItemsController extends ModuleInstance {
 			$found[$item->lowid . '-' . $item->highid . ':' . $item->ql] = true;
 			return true;
 		});
+
+		/** @var Collection<int,Collection<int,ItemSearchResult>> */
 		$groups = $data->groupBy('group_id');
 		$groupsProcessed = [];
 
@@ -317,10 +319,7 @@ class ItemsController extends ModuleInstance {
 			$nextItem = $data->shift(1);
 			if (!isset($nextItem->group_id) || !isset($groupsProcessed[$nextItem->group_id])) {
 				if (isset($nextItem->group_id)) {
-					/**
-					 * @psalm-suppress PossiblyNullReference
-					 * @psalm-suppress MixedArgument
-					 */
+					/** @psalm-suppress PossiblyNullReference */
 					$result->push(...$groups->get($nextItem->group_id)->toArray());
 					$groupsProcessed[$nextItem->group_id] = true;
 				} else {

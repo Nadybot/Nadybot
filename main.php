@@ -44,6 +44,18 @@ $lastOrFail = function (): mixed {
 };
 Collection::macro('lastOrFail', $lastOrFail);
 
+/** @return static<int,TValue> */
+$keyByInt = function (callable|array|string $keyBy): static {
+	return $this->keyBy($keyBy);
+};
+Collection::macro('keyByInt', $keyByInt);
+
+/** @return static<string,TValue> */
+$keyByString = function (callable|array|string $keyBy): static {
+	return $this->keyBy($keyBy);
+};
+Collection::macro('keyByString', $keyByString);
+
 /**
  * Get the int values of a given key.
  *

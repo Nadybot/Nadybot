@@ -185,7 +185,7 @@ class AlienMiscController extends ModuleInstance {
 		$costBySlot = $this->db->table(OfabArmorCost::getTable())
 			->where('ql', $ql)
 			->asObj(OfabArmorCost::class)
-			->keyBy('slot');
+			->keyByString('slot');
 
 		if ($armors->count() === 0 || $costBySlot->count() === 0) {
 			$msg = "Could not find any OFAB armor for {$profession->value} in QL {$ql}.";

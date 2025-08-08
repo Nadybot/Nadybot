@@ -416,9 +416,8 @@ class OnlineController extends ModuleInstance {
 		}
 
 		$onlineChars = $this->db->table(Online::getTable())->asObj(Online::class);
-		$onlineByName = $onlineChars->keyBy('name');
+		$onlineByName = $onlineChars->keyByString('name');
 
-		/** @var Collection<int,string> */
 		$mains = $onlineChars->map(function (Online $online): string {
 			return $this->altsController->getMainOf($online->name);
 		})->unique();
@@ -1052,7 +1051,7 @@ class OnlineController extends ModuleInstance {
 		$playersByName = $this->playerManager->searchByNames(
 			$this->config->main->dimension,
 			...$online->pluckStrings('name')->toList()
-		)->keyBy('name');
+		)->keyByString('name');
 		$op = $online->map(function (Online $o) use ($playersByName): OnlinePlayer {
 			$p = $playersByName->get($o->name);
 			$op = OnlinePlayer::fromPlayer($p, $o);

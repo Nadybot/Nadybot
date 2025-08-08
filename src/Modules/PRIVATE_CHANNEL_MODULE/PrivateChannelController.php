@@ -307,10 +307,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	public function cacheMembers(): void {
-		/** @psalm-suppress MixedPropertyTypeCoercion */
 		$this->members = $this->db->table(Member::getTable())
 			->asObj(Member::class)
-			->keyBy('name')
+			->keyByString('name')
 			->toArray();
 	}
 
@@ -417,24 +416,19 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$timeString = Util::unixtimeToReadable($time, false);
 		$time = time() - $time;
 
-		/**
-		 * Main char => information about the char last online of the main
-		 *
-		 * @var Collection<string,LastOnline>
-		 */
+		/** Main char => information about the char last online of the main */
 		$lastOnline = $this->db->table(LastOnline::getTable())
 			->orderBy('dt')
 			->asObj(LastOnline::class)
 			->each(function (LastOnline $member): void {
 				$member->main = $this->altsController->getMainOf($member->name);
 			})
-			->keyBy('main');
+			->keyByString('main');
 		$lastOnline = $lastOnline->filter(function (LastOnline $member, string $main): bool {
 			return $this->accessManager->checkSingleAccess($main, AccessLevel::Member);
 		});
 
-		/** @var Collection<string,Member> */
-		$groupedMembers = $members->keyBy(function (Member $member): string {
+		$groupedMembers = $members->keyByString(function (Member $member): string {
 			return $this->altsController->getMainOf($member->name);
 		});
 

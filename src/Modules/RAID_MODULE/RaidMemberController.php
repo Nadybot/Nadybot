@@ -107,11 +107,10 @@ class RaidMemberController extends ModuleInstance {
 			->whereNull('left')
 			->update(['left' => time()]);
 
-		/** @psalm-suppress MixedPropertyTypeCoercion */
 		$raid->raiders = $this->db->table(RaidMember::getTable())
 			->where('raid_id', $raid->raid_id)
 			->asObj(RaidMember::class)
-			->keyBy('player')->toArray();
+			->keyByString('player')->toArray();
 	}
 
 	/** Add player $player to the raid by player $sender */

@@ -342,6 +342,8 @@ class GuildController extends ModuleInstance {
 			$context->reply('No members recorded.');
 			return;
 		}
+
+		/** @var Collection<string,Collection<int,RecentOrgMember>> */
 		$members = $members->groupBy('main');
 
 		$numRecentCount = 0;

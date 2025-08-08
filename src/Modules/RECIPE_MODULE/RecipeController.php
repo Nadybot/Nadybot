@@ -63,14 +63,13 @@ class RecipeController extends ModuleInstance {
 			throw new Exception("Could not open '{$this->path}' for loading recipes: " . $e->getMessage(), 0, $e);
 		}
 
-		/** @var array<string,Recipe> */
-		$recipes = $this->db->table(Recipe::getTable())->asObj(Recipe::class)->keyBy('id')->toArray();
+		$recipes = $this->db->table(Recipe::getTable())->asObj(Recipe::class)->keyByInt('id')->toArray();
 		foreach ($fileNames as $fileName) {
 			if (!count($args = Safe::pregMatch("/(\d+)\.(txt|json)$/", $fileName))) {
 				continue;
 			}
-			if (isset($recipes[$args[1]])) {
-				if (($this->fs->getModificationTime($this->path . $fileName)) === $recipes[$args[1]]->date) {
+			if (isset($recipes[(int)$args[1]])) {
+				if (($this->fs->getModificationTime($this->path . $fileName)) === $recipes[(int)$args[1]]->date) {
 					continue;
 				}
 			}
@@ -82,7 +81,7 @@ class RecipeController extends ModuleInstance {
 			} else {
 				continue;
 			}
-			if (isset($recipes[$args[1]])) {
+			if (isset($recipes[(int)$args[1]])) {
 				$this->db->update($recipe);
 			} else {
 				$this->db->insert($recipe);

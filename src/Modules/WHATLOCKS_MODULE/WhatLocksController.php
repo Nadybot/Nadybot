@@ -121,7 +121,7 @@ class WhatLocksController extends ModuleInstance {
 
 		$itemIds = $items->whereNotNull('item_id')->pluckInts('item_id')->toList();
 		$itemsById = $this->itemsController->getByIDs(...$itemIds)
-			->keyBy('lowid');
+			->keyByInt('lowid');
 		$items->each(static function (WhatLocks $item) use ($itemsById): void {
 			$item->item = $itemsById->get($item->item_id);
 		});

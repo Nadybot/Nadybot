@@ -159,10 +159,9 @@ class WhompahController extends ModuleInstance {
 
 	/** @return array<int,WhompahPath> */
 	public function buildWhompahNetwork(): array {
-		/** @var array<int,WhompahCity> */
 		$cities = $this->db->table(WhompahCity::getTable())
 			->asObj(WhompahCity::class)
-			->keyBy('id')
+			->keyByInt('id')
 			->toArray();
 
 		/** @var array<int,WhompahPath> */

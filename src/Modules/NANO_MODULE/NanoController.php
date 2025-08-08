@@ -99,10 +99,9 @@ class NanoController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/nanos.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/nano_lines.csv');
 
-		/** @psalm-suppress MixedPropertyTypeCoercion */
 		$this->nanolines = $this->db->table(Nanoline::getTable())
 			->asObj(Nanoline::class)
-			->keyBy('strain_id')
+			->keyByInt('strain_id')
 			->toArray();
 		$this->commandAlias->register($this->moduleName, 'bestnanos long', 'bnl');
 		$this->commandAlias->register($this->moduleName, 'bestnanosfroob long', 'bnfl');

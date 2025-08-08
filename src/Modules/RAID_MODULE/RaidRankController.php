@@ -451,6 +451,8 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	protected function renderLeaders(bool $showStats, bool $showOfflineAlts, Collection $stats, string ...$names): string {
 		sort($names);
 		$output = [];
+
+		/** @var Collection<string,Collection<int,RaidStat>> */
 		$raids = $stats->groupBy('starter_main');
 		foreach ($names as $who) {
 			$line = "<tab>{$who}" . $this->getOnlineStatus($who);

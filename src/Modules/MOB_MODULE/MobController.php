@@ -423,8 +423,7 @@ class MobController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,Mob> */
-		$mobs = $mobs->keyBy(static fn (Mob $mob): string => $mob->key)->toArray();
+		$mobs = $mobs->keyByString(static fn (Mob $mob): string => $mob->key)->toArray();
 
 		$state = $this->getHiStatus($mobs);
 		$blob = '<header2>Hollow Island<end> ['.

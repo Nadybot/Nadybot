@@ -371,9 +371,8 @@ class CommandManager implements MessageEmitter {
 		$permissions = $permissionQuery->asObj(CmdPermission::class)
 			->groupBy('cmd');
 		$data->each(static function (CmdCfg $row) use ($permissions): void {
-			/** @var Collection<string,CmdPermission> */
 			$keyed = $permissions->get($row->cmd, new Collection())
-				->keyBy('permission_set');
+				->keyByString('permission_set');
 			$row->permissions = $keyed->toArray();
 		});
 
@@ -445,9 +444,8 @@ class CommandManager implements MessageEmitter {
 			->whereIn('cmdevent', $includeSubcommands ? ['cmd', 'subcmd'] : ['cmd'])
 			->asObj(CmdCfg::class)
 			->each(static function (CmdCfg $row) use ($permissions): void {
-				/** @var Collection<string,CmdPermission> */
 				$keyed = $permissions->get($row->cmd, new Collection())
-					->keyBy('permission_set');
+					->keyByString('permission_set');
 				$row->permissions = $keyed->toArray();
 			});
 		return $data;
@@ -472,9 +470,8 @@ class CommandManager implements MessageEmitter {
 			->where('module', $module)
 			->asObj(CmdCfg::class)
 			->each(static function (CmdCfg $row) use ($permissions): void {
-				/** @var Collection<string,CmdPermission> */
 				$keyed = $permissions->get($row->cmd, new Collection())
-					->keyBy('permission_set');
+					->keyByString('permission_set');
 				$row->permissions = $keyed->toArray();
 			});
 		return $data;
@@ -507,9 +504,7 @@ class CommandManager implements MessageEmitter {
 			$permQuery->where('permission_set', $permissionSet);
 		}
 
-		/** @var Collection<string,CmdPermission> */
-		$keyed = $permQuery->asObj(CmdPermission::class)
-			->keyBy('permission_set');
+		$keyed = $permQuery->asObj(CmdPermission::class)->keyByString('permission_set');
 		$cmd->permissions = $keyed->toArray();
 
 		return $cmd;

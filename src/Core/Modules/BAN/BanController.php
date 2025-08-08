@@ -5,7 +5,6 @@ namespace Nadybot\Core\Modules\BAN;
 use function Amp\async;
 
 use AO\Package\Out\PrivateChannelKick;
-use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	AccessManager,
@@ -481,19 +480,17 @@ class BanController extends ModuleInstance implements ImporterInterface {
 
 		$bannedUids = $bans->pluckInts('charid')->toList();
 
-		/** @var Collection<int,NameHistory> */
 		$names = $this->db->table(BanEntry::getTable(), 'bl')
 			->join(NameHistory::getTable(as: 'nh'), 'bl.charid', 'nh.charid')
 			->where('nh.dimension', $this->db->getDim())
 			->orderBy('nh.dt')
 			->select('nh.*')
 			->asObj(NameHistory::class)
-			->keyBy('charid');
+			->keyByInt('charid');
 
-		/** @var Collection<int,Player> */
 		$players = $this->playerManager
 			->searchByUids($this->db->getDim(), ...$bannedUids)
-			->keyBy('charid');
+			->keyByInt('charid');
 		$bans->each(function (BanEntry $ban) use ($players, $names): void {
 			$ban->name = $players->get($ban->charid)->name
 				?? $this->chatBot->getName($ban->charid)
