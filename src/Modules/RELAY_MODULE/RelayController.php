@@ -8,6 +8,8 @@ use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Regexp, Remove, Str, WordStr};
+use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -32,15 +34,13 @@ use Nadybot\Core\{
 	Types\ParamType,
 	Util,
 };
-use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Regexp, Remove, Str, WordStr};
-use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
+use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
 use Nadybot\Modules\{
 	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
 	RELAY_MODULE\Transport\TransportInterface,
 	WEBSERVER_MODULE\ApiResponse,
 	WEBSERVER_MODULE\StatsController,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use ReflectionClass;
@@ -1591,30 +1591,27 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		if (count($relay->layers) === 0) {
 			return $blob . '<tab>- empty -';
 		}
-		if (isset($this->transports[$relay->layers[0]->layer])) {
-			/** @psalm-suppress MixedMethodCall */
-			$secrets = $this->transports[$relay->layers[0]->layer]->getSecrets();
-
-			/** @psalm-suppress MixedArgument */
-			$blob .= '<tab>Transport: <highlight>' . $relay->layers[0]->toString('transport', $secrets) . "<end>\n";
+		$layer = $relay->layers[0];
+		if (isset($this->transports[$layer->layer])) {
+			$secrets = $this->transports[$layer->layer]->getSecrets();
+			$blob .= '<tab>Transport: <highlight>' . $layer->toString('transport', $secrets) . "<end>\n";
 		} else {
 			$blob .= "<tab>Transport: <highlight>{$relay->layers[0]->layer}(<red>error<end>)<end>\n";
 		}
 		for ($i = 1; $i < count($relay->layers)-1; $i++) {
-			if (isset($this->stackElements[$relay->layers[$i]->layer])) {
-				/** @psalm-suppress MixedMethodCall */
-				$secrets = $this->stackElements[$relay->layers[$i]->layer]->getSecrets();
-
-				/** @psalm-suppress MixedArgument */
-				$blob .= '<tab>Layer: <highlight>' . $relay->layers[$i]->toString('layer', $secrets) . "<end>\n";
+			$layer = $relay->layers[$i];
+			if (isset($this->stackElements[$layer->layer])) {
+				$secrets = $this->stackElements[$layer->layer]->getSecrets();
+				$blob .= '<tab>Layer: <highlight>' . $layer->toString('layer', $secrets) . "<end>\n";
 			} else {
-				$blob .= "<tab>Layer: <highlight>{$relay->layers[$i]->layer}(<red>error<end>)<end>\n";
+				$blob .= "<tab>Layer: <highlight>{$layer->layer}(<red>error<end>)<end>\n";
 			}
 		}
-		$layerName = $relay->layers[count($relay->layers)-1]->layer;
+		$layer = $relay->layers[count($relay->layers)-1];
+		$layerName = $layer->layer;
 		if (isset($this->relayProtocols[$layerName])) {
-			$secrets = $this->relayProtocols[$relay->layers[count($relay->layers)-1]->layer]->getSecrets();
-			$blob .= '<tab>Protocol: <highlight>' . $relay->layers[count($relay->layers)-1]->toString('protocol', $secrets) . "<end>\n";
+			$secrets = $this->relayProtocols[$layerName]->getSecrets();
+			$blob .= '<tab>Protocol: <highlight>' . $layer->toString('protocol', $secrets) . "<end>\n";
 		} else {
 			$blob .= "<tab>Protocol: <highlight>{$layerName}(<red>error<end>)<end>\n";
 		}
