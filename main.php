@@ -1,7 +1,5 @@
 <?php declare(strict_types=1);
 
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Support\Collection;
 
 /*
 xdebug_start_code_coverage(XDEBUG_CC_UNUSED);
@@ -27,60 +25,6 @@ if (!@file_exists(__DIR__ . '/vendor/autoload.php')) { // @phpstan-ignore-line
 }
 
 require 'vendor/autoload.php';
-
-/** @return list<TValue> */
-$toList = function (): array {
-	return array_values($this->map(static fn ($value) => $value instanceof Arrayable ? array_values($value->toArray()) : $value)->all());
-};
-Collection::macro('toList', $toList);
-
-/** @return TValue */
-$lastOrFail = function (): mixed {
-	$result = $this->last();
-	if (!isset($result)) {
-		throw new \Illuminate\Support\ItemNotFoundException();
-	}
-	return $result;
-};
-Collection::macro('lastOrFail', $lastOrFail);
-
-/** @return static<int,TValue> */
-$keyByInt = function (callable|array|string $keyBy): static {
-	return $this->keyBy($keyBy);
-};
-Collection::macro('keyByInt', $keyByInt);
-
-/** @return static<string,TValue> */
-$keyByString = function (callable|array|string $keyBy): static {
-	return $this->keyBy($keyBy);
-};
-Collection::macro('keyByString', $keyByString);
-
-/**
- * Get the int values of a given key.
- *
- * @param string|int|array<array-key, string> $value
- * @param null|string                         $key
- *
- * @return static<array-key, int>
- */
-$pluckInts = function ($value, $key=null): mixed {
-	return $this->pluck($value, $key);
-};
-Collection::macro('pluckInts', $pluckInts);
-
-/**
- * Get the string values of a given key.
- *
- * @param string|int|array<array-key, string> $value
- * @param null|string                         $key
- *
- * @return static<array-key, string>
- */
-$pluckStrings = function ($value, $key=null): mixed {
-	return $this->pluck($value, $key);
-};
-Collection::macro('pluckStrings', $pluckStrings);
 
 $runner = new Nadybot\Core\BotRunner($argv);
 $runner->run();

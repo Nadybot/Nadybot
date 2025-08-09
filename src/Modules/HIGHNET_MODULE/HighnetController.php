@@ -9,7 +9,11 @@ use function Safe\json_decode;
 use Closure;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
-use Illuminate\Support\Collection;
+use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
+use Nadybot\Core\Events\EventFeed\{JoinPackageEvent, LeavePackageEvent, MessagePackageEvent, RoomInfoPackageEvent};
+use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
+use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
+use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -17,6 +21,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\StrChoice,
 	Attributes\Parameter\WordStr,
 	CmdContext,
+	Collection,
 	CommandManager,
 	Config\BotConfig,
 	DB,
@@ -33,11 +38,6 @@ use Nadybot\Core\{
 	Types\EventFeedHandler,
 	Util,
 };
-use Nadybot\Core\DBSchema\{Route, RouteHopColor, RouteHopFormat};
-use Nadybot\Core\Events\EventFeed\{JoinPackageEvent, LeavePackageEvent, MessagePackageEvent, RoomInfoPackageEvent};
-use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
-use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
-use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\UuidInterface;
 use Revolt\EventLoop;

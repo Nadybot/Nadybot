@@ -6,10 +6,10 @@ use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Closure;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	Events\ConnectEvent,
 	Hydrator,
 	MessageHub,
@@ -269,7 +269,7 @@ class MobController extends ModuleInstance {
 		/** @var Collection<string,Collection<int,Mob>> */
 		$factions = (new Collection(array_values($this->mobs[Mob::T_HAG]??[])))
 			->sortBy('name')
-			->groupBy(static function (Mob $mob): string {
+			->groupByString(static function (Mob $mob): string {
 				return explode('-', $mob->key)[0];
 			});
 
@@ -321,7 +321,7 @@ class MobController extends ModuleInstance {
 		/** @var Collection<string,Collection<int,Mob>> */
 		$factions = (new Collection(array_values($this->mobs[Mob::T_DREAD]??[])))
 			->sortBy('name')
-			->groupBy(static function (Mob $mob) use ($sides): string {
+			->groupByString(static function (Mob $mob) use ($sides): string {
 				return $sides[$mob->key] ?? 'unknown';
 			});
 		if (isset($type)) {

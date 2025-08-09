@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Nadybot\Core\{Attributes as NCA, DBTable, Types\MessageEmitter};
+use Nadybot\Core\{Attributes as NCA, Collection, DBTable, Types\MessageEmitter};
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 use Nadybot\Modules\PVP_MODULE\Handlers\Base;
 use Ramsey\Uuid\{Uuid, UuidInterface};
@@ -56,7 +56,7 @@ class TrackerEntry extends DBTable implements MessageEmitter {
 
 	/** @param iterable<array-key,string> $events */
 	public static function encodeEvents(iterable $events): string {
-		return collect($events)->join(',');
+		return (new Collection($events))->join(',');
 	}
 
 	public function getChannelName(): string {

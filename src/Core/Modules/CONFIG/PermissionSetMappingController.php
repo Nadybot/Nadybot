@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\Str,
 	Attributes\Parameter\WordStr,
 	CmdContext,
+	Collection,
 	CommandManager,
 	DB,
 	DBSchema\CmdPermSetMapping,
@@ -52,7 +53,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		'to be treated as a command, along with some other flags.'
 	)]
 	public function cmdmapListCommand(CmdContext $context): void {
-		$srcs = collect($this->cmdManager->getSources());
+		$srcs = new Collection($this->cmdManager->getSources());
 		$maps = $this->cmdManager->getPermSetMappings();
 		$unusedSrcs = $srcs->filter(static function (string $source) use ($maps): bool {
 			foreach ($maps as $map) {
@@ -102,7 +103,7 @@ class PermissionSetMappingController extends ModuleInstance {
 			$context->reply("There is no permission set <highlight>{$permissionSet}<end>.");
 			return;
 		}
-		$srcValid = collect($this->cmdManager->getSources())
+		$srcValid = (new Collection($this->cmdManager->getSources()))
 			->filter(static function (string $mask) use ($source): bool {
 				return fnmatch($mask, $source, \FNM_CASEFOLD);
 			})->isNotEmpty();
@@ -142,7 +143,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		#[Str('list')] string $action,
 		#[Str('src', 'source', 'sources')] string $subAction,
 	): void {
-		$sources = collect($this->cmdManager->getSources())->sort();
+		$sources = (new Collection($this->cmdManager->getSources()))->sort();
 		$blob = "<header2>Registered sources<end>\n".
 			'<tab>' . $sources->join("\n<tab>");
 		$context->reply(
@@ -238,9 +239,11 @@ class PermissionSetMappingController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$choices = collect(explode(';', $row->options))->map(static function (string $option) use ($source): string {
-			return "<tab><highlight>{$option}<end> [" . Text::makeChatcmd('use this', "/tell <myname> cmdmap symbol set {$source} {$option}") . ']';
-		})->join("\n");
+		$choices = (new Collection(explode(';', $row->options)))
+			->map(static function (string $option) use ($source): string {
+				return "<tab><highlight>{$option}<end> [" . Text::makeChatcmd('use this', "/tell <myname> cmdmap symbol set {$source} {$option}") . ']';
+			})
+			->join("\n");
 		$context->reply(
 			Text::makeBlob(
 				"Choose a symbol for {$source}",

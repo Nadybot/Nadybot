@@ -6,9 +6,9 @@ use function Amp\async;
 use function Amp\Future\awaitAll;
 
 use Exception;
-use Illuminate\Support\Collection;
 use JsonException;
 use Monolog\Logger;
+use Nadybot\Core\Types\ParamType;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -27,7 +27,6 @@ use Nadybot\Core\{
 	Types\MessageEmitter,
 	Types\MessageReceiver,
 };
-use Nadybot\Core\Types\ParamType;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
@@ -297,7 +296,7 @@ class MessageHub {
 			throw new Exception(
 				'Unknown parameter' . (count($params) > 1 ? 's' : '').
 				' <highlight>'.
-				(collect(array_keys($params)))
+				(new Collection(array_keys($params)))
 					->join('<end>, <highlight>', '<end> and <highlight>').
 				"<end> to <highlight>{$name}<end>."
 			);

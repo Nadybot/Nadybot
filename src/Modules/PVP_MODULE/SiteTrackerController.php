@@ -2,11 +2,13 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
+use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
 	Attributes\Parameter\Str,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	Exceptions\UserException,
@@ -20,7 +22,6 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util
 };
-use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use Nadybot\Modules\PVP_MODULE\{
 	Attributes\Argument,
 	FeedMessage\SiteUpdate,
@@ -103,7 +104,7 @@ class SiteTrackerController extends ModuleInstance {
 			if (!$tracker->matches($site, $event)) {
 				continue;
 			}
-			$ignoreEvent = collect($tracker->events)->filter(
+			$ignoreEvent = (new Collection($tracker->events))->filter(
 				static fn (string $eventPattern): bool => fnmatch($eventPattern, $event, \FNM_CASEFOLD)
 			)->isEmpty();
 			if ($ignoreEvent) {
@@ -406,7 +407,7 @@ class SiteTrackerController extends ModuleInstance {
 			$config->events = ['*'];
 		}
 		foreach ($config->events as $eventPattern) {
-			$unknownEvent = collect(self::EVENTS)->filter(
+			$unknownEvent = (new Collection(self::EVENTS))->filter(
 				static fn (string $event): bool => fnmatch($eventPattern, $event, \FNM_CASEFOLD)
 			)->isEmpty();
 			if ($unknownEvent) {

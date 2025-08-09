@@ -3,11 +3,11 @@
 namespace Nadybot\Modules\ITEMS_MODULE;
 
 use BackedEnum;
-use Illuminate\Support\Collection;
 
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	DB,
 	ModuleInstance,
 	Safe,
@@ -308,8 +308,9 @@ class ItemsController extends ModuleInstance {
 			return true;
 		});
 
-		/** @var Collection<int,Collection<int,ItemSearchResult>> */
-		$groups = $data->groupBy('group_id');
+		$groups = $data->groupByInt('group_id');
+
+		/** @var array<int,bool> */
 		$groupsProcessed = [];
 
 		/** @var Collection<int,ItemSearchResult> */
@@ -317,11 +318,13 @@ class ItemsController extends ModuleInstance {
 		while (count($result) < $this->maxitems && $data->count() > 0) {
 			/** @var ItemSearchResult */
 			$nextItem = $data->shift(1);
-			if (!isset($nextItem->group_id) || !isset($groupsProcessed[$nextItem->group_id])) {
-				if (isset($nextItem->group_id)) {
-					/** @psalm-suppress PossiblyNullReference */
-					$result->push(...$groups->get($nextItem->group_id)->toArray());
-					$groupsProcessed[$nextItem->group_id] = true;
+			$groupId = $nextItem->group_id;
+			if (!isset($groupId) || !isset($groupsProcessed[$groupId])) {
+				if (isset($groupId)) {
+					/** @var Collection<int,ItemSearchResult> */
+					$empty = new Collection();
+					$result->push(...$groups->get($groupId, $empty)->toArray());
+					$groupsProcessed[$groupId] = true;
 				} else {
 					$result->push($nextItem);
 				}
@@ -333,7 +336,7 @@ class ItemsController extends ModuleInstance {
 	/** @param iterable<array-key,ItemSearchResult> $data */
 	public function createItemsBlob(iterable $data, string $search, ?int $ql, string $version, string $footer, mixed $elapsed=null): string {
 		/** @var Collection<int,ItemSearchResult> */
-		$data = collect($data);
+		$data = new Collection($data);
 		$numItems = count($data);
 		$groups = $data->map(static fn (ItemSearchResult $row): ?int => $row->group_id)
 			->filter()->unique()->count()
@@ -374,7 +377,7 @@ class ItemsController extends ModuleInstance {
 	public function formatSearchResults(iterable $data, ?int $ql, bool $showImages, ?string $search=null): string {
 		$list = '';
 		$oldGroup = null;
-		$data = collect($data);
+		$data = new Collection($data);
 		for ($itemNum = 0; $itemNum < count($data); $itemNum++) {
 			$row = $data[$itemNum];
 			$origName = $row->name;
@@ -629,7 +632,7 @@ class ItemsController extends ModuleInstance {
 	 * @return string The longest common string of all given words
 	 */
 	public function getLongestCommonStringOfWords(iterable $words): string {
-		$words = collect($words);
+		$words = new Collection($words);
 		if ($words->isEmpty()) {
 			return '';
 		}

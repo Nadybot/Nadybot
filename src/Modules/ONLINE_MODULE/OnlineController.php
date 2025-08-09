@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\ONLINE_MODULE;
 
 use Amp\Http\Server\{Request, Response};
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -11,6 +10,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\Str,
 	BuddylistManager,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	DBSchema\Player,
@@ -297,7 +297,7 @@ class OnlineController extends ModuleInstance {
 		CmdContext $context,
 		#[Str('hidden', 'hide')] string $action
 	): void {
-		$masks = collect($this->getHiddenPlayerMasks());
+		$masks = new Collection($this->getHiddenPlayerMasks());
 		$masks = $masks->sortBy('mask');
 
 		/** @var Collection<int,string> */
@@ -341,7 +341,7 @@ class OnlineController extends ModuleInstance {
 	): void {
 		$mask = strtolower($mask);
 
-		$masks = collect($this->getHiddenPlayerMasks());
+		$masks = new Collection($this->getHiddenPlayerMasks());
 		if ($masks->where('mask', $mask)->isNotEmpty()) {
 			$context->reply("The mask <highlight>{$mask}<end> is already hidden.");
 			return;
@@ -960,7 +960,7 @@ class OnlineController extends ModuleInstance {
 	/** @param iterable<array-key,OnlinePlayer> $players */
 	public function formatData(iterable $players, int $showOrgInfo, ?int $groupBy=null): OnlineList {
 		/** @var Collection<array-key,OnlinePlayer> */
-		$players = collect($players);
+		$players = new Collection($players);
 		$currentGroup = '';
 		$separator = '-';
 		$list = new OnlineList(

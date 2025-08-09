@@ -6,7 +6,6 @@ namespace Nadybot\Core\Modules\MESSAGES;
 
 use function Safe\json_encode;
 use Exception;
-use Illuminate\Support\Collection;
 use Monolog\Logger;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -16,6 +15,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\Str,
 	Channels\DiscordChannel,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	DBSchema\Route,
@@ -91,13 +91,11 @@ class MessageHubController extends ModuleInstance {
 
 	/** Load defined routes from the database and activate them */
 	public function loadRouting(): void {
-		/** @var Collection<array-key,Collection<int,RouteModifierArgument>> */
 		$arguments = $this->db->table(RouteModifierArgument::getTable())
 			->orderBy('id')
 			->asObj(RouteModifierArgument::class)
-			->groupBy('route_modifier_id');
+			->groupByString('route_modifier_id');
 
-		/** @var Collection<array-key,Collection<int,RouteModifier>> */
 		$modifiers = $this->db->table(RouteModifier::getTable())
 			->orderBy('id')
 			->asObj(RouteModifier::class)
@@ -106,7 +104,7 @@ class MessageHubController extends ModuleInstance {
 				$modArguments = $arguments->get($mod->id->toString(), new Collection())->toList();
 				$mod->arguments = $modArguments;
 			})
-			->groupBy('route_id');
+			->groupByString('route_id');
 		$this->db->table(Route::getTable())
 			->orderBy('id')
 			->asObj(Route::class)
@@ -254,7 +252,7 @@ class MessageHubController extends ModuleInstance {
 			return;
 		}
 
-		$senders = collect($this->messageHub->getEmitters());
+		$senders = new Collection($this->messageHub->getEmitters());
 		$hasSender = $senders->first(static function (MessageEmitter $e) use ($from): bool {
 			return fnmatch($e->getChannelName(), $from, \FNM_CASEFOLD)
 				|| fnmatch($from, $e->getChannelName(), \FNM_CASEFOLD);
@@ -342,9 +340,13 @@ class MessageHubController extends ModuleInstance {
 		$emitters = $this->messageHub->getEmitters();
 		$count = count($emitters);
 		ksort($emitters);
-		$emitters = collect($emitters);
+
+		/** @var Collection<string,MessageEmitter> */
+		$emitters = new Collection($emitters);
+
+		/** @psalm-suppress InvalidArgument */
 		$blob = $emitters
-			->groupBy($this->getEmitterType(...))
+			->groupByString($this->getEmitterType(...))
 			->map($this->renderEmitterGroup(...))
 			->join("\n\n");
 		$msg = Text::makeBlob("Message sources ({$count})", $blob);
@@ -361,11 +363,11 @@ class MessageHubController extends ModuleInstance {
 		$receivers = $this->messageHub->getReceivers();
 		$count = count($receivers);
 		ksort($receivers);
-		$receivers = collect($receivers);
+		$receivers = new Collection($receivers);
 
 		/** @psalm-suppress InvalidArgument */
 		$blob = $receivers
-			->groupBy($this->getEmitterType(...))
+			->groupByString($this->getEmitterType(...))
 			->map($this->renderEmitterGroup(...)) // @phpstan-ignore-line
 			->join("\n\n");
 		$msg = Text::makeBlob("Message targets ({$count})", $blob);
@@ -1149,7 +1151,7 @@ class MessageHubController extends ModuleInstance {
 	/**
 	 * Render a blob for an emitter group
 	 *
-	 * @param Collection<int,MessageEmitter> $values
+	 * @param Collection<array-key,MessageEmitter> $values
 	 */
 	public function renderEmitterGroup(Collection $values, string $group): string {
 		if ($group === Source::LOG) {

@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\COMMENT_MODULE\Migrations;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Collection,
 	DB,
 	Types\SchemaMigration,
 };

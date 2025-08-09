@@ -3,12 +3,13 @@
 namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Exception;
-use Illuminate\Support\Collection;
+use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	DBSchema\Player,
@@ -35,7 +36,6 @@ use Nadybot\Core\{
 	Types\TitleLevel,
 	Util,
 };
-use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
 use Nadybot\Modules\{
 	ORGLIST_MODULE\FindOrgController,
 	ORGLIST_MODULE\Organization,
@@ -660,7 +660,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
 		}
-		$orgs = collect($this->findOrgController->lookupOrg($orgName));
+		$orgs = new Collection($this->findOrgController->lookupOrg($orgName));
 		$count = $orgs->count();
 		if ($count === 0) {
 			$context->reply('No matches found.');
@@ -672,7 +672,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	public function formatOrglist(Organization ...$organizations): string {
-		$orgs = collect($organizations)->sortBy('name');
+		$orgs = (new Collection($organizations))->sortBy('name');
 		$blob = "<header2>Matching orgs<end>\n";
 		foreach ($orgs as $org) {
 			$addLink = Text::makeChatcmd('track', "/tell <myname> track addorg {$org->id}");
@@ -973,7 +973,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	 * @return string The blob for this group
 	 */
 	public function renderPlayerGroup(iterable $players, int $groupBy, bool $edit): string {
-		$players = collect($players)->sort(
+		$players = (new Collection($players))->sort(
 			static function (OnlineTrackedUser $p1, OnlineTrackedUser $p2): int {
 				return strnatcmp($p1->name, $p2->name);
 			}

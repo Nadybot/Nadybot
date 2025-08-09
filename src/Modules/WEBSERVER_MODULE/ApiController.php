@@ -5,7 +5,6 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Closure;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\Remove,
 	Attributes\Parameter\Str,
 	CmdContext,
+	Collection,
 	CommandHandler,
 	CommandManager,
 	DB,
@@ -100,7 +100,7 @@ class ApiController extends ModuleInstance {
 		}
 
 		/** @var Collection<string,Collection<int,ApiKey>> */
-		$grouped = $keys->groupBy('character');
+		$grouped = $keys->groupByString('character');
 		$blocks = $grouped
 			->map(static function (Collection $keys, string $character): string {
 				return "<header2>{$character}<end>\n".

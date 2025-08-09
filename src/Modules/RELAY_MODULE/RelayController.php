@@ -7,7 +7,6 @@ use function Safe\{json_decode, json_encode};
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
-use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Regexp, Remove, Str, WordStr};
 use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
 use Nadybot\Core\{
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	Attributes\Http,
 	ClassSpec,
 	CmdContext,
+	Collection,
 	CommandManager,
 	Config\BotConfig,
 	DB,
@@ -888,7 +888,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		$arguments = $this->db->table(RelayLayerArgument::getTable())
 			->orderBy('id')
 			->asObj(RelayLayerArgument::class)
-			->groupBy('layer_id');
+			->groupByString('layer_id');
 
 		/** @var Collection<string,Collection<int,RelayLayer>> */
 		$layers = $this->db->table(RelayLayer::getTable())
@@ -897,13 +897,13 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			->each(static function (RelayLayer $layer) use ($arguments): void {
 				$layer->arguments = $arguments->get($layer->id->toString(), new Collection())->toList();
 			})
-			->groupBy('relay_id');
+			->groupByString('relay_id');
 
 		/** @var Collection<string,Collection<int,RelayEvent>> */
 		$events = $this->db->table(RelayEvent::getTable())
 			->orderBy('id')
 			->asObj(RelayEvent::class)
-			->groupBy('relay_id');
+			->groupByString('relay_id');
 		$relays = $this->db->table(RelayConfig::getTable())
 			->orderBy('id')
 			->asObj(RelayConfig::class)
@@ -1015,7 +1015,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			throw new Exception(
 				'Unknown parameter' . (count($params) > 1 ? 's' : '').
 				' <highlight>'.
-				collect(array_keys($params))
+				(new Collection(array_keys($params)))
 					->join('<end>, <highlight>', '<end> and <highlight>').
 				"<end> to <highlight>{$name}<end>."
 			);
@@ -1549,6 +1549,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			->where('relay_id', $config->id)
 			->asObj(RelayProperty::class)
 			->keyByString('property');
+
 		$refClass = new ReflectionClass($relay);
 		foreach ($refClass->getProperties() as $refProp) {
 			foreach ($refProp->getAttributes(RelayProp::class) as $refAttr) {

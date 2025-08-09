@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\SYSTEM;
 use function Safe\{ini_get, unpack};
 
 use Amp\Http\Server\{Request, Response};
+use Nadybot\Core\Attributes\Hydrator\Confidential;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -13,6 +14,7 @@ use Nadybot\Core\{
 	BotRunner,
 	BuddylistManager,
 	CmdContext,
+	Collection,
 	CommandAlias,
 	CommandManager,
 	Config\BotConfig,
@@ -44,7 +46,6 @@ use Nadybot\Core\{
 	Types\Status,
 	Util,
 };
-use Nadybot\Core\Attributes\Hydrator\Confidential;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadylib\IMEX\{JSON, TOML};
 use Psr\Log\LoggerInterface;
@@ -339,14 +340,14 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$blob .= "<tab>Name: <highlight>{$info->basic->bot_name}<end>\n";
 		if (count($info->basic->workers)) {
 			$blob .= '<tab>Workers: <highlight>'.
-				collect($info->basic->workers)->join('<end>, <highlight>', '<end> and <highlight>').
+				(new Collection($info->basic->workers))->join('<end>, <highlight>', '<end> and <highlight>').
 				"<end>\n";
 		}
 		if (!count($info->basic->superadmins)) {
 			$blob .= "<tab>SuperAdmin: - <highlight>none<end> -\n";
 		} else {
 			$blob .= '<tab>SuperAdmin: <highlight>'.
-				collect($info->basic->superadmins)->join('<end>, <highlight>', '<end> and <highlight>').
+				(new Collection($info->basic->superadmins))->join('<end>, <highlight>', '<end> and <highlight>').
 				"<end>\n";
 		}
 		if (isset($info->basic->org)) {

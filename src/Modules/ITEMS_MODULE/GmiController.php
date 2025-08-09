@@ -4,12 +4,14 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 
 use function Safe\json_decode;
 
-use Amp\{CancelledException, TimeoutCancellation};
 use Amp\Http\Client\{HttpClientBuilder, Request};
+use Amp\{CancelledException, TimeoutCancellation};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
+use Nadybot\Core\Types\{AccessLevel, ItemFlag};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	Exceptions\UserException,
 	Hydrator,
 	ModuleInstance,
@@ -19,7 +21,6 @@ use Nadybot\Core\{
 	Types\AOItemSpec,
 	Util,
 };
-use Nadybot\Core\Types\{AccessLevel, ItemFlag};
 use Safe\Exceptions\JsonException;
 use Throwable;
 
@@ -187,7 +188,7 @@ class GmiController extends ModuleInstance {
 			$sellCutString = ' (top 10 only)';
 			$gmi->sellOrders = array_slice($gmi->sellOrders, 0, 10);
 		}
-		$orders = collect([...$gmi->buyOrders, ...$gmi->sellOrders]);
+		$orders = new Collection([...$gmi->buyOrders, ...$gmi->sellOrders]);
 		$highestAmount = (int)$orders->max(static fn (GmiBuyOrder|GmiSellOrder $item): int => $item->count);
 		$highestPrice = (int)$orders->max('price');
 		$buyers = "<header2>Buy orders{$buyCutString}<end>";

@@ -8,7 +8,6 @@ use function Amp\Future\await;
 use Amp\Pipeline\Pipeline;
 use AO\Utils;
 use Illuminate\Database\Query\JoinClause;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\DurationStr,
@@ -18,6 +17,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\Str,
 	Attributes\Parameter\StrChoice,
 	CmdContext,
+	Collection,
 	CommandManager,
 	Config\BotConfig,
 	DB,
@@ -39,14 +39,14 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util,
 };
+use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
+
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatAssistController,
 	COMMENT_MODULE\CommentCategory,
 	COMMENT_MODULE\CommentController,
 	WEBSERVER_MODULE\StatsController,
 };
-
-use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Safe\DateTimeImmutable;

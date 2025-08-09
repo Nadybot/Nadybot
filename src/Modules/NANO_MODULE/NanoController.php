@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Nadybot\Modules\NANO_MODULE;
 
 use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
 	CmdContext,
+	Collection,
 	CommandAlias,
 	DB,
 	Exceptions\UserException,
@@ -20,7 +21,6 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\Profession,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 
 /**
  * @author Nadyita (RK5)
@@ -435,7 +435,7 @@ class NanoController extends ModuleInstance {
 			}, []);
 
 		/** @var Collection<int,Nano> */
-		$bestNanos = collect(array_values($nanos));
+		$bestNanos = new Collection(array_values($nanos));
 		return $bestNanos;
 	}
 

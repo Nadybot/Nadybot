@@ -2,10 +2,11 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Illuminate\Support\Collection;
+use Nadybot\Core\Types\{AccessLevel, ImplantSlot, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	DB,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -13,7 +14,6 @@ use Nadybot\Core\{
 	Text,
 	Types\Profession,
 };
-use Nadybot\Core\Types\{AccessLevel, ImplantSlot, Skill};
 use Nadybot\Modules\ITEMS_MODULE\{
 	ExtBuff,
 	ItemWithBuffs,
@@ -114,7 +114,7 @@ class SymbiantController extends ModuleInstance {
 			foreach ($buffCounter as $skillName => $count) {
 				$colorStart = '';
 				$colorEnd = '';
-				$buffs = collect($item->buffs);
+				$buffs = new Collection($item->buffs);
 
 				/** @var ?ExtBuff */
 				$buff = $buffs->filter(static function (ExtBuff $buff) use ($skillName): bool {
@@ -209,15 +209,13 @@ class SymbiantController extends ModuleInstance {
 	/** Render a slot-grouped list of symbiants */
 	private function renderSymbiantBuffs(Symbiant ...$symbiants): string {
 		$result = [];
-		$symbs = collect($symbiants);
+		$symbs = new Collection($symbiants);
 
-		/** @var Collection<string,Collection<int,Symbiant>> */
-		$bySlot = $symbs->groupBy(static fn (Symbiant $s): string => $s->slot->longName());
+		$bySlot = $symbs->groupByString(static fn (Symbiant $s): string => $s->slot->longName());
 		foreach ($bySlot as $slotName => $slotSymbs) {
 			$lines = ["<tab><highlight>{$slotName}<end>"];
 
-			/** @var Collection<string,Collection<int,Symbiant>> */
-			$byUnit = $slotSymbs->groupBy('unit');
+			$byUnit = $slotSymbs->groupByString('unit');
 			foreach ($byUnit as $unitName => $unitSymbs) {
 				if ($unitName === '') {
 					$lines = array_merge(

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -47,7 +46,6 @@ class InactiveMemberController extends ModuleInstance {
 		$timeString = Util::unixtimeToReadable($time, false);
 		$time = time() - $time;
 
-		/** @var Collection<string,Collection<int,RecentOrgMember>> */
 		$members = $this->db->table(OrgMember::getTable())
 			->where('mode', '!=', 'del')
 			->orderByDesc('logged_off')
@@ -60,7 +58,7 @@ class InactiveMemberController extends ModuleInstance {
 					logged_off: $member->logged_off,
 				);
 			})
-			->groupBy('main')
+			->groupByString('main')
 			->sortKeys();
 		if (count($members) === 0) {
 			$context->reply('There are no members in the org roster.');

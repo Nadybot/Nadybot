@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	EventManager,
@@ -828,7 +829,7 @@ class RaffleController extends ModuleInstance {
 
 	/** @param iterable<array-key,RaffleResultItem> $result */
 	protected function resultIsUnambiguous(iterable $result): bool {
-		$points = collect($result)->map(
+		$points = (new Collection($result))->map(
 			static fn (RaffleResultItem $item): int => $item->points
 		);
 		return $points->count() === $points->unique()->count();

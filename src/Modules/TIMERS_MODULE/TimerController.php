@@ -3,13 +3,13 @@
 namespace Nadybot\Modules\TIMERS_MODULE;
 
 use Exception;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
 	Attributes\Parameter\Str,
 	CmdContext,
+	Collection,
 	DB,
 	EventManager,
 	Exceptions\SQLException,

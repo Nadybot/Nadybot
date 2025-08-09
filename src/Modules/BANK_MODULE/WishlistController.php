@@ -2,7 +2,8 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
-use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Quantity,
@@ -10,6 +11,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\Str,
 	BuddylistManager,
 	CmdContext,
+	Collection,
 	CommandManager,
 	DB,
 	Events\ConnectEvent,
@@ -23,8 +25,6 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Ramsey\Uuid\UuidInterface;
 use Throwable;
 
@@ -112,9 +112,8 @@ class WishlistController extends ModuleInstance {
 			})
 			->asObj(Wish::class);
 
-		/** @var Collection<string,Collection<int,Wish>> */
 		$wishlistGrouped = $this->addFulfilments($wishlist)
-			->groupBy(function (Wish $wish): string {
+			->groupByString(function (Wish $wish): string {
 				return $this->altsController->getMainOf($wish->created_by);
 			});
 		if ($wishlistGrouped->isEmpty()) {
@@ -206,8 +205,7 @@ class WishlistController extends ModuleInstance {
 		$altsWishlist = $altsQuery->asObj(Wish::class);
 		$wishlist = $sendersWishlist->concat($altsWishlist);
 
-		/** @var Collection<string,Collection<int,Wish>> */
-		$wishlistGrouped = $this->addFulfilments($wishlist)->groupBy('created_by');
+		$wishlistGrouped = $this->addFulfilments($wishlist)->groupByString('created_by');
 		if ($wishlistGrouped->isEmpty()) {
 			$context->reply('Your wishlist is empty.');
 			return;
@@ -290,9 +288,9 @@ class WishlistController extends ModuleInstance {
 			->asObj(Wish::class);
 
 		/** @var Collection<string,Collection<int,Wish>> */
-		$wishlistGrouped = $this->addFulfilments($wishlist)
-			->groupBy('created_by');
-		return $wishlistGrouped;
+		$result = $this->addFulfilments($wishlist)
+			->groupByString('created_by');
+		return $result;
 	}
 
 	/** Show someone else's wishlist */
@@ -321,7 +319,6 @@ class WishlistController extends ModuleInstance {
 			})
 			->asObj(Wish::class);
 
-		/** @var Collection<string,Collection<int,Wish>> */
 		$wishlistGrouped = $this->addFulfilments($wishlist)
 			->map(static function (Wish $w): Wish {
 				$w->amount = $w->getRemaining();
@@ -329,8 +326,9 @@ class WishlistController extends ModuleInstance {
 				return $w;
 			})
 			->filter(static fn (Wish $w): bool => $w->amount > 0)
-			->groupBy('created_by');
+			->groupByString('created_by');
 		$wishlistGrouped = $wishlistGrouped->sortBy(
+			/** @param Collection<int,Wish> $wishes */
 			static function (Collection $wishes, string $name) use ($char): string {
 				if ($char() === $name) {
 					return " {$name}";
@@ -343,6 +341,7 @@ class WishlistController extends ModuleInstance {
 			return;
 		}
 
+		/** @psalm-suppress InvalidArgument */
 		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
 		$msg = Text::makeBlob(
 			"{$char}'s wishlists ({$render->numItems})",
@@ -372,13 +371,13 @@ class WishlistController extends ModuleInstance {
 				return $w;
 			})
 			->filter(static fn (Wish $w): bool => $w->amount > 0 && !$w->isExpired())
-			->groupBy('created_by');
+			->groupByString('created_by');
 		if ($wishlistGrouped->isEmpty()) {
 			$context->reply("No one is wishing for {$what}.");
 			return;
 		}
 
-		/** @psalm-suppress PossiblyInvalidArgument */
+		/** @psalm-suppress InvalidArgument */
 		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
 		$msg = Text::makeBlob(
 			"Others' wishlists with '{$what}' ({$render->numItems})",

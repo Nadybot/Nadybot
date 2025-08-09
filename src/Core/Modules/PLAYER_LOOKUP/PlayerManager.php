@@ -13,9 +13,9 @@ use Amp\Http\Client\{
 use Amp\TimeoutCancellation;
 use AO\Utils;
 use DateTimeZone;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Collection,
 	Config\BotConfig,
 	DB,
 	DBSchema\Player,

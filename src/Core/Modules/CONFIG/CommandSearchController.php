@@ -2,11 +2,11 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	DB,
 	DBSchema\CmdCfg,
 	DBSchema\CmdPermission,
@@ -51,7 +51,7 @@ class CommandSearchController extends ModuleInstance {
 		$exactMatch = $commands->where('cmd', $search)->first();
 
 		if ($exactMatch) {
-			$results = collect([$exactMatch]);
+			$results = new Collection([$exactMatch]);
 			$exactMatch = true;
 		} else {
 			$exactMatch = true;
@@ -138,7 +138,7 @@ class CommandSearchController extends ModuleInstance {
 			->where('cmdevent', 'cmd')
 			->asObj(CommandSearchResult::class)
 			->each(static function (CommandSearchResult $cmd) use ($permissions): void {
-				$keyed = $permissions->get($cmd->cmd, new Collection())
+				$keyed = $permissions->get($cmd->cmd, new \Nadybot\Core\Collection())
 					->keyByString('permission_set');
 				$cmd->permissions = $keyed->toArray();
 			});

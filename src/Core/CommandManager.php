@@ -5,7 +5,6 @@ namespace Nadybot\Core;
 use Amp\Sync\KeyedMutex;
 use Exception;
 use Generator;
-use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -371,7 +370,7 @@ class CommandManager implements MessageEmitter {
 		$permissions = $permissionQuery->asObj(CmdPermission::class)
 			->groupBy('cmd');
 		$data->each(static function (CmdCfg $row) use ($permissions): void {
-			$keyed = $permissions->get($row->cmd, new Collection())
+			$keyed = $permissions->get($row->cmd, new \Nadybot\Core\Collection())
 				->keyByString('permission_set');
 			$row->permissions = $keyed->toArray();
 		});
@@ -423,7 +422,7 @@ class CommandManager implements MessageEmitter {
 	/** @return Collection<int,CmdPermSetMapping> */
 	public function getPermSetMappings(): Collection {
 		/** @var Collection<int,CmdPermSetMapping> */
-		$result = collect($this->permSetMappings);
+		$result = new Collection($this->permSetMappings);
 		return $result;
 	}
 
@@ -435,10 +434,9 @@ class CommandManager implements MessageEmitter {
 	 * @return Collection<int,CmdCfg>
 	 */
 	public function getAll(bool $includeSubcommands=false): Collection {
-		/** @var Collection<string,Collection<int,CmdPermission>> */
 		$permissions = $this->db->table(CmdPermission::getTable())
 			->asObj(CmdPermission::class)
-			->groupBy('cmd');
+			->groupByString('cmd');
 
 		$data = $this->db->table(CmdCfg::getTable())
 			->whereIn('cmdevent', $includeSubcommands ? ['cmd', 'subcmd'] : ['cmd'])
@@ -463,7 +461,7 @@ class CommandManager implements MessageEmitter {
 		/** @var Collection<string,Collection<int,CmdPermission>> */
 		$permissions = $this->db->table(CmdPermission::getTable())
 			->asObj(CmdPermission::class)
-			->groupBy('cmd');
+			->groupByString('cmd');
 
 		$data = $this->db->table(CmdCfg::getTable())
 			->whereIn('cmdevent', $includeSubcommands ? ['cmd', 'subcmd'] : ['cmd'])
@@ -1385,7 +1383,7 @@ class CommandManager implements MessageEmitter {
 		if (!$this->db->table(CmdPermissionSet::getTable())->where('name', $name)->exists()) {
 			throw new InvalidArgumentException("The permission set <highlight>{$name}<end> does not exist.");
 		}
-		$usedBy = collect($this->getSourcesForPermsetName($name));
+		$usedBy = new Collection($this->getSourcesForPermsetName($name));
 		if ($usedBy->count() > 0) {
 			throw new InvalidArgumentException(
 				"The permission set <highlight>{$name}<end> is still assigned to <highlight>".
@@ -1608,7 +1606,7 @@ class CommandManager implements MessageEmitter {
 		}
 
 		/** @var Collection<int,list<ReflectionMethod>> */
-		$result = collect(array_merge(array_values($lookup), $empty));
+		$result = new Collection(array_merge(array_values($lookup), $empty));
 		return $result;
 	}
 
@@ -1762,16 +1760,12 @@ class CommandManager implements MessageEmitter {
 		/**
 		 * @param list<ReflectionMethod> $refMethods
 		 */
-		$grouped = $sList->groupBy(static function (array $refMethods): string {
+		$grouped = $sList->groupByString(static function (array $refMethods): string {
 			if (!count($refMethods)) {
 				return '';
 			}
 
-			/**
-			 * @var \ReflectionAttribute<\Nadybot\Core\Attributes\HandlesCommand>[]
-			 *
-			 * @psalm-suppress MixedMethodCall
-			 */
+			/** @var \ReflectionAttribute<\Nadybot\Core\Attributes\HandlesCommand>[] */
 			$attrs = $refMethods[0]->getAttributes(NCA\HandlesCommand::class);
 			if (!count($attrs)) {
 				return '';

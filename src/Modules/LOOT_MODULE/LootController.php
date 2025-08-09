@@ -2,10 +2,11 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
-use Illuminate\Support\Collection;
+use Nadybot\Core\Attributes\Parameter\{NoSpace,NumberStr,Quantity,Remove,SpaceOptional,Str,StrChoice};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	CommandAlias,
 	CommandManager,
 	DB,
@@ -19,7 +20,6 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util,
 };
-use Nadybot\Core\Attributes\Parameter\{NoSpace,NumberStr,Quantity,Remove,SpaceOptional,Str,StrChoice};
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
 	ITEMS_MODULE\AODBEntry,
@@ -190,7 +190,7 @@ class LootController extends ModuleInstance {
 		$compressedList = $this->compressLootHistory($items);
 
 		/** @var Collection<int,Collection<int,LootHistory>> */
-		$rolls = $compressedList->groupBy('roll');
+		$rolls = $compressedList->groupByInt('roll');
 
 		/** @param Collection<int,LootHistory> $items */
 		$lines = $rolls->map(static function (Collection $items, int $roll): string {
@@ -936,7 +936,7 @@ class LootController extends ModuleInstance {
 
 		/** @var Collection<string,Collection<int,AODBEntry>> */
 		$itemsByBame =$this->itemsController->getByNames(...$data->pluckStrings('name')->toArray())
-			->groupBy('name');
+			->groupByString('name');
 		$data->each(static function (RaidLoot $loot) use ($itemsByBame): void {
 			$loot->item = $itemsByBame->get($loot->name)
 				?->where('lowql', '<=', $loot->ql)

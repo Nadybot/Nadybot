@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -148,7 +147,7 @@ class SubcommandManager {
 			->where('cmdevent', 'subcmd')
 			->asObj(CmdCfg::class)
 			->each(static function (CmdCfg $row) use ($permissions): void {
-				$keyed = $permissions->get($row->cmd, new Collection())->keyByString('permission_set');
+				$keyed = $permissions->get($row->cmd, new \Nadybot\Core\Collection())->keyByString('permission_set');
 				$row->permissions = $keyed->toArray();
 			})
 			->filter(static function (CmdCfg $cfg): bool {

@@ -8,11 +8,12 @@ use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
 use Amp\Pipeline\Pipeline;
 use DateInterval;
 use Exception;
-use Illuminate\Support\Collection;
 
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	Events\Event,
@@ -26,7 +27,6 @@ use Nadybot\Core\{
 	Types\Faction,
 	Types\Government,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Throwable;
@@ -142,7 +142,7 @@ class FindOrgController extends ModuleInstance {
 	/** @param iterable<array-key,Organization> $orgs */
 	public function formatResults(iterable $orgs): string {
 		$blob = "<header2>Matching orgs<end>\n";
-		$orgs = collect($orgs)->sort(static function (Organization $a, Organization $b): int {
+		$orgs = (new Collection($orgs))->sort(static function (Organization $a, Organization $b): int {
 			return strcasecmp($a->name, $b->name);
 		});
 		foreach ($orgs as $org) {

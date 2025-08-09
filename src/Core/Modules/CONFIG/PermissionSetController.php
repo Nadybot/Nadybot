@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\Str,
 	Attributes\Parameter\WordStr,
 	CmdContext,
+	Collection,
 	CommandManager,
 	DBSchema\ExtCmdPermissionSet,
 	ModuleInstance,
@@ -162,7 +163,7 @@ class PermissionSetController extends ModuleInstance {
 	protected function renderPermissionSet(ExtCmdPermissionSet $set): string {
 		$channelNames = '&lt;none&gt;';
 		if (count($set->mappings) > 0) {
-			$channelNames = collect($set->mappings)->pluckStrings('source')
+			$channelNames = (new Collection($set->mappings))->pluckStrings('source')
 				->join('<end>, <highlight>', '<end> and <highlight>');
 		}
 		$block = "<header2>{$set->name}<end>\n".

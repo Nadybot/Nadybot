@@ -6,12 +6,12 @@ use function Amp\async;
 use function Amp\Future\await;
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Regexp,
 	Attributes\Parameter\Str,
 	CmdContext,
+	Collection,
 	DB,
 	Exceptions\UserException,
 	Filesystem,
@@ -95,12 +95,11 @@ class BankController extends ModuleInstance {
 	): void {
 		$name = $char();
 
-		/** @var Collection<string,Collection<int,Bank>> */
 		$data = $this->db->table(Bank::getTable())
 			->where('player', $name)
 			->orderBy('container')
 			->asObj(Bank::class)
-			->groupBy('container');
+			->groupByString('container');
 		if ($data->count() === 0) {
 			$msg = "Could not find bank character <highlight>{$name}<end>.";
 			$context->reply($msg);
@@ -267,7 +266,7 @@ class BankController extends ModuleInstance {
 	/** @param iterable<array-key,string> $lines */
 	private function bankUpdate(iterable $lines): void {
 		// remove the header line
-		$lines = collect($lines)->skip(1);
+		$lines = (new Collection($lines))->skip(1);
 
 		$this->db->awaitBeginTransaction();
 		$this->db->table(Bank::getTable())->truncate();

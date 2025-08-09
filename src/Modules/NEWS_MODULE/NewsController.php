@@ -5,13 +5,13 @@ namespace Nadybot\Modules\NEWS_MODULE;
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
 	Attributes\Parameter\Remove,
 	Attributes\Parameter\Str,
 	CmdContext,
+	Collection,
 	DB,
 	EventManager,
 	Events\JoinMyPrivEvent,

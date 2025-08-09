@@ -2,11 +2,11 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	ModuleInstance,

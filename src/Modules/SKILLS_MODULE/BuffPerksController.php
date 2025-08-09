@@ -5,10 +5,10 @@ namespace Nadybot\Modules\SKILLS_MODULE;
 use function Amp\async;
 use function Amp\ByteStream\splitLines;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	DB,
 	Filesystem,
 	ModuleInstance,
@@ -265,7 +265,7 @@ class BuffPerksController extends ModuleInstance {
 	protected function showPerks(Profession $profession, int $level, ?string $breed, ?string $search, CommandReply $sendto): void {
 		$skill = null;
 		if ($search !== null) {
-			$skills = collect(Skill::getMatching($search))
+			$skills = (new Collection(Skill::getMatching($search)))
 				->sortBy(static fn (Skill $s): string => $s->fullName());
 			$count = count($skills);
 			if ($count === 0) {
@@ -297,7 +297,7 @@ class BuffPerksController extends ModuleInstance {
 		});
 		$perks = $perks->map(static function (Perk $perk) use ($profession, $level): Perk {
 			$p = clone $perk;
-			$p->levels = collect($p->levels)->filter(
+			$p->levels = (new Collection($p->levels))->filter(
 				static function (PerkLevel $pl) use ($profession, $level): bool {
 					return in_array($profession->value, $pl->professions, true)
 						&& $pl->required_level <= $level;
@@ -479,13 +479,13 @@ class BuffPerksController extends ModuleInstance {
 	 */
 	protected function aggregatePerk(Perk $perk): PerkAggregate {
 		/** @var int */
-		$minLevel = collect($perk->levels)->keys()->min();
+		$minLevel = (new Collection($perk->levels))->keys()->min();
 		$result = new PerkAggregate(
 			expansion: $perk->expansion,
 			name: $perk->name,
 			description: $perk->description,
 			professions: $perk->levels[$minLevel]->professions,
-			max_level: (int)collect($perk->levels)->keys()->max(),
+			max_level: (int)(new Collection($perk->levels))->keys()->max(),
 		);
 
 		/** @var array<int,int> */
@@ -525,7 +525,7 @@ class BuffPerksController extends ModuleInstance {
 		$dbVersion = $this->perksDBVersion;
 
 		$perkInfo = $this->getPerkInfo();
-		$this->perks = collect($perkInfo);
+		$this->perks = new Collection($perkInfo);
 		$empty = !$this->db->table(Perk::getTable())->exists();
 		if (($dbVersion >= $mtime) && !$empty) {
 			return;

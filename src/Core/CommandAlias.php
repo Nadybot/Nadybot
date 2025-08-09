@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\CmdAlias,

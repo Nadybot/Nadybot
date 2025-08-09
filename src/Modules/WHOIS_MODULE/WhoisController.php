@@ -6,12 +6,12 @@ use function Amp\async;
 use function Amp\Future\await;
 
 use AO\Package;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	AuditAction,
 	BuddylistManager,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	DBSchema\Audit,
@@ -307,9 +307,11 @@ class WhoisController extends ModuleInstance {
 	 */
 	private function getAuditBreakpoints(Collection $audits): Collection {
 		/** @var Collection<string,Collection<int,Audit>> */
-		$auditGroups = $audits->groupBy(static function (Audit $audit): string {
+		$auditGroups = $audits->groupByString(static function (Audit $audit): string {
 			return (string)$audit->time->getTimestamp();
 		});
+
+		/** @var array<string,bool> */
 		$rank = [];
 
 		/** @var Collection<int,Audit> */
