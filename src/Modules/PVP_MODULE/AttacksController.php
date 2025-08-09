@@ -2,12 +2,13 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\NonGreedy,
 	Attributes\Parameter\Str,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	DBSchema\Player,
@@ -26,7 +27,6 @@ use Nadybot\Core\{
 	Types\Playfield,
 	Util
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Modules\{
 	LEVEL_MODULE\LevelController,
 	PVP_MODULE\Event\TowerAttackInfoEvent,
@@ -744,7 +744,7 @@ class AttacksController extends ModuleInstance {
 	}
 
 	private function getMatchingAttack(Playfield $pf, string $attName, ?string $attOrgName): ?FeedMessage\TowerAttack {
-		$attacks = collect($this->nwCtrl->attacks)
+		$attacks = (new Collection($this->nwCtrl->attacks))
 			->where('playfield_id', $pf->value)
 			->whereNull('penalizing_ended')
 			->where('defender.name', $this->config->general->orgName);
@@ -760,7 +760,7 @@ class AttacksController extends ModuleInstance {
 		if (isset($attack)) {
 			return $this->nwCtrl->state[$attack->playfield->value][$attack->site_id] ?? null;
 		}
-		$sites = collect($this->nwCtrl->getEnabledSites())
+		$sites = (new Collection($this->nwCtrl->getEnabledSites()))
 			->where('playfield_id', $pf->value)
 			->where('org_id', $this->config->orgId);
 		// Actually, this can only happen with gas 5% or 25%, but if it's 1 site only
@@ -911,7 +911,7 @@ class AttacksController extends ModuleInstance {
 	 * @return Collection<string,Collection<int,DBTowerAttack>>
 	 */
 	private function groupAttackList(DBTowerAttack ...$towerAttacks): Collection {
-		$attacks = collect($towerAttacks)->sortByDesc('timestamp');
+		$attacks = (new Collection($towerAttacks))->sortByDesc('timestamp');
 		$firstAttack = $attacks->first();
 		$lastAttack = $attacks->last();
 
@@ -966,7 +966,7 @@ class AttacksController extends ModuleInstance {
 			}
 		}
 
-		$grouped = collect($attacks)->groupBy(
+		$grouped = (new Collection($attacks))->groupByString(
 			static function (DBTowerAttack $attack) use ($lookup): string {
 				$key = "{$attack->def_org}:{$attack->playfield->value}:{$attack->site_id}";
 				return $key . ':' . $lookup["{$key}:{$attack->timestamp}"];

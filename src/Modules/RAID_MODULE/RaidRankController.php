@@ -4,7 +4,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use function Amp\async;
 
-use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	AuditAction,
 	BuddylistManager,
 	CmdContext,
+	Collection,
 	CommandAlias,
 	DB,
 	DBSchema\Audit,
@@ -28,7 +29,6 @@ use Nadybot\Core\{
 	Types\CommandReply,
 	Types\Status,
 };
-use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Psr\Log\LoggerInterface;
 
 #[
@@ -453,7 +453,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$output = [];
 
 		/** @var Collection<string,Collection<int,RaidStat>> */
-		$raids = $stats->groupBy('starter_main');
+		$raids = $stats->groupByString('starter_main');
 		foreach ($names as $who) {
 			$line = "<tab>{$who}" . $this->getOnlineStatus($who);
 			if ($showStats) {

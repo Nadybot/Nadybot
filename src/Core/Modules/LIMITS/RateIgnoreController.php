@@ -3,10 +3,10 @@
 namespace Nadybot\Core\Modules\LIMITS;
 
 use AO\Utils;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	DB,
 	DBSchema\RateIgnoreList,
 	Exceptions\SQLException,

@@ -4,7 +4,6 @@ namespace Nadybot\Modules\COMMENT_MODULE;
 
 use Exception;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\Str,
 	Attributes\Parameter\WordStr,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	Exceptions\SQLException,

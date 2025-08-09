@@ -2,9 +2,8 @@
 
 namespace Nadybot\Modules\PVP_MODULE\Migrations;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, Types\Faction, Types\Playfield, Types\Profession, Types\SchemaMigration};
+use Nadybot\Core\{Collection, DB, Types\Faction, Types\Playfield, Types\Profession, Types\SchemaMigration};
 use Nadybot\Modules\PVP_MODULE\{DBOutcome, DBTowerAttack};
 use Psr\Log\LoggerInterface;
 

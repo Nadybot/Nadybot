@@ -3,11 +3,12 @@
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
 use AO\Package;
-use Illuminate\Support\Collection;
+use Nadybot\Core\Events\{ConnectEvent, ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	EventManager,
@@ -26,7 +27,6 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 };
-use Nadybot\Core\Events\{ConnectEvent, ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;

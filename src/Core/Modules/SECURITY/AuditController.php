@@ -7,11 +7,11 @@ use function Safe\strtotime;
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use AO\Utils;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
 	CmdContext,
+	Collection,
 	DB,
 	DBSchema\Audit,
 	ModuleInstance,

@@ -19,6 +19,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\StrChoice,
 	Blob,
 	CmdContext,
+	Collection,
 	Events\JoinMyPrivEvent,
 	Events\LogonEvent,
 	ModuleInstance,
@@ -174,7 +175,7 @@ class StartpageController extends ModuleInstance {
 	}
 
 	public function setTiles(string ...$tileNames): bool {
-		$coll = collect($tileNames)->unique();
+		$coll = (new Collection($tileNames))->unique();
 		if ($coll->count() !== count($tileNames)) {
 			throw new DuplicateTileException('You cannot display a news tile more than once.');
 		}
@@ -528,7 +529,7 @@ class StartpageController extends ModuleInstance {
 	protected function renderLayout(iterable $tiles): string {
 		$blobLines = [];
 		$i = 0;
-		$tiles = collect($tiles);
+		$tiles = new Collection($tiles);
 		foreach ($tiles as $name => $tile) {
 			$blobLines []= $this->getInsertLine($i);
 			$descrLink = Text::makeChatcmd('details', "/tell <myname> startpage describe {$name}");

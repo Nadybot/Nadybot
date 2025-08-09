@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core\Migrations;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Collection,
 	DB,
 	DBSchema\EventCfg,
 	EventManager,

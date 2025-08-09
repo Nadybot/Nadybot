@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	DB,
 	ModuleInstance,
 	Text,
@@ -146,7 +146,7 @@ class HelpbotController extends ModuleInstance {
 
 		/** @var Collection<string,Collection<int,DynaDB>> */
 		$data = $data
-			->groupBy(static fn (DynaDB $search): string => $search->playfield->long())
+			->groupByString(static fn (DynaDB $search): string => $search->playfield->long())
 			->sortKeys();
 
 		foreach ($data as $pfName => $rows) {

@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
-use Illuminate\Support\Collection;
-use Nadybot\Core\{Attributes\DB, DBTable};
+use Nadybot\Core\{Attributes\DB, Collection, DBTable};
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
 

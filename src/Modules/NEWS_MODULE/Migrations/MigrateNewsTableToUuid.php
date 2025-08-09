@@ -3,9 +3,8 @@
 namespace Nadybot\Modules\NEWS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\{Collection, DB, Types\SchemaMigration};
 use Nadybot\Modules\NEWS_MODULE\{News, NewsConfirmed};
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\{Uuid, UuidInterface};

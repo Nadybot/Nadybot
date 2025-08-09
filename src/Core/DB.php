@@ -17,7 +17,6 @@ use Illuminate\Database\{
 	Query\Builder,
 	Schema\Blueprint,
 };
-use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -592,11 +591,12 @@ class DB {
 
 	/** Run one or more migrations in the given order */
 	public function runMigrations(CoreMigration ...$migrations): void {
-		$toRun = collect($migrations);
+		/** @var Collection<int,CoreMigration> */
+		$toRun = new Collection($migrations);
 		$this->createMigrationTables();
 
 		/** @var Collection<string,Collection<int,CoreMigration>> */
-		$groupedMigs = $toRun->groupBy('module');
+		$groupedMigs = $toRun->groupByString('module');
 
 		/**
 		 * @var Collection<int,CoreMigration>

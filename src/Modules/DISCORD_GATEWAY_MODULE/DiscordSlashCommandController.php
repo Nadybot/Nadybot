@@ -2,13 +2,20 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\DISCORD\{
+	ApplicationCommand,
+	ApplicationCommandOption,
+	DiscordAPIClient,
+	DiscordChannel,
+	DiscordException
+};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
 	Attributes\Parameter\Str,
 	Attributes\Parameter\WordStr,
 	CmdContext,
+	Collection,
 	CommandManager,
 	DB,
 	DBSchema\CmdCfg,
@@ -26,13 +33,6 @@ use Nadybot\Core\{
 	Safe,
 	Text,
 	Types\AccessLevel,
-};
-use Nadybot\Core\Modules\DISCORD\{
-	ApplicationCommand,
-	ApplicationCommandOption,
-	DiscordAPIClient,
-	DiscordChannel,
-	DiscordException
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Interaction;
 use Psr\Log\LoggerInterface;
@@ -182,7 +182,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			->orderBy('cmd')
 			->pluckStrings('cmd')
 			->toArray();
-		$newCommands = collect($commands)
+		$newCommands = (new Collection($commands))
 			->map(static function (string $cmd): string {
 				return strtolower($cmd);
 			})
@@ -257,7 +257,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			->orderBy('cmd')
 			->pluckStrings('cmd')
 			->toArray();
-		$delCommands = collect($commands)
+		$delCommands = (new Collection($commands))
 			->map(static function (string $cmd): string {
 				return strtolower($cmd);
 			})
@@ -307,16 +307,13 @@ class DiscordSlashCommandController extends ModuleInstance {
 			->pluckStrings('cmd')
 			->toList();
 
-		/** @var Collection<int,CmdCfg> */
 		$cmds = new Collection($this->cmdManager->getAll(false));
 
-		/** @var Collection<string,Collection<int,CmdCfg>> */
 		$groupedCmds = $cmds->sortBy('module')
 			->filter(static function (CmdCfg $cmd) use ($exposedCmds): bool {
 				return !in_array($cmd->cmd, $exposedCmds, true);
-			})->groupBy('module');
+			})->groupByString('module');
 
-		/** @param Collection<int,CmdCfg> $cmds */
 		$parts = $groupedCmds->map(static function (Collection $cmds, string $module): string {
 			$lines = $cmds->sortBy('cmd')->map(static function (CmdCfg $cmd): string {
 				$addLink = Text::makeChatcmd(
@@ -416,13 +413,13 @@ class DiscordSlashCommandController extends ModuleInstance {
 	 */
 	private function updateSlashCommands(iterable $registeredCmds): void {
 		/** @var Collection<int,ApplicationCommand> */
-		$registeredCmds = collect($registeredCmds);
+		$registeredCmds = new Collection($registeredCmds);
 		$this->logger->info('{count} Slash-commands already registered', [
 			'count' => $registeredCmds->count(),
 		]);
 
 		/** @var Collection<int,ApplicationCommand> */
-		$commands = collect($this->calcSlashCommands());
+		$commands = new Collection($this->calcSlashCommands());
 
 		$numModifiedCommands = $this->getNumChangedSlashCommands($registeredCmds, $commands);
 		$this->logger->info('{count} Slash-commands need (re-)registering', [

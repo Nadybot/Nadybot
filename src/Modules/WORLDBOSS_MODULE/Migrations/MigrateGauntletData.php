@@ -2,21 +2,21 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations;
 
-use Illuminate\Support\Collection;
+use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Collection,
 	DB,
 	Routing\Character,
 	Safe,
 	Types\SchemaMigration,
 };
-use Nadybot\Core\DBSchema\Route;
+use Nadybot\Modules\TIMERS_MODULE\Timer;
 use Nadybot\Modules\{
 	TIMERS_MODULE\TimerController,
 	WORLDBOSS_MODULE\GauntletInventoryController,
 	WORLDBOSS_MODULE\WorldBossController,
 };
-use Nadybot\Modules\TIMERS_MODULE\Timer;
 use Psr\Log\LoggerInterface;
 use stdClass;
 

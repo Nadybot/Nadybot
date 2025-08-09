@@ -3,7 +3,10 @@
 namespace Nadybot\Modules\FUN_MODULE;
 
 use AO\Utils;
-use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\{
+	ALTS\AltsController,
+	PLAYER_LOOKUP\PlayerManager,
+};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -11,6 +14,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\Str,
 	Attributes\Parameter\StrChoice,
 	CmdContext,
+	Collection,
 	DB,
 	DBSchema\Alt,
 	ModuleInstance,
@@ -18,10 +22,6 @@ use Nadybot\Core\{
 	Safe,
 	Text,
 	Types\AccessLevel,
-};
-use Nadybot\Core\Modules\{
-	ALTS\AltsController,
-	PLAYER_LOOKUP\PlayerManager,
 };
 
 /**

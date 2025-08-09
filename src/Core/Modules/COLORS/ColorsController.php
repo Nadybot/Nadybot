@@ -4,12 +4,12 @@ namespace Nadybot\Core\Modules\COLORS;
 
 use function Safe\json_decode;
 use Exception;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
 	Attributes\Setting\Color,
 	CmdContext,
+	Collection,
 	DB,
 	DBSchema\RouteHopColor,
 	Filesystem,

@@ -4,10 +4,11 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Closure;
 use Generator;
-use Illuminate\Support\Collection;
+use Nadybot\Core\Types\{AccessLevel, CarrySlot, EnumBitfield, ItemFlag, Skill, WearSlot};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	CommandManager,
 	DB,
 	ModuleInstance,
@@ -19,7 +20,6 @@ use Nadybot\Core\{
 	Types\Profession,
 	Util,
 };
-use Nadybot\Core\Types\{AccessLevel, CarrySlot, EnumBitfield, ItemFlag, Skill, WearSlot};
 use Nadybot\Modules\SKILLS_MODULE\{
 	BuffPerksController,
 	Perk,
@@ -527,7 +527,7 @@ class WhatBuffsController extends ModuleInstance {
 		$itemMapping = [];
 		$maxQL = [];
 		$maxAmount = [];
-		$items = collect($items);
+		$items = new Collection($items);
 		foreach ($items as $item) {
 			if ($item->amount === $item->low_amount) {
 				$item->highql = $item->lowql;
@@ -670,7 +670,7 @@ class WhatBuffsController extends ModuleInstance {
 
 	/** @param iterable<array-key,NanoBuffSearchResult> $items */
 	public function formatBuffs(iterable $items, Skill $skill): RenderedList {
-		$items = collect($items)->filter(
+		$items = (new Collection($items))->filter(
 			static function (NanoBuffSearchResult $nano): bool {
 				return !Safe::pregMatches("/^Composite .+ Expertise \(\d hours\)$/", $nano->name);
 			}

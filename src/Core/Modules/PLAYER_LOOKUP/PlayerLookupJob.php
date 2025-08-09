@@ -5,15 +5,15 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 use function Amp\delay;
 
 use Amp\Pipeline\Pipeline;
-use Illuminate\Support\Collection;
+use Nadybot\Core\DBSchema\Alt;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Collection,
 	DB,
 	DBSchema\Player,
 	Nadybot,
 	QueryBuilder,
 };
-use Nadybot\Core\DBSchema\Alt;
 use Psr\Log\LoggerInterface;
 use Throwable;
 

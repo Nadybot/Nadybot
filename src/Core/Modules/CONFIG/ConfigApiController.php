@@ -5,10 +5,10 @@ namespace Nadybot\Core\Modules\CONFIG;
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
+	Collection,
 	CommandManager,
 	Config\BotConfig,
 	DB,
@@ -836,7 +836,7 @@ class ConfigApiController extends ModuleInstance {
 
 	protected function getCmdSource(string $sourceName): ?CmdSource {
 		$sourceName = strtolower($sourceName);
-		$sources = collect($this->commandManager->getSources());
+		$sources = new Collection($this->commandManager->getSources());
 		$source = $sources->first(static function (string $source) use ($sourceName): bool {
 			return Safe::pregReplace("/\(.+$/", '', $source) === $sourceName;
 		});

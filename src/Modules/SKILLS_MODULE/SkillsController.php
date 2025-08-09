@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	DB,
 	ModuleInstance,
 	ParamClass\PItem,

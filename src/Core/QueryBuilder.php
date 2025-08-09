@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Exception;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\{Arr, Collection};
+use Illuminate\Support\Arr;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
@@ -106,7 +106,6 @@ class QueryBuilder extends Builder {
 	 * @psalm-return list<T>
 	 */
 	public function asObjArr(string $class): array {
-		/** @var Collection<int,T> */
 		$result = $this->fetchAll($class);
 		return $result->toList();
 	}
@@ -120,7 +119,7 @@ class QueryBuilder extends Builder {
 	 */
 	public function pluckStrings(string $column): Collection {
 		/** @var Collection<int,mixed> */
-		$colValues = $this->pluck($column);
+		$colValues = new Collection($this->pluck($column));
 		return $colValues->map(static function (mixed $value, int $key): string {
 			return (string)$value;
 		});
@@ -135,7 +134,7 @@ class QueryBuilder extends Builder {
 	 */
 	public function pluckInts(string $column): Collection {
 		/** @var Collection<int,mixed> */
-		$colValues = $this->pluck($column);
+		$colValues = new Collection($this->pluck($column));
 		return $colValues->map(static function (mixed $value, int $key): int {
 			return (int)$value;
 		});
@@ -357,6 +356,22 @@ class QueryBuilder extends Builder {
 		);
 	}
 
+	/**
+	 * Execute the query as a "select" statement.
+	 *
+	 * @param mixed[]|string $columns
+	 *
+	 * @return Collection<int,mixed>
+	 *
+	 * @psalm-suppress MixedReturnTypeCoercion
+	 */
+	public function get($columns=['*']): Collection {
+		/** @psalm-suppress MixedArgument */
+		return new Collection($this->onceWithColumns(Arr::wrap($columns), function (): array {
+			return $this->processor->processSelect($this, $this->runSelect());
+		}));
+	}
+
 	/** get the name of the variable type, or `null` if none, or more than one */
 	protected function guessVarTypeFromReflection(ReflectionParameter $refParam): ?string {
 		$refType = $refParam->getType();
@@ -507,11 +522,11 @@ class QueryBuilder extends Builder {
 			throw new SQLException(message: $e->getMessage(), previous: $e);
 		}
 		if ($data->isEmpty()) {
-			/** @var Collection<int,T> $data */
-			return $data;
+			/** @var Collection<int,T> */
+			$empty = new Collection();
+			return $empty;
 		}
 
-		/** @var Collection<int,\stdClass> $data */
 		if (!class_exists($cacheClass, false)) {
 			$this->compileForClass($className);
 		}

@@ -6,6 +6,7 @@ use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	CommandManager,
 	DBSchema\CmdCfg,
 	ModuleInstance,
@@ -41,7 +42,7 @@ class CommandlistController extends ModuleInstance {
 				return;
 			}
 			$cmds = $cmds->filter(static function (CmdCfg $cmd) use ($alEnum): bool {
-				$cmd->permissions = (collect($cmd->permissions))->where('access_level', $alEnum)
+				$cmd->permissions = (new Collection($cmd->permissions))->where('access_level', $alEnum)
 					->toArray();
 				return count($cmd->permissions) > 0;
 			});
@@ -56,7 +57,7 @@ class CommandlistController extends ModuleInstance {
 		$isMod = $this->accessManager->checkAccess($context->char->name, AccessLevel::Mod);
 		$lines = [];
 		foreach ($cmds as $cmd) {
-			$perms = collect($cmd->permissions);
+			$perms = new Collection($cmd->permissions);
 			$numEnabled = $perms->where('enabled', true)->count();
 			$numDisabled = $perms->where('enabled', false)->count();
 

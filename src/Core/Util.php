@@ -6,7 +6,6 @@ use function Safe\{date, getcwd};
 use Amp\File\FilesystemException;
 use BackedEnum;
 use Exception;
-use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -289,11 +288,11 @@ class Util {
 	 */
 	public function getFilesInDirectory(string $path): Collection {
 		try {
-			$files = collect($this->fs->listFiles($path));
+			$files = new Collection($this->fs->listFiles($path));
 		} catch (FilesystemException) {
 			/** @var array<int,string> $empty */
 			$empty = [];
-			return collect($empty);
+			return new Collection($empty);
 		}
 
 		/** @var Collection<int,string> */

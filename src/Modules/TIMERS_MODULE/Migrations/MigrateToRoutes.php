@@ -3,9 +3,9 @@
 namespace Nadybot\Modules\TIMERS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Collection,
 	DB,
 	DBSchema\Route,
 	DBSchema\Setting,

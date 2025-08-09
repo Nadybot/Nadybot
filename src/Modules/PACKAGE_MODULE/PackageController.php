@@ -7,7 +7,6 @@ use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\TimeoutCancellation;
 use DateInterval;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	BotRunner,
 	ClassLoader,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	Exceptions\UserException,
@@ -120,7 +120,7 @@ class PackageController extends ModuleInstance {
 		/** @var array<string,PackageGroup> */
 		$groupedPackages = [];
 
-		$packages = collect($packages);
+		$packages = new Collection($packages);
 		if (!count($packages)) {
 			return 'There are currently no packages available for Nadybot.';
 		}
@@ -220,7 +220,7 @@ class PackageController extends ModuleInstance {
 			$context->reply("There was an error retrieving information about {$packageName}.");
 			return;
 		}
-		$packages = collect($packages);
+		$packages = new Collection($packages);
 		$firstPackage = $packages->first();
 		if (!isset($firstPackage)) {
 			$context->reply("{$packageName} is not compatible with Nadybot.");
@@ -770,7 +770,7 @@ class PackageController extends ModuleInstance {
 
 	/** @param iterable<array-key,Package> $packages */
 	private function getPackageDetail(iterable $packages): string {
-		$packages = collect($packages);
+		$packages = new Collection($packages);
 		$firstPackage = $packages->first();
 		if (!isset($firstPackage)) {
 			return 'This package is not compatible with Nadybot.';
@@ -834,7 +834,7 @@ class PackageController extends ModuleInstance {
 	 * @param iterable<array-key,Package> $packages
 	 */
 	private function getHighestCompatibleVersion(iterable $packages, PackageAction $cmd): SemanticVersion {
-		$packages = collect($packages);
+		$packages = new Collection($packages);
 		$package = $packages->firstOrFail();
 		if ($package->state === static::BUILT_INT) {
 			throw new UserException(

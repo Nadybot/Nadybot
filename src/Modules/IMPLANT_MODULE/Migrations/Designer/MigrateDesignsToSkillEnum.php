@@ -4,9 +4,8 @@ namespace Nadybot\Modules\IMPLANT_MODULE\Migrations\Designer;
 
 use function Safe\{json_decode, json_encode};
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\{Collection, DB, Types\SchemaMigration};
 use Nadybot\Modules\IMPLANT_MODULE\{Cluster, ImplantDesign};
 use Psr\Log\LoggerInterface;
 

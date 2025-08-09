@@ -2,9 +2,8 @@
 
 namespace Nadybot\Modules\WHEREIS_MODULE;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes\DB\{Ignore, PK, Shared, Table};
-use Nadybot\Core\DBTable;
+use Nadybot\Core\{Collection, DBTable};
 
 #[Table(name: 'spawntime', shared: Shared::Yes)]
 class Spawntime extends DBTable {

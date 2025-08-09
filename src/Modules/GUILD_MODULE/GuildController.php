@@ -3,12 +3,12 @@
 namespace Nadybot\Modules\GUILD_MODULE;
 
 use AO\Utils;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	DBSchema\Player,
@@ -343,8 +343,7 @@ class GuildController extends ModuleInstance {
 			return;
 		}
 
-		/** @var Collection<string,Collection<int,RecentOrgMember>> */
-		$members = $members->groupBy('main');
+		$members = $members->groupByString('main');
 
 		$numRecentCount = 0;
 		$highlight = false;

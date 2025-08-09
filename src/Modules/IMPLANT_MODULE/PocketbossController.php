@@ -2,11 +2,10 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Illuminate\Support\Collection;
-
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	DB,
 	ModuleInstance,
 	Safe,
@@ -278,7 +277,7 @@ class PocketbossController extends ModuleInstance {
 		$blob = "Click '[add]' to add symbiant to {$implantDesignerLink}.\n\n";
 
 		/** @var Collection<int,Collection<int,Pocketboss>> */
-		$groupedData = $data->groupBy('itemid');
+		$groupedData = $data->groupByInt('itemid');
 
 		/** @param Collection<int,Pocketboss> $rows */
 		$blob = $groupedData->map(function (Collection $rows, int $itemid) use (&$impDesignSlot): string {

@@ -2,24 +2,42 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Amp\{async, delay};
 use function Amp\Future\await;
+use function Amp\{async, delay};
 use function Safe\{array_flip, json_decode, json_encode};
 
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
-use Amp\Http\Client\{HttpClientBuilder, HttpException};
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
+use Amp\Http\Client\{HttpClientBuilder, HttpException};
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, WebsocketConnection, WebsocketHandshake};
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException, WebsocketCount};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Illuminate\Support\ItemNotFoundException;
+use Nadybot\Core\Modules\DISCORD\{
+	Activity,
+	DiscordAPIClient,
+	DiscordChannel,
+	DiscordChannelInvite,
+	DiscordController,
+	DiscordEmbed,
+	DiscordException,
+	DiscordGateway,
+	DiscordMessageIn,
+	DiscordScheduledEvent,
+	DiscordUser,
+	Emoji,
+	Guild,
+	GuildMemberChunk,
+	VoiceState,
+};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
 	Channels\DiscordChannel as RoutedChannel,
 	Channels\DiscordMsg,
 	CmdContext,
+	Collection,
 	CommandManager,
 	DB,
 	EventManager,
@@ -41,23 +59,6 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\Status,
 	Util,
-};
-use Nadybot\Core\Modules\DISCORD\{
-	Activity,
-	DiscordAPIClient,
-	DiscordChannel,
-	DiscordChannelInvite,
-	DiscordController,
-	DiscordEmbed,
-	DiscordException,
-	DiscordGateway,
-	DiscordMessageIn,
-	DiscordScheduledEvent,
-	DiscordUser,
-	Emoji,
-	Guild,
-	GuildMemberChunk,
-	VoiceState,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	CloseEvents,
@@ -1857,7 +1858,7 @@ class DiscordGatewayController extends ModuleInstance {
 						'guild' => $guild->name,
 					]);
 					$this->db->table(DBEmoji::getTable())->delete($emoji->id);
-					$guild->emojis = collect($guild->emojis)
+					$guild->emojis = (new Collection($guild->emojis))
 						->where('id', '!=', $emoji->emoji_id)
 						->toList();
 				}
@@ -1889,7 +1890,7 @@ class DiscordGatewayController extends ModuleInstance {
 					base64_encode($content);
 
 				/** @var ?Emoji */
-				$oldEmoji = collect($guild->emojis)
+				$oldEmoji = (new Collection($guild->emojis))
 					->where('name', $info['filename'])
 					->first();
 
@@ -1901,7 +1902,7 @@ class DiscordGatewayController extends ModuleInstance {
 						'emoji' => $oldEmoji->name,
 						'guild' => $guild->name,
 					]);
-					$guild->emojis = collect($guild->emojis)
+					$guild->emojis = (new Collection($guild->emojis))
 						->where('id', '!=', $oldEmoji->id)
 						->toList();
 					unset($oldEmoji);

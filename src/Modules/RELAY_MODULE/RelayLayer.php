@@ -54,7 +54,11 @@ class RelayLayer extends DBTable {
 		$result = [];
 		return array_reduce(
 			$this->arguments,
-			/** @param array<string,string> $kv */
+			/**
+			 * @param array<string,string> $kv
+			 *
+			 * @return array<string,string>
+			 */
 			static function (array $kv, RelayLayerArgument $argument): array {
 				$kv[$argument->name] = $argument->value;
 				return $kv;

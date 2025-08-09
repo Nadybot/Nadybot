@@ -3,7 +3,13 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Exception;
-use Illuminate\Support\Collection;
+use Nadybot\Core\DBSchema\{
+	CmdCfg,
+	CmdPermission,
+	CmdPermissionSet,
+	EventCfg,
+	Setting,
+};
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -12,6 +18,7 @@ use Nadybot\Core\{
 	Attributes\Parameter\WordStr,
 	ClassLoader,
 	CmdContext,
+	Collection,
 	CommandAlias,
 	CommandManager,
 	DB,
@@ -29,13 +36,6 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\ModuleInstanceInterface,
 	Types\Status,
-};
-use Nadybot\Core\DBSchema\{
-	CmdCfg,
-	CmdPermission,
-	CmdPermissionSet,
-	EventCfg,
-	Setting,
 };
 use ReflectionClass;
 use ValueError;
@@ -376,7 +376,7 @@ class ConfigController extends ModuleInstance {
 		}
 		if ($permissionSet !== 'all') {
 			$commands = $commands->filter(static function (CmdCfg $cfg) use ($permissionSet): bool {
-				$cfg->permissions = collect($cfg->permissions)
+				$cfg->permissions = (new Collection($cfg->permissions))
 					->where('permission_set', $permissionSet)->toArray();
 				return !(!count($cfg->permissions));
 			});
@@ -602,7 +602,7 @@ class ConfigController extends ModuleInstance {
 		if (!isset($path)) {
 			return null;
 		}
-		$file = collect($this->fs->listFiles($path))->first(
+		$file = (new Collection($this->fs->listFiles($path)))->first(
 			static fn (string $file): bool => strtolower($file) === 'readme.txt'
 		);
 		if (!isset($file)) {
@@ -873,8 +873,7 @@ class ConfigController extends ModuleInstance {
 		$data = $outerQuery->asObj(ModuleStats::class)->keyByString('module');
 
 		/** @var Collection<string,Collection<int,CmdCfg>> */
-		$commands = $this->commandManager->getAll()
-			->groupBy('module');
+		$commands = $this->commandManager->getAll()->groupByString('module');
 		$result = [];
 
 		foreach ($modules as $module => $dummy) {
@@ -891,11 +890,13 @@ class ConfigController extends ModuleInstance {
 			if ($moduleCmds->isNotEmpty()) {
 				$numCommandsEnabled = $moduleCmds
 					->reduce(static function (int $enabled, CmdCfg $cfg): int {
-						return $enabled + collect($cfg->permissions)->where('enabled', true)->count();
+						return $enabled + (new Collection($cfg->permissions))
+							->where('enabled', true)->count();
 					}, 0);
 				$numCommandsDisabled = $moduleCmds
 					->reduce(static function (int $disabled, CmdCfg $cfg): int {
-						return $disabled + collect($cfg->permissions)->where('enabled', false)->count();
+						return $disabled + (new Collection($cfg->permissions))
+							->where('enabled', false)->count();
 					}, 0);
 			}
 			$result []= new ConfigModule(
@@ -1028,7 +1029,7 @@ class ConfigController extends ModuleInstance {
 			->asObj(CmdPermission::class)
 			->groupBy('cmd');
 		$commands->each(static function (CmdCfg $row) use ($permissions): void {
-			$tmp = $permissions->get($row->cmd, new Collection())
+			$tmp = $permissions->get($row->cmd, new \Nadybot\Core\Collection())
 				->keyByString('permission_set');
 			$row->permissions = $tmp->toArray();
 		});

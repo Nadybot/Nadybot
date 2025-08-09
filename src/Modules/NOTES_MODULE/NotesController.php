@@ -2,11 +2,13 @@
 
 namespace Nadybot\Modules\NOTES_MODULE;
 
+use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter as Par,
 	BuddylistManager,
 	CmdContext,
+	Collection,
 	CommandAlias,
 	CommandManager,
 	DB,
@@ -20,7 +22,6 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 };
-use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -319,7 +320,7 @@ class NotesController extends ModuleInstance {
 	 * @return string The rendered message
 	 */
 	public function getReminderMessage(string $format, iterable $notes): string {
-		$notes = collect($notes);
+		$notes = new Collection($notes);
 		if ($format === static::FORMAT_GROUPED) {
 			$msgs = $notes->map(
 				static function (Note $note): string {

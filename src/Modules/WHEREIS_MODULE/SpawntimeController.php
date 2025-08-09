@@ -3,10 +3,10 @@
 namespace Nadybot\Modules\WHEREIS_MODULE;
 
 use DateTimeZone;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	DB,
 	ModuleInstance,
 	Safe,

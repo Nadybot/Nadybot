@@ -204,7 +204,7 @@ class BotRunner {
 		if ($exitCode !== 0 || $stdout === '') {
 			return null;
 		}
-		$tagString = collect(explode("\n", trim($stdout)))
+		$tagString = (new Collection(explode("\n", trim($stdout))))
 			->diff(['nightly'])
 			->map(static function (string $tag): SemanticVersion {
 				return new SemanticVersion($tag);

@@ -6,12 +6,14 @@ use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
-use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
 	Attributes\Parameter\StrChoice,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	EventManager,
@@ -31,8 +33,6 @@ use Nadybot\Core\{
 	Types\Playfield,
 	Util
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
 use Nadybot\Modules\TIMERS_MODULE\{Alert, Timer, TimerController};
@@ -607,7 +607,7 @@ class NotumWarsController extends ModuleInstance {
 
 	/** Add the given attack to the attack cache */
 	public function registerAttack(FeedMessage\TowerAttack $attack): void {
-		$this->attacks = collect([$attack, ...$this->attacks])
+		$this->attacks = (new Collection([$attack, ...$this->attacks]))
 			->where('timestamp', '>=', time() - 6 * 3_600)
 			->toList();
 	}
@@ -633,7 +633,7 @@ class NotumWarsController extends ModuleInstance {
 	public function updateTowerOutcomeInfoFromFeed(Event\TowerOutcomeEvent $event): void {
 		$dbOutcome = DBOutcome::fromTowerOutcome($event->outcome);
 		$this->db->insert($dbOutcome);
-		$this->outcomes = collect([$event->outcome, ...$this->outcomes])
+		$this->outcomes = (new Collection([$event->outcome, ...$this->outcomes]))
 			->where('timestamp', '>=', time() - 3_600)
 			->toList();
 	}
@@ -1403,7 +1403,7 @@ class NotumWarsController extends ModuleInstance {
 
 	/** Render a bunch of sites, all hot, for the !hot-command */
 	public function renderHotSites(?int $time, FeedMessage\SiteUpdate ...$sites): string {
-		$hotSites = collect($sites);
+		$hotSites = new Collection($sites);
 
 		$grouping = $this->groupHotTowers;
 		if ($grouping === 1) {
@@ -1418,15 +1418,13 @@ class NotumWarsController extends ModuleInstance {
 			});
 		} elseif ($grouping === 3) {
 			$hotSites = $hotSites->sortBy('ql');
-			$grouped = $hotSites->groupBy('org_name');
+			$grouped = $hotSites->groupByString('org_name');
 		} elseif ($grouping === 4) {
 			$hotSites = $hotSites->sortBy('ql');
-			$grouped = $hotSites->groupBy('org_faction');
+			$grouped = $hotSites->groupByString('org_faction');
 		} else {
 			throw new Exception('Invalid grouping found');
 		}
-
-		/** @var Collection<string,Collection<int,FeedMessage\SiteUpdate>> $grouped */
 
 		$grouped = $grouped->sortKeys();
 
@@ -1448,7 +1446,7 @@ class NotumWarsController extends ModuleInstance {
 		if ($site->gas !== 75 || !isset($site->org_id, $site->org_name)) {
 			return;
 		}
-		collect($this->attacks)
+		(new Collection($this->attacks))
 			->whereNull('penalizing_ended')
 			->where('att_org_id', $site->org_id)
 			->each(function (FeedMessage\TowerAttack &$attack): void {
@@ -1728,11 +1726,10 @@ class NotumWarsController extends ModuleInstance {
 
 	/** Render a list of tower sites and group by owning org name */
 	private function renderOrgSites(FeedMessage\SiteUpdate ...$sites): string {
-		/** @var Collection<string,Collection<int,FeedMessage\SiteUpdate>> */
-		$matches = collect($sites)
+		$matches = (new Collection($sites))
 			->sortBy('ql')
 			->sortBy('org_name')
-			->groupBy('org_name');
+			->groupByString('org_name');
 
 		/** @param Collection<int,FeedMessage\SiteUpdate> $sites */
 		$blob = $matches->map(function (Collection $sites, string $orgName): string {

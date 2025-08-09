@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	BotRunner,
 	ClassLoader,
 	CmdContext,
+	Collection,
 	CommandAlias,
 	CommandManager,
 	DB,
@@ -98,7 +99,7 @@ class HelpController extends ModuleInstance {
 		CmdContext $context,
 		#[Str('topics', 'list')] string $action
 	): void {
-		$data = collect($this->helpManager->getAllHelpTopics($context));
+		$data = new Collection($this->helpManager->getAllHelpTopics($context));
 
 		if (count($data) === 0) {
 			$msg = 'No help files found.';

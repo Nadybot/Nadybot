@@ -5,7 +5,6 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 use Amp\File\FilesystemException;
 use AO\{Package, Utils};
 use Exception;
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -15,6 +14,7 @@ use Nadybot\Core\{
 	AuditAction,
 	BuddylistManager,
 	CmdContext,
+	Collection,
 	CommandAlias,
 	Config\BotConfig,
 	DB,
@@ -726,7 +726,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				return;
 			}
 		}
-		$chars = collect($chars);
+		$chars = new Collection($chars);
 
 		/**
 		 * @var array<string,int>
@@ -773,7 +773,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				return;
 			}
 		}
-		$online = collect($online);
+		$online = new Collection($online);
 
 		if ($online->isEmpty()) {
 			$msg = 'No characters in channel.';
@@ -785,7 +785,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 
 		/** @var Collection<string,Collection<int,OnlinePlayer>> */
-		$byOrg = $online->groupBy('guild');
+		$byOrg = $online->groupByString('guild');
 
 		/**
 		 * @var Collection<int,OrgCount>
@@ -830,7 +830,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 
-		$data = collect($this->onlineController->getPlayers('priv', $this->config->main->character))
+		$data = (new Collection($this->onlineController->getPlayers('priv', $this->config->main->character)))
 			->where('profession', $prof);
 		if (isset($raidOnly)) {
 			try {
@@ -839,7 +839,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				$context->reply(RaidController::ERR_NO_RAID);
 				return;
 			}
-			$data = collect($data);
+			$data = new Collection($data);
 		}
 		$numOnline = $data->count();
 		if ($numOnline === 0) {

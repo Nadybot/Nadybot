@@ -2,11 +2,11 @@
 
 namespace Nadybot\Modules\NOTES_MODULE;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	DB,
 	EventManager,
 	Exceptions\InsufficientAccessException,

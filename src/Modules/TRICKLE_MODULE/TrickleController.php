@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\TRICKLE_MODULE;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	Collection,
 	DB,
 	ModuleInstance,
 	Safe,
@@ -154,7 +154,7 @@ class TrickleController extends ModuleInstance {
 			$value = round(4 / $amount, 2);
 			$reqs []= "{$value} {$ability->name}";
 		}
-		$msg = collect($reqs)->join(', ', ' or ');
+		$msg = (new Collection($reqs))->join(', ', ' or ');
 		return $msg;
 	}
 

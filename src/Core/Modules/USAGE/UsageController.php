@@ -2,11 +2,11 @@
 
 namespace Nadybot\Core\Modules\USAGE;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	CmdContext,
+	Collection,
 	Config\BotConfig,
 	DB,
 	DBSchema\Usage,
@@ -302,7 +302,7 @@ class UsageController extends ModuleInstance {
 		/** @var Collection<string,Collection<int,RelayLayer>> */
 		$groupedProtocols = $this->db->table(RelayLayer::getTable())
 			->orderBy('relay_id')->orderByDesc('id')->asObj(RelayLayer::class)
-			->groupBy('relay_id');
+			->groupByString('relay_id');
 
 		/** @param Collection<string,RelayLayer> $group */
 		$protocols = $groupedProtocols->map(static function (Collection $group): string {
