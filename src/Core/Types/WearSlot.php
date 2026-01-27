@@ -17,22 +17,44 @@ enum WearSlot: int {
 			'neck' => $result->set(self::Neck),
 			'head','helm','helmet','specialhelmet' => $result->set(self::Head),
 			'back' => $result->set(self::Back),
-			'right shoulder','rshoulder' => $result->set(self::RightShoulder),
-			'left shoulder','lshoulder' => $result->set(self::LeftShoulder),
+			'rightshoulder','right shoulder','rshoulder' => $result->set(self::RightShoulder),
+			'leftshoulder','left shoulder','lshoulder' => $result->set(self::LeftShoulder),
 			'shoulder','shoulders' => $result->set(self::RightShoulder, self::LeftShoulder),
 			'body','chest' => $result->set(self::Body),
-			'right arm','rarm','right sleeve','rsleeve' => $result->set(self::RightArm),
-			'left arm','larm','left sleeve','lsleeve' => $result->set(self::LeftArm),
+			'rightarm','right arm','rarm','right sleeve','rsleeve' => $result->set(self::RightArm),
+			'leftarm','left arm','larm','left sleeve','lsleeve' => $result->set(self::LeftArm),
 			'arm','arms','sleeve','sleeves' => $result->set(self::RightArm, self::LeftArm),
-			'right wrist','rwrist' => $result->set(self::RightWrist),
-			'left wrist','lwrist' => $result->set(self::LeftWrist),
+			'hand','hands','glove','gloves','gauntlet','gauntlets' => $result->set(self::Hands),
+			'rightwrist','right wrist','rwrist' => $result->set(self::RightWrist),
+			'leftwrist','left wrist','lwrist' => $result->set(self::LeftWrist),
 			'wrist','wrists' => $result->set(self::RightWrist, self::LeftWrist),
-			'right finger','rfinger' => $result->set(self::RightFinger),
-			'left finger','lfinger' => $result->set(self::LeftFinger),
+			'rightfinger','right finger','rfinger' => $result->set(self::RightFinger),
+			'leftfinger','left finger','lfinger' => $result->set(self::LeftFinger),
 			'finger','fingers','ring' => $result->set(self::RightFinger, self::LeftFinger),
 			'leg','legs','pant','pants' => $result->set(self::Legs),
 			'foot','feet','boots','booy' => $result->set(self::Feet),
 			default => throw new ValueError("Unknown armor slot name '{$name}'"),
+		};
+	}
+
+	/** Return the long name (Right Arm, Ocular, …) of the wear slot */
+	public function longName(): string {
+		return match ($this) {
+			self::Neck => 'Neck',
+			self::Head => 'Head',
+			self::Back => 'Back',
+			self::RightShoulder => 'Right Shoulder',
+			self::Body => 'Body',
+			self::LeftShoulder => 'Left Shoulder',
+			self::RightArm => 'Right Arm',
+			self::Hands => 'Hands',
+			self::LeftArm => 'Left Arm',
+			self::RightWrist => 'Right Wrist',
+			self::Legs => 'Legs',
+			self::LeftWrist => 'Left Wrist',
+			self::RightFinger => 'Right Finger',
+			self::Feet => 'Feet',
+			self::LeftFinger => 'Left Finger',
 		};
 	}
 

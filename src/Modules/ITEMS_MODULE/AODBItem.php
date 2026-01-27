@@ -17,7 +17,8 @@ class AODBItem extends AODBEntry implements AOItem {
 		int $flags,
 		bool $in_game,
 		AodbType $type,
-		bool $froob_friendly=false,
+		bool $froob_friendly,
+		int $properties,
 	) {
 		parent::__construct(
 			lowid: $lowid,
@@ -31,6 +32,7 @@ class AODBItem extends AODBEntry implements AOItem {
 			in_game: $in_game,
 			type: $type,
 			froob_friendly: $froob_friendly,
+			properties: $properties,
 		);
 	}
 

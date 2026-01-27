@@ -356,7 +356,6 @@ class CommentController extends ModuleInstance {
 		string $commentText
 	): void {
 		$character = $char();
-		$category = $category;
 
 		$cat = $this->getCategory($category);
 		if ($cat === null) {

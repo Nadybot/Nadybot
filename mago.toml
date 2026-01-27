@@ -1,4 +1,4 @@
-php_version = "8.1"
+php-version = "8.1"
 
 [source]
 paths = ["src"]
@@ -14,101 +14,41 @@ excludes = [
 includes = ["vendor", "src/Core", "Stubs"]
 extensions = ["php"]
 
-[linter]
-default_plugins = true
-
-[[linter.rules]]
-name = "best-practices/no-unused-parameter"
-level = "Off"
-
-[[linter.rules]]
-name = "best-practices/loop-does-not-iterate"
-level = "Off"
-
-[[linter.rules]]
-name = "naming/interface"
-psr = false
-
-[[linter.rules]]
-name = "naming/class"
-psr = false
-
-[[linter.rules]]
-name = "strictness/no-assignment-in-condition"
-level = "Off"
-
-[[linter.rules]]
-name = "strictness/missing-assert-description"
-level = "Off"
-
-[[linter.rules]]
-name = "safety/no-suppressed-expression"
-level = "Off"
-
-[[linter.rules]]
-name = "best-practices/no-multi-assignments"
-level = "Off"
-
-[[linter.rules]]
-name = "maintainability/excessive-parameter-list"
-level = "Off"
-
-[[linter.rules]]
-name = "maintainability/too-many-properties"
-level = "Off"
-
-[[linter.rules]]
-name = "maintainability/too-many-methods"
-level = "Off"
-
-[[linter.rules]]
-name = "maintainability/kan-defect"
-level = "Off"
-
-[[linter.rules]]
-name = "maintainability/halstead"
-level = "Off"
-
-[[linter.rules]]
-name = "maintainability/cyclomatic-complexity"
-level = "Off"
-
-[[linter.rules]]
-name = "security/no-insecure-comparison"
-level = "Off"
-
-[[linter.rules]]
-name = "security/no-literal-password"
-level = "Off"
-
-[[linter.rules]]
-name = "best-practices/no-empty-catch-clause"
-level = "Off"
-
-[[linter.rules]]
-name = "best-practices/no-else-clause"
-level = "Off"
-
-[[linter.rules]]
-name = "best-practices/no-boolean-literal-comparison"
-level = "Off"
-
-[[linter.rules]]
-name = "redundancy/redundant-mathematical-operation"
-level = "Off"
-
-[[linter.rules]]
-name = "best-practices/no-boolean-flag-parameter"
-level = "Off"
-
-[[linter.rules]]
-name = "best-practices/dont-catch-error"
-level = "Off"
-
-[[linter.rules]]
-name = "best-practices/literal-named-argument"
-level = "Off"
-
-[[linter.rules]]
-name = "mixed-assignment"
-level = "Off"
+[linter.rules]
+#no-unused-parameter = { enabled = false }
+loop-does-not-iterate  = { enabled = false }
+#interface = { psr = false }
+#class = { psr = false }
+#no-assignment-in-condition = { enabled = false }
+assert-description = { enabled = false }
+prefer-arrow-function = { enabled = false }
+no-error-control-operator = { enabled = false }
+no-multi-assignments = { enabled = false }
+excessive-parameter-list = { enabled = false }
+too-many-properties = { enabled = false }
+too-many-methods = { enabled = false }
+kan-defect = { enabled = false }
+halstead = { enabled = false }
+cyclomatic-complexity = { enabled = false }
+no-insecure-comparison = { enabled = false }
+no-literal-password = { enabled = false }
+no-empty-catch-clause = { enabled = false }
+no-else-clause = { enabled = false }
+no-boolean-literal-comparison = { enabled = false }
+#redundant-mathematical-operation = { enabled = false }
+no-boolean-flag-parameter = { enabled = false }
+#dont-catch-error = { enabled = false }
+literal-named-argument = { enabled = false }
+#mixed-assignment = { enabled = false }
+inline-variable-return = { enabled = false }
+prefer-early-continue = { enabled = false }
+no-nested-ternary = { enabled = false }
+no-redundant-math = { enabled = false }
+use-compound-assignment = { enabled = false }
+tainted-data-to-sink = { enabled = false }
+no-redundant-use = { enabled = false }
+no-assign-in-condition = { enabled = false }
+prefer-first-class-callable = { enabled = false }
+too-many-enum-cases = { threshold = 666 }
+no-sprintf-concat = { enabled = false }
+no-redundant-method-override = { enabled = false }

@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
+use function Amp\delay;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -20,6 +22,11 @@ use Nadybot\Core\{
 		alias: 'lc',
 		description: 'Perform Notum Wars commands',
 		accessLevel: AccessLevel::Guest,
+	),
+	NCA\DefineCommand(
+		command: 'nw wait',
+		description: 'Wait for the Tower-API to be initialized',
+		accessLevel: AccessLevel::Admin,
 	)
 ]
 class LandController extends ModuleInstance {
@@ -27,6 +34,25 @@ class LandController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private NotumWarsController $nwCtrl;
+
+	/** Wait for the Tower-API to be available */
+	#[NCA\HandlesCommand('nw wait')]
+	public function waitForTowerAPI(
+		CmdContext $context,
+		#[Str('wait')] string $action,
+		?int $maxWait,
+	): void {
+		$maxWait ??= 60;
+		$start = time();
+		while (!count($this->nwCtrl->state)) {
+			if (time() - $start > $maxWait) {
+				$context->reply("The Tower-API is still not ready after {$maxWait}s");
+				return;
+			}
+			delay(0.1);
+		}
+		$context->reply('The Tower-API is now ready to be used.');
+	}
 
 	/** List all playfields with tower sites */
 	#[NCA\HandlesCommand(self::LC_CMD)]

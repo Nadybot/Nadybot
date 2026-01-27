@@ -57,6 +57,7 @@ class OfabArmor extends DBTable implements AOItemSpec {
 			flags: 0,
 			in_game: true,
 			type: AodbType::Armor,
+			properties: 0,
 			froob_friendly: false,
 		);
 	}

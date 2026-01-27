@@ -19,6 +19,7 @@ class ItemWithBuffs extends AODBEntry {
 			type: $item->type,
 			in_game: $item->in_game,
 			froob_friendly: $item->froob_friendly,
+			properties: $item->properties->toInt(),
 		);
 	}
 }

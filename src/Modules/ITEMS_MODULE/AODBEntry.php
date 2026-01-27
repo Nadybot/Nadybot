@@ -4,12 +4,15 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Nadybot\Core\Attributes\DB\{Shared, Table};
 use Nadybot\Core\DBTable;
-use Nadybot\Core\Types\{AOIcon, AOItemSpec, Bitfield, CarrySlot, EnumBitfield, ImplantSlot, ItemFlag, WearSlot};
+use Nadybot\Core\Types\{AOIcon, AOItemSpec, Bitfield, CarrySlot, EnumBitfield, ImplantSlot, ItemFlag, ItemProperty, WearSlot};
 
 #[Table(name: 'aodb', shared: Shared::Yes)]
 class AODBEntry extends DBTable implements AOItemSpec, AOIcon {
 	/** @var EnumBitfield<ItemFlag> */
 	public EnumBitfield $flags;
+
+	/** @var EnumBitfield<ItemProperty> */
+	public EnumBitfield $properties;
 
 	public Bitfield $slot;
 
@@ -24,9 +27,11 @@ class AODBEntry extends DBTable implements AOItemSpec, AOIcon {
 		int $flags,
 		public bool $in_game,
 		public AodbType $type,
-		public bool $froob_friendly=false,
+		public bool $froob_friendly,
+		int $properties,
 	) {
 		$this->flags = (new EnumBitfield(ItemFlag::class))->setInt($flags);
+		$this->properties = (new EnumBitfield(ItemProperty::class))->setInt($properties);
 		if ($this->type === AodbType::Armor) {
 			$this->slot = (new EnumBitfield(WearSlot::class))->setInt($slot);
 		} elseif ($this->type === AodbType::Weapon) {
@@ -88,6 +93,7 @@ class AODBEntry extends DBTable implements AOItemSpec, AOIcon {
 			in_game: $this->in_game,
 			type: $this->type,
 			froob_friendly: $this->froob_friendly,
+			properties: $this->properties->toInt(),
 		);
 	}
 }

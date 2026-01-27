@@ -13,6 +13,7 @@ class ItemBuffSearchResult extends AODBEntry {
 		int $icon,
 		int $slot,
 		int $flags,
+		int $properties,
 		bool $in_game,
 		AodbType $type,
 		bool $froob_friendly=false,
@@ -32,6 +33,7 @@ class ItemBuffSearchResult extends AODBEntry {
 			in_game: $in_game,
 			type: $type,
 			froob_friendly: $froob_friendly,
+			properties: $properties,
 		);
 	}
 }

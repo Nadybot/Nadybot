@@ -414,7 +414,7 @@ class Testing {
 		$text = str_replace('<superadmin>', $superAdmin, $text);
 		foreach ($placeholders as $key => $value) {
 			if ($forRegexp) {
-				$value = preg_quote($value);
+				$value = preg_quote($value, chr(0));
 			}
 			$text = str_replace('{' . $key . '}', $value, $text);
 		}

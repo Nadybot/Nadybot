@@ -268,6 +268,7 @@ class ItemsController extends ModuleInstance {
 				'a.froob_friendly',
 				'a.slot',
 				'a.flags',
+				'a.properties',
 				'g.group_id',
 				'a.in_game',
 				'a.type'

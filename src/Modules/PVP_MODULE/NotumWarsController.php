@@ -4,6 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
+use Amp\TimeoutCancellation;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
@@ -421,7 +422,7 @@ class NotumWarsController extends ModuleInstance {
 			]);
 			return;
 		}
-		$body = $response->getBody()->buffer();
+		$body = $response->getBody()->buffer(new TimeoutCancellation(60, 'Parsing towers was too slow'));
 		try {
 			/** @var list<array<string,mixed>> */
 			$json = json_decode($body, true);
@@ -472,9 +473,10 @@ class NotumWarsController extends ModuleInstance {
 		$maxTS = $this->db->table(DBTowerAttack::getTable())->max('timestamp');
 		$client = $this->http->build();
 		$uri = self::ATTACKS_API;
-		if (isset($maxTS)) {
-			$uri .= '?' . http_build_query(['since' => $maxTS+1]);
+		if (!isset($maxTS)) {
+			$maxTS = time() - 31*3_600*24;
 		}
+		$uri .= '?' . http_build_query(['since' => $maxTS+1]);
 
 		$response = $client->request(new Request($uri));
 		if ($response->getStatus() !== 200) {
@@ -535,9 +537,10 @@ class NotumWarsController extends ModuleInstance {
 		$maxTS = $this->db->table(DBOutcome::getTable())->max('timestamp');
 		$client = $this->http->build();
 		$uri = self::OUTCOMES_API;
-		if (isset($maxTS)) {
-			$uri .= '?' . http_build_query(['since' => $maxTS+1]);
+		if (!isset($maxTS)) {
+			$maxTS = time() - 31*3_600*24;
 		}
+		$uri .= '?' . http_build_query(['since' => $maxTS+1]);
 
 		$response = $client->request(new Request($uri));
 		if ($response->getStatus() !== 200) {
@@ -943,6 +946,7 @@ class NotumWarsController extends ModuleInstance {
 		CmdContext $context,
 		#[Str('top', 'highcontracts', 'highcontract')] string $action,
 	): void {
+		/** @var array<string,int> */
 		$orgQls = [];
 
 		/** @var array<string,Faction> */

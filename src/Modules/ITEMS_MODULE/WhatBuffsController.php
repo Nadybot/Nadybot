@@ -455,7 +455,7 @@ class WhatBuffsController extends ModuleInstance {
 				->where('b.amount', $skill->negativeIsGood() ? '<' : '>', 0)
 				->groupBy([
 					'a.name', 'a.lowql', 'a.highql', 'b.amount', 'b2.amount', 'a.lowid',
-					'a.highid', 'a.icon', 'a.froob_friendly', 'a.slot', 'a.flags',
+					'a.highid', 'a.icon', 'a.froob_friendly', 'a.slot', 'a.properties', 'a.flags',
 					'a.in_game', 'a.type',
 				])->orderByDesc($query->raw($query->colFunc('ABS', 'b.amount')))
 				->orderByDesc('name')

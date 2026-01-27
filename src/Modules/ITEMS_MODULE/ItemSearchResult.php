@@ -14,6 +14,7 @@ class ItemSearchResult extends AODBItem {
 		int $slot,
 		int $flags,
 		bool $in_game,
+		int $properties,
 		AodbType $type,
 		bool $froob_friendly=false,
 		public ?string $group_name=null,
@@ -33,6 +34,7 @@ class ItemSearchResult extends AODBItem {
 			in_game: $in_game,
 			type: $type,
 			froob_friendly: $froob_friendly,
+			properties: $properties,
 		);
 	}
 
@@ -54,6 +56,7 @@ class ItemSearchResult extends AODBItem {
 			in_game: $item->in_game,
 			type: $item->type,
 			froob_friendly: $item->froob_friendly,
+			properties: $item->properties->toInt(),
 		);
 	}
 }

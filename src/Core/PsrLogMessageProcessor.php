@@ -58,8 +58,6 @@ class PsrLogMessageProcessor implements ProcessorInterface {
 			return '<null>';
 		} elseif (is_scalar($val)) {
 			return (string)$val;
-		} elseif (is_object($val) && method_exists($val, '__toString')) {
-			return (string)$val;
 		} elseif ($val instanceof \DateTimeInterface) {
 			if (!isset($this->dateFormat) && $val instanceof \Monolog\DateTimeImmutable) {
 				// handle monolog dates using __toString() if no specific dateFormat was asked for
@@ -67,6 +65,8 @@ class PsrLogMessageProcessor implements ProcessorInterface {
 				return (string)$val;
 			}
 			return $val->format($this->dateFormat ?? static::SIMPLE_DATE);
+		} elseif ($val instanceof \Stringable) {
+			return (string)$val;
 		} elseif ($val instanceof \UnitEnum) {
 			return $val instanceof \BackedEnum ? (string)$val->value : $val->name;
 		} elseif (is_object($val)) {

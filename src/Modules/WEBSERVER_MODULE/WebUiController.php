@@ -6,9 +6,9 @@ use function Amp\ByteStream\pipe;
 use function Amp\File\openFile;
 use function Safe\tempnam;
 
-use Amp\{CancelledException, TimeoutCancellation};
 use Amp\File\FilesystemException;
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use Amp\Http\Client\{HttpClientBuilder, Request};
+use Amp\{CancelledException, TimeoutCancellation};
 use ErrorException;
 use Exception;
 use Nadybot\Core\{

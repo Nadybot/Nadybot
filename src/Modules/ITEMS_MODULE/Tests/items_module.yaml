@@ -250,3 +250,21 @@ groups:
       - command: gmi <a href='itemref://301560/301560/30'>GRACE</a>
         name: Search the GMI by item
         expect: GMI orders for GRACE \(\d+ buy, \d+ sell\)|Unknown error occurred contacting the GMI API|The GMI API returned invalid data|The GMI API timed out
+
+  - name: Gridarmor
+    tests:
+      - command: gridarmor
+        name: Shows list of locations
+        expect:
+          - Left Arm
+          - Right Wrist
+      - command: gridarmor left arm
+        name: Shows all GA-wearable armor for the left arm
+        expect:
+          - Ljotur
+      - command: gridarmorfroob right finger
+        name: Shows all GA-wearable armor for a froob for the right finger
+        expect:
+          - Corroded Ring
+        unexpected:
+          - De'Valos

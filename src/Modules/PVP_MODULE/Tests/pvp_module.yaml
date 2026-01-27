@@ -2,6 +2,12 @@
 name: PVP Module
 groups:
 
+  - name: Wait for the API
+    tests:
+      - command: nw wait 60
+        name: Wait for the Tower-API
+        expect: The Tower-API is now ready to be used
+
   - name: Land controls
     tests:
       - command: nw lc
