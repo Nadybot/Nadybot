@@ -110,7 +110,11 @@ class PocketbossController extends ModuleInstance {
 		return $blob;
 	}
 
-	/** @return list<Pocketboss> */
+	/**
+	 * @return list<Pocketboss>
+	 *
+	 * @mago-ignore analysis:mixed-return-statement,non-documented-method,invalid-argument
+	 */
 	public function pbSearchResults(string $search): array {
 		if ($search === 'tnh') {
 			$search = 'The Night Heart';
@@ -281,6 +285,7 @@ class PocketbossController extends ModuleInstance {
 
 		/** @param Collection<int,Pocketboss> $rows */
 		$blob = $groupedData->map(function (Collection $rows, int $itemid) use (&$impDesignSlot): string {
+			/** @var Pocketboss */
 			$symbiant = $rows->firstOrFail();
 			if ($symbiant->type === 'Special') {
 				$name = $this->itemsController->findById($symbiant->itemid)?->getName() ?? 'Unknown';

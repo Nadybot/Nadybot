@@ -7,8 +7,6 @@ use function Safe\{json_decode, json_encode};
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{Request, Response};
 use Exception;
-use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Regexp, Remove, Str, WordStr};
-use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Http,
@@ -34,13 +32,15 @@ use Nadybot\Core\{
 	Types\ParamType,
 	Util,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
+use Nadybot\Core\Attributes\Parameter\{NonNumberStr, NonNumberWord, Regexp, Remove, Str, WordStr};
+use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
 use Nadybot\Modules\{
 	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
 	RELAY_MODULE\Transport\TransportInterface,
 	WEBSERVER_MODULE\ApiResponse,
 	WEBSERVER_MODULE\StatsController,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use ReflectionClass;
@@ -386,8 +386,10 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			return;
 		}
 		$layers = [];
-		foreach ($relayConf->layers as $layer) {
-			$layers []= $layer->toString();
+		$layer = null;
+		foreach ($relayConf->layers as $thisLayer) {
+			$layers []= $thisLayer->toString();
+			$layer = $thisLayer;
 		}
 
 		/** @psalm-suppress MixedPropertyFetch */
@@ -1022,7 +1024,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		}
 		$class = $spec->class;
 		try {
-			/** @psalm-suppress MixedMethodCall */
+			/**
+			 * @psalm-suppress MixedMethodCall
+			 *
+			 * @mago-ignore analysis:unknown-class-instantiation
+			 */
 			$result = new $class(...$arguments);
 			Registry::injectDependencies($result);
 			return $result;
@@ -1148,7 +1154,11 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		}
 
 		try {
-			/** @psalm-suppress PossiblyInvalidArgument */
+			/**
+			 * @psalm-suppress PossiblyInvalidArgument
+			 *
+			 * @mago-ignore analysis:less-specific-nested-argument-type
+			 */
 			$events = Hydrator::hydrateObjects(RelayEvent::class, $body)->toArray();
 		} catch (Throwable $e) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
@@ -1483,6 +1493,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		/** @var list<RelayLayerInterface> $stack */
 		$stack = [];
 		$transport = array_shift($conf->layers);
+		// @mago-ignore analysis:possibly-null-argument
 		$spec = $this->transports[strtolower($transport->layer)] ?? null;
 		if (!isset($spec)) {
 			throw new Exception(
@@ -1493,7 +1504,9 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 
 		/** @var TransportInterface */
 		$transportLayer = $this->getRelayLayer(
+			// @mago-ignore analysis:possibly-null-argument
 			$transport->layer,
+			// @mago-ignore analysis:possible-method-access-on-null
 			$transport->getKVArguments(),
 			$spec
 		);

@@ -52,3 +52,6 @@ prefer-first-class-callable = { enabled = false }
 too-many-enum-cases = { threshold = 666 }
 no-sprintf-concat = { enabled = false }
 no-redundant-method-override = { enabled = false }
+
+[analyzer]
+ignore = ["mixed-assignment", "mixed-argument", "redundant-docblock-type", "redundant-cast"]
