@@ -453,24 +453,6 @@ class BotRunner {
 		if (!self::isWindows()) {
 			return;
 		}
-		$wmicPath = 'C:' . \DIRECTORY_SEPARATOR . 'Windows'.
-			\DIRECTORY_SEPARATOR . 'System32' . \DIRECTORY_SEPARATOR.
-			'wbem' . \DIRECTORY_SEPARATOR . 'WMIC.exe';
-		if (!self::$fs->exists($wmicPath)) {
-			// @phpstan-ignore-next-line
-			fwrite(
-				\STDERR,
-				"Nadybot 7 needs WMIC to run on Windows\n".
-				"WMIC has been removed from Windows 11, here is how to re-add it:\n\n".
-				"\t1. Open Settings by pressing Windows + i keys together\n".
-				"\t2. Go to \"System\", and there go to \"Optional features\"\n".
-				"\t3. Click the blue \"View features\" button on the top right\n".
-				"\t4. Tick the box next to WMIC and press \"next\", and then \"Add\"\n".
-				"\t5. Wait for the installation to finish\n\n"
-			);
-			sleep(5);
-			exit(1);
-		}
 	}
 
 	/** Check if all the modules that the bot needs, are installed */
