@@ -392,7 +392,6 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			$layer = $thisLayer;
 		}
 
-		/** @psalm-suppress MixedPropertyFetch */
 		$blob = $this->quickRelayController->getRouteInformation(
 			$name,
 			isset($layer) && in_array($layer->layer, ['tyrbot', 'nadynative'], true)
