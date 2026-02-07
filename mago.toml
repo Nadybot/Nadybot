@@ -34,7 +34,7 @@ no-insecure-comparison = { enabled = false }
 no-literal-password = { enabled = false }
 no-empty-catch-clause = { enabled = false }
 no-else-clause = { enabled = false }
-no-boolean-literal-comparison = { enabled = false }
+#no-boolean-literal-comparison = { enabled = false }
 #redundant-mathematical-operation = { enabled = false }
 no-boolean-flag-parameter = { enabled = false }
 #dont-catch-error = { enabled = false }

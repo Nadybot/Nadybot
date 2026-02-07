@@ -39,14 +39,14 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util,
 };
-use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
-
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatAssistController,
 	COMMENT_MODULE\CommentCategory,
 	COMMENT_MODULE\CommentController,
 	WEBSERVER_MODULE\StatsController,
 };
+
+use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Safe\DateTimeImmutable;

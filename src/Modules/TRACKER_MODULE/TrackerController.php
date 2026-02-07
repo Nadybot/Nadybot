@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Exception;
-use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -36,6 +35,7 @@ use Nadybot\Core\{
 	Types\TitleLevel,
 	Util,
 };
+use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
 use Nadybot\Modules\{
 	ORGLIST_MODULE\FindOrgController,
 	ORGLIST_MODULE\Organization,

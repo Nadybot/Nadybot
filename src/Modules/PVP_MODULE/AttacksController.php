@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\NonGreedy,
@@ -27,6 +26,7 @@ use Nadybot\Core\{
 	Types\Playfield,
 	Util
 };
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Modules\{
 	LEVEL_MODULE\LevelController,
 	PVP_MODULE\Event\TowerAttackInfoEvent,

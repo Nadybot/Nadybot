@@ -2,13 +2,6 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Nadybot\Core\Modules\DISCORD\{
-	ApplicationCommand,
-	ApplicationCommandOption,
-	DiscordAPIClient,
-	DiscordChannel,
-	DiscordException
-};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -33,6 +26,13 @@ use Nadybot\Core\{
 	Safe,
 	Text,
 	Types\AccessLevel,
+};
+use Nadybot\Core\Modules\DISCORD\{
+	ApplicationCommand,
+	ApplicationCommandOption,
+	DiscordAPIClient,
+	DiscordChannel,
+	DiscordException
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Interaction;
 use Psr\Log\LoggerInterface;

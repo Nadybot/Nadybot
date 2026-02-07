@@ -9,7 +9,6 @@ use Amp\Pipeline\Pipeline;
 use DateInterval;
 use Exception;
 
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -27,6 +26,7 @@ use Nadybot\Core\{
 	Types\Faction,
 	Types\Government,
 };
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Throwable;

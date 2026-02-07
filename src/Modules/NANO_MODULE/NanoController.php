@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Nadybot\Modules\NANO_MODULE;
 
 use Illuminate\Database\Query\Builder;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -21,6 +20,7 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\Profession,
 };
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 
 /**
  * @author Nadyita (RK5)

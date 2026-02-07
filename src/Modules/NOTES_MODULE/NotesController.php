@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\NOTES_MODULE;
 
-use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter as Par,
@@ -22,6 +21,7 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 };
+use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Psr\Log\LoggerInterface;
 
 /**

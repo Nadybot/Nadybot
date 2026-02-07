@@ -4,10 +4,9 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 
 use function Safe\json_decode;
 
-use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\{CancelledException, TimeoutCancellation};
+use Amp\Http\Client\{HttpClientBuilder, Request};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
-use Nadybot\Core\Types\{AccessLevel, ItemFlag};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -21,6 +20,7 @@ use Nadybot\Core\{
 	Types\AOItemSpec,
 	Util,
 };
+use Nadybot\Core\Types\{AccessLevel, ItemFlag};
 use Safe\Exceptions\JsonException;
 use Throwable;
 

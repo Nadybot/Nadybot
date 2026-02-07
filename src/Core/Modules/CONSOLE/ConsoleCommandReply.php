@@ -321,6 +321,14 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		$useHyperlinks = $this->consoleController->consoleItemDisplay !== $this->consoleController::PLACEHOLDERS;
 		if ($useHyperlinks) {
 			$message = Safe::pregReplaceCallback(
+				"/<a\s+href=['\"]?(https?:\/\/[^'\">]+)['\"]?\s*>(.*?)<\/a>/s",
+				function (array $matches): string {
+					$schema = $this->consoleController->consoleItemDisplay;
+					return $this->createLink($matches[1], $matches[2]);
+				},
+				$message
+			);
+			$message = Safe::pregReplaceCallback(
 				"/<a\s+href=['\"]?itemref:\/\/(\d+)\/\d+\/(\d+)['\"]?\s*>(.*?)<\/a>/s",
 				function (array $matches): string {
 					$schema = $this->consoleController->consoleItemDisplay;

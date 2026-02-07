@@ -2,13 +2,6 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-use Nadybot\Core\Types\{
-	AccessLevel,
-	EnumBitfield,
-	ItemFlag,
-	ItemProperty,
-	WearSlot
-};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -18,6 +11,13 @@ use Nadybot\Core\{
 	QueryBuilder,
 	Text,
 	Types\CommandReply,
+};
+use Nadybot\Core\Types\{
+	AccessLevel,
+	EnumBitfield,
+	ItemFlag,
+	ItemProperty,
+	WearSlot
 };
 use ValueError;
 
