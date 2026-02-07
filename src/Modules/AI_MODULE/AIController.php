@@ -86,6 +86,7 @@ class AIController extends ModuleInstance {
 
 	/** Chat with an AI */
 	#[NCA\HandlesCommand('ai')]
+	#[NCA\Untestable]
 	public function aiCommand(
 		CmdContext $context,
 		string $text

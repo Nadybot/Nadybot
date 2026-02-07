@@ -73,6 +73,7 @@ class TranslateController extends ModuleInstance {
 	/** Translate between two arbitrary languages */
 	#[NCA\HandlesCommand('translate')]
 	#[NCA\Help\Example('<symbol>translate de..en Das ist keine gute Idee')]
+	#[NCA\Untestable]
 	public function translate2Command(
 		CmdContext $context,
 		#[Regexp('[a-z]{2}')] string $fromLanguage,
@@ -86,6 +87,7 @@ class TranslateController extends ModuleInstance {
 	/** Translate from the given language into English */
 	#[NCA\HandlesCommand('translate')]
 	#[NCA\Help\Example('<symbol>translate de Das ist keine gute Idee')]
+	#[NCA\Untestable]
 	public function translate1Command(
 		CmdContext $context,
 		#[Regexp('[a-z]{2}')] string $fromLanguage,
@@ -96,6 +98,7 @@ class TranslateController extends ModuleInstance {
 
 	/** List supported languages */
 	#[NCA\HandlesCommand('translate')]
+	#[NCA\Untestable]
 	public function listLanguages(
 		CmdContext $context,
 		#[NCA\Parameter\Str('languages')] string $command,
@@ -121,6 +124,7 @@ class TranslateController extends ModuleInstance {
 	 * To ignore treating the first word as a language code, start your text with a dash (-)
 	 */
 	#[NCA\HandlesCommand('translate')]
+	#[NCA\Untestable]
 	public function translate0Command(
 		CmdContext $context,
 		string $text
