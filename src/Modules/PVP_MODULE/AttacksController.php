@@ -1183,7 +1183,7 @@ class AttacksController extends ModuleInstance {
 		)[0])[0];
 		$blob = Safe::pregReplace('/^.+?<header2>/s', '<header2>', $blob);
 		$blob = '<tab>' . implode("\n<tab>", explode("\n", $blob));
-		$moreLink = Text::makeChatcmd('see more', "/tell <myname> nw attacks org {$whois->guild}");
+		$moreLink = Text::makeChatcmd('see more', "/tell <myname> nw attacks org {$whois->guild} 1");
 		return "<header2>Notum Wars [{$moreLink}]<end>\n{$blob}";
 	}
 }

@@ -55,7 +55,7 @@ groups:
         expect:
           - Tower Attacks on {field}
           - 'Defender: <(omni|clan|neutral)>(?<def_org>[^<]+)<end>'
-      - command: nw attacks org {def_org}
+      - command: nw attacks org {def_org} 1
         name: We can search for attacks by/on a given org
         expect:
           - Tower Attacks on/by '{def_org}'
