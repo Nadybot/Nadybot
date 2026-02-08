@@ -26,22 +26,22 @@ use Throwable;
 	NCA\DefineCommand(
 		command: 'ai',
 		accessLevel: AccessLevel::Guest,
-		description: 'Chat with a AI chatbot',
+		description: 'Chat with an AI chatbot',
 	)
 ]
 class AIController extends ModuleInstance {
 	private const GROQ = 'https://api.groq.com/openai/v1';
-	private const GPT4ALL = 'https://api.gpt4-all.xyz/v1';
+	private const OPEN_ROUTER = 'https://openrouter.ai/api/v1';
 	private const CHATGPT = 'https://api.openai.com/v1';
 	private const LOCAL = 'http://127.0.0.1:11434/v1';
 	private const GEMINI = 'https://generativelanguage.googleapis.com/v1beta/openai';
 
-	/** Which OpenAI-compatible API to use for translation */
+	/** Which OpenAI-compatible API to use for chatting */
 	#[NCA\Setting\Text(
 		options: [
 			'local' => self::LOCAL,
 			'groq' => self::GROQ,
-			'gpt4all' => self::GPT4ALL,
+			'OpenRouter' => self::OPEN_ROUTER,
 			'ChatGPT' => self::CHATGPT,
 			'Google Gemini' => self::GEMINI,
 		]
@@ -221,7 +221,7 @@ class AIController extends ModuleInstance {
 					'exception' => $e,
 				]);
 			}
-			throw new UserException('No translation available.');
+			throw new UserException('Error chatting with the AI, check logs for details.');
 		}
 		try {
 			$reply = json_decode($body, true);

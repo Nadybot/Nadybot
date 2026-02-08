@@ -6,10 +6,12 @@ namespace Nadybot\Modules\AI_MODULE;
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
  */
 
+use function Amp\delay;
 use function Safe\json_decode;
 use Amp\Http\Client\{BufferedContent, HttpClientBuilder, Request};
 use Error;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
+use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -17,12 +19,14 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	Safe,
+	SettingManager,
 	Text,
 	Types\AccessLevel,
 };
 use Nadybot\Core\Attributes\Parameter\{Regexp, SpaceOptional};
 use Nadybot\Core\Events\{ConnectEvent, RecvMsgEvent};
 use Nadybot\Core\Exceptions\StopExecutionException;
+use Nadybot\Core\Types\SettingMode;
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 
@@ -46,6 +50,9 @@ class TranslateController extends ModuleInstance {
 	#[NCA\Inject]
 	private Nadybot $bot;
 
+	#[NCA\Inject]
+	private SettingManager $settings;
+
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
@@ -56,7 +63,13 @@ class TranslateController extends ModuleInstance {
 	/** @var array<string,string> */
 	private array $languages = [];
 
-	private string $apiToken = '';
+	/** The API token for the translation service */
+	#[NCA\Setting\Text(
+		mode: SettingMode::NoEdit,
+		confidential: true,
+		accessLevel: AccessLevel::Superadmin,
+	)]
+	private string $translateApiToken = '';
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -132,7 +145,11 @@ class TranslateController extends ModuleInstance {
 	/** Request a Translation-Api-Token */
 	#[NCA\HandlesEvent]
 	public function onConnect(ConnectEvent $event): void {
-		$this->bot->sendRawTell(self::TRANSLATE_BOT, 'translate get-api-token');
+		if ($this->translateApiToken !== '') {
+			return;
+		}
+		delay(rand(0, 300));
+		$this->requestNewApiToken();
 	}
 
 	/** React to tells that give us the Translate Api-key */
@@ -145,10 +162,11 @@ class TranslateController extends ModuleInstance {
 		if (count($matches) === 0) {
 			return;
 		}
-		$this->apiToken = $matches[1];
-		$this->logger->notice('Received Translate API token from {bot}: {token}', [
+		$this->translateApiToken = $matches[1];
+		$this->settings->save('translate_api_token', $matches[1]);
+		$this->logger->info('Received Translate API token from {bot}: {token}', [
 			'bot' => self::TRANSLATE_BOT,
-			'token' => $this->apiToken,
+			'token' => $this->translateApiToken,
 		]);
 		throw new StopExecutionException();
 	}
@@ -166,18 +184,29 @@ class TranslateController extends ModuleInstance {
 		$context->reply($this->translate($text, $this->defaultLanguage));
 	}
 
+	/** Request a new Translation-Api-Token */
+	private function requestNewApiToken(): void {
+		$this->bot->sendRawTell(self::TRANSLATE_BOT, 'translate get-api-token');
+	}
+
 	private function loadLanguages(): ?Models\LanguageList {
-		$response = $this->http->build()->request(new \Amp\Http\Client\Request(self::TRANSLATE_AI . '/v1/languages'));
-		$status = $response->getStatus();
-		if ($status !== 200) {
-			$this->logger->error('Failed to load languages from translation API. Status: {status}', ['status' => $status]);
-		}
-		$body = $response->getBody()->buffer();
-		$rawLanguages = json_decode($body, true);
 		try {
+			$response = $this->http->build()->request(new \Amp\Http\Client\Request(self::TRANSLATE_AI . '/v1/languages'));
+			$status = $response->getStatus();
+			if ($status !== 200) {
+				$this->logger->error('Failed to load languages from translation API. Status: {status}', ['status' => $status]);
+				return null;
+			}
+			$body = $response->getBody()->buffer();
+		} catch (Exception) {
+			return null;
+		}
+		try {
+			$rawLanguages = json_decode($body, true);
+
 			/** @psalm-suppress MixedArgument: */
 			return Hydrator::hydrate(Models\LanguageList::class, $rawLanguages);
-		} catch (UnableToHydrateObject $e) {
+		} catch (JsonException | UnableToHydrateObject) {
 			return null;
 		}
 	}
@@ -192,8 +221,8 @@ class TranslateController extends ModuleInstance {
 	 * @return string The translated message
 	 */
 	private function translate(string $message, string $toLanguage, ?string $fromLanguage=null): string {
-		if (strlen($this->apiToken) === 0) {
-			return 'No API token available for translation. Please check your logs.';
+		if (strlen($this->translateApiToken) === 0) {
+			return 'No API token available for translation. Please wait until one was requested.';
 		}
 		if (count($this->languages) === 0) {
 			return 'No languages available for translation. Please check your logs.';
@@ -205,8 +234,8 @@ class TranslateController extends ModuleInstance {
 			$message = $fromLanguage . ' ' . $message;
 			$fromLanguage = null;
 		}
-		$message = Safe::pregReplace('/^\s*-\s*/', '', $message);
-		$this->logger->info('Translating {text} from {from} into {to}', [
+		$message = Safe::pregReplace('/^\s*-\s*/s', '', $message);
+		$this->logger->notice('Translating {text} from {from} into {to}', [
 			'text' => $message,
 			'from' => $fromLanguage ?? 'auto-detect',
 			'to' => $toLanguage,
@@ -217,12 +246,20 @@ class TranslateController extends ModuleInstance {
 			'target_lang' => $toLanguage,
 			'source_lang' => $fromLanguage,
 		]));
-		$request->addHeader('Authorization', 'Bearer ' . $this->apiToken);
+		$request->addHeader('Authorization', 'Bearer ' . $this->translateApiToken);
 		$request->setTransferTimeout(120);
 		$request->setInactivityTimeout(60);
 		$client = $this->http->build();
 		$response = $client->request($request);
 		$body = $response->getBody()->buffer();
+		if ($response->getStatus() === 401) {
+			// If the token is invalid, clear it and request a new one
+			$this->translateApiToken = '';
+			$this->settings->save('translate_api_token', '');
+			$this->requestNewApiToken();
+			return 'Translation API token is invalid. Requested a new token, please wait a moment and try again.';
+		}
+
 		if ($response->getStatus() !== 200) {
 			$this->logger->error('Translation API returned status {status} with body {body}', [
 				'status' => $response->getStatus(),

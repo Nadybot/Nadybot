@@ -15,12 +15,11 @@ class ChatCompletion {
 
 	/**
 	 * @param string            $id                 A unique identifier for the chat completion.
-	 * @param string            $object             The object type, which is always "chat.completion".
 	 * @param DateTimeInterface $created            The Unix timestamp (in seconds) of when the chat completion was created.
 	 * @param string            $model              The model used for the chat completion.
 	 * @param Choice[]          $choices            A list of chat completion choices. Can be more than one if `n` is
 	 *                                              greater than 1.
-	 * @param ?Usage            $usage              Usage statistics for the completion request.
+	 * @param string            $object             The object type, which is always "chat.completion".
 	 * @param ?string           $system_fingerprint This fingerprint represents the backend configuration that the model
 	 *                                              runs with.
 	 *                                              Can be used in conjunction with the `seed` request parameter to
@@ -31,11 +30,10 @@ class ChatCompletion {
 	 */
 	public function __construct(
 		public readonly string $id,
-		public readonly string $object,
 		public readonly DateTimeInterface $created,
 		public readonly string $model,
 		#[CastListToType(Choice::class)] public readonly array $choices,
-		public readonly ?Usage $usage=null,
+		public readonly string $object='chat.completion',
 		public readonly ?string $system_fingerprint=null,
 	) {
 	}

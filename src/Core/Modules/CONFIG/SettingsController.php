@@ -156,6 +156,11 @@ class SettingsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
+		if ($setting->mode === SettingMode::NoEdit) {
+			$msg = "Setting <highlight>{$name}<end> is read-only and cannot be changed.";
+			$context->reply($msg);
+			return;
+		}
 		if (!$this->accessManager->checkAccess($context->char->name, $setting->access_level??AccessLevel::Superadmin)) {
 			$msg = "You don't have the necessary rights to change this setting.";
 			$context->reply($msg);
