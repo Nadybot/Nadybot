@@ -15,13 +15,16 @@ use Nadybot\Core\{
 	CmdContext,
 	Hydrator,
 	ModuleInstance,
+	Nadybot,
 	Safe,
 	Text,
 	Types\AccessLevel,
 };
 use Nadybot\Core\Attributes\Parameter\{Regexp, SpaceOptional};
-
+use Nadybot\Core\Events\{ConnectEvent, RecvMsgEvent};
+use Nadybot\Core\Exceptions\StopExecutionException;
 use Psr\Log\LoggerInterface;
+use Safe\Exceptions\JsonException;
 
 #[
 	NCA\Instance,
@@ -35,8 +38,13 @@ use Psr\Log\LoggerInterface;
 class TranslateController extends ModuleInstance {
 	private const TRANSLATE_AI = 'https://translate.nadybot.org';
 
+	private const TRANSLATE_BOT = 'Translatore';
+
 	#[NCA\Inject]
 	private HttpClientBuilder $http;
+
+	#[NCA\Inject]
+	private Nadybot $bot;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -47,6 +55,8 @@ class TranslateController extends ModuleInstance {
 
 	/** @var array<string,string> */
 	private array $languages = [];
+
+	private string $apiToken = '';
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -119,6 +129,30 @@ class TranslateController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Request a Translation-Api-Token */
+	#[NCA\HandlesEvent]
+	public function onConnect(ConnectEvent $event): void {
+		$this->bot->sendRawTell(self::TRANSLATE_BOT, 'translate get-api-token');
+	}
+
+	/** React to tells that give us the Translate Api-key */
+	#[NCA\HandlesEvent]
+	public function receiveMessageEvent(RecvMsgEvent $eventObj): void {
+		if ($eventObj->sender !== self::TRANSLATE_BOT) {
+			return;
+		}
+		$matches = Safe::pregMatch('/^translate set-api-token (.+)$/s', $eventObj->message);
+		if (count($matches) === 0) {
+			return;
+		}
+		$this->apiToken = $matches[1];
+		$this->logger->notice('Received Translate API token from {bot}: {token}', [
+			'bot' => self::TRANSLATE_BOT,
+			'token' => $this->apiToken,
+		]);
+		throw new StopExecutionException();
+	}
+
 	/**
 	 * Autodetect a text's language and translate it into the default language
 	 * To ignore treating the first word as a language code, start your text with a dash (-)
@@ -158,6 +192,9 @@ class TranslateController extends ModuleInstance {
 	 * @return string The translated message
 	 */
 	private function translate(string $message, string $toLanguage, ?string $fromLanguage=null): string {
+		if (strlen($this->apiToken) === 0) {
+			return 'No API token available for translation. Please check your logs.';
+		}
 		if (count($this->languages) === 0) {
 			return 'No languages available for translation. Please check your logs.';
 		}
@@ -180,19 +217,27 @@ class TranslateController extends ModuleInstance {
 			'target_lang' => $toLanguage,
 			'source_lang' => $fromLanguage,
 		]));
-		$request->addHeader('Authorization', 'Bearer test-bot-123');
+		$request->addHeader('Authorization', 'Bearer ' . $this->apiToken);
 		$request->setTransferTimeout(120);
 		$request->setInactivityTimeout(60);
 		$client = $this->http->build();
 		$response = $client->request($request);
+		$body = $response->getBody()->buffer();
 		if ($response->getStatus() !== 200) {
 			$this->logger->error('Translation API returned status {status} with body {body}', [
 				'status' => $response->getStatus(),
-				'body' => $response->getBody()->buffer(),
+				'body' => $body,
 			]);
-			return 'An error occurred during translation. Please check your logs for details.';
+			try {
+				$rawBody = json_decode($body, true);
+
+				/** @psalm-suppress MixedArgument */
+				$error = Hydrator::hydrate(Models\TranslateError::class, $rawBody);
+				return $error->error;
+			} catch (JsonException | UnableToHydrateObject) {
+				return 'An error occurred during translation. Please check your logs for details.';
+			}
 		}
-		$body = $response->getBody()->buffer();
 		$rawTranslation = json_decode($body, true);
 		if (!is_array($rawTranslation) || !isset($rawTranslation['translated_text'])) {
 			$this->logger->error('Unexpected response format from translation API: {body}', ['body' => $body]);
