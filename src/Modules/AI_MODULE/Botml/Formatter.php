@@ -6,16 +6,18 @@ use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\CommonMark\Node\Block\{BlockQuote, FencedCode, Heading, ListBlock, ListItem, ThematicBreak};
 use League\CommonMark\Extension\CommonMark\Node\Inline\{Code, Emphasis, Link, Strong};
+use League\CommonMark\Extension\Table\{Table, TableCell, TableExtension, TableRow};
 use League\CommonMark\Node\Block\Paragraph;
 use League\CommonMark\Node\Inline\Text;
 use League\CommonMark\Parser\MarkdownParser;
 use Nadybot\Core\Safe;
+use Psr\Log\LoggerInterface;
 
 class Formatter {
 	private readonly MarkdownParser $parser;
 	private readonly DocumentRenderer $documentRenderer;
 
-	public function __construct() {
+	public function __construct(private LoggerInterface $logger) {
 		$config = [
 			'renderer' => [
 				'block_separator' => "\n",
@@ -52,7 +54,9 @@ class Formatter {
 
 		$environment = new Environment($config);
 		$renderer = new Renderer();
+		$tableRenderer = new TableRenderer($this->logger);
 		$environment->addExtension(new CommonMarkCoreExtension());
+		$environment->addExtension(new TableExtension());
 		$environment->addRenderer(Heading::class, $renderer);
 		$environment->addRenderer(Emphasis::class, $renderer);
 		$environment->addRenderer(Strong::class, $renderer);
@@ -64,12 +68,18 @@ class Formatter {
 		$environment->addRenderer(BlockQuote::class, $renderer);
 		$environment->addRenderer(Link::class, $renderer);
 		$environment->addRenderer(ThematicBreak::class, $renderer);
+		$environment->addRenderer(Table::class, $tableRenderer);
+		$environment->addRenderer(TableRow::class, $tableRenderer);
+		$environment->addRenderer(TableCell::class, $tableRenderer);
 
 		$this->parser = new MarkdownParser($environment);
 		$this->documentRenderer = new DocumentRenderer($environment);
 	}
 
 	public function format(string $text): string {
+		// Remove Emojis and other non-text characters that might cause issues in the chat
+		$text = $this->removeEmojis($text);
+		$text = str_replace(['‑', ' ', '–', '→', '­'], ['-', ' ', '-', '-&gt;', ''], $text);
 		$document = $this->parser->parse($text);
 		$lines = [];
 		foreach ($document->iterator() as $node) {
@@ -83,11 +93,8 @@ class Formatter {
 		}
 		$rendered = $this->documentRenderer->renderDocument($document)->getContent();
 		$rendered = str_ireplace('<br />', "\n", $rendered);
-		// Remove Emojis and other non-text characters that might cause issues in the chat
-		$cleaned = $this->removeEmojis($rendered);
-		$cleaned = str_replace(['‑', ' ', '–', '→'], ['-', ' ', '-', '-&gt;'], $cleaned);
 
-		return $cleaned;
+		return $rendered;
 	}
 
 	/**
@@ -104,7 +111,7 @@ class Formatter {
 	 * @license CC BY-SA 4.0
 	 */
 	private function removeEmojis(string $text): string {
-		return Safe::pregReplace(
+		$cleaned = Safe::pregReplace(
 			'/\x{1F3F4}\x{E0067}\x{E0062}(?:\x{E0077}\x{E006C}\x{E0073}|\x{E0073}\x{E0063}\x{E0074}|'.
 			'\x{E0065}\x{E006E}\x{E0067})\x{E007F}|(?:\x{1F9D1}\x{1F3FF}\x{200D}\x{2764}(?:\x{FE0F}'.
 			'\x{200D}(?:\x{1F48B}\x{200D})?|\x{200D}(?:\x{1F48B}\x{200D})?)\x{1F9D1}|\x{1F469}'.
@@ -337,8 +344,11 @@ class Formatter {
 			'\x{1F976}\x{1F978}-\x{1F9B4}\x{1F9B7}\x{1F9BA}\x{1F9BC}-\x{1F9CC}\x{1F9D0}\x{1F9E0}-'.
 			'\x{1F9FF}\x{1FA70}-\x{1FA74}\x{1FA78}-\x{1FA7C}\x{1FA80}-\x{1FA86}\x{1FA90}-\x{1FAAC}'.
 			'\x{1FAB0}-\x{1FABA}\x{1FAC0}-\x{1FAC2}\x{1FAD0}-\x{1FAD9}\x{1FAE0}-\x{1FAE7}]/u',
-			'',
+			'💡',
 			$text
 		);
+		$cleaned = Safe::pregReplace('/( 💡 | 💡|💡 )/u', ' ', $cleaned);
+		$cleaned = Safe::pregReplace('/💡/u', '', $cleaned);
+		return $cleaned;
 	}
 }

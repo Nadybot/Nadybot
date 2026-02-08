@@ -28,7 +28,7 @@ class Renderer implements NodeRendererInterface {
 	}
 
 	public function renderBreak(ThematicBreak $node, ChildNodeRendererInterface $childRenderer): string {
-		return str_repeat('_', 20) . "\n";
+		return str_repeat('_', 50) . "\n";
 	}
 
 	public function renderHeader(Heading $node, ChildNodeRendererInterface $childRenderer): string {

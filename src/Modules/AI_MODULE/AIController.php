@@ -145,7 +145,7 @@ class AIController extends ModuleInstance {
 
 	/** Format the AI reply to support some basic markdown */
 	public function formatAiReply(string $reply): string {
-		$formatter = new Botml\Formatter();
+		$formatter = new Botml\Formatter($this->logger);
 		return trim($formatter->format($reply));
 	}
 
