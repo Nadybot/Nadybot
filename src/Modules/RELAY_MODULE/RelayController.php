@@ -896,7 +896,9 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			->orderBy('id')
 			->asObj(RelayLayer::class)
 			->each(static function (RelayLayer $layer) use ($arguments): void {
-				$layer->arguments = $arguments->get($layer->id->toString(), new Collection())->toList();
+				/** @var Collection<int,RelayLayerArgument> */
+				$empty = new Collection();
+				$layer->arguments = $arguments->get($layer->id->toString(), $empty)->toList();
 			})
 			->groupByString('relay_id');
 
@@ -909,8 +911,13 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			->orderBy('id')
 			->asObj(RelayConfig::class)
 			->each(static function (RelayConfig $relay) use ($layers, $events): void {
-				$relay->layers = $layers->get($relay->id->toString(), new Collection())->toList();
-				$relay->events = $events->get($relay->id->toString(), new Collection())->toList();
+				/** @var Collection<int,RelayLayer> */
+				$emptyLayers = new Collection();
+				$relay->layers = $layers->get($relay->id->toString(), $emptyLayers)->toList();
+
+				/** @var Collection<int,RelayEvent> */
+				$emptyEvents = new Collection();
+				$relay->events = $events->get($relay->id->toString(), $emptyEvents)->toList();
 			})
 			->toList();
 

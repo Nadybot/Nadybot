@@ -173,7 +173,11 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			&& isset($package->extraInfo['channels'])
 			&& is_array($package->extraInfo['channels'])
 		) {
-			/** @psalm-suppress MixedPropertyTypeCoercion */
+			/**
+			 * @psalm-suppress MixedPropertyTypeCoercion
+			 *
+			 * @mago-ignore analysis:mixed-property-type-coercion
+			 */
 			$this->channels = array_values($package->extraInfo['channels']);
 		}
 		$this->feedSupportsHighnet = true;

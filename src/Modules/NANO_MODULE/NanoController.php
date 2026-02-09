@@ -170,6 +170,8 @@ class NanoController extends ModuleInstance {
 			/**
 			 * @psalm-suppress PossiblyInvalidOperand
 			 * @psalm-suppress MixedArgument
+			 *
+			 * @mago-ignore analysis:array-to-string-conversion
 			 */
 			$msg = str_replace($gmiLink, '', $info) . " [{$popup}]";
 		}
@@ -426,13 +428,20 @@ class NanoController extends ModuleInstance {
 		}
 
 		/** @var array<string,Nano> */
+		$initial = [];
+
+		/** @var array<string,Nano> */
 		$nanos = $query
 			->asObj(Nano::class)
-			->reduce(static function (array $nanos, Nano $nano): array {
-				$key = "{$nano->school}|{$nano->strain}|{$nano->sub_strain}";
-				$nanos[$key] ??= $nano;
-				return $nanos;
-			}, []);
+			->reduce(
+				/** @param array<string,Nano> $nanos */
+				static function (array $nanos, Nano $nano): array {
+					$key = "{$nano->school}|{$nano->strain}|{$nano->sub_strain}";
+					$nanos[$key] ??= $nano;
+					return $nanos;
+				},
+				$initial
+			);
 
 		/** @var Collection<int,Nano> */
 		$bestNanos = new Collection(array_values($nanos));

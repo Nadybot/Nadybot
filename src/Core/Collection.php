@@ -12,6 +12,15 @@ use Illuminate\Contracts\Support\Arrayable;
  */
 class Collection extends \Illuminate\Support\Collection {
 	/**
+	 * Create a new collection.
+	 *
+	 * @param null|\Illuminate\Contracts\Support\Arrayable<TKey, TValue>|iterable<TKey, TValue> $items
+	 */
+	final public function __construct(mixed $items=[]) {
+		parent::__construct($items);
+	}
+
+	/**
 	 * Key the items of the collection by an integer
 	 *
 	 * @param (callable(TValue,TKey):int)|string $keyBy

@@ -424,6 +424,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				$member->main = $this->altsController->getMainOf($member->name);
 			})
 			->keyByString('main');
+		// @mago-ignore analysis:invalid-argument
 		$lastOnline = $lastOnline->filter(function (LastOnline $member, string $main): bool {
 			return $this->accessManager->checkSingleAccess($main, AccessLevel::Member);
 		});
@@ -791,6 +792,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		 * @var Collection<int,OrgCount>
 		 *
 		 * @phpstan-ignore-next-line
+		 *
+		 * @mago-ignore analysis:docblock-type-mismatch
 		 */
 		$orgStats = $byOrg->map(static function (Collection $chars, string $orgName): OrgCount {
 			return new OrgCount(

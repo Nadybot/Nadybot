@@ -140,7 +140,7 @@ class TableRenderer implements NodeRendererInterface {
 		}
 	}
 
-	private function renderTableRow(TableRow $node, ChildNodeRendererInterface $childRenderer, ?int $rowIndex=-1): string {
+	private function renderTableRow(TableRow $node, ChildNodeRendererInterface $childRenderer, int $rowIndex=-1): string {
 		$cells = [];
 		$colIndex = 0;
 

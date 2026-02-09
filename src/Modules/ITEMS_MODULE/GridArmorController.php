@@ -77,6 +77,7 @@ class GridArmorController extends ModuleInstance {
 		 */
 		$itemSlots = $query->pluckInts('slot');
 
+		/** @var array<string,int> */
 		$counts = [];
 		foreach ($itemSlots as $slot) {
 			$slotBitfield = new EnumBitfield(WearSlot::class);
@@ -168,7 +169,7 @@ class GridArmorController extends ModuleInstance {
 	 * Format a given item, adding prefix and flags to show
 	 *
 	 * @param AODBEntry              $item  The item to render
-	 * @param EnumBitfield<WearSlot> $slots The slots beinmg shown
+	 * @param EnumBitfield<WearSlot> $slots The slots being shown
 	 *
 	 * @return string The line listing the item
 	 */
@@ -194,7 +195,7 @@ class GridArmorController extends ModuleInstance {
 	}
 
 	/**
-	 * Show the optional slot prefix, if item is onlt for left/right
+	 * Show the optional slot prefix, if item is only for left/right
 	 *
 	 * @param AODBEntry              $item  The item to render
 	 * @param EnumBitfield<WearSlot> $slots The slots to show

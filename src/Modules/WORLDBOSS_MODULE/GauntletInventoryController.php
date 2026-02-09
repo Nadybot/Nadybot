@@ -64,7 +64,7 @@ class GauntletInventoryController extends ModuleInstance {
 		return array_fill(0, 17, 0);
 	}
 
-	/** @param non-empty-array<mixed,int> $inv */
+	/** @param non-empty-array<array-key,int> $inv */
 	public function saveData(string $sender, array $inv): void {
 		$this->preferences->save($sender, 'gauntlet', json_encode(array_values($inv)));
 	}

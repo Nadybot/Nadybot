@@ -122,12 +122,16 @@ class DevController extends ModuleInstance {
 
 		// get calls for handlers
 		/** @var list<string> */
+		$initial = [];
+
+		/** @var list<string> */
 		$calls = array_reduce(
 			$handlers,
+			/** @param list<string> $handlers */
 			static function (array $handlers, CommandHandler $handler): array {
 				return array_merge($handlers, $handler->files);
 			},
-			[]
+			$initial
 		);
 
 		$calls = $this->commandManager->sortCalls($calls);

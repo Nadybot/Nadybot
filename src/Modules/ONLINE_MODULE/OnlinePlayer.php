@@ -111,7 +111,11 @@ class OnlinePlayer extends Player {
 		}
 		$op['pmain'] = $op['name'];
 
-		/** @psalm-suppress MixedArgument */
+		/**
+		 * @psalm-suppress MixedArgument
+		 *
+		 * @mago-ignore analysis:too-few-arguments
+		 */
 		return new static(...$op);
 	}
 

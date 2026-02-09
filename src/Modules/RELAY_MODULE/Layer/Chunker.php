@@ -51,6 +51,8 @@ class Chunker implements RelayLayerInterface {
 		/**
 		 * @psalm-suppress DocblockTypeContradiction
 		 *
+		 * @mago-ignore analysis:impossible-condition
+		 *
 		 * @phpstan-ignore-next-line
 		 */
 		if ($chunkSize < 1) {

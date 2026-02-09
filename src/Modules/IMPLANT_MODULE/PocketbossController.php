@@ -110,11 +110,7 @@ class PocketbossController extends ModuleInstance {
 		return $blob;
 	}
 
-	/**
-	 * @return list<Pocketboss>
-	 *
-	 * @mago-ignore analysis:mixed-return-statement,non-documented-method,invalid-argument
-	 */
+	/** @return list<Pocketboss> */
 	public function pbSearchResults(string $search): array {
 		if ($search === 'tnh') {
 			$search = 'The Night Heart';
@@ -133,8 +129,11 @@ class PocketbossController extends ModuleInstance {
 		$this->db->addWhereFromParams($query, $tmp, 'pb');
 
 		return $query->asObj(Pocketboss::class)
-			->groupBy('pb')
-			->map(static fn (Collection $col): Pocketboss => $col->firstOrFail())
+			->groupByString('pb')
+			->map(
+				/** @param Collection<int,Pocketboss> $col */
+				static fn (Collection $col, string $pb): Pocketboss => $col->firstOrFail()
+			)
 			->values()
 			->toList();
 	}

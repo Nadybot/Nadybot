@@ -409,6 +409,23 @@ class Util {
 		return $a;
 	}
 
+	/**
+	 * @template TValue
+	 *
+	 * @param array<array-key,TValue> $array
+	 *
+	 * @return TValue
+	 *
+	 * @throws \ValueError on empty arrays
+	 */
+	public static function arrayLast(array $array): mixed {
+		if (count($array) === 0) {
+			throw new \ValueError('Call to arrayLast with empty array');
+		}
+		$last = end($array);
+		return $last;
+	}
+
 	/** Get the ParamType for a single parameter to a class spec constructor */
 	private static function getParamType(\ReflectionParameter $param, NCA\Param $attr): ParamType {
 		$paramRef = "{$param->getDeclaringClass()?->getName()}::{$param->getDeclaringFunction()->getName()}(\${$param->getName()})";

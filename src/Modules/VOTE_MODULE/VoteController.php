@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\VOTE_MODULE;
 
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 
 use Nadybot\Core\{
 	AccessManager,
@@ -88,7 +88,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			->where('status', '!=', self::STATUS_ENDED)
 			->asObj(Poll::class)
 			->each(function (Poll $topic): void {
-				$topic->answers = json_decode($topic->possible_answers, false);
+				$topic->answers = $topic->getPossibleAnswers();
 				$this->polls[$topic->id->toString()] = $topic;
 			});
 	}
@@ -104,7 +104,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		if ($topic === null) {
 			return null;
 		}
-		$topic->answers = json_decode($topic->possible_answers);
+		$topic->answers = $topic->getPossibleAnswers();
 		return $topic;
 	}
 

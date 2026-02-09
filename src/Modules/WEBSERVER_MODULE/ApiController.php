@@ -149,6 +149,7 @@ class ApiController extends ModuleInstance {
 			return;
 		}
 		$pubKeyPem = $keyDetails['key'];
+		$privKeyPem = '';
 		// @phpstan-ignore-next-line
 		if (openssl_pkey_export($key, $privKeyPem) === false) {
 			$context->reply(
