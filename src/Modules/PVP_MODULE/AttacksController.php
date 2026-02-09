@@ -868,7 +868,11 @@ class AttacksController extends ModuleInstance {
 	private function nwAttacksCmd(QueryBuilder $query, string $title, string $command, int $page, ?bool $group): array {
 		$numAttacks = $query->count();
 
-		/** @psalm-suppress DocblockTypeContradiction */
+		/**
+		 * @psalm-suppress DocblockTypeContradiction
+		 *
+		 * @mago-ignore analysis:impossible-condition
+		 */
 		if ($query->limit === null) {
 			$query = $query->limit(15)->offset(($page-1) * 15);
 		}
@@ -921,6 +925,8 @@ class AttacksController extends ModuleInstance {
 			/**
 			 * @var array<string,list<DBOutcome>>
 			 *
+			 * @mago-ignore analysis:docblock-type-mismatch
+			 *
 			 * @phpstan-ignore-next-line
 			 */
 			$outcomes = $this->db->table(DBOutcome::getTable())
@@ -939,15 +945,22 @@ class AttacksController extends ModuleInstance {
 		 * @var array<string,list<DBTowerAttack>>
 		 */
 		$groups = $attacks
-			/** @param array<string,list<DBTowerAttack>> $groups */
-			->reduce(static function (array $groups, DBTowerAttack $attack): array {
-				$key = "{$attack->def_org}:{$attack->playfield->value}:{$attack->site_id}";
-				$groups[$key] ??= [];
+			->reduce(
+				/**
+				 * @param array<string,list<DBTowerAttack>> $groups
+				 *
+				 * @return array<string,list<DBTowerAttack>>
+				 */
+				static function (array $groups, DBTowerAttack $attack): array {
+					$key = "{$attack->def_org}:{$attack->playfield->value}:{$attack->site_id}";
+					$groups[$key] ??= [];
 
-				/** @psalm-suppress MixedArrayAssignment */
-				$groups[$key] []= $attack;
-				return $groups;
-			}, []);
+					/** @psalm-suppress MixedArrayAssignment */
+					$groups[$key] []= $attack;
+					return $groups;
+				},
+				[]
+			);
 		$lookup = [];
 		foreach ($groups as $key => $gAttacks) {
 			$keyOutcomes = $outcomes[$key] ?? [];
@@ -993,51 +1006,53 @@ class AttacksController extends ModuleInstance {
 		if ($groupTowerAttacks) {
 			$groups = $this->groupAttackList(...$attacks);
 
-			/** @param Collection<int,DBTowerAttack> $attacks */
-			$blocks = $groups->map(function (Collection $attacks): string {
-				$first = $attacks->firstOrFail();
+			$blocks = $groups->map(
+				/** @param Collection<int,DBTowerAttack> $attacks */
+				function (Collection $attacks): string {
+					$first = $attacks->firstOrFail();
 
-				$last = $attacks->last();
-				$pf = $first->playfield;
-				$site = $this->nwCtrl->state[$pf->value][$first->site_id] ?? null;
-				assert(isset($last));
-				assert(isset($site));
+					$last = $attacks->last();
+					$pf = $first->playfield;
+					$site = $this->nwCtrl->state[$pf->value][$first->site_id] ?? null;
+					assert(isset($last));
+					assert(isset($site));
 
-				$outcome = $this->db->table(DBOutcome::getTable())
-					->where('losing_org', $first->def_org)
-					->where('timestamp', '>', $last->timestamp)
-					->where('timestamp', '<', $last->timestamp + 6 * 3_600)
-					->where('playfield_id', $site->playfield->value)
-					->where('site_id', $site->site_id)
-					->whereNotNull('attacker_org')
-					->orderBy('timestamp')
-					->firstObj(DBOutcome::class);
+					$outcome = $this->db->table(DBOutcome::getTable())
+						->where('losing_org', $first->def_org)
+						->where('timestamp', '>', $last->timestamp)
+						->where('timestamp', '<', $last->timestamp + 6 * 3_600)
+						->where('playfield_id', $site->playfield->value)
+						->where('site_id', $site->site_id)
+						->whereNotNull('attacker_org')
+						->orderBy('timestamp')
+						->firstObj(DBOutcome::class);
 
-				$blocks = [];
+					$blocks = [];
 
-				foreach ($attacks as $attack) {
-					$blocks []= Util::date($attack->timestamp) . ': '.
-						$this->renderDBAttacker($attack);
+					foreach ($attacks as $attack) {
+						$blocks []= Util::date($attack->timestamp) . ': '.
+							$this->renderDBAttacker($attack);
+					}
+					return "<header2>{$pf->short()} {$first->site_id}<end>".
+						(
+							isset($first->ql)
+						? " (QL {$first->ql}) ["
+						: " (QL {$site->min_ql}-{$site->max_ql}) ["
+						).
+						Text::makeChatcmd(
+							'details',
+							"/tell <myname> <symbol>nw lc {$pf->short()} {$first->site_id}"
+						) . "]\n".
+						'<tab>Defender: ' . $first->def_faction->inColor($first->def_org) . "\n".
+						(
+							isset($outcome, $outcome->attacker_faction, $outcome->attacker_org)
+								? '<tab>Won by ' . $outcome->attacker_faction->inColor($outcome->attacker_org).
+									' at ' . Util::date($outcome->timestamp) . "\n\n"
+								: "\n"
+						) . '<tab>'.
+						implode("\n<tab>", $blocks);
 				}
-				return "<header2>{$pf->short()} {$first->site_id}<end>".
-					(
-						isset($first->ql)
-					? " (QL {$first->ql}) ["
-					: " (QL {$site->min_ql}-{$site->max_ql}) ["
-					).
-					Text::makeChatcmd(
-						'details',
-						"/tell <myname> <symbol>nw lc {$pf->short()} {$first->site_id}"
-					) . "]\n".
-					'<tab>Defender: ' . $first->def_faction->inColor($first->def_org) . "\n".
-					(
-						isset($outcome, $outcome->attacker_faction, $outcome->attacker_org)
-							? '<tab>Won by ' . $outcome->attacker_faction->inColor($outcome->attacker_org).
-								' at ' . Util::date($outcome->timestamp) . "\n\n"
-							: "\n"
-					) . '<tab>'.
-					implode("\n<tab>", $blocks);
-			})->toList();
+			)->toList();
 		} else {
 			$blocks = [];
 			foreach ($attacks as $attack) {

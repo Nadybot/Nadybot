@@ -88,6 +88,8 @@ class FormulaController extends ModuleInstance {
 		$tree = $parser->parse($formula);
 		try {
 			$evaluator = new Evaluator([]);
+
+			/** @mago-ignore analysis:invalid-type-cast */
 			$result = (float)$tree->accept($evaluator);
 			$printer = new AOPrinter($this);
 			$formula = (string)$tree->accept($printer);
@@ -177,6 +179,8 @@ class FormulaController extends ModuleInstance {
 		try {
 			$tree = $parser->parse($formula->formula);
 			$evaluator = new Evaluator($variables);
+
+			/** @mago-ignore analysis:invalid-type-cast */
 			$result = (float)$tree->accept($evaluator);
 			$printer = new AOPrinter($this);
 			$prettyPrint = (string)$tree->accept($printer);

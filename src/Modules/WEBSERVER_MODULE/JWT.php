@@ -118,6 +118,7 @@ class JWT {
 		}
 
 		// Check if this token has expired.
+		/** @mago-ignore analysis:mixed-operand */
 		if (isset($payload->exp) && ($timestamp - static::$leeway) >= $payload->exp) {
 			throw new ExpiredException('Expired token');
 		}
@@ -138,6 +139,7 @@ class JWT {
 		if (!isset($input)) {
 			throw new DomainException('Invalid JSON data received');
 		}
+
 		if (!(defined('JSON_C_VERSION') && \PHP_INT_SIZE > 4)) {
 			$obj = json_decode($input, false, 512, \JSON_BIGINT_AS_STRING);
 		} else {

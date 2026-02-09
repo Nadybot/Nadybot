@@ -204,11 +204,6 @@ class ArbiterController extends ModuleInstance {
 			}
 		}
 
-		/**
-		 * @var list<ArbiterEvent>
-		 *
-		 * @psalm-var non-empty-list<ArbiterEvent>
-		 */
 		$upcomingEvents = [
 			$this->getNextBS($time),
 			$this->getNextAI($time),
@@ -222,6 +217,8 @@ class ArbiterController extends ModuleInstance {
 				return $e1->start <=> $e2->start;
 			}
 		);
+
+		/** @psalm-var non-empty-list<ArbiterEvent> $upcomingEvents */
 		$blob = '';
 		if ($upcomingEvents[0]->isActiveOn($time)) {
 			$currentEvent = array_shift($upcomingEvents);
@@ -269,7 +266,7 @@ class ArbiterController extends ModuleInstance {
 		)
 	]
 	public function arbiterNewsTile(string $sender): ?string {
-		/** @var non-empty-list<ArbiterEvent> */
+		/** @var list<ArbiterEvent> */
 		$upcomingEvents = [
 			$this->getNextBS(),
 			$this->getNextAI(),
@@ -283,6 +280,8 @@ class ArbiterController extends ModuleInstance {
 				return $e1->start <=> $e2->start;
 			}
 		);
+
+		/** @psalm-var non-empty-list<ArbiterEvent> $upcomingEvents */
 		if (!$upcomingEvents[0]->isActiveOn(time())) {
 			return null;
 		}
@@ -302,7 +301,7 @@ class ArbiterController extends ModuleInstance {
 		)
 	]
 	public function arbiterNewsForceTile(string $sender): string {
-		/** @var non-empty-list<ArbiterEvent> */
+		/** @var list<ArbiterEvent> */
 		$upcomingEvents = [
 			$this->getNextBS(),
 			$this->getNextAI(),
@@ -316,6 +315,8 @@ class ArbiterController extends ModuleInstance {
 				return $e1->start <=> $e2->start;
 			}
 		);
+
+		/** @psalm-var non-empty-list<ArbiterEvent> $upcomingEvents */
 		$msg = "<header2>Arbiter<end>\n";
 		if (!$upcomingEvents[0]->isActiveOn(time())) {
 			$msg .= "<tab>The arbiter is currently not here.\n";

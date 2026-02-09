@@ -80,7 +80,9 @@ class AesGcmEncryption implements RelayLayerInterface {
 		]);
 		$ivLength = $this->ivLength;
 		[$micro, $secs] = explode(' ', microtime());
-		$iv = pack('NN', $secs, (float)$micro*100_000_000);
+
+		/** @mago-ignore analysis:invalid-type-cast */
+		$iv = pack('NN', $secs, ((float)$micro)*100_000_000);
 		$fillLength = $ivLength - strlen($iv);
 		if ($fillLength >= 1) {
 			$iv .= random_bytes($fillLength);

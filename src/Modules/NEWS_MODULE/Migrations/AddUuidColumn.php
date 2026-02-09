@@ -5,7 +5,6 @@ namespace Nadybot\Modules\NEWS_MODULE\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
 	Attributes as NCA,
-	Collection,
 	DB,
 	Types\SchemaMigration,
 };
@@ -21,12 +20,10 @@ class AddUuidColumn implements SchemaMigration {
 			$table->string('uuid', 36)->nullable(true);
 		});
 
-		/** @var Collection<int,object{id:int}&\stdClass> */
-		$data = $db->table($table)->get();
+		$ids = $db->table($table)->pluckInts('id');
 
-		/** @param object{id:int}&\stdClass */
-		$data->each(static function (object $data) use ($db, $table): void {
-			$db->table($table)->where('id', $data->id)->update([
+		$ids->each(static function (int $id) use ($db, $table): void {
+			$db->table($table)->where('id', $id)->update([
 				'uuid' => Uuid::uuid7()->toString(),
 			]);
 		});

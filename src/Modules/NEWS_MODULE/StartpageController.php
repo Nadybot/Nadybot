@@ -334,8 +334,9 @@ class StartpageController extends ModuleInstance {
 			$context->reply("There is no tile <highlight>{$tileName}<end>.");
 			return;
 		}
+
 		$tileKeys = array_keys($currentTiles);
-		array_splice($tileKeys, $pos, 0, $tileName);
+		array_splice($tileKeys, $pos, 0, [$tileName]);
 		$this->setTiles(...$tileKeys);
 		$this->showStartpageLayout($context, true);
 	}

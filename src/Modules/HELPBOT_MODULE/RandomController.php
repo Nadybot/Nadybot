@@ -70,9 +70,12 @@ class RandomController extends ModuleInstance {
 	#[NCA\Help\Example('<symbol>random one, two, three')]
 	public function randomCommand(CmdContext $context, string $elements): void {
 		$items = Safe::pregSplit("/(,\s+|\s+|,)/", trim($elements));
+
+		/** @var list<string> */
 		$list = [];
 		while (count($items)) {
 			// Pick a random item from $items and remove it
+			/** @var string $elem */
 			$elem = array_splice($items, array_rand($items, 1), 1)[0];
 			$list []= $elem;
 		}
