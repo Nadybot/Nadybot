@@ -95,7 +95,7 @@ class TranslateController extends ModuleInstance {
 
 	/** Translate between two arbitrary languages */
 	#[NCA\HandlesCommand('translate')]
-	#[NCA\Help\Example('<symbol>translate de..en Das ist keine gute Idee')]
+	#[NCA\Help\Example('<symbol>translate en..de This is not a great idea')]
 	#[NCA\Untestable]
 	public function translate2Command(
 		CmdContext $context,
@@ -109,7 +109,7 @@ class TranslateController extends ModuleInstance {
 
 	/** Translate from the given language into English */
 	#[NCA\HandlesCommand('translate')]
-	#[NCA\Help\Example('<symbol>translate de Das ist keine gute Idee')]
+	#[NCA\Help\Example('<symbol>translate de Unbekannterweise')]
 	#[NCA\Untestable]
 	public function translate1Command(
 		CmdContext $context,
@@ -172,7 +172,7 @@ class TranslateController extends ModuleInstance {
 	}
 
 	/**
-	 * Autodetect a text's language and translate it into the default language
+	 * Automatically detect a text's language and translate it into the default language
 	 * To ignore treating the first word as a language code, start your text with a dash (-)
 	 */
 	#[NCA\HandlesCommand('translate')]

@@ -142,4 +142,49 @@ class Collection extends \Illuminate\Support\Collection {
 		$result = $this->groupBy($groupBy, false); // @phpstan-ignore-line
 		return $result;
 	}
+
+	/**
+	 * Push one or more items onto the end of the collection.
+	 *
+	 * @param TValue ...$values
+	 *
+	 * @return $this
+	 */
+	public function push(...$values): self {
+		return parent::push(...$values);
+	}
+
+	/**
+	 * Put an item in the collection by key.
+	 *
+	 * @param TKey   $key
+	 * @param TValue $value
+	 *
+	 * @return $this
+	 */
+	public function put($key, $value): self {
+		return parent::put($key, $value);
+	}
+
+	/**
+	 * Remove an item from the collection by key.
+	 *
+	 * @return $this
+	 */
+	public function forget(mixed $keys): self {
+		return parent::forget($keys);
+	}
+
+	/**
+	 * Get and remove the first N items from the collection.
+	 *
+	 * @param int $count
+	 *
+	 * @return null|static<int, TValue>|TValue
+	 *
+	 * @throws \InvalidArgumentException
+	 */
+	public function shift($count=1): mixed {
+		return parent::shift($count);
+	}
 }

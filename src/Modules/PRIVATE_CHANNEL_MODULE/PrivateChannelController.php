@@ -791,9 +791,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		/**
 		 * @var Collection<int,OrgCount>
 		 *
-		 * @phpstan-ignore-next-line
-		 *
 		 * @mago-ignore analysis:docblock-type-mismatch
+		 *
+		 * @phpstan-ignore-next-line
 		 */
 		$orgStats = $byOrg->map(static function (Collection $chars, string $orgName): OrgCount {
 			return new OrgCount(

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\AI_MODULE\Models;
 use Nadybot\Core\StringableTrait;
 
 /**
- * Represents an error from the translion Api
+ * Represents an error from the translation Api
  */
 class TranslateError {
 	use StringableTrait;

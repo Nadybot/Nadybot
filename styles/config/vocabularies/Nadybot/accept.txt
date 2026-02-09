@@ -159,6 +159,7 @@ ilari
 ilike
 Illork
 Imoutochan
+INews
 (?i)psy
 (?i)sen
 (?i)sta
@@ -327,6 +328,7 @@ ucred
 uid|UID
 uk|UK
 [uU]nary
+Unbekannterweise
 unescape
 unhide
 unicode
