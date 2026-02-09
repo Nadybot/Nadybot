@@ -229,7 +229,11 @@ class AIController extends ModuleInstance {
 				throw new JsonException('Wrong message format');
 			}
 
-			/** @psalm-suppress MixedArgumentTypeCoercion */
+			/**
+			 * @psalm-suppress MixedArgumentTypeCoercion
+			 *
+			 * @mago-ignore analysis:less-specific-argument
+			 */
 			$completion = Hydrator::hydrate(Models\ChatCompletion::class, $reply);
 			$this->logger->info('Translation result is {completion}', ['completion' => $completion]);
 		} catch (JsonException | UnableToHydrateObject $e) {

@@ -111,6 +111,8 @@ class NanoController extends ModuleInstance {
 	#[NCA\HandlesCommand('nano')]
 	#[NCA\Help\Group('nano')]
 	public function nanoCommand(CmdContext $context, string $search): void {
+		$gmiLink = null;
+		$info = null;
 		$search = htmlspecialchars_decode($search);
 		$query = $this->db->table(Nano::getTable())
 			->orderBy('strain')
@@ -170,8 +172,6 @@ class NanoController extends ModuleInstance {
 			/**
 			 * @psalm-suppress PossiblyInvalidOperand
 			 * @psalm-suppress MixedArgument
-			 *
-			 * @mago-ignore analysis:array-to-string-conversion
 			 */
 			$msg = str_replace($gmiLink, '', $info) . " [{$popup}]";
 		}
@@ -238,6 +238,8 @@ class NanoController extends ModuleInstance {
 
 	public function listNanolines(CmdContext $context, bool $froobOnly, string $arg): void {
 		$arg = html_entity_decode($arg);
+
+		/** @var non-empty-list<string> */
 		$nanoArgs = explode(' > ', $arg);
 		$profArg = array_shift($nanoArgs);
 		$profession = Profession::tryFromName($profArg)?->value;

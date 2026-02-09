@@ -535,7 +535,9 @@ class GuildController extends ModuleInstance {
 			}
 		}
 
+		/** @param Collection<int,Player> $players */
 		$statsFunc = static function (Collection $players, string $key) use ($members): string {
+			/** @var Collection<array-key, Player> $players */
 			$count = $players->count();
 			$percentage = Text::alignNumber(
 				(int)round($count * 100 / $members->count(), 0),
@@ -562,20 +564,20 @@ class GuildController extends ModuleInstance {
 		 * @psalm-suppress MixedOperand
 		 */
 		$blob .= '<tab><highlight>Members<end>: ' . $members->count() . "\n".
-			'<tab><highlight>Min level<end>: ' . $members->min('level') . "\n".
+			'<tab><highlight>Min level<end>: ' . (string)$members->min('level') . "\n".
 			'<tab><highlight>Avg level<end>: ' . round($members->avg('level') ?? 0, 0) . "\n".
-			'<tab><highlight>Max level<end>: ' . $members->max('level') . "\n\n".
+			'<tab><highlight>Max level<end>: ' . (string)$members->max('level') . "\n\n".
 			'<header2>Numbers by breed<end>'.
-			$members->sortBy('breed')->groupBy('breed')
+			$members->sortBy('breed')->groupByString('breed')
 			->map($statsFunc)->join('').
 			"\n\n<header2>Numbers by profession<end>".
-			$members->sortBy('profession')->groupBy('profession')
+			$members->sortBy('profession')->groupByString('profession')
 			->map($statsFunc)->join('').
 			"\n\n<header2>Numbers by gender<end>".
-			$members->sortBy('gender')->groupBy('gender')
+			$members->sortBy('gender')->groupByString('gender')
 			->map($statsFunc)->join('').
 			"\n\n<header2>Numbers by title level<end>".
-			$members->sortBy('level')->groupBy($tlFunc)
+			$members->sortBy('level')->groupByString($tlFunc)
 			->map($statsFunc)->join('');
 		$msg = Text::makeBlob('Org statistics', $blob);
 		$context->reply($msg);
@@ -1001,7 +1003,12 @@ class GuildController extends ModuleInstance {
 			return;
 		}
 		$this->settingManager->save('num_org_updates_skipped', 0);
-		// @phpstan-ignore-next-line
+
+		/**
+		 * @mago-ignore analysis:redundant-logical-operation,impossible-type-comparison
+		 *
+		 * @phpstan-ignore-next-line
+		 */
 		if ($data->count() > 0 || (count($org->members) === 0)) {
 			foreach ($data as $row) {
 				$dbEntries[$row->name] = [

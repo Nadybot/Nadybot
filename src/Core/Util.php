@@ -418,9 +418,26 @@ class Util {
 	 *
 	 * @throws \ValueError on empty arrays
 	 */
-	public static function arrayLast(array $array): mixed {
+	public static function arrayLast(array $array, mixed $default=null): mixed {
 		if (count($array) === 0) {
 			throw new \ValueError('Call to arrayLast with empty array');
+		}
+		$last = end($array);
+		return $last;
+	}
+
+	/**
+	 * @template TValue
+	 * @template TDefault
+	 *
+	 * @param array<array-key,TValue> $array
+	 * @param TDefault                $default
+	 *
+	 * @return TValue|TDefault
+	 */
+	public static function arrayLastOr(array $array, mixed $default): mixed {
+		if (count($array) === 0) {
+			return $default;
 		}
 		$last = end($array);
 		return $last;

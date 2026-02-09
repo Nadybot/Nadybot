@@ -587,7 +587,11 @@ class DiscordSlashCommandController extends ModuleInstance {
 	private function getNumChangedSlashCommands(Collection $live, Collection $set): int {
 		$live = $live->keyByString('name');
 		$changedOrNewCommands = $set->filter(static function (ApplicationCommand $cmd) use ($live): bool {
-			/** @psalm-suppress PossiblyNullArgument */
+			/**
+			 * @psalm-suppress PossiblyNullArgument
+			 *
+			 * @mago-ignore analysis:possibly-null-argument
+			 */
 			return !$live->has($cmd->name)
 				|| !$cmd->isSameAs($live->get($cmd->name));
 		})->values();

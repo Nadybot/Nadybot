@@ -114,12 +114,16 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		$maps = $this->getMappings();
 
 		/** @var array<int,true> */
+		$initial = [];
+
+		/** @var array<int,true> */
 		$mapKeys = $maps->reduce(
+			/** @param array<int,true> $carry */
 			static function (array $carry, OrgRankMapping $m): array {
 				$carry[$m->min_rank] = true;
 				return $carry;
 			},
-			[]
+			$initial,
 		);
 		$ranks = $guild->governing_form->getOrgRanks();
 		if ($maps->isEmpty()) {

@@ -27,6 +27,8 @@ class DemoResponseCommandReply implements CommandReply {
 			$msg = str_replace("chatcmd:///tell {$this->botname} ", 'chatcmd:///o <symbol>demo ', $msg);
 			$msg = str_replace('chatcmd:///tell <myname> ', 'chatcmd:///o <symbol>demo ', $msg);
 		}
+
+		/** @var string|list<string> $msg */
 		$this->sendto->reply($msg);
 	}
 }

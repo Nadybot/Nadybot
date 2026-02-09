@@ -2,7 +2,7 @@
 
 namespace Nadybot\Api;
 
-use function Safe\{glob, preg_match};
+use function Safe\{glob};
 
 use BackedEnum;
 use Exception;
@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	DBTable,
 	Registry,
 	Safe,
+	Util,
 };
 use Nadybot\Core\Config\{AutoUnfreeze, Proxy};
 use ReflectionClass;
@@ -192,7 +193,7 @@ class ApiSpecGenerator {
 			}
 			if (is_string($nameAndType[1]) && substr($nameAndType[1], 0, 1) === '#') {
 				$tmp = explode('/', $nameAndType[1]);
-				$this->classes []= end($tmp);
+				$this->classes []= Util::arrayLast($tmp);
 				$newResult['properties'][$nameAndType[0]] = $this->getClassRef($nameAndType[1], $refProp);
 			} elseif (is_array($nameAndType[1])) {
 				$nameAndType[1] = array_values(array_diff($nameAndType[1], ['null']));
@@ -238,25 +239,26 @@ class ApiSpecGenerator {
 					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
 				$parts = explode('\\', $matches[1]??'');
-				$newResult['properties'][$nameAndType[0]]['items'] = self::getSimpleClassRef(end($parts));
-				$this->classes []= end($parts);
+				$newResult['properties'][$nameAndType[0]]['items'] = self::getSimpleClassRef(Util::arrayLast($parts));
+				$this->classes []= Util::arrayLast($parts);
 			}
 		}
-		if ($refClass->getParentClass() !== false) {
-			$parentClass = $refClass->getParentClass()->getName();
+		$parentClassObj = $refClass->getParentClass();
+		if ($parentClassObj !== false) {
+			$parentClass = $parentClassObj->getName();
 			if (!in_array($parentClass, [DBRow::class, DBTable::class], true)) {
 				$parentParts = explode('\\', $parentClass);
-				$this->classes []= end($parentParts);
+				$this->classes []= Util::arrayLast($parentParts);
 				if (!count($newResult['properties'])) {
 					$newResult = [
 						'allOf' => [
-							['$ref' => '#/components/schemas/' . end($parentParts)],
+							['$ref' => '#/components/schemas/' . Util::arrayLast($parentParts)],
 						],
 					];
 				} else {
 					$newResult = [
 						'allOf' => [
-							['$ref' => '#/components/schemas/' . end($parentParts)],
+							['$ref' => '#/components/schemas/' . Util::arrayLast($parentParts)],
 							$newResult,
 						],
 					];
@@ -264,7 +266,10 @@ class ApiSpecGenerator {
 				if (strlen($description)) {
 					$newResult['description'] = $description;
 				}
+
+				/** @mago-ignore analysis:undefined-int-array-index */
 				if (isset($newResult['allOf'][1])) {
+					/** @mago-ignore analysis:possibly-undefined-string-array-index */
 					unset($newResult['allOf'][1]['description']);
 				}
 			}
@@ -560,6 +565,8 @@ class ApiSpecGenerator {
 		} else {
 			throw new Exception('Unknown ReflectionClass');
 		}
+
+		/** @var list<string> */
 		$types = [];
 		foreach ($refTypes as $refType) {
 			// Cannot handle this now
@@ -576,8 +583,8 @@ class ApiSpecGenerator {
 				}
 			} else {
 				$name = explode('\\', $refType->getName());
-				$this->classes []= end($name);
-				$types []= end($name);
+				$this->classes []= Util::arrayLast($name);
+				$types []= Util::arrayLast($name);
 			}
 		}
 		if (count($types) === 1) {
@@ -619,13 +626,14 @@ class ApiSpecGenerator {
 	 * @psalm-return SpecDef|array{"type": "array", "items": SpecDef}
 	 */
 	protected function getClassRef(string $class, ?ReflectionProperty $refProp=null): array {
+		$matches = [];
 		if (
-			preg_match('/^(.+)\[\]$/', $class, $matches)
-			|| preg_match('/^array<int,(.+)>$/', $class, $matches)
-			|| preg_match('/^array<string,(.+)>$/', $class, $matches)
-			|| preg_match('/^array<array-key,(.+)>$/', $class, $matches)
-			|| preg_match('/^array<(.+)>$/', $class, $matches)
-			|| preg_match('/^list<(.+)>$/', $class, $matches)
+			count($matches = Safe::pregMatch('/^(.+)\[\]$/', $class))
+			|| count($matches = Safe::pregMatch('/^array<int,(.+)>$/', $class))
+			|| count($matches = Safe::pregMatch('/^array<string,(.+)>$/', $class))
+			|| count($matches = Safe::pregMatch('/^array<array-key,(.+)>$/', $class))
+			|| count($matches = Safe::pregMatch('/^array<(.+)>$/', $class))
+			|| count($matches = Safe::pregMatch('/^list<(.+)>$/', $class))
 		) {
 			/** @var array{0:truthy-string,1:non-empty-string} $matches */
 			return ['type' => 'array', 'items' => $this->getSimpleClassRef($matches[1], $refProp)];
@@ -673,6 +681,7 @@ class ApiSpecGenerator {
 		if (is_a($class, \DateTimeInterface::class, true)) {
 			return ['type' => 'integer'];
 		} elseif (is_a($class, BackedEnum::class, true)) {
+			/** @mago-ignore analysis:mixed-property-access */
 			$first = $class::cases()[0]->value;
 			if (is_string($first)) {
 				return ['type' => 'string'];

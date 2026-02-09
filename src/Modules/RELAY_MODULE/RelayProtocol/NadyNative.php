@@ -143,10 +143,13 @@ class NadyNative implements RelayProtocolInterface {
 				return null;
 		}
 		$event = new RoutableEvent(type: $data['type']);
-		foreach (($data['path']??[]) as $hop) {
-			/** @var array<string,mixed> $hop */
-			$source = Hydrator::literalHydrate(Source::class, $hop);
-			$event->appendPath($source);
+		$path = $data['path']??[];
+		if (is_iterable($path)) {
+			foreach ($path as $hop) {
+				/** @var array<string,mixed> $hop */
+				$source = Hydrator::literalHydrate(Source::class, $hop);
+				$event->appendPath($source);
+			}
 		}
 
 		/** @var ?array{type?:string} */
@@ -180,7 +183,17 @@ class NadyNative implements RelayProtocolInterface {
 			$this->handleExtSyncEvent($eventData);
 			return null;
 		}
-		$event->data = json_decode(json_encode($eventData), false, 10, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
+		$decoded = json_decode(json_encode($eventData), false, 10, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
+		if (
+			!is_null($decoded)
+			&& !is_string($decoded)
+			&& !($decoded instanceof Base)
+			&& !($decoded instanceof SyncEvent)
+			&& !($decoded instanceof \stdClass)
+		) {
+			return null;
+		}
+		$event->data = $decoded;
 		$this->logger->debug('Received routable event for {relay}: {event}', [
 			'relay' => $this->relay->getName(),
 			'event' => $event,
@@ -322,6 +335,7 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	protected function getOnlineList(): OnlineList {
+		$block = null;
 		$onlineList = new OnlineList();
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->config->main->character);
 		$isOrg = strlen($this->config->general->orgName);

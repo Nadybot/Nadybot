@@ -305,6 +305,7 @@ symbolopt
 [sS]ymfony
 syncable
 Taylorka
+TDefault
 Technomaster
 tempnam
 Throwable

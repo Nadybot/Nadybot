@@ -204,7 +204,11 @@ class ArbiterController extends ModuleInstance {
 			}
 		}
 
-		/** @var non-empty-list<ArbiterEvent> */
+		/**
+		 * @var list<ArbiterEvent>
+		 *
+		 * @psalm-var non-empty-list<ArbiterEvent>
+		 */
 		$upcomingEvents = [
 			$this->getNextBS($time),
 			$this->getNextAI($time),

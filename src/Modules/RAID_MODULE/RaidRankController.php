@@ -449,6 +449,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 
 	/** @param Collection<int,RaidStat> $stats */
 	protected function renderLeaders(bool $showStats, bool $showOfflineAlts, Collection $stats, string ...$names): string {
+		$numRaidsRecently = null;
 		sort($names);
 		$output = [];
 

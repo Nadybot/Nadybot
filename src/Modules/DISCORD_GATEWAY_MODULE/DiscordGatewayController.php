@@ -819,14 +819,19 @@ class DiscordGatewayController extends ModuleInstance {
 		$userData = $payload->d['user'];
 		$user = Hydrator::hydrate(DiscordUser::class, $userData);
 
-		$this->sessionId = $payload->d['session_id'] ?? null;
+		/** @var ?string */
+		$sessonId = $payload->d['session_id'] ?? null;
+		$this->sessionId = $sessonId;
 		$this->me = $user;
 		$this->logger->notice('Successfully logged into Discord Gateway as {username}', [
 			'username' => $user->getName(),
 		]);
 		$this->mustReconnect = true;
 		$this->reconnectDelay = 5;
-		$this->reconnectUrl = $payload->d['resume_gateway_url'] ?? null;
+
+		/** @var ?string */
+		$gatewayUrl = $payload->d['resume_gateway_url'] ?? null;
+		$this->reconnectUrl = $gatewayUrl;
 		EventLoop::queue($this->discordSlashCommandController->syncSlashCommands(...));
 	}
 
@@ -948,10 +953,15 @@ class DiscordGatewayController extends ModuleInstance {
 	/** Connect invited members to their AO account */
 	#[NCA\HandlesEvent(mask: 'discord(guild_member_add)', defaultStatus: Status::Enabled)]
 	public function connectNewUsersWithAO(DiscordGatewayEvent $event): void {
-		/** @var object{user:\stdClass}&\stdClass */
+		$userId = null;
+		$guildId = null;
 		$data = $event->payload->d;
-		$userId = $data->user->id ?? null;
-		$guildId = $data->guild_id ?? null;
+		if (is_object($data) && property_exists($data, 'user')) {
+			$userId = $data->user->id ?? null;
+		}
+		if (is_object($data) && property_exists($data, 'guild_id')) {
+			$guildId = $data->guild_id ?? null;
+		}
 
 		if (!isset($userId) || !isset($guildId)
 			|| !is_string($userId) || !is_string($guildId)
@@ -1977,9 +1987,9 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	private function connectToGateway(): void {
-		$this->reconnectUrl = null;
+		// $this->reconnectUrl = null;
 		do {
-			if (!isset($this->reconnectUrl)) {
+			if ($this->reconnectUrl === null) {
 				$gwTry = 0;
 				do {
 					$gwTry++;
@@ -2061,7 +2071,9 @@ class DiscordGatewayController extends ModuleInstance {
 				$this->sessionId = null;
 				return;
 			} catch (WebsocketClosedException $e) {
+				/** @mago-ignore analysis:possibly-invalid-argument */
 				if ($this->canReconnect($e->getCode())) {
+					/** @mago-ignore analysis:possibly-invalid-argument */
 					if (!$this->canResumeSessionAfterClose($e->getCode())) {
 						$this->lastSequenceNumber = null;
 						$this->sessionId = null;
@@ -2151,11 +2163,11 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	/**
+	 * @template T of array-key
+	 *
 	 * @param array<T,mixed> $data
 	 *
 	 * @return array<T,mixed>
-	 *
-	 * @template T
 	 */
 	private static function stripNull(array $data): array {
 		foreach ($data as $key => $value) {

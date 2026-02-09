@@ -397,7 +397,12 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			isset($layer) && in_array($layer->layer, ['tyrbot', 'nadynative'], true)
 		);
 		$msg = "Relay <highlight>{$name}<end> added.";
-		// @phpstan-ignore-next-line
+
+		/**
+		 * @mago-ignore analysis:redundant-logical-operation
+		 *
+		 * @phpstan-ignore-next-line
+		 */
 		if (!$this->messageHub->hasRouteFor($relay->getChannelName()) && !($context instanceof ProfileCommandReply)) {
 			$help = Text::makeBlob('setup your routing', $blob);
 			$msg .= " Make sure to {$help}, otherwise no messages will be exchanged.";

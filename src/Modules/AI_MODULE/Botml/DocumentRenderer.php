@@ -47,12 +47,20 @@ final class DocumentRenderer implements DocumentRendererInterface, ChildNodeRend
 		return $output;
 	}
 
-	/** @psalm-suppress MixedReturnStatement */
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 *
+	 * @mago-ignore analysis:mixed-return-statement
+	 */
 	public function getBlockSeparator(): string {
 		return $this->environment->getConfiguration()->get('renderer/block_separator');
 	}
 
-	/** @psalm-suppress MixedReturnStatement */
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 *
+	 * @mago-ignore analysis:mixed-return-statement
+	 */
 	public function getInnerSeparator(): string {
 		return $this->environment->getConfiguration()->get('renderer/inner_separator');
 	}

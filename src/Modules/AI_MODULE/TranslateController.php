@@ -281,7 +281,11 @@ class TranslateController extends ModuleInstance {
 			return 'An error occurred during translation. Please check your logs for details.';
 		}
 
-		/** @psalm-suppress MixedArgumentTypeCoercion */
+		/**
+		 * @psalm-suppress MixedArgumentTypeCoercion
+		 *
+		 * @mago-ignore analysis:less-specific-argument
+		 */
 		$translation = Hydrator::hydrate(Models\Translation::class, $rawTranslation);
 		return $translation->translated_text;
 	}

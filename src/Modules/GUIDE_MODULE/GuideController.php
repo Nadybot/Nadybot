@@ -148,7 +148,14 @@ class GuideController extends ModuleInstance {
 				return;
 			}
 			$info = $this->fs->read($file);
+
+			/**
+			 * @var list<string>
+			 *
+			 * @psalm-var non-empty-list<string>
+			 */
 			$lines = explode("\n", $info);
+
 			$firstLine = Safe::pregReplace('/<header>(.+)<end>/', '$1', array_shift($lines));
 			$info = trim(implode("\n", $lines));
 			$msg = Text::makeBlob('Guide for "' . $firstLine . '"', $info, $firstLine);
