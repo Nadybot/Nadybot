@@ -372,6 +372,32 @@ class QueryBuilder extends Builder {
 		}));
 	}
 
+	/**
+	 * Execute an SQL statement and return all rows as an array of arrays
+	 *
+	 * @return Collection<int,array<string,null|scalar>>
+	 */
+	public function getArray(): Collection {
+		try {
+			/** @var Collection<int,\stdClass> */
+			$data = $this->get();
+		} catch (QueryException $e) {
+			throw new SQLException(message: $e->getMessage(), previous: $e);
+		}
+
+		/**
+		 * @psalm-suppress MixedReturnTypeCoercion
+		 *
+		 * @phpstan-ignore return.type
+		 */
+		return $data->map(
+			/** @return array<string,null|scalar> */
+			static function (\stdClass $data): array {
+				return (array)$data;
+			}
+		);
+	}
+
 	/** get the name of the variable type, or `null` if none, or more than one */
 	protected function guessVarTypeFromReflection(ReflectionParameter $refParam): ?string {
 		$refType = $refParam->getType();

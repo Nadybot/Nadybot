@@ -490,7 +490,7 @@ class NotumWarsController extends ModuleInstance {
 			/** @var list<array<string,mixed>> */
 			$json = json_decode($body, true);
 
-			$attacks = Hydrator::hydrateObjects(FeedMessage\TowerAttack::class, $json);
+			$attacks = Hydrator::hydrateObjects(FeedMessage\TowerAttack::class, $json)->getIterator();
 
 			foreach ($attacks as $attack) {
 				$breedRequired = !isset($attack->attacker->breed)
@@ -554,9 +554,10 @@ class NotumWarsController extends ModuleInstance {
 			/** @var list<array<string,mixed>> */
 			$json = json_decode($body, true);
 
-			$outcomes = Hydrator::hydrateObjects(FeedMessage\TowerOutcome::class, $json);
+			$outcomes = Hydrator::hydrateObjects(FeedMessage\TowerOutcome::class, $json)->getIterator();
 
 			foreach ($outcomes as $outcome) {
+				var_dump($outcome);
 				$this->db->insert(DBOutcome::fromTowerOutcome($outcome));
 				$this->outcomes []= $outcome;
 			}
@@ -962,7 +963,7 @@ class NotumWarsController extends ModuleInstance {
 				$orgFaction[$site->org_name] = $site->org_faction;
 			});
 		uasort($orgQls, static fn (int $a, int $b): int => $b <=> $a);
-		$top = array_slice($orgQls, 0, 20);
+		$top = array_slice($orgQls, 0, 20, true);
 		$blob = "<header2>Top contract points<end>\n";
 		$rank = 1;
 		foreach ($top as $orgName => $points) {

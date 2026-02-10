@@ -16,8 +16,12 @@ class MigrateNewsTableToUuid implements SchemaMigration {
 		$column = 'id';
 		$table = News::getTable();
 
-		/** @var Collection<int,object{id:int,time?:int,uuid?:string}&\stdClass> */
-		$entries = $db->table($table)->orderBy($column)->get();
+		/**
+		 * @var Collection<int,array{"id":int,"time"?:int,"uuid"?:string}>
+		 *
+		 * @phpstan-ignore varTag.type
+		 */
+		$entries = $db->table($table)->orderBy($column)->getArray();
 		$db->schema()->drop($table);
 		$db->schema()->create(
 			$table,
@@ -34,29 +38,36 @@ class MigrateNewsTableToUuid implements SchemaMigration {
 		/** @var array<int,UuidInterface> */
 		$idToUuid = [];
 
-		/**
-		 * @param object{id:int,time?:int,uuid?:string}&\stdClass $entry
-		 *
-		 * @return array<string,mixed>
-		 */
-		$entries = $entries->map(static function (object $entry) use (&$idToUuid): array {
-			$time = $entry->time ?? null;
-			if (isset($time)) {
-				$time = (new DateTimeImmutable())->setTimestamp($time);
+		$entries = $entries->map(
+			/**
+			 * @param array{"id":int,"time"?:int,"uuid"?:string} $entry
+			 *
+			 * @return array<string,mixed>
+			 */
+			static function (array $entry) use (&$idToUuid): array {
+				$time = $entry['time'] ?? null;
+				if (isset($time)) {
+					$time = (new DateTimeImmutable())->setTimestamp($time);
+				}
+				$uuid = isset($entry['uuid']) ? Uuid::fromString($entry['uuid']) : Uuid::uuid7($time);
+				$idToUuid[$entry['id']] = $uuid;
+				$entry['id'] = $uuid->toString();
+				if (isset($entry['uuid'])) {
+					unset($entry['uuid']);
+				}
+				return $entry;
 			}
-			$uuid = isset($entry->uuid) ? Uuid::fromString($entry->uuid) : Uuid::uuid7($time);
-			$idToUuid[$entry->id] = $uuid;
-			$entry->id = $uuid->toString();
-			$array = (array)$entry;
-			unset($array['uuid']);
-			return $array;
-		})->toList();
+		)->toList();
 		$db->table($table)->chunkInsert($entries);
 
 		$table = NewsConfirmed::getTable();
 
-		/** @var Collection<int,object{id:int}&\stdClass> */
-		$confirmed = $db->table($table)->get();
+		/**
+		 * @var Collection<int,array{"id":int}>
+		 *
+		 * @phpstan-ignore varTag.type
+		 */
+		$confirmed = $db->table($table)->getArray();
 		$db->schema()->drop($table);
 		$db->schema()->create(
 			$table,
@@ -68,17 +79,17 @@ class MigrateNewsTableToUuid implements SchemaMigration {
 			}
 		);
 
-		/**
-		 * @param object{id:int}&\stdClass $entry
-		 *
-		 * @return array<string,mixed>
-		 *
-		 * @var list<array<string,mixed>>
-		 */
-		$entries = $confirmed->map(static function (object $entry) use ($idToUuid): array {
-			$entry->id = $idToUuid[$entry->id];
-			return (array)$entry;
-		})->toList();
+		$entries = $confirmed->map(
+			/**
+			 * @param array{"id":int} $entry
+			 *
+			 * @return array<string,mixed>
+			 */
+			static function (array $entry) use ($idToUuid): array {
+				$entry['id'] = $idToUuid[$entry['id']];
+				return $entry;
+			}
+		)->toList();
 		$db->table($table)->chunkInsert($entries);
 	}
 }

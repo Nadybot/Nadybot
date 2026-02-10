@@ -44,6 +44,8 @@ class ImplantController extends ModuleInstance {
 				break;
 			}
 		}
+
+		/** @var int<1,301> $searchedQL */
 		return min(300, $searchedQL - 1);
 	}
 
@@ -184,6 +186,7 @@ class ImplantController extends ModuleInstance {
 	 * @psalm-return int<1,300>
 	 */
 	public function getClusterMinQl(int $ql, ClusterGrade $grade): int {
+		/** @var int<1,300> */
 		$minQL = match ($grade) {
 			ClusterGrade::Shiny => (int)floor($ql * 0.86),
 			ClusterGrade::Bright => (int)floor($ql * 0.84),

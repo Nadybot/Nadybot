@@ -529,6 +529,7 @@ class ImplantDesignerController extends ModuleInstance {
 	public function getImplantDesignerResults(string $name): string {
 		$design = $this->getDesign($name);
 
+		/** @var array<string,int> */
 		$mods = [];
 		$reqs = ['Treatment' => 0, 'Level' => 1];  // force treatment and level to be shown first
 

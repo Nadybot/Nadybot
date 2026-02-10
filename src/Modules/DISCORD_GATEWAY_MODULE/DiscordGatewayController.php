@@ -956,11 +956,14 @@ class DiscordGatewayController extends ModuleInstance {
 		$userId = null;
 		$guildId = null;
 		$data = $event->payload->d;
-		if (is_object($data) && property_exists($data, 'user')) {
-			$userId = $data->user->id ?? null;
+		if (($data instanceof \stdClass)
+			&& ($data->user instanceof \stdClass)
+			&& isset($data->user->id)
+		) {
+			$userId = $data->user->id;
 		}
-		if (is_object($data) && property_exists($data, 'guild_id')) {
-			$guildId = $data->guild_id ?? null;
+		if (($data instanceof \stdClass) && isset($data->guild_id)) {
+			$guildId = $data->guild_id;
 		}
 
 		if (!isset($userId) || !isset($guildId)

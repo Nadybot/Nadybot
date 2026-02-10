@@ -35,6 +35,7 @@ class DBOutcome extends DBTable {
 
 	public function toTowerOutcome(): TowerOutcome {
 		$array = get_object_vars($this);
+		// @mago-ignore analysis:too-few-arguments
 		return new TowerOutcome(...$array);
 	}
 }

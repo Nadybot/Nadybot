@@ -46,6 +46,7 @@ class ImplantDesign extends DBTable {
 			} elseif (is_array($value)) {
 				foreach ($value as $subkey => $subvalue) {
 					if ($subvalue === null) {
+						// @mago-ignore analysis:mixed-array-access
 						unset($mapped[$key][$subkey]);
 					}
 				}

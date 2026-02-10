@@ -260,6 +260,7 @@ class RandomController extends ModuleInstance {
 			throw new InvalidArgumentException('$options to roll() must not be empty');
 		}
 		mt_srand();
+		assert($amount > 0);
 		$result = (array)array_rand($revOptions, $amount);
 		$result = implode('|', $result);
 		$this->db->insert($roll = new Roll(

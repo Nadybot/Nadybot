@@ -160,7 +160,11 @@ class MemberExporter extends ModuleInstance implements ExporterInterface, Import
 					throw new InvalidArgumentException(__CLASS__ . '::' . __METHOD__ . '() called with wrong data');
 				}
 
-				/** @psalm-suppress PossiblyNullArgument */
+				/**
+				 * @psalm-suppress PossiblyNullArgument
+				 *
+				 * @mago-ignore analysis:possibly-null-argument
+				 */
 				$id = $member->character->id ?? $this->chatBot->getUid($member->character->name);
 
 				$name = $member->character->tryGetName();
