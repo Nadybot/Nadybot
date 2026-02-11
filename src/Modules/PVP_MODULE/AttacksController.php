@@ -955,7 +955,6 @@ class AttacksController extends ModuleInstance {
 					$key = "{$attack->def_org}:{$attack->playfield->value}:{$attack->site_id}";
 					$groups[$key] ??= [];
 
-					/** @psalm-suppress MixedArrayAssignment */
 					$groups[$key] []= $attack;
 					return $groups;
 				},

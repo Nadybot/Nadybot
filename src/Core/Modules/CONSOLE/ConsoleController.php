@@ -49,6 +49,7 @@ class ConsoleController extends ModuleInstance {
 			'placeholders' => self::PLACEHOLDERS,
 			'aoitems' => 'https://aoitems.com/item/{id}{?ql:/{ql}}',
 			'auno' => 'https://auno.org/ao/db.php?id={id}{?ql:&ql={ql}}',
+			'aogalaxy' => 'https://www.aogalaxy.com/_items/item.php?aoid={id}{?ql:&ql={ql}}',
 		]
 	)]
 	public string $consoleItemDisplay = 'https://auno.org/ao/db.php?id={id}{?ql:&ql={ql}}';

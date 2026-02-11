@@ -169,10 +169,6 @@ class NanoController extends ModuleInstance {
 
 			$popup = Text::makeBlob('details', $blob);
 
-			/**
-			 * @psalm-suppress PossiblyInvalidOperand
-			 * @psalm-suppress MixedArgument
-			 */
 			$msg = str_replace($gmiLink, '', $info) . " [{$popup}]";
 		}
 

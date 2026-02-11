@@ -559,10 +559,6 @@ class GuildController extends ModuleInstance {
 			"<tab><highlight>Government<end>: {$org->governing_form->value}\n";
 		}
 
-		/**
-		 * @psalm-suppress MixedArgumentTypeCoercion
-		 * @psalm-suppress MixedOperand
-		 */
 		$blob .= '<tab><highlight>Members<end>: ' . $members->count() . "\n".
 			'<tab><highlight>Min level<end>: ' . (string)$members->min('level') . "\n".
 			'<tab><highlight>Avg level<end>: ' . round($members->avg('level') ?? 0, 0) . "\n".

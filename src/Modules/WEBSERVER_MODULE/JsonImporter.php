@@ -52,6 +52,7 @@ class JsonImporter {
 			}
 			if (count($matches = Safe::pregMatch('/^array<([a-z]+),(.+)>$/', $checkType))) {
 				if (is_object($value)) {
+					// @mago-ignore analysis:invalid-type-cast
 					$value = (array)$value;
 				}
 				if (is_array($value)) {

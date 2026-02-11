@@ -10,6 +10,10 @@ excludes = [
   "vendor/nikic/fast-route/test/HackTypechecker/fixtures/no_options.php",
   "vendor/nikic/fast-route/test/HackTypechecker/fixtures/empty_options.php",
   "vendor/squizlabs/php_codesniffer/tests/Core/Ruleset/Fixtures/DirectoryExpansion/.hiddenAbove/src/MyStandard/.hidden/HiddenDirShouldBeIgnoredSniff.php",
+  "vendor/farafiri/php-parsing-tool/src/SyntaxTreeNode/Base.php",
+  "vendor/farafiri/php-parsing-tool/src/SyntaxTreeNode/Branch.php",
+  "vendor/farafiri/php-parsing-tool/src/SyntaxTreeNode/Leaf.php",
+  "vendor/farafiri/php-parsing-tool/src/SyntaxTreeNode/Root.php",
 ]
 includes = ["vendor", "src/Core", "Stubs"]
 extensions = ["php"]

@@ -19,37 +19,43 @@ class ImportExistingAttacksAndVictories implements SchemaMigration {
 		do {
 			$processed = 0;
 
-			/** @var Collection<int,object{time:int,playfield_id:int,x_coords:int,y_coords:int,site_number:int,att_guild_name:?string,att_faction:?string,att_player:string,att_level:?int,att_ai_level:?int,att_profession:?string,def_guild_name:string,def_faction:string}> */
+			/**
+			 * @var Collection<int,array{time:int,playfield_id:int,x_coords:int,y_coords:int,site_number:int,att_guild_name:?string,att_faction:?string,att_player:string,att_level:?int,att_ai_level:?int,att_profession:?string,def_guild_name:string,def_faction:string}>
+			 *
+			 * @phpstan-ignore varTag.type
+			 */
 			$data = $db->table('tower_attack_<myname>')
 				->orderBy('time')
 				->offset($offset)
 				->limit(self::CHUNK_SIZE)
-				->get();
+				->getArray();
 
-			/** @param object{time:int,playfield_id:int,x_coords:int,y_coords:int,site_number:int,att_guild_name:?string,att_faction:?string,att_player:string,att_level:?int,att_ai_level:?int,att_profession:?string,def_guild_name:string,def_faction:string} $old */
-			$data->each(static function (object $old) use ($db, &$processed): void {
-				$processed++;
-				try {
-					$db->insert(new DBTowerAttack(
-						timestamp: $old->time,
-						playfield: Playfield::from($old->playfield_id),
-						location_x: $old->x_coords,
-						location_y: $old->y_coords,
-						site_id: $old->site_number,
-						ql: null,
-						att_org: $old->att_guild_name,
-						att_faction: Faction::tryFrom($old->att_faction??''),
-						att_name: $old->att_player,
-						att_level: $old->att_level,
-						att_ai_level: $old->att_ai_level,
-						att_profession: Profession::tryFrom($old->att_profession??''),
-						def_org: $old->def_guild_name,
-						def_faction: Faction::from($old->def_faction),
-					));
-				} catch (\Throwable $e) {
-					// Ignore incomplete data for now
+			$data->each(
+				/** @param array{time:int,playfield_id:int,x_coords:int,y_coords:int,site_number:int,att_guild_name:?string,att_faction:?string,att_player:string,att_level:?int,att_ai_level:?int,att_profession:?string,def_guild_name:string,def_faction:string} $old */
+				static function (array $old) use ($db, &$processed): void {
+					$processed++;
+					try {
+						$db->insert(new DBTowerAttack(
+							timestamp: $old['time'],
+							playfield: Playfield::from($old['playfield_id']),
+							location_x: $old['x_coords'],
+							location_y: $old['y_coords'],
+							site_id: $old['site_number'],
+							ql: null,
+							att_org: $old['att_guild_name'],
+							att_faction: Faction::tryFrom($old['att_faction']??''),
+							att_name: $old['att_player'],
+							att_level: $old['att_level'],
+							att_ai_level: $old['att_ai_level'],
+							att_profession: Profession::tryFrom($old['att_profession']??''),
+							def_org: $old['def_guild_name'],
+							def_faction: Faction::from($old['def_faction']),
+						));
+					} catch (\Throwable $e) {
+						// Ignore incomplete data for now
+					}
 				}
-			});
+			);
 			$offset += $processed;
 		} while ($processed === self::CHUNK_SIZE);
 
@@ -57,32 +63,38 @@ class ImportExistingAttacksAndVictories implements SchemaMigration {
 		do {
 			$processed = 0;
 
-			/** @var Collection<int,object{time:int,win_guild_name:?string,win_faction:?string,lose_guild_name:string,lose_faction:?string,playfield_id:int,site_number:int}> */
+			/**
+			 * @var Collection<int,array{time:int,win_guild_name:?string,win_faction:?string,lose_guild_name:string,lose_faction:?string,playfield_id:int,site_number:int}>
+			 *
+			 * @phpstan-ignore varTag.type
+			 */
 			$data = $db->table('tower_victory_<myname>', 'tv')
 				->join('tower_attack_<myname> AS ta', 'tv.attack_id', '=', 'ta.id')
 				->orderBy('time')
 				->offset($offset)
 				->limit(self::CHUNK_SIZE)
 				->select(['tv.*', 'ta.playfield_id', 'ta.site_number'])
-				->get();
+				->getArray();
 
-			/** @param object{time:int,win_guild_name:?string,win_faction:?string,lose_guild_name:string,lose_faction:?string,playfield_id:int,site_number:int} $old */
-			$data->each(static function (object $old) use ($db, &$processed): void {
-				$processed++;
-				try {
-					$db->insert(new DBOutcome(
-						timestamp: $old->time,
-						attacker_org: $old->win_guild_name,
-						attacker_faction: Faction::tryFrom($old->win_faction??''),
-						losing_org: $old->lose_guild_name,
-						losing_faction: Faction::tryFrom($old->lose_faction??'') ?? Faction::Unknown,
-						playfield: Playfield::from($old->playfield_id),
-						site_id: $old->site_number,
-					));
-				} catch (\Throwable $e) {
-					// Ignore incomplete data for now
+			$data->each(
+				/** @param array{time:int,win_guild_name:?string,win_faction:?string,lose_guild_name:string,lose_faction:?string,playfield_id:int,site_number:int} $old */
+				static function (array $old) use ($db, &$processed): void {
+					$processed++;
+					try {
+						$db->insert(new DBOutcome(
+							timestamp: $old['time'],
+							attacker_org: $old['win_guild_name'],
+							attacker_faction: Faction::tryFrom($old['win_faction']??''),
+							losing_org: $old['lose_guild_name'],
+							losing_faction: Faction::tryFrom($old['lose_faction']??'') ?? Faction::Unknown,
+							playfield: Playfield::from($old['playfield_id']),
+							site_id: $old['site_number'],
+						));
+					} catch (\Throwable $e) {
+						// Ignore incomplete data for now
+					}
 				}
-			});
+			);
 			$offset += $processed;
 		} while ($processed === self::CHUNK_SIZE);
 	}

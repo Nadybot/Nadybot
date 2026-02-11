@@ -13,6 +13,8 @@ class Nominatim {
 	 * @param array<string,mixed> $namedetails
 	 * @param array<string,mixed> $extratags
 	 *
+	 * @psalm-param float|numeric-string $lat
+	 * @psalm-param float|numeric-string $lon
 	 * @psalm-param list<string>  $boundingbox
 	 */
 	public function __construct(

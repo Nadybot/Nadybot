@@ -367,8 +367,6 @@ class NadyNative implements RelayProtocolInterface {
 		$privLabel = null;
 		if (isset($block)) {
 			$privLabel = 'Guest';
-
-			/** @psalm-suppress MixedPropertyFetch */
 			$privBlock->path = $block->path;
 		}
 		$privBlock->path []= new Source(

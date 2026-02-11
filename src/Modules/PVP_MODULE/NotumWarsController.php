@@ -557,7 +557,6 @@ class NotumWarsController extends ModuleInstance {
 			$outcomes = Hydrator::hydrateObjects(FeedMessage\TowerOutcome::class, $json)->getIterator();
 
 			foreach ($outcomes as $outcome) {
-				var_dump($outcome);
 				$this->db->insert(DBOutcome::fromTowerOutcome($outcome));
 				$this->outcomes []= $outcome;
 			}
@@ -1004,6 +1003,7 @@ class NotumWarsController extends ModuleInstance {
 		?string $search
 	): void {
 		$search ??= '';
+		$faction = null;
 		if (substr($search, 0, 1) !== ' ') {
 			$search = " {$search}";
 		}
@@ -1108,17 +1108,9 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$blob = $this->renderHotSites($time, ...$hotSites->toArray());
 		if ($soon > 0) {
-			/**
-			 * @psalm-suppress MixedPropertyFetch
-			 * @psalm-suppress MixedOperand
-			 */
 			$sitesLabel = isset($faction) ? $faction->value . ' sites' : 'Sites';
 			$msg = Text::makeBlob("{$sitesLabel} going hot soon ({$hotSites->count()})", $blob);
 		} else {
-			/**
-			 * @psalm-suppress MixedPropertyFetch
-			 * @psalm-suppress MixedArgument
-			 */
 			$faction = isset($faction) ? ' ' . strtolower($faction->value) : '';
 			$inPenalty = ($penalty > 0) ? ' in penalty' : '';
 			$msg = Text::makeBlob("Hot{$faction} sites{$inPenalty} ({$hotSites->count()})", $blob);
@@ -1413,12 +1405,12 @@ class NotumWarsController extends ModuleInstance {
 		$grouping = $this->groupHotTowers;
 		if ($grouping === 1) {
 			$hotSites = $hotSites->sortBy('site_id');
-			$grouped = $hotSites->groupBy(static function (FeedMessage\SiteUpdate $site): string {
+			$grouped = $hotSites->groupByString(static function (FeedMessage\SiteUpdate $site): string {
 				return $site->playfield->long();
 			});
 		} elseif ($grouping === 2) {
 			$hotSites = $hotSites->sortBy('ql');
-			$grouped = $hotSites->groupBy(static function (FeedMessage\SiteUpdate $site): string {
+			$grouped = $hotSites->groupByString(static function (FeedMessage\SiteUpdate $site): string {
 				return 'TL' . TitleLevel::fromLevel($site->ql??1)->value;
 			});
 		} elseif ($grouping === 3) {
@@ -1433,13 +1425,15 @@ class NotumWarsController extends ModuleInstance {
 
 		$grouped = $grouped->sortKeys();
 
-		/** @param Collection<int,FeedMessage\SiteUpdate> $hotSites */
-		$blob = $grouped->map(function (Collection $hotSites, string $short) use ($time): string {
-			return "<pagebreak><header2>{$short}<end>\n".
-				$hotSites->map(function (FeedMessage\SiteUpdate $site) use ($time): string {
-					return $this->renderHotSite($site, $time);
-				})->join("\n");
-		})->join("\n\n");
+		$blob = $grouped->map(
+			/** @param Collection<int,FeedMessage\SiteUpdate> $hotSites */
+			function (Collection $hotSites, string $short) use ($time): string {
+				return "<pagebreak><header2>{$short}<end>\n".
+					$hotSites->map(function (FeedMessage\SiteUpdate $site) use ($time): string {
+						return $this->renderHotSite($site, $time);
+					})->join("\n");
+			}
+		)->join("\n\n");
 		return $blob;
 	}
 

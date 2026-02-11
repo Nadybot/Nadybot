@@ -74,6 +74,11 @@ class Raffle {
 		/** @var list<string> */
 		$result = array_values(array_reduce(
 			$this->slots,
+			/**
+			 * @param string[] $carry
+			 *
+			 * @return string[]
+			 */
 			static function (array $carry, RaffleSlot $slot): array {
 				return array_unique([...$carry, ...$slot->participants]);
 			},
@@ -105,6 +110,7 @@ class Raffle {
 			$this->slots
 		);
 
+		// @mago-ignore analysis:invalid-return-statement
 		return array_merge(...$winners);
 	}
 }

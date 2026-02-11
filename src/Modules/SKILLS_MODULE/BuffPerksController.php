@@ -231,6 +231,7 @@ class BuffPerksController extends ModuleInstance {
 			static function (Perk $perk) use ($skill): bool {
 				// Delete all buffs except for the searched skill
 				foreach ($perk->levels as &$level) {
+					// @mago-expect analysis:clone-inside-loop
 					$level = clone $level;
 					$level->resistances = [];
 					$level->action = null;

@@ -73,10 +73,14 @@ class TrackerArgumentParser {
 			);
 		}
 		$config = new TrackerConfig();
+
+		/** @var list<Branch> */
 		$modifiers = $expr->findAll('argument');
 		foreach ($modifiers as $modifier) {
 			$config->arguments []= $this->parseArgument($modifier);
 		}
+
+		/** @var list<Branch> */
 		$events = $expr->findAll('event');
 		foreach ($events as $event) {
 			$config->events []= $this->parseEvent($event);

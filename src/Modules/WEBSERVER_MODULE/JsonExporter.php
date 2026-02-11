@@ -44,7 +44,8 @@ class JsonExporter {
 		$result = [];
 		$refClass = new ReflectionClass($data);
 		foreach (get_object_vars($data) as $name => $value) {
-			if (!static::processAnnotations($refClass, $data, $name, $value)) {
+			// @phpstan-ignore-next-line
+			if (!is_string($name) || !static::processAnnotations($refClass, $data, $name, $value)) {
 				continue;
 			}
 			$result []= static::jsonEncode($name) . ':' . static::encode($value);

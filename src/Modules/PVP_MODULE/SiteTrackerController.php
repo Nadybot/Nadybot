@@ -422,6 +422,7 @@ class SiteTrackerController extends ModuleInstance {
 				throw new UserException("There is no filter for '<highlight>{$argument->name}<end>'.");
 			}
 			if (is_subclass_of($className, Base::class)) {
+				/** @var class-string<Base> $className */
 				try {
 					$handlers []= new $className($argument->value);
 				} catch (UserException $e) {

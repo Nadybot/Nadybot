@@ -15,7 +15,10 @@ enum ClusterGrade: string implements EnumParameterInterface {
 	}
 
 	public function cmp(self $target): int {
+		/** @var int */
 		$myPos = array_search($this, self::cases(), true);
+
+		/** @var int */
 		$otherPos = array_search($target, self::cases(), true);
 		return $myPos <=> $otherPos;
 	}

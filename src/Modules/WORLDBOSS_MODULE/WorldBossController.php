@@ -186,7 +186,7 @@ class WorldBossController extends ModuleInstance {
 		self::ABMOUTH => 'abmouth',
 	];
 
-	/** @var array<string,array{interval?:int,usual_interval?:int,immortal:int,coordinates?:list{int,int,int},aou_link?:int,spawn_chance?:int}> */
+	/** @var array<string,array{interval?:int,usual_interval?:int,immortal:int,coordinates?:list{int,int,int},aou_link:int,spawn_chance?:int}> */
 	public const BOSS_DATA = [
 		self::TARA => [
 			self::INTERVAL => 9*3_600,
@@ -531,6 +531,9 @@ class WorldBossController extends ModuleInstance {
 	}
 
 	public function formatWorldBossMessage(WorldBossTimer $timer, bool $short=true, bool $startpage=false): string {
+		if (!isset(self::BOSS_DATA[$timer->mob_name])) {
+			throw new Exception("No data available for worldboss '{$timer->mob_name}'.");
+		}
 		$showSpawn = $this->worldbossShowSpawn;
 		$nextSpawnsMessage = $this->getNextSpawnsMessage($timer);
 		$spawntimes = Text::makeBlob("Spawntimes for {$timer->mob_name}", $nextSpawnsMessage);
@@ -546,14 +549,13 @@ class WorldBossController extends ModuleInstance {
 					"/waypoint {$coords[0]} {$coords[1]} {$coords[2]}"
 				);
 				$blob = $timer->mob_name . " is in [{$wpLink}]";
-				$aou = self::BOSS_DATA[$timer->mob_name][self::AOU] ?? null;
-				if (isset($aou)) {
-					$blob .= "\nMore info: [".
-						Text::makeChatcmd('guide', "/tell <myname> aou {$aou}").
-						'] ['.
-						Text::makeChatcmd('see AO-Universe', "/start https://www.ao-universe.com/guides/{$aou}").
-						']';
-				}
+
+				$aou = self::BOSS_DATA[$timer->mob_name][self::AOU];
+				$blob .= "\nMore info: [".
+					Text::makeChatcmd('guide', "/tell <myname> aou {$aou}").
+					'] ['.
+					Text::makeChatcmd('see AO-Universe', "/start https://www.ao-universe.com/guides/{$aou}").
+					']';
 				$mobName = Text::makeBlob(
 					$timer->mob_name,
 					$blob,
@@ -1177,6 +1179,12 @@ class WorldBossController extends ModuleInstance {
 
 	/** Check and trigger a single timer */
 	private function checkTimer(WorldBossTimer $timer, int $lastCheck, bool $manual): bool {
+		if (!array_key_exists($timer->mob_name, static::BOSS_DATA)) {
+			$this->logger->warning('Timer for unknown boss {boss} found, skipping', [
+				'boss' => $timer->mob_name,
+			]);
+			return false;
+		}
 		$showSpawn = $this->worldbossShowSpawn;
 		$tokens = [
 			'mob-name' => $timer->mob_name,

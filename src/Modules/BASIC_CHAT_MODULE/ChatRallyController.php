@@ -95,7 +95,11 @@ class ChatRallyController extends ModuleInstance {
 			$context->reply('You must be Raid Leader to use this command.');
 			return;
 		}
+
+		/** @mago-ignore analysis:invalid-type-cast */
 		$xCoords = (float)$x;
+
+		/** @mago-ignore analysis:invalid-type-cast */
 		$yCoords = (float)$y;
 
 		$playfieldName = $playfield;
@@ -155,7 +159,9 @@ class ChatRallyController extends ModuleInstance {
 		$this->replyCurrentRally($context);
 
 		$rEvent = new SyncRallySetEvent(
+			/** @mago-ignore analysis:invalid-type-cast */
 			x: (int)round((float)$xCoords),
+			/** @mago-ignore analysis:invalid-type-cast */
 			y: (int)round((float)$yCoords),
 			pf: $playfieldId,
 			name: $name,

@@ -239,7 +239,6 @@ class PackageController extends ModuleInstance {
 		if ($firstPackage->state === static::BUILT_INT) {
 			$blob .= "<tab>Status: <highlight>Included in Nadybot now<end>\n";
 		} elseif (isset($installedVersion)) {
-			/** @psalm-suppress MixedOperand */
 			$blob .= '<tab>Installed: <highlight>'.
 				($installedVersion !== '' ? $installedVersion : 'yes, unknown version').
 				'<end> ['.
@@ -263,7 +262,6 @@ class PackageController extends ModuleInstance {
 					);
 					$installedVersion ??= '';
 
-					/** @psalm-suppress NoValue */
 					if ($installedVersion !== '' && SemanticVersion::compareUsing($installedVersion, $package->version, '<')) {
 						$blob .= " [{$updateLink}]";
 					} elseif ($installedVersion !== '' && SemanticVersion::compareUsing($installedVersion, $package->version, '==')) {
@@ -789,7 +787,6 @@ class PackageController extends ModuleInstance {
 		if ($firstPackage->state === static::BUILT_INT) {
 			$blob .= "<tab>Status: <highlight>Included in Nadybot now<end>\n";
 		} elseif (isset($installedVersion)) {
-			/** @psalm-suppress MixedOperand */
 			$blob .= '<tab>Installed: <highlight>'.
 				($installedVersion !== '' ? $installedVersion : 'yes, unknown version').
 				'<end> ['.
@@ -813,7 +810,6 @@ class PackageController extends ModuleInstance {
 					);
 					$installedVersion ??= '';
 
-					/** @psalm-suppress NoValue */
 					if ($installedVersion !== '' && SemanticVersion::compareUsing($installedVersion, $package->version, '<')) {
 						$blob .= " [{$updateLink}]";
 					} elseif ($installedVersion !== '' && SemanticVersion::compareUsing($installedVersion, $package->version, '==')) {
