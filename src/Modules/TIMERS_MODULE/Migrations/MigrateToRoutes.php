@@ -52,7 +52,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$defaultMode []= 'discord';
 		}
 		$discordChannel = $this->getSetting($db, 'discord_notify_channel') ?? null;
-		if (isset($discordChannel, $discordChannel->value)   && $discordChannel->value !== 'off') {
+		if (isset($discordChannel->value) && $discordChannel->value !== 'off') {
 			try {
 				$channel = $this->discordAPIClient->getChannel($discordChannel->value);
 				$this->migrateChannelToRoute($channel, $db, $table, $defaultMode);

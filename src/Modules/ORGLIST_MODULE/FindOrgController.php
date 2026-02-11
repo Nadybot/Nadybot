@@ -311,7 +311,7 @@ class FindOrgController extends ModuleInstance {
 				);
 				delay(5);
 			}
-		} while ((!isset($response) || $response->getStatus() !== 200) && $retry > 0);
+		} while ((!isset($response) || $response->getStatus() !== 200));
 		if ($body === null || $body === '' || !str_contains($body, 'ORGS BEGIN')) {
 			throw new Exception("Invalid data received from orglist for {$letter}");
 		}

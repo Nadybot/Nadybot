@@ -1546,7 +1546,7 @@ class DiscordGatewayController extends ModuleInstance {
 			'<end>';
 		} elseif (isset($event->channel_id)) {
 			$channel = $this->getChannel($event->channel_id);
-			if (isset($channel, $channel->name)) {
+			if (isset($channel->name)) {
 				$blob .= "\n<tab>Where: <highlight>".
 				$guild->name . ' ' . $this->renderSingleChannel($channel).
 				'<end>';
@@ -1909,7 +1909,7 @@ class DiscordGatewayController extends ModuleInstance {
 
 				/** @var ?DBEmoji */
 				$oldDBEmoji = $registered->where('name', $info['filename'])->first();
-				if (isset($oldEmoji, $oldEmoji->id)   && (!isset($oldDBEmoji) || !isset($stats) || $oldDBEmoji->version < $stats[9])) {
+				if (isset($oldEmoji->id)   && (!isset($oldDBEmoji) || !isset($stats) || $oldDBEmoji->version < $stats[9])) {
 					$this->discordAPIClient->deleteEmoji($guild->id, $oldEmoji->id);
 					$this->logger->notice('Deleted server emoji :{emoji}: on {guild}', [
 						'emoji' => $oldEmoji->name,

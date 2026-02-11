@@ -1010,6 +1010,7 @@ class NotumWarsController extends ModuleInstance {
 		$hotSites = $this->getEnabledSites()
 			->whereNotNull('gas')
 			->whereNotNull('ql');
+		$soon = 0;
 		$search = Safe::pregReplace("/\s+soon\b/i", '', $search, -1, $soon);
 		$time = null;
 		if ($soon > 0) {
@@ -1045,6 +1046,7 @@ class NotumWarsController extends ModuleInstance {
 				$hotSites = $hotSites->where('gas', '<', 75);
 			}
 		}
+		$penalty = 0;
 		$search = Safe::pregReplace("/\s+penalty\b/i", '', $search, -1, $penalty);
 		if ($penalty > 0) {
 			$this->logger->info('Found <penalty> keyword');
@@ -1187,7 +1189,7 @@ class NotumWarsController extends ModuleInstance {
 			$uid = $this->chatBot->getUid($search);
 			if (isset($uid)) {
 				$player = $this->playerManager->byName($search);
-				if (isset($player, $player->guild_id)) {
+				if (isset($player->guild_id)) {
 					$searchTerm = "{$search}/{$player->guild}";
 				}
 			}
@@ -1197,7 +1199,7 @@ class NotumWarsController extends ModuleInstance {
 				if (!isset($site->org_name)) {
 					return false;
 				}
-				if (isset($player, $player->guild_id)   && $player->guild_id === $site->org_id) {
+				if (isset($player->guild_id)   && $player->guild_id === $site->org_id) {
 					return true;
 				}
 				return fnmatch($search, $site->org_name, \FNM_CASEFOLD);

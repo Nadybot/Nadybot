@@ -537,7 +537,7 @@ class MobController extends ModuleInstance {
 		}
 		if (
 			$match?->key === 'sapling-10'
-			&& isset($mobs['weed'], $mobs['weed']->last_killed, $match->last_killed)
+			&& isset($mobs['weed']->last_killed, $match->last_killed)
 			&& ($match->last_killed - $mobs['weed']->last_killed) < 3_600
 		) {
 			return $mobs['weed'];

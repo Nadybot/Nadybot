@@ -21,7 +21,7 @@ class TemplateSettingHandler extends SettingHandler {
 	public function displayValue(string $sender): string {
 		$examples = [];
 		$attr = $this->getAttribute();
-		if (isset($attr, $attr->exampleValues)) {
+		if (isset($attr->exampleValues)) {
 			$examples = $attr->exampleValues;
 		}
 		return Text::renderPlaceholders($this->row->value??'', $examples);
@@ -31,7 +31,7 @@ class TemplateSettingHandler extends SettingHandler {
 	public function getOptions(): ?string {
 		$examples = [];
 		$attr = $this->getAttribute();
-		if (isset($attr, $attr->exampleValues)) {
+		if (isset($attr->exampleValues)) {
 			$examples = $attr->exampleValues;
 		}
 

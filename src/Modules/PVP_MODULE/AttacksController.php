@@ -362,10 +362,10 @@ class AttacksController extends ModuleInstance {
 			);
 		}
 		$whois->guild = $attOrg;
-		if (isset($attack, $attack->attacker->org) && $attack->attacker->org->name === $attOrg) {
+		if (isset($attack->attacker->org) && $attack->attacker->org->name === $attOrg) {
 			$whois->guild_id = $attack->attacker->org->id;
 		}
-		if (isset($attack, $attack->attacker->faction)) {
+		if (isset($attack->attacker->faction)) {
 			$whois->faction = $attack->attacker->faction;
 		}
 		if (isset($attack) && $attack->attacker->name === $attPlayer) {
@@ -1044,7 +1044,7 @@ class AttacksController extends ModuleInstance {
 						) . "]\n".
 						'<tab>Defender: ' . $first->def_faction->inColor($first->def_org) . "\n".
 						(
-							isset($outcome, $outcome->attacker_faction, $outcome->attacker_org)
+							isset($outcome->attacker_faction, $outcome->attacker_org)
 								? '<tab>Won by ' . $outcome->attacker_faction->inColor($outcome->attacker_org).
 									' at ' . Util::date($outcome->timestamp) . "\n\n"
 								: "\n"

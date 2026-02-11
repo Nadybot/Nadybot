@@ -1028,6 +1028,7 @@ class WorldBossController extends ModuleInstance {
 			$newTimers []= $timer;
 		}
 		usort($newTimers, static function (WorldBossTimer $a, WorldBossTimer $b): int {
+			// @mago-ignore analysis:possibly-null-operand,possibly-null-operand
 			return $a->next_spawn <=> $b->next_spawn; // @phpstan-ignore-line
 		});
 		return $newTimers;
@@ -1191,6 +1192,7 @@ class WorldBossController extends ModuleInstance {
 			'c-mob-name' => "<highlight>{$timer->mob_name}<end>",
 		];
 
+		/** @var int */
 		$invulnDuration = static::BOSS_DATA[$timer->mob_name][static::IMMORTAL];
 		$tokens['immortal'] = Util::unixtimeToReadable($invulnDuration);
 		$tokens['c-immortal'] = '<highlight>' . $tokens['immortal'] . '<end>';
@@ -1207,12 +1209,14 @@ class WorldBossController extends ModuleInstance {
 			$this->logger->info('{mob_name} spawn check success, manual: {manual}', [
 				'mob_name' => $timer->mob_name,
 				'manual' => $manual ? 'true' : 'false',
+				// @mago-ignore analysis:invalid-type-cast
 				'timer' => (array)$timer,
 			]);
 			$this->lastSpawnPrecise[$timer->mob_name] = $manual;
 			if ($showSpawn === static::SPAWN_EVENT && !$manual) {
 				$this->logger->info(
 					'SPAWN_EVENT for spawn skipped, not manual',
+					// @mago-ignore analysis:invalid-type-cast
 					['timer' => (array)$timer],
 				);
 				return false;
@@ -1236,12 +1240,16 @@ class WorldBossController extends ModuleInstance {
 				[
 					'mob_name' => $timer->mob_name,
 					'manual' => $manual ? 'true' : 'false',
+					// @mago-ignore analysis:invalid-type-cast
 					'timer' => (array)$timer,
 				]
 			);
 			// With this setting, we only want to show "is mortal" when we are 100% sure
 			if ($showSpawn === static::SPAWN_EVENT && !$this->lastSpawnPrecise[$timer->mob_name]) {
-				$this->logger->info('SPAWN_EVENT for vulnerable skipped, not manual', ['timer' => (array)$timer]);
+				$this->logger->info('SPAWN_EVENT for vulnerable skipped, not manual', [
+					// @mago-ignore analysis:invalid-type-cast
+					'timer' => (array)$timer,
+				]);
 				return false;
 			} elseif ($showSpawn === static::SPAWN_SHOULD && !$this->lastSpawnPrecise[$timer->mob_name]) {
 				$msg = Text::renderPlaceholders($this->shouldVulnerableText, $tokens);
@@ -1270,6 +1278,8 @@ class WorldBossController extends ModuleInstance {
 			"/waypoint {$coords[0]} {$coords[1]} {$coords[2]}"
 		);
 		$blob = $timer->mob_name . " is in [{$wpLink}]";
+
+		/** @var ?int */
 		$aou = self::BOSS_DATA[$timer->mob_name][self::AOU] ?? null;
 		if (isset($aou)) {
 			$blob .= "\nMore info: [".

@@ -186,7 +186,7 @@ class ImplantDesignerController extends ModuleInstance {
 
 		$slotObj = $design->getSlot($slot);
 
-		if (isset($slotObj, $slotObj->symb)) {
+		if (isset($slotObj->symb)) {
 			$symb = $slotObj->symb;
 			$blob .= $symb->name ."\n\n";
 			$blob .= "<header2>Requirements<end>\n";
