@@ -183,6 +183,7 @@ Komodo
 kv
 Kyr'Ozch
 last[nN]ame
+lat
 leaderecho
 leadersay
 leavepriv
@@ -195,6 +196,7 @@ Ljotur
 [lL]oren
 log[lL]evel
 Lohmann
+lon
 Longsdale
 lootrights
 [lr]arm

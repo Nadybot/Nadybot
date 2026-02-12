@@ -6,12 +6,13 @@ use ArrayIterator;
 use IteratorIterator;
 
 /**
- * @extends IteratorIterator<int,Ingredient,ArrayIterator>
+ * @extends IteratorIterator<int,Ingredient,ArrayIterator<int,Ingredient>>
  */
 class Ingredients extends IteratorIterator {
 	public function __construct(Ingredient ...$ingredients) {
-		/** @psalm-suppress InvalidArgument */
-		parent::__construct(new ArrayIterator($ingredients));
+		/** @var ArrayIterator<int,Ingredient> */
+		$iter = new ArrayIterator($ingredients);
+		parent::__construct($iter);
 	}
 
 	public function current(): Ingredient {

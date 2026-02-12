@@ -2,7 +2,7 @@
 
 namespace Nadybot\Api;
 
-use function Safe\{glob};
+use function Safe\glob;
 
 use BackedEnum;
 use Exception;
@@ -681,15 +681,12 @@ class ApiSpecGenerator {
 		if (is_a($class, \DateTimeInterface::class, true)) {
 			return ['type' => 'integer'];
 		} elseif (is_a($class, BackedEnum::class, true)) {
-			/** @mago-ignore analysis:mixed-property-access */
+			/** @mago-ignore analysis:possibly-static-access-on-interface */
 			$first = $class::cases()[0]->value;
 			if (is_string($first)) {
 				return ['type' => 'string'];
-			} elseif (is_int($first)) {
-				return ['type' => 'integer'];
 			}
-			// @phpstan-ignore-next-line
-			throw new Exception("Cannot infer enum type for {$class}");
+			return ['type' => 'integer'];
 		}
 		$this->classes []= $class;
 		return ['$ref' => '#/components/schemas/' . class_basename($class)];
