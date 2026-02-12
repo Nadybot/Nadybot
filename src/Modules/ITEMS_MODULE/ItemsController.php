@@ -91,7 +91,8 @@ class ItemsController extends ModuleInstance {
 		}
 		$blob = '';
 		foreach (get_object_vars($row) as $key => $value) {
-			if ($key === 'numExactMatches') {
+			// @phpstan-ignore-next-line
+			if (!is_string($key) || $key === 'numExactMatches') {
 				continue;
 			}
 			$key = str_replace('_', ' ', $key);
@@ -221,6 +222,7 @@ class ItemsController extends ModuleInstance {
 		$search = htmlspecialchars_decode($search);
 		$dontExclude = false;
 
+		$numReplaces = 0;
 		$search = Safe::pregReplace("/\s*\*\s*/", '', $search, 1, $numReplaces);
 		$dontExclude = $numReplaces > 0;
 
@@ -360,7 +362,7 @@ class ItemsController extends ModuleInstance {
 		} else {
 			$blob .= "Search: <highlight>{$search}<end>\n";
 		}
-		if ($elapsed && (is_int($elapsed) || is_float($elapsed))) {
+		if ($elapsed !== null && (is_int($elapsed) || is_float($elapsed))) {
 			$blob .= 'Time: <highlight>' . round($elapsed, 2) . "s<end>\n";
 		}
 		$blob .= "\n";
@@ -379,6 +381,7 @@ class ItemsController extends ModuleInstance {
 		$list = '';
 		$oldGroup = null;
 		$data = new Collection($data);
+		$nameMatches = false;
 		for ($itemNum = 0; $itemNum < count($data); $itemNum++) {
 			$row = $data[$itemNum];
 			$origName = $row->name;
@@ -390,13 +393,13 @@ class ItemsController extends ModuleInstance {
 				$lastQL = null;
 				$newGroup = true;
 				// If this is a group of items, name them by their longest common name
-				if (isset($nameMatches)) {
+				if ($nameMatches) {
 					if (substr($list, -2, 2) === ', ') {
 						$list = substr($list, 0, strlen($list) - 2) . '<red>]<end>, ';
 					} else {
 						$list .= '<red>]<end>';
 					}
-					unset($nameMatches);
+					$nameMatches = false;
 				}
 				if (isset($row->group_id)) {
 					$inGame = false;
@@ -449,17 +452,17 @@ class ItemsController extends ModuleInstance {
 					$list .= ', ';
 				}
 				if (isset($search) && $this->itemNameMatchesSearch($origName, $search)) {
-					if (!isset($nameMatches)) {
+					if (!$nameMatches) {
 						$list .= '<red>[<end>';
 						$nameMatches = true;
 					}
-				} elseif (isset($nameMatches)) {
+				} elseif ($nameMatches) {
 					if (substr($list, -2, 2) === ', ') {
 						$list = substr($list, 0, strlen($list) - 2) . '<red>]<end>, ';
 					} else {
 						$list .= '<red>]<end>';
 					}
-					unset($nameMatches);
+					$nameMatches = false;
 				}
 				$item = $row->getLink(text: (string)$row->ql);
 				if ($ql === $row->ql) {
@@ -481,13 +484,13 @@ class ItemsController extends ModuleInstance {
 				$lastQL = $row->ql;
 			}
 		}
-		if (isset($nameMatches)) {
+		if ($nameMatches) {
 			if (substr($list, -2, 2) === ', ') {
 				$list = substr($list, 0, strlen($list) - 2) . '<red>]<end>, ';
 			} else {
 				$list .= '<red>]<end>';
 			}
-			unset($nameMatches);
+			$nameMatches = false;
 		}
 		$list = Safe::pregReplaceCallback(
 			"/^([^<]+?)<red>\[<end>(.+)<red>\]<end>$/m",
@@ -590,6 +593,8 @@ class ItemsController extends ModuleInstance {
 		$first = explode(' ', $first);
 		$second = explode(' ', $second);
 		$longestCommonSubstringIndexInFirst = 0;
+
+		/** @var array<int,array<int,int>> */
 		$table = [];
 		$largestFound = 0;
 
@@ -649,31 +654,38 @@ class ItemsController extends ModuleInstance {
 			->whereIn('item_id', array_unique([...array_column($items, 'highid'), ...array_column($items, 'lowid')]))
 			->asObj(ItemBuff::class);
 
-		/** @param Collection<int,Collection<int,ItemBuff>> $buffs */
-		$groupedBuffs = $buffs->groupBy('item_id');
+		$groupedBuffs = $buffs->groupByInt('item_id');
 
-		/**
-		 * @param Collection<int,ItemBuff> $iBuffs
-		 *
-		 * @return array<int,ExtBuff>
-		 */
-		$buffs = $groupedBuffs->map(static function (Collection $iBuffs): array {
-			return $iBuffs->map(static function (ItemBuff $buff): ExtBuff {
-				if (null === ($skill = Skill::tryFrom($buff->attribute_id))) {
-					throw new \Exception("Unknown skill {$buff->attribute_id} encountered");
-				}
-				return new ExtBuff(
-					skill: $skill,
-					amount: $buff->amount,
-				);
-			})->toArray();
-		});
+		/** @var Collection<int,array<int,ExtBuff>> */
+		$buffs = $groupedBuffs->map(
+			/**
+			 * @param Collection<int,ItemBuff> $iBuffs
+			 *
+			 * @return array<int,ExtBuff>
+			 */
+			static function (Collection $iBuffs): array {
+				return $iBuffs->map(
+					static function (ItemBuff $buff): ExtBuff {
+						if (null === ($skill = Skill::tryFrom($buff->attribute_id))) {
+							throw new \Exception("Unknown skill {$buff->attribute_id} encountered");
+						}
+						return new ExtBuff(
+							skill: $skill,
+							amount: $buff->amount,
+						);
+					}
+				)->toArray();
+			}
+		);
 
 		/** @var Collection<int,ItemWithBuffs> */
 		$result = new Collection();
 		foreach ($items as $item) {
 			$new = ItemWithBuffs::fromEntry($item);
-			$new->buffs = $buffs->get($new->lowid, []);
+
+			/** @var array<int,ExtBuff> */
+			$noBuffs = [];
+			$new->buffs = $buffs->get($new->lowid, $noBuffs);
 			if ($new->lowid !== $new->highid) {
 				$new->buffs = array_merge($new->buffs, $buffs->get($new->highid, []));
 			}

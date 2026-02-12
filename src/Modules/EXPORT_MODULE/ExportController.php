@@ -121,11 +121,11 @@ class ExportController extends ModuleInstance {
 	}
 
 	/**
+	 * @template T of array-key
+	 *
 	 * @param array<T,mixed> $data
 	 *
 	 * @return array<T,mixed>
-	 *
-	 * @template T
 	 */
 	private static function stripNull(array $data): array {
 		foreach ($data as $key => $value) {

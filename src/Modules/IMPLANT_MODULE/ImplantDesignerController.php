@@ -186,7 +186,7 @@ class ImplantDesignerController extends ModuleInstance {
 
 		$slotObj = $design->getSlot($slot);
 
-		if (isset($slotObj, $slotObj->symb)) {
+		if (isset($slotObj->symb)) {
 			$symb = $slotObj->symb;
 			$blob .= $symb->name ."\n\n";
 			$blob .= "<header2>Requirements<end>\n";
@@ -529,6 +529,7 @@ class ImplantDesignerController extends ModuleInstance {
 	public function getImplantDesignerResults(string $name): string {
 		$design = $this->getDesign($name);
 
+		/** @var array<string,int> */
 		$mods = [];
 		$reqs = ['Treatment' => 0, 'Level' => 1];  // force treatment and level to be shown first
 

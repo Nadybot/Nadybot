@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\VOTE_MODULE;
 
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -43,10 +43,7 @@ class PollsExporter extends ModuleInstance implements ExporterInterface, Importe
 					endTime: $poll->started + $poll->duration,
 				);
 				$answers = [];
-				foreach (json_decode($poll->possible_answers, false) as $answer) {
-					if (!is_string($answer)) {
-						continue;
-					}
+				foreach ($poll->getPossibleAnswers() as $answer) {
 					$answers[$answer] ??= new ExportAnswer(
 						answer: $answer,
 						votes: [],

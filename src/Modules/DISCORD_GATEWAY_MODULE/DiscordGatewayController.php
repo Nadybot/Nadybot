@@ -2,35 +2,18 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Amp\Future\await;
 use function Amp\{async, delay};
+use function Amp\Future\await;
 use function Safe\{array_flip, json_decode, json_encode};
 
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
-use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Http\Client\{HttpClientBuilder, HttpException};
+use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, WebsocketConnection, WebsocketHandshake};
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException, WebsocketCount};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Illuminate\Support\ItemNotFoundException;
-use Nadybot\Core\Modules\DISCORD\{
-	Activity,
-	DiscordAPIClient,
-	DiscordChannel,
-	DiscordChannelInvite,
-	DiscordController,
-	DiscordEmbed,
-	DiscordException,
-	DiscordGateway,
-	DiscordMessageIn,
-	DiscordScheduledEvent,
-	DiscordUser,
-	Emoji,
-	Guild,
-	GuildMemberChunk,
-	VoiceState,
-};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -59,6 +42,23 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\Status,
 	Util,
+};
+use Nadybot\Core\Modules\DISCORD\{
+	Activity,
+	DiscordAPIClient,
+	DiscordChannel,
+	DiscordChannelInvite,
+	DiscordController,
+	DiscordEmbed,
+	DiscordException,
+	DiscordGateway,
+	DiscordMessageIn,
+	DiscordScheduledEvent,
+	DiscordUser,
+	Emoji,
+	Guild,
+	GuildMemberChunk,
+	VoiceState,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	CloseEvents,
@@ -819,14 +819,19 @@ class DiscordGatewayController extends ModuleInstance {
 		$userData = $payload->d['user'];
 		$user = Hydrator::hydrate(DiscordUser::class, $userData);
 
-		$this->sessionId = $payload->d['session_id'] ?? null;
+		/** @var ?string */
+		$sessonId = $payload->d['session_id'] ?? null;
+		$this->sessionId = $sessonId;
 		$this->me = $user;
 		$this->logger->notice('Successfully logged into Discord Gateway as {username}', [
 			'username' => $user->getName(),
 		]);
 		$this->mustReconnect = true;
 		$this->reconnectDelay = 5;
-		$this->reconnectUrl = $payload->d['resume_gateway_url'] ?? null;
+
+		/** @var ?string */
+		$gatewayUrl = $payload->d['resume_gateway_url'] ?? null;
+		$this->reconnectUrl = $gatewayUrl;
 		EventLoop::queue($this->discordSlashCommandController->syncSlashCommands(...));
 	}
 
@@ -948,10 +953,18 @@ class DiscordGatewayController extends ModuleInstance {
 	/** Connect invited members to their AO account */
 	#[NCA\HandlesEvent(mask: 'discord(guild_member_add)', defaultStatus: Status::Enabled)]
 	public function connectNewUsersWithAO(DiscordGatewayEvent $event): void {
-		/** @var object{user:\stdClass}&\stdClass */
+		$userId = null;
+		$guildId = null;
 		$data = $event->payload->d;
-		$userId = $data->user->id ?? null;
-		$guildId = $data->guild_id ?? null;
+		if (($data instanceof \stdClass)
+			&& ($data->user instanceof \stdClass)
+			&& isset($data->user->id)
+		) {
+			$userId = $data->user->id;
+		}
+		if (($data instanceof \stdClass) && isset($data->guild_id)) {
+			$guildId = $data->guild_id;
+		}
 
 		if (!isset($userId) || !isset($guildId)
 			|| !is_string($userId) || !is_string($guildId)
@@ -1533,7 +1546,7 @@ class DiscordGatewayController extends ModuleInstance {
 			'<end>';
 		} elseif (isset($event->channel_id)) {
 			$channel = $this->getChannel($event->channel_id);
-			if (isset($channel, $channel->name)) {
+			if (isset($channel->name)) {
 				$blob .= "\n<tab>Where: <highlight>".
 				$guild->name . ' ' . $this->renderSingleChannel($channel).
 				'<end>';
@@ -1896,7 +1909,7 @@ class DiscordGatewayController extends ModuleInstance {
 
 				/** @var ?DBEmoji */
 				$oldDBEmoji = $registered->where('name', $info['filename'])->first();
-				if (isset($oldEmoji, $oldEmoji->id)   && (!isset($oldDBEmoji) || !isset($stats) || $oldDBEmoji->version < $stats[9])) {
+				if (isset($oldEmoji->id)   && (!isset($oldDBEmoji) || !isset($stats) || $oldDBEmoji->version < $stats[9])) {
 					$this->discordAPIClient->deleteEmoji($guild->id, $oldEmoji->id);
 					$this->logger->notice('Deleted server emoji :{emoji}: on {guild}', [
 						'emoji' => $oldEmoji->name,
@@ -1977,9 +1990,9 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	private function connectToGateway(): void {
-		$this->reconnectUrl = null;
+		// $this->reconnectUrl = null;
 		do {
-			if (!isset($this->reconnectUrl)) {
+			if ($this->reconnectUrl === null) {
 				$gwTry = 0;
 				do {
 					$gwTry++;
@@ -2061,7 +2074,9 @@ class DiscordGatewayController extends ModuleInstance {
 				$this->sessionId = null;
 				return;
 			} catch (WebsocketClosedException $e) {
+				/** @mago-ignore analysis:possibly-invalid-argument */
 				if ($this->canReconnect($e->getCode())) {
+					/** @mago-ignore analysis:possibly-invalid-argument */
 					if (!$this->canResumeSessionAfterClose($e->getCode())) {
 						$this->lastSequenceNumber = null;
 						$this->sessionId = null;
@@ -2151,11 +2166,11 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	/**
+	 * @template T of array-key
+	 *
 	 * @param array<T,mixed> $data
 	 *
 	 * @return array<T,mixed>
-	 *
-	 * @template T
 	 */
 	private static function stripNull(array $data): array {
 		foreach ($data as $key => $value) {

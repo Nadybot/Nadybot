@@ -4,7 +4,6 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use function Amp\async;
 
-use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -29,6 +28,7 @@ use Nadybot\Core\{
 	Types\CommandReply,
 	Types\Status,
 };
+use Nadybot\Core\Modules\ALTS\AltNewMainEvent;
 use Psr\Log\LoggerInterface;
 
 #[
@@ -449,6 +449,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 
 	/** @param Collection<int,RaidStat> $stats */
 	protected function renderLeaders(bool $showStats, bool $showOfflineAlts, Collection $stats, string ...$names): string {
+		$numRaidsRecently = null;
 		sort($names);
 		$output = [];
 

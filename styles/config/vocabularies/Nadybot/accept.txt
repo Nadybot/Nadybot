@@ -159,6 +159,7 @@ ilari
 ilike
 Illork
 Imoutochan
+INews
 (?i)psy
 (?i)sen
 (?i)sta
@@ -182,6 +183,7 @@ Komodo
 kv
 Kyr'Ozch
 last[nN]ame
+lat
 leaderecho
 leadersay
 leavepriv
@@ -194,6 +196,7 @@ Ljotur
 [lL]oren
 log[lL]evel
 Lohmann
+lon
 Longsdale
 lootrights
 [lr]arm
@@ -304,6 +307,7 @@ symbolopt
 [sS]ymfony
 syncable
 Taylorka
+TDefault
 Technomaster
 tempnam
 Throwable
@@ -327,6 +331,7 @@ ucred
 uid|UID
 uk|UK
 [uU]nary
+Unbekannterweise
 unescape
 unhide
 unicode

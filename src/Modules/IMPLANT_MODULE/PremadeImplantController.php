@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Types\{AccessLevel, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -14,6 +13,7 @@ use Nadybot\Core\{
 	Types\ImplantSlot,
 	Types\Profession,
 };
+use Nadybot\Core\Types\{AccessLevel, Skill};
 
 /**
  * @author Tyrence (RK2)

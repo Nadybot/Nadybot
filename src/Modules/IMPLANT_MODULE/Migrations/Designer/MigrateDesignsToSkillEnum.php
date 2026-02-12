@@ -34,52 +34,51 @@ class MigrateDesignsToSkillEnum implements SchemaMigration {
 				[]
 			);
 
-		/** @var Collection<int,object{design?:string}&\stdClass> */
-		$data = $db->table(ImplantDesign::getTable())->get();
+		/**
+		 * @var Collection<int,array{"design"?:string,"name"?:string,"owner"?:string}>
+		 *
+		 * @phpstan-ignore varTag.type
+		 */
+		$data = $db->table(ImplantDesign::getTable())->getArray();
 
-		/** @param object{design?:string}&\stdClass $design */
-		$data->each(function (object $design) use ($db): void {
-			if (!isset($design->design)) {
-				return;
-			}
-			try {
-				$data = json_decode($design->design, true);
-				if (!is_array($data)) {
+		$data->each(
+			/** @param array{"design"?:string,"name"?:string,"owner"?:string} $design */
+			function (array $design) use ($db): void {
+				if (!isset($design['design'])) {
 					return;
 				}
-			} catch (JsonException) {
-				return;
-			}
-			foreach ($data as $slot => $slotConfig) {
-				if (!is_array($slotConfig)) {
-					continue;
+				try {
+					$data = json_decode($design['design'], true);
+					if (!is_array($data)) {
+						return;
+					}
+				} catch (JsonException) {
+					return;
 				}
-				if (isset($slotConfig['symb']) && is_array($slotConfig['symb'])) {
-					/** @var array{"reqs":list<array{"name":string,"amount":int}>,"mods":list<array{"name":string,"amount":int}>} */
-					$symb = $slotConfig['symb'];
+				foreach ($data as $slot => &$slotConfig) {
+					if (!is_array($slotConfig)) {
+						continue;
+					}
+					if (isset($slotConfig['symb']) && is_array($slotConfig['symb'])) {
+						/** @var array{"reqs":list<array{"name":string,"amount":int}>,"mods":list<array{"name":string,"amount":int}>} */
+						$symb = $slotConfig['symb'];
 
-					/** @psalm-suppress MixedArrayAssignment */
-					$data[$slot]['symb']['reqs'] = array_map($this->convertSkills(...), $symb['reqs']);
-
-					/** @psalm-suppress MixedArrayAssignment */
-					$data[$slot]['symb']['mods'] = array_map($this->convertSkills(...), $symb['mods']);
-				} else {
-					foreach (['shiny', 'bright', 'faded'] as $grade) {
-						if (isset($slotConfig[$grade])) {
-							/**
-							 * @psalm-suppress MixedArrayOffset
-							 * @psalm-suppress MixedArrayAssignment
-							 */
-							$data[$slot][$grade] = $this->skills[$slotConfig[$grade]] ?? null;
+						$slotConfig['symb']['reqs'] = array_map($this->convertSkills(...), $symb['reqs']);
+						$slotConfig['symb']['mods'] = array_map($this->convertSkills(...), $symb['mods']);
+					} else {
+						foreach (['shiny', 'bright', 'faded'] as $grade) {
+							if (isset($slotConfig[$grade]) && is_string($slotConfig[$grade])) {
+								$slotConfig[$grade] = $this->skills[$slotConfig[$grade]] ?? null;
+							}
 						}
 					}
 				}
+				$db->table(ImplantDesign::getTable())
+					->where('name', $design['name'] ?? '@')
+					->where('owner', $design['owner'] ?? '')
+					->update(['design' => json_encode($data)]);
 			}
-			$db->table(ImplantDesign::getTable())
-				->where('name', $design->name ?? '@')
-				->where('owner', $design->owner ?? '')
-				->update(['design' => json_encode($data)]);
-		});
+		);
 	}
 
 	/**

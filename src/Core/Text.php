@@ -46,11 +46,13 @@ class Text {
 			$content = ' ';
 		}
 
+		$colors = Registry::getInstance(ColorsController::class);
+		$color = $colors->defaultWindowColor;
 		$headerMarkup = "<header>{$header}<end>\n\n";
 		if (isset($permanentHeader) && strlen($permanentHeader)) {
 			$headerMarkup .= "<permheader>{$permanentHeader}</permheader>";
 		}
-		$page = "<a href=\"text://{$headerMarkup}{$content}\">{$name}</a>";
+		$page = "<a href=\"text://{$color}{$headerMarkup}{$content}\">{$name}</a>";
 		return $page;
 	}
 

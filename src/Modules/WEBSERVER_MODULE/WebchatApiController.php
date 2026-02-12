@@ -70,14 +70,14 @@ class WebchatApiController extends ModuleInstance {
 		);
 		$src->renderAs = $src->render(null);
 		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, 'Web'), HopColorType::TagColor);
-		if (isset($color, $color->tag_color)) {
+		if (isset($color->tag_color)) {
 			$src->color = $color->tag_color;
 		} else {
 			$src->color = '';
 		}
 		$eventColor = '';
 		$color = $this->messageHub->getHopColor([$src], Source::WEB, new Source(Source::WEB, 'Web'), HopColorType::TextColor);
-		if (isset($color, $color->text_color)) {
+		if (isset($color->text_color)) {
 			$eventColor = $color->text_color;
 		}
 		$eventMessage = $this->webChatConverter->convertMessage($message);

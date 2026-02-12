@@ -7,8 +7,6 @@ use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\TimeoutCancellation;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -34,6 +32,8 @@ use Nadybot\Core\{
 	Types\Playfield,
 	Util
 };
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
 use Nadybot\Modules\TIMERS_MODULE\{Alert, Timer, TimerController};
@@ -490,7 +490,7 @@ class NotumWarsController extends ModuleInstance {
 			/** @var list<array<string,mixed>> */
 			$json = json_decode($body, true);
 
-			$attacks = Hydrator::hydrateObjects(FeedMessage\TowerAttack::class, $json);
+			$attacks = Hydrator::hydrateObjects(FeedMessage\TowerAttack::class, $json)->getIterator();
 
 			foreach ($attacks as $attack) {
 				$breedRequired = !isset($attack->attacker->breed)
@@ -554,7 +554,7 @@ class NotumWarsController extends ModuleInstance {
 			/** @var list<array<string,mixed>> */
 			$json = json_decode($body, true);
 
-			$outcomes = Hydrator::hydrateObjects(FeedMessage\TowerOutcome::class, $json);
+			$outcomes = Hydrator::hydrateObjects(FeedMessage\TowerOutcome::class, $json)->getIterator();
 
 			foreach ($outcomes as $outcome) {
 				$this->db->insert(DBOutcome::fromTowerOutcome($outcome));
@@ -962,7 +962,7 @@ class NotumWarsController extends ModuleInstance {
 				$orgFaction[$site->org_name] = $site->org_faction;
 			});
 		uasort($orgQls, static fn (int $a, int $b): int => $b <=> $a);
-		$top = array_slice($orgQls, 0, 20);
+		$top = array_slice($orgQls, 0, 20, true);
 		$blob = "<header2>Top contract points<end>\n";
 		$rank = 1;
 		foreach ($top as $orgName => $points) {
@@ -1003,12 +1003,14 @@ class NotumWarsController extends ModuleInstance {
 		?string $search
 	): void {
 		$search ??= '';
+		$faction = null;
 		if (substr($search, 0, 1) !== ' ') {
 			$search = " {$search}";
 		}
 		$hotSites = $this->getEnabledSites()
 			->whereNotNull('gas')
 			->whereNotNull('ql');
+		$soon = 0;
 		$search = Safe::pregReplace("/\s+soon\b/i", '', $search, -1, $soon);
 		$time = null;
 		if ($soon > 0) {
@@ -1044,6 +1046,7 @@ class NotumWarsController extends ModuleInstance {
 				$hotSites = $hotSites->where('gas', '<', 75);
 			}
 		}
+		$penalty = 0;
 		$search = Safe::pregReplace("/\s+penalty\b/i", '', $search, -1, $penalty);
 		if ($penalty > 0) {
 			$this->logger->info('Found <penalty> keyword');
@@ -1107,17 +1110,9 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$blob = $this->renderHotSites($time, ...$hotSites->toArray());
 		if ($soon > 0) {
-			/**
-			 * @psalm-suppress MixedPropertyFetch
-			 * @psalm-suppress MixedOperand
-			 */
 			$sitesLabel = isset($faction) ? $faction->value . ' sites' : 'Sites';
 			$msg = Text::makeBlob("{$sitesLabel} going hot soon ({$hotSites->count()})", $blob);
 		} else {
-			/**
-			 * @psalm-suppress MixedPropertyFetch
-			 * @psalm-suppress MixedArgument
-			 */
 			$faction = isset($faction) ? ' ' . strtolower($faction->value) : '';
 			$inPenalty = ($penalty > 0) ? ' in penalty' : '';
 			$msg = Text::makeBlob("Hot{$faction} sites{$inPenalty} ({$hotSites->count()})", $blob);
@@ -1194,7 +1189,7 @@ class NotumWarsController extends ModuleInstance {
 			$uid = $this->chatBot->getUid($search);
 			if (isset($uid)) {
 				$player = $this->playerManager->byName($search);
-				if (isset($player, $player->guild_id)) {
+				if (isset($player->guild_id)) {
 					$searchTerm = "{$search}/{$player->guild}";
 				}
 			}
@@ -1204,7 +1199,7 @@ class NotumWarsController extends ModuleInstance {
 				if (!isset($site->org_name)) {
 					return false;
 				}
-				if (isset($player, $player->guild_id)   && $player->guild_id === $site->org_id) {
+				if (isset($player->guild_id)   && $player->guild_id === $site->org_id) {
 					return true;
 				}
 				return fnmatch($search, $site->org_name, \FNM_CASEFOLD);
@@ -1412,12 +1407,12 @@ class NotumWarsController extends ModuleInstance {
 		$grouping = $this->groupHotTowers;
 		if ($grouping === 1) {
 			$hotSites = $hotSites->sortBy('site_id');
-			$grouped = $hotSites->groupBy(static function (FeedMessage\SiteUpdate $site): string {
+			$grouped = $hotSites->groupByString(static function (FeedMessage\SiteUpdate $site): string {
 				return $site->playfield->long();
 			});
 		} elseif ($grouping === 2) {
 			$hotSites = $hotSites->sortBy('ql');
-			$grouped = $hotSites->groupBy(static function (FeedMessage\SiteUpdate $site): string {
+			$grouped = $hotSites->groupByString(static function (FeedMessage\SiteUpdate $site): string {
 				return 'TL' . TitleLevel::fromLevel($site->ql??1)->value;
 			});
 		} elseif ($grouping === 3) {
@@ -1432,13 +1427,15 @@ class NotumWarsController extends ModuleInstance {
 
 		$grouped = $grouped->sortKeys();
 
-		/** @param Collection<int,FeedMessage\SiteUpdate> $hotSites */
-		$blob = $grouped->map(function (Collection $hotSites, string $short) use ($time): string {
-			return "<pagebreak><header2>{$short}<end>\n".
-				$hotSites->map(function (FeedMessage\SiteUpdate $site) use ($time): string {
-					return $this->renderHotSite($site, $time);
-				})->join("\n");
-		})->join("\n\n");
+		$blob = $grouped->map(
+			/** @param Collection<int,FeedMessage\SiteUpdate> $hotSites */
+			function (Collection $hotSites, string $short) use ($time): string {
+				return "<pagebreak><header2>{$short}<end>\n".
+					$hotSites->map(function (FeedMessage\SiteUpdate $site) use ($time): string {
+						return $this->renderHotSite($site, $time);
+					})->join("\n");
+			}
+		)->join("\n\n");
 		return $blob;
 	}
 

@@ -3,9 +3,7 @@
 namespace Nadybot\Core\Routing;
 
 use InvalidArgumentException;
-use Nadybot\Core\DBSchema\RouteHopFormat;
-
-use Nadybot\Core\{Collection, Config\BotConfig, Registry, Safe};
+use Nadybot\Core\{Collection, Config\BotConfig, DBSchema\RouteHopFormat, Registry, Safe};
 
 /** This represents a hop where messages pass by, can be created at, or forwarded to */
 class Source {

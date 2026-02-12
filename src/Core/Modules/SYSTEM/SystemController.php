@@ -5,7 +5,6 @@ namespace Nadybot\Core\Modules\SYSTEM;
 use function Safe\{ini_get, unpack};
 
 use Amp\Http\Server\{Request, Response};
-use Nadybot\Core\Attributes\Hydrator\Confidential;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -46,6 +45,7 @@ use Nadybot\Core\{
 	Types\Status,
 	Util,
 };
+use Nadybot\Core\Attributes\Hydrator\Confidential;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadylib\IMEX\{JSON, TOML};
 use Psr\Log\LoggerInterface;

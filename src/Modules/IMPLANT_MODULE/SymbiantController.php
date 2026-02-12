@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Types\{AccessLevel, ImplantSlot, Skill};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -14,6 +13,7 @@ use Nadybot\Core\{
 	Text,
 	Types\Profession,
 };
+use Nadybot\Core\Types\{AccessLevel, ImplantSlot, Skill};
 use Nadybot\Modules\ITEMS_MODULE\{
 	ExtBuff,
 	ItemWithBuffs,
@@ -97,14 +97,23 @@ class SymbiantController extends ModuleInstance {
 		}
 
 		// Count which skill is buffed by how many
-		$buffCounter = $symbs->reduce(static function (array $carry, ItemWithBuffs $item): array {
-			foreach ($item->buffs as $buff) {
-				/** @var array<string,int> $carry */
-				$carry[$buff->skill->name] ??= 0;
-				$carry[$buff->skill->name]++;
-			}
-			return $carry;
-		}, []);
+		/** @var array<string,int> */
+		$buffCounter = $symbs->reduce(
+			/**
+			 * @param array<string,int> $carry
+			 *
+			 * @return array<string,int>
+			 */
+			static function (array $carry, ItemWithBuffs $item): array {
+				foreach ($item->buffs as $buff) {
+					/** @var array<string,int> $carry */
+					$carry[$buff->skill->name] ??= 0;
+					$carry[$buff->skill->name]++;
+				}
+				return $carry;
+			},
+			[]
+		);
 		ksort($buffCounter);
 		asort($buffCounter);
 
@@ -144,18 +153,18 @@ class SymbiantController extends ModuleInstance {
 			$context->reply("No skill matching '<highlight>{$skillName}<end>' found.");
 			return;
 		}
-		$skillBlocks = [];
-		foreach ($skills as $skill) {
-			$symbs = $this->findSymbiantsBuffing($skill);
-			if (count($symbs) === 0) {
-				continue;
-			}
-			$skillBlocks []= "<header2>{$skill->inGame()}<end>\n" . $this->renderSymbiantBuffs(...$symbs);
-		}
-		if (count($skillBlocks) === 0) {
-			$context->reply("No symbiants buffing '<highlight>{$skillName}<end>' found.");
-			return;
-		}
+
+		/** @var list<string> */
+		$skillBlocks = array_map(
+			function (Skill $skill): string {
+				$symbs = $this->findSymbiantsBuffing($skill);
+				if (count($symbs) === 0) {
+					return '';
+				}
+				return "<header2>{$skill->inGame()}<end>\n" . $this->renderSymbiantBuffs(...$symbs);
+			},
+			$skills
+		);
 		$blob = implode("\n\n", $skillBlocks);
 		$msg = Text::makeBlob("Symbiants buffing '{$skillName}'", $blob);
 		$context->reply($msg);

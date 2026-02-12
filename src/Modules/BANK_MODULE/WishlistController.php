@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Quantity,
@@ -25,6 +23,8 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util,
 };
+use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Ramsey\Uuid\UuidInterface;
 use Throwable;
 
@@ -880,16 +880,22 @@ class WishlistController extends ModuleInstance {
 					->orWhere('expires_on', '>', time());
 			})
 			->asObj(Wish::class)
-			/** @return array<string,true> */
-			->reduce(static function (array $result, Wish $w): array {
-				if (isset($w->from)) {
-					$result[$w->from] = true;
-				}
-				return $result;
-			}, $start);
+			->reduce(self::keyByFrom(...), $start);
 
 		/** @var list<string> */
 		$keys = array_keys($fromChars);
 		return $keys;
+	}
+
+	/**
+	 * @param array<string,true> $result
+	 *
+	 * @return array<string,true>
+	 */
+	private static function keyByFrom(array $result, Wish $w): array {
+		if (isset($w->from)) {
+			$result[$w->from] = true;
+		}
+		return $result;
 	}
 }

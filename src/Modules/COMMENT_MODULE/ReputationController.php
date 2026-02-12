@@ -67,19 +67,11 @@ class ReputationController extends ModuleInstance {
 
 		$blob = '';
 
-		/**
-		 * @var array<string,object{total:int,comments:list<Comment>}&\stdClass>
-		 */
+		/** @var array<string,Reputation> */
 		$charReputation = [];
 		foreach ($comments as $comment) {
 			if (!array_key_exists($comment->character, $charReputation)) {
-				/**
-				 * @var object{total:int,comments:list<Comment>}&\stdClass
-				 *
-				 * @phpstan-ignore varTag.nativeType
-				 */
-				$empty = (object)['total' => 0, 'comments' => []];
-				$charReputation[$comment->character] = $empty;
+				$charReputation[$comment->character] = new Reputation();
 			}
 			$charReputation[$comment->character]->comments []= $comment;
 			$charReputation[$comment->character]->total += str_starts_with($comment->comment, '+1') ? 1 : -1;

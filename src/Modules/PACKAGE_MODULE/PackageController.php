@@ -154,7 +154,7 @@ class PackageController extends ModuleInstance {
 				$installLink = '<i>Included in Nadybot now</i>';
 			} elseif (isset($pGroup->highest_supported) && $package->state !== static::BUILT_INT) {
 				// @phpstan-ignore-next-line
-				if ($pGroup->highest_supported && isset($installedVersion) && $installedVersion !== '') {
+				if ($pGroup->highest_supported !== null && isset($installedVersion) && $installedVersion !== '') {
 					if (SemanticVersion::compareUsing($installedVersion, $pGroup->highest_supported->version, '<')) {
 						$installLink = '[' . Text::makeChatcmd(
 							'update',
@@ -220,6 +220,7 @@ class PackageController extends ModuleInstance {
 			$context->reply("There was an error retrieving information about {$packageName}.");
 			return;
 		}
+		$installedVersion = null;
 		$packages = new Collection($packages);
 		$firstPackage = $packages->first();
 		if (!isset($firstPackage)) {
@@ -238,7 +239,6 @@ class PackageController extends ModuleInstance {
 		if ($firstPackage->state === static::BUILT_INT) {
 			$blob .= "<tab>Status: <highlight>Included in Nadybot now<end>\n";
 		} elseif (isset($installedVersion)) {
-			/** @psalm-suppress MixedOperand */
 			$blob .= '<tab>Installed: <highlight>'.
 				($installedVersion !== '' ? $installedVersion : 'yes, unknown version').
 				'<end> ['.
@@ -262,7 +262,6 @@ class PackageController extends ModuleInstance {
 					);
 					$installedVersion ??= '';
 
-					/** @psalm-suppress NoValue */
 					if ($installedVersion !== '' && SemanticVersion::compareUsing($installedVersion, $package->version, '<')) {
 						$blob .= " [{$updateLink}]";
 					} elseif ($installedVersion !== '' && SemanticVersion::compareUsing($installedVersion, $package->version, '==')) {
@@ -770,6 +769,7 @@ class PackageController extends ModuleInstance {
 
 	/** @param iterable<array-key,Package> $packages */
 	private function getPackageDetail(iterable $packages): string {
+		$installedVersion = null;
 		$packages = new Collection($packages);
 		$firstPackage = $packages->first();
 		if (!isset($firstPackage)) {
@@ -787,7 +787,6 @@ class PackageController extends ModuleInstance {
 		if ($firstPackage->state === static::BUILT_INT) {
 			$blob .= "<tab>Status: <highlight>Included in Nadybot now<end>\n";
 		} elseif (isset($installedVersion)) {
-			/** @psalm-suppress MixedOperand */
 			$blob .= '<tab>Installed: <highlight>'.
 				($installedVersion !== '' ? $installedVersion : 'yes, unknown version').
 				'<end> ['.
@@ -811,7 +810,6 @@ class PackageController extends ModuleInstance {
 					);
 					$installedVersion ??= '';
 
-					/** @psalm-suppress NoValue */
 					if ($installedVersion !== '' && SemanticVersion::compareUsing($installedVersion, $package->version, '<')) {
 						$blob .= " [{$updateLink}]";
 					} elseif ($installedVersion !== '' && SemanticVersion::compareUsing($installedVersion, $package->version, '==')) {
@@ -846,7 +844,11 @@ class PackageController extends ModuleInstance {
 		$missingExtensions = [];
 		foreach ($packages[0]->requires as $requirement) {
 			if (count($matches = Safe::pregMatch('/^ext-(.+)$/', $requirement->name)) === 2) {
-				if (!extension_loaded($matches[1])) {
+				if (
+					!array_key_exists(1, $matches)
+					|| $matches[1] === ''
+					|| !extension_loaded($matches[1])
+				) {
 					$missingExtensions[$matches[1]] = true;
 				}
 			}

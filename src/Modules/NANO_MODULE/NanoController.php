@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Nadybot\Modules\NANO_MODULE;
 
 use Illuminate\Database\Query\Builder;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
@@ -21,6 +20,7 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\Profession,
 };
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 
 /**
  * @author Nadyita (RK5)
@@ -111,6 +111,8 @@ class NanoController extends ModuleInstance {
 	#[NCA\HandlesCommand('nano')]
 	#[NCA\Help\Group('nano')]
 	public function nanoCommand(CmdContext $context, string $search): void {
+		$gmiLink = null;
+		$info = null;
 		$search = htmlspecialchars_decode($search);
 		$query = $this->db->table(Nano::getTable())
 			->orderBy('strain')
@@ -167,10 +169,6 @@ class NanoController extends ModuleInstance {
 
 			$popup = Text::makeBlob('details', $blob);
 
-			/**
-			 * @psalm-suppress PossiblyInvalidOperand
-			 * @psalm-suppress MixedArgument
-			 */
 			$msg = str_replace($gmiLink, '', $info) . " [{$popup}]";
 		}
 
@@ -236,6 +234,8 @@ class NanoController extends ModuleInstance {
 
 	public function listNanolines(CmdContext $context, bool $froobOnly, string $arg): void {
 		$arg = html_entity_decode($arg);
+
+		/** @var non-empty-list<string> */
 		$nanoArgs = explode(' > ', $arg);
 		$profArg = array_shift($nanoArgs);
 		$profession = Profession::tryFromName($profArg)?->value;
@@ -426,13 +426,20 @@ class NanoController extends ModuleInstance {
 		}
 
 		/** @var array<string,Nano> */
+		$initial = [];
+
+		/** @var array<string,Nano> */
 		$nanos = $query
 			->asObj(Nano::class)
-			->reduce(static function (array $nanos, Nano $nano): array {
-				$key = "{$nano->school}|{$nano->strain}|{$nano->sub_strain}";
-				$nanos[$key] ??= $nano;
-				return $nanos;
-			}, []);
+			->reduce(
+				/** @param array<string,Nano> $nanos */
+				static function (array $nanos, Nano $nano): array {
+					$key = "{$nano->school}|{$nano->strain}|{$nano->sub_strain}";
+					$nanos[$key] ??= $nano;
+					return $nanos;
+				},
+				$initial
+			);
 
 		/** @var Collection<int,Nano> */
 		$bestNanos = new Collection(array_values($nanos));

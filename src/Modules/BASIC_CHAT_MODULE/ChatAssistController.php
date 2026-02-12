@@ -287,6 +287,7 @@ class ChatAssistController extends ModuleInstance {
 			}
 			$msg = 'All callers not added by you have been cleared.';
 		} else {
+			/** @var list<Caller> */
 			$removed = [];
 			foreach ($this->callers as $list) {
 				array_push($removed, ...$list->removeCallersAddedBy($assistList, true, false));
@@ -483,7 +484,7 @@ class ChatAssistController extends ModuleInstance {
 			return;
 		}
 		$steps ??= 1;
-		$this->callers = array_splice($this->lastCallers, -1 * $steps)[0]->callers;
+		$this->callers = Util::arrayLast($this->lastCallers)->callers;
 		$msg = 'Callers configuration restored. ';
 		if (count($this->callers) > 0) {
 			$msg .= Text::makeBlob('List of callers', $this->getAssistMessage());

@@ -10,16 +10,16 @@ excludes = [
   "vendor/nikic/fast-route/test/HackTypechecker/fixtures/no_options.php",
   "vendor/nikic/fast-route/test/HackTypechecker/fixtures/empty_options.php",
   "vendor/squizlabs/php_codesniffer/tests/Core/Ruleset/Fixtures/DirectoryExpansion/.hiddenAbove/src/MyStandard/.hidden/HiddenDirShouldBeIgnoredSniff.php",
+  "vendor/farafiri/php-parsing-tool/src/SyntaxTreeNode/Base.php",
+  "vendor/farafiri/php-parsing-tool/src/SyntaxTreeNode/Branch.php",
+  "vendor/farafiri/php-parsing-tool/src/SyntaxTreeNode/Leaf.php",
+  "vendor/farafiri/php-parsing-tool/src/SyntaxTreeNode/Root.php",
 ]
 includes = ["vendor", "src/Core", "Stubs"]
 extensions = ["php"]
 
 [linter.rules]
-#no-unused-parameter = { enabled = false }
 loop-does-not-iterate  = { enabled = false }
-#interface = { psr = false }
-#class = { psr = false }
-#no-assignment-in-condition = { enabled = false }
 assert-description = { enabled = false }
 prefer-arrow-function = { enabled = false }
 no-error-control-operator = { enabled = false }
@@ -34,12 +34,8 @@ no-insecure-comparison = { enabled = false }
 no-literal-password = { enabled = false }
 no-empty-catch-clause = { enabled = false }
 no-else-clause = { enabled = false }
-no-boolean-literal-comparison = { enabled = false }
-#redundant-mathematical-operation = { enabled = false }
 no-boolean-flag-parameter = { enabled = false }
-#dont-catch-error = { enabled = false }
 literal-named-argument = { enabled = false }
-#mixed-assignment = { enabled = false }
 inline-variable-return = { enabled = false }
 prefer-early-continue = { enabled = false }
 no-nested-ternary = { enabled = false }
@@ -50,5 +46,12 @@ no-redundant-use = { enabled = false }
 no-assign-in-condition = { enabled = false }
 prefer-first-class-callable = { enabled = false }
 too-many-enum-cases = { threshold = 666 }
+no-isset = { enabled = false }
 no-sprintf-concat = { enabled = false }
 no-redundant-method-override = { enabled = false }
+yoda-conditions = { enabled = false }
+class-name = { enabled = false }
+interface-name = { enabled = false }
+
+[analyzer]
+ignore = ["mixed-assignment", "mixed-argument", "redundant-docblock-type", "redundant-cast", "avoid-catching-error", "redundant-isset-check", "redundant-null-coalesce", "redundant-comparison", "redundant-condition"]

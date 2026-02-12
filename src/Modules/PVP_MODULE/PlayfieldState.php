@@ -36,6 +36,7 @@ class PlayfieldState implements ArrayAccess, Iterator {
 
 	public function offsetSet(mixed $offset, mixed $value): void {
 		$offset = (int)$offset;
+		// @mago-ignore analysis:impossible-condition
 		if (!($value instanceof SiteUpdate)) { // @phpstan-ignore-line
 			throw new Exception('Invalid data stored in PlayfieldState');
 		}

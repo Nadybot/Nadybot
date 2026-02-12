@@ -323,7 +323,7 @@ class RaidMemberController extends ModuleInstance {
 				$messages []= $reply;
 			}
 		}
-		if (!count($messages)) {
+		if (count($messages) === 0) {
 			return;
 		}
 		if (count($messages) === 1) {

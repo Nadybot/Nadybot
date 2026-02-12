@@ -199,7 +199,7 @@ class TrickleController extends ModuleInstance {
 		$headerParts = [];
 		$msgParts = [];
 
-		/** @var array<string,mixed> */
+		/** @var array<string,int> */
 		$vars = get_object_vars($abilities);
 		foreach ($vars as $short => $bonus) {
 			if ($bonus > 0) {

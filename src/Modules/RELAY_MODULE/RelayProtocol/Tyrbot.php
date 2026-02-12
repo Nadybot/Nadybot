@@ -311,6 +311,7 @@ class Tyrbot implements RelayProtocolInterface {
 	}
 
 	protected function getOnlineList(): OnlineList {
+		$orgLabel = null;
 		$onlineList = [
 			'type' => 'online_list',
 			'online' => [],

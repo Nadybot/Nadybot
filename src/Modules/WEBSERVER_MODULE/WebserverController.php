@@ -562,7 +562,6 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			return null;
 		}
 		try {
-			/** @var object{"exp"?:int,"sub"?:object{"name"?:string}}&\stdClass */
 			$payload = JWT::decode($token, trim($aoAuthPubKey));
 		} catch (Exception $e) {
 			$this->logger->error('JWT: {error}', [
@@ -571,10 +570,17 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 			]);
 			return null;
 		}
-		if (!isset($payload->exp) || $payload->exp <= time()) {
+		if (!isset($payload->exp) || !is_int($payload->exp) || $payload->exp <= time()) {
 			return null;
 		}
-		return $payload->sub->name??null;
+		if (isset($payload->sub)
+			&& ($payload->sub instanceof \stdClass)
+			&& isset($payload->sub->name)
+			&& is_string($payload->sub->name)
+		) {
+			return $payload->sub->name;
+		}
+		return null;
 	}
 
 	private function getAuthenticatedUser(Request $request): ?string {

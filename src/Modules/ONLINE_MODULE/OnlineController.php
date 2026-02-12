@@ -300,25 +300,25 @@ class OnlineController extends ModuleInstance {
 		$masks = new Collection($this->getHiddenPlayerMasks());
 		$masks = $masks->sortBy('mask');
 
-		/** @var Collection<int,string> */
-		$blobs = new Collection();
+		/** @var list<string> */
+		$blobs = [];
 		foreach ($masks as $mask) {
 			$delLink = Text::makeChatcmd('remove', "/tell <myname> online hide del {$mask->id}");
 			$dateAdded = $mask->created_on->format('d-M-Y');
 			$blob = "<tab><highlight>{$mask->mask}<end> ".
 				"(added by {$mask->created_by} on {$dateAdded})".
 				" [{$delLink}]";
-			$blobs->push($blob);
+			$blobs []= $blob;
 		}
-		if ($blobs->isEmpty()) {
+		if (!count($blobs)) {
 			$context->reply('Currently, no characters are hidden.');
 			return;
 		}
 		$blob = "<header2>Hidden characters<end>\n".
-			$blobs->join("\n");
+			implode("\n", $blobs);
 		$context->reply(
 			Text::makeBlob(
-				'Hidden characters (' . $blobs->count() . ')',
+				'Hidden characters (' . count($blobs) . ')',
 				$blob
 			)
 		);
@@ -866,9 +866,11 @@ class OnlineController extends ModuleInstance {
 			$msg = array_merge($msg, $allianceMsg);
 		}
 		if (!count($msg)) {
-			$msg = (array)'Players Online (0)';
+			$msg = ['Players Online (0)'];
 		}
-		return $msg;
+
+		/** @psalm-suppress RedundantFunctionCall */
+		return array_values($msg); // @phpstan-ignore-line
 	}
 
 	public function getOrgInfo(int $showOrgInfo, string $fancyColon, string $guild, string $guild_rank): string {

@@ -3,8 +3,8 @@
 namespace Nadybot\Core\Modules\LIMITS\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\RateIgnoreList;
 use Nadybot\Core\{Collection, DB, Types\SchemaMigration};
+use Nadybot\Core\DBSchema\RateIgnoreList;
 use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_24_21_20_23, shared: true)]

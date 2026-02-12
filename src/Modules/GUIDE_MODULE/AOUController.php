@@ -107,7 +107,7 @@ class AOUController extends ModuleInstance {
 		}
 
 		$content = $dom->getElementsByTagName('content')->item(0);
-		if (!isset($content) || !($content instanceof DOMElement)) { // @phpstan-ignore-line
+		if (!($content instanceof DOMElement)) { // @phpstan-ignore-line
 			throw new Exception('Invalid XML structure');
 		}
 		$title = $content->getElementsByTagName('name')->item(0)->nodeValue ?? 'No Title';
@@ -184,9 +184,6 @@ class AOUController extends ModuleInstance {
 		$blob = '';
 		$count = 0;
 		foreach ($sections as $section) {
-			if (!($section instanceof DOMElement)) { // @phpstan-ignore-line
-				continue;
-			}
 			$category = $this->getSearchResultCategory($section);
 
 			$guides = $section->getElementsByTagName('guide');
@@ -242,9 +239,6 @@ class AOUController extends ModuleInstance {
 		$folders = $section->getElementsByTagName('folder');
 		$output = [];
 		foreach ($folders as $folder) {
-			if (!($folder instanceof DOMElement)) { // @phpstan-ignore-line
-				continue;
-			}
 			$output []= $folder->getElementsByTagName('name')->item(0)->nodeValue ?? '-';
 		}
 		return implode(' - ', array_reverse($output));

@@ -240,7 +240,7 @@ class WeatherController extends ModuleInstance {
 		$blob = "Last Updated: <highlight>{$lastUpdated}<end><br>" .
 			'<br>' .
 			"Location: <highlight>{$nominatim->display_name}<end><br>";
-		if (isset($nominatim->extratags['population'])) {
+		if (isset($nominatim->extratags['population']) && is_numeric($nominatim->extratags['population'])) {
 			$blob .= 'Population: <highlight>'.
 				number_format((float)$nominatim->extratags['population']).
 				'<end><br>';

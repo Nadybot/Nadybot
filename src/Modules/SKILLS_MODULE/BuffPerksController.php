@@ -182,7 +182,7 @@ class BuffPerksController extends ModuleInstance {
 				$blob .= '<tab>'.
 					"Resist {$res->nanoline->name} <highlight>+{$res->amount}%<end>\n";
 			}
-			if (isset($level->action, $level->action->aodb)) {
+			if (isset($level->action->aodb)) {
 				$aodb = $level->action->aodb;
 				$blob .= '<tab>Add Action: '.
 					$aodb->getLink(ql: $aodb->getLowQL()).
@@ -231,6 +231,7 @@ class BuffPerksController extends ModuleInstance {
 			static function (Perk $perk) use ($skill): bool {
 				// Delete all buffs except for the searched skill
 				foreach ($perk->levels as &$level) {
+					// @mago-expect analysis:clone-inside-loop
 					$level = clone $level;
 					$level->resistances = [];
 					$level->action = null;
@@ -695,6 +696,7 @@ class BuffPerksController extends ModuleInstance {
 				}
 			}
 			if (strlen($action??'')) {
+				$count = 0;
 				$actionId = (int)Safe::pregReplace("/\*$/", '', $action??'', -1, $count);
 				$level->action = new PerkLevelAction(
 					action_id: $actionId,

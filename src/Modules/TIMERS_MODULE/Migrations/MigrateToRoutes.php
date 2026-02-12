@@ -52,7 +52,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$defaultMode []= 'discord';
 		}
 		$discordChannel = $this->getSetting($db, 'discord_notify_channel') ?? null;
-		if (isset($discordChannel, $discordChannel->value)   && $discordChannel->value !== 'off') {
+		if (isset($discordChannel->value) && $discordChannel->value !== 'off') {
 			try {
 				$channel = $this->discordAPIClient->getChannel($discordChannel->value);
 				$this->migrateChannelToRoute($channel, $db, $table, $defaultMode);
@@ -69,7 +69,11 @@ class MigrateToRoutes implements SchemaMigration {
 			->firstObj(Setting::class);
 	}
 
-	/** @param list<string> $defaultMode */
+	/**
+	 * @param list<string> $defaultMode
+	 *
+	 * @mago-ignore analysis:ambiguous-object-property-access,invalid-docblock
+	 */
 	private function rewriteTimerMode(DB $db, string $table, array $defaultMode, ?string $discord=null): void {
 		sort($defaultMode);
 
@@ -102,6 +106,7 @@ class MigrateToRoutes implements SchemaMigration {
 					$update['origin'] = $discord;
 				}
 			}
+			// @mago-ignore analysis:ambiguous-object-property-access
 			$db->table($table)
 				->where('id', $timer->id)
 				->update($update);

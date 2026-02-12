@@ -273,6 +273,7 @@ class ArulSabaController extends ModuleInstance {
 		}
 		$ingredients->add($ingredient);
 		$bPrint = $ingredient->item;
+		assert($bPrint instanceof AODBItem);
 		$bPrint->ql = $bpQL;
 		$bbPrint = clone $bPrint;
 		$bbPrint->lowid = $blueprints[$numGems][$balId];
@@ -393,6 +394,7 @@ class ArulSabaController extends ModuleInstance {
 
 		for ($i = 0; $i < $reqGems; $i++) {
 			$gem = $gems[$i];
+			assert($gem instanceof AODBItem);
 			$resultName = "Bracelet of Arul Saba ({$prefix} {$arul->name} - ".
 				($i + 1) . "/{$reqGems} - ".
 				ucfirst($side) . ')';
@@ -529,7 +531,9 @@ class ArulSabaController extends ModuleInstance {
 				throw new Exception("Unable to find skill {$skillID}");
 			}
 			if (substr($amount, 0, 1) === '*') {
-				$exAmount = (int)ceil((float)substr($amount, 1) * $dest->ql);
+				$realAmount = substr($amount, 1);
+				assert(is_numeric($realAmount));
+				$exAmount = (int)ceil((float)$realAmount * $dest->ql);
 				$requirements []= "<yellow>{$skill->fullName()}: {$exAmount}<end> (" . substr($amount, 1) . 'x)';
 			} else {
 				$exAmount = (int)$amount;

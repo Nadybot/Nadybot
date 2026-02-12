@@ -506,6 +506,8 @@ class CommentController extends ModuleInstance {
 	 */
 	public function filterInaccessibleComments(iterable $comments, string $sender): array {
 		$senderAL = $this->accessManager->getAccessLevelForCharacter($sender);
+
+		/** @var array<string,bool> */
 		$accessCache = [];
 
 		/** @var Collection<int,Comment> */

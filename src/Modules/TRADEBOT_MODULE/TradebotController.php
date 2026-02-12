@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
 use AO\Package;
-use Nadybot\Core\Events\{ConnectEvent, ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -27,6 +26,7 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 };
+use Nadybot\Core\Events\{ConnectEvent, ExtJoinPrivRequest, PrivateChannelMsgEvent, RecvMsgEvent};
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
@@ -47,20 +47,24 @@ use Revolt\EventLoop;
 ]
 class TradebotController extends ModuleInstance {
 	public const NONE = 'None';
+	private const JOIN = 'join';
+	private const LEAVE = 'leave';
+	private const MATCH = 'match';
+	private const IGNORE = 'ignore';
 
-	/** @var array<string,array<string,mixed>> */
+	/** @var array<string,array{'join':list<string>,'leave':list<string>,'match':string,'ignore':list<string>}> */
 	private const BOT_DATA = [
 		'Darknet' => [
-			'join' => ['!register'],
-			'leave' => ['!autoinvite off', '!unregister'],
-			'match' => '/^\[([a-z]+)\]/i',
-			'ignore' => ['/^Unread News/i'],
+			self::JOIN => ['!register'],
+			self::LEAVE => ['!autoinvite off', '!unregister'],
+			self::MATCH => '/^\[([a-z]+)\]/i',
+			self::IGNORE => ['/^Unread News/i'],
 		],
 		'Lightnet' => [
-			'join' => ['register', 'autoinvite on'],
-			'leave' => ['autoinvite off', 'unregister'],
-			'match' => '/^\[([a-z]+)\]/i',
-			'ignore' => [],
+			self::JOIN => ['register', 'autoinvite on'],
+			self::LEAVE => ['autoinvite off', 'unregister'],
+			self::MATCH => '/^\[([a-z]+)\]/i',
+			self::IGNORE => [],
 		],
 	];
 
@@ -155,7 +159,7 @@ class TradebotController extends ModuleInstance {
 		$botsToSignUp = array_diff($newBots, $oldBots);
 		foreach ($botsToSignOut as $botName) {
 			if (array_key_exists($botName, self::BOT_DATA)) {
-				foreach (self::BOT_DATA[$botName]['leave'] as $cmd) {
+				foreach (self::BOT_DATA[$botName][self::LEAVE] as $cmd) {
 					$this->chatBot->logChat('Out. Msg.', $botName, $cmd);
 					$this->chatBot->sendRawTell($botName, $cmd);
 					$uid = $this->chatBot->getUid($botName);
@@ -173,7 +177,7 @@ class TradebotController extends ModuleInstance {
 		}
 		foreach ($botsToSignUp as $botName) {
 			if (array_key_exists($botName, self::BOT_DATA)) {
-				foreach (self::BOT_DATA[$botName]['join'] as $cmd) {
+				foreach (self::BOT_DATA[$botName][self::JOIN] as $cmd) {
 					$this->chatBot->logChat('Out. Msg.', $botName, $cmd);
 					$this->chatBot->sendRawTell($botName, $cmd);
 				}
@@ -271,7 +275,7 @@ class TradebotController extends ModuleInstance {
 	 */
 	public function processIncomingTradeMessage(string $sender, string $message): void {
 		// Only relay messages starting with something in square brackets
-		$match = self::BOT_DATA[$sender]['match'];
+		$match = self::BOT_DATA[$sender][self::MATCH];
 		if (!count($matches = Safe::pregMatch($match, strip_tags($message)))
 			|| !$this->isSubscribedTo($matches[1])) {
 			return;

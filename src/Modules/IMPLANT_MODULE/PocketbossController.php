@@ -129,8 +129,11 @@ class PocketbossController extends ModuleInstance {
 		$this->db->addWhereFromParams($query, $tmp, 'pb');
 
 		return $query->asObj(Pocketboss::class)
-			->groupBy('pb')
-			->map(static fn (Collection $col): Pocketboss => $col->firstOrFail())
+			->groupByString('pb')
+			->map(
+				/** @param Collection<int,Pocketboss> $col */
+				static fn (Collection $col, string $pb): Pocketboss => $col->firstOrFail()
+			)
 			->values()
 			->toList();
 	}
@@ -281,6 +284,7 @@ class PocketbossController extends ModuleInstance {
 
 		/** @param Collection<int,Pocketboss> $rows */
 		$blob = $groupedData->map(function (Collection $rows, int $itemid) use (&$impDesignSlot): string {
+			/** @var Pocketboss */
 			$symbiant = $rows->firstOrFail();
 			if ($symbiant->type === 'Special') {
 				$name = $this->itemsController->findById($symbiant->itemid)?->getName() ?? 'Unknown';

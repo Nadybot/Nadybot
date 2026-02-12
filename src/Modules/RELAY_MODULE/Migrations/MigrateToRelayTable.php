@@ -95,7 +95,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 		if ($this->prefix === 'a') {
 			$abbr = $this->getSetting($db, 'relay_guild_abbreviation');
-			if (isset($abbr, $abbr->value)   && $abbr->value !== 'none') {
+			if (isset($abbr->value) && $abbr->value !== 'none') {
 				$this->settingManager->save('relay_guild_abbreviation', $abbr->value);
 			}
 		}

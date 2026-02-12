@@ -115,6 +115,8 @@ class NewsController extends ModuleInstance {
 		if ($news->count() === 0) {
 			return null;
 		}
+
+		/** @var INews */
 		$latestNews = $news->firstOrFail();
 		$msg = '';
 		$blob = '';
@@ -475,6 +477,8 @@ class NewsController extends ModuleInstance {
 		if (!isset($oldItem)) {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}
+
+		/** @var string */
 		$user = $request->getAttribute(WebserverController::USER) ?? '_';
 		$body = $request->getAttribute(WebserverController::BODY);
 		try {
@@ -509,6 +513,8 @@ class NewsController extends ModuleInstance {
 	]
 	public function newsTile(string $sender): ?string {
 		$thirtyDays = time() - (86_400 * 30);
+
+		/** @var Collection<int,INews> */
 		$unreadNews = $this->getNewsItems($sender)
 			->where('confirmed', false)
 			->where('time', '>', $thirtyDays);

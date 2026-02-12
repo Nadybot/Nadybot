@@ -113,6 +113,8 @@ class CustomCmdController extends ModuleInstance {
 		} else {
 			$content = $this->fs->read($baseDir . '/' . $context->getCommand() . '.txt');
 		}
+
+		/** @psalm-var non-empty-list<string> */
 		$lines = explode("\n", $content);
 		$headerHadTags = false;
 		$firstLine = Safe::pregReplaceCallback(

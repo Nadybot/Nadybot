@@ -209,7 +209,7 @@ class RaidPointsController extends ModuleInstance {
 		if (isset($raid, $raid->pointsGiven[$pointsChar])) {
 			return $pointsChar;
 		}
-		if (isset($raid, $raid->raiders[$player])) {
+		if (($raid !== null) && array_key_exists($player, $raid->raiders)) {
 			$raid->raiders[$player]->points += $delta;
 			if ($individual) {
 				$raid->raiders[$player]->pointsIndividual += $delta;

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations;
 
-use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Collection,
@@ -11,12 +10,13 @@ use Nadybot\Core\{
 	Safe,
 	Types\SchemaMigration,
 };
-use Nadybot\Modules\TIMERS_MODULE\Timer;
+use Nadybot\Core\DBSchema\Route;
 use Nadybot\Modules\{
 	TIMERS_MODULE\TimerController,
 	WORLDBOSS_MODULE\GauntletInventoryController,
 	WORLDBOSS_MODULE\WorldBossController,
 };
+use Nadybot\Modules\TIMERS_MODULE\Timer;
 use Psr\Log\LoggerInterface;
 use stdClass;
 

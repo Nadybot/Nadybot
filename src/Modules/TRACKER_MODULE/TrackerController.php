@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Exception;
-use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -36,6 +35,7 @@ use Nadybot\Core\{
 	Types\TitleLevel,
 	Util,
 };
+use Nadybot\Core\Attributes\Parameter\{NonNumberStr, Regexp, Remove, Str};
 use Nadybot\Modules\{
 	ORGLIST_MODULE\FindOrgController,
 	ORGLIST_MODULE\Organization,
@@ -881,36 +881,35 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	 */
 	public function renderOnlineList(array $players, bool $edit): string {
 		$groupBy = $this->trackerGroupBy;
+
+		/** @var array<int|string,OnlineGroup> */
 		$groups = [];
 		if ($groupBy === static::GROUP_TL) {
 			foreach ($players as $player) {
 				$tl = TitleLevel::fromLevel($player->level ?? 1)->value;
-				$groups[$tl] ??= (object)[
-					'title' => 'TL'.$tl,
-					'members' => [],
-					'sort' => $tl,
-				];
+				$groups[$tl] ??= new OnlineGroup(
+					title: 'TL'.$tl,
+					sort: $tl,
+				);
 				$groups[$tl]->members []= $player;
 			}
 		} elseif ($groupBy === static::GROUP_PROF) {
 			foreach ($players as $player) {
 				$prof = $player->profession->value ?? 'Unknown';
 				$profIcon = $player->profession?->toIcon() ?? '?';
-				$groups[$prof] ??= (object)[
-					'title' => $profIcon . ' ' . $prof,
-					'members' => [],
-					'sort' => $prof,
-				];
+				$groups[$prof] ??= new OnlineGroup(
+					title: $profIcon . ' ' . $prof,
+					sort: $prof,
+				);
 				$groups[$prof]->members []= $player;
 			}
 		} elseif ($groupBy === static::GROUP_FACTION) {
 			foreach ($players as $player) {
 				$faction = $player->faction->value;
-				$groups[$faction] ??= (object)[
-					'title' => $faction,
-					'members' => [],
-					'sort' => $faction,
-				];
+				$groups[$faction] ??= new OnlineGroup(
+					title: $faction,
+					sort: $faction,
+				);
 				$groups[$faction]->members []= $player;
 			}
 		} elseif ($groupBy === static::GROUP_ORG) {
@@ -919,41 +918,38 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				if ($org === null || $org === '') {
 					$org = '&lt;None&gt;';
 				}
-				$groups[$org] ??= (object)[
-					'title' => $org,
-					'members' => [],
-					'sort' => $org,
-				];
+				$groups[$org] ??= new OnlineGroup(
+					title: $org,
+					sort: $org,
+				);
 				$groups[$org]->members []= $player;
 			}
 		} elseif ($groupBy === static::GROUP_BREED) {
 			foreach ($players as $player) {
 				$breed = $player->breed;
-				$groups[$breed] ??= (object)[
-					'title' => $breed,
-					'members' => [],
-					'sort' => $breed,
-				];
+				$groups[$breed] ??= new OnlineGroup(
+					title: $breed,
+					sort: $breed,
+				);
 				$groups[$breed]->members []= $player;
 			}
 		} elseif ($groupBy === static::GROUP_GENDER) {
 			foreach ($players as $player) {
 				$gender = $player->gender;
-				$groups[$gender] ??= (object)[
-					'title' => $gender,
-					'members' => [],
-					'sort' => $gender,
-				];
+				$groups[$gender] ??= new OnlineGroup(
+					title: $gender,
+					sort: $gender,
+				);
 				$groups[$gender]->members []= $player;
 			}
 		} else {
-			$groups['all'] = (object)[
-				'title' => 'All tracked players',
-				'members' => $players,
-				'sort' => 0,
-			];
+			$groups['all'] = new OnlineGroup(
+				title: 'All tracked players',
+				members: $players,
+				sort: 0,
+			);
 		}
-		usort($groups, static function (object $a, object $b): int {
+		usort($groups, static function (OnlineGroup $a, OnlineGroup $b): int {
 			return $a->sort <=> $b->sort;
 		});
 		$parts = [];

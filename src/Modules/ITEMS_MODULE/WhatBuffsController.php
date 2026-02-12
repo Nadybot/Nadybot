@@ -4,7 +4,6 @@ namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Closure;
 use Generator;
-use Nadybot\Core\Types\{AccessLevel, CarrySlot, EnumBitfield, ItemFlag, Skill, WearSlot};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	Types\Profession,
 	Util,
 };
+use Nadybot\Core\Types\{AccessLevel, CarrySlot, EnumBitfield, ItemFlag, Skill, WearSlot};
 use Nadybot\Modules\SKILLS_MODULE\{
 	BuffPerksController,
 	Perk,
@@ -104,6 +104,8 @@ class WhatBuffsController extends ModuleInstance {
 
 		/**
 		 * @var Collection<int,Skill>
+		 *
+		 * @mago-ignore analysis:docblock-type-mismatch
 		 *
 		 * @phpstan-ignore varTag.type
 		 */
@@ -261,9 +263,9 @@ class WhatBuffsController extends ModuleInstance {
 		$this->handleOtherComandline($froobFriendly, $context, $search);
 	}
 
-	/** @return Closure(Perk,string):bool */
+	/** @return Closure(Perk):bool */
 	public function createPerkFilter(Skill $skill): Closure {
-		return static function (Perk $perk, string $perkName) use ($skill): bool {
+		return static function (Perk $perk) use ($skill): bool {
 			foreach ($perk->levels as $level => $perkLevel) {
 				if (!isset($perkLevel->buffs[$skill->value])) {
 					continue;
@@ -288,7 +290,13 @@ class WhatBuffsController extends ModuleInstance {
 		$firstType = ucfirst(strtolower($this->resolveLocationAlias($tokens[0])));
 		$lastType = ucfirst(strtolower($this->resolveLocationAlias($tokens[count($tokens) - 1])));
 
-		if ($this->verifySlot($firstType) && !Safe::pregMatches("/^smt\.?$/i", $tokens[1]??'')) {
+		if (
+			$this->verifySlot($firstType)
+			&& (
+				!array_key_exists(1, $tokens)
+				|| !Safe::pregMatches("/^smt\.?$/i", $tokens[1])
+			)
+		) {
 			array_shift($tokens);
 			$msg = $this->showSearchResults($firstType, implode(' ', $tokens), $froobFriendly);
 			$context->reply($msg);
@@ -524,6 +532,8 @@ class WhatBuffsController extends ModuleInstance {
 		$showNodrops = $this->whatbuffsShowNodrop;
 		$blob = '<header2>' . ucfirst($this->locationToItem($category)) . " that buff {$skill->fullName()}<end>\n";
 		$maxBuff = 0;
+
+		/** @var array<int,ItemBuffSearchResult> */
 		$itemMapping = [];
 		$maxQL = [];
 		$maxAmount = [];
@@ -561,10 +571,11 @@ class WhatBuffsController extends ModuleInstance {
 		);
 		$ignoreItems = [];
 		foreach ($items as $item) {
-			if ($item->highid !== $item->lowid &&isset($itemMapping[$item->highid])) {
-				$item->highid = $itemMapping[$item->highid]->highid;
-				$item->highql = $itemMapping[$item->highid]->highql;
-				$ignoreItems []= $itemMapping[$item->highid];
+			$highid = $item->highid;
+			if ($highid !== $item->lowid && isset($itemMapping[$highid])) {
+				$highid = $itemMapping[$highid]->highid;
+				$item->highql = $itemMapping[$highid]->highql;
+				$ignoreItems []= $itemMapping[$highid];
 			}
 		}
 		$maxDigits = strlen((string)$maxBuff);

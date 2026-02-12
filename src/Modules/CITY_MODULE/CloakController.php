@@ -249,7 +249,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 			// 1 minute before send tell to player
 			$msg = "The cloaking device is <off>disabled<end>. It is possible in {$timeString} to enable it.";
 			// @phpstan-ignore-next-line
-		} elseif ($timeSinceChange >= 59*60 && ($timeSinceChange % (60*5) >= 0 && $timeSinceChange % (60*5) <= 60)) {
+		} elseif ($timeSinceChange >= 59*60 && ($timeSinceChange % (60*5) <= 60)) {
 			// when cloak can be raised, send tell to player and
 			// every 5 minutes after, send tell to player
 			$msg = 'The cloaking device is <off>disabled<end>. Please enable it now.';

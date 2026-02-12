@@ -67,7 +67,11 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 			}
 			$info = Hydrator::hydrate($specs[0], $data);
 
-			/** @psalm-suppress MixedMethodCall */
+			/**
+			 * @psalm-suppress MixedMethodCall
+			 *
+			 * @mago-ignore analysis:unknown-class-instantiation
+			 */
 			$event = new ($specs[1])($info);
 			$this->logger->info('Received tower-feed event {event}', ['event' => $event]);
 			if ($event instanceof CoreEvent) {

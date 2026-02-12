@@ -266,7 +266,9 @@ class Highway implements RelayLayerInterface, StatusProvider {
 
 	private function encodePackage(Out\OutPackage $package): string {
 		$json = Hydrator::serialize($package);
-		unset($json['id']);
+		if (isset($json['id'])) {
+			unset($json['id']);
+		}
 		return json_encode($json, \JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE|\JSON_INVALID_UTF8_SUBSTITUTE);
 	}
 }

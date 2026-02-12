@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
-use Nadybot\Core\Attributes\Parameter\{NoSpace,NumberStr,Quantity,Remove,SpaceOptional,Str,StrChoice};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -20,6 +19,7 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Util,
 };
+use Nadybot\Core\Attributes\Parameter\{NoSpace,NumberStr,Quantity,Remove,SpaceOptional,Str,StrChoice};
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
 	ITEMS_MODULE\AODBEntry,
@@ -192,16 +192,18 @@ class LootController extends ModuleInstance {
 		/** @var Collection<int,Collection<int,LootHistory>> */
 		$rolls = $compressedList->groupByInt('roll');
 
-		/** @param Collection<int,LootHistory> $items */
-		$lines = $rolls->map(static function (Collection $items, int $roll): string {
-			$firstItem = $items->firstOrFail();
-			$showLink = Text::makeChatcmd(
-				$items->count() . ' ' . Text::pluralize('item', $items->count()),
-				"/tell <myname> loot history {$firstItem->roll}"
-			);
-			return '<tab>' . Util::date($firstItem->dt) . ' - '.
-				"{$showLink}, rolled by {$firstItem->rolled_by}";
-		});
+		$lines = $rolls->map(
+			/** @param Collection<int,LootHistory> $items */
+			static function (Collection $items, int $roll): string {
+				$firstItem = $items->firstOrFail();
+				$showLink = Text::makeChatcmd(
+					$items->count() . ' ' . Text::pluralize('item', $items->count()),
+					"/tell <myname> loot history {$firstItem->roll}"
+				);
+				return '<tab>' . Util::date($firstItem->dt) . ' - '.
+					"{$showLink}, rolled by {$firstItem->rolled_by}";
+			}
+		);
 		$msg = 'Last loot rolls (' . $lines->count() . ')';
 		$context->reply(Text::makeBlob(
 			$msg,
@@ -221,7 +223,7 @@ class LootController extends ModuleInstance {
 	): void {
 		if (strtolower($number) === 'last') {
 			$number = $this->db->table(LootHistory::getTable())->max('roll');
-			if ($number < 1) {
+			if ((int)$number < 1) {
 				$context->reply('There is no last roll to display.');
 				return;
 			}
@@ -508,6 +510,10 @@ class LootController extends ModuleInstance {
 
 	/** Add one item to the loot roll */
 	public function addLootItem(string $input, int $multiloot, string $sender, bool $suppressMessage=false): void {
+		$itemQL = null;
+		$itemHighID = null;
+		$itemLowID = null;
+		$itemName = null;
 		// Check if the item is a link
 		if (count($arr = Safe::pregMatch("|^<a href=['\"]itemref://(\\d+)/(\\d+)/(\\d+)[\"']>(.+)</a>(.*)$|i", $input))) {
 			$itemQL = (int)$arr[3];
@@ -1045,8 +1051,7 @@ class LootController extends ModuleInstance {
 					continue;
 				}
 
-				/** @psalm-suppress PossiblyNullPropertyFetch,PossiblyNullPropertyAssignment */
-				$compressedList->last()->winners []= $item->winner;
+				$compressedList->lastOrFail()->winners []= $item->winner;
 				continue;
 			}
 			if (isset($item->winner)) {

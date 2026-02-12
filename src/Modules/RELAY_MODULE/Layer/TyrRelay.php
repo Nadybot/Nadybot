@@ -90,7 +90,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 				$data = null;
 				continue;
 			}
-			if (isset($json->client_id)) {
+			if (isset($json->client_id) && is_string($json->client_id)) {
 				$msg->sender = $json->client_id;
 			}
 			if (!isset($json->type)) {
