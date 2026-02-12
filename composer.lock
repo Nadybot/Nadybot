@@ -3523,16 +3523,16 @@
         },
         {
             "name": "nadybot/aolib",
-            "version": "0.1.11",
+            "version": "0.1.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Nadybot/aolib.git",
-                "reference": "c9ed8de70460295f6aebbfaaef989a99f05e8788"
+                "reference": "fd0f92768b9c860f2d3d8b09dead39d4eaa69d67"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Nadybot/aolib/zipball/c9ed8de70460295f6aebbfaaef989a99f05e8788",
-                "reference": "c9ed8de70460295f6aebbfaaef989a99f05e8788",
+                "url": "https://api.github.com/repos/Nadybot/aolib/zipball/fd0f92768b9c860f2d3d8b09dead39d4eaa69d67",
+                "reference": "fd0f92768b9c860f2d3d8b09dead39d4eaa69d67",
                 "shasum": ""
             },
             "require": {
@@ -3575,9 +3575,9 @@
             "description": "An amphp3-based client library for the Anarchy Online chat server",
             "support": {
                 "issues": "https://github.com/Nadybot/aolib/issues",
-                "source": "https://github.com/Nadybot/aolib/tree/0.1.11"
+                "source": "https://github.com/Nadybot/aolib/tree/0.1.12"
             },
-            "time": "2025-03-16T21:17:08+00:00"
+            "time": "2026-02-12T10:52:43+00:00"
         },
         {
             "name": "nadybot/math-parser",
