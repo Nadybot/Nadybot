@@ -488,14 +488,14 @@ class NotesController extends ModuleInstance {
 	}
 
 	protected function renderReminderLinks(Note $note, int $format): string {
-		if ($format === 0) {
-			return '';
-		}
-		$texts = [
+		$labels = match ($format) {
 			1 => ['O', 'S', 'A'],
 			2 => ['off', 'self', 'all'],
-		];
-		$labels = $texts[$format];
+			default => null,
+		};
+		if ($labels === null) {
+			return '';
+		}
 		$links = [];
 		$remindOffLink  = Text::makeChatcmd(
 			$labels[Note::REMIND_NONE],

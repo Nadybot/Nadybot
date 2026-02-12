@@ -140,6 +140,7 @@ class PlayfieldController extends ModuleInstance {
 			if (isset($playfield)) {
 				$playfieldName = $playfield->short();
 			}
+		// @phpstan-ignore isset.variable
 		} elseif (isset($playfieldName)) {
 			$playfield = CorePlayfield::tryFromName($playfieldName);
 			if (!isset($playfield)) {

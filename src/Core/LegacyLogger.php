@@ -167,7 +167,7 @@ class LegacyLogger {
 			$newLevel = $logger::toMonologLevel($logLevelConf[1]);
 			foreach ($handlers as $name => $handler) {
 				if ($handler instanceof AbstractHandler) {
-					if (static::$dynamicHandlers->contains($handler)) {
+					if (static::$dynamicHandlers->offsetExists($handler)) {
 						$oldLevel = $logger::getLevelName($handler->getLevel());
 						$handler->setLevel($newLevel);
 						$setLevel = $logger::getLevelName($newLevel);
@@ -220,7 +220,7 @@ class LegacyLogger {
 			/** @var AbstractProcessingHandler */
 			$obj = new $class(...array_values($config->options));
 			if ($dynamic) {
-				static::$dynamicHandlers->attach($obj);
+				static::$dynamicHandlers->offsetSet($obj);
 			}
 			foreach ($config->calls as $func => $params) {
 				$callable = [$obj, $func];

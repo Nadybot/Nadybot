@@ -182,7 +182,6 @@ class Registry {
 				$tag = implode('/', array_slice($array, -2));
 			}
 		}
-		$property->setAccessible(true);
 		$logger = new LoggerWrapper($tag);
 		if ($instance instanceof LogWrapInterface) {
 			/** @var \Closure(int,string|\Stringable,array<array-key,mixed>):array{int,string|\Stringable,array<array-key,mixed>} */
@@ -248,7 +247,6 @@ class Registry {
 		object|string $instance,
 		object $dependency
 	): void {
-		$property->setAccessible(true);
 		if ($property->isStatic()) {
 			$property->setValue(null, $dependency);
 		} elseif (is_object($instance)) {

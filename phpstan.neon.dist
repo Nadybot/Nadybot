@@ -110,6 +110,8 @@ parameters:
           enabled: false
       forbidUnusedMatchResult:
           enabled: true
+      forbidUnusedClosureParameters:
+          enabled: false
       requirePreviousExceptionPass:
           enabled: true
           reportEvenIfExceptionIsNotAcceptableByRethrownOne: true

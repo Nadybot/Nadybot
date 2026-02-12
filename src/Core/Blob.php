@@ -259,6 +259,7 @@ class Blob implements \Stringable {
 				"{$permheader}{$page}\">{$link} (Page {$i} / {$num})</a>";
 			$i++;
 		}
+		// @phpstan-ignore return.type
 		return $pages;
 	}
 

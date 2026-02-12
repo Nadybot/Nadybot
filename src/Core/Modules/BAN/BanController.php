@@ -766,6 +766,7 @@ class BanController extends ModuleInstance implements ImporterInterface {
 		if (isset($guild)) {
 			$ban->org_name = $guild->orgname;
 		}
+		// @phpstan-ignore isset.initializedProperty
 		if (!isset($this->orgbanlist[$ban->org_id])) {
 			return "Not adding <highlight>{$ban->org_name}<end> to the banlist, ".
 				'because they were unbanned before we finished looking up data.';

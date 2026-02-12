@@ -826,6 +826,7 @@ class CommandManager implements MessageEmitter {
 			/** @psalm-suppress TypeDoesNotContainNull */
 			if (count($params) === 0
 				|| !$params[0]->hasType()
+				// @phpstan-ignore identical.alwaysFalse
 				|| ($type = $params[0]->getType()) === null
 				|| !($type instanceof ReflectionNamedType)
 				|| ($type->getName() !== CmdContext::class)
