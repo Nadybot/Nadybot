@@ -87,6 +87,7 @@ class ChatGroupingController extends ModuleInstance {
 		$this->grouped = [];
 		$queue = $this->joined;
 		for ($i = 0; $i < count($this->joined); $i++) {
+			// @phpstan-ignore argument.type
 			$entry = array_rand($queue);
 			$this->grouped[$i % $numGroups] ??= [];
 			$this->grouped[$i % $numGroups] []= $queue[$entry];

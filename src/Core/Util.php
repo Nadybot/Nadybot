@@ -193,6 +193,7 @@ class Util {
 	 * @return T
 	 */
 	public static function randomArrayValue(array $array): mixed {
+		// @phpstan-ignore argument.type
 		return $array[array_rand($array)];
 	}
 

@@ -256,6 +256,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 			$data = $package->body;
 			$msg->sender = $package->user;
 		}
+		// @phpstan-ignore assign.propertyType
 		$msg->packages = array_values(Safe::removeNull($msg->packages));
 		$this->logger->debug('Decoding highway message on relay {relay} done', [
 			'relay' => $this->relay->getName(),

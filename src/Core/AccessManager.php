@@ -107,7 +107,7 @@ class AccessManager {
 	 * access level.
 	 */
 	public function registerProvider(AccessLevelProvider $provider): void {
-		$this->providers->attach($provider);
+		$this->providers->offsetSet($provider);
 	}
 
 	/**

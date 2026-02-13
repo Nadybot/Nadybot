@@ -545,6 +545,7 @@ class ApiSpecGenerator {
 			if ($comment === false || !count($matches = Safe::pregMatch("/@var ([^\s]+)/s", $comment))) {
 				return [$propName, 'mixed'];
 			}
+
 			$types = explode('|', $matches[1]??'');
 			foreach ($types as &$type) {
 				if ($type === 'int') {
@@ -553,6 +554,7 @@ class ApiSpecGenerator {
 					$type = 'boolean';
 				}
 			}
+			// @phpstan-ignore return.type
 			return [$propName, $types];
 		}
 		$refTypes = [];
