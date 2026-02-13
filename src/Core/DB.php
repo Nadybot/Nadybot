@@ -609,6 +609,7 @@ class DB {
 		$missingMigs = $missingMigs->sort(static function (CoreMigration $f1, CoreMigration $f2): int {
 			return $f1->order <=> $f2->order;
 		});
+
 		if ($missingMigs->isEmpty()) {
 			return;
 		}
@@ -617,6 +618,7 @@ class DB {
 		$this->logger->notice('Applying {numMigs} database migrations', [
 			'numMigs' => $missingMigs->count(),
 		]);
+		$this->backupDatabaseBeforeMigrations();
 		foreach ($missingMigs as $mig) {
 			$this->logger->info('Applying migration: {migration}', ['migration' => $mig]);
 			try {
@@ -799,6 +801,60 @@ class DB {
 				->where('module', $module);
 		return $ownQuery->union($sharedQuery)
 			->orderBy('migration')->asObj(Migration::class);
+	}
+
+	/**
+	 * Take a backup of the current database before running migrations
+	 *
+	 * @return bool True if backup was created, otherwise false
+	 */
+	private function backupDatabaseBeforeMigrations(): bool {
+		if ($this->type !== DBType::SQLite || !$this->config->database->migrationBackups) {
+			return false;
+		}
+		$config = $this->config->database;
+		if ($config->host === '' || $config->host === 'localhost') {
+			$sqliteFile = "./data/{$config->name}";
+		} else {
+			$sqliteFile = "{$config->host}/{$config->name}";
+		}
+		try {
+			$sqliteFile = $this->fs->realPath($sqliteFile);
+			$backup = $sqliteFile . date('.Y-m-d');
+			if (!$this->fs->isFile($sqliteFile)) {
+				$this->logger->warning(
+					'The SQLite database file was not found at {path}, skipping '.
+					'backup before migrations',
+					['path' => $sqliteFile]
+				);
+				return false;
+			}
+			if ($this->fs->exists($backup)) {
+				$this->logger->warning(
+					'A backup of the SQLite database already exists at {path}, '.
+					'skipping backup before migrations',
+					['path' => $backup]
+				);
+				return false;
+			}
+			$this->fs->write($backup, $this->fs->read($sqliteFile));
+		} catch (FilesystemException $e) {
+			$this->logger->error(
+				'Failed to create a backup of the SQLite database before running '.
+				'migrations: {error}',
+				[
+					'error' => $e->getMessage(),
+					'exception' => $e,
+				]
+			);
+			return false;
+		}
+		$this->logger->notice(
+			'Created a backup of the SQLite database before running '.
+			'migrations as {backup}',
+			['backup' => $backup]
+		);
+		return true;
 	}
 
 	/**
