@@ -94,7 +94,6 @@ class AesGcmEncryption implements RelayLayerInterface {
 		) {
 			$enc = sodium_crypto_aead_aes256gcm_encrypt($text, '', $iv, $this->password);
 
-			/** @psalm-suppress MixedArgument */
 			$ciphertextRaw = substr($enc, 0, -16);
 			$tag = substr($enc, -16);
 

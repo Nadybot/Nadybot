@@ -81,7 +81,7 @@ class NadyNative implements RelayProtocolInterface {
 		if (is_string($event->data)) {
 			$event->data = str_replace('<myname>', $this->config->main->character, $event->data);
 		} elseif (is_object($event->data) && !($event->data instanceof SyncEvent) && is_string($event->data->message??null)) {
-			/** @psalm-suppress MixedArgument */
+			/** @psalm-suppress MixedArgument,PossiblyInvalidPropertyAssignmentValue */
 			$event->data->message = str_replace('<myname>', $this->config->main->character, $event->data->message??'');
 		}
 		try {

@@ -188,8 +188,7 @@ class Tyrbot implements RelayProtocolInterface {
 		$event = clone $event;
 		if (is_string($event->data)) {
 			$event->data = str_replace('<myname>', $this->config->main->character, $event->data);
-		} elseif (is_object($event->data) && ($event->data instanceof stdClass) && is_string($event->data->message??null)) {
-			/** @psalm-suppress MixedArgument */
+		} elseif (($event->data instanceof stdClass) && property_exists($event->data, 'message') && is_string($event->data->message)) {
 			$event->data = str_replace('<myname>', $this->config->main->character, $event->data->message??'');
 		} else {
 			return [];
