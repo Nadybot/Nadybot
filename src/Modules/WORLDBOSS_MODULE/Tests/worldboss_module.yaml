@@ -13,7 +13,7 @@ groups:
       - command: wb
         name: Get a concise view of all current worldboss timers
         expect:
-          - Vizaresh
+          - Vizaresh|Gauntlet portal
           - Tarasque
           - spawn
       - command: tara
