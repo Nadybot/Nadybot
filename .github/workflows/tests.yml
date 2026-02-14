@@ -103,7 +103,7 @@ jobs:
           # TODO: Do we really want 8.1?
           php-version: '8.1'
           coverage: none
-          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, openssl, fileinfo, yaml ${{ (matrix.libuv == 'uv') && ', uv' || '' }}
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, openssl, int, sodium, fileinfo, yaml ${{ (matrix.libuv == 'uv') && ', uv' || '' }}
 
       - name: Print PHP version
         run: |
