@@ -41,6 +41,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\StatsController,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
+use Psl\Type;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use ReflectionClass;
@@ -1220,11 +1221,12 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 			return new Response(status: HttpStatus::NOT_FOUND);
 		}
 		$body = $request->getAttribute(WebserverController::BODY);
-		if (!is_array($body)) {
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($body);
+		} catch (\Exception) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 
-		/** @var array<string,mixed> $body */
 		try {
 			/** @var array<string,mixed> */
 			$oldData = Hydrator::serialize($relay);
@@ -1301,16 +1303,13 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 	]
 	public function apiCreateRelay(Request $request): Response {
 		$body = $request->getAttribute(WebserverController::BODY);
-		if (!is_array($body)) {
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($body);
+			$relay = Hydrator::hydrate(RelayConfig::class, $body);
+		} catch (Throwable) {
 			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
 		}
 
-		/** @var array<string,mixed> $body */
-		try {
-			$relay = Hydrator::hydrate(RelayConfig::class, $body);
-		} catch (Throwable $e) {
-			return new Response(status: HttpStatus::UNPROCESSABLE_ENTITY);
-		}
 		try {
 			$this->createRelay($relay);
 		} catch (Exception $e) {

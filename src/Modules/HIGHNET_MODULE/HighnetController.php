@@ -38,6 +38,7 @@ use Nadybot\Core\Events\EventFeed\{JoinPackageEvent, LeavePackageEvent, MessageP
 use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
 use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
+use Psl\Type;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\UuidInterface;
 use Revolt\EventLoop;
@@ -261,17 +262,13 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			return;
 		}
 		$senderUUID = $package->user;
-		// if (!isset($senderUUID)) {
-		// 	return;
-		// }
 		$body = $package->body;
 		if (is_string($body)) {
 			$body = json_decode($body, true);
 		}
 
-		/** @var array<string,mixed> $body */
-
 		try {
+			Type\dict(Type\string(), Type\mixed())->assert($body);
 			$message = Hydrator::hydrate(Message::class, $body);
 			if (!$this->isWantedMessage($message)) {
 				$this->logger->info('Highnet message was filtered away.');
@@ -842,15 +839,17 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			channel: $channel,
 			message: $message,
 		);
-		$hwBody = Hydrator::serialize($message);
-		if (!is_array($hwBody)) {
+		try {
+			$hwBody = Hydrator::serialize($message);
+			Type\dict(Type\string(), Type\mixed())->assert($hwBody);
+		} catch (Exception $e) {
 			$this->logger->warning('Cannot serialize data for Highnet - dropping', [
 				'message' => $message,
+				'exception' => $e,
 			]);
 			return;
 		}
 
-		/** @var array<string,mixed> $hwBody */
 		$packet = new Highway\Out\Message(room: 'highnet', body: $hwBody);
 		$this->logger->debug('Sending message to Highnet: {data}', [
 			'data' => $hwBody,

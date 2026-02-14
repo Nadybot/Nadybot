@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
-use function Safe\json_decode;
-
 use Amp\Http\Server\{Request, Response};
 use Amp\Websocket\Server\{AllowOriginAcceptor, Websocket, WebsocketClientGateway, WebsocketClientHandler, WebsocketGateway};
 use Amp\Websocket\{WebsocketClient, WebsocketMessage};
@@ -26,9 +24,9 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	WebserverController,
 };
 use Nadylib\IMEX;
+use Psl\Type;
 use Psr\Log\LoggerInterface;
 use Throwable;
-
 use TypeError;
 
 /**
@@ -203,9 +201,7 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 		$body = $message->buffer();
 		$this->logger->info('[Data inc.] {data}', ['data' => $body]);
 		try {
-			/** @var array<string,mixed> */
-			$data = json_decode($body, true);
-			$command = Hydrator::hydrate(WebsocketCommand::class, $data);
+			$command = Hydrator::hydrateString(WebsocketCommand::class, $body);
 			if (!in_array($command->command, WebsocketCommand::ALLOWED_COMMANDS, true)) {
 				throw new Exception();
 			}
@@ -214,8 +210,12 @@ class WebsocketController extends ModuleInstance implements WebsocketClientHandl
 			return;
 		}
 
-		/** @var array<string,mixed> */
 		$cmdData = $command->data;
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($cmdData);
+		} catch (\Exception) {
+			return;
+		}
 		if ($command->command === $command::SUBSCRIBE) {
 			$newEvent = new WebsocketSubscribeEvent(
 				data: Hydrator::hydrate(NadySubscribe::class, $cmdData),

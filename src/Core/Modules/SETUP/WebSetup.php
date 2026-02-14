@@ -23,6 +23,8 @@ use Nadybot\Core\Config\{AutoUnfreeze, BotConfig};
 use Nadybot\Core\Drill;
 use Nadybot\Core\Drill\{AbstractDrillPacket, DrillAuthMode, DrillConnection, DrillConnector, DrillHttpConnection};
 use Nadylib\IMEX;
+use Psl\Type;
+use Psl\Type\Exception\AssertException;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Throwable;
@@ -321,8 +323,8 @@ class WebSetup {
 		try {
 			$body = $request->getBody()->buffer(new TimeoutCancellation(10), 1*1_024*1_024);
 
-			/** @var array<string,mixed> */
 			$data = IMEX\JSON::import($body);
+			Type\dict(Type\string(), Type\mixed())->assert($data);
 			$data['file_path'] = $this->configFile->getFilePath();
 			$config = Hydrator::hydrate(BotConfig::class, $data);
 			$config->autoUnfreeze ??= new AutoUnfreeze();
@@ -341,7 +343,7 @@ class WebSetup {
 				['content-type' => 'text/plain'],
 				'This is not a valid json string'
 			);
-		} catch (UnableToHydrateObject $e) {
+		} catch (AssertException | UnableToHydrateObject $e) {
 			return new Response(
 				HttpStatus::UNPROCESSABLE_ENTITY,
 				['content-type' => 'text/plain'],

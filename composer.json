@@ -63,7 +63,8 @@
 		"amphp/http-server-static-content": "^2.0",
 		"amphp/http-server-router": "^2.0",
 		"psr/simple-cache": "^3.0",
-		"league/commonmark": "^2.8"
+		"league/commonmark": "^2.8",
+		"azjezz/psl": "^2.9"
 	},
 	"autoload": {
 		"psr-4": {
@@ -89,7 +90,8 @@
 		"thecodingmachine/phpstan-safe-rule": "^1.4",
 		"struggle-for-php/sfp-phpstan-psr-log": "^0.23.0",
 		"phpstan/phpstan-strict-rules": "^2.0",
-		"shipmonk/phpstan-rules": "^2|^3|^4"
+		"shipmonk/phpstan-rules": "^2|^3|^4",
+		"php-standard-library/phpstan-extension": "^2.0"
 	},
 	"scripts": {
 		"post-package-install": [

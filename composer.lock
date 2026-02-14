@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "56ef5c29926fd0c8c0d2eee992acfc8e",
+    "content-hash": "cc06aa7bff78f6909a970758ae4b7c66",
     "packages": [
         {
             "name": "amphp/amp",
@@ -1714,6 +1714,80 @@
                 }
             ],
             "time": "2023-12-29T00:58:49+00:00"
+        },
+        {
+            "name": "azjezz/psl",
+            "version": "2.9.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/azjezz/psl.git",
+                "reference": "1ade4f1a99fe07a8e06f8dee596609aa07585422"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/azjezz/psl/zipball/1ade4f1a99fe07a8e06f8dee596609aa07585422",
+                "reference": "1ade4f1a99fe07a8e06f8dee596609aa07585422",
+                "shasum": ""
+            },
+            "require": {
+                "ext-bcmath": "*",
+                "ext-intl": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "ext-sodium": "*",
+                "php": "~8.1.0 || ~8.2.0 || ~8.3.0",
+                "revolt/event-loop": "^1.0.1"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.22.0",
+                "php-coveralls/php-coveralls": "^2.6.0",
+                "php-standard-library/psalm-plugin": "^2.2.1",
+                "phpbench/phpbench": "^1.2.14",
+                "phpunit/phpunit": "^9.6.10",
+                "roave/infection-static-analysis-plugin": "^1.32.0",
+                "squizlabs/php_codesniffer": "^3.7.2",
+                "vimeo/psalm": "^5.13.1"
+            },
+            "suggest": {
+                "php-standard-library/psalm-plugin": "Psalm integration"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/hhvm/hsl",
+                    "name": "hhvm/hsl"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/bootstrap.php"
+                ],
+                "psr-4": {
+                    "Psl\\": "src/Psl"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "azjezz",
+                    "email": "azjezz@protonmail.com"
+                }
+            ],
+            "description": "PHP Standard Library",
+            "support": {
+                "issues": "https://github.com/azjezz/psl/issues",
+                "source": "https://github.com/azjezz/psl/tree/2.9.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/azjezz",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-04-05T05:18:37+00:00"
         },
         {
             "name": "brick/math",
@@ -6395,6 +6469,60 @@
             "time": "2025-03-17T10:12:50+00:00"
         },
         {
+            "name": "php-standard-library/phpstan-extension",
+            "version": "2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-standard-library/phpstan-extension.git",
+                "reference": "eaf787ddf91f1b22b3a4da052f42294e0a75836e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-standard-library/phpstan-extension/zipball/eaf787ddf91f1b22b3a4da052f42294e0a75836e",
+                "reference": "eaf787ddf91f1b22b3a4da052f42294e0a75836e",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4 || ^8.0",
+                "phpstan/phpstan": "^2.0"
+            },
+            "conflict": {
+                "azjezz/psl": "<1.6||>=5.0"
+            },
+            "require-dev": {
+                "azjezz/psl": "^1.6||^2.0||^3.0||^4.0",
+                "composer/semver": "^3.3",
+                "nikic/php-parser": "^4.14.0",
+                "php-parallel-lint/php-parallel-lint": "^1.2",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^9.6"
+            },
+            "type": "phpstan-extension",
+            "extra": {
+                "phpstan": {
+                    "includes": [
+                        "extension.neon"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psl\\PHPStan\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "PHPStan PSL extension",
+            "support": {
+                "issues": "https://github.com/php-standard-library/phpstan-extension/issues",
+                "source": "https://github.com/php-standard-library/phpstan-extension/tree/2.0.2"
+            },
+            "time": "2025-11-30T13:33:52+00:00"
+        },
+        {
             "name": "phpstan/phpstan",
             "version": "2.1.39",
             "dist": {
@@ -8140,6 +8268,6 @@
         "ext-reflection": "*",
         "ext-dom": "*"
     },
-    "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
 }

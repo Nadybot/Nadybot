@@ -6,7 +6,7 @@ namespace Nadybot\Modules\AI_MODULE;
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
  */
 
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 use Amp\{CancelledException, TimeoutCancellation};
 use Amp\Http\Client\{BufferedContent, HttpClientBuilder, Request, TimeoutException};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
@@ -17,6 +17,7 @@ use Nadybot\Core\Exceptions\UserException;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Modules\AI_MODULE\Models\Role;
+use Psl\Type\Exception\AssertException;
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use Throwable;
@@ -188,10 +189,7 @@ class AIController extends ModuleInstance {
 		}
 		if ($response->getStatus() === 400 && $body !== '') {
 			try {
-				$reply = json_decode($body, true);
-
-				/** @psalm-suppress MixedArgument */
-				$error = Hydrator::hydrate(Models\ErrorResponse::class, $reply);
+				$error = Hydrator::hydrateString(Models\ErrorResponse::class, $body);
 				$this->logger->error('Error from {url}: {error}', [
 					'url' => $this->aiApiUrl,
 					'error' => $error->error->message,
@@ -205,10 +203,7 @@ class AIController extends ModuleInstance {
 		}
 		if ($response->getStatus() !== 200 || $body === '') {
 			try {
-				$reply = json_decode($body, true);
-
-				/** @psalm-suppress MixedArgument */
-				$error = Hydrator::hydrate(Models\ErrorResponse::class, $reply);
+				$error = Hydrator::hydrateString(Models\ErrorResponse::class, $body);
 				$this->logger->error('Error from {url}: {error}', [
 					'url' => $this->aiApiUrl,
 					'error' => $error->error->message,
@@ -224,19 +219,9 @@ class AIController extends ModuleInstance {
 			throw new UserException('Error chatting with the AI, check logs for details.');
 		}
 		try {
-			$reply = json_decode($body, true);
-			if (!is_array($reply)) {
-				throw new JsonException('Wrong message format');
-			}
-
-			/**
-			 * @psalm-suppress MixedArgumentTypeCoercion
-			 *
-			 * @mago-ignore analysis:less-specific-argument
-			 */
-			$completion = Hydrator::hydrate(Models\ChatCompletion::class, $reply);
+			$completion = Hydrator::hydrateString(Models\ChatCompletion::class, $body);
 			$this->logger->info('Translation result is {completion}', ['completion' => $completion]);
-		} catch (JsonException | UnableToHydrateObject $e) {
+		} catch (AssertException | JsonException | UnableToHydrateObject $e) {
 			throw new UserException("Invalid response received from the AI-Api: {$e->getMessage()}", previous: $e);
 		}
 		return $completion->choices[0]->message->content;

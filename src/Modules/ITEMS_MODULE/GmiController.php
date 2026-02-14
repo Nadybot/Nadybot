@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-use function Safe\json_decode;
-
 use Amp\{CancelledException, TimeoutCancellation};
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
@@ -70,10 +68,7 @@ class GmiController extends ModuleInstance {
 			}
 			$body = $response->getBody()->buffer(new TimeoutCancellation(10));
 
-			/** @var array<string,mixed> */
-			$json = json_decode($body, true);
-
-			$gmiResult = Hydrator::hydrate(GmiResult::class, $json);
+			$gmiResult = Hydrator::hydrateString(GmiResult::class, $body);
 		} catch (UserException $e) {
 			throw $e;
 		} catch (JsonException $e) {

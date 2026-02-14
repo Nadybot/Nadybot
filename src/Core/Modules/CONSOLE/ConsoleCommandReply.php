@@ -317,9 +317,16 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		$useHyperlinks = true;
 		$message = Safe::pregReplace("/<a\s+href=['\"]?user:\/\/[^'\">]+['\"]?\s*>(.*?)<\/a>/s", '<link>$1</link>', $message);
 		$message = Safe::pregReplace("/<a\s+href=['\"]?skillid:\/\/\d+['\"]?\s*>(.*?)<\/a>/s", '[skill:<link>$1</link>]', $message);
-		$message = Safe::pregReplace("/<a\s+href=['\"]chatcmd:\/\/\/(.*?)['\"]\s*>(.*?)<\/a>/s", '<link>$2</link>', $message);
 		$useHyperlinks = $this->consoleController->consoleItemDisplay !== $this->consoleController::PLACEHOLDERS;
 		if ($useHyperlinks) {
+			$message = Safe::pregReplaceCallback(
+				"/<a\s+href=['\"]chatcmd:\/\/\/start (https?:\/\/[^'\">]+)['\"]\s*>(.*?)<\/a>/s",
+				function (array $matches): string {
+					$schema = $this->consoleController->consoleItemDisplay;
+					return $this->createLink($matches[1], $matches[2]);
+				},
+				$message
+			);
 			$message = Safe::pregReplaceCallback(
 				"/<a\s+href=['\"]?(https?:\/\/[^'\">]+)['\"]?\s*>(.*?)<\/a>/s",
 				function (array $matches): string {
@@ -351,6 +358,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			$message = Safe::pregReplace("/<a\s+href=['\"]?itemref:\/\/\d+\/\d+\/\d+['\"]?\s*>(.*?)<\/a>/s", '[item:<link>$1</link>]', $message);
 			$message = Safe::pregReplace("/<a\s+href=['\"]?itemid:\/\/53019\/\d+['\"]?\s*>(.*?)<\/a>/s", '[nano:<link>$1</link>]', $message);
 		}
+		$message = Safe::pregReplace("/<a\s+href=['\"]chatcmd:\/\/\/(.*?)['\"]\s*>(.*?)<\/a>/s", '<link>$2</link>', $message);
 		$message = Safe::pregReplace("/<a\s+href=['\"]?itemid:\/\/53019\/\d+['\"]?\s*>(.*?)<\/a>/s", '[nano:<link>$1</link>]', $message);
 		$message = Safe::pregReplace("/<p\s*>/is", "\n", $message);
 		$message = Safe::pregReplace("/<\/p\s*>/is", '', $message);

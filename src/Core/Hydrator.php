@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use function Safe\json_decode;
 use EventSauce\ObjectHydrator\{
 	DefinitionProvider,
 	IterableList,
@@ -14,6 +15,8 @@ use EventSauce\ObjectHydrator\{
 };
 use Exception;
 use Nadybot\Core\Config\BotConfig;
+use Psl\Type;
+
 use Throwable;
 
 /** This is a purely static class to serialize or hydrate objects */
@@ -54,6 +57,32 @@ class Hydrator {
 				serializePublicMethods: false,
 			),
 		);
+	}
+
+	/**
+	 * Hydrate an object (json string to object)
+	 *
+	 * @template T of object
+	 *
+	 * @param class-string<T> $className The class to hydrate to
+	 * @param string          $data      a JSON string with the data to use
+	 *
+	 * @return T
+	 *
+	 * @throws UnableToHydrateObject
+	 */
+	public static function hydrateString(
+		string $className,
+		string $data,
+		?DefinitionProvider $definitionProvider=null
+	): object {
+		try {
+			$json = json_decode($data, true);
+			Type\dict(Type\string(), Type\mixed())->assert($json);
+		} catch (Exception $e) {
+			throw UnableToHydrateObject::dueToError($className, $e);
+		}
+		return self::hydrate($className, $json, $definitionProvider);
 	}
 
 	/**
@@ -195,7 +224,7 @@ class Hydrator {
 	 *
 	 * @param object $object The object to serialize
 	 *
-	 * @return mixed An associative array with the serialized data
+	 * @return array<array-key,mixed> An associative array with the serialized data
 	 */
 	public static function serialize(
 		object $object,
@@ -210,14 +239,20 @@ class Hydrator {
 				try {
 					/** @var ObjectMapper */
 					$hydrator = new $hydratorClass();
-					return $hydrator->serializeObject($object);
+
+					/** @var mixed[] */
+					$json = $hydrator->serializeObject($object);
+					return $json;
 				} catch (Throwable) {
 					self::$badSerializers[$className] = true;
 				}
 			}
 		}
 		$mapper = new ObjectMapperUsingReflection($definitionProvider);
-		return $mapper->serializeObject($object);
+
+		/** @var mixed[] */
+		$json = $mapper->serializeObject($object);
+		return $json;
 	}
 
 	/**

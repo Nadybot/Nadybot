@@ -4,7 +4,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use function Amp\{async, delay};
 use function Amp\Future\await;
-use function Safe\{array_flip, json_decode, json_encode};
+use function Safe\{array_flip, json_encode};
 
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\{HttpClientBuilder, HttpException};
@@ -12,6 +12,7 @@ use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Rfc6455Connector, WebsocketConnectException, WebsocketConnection, WebsocketHandshake};
 use Amp\Websocket\{WebsocketCloseCode, WebsocketClosedException, WebsocketCount};
+use AssertionError;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Illuminate\Support\ItemNotFoundException;
 use Nadybot\Core\{
@@ -72,11 +73,11 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 };
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
+use Psl\Type;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionClassConstant;
 use Revolt\EventLoop;
-use Safe\Exceptions\JsonException;
 use Throwable;
 
 /**
@@ -340,18 +341,8 @@ class DiscordGatewayController extends ModuleInstance {
 	public function processWebsocketMessage(string $message): void {
 		$this->logger->debug('Received discord message', ['message' => $message]);
 		try {
-			if ($message === '') {
-				throw new JsonException('null message received.');
-			}
-
-			$data = json_decode($message, true);
-			if (!is_array($data)) {
-				throw new JsonException('Wrong format');
-			}
-
-			/** @var array<string,mixed> $data */
-			$payload = Hydrator::hydrate(Payload::class, $data);
-		} catch (JsonException | UnableToHydrateObject $e) {
+			$payload = Hydrator::hydrateString(Payload::class, $message);
+		} catch (UnableToHydrateObject $e) {
 			$this->logger->error('Invalid JSON data received from Discord: {error}', [
 				'error' => $e->getMessage(),
 				'data' => $message,
@@ -460,9 +451,18 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,mixed> */
 		$data = $event->payload->d;
-		$chunk = Hydrator::hydrate(GuildMemberChunk::class, $data);
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($data);
+			$chunk = Hydrator::hydrate(GuildMemberChunk::class, $data);
+		} catch (AssertionError | UnableToHydrateObject $e) {
+			$this->logger->error('Invalid guild members chunk received from Discord: {error}', [
+				'error' => $e->getMessage(),
+				'data' => $data,
+				'exception' => $e,
+			]);
+			return;
+		}
 		$this->logger->debug('Processing incoming discord members chunk {chunk}', [
 			'chunk' => $chunk,
 		]);
@@ -494,9 +494,18 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,mixed> */
 		$data = $event->payload->d;
-		$message = Hydrator::hydrate(DiscordMessageIn::class, $data);
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($data);
+			$message = Hydrator::hydrate(DiscordMessageIn::class, $data);
+		} catch (AssertionError | UnableToHydrateObject $e) {
+			$this->logger->error('Invalid message data received from Discord: {error}', [
+				'error' => $e->getMessage(),
+				'data' => $data,
+				'exception' => $e,
+			]);
+			return;
+		}
 
 		$this->logger->info('Processing incoming discord message {message}', [
 			'message' => $message,
@@ -650,9 +659,18 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,mixed> */
 		$data = $event->payload->d;
-		$guild = Hydrator::hydrate(Guild::class, $data);
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($data);
+			$guild = Hydrator::hydrate(Guild::class, $data);
+		} catch (AssertionError | UnableToHydrateObject $e) {
+			$this->logger->error('Invalid guild data received from Discord: {error}', [
+				'error' => $e->getMessage(),
+				'data' => $data,
+				'exception' => $e,
+			]);
+			return;
+		}
 
 		$this->logger->info('Received {event} for {guild}', [
 			'event' => $event->payload->t,
@@ -734,9 +752,18 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,mixed> */
 		$data = $event->payload->d;
-		$channel = Hydrator::hydrate(DiscordChannel::class, $data);
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($data);
+			$channel = Hydrator::hydrate(DiscordChannel::class, $data);
+		} catch (AssertionError | UnableToHydrateObject $e) {
+			$this->logger->error('Invalid discord channel data received from Discord: {error}', [
+				'error' => $e->getMessage(),
+				'data' => $data,
+				'exception' => $e,
+			]);
+			return;
+		}
 
 		$this->logger->info('Received {event} for {channel}', [
 			'event' => $event->payload->t,
@@ -815,9 +842,18 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,mixed> */
 		$userData = $payload->d['user'];
-		$user = Hydrator::hydrate(DiscordUser::class, $userData);
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($userData);
+			$user = Hydrator::hydrate(DiscordUser::class, $userData);
+		} catch (AssertionError | UnableToHydrateObject $e) {
+			$this->logger->error('Invalid ready object user data received from Discord: {error}', [
+				'error' => $e->getMessage(),
+				'data' => $userData,
+				'exception' => $e,
+			]);
+			return;
+		}
 
 		/** @var ?string */
 		$sessonId = $payload->d['session_id'] ?? null;
@@ -855,9 +891,18 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,mixed> */
 		$data = $payload->d;
-		$voiceState = Hydrator::hydrate(VoiceState::class, $data);
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($data);
+			$voiceState = Hydrator::hydrate(VoiceState::class, $data);
+		} catch (AssertionError | UnableToHydrateObject $e) {
+			$this->logger->error('Invalid voice state data received from Discord: {error}', [
+				'error' => $e->getMessage(),
+				'data' => $data,
+				'exception' => $e,
+			]);
+			return;
+		}
 		$this->logger->info('Received {event}: {voice_state}', [
 			'event' => 'voice_state_update',
 			'voice_state' => $voiceState,
@@ -1413,9 +1458,18 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,mixed> */
 		$data = $payload->d;
-		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($data);
+			$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
+		} catch (AssertionError | UnableToHydrateObject $e) {
+			$this->logger->error('Invalid event data received from Discord: {error}', [
+				'error' => $e->getMessage(),
+				'data' => $data,
+				'exception' => $e,
+			]);
+			return;
+		}
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -1436,9 +1490,18 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,mixed> */
 		$data = $payload->d;
-		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($data);
+			$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
+		} catch (AssertionError | UnableToHydrateObject $e) {
+			$this->logger->error('Invalid event data received from Discord: {error}', [
+				'error' => $e->getMessage(),
+				'data' => $data,
+				'exception' => $e,
+			]);
+			return;
+		}
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -1462,9 +1525,18 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,mixed> */
 		$data = $payload->d;
-		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($data);
+			$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
+		} catch (AssertionError | UnableToHydrateObject $e) {
+			$this->logger->error('Invalid event data received from Discord: {error}', [
+				'error' => $e->getMessage(),
+				'data' => $data,
+				'exception' => $e,
+			]);
+			return;
+		}
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;
@@ -1482,9 +1554,18 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 
-		/** @var array<string,mixed> */
 		$data = $payload->d;
-		$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($data);
+			$event = Hydrator::hydrate(DiscordScheduledEvent::class, $data);
+		} catch (AssertionError | UnableToHydrateObject $e) {
+			$this->logger->error('Invalid event data received from Discord: {error}', [
+				'error' => $e->getMessage(),
+				'data' => $data,
+				'exception' => $e,
+			]);
+			return;
+		}
 		$guild = $this->guilds[$event->guild_id]??null;
 		if (!isset($guild)) {
 			return;

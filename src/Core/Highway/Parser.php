@@ -3,9 +3,8 @@
 namespace Nadybot\Core\Highway;
 
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
-use Nadybot\Core\{Attributes as NCA, Hydrator, LoggerWrapper, Safe};
 
-use Safe\Exceptions\JsonException;
+use Nadybot\Core\{Attributes as NCA, Hydrator, LoggerWrapper};
 
 /** This is a class to parse highway packages into PHP classes */
 class Parser {
@@ -34,13 +33,7 @@ class Parser {
 	public static function parseHighwayPackage(string $data): In\InPackage {
 		self::$logger->debug('Parsing {data}', ['data' => $data]);
 		try {
-			$json = Safe::jsonDecodeArr($data);
-		} catch (JsonException $e) {
-			throw new ParserJsonException($e->getMessage(), $e->getCode(), $e);
-		}
-
-		try {
-			$baseInfo = Hydrator::hydrate(In\InPackage::class, $json);
+			$baseInfo = Hydrator::hydrateString(In\InPackage::class, $data);
 		} catch (UnableToHydrateObject $e) {
 			throw new ParserHighwayException($e->getMessage(), $e->getCode(), $e);
 		}
@@ -59,7 +52,7 @@ class Parser {
 		}
 
 		try {
-			$package = Hydrator::hydrate($targetClass, $json);
+			$package = Hydrator::hydrateString($targetClass, $data);
 		} catch (UnableToHydrateObject $e) {
 			throw new ParserHighwayException($e->getMessage(), $e->getCode(), $e);
 		}

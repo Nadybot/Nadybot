@@ -29,6 +29,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	OnlineList,
 	OnlineListRequest,
 };
+use Psl\Type;
+use Psl\Type\Exception\AssertException;
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use stdClass;
@@ -92,12 +94,12 @@ class Tyrbot implements RelayProtocolInterface {
 		]);
 		$serialized = array_shift($message->packages);
 		try {
-			/** @var array<string,mixed> */
 			$data = json_decode($serialized, true, 10, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
+			Type\dict(Type\string(), Type\mixed())->assert($data);
 
 			$identify = Hydrator::hydrate(BasePacket::class, $data);
 			return $this->decodeAndHandlePacket($message->sender, $identify, $data);
-		} catch (JsonException $e) {
+		} catch (AssertException | JsonException $e) {
 			$this->logger->error('Invalid data received via Tyrbot protocol: {data}', [
 				'data' => $serialized,
 				'exception' => $e,

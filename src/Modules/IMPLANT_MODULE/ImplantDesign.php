@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 
 use Nadybot\Core\Attributes\DB\{MapRead, MapWrite, PK, Shared, Table};
 use Nadybot\Core\{DBTable, Hydrator};
@@ -28,9 +28,7 @@ class ImplantDesign extends DBTable {
 			return null;
 		}
 
-		/** @var array<string,mixed> */
-		$json = json_decode($design, true);
-		return Hydrator::hydrate(ImplantConfig::class, $json);
+		return Hydrator::hydrateString(ImplantConfig::class, $design);
 	}
 
 	public static function encodeDesign(?ImplantConfig $design): ?string {
@@ -38,7 +36,6 @@ class ImplantDesign extends DBTable {
 			return null;
 		}
 
-		/** @var array<string,mixed> */
 		$mapped = Hydrator::serialize($design);
 		foreach ($mapped as $key => $value) {
 			if ($value === null) {

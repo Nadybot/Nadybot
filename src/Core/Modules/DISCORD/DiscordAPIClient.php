@@ -72,9 +72,7 @@ class DiscordAPIClient extends ModuleInstance {
 	public function getGateway(): DiscordGateway {
 		$body = $this->sendRequest(new Request(self::DISCORD_API . '/gateway/bot'));
 
-		/** @var array<string,mixed> */
-		$json = json_decode($body, true);
-		return Hydrator::hydrate(DiscordGateway::class, $json);
+		return Hydrator::hydrateString(DiscordGateway::class, $body);
 	}
 
 	public function modifyGuildMember(string $guildId, string $userId, string $data): stdClass {
@@ -202,9 +200,7 @@ class DiscordAPIClient extends ModuleInstance {
 		));
 		$json = $this->sendRequest($request);
 
-		/** @var array<string,mixed> */
-		$body = json_decode($json, true);
-		$channel = Hydrator::hydrate(DiscordChannel::class, $body);
+		$channel = Hydrator::hydrateString(DiscordChannel::class, $json);
 		$this->queueToChannel($channel->id, $message);
 	}
 
@@ -219,9 +215,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$request = new Request(self::DISCORD_API . "/channels/{$channelId}");
 		$json = $this->sendRequest($request);
 
-		/** @var array<string,mixed> */
-		$body = json_decode($json, true);
-		return Hydrator::hydrate(DiscordChannel::class, $body);
+		return Hydrator::hydrateString(DiscordChannel::class, $json);
 	}
 
 	public function getUser(string $userId): DiscordUser {
@@ -237,9 +231,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$request = new Request(self::DISCORD_API . "/users/{$userId}");
 		$json = $this->sendRequest($request);
 
-		/** @var array<string,mixed> */
-		$body = json_decode($json, true);
-		$user = Hydrator::hydrate(DiscordUser::class, $body);
+		$user = Hydrator::hydrateString(DiscordUser::class, $json);
 		$this->cacheUser($user);
 		return $user;
 	}
@@ -265,9 +257,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/members/{$userId}");
 		$json = $this->sendRequest($request);
 
-		/** @var array<string,mixed> */
-		$body = json_decode($json, true);
-		$member = Hydrator::hydrate(GuildMember::class, $body);
+		$member = Hydrator::hydrateString(GuildMember::class, $json);
 		$this->cacheGuildMember($guildId, $member);
 		return $member;
 	}
@@ -286,9 +276,7 @@ class DiscordAPIClient extends ModuleInstance {
 
 		$json = $this->sendRequest($request);
 
-		/** @var array<string,mixed> */
-		$body = json_decode($json, true);
-		return Hydrator::hydrate(DiscordChannelInvite::class, $body);
+		return Hydrator::hydrateString(DiscordChannelInvite::class, $json);
 	}
 
 	/**
@@ -342,9 +330,8 @@ class DiscordAPIClient extends ModuleInstance {
 			'application/json; charset=utf-8'
 		));
 
-		/** @var array<string,mixed> */
-		$json = json_decode($this->sendRequest($request), true);
-		return Hydrator::hydrate(Emoji::class, $json);
+		$json = $this->sendRequest($request);
+		return Hydrator::hydrateString(Emoji::class, $json);
 	}
 
 	/** Change the data for an already existing Emoji */
@@ -362,9 +349,7 @@ class DiscordAPIClient extends ModuleInstance {
 			'application/json; charset=utf-8'
 		));
 
-		/** @var array<string,mixed> */
-		$json = json_decode($this->sendRequest($request), true);
-		return Hydrator::hydrate(Emoji::class, $json);
+		return Hydrator::hydrateString(Emoji::class, $this->sendRequest($request));
 	}
 
 	/** Delete an already existing emoji */

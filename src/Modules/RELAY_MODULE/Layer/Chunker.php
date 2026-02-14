@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -85,10 +85,7 @@ class Chunker implements RelayLayerInterface {
 	public function receive(RelayMessage $msg): RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
-				/** @var array<string,mixed> */
-				$json = json_decode($data, true);
-
-				$chunk = Hydrator::hydrate(Chunk::class, $json);
+				$chunk = Hydrator::hydrateString(Chunk::class, $data);
 			} catch (Throwable) {
 				// Chunking is optional
 				continue;

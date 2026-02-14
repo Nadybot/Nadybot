@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\AI_MODULE;
 
-use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Exception;
 use Nadybot\Core\{Attributes as NCA, Hydrator, Text};
@@ -62,10 +61,7 @@ class AiModelSettingHandler extends SettingHandler {
 		}
 		$body = $response->getBody()->buffer();
 		try {
-			$reply = json_decode($body, true);
-
-			/** @psalm-suppress MixedArgument */
-			$modelList = Hydrator::hydrate(Models\ModelList::class, $reply);
+			$modelList = Hydrator::hydrateString(Models\ModelList::class, $body);
 		} catch (Throwable $e) {
 			$this->logger->error('Error decoding model list from API. Body: {body}', [
 				'body' => $body,

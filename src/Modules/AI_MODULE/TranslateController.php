@@ -28,7 +28,6 @@ use Nadybot\Core\Events\{ConnectEvent, RecvMsgEvent};
 use Nadybot\Core\Exceptions\StopExecutionException;
 use Nadybot\Core\Types\SettingMode;
 use Psr\Log\LoggerInterface;
-use Safe\Exceptions\JsonException;
 
 #[
 	NCA\Instance,
@@ -202,11 +201,8 @@ class TranslateController extends ModuleInstance {
 			return null;
 		}
 		try {
-			$rawLanguages = json_decode($body, true);
-
-			/** @psalm-suppress MixedArgument: */
-			return Hydrator::hydrate(Models\LanguageList::class, $rawLanguages);
-		} catch (JsonException | UnableToHydrateObject) {
+			return Hydrator::hydrateString(Models\LanguageList::class, $body);
+		} catch (UnableToHydrateObject) {
 			return null;
 		}
 	}
@@ -266,12 +262,9 @@ class TranslateController extends ModuleInstance {
 				'body' => $body,
 			]);
 			try {
-				$rawBody = json_decode($body, true);
-
-				/** @psalm-suppress MixedArgument */
-				$error = Hydrator::hydrate(Models\TranslateError::class, $rawBody);
+				$error = Hydrator::hydrateString(Models\TranslateError::class, $body);
 				return $error->error;
-			} catch (JsonException | UnableToHydrateObject) {
+			} catch (UnableToHydrateObject) {
 				return 'An error occurred during translation. Please check your logs for details.';
 			}
 		}
@@ -281,12 +274,15 @@ class TranslateController extends ModuleInstance {
 			return 'An error occurred during translation. Please check your logs for details.';
 		}
 
-		/**
-		 * @psalm-suppress MixedArgumentTypeCoercion
-		 *
-		 * @mago-ignore analysis:less-specific-argument
-		 */
-		$translation = Hydrator::hydrate(Models\Translation::class, $rawTranslation);
+		try {
+			$translation = Hydrator::hydrateString(Models\Translation::class, $body);
+		} catch (UnableToHydrateObject $e) {
+			$this->logger->error('Unexpected response format from translation API: {body}', [
+				'body' => $body,
+				'exception' => $e,
+			]);
+			return 'An error occurred during translation. Please check your logs for details.';
+		}
 		return $translation->translated_text;
 	}
 }

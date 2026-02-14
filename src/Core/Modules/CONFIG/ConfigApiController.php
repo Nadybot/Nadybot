@@ -31,6 +31,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\WebChatConverter,
 	WEBSERVER_MODULE\WebserverController,
 };
+use Psl\Type;
 use stdClass;
 use Throwable;
 
@@ -505,11 +506,7 @@ class ConfigApiController extends ModuleInstance {
 	public function apiConfigPermissionSetCreateEndpoint(Request $request): Response {
 		$set = $request->getAttribute(WebserverController::BODY);
 		try {
-			if (!is_array($set)) {
-				throw new Exception('Wrong content body');
-			}
-
-			/** @var array<string,mixed> $set */
+			Type\dict(Type\string(), Type\mixed())->assert($set);
 
 			$permSet = Hydrator::hydrate(CmdPermissionSet::class, $set);
 		} catch (Throwable) {
@@ -543,11 +540,8 @@ class ConfigApiController extends ModuleInstance {
 	public function apiConfigPermissionSetPatchEndpoint(Request $request, string $name): Response {
 		$set = $request->getAttribute(WebserverController::BODY);
 		try {
-			if (!is_array($set)) {
-				throw new Exception('Wrong content body');
-			}
+			Type\dict(Type\string(), Type\mixed())->assert($set);
 
-			/** @var array<string,mixed> $set */
 			$old = $this->commandManager->getPermissionSet($name);
 			if (!isset($old)) {
 				return new Response(HttpStatus::NOT_FOUND);
@@ -729,11 +723,8 @@ class ConfigApiController extends ModuleInstance {
 		}
 		$body = $request->getAttribute(WebserverController::BODY);
 		try {
-			if (!is_array($body)) {
-				throw new Exception('Wrong content body');
-			}
+			Type\dict(Type\string(), Type\mixed())->assert($body);
 
-			/** @var array<string,mixed> $body */
 			$body['source'] = $source;
 
 			$mapping = Hydrator::hydrate(CmdSourceMapping::class, $body);
@@ -762,11 +753,7 @@ class ConfigApiController extends ModuleInstance {
 		}
 		$body = $request->getAttribute(WebserverController::BODY);
 		try {
-			if (!is_array($body)) {
-				throw new Exception('Wrong content body');
-			}
-
-			/** @var array<string,mixed> $body */
+			Type\dict(Type\string(), Type\mixed())->assert($body);
 
 			$body['source'] = strtolower($source);
 			$body['sub_source'] = null;
@@ -797,11 +784,7 @@ class ConfigApiController extends ModuleInstance {
 		}
 		$body = $request->getAttribute(WebserverController::BODY);
 		try {
-			if (!is_array($body)) {
-				throw new Exception('Wrong content body');
-			}
-
-			/** @var array<string,mixed> $body */
+			Type\dict(Type\string(), Type\mixed())->assert($body);
 
 			$body['source'] = strtolower($source);
 			$body['sub_source'] = strtolower($subSource);

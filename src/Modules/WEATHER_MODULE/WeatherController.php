@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 };
+use Psl\Type;
 use Safe\Exceptions\JsonException;
 
 /**
@@ -316,17 +317,19 @@ class WeatherController extends ModuleInstance {
 				$e
 			);
 		}
-		if (!is_array($data)) {
+		try {
+			Type\vec(Type\dict(Type\string(), Type\mixed()))->assert($data);
+		} catch (\Exception $e) {
 			throw new UserException(
 				'Invalid answer received from Location provider: '.
-				'<highlight>' . json_encode($data) . '<end>.'
+				'<highlight>' . json_encode($data) . '<end>.',
+				previous: $e,
 			);
 		}
 		if (!count($data)) {
 			throw new UserException('Location not found');
 		}
 
-		/** @var array{0:array<string,mixed>} $data */
 		$nominatim = Hydrator::hydrate(Nominatim::class, $data[0]);
 		return $nominatim;
 	}

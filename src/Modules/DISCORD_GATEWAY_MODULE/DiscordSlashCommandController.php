@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use AssertionError;
+use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Remove,
@@ -35,6 +37,7 @@ use Nadybot\Core\Modules\DISCORD\{
 	DiscordException
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Interaction;
+use Psl\Type;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -342,9 +345,18 @@ class DiscordSlashCommandController extends ModuleInstance {
 		}
 		$this->logger->info('Received interaction on Discord');
 
-		/** @var array<string,mixed> */
 		$data = $payload->d;
-		$interaction = Hydrator::hydrate(Interaction::class, $data);
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($data);
+			$interaction = Hydrator::hydrate(Interaction::class, $data);
+		} catch (AssertionError | UnableToHydrateObject $e) {
+			$this->logger->error('Invalid interaction data received from Discord: {error}', [
+				'error' => $e->getMessage(),
+				'data' => $data,
+				'exception' => $e,
+			]);
+			return;
+		}
 		$this->logger->debug('Interaction decoded', [
 			'interaction' => $interaction,
 		]);
