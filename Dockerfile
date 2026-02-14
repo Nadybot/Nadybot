@@ -32,6 +32,8 @@ RUN apk --no-cache add \
     php82-opcache \
     php82-fileinfo \
     php82-tokenizer \
+    php82-intl \
+    php82-sodium \
     tini \
     jemalloc \
     libuv \

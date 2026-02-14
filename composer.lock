@@ -9078,6 +9078,6 @@
         "ext-reflection": "*",
         "ext-dom": "*"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }

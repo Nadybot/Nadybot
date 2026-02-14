@@ -483,6 +483,8 @@ class BotRunner {
 			'sockets',
 			'fileinfo',
 			'tokenizer',
+			'sodium',
+			'intl',
 		];
 		if (!self::isWindows()) {
 			$requiredModules []= 'pcntl';
