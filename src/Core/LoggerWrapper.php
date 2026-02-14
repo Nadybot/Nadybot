@@ -277,6 +277,7 @@ class LoggerWrapper implements LoggerInterface {
 
 				/** @phpstan-var 100|200|250|300|400|500|550|600 $logLevel */
 			}
+			// @phpstan-ignore-next-line
 			$this->logger->log($logLevel, $message, $context);
 		} catch (Exception $e) {
 			if (static::$errorGiven === true) {

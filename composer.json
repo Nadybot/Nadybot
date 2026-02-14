@@ -16,6 +16,12 @@
 		}
 	],
 
+	"repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/Nadyita/psl"
+		}
+        ],
 	"require": {
 		"php": ">=8.1.17",
 		"ext-sqlite3": "*",
@@ -64,7 +70,7 @@
 		"amphp/http-server-router": "^2.0",
 		"psr/simple-cache": "^3.0",
 		"league/commonmark": "^2.8",
-		"azjezz/psl": "^2.9"
+		"azjezz/psl": "2.9.x-dev"
 	},
 	"autoload": {
 		"psr-4": {
@@ -88,7 +94,7 @@
 		"composer-phar/php-cs-fixer": "^3.88.2",
 		"vimeo/psalm": "^6",
 		"thecodingmachine/phpstan-safe-rule": "^1.4",
-		"struggle-for-php/sfp-phpstan-psr-log": "^0.23.0",
+		"struggle-for-php/sfp-phpstan-psr-log": "^1.0.0",
 		"phpstan/phpstan-strict-rules": "^2.0",
 		"shipmonk/phpstan-rules": "^2|^3|^4",
 		"php-standard-library/phpstan-extension": "^2.0",
