@@ -100,14 +100,17 @@ jobs:
         uses: shivammathur/setup-php@v2
         if: ${{ matrix.php == 'auto' }}
         with:
-          # TODO: Do we really want 8.1?
-          php-version: '8.1'
+          php-version: '8.2'
           coverage: none
-          extensions: bcmath, json, mbstring, sqlite3, sockets, pdo_sqlite, pdo_mysql, openssl, intl, sodium, fileinfo, yaml ${{ (matrix.libuv == 'uv') && ', uv' || '' }}
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, openssl, intl, sodium, fileinfo, yaml ${{ (matrix.libuv == 'uv') && ', uv' || '' }}
 
       - name: Print PHP version
         run: |
           php --version
+
+      - name: Print PHP modules
+        run: |
+          php -m
 
       - name: Install dependencies with composer
         run: |
