@@ -29,8 +29,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	OnlineList,
 	OnlineListRequest,
 };
-use Psl\Type;
-use Psl\Type\Exception\AssertException;
+use Nadylib\Type;
+use Nadylib\Type\Exception\AssertException;
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use stdClass;

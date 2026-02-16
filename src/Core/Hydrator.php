@@ -15,7 +15,7 @@ use EventSauce\ObjectHydrator\{
 };
 use Exception;
 use Nadybot\Core\Config\BotConfig;
-use Psl\Type;
+use Nadylib\Type;
 
 use Throwable;
 

@@ -31,7 +31,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\WebChatConverter,
 	WEBSERVER_MODULE\WebserverController,
 };
-use Psl\Type;
+use Nadylib\Type;
 use stdClass;
 use Throwable;
 

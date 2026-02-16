@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations;
 
+use function Safe\unserialize;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Collection,

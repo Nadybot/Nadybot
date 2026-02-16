@@ -16,7 +16,7 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 };
-use Psl\Type;
+use Nadylib\Type;
 use Safe\Exceptions\JsonException;
 
 /**

@@ -17,7 +17,7 @@ use Nadybot\Core\Exceptions\UserException;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Types\AccessLevel;
 use Nadybot\Modules\AI_MODULE\Models\Role;
-use Psl\Type\Exception\AssertException;
+use Nadylib\Type\Exception\AssertException;
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use Throwable;

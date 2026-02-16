@@ -16,12 +16,6 @@
 		}
 	],
 
-	"repositories": [
-		{
-			"type": "vcs",
-			"url": "https://github.com/Nadyita/psl"
-		}
-        ],
 	"require": {
 		"php": ">=8.1.17",
 		"ext-sqlite3": "*",
@@ -70,7 +64,7 @@
 		"amphp/http-server-router": "^2.0",
 		"psr/simple-cache": "^3.0",
 		"league/commonmark": "^2.8",
-		"azjezz/psl": "2.9.x-dev"
+		"nadylib/type": "^0.1.0"
 	},
 	"autoload": {
 		"psr-4": {

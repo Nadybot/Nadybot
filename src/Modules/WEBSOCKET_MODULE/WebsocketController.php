@@ -23,8 +23,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	CommandReplyEvent,
 	WebserverController,
 };
-use Nadylib\IMEX;
-use Psl\Type;
+use Nadylib\{IMEX, Type};
 use Psr\Log\LoggerInterface;
 use Throwable;
 use TypeError;
